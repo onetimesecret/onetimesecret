@@ -2,18 +2,8 @@
 #
 # frozen_string_literal: true
 
-# Records registered before canonical_display_domain_index existed, and what
-# the canonical index backfill changes for them.
-#
-# create! refuses a name when its pre-check (load_by_display_domain) finds an
-# existing record. That lookup tries the name as given, its A-label, and its
-# NFC Unicode form against display_domain_index, then the canonical index. A
-# record written before the canonical index existed is only in
-# display_domain_index, under its stored spelling, so the pre-check finds it
-# when that spelling is one of the derived keys: the A-label, the NFC form, or
-# plain ASCII. Stored in any other spelling of the same DNS name (decomposed,
-# fullwidth, mixed A-label and Unicode labels), it is found only once the
-# backfill has entered it into the canonical index.
+# Legacy custom domain records without a canonical entry, in several stored
+# spellings, and what the canonical index backfill changes for them.
 #
 # Each fixture is written with raw commands, the way such a record sits in the
 # datastore: a JSON-encoded hash, its display_domain_index entry, an instances
@@ -37,7 +27,6 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
   let(:other_org) { Onetime::Organization.new(display_name: "Second org #{suffix}").tap(&:save) }
   let(:legacy_ids) { [] }
   let(:created) { [] }
-  let(:claimed_names) { [] }
 
   after do
     created.each do |rec|
@@ -46,7 +35,6 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
       warn "[legacy_canonical_backfill_spec cleanup] #{ex.class}: #{ex.message}"
     end
     legacy_ids.each { |id, name| remove_legacy_custom_domain(id, name) }
-    claimed_names.each { |name| index.remove_field(name) }
     [holder_org, other_org].each do |org|
       org.destroy! if org.exists?
     rescue StandardError => ex
@@ -70,7 +58,7 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
     described_class.create!(name, org.objid).tap { |rec| created << rec }
   end
 
-  # The same DNS name as nfc_name, in spellings the pre-check does not derive.
+  # The same DNS name as nfc_name, in other stored spellings.
   def spellings
     {
       'decomposed (NFD)' => "bu\u0308cher-#{suffix}.com",
@@ -78,7 +66,7 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
     }
   end
 
-  describe 'a legacy record in a spelling the pre-check does not derive' do
+  describe 'a legacy record without a canonical entry' do
     it 'shares the A-label of the NFC spelling (fixture sanity)' do
       keys = spellings.values.map { |name| described_class.canonical_display_domain(name) }
 
@@ -97,22 +85,15 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
       'fullwidth',
     ].each do |label|
       context "when stored #{label}" do
-        it 'admits a second record for the A-label from another organization while no backfill has run' do
+        it 'has no canonical entry before the backfill, and is found by its stored name' do
           stored = spellings.fetch(label)
           legacy = write_legacy_record(stored, org_id: holder_org.objid)
 
-          second = register(a_label, other_org)
-          claimed_names << a_label
-
-          observed = [
-            second.identifier == legacy,
-            described_class.from_display_domain(a_label)&.identifier == second.identifier,
-            described_class.load_by_display_domain(stored)&.identifier == legacy,
-          ]
-          expect(observed).to eq([false, true, true])
+          expect(index.get(a_label)).to be_nil
+          expect(described_class.load_by_display_domain(stored)&.identifier).to eq(legacy)
         end
 
-        it 'refuses the A-label from another organization after the backfill' do
+        it 'is refused for the A-label after the backfill' do
           legacy = write_legacy_record(spellings.fetch(label), org_id: holder_org.objid)
 
           run_backfill
@@ -122,7 +103,7 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
           expect(index.get(a_label)).to eq(legacy)
         end
 
-        it 'refuses the NFC spelling from another organization after the backfill' do
+        it 'is refused for the NFC spelling after the backfill' do
           write_legacy_record(spellings.fetch(label), org_id: holder_org.objid)
 
           run_backfill
@@ -137,16 +118,14 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
       let(:mixed) { "xn--bcher-kva.bücher-#{suffix}.com" }
       let(:full_a_label) { described_class.canonical_display_domain(mixed) }
 
-      it 'admits a second record for the full A-label from another organization while no backfill has run' do
+      it 'has no canonical entry before the backfill, and is found by its stored name' do
         legacy = write_legacy_record(mixed, org_id: holder_org.objid)
 
-        second = register(full_a_label, other_org)
-        claimed_names << full_a_label
-
-        expect([full_a_label.ascii_only?, second.identifier == legacy]).to eq([true, false])
+        expect(index.get(full_a_label)).to be_nil
+        expect(described_class.load_by_display_domain(mixed)&.identifier).to eq(legacy)
       end
 
-      it 'refuses the full A-label from another organization after the backfill' do
+      it 'is refused for the full A-label after the backfill' do
         legacy = write_legacy_record(mixed, org_id: holder_org.objid)
 
         run_backfill
@@ -158,9 +137,7 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
     end
   end
 
-  # Controls: these spellings are among the pre-check's derived keys, so the
-  # existing record is found without a canonical entry.
-  describe 'a legacy record stored in a spelling the pre-check derives' do
+  describe 'a legacy record stored as its NFC or A-label spelling' do
     it 'refuses the A-label against a legacy NFC record without the backfill' do
       write_legacy_record(nfc_name, org_id: holder_org.objid)
 

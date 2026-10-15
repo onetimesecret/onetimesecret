@@ -79,6 +79,20 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
     result.entries.select { |entry| keys.include?(entry.canonical) }.to_h { |entry| [entry.canonical, entry.category] }
   end
 
+  # Stands in for the canonical index, overriding the given methods; the
+  # rest reach the real index.
+  def with_index(overrides)
+    real    = index
+    wrapper = Class.new(SimpleDelegator) do
+      overrides.each { |method, body| define_method(method) { |*args| body.call(__getobj__, *args) } }
+    end.new(real)
+    allow(model).to receive(:canonical_display_domain_index).and_return(wrapper)
+  end
+
+  def outcome_for(result, id)
+    result.actions.find { |a| a.domain_id == id }&.outcome
+  end
+
   # A crafted A-label whose decoded Unicode NFC-normalises to the same name as
   # bücher-#{sfx}: punycode of the decomposed spelling. It is a different DNS
   # name and must stay keyed under itself.
@@ -95,7 +109,8 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
     legacy!(:a_label, canonical("alabel-ö-#{sfx}.com"))
     legacy!(:crafted, crafted_a_label)
     legacy!(:orphan, "orphan-é-#{sfx}.com", org: nil)
-    # Two records for one DNS name, in two spellings.
+    # Two records for one DNS name in two organizations: one stored as NFC
+    # Unicode, one as the A-label.
     legacy!(:pair_unicode, "pair-ü-#{sfx}.com")
     legacy!(:pair_a_label, canonical("pair-ü-#{sfx}.com"), org: org_b)
     # The entry for its own name names a record that no longer exists.
@@ -158,6 +173,14 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
       expect(group.map(&:domain_id)).to contain_exactly(id_of(:pair_unicode), id_of(:pair_a_label))
     end
 
+    # The runbook removes collision records with `bin/ots domains remove <extid>`.
+    it 'names each collision record by an extid that resolves to it' do
+      group = audit.collision_groups.fetch(canonical("pair-ü-#{sfx}.com"))
+
+      expect(group.to_h { |row| [row.domain_id, model.find_by_extid(row.extid)&.identifier] })
+        .to eq(group.to_h { |row| [row.domain_id, row.domain_id] })
+    end
+
     it 'keys the crafted A-label under itself, apart from the name it decodes to' do
       row = audit.rows.find { |r| r.domain_id == id_of(:crafted) }
 
@@ -218,7 +241,7 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
         .and_raise(StandardError, 'simulated unreadable legacy record')
     end
 
-    it 'skips every claim, reclaim and release without applying any action' do
+    it 'refuses the apply and leaves every claim, reclaim and release planned' do
       before_index = index.hgetall
       operation    = described_class.new(dry_run: false)
       expect(operation).not_to receive(:apply)
@@ -232,9 +255,8 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
         domain_id: unreadable_id, message: 'StandardError: simulated unreadable legacy record',
       )
       expect(result.actions.map(&:kind).uniq).to contain_exactly(:claim, :reclaim, :release)
-      expect(result.actions).to all(have_attributes(
-        outcome: :skipped, detail: 'incomplete audit: unreadable records block all apply writes',
-      ))
+      expect(result.actions).to all(have_attributes(outcome: :planned, detail: nil))
+      expect([result.refusal, result.applied?]).to eq([:unreadable_records, false])
       expect([result.changes, result.failures, result.attention?]).to eq([[], [], true])
       expect(index.hgetall).to eq(before_index)
       expect(index.get(canonical("pair-ü-#{sfx}.com"))).to be_nil
@@ -251,7 +273,7 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
 
       expect(result.actions.map(&:kind).uniq).to contain_exactly(:claim, :reclaim, :release)
       expect(result.actions).to all(have_attributes(outcome: :planned))
-      expect(result.changes).to eq(result.actions)
+      expect([result.refusal, result.changes]).to eq([nil, result.actions])
       expect(result.audit.errors.map(&:domain_id)).to include(unreadable_id)
       expect(result.attention?).to be(true)
       expect(index.hgetall).to eq(before_index)
@@ -309,6 +331,12 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
       expect(model.find_by_identifier(id_of(:nfd)).display_domain).to eq("bu\u0308cher-#{sfx}.com")
     end
 
+    it 'reports the state after the writes' do
+      after = expected_categories.transform_values { |category| [:missing, :stale].include?(category) ? :ok : category }
+
+      expect(categories(result.final_audit, fixture_ids)).to eq(after)
+    end
+
     it 'reports the writes it made and still asks for an operator' do
       mine = result.changes.select { |a| fixture_ids.include?(a.domain_id) || unmatched_keys.include?(a.canonical) }
 
@@ -335,18 +363,6 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
 
     before { legacy!(:race, race_name) }
 
-    def with_index(overrides)
-      real    = index
-      wrapper = Class.new(SimpleDelegator) do
-        overrides.each { |method, body| define_method(method) { |*args| body.call(__getobj__, *args) } }
-      end.new(real)
-      allow(model).to receive(:canonical_display_domain_index).and_return(wrapper)
-    end
-
-    def outcome_for(result, id)
-      result.actions.find { |a| a.domain_id == id }&.outcome
-    end
-
     it 'reports :refused when another record holds the name by the time it claims' do
       with_index(claim_field: ->(_real, _field, _val) { "someone-#{sfx}" })
 
@@ -361,6 +377,70 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
       result = described_class.new(dry_run: false).call
 
       expect([outcome_for(result, id_of(:race)), index.get(canonical(race_name))]).to eq([:unverified, nil])
+    end
+
+    # The audit after the writes decides, whatever the action reported.
+    it 'asks for an operator when a skipped claim leaves the record missing' do
+      op = described_class.new(dry_run: false)
+      allow(op).to receive(:record_exists?).and_wrap_original { |original, id| id == id_of(:race) ? false : original.call(id) }
+
+      result = op.call
+      row    = result.final_audit.rows.find { |r| r.domain_id == id_of(:race) }
+
+      expect([outcome_for(result, id_of(:race)), row.category, result.attention?]).to eq([:skipped, :missing, true])
+    end
+  end
+
+  describe 'an apply where a write raises' do
+    let(:failing_name) { "raise-ü-#{sfx}.com" }
+    let(:other_name) { "after-ü-#{sfx}.com" }
+
+    before do
+      legacy!(:failing, failing_name)
+      legacy!(:other, other_name)
+    end
+
+    it 'records the error as that action outcome and applies the other actions' do
+      failing = canonical(failing_name)
+      with_index(
+        claim_field: lambda { |real, field, val|
+          raise Redis::TimeoutError, 'timed out' if field == failing
+
+          real.claim_field(field, val)
+        },
+      )
+
+      result = described_class.new(dry_run: false).call
+      error  = result.actions.find { |a| a.domain_id == id_of(:failing) }
+
+      expect([error.outcome, error.detail, outcome_for(result, id_of(:other)), index.get(canonical(other_name)), result.attention?])
+        .to eq([:error, 'Redis::TimeoutError: timed out', :claimed, id_of(:other), true])
+    end
+  end
+
+  # A Familia 2.9.x index entry: the identifier stored JSON-quoted.
+  describe 'an entry holding a JSON-quoted identifier' do
+    let(:name) { "quoted-ü-#{sfx}.com" }
+
+    def put_quoted_entry(key, holder)
+      model.dbclient.hset(index.dbkey, key, Familia::JsonSerializer.dump(holder))
+      entries_written << [key, holder]
+    end
+
+    it 'counts an entry naming the record itself as ok' do
+      put_quoted_entry(canonical(name), legacy!(:quoted_own, name))
+
+      expect(categories(audit, [id_of(:quoted_own)])).to eq(id_of(:quoted_own) => :ok)
+    end
+
+    it 're-claims an entry naming a deleted record and stores the identifier unquoted' do
+      legacy!(:quoted_stale, name)
+      put_quoted_entry(canonical(name), "gone-quoted-#{sfx}")
+
+      result = described_class.new(dry_run: false).call
+
+      expect([outcome_for(result, id_of(:quoted_stale)), model.dbclient.hget(index.dbkey, canonical(name))])
+        .to eq([:claimed, id_of(:quoted_stale)])
     end
   end
 end

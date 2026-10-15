@@ -113,7 +113,10 @@ module Onetime
             identifiers = Onetime::CustomDomain.instances.revrangeraw(offset, offset + batch_size - 1)
 
             # load_multi pipelines the batch fetch; .all would HGETALL every domain.
-            page_domains = Onetime::CustomDomain.load_multi(identifiers).compact
+            # A record with no organization is never served and is left out
+            # (VerifyDomain#verify_single skips it too).
+            loaded       = Onetime::CustomDomain.load_multi(identifiers).compact
+            page_domains = loaded.reject { |domain| no_organization?(domain) }
             warmup       = warmup_domains(
               now,
               page_domains,
@@ -127,7 +130,8 @@ module Onetime
             end
 
             scheduler_logger.info "[DomainRefreshJob] Refreshing #{domains.size} domain(s) " \
-                                  "(page=#{page_domains.size} from offset #{offset}, warmup=#{warmup.size})"
+                                  "(page=#{page_domains.size} from offset #{offset}, warmup=#{warmup.size}, " \
+                                  "skipped without organization=#{loaded.size - page_domains.size})"
 
             result = Onetime::Operations::VerifyDomain.new(
               domains: domains,
@@ -179,7 +183,7 @@ module Onetime
                 picked.concat(
                   Onetime::CustomDomain.load_multi(candidates)
                     .compact
-                    .reject { |d| d.verified && d.resolving }, # boolean_field native
+                    .reject { |d| no_organization?(d) || (d.verified && d.resolving) }, # boolean_field native
                 )
               end
 
@@ -187,6 +191,10 @@ module Onetime
             end
 
             picked.take(limit)
+          end
+
+          def no_organization?(domain)
+            domain.org_id.to_s.empty?
           end
 
           # The page is derived from the clock, so there is no position to

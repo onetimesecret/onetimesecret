@@ -92,6 +92,45 @@ RSpec.describe 'POST /api/domains/add refusals', type: :integration do
     expect(add_domain("taken-#{test_run_id}.example.com")).to eq([422, 'Domain is registered to another organization'])
   end
 
+  # A record with no organization (an orphan) is not handed to whoever adds
+  # its name. The reply is the one for a name another organization holds,
+  # and nothing is written or requested for the name.
+  context 'when the name belongs to an orphaned record' do
+    let(:earlier_owner) do
+      Onetime::Organization.new(display_name: "Earlier Owner #{test_run_id}").tap(&:save)
+    end
+    let(:strategy) { double('DomainValidationStrategy', request_certificate: { status: 'requested' }) }
+    let(:orphan_name) { "orphan-#{test_run_id}.example.com" }
+
+    let!(:orphaned) do
+      rec = Onetime::CustomDomain.create!(orphan_name, earlier_owner.objid)
+      rec.remove_from_organization_domains(earlier_owner)
+      Familia.dbclient.hdel(rec.dbkey, 'org_id')
+      Onetime::CustomDomain.owners.remove(rec.to_s)
+      Onetime::CustomDomain.find_by_identifier(rec.identifier)
+    end
+
+    before do
+      allow(Onetime::DomainValidation::Strategy).to receive(:for_config).and_return(strategy)
+    end
+
+    after do
+      Onetime::CustomDomain.find_by_identifier(orphaned.identifier)&.destroy!
+      earlier_owner.destroy! if earlier_owner.exists?
+    end
+
+    it 'refuses with a 422 and the cross-organization text, and requests no certificate' do
+      stored = Familia.dbclient.hgetall(orphaned.dbkey)
+      allow(Onetime::CustomDomain).to receive(:create!).and_call_original
+
+      expect(add_domain(orphan_name)).to eq([422, 'Domain is registered to another organization'])
+      # Refused by the pre-check, before create! is reached.
+      expect(Onetime::CustomDomain).not_to have_received(:create!)
+      expect(strategy).not_to have_received(:request_certificate)
+      expect([Familia.dbclient.hgetall(orphaned.dbkey) == stored, organization.domain_count]).to eq([true, 0])
+    end
+  end
+
   it 'answers a datastore failure during create! with a 503 and Retry-After, not a form error' do
     failing = Class.new(SimpleDelegator) do
       define_method(:claim_field) { |*| raise Redis::CannotConnectError, 'datastore unreachable' }

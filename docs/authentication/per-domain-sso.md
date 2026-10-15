@@ -155,6 +155,18 @@ still stamp the callback as validated for the domain.
 
 #### Unverified domains
 
+Under a validation strategy that checks ownership (`approximated`,
+`caddy_on_demand`), a custom domain whose ownership is not verified is not
+served at all: every request to its host, including the sign-in page, the SSO
+routes and the SAML ACS URL, answers 404 before any sign-in code runs
+(`CustomDomain#served_as_tenant?`). The tenant sees the domain's state on the
+SSO settings form, described below.
+
+The refusal described next applies where such a host is served: under
+`passthrough`, where registration is the basis for serving but SSO still
+needs a verify call to mark the domain verified, and under any strategy while
+the operator sets `features.domains.serve_unverified`.
+
 When a domain's SSO configuration is enabled and permitted but the domain's
 ownership is not verified yet, the hook refuses SSO at step 5: it logs
 `omniauth_tenant_domain_unverified` at warn level, clears any pending tenant

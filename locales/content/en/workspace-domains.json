@@ -1345,6 +1345,10 @@
     "text": "Some DNS providers display this name as:",
     "content_hash": "b2bcf8d5"
   },
+  "web.domains.dns.keep_txt_record": {
+    "text": "Keep this TXT record in place after the domain is verified. If a later check does not find it, the domain stops being served.",
+    "content_hash": "d31cfdc1"
+  },
   "web.domains.detail.homepage_title": {
     "text": "Homepage Secrets",
     "content_hash": "6360f7ec"

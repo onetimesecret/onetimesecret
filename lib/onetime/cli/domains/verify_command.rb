@@ -24,6 +24,9 @@
 #   bin/ots domains verify --all --unverified --limit=10
 #   bin/ots domains verify --all --orphaned --dry-run
 #
+# A domain with no organization is not checked and nothing is written for
+# it; the results list it as skipped (VerifyDomain#verify_single).
+#
 # The bulk filters and --limit/--rate-limit are rejected without --all rather
 # than ignored (see reject_bulk_only_options!).
 #
@@ -91,7 +94,7 @@ module Onetime
       option :orphaned,
         type: :boolean,
         default: false,
-        desc: 'Bulk filter: orphaned domains only'
+        desc: 'Bulk filter: orphaned domains only (listed as skipped, not checked)'
       option :verified,
         type: :boolean,
         default: false,
@@ -373,6 +376,7 @@ module Onetime
         puts format('  Indeterminate:    %d', result.indeterminate_count)
         puts format('  Demoted:          %d', result.demoted_count)
         puts format('  Expired:          %d', result.confirmation_expired_count)
+        puts format('  Skipped:          %d (no organization)', result.skipped_count)
         puts format('  Duration:         %.2f seconds', result.duration_seconds)
         puts
 
@@ -403,9 +407,14 @@ module Onetime
       # on a domain held verified by an operator override. The third withdraws
       # it: indeterminate for longer than the confirmation window (counted
       # under Expired, and under Indeterminate and Demoted, in the summary).
+      # A domain with no organization is not checked (skipped).
       def format_dns(result)
-        { indeterminate: 'indeterminate', override_held: 'no (override)', confirmation_expired: 'expired' }
-          .fetch(result.dns_outcome) { format_bool(result.dns_validated) }
+        {
+          indeterminate: 'indeterminate',
+          override_held: 'no (override)',
+          confirmation_expired: 'expired',
+          skipped: 'skipped',
+        }.fetch(result.dns_outcome) { format_bool(result.dns_validated) }
       end
 
       def output_state_distribution(result)

@@ -375,6 +375,7 @@ module Onetime
           end
           removed
         end
+        return unless released.positive?
 
         report[:repaired] << {
           action: :display_domain_index_cleaned,
@@ -416,12 +417,14 @@ module Onetime
           issues << {
             check: :canonical_index_unreadable,
             severity: :high,
-            message: "#{audit.errors.size} domain records could not be loaded by the canonical index audit: " \
+            message: "#{audit.errors.size} domain records could not be loaded by the canonical index audit " \
+                     '(backfill-canonical-index --apply writes nothing while they remain): ' \
                      "#{examples.map { |example| "#{example[:domain_objid]}: #{example[:message]}" }.join('; ')}",
             examples: examples,
             total: audit.errors.size,
             repairable: false,
-            repair_action: 'Manually investigate and restore unreadable domain records, then rerun domains doctor --all',
+            repair_action: 'Inspect each with Onetime::CustomDomain.storage_inspect(<domain_id>) from ' \
+                           "bin/ots console and correct it (see #{CANONICAL_INDEX_RUNBOOK})",
           }
         end
       rescue StandardError => ex

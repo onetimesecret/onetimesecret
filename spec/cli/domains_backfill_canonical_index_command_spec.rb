@@ -13,6 +13,7 @@ require_relative 'cli_spec_helper'
 
 RSpec.describe 'Domains backfill-canonical-index command', type: :cli do
   let(:op_class) { Onetime::Operations::Domains::CanonicalIndexBackfill }
+  let(:cli_class) { Onetime::CLI::DomainsBackfillCanonicalIndexCommand }
   let(:audit_class) { Onetime::Operations::Domains::CanonicalIndexAudit }
   let(:missing_only) do
     result(rows: [row(:missing, 'id1', "bu\u0308cher.example")], actions: [action(:claim, :planned, name: "bu\u0308cher.example")])
@@ -33,10 +34,11 @@ RSpec.describe 'Domains backfill-canonical-index command', type: :cli do
       entries: [audit_class::Entry.new(category: :stale, canonical: 'unused.example', holder_id: 'gone2', detail: nil)],
       errors: [audit_class::Unreadable.new(domain_id: 'unreadable-id', message: 'record load failed')],
       actions: [
-        action(:claim, :skipped),
-        action(:reclaim, :skipped, id: 'id2', canonical: 'xn--id2.com', name: 'stale.example').with(stale_id: 'gone'),
-        action(:release, :skipped, id: nil, canonical: 'unused.example', name: nil).with(stale_id: 'gone2'),
-      ].map { |item| item.with(detail: 'incomplete audit: unreadable records block all apply writes') },
+        action(:claim, :planned),
+        action(:reclaim, :planned, id: 'id2', canonical: 'xn--id2.com', name: 'stale.example').with(stale_id: 'gone'),
+        action(:release, :planned, id: nil, canonical: 'unused.example', name: nil).with(stale_id: 'gone2'),
+      ],
+      refusal: :unreadable_records,
     )
   end
 
@@ -70,11 +72,17 @@ RSpec.describe 'Domains backfill-canonical-index command', type: :cli do
     )
   end
 
-  def result(rows:, actions: [], dry_run: true, entries: [], errors: [])
+  # final_rows: the audit after an apply (defaults to the audit before it).
+  def result(rows:, actions: [], dry_run: true, entries: [], errors: [], final_rows: nil, refusal: nil)
+    audit = audit_class::Result.new(rows: rows, entries: entries, errors: errors)
+    final = final_rows ? audit_class::Result.new(rows: final_rows, entries: [], errors: []) : audit
     op_class::Result.new(
       dry_run: dry_run,
-      audit: audit_class::Result.new(rows: rows, entries: entries, errors: errors),
+      audit: audit,
       actions: actions,
+      final_audit: final,
+      recheck_error: nil,
+      refusal: refusal,
     )
   end
 
@@ -125,6 +133,50 @@ RSpec.describe 'Domains backfill-canonical-index command', type: :cli do
     expect(last_exit_code).to eq(1)
   end
 
+  describe 'after --apply' do
+    it 'reports the counts from the audit after the writes' do
+      stub_op(
+        result(
+          rows: [row(:missing, 'id1', 'm.example')],
+          actions: [action(:claim, :claimed)],
+          dry_run: false,
+          final_rows: [row(:ok, 'id1', 'm.example', holder: 'id1')],
+        ),
+      )
+
+      report = JSON.parse(run_cli_command_quietly('domains', 'backfill-canonical-index', '--apply', '--yes', '--json')[:stdout])
+
+      expect([report['counts'].slice('ok', 'missing'), report['counts_before'].slice('ok', 'missing'), last_exit_code])
+        .to eq([{ 'ok' => 1, 'missing' => 0 }, { 'ok' => 0, 'missing' => 1 }, 0])
+    end
+
+    it 'exits 1 when a skipped claim leaves a record missing' do
+      stub_op(
+        result(
+          rows: [row(:missing, 'id1', 'm.example')],
+          actions: [action(:claim, :skipped)],
+          dry_run: false,
+          final_rows: [row(:missing, 'id1', 'm.example')],
+        ),
+      )
+
+      output = run_cli_command_quietly('domains', 'backfill-canonical-index', '--apply', '--yes')
+
+      expect([output[:stdout], last_exit_code]).to match([a_string_including('still missing'), 1])
+    end
+
+    it 'prints the outcome of every action, past the text limit, and exits 1 on an error' do
+      count   = cli_class::TEXT_ACTION_LIMIT + 5
+      actions = Array.new(count) { |i| action(:claim, i.zero? ? :error : :claimed, id: "id#{i}", canonical: "xn--id#{i}.com") }
+      stub_op(result(rows: [], actions: actions, dry_run: false))
+
+      output = run_cli_command_quietly('domains', 'backfill-canonical-index', '--apply', '--yes')
+
+      expect([output[:stdout].scan(/^  claim +(?:claimed|error) /).size, output[:stdout]]).to match([count, a_string_including('error')])
+      expect(last_exit_code).to eq(1)
+    end
+  end
+
   describe '--apply' do
     it 'asks whether the application is stopped and writes nothing on no' do
       stub_op(missing_only)
@@ -166,35 +218,34 @@ RSpec.describe 'Domains backfill-canonical-index command', type: :cli do
       expect(op_class).to have_received(:new).with(dry_run: false)
     end
 
-    it 'reports an incomplete audit, skipped actions and no writes, and exits 1' do
+    it 'reports a refused apply with its planned writes, writes nothing, and exits 1' do
       stub_op(incomplete_apply)
 
       output = run_cli_command_quietly('domains', 'backfill-canonical-index', '--apply', '--yes')
 
       expect(op_class).to have_received(:new).with(dry_run: false)
       expect(output[:stdout]).to include(
-        'Audit incomplete: unreadable records block all apply writes.',
-        'Nothing was written.', 'Apply outcomes:', 'skipped',
-        'incomplete audit: unreadable records block all apply writes',
+        'APPLY REFUSED (nothing written)', 'Planned writes (not applied):', 'planned',
         'unreadable-id: record load failed',
-        'Resolve the unreadable records and rerun this command before applying.',
+        'Nothing was written. 1 records could not be loaded',
       )
       expect(output[:stdout]).not_to include('The canonical index agrees with every record.')
       expect(last_exit_code).to eq(1)
     end
 
-    it 'retains unreadable errors and every skipped action in JSON and exits 1' do
+    it 'retains unreadable errors and every planned action in JSON for a refused apply, and exits 1' do
       stub_op(incomplete_apply)
 
       report = JSON.parse(run_cli_command_quietly('domains', 'backfill-canonical-index', '--apply', '--yes', '--json')[:stdout])
 
-      expect(report.slice('dry_run', 'attention')).to eq('dry_run' => false, 'attention' => true)
+      expect(report.slice('dry_run', 'applied', 'refusal', 'attention')).to eq(
+        'dry_run' => false, 'applied' => false, 'refusal' => 'unreadable_records', 'attention' => true,
+      )
+      expect(report).not_to have_key('counts_before')
       expect(report['counts']).to include('unreadable' => 1)
       expect(report['unreadable']).to eq([{ 'domain_id' => 'unreadable-id', 'message' => 'record load failed' }])
       expect(report['actions'].map { |item| item['kind'] }).to eq(%w[claim reclaim release])
-      expect(report['actions']).to all(include(
-        'outcome' => 'skipped', 'detail' => 'incomplete audit: unreadable records block all apply writes',
-      ))
+      expect(report['actions']).to all(include('outcome' => 'planned', 'detail' => nil))
       expect(last_exit_code).to eq(1)
     end
 
@@ -221,29 +272,23 @@ RSpec.describe 'Domains backfill-canonical-index command', type: :cli do
   end
 
   it 'reports incomplete dry-run plans without suggesting they can be applied' do
-    planned = incomplete_apply.actions.map { |item| item.with(outcome: :planned, detail: nil) }
-    stub_op(incomplete_apply.with(dry_run: true, actions: planned))
+    stub_op(incomplete_apply.with(dry_run: true, refusal: nil))
 
     output = run_cli_command_quietly('domains', 'backfill-canonical-index')
 
     expect(op_class).to have_received(:new).with(dry_run: true)
     expect(output[:stdout]).to include(
       'DRY RUN (nothing written)', 'Planned writes:',
-      'Audit incomplete: unreadable records block all apply writes.',
-      'Resolve the unreadable records and rerun this command before applying.',
+      '1 records could not be loaded; --apply writes nothing while',
     )
-    expect(output[:stdout]).not_to include('With the application stopped, apply with:')
+    expect(output[:stdout]).not_to include('With the application stopped, apply with:', 'Nothing was written.')
     expect(last_exit_code).to eq(1)
   end
 
-  it 'says in its help that unreadable records block all apply writes' do
+  it 'says in its help that --apply writes nothing while a record cannot be loaded' do
     output = run_cli_command_quietly('domains', 'backfill-canonical-index', '--help')
 
-    expect(output[:stdout]).to include(
-      'If any record cannot be loaded, all apply',
-      'writes are blocked and planned actions are reported as skipped.',
-      'Dry runs never write.',
-    )
+    expect(output[:stdout]).to include('--apply writes nothing while any record cannot')
   end
 
   it 'says in its help that the application must be stopped' do

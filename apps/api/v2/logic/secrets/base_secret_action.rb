@@ -637,16 +637,23 @@ module V2::Logic
         false
       end
 
-      # Rejects secret creation against an unverified custom share_domain when
-      # the features.domains.require_verified toggle is on. Canonical domains
-      # are filtered out earlier in process_share_domain via default_domain?.
+      # Rejects secret creation against a custom share_domain that is not
+      # served as a tenant domain (CustomDomain#served_as_tenant?, the same
+      # answer DomainStrategy classifies the host by), whatever
+      # features.domains.require_verified says. A link on such a domain would
+      # open to a 404.
+      #
+      # features.domains.require_verified, when on, additionally requires the
+      # verified flag, including under passthrough. Canonical domains are
+      # filtered out earlier in process_share_domain via default_domain?.
       #
       # @param domain_record [CustomDomain] The domain record to check
-      # @raise [FormError] If require_verified is on and the domain is not
-      #   yet verified
+      # @raise [FormError] If the domain is not served, or require_verified is
+      #   on and the domain is not yet verified
       def validate_domain_verification(domain_record)
-        return unless OT.conf.dig('features', 'domains', 'require_verified').to_s == 'true'
-        return if domain_record.verified.to_s == 'true'
+        served   = domain_record.served_as_tenant?
+        required = OT.conf.dig('features', 'domains', 'require_verified').to_s == 'true'
+        return if served && (!required || domain_record.verified.to_s == 'true')
 
         secret_logger.warn 'Unverified custom share_domain rejected',
           {

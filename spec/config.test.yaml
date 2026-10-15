@@ -137,6 +137,7 @@ features:
   domains:
     enabled: <%= ENV['DOMAINS_ENABLED'] == 'true' || false %>
     require_verified: <%= ENV['DOMAINS_REQUIRE_VERIFIED'] == 'true' || false %>
+    serve_unverified: <%= ENV['DOMAINS_SERVE_UNVERIFIED'] == 'true' || false %>
     # A PARSEABLE primary canonical host whenever the domains axis is on.
     #
     # site.host is `127.0.0.1:3000` and PublicSuffix cannot parse an IP

@@ -222,6 +222,23 @@ RSpec.describe 'GET /api/account/permissions', type: :integration do
         expect(domain_data['display_domain']).to eq(custom_domain.display_domain)
       end
 
+      # The domain-context picker offers only served domains
+      # (CustomDomain#served_as_tenant?); the settings pages list them all.
+      it 'reports whether each domain is served' do
+        allow(Onetime::CustomDomain).to receive(:ownership_proof_required?).and_return(true)
+
+        served = lambda do
+          get '/api/account/permissions'
+          org_data = JSON.parse(last_response.body)['organizations'].find { |o| o['extid'] == organization.extid }
+          org_data['domains'].find { |d| d['extid'] == custom_domain.extid }['served']
+        end
+
+        expect(served.call).to be(false)
+
+        custom_domain.ownership_verified!(true)
+        expect(served.call).to be(true)
+      end
+
       it 'includes full domain permissions for owner' do
         get '/api/account/permissions'
         body = JSON.parse(last_response.body)

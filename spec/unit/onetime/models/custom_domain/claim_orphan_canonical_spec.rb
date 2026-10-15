@@ -4,8 +4,9 @@
 
 # CustomDomain.claim_orphaned_domain and canonical_display_domain_index.
 #
-# create! hands an existing record with no organization (an orphan) to the
-# registering organization through claim_orphaned_domain. Before its
+# create!(adopt_orphan: true) hands an existing record with no organization
+# (an orphan) to the registering organization through claim_orphaned_domain.
+# Before its
 # WATCH/MULTI, that claim enters the record's name into the canonical index
 # for the record, the way create! claims a new record's name:
 #
@@ -39,7 +40,9 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
 
   # The unit lane boots without the connection pool claim_orphaned_domain
   # pins its WATCH to; hand it a plain client instead (as create_failures_spec
-  # does).
+  # does). A block, not and_yield: and_yield refuses callers whose block takes
+  # no argument (GuardedConfigWrites, reached from destroy! in the cleanup
+  # when an earlier example left a pool installed).
   before do
     allow(Onetime).to receive(:with_pinned_dbclient) { |&block| block.call(Familia.dbclient) }
   end
@@ -78,7 +81,7 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
   end
 
   def register(input, org)
-    described_class.create!(input, org.objid).tap do |rec|
+    described_class.create!(input, org.objid, adopt_orphan: true).tap do |rec|
       created << rec unless legacy.any? { |id, _| id == rec.identifier }
     end
   end
@@ -156,6 +159,79 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
     expect { described_class.claim_orphaned_domain(existing, org_b.objid) }
       .to raise_error(Onetime::TemporarilyUnavailable)
     expect([reload(id).org_id, index.get(canonical)]).to eq([org_a.objid, id])
+  end
+
+  describe 'an orphan still listed in an organization' do
+    it 'refuses the adoption while another organization lists it, and leaves it an orphan' do
+      id = legacy_orphan
+      reload(id).add_to_organization_domains(org_a)
+
+      expect { register(orphan_name, org_b) }
+        .to raise_error(Onetime::Problem, /still listed in the domains of organization #{org_a.extid}.*domains doctor --org #{org_a.extid}`.*--repair/)
+      expect([reload(id).org_id.to_s, index.get(canonical), org_b.domains.member?(reload(id))]).to eq(['', nil, false])
+    end
+
+    it 'adopts it once that listing is removed' do
+      id = legacy_orphan
+      reload(id).add_to_organization_domains(org_a)
+      org_a.remove_domain(reload(id))
+
+      register(orphan_name, org_b)
+
+      expect([reload(id).org_id, org_a.domains.member?(reload(id))]).to eq([org_b.objid, false])
+    end
+
+    it 'adopts it when the listing is in the adopting organization' do
+      id = legacy_orphan
+      reload(id).add_to_organization_domains(org_b)
+
+      register(orphan_name, org_b)
+
+      expect([reload(id).org_id, org_b.domains.member?(reload(id))]).to eq([org_b.objid, true])
+    end
+  end
+
+  # The claim reads the stored org_id raw (hget) inside its WATCH, and before
+  # it in refuse_orphan_listed_elsewhere!.
+  # A JSON null or a JSON empty string is no organization, the same as an
+  # absent field.
+  describe 'an orphan whose stored org_id is an empty JSON value' do
+    { 'JSON null' => 'null', 'a JSON empty string' => '""' }.each do |label, raw|
+      context "when org_id is stored as #{label}" do
+        def raw_orphan(raw)
+          id = legacy_orphan
+          described_class.dbclient.hset(described_class.dbkey(id), 'org_id', raw)
+          id
+        end
+
+        it 'adopts it' do
+          id = raw_orphan(raw)
+
+          register(orphan_name, org_b)
+
+          expect([reload(id).org_id, index.get(canonical)]).to eq([org_b.objid, id])
+        end
+
+        it 'refuses the adoption while another organization lists it' do
+          id = raw_orphan(raw)
+          reload(id).add_to_organization_domains(org_a)
+
+          expect { register(orphan_name, org_b) }
+            .to raise_error(Onetime::Problem, /still listed in the domains of organization #{org_a.extid}/)
+          expect(described_class.dbclient.hget(described_class.dbkey(id), 'org_id')).to eq(raw)
+        end
+
+        it 'keeps the claim for the live orphan when the organization is gone by the time it assigns it' do
+          id       = raw_orphan(raw)
+          existing = reload(id)
+          allow(Onetime::Organization).to receive(:load).and_call_original
+          allow(Onetime::Organization).to receive(:load).with(org_b.objid).and_return(nil)
+
+          expect { described_class.claim_orphaned_domain(existing, org_b.objid) }.to raise_error(Onetime::RecordNotFound)
+          expect([described_class.dbclient.hget(described_class.dbkey(id), 'org_id'), index.get(canonical)]).to eq([raw, id])
+        end
+      end
+    end
   end
 
   [

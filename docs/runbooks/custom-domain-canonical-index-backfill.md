@@ -10,9 +10,8 @@ domains registered before v0.26.14. Use it again whenever
 `custom_domain:canonical_display_domain_index` holds one entry per DNS name.
 The key is the name's lower-case A-label (`xn--bcher-kva.example.com` for
 `bücher.example.com`) and the value is the identifier of the record registered
-for it. Registration uses it to recognise a name in any of its spellings.
-Domains registered since v0.26.14 claim their entry when they are created.
-Domains registered earlier have no entry until this backfill adds one.
+for it. Domains registered since v0.26.14 claim their entry when they are
+created; this backfill adds the entries for domains registered earlier.
 
 The command compares every custom domain record with the index and puts each
 record in one category:
@@ -42,9 +41,7 @@ audit found. A second `--apply` over the same data changes nothing.
   lock shared with domain registration and removal, so it is only safe while
   nothing else writes custom domains.
 - Keep `jobs.maintenance.index_rebuild.auto_repair` set to `false` (the
-  default). With it enabled, the index-rebuild job can rewrite
-  `display_domain_index` entries in a form that lookups do not match. A fix
-  for that job is tracked separately.
+  default) during the backfill. The index-rebuild job is fixed in PR #4787.
 - Snapshot the datastore before `--apply`.
 - Remove a duplicate record with `bin/ots domains remove <extid>`, never by
   deleting keys or index fields directly.
@@ -82,7 +79,8 @@ names. Names that are not plain ASCII are printed twice, as stored and
 escaped, so that two spellings that look identical can be told apart.
 
 The command exits 1 while collisions, conflicts or unreadable records exist,
-and 0 otherwise.
+and 0 otherwise. `--apply` writes nothing while any record cannot be loaded;
+resolve those first (see **Unreadable** in step 6).
 
 ### 3. Stop the application
 
@@ -141,24 +139,26 @@ bin/ots domains backfill-canonical-index --apply
 The command asks whether the application is stopped; answer `y`. In scripts,
 use `--apply --yes` (and `--apply --yes --json` for machine-readable output).
 
-If any record cannot be loaded, the audit is incomplete and `--apply` writes
-nothing. All planned actions are reported as `skipped`; resolve the unreadable
-records and rerun before applying. The readable records alone may hide a
-collision.
-
-The report lists each action with its outcome:
+After the writes the command audits the index again. The counts and lists in
+the report describe the index as the apply left it, and the report lists every
+write with its outcome:
 
 | Outcome        | Meaning |
 | :------------- | :------ |
 | `claimed`      | The entry now names the record |
 | `already_held` | The entry already named the record |
 | `released`     | A stale entry was removed |
-| `skipped`      | The audit was incomplete or the data changed since the audit; nothing was written |
+| `skipped`      | The data changed since the audit; nothing was written |
 | `refused`      | Another record holds the name; nothing was written |
 | `unverified`   | The claim reported success but read back differently; the claim was released |
+| `error`        | The write raised (the detail names the error); the remaining writes still ran |
 
+The command exits 1 when a write did not land (`refused`, `unverified` or
+`error`) or when entries are still `missing` or `stale` after the writes.
 `refused` and `unverified` should not happen with the application stopped.
-If they do, something else is writing: stop it and run the command again.
+If they do, something else is writing: stop it and run the command again. An
+`error` usually means the datastore connection failed; run the command again
+once it is back.
 
 ### 6. Resolve collisions and conflicts
 
@@ -171,17 +171,30 @@ override, and creation date. For each group:
    a recent `dns-confirmed` date passed the TXT check. `ownership_verified`
    alone can be an operator override. To check now, run
    `bin/ots domains verify <extid> --dry-run` for each record in the group.
+   `--dry-run` saves nothing to the record. It still records an audit event,
+   and on the Approximated strategy it creates the vhost for the name when
+   none exists.
 2. Keep that record. Remove each other record in the group by its extid:
 
    ```console
    bin/ots domains remove <extid>
    ```
 
-   Use the extid, not the domain name: the name resolves to one record of the
-   group, not necessarily the one to remove.
-3. On deployments using the Approximated strategy, check the kept record
-   afterwards (`bin/ots domains probe <name>`, `bin/ots domains verify
-   <extid>`): its vhost may share the removed record's name.
+   The command shows what it will remove and asks for confirmation
+   (`--dry-run` only shows; `--apply` skips the prompt). Use the extid, not
+   the domain name: the name resolves to one record of the group, not
+   necessarily the one to remove. If the extid is not found, pass the
+   record's objid instead (`domain_id` in the `--json` report).
+
+   It works with the application stopped: it writes to Valkey/Redis from the
+   shell. It also calls external services over the network. On the
+   Approximated strategy it deletes the vhost registered for the removed
+   record's name, and when the record has a mail sender configured it deletes
+   that sender identity at the mail provider.
+3. On deployments using the Approximated strategy, the deleted vhost can be
+   the one the kept record uses. Run `bin/ots domains verify <extid>` for the
+   kept record (it creates the vhost again when it is missing), then
+   `bin/ots domains probe <name>`.
 
 If no record in the group can show DNS ownership, leave the group in place
 and contact the organizations. The backfill leaves the group untouched and
@@ -203,10 +216,17 @@ Onetime::CustomDomain.canonical_display_domain_index
 indexed, and a name like it cannot be registered again. No action is needed;
 remove the record if it is junk.
 
-**Unreadable.** A record exists but could not be loaded. The backfill blocks
-all apply writes until every record can be read. Inspect the identifiers and
-load errors reported by `bin/ots domains doctor --all --familia-audit`, resolve
-them, then rerun the audit before applying.
+**Unreadable.** A record exists but could not be loaded. `--apply` writes
+nothing while any remain, because such a record may have a name that a claim
+would give to another record. Inspect it from `bin/ots console`; this shows
+each stored field raw and decoded:
+
+```ruby
+Onetime::CustomDomain.storage_inspect('<domain_id>')
+```
+
+The `domains` commands load the record too, so correct the stored field that
+does not decode before using them on it.
 
 ### 7. Run the backfill again
 

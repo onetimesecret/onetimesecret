@@ -71,6 +71,7 @@ const onDomainSwitch = computed<string | undefined>(() => {
 const {
   currentContext,
   availableDomains,
+  registeredDomainCount,
   isContextActive,
   setContext,
   getDomainDisplayName,
@@ -182,13 +183,11 @@ const domainItems = computed<ScopeSwitcherItem[]>(() =>
 );
 
 /**
- * Number of custom domains in the current org context.
- * Custom domains always carry an extid; the canonical domain and operator
- * link-pool entries never do.
+ * Number of custom domains registered in the current org context, including
+ * those the list does not offer because they are not served yet (pending
+ * ownership verification). Those still have settings to manage.
  */
-const customDomainCount = computed(
-  () => availableDomains.value.filter((domain) => getExtidByDomain(domain)).length
-);
+const customDomainCount = computed(() => registeredDomainCount.value);
 
 /**
  * Whether the current org context has at least one custom domain.

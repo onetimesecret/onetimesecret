@@ -199,6 +199,40 @@ post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => @domain_dup }
 #=> [true, true]
 
 # ----------------------------------------------------------------
+# Create — adopting an orphaned record (no org_id)
+# ----------------------------------------------------------------
+
+## Create: an orphaned record is adopted with its verification reset, and details.adoption lists what it kept
+# A verified, resolving orphan with a brand field. create! gave it the default
+# homepage and api configs.
+@orphan_name = "colonel-orphan-#{@timestamp}.example.com"
+@orphan_seed = Onetime::CustomDomain.create!(@orphan_name, @org.objid)
+@orphan_seed.brand['primary_color'] = '#336699'
+@org.remove_domain(@orphan_seed)
+Familia.dbclient.hdel(@orphan_seed.dbkey, 'org_id')
+Familia.dbclient.hset(@orphan_seed.dbkey, { 'ownership_verified' => 'true', 'resolving' => 'true' })
+Onetime::CustomDomain.owners.remove(@orphan_seed.to_s)
+@orphan_txt = @orphan_seed.txt_validation_value
+post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => @orphan_name }, colonel_headers
+@resp = JSON.parse(last_response.body)
+r = @resp['record']
+a = @resp['details']['adoption']
+[last_response.status, r['extid'] == @orphan_seed.extid, r['verified'], r['ready'], r['verification_state'],
+ a['verification_reset'], a['txt_validation_value'] == r['txt_validation_value'], a['txt_validation_value'] == @orphan_txt,
+ a['kept']['configs'], a['kept']['brand_keys']]
+#=> [200, true, false, false, 'pending', true, true, false, ['homepage', 'api'], 1]
+
+## Create: the adoption's audit event says the record was adopted and its verification reset
+@evt = Onetime::ColonelAuditEvent.recent(1).first
+[@evt['target'] == @orphan_seed.extid, @evt['detail']['adopted_orphan'], @evt['detail']['verification_reset']]
+#=> [true, true, true]
+
+## Create: a record that is not an orphan has no details.adoption
+post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => "colonel-fresh-#{@timestamp}.example.com" }, colonel_headers
+[last_response.status, JSON.parse(last_response.body)['details'].key?('adoption')]
+#=> [200, false]
+
+# ----------------------------------------------------------------
 # Detail — GET /domains/:extid
 # ----------------------------------------------------------------
 
@@ -237,6 +271,8 @@ r = @resp['record']
 # Teardown
 # ----------------------------------------------------------------
 Onetime::CustomDomain.find_by_extid(@created_extid)&.destroy! rescue nil
+Onetime::CustomDomain.find_by_extid(@orphan_seed&.extid.to_s)&.destroy! rescue nil
+Onetime::CustomDomain.load_by_display_domain("colonel-fresh-#{@timestamp}.example.com")&.destroy! rescue nil
 @org.destroy!       rescue nil
 @org_owner.destroy! rescue nil
 @colonel.destroy!   rescue nil

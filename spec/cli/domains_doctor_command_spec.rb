@@ -342,12 +342,12 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       expect(last_exit_code).to eq(0)
     end
 
-    it 'counts nothing as repaired when the entry no longer names that identifier' do
+    it 'records no repair when the entry no longer names that identifier' do
       allow(stale_index).to receive(:release_field).and_return(0)
 
       report = json_report('domains', 'doctor', '--all', '--repair', '--json')
 
-      expect(report['repaired'].first['count']).to eq(0)
+      expect([report['repaired'], last_exit_code]).to eq([[], 1])
     end
 
     it 'flags an FQDN mismatch once, not once per pass' do
@@ -470,9 +470,9 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
               { 'domain_objid' => 'broken1', 'message' => 'JSON::ParserError: invalid record' },
               { 'domain_objid' => 'broken2', 'message' => 'TypeError: invalid field' },
             ],
-            'message' => include('2 domain records could not be loaded', 'broken1: JSON::ParserError: invalid record',
-              'broken2: TypeError: invalid field'),
-            'repair_action' => include('Manually investigate'),
+            'message' => include('2 domain records could not be loaded', '--apply writes nothing while they remain',
+              'broken1: JSON::ParserError: invalid record', 'broken2: TypeError: invalid field'),
+            'repair_action' => include('storage_inspect'),
           ),
         )
         expect(last_exit_code).to eq(1)
@@ -850,6 +850,25 @@ RSpec.describe 'Domains Doctor Command collection checks (real datastore)', :dat
       # (organization_instances) no longer sees org_a.
       expect(domain.organization_instances.map(&:objid)).to eq([org_b.objid])
       expect(report[:repaired].find { |r| r[:action] == :stale_org_domains_removed }[:count]).to eq(1)
+    end
+
+    # The listing claim_orphaned_domain refuses an adoption over; its refusal
+    # message points here.
+    it 'removes the listing of a domain with no organization, so it can be adopted' do
+      allow(Onetime).to receive(:with_pinned_dbclient) { |&block| block.call(Familia.dbclient) }
+      org_a  = create_org('lister')
+      org_b  = create_org('adopter')
+      domain = create_domain(org_a, 'orphaned')
+      Familia.dbclient.hdel(domain.dbkey, 'org_id')
+      orphan = Onetime::CustomDomain.find_by_identifier(domain.identifier)
+      expect { Onetime::CustomDomain.claim_orphaned_domain(orphan, org_b.objid) }
+        .to raise_error(Onetime::Problem, /domains doctor --org #{org_a.extid}/)
+
+      command.send(:check_stale_org_domains, org_a, report, repair: true)
+      Onetime::CustomDomain.claim_orphaned_domain(Onetime::CustomDomain.find_by_identifier(domain.identifier), org_b.objid)
+
+      expect([org_a.domains.to_a.include?(domain.objid), Onetime::CustomDomain.find_by_identifier(domain.identifier).org_id])
+        .to eq([false, org_b.objid])
     end
 
     it 'counts only the entries it removed' do
