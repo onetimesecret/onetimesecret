@@ -140,6 +140,7 @@ module Auth
           @participation_ids           = []
           @stale_participation_actions = []
           @pending_organization_checks = []
+          @orphan_dependency_blockers  = {}
           @instance_ids                = []
           @email_holder_id             = nil
           @active_memberships_by_org   = Hash.new { |hash, key| hash[key] = [] }
@@ -169,21 +170,13 @@ module Auth
         end
 
         # Recheck retained cleanup actions even after their participation (or the
-        # customer itself) has been deleted. Do not use discovery state or cache
-        # the result: dependencies may have appeared since the previous check.
+        # customer itself) has been deleted. Share evidence only within this
+        # checker; every preflight after a mutation must use a fresh checker.
         def stale_participation_blockers(action)
-          org_id = action.organization.objid.to_s
-          return [] unless orphan_dependencies?(action.organization)
+          blockers = orphan_dependency_blockers(action.organization)
+          return [] if blockers.empty?
 
-          [
-            { code: :dangling_customer_participation, reference: action.reference },
-            { code: :orphan_organization_dependencies_remain, org_id: org_id },
-          ]
-        rescue StandardError => ex
-          [
-            { code: :dangling_customer_participation, reference: action.reference },
-            { code: :organization_evidence_incomplete, org_id: org_id, message: ex.class.name },
-          ]
+          [{ code: :dangling_customer_participation, reference: action.reference }] + blockers
         end
 
         private
@@ -194,7 +187,7 @@ module Auth
         def check_pending_organization_purges
           @customer.purge_pending_organization_checks.to_a.sort_by(&:to_s).each do |reference|
             objid = reference.is_a?(String) ? organization_id_from_participation(reference) : nil
-            unless objid && objid.match?(/\A[A-Za-z0-9_-]+\z/)
+            unless valid_purge_organization_id?(objid)
               add_blocker(:invalid_purge_pending_organization_check, reference: reference.to_s)
               next
             end
@@ -251,6 +244,11 @@ module Auth
         # does not prove teardown completed: through-model keys wrap a composite
         # objid, and invitations/domains can survive without their reverse indexes.
         def discover_stale_participations(objid, references)
+          unless valid_purge_organization_id?(objid)
+            references.each { |reference| add_blocker(:dangling_customer_participation, reference: reference) }
+            return
+          end
+
           org = Onetime::Organization.new(objid: objid)
           references.each do |reference|
             action   = Action.new(
@@ -267,6 +265,23 @@ module Auth
               blockers.each { |blocker| add_blocker(blocker.fetch(:code), **blocker.reject { |key, _| key == :code }) }
             end
           end
+        end
+
+        # Cache only organization evidence, never reference-specific blockers.
+        # Read failures are evidence too: aliases must all fail closed together.
+        def orphan_dependency_blockers(org)
+          org_id = org.objid.to_s
+          @orphan_dependency_blockers.fetch(org_id) do
+            @orphan_dependency_blockers[org_id] = if orphan_dependencies?(org)
+                                                  [{ code: :orphan_organization_dependencies_remain, org_id: org_id }]
+                                                else
+                                                  []
+                                                end
+          end
+        rescue StandardError => ex
+          @orphan_dependency_blockers[org_id] = [
+            { code: :organization_evidence_incomplete, org_id: org_id, message: ex.class.name },
+          ]
         end
 
         def orphan_dependencies?(org)
@@ -765,6 +780,10 @@ module Auth
             )
           end
           Plan.new(actions: actions, blockers: plan.blockers)
+        end
+
+        def valid_purge_organization_id?(objid)
+          objid && objid.match?(/\A[A-Za-z0-9_-]+\z/)
         end
 
         def organization_id_from_participation(key)

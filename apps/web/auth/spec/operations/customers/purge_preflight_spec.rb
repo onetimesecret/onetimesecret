@@ -184,6 +184,26 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
       expect(plan.signature.first).to eq([[:remove_stale_participation, 'org-gone', '', reference]])
     end
 
+    %w[organization org].each do |prefix|
+      ['org.gone', 'org gone', '*', 'org/gone'].each do |objid|
+        it "refuses malformed stale identifier #{objid.inspect} under #{prefix} without planning cleanup" do
+          invalid = "#{prefix}:#{objid}:members"
+          allow(customer).to receive(:participations).and_return(collection([invalid]))
+          expect(customer).not_to receive(:untrack_participation_in)
+          expect(customer.purge_pending_organization_checks).not_to receive(:add)
+          expect(redis).not_to receive(:scan_each)
+
+          plan = orphan_plan
+
+          expect(plan).not_to be_executable
+          expect(plan.actions).to be_empty
+          expect(plan.blockers).to include(code: :dangling_customer_participation, reference: invalid)
+          expect(customer.participations.to_a).to eq([invalid])
+          expect(customer.purge_pending_organization_checks.to_a).to be_empty
+        end
+      end
+    end
+
     describe 'durable pending organization checks' do
       let(:markers) { collection([reference]) }
 
@@ -272,6 +292,7 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
 
       ['', 'organization::members', 'organization:org-gone:domains',
        'organization:org-gone:members:extra', "organization:org-gone:members\n",
+       'organization:org.gone:members', 'org:org.gone:members',
        'organization:org gone:members', 'organization:*:members', 'unknown:org-gone:members', nil, 123].each do |invalid|
         it "fails closed for malformed marker #{invalid.inspect}" do
           allow(markers).to receive(:to_a).and_return([reference, invalid])
@@ -296,18 +317,19 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
         expect(checker.stale_participation_blockers(completed_action)).to eq([])
       end
 
-      it 'rechecks retained actions when ordinary discovery can no longer find the organization' do
+      it 'uses fresh evidence in subsequent checkers after the reverse index is gone' do
         checker = described_class.new(customer: customer)
         expect(checker.stale_participation_blockers(completed_action)).to eq([])
         keys << 'organization:org-gone:receipts'
-        expect(checker.call.actions).to be_empty
-        expect(checker.stale_participation_blockers(completed_action)).to contain_exactly(
+        subsequent = described_class.new(customer: customer)
+        expect(subsequent.call.actions).to be_empty
+        expect(subsequent.stale_participation_blockers(completed_action)).to contain_exactly(
           { code: :dangling_customer_participation, reference: reference },
           { code: :orphan_organization_dependencies_remain, org_id: 'org-gone' },
         )
         keys.clear
-        expect(checker.stale_participation_blockers(completed_action)).to eq([])
-        expect(checker.call.blockers).to be_empty
+        final = described_class.new(customer: nil)
+        expect(final.stale_participation_blockers(completed_action)).to eq([])
       end
 
       it 'detects a recreated organization after customer teardown' do
@@ -352,6 +374,87 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
       expect(second.signature).to eq(first.signature)
       allow(customer).to receive(:participations).and_return(collection([aliases.last]))
       expect(orphan_plan.signature).not_to eq(first.signature)
+    end
+
+    describe 'checker-local dependency evidence' do
+      let(:aliases) { [reference, 'org:org-gone:members'] }
+
+      before do
+        allow(customer).to receive(:participations).and_return(collection(aliases))
+        allow(customer).to receive(:purge_pending_organization_checks).and_return(collection(aliases))
+      end
+
+      it 'scans once for discovery, markers and retained checks of either alias' do
+        %w[organization:* org:* org_membership:* custom_domain:*:object].each do |pattern|
+          expect(redis).to receive(:scan_each).with(match: pattern).once.and_return([].each)
+        end
+        checker = described_class.new(customer: customer)
+        plan = checker.call
+
+        expect(plan).to be_executable
+        expect(plan.actions.map(&:reference)).to eq(aliases.sort)
+        expect(checker.pending_organization_checks.map(&:reference)).to eq(aliases.sort)
+        (plan.actions + checker.pending_organization_checks).each do |action|
+          expect(checker.stale_participation_blockers(action)).to eq([])
+        end
+      end
+
+      it 'keeps blockers specific to each reference when dependency evidence is shared' do
+        keys << 'organization:org-gone:receipts'
+        checker = described_class.new(customer: customer)
+        expect(checker).to receive(:orphan_dependencies?).once.and_call_original
+        plan = checker.call
+
+        expect(plan).not_to be_executable
+        expect(plan.actions).to be_empty
+        expect(plan.blockers).to contain_exactly(
+          *aliases.map { |alias_reference| { code: :dangling_customer_participation, reference: alias_reference } },
+          { code: :orphan_organization_dependencies_remain, org_id: 'org-gone' },
+        )
+        checker.pending_organization_checks.each do |action|
+          expect(checker.stale_participation_blockers(action)).to contain_exactly(
+            { code: :dangling_customer_participation, reference: action.reference },
+            { code: :orphan_organization_dependencies_remain, org_id: 'org-gone' },
+          )
+        end
+      end
+
+      it 'shares read failures without losing either reference or retrying within the checker' do
+        allow(owners).to receive(:hgetall).and_raise(IOError)
+        checker = described_class.new(customer: customer)
+        expect(checker).to receive(:orphan_dependencies?).once.and_call_original
+        plan = checker.call
+
+        expect(plan).not_to be_executable
+        expect(plan.actions).to be_empty
+        expect(plan.blockers).to contain_exactly(
+          *aliases.map { |alias_reference| { code: :dangling_customer_participation, reference: alias_reference } },
+          { code: :organization_evidence_incomplete, org_id: 'org-gone', message: 'IOError' },
+        )
+        checker.pending_organization_checks.each do |action|
+          expect(checker.stale_participation_blockers(action)).to contain_exactly(
+            { code: :dangling_customer_participation, reference: action.reference },
+            { code: :organization_evidence_incomplete, org_id: 'org-gone', message: 'IOError' },
+          )
+        end
+
+        allow(owners).to receive(:hgetall).and_return({})
+        expect(orphan_plan).to be_executable
+      end
+
+      it 'does not reuse an absent dependency result for another organization' do
+        other_reference = 'organization:org-other:members'
+        allow(customer).to receive(:purge_pending_organization_checks).and_return(collection([other_reference]))
+        keys << 'organization:org-other:receipts'
+        plan = orphan_plan
+
+        expect(plan).not_to be_executable
+        expect(plan.actions.map(&:reference)).to eq(aliases.sort)
+        expect(plan.blockers).to contain_exactly(
+          { code: :dangling_customer_participation, reference: other_reference },
+          { code: :orphan_organization_dependencies_remain, org_id: 'org-other' },
+        )
+      end
     end
 
     it 'preserves the original three-element signature for existing actions' do

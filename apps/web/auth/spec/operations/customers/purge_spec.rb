@@ -943,6 +943,66 @@ RSpec.describe Auth::Operations::Customers::Purge do
       expect(@real_customer.exists?).to be(false)
     end
 
+    %w[organization org].each do |prefix|
+      [:raw, :canonical, :mixed].each do |shape|
+        it "refuses #{shape} malformed #{prefix} participation before mutation on initial and subsequent purges" do
+          seed_previous_partial(:mixed)
+          set = @real_customer.participations
+          set.clear
+          invalid = "#{prefix}:org.gone:members"
+          encoded = set.serialize_value(invalid)
+          values = case shape
+                   when :raw then [invalid]
+                   when :canonical then [encoded]
+                   when :mixed then [invalid, encoded]
+                   end
+          set.dbclient.sadd(set.dbkey, values)
+          before = set.membersraw.sort
+          markers = @real_customer.purge_pending_organization_checks
+
+          2.times do
+            operation = described_class.new(customer: @real_customer, actor: 'ur_col')
+            result = operation.call
+
+            expect(result.status).to eq(:refused)
+            expect(result.stage).to eq(:preflight)
+            expect(result.blockers).to include(code: :dangling_customer_participation, reference: invalid)
+            expect(result.actions).to be_empty
+            expect(result.planned_actions).to be_empty
+            expect(operation.mutation_started?).to be(false)
+            expect(set.membersraw.sort).to eq(before)
+            expect(markers.membersraw).to be_empty
+            expect(@real_customer.exists?).to be(true)
+          end
+          expect(Auth::Operations::TeardownAccount).not_to have_received(:new)
+        end
+      end
+    end
+
+    it 'shares dependency scans within each checker but checks again across cleanup and teardown' do
+      reference = seed_previous_partial(:mixed)
+      legacy = reference.sub('organization:', 'org:')
+      @real_customer.participations.add(legacy)
+      checkers = []
+      allow(Auth::Operations::Customers::PurgePreflight).to receive(:new).and_wrap_original do |original, **options|
+        checker = original.call(**options)
+        allow(checker).to receive(:orphan_dependencies?).and_call_original
+        checkers << checker
+        checker
+      end
+
+      result = described_class.new(customer: @real_customer, actor: 'ur_col').call
+
+      expect(result.status).to eq(:success), result.blockers.inspect
+      expect(result.actions.map { |action| action[:reference] }).to eq([reference, legacy].sort)
+      expect(checkers.size).to be > 4
+      checkers.each do |checker|
+        expect(checker).to have_received(:orphan_dependencies?).once
+      end
+      expect(@real_customer.exists?).to be(false)
+      expect(@real_customer.purge_pending_organization_checks.membersraw).to be_empty
+    end
+
     it 'refuses a fresh purge after late receipt data appears until that dependency is removed' do
       reference = seed_previous_partial(:mixed)
       markers = @real_customer.purge_pending_organization_checks
