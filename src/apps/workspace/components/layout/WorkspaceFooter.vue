@@ -150,34 +150,49 @@
     return route.path.startsWith(path + '/');
   };
 
-  // At md+ the footer is fixed to the viewport bottom, so a page that sticks
-  // its own bar above it needs the footer's real height, which depends on the
-  // links shown and on wrapping. Publish it as --workspace-footer-height on
-  // the root element; consumers fall back to 6rem (the layout's mb-24) until
-  // it is set.
+  // A page that sticks its own bar to the viewport bottom has to clear what
+  // the layout fixes there: the mobile product nav below md, the footer at
+  // md+. Both heights depend on content (items and links shown, wrapping), so
+  // publish the measured values on the root element as
+  // --workspace-mobile-nav-height and --workspace-footer-height. The nav is
+  // display:none at md+ and measures 0 there. Until they are set, consumers
+  // fall back to 3.5625rem for the nav (py-3 row + py-1 link + size-6 icon +
+  // border-t = 3.5rem + 1px) and 6rem for the footer (the layout's mb-24).
+  const MOBILE_NAV_HEIGHT_PROPERTY = '--workspace-mobile-nav-height';
   const FOOTER_HEIGHT_PROPERTY = '--workspace-footer-height';
+  const mobileNavEl = ref<HTMLElement | null>(null);
   const footerEl = ref<HTMLElement | null>(null);
+  const measured = [
+    [MOBILE_NAV_HEIGHT_PROPERTY, mobileNavEl],
+    [FOOTER_HEIGHT_PROPERTY, footerEl],
+  ] as const;
   let resizeObserver: ResizeObserver | null = null;
 
-  const publishHeight = () => {
-    const height = footerEl.value?.offsetHeight ?? 0;
-    document.documentElement.style.setProperty(FOOTER_HEIGHT_PROPERTY, `${height}px`);
+  const publishHeights = () => {
+    for (const [property, el] of measured) {
+      const height = el.value?.offsetHeight ?? 0;
+      document.documentElement.style.setProperty(property, `${height}px`);
+    }
   };
 
   onMounted(() => {
-    publishHeight();
-    if (typeof ResizeObserver !== 'undefined' && footerEl.value) {
-      resizeObserver = new ResizeObserver(publishHeight);
-      resizeObserver.observe(footerEl.value);
+    publishHeights();
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(publishHeights);
+      for (const [, el] of measured) {
+        if (el.value) resizeObserver.observe(el.value);
+      }
     } else {
-      window.addEventListener('resize', publishHeight);
+      window.addEventListener('resize', publishHeights);
     }
   });
 
   onUnmounted(() => {
     resizeObserver?.disconnect();
-    window.removeEventListener('resize', publishHeight);
-    document.documentElement.style.removeProperty(FOOTER_HEIGHT_PROPERTY);
+    window.removeEventListener('resize', publishHeights);
+    for (const [property] of measured) {
+      document.documentElement.style.removeProperty(property);
+    }
   });
 </script>
 
@@ -185,6 +200,7 @@
   <!-- Mobile Product Navigation - Fixed at bottom on mobile only -->
   <!-- prettier-ignore-attribute class -->
   <nav
+    ref="mobileNavEl"
     class="
       fixed inset-x-0 bottom-0 z-20
       border-t border-gray-200

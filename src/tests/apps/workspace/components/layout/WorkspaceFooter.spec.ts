@@ -123,13 +123,16 @@ vi.mock('@/shared/stores', () => ({
 
 import WorkspaceFooter from '@/apps/workspace/components/layout/WorkspaceFooter.vue';
 
-describe('WorkspaceFooter height variable', () => {
+describe('WorkspaceFooter height variables', () => {
   const PROPERTY = '--workspace-footer-height';
+  const NAV_PROPERTY = '--workspace-mobile-nav-height';
   let heightSpy: ReturnType<typeof vi.spyOn> | undefined;
 
   afterEach(() => {
     heightSpy?.mockRestore();
+    vi.unstubAllGlobals();
     document.documentElement.style.removeProperty(PROPERTY);
+    document.documentElement.style.removeProperty(NAV_PROPERTY);
   });
 
   const mountFooter = () =>
@@ -152,6 +155,16 @@ describe('WorkspaceFooter height variable', () => {
       },
     });
 
+  // jsdom lays nothing out, so give the nav and the footer distinct heights.
+  const stubHeights = (heights: { nav: number; footer: number }) => {
+    function offsetHeight(this: HTMLElement) {
+      return this.tagName === 'NAV' ? heights.nav : heights.footer;
+    }
+
+    heightSpy = vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get');
+    heightSpy.mockImplementation(offsetHeight);
+  };
+
   it('publishes its measured height on the root element so a page can stick a bar above it', () => {
     heightSpy = vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(88);
     const wrapper = mountFooter();
@@ -159,11 +172,48 @@ describe('WorkspaceFooter height variable', () => {
     wrapper.unmount();
   });
 
-  it('removes the variable when it unmounts', () => {
-    heightSpy = vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(88);
+  it('publishes the mobile nav height separately, for a bar stuck above the nav below md', () => {
+    stubHeights({ nav: 57, footer: 88 });
+    const wrapper = mountFooter();
+    expect(document.documentElement.style.getPropertyValue(NAV_PROPERTY)).toBe('57px');
+    expect(document.documentElement.style.getPropertyValue(PROPERTY)).toBe('88px');
+    wrapper.unmount();
+  });
+
+  it('re-publishes both heights from one observer when either element resizes', () => {
+    const observed: Element[] = [];
+    let notify: (() => void) | undefined;
+    class FakeResizeObserver {
+      constructor(callback: () => void) {
+        notify = callback;
+      }
+      observe(el: Element) {
+        observed.push(el);
+      }
+      unobserve() {}
+      disconnect() {}
+    }
+    vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+    const heights = { nav: 57, footer: 88 };
+    stubHeights(heights);
+    const wrapper = mountFooter();
+    expect(observed.map((el) => el.tagName)).toEqual(['NAV', 'FOOTER']);
+
+    // At md+ the nav is display:none and measures 0; the footer reflows.
+    heights.nav = 0;
+    heights.footer = 72;
+    notify?.();
+    expect(document.documentElement.style.getPropertyValue(NAV_PROPERTY)).toBe('0px');
+    expect(document.documentElement.style.getPropertyValue(PROPERTY)).toBe('72px');
+    wrapper.unmount();
+  });
+
+  it('removes both variables when it unmounts', () => {
+    stubHeights({ nav: 57, footer: 88 });
     const wrapper = mountFooter();
     wrapper.unmount();
     expect(document.documentElement.style.getPropertyValue(PROPERTY)).toBe('');
+    expect(document.documentElement.style.getPropertyValue(NAV_PROPERTY)).toBe('');
   });
 });
 
