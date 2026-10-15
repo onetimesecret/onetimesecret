@@ -203,6 +203,17 @@ interface MountOptions {
 // Tests
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * The provider discovery check is an advanced disclosure (D7). Its result
+ * renders inside that disclosure, which a result opens, and nowhere deeper:
+ * never behind a nested "technical details" summary.
+ */
+function expectShownInProviderCheck(w: VueWrapper, element: Element): void {
+  const disclosure = w.get('[data-testid="sso-provider-check"]').element as HTMLDetailsElement;
+  expect(element.closest('details')).toBe(disclosure);
+  expect(disclosure.open).toBe(true);
+}
+
 describe('DomainSsoConfigForm', () => {
   let wrapper: VueWrapper<InstanceType<typeof DomainSsoConfigForm>>;
   let pinia: ReturnType<typeof createTestingPinia>;
@@ -351,13 +362,16 @@ describe('DomainSsoConfigForm', () => {
           .findAll('button[type="button"]')
           .find((button) => button.text().includes('web.organizations.sso.test_button'));
         expect(providerCheck).toBeDefined();
+        // The discovery check is an advanced disclosure below the primary
+        // check panel (D7); the primary action itself is in the footer.
         const sequence = [
           wrapper.get('fieldset').element,
           wrapper.get(`[data-testid="${identifiersTestId}"]`).element,
           wrapper.get(credentialSelector).element,
-          providerCheck!.element,
           wrapper.get('[data-testid="sso-diagnostics"]').element,
+          providerCheck!.element,
           wrapper.get('[data-testid="sso-confirm-sign-in"]').element,
+          wrapper.get('[data-testid="sso-diagnostics-run"]').element,
         ];
         for (let index = 1; index < sequence.length; index++) {
           expect(
@@ -409,6 +423,181 @@ describe('DomainSsoConfigForm', () => {
         expect(card.text()).toContain(`web.organizations.sso.${key}`);
       }
       expect(card.find('[data-testid="sso-last-sign-in"]').exists()).toBe(false);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Settings-page layout (SSO page, D2/D6/D7)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('Settings-page layout', () => {
+    const RUN = '[data-testid="sso-diagnostics-run"]';
+    const FOOTER = '[data-testid="sso-form-footer"]';
+    const PROVIDER_CHECK = '[data-testid="sso-provider-check"]';
+    const DANGER_ZONE = '[data-testid="sso-danger-zone"]';
+    const buttonsByKey = (w: VueWrapper, key: string) =>
+      w.findAll('button').filter((b) => b.text().includes(key));
+
+    it('introduces setup with one line and keeps the numbered steps behind a disclosure', async () => {
+      wrapper = await mountComponent();
+
+      const guide = wrapper.get('[data-testid="sso-setup-guide"]');
+      expect(guide.get('#sso-setup-title').text()).toBe('web.organizations.sso.setup_summary');
+      const steps = guide.get('details');
+      expect((steps.element as HTMLDetailsElement).open).toBe(false);
+      expect(steps.get('summary').text()).toBe('web.organizations.sso.setup_steps');
+      expect(steps.findAll('ol > li')).toHaveLength(3);
+    });
+
+    it('keeps the discovery check collapsed until the admin opens it', async () => {
+      wrapper = await mountComponent({ formState: mockExistingFormState });
+
+      const disclosure = wrapper.get(PROVIDER_CHECK);
+      expect(disclosure.element.tagName).toBe('DETAILS');
+      expect((disclosure.element as HTMLDetailsElement).open).toBe(false);
+      expect(disclosure.get('summary').text()).toBe('web.organizations.sso.test_connection');
+      // The hint keeps discovery apart from the saved-configuration check and a sign-in.
+      expect(disclosure.text()).toContain('web.organizations.sso.test_connection_hint');
+      expect(
+        disclosure.element.compareDocumentPosition(
+          wrapper.get('[data-testid="sso-diagnostics"]').element
+        ) & Node.DOCUMENT_POSITION_PRECEDING
+      ).toBe(Node.DOCUMENT_POSITION_PRECEDING);
+    });
+
+    it('opens the discovery disclosure when a result or an error arrives', async () => {
+      wrapper = await mountComponent({ formState: mockExistingFormState });
+      const open = () => (wrapper.get(PROVIDER_CHECK).element as HTMLDetailsElement).open;
+      expect(open()).toBe(false);
+
+      await wrapper.setProps({ testError: 'Could not check provider settings' });
+      expect(open()).toBe(true);
+
+      await wrapper.setProps({ testError: '' });
+      expect(open()).toBe(true); // closing it again is the admin's call
+
+      wrapper.unmount();
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        testResult: {
+          user_id: 'cust_456',
+          success: true,
+          message: 'Connection successful',
+          provider_type: 'entra_id',
+          details: {},
+        },
+      });
+      expect(open()).toBe(true);
+    });
+
+    it('puts the one primary action in a sticky footer, outside the check panel', async () => {
+      wrapper = await mountComponent();
+
+      const footer = wrapper.get(FOOTER);
+      expect(footer.classes()).toContain('sticky');
+      expect(footer.classes()).toContain('bottom-0');
+      expect(footer.find(RUN).exists()).toBe(true);
+      expect(wrapper.get('[data-testid="sso-diagnostics"]').find(RUN).exists()).toBe(false);
+      expect(wrapper.findAll(RUN)).toHaveLength(1);
+      expect(wrapper.get('form').element.contains(footer.element)).toBe(true);
+      // A new record: no Save, no Discard, no delete.
+      expect(footer.find('button[type="submit"]').exists()).toBe(false);
+      expect(buttonsByKey(wrapper, 'discard_changes')).toHaveLength(0);
+      expect(wrapper.find(DANGER_ZONE).exists()).toBe(false);
+    });
+
+    it('adds Discard and Save for an existing record, one control each', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: mockExistingConfig,
+        isConfigured: true,
+        hasUnsavedChanges: true,
+      });
+
+      const footer = wrapper.get(FOOTER);
+      const footerButtons = footer.findAll('button').map((b) => b.text());
+      expect(footerButtons).toHaveLength(3);
+      expect(footerButtons[0]).toBe('web.organizations.sso.diagnostics_save_and_check');
+      expect(footerButtons[1]).toBe('web.domains.email.discard_changes');
+      expect(footerButtons[2]).toBe('web.COMMON.save_changes');
+      expect(footer.get('[data-testid="sso-save"]').attributes('type')).toBe('submit');
+      expect(buttonsByKey(wrapper, 'save_changes')).toHaveLength(1);
+      expect(buttonsByKey(wrapper, 'discard_changes')).toHaveLength(1);
+      // Delete lives in the danger zone, not the footer.
+      expect(buttonsByKey(footer, 'delete_config')).toHaveLength(0);
+    });
+
+    it('hides Discard while an existing record is clean', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: mockExistingConfig,
+        isConfigured: true,
+      });
+
+      expect(buttonsByKey(wrapper, 'discard_changes')).toHaveLength(0);
+      expect(wrapper.get(FOOTER).find('[data-testid="sso-save"]').exists()).toBe(true);
+    });
+
+    it('moves delete into a danger zone after the sign-in sections, with its inline confirm', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: mockExistingConfig,
+        isConfigured: true,
+      });
+
+      const zone = wrapper.get(DANGER_ZONE);
+      expect(zone.attributes('aria-labelledby')).toBe('sso-danger-zone-title');
+      expect(zone.get('#sso-danger-zone-title').text()).toBe('web.COMMON.danger_zone');
+      expect(zone.text()).toContain('web.organizations.sso.delete_config_hint');
+      expect(
+        wrapper
+          .get('[data-testid="sso-confirm-sign-in"]')
+          .element.compareDocumentPosition(zone.element) & Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+      expect(
+        zone.element.compareDocumentPosition(wrapper.get(FOOTER).element) &
+          Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+      expect(buttonsByKey(wrapper, 'delete_config')).toHaveLength(1);
+
+      await buttonsByKey(zone, 'delete_config')[0].trigger('click');
+      expect(zone.text()).toContain('web.organizations.sso.delete_confirm');
+      expect(buttonsByKey(zone, 'yes_delete')).toHaveLength(1);
+      expect(buttonsByKey(zone, 'delete_config')).toHaveLength(0);
+
+      await buttonsByKey(zone, 'word_cancel')[0].trigger('click');
+      expect(buttonsByKey(zone, 'delete_config')).toHaveLength(1);
+      expect(wrapper.emitted('delete')).toBeUndefined();
+    });
+
+    it('renders the callback URL as one labelled row with a copy control and its instruction', async () => {
+      wrapper = await mountComponent({ formState: mockExistingFormState });
+
+      const row = wrapper.get('[data-testid="sso-callback-url"]');
+      expect(row.get('code').attributes('aria-labelledby')).toBe('domain-sso-callback-url-label');
+      expect(row.get('#domain-sso-callback-url-label').text()).toBe(
+        'web.organizations.sso.callback_url'
+      );
+      expect(row.get('code').text()).toMatch(
+        /^https:\/\/secrets\.example\.com\/auth\/sso\/[a-z_-]+\/callback$/
+      );
+      expect(row.findAll('button')).toHaveLength(1);
+      expect(row.text()).toContain('web.organizations.sso.callback_url_hint');
+    });
+
+    it('labels the provider in place of the picker for a saved record', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: mockExistingConfig,
+        isConfigured: true,
+      });
+
+      const fieldset = wrapper.get('fieldset');
+      expect(fieldset.get('legend').attributes('id')).toBe('provider-type-legend');
+      expect(fieldset.findAll('input[type="radio"]')).toHaveLength(0);
+      expect(fieldset.text()).toContain('Microsoft Entra ID');
+      expect(fieldset.text()).toContain('web.organizations.sso.provider_type_locked_hint');
+      expect(fieldset.text()).not.toContain('web.organizations.sso.provider_type_description');
     });
   });
 
@@ -791,11 +980,11 @@ describe('DomainSsoConfigForm', () => {
       const message = providerCheck.get('h5');
       expect(message.text()).toBe('Connection successful');
       expect(message.isVisible()).toBe(true);
-      expect(message.element.closest('details')).toBeNull();
+      expectShownInProviderCheck(wrapper, message.element);
       const next = providerCheck.get('[data-testid="sso-provider-check-next"]');
       expect(next.text()).toBe('web.organizations.sso.provider_check_next');
       expect(next.isVisible()).toBe(true);
-      expect(next.element.closest('details')).toBeNull();
+      expectShownInProviderCheck(wrapper, next.element);
     });
 
     it('shows error result when testResult.success is false', async () => {
@@ -2090,7 +2279,7 @@ describe('DomainSsoConfigForm', () => {
         const message = wrapper.get('[data-testid="sso-provider-check"] h5');
         expect(message.text()).toBe('Connection successful');
         expect(message.isVisible()).toBe(true);
-        expect(message.element.closest('details')).toBeNull();
+        expectShownInProviderCheck(wrapper, message.element);
         expect(wrapper.find('[data-testid="sso-test-note"]').exists()).toBe(false);
       });
 
@@ -2112,7 +2301,7 @@ describe('DomainSsoConfigForm', () => {
           const message = wrapper.get('[data-testid="sso-provider-check"] h5');
           expect(message.text()).toBe('Connection successful');
           expect(message.isVisible()).toBe(true);
-          expect(message.element.closest('details')).toBeNull();
+          expectShownInProviderCheck(wrapper, message.element);
           expect(wrapper.find('[role="status"]').exists()).toBe(true);
         }
       );
@@ -2133,7 +2322,7 @@ describe('DomainSsoConfigForm', () => {
         expect(note.text()).toContain('client_secret_post is not among the advertised methods');
         expect(note.classes()).toContain('text-amber-700');
         expect(note.find('.o-icon').exists()).toBe(true);
-        expect(note.element.closest('details')).toBeNull();
+        expectShownInProviderCheck(wrapper, note.element);
         const disclosure = wrapper.get('[data-testid="sso-test-technical-details"]');
         expect(disclosure.element.tagName).toBe('DETAILS');
         expect((disclosure.element as HTMLDetailsElement).open).toBe(true);
@@ -2156,7 +2345,7 @@ describe('DomainSsoConfigForm', () => {
           expect(note.text()).toContain('Some other note');
           expect(note.classes()).toContain('text-green-700');
           expect(note.find('.o-icon').exists()).toBe(false);
-          expect(note.element.closest('details')).toBeNull();
+          expectShownInProviderCheck(wrapper, note.element);
           const disclosure = wrapper.get('[data-testid="sso-test-technical-details"]');
           expect(disclosure.element.tagName).toBe('DETAILS');
           expect((disclosure.element as HTMLDetailsElement).open).toBe(false);
@@ -2346,7 +2535,7 @@ describe('DomainSsoConfigForm', () => {
       expect(lastEmit.grant_org_scope).toBe(false);
     });
 
-    // The latch is per-domain: SsoCredentialsModal reuses this instance without
+    // The latch is per-domain: a host may reuse this instance without
     // a :key, so navigating domains must not carry a prior domain's granted
     // toggle over to a fresh grant_org_scope=false domain (that would re-expose
     // the withheld control and let an admin inadvertently enable an org-wide
@@ -2608,8 +2797,8 @@ describe('DomainSsoConfigForm', () => {
       wrapper = await mountActive({ savedCredentialsUnchecked: true });
       expect(wrapper.find(WARNING).exists()).toBe(true);
 
-      // SsoCredentialsModal reuses this component across domains (no :key);
-      // the warning holds no session state of its own to carry over.
+      // A host may reuse this component across domains (no :key); the
+      // warning holds no session state of its own to carry over.
       await wrapper.setProps({ domainExtId: 'dm_456', savedCredentialsUnchecked: false });
       expect(wrapper.find(WARNING).exists()).toBe(false);
     });
@@ -3152,7 +3341,7 @@ describe('DomainSsoConfigForm', () => {
         expect(details.text()).toContain('CN=idp.example.com');
         expect(details.text()).toContain('web.organizations.sso.certificate_expires_in_days');
         expect(details.isVisible()).toBe(true);
-        expect(details.element.closest('details')).toBeNull();
+        expectShownInProviderCheck(wrapper, details.element);
         expect(wrapper.find('[role="status"]').exists()).toBe(true);
       });
 

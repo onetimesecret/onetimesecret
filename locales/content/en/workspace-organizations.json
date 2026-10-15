@@ -856,6 +856,10 @@
     "text": "e.g. Acme Corp SSO",
     "content_hash": "43c655c5"
   },
+  "web.organizations.sso.provider_details_title": {
+    "text": "Identity provider details",
+    "content_hash": "97f3b667"
+  },
   "web.organizations.sso.client_id": {
     "text": "Client ID",
     "content_hash": "8726db01"
@@ -1071,6 +1075,10 @@
     "text": "Are you sure? This will disable SSO for your organization.",
     "content_hash": "5b3f5b9d"
   },
+  "web.organizations.sso.delete_config_hint": {
+    "text": "Removes the saved configuration and its credentials from this domain. Members can no longer sign in with SSO here.",
+    "content_hash": "8d8c7368"
+  },
   "web.organizations.sso.load_error": {
     "text": "Failed to load SSO configuration",
     "content_hash": "75cb73f6"
@@ -1119,9 +1127,13 @@
     "text": "Could not check provider settings",
     "content_hash": "3d7a4ea6"
   },
-  "web.organizations.sso.setup_title": {
-    "text": "Set up SSO for this domain",
-    "content_hash": "117a38e3"
+  "web.organizations.sso.setup_summary": {
+    "text": "Register this domain with your identity provider, save and check the configuration, then confirm with a real sign-in.",
+    "content_hash": "d0128d43"
+  },
+  "web.organizations.sso.setup_steps": {
+    "text": "Show the steps",
+    "content_hash": "450a5922"
   },
   "web.organizations.sso.setup_register": {
     "text": "Register the callback or service-provider details with your identity provider, then enter its credentials below.",

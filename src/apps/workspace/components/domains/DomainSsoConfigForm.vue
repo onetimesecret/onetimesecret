@@ -5,8 +5,10 @@
  * Domain SSO Configuration Form
  *
  * Presentational component that receives SSO config state via props
- * and emits events for actions. Parent (DomainSso.vue) manages state
- * via useSsoConfig composable.
+ * and emits events for actions. The host page (DomainSigninSso.vue)
+ * manages state via the useSsoConfig composable. Laid out as a settings
+ * page: flat sections top to bottom, the primary action in a sticky
+ * footer, delete in a danger zone.
  */
 import { useI18n } from 'vue-i18n';
 import { computed, ref, watch } from 'vue';
@@ -200,6 +202,20 @@ watch(
   () => props.ssoConfig?.token_endpoint_auth_method ?? null,
   (stored) => {
     if (stored) advancedOpen.value = true;
+  },
+  { immediate: true }
+);
+
+/**
+ * The provider discovery check is an advanced disclosure, collapsed by
+ * default. A result (or transport error) opens it so what the admin asked
+ * for is never hidden behind a closed summary; closing it again is theirs.
+ */
+const providerCheckOpen = ref(false);
+watch(
+  () => !!props.testResult || !!props.testError,
+  (hasResult) => {
+    if (hasResult) providerCheckOpen.value = true;
   },
   { immediate: true }
 );
@@ -402,8 +418,8 @@ const showDomainFilter = computed(() => false);
  * the control.
  *
  * The latch keeps it visible for the whole edit session even after the admin
- * flips it off, so it doesn't vanish mid-edit. It is scoped per domain: this
- * instance is reused across domains (no :key in SsoCredentialsModal), so when
+ * flips it off, so it doesn't vanish mid-edit. It is scoped per domain: a
+ * host may reuse this instance across domains (no :key), so when
  * domainExtId changes the latch is recomputed from the incoming
  * grant_org_scope. A fresh domain with grant_org_scope=false therefore clears a
  * latch left true by a previously-loaded domain, rather than inheriting it.
@@ -912,7 +928,7 @@ watch(newDomain, () => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div>
     <!-- Loading State -->
     <SettingsSkeleton
       v-if="isLoading"
@@ -922,30 +938,38 @@ watch(newDomain, () => {
     <form
       v-else
       @submit.prevent="handleSubmit"
-      class="space-y-6">
+      class="space-y-8">
+      <!-- Setup guide: one line, with the numbered stages behind a
+           disclosure. Stays until the connection is on (showSetupGuide). -->
       <section
         v-if="showSetupGuide"
         data-testid="sso-setup-guide"
         aria-labelledby="sso-setup-title"
-        class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-        <h4
+        class="text-sm">
+        <p
           id="sso-setup-title"
-          class="text-sm font-medium text-gray-900 dark:text-white">
-          {{ t('web.organizations.sso.setup_title') }}
-        </h4>
-        <ol class="mt-2 list-decimal space-y-1 pl-5 text-sm text-gray-600 dark:text-gray-300">
-          <li>
-            {{
-              t(
-                isSaml
-                  ? 'web.organizations.sso.setup_register_saml'
-                  : 'web.organizations.sso.setup_register'
-              )
-            }}
-          </li>
-          <li>{{ t('web.organizations.sso.setup_save_check') }}</li>
-          <li>{{ t('web.organizations.sso.setup_confirm') }}</li>
-        </ol>
+          class="text-gray-700 dark:text-gray-300">
+          {{ t('web.organizations.sso.setup_summary') }}
+        </p>
+        <details class="mt-1">
+          <summary
+            class="cursor-pointer font-medium text-brand-600 select-none hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
+            {{ t('web.organizations.sso.setup_steps') }}
+          </summary>
+          <ol class="mt-2 list-decimal space-y-1 pl-5 text-gray-600 dark:text-gray-300">
+            <li>
+              {{
+                t(
+                  isSaml
+                    ? 'web.organizations.sso.setup_register_saml'
+                    : 'web.organizations.sso.setup_register'
+                )
+              }}
+            </li>
+            <li>{{ t('web.organizations.sso.setup_save_check') }}</li>
+            <li>{{ t('web.organizations.sso.setup_confirm') }}</li>
+          </ol>
+        </details>
       </section>
 
       <!-- Reveal failure (#4450): a stored encrypted value that will not
@@ -1000,34 +1024,37 @@ watch(newDomain, () => {
         </p>
       </div>
 
-      <!-- Provider Selection (locked when editing, selectable when creating) -->
+      <!-- Provider identity: the label for a saved record (the type is
+           locked while editing), the picker for a new one. -->
       <fieldset>
-        <legend class="text-sm font-medium text-gray-900 dark:text-white">
+        <legend
+          id="provider-type-legend"
+          class="border-b border-gray-200 pb-2 text-sm font-medium text-gray-900 dark:border-gray-700 dark:text-white w-full">
           {{ t('web.organizations.sso.provider_type') }}
         </legend>
-        <p v-if="!isEditing" class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p v-if="!isEditing" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.organizations.sso.provider_type_description') }}
         </p>
 
         <!-- Locked display when editing existing config -->
-        <div v-if="isEditing && currentProviderOption" class="mt-4">
-          <div class="relative flex rounded-lg border border-brand-500 bg-brand-50 p-4 dark:border-brand-400 dark:bg-brand-900/20">
-            <span class="flex flex-1 flex-col">
-              <span class="block text-sm font-medium text-brand-900 dark:text-brand-100">
-                {{ currentProviderOption.label }}
+        <div
+          v-if="isEditing && currentProviderOption"
+          class="mt-3 flex items-start gap-2">
+          <OIcon
+            collection="heroicons"
+            name="check-circle-solid"
+            class="mt-0.5 size-5 shrink-0 text-brand-600 dark:text-brand-400"
+            aria-hidden="true" />
+          <div class="text-sm">
+            <p class="font-medium text-gray-900 dark:text-white">
+              {{ currentProviderOption.label }}
+              <span class="font-normal text-gray-500 dark:text-gray-400">
+                · {{ currentProviderOption.description }}
               </span>
-              <span class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {{ currentProviderOption.description }}
-              </span>
-              <span class="mt-2 text-xs text-gray-400 dark:text-gray-500">
-                {{ t('web.organizations.sso.provider_type_locked_hint') }}
-              </span>
-            </span>
-            <OIcon
-              collection="heroicons"
-              name="check-circle-solid"
-              class="size-5 text-brand-600 dark:text-brand-400"
-              aria-hidden="true" />
+            </p>
+            <p class="mt-0.5 text-gray-500 dark:text-gray-400">
+              {{ t('web.organizations.sso.provider_type_locked_hint') }}
+            </p>
           </div>
         </div>
 
@@ -1102,25 +1129,31 @@ watch(newDomain, () => {
         </p>
       </div>
 
-      <!-- Callback URL (OAuth-family providers) -->
+      <!-- Callback URL (OAuth-family providers): what the admin registers at
+           the IdP, as one utility row with its copy control. -->
       <div
         v-if="callbackUrl && !isSaml"
         data-testid="sso-callback-url"
-        class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-        <label class="block text-sm font-medium text-gray-900 dark:text-white">
+        class="sm:flex sm:items-start sm:gap-4">
+        <p
+          id="domain-sso-callback-url-label"
+          class="text-sm font-medium text-gray-900 sm:w-44 sm:shrink-0 sm:pt-2 dark:text-white">
           {{ t('web.organizations.sso.callback_url') }}
-        </label>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.organizations.sso.callback_url_hint') }}
         </p>
-        <div class="mt-2 flex items-center gap-2">
-          <code
-            class="block flex-1 overflow-x-auto rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-            {{ callbackUrl }}
-          </code>
-          <CopyToClipboardButton
-            :is-copied="isCallbackCopied"
-            @click="copyToClipboard(callbackUrl ?? '')" />
+        <div class="mt-1 min-w-0 flex-1 sm:mt-0">
+          <div class="flex items-center gap-2">
+            <code
+              aria-labelledby="domain-sso-callback-url-label"
+              class="block flex-1 overflow-x-auto rounded-md bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+              {{ callbackUrl }}
+            </code>
+            <CopyToClipboardButton
+              :is-copied="isCallbackCopied"
+              @click="copyToClipboard(callbackUrl ?? '')" />
+          </div>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {{ t('web.organizations.sso.callback_url_hint') }}
+          </p>
         </div>
       </div>
 
@@ -1130,8 +1163,7 @@ watch(newDomain, () => {
            because the static default route may not be the deployed one (#3932). -->
       <div
         v-if="isSaml && (spEntityId || callbackUrl)"
-        data-testid="sso-saml-sp-details"
-        class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+        data-testid="sso-saml-sp-details">
         <p class="text-sm font-medium text-gray-900 dark:text-white">
           {{ t('web.organizations.sso.sp_details') }}
         </p>
@@ -1145,17 +1177,17 @@ watch(newDomain, () => {
           }}
         </p>
         <dl class="mt-3 space-y-3">
-          <div v-if="spEntityId">
+          <div v-if="spEntityId" class="sm:flex sm:items-start sm:gap-4">
             <dt
               id="domain-sso-sp-entity-id-label"
-              class="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+              class="text-sm font-medium text-gray-900 sm:w-44 sm:shrink-0 sm:pt-2 dark:text-white">
               {{ t('web.organizations.sso.sp_entity_id') }}
             </dt>
-            <dd class="mt-1 flex items-center gap-2">
+            <dd class="mt-1 flex min-w-0 flex-1 items-center gap-2 sm:mt-0">
               <code
                 data-testid="sso-saml-sp-entity-id"
                 aria-labelledby="domain-sso-sp-entity-id-label"
-                class="block flex-1 overflow-x-auto rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                class="block flex-1 overflow-x-auto rounded-md bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:bg-gray-800 dark:text-gray-200">
                 {{ spEntityId }}
               </code>
               <CopyToClipboardButton
@@ -1163,17 +1195,17 @@ watch(newDomain, () => {
                 @click="copySpEntityId(spEntityId ?? '')" />
             </dd>
           </div>
-          <div v-if="callbackUrl">
+          <div v-if="callbackUrl" class="sm:flex sm:items-start sm:gap-4">
             <dt
               id="domain-sso-acs-url-label"
-              class="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+              class="text-sm font-medium text-gray-900 sm:w-44 sm:shrink-0 sm:pt-2 dark:text-white">
               {{ t('web.organizations.sso.acs_url') }}
             </dt>
-            <dd class="mt-1 flex items-center gap-2">
+            <dd class="mt-1 flex min-w-0 flex-1 items-center gap-2 sm:mt-0">
               <code
                 data-testid="sso-saml-acs-url"
                 aria-labelledby="domain-sso-acs-url-label"
-                class="block flex-1 overflow-x-auto rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                class="block flex-1 overflow-x-auto rounded-md bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:bg-gray-800 dark:text-gray-200">
                 {{ callbackUrl }}
               </code>
               <CopyToClipboardButton
@@ -1183,6 +1215,17 @@ watch(newDomain, () => {
           </div>
         </dl>
       </div>
+
+      <!-- Identity provider details: a flat form, one spacing rhythm. -->
+      <section
+        data-testid="sso-provider-details"
+        aria-labelledby="sso-provider-details-title"
+        class="space-y-5">
+        <h4
+          id="sso-provider-details-title"
+          class="border-b border-gray-200 pb-2 text-sm font-medium text-gray-900 dark:border-gray-700 dark:text-white">
+          {{ t('web.organizations.sso.provider_details_title') }}
+        </h4>
 
       <!-- Display Name -->
       <div>
@@ -1355,13 +1398,12 @@ aria-hidden="true">*</span>
         v-if="requiresIssuer"
         :open="advancedOpen"
         @toggle="advancedOpen = ($event.target as HTMLDetailsElement).open"
-        data-testid="sso-advanced-oidc"
-        class="rounded-lg border border-gray-200 dark:border-gray-700">
+        data-testid="sso-advanced-oidc">
         <summary
-          class="cursor-pointer px-4 py-3 text-sm font-medium text-gray-700 select-none hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
+          class="cursor-pointer text-sm font-medium text-gray-700 select-none hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
           {{ t('web.organizations.sso.advanced_section') }}
         </summary>
-        <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+        <div class="mt-3">
           <label
             for="domain-sso-token-endpoint-auth-method"
             class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -1505,291 +1547,105 @@ aria-hidden="true">*</span>
           </p>
         </div>
       </template>
+      </section>
 
-      <!-- Optional check of the current form values, before saving. -->
-      <div
-        data-testid="sso-provider-check"
-        class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-        <div class="flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
-          <div class="min-w-0 flex-1">
-            <h4 class="text-sm font-medium text-gray-900 dark:text-white">
-              {{ t('web.organizations.sso.test_connection') }}
-            </h4>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {{ isSaml ? t('web.organizations.sso.test_connection_hint_saml') : t('web.organizations.sso.test_connection_hint') }}
-            </p>
+      <!-- Domain Allowlist (only for providers without IdP-side access control) -->
+      <div v-if="showDomainFilter">
+        <label
+          for="domain-sso-domain-input"
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          {{ t('web.organizations.sso.allowed_domains') }}
+        </label>
+        <p
+          id="domain-allowed-domains-hint"
+          class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.organizations.sso.allowed_domains_hint') }}
+        </p>
+
+        <!-- Domain chips -->
+        <div
+          v-if="formState.allowed_domains && formState.allowed_domains.length > 0"
+          class="mt-2 flex flex-wrap gap-2"
+          role="list"
+          :aria-label="t('web.organizations.sso.allowed_domains')">
+          <span
+            v-for="domain in formState.allowed_domains"
+            :key="domain"
+            role="listitem"
+            class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 dark:bg-gray-600 dark:text-gray-200">
+            {{ domain }}
+            <button
+              type="button"
+              @click="removeDomain(domain)"
+              class="ml-1 rounded-full p-0.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-500 dark:hover:text-gray-100"
+              :aria-label="t('web.organizations.sso.remove_domain', { domain })">
+              <OIcon
+                collection="heroicons"
+                name="x-mark"
+                class="size-4"
+                aria-hidden="true" />
+            </button>
+          </span>
+        </div>
+
+        <!-- Add domain input -->
+        <div class="mt-2 flex gap-2">
+          <div class="flex-1">
+            <input
+              id="domain-sso-domain-input"
+              v-model="newDomain"
+              type="text"
+              :placeholder="t('web.organizations.sso.domain_placeholder')"
+              aria-describedby="domain-allowed-domains-hint domain-domain-input-error"
+              :aria-invalid="!!domainInputError"
+              @keydown.enter.prevent="addDomain"
+              class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
           </div>
           <button
             type="button"
-            @click="handleTestConnection"
-            :disabled="!canTestConnection || isTesting || isSaving"
-            class="ml-4 inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-gray-100 dark:ring-gray-500 dark:hover:bg-gray-500">
-            <OIcon
-              v-if="isTesting"
-              collection="heroicons"
-              name="arrow-path"
-              size="4"
-              class="animate-spin motion-reduce:animate-none"
-              aria-hidden="true" />
-            <OIcon
-              v-else
-              collection="heroicons"
-              name="signal"
-              size="4"
-              aria-hidden="true" />
-            {{ isTesting ? t('web.organizations.sso.testing') : t('web.organizations.sso.test_button') }}
+            @click="addDomain"
+            class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
+            {{ t('web.COMMON.add') }}
           </button>
         </div>
-
-        <!-- Test Result -->
-        <div
-          v-if="testResult || testError"
-          class="mt-4">
-          <!-- Success Result -->
-          <div
-            v-if="testResult?.success"
-            role="status"
-            aria-live="polite"
-            class="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
-            <div class="flex">
-              <OIcon
-                collection="heroicons"
-                name="check-circle-solid"
-                class="size-5 text-green-400"
-                aria-hidden="true" />
-              <div class="ml-3">
-                <h5 class="text-sm font-medium text-green-800 dark:text-green-200">
-                  {{ testResult.message }}
-                </h5>
-                <!-- The API's note. With an unadvertised token endpoint auth
-                     method (#4764) it explains a gap, so it reads as a warning;
-                     otherwise it is part of the confirmation. -->
-                <p
-                  v-if="testResult.details?.note"
-                  data-testid="sso-test-note"
-                  :class="
-                    tokenEndpointAuthMethodUnadvertised
-                      ? 'mt-2 flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-300'
-                      : 'mt-1 text-sm text-green-700 dark:text-green-300'
-                  ">
-                  <OIcon
-                    v-if="tokenEndpointAuthMethodUnadvertised"
-                    collection="heroicons"
-                    name="exclamation-triangle"
-                    class="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
-                    aria-hidden="true" />
-                  <span>{{ testResult.details.note }}</span>
-                </p>
-                <p
-                  class="mt-2 text-sm text-green-800 dark:text-green-200"
-                  data-testid="sso-provider-check-next">
-                  {{ t('web.organizations.sso.provider_check_next') }}
-                </p>
-                <details
-                  v-if="advertisedTokenEndpointAuthMethods?.length"
-                  data-testid="sso-test-technical-details"
-                  :open="tokenEndpointAuthMethodUnadvertised"
-                  class="mt-2 text-sm text-green-700 dark:text-green-300">
-                  <summary class="cursor-pointer font-medium">
-                    {{ t('web.organizations.sso.technical_details') }}
-                  </summary>
-                  <dl
-                    v-if="advertisedTokenEndpointAuthMethods?.length"
-                    data-testid="sso-test-token-endpoint-auth-methods"
-                    class="mt-2 space-y-1 text-sm text-green-700 dark:text-green-300">
-                    <div class="flex gap-2">
-                      <dt class="shrink-0 font-medium">
-                        {{ t('web.organizations.sso.token_endpoint_auth_methods_supported') }}:
-                      </dt>
-                      <dd class="font-mono break-all">
-                        {{ advertisedTokenEndpointAuthMethods.join(', ') }}
-                      </dd>
-                    </div>
-                  </dl>
-                </details>
-                <!-- SAML (#4450): the test is local, so it reports what it
-                     parsed — the certificate's subject and expiry. -->
-                <dl
-                  v-if="testResult.details?.certificate_subject || certificateExpiry"
-                  data-testid="sso-test-saml-details"
-                  class="mt-2 space-y-1 text-sm text-green-700 dark:text-green-300">
-                  <div v-if="testResult.details.certificate_subject" class="flex gap-2">
-                    <dt class="font-medium">{{ t('web.organizations.sso.certificate_subject') }}:</dt>
-                    <dd class="break-all">{{ testResult.details.certificate_subject }}</dd>
-                  </div>
-                  <div v-if="certificateExpiry" class="flex gap-2">
-                    <dt class="font-medium">{{ t('web.organizations.sso.certificate_expires') }}:</dt>
-                    <dd>
-                      {{ certificateExpiry.date }}
-                      <span v-if="certificateExpiry.days !== undefined">
-                        ({{ t('web.organizations.sso.certificate_expires_in_days', certificateExpiry.days) }})
-                      </span>
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
-          </div>
-
-          <!-- Failure Result -->
-          <div
-            v-else-if="testResult && !testResult.success"
-            role="alert"
-            aria-live="assertive"
-            class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
-            <div class="flex">
-              <OIcon
-                collection="heroicons"
-                name="x-circle-solid"
-                class="size-5 text-red-400"
-                aria-hidden="true" />
-              <div class="ml-3">
-                <h5 class="text-sm font-medium text-red-800 dark:text-red-200">
-                  {{ testResult.message }}
-                </h5>
-                <div
-                  v-if="testResult.details"
-                  class="mt-2 text-sm text-red-700 dark:text-red-300">
-                  <dl class="space-y-1">
-                    <div v-if="testResult.details.error_code" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.COMMON.error_code') }}:</dt>
-                      <dd>{{ testResult.details.error_code }}</dd>
-                    </div>
-                    <div v-if="testResult.details.http_status" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.COMMON.http_status') }}:</dt>
-                      <dd>{{ testResult.details.http_status }}</dd>
-                    </div>
-                    <div v-if="testResult.details.field" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.COMMON.field') }}:</dt>
-                      <dd>{{ t(UNREADABLE_FIELD_LABELS[testResult.details.field] ?? testResult.details.field) }}</dd>
-                    </div>
-                    <div v-if="testResult.details.description" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.COMMON.details') }}:</dt>
-                      <dd>{{ testResult.details.description }}</dd>
-                    </div>
-                    <div v-if="certificateValidFrom" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.organizations.sso.certificate_valid_from') }}:</dt>
-                      <dd>{{ certificateValidFrom }}</dd>
-                    </div>
-                    <div v-if="certificateExpiry" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.organizations.sso.certificate_expires') }}:</dt>
-                      <dd>{{ certificateExpiry.date }}</dd>
-                    </div>
-                    <div v-if="testResult.details.missing_fields?.length" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.organizations.sso.missing_fields') }}:</dt>
-                      <dd>{{ testResult.details.missing_fields.join(', ') }}</dd>
-                    </div>
-                    <template v-if="testResult.details.error_code === 'issuer_mismatch'">
-                      <div class="flex gap-2">
-                        <dt class="shrink-0 font-medium">
-                          {{ t('web.organizations.sso.configured_issuer') }}:
-                        </dt>
-                        <dd>
-                          <code
-                            class="font-mono break-all"
-                            data-testid="sso-configured-issuer">{{
-                              testResult.details.configured_issuer
-                            }}</code>
-                        </dd>
-                      </div>
-                      <div class="flex gap-2">
-                        <dt class="shrink-0 font-medium">
-                          {{ t('web.organizations.sso.discovery_issuer') }}:
-                        </dt>
-                        <dd>
-                          <code
-                            class="font-mono break-all"
-                            data-testid="sso-discovery-issuer">{{
-                              testResult.details.discovery_issuer ?? '—'
-                            }}</code>
-                        </dd>
-                      </div>
-                    </template>
-                  </dl>
-                  <p
-                    v-if="testResult.details.error_code === 'issuer_mismatch'"
-                    class="mt-2"
-                    data-testid="sso-issuer-mismatch-hint">
-                    {{ t('web.organizations.sso.issuer_mismatch_hint') }}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Error (exception) -->
-          <div
-            v-else-if="testError"
-            class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
-            <div class="flex">
-              <OIcon
-                collection="heroicons"
-                name="exclamation-triangle-solid"
-                class="size-5 text-red-400"
-                aria-hidden="true" />
-              <div class="ml-3">
-                <p class="text-sm font-medium text-red-800 dark:text-red-200">
-                  {{ testError }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <p
+          v-if="domainInputError"
+          id="domain-domain-input-error"
+          class="mt-1 text-sm text-red-600 dark:text-red-400"
+          role="alert">
+          {{ domainInputError }}
+        </p>
       </div>
 
-      <!-- The primary action: save (when needed), check the saved
-           configuration, and turn a record that is off on when the check
-           passes. Visible from the start so setup does not end at provider
-           discovery. -->
-      <div
+      <!-- The primary check panel: heading, hint, warnings and results. Its
+           action (sso-diagnostics-run) is in the sticky footer. The run
+           saves when needed, checks the saved configuration, and turns a
+           record that is off on when the check passes. -->
+      <section
         data-testid="sso-diagnostics"
-        class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-        <div class="flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
-          <div class="min-w-0 flex-1">
-            <h4 class="text-sm font-medium text-gray-900 dark:text-white">
-              {{ t('web.organizations.sso.diagnostics_title') }}
-            </h4>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {{
-                t(
-                  isSaml
-                    ? 'web.organizations.sso.diagnostics_hint_saml'
-                    : requiresTenantId
-                      ? 'web.organizations.sso.diagnostics_hint_entra'
-                      : 'web.organizations.sso.diagnostics_hint'
-                )
-              }}
-            </p>
-            <p
-              v-if="!connectionOn"
-              data-testid="sso-diagnostics-activation-hint"
-              class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {{ t('web.organizations.sso.diagnostics_activation_hint') }}
-            </p>
-          </div>
-          <button
-            type="button"
-            data-testid="sso-diagnostics-run"
-            :data-action="checkNeedsSave ? 'save-and-check' : connectionOn ? 'check' : 'check-and-activate'"
-            @click="handleRunCheck"
-            :disabled="!canRunCheck"
-            class="inline-flex shrink-0 items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
-            <OIcon
-              v-if="isDiagnosing || isSaving"
-              collection="heroicons"
-              name="arrow-path"
-              size="4"
-              class="animate-spin motion-reduce:animate-none"
-              aria-hidden="true" />
-            <OIcon
-              v-else
-              collection="heroicons"
-              name="clipboard-document-check"
-              size="4"
-              aria-hidden="true" />
-            {{ checkButtonLabel }}
-          </button>
-        </div>
+        aria-labelledby="sso-diagnostics-title">
+        <h4
+          id="sso-diagnostics-title"
+          class="border-b border-gray-200 pb-2 text-sm font-medium text-gray-900 dark:border-gray-700 dark:text-white">
+          {{ t('web.organizations.sso.diagnostics_title') }}
+        </h4>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          {{
+            t(
+              isSaml
+                ? 'web.organizations.sso.diagnostics_hint_saml'
+                : requiresTenantId
+                  ? 'web.organizations.sso.diagnostics_hint_entra'
+                  : 'web.organizations.sso.diagnostics_hint'
+            )
+          }}
+        </p>
+        <p
+          v-if="!connectionOn"
+          data-testid="sso-diagnostics-activation-hint"
+          class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.organizations.sso.diagnostics_activation_hint') }}
+        </p>
 
         <!-- Changed credentials on a connection that is on (advisory, never
              a gate: saving stays possible). role="alert" so it is announced
@@ -2022,83 +1878,248 @@ aria-hidden="true">*</span>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Domain Allowlist (only for providers without IdP-side access control) -->
-      <div v-if="showDomainFilter">
-        <label
-          for="domain-sso-domain-input"
-          class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {{ t('web.organizations.sso.allowed_domains') }}
-        </label>
-        <p
-          id="domain-allowed-domains-hint"
-          class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.organizations.sso.allowed_domains_hint') }}
-        </p>
-
-        <!-- Domain chips -->
-        <div
-          v-if="formState.allowed_domains && formState.allowed_domains.length > 0"
-          class="mt-2 flex flex-wrap gap-2"
-          role="list"
-          :aria-label="t('web.organizations.sso.allowed_domains')">
-          <span
-            v-for="domain in formState.allowed_domains"
-            :key="domain"
-            role="listitem"
-            class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 dark:bg-gray-600 dark:text-gray-200">
-            {{ domain }}
-            <button
-              type="button"
-              @click="removeDomain(domain)"
-              class="ml-1 rounded-full p-0.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-500 dark:hover:text-gray-100"
-              :aria-label="t('web.organizations.sso.remove_domain', { domain })">
-              <OIcon
-                collection="heroicons"
-                name="x-mark"
-                class="size-4"
-                aria-hidden="true" />
-            </button>
-          </span>
-        </div>
-
-        <!-- Add domain input -->
-        <div class="mt-2 flex gap-2">
-          <div class="flex-1">
-            <input
-              id="domain-sso-domain-input"
-              v-model="newDomain"
-              type="text"
-              :placeholder="t('web.organizations.sso.domain_placeholder')"
-              aria-describedby="domain-allowed-domains-hint domain-domain-input-error"
-              :aria-invalid="!!domainInputError"
-              @keydown.enter.prevent="addDomain"
-              class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
-          </div>
+      <!-- Provider discovery check (D7): an optional check of the CURRENT form
+           values. It saves nothing and never verifies the secret, so it is
+           neither the saved-configuration check above nor a sign-in. Collapsed
+           by default; a result opens it so it is never hidden. -->
+      <details
+        data-testid="sso-provider-check"
+        :open="providerCheckOpen"
+        @toggle="providerCheckOpen = ($event.target as HTMLDetailsElement).open">
+        <summary
+          class="cursor-pointer text-sm font-medium text-gray-700 select-none hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
+          {{ t('web.organizations.sso.test_connection') }}
+        </summary>
+        <div class="mt-2 flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
+          <p class="min-w-0 flex-1 text-sm text-gray-500 dark:text-gray-400">
+            {{ isSaml ? t('web.organizations.sso.test_connection_hint_saml') : t('web.organizations.sso.test_connection_hint') }}
+          </p>
           <button
             type="button"
-            @click="addDomain"
-            class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
-            {{ t('web.COMMON.add') }}
+            @click="handleTestConnection"
+            :disabled="!canTestConnection || isTesting || isSaving"
+            class="inline-flex shrink-0 items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-gray-100 dark:ring-gray-500 dark:hover:bg-gray-500">
+            <OIcon
+              v-if="isTesting"
+              collection="heroicons"
+              name="arrow-path"
+              size="4"
+              class="animate-spin motion-reduce:animate-none"
+              aria-hidden="true" />
+            <OIcon
+              v-else
+              collection="heroicons"
+              name="signal"
+              size="4"
+              aria-hidden="true" />
+            {{ isTesting ? t('web.organizations.sso.testing') : t('web.organizations.sso.test_button') }}
           </button>
         </div>
-        <p
-          v-if="domainInputError"
-          id="domain-domain-input-error"
-          class="mt-1 text-sm text-red-600 dark:text-red-400"
-          role="alert">
-          {{ domainInputError }}
-        </p>
-      </div>
+
+        <!-- Test Result -->
+        <div
+          v-if="testResult || testError"
+          class="mt-4">
+          <!-- Success Result -->
+          <div
+            v-if="testResult?.success"
+            role="status"
+            aria-live="polite"
+            class="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
+            <div class="flex">
+              <OIcon
+                collection="heroicons"
+                name="check-circle-solid"
+                class="size-5 text-green-400"
+                aria-hidden="true" />
+              <div class="ml-3">
+                <h5 class="text-sm font-medium text-green-800 dark:text-green-200">
+                  {{ testResult.message }}
+                </h5>
+                <!-- The API's note. With an unadvertised token endpoint auth
+                     method (#4764) it explains a gap, so it reads as a warning;
+                     otherwise it is part of the confirmation. -->
+                <p
+                  v-if="testResult.details?.note"
+                  data-testid="sso-test-note"
+                  :class="
+                    tokenEndpointAuthMethodUnadvertised
+                      ? 'mt-2 flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-300'
+                      : 'mt-1 text-sm text-green-700 dark:text-green-300'
+                  ">
+                  <OIcon
+                    v-if="tokenEndpointAuthMethodUnadvertised"
+                    collection="heroicons"
+                    name="exclamation-triangle"
+                    class="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
+                    aria-hidden="true" />
+                  <span>{{ testResult.details.note }}</span>
+                </p>
+                <p
+                  class="mt-2 text-sm text-green-800 dark:text-green-200"
+                  data-testid="sso-provider-check-next">
+                  {{ t('web.organizations.sso.provider_check_next') }}
+                </p>
+                <details
+                  v-if="advertisedTokenEndpointAuthMethods?.length"
+                  data-testid="sso-test-technical-details"
+                  :open="tokenEndpointAuthMethodUnadvertised"
+                  class="mt-2 text-sm text-green-700 dark:text-green-300">
+                  <summary class="cursor-pointer font-medium">
+                    {{ t('web.organizations.sso.technical_details') }}
+                  </summary>
+                  <dl
+                    v-if="advertisedTokenEndpointAuthMethods?.length"
+                    data-testid="sso-test-token-endpoint-auth-methods"
+                    class="mt-2 space-y-1 text-sm text-green-700 dark:text-green-300">
+                    <div class="flex gap-2">
+                      <dt class="shrink-0 font-medium">
+                        {{ t('web.organizations.sso.token_endpoint_auth_methods_supported') }}:
+                      </dt>
+                      <dd class="font-mono break-all">
+                        {{ advertisedTokenEndpointAuthMethods.join(', ') }}
+                      </dd>
+                    </div>
+                  </dl>
+                </details>
+                <!-- SAML (#4450): the test is local, so it reports what it
+                     parsed — the certificate's subject and expiry. -->
+                <dl
+                  v-if="testResult.details?.certificate_subject || certificateExpiry"
+                  data-testid="sso-test-saml-details"
+                  class="mt-2 space-y-1 text-sm text-green-700 dark:text-green-300">
+                  <div v-if="testResult.details.certificate_subject" class="flex gap-2">
+                    <dt class="font-medium">{{ t('web.organizations.sso.certificate_subject') }}:</dt>
+                    <dd class="break-all">{{ testResult.details.certificate_subject }}</dd>
+                  </div>
+                  <div v-if="certificateExpiry" class="flex gap-2">
+                    <dt class="font-medium">{{ t('web.organizations.sso.certificate_expires') }}:</dt>
+                    <dd>
+                      {{ certificateExpiry.date }}
+                      <span v-if="certificateExpiry.days !== undefined">
+                        ({{ t('web.organizations.sso.certificate_expires_in_days', certificateExpiry.days) }})
+                      </span>
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+          </div>
+
+          <!-- Failure Result -->
+          <div
+            v-else-if="testResult && !testResult.success"
+            role="alert"
+            aria-live="assertive"
+            class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+            <div class="flex">
+              <OIcon
+                collection="heroicons"
+                name="x-circle-solid"
+                class="size-5 text-red-400"
+                aria-hidden="true" />
+              <div class="ml-3">
+                <h5 class="text-sm font-medium text-red-800 dark:text-red-200">
+                  {{ testResult.message }}
+                </h5>
+                <div
+                  v-if="testResult.details"
+                  class="mt-2 text-sm text-red-700 dark:text-red-300">
+                  <dl class="space-y-1">
+                    <div v-if="testResult.details.error_code" class="flex gap-2">
+                      <dt class="font-medium">{{ t('web.COMMON.error_code') }}:</dt>
+                      <dd>{{ testResult.details.error_code }}</dd>
+                    </div>
+                    <div v-if="testResult.details.http_status" class="flex gap-2">
+                      <dt class="font-medium">{{ t('web.COMMON.http_status') }}:</dt>
+                      <dd>{{ testResult.details.http_status }}</dd>
+                    </div>
+                    <div v-if="testResult.details.field" class="flex gap-2">
+                      <dt class="font-medium">{{ t('web.COMMON.field') }}:</dt>
+                      <dd>{{ t(UNREADABLE_FIELD_LABELS[testResult.details.field] ?? testResult.details.field) }}</dd>
+                    </div>
+                    <div v-if="testResult.details.description" class="flex gap-2">
+                      <dt class="font-medium">{{ t('web.COMMON.details') }}:</dt>
+                      <dd>{{ testResult.details.description }}</dd>
+                    </div>
+                    <div v-if="certificateValidFrom" class="flex gap-2">
+                      <dt class="font-medium">{{ t('web.organizations.sso.certificate_valid_from') }}:</dt>
+                      <dd>{{ certificateValidFrom }}</dd>
+                    </div>
+                    <div v-if="certificateExpiry" class="flex gap-2">
+                      <dt class="font-medium">{{ t('web.organizations.sso.certificate_expires') }}:</dt>
+                      <dd>{{ certificateExpiry.date }}</dd>
+                    </div>
+                    <div v-if="testResult.details.missing_fields?.length" class="flex gap-2">
+                      <dt class="font-medium">{{ t('web.organizations.sso.missing_fields') }}:</dt>
+                      <dd>{{ testResult.details.missing_fields.join(', ') }}</dd>
+                    </div>
+                    <template v-if="testResult.details.error_code === 'issuer_mismatch'">
+                      <div class="flex gap-2">
+                        <dt class="shrink-0 font-medium">
+                          {{ t('web.organizations.sso.configured_issuer') }}:
+                        </dt>
+                        <dd>
+                          <code
+                            class="font-mono break-all"
+                            data-testid="sso-configured-issuer">{{
+                              testResult.details.configured_issuer
+                            }}</code>
+                        </dd>
+                      </div>
+                      <div class="flex gap-2">
+                        <dt class="shrink-0 font-medium">
+                          {{ t('web.organizations.sso.discovery_issuer') }}:
+                        </dt>
+                        <dd>
+                          <code
+                            class="font-mono break-all"
+                            data-testid="sso-discovery-issuer">{{
+                              testResult.details.discovery_issuer ?? '—'
+                            }}</code>
+                        </dd>
+                      </div>
+                    </template>
+                  </dl>
+                  <p
+                    v-if="testResult.details.error_code === 'issuer_mismatch'"
+                    class="mt-2"
+                    data-testid="sso-issuer-mismatch-hint">
+                    {{ t('web.organizations.sso.issuer_mismatch_hint') }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error (exception) -->
+          <div
+            v-else-if="testError"
+            class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+            <div class="flex">
+              <OIcon
+                collection="heroicons"
+                name="exclamation-triangle-solid"
+                class="size-5 text-red-400"
+                aria-hidden="true" />
+              <div class="ml-3">
+                <p class="text-sm font-medium text-red-800 dark:text-red-200">
+                  {{ testError }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
 
       <section
         data-testid="sso-confirm-sign-in"
-        aria-labelledby="sso-confirm-sign-in-title"
-        class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+        aria-labelledby="sso-confirm-sign-in-title">
         <h4
           id="sso-confirm-sign-in-title"
-          class="text-sm font-medium text-gray-900 dark:text-white">
+          class="border-b border-gray-200 pb-2 text-sm font-medium text-gray-900 dark:border-gray-700 dark:text-white">
           {{ t('web.organizations.sso.confirm_sign_in') }}
         </h4>
         <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
@@ -2162,7 +2183,7 @@ aria-hidden="true">*</span>
            granted, so an existing grant stays revocable — see showGrantOrgScope) -->
       <div
         v-if="showGrantOrgScope"
-        class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+        class="flex items-center justify-between gap-4">
         <div>
           <p class="text-sm font-medium text-gray-900 dark:text-white">
             {{ t('web.organizations.sso.grant_org_scope') }}
@@ -2180,27 +2201,38 @@ aria-hidden="true">*</span>
           @update:enabled="updateField('grant_org_scope', $event)" />
       </div>
 
-      <div class="flex items-center justify-between border-t border-gray-200 pt-6 dark:border-gray-700">
-        <!-- Left: Delete + Discard -->
-        <div class="flex items-center gap-3">
-          <!-- Delete button (only when editing existing config) -->
-          <template v-if="isEditing && !showDeleteConfirm">
-            <button
-              type="button"
-              @click="showDeleteConfirm = true"
-              :disabled="isDeleting || isSaving"
-              class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-red-400 dark:ring-red-700 dark:hover:bg-red-900/20">
-              <OIcon
-                collection="heroicons"
-                name="trash"
-                class="size-4"
-                aria-hidden="true" />
-              {{ t('web.organizations.sso.delete_config') }}
-            </button>
-          </template>
-
-          <!-- Delete confirmation -->
-          <div v-if="showDeleteConfirm" class="flex items-center gap-2">
+      <!-- Danger zone (D6): delete is the only way to remove a record and the
+           one destructive action here, so it stands apart from the footer. -->
+      <section
+        v-if="isEditing"
+        data-testid="sso-danger-zone"
+        aria-labelledby="sso-danger-zone-title"
+        class="rounded-lg border border-red-200 p-4 dark:border-red-900/50">
+        <h4
+          id="sso-danger-zone-title"
+          class="text-sm font-medium text-red-700 dark:text-red-300">
+          {{ t('web.COMMON.danger_zone') }}
+        </h4>
+        <div class="mt-2 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p class="text-sm text-gray-600 dark:text-gray-300">
+            {{ t('web.organizations.sso.delete_config_hint') }}
+          </p>
+          <button
+            v-if="!showDeleteConfirm"
+            type="button"
+            @click="showDeleteConfirm = true"
+            :disabled="isDeleting || isSaving"
+            class="inline-flex shrink-0 items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-red-400 dark:ring-red-700 dark:hover:bg-red-900/20">
+            <OIcon
+              collection="heroicons"
+              name="trash"
+              class="size-4"
+              aria-hidden="true" />
+            {{ t('web.organizations.sso.delete_config') }}
+          </button>
+          <div
+            v-else
+            class="flex flex-wrap items-center gap-2">
             <span class="text-sm text-gray-600 dark:text-gray-400">
               {{ t('web.organizations.sso.delete_confirm') }}
             </span>
@@ -2219,36 +2251,65 @@ aria-hidden="true">*</span>
               {{ t('web.COMMON.word_cancel') }}
             </button>
           </div>
+        </div>
+      </section>
 
-          <!-- Discard changes button -->
+      <!-- Footer, sticky to the viewport bottom: the primary action first,
+           then Discard / Save for a record that exists (a new record is saved
+           by the check, so setup has one save path; saving never turns the
+           connection on). One control per action. -->
+      <div
+        data-testid="sso-form-footer"
+        class="sticky bottom-0 z-10 flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 bg-white py-4 dark:border-gray-700 dark:bg-gray-800">
+        <button
+          type="button"
+          data-testid="sso-diagnostics-run"
+          :data-action="checkNeedsSave ? 'save-and-check' : connectionOn ? 'check' : 'check-and-activate'"
+          @click="handleRunCheck"
+          :disabled="!canRunCheck"
+          class="inline-flex shrink-0 items-center gap-2 rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
+          <OIcon
+            v-if="isDiagnosing || isSaving"
+            collection="heroicons"
+            name="arrow-path"
+            size="4"
+            class="animate-spin motion-reduce:animate-none"
+            aria-hidden="true" />
+          <OIcon
+            v-else
+            collection="heroicons"
+            name="clipboard-document-check"
+            size="4"
+            aria-hidden="true" />
+          {{ checkButtonLabel }}
+        </button>
+
+        <div
+          v-if="isEditing"
+          class="flex flex-wrap items-center gap-3">
           <button
-            v-if="hasUnsavedChanges && !showDeleteConfirm"
+            v-if="hasUnsavedChanges"
             type="button"
             @click="emit('discard')"
             :disabled="isSaving"
             class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
             {{ t('web.domains.email.discard_changes') }}
           </button>
+          <button
+            type="submit"
+            data-testid="sso-save"
+            :disabled="!isFormValid || isSaving || isDeleting"
+            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+            <OIcon
+              v-if="isSaving"
+              collection="heroicons"
+              name="arrow-path"
+              class="size-4 animate-spin motion-reduce:animate-none"
+              aria-hidden="true" />
+            <span v-if="isSaving">{{ t('web.COMMON.saving') }}</span>
+            <span v-else>{{ t('web.COMMON.save_changes') }}</span>
+          </button>
         </div>
-
-        <!-- Right: Save button. Only for a record that exists: a new one is
-             saved by the check above, so setup has one save path. Saving
-             keeps the connection as it is. -->
-        <button
-          v-if="isEditing"
-          type="submit"
-          data-testid="sso-save"
-          :disabled="!isFormValid || isSaving || isDeleting"
-          class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
-          <OIcon
-            v-if="isSaving"
-            collection="heroicons"
-            name="arrow-path"
-            class="size-4 animate-spin motion-reduce:animate-none"
-            aria-hidden="true" />
-          <span v-if="isSaving">{{ t('web.COMMON.saving') }}</span>
-          <span v-else>{{ t('web.COMMON.save_changes') }}</span>
-        </button>
       </div>
     </form>
   </div>
