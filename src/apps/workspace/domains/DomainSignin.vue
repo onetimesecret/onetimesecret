@@ -14,11 +14,14 @@
  * switch is the single control. The explicit-override flag (`enabled`) is
  * not user-facing — every save materializes it, and "Reset to defaults"
  * unpins.
+ *
+ * The SSO credentials themselves are configured on their own page
+ * (DomainSigninSso); this page only reads the record's state for the SSO
+ * row ("Configure" / "Finish setup" / "Edit credentials").
  */
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
 import DomainAuthOverrideBanner from '@/apps/workspace/components/domains/DomainAuthOverrideBanner.vue';
 import DomainSigninConfigForm from '@/apps/workspace/components/domains/DomainSigninConfigForm.vue';
-import SsoCredentialsModal from '@/apps/workspace/components/domains/SsoCredentialsModal.vue';
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
@@ -33,9 +36,9 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
 import { isOrgsSsoEnabled } from '@/utils/features';
 import { storeToRefs } from 'pinia';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -45,6 +48,32 @@ const props = defineProps<{
   orgid: string;
   extid: string;
 }>();
+
+// ---------------------------------------------------------------------------
+// Navigation
+// ---------------------------------------------------------------------------
+
+const ssoRoute = computed(() => ({
+  name: 'DomainSigninSso',
+  params: { orgid: props.orgid, extid: props.extid },
+}));
+
+// The SSO configuration used to open as a dialog on this page from the
+// `?modal=sso` deep link (org SSO tab, domains table). Older links still
+// carry it: send them on to the SSO page, dropping the param so Back does
+// not land here and bounce again.
+if (route.query.modal === 'sso') {
+  const { modal: _modal, ...query } = route.query;
+  router.replace({ ...ssoRoute.value, query });
+}
+
+const handleBack = () => {
+  router.push(`/org/${props.orgid}/domains/${props.extid}`);
+};
+
+const handleConfigureSso = () => {
+  router.push(ssoRoute.value);
+};
 
 // ---------------------------------------------------------------------------
 // Domain data
@@ -113,112 +142,23 @@ const {
   effectiveRestrictTo,
   tenantSso,
   initialize: initializeSigninConfig,
-  refreshDetails: refreshSigninDetails,
   autoSaveFields,
   deleteConfig,
 } = useSigninConfig(props.extid);
 
 // ---------------------------------------------------------------------------
-// SSO config composable
+// SSO record state (read-only here)
 // ---------------------------------------------------------------------------
 
+// Only the record's existence and on/off state are read: they drive the SSO
+// row's "Configure" / "Finish setup" / "Edit credentials" affordance. Editing
+// happens on the SSO page, which owns the rest of this composable's state.
 const {
-  isLoading: ssoConfigLoading,
   isInitialized: ssoInitialized,
-  isSaving: ssoSaving,
-  isDeleting: ssoDeleting,
-  isTesting,
-  isDiagnosing,
-  error: _ssoConfigError,
-  ssoConfig,
-  formState: ssoFormState,
-  testResult,
-  testError,
-  diagnosticsResult,
-  savedCredentialsChecked,
-  savedCredentialsUnchecked,
-  diagnosticsError,
-  isRefreshingLastSignIn,
   isConfigured: ssoIsConfigured,
   isEnabled: ssoIsEnabled,
-  hasUnsavedChanges: ssoHasUnsavedChanges,
-  clientSecretMasked,
   initialize: initializeSsoConfig,
-  saveConfig: saveSsoConfig,
-  deleteConfig: deleteSsoConfig,
-  testConnection,
-  saveAndRunDiagnostics,
-  refreshLastSignIn,
-  discardChanges: discardSsoChanges,
 } = useSsoConfig(props.extid);
-
-const showSsoModal = ref(false);
-
-/**
- * The tenant-SSO verdict (`details.tenant_sso`) reads the SSO record: it
- * exists, it is on, its provider type can run. A dialog action that may have
- * changed the record is followed by a re-read of the sign-in details, so the
- * SSO row and the dialog's Confirm sign-in step never act on the verdict
- * from before it. Skipped without the sign-in entitlement (never fetched).
- */
-const refreshAfterSsoChange = async () => {
-  if (canCustomSignin.value) await refreshSigninDetails();
-};
-
-const handleSsoSave = async () => {
-  await saveSsoConfig();
-  await refreshAfterSsoChange();
-};
-
-/** Save (when needed), check, and turn on a passing record that is off. */
-const handleSsoDiagnostics = async () => {
-  await saveAndRunDiagnostics();
-  await refreshAfterSsoChange();
-};
-
-const handleSsoDelete = async () => {
-  await deleteSsoConfig();
-  await refreshAfterSsoChange();
-};
-
-const handleRefreshLastSignIn = (passive: boolean) => refreshLastSignIn({ passive });
-
-// Deep link support: `?modal=sso` opens the SSO credentials modal on load,
-// e.g. from the org SSO tab's Configure link.
-const wantsSsoModal = computed(() => route.query.modal === 'sso');
-
-const handleOpenSsoModal = () => {
-  showSsoModal.value = true;
-};
-
-const handleCloseSsoModal = () => {
-  showSsoModal.value = false;
-  // Strip the deep-link param so a refresh doesn't reopen the modal.
-  if (wantsSsoModal.value) {
-    const { modal: _modal, ...query } = route.query;
-    router.replace({ query });
-  }
-};
-
-// ---------------------------------------------------------------------------
-// Navigation
-// ---------------------------------------------------------------------------
-
-const handleBack = () => {
-  router.push(`/org/${props.orgid}/domains/${props.extid}`);
-};
-
-// Unsaved changes guard. The signin form auto-saves, so its hasUnsavedChanges
-// is effectively always false; this now guards the SSO modal's pending edits.
-onBeforeRouteLeave((_to, _from, next) => {
-  if (ssoHasUnsavedChanges.value) {
-    const answer = window.confirm(t('web.branding.you_have_unsaved_changes_are_you_sure'));
-    if (answer) next();
-    else next(false);
-  } else {
-    next();
-  }
-});
 
 // ---------------------------------------------------------------------------
 // Lifecycle
@@ -236,7 +176,6 @@ onMounted(async () => {
 
   if (canFetchSsoConfig.value) {
     await initializeSsoConfig();
-    if (wantsSsoModal.value) showSsoModal.value = true;
   }
 });
 
@@ -251,7 +190,6 @@ watch(canCustomSignin, async (entitled) => {
 watch(canFetchSsoConfig, async (allowed) => {
   if (allowed && !ssoInitialized.value) {
     await initializeSsoConfig();
-    if (wantsSsoModal.value) showSsoModal.value = true;
   }
 });
 </script>
@@ -362,42 +300,9 @@ watch(canFetchSsoConfig, async (allowed) => {
             :saving-field="savingField"
             @auto-save="autoSaveFields"
             @delete="deleteConfig"
-            @configure-sso="handleOpenSsoModal" />
+            @configure-sso="handleConfigureSso" />
         </div>
       </div>
-
-      <!-- SSO Credentials Modal -->
-      <SsoCredentialsModal
-        :is-open="showSsoModal"
-        :domain-ext-id="props.extid"
-        :domain-host="customDomainRecord?.display_domain ?? ''"
-        :domain-verified="customDomainRecord?.verified === true"
-        :org-id="props.orgid"
-        v-model:form-state="ssoFormState"
-        :sso-config="ssoConfig"
-        :is-loading="ssoConfigLoading"
-        :is-saving="ssoSaving"
-        :is-deleting="ssoDeleting"
-        :is-testing="isTesting"
-        :is-diagnosing="isDiagnosing"
-        :has-unsaved-changes="ssoHasUnsavedChanges"
-        :is-configured="ssoIsConfigured"
-        :client-secret-masked="clientSecretMasked"
-        :test-result="testResult"
-        :test-error="testError"
-        :diagnostics-result="diagnosticsResult"
-        :saved-credentials-checked="savedCredentialsChecked"
-        :saved-credentials-unchecked="savedCredentialsUnchecked"
-        :diagnostics-error="diagnosticsError"
-        :is-refreshing-last-sign-in="isRefreshingLastSignIn"
-        :tenant-sso="tenantSso"
-        @close="handleCloseSsoModal"
-        @save="handleSsoSave"
-        @delete="handleSsoDelete"
-        @test="testConnection"
-        @diagnostics="handleSsoDiagnostics"
-        @refresh-last-sign-in="handleRefreshLastSignIn"
-        @discard="discardSsoChanges" />
     </div>
   </div>
 </template>

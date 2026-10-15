@@ -1,14 +1,13 @@
 // src/tests/apps/workspace/domains/DomainSignin.spec.ts
 //
-// Page wiring between the sign-in form, the SSO dialog and their two
-// composables. The tenant-SSO verdict (`details.tenant_sso`) reads the SSO
-// record, so every dialog action that can change that record (save, the
-// save-and-check run that may turn it on, delete) must be followed by a
-// re-read of the sign-in details; otherwise the SSO row and the dialog's
-// Confirm sign-in step act on the verdict from before the change.
+// Page wiring between the sign-in form and its two composables. The SSO
+// credentials are edited on their own page (DomainSigninSso); this page only
+// reads the SSO record's state for the form's SSO row ("Configure" /
+// "Finish setup" / "Edit credentials"), sends Configure to that page, and
+// forwards the retired `?modal=sso` deep link there.
 //
-// Both composables, the form and the dialog are stubbed: what is under test
-// is the page's handlers and bindings, not the children.
+// Both composables and the form are stubbed: what is under test is the
+// page's handlers and bindings, not the children.
 
 import { ref } from 'vue';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
@@ -21,10 +20,12 @@ import DomainSignin from '@/apps/workspace/domains/DomainSignin.vue';
 // Mocks
 // ─────────────────────────────────────────────────────────────────────────────
 
+const routeQuery = ref<Record<string, string>>({});
+const router = { push: vi.fn(), replace: vi.fn() };
+
 vi.mock('vue-router', () => ({
-  useRoute: () => ({ query: {} }),
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
-  onBeforeRouteLeave: vi.fn(),
+  useRoute: () => ({ query: routeQuery.value }),
+  useRouter: () => router,
 }));
 
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({
@@ -49,29 +50,6 @@ vi.mock('@/apps/workspace/components/domains/DomainSigninConfigForm.vue', () => 
     },
     emits: ['configure-sso', 'auto-save', 'delete'],
     template: '<div data-testid="signin-form" />',
-  },
-}));
-
-vi.mock('@/apps/workspace/components/domains/SsoCredentialsModal.vue', () => ({
-  default: {
-    name: 'SsoCredentialsModal',
-    props: {
-      isOpen: { type: Boolean, default: false },
-      tenantSso: { type: Object, default: null },
-      savedCredentialsUnchecked: { type: Boolean, default: false },
-      isRefreshingLastSignIn: { type: Boolean, default: false },
-    },
-    emits: [
-      'close',
-      'save',
-      'delete',
-      'test',
-      'diagnostics',
-      'discard',
-      'refresh-last-sign-in',
-      'update:formState',
-    ],
-    template: '<div data-testid="sso-modal" />',
   },
 }));
 
@@ -104,15 +82,9 @@ vi.mock('@/shared/composables/useDomain', () => ({
 
 const mockEntitled = ref(true);
 const mockTenantSso = ref<TenantSsoVerdict | null>(null);
-const calls: string[] = [];
-const record =
-  (name: string) =>
-  async (...args: unknown[]) => {
-    calls.push(args.length ? `${name}:${JSON.stringify(args)}` : name);
-  };
 
 const signin = {
-  refreshDetails: vi.fn(record('refreshDetails')),
+  refreshDetails: vi.fn(),
   initialize: vi.fn(),
 };
 
@@ -149,38 +121,15 @@ vi.mock('@/shared/composables/useSigninConfig', () => ({
 const mockSsoConfigured = ref(true);
 const mockSsoEnabled = ref(false);
 const sso = {
-  saveConfig: vi.fn(record('saveConfig')),
-  deleteConfig: vi.fn(record('deleteConfig')),
-  saveAndRunDiagnostics: vi.fn(record('saveAndRunDiagnostics')),
-  testConnection: vi.fn(record('testConnection')),
-  discardChanges: vi.fn(record('discardChanges')),
-  refreshLastSignIn: vi.fn(record('refreshLastSignIn')),
+  initialize: vi.fn(),
 };
 
 vi.mock('@/shared/composables/useSsoConfig', () => ({
   useSsoConfig: () => ({
-    isLoading: ref(false),
     isInitialized: ref(true),
-    isSaving: ref(false),
-    isDeleting: ref(false),
-    isTesting: ref(false),
-    isDiagnosing: ref(false),
-    error: ref(null),
-    ssoConfig: ref(null),
-    formState: ref({}),
-    testResult: ref(null),
-    testError: ref(''),
-    diagnosticsResult: ref(null),
-    savedCredentialsChecked: ref(false),
-    savedCredentialsUnchecked: ref(true),
-    diagnosticsError: ref(''),
-    isRefreshingLastSignIn: ref(false),
     isConfigured: mockSsoConfigured,
     isEnabled: mockSsoEnabled,
-    hasUnsavedChanges: ref(false),
-    clientSecretMasked: ref(null),
-    initialize: vi.fn(),
-    ...sso,
+    initialize: sso.initialize,
   }),
 }));
 
@@ -200,12 +149,11 @@ describe('DomainSignin', () => {
     return component;
   };
 
-  const modal = () => wrapper.getComponent({ name: 'SsoCredentialsModal' });
   const form = () => wrapper.getComponent({ name: 'DomainSigninConfigForm' });
 
   beforeEach(() => {
     vi.clearAllMocks();
-    calls.length = 0;
+    routeQuery.value = {};
     mockEntitled.value = true;
     mockTenantSso.value = null;
     mockSsoConfigured.value = true;
@@ -216,60 +164,56 @@ describe('DomainSignin', () => {
     wrapper?.unmount();
   });
 
-  describe('re-reads the sign-in details after a dialog action that can change the SSO record', () => {
-    it.each([
-      ['save', 'saveConfig'],
-      ['diagnostics', 'saveAndRunDiagnostics'],
-      ['delete', 'deleteConfig'],
-    ] as const)('%s → %s, then refreshDetails', async (event, action) => {
-      wrapper = await mountPage();
-      calls.length = 0;
-
-      modal().vm.$emit(event);
-      await flushPromises();
-
-      expect(calls).toEqual([action, 'refreshDetails']);
-    });
-
-    it.each(['test', 'discard'] as const)('does not re-read after %s', async (event) => {
-      wrapper = await mountPage();
-      calls.length = 0;
-
-      modal().vm.$emit(event);
-      await flushPromises();
-
-      expect(calls).not.toContain('refreshDetails');
-    });
-
-    it('skips the re-read without the sign-in entitlement (never fetched)', async () => {
-      mockEntitled.value = false;
-      wrapper = await mountPage();
-      calls.length = 0;
-
-      modal().vm.$emit('save');
-      await flushPromises();
-
-      expect(calls).toEqual(['saveConfig']);
-    });
-  });
-
-  it('forwards a last-sign-in refresh with its passive flag', async () => {
+  it('sends Configure to the SSO page', async () => {
     wrapper = await mountPage();
 
-    modal().vm.$emit('refresh-last-sign-in', true);
-    modal().vm.$emit('refresh-last-sign-in', false);
+    form().vm.$emit('configure-sso');
     await flushPromises();
 
-    expect(sso.refreshLastSignIn.mock.calls).toEqual([[{ passive: true }], [{ passive: false }]]);
+    expect(router.push).toHaveBeenCalledWith({
+      name: 'DomainSigninSso',
+      params: { orgid: 'org_123', extid: 'dm_123' },
+    });
   });
 
-  it('hands the same tenant-SSO verdict to the form and the dialog', async () => {
+  describe('the retired `?modal=sso` deep link', () => {
+    it('is replaced by the SSO page, keeping the other query params', async () => {
+      routeQuery.value = { modal: 'sso', from: 'hub' };
+      wrapper = await mountPage();
+
+      expect(router.replace).toHaveBeenCalledWith({
+        name: 'DomainSigninSso',
+        params: { orgid: 'org_123', extid: 'dm_123' },
+        query: { from: 'hub' },
+      });
+    });
+
+    it('is the only query that redirects', async () => {
+      routeQuery.value = { modal: 'other' };
+      wrapper = await mountPage();
+
+      expect(router.replace).not.toHaveBeenCalled();
+    });
+  });
+
+  it('reads the SSO record when both tenant-SSO gates allow it', async () => {
+    wrapper = await mountPage();
+
+    expect(sso.initialize).toHaveBeenCalledTimes(1);
+  });
+
+  it('never reads the SSO record without the entitlement', async () => {
+    mockEntitled.value = false;
+    wrapper = await mountPage();
+
+    expect(sso.initialize).not.toHaveBeenCalled();
+  });
+
+  it('hands the tenant-SSO verdict to the form', async () => {
     mockTenantSso.value = { available: false, unavailable_reason: 'sso_not_permitted' };
     wrapper = await mountPage();
 
     expect(form().props('tenantSso')).toEqual(mockTenantSso.value);
-    expect(modal().props('tenantSso')).toEqual(mockTenantSso.value);
-    expect(modal().props('savedCredentialsUnchecked')).toBe(true);
   });
 
   it.each([
@@ -283,6 +227,7 @@ describe('DomainSignin', () => {
       mockSsoEnabled.value = enabled;
       wrapper = await mountPage();
 
+      expect(form().props('ssoConfigured')).toBe(configured);
       expect(form().props('ssoSetupPending')).toBe(pending);
     }
   );

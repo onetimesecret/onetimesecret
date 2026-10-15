@@ -1363,6 +1363,10 @@
     "text": "Sign-In Configuration",
     "content_hash": "2da38c03"
   },
+  "web.TITLES.domain_signin_sso": {
+    "text": "Single Sign-On Configuration",
+    "content_hash": "4bbf1a2f"
+  },
   "web.TITLES.domain_sso": {
     "text": "Domain SSO",
     "content_hash": "13161464"

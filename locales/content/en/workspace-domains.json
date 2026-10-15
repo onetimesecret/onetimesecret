@@ -555,6 +555,14 @@
     "text": "Configure single sign-on authentication for this domain",
     "content_hash": "f37a0b47"
   },
+  "web.domains.sso.page_description": {
+    "text": "Let people sign in to {domain} through your identity provider.",
+    "content_hash": "ea645199"
+  },
+  "web.domains.sso.back_to_signin": {
+    "text": "Sign-in settings",
+    "content_hash": "e2271e43"
+  },
   "web.domains.sso.access_denied": {
     "text": "Access Denied",
     "content_hash": "d134ca02"

@@ -6,12 +6,12 @@
  * Tests the per-domain SSO configuration feature that allows organizations
  * with multiple custom domains to configure different SSO providers per domain.
  *
- * Flow (modal-based, updated for #3383):
+ * Flow (page-based; the SSO settings left their dialog for a route):
  * 1. User navigates to /org/{orgId} (Organization Settings)
  * 2. Clicks SSO tab -> sees list of domains with SSO status badges
  * 3. Navigates to /org/{orgId}/domains/{domainId}/signin
- * 4. Clicks "Configure" / "Edit credentials" button to open SSO modal
- * 5. Fills SSO config form (provider type, credentials, etc.) inside modal
+ * 4. Clicks "Configure" / "Edit credentials" -> /org/{orgId}/domains/{domainId}/signin/sso
+ * 5. Fills SSO config form (provider type, credentials, etc.) on that page
  * 6. Tests connection -> saves config
  *
  * Prerequisites:
@@ -118,8 +118,8 @@ async function getDomainsFromSsoTab(page: Page): Promise<DomainInfo[]> {
     const domainText = await row.locator('.font-medium').first().textContent();
     if (!domainText) continue;
 
-    // Extract domain extid from configure link. The hub now links to the
-    // domain signin page with the SSO modal deep-link (`/signin?modal=sso`).
+    // Extract domain extid from configure link. The hub links to the
+    // domain's SSO settings page (`/signin/sso`).
     const configureLink = row.locator('a[href*="/signin"]');
     const href = await configureLink.getAttribute('href').catch(() => null);
     const match = href?.match(/\/domains\/([^/]+)\/signin/);
@@ -147,40 +147,28 @@ async function getDomainsFromSsoTab(page: Page): Promise<DomainInfo[]> {
 }
 
 /**
- * Navigate to domain signin page and open the SSO credentials modal.
- * Returns a locator scoped to the modal dialog.
+ * Navigate to the domain's SSO settings page and wait for its form.
+ * Returns a locator scoped to the page's content region.
  */
-async function openDomainSsoModal(
+async function openDomainSsoPage(
   page: Page,
   orgExtid: string,
   domainExtid: string
 ): Promise<Locator> {
-  await page.goto(`/org/${orgExtid}/domains/${domainExtid}/signin`);
+  await page.goto(`/org/${orgExtid}/domains/${domainExtid}/signin/sso`);
   await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-  // Wait for the signin config page to load. The page no longer renders a
-  // <form> element (the config is a series of fieldsets), so anchor on the
-  // page heading instead.
-  await page
-    .getByRole('heading', { name: /sign-in configuration/i })
-    .waitFor({ state: 'visible', timeout: 10000 });
+  const ssoPage = page.locator('[data-testid="domain-signin-sso-page"]');
+  await expect(ssoPage).toBeVisible({ timeout: 10000 });
 
-  // Click the "Configure" or "Edit credentials" button to open the SSO modal
-  const ssoButton = page.getByRole('button', { name: /configure|edit credentials/i });
-  await ssoButton.click();
+  // Wait for the SSO form to be ready
+  await ssoPage.locator('form').waitFor({ state: 'visible', timeout: 10000 });
 
-  // Wait for modal dialog to appear
-  const modal = page.getByRole('dialog');
-  await expect(modal).toBeVisible({ timeout: 5000 });
-
-  // Wait for the SSO form inside the modal to be ready
-  await modal.locator('form').waitFor({ state: 'visible', timeout: 10000 });
-
-  return modal;
+  return ssoPage;
 }
 
 /**
- * Navigate to domain signin page (without opening the modal).
+ * Navigate to the domain signin page (the SSO settings' parent).
  */
 async function navigateToDomainSigninPage(
   page: Page,
@@ -210,7 +198,7 @@ test.describe('Domain SSO Configuration - Navigation', () => {
     page.setDefaultTimeout(15000);
   });
 
-  test('TC-DSSO-001: navigates from signin page to SSO modal via configure button', async ({
+  test('TC-DSSO-001: navigates from signin page to the SSO page via configure button', async ({
     page,
   }) => {
     const org = await getFirstOrganization(page);
@@ -224,65 +212,61 @@ test.describe('Domain SSO Configuration - Navigation', () => {
     const domains = await getDomainsFromSsoTab(page);
     expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
-    // Open the SSO modal on the signin page
-    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
+    await navigateToDomainSigninPage(page, org.extid, domains[0].extid);
 
-    // Verify the SSO form is visible inside the modal
-    await expect(modal.locator('form')).toBeVisible();
-  });
-
-  test('TC-DSSO-002: closing SSO modal returns to signin page', async ({ page }) => {
-    const org = await getFirstOrganization(page);
-
-    await navigateToOrgSsoTab(page, org.extid);
-    await expectSsoTab(page);
-
-    const domains = await getDomainsFromSsoTab(page);
-    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
-
-    // Open the SSO modal
-    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
-
-    // Close the modal via the close button
-    const closeButton = modal.getByRole('button', { name: /close/i });
-    await closeButton.click();
-
-    // Modal should be dismissed
-    await expect(page.getByRole('dialog')).not.toBeVisible();
-
-    // Should still be on the signin page
-    await expect(page).toHaveURL(
-      new RegExp(`/org/${org.extid}/domains/${domains[0].extid}/signin`)
-    );
-  });
-
-  test('TC-DSSO-003: navigating to signin page and opening SSO modal works', async ({ page }) => {
-    const org = await getFirstOrganization(page);
-
-    await navigateToOrgSsoTab(page, org.extid);
-    await expectSsoTab(page);
-
-    const domains = await getDomainsFromSsoTab(page);
-    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
-
-    // Navigate directly to signin page
-    await page.goto(`/org/${org.extid}/domains/${domains[0].extid}/signin`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    // Verify signin page loaded correctly (page has no <form>; anchor on heading)
-    await expect(page.getByRole('heading', { name: /sign-in configuration/i })).toBeVisible();
-
-    // Verify domain name is displayed in header
-    await expect(page.getByText(domains[0].displayDomain)).toBeVisible();
-
-    // Open the SSO modal
+    // "Configure" (no record) or "Edit credentials" (record) on the SSO row
     const ssoButton = page.getByRole('button', { name: /configure|edit credentials/i });
     await ssoButton.click();
 
-    // Verify modal opened with SSO form
-    const modal = page.getByRole('dialog');
-    await expect(modal).toBeVisible({ timeout: 5000 });
-    await expect(modal.locator('form')).toBeVisible();
+    await expect(page).toHaveURL(
+      new RegExp(`/org/${org.extid}/domains/${domains[0].extid}/signin/sso$`)
+    );
+    await expect(page.locator('[data-testid="domain-signin-sso-page"] form')).toBeVisible({
+      timeout: 10000,
+    });
+  });
+
+  test('TC-DSSO-002: Back on the SSO page returns to the signin page', async ({ page }) => {
+    const org = await getFirstOrganization(page);
+
+    await navigateToOrgSsoTab(page, org.extid);
+    await expectSsoTab(page);
+
+    const domains = await getDomainsFromSsoTab(page);
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
+
+    await openDomainSsoPage(page, org.extid, domains[0].extid);
+
+    // Back link in the page header
+    await page.getByRole('button', { name: /sign-in settings/i }).click();
+
+    await expect(page).toHaveURL(
+      new RegExp(`/org/${org.extid}/domains/${domains[0].extid}/signin$`)
+    );
+    await expect(page.getByRole('heading', { name: /sign-in configuration/i })).toBeVisible();
+  });
+
+  test('TC-DSSO-003: the retired ?modal=sso deep link lands on the SSO page', async ({ page }) => {
+    const org = await getFirstOrganization(page);
+
+    await navigateToOrgSsoTab(page, org.extid);
+    await expectSsoTab(page);
+
+    const domains = await getDomainsFromSsoTab(page);
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
+
+    await page.goto(`/org/${org.extid}/domains/${domains[0].extid}/signin?modal=sso`);
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+
+    await expect(page).toHaveURL(
+      new RegExp(`/org/${org.extid}/domains/${domains[0].extid}/signin/sso$`)
+    );
+    await expect(page.locator('[data-testid="domain-signin-sso-page"] form')).toBeVisible({
+      timeout: 10000,
+    });
+
+    // Domain name is displayed in the header
+    await expect(page.getByText(domains[0].displayDomain).first()).toBeVisible();
   });
 });
 
@@ -373,7 +357,7 @@ test.describe('Domain SSO Configuration - Domain List', () => {
 });
 
 // -----------------------------------------------------------------------------
-// Test Suite: Domain SSO Configuration Form (inside modal)
+// Test Suite: Domain SSO Configuration Form
 // -----------------------------------------------------------------------------
 
 test.describe('Domain SSO Configuration - Form', () => {
@@ -394,10 +378,10 @@ test.describe('Domain SSO Configuration - Form', () => {
       'a custom domain without SSO config (the fixture must leave one unconfigured)'
     ).toBeTruthy();
 
-    const modal = await openDomainSsoModal(page, org.extid, unconfiguredDomain!.extid);
+    const ssoPage = await openDomainSsoPage(page, org.extid, unconfiguredDomain!.extid);
 
-    // Form should be visible inside the modal
-    await expect(modal.locator('form')).toBeVisible();
+    // Form should be visible on the page
+    await expect(ssoPage.locator('form')).toBeVisible();
 
     // Display name should be empty
     const displayNameInput = page.locator('#domain-sso-display-name');
@@ -433,16 +417,16 @@ test.describe('Domain SSO Configuration - Form', () => {
       }
     });
 
-    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
+    const ssoPage = await openDomainSsoPage(page, org.extid, domains[0].extid);
 
     // #3902: tenant SSO is OIDC/Entra-only. Issuerless providers
     // (Google/GitHub) live on the platform surface only and must not be
     // offered per-domain.
-    await expect(modal.getByText('Microsoft Entra ID')).toBeVisible();
-    await expect(modal.getByText('Generic OIDC')).toBeVisible();
-    await expect(modal.locator('input[type="radio"][name="provider_type"]')).toHaveCount(2);
-    await expect(modal.getByText('Google Workspace')).toHaveCount(0);
-    await expect(modal.getByText('GitHub', { exact: true })).toHaveCount(0);
+    await expect(ssoPage.getByText('Microsoft Entra ID')).toBeVisible();
+    await expect(ssoPage.getByText('Generic OIDC')).toBeVisible();
+    await expect(ssoPage.locator('input[type="radio"][name="provider_type"]')).toHaveCount(2);
+    await expect(ssoPage.getByText('Google Workspace')).toHaveCount(0);
+    await expect(ssoPage.getByText('GitHub', { exact: true })).toHaveCount(0);
   });
 
   test('TC-DSSO-010: selecting Entra ID shows tenant_id field', async ({ page }) => {
@@ -454,10 +438,10 @@ test.describe('Domain SSO Configuration - Form', () => {
     const domains = await getDomainsFromSsoTab(page);
     expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
-    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
+    const ssoPage = await openDomainSsoPage(page, org.extid, domains[0].extid);
 
     // Select Entra ID (Microsoft Entra ID)
-    const entraOption = modal.locator('label').filter({ hasText: 'Microsoft Entra ID' });
+    const entraOption = ssoPage.locator('label').filter({ hasText: 'Microsoft Entra ID' });
     await entraOption.click();
 
     // Tenant ID field should be visible
@@ -474,10 +458,10 @@ test.describe('Domain SSO Configuration - Form', () => {
     const domains = await getDomainsFromSsoTab(page);
     expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
-    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
+    const ssoPage = await openDomainSsoPage(page, org.extid, domains[0].extid);
 
     // Select Generic OIDC
-    const oidcOption = modal.locator('label').filter({ hasText: 'Generic OIDC' });
+    const oidcOption = ssoPage.locator('label').filter({ hasText: 'Generic OIDC' });
     await oidcOption.click();
 
     // Issuer field should be visible
@@ -498,10 +482,10 @@ test.describe('Domain SSO Configuration - Form', () => {
       'a custom domain without SSO config (the fixture must leave one unconfigured)'
     ).toBeTruthy();
 
-    const modal = await openDomainSsoModal(page, org.extid, unconfiguredDomain!.extid);
+    const ssoPage = await openDomainSsoPage(page, org.extid, unconfiguredDomain!.extid);
 
-    // Find save button scoped to the modal
-    const saveButton = modal.locator('button[type="submit"]');
+    // Find save button scoped to the SSO page
+    const saveButton = ssoPage.locator('button[type="submit"]');
 
     // Button should be disabled when form is empty
     await expect(saveButton).toBeDisabled();
@@ -539,7 +523,7 @@ test.describe('Domain SSO Configuration - Form', () => {
 });
 
 // -----------------------------------------------------------------------------
-// Test Suite: Test Connection (inside modal)
+// Test Suite: Test Connection
 // -----------------------------------------------------------------------------
 
 test.describe('Domain SSO Configuration - Test Connection', () => {
@@ -556,7 +540,7 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
     const domains = await getDomainsFromSsoTab(page);
     expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
-    // Mock the test connection API before opening the modal
+    // Mock the test connection API before opening the SSO page
     let testRequestMade = false;
     await page.route(`**/api/domains/${domains[0].extid}/sso/test`, async (route) => {
       testRequestMade = true;
@@ -575,7 +559,7 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
       });
     });
 
-    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
+    const ssoPage = await openDomainSsoPage(page, org.extid, domains[0].extid);
 
     // Fill required fields for test
     const displayNameInput = page.locator('#domain-sso-display-name');
@@ -590,8 +574,8 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
       await tenantIdInput.fill('test-tenant-id');
     }
 
-    // Click test connection button scoped to the modal
-    const testButton = modal.locator('button').filter({ hasText: /test/i });
+    // Click test connection button scoped to the SSO page
+    const testButton = ssoPage.locator('button').filter({ hasText: /test/i });
     await testButton.click();
 
     // Wait until the mocked test-connection round-trip is captured
@@ -607,7 +591,7 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
     const domains = await getDomainsFromSsoTab(page);
     expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
-    // Mock successful test connection before opening the modal
+    // Mock successful test connection before opening the SSO page
     await page.route(`**/api/domains/${domains[0].extid}/sso/test`, async (route) => {
       await route.fulfill({
         status: 200,
@@ -622,7 +606,7 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
       });
     });
 
-    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
+    const ssoPage = await openDomainSsoPage(page, org.extid, domains[0].extid);
 
     // Fill required fields
     await page.locator('#domain-sso-display-name').fill('Test SSO');
@@ -633,12 +617,12 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
       await tenantIdInput.fill('test-tenant-id');
     }
 
-    // Click test connection scoped to the modal
-    const testButton = modal.locator('button').filter({ hasText: /test/i });
+    // Click test connection scoped to the SSO page
+    const testButton = ssoPage.locator('button').filter({ hasText: /test/i });
     await testButton.click();
 
     // Wait for and verify success message
-    const successMessage = modal.locator('[role="status"]').filter({ hasText: /success/i });
+    const successMessage = ssoPage.locator('[role="status"]').filter({ hasText: /success/i });
     await expect(successMessage).toBeVisible({ timeout: 5000 });
   });
 
@@ -651,7 +635,7 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
     const domains = await getDomainsFromSsoTab(page);
     expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
-    // Mock failed test connection before opening the modal
+    // Mock failed test connection before opening the SSO page
     await page.route(`**/api/domains/${domains[0].extid}/sso/test`, async (route) => {
       await route.fulfill({
         status: 200,
@@ -667,7 +651,7 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
       });
     });
 
-    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
+    const ssoPage = await openDomainSsoPage(page, org.extid, domains[0].extid);
 
     // Fill required fields
     await page.locator('#domain-sso-display-name').fill('Test SSO');
@@ -678,19 +662,19 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
       await tenantIdInput.fill('invalid-tenant');
     }
 
-    // Click test connection scoped to the modal
-    const testButton = modal.locator('button').filter({ hasText: /test/i });
+    // Click test connection scoped to the SSO page
+    const testButton = ssoPage.locator('button').filter({ hasText: /test/i });
     await testButton.click();
 
     // Wait for and verify error message
-    const errorMessage = modal.locator('[role="alert"]');
+    const errorMessage = ssoPage.locator('[role="alert"]');
     await expect(errorMessage).toBeVisible({ timeout: 5000 });
     await expect(errorMessage).toContainText(/failed|invalid/i);
   });
 });
 
 // -----------------------------------------------------------------------------
-// Test Suite: Save and Delete Operations (inside modal)
+// Test Suite: Save and Delete Operations
 // -----------------------------------------------------------------------------
 
 test.describe('Domain SSO Configuration - Save and Delete', () => {
@@ -711,7 +695,7 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
       'a custom domain without SSO config (the fixture must leave one unconfigured)'
     ).toBeTruthy();
 
-    // Mock the save API before opening the modal
+    // Mock the save API before opening the SSO page
     let saveRequestMade = false;
     await page.route(`**/api/domains/${unconfiguredDomain!.extid}/sso`, async (route) => {
       if (route.request().method() === 'PUT' || route.request().method() === 'PATCH') {
@@ -737,7 +721,7 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
       }
     });
 
-    const modal = await openDomainSsoModal(page, org.extid, unconfiguredDomain!.extid);
+    const ssoPage = await openDomainSsoPage(page, org.extid, unconfiguredDomain!.extid);
 
     // Fill all required fields
     await page.locator('#domain-sso-display-name').fill('Test SSO');
@@ -749,8 +733,8 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
       await tenantIdInput.fill('test-tenant-id');
     }
 
-    // Click save button scoped to the modal
-    const saveButton = modal.locator('button[type="submit"]');
+    // Click save button scoped to the SSO page
+    const saveButton = ssoPage.locator('button[type="submit"]');
     await saveButton.click();
 
     // Wait until the mocked save round-trip is captured
@@ -770,7 +754,7 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
       'a custom domain with SSO configured (the fixture must configure one)'
     ).toBeTruthy();
 
-    // Mock delete API before opening the modal
+    // Mock delete API before opening the SSO page
     let deleteRequestMade = false;
     await page.route(`**/api/domains/${configuredDomain!.extid}/sso`, async (route) => {
       if (route.request().method() === 'DELETE') {
@@ -785,17 +769,17 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
       }
     });
 
-    const modal = await openDomainSsoModal(page, org.extid, configuredDomain!.extid);
+    const ssoPage = await openDomainSsoPage(page, org.extid, configuredDomain!.extid);
 
-    // Find delete button scoped to the modal
-    const deleteButton = modal.locator('button').filter({ hasText: /delete/i });
+    // Find delete button scoped to the page
+    const deleteButton = ssoPage.locator('button').filter({ hasText: /delete/i });
 
     if (await deleteButton.isVisible()) {
       // Click delete
       await deleteButton.click();
 
-      // Confirm deletion (confirmation dialog inside the modal)
-      const confirmButton = modal
+      // Confirm deletion (inline confirm in the danger zone)
+      const confirmButton = ssoPage
         .locator('button')
         .filter({ hasText: /confirm|delete/i })
         .last();
@@ -893,11 +877,11 @@ test.describe('Domain SSO Configuration - Multi-Domain', () => {
       }
     });
 
-    // Step 1: Open SSO modal for domain A
-    const modalA = await openDomainSsoModal(page, org.extid, domainA.extid);
+    // Step 1: Open the SSO page for domain A
+    const ssoPageA = await openDomainSsoPage(page, org.extid, domainA.extid);
 
     // Step 2: Configure Entra ID for domain A
-    const entraOption = modalA.locator('label').filter({ hasText: 'Microsoft Entra ID' });
+    const entraOption = ssoPageA.locator('label').filter({ hasText: 'Microsoft Entra ID' });
     await entraOption.click();
 
     await page.locator('#domain-sso-display-name').fill('Domain A Entra ID');
@@ -906,19 +890,19 @@ test.describe('Domain SSO Configuration - Multi-Domain', () => {
     await page.locator('#domain-sso-tenant-id').fill('tenant-a');
 
     // Step 3: Save domain A config (anchor on the mocked save round-trip)
-    const saveButtonA = modalA.locator('button[type="submit"]');
+    const saveButtonA = ssoPageA.locator('button[type="submit"]');
     const saveResponseA = page.waitForResponse(
       (r) => r.url().includes(`/api/domains/${domainA.extid}/sso`) && r.request().method() !== 'GET'
     );
     await saveButtonA.click();
     await saveResponseA;
 
-    // Step 4: Open SSO modal for domain B (navigates to domain B's signin page)
-    const modalB = await openDomainSsoModal(page, org.extid, domainB.extid);
+    // Step 4: Open the SSO page for domain B
+    const ssoPageB = await openDomainSsoPage(page, org.extid, domainB.extid);
 
     // Step 5: Configure Generic OIDC for domain B (#3902: tenant SSO is
     // OIDC/Entra-only, so the second provider is OIDC rather than Google)
-    const oidcOption = modalB.locator('label').filter({ hasText: 'Generic OIDC' });
+    const oidcOption = ssoPageB.locator('label').filter({ hasText: 'Generic OIDC' });
     await oidcOption.click();
 
     await page.locator('#domain-sso-display-name').fill('Domain B OIDC');
@@ -927,7 +911,7 @@ test.describe('Domain SSO Configuration - Multi-Domain', () => {
     await page.locator('#domain-sso-issuer').fill('https://idp.domain-b.example.com');
 
     // Step 6: Save domain B config (anchor on the mocked save round-trip)
-    const saveButtonB = modalB.locator('button[type="submit"]');
+    const saveButtonB = ssoPageB.locator('button[type="submit"]');
     const saveResponseB = page.waitForResponse(
       (r) => r.url().includes(`/api/domains/${domainB.extid}/sso`) && r.request().method() !== 'GET'
     );
@@ -1017,9 +1001,9 @@ test.describe('Domain SSO Configuration - Access Control', () => {
  *
  * | ID           | Title                                                            | Priority | Automation |
  * |--------------|------------------------------------------------------------------|----------|------------|
- * | TC-DSSO-001  | navigates from signin page to SSO modal via configure button    | Critical | Automated  |
- * | TC-DSSO-002  | closing SSO modal returns to signin page                        | High     | Automated  |
- * | TC-DSSO-003  | navigating to signin page and opening SSO modal works           | High     | Automated  |
+ * | TC-DSSO-001  | navigates from signin page to the SSO page via configure button | Critical | Automated  |
+ * | TC-DSSO-002  | Back on the SSO page returns to the signin page                 | High     | Automated  |
+ * | TC-DSSO-003  | the retired ?modal=sso deep link lands on the SSO page          | High     | Automated  |
  * | TC-DSSO-004  | displays list of domains with SSO status badges                 | Critical | Automated  |
  * | TC-DSSO-005  | shows "Not Configured" badge for domains without SSO            | High     | Automated  |
  * | TC-DSSO-006  | configure link is visible in SSO hub domain list                | Critical | Automated  |
@@ -1050,27 +1034,25 @@ test.describe('Domain SSO Configuration - Access Control', () => {
  *
  * ## Visual Verification (Not Automated)
  * - [ ] SSO status badges display correct colors (green=enabled, gray=configured/not configured)
- * - [ ] SSO modal opens with smooth animation
- * - [ ] Modal backdrop dims the signin page behind it
  * - [ ] Provider selection cards highlight when selected
  * - [ ] Password field visibility toggle works
  * - [ ] Form validation error messages are clear
  * - [ ] Test connection success/error messages are properly styled
  * - [ ] Loading spinners appear during API calls
  * - [ ] Delete confirmation dialog is visible and clear
- * - [ ] Modal close button (X) works reliably
+ * - [ ] Sticky footer actions stay reachable while scrolling the form
  *
  * ## Edge Cases
  * - [ ] Switching provider types clears provider-specific fields
  * - [ ] Partial form submission doesn't lose data
  * - [ ] Network errors during save show appropriate error messages
  * - [ ] Session timeout during long form fill redirects to login
- * - [ ] Closing modal with unsaved changes prompts for confirmation
+ * - [ ] Leaving the SSO page with unsaved changes prompts for confirmation
  *
  * ## Cross-Browser Testing
- * - [ ] Modal works in Chrome
- * - [ ] Modal works in Firefox
- * - [ ] Modal works in Safari
+ * - [ ] SSO page works in Chrome
+ * - [ ] SSO page works in Firefox
+ * - [ ] SSO page works in Safari
  * - [ ] Mobile responsive layout works
  *
  * ## Security Testing
