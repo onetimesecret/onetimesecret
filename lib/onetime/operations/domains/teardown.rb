@@ -10,6 +10,12 @@ module Onetime
       # Shared destructive sequence, independent of authorization, audit trails,
       # session state, and toolbox index repair. Callers finalize a returned
       # committed result before surfacing its lease_error.
+      #
+      # Accepted limitation for this refactor: local deletion can succeed while
+      # external resources remain, with no durable cleanup recovery record or
+      # automatic reconciliation. Even a nil lease_error does not confirm cleanup.
+      # This shares teardown sequencing and commitment-aware lease-loss handling;
+      # it does not guarantee provider cleanup or recoverable deletion.
       class Teardown
         class Busy < StandardError; end
 
