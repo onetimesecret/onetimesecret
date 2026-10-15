@@ -14,7 +14,7 @@ docker/
     lite.dockerfile        All-in-one (app + Redis, ephemeral)
     caddy.dockerfile       TLS proxy
 
-Dockerfile                 App stages only: dependencies → build → final-s6 / final
+Dockerfile                 App stages only: dependencies, frontend-dependencies → build → final-s6 / final
 `.oci-build.json            Repo-side Gitolite build contract (base + variant declarations)
 `build-and-deploy.py`      External Gitolite post-receive hook (not in this repository)
 ```
@@ -22,24 +22,31 @@ Dockerfile                 App stages only: dependencies → build → final-s6 
 ## Build Graph
 
 ```
-base.dockerfile          Dockerfile                    lite.dockerfile
-┌─────────┐         ┌──────────────┐              ┌─────────────┐
-│  base   │────────▶│ dependencies │              │    lite      │
-│ (tools) │ context │ (bundle,pnpm)│              │ (app+redis)  │
-└─────────┘         └──────┬───────┘              └──────▲───────┘
-                           │                             │
-                    ┌──────▼───────┐              context│
-                    │    build     │                     │
-                    │ (vite, meta) │              ┌──────┴───────┐
-                    └──┬───────┬───┘              │    main      │
-                       │       │                  │  (final)     │
-                ┌──────▼──┐ ┌──▼──────┐           └──────────────┘
-                │final-s6 │ │  final  │─────────────────┘
-                │ (+S6)   │ │(default)│
-                └─────────┘ └─────────┘
+base.dockerfile   Dockerfile                                    lite.dockerfile
+┌─────────┐      ┌───────────────────────┐                     ┌──────────────┐
+│  base   │─────▶│ frontend-dependencies │ build platform      │     lite     │
+│ (tools) │      │        (pnpm)         │                     │ (app+redis)  │
+└────┬────┘      └───────────┬───────────┘                     └──────▲───────┘
+     │                       │                                        │ context
+     │           ┌───────────▼───────────┐                     ┌──────┴───────┐
+     │           │         build         │ build platform      │     main     │
+     │           │     (vite, meta)      │                     │   (final)    │
+     │           └─────┬───────────┬─────┘                     └──────▲───────┘
+     │                 │  assets   │                                  │
+     │           ┌─────▼────┐ ┌────▼─────┐                            │
+     │           │ final-s6 │ │  final   │────────────────────────────┘
+     │           │  (+S6)   │ │(default) │
+     │           └─────▲────┘ └────▲─────┘
+     │                 │   gems    │
+     │           ┌─────┴───────────┴─────┐
+     └──────────▶│     dependencies      │ target platform
+                 │       (bundle)        │
+                 └───────────────────────┘
 ```
 
 `base` and `main` are injected as named build contexts. In CI, Bake resolves this via `contexts = { base = "target:base" }`. On the Gitolite build server, the post-receive hook passes `--build-context base=container-image://ots-base:{sha}` to Podman.
+
+`frontend-dependencies` and `build` run on the build platform (`FROM --platform=$BUILDPLATFORM base`). Their output (compiled assets, `generated/`, `package.json`) is architecture-independent, so a multi-arch build compiles it once, natively, and copies it into every architecture's image. Before this split the arm64 Vite build ran under QEMU, about 6x slower than native. `dependencies` stays on the target platform because native gem extensions must match the final image. In a single-platform build both platforms are the same and nothing changes.
 
 `final` and `final-s6` start fresh from `ruby:3.4-slim` (not from base). Base carries build-essential, git, python3 (~400MB) needed for `bundle install` and `pnpm install` but unwanted in production images (~200MB).
 
