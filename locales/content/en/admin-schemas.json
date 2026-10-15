@@ -4,8 +4,8 @@
     "content_hash": "bdae3cfc"
   },
   "web.admin.schemas.description": {
-    "text": "Browse the schemas available in this build and check a JSON payload using the same validator as the CLI.",
-    "content_hash": "d9e8bf3e"
+    "text": "Browse data schemas and validate JSON payloads.",
+    "content_hash": "2b081bc6"
   },
   "web.admin.schemas.privacy": {
     "text": "Checks run in this browser. Payloads are not uploaded or saved. Reports include field names and schema messages; use redacted data.",

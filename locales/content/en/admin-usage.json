@@ -4,8 +4,8 @@
     "content_hash": "8d59829c"
   },
   "web.admin.usage.description": {
-    "text": "Export usage metrics for a date range.",
-    "content_hash": "97bd3325"
+    "text": "Export usage reports for a selected date range.",
+    "content_hash": "2fd4c67a"
   },
   "web.admin.usage.startDate": {
     "text": "Start Date",
