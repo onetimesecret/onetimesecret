@@ -61,7 +61,7 @@ module Onetime
       end
 
       def save_if_not_exists!(...)
-        guard_identity_full_write { super }
+        guard_identity_full_write(create_only: true) { super }
       end
 
       def atomic_write(...)
@@ -110,7 +110,7 @@ module Onetime
 
       private
 
-      def guard_identity_full_write(&)
+      def guard_identity_full_write(create_only: false, &)
         # Familia refuses a save inside a transaction or pipeline; reads here
         # would only return futures.
         return yield if Fiber[:familia_transaction] || Fiber[:familia_pipeline]
@@ -133,6 +133,10 @@ module Onetime
                 return guard_new_record_full_write(&)
               end
 
+              # Familia retries create-only saves internally, without re-reading
+              # this guard. Never let it recreate a record we observed as stored.
+              raise Familia::RecordExistsError, dbkey if create_only
+
               was_stored = true
               refuse_identity_change!(stored)
               result     = yield
@@ -147,8 +151,7 @@ module Onetime
             # written again.
           end
 
-          OT.lw "[CustomDomain] Write of #{extid} did not land after #{ATTEMPTS} attempts"
-          result
+          raise Familia::OptimisticLockError, "#{dbkey} changed during #{ATTEMPTS} attempts"
         end
       end
 
