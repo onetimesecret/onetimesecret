@@ -168,6 +168,7 @@ vi.mock('@/shared/composables/useSigninConfig', () => ({
 
 const mockSsoConfig = ref<{ display_name: string } | null>(null);
 const mockSsoLoading = ref(false);
+const mockSsoInitialized = ref(true);
 const mockSsoError = ref<{ message: string } | null>(null);
 const mockSsoConfigured = ref(true);
 const mockSsoHasUnsavedChanges = ref(false);
@@ -186,7 +187,7 @@ const sso = {
 vi.mock('@/shared/composables/useSsoConfig', () => ({
   useSsoConfig: () => ({
     isLoading: mockSsoLoading,
-    isInitialized: ref(true),
+    isInitialized: mockSsoInitialized,
     isSaving: ref(false),
     isDeleting: ref(false),
     isTesting: ref(false),
@@ -243,6 +244,7 @@ describe('DomainSigninSso', () => {
     mockDomainError.value = null;
     mockSsoConfig.value = null;
     mockSsoLoading.value = false;
+    mockSsoInitialized.value = true;
     mockSsoError.value = null;
     mockSsoConfigured.value = true;
     mockSsoHasUnsavedChanges.value = false;
@@ -274,11 +276,28 @@ describe('DomainSigninSso', () => {
     });
 
     it('shows the fetch error instead of the form', async () => {
+      // A failed initial GET never reaches the end of initialize.
+      mockSsoInitialized.value = false;
       mockSsoError.value = { message: 'boom' };
       wrapper = await mountPage();
 
       expect(wrapper.get('[data-testid="form-alert"]').text()).toBe('boom');
       expect(wrapper.find('[data-testid="sso-form"]').exists()).toBe(false);
+    });
+
+    it('keeps the form (and what was typed) when an action fails after the record loaded', async () => {
+      // Save, check and test share the fetch handler's onError, so a 422 or a
+      // transport failure sets the same error ref. The notification and the
+      // check panel report it; the form must not be replaced by the banner.
+      mockSsoConfig.value = { display_name: 'Acme Entra' };
+      wrapper = await mountPage();
+      expect(wrapper.find('[data-testid="sso-form"]').exists()).toBe(true);
+
+      mockSsoError.value = { message: 'secret_shape' };
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="sso-form"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="form-alert"]').exists()).toBe(false);
     });
 
     it('reads the record and the sign-in details when both gates allow it', async () => {
@@ -288,12 +307,22 @@ describe('DomainSigninSso', () => {
       expect(signin.initialize).toHaveBeenCalledTimes(1);
     });
 
-    it('does not read the record while tenant SSO is off on this instance', async () => {
+    it('says tenant SSO is off on this instance instead of offering a form', async () => {
+      // The record is never fetched (the API would refuse), so the composable's
+      // isLoading never resolves; neither the skeleton nor the form may hang
+      // on it. The install flag is not an entitlement matter: no upgrade hint.
       isOrgsSsoEnabledMock.mockReturnValue(false);
+      mockSsoLoading.value = true;
+      mockEntitled.value = false;
       wrapper = await mountPage();
 
       expect(sso.initialize).not.toHaveBeenCalled();
-      expect(wrapper.find('[data-testid="sso-form"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="skeleton"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-form"]').exists()).toBe(false);
+      expect(wrapper.text()).not.toContain('web.domains.sso.access_denied');
+      const notice = wrapper.get('[data-testid="sso-unavailable-on-instance"]');
+      expect(notice.text()).toContain('web.domains.sso.unavailable_on_instance');
+      expect(notice.find('router-link-stub').exists()).toBe(true);
     });
   });
 

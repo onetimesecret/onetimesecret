@@ -563,6 +563,16 @@
     "text": "Sign-in settings",
     "content_hash": "e2271e43"
   },
+  "web.domains.sso.unavailable_on_instance": {
+    "text": "Single sign-on is not enabled on this instance",
+    "context": "Heading on the per-domain SSO configuration page when the install-wide ORGS_SSO_ENABLED flag is off; the page offers no form.",
+    "content_hash": "408e6465"
+  },
+  "web.domains.sso.unavailable_on_instance_hint": {
+    "text": "The operator of this instance has not turned on organization SSO, so there is nothing to configure for {domain}.",
+    "context": "Explanatory line under the heading above. {domain} is the custom domain's hostname.",
+    "content_hash": "acc7d380"
+  },
   "web.domains.sso.access_denied": {
     "text": "Access Denied",
     "content_hash": "d134ca02"

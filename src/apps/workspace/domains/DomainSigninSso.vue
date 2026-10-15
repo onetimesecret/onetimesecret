@@ -74,11 +74,17 @@
    */
   const canManageSso = computed(() => can(ENTITLEMENTS.MANAGE_SSO));
   /**
+   * The install flag (ORGS_SSO_ENABLED). Off, the page has nothing to offer:
+   * every tenant-SSO endpoint refuses, whatever the entitlement, so the page
+   * says so instead of showing a form (or an upgrade hint that would not help).
+   */
+  const ssoAvailableOnInstance = computed(() => isOrgsSsoEnabled());
+  /**
    * Both gates the tenant-SSO endpoints enforce. Fetching credentials without
    * the install flag returns "Organization SSO is not enabled on this instance"
    * (DomainsAPI::Logic::SsoConfig::Base), so don't ask.
    */
-  const canFetchSsoConfig = computed(() => isOrgsSsoEnabled() && canManageSso.value);
+  const canFetchSsoConfig = computed(() => ssoAvailableOnInstance.value && canManageSso.value);
   const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
 
   // ---------------------------------------------------------------------------
@@ -274,11 +280,45 @@
            so it must not gate the skeleton or it would spin forever. -->
       <SettingsSkeleton v-if="domainLoading || (canFetchSsoConfig && ssoConfigLoading)" />
 
-      <!-- Error State -->
+      <!-- Error State: the domain, or the record's initial fetch. A failed
+           save, check or test also sets the composable's error, but by then
+           the record has loaded (ssoInitialized): the form stays up with what
+           the admin typed, and the failure is reported by the notification
+           and the check panel. Replacing the form here would throw that away. -->
       <div
-        v-else-if="domainError || ssoConfigError"
+        v-else-if="domainError || (ssoConfigError && !ssoInitialized)"
         class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
         <BasicFormAlerts :error="domainError?.message ?? ssoConfigError?.message ?? ''" />
+      </div>
+
+      <!-- Tenant SSO off on this install (bookmark, or the redirected old deep
+           link). Not an entitlement matter, so it comes before the upgrade
+           banner; a form here would only be refused by the API. -->
+      <div
+        v-else-if="!ssoAvailableOnInstance"
+        data-testid="sso-unavailable-on-instance"
+        class="rounded-lg border border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
+        <OIcon
+          collection="heroicons"
+          name="lock-closed"
+          class="mx-auto size-12 text-gray-400"
+          aria-hidden="true" />
+        <h3 class="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+          {{ t('web.domains.sso.unavailable_on_instance') }}
+        </h3>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.domains.sso.unavailable_on_instance_hint', { domain: domainHost }) }}
+        </p>
+        <RouterLink
+          :to="signinRoute"
+          class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
+          <OIcon
+            collection="heroicons"
+            name="arrow-left"
+            class="size-4"
+            aria-hidden="true" />
+          {{ t('web.domains.sso.back_to_signin') }}
+        </RouterLink>
       </div>
 
       <!-- Access Denied / Upgrade Banner -->
