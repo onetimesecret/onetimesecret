@@ -365,8 +365,12 @@ function createPermissionsFetcher(
     try {
       const result = await permissionsInstance!.fetchAllPermissions();
       if (controller.signal.aborted) return false;
+      // useResourcePermissions swallows its own fetch error and resolves null.
+      // That is a fetch that did not land, not an org with no domains: keep
+      // the snapshot we have rather than emptying the picker.
+      if (!result) return false;
 
-      const orgPerms = result?.organizations.find(o => o.extid === orgExtid);
+      const orgPerms = result.organizations.find(o => o.extid === orgExtid);
       permissionsDomains.value = orgPerms?.domains ?? [];
       return true;
     } catch (error) {
@@ -403,6 +407,25 @@ function selectBestDomain(available: string[]): string {
   } else {
     // Fall back to preferred domain (first custom domain or canonical)
     return getPreferredDomain(available);
+  }
+}
+
+/**
+ * Settle the selection against a freshly fetched snapshot.
+ *
+ * Before the first successful fetch this IS the initial selection. After it,
+ * a selection the new snapshot no longer offers -- the domain left the org,
+ * or a verification check demoted it (served -> false) -- moves to the
+ * preferred entry rather than staying on a value setContext would refuse and
+ * secret creation would reject. A selection the snapshot still offers is
+ * left alone: a refresh is not a reason to move the user.
+ */
+function reconcileSelection(available: string[]): void {
+  if (!isInitialized.value) {
+    currentDomain.value = selectBestDomain(available);
+    isInitialized.value = true;
+  } else if (currentDomain.value && !available.includes(currentDomain.value)) {
+    currentDomain.value = getPreferredDomain(available);
   }
 }
 
@@ -467,16 +490,29 @@ export function useDomainContext() {
         if (newOrgId && newOrgId !== oldOrgId) {
           const isCurrentRequest = await fetchDomainsForOrganization();
           if (!isCurrentRequest) return;
-          if (!isInitialized.value) {
-            currentDomain.value = selectBestDomain(availableDomains.value);
-            isInitialized.value = true;
-          } else if (currentDomain.value && !availableDomains.value.includes(currentDomain.value)) {
-            currentDomain.value = getPreferredDomain(availableDomains.value);
-          }
+          reconcileSelection(availableDomains.value);
         }
       }
     );
   }
+
+  /**
+   * Re-read the org's domains and settle the selection against the result.
+   *
+   * `served` is a snapshot taken at startup and on organization switch. A
+   * verification check changes it on the server (CustomDomain#served_as_tenant?)
+   * without touching this snapshot, so a domain that just verified would stay
+   * out of the picker, and a selected domain that just lost verification would
+   * stay offered and selected, until a reload. Callers that complete such a
+   * check (useDomainsManager.verifyDomain) call this afterwards. Resolves false
+   * when the fetch did not land (no organization yet, superseded by a newer
+   * fetch, or failed); the selection is then left untouched.
+   */
+  const refreshDomains = async (): Promise<boolean> => {
+    const fetched = await fetchDomainsForOrganization();
+    if (fetched) reconcileSelection(availableDomains.value);
+    return fetched;
+  };
 
   const initPromise = initializeDomainContext(
     fetchDomainsForOrganization,
@@ -526,7 +562,7 @@ export function useDomainContext() {
     isLoadingDomains: computed(() => isLoadingDomains.value),
     setContext,
     resetContext: () => resetDomainContext($api),
-    refreshDomains: fetchDomainsForOrganization,
+    refreshDomains,
     getDomainDisplayName,
     getExtidByDomain: (domain: string) => findExtidByDomain(permissionsDomains.value, domain),
     getDomainByExtid,
