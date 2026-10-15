@@ -871,26 +871,42 @@ const LAST_SIGN_IN_STAGE_KEYS: Record<string, string> = {
 
 const epochToLocale = (epoch: number) => new Date(epoch * 1000).toLocaleString();
 
+/**
+ * t() for a message that interpolates a formatted date or time as {name}.
+ * Some locales end one with an abbreviation period ("11:44 p.m.", "μ.μ.",
+ * Hungarian "2026. 10. 14."); when the message puts its own period right after
+ * it, that one period ends both the abbreviation and the sentence, so the
+ * message's period is dropped.
+ */
+const tWithDate = (
+  key: string,
+  name: string,
+  formatted: string,
+  params: Record<string, string> = {}
+) => {
+  const text = t(key, { ...params, [name]: formatted });
+  return formatted.endsWith('.') ? text.replace(`${formatted}.`, () => formatted) : text;
+};
+
+/** tWithDate for a message that interpolates an epoch as {when}. */
+const tWithWhen = (key: string, epoch: number, params: Record<string, string> = {}) =>
+  tWithDate(key, 'when', epochToLocale(epoch), params);
+
 const lastSignInText = computed(() => {
   const outcome = lastSignIn.value;
   if (!outcome) return t('web.organizations.sso.last_sign_in_none');
   if (outcome.result === 'succeeded') {
-    return t('web.organizations.sso.last_sign_in_succeeded', { when: epochToLocale(outcome.at) });
+    return tWithWhen('web.organizations.sso.last_sign_in_succeeded', outcome.at);
   }
   const stageKey = LAST_SIGN_IN_STAGE_KEYS[outcome.failure_stage ?? ''];
   const parts = [
-    t('web.organizations.sso.last_sign_in_failed', {
-      when: epochToLocale(outcome.at),
+    tWithWhen('web.organizations.sso.last_sign_in_failed', outcome.at, {
       stage: stageKey ? t(stageKey) : (outcome.failure_stage ?? ''),
       code: outcome.failure_code ?? '',
     }),
   ];
   if (outcome.succeeded_at !== null) {
-    parts.push(
-      t('web.organizations.sso.last_sign_in_last_success', {
-        when: epochToLocale(outcome.succeeded_at),
-      })
-    );
+    parts.push(tWithWhen('web.organizations.sso.last_sign_in_last_success', outcome.succeeded_at));
   }
   return parts.join(' ');
 });
@@ -1033,7 +1049,7 @@ watch(newDomain, () => {
           class="mt-0.5 size-4 flex-shrink-0 text-red-600 dark:text-red-400"
           aria-hidden="true" />
         <p class="text-sm text-red-700 dark:text-red-300">
-          {{ t('web.organizations.sso.idp_cert_expired_alert', { date: storedCertExpiry.date }) }}
+          {{ tWithDate('web.organizations.sso.idp_cert_expired_alert', 'date', storedCertExpiry.date) }}
         </p>
       </div>
       <div
@@ -1047,7 +1063,7 @@ watch(newDomain, () => {
           class="mt-0.5 size-4 flex-shrink-0 text-amber-600 dark:text-amber-400"
           aria-hidden="true" />
         <p class="text-sm text-amber-700 dark:text-amber-300">
-          {{ t('web.organizations.sso.idp_cert_expiring_notice', { date: storedCertExpiry.date }) }}
+          {{ tWithDate('web.organizations.sso.idp_cert_expiring_notice', 'date', storedCertExpiry.date) }}
         </p>
       </div>
 

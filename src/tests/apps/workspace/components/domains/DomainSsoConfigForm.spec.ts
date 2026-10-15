@@ -2263,6 +2263,85 @@ describe('DomainSsoConfigForm', () => {
       expect(line.text()).toContain('web.organizations.sso.last_sign_in_last_success');
     });
 
+    // Some locales end a formatted time with an abbreviation period (en-CA and
+    // es-MX "p.m.", el "μ.μ."). That period also ends a sentence whose
+    // message reads "... {when}.", so the message's own period is dropped.
+    describe('a formatted time ending in an abbreviation period', () => {
+      let toLocaleStringSpy: ReturnType<typeof vi.spyOn> | undefined;
+
+      afterEach(() => {
+        toLocaleStringSpy?.mockRestore();
+      });
+
+      const lineText = async (
+        formatted: string,
+        lastSignIn: NonNullable<CustomDomainSsoConfig['last_sign_in']>
+      ) => {
+        toLocaleStringSpy = vi.spyOn(Date.prototype, 'toLocaleString').mockReturnValue(formatted);
+        // The pass-through test i18n drops interpolation; the real bundle
+        // carries the sentence-final period after {when}.
+        const realI18n = createRealI18n({
+          en: JSON.parse(
+            readFileSync(resolve(process.cwd(), 'generated/locales/en.json'), 'utf-8')
+          ),
+        });
+        wrapper = mount(DomainSsoConfigForm, {
+          props: {
+            ...defaultMountOptions,
+            formState: mockExistingFormState,
+            ssoConfig: { ...mockExistingConfig, last_sign_in: lastSignIn },
+            isConfigured: true,
+          },
+          global: { plugins: [realI18n, pinia], stubs: { Teleport: true } },
+        });
+        await flushPromises();
+        return wrapper.get(LINE).text();
+      };
+
+      const succeeded = {
+        result: 'succeeded',
+        at: 1760000000,
+        succeeded_at: 1760000000,
+        failed_at: null,
+        failure_stage: null,
+        failure_code: null,
+        provider_type: 'entra_id',
+      } as const;
+
+      const failedAfterSuccess = {
+        result: 'failed',
+        at: 1760003600,
+        succeeded_at: 1760000000,
+        failed_at: 1760003600,
+        failure_stage: 'provider',
+        failure_code: 'invalid_credentials',
+        provider_type: 'entra_id',
+      } as const;
+
+      it('ends the completed sign-in sentence with a single period', async () => {
+        const text = await lineText('2026-10-09, 11:44 p.m.', succeeded);
+
+        expect(text).toContain('2026-10-09, 11:44 p.m.');
+        expect(text.endsWith('11:44 p.m.')).toBe(true);
+        expect(text).not.toContain('p.m..');
+      });
+
+      it('ends the last completed sign-in sentence with a single period', async () => {
+        const text = await lineText('2026-10-09, 11:44 p.m.', failedAfterSuccess);
+
+        // The failed sentence continues after {when} with a comma.
+        expect(text).toContain('11:44 p.m., ');
+        expect(text.endsWith('11:44 p.m.')).toBe(true);
+        expect(text).not.toContain('p.m..');
+      });
+
+      it('keeps the sentence period after a time that does not end in one', async () => {
+        const text = await lineText('10/9/2026, 11:44:00 PM', succeeded);
+
+        expect(text.endsWith('11:44:00 PM.')).toBe(true);
+      });
+    });
+
     it('is not shown before a configuration is saved', async () => {
       wrapper = await mountComponent({ formState: createDefaultFormState(), isConfigured: false });
 
@@ -3287,6 +3366,36 @@ describe('DomainSsoConfigForm', () => {
         });
 
         expect(wrapper.find('[data-testid="sso-idp-cert-expired-alert"]').exists()).toBe(false);
+      });
+
+      it('ends the expired alert sentence once after a date that ends in a period', async () => {
+        // Hungarian and Korean dates end in a period ("2026. 10. 14."); the
+        // message reads "... expired on {date}. Sign-in ...", so one period
+        // serves both. The pass-through test i18n drops interpolation.
+        const spy = vi.spyOn(Date.prototype, 'toLocaleDateString').mockReturnValue('2026. 10. 14.');
+        try {
+          const realI18n = createRealI18n({
+            en: JSON.parse(
+              readFileSync(resolve(process.cwd(), 'generated/locales/en.json'), 'utf-8')
+            ),
+          });
+          wrapper = mount(DomainSsoConfigForm, {
+            props: {
+              ...defaultMountOptions,
+              formState: mockSamlFormState,
+              ssoConfig: { ...mockSamlConfig, cert_expires_at: iso(-DAY), cert_expired: true },
+              isConfigured: true,
+            },
+            global: { plugins: [realI18n, pinia], stubs: { Teleport: true } },
+          });
+          await flushPromises();
+
+          const text = wrapper.get('[data-testid="sso-idp-cert-expired-alert"]').text();
+          expect(text).toContain('expired on 2026. 10. 14. Sign-in');
+          expect(text).not.toContain('14..');
+        } finally {
+          spy.mockRestore();
+        }
       });
 
       it('renders nothing when the payload predates the fields', async () => {
