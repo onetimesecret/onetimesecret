@@ -1504,10 +1504,6 @@
     "text": "ログイン設定",
     "source_hash": "2da38c03"
   },
-  "web.TITLES.domain_sso": {
-    "text": "ドメインSSO",
-    "source_hash": "13161464"
-  },
   "web.TITLES.domain_signup": {
     "text": "ドメイン登録検証",
     "source_hash": "c8ce809a"

@@ -1367,10 +1367,6 @@
     "text": "Single Sign-On Configuration",
     "content_hash": "4bbf1a2f"
   },
-  "web.TITLES.domain_sso": {
-    "text": "Domain SSO",
-    "content_hash": "13161464"
-  },
   "web.TITLES.domain_signup": {
     "text": "Domain Signup Validation",
     "content_hash": "c8ce809a"

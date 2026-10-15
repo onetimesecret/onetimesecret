@@ -1504,10 +1504,6 @@
     "text": "הגדרת התחברות",
     "source_hash": "2da38c03"
   },
-  "web.TITLES.domain_sso": {
-    "text": "SSO לדומיין",
-    "source_hash": "13161464"
-  },
   "web.TITLES.domain_signup": {
     "text": "אימות הרשמה לדומיין",
     "source_hash": "c8ce809a"

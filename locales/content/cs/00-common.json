@@ -1504,10 +1504,6 @@
     "text": "Konfigurace přihlášení",
     "source_hash": "2da38c03"
   },
-  "web.TITLES.domain_sso": {
-    "text": "SSO domény",
-    "source_hash": "13161464"
-  },
   "web.TITLES.domain_signup": {
     "text": "Ověření registrace domény",
     "source_hash": "c8ce809a"

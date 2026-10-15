@@ -1504,10 +1504,6 @@
     "text": "Giriş Yapılandırması",
     "source_hash": "2da38c03"
   },
-  "web.TITLES.domain_sso": {
-    "text": "Alan Adı SSO",
-    "source_hash": "13161464"
-  },
   "web.TITLES.domain_signup": {
     "text": "Alan Adı Kayıt Doğrulaması",
     "source_hash": "c8ce809a"

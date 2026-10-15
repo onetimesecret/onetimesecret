@@ -1504,10 +1504,6 @@
     "text": "Login-konfiguration",
     "source_hash": "2da38c03"
   },
-  "web.TITLES.domain_sso": {
-    "text": "Domæne-SSO",
-    "source_hash": "13161464"
-  },
   "web.TITLES.domain_signup": {
     "text": "Validering af domænetilmelding",
     "source_hash": "c8ce809a"

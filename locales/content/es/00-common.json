@@ -1504,10 +1504,6 @@
     "text": "Configuración de inicio de sesión",
     "source_hash": "2da38c03"
   },
-  "web.TITLES.domain_sso": {
-    "text": "SSO del dominio",
-    "source_hash": "13161464"
-  },
   "web.TITLES.domain_signup": {
     "text": "Validación de registro del dominio",
     "source_hash": "c8ce809a"

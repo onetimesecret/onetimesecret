@@ -1504,10 +1504,6 @@
     "text": "Konfiguracija prijave",
     "source_hash": "2da38c03"
   },
-  "web.TITLES.domain_sso": {
-    "text": "SSO domene",
-    "source_hash": "13161464"
-  },
   "web.TITLES.domain_signup": {
     "text": "Preverjanje registracije domene",
     "source_hash": "c8ce809a"

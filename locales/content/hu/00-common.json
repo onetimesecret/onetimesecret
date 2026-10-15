@@ -1504,10 +1504,6 @@
     "text": "Bejelentkezési konfiguráció",
     "source_hash": "2da38c03"
   },
-  "web.TITLES.domain_sso": {
-    "text": "Domén SSO",
-    "source_hash": "13161464"
-  },
   "web.TITLES.domain_signup": {
     "text": "Domén regisztrációs ellenőrzés",
     "source_hash": "c8ce809a"

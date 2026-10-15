@@ -1504,10 +1504,6 @@
     "text": "登录配置",
     "source_hash": "2da38c03"
   },
-  "web.TITLES.domain_sso": {
-    "text": "域名 SSO",
-    "source_hash": "13161464"
-  },
   "web.TITLES.domain_signup": {
     "text": "域名注册验证",
     "source_hash": "c8ce809a"

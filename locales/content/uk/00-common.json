@@ -1504,10 +1504,6 @@
     "text": "Конфігурація входу",
     "source_hash": "2da38c03"
   },
-  "web.TITLES.domain_sso": {
-    "text": "SSO домену",
-    "source_hash": "13161464"
-  },
   "web.TITLES.domain_signup": {
     "text": "Перевірка реєстрації для домену",
     "source_hash": "c8ce809a"
