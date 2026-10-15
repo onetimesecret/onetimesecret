@@ -202,8 +202,8 @@ export function useSigninConfig(domainExtId: string) {
   const { wrap: wrapRefresh } = useAsyncHandler({ notify: false });
 
   /**
-   * Advanced whenever a save or delete writes `details`, so a refreshDetails
-   * response that was requested before that write cannot overwrite it.
+   * Advanced at each refresh start and whenever load/save/delete writes
+   * `details`, so older refresh responses cannot overwrite newer state.
    */
   let detailsWrites = 0;
 
@@ -316,12 +316,12 @@ export function useSigninConfig(domainExtId: string) {
    * materializes what actually runs (ADR-024) — but not while a save is in
    * flight, whose own response re-seeds or replaces it.
    *
-   * A response is dropped when a save or delete wrote details after it was
-   * requested: that write is the newer answer.
+   * A response is dropped when a newer refresh started or load/save/delete
+   * wrote details after it was requested.
    */
   const refreshDetails = async () => {
     if (!isInitialized.value) return;
-    const writes = detailsWrites;
+    const writes = ++detailsWrites;
     const response = await wrapRefresh(() => SigninConfigService.getConfigForDomain(domainExtId));
     if (!response?.details || writes !== detailsWrites) return;
     details.value = response.details;

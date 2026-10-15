@@ -14,7 +14,10 @@ import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ref, watch } from 'vue';
 
-import type { EffectiveRestrictTo } from '@/schemas/api/domains/responses/signin-config';
+import type {
+  EffectiveRestrictTo,
+  SigninConfigDetails,
+} from '@/schemas/api/domains/responses/signin-config';
 import type {
   CustomDomainSigninConfig,
   SigninRestrictTo,
@@ -948,6 +951,18 @@ describe('useSigninConfig', () => {
       tenant_sso: { available: reason === null, unavailable_reason: reason },
     });
 
+    const deferredResponse = () => {
+      type Response = {
+        record: CustomDomainSigninConfig | null;
+        details: SigninConfigDetails;
+      };
+      let resolve!: (response: Response) => void;
+      const promise = new Promise<Response>((settle) => {
+        resolve = settle;
+      });
+      return { promise, resolve };
+    };
+
     it('replaces the details without the page loading state or the record', async () => {
       mockGetConfigForDomain.mockResolvedValueOnce({
         record: mockSigninConfigData,
@@ -984,6 +999,112 @@ describe('useSigninConfig', () => {
       await composable.refreshDetails();
 
       expect(mockGetConfigForDomain).not.toHaveBeenCalled();
+    });
+
+    it.each(['older', 'newer'] as const)(
+      'keeps the latest refresh verdict and inherited form seed when %s finishes first',
+      async (first) => {
+        const initialDetails = withVerdict('sso_config_disabled');
+        mockGetConfigForDomain.mockResolvedValueOnce({ record: null, details: initialDetails });
+        const composable = useSigninConfig('dm-ext-123');
+        await composable.initialize();
+        const initialForm = { ...composable.formState.value };
+        const newerDetails = {
+          ...withVerdict(null),
+          effective_enabled: true,
+          effective_restrict_to: restricted('sso'),
+        };
+        const newerForm = { ...initialForm, signin_enabled: true, restrict_to: 'sso' };
+        const responses = {
+          older: { record: null, details: withVerdict('sso_config_missing') },
+          newer: { record: null, details: newerDetails },
+        };
+        const deferred = { older: deferredResponse(), newer: deferredResponse() };
+        mockGetConfigForDomain
+          .mockReturnValueOnce(deferred.older.promise)
+          .mockReturnValueOnce(deferred.newer.promise);
+
+        const pending = {
+          older: composable.refreshDetails(),
+          newer: composable.refreshDetails(),
+        };
+        deferred[first].resolve(responses[first]);
+        await pending[first];
+
+        // Even if it finishes first, the older request is already superseded.
+        expect(composable.details.value).toEqual(first === 'older' ? initialDetails : newerDetails);
+        expect(composable.formState.value).toEqual(first === 'older' ? initialForm : newerForm);
+        expect(composable.hasUnsavedChanges.value).toBe(false);
+
+        const last = first === 'older' ? 'newer' : 'older';
+        deferred[last].resolve(responses[last]);
+        await pending[last];
+
+        expect(composable.details.value).toEqual(newerDetails);
+        expect(composable.tenantSso.value).toEqual({ available: true, unavailable_reason: null });
+        expect(composable.signinConfig.value).toBeNull();
+        expect(composable.formState.value).toEqual(newerForm);
+        expect(composable.hasUnsavedChanges.value).toBe(false);
+
+        composable.formState.value.signin_enabled = false;
+        composable.formState.value.restrict_to = null;
+        expect(composable.hasUnsavedChanges.value).toBe(true);
+        composable.discardChanges();
+        expect(composable.formState.value).toEqual(newerForm);
+        expect(composable.hasUnsavedChanges.value).toBe(false);
+      }
+    );
+
+    it('drops a response requested before a load wrote newer details', async () => {
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+      const deferred = deferredResponse();
+      const loadedDetails = {
+        ...withVerdict(null),
+        effective_enabled: true,
+        effective_restrict_to: restricted('sso'),
+      };
+      mockGetConfigForDomain
+        .mockReturnValueOnce(deferred.promise)
+        .mockResolvedValueOnce({ record: null, details: loadedDetails });
+
+      const pending = composable.refreshDetails();
+      await composable.initialize();
+      const loadedForm = { ...composable.formState.value };
+      deferred.resolve({ record: null, details: withVerdict('sso_config_disabled') });
+      await pending;
+
+      expect(composable.details.value).toEqual(loadedDetails);
+      expect(composable.formState.value).toEqual(loadedForm);
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+    });
+
+    it('drops a response requested before a delete wrote newer details', async () => {
+      mockGetConfigForDomain.mockResolvedValueOnce({
+        record: mockSigninConfigData,
+        details: withVerdict('sso_config_disabled'),
+      });
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+      const deferred = deferredResponse();
+      const deletedDetails = {
+        ...withVerdict(null),
+        effective_enabled: true,
+        effective_restrict_to: restricted('sso'),
+      };
+      mockGetConfigForDomain.mockReturnValueOnce(deferred.promise);
+      mockDeleteConfigForDomain.mockResolvedValueOnce({ success: true, details: deletedDetails });
+
+      const pending = composable.refreshDetails();
+      await composable.deleteConfig();
+      const deletedForm = { ...composable.formState.value };
+      deferred.resolve({ record: null, details: withVerdict('sso_config_disabled') });
+      await pending;
+
+      expect(composable.details.value).toEqual(deletedDetails);
+      expect(composable.signinConfig.value).toBeNull();
+      expect(composable.formState.value).toEqual(deletedForm);
+      expect(composable.hasUnsavedChanges.value).toBe(false);
     });
 
     it('drops a response requested before a save wrote newer details', async () => {
