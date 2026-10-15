@@ -368,8 +368,14 @@ module Onetime
 
         return unless repair
 
+        removed = 0
         stale_domains.each do |entry|
-          organization.domains.remove(entry[:objid])
+          unless remove_org_domain_entry(organization, entry[:objid])
+            OT.info "[domains doctor] org.domains entry #{entry[:objid]} was already gone from #{organization.extid}"
+            next
+          end
+
+          removed += 1
 
           # Clear the domain's own org_id if it pointed to this org,
           # so loading the domain independently won't yield stale data.
@@ -385,11 +391,35 @@ module Onetime
           OT.info "[domains doctor] Removed stale org.domains entry #{entry[:objid]} from #{organization.extid}"
         end
 
+        return if removed.zero?
+
         report[:repaired] << {
           org: organization.extid,
           action: :stale_org_domains_removed,
-          count: stale_domains.size,
+          count: removed,
         }
+      end
+
+      # Remove one entry from org.domains, whether or not its domain record
+      # still exists.
+      #
+      # org.domains is a participation collection that stores raw identifiers,
+      # and Familia JSON-quotes a String argument, so a bare objid never matches.
+      # An identifier-only CustomDomain (the stand-in Organization#domain? uses)
+      # serializes to the raw identifier. Organization#remove_domain is not an
+      # option: it loads the record and raises when it is gone.
+      #
+      # The domain's reverse index drops the collection key as well, as
+      # remove_from_organization_domains would. Organization#add_domain reads
+      # that index for its cross-org guard.
+      #
+      # @return [Boolean] true when ZREM removed the entry
+      def remove_org_domain_entry(organization, domain_objid)
+        member  = Onetime::CustomDomain.new(objid: domain_objid)
+        removed = organization.domains.remove(member)
+        member.untrack_participation_in(organization.domains.dbkey)
+        # redis-rb answers a single-member ZREM with a Boolean; accept a count too.
+        removed == true || (removed.is_a?(Integer) && removed.positive?)
       end
 
       # CHECK all orgs for stale domain entries
@@ -485,8 +515,9 @@ module Onetime
         organization = Onetime::Organization.load(domain.org_id)
         return unless organization # Already flagged by stale_org_reference
 
-        in_set = organization.domains.member?(domain.objid)
-        return if in_set
+        # domain?, not organization.domains.member?(objid): the collection
+        # stores raw identifiers and a bare String argument never matches.
+        return if organization.domain?(domain)
 
         issues << {
           check: :org_domains_missing,
@@ -503,10 +534,10 @@ module Onetime
 
       # Delegate the MUTATION for check #4 to Onetime::Operations::Domains::Repair.
       #
-      # Detection stays on organization.domains.member? above: it is O(1), while
+      # Detection stays on Organization#domain? above: it is O(1), while
       # the op's own check does a load_multi of the whole collection. Do not
       # "unify" the two into the slow path — that makes --all quadratic. The two
-      # mechanisms can in principle disagree (member? sees a set entry whose
+      # mechanisms can in principle disagree (domain? sees a set entry whose
       # record fails to load; list_domains .compacts it away), so any non
       # :repaired status here is recorded as a failed repair rather than
       # silently swallowed.
@@ -633,7 +664,8 @@ module Onetime
           if scope_org
             # Only entries that touch THIS org can affect its deletion.
             next unless [recorded_org_id.to_s, actual_org_id].include?(scope_org.objid)
-            next if scope_org.domains.member?(domain_id)
+            # Repair removes stale memberships before the per-domain scan.
+            next if domain && scope_org.domain?(domain_id) && (!repair || actual_org_id == scope_org.objid)
           elsif domain && Onetime::CustomDomain.instances.member?(domain_id)
             next
           end
