@@ -276,10 +276,6 @@
     "text": "Subscription",
     "content_hash": "4999c6c6"
   },
-  "web.organizations.danger_zone": {
-    "text": "Danger Zone",
-    "content_hash": "3c1c01b4"
-  },
   "web.organizations.delete_organization": {
     "text": "Delete Organization",
     "content_hash": "54b2edc7"

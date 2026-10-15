@@ -396,10 +396,6 @@
     "text": "确定吗？",
     "source_hash": "f0762c4f"
   },
-  "web.COMMON.danger_zone": {
-    "text": "危险区域",
-    "source_hash": "3c1c01b4"
-  },
   "web.COMMON.caution_zone": {
     "text": "谨慎操作区",
     "source_hash": "fe27a3a8"

@@ -404,10 +404,6 @@
     "text": "Are you sure?",
     "content_hash": "f0762c4f"
   },
-  "web.COMMON.danger_zone": {
-    "text": "Danger Zone",
-    "content_hash": "3c1c01b4"
-  },
   "web.COMMON.caution_zone": {
     "text": "Careful Consideration Zone",
     "content_hash": "fe27a3a8"

@@ -219,10 +219,6 @@
     "text": "Συνδρομή",
     "source_hash": "4999c6c6"
   },
-  "web.organizations.danger_zone": {
-    "text": "Επικίνδυνη ζώνη",
-    "source_hash": "3c1c01b4"
-  },
   "web.organizations.delete_organization": {
     "text": "Διαγραφή οργανισμού",
     "source_hash": "54b2edc7"

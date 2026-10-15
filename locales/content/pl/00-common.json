@@ -396,10 +396,6 @@
     "text": "Czy na pewno?",
     "source_hash": "f0762c4f"
   },
-  "web.COMMON.danger_zone": {
-    "text": "Strefa zagrożenia",
-    "source_hash": "3c1c01b4"
-  },
   "web.COMMON.caution_zone": {
     "text": "Strefa ostrożności",
     "source_hash": "fe27a3a8"

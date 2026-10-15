@@ -396,10 +396,6 @@
     "text": "よろしいですか?",
     "source_hash": "f0762c4f"
   },
-  "web.COMMON.danger_zone": {
-    "text": "危険な操作",
-    "source_hash": "3c1c01b4"
-  },
   "web.COMMON.caution_zone": {
     "text": "慎重な操作が必要な項目",
     "source_hash": "fe27a3a8"

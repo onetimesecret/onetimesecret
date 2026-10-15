@@ -396,10 +396,6 @@
     "text": "Êtes-vous certain ?",
     "source_hash": "f0762c4f"
   },
-  "web.COMMON.danger_zone": {
-    "text": "Zone de danger",
-    "source_hash": "3c1c01b4"
-  },
   "web.COMMON.caution_zone": {
     "text": "Zone de prudence",
     "source_hash": "fe27a3a8"

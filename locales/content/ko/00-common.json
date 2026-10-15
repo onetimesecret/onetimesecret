@@ -396,10 +396,6 @@
     "text": "정말 진행하시겠습니까?",
     "source_hash": "f0762c4f"
   },
-  "web.COMMON.danger_zone": {
-    "text": "위험 구역",
-    "source_hash": "3c1c01b4"
-  },
   "web.COMMON.caution_zone": {
     "text": "신중한 고려 구역",
     "source_hash": "fe27a3a8"
