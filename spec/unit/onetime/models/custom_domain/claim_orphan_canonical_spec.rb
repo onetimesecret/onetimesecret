@@ -167,7 +167,7 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
       reload(id).add_to_organization_domains(org_a)
 
       expect { register(orphan_name, org_b) }
-        .to raise_error(Onetime::Problem, /still listed in the domains of organization #{org_a.extid}.*remove_domain/)
+        .to raise_error(Onetime::Problem, /still listed in the domains of organization #{org_a.extid}.*domains doctor --org #{org_a.extid}`.*--repair/)
       expect([reload(id).org_id.to_s, index.get(canonical), org_b.domains.member?(reload(id))]).to eq(['', nil, false])
     end
 

@@ -1310,9 +1310,9 @@ module Onetime
               "in the domains of #{listing.extid}"
         raise Onetime::Problem,
           "Domain #{existing.display_domain} has no organization but is still listed in the domains of " \
-          "organization #{listing.extid}. Remove that listing first, from bin/ots console: " \
-          "Onetime::Organization.find_by_extid('#{listing.extid}')" \
-          ".remove_domain(Onetime::CustomDomain.find_by_extid('#{existing.extid}')). Then adopt the domain again."
+          "organization #{listing.extid}. Remove that listing first: review it with " \
+          "`bin/ots domains doctor --org #{listing.extid}`, then run the same command with --repair. " \
+          'Then adopt the domain again.'
       end
 
       # Claims the orphan's canonical name for the record.

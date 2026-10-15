@@ -852,6 +852,25 @@ RSpec.describe 'Domains Doctor Command collection checks (real datastore)', :dat
       expect(report[:repaired].find { |r| r[:action] == :stale_org_domains_removed }[:count]).to eq(1)
     end
 
+    # The listing claim_orphaned_domain refuses an adoption over; its refusal
+    # message points here.
+    it 'removes the listing of a domain with no organization, so it can be adopted' do
+      allow(Onetime).to receive(:with_pinned_dbclient) { |&block| block.call(Familia.dbclient) }
+      org_a  = create_org('lister')
+      org_b  = create_org('adopter')
+      domain = create_domain(org_a, 'orphaned')
+      Familia.dbclient.hdel(domain.dbkey, 'org_id')
+      orphan = Onetime::CustomDomain.find_by_identifier(domain.identifier)
+      expect { Onetime::CustomDomain.claim_orphaned_domain(orphan, org_b.objid) }
+        .to raise_error(Onetime::Problem, /domains doctor --org #{org_a.extid}/)
+
+      command.send(:check_stale_org_domains, org_a, report, repair: true)
+      Onetime::CustomDomain.claim_orphaned_domain(Onetime::CustomDomain.find_by_identifier(domain.identifier), org_b.objid)
+
+      expect([org_a.domains.to_a.include?(domain.objid), Onetime::CustomDomain.find_by_identifier(domain.identifier).org_id])
+        .to eq([false, org_b.objid])
+    end
+
     it 'counts only the entries it removed' do
       org   = create_org('raced')
       ghost = Onetime::CustomDomain.new(objid: "ghost#{suffix}")
