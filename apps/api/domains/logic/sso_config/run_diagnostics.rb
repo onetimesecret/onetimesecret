@@ -5,6 +5,7 @@
 require 'time'
 require 'onetime/models/custom_domain/sso_config'
 require_relative 'base'
+require_relative 'change_logger'
 require_relative 'discovery_check'
 require_relative '../../../../../lib/onetime/sso_provider/entra'
 require_relative '../../../../../lib/onetime/sso_provider/entra_credential_probe'
@@ -41,14 +42,44 @@ module DomainsAPI
       #   exercise redirect URIs, user assignment, Conditional Access or
       #   claims.
       #
+      # Params:
+      # - activate: Optional boolean. When the run passes, turn the stored
+      #   record on (enabled = true). A run that fails or is inconclusive
+      #   never activates, and no run turns a record off. The write commits
+      #   only while the stored credential fields still match the ones the
+      #   checks ran against (SsoConfig#credential_fingerprint, compared
+      #   under WATCH), so an edit that lands during the provider calls
+      #   leaves the record off. Activation emits the same
+      #   domain_sso_config_enabled change event as PUT/PATCH, and refuses
+      #   the records PUT/PATCH would refuse to switch on: a provider type
+      #   outside PROVIDER_TYPES (validate_provider_type) and a saml record
+      #   while SAML is off on the install (reject_saml_disabled!). The
+      #   sign-in ladder refuses both anyway; this keeps the stored flag
+      #   from claiming a state no write path allows.
+      #
       # Response:
       # - user_id, provider_type, checked_at (ISO 8601 UTC)
-      # - configuration_revision: SsoConfig#updated as stored (may be empty)
+      # - configuration_revision: SsoConfig#updated of the record checked, as
+      #   loaded before any activation write (may be empty)
       # - overall: passed | failed | inconclusive — failed if any check
       #   failed; else inconclusive if any check inconclusive; else passed.
       #   unsupported and skipped checks do not affect it.
       # - checks: [{ check, status, message, details }], status one of
       #   passed | failed | inconclusive | unsupported | skipped
+      # - enabled: the record's enabled state after the run
+      # - activation: one of ACTIVATION_OUTCOMES
+      #   not_requested          activate was not sent
+      #   activated              this run turned the record on
+      #   already_enabled        the record was on before this run wrote
+      #   not_passed             overall was failed or inconclusive
+      #   not_permitted          the provider type is unsupported, or saml
+      #                          while SAML is off on the install
+      #   configuration_changed  the credential fields changed, or the
+      #                          record was deleted, while the checks ran
+      # - activated_revision: only when activation is `activated`: the
+      #   SsoConfig#updated the activation wrote. A client whose loaded
+      #   record matched configuration_revision adopts it, so its next run
+      #   is not mistaken for one about a record saved elsewhere.
       #
       # Never returns, logs or raises the client secret, a token, or Entra's
       # error_description (correlation ids, app id). The credential check
@@ -78,9 +109,14 @@ module DomainsAPI
       #
       class RunDiagnostics < Base
         include DiscoveryCheck
+        include ChangeLogger
         include Onetime::Security::SsoDiagnosticsRateLimiter
 
         STATUSES = %w[passed failed inconclusive unsupported skipped].freeze
+
+        ACTIVATION_OUTCOMES = %w[
+          not_requested activated already_enabled not_passed not_permitted configuration_changed
+        ].freeze
 
         # Audit verb for one completed run. Namespaced `<resource>.<action>`
         # like the limiter's `sso.diagnostics_throttled`.
@@ -119,6 +155,7 @@ module DomainsAPI
 
         def process_params
           @domain_id = sanitize_identifier(params['extid'])
+          @activate  = parse_boolean(params['activate'])
         end
 
         def raise_concerns
@@ -138,6 +175,10 @@ module DomainsAPI
           @tenant_id                  = @sso_config.tenant_id.to_s
           @token_endpoint_auth_method = @sso_config.token_endpoint_auth_method.to_s.strip
 
+          # The credentials the checks below run against; activation
+          # commits only while the stored record still has them.
+          @checked_fingerprint = @sso_config.credential_fingerprint if @activate
+
           # Last, so only a run that will actually happen is charged.
           enforce_sso_diagnostics_rate_limit!(cust.extid)
         end
@@ -148,12 +189,14 @@ module DomainsAPI
           @checked_at = Time.now.utc
           @checks     = run_checks
           @overall    = compute_overall(@checks)
+          @activation = activate_if_requested
 
           OT.info "[RunDiagnostics] Saved configuration check #{@overall} for #{@provider_type}",
             {
               domain_id: @domain_id,
               provider_type: @provider_type,
               overall: @overall,
+              activation: @activation,
               checks: @checks.to_h { |check| [check[:check], check[:status]] },
             }
 
@@ -163,14 +206,18 @@ module DomainsAPI
         end
 
         def success_data
-          {
+          data                      = {
             user_id: cust.extid,
             provider_type: @provider_type,
             checked_at: @checked_at.iso8601,
             configuration_revision: @sso_config.updated.to_s,
             overall: @overall,
             checks: @checks,
+            enabled: @enabled_after,
+            activation: @activation,
           }
+          data[:activated_revision] = @activated_revision if @activated_revision
+          data
         end
 
         def form_fields
@@ -205,6 +252,7 @@ module DomainsAPI
               display_domain: @custom_domain.display_domain,
               provider_type: @provider_type,
               overall: @overall,
+              activation: @activation,
               checked_at: @checked_at.iso8601,
               configuration_revision: @sso_config.updated.to_s,
               checks: @checks.map { audit_check_entry(it) },
@@ -273,6 +321,80 @@ module DomainsAPI
           return 'inconclusive' if statuses.include?('inconclusive')
 
           'passed'
+        end
+
+        # ──────────────────────────────────────────────────────────────────────────
+        # Activation
+        # ──────────────────────────────────────────────────────────────────────────
+
+        # Sets @enabled_after and returns the activation outcome (see the
+        # class note). The guarded write re-reads the record under WATCH,
+        # so the fingerprint and enabled state compared are the stored ones,
+        # not this request's copy, which is as old as the provider calls.
+        #
+        # @return [String] one of ACTIVATION_OUTCOMES
+        def activate_if_requested
+          # Early outcomes report storage after the checks, not the checked
+          # snapshot. Activation attempts use the guarded write's state below.
+          stored         = Onetime::CustomDomain::SsoConfig.find_by_domain_id(@custom_domain.identifier)
+          @enabled_after = stored&.enabled? || false
+          return 'not_requested' unless @activate
+          return 'not_passed' unless @overall == 'passed'
+          # provider_type is part of the fingerprint, so the guarded write
+          # below refuses a record whose type changed after this check.
+          return 'not_permitted' unless activation_permitted?
+
+          refusal        = nil
+          stored_enabled = false
+          condition      = ->(stored) {
+            stored_enabled = stored.enabled?
+            refusal        = if stored.credential_fingerprint != @checked_fingerprint
+                               'configuration_changed'
+                             elsif stored_enabled
+                               'already_enabled'
+                             end
+            refusal.nil?
+          }
+          # A write aborted by a concurrent change runs the block again, so
+          # the value kept is the one from the attempt that committed.
+          written_at     = nil
+          committed      = Onetime::CustomDomain::SsoConfig.update_for_domain_if(@custom_domain.identifier, condition) do |stored|
+            written_at     = Familia.now.to_i
+            stored.enabled = true
+            stored.updated = written_at
+          end
+
+          # nil: the condition refused, or the record is gone. A refusal
+          # returns at once, so refusal and stored_enabled describe the
+          # stored record. Gone: the condition never ran on the attempt that
+          # returned (a retry follows only an aborted write), refusal is
+          # nil, and there is no record to be on.
+          unless committed
+            @enabled_after = refusal.nil? ? false : stored_enabled
+            return refusal || 'configuration_changed'
+          end
+
+          @enabled_after      = true
+          @activated_revision = written_at.to_s
+          log_sso_change_event(
+            event: :domain_sso_config_enabled,
+            domain: @custom_domain,
+            org: @organization,
+            actor: cust,
+            provider_type: @provider_type,
+          )
+          'activated'
+        end
+
+        # PUT/PATCH's refusals for switching a record on that no check
+        # above repeats (see the class note).
+        #
+        # @return [Boolean]
+        def activation_permitted?
+          return false unless Onetime::CustomDomain::SsoConfig::PROVIDER_TYPES.include?(@provider_type)
+          return false if @provider_type == 'saml' && !Onetime::SsoProvider::Saml.enabled?
+
+          true
         end
 
         def check(name, status, message, details = {})

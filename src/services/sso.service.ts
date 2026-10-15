@@ -213,6 +213,30 @@ export interface SsoDiagnosticCheck {
 }
 
 /**
+ * What a run did to the stored record's `enabled` flag
+ * (DomainsAPI::Logic::SsoConfig::RunDiagnostics::ACTIVATION_OUTCOMES):
+ *
+ * - not_requested: the request did not ask for activation.
+ * - activated: the run passed and turned the record on.
+ * - already_enabled: the record was on before this run wrote.
+ * - not_passed: overall was failed or inconclusive; the record stays off.
+ * - not_permitted: the run passed, but the stored provider type cannot be
+ *   switched on here (an unsupported legacy type, or saml while SAML is off
+ *   on the install); the record stays off.
+ * - configuration_changed: the credential fields changed, or the record was
+ *   deleted, while the checks ran; the record stays off.
+ *
+ * No run turns a record off.
+ */
+export type SsoDiagnosticActivation =
+  | 'not_requested'
+  | 'activated'
+  | 'already_enabled'
+  | 'not_passed'
+  | 'not_permitted'
+  | 'configuration_changed';
+
+/**
  * Response from the saved-configuration diagnostics
  *
  * Unlike Test Connection, which tests the FORM fields and never uses the
@@ -221,7 +245,11 @@ export interface SsoDiagnosticCheck {
  */
 export interface SsoDiagnosticsResponse {
   user_id: string;
-  provider_type: SsoProviderType;
+  /**
+   * The stored record's type. A legacy record can carry a type the form no
+   * longer offers (google, github), so this is not narrowed to the selector.
+   */
+  provider_type: SsoProviderType | (string & {});
   /** ISO 8601 UTC. */
   checked_at: string;
   /**
@@ -232,6 +260,20 @@ export interface SsoDiagnosticsResponse {
   configuration_revision: string;
   overall: SsoDiagnosticOverall;
   checks: SsoDiagnosticCheck[];
+  /** The stored record's `enabled` after the run. */
+  enabled: boolean;
+  activation: SsoDiagnosticActivation;
+  /**
+   * Only when activation is `activated`: the SsoConfig#updated the
+   * activation wrote. configuration_revision stays the checked record's.
+   */
+  activated_revision?: string;
+}
+
+/** Request body for POST /api/domains/:extid/sso/diagnostics. */
+export interface SsoDiagnosticsRequest {
+  /** Turn the stored record on when the run passes. */
+  activate?: boolean;
 }
 
 export const SsoService = {
@@ -239,11 +281,19 @@ export const SsoService = {
    * Get SSO configuration for a specific domain
    *
    * @param domainExtId - Domain external ID
+   * @param options - `passive: true` when no person caused the request (a
+   *   focus or visibility refresh), so it does not count as session activity
    * @returns SSO configuration or { record: null } if not configured
    */
-  async getConfigForDomain(domainExtId: string): Promise<SsoConfigResponse> {
+  async getConfigForDomain(
+    domainExtId: string,
+    options: { passive?: boolean } = {}
+  ): Promise<SsoConfigResponse> {
     try {
-      const response = await $api.get(`/api/domains/${domainExtId}/sso`);
+      const url = `/api/domains/${domainExtId}/sso`;
+      const response = options.passive
+        ? await $api.get(url, { passive: true })
+        : await $api.get(url);
       const result = gracefulParse(
         getSsoConfigResponseSchema,
         response.data,
@@ -365,16 +415,25 @@ export const SsoService = {
   /**
    * Run diagnostics against the SAVED SSO configuration of a domain
    *
-   * No body: the API reloads the stored record and checks each layer
-   * (stored configuration, discovery, certificate or credential). For
-   * entra_id the credential check sends the stored client secret to
-   * Microsoft, so the API rate-limits this per customer.
+   * Nothing from the form is sent: the API reloads the stored record and
+   * checks each layer (stored configuration, discovery, certificate or
+   * credential). For entra_id the credential check sends the stored client
+   * secret to Microsoft, so the API rate-limits this per customer. The only
+   * body is `activate`, sent only when requested: a passing run then turns
+   * the stored record on.
    *
    * @param domainExtId - Domain external ID
-   * @returns Per-check statuses and the overall roll-up
+   * @param request - `{ activate: true }` to turn a passing record on
+   * @returns Per-check statuses, the overall roll-up and the activation outcome
    */
-  async runDiagnosticsForDomain(domainExtId: string): Promise<SsoDiagnosticsResponse> {
-    const response = await $api.post(`/api/domains/${domainExtId}/sso/diagnostics`);
+  async runDiagnosticsForDomain(
+    domainExtId: string,
+    request: SsoDiagnosticsRequest = {}
+  ): Promise<SsoDiagnosticsResponse> {
+    const url = `/api/domains/${domainExtId}/sso/diagnostics`;
+    const response = request.activate
+      ? await $api.post(url, { activate: true })
+      : await $api.post(url);
     return response.data;
   },
 };

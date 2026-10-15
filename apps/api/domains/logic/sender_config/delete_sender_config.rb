@@ -4,6 +4,7 @@
 
 require 'onetime/models/custom_domain/mailer_config'
 require 'onetime/operations/delete_sender_domain'
+require 'onetime/operations/sender_identity_lease'
 require_relative 'base'
 require_relative 'change_logger'
 
@@ -55,34 +56,57 @@ module DomainsAPI
           # for the identity the teardown then deletes. With the lock, its
           # provisioning fails instead and the config is saved unprovisioned.
           lock       = Onetime::CustomDomain::MailerConfig.sender_identity_lock(@custom_domain.identifier)
-          lock_token = lock.acquire(ttl: 60)
-          unless lock_token
+          lease      = Onetime::Operations::SenderIdentityLease.new(lock)
+          unless lease.acquire
             raise_form_error('Another change to this sender configuration is in progress. Please try again.', field: :domain_id, error_type: :conflict)
           end
 
+          deleted          = nil
+          provider_cleanup = :not_attempted
+          lease_error      = nil
           begin
-            # Remove the record first and tear down the provider identity it
-            # held: of concurrent deletes only one gets the record
-            # (GuardedConfigWrites#remove_for_domain!), so the provider call
-            # and the audit event happen once and describe what was deleted.
-            # DeleteSenderDomain never raises and reads only the record passed in.
-            deleted = guarded_config_write do
-              Onetime::CustomDomain::MailerConfig.remove_for_domain!(@custom_domain.identifier)
-            end
+            lease.protect do
+              # Remove first so concurrent updates can create a replacement
+              # without this teardown ever deleting that replacement record.
+              deleted = guarded_config_write do
+                Onetime::CustomDomain::MailerConfig.remove_for_domain!(@custom_domain.identifier)
+              end
 
+              if deleted
+                @deleted_provider = deleted.provider
+                lease.check!
+                provider_cleanup  = :unknown
+                result            = delete_sender_domain(deleted)
+                provider_cleanup  = result.success? ? :completed : :failed
+                lease.check!
+              end
+            end
+          rescue Onetime::Operations::SenderIdentityLease::Lost => ex
+            lease_error = ex
+          ensure
+            # Record removal is committed even if ownership loss prevents the
+            # provider call. Keep enough safe context to reconcile that identity.
             if deleted
-              @deleted_provider = deleted.provider
-              delete_sender_domain(deleted)
               log_sender_config_event(
                 event: :domain_sender_config_deleted,
                 domain: @custom_domain,
                 org: @organization,
                 actor: cust,
                 provider: @deleted_provider,
+                details: {
+                  config_deleted: true,
+                  from_address: deleted.from_address,
+                  provider_cleanup: provider_cleanup,
+                  lease_lost: !lease_error.nil?,
+                },
               )
             end
-          ensure
-            lock.release(lock_token)
+          end
+
+          if lease_error
+            details = { config_deleted: !deleted.nil?, provider_cleanup: provider_cleanup, lease_lost: true }
+            message = deleted ? "Sender configuration was deleted; provider cleanup: #{provider_cleanup}. #{lease_error.message}" : lease_error.message
+            raise_form_error(message, field: :domain_id, error_type: :conflict, details: details)
           end
 
           success_data

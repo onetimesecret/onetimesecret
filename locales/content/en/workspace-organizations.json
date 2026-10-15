@@ -1,16 +1,4 @@
 {
-  "web.organizations.sso.disable_action": {
-    "text": "Disable SSO",
-    "content_hash": "2f072272"
-  },
-  "web.organizations.sso.disable_confirm": {
-    "text": "Disable this SSO connection? Unsaved form edits will not be saved. Stored credentials will be kept.",
-    "content_hash": "608b142a"
-  },
-  "web.organizations.sso.disable_enforcement_warning": {
-    "text": "SSO-only enforcement will also be turned off, allowing other configured sign-in methods.",
-    "content_hash": "58abd552"
-  },
   "web.organizations.title": {
     "text": "Organizations",
     "content_hash": "2730183d"
@@ -909,8 +897,8 @@
     "content_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
-    "text": "The OIDC discovery URL for your identity provider",
-    "content_hash": "6102d81b"
+    "text": "The issuer URL of your identity provider, such as https://idp.example.com. Do not enter the discovery document URL: /.well-known/openid-configuration is added to the issuer.",
+    "content_hash": "af0ba289"
   },
   "web.organizations.sso.issuer_placeholder": {
     "text": "e.g. https://login.example.com",
@@ -1059,19 +1047,6 @@
     "text": "Remove {domain}",
     "content_hash": "ae708a1d"
   },
-  "web.organizations.sso.connection_enabled": {
-    "text": "Connection active",
-    "content_hash": "b6334b2b"
-  },
-  "web.organizations.sso.connection_enabled_hint": {
-    "text": "When active, members can sign in with this SSO provider. SSO must also be enabled as a sign-in method in the domain's Sign-In Configuration.",
-    "content_hash": "871db2f1"
-  },
-  "web.organizations.sso.enable_untested_warning": {
-    "text": "The saved configuration has not passed its checks for these credentials here yet. Save your changes, then check the saved configuration. Checking provider settings alone does not confirm sign-in works.",
-    "context": "Advisory warning when Connection active is switched on without passing saved-configuration checks matching the current credentials. Does not block saving or activation.",
-    "content_hash": "9f1ac369"
-  },
   "web.organizations.sso.enforce_sso_only": {
     "text": "Enforce SSO only",
     "content_hash": "b3a3f694"
@@ -1087,10 +1062,6 @@
   "web.organizations.sso.grant_org_scope_hint": {
     "text": "New members who join via this domain's SSO will be granted access to all organization domains. Existing members are unaffected. When disabled (default), new members can only access this domain.",
     "content_hash": "2ac9f345"
-  },
-  "web.organizations.sso.save_config": {
-    "text": "Save SSO Configuration",
-    "content_hash": "70853769"
   },
   "web.organizations.sso.delete_config": {
     "text": "Delete Configuration",
@@ -1161,20 +1132,16 @@
     "content_hash": "ea6d3f49"
   },
   "web.organizations.sso.setup_save_check": {
-    "text": "Save the configuration, then check the saved settings. The optional provider check uses the form values only.",
-    "content_hash": "f63d4f1e"
+    "text": "Save and check the configuration. When the check passes, the SSO connection turns on. The optional provider settings check uses the form values only and saves nothing.",
+    "content_hash": "c91bb52e"
   },
   "web.organizations.sso.setup_confirm": {
-    "text": "Activate the connection, enable SSO in the domain’s sign-in settings, then confirm with a real sign-in.",
-    "content_hash": "e03e0ee9"
-  },
-  "web.organizations.sso.save_configuration": {
-    "text": "Save configuration",
-    "content_hash": "b2b158f2"
+    "text": "Confirm sign-in: with Single Sign-On chosen in this domain’s sign-in settings, sign in with SSO in a private window, then come back here for the result.",
+    "content_hash": "9721d7b9"
   },
   "web.organizations.sso.provider_check_next": {
-    "text": "This is not a sign-in test. After saving your settings, run Check saved configuration below.",
-    "content_hash": "93108052"
+    "text": "This is not a sign-in test. Next, use Save and check below to check the saved configuration.",
+    "content_hash": "aa255e38"
   },
   "web.organizations.sso.technical_details": {
     "text": "Technical details",
@@ -1205,8 +1172,8 @@
     "content_hash": "b405a101"
   },
   "web.organizations.sso.diagnostics_next": {
-    "text": "Next: activate the connection and enable SSO in the domain’s sign-in settings, then confirm sign-in through your custom domain.",
-    "content_hash": "d3190b9b"
+    "text": "Next: confirm sign-in with a real sign-in below.",
+    "content_hash": "c5bfd060"
   },
   "web.organizations.sso.diagnostics_saved_result": {
     "text": "These results describe the saved settings, not your unsaved changes. Save and check again before confirming sign-in.",
@@ -1217,12 +1184,17 @@
     "content_hash": "f2e77970"
   },
   "web.organizations.sso.confirm_sign_in_hint": {
-    "text": "After saving and checking the configuration, turn on Connection active and save. Enable SSO in the domain’s Sign-In Configuration, then open {domain} in a private window and sign in with SSO. Keep this setup window open.",
-    "content_hash": "5ad4d7ed"
+    "text": "Open {domain} in a private window, sign in with SSO, then come back to this window. The result appears below.",
+    "content_hash": "28834c56"
   },
   "web.organizations.sso.confirm_sign_in_limits": {
-    "text": "Only a real sign-in confirms the redirect or callback, user assignment, access policies and claims work together. After signing in, save any setup changes, reload this page, then reopen these settings to see the last recorded sign-in.",
-    "content_hash": "97d820cd"
+    "text": "Only a real sign-in confirms the redirect or callback, user assignment, access policies and claims work together.",
+    "content_hash": "97f6c49a"
+  },
+  "web.organizations.sso.confirm_sign_in_not_permitted": {
+    "text": "This domain’s sign-in settings do not offer Single Sign-On, so this step cannot work yet. Choose Single Sign-On on the domain’s Sign-In Configuration page first.",
+    "context": "Shown in the Confirm sign-in step when the SSO connection is on but the domain's sign-in method settings withhold SSO.",
+    "content_hash": "fd8c7d47"
   },
   "web.organizations.sso.diagnostics_title": {
     "text": "Check saved configuration",
@@ -1235,6 +1207,11 @@
   "web.organizations.sso.last_sign_in_none": {
     "text": "No sign-in through this domain has been recorded yet.",
     "content_hash": "7f9d0f23"
+  },
+  "web.organizations.sso.last_sign_in_refresh": {
+    "text": "Refresh",
+    "context": "Button that re-reads the last recorded SSO sign-in outcome for the domain.",
+    "content_hash": "0e916101"
   },
   "web.organizations.sso.last_sign_in_succeeded": {
     "text": "The last sign-in through this domain completed on {when}.",
@@ -1264,13 +1241,45 @@
     "text": "when matching the user to an account",
     "content_hash": "1ebbb776"
   },
-  "web.organizations.sso.diagnostics_save_first": {
-    "text": "Save first to check the stored settings. This check does not use unsaved changes.",
-    "content_hash": "df9a367c"
-  },
   "web.organizations.sso.diagnostics_button": {
     "text": "Check saved configuration",
     "content_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_save_and_check": {
+    "text": "Save and check",
+    "context": "Primary button of the domain SSO dialog while the configuration is new or has unsaved changes: saves, then checks the saved configuration. A passing check turns a connection that is off on.",
+    "content_hash": "0a9315c0"
+  },
+  "web.organizations.sso.diagnostics_check_and_activate": {
+    "text": "Check and turn on",
+    "context": "Primary button of the domain SSO dialog for a saved configuration whose connection is off: checks it, and turns the connection on when the check passes.",
+    "content_hash": "96ce6e12"
+  },
+  "web.organizations.sso.diagnostics_activation_hint": {
+    "text": "When the check passes, the SSO connection turns on. A failed or incomplete check leaves it off.",
+    "content_hash": "1b8dd872"
+  },
+  "web.organizations.sso.diagnostics_activation_activated": {
+    "text": "The SSO connection is now on.",
+    "content_hash": "03688c15"
+  },
+  "web.organizations.sso.diagnostics_activation_stays_off": {
+    "text": "SSO stays off until the saved configuration check passes.",
+    "content_hash": "0ac985c3"
+  },
+  "web.organizations.sso.diagnostics_activation_configuration_changed": {
+    "text": "The configuration changed while the check ran, so SSO was not turned on. Run the check again.",
+    "content_hash": "a0e53a8c"
+  },
+  "web.organizations.sso.diagnostics_activation_not_permitted": {
+    "text": "This configuration cannot be turned on: {provider} sign-in is not available on this installation. Contact your administrator.",
+    "context": "{provider} is the identity provider type, e.g. SAML 2.0. Shown when the check passed but the install does not allow this provider type.",
+    "content_hash": "30c13798"
+  },
+  "web.organizations.sso.credentials_unchecked_warning": {
+    "text": "These credentials have not been checked. Saving keeps SSO on; run the check to confirm them.",
+    "context": "Advisory warning on an SSO connection that is on, after its credentials were edited or saved without a passing saved-configuration check. Does not block saving.",
+    "content_hash": "6dd94dfc"
   },
   "web.organizations.sso.diagnostics_running": {
     "text": "Checking...",

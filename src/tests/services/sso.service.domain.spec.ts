@@ -545,6 +545,26 @@ describe('SsoService domain methods', () => {
         'Too many requests'
       );
     });
+
+    it('sends activate: true only when activation is requested, and returns the outcome', async () => {
+      mockPost.mockResolvedValueOnce({
+        data: { ...passedResponse, enabled: true, activation: 'activated' },
+      });
+
+      const result = await SsoService.runDiagnosticsForDomain(domainExtId, { activate: true });
+
+      expect(mockPost).toHaveBeenCalledWith(`${baseUrl}/diagnostics`, { activate: true });
+      expect(result.enabled).toBe(true);
+      expect(result.activation).toBe('activated');
+    });
+
+    it('sends no body for activate: false (the old behaviour)', async () => {
+      mockPost.mockResolvedValueOnce({ data: passedResponse });
+
+      await SsoService.runDiagnosticsForDomain(domainExtId, { activate: false });
+
+      expect(mockPost).toHaveBeenCalledWith(`${baseUrl}/diagnostics`);
+    });
   });
 
   // ==========================================================================
@@ -567,6 +587,14 @@ describe('SsoService domain methods', () => {
       await SsoService.getConfigForDomain(specialDomainId);
 
       expect(mockGet).toHaveBeenCalledWith(`/api/domains/${specialDomainId}/sso`);
+    });
+
+    it('marks a read no person asked for as passive (not session activity)', async () => {
+      mockGet.mockResolvedValueOnce({ data: mockSsoConfig });
+
+      await SsoService.getConfigForDomain(domainExtId, { passive: true });
+
+      expect(mockGet).toHaveBeenCalledWith(`/api/domains/${domainExtId}/sso`, { passive: true });
     });
   });
 

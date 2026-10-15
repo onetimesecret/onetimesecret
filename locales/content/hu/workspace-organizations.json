@@ -907,10 +907,6 @@
     "text": "Azok az új tagok, akik ennek a doménnek az SSO-ján keresztül csatlakoznak, hozzáférést kapnak a szervezet összes doménjéhez. A meglévő tagokat ez nem érinti. Ha le van tiltva (alapértelmezett), az új tagok csak ehhez a doménhez férhetnek hozzá.",
     "source_hash": "2ac9f345"
   },
-  "web.organizations.sso.save_config": {
-    "text": "SSO-konfiguráció mentése",
-    "source_hash": "70853769"
-  },
   "web.organizations.sso.delete_config": {
     "text": "Konfiguráció törlése",
     "source_hash": "9ac1ac7b"
@@ -1207,33 +1203,9 @@
     "text": "Ennek a webhelynek a bejelentkezési beállításai ütköznek a webhelyszintű korlátozással ({method}), így egyik sem érvényesül, és jelenleg nincs mód a bejelentkezésre.",
     "source_hash": "54cdfd61"
   },
-  "web.organizations.sso.connection_enabled": {
-    "text": "Kapcsolat aktív",
-    "source_hash": "b6334b2b"
-  },
-  "web.organizations.sso.connection_enabled_hint": {
-    "text": "Ha aktív, a tagok bejelentkezhetnek ezzel az SSO-szolgáltatóval. Az SSO-t a domén Bejelentkezési konfiguráció szakaszában is engedélyezni kell bejelentkezési módként.",
-    "source_hash": "871db2f1"
-  },
-  "web.organizations.sso.enable_untested_warning": {
-    "text": "Ez a kapcsolat itt még nem ment át teszten. Bekapcsolás előtt futtassa a Kapcsolat tesztelése műveletet, hogy hibás beállítás soha ne kerüljön ki a bejelentkezési oldalára.",
-    "source_hash": "c1fbdeca"
-  },
   "web.organizations.delete_organization_cancel_subscription_first": {
     "text": "A szervezet törlése előtt mondja le az előfizetését.",
     "source_hash": "f0c54eca"
-  },
-  "web.organizations.sso.disable_action": {
-    "text": "SSO letiltása",
-    "source_hash": "2f072272"
-  },
-  "web.organizations.sso.disable_confirm": {
-    "text": "Letiltja ezt az SSO-kapcsolatot? Az űrlap nem mentett módosításai elvesznek. A tárolt hitelesítő adatok megmaradnak.",
-    "source_hash": "608b142a"
-  },
-  "web.organizations.sso.disable_enforcement_warning": {
-    "text": "A csak SSO kényszerítése is kikapcsol, így a többi beállított bejelentkezési mód is használható lesz.",
-    "source_hash": "58abd552"
   },
   "web.organizations.sso.idp_sso_service_url": {
     "text": "IdP SSO-szolgáltatás URL-je",
@@ -1386,10 +1358,6 @@
   "web.organizations.sso.last_sign_in_stage_account": {
     "text": "a felhasználó fiókhoz rendelésekor",
     "source_hash": "1ebbb776"
-  },
-  "web.organizations.sso.diagnostics_save_first": {
-    "text": "Először mentsen: ez a mentett konfigurációt ellenőrzi, nem a nem mentett módosításokat.",
-    "source_hash": "46a51d59"
   },
   "web.organizations.sso.diagnostics_button": {
     "text": "Mentett konfiguráció ellenőrzése",

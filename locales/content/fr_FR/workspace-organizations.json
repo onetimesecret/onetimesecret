@@ -679,10 +679,6 @@
     "text": "Supprimer {domain}",
     "source_hash": "ae708a1d"
   },
-  "web.organizations.sso.save_config": {
-    "text": "Enregistrer la configuration SSO",
-    "source_hash": "70853769"
-  },
   "web.organizations.sso.delete_config": {
     "text": "Supprimer la configuration",
     "source_hash": "9ac1ac7b"
@@ -1207,33 +1203,9 @@
     "text": "Les paramètres de connexion de ce site entrent en conflit avec la restriction appliquée à l'ensemble du site ({method}) ; aucune des deux ne s'applique et il n'y a aucun moyen de se connecter pour le moment.",
     "source_hash": "54cdfd61"
   },
-  "web.organizations.sso.connection_enabled": {
-    "text": "Connexion active",
-    "source_hash": "b6334b2b"
-  },
-  "web.organizations.sso.connection_enabled_hint": {
-    "text": "Lorsqu'elle est active, les membres peuvent se connecter avec ce fournisseur SSO. Le SSO doit également être activé comme méthode de connexion dans la Configuration de la connexion du domaine.",
-    "source_hash": "871db2f1"
-  },
-  "web.organizations.sso.enable_untested_warning": {
-    "text": "Cette connexion n'a pas encore réussi de test ici. Lancez « Tester la connexion » avant de l'activer, afin qu'une configuration défaillante n'atteigne jamais votre page de connexion.",
-    "source_hash": "c1fbdeca"
-  },
   "web.organizations.delete_organization_cancel_subscription_first": {
     "text": "Annulez l'abonnement de cette organisation avant de la supprimer.",
     "source_hash": "f0c54eca"
-  },
-  "web.organizations.sso.disable_action": {
-    "text": "Désactiver le SSO",
-    "source_hash": "2f072272"
-  },
-  "web.organizations.sso.disable_confirm": {
-    "text": "Désactiver cette connexion SSO ? Les modifications non enregistrées du formulaire seront perdues. Les identifiants enregistrés seront conservés.",
-    "source_hash": "608b142a"
-  },
-  "web.organizations.sso.disable_enforcement_warning": {
-    "text": "L'option « Imposer le SSO uniquement » sera également désactivée, ce qui autorisera les autres méthodes de connexion configurées.",
-    "source_hash": "58abd552"
   },
   "web.organizations.sso.idp_sso_service_url": {
     "text": "URL du service SSO de l'IdP",
@@ -1386,10 +1358,6 @@
   "web.organizations.sso.last_sign_in_stage_account": {
     "text": "lors de l'association de l'utilisateur à un compte",
     "source_hash": "1ebbb776"
-  },
-  "web.organizations.sso.diagnostics_save_first": {
-    "text": "Enregistrez d'abord : cette vérification porte sur la configuration enregistrée, pas sur les modifications non enregistrées.",
-    "source_hash": "46a51d59"
   },
   "web.organizations.sso.diagnostics_button": {
     "text": "Vérifier la configuration enregistrée",
