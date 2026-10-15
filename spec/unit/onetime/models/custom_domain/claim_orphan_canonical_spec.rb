@@ -41,7 +41,7 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
   # pins its WATCH to; hand it a plain client instead (as create_failures_spec
   # does).
   before do
-    allow(Onetime).to receive(:with_pinned_dbclient).and_yield(Familia.dbclient)
+    allow(Onetime).to receive(:with_pinned_dbclient) { |&block| block.call(Familia.dbclient) }
   end
 
   after do
