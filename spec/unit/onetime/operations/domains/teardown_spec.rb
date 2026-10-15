@@ -73,7 +73,7 @@ RSpec.describe Onetime::Operations::Domains::Teardown do
       allow(lock).to receive(:acquire).and_return(false)
 
       expect { described_class.new(domain: domain).call }
-        .to raise_error(described_class::Busy, /example\.com/)
+        .to raise_error(described_class::Busy) { |error| expect(error.message).to include('example.com') }
 
       expect(strategy).not_to have_received(:delete_vhost)
       expect(Onetime::Operations::DeleteSenderDomain).not_to have_received(:new)
