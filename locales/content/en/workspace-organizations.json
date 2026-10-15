@@ -1104,8 +1104,8 @@
     "content_hash": "447b1969"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "Checks provider discovery using the values above. Does not check the client secret or complete a sign-in.",
-    "content_hash": "02cbb081"
+    "text": "Uses the values currently in the form to verify provider discovery. It does not save changes, check the client secret, or sign in a user.",
+    "content_hash": "1a6f8c9a"
   },
   "web.organizations.sso.test_connection_hint_saml": {
     "text": "Checks the URL, Entity ID and certificate above locally. Does not contact the identity provider or complete a sign-in.",
@@ -1156,48 +1156,48 @@
     "content_hash": "890ab358"
   },
   "web.organizations.sso.check_details": {
-    "text": "Check time",
-    "content_hash": "b01627ad"
+    "text": "What this check does",
+    "content_hash": "c7a48ea2"
   },
   "web.organizations.sso.diagnostics_hint_entra": {
-    "text": "Checks saved fields, provider discovery and whether Microsoft Entra ID accepts the saved client secret. This does not test a full sign-in.",
-    "content_hash": "5d58ca04"
+    "text": "Verifies the saved settings and provider discovery. For Microsoft Entra ID, it also verifies that the saved client secret is accepted. It does not complete a user sign-in.",
+    "content_hash": "ad711ce1"
   },
   "web.organizations.sso.diagnostics_hint_saml": {
     "text": "Checks the saved fields and signing certificate locally. Does not contact the identity provider or test a full sign-in.",
     "content_hash": "297b2678"
   },
   "web.organizations.sso.diagnostics_passed": {
-    "text": "Available saved configuration checks passed",
-    "content_hash": "9c81efc4"
+    "text": "Saved configuration check passed",
+    "content_hash": "91fc2d97"
   },
   "web.organizations.sso.diagnostics_failed": {
-    "text": "Saved configuration needs attention. Fix the reported problems, save, then check again.",
-    "content_hash": "2c37a79a"
+    "text": "The saved configuration needs attention. Fix the issues below, then save and check again.",
+    "content_hash": "4ad9ee5b"
   },
   "web.organizations.sso.diagnostics_inconclusive": {
-    "text": "Some checks could not be completed. Review the results below before retrying.",
-    "content_hash": "b405a101"
+    "text": "Some checks could not be completed. Review the results below, then try again.",
+    "content_hash": "50ac1819"
   },
   "web.organizations.sso.diagnostics_next": {
-    "text": "Next: confirm sign-in with a real sign-in below.",
-    "content_hash": "c5bfd060"
+    "text": "Next, sign in through this domain to confirm the complete SSO flow.",
+    "content_hash": "e5d49daf"
   },
   "web.organizations.sso.diagnostics_saved_result": {
-    "text": "These results describe the saved settings, not your unsaved changes. Save and check again before confirming sign-in.",
-    "content_hash": "48c013ea"
+    "text": "These results apply to the saved settings, not your unsaved changes. Save and check again before testing sign-in.",
+    "content_hash": "29a63780"
   },
   "web.organizations.sso.confirm_sign_in": {
     "text": "Confirm sign-in",
     "content_hash": "f2e77970"
   },
   "web.organizations.sso.confirm_sign_in_hint": {
-    "text": "Open {domain} in a private window, sign in with SSO, then come back to this window. The result appears below.",
-    "content_hash": "28834c56"
+    "text": "In a private window, open {domain} and choose SSO to sign in. Return here to view the result.",
+    "content_hash": "2801179c"
   },
   "web.organizations.sso.confirm_sign_in_limits": {
-    "text": "Only a real sign-in confirms the redirect or callback, user assignment, access policies and claims work together.",
-    "content_hash": "97f6c49a"
+    "text": "Only a real sign-in verifies that the redirect or callback, user assignment, access policies, and claims work together.",
+    "content_hash": "c978b10c"
   },
   "web.organizations.sso.confirm_sign_in_not_permitted": {
     "text": "This domain’s sign-in settings do not offer Single Sign-On, so this step cannot work yet. Choose Single Sign-On on the domain’s Sign-In Configuration page first.",
@@ -1209,16 +1209,16 @@
     "content_hash": "5c68357a"
   },
   "web.organizations.sso.diagnostics_placeholder": {
-    "text": "Results appear here after the check runs.",
-    "content_hash": "eb839782"
+    "text": "Run the check to see the results.",
+    "content_hash": "8b71cbfa"
   },
   "web.organizations.sso.diagnostics_hint": {
-    "text": "Checks saved fields and provider discovery for this domain. A client secret check is not available for generic OIDC. This does not test a full sign-in.",
-    "content_hash": "8de1dd70"
+    "text": "Verifies the saved settings and provider discovery. A client secret check is not available for generic OIDC. It does not complete a user sign-in.",
+    "content_hash": "e7a4283d"
   },
   "web.organizations.sso.last_sign_in_none": {
-    "text": "No sign-in through this domain has been recorded yet.",
-    "content_hash": "7f9d0f23"
+    "text": "No SSO sign-in through this domain has been recorded yet.",
+    "content_hash": "cbf2fd10"
   },
   "web.organizations.sso.last_sign_in_refresh": {
     "text": "Refresh",
@@ -1268,16 +1268,16 @@
     "content_hash": "96ce6e12"
   },
   "web.organizations.sso.diagnostics_activation_hint": {
-    "text": "When the check passes, the SSO connection turns on. A failed or incomplete check leaves it off.",
-    "content_hash": "1b8dd872"
+    "text": "When this check passes, SSO is enabled. If it fails or is incomplete, SSO remains off.",
+    "content_hash": "533dc500"
   },
   "web.organizations.sso.diagnostics_activation_activated": {
-    "text": "The SSO connection is now on.",
-    "content_hash": "03688c15"
+    "text": "SSO is now enabled.",
+    "content_hash": "dec4e1a9"
   },
   "web.organizations.sso.diagnostics_activation_stays_off": {
-    "text": "SSO stays off until the saved configuration check passes.",
-    "content_hash": "0ac985c3"
+    "text": "SSO remains off until the saved configuration check passes.",
+    "content_hash": "ecb41edd"
   },
   "web.organizations.sso.diagnostics_activation_configuration_changed": {
     "text": "The configuration changed while the check ran, so SSO was not turned on. Run the check again.",
@@ -1289,9 +1289,9 @@
     "content_hash": "30c13798"
   },
   "web.organizations.sso.credentials_unchecked_warning": {
-    "text": "These credentials have not been checked. Saving keeps SSO on; run the check to confirm them.",
+    "text": "These credentials have not been checked. Saving keeps SSO enabled; run the saved configuration check to verify them.",
     "context": "Advisory warning on an SSO connection that is on, after its credentials were edited or saved without a passing saved-configuration check. Does not block saving.",
-    "content_hash": "6dd94dfc"
+    "content_hash": "140836ed"
   },
   "web.organizations.sso.diagnostics_running": {
     "text": "Checking...",

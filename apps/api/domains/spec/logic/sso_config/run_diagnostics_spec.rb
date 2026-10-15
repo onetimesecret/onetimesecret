@@ -928,10 +928,10 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
       credential = check(result, 'credential')
 
       expect(credential[:status]).to eq('passed')
-      expect(credential[:message]).to eq('The identity provider accepted the saved client secret.')
+      expect(credential[:message]).to eq('Microsoft Entra ID accepted the saved client secret.')
       expect(credential[:details][:note]).to eq(
-        'This does not test a full sign-in (redirect URI, user assignment, Conditional Access, claims). ' \
-        'Sign in once on the custom domain to confirm.',
+        'This check does not complete a user sign-in. Sign in through the custom domain once ' \
+        'to verify the redirect URI, user assignment, Conditional Access policies, and claims.',
       )
       expect(credential[:details]).not_to have_key(:secret_shape)
       expect(result[:overall]).to eq('passed')
@@ -1015,7 +1015,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
 
         note = check(run, 'credential')[:details][:note]
 
-        expect(note).to start_with('This does not test a full sign-in')
+        expect(note).to start_with('This check does not complete a user sign-in')
         expect(note).to end_with('shown once when the secret is created.')
       end
     end
