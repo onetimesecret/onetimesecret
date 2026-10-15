@@ -1536,29 +1536,37 @@ describe('DomainSsoConfigForm', () => {
       expect(wrapper.find('[data-testid="sso-diagnostics-error"]').exists()).toBe(false);
     });
 
-    // A run that produced no verdict (transport failure, or the 429 run
-    // limit whose retry time the composable already put in the message)
-    // never turned anything on.
+    // A lost response can follow a committed activation. Without a verdict,
+    // the local snapshot cannot establish whether the connection stayed off.
     it.each([
-      ['off', false, true],
-      ['on', true, false],
+      ['transport failure', 'off', false, 'Network Error'],
+      ['transport failure', 'on', true, 'Network Error'],
+      [
+        'rate limit',
+        'off',
+        false,
+        'This configuration has been checked too many times recently. Try again in about 5 minutes.',
+      ],
+      [
+        'rate limit',
+        'on',
+        true,
+        'This configuration has been checked too many times recently. Try again in about 5 minutes.',
+      ],
     ] as const)(
-      'says SSO stays off after a run with no verdict only while the connection is %s',
-      async (_state, enabled, shown) => {
-        const message =
-          'This configuration has been checked too many times recently. Try again in about 5 minutes.';
+      'makes no activation claim after a %s with the local connection %s',
+      async (_failure, _state, enabled, message) => {
         wrapper = await savedMount({
           ssoConfig: { ...mockExistingConfig, enabled },
           diagnosticsError: message,
         });
 
         const alert = wrapper.get('[data-testid="sso-diagnostics-error"]');
-        expect(alert.text()).toContain(message);
-        const staysOff = alert.find('[data-testid="sso-diagnostics-error-stays-off"]');
-        expect(staysOff.exists()).toBe(shown);
-        if (shown) {
-          expect(staysOff.text()).toBe('web.organizations.sso.diagnostics_activation_stays_off');
-        }
+        expect(alert.text()).toBe(message);
+        expect(alert.find('[data-testid="sso-diagnostics-error-stays-off"]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="sso-diagnostics-result"]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="sso-activation-notice"]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="sso-diagnostics-next"]').exists()).toBe(false);
       }
     );
   });

@@ -2000,9 +2000,8 @@ aria-hidden="true">*</span>
             </div>
           </div>
 
-          <!-- Error (exception): the request itself failed, so there is no
-               verdict. Inserted after the click, so announced like the failed
-               verdict above (role="alert"). -->
+          <!-- No verdict was received; the server may still have activated
+               the connection. Announced like the failed verdict (role="alert"). -->
           <div
             v-else-if="diagnosticsError"
             data-testid="sso-diagnostics-error"
@@ -2018,12 +2017,6 @@ aria-hidden="true">*</span>
               <div class="ml-3">
                 <p class="text-sm font-medium text-red-800 dark:text-red-200">
                   {{ diagnosticsError }}
-                </p>
-                <p
-                  v-if="isConfigured && !connectionOn"
-                  data-testid="sso-diagnostics-error-stays-off"
-                  class="mt-1 text-sm text-red-700 dark:text-red-300">
-                  {{ t('web.organizations.sso.diagnostics_activation_stays_off') }}
                 </p>
               </div>
             </div>
