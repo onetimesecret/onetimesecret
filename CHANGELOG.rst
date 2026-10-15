@@ -10,6 +10,174 @@ this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.htm
 
    <!--scriv-insert-here-->
 
+.. _changelog-0.26.17:
+
+0.26.17 — 2026-10-15
+====================
+
+Added
+-----
+
+- Opt-in Markdown secrets with live preview, syntax highlighting and a raw
+  source view. Enable ``MARKDOWN_ENABLED=true``; the API accepts
+  ``display_type: markdown``. Rendering strips remote-loading content and
+  shows links as non-clickable text. With Markdown disabled, new Markdown
+  secrets are rejected with 422 and existing ones display as plain text;
+  re-enabling restores their rendered view. Generated passwords stay plain
+  text.
+
+- Generic OIDC supports ``client_secret_basic`` (default) and
+  ``client_secret_post`` through the domain SSO form or platform
+  ``OIDC_CLIENT_AUTH_METHOD``. Test Connection warns about methods the IdP
+  does not advertise. Existing configurations are unchanged; see
+  ``docs/authentication/per-domain-sso.md``. (#4764)
+
+- "Check saved configuration" diagnoses domain SSO settings, provider
+  discovery, SAML certificates and Entra client secrets. Entra credential-probe
+  results omit secrets, tokens and Microsoft error text; audit records omit
+  provider messages. Checks default to 10 per customer per hour
+  (``SSO_DIAGNOSTICS_RATE_LIMIT_*``). The Entra secret field also warns about
+  entering a Secret ID instead of its Value.
+
+- Domain SSO settings show the latest sign-in outcome and failure step,
+  retaining the last success alongside later failures. Records expire after
+  90 days without a sign-in. Diagnostics and outcomes support all 29 locales.
+
+- ``bin/ots domains backfill-canonical-index`` repairs missing domain-name
+  index entries; ``bin/ots domains doctor --all`` reports missing entries
+  and duplicate names. For pre-v0.26.14 domains, preview the backfill, then
+  apply with the application stopped, following
+  ``docs/runbooks/custom-domain-canonical-index-backfill.md``. (#4780)
+
+Changed
+-------
+
+- Tenant SSO failure logs include the domain id for troubleshooting.
+
+- Orphaned domain records require explicit operator adoption through
+  ``bin/ots domains create``, ``repair --org-id``, ``transfer`` or the
+  Colonel API. Adoption preserves settings, branding and receipts but
+  resets ownership verification and issues a new TXT challenge.
+
+- Under ``approximated`` and ``caddy_on_demand``, unverified custom domains
+  now return 404 and cannot be used for new links. Keep TXT verification
+  records published; losing verification also stops serving unless a
+  Colonel override holds it. ``passthrough`` still requires only registration
+  to an organization; orphaned records are never served.
+
+  **Before upgrading**, run ``bin/ots domains verify --all`` and
+  ``bin/ots domains orphaned``; resolve unverified or orphaned domains still
+  in use. After changing ``validation_strategy``, re-run verification before
+  accepting traffic. ``DOMAINS_SERVE_UNVERIFIED=true`` temporarily restores
+  prior serving behavior for organization-owned domains and warns at boot.
+  See ``features.domains`` in ``etc/defaults/config.defaults.yaml``.
+
+- Domain SSO configuration moves from a dialog to a dedicated settings page.
+  Existing ``?modal=sso`` links redirect there, and navigation warns before
+  discarding unsaved changes.
+
+Fixed
+-----
+
+- Leaving domain DNS setup stops widget background activity and ignores
+  late responses instead of raising errors.
+
+- Platform and custom-domain Entra sign-in no longer corrupt client secrets
+  containing ``+`` or ``%`` during token exchange. No configuration change
+  is needed; generic OIDC and SAML are unchanged. (#4764)
+
+- Unicode subdomains can be registered and verified using A-label TXT
+  records. Excessively deep names or oversized TXT record names return a
+  validation error instead of a server error. (#4780)
+
+- Concurrent domain-configuration edits preserve unrelated changes,
+  validate against current settings and produce accurate audit records.
+  Conflicting updates return ``conflict`` rather than overwriting newer
+  settings. (#4764)
+
+- Email sender checks no longer apply stale results after an address change
+  or recreate deleted settings. Provisioning and deletion are coordinated
+  to avoid orphaned sender domains at the mail provider; overlapping
+  removals return ``conflict``. (#4764)
+
+- The optional ``jobs.maintenance.index_rebuild`` job no longer reports
+  false mismatches or damages indexes when ``auto_repair`` is enabled. If
+  earlier repair runs affected indexes, one repair run of the fixed job
+  restores them. The job remains off by default.
+
+- Domain and membership doctor commands correctly detect and remove stale
+  collection entries; ``--repair`` reports actual removals. Customer purge
+  reports recognize Stripe billing through organization membership.
+
+- Switching domains warns before discarding unsaved settings. Domain-page
+  headers fit their content and mobile screens, and localized SSO dates no
+  longer produce doubled punctuation.
+
+- Customer purges resume after organization deletion left legacy membership
+  references, without a separate doctor repair. Organization deletion also
+  cleans up those references; remaining dependent data still blocks purging.
+
+Security
+--------
+
+- Removed CSP nonces from bootstrap payloads to reduce exposure through
+  HTML injection. (RISK-2026-08-14-M08)
+
+- Container builds pin ``yq`` to v4.52.4 and verify architecture-specific
+  SHA-256 digests before installation. (RISK-2026-08-14-M12)
+
+- DNS setup sanitizes remote provider instructions, removing executable
+  markup and automatic remote loads. If sanitization is unavailable,
+  instructions display as plain text. (RISK-2026-08-14-M09)
+
+- Guest recent-secret lists no longer persist secret links in browser tab
+  storage; existing entries are cleaned on load. After reloading, guests
+  copy links from the receipt page instead. (RISK-2026-08-14-M10)
+
+- Magic-link and verification-resend requests no longer reveal missing,
+  ineligible or recently mailed accounts through distinct response errors.
+  **API clients:** ``POST /auth/email-login-request`` and
+  ``POST /auth/verify-account-resend`` no longer return ``no_matching_login``
+  or "recently sent" errors; success does not confirm delivery. Eligibility
+  and resend windows still apply, and invalid or throttled requests can
+  still fail. Unsupported email locales fall back, and invalidly encoded
+  parameters on available Rodauth routes return 400 before account lookup.
+  (RISK-2026-08-14-M03)
+
+- Magic-link requests are rate limited by default: 30 per masked client-IP
+  bucket and 90 per submitted address per hour, with a one-hour lockout.
+  Passwordless ``POST /auth/login`` shares these limits; verification resend
+  still has no per-source limit. Configure
+  ``site.authentication.email_login_request_rate_limit`` using
+  ``EMAIL_LOGIN_REQUEST_RATE_LIMIT_*``. Keep the address cap at least twice
+  the IP cap and the lockout at least as long as the window.
+  (RISK-2026-08-14-M04)
+
+  **Before upgrading behind a reverse proxy**, configure trusted client-IP
+  resolution or visitors share the proxy's rate-limit bucket. Enabling
+  ``TRUSTED_PROXY_ENABLED=true`` also requires safe forwarding-header
+  handling: default filter mode requires the edge to overwrite
+  ``X-Forwarded-For``. See ``site.network.trusted_proxy`` in
+  ``etc/defaults/config.defaults.yaml`` and ``etc/examples/Caddyfile-example``.
+  Opt out with ``EMAIL_LOGIN_REQUEST_RATE_LIMIT_ENABLED=false``.
+
+- Opt-in datastore TLS enforcement with ``VALKEY_REQUIRE_TLS=true`` or
+  ``REDIS_REQUIRE_TLS=true``. Boot then requires ``rediss://`` or
+  ``valkeys://`` with no ``ssl`` query parameter. Plaintext remains allowed
+  by default, with boot notices graded by host. See ``redis.require_tls``
+  in ``etc/defaults/config.defaults.yaml``. (RISK-2026-08-14-L07)
+
+- Customer email-change confirmations, workspace deletions and domain test
+  emails use the Colonel security audit sub-trail (newest 1,000, seven days)
+  rather than crowding out operator entries. Events are also emitted to the
+  ``ColonelAudit`` log stream; longer retention requires external collection.
+  Test recipients are obscured. See ``docs/architecture/audit-logging.md``.
+
+- Domain sender test emails default to 10 per customer per hour across all
+  their domains, including colonels, followed by a one-hour lockout. The form
+  reports the wait after a 429. Configure ``SENDER_TEST_EMAIL_RATE_LIMIT_*``
+  in ``etc/defaults/config.defaults.yaml``.
+
 .. _changelog-0.26.16:
 
 0.26.16 — 2026-10-11
