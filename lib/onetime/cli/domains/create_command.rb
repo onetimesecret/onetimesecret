@@ -48,16 +48,12 @@ module Onetime
         default: false,
         aliases: ['-y', '-f'],
         desc: 'Skip confirmation prompt'
-      option :cert,
-        type: :boolean,
-        default: true,
-        desc: 'Request an SSL certificate after creating (--no-cert to skip)'
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
-      def call(domain:, org: nil, yes: false, cert: true, json: false, **)
+      def call(domain:, org: nil, yes: false, json: false, **)
         boot_application!
 
         error_exit('--org is required', json: json) if org.to_s.strip.empty?
@@ -69,7 +65,6 @@ module Onetime
           domain: domain,
           org: organization,
           actor: CLI_ACTOR,
-          request_certificate: cert,
         )
 
         # Validate BEFORE prompting so an obviously bad input fails fast, and so
@@ -83,7 +78,6 @@ module Onetime
           puts "Domain:       #{check.display_domain}"
           puts "Organization: #{organization.display_name || organization.extid} (#{organization.extid})"
           puts '  (adopts an existing ORPHANED record; its ownership verification is reset)' if check.claims_orphan
-          puts "Certificate:  #{cert ? 'request after create' : 'skipped (--no-cert)'}"
           puts
           print 'Create this domain? [y/N] '
           response = $stdin.gets&.strip&.downcase
@@ -107,12 +101,10 @@ module Onetime
             org_id: organization.extid,
             claimed_orphan: result.claims_orphan,
             adoption: result.adoption&.to_payload,
-            cert_status: result.cert_status,
           )
         else
           puts "Created #{result.display_domain} (#{result.extid}) for #{organization.extid}"
           print_adoption(result.adoption) if result.adoption
-          puts "  Certificate request: #{result.cert_status}" if result.cert_status
           puts
           puts "Next: bin/ots domains verify #{result.display_domain}"
         end

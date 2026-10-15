@@ -148,7 +148,7 @@ RSpec.describe 'Domains Command', type: :cli do
       let(:adopted) do
         Onetime::Operations::Domains::Create::Result.new(
           status: :created, domain: nil, domain_id: 'obj-orphan', extid: 'cdorphan',
-          display_domain: 'shop.example.com', message: nil, claims_orphan: true, cert_status: nil,
+          display_domain: 'shop.example.com', message: nil, claims_orphan: true,
           adoption: report,
         )
       end
@@ -159,7 +159,7 @@ RSpec.describe 'Domains Command', type: :cli do
       end
 
       it 'reports the adoption, the reset and the state the record kept' do
-        output = run_cli_command_quietly('domains', 'create', 'shop.example.com', '--org', 'on_org', '--yes', '--no-cert')
+        output = run_cli_command_quietly('domains', 'create', 'shop.example.com', '--org', 'on_org', '--yes')
 
         expect([output[:stdout], last_exit_code]).to match([
           include('Adopted a previously orphaned record')

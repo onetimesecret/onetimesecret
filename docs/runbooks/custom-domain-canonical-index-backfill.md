@@ -173,7 +173,7 @@ override, and creation date. For each group:
    `bin/ots domains verify <extid> --dry-run` for each record in the group.
    `--dry-run` saves nothing to the record. It still records an audit event,
    and on the Approximated strategy it creates the vhost for the name when
-   none exists.
+   none exists and the record's ownership is verified.
 2. Keep that record. Remove each other record in the group by its extid:
 
    ```console
@@ -193,7 +193,8 @@ override, and creation date. For each group:
    that sender identity at the mail provider.
 3. On deployments using the Approximated strategy, the deleted vhost can be
    the one the kept record uses. Run `bin/ots domains verify <extid>` for the
-   kept record (it creates the vhost again when it is missing), then
+   kept record (it creates the vhost again when it is missing and the
+   record's ownership is verified), then
    `bin/ots domains probe <name>`.
 
 If no record in the group can show DNS ownership, leave the group in place

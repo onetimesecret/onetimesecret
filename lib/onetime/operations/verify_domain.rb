@@ -204,8 +204,9 @@ module Onetime
         dns_result = validate_ownership(domain)
         window     = ConfirmationWindow.new(domain, dns_result)
 
-        # Check SSL/resolution status
-        status_result = check_status(domain)
+        # Check SSL/resolution status. A missing virtual host is created only
+        # once ownership is verified (see #check_status).
+        status_result = check_status(domain, provision: ownership_verified_after?(domain, dns_result, window))
 
         # Persist changes if enabled
         # Always persist when @persist is true - the validation results determine
@@ -379,15 +380,50 @@ module Onetime
           data: dns_result[:data]
       end
 
-      # Check SSL and resolution status
+      # Whether the domain's ownership is verified once this check is
+      # persisted: the TXT check passed now, or it failed and an operator
+      # override holds, or it was indeterminate and the stored state stands
+      # (unless the confirmation window has run out and withdraws it).
       #
       # @param domain [Onetime::CustomDomain]
+      # @param dns_result [Hash]
+      # @param window [ConfirmationWindow]
+      # @return [Boolean]
+      def ownership_verified_after?(domain, dns_result, window)
+        case dns_result[:validated]
+        when true then true
+        when false then override_held?(domain, dns_result)
+        else domain.verified == true && !window.expired?
+        end
+      end
+
+      # Check SSL and resolution status
+      #
+      # The virtual host at the certificate provider is created here, not
+      # when the domain is added, and only once ownership is verified
+      # (+provision+). Until then a provider that has no virtual host for the
+      # name answers with :vhost_absent, a known state rather than a failed
+      # read, so nothing is stored for it and no staleness is recorded.
+      #
+      # @param domain [Onetime::CustomDomain]
+      # @param provision [Boolean] whether a missing virtual host may be created
       # @return [Hash] { ready: Boolean, has_ssl: Boolean/nil, is_resolving: Boolean/nil, ... }
-      def check_status(domain)
+      def check_status(domain, provision:)
         result = strategy.check_status(domain)
 
-        # Handle vhost not found - try to create it
         if vhost_not_found?(result)
+          unless provision
+            logger.info 'Vhost not found; not created until ownership is verified',
+              domain: domain.display_domain
+            return {
+              ready: false,
+              has_ssl: nil,
+              is_resolving: nil,
+              vhost_absent: true,
+              message: 'Virtual host not created until ownership is verified',
+            }
+          end
+
           logger.info 'Vhost not found, attempting to create',
             domain: domain.display_domain
           ensure_vhost_exists(domain)
@@ -494,7 +530,9 @@ module Onetime
           window.record_unsettled
         end
 
-        if status_result[:data] || status_result[:mode]
+        # :vhost_absent is a known answer too (see #check_status): nothing to
+        # store, and not a failed read.
+        if status_result[:data] || status_result[:mode] || status_result[:vhost_absent]
           domain.vhost                 = status_result[:data].to_json if status_result[:data]
           unless status_result[:is_resolving].nil?
             domain.resolving = status_result[:is_resolving]
