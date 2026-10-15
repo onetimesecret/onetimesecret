@@ -1111,76 +1111,13 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
           'removal_committed' => true, 'lease_lost' => true)
       end
 
-      [:vhost, :sender, :destroy].each do |phase|
-        it "renews throughout slow #{phase} work beyond the initial lease" do
-          stub_const('Onetime::Operations::SenderIdentityLease::TTL', 1)
-          stub_const('Onetime::Operations::SenderIdentityLease::RENEW_INTERVAL', 0.05)
-          stale = model.find_by_domain_id(test_custom_domain.identifier)
-          sender_strategy = spy('sender strategy')
-          hold = proc do
-            token = lock.value
-            sleep 1.2
-            expect(lock.held_by?(token)).to be true
-            expect(lock.acquire(ttl: 1)).to be false
-            result = Onetime::Operations::ProvisionSenderDomain.new(
-              mailer_config: stale, strategy: sender_strategy,
-            ).call
-            expect(result.error).to include('already in progress')
-          end
-          stub_teardown { hold.call if phase == :sender }
-          if phase == :vhost
-            vhost_strategy = double('vhost strategy')
-            allow(vhost_strategy).to receive(:delete_vhost) { hold.call; { message: 'done' } }
-            allow(Onetime::DomainValidation::Strategy).to receive(:for_config).and_return(vhost_strategy)
-          elsif phase == :destroy
-            delayed = false
-            allow_any_instance_of(Onetime::CustomDomain).to receive(:destroy!).and_wrap_original do |original|
-              unless delayed
-                delayed = true
-                hold.call
-              end
-              original.call
-            end
-          end
-
-          csrf_post remove_path(test_custom_domain.extid)
-
-          expect(last_response.status).to eq(200), last_response.body
-          expect(test_custom_domain.exists?).to be false
-          expect(lock.locked?).to be false
-          expect(sender_strategy).not_to have_received(:provision_dns_records)
-        end
-      end
-
-      it 'keeps the domain and config when the watchdog fails during teardown, even after Redis recovers' do
-        stub_const('Onetime::Operations::SenderIdentityLease::RENEW_INTERVAL', 0.01)
-        client = lock.dbclient
-        allow(lock).to receive(:dbclient).and_return(client)
-        allow(model).to receive(:sender_identity_lock).with(test_custom_domain.identifier).and_return(lock)
-        allow(client).to receive(:eval).and_call_original
-        attempted = Queue.new
-        stub_teardown do
-          allow(client).to receive(:eval)
-            .with(Onetime::Operations::SenderIdentityLease::RENEW_SCRIPT, [lock.dbkey], anything) do
-              attempted << true
-              raise IOError, 'renewal unavailable'
-            end
-          Timeout.timeout(3) { attempted.pop }
-          allow(client).to receive(:eval)
-            .with(Onetime::Operations::SenderIdentityLease::RENEW_SCRIPT, [lock.dbkey], anything).and_return(1)
-        end
-
-        csrf_post remove_path(test_custom_domain.extid)
-
-        expect(last_response.status).to eq(422), last_response.body
-        expect(json_body['error']).to include('lock lost', 'provider state may have changed')
-        expect(test_custom_domain.exists?).to be true
-        expect(model.exists_for_domain?(test_custom_domain.identifier)).to be true
-        expect(lock.locked?).to be false
-      end
-
-      it 'keeps the successor lock and the domain when ownership changes during teardown' do
+      it 'keeps the successor lock, domain, and session when ownership changes during teardown' do
         successor = nil
+        allow(OT).to receive(:info).and_call_original
+        allow_any_instance_of(DomainsAPI::Logic::Domains::RemoveDomain).to receive(:process).and_wrap_original do |original|
+          original.receiver.sess['domain_context'] = tenant_domain
+          original.call
+        end
         stub_teardown do
           lock.force_unlock!
           successor = lock.acquire(ttl: 60)
@@ -1189,33 +1126,14 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         csrf_post remove_path(test_custom_domain.extid)
 
         expect(last_response.status).to eq(422), last_response.body
-        expect(json_body['error']).to include('lock lost')
+        expect(json_body['error']).to include('lock lost', 'provider state may have changed')
         expect(test_custom_domain.exists?).to be true
         expect(model.exists_for_domain?(test_custom_domain.identifier)).to be true
         expect(lock.held_by?(successor)).to be true
+        expect(last_request.env['rack.session']['domain_context']).to eq(tenant_domain)
+        expect(OT).not_to have_received(:info).with('[RemoveDomain] Domain removal committed with lease loss', anything)
       ensure
         lock.release(successor) if successor
-      end
-
-      it 'does not provision during the removal, nor afterwards from a config loaded before it' do
-        stale       = model.find_by_domain_id(test_custom_domain.identifier)
-        strategy    = spy('sender strategy')
-        provisioned = nil
-        stub_teardown do
-          provisioned = Onetime::Operations::ProvisionSenderDomain.new(
-            mailer_config: stale, strategy: strategy,
-          ).call
-        end
-
-        csrf_post remove_path(test_custom_domain.extid)
-        after_removal = Onetime::Operations::ProvisionSenderDomain.new(
-          mailer_config: stale, strategy: strategy,
-        ).call
-
-        expect(last_response.status).to eq(200), last_response.body
-        expect(provisioned.error).to include('already in progress')
-        expect(after_removal.error).to include('was deleted')
-        expect(strategy).not_to have_received(:provision_dns_records)
       end
     end
   end

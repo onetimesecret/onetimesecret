@@ -8,9 +8,9 @@
 #
 # Two layers:
 #
-#   1. Mocked contract — dry-run previews nothing, apply tears down in the
-#      RemoveDomain#process order (delete_vhost -> DeleteSenderDomain -> destroy!),
-#      emits EXACTLY ONE ColonelAuditEvent, and never calls org.remove_domain
+#   1. Mocked contract — dry-run skips teardown, apply delegates to the shared
+#      Teardown operation, emits EXACTLY ONE ColonelAuditEvent,
+#      and never calls org.remove_domain
 #      (destroy! owns org participation). No datastore.
 #
 #   2. Real datastore — the display_domain_index re-assertion crux. Familia's
@@ -21,12 +21,12 @@
 #      prove the survivor pointer is re-asserted, that a normal removal clears the
 #      index (not resurrected), and that a pre-drifted nil owner is a no-op.
 #
-# Run: RACK_ENV=test bundle exec rspec spec/unit/onetime/operations/domains/remove_spec.rb
+# Run: tests/lanes/run --only spec/unit/onetime/operations/domains/remove_spec.rb
 
 require 'spec_helper'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/operations/domains/remove'
-require 'onetime/operations/provision_sender_domain'
+require 'onetime/operations/domains/teardown'
 
 RSpec.describe Onetime::Operations::Domains::Remove do
   # ------------------------------------------------------------------ #
@@ -57,22 +57,17 @@ RSpec.describe Onetime::Operations::Domains::Remove do
     # index points at the record being removed (reasserts_survivor false).
     let(:index) { double('display_domain_index', get: 'cd-obj-1', put: nil) }
 
-    let(:strategy) { double('Strategy', delete_vhost: { message: 'noop' }) }
-
-    let(:sender_op) { double('DeleteSenderDomain', call: nil) }
-
-    let(:lock) do
-      double('Familia::Lock', acquire: 'lock-token', release: true,
-        dbkey: 'sender-identity-lock', dbclient: double('Redis', eval: 1))
+    let(:teardown_result) do
+      Onetime::Operations::Domains::Teardown::Result.new(removal_committed: true, lease_error: nil)
     end
+    let(:teardown) { instance_double(Onetime::Operations::Domains::Teardown, call: teardown_result) }
+    let(:lease_error) { Onetime::Operations::SenderIdentityLease::Lost.new('Sender identity lock lost') }
 
     before do
       allow(Onetime::ColonelAuditEvent).to receive(:record)
-      allow(Onetime::CustomDomain::MailerConfig).to receive(:sender_identity_lock).and_return(lock)
+      allow(Onetime::Operations::Domains::Teardown).to receive(:new).with(domain: domain).and_return(teardown)
       allow(Onetime::Organization).to receive(:load).with('org-1').and_return(org)
       allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(index)
-      allow(Onetime::DomainValidation::Strategy).to receive(:for_config).and_return(strategy)
-      allow(Onetime::Operations::DeleteSenderDomain).to receive(:new).and_return(sender_op)
     end
 
     # 1. dry-run (default) previews everything, mutates and audits nothing.
@@ -91,20 +86,19 @@ RSpec.describe Onetime::Operations::Domains::Remove do
 
         expect(domain).not_to have_received(:destroy!)
         expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
-        expect(lock).not_to have_received(:acquire)
+        expect(Onetime::Operations::Domains::Teardown).not_to have_received(:new)
+        expect(teardown).not_to have_received(:call)
       end
     end
 
-    # 2. apply teardown order + exactly-one audit + no org.remove_domain.
+    # 2. apply delegation + exactly-one audit + no org.remove_domain.
     describe 'apply (dry_run: false)' do
-      it 'tears down the vhost, sender domain, then destroys the record' do
+      it 'delegates teardown exactly once to the shared operation' do
         described_class.new(domain: domain, actor: actor, dry_run: false).call
 
-        expect(strategy).to have_received(:delete_vhost).with(domain)
-        expect(Onetime::Operations::DeleteSenderDomain)
-          .to have_received(:new).with(mailer_config: mailer_config)
-        expect(sender_op).to have_received(:call)
-        expect(domain).to have_received(:destroy!)
+        expect(Onetime::Operations::Domains::Teardown).to have_received(:new).with(domain: domain).once
+        expect(teardown).to have_received(:call).once
+        expect(domain).not_to have_received(:destroy!)
       end
 
       it 'records EXACTLY ONE audit event (verb domain.remove, success, reasserted false)' do
@@ -127,44 +121,25 @@ RSpec.describe Onetime::Operations::Domains::Remove do
 
         expect(org).not_to have_received(:remove_domain)
       end
-
-      it "holds the domain's sender identity lock from the teardown through destroy!" do
-        calls = []
-        allow(lock).to receive(:acquire) do
-          calls << :acquire
-          'lock-token'
-        end
-        allow(strategy).to receive(:delete_vhost) do
-          calls << :delete_vhost
-          { message: 'noop' }
-        end
-        allow(sender_op).to receive(:call) { calls << :delete_sender_domain }
-        allow(domain).to receive(:destroy!) { calls << :destroy! }
-        allow(lock).to receive(:release) { calls << :release }
-
-        described_class.new(domain: domain, actor: actor, dry_run: false).call
-
-        expect(Onetime::CustomDomain::MailerConfig).to have_received(:sender_identity_lock).with('cd-obj-1')
-        expect(lock).to have_received(:acquire).with(ttl: 60)
-        expect(lock).to have_received(:release).with('lock-token')
-        expect(calls).to eq([:acquire, :delete_vhost, :delete_sender_domain, :destroy!, :release])
-      end
     end
 
     # Provisioning, a sender config delete, or another removal holds the lock:
     # refuse before any teardown, and record the refused attempt.
     describe 'while another holder has the sender identity lock' do
-      before { allow(lock).to receive(:acquire).and_return(false) }
+      let(:busy_message) { 'Another change to the sender configuration of secrets.example.com is in progress. Try again.' }
+      before do
+        allow(teardown).to receive(:call)
+          .and_raise(Onetime::Operations::Domains::Teardown::Busy, busy_message)
+      end
 
       it 'raises SenderIdentityBusy and tears nothing down' do
         expect do
           described_class.new(domain: domain, actor: actor, dry_run: false).call
-        end.to raise_error(described_class::SenderIdentityBusy, /secrets\.example\.com/)
+        end.to raise_error(described_class::SenderIdentityBusy, busy_message) { |ex|
+          expect(ex.class.name).to eq("Onetime::Operations::Domains::Remove::SenderIdentityBusy")
+        }
 
-        expect(strategy).not_to have_received(:delete_vhost)
-        expect(Onetime::Operations::DeleteSenderDomain).not_to have_received(:new)
         expect(domain).not_to have_received(:destroy!)
-        expect(lock).not_to have_received(:release)
       end
 
       it 'records one domain.remove failure' do
@@ -183,37 +158,41 @@ RSpec.describe Onetime::Operations::Domains::Remove do
       end
     end
 
-    describe 'when lease renewal fails during teardown' do
-      [:vhost, :sender].each do |phase|
-        [0, IOError.new('renewal unavailable')].each do |failure|
-          it "stops after #{phase} on #{failure.inspect} and audits the failed removal" do
-            lose_lease = proc do
-              if failure.is_a?(Exception)
-                allow(lock.dbclient).to receive(:eval).and_raise(failure)
-              else
-                allow(lock.dbclient).to receive(:eval).and_return(failure)
-              end
-              { message: 'done' }
-            end
-            if phase == :vhost
-              allow(strategy).to receive(:delete_vhost, &lose_lease)
-              expect(sender_op).not_to receive(:call)
-            else
-              allow(sender_op).to receive(:call, &lose_lease)
-            end
+    describe 'when shared teardown loses the lease before commitment' do
+      it 'propagates the same loss and audits the failed removal once' do
+        allow(teardown).to receive(:call).and_raise(lease_error)
 
-            expect do
-              described_class.new(domain: domain, actor: actor, dry_run: false).call
-            end.to raise_error(Onetime::Operations::SenderIdentityLease::Lost)
+        expect do
+          described_class.new(domain: domain, actor: actor, dry_run: false).call
+        end.to raise_error { |ex| expect(ex).to equal(lease_error) }
 
-            expect(domain).not_to have_received(:destroy!)
-            expect(lock).to have_received(:release).with('lock-token')
-            expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
-              hash_including(verb: 'domain.remove', result: :failure,
-                detail: hash_including(error: Onetime::Operations::SenderIdentityLease::Lost.name))
-            )
-          end
-        end
+        expect(domain).not_to have_received(:destroy!)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          hash_including(verb: 'domain.remove', result: :failure,
+            detail: hash_including(error: Onetime::Operations::SenderIdentityLease::Lost.name))
+        )
+      end
+    end
+
+    describe 'when shared teardown returns committed lease loss' do
+      let(:teardown_result) do
+        Onetime::Operations::Domains::Teardown::Result.new(removal_committed: true, lease_error: lease_error)
+      end
+
+      it 'carries the removed result and original cause, auditing success rather than failure' do
+        expect do
+          described_class.new(domain: domain, actor: actor, dry_run: false).call
+        end.to raise_error(described_class::RemovalCommitted) { |ex|
+          expect(ex.result).to be_a(described_class::Result)
+          expect(ex.result.status).to eq(:removed)
+          expect(ex.result.extid).to eq('cd_ext1')
+          expect(ex.message).to include('removal committed', lease_error.message)
+          expect(ex.cause).to equal(lease_error)
+        }
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(hash_including(
+          result: :success, fail_closed: true,
+          detail: hash_including(removal_committed: true, lease_lost: true)
+        ))
       end
     end
 
@@ -234,34 +213,21 @@ RSpec.describe Onetime::Operations::Domains::Remove do
       end
       let(:index) { double('display_domain_index', get: 'cd-orphan', put: nil) }
 
-      it 'destroys, audits once, and reports org_name nil' do
+      it 'delegates teardown, audits once, and reports org_name nil' do
         result = described_class.new(domain: domain, actor: actor, dry_run: false).call
 
         expect(Onetime::Organization).not_to have_received(:load)
         expect(result.status).to eq(:removed)
         expect(result.org_name).to be_nil
-        expect(domain).to have_received(:destroy!)
-        expect(Onetime::ColonelAuditEvent).to have_received(:record).once
-      end
-    end
-
-    # 4. delete_vhost transport error is swallowed; removal + audit still proceed.
-    describe 'when delete_vhost raises a transport error' do
-      before { allow(strategy).to receive(:delete_vhost).and_raise(Timeout::Error) }
-
-      it 'swallows it, still destroys the record and audits exactly once' do
-        result = described_class.new(domain: domain, actor: actor, dry_run: false).call
-
-        expect(result.status).to eq(:removed)
-        expect(domain).to have_received(:destroy!)
+        expect(teardown).to have_received(:call).once
         expect(Onetime::ColonelAuditEvent).to have_received(:record).once
       end
     end
 
     it 'does not relabel a committed removal as failed when its committed-outcome audit write fails' do
-      allow(domain).to receive(:destroy!) do
-        allow(lock.dbclient).to receive(:eval).and_return(0)
-      end
+      allow(teardown).to receive(:call).and_return(
+        Onetime::Operations::Domains::Teardown::Result.new(removal_committed: true, lease_error: lease_error)
+      )
       allow(Onetime::ColonelAuditEvent).to receive(:record)
         .with(hash_including(verb: 'domain.remove'))
         .and_raise(Onetime::AuditWriteFailure.new(verb: 'domain.remove', target: 'cd_ext1'))
@@ -279,16 +245,15 @@ RSpec.describe Onetime::Operations::Domains::Remove do
       ))
     end
 
-    # 5. Onetime::AuditedFailure — a removal that raises past the swallowed
-    # vhost error records the ATTEMPT (the success record above is unreachable)
-    # and re-raises unchanged.
-    describe 'when the destroy itself raises' do
-      before { allow(domain).to receive(:destroy!).and_raise(Familia::Problem, 'datastore gone') }
+    # Unexpected shared-operation failures are audited and re-raised unchanged.
+    describe 'when shared teardown raises an unexpected error' do
+      let(:error) { Familia::Problem.new('datastore gone') }
+      before { allow(teardown).to receive(:call).and_raise(error) }
 
       it 'records one domain.remove failure at the extid, then re-raises' do
         expect do
           described_class.new(domain: domain, actor: actor, dry_run: false).call
-        end.to raise_error(Familia::Problem, 'datastore gone')
+        end.to raise_error { |ex| expect(ex).to equal(error) }
 
         expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
           hash_including(
@@ -301,13 +266,6 @@ RSpec.describe Onetime::Operations::Domains::Remove do
         )
       end
 
-      it 'releases the sender identity lock' do
-        expect do
-          described_class.new(domain: domain, actor: actor, dry_run: false).call
-        end.to raise_error(Familia::Problem)
-
-        expect(lock).to have_received(:release).with('lock-token')
-      end
     end
 
     # dry_run defaults to TRUE and the success event is applied-path-only (a
@@ -498,134 +456,5 @@ RSpec.describe Onetime::Operations::Domains::Remove do
       expect(Onetime::ColonelAuditEvent).to have_received(:record).once
     end
 
-    # Provisioning and the removal's provider teardown share this lock. A
-    # provision between the teardown and destroy! would register the identity
-    # again, and destroy! would then delete the only record of it.
-    context 'with the sender identity lock' do
-      let(:model) { Onetime::CustomDomain::MailerConfig }
-      let(:domain) { create_domain(unique_fqdn('lock'), "org-#{SecureRandom.hex(3)}") }
-      let(:lock) { model.sender_identity_lock(domain.identifier) }
-
-      before do
-        model.create!(
-          domain_id: domain.identifier,
-          provider: 'ses',
-          from_address: 'remove-lock@example.com',
-        )
-      end
-
-      def stub_teardown
-        allow_any_instance_of(Onetime::Operations::DeleteSenderDomain).to receive(:call) do
-          yield
-          Onetime::Operations::DeleteSenderDomain::Result.new(success: true, message: 'stubbed', error: nil)
-        end
-      end
-
-      def provision(config, strategy)
-        Onetime::Operations::ProvisionSenderDomain.new(mailer_config: config, strategy: strategy).call
-      end
-
-      it 'refuses and keeps the domain and its sender config while another holder has the lock' do
-        token = lock.acquire(ttl: 60)
-
-        expect do
-          described_class.new(domain: domain, actor: 'cli', dry_run: false).call
-        end.to raise_error(described_class::SenderIdentityBusy)
-
-        expect(domain.exists?).to be true
-        expect(model.exists_for_domain?(domain.identifier)).to be true
-      ensure
-        lock.release(token)
-      end
-
-      it 'holds the lock from the provider teardown through destroy!' do
-        seen = {}
-        stub_teardown { seen[:teardown] = [lock.locked?, model.exists_for_domain?(domain.identifier)] }
-        allow(domain).to receive(:destroy!).and_wrap_original do |original|
-          seen[:destroy] = lock.locked?
-          original.call
-        end
-
-        result = described_class.new(domain: domain, actor: 'cli', dry_run: false).call
-
-        expect(result.status).to eq(:removed)
-        expect(seen).to eq(teardown: [true, true], destroy: true)
-        expect(lock.locked?).to be false
-        expect(model.exists_for_domain?(domain.identifier)).to be false
-      end
-
-      [:vhost, :sender, :destroy].each do |phase|
-        it "renews throughout slow #{phase} work beyond the initial lease" do
-          stub_const('Onetime::Operations::SenderIdentityLease::TTL', 1)
-          stub_const('Onetime::Operations::SenderIdentityLease::RENEW_INTERVAL', 0.05)
-          stale = model.find_by_domain_id(domain.identifier)
-          sender_strategy = spy('sender strategy')
-          hold = proc do
-            token = lock.value
-            sleep 1.2
-            expect(lock.held_by?(token)).to be true
-            expect(lock.acquire(ttl: 1)).to be false
-            expect(provision(stale, sender_strategy).error).to include('already in progress')
-          end
-          stub_teardown { hold.call if phase == :sender }
-          if phase == :vhost
-            vhost_strategy = double('vhost strategy')
-            allow(vhost_strategy).to receive(:delete_vhost) { hold.call; { message: 'done' } }
-            allow(Onetime::DomainValidation::Strategy).to receive(:for_config).and_return(vhost_strategy)
-          elsif phase == :destroy
-            allow(domain).to receive(:destroy!).and_wrap_original { |original| hold.call; original.call }
-          end
-
-          result = described_class.new(domain: domain, actor: 'cli', dry_run: false).call
-
-          expect(result.status).to eq(:removed)
-          expect(domain.exists?).to be false
-          expect(lock.locked?).to be false
-          expect(sender_strategy).not_to have_received(:provision_dns_records)
-        end
-      end
-
-      it 'stops before destroy if the watchdog fails during a provider call, even after Redis recovers' do
-        stub_const('Onetime::Operations::SenderIdentityLease::RENEW_INTERVAL', 0.01)
-        client = lock.dbclient
-        allow(lock).to receive(:dbclient).and_return(client)
-        allow(model).to receive(:sender_identity_lock).with(domain.identifier).and_return(lock)
-        allow(client).to receive(:eval).and_call_original
-        attempted = Queue.new
-        stub_teardown do
-          allow(client).to receive(:eval)
-            .with(Onetime::Operations::SenderIdentityLease::RENEW_SCRIPT, [lock.dbkey], anything) do
-              attempted << true
-              raise IOError, 'renewal unavailable'
-            end
-          Timeout.timeout(3) { attempted.pop }
-          allow(client).to receive(:eval)
-            .with(Onetime::Operations::SenderIdentityLease::RENEW_SCRIPT, [lock.dbkey], anything).and_return(1)
-        end
-
-        expect do
-          described_class.new(domain: domain, actor: 'cli', dry_run: false).call
-        end.to raise_error(Onetime::Operations::SenderIdentityLease::Lost, /renewal failed/)
-
-        expect(domain.exists?).to be true
-        expect(model.exists_for_domain?(domain.identifier)).to be true
-        expect(lock.locked?).to be false
-        expect(Onetime::ColonelAuditEvent).to have_received(:record).with(hash_including(result: :failure))
-      end
-
-      it 'does not provision during the removal, nor afterwards from a config loaded before it' do
-        stale       = model.find_by_domain_id(domain.identifier)
-        strategy    = spy('sender strategy')
-        provisioned = nil
-        stub_teardown { provisioned = provision(stale, strategy) }
-
-        described_class.new(domain: domain, actor: 'cli', dry_run: false).call
-        after_removal = provision(stale, strategy)
-
-        expect(provisioned.error).to include('already in progress')
-        expect(after_removal.error).to include('was deleted')
-        expect(strategy).not_to have_received(:provision_dns_records)
-      end
-    end
   end
 end

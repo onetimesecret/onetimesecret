@@ -8,9 +8,7 @@ require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/audit_reason'
 require 'onetime/operations/audit_attempt'
-require 'onetime/domain_validation/strategy'
-require 'onetime/operations/delete_sender_domain'
-require 'onetime/operations/sender_identity_lease'
+require 'onetime/operations/domains/teardown'
 
 module Onetime
   module Operations
@@ -23,13 +21,11 @@ module Onetime
       #
       # ## Teardown parity
       #
-      # The apply path mirrors DomainsAPI::Logic::Domains::RemoveDomain#process
-      # VERBATIM: delete the external vhost (strategy), delete the external sender
-      # identity BEFORE destroy! wipes mailer_config, then destroy!, all under the
-      # domain's sender identity lock (see SenderIdentityBusy). It does NOT
-      # call org.remove_domain — CustomDomain#destroy! already removes org
-      # participation internally (custom_domain.rb:457-460); adding it would be a
-      # redundant second removal against the same collection.
+      # The apply path delegates to Domains::Teardown, also used by the customer
+      # API. It owns provider teardown and destruction under the sender identity
+      # lease. This wrapper owns preview, index repair, and operator auditing.
+      # Teardown does not call org.remove_domain: CustomDomain#destroy! already
+      # removes org participation internally.
       #
       # ## display_domain_index re-assertion (the crux)
       #
@@ -150,33 +146,11 @@ module Onetime
             return plan
           end
 
-          # --- APPLY: teardown mirrors RemoveDomain#process (NO org.remove_domain) ---
-          # Under the domain's sender identity lock from the first teardown
-          # step through destroy!; see SenderIdentityBusy.
-          lock       = Onetime::CustomDomain::MailerConfig.sender_identity_lock(@domain.identifier)
-          lease      = Onetime::Operations::SenderIdentityLease.new(lock)
-          unless lease.acquire
-            raise SenderIdentityBusy,
-              "Another change to the sender configuration of #{plan.display_domain} is in progress. Try again."
-          end
-
-          lease_error = nil
-          begin
-            lease.protect do
-              delete_vhost(@domain)
-              lease.check!
-              Onetime::Operations::DeleteSenderDomain.new(mailer_config: @domain.mailer_config).call
-              lease.check!
-              @domain.destroy! # Familia 'super' HDELs display_domain_index[fqdn] here
-              @removal_committed = true
-            end
-          rescue Onetime::Operations::SenderIdentityLease::Lost => ex
-            raise unless @removal_committed
-
-            # A final lease check cannot undo destroy! or skip its audit and
-            # finalization. Report the loss after recording what committed.
-            lease_error = ex
-          end
+          # A returned teardown result is committed, even when its final lease
+          # check failed. Complete index repair and auditing before reporting loss.
+          teardown           = teardown_domain
+          @removal_committed = teardown.removal_committed
+          lease_error        = teardown.lease_error
 
           # --- CONDITIONAL INDEX RE-ASSERTION ---
           # Best-effort: destroy! has already committed, so a failure here must
@@ -253,14 +227,11 @@ module Onetime
           record_preview_observation(with_reason(org_id: org_id.to_s, reasserted: reasserts))
         end
 
-        # Mirrors RemoveDomain#delete_vhost: no-op for non-Approximated strategies,
-        # swallows provider/transport errors so removal proceeds regardless.
-        def delete_vhost(domain)
-          strategy = Onetime::DomainValidation::Strategy.for_config(OT.conf)
-          result   = strategy.delete_vhost(domain)
-          OT.info "[Domains::Remove.delete_vhost] #{domain.display_domain} -> #{result && result[:message]}"
-        rescue HTTParty::ResponseError, Timeout::Error, Errno::ECONNREFUSED => ex
-          OT.le "[Domains::Remove.delete_vhost error] #{domain.display_domain} #{ex}"
+        def teardown_domain
+          Onetime::Operations::Domains::Teardown.new(domain: @domain).call
+        rescue Onetime::Operations::Domains::Teardown::Busy => ex
+          # Preserve the toolbox exception contract and failure-audit class.
+          raise SenderIdentityBusy, ex.message
         end
       end
     end
