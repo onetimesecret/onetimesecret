@@ -150,6 +150,12 @@ auth-database migrations. [data-migrations.md](./data-migrations.md) says
 which to use when, where each lives, and which legacy tolerances in the
 models are waiting on one of them.
 
+## Domain lifecycle
+
+[Domain sender lifecycle](./domain-sender-lifecycle.md) describes the shared
+lock for sender provisioning and teardown, domain-removal ordering, conflict
+handling, lease limits, and regression coverage.
+
 ## Debugging
 
 To enable debug logging, set the `ONETIME_DEBUG` environment variable to

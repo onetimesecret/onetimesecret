@@ -66,11 +66,17 @@ RSpec.describe DomainsAPI::Logic::Domains::RemoveDomain do
   describe '#process' do
     let(:strategy) { instance_double(Onetime::DomainValidation::PassthroughStrategy) }
     let(:delete_result) { { status: 'deleted', message: 'Vhost deleted' } }
+    let(:lock) do
+      double('Familia::Lock', acquire: 'lock-token', release: true,
+        dbkey: 'sender-identity-lock', dbclient: double('Redis', eval: 1))
+    end
 
     before do
       allow(Onetime::DomainValidation::Strategy).to receive(:for_config)
         .and_return(strategy)
       allow(strategy).to receive(:delete_vhost).and_return(delete_result)
+      allow(Onetime::CustomDomain::MailerConfig).to receive(:sender_identity_lock)
+        .with('domain123').and_return(lock)
 
       logic.instance_variable_set(:@custom_domain, custom_domain)
       logic.instance_variable_set(:@display_domain, 'example.com')
@@ -117,6 +123,93 @@ RSpec.describe DomainsAPI::Logic::Domains::RemoveDomain do
 
       expect(OT).to receive(:le).with(/delete_vhost error/)
       expect { logic.send(:process) }.not_to raise_error
+    end
+
+    context 'with the sender identity lock' do
+      it 'holds it from the teardown through destroy! and releases it' do
+        calls = []
+        allow(lock).to receive(:acquire) do
+          calls << :acquire
+          'lock-token'
+        end
+        allow(strategy).to receive(:delete_vhost) do
+          calls << :delete_vhost
+          delete_result
+        end
+        allow(logic).to receive(:delete_sender_domain) { calls << :delete_sender_domain }
+        allow(custom_domain).to receive(:destroy!) { calls << :destroy! }
+        allow(lock).to receive(:release) { calls << :release }
+
+        logic.send(:process)
+
+        expect(lock).to have_received(:acquire).with(ttl: 60)
+        expect(lock).to have_received(:release).with('lock-token')
+        expect(calls).to eq([:acquire, :delete_vhost, :delete_sender_domain, :destroy!, :release])
+      end
+
+      [:vhost, :sender].each do |phase|
+        it "stops after #{phase} teardown on renewal failure, retaining the record and session" do
+          if phase == :vhost
+            allow(strategy).to receive(:delete_vhost) do
+              allow(lock.dbclient).to receive(:eval).and_raise(IOError, 'renewal unavailable')
+              delete_result
+            end
+            expect(logic).not_to receive(:delete_sender_domain)
+          else
+            allow(logic).to receive(:delete_sender_domain) do
+              allow(lock.dbclient).to receive(:eval).and_return(0)
+            end
+          end
+
+          expect { logic.send(:process) }.to raise_error(OT::FormError) { |ex|
+            expect(ex.error_type).to eq(:conflict)
+            expect(ex.message).to include('lock lost')
+          }
+          expect(custom_domain).not_to have_received(:destroy!)
+          expect(lock).to have_received(:release).with('lock-token')
+          expect(session['domain_context']).to eq('example.com')
+        end
+      end
+
+      [true, false].each do |matching_context|
+        it "reports committed destruction and finalizes the #{matching_context ? 'matching' : 'unrelated'} session on post-destroy lease loss" do
+          session['domain_context'] = matching_context ? 'example.com' : 'other.example.com'
+          logic.instance_variable_set(:@extid, 'ext-domain123')
+          allow(custom_domain).to receive(:destroy!) do
+            allow(lock.dbclient).to receive(:eval).and_return(0)
+          end
+
+          expect { logic.send(:process) }.to raise_error(OT::FormError) { |ex|
+            expect(ex.error_type).to eq(:conflict)
+            expect(ex.message).to include('was removed', 'lock lost')
+            expect(ex.details).to include(removal_committed: true, lease_lost: true)
+          }
+
+          expect(session['domain_context']).to eq(matching_context ? nil : 'other.example.com')
+          expect(custom_domain).to have_received(:destroy!).once
+          expect(lock).to have_received(:release).with('lock-token')
+          expect(OT).to have_received(:info).with('[RemoveDomain] Domain removal committed with lease loss', anything).once
+        end
+      end
+
+      it 'releases it when destroy! raises' do
+        allow(custom_domain).to receive(:destroy!).and_raise(Familia::Problem, 'datastore gone')
+
+        expect { logic.send(:process) }.to raise_error(Familia::Problem)
+        expect(lock).to have_received(:release).with('lock-token')
+      end
+
+      it 'refuses with a conflict and tears nothing down while another holder has it' do
+        allow(lock).to receive(:acquire).and_return(false)
+
+        expect { logic.send(:process) }.to raise_error(OT::FormError) { |ex|
+          expect(ex.error_type).to eq(:conflict)
+        }
+        expect(strategy).not_to have_received(:delete_vhost)
+        expect(custom_domain).not_to have_received(:destroy!)
+        expect(lock).not_to have_received(:release)
+        expect(session['domain_context']).to eq('example.com')
+      end
     end
   end
 

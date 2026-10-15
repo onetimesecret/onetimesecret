@@ -10,6 +10,7 @@ require 'onetime/audit_reason'
 require 'onetime/operations/audit_attempt'
 require 'onetime/domain_validation/strategy'
 require 'onetime/operations/delete_sender_domain'
+require 'onetime/operations/sender_identity_lease'
 
 module Onetime
   module Operations
@@ -24,7 +25,8 @@ module Onetime
       #
       # The apply path mirrors DomainsAPI::Logic::Domains::RemoveDomain#process
       # VERBATIM: delete the external vhost (strategy), delete the external sender
-      # identity BEFORE destroy! wipes mailer_config, then destroy!. It does NOT
+      # identity BEFORE destroy! wipes mailer_config, then destroy!, all under the
+      # domain's sender identity lock (see SenderIdentityBusy). It does NOT
       # call org.remove_domain — CustomDomain#destroy! already removes org
       # participation internally (custom_domain.rb:457-460); adding it would be a
       # redundant second removal against the same collection.
@@ -49,6 +51,26 @@ module Onetime
 
         AUDIT_VERB = 'domain.remove'
 
+        # Raised by an apply, before any teardown, while another holder has
+        # the domain's sender identity lock (MailerConfig.sender_identity_lock):
+        # provisioning, a sender config delete, or another removal. The apply
+        # holds that lock from the teardown through destroy!. A provision
+        # that ran in between would register the identity again after the
+        # teardown, and destroy! would then delete the only record of it.
+        # audit_failures records the refused attempt like any other raise.
+        class SenderIdentityBusy < StandardError; end
+
+        # The deletion is irreversible, but the caller must still see lease
+        # loss. Carry the removed result instead of suggesting a safe retry.
+        class RemovalCommitted < Onetime::Operations::SenderIdentityLease::Lost
+          attr_reader :result
+
+          def initialize(result:, lease_error:)
+            @result = result
+            super("Domain removal committed for #{result.extid}, but #{lease_error.message}")
+          end
+        end
+
         # A destructive verb: a removal that blows up partway leaves the fleet in
         # an unknown state, so the attempt must be in the trail even though the
         # success-path record never runs. Records one `result: :failure` and
@@ -59,8 +81,9 @@ module Onetime
         # tell a blown-up preview from a blown-up removal.
         audit_failures :call,
           verb: AUDIT_VERB,
-          target: -> { @domain&.extid },
-          detail: -> { { dry_run: @dry_run } }
+          target: -> { @audit_extid || @domain&.extid },
+          detail: -> { { dry_run: @dry_run }.merge(@removal_committed ? { removal_committed: true } : {}) },
+          enabled: -> { !@removal_audited }
 
         # @!attribute status [r] Symbol — :planned (dry-run) | :removed (applied)
         Result = Data.define(
@@ -92,8 +115,11 @@ module Onetime
 
         # @return [Result]
         def call
-          org_id = @domain.org_id
-          org    = org_id.to_s.empty? ? nil : Onetime::Organization.load(org_id)
+          @removal_committed = false
+          @removal_audited   = false
+          @audit_extid       = @domain.extid
+          org_id             = @domain.org_id
+          org                = org_id.to_s.empty? ? nil : Onetime::Organization.load(org_id)
 
           # --- INDEX SNAPSHOT (before ANY mutation) ---
           index          = Onetime::CustomDomain.display_domain_index
@@ -125,9 +151,32 @@ module Onetime
           end
 
           # --- APPLY: teardown mirrors RemoveDomain#process (NO org.remove_domain) ---
-          delete_vhost(@domain)
-          Onetime::Operations::DeleteSenderDomain.new(mailer_config: @domain.mailer_config).call
-          @domain.destroy! # Familia 'super' HDELs display_domain_index[fqdn] here
+          # Under the domain's sender identity lock from the first teardown
+          # step through destroy!; see SenderIdentityBusy.
+          lock       = Onetime::CustomDomain::MailerConfig.sender_identity_lock(@domain.identifier)
+          lease      = Onetime::Operations::SenderIdentityLease.new(lock)
+          unless lease.acquire
+            raise SenderIdentityBusy,
+              "Another change to the sender configuration of #{plan.display_domain} is in progress. Try again."
+          end
+
+          lease_error = nil
+          begin
+            lease.protect do
+              delete_vhost(@domain)
+              lease.check!
+              Onetime::Operations::DeleteSenderDomain.new(mailer_config: @domain.mailer_config).call
+              lease.check!
+              @domain.destroy! # Familia 'super' HDELs display_domain_index[fqdn] here
+              @removal_committed = true
+            end
+          rescue Onetime::Operations::SenderIdentityLease::Lost => ex
+            raise unless @removal_committed
+
+            # A final lease check cannot undo destroy! or skip its audit and
+            # finalization. Report the loss after recording what committed.
+            lease_error = ex
+          end
 
           # --- CONDITIONAL INDEX RE-ASSERTION ---
           # Best-effort: destroy! has already committed, so a failure here must
@@ -161,16 +210,27 @@ module Onetime
           # removal is indistinguishable from a domain that was never added.
           # The dry-run path returns above, recording only a preview
           # observation on the access trail (#4337), never this operator event.
+          detail           = { org_id: org_id.to_s, reasserted: reasserts }
+          if lease_error
+            detail[:removal_committed] = true
+            detail[:lease_lost]        = true
+          end
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: plan.extid,
             result: :success,
-            detail: with_reason(org_id: org_id.to_s, reasserted: reasserts),
+            detail: with_reason(detail),
             fail_closed: true,
           )
+          @removal_audited = true
 
-          plan.with(status: :removed)
+          removed = plan.with(status: :removed)
+          if lease_error
+            raise RemovalCommitted.new(result: removed, lease_error: lease_error), cause: lease_error
+          end
+
+          removed
         end
 
         private

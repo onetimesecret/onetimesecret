@@ -484,10 +484,13 @@ class Onetime::CustomDomain::MailerConfig < Familia::Horreum
 
   class << self
     # Serializes changes to a domain's sender identity at the mail provider:
-    # provisioning (ProvisionSenderDomain) and teardown (DeleteSenderConfig).
+    # provisioning (ProvisionSenderDomain) and teardown (DeleteSenderConfig,
+    # and domain removal: RemoveDomain and Operations::Domains::Remove).
     # Providers key the identity by the from domain, and provisioning reuses
     # one that already exists. A provision that overlapped a teardown would
-    # save DNS records for an identity the teardown then deletes.
+    # save DNS records for an identity the teardown then deletes, or, when a
+    # domain removal deletes the record after its teardown, register an
+    # identity that nothing records.
     #
     # The key is not one of the record's related fields. destroy! deletes
     # those, and a teardown destroys the record while it holds this lock.
