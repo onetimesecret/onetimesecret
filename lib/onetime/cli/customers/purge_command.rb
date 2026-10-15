@@ -598,8 +598,8 @@ module Onetime
         # Check Organization-level billing via raw Redis, matching the
         # stripe_billing? check in local mode. The customer's participations
         # set (customer:{objid}:participations) contains entries like
-        # "organization:{org_id}:members". We extract org IDs and check
-        # each organization's stripe_customer_id field.
+        # "organization:{org_id}:members", stored JSON-quoted. We extract org
+        # IDs and check each organization's stripe_customer_id field.
         has_billing ||= org_billing_raw?(redis, objid)
 
         source, activity = activity_source(last_login, updated)
@@ -616,7 +616,10 @@ module Onetime
         participations = redis.smembers("customer:#{objid}:participations")
         return false if participations.nil? || participations.empty?
 
-        participations.each do |key|
+        participations.each do |entry|
+          # Familia stores each collection key JSON-quoted. parse_json_field
+          # decodes it and passes a non-JSON entry through unchanged.
+          key = parse_json_field(entry).to_s
           next unless key.start_with?('organization:')
 
           # Parse "organization:{org_id}:members" → org_id

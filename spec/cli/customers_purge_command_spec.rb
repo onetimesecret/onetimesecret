@@ -233,4 +233,51 @@ RSpec.describe Onetime::CLI::CustomersPurgeCommand do
   ensure
     $stdout = original
   end
+
+  # Remote mode (--redis-url) reads customer:{objid}:participations with a raw
+  # client. Familia writes each collection key into that set JSON-quoted, so a
+  # raw reader has to decode an entry before matching its prefix.
+  describe 'org-level billing check in remote mode (real datastore)', :datastore do
+    let(:suffix) { "#{Familia.now.to_i}#{SecureRandom.hex(4)}" }
+
+    before do
+      @customers = []
+      @orgs      = []
+    end
+
+    after do
+      @orgs.each do |org|
+        org.destroy! if org.exists?
+      rescue StandardError => ex
+        warn "[purge spec] org cleanup failed: #{ex.class}: #{ex.message}"
+      end
+      @customers.each do |cust|
+        cust.destroy! if cust.exists?
+      rescue StandardError => ex
+        warn "[purge spec] customer cleanup failed: #{ex.class}: #{ex.message}"
+      end
+    end
+
+    def create_member_of_org(label)
+      owner = Onetime::Customer.create!(email: "purge_billing_#{label}_#{suffix}@onetimesecret.com")
+      @customers << owner
+      org = Onetime::Organization.create!("Purge Billing #{label} #{suffix}", owner)
+      @orgs << org
+      [owner, org]
+    end
+
+    it 'finds Stripe billing on an organization the customer belongs to' do
+      owner, org             = create_member_of_org('billed')
+      org.stripe_customer_id = "cus_purge#{suffix}"
+      org.save
+
+      expect(command.send(:org_billing_raw?, Onetime::Customer.dbclient, owner.objid)).to be(true)
+    end
+
+    it 'finds no billing when the organization has none' do
+      owner, _org = create_member_of_org('unbilled')
+
+      expect(command.send(:org_billing_raw?, Onetime::Customer.dbclient, owner.objid)).to be(false)
+    end
+  end
 end
