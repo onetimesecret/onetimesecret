@@ -334,7 +334,10 @@ module DomainsAPI
         #
         # @return [String] one of ACTIVATION_OUTCOMES
         def activate_if_requested
-          @enabled_after = @sso_config.enabled?
+          # Early outcomes report storage after the checks, not the checked
+          # snapshot. Activation attempts use the guarded write's state below.
+          stored         = Onetime::CustomDomain::SsoConfig.find_by_domain_id(@custom_domain.identifier)
+          @enabled_after = stored&.enabled? || false
           return 'not_requested' unless @activate
           return 'not_passed' unless @overall == 'passed'
           # provider_type is part of the fingerprint, so the guarded write

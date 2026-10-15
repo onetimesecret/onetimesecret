@@ -320,6 +320,38 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
       stub_discovery_ok
     end
 
+    shared_examples 'post-check stored enabled state' do |activation|
+      [
+        ['enabled', false, true],
+        ['disabled', true, false],
+        ['deleted', true, nil],
+      ].each do |change, checked_enabled, current_enabled|
+        it "reports the stored state when the record is #{change} during checks" do
+          allow(sso_config).to receive(:enabled?).and_return(checked_enabled)
+          current_record = if current_enabled.nil?
+                             nil
+                           else
+                             instance_double(Onetime::CustomDomain::SsoConfig, enabled?: current_enabled)
+                           end
+          allow(logic).to receive(:run_checks).and_wrap_original do |original|
+            checks = original.call
+            allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+              .with('domain123').and_return(current_record)
+            checks
+          end
+
+          result = run
+
+          expect(result).to include(activation: activation, enabled: current_enabled || false)
+          expect(result[:configuration_revision]).to eq('1760000000')
+          expect(result).not_to have_key(:activated_revision)
+          expect(writes).to be_empty
+          expect(Onetime::CustomDomain::SsoConfig).not_to have_received(:update_for_domain_if)
+          expect(logic).not_to have_received(:log_sso_change_event)
+        end
+      end
+    end
+
     context 'when every check passes' do
       before { accept_credentials }
 
@@ -410,6 +442,8 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
     context 'when the stored provider type is no longer supported' do
       let(:provider_type) { 'github' }
 
+      include_examples 'post-check stored enabled state', 'not_permitted'
+
       it 'refuses to activate a passing run' do
         result = run
 
@@ -427,6 +461,8 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
         allow(sso_config).to receive(:reveal_saml_field).with(:idp_cert).and_return(DomainSsoTestFixtures.saml_cert_pem)
         allow(Onetime::SsoProvider::Saml).to receive(:enabled?).and_return(false)
       end
+
+      include_examples 'post-check stored enabled state', 'not_permitted'
 
       it 'refuses to activate' do
         result = run
@@ -446,6 +482,8 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
     context 'when a check fails' do
       before { refuse_credentials('AADSTS7000215') }
 
+      include_examples 'post-check stored enabled state', 'not_passed'
+
       it 'does not activate' do
         result = run
 
@@ -461,6 +499,8 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
         accept_credentials
       end
 
+      include_examples 'post-check stored enabled state', 'not_passed'
+
       it 'does not activate' do
         result = run
 
@@ -473,6 +513,8 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
       let(:logic) { described_class.new(strategy_result, { 'extid' => 'ext-domain123' }) }
 
       before { accept_credentials }
+
+      include_examples 'post-check stored enabled state', 'not_requested'
 
       it 'reports not_requested, writes nothing and does not fingerprint' do
         result = run
