@@ -1,6 +1,6 @@
 // src/tests/services/logging.service.spec.ts
 
-import { ConsoleLoggingService, defaultLogLevel } from '@/services/logging.service';
+import { ConsoleLoggingService, defaultLogLevel, flameArgs } from '@/services/logging.service';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 describe('defaultLogLevel', () => {
@@ -86,5 +86,52 @@ describe('ConsoleLoggingService', () => {
     const c = spies();
     new ConsoleLoggingService('silent').banner();
     expect(c.log).toHaveBeenCalledTimes(1);
+  });
+
+  it('prints the warning under the banner when given one', () => {
+    const c = spies();
+    new ConsoleLoggingService('silent').banner({
+      heading: 'Danger',
+      lead: 'Stop.',
+      body: 'Body text.',
+      advice: 'Close this panel.',
+    });
+    expect(c.log).toHaveBeenCalledTimes(3);
+    const [, heading, text] = c.log.mock.calls;
+    expect(heading).toEqual(flameArgs('Danger', 36));
+    expect(text.filter((arg) => !String(arg).includes(':'))).toEqual(
+      expect.arrayContaining(['Stop.', 'Body text.', 'Close this panel.'])
+    );
+  });
+});
+
+describe('flameArgs', () => {
+  // Every %c%s pair takes a style and then a character.
+  function characters(args: string[]): string {
+    return args.filter((_, i) => i % 2 === 1).join('');
+  }
+
+  it('pairs one style with each character', () => {
+    const [format, ...rest] = flameArgs('Hot', 18);
+    expect(format).toBe('%c%s%c%s%c%s');
+    expect(rest).toHaveLength(6);
+    expect(characters(rest)).toBe('Hot');
+    expect(rest[0]).toMatch(/^color:hsl\(/);
+  });
+
+  it('keeps line breaks in the format string', () => {
+    const [format] = flameArgs('ab\nc', 18);
+    expect(format).toBe('%c%s%c%s\n%c%s');
+  });
+
+  it('keeps a percent sign out of the format string', () => {
+    const [format, ...rest] = flameArgs('100%', 18);
+    expect(format).toBe('%c%s'.repeat(4));
+    expect(characters(rest)).toBe('100%');
+  });
+
+  it('keeps a character and its combining accent together', () => {
+    const [format] = flameArgs('e\u0301', 18);
+    expect(format).toBe('%c%s');
   });
 });
