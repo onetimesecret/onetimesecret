@@ -24,6 +24,11 @@ Fixed
   domain's brand, sign-up, incoming secrets, email or SSO settings have
   unsaved changes now asks first, as leaving the page does. Cancelling
   keeps the edits and leaves the switcher on the current domain.
+- Switching organizations from the header's organization switcher while
+  the page has unsaved changes no longer switches the organization before
+  the page asks. Cancelling keeps the edits and leaves the organization,
+  its switcher and the domain list as they were; the switch now lands
+  together with the navigation it goes with.
 - The domain settings pages' header is now as wide as the content below
   it instead of overhanging it on both sides. On a phone the header's
   back link shows only its arrow, so the domain name has room.

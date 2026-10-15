@@ -29,7 +29,13 @@ import type { ScopesAvailable } from '@/types/router';
 import { MenuItem } from '@headlessui/vue';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
+import {
+  isNavigationFailure,
+  NavigationFailureType,
+  useRoute,
+  useRouter,
+  type RouteLocationRaw,
+} from 'vue-router';
 
 /**
  * Props for controlling switcher behavior from parent
@@ -155,46 +161,83 @@ const organizationItems = computed<ScopeSwitcherItem[]>(() =>
 );
 
 /**
- * Handle organization selection with optional route-aware navigation.
- * The engine has already dismissed the dropdown before emitting `select`.
+ * The route a switch to `org` navigates to, from the route's onOrgSwitch meta.
+ * null when the route configures no navigation or the target cannot be built.
  */
-const onSelect = (id: string): void => {
-  const org = orgForId(id);
-  if (!org) return;
-
-  // selectOrganization switches in-app at once and records the choice in the
-  // server session (fire-and-forget) so it survives a page load
-  void organizationStore.selectOrganization(org);
-
-  // Handle route-aware navigation based on onOrgSwitch meta
+const switchTargetFor = (org: Organization): RouteLocationRaw | null => {
   const switchTarget = onOrgSwitch.value;
   if (!switchTarget) {
     // No navigation configured, just update store (current behavior)
-    return;
+    return null;
   }
 
   if (switchTarget === 'same') {
     if (!org.extid) {
       console.warn('[OrganizationScopeSwitcher] Cannot navigate: org missing extid', org.objid);
-      return;
+      return null;
     }
-    if (route.name) {
-      router.push({ name: route.name, params: { ...route.params, extid: org.extid } });
-    } else {
+    if (!route.name) {
       // Anonymous route: a name-based push is impossible. Warn (consistent with
       // the missing-extid branches) rather than failing silently.
       console.warn('[OrganizationScopeSwitcher] Cannot navigate: current route has no name');
+      return null;
     }
-  } else if (switchTarget.includes(':extid')) {
+    return { name: route.name, params: { ...route.params, extid: org.extid } };
+  }
+
+  if (switchTarget.includes(':extid')) {
     if (!org.extid) {
       console.warn('[OrganizationScopeSwitcher] Cannot navigate: org missing extid', org.objid);
-      return;
+      return null;
     }
-    const newPath = switchTarget.replaceAll(':extid', org.extid);
-    router.push(newPath);
-  } else {
-    // Path without :extid - navigate directly
-    router.push(switchTarget);
+    return switchTarget.replaceAll(':extid', org.extid);
+  }
+
+  // Path without :extid - navigate directly
+  return switchTarget;
+};
+
+/**
+ * Handle organization selection with optional route-aware navigation.
+ * The engine has already dismissed the dropdown before emitting `select`.
+ *
+ * selectOrganization switches in-app at once and records the choice in the
+ * server session (fire-and-forget) so it survives a page load.
+ *
+ * When the switch navigates, the organization changes only once the page has
+ * let the navigation through. The page can refuse it (an unsaved-changes guard
+ * the user cancels), and the page then still shows the previous organization;
+ * switching first would leave this switcher, the domain switcher's list and
+ * the API's organization header all naming an organization the page does not
+ * show. The switch is made from a one-shot beforeResolve hook: that runs after
+ * the page's leave and update guards and before the destination renders, so
+ * the destination mounts, and fetches, under the organization it was opened
+ * for. A refused navigation never reaches the hook, and the hook is removed
+ * once the navigation settles either way. A duplicated navigation (the page
+ * is already where the switch goes) runs no guards, so it switches directly.
+ */
+const onSelect = async (id: string): Promise<void> => {
+  const org = orgForId(id);
+  if (!org) return;
+
+  const target = switchTargetFor(org);
+  if (!target) {
+    void organizationStore.selectOrganization(org);
+    return;
+  }
+
+  const removeHook = router.beforeResolve(() => {
+    removeHook();
+    void organizationStore.selectOrganization(org);
+  });
+  let failure;
+  try {
+    failure = await router.push(target);
+  } finally {
+    removeHook();
+  }
+  if (isNavigationFailure(failure, NavigationFailureType.duplicated)) {
+    void organizationStore.selectOrganization(org);
   }
 };
 
