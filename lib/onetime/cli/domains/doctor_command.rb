@@ -417,7 +417,8 @@ module Onetime
           issues << {
             check: :canonical_index_unreadable,
             severity: :high,
-            message: "#{audit.errors.size} domain records could not be loaded by the canonical index audit: " \
+            message: "#{audit.errors.size} domain records could not be loaded by the canonical index audit " \
+                     '(backfill-canonical-index --apply writes nothing while they remain): ' \
                      "#{examples.map { |example| "#{example[:domain_objid]}: #{example[:message]}" }.join('; ')}",
             examples: examples,
             total: audit.errors.size,

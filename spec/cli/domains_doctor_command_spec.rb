@@ -470,8 +470,8 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
               { 'domain_objid' => 'broken1', 'message' => 'JSON::ParserError: invalid record' },
               { 'domain_objid' => 'broken2', 'message' => 'TypeError: invalid field' },
             ],
-            'message' => include('2 domain records could not be loaded', 'broken1: JSON::ParserError: invalid record',
-              'broken2: TypeError: invalid field'),
+            'message' => include('2 domain records could not be loaded', '--apply writes nothing while they remain',
+              'broken1: JSON::ParserError: invalid record', 'broken2: TypeError: invalid field'),
             'repair_action' => include('storage_inspect'),
           ),
         )
