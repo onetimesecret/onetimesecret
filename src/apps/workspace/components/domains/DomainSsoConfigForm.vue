@@ -566,8 +566,12 @@ const certificateExpiry = computed(() => {
 // Handlers
 // ---------------------------------------------------------------------------
 
+// A saved record with nothing changed has nothing to save: the footer's Save
+// is disabled, and a keyboard submit of the form is a no-op for the same
+// reason.
 const handleSave = () => {
   if (!isFormValid.value || props.isSaving || props.isDeleting) return;
+  if (props.isConfigured && !props.hasUnsavedChanges) return;
   emit('save');
 };
 
@@ -1692,6 +1696,16 @@ aria-hidden="true">*</span>
           </p>
         </div>
 
+        <!-- Until a check runs the panel has nothing to show; say where the
+             results land so the body is not blank. Static text, not a live
+             region: the result box announces itself when it arrives. -->
+        <p
+          v-if="!diagnosticsResult && !diagnosticsError && !isDiagnosing && !isSaving"
+          data-testid="sso-diagnostics-placeholder"
+          class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.organizations.sso.diagnostics_placeholder') }}
+        </p>
+
         <!-- Diagnostics Result -->
         <div
           v-if="diagnosticsResult || diagnosticsError"
@@ -2157,9 +2171,6 @@ aria-hidden="true">*</span>
         <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
           {{ t('web.organizations.sso.confirm_sign_in_hint', { domain: domainHost }) }}
         </p>
-        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.organizations.sso.confirm_sign_in_limits') }}
-        </p>
         <!-- The domain's sign-in settings withhold SSO (verdict
              sso_not_permitted), so this step cannot work yet. role="status";
              amber is the fixed warning hue (#4132) and the text carries the
@@ -2199,7 +2210,7 @@ aria-hidden="true">*</span>
             :disabled="isRefreshingLastSignIn"
             :aria-busy="isRefreshingLastSignIn"
             @click="emit('refresh-last-sign-in')"
-            class="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-white px-2.5 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+            class="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
             <OIcon
               collection="heroicons"
               name="arrow-path"
@@ -2209,6 +2220,11 @@ aria-hidden="true">*</span>
             {{ t('web.organizations.sso.last_sign_in_refresh') }}
           </button>
         </div>
+        <!-- What a real sign-in proves that the checks above cannot: the
+             section's closing caveat. -->
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.organizations.sso.confirm_sign_in_limits') }}
+        </p>
       </section>
 
       <!-- Grant Org Scope Toggle (withheld pending testing unless already
@@ -2267,13 +2283,17 @@ aria-hidden="true">*</span>
                 </p>
               </div>
             </div>
+            <!-- The box title names the action in full; the button carries
+                 the short verb, as DomainDetail pairs "Remove domain" with
+                 "Remove". -->
             <button
               v-if="!showDeleteConfirm"
               type="button"
+              data-testid="sso-delete"
               @click="showDeleteConfirm = true"
               :disabled="isDeleting || isSaving"
               class="shrink-0 rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-700 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-950/50 dark:focus:ring-offset-gray-900">
-              {{ t('web.organizations.sso.delete_config') }}
+              {{ t('web.COMMON.delete') }}
             </button>
             <div
               v-else
@@ -2300,57 +2320,36 @@ aria-hidden="true">*</span>
         </div>
       </section>
 
-      <!-- Footer, sticky to the viewport bottom: the primary action first,
-           then Discard whenever there is something to discard, and Save for a
-           record that exists (a new record is saved by the check, so setup
-           has one save path; saving never turns the connection on). One
-           control per action. The negative margin spans the host card's
-           horizontal padding so the top border meets the card edges. At md+
-           WorkspaceLayout fixes the app footer to the viewport bottom and
-           reserves mb-24 for it; the bar sticks above that allowance rather
-           than competing with it on z-index. -->
+      <!-- Footer, sticky to the viewport bottom, in the usual order: Discard
+           alone on the left whenever there is something to discard; on the
+           right, Save for a record that exists (enabled only with unsaved
+           changes; saving never turns the connection on) and then the primary
+           check action as the rightmost control. A new record is saved by the
+           check, so setup has one save path. One control per action. The
+           negative margin spans the host card's horizontal padding so the top
+           border meets the card edges. At md+ WorkspaceLayout fixes the app
+           footer to the viewport bottom and reserves mb-24 for it; the bar
+           sticks above that allowance rather than competing with it on
+           z-index. -->
       <div
         data-testid="sso-form-footer"
         class="sticky bottom-0 z-10 -mx-6 flex flex-wrap items-center justify-between gap-3 rounded-b-lg border-t border-gray-200 bg-white px-6 py-4 md:bottom-24 dark:border-gray-700 dark:bg-gray-800">
         <button
+          v-if="hasUnsavedChanges && !showDeleteConfirm"
           type="button"
-          data-testid="sso-diagnostics-run"
-          :data-action="checkNeedsSave ? 'save-and-check' : connectionOn ? 'check' : 'check-and-activate'"
-          @click="handleRunCheck"
-          :disabled="!canRunCheck"
-          class="inline-flex shrink-0 items-center gap-2 rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
-          <OIcon
-            v-if="isDiagnosing || isSaving"
-            collection="heroicons"
-            name="arrow-path"
-            size="4"
-            class="animate-spin motion-reduce:animate-none"
-            aria-hidden="true" />
-          <OIcon
-            v-else
-            collection="heroicons"
-            name="clipboard-document-check"
-            size="4"
-            aria-hidden="true" />
-          {{ checkButtonLabel }}
+          @click="emit('discard')"
+          :disabled="isSaving"
+          class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+          {{ t('web.domains.email.discard_changes') }}
         </button>
 
-        <div
-          v-if="isEditing || hasUnsavedChanges"
-          class="flex flex-wrap items-center gap-3">
-          <button
-            v-if="hasUnsavedChanges && !showDeleteConfirm"
-            type="button"
-            @click="emit('discard')"
-            :disabled="isSaving"
-            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
-            {{ t('web.domains.email.discard_changes') }}
-          </button>
+        <!-- ml-auto keeps the group at the right edge when Discard is absent. -->
+        <div class="ml-auto flex flex-wrap items-center justify-end gap-3">
           <button
             v-if="isEditing"
             type="submit"
             data-testid="sso-save"
-            :disabled="!isFormValid || isSaving || isDeleting"
+            :disabled="!hasUnsavedChanges || !isFormValid || isSaving || isDeleting"
             class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
             <OIcon
               v-if="isSaving"
@@ -2360,6 +2359,22 @@ aria-hidden="true">*</span>
               aria-hidden="true" />
             <span v-if="isSaving">{{ t('web.COMMON.saving') }}</span>
             <span v-else>{{ t('web.COMMON.save_changes') }}</span>
+          </button>
+          <button
+            type="button"
+            data-testid="sso-diagnostics-run"
+            :data-action="checkNeedsSave ? 'save-and-check' : connectionOn ? 'check' : 'check-and-activate'"
+            @click="handleRunCheck"
+            :disabled="!canRunCheck"
+            class="inline-flex shrink-0 items-center gap-2 rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
+            <OIcon
+              v-if="isDiagnosing || isSaving"
+              collection="heroicons"
+              name="arrow-path"
+              size="4"
+              class="animate-spin motion-reduce:animate-none"
+              aria-hidden="true" />
+            {{ checkButtonLabel }}
           </button>
         </div>
       </div>

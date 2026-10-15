@@ -229,11 +229,12 @@ async function fillSsoConfigForm(
 /**
  * Submit the SSO configuration form (scoped to the page region).
  *
- * A record that exists has "Save changes" (sso-save). A new record has no
- * Save button: the primary action "Save and check" (sso-diagnostics-run)
- * saves it and then runs the saved-configuration check. openDomainSsoPage
- * returns once the form (and so its footer) is rendered, so the Save button's
- * presence tells the two apart.
+ * A record that exists has "Save changes" (sso-save), enabled only once a
+ * field has been edited, so callers fill the form before submitting. A new
+ * record has no Save button: the primary action "Save and check"
+ * (sso-diagnostics-run) saves it and then runs the saved-configuration check.
+ * openDomainSsoPage returns once the form (and so its footer) is rendered, so
+ * the Save button's presence tells the two apart.
  */
 async function submitSsoForm(ssoPage: Locator): Promise<void> {
   const saveChanges = ssoPage.locator('[data-testid="sso-save"]');

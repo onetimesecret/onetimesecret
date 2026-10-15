@@ -424,6 +424,28 @@ describe('DomainSsoConfigForm', () => {
       }
       expect(card.find('[data-testid="sso-last-sign-in"]').exists()).toBe(false);
     });
+
+    it('closes the confirm sign-in section with the limits caveat, after the last sign-in row', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: mockExistingConfig,
+        isConfigured: true,
+      });
+
+      const card = wrapper.get('[data-testid="sso-confirm-sign-in"]');
+      const paragraphs = card.findAll('p').map((p) => p.text());
+      // Heading, instruction, last-sign-in row, then the caveat as the last line.
+      expect(paragraphs[0]).toBe('web.organizations.sso.confirm_sign_in_hint');
+      expect(paragraphs[paragraphs.length - 1]).toBe(
+        'web.organizations.sso.confirm_sign_in_limits'
+      );
+      const row = card.get('[data-testid="sso-last-sign-in"]').element;
+      const caveat = card.element.lastElementChild!;
+      expect(caveat.textContent?.trim()).toBe('web.organizations.sso.confirm_sign_in_limits');
+      expect(row.compareDocumentPosition(caveat) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING
+      );
+    });
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -523,15 +545,36 @@ describe('DomainSsoConfigForm', () => {
 
       const footer = wrapper.get(FOOTER);
       const footerButtons = footer.findAll('button').map((b) => b.text());
-      expect(footerButtons).toHaveLength(3);
-      expect(footerButtons[0]).toBe('web.organizations.sso.diagnostics_save_and_check');
-      expect(footerButtons[1]).toBe('web.domains.email.discard_changes');
-      expect(footerButtons[2]).toBe('web.COMMON.save_changes');
-      expect(footer.get('[data-testid="sso-save"]').attributes('type')).toBe('submit');
+      // The usual order: Discard alone on the left, then Save, then the
+      // primary check action as the rightmost control.
+      expect(footerButtons).toEqual([
+        'web.domains.email.discard_changes',
+        'web.COMMON.save_changes',
+        'web.organizations.sso.diagnostics_save_and_check',
+      ]);
+      const save = footer.get('[data-testid="sso-save"]');
+      expect(save.attributes('type')).toBe('submit');
+      expect(save.attributes('disabled')).toBeUndefined();
       expect(buttonsByKey(wrapper, 'save_changes')).toHaveLength(1);
       expect(buttonsByKey(wrapper, 'discard_changes')).toHaveLength(1);
       // Delete lives in the Careful Consideration Zone, not the footer.
-      expect(buttonsByKey(footer, 'delete_config')).toHaveLength(0);
+      expect(footer.find('[data-testid="sso-delete"]').exists()).toBe(false);
+      expect(buttonsByKey(footer, 'web.COMMON.delete')).toHaveLength(0);
+    });
+
+    it('gives both footer buttons the same treatment: no static icon on the primary action', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: mockExistingConfig,
+        isConfigured: true,
+      });
+
+      const run = wrapper.get(RUN);
+      expect(run.findAll('.o-icon')).toHaveLength(0);
+
+      // The spinner still shows while the check (or its save) is in flight.
+      await wrapper.setProps({ isDiagnosing: true });
+      expect(wrapper.get(RUN).get('.o-icon').attributes('data-icon-name')).toBe('arrow-path');
     });
 
     it('offers Discard for a dirty new record, still with no Save (the check saves)', async () => {
@@ -539,14 +582,14 @@ describe('DomainSsoConfigForm', () => {
 
       const footer = wrapper.get(FOOTER);
       expect(footer.findAll('button').map((b) => b.text())).toEqual([
-        'web.organizations.sso.diagnostics_save_and_check',
         'web.domains.email.discard_changes',
+        'web.organizations.sso.diagnostics_save_and_check',
       ]);
       expect(footer.find('button[type="submit"]').exists()).toBe(false);
       expect(buttonsByKey(wrapper, 'discard_changes')).toHaveLength(1);
     });
 
-    it('hides Discard while an existing record is clean', async () => {
+    it('hides Discard and disables Save while an existing record is clean', async () => {
       wrapper = await mountComponent({
         formState: mockExistingFormState,
         ssoConfig: mockExistingConfig,
@@ -554,7 +597,15 @@ describe('DomainSsoConfigForm', () => {
       });
 
       expect(buttonsByKey(wrapper, 'discard_changes')).toHaveLength(0);
-      expect(wrapper.get(FOOTER).find('[data-testid="sso-save"]').exists()).toBe(true);
+      const save = wrapper.get(FOOTER).get('[data-testid="sso-save"]');
+      // Nothing to save: the button stays, disabled, so it does not read as
+      // a second enabled secondary action.
+      expect(save.attributes('disabled')).toBeDefined();
+      await wrapper.get('form').trigger('submit');
+      expect(wrapper.emitted('save')).toBeUndefined();
+
+      await wrapper.setProps({ hasUnsavedChanges: true });
+      expect(wrapper.get('[data-testid="sso-save"]').attributes('disabled')).toBeUndefined();
     });
 
     it('moves delete into the Careful Consideration Zone after the sign-in sections, with its inline confirm', async () => {
@@ -569,9 +620,12 @@ describe('DomainSsoConfigForm', () => {
       const title = zone.get('#sso-caution-zone-title');
       expect(title.element.tagName).toBe('H3');
       expect(title.text()).toBe('web.COMMON.caution_zone');
-      // The zone's box names the action and what it does, as DomainDetail's does.
+      // The zone's box names the action and what it does, as DomainDetail's
+      // does; the button carries the short verb so the title is not repeated.
       expect(zone.get('h4').text()).toBe('web.organizations.sso.delete_config');
       expect(zone.text()).toContain('web.organizations.sso.delete_config_hint');
+      expect(zone.get('[data-testid="sso-delete"]').text()).toBe('web.COMMON.delete');
+      expect(buttonsByKey(zone, 'delete_config')).toHaveLength(0);
       expect(
         wrapper
           .get('[data-testid="sso-confirm-sign-in"]')
@@ -581,15 +635,15 @@ describe('DomainSsoConfigForm', () => {
         zone.element.compareDocumentPosition(wrapper.get(FOOTER).element) &
           Node.DOCUMENT_POSITION_FOLLOWING
       ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-      expect(buttonsByKey(wrapper, 'delete_config')).toHaveLength(1);
+      expect(wrapper.findAll('[data-testid="sso-delete"]')).toHaveLength(1);
 
-      await buttonsByKey(zone, 'delete_config')[0].trigger('click');
+      await zone.get('[data-testid="sso-delete"]').trigger('click');
       expect(zone.text()).toContain('web.organizations.sso.delete_confirm');
       expect(buttonsByKey(zone, 'yes_delete')).toHaveLength(1);
-      expect(buttonsByKey(zone, 'delete_config')).toHaveLength(0);
+      expect(zone.find('[data-testid="sso-delete"]').exists()).toBe(false);
 
       await buttonsByKey(zone, 'word_cancel')[0].trigger('click');
-      expect(buttonsByKey(zone, 'delete_config')).toHaveLength(1);
+      expect(zone.find('[data-testid="sso-delete"]').exists()).toBe(true);
       expect(wrapper.emitted('delete')).toBeUndefined();
     });
 
@@ -836,6 +890,7 @@ describe('DomainSsoConfigForm', () => {
       wrapper = await mountComponent({
         formState: mockExistingFormState,
         isConfigured: true,
+        hasUnsavedChanges: true,
       });
 
       const form = wrapper.find('form');
@@ -999,6 +1054,7 @@ describe('DomainSsoConfigForm', () => {
       wrapper = await mountComponent({
         formState: mockExistingFormState,
         isConfigured: true,
+        hasUnsavedChanges: true,
       });
 
       const form = wrapper.find('form');
@@ -1302,6 +1358,49 @@ describe('DomainSsoConfigForm', () => {
         'web.organizations.sso.diagnostics_hint_entra'
       );
       expect(wrapper.get(RUN).attributes('disabled')).toBeUndefined();
+    });
+
+    describe('placeholder before a result', () => {
+      const PLACEHOLDER = '[data-testid="sso-diagnostics-placeholder"]';
+
+      it('says where results land on a fresh existing record, without a live region', async () => {
+        wrapper = await savedMount();
+
+        const placeholder = wrapper.get(`[data-testid="sso-diagnostics"] ${PLACEHOLDER}`);
+        expect(placeholder.text()).toBe('web.organizations.sso.diagnostics_placeholder');
+        expect(placeholder.attributes('role')).toBeUndefined();
+        expect(placeholder.attributes('aria-live')).toBeUndefined();
+        expect(placeholder.classes()).toEqual(
+          expect.arrayContaining(['mt-3', 'text-sm', 'text-gray-500'])
+        );
+      });
+
+      it('is also shown on a new record', async () => {
+        wrapper = await mountComponent();
+        expect(wrapper.find(PLACEHOLDER).exists()).toBe(true);
+      });
+
+      it('gives way to a result or an error', async () => {
+        wrapper = await savedMount();
+        expect(wrapper.find(PLACEHOLDER).exists()).toBe(true);
+
+        await wrapper.setProps({ diagnosticsResult: diagnostics('passed', []) });
+        expect(wrapper.find(PLACEHOLDER).exists()).toBe(false);
+
+        await wrapper.setProps({ diagnosticsResult: null, diagnosticsError: 'Could not reach' });
+        expect(wrapper.find(PLACEHOLDER).exists()).toBe(false);
+
+        await wrapper.setProps({ diagnosticsError: '' });
+        expect(wrapper.find(PLACEHOLDER).exists()).toBe(true);
+      });
+
+      it.each([['isDiagnosing'], ['isSaving']] as const)(
+        'is hidden while a check is in flight (%s)',
+        async (flag) => {
+          wrapper = await savedMount({ [flag]: true });
+          expect(wrapper.find(PLACEHOLDER).exists()).toBe(false);
+        }
+      );
     });
 
     it.each([
@@ -2244,6 +2343,35 @@ describe('DomainSsoConfigForm', () => {
       expect(refresh.attributes('aria-busy')).toBe('true');
     });
 
+    it('renders Refresh as a quiet control beside the line, same hit target as before', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: mockExistingConfig,
+        isConfigured: true,
+      });
+
+      const refresh = wrapper.get('[data-testid="sso-last-sign-in-refresh"]');
+      const classes = refresh.classes();
+      // No box: text-only until hovered or focused.
+      for (const boxed of ['bg-white', 'shadow-sm', 'ring-1', 'dark:bg-gray-700']) {
+        expect(classes).not.toContain(boxed);
+      }
+      expect(classes).toEqual(
+        expect.arrayContaining([
+          'px-2.5',
+          'py-1.5',
+          'text-sm',
+          'rounded-md',
+          'text-gray-500',
+          'hover:text-gray-900',
+          'hover:bg-gray-100',
+          'focus-visible:outline-brand-600',
+        ])
+      );
+      expect(refresh.get('.o-icon').attributes('data-icon-name')).toBe('arrow-path');
+      expect(refresh.text()).toBe('web.organizations.sso.last_sign_in_refresh');
+    });
+
     it('re-renders the line from a refreshed record without touching unsaved edits', async () => {
       const dirty = { ...mockExistingFormState, display_name: 'Unsaved edit' };
       wrapper = await mountComponent({
@@ -2491,8 +2619,8 @@ describe('DomainSsoConfigForm', () => {
 
   describe('Delete functionality', () => {
     const findDeleteButton = (w: VueWrapper) => {
-      const buttons = w.findAll('button[type="button"]');
-      return buttons.find((b) => b.text().includes('delete_config'));
+      const button = w.find('[data-testid="sso-delete"]');
+      return button.exists() ? button : undefined;
     };
 
     const findConfirmDeleteButton = (w: VueWrapper) => {
@@ -2509,7 +2637,7 @@ describe('DomainSsoConfigForm', () => {
 
       const deleteButton = findDeleteButton(wrapper);
       expect(deleteButton).toBeDefined();
-      expect(deleteButton!.text()).toContain('delete_config');
+      expect(deleteButton!.text()).toBe('web.COMMON.delete');
     });
 
     it('emits delete event after confirmation', async () => {
@@ -3389,6 +3517,7 @@ describe('DomainSsoConfigForm', () => {
             },
             isConfigured: true,
             clientSecretMasked: null,
+            hasUnsavedChanges: true,
           });
 
           expect(submitButton(wrapper).attributes('disabled')).toBeUndefined();
@@ -3400,6 +3529,8 @@ describe('DomainSsoConfigForm', () => {
             ssoConfig: { ...oidcConfig, client_secret_masked: null, unreadable_fields: [] },
             isConfigured: true,
             clientSecretMasked: null,
+            // Save is gated on unsaved changes too; this example is about validity.
+            hasUnsavedChanges: true,
           });
 
           const secret = wrapper.find('#domain-sso-client-secret');

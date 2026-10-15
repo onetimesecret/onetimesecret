@@ -775,7 +775,7 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
 
     // Delete lives in the Careful Consideration Zone at the end of the form, not the footer
     const cautionZone = ssoPage.locator('[data-testid="sso-caution-zone"]');
-    const deleteButton = cautionZone.locator('button').filter({ hasText: /delete/i });
+    const deleteButton = cautionZone.locator('[data-testid="sso-delete"]');
 
     if (await deleteButton.isVisible()) {
       // Click delete

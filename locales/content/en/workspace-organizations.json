@@ -833,8 +833,8 @@
     "content_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
-    "text": "Provider Type",
-    "content_hash": "bdfbb1ec"
+    "text": "Provider type",
+    "content_hash": "8c0f6d3e"
   },
   "web.organizations.sso.provider_type_description": {
     "text": "Select your organization's identity provider",
@@ -1064,8 +1064,8 @@
     "content_hash": "2ac9f345"
   },
   "web.organizations.sso.delete_config": {
-    "text": "Delete Configuration",
-    "content_hash": "9ac1ac7b"
+    "text": "Delete configuration",
+    "content_hash": "a9a30c7f"
   },
   "web.organizations.sso.delete_confirm": {
     "text": "Are you sure? This removes the SSO configuration for this domain.",
@@ -1207,6 +1207,10 @@
   "web.organizations.sso.diagnostics_title": {
     "text": "Check saved configuration",
     "content_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_placeholder": {
+    "text": "Results appear here after the check runs.",
+    "content_hash": "eb839782"
   },
   "web.organizations.sso.diagnostics_hint": {
     "text": "Checks saved fields and provider discovery for this domain. A client secret check is not available for generic OIDC. This does not test a full sign-in.",

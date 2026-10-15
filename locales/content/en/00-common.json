@@ -425,8 +425,8 @@
     "content_hash": "47d2a515"
   },
   "web.COMMON.save_changes": {
-    "text": "Save Changes",
-    "content_hash": "35322b5b"
+    "text": "Save changes",
+    "content_hash": "dd0ae7a5"
   },
   "web.COMMON.saving": {
     "text": "Saving...",
@@ -463,6 +463,10 @@
   "web.COMMON.remove": {
     "text": "Remove",
     "content_hash": "c3812fc4"
+  },
+  "web.COMMON.delete": {
+    "text": "Delete",
+    "content_hash": "e2d0a549"
   },
   "web.COMMON.add": {
     "text": "Add",
