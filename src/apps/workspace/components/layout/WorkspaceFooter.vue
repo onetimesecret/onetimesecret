@@ -16,7 +16,7 @@
   import type { LayoutProps } from '@/types/ui/layouts';
   import { isExternalUrl } from '@/utils/url';
   import { storeToRefs } from 'pinia';
-  import { computed } from 'vue';
+  import { computed, onMounted, onUnmounted, ref } from 'vue';
   import { useRoute } from 'vue-router';
 
   const props = withDefaults(defineProps<LayoutProps>(), {
@@ -149,6 +149,36 @@
     if (path === '/domains' && /^\/org\/[^/]+\/domains(\/|$)/.test(route.path)) return true;
     return route.path.startsWith(path + '/');
   };
+
+  // At md+ the footer is fixed to the viewport bottom, so a page that sticks
+  // its own bar above it needs the footer's real height, which depends on the
+  // links shown and on wrapping. Publish it as --workspace-footer-height on
+  // the root element; consumers fall back to 6rem (the layout's mb-24) until
+  // it is set.
+  const FOOTER_HEIGHT_PROPERTY = '--workspace-footer-height';
+  const footerEl = ref<HTMLElement | null>(null);
+  let resizeObserver: ResizeObserver | null = null;
+
+  const publishHeight = () => {
+    const height = footerEl.value?.offsetHeight ?? 0;
+    document.documentElement.style.setProperty(FOOTER_HEIGHT_PROPERTY, `${height}px`);
+  };
+
+  onMounted(() => {
+    publishHeight();
+    if (typeof ResizeObserver !== 'undefined' && footerEl.value) {
+      resizeObserver = new ResizeObserver(publishHeight);
+      resizeObserver.observe(footerEl.value);
+    } else {
+      window.addEventListener('resize', publishHeight);
+    }
+  });
+
+  onUnmounted(() => {
+    resizeObserver?.disconnect();
+    window.removeEventListener('resize', publishHeight);
+    document.documentElement.style.removeProperty(FOOTER_HEIGHT_PROPERTY);
+  });
 </script>
 
 <template>
@@ -195,6 +225,7 @@
   <!-- Main Footer - Natural flow on mobile, fixed on desktop -->
   <!-- prettier-ignore-attribute class -->
   <footer
+    ref="footerEl"
     class="
       z-10 w-full
       min-w-[320px]

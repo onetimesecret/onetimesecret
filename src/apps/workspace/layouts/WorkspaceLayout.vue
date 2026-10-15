@@ -96,7 +96,7 @@
     </template>
 
     <template #main>
-      <div class="min-h-screen bg-gray-50 dark:bg-gray-900 mb-24">
+      <div class="min-h-screen bg-gray-50 dark:bg-gray-900 mb-24 md:mb-[var(--workspace-footer-height,6rem)]">
         <div class="container mx-auto min-w-[320px] max-w-4xl px-4 py-8">
           <div class="flex items-start gap-8">
             <!-- Sidebar (Left position) -->

@@ -957,7 +957,8 @@ watch(newDomain, () => {
          cover the edges a browser scrolls a newly focused control to, so every
          focusable descendant carries a scroll margin that clears them (WCAG
          2.4.11 Focus Not Obscured). At md+ the footer sits above the layout's
-         fixed app footer (bottom-24), so the bottom margin grows with it. -->
+         fixed app footer (--workspace-footer-height, about 6rem), so the
+         bottom margin grows with it. -->
     <form
       v-else
       @submit.prevent="handleSubmit"
@@ -2250,12 +2251,13 @@ aria-hidden="true">*</span>
            check, so setup has one save path. One control per action. The
            negative margin spans the host card's horizontal padding so the top
            border meets the card edges. At md+ WorkspaceLayout fixes the app
-           footer to the viewport bottom and reserves mb-24 for it; the bar
-           sticks above that allowance rather than competing with it on
-           z-index. -->
+           footer to the viewport bottom and WorkspaceFooter publishes its
+           measured height as --workspace-footer-height (fallback 6rem, the
+           layout's mb-24); the bar sticks exactly on top of it rather than
+           competing with it on z-index, so nothing shows between the two. -->
       <div
         data-testid="sso-form-footer"
-        class="sticky bottom-0 z-10 -mx-6 flex flex-wrap items-center justify-between gap-3 rounded-b-lg border-t border-gray-200 bg-white px-6 py-4 md:bottom-24 dark:border-gray-700 dark:bg-gray-800">
+        class="sticky bottom-0 z-10 -mx-6 flex flex-wrap items-center justify-between gap-3 rounded-b-lg border-t border-gray-200 bg-white px-6 py-4 md:bottom-[var(--workspace-footer-height,6rem)] dark:border-gray-700 dark:bg-gray-800">
         <button
           v-if="hasUnsavedChanges"
           type="button"
