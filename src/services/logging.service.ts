@@ -1,7 +1,8 @@
 // src/services/logging.service.ts
 
-// Same box-drawing lettering the old ONETIME banner used. Art, so it is
-// not translated; the text under it is.
+// "STOP" in the Tmplr figlet font, the lettering the old ONETIME banner also
+// used. It is art, so it is not translated; the text under it is. Source:
+// https://patorjk.com/software/taag/#p=display&f=Tmplr&t=STOP%0A&x=none&v=4&h=4&w=80&we=false
 const STOP_BANNER = ['┏┓┏┳┓┏┓┏┓', '┗┓ ┃ ┃┃┃┃', '┗┛ ┻ ┗┛┣┛'].join('\n');
 
 /**
