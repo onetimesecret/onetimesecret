@@ -117,7 +117,7 @@ function initializeApp(app: App, options: AppInitializerOptions) {
 
   app.use(router);
 
-  // Display startup banner and the self-XSS warning
+  // Display the self-XSS warning
   loggingService.banner(consoleWarning());
 }
 
@@ -126,8 +126,7 @@ function consoleWarning(): ConsoleWarning {
   const { t } = globalComposer;
   return {
     heading: t('web.layout.console_warning_heading'),
-    lead: t('web.layout.console_warning_lead'),
     body: t('web.layout.console_warning_body'),
-    advice: t('web.layout.console_warning_advice'),
+    closing: t('web.layout.console_warning_closing'),
   };
 }

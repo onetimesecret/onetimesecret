@@ -1,25 +1,23 @@
 // src/services/logging.service.ts
 
-const STARTUP_BANNER = `
-┏┓┳┓┏┓┏┳┓┳┳┳┓┏┓
-┃┃┃┃┣  ┃ ┃┃┃┃┣
-┗┛┛┗┗┛ ┻ ┻┛ ┗┗┛
-`;
+// Same box-drawing lettering the old ONETIME banner used. Art, so it is
+// not translated; the text under it is.
+const STOP_BANNER = ['┏┓┏┳┓┏┓┏┓', '┗┓ ┃ ┃┃┃┃', '┗┛ ┻ ┗┛┣┛'].join('\n');
 
 /**
- * The self-XSS warning printed under the banner, already translated. Anyone
- * told to paste code into the console is being scammed; this is what they
- * read before they do.
+ * The self-XSS warning printed under the STOP banner, already translated.
+ * Anyone told to paste code into the console is being scammed; this is what
+ * they read before they do.
  */
 export interface ConsoleWarning {
   heading: string;
-  lead: string;
   body: string;
-  advice: string;
+  closing: string;
 }
 
-const WARNING_LEAD_STYLE = 'font-size:18px;font-weight:700;line-height:1.5';
+const WARNING_HEADING_STYLE = 'font-size:18px;font-weight:700;line-height:1.5';
 const WARNING_BODY_STYLE = 'font-size:14px;line-height:1.5';
+const WARNING_CLOSING_STYLE = 'font-size:14px;font-weight:700;line-height:1.5';
 
 /**
  * Console arguments that draw `text` in flame colours: one `%c%s` pair per
@@ -88,7 +86,7 @@ export interface LoggingService {
   warn(message: string, context?: Record<string, unknown>): void;
   info(message: string, context?: Record<string, unknown>): void;
   debug(message: string, context?: Record<string, unknown>): void;
-  banner(warning?: ConsoleWarning): void;
+  banner(warning: ConsoleWarning): void;
   getLevel(): LogLevel;
   setLevel(level: LogLevel): void;
 }
@@ -136,17 +134,16 @@ export class ConsoleLoggingService implements LoggingService {
   // production too. The build's dropConsole strips every `console.*` call,
   // so these go through `globalThis.console`, which it leaves alone
   // (console-survives-minify.spec.ts holds it to that).
-  banner(warning?: ConsoleWarning): void {
-    globalThis.console.log(...flameArgs(STARTUP_BANNER.trim(), 18));
-    if (!warning) return;
-    globalThis.console.log(...flameArgs(warning.heading, 36));
+  banner(warning: ConsoleWarning): void {
+    globalThis.console.log(...flameArgs(STOP_BANNER, 18));
     globalThis.console.log(
-      '%c%s\n\n%c%s\n\n%s',
-      WARNING_LEAD_STYLE,
-      warning.lead,
+      '%c%s\n\n%c%s\n\n%c%s',
+      WARNING_HEADING_STYLE,
+      warning.heading,
       WARNING_BODY_STYLE,
       warning.body,
-      warning.advice
+      WARNING_CLOSING_STYLE,
+      warning.closing
     );
   }
 }

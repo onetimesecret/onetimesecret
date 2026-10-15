@@ -2,11 +2,11 @@
 
 /**
  * The production build's minifier drops every `console.*` call
- * (vite.config.ts: compress.dropConsole). The startup banner and the
- * self-XSS warning must still reach visitors, so logging.service.ts calls
- * `globalThis.console.log`, which the minifier leaves alone. If a Vite or
- * Rolldown upgrade starts matching that form too, the warning silently
- * disappears from production; this spec catches it.
+ * (vite.config.ts: compress.dropConsole). The self-XSS warning must still
+ * reach visitors, so logging.service.ts calls `globalThis.console.log`,
+ * which the minifier leaves alone. If a Vite or Rolldown upgrade starts
+ * matching that form too, the warning silently disappears from production;
+ * this spec catches it.
  */
 
 import path from 'path';
@@ -43,8 +43,8 @@ describe('logging.service.ts under the production minifier', () => {
   it('keeps the banner and warning calls and drops ordinary console calls', async () => {
     const code = await minifiedLoggingService();
 
-    expect(code).toContain('┏┓┳┓┏┓┏┳┓┳┳┳┓┏┓');
-    expect(code.match(/globalThis\.console\.log\(/g)).toHaveLength(3);
+    expect(code).toContain('┏┓┏┳┓┏┓┏┓');
+    expect(code.match(/globalThis\.console\.log\(/g)).toHaveLength(2);
     // The level-gated methods still go: dropConsole is doing its job.
     expect(code).not.toMatch(/(?<!globalThis\.)console\.(debug|info|warn|error)\(/);
   }, 60_000);

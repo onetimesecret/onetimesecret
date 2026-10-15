@@ -82,26 +82,18 @@ describe('ConsoleLoggingService', () => {
     expect(c.debug.mock.calls).toEqual([['with', { a: 1 }], ['without']]);
   });
 
-  it('prints the banner at any level', () => {
-    const c = spies();
-    new ConsoleLoggingService('silent').banner();
-    expect(c.log).toHaveBeenCalledTimes(1);
-  });
-
-  it('prints the warning under the banner when given one', () => {
+  it('prints the STOP banner and the warning at any level', () => {
     const c = spies();
     new ConsoleLoggingService('silent').banner({
-      heading: 'Danger',
-      lead: 'Stop.',
+      heading: 'Welcome',
       body: 'Body text.',
-      advice: 'Close this panel.',
+      closing: 'Do not paste.',
     });
-    expect(c.log).toHaveBeenCalledTimes(3);
-    const [, heading, text] = c.log.mock.calls;
-    expect(heading).toEqual(flameArgs('Danger', 36));
-    expect(text.filter((arg) => !String(arg).includes(':'))).toEqual(
-      expect.arrayContaining(['Stop.', 'Body text.', 'Close this panel.'])
-    );
+    expect(c.log).toHaveBeenCalledTimes(2);
+    const [[artFormat], text] = c.log.mock.calls;
+    expect(artFormat).toMatch(/^(%c%s)+\n/);
+    expect(text[0]).toBe('%c%s\n\n%c%s\n\n%c%s');
+    expect([text[2], text[4], text[6]]).toEqual(['Welcome', 'Body text.', 'Do not paste.']);
   });
 });
 
