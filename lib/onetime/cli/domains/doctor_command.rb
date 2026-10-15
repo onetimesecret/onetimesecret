@@ -664,7 +664,8 @@ module Onetime
           if scope_org
             # Only entries that touch THIS org can affect its deletion.
             next unless [recorded_org_id.to_s, actual_org_id].include?(scope_org.objid)
-            next if scope_org.domain?(domain_id)
+            # Repair removes stale memberships before the per-domain scan.
+            next if domain && scope_org.domain?(domain_id) && (!repair || actual_org_id == scope_org.objid)
           elsif domain && Onetime::CustomDomain.instances.member?(domain_id)
             next
           end

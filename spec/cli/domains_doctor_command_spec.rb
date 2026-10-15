@@ -671,19 +671,76 @@ RSpec.describe 'Domains Doctor Command collection checks (real datastore)', :dat
   end
 
   describe 'check #10 sweep under --org' do
-    # The sweep skips domains the per-domain scan visits (everything in
-    # scope_org.domains), so one drifted entry surfaces as one issue.
-    it 'reports owners drift for a listed domain once' do
-      org    = create_org('owners')
-      domain = create_domain(org, 'drifted')
-      Onetime::CustomDomain.record_owner(domain, "other#{suffix}")
+    [false, true].each do |repair|
+      context "with repair=#{repair}" do
+        it 'reports owners drift for a valid listed domain once' do
+          org    = create_org('owners')
+          domain = create_domain(org, 'drifted')
+          recorded_org_id = "other#{suffix}"
+          Onetime::CustomDomain.record_owner(domain, recorded_org_id)
 
-      # The --org branch of #call.
-      command.send(:check_index_integrity, report, repair: false, scope_org: org)
-      command.send(:check_org_domains, org, report, repair: false)
+          # The --org branch of #call.
+          command.send(:check_index_integrity, report, repair: repair, scope_org: org)
+          command.send(:check_org_domains, org, report, repair: repair)
 
-      drift = all_issues.select { |i| %i[owners_index_drift owners_index_stale].include?(i[:check]) }
-      expect(drift.map { |i| i[:check] }).to eq([:owners_index_drift])
+          drift = all_issues.select { |i| %i[owners_index_drift owners_index_stale].include?(i[:check]) }
+          expect(drift.map { |i| i[:check] }).to eq([:owners_index_drift])
+          expect(report[:checked]).to eq(1)
+          expect(Onetime::CustomDomain.owners.get(domain.objid)).to eq(repair ? org.objid : recorded_org_id)
+          repaired = report[:repaired].select { |r| r[:action] == :owners_entry_realigned }
+          expect(repaired.size).to eq(repair ? 1 : 0)
+        end
+
+        it 'reports a missing record even while its ID is listed in the scoped org' do
+          org   = create_org('missing_owner')
+          ghost = Onetime::CustomDomain.new(objid: "ghost#{suffix}")
+          org.domains.add(ghost, Familia.now.to_f)
+          Onetime::CustomDomain.record_owner(ghost, org.objid)
+          expect(org.domain?(ghost.objid)).to be(true)
+
+          command.send(:check_index_integrity, report, repair: repair, scope_org: org)
+          command.send(:check_org_domains, org, report, repair: repair)
+
+          drift = all_issues.select { |i| %i[owners_index_drift owners_index_stale].include?(i[:check]) }
+          expect(drift.map { |i| i[:check] }).to eq([:owners_index_stale])
+          expect(drift.first[:stale_entries]).to eq([{
+            domain_id: ghost.objid,
+            recorded_org_id: org.objid,
+            actual_org_id: nil,
+            reason: 'domain record not found',
+          }])
+          expect(report[:checked]).to eq(0)
+          expect(org.domain?(ghost.objid)).to eq(!repair)
+          expect(Onetime::CustomDomain.owners.get(ghost.objid)).to eq(repair ? nil : org.objid)
+          repaired = report[:repaired].select { |r| r[:action] == :owners_index_realigned }
+          expect(repaired.map { |r| r[:count] }).to eq(repair ? [1] : [])
+        ensure
+          Onetime::CustomDomain.record_owner(ghost, nil) if ghost
+        end
+
+        it 'handles owners drift for a listed domain that belongs to another org once' do
+          org_a  = create_org('old_owner')
+          org_b  = create_org('actual_owner')
+          domain = create_domain(org_b, 'transferred')
+          domain.add_to_organization_domains(org_a)
+          Onetime::CustomDomain.record_owner(domain, org_a.objid)
+          expect(org_a.domain?(domain.objid)).to be(true)
+
+          command.send(:check_index_integrity, report, repair: repair, scope_org: org_a)
+          command.send(:check_org_domains, org_a, report, repair: repair)
+
+          drift = all_issues.select { |i| %i[owners_index_drift owners_index_stale].include?(i[:check]) }
+          expect(drift.map { |i| i[:check] }).to eq([repair ? :owners_index_stale : :owners_index_drift])
+          expect(report[:checked]).to eq(repair ? 0 : 1)
+          expect(org_a.domain?(domain.objid)).to eq(!repair)
+          expect(org_b.domain?(domain.objid)).to be(true)
+          expect(Onetime::CustomDomain.load(domain.objid).org_id).to eq(org_b.objid)
+          expect(Onetime::CustomDomain.owners.get(domain.objid)).to eq(repair ? org_b.objid : org_a.objid)
+          repaired = report[:repaired].select { |r| r[:action] == :owners_index_realigned }
+          expect(repaired.map { |r| r[:count] }).to eq(repair ? [1] : [])
+          expect(org_a.unlisted_owned_domains).to be_empty
+        end
+      end
     end
   end
 end
