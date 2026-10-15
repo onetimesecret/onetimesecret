@@ -2580,6 +2580,52 @@ describe('useSsoConfig', () => {
       expect(composable.ssoConfig.value?.last_sign_in).toBeNull();
     });
 
+    it('keeps the saved successful sign-in when an older failed sign-in refresh lands later', async () => {
+      const olderRecord: CustomDomainSsoConfig = {
+        ...mockSsoConfigData,
+        last_sign_in: {
+          result: 'failed',
+          at: signedIn.at - 60,
+          succeeded_at: null,
+          failed_at: signedIn.at - 60,
+          failure_stage: 'provider',
+          failure_code: 'invalid_credentials',
+          provider_type: 'entra_id',
+        },
+      };
+      mockGetConfigForDomain.mockResolvedValueOnce({ record: olderRecord });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+      let settle!: (value: { record: CustomDomainSsoConfig }) => void;
+      mockGetConfigForDomain.mockReturnValueOnce(
+        new Promise<{ record: CustomDomainSsoConfig }>((resolve) => {
+          settle = resolve;
+        })
+      );
+      const pending = composable.refreshLastSignIn({ passive: true });
+      expect(composable.isRefreshingLastSignIn.value).toBe(true);
+
+      composable.formState.value.display_name = 'Saved name';
+      const savedRecord: CustomDomainSsoConfig = {
+        ...mockSsoConfigData,
+        display_name: 'Saved name',
+        last_sign_in: signedIn,
+      };
+      mockSaveConfigForDomain.mockResolvedValueOnce({ record: savedRecord });
+      expect(await composable.saveConfig()).toBe(true);
+      expect(composable.ssoConfig.value).toEqual(savedRecord);
+      expect(composable.isRefreshingLastSignIn.value).toBe(true);
+
+      settle({ record: olderRecord });
+      await pending;
+
+      expect(composable.ssoConfig.value).toEqual(savedRecord);
+      expect(composable.formState.value.display_name).toBe('Saved name');
+
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+      expect(composable.isRefreshingLastSignIn.value).toBe(false);
+    });
+
     it('keeps what is shown when the request fails, without a toast or page error', async () => {
       mockGetConfigForDomain.mockResolvedValueOnce({ record: mockSsoConfigData });
       const composable = useSsoConfig('dm-ext-123');

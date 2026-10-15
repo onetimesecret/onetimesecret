@@ -389,9 +389,9 @@ export function useSsoConfig(domainExtId: string) {
   };
 
   /**
-   * Advanced when the record may have been replaced wholesale (a reload, a
-   * delete), so a last-sign-in refresh that was in flight is not merged into
-   * a different record.
+   * Advanced when the record may have been replaced wholesale (a reload,
+   * save or delete), so a last-sign-in refresh that was in flight is not
+   * merged into a different record.
    */
   let recordGeneration = 0;
 
@@ -573,6 +573,7 @@ export function useSsoConfig(domainExtId: string) {
     record: CustomDomainSsoConfig,
     outcome: { keepsCredentialCheck: boolean; credentialsChanged: boolean }
   ) => {
+    recordGeneration += 1;
     ssoConfig.value = record;
     if (!outcome.keepsCredentialCheck || !savedCredentialsChecked.value) {
       checkedCredentialsFingerprint.value = null;
@@ -780,7 +781,7 @@ export function useSsoConfig(domainExtId: string) {
             : SsoService.getConfigForDomain(domainExtId)
         );
         const record = response?.record;
-        // A reload or delete landed meanwhile; that path set the record.
+        // A reload, save or delete landed meanwhile; that path set the record.
         if (!record || !ssoConfig.value || generation !== recordGeneration) return;
         ssoConfig.value = { ...ssoConfig.value, last_sign_in: record.last_sign_in };
       } finally {
