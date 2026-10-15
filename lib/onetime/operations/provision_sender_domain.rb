@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../mail/sender_strategies'
+require_relative 'sender_identity_lease'
 
 module Onetime
   module Operations
@@ -82,12 +83,12 @@ module Onetime
         # teardowns in DeleteSenderConfig and domain removal
         # (MailerConfig.sender_identity_lock).
         lock       = @mailer_config.sender_identity_lock
-        lock_token = lock.acquire(ttl: 60)
-        unless lock_token
+        lease      = Onetime::Operations::SenderIdentityLease.new(lock)
+        unless lease.acquire
           return failure_result("Sender identity provisioning or deletion already in progress for #{@mailer_config.domain_id}")
         end
 
-        begin
+        lease.protect do
           # The record was loaded before the lock was taken. A sender config
           # delete or a domain removal tears the identity down and deletes
           # the record while holding this lock, so one that finished in the
@@ -132,7 +133,9 @@ module Onetime
             provider: provider,
             from_address: @mailer_config.from_address
 
+          lease.check!
           provision_result = strategy.provision_dns_records(@mailer_config, credentials: credentials)
+          lease.check!
 
           # Step 6: Handle strategy result
           unless provision_result[:success]
@@ -163,9 +166,12 @@ module Onetime
             provider_data: provider_data,
             error: nil,
           )
-        ensure
-          lock.release(lock_token)
         end
+      rescue Onetime::Operations::SenderIdentityLease::Lost => ex
+        logger.error 'Sender identity lease lost during provisioning',
+          domain_id: @mailer_config&.domain_id,
+          error: ex.message
+        failure_result(ex.message)
       rescue ArgumentError => ex
         # Strategy selection or validation errors
         logger.error 'Provisioning argument error',

@@ -4,6 +4,7 @@
 
 require 'onetime/domain_validation/strategy'
 require 'onetime/operations/delete_sender_domain'
+require 'onetime/operations/sender_identity_lease'
 require_relative '../base'
 
 module DomainsAPI::Logic
@@ -63,25 +64,34 @@ module DomainsAPI::Logic
         # of it. Taken before the first teardown step, so a refusal leaves
         # the domain as it was.
         lock       = Onetime::CustomDomain::MailerConfig.sender_identity_lock(@custom_domain.identifier)
-        lock_token = lock.acquire(ttl: 60)
-        unless lock_token
+        lease      = Onetime::Operations::SenderIdentityLease.new(lock)
+        unless lease.acquire
           raise_form_error("Another change to this domain's sender configuration is in progress. Please try again.", field: :extid, error_type: :conflict)
         end
 
+        removal_committed = false
+        lease_error       = nil
         begin
-          # Delete from external SSL provider via strategy
-          delete_vhost
+          lease.protect do
+            # Delete from external SSL provider via strategy
+            delete_vhost
+            lease.check!
 
-          # Delete from external mail provider before destroy! wipes mailer_config
-          delete_sender_domain
+            # Delete from external mail provider before destroy! wipes mailer_config
+            delete_sender_domain
+            lease.check!
 
-          # Destroy method operates inside a multi block that deletes the domain
-          # record, removes it from customer's domain list, and global list so
-          # it's all or nothing. It does not delete the external approximated
-          # vhost record.
-          @custom_domain.destroy!
-        ensure
-          lock.release(lock_token)
+            # Destroy method operates inside a multi block that deletes the domain
+            # record, removes it from customer's domain list, and global list so
+            # it's all or nothing. It does not delete the external approximated
+            # vhost record.
+            @custom_domain.destroy!
+            removal_committed = true
+          end
+        rescue Onetime::Operations::SenderIdentityLease::Lost => ex
+          raise unless removal_committed
+
+          lease_error = ex
         end
 
         # Clear the session's domain context if it matches the removed domain.
@@ -90,7 +100,26 @@ module DomainsAPI::Logic
           sess['domain_context'] = nil
         end
 
+        if lease_error
+          details = { removal_committed: true, lease_lost: true }
+          OT.info '[RemoveDomain] Domain removal committed with lease loss',
+            details.merge(
+              event: 'domain_removed',
+              domain_extid: @extid,
+              domain_display: @display_domain,
+              actor_extid: cust.extid,
+            ).to_json
+          raise_form_error(
+            "Domain #{@display_domain} was removed, but #{lease_error.message}",
+            field: :extid,
+            error_type: :conflict,
+            details: details,
+          )
+        end
+
         success_data
+      rescue Onetime::Operations::SenderIdentityLease::Lost => ex
+        raise_form_error(ex.message, field: :extid, error_type: :conflict)
       end
 
       # Deletes vhost from external provider using the configured strategy.
