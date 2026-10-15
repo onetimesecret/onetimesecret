@@ -934,11 +934,14 @@ watch(newDomain, () => {
       v-if="isLoading"
       :heading="false" />
 
-    <!-- Form -->
+    <!-- Form. The sticky footer (bottom) and the host's sticky header (top)
+         cover the edges a browser scrolls a newly focused control to, so every
+         focusable descendant carries a scroll margin that clears them (WCAG
+         2.4.11 Focus Not Obscured). -->
     <form
       v-else
       @submit.prevent="handleSubmit"
-      class="space-y-8">
+      class="space-y-8 [&_:is(input,select,textarea,button,summary,a)]:scroll-mt-24 [&_:is(input,select,textarea,button,summary,a)]:scroll-mb-28">
       <!-- Setup guide: one line, with the numbered stages behind a
            disclosure. Stays until the connection is on (showSetupGuide). -->
       <section
@@ -2255,12 +2258,14 @@ aria-hidden="true">*</span>
       </section>
 
       <!-- Footer, sticky to the viewport bottom: the primary action first,
-           then Discard / Save for a record that exists (a new record is saved
-           by the check, so setup has one save path; saving never turns the
-           connection on). One control per action. -->
+           then Discard whenever there is something to discard, and Save for a
+           record that exists (a new record is saved by the check, so setup
+           has one save path; saving never turns the connection on). One
+           control per action. The negative margin spans the host card's
+           horizontal padding so the top border meets the card edges. -->
       <div
         data-testid="sso-form-footer"
-        class="sticky bottom-0 z-10 flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 bg-white py-4 dark:border-gray-700 dark:bg-gray-800">
+        class="sticky bottom-0 z-10 -mx-6 flex flex-wrap items-center justify-between gap-3 rounded-b-lg border-t border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
         <button
           type="button"
           data-testid="sso-diagnostics-run"
@@ -2285,10 +2290,10 @@ aria-hidden="true">*</span>
         </button>
 
         <div
-          v-if="isEditing"
+          v-if="isEditing || hasUnsavedChanges"
           class="flex flex-wrap items-center gap-3">
           <button
-            v-if="hasUnsavedChanges"
+            v-if="hasUnsavedChanges && !showDeleteConfirm"
             type="button"
             @click="emit('discard')"
             :disabled="isSaving"
@@ -2296,6 +2301,7 @@ aria-hidden="true">*</span>
             {{ t('web.domains.email.discard_changes') }}
           </button>
           <button
+            v-if="isEditing"
             type="submit"
             data-testid="sso-save"
             :disabled="!isFormValid || isSaving || isDeleting"

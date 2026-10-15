@@ -484,8 +484,9 @@ test.describe('Domain SSO Configuration - Form', () => {
 
     const ssoPage = await openDomainSsoPage(page, org.extid, unconfiguredDomain!.extid);
 
-    // Find save button scoped to the SSO page
-    const saveButton = ssoPage.locator('button[type="submit"]');
+    // A new record has no Save button: the primary action "Save and check"
+    // (sso-diagnostics-run) saves it, and is disabled while the form is invalid.
+    const saveButton = ssoPage.locator('[data-testid="sso-diagnostics-run"]');
 
     // Button should be disabled when form is empty
     await expect(saveButton).toBeDisabled();
@@ -733,8 +734,9 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
       await tenantIdInput.fill('test-tenant-id');
     }
 
-    // Click save button scoped to the SSO page
-    const saveButton = ssoPage.locator('button[type="submit"]');
+    // A new record is saved by the primary action "Save and check"
+    // (sso-diagnostics-run), which saves first and then runs the check.
+    const saveButton = ssoPage.locator('[data-testid="sso-diagnostics-run"]');
     await saveButton.click();
 
     // Wait until the mocked save round-trip is captured
@@ -771,15 +773,16 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
 
     const ssoPage = await openDomainSsoPage(page, org.extid, configuredDomain!.extid);
 
-    // Find delete button scoped to the page
-    const deleteButton = ssoPage.locator('button').filter({ hasText: /delete/i });
+    // Delete lives in the danger zone at the end of the form, not the footer
+    const dangerZone = ssoPage.locator('[data-testid="sso-danger-zone"]');
+    const deleteButton = dangerZone.locator('button').filter({ hasText: /delete/i });
 
     if (await deleteButton.isVisible()) {
       // Click delete
       await deleteButton.click();
 
-      // Confirm deletion (inline confirm in the danger zone)
-      const confirmButton = ssoPage
+      // Confirm deletion (inline confirm in the danger zone: "Yes, delete")
+      const confirmButton = dangerZone
         .locator('button')
         .filter({ hasText: /confirm|delete/i })
         .last();
@@ -889,8 +892,9 @@ test.describe('Domain SSO Configuration - Multi-Domain', () => {
     await page.locator('#domain-sso-client-secret').fill('secret-a');
     await page.locator('#domain-sso-tenant-id').fill('tenant-a');
 
-    // Step 3: Save domain A config (anchor on the mocked save round-trip)
-    const saveButtonA = ssoPageA.locator('button[type="submit"]');
+    // Step 3: Save domain A config via the primary action (a new record is
+    // saved by "Save and check"); anchor on the mocked save round-trip
+    const saveButtonA = ssoPageA.locator('[data-testid="sso-diagnostics-run"]');
     const saveResponseA = page.waitForResponse(
       (r) => r.url().includes(`/api/domains/${domainA.extid}/sso`) && r.request().method() !== 'GET'
     );
@@ -910,8 +914,9 @@ test.describe('Domain SSO Configuration - Multi-Domain', () => {
     await page.locator('#domain-sso-client-secret').fill('secret-b');
     await page.locator('#domain-sso-issuer').fill('https://idp.domain-b.example.com');
 
-    // Step 6: Save domain B config (anchor on the mocked save round-trip)
-    const saveButtonB = ssoPageB.locator('button[type="submit"]');
+    // Step 6: Save domain B config via the primary action (anchor on the
+    // mocked save round-trip)
+    const saveButtonB = ssoPageB.locator('[data-testid="sso-diagnostics-run"]');
     const saveResponseB = page.waitForResponse(
       (r) => r.url().includes(`/api/domains/${domainB.extid}/sso`) && r.request().method() !== 'GET'
     );

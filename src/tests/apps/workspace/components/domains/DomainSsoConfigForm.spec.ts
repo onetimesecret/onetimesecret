@@ -500,7 +500,7 @@ describe('DomainSsoConfigForm', () => {
       expect(wrapper.get('[data-testid="sso-diagnostics"]').find(RUN).exists()).toBe(false);
       expect(wrapper.findAll(RUN)).toHaveLength(1);
       expect(wrapper.get('form').element.contains(footer.element)).toBe(true);
-      // A new record: no Save, no Discard, no delete.
+      // A clean new record: no Save, nothing to discard, no delete.
       expect(footer.find('button[type="submit"]').exists()).toBe(false);
       expect(buttonsByKey(wrapper, 'discard_changes')).toHaveLength(0);
       expect(wrapper.find(DANGER_ZONE).exists()).toBe(false);
@@ -525,6 +525,18 @@ describe('DomainSsoConfigForm', () => {
       expect(buttonsByKey(wrapper, 'discard_changes')).toHaveLength(1);
       // Delete lives in the danger zone, not the footer.
       expect(buttonsByKey(footer, 'delete_config')).toHaveLength(0);
+    });
+
+    it('offers Discard for a dirty new record, still with no Save (the check saves)', async () => {
+      wrapper = await mountComponent({ hasUnsavedChanges: true });
+
+      const footer = wrapper.get(FOOTER);
+      expect(footer.findAll('button').map((b) => b.text())).toEqual([
+        'web.organizations.sso.diagnostics_save_and_check',
+        'web.domains.email.discard_changes',
+      ]);
+      expect(footer.find('button[type="submit"]').exists()).toBe(false);
+      expect(buttonsByKey(wrapper, 'discard_changes')).toHaveLength(1);
     });
 
     it('hides Discard while an existing record is clean', async () => {
@@ -2355,9 +2367,9 @@ describe('DomainSsoConfigForm', () => {
     });
   });
 
-  // The dialog has no control for SsoConfig.enabled: the record is created
+  // The page has no control for SsoConfig.enabled: the record is created
   // off and only a passing saved-configuration check turns it on (the
-  // primary action above); nothing in the dialog turns it off. The sign-in
+  // primary action above); nothing on the page turns it off. The sign-in
   // method on the domain's Sign-In Configuration page is the one control.
   describe('No connection switch (Connection active / Disable SSO removed)', () => {
     it.each([

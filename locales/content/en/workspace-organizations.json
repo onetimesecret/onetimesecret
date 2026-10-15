@@ -1072,8 +1072,8 @@
     "content_hash": "9ac1ac7b"
   },
   "web.organizations.sso.delete_confirm": {
-    "text": "Are you sure? This will disable SSO for your organization.",
-    "content_hash": "5b3f5b9d"
+    "text": "Are you sure? This removes the SSO configuration for this domain.",
+    "content_hash": "ab6e2dcf"
   },
   "web.organizations.sso.delete_config_hint": {
     "text": "Removes the saved configuration and its credentials from this domain. Members can no longer sign in with SSO here.",
@@ -1152,8 +1152,8 @@
     "content_hash": "9721d7b9"
   },
   "web.organizations.sso.provider_check_next": {
-    "text": "This is not a sign-in test. Next, use Save and check below to check the saved configuration.",
-    "content_hash": "aa255e38"
+    "text": "This is not a sign-in test. Next, use Save and check to check the saved configuration.",
+    "content_hash": "347d4278"
   },
   "web.organizations.sso.technical_details": {
     "text": "Technical details",
