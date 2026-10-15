@@ -21,7 +21,7 @@ RSpec.describe Onetime::CLI::CustomersPurgeCommand do
 
   it 'routes local candidates through the receipt-backed bulk purge lifecycle' do
     customer = instance_double(Onetime::Customer)
-    result   = instance_double(Auth::Operations::Customers::Purge::Result, status: :success)
+    result   = instance_double(Auth::Operations::Customers::Purge::Result, status: :success, actions: [])
     operation = instance_double(Auth::Operations::Customers::Purge, call: result)
     context = instance_double(Onetime::Operations::BulkAuditContext)
     cutoff = Time.utc(2024, 1, 2)
@@ -44,7 +44,7 @@ RSpec.describe Onetime::CLI::CustomersPurgeCommand do
     customer     = double('customer')
     cache_redis  = double('cache redis', zcard: 2, zrem: 1)
     source_redis = double('source redis')
-    result       = instance_double(Auth::Operations::Customers::Purge::Result, status: :success)
+    result       = instance_double(Auth::Operations::Customers::Purge::Result, status: :success, actions: [])
     records      = {
       'cust_1' => { _model: customer, email: 'a@example.com' },
       'cust_2' => { _model: customer, email: 'b@example.com' },
@@ -69,7 +69,7 @@ RSpec.describe Onetime::CLI::CustomersPurgeCommand do
     candidates      = Array.new(candidate_count) { |index| "cust_#{index}" }
     cache_redis     = double('cache redis', zcard: candidate_count, zrem: 1)
     source_redis    = double('source redis')
-    result          = instance_double(Auth::Operations::Customers::Purge::Result, status: :success)
+    result          = instance_double(Auth::Operations::Customers::Purge::Result, status: :success, actions: [])
 
     command.instance_variable_set(:@using_remote, false)
     allow(command).to receive(:batch_load_customer_records) do |_source, batch|
@@ -101,11 +101,133 @@ RSpec.describe Onetime::CLI::CustomersPurgeCommand do
       detail: hash_including(
         candidates: candidate_count,
         destroyed: candidate_count,
+        stale_participations_removed: 0,
         errors: 0,
         start_receipt_id: 'start-receipt',
       ),
       fail_closed: true,
     )
+  end
+
+  [:success, :partial].each do |status|
+    it "aggregates completed stale-reference cleanup in the #{status} completion receipt" do
+      cache_redis  = double('cache redis', zcard: 2, zrem: 1)
+      source_redis = double('source redis')
+      actions = [
+        { type: :remove_stale_participation, status: :success, reference: 'organization:gone:members' },
+        { type: :remove_stale_participation, status: :success, reference: 'organization:other:members' },
+        { type: :remove_stale_participation, status: :refused },
+        { type: :remove_membership, status: :success },
+      ]
+      result = instance_double(
+        Auth::Operations::Customers::Purge::Result,
+        status: status, actions: actions, stage: :teardown,
+        completed_stages: [:remove_stale_participation], blockers: [],
+      )
+      unchanged = instance_double(Auth::Operations::Customers::Purge::Result, status: :success, actions: [])
+      records = %w[cust_1 cust_2].to_h do |objid|
+        [objid, { _model: double('customer'), email: 'masked@example.com' }]
+      end
+
+      command.instance_variable_set(:@using_remote, false)
+      allow(command).to receive(:batch_load_customer_records).and_return(records)
+      allow(command).to receive(:purge_customer).and_return(result, unchanged)
+      allow(Onetime::ColonelAuditEvent).to receive(:record)
+        .and_return({ 'id' => 'start-receipt' }, { 'id' => 'completion-receipt' })
+
+      output = capture_stdout do
+        run = -> { command.send(:execute_purge, source_redis, cache_redis, records.keys, Time.utc(2024, 1, 2)) }
+        if status == :partial
+          expect(&run).to raise_error(SystemExit) { |error| expect(error.status).to eq(1) }
+        else
+          run.call
+        end
+      end
+
+      expect(output).to include('Stale references removed: 2')
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).twice
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
+        hash_including(
+          result: status == :partial ? :failure : :success,
+          detail: {
+            cutoff: '2024-01-02', candidates: 2,
+            destroyed: status == :partial ? 1 : 2,
+            stale_participations_removed: 2,
+            billing_protected: 0, refused: 0,
+            partial: status == :partial ? 1 : 0,
+            not_found: 0, skipped: 0, errors: status == :partial ? 1 : 0,
+            start_receipt_id: 'start-receipt',
+          },
+        ),
+      )
+    end
+  end
+
+  [:during_purge, :after_result].each do |failure_point|
+    it "counts completed cleanup once when an exception occurs #{failure_point}, without reusing the previous operation" do
+      cache_redis  = double('cache redis', zcard: 2, zrem: 1)
+      source_redis = double('source redis')
+      customer = double('customer')
+      next_customer = double('next customer')
+      actions = [
+        { type: :remove_stale_participation, status: :success, reference: 'organization:gone:members' },
+        { type: :remove_stale_participation, status: :refused },
+        { type: :remove_membership, status: :success },
+      ]
+      result = instance_double(Auth::Operations::Customers::Purge::Result, status: :success, actions: actions)
+      operation = instance_double(
+        Auth::Operations::Customers::Purge,
+        outcome_context: { stage: :account_teardown, actions: actions },
+      )
+      if failure_point == :during_purge
+        allow(operation).to receive(:call).and_raise(StandardError, 'close_auth failed')
+      else
+        allow(operation).to receive(:call).and_return(result)
+        allow(OT).to receive(:info).with('[purge] Destroyed cust_1 masked@example.com')
+          .and_raise(StandardError, 'logging failed')
+      end
+      records = {
+        'cust_1' => { _model: customer, email: 'masked@example.com' },
+        'cust_2' => { _model: next_customer, email: 'next@example.com' },
+      }
+
+      command.instance_variable_set(:@using_remote, false)
+      allow(command).to receive(:batch_load_customer_records).and_return(records)
+      allow(Auth::Operations::Customers::Purge).to receive(:new)
+        .with(hash_including(customer: customer)).and_return(operation)
+      allow(Auth::Operations::Customers::Purge).to receive(:new)
+        .with(hash_including(customer: next_customer)).and_raise(StandardError, 'initialization failed')
+      allow(Onetime::ColonelAuditEvent).to receive(:record)
+        .and_return({ 'id' => 'start-receipt' }, { 'id' => 'completion-receipt' })
+
+      output = capture_stdout do
+        expect do
+          command.send(:execute_purge, source_redis, cache_redis, records.keys, Time.utc(2024, 1, 2))
+        end.to raise_error(SystemExit) { |error| expect(error.status).to eq(1) }
+      end
+
+      expect(output).to include('Stale references removed: 1')
+      expect(operation).to have_received(:call).once
+      if failure_point == :during_purge
+        expect(operation).to have_received(:outcome_context).once
+      else
+        expect(operation).not_to have_received(:outcome_context)
+      end
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).twice
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
+        hash_including(
+          result: :failure,
+          detail: {
+            cutoff: '2024-01-02', candidates: 2,
+            destroyed: failure_point == :after_result ? 1 : 0,
+            stale_participations_removed: 1,
+            billing_protected: 0, refused: 0, partial: 0,
+            not_found: 0, skipped: 0, errors: 2,
+            start_receipt_id: 'start-receipt',
+          },
+        ),
+      )
+    end
   end
 
   # A bulk refusal writes no operator-trail event of its own (the completion
@@ -178,7 +300,7 @@ RSpec.describe Onetime::CLI::CustomersPurgeCommand do
     customer = double('customer')
     cache_redis = double('cache redis', zcard: 1, zrem: 1)
     source_redis = double('source redis')
-    result = instance_double(Auth::Operations::Customers::Purge::Result, status: :success)
+    result = instance_double(Auth::Operations::Customers::Purge::Result, status: :success, actions: [])
 
     command.instance_variable_set(:@using_remote, false)
     allow(command).to receive(:batch_load_customer_records)

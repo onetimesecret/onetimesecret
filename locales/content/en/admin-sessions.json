@@ -4,8 +4,8 @@
     "content_hash": "6fa3cbf4"
   },
   "web.admin.sessions.description": {
-    "text": "Inspect, search and revoke active sessions for incident response.",
-    "content_hash": "784a3a44"
+    "text": "Review active sessions and revoke access when needed.",
+    "content_hash": "08ce4b58"
   },
   "web.admin.sessions.columns.authenticated": {
     "text": "Auth",
