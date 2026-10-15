@@ -30,7 +30,7 @@
   import { isOrgsSsoEnabled, isSamlEnabled } from '@/utils/features';
   import { useEventListener } from '@vueuse/core';
   import { storeToRefs } from 'pinia';
-  import { computed, onMounted, watch } from 'vue';
+  import { computed, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { onBeforeRouteLeave, useRouter } from 'vue-router';
 
@@ -182,6 +182,17 @@
     if (!hadRecord || ssoIsConfigured.value) return;
     await refreshAfterSsoChange();
     router.push(signinRoute.value);
+  };
+
+  // Delete is the one destructive action, so it lives in the page's Careful
+  // Consideration Zone below the card (as DomainDetail lays out domain
+  // removal), with an inline confirm rather than a dialog.
+  const showDeleteConfirm = ref(false);
+
+  const confirmSsoDelete = async () => {
+    if (ssoDeleting.value) return;
+    await handleSsoDelete();
+    showDeleteConfirm.value = false;
   };
 
   const handleRefreshLastSignIn = (passive: boolean) => refreshLastSignIn({ passive });
@@ -349,67 +360,140 @@
       </div>
 
       <!-- SSO Configuration -->
-      <div
-        v-else
-        class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-          <div class="flex items-center gap-3">
-            <div
-              class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
-              <OIcon
-                collection="heroicons"
-                name="shield-check"
-                class="size-5 text-brand-600 dark:text-brand-400"
-                aria-hidden="true" />
+      <template v-else>
+        <div class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+          <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+            <div class="flex items-center gap-3">
+              <div
+                class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
+                <OIcon
+                  collection="heroicons"
+                  name="shield-check"
+                  class="size-5 text-brand-600 dark:text-brand-400"
+                  aria-hidden="true" />
+              </div>
+              <div class="min-w-0 flex-1">
+                <h2
+                  class="truncate text-lg font-semibold text-gray-900 dark:text-white"
+                  data-testid="sso-page-heading">
+                  {{ pageHeading }}
+                </h2>
+                <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+                  {{ t('web.domains.sso.page_description', { domain: domainHost }) }}
+                </p>
+              </div>
             </div>
-            <div class="min-w-0 flex-1">
-              <h2
-                class="truncate text-lg font-semibold text-gray-900 dark:text-white"
-                data-testid="sso-page-heading">
-                {{ pageHeading }}
-              </h2>
-              <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
-                {{ t('web.domains.sso.page_description', { domain: domainHost }) }}
-              </p>
-            </div>
+          </div>
+
+          <!-- No bottom padding: the form's sticky footer sits flush with the
+               card's bottom edge. -->
+          <div class="px-6 pt-6">
+            <DomainSsoConfigForm
+              :domain-ext-id="props.extid"
+              :org-id="props.orgid"
+              :domain-host="domainHost"
+              :domain-verified="customDomainRecord?.verified === true"
+              v-model:form-state="ssoFormState"
+              :sso-config="ssoConfig"
+              :is-loading="ssoConfigLoading"
+              :is-saving="ssoSaving"
+              :is-deleting="ssoDeleting"
+              :is-testing="isTesting"
+              :is-diagnosing="isDiagnosing"
+              :has-unsaved-changes="ssoHasUnsavedChanges"
+              :is-configured="ssoIsConfigured"
+              :client-secret-masked="clientSecretMasked"
+              :test-result="testResult"
+              :test-error="testError"
+              :diagnostics-result="diagnosticsResult"
+              :saved-credentials-checked="savedCredentialsChecked"
+              :saved-credentials-unchecked="savedCredentialsUnchecked"
+              :diagnostics-error="diagnosticsError"
+              :is-refreshing-last-sign-in="isRefreshingLastSignIn"
+              :tenant-sso="tenantSso"
+              :saml-enabled="isSamlEnabled()"
+              @save="handleSsoSave"
+              @test="testConnection"
+              @diagnostics="handleSsoDiagnostics"
+              @refresh-last-sign-in="handleRefreshLastSignIn(false)"
+              @discard="discardSsoChanges" />
           </div>
         </div>
 
-        <!-- No bottom padding: the form's sticky footer sits flush with the
-             card's bottom edge. -->
-        <div class="px-6 pt-6">
-          <DomainSsoConfigForm
-            :domain-ext-id="props.extid"
-            :org-id="props.orgid"
-            :domain-host="domainHost"
-            :domain-verified="customDomainRecord?.verified === true"
-            v-model:form-state="ssoFormState"
-            :sso-config="ssoConfig"
-            :is-loading="ssoConfigLoading"
-            :is-saving="ssoSaving"
-            :is-deleting="ssoDeleting"
-            :is-testing="isTesting"
-            :is-diagnosing="isDiagnosing"
-            :has-unsaved-changes="ssoHasUnsavedChanges"
-            :is-configured="ssoIsConfigured"
-            :client-secret-masked="clientSecretMasked"
-            :test-result="testResult"
-            :test-error="testError"
-            :diagnostics-result="diagnosticsResult"
-            :saved-credentials-checked="savedCredentialsChecked"
-            :saved-credentials-unchecked="savedCredentialsUnchecked"
-            :diagnostics-error="diagnosticsError"
-            :is-refreshing-last-sign-in="isRefreshingLastSignIn"
-            :tenant-sso="tenantSso"
-            :saml-enabled="isSamlEnabled()"
-            @save="handleSsoSave"
-            @delete="handleSsoDelete"
-            @test="testConnection"
-            @diagnostics="handleSsoDiagnostics"
-            @refresh-last-sign-in="handleRefreshLastSignIn(false)"
-            @discard="discardSsoChanges" />
-        </div>
-      </div>
+        <!-- Careful Consideration Zone: outside and below the card, only once
+             there is a record to delete. -->
+        <template v-if="ssoIsConfigured">
+          <hr class="my-10 border-gray-200 dark:border-gray-700/50" />
+          <section
+            data-testid="sso-caution-zone"
+            aria-labelledby="sso-caution-zone-title">
+            <h2
+              id="sso-caution-zone-title"
+              class="mb-4 text-sm font-medium text-red-600 dark:text-red-400">
+              {{ t('web.COMMON.caution_zone') }}
+            </h2>
+            <div
+              class="rounded-lg border border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20">
+              <div
+                class="flex flex-col items-start gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex min-w-0 items-center gap-4">
+                  <div
+                    class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
+                    <OIcon
+                      collection="heroicons"
+                      name="trash"
+                      class="size-5 text-red-600 dark:text-red-400"
+                      aria-hidden="true" />
+                  </div>
+                  <div class="min-w-0">
+                    <h3 class="font-brand text-sm font-semibold text-gray-900 dark:text-white">
+                      {{ t('web.organizations.sso.delete_config') }}
+                    </h3>
+                    <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                      {{ t('web.organizations.sso.delete_config_hint') }}
+                    </p>
+                  </div>
+                </div>
+                <!-- The box title names the action in full; the button carries
+                     the short verb, as DomainDetail pairs "Remove domain" with
+                     "Remove". -->
+                <button
+                  v-if="!showDeleteConfirm"
+                  type="button"
+                  data-testid="sso-delete"
+                  :disabled="ssoDeleting || ssoSaving"
+                  class="shrink-0 rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-700 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-950/50 dark:focus:ring-offset-gray-900"
+                  @click="showDeleteConfirm = true">
+                  {{ t('web.COMMON.delete') }}
+                </button>
+                <div
+                  v-else
+                  class="flex flex-wrap items-center gap-2">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">
+                    {{ t('web.organizations.sso.delete_confirm') }}
+                  </span>
+                  <button
+                    type="button"
+                    data-testid="sso-delete-confirm"
+                    :disabled="ssoDeleting"
+                    class="inline-flex items-center rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-400"
+                    @click="confirmSsoDelete">
+                    {{ ssoDeleting ? t('web.COMMON.processing') : t('web.COMMON.yes_delete') }}
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="sso-delete-cancel"
+                    :disabled="ssoDeleting"
+                    class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600"
+                    @click="showDeleteConfirm = false">
+                    {{ t('web.COMMON.word_cancel') }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </template>
+      </template>
     </div>
   </div>
 </template>

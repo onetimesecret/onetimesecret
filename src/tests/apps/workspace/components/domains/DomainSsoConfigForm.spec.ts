@@ -456,7 +456,6 @@ describe('DomainSsoConfigForm', () => {
     const RUN = '[data-testid="sso-diagnostics-run"]';
     const FOOTER = '[data-testid="sso-form-footer"]';
     const PROVIDER_CHECK = '[data-testid="sso-provider-check"]';
-    const CAUTION_ZONE = '[data-testid="sso-caution-zone"]';
     const buttonsByKey = (w: VueWrapper, key: string) =>
       w.findAll('button').filter((b) => b.text().includes(key));
 
@@ -529,10 +528,9 @@ describe('DomainSsoConfigForm', () => {
       expect(wrapper.get('[data-testid="sso-diagnostics"]').find(RUN).exists()).toBe(false);
       expect(wrapper.findAll(RUN)).toHaveLength(1);
       expect(wrapper.get('form').element.contains(footer.element)).toBe(true);
-      // A clean new record: no Save, nothing to discard, no delete.
+      // A clean new record: no Save, nothing to discard.
       expect(footer.find('button[type="submit"]').exists()).toBe(false);
       expect(buttonsByKey(wrapper, 'discard_changes')).toHaveLength(0);
-      expect(wrapper.find(CAUTION_ZONE).exists()).toBe(false);
     });
 
     it('adds Discard and Save for an existing record, one control each', async () => {
@@ -557,9 +555,10 @@ describe('DomainSsoConfigForm', () => {
       expect(save.attributes('disabled')).toBeUndefined();
       expect(buttonsByKey(wrapper, 'save_changes')).toHaveLength(1);
       expect(buttonsByKey(wrapper, 'discard_changes')).toHaveLength(1);
-      // Delete lives in the Careful Consideration Zone, not the footer.
-      expect(footer.find('[data-testid="sso-delete"]').exists()).toBe(false);
-      expect(buttonsByKey(footer, 'web.COMMON.delete')).toHaveLength(0);
+      // Delete is the page's (its Careful Consideration Zone below the
+      // card), so the form offers no delete control at all.
+      expect(wrapper.find('[data-testid="sso-delete"]').exists()).toBe(false);
+      expect(buttonsByKey(wrapper, 'web.COMMON.delete')).toHaveLength(0);
     });
 
     it('gives both footer buttons the same treatment: no static icon on the primary action', async () => {
@@ -608,45 +607,6 @@ describe('DomainSsoConfigForm', () => {
       expect(wrapper.get('[data-testid="sso-save"]').attributes('disabled')).toBeUndefined();
     });
 
-    it('moves delete into the Careful Consideration Zone after the sign-in sections, with its inline confirm', async () => {
-      wrapper = await mountComponent({
-        formState: mockExistingFormState,
-        ssoConfig: mockExistingConfig,
-        isConfigured: true,
-      });
-
-      const zone = wrapper.get(CAUTION_ZONE);
-      expect(zone.attributes('aria-labelledby')).toBe('sso-caution-zone-title');
-      const title = zone.get('#sso-caution-zone-title');
-      expect(title.element.tagName).toBe('H3');
-      expect(title.text()).toBe('web.COMMON.caution_zone');
-      // The zone's box names the action and what it does, as DomainDetail's
-      // does; the button carries the short verb so the title is not repeated.
-      expect(zone.get('h4').text()).toBe('web.organizations.sso.delete_config');
-      expect(zone.text()).toContain('web.organizations.sso.delete_config_hint');
-      expect(zone.get('[data-testid="sso-delete"]').text()).toBe('web.COMMON.delete');
-      expect(buttonsByKey(zone, 'delete_config')).toHaveLength(0);
-      expect(
-        wrapper
-          .get('[data-testid="sso-confirm-sign-in"]')
-          .element.compareDocumentPosition(zone.element) & Node.DOCUMENT_POSITION_FOLLOWING
-      ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-      expect(
-        zone.element.compareDocumentPosition(wrapper.get(FOOTER).element) &
-          Node.DOCUMENT_POSITION_FOLLOWING
-      ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-      expect(wrapper.findAll('[data-testid="sso-delete"]')).toHaveLength(1);
-
-      await zone.get('[data-testid="sso-delete"]').trigger('click');
-      expect(zone.text()).toContain('web.organizations.sso.delete_confirm');
-      expect(buttonsByKey(zone, 'yes_delete')).toHaveLength(1);
-      expect(zone.find('[data-testid="sso-delete"]').exists()).toBe(false);
-
-      await buttonsByKey(zone, 'word_cancel')[0].trigger('click');
-      expect(zone.find('[data-testid="sso-delete"]').exists()).toBe(true);
-      expect(wrapper.emitted('delete')).toBeUndefined();
-    });
-
     it('renders the callback URL as one labelled row with a copy control and its instruction', async () => {
       wrapper = await mountComponent({ formState: mockExistingFormState });
 
@@ -673,7 +633,6 @@ describe('DomainSsoConfigForm', () => {
         'sso-provider-details-title',
         'sso-diagnostics-title',
         'sso-confirm-sign-in-title',
-        'sso-caution-zone-title',
       ]) {
         expect(wrapper.get(`#${id}`).element.tagName).toBe('H3');
       }
@@ -2223,10 +2182,6 @@ describe('DomainSsoConfigForm', () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Delete functionality
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  // ─────────────────────────────────────────────────────────────────────────────
   // Token endpoint auth method (#4764)
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -2614,75 +2569,6 @@ describe('DomainSsoConfigForm', () => {
       expect(wrapper.text()).not.toContain('web.organizations.sso.disable_action');
       // The one remaining switch is the withheld org-scope grant, absent here.
       expect(wrapper.findAll('[role="switch"]')).toHaveLength(0);
-    });
-  });
-
-  describe('Delete functionality', () => {
-    const findDeleteButton = (w: VueWrapper) => {
-      const button = w.find('[data-testid="sso-delete"]');
-      return button.exists() ? button : undefined;
-    };
-
-    const findConfirmDeleteButton = (w: VueWrapper) => {
-      const buttons = w.findAll('button[type="button"]');
-      return buttons.find((b) => b.text().includes('yes_delete'));
-    };
-
-    it('shows delete button when isConfigured is true', async () => {
-      wrapper = await mountComponent({
-        formState: mockExistingFormState,
-        ssoConfig: mockExistingConfig,
-        isConfigured: true,
-      });
-
-      const deleteButton = findDeleteButton(wrapper);
-      expect(deleteButton).toBeDefined();
-      expect(deleteButton!.text()).toBe('web.COMMON.delete');
-    });
-
-    it('emits delete event after confirmation', async () => {
-      wrapper = await mountComponent({
-        formState: mockExistingFormState,
-        ssoConfig: mockExistingConfig,
-        isConfigured: true,
-      });
-
-      // Click delete button to show confirmation
-      const deleteButton = findDeleteButton(wrapper);
-      expect(deleteButton).toBeDefined();
-      await deleteButton!.trigger('click');
-      await flushPromises();
-
-      // Click confirm button
-      const confirmButton = findConfirmDeleteButton(wrapper);
-      expect(confirmButton).toBeDefined();
-      await confirmButton!.trigger('click');
-      await flushPromises();
-
-      expect(wrapper.emitted('delete')).toBeTruthy();
-    });
-
-    it('does not show delete button when isConfigured is false', async () => {
-      wrapper = await mountComponent({
-        formState: createDefaultFormState(),
-        isConfigured: false,
-      });
-
-      const deleteButton = findDeleteButton(wrapper);
-      expect(deleteButton).toBeUndefined();
-    });
-
-    it('disables delete button when isDeleting is true', async () => {
-      wrapper = await mountComponent({
-        formState: mockExistingFormState,
-        isConfigured: true,
-        isDeleting: true,
-      });
-
-      // Find the delete button
-      const deleteButton = findDeleteButton(wrapper);
-      expect(deleteButton).toBeDefined();
-      expect((deleteButton!.element as HTMLButtonElement).disabled).toBe(true);
     });
   });
 

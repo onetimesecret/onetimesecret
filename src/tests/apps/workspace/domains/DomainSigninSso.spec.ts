@@ -13,6 +13,8 @@
 // - the return-to-window refresh of the last sign-in outcome: Confirm
 //   sign-in happens in another (private) window, so when this window regains
 //   focus or visibility the page re-reads it passively (no person asked);
+// - the Careful Consideration Zone below the card: delete is the page's,
+//   with its inline confirm, shown only once a record exists;
 // - the navigation around it: back to the sign-in settings, back after a
 //   successful delete, and the unsaved-changes guard on leaving.
 //
@@ -101,15 +103,7 @@ vi.mock('@/apps/workspace/components/domains/DomainSsoConfigForm.vue', () => ({
       isRefreshingLastSignIn: { type: Boolean, default: false },
       samlEnabled: { type: Boolean, default: false },
     },
-    emits: [
-      'save',
-      'delete',
-      'test',
-      'diagnostics',
-      'discard',
-      'refresh-last-sign-in',
-      'update:formState',
-    ],
+    emits: ['save', 'test', 'diagnostics', 'discard', 'refresh-last-sign-in', 'update:formState'],
     template: '<div data-testid="sso-form" />',
   },
 }));
@@ -171,6 +165,8 @@ const mockSsoLoading = ref(false);
 const mockSsoInitialized = ref(true);
 const mockSsoError = ref<{ message: string } | null>(null);
 const mockSsoConfigured = ref(true);
+const mockSsoSaving = ref(false);
+const mockSsoDeleting = ref(false);
 const mockSsoHasUnsavedChanges = ref(false);
 const mockSavedCredentialsUnchecked = ref(false);
 const mockSavedCredentialsChecked = ref(false);
@@ -188,8 +184,8 @@ vi.mock('@/shared/composables/useSsoConfig', () => ({
   useSsoConfig: () => ({
     isLoading: mockSsoLoading,
     isInitialized: mockSsoInitialized,
-    isSaving: ref(false),
-    isDeleting: ref(false),
+    isSaving: mockSsoSaving,
+    isDeleting: mockSsoDeleting,
     isTesting: ref(false),
     isDiagnosing: ref(false),
     error: mockSsoError,
@@ -247,6 +243,8 @@ describe('DomainSigninSso', () => {
     mockSsoInitialized.value = true;
     mockSsoError.value = null;
     mockSsoConfigured.value = true;
+    mockSsoSaving.value = false;
+    mockSsoDeleting.value = false;
     mockSsoHasUnsavedChanges.value = false;
     mockSavedCredentialsUnchecked.value = false;
     mockSavedCredentialsChecked.value = false;
@@ -423,8 +421,78 @@ describe('DomainSigninSso', () => {
     });
   });
 
-  describe('delete', () => {
-    it('re-reads the details and returns to the sign-in settings once the record is gone', async () => {
+  describe('Careful Consideration Zone (delete)', () => {
+    const ZONE = '[data-testid="sso-caution-zone"]';
+    const DELETE = '[data-testid="sso-delete"]';
+    const CONFIRM = '[data-testid="sso-delete-confirm"]';
+    const CANCEL = '[data-testid="sso-delete-cancel"]';
+    const page = () => wrapper.get('[data-testid="domain-signin-sso-page"]');
+
+    it('is absent while the record loads', async () => {
+      mockSsoLoading.value = true;
+      wrapper = await mountPage();
+
+      expect(wrapper.find(ZONE).exists()).toBe(false);
+      expect(wrapper.find('hr').exists()).toBe(false);
+    });
+
+    it('is absent when no record exists yet', async () => {
+      mockSsoConfigured.value = false;
+      wrapper = await mountPage();
+
+      expect(wrapper.find('[data-testid="sso-form"]').exists()).toBe(true);
+      expect(wrapper.find(ZONE).exists()).toBe(false);
+      expect(wrapper.find('hr').exists()).toBe(false);
+    });
+
+    it('sits outside and after the card, under a rule, once a record exists', async () => {
+      mockSsoConfig.value = { display_name: 'Acme Entra' };
+      wrapper = await mountPage();
+
+      const zone = page().get(ZONE);
+      const card = page().get('[data-testid="sso-page-heading"]').element.closest('.rounded-lg')!;
+      expect(card.contains(zone.element)).toBe(false);
+      expect(wrapper.get('[data-testid="sso-form"]').element.contains(zone.element)).toBe(false);
+      expect(card.compareDocumentPosition(zone.element) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING
+      );
+
+      const hr = page().get('hr');
+      expect(hr.classes()).toContain('my-10');
+      expect(card.compareDocumentPosition(hr.element) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING
+      );
+      expect(
+        hr.element.compareDocumentPosition(zone.element) & Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+
+      expect(zone.attributes('aria-labelledby')).toBe('sso-caution-zone-title');
+      const title = zone.get('#sso-caution-zone-title');
+      expect(title.element.tagName).toBe('H2');
+      expect(title.text()).toBe('web.COMMON.caution_zone');
+      expect(zone.get('h3').text()).toBe('web.organizations.sso.delete_config');
+      expect(zone.text()).toContain('web.organizations.sso.delete_config_hint');
+      expect(zone.get(DELETE).text()).toBe('web.COMMON.delete');
+      expect(zone.find(CONFIRM).exists()).toBe(false);
+    });
+
+    it('asks inline before deleting, and Cancel withdraws the question', async () => {
+      wrapper = await mountPage();
+      const zone = wrapper.get(ZONE);
+
+      await zone.get(DELETE).trigger('click');
+      expect(zone.text()).toContain('web.organizations.sso.delete_confirm');
+      expect(zone.get(CONFIRM).text()).toBe('web.COMMON.yes_delete');
+      expect(zone.get(CANCEL).text()).toBe('web.COMMON.word_cancel');
+      expect(zone.find(DELETE).exists()).toBe(false);
+
+      await zone.get(CANCEL).trigger('click');
+      expect(zone.find(CONFIRM).exists()).toBe(false);
+      expect(zone.find(DELETE).exists()).toBe(true);
+      expect(sso.deleteConfig).not.toHaveBeenCalled();
+    });
+
+    it('Yes deletes once, re-reads the details and returns to the sign-in settings once the record is gone', async () => {
       sso.deleteConfig.mockImplementationOnce(async () => {
         calls.push('deleteConfig');
         mockSsoConfigured.value = false;
@@ -432,22 +500,55 @@ describe('DomainSigninSso', () => {
       wrapper = await mountPage();
       calls.length = 0;
 
-      form().vm.$emit('delete');
+      await wrapper.get(DELETE).trigger('click');
+      await wrapper.get(CONFIRM).trigger('click');
       await flushPromises();
 
+      expect(sso.deleteConfig).toHaveBeenCalledTimes(1);
       expect(calls).toEqual(['deleteConfig', 'refreshDetails']);
       expect(router.push).toHaveBeenCalledWith(SIGNIN_ROUTE);
     });
 
-    it('stays put when the delete did not remove the record', async () => {
+    it('stays put, with the question withdrawn, when the delete did not remove the record', async () => {
       wrapper = await mountPage();
       calls.length = 0;
 
-      form().vm.$emit('delete');
+      await wrapper.get(DELETE).trigger('click');
+      await wrapper.get(CONFIRM).trigger('click');
       await flushPromises();
 
+      expect(sso.deleteConfig).toHaveBeenCalledTimes(1);
       expect(calls).toEqual(['deleteConfig']);
       expect(router.push).not.toHaveBeenCalled();
+      expect(wrapper.find(CONFIRM).exists()).toBe(false);
+      expect(wrapper.find(DELETE).exists()).toBe(true);
+    });
+
+    it('disables Delete while a delete or a save is in flight', async () => {
+      mockSsoDeleting.value = true;
+      wrapper = await mountPage();
+      expect(wrapper.get(DELETE).attributes('disabled')).toBeDefined();
+
+      mockSsoDeleting.value = false;
+      await flushPromises();
+      expect(wrapper.get(DELETE).attributes('disabled')).toBeUndefined();
+
+      mockSsoSaving.value = true;
+      await flushPromises();
+      expect(wrapper.get(DELETE).attributes('disabled')).toBeDefined();
+    });
+
+    it('reads Processing on Yes while the delete is in flight', async () => {
+      wrapper = await mountPage();
+      await wrapper.get(DELETE).trigger('click');
+
+      mockSsoDeleting.value = true;
+      await flushPromises();
+
+      const confirm = wrapper.get(CONFIRM);
+      expect(confirm.text()).toBe('web.COMMON.processing');
+      expect(confirm.attributes('disabled')).toBeDefined();
+      expect(wrapper.get(CANCEL).attributes('disabled')).toBeDefined();
     });
   });
 

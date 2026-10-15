@@ -8,7 +8,8 @@
  * and emits events for actions. The host page (DomainSigninSso.vue)
  * manages state via the useSsoConfig composable. Laid out as a settings
  * page: flat sections top to bottom, the primary action in a sticky
- * footer, delete in the Careful Consideration Zone.
+ * footer. Delete is the page's: its Careful Consideration Zone sits below
+ * the card that hosts this form.
  */
 import { useI18n } from 'vue-i18n';
 import { computed, nextTick, ref, watch } from 'vue';
@@ -95,7 +96,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   /** Save only: the footer button, for a record that already exists. */
   (e: 'save'): void;
-  (e: 'delete'): void;
   (e: 'test'): void;
   /**
    * The primary action: run the saved-configuration check, saving a new
@@ -187,7 +187,6 @@ const tokenEndpointAuthMethodOptions: {
 // Local UI state
 // ---------------------------------------------------------------------------
 
-const showDeleteConfirm = ref(false);
 const showClientSecret = ref(false);
 const newDomain = ref('');
 const domainInputError = ref('');
@@ -573,12 +572,6 @@ const handleSave = () => {
   if (!isFormValid.value || props.isSaving || props.isDeleting) return;
   if (props.isConfigured && !props.hasUnsavedChanges) return;
   emit('save');
-};
-
-const handleDelete = () => {
-  if (props.isDeleting) return;
-  emit('delete');
-  showDeleteConfirm.value = false;
 };
 
 /**
@@ -2249,77 +2242,6 @@ aria-hidden="true">*</span>
           @update:enabled="updateField('grant_org_scope', $event)" />
       </div>
 
-      <!-- Careful Consideration Zone (D6): delete is the only way to remove a
-           record and the one destructive action here, so it stands apart from
-           the footer, laid out as the domain page's zone (DomainDetail). -->
-      <section
-        v-if="isEditing"
-        data-testid="sso-caution-zone"
-        aria-labelledby="sso-caution-zone-title">
-        <hr class="mb-8 border-gray-200 dark:border-gray-700/50" />
-        <h3
-          id="sso-caution-zone-title"
-          class="mb-4 text-sm font-medium text-red-600 dark:text-red-400">
-          {{ t('web.COMMON.caution_zone') }}
-        </h3>
-        <div
-          class="rounded-lg border border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20">
-          <div class="flex flex-col items-start gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div class="flex min-w-0 items-center gap-4">
-              <div
-                class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
-                <OIcon
-                  collection="heroicons"
-                  name="trash"
-                  class="size-5 text-red-600 dark:text-red-400"
-                  aria-hidden="true" />
-              </div>
-              <div class="min-w-0">
-                <h4 class="font-brand text-sm font-semibold text-gray-900 dark:text-white">
-                  {{ t('web.organizations.sso.delete_config') }}
-                </h4>
-                <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                  {{ t('web.organizations.sso.delete_config_hint') }}
-                </p>
-              </div>
-            </div>
-            <!-- The box title names the action in full; the button carries
-                 the short verb, as DomainDetail pairs "Remove domain" with
-                 "Remove". -->
-            <button
-              v-if="!showDeleteConfirm"
-              type="button"
-              data-testid="sso-delete"
-              @click="showDeleteConfirm = true"
-              :disabled="isDeleting || isSaving"
-              class="shrink-0 rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-700 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-950/50 dark:focus:ring-offset-gray-900">
-              {{ t('web.COMMON.delete') }}
-            </button>
-            <div
-              v-else
-              class="flex flex-wrap items-center gap-2">
-              <span class="text-sm text-gray-600 dark:text-gray-400">
-                {{ t('web.organizations.sso.delete_confirm') }}
-              </span>
-              <button
-                type="button"
-                @click="handleDelete"
-                :disabled="isDeleting"
-                class="inline-flex items-center rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-400">
-                {{ isDeleting ? t('web.COMMON.processing') : t('web.COMMON.yes_delete') }}
-              </button>
-              <button
-                type="button"
-                @click="showDeleteConfirm = false"
-                :disabled="isDeleting"
-                class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
-                {{ t('web.COMMON.word_cancel') }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <!-- Footer, sticky to the viewport bottom, in the usual order: Discard
            alone on the left whenever there is something to discard; on the
            right, Save for a record that exists (enabled only with unsaved
@@ -2335,7 +2257,7 @@ aria-hidden="true">*</span>
         data-testid="sso-form-footer"
         class="sticky bottom-0 z-10 -mx-6 flex flex-wrap items-center justify-between gap-3 rounded-b-lg border-t border-gray-200 bg-white px-6 py-4 md:bottom-24 dark:border-gray-700 dark:bg-gray-800">
         <button
-          v-if="hasUnsavedChanges && !showDeleteConfirm"
+          v-if="hasUnsavedChanges"
           type="button"
           @click="emit('discard')"
           :disabled="isSaving"
