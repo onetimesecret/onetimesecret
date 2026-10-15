@@ -17,7 +17,6 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
   let(:org_domains) do
     double(
       'OrgDomainsSortedSet',
-      member?: false, # domain is NOT in the collection -> check #4 fires
       to_a: [],
       add: true,
       remove: true,
@@ -32,6 +31,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       extid: 'onext123',
       display_name: 'Test Org',
       domains: org_domains,
+      domain?: false, # domain is NOT in the collection -> check #4 fires
       list_domains: [],
       add_domain: true,
       archived?: false,
@@ -151,13 +151,17 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       expect(last_exit_code).to eq(0)
     end
 
-    it 'uses the O(1) member? test for detection, not the op list_domains path' do
+    # Detection passes the domain object to Organization#domain?. A bare objid
+    # sent to org.domains.member? never matches: the collection stores raw
+    # identifiers and Familia JSON-quotes a String. The real-datastore examples
+    # at the end of this file cover the behaviour; this pins the call shape.
+    it 'uses the O(1) Organization#domain? test for detection, not the op list_domains path' do
       allow(Onetime::Operations::Domains::Repair).to receive(:new)
         .and_return(double('RepairOp', call: repaired_result))
 
       run_cli_command_quietly('domains', 'doctor', '--all', '--repair')
 
-      expect(org_domains).to have_received(:member?).with(domain.objid)
+      expect(organization).to have_received(:domain?).with(domain)
       expect(organization).not_to have_received(:list_domains)
     end
   end
@@ -260,7 +264,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       allow(organization).to receive(:archived?).and_return(true)
       # The domain IS in the collection, so check #4 stays quiet and this
       # example exercises exactly the archived-org check.
-      allow(org_domains).to receive(:member?).and_return(true)
+      allow(organization).to receive(:domain?).and_return(true)
     end
 
     it 'reports the archived owner and points at the manual remedies' do
@@ -437,23 +441,99 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       expect(last_exit_code).to eq(2)
     end
 
-    it 'reports records the audit could not load' do
-      unreadable = audit_class::Unreadable.new(domain_id: 'u1', message: 'Familia::SerializerError: bad')
-      allow(audit_class).to receive(:new)
-        .and_return(double('CanonicalIndexAudit', call: audit_class::Result.new(rows: [], entries: [], errors: [unreadable])))
+    context 'when only unreadable records are found outside instances and the indexes' do
+      let(:canonical_audit_result) do
+        audit_class::Result.new(
+          rows: [],
+          entries: [],
+          errors: [
+            audit_class::Unreadable.new(domain_id: 'broken1', message: 'JSON::ParserError: invalid record'),
+            audit_class::Unreadable.new(domain_id: 'broken2', message: 'TypeError: invalid field'),
+          ],
+        )
+      end
 
-      issues = canonical_issues(json_report('domains', 'doctor', '--all', '--json'))
+      it 'reports identifiers and load errors at high severity as nonrepairable findings' do
+        report = json_report('domains', 'doctor', '--all', '--json')
 
-      expect(issues.map { |i| i.slice('check', 'severity', 'total', 'repairable', 'examples') }).to eq(
-        [{
-          'check' => 'canonical_index_unreadable',
-          'severity' => 'high',
-          'total' => 1,
-          'repairable' => false,
-          'examples' => [{ 'domain_id' => 'u1', 'message' => 'Familia::SerializerError: bad' }],
-        }],
-      )
-      expect(last_exit_code).to eq(1)
+        expect(report.slice('checked', 'healthy', 'repaired', 'failed_repairs')).to eq(
+          'checked' => 0, 'healthy' => 0, 'repaired' => [], 'failed_repairs' => [],
+        )
+        expect(report['issues'].map { |group| group['type'] }).to eq(['indexes'])
+        expect(canonical_issues(report)).to contain_exactly(
+          include(
+            'check' => 'canonical_index_unreadable',
+            'severity' => 'high',
+            'total' => 2,
+            'repairable' => false,
+            'examples' => [
+              { 'domain_objid' => 'broken1', 'message' => 'JSON::ParserError: invalid record' },
+              { 'domain_objid' => 'broken2', 'message' => 'TypeError: invalid field' },
+            ],
+            'message' => include('2 domain records could not be loaded', 'broken1: JSON::ParserError: invalid record',
+              'broken2: TypeError: invalid field'),
+            'repair_action' => include('storage_inspect'),
+          ),
+        )
+        expect(last_exit_code).to eq(1)
+      end
+
+      it 'includes identifiers and load messages in the text report' do
+        output = run_cli_command_quietly('domains', 'doctor', '--all')
+
+        expect(output[:stdout]).to include('[HIGH]', 'broken1: JSON::ParserError: invalid record',
+          'broken2: TypeError: invalid field', '[manual fix required]')
+        expect(last_exit_code).to eq(1)
+      end
+
+      it 'limits examples to ten without losing the total count' do
+        errors = (1..12).map do |id|
+          audit_class::Unreadable.new(domain_id: "broken#{id}", message: 'TypeError: invalid field')
+        end
+        result = audit_class::Result.new(rows: [], entries: [], errors: errors)
+        allow(audit_class).to receive(:new).and_return(double('CanonicalIndexAudit', call: result))
+
+        issue = canonical_issues(json_report('domains', 'doctor', '--all', '--json')).first
+
+        expect(issue['total']).to eq(12)
+        expect(issue['examples'].map { |example| example['domain_objid'] }).to eq((1..10).map { |id| "broken#{id}" })
+        expect(last_exit_code).to eq(1)
+      end
+
+      it 'exits with manual intervention status and writes nothing with --repair' do
+        canonical_index = double('CanonicalIndex')
+        display_index = double('DisplayDomainIndex', hgetall: {})
+        owners_index = double('OwnersIndex', hgetall: {})
+        allow(Onetime::CustomDomain).to receive(:canonical_display_domain_index).and_return(canonical_index)
+        allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(display_index)
+        allow(Onetime::CustomDomain).to receive(:owners).and_return(owners_index)
+        expect(Onetime::CustomDomain).not_to receive(:record_owner)
+        expect(Onetime::CustomDomain).not_to receive(:load)
+        expect(Onetime::Operations::Domains::Repair).not_to receive(:new)
+        expect(domain).not_to receive(:save)
+        expect(org_domains).not_to receive(:add)
+        expect(org_domains).not_to receive(:remove)
+
+        report = json_report('domains', 'doctor', '--all', '--repair', '--json')
+
+        expect(canonical_issues(report).first['repairable']).to be(false)
+        expect(report['repaired']).to be_empty
+        expect(report['failed_repairs']).to be_empty
+        expect(last_exit_code).to eq(2)
+      end
+
+      it 'does not return success when an unrelated index repair succeeds' do
+        display_index = double('DisplayDomainIndex', hgetall: { 'stale.example.com' => 'gone999' }, release_field: 1)
+        allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(display_index)
+        allow(Onetime::CustomDomain).to receive(:load).with('gone999').and_return(nil)
+
+        report = json_report('domains', 'doctor', '--all', '--repair', '--json')
+
+        expect(report['repaired']).to eq([{ 'action' => 'display_domain_index_cleaned', 'count' => 1 }])
+        expect(display_index).to have_received(:release_field).with('stale.example.com', 'gone999').once
+        expect(canonical_issues(report).first['check']).to eq('canonical_index_unreadable')
+        expect(last_exit_code).to eq(2)
+      end
     end
 
     it 'reports a warning when the audit cannot run' do
@@ -663,6 +743,204 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       run_cli_command_quietly('domains', 'bulk-repair', '--force')
 
       expect(organization).not_to have_received(:add_domain)
+    end
+  end
+end
+
+# org.domains is a Familia participation collection: it stores raw domain
+# identifiers, and Familia sends a bare String argument JSON-quoted. A
+# `member?`, `score` or `remove` given a String objid therefore never matches
+# an entry. The doubles above cannot see that, so these examples run the
+# checks against the real datastore.
+#
+# Deliberately NOT `type: :cli`: that hook (cli_spec_helper.rb) mocks
+# Familia.dbclient. The examples drive the check methods directly, the same
+# way org_doctor_command_spec.rb does.
+RSpec.describe 'Domains Doctor Command collection checks (real datastore)', :datastore do
+  let(:suffix) { "#{Familia.now.to_i}#{SecureRandom.hex(4)}" }
+  let(:command) { Onetime::CLI::DomainsDoctorCommand.new }
+  let(:report) { { checked: 0, healthy: 0, issues: [], repaired: [], failed_repairs: [] } }
+
+  before do
+    @customers = []
+    @orgs      = []
+    @domains   = []
+  end
+
+  after do
+    @domains.each do |domain|
+      domain.destroy! if domain.exists?
+    rescue StandardError => ex
+      warn "[domains doctor spec] domain cleanup failed: #{ex.class}: #{ex.message}"
+    end
+    @orgs.each do |org|
+      # A failing example can leave an entry behind, and destroy! refuses an
+      # org whose collection is not empty.
+      org.domains.delete!
+      org.destroy! if org.exists?
+    rescue StandardError => ex
+      warn "[domains doctor spec] org cleanup failed: #{ex.class}: #{ex.message}"
+    end
+    @customers.each do |cust|
+      cust.destroy! if cust.exists?
+    rescue StandardError => ex
+      warn "[domains doctor spec] customer cleanup failed: #{ex.class}: #{ex.message}"
+    end
+  end
+
+  def create_org(label)
+    owner = Onetime::Customer.create!(email: "domains_doctor_#{label}_#{suffix}@onetimesecret.com")
+    @customers << owner
+    org = Onetime::Organization.create!("Domains Doctor #{label} #{suffix}", owner)
+    @orgs << org
+    org
+  end
+
+  # create! lists the domain in org.domains and writes CustomDomain.owners.
+  def create_domain(org, label)
+    domain = Onetime::CustomDomain.create!("#{label}-#{suffix}.example.com", org.objid)
+    @domains << domain
+    domain
+  end
+
+  def all_issues
+    report[:issues].flat_map { |group| group[:issues] }
+  end
+
+  describe 'check #4 (domain is in org.domains)' do
+    it 'does not flag a domain that is in its organization collection' do
+      org    = create_org('listed')
+      domain = create_domain(org, 'listed')
+      expect(org.domains.to_a).to include(domain.objid)
+
+      issues = []
+      command.send(:check_org_domains_membership, domain, issues, report, repair: false)
+
+      expect(issues).to be_empty
+    end
+  end
+
+  describe 'check #5 repair (stale org.domains entries)' do
+    it 'removes an entry whose domain record is gone and counts it' do
+      org   = create_org('stale')
+      ghost = Onetime::CustomDomain.new(objid: "ghost#{suffix}")
+      org.domains.add(ghost, Familia.now.to_f)
+      expect(org.domains.to_a).to include(ghost.objid)
+
+      command.send(:check_stale_org_domains, org, report, repair: true)
+
+      expect(org.domains.to_a).not_to include(ghost.objid)
+      repaired = report[:repaired].select { |r| r[:action] == :stale_org_domains_removed }
+      expect(repaired.size).to eq(1)
+      expect(repaired.first[:count]).to eq(1)
+    end
+
+    it 'removes an entry for a domain that belongs to another organization' do
+      org_a  = create_org('a')
+      org_b  = create_org('b')
+      domain = create_domain(org_b, 'elsewhere')
+      domain.add_to_organization_domains(org_a)
+      expect(org_a.domains.to_a).to include(domain.objid)
+
+      command.send(:check_stale_org_domains, org_a, report, repair: true)
+
+      expect(org_a.domains.to_a).not_to include(domain.objid)
+      expect(org_b.domains.to_a).to include(domain.objid)
+      # The domain's reverse index follows, so add_domain's cross-org guard
+      # (organization_instances) no longer sees org_a.
+      expect(domain.organization_instances.map(&:objid)).to eq([org_b.objid])
+      expect(report[:repaired].find { |r| r[:action] == :stale_org_domains_removed }[:count]).to eq(1)
+    end
+
+    it 'counts only the entries it removed' do
+      org   = create_org('raced')
+      ghost = Onetime::CustomDomain.new(objid: "ghost#{suffix}")
+      org.domains.add(ghost, Familia.now.to_f)
+
+      # Another process removes the entry after detection read it.
+      allow(Onetime::CustomDomain).to receive(:load).and_wrap_original do |original, objid|
+        org.domains.remove(ghost) if objid == ghost.objid
+        original.call(objid)
+      end
+
+      command.send(:check_stale_org_domains, org, report, repair: true)
+
+      expect(report[:issues].size).to eq(1)
+      expect(report[:repaired]).to be_empty
+    end
+  end
+
+  describe 'check #10 sweep under --org' do
+    [false, true].each do |repair|
+      context "with repair=#{repair}" do
+        it 'reports owners drift for a valid listed domain once' do
+          org    = create_org('owners')
+          domain = create_domain(org, 'drifted')
+          recorded_org_id = "other#{suffix}"
+          Onetime::CustomDomain.record_owner(domain, recorded_org_id)
+
+          # The --org branch of #call.
+          command.send(:check_index_integrity, report, repair: repair, scope_org: org)
+          command.send(:check_org_domains, org, report, repair: repair)
+
+          drift = all_issues.select { |i| %i[owners_index_drift owners_index_stale].include?(i[:check]) }
+          expect(drift.map { |i| i[:check] }).to eq([:owners_index_drift])
+          expect(report[:checked]).to eq(1)
+          expect(Onetime::CustomDomain.owners.get(domain.objid)).to eq(repair ? org.objid : recorded_org_id)
+          repaired = report[:repaired].select { |r| r[:action] == :owners_entry_realigned }
+          expect(repaired.size).to eq(repair ? 1 : 0)
+        end
+
+        it 'reports a missing record even while its ID is listed in the scoped org' do
+          org   = create_org('missing_owner')
+          ghost = Onetime::CustomDomain.new(objid: "ghost#{suffix}")
+          org.domains.add(ghost, Familia.now.to_f)
+          Onetime::CustomDomain.record_owner(ghost, org.objid)
+          expect(org.domain?(ghost.objid)).to be(true)
+
+          command.send(:check_index_integrity, report, repair: repair, scope_org: org)
+          command.send(:check_org_domains, org, report, repair: repair)
+
+          drift = all_issues.select { |i| %i[owners_index_drift owners_index_stale].include?(i[:check]) }
+          expect(drift.map { |i| i[:check] }).to eq([:owners_index_stale])
+          expect(drift.first[:stale_entries]).to eq([{
+            domain_id: ghost.objid,
+            recorded_org_id: org.objid,
+            actual_org_id: nil,
+            reason: 'domain record not found',
+          }])
+          expect(report[:checked]).to eq(0)
+          expect(org.domain?(ghost.objid)).to eq(!repair)
+          expect(Onetime::CustomDomain.owners.get(ghost.objid)).to eq(repair ? nil : org.objid)
+          repaired = report[:repaired].select { |r| r[:action] == :owners_index_realigned }
+          expect(repaired.map { |r| r[:count] }).to eq(repair ? [1] : [])
+        ensure
+          Onetime::CustomDomain.record_owner(ghost, nil) if ghost
+        end
+
+        it 'handles owners drift for a listed domain that belongs to another org once' do
+          org_a  = create_org('old_owner')
+          org_b  = create_org('actual_owner')
+          domain = create_domain(org_b, 'transferred')
+          domain.add_to_organization_domains(org_a)
+          Onetime::CustomDomain.record_owner(domain, org_a.objid)
+          expect(org_a.domain?(domain.objid)).to be(true)
+
+          command.send(:check_index_integrity, report, repair: repair, scope_org: org_a)
+          command.send(:check_org_domains, org_a, report, repair: repair)
+
+          drift = all_issues.select { |i| %i[owners_index_drift owners_index_stale].include?(i[:check]) }
+          expect(drift.map { |i| i[:check] }).to eq([repair ? :owners_index_stale : :owners_index_drift])
+          expect(report[:checked]).to eq(repair ? 0 : 1)
+          expect(org_a.domain?(domain.objid)).to eq(!repair)
+          expect(org_b.domain?(domain.objid)).to be(true)
+          expect(Onetime::CustomDomain.load(domain.objid).org_id).to eq(org_b.objid)
+          expect(Onetime::CustomDomain.owners.get(domain.objid)).to eq(repair ? org_b.objid : org_a.objid)
+          repaired = report[:repaired].select { |r| r[:action] == :owners_index_realigned }
+          expect(repaired.map { |r| r[:count] }).to eq(repair ? [1] : [])
+          expect(org_a.unlisted_owned_domains).to be_empty
+        end
+      end
     end
   end
 end

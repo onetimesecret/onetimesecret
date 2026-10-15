@@ -128,12 +128,12 @@ rescue Onetime::TemporarilyUnavailable => ex
 end
 #=> :concurrent_write
 
-## the discarded adoption leaves the orphan as it was, and releases the canonical claim it took
+## the discarded adoption leaves the orphan as it was, and keeps the canonical claim for the live record
 @stored3 = Onetime::CustomDomain.find_by_identifier(@orphan3.identifier)
 [@stored3.org_id.to_s, @stored3.ownership_verified, @stored3.txt_validation_value == @value3,
  @client.hexists(@stored3.dbkey, 'ownership_verified'),
- @index.get(Onetime::CustomDomain.canonical_display_domain(@name3))]
-#=> ['', true, true, false, nil]
+ @index.get(Onetime::CustomDomain.canonical_display_domain(@name3)) == @orphan3.identifier]
+#=> ['', true, true, false, true]
 
 # Teardown
 [@orphan, @orphan2, @orphan3].compact.each do |rec|

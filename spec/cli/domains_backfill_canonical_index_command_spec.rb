@@ -27,6 +27,21 @@ RSpec.describe 'Domains backfill-canonical-index command', type: :cli do
     )
   end
 
+  let(:incomplete_apply) do
+    result(
+      dry_run: false,
+      rows: [row(:missing, 'id1', 'm.example'), row(:stale, 'id2', 'stale.example', holder: 'gone')],
+      entries: [audit_class::Entry.new(category: :stale, canonical: 'unused.example', holder_id: 'gone2', detail: nil)],
+      errors: [audit_class::Unreadable.new(domain_id: 'unreadable-id', message: 'record load failed')],
+      actions: [
+        action(:claim, :planned),
+        action(:reclaim, :planned, id: 'id2', canonical: 'xn--id2.com', name: 'stale.example').with(stale_id: 'gone'),
+        action(:release, :planned, id: nil, canonical: 'unused.example', name: nil).with(stale_id: 'gone2'),
+      ],
+      refusal: :unreadable_records,
+    )
+  end
+
   def row(category, id, name, canonical: "xn--#{id}.com", holder: nil, verified_at: nil)
     audit_class::Row.new(
       category: category,
@@ -160,24 +175,6 @@ RSpec.describe 'Domains backfill-canonical-index command', type: :cli do
       expect([output[:stdout].scan(/^  claim +(?:claimed|error) /).size, output[:stdout]]).to match([count, a_string_including('error')])
       expect(last_exit_code).to eq(1)
     end
-
-    it 'says that nothing was written when records cannot be loaded, and exits 1' do
-      unreadable = audit_class::Unreadable.new(domain_id: 'bad1', message: 'Familia::SerializerError: x')
-      stub_op(
-        result(
-          rows: [row(:missing, 'id1', 'm.example')],
-          actions: [action(:claim, :planned)],
-          dry_run: false,
-          errors: [unreadable],
-          refusal: :unreadable_records,
-        ),
-      )
-
-      output = run_cli_command_quietly('domains', 'backfill-canonical-index', '--apply', '--yes')
-
-      expect(output[:stdout]).to include('APPLY REFUSED', 'could not be loaded', 'bad1', 'Nothing was written')
-      expect(last_exit_code).to eq(1)
-    end
   end
 
   describe '--apply' do
@@ -221,6 +218,37 @@ RSpec.describe 'Domains backfill-canonical-index command', type: :cli do
       expect(op_class).to have_received(:new).with(dry_run: false)
     end
 
+    it 'reports a refused apply with its planned writes, writes nothing, and exits 1' do
+      stub_op(incomplete_apply)
+
+      output = run_cli_command_quietly('domains', 'backfill-canonical-index', '--apply', '--yes')
+
+      expect(op_class).to have_received(:new).with(dry_run: false)
+      expect(output[:stdout]).to include(
+        'APPLY REFUSED (nothing written)', 'Planned writes (not applied):', 'planned',
+        'unreadable-id: record load failed',
+        'Nothing was written. 1 records could not be loaded',
+      )
+      expect(output[:stdout]).not_to include('The canonical index agrees with every record.')
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'retains unreadable errors and every planned action in JSON for a refused apply, and exits 1' do
+      stub_op(incomplete_apply)
+
+      report = JSON.parse(run_cli_command_quietly('domains', 'backfill-canonical-index', '--apply', '--yes', '--json')[:stdout])
+
+      expect(report.slice('dry_run', 'applied', 'refusal', 'attention')).to eq(
+        'dry_run' => false, 'applied' => false, 'refusal' => 'unreadable_records', 'attention' => true,
+      )
+      expect(report).not_to have_key('counts_before')
+      expect(report['counts']).to include('unreadable' => 1)
+      expect(report['unreadable']).to eq([{ 'domain_id' => 'unreadable-id', 'message' => 'record load failed' }])
+      expect(report['actions'].map { |item| item['kind'] }).to eq(%w[claim reclaim release])
+      expect(report['actions']).to all(include('outcome' => 'planned', 'detail' => nil))
+      expect(last_exit_code).to eq(1)
+    end
+
     it 'refuses --json without --yes' do
       stub_op(missing_only)
 
@@ -241,6 +269,26 @@ RSpec.describe 'Domains backfill-canonical-index command', type: :cli do
     )
     expect(report['counts']).to include('collision' => 2, 'missing' => 0, 'unreadable' => 0)
     expect(report['rows'].map { |r| r['extid'] }).to eq(%w[cdid2 cdid3])
+  end
+
+  it 'reports incomplete dry-run plans without suggesting they can be applied' do
+    stub_op(incomplete_apply.with(dry_run: true, refusal: nil))
+
+    output = run_cli_command_quietly('domains', 'backfill-canonical-index')
+
+    expect(op_class).to have_received(:new).with(dry_run: true)
+    expect(output[:stdout]).to include(
+      'DRY RUN (nothing written)', 'Planned writes:',
+      '1 records could not be loaded; --apply writes nothing while',
+    )
+    expect(output[:stdout]).not_to include('With the application stopped, apply with:', 'Nothing was written.')
+    expect(last_exit_code).to eq(1)
+  end
+
+  it 'says in its help that --apply writes nothing while a record cannot be loaded' do
+    output = run_cli_command_quietly('domains', 'backfill-canonical-index', '--help')
+
+    expect(output[:stdout]).to include('--apply writes nothing while any record cannot')
   end
 
   it 'says in its help that the application must be stopped' do

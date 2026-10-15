@@ -53,7 +53,7 @@ module Onetime
       option :apply,
         type: :boolean,
         default: false,
-        desc: 'Write the planned changes (default: dry run). Run only while the application is stopped'
+        desc: 'Write only after a complete audit (default: dry run). Run only while the application is stopped'
       option :yes,
         type: :boolean,
         default: false,
