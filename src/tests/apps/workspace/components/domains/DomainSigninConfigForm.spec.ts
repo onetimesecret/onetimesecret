@@ -599,7 +599,7 @@ describe('DomainSigninConfigForm', () => {
 
     it('hides Configure when ORGS_SSO_ENABLED is off, even with the entitlement', () => {
       // The tenant-SSO write endpoints enforce BOTH gates, so an entitled org
-      // on an install with tenant SSO off would open a modal whose save is
+      // on an install with tenant SSO off would open a page whose save is
       // rejected with "Organization SSO is not enabled on this instance".
       wrapper = mountForm({ canManageSso: true, orgsSsoEnabled: false });
       const configureBtn = wrapper.findAll('button').find((b) => b.text().includes(COPY.configure));
@@ -1395,7 +1395,7 @@ describe('DomainSigninConfigForm', () => {
   // the upgrade hint and NO Configure button, same as Mode A. And like Mode A,
   // Configure needs BOTH write-endpoint gates: restrict_to='sso' keeps the SSO
   // row visible when ORGS_SSO_ENABLED is off (visible-but-locked invariant),
-  // so its Configure button must not survive on canManageSso alone — the modal
+  // so its Configure button must not survive on canManageSso alone — the page's
   // save would be rejected ("Organization SSO is not enabled on this
   // instance").
   // -----------------------------------------------------------------------
@@ -1461,7 +1461,7 @@ describe('DomainSigninConfigForm', () => {
   // Finish setup: a saved SSO record that is still off
   //
   // The record is created off and turned on only by a passing
-  // saved-configuration check in the dialog, so its remaining step is that
+  // saved-configuration check on the page, so its remaining step is that
   // check. Like ssoConfigured, ssoSetupPending is a label convenience; the
   // status line still comes from the server's verdict.
   // -----------------------------------------------------------------------
@@ -1474,7 +1474,7 @@ describe('DomainSigninConfigForm', () => {
       ['Mode A', defaultFormState, MODE_A_BUTTON],
       ['Mode B', { ...defaultFormState, restrict_to: 'sso' as const }, MODE_B_BUTTON],
     ])(
-      'labels the button Finish setup in %s and opens the same dialog',
+      'labels the button Finish setup in %s and opens the same page',
       async (_mode, formState, selector) => {
         wrapper = mountForm({ formState, ssoConfigured: true, ssoSetupPending: true });
 

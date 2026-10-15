@@ -126,9 +126,9 @@ module DomainsAPI
 
         TENANT_ID_FORMAT_ERROR = 'tenant_id must be a valid UUID for Entra ID provider'
 
-        CREDENTIAL_PASSED_MESSAGE = 'The identity provider accepted the saved client secret.'
-        CREDENTIAL_PASSED_NOTE    = 'This does not test a full sign-in (redirect URI, user assignment, ' \
-                                    'Conditional Access, claims). Sign in once on the custom domain to confirm.'
+        CREDENTIAL_PASSED_MESSAGE = 'Microsoft Entra ID accepted the saved client secret.'
+        CREDENTIAL_PASSED_NOTE    = 'This check does not complete a user sign-in. Sign in through the custom domain once ' \
+                                    'to verify the redirect URI, user assignment, Conditional Access policies, and claims.'
         SECRET_ID_SHAPE_NOTE      = 'The saved secret has the shape of an Entra Secret ID (a UUID). ' \
                                     'Entra needs the secret Value, shown once when the secret is created.'
         OIDC_CREDENTIAL_MESSAGE   = 'There is no safe credential probe for a generic OIDC provider. ' \
@@ -427,7 +427,7 @@ module DomainsAPI
           errors.concat(unreadable.map { "#{it} cannot be read (re-enter the value)" })
           errors << TENANT_ID_FORMAT_ERROR if @provider_type == 'entra_id' && !tenant_id_uuid?
           if errors.empty?
-            check('stored_configuration', 'passed', 'The saved configuration loads and has every required field.')
+            check('stored_configuration', 'passed', 'The saved configuration is complete and readable.')
           else
             check('stored_configuration', 'failed', 'The saved configuration is incomplete or unreadable.', errors: errors)
           end

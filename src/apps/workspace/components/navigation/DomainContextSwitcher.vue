@@ -37,7 +37,7 @@ import { isOwnerOrAdminOf } from '@/utils/features';
 import { MenuItem } from '@headlessui/vue';
 import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
+import { isNavigationFailure, NavigationFailureType, useRoute, useRouter } from 'vue-router';
 
 /**
  * Props for controlling switcher behavior from parent
@@ -217,20 +217,14 @@ watch(
 );
 
 /**
- * Handle domain selection with optional route-aware navigation.
- * The engine has already dismissed the dropdown before emitting `select`.
+ * The path a domain switch navigates to, from the route's onDomainSwitch meta.
+ * null when the route configures no navigation or the path cannot be built.
  */
-const onSelect = (id: string): void => {
-  const domain = domainForId(id);
-  if (!domain || isOptionDisabled(domain)) return;
-
-  setContext(domain);
-
-  // Handle route-aware navigation based on onDomainSwitch meta
+const switchPathFor = (domain: string): string | null => {
   const switchTarget = onDomainSwitch.value;
   if (!switchTarget) {
     // No navigation configured, just update store (current behavior)
-    return;
+    return null;
   }
 
   const extid = getExtidByDomain(domain);
@@ -239,33 +233,63 @@ const onSelect = (id: string): void => {
     // Stay on current route pattern, replace :extid with new domain's extid
     if (!extid) {
       console.warn('[DomainContextSwitcher] Cannot navigate: domain missing extid', domain);
-      return;
+      return null;
     }
     const matchedRoute = route.matched[route.matched.length - 1];
-    if (matchedRoute?.path) {
-      // Replace :extid (domain param) with new domain's extid.
-      // Also replace :orgid (org param) with current org extid so the literal
-      // route pattern placeholder doesn't appear in the navigated URL.
-      // Use replaceAll so a route pattern that repeats a placeholder can't
-      // leave a stray ':extid'/':orgid' segment in the navigated URL.
-      let newPath = matchedRoute.path.replaceAll(':extid', extid);
-      if (currentOrgExtid.value) {
-        newPath = newPath.replaceAll(':orgid', currentOrgExtid.value);
-      }
-      router.push(newPath);
+    if (!matchedRoute?.path) return null;
+    // Replace :extid (domain param) with new domain's extid.
+    // Also replace :orgid (org param) with current org extid so the literal
+    // route pattern placeholder doesn't appear in the navigated URL.
+    // Use replaceAll so a route pattern that repeats a placeholder can't
+    // leave a stray ':extid'/':orgid' segment in the navigated URL.
+    let newPath = matchedRoute.path.replaceAll(':extid', extid);
+    if (currentOrgExtid.value) {
+      newPath = newPath.replaceAll(':orgid', currentOrgExtid.value);
     }
-  } else if (switchTarget.includes(':extid')) {
+    return newPath;
+  }
+
+  if (switchTarget.includes(':extid')) {
     // Path with :extid placeholder - replace and navigate
     if (!extid) {
       console.warn('[DomainContextSwitcher] Cannot navigate: domain missing extid', domain);
-      return;
+      return null;
     }
-    const newPath = switchTarget.replaceAll(':extid', extid);
-    router.push(newPath);
-  } else {
-    // Path without :extid - navigate directly
-    router.push(switchTarget);
+    return switchTarget.replaceAll(':extid', extid);
   }
+
+  // Path without :extid - navigate directly
+  return switchTarget;
+};
+
+/**
+ * Handle domain selection with optional route-aware navigation.
+ * The engine has already dismissed the dropdown before emitting `select`.
+ *
+ * When the switch navigates, the context changes only once the navigation
+ * lands. The page can refuse it (an unsaved-changes guard the user cancels),
+ * and the page then still shows the previous domain; switching first would
+ * leave this switcher naming a domain the page does not show, which the
+ * route.params.extid watcher above cannot correct because the param never
+ * changed. A duplicated navigation is already where the switch would go.
+ */
+const onSelect = async (id: string): Promise<void> => {
+  const domain = domainForId(id);
+  if (!domain || isOptionDisabled(domain)) return;
+
+  const path = switchPathFor(domain);
+  if (!path) {
+    setContext(domain);
+    return;
+  }
+
+  const failure = await router.push(path);
+  if (
+    isNavigationFailure(failure, NavigationFailureType.aborted | NavigationFailureType.cancelled)
+  ) {
+    return;
+  }
+  setContext(domain);
 };
 
 /**

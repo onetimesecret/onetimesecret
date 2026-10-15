@@ -224,7 +224,7 @@ module DomainsAPI
           {
             success: true,
             provider_type: @provider_type,
-            message: "#{provider_name} connection successful",
+            message: "#{provider_name} discovery completed successfully",
             details: {
               issuer: discovery['issuer'],
               authorization_endpoint: discovery['authorization_endpoint'],

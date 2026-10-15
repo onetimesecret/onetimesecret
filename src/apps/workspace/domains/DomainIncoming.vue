@@ -10,7 +10,7 @@
  */
 import { useI18n } from 'vue-i18n';
 import { computed, onMounted, watch } from 'vue';
-import { useRouter, onBeforeRouteLeave, RouterLink } from 'vue-router';
+import { useRouter, RouterLink } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
@@ -21,6 +21,7 @@ import { useDomain } from '@/shared/composables/useDomain';
 
 import { useIncomingConfig } from '@/shared/composables/useIncomingConfig';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
+import { useUnsavedRouteGuard } from '@/shared/composables/useUnsavedRouteGuard';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
 import { isOrgsIncomingSecretsEnabled } from '@/utils/features';
@@ -136,15 +137,7 @@ const homepageUsesIncoming = computed(() => {
 });
 
 // Unsaved changes guard
-onBeforeRouteLeave((_to, _from, next) => {
-  if (hasUnsavedChanges.value) {
-    const answer = window.confirm(t('web.domains.unsaved_changes_confirmation'));
-    if (answer) next();
-    else next(false);
-  } else {
-    next();
-  }
-});
+useUnsavedRouteGuard(hasUnsavedChanges, 'web.domains.unsaved_changes_confirmation');
 
 // ---------------------------------------------------------------------------
 // Lifecycle

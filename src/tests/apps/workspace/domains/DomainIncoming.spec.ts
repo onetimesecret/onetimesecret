@@ -106,6 +106,7 @@ vi.mock('vue-router', () => ({
   onBeforeRouteLeave: (fn: () => void) => {
     mockBeforeRouteLeave.mockImplementation(fn);
   },
+  onBeforeRouteUpdate: vi.fn(),
   RouterLink: {
     name: 'RouterLink',
     template: '<a :href="to"><slot /></a>',
