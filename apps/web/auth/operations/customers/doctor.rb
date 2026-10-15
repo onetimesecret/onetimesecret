@@ -884,6 +884,10 @@ module Auth
 
               if @repair
                 @customer.untrack_participation_in(collection_key)
+                if @customer.participations.to_a.include?(collection_key)
+                  raise Onetime::Problem, "Stale participation cleanup failed: #{collection_key}"
+                end
+
                 OT.info "[customers doctor] Removed stale participation #{collection_key} for #{@customer.extid}"
                 repaired << {
                   customer: @customer.extid,
