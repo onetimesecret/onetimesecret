@@ -25,6 +25,7 @@
   import { useEntitlements } from '@/shared/composables/useEntitlements';
   import { useSigninConfig } from '@/shared/composables/useSigninConfig';
   import { useSsoConfig } from '@/shared/composables/useSsoConfig';
+  import { useUnsavedRouteGuard } from '@/shared/composables/useUnsavedRouteGuard';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { ENTITLEMENTS } from '@/types/organization';
   import { isOrgsSsoEnabled, isSamlEnabled } from '@/utils/features';
@@ -32,7 +33,7 @@
   import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
-  import { onBeforeRouteLeave, useRouter } from 'vue-router';
+  import { useRouter } from 'vue-router';
 
   const { t } = useI18n();
   const router = useRouter();
@@ -226,15 +227,7 @@
   };
 
   // Unsaved changes guard: the form saves only on an explicit action.
-  onBeforeRouteLeave((_to, _from, next) => {
-    if (ssoHasUnsavedChanges.value) {
-      const answer = window.confirm(t('web.branding.you_have_unsaved_changes_are_you_sure'));
-      if (answer) next();
-      else next(false);
-    } else {
-      next();
-    }
-  });
+  useUnsavedRouteGuard(ssoHasUnsavedChanges);
 
   // ---------------------------------------------------------------------------
   // Lifecycle

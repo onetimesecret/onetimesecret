@@ -16,7 +16,8 @@
 // - the Careful Consideration Zone below the card: delete is the page's,
 //   with its inline confirm, shown only once a record exists;
 // - the navigation around it: back to the sign-in settings, back after a
-//   successful delete, and the unsaved-changes guard on leaving.
+//   successful delete, and the unsaved-changes guard on leaving and on a
+//   switch to another domain's SSO page (same route, new :extid).
 //
 // The composables and the form are stubbed: the form's own behaviour is
 // DomainSsoConfigForm.spec.ts's business.
@@ -36,11 +37,15 @@ import DomainSigninSso from '@/apps/workspace/domains/DomainSigninSso.vue';
 
 const router = { push: vi.fn(), replace: vi.fn() };
 let routeLeaveGuard: NavigationGuard | null = null;
+let routeUpdateGuard: NavigationGuard | null = null;
 
 vi.mock('vue-router', () => ({
   useRouter: () => router,
   onBeforeRouteLeave: (guard: NavigationGuard) => {
     routeLeaveGuard = guard;
+  },
+  onBeforeRouteUpdate: (guard: NavigationGuard) => {
+    routeUpdateGuard = guard;
   },
 }));
 
@@ -231,6 +236,7 @@ describe('DomainSigninSso', () => {
     vi.clearAllMocks();
     calls.length = 0;
     routeLeaveGuard = null;
+    routeUpdateGuard = null;
     isSamlEnabledMock.mockReturnValue(true);
     isOrgsSsoEnabledMock.mockReturnValue(true);
     mockEntitled.value = true;
@@ -622,21 +628,28 @@ describe('DomainSigninSso', () => {
   });
 
   describe('unsaved-changes guard', () => {
+    // The guards answer by return value: false cancels the navigation.
     const leave = () => {
       if (!routeLeaveGuard) throw new Error('no route-leave guard registered');
-      const next = vi.fn();
-      routeLeaveGuard({} as never, {} as never, next);
-      return next;
+      return routeLeaveGuard({} as never, {} as never, vi.fn());
+    };
+
+    // The domain switcher keeps the route and replaces :extid. App.vue keys
+    // the routed view on the fullPath, so this page would remount.
+    const ssoPath = (extid: string) => `/org/org_123/domains/${extid}/signin/sso`;
+    const switchDomain = () => {
+      if (!routeUpdateGuard) throw new Error('no route-update guard registered');
+      const at = (extid: string) =>
+        ({ fullPath: ssoPath(extid), meta: {}, params: { orgid: 'org_123', extid } }) as never;
+      return routeUpdateGuard(at('dm_456'), at('dm_123'), vi.fn());
     };
 
     it('lets a clean form leave without asking', async () => {
       const confirm = vi.spyOn(window, 'confirm');
       wrapper = await mountPage();
 
-      const next = leave();
-
+      expect(leave()).toBe(true);
       expect(confirm).not.toHaveBeenCalled();
-      expect(next).toHaveBeenCalledWith();
     });
 
     it('asks before leaving unsaved edits, and stays on "cancel"', async () => {
@@ -644,10 +657,8 @@ describe('DomainSigninSso', () => {
       mockSsoHasUnsavedChanges.value = true;
       wrapper = await mountPage();
 
-      const next = leave();
-
+      expect(leave()).toBe(false);
       expect(confirm).toHaveBeenCalledWith('web.branding.you_have_unsaved_changes_are_you_sure');
-      expect(next).toHaveBeenCalledWith(false);
       expect(header().props('hasUnsavedChanges')).toBe(true);
     });
 
@@ -656,9 +667,32 @@ describe('DomainSigninSso', () => {
       mockSsoHasUnsavedChanges.value = true;
       wrapper = await mountPage();
 
-      const next = leave();
+      expect(leave()).toBe(true);
+    });
 
-      expect(next).toHaveBeenCalledWith();
+    it('asks before switching domains with unsaved edits, and stays on "cancel"', async () => {
+      const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+      mockSsoHasUnsavedChanges.value = true;
+      wrapper = await mountPage();
+
+      expect(switchDomain()).toBe(false);
+      expect(confirm).toHaveBeenCalledWith('web.branding.you_have_unsaved_changes_are_you_sure');
+    });
+
+    it('switches domains on "ok"', async () => {
+      vi.spyOn(window, 'confirm').mockReturnValue(true);
+      mockSsoHasUnsavedChanges.value = true;
+      wrapper = await mountPage();
+
+      expect(switchDomain()).toBe(true);
+    });
+
+    it('lets a clean form switch domains without asking', async () => {
+      const confirm = vi.spyOn(window, 'confirm');
+      wrapper = await mountPage();
+
+      expect(switchDomain()).toBe(true);
+      expect(confirm).not.toHaveBeenCalled();
     });
   });
 });
