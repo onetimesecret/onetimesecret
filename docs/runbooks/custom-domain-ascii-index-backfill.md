@@ -176,28 +176,48 @@ once it is back.
 
 ### 6. Resolve collisions and conflicts
 
-**Collisions.** Each group lists every record that shares one A-label, with
-its extid, stored name, organization, verification state, date of the last
-passing DNS check (`dns-confirmed`), whether ownership was set by an operator
-override, and creation date, and marks the one record a request for the name
-resolves to today (`served`); the others are `shadow`. Only one record per
-name can be kept. `bin/ots domains resolve-collisions` decides which, by a
-fixed rule, and removes the others.
+**Collisions.** Only one custom-domain record per A-label can be kept.
+`bin/ots domains resolve-collisions` makes a read-only proposal using a fixed
+keeper-selection rule. It removes records only with `--apply` and a reviewed
+plan. Cached billing can require deletion approval; it does not select the
+keeper.
+
+The report distinguishes these facts for every record:
+
+| Evidence | Meaning and limits |
+| :------- | :----------------- |
+| `domain_id`, `extid`, stored name | Full domain identity, with escaped spelling for non-ASCII names |
+| `org_id`, `org_extid`, `org_name`, organization state | Full local organization identity and active, archived or missing state |
+| Historical `dns-confirmed` timestamp | A passing TXT check stored on file, **not a fresh DNS check** or proof of current control |
+| `ownership_verified`, `verified_by_override`, verification state | Stored ownership flag and whether it came from an operator override; separate from historical DNS confirmation |
+| `served` / `shadow` | Whether the local name index routed requests to this record at plan time; **not a network probe** |
+| Receipts, brand settings, use configs | Evidence of use under the existing rule |
+| `all_configs`, non-use configs, vhost, creation timestamp | Additional local state, including configs that do not count as use |
+| Billing label, `planid`, `stripe_customer_id`, `stripe_subscription_id`, `subscription_status` | Organization billing from `local_cache` only; **no live Stripe lookup** |
+
+Neither plan generation nor its billing guard refreshes DNS or Stripe data.
+An apply-time datastore comparison is not a fresh DNS or billing-provider
+check. The Approximated strategy's kept-record verification is a separate
+apply step described below.
 
 1. Make the plan. This reads only, so it can run before the window:
 
    ```console
-   bin/ots domains resolve-collisions --write collision-plan.json
+   bin/ots domains resolve-collisions --write collision-plan.json > collision-plan-01.txt
    ```
 
-   For every record it gathers: whether a request for the name resolves to
-   it, its DNS proof, its ownership flag, its organization's state, its
-   receipts, its configs and brand settings. It decides each group by this
-   rule, in order; the first step that names exactly one record decides, and
-   a step that names several marks the group `manual`:
+   Read `collision-plan-01.txt` and keep it with the JSON plan. The plan
+   records its generation timestamp and `rule_version`. Version 2 adds cached
+   billing and the deletion approval guard without changing keeper selection.
+   Older rule-version plans are rejected: regenerate and review them with
+   the current command. Do not make an old plan usable by editing its version.
+
+   The rule runs in this order; after excluding missing organizations, the
+   first step that names exactly one record decides. A step that names
+   several marks the group `manual`:
 
    1. A record whose organization no longer exists is removed.
-   2. Exactly one record has a passing TXT check on file: keep it.
+   2. Exactly one record has a historical passing TXT check on file: keep it.
    3. Exactly one record has `ownership_verified` (the strategy's check or a
       colonel override): keep it.
    4. Exactly one record is in use, meaning it has receipts, brand settings,
@@ -207,35 +227,98 @@ fixed rule, and removes the others.
    5. None is in use: keep the record a request resolves to today, or, when
       none does, the oldest.
 
-   Ownership evidence outranks use on purpose: a record that proved DNS
-   control is kept over a record that was used without proof, and the plan
-   notes it when the removed record answers for the name today or carries
-   receipts, brand settings or configs. Brand settings and configs are
-   deleted with the record; receipts keep their `share_domain`.
+   Historical ownership evidence outranks use in this rule. It does not
+   establish current DNS control. The notes identify a proposed removal that
+   was served at plan time or carries receipts, brand settings or use configs.
+   Review `all_configs` too: non-use configs are not a reason to keep a
+   record, but are still deleted with it. **Brand settings and configs are
+   deleted, not merged into the keeper. Receipts retain their `share_domain`.**
 
-2. Review the plan. Every group's facts and decision are in the file and in
-   the report. For each `manual` group set `keep` to the extid of the record
-   to keep and `approved` to `true`, or set `skip` to `true` to leave it.
-   Leave `remove` empty: apply derives it from `keep`. Do not edit `auto`
-   groups' records; change `keep` and set `approved` if you disagree with the
-   rule, or `skip` the group.
+2. Review the plan. Every group's facts, proposal and notes are in the JSON
+   and text report. Check the full organization and domain IDs, historical
+   ownership evidence, routing, use, all configs and cached billing before
+   approving deletion.
+
+   - For each `manual` group, set `keep` to the extid of the record to keep
+     and `approved` to `true`, or set `skip` to `true` to leave it.
+   - For **any** group that would remove a billing-protected record, set
+     `approved` to `true` after reviewing the billing evidence, or `skip` it.
+     This includes an `auto` proposal whose keeper is unambiguous. An auto
+     keeper proposal is not deletion approval.
+   - Billing protection covers locally cached `active`, `trialing`,
+     `past_due` and `unpaid` subscriptions, and uncertain status with Stripe
+     references or status. The report labels these `live_or_recoverable` or
+     `unknown`. `no_local_subscription` and `not_live` describe local cache
+     state only, not a current Stripe check. A plan ID alone is not live
+     subscription evidence.
+   - Do not edit saved record evidence to bypass the guard. If the evidence
+     changed, regenerate the plan and review it again. Billing data is not
+     used to override the keeper-selection rule.
+
+   Leave `remove` empty when changing `keep`: apply derives removals from
+   `keep`. If you disagree with an `auto` proposal, change `keep` and set
+   `approved`, or `skip` the group. Keep the reviewed plan with the reports.
+   Plan mode exits 1 while a keeper decision or required deletion approval
+   is pending. `--yes` and answering `y` bypass only the command prompt;
+   neither sets `approved` on a plan group.
 
 3. Apply, with the application stopped:
 
    ```console
-   bin/ots domains resolve-collisions --apply --plan collision-plan.json --dry-run
-   bin/ots domains resolve-collisions --apply --plan collision-plan.json
+   bin/ots domains resolve-collisions --apply --plan collision-plan.json --dry-run > collision-preview-01.txt
    ```
 
-   The dry run checks each group against the datastore and previews the
-   removals. The apply, for each group: compares the group with a fresh audit
-   and skips it when its records or their identity changed since the plan;
+   Read the preview before running the non-dry apply:
+
+   ```console
+   bin/ots domains resolve-collisions --apply --plan collision-plan.json --yes > collision-apply-01.txt
+   ```
+
+   The saved-output example uses `--yes` so an interactive prompt is not
+   hidden by redirection. Required group approvals must already be saved in
+   the JSON. For interactive confirmation, omit `--yes` and the redirection.
+   Keep each output file; choose a new filename for every retry rather than
+   overwriting an earlier report. Use `--json` instead of text when needed;
+   non-dry `--apply --json` also requires `--yes`. The prompt's removal count
+   excludes skipped groups and unapproved approval-required groups, including
+   billing-protected `auto` groups. Those groups remain skipped even with
+   `--yes`.
+
+   The dry run checks each group against the datastore and previews eligible
+   removals without domain changes or collision-summary events. Removal
+   previews may write `domain.remove` observations, and preview failures may
+   also be audited. The apply, for each group: compares the group with a
+   fresh local audit and skips it when its
+   membership, identity or cached billing changed since the plan;
    removes each other record through the same operation as
    `bin/ots domains remove`, with a reason naming the kept record, the record
    that answers for the name last; re-enters the kept record in the exact
    name index when the name no longer resolves to it; and on the Approximated
    strategy verifies the kept record again so its stored vhost status is
-   current. Each removal and verification records its own audit event.
+   current. This verification is not part of the historical plan evidence.
+
+   Each outcome, including a skipped group, carries saved context: `run_id`,
+   run start time, `plan_generated_at`, `plan_sha256`, `rule_version`,
+   decision, rule, approval flags,
+   `billing_source: local_cache`, full record evidence and notes. Text apply
+   reports print that evidence alongside the actual removal statuses, exact
+   index result, kept-record verification result and errors. The saved record
+   evidence describes the plan, not the state after apply. Preserve the
+   reviewed JSON plan and console output together so the decision can be
+   reconstructed after records are deleted.
+
+   A non-dry apply records a `domain.resolve_collision` admin audit entry for
+   each group outcome, including skipped groups, with its context and run ID.
+   Existing `domain.remove` audit entries remain per deletion; kept-record
+   verification also records its own event. Use the run ID to correlate group
+   summaries with the saved report. The Administrator's Log bounds detail
+   arrays to 25 entries; summary totals retain the complete counts. Console
+   and JSON reports retain all records and outcomes. Match the run ID and
+   reviewed plan SHA256 to the saved report for a large group.
+   A dry run writes no collision summaries
+   or successful deletion events, but may write preview/failure audit entries.
+   `removed_audit_failed` means the deletion committed but its individual
+   audit write failed; the group is `partial`, not a successful apply.
 
    The provider vhost is keyed by the name, which the kept record shares. The
    removals leave it in place (`keep_vhost`, recorded in each removal's audit
