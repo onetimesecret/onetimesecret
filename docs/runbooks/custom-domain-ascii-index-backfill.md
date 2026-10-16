@@ -256,7 +256,8 @@ apply step described below.
      used to override the keeper-selection rule.
 
    Leave `remove` empty when changing `keep`: apply derives removals from
-   `keep`. If you disagree with an `auto` proposal, change `keep` and set
+   `keep`. An empty `keep` is accepted only when fresh evidence confirms that
+   every record in the group is an orphan. If you disagree with an `auto` proposal, change `keep` and set
    `approved`, or `skip` the group. Keep the reviewed plan with the reports.
    Plan mode exits 1 while a keeper decision or required deletion approval
    is pending. `--yes` and answering `y` bypass only the command prompt;
@@ -284,13 +285,21 @@ apply step described below.
    billing-protected `auto` groups. Those groups remain skipped even with
    `--yes`.
 
-   The dry run checks each group against the datastore and previews eligible
-   removals without domain changes or collision-summary events. Removal
-   previews may write `domain.remove` observations, and preview failures may
-   also be audited. The apply, for each group: compares the group with a
-   fresh local audit and skips it when its
-   membership, identity or cached billing changed since the plan;
-   removes each other record through the same operation as
+   Both dry-run and non-dry apply finish preflight for all selected groups
+   before any removal. An unreadable record anywhere in the audit refuses the
+   entire run; plan generation also refuses incomplete audits. A group is
+   skipped if membership, identity, organization state, cached billing,
+   verification evidence, routing, receipt count, config presence, brand
+   presence or vhost presence changed since the plan. Regenerate and review
+   changed plans rather than editing their saved evidence.
+
+   The dry run previews eligible removals without domain changes or
+   collision-summary events. Removal previews may write `domain.remove`
+   observations, and preview failures may also be audited. A failed preview
+   produces a `partial` outcome and exit status 1, not a successful dry run.
+   Preflight does not lock out writers: keep the application stopped.
+
+   Non-dry apply removes each other record through the same operation as
    `bin/ots domains remove`, with a reason naming the kept record, the record
    that answers for the name last; re-enters the kept record in the exact
    name index when the name no longer resolves to it; and on the Approximated
@@ -325,14 +334,27 @@ apply step described below.
    detail as `vhost_kept`), so the name keeps serving throughout. Only a group
    with no kept record, all orphans, deletes it.
 
-   A removal calls external services: when the removed record has a mail
-   sender configured it deletes that sender identity at the mail provider,
-   and in a group with no kept record it deletes the vhost for the name on
-   the Approximated strategy.
+   Sender preflight compares remote identities across all audited records,
+   including records outside the selected groups. SES and SMTP2GO identities
+   are compared by sender domain; SendGrid and Lettermint use provider IDs.
+   The latter can require read-only provider requests even during `--dry-run`,
+   using the installation's provider credentials. Unreadable or unresolved
+   identities skip affected groups before deletion.
+
+   A shared sender identity is retained, with `sender_identity_kept` in the
+   removal's preview/apply audit detail. The removed record's local config is
+   still deleted. This also retains identities shared by two planned removals:
+   either removal might fail. If all referencing records are removed, inspect
+   the provider and remove the unused identity manually. Unshared sender
+   identities follow the normal provider teardown. A group with no kept
+   record deletes the vhost for the name on the Approximated strategy.
 
    The command exits 1 when a group was skipped or did not complete; the
-   report says why for each. Fix the plan or the record and apply again, or
-   apply one group with `--group <ASCII name>`.
+   report says why for each. Keeper reload or verification persistence failures
+   produce a `partial` outcome without hiding earlier committed deletions.
+   Preserve that report and inspect the remaining records before retrying:
+   completed deletions are not rolled back. Regenerate and review a plan for
+   remaining collisions, or select one group with `--group <ASCII name>`.
 
 4. On the Approximated strategy, check the kept records afterwards with
    `bin/ots domains probe <name>`.

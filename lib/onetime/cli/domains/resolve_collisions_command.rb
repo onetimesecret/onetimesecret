@@ -211,11 +211,19 @@ module Onetime
             exact name index when the removed record answered for the name, and
             on the Approximated strategy verifies the kept record again so its
             stored vhost status is current. The provider vhost is keyed by the
-            name; the removals leave it in place for the kept record. A group
-            whose membership, identity or cached billing changed since the plan
-            is skipped. Configs and brand settings are deleted, not merged into
-            the keeper; receipts retain share_domain. Run backfill-ascii-index
-            --apply afterwards.
+            name; the removals leave it in place for the kept record.
+            Preflight checks every selected group before any removal. Unreadable
+            audit records refuse the run; changed identity, billing, verification,
+            routing or use evidence skips the group. An empty keep is allowed
+            only for freshly confirmed all-orphans.
+
+            Shared sender identities are retained, including references outside
+            the selected groups. SendGrid/Lettermint identity checks can contact
+            the provider even during --dry-run; unresolved identities skip the
+            group. Identities shared by multiple planned removals are also kept
+            and may need manual provider cleanup afterwards.
+            Configs and brand settings are deleted, not merged into the keeper;
+            receipts retain share_domain. Run backfill-ascii-index --apply afterwards.
 
             Save the reviewed plan and console output. Apply reports include the
             run_id, plan timestamp, rule/approval, full saved record evidence,
@@ -224,6 +232,8 @@ module Onetime
             group and domain.remove per deletion in the admin audit trail.
             --dry-run makes no domain changes or collision-summary events.
             Removal previews are observations; preview failures may be audited.
+            Failed previews and keeper refresh failures are partial outcomes
+            (exit 1). Committed deletions stay in the report and are not rolled back.
 
           STOP THE APPLICATION BEFORE --apply. Snapshot the datastore first.
           Runbook: #{RUNBOOK}
