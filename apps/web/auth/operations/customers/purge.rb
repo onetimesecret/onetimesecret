@@ -100,6 +100,7 @@ module Auth
           @completed_stages             = []
           @planned_actions              = []
           @mutation_started             = false
+          @registry_sweep               = nil
         end
 
         def mutation_started?
@@ -183,8 +184,11 @@ module Auth
 
           # Redis/SQL are not atomic. Scan again after teardown so a concurrent
           # organization write cannot be reported as a successful clean purge.
-          @stage   = :post_teardown_revalidation
-          residual = preflight(deep: @deep)
+          # The deep sweep is captured afresh here, not reused: a reference
+          # written to any organization during the purge must be seen.
+          @stage          = :post_teardown_revalidation
+          @registry_sweep = nil
+          residual        = preflight(deep: @deep)
           unless same_remaining_plan?(residual, [])
             blockers = residual.blockers.dup
             blockers << { code: :preflight_changed } if residual.signature != signature_for([])
@@ -272,14 +276,19 @@ module Auth
         # Revalidation between mutations is deliberately SHALLOW even when the
         # caller asked for a deep sweep: the operator-grade registry scan runs at
         # the two boundaries that matter (the initial plan and the final
-        # post-teardown check) rather than once per action.
+        # post-teardown check) rather than once per action. The initial deep
+        # preflight captures a RegistrySweep that Org::Delete's capability
+        # recheck (through the plan's AccountPurgeContext) reuses, re-loading
+        # only the rows it points at; the post-teardown check captures its own.
         def preflight(deep: false)
           checker                      = Auth::Operations::Customers::PurgePreflight.new(
             customer: @customer,
             deep: deep,
             membership_snapshot: @membership_snapshot,
+            registry_sweep: deep ? @registry_sweep : nil,
           )
           plan                         = checker.call
+          @registry_sweep              = checker.registry_sweep if deep
           @pending_organization_checks = (@pending_organization_checks + checker.pending_organization_checks)
             .uniq { |action| action.reference }
           # Removing the reverse reference must not hide late dependent writes
