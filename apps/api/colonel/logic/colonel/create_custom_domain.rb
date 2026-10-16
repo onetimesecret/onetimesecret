@@ -14,10 +14,10 @@ module ColonelAPI
       # @api Registers a new custom domain and attaches it to ANY organization,
       #   resolved by public extid (or objid). Validates + normalises the domain
       #   the same way the user-facing DomainsAPI::Logic::Domains::AddDomain does
-      #   (PublicSuffix via CustomDomain.valid? / .parse), creates it via the
-      #   single audited-elsewhere create path (CustomDomain.create!) and kicks
-      #   off SSL certificate provisioning through the configured strategy.
-      #   Requires the colonel role.
+      #   (PublicSuffix via CustomDomain.valid? / .parse) and creates it via the
+      #   single audited-elsewhere create path (CustomDomain.create!). No
+      #   certificate is requested: the virtual host is created by verification
+      #   once ownership is verified. Requires the colonel role.
       #
       # Unlike AddDomain, there is NO org.member? / entitlement gate — the colonel
       # attaches a domain to an org the operator is (by definition) not a member

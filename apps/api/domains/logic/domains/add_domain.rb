@@ -5,7 +5,6 @@
 require 'public_suffix'
 
 require 'onetime/domain_validation/features'
-require 'onetime/domain_validation/strategy'
 require_relative '../base'
 
 module DomainsAPI::Logic
@@ -13,10 +12,14 @@ module DomainsAPI::Logic
     # Add Custom Domain
     #
     # @api Registers a new custom domain for an organization. Validates
-    #   the domain via PublicSuffix, checks for duplicates, and initiates
-    #   SSL certificate provisioning. Returns the created domain record.
-    #   When the new domain is served right away, it also becomes the
-    #   active domain context in the session.
+    #   the domain via PublicSuffix and checks for duplicates. Returns the
+    #   created domain record. When the new domain is served right away, it
+    #   also becomes the active domain context in the session.
+    #
+    # No certificate is requested here. Under a strategy that manages
+    # certificates (approximated) the virtual host is created by
+    # verification once ownership is verified (Operations::VerifyDomain),
+    # so a name whose owner never proves it gets no certificate.
     #
     # Supports two modes:
     # 1. Default: Uses organization from session context
@@ -111,18 +114,6 @@ module DomainsAPI::Logic
         # so sess is always a real Rack session here.
         sess['domain_context'] = domain_context if domain_context
 
-        begin
-          # Request certificate using the configured strategy
-          # This delegates to the appropriate backend (Approximated, Caddy, passthrough, etc.)
-          request_certificate
-        rescue HTTParty::ResponseError => ex
-          logger.error '[AddDomain.request_certificate error]', extid: @cust.extid, display_domain: @display_domain, exception: ex
-          # Continue processing despite certificate request error
-        rescue StandardError => ex
-          logger.error '[AddDomain] Unexpected error', exception: ex
-          # Continue processing despite error
-        end
-
         # Auto-fetch the domain's favicon on add (#3780). Flag-gated and isolated:
         # the Publisher's jobs-disabled branch runs FetchDomainFavicon inline and can
         # raise, so wrap it so a favicon failure never breaks domain creation.
@@ -147,28 +138,6 @@ module DomainsAPI::Logic
         raise unless ex.instance_of?(Onetime::Problem)
 
         raise_form_error ex.message
-      end
-
-      def request_certificate
-        strategy = Onetime::DomainValidation::Strategy.for_config(OT.conf)
-        result   = strategy.request_certificate(@custom_domain)
-
-        OT.info "[AddDomain.request_certificate] #{@display_domain} -> #{result[:status]}"
-
-        # Store the result data if available (for strategies like Approximated)
-        if result[:data]
-          @custom_domain.vhost   = result[:data].to_json
-          @custom_domain.updated = OT.now.to_i
-          @custom_domain.save
-        end
-
-        result
-      end
-
-      # Legacy method for backward compatibility
-      # @deprecated Use request_certificate instead
-      def create_vhost
-        request_certificate
       end
 
       # domain_context is the context #process set in the session, nil when

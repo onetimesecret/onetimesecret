@@ -47,18 +47,29 @@ export function useDomainStatus(domain: MaybeRefOrGetter<CustomDomain | null>) {
   const isAwaitingCertificate = computed(() => isPendingSsl.value && isVerified.value);
 
   /**
-   * The name resolves here per the blob (active or certificate pending), but
-   * ownership is not confirmed: the TXT check has not passed yet, or it
-   * passed once and the record has since gone. The customer has to act, so
-   * this is a "no", kept apart from `isStale` ("could not tell").
+   * The name resolves here per the blob (active or certificate pending), or
+   * there is no blob yet, but ownership is not confirmed: the TXT check has
+   * not passed yet, or it passed once and the record has since gone. The
+   * customer has to act, so this is a "no", kept apart from `isStale`
+   * ("could not tell"). A blob that says the name does not resolve here
+   * keeps its own state (DNS incorrect, inactive). No blob at all is the
+   * normal state of a new domain: under `approximated` the virtual host is
+   * created by verification once ownership is verified, and under the other
+   * strategies the first probe writes it.
    */
-  const needsOwnershipCheck = computed(
-    () => (hasActiveBlobStatus.value || isPendingSsl.value) && !isVerified.value
-  );
+  const needsOwnershipCheck = computed(() => {
+    const current = toValue(domain);
+    if (!current || isVerified.value) return false;
+    return hasActiveBlobStatus.value || isPendingSsl.value || !current.vhost?.status;
+  });
 
   const isError = computed(
     () =>
-      !!toValue(domain) && !hasActiveBlobStatus.value && !isWarning.value && !isPendingSsl.value
+      !!toValue(domain) &&
+      !hasActiveBlobStatus.value &&
+      !isWarning.value &&
+      !isPendingSsl.value &&
+      !needsOwnershipCheck.value
   );
 
   /**

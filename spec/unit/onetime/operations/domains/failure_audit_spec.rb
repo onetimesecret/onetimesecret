@@ -46,7 +46,7 @@ RSpec.describe 'domain operations failure auditing' do
     let(:org) { double('Organization', objid: 'org-obj-1', extid: 'on_org_ext') }
 
     def build(domain: 'shop.example.com')
-      described_class.new(domain: domain, org: org, actor: actor, request_certificate: false)
+      described_class.new(domain: domain, org: org, actor: actor)
     end
 
     # A rejection mutates nothing, but it is still a refused privileged create.
