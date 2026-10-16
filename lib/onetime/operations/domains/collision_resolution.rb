@@ -418,6 +418,12 @@ module Onetime
           end
           return 'an empty keeper requires freshly confirmed all-orphans' if group.keep.nil? && !fresh.all?(&:orphan?)
 
+          # The rule never keeps an orphan; only an edited keep can name one.
+          # Nothing owns a kept orphan, and the owned records would be removed
+          # for it, without approval when their billing does not protect them.
+          keeper = group.keep_record && fresh.find { |candidate| candidate.domain_id == group.keep_record.domain_id }
+          return "keep #{group.keep} names an orphan (organization #{keeper.org_state}); keep an owned record or skip the group" if keeper&.orphan?
+
           nil
         rescue StandardError => ex
           "could not recheck organization billing: #{ex.class}: #{ex.message}; nothing removed"

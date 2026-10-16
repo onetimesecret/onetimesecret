@@ -263,7 +263,9 @@ apply step described below.
 
    Leave `remove` empty when changing `keep`: apply derives removals from
    `keep`. An empty `keep` is accepted only when fresh evidence confirms that
-   every record in the group is an orphan. If you disagree with an `auto` proposal, change `keep` and set
+   every record in the group is an orphan, and `keep` may not name an orphan
+   (state `missing` or `dangling`): nothing owns it, and apply skips the
+   group. If you disagree with an `auto` proposal, change `keep` and set
    `approved`, or `skip` the group. Keep the reviewed plan with the reports.
    Plan mode exits 1 while a keeper decision or required deletion approval
    is pending. `--yes` and answering `y` bypass only the command prompt;

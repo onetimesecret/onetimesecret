@@ -220,7 +220,8 @@ module Onetime
             Preflight checks every selected group before any removal. Unreadable
             audit records refuse the run; changed identity, billing, verification,
             routing or use evidence skips the group. An empty keep is allowed
-            only for freshly confirmed all-orphans.
+            only for freshly confirmed all-orphans, and keep never names an
+            orphan.
 
             Shared sender identities are retained, including references outside
             the selected groups. SendGrid/Lettermint identity checks read the

@@ -982,6 +982,33 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
         expect(model.find_by_identifier(legacy[:c].first)).not_to be_nil
       end
 
+      it 'refuses a keep edited to name an orphan, which would remove the owned records without approval' do
+        legacy!(:c, org: nil)
+        saved  = plan
+        c_ref  = group_of(saved).records.find { |r| r.domain_id == legacy[:c].first }.ref
+        edited = saved.with(groups: [group_of(saved).with(keep: c_ref, remove: [])])
+        expect(group_of(edited)).not_to be_approval_required
+        expect(Onetime::Operations::Domains::Remove).not_to receive(:new)
+
+        outcome = op_class.new.apply(edited, actor: 'cli', dry_run: false).outcomes.first
+
+        expect(outcome).to have_attributes(status: :skipped, reason: "keep #{c_ref} names an orphan (organization missing); keep an owned record or skip the group")
+        expect([id_a, id_b, legacy[:c].first].map { |id| model.find_by_identifier(id) }).to all(be_truthy)
+      end
+
+      it 'refuses a dangling-organization keep even when the group is approved' do
+        legacy!(:c, org: nil, fields: { 'org_id' => "org-gone-#{sfx}" })
+        saved  = plan
+        c_ref  = group_of(saved).records.find { |r| r.domain_id == legacy[:c].first }.ref
+        edited = saved.with(groups: [group_of(saved).with(keep: c_ref, remove: [], approved: true)])
+        expect(Onetime::Operations::Domains::Remove).not_to receive(:new)
+
+        outcome = op_class.new.apply(edited, actor: 'cli', dry_run: false).outcomes.first
+
+        expect(outcome).to have_attributes(status: :skipped, reason: /names an orphan \(organization dangling\)/)
+        expect([id_a, id_b, legacy[:c].first].map { |id| model.find_by_identifier(id) }).to all(be_truthy)
+      end
+
       it 'refuses a group selection that is not in the plan instead of applying nothing' do
         saved = plan
         expect(Onetime::Operations::Domains::Remove).not_to receive(:new)
