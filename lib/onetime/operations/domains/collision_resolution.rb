@@ -160,6 +160,8 @@ module Onetime
         #   previews can write observation audit events
         # @param only [String, nil] apply one group, by its ASCII name
         # @return [ApplyResult]
+        # @raise [InvalidPlan] on an incomplete audit, another rule version,
+        #   or an `only` that names no group in the plan
         def apply(plan, actor:, dry_run: true, only: nil)
           raise InvalidPlan, 'rule version changed; regenerate and review the plan' unless plan.rule_version == Rule::VERSION
 
@@ -167,7 +169,7 @@ module Onetime
           audit          = AsciiIndexAudit.new.call
           require_complete_audit!(audit)
           live           = audit.collision_groups
-          groups         = only ? plan.groups.select { |group| group.ascii_name == only } : plan.groups
+          groups         = only ? [plan.group!(only)] : plan.groups
           run_id         = SecureRandom.uuid
           started        = Time.now.utc.iso8601
           checksum       = Digest::SHA256.hexdigest(plan.to_json)

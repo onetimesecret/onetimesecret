@@ -120,6 +120,9 @@ module Onetime
         error_exit('Refusing to --apply in --json mode without --yes or --dry-run', json: true) if json && !yes && !dry_run
 
         plan = load_plan(path, json: json)
+        if group && plan.group(group).nil?
+          error_exit("Invalid --group: #{plan.missing_group_message(group)}", json: json)
+        end
         confirm_apply(plan, group) unless yes || dry_run
 
         result = begin
@@ -247,7 +250,7 @@ module Onetime
             --apply        Apply a plan file
             --plan FILE    The plan to apply
             --dry-run      Check and preview without domain changes; may audit previews
-            --group NAME   With --apply: one group, by ASCII name
+            --group NAME   With --apply: one group, by ASCII name (a name not in the plan is refused)
             --yes, -y      Skip the prompt, not required plan-group approvals
             --json         JSON output (--apply --json requires --yes or --dry-run)
             --help, -h     Show this help

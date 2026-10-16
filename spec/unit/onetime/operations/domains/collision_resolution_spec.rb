@@ -360,6 +360,22 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
       )
     end
 
+    it 'finds a selected group by ASCII name and refuses one that is not in the plan' do
+      expect(plan.group!('pair.example').ascii_name).to eq('pair.example')
+      expect { plan.group!('nope.example') }
+        .to raise_error(op_class::InvalidPlan, 'group nope.example is not in the plan; name it by its ascii_name')
+    end
+
+    it 'names the ASCII spelling when the operator selected a group by its Unicode display domain' do
+      spelled = plan.with(groups: [plan.groups.first.with(
+        ascii_name: 'xn--mnchen-3ya.example',
+        records: [record('a', display_domain: 'münchen.example'), record('b', display_domain: 'münchen.example', verified_confirmed_at: 5)],
+      )])
+
+      expect { spelled.group!('münchen.example') }
+        .to raise_error(op_class::InvalidPlan, /not in the plan; name it by its ascii_name \(xn--mnchen-3ya\.example\)/)
+    end
+
     it 'round-trips through JSON' do
       parsed = plan_class.parse(plan.to_json)
 
@@ -964,6 +980,15 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
 
         expect(outcome).to have_attributes(status: :skipped, reason: /organization or billing changed since the plan/)
         expect(model.find_by_identifier(legacy[:c].first)).not_to be_nil
+      end
+
+      it 'refuses a group selection that is not in the plan instead of applying nothing' do
+        saved = plan
+        expect(Onetime::Operations::Domains::Remove).not_to receive(:new)
+
+        expect { op_class.new.apply(saved, actor: 'cli', dry_run: false, only: "nope-#{sfx}.example") }
+          .to raise_error(op_class::InvalidPlan, /group nope-#{sfx}\.example is not in the plan/)
+        expect(model.find_by_identifier(id_b)).not_to be_nil
       end
 
       it 'removes a canceled subscription record without approval despite its Stripe references' do

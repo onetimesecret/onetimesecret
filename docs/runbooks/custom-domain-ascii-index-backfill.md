@@ -364,7 +364,10 @@ apply step described below.
    produce a `partial` outcome without hiding earlier committed deletions.
    Preserve that report and inspect the remaining records before retrying:
    completed deletions are not rolled back. Regenerate and review a plan for
-   remaining collisions, or select one group with `--group <ASCII name>`.
+   remaining collisions, or select one group with `--group <ASCII name>`. A
+   `--group` that names no group in the plan (a typo, or the Unicode spelling
+   of the name) is refused with exit status 1 before anything is applied; the
+   message gives the ASCII name when the Unicode spelling matched a group.
 
 4. On the Approximated strategy, check the kept records afterwards with
    `bin/ots domains probe <name>`.

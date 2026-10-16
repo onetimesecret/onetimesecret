@@ -341,6 +341,32 @@ RSpec.describe 'Domains resolve-collisions command', type: :cli do
       expect(last_exit_code).to eq(0)
     end
 
+    it 'refuses a --group that is not in the plan before prompting or applying' do
+      path = write_plan(@dir, plan(group('pair.example')))
+      allow(op).to receive(:apply)
+      allow($stdin).to receive(:gets)
+
+      output = run_cli_command_quietly('domains', 'resolve-collisions', '--apply', '--plan', path, '--group', 'typo.example')
+
+      expect(last_exit_code).to eq(1)
+      expect(output[:stdout]).to include('Invalid --group: group typo.example is not in the plan; name it by its ascii_name')
+      expect(output[:stdout]).not_to include('This permanently removes')
+      expect(op).not_to have_received(:apply)
+      expect($stdin).not_to have_received(:gets)
+    end
+
+    it 'points a Unicode --group spelling at the ASCII name, also in JSON and dry-run mode' do
+      records = [record('a', display_domain: 'münchen.example', served: true), record('b', display_domain: 'münchen.example', verified_confirmed_at: 1)]
+      path    = write_plan(@dir, plan(group('xn--mnchen-3ya.example', records: records)))
+      allow(op).to receive(:apply)
+
+      output = run_cli_command_quietly('domains', 'resolve-collisions', '--apply', '--plan', path, '--dry-run', '--json', '--group', 'münchen.example')
+
+      expect(last_exit_code).to eq(1)
+      expect(JSON.parse(output[:stdout])['error']).to include('münchen.example is not in the plan', '(xn--mnchen-3ya.example)')
+      expect(op).not_to have_received(:apply)
+    end
+
     it 'exits 1 and retains failed removal details in a dry-run JSON report' do
       path = write_plan(@dir, plan(group('pair.example')))
       result = apply_result(:partial, dry_run: true)

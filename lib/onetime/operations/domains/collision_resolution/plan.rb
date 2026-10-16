@@ -104,6 +104,20 @@ module Onetime
             groups.find { |group| group.ascii_name == ascii_name }
           end
 
+          # The group an operator selected by name, which must be in the
+          # plan: a typo, or the Unicode spelling of a group's name, must
+          # not look like a successful apply of nothing.
+          # @raise [InvalidPlan]
+          def group!(ascii_name)
+            group(ascii_name) || raise(InvalidPlan, missing_group_message(ascii_name))
+          end
+
+          def missing_group_message(name)
+            message = "group #{name} is not in the plan; name it by its ascii_name"
+            spelled = groups.find { |group| group.records.any? { |record| record.display_domain == name } }
+            spelled ? "#{message} (#{spelled.ascii_name})" : message
+          end
+
           # Whether an operator still has to decide a group.
           def attention?
             groups.any? { |group| !group.skip && (group.approval_pending? || (group.manual? && group.keep.nil?)) }
