@@ -34,8 +34,8 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
 
   describe 'Result' do
     it 'implements success? / failed?' do
-      ok  = described_class::Result.new(success: true, message: 'done', error: nil)
-      bad = described_class::Result.new(success: false, message: nil, error: 'boom')
+      ok  = described_class::Result.new(success: true, message: 'done', error: nil, outcome: :deleted)
+      bad = described_class::Result.new(success: false, message: nil, error: 'boom', outcome: :failed)
 
       expect(ok.success?).to be true
       expect(ok.failed?).to be false
@@ -155,6 +155,7 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
       result = described_class.new(mailer_config: nil).call
 
       expect(result.success?).to be true
+      expect(result.outcome).to eq(:skipped)
       expect(result.message).to eq('skipped: no mailer config')
     end
 
@@ -223,6 +224,7 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
         result = described_class.new(mailer_config: config).call
 
         expect(result.failed?).to be true
+        expect(result.outcome).to eq(:failed)
         expect(result.error).to include('Invalid sender deletion result')
         expect(log).to have_received(:error).with('Sender domain deletion failed', hash_including(error: result.error))
         expect(log).not_to have_received(:info)
@@ -285,6 +287,7 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
         result = described_class.new(mailer_config: config).call
 
         expect(result.success?).to eq(outcome != :failed)
+        expect(result.outcome).to eq(outcome)
         expect(result.message).to eq(payload[:message])
         expect(result.error).to eq(error)
         level = outcome == :failed ? :error : :info
@@ -347,6 +350,7 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
       result = described_class.new(mailer_config: config).call
 
       expect(result.success?).to be true
+      expect(result.outcome).to eq(:absent)
       expect(result.error).to be_nil
       expect(result.message).to include('not found')
       expect(log).to have_received(:info).with('Sender domain already absent', anything)
@@ -365,6 +369,7 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
 
       expect(result.success?).to be false
       expect(result.failed?).to be true
+      expect(result.outcome).to eq(:failed)
       expect(result.error).to eq('provider API timeout')
     end
   end

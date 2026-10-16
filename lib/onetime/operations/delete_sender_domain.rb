@@ -21,11 +21,15 @@ module Onetime
     #
     #   result = DeleteSenderDomain.new(mailer_config: config).call
     #   result.success?  # => true/false
+    #   result.outcome   # => :deleted, :absent, :skipped, or :failed
     #
     class DeleteSenderDomain
       include Onetime::LoggerMethods
 
-      Result = Data.define(:success, :message, :error) do
+      # outcome is the validated strategy outcome, or :failed when the
+      # strategy raised or returned an invalid result. success is false only
+      # for :failed.
+      Result = Data.define(:success, :message, :error, :outcome) do
         def success? = success == true
         def failed? = !success?
       end
@@ -62,7 +66,7 @@ module Onetime
         case result[:outcome]
         when :failed
           logger.error 'Sender domain deletion failed', **context, error: result[:error]
-          return Result.new(success: false, message: result[:message], error: result[:error])
+          return Result.new(success: false, message: result[:message], error: result[:error], outcome: :failed)
         when :deleted
           logger.info 'Sender domain deleted', **context
         when :absent
@@ -71,7 +75,7 @@ module Onetime
           logger.info 'Sender domain deletion skipped (no-op)', **context
         end
 
-        Result.new(success: true, message: result[:message], error: nil)
+        Result.new(success: true, message: result[:message], error: nil, outcome: result[:outcome])
       rescue StandardError => ex
         error = ex.message.to_s
         error = ex.class.to_s if error.strip.empty?
@@ -81,7 +85,7 @@ module Onetime
           outcome: :failed,
           error: error,
           error_class: ex.class.name
-        Result.new(success: false, message: nil, error: error)
+        Result.new(success: false, message: nil, error: error, outcome: :failed)
       end
 
       private
@@ -115,7 +119,7 @@ module Onetime
           provider: provider,
           outcome: :skipped,
           message: message
-        Result.new(success: true, message: message, error: nil)
+        Result.new(success: true, message: message, error: nil, outcome: :skipped)
       end
 
       def logger

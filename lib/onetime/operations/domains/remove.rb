@@ -81,6 +81,9 @@ module Onetime
           enabled: -> { !@removal_audited }
 
         # @!attribute status [r] Symbol — :planned (dry-run) | :removed (applied)
+        # @!attribute sender_cleanup [r] Symbol, nil — nil on a dry run; after
+        #   an apply, Teardown::Result#sender_cleanup (:kept, :deleted,
+        #   :absent, :skipped, or :failed)
         Result = Data.define(
           :status,
           :domain_id,
@@ -89,6 +92,7 @@ module Onetime
           :org_id,
           :org_name,
           :dry_run,
+          :sender_cleanup,
         )
 
         # @param domain [Onetime::CustomDomain] resolved target (caller ensures non-nil).
@@ -131,6 +135,7 @@ module Onetime
             org_id: org_id,
             org_name: org&.display_name,
             dry_run: @dry_run,
+            sender_cleanup: nil,
           )
 
           # --- DRY RUN: preview only, mutate nothing ---
@@ -155,9 +160,14 @@ module Onetime
           # removal is indistinguishable from a domain that was never added.
           # The dry-run path returns above, recording only a preview
           # observation on the access trail (#4337), never this operator event.
+          #
+          # sender_cleanup records the remote sender identity outcome
+          # (Teardown::Result#sender_cleanup), so the trail shows a failed
+          # provider deletion.
           detail           = { org_id: org_id.to_s }
           detail           = detail.merge(vhost_kept: true) if @keep_vhost
           detail           = detail.merge(sender_identity_kept: true) if @keep_sender_identity
+          detail           = detail.merge(sender_cleanup: teardown.sender_cleanup.to_s)
           if lease_error
             detail[:removal_committed] = true
             detail[:lease_lost]        = true
@@ -172,7 +182,7 @@ module Onetime
           )
           @removal_audited = true
 
-          removed = plan.with(status: :removed)
+          removed = plan.with(status: :removed, sender_cleanup: teardown.sender_cleanup)
           if lease_error
             raise RemovalCommitted.new(result: removed, lease_error: lease_error), cause: lease_error
           end

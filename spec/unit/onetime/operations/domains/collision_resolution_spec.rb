@@ -729,7 +729,7 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
         expect(Onetime::Operations::Domains::CollisionSenderPreservation).to receive(:new)
                   .with(group: group_of(saved), records: kind_of(Array), identity_cache: {}).once.and_return(detector)
         expect(Onetime::Operations::Domains::Remove).to receive(:new).with(hash_including(keep_sender_identity: true))
-          .and_return(double(call: nil))
+          .and_return(double(call: double(sender_cleanup: nil)))
         expect(op_class.new.apply(saved, actor: 'cli', only: name).outcomes.first.status).to eq(:dry_run)
       end
 
@@ -887,11 +887,12 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
           allow(Onetime::Mail::SenderStrategies).to receive(:for_provider).with('ses').and_return(strategy)
           expect(strategy).to receive(:delete_sender_identity)
             .with(have_attributes(domain_id: id_b), credentials: anything)
-            .and_return(deleted: true, message: 'test cleanup')
+            .and_return(outcome: :deleted, deleted: true, message: 'test cleanup', error: nil)
 
           outcome = op_class.new.apply(saved, actor: 'cli', dry_run: false, only: name).outcomes.first
 
           expect(outcome.status).to eq(:applied)
+          expect(outcome.removals.first.sender_cleanup).to eq(:deleted)
           expect(model.find_by_identifier(id_b)).to be_nil
           expect(mailer_model.exists_for_domain?(id_b)).to be false
         end
@@ -923,7 +924,37 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
         expect(model.find_by_identifier(id_b)).to be_nil
         expect(model.find_by_identifier(id_a)).not_to be_nil
         expect(model.display_domain_id_for(name)).to eq(id_a)
+        # The fixture has no mailer config, so the real sender cleanup skips.
+        expect(outcome.removals.first.sender_cleanup).to eq(:skipped)
         expect(result).not_to be_attention
+      end
+
+      it 'reports a failed sender cleanup as partial while keeping the committed removal' do
+        allow_any_instance_of(Onetime::Operations::DeleteSenderDomain).to receive(:call).and_return(
+          Onetime::Operations::DeleteSenderDomain::Result.new(success: false, message: nil, error: 'provider unavailable', outcome: :failed),
+        )
+        removed_ref = plan.group(name).remove.first
+
+        result  = op_class.new.apply(plan, actor: 'cli', dry_run: false, only: name)
+        outcome = result.outcomes.first
+
+        expect(model.find_by_identifier(id_b)).to be_nil
+        expect(outcome.status).to eq(:partial)
+        expect(outcome.removals.first).to have_attributes(ref: removed_ref, status: :removed, sender_cleanup: :failed)
+        expect(outcome.errors).to include(
+          "sender identity cleanup failed for #{removed_ref}: the record was removed, the provider identity may remain",
+        )
+        expect(outcome.errors.join).not_to include('provider unavailable')
+        expect(outcome.index_claim).to eq(:created)
+        expect(result).to be_attention
+        removal_audit = audit_events.find { |event| event[:verb] == 'domain.remove' }
+        expect(removal_audit).to include(result: :success)
+        expect(removal_audit[:detail]).to include(sender_cleanup: 'failed')
+        expect(summary_events.first).to include(result: :failure)
+        summary = json_value(summary_events.first[:detail])
+        expect(summary['totals']).to include('removed' => 1, 'failed' => 0, 'sender_cleanup_failed' => 1)
+        expect(summary['removals']).to eq(json_value(outcome.to_h[:removals]))
+        expect(summary['removals'].first).to include('status' => 'removed', 'sender_cleanup' => 'failed')
       end
 
       %w[active trialing past_due unpaid future_status].each do |status|

@@ -65,7 +65,7 @@ RSpec.describe DomainsAPI::Logic::Domains::RemoveDomain do
 
   describe '#process' do
     let(:teardown_result) do
-      Onetime::Operations::Domains::Teardown::Result.new(removal_committed: true, lease_error: nil)
+      Onetime::Operations::Domains::Teardown::Result.new(removal_committed: true, lease_error: nil, sender_cleanup: :deleted)
     end
     let(:teardown) { instance_double(Onetime::Operations::Domains::Teardown, call: teardown_result) }
     let(:lease_error) { Onetime::Operations::SenderIdentityLease::Lost.new('Sender identity lock lost') }
@@ -140,7 +140,7 @@ RSpec.describe DomainsAPI::Logic::Domains::RemoveDomain do
       it "finalizes the #{matching_context ? 'matching' : 'unrelated'} session and logs before reporting committed loss" do
         session['domain_context'] = matching_context ? 'example.com' : 'other.example.com'
         allow(teardown).to receive(:call).and_return(
-          Onetime::Operations::Domains::Teardown::Result.new(removal_committed: true, lease_error: lease_error)
+          Onetime::Operations::Domains::Teardown::Result.new(removal_committed: true, lease_error: lease_error, sender_cleanup: :deleted)
         )
         expected_context = matching_context ? nil : 'other.example.com'
         expect(OT).to receive(:info).with('[RemoveDomain] Domain removal committed with lease loss', anything).once do |_, payload|

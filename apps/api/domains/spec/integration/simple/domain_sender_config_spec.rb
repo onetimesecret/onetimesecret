@@ -198,7 +198,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
   def stub_teardown
     allow_any_instance_of(Onetime::Operations::DeleteSenderDomain).to receive(:call) do
       yield
-      Onetime::Operations::DeleteSenderDomain::Result.new(success: true, message: 'stubbed', error: nil)
+      Onetime::Operations::DeleteSenderDomain::Result.new(success: true, message: 'stubbed', error: nil, outcome: :deleted)
     end
   end
 
@@ -870,10 +870,10 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         end
 
         {
-          'deleted' => ['C10', {}, 'completed'],
-          'already absent' => ['C10', 'NotFoundException', 'completed'],
-          'provider denied deletion' => ['C09', 'AccessDeniedException', 'failed'],
-        }.each do |scenario, (case_id, response, cleanup)|
+          'deleted' => ['C10', {}, 'completed', 'deleted'],
+          'already absent' => ['C10', 'NotFoundException', 'completed', 'absent'],
+          'provider denied deletion' => ['C09', 'AccessDeniedException', 'failed', 'failed'],
+        }.each do |scenario, (case_id, response, cleanup, outcome)|
           it "[#{case_id}] keeps the local deletion response and audits #{cleanup} when #{scenario}" do
             ses_client.stub_responses(:delete_email_identity, response)
 
@@ -886,6 +886,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
             )
             expect(json_body).not_to have_key('error')
             expect(json_body).not_to have_key('provider_cleanup')
+            expect(json_body).not_to have_key('provider_outcome')
             expect(Onetime::CustomDomain::MailerConfig.find_by_domain_id(test_custom_domain.identifier)).to be_nil
             expect(test_custom_domain.exists?).to be true
             expect(Onetime::CustomDomain::MailerConfig.sender_identity_lock(test_custom_domain.identifier).locked?).to be false
@@ -895,7 +896,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
             expect(events.first).to include('event' => 'domain_sender_config_deleted', 'provider' => 'ses',
               'domain_id' => test_custom_domain.identifier, 'actor_id' => test_owner.custid)
             expect(events.first['details']).to include('config_deleted' => true, 'lease_lost' => false,
-              'provider_cleanup' => cleanup, 'from_address' => 'delete-test@example.com')
+              'provider_cleanup' => cleanup, 'provider_outcome' => outcome, 'from_address' => 'delete-test@example.com')
             expect(events.first.to_json).not_to include('delete-test-key', 'test-access-key', 'test-secret-key', 'api_key')
           end
         end
@@ -992,13 +993,15 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
             expect(json_body['error']).to include('configuration was deleted', 'lock lost')
             expect(json_body['details']).to include('config_deleted' => true, 'lease_lost' => true,
               'provider_cleanup' => phase == :before_provider ? 'not_attempted' : 'completed')
+            expect(json_body['details']).not_to have_key('provider_outcome')
             expect(model.exists_for_domain?(test_custom_domain.identifier)).to be false
             expect(events.size).to eq(1)
             expect(events.first).to include('event' => 'domain_sender_config_deleted', 'provider' => 'ses',
               'domain_id' => test_custom_domain.identifier, 'actor_id' => test_owner.custid)
             expect(events.first['details']).to include('config_deleted' => true, 'lease_lost' => true,
               'from_address' => 'delete-test@example.com',
-              'provider_cleanup' => phase == :before_provider ? 'not_attempted' : 'completed')
+              'provider_cleanup' => phase == :before_provider ? 'not_attempted' : 'completed',
+              'provider_outcome' => phase == :before_provider ? nil : 'deleted')
             expect(events.first.to_json).not_to include('delete-test-key', 'api_key')
           end
         end
