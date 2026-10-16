@@ -96,7 +96,7 @@ RSpec.describe Onetime::Operations::Domains::AsciiIndexBackfill, :datastore do
   # A crafted A-label whose decoded Unicode NFC-normalises to the same name as
   # bücher-#{sfx}: punycode of the decomposed spelling. It is a different DNS
   # name and must stay keyed under itself.
-  def crafted_a_label
+  def crafted_ascii_name
     "xn--#{SimpleIDN::Punycode.encode("bu\u0308cher-#{sfx}")}.com"
   end
 
@@ -106,13 +106,13 @@ RSpec.describe Onetime::Operations::Domains::AsciiIndexBackfill, :datastore do
     legacy!(:fullwidth, "ｆｕｌｌ-#{sfx}.com") # fullwidth letters: maps to full-#{sfx}.com
     legacy!(:mixed, "xn--bcher-kva.mixed-ü-#{sfx}.com")
     legacy!(:nfc, "nfc-ä-#{sfx}.com")
-    legacy!(:a_label, ascii_name("alabel-ö-#{sfx}.com"))
-    legacy!(:crafted, crafted_a_label)
+    legacy!(:ascii, ascii_name("ascii-ö-#{sfx}.com"))
+    legacy!(:crafted, crafted_ascii_name)
     legacy!(:orphan, "orphan-é-#{sfx}.com", org: nil)
     # Two records for one DNS name in two organizations: one stored as NFC
     # Unicode, one as the A-label.
     legacy!(:pair_unicode, "pair-ü-#{sfx}.com")
-    legacy!(:pair_a_label, ascii_name("pair-ü-#{sfx}.com"), org: org_b)
+    legacy!(:pair_ascii, ascii_name("pair-ü-#{sfx}.com"), org: org_b)
     # The entry for its own name names a record that no longer exists.
     legacy!(:stale, "stale-ü-#{sfx}.com")
     put_entry(ascii_name("stale-ü-#{sfx}.com"), "gone-#{sfx}")
@@ -143,11 +143,11 @@ RSpec.describe Onetime::Operations::Domains::AsciiIndexBackfill, :datastore do
       id_of(:fullwidth) => :missing,
       id_of(:mixed) => :missing,
       id_of(:nfc) => :missing,
-      id_of(:a_label) => :missing,
+      id_of(:ascii) => :missing,
       id_of(:crafted) => :missing,
       id_of(:orphan) => :missing,
       id_of(:pair_unicode) => :collision,
-      id_of(:pair_a_label) => :collision,
+      id_of(:pair_ascii) => :collision,
       id_of(:stale) => :stale,
       id_of(:conflict) => :conflict,
       id_of(:unconvertible) => :unconvertible,
@@ -170,7 +170,7 @@ RSpec.describe Onetime::Operations::Domains::AsciiIndexBackfill, :datastore do
     it 'groups the records that share an A-label' do
       group = audit.collision_groups.fetch(ascii_name("pair-ü-#{sfx}.com"))
 
-      expect(group.map(&:domain_id)).to contain_exactly(id_of(:pair_unicode), id_of(:pair_a_label))
+      expect(group.map(&:domain_id)).to contain_exactly(id_of(:pair_unicode), id_of(:pair_ascii))
     end
 
     # The runbook removes collision records with `bin/ots domains remove <extid>`.
@@ -184,7 +184,7 @@ RSpec.describe Onetime::Operations::Domains::AsciiIndexBackfill, :datastore do
     it 'keys the crafted A-label under itself, apart from the name it decodes to' do
       row = audit.rows.find { |r| r.domain_id == id_of(:crafted) }
 
-      expect([row.ascii_name, row.ascii_name == ascii_name("bücher-#{sfx}.com")]).to eq([crafted_a_label, false])
+      expect([row.ascii_name, row.ascii_name == ascii_name("bücher-#{sfx}.com")]).to eq([crafted_ascii_name, false])
     end
 
     it 'asks for an operator while collisions or conflicts exist' do
@@ -227,7 +227,7 @@ RSpec.describe Onetime::Operations::Domains::AsciiIndexBackfill, :datastore do
   end
 
   describe 'an incomplete audit' do
-    let(:unreadable_id) { id_of(:pair_a_label) }
+    let(:unreadable_id) { id_of(:pair_ascii) }
 
     before do
       build_world

@@ -21,7 +21,7 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the ASCII index backfi
 
   let(:suffix) { SecureRandom.hex(4) }
   let(:nfc_name) { "bücher-#{suffix}.com" }
-  let(:a_label) { described_class.ascii_display_domain(nfc_name) }
+  let(:ascii_name) { described_class.ascii_display_domain(nfc_name) }
   let(:index) { described_class.ascii_display_domain_index }
   let(:holder_org) { Onetime::Organization.new(display_name: "Legacy holder #{suffix}").tap(&:save) }
   let(:other_org) { Onetime::Organization.new(display_name: "Second org #{suffix}").tap(&:save) }
@@ -70,7 +70,7 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the ASCII index backfi
     it 'shares the A-label of the NFC spelling (fixture sanity)' do
       keys = spellings.values.map { |name| described_class.ascii_display_domain(name) }
 
-      expect(keys.uniq).to eq([a_label])
+      expect(keys.uniq).to eq([ascii_name])
     end
 
     it 'is still found by its own stored spelling' do
@@ -89,7 +89,7 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the ASCII index backfi
           stored = spellings.fetch(label)
           legacy = write_legacy_record(stored, org_id: holder_org.objid)
 
-          expect(index.get(a_label)).to be_nil
+          expect(index.get(ascii_name)).to be_nil
           expect(described_class.load_by_display_domain(stored)&.identifier).to eq(legacy)
         end
 
@@ -98,9 +98,9 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the ASCII index backfi
 
           run_backfill
 
-          expect { register(a_label, other_org) }
+          expect { register(ascii_name, other_org) }
             .to raise_error(Onetime::Problem, 'Domain is registered to another organization')
-          expect(index.get(a_label)).to eq(legacy)
+          expect(index.get(ascii_name)).to eq(legacy)
         end
 
         it 'is refused for the NFC spelling after the backfill' do
@@ -116,12 +116,12 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the ASCII index backfi
 
     context 'when stored with mixed A-label and Unicode labels' do
       let(:mixed) { "xn--bcher-kva.bücher-#{suffix}.com" }
-      let(:full_a_label) { described_class.ascii_display_domain(mixed) }
+      let(:full_ascii_name) { described_class.ascii_display_domain(mixed) }
 
       it 'has no ASCII entry before the backfill, and is found by its stored name' do
         legacy = write_legacy_record(mixed, org_id: holder_org.objid)
 
-        expect(index.get(full_a_label)).to be_nil
+        expect(index.get(full_ascii_name)).to be_nil
         expect(described_class.load_by_display_domain(mixed)&.identifier).to eq(legacy)
       end
 
@@ -130,9 +130,9 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the ASCII index backfi
 
         run_backfill
 
-        expect { register(full_a_label, other_org) }
+        expect { register(full_ascii_name, other_org) }
           .to raise_error(Onetime::Problem, 'Domain is registered to another organization')
-        expect(index.get(full_a_label)).to eq(legacy)
+        expect(index.get(full_ascii_name)).to eq(legacy)
       end
     end
   end
@@ -141,21 +141,21 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the ASCII index backfi
     it 'refuses the A-label against a legacy NFC record without the backfill' do
       write_legacy_record(nfc_name, org_id: holder_org.objid)
 
-      expect { register(a_label, other_org) }
+      expect { register(ascii_name, other_org) }
         .to raise_error(Onetime::Problem, 'Domain is registered to another organization')
     end
 
     it 'refuses the NFC spelling against a legacy A-label record without the backfill' do
-      write_legacy_record(a_label, org_id: holder_org.objid)
+      write_legacy_record(ascii_name, org_id: holder_org.objid)
 
       expect { register(nfc_name, other_org) }
         .to raise_error(Onetime::Problem, 'Domain is registered to another organization')
     end
 
     it 'refuses the A-label against a legacy A-label record without the backfill' do
-      write_legacy_record(a_label, org_id: holder_org.objid)
+      write_legacy_record(ascii_name, org_id: holder_org.objid)
 
-      expect { register(a_label, other_org) }
+      expect { register(ascii_name, other_org) }
         .to raise_error(Onetime::Problem, 'Domain is registered to another organization')
     end
   end
