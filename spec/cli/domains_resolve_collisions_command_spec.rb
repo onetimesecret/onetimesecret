@@ -565,11 +565,11 @@ RSpec.describe 'Domains resolve-collisions command', type: :cli do
       before    = keys.to_h { |key| [key, model.dbclient.hgetall(key)] }
       expect(Onetime::Operations::Domains::Teardown).not_to receive(:new)
       expect(Onetime::Operations::AdminVerifyDomain).not_to receive(:new)
-      expect(model.dbclient).not_to receive(:hset)
-      expect(model.dbclient).not_to receive(:hdel)
-      expect(model.dbclient).not_to receive(:del)
-      expect(model.dbclient).not_to receive(:eval)
-      expect(model.dbclient).not_to receive(:evalsha)
+      # Spies, not negative expectations: RSpec verifies `not_to receive`
+      # after the `after` hook, whose cleanup legitimately calls del/hdel.
+      client = model.dbclient
+      writes = %i[hset hdel del eval evalsha]
+      writes.each { |write| allow(client).to receive(write).and_call_original }
       expect(Onetime::ColonelAuditEvent).not_to receive(:record).with(hash_including(verb: 'domain.resolve_collision'))
       expect(Onetime::ColonelAuditEvent).not_to receive(:record).with(hash_including(verb: 'domain.remove', result: :success))
       expect($stdin).not_to receive(:gets)
@@ -586,6 +586,7 @@ RSpec.describe 'Domains resolve-collisions command', type: :cli do
         'removals' => [include('ref' => legacy_custom_domain_extid(loser_id), 'status' => 'planned')],
         'context' => include('approved' => true, 'approval_required' => true, 'billing_source' => 'local_cache'),
       )
+      writes.each { |write| expect(client).not_to have_received(write) }
       expect(keys.to_h { |key| [key, model.dbclient.hgetall(key)] }).to eq(before)
       expect(Onetime::ColonelAuditEvent).to have_received(:record_access).with(
         hash_including(
