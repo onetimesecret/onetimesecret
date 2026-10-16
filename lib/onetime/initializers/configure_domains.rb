@@ -30,6 +30,10 @@ module Onetime
 
         return app_logger.debug '[init] Domains feature disabled' unless is_enabled
 
+        # features.domains.serve_unverified widens which custom domains are
+        # served; say so once per process, at boot.
+        Onetime::CustomDomain.warn_if_serve_unverified
+
         # Configure DomainValidation::Features from config
         # This is the canonical source of domain validation configuration
         klass = Onetime::DomainValidation::Features

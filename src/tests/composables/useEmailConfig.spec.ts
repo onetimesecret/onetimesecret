@@ -54,6 +54,7 @@ const mockPutEmailConfig = vi.fn();
 const mockPatchEmailConfig = vi.fn();
 const mockDeleteEmailConfig = vi.fn();
 const mockValidateEmailConfig = vi.fn();
+const mockTestEmailConfig = vi.fn();
 const mockNotificationsShow = vi.fn();
 const mockRouterPush = vi.fn();
 
@@ -64,6 +65,7 @@ vi.mock('@/shared/stores/domainsStore', () => ({
     patchEmailConfig: mockPatchEmailConfig,
     deleteEmailConfig: mockDeleteEmailConfig,
     validateEmailConfig: mockValidateEmailConfig,
+    testEmailConfig: mockTestEmailConfig,
   }),
 }));
 
@@ -81,7 +83,10 @@ vi.mock('vue-router', () => ({
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
-    t: (key: string) => {
+    // A `minutes` param is rendered into the result so the rounding of a
+    // retry_after into minutes is observable.
+    t: (key: string, params?: Record<string, unknown>) => {
+      if (params && 'minutes' in params) return `${key}|minutes=${params.minutes}`;
       const translations: Record<string, string> = {
         'web.domains.email.update_success': 'Email configuration updated',
         'web.domains.email.delete_success': 'Email configuration removed',
@@ -93,12 +98,15 @@ vi.mock('vue-i18n', () => ({
   }),
 }));
 
+// Forwards a rejection to the composable's onError, as the real handler does,
+// so the composable can read the classified failure (e.g. a 429).
 vi.mock('@/shared/composables/useAsyncHandler', () => ({
-  useAsyncHandler: () => ({
+  useAsyncHandler: (options: { onError?: (error: unknown) => void }) => ({
     wrap: vi.fn(async (fn: () => Promise<unknown>) => {
       try {
         return await fn();
-      } catch {
+      } catch (error) {
+        options.onError?.(error);
         return undefined;
       }
     }),
@@ -1082,6 +1090,92 @@ describe('useEmailConfig', () => {
   // ─────────────────────────────────────────────────────────────────────────
   // Initial state
   // ─────────────────────────────────────────────────────────────────────────
+
+  describe('sendTestEmail', () => {
+    // The API caps test sends per customer (SenderTestEmailRateLimiter) and
+    // answers 429 with a LimitExceeded body; the classifier turns that into
+    // an ApplicationError with code 429 and the body as details.
+    const rateLimited = (retry_after?: number) => ({
+      name: 'ApplicationError',
+      message: 'Too many test emails. Please try again later.',
+      type: 'human',
+      severity: 'error',
+      code: 429,
+      details: { error: 'Too many test emails.', error_type: 'LimitExceeded', retry_after },
+    });
+
+    it('reports a 429 as the send limit, with the wait rounded up to minutes', async () => {
+      mockTestEmailConfig.mockRejectedValue(rateLimited(1234));
+      const composable = useEmailConfig('dm-ext-123');
+
+      await composable.sendTestEmail();
+
+      expect(composable.testResult.value).toBeNull();
+      // 1234 s is 20.6 minutes: rounded up, never down to 20.
+      expect(composable.testError.value).toBe(
+        'web.domains.email.test_email_rate_limited_retry|minutes=21'
+      );
+      expect(composable.isTesting.value).toBe(false);
+    });
+
+    it('never reports a wait of less than one minute', async () => {
+      mockTestEmailConfig.mockRejectedValue(rateLimited(5));
+      const composable = useEmailConfig('dm-ext-123');
+
+      await composable.sendTestEmail();
+
+      expect(composable.testError.value).toBe(
+        'web.domains.email.test_email_rate_limited_retry|minutes=1'
+      );
+    });
+
+    it('reports a 429 without retry_after as the send limit with no wait', async () => {
+      mockTestEmailConfig.mockRejectedValue(rateLimited());
+      const composable = useEmailConfig('dm-ext-123');
+
+      await composable.sendTestEmail();
+
+      expect(composable.testError.value).toBe('web.domains.email.test_email_rate_limited');
+    });
+
+    it('reports any other failure as a generic send failure', async () => {
+      mockTestEmailConfig.mockRejectedValue(new Error('Network error'));
+      const composable = useEmailConfig('dm-ext-123');
+
+      await composable.sendTestEmail();
+
+      expect(composable.testError.value).toBe('web.domains.email.test_email_failed');
+    });
+
+    // A 404 navigates away in onError without recording the error, so only
+    // the reset at the start of the send keeps the earlier 429 from being
+    // reported again.
+    it("does not read an earlier failure as this send's", async () => {
+      mockTestEmailConfig.mockRejectedValueOnce(rateLimited(60));
+      mockTestEmailConfig.mockRejectedValueOnce({ name: 'ApplicationError', code: 404, details: {} });
+      const composable = useEmailConfig('dm-ext-123');
+
+      await composable.sendTestEmail();
+      expect(composable.testError.value).toBe(
+        'web.domains.email.test_email_rate_limited_retry|minutes=1'
+      );
+
+      await composable.sendTestEmail();
+      expect(composable.testError.value).toBe('web.domains.email.test_email_failed');
+    });
+
+    it('clears an earlier failure when the next send succeeds', async () => {
+      mockTestEmailConfig.mockRejectedValueOnce(rateLimited(60));
+      mockTestEmailConfig.mockResolvedValueOnce({ success: true, message: 'Sent', details: {} });
+      const composable = useEmailConfig('dm-ext-123');
+
+      await composable.sendTestEmail();
+      await composable.sendTestEmail();
+
+      expect(composable.testError.value).toBe('');
+      expect(composable.testResult.value?.success).toBe(true);
+    });
+  });
 
   describe('initial state', () => {
     it('starts with isLoading false', () => {

@@ -30,6 +30,11 @@ export function useDomainsManager() {
   const route = useRoute();
   const goBack = () => router.back();
   const { records, details } = storeToRefs(store);
+  // Setup-time: useDomainContext injects the API client, which is only
+  // available during setup. The two paths below that touch the picker
+  // (verifyDomain, updateDomainContextAfterAdd) run after an await.
+  const { refreshDomains: refreshDomainContext, setContext: setDomainContext } =
+    useDomainContext();
 
   // Track the pending redirect so it can be cleared on scope disposal
   let redirectTimer: ReturnType<typeof setTimeout> | null = null;
@@ -109,6 +114,12 @@ export function useDomainsManager() {
       // read as a success. See domainVerifyNotice.
       const notice = domainVerifyNotice(result?.details);
       notifications.show(t(notice.messageKey), notice.severity, 'top');
+      // A completed check may have changed whether the domain is served
+      // (either direction). The picker reads `served` from a snapshot that
+      // only startup and organization switch refresh, so re-read it now and
+      // let it settle the selection; see useDomainContext.refreshDomains.
+      // Not gated on the outcome: a demotion is as real as a promotion.
+      await refreshDomainContext();
       return result;
     });
 
@@ -143,19 +154,27 @@ export function useDomainsManager() {
     return undefined; // Signal to re-throw
   };
 
-  /** Update domain context after adding a domain */
-  const updateDomainContextAfterAdd = (
-    record: CustomDomain,
+  /**
+   * Follow the domain context the server set after adding a domain.
+   *
+   * The server sets one only when the new domain is served
+   * (CustomDomain#served_as_tenant?). Under a strategy that checks ownership
+   * a new domain is not served until verified, the server sets none, and the
+   * context stays where it was: it is the share_domain of the next secret,
+   * and secret creation refuses an unserved domain.
+   *
+   * The snapshot is re-read first either way: setContext only accepts a
+   * domain the snapshot offers, and the verification route that follows
+   * resolves the new record by extid from the same snapshot.
+   */
+  const updateDomainContextAfterAdd = async (
     details: { domain_context?: string | null } | undefined
   ) => {
-    const { setContext } = useDomainContext();
+    await refreshDomainContext();
     const contextFromServer = details?.domain_context;
-    // Skip backend sync when server already set the context
-    if (contextFromServer) {
-      setContext(contextFromServer, true);
-    } else {
-      setContext(record.display_domain);
-    }
+    if (!contextFromServer) return;
+    // Skip backend sync: the server already set the context
+    setDomainContext(contextFromServer, true);
   };
 
   /**
@@ -193,7 +212,7 @@ export function useDomainsManager() {
         const message = isReclaimed ? 'web.domains.domain_claimed_successfully' : 'web.domains.domain_added_successfully';
         notifications.show(t(message), 'success', 'top');
 
-        updateDomainContextAfterAdd(record, details);
+        await updateDomainContextAfterAdd(details);
         navigateAfterAdd(record);
         return record;
       } catch (err: unknown) {
@@ -209,6 +228,9 @@ export function useDomainsManager() {
     wrap(async () => {
       await store.deleteDomain(domainId);
       notifications.show(t('web.domains.domain_removed_successfully'), 'success', 'top');
+      // Drop the removed domain from the picker, and move the selection off
+      // it if it was selected; see useDomainContext.refreshDomains.
+      await refreshDomainContext();
     });
 
   const pendingOrgRole = ref<string | null>(null);

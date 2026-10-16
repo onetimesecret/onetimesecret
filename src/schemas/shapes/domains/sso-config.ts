@@ -19,6 +19,7 @@
 
 import {
   customDomainSsoConfigCanonical,
+  ssoLastSignInSchema,
   ssoProviderTypeSchema,
   tokenEndpointAuthMethodSchema,
 } from '@/schemas/contracts/custom-domain/sso-config';
@@ -111,6 +112,10 @@ export const customDomainSsoConfigSchema = customDomainSsoConfigCanonical
     // Boolean with default for resilience during rolling deploys
     enforce_sso_only: z.boolean().default(false),
     grant_org_scope: z.boolean().default(false),
+
+    // Last sign-in outcome: nullish-tolerant so a record served by an API
+    // that predates the key reads as "none recorded", never as an error.
+    last_sign_in: ssoLastSignInSchema.nullish().transform((v) => v ?? null),
   });
 
 export type CustomDomainSsoConfig = z.infer<typeof customDomainSsoConfigSchema>;

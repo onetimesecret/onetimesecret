@@ -9,7 +9,7 @@ import { onScopeDispose, toValue, watch, type MaybeRefOrGetter } from 'vue';
  * It covers every document unload, not only the forced page load the refresh
  * coordinator can trigger: user reloads, tab close, and hard navigations such
  * as the masthead logo. In-app (Vue Router) navigation never unloads the
- * document; guard that separately with `onBeforeRouteLeave` where it matters.
+ * document; guard that separately with `useUnsavedRouteGuard` where it matters.
  *
  * The listener is registered ONLY while unsubmitted input exists and removed
  * as soon as it is submitted or cleared. A standing `beforeunload` listener

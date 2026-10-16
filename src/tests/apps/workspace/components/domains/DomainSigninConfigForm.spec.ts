@@ -133,6 +133,7 @@ const tp = (key: string, params: Record<string, string>) => i18n.global.t(key, p
 const COPY = {
   configure: t('web.domains.sso.configure_button'),
   editCredentials: t('web.domains.sso.edit_credentials'),
+  finishSetup: t('web.domains.sso.finish_setup_button'),
   upgradeRequired: t('web.domains.sso.upgrade_required'),
   availabilityGlobalOn: t('web.domains.signin.availability_global_on'),
   availabilityGlobalOff: t('web.domains.signin.availability_global_off'),
@@ -199,6 +200,8 @@ interface MountOptions {
   isConfigured?: boolean;
   workspaceDefault?: boolean;
   ssoConfigured?: boolean;
+  /** A saved SSO record that is still off; omitted ⇒ the prop is absent. */
+  ssoSetupPending?: boolean;
   /**
    * The server's tenant-SSO verdict (#4111, `details.tenant_sso`). Left
    * undefined ⇒ the prop is omitted, which must render no status line and arm
@@ -232,6 +235,7 @@ function mountForm(opts: MountOptions = {}): VueWrapper {
       // below flips this on.
       workspaceDefault: opts.workspaceDefault ?? false,
       ssoConfigured: opts.ssoConfigured ?? false,
+      ...(opts.ssoSetupPending !== undefined ? { ssoSetupPending: opts.ssoSetupPending } : {}),
       // Omitted (not defaulted) when unset, so the no-verdict case — an older
       // backend, or details not loaded — stays observable.
       ...(opts.tenantSso !== undefined ? { tenantSso: opts.tenantSso } : {}),
@@ -595,7 +599,7 @@ describe('DomainSigninConfigForm', () => {
 
     it('hides Configure when ORGS_SSO_ENABLED is off, even with the entitlement', () => {
       // The tenant-SSO write endpoints enforce BOTH gates, so an entitled org
-      // on an install with tenant SSO off would open a modal whose save is
+      // on an install with tenant SSO off would open a page whose save is
       // rejected with "Organization SSO is not enabled on this instance".
       wrapper = mountForm({ canManageSso: true, orgsSsoEnabled: false });
       const configureBtn = wrapper.findAll('button').find((b) => b.text().includes(COPY.configure));
@@ -1391,7 +1395,7 @@ describe('DomainSigninConfigForm', () => {
   // the upgrade hint and NO Configure button, same as Mode A. And like Mode A,
   // Configure needs BOTH write-endpoint gates: restrict_to='sso' keeps the SSO
   // row visible when ORGS_SSO_ENABLED is off (visible-but-locked invariant),
-  // so its Configure button must not survive on canManageSso alone — the modal
+  // so its Configure button must not survive on canManageSso alone — the page's
   // save would be rejected ("Organization SSO is not enabled on this
   // instance").
   // -----------------------------------------------------------------------
@@ -1450,6 +1454,64 @@ describe('DomainSigninConfigForm', () => {
         canManageSso: true,
       });
       expect(wrapper.text()).toContain(COPY.editCredentials);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Finish setup: a saved SSO record that is still off
+  //
+  // The record is created off and turned on only by a passing
+  // saved-configuration check on the page, so its remaining step is that
+  // check. Like ssoConfigured, ssoSetupPending is a label convenience; the
+  // status line still comes from the server's verdict.
+  // -----------------------------------------------------------------------
+
+  describe('Finish setup (saved SSO record that is off)', () => {
+    const MODE_A_BUTTON = '[data-testid="sso-configure-button"]';
+    const MODE_B_BUTTON = '[data-testid="sso-configure-button-compact"]';
+
+    it.each([
+      ['Mode A', defaultFormState, MODE_A_BUTTON],
+      ['Mode B', { ...defaultFormState, restrict_to: 'sso' as const }, MODE_B_BUTTON],
+    ])(
+      'labels the button Finish setup in %s and opens the same page',
+      async (_mode, formState, selector) => {
+        wrapper = mountForm({ formState, ssoConfigured: true, ssoSetupPending: true });
+
+        const button = wrapper.get(selector);
+        expect(button.text()).toBe(COPY.finishSetup);
+        await button.trigger('click');
+        expect(wrapper.emitted('configure-sso')).toHaveLength(1);
+      }
+    );
+
+    it.each([
+      ['on', false],
+      ['not reported', undefined],
+    ])('keeps Edit credentials when the connection is %s', (_state, ssoSetupPending) => {
+      wrapper = mountForm({ ssoConfigured: true, ssoSetupPending });
+
+      expect(wrapper.get(MODE_A_BUTTON).text()).toBe(COPY.editCredentials);
+    });
+
+    it('keeps Configure when nothing is saved, whatever the flag says', () => {
+      wrapper = mountForm({ ssoConfigured: false, ssoSetupPending: true });
+
+      expect(wrapper.get(MODE_A_BUTTON).text()).toBe(COPY.configure);
+    });
+
+    it('pairs the button with the sso_config_disabled status, whose hint names it', () => {
+      wrapper = mountForm({
+        ssoConfigured: true,
+        ssoSetupPending: true,
+        tenantSso: { available: false, unavailable_reason: 'sso_config_disabled' },
+      });
+
+      const status = wrapper.get('[data-testid="sso-tenant-status"]');
+      expect(status.text()).toContain(COPY.connectionDisabledBadge);
+      expect(status.text()).toContain(COPY.connectionDisabledHint);
+      // The remedy points at a control that exists, not the removed toggle.
+      expect(COPY.connectionDisabledHint).toContain(COPY.finishSetup);
     });
   });
 

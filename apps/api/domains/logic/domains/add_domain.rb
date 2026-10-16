@@ -14,8 +14,9 @@ module DomainsAPI::Logic
     #
     # @api Registers a new custom domain for an organization. Validates
     #   the domain via PublicSuffix, checks for duplicates, and initiates
-    #   SSL certificate provisioning. Returns the created domain record
-    #   and sets it as the active domain context in the session.
+    #   SSL certificate provisioning. Returns the created domain record.
+    #   When the new domain is served right away, it also becomes the
+    #   active domain context in the session.
     #
     # Supports two modes:
     # 1. Default: Uses organization from session context
@@ -90,9 +91,10 @@ module DomainsAPI::Logic
           raise_form_error 'Domain is registered to another organization'
         end
 
-        # Scenario 3: Orphaned domain (no org_id) - will be claimed in process
-        OT.info "[AddDomain] Found orphaned domain, will claim: #{@display_domain}"
-        # Don't raise an error - let the process method claim it
+        # Scenario 3: Orphaned domain (no org_id). Only an operator adopts
+        # an orphan; this answers like Scenario 2 and logs the refusal, before
+        # anything is written or a certificate is requested.
+        refuse_on_problem { Onetime::CustomDomain.refuse_orphan_claim!(existing, target_organization.objid) }
       end
 
       def process
@@ -101,9 +103,13 @@ module DomainsAPI::Logic
 
         @custom_domain = refuse_on_problem { Onetime::CustomDomain.create!(@display_domain, target_organization.objid) }
 
-        # After creating the domain, make it the active context in the session.
-        # Route is sessionauth-only, so sess is always a real Rack session here.
-        sess['domain_context'] = @display_domain
+        # Make the new domain the active context in the session, but only
+        # when it is served (CustomDomain#served_as_tenant?). Under a strategy
+        # that checks ownership it is not served until verified, and the
+        # context is the share_domain of the next secret, which secret
+        # creation refuses for an unserved domain. Route is sessionauth-only,
+        # so sess is always a real Rack session here.
+        sess['domain_context'] = domain_context if domain_context
 
         begin
           # Request certificate using the configured strategy
@@ -165,16 +171,27 @@ module DomainsAPI::Logic
         request_certificate
       end
 
+      # domain_context is the context #process set in the session, nil when
+      # it set none. It is in details too, where the client reads it
+      # (customDomainDetailsSchema).
       def success_data
         {
           user_id: @cust.objid,
           organization: target_organization.safe_dump,
           record: @custom_domain.safe_dump,
-          domain_context: @display_domain,
+          domain_context: domain_context,
           details: {
             cluster: Onetime::DomainValidation::Features.safe_dump,
+            domain_context: domain_context,
           },
         }
+      end
+
+      # The new domain's name when it is served
+      # (CustomDomain#served_as_tenant?), else nil. #process sets it as the
+      # session's domain context.
+      def domain_context
+        @display_domain if @custom_domain&.served_as_tenant?
       end
     end
   end

@@ -217,11 +217,16 @@ OT.conf['site']['host'] = @site_host
 # canonical set run only for unregistered hosts. Brand/signin config is
 # gated on :custom, so a :subdomain or :canonical reclassification would
 # silently drop it.
+#
+# The stubbed registrations below answer served_as_tenant? true: a served
+# domain (CustomDomain#served_as_tenant?). One that is not served
+# classifies :unverified (spec/unit/onetime/middleware/
+# domain_strategy_unverified_gate_spec.rb).
 
 ## Registered custom domain under site.host's base domain stays :custom
 Onetime::CustomDomain.singleton_class.send(:alias_method, :shadow_orig_from_display_domain, :from_display_domain)
 Onetime::CustomDomain.define_singleton_method(:from_display_domain) do |domain|
-  %w[secrets.example-app.com secrets.example.com example-app.com].include?(domain) ? Object.new : nil
+  %w[secrets.example-app.com secrets.example.com example-app.com].include?(domain) ? Object.new.tap { |record| record.define_singleton_method(:served_as_tenant?) { true } } : nil
 end
 @chooser.choose_strategy('secrets.example-app.com', [@default_host, @site_host])
 #=> :custom
@@ -333,7 +338,7 @@ config                  = { 'enabled' => true, 'default' => @default_host, 'link
 # per-domain configuration silently never applied.
 Onetime::CustomDomain.singleton_class.send(:alias_method, :www_orig_from_display_domain, :from_display_domain)
 Onetime::CustomDomain.define_singleton_method(:from_display_domain) do |domain|
-  domain == 'www.acme.com' ? Object.new : nil
+  domain == 'www.acme.com' ? Object.new.tap { |record| record.define_singleton_method(:served_as_tenant?) { true } } : nil
 end
 result = @chooser.choose_strategy(
   'www.acme.com',
@@ -525,7 +530,7 @@ config                  = { 'enabled' => true, 'default' => nil, 'link_domains' 
 ## AC4 control: the registration stub is live -- registered host outside the canonical set is :custom
 Onetime::CustomDomain.singleton_class.send(:alias_method, :pool_orig_from_display_domain, :from_display_domain)
 Onetime::CustomDomain.define_singleton_method(:from_display_domain) do |domain|
-  domain == 'go.acme.com' ? Object.new : nil
+  domain == 'go.acme.com' ? Object.new.tap { |record| record.define_singleton_method(:served_as_tenant?) { true } } : nil
 end
 @chooser.choose_strategy(@pool_host, [@default_host, @site_host])
 #=> :custom
@@ -555,7 +560,7 @@ config                  = { 'enabled' => true, 'default' => @default_host, 'link
 @strategy_class.initialize_from_config(config)
 Onetime::CustomDomain.singleton_class.send(:alias_method, :sibling_orig_from_display_domain, :from_display_domain)
 Onetime::CustomDomain.define_singleton_method(:from_display_domain) do |domain|
-  domain == 'sibling.acme.com' ? Object.new : nil
+  domain == 'sibling.acme.com' ? Object.new.tap { |record| record.define_singleton_method(:served_as_tenant?) { true } } : nil
 end
 result = @chooser.choose_strategy(
   'sibling.acme.com',

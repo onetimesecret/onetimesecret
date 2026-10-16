@@ -6,7 +6,7 @@
 # Validates three scenarios:
 # 1. Domain already in customer's organization (same org_id)
 # 2. Domain in another organization (different org_id)
-# 3. Orphaned domain (no org_id) - should be auto-claimed
+# 3. Orphaned domain (no org_id) - refused like scenario 2; only operator tools adopt it
 
 require_relative '../../../support/test_models'
 
@@ -83,7 +83,7 @@ end
 
 ## SCENARIO 3: Orphaned domain handling is tested indirectly
 ## Note: Manual creation of orphaned domains is complex due to Familia internals.
-## The orphan claiming logic in create! is tested through integration tests.
+## The orphan refusal and adoption in create! are covered by create_failures_spec.rb and orphan_adoption_try.rb.
 ## Skipping manual orphan creation tests in favor of real-world scenarios.
 true
 #=> true

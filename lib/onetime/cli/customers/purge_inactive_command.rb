@@ -1,0 +1,729 @@
+# lib/onetime/cli/customers/purge_inactive_command.rb
+#
+# frozen_string_literal: true
+
+# Purge inactive customer records by last activity date.
+# Uses last_login (preferred) or updated (fallback) to determine activity.
+#
+# SAFETY: Customers associated with Stripe billing (via their Organization
+# or via deprecated v1 fields) are NEVER purged, regardless of inactivity.
+#
+# Workflow:
+#   1. Run dry-run first to review candidates and cache them
+#   2. Run again with --purge to execute (reuses cached candidate set)
+#   3. Each candidate runs through the preflighted customer purge lifecycle
+#
+# Design note: Soft-delete via Redis TTL was considered but rejected.
+# Class-level indexes (email_index, extid_lookup, role_index, instances)
+# are shared keys — individual fields/members cannot be TTL'd, leaving
+# orphaned references that accumulate without bound. The recommended
+# recovery strategy is to BGSAVE before purging and restore the RDB
+# if needed.
+#
+# Operational notes:
+#   - BGSAVE Redis before running --purge on production
+#   - Run during off-peak hours for large purges (1000+ records)
+#   - Candidates are cached for 30 minutes; --purge reuses the same set
+#   - Process runs in batches of 50 with progress tracking
+#   - The core purge lifecycle records final audit outcomes
+#   - Consider exporting affected customer emails before purging
+#
+# Usage:
+#   bin/ots customers purge-inactive --older-than 3y              # Dry run
+#   bin/ots customers purge-inactive --older-than 3y --purge      # Execute
+#   bin/ots customers purge-inactive --older-than 5y --refresh    # Force rescan
+
+# Destructive execution is delegated to the same preflighted, audited lifecycle
+# used by the single-customer CLI (`customers purge`) and Colonel API. Remote Redis sources remain
+# available for inspection, but cannot be safely mutated without model-backed
+# organization and authentication state.
+require 'json'
+require 'auth/operations/customers/purge'
+require 'onetime/models/colonel_audit_event'
+require 'onetime/operations/bulk_audit_context'
+
+# Customers::Shared must exist before `include Customers::Shared` below.
+# Required here (not only from the lib/onetime/cli.rb manifest) so this file
+# cannot be loaded in a broken order.
+require_relative 'shared'
+
+module Onetime
+  module CLI
+    class CustomersPurgeInactiveCommand < Command # rubocop:disable Metrics/ClassLength
+      include Customers::Shared
+
+      desc 'Purge inactive customer records by last activity date'
+
+      ACTIVITY_CACHE     = 'tmp:cli:cust_by_activity'
+      CREATED_CACHE      = 'tmp:cli:cust_by_created'
+      # Purge batch size; 50 balances throughput with progress visibility
+      # while allowing frequent progress output to the console.
+      BATCH_SIZE         = 50
+      BULK_AUDIT_VERB    = 'customer.purge.bulk'
+      BULK_AUDIT_TARGET  = 'inactive-customers'
+      BULK_COVERED_VERBS = [
+        'customer.purge',
+        'organization.delete',
+        'membership.remove',
+        'session.revoke_all',
+      ].freeze
+
+      option :older_than,
+        type: :string,
+        default: nil,
+        desc: 'Activity age threshold (e.g., 6m, 1y, 2y, 3y, 5y)'
+
+      option :purge,
+        type: :boolean,
+        default: false,
+        desc: 'Execute purge (default is dry-run)'
+
+      option :refresh,
+        type: :boolean,
+        default: false,
+        desc: 'Force cache rebuild before selecting candidates'
+
+      option :redis_url,
+        type: :string,
+        default: nil,
+        desc: 'Redis/Valkey URL to scan (e.g., redis://host:6379/6)'
+
+      def call(older_than: nil, purge: false, refresh: false, redis_url: nil, **)
+        unless older_than
+          show_usage
+          return
+        end
+
+        boot_application!
+
+        cache_redis   = Familia.dbclient
+        source_redis  = redis_url ? redis_client_from_url(redis_url) : cache_redis
+        @using_remote = !redis_url.nil?
+
+        if @using_remote
+          puts "Source: #{redact_url(redis_url)}"
+          puts 'Cache:  configured db (temp keys)'
+          puts
+        end
+
+        threshold_secs = parse_duration(older_than)
+        cutoff         = Time.now - threshold_secs
+        cutoff_epoch   = cutoff.to_f
+
+        if refresh
+          cache_redis.del(ACTIVITY_CACHE, CREATED_CACHE)
+          puts 'Cache cleared.'
+        end
+
+        ensure_cache(
+          source_redis,
+          cache_redis,
+          primary_key: ACTIVITY_CACHE,
+          cache_keys: [ACTIVITY_CACHE, CREATED_CACHE],
+        )
+
+        # Get candidates: all objids with last activity before cutoff
+        candidates = cache_redis.zrangebyscore(ACTIVITY_CACHE, '-inf', cutoff_epoch.to_s)
+
+        puts "Purge candidates: #{candidates.size} customers inactive since #{cutoff.strftime('%Y-%m-%d')}"
+        puts 'Activity source: last_login (preferred) or updated (fallback)'
+        puts
+
+        if candidates.empty?
+          puts 'No customers match the criteria.'
+          return
+        end
+
+        if purge
+          execute_purge(source_redis, cache_redis, candidates, cutoff)
+        else
+          show_dry_run(source_redis, candidates, older_than)
+        end
+      rescue ArgumentError => ex
+        puts ex.message
+      end
+
+      private
+
+      def show_usage
+        puts <<~USAGE
+          Usage: bin/ots customers purge-inactive --older-than DURATION [options]
+
+          Duration: 6m, 12m, 18m (30-day months) | 1y, 2y, 3y, 5y (365-day years)
+
+          Options:
+            --older-than DURATION   Activity age threshold (required)
+            --purge                 Execute deletion (default is dry-run)
+            --refresh               Force cache rebuild before selecting
+            --redis-url URL         Scan a different Redis (e.g., pre-migration db=6)
+
+          Examples:
+            bin/ots customers purge-inactive --older-than 3y              # Preview
+            bin/ots customers purge-inactive --older-than 3y --purge      # Execute
+            bin/ots customers purge-inactive --older-than 5y --redis-url redis://host:6379/6
+
+          Dry-run caches candidates for 30 minutes. Running --purge within that
+          window reuses the same set. Every local candidate is preflighted; blockers
+          are reported without mutation. --redis-url supports preview only because
+          remote raw-key deletion cannot run the complete safe lifecycle.
+        USAGE
+      end
+
+      def show_dry_run(source_redis, candidates, duration)
+        puts 'DRY RUN - No records will be modified'
+        puts
+
+        purgeable_count   = 0
+        billing_protected = 0
+        no_load           = 0
+        shown             = 0
+
+        candidates.each do |objid|
+          record = load_customer_record(source_redis, objid)
+          unless record
+            no_load += 1
+            next
+          end
+
+          if record[:billing_protected]
+            billing_protected += 1
+            next
+          end
+
+          purgeable_count += 1
+
+          if shown < 20
+            puts format('  %-36s %s=%-10s %s', objid, record[:source], record[:date], record[:email])
+            shown += 1
+          end
+        end
+
+        if purgeable_count > 20
+          puts "  ... and #{purgeable_count - 20} more"
+        end
+
+        puts
+        if billing_protected > 0
+          puts "  Stripe-protected: #{billing_protected} (have billing association, will NOT be purged)"
+        end
+        if no_load > 0
+          puts "  Not loadable:     #{no_load} (may already be deleted)"
+        end
+        puts "  Purgeable:        #{purgeable_count}"
+
+        puts
+        puts '-' * 60
+        puts 'BEFORE PURGING:'
+        puts '  1. Back up Redis: redis-cli BGSAVE'
+        puts '  2. Export affected emails if needed for notification'
+        puts "  3. Run during off-peak hours for large sets (#{purgeable_count} records)"
+        puts '  4. Each candidate is preflighted for organization and billing blockers'
+        puts '  5. Refused candidates are preserved; partial results require inspection'
+        puts '  6. Successful purge is NOT reversible without a Redis backup'
+        puts
+        puts 'NOTE: In full auth mode, the safe lifecycle also revokes sessions'
+        puts '  and tears down the linked SQL account before deleting Redis data.'
+        puts
+        puts 'To execute:'
+        puts "  bin/ots customers purge-inactive --older-than #{duration} --purge"
+      end
+
+      def execute_purge(source_redis, cache_redis, candidates, cutoff)
+        if @using_remote
+          puts 'Error: --purge with --redis-url is disabled because raw remote deletion bypasses preflight.'
+          puts 'Run the purge against the configured datastore so the safe lifecycle can load all references.'
+          exit 1
+        end
+
+        # Verify cache is still populated before executing destructive operation
+        cache_size = cache_redis.zcard(ACTIVITY_CACHE)
+        if cache_size.zero?
+          puts 'Cache expired. Re-run without --purge to rebuild candidate list.'
+          return
+        end
+
+        if cache_size != candidates.size
+          puts "WARNING: Cache size (#{cache_size}) differs from candidate count (#{candidates.size})."
+          puts 'Cache may have been modified. Re-run without --purge to rebuild.'
+          return
+        end
+
+        total                        = candidates.size
+        destroyed                    = 0
+        skipped                      = 0
+        billing_protected            = 0
+        refused                      = 0
+        partial                      = 0
+        not_found                    = 0
+        errors                       = []
+        stale_participations_removed = 0
+
+        bulk_audit_context = start_bulk_audit(cutoff: cutoff, candidate_targets: candidates)
+
+        # One registry read for the whole run: every candidate's shallow
+        # preflight unions these rows with the organization's own member set,
+        # so a live membership that fell out of that set cannot make a shared
+        # workspace read as sole-owned. See MembershipSnapshot.
+        membership_snapshot = Auth::Operations::Customers::MembershipSnapshot.capture
+
+        puts "PURGING #{total} candidates inactive since #{cutoff.strftime('%Y-%m-%d')}..."
+        puts '(Every customer is preflighted; blocked customers are preserved)'
+        puts "(Membership registry snapshot: #{membership_snapshot.size} rows " \
+             "across #{membership_snapshot.organization_count} organizations)"
+        puts
+
+        candidates.each_slice(BATCH_SIZE).with_index do |batch, batch_idx|
+          # Batch-load customer records to avoid N+1 Redis round-trips.
+          # For local mode, uses Familia's load_multi (single pipeline).
+          # For remote mode, load_customer_record already does individual
+          # HMGET calls; batching at this level keeps the slice structure
+          # consistent and bounds the working set to BATCH_SIZE.
+          records_by_id = batch_load_customer_records(source_redis, batch)
+          destroyed_ids = []
+
+          batch.each do |objid|
+            record = records_by_id[objid]
+            unless record
+              skipped += 1
+              next
+            end
+
+            if record[:billing_protected]
+              billing_protected += 1
+              OT.info "[purge] Protected (billing): #{objid} #{record[:email]}"
+              next
+            end
+
+            operation       = nil
+            actions_counted = false
+            begin
+              cust = record[:_model]
+              unless cust
+                skipped += 1
+                next
+              end
+
+              result                        = purge_customer(cust, cutoff, bulk_audit_context, membership_snapshot) do |purge_operation|
+                operation = purge_operation
+              end
+              stale_participations_removed += completed_stale_cleanup_count(result.actions)
+              actions_counted               = true
+
+              case result.status
+              when :success
+                destroyed_ids << objid
+                destroyed += 1
+                OT.info "[purge] Destroyed #{objid} #{record[:email]}"
+              when :refused
+                refused += 1
+                errors << lifecycle_error(objid, result)
+                # A bulk refusal writes no operator-trail event (the completion
+                # receipt carries only the count), so the log is where the
+                # blocker codes persist. Codes only, never the email.
+                OT.info "[purge] Refused #{objid} blockers=#{blocker_codes(result)}"
+              when :partial
+                partial += 1
+                errors << lifecycle_error(objid, result)
+                OT.info "[purge] Partial #{objid} stage=#{result.stage} blockers=#{blocker_codes(result)}"
+              when :not_found
+                not_found += 1
+                errors << lifecycle_error(objid, result)
+              else
+                errors << lifecycle_error(objid, result)
+              end
+            rescue StandardError => ex
+              if operation && !actions_counted
+                stale_participations_removed += completed_stale_cleanup_count(operation.outcome_context[:actions])
+              end
+              errors << "#{objid}: #{ex.message}"
+              OT.le "[purge] Error destroying #{objid}: #{ex.message}"
+            end
+          end
+
+          # Batch zrem: remove all destroyed IDs from cache in one call
+          # per sorted set, rather than one zrem per customer.
+          if destroyed_ids.any?
+            cache_redis.zrem(ACTIVITY_CACHE, destroyed_ids)
+            cache_redis.zrem(CREATED_CACHE, destroyed_ids)
+          end
+
+          processed = (batch_idx + 1) * BATCH_SIZE
+          processed = [processed, total].min
+          print "\r  Progress: #{processed}/#{total} (#{destroyed} destroyed, #{refused} refused, #{partial} partial, #{billing_protected} billing-protected, #{skipped} skipped)"
+        end
+
+        print "\r" + (' ' * 80) + "\r"
+        puts
+        puts 'Purge complete'
+        puts '-' * 30
+        puts "  Destroyed:         #{destroyed}"
+        puts "  Billing-protected: #{billing_protected}"
+        puts "  Refused:           #{refused}"
+        puts "  Partial:           #{partial}"
+        puts "  Not found:         #{not_found}"
+        puts "  Skipped:           #{skipped}"
+        puts "  Errors:            #{errors.size}"
+        puts "  Stale references removed: #{stale_participations_removed}"
+
+        record_bulk_audit(
+          bulk_audit_context: bulk_audit_context,
+          cutoff: cutoff,
+          candidates: total,
+          destroyed: destroyed,
+          stale_participations_removed: stale_participations_removed,
+          billing_protected: billing_protected,
+          refused: refused,
+          partial: partial,
+          not_found: not_found,
+          skipped: skipped,
+          errors: errors.size,
+        )
+
+        return unless errors.any?
+
+        puts
+        puts '  Error details:'
+        errors.first(20).each { |e| puts "    #{e}" }
+        puts "    ... and #{errors.size - 20} more" if errors.size > 20
+        exit 1
+      end
+
+      def build_cache(source_redis, cache_redis)
+        puts 'Scanning customer records for activity dates...'
+
+        # Phase 1: Collect keys via SCAN (from source)
+        keys = []
+        source_redis.scan_each(match: 'customer:*:object', count: SCAN_COUNT) do |key|
+          keys << key
+        end
+
+        # Fallback to instances index (only when scanning local db)
+        if keys.empty? && !@using_remote
+          puts '  No customer:*:object keys found. Using instances index...'
+          count, skipped = build_cache_from_instances(cache_redis)
+          finalize_cache(
+            cache_redis,
+            count,
+            skipped,
+            cache_keys: [ACTIVITY_CACHE, CREATED_CACHE],
+            skip_label: 'without activity date',
+          )
+          return
+        elsif keys.empty?
+          puts '  No customer:*:object keys found in source.'
+          return
+        end
+
+        puts "  Found #{keys.size} keys. Reading timestamps..."
+
+        # Phase 2: Pipeline HMGET (read from source, write cache locally)
+        count   = 0
+        skipped = 0
+
+        keys.each_slice(PIPELINE_BATCH) do |batch|
+          results = source_redis.pipelined do |pipe|
+            batch.each do |key|
+              pipe.hmget(key, 'created', 'updated', 'last_login', 'role', 'email')
+            end
+          end
+
+          batch.zip(results).each do |key, fields|
+            created_raw, updated_raw, last_login_raw, role_raw, email_raw = fields
+
+            role = parse_json_field(role_raw)
+            next if role == 'anonymous'
+
+            email = parse_json_field(email_raw)
+            next unless email.to_s.match?(Onetime::Utils::EmailFormat::LOOSE_FORMAT)
+
+            objid = key.split(':')[1]
+
+            last_login = parse_ts(last_login_raw)
+            updated    = parse_ts(updated_raw)
+            activity   = [last_login, updated].select { |t| t > 0 }.max
+
+            if activity && activity > 0
+              cache_redis.zadd(ACTIVITY_CACHE, activity, objid)
+              count += 1
+            else
+              skipped += 1
+            end
+
+            created = parse_ts(created_raw)
+            cache_redis.zadd(CREATED_CACHE, created, objid) if created > 0
+          end
+        end
+
+        finalize_cache(
+          cache_redis,
+          count,
+          skipped,
+          cache_keys: [ACTIVITY_CACHE, CREATED_CACHE],
+          skip_label: 'without activity date',
+        )
+      end
+
+      def build_cache_from_instances(cache_redis)
+        count   = 0
+        skipped = 0
+        # NOTE: Loads all customer identifiers into memory. Acceptable for
+        # operational CLI (run infrequently). Would need cursor-based iteration
+        # (ZSCAN) for datasets exceeding available memory.
+        all_ids = Onetime::Customer.instances.all
+        total   = all_ids.size
+
+        puts "  Loading #{total} customers from instances index..."
+
+        all_ids.each_slice(PIPELINE_BATCH) do |batch|
+          customers = Onetime::Customer.load_multi(batch)
+          customers.each do |cust|
+            next unless cust
+            next if cust.anonymous?
+            next unless cust.email.to_s.match?(Onetime::Utils::EmailFormat::LOOSE_FORMAT)
+
+            last_login = cust.last_login.to_f
+            updated    = cust.updated.to_f
+            activity   = [last_login, updated].select { |t| t > 0 }.max
+
+            if activity && activity > 0
+              cache_redis.zadd(ACTIVITY_CACHE, activity, cust.objid)
+              count += 1
+            else
+              skipped += 1
+            end
+
+            created = cust.created.to_f
+            cache_redis.zadd(CREATED_CACHE, created, cust.objid) if created > 0
+          end
+
+          print "\r  #{count + skipped}/#{total} processed..."
+        end
+
+        print "\r" + (' ' * 60) + "\r"
+        [count, skipped]
+      end
+
+      def parse_duration(str)
+        match = str.match(/^(\d+)(m|y)$/i)
+        unless match
+          raise ArgumentError, "Invalid duration '#{str}'. Use format like: 6m, 1y, 2y, 3y, 5y"
+        end
+
+        num  = match[1].to_i
+        unit = match[2].downcase
+
+        case unit
+        when 'm' then num * SECONDS_IN_MONTH
+        when 'y' then num * SECONDS_IN_YEAR
+        end
+      end
+
+      # Candidates have been idle past the cutoff, so every session blob they
+      # could own has expired: the per-account keyspace walk for untracked
+      # sessions is declined (the tracked revocation still runs). See
+      # Purge#initialize.
+      def purge_customer(customer, cutoff, bulk_audit_context, membership_snapshot)
+        operation = Auth::Operations::Customers::Purge.new(
+          customer: customer,
+          actor: Customers::Shared::CLI_ACTOR,
+          reason: "bulk inactivity purge before #{cutoff.strftime('%Y-%m-%d')}",
+          bulk_audit_context: bulk_audit_context,
+          membership_snapshot: membership_snapshot,
+          sweep_untracked_sessions: false,
+        )
+        yield operation if block_given?
+        operation.call
+      end
+
+      def completed_stale_cleanup_count(actions)
+        actions.count do |action|
+          action[:type] == :remove_stale_participation && action[:status] == :success
+        end
+      end
+
+      def start_bulk_audit(cutoff:, candidate_targets:)
+        Onetime::Operations::BulkAuditContext.start!(
+          actor: Customers::Shared::CLI_ACTOR,
+          verb: BULK_AUDIT_VERB,
+          target: BULK_AUDIT_TARGET,
+          covered_verbs: BULK_COVERED_VERBS,
+          candidate_targets: candidate_targets,
+          detail: {
+            cutoff: cutoff.utc.strftime('%Y-%m-%d'),
+            candidates: candidate_targets.size,
+            batch_size: BATCH_SIZE,
+          },
+        )
+      end
+
+      def record_bulk_audit(bulk_audit_context:, cutoff:, candidates:, destroyed:, stale_participations_removed:,
+                            billing_protected:, refused:, partial:, not_found:, skipped:, errors:)
+        result = errors.positive? || partial.positive? ? :failure : :success
+        bulk_audit_context.complete!(
+          result: result,
+          detail: {
+            cutoff: cutoff.utc.strftime('%Y-%m-%d'),
+            candidates: candidates,
+            destroyed: destroyed,
+            stale_participations_removed: stale_participations_removed,
+            billing_protected: billing_protected,
+            refused: refused,
+            partial: partial,
+            not_found: not_found,
+            skipped: skipped,
+            errors: errors,
+          },
+        )
+      end
+
+      def blocker_codes(result)
+        result.blockers.map { |b| b[:code] }.uniq.join(',')
+      end
+
+      def lifecycle_error(objid, result)
+        JSON.generate(
+          objid: objid,
+          status: result.status,
+          stage: result.stage,
+          completed_stages: result.completed_stages,
+          actions: result.actions,
+          blockers: result.blockers,
+        )
+      end
+
+      # parse_ts, parse_json_field, redis_client_from_url, redact_url,
+      # format_ttl, ensure_cache, finalize_cache, and time/batch constants
+      # are provided by Customers::Shared
+
+      # Load customer record from source. When using --redis-url, reads
+      # raw fields via HMGET (no model loading). Otherwise loads via Familia.
+      def load_customer_record(source_redis, objid)
+        if @using_remote
+          load_customer_record_raw(source_redis, objid)
+        else
+          load_customer_record_model(objid)
+        end
+      end
+
+      def load_customer_record_raw(redis, objid)
+        fields     = %w[last_login updated email stripe_customer_id stripe_subscription_id]
+        vals       = redis.hmget("customer:#{objid}:object", *fields)
+        return nil if vals[2].nil?
+
+        email       = parse_json_field(vals[2])
+        last_login  = parse_ts(vals[0])
+        updated     = parse_ts(vals[1])
+        has_billing = !parse_json_field(vals[3]).to_s.empty? ||
+                      !parse_json_field(vals[4]).to_s.empty?
+
+        # Check Organization-level billing via raw Redis, matching the
+        # stripe_billing? check in local mode. The customer's participations
+        # set (customer:{objid}:participations) contains entries like
+        # "organization:{org_id}:members", stored JSON-quoted. We extract org
+        # IDs and check each organization's stripe_customer_id field.
+        has_billing ||= org_billing_raw?(redis, objid)
+
+        source, activity = activity_source(last_login, updated)
+        build_record(OT::Utils.obscure_email(email.to_s), source, activity, has_billing)
+      end
+
+      # Check Organization-level Stripe billing via raw Redis HMGET.
+      # Mirrors the Organization check in stripe_billing? for remote mode
+      # where Familia models are not available.
+      #
+      # Returns true (billing-protected) on error, matching the fail-safe
+      # behavior of stripe_billing?.
+      def org_billing_raw?(redis, objid)
+        participations = redis.smembers("customer:#{objid}:participations")
+        return false if participations.nil? || participations.empty?
+
+        participations.each do |entry|
+          # Familia stores each collection key JSON-quoted. parse_json_field
+          # decodes it and passes a non-JSON entry through unchanged.
+          key = parse_json_field(entry).to_s
+          next unless key.start_with?('organization:')
+
+          # Parse "organization:{org_id}:members" → org_id
+          org_id = key.split(':', 3)[1]
+          next if org_id.nil? || org_id.empty?
+
+          stripe_cust = redis.hmget("organization:#{org_id}:object", 'stripe_customer_id')
+          val         = parse_json_field(stripe_cust[0])
+          return true unless val.to_s.empty?
+        end
+
+        false
+      rescue StandardError => ex
+        OT.le "[purge] Error checking org billing for #{objid}: #{ex.message}"
+        true
+      end
+
+      def load_customer_record_model(objid)
+        cust = Onetime::Customer.load(objid)
+        return nil unless cust
+        return nil if cust.anonymous?
+
+        source, activity = activity_source(cust.last_login.to_f, cust.updated.to_f)
+        build_record(cust.obscure_email, source, activity, stripe_billing?(cust))
+      end
+
+      def activity_source(last_login, updated)
+        last_login > 0 ? ['last_login', last_login] : ['updated', updated]
+      end
+
+      def build_record(email, source, activity, billing)
+        date = activity > 0 ? Time.at(activity).strftime('%Y-%m-%d') : 'unknown'
+        { email: email, source: source, date: date, billing_protected: billing }
+      end
+
+      # Batch-load customer records for a slice of objids.
+      # Returns a Hash of { objid => record } for records that loaded successfully.
+      # In local mode, uses Familia's load_multi to fetch all records in a
+      # single Redis pipeline instead of N individual HGETALL calls.
+      def batch_load_customer_records(source_redis, objids)
+        records = {}
+
+        if @using_remote
+          objids.each do |objid|
+            record         = load_customer_record_raw(source_redis, objid)
+            records[objid] = record if record
+          end
+        else
+          models = Onetime::Customer.load_multi(objids)
+          objids.zip(models).each do |objid, cust|
+            next unless cust
+            next if cust.anonymous?
+
+            source, activity = activity_source(cust.last_login.to_f, cust.updated.to_f)
+            record           = build_record(cust.obscure_email, source, activity, stripe_billing?(cust))
+            record[:_model]  = cust
+            records[objid]   = record
+          end
+        end
+
+        records
+      end
+
+      # Check if customer has any Stripe billing association.
+      # Checks both deprecated v1 fields on Customer and current
+      # Organization billing fields. If ANY association exists,
+      # the customer is protected from purge.
+      def stripe_billing?(cust)
+        return true unless cust.stripe_customer_id.to_s.empty?
+        return true unless cust.stripe_subscription_id.to_s.empty?
+
+        orgs = cust.organization_instances.to_a
+        orgs.any? do |org|
+          next false unless org
+
+          !org.stripe_customer_id.to_s.empty?
+        end
+      rescue StandardError => ex
+        OT.le "[purge] Error checking billing for #{cust.objid}: #{ex.message}"
+        true
+      end
+    end
+
+    register 'customers purge-inactive', CustomersPurgeInactiveCommand
+  end
+end

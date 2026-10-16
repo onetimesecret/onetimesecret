@@ -10,6 +10,564 @@ this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.htm
 
    <!--scriv-insert-here-->
 
+.. _changelog-0.26.17:
+
+0.26.17 — 2026-10-15
+====================
+
+Added
+-----
+
+- Opt-in Markdown secrets with live preview, syntax highlighting and a raw
+  source view. Enable ``MARKDOWN_ENABLED=true``; the API accepts
+  ``display_type: markdown``. Rendering strips remote-loading content and
+  shows links as non-clickable text. With Markdown disabled, new Markdown
+  secrets are rejected with 422 and existing ones display as plain text;
+  re-enabling restores their rendered view. Generated passwords stay plain
+  text.
+
+- Generic OIDC supports ``client_secret_basic`` (default) and
+  ``client_secret_post`` through the domain SSO form or platform
+  ``OIDC_CLIENT_AUTH_METHOD``. Test Connection warns about methods the IdP
+  does not advertise. Existing configurations are unchanged; see
+  ``docs/authentication/per-domain-sso.md``. (#4764)
+
+- "Check saved configuration" diagnoses domain SSO settings, provider
+  discovery, SAML certificates and Entra client secrets. Entra credential-probe
+  results omit secrets, tokens and Microsoft error text; audit records omit
+  provider messages. Checks default to 10 per customer per hour
+  (``SSO_DIAGNOSTICS_RATE_LIMIT_*``). The Entra secret field also warns about
+  entering a Secret ID instead of its Value.
+
+- Domain SSO settings show the latest sign-in outcome and failure step,
+  retaining the last success alongside later failures. Records expire after
+  90 days without a sign-in. Diagnostics and outcomes support all 29 locales.
+
+- ``bin/ots domains backfill-canonical-index`` repairs missing domain-name
+  index entries; ``bin/ots domains doctor --all`` reports missing entries
+  and duplicate names. For pre-v0.26.14 domains, preview the backfill, then
+  apply with the application stopped, following
+  ``docs/runbooks/custom-domain-canonical-index-backfill.md``. (#4780)
+
+Changed
+-------
+
+- Tenant SSO failure logs include the domain id for troubleshooting.
+
+- Orphaned domain records require explicit operator adoption through
+  ``bin/ots domains create``, ``repair --org-id``, ``transfer`` or the
+  Colonel API. Adoption preserves settings, branding and receipts but
+  resets ownership verification and issues a new TXT challenge.
+
+- Under ``approximated`` and ``caddy_on_demand``, unverified custom domains
+  now return 404 and cannot be used for new links. Keep TXT verification
+  records published; losing verification also stops serving unless a
+  Colonel override holds it. ``passthrough`` still requires only registration
+  to an organization; orphaned records are never served.
+
+  **Before upgrading**, run ``bin/ots domains verify --all`` and
+  ``bin/ots domains orphaned``; resolve unverified or orphaned domains still
+  in use. After changing ``validation_strategy``, re-run verification before
+  accepting traffic. ``DOMAINS_SERVE_UNVERIFIED=true`` temporarily restores
+  prior serving behavior for organization-owned domains and warns at boot.
+  See ``features.domains`` in ``etc/defaults/config.defaults.yaml``.
+
+- Domain SSO configuration moves from a dialog to a dedicated settings page.
+  Existing ``?modal=sso`` links redirect there, and navigation warns before
+  discarding unsaved changes.
+
+Fixed
+-----
+
+- Leaving domain DNS setup stops widget background activity and ignores
+  late responses instead of raising errors.
+
+- Platform and custom-domain Entra sign-in no longer corrupt client secrets
+  containing ``+`` or ``%`` during token exchange. No configuration change
+  is needed; generic OIDC and SAML are unchanged. (#4764)
+
+- Unicode subdomains can be registered and verified using A-label TXT
+  records. Excessively deep names or oversized TXT record names return a
+  validation error instead of a server error. (#4780)
+
+- Concurrent domain-configuration edits preserve unrelated changes,
+  validate against current settings and produce accurate audit records.
+  Conflicting updates return ``conflict`` rather than overwriting newer
+  settings. (#4764)
+
+- Email sender checks no longer apply stale results after an address change
+  or recreate deleted settings. Provisioning and deletion are coordinated
+  to avoid orphaned sender domains at the mail provider; overlapping
+  removals return ``conflict``. (#4764)
+
+- The optional ``jobs.maintenance.index_rebuild`` job no longer reports
+  false mismatches or damages indexes when ``auto_repair`` is enabled. If
+  earlier repair runs affected indexes, one repair run of the fixed job
+  restores them. The job remains off by default.
+
+- Domain and membership doctor commands correctly detect and remove stale
+  collection entries; ``--repair`` reports actual removals. Customer purge
+  reports recognize Stripe billing through organization membership.
+
+- Switching domains warns before discarding unsaved settings. Domain-page
+  headers fit their content and mobile screens, and localized SSO dates no
+  longer produce doubled punctuation.
+
+- Customer purges resume after organization deletion left legacy membership
+  references, without a separate doctor repair. Organization deletion also
+  cleans up those references; remaining dependent data still blocks purging.
+
+Security
+--------
+
+- Removed CSP nonces from bootstrap payloads to reduce exposure through
+  HTML injection. (RISK-2026-08-14-M08)
+
+- Container builds pin ``yq`` to v4.52.4 and verify architecture-specific
+  SHA-256 digests before installation. (RISK-2026-08-14-M12)
+
+- DNS setup sanitizes remote provider instructions, removing executable
+  markup and automatic remote loads. If sanitization is unavailable,
+  instructions display as plain text. (RISK-2026-08-14-M09)
+
+- Guest recent-secret lists no longer persist secret links in browser tab
+  storage; existing entries are cleaned on load. After reloading, guests
+  copy links from the receipt page instead. (RISK-2026-08-14-M10)
+
+- Magic-link and verification-resend requests no longer reveal missing,
+  ineligible or recently mailed accounts through distinct response errors.
+  **API clients:** ``POST /auth/email-login-request`` and
+  ``POST /auth/verify-account-resend`` no longer return ``no_matching_login``
+  or "recently sent" errors; success does not confirm delivery. Eligibility
+  and resend windows still apply, and invalid or throttled requests can
+  still fail. Unsupported email locales fall back, and invalidly encoded
+  parameters on available Rodauth routes return 400 before account lookup.
+  (RISK-2026-08-14-M03)
+
+- Magic-link requests are rate limited by default: 30 per masked client-IP
+  bucket and 90 per submitted address per hour, with a one-hour lockout.
+  Passwordless ``POST /auth/login`` shares these limits; verification resend
+  still has no per-source limit. Configure
+  ``site.authentication.email_login_request_rate_limit`` using
+  ``EMAIL_LOGIN_REQUEST_RATE_LIMIT_*``. Keep the address cap at least twice
+  the IP cap and the lockout at least as long as the window.
+  (RISK-2026-08-14-M04)
+
+  **Before upgrading behind a reverse proxy**, configure trusted client-IP
+  resolution or visitors share the proxy's rate-limit bucket. Enabling
+  ``TRUSTED_PROXY_ENABLED=true`` also requires safe forwarding-header
+  handling: default filter mode requires the edge to overwrite
+  ``X-Forwarded-For``. See ``site.network.trusted_proxy`` in
+  ``etc/defaults/config.defaults.yaml`` and ``etc/examples/Caddyfile-example``.
+  Opt out with ``EMAIL_LOGIN_REQUEST_RATE_LIMIT_ENABLED=false``.
+
+- Opt-in datastore TLS enforcement with ``VALKEY_REQUIRE_TLS=true`` or
+  ``REDIS_REQUIRE_TLS=true``. Boot then requires ``rediss://`` or
+  ``valkeys://`` with no ``ssl`` query parameter. Plaintext remains allowed
+  by default, with boot notices graded by host. See ``redis.require_tls``
+  in ``etc/defaults/config.defaults.yaml``. (RISK-2026-08-14-L07)
+
+- Customer email-change confirmations, workspace deletions and domain test
+  emails use the Colonel security audit sub-trail (newest 1,000, seven days)
+  rather than crowding out operator entries. Events are also emitted to the
+  ``ColonelAudit`` log stream; longer retention requires external collection.
+  Test recipients are obscured. See ``docs/architecture/audit-logging.md``.
+
+- Domain sender test emails default to 10 per customer per hour across all
+  their domains, including colonels, followed by a one-hour lockout. The form
+  reports the wait after a 429. Configure ``SENDER_TEST_EMAIL_RATE_LIMIT_*``
+  in ``etc/defaults/config.defaults.yaml``.
+
+.. _changelog-0.26.16:
+
+0.26.16 — 2026-10-11
+====================
+
+Added
+-----
+
+- GitLab (gitlab.com) as a platform SSO provider. Configure
+  ``GITLAB_CLIENT_ID`` and ``GITLAB_CLIENT_SECRET``; custom-domain SSO does
+  not support this provider. Use generic OIDC for self-managed GitLab.
+  (#4727, #4733)
+
+- Default-workspace selection on the Organizations page and in account
+  preferences. Members of multiple organizations can choose where a new
+  session starts, including members who own no organization. Saving also
+  switches the current workspace. The account-preferences setting is hidden
+  on custom domains. (#4701, #4709)
+
+- ``bin/ots org unarchive ORG [--run]`` previews or restores an archived
+  organization and records the applied change in the audit log. Organizations
+  previously self-archived by tenant SSO are not restored automatically; see
+  ``docs/runbooks/sso-self-archived-organization.md`` for the repair procedure.
+  (#4717, #4723)
+
+- Scheduler liveness, next-run times and latest job results on the Colonel
+  Jobs page and through ``bin/ots scheduler status``. (#4729)
+
+- Individual dead-letter message inspection, replay and discard in the
+  Colonel Jobs page and CLI. CLI replay and discard accept ``--id``;
+  ``--max-scan`` searches beyond the default 500-message bound. (#4729)
+
+- Selected housekeeping chores and billing entitlement materialization can
+  run from the Colonel Jobs page, with record limits, confirmation and audit
+  records. Entitlement materialization also supports preview. (#4729)
+
+- A Colonel Schemas page for checking JSON payloads against the
+  application's API schemas. (#4700)
+
+Changed
+-------
+
+- Tenant SSO no longer archives a customer's previous personal workspace
+  when making the domain's organization their default. The previous
+  workspace remains available; an explicit default pointing to another
+  joined organization or an owned non-default workspace is preserved.
+  (#4717, #4724)
+
+- Simple-mode password sign-in, Colonel step-up, re-authentication and first
+  second-factor setup now renew the session id before granting access. If
+  the old session cannot be ended, the operation does not complete. Simple
+  sign-in starts a fresh session and returns a new CSRF token; the web app
+  adopts renewed sessions without a page reload. (#4466, #4708)
+
+- Homepage ``matching_cidrs`` now supports full IPv4 and IPv6 precision,
+  including /32 and /128. Entries narrower than /24 or /48 were previously
+  ignored and now take effect, including ``mode: external`` entries that
+  disable the homepage for matching visitors. IP privacy still masks the
+  client address seen by the application. (#4056, #4704)
+
+- Authenticated requests share one read of organization memberships,
+  reducing datastore calls without caching memberships between requests.
+  (#4711)
+
+- Email-delivery test messages now explain their purpose to the recipient
+  without exposing the provider or sending machine's name. Feedback emails
+  link to the user's organizations, and Colonel customer, organization and
+  domain links consistently use public ids. (#4700)
+
+Removed
+-------
+
+- ``bin/ots domains migrate-sso`` and its bulk SSO migration operation.
+  Customers still join a domain's organization through tenant SSO sign-in;
+  the default-workspace behavior is described above. (#4717, #4725)
+
+Fixed
+-----
+
+- Members of multiple organizations now get the workspace switcher.
+  Accepting an invitation switches to the joined organization, and the
+  default label and sign-in fallback no longer mistake another owner's
+  default workspace for the customer's own. (#4701)
+
+- Billing, entitlement grants, organization-creation quotas and Colonel
+  plan displays now resolve the workspace the customer owns, rather than
+  another owner's default workspace they joined. The quota counts owned
+  organizations, not every membership. Explicit checkout or portal requests
+  for an organization the caller does not own remain refused. (#4710)
+
+- Tenant SSO sign-in no longer archives the organization being joined when
+  its owner also uses it as their default workspace. (#4717, #4723)
+
+- First SSO sign-in now succeeds when the provider sends a mixed-case email
+  address, including Entra guest addresses containing ``#EXT#``. New SSO
+  accounts store lowercase addresses, and sign-in uses the account's stored
+  customer link before falling back to email lookup. First-time provisioning
+  rejects addresses whose canonical lowercase form would be changed by
+  Unicode case folding. (#4726, #4730)
+
+- ``bin/ots customers normalize-emails`` previews repairs for previously
+  stored mixed-case SSO account emails; ``--confirm`` applies them without
+  signing users out, resetting verification or sending mail. Collisions and
+  addresses whose Unicode case-folded form differs from their lowercase
+  form are left for operator review. Batched runs support ``--limit`` and
+  ``--after-id``. Errors cause a nonzero exit; skipped rows also need review
+  even when the command exits successfully. ``bin/ots customers doctor``
+  reports these mismatches as ``auth_email_not_canonical``. (#4726, #4731)
+
+- Tenant SSO email-domain allowlists now match Unicode and A-label forms
+  of internationalized domains interchangeably. Entries without an exact
+  A-label form are rejected when saving the configuration. (#4736, #4751)
+
+- SSO errors now distinguish a missing email claim (``missing_email``) from
+  a malformed address (``invalid_email``). First-time provisioning requires
+  a usable email; an already-linked platform identity can still sign in
+  without a callback email. (#4728, #4738)
+
+- Newly issued magic sign-in links on PostgreSQL and SQLite expire after
+  15 minutes instead of the database's 24-hour default. Resending within
+  that window does not extend the original deadline; existing key rows are
+  not rewritten. (#4703)
+
+- Re-authentication that cannot save its proof after renewing the session
+  returns ``503 reauth_not_recorded`` with ``session_rotated: true``. The
+  app adopts the renewed session instead of reloading at its next refresh.
+  (#4708)
+
+- Customer purge accepts eligible accounts with completed migration
+  metadata, supported legacy creator identifiers or non-live billing
+  history. Live subscriptions, unresolved migration state and ambiguous
+  ownership still block deletion. In full authentication mode, a retained
+  closed account no longer blocks signing up again with the same email
+  after customer cleanup. (#4700)
+
+- Customer field-reserialization and organization creator-backfill chores
+  no longer overwrite unrelated fields changed since the record was loaded.
+  (#4729)
+
+- Colonel account diagnostics stop the per-IP lockout scan after five
+  seconds and report an incomplete check rather than timing out on large
+  databases. (#4700)
+
+- Signing in after a Colonel session expires returns to the admin
+  application instead of a customer-app not-found page. (#4712)
+
+- Confirmation dialogs in Colonel customer, domain and session drawers no
+  longer close the drawer and clear the selected record when clicked.
+  (#4753)
+
+Security
+--------
+
+- Domain-scoped members can no longer use ``scope=domain`` to list another
+  domain's receipts, or access the organization-wide receipt list and secret
+  activity trail through the ``audit_logs`` entitlement. (#4712)
+
+- Opt-in trusted-provider SSO email linking no longer links an existing
+  account when the provider explicitly reports an unverified email or its
+  verification claim cannot be read. (#4702)
+
+- Full-page navigation validates destinations after URL normalization,
+  rejecting paths that normalize into an external-authority form. (#4719)
+
+Documentation
+-------------
+
+- Added an operator-approved Entra claim-checking runbook at
+  ``docs/runbooks/sso-entra-claim-smoke-test.md``. It distinguishes missing
+  email claims from missing mailboxes and records only sanitized claim
+  presence and type. (#3499, #4738)
+
+.. _changelog-0.26.15:
+
+0.26.15 — 2026-10-07
+====================
+
+Added
+-----
+
+- Opt-in ``PUBLIC_HOST_REWRITE`` (``site.network.public_host_rewrite``) for
+  proxies that rewrite ``Host`` to the origin target. Mounted applications
+  then see the classified public hostname from ``X-Forwarded-Host``.
+  It is off by default; see ``docs/operations/proxy-authority-header.md``.
+  (#4223, #4623)
+
+- Delivery events for outbound email and webhook notifications, with queue
+  hand-off tracked separately from worker results. ``bin/ots notifications
+  deliveries`` filters the bounded event feed and shows daily totals with
+  ``--counts``. Provider bounces, complaints and suppressions remain on the
+  email deliverability pages. (#4479, #4633)
+
+- Implicit TLS/SMTPS delivery with ``SMTP_SSL=true``. This disables STARTTLS
+  but does not change the configured port; set the provider's implicit-TLS
+  port explicitly, usually ``SMTP_PORT=465``. (#4662)
+
+- Optional file logging alongside the console through the logging config's
+  ``destinations`` block, with separate destination levels and formatters.
+  File logging is off by default; an unopenable file stops boot. (#4683)
+
+Changed
+-------
+
+- Proxies must send one ``X-Forwarded-Host`` value or preserve ``Host``.
+  ``Apx-Incoming-Host`` and ``X-Original-Host`` no longer select the public
+  hostname; comma-separated ``X-Forwarded-Host`` falls back to ``Host``.
+  **Before upgrading**, update proxies that rely on those headers or append
+  forwarded hosts. The Colonel host gate still checks conflicting headers.
+  See ``docs/operations/proxy-authority-header.md`` and
+  ``etc/examples/Caddyfile-example``. (#4384, #4622)
+
+- Forwarded port and scheme headers are now accepted only from trusted
+  proxies. **Before upgrading**, configure ``site.network.trusted_proxy``
+  for a TLS-terminating proxy connecting from a public address, or set
+  ``ASSUME_HTTPS=true``; otherwise requests can appear as HTTP, preventing
+  Secure session cookies and producing HTTP authentication URLs.
+  ``X-Forwarded-Port`` must contain one port from 1 through 65535.
+  Forwarded ``ws`` and ``wss`` schemes normalize to HTTP and HTTPS.
+  (#4223, #4623)
+
+- Custom-domain ownership verification is stored in ``ownership_verified``;
+  existing ``verified`` values remain readable and the API retains
+  ``verified`` as an alias. Rolling back requires copying current values
+  back after stopping this version's processes; follow the
+  `v0.26.15 rollback procedure <https://docs.onetimesecret.com/en/self-hosting/upgrading-v0-26-15#rollback>`__.
+  (#4654)
+
+- Pending tenant SSO sign-ins expire after ten minutes. Sign-ins already
+  in progress when this release is deployed must also be restarted.
+  (#4610, #4617)
+
+- Each request resolves its custom domain once. A failed lookup is not
+  retried later in the same request. Canonical-host organization loading
+  no longer depends on the custom-domain index. (#4220, #4620, #4670)
+
+- Authentication routes consistently return a domain-unavailable ``503``
+  when the custom-domain record cannot be read. Starting SSO returns to
+  sign-in with that message instead of redirecting to an identity provider.
+  (#4668, #4675)
+
+- Archived organizations are no longer selected through
+  ``O-Organization-ID``, remembered workspace selection or a custom domain;
+  organization loading falls back to the default workspace. (#4565, #4661)
+
+- Failed email deliveries can be retried through the dead-letter queue
+  instead of being skipped as duplicates. **Duplicate emails are possible**
+  if a provider accepted a message before reporting an error, or automatic
+  replay cannot confirm publication or complete acknowledgement. (#4479)
+
+- Invalid email payloads and queue messages with invalid JSON, a non-object
+  body or an unsupported schema version go to the dead-letter queue rather
+  than being dropped or left unacknowledged. The automatic auth-email DLQ
+  job still discards malformed messages that cannot identify an original
+  queue. (#4479)
+
+- Region and jurisdiction icons now depict the selected region rather than
+  its continent. Explicitly configured jurisdiction icons are unchanged.
+  (#4626)
+
+Removed
+-------
+
+- The development-only ``DOMAIN_CONTEXT_ENABLED`` and ``DOMAIN_CONTEXT``
+  variables, ``development.domain_context_enabled`` config key and
+  ``O-Domain-Context`` header. Remove them from local setups and use the
+  custom domain as the request host instead. (#4220, #4621)
+
+Fixed
+-----
+
+- Workspace selection survives page reloads, direct URL navigation and a
+  reload overtaking the selection request. The switcher stays available
+  after selecting a workspace the user does not own, and settings links
+  appear only for owners and admins. (#4565, #4661)
+
+- Organization invitations send admins to settings and members to the
+  dashboard. Role-guard redirects now explain the required access or that
+  access could not be confirmed, without replacing an existing notice.
+  (#4566, #4659, #4667)
+
+- Pages whose application bundle never starts show a reload/support notice
+  after 30 seconds instead of spinning indefinitely. Bundle download or
+  startup failures show the failure notice immediately. (#4596, #4666)
+
+- Email delivery events distinguish skipped or log-only delivery from sent
+  mail. Email-change delivery status also reports ``skipped`` when no message
+  was dispatched. Mail modes with surrounding whitespace select the intended
+  transport. (#4479, #4643, #4644)
+
+- Queue workers settle every rejected message and keep message identifiers
+  and schema checks separate during concurrent processing. Invalid email
+  templates are not retried, and favicon timeouts can be retried once rather
+  than skipped as duplicates. (#4479, #4644)
+
+- Manual CLI and Colonel DLQ replay release idempotency claims before
+  republishing and commit republish and removal together. Failed messages
+  remain in the queue; an unconfirmed commit stops the replay and reports
+  an unknown outcome. (#4479, #4644)
+
+- Automatic auth-email DLQ replay retains messages when claim release,
+  publication or processing fails, or the destination queue no longer
+  exists. It commits publication before removing the message, records
+  completed replay to avoid immediate duplicate publication, and does not
+  reconnect midway through a batch. Messages marked replayed by the previous
+  version wait at most an hour before retry. (#4652, #4653, #4656)
+
+- Automatic DLQ replay progresses past held or unroutable messages instead
+  of letting them consume each batch. Runs have a 240-second time budget;
+  held messages remain queued for later runs. (#4656)
+
+- DLQ listing and lookup visit messages beyond the first without repeating
+  it. Inspection retains messages but may change their order. (#4650, #4651)
+
+- Organization entitlement changes propagate to existing memberships;
+  partial updates report affected memberships and reconciliation guidance.
+  (#4655)
+
+- Unlimited plan limits no longer become zero when imported or read from
+  cached ``Infinity`` values. (#4655)
+
+- Blank mail settings no longer prevent provider-specific environment
+  credentials from being used. Amazon SES falls back to ``AWS_REGION``
+  rather than treating the default transport placeholder as a region.
+  Synchronous email delivery preserves the recipient's locale. (#4655)
+
+- With background jobs disabled, sender-domain verification performs the
+  provider check and settles its status. An empty DNS-record list no longer
+  counts as successful verification. (#4655)
+
+- Account language changes persist across authenticated page navigation.
+  (#4655)
+
+- Revealed and burned receipts retain those statuses after the secret's
+  expiry instead of appearing expired or expiring soon. (#4655)
+
+- Email addresses accepted by the server, such as
+  ``first&last@company.com``, no longer prevent app initialization or
+  organization member and invitation lists from loading. (#4655)
+
+- The legacy ``/account/billing_portal`` URL forwards to the
+  organization-aware billing portal. (#4655)
+
+- ``ASSUME_HTTPS=true`` remains effective after removing untrusted scheme
+  headers. Forwarded hosts containing userinfo are refused instead of
+  being misread or falling back to another host. (#4223, #4623)
+
+- Production console backtraces are limited to 20 lines by default.
+  ``BACKTRACE_LINES`` changes the limit; ``0`` keeps full backtraces.
+  Exception objects, file logs and Sentry reports retain full backtraces.
+  Configured logger-category levels, including ``Chores`` and ``CLI``, now
+  take effect. (#4683)
+
+Security
+--------
+
+- Custom-domain images are validated by content rather than declared MIME
+  type. SVG uploads are refused and existing SVG images are no longer
+  served; replace affected logos and icons with supported raster images.
+  (#4649)
+
+- Authentication emails use tenant links and branding only when the
+  recipient's active membership authorizes that domain; otherwise they use
+  the canonical host. Raw request hosts are no longer a fallback when no
+  verified tenant or configured canonical origin exists. Configure
+  ``site.host`` for canonical links; see
+  ``docs/operations/proxy-authority-header.md``. (#4648, #4223)
+
+- Domain-limited organization memberships are enforced for every workspace
+  selection path, including behind Host-rewriting proxies. Unregistered
+  public hosts receive no organization context, and a failed tenant-domain
+  lookup does not bypass the scope check. (#4225, #4670, #4672)
+
+- Behind Host-rewriting proxies, origins matching an unclassified public
+  host are refused before the application runs. (#4669, #4673)
+
+- Duplicate session cookies are refused before session loading, and cookie
+  clears target the public host even behind Host-rewriting proxies. A
+  signed-in browser's ``/api/`` requests still require CSRF tokens when an
+  ``Authorization: Basic`` header is also present; API-key-only clients are
+  unaffected. (#4223)
+
+- Custom-domain sign-up restricted to a domain allowlist refuses sign-ups
+  when that list is empty or unreadable instead of allowing every domain.
+  (#4655)
+
+- Application request logs redact secret and receipt capability paths,
+  including debug traces. Lifecycle logs use shortened identifiers and
+  receipt-list errors omit raw exception messages. External proxy access
+  logs still need their own redaction configuration. (#4647)
+
 .. _changelog-0.26.14:
 
 0.26.14 — 2026-09-30

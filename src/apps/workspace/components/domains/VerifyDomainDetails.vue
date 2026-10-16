@@ -179,6 +179,12 @@ const verify = async () => {
             {{ txtRecord.displayName }}
           </span>
         </p>
+        <!-- A later check that does not find the record stops serving the domain. -->
+        <p
+          data-testid="txt-record-keep"
+          class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+          {{ t('web.domains.dns.keep_txt_record') }}
+        </p>
       </li>
       <li
         data-testid="verify-address-record"

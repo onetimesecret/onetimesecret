@@ -999,6 +999,14 @@
     "text": "Test-E-Mail konnte nicht gesendet werden",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "In letzter Zeit wurden zu viele Test-E-Mails gesendet. Versuche es später erneut.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "In letzter Zeit wurden zu viele Test-E-Mails gesendet. Versuche es in etwa {minutes} Minuten erneut.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Gesendet an {email}",
     "source_hash": "8ceb9588"
@@ -1658,5 +1666,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "Wir haben den erwarteten TXT-Eintrag nicht gefunden. Prüfe, ob er vorhanden ist und sein Wert exakt übereinstimmt. Neue DNS-Einträge können einige Minuten brauchen, bis sie sichtbar sind.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Prüfung der gespeicherten Konfiguration bestanden",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "Prüfung der gespeicherten Konfiguration hat ein Problem gefunden",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "Prüfung der gespeicherten Konfiguration kam zu keinem eindeutigen Ergebnis",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Die gespeicherte Konfiguration konnte nicht geprüft werden",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "Diese Konfiguration wurde in letzter Zeit zu oft geprüft. Versuche es später erneut.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "Diese Konfiguration wurde in letzter Zeit zu oft geprüft. Versuche es in etwa {minutes} Minuten erneut.",
+    "source_hash": "fdbdeaf6"
   }
 }

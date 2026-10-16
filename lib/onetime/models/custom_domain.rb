@@ -461,6 +461,7 @@ module Onetime
         Onetime::CustomDomain::SigninConfig,
         Onetime::CustomDomain::SignupConfig,
         Onetime::CustomDomain::SsoConfig,
+        Onetime::CustomDomain::SsoSigninOutcome,
         Onetime::CustomDomain::MailerConfig,
         Onetime::CustomDomain::IncomingConfig,
       ]
@@ -769,6 +770,40 @@ module Onetime
       verification_state == :verified
     end
 
+    # serving_authorized? / served_as_tenant?: whether this domain is served
+    # as a tenant domain at all. See ServingPolicy.
+    require_relative 'custom_domain/serving_policy'
+    include ServingPolicy
+
+    # Clears the ownership evidence and provider status an earlier owner left
+    # on this record, and gives the TXT challenge a new value. Used when an
+    # orphaned record is adopted by an organization
+    # (CustomDomain.claim_orphaned_domain), which keeps the record's
+    # identifier.
+    #
+    # Sets values in memory only; the caller persists them. The claim does
+    # that in its atomic_write, together with the new org_id.
+    #
+    # ownership_verified is set to false, not nil: nil reads through to a
+    # legacy `verified` value still stored on the record. The TXT host is
+    # derived from the identifier, so it stays the same and only the value
+    # changes. The record is :pending afterwards.
+    #
+    # @return [void]
+    # @raise [Onetime::Problem] if the TXT challenge name does not fit the
+    #   DNS name limits (see txt_challenge_host)
+    def reset_verification_for_adoption
+      self.ownership_verified         = false
+      self.verified_by_override       = false
+      self.resolving                  = false
+      self.verified_confirmed_at      = nil
+      self.verified_unconfirmed_since = nil
+      self.vhost                      = nil
+      self.vhost_fetch_failed_at      = nil
+      generate_txt_validation_record
+      nil
+    end
+
     module ClassMethods
       attr_reader :db, :values, :owners, :txt_validation_prefix
 
@@ -934,6 +969,11 @@ module Onetime
       #
       # @param input [String] The domain name to create
       # @param org_id [String] The organization ID to associate with this domain
+      # @param adopt_orphan [Boolean] When the name belongs to a record with
+      #   no organization (an orphan), assign that record to org_id through
+      #   claim_orphaned_domain. Only operator tools pass true. With false
+      #   (the default) an orphan is refused like a record of another
+      #   organization; see refuse_orphan_claim!.
       # @return [Onetime::CustomDomain] The created custom domain
       # @raise [Onetime::Problem] If domain is invalid or already exists
       # @raise [Onetime::TemporarilyUnavailable] If the datastore failed, or
@@ -959,7 +999,7 @@ module Onetime
       # unqualified term "domain" on its own since there's so much
       # room for confusion.
       #
-      def create!(input, org_id)
+      def create!(input, org_id, adopt_orphan: false)
         # Parse the domain to get normalized display_domain
         obj               = parse(input, org_id)
         normalized_domain = obj.display_domain.to_s.downcase
@@ -987,8 +1027,10 @@ module Onetime
             raise Onetime::Problem, 'Domain is registered to another organization'
           end
 
-          # Scenario 3: Orphaned domain (no org_id) - claim it atomically
-          # Use a simple lock pattern: try to set a claim marker, then update
+          # Scenario 3: Orphaned domain (no org_id). Only an operator adopts
+          # an orphan; anyone else gets the Scenario 2 answer.
+          refuse_orphan_claim!(existing, org_id) unless adopt_orphan
+
           claim_result = claim_orphaned_domain(existing, org_id)
           return claim_result if claim_result
         end
@@ -1082,6 +1124,21 @@ module Onetime
         )
       end
 
+      # Refuses an orphaned record (no org_id) to a caller that may not adopt
+      # it. The answer is the one for a record of another organization, so it
+      # does not show that the name is registered without an owner. The
+      # refusal is logged with the record's extid, for support.
+      #
+      # @param existing [CustomDomain] the orphaned record
+      # @param org_id [String] the organization that asked for the name
+      # @raise [Onetime::Problem] always
+      def refuse_orphan_claim!(existing, org_id)
+        Onetime.get_logger('App').warn 'custom_domain.orphan_claim_refused',
+          extid: existing.extid,
+          org_id: org_id.to_s
+        raise Onetime::Problem, 'Domain is registered to another organization'
+      end
+
       # Create default-disabled HomepageConfig and ApiConfig records for a
       # freshly created CustomDomain. Idempotent via find_or_create_for_domain
       # (WATCH+MULTI), so a concurrent PUT that wrote first preserves its value.
@@ -1097,41 +1154,87 @@ module Onetime
       # Atomically claim an orphaned domain for an organization.
       # Uses optimistic locking via WATCH to prevent race conditions.
       #
+      # Before the WATCH/MULTI, the record's name is claimed in
+      # canonical_display_domain_index for the record, as create! does for a
+      # new record (claim_field cannot run inside a transaction). The claim
+      # succeeds when the entry is absent or already names the record, and is
+      # refused when another record holds the name. If the orphan claim then
+      # fails, the entry stays while the record exists, even if still
+      # orphaned; only a deleted record's claim is released (see
+      # release_orphan_canonical_claim).
+      #
+      # The record keeps its identifier, so the transaction that writes the
+      # new org_id also resets what an earlier owner left on it: ownership
+      # verification, resolving, the override, the confirmation timestamps
+      # and the provider status are cleared, and the TXT challenge gets a new
+      # value (reset_verification_for_adoption). The new organization has to
+      # verify the domain again. Per-domain configs, brand data and receipts
+      # are kept; the operator tools list them
+      # (Onetime::Operations::Domains::AdoptionReport).
+      #
+      # An orphan that another organization's domains collection still lists
+      # is refused before anything is written (see
+      # refuse_orphan_listed_elsewhere!).
+      #
+      # Callers: the operator tools only. Operations::Domains::Create through
+      # create!(..., adopt_orphan: true), and Operations::Domains::Repair and
+      # Transfer directly. Not reachable from the customer API.
+      #
       # @param existing [CustomDomain] The orphaned domain to claim
       # @param org_id [String] The organization ID claiming the domain
       # @return [CustomDomain, nil] The claimed domain, or nil if claim failed
-      # @raise [Onetime::Problem] If domain was claimed by another org during race
+      # @raise [Onetime::Problem] If domain was claimed by another org during
+      #   race, another organization still lists it, another record holds its
+      #   canonical name, or the name has no A-label form
       # @raise [Onetime::RecordNotFound] If the organization no longer exists
       # @raise [Onetime::TemporarilyUnavailable] If a concurrent write to the
       #   record discarded the claim (WATCH)
       def claim_orphaned_domain(existing, org_id)
         OT.info "[CustomDomain.create!] Claiming orphaned domain: #{existing.display_domain} for org_id=#{org_id}"
 
+        refuse_orphan_listed_elsewhere!(existing, org_id)
+        canonical, created_claim = claim_canonical_for_orphan!(existing, org_id)
+
+        begin
+          result = watch_and_assign_orphan(existing, org_id)
+        rescue StandardError
+          release_orphan_canonical_claim(existing, canonical) if created_claim
+          raise
+        end
+
+        # atomic_write returns false when EXEC is discarded (WATCH saw a
+        # concurrent modification). nil is defensive against unexpected
+        # returns from the enclosing watch block.
+        if result == false || result.nil?
+          release_orphan_canonical_claim(existing, canonical) if created_claim
+          # Another write landed on the record first; a retry sees its result.
+          OT.le "[CustomDomain.claim_orphaned_domain] WATCH conflict for #{existing.display_domain}"
+          raise Onetime::TemporarilyUnavailable.new(
+            'The domain could not be added right now. Please try again shortly.', reason: :concurrent_write
+          )
+        end
+
+        existing
+      end
+
+      # The WATCH/MULTI half of claim_orphaned_domain.
+      #
+      # @return [CustomDomain, Boolean, nil] the record when its stored org_id
+      #   already is org_id, else atomic_write's result (false when discarded)
+      def watch_and_assign_orphan(existing, org_id)
         # Pin a single pool connection for the entire WATCH+MULTI critical
         # section. Without the pin, each Familia.dbclient call (including
         # the nested atomic_write's MULTI) may resolve to a different pool
         # connection — WATCH on conn A and MULTI on conn C never pair up,
         # so races go undetected.
-        result = Onetime.with_pinned_dbclient do |conn|
+        Onetime.with_pinned_dbclient do |conn|
           conn.watch(existing.dbkey) do
-            # Re-check org_id inside the watch - if changed, transaction will fail.
-            # hget returns raw stored bytes; Familia v2 JSON-encodes scalar
-            # fields, so a set org_id comes back as a JSON-quoted string.
-            raw_org_id = existing.hget(:org_id)
+            # Re-check org_id inside the watch - if changed, transaction will
+            # fail. Read from the datastore, decoded (stored_org_id).
+            current_org_id = stored_org_id(existing)
 
-            unless raw_org_id.to_s.empty?
+            unless current_org_id.empty?
               conn.unwatch
-              # Pre-Familia-v2 records stored org_id as a bare UUID rather than
-              # a JSON-quoted string. Fall back to the raw value so legacy rows
-              # don't turn "already claimed" into an unexpected exception.
-              current_org_id = begin
-                JSON.parse(raw_org_id).to_s
-              rescue JSON::ParserError
-                # Surface the fallback so ops can detect unmigrated rows in
-                # production and decide whether a backfill is warranted.
-                OT.le "[CustomDomain.claim_orphaned_domain] legacy org_id encoding on #{existing.display_domain}: raw=#{raw_org_id.inspect}"
-                raw_org_id.to_s
-              end
               # We already own it (concurrent request from same org succeeded)
               return existing if current_org_id == org_id.to_s
 
@@ -1152,6 +1255,7 @@ module Onetime
             existing.atomic_write do
               existing.org_id  = org_id
               existing.updated = OT.now.to_i
+              existing.reset_verification_for_adoption
               existing.add_to_organization_domains(org) if org
 
               # Update owners hash (Location E) to reflect new org ownership
@@ -1159,20 +1263,106 @@ module Onetime
             end
           end
         end
-
-        # atomic_write returns false when EXEC is discarded (WATCH saw a
-        # concurrent modification). nil is defensive against unexpected
-        # returns from the enclosing watch block.
-        if result == false || result.nil?
-          # Another write landed on the record first; a retry sees its result.
-          OT.le "[CustomDomain.claim_orphaned_domain] WATCH conflict for #{existing.display_domain}"
-          raise Onetime::TemporarilyUnavailable.new(
-            'The domain could not be added right now. Please try again shortly.', reason: :concurrent_write
-          )
-        end
-
-        existing
       end
+
+      # The record's org_id as stored now, read from the datastore rather
+      # than the loaded copy, and decoded. Familia v2 JSON-encodes scalar
+      # fields, so hget returns a set org_id as a JSON-quoted string; a
+      # record written before that holds a bare value, which is returned as
+      # stored. An absent field, an empty value, JSON null and a JSON empty
+      # string all read as "" (no organization).
+      #
+      # @return [String]
+      def stored_org_id(existing)
+        raw = existing.hget(:org_id).to_s
+        return '' if raw.empty?
+
+        JSON.parse(raw).to_s
+      rescue JSON::ParserError
+        # Surface the fallback so ops can detect unmigrated rows in
+        # production and decide whether a backfill is warranted.
+        OT.le "[CustomDomain.claim_orphaned_domain] legacy org_id encoding on #{existing.display_domain}: raw=#{raw.inspect}"
+        raw
+      end
+
+      # Refuses to adopt an orphan that another organization's domains
+      # collection still lists. Organization#add_domain refuses a record that
+      # belongs to another organization; an orphan has no org_id, so a listing
+      # left behind by drift would otherwise leave the record listed in two
+      # organizations. The candidates come from the record's participation
+      # index (organization_instances), and each is confirmed against the
+      # collection itself, so a listing that was already removed does not
+      # count. A listing in the adopting organization is not refused. A record
+      # whose stored org_id is set is left to the WATCH section, which answers
+      # for it.
+      #
+      # @raise [Onetime::Problem] naming the organization and how to remove
+      #   the listing
+      def refuse_orphan_listed_elsewhere!(existing, org_id)
+        return unless stored_org_id(existing).empty?
+
+        listing = existing.organization_instances.find do |org|
+          org.objid != org_id.to_s && existing.in_organization_domains?(org)
+        end
+        return unless listing
+
+        OT.le "[CustomDomain.claim_orphaned_domain] #{existing.extid} has no org_id but is listed " \
+              "in the domains of #{listing.extid}"
+        raise Onetime::Problem,
+          "Domain #{existing.display_domain} has no organization but is still listed in the domains of " \
+          "organization #{listing.extid}. Remove that listing first: review it with " \
+          "`bin/ots domains doctor --org #{listing.extid}`, then run the same command with --repair. " \
+          'Then adopt the domain again.'
+      end
+
+      # Claims the orphan's canonical name for the record.
+      #
+      # @return [Array(String, Boolean)] canonical name, and whether this call
+      #   created the claim (eligible for cleanup if the record is deleted)
+      # @raise [Onetime::Problem] when another record holds the name, or the
+      #   name has no A-label form
+      def claim_canonical_for_orphan!(existing, org_id)
+        canonical, claim = claim_canonical_display_domain(existing.display_domain, existing.identifier)
+        if claim == :created
+          OT.info "[CustomDomain.claim_orphaned_domain] Entered #{canonical} into the canonical index for #{existing.extid}"
+        end
+        return [canonical, claim == :created] if [:created, :owned].include?(claim)
+
+        OT.le "[CustomDomain.claim_orphaned_domain] #{canonical} is held by #{claim}, not #{existing.extid}"
+        holder = find_by_identifier(claim)
+        raise Onetime::Problem, 'Domain already registered in your organization' if holder&.org_id.to_s == org_id.to_s
+
+        raise Onetime::Problem, 'Domain is registered to another organization'
+      rescue Onetime::DomainValidation::AsciiHostname::ConversionError => ex
+        raise Onetime::Problem, ex.message
+      end
+
+      # Releases a claim created by a failed orphan adoption only if the
+      # record is gone. A live orphan keeps its entry: another adopter uses
+      # the same identifier, so an org_id check followed by release_field can
+      # remove that adopter's claim. Check absence and index ownership in one
+      # script so deletion/recreation cannot land between check and release.
+      # Datastore errors leave the claim in place rather than opening the name.
+      def release_orphan_canonical_claim(existing, canonical)
+        script = <<~LUA
+          if redis.call('EXISTS', KEYS[1]) == 1 then return 0 end
+          if redis.call('HGET', KEYS[2], ARGV[1]) ~= ARGV[2] then return 0 end
+          return redis.call('HDEL', KEYS[2], ARGV[1])
+        LUA
+        index  = canonical_display_domain_index
+        index.dbclient.eval(
+          script,
+          keys: [existing.dbkey, index.dbkey],
+          argv: [canonical, existing.identifier],
+        )
+      rescue StandardError => ex
+        OT.le "[CustomDomain.claim_orphaned_domain] Kept the canonical claim for #{existing.extid}: #{ex.class}: #{ex.message}"
+      end
+
+      private :watch_and_assign_orphan,
+        :refuse_orphan_listed_elsewhere!,
+        :claim_canonical_for_orphan!,
+        :release_orphan_canonical_claim
 
       # Returns a new Onetime::CustomDomain object (without saving it).
       #

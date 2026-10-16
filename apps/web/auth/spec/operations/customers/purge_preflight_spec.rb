@@ -50,6 +50,7 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
     stub_instance_scan(domain_instances, [])
     allow(customer).to receive(:participations).and_return(collection([]))
     allow(customer).to receive(:organization_instances).and_return(collection([]))
+    allow(customer).to receive(:purge_pending_organization_checks).and_return(collection([]))
   end
 
   def organization(overrides = {})
@@ -129,7 +130,507 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
     end
   end
 
+  # A RegistrySweep as a capture over these doubles would have produced it:
+  # every organization listed and referenced, membership rows grouped by their
+  # organization with the target's rows named, domains grouped by org_id. The
+  # preflight re-loads each through the stubbed loaders.
+  def registry_sweep(organizations: [], memberships: [], domains: [], failures: {})
+    Auth::Operations::Customers::RegistrySweep.new(
+      customer_objid: customer.objid,
+      organization_ids: organizations.map(&:objid),
+      referenced_org_ids: organizations.map(&:objid),
+      membership_objids_by_org: memberships.group_by(&:organization_objid).transform_values { |rows| rows.map(&:objid) },
+      target_membership_objids: memberships.select { |row| row.customer_objid == customer.objid }.map(&:objid),
+      domain_objids_by_org: domains.group_by(&:org_id).transform_values { |rows| rows.map(&:objid) },
+      failures: failures,
+    )
+  end
+
+  describe 'already-deleted organization participation' do
+    let(:reference) { 'organization:org-gone:members' }
+    let(:redis) { double('read-only Redis') }
+    let(:owners) { double('domain owners', hgetall: {}) }
+    let(:orphan_indexes) { {} }
+    let(:keys) { [] }
+
+    before do
+      allow(customer).to receive(:participations).and_return(collection([reference]))
+      allow(instances).to receive(:member?).and_return(false)
+      [Onetime::Organization, Onetime::OrganizationMembership, Onetime::CustomDomain].each do |model|
+        allow(model).to receive(:dbclient).and_return(redis)
+      end
+      allow(redis).to receive(:scan_each) do |match:|
+        keys.select { |key| File.fnmatch(match, key) }.each
+      end
+      [:contact_email_index, :extid_lookup, :stripe_customer_id_index, :stripe_subscription_id_index].each do |index|
+        orphan_indexes[index] = double(index.to_s, hgetall: {})
+        allow(Onetime::Organization).to receive(index).and_return(orphan_indexes[index])
+      end
+      allow(Onetime::CustomDomain).to receive(:owners).and_return(owners)
+      allow(Onetime::CustomDomain).to receive(:load).and_return(nil)
+    end
+
+    def orphan_plan
+      described_class.new(customer: customer).call
+    end
+
+    def expect_orphan_blocked
+      plan = orphan_plan
+      expect(plan).not_to be_executable
+      expect(plan.actions).to be_empty
+      expect(plan.blockers).to include(code: :dangling_customer_participation, reference: reference)
+    end
+
+    it 'plans an exact reference removal without saving or deleting anything' do
+      expect(Onetime::Organization).not_to receive(:create!)
+      expect_any_instance_of(Onetime::Organization).not_to receive(:save)
+      expect_any_instance_of(Onetime::Organization).not_to receive(:destroy!)
+      expect(customer).not_to receive(:untrack_participation)
+      # Redis is a strict double: only the read operation above is accepted.
+      plan = orphan_plan
+      expect(plan).to be_executable
+      action = plan.actions.fetch(0)
+      expect(action.type).to eq(:remove_stale_participation)
+      expect(action.reference).to eq(reference)
+      expect(action.organization).to be_a(Onetime::Organization)
+      expect(action.organization.objid).to eq('org-gone')
+      expect(action.org_id).to eq('org-gone')
+      expect(action.role).to eq('')
+      expect(action.account_purge_context).to be_nil
+      expect(plan.signature.first).to eq([[:remove_stale_participation, 'org-gone', '', reference]])
+    end
+
+    %w[organization org].each do |prefix|
+      ['org.gone', 'org gone', '*', 'org/gone'].each do |objid|
+        it "refuses malformed stale identifier #{objid.inspect} under #{prefix} without planning cleanup" do
+          invalid = "#{prefix}:#{objid}:members"
+          allow(customer).to receive(:participations).and_return(collection([invalid]))
+          expect(customer).not_to receive(:untrack_participation_in)
+          expect(customer.purge_pending_organization_checks).not_to receive(:add)
+          expect(redis).not_to receive(:scan_each)
+
+          plan = orphan_plan
+
+          expect(plan).not_to be_executable
+          expect(plan.actions).to be_empty
+          expect(plan.blockers).to include(code: :dangling_customer_participation, reference: invalid)
+          expect(customer.participations.to_a).to eq([invalid])
+          expect(customer.purge_pending_organization_checks.to_a).to be_empty
+        end
+      end
+    end
+
+    describe 'durable pending organization checks' do
+      let(:markers) { collection([reference]) }
+
+      before do
+        allow(customer).to receive(:participations).and_return(collection([]))
+        allow(customer).to receive(:purge_pending_organization_checks).and_return(markers)
+      end
+
+      it 'blocks a fresh purge when receipts appeared after participation removal' do
+        expect(orphan_plan).to be_executable
+        keys << 'organization:org-gone:receipts'
+        plan = orphan_plan
+        expect(plan).not_to be_executable
+        expect(plan.actions).to be_empty
+        expect(plan.blockers).to include(
+          { code: :dangling_customer_participation, reference: reference },
+          { code: :orphan_organization_dependencies_remain, org_id: 'org-gone' },
+        )
+      end
+
+      it 'allows absent dependencies without planning removal or clearing the marker' do
+        expect(markers).not_to receive(:remove)
+        expect(markers).not_to receive(:clear)
+        plan = orphan_plan
+        expect(plan).to be_executable
+        expect(plan.actions).to be_empty
+        expect(customer.purge_pending_organization_checks.to_a).to eq([reference])
+      end
+
+      it 'exposes marker-only checks for revalidation after persisted markers are destroyed' do
+        checker = described_class.new(customer: customer)
+        expect(checker.pending_organization_checks).to eq([])
+        plan = checker.call
+        expect(plan).to be_executable
+        expect(plan.actions).to be_empty
+        action = checker.pending_organization_checks.fetch(0)
+        expect(action.type).to eq(:remove_stale_participation)
+        expect(action.reference).to eq(reference)
+        expect(action.organization.objid).to eq('org-gone')
+        expect(action.org_id).to eq('org-gone')
+        expect(action.role).to eq('')
+
+        allow(markers).to receive(:to_a).and_return([])
+        keys << 'organization:org-gone:receipts'
+        expect(described_class.new(customer: nil).stale_participation_blockers(action))
+          .to include(code: :orphan_organization_dependencies_remain, org_id: 'org-gone')
+      end
+
+      it 'exposes every valid marker even when dependency checks block the plan' do
+        aliases = [reference, 'org:org-gone:members']
+        allow(markers).to receive(:to_a).and_return(aliases + ['invalid'])
+        keys << 'organization:org-gone:receipts'
+        checker = described_class.new(customer: customer)
+        plan = checker.call
+        expect(plan).not_to be_executable
+        expect(plan.actions).to be_empty
+        expect(checker.pending_organization_checks.map(&:reference)).to eq(aliases.sort)
+      end
+
+      it 'checks legacy aliases without needing a participation' do
+        allow(markers).to receive(:to_a).and_return(['org:org-gone:members'])
+        keys << 'organization:org-gone:receipts'
+        expect(orphan_plan.blockers).to include(
+          code: :dangling_customer_participation, reference: 'org:org-gone:members',
+        )
+      end
+
+      it 'does not duplicate a removal action when its marker also exists' do
+        allow(customer).to receive(:participations).and_return(collection([reference]))
+        expect(orphan_plan.actions.map(&:reference)).to eq([reference])
+      end
+
+      it 'fails closed when the marker set is unreadable' do
+        allow(markers).to receive(:to_a).and_raise(IOError)
+        plan = orphan_plan
+        expect(plan).not_to be_executable
+        expect(plan.blockers).to include(code: :purge_pending_organization_checks_lookup_failed, message: 'IOError')
+      end
+
+      it 'fails closed when dependency evidence for a marker is unreadable' do
+        allow(owners).to receive(:hgetall).and_raise(IOError)
+        plan = orphan_plan
+        expect(plan).not_to be_executable
+        expect(plan.blockers).to include(code: :organization_evidence_incomplete, org_id: 'org-gone', message: 'IOError')
+      end
+
+      ['', 'organization::members', 'organization:org-gone:domains',
+       'organization:org-gone:members:extra', "organization:org-gone:members\n",
+       'organization:org.gone:members', 'org:org.gone:members',
+       'organization:org gone:members', 'organization:*:members', 'unknown:org-gone:members', nil, 123].each do |invalid|
+        it "fails closed for malformed marker #{invalid.inspect}" do
+          allow(markers).to receive(:to_a).and_return([reference, invalid])
+          plan = orphan_plan
+          expect(plan).not_to be_executable
+          expect(plan.actions).to be_empty
+          expect(plan.blockers).to include(code: :invalid_purge_pending_organization_check, reference: invalid.to_s)
+        end
+      end
+    end
+
+    describe '#stale_participation_blockers' do
+      let(:completed_action) { orphan_plan.actions.fetch(0) }
+
+      before do
+        completed_action
+        allow(customer).to receive(:participations).and_return(collection([]))
+      end
+
+      it 'returns no blockers after cleanup without reading the deleted customer' do
+        checker = described_class.new(customer: nil)
+        expect(checker.stale_participation_blockers(completed_action)).to eq([])
+      end
+
+      it 'uses fresh evidence in subsequent checkers after the reverse index is gone' do
+        checker = described_class.new(customer: customer)
+        expect(checker.stale_participation_blockers(completed_action)).to eq([])
+        keys << 'organization:org-gone:receipts'
+        subsequent = described_class.new(customer: customer)
+        expect(subsequent.call.actions).to be_empty
+        expect(subsequent.stale_participation_blockers(completed_action)).to contain_exactly(
+          { code: :dangling_customer_participation, reference: reference },
+          { code: :orphan_organization_dependencies_remain, org_id: 'org-gone' },
+        )
+        keys.clear
+        final = described_class.new(customer: nil)
+        expect(final.stale_participation_blockers(completed_action)).to eq([])
+      end
+
+      it 'detects a recreated organization after customer teardown' do
+        allow(Onetime::Organization).to receive(:load).with('org-gone')
+          .and_return(organization(objid: 'org-gone'))
+        expect(described_class.new(customer: nil).stale_participation_blockers(completed_action))
+          .to include(code: :orphan_organization_dependencies_remain, org_id: 'org-gone')
+      end
+
+      it 'detects a new domain reference after customer teardown' do
+        allow(owners).to receive(:hgetall).and_return('late-domain' => 'org-gone')
+        expect(described_class.new(customer: nil).stale_participation_blockers(completed_action))
+          .to include(code: :orphan_organization_dependencies_remain, org_id: 'org-gone')
+      end
+
+      it 'fails closed on a subsequent read failure without changing discovery state' do
+        checker = described_class.new(customer: customer)
+        allow(redis).to receive(:scan_each).with(match: 'organization:*').and_raise(IOError)
+        expect(checker.stale_participation_blockers(completed_action)).to contain_exactly(
+          { code: :dangling_customer_participation, reference: reference },
+          { code: :organization_evidence_incomplete, org_id: 'org-gone', message: 'IOError' },
+        )
+        expect(checker.call.blockers).to be_empty
+      end
+
+      it 'uses the same blocker taxonomy during discovery' do
+        keys << 'organization:org-gone:members'
+        checker = described_class.new(customer: customer)
+        expected = checker.stale_participation_blockers(completed_action)
+        allow(customer).to receive(:participations).and_return(collection([reference]))
+        expect(orphan_plan.blockers).to match_array(expected)
+      end
+    end
+
+    it 'preserves each alias and sorts deterministically regardless of set order' do
+      aliases = [reference, 'org:org-gone:members']
+      allow(customer).to receive(:participations).and_return(collection(aliases))
+      first = orphan_plan
+      allow(customer).to receive(:participations).and_return(collection(aliases.reverse))
+      second = orphan_plan
+      expect(first.actions.map(&:reference)).to eq(aliases.sort)
+      expect(second.signature).to eq(first.signature)
+      allow(customer).to receive(:participations).and_return(collection([aliases.last]))
+      expect(orphan_plan.signature).not_to eq(first.signature)
+    end
+
+    describe 'checker-local dependency evidence' do
+      let(:aliases) { [reference, 'org:org-gone:members'] }
+
+      before do
+        allow(customer).to receive(:participations).and_return(collection(aliases))
+        allow(customer).to receive(:purge_pending_organization_checks).and_return(collection(aliases))
+      end
+
+      it 'scans once for discovery, markers and retained checks of either alias' do
+        %w[organization:* org:* org_membership:* custom_domain:*:object].each do |pattern|
+          expect(redis).to receive(:scan_each).with(match: pattern).once.and_return([].each)
+        end
+        checker = described_class.new(customer: customer)
+        plan = checker.call
+
+        expect(plan).to be_executable
+        expect(plan.actions.map(&:reference)).to eq(aliases.sort)
+        expect(checker.pending_organization_checks.map(&:reference)).to eq(aliases.sort)
+        (plan.actions + checker.pending_organization_checks).each do |action|
+          expect(checker.stale_participation_blockers(action)).to eq([])
+        end
+      end
+
+      it 'keeps blockers specific to each reference when dependency evidence is shared' do
+        keys << 'organization:org-gone:receipts'
+        checker = described_class.new(customer: customer)
+        expect(checker).to receive(:orphan_dependencies?).once.and_call_original
+        plan = checker.call
+
+        expect(plan).not_to be_executable
+        expect(plan.actions).to be_empty
+        expect(plan.blockers).to contain_exactly(
+          *aliases.map { |alias_reference| { code: :dangling_customer_participation, reference: alias_reference } },
+          { code: :orphan_organization_dependencies_remain, org_id: 'org-gone' },
+        )
+        checker.pending_organization_checks.each do |action|
+          expect(checker.stale_participation_blockers(action)).to contain_exactly(
+            { code: :dangling_customer_participation, reference: action.reference },
+            { code: :orphan_organization_dependencies_remain, org_id: 'org-gone' },
+          )
+        end
+      end
+
+      it 'shares read failures without losing either reference or retrying within the checker' do
+        allow(owners).to receive(:hgetall).and_raise(IOError)
+        checker = described_class.new(customer: customer)
+        expect(checker).to receive(:orphan_dependencies?).once.and_call_original
+        plan = checker.call
+
+        expect(plan).not_to be_executable
+        expect(plan.actions).to be_empty
+        expect(plan.blockers).to contain_exactly(
+          *aliases.map { |alias_reference| { code: :dangling_customer_participation, reference: alias_reference } },
+          { code: :organization_evidence_incomplete, org_id: 'org-gone', message: 'IOError' },
+        )
+        checker.pending_organization_checks.each do |action|
+          expect(checker.stale_participation_blockers(action)).to contain_exactly(
+            { code: :dangling_customer_participation, reference: action.reference },
+            { code: :organization_evidence_incomplete, org_id: 'org-gone', message: 'IOError' },
+          )
+        end
+
+        allow(owners).to receive(:hgetall).and_return({})
+        expect(orphan_plan).to be_executable
+      end
+
+      it 'does not reuse an absent dependency result for another organization' do
+        other_reference = 'organization:org-other:members'
+        allow(customer).to receive(:purge_pending_organization_checks).and_return(collection([other_reference]))
+        keys << 'organization:org-other:receipts'
+        plan = orphan_plan
+
+        expect(plan).not_to be_executable
+        expect(plan.actions.map(&:reference)).to eq(aliases.sort)
+        expect(plan.blockers).to contain_exactly(
+          { code: :dangling_customer_participation, reference: other_reference },
+          { code: :orphan_organization_dependencies_remain, org_id: 'org-other' },
+        )
+      end
+    end
+
+    it 'preserves the original three-element signature for existing actions' do
+      actions = [:delete_organization, :remove_membership].map do |type|
+        described_class::Action.new(
+          type: type, organization: organization, org_id: 'on_personal', role: 'owner', reference: 'ignored',
+        )
+      end
+      plan = described_class::Plan.new(actions: actions, blockers: [])
+      expect(plan.signature.first).to eq([
+        [:delete_organization, 'org-personal', 'owner'],
+        [:remove_membership, 'org-personal', 'owner'],
+      ])
+    end
+
+    it 'checks the physical through-model layout, not only its logical composite objid' do
+      id = Onetime::OrganizationMembership.composite_objid('org-gone', customer.objid)
+      record = Onetime::OrganizationMembership.new(objid: id)
+      expect(record.dbkey).to eq('org_membership:organization:org-gone:customer:cust-target:org_membership:object')
+      keys << record.dbkey
+      expect_orphan_blocked
+    end
+
+    [
+      'organization:org-gone:object',
+      'organization:org-gone:members',
+      'organization:org-gone:pending_invitations',
+      'organization:org-gone:domains',
+      'organization:org-gone:receipts',
+      'organization:org-gone:urls',
+      'org:org-gone:members',
+      'org_membership:organization:org-gone:customer:other:org_membership:materialized_entitlements',
+      'org_membership:org:org-gone:customer:other:org_membership:object',
+    ].each do |key|
+      it "blocks residual key #{key}" do
+        keys << key
+        expect_orphan_blocked
+      end
+    end
+
+    it 'blocks a residual organization registry entry' do
+      allow(instances).to receive(:member?).and_return(true)
+      expect_orphan_blocked
+    end
+
+    [:contact_email_index, :extid_lookup, :stripe_customer_id_index, :stripe_subscription_id_index].each do |index|
+      it "blocks residual #{index} claims" do
+        allow(orphan_indexes.fetch(index)).to receive(:hgetall).and_return('claim' => 'org-gone')
+        expect_orphan_blocked
+      end
+    end
+
+    it 'blocks a membership found only through the registry' do
+      stub_membership_scan(membership(org_objid: 'org-gone', customer_objid: 'other', role: 'member', objid: 'invite'))
+      expect_orphan_blocked
+    end
+
+    it 'blocks an unregistered invitation record' do
+      keys << 'org_membership:invite:object'
+      allow(Onetime::OrganizationMembership).to receive(:load).with('invite')
+        .and_return(membership(org_objid: 'org-gone', customer_objid: nil, role: 'member', status: 'pending', objid: 'invite'))
+      expect_orphan_blocked
+    end
+
+    it 'blocks an owner index entry even if its domain record is gone' do
+      allow(owners).to receive(:hgetall).and_return('gone-domain' => 'org-gone')
+      expect_orphan_blocked
+    end
+
+    it 'blocks a domain found only through the registry' do
+      stub_domain_scan(double('Domain', objid: 'domain', org_id: 'org-gone'))
+      expect_orphan_blocked
+    end
+
+    it 'blocks an unregistered domain record' do
+      keys << 'custom_domain:domain:object'
+      allow(Onetime::CustomDomain).to receive(:load).with('domain')
+        .and_return(double('Domain', org_id: 'org-gone'))
+      expect_orphan_blocked
+    end
+
+    it 'does not confuse another organization with an identifier prefix match' do
+      keys.concat(['organization:org-gone-other:members',
+                   'org_membership:organization:org-gone-other:customer:other:org_membership:object'])
+      expect(orphan_plan).to be_executable
+    end
+
+    %w[organization:* org:* org_membership:* custom_domain:*:object].each do |pattern|
+      it "fails closed when scanning #{pattern} fails" do
+        allow(redis).to receive(:scan_each).with(match: pattern).and_raise(IOError)
+        expect_orphan_blocked
+        expect(orphan_plan.blockers).to include(code: :organization_evidence_incomplete, org_id: 'org-gone', message: 'IOError')
+      end
+    end
+
+    it 'also supports deep discovery without changing the cleanup interface' do
+      plan = described_class.new(customer: customer, deep: true).call
+      expect(plan).to be_executable
+      expect(plan.signature).to eq(orphan_plan.signature)
+    end
+
+    it 'rechecks absence before permitting cleanup' do
+      allow(Onetime::Organization).to receive(:load).with('org-gone')
+        .and_return(nil, organization(objid: 'org-gone'))
+      expect_orphan_blocked
+    end
+
+    it 'fails closed when the organization registry is unreadable' do
+      allow(instances).to receive(:member?).and_raise(IOError)
+      expect_orphan_blocked
+    end
+
+    it 'fails closed when an organization index is unreadable' do
+      allow(orphan_indexes.fetch(:extid_lookup)).to receive(:hgetall).and_raise(IOError)
+      expect_orphan_blocked
+    end
+
+    it 'fails closed when the membership registry is unreadable' do
+      allow(membership_instances).to receive(:each).and_raise(IOError)
+      expect_orphan_blocked
+    end
+
+    it 'fails closed when a membership record is unreadable' do
+      stub_instance_scan(membership_instances, ['invite'])
+      allow(Onetime::OrganizationMembership).to receive(:load).with('invite').and_raise(IOError)
+      expect_orphan_blocked
+    end
+
+    it 'fails closed when the domain registry is unreadable' do
+      allow(domain_instances).to receive(:each).and_raise(IOError)
+      expect_orphan_blocked
+    end
+
+    it 'fails closed when a domain record cannot be read' do
+      stub_instance_scan(domain_instances, ['domain'])
+      allow(Onetime::CustomDomain).to receive(:load).with('domain').and_raise(IOError)
+      expect_orphan_blocked
+    end
+
+    it 'fails closed when the owner index cannot be read' do
+      allow(owners).to receive(:hgetall).and_raise(IOError)
+      expect_orphan_blocked
+    end
+  end
+
+  it 'does not sweep orphan keyspaces or registries for healthy shallow discovery' do
+    expect(Onetime::Organization).not_to receive(:dbclient)
+    expect(Onetime::OrganizationMembership).not_to receive(:dbclient)
+    expect(Onetime::CustomDomain).not_to receive(:dbclient)
+    expect(membership_instances).not_to receive(:each)
+    expect(domain_instances).not_to receive(:each)
+    expect(described_class.new(customer: customer).call).to be_executable
+  end
+
   it 'discovers and plans a strict empty personal workspace from all agreeing indexes' do
+    expect(Onetime::Organization).not_to receive(:dbclient)
+    expect(Onetime::OrganizationMembership).not_to receive(:dbclient)
+    expect(Onetime::CustomDomain).not_to receive(:dbclient)
+    expect(membership_instances).not_to receive(:each)
+    expect(domain_instances).not_to receive(:each)
     org = organization
     owner_membership = membership(
       org_objid: org.objid,
@@ -278,12 +779,137 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
 
     # Reachable only through the global registry sweep: the customer's own
     # reverse indexes do not name this organization.
-    plan = described_class.new(customer: customer, deep: true).call
+    sweep = registry_sweep(organizations: [org], memberships: [target_membership, owner_membership])
+    plan  = described_class.new(customer: customer, deep: true, registry_sweep: sweep).call
 
     expect(plan).not_to be_executable
     expect(plan.blockers.map { |blocker| blocker[:code] })
       .to include(:membership_index_drift, :target_membership_drift)
     expect(plan.actions).to be_empty
+  end
+
+  it 'captures the registry sweep once and exposes it for reuse' do
+    sweep = registry_sweep
+    allow(Auth::Operations::Customers::RegistrySweep).to receive(:capture)
+      .with(customer_objid: customer.objid).and_return(sweep)
+
+    checker = described_class.new(customer: customer, deep: true)
+    checker.call
+
+    expect(checker.registry_sweep).to be(sweep)
+    expect(Auth::Operations::Customers::RegistrySweep).to have_received(:capture).once
+
+    reused = described_class.new(customer: customer, deep: true, registry_sweep: sweep)
+    reused.call
+    expect(reused.registry_sweep).to be(sweep)
+    expect(Auth::Operations::Customers::RegistrySweep).to have_received(:capture).once
+  end
+
+  it 'hands the sweep to the deletion capability so the recheck does not rescan' do
+    org              = organization
+    owner_membership = membership(org_objid: org.objid, customer_objid: customer.objid, role: 'owner')
+    allow(customer).to receive(:participations)
+      .and_return(collection(["organization:#{org.objid}:members"]))
+    allow(customer).to receive(:organization_instances).and_return(collection([org]))
+    stub_organization_scan(org)
+    stub_membership_scan(owner_membership)
+    stub_membership_lookup(org, customer.objid => owner_membership)
+    allow(Onetime::Customer).to receive(:load).with(customer.objid).and_return(customer)
+    allow(contact_index).to receive(:get).with('target@example.com').and_return(org.objid)
+    allow(Auth::Operations::Customers::RegistrySweep).to receive(:capture)
+
+    sweep = registry_sweep(organizations: [org], memberships: [owner_membership])
+    plan  = described_class.new(customer: customer, deep: true, registry_sweep: sweep).call
+
+    expect(plan.actions.map(&:type)).to eq([:delete_organization])
+    context = plan.actions.first.account_purge_context
+    expect(context.authorized_for?(org)).to be(true)
+    expect(Auth::Operations::Customers::RegistrySweep).not_to have_received(:capture)
+  end
+
+  it 'ignores a registry sweep on a shallow preflight' do
+    org              = organization
+    owner_membership = membership(org_objid: org.objid, customer_objid: customer.objid, role: 'owner')
+    allow(customer).to receive(:participations)
+      .and_return(collection(["organization:#{org.objid}:members"]))
+    allow(customer).to receive(:organization_instances).and_return(collection([org]))
+    stub_organization_scan(org)
+    stub_membership_scan(owner_membership)
+    stub_membership_lookup(org, customer.objid => owner_membership)
+    allow(Onetime::Customer).to receive(:load).with(customer.objid).and_return(customer)
+    allow(contact_index).to receive(:get).with('target@example.com').and_return(org.objid)
+    allow(Auth::Operations::Customers::RegistrySweep).to receive(:capture)
+
+    sweep   = registry_sweep(organizations: [org], memberships: [owner_membership])
+    checker = described_class.new(customer: customer, registry_sweep: sweep)
+    plan    = checker.call
+
+    # Shallow discovery reaches the workspace through the customer's own
+    # indexes, exactly as without the sweep: the sweep adds no evidence.
+    expect(plan.actions.map(&:type)).to eq([:delete_organization])
+    expect(checker.registry_sweep).to be_nil
+    expect(Auth::Operations::Customers::RegistrySweep).not_to have_received(:capture)
+  end
+
+  it 'drops a swept organization that no longer references the customer' do
+    owner = double('Owner', objid: 'cust-owner')
+    org   = organization(
+      objid: 'org-left',
+      extid: 'on_left',
+      owner_id: owner.objid,
+      created_by: owner.objid,
+      contact_email: 'owner@example.com',
+      is_default: 'false',
+      members: collection([owner.objid]),
+    )
+    owner_membership = membership(org_objid: org.objid, customer_objid: owner.objid, role: 'owner')
+    # Named by the sweep (the row existed at capture) but removed since, as
+    # the purge's own remove_membership action does.
+    removed_row = Onetime::OrganizationMembership.composite_objid(org.objid, customer.objid)
+    stub_organization_scan(org)
+    stub_membership_scan(owner_membership)
+    stub_membership_lookup(org, owner.objid => owner_membership)
+    allow(Onetime::Customer).to receive(:load).with(owner.objid).and_return(owner)
+
+    sweep = Auth::Operations::Customers::RegistrySweep.new(
+      customer_objid: customer.objid,
+      organization_ids: [org.objid],
+      referenced_org_ids: [org.objid],
+      membership_objids_by_org: { org.objid => [owner_membership.objid, removed_row] },
+      target_membership_objids: [removed_row],
+    )
+    plan = described_class.new(customer: customer, deep: true, registry_sweep: sweep).call
+
+    expect(plan).to be_executable
+    expect(plan.actions).to be_empty
+    expect(plan.blockers).to be_empty
+    expect(Onetime::Organization).to have_received(:load).with(org.objid)
+    expect(Onetime::OrganizationMembership).to have_received(:load).with(removed_row)
+  end
+
+  it 'reports an orphan membership row that still names the customer' do
+    row = membership(org_objid: 'org-vanished', customer_objid: customer.objid, role: 'member')
+    stub_membership_scan(row)
+
+    sweep = registry_sweep(memberships: [row])
+    plan  = described_class.new(customer: customer, deep: true, registry_sweep: sweep).call
+
+    expect(plan).not_to be_executable
+    expect(plan.blockers).to include(code: :orphan_customer_membership, membership_id: row.objid)
+  end
+
+  it 'turns a sweep that could not list a registry into the matching blockers' do
+    sweep = registry_sweep(
+      failures: { organizations: 'IOError', memberships: 'Familia::Problem', domains: 'IOError' },
+    )
+    plan = described_class.new(customer: customer, deep: true, registry_sweep: sweep).call
+
+    expect(plan).not_to be_executable
+    expect(plan.blockers).to include(
+      { code: :organization_scan_failed, message: 'IOError' },
+      { code: :membership_scan_failed, message: 'Familia::Problem' },
+      { code: :domain_scan_failed, message: 'IOError' },
+    )
   end
 
   it 'fails closed on drift and billing state, not on the account own workspace content' do
@@ -673,7 +1299,8 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
     allow(Onetime::Customer).to receive(:load).with(customer.objid).and_return(customer)
     allow(contact_index).to receive(:get).with('target@example.com').and_return(org.objid)
 
-    plan = described_class.new(customer: customer, deep: true).call
+    sweep = registry_sweep(organizations: [org], memberships: [owner_membership], domains: [domain])
+    plan  = described_class.new(customer: customer, deep: true, registry_sweep: sweep).call
 
     expect(plan).not_to be_executable
     expect(plan.blockers).to include(hash_including(code: :drifted_domains))

@@ -138,6 +138,13 @@ describe('VerifyDomainDetails', () => {
       ]);
     });
 
+    // A domain whose TXT record is later not found stops being served.
+    it('says the TXT record must stay in place', () => {
+      const wrapper = mountComponent({ cluster: clusters[strategy] });
+
+      expect(wrapper.find('[data-testid="txt-record-keep"]').text()).toBe('web.domains.dns.keep_txt_record');
+    });
+
     it('renders the verify button', () => {
       const wrapper = mountComponent({ cluster: clusters[strategy] });
 

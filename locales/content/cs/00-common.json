@@ -396,10 +396,6 @@
     "text": "Opravdu?",
     "source_hash": "f0762c4f"
   },
-  "web.COMMON.danger_zone": {
-    "text": "Nebezpečná zóna",
-    "source_hash": "3c1c01b4"
-  },
   "web.COMMON.caution_zone": {
     "text": "Zóna pečlivého zvážení",
     "source_hash": "fe27a3a8"
@@ -1507,10 +1503,6 @@
   "web.TITLES.domain_signin": {
     "text": "Konfigurace přihlášení",
     "source_hash": "2da38c03"
-  },
-  "web.TITLES.domain_sso": {
-    "text": "SSO domény",
-    "source_hash": "13161464"
   },
   "web.TITLES.domain_signup": {
     "text": "Ověření registrace domény",

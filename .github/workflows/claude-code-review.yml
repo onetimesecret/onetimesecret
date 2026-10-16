@@ -25,7 +25,9 @@ jobs:
     #   github.event.pull_request.user.login == 'new-developer' ||
     #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
     # if: ${{ !startsWith(github.head_ref, 'deps/') }}
-    runs-on: ubuntu-latest
+    # Pinned explicitly: ubuntu-latest is migrating to 26.04 and this job
+    # has id-token: write, so it should not move images on GitHub's clock.
+    runs-on: ubuntu-26.04
     # Run only when ALL of the following are true:
     #   1. Author is not a bot (renovate, dependabot, etc. surface as 'name[bot]' in github.actor).
     #   2. PR head is not from a fork. Fork PRs run without access to repository
@@ -68,19 +70,34 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-          # Model selection. The action's own default (claude-sonnet-4-20250514)
-          # is retired and 404s before the run starts, so this must always
-          # resolve to something live. Set the ANTHROPIC_MODEL repo variable to
-          # change models without a PR; the literal is the floor, so an unset or
-          # cleared variable stays harmless (an empty value would hand the action
-          # back its own retired default). Spelled out rather than passed as the
-          # 'opus' alias: this ref bundles Claude Code 1.0.234, whose aliases
-          # may resolve against its own build-time table.
-          model: "${{ vars.ANTHROPIC_MODEL || 'claude-opus-5' }}"
-          fallback_model: "${{ vars.CLAUDE_FALLBACK_MODEL || 'claude-haiku-4-5-20251001' }}"
+          # v1 of the action has no `model`, `fallback_model`, or `direct_prompt`
+          # inputs (those were v0/beta). It drops unknown inputs with only a
+          # workflow warning, then, seeing no prompt, falls back to looking for
+          # an @claude mention and exits green without reviewing anything.
+          # Every run between the v1.0.234 bump (2026-09-24) and this change
+          # did exactly that. The v1 spellings are `prompt` and `claude_args`.
 
-          # Direct prompt for automated review (no @claude mention needed)
-          direct_prompt: |
+          # Forces tag mode with a tracking comment, which is what carries the
+          # PR diff, comments, and metadata into the prompt on pull_request
+          # events (plain agent mode hands Claude the prompt text alone).
+          track_progress: true
+
+          # Model selection. The action's own default is retired and 404s before
+          # the run starts, so this must always resolve to something live. Set the
+          # ANTHROPIC_MODEL repo variable to change models without a PR; the
+          # literal is the floor, so an unset or cleared variable stays harmless.
+          # Spelled out rather than passed as the 'opus' alias, which resolves
+          # against the bundled Claude Code's own build-time table.
+          claude_args: |
+            --model ${{ vars.ANTHROPIC_MODEL || 'claude-opus-5' }}
+            --fallback-model ${{ vars.CLAUDE_FALLBACK_MODEL || 'claude-haiku-4-5-20251001' }}
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+
+          # Review instructions (no @claude mention needed)
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
             Review this PR for defects. Report only findings you can state
             as a concrete failure scenario (specific input or state leading
             to wrong output, data loss, or a security consequence), with

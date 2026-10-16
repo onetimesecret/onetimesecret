@@ -55,6 +55,18 @@ module DomainsAPI
 
           if deleted
             @deleted_provider_type = deleted.provider_type
+
+            # Bound to the removed record's generation, so delayed cleanup
+            # cannot remove a replacement's outcome; a delete that lost the
+            # race leaves cleanup to the one that won. Failed cleanup is
+            # harmless to reads: they require a matching config incarnation,
+            # and the leftover runtime key has its own TTL.
+            begin
+              Onetime::CustomDomain::SsoSigninOutcome.delete_for_domain!(@custom_domain.identifier, config: deleted)
+            rescue StandardError => ex
+              OT.le "[DeleteSsoConfig] sign-in outcome cleanup failed for domain #{@domain_id}: #{ex.class.name}"
+            end
+
             log_sso_change_event(
               event: :domain_sso_config_deleted,
               domain: @custom_domain,

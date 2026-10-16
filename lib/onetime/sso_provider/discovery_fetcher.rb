@@ -44,10 +44,12 @@ module Onetime
     #   :too_large         2xx body exceeds max_bytes
     #   :timeout           open/read timeout or total deadline exceeded
     #   :ssl_error         OpenSSL::SSL::SSLError
-    #   :connection_failed SocketError (e.g. DNS failure inside Net::HTTP)
+    #   :connection_failed SocketError (e.g. DNS failure inside Net::HTTP) or a
+    #                      SystemCallError (e.g. ECONNREFUSED on every address,
+    #                      EHOSTUNREACH): the host could not be reached
     #   :blocked           Guard refused the target (private/internal/no records)
     #   :invalid_url       unparseable URL, non-HTTPS, or missing host
-    #   :error             anything else (e.g. ECONNREFUSED on every address)
+    #   :error             anything else
     #
     # Result#error carries the exception for :blocked/:ssl_error/
     # :connection_failed/:error. Guard::Blocked messages include the resolved
@@ -101,7 +103,11 @@ module Onetime
         result(:timeout, url, error: ex)
       rescue OpenSSL::SSL::SSLError => ex
         result(:ssl_error, url, error: ex)
-      rescue SocketError => ex
+      rescue SocketError, SystemCallError => ex
+        # SocketError is not a SystemCallError; Guard re-raises the last
+        # errno once every validated address refused. Both mean "not
+        # reachable", which callers report as inconclusive, not as a
+        # misconfiguration.
         result(:connection_failed, url, error: ex)
       rescue Onetime::Http::Guard::Blocked => ex
         result(:blocked, url, error: ex)
