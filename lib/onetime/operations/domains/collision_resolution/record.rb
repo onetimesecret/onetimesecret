@@ -112,6 +112,14 @@ module Onetime
             [display_domain.to_s, org_id.to_s, created.to_i]
           end
 
+          # Normalize JSON round-trips without discarding any reviewed evidence.
+          def evidence_fingerprint
+            [domain_id.to_s, extid.to_s, *fingerprint, org_extid.to_s, org_name.to_s,
+             served, verification_state.to_s, ownership_verified, verified_by_override,
+             verified_confirmed_at&.to_s, receipts.to_i, configs.map(&:to_s).sort,
+             all_configs.map(&:to_s).sort, brand, vhost]
+          end
+
           def to_h
             super.merge(org_state: org_state.to_s, verification_state: verification_state.to_s)
           end

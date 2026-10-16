@@ -341,6 +341,16 @@ RSpec.describe 'Domains resolve-collisions command', type: :cli do
       expect(last_exit_code).to eq(0)
     end
 
+    it 'reports an incomplete audit as a refused apply, not a successful empty run' do
+      path = write_plan(@dir, plan(group('pair.example')))
+      allow(op).to receive(:apply).and_raise(op_class::InvalidPlan, 'incomplete audit: nothing removed')
+
+      output = run_cli_command_quietly('domains', 'resolve-collisions', '--apply', '--plan', path, '--yes', '--json')
+
+      expect(last_exit_code).to eq(1)
+      expect(JSON.parse(output[:stdout]).to_s).to include('incomplete audit: nothing removed')
+    end
+
     it 'asks before applying and aborts on anything but y' do
       path = write_plan(@dir, plan(group('pair.example')))
       allow(op).to receive(:apply)

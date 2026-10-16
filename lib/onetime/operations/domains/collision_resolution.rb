@@ -124,8 +124,10 @@ module Onetime
         #   caller already ran
         # @return [Plan]
         def plan(audit: nil)
-          audit ||= AsciiIndexAudit.new.call
-          groups  = audit.collision_groups.map do |ascii_name, rows|
+          @served_ids = {}
+          audit     ||= AsciiIndexAudit.new.call
+          require_complete_audit!(audit)
+          groups      = audit.collision_groups.map do |ascii_name, rows|
             records  = rows.map { |row| record_for(row) }
             decision = Rule.decide(records)
             Group.new(
@@ -158,12 +160,15 @@ module Onetime
         def apply(plan, actor:, dry_run: true, only: nil)
           raise InvalidPlan, 'rule version changed; regenerate and review the plan' unless plan.rule_version == Rule::VERSION
 
-          live     = AsciiIndexAudit.new.call.collision_groups
-          groups   = only ? plan.groups.select { |group| group.ascii_name == only } : plan.groups
-          run_id   = SecureRandom.uuid
-          started  = Time.now.utc.iso8601
-          checksum = Digest::SHA256.hexdigest(plan.to_json)
-          outcomes = groups.map do |group|
+          @served_ids = {}
+          audit       = AsciiIndexAudit.new.call
+          require_complete_audit!(audit)
+          live        = audit.collision_groups
+          groups      = only ? plan.groups.select { |group| group.ascii_name == only } : plan.groups
+          run_id      = SecureRandom.uuid
+          started     = Time.now.utc.iso8601
+          checksum    = Digest::SHA256.hexdigest(plan.to_json)
+          outcomes    = groups.map do |group|
             context = {
               run_id: run_id,
               run_started_at: started,
@@ -187,6 +192,12 @@ module Onetime
 
         private
 
+        def require_complete_audit!(audit)
+          return if audit.errors.empty?
+
+          raise InvalidPlan, "incomplete audit: #{audit.errors.size} unreadable record(s); nothing removed; repair and rerun the audit"
+        end
+
         def model
           Onetime::CustomDomain
         end
@@ -208,6 +219,8 @@ module Onetime
 
         def record_for(row)
           record = model.find_by_identifier(row.domain_id)
+          raise InvalidPlan, "record #{row.domain_id} disappeared while gathering evidence" unless record
+
           org    = row.org_id.to_s.empty? ? nil : Onetime::Organization.load(row.org_id)
 
           Record.new(
@@ -340,8 +353,10 @@ module Onetime
 
           keeper   = group.keep_record
           expected = (group.records - [keeper].compact).map(&:domain_id).sort
-          listed   = group.remove.map { |ref| group.record(ref)&.domain_id }.sort
+          listed   = group.remove.map { |ref| group.record(ref)&.domain_id }
           return 'remove names a record outside the group' if listed.include?(nil)
+
+          listed.sort!
           return 'remove does not match keep: remove every record but the kept one, or leave it empty' if listed.any? && listed != expected
 
           nil
@@ -354,18 +369,18 @@ module Onetime
           plan_ids = group.records.map(&:domain_id).sort
           return 'the records sharing the name changed since the plan' if live_rows.map(&:domain_id).sort != plan_ids
 
-          changed = group.records.find do |record|
-            row = live_rows.find { |candidate| candidate.domain_id == record.domain_id }
-            [row.display_domain.to_s, row.org_id.to_s, row.created.to_i] != record.fingerprint
-          end
-          return "#{changed.ref} changed since the plan" if changed
-
+          fresh = live_rows.map { |row| record_for(row) }
           group.records.each do |record|
-            org = record.org_id.to_s.empty? ? nil : Onetime::Organization.load(record.org_id)
-            if org_state_for(org) != record.org_state || billing_fields(org).values.map(&:to_s) != record.billing_fingerprint
+            current = fresh.find { |candidate| candidate.domain_id == record.domain_id }
+            if current.org_state != record.org_state || current.billing_fingerprint != record.billing_fingerprint
               return "#{record.ref} organization or billing changed since the plan; regenerate and review the plan"
             end
+            if current.evidence_fingerprint != record.evidence_fingerprint
+              return "#{record.ref} changed since the plan; regenerate and review the plan"
+            end
           end
+          return 'an empty keeper requires freshly confirmed all-orphans' if group.keep.nil? && !fresh.all?(&:orphan?)
+
           nil
         rescue StandardError => ex
           "could not recheck organization billing: #{ex.class}: #{ex.message}; nothing removed"

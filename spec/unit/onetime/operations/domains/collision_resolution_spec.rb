@@ -526,6 +526,76 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
     describe '#apply' do
       let(:plan) { op_class.new.plan }
 
+      it 'rejects incomplete audits before planning or removing anything' do
+        saved = plan
+        audit = Onetime::Operations::Domains::AsciiIndexAudit.new.call
+        incomplete = audit.with(errors: [Onetime::Operations::Domains::AsciiIndexAudit::Unreadable.new(domain_id: 'unreadable', message: 'broken')])
+        allow_any_instance_of(Onetime::Operations::Domains::AsciiIndexAudit).to receive(:call).and_return(incomplete)
+        expect(Onetime::Operations::Domains::Remove).not_to receive(:new)
+
+        expect { op_class.new.plan(audit: incomplete) }.to raise_error(op_class::InvalidPlan, /incomplete audit/i)
+        expect { op_class.new.apply(saved, actor: 'cli', dry_run: false) }.to raise_error(op_class::InvalidPlan, /incomplete audit/i)
+      end
+
+      it 'refuses an empty keeper for owned records even with an edited all-orphans rule' do
+        saved = plan
+        edited = saved.with(groups: [group_of(saved).with(keep: nil, remove: [], rule: :all_orphans, approved: true)])
+        expect(Onetime::Operations::Domains::Remove).not_to receive(:new)
+        outcome = op_class.new.apply(edited, actor: 'cli', dry_run: false).outcomes.first
+        expect(outcome).to have_attributes(status: :skipped, reason: /orphan/)
+      end
+
+      it 'skips mixed valid and unknown removal references without sorting nil' do
+        saved = plan
+        edited = saved.with(groups: [group_of(saved).with(remove: [group_of(saved).remove.first, 'unknown'])])
+        expect(Onetime::Operations::Domains::Remove).not_to receive(:new)
+        outcome = op_class.new.apply(edited, actor: 'cli', dry_run: false).outcomes.first
+        expect(outcome).to have_attributes(status: :skipped, reason: /outside the group/)
+      end
+
+      %i[extid verification_state ownership_verified verified_by_override verified_confirmed_at served receipts configs all_configs brand vhost].each do |field|
+        it "refuses changed #{field} evidence" do
+          saved = plan
+          group = group_of(saved)
+          original = group.records.find { |r| r.domain_id == id_b }
+          changed = { extid: 'changed', verification_state: :verified, ownership_verified: true,
+                      verified_by_override: true, verified_confirmed_at: 123, served: !original.served,
+                      receipts: 1, configs: ['mailer'], all_configs: ['mailer'], brand: true, vhost: true }.fetch(field)
+          edited = saved.with(groups: [group.with(records: group.records.map { |r| r == original ? r.with(**{ field => changed }) : r }, remove: [])])
+          expect(Onetime::Operations::Domains::Remove).not_to receive(:new)
+          outcome = op_class.new.apply(edited, actor: 'cli', dry_run: false).outcomes.first
+          expect(outcome).to have_attributes(status: :skipped, reason: /changed since the plan/)
+        end
+      end
+
+      it 'refreshes served evidence on successive plan calls' do
+        operation = op_class.new
+        operation.plan
+        model.display_domain_index.put(name, id_a)
+        refreshed = group_of(operation.plan)
+        expect(refreshed.records.find { |r| r.domain_id == id_a }.served).to be true
+        expect(refreshed.records.find { |r| r.domain_id == id_b }.served).to be false
+      end
+
+      it 'detects newly persisted DNS proof before any removal' do
+        saved = plan
+        domain = model.find_by_identifier(id_b)
+        domain.verified_confirmed_at = Time.now.to_i
+        domain.save
+        expect(Onetime::Operations::Domains::Remove).not_to receive(:new)
+        outcome = op_class.new.apply(saved, actor: 'cli', dry_run: false, only: name).outcomes.first
+        expect(outcome).to have_attributes(status: :skipped, reason: /changed since the plan/)
+      end
+
+      it 'refreshes served evidence when reusing the planner for apply' do
+        operation = op_class.new
+        saved = operation.plan
+        model.display_domain_index.put(name, id_a)
+        expect(Onetime::Operations::Domains::Remove).not_to receive(:new)
+        outcome = operation.apply(saved, actor: 'cli', dry_run: false, only: name).outcomes.first
+        expect(outcome).to have_attributes(status: :skipped, reason: /changed since the plan/)
+      end
+
       it 'previews on a dry run and removes nothing' do
         result  = op_class.new.apply(plan, actor: 'cli', dry_run: true)
         outcome = result.outcomes.find { |o| o.ascii_name == name }
