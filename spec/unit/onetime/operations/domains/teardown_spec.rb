@@ -45,6 +45,15 @@ RSpec.describe Onetime::Operations::Domains::Teardown do
       expect(calls).to eq([:acquire, :check, :vhost, :check, :sender, :check, :destroy, :check, :release])
     end
 
+    it 'leaves the provider vhost in place with keep_vhost and still tears down the rest' do
+      result = described_class.new(domain: domain, keep_vhost: true).call
+
+      expect(result).to eq(described_class::Result.new(removal_committed: true, lease_error: nil))
+      expect(strategy).not_to have_received(:delete_vhost)
+      expect(sender_op).to have_received(:call)
+      expect(domain).to have_received(:destroy!)
+    end
+
     context 'without a mailer config' do
       let(:mailer_config) { nil }
 
