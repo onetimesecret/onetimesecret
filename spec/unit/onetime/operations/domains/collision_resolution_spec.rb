@@ -10,7 +10,7 @@
 # facts (#plan) and the removals (#apply) run against the real datastore with
 # legacy records (written raw, as pre-ascii-index records sit) that share
 # one name; every name carries a random suffix so the audit's other rows do
-# not matter. Audit events are stubbed: Remove and AdminVerifyDomain own them.
+# not matter. Audit writes are spied on for the summary and per-removal trail.
 #
 # Run: tests/lanes/run --only spec/unit/onetime/operations/domains/collision_resolution_spec.rb
 
@@ -398,6 +398,24 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
     end
   end
 
+  describe 'Outcome' do
+    it 'defaults context to an empty hash for callers without saved evidence' do
+      outcome = op_class::Outcome.new(
+        ascii_name: 'pair.example',
+        status: :skipped,
+        reason: 'skipped in the plan',
+        keep: nil,
+        removals: [],
+        index_claim: nil,
+        verify_state: nil,
+        errors: [],
+      )
+
+      expect(outcome.context).to eq({})
+      expect(outcome.to_h[:context]).to eq({})
+    end
+  end
+
   describe 'against the datastore', :datastore do
     include LegacyCustomDomainRecords
 
@@ -452,6 +470,14 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
 
     def approve(plan)
       plan.with(groups: plan.groups.map { |group| group.ascii_name == name ? group.with(approved: true) : group })
+    end
+
+    def summary_events
+      audit_events.select { |event| event[:verb] == 'domain.resolve_collision' && event[:target] == name }
+    end
+
+    def json_value(value)
+      JSON.parse(JSON.generate(value))
     end
 
     it 'plans the group from the records\' facts' do
@@ -509,6 +535,7 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
         expect(outcome.removals.map(&:status)).to eq([:planned])
         expect(model.find_by_identifier(id_b)).not_to be_nil
         expect(model.display_domain_id_for(name)).to eq(id_b)
+        expect(summary_events).to be_empty
         expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
       end
 
@@ -769,6 +796,267 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
 
         expect(model.find_by_identifier(id_a)).not_to be_nil
         expect(model.find_by_identifier(id_b)).not_to be_nil
+      end
+
+      it 'includes full saved evidence and correlates the summary with each removal audit' do
+        saved   = plan
+        group   = group_of(saved)
+        outcome = op_class.new.apply(saved, actor: 'cli', dry_run: false, only: name).outcomes.first
+        context = json_value(outcome.context)
+
+        expect(context).to include(
+          'run_id' => match(/\A[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z/),
+          'plan_generated_at' => saved.generated_at,
+          'rule_version' => op_class::Rule::VERSION,
+          'decision' => 'auto',
+          'rule' => 'ownership_verified',
+          'approved' => false,
+          'approval_required' => false,
+          'billing_source' => 'local_cache',
+          'records' => json_value(group.records.map(&:to_h)),
+          'notes' => group.notes,
+        )
+        expect(json_value(outcome.to_h)['context']).to eq(context)
+        expect(summary_events.size).to eq(1)
+        summary = summary_events.first
+        expect(summary).to include(actor: 'cli', result: :success, fail_closed: true)
+        detail  = json_value(summary[:detail])
+        expect(detail).to include(context)
+        expect(detail).to include(
+          'keep' => outcome.keep,
+          'status' => 'applied',
+          'reason' => nil,
+          'removals' => json_value(outcome.to_h[:removals]),
+          'index_claim' => 'created',
+          'verify_state' => nil,
+          'errors' => [],
+          'totals' => a_kind_of(Hash),
+        )
+        removal = audit_events.find { |event| event[:verb] == 'domain.remove' }
+        expect(removal).to include(result: :success, fail_closed: true)
+        expect(removal[:detail][:reason]).to include(context['run_id'], outcome.keep, group.rule.to_s)
+      end
+
+      it 'uses one run ID for all groups in an apply and a new ID on the next apply' do
+        orphan_name = "orph-#{sfx}.example"
+        legacy[:o1] = [write_legacy_custom_domain(orphan_name, org_id: nil), orphan_name]
+        legacy[:o2] = [write_legacy_custom_domain(orphan_name, org_id: nil), orphan_name]
+        saved       = plan.with(groups: plan.groups.select { |group| [name, orphan_name].include?(group.ascii_name) })
+
+        operation = op_class.new
+        first     = operation.apply(saved, actor: 'cli', dry_run: true)
+        second    = operation.apply(saved, actor: 'cli', dry_run: true)
+        ids       = first.outcomes.map { |outcome| json_value(outcome.context)['run_id'] }
+
+        expect(first.outcomes.size).to eq(2)
+        expect(ids.uniq.size).to eq(1)
+        expect(ids.first).not_to be_nil
+        expect(json_value(second.outcomes.first.context)['run_id']).not_to eq(ids.first)
+        expect(audit_events).to be_empty
+      end
+
+      it 'records a failure summary with context for a skipped group and no removal audit' do
+        set_billing(org_b, subscription_status: 'active')
+        saved   = plan
+        outcome = op_class.new.apply(saved, actor: 'cli', dry_run: false, only: name).outcomes.first
+
+        expect(outcome.status).to eq(:skipped)
+        expect(json_value(outcome.context)).to include(
+          'approval_required' => true,
+          'approved' => false,
+          'records' => json_value(group_of(saved).records.map(&:to_h)),
+        )
+        expect(summary_events.size).to eq(1)
+        expect(summary_events.first).to include(actor: 'cli', result: :failure, fail_closed: true)
+        expect(json_value(summary_events.first[:detail])).to include(
+          'status' => 'skipped', 'reason' => outcome.reason, 'removals' => [], 'totals' => a_kind_of(Hash),
+        )
+        expect(audit_events.none? { |event| event[:verb] == 'domain.remove' }).to be true
+      end
+
+      it 'records a partial failure summary with the actual failed removal' do
+        allow(Onetime::Operations::Domains::Teardown).to receive(:new).and_raise(StandardError, 'teardown unavailable')
+
+        outcome = op_class.new.apply(plan, actor: 'cli', dry_run: false, only: name).outcomes.first
+
+        expect(outcome.status).to eq(:partial)
+        expect(outcome.removals.first).to have_attributes(status: :failed, detail: /teardown unavailable/)
+        expect(model.find_by_identifier(id_b)).not_to be_nil
+        expect(summary_events.size).to eq(1)
+        expect(summary_events.first).to include(result: :failure, fail_closed: true)
+        expect(json_value(summary_events.first[:detail])).to include(
+          'status' => 'partial',
+          'removals' => json_value(outcome.to_h[:removals]),
+          'errors' => outcome.errors,
+          'totals' => a_kind_of(Hash),
+        )
+      end
+
+      it 'counts a committed deletion with a failed domain.remove audit as removed, not failed' do
+        removed_ref = legacy_custom_domain_extid(id_b)
+        allow(Onetime::ColonelAuditEvent).to receive(:record) do |**event|
+          audit_events << event
+          if event[:verb] == 'domain.remove' && event[:result] == :success && event[:target] == removed_ref
+            raise Onetime::AuditWriteFailure.new(verb: event[:verb], target: event[:target])
+          end
+        end
+
+        result  = op_class.new.apply(plan, actor: 'cli', dry_run: false, only: name)
+        outcome = result.outcomes.first
+
+        expect(model.find_by_identifier(id_b)).to be_nil
+        expect(model.find_by_identifier(id_a)).not_to be_nil
+        expect(outcome.status).to eq(:partial)
+        expect(outcome.removals.first).to have_attributes(ref: removed_ref, status: :removed_audit_failed, detail: /domain.remove/)
+        expect(result).to be_attention
+        expect(summary_events.first).to include(result: :failure)
+        expect(json_value(summary_events.first[:detail])['totals']).to include(
+          'records' => 2, 'removals' => 1, 'removed' => 1, 'failed' => 0, 'audit_failed' => 1,
+        )
+      end
+
+      it 'reports mixed successful, uncommitted failed, and removed-audit-failed deletions accurately' do
+        id_c        = legacy!(:c, org: org_b)
+        id_d        = legacy!(:d, org: org_b)
+        removed_ref = legacy_custom_domain_extid(id_b)
+        allow(Onetime::ColonelAuditEvent).to receive(:record) do |**event|
+          audit_events << event
+          if event[:verb] == 'domain.remove' && event[:result] == :success && event[:target] == removed_ref
+            raise Onetime::AuditWriteFailure.new(verb: event[:verb], target: event[:target])
+          end
+        end
+        allow(Onetime::Operations::Domains::Teardown).to receive(:new).and_wrap_original do |original, **attributes|
+          raise StandardError, 'teardown unavailable for c' if attributes[:domain].objid == id_c
+
+          original.call(**attributes)
+        end
+
+        outcome = op_class.new.apply(plan, actor: 'cli', dry_run: false, only: name).outcomes.first
+
+        expect(model.find_by_identifier(id_b)).to be_nil
+        expect(model.find_by_identifier(id_c)).not_to be_nil
+        expect(model.find_by_identifier(id_d)).to be_nil
+        expect(outcome.status).to eq(:partial)
+        expect(outcome.removals.map { |removal| [removal.ref, removal.status] }).to contain_exactly(
+          [removed_ref, :removed_audit_failed],
+          [legacy_custom_domain_extid(id_c), :failed],
+          [legacy_custom_domain_extid(id_d), :removed],
+        )
+        expect(summary_events.first).to include(result: :failure)
+        expect(json_value(summary_events.first[:detail])['totals']).to include(
+          'records' => 4, 'removals' => 3, 'removed' => 2, 'failed' => 1, 'audit_failed' => 1,
+        )
+      end
+
+      it 'reports summary audit failure as partial without relabeling a committed removal as failed' do
+        allow(Onetime::ColonelAuditEvent).to receive(:record) do |**event|
+          audit_events << event
+          if event[:verb] == 'domain.resolve_collision'
+            raise Onetime::AuditWriteFailure.new(verb: event[:verb], target: event[:target])
+          end
+        end
+
+        result  = op_class.new.apply(plan, actor: 'cli', dry_run: false, only: name)
+        outcome = result.outcomes.first
+
+        expect(outcome.status).to eq(:partial)
+        expect(outcome.removals.map(&:status)).to eq([:removed])
+        expect(outcome.errors.join(' ')).to match(/audit/i)
+        expect(outcome.errors.join(' ')).to include('domain.resolve_collision')
+        expect(result).to be_attention
+        expect(model.find_by_identifier(id_b)).to be_nil
+        expect(model.find_by_identifier(id_a)).not_to be_nil
+        expect(audit_events.count { |event| event[:verb] == 'domain.remove' }).to eq(1)
+      end
+
+      it 'also surfaces summary audit failure for a skipped group, without removing anything' do
+        set_billing(org_b, subscription_status: 'active')
+        allow(Onetime::ColonelAuditEvent).to receive(:record) do |**event|
+          audit_events << event
+          raise Onetime::AuditWriteFailure.new(verb: event[:verb], target: event[:target])
+        end
+
+        result  = op_class.new.apply(plan, actor: 'cli', dry_run: false, only: name)
+        outcome = result.outcomes.first
+
+        expect(outcome.status).to eq(:partial)
+        expect(outcome.reason).to match(/approv/i)
+        expect(outcome.errors.join(' ')).to include('domain.resolve_collision')
+        expect(outcome.removals).to be_empty
+        expect(result).to be_attention
+        expect(model.find_by_identifier(id_a)).not_to be_nil
+        expect(model.find_by_identifier(id_b)).not_to be_nil
+      end
+
+      describe 'persisted summary evidence' do
+        let(:audit_class) { Onetime::ColonelAuditEvent }
+
+        before do
+          allow(audit_class).to receive(:record).and_call_original
+        end
+
+        after do
+          targets = [name, *legacy.values.map { |(id, _)| legacy_custom_domain_extid(id) }]
+          audit_class.dbclient.zrange(audit_class.events.dbkey, 0, -1).each do |member|
+            audit_class.dbclient.zrem(audit_class.events.dbkey, member) if targets.include?(JSON.parse(member)['target'])
+          end
+        end
+
+        it 'retains every billing field through the real audit serializer with run ID, checksum, and totals' do
+          set_billing(org_b, planid: 'paid', stripe_customer_id: 'cus_b', stripe_subscription_id: 'sub_b', subscription_status: 'past_due')
+          saved = approve(plan)
+
+          outcome = op_class.new.apply(saved, actor: 'cli', dry_run: false, only: name).outcomes.first
+          stored  = audit_class.recent(1).first
+
+          expect(outcome.status).to eq(:applied)
+          expect(stored).to include('verb' => 'domain.resolve_collision', 'target' => name, 'result' => 'success')
+          detail = stored.fetch('detail')
+          expect(detail).to include(
+            'run_id' => outcome.context.fetch(:run_id),
+            'plan_sha256' => Digest::SHA256.hexdigest(saved.to_json),
+          )
+          expect(detail.fetch('records')).to eq(json_value(group_of(saved).records.map(&:to_h)))
+          loser  = detail.fetch('records').find { |snapshot| snapshot['domain_id'] == id_b }
+          expect(loser).to include(
+            'planid' => 'paid',
+            'stripe_customer_id' => "cus_b_#{sfx}",
+            'stripe_subscription_id' => "sub_b_#{sfx}",
+            'subscription_status' => 'past_due',
+          )
+          expect(detail.fetch('removals')).to eq(json_value(outcome.to_h.fetch(:removals)))
+          expect(detail.fetch('totals')).to include('records' => 2, 'removals' => 1, 'removed' => 1, 'failed' => 0, 'audit_failed' => 0)
+        end
+
+        it 'caps large summary arrays while totals and returned evidence retain the complete counts' do
+          cap   = audit_class::MAX_DETAIL_KEYS
+          cap.times { |index| legacy!("extra-#{index}", org: org_b) }
+          set_billing(org_b, planid: 'paid', stripe_customer_id: 'cus_b', stripe_subscription_id: 'sub_b', subscription_status: 'active')
+          saved = approve(plan)
+
+          outcome = op_class.new.apply(saved, actor: 'cli', dry_run: false, only: name).outcomes.first
+          stored  = audit_class.recent(1).first
+
+          expect(outcome.status).to eq(:applied)
+          expect(stored).to include('verb' => 'domain.resolve_collision', 'target' => name, 'result' => 'success')
+          detail = stored.fetch('detail')
+          expect(detail).to include(
+            'run_id' => outcome.context.fetch(:run_id),
+            'plan_sha256' => Digest::SHA256.hexdigest(saved.to_json),
+          )
+          expect(outcome.context.fetch(:records).size).to eq(cap + 2)
+          expect(outcome.removals.size).to eq(cap + 1)
+          expect(detail.fetch('records')).to eq(json_value(outcome.context.fetch(:records).first(cap)))
+          expect(detail.fetch('removals')).to eq(json_value(outcome.to_h.fetch(:removals).first(cap)))
+          expect(detail.fetch('records').select { |snapshot| snapshot['org_id'] == org_b.objid }).to all(
+            include(
+              'stripe_subscription_id' => "sub_b_#{sfx}", 'subscription_status' => 'active',
+            ),
+          )
+          expect(detail.fetch('totals')).to include(
+            'records' => cap + 2, 'removals' => cap + 1, 'removed' => cap + 1, 'failed' => 0, 'audit_failed' => 0,
+          )
+        end
       end
 
       it 'applies an approved manual group with the operator\'s keep' do

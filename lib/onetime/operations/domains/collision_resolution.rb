@@ -9,6 +9,8 @@ require 'onetime/operations/domains/ascii_index_audit'
 require 'onetime/operations/domains/remove'
 require 'onetime/operations/admin_verify_domain'
 require 'onetime/domain_validation/strategy'
+require 'securerandom'
+require 'digest'
 require_relative 'collision_resolution/record'
 require_relative 'collision_resolution/rule'
 require_relative 'collision_resolution/plan'
@@ -65,14 +67,16 @@ module Onetime
       #
       # ## Audit trail
       #
-      # Every removal and verification records its own ColonelAuditEvent
-      # (Remove, AdminVerifyDomain). The index claim is logged (OT.info),
-      # like the backfill's writes.
+      # Every removal and verification records its own ColonelAuditEvent.
+      # Each applied/skipped/partial group also records domain.resolve_collision
+      # with the reviewed decision and outcomes. A run_id links that summary,
+      # the removal reasons, and the full console/JSON evidence snapshot.
       class CollisionResolution
         # One removal within a group.
         #   :removed   Remove ran and committed
         #   :planned   dry run; Remove previewed it
         #   :failed    Remove raised; detail names the error
+        #   :removed_audit_failed  deletion committed, but its audit write failed
         Removal = Data.define(:ref, :display_domain, :status, :detail)
 
         # What apply did with one group.
@@ -80,7 +84,11 @@ module Onetime
         #   :partial   a removal failed, or a kept-record step did
         #   :dry_run   previewed only
         #   :skipped   nothing was done; reason says why
-        Outcome = Data.define(:ascii_name, :status, :reason, :keep, :removals, :index_claim, :verify_state, :errors) do
+        Outcome = Data.define(:ascii_name, :status, :reason, :keep, :removals, :index_claim, :verify_state, :errors, :context) do
+          def initialize(context: {}, **attributes)
+            super(**attributes, context: context)
+          end
+
           def skipped?
             status == :skipped
           end
@@ -143,7 +151,8 @@ module Onetime
 
         # @param plan [Plan]
         # @param actor [String] public identity for the audit events ('cli')
-        # @param dry_run [Boolean] preview the removals, write nothing
+        # @param dry_run [Boolean] preview without domain changes; removal
+        #   previews can write observation audit events
         # @param only [String, nil] apply one group, by its ASCII name
         # @return [ApplyResult]
         def apply(plan, actor:, dry_run: true, only: nil)
@@ -151,7 +160,27 @@ module Onetime
 
           live     = AsciiIndexAudit.new.call.collision_groups
           groups   = only ? plan.groups.select { |group| group.ascii_name == only } : plan.groups
-          outcomes = groups.map { |group| apply_group(group, live[group.ascii_name], actor: actor, dry_run: dry_run) }
+          run_id   = SecureRandom.uuid
+          started  = Time.now.utc.iso8601
+          checksum = Digest::SHA256.hexdigest(plan.to_json)
+          outcomes = groups.map do |group|
+            context = {
+              run_id: run_id,
+              run_started_at: started,
+              plan_generated_at: plan.generated_at,
+              plan_sha256: checksum,
+              rule_version: plan.rule_version,
+              decision: group.decision.to_s,
+              rule: group.rule.to_s,
+              approved: group.approved,
+              approval_required: group.approval_required?,
+              billing_source: 'local_cache',
+              records: group.records.map(&:to_h),
+              notes: group.notes,
+            }
+            outcome = apply_group(group, live[group.ascii_name], actor: actor, dry_run: dry_run, context: context)
+            dry_run ? outcome : audit_outcome(outcome, actor: actor)
+          end
 
           ApplyResult.new(dry_run: dry_run, strategy: strategy_name, outcomes: outcomes)
         end
@@ -229,13 +258,13 @@ module Onetime
 
         # ----- apply -------------------------------------------------------
 
-        def apply_group(group, live_rows, actor:, dry_run:)
+        def apply_group(group, live_rows, actor:, dry_run:, context:)
           reason = refusal(group, live_rows)
-          return skipped(group, reason) if reason
+          return skipped(group, reason).with(context: context) if reason
 
           keeper    = group.keep_record
           removals  = removal_records(group, keeper)
-          results   = removals.map { |record| remove(record, group, keeper, actor: actor, dry_run: dry_run) }
+          results   = removals.map { |record| remove(record, group, keeper, actor: actor, dry_run: dry_run, run_id: context[:run_id]) }
           errors    = []
           claim     = nil
           verified  = nil
@@ -244,7 +273,7 @@ module Onetime
             status = :dry_run
           else
             claim, verified = keeper_steps(group, keeper, errors, actor: actor) if keeper
-            status          = results.any? { |removal| removal.status == :failed } || errors.any? ? :partial : :applied
+            status          = results.any? { |removal| [:failed, :removed_audit_failed].include?(removal.status) } || errors.any? ? :partial : :applied
           end
 
           Outcome.new(
@@ -256,7 +285,42 @@ module Onetime
             index_claim: claim,
             verify_state: verified,
             errors: errors,
+            context: context,
           )
+        end
+
+        # The summary complements (never replaces) each domain.remove event.
+        # Keep counts alongside bounded audit arrays; the console/JSON contains
+        # every record even when the audit store caps a large group's detail.
+        def audit_outcome(outcome, actor:)
+          detail = outcome.context.merge(
+            keep: outcome.keep,
+            status: outcome.status.to_s,
+            reason: outcome.reason,
+            totals: {
+              records: outcome.context[:records].size,
+              removals: outcome.removals.size,
+              removed: outcome.removals.count { |removal| [:removed, :removed_audit_failed].include?(removal.status) },
+              failed: outcome.removals.count { |removal| removal.status == :failed },
+              audit_failed: outcome.removals.count { |removal| removal.status == :removed_audit_failed },
+            },
+            removals: outcome.removals.map(&:to_h),
+            index_claim: outcome.index_claim,
+            verify_state: outcome.verify_state,
+            errors: outcome.errors,
+          )
+          Onetime::ColonelAuditEvent.record(
+            actor: actor,
+            verb: 'domain.resolve_collision',
+            target: outcome.ascii_name,
+            result: outcome.status == :applied ? :success : :failure,
+            detail: detail,
+            fail_closed: true,
+          )
+          outcome
+        rescue Onetime::AuditWriteFailure => ex
+          OT.le "[Domains::CollisionResolution] run=#{outcome.context[:run_id]} audit summary failed for #{outcome.ascii_name}: #{ex.message}"
+          outcome.with(status: :partial, errors: outcome.errors + ["Administrator's Log summary failed: #{ex.message}"])
         end
 
         # Why a group is not applied, or nil.
@@ -313,11 +377,11 @@ module Onetime
           (group.records - [keeper].compact).sort_by { |record| record.served ? 1 : 0 }
         end
 
-        def remove(record, group, keeper, actor:, dry_run:)
+        def remove(record, group, keeper, actor:, dry_run:, run_id:)
           domain = model.find_by_identifier(record.domain_id)
           return Removal.new(ref: record.ref, display_domain: record.display_domain, status: :failed, detail: 'record not found') unless domain
 
-          reason = "name collision #{group.ascii_name}: kept #{keeper ? keeper.ref : 'none'} by rule #{group.rule}"
+          reason = "collision run=#{run_id}: kept #{keeper ? keeper.ref : 'none'} by rule #{group.rule}; name=#{group.ascii_name}"
           result = Domains::Remove.new(
             domain: domain, actor: actor, dry_run: dry_run, reason: reason, keep_vhost: !keeper.nil?,
           ).call
@@ -329,6 +393,12 @@ module Onetime
           )
         rescue Domains::Remove::RemovalCommitted => ex
           Removal.new(ref: record.ref, display_domain: record.display_domain, status: :removed, detail: ex.message)
+        rescue Onetime::AuditWriteFailure => ex
+          # Remove writes its own fail-closed success event only AFTER teardown.
+          # Do not turn an unrecorded, committed deletion into a claimed failure
+          # to delete. Failures from a different nested verb make no such claim.
+          status = ex.verb == Domains::Remove::AUDIT_VERB && !dry_run ? :removed_audit_failed : :failed
+          Removal.new(ref: record.ref, display_domain: record.display_domain, status: status, detail: ex.message)
         rescue StandardError => ex
           OT.le "[Domains::CollisionResolution] removing #{record.ref} (#{group.ascii_name}) raised #{ex.class}: #{ex.message}"
           Removal.new(ref: record.ref, display_domain: record.display_domain, status: :failed, detail: "#{ex.class}: #{ex.message}")
