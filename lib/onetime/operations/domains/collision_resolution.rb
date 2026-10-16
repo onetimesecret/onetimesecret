@@ -73,7 +73,7 @@ module Onetime
       # Every removal and verification records its own ColonelAuditEvent.
       # Each applied/skipped/partial group also records domain.resolve_collision
       # with the reviewed decision and outcomes. A run_id links that summary,
-      # the removal reasons, and the full console/JSON evidence snapshot.
+      # the removal reasons, and the full console/JSON evidence report.
       class CollisionResolution
         # One removal within a group.
         #   :removed   Remove ran and committed
