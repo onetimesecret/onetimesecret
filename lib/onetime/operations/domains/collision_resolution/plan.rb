@@ -23,8 +23,8 @@ module Onetime
         # @!attribute remove [r] Array<String> — references to the records
         #   to remove; may be empty in an edited manual group, apply derives
         #   it from keep
-        # @!attribute approved [r] Boolean — an operator approved a manual
-        #   group (apply refuses a manual group without it)
+        # @!attribute approved [r] Boolean — explicit approval of a manual
+        #   decision or removal protected by cached billing evidence
         # @!attribute skip [r] Boolean — apply leaves the group alone
         Group = Data.define(:ascii_name, :decision, :rule, :keep, :remove, :notes, :records, :approved, :skip) do
           def manual?
@@ -39,6 +39,18 @@ module Onetime
             keep.nil? ? nil : record(keep)
           end
 
+          def protected_removals
+            (records - [keep_record].compact).select(&:billing_protected?)
+          end
+
+          def approval_required?
+            manual? || protected_removals.any?
+          end
+
+          def approval_pending?
+            approval_required? && !approved
+          end
+
           def to_h
             {
               ascii_name: ascii_name,
@@ -47,6 +59,7 @@ module Onetime
               keep: keep,
               remove: remove,
               approved: approved,
+              approval_required: approval_required?,
               skip: skip,
               notes: notes,
               records: records.map(&:to_h),
@@ -93,7 +106,7 @@ module Onetime
 
           # Whether an operator still has to decide a group.
           def attention?
-            manual_groups.any? { |group| !group.approved && !group.skip }
+            groups.any? { |group| !group.skip && (group.approval_pending? || (group.manual? && group.keep.nil?)) }
           end
 
           def counts
@@ -101,6 +114,8 @@ module Onetime
               groups: groups.size,
               auto: auto_groups.size,
               manual: manual_groups.size,
+              approval_required: groups.count(&:approval_required?),
+              approval_pending: groups.count { |group| !group.skip && group.approval_pending? },
               records: groups.sum { |group| group.records.size },
               removals: auto_groups.sum { |group| group.remove.size },
               rules: groups.map { |group| group.rule.to_s }.tally,

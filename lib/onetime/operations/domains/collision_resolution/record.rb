@@ -22,6 +22,10 @@ module Onetime
         # @!attribute all_configs [r] Array<String> — every config kind that
         #   exists, including the five an operator action can create disabled
         # @!attribute brand [r] Boolean — brand settings exist
+        BILLING_FIELDS    = [:planid, :stripe_customer_id, :stripe_subscription_id, :subscription_status].freeze
+        LIVE_STATUSES     = %w[active trialing past_due unpaid].freeze
+        NOT_LIVE_STATUSES = %w[canceled incomplete incomplete_expired paused].freeze
+
         Record = Data.define(
           :domain_id,
           :extid,
@@ -41,7 +45,35 @@ module Onetime
           :brand,
           :vhost,
           :created,
+          :planid,
+          :stripe_customer_id,
+          :stripe_subscription_id,
+          :subscription_status,
         ) do
+          def initialize(planid: nil, stripe_customer_id: nil, stripe_subscription_id: nil, subscription_status: nil, **attributes)
+            super(
+              **attributes, planid: planid, stripe_customer_id: stripe_customer_id,
+                            stripe_subscription_id: stripe_subscription_id, subscription_status: subscription_status)
+          end
+
+          # These are cached facts, not a Stripe lookup or evidence of DNS control.
+          # Unknown billing cannot silently authorize an automatic deletion.
+          def billing_label
+            return 'live_or_recoverable' if LIVE_STATUSES.include?(subscription_status.to_s)
+            return 'not_live' if NOT_LIVE_STATUSES.include?(subscription_status.to_s)
+            return 'no_local_subscription' if [subscription_status, stripe_customer_id, stripe_subscription_id].all? { |value| value.to_s.strip.empty? }
+
+            'unknown'
+          end
+
+          def billing_protected?
+            %w[live_or_recoverable unknown].include?(billing_label)
+          end
+
+          def billing_fingerprint
+            BILLING_FIELDS.map { |field| public_send(field).to_s }
+          end
+
           # Evidence that an organization uses the record: secrets shared
           # under it, brand settings, or a config that needs credentials.
           # The five materializable config kinds are not evidence (see
@@ -86,7 +118,10 @@ module Onetime
 
           # @param hash [Hash] a Record#to_h, with string or symbol keys
           def self.from_h(hash)
-            h = hash.transform_keys(&:to_sym)
+            h       = hash.transform_keys(&:to_sym)
+            missing = BILLING_FIELDS - h.keys
+            raise InvalidPlan, "record #{h[:extid] || h[:domain_id]} is missing billing fields: #{missing.join(', ')}; regenerate the plan" if missing.any?
+
             new(
               domain_id: h[:domain_id].to_s,
               extid: h[:extid],
@@ -106,6 +141,7 @@ module Onetime
               brand: h[:brand] == true,
               vhost: h[:vhost] == true,
               created: h[:created],
+              **h.slice(*BILLING_FIELDS),
             )
           end
         end

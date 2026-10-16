@@ -31,7 +31,8 @@ module Onetime
         # proved DNS control wins over a record that was used without it,
         # and the plan says so in its notes.
         module Rule
-          VERSION = 1
+          # Version 2 requires billing snapshots and explicit approval for protected removals.
+          VERSION = 2
 
           MANUAL_RULES = [:manual_several_dns_proofs, :manual_several_verified, :manual_several_in_use].freeze
 

@@ -147,6 +147,8 @@ module Onetime
         # @param only [String, nil] apply one group, by its ASCII name
         # @return [ApplyResult]
         def apply(plan, actor:, dry_run: true, only: nil)
+          raise InvalidPlan, 'rule version changed; regenerate and review the plan' unless plan.rule_version == Rule::VERSION
+
           live     = AsciiIndexAudit.new.call.collision_groups
           groups   = only ? plan.groups.select { |group| group.ascii_name == only } : plan.groups
           outcomes = groups.map { |group| apply_group(group, live[group.ascii_name], actor: actor, dry_run: dry_run) }
@@ -198,7 +200,12 @@ module Onetime
             brand: record ? record.brand.exists? : false,
             vhost: record ? !record.vhost.to_s.empty? : false,
             created: row.created,
+            **billing_fields(org),
           )
+        end
+
+        def billing_fields(org)
+          BILLING_FIELDS.to_h { |field| [field, org&.public_send(field)] }
         end
 
         def org_state_for(org)
@@ -261,6 +268,9 @@ module Onetime
         def plan_refusal(group)
           return 'skipped in the plan' if group.skip
           return 'manual group: set keep and approved in the plan' if group.manual? && !(group.approved && group.keep)
+          if group.approval_pending?
+            return 'billing-protected removals require approved=true in the reviewed plan (--yes does not approve groups)'
+          end
           return "keep #{group.keep} names no record in the group" if group.keep && group.keep_record.nil?
           return 'nothing to remove' if group.keep.nil? && group.records.size == 1
 
@@ -286,7 +296,15 @@ module Onetime
           end
           return "#{changed.ref} changed since the plan" if changed
 
+          group.records.each do |record|
+            org = record.org_id.to_s.empty? ? nil : Onetime::Organization.load(record.org_id)
+            if org_state_for(org) != record.org_state || billing_fields(org).values.map(&:to_s) != record.billing_fingerprint
+              return "#{record.ref} organization or billing changed since the plan; regenerate and review the plan"
+            end
+          end
           nil
+        rescue StandardError => ex
+          "could not recheck organization billing: #{ex.class}: #{ex.message}; nothing removed"
         end
 
         # Shadows first; the record that answers for the name last, so the
