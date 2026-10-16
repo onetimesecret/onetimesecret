@@ -227,13 +227,18 @@ application directory.
    `bin/ots domains remove`, with a reason naming the kept record, the record
    that answers for the name last; re-enters the kept record in the exact
    name index when the name no longer resolves to it; and on the Approximated
-   strategy verifies the kept record again, because the removal deletes the
-   vhost for the name, which the kept record shared. Each removal and
-   verification records its own audit event.
+   strategy verifies the kept record again so its stored vhost status is
+   current. Each removal and verification records its own audit event.
 
-   A removal calls external services: on the Approximated strategy it deletes
-   the vhost for the name, and when the removed record has a mail sender
-   configured it deletes that sender identity at the mail provider.
+   The provider vhost is keyed by the name, which the kept record shares. The
+   removals leave it in place (`keep_vhost`, recorded in each removal's audit
+   detail as `vhost_kept`), so the name keeps serving throughout. Only a group
+   with no kept record, all orphans, deletes it.
+
+   A removal calls external services: when the removed record has a mail
+   sender configured it deletes that sender identity at the mail provider,
+   and in a group with no kept record it deletes the vhost for the name on
+   the Approximated strategy.
 
    The command exits 1 when a group was skipped or did not complete; the
    report says why for each. Fix the plan or the record and apply again, or
@@ -327,3 +332,5 @@ it starts claim entries that the saved copy does not have.
 - `lib/onetime/operations/domains/collision_resolution.rb` and
   `collision_resolution/rule.rb`: the collision facts, rule, plan and
   removals behind `bin/ots domains resolve-collisions`.
+- `lib/onetime/operations/domains/teardown.rb`: the `keep_vhost` option the
+  removals pass so the kept record's vhost stays.

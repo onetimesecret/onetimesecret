@@ -11,6 +11,7 @@ Added
   configs and brand settings, decides each group by a fixed rule (DNS proof,
   then ownership, then use), and writes a plan file for review. ``--apply``
   removes the other records through the same operation as ``domains remove``,
+  leaving the provider vhost for the name in place for the kept record,
   re-enters the kept record in the exact name index when the removed record
   answered for the name, and on the Approximated strategy verifies the kept
   record again. Groups the rule cannot decide, and groups whose records changed
