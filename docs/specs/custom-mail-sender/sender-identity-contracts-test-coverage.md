@@ -47,23 +47,28 @@ Shared examples assert outcomes; provider-specific fixtures establish how those 
 | L07 | Missing/null/wrong-type collection or invalid JSON where locally parsed | `failed`, not an empty collection |
 | L08 | Invalid entry shape, missing domain, or matching entry without a valid required ID | `failed`; no nil/blank-target delete request; include SendGrid and Lettermint |
 | L09 | Malformed continuation metadata or repeated/cyclic cursor | Bounded termination with failure; no hang or false completion |
-| L10 | Full final page followed by terminal empty page | Exhaustion requires the terminal request for limit/offset APIs |
+| L10 | Nonempty final page, full or short, followed by terminal empty page | Exhaustion requires the terminal request for limit/offset APIs; a short page is not completion |
 | L11 | Unrelated domains and supported alternate response shapes | Matching remains provider-correct; no unrelated deletion target is selected |
 | L12 | A valid early target followed by a failing page | Individual lookup may succeed without visiting the failing page; full inventory must fail |
 | L13 | List endpoint 404 versus target-specific not-found | Generic list failure is `failed`; only verified target-specific semantics can yield `absent` |
 | L14 | Repeated target entries with conflicting identities, if provider permits duplicates | Preserve established provider selection semantics or explicitly fail ambiguity; never introduce a new silent first-match policy |
+| L15 | SendGrid and Lettermint domain names differ only in case | Individual lookup and inventory matching select the same original provider ID; exercise provisioning recovery, deletion, and collision protection; unrelated names do not match and IDs are not case-folded |
+| L16 | SendGrid returns fewer entries than requested on every nonempty page | Advance offset by actual returned count; find a later target and exhaust through an empty page for inventory/absence; never stop on a nonempty short page |
+| L17 | SendGrid returns more entries than requested | `failed`; oversized pages do not authorize absence, creation fallback, or deletion |
 
 Apply pagination cases to SendGrid and Lettermint, not to SES solely to make the matrix rectangular. Apply filtered-lookup shape cases to SMTP2GO. Document non-applicable rows and their reason.
 
 ### Lettermint regression fixtures
 
-Verify the installed SDK before constructing fixtures: cursor request argument, response cursor metadata, terminal marker, default page size, and exception fields. The discussion's `page_cursor` and 30-entry default are unverified inputs, not fixture authority.
+Installed `lettermint` 0.2.0 accepts `page_cursor:` and maps it to `page[cursor]`; its source documents a 30-entry default. The official Team API OpenAPI schema independently documents `page[size]` default 30, `page[cursor]`, and required top-level `next_cursor` (string or null, with null terminating). Use these verified facts as fixture authority; see the [validation report's Lettermint evidence and schema link](sender-identity-validation-report.md#lettermint). Recheck the installed SDK, including exception fields, if its version changes.
 
 Minimum regression: page one omits the sender domain, page two contains it, and the terminating response follows actual API semantics. Exercise both individual lookup and collision preflight with the real pagination path. Include malformed second-page data and a cursor cycle. A target on the first page does not excuse incomplete bulk inventory enumeration.
 
 ### SendGrid boundary fixtures
 
-For page size 50, cover empty, 49, 50, 51, and a generated 1,000-entry inventory. Under the existing short-page termination rule the complete walks require 1, 1, 2, 2, and 21 requests respectively. Individual lookup request counts depend on the target's page. Preserve explicit configured `domain_id` bypass of lookup and use that exact target in deletion and collision comparisons.
+For requested page size 50, cover empty, 49, 50, 51, and a generated 1,000-entry inventory. When the server honors the requested page size, empty-page termination requires 1, 2, 2, 3, and 21 requests respectively. Individual lookup request counts depend on the target's page. Preserve explicit configured `domain_id` bypass of lookup and use that exact target in deletion and collision comparisons.
+
+Add a simulated server cap below 50: for five entries returned as 2, 2, 1, then 0, assert requests with `limit=50` and offsets 0, 2, 4, and 5. Exercise later-target lookup, complete inventory, and exhausted absence through the real paginator. A target on page three must not be missed; a later-page failure must not expose the earlier entries as a complete inventory. Include a page with 51 entries to prove oversized responses fail validation.
 
 ## D: deletion outcome coverage
 
@@ -83,6 +88,7 @@ Run shared outcome assertions against all four remote providers with provider-ap
 | D10 | SMTP | `skipped`, success true, deleted false; no remote request |
 | D11 | Error resembles not-found but is not authoritative for the target | `failed`; no broad HTTP/message-based absence classification |
 | D12 | Invalid deletion response under actual endpoint semantics | `failed`; do not require a JSON body for endpoints whose valid success response is empty |
+| D13 | SMTP2GO `/domain/remove` HTTP 200 returns only a string `request_id`, without `data`, as documented in v3.0.0 | `deleted` through the real HTTP client, strategy, and operation; no extra confirmation lookup. Also retain v3.0.2 `data.domains` acknowledgement coverage. Reject error envelopes, invalid JSON, missing/blank/non-string request ID in the no-data variant, malformed provided collections, and a retained target; do not accept arbitrary empty hashes or relax `/domain/view` validation |
 
 SES absence can be established directly by delete-time `NotFoundException`; it does not require an artificial lookup fixture. Lettermint list 404 and delete missing-identity responses are separate tests. SMTP2GO uses verified provider error codes/response semantics, not assumed equivalence to other providers. SendGrid covers both resolved and configured IDs.
 

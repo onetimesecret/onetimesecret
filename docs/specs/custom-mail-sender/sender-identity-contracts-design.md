@@ -14,7 +14,7 @@ Out of scope: durable retries, reconciliation queues, new provider support, chan
 
 ## Baseline and source map
 
-The inspected implementations are evidence of behavior, not an accepted specification:
+The pre-fix implementations below are historical evidence of behavior, not an accepted specification. See the [validation report](sender-identity-validation-report.md) for implemented fixes and remaining limits:
 
 - [DeleteSenderDomain](../../../lib/onetime/operations/delete_sender_domain.rb) infers failure from `result[:error]`; a hash without that field can become success regardless of whether deletion failed.
 - [Sender strategies](../../../lib/onetime/mail/sender_strategies/) return deletion hashes. SendGrid supplies errors on failure; SES, Lettermint, and SMTP2GO have failure branches without them. The latter three report confirmed absence as `deleted: true`.
@@ -44,7 +44,7 @@ Proposed value shape: `LookupResult(status, identity, error)`.
 | `absent` | nil | nil | A valid complete search or authoritative target-specific response established absence |
 | `failed` | nil | Required | Evidence is unavailable, invalid, ambiguous, or incomplete |
 
-`failed` describes the lookup outcome; it does not assert that the identity exists or is absent. Identity contains the provider's actual deletion target, not merely stored provisioning metadata. Required IDs cannot be nil, blank, or invalid for that provider. Matching rules remain consistent between provisioning, preflight, and deletion; changing domain canonicalization is not part of this work.
+`failed` describes the lookup outcome; it does not assert that the identity exists or is absent. Identity contains the provider's actual deletion target, not merely stored provisioning metadata. Required IDs cannot be nil, blank, or invalid for that provider. Domain-name comparison is case-insensitive at every provider boundary and remains consistent between provisioning, preflight, and deletion, including domain-name target sharing checks. Provider identity IDs remain opaque and are not case-folded. This changes comparison, not stored names, request targets, or domain canonicalization; other normalization changes remain out of scope.
 
 A valid match may terminate an individual search early. A no-match result requires successful exhaustion. A matching domain with an invalid identity is a malformed response, not absence.
 
@@ -61,11 +61,11 @@ Use one provider-owned pagination primitive for inventory enumeration and indivi
 
 ### Provider responsibilities
 
-**SendGrid:** retain limit/offset paging. Validate array pages and required entry fields, not only the outer array. Individual lookup may stop on a valid match; inventory enumeration cannot. Under the existing short-page termination rule, exactly 1,000 entries at 50 per page require 21 requests, including the terminal empty page. Preserve an explicit installation `domain_id` override as the actual deletion target; an override is configuration, not evidence of remote existence.
+**SendGrid:** retain limit/offset paging. Validate array pages and required entry fields, not only the outer array. Individual lookup may stop on a valid match; inventory enumeration cannot. Advance offset by the number of entries actually returned and stop only on an empty page; a nonempty short page does not establish exhaustion. Reject a page larger than the requested limit as malformed. This avoids false absence if the server caps pages below the requested limit; the inspected reference specifies no numeric default or maximum. With 50 entries returned per page, exactly 1,000 entries require 21 requests, including the terminal empty page. Preserve an explicit installation `domain_id` override as the actual deletion target; an override is configuration, not evidence of remote existence.
 
-**Lettermint:** traverse every cursor page using the installed SDK's supported arguments and response metadata. Require a valid `data` collection and valid entries. Do not infer completion merely from a short page unless the provider contract permits it. Repeated/cyclic cursors, malformed continuation metadata, or a later-page failure produce `failed`. Missing data is not an empty list. Verify the reported `page_cursor` argument and 30-entry default before implementation; these details were supplied in discussion, not independently established.
+**Lettermint:** traverse every cursor page using the installed SDK's supported arguments and response metadata. Require a valid `data` collection and valid entries. Do not infer completion merely from a short page unless the provider contract permits it. Repeated/cyclic cursors, malformed continuation metadata, or a later-page failure produce `failed`. Missing data is not an empty list. The installed SDK's `page_cursor` argument, its mapping to `page[cursor]`, the 30-entry default, and the required top-level `next_cursor` are verified; see the [validation report's Lettermint evidence](sender-identity-validation-report.md#lettermint).
 
-**SMTP2GO:** validate the filtered view response before interpreting no match. Preserve documented supported entry shapes rather than narrowing them incidentally. A provider-specific missing-domain response may establish absence; a generic HTTP failure or unrelated not-found response may not.
+**SMTP2GO:** validate the filtered view response before interpreting no match. Preserve documented supported entry shapes rather than narrowing them incidentally. A provider-specific missing-domain response may establish absence; a generic HTTP failure or unrelated not-found response may not. For `/domain/remove`, accept the official v3.0.0 HTTP 200 acknowledgement containing a nonempty string `request_id` without `data`; absence of a domain collection alone is not a removal failure. Also accept the archived v3.0.2 acknowledgement with valid `data.domains` and no retained target. Keep error envelopes and malformed provided data as failures; do not generalize this endpoint-specific exception to lookup responses, arbitrary 2xx bodies, or an unqualified empty hash. The client boundary must preserve enough status/envelope evidence to distinguish these cases. See the [validation report's SMTP2GO evidence](sender-identity-validation-report.md#smtp2go).
 
 **SES:** preserve direct deletion by domain name; do not add a list request merely for parity. Any existing lookup consumer translates its provider response into the same evidence states where needed.
 
