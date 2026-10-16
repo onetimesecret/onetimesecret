@@ -341,6 +341,21 @@ RSpec.describe 'Domains resolve-collisions command', type: :cli do
       expect(last_exit_code).to eq(0)
     end
 
+    it 'exits 1 and retains failed removal details in a dry-run JSON report' do
+      path = write_plan(@dir, plan(group('pair.example')))
+      result = apply_result(:partial, dry_run: true)
+      failed = result.outcomes.first.removals.first.with(status: :failed, detail: 'preview datastore unavailable')
+      result = result.with(outcomes: [result.outcomes.first.with(removals: [failed])])
+      allow(op).to receive(:apply).and_return(result)
+
+      output = run_cli_command_quietly('domains', 'resolve-collisions', '--apply', '--plan', path, '--dry-run', '--json')
+      report = JSON.parse(output[:stdout])
+
+      expect(last_exit_code).to eq(1)
+      expect(report).to include('dry_run' => true, 'counts' => { 'partial' => 1 })
+      expect(report['outcomes'].first['removals'].first).to include('status' => 'failed', 'detail' => 'preview datastore unavailable')
+    end
+
     it 'reports an incomplete audit as a refused apply, not a successful empty run' do
       path = write_plan(@dir, plan(group('pair.example')))
       allow(op).to receive(:apply).and_raise(op_class::InvalidPlan, 'incomplete audit: nothing removed')

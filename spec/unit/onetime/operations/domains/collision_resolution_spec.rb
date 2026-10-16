@@ -596,6 +596,49 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
         expect(outcome).to have_attributes(status: :skipped, reason: /changed since the plan/)
       end
 
+      it 'reports a failed preview as partial and requiring attention' do
+        saved = plan
+        allow(Onetime::Operations::Domains::Remove).to receive(:new).and_raise('preview failed')
+        result = op_class.new.apply(saved, actor: 'cli', dry_run: true, only: name)
+        expect(result.outcomes.first.status).to eq(:partial)
+        expect(result).to be_attention
+        expect(summary_events).to be_empty
+      end
+
+      it 'preserves committed removals and writes a partial summary when keeper reload raises' do
+        saved = plan
+        allow(model).to receive(:find_by_identifier).and_call_original
+        allow(Onetime::Operations::Domains::Remove).to receive(:new).and_wrap_original do |original, **args|
+          removal = original.call(**args)
+          allow(removal).to receive(:call).and_wrap_original do |call|
+            result = call.call
+            allow(model).to receive(:find_by_identifier).with(id_a).and_raise('keeper reload failed')
+            result
+          end
+          removal
+        end
+        outcome = op_class.new.apply(saved, actor: 'cli', dry_run: false, only: name).outcomes.first
+        expect(outcome.status).to eq(:partial)
+        expect(outcome.removals.map(&:status)).to eq([:removed])
+        expect(outcome.errors.join).to include('keeper reload failed')
+        expect(summary_events.last[:detail][:totals][:removed]).to eq(1)
+      end
+
+      [{ error: 'provider failed', persisted: true }, { error: nil, persisted: false }].each do |failure|
+        it "reports verification failure #{failure.inspect} as partial" do
+          saved = plan
+          operation = op_class.new
+          allow(operation).to receive(:strategy_name).and_return('approximated')
+          verification = double(current_state: :pending, **failure)
+          allow(Onetime::Operations::AdminVerifyDomain).to receive(:new).and_return(double(call: verification))
+          outcome = operation.apply(saved, actor: 'cli', dry_run: false, only: name).outcomes.first
+          expect(outcome.status).to eq(:partial)
+          expect(outcome.verify_state).to eq(:pending)
+          expect(outcome.errors).not_to be_empty
+          expect(summary_events.last[:detail][:totals][:removed]).to eq(1)
+        end
+      end
+
       it 'previews on a dry run and removes nothing' do
         result  = op_class.new.apply(plan, actor: 'cli', dry_run: true)
         outcome = result.outcomes.find { |o| o.ascii_name == name }

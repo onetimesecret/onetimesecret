@@ -282,12 +282,10 @@ module Onetime
           claim     = nil
           verified  = nil
 
-          if dry_run
-            status = :dry_run
-          else
-            claim, verified = keeper_steps(group, keeper, errors, actor: actor) if keeper
-            status          = results.any? { |removal| [:failed, :removed_audit_failed].include?(removal.status) } || errors.any? ? :partial : :applied
-          end
+          claim, verified = keeper_steps(group, keeper, errors, actor: actor) if keeper && !dry_run
+          failed          = results.any? { |removal| [:failed, :removed_audit_failed].include?(removal.status) } || errors.any?
+          status          = dry_run ? :dry_run : :applied
+          status          = :partial if failed
 
           Outcome.new(
             ascii_name: group.ascii_name,
@@ -430,6 +428,9 @@ module Onetime
           end
 
           [claim_exact_entry(group, domain, errors), verify_keeper(domain, errors, actor: actor)]
+        rescue StandardError => ex
+          errors << "reloading kept record #{keeper.ref} raised #{ex.class}: #{ex.message}"
+          [nil, nil]
         end
 
         def claim_exact_entry(group, domain, errors)
@@ -453,7 +454,10 @@ module Onetime
         def verify_keeper(domain, errors, actor:)
           return nil unless STRATEGIES_WITH_VHOST.include?(strategy_name)
 
-          Onetime::Operations::AdminVerifyDomain.new(domain: domain, actor: actor, persist: true).call.current_state
+          result = Onetime::Operations::AdminVerifyDomain.new(domain: domain, actor: actor, persist: true).call
+          errors << "verifying #{domain.extid} failed: #{result.error}" unless result.error.nil?
+          errors << "verification for #{domain.extid} was not persisted" unless result.persisted == true
+          result.current_state
         rescue StandardError => ex
           errors << "verifying #{domain.extid} raised #{ex.class}: #{ex.message}"
           nil
