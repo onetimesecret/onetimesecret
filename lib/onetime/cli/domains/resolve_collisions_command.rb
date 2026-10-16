@@ -22,8 +22,8 @@
 # record's ASCII entry to the backfill. Runbook:
 # docs/runbooks/custom-domain-ascii-index-backfill.md, step 6.
 #
-# Exit status: plan: 0 when no group needs an operator (no groups, or every
-# group decided by the rule), 1 when a manual group is left undecided.
+# Exit status: plan: 0 when no group needs an operator, 1 when a group still
+# needs a keeper decision or deletion approval.
 # apply: 0 when every group applied, 1 when a group was skipped or did not
 # complete, or on refusal (declined prompt, --apply --json without --yes).
 
@@ -49,7 +49,7 @@ module Onetime
       option :plan,
         type: :string,
         default: nil,
-        desc: 'With --apply: the plan file to apply'
+        desc: 'With --apply: the reviewed plan file (regenerate older rule-version plans)'
       option :write,
         type: :string,
         default: nil,
@@ -57,7 +57,7 @@ module Onetime
       option :dry_run,
         type: :boolean,
         default: false,
-        desc: 'With --apply: check the plan against the datastore and preview the removals; write nothing'
+        desc: 'With --apply: check and preview without domain changes (preview audit entries may be written)'
       option :group,
         type: :string,
         default: nil,
@@ -66,7 +66,7 @@ module Onetime
         type: :boolean,
         default: false,
         aliases: ['-y'],
-        desc: 'With --apply: skip the confirmation prompt'
+        desc: 'With --apply: skip the confirmation prompt, not required plan-group approvals'
       option :json,
         type: :boolean,
         default: false,
@@ -150,13 +150,16 @@ module Onetime
       # Exits 1 unless the operator answers y.
       def confirm_apply(plan, group)
         groups   = group ? plan.groups.select { |g| g.ascii_name == group } : plan.groups
-        removals = groups.reject { |g| g.skip || (g.manual? && !(g.approved && g.keep)) }
+        removals = groups.reject { |g| g.skip || g.approval_pending? || (g.manual? && !g.keep) }
           .sum { |g| g.keep ? g.records.size - 1 : g.records.size }
         puts "This permanently removes up to #{removals} custom domain records in #{groups.size} groups,"
-        puts 'with their configs and brand settings. The provider vhost for a name stays while a'
-        puts 'record for the name is kept. The web, worker and scheduler processes must be'
-        puts 'stopped, and the datastore snapshotted.'
-        print 'Is the application stopped, and the plan reviewed? [y/N] '
+        puts 'with their configs and brand settings (deleted, not merged). Receipts retain share_domain.'
+        puts 'Unapproved approval-required groups are excluded from this count and will be skipped.'
+        puts 'An auto proposal can require billing approval; answering y or passing --yes does not approve it.'
+        puts 'Evidence uses historical DNS confirmation and local cached billing, not fresh DNS or Stripe lookups.'
+        puts 'The provider vhost for a name stays while a record for the name is kept.'
+        puts 'The web, worker and scheduler processes must be stopped, and the datastore snapshotted.'
+        print 'Is the application stopped, and the plan reviewed with required approvals saved? [y/N] '
         response = $stdin.gets&.strip&.downcase
         return if response == 'y'
 
@@ -176,29 +179,51 @@ module Onetime
           Description:
             A collision is two or more custom domain records for one DNS name;
             backfill-ascii-index reports them and never writes them. Without
-            --apply this command gathers, for every record in a collision group,
-            whether a request for the name resolves to it today, its DNS proof,
-            its ownership flag, its organization's state, its receipts, its
-            configs and brand settings, and decides the group by this rule:
+            --apply this command is read-only. For every record it gathers local
+            name-index routing (served/shadow), historical DNS confirmation,
+            ownership flags, organization identity/state, receipts, all configs,
+            brand settings and cached billing. It makes no fresh DNS or Stripe
+            lookup. Keeper selection is unchanged by billing, in this order:
 
               1. a record whose organization no longer exists is removed
-              2. exactly one record with a passing TXT check on file is kept
+              2. exactly one record with a historical passing TXT check on file is kept
               3. exactly one record with ownership verified is kept
               4. exactly one record in use (receipts, brand, sso or mailer config) is kept
               5. otherwise the record that answers for the name today, or the oldest
 
             A step that names several records marks the group manual. Save the
-            plan with --write, review it, and for each manual group set keep to
+            plan with --write and review it. For each manual group set keep to
             the extid to keep and approved to true (or skip to true).
 
-            --apply removes the other records of every decided group through the
-            same operation as `domains remove`, re-enters the kept record in the
+            Deletion also requires approved=true whenever a record to remove is
+            billing-protected, even for an auto proposal. Billing source is always
+            local_cache, never live Stripe. Active, trialing, past_due and unpaid
+            subscriptions, or uncertain status with Stripe references/status,
+            protect deletion. Labels are live_or_recoverable, unknown,
+            no_local_subscription and not_live. Billing never selects the keeper.
+            --yes skips only the prompt; it does not approve any plan group.
+            Older rule-version plans are rejected: regenerate and review them,
+            rather than changing their version number.
+
+            --apply skips groups missing required approval. For eligible groups,
+            it removes the other records through the same operation as
+            `domains remove`, re-enters the kept record in the
             exact name index when the removed record answered for the name, and
             on the Approximated strategy verifies the kept record again so its
             stored vhost status is current. The provider vhost is keyed by the
             name; the removals leave it in place for the kept record. A group
-            whose records changed since the plan is skipped. Run
-            backfill-ascii-index --apply afterwards.
+            whose membership, identity or cached billing changed since the plan
+            is skipped. Configs and brand settings are deleted, not merged into
+            the keeper; receipts retain share_domain. Run backfill-ascii-index
+            --apply afterwards.
+
+            Save the reviewed plan and console output. Apply reports include the
+            run_id, plan timestamp, rule/approval, full saved record evidence,
+            notes and actual removal/index/verification outcomes, even when a
+            group is skipped. Non-dry apply records domain.resolve_collision per
+            group and domain.remove per deletion in the admin audit trail.
+            --dry-run makes no domain changes or collision-summary events.
+            Removal previews are observations; preview failures may be audited.
 
           STOP THE APPLICATION BEFORE --apply. Snapshot the datastore first.
           Runbook: #{RUNBOOK}
@@ -207,15 +232,15 @@ module Onetime
             --write FILE   Save the plan as JSON (plan mode)
             --apply        Apply a plan file
             --plan FILE    The plan to apply
-            --dry-run      With --apply: check and preview, write nothing
+            --dry-run      Check and preview without domain changes; may audit previews
             --group NAME   With --apply: one group, by ASCII name
-            --yes, -y      With --apply: skip the confirmation prompt
+            --yes, -y      Skip the prompt, not required plan-group approvals
             --json         JSON output (--apply --json requires --yes or --dry-run)
             --help, -h     Show this help
 
           Exit status:
             0  plan: no group needs an operator; apply: every group applied
-            1  plan: a manual group is undecided; apply: a group was skipped or
+            1  plan: a decision or deletion approval is pending; apply: a group was skipped or
                did not complete, or the run was refused
 
         USAGE
