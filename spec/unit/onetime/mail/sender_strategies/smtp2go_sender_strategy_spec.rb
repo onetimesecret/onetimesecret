@@ -886,6 +886,37 @@ RSpec.describe Onetime::Mail::SenderStrategies::Smtp2goSenderStrategy do
     end
   end
 
+  describe 'lookup evidence and deletion outcomes' do
+    [
+      { 'domain' => 'EXAMPLE.COM' },
+      { 'domain' => { 'fulldomain' => 'EXAMPLE.COM' } },
+      { 'domain' => { 'domain' => 'EXAMPLE.COM' } },
+      { 'fulldomain' => 'EXAMPLE.COM' },
+    ].each do |entry|
+      it "accepts supported domain shape #{entry.inspect}" do
+        allow(mock_client).to receive(:post).with('/domain/view', { 'domain' => 'example.com' }).and_return('domains' => [entry])
+        expect(strategy.send(:find_domain, mock_client, 'example.com')).to eq(entry)
+      end
+    end
+
+    it 'validates entries after the matching entry' do
+      allow(mock_client).to receive(:post).and_return('domains' => [domain_entry, {}])
+      expect { strategy.send(:find_domain, mock_client, 'example.com') }.to raise_error(Onetime::Mail::Smtp2goClient::APIError)
+    end
+
+    it 'returns nil only for a valid filtered list without a match' do
+      allow(mock_client).to receive(:post).with('/domain/view', { 'domain' => 'missing.com' }).and_return(view_response)
+      expect(strategy.send(:find_domain, mock_client, 'missing.com')).to be_nil
+    end
+
+    it 'does not call add again after a failed recovery lookup' do
+      expect(mock_client).to receive(:post).with('/domain/add', anything).once.and_raise(api_error('already exists', status_code: 400))
+      expect(mock_client).to receive(:post).with('/domain/view', anything).once.and_return({})
+      expect(mock_client).not_to receive(:post).with('/domain/remove', anything)
+      expect(strategy.provision_dns_records(mailer_config, credentials: credentials)).to include(success: false, error: a_string_matching(/\S/))
+    end
+  end
+
   describe 'not_found_error? (private)' do
     it 'matches 404s and NOT_FOUND/NONEXISTENT codes regardless of message' do
       expect(strategy.send(:not_found_error?, api_error('nope', status_code: 404))).to be true

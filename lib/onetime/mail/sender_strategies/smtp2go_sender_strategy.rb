@@ -389,11 +389,7 @@ module Onetime
         rescue Smtp2goClient::APIError => ex
           raise ex unless plausibly_exists_error?(ex)
 
-          existing = begin
-            find_domain(client, domain)
-          rescue StandardError
-            nil
-          end
+          existing = find_domain(client, domain)
           raise ex unless existing
 
           log_info "[smtp2go-sender] Domain #{domain} already exists, using existing entry " \
@@ -444,15 +440,12 @@ module Onetime
         #
         # @param client [Smtp2goClient] API client instance
         # @param domain [String] Domain name to find (e.g., "example.com")
-        # @return [Hash, nil] Domain entry hash, or nil if not found
+        # @return [Hash, nil] Valid domain entry, or nil for a valid list without a match
+        # @raise [Smtp2goClient::APIError] if lookup evidence is invalid or incomplete
         #
         def find_domain(client, domain)
           data = client.post('/domain/view', { 'domain' => domain })
           extract_domain_entry(data, domain)
-        rescue Smtp2goClient::APIError => ex
-          return nil if not_found_error?(ex)
-
-          raise
         end
 
         # Selects the matching domain entry from a response data hash.
@@ -469,15 +462,24 @@ module Onetime
         # @return [Hash, nil] Matching entry or nil
         #
         def extract_domain_entry(data, domain)
-          entries = data.is_a?(Hash) ? Array(data['domains']) : []
-          target  = domain.to_s.downcase
+          unless data.is_a?(Hash) && data['domains'].is_a?(Array) &&
+                 !data['error'] && !data['error_code'] && data['success'] != false
+            raise Smtp2goClient::APIError.new('Invalid SMTP2GO domain list: expected domains array', status_code: nil)
+          end
 
-          entries.find { |e| e.is_a?(Hash) && entry_domain_name(e).to_s.downcase == target }
+          entries = data['domains']
+          entries.each do |entry|
+            name = entry_domain_name(entry)
+            unless name.is_a?(String) && !name.strip.empty? && name.match?(/\A\S+\z/)
+              raise Smtp2goClient::APIError.new('Invalid SMTP2GO domain entry: domain name required', status_code: nil)
+            end
+          end
+          entries.find { |entry| entry_domain_name(entry).casecmp?(domain) }
         end
 
         # Extracts the domain name from an entry, tolerating both the
         # documented nested shape ({'domain' => {'fulldomain' => ...}}) and
-        # a flat string ({'domain' => 'example.com'}).
+        # a flat string ({'domain' => 'example.com'}) or flat fulldomain.
         #
         # @param entry [Hash] Domain entry from the API
         # @return [String, nil]
@@ -487,19 +489,22 @@ module Onetime
 
           dom = entry['domain']
           return dom if dom.is_a?(String)
+          return nil if entry.key?('domain') && !dom.is_a?(Hash)
 
           domain_object(entry)['fulldomain'] || domain_object(entry)['domain']
         end
 
-        # Returns the nested domain object of an entry (empty hash when the
-        # entry carries none, so callers can index safely).
+        # Returns the nested or flat domain object (empty hash when the entry
+        # carries neither, so callers can index safely).
         #
         # @param entry [Hash] Domain entry from the API
         # @return [Hash]
         #
         def domain_object(entry)
           dom = entry.is_a?(Hash) ? entry['domain'] : nil
-          dom.is_a?(Hash) ? dom : {}
+          return dom if dom.is_a?(Hash)
+
+          entry.is_a?(Hash) && entry.key?('fulldomain') ? entry : {}
         end
 
         # Normalize an SMTP2GO domain entry to standard DNS record format.
