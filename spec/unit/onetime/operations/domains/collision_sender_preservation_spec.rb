@@ -233,6 +233,16 @@ RSpec.describe Onetime::Operations::Domains::CollisionSenderPreservation do
       expect(preservation).to eq('victim' => true)
     end
 
+    [' ', {}].each do |override|
+      it "refuses a platform ID override of #{override.inspect} instead of comparing it" do
+        credentials['domain_id'] = override
+        expect(strategy).not_to receive(:domain_authentications)
+        expect { preservation }.to raise_error(described_class::UnsafeIdentity,
+          'sender identity for victim: sendgrid gave no usable identity for the sender domain')
+        expect(identity_cache).not_to have_key('victim')
+      end
+    end
+
     it 'compares resolved IDs, not stored provisioning metadata' do
       allow(strategy).to receive(:domain_authentications).with(api_key: 'test-token').and_return(listing)
       expect(preservation).to eq('victim' => false)

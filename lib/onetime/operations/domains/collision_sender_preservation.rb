@@ -73,8 +73,10 @@ module Onetime
 
           target = deletion_target(record, provider, strategy, sender_domain)
           return nil if target.nil?
-          raise UnsafeIdentity, unsafe(record, "#{provider} lists the sender domain without an identity") unless target.is_a?(String) || target.is_a?(Integer)
-          raise UnsafeIdentity, unsafe(record, "#{provider} lists the sender domain without an identity") if target.to_s.strip.empty?
+          # The strategies validate listed ids; this guards the configured
+          # SendGrid domain_id override, which no listing checks.
+          raise UnsafeIdentity, unsafe(record, "#{provider} gave no usable identity for the sender domain") unless target.is_a?(String) || target.is_a?(Integer)
+          raise UnsafeIdentity, unsafe(record, "#{provider} gave no usable identity for the sender domain") if target.to_s.strip.empty?
 
           [provider, target.to_s]
         end
@@ -136,10 +138,10 @@ module Onetime
               end
               remote_lookup(record, provider) { strategy.send(:list_domains, client) }
             end
+            # list_domains and domain_entry raise on an entry without an id,
+            # so a match always carries one.
             entry       = strategy.send(:domain_entry, listing, sender_domain)
-            # An entry without an id is the provider's malformed answer, not
-            # an absence: :malformed is neither nil nor an identity.
-            entry.nil? ? nil : (entry['id'] || :malformed)
+            entry && entry['id']
           end
         end
 
