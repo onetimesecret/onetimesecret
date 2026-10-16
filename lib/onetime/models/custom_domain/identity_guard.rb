@@ -33,6 +33,16 @@ module Onetime
     # values. Dirty tracking cannot be used: new and the loaders set fields
     # and then clear the dirty flags.
     #
+    # A stored record is written under WATCH of its key, with the read and
+    # the write on one pinned connection. A record that destroy! removes
+    # between the read and the write is not stored again: Redis discards the
+    # EXEC, the read runs again, finds nothing, and the write is refused.
+    # A record another writer changed in between is read and written again.
+    # Without a connection pool (partial boots) the WATCH does not hold, and
+    # the write behaves as a plain save. The guard ends with UNWATCH, so a
+    # caller must not hold its own WATCH on the pinned connection across a
+    # full write.
+    #
     # Raw hash commands (hset, hmset, remove_field) are not guarded: they are
     # the plumbing the writers above use inside their own transactions.
     #
@@ -51,7 +61,7 @@ module Onetime
       end
 
       def save_if_not_exists!(...)
-        guard_identity_full_write { super }
+        guard_identity_full_write(create_only: true) { super }
       end
 
       def atomic_write(...)
@@ -94,20 +104,68 @@ module Onetime
         end
       end
 
+      # Reads and writes of a stored record before the guard gives up on a
+      # key that keeps changing under it.
+      ATTEMPTS = 3
+
       private
 
-      def guard_identity_full_write
+      def guard_identity_full_write(create_only: false, &)
         # Familia refuses a save inside a transaction or pipeline; reads here
         # would only return futures.
         return yield if Fiber[:familia_transaction] || Fiber[:familia_pipeline]
 
-        stored = stored_identity
-        if stored
-          refuse_identity_change!(stored)
-          return yield
-        end
+        with_guarded_connection do |conn|
+          was_stored = false
+          result     = nil
+          ATTEMPTS.times do
+            conn.watch(dbkey)
+            begin
+              stored = stored_identity
+              if stored.nil?
+                # Stored at the previous read: destroy! took it in between.
+                # Writing now would store the hash again, without the rest
+                # of the record (organization listing, sibling configs,
+                # ASCII claim) that destroy! removed.
+                raise Onetime::Problem, 'The custom domain no longer exists' if was_stored
 
-        # Not stored yet. A blank name has nothing to claim (save refuses it).
+                conn.unwatch
+                return guard_new_record_full_write(&)
+              end
+
+              # Familia retries create-only saves internally, without re-reading
+              # this guard. Never let it recreate a record we observed as stored.
+              raise Familia::RecordExistsError, dbkey if create_only
+
+              was_stored = true
+              refuse_identity_change!(stored)
+              result     = yield
+            ensure
+              # No-op after EXEC; otherwise clears a WATCH that would follow
+              # the connection back into the pool.
+              conn.unwatch
+            end
+            return result if write_landed?(result)
+            # The EXEC was discarded: the key changed after the WATCH. Read
+            # again; a destroyed record is refused above, a changed one is
+            # written again.
+          end
+
+          raise Familia::OptimisticLockError, "#{dbkey} changed during #{ATTEMPTS} attempts"
+        end
+      end
+
+      # WATCH, the read and the write must share one connection. Without a
+      # pool Familia may answer each call with another client, and the WATCH
+      # does not hold.
+      def with_guarded_connection
+        return yield(dbclient) unless Onetime::Runtime.infrastructure.database_pool
+
+        Onetime.with_pinned_dbclient { yield dbclient }
+      end
+
+      def guard_new_record_full_write
+        # A blank name has nothing to claim (save refuses it).
         return yield if display_domain.to_s.empty?
 
         # The same canonical-host check create! applies, before the claim.

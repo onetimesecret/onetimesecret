@@ -4,8 +4,7 @@
 
 # Permanently remove a custom domain — the CLI peer of
 # `DELETE /api/colonel/domains/:extid`. Both adapters call the same op
-# (Onetime::Operations::Domains::Remove), which owns the teardown, the
-# display_domain_index survivor re-assertion (the shadowed-record fix) and the
+# (Onetime::Operations::Domains::Remove), which owns the teardown and the
 # single `domain.remove` ColonelAuditEvent. This command owns only CLI concerns.
 #
 # Usage:
@@ -19,9 +18,8 @@
 #
 # TWO-PHASE UX (mirrors AdminDomainDetail.vue's dry-run preview -> apply): the
 # bare invocation runs the op with dry_run:true first and prints the plan — what
-# will be removed, and whether the removal re-asserts the surviving record's
-# exact-name index entry over a drift-produced SHADOW (the crux the op guards). Nothing is
-# deleted until the operator confirms at the prompt or passes --apply / --yes.
+# will be removed. Nothing is deleted until the operator confirms at the prompt
+# or passes --apply / --yes.
 #
 # --dry-run wins over --apply: `--dry-run --apply` still mutates nothing.
 #
@@ -95,7 +93,7 @@ module Onetime
         return if result.nil? # operator declined at the prompt
 
         OT.info "[cli-domains-remove] domain=#{target.display_domain} status=#{result.status} " \
-                "dry_run=#{result.dry_run} reasserts=#{result.reasserts_survivor}"
+                "dry_run=#{result.dry_run}"
 
         json ? output_json(result) : output_text(result)
       end
@@ -138,10 +136,6 @@ module Onetime
         else
           puts "  Organization:         #{plan.org_name || 'N/A'} (#{plan.org_id})"
         end
-        if plan.reasserts_survivor
-          puts '  Note:                 removing a SHADOW record; the surviving'
-          puts '                        exact-name index entry (display_domain_index) stays'
-        end
         puts
       end
 
@@ -152,7 +146,6 @@ module Onetime
           puts 'Dry run - nothing changed. Re-run with --apply to remove.'
         when :removed
           puts "Removed #{result.display_domain} (#{result.extid})"
-          puts '  Re-asserted the surviving exact-name index entry' if result.reasserts_survivor
           puts
           puts 'Removal complete'
         end
@@ -166,7 +159,6 @@ module Onetime
           display_domain: result.display_domain,
           org_id: result.org_id,
           org_name: result.org_name,
-          reasserts_survivor: result.reasserts_survivor,
           dry_run: result.dry_run,
         )
         exit 1 unless OK_STATUSES.include?(result.status)

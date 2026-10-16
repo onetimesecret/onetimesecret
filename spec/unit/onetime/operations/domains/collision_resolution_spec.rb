@@ -729,7 +729,7 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
         expect(Onetime::Operations::Domains::CollisionSenderPreservation).to receive(:new)
                   .with(group: group_of(saved), records: kind_of(Array), identity_cache: {}).once.and_return(detector)
         expect(Onetime::Operations::Domains::Remove).to receive(:new).with(hash_including(keep_sender_identity: true))
-          .and_return(double(call: double(reasserts_survivor: false)))
+          .and_return(double(call: nil))
         expect(op_class.new.apply(saved, actor: 'cli', only: name).outcomes.first.status).to eq(:dry_run)
       end
 
@@ -1510,7 +1510,7 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
         expect(outcome.keep).to eq(b_ref)
         expect(model.find_by_identifier(id_a)).to be_nil
         expect(model.find_by_identifier(id_b)).not_to be_nil
-        # B already answered for the name: the shadow's removal re-asserted it.
+        # B already answered for the name: the shadow's removal left its entry.
         expect(outcome.index_claim).to be_nil
         expect(model.display_domain_id_for(name)).to eq(id_b)
       end

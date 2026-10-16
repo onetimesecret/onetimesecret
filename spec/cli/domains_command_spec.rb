@@ -309,11 +309,11 @@ RSpec.describe 'Domains Command', type: :cli do
   end
 
   describe 'remove subcommand' do
-    def remove_result(status:, dry_run:, reasserts: false)
+    def remove_result(status:, dry_run:)
       double('RemoveResult',
         status: status, domain_id: 'example.com', extid: 'ext123',
         display_domain: 'example.com', org_id: 'org123', org_name: 'Test Org',
-        reasserts_survivor: reasserts, dry_run: dry_run)
+        dry_run: dry_run)
     end
 
     before do
@@ -328,15 +328,14 @@ RSpec.describe 'Domains Command', type: :cli do
     it 'previews (dry-run) then applies after confirmation — two op calls' do
       op = double('Remove')
       allow(op).to receive(:call).and_return(
-        remove_result(status: :planned, dry_run: true, reasserts: true),
-        remove_result(status: :removed, dry_run: false, reasserts: true),
+        remove_result(status: :planned, dry_run: true),
+        remove_result(status: :removed, dry_run: false),
       )
       allow(Onetime::Operations::Domains::Remove).to receive(:new).and_return(op)
       allow($stdin).to receive(:gets).and_return("y\n")
 
       output = run_cli_command_quietly('domains', 'remove', 'example.com')
       expect(output[:stdout]).to include('Removal Details')
-      expect(output[:stdout]).to include('SHADOW record')
       expect(output[:stdout]).to include('Removal complete')
       expect(last_exit_code).to eq(0)
     end

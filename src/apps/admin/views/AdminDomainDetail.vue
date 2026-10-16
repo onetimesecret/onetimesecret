@@ -268,8 +268,7 @@
    * The apply button exists ONLY behind a preview that says `planned`, matching
    * repair and transfer. Without this gate the typed-confirm dialog opens cold:
    * the operator retypes the extid having never been told which org loses the
-   * domain or whether a survivor row reasserts the display_domain index. The
-   * server guard (`dry_run !== false`) keeps the apply honest, but honesty
+   * domain. The server guard (`dry_run !== false`) keeps the apply honest, but honesty
    * about WHAT was destroyed is not the same as showing it first.
    *
    * Ops::Domains::Remove emits `planned` on every dry run and `removed` only on
@@ -840,12 +839,6 @@
                   <span class="font-medium">{{
                     removePlan.org_name || removePlan.org_id || t('web.admin.domains.detail.none')
                   }}</span>
-                </p>
-                <p
-                  v-if="removePlan.reasserts_survivor"
-                  class="mt-1 text-amber-700 dark:text-amber-400"
-                  data-testid="remove-reasserts">
-                  {{ t('web.admin.domains.actions.remove.reassertsSurvivor') }}
                 </p>
               </div>
               <button

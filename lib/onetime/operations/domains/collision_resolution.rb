@@ -440,7 +440,7 @@ module Onetime
           return Removal.new(ref: record.ref, display_domain: record.display_domain, status: :failed, detail: 'record not found') unless domain
 
           reason = "collision run=#{run_id}: kept #{keeper ? keeper.ref : 'none'} by rule #{group.rule}; name=#{group.ascii_name}"
-          result = Domains::Remove.new(
+          Domains::Remove.new(
             domain: domain,
             actor: actor,
             dry_run: dry_run,
@@ -452,7 +452,7 @@ module Onetime
             ref: record.ref,
             display_domain: record.display_domain,
             status: dry_run ? :planned : :removed,
-            detail: result.reasserts_survivor ? 'exact index entry re-asserted for the survivor' : nil,
+            detail: nil,
           )
         rescue Domains::Remove::RemovalCommitted => ex
           Removal.new(ref: record.ref, display_domain: record.display_domain, status: :removed, detail: ex.message)

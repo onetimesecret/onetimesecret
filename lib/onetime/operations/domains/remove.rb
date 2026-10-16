@@ -26,30 +26,19 @@ module Onetime
       #
       # The apply path delegates to Domains::Teardown, which the customer API
       # also uses. Teardown handles provider cleanup and record destruction
-      # under the sender identity lease. This wrapper handles previews, index
-      # repair, and operator auditing.
+      # under the sender identity lease. This wrapper handles previews and
+      # operator auditing.
       #
       # Teardown does not call org.remove_domain because CustomDomain#destroy!
       # already removes the domain's organization participation.
       #
-      # ## Preserving another record's display_domain_index entry
+      # ## Index entries
       #
-      # CustomDomain#destroy! ends with a bare super call to Familia. Its
-      # transaction unconditionally deletes display_domain_index[fqdn], using
-      # this record's display_domain, without checking which objid the entry
-      # references (unique_index_generators).
-      #
-      # Normal creation prevents two live records from sharing an FQDN:
-      # create! claims the index entry with HSETNX. Data drift can nevertheless
-      # leave a duplicate ("shadow") hash alongside the original owner. Deleting
-      # that shadow would also delete the original owner's index entry.
-      #
-      # Before destruction, capture index_owner_id from the index and
-      # victim_objid from domain.objid. After destruction, restore the entry
-      # only if index_owner_id is present and differs from victim_objid.
-      # Before restoring it, reload the surviving owner and confirm that its
-      # display_domain still matches the FQDN.
-
+      # CustomDomain#destroy! releases its display_domain_index and
+      # ascii_display_domain_index entries itself, ownership-checked and under
+      # the name as stored. Removing a drift-produced shadow record that shares
+      # a hostname with the record the index names leaves that record's entries
+      # in place, so this wrapper has nothing to repair.
       class Remove
         include Onetime::AuditedFailure
         include Onetime::AuditReason
@@ -100,7 +89,6 @@ module Onetime
           :org_id,
           :org_name,
           :dry_run,
-          :reasserts_survivor,
         )
 
         # @param domain [Onetime::CustomDomain] resolved target (caller ensures non-nil).
@@ -134,13 +122,6 @@ module Onetime
           org_id             = @domain.org_id
           org                = org_id.to_s.empty? ? nil : Onetime::Organization.load(org_id)
 
-          # --- INDEX SNAPSHOT (before ANY mutation) ---
-          index          = Onetime::CustomDomain.display_domain_index
-          fqdn           = @domain.display_domain.to_s.downcase
-          victim_objid   = @domain.objid
-          index_owner_id = fqdn.empty? ? nil : index.get(fqdn)  # .get => plain objid string
-          reasserts      = !fqdn.empty? && !index_owner_id.nil? && index_owner_id != victim_objid
-
           # Build the full Result NOW, before destroy! nils the domain's fields.
           plan = Result.new(
             status: :planned,
@@ -150,49 +131,22 @@ module Onetime
             org_id: org_id,
             org_name: org&.display_name,
             dry_run: @dry_run,
-            reasserts_survivor: reasserts,
           )
 
           # --- DRY RUN: preview only, mutate nothing ---
           # Nothing reaches the OPERATOR trail, but a preview of a destructive
-          # verb is reconnaissance — it names the domain, its org, and whether
-          # removal would hand the index back to a survivor. Recorded as an
-          # OBSERVATION (#4337).
+          # verb is reconnaissance — it names the domain and its org. Recorded
+          # as an OBSERVATION (#4337).
           if @dry_run
-            record_preview_event(plan, org_id, reasserts)
+            record_preview_event(org_id)
             return plan
           end
 
           # A returned teardown result is committed, even when its final lease
-          # check failed. Complete index repair and auditing before reporting loss.
+          # check failed. Complete the auditing before reporting loss.
           teardown           = teardown_domain
           @removal_committed = teardown.removal_committed
           lease_error        = teardown.lease_error
-
-          # --- CONDITIONAL INDEX RE-ASSERTION ---
-          # Best-effort: destroy! has already committed, so a failure here must
-          # NOT abort the call — that would skip the audit of a destroy that DID
-          # happen and leave the action untraced. On any error we log and press
-          # on; a cleared survivor pointer is recoverable by the index-rebuild
-          # maintenance job. (The re-assert is also not atomic with destroy!'s
-          # HDEL: a concurrent lookup in that sub-ms window sees nil — acceptable
-          # on this single-actor drift-repair path.)
-          if reasserts
-            begin
-              survivor = Onetime::CustomDomain.load(index_owner_id)
-              if survivor && survivor.display_domain.to_s.downcase == fqdn
-                index.put(fqdn, index_owner_id)
-                OT.info "[Domains::Remove] Re-asserted display_domain_index[#{fqdn}] -> " \
-                        "#{index_owner_id} (survivor) after destroying shadow #{victim_objid}"
-              else
-                OT.le "[Domains::Remove] display_domain_index[#{fqdn}] owner #{index_owner_id} " \
-                      "no longer valid after destroying #{victim_objid}; leaving entry cleared"
-              end
-            rescue StandardError => ex
-              OT.le "[Domains::Remove] re-assertion of display_domain_index[#{fqdn}] failed " \
-                    "after destroying shadow #{victim_objid}: #{ex.class} #{ex.message}"
-            end
-          end
 
           # --- EXACTLY ONE audit event, applied path only ---
           #
@@ -201,7 +155,7 @@ module Onetime
           # removal is indistinguishable from a domain that was never added.
           # The dry-run path returns above, recording only a preview
           # observation on the access trail (#4337), never this operator event.
-          detail           = { org_id: org_id.to_s, reasserted: reasserts }
+          detail           = { org_id: org_id.to_s }
           detail           = detail.merge(vhost_kept: true) if @keep_vhost
           detail           = detail.merge(sender_identity_kept: true) if @keep_sender_identity
           if lease_error
@@ -242,8 +196,8 @@ module Onetime
         # preview lines up with the removal that followed it; `result: 'preview'`
         # is what tells them apart, and the detail mirrors the applied event's —
         # including the operator's `reason` (#4338) when one was given.
-        def record_preview_event(_plan, org_id, reasserts)
-          detail = { org_id: org_id.to_s, reasserted: reasserts }
+        def record_preview_event(org_id)
+          detail = { org_id: org_id.to_s }
           detail = detail.merge(vhost_kept: true) if @keep_vhost
           detail = detail.merge(sender_identity_kept: true) if @keep_sender_identity
           record_preview_observation(with_reason(detail))
