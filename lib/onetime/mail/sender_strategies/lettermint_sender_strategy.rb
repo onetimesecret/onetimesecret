@@ -60,6 +60,8 @@ module Onetime
         # or LETTERMINT_BASE_URL env var (loaded via ProviderConfig).
         DEFAULT_BASE_URL = 'https://api.lettermint.co/v1'
 
+        class LookupError < StandardError; end
+
         # Provisions sender DNS records through Lettermint's Domain API.
         #
         # Creates a new domain entry and returns the DNS records that must
@@ -386,37 +388,78 @@ module Onetime
 
         # Find a domain by name using the Team API.
         #
-        # WARNING: This implementation does not handle pagination. If the account
-        # has many domains and the target domain is not in the first page of
-        # results, this lookup will fail to find it. For accounts with many
-        # domains, consider implementing cursor-based pagination.
+        # A valid match may stop early; absence requires exhausted pagination.
         #
         # @param client [Lettermint::TeamAPI] SDK client instance
         # @param domain [String] Domain name to find (e.g., "example.com")
         # @return [Hash, nil] Domain entry hash with 'id' key, or nil if not found
         #
         def find_domain_by_name(client, domain)
-          domain_entry(list_domains(client), domain)
+          each_domain_page(client) do |entries|
+            entry = domain_entry(entries, domain)
+            return entry if entry
+          end
+          nil
         end
 
         # The account's domain entries, for callers that resolve many domains
-        # at once: one list request instead of one per domain. Match entries
-        # with {#domain_entry}, the same comparison {#find_domain_by_name}
-        # makes. Same pagination caveat as {#find_domain_by_name}.
+        # at once: one complete walk instead of one per domain. Partial walks
+        # raise and are never exposed as usable inventories.
         #
         # @param client [Lettermint::TeamAPI] SDK client instance
-        # @return [Array<Hash>, nil] the entries, or nil when the response has none
+        # @return [Array<Hash>] all validated entries, including an empty list
+        # @raise [LookupError] if pagination or any entry is malformed
         #
         def list_domains(client)
-          client.domains.list['data']
+          entries = []
+          each_domain_page(client) { |page| entries.concat(page) }
+          entries
         end
 
-        # @param domains [Array<Hash>, nil] domain entries from {#list_domains}
+        # SDK 0.2.0 maps page_cursor to page[cursor]. The Team API schema uses
+        # a top-level next_cursor, with null marking exhaustion, not page size.
+        def each_domain_page(client)
+          cursor = nil
+          seen   = Set.new
+          loop do
+            response    = cursor.nil? ? client.domains.list : client.domains.list(page_cursor: cursor)
+            unless response.is_a?(Hash) && response['data'].is_a?(Array) && response.key?('next_cursor')
+              raise LookupError, 'Invalid Lettermint domain list: data and next_cursor required'
+            end
+
+            next_cursor = response['next_cursor']
+            unless next_cursor.nil? || (next_cursor.is_a?(String) && !next_cursor.strip.empty?)
+              raise LookupError, 'Invalid Lettermint pagination cursor'
+            end
+            if !next_cursor.nil? && !seen.add?(next_cursor)
+              raise LookupError, 'Repeated Lettermint pagination cursor'
+            end
+
+            validate_domain_entries!(response['data'])
+            yield response['data']
+            break if next_cursor.nil?
+
+            cursor = next_cursor
+          end
+        end
+
+        def validate_domain_entries!(entries)
+          unless entries.is_a?(Array) && entries.all? do |entry|
+            entry.is_a?(Hash) && entry['domain'].is_a?(String) &&
+            !entry['domain'].strip.empty? && entry['domain'].match?(/\A\S+\z/) &&
+            entry['id'].is_a?(String) && !entry['id'].strip.empty?
+          end
+            raise LookupError, 'Invalid Lettermint domain entry: domain and identity required'
+          end
+        end
+
+        # @param domains [Array<Hash>] domain entries from {#list_domains}
         # @param domain [String] Domain name to find
         # @return [Hash, nil] the entry, or nil when no entry matches
         #
         def domain_entry(domains, domain)
-          domains&.find { |d| d['domain'] == domain }
+          validate_domain_entries!(domains)
+          domains.find { |entry| entry['domain'] == domain }
         end
 
         # Creates a new domain or retrieves existing one on 409 conflict.

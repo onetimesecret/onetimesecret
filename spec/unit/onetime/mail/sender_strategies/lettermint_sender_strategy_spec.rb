@@ -95,7 +95,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
     context 'when domain already exists (409 conflict)' do
       let(:list_response) do
-        { 'data' => [{ 'id' => 'existing-uuid', 'domain' => 'example.com' }] }
+        { 'data' => [{ 'id' => 'existing-uuid', 'domain' => 'example.com' }], 'next_cursor' => nil }
       end
       let(:get_response) do
         {
@@ -195,7 +195,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       # message instead of 409 Conflict for duplicate domains. This test verifies
       # we handle both error types identically.
       let(:list_response) do
-        { 'data' => [{ 'id' => 'existing-uuid', 'domain' => 'example.com' }] }
+        { 'data' => [{ 'id' => 'existing-uuid', 'domain' => 'example.com' }], 'next_cursor' => nil }
       end
       let(:get_response) do
         {
@@ -311,7 +311,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
   describe '#check_provider_verification_status' do
     let(:list_response) do
-      { 'data' => [{ 'id' => 'domain-uuid-123', 'domain' => 'example.com', 'status' => 'verified' }] }
+      { 'data' => [{ 'id' => 'domain-uuid-123', 'domain' => 'example.com', 'status' => 'verified' }], 'next_cursor' => nil }
     end
 
     context 'when domain is verified' do
@@ -347,7 +347,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
     context 'when domain is pending verification' do
       let(:list_response) do
-        { 'data' => [{ 'id' => 'domain-uuid-123', 'domain' => 'example.com', 'status' => 'pending_verification' }] }
+        { 'data' => [{ 'id' => 'domain-uuid-123', 'domain' => 'example.com', 'status' => 'pending_verification' }], 'next_cursor' => nil }
       end
       let(:get_response) do
         {
@@ -380,7 +380,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
     context 'when domain is not found' do
       before do
         allow(mock_domains).to receive(:list)
-          .and_return({ 'data' => [] })
+          .and_return({ 'data' => [], 'next_cursor' => nil })
       end
 
       it 'returns not_found status' do
@@ -448,7 +448,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
   describe '#delete_sender_identity' do
     let(:list_response) do
-      { 'data' => [{ 'id' => 'domain-uuid-123', 'domain' => 'example.com' }] }
+      { 'data' => [{ 'id' => 'domain-uuid-123', 'domain' => 'example.com' }], 'next_cursor' => nil }
     end
 
     context 'when deletion succeeds' do
@@ -471,7 +471,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
     context 'when domain not found in list (idempotent)' do
       before do
         allow(mock_domains).to receive(:list)
-          .and_return({ 'data' => [] })
+          .and_return({ 'data' => [], 'next_cursor' => nil })
       end
 
       it 'returns deleted true' do
@@ -556,7 +556,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
     let(:entries) { [{ 'id' => 'domain-uuid-1', 'domain' => 'example.com' }, { 'id' => 'domain-uuid-2', 'domain' => 'other.example.com' }] }
 
     before do
-      allow(mock_domains).to receive(:list).and_return('data' => entries)
+      allow(mock_domains).to receive(:list).and_return('data' => entries, 'next_cursor' => nil)
     end
 
     it 'lists once and matches entries like find_domain_by_name' do
@@ -569,11 +569,11 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       expect(strategy.send(:find_domain_by_name, mock_client, 'example.com')).to eq(entries.first)
     end
 
-    it 'returns nil for a response without data' do
+    it 'rejects missing data instead of treating an unreadable inventory as absence' do
       allow(mock_domains).to receive(:list).and_return({})
 
-      expect(strategy.send(:list_domains, mock_client)).to be_nil
-      expect(strategy.send(:domain_entry, nil, 'example.com')).to be_nil
+      expect { strategy.send(:list_domains, mock_client) }.to raise_error(described_class::LookupError)
+      expect { strategy.send(:domain_entry, nil, 'example.com') }.to raise_error(described_class::LookupError)
     end
   end
 
