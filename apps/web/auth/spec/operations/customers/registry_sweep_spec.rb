@@ -103,7 +103,6 @@ RSpec.describe Auth::Operations::Customers::RegistrySweep, :datastore do
       @staged_row.objid,
     )
     expect(sweep.target_membership_objids).not_to include(owner_row)
-    expect(sweep.membership_ids).to include(owner_row, target_row, @drifted_row.objid, @staged_row.objid)
   end
 
   it 'groups custom domains by the organization their org_id names' do
@@ -111,48 +110,8 @@ RSpec.describe Auth::Operations::Customers::RegistrySweep, :datastore do
 
     sweep = capture
 
-    expect(sweep.domain_ids).to include(domain.objid)
     expect(sweep.domain_objids_for(@owned.objid)).to eq([domain.objid])
     expect(sweep.domain_objids_for(@other.objid)).to be_empty
-  end
-
-  describe '#refreshed' do
-    it 'probes only identifiers the previous sweep did not list and keeps its results' do
-      known = described_class.new(
-        customer_objid: @target.objid,
-        organization_ids: Onetime::Organization.instances.to_a.map(&:to_s),
-        referenced_org_ids: ['org-carried-over'],
-        membership_ids: membership_class.instances.to_a.map(&:to_s),
-        membership_objids_by_org: { 'org-carried-over' => ['row-carried-over'] },
-        target_membership_objids: ['row-carried-over'],
-      )
-      late = track(@orgs, Onetime::Organization.create!("Late #{suffix}", @target))
-
-      sweep = known.refreshed
-
-      expect(sweep.referenced_org_ids).to include('org-carried-over', late.objid)
-      # Listed by the previous sweep, so not probed again: a reference it did
-      # not record stays unrecorded until a full capture.
-      expect(sweep.referenced_org_ids).not_to include(@owned.objid)
-      expect(sweep.organization_ids).to include(@owned.objid, late.objid)
-      expect(sweep.membership_objids_for('org-carried-over')).to eq(['row-carried-over'])
-      expect(sweep.membership_objids_for(late.objid))
-        .to eq([membership_class.composite_objid(late.objid, @target.objid)])
-      expect(sweep.target_membership_objids).to include('row-carried-over', membership_class.composite_objid(late.objid, @target.objid))
-    end
-
-    it 'reprobes a registry the previous sweep failed to list' do
-      failed = described_class.new(
-        customer_objid: @target.objid,
-        organization_ids: [@owned.objid],
-        failures: { organizations: 'IOError' },
-      )
-
-      sweep = failed.refreshed
-
-      expect(sweep.failures).to be_empty
-      expect(sweep.referenced_org_ids).to include(@owned.objid)
-    end
   end
 
   it 'records a registry that cannot be listed and keeps the others' do

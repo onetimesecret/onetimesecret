@@ -120,33 +120,26 @@ RSpec.describe Auth::Operations::Customers::Purge do
     )
   end
 
-  it 'captures the registry sweep once for a deep purge and refreshes it after teardown' do
-    sweep     = instance_double(Auth::Operations::Customers::RegistrySweep)
-    refreshed = instance_double(Auth::Operations::Customers::RegistrySweep)
-    allow(sweep).to receive(:refreshed).and_return(refreshed)
-    initial = instance_double(Auth::Operations::Customers::PurgePreflight,
+  it 'runs the deep sweep at the plan and again after teardown, never in between' do
+    sweep = instance_double(Auth::Operations::Customers::RegistrySweep)
+    deep  = instance_double(Auth::Operations::Customers::PurgePreflight,
       call: empty_plan, pending_organization_checks: [], registry_sweep: sweep)
-    final   = instance_double(Auth::Operations::Customers::PurgePreflight,
-      call: empty_plan, pending_organization_checks: [], registry_sweep: refreshed)
     allow(Auth::Operations::Customers::PurgePreflight).to receive(:new)
-      .with(hash_including(deep: true, registry_sweep: nil)).and_return(initial)
-    allow(Auth::Operations::Customers::PurgePreflight).to receive(:new)
-      .with(hash_including(deep: true, registry_sweep: refreshed)).and_return(final)
+      .with(hash_including(deep: true)).and_return(deep)
 
     result = described_class.new(customer: customer, actor: 'cli', deep: true).call
 
     expect(result.status).to eq(:success)
-    # The initial plan lists the registries; the post-teardown check refreshes
-    # that listing; the revalidations in between stay shallow and carry no sweep.
+    # Each deep preflight captures its own sweep (registry_sweep: nil): the
+    # plan's sweep is reused only by the capability recheck on that plan, and
+    # the post-teardown check must see writes made during the purge. The
+    # revalidations in between stay shallow and carry no sweep.
     expect(Auth::Operations::Customers::PurgePreflight).to have_received(:new)
-      .with(customer: customer, deep: true, membership_snapshot: nil, registry_sweep: nil).once
-    expect(sweep).to have_received(:refreshed).once
-    expect(Auth::Operations::Customers::PurgePreflight).to have_received(:new)
-      .with(customer: customer, deep: true, membership_snapshot: nil, registry_sweep: refreshed).once
+      .with(customer: customer, deep: true, membership_snapshot: nil, registry_sweep: nil).twice
     expect(Auth::Operations::Customers::PurgePreflight).to have_received(:new)
       .with(hash_including(deep: false, registry_sweep: nil)).at_least(:once)
     expect(Auth::Operations::Customers::PurgePreflight).not_to have_received(:new)
-      .with(hash_including(deep: false, registry_sweep: sweep))
+      .with(hash_including(registry_sweep: sweep))
   end
 
   it 'passes the administrative context to the unified deletion operation' do

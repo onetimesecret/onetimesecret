@@ -59,10 +59,9 @@ row for an organization; `organization_objid` and `customer_objid` for a
 membership row; `org_id` for a domain). It holds identifiers only: the
 organizations, rows and domains it points at are re-loaded by the preflight
 that uses it, so the evidence is live and only the where-to-look is reused. The
-first deep preflight captures it; the post-teardown check refreshes it, listing
-the registries again and probing only identifiers new since the plan, so a row
-written during the purge is still seen without re-reading the registries; and
-`Org::Delete`'s capability recheck (`AccountPurgeContext`) reuses it unchanged.
+initial plan captures one and `Org::Delete`'s capability recheck on that plan
+(`AccountPurgeContext`) reuses it; the post-teardown check captures its own, so
+a reference written to any organization during the purge is still seen there.
 Before this, each deep preflight loaded every registry record one round trip
 at a time, three times per purge, which on a registry of hundreds of thousands
 of workspaces was minutes of wall time and a saturated core per account.

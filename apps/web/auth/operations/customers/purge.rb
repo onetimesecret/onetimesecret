@@ -184,10 +184,10 @@ module Auth
 
           # Redis/SQL are not atomic. Scan again after teardown so a concurrent
           # organization write cannot be reported as a successful clean purge.
-          # The deep sweep is refreshed, not recaptured: the registries are
-          # listed again and only rows new since the initial plan are probed.
+          # The deep sweep is captured afresh here, not reused: a reference
+          # written to any organization during the purge must be seen.
           @stage          = :post_teardown_revalidation
-          @registry_sweep = @registry_sweep.refreshed if @deep && @registry_sweep
+          @registry_sweep = nil
           residual        = preflight(deep: @deep)
           unless same_remaining_plan?(residual, [])
             blockers = residual.blockers.dup
@@ -276,11 +276,10 @@ module Auth
         # Revalidation between mutations is deliberately SHALLOW even when the
         # caller asked for a deep sweep: the operator-grade registry scan runs at
         # the two boundaries that matter (the initial plan and the final
-        # post-teardown check) rather than once per action. The registries are
-        # listed once, by the first deep preflight; every later deep preflight
-        # of this purge (the post-teardown check, and Org::Delete's capability
-        # recheck through the plan's AccountPurgeContext) reuses that
-        # RegistrySweep and re-loads only the rows it points at.
+        # post-teardown check) rather than once per action. The initial deep
+        # preflight captures a RegistrySweep that Org::Delete's capability
+        # recheck (through the plan's AccountPurgeContext) reuses, re-loading
+        # only the rows it points at; the post-teardown check captures its own.
         def preflight(deep: false)
           checker                      = Auth::Operations::Customers::PurgePreflight.new(
             customer: @customer,

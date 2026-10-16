@@ -139,10 +139,8 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
       customer_objid: customer.objid,
       organization_ids: organizations.map(&:objid),
       referenced_org_ids: organizations.map(&:objid),
-      membership_ids: memberships.map(&:objid),
       membership_objids_by_org: memberships.group_by(&:organization_objid).transform_values { |rows| rows.map(&:objid) },
       target_membership_objids: memberships.select { |row| row.customer_objid == customer.objid }.map(&:objid),
-      domain_ids: domains.map(&:objid),
       domain_objids_by_org: domains.group_by(&:org_id).transform_values { |rows| rows.map(&:objid) },
       failures: failures,
     )
@@ -807,6 +805,28 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
     expect(Auth::Operations::Customers::RegistrySweep).to have_received(:capture).once
   end
 
+  it 'hands the sweep to the deletion capability so the recheck does not rescan' do
+    org              = organization
+    owner_membership = membership(org_objid: org.objid, customer_objid: customer.objid, role: 'owner')
+    allow(customer).to receive(:participations)
+      .and_return(collection(["organization:#{org.objid}:members"]))
+    allow(customer).to receive(:organization_instances).and_return(collection([org]))
+    stub_organization_scan(org)
+    stub_membership_scan(owner_membership)
+    stub_membership_lookup(org, customer.objid => owner_membership)
+    allow(Onetime::Customer).to receive(:load).with(customer.objid).and_return(customer)
+    allow(contact_index).to receive(:get).with('target@example.com').and_return(org.objid)
+    allow(Auth::Operations::Customers::RegistrySweep).to receive(:capture)
+
+    sweep = registry_sweep(organizations: [org], memberships: [owner_membership])
+    plan  = described_class.new(customer: customer, deep: true, registry_sweep: sweep).call
+
+    expect(plan.actions.map(&:type)).to eq([:delete_organization])
+    context = plan.actions.first.account_purge_context
+    expect(context.authorized_for?(org)).to be(true)
+    expect(Auth::Operations::Customers::RegistrySweep).not_to have_received(:capture)
+  end
+
   it 'ignores a registry sweep on a shallow preflight' do
     org              = organization
     owner_membership = membership(org_objid: org.objid, customer_objid: customer.objid, role: 'owner')
@@ -855,7 +875,6 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
       customer_objid: customer.objid,
       organization_ids: [org.objid],
       referenced_org_ids: [org.objid],
-      membership_ids: [owner_membership.objid, removed_row],
       membership_objids_by_org: { org.objid => [owner_membership.objid, removed_row] },
       target_membership_objids: [removed_row],
     )
