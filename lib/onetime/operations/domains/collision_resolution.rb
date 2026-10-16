@@ -42,14 +42,18 @@ module Onetime
       #      the plan is skipped.
       #   2. Remove each other record through {Domains::Remove}, with a
       #      reason naming the kept record, shadows first and the record that
-      #      answers for the name last. Remove deletes the provider vhost for
-      #      the name (ApproximatedStrategy#delete_vhost deletes by name), so
-      #      the kept record's vhost goes with it on that strategy.
+      #      answers for the name last. The provider vhost is keyed by the
+      #      name (ApproximatedStrategy#delete_vhost deletes by name), which
+      #      the kept record shares, so each removal passes keep_vhost: true
+      #      and the vhost stays up throughout. Only a group with no kept
+      #      record (all orphans) deletes it.
       #   3. If the name no longer resolves to the kept record, claim the
       #      exact display_domain_index entry for it (a compare-and-set; an
       #      entry another record holds is left alone and reported).
       #   4. On the Approximated strategy, verify the kept record through
-      #      {AdminVerifyDomain}, which registers the vhost again.
+      #      {AdminVerifyDomain}, so its stored vhost status is current: a
+      #      kept record that never verified has none, and the vhost now
+      #      answers for it.
       #
       # The canonical index is left to `backfill-canonical-index --apply`,
       # which the runbook runs next.
@@ -295,7 +299,9 @@ end,
           return Removal.new(ref: record.ref, display_domain: record.display_domain, status: :failed, detail: 'record not found') unless domain
 
           reason = "canonical collision #{group.canonical}: kept #{keeper ? keeper.ref : 'none'} by rule #{group.rule}"
-          result = Domains::Remove.new(domain: domain, actor: actor, dry_run: dry_run, reason: reason).call
+          result = Domains::Remove.new(
+            domain: domain, actor: actor, dry_run: dry_run, reason: reason, keep_vhost: !keeper.nil?,
+          ).call
           Removal.new(
             ref: record.ref,
             display_domain: record.display_domain,

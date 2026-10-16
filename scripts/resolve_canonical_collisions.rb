@@ -12,6 +12,11 @@
 #   scripts/resolve_canonical_collisions.rb                        (this file)
 #   lib/onetime/operations/domains/collision_resolution.rb
 #   lib/onetime/operations/domains/collision_resolution/*.rb
+#   lib/onetime/operations/domains/remove.rb                       (keep_vhost)
+#   lib/onetime/operations/domains/teardown.rb                     (keep_vhost)
+#
+# remove.rb and teardown.rb differ from v0.26.17 only by the keep_vhost
+# option, which leaves the provider vhost up for the kept record.
 #
 # Usage (from the application directory, with its configuration and
 # VALKEY_URL/REDIS_URL in the environment, as for bin/ots):
@@ -97,9 +102,9 @@ when 'apply'
   end
 
   unless options[:yes] || options[:dry_run]
-    puts 'This permanently removes custom domain records with their configs and brand settings,'
-    puts 'and deletes their provider vhosts. The web, worker and scheduler processes must be'
-    puts 'stopped, and the datastore snapshotted.'
+    puts 'This permanently removes custom domain records with their configs and brand settings.'
+    puts 'The provider vhost for a name stays while a record for the name is kept. The web,'
+    puts 'worker and scheduler processes must be stopped, and the datastore snapshotted.'
     print 'Is the application stopped, and the plan reviewed? [y/N] '
     unless $stdin.gets&.strip&.downcase == 'y'
       puts 'Aborted. Nothing was written.'

@@ -153,8 +153,9 @@ module Onetime
         removals = groups.reject { |g| g.skip || (g.manual? && !(g.approved && g.keep)) }
           .sum { |g| g.keep ? g.records.size - 1 : g.records.size }
         puts "This permanently removes up to #{removals} custom domain records in #{groups.size} groups,"
-        puts 'with their configs and brand settings, and deletes their provider vhosts. The web,'
-        puts 'worker and scheduler processes must be stopped, and the datastore snapshotted.'
+        puts 'with their configs and brand settings. The provider vhost for a name stays while a'
+        puts 'record for the name is kept. The web, worker and scheduler processes must be'
+        puts 'stopped, and the datastore snapshotted.'
         print 'Is the application stopped, and the plan reviewed? [y/N] '
         response = $stdin.gets&.strip&.downcase
         return if response == 'y'
@@ -193,10 +194,11 @@ module Onetime
             --apply removes the other records of every decided group through the
             same operation as `domains remove`, re-enters the kept record in the
             exact name index when the removed record answered for the name, and
-            on the Approximated strategy verifies the kept record again (the
-            removal deletes the shared provider vhost). A group whose records
-            changed since the plan is skipped. Run backfill-canonical-index
-            --apply afterwards.
+            on the Approximated strategy verifies the kept record again so its
+            stored vhost status is current. The provider vhost is keyed by the
+            name; the removals leave it in place for the kept record. A group
+            whose records changed since the plan is skipped. Run
+            backfill-canonical-index --apply afterwards.
 
           STOP THE APPLICATION BEFORE --apply. Snapshot the datastore first.
           Runbook: #{RUNBOOK}

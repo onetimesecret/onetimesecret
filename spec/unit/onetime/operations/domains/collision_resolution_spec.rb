@@ -300,6 +300,22 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
         expect(result).not_to be_attention
       end
 
+      it 'keeps the vhost for the kept record and deletes it only when no record is kept' do
+        orphan_name = "orph-#{sfx}.example"
+        legacy[:o1] = [write_legacy_custom_domain(orphan_name, org_id: nil), orphan_name]
+        legacy[:o2] = [write_legacy_custom_domain(orphan_name, org_id: nil), orphan_name]
+        allow(Onetime::Operations::Domains::Teardown).to receive(:new).and_call_original
+
+        both = op_class.new.plan
+        op_class.new.apply(both, actor: 'cli', dry_run: false, only: name)
+        op_class.new.apply(both, actor: 'cli', dry_run: false, only: orphan_name)
+
+        expect(Onetime::Operations::Domains::Teardown).to have_received(:new).with(hash_including(keep_vhost: true)).once
+        expect(Onetime::Operations::Domains::Teardown).to have_received(:new).with(hash_including(keep_vhost: false)).twice
+        expect(model.find_by_identifier(id_a)).not_to be_nil
+        expect(legacy.values_at(:o1, :o2).map { |(id, _)| model.find_by_identifier(id) }).to eq([nil, nil])
+      end
+
       it 'skips a group whose records changed since the plan' do
         plan # made before the change
         legacy!(:late, org: org_b)
