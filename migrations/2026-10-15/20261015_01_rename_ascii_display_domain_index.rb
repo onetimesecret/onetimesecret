@@ -22,12 +22,17 @@
 # spelling is not refused. Run this with the application stopped, before
 # starting the release that carries it.
 #
-# RENAMENX moves the key atomically and refuses to overwrite. When the new
-# key already exists (a backfill or a registration ran on the new release
-# before this migration), both keys are reported and nothing is renamed:
-# merge them by hand, or remove the new key and run the backfill again
-# after the rename. The runbook's backup key (<old key>:before-backfill) is
-# renamed the same way when present.
+# RENAMENX moves the key atomically and refuses to overwrite. When a
+# destination already exists (a backfill or a registration ran on the new
+# release before this migration), that rename is refused and both keys are
+# reported: merge them by hand, or remove the destination and run the
+# backfill again after the rename. The runbook's backup key
+# (<old key>:before-backfill) is renamed the same way when present. The two
+# renames are independent, so a refusal of one leaves the other where it
+# landed; the summary says which keys moved, and a rerun after clearing the
+# refused destination finishes the job. A refusal fails the run: migrate
+# returns false (the runner does not record it as applied) and down raises
+# (the runner would otherwise clear the applied mark whatever down returns).
 #
 # Usage:
 #   bin/ots migrate migrations/2026-10-15/20261015_01_rename_ascii_display_domain_index.rb         # Preview
@@ -68,11 +73,15 @@ module Onetime
         ok
       end
 
+      # The runner records a rollback whatever down returns, so a refused
+      # rename raises to keep the migration marked applied for a retry.
       def down
         run_mode_banner
         ok = rename_all(@new_key, @old_key)
         summary(ok)
-        ok
+        return true if ok
+
+        raise Familia::Migration::Errors::MigrationError, failure_message
       end
 
       private
@@ -119,12 +128,25 @@ module Onetime
         end
       end
 
+      # The two renames are independent, so a refusal after a rename leaves
+      # the keys half moved; say so rather than "nothing changed".
+      def failure_message
+        renamed = @stats[:renamed].to_i
+        refused = @stats[:refused].to_i
+        if renamed.positive?
+          "#{renamed} rename(s) landed and #{refused} refused; see above. The renamed keys stay " \
+            'renamed. Clear the refused destination, then run again to finish.'
+        else
+          "#{refused} rename(s) refused; see above. Nothing was changed."
+        end
+      end
+
       def summary(ok)
         print_summary do |mode|
           @stats.each { |key, value| info "  #{key}: #{value}" }
           info ''
           if !ok
-            info 'A rename was refused; see above. Nothing else was changed.'
+            info failure_message
           elsif mode == :dry_run
             info 'Re-run with --run to rename.'
           else

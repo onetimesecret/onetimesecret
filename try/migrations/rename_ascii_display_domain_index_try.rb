@@ -12,7 +12,8 @@
 #     name, and the migration is no longer needed
 #   - a target that already exists refuses that rename and leaves both keys,
 #     while the other pair still renames
-#   - down renames back
+#   - down renames back, and raises when a destination exists (the runner
+#     clears the applied mark whatever down returns)
 #
 # Run: tests/lanes/run unit --only try/migrations/rename_ascii_display_domain_index_try.rb
 
@@ -132,7 +133,19 @@ migration(run: false).migration_needed?
 [@client.hlen(@old_key), @client.hlen(@backup_old), @client.exists?(@new_key), @client.exists?(@backup_new), @client.hget(@old_key, @name_a)]
 #=> [2, 1, false, false, 'id-a']
 
+## down raises when a destination exists, so the runner keeps the migration applied
+@client.hset(@new_key, "late-#{@sfx}.example", 'id-late')
+@blocked = migration(run: true)
+@raised  = begin
+  @blocked.down
+  nil
+rescue Familia::Migration::Errors::MigrationError => ex
+  ex
+end
+[@raised.class, @blocked.stats[:refused], @blocked.stats[:renamed], @client.hlen(@old_key), @client.hlen(@new_key)]
+#=> [Familia::Migration::Errors::MigrationError, 1, 0, 2, 1]
+
 ## Teardown
-@client.del(@old_key, @backup_old)
+@client.del(@old_key, @backup_old, @new_key)
 @client.exists?(@old_key)
 #=> false
