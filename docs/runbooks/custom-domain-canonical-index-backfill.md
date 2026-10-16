@@ -171,12 +171,6 @@ resolves to today (`served`); the others are `shadow`. Only one record per
 name can be kept. `bin/ots domains resolve-collisions` decides which, by a
 fixed rule, and removes the others.
 
-On a release that has the backfill command but not `resolve-collisions`
-(v0.26.17), the same operation runs as a script:
-`bundle exec ruby scripts/resolve_canonical_collisions.rb plan|apply ...`,
-with the same options. Its header lists the files to copy into the
-application directory.
-
 1. Make the plan. This reads only, so it can run before the window:
 
    ```console

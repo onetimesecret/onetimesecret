@@ -15,8 +15,7 @@ Added
   re-enters the kept record in the exact name index when the removed record
   answered for the name, and on the Approximated strategy verifies the kept
   record again. Groups the rule cannot decide, and groups whose records changed
-  since the plan, are left for the operator. ``scripts/resolve_canonical_collisions.rb``
-  runs the same operation on v0.26.17.
+  since the plan, are left for the operator.
 
 Changed
 -------

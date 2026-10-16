@@ -3,8 +3,8 @@
 # frozen_string_literal: true
 
 # Domain-owned (app-scoped) operation — see decision D3 in
-# lib/onetime/operations/README.md. Loaded at the call site (CLI and
-# scripts/resolve_canonical_collisions.rb), so require what it builds on.
+# lib/onetime/operations/README.md. Loaded at the call site (the CLI
+# command), so require what it builds on.
 require 'onetime/operations/domains/canonical_index_audit'
 require 'onetime/operations/domains/remove'
 require 'onetime/operations/admin_verify_domain'
@@ -22,8 +22,7 @@ module Onetime
       # writes them; this operation decides which record to keep by a fixed
       # rule ({Rule}), writes the decision to a plan an operator reviews,
       # and applies the plan. The CLI adapter is
-      # `bin/ots domains resolve-collisions`; scripts/resolve_canonical_collisions.rb
-      # runs the same operation on a release without the command.
+      # `bin/ots domains resolve-collisions`.
       #
       # ## plan
       #

@@ -6,9 +6,8 @@ module Onetime
   module Operations
     module Domains
       class CollisionResolution
-        # Text reports for a Plan and an ApplyResult. Shared by the CLI
-        # command and scripts/resolve_canonical_collisions.rb so both print
-        # the same thing.
+        # Text reports for a Plan and an ApplyResult, printed by the CLI
+        # command.
         module Text
           extend self
 
