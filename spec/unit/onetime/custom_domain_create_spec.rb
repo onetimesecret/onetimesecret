@@ -107,7 +107,7 @@ RSpec.describe Onetime::CustomDomain, '.create!' do
   end
 
   def stub_creation_dependencies
-    stub_canonical_claim
+    stub_ascii_claim
     allow(described_class).to receive(:parse) do |input, _org_id|
       input == unicode_name ? harness.fetch(:unicode_domain) : harness.fetch(:ascii_domain)
     end
@@ -123,7 +123,7 @@ RSpec.describe Onetime::CustomDomain, '.create!' do
     allow(Onetime::Organization).to receive(:load).and_return(nil)
   end
 
-  def stub_canonical_claim
+  def stub_ascii_claim
     allow(harness.fetch(:ascii_index)).to receive(:claim_field) do |field, identifier|
       harness.fetch(:claim_fields) << field
       claims = harness.fetch(:claims)

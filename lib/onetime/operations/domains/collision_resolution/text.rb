@@ -29,16 +29,7 @@ module Onetime
 
           def group_lines(group)
             lines = []
-            state = if group.skip
-'SKIP'
-else
-(if group.manual?
-group.approved ? 'MANUAL approved' : 'MANUAL'
-else
-'auto'
-end)
-end
-            lines << "#{group.ascii_name}  #{state}: #{group.rule}"
+            lines << "#{group.ascii_name}  #{state_label(group)}: #{group.rule}"
             group.records.each do |record|
               tag = if record.named_by?(group.keep) then 'KEEP  '
                     elsif group.manual? && !group.keep then '?     '
@@ -49,6 +40,13 @@ end
             group.notes.each { |note| lines << "  note: #{note}" }
             lines << ''
             lines
+          end
+
+          def state_label(group)
+            return 'SKIP' if group.skip
+            return 'auto' unless group.manual?
+
+            group.approved ? 'MANUAL approved' : 'MANUAL'
           end
 
           def record_line(record)

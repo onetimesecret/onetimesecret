@@ -59,6 +59,11 @@ RSpec.describe 'Domains resolve-collisions command', type: :cli do
   end
 
   def apply_result(status, dry_run: false, reason: nil)
+    removals = []
+    unless status == :skipped
+      removals << op_class::Removal.new(ref: 'cda', display_domain: 'pair.example', status: dry_run ? :planned : :removed, detail: nil)
+    end
+
     op_class::ApplyResult.new(
       dry_run: dry_run,
       strategy: 'passthrough',
@@ -68,11 +73,7 @@ RSpec.describe 'Domains resolve-collisions command', type: :cli do
           status: status,
           reason: reason,
           keep: 'cdb',
-          removals: if status == :skipped
-[]
-else
-[op_class::Removal.new(ref: 'cda', display_domain: 'pair.example', status: dry_run ? :planned : :removed, detail: nil)]
-end,
+          removals: removals,
           index_claim: status == :applied ? :created : nil,
           verify_state: nil,
           errors: [],

@@ -115,7 +115,7 @@ module Onetime
       # Check #11 (see check_ascii_index_integrity).
       ASCII_INDEX_RUNBOOK = 'docs/runbooks/custom-domain-ascii-index-backfill.md'
 
-      CANONICAL_INDEX_FINDINGS = {
+      ASCII_INDEX_FINDINGS = {
         missing: {
           severity: :high,
           message: 'records missing from ascii_display_domain_index',
@@ -394,7 +394,7 @@ module Onetime
       def check_ascii_index_integrity(issues)
         audit = Onetime::Operations::Domains::AsciiIndexAudit.new.call
 
-        CANONICAL_INDEX_FINDINGS.each do |category, finding|
+        ASCII_INDEX_FINDINGS.each do |category, finding|
           examples = audit.rows_in(category).map { |row| ascii_row_example(row) } +
                      audit.entries_in(category).map { |entry| entry.to_h.slice(:ascii_name, :holder_id, :detail) }
           next if examples.empty?

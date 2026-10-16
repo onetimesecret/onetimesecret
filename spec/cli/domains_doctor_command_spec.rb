@@ -90,7 +90,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
     index
   end
 
-  let(:canonical_audit_result) do
+  let(:ascii_audit_result) do
     Onetime::Operations::Domains::AsciiIndexAudit::Result.new(rows: [], entries: [], errors: [])
   end
 
@@ -118,7 +118,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
     # Check #11 reads the whole keyspace; a clean audit keeps it silent unless
     # an example says otherwise.
     allow(Onetime::Operations::Domains::AsciiIndexAudit).to receive(:new)
-      .and_return(double('AsciiIndexAudit', call: canonical_audit_result))
+      .and_return(double('AsciiIndexAudit', call: ascii_audit_result))
   end
 
   describe 'membership repair delegation' do
@@ -369,7 +369,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
   # application stopped.
   describe 'ASCII index integrity' do
     let(:audit_class) { Onetime::Operations::Domains::AsciiIndexAudit }
-    let(:canonical_audit_result) do
+    let(:ascii_audit_result) do
       audit_class::Result.new(
         rows: [
           ascii_row(:missing, 'm1'),
@@ -407,13 +407,13 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       allow(Onetime::CustomDomain).to receive(:instances).and_return([])
     end
 
-    def canonical_issues(report)
+    def ascii_issues(report)
       report['issues'].find { |group| group['type'] == 'indexes' }['issues']
         .select { |issue| issue['check'].start_with?('ascii_index_') }
     end
 
     it 'reports missing, collision, conflict and stale findings with their totals and severities' do
-      issues = canonical_issues(json_report('domains', 'doctor', '--all', '--json'))
+      issues = ascii_issues(json_report('domains', 'doctor', '--all', '--json'))
 
       expect(issues.to_h { |i| [i['check'], [i['severity'], i['total'], i['repairable']]] }).to eq(
         'ascii_index_missing' => ['high', 2, false],
@@ -425,7 +425,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
     end
 
     it 'points at the backfill command and the runbook' do
-      issues  = canonical_issues(json_report('domains', 'doctor', '--all', '--json'))
+      issues  = ascii_issues(json_report('domains', 'doctor', '--all', '--json'))
       missing = issues.find { |i| i['check'] == 'ascii_index_missing' }
 
       expect(missing['repair_action']).to include('backfill-ascii-index --apply', 'custom-domain-ascii-index-backfill.md')
@@ -442,7 +442,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
     end
 
     context 'when only unreadable records are found outside instances and the indexes' do
-      let(:canonical_audit_result) do
+      let(:ascii_audit_result) do
         audit_class::Result.new(
           rows: [],
           entries: [],
@@ -460,7 +460,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
           'checked' => 0, 'healthy' => 0, 'repaired' => [], 'failed_repairs' => [],
         )
         expect(report['issues'].map { |group| group['type'] }).to eq(['indexes'])
-        expect(canonical_issues(report)).to contain_exactly(
+        expect(ascii_issues(report)).to contain_exactly(
           include(
             'check' => 'ascii_index_unreadable',
             'severity' => 'high',
@@ -493,7 +493,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
         result = audit_class::Result.new(rows: [], entries: [], errors: errors)
         allow(audit_class).to receive(:new).and_return(double('AsciiIndexAudit', call: result))
 
-        issue = canonical_issues(json_report('domains', 'doctor', '--all', '--json')).first
+        issue = ascii_issues(json_report('domains', 'doctor', '--all', '--json')).first
 
         expect(issue['total']).to eq(12)
         expect(issue['examples'].map { |example| example['domain_objid'] }).to eq((1..10).map { |id| "broken#{id}" })
@@ -516,7 +516,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
 
         report = json_report('domains', 'doctor', '--all', '--repair', '--json')
 
-        expect(canonical_issues(report).first['repairable']).to be(false)
+        expect(ascii_issues(report).first['repairable']).to be(false)
         expect(report['repaired']).to be_empty
         expect(report['failed_repairs']).to be_empty
         expect(last_exit_code).to eq(2)
@@ -531,7 +531,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
 
         expect(report['repaired']).to eq([{ 'action' => 'display_domain_index_cleaned', 'count' => 1 }])
         expect(display_index).to have_received(:release_field).with('stale.example.com', 'gone999').once
-        expect(canonical_issues(report).first['check']).to eq('ascii_index_unreadable')
+        expect(ascii_issues(report).first['check']).to eq('ascii_index_unreadable')
         expect(last_exit_code).to eq(2)
       end
     end

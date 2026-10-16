@@ -29,9 +29,10 @@ Changed
   is ``custom_domain:ascii_display_domain_index``. An install that already has
   the old key renames it with
   ``bin/ots migrate migrations/2026-10-15/20261015_01_rename_ascii_display_domain_index.rb --run``
-  before starting the new release; until then domains registered since
-  v0.26.14 are not found by their index entry, and new registrations claim
-  names in an empty index. The runbook moved to
+  before starting the new release. Until it runs, the exact name index still
+  finds every domain, but the creation gate and the doctor audit see an empty
+  ASCII index, so a name registered since v0.26.14 is not refused in its
+  other spelling. The runbook moved to
   ``docs/runbooks/custom-domain-ascii-index-backfill.md``.
 
 - The ``backfill-ascii-index`` report marks, in each collision group, the

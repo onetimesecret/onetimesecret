@@ -5,8 +5,9 @@ Use this runbook once after upgrading to the release that adds
 domains registered before v0.26.14. Use it again whenever
 `bin/ots domains doctor --all` reports an `ascii_index_*` finding.
 
-On an install that ran v0.26.17, the index is still stored under its former
-key, `custom_domain:canonical_display_domain_index`. Rename it before
+On an install that ran any release from v0.26.14 to v0.26.17, the index is
+still stored under its former key, `custom_domain:canonical_display_domain_index`.
+Rename it before
 starting the new release, with the application stopped:
 
 ```console

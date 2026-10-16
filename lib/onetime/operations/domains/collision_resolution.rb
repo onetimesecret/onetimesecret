@@ -186,11 +186,7 @@ module Onetime
             org_id: row.org_id,
             org_extid: org&.extid,
             org_name: org&.display_name,
-            org_state: if org.nil?
-:missing
-else
-(org.archived? ? :archived : :active)
-end,
+            org_state: org_state_for(org),
             served: served_id(row.ascii_name) == row.domain_id,
             verification_state: row.verification_state,
             ownership_verified: row.ownership_verified == true,
@@ -203,6 +199,12 @@ end,
             vhost: record ? !record.vhost.to_s.empty? : false,
             created: row.created,
           )
+        end
+
+        def org_state_for(org)
+          return :missing if org.nil?
+
+          org.archived? ? :archived : :active
         end
 
         # The record a request for the name (its A-label, the form on the

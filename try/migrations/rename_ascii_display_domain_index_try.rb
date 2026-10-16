@@ -109,16 +109,16 @@ migration(run: false).migration_needed?
 [@client.hlen(@old_key), @client.hlen(@new_key), @index.get(@name_a)]
 #=> [1, 2, 'id-a']
 
-## The other pair still renames when only one target exists
-@client.del(@old_key)
+## A refused index rename does not stop the backup rename
+@client.del(@backup_new)
 @client.hset(@backup_old, @name_b, 'id-b')
 @partial = migration(run: true)
-[@partial.migrate, @partial.stats[:refused], @partial.stats[:absent]]
-#=> [false, 1, 1]
+[@partial.migrate, @partial.stats[:refused], @partial.stats[:renamed], @client.exists?(@backup_old), @client.hlen(@backup_new)]
+#=> [false, 1, 1, false, 1]
 
-## Cleanup the extra backup before rolling back
-@client.del(@backup_old)
-@client.exists?(@backup_old)
+## Cleanup the late entry before rolling back
+@client.del(@old_key)
+@client.exists?(@old_key)
 #=> false
 
 # --- Rollback ---
