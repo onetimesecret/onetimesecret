@@ -314,6 +314,8 @@ module Onetime
           rescue Lettermint::HttpRequestError => ex
             # Only the documented target-specific error establishes absence.
             # A list/proxy 404 or a message resembling not-found is not evidence.
+            # The schema also allows a message-only 404 body (ErrorMessage);
+            # it carries no code, so it stays a failure.
             body = ex.response_body
             if ex.status_code == 404 && body.is_a?(Hash) && body['error'].is_a?(Hash) &&
                body['error']['code'] == 'RESOURCE_NOT_FOUND'

@@ -104,6 +104,18 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy, 'looku
       .to include(outcome: :absent, deleted: false, error: nil)
   end
 
+  # The schema's delete 404 is anyOf [ErrorMessage, ApiError]. Only ApiError
+  # names RESOURCE_NOT_FOUND; a message-only body reads like a proxy 404.
+  it '[D11] does not treat a message-only 404 body as absence' do
+    allow(resource).to receive(:delete).with('target-id').and_raise(
+      Lettermint::HttpRequestError.new(message: 'Not found', status_code: 404,
+        response_body: { 'message' => 'Not found' }),
+    )
+    expect(strategy.delete_sender_identity(config, credentials: credentials))
+      .to include(outcome: :failed, deleted: false, error: 'Not found')
+    expect(resource).to have_received(:delete).once
+  end
+
   [nil, {}, { 'message' => '' }, { 'message' => 1 }, { 'message' => 'ok', 'error' => 'denied' }].each do |response|
     it "[D12] rejects an invalid delete acknowledgement #{response.inspect}" do
       allow(resource).to receive(:delete).with('target-id').and_return(response)
