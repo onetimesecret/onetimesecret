@@ -852,6 +852,55 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         expect(config).to be_nil
       end
 
+      context 'with the real provider cleanup operation' do
+        let(:events) { [] }
+        let(:strategy) { Onetime::Mail::SenderStrategies.for_provider('ses') }
+        let(:ses_client) { Aws::SESV2::Client.new(region: 'us-east-1', stub_responses: true) }
+
+        before do
+          require 'aws-sdk-sesv2'
+          allow(Onetime::Mail::Mailer).to receive(:provider_credentials).with('ses')
+            .and_return('access_key_id' => 'test-access-key', 'secret_access_key' => 'test-secret-key')
+          allow(Onetime::Mail::SenderStrategies).to receive(:for_provider).with('ses').and_return(strategy)
+          allow(strategy).to receive(:build_ses_client).and_return(ses_client)
+          allow(OT).to receive(:info).and_call_original
+          allow(OT).to receive(:info).with('[DOMAIN_SENDER_CONFIG] domain_sender_config_deleted', anything) do |_, payload|
+            events << JSON.parse(payload)
+          end
+        end
+
+        {
+          'deleted' => ['C10', {}, 'completed'],
+          'already absent' => ['C10', 'NotFoundException', 'completed'],
+          'provider denied deletion' => ['C09', 'AccessDeniedException', 'failed'],
+        }.each do |scenario, (case_id, response, cleanup)|
+          it "[#{case_id}] keeps the local deletion response and audits #{cleanup} when #{scenario}" do
+            ses_client.stub_responses(:delete_email_identity, response)
+
+            csrf_delete api_path(test_custom_domain.extid)
+
+            expect(last_response.status).to eq(200), last_response.body
+            expect(json_body).to include(
+              'success' => true,
+              'message' => "Sender configuration deleted for domain #{tenant_domain}",
+            )
+            expect(json_body).not_to have_key('error')
+            expect(json_body).not_to have_key('provider_cleanup')
+            expect(Onetime::CustomDomain::MailerConfig.find_by_domain_id(test_custom_domain.identifier)).to be_nil
+            expect(test_custom_domain.exists?).to be true
+            expect(Onetime::CustomDomain::MailerConfig.sender_identity_lock(test_custom_domain.identifier).locked?).to be false
+            expect(ses_client.api_requests.map { |request| [request[:operation_name], request[:params]] })
+              .to eq([[:delete_email_identity, { email_identity: 'example.com' }]])
+            expect(events.size).to eq(1)
+            expect(events.first).to include('event' => 'domain_sender_config_deleted', 'provider' => 'ses',
+              'domain_id' => test_custom_domain.identifier, 'actor_id' => test_owner.custid)
+            expect(events.first['details']).to include('config_deleted' => true, 'lease_lost' => false,
+              'provider_cleanup' => cleanup, 'from_address' => 'delete-test@example.com')
+            expect(events.first.to_json).not_to include('delete-test-key', 'test-access-key', 'test-secret-key', 'api_key')
+          end
+        end
+      end
+
       # Provisioning and the provider teardown share this lock: a provider
       # reuses an existing identity, so a provision that overlapped the
       # teardown would save DNS records for an identity the teardown deletes.

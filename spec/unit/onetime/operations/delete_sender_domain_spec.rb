@@ -62,7 +62,7 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
           .with(provider).and_return(strategy)
         expect(strategy).to receive(:delete_sender_identity)
           .with(config, credentials: mock_credentials)
-          .and_return({ deleted: true, message: "#{provider} identity deleted" })
+          .and_return({ outcome: :deleted, deleted: true, message: "#{provider} identity deleted", error: nil })
 
         result = described_class.new(mailer_config: config).call
 
@@ -76,7 +76,7 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
       config   = mailer_config_for('ses')
       strategy = instance_double(
         Onetime::Mail::SenderStrategies::SESSenderStrategy,
-        delete_sender_identity: { deleted: true, message: 'ok' },
+        delete_sender_identity: { outcome: :deleted, deleted: true, message: 'ok', error: nil },
       )
 
       allow(Onetime::Mail::SenderStrategies).to receive(:for_provider)
@@ -137,6 +137,20 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
   # ==========================================================================
 
   describe '#call skip paths' do
+    let(:log) { double('logger', info: nil, error: nil) }
+
+    before do
+      allow(Onetime).to receive(:get_logger).and_return(log)
+    end
+
+    after do
+      expect(log).to have_received(:info).with(
+        'Sender domain deletion skipped (no-op)', hash_including(outcome: :skipped, message: /skipped:/),
+      )
+      expect(log).not_to have_received(:error)
+      expect(log).not_to have_received(:info).with('Sender domain deleted', anything)
+    end
+
     it 'skips when mailer_config is nil' do
       result = described_class.new(mailer_config: nil).call
 
@@ -169,6 +183,129 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
   # ==========================================================================
   # #call — error handling (never raises; wraps failures in Result)
   # ==========================================================================
+
+  describe '#call result validation' do
+    let(:config) { mailer_config_for('ses') }
+    let(:strategy) { instance_double(Onetime::Mail::SenderStrategies::SESSenderStrategy) }
+    let(:log) { double('logger', info: nil, error: nil) }
+    let(:valid_result) { { outcome: :deleted, deleted: true, message: 'identity deleted', error: nil } }
+
+    before do
+      allow(Onetime).to receive(:get_logger).and_return(log)
+      allow(Onetime::Mail::Mailer).to receive(:provider_credentials).and_return(mock_credentials)
+      allow(Onetime::Mail::SenderStrategies).to receive(:for_provider).with('ses').and_return(strategy)
+    end
+
+    malformed_results = {
+      'nil' => nil,
+      'an empty hash' => {},
+      'an array' => [],
+      'a string' => 'deleted',
+      'an unknown outcome' => { outcome: :unknown },
+      'a string outcome' => { outcome: 'deleted' },
+      'a nil outcome' => { outcome: nil },
+      'a false deletion flag for deleted' => { deleted: false },
+      'a nil deletion flag' => { deleted: nil },
+      'a truthy deletion flag' => { deleted: 'true' },
+      'a missing message' => { message: nil },
+      'an empty message' => { message: '' },
+      'a whitespace message' => { message: " \n\t" },
+      'a non-string message' => { message: :done },
+      'an error on a deletion' => { error: 'provider failed' },
+      'a blank error on a deletion' => { error: '' },
+      'a false error on a deletion' => { error: false },
+    }
+    malformed_results.each do |label, fields|
+      it "fails closed for #{label}" do
+        payload = fields.is_a?(Hash) && !fields.empty? ? valid_result.merge(fields) : fields
+        allow(strategy).to receive(:delete_sender_identity).and_return(payload)
+
+        result = described_class.new(mailer_config: config).call
+
+        expect(result.failed?).to be true
+        expect(result.error).to include('Invalid sender deletion result')
+        expect(log).to have_received(:error).with('Sender domain deletion failed', hash_including(error: result.error))
+        expect(log).not_to have_received(:info)
+      end
+    end
+
+    %i[outcome deleted message error].each do |key|
+      it "fails closed when the #{key} key is absent" do
+        allow(strategy).to receive(:delete_sender_identity).and_return(valid_result.reject { |k, _| k == key })
+
+        result = described_class.new(mailer_config: config).call
+
+        expect(result.failed?).to be true
+        expect(result.error).to include('Invalid sender deletion result')
+        expect(log).not_to have_received(:info)
+      end
+    end
+
+    %i[absent skipped failed].each do |outcome|
+      it "rejects deleted: true for #{outcome}" do
+        error = outcome == :failed ? 'provider failed' : nil
+        allow(strategy).to receive(:delete_sender_identity).and_return(valid_result.merge(outcome: outcome, error: error))
+
+        expect(described_class.new(mailer_config: config).call.failed?).to be true
+        expect(log).not_to have_received(:info)
+      end
+    end
+
+    %i[absent skipped].each do |outcome|
+      it "rejects an error for #{outcome}" do
+        allow(strategy).to receive(:delete_sender_identity)
+          .and_return(valid_result.merge(outcome: outcome, deleted: false, error: 'provider failed'))
+
+        expect(described_class.new(mailer_config: config).call.failed?).to be true
+        expect(log).not_to have_received(:info)
+      end
+    end
+
+    [nil, '', " \n", false, :failure].each do |error|
+      it "rejects a failed outcome with error #{error.inspect}" do
+        allow(strategy).to receive(:delete_sender_identity)
+          .and_return(valid_result.merge(outcome: :failed, deleted: false, error: error))
+
+        expect(described_class.new(mailer_config: config).call.failed?).to be true
+        expect(log).not_to have_received(:info)
+      end
+    end
+
+    {
+      deleted: 'Sender domain deleted',
+      absent: 'Sender domain already absent',
+      skipped: 'Sender domain deletion skipped (no-op)',
+      failed: 'Sender domain deletion failed',
+    }.each do |outcome, event|
+      it "reports and logs a valid #{outcome} outcome" do
+        error = outcome == :failed ? 'provider failed' : nil
+        payload = { outcome: outcome, deleted: outcome == :deleted, message: 'provider result', error: error }
+        allow(strategy).to receive(:delete_sender_identity).and_return(payload)
+
+        result = described_class.new(mailer_config: config).call
+
+        expect(result.success?).to eq(outcome != :failed)
+        expect(result.message).to eq(payload[:message])
+        expect(result.error).to eq(error)
+        level = outcome == :failed ? :error : :info
+        expect(log).to have_received(level).with(event, hash_including(provider: 'ses', domain_id: 'cd:test123', outcome: outcome))
+        expect(log).not_to have_received(outcome == :failed ? :info : :error)
+      end
+    end
+
+    ['', " \n\t"].each do |message|
+      it "uses a nonempty error for an exception with message #{message.inspect}" do
+        allow(strategy).to receive(:delete_sender_identity).and_raise(StandardError, message)
+
+        result = described_class.new(mailer_config: config).call
+
+        expect(result.failed?).to be true
+        expect(result.error).to eq('StandardError')
+        expect(log).to have_received(:error).with('Sender domain deletion failed', hash_including(error: 'StandardError'))
+        expect(log).not_to have_received(:info)
+      end
+    end
+  end
 
   describe '#call error handling' do
     it 'reports a SendGrid lookup failure after a successful preflight as an error, not a no-op' do
@@ -212,7 +349,7 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
       expect(result.success?).to be true
       expect(result.error).to be_nil
       expect(result.message).to include('not found')
-      expect(log).to have_received(:info).with('Sender domain deletion skipped (no-op)', anything)
+      expect(log).to have_received(:info).with('Sender domain already absent', anything)
       expect(log).not_to have_received(:error)
     end
 
