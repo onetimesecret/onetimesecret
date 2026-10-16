@@ -217,6 +217,7 @@ module Onetime
         # @return [Hash] Deletion result:
         #   - :deleted [Boolean]
         #   - :message [String]
+        #   - :error [String, nil] Present on failure, absent for a confirmed no-op
         #
         def delete_sender_identity(mailer_config, credentials:)
           domain = extract_domain(mailer_config.from_address)
@@ -225,6 +226,7 @@ module Onetime
             return {
               deleted: false,
               message: 'Invalid from_address: cannot extract domain',
+              error: 'Invalid from_address: cannot extract domain',
             }
           end
 
@@ -233,6 +235,7 @@ module Onetime
             return {
               deleted: false,
               message: 'SendGrid API key is required',
+              error: 'SendGrid API key is required',
             }
           end
 
@@ -262,6 +265,7 @@ module Onetime
             {
               deleted: false,
               message: response[:error] || 'Delete failed',
+              error: response[:error] || 'Delete failed',
             }
           end
         rescue StandardError => ex
@@ -269,6 +273,7 @@ module Onetime
           {
             deleted: false,
             message: "Delete failed: #{ex.message}",
+            error: ex.message,
           }
         end
 
@@ -334,6 +339,7 @@ module Onetime
         # @param domain [String] Domain to search for
         # @param api_key [String] SendGrid API key
         # @return [Integer, nil] Domain ID or nil if not found
+        # @raise [APIError] if a page could not be read
         #
         def find_domain_id(domain, api_key:)
           each_domain_authentication_page(api_key: api_key) do |domains|
@@ -352,9 +358,11 @@ module Onetime
         # @return [Array<Hash>, nil] all entries, or nil when any page failed
         #
         def domain_authentications(api_key:)
-          domains  = []
-          complete = each_domain_authentication_page(api_key: api_key) { |page| domains.concat(page) }
-          complete ? domains : nil
+          domains = []
+          each_domain_authentication_page(api_key: api_key) { |page| domains.concat(page) }
+          domains
+        rescue APIError
+          nil
         end
 
         # @param domains [Array<Hash>] domain authentication entries
@@ -368,8 +376,8 @@ module Onetime
 
         # Yields each page of the domain authentication list.
         #
-        # @return [Boolean] true when every page was read, false when a
-        #   request failed or returned something other than a list
+        # @return [Boolean] true when every page was read
+        # @raise [APIError] if a request failed or returned something other than a list
         #
         def each_domain_authentication_page(api_key:)
           limit  = DOMAIN_LIST_PAGE_SIZE
@@ -380,10 +388,17 @@ module Onetime
               "/whitelabel/domains?limit=#{limit}&offset=#{offset}",
               api_key: api_key,
             )
-            return false unless response[:success]
+            unless response[:success]
+              raise APIError.new(
+                response[:error] || 'Domain authentication lookup failed',
+                status_code: response[:status_code],
+              )
+            end
 
             domains = response[:data]
-            return false unless domains.is_a?(Array)
+            unless domains.is_a?(Array)
+              raise APIError.new('Invalid domain authentication list: expected an array', status_code: nil)
+            end
 
             yield domains
 
@@ -478,7 +493,7 @@ module Onetime
             { success: true, data: data }
           else
             error_message = extract_error_message(data) || "HTTP #{code}"
-            { success: false, data: data, error: error_message }
+            { success: false, data: data, error: error_message, status_code: code }
           end
         rescue JSON::ParserError
           { success: false, data: {}, error: "Invalid JSON response: #{body[0, 200]}" }

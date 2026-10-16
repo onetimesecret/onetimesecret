@@ -286,6 +286,19 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
       end
     end
 
+    context 'when the domain lookup fails (provider API error)' do
+      it 'returns an indeterminate error instead of not_found' do
+        allow(strategy).to receive(:get_request)
+          .and_return({ success: false, error: 'Rate limited' })
+
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
+
+        expect(result[:verified]).to be_nil
+        expect(result[:status]).to eq('error')
+        expect(result[:message]).to include('Rate limited')
+      end
+    end
+
     context 'when an unexpected error occurs (transport failure)' do
       before do
         allow(strategy).to receive(:find_domain_id).and_raise(StandardError.new('connection reset'))
@@ -359,6 +372,51 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
 
         expect(result[:deleted]).to be false
         expect(result[:message]).to include('Forbidden')
+        expect(result[:error]).to eq('Forbidden')
+      end
+    end
+
+    context 'when the domain lookup fails' do
+      [0, 50].each do |failed_offset|
+        it "reports an error instead of absence when page offset #{failed_offset} is rate limited" do
+          if failed_offset.positive?
+            page = 50.times.map { |i| { 'id' => i, 'domain' => "other#{i}.com" } }
+            allow(strategy).to receive(:get_request)
+              .with('/whitelabel/domains?limit=50&offset=0', api_key: credentials['api_key'])
+              .and_return({ success: true, data: page })
+          end
+          allow(strategy).to receive(:get_request)
+            .with("/whitelabel/domains?limit=50&offset=#{failed_offset}", api_key: credentials['api_key'])
+            .and_return({ success: false, error: 'Rate limited' })
+          expect(strategy).not_to receive(:delete_request)
+
+          result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
+
+          expect(result[:deleted]).to be false
+          expect(result[:error]).to include('Rate limited')
+          expect(result[:message]).not_to include('not found')
+        end
+      end
+
+      it 'reports malformed list data as an error instead of absence' do
+        allow(strategy).to receive(:get_request).and_return({ success: true, data: {} })
+        expect(strategy).not_to receive(:delete_request)
+
+        result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
+
+        expect(result[:deleted]).to be false
+        expect(result[:error]).to include('Invalid domain authentication list')
+        expect(result[:message]).not_to include('not found')
+      end
+
+      it 'reports transport failures as errors' do
+        allow(strategy).to receive(:get_request).and_raise(Net::ReadTimeout)
+        expect(strategy).not_to receive(:delete_request)
+
+        result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
+
+        expect(result[:deleted]).to be false
+        expect(result[:error]).to include('Net::ReadTimeout')
       end
     end
 
@@ -600,13 +658,12 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
     context 'when API returns failure on first request' do
       before do
         allow(strategy).to receive(:get_request)
-          .and_return({ success: false, error: 'Unauthorized' })
+          .and_return({ success: false, error: 'Unauthorized', status_code: 401 })
       end
 
-      it 'returns nil' do
-        result = strategy.send(:find_domain_id, 'example.com', api_key: api_key)
-
-        expect(result).to be_nil
+      it 'raises an API error instead of reporting absence' do
+        expect { strategy.send(:find_domain_id, 'example.com', api_key: api_key) }
+          .to raise_error(described_class::APIError, 'Unauthorized') { |error| expect(error.status_code).to eq(401) }
       end
     end
 
@@ -622,10 +679,9 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
           .and_return({ success: false, error: 'Rate limited' })
       end
 
-      it 'returns nil' do
-        result = strategy.send(:find_domain_id, 'example.com', api_key: api_key)
-
-        expect(result).to be_nil
+      it 'raises an API error instead of reporting absence' do
+        expect { strategy.send(:find_domain_id, 'example.com', api_key: api_key) }
+          .to raise_error(described_class::APIError, 'Rate limited')
       end
     end
 
@@ -635,10 +691,9 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
           .and_return({ success: true, data: { 'error' => 'unexpected format' } })
       end
 
-      it 'returns nil' do
-        result = strategy.send(:find_domain_id, 'example.com', api_key: api_key)
-
-        expect(result).to be_nil
+      it 'raises an API error instead of reporting absence' do
+        expect { strategy.send(:find_domain_id, 'example.com', api_key: api_key) }
+          .to raise_error(described_class::APIError, /Invalid domain authentication list/)
       end
     end
 
