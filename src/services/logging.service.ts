@@ -1,10 +1,59 @@
 // src/services/logging.service.ts
 
-const STARTUP_BANNER = `
-┏┓┳┓┏┓┏┳┓┳┳┳┓┏┓
-┃┃┃┃┣  ┃ ┃┃┃┃┣
-┗┛┛┗┗┛ ┻ ┻┛ ┗┗┛
-`;
+// "STOP" in the Tmplr figlet font, the lettering the old ONETIME banner also
+// used. It is art, so it is not translated; the text under it is. Source:
+// https://patorjk.com/software/taag/#p=display&f=Tmplr&t=STOP%0A&x=none&v=4&h=4&w=80&we=false
+const STOP_BANNER = ['┏┓┏┳┓┏┓┏┓', '┗┓ ┃ ┃┃┃┃', '┗┛ ┻ ┗┛┣┛'].join('\n');
+
+/**
+ * The self-XSS warning printed under the STOP banner, already translated.
+ * Anyone told to paste code into the console is being scammed; this is what
+ * they read before they do.
+ */
+export interface ConsoleWarning {
+  heading: string;
+  body: string;
+  closing: string;
+}
+
+const WARNING_HEADING_STYLE = 'font-size:18px;font-weight:700;line-height:1.5';
+const WARNING_BODY_STYLE = 'font-size:14px;line-height:1.5';
+const WARNING_CLOSING_STYLE = 'font-size:14px;font-weight:700;line-height:1.5';
+
+/**
+ * Console arguments that draw `text` in flame colours: one `%c%s` pair per
+ * character, red at the top left through amber at the bottom right. The
+ * characters travel as `%s` arguments, never in the format string, so a `%`
+ * in translated text cannot be read as a format specifier.
+ */
+export function flameArgs(text: string, fontSize: number): string[] {
+  const rows = text.split('\n').map(graphemes);
+  const width = Math.max(1, ...rows.map((row) => row.length));
+  let format = '';
+  const args: string[] = [];
+  rows.forEach((row, r) => {
+    row.forEach((ch, i) => {
+      const heat = (r + i / width) / rows.length;
+      const hue = (8 + heat * 34 + Math.sin(i * 1.3) * 4).toFixed(1);
+      const light = (48 + heat * 14).toFixed(1);
+      format += '%c%s';
+      args.push(
+        `color:hsl(${hue},95%,${light}%);font-size:${fontSize}px;line-height:1;` +
+          `text-shadow:0 0 6px hsla(${hue},100%,50%,.6)`,
+        ch
+      );
+    });
+    if (r < rows.length - 1) format += '\n';
+  });
+  return [format, ...args];
+}
+
+// One entry per visible character, so accents and emoji keep together.
+function graphemes(text: string): string[] {
+  if (typeof Intl.Segmenter !== 'function') return Array.from(text);
+  const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+  return Array.from(segmenter.segment(text), (s) => s.segment);
+}
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent';
 
@@ -38,7 +87,7 @@ export interface LoggingService {
   warn(message: string, context?: Record<string, unknown>): void;
   info(message: string, context?: Record<string, unknown>): void;
   debug(message: string, context?: Record<string, unknown>): void;
-  banner(): void;
+  banner(warning: ConsoleWarning): void;
   getLevel(): LogLevel;
   setLevel(level: LogLevel): void;
 }
@@ -82,9 +131,21 @@ export class ConsoleLoggingService implements LoggingService {
     if (this.enabled('debug')) console.debug(...withContext(message, context));
   }
 
-  // The banner is not a log message: it prints whatever the level.
-  banner(): void {
-    console.log(STARTUP_BANNER);
+  // The banner is not a log message: it prints whatever the level, and in
+  // production too. The build's dropConsole strips every `console.*` call,
+  // so these go through `globalThis.console`, which it leaves alone
+  // (console-survives-minify.spec.ts holds it to that).
+  banner(warning: ConsoleWarning): void {
+    globalThis.console.log(...flameArgs(STOP_BANNER, 18));
+    globalThis.console.log(
+      '%c%s\n\n%c%s\n\n%c%s',
+      WARNING_HEADING_STYLE,
+      warning.heading,
+      WARNING_BODY_STYLE,
+      warning.body,
+      WARNING_CLOSING_STYLE,
+      warning.closing
+    );
   }
 }
 
