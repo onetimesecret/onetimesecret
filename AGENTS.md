@@ -141,6 +141,13 @@ shellcheck/actionlint. Both also run in the `Static analysis` workflow.
 repo checkout that has loaded the test environment. Do not run tests
 unless `.test-mode` already exists.
 
+## Terms and phrases to avoid
+
+Do not use any of the following terms or phrases or sentence structures:
+
+- holds, claims, lands
+- "A isn't only B, but also C"
+
 ## Replying to review comments
 
 - Every P1 gets a binary disposition before merge: fixed (cite the commit),
