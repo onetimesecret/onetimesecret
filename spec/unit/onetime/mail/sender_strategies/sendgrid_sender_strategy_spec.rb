@@ -658,6 +658,50 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
     end
   end
 
+  describe '#domain_authentications (private, paginated)' do
+    let(:api_key) { 'SG.test-api-key-example' }
+
+    def make_domains(count, start_id: 1)
+      count.times.map { |i| { 'id' => start_id + i, 'domain' => "other#{start_id + i}.com" } }
+    end
+
+    it 'concatenates every page and matches entries like find_domain_id' do
+      page1 = make_domains(50, start_id: 1)
+      page2 = make_domains(4, start_id: 51) + [{ 'id' => 99, 'domain' => 'example.com' }]
+      allow(strategy).to receive(:get_request)
+        .with('/whitelabel/domains?limit=50&offset=0', api_key: api_key)
+        .and_return({ success: true, data: page1 })
+      allow(strategy).to receive(:get_request)
+        .with('/whitelabel/domains?limit=50&offset=50', api_key: api_key)
+        .and_return({ success: true, data: page2 })
+
+      listing = strategy.send(:domain_authentications, api_key: api_key)
+
+      expect(listing.size).to eq(55)
+      expect(strategy).to have_received(:get_request).twice
+      expect(strategy.send(:domain_authentication_id, listing, 'example.com')).to eq(99)
+      expect(strategy.send(:domain_authentication_id, listing, 'other7.com')).to eq(7)
+      expect(strategy.send(:domain_authentication_id, listing, 'missing.com')).to be_nil
+    end
+
+    it 'returns nil, not a partial list, when a later page fails' do
+      allow(strategy).to receive(:get_request)
+        .with('/whitelabel/domains?limit=50&offset=0', api_key: api_key)
+        .and_return({ success: true, data: make_domains(50) })
+      allow(strategy).to receive(:get_request)
+        .with('/whitelabel/domains?limit=50&offset=50', api_key: api_key)
+        .and_return({ success: false, error: 'HTTP 503' })
+
+      expect(strategy.send(:domain_authentications, api_key: api_key)).to be_nil
+    end
+
+    it 'returns nil when a page is not a list' do
+      allow(strategy).to receive(:get_request).and_return({ success: true, data: { 'errors' => [] } })
+
+      expect(strategy.send(:domain_authentications, api_key: api_key)).to be_nil
+    end
+  end
+
   describe 'APIError' do
     it 'carries status_code and response_body' do
       error = described_class::APIError.new(

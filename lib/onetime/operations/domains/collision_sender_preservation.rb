@@ -23,7 +23,9 @@ module Onetime
 
         # records must be the full, complete audit.rows. The caller stops writers
         # and shares a fresh cache across this apply only, retaining identities
-        # even after an earlier group's local records have been destroyed.
+        # even after an earlier group's local records have been destroyed. The
+        # cache also holds each provider's domain list, so an apply contacts
+        # SendGrid or Lettermint once per provider, not once per record.
         def initialize(group:, records:, identity_cache:)
           @group          = group
           @records        = records
@@ -98,26 +100,52 @@ module Onetime
         end
 
         # All deletion strategies use installation-level credentials, not the
-        # config's encrypted delivery API key. SES/SMTP2GO target domain names;
-        # SendGrid/Lettermint resolve provider IDs using these exact lookups,
-        # which contact the provider: a failure there is the provider's, and a
-        # retry may succeed. Reading the credentials is local and says so.
+        # config's encrypted delivery API key. SES/SMTP2GO target domain names.
+        # SendGrid/Lettermint resolve provider IDs from the provider's domain
+        # list, matched exactly as their find_domain_id/find_domain_by_name
+        # match for deletion; the list is fetched once per provider per apply
+        # (see #provider_listing), not once per record. A failure there is the
+        # provider's, and a retry may succeed. Reading the credentials is local
+        # and says so.
         def deletion_target(record, provider, strategy, sender_domain)
           case provider
           when 'ses', 'smtp2go'
             sender_domain.downcase
           when 'sendgrid'
             credentials = installation_credentials(record, provider, 'api_key')
-            credentials['domain_id'] || remote_lookup(record, provider) do
-              strategy.send(:find_domain_id, sender_domain, api_key: credentials['api_key'])
+            credentials['domain_id'] || begin
+              listing = provider_listing(record, provider) do
+                remote_lookup(record, provider) { strategy.send(:domain_authentications, api_key: credentials['api_key']) }
+              end
+              strategy.send(:domain_authentication_id, listing, sender_domain)
             end
           when 'lettermint'
             credentials = installation_credentials(record, provider, 'team_token')
-            client      = local_step(record, "#{provider} client could not be built from the installation credentials") do
-              strategy.send(:build_client, credentials)
+            listing     = provider_listing(record, provider) do
+              client = local_step(record, "#{provider} client could not be built from the installation credentials") do
+                strategy.send(:build_client, credentials)
+              end
+              remote_lookup(record, provider) { strategy.send(:list_domains, client) }
             end
-            remote_lookup(record, provider) { strategy.send(:find_domain_by_name, client, sender_domain)&.dig('id') }
+            strategy.send(:domain_entry, listing, sender_domain)&.dig('id')
           end
+        end
+
+        # The provider's domain list, fetched by the block on the first record
+        # that needs it and shared through the identity cache for the rest of
+        # the apply, under a key no record can hold (record keys are domain id
+        # strings). Bounds preflight to one list walk per provider per apply,
+        # whatever the number of audited records. A failed list is not cached:
+        # the refusal says a retry may succeed, and the next group's preflight
+        # makes one.
+        def provider_listing(record, provider)
+          key = [:listing, provider]
+          return @identity_cache[key] if @identity_cache.key?(key)
+
+          listing = yield
+          raise UnsafeIdentity, unsafe(record, "#{provider} lookup failed; the provider did not answer or refused the request, retry may succeed") unless listing.is_a?(Array)
+
+          @identity_cache[key] = listing
         end
 
         def installation_credentials(record, provider, key)

@@ -342,10 +342,13 @@ apply step described below.
 
    Sender preflight compares remote identities across all audited records,
    including records outside the selected groups. SES and SMTP2GO identities
-   are compared by sender domain; SendGrid and Lettermint use provider IDs.
-   The latter can require read-only provider requests even during `--dry-run`,
-   using the installation's provider credentials. Unreadable or unresolved
-   identities skip affected groups before deletion. The skip reason names the
+   are compared by sender domain; SendGrid and Lettermint use provider IDs,
+   resolved from the provider's domain list. That list is read once per
+   provider per run, with the installation's provider credentials, even
+   during `--dry-run`: a SendGrid run pages through the account's domain
+   authentications, a Lettermint run makes one list request. The cost does
+   not grow with the number of custom domain records. Unreadable or
+   unresolved identities skip affected groups before deletion. The skip reason names the
    record it stopped on (by extid) and whether its local mailer config could
    not be read or the provider lookup failed; a provider failure is worth a
    retry, a local one needs the record repaired or its mailer config removed.

@@ -223,10 +223,11 @@ module Onetime
             only for freshly confirmed all-orphans.
 
             Shared sender identities are retained, including references outside
-            the selected groups. SendGrid/Lettermint identity checks can contact
-            the provider even during --dry-run; unresolved identities skip the
-            group, and the reason names the record and whether its local mailer
-            config or the provider lookup failed. Identities shared by multiple
+            the selected groups. SendGrid/Lettermint identity checks read the
+            provider's domain list once per provider per run, even during
+            --dry-run; unresolved identities skip the group, and the reason
+            names the record and whether its local mailer config or the
+            provider lookup failed. Identities shared by multiple
             planned removals are also kept and may need manual provider cleanup
             afterwards.
             Configs and brand settings are deleted, not merged into the keeper;

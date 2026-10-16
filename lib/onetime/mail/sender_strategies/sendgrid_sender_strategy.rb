@@ -328,13 +328,50 @@ module Onetime
         # Finds domain authentication ID by domain name.
         #
         # Paginates through SendGrid's domain authentication list using
-        # limit/offset, since the default response is capped at ~50 domains.
+        # limit/offset, since the default response is capped at ~50 domains,
+        # and stops at the first page holding the domain.
         #
         # @param domain [String] Domain to search for
         # @param api_key [String] SendGrid API key
         # @return [Integer, nil] Domain ID or nil if not found
         #
         def find_domain_id(domain, api_key:)
+          each_domain_authentication_page(api_key: api_key) do |domains|
+            id = domain_authentication_id(domains, domain)
+            return id if id
+          end
+          nil
+        end
+
+        # Every domain authentication on the account, for callers that resolve
+        # many domains at once: one paginated walk instead of one per domain.
+        # Match entries with {#domain_authentication_id}, the same comparison
+        # {#find_domain_id} makes.
+        #
+        # @param api_key [String] SendGrid API key
+        # @return [Array<Hash>, nil] all entries, or nil when any page failed
+        #
+        def domain_authentications(api_key:)
+          domains  = []
+          complete = each_domain_authentication_page(api_key: api_key) { |page| domains.concat(page) }
+          complete ? domains : nil
+        end
+
+        # @param domains [Array<Hash>] domain authentication entries
+        # @param domain [String] Domain to search for
+        # @return [Integer, nil] the entry's ID, or nil when no entry matches
+        #
+        def domain_authentication_id(domains, domain)
+          match = domains.find { |d| d['domain'] == domain }
+          match && match['id']
+        end
+
+        # Yields each page of the domain authentication list.
+        #
+        # @return [Boolean] true when every page was read, false when a
+        #   request failed or returned something other than a list
+        #
+        def each_domain_authentication_page(api_key:)
           limit  = DOMAIN_LIST_PAGE_SIZE
           offset = 0
 
@@ -343,21 +380,18 @@ module Onetime
               "/whitelabel/domains?limit=#{limit}&offset=#{offset}",
               api_key: api_key,
             )
-            return nil unless response[:success]
+            return false unless response[:success]
 
             domains = response[:data]
-            return nil unless domains.is_a?(Array)
+            return false unless domains.is_a?(Array)
 
-            match = domains.find { |d| d['domain'] == domain }
-            return match['id'] if match
+            yield domains
 
-            # Stop when fewer results than the limit — we've seen all pages
-            break if domains.size < limit
+            # Stop when fewer results than the limit: we've seen all pages
+            return true if domains.size < limit
 
             offset += limit
           end
-
-          nil
         end
 
         # Makes a GET request to SendGrid API.

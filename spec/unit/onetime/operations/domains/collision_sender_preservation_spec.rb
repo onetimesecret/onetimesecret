@@ -216,6 +216,7 @@ RSpec.describe Onetime::Operations::Domains::CollisionSenderPreservation do
   context 'SendGrid actual deletion IDs' do
     let(:strategy) { Onetime::Mail::SenderStrategies.for_provider('sendgrid') }
     let(:credentials) { { 'api_key' => 'test-token' } }
+    let(:listing) { [{ 'domain' => 'example.com', 'id' => 42 }, { 'domain' => 'other.example.com', 'id' => 43 }] }
 
     before do
       [keeper_config, victim_config].each do |config|
@@ -228,32 +229,56 @@ RSpec.describe Onetime::Operations::Domains::CollisionSenderPreservation do
 
     it 'preserves a platform ID override even for different sender domains' do
       credentials['domain_id'] = 42
-      expect(strategy).not_to receive(:find_domain_id)
+      expect(strategy).not_to receive(:domain_authentications)
       expect(preservation).to eq('victim' => true)
     end
 
     it 'compares resolved IDs, not stored provisioning metadata' do
-      allow(strategy).to receive(:find_domain_id).with('example.com', api_key: 'test-token').and_return(42)
-      allow(strategy).to receive(:find_domain_id).with('other.example.com', api_key: 'test-token').and_return(43)
+      allow(strategy).to receive(:domain_authentications).with(api_key: 'test-token').and_return(listing)
       expect(preservation).to eq('victim' => false)
     end
 
-    it 'preserves matching provider IDs and avoids repeated provider lookups across calls' do
-      allow(strategy).to receive(:find_domain_id).and_return(42)
-      2.times { expect(preservation).to eq('victim' => true) }
-      expect(strategy).to have_received(:find_domain_id).with('example.com', api_key: 'test-token').once
-      expect(strategy).to have_received(:find_domain_id).with('other.example.com', api_key: 'test-token').once
+    it 'preserves matching provider IDs' do
+      listing.last['id'] = 42
+      allow(strategy).to receive(:domain_authentications).with(api_key: 'test-token').and_return(listing)
+      expect(preservation).to eq('victim' => true)
     end
 
-    it 'refuses an unresolved lookup rather than treating it as no identity' do
-      allow(strategy).to receive(:find_domain_id).and_return(nil)
-      expect { preservation }.to raise_error(described_class::UnsafeIdentity)
+    it 'lists the account domains once per apply, however many records are audited' do
+      allow(strategy).to receive(:domain_authentications).with(api_key: 'test-token').and_return(listing)
+      others = Array.new(5) do |i|
+        config = double("config #{i}", effective_provider: 'sendgrid', from_address: "mail@tenant#{i}.example.net")
+        allow(Onetime::CustomDomain).to receive(:find_by_identifier).with("other#{i}").and_return(double("live #{i}", mailer_config: config))
+        listing << { 'domain' => "tenant#{i}.example.net", 'id' => 100 + i }
+        double("other record #{i}", domain_id: "other#{i}")
+      end
+      records.concat(others)
+      2.times { expect(preservation).to eq('victim' => false) }
+      expect(strategy).to have_received(:domain_authentications).once
+      expect(identity_cache.keys.grep(String)).to match_array(%w[keeper victim] + others.map(&:domain_id))
+    end
+
+    it 'refuses a domain absent from the listing rather than treating it as no identity' do
+      allow(strategy).to receive(:domain_authentications).and_return(listing.first(1))
+      expect { preservation }.to raise_error(described_class::UnsafeIdentity, 'sender identity for victim: sendgrid lookup returned no identity for the sender domain')
+    end
+
+    it 'refuses a failed listing as a retryable provider failure and lists again next time' do
+      allow(strategy).to receive(:domain_authentications).and_return(nil, listing)
+      expect { preservation }.to raise_error(described_class::UnsafeIdentity) do |error|
+        expect(error.message).to eq('sender identity for victim: sendgrid lookup failed; the provider did not answer or refused the request, retry may succeed')
+        expect(error.cause).to be_nil
+      end
+      expect(identity_cache).not_to have_key([:listing, 'sendgrid'])
+      expect(preservation).to eq('victim' => false)
+      expect(strategy).to have_received(:domain_authentications).twice
     end
   end
 
   context 'Lettermint actual deletion IDs' do
     let(:strategy) { Onetime::Mail::SenderStrategies.for_provider('lettermint') }
     let(:client) { double('Lettermint client') }
+    let(:listing) { [{ 'domain' => 'example.com', 'id' => 'remote-1' }, { 'domain' => 'other.example.com', 'id' => 'remote-2' }] }
 
     before do
       [keeper_config, victim_config].each do |config|
@@ -265,20 +290,26 @@ RSpec.describe Onetime::Operations::Domains::CollisionSenderPreservation do
       allow(strategy).to receive(:build_client).and_return(client)
     end
 
-    it 'preserves the ID resolved through the same domain lookup as deletion' do
-      allow(strategy).to receive(:find_domain_by_name).with(client, 'example.com').and_return('id' => 'remote-1')
+    it 'preserves the ID resolved through the same domain list as deletion' do
+      allow(strategy).to receive(:list_domains).with(client).and_return(listing)
       expect(preservation).to eq('victim' => true)
     end
 
     it 'does not preserve different remote IDs' do
       allow(victim_config).to receive(:from_address).and_return('remove@other.example.com')
-      allow(strategy).to receive(:find_domain_by_name).with(client, 'example.com').and_return('id' => 'remote-1')
-      allow(strategy).to receive(:find_domain_by_name).with(client, 'other.example.com').and_return('id' => 'remote-2')
+      allow(strategy).to receive(:list_domains).with(client).and_return(listing)
       expect(preservation).to eq('victim' => false)
     end
 
+    it 'lists the account domains once per apply and builds one client' do
+      allow(strategy).to receive(:list_domains).with(client).and_return(listing)
+      2.times { expect(preservation).to eq('victim' => true) }
+      expect(strategy).to have_received(:list_domains).once
+      expect(strategy).to have_received(:build_client).once
+    end
+
     it 'refuses an unavailable provider as a retryable lookup failure, without its response' do
-      allow(strategy).to receive(:find_domain_by_name).and_raise(IOError, 'secret response')
+      allow(strategy).to receive(:list_domains).and_raise(IOError, 'secret response')
       expect { preservation }.to raise_error(described_class::UnsafeIdentity) do |error|
         expect(error.message).to eq('sender identity for victim: lettermint lookup failed; the provider did not answer or refused the request, retry may succeed')
         expect(error.message).not_to include('secret response', 'test-token', 'example.com')
@@ -286,8 +317,13 @@ RSpec.describe Onetime::Operations::Domains::CollisionSenderPreservation do
       end
     end
 
+    it 'refuses a listing without data as a retryable lookup failure' do
+      allow(strategy).to receive(:list_domains).and_return(nil)
+      expect { preservation }.to raise_error(described_class::UnsafeIdentity, 'sender identity for victim: lettermint lookup failed; the provider did not answer or refused the request, retry may succeed')
+    end
+
     it 'refuses a missing provider ID' do
-      allow(strategy).to receive(:find_domain_by_name).and_return({})
+      allow(strategy).to receive(:list_domains).and_return([{ 'domain' => 'example.com' }])
       expect { preservation }.to raise_error(described_class::UnsafeIdentity, 'sender identity for victim: lettermint lookup returned no identity for the sender domain')
     end
 
