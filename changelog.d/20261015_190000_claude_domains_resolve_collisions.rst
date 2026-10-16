@@ -3,38 +3,28 @@
 Added
 -----
 
-- ``bin/ots domains resolve-collisions`` decides which custom domain record to
-  keep when two or more share one DNS name, the collision groups
-  ``backfill-ascii-index`` reports and never writes. It gathers, for every
-  record in a group, whether a request for the name resolves to it today, its
-  DNS proof, its ownership flag, its organization's state, its receipts, its
-  configs and brand settings, decides each group by a fixed rule (DNS proof,
-  then ownership, then use), and writes a plan file for review. ``--apply``
-  removes the other records through the same operation as ``domains remove``,
-  leaving the provider vhost for the name in place for the kept record,
-  re-enters the kept record in the exact name index when the removed record
-  answered for the name, and on the Approximated strategy verifies the kept
-  record again. Groups the rule cannot decide, and groups whose records changed
-  since the plan, are left for the operator.
+- ``bin/ots domains resolve-collisions`` creates a reviewable plan for
+  duplicate custom domain records, preferring DNS proof, then verified
+  ownership, then use. ``--apply`` removes duplicates while preserving the
+  kept record's provider vhost. Ambiguous groups require an operator decision;
+  groups whose records changed since the plan are skipped. Stop the
+  application before applying; follow
+  ``docs/runbooks/custom-domain-ascii-index-backfill.md``.
 
 Changed
 -------
 
-- The custom domain name index keyed by the lower-case A-label is now called
-  the ASCII index everywhere, so that "canonical" keeps its one meaning in this
-  codebase, the install's own site host. ``bin/ots domains backfill-canonical-index``
-  is now ``backfill-ascii-index``, the doctor's ``canonical_index_*`` findings
-  are ``ascii_index_*``, the collision plan file's ``canonical`` field is
-  ``ascii_name``, and the Valkey key ``custom_domain:canonical_display_domain_index``
-  is ``custom_domain:ascii_display_domain_index``. An install that already has
-  the old key renames it with
-  ``bin/ots migrate migrations/2026-10-15/20261015_01_rename_ascii_display_domain_index.rb --run``
-  before starting the new release. Until it runs, the exact name index still
-  finds every domain, but the creation gate and the doctor audit see an empty
-  ASCII index, so a name registered since v0.26.14 is not refused in its
-  other spelling. The runbook moved to
-  ``docs/runbooks/custom-domain-ascii-index-backfill.md``.
+- The normalized custom domain name index is now called the ASCII index.
+  ``backfill-canonical-index`` becomes ``backfill-ascii-index``, doctor
+  findings use ``ascii_index_*``, and collision plans use ``ascii_name``
+  instead of ``canonical``.
 
-- The ``backfill-ascii-index`` report marks, in each collision group, the
-  record a request for the name resolves to today, and points at
-  ``resolve-collisions`` instead of a by-hand removal.
+  Deployments with ``custom_domain:canonical_display_domain_index`` must
+  migrate it before starting the new release. With the application stopped,
+  run
+  ``bin/ots migrate migrations/2026-10-15/20261015_01_rename_ascii_display_domain_index.rb --run``.
+  See ``docs/runbooks/custom-domain-ascii-index-backfill.md`` for the
+  migration and backfill procedure.
+
+- Collision reports from ``backfill-ascii-index`` identify the record
+  currently serving each name and direct operators to ``resolve-collisions``.
