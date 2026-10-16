@@ -280,70 +280,61 @@ module Onetime
         #
         # @param mailer_config [CustomDomain::MailerConfig] Mailer configuration
         # @param credentials [Hash] Must include 'team_token'
-        # @return [Hash] Deletion result:
-        #   - :deleted [Boolean]
-        #   - :message [String]
+        # @return [Hash] Validated outcome, derived deleted flag, message, and error
         #
         def delete_sender_identity(mailer_config, credentials:)
           domain = extract_domain(mailer_config.from_address)
-
           unless domain
-            return {
-              deleted: false,
+            return deletion_result(
+              outcome: :failed,
               message: 'Invalid from_address: cannot extract domain',
-            }
+              error: 'invalid_from_address',
+            )
           end
-
-          team_token = credentials['team_token']
-          unless team_token && !team_token.empty?
-            return {
-              deleted: false,
+          if credentials['team_token'].to_s.strip.empty?
+            return deletion_result(
+              outcome: :failed,
               message: 'Lettermint Team API token is required',
-            }
+              error: 'missing_team_token',
+            )
           end
 
           log_info "[lettermint-sender] Deleting sender domain for #{domain}"
-
           client = build_client(credentials)
-
-          # Find domain by name to get its ID
-          domain_entry = find_domain_by_name(client, domain)
-
-          unless domain_entry
-            # Domain doesn't exist - treat as successful deletion
-            return {
-              deleted: true,
+          entry  = find_domain_by_name(client, domain)
+          unless entry
+            return deletion_result(
+              outcome: :absent,
               message: "Domain #{domain} was already deleted or never existed",
-            }
+            )
           end
 
-          client.domains.delete(domain_entry['id'])
-
-          {
-            deleted: true,
-            message: "Domain #{domain} removed from Lettermint",
-          }
-        rescue Lettermint::HttpRequestError => ex
-          if ex.status_code == 404
-            # Domain doesn't exist - treat as successful deletion
-            {
-              deleted: true,
-              message: "Domain #{domain} was already deleted or never existed",
-            }
-          else
-            error_detail = parse_error_response(ex.response_body) || ex.message
-            log_error "[lettermint-sender] Deletion failed for #{domain}: HTTP #{ex.status_code} - #{error_detail}"
-            {
-              deleted: false,
-              message: "Deletion failed: #{error_detail}",
-            }
+          begin
+            response = client.domains.delete(entry['id'])
+          rescue Lettermint::HttpRequestError => ex
+            # Only the documented target-specific error establishes absence.
+            # A list/proxy 404 or a message resembling not-found is not evidence.
+            body = ex.response_body
+            if ex.status_code == 404 && body.is_a?(Hash) && body['error'].is_a?(Hash) &&
+               body['error']['code'] == 'RESOURCE_NOT_FOUND'
+              return deletion_result(
+                outcome: :absent,
+                message: "Domain #{domain} was already deleted or never existed",
+              )
+            end
+            raise
           end
+
+          unless response.is_a?(Hash) && response['message'].is_a?(String) &&
+                 !response['message'].strip.empty? && !response['error']
+            raise LookupError, 'Invalid Lettermint domain deletion acknowledgement'
+          end
+
+          deletion_result(outcome: :deleted, message: "Domain #{domain} removed from Lettermint")
         rescue StandardError => ex
-          log_error "[lettermint-sender] Deletion failed: #{ex.message}"
-          {
-            deleted: false,
-            message: "Deletion failed: #{ex.message}",
-          }
+          error_detail = deletion_error_message(ex)
+          log_error "[lettermint-sender] Deletion failed: #{error_detail}"
+          deletion_result(outcome: :failed, message: "Deletion failed: #{error_detail}", error: error_detail)
         end
 
         protected

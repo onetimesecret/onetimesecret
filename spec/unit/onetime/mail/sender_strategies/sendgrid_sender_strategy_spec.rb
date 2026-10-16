@@ -775,6 +775,23 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
       end
     end
 
+    [nil, 'bad', {}, { 'domain' => '' }, { 'id' => 1 },
+     { 'domain' => 'example.com' }, { 'domain' => 'other.com', 'id' => nil },
+     { 'domain' => 'example.com', 'id' => '' }, { 'domain' => 'example.com', 'id' => false },
+     { 'domain' => 'example.com', 'id' => -1 }, { 'domain' => 'example.com', 'id' => '1/path' }].each do |entry|
+      it "rejects malformed entry #{entry.inspect} in both lookup paths" do
+        allow(strategy).to receive(:get_request).and_return(success: true, data: [entry])
+        expect { strategy.send(:find_domain_id, 'example.com', api_key: 'key') }.to raise_error(described_class::APIError)
+        expect { strategy.send(:domain_authentications, api_key: 'key') }.to raise_error(described_class::APIError)
+        expect { strategy.send(:domain_authentication_id, [entry], 'example.com') }.to raise_error(described_class::APIError)
+        expect(strategy).not_to receive(:delete_request)
+        expect(strategy).not_to receive(:post_request)
+        result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
+        expect(result).to include(outcome: :failed, deleted: false, error: a_string_matching(/\S/))
+        expect(strategy.check_provider_verification_status(mailer_config, credentials: credentials)).to include(verified: nil, status: 'error')
+      end
+    end
+
     it 'allows an individual early match but requires a complete inventory' do
       page = 50.times.map { |i| { 'id' => i + 1, 'domain' => i.zero? ? 'example.com' : "other#{i}.com" } }
       allow(strategy).to receive(:get_request).with('/whitelabel/domains?limit=50&offset=0', api_key: 'key').and_return(success: true, data: page)
@@ -787,6 +804,38 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
     it 'does not accept an early match on a malformed page' do
       allow(strategy).to receive(:get_request).and_return(success: true, data: [{ 'id' => 1, 'domain' => 'example.com' }, {}])
       expect { strategy.send(:find_domain_id, 'example.com', api_key: 'key') }.to raise_error(described_class::APIError)
+    end
+
+    it 'returns a plain absent result only for a validated empty listing' do
+      allow(strategy).to receive(:get_request).and_return(success: true, data: [])
+      result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
+      expect(result.class).to eq(Hash)
+      expect(result).to match(outcome: :absent, deleted: false, message: a_string_matching(/\S/), error: nil)
+    end
+
+    it 'retains the configured domain_id override and reports actual deletion' do
+      expect(strategy).not_to receive(:get_request)
+      expect(strategy).to receive(:delete_request).with('/whitelabel/domains/789', api_key: credentials['api_key']).and_return(success: true, data: {})
+      expect(strategy.delete_sender_identity(mailer_config, credentials: credentials.merge('domain_id' => 789)))
+        .to match(outcome: :deleted, deleted: true, message: a_string_matching(/\S/), error: nil)
+    end
+
+    [nil, '', '   '].each do |message|
+      it "keeps a nonempty error for rejected deletion #{message.inspect}" do
+        allow(strategy).to receive(:get_request).and_return(success: true, data: [{ 'domain' => 'example.com', 'id' => 123 }])
+        allow(strategy).to receive(:delete_request).and_return(success: false, error: message)
+        expect(strategy.delete_sender_identity(mailer_config, credentials: credentials))
+          .to include(outcome: :failed, deleted: false, message: a_string_matching(/\S/), error: a_string_matching(/\S/))
+      end
+    end
+
+    ['', '   '].each do |message|
+      it "keeps a nonempty error for exception #{message.inspect}" do
+        allow(strategy).to receive(:get_request).and_raise(StandardError.new(message))
+        expect(strategy).not_to receive(:delete_request)
+        expect(strategy.delete_sender_identity(mailer_config, credentials: credentials))
+          .to include(outcome: :failed, deleted: false, message: a_string_matching(/\S/), error: a_string_matching(/\S/))
+      end
     end
   end
 

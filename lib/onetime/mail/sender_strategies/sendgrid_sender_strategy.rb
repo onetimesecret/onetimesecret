@@ -215,66 +215,31 @@ module Onetime
         # @param mailer_config [CustomDomain::MailerConfig] Mailer configuration
         # @param credentials [Hash] Must include 'api_key'; optionally 'domain_id'
         # @return [Hash] Deletion result:
-        #   - :deleted [Boolean]
+        #   - :outcome [Symbol] :deleted, :absent, or :failed
+        #   - :deleted [Boolean] True only for an actual deletion
         #   - :message [String]
-        #   - :error [String, nil] Present on failure, absent for a confirmed no-op
+        #   - :error [String, nil] Nonempty on failure, nil otherwise
         #
         def delete_sender_identity(mailer_config, credentials:)
           domain = extract_domain(mailer_config.from_address)
-
-          unless domain
-            return {
-              deleted: false,
-              message: 'Invalid from_address: cannot extract domain',
-              error: 'Invalid from_address: cannot extract domain',
-            }
-          end
+          return deletion_failure('Invalid from_address: cannot extract domain') unless domain
 
           api_key = credentials['api_key']
-          unless api_key && !api_key.empty?
-            return {
-              deleted: false,
-              message: 'SendGrid API key is required',
-              error: 'SendGrid API key is required',
-            }
-          end
+          return deletion_failure('SendGrid API key is required') if api_key.to_s.strip.empty?
 
           log_info "[sendgrid-sender] Deleting sender authentication for #{domain}"
-
-          # Find the domain ID if not provided
           domain_id = credentials['domain_id'] || find_domain_id(domain, api_key: api_key)
+          return deletion_result(outcome: :absent, message: "Domain authentication not found for #{domain}") unless domain_id
 
-          unless domain_id
-            return {
-              deleted: false,
-              message: "Domain authentication not found for #{domain}",
-            }
-          end
-
-          response = delete_request(
-            "/whitelabel/domains/#{domain_id}",
-            api_key: api_key,
-          )
-
-          if response[:success]
-            {
-              deleted: true,
-              message: "Domain authentication deleted for #{domain}",
-            }
+          response = delete_request("/whitelabel/domains/#{domain_id}", api_key: api_key)
+          if response[:success] == true
+            deletion_result(outcome: :deleted, message: "Domain authentication deleted for #{domain}")
           else
-            {
-              deleted: false,
-              message: response[:error] || 'Delete failed',
-              error: response[:error] || 'Delete failed',
-            }
+            deletion_failure(response[:error])
           end
         rescue StandardError => ex
           log_error "[sendgrid-sender] Delete failed: #{ex.message}"
-          {
-            deleted: false,
-            message: "Delete failed: #{ex.message}",
-            error: ex.message,
-          }
+          deletion_failure("Delete failed: #{deletion_error_message(ex)}")
         end
 
         protected
@@ -284,6 +249,11 @@ module Onetime
         end
 
         private
+
+        def deletion_failure(message)
+          message = 'Delete failed' if !message.is_a?(String) || message.strip.empty?
+          deletion_result(outcome: :failed, message: message, error: message)
+        end
 
         # Converts SendGrid DNS response to standardized format.
         #

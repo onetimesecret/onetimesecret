@@ -457,7 +457,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
           .and_return(list_response)
         allow(mock_domains).to receive(:delete)
           .with('domain-uuid-123')
-          .and_return({})
+          .and_return('message' => 'Domain deleted successfully.')
       end
 
       it 'returns deleted true' do
@@ -474,15 +474,15 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
           .and_return({ 'data' => [], 'next_cursor' => nil })
       end
 
-      it 'returns deleted true' do
+      it 'returns absence without claiming deletion' do
         result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
 
-        expect(result[:deleted]).to be true
+        expect(result).to include(outcome: :absent, deleted: false, error: nil)
         expect(result[:message]).to include('already deleted')
       end
     end
 
-    context 'when delete API returns 404 (idempotent)' do
+    context 'when delete API returns an unclassified 404' do
       before do
         allow(mock_domains).to receive(:list)
           .and_return(list_response)
@@ -490,11 +490,11 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
           .and_raise(Lettermint::HttpRequestError.new(message: 'Not Found', status_code: 404))
       end
 
-      it 'returns deleted true' do
+      it 'does not infer absence from a generic HTTP status' do
         result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
 
-        expect(result[:deleted]).to be true
-        expect(result[:message]).to include('already deleted')
+        expect(result).to include(outcome: :failed, deleted: false)
+        expect(result[:error]).not_to be_empty
       end
     end
 

@@ -273,68 +273,31 @@ module Onetime
         # @param mailer_config [CustomDomain::MailerConfig] Mailer configuration
         # @param credentials [Hash] Must include 'api_key'
         # @return [Hash] Deletion result:
-        #   - :deleted [Boolean]
+        #   - :outcome [Symbol] :deleted, :absent, or :failed
+        #   - :deleted [Boolean] True only for a confirmed removal
         #   - :message [String]
+        #   - :error [String, nil] Nonempty on failure, nil otherwise
         #
         def delete_sender_identity(mailer_config, credentials:)
           domain = extract_domain(mailer_config.from_address)
-
-          unless domain
-            return {
-              deleted: false,
-              message: 'Invalid from_address: cannot extract domain',
-            }
-          end
-
-          api_key = credentials['api_key']
-          unless api_key && !api_key.empty?
-            return {
-              deleted: false,
-              message: 'SMTP2GO API key is required',
-            }
-          end
+          return deletion_failure('Invalid from_address: cannot extract domain') unless domain
+          return deletion_failure('SMTP2GO API key is required') if credentials['api_key'].to_s.strip.empty?
 
           log_info "[smtp2go-sender] Deleting sender domain for #{domain}"
-
           client = build_client(credentials)
-
-          # Domains are keyed by name; check existence first so a domain
-          # that was already removed reads as a successful deletion.
-          entry = find_domain(client, domain)
-
-          unless entry
-            return {
-              deleted: true,
-              message: "Domain #{domain} was already deleted or never existed",
-            }
+          unless find_domain(client, domain)
+            return deletion_result(outcome: :absent, message: "Domain #{domain} was already deleted or never existed")
           end
 
-          client.post('/domain/remove', { 'domain' => domain })
-
-          {
-            deleted: true,
-            message: "Domain #{domain} removed from SMTP2GO",
-          }
-        rescue Smtp2goClient::APIError => ex
-          if not_found_error?(ex)
-            # Domain doesn't exist - treat as successful deletion
-            {
-              deleted: true,
-              message: "Domain #{domain} was already deleted or never existed",
-            }
-          else
-            log_error "[smtp2go-sender] Deletion failed for #{domain}: HTTP #{ex.status_code} - #{ex.message}"
-            {
-              deleted: false,
-              message: "Deletion failed: #{ex.message}",
-            }
+          response = client.post('/domain/remove', { 'domain' => domain })
+          if extract_domain_entry(response, domain)
+            return deletion_failure("SMTP2GO did not confirm removal of #{domain}")
           end
+
+          deletion_result(outcome: :deleted, message: "Domain #{domain} removed from SMTP2GO")
         rescue StandardError => ex
           log_error "[smtp2go-sender] Deletion failed: #{ex.message}"
-          {
-            deleted: false,
-            message: "Deletion failed: #{ex.message}",
-          }
+          deletion_failure("Deletion failed: #{deletion_error_message(ex)}")
         end
 
         protected
@@ -344,6 +307,10 @@ module Onetime
         end
 
         private
+
+        def deletion_failure(message)
+          deletion_result(outcome: :failed, message: message, error: message)
+        end
 
         # Build API client from credentials.
         #
@@ -646,26 +613,6 @@ module Onetime
         #
         def truthy?(value)
           value == true || value.to_s == 'true'
-        end
-
-        # Detects not-found API errors for name-keyed domain operations.
-        #
-        # SMTP2GO does not document a dedicated not-found error_code for
-        # /domain/remove or /domain/view, so this matches the generic 404
-        # status plus plausible code spellings. The free-text fallback
-        # requires domain/sender context so unrelated messages (e.g.
-        # 'API key not found') never read as a missing domain.
-        #
-        # @param error [Smtp2goClient::APIError]
-        # @return [Boolean]
-        #
-        def not_found_error?(error)
-          return true if error.status_code.to_i == 404
-          return true if error.error_code.to_s.match?(/NOT_?FOUND|NONEXISTENT/i)
-
-          error.message.to_s.match?(
-            /\b(?:domain|sender)\b.{0,40}\b(?:not found|does not exist|unknown)\b|\b(?:no such|unknown) (?:domain|sender)\b/i,
-          )
         end
 
         # Maps verification state to human-readable message. Tracking is
