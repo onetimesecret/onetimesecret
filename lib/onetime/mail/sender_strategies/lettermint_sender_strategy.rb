@@ -313,6 +313,8 @@ module Onetime
             response = client.domains.delete(entry['id'])
           rescue Lettermint::HttpRequestError => ex
             # Only the documented target-specific error establishes absence.
+            # https://lettermint.co/docs/api-reference/team/0.0.1/lettermint-team-openapi.json
+            # DELETE /domains/{domainId}, 404: RESOURCE_NOT_FOUND.
             # A list/proxy 404 or a message resembling not-found is not evidence.
             # The schema also allows a message-only 404 body (ErrorMessage);
             # it carries no code, so it stays a failure.
