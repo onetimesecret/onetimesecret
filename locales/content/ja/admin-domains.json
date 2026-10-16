@@ -215,10 +215,6 @@
     "text": "組織:",
     "source_hash": "5300e286"
   },
-  "web.admin.domains.actions.remove.reassertsSurvivor": {
-    "text": "別のレコードが同じドメイン名を要求しており、ルックアップインデックスを引き継ぎます。",
-    "source_hash": "902838f4"
-  },
   "web.admin.domains.actions.remove.confirmTitle": {
     "text": "ドメインを削除しますか?",
     "source_hash": "716dfac9"

@@ -95,7 +95,7 @@ module Onetime
         return if result.nil? # operator declined at the prompt
 
         OT.info "[cli-domains-remove] domain=#{target.display_domain} status=#{result.status} " \
-                "dry_run=#{result.dry_run} reasserts=#{result.reasserts_survivor}"
+                "dry_run=#{result.dry_run}"
 
         json ? output_json(result) : output_text(result)
       end
@@ -138,10 +138,6 @@ module Onetime
         else
           puts "  Organization:         #{plan.org_name || 'N/A'} (#{plan.org_id})"
         end
-        if plan.reasserts_survivor
-          puts '  Note:                 removing a SHADOW record; the canonical'
-          puts '                        display_domain index entry will survive'
-        end
         puts
       end
 
@@ -152,7 +148,6 @@ module Onetime
           puts 'Dry run - nothing changed. Re-run with --apply to remove.'
         when :removed
           puts "Removed #{result.display_domain} (#{result.extid})"
-          puts '  Re-asserted the surviving canonical index entry' if result.reasserts_survivor
           puts
           puts 'Removal complete'
         end
@@ -166,7 +161,6 @@ module Onetime
           display_domain: result.display_domain,
           org_id: result.org_id,
           org_name: result.org_name,
-          reasserts_survivor: result.reasserts_survivor,
           dry_run: result.dry_run,
         )
         exit 1 unless OK_STATUSES.include?(result.status)

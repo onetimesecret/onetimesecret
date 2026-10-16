@@ -23,6 +23,8 @@
 require 'spec_helper'
 require 'delegate'
 require 'securerandom'
+require 'onetime/operations/domains/transfer'
+require 'onetime/operations/verify_domain'
 
 # rubocop:disable RSpec/SpecFilePathFormat
 RSpec.describe Onetime::CustomDomain, 'canonical claim guard', :datastore do
@@ -118,7 +120,7 @@ RSpec.describe Onetime::CustomDomain, 'canonical claim guard', :datastore do
         define_method(:[]=) { |*| raise Redis::CannotConnectError, 'lookup write failed' }
       end
       allow(described_class).to receive(:objid_lookup).and_return(failing.new(described_class.objid_lookup))
-      rec = build
+      rec     = build
 
       expect { rec.save }.to raise_error(Redis::CannotConnectError)
       expect([rec.exists?, index.get(ascii_name)]).to eq([true, rec.identifier])
@@ -169,7 +171,7 @@ RSpec.describe Onetime::CustomDomain, 'canonical claim guard', :datastore do
     end
 
     it 'does not apply the canonical-host check to a record that is already stored' do
-      rec = create
+      rec        = create
       allow(Onetime::Utils::CanonicalHosts).to receive_messages(
         normalized_hosts: [unicode_name], normalized_anchor_hosts: [unicode_name],
       )
@@ -222,6 +224,181 @@ RSpec.describe Onetime::CustomDomain, 'canonical claim guard', :datastore do
     # Records written before field values were JSON-encoded hold plain
     # strings. A plain string that reads as a JSON number loads as a number
     # ("1e100" as 1.0e+100, "1.50" as 1.5), and the record must still save.
+    # The guard pins its WATCH, the read and the write to one pool
+    # connection. The unit lane boots without the pool, and Familia's
+    # fallback opens a connection per call, so the WATCH would never hold.
+    # These examples install a pool and the provider SetupConnectionPool
+    # installs; the concurrent writer uses a connection of its own.
+    context 'with a connection pool, as after a full boot' do
+      include OnetimeStateHelpers
+
+      let(:other) { described_class.dbclient.dup }
+
+      around do |example|
+        snapshot = snapshot_familia_pool_config
+        pool     = ConnectionPool.new(size: 2, timeout: 5) { Familia.create_dbclient }
+        Onetime::Runtime.update_infrastructure(database_pool: pool)
+        Familia.connection_provider = lambda do |_uri|
+          stack = Fiber[:ots_pinned_dbclient_stack]
+          stack && !stack.empty? ? stack.last : pool.with { |conn| conn }
+        end
+        example.run
+      ensure
+        restore_familia_pool_config(snapshot)
+        pool&.shutdown(&:close)
+      end
+
+      after { other.close }
+
+      # Runs +between+ on the other connection after the guard's first read.
+      def between_read_and_write(rec, &between)
+        reads = 0
+        allow(rec).to receive(:stored_identity).and_wrap_original do |read|
+          stored = read.call
+          between.call if (reads += 1) == 1
+          stored
+        end
+        -> { reads }
+      end
+
+      it 'refuses the save when the record is destroyed in between, and does not store it again' do
+        rec   = create
+        reads = between_read_and_write(rec) { other.del(rec.dbkey) }
+
+        expect { rec.save }.to raise_error(Onetime::Problem, 'The custom domain no longer exists')
+        expect([rec.exists?, reads.call]).to eq([false, 2])
+      ensure
+        # The raw DEL left the organization's listing behind; destroy! would
+        # have removed it.
+        rec&.remove_from_organization_domains(org)
+      end
+
+      it 'claims a new record on save_if_not_exists! with the pool installed', :aggregate_failures do
+        rec = build
+
+        expect(rec.save_if_not_exists!).to be(true)
+        expect([reload(rec).display_domain, index.get(ascii_name)]).to eq([unicode_name, rec.identifier])
+      end
+
+      it 'refuses save_if_not_exists! on a stored record without changing it', :aggregate_failures do
+        rec        = create
+        before     = other.hgetall(rec.dbkey)
+        rec.status = 'not saved'
+
+        expect { rec.save_if_not_exists! }.to raise_error(Familia::RecordExistsError)
+        expect(other.hgetall(rec.dbkey)).to eq(before)
+        expect(index.get(ascii_name)).to eq(rec.identifier)
+      end
+
+      # rubocop:disable-next RSpec/ExampleLength -- Keep the deletion window and all post-destroy invariants together.
+      it 'refuses save_if_not_exists! if destroy! lands after the guard read, without recreating the hash', :aggregate_failures do
+        rec   = create
+        expect(org.domains.members).to include(rec.identifier)
+        expect(described_class::HomepageConfig.exists?(rec.identifier)).to be(true)
+        reads = between_read_and_write(rec) do
+          # Complete destroy! on a second pooled connection while the first
+          # still holds its WATCH. No sleeps or scheduler-dependent race.
+          # rubocop:disable-next ThreadSafety/NewThread -- Independent pooled writer, joined before continuing.
+          Thread.new { Onetime.with_pinned_dbclient { reload(rec).destroy! } }.value
+        end
+        allow(rec).to receive(:persist_to_storage).and_call_original
+
+        aggregate_failures do
+          expect { rec.save_if_not_exists! }.to raise_error(Familia::RecordExistsError)
+          expect([rec.exists?, reads.call, index.get(ascii_name)]).to eq([false, 1, nil])
+          expect(org.domains.members).not_to include(rec.identifier)
+          expect(described_class::HomepageConfig.exists?(rec.identifier)).to be(false)
+          expect(rec).not_to have_received(:persist_to_storage)
+        end
+      end
+
+      def conflict_after_every_read(rec)
+        reads = 0
+
+        allow(rec).to receive(:stored_identity).and_wrap_original do |read|
+          stored = read.call
+          reads += 1
+          other.hset(rec.dbkey, 'updated', reads.to_s)
+          stored
+        end
+        -> { reads }
+      end
+
+      [:save, :commit_fields].each do |writer|
+        # rubocop:disable-next RSpec/ExampleLength -- Check the failed write and WATCH cleanup on the same pinned connection.
+        it "raises after three WATCH conflicts on #{writer}, writes nothing, and clears the WATCH" do
+          rec        = create
+          rec.status = 'not saved'
+          reads      = conflict_after_every_read(rec)
+
+          Onetime.with_pinned_dbclient do |conn|
+            aggregate_failures do
+              expect { rec.public_send(writer) }
+                .to raise_error(Familia::OptimisticLockError, /3 attempts/)
+              expect([reads.call, reload(rec).status, index.get(ascii_name)])
+                .to eq([3, nil, rec.identifier])
+              other.hset(rec.dbkey, 'updated', 'after failure')
+              expect(conn.multi { |multi| multi.ping }).to eq(['PONG'])
+            end
+          end
+        end
+      end
+
+      # rubocop:disable-next RSpec/ExampleLength -- Keep caller execution, ownership and audit assertions, and cleanup together.
+      it 'stops a transfer before reporting success when the owner save exhausts its WATCH retries' do
+        rec         = create
+        destination = Onetime::Organization.new(display_name: "Destination #{suffix}").tap(&:save)
+        reads       = conflict_after_every_read(rec)
+        allow(Onetime::ColonelAuditEvent).to receive(:record)
+        operation   = Onetime::Operations::Domains::Transfer.new(
+          domain: rec, to_org: destination, actor: 'guard-spec', dry_run: false,
+        )
+
+        aggregate_failures do
+          expect { operation.call }.to raise_error(Familia::OptimisticLockError)
+          expect([reads.call, reload(rec).org_id, described_class.owners.get(rec.identifier)])
+            .to eq([3, org.objid, org.objid])
+          expect(destination.domains.members).not_to include(rec.identifier)
+          expect(Onetime::ColonelAuditEvent).to have_received(:record).with(hash_including(result: :failure))
+          expect(Onetime::ColonelAuditEvent).not_to have_received(:record).with(hash_including(result: :success))
+        end
+      ensure
+        rec&.remove_from_organization_domains(destination) if destination
+        reload(rec)&.destroy! if rec
+        destination&.destroy!
+      end
+
+      # rubocop:disable-next RSpec/ExampleLength -- Exercise the real caller and compare its persistence result with stored fields.
+      it 'reports verification as not persisted when its save exhausts its WATCH retries' do
+        rec                = create
+        reads              = conflict_after_every_read(rec)
+        previous_resolving = rec.resolving
+        strategy           = instance_double(
+          Onetime::DomainValidation::BaseStrategy,
+          validate_ownership: { validated: true, data: { 'txt' => 'match' } },
+          check_status: { ready: true, has_ssl: true, is_resolving: true, data: { 'status' => 'ACTIVE_SSL' } },
+          proves_ownership?: true,
+        )
+        operation          = Onetime::Operations::VerifyDomain.new(domain: rec, strategy: strategy)
+        allow(operation).to receive(:enqueue_favicon_fetch)
+
+        result = operation.call
+
+        aggregate_failures do
+          expect(result.persisted).to be(false)
+          expect([reads.call, reload(rec).resolving, reload(rec).verified_confirmed_at])
+            .to eq([3, previous_resolving, nil])
+        end
+      end
+
+      it 'writes again when another writer changed the record in between' do
+        rec   = create
+        reads = between_read_and_write(rec) { other.hset(rec.dbkey, 'updated', '1') }
+
+        expect([rec.save, reads.call, reload(rec).display_domain]).to eq([true, 2, unicode_name])
+      end
+    end
+
     context 'with identity fields stored as plain strings' do
       identity_fields = Onetime::CustomDomain::IdentityGuard::IDENTITY_FIELDS
 
@@ -236,8 +413,8 @@ RSpec.describe Onetime::CustomDomain, 'canonical claim guard', :datastore do
         'a subdomain that reads as a number' => ->(suffix) { "1.50.n#{suffix}.com" },
       }.each do |label, name_for|
         it "saves #{label} and leaves the identity values as they were" do
-          legacy = store_identity_as_plain_strings(create(name_for.call(suffix)), identity_fields)
-          before = identity_fields.map { |name| legacy.public_send(name) }
+          legacy        = store_identity_as_plain_strings(create(name_for.call(suffix)), identity_fields)
+          before        = identity_fields.map { |name| legacy.public_send(name) }
           legacy.status = 'reviewed'
 
           expect(legacy.save).to be(true)
@@ -263,11 +440,11 @@ RSpec.describe Onetime::CustomDomain, 'canonical claim guard', :datastore do
       end
 
       it 'migrates a v1 owner to an organization and adds no entry' do
-        rec = without_canonical_entry(create)
+        rec           = without_canonical_entry(create)
         Familia.dbclient.hdel(rec.dbkey, 'org_id')
         rec.v1_custid = "owner-#{suffix}@example.com"
         rec.save_fields(:v1_custid)
-        legacy = reload(rec)
+        legacy        = reload(rec)
 
         expect(legacy.migrate_to_org!({ "owner-#{suffix}@example.com" => org.objid })).to be(true)
         expect([reload(rec).org_id, index.get(ascii_name)]).to eq([org.objid, nil])

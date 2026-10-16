@@ -215,10 +215,6 @@
     "text": "Szervezet:",
     "source_hash": "5300e286"
   },
-  "web.admin.domains.actions.remove.reassertsSurvivor": {
-    "text": "Egy másik rekord igényli ugyanezt a domain nevet, és átveszi a keresési indexet.",
-    "source_hash": "902838f4"
-  },
   "web.admin.domains.actions.remove.confirmTitle": {
     "text": "Eltávolítja a domaint?",
     "source_hash": "716dfac9"

@@ -95,7 +95,6 @@ module ColonelAPI
               dry_run: result.dry_run,
               org_id: result.org_id.to_s,
               org_name: result.org_name,
-              reasserts_survivor: result.reasserts_survivor,
             },
           }
         end
