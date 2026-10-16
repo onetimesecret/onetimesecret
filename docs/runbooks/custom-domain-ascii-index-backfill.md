@@ -1,13 +1,25 @@
-# Custom domain canonical index backfill
+# Custom domain ASCII index backfill
 
 Use this runbook once after upgrading to the release that adds
-`bin/ots domains backfill-canonical-index`, on any deployment with custom
+`bin/ots domains backfill-ascii-index`, on any deployment with custom
 domains registered before v0.26.14. Use it again whenever
-`bin/ots domains doctor --all` reports a `canonical_index_*` finding.
+`bin/ots domains doctor --all` reports an `ascii_index_*` finding.
+
+On an install that ran v0.26.17, the index is still stored under its former
+key, `custom_domain:canonical_display_domain_index`. Rename it before
+starting the new release, with the application stopped:
+
+```console
+bin/ots migrate migrations/2026-10-15/20261015_01_rename_ascii_display_domain_index.rb --run
+```
+
+The migration also renames a `:before-backfill` copy left by an earlier run
+of this runbook, and refuses to overwrite a key that already exists under
+the new name.
 
 ## Background
 
-`custom_domain:canonical_display_domain_index` holds one entry per DNS name.
+`custom_domain:ascii_display_domain_index` holds one entry per DNS name.
 The key is the name's lower-case A-label (`xn--bcher-kva.example.com` for
 `bücher.example.com`) and the value is the identifier of the record registered
 for it. Domains registered since v0.26.14 claim their entry when they are
@@ -29,7 +41,7 @@ It also reports index entries keyed by a name that no record has: `stale`
 when they name a deleted record (the backfill releases them) and `conflict`
 when they name a live record whose own name is different.
 
-The backfill writes only `custom_domain:canonical_display_domain_index`. It
+The backfill writes only `custom_domain:ascii_display_domain_index`. It
 never changes a domain record, `display_domain_index`, or any other key.
 Each claim is a server-side compare-and-set that is read back afterwards, and
 each release removes an entry only while it still names the identifier the
@@ -70,8 +82,8 @@ The dry run reads only, so it can run before the maintenance window to size
 the work:
 
 ```console
-bin/ots domains backfill-canonical-index
-bin/ots domains backfill-canonical-index --json > canonical-index-dry-run.json
+bin/ots domains backfill-ascii-index
+bin/ots domains backfill-ascii-index --json > ascii-index-dry-run.json
 ```
 
 The text report prints the count per category, the planned writes (the first
@@ -99,7 +111,7 @@ Take a full snapshot (a managed-service snapshot, or `BGSAVE` and a copy of
 the RDB file once `LASTSAVE` changes). Then check for an existing index backup:
 
 ```console
-valkey-cli -u "$VALKEY_URL" EXISTS custom_domain:canonical_display_domain_index:before-backfill
+valkey-cli -u "$VALKEY_URL" EXISTS custom_domain:ascii_display_domain_index:before-backfill
 ```
 
 If it exists, reuse it only after confirming that it was taken during this
@@ -112,14 +124,14 @@ Do not overwrite or delete the older backup to make room.
 Before the first apply in this window, record whether the index exists:
 
 ```console
-valkey-cli -u "$VALKEY_URL" EXISTS custom_domain:canonical_display_domain_index
+valkey-cli -u "$VALKEY_URL" EXISTS custom_domain:ascii_display_domain_index
 ```
 
 If it returns 1 and no backup is being reused, copy the index for rollback:
 
 ```console
-valkey-cli -u "$VALKEY_URL" COPY custom_domain:canonical_display_domain_index \
-  custom_domain:canonical_display_domain_index:before-backfill
+valkey-cli -u "$VALKEY_URL" COPY custom_domain:ascii_display_domain_index \
+  custom_domain:ascii_display_domain_index:before-backfill
 ```
 
 Confirm `COPY` returns 1. A return of 0 is not a successful backup: check the
@@ -134,7 +146,7 @@ Run the dry run again with the application stopped and compare it with the
 earlier one. Then apply:
 
 ```console
-bin/ots domains backfill-canonical-index --apply
+bin/ots domains backfill-ascii-index --apply
 ```
 
 The command asks whether the application is stopped; answer `y`. In scripts,
@@ -236,7 +248,7 @@ fixed rule, and removes the others.
 
    The command exits 1 when a group was skipped or did not complete; the
    report says why for each. Fix the plan or the record and apply again, or
-   apply one group with `--group <canonical name>`.
+   apply one group with `--group <ASCII name>`.
 
 4. On the Approximated strategy, check the kept records afterwards with
    `bin/ots domains probe <name>`.
@@ -248,12 +260,12 @@ keeps reporting it.
 **Conflicts.** The entry for a record's A-label names a different live
 record, or an entry is keyed by a name that the record it names does not
 have. Compare the two records (`bin/ots domains doctor --all --json` lists
-both identifiers in the `canonical_index_conflict` examples). When the entry
+both identifiers in the `ascii_index_conflict` examples). When the entry
 is wrong, release it from `bin/ots console`; the release removes it only while
 it still names that identifier:
 
 ```ruby
-Onetime::CustomDomain.canonical_display_domain_index
+Onetime::CustomDomain.ascii_display_domain_index
   .release_field('<a-label>', '<identifier the entry names>')
 ```
 
@@ -279,7 +291,7 @@ Removing a record releases its own entries, so a kept record may now be
 `missing` or `stale`. Apply again until the command exits 0:
 
 ```console
-bin/ots domains backfill-canonical-index --apply
+bin/ots domains backfill-ascii-index --apply
 ```
 
 ### 8. Doctor, then start the application
@@ -288,29 +300,29 @@ bin/ots domains backfill-canonical-index --apply
 bin/ots domains doctor --all
 ```
 
-No `canonical_index_*` finding should remain. Start the application, then
+No `ascii_index_*` finding should remain. Start the application, then
 delete the backup key:
 
 ```console
-valkey-cli -u "$VALKEY_URL" DEL custom_domain:canonical_display_domain_index:before-backfill
+valkey-cli -u "$VALKEY_URL" DEL custom_domain:ascii_display_domain_index:before-backfill
 ```
 
 ## Rollback
 
-The backfill changes only the canonical index. To undo it, with the
+The backfill changes only the ASCII index. To undo it, with the
 application still stopped, put back the saved copy from this uninterrupted
 maintenance window, not an archived backup from an earlier window:
 
 ```console
-valkey-cli -u "$VALKEY_URL" COPY custom_domain:canonical_display_domain_index:before-backfill \
-  custom_domain:canonical_display_domain_index REPLACE
+valkey-cli -u "$VALKEY_URL" COPY custom_domain:ascii_display_domain_index:before-backfill \
+  custom_domain:ascii_display_domain_index REPLACE
 ```
 
 If the absence record for this window confirms there was no index before
 the first apply, delete the index instead:
 
 ```console
-valkey-cli -u "$VALKEY_URL" DEL custom_domain:canonical_display_domain_index
+valkey-cli -u "$VALKEY_URL" DEL custom_domain:ascii_display_domain_index
 ```
 
 Records removed in step 6 are not restored by this; restore them from the
@@ -321,8 +333,8 @@ it starts claim entries that the saved copy does not have.
 
 - `bin/ots domains doctor --all`: check #11 reports the same categories,
   read-only.
-- `lib/onetime/operations/domains/canonical_index_audit.rb` and
-  `canonical_index_backfill.rb`: the audit and the writes.
+- `lib/onetime/operations/domains/ascii_index_audit.rb` and
+  `ascii_index_backfill.rb`: the audit and the writes.
 - `lib/onetime/operations/domains/collision_resolution.rb` and
   `collision_resolution/rule.rb`: the collision facts, rule, plan and
   removals behind `bin/ots domains resolve-collisions`.

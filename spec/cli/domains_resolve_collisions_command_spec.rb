@@ -40,9 +40,9 @@ RSpec.describe 'Domains resolve-collisions command', type: :cli do
     op_class::Record.new(**defaults, **over)
   end
 
-  def group(canonical, decision: :auto, rule: :dns_proof, keep: 'cdb', remove: ['cda'], notes: [])
+  def group(ascii_name, decision: :auto, rule: :dns_proof, keep: 'cdb', remove: ['cda'], notes: [])
     op_class::Group.new(
-      canonical: canonical,
+      ascii_name: ascii_name,
       decision: decision,
       rule: rule,
       keep: keep,
@@ -64,7 +64,7 @@ RSpec.describe 'Domains resolve-collisions command', type: :cli do
       strategy: 'passthrough',
       outcomes: [
         op_class::Outcome.new(
-          canonical: 'pair.example',
+          ascii_name: 'pair.example',
           status: status,
           reason: reason,
           keep: 'cdb',
@@ -116,7 +116,7 @@ end,
       output = run_cli_command_quietly('domains', 'resolve-collisions', '--write', path)
 
       expect(output[:stdout]).to include('MANUAL: manual_several_in_use', '1 groups need a decision', "Plan written to #{path}")
-      expect(JSON.parse(File.read(path))['groups'].first).to include('canonical' => 'pair.example', 'decision' => 'manual', 'keep' => nil)
+      expect(JSON.parse(File.read(path))['groups'].first).to include('ascii_name' => 'pair.example', 'decision' => 'manual', 'keep' => nil)
       expect(last_exit_code).to eq(1)
     end
 
@@ -208,7 +208,7 @@ end,
       output = run_cli_command_quietly('domains', 'resolve-collisions', '--apply', '--plan', path, '--yes')
 
       expect(op).to have_received(:apply).with(an_instance_of(op_class::Plan), actor: 'cli', dry_run: false, only: nil)
-      expect(output[:stdout]).to include('APPLY', 'pair.example  applied', 'removed cda', 'exact index: created', 'backfill-canonical-index --apply')
+      expect(output[:stdout]).to include('APPLY', 'pair.example  applied', 'removed cda', 'exact index: created', 'backfill-ascii-index --apply')
       expect(last_exit_code).to eq(0)
     end
 
@@ -223,7 +223,7 @@ end,
       output = run_cli_command_quietly('domains', 'resolve-collisions', '--apply', '--plan', path, '--yes', '--json')
       report = JSON.parse(output[:stdout])
       expect(report['counts']).to eq('skipped' => 1)
-      expect(report['outcomes'].first).to include('canonical' => 'pair.example', 'status' => 'skipped')
+      expect(report['outcomes'].first).to include('ascii_name' => 'pair.example', 'status' => 'skipped')
       expect(last_exit_code).to eq(1)
     end
   end

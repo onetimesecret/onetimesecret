@@ -1,11 +1,11 @@
-# spec/unit/onetime/operations/domains/canonical_index_backfill_spec.rb
+# spec/unit/onetime/operations/domains/ascii_index_backfill_spec.rb
 #
 # frozen_string_literal: true
 
-# Onetime::Operations::Domains::CanonicalIndexAudit and CanonicalIndexBackfill.
+# Onetime::Operations::Domains::AsciiIndexAudit and AsciiIndexBackfill.
 #
 # The audit compares every custom domain record with
-# canonical_display_domain_index and puts each in one category; the backfill
+# ascii_display_domain_index and puts each in one category; the backfill
 # claims missing entries, re-claims entries left naming deleted records, and
 # releases entries no record accounts for. Collisions and conflicts are left
 # for an operator.
@@ -20,13 +20,13 @@ require 'spec_helper'
 require 'delegate'
 require 'securerandom'
 require 'simpleidn'
-require 'onetime/operations/domains/canonical_index_backfill'
+require 'onetime/operations/domains/ascii_index_backfill'
 
-RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore do
+RSpec.describe Onetime::Operations::Domains::AsciiIndexBackfill, :datastore do
   include LegacyCustomDomainRecords
 
   let(:model) { Onetime::CustomDomain }
-  let(:index) { model.canonical_display_domain_index }
+  let(:index) { model.ascii_display_domain_index }
   let(:sfx) { SecureRandom.hex(4) }
   let(:org_a) { Onetime::Organization.new(display_name: "Backfill A #{sfx}").tap(&:save) }
   let(:org_b) { Onetime::Organization.new(display_name: "Backfill B #{sfx}").tap(&:save) }
@@ -38,14 +38,14 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
     created.each do |rec|
       rec.destroy! if rec.exists?
     rescue StandardError => ex
-      warn "[canonical_index_backfill_spec cleanup] #{ex.class}: #{ex.message}"
+      warn "[ascii_index_backfill_spec cleanup] #{ex.class}: #{ex.message}"
     end
     legacy.each_value { |(id, name)| remove_legacy_custom_domain(id, name) }
     entries_written.each { |key, holder| index.release_field(key, holder) }
     [org_a, org_b].each do |org|
       org.destroy! if org.exists?
     rescue StandardError => ex
-      warn "[canonical_index_backfill_spec cleanup] #{ex.class}: #{ex.message}"
+      warn "[ascii_index_backfill_spec cleanup] #{ex.class}: #{ex.message}"
     end
   end
 
@@ -63,12 +63,12 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
     entries_written << [key, holder]
   end
 
-  def canonical(name)
-    model.canonical_display_domain(name)
+  def ascii_name(name)
+    model.ascii_display_domain(name)
   end
 
   def audit
-    Onetime::Operations::Domains::CanonicalIndexAudit.new.call
+    Onetime::Operations::Domains::AsciiIndexAudit.new.call
   end
 
   def categories(result, ids)
@@ -76,17 +76,17 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
   end
 
   def entry_categories(result, keys)
-    result.entries.select { |entry| keys.include?(entry.canonical) }.to_h { |entry| [entry.canonical, entry.category] }
+    result.entries.select { |entry| keys.include?(entry.ascii_name) }.to_h { |entry| [entry.ascii_name, entry.category] }
   end
 
-  # Stands in for the canonical index, overriding the given methods; the
+  # Stands in for the ASCII index, overriding the given methods; the
   # rest reach the real index.
   def with_index(overrides)
     real    = index
     wrapper = Class.new(SimpleDelegator) do
       overrides.each { |method, body| define_method(method) { |*args| body.call(__getobj__, *args) } }
     end.new(real)
-    allow(model).to receive(:canonical_display_domain_index).and_return(wrapper)
+    allow(model).to receive(:ascii_display_domain_index).and_return(wrapper)
   end
 
   def outcome_for(result, id)
@@ -106,20 +106,20 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
     legacy!(:fullwidth, "ｆｕｌｌ-#{sfx}.com") # fullwidth letters: maps to full-#{sfx}.com
     legacy!(:mixed, "xn--bcher-kva.mixed-ü-#{sfx}.com")
     legacy!(:nfc, "nfc-ä-#{sfx}.com")
-    legacy!(:a_label, canonical("alabel-ö-#{sfx}.com"))
+    legacy!(:a_label, ascii_name("alabel-ö-#{sfx}.com"))
     legacy!(:crafted, crafted_a_label)
     legacy!(:orphan, "orphan-é-#{sfx}.com", org: nil)
     # Two records for one DNS name in two organizations: one stored as NFC
     # Unicode, one as the A-label.
     legacy!(:pair_unicode, "pair-ü-#{sfx}.com")
-    legacy!(:pair_a_label, canonical("pair-ü-#{sfx}.com"), org: org_b)
+    legacy!(:pair_a_label, ascii_name("pair-ü-#{sfx}.com"), org: org_b)
     # The entry for its own name names a record that no longer exists.
     legacy!(:stale, "stale-ü-#{sfx}.com")
-    put_entry(canonical("stale-ü-#{sfx}.com"), "gone-#{sfx}")
+    put_entry(ascii_name("stale-ü-#{sfx}.com"), "gone-#{sfx}")
     # The entry for its own name names another, live record.
     @other   = model.create!("other-#{sfx}.com", org_b.objid).tap { |rec| created << rec }
     legacy!(:conflict, "conflict-ü-#{sfx}.com")
-    put_entry(canonical("conflict-ü-#{sfx}.com"), @other.identifier)
+    put_entry(ascii_name("conflict-ü-#{sfx}.com"), @other.identifier)
     # No A-label form: a 64-octet label.
     legacy!(:unconvertible, "#{'a' * 64}-#{sfx}.com")
     # Registered after the index existed.
@@ -168,14 +168,14 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
     end
 
     it 'groups the records that share an A-label' do
-      group = audit.collision_groups.fetch(canonical("pair-ü-#{sfx}.com"))
+      group = audit.collision_groups.fetch(ascii_name("pair-ü-#{sfx}.com"))
 
       expect(group.map(&:domain_id)).to contain_exactly(id_of(:pair_unicode), id_of(:pair_a_label))
     end
 
     # The runbook removes collision records with `bin/ots domains remove <extid>`.
     it 'names each collision record by an extid that resolves to it' do
-      group = audit.collision_groups.fetch(canonical("pair-ü-#{sfx}.com"))
+      group = audit.collision_groups.fetch(ascii_name("pair-ü-#{sfx}.com"))
 
       expect(group.to_h { |row| [row.domain_id, model.find_by_extid(row.extid)&.identifier] })
         .to eq(group.to_h { |row| [row.domain_id, row.domain_id] })
@@ -184,7 +184,7 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
     it 'keys the crafted A-label under itself, apart from the name it decodes to' do
       row = audit.rows.find { |r| r.domain_id == id_of(:crafted) }
 
-      expect([row.canonical, row.canonical == canonical("bücher-#{sfx}.com")]).to eq([crafted_a_label, false])
+      expect([row.ascii_name, row.ascii_name == ascii_name("bücher-#{sfx}.com")]).to eq([crafted_a_label, false])
     end
 
     it 'asks for an operator while collisions or conflicts exist' do
@@ -213,9 +213,9 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
 
     it 'plans a claim per missing record, a re-claim per stale record and a release per unmatched stale entry' do
       result  = described_class.new.call
-      planned = result.actions.select { |a| fixture_ids.include?(a.domain_id) || unmatched_keys.include?(a.canonical) }
+      planned = result.actions.select { |a| fixture_ids.include?(a.domain_id) || unmatched_keys.include?(a.ascii_name) }
 
-      summary = planned.to_h { |a| [a.domain_id || a.canonical, [a.kind, a.outcome]] }
+      summary = planned.to_h { |a| [a.domain_id || a.ascii_name, [a.kind, a.outcome]] }
       missing = expected_categories.select { |_id, category| category == :missing }.keys
       expect(summary).to eq(
         missing.to_h { |id| [id, [:claim, :planned]] }.merge(
@@ -259,8 +259,8 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
       expect([result.refusal, result.applied?]).to eq([:unreadable_records, false])
       expect([result.changes, result.failures, result.attention?]).to eq([[], [], true])
       expect(index.hgetall).to eq(before_index)
-      expect(index.get(canonical("pair-ü-#{sfx}.com"))).to be_nil
-      expect(index.get(canonical("stale-ü-#{sfx}.com"))).to eq("gone-#{sfx}")
+      expect(index.get(ascii_name("pair-ü-#{sfx}.com"))).to be_nil
+      expect(index.get(ascii_name("stale-ü-#{sfx}.com"))).to eq("gone-#{sfx}")
       expect(index.get("nobody-gone-#{sfx}.com")).to eq("gone2-#{sfx}")
     end
 
@@ -290,9 +290,9 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
         id_of(:pair_unicode) => :collision, unreadable_id => :collision,
       )
       expect(result.changes.map(&:kind).uniq).to contain_exactly(:claim, :reclaim, :release)
-      expect(index.get(canonical("pair-ü-#{sfx}.com"))).to be_nil
-      expect(index.get(canonical("bu\u0308cher-#{sfx}.com"))).to eq(id_of(:nfd))
-      expect(index.get(canonical("stale-ü-#{sfx}.com"))).to eq(id_of(:stale))
+      expect(index.get(ascii_name("pair-ü-#{sfx}.com"))).to be_nil
+      expect(index.get(ascii_name("bu\u0308cher-#{sfx}.com"))).to eq(id_of(:nfd))
+      expect(index.get(ascii_name("stale-ü-#{sfx}.com"))).to eq(id_of(:stale))
       expect(index.get("nobody-gone-#{sfx}.com")).to be_nil
     end
   end
@@ -306,11 +306,11 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
       missing = expected_categories.select { |_id, category| category == :missing }.keys
       names   = legacy.values.to_h { |id, name| [id, name] }
 
-      expect(missing.to_h { |id| [id, index.get(canonical(names.fetch(id)))] }).to eq(missing.to_h { |id| [id, id] })
+      expect(missing.to_h { |id| [id, index.get(ascii_name(names.fetch(id)))] }).to eq(missing.to_h { |id| [id, id] })
     end
 
     it 're-claims the stale entry for the record that has the name' do
-      expect(index.get(canonical("stale-ü-#{sfx}.com"))).to eq(id_of(:stale))
+      expect(index.get(ascii_name("stale-ü-#{sfx}.com"))).to eq(id_of(:stale))
     end
 
     it 'releases the stale entry no record accounts for' do
@@ -319,8 +319,8 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
 
     it 'leaves collisions, conflicts and the record that has no A-label untouched' do
       observed = [
-        index.get(canonical("pair-ü-#{sfx}.com")),
-        index.get(canonical("conflict-ü-#{sfx}.com")),
+        index.get(ascii_name("pair-ü-#{sfx}.com")),
+        index.get(ascii_name("conflict-ü-#{sfx}.com")),
         index.get("nobody-live-#{sfx}.com"),
       ]
 
@@ -338,7 +338,7 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
     end
 
     it 'reports the writes it made and still asks for an operator' do
-      mine = result.changes.select { |a| fixture_ids.include?(a.domain_id) || unmatched_keys.include?(a.canonical) }
+      mine = result.changes.select { |a| fixture_ids.include?(a.domain_id) || unmatched_keys.include?(a.ascii_name) }
 
       expect([mine.map(&:outcome).tally, result.failures, result.attention?])
         .to eq([{ claimed: 8, released: 1 }, [], true])
@@ -372,11 +372,11 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
     end
 
     it 'reports :unverified and releases its claim when the entry reads back differently' do
-      with_index(get: ->(real, field) { field == canonical(race_name) ? "someone-#{sfx}" : real.get(field) })
+      with_index(get: ->(real, field) { field == ascii_name(race_name) ? "someone-#{sfx}" : real.get(field) })
 
       result = described_class.new(dry_run: false).call
 
-      expect([outcome_for(result, id_of(:race)), index.get(canonical(race_name))]).to eq([:unverified, nil])
+      expect([outcome_for(result, id_of(:race)), index.get(ascii_name(race_name))]).to eq([:unverified, nil])
     end
 
     # The audit after the writes decides, whatever the action reported.
@@ -401,7 +401,7 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
     end
 
     it 'records the error as that action outcome and applies the other actions' do
-      failing = canonical(failing_name)
+      failing = ascii_name(failing_name)
       with_index(
         claim_field: lambda { |real, field, val|
           raise Redis::TimeoutError, 'timed out' if field == failing
@@ -413,7 +413,7 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
       result = described_class.new(dry_run: false).call
       error  = result.actions.find { |a| a.domain_id == id_of(:failing) }
 
-      expect([error.outcome, error.detail, outcome_for(result, id_of(:other)), index.get(canonical(other_name)), result.attention?])
+      expect([error.outcome, error.detail, outcome_for(result, id_of(:other)), index.get(ascii_name(other_name)), result.attention?])
         .to eq([:error, 'Redis::TimeoutError: timed out', :claimed, id_of(:other), true])
     end
   end
@@ -428,18 +428,18 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
     end
 
     it 'counts an entry naming the record itself as ok' do
-      put_quoted_entry(canonical(name), legacy!(:quoted_own, name))
+      put_quoted_entry(ascii_name(name), legacy!(:quoted_own, name))
 
       expect(categories(audit, [id_of(:quoted_own)])).to eq(id_of(:quoted_own) => :ok)
     end
 
     it 're-claims an entry naming a deleted record and stores the identifier unquoted' do
       legacy!(:quoted_stale, name)
-      put_quoted_entry(canonical(name), "gone-quoted-#{sfx}")
+      put_quoted_entry(ascii_name(name), "gone-quoted-#{sfx}")
 
       result = described_class.new(dry_run: false).call
 
-      expect([outcome_for(result, id_of(:quoted_stale)), model.dbclient.hget(index.dbkey, canonical(name))])
+      expect([outcome_for(result, id_of(:quoted_stale)), model.dbclient.hget(index.dbkey, ascii_name(name))])
         .to eq([:claimed, id_of(:quoted_stale)])
     end
   end

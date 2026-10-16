@@ -16,7 +16,7 @@
 #   2. Real datastore — the display_domain_index re-assertion crux. Familia's
 #      destroy! ends in a bare `super` whose transaction UNCONDITIONALLY HDELs
 #      display_domain_index[fqdn] with no owner check, so removing a drift-shadow
-#      would wipe the surviving canonical owner's pointer. These examples build
+#      would wipe the surviving owner's pointer. These examples build
 #      REAL CustomDomain records (super's HDEL only fires against real Redis) and
 #      prove the survivor pointer is re-asserted, that a normal removal clears the
 #      index (not resurrected), and that a pre-drifted nil owner is a no-op.
@@ -329,7 +329,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
       @fqdns.uniq.each { |fqdn| index.remove(fqdn) }
     end
 
-    # Create a real, fully-persisted canonical domain and register it for cleanup.
+    # Create a real, fully-persisted ascii_name domain and register it for cleanup.
     def create_domain(fqdn, org_id)
       rec = Onetime::CustomDomain.create!(fqdn, org_id)
       @records << rec
@@ -341,22 +341,22 @@ RSpec.describe Onetime::Operations::Domains::Remove do
     #
     # Familia 2.11's save now guards unique indexes (RecordExistsError if the
     # index already points at another record), and CustomDomain's save claims
-    # the canonical name (CustomDomain::IdentityGuard), so the raw "parse +
+    # the ASCII name (CustomDomain::IdentityGuard), so the raw "parse +
     # save" bypass the op's docstring describes no longer works directly. We
     # reproduce the SAME end state deterministically: drop both index entries
     # so the guards pass, save the shadow (which points both at itself), then
     # FORCE both back to the survivor. Result: two live hashes for one fqdn,
     # both indexes -> survivor.
     def create_shadow(fqdn, org_id, survivor)
-      canonical_index = Onetime::CustomDomain.canonical_display_domain_index
-      canonical       = Onetime::CustomDomain.canonical_display_domain(fqdn)
+      ascii_index = Onetime::CustomDomain.ascii_display_domain_index
+      ascii_name       = Onetime::CustomDomain.ascii_display_domain(fqdn)
       index.remove(fqdn)
-      canonical_index.remove_field(canonical)
+      ascii_index.remove_field(ascii_name)
       shadow = Onetime::CustomDomain.parse(fqdn, org_id)
       shadow.save
       @records << shadow
       index.put(fqdn, survivor.objid)
-      canonical_index.put(canonical, survivor.objid)
+      ascii_index.put(ascii_name, survivor.objid)
       shadow
     end
 

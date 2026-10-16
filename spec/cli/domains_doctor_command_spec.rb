@@ -91,7 +91,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
   end
 
   let(:canonical_audit_result) do
-    Onetime::Operations::Domains::CanonicalIndexAudit::Result.new(rows: [], entries: [], errors: [])
+    Onetime::Operations::Domains::AsciiIndexAudit::Result.new(rows: [], entries: [], errors: [])
   end
 
   # Run the command and parse its --json report (the machine-readable shape the
@@ -117,8 +117,8 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
     allow(Onetime::CustomDomain).to receive(:record_owner)
     # Check #11 reads the whole keyspace; a clean audit keeps it silent unless
     # an example says otherwise.
-    allow(Onetime::Operations::Domains::CanonicalIndexAudit).to receive(:new)
-      .and_return(double('CanonicalIndexAudit', call: canonical_audit_result))
+    allow(Onetime::Operations::Domains::AsciiIndexAudit).to receive(:new)
+      .and_return(double('AsciiIndexAudit', call: canonical_audit_result))
   end
 
   describe 'membership repair delegation' do
@@ -363,35 +363,35 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
     end
   end
 
-  # Check #11: canonical_display_domain_index findings from
-  # Operations::Domains::CanonicalIndexAudit. Report-only: the writes belong
-  # to `bin/ots domains backfill-canonical-index --apply`, run with the
+  # Check #11: ascii_display_domain_index findings from
+  # Operations::Domains::AsciiIndexAudit. Report-only: the writes belong
+  # to `bin/ots domains backfill-ascii-index --apply`, run with the
   # application stopped.
-  describe 'canonical index integrity' do
-    let(:audit_class) { Onetime::Operations::Domains::CanonicalIndexAudit }
+  describe 'ASCII index integrity' do
+    let(:audit_class) { Onetime::Operations::Domains::AsciiIndexAudit }
     let(:canonical_audit_result) do
       audit_class::Result.new(
         rows: [
-          canonical_row(:missing, 'm1'),
-          canonical_row(:missing, 'm2'),
-          canonical_row(:collision, 'c1'),
-          canonical_row(:collision, 'c2'),
-          canonical_row(:conflict, 'x1', holder: 'other'),
-          canonical_row(:stale, 's1', holder: 'gone'),
-          canonical_row(:ok, 'ok1', holder: 'ok1'),
+          ascii_row(:missing, 'm1'),
+          ascii_row(:missing, 'm2'),
+          ascii_row(:collision, 'c1'),
+          ascii_row(:collision, 'c2'),
+          ascii_row(:conflict, 'x1', holder: 'other'),
+          ascii_row(:stale, 's1', holder: 'gone'),
+          ascii_row(:ok, 'ok1', holder: 'ok1'),
         ],
-        entries: [audit_class::Entry.new(category: :stale, canonical: 'orphan.example', holder_id: 'gone2', detail: 'x')],
+        entries: [audit_class::Entry.new(category: :stale, ascii_name: 'orphan.example', holder_id: 'gone2', detail: 'x')],
         errors: [],
       )
     end
 
-    def canonical_row(category, id, holder: nil)
+    def ascii_row(category, id, holder: nil)
       audit_class::Row.new(
         category: category,
         domain_id: id,
         extid: "cd#{id}",
         display_domain: "#{id}.example",
-        canonical: "#{id}.example",
+        ascii_name: "#{id}.example",
         holder_id: holder,
         org_id: 'org123',
         verification_state: :pending,
@@ -409,31 +409,31 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
 
     def canonical_issues(report)
       report['issues'].find { |group| group['type'] == 'indexes' }['issues']
-        .select { |issue| issue['check'].start_with?('canonical_index_') }
+        .select { |issue| issue['check'].start_with?('ascii_index_') }
     end
 
     it 'reports missing, collision, conflict and stale findings with their totals and severities' do
       issues = canonical_issues(json_report('domains', 'doctor', '--all', '--json'))
 
       expect(issues.to_h { |i| [i['check'], [i['severity'], i['total'], i['repairable']]] }).to eq(
-        'canonical_index_missing' => ['high', 2, false],
-        'canonical_index_collision' => ['high', 2, false],
-        'canonical_index_conflict' => ['high', 1, false],
-        'canonical_index_stale' => ['medium', 2, false],
+        'ascii_index_missing' => ['high', 2, false],
+        'ascii_index_collision' => ['high', 2, false],
+        'ascii_index_conflict' => ['high', 1, false],
+        'ascii_index_stale' => ['medium', 2, false],
       )
       expect(last_exit_code).to eq(1)
     end
 
     it 'points at the backfill command and the runbook' do
       issues  = canonical_issues(json_report('domains', 'doctor', '--all', '--json'))
-      missing = issues.find { |i| i['check'] == 'canonical_index_missing' }
+      missing = issues.find { |i| i['check'] == 'ascii_index_missing' }
 
-      expect(missing['repair_action']).to include('backfill-canonical-index --apply', 'custom-domain-canonical-index-backfill.md')
+      expect(missing['repair_action']).to include('backfill-ascii-index --apply', 'custom-domain-ascii-index-backfill.md')
     end
 
-    it 'writes nothing to the canonical index with --repair' do
-      index = double('CanonicalIndex')
-      allow(Onetime::CustomDomain).to receive(:canonical_display_domain_index).and_return(index)
+    it 'writes nothing to the ASCII index with --repair' do
+      index = double('AsciiIndex')
+      allow(Onetime::CustomDomain).to receive(:ascii_display_domain_index).and_return(index)
 
       output = run_cli_command_quietly('domains', 'doctor', '--all', '--repair')
 
@@ -462,7 +462,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
         expect(report['issues'].map { |group| group['type'] }).to eq(['indexes'])
         expect(canonical_issues(report)).to contain_exactly(
           include(
-            'check' => 'canonical_index_unreadable',
+            'check' => 'ascii_index_unreadable',
             'severity' => 'high',
             'total' => 2,
             'repairable' => false,
@@ -491,7 +491,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
           audit_class::Unreadable.new(domain_id: "broken#{id}", message: 'TypeError: invalid field')
         end
         result = audit_class::Result.new(rows: [], entries: [], errors: errors)
-        allow(audit_class).to receive(:new).and_return(double('CanonicalIndexAudit', call: result))
+        allow(audit_class).to receive(:new).and_return(double('AsciiIndexAudit', call: result))
 
         issue = canonical_issues(json_report('domains', 'doctor', '--all', '--json')).first
 
@@ -501,10 +501,10 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       end
 
       it 'exits with manual intervention status and writes nothing with --repair' do
-        canonical_index = double('CanonicalIndex')
+        ascii_index = double('AsciiIndex')
         display_index = double('DisplayDomainIndex', hgetall: {})
         owners_index = double('OwnersIndex', hgetall: {})
-        allow(Onetime::CustomDomain).to receive(:canonical_display_domain_index).and_return(canonical_index)
+        allow(Onetime::CustomDomain).to receive(:ascii_display_domain_index).and_return(ascii_index)
         allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(display_index)
         allow(Onetime::CustomDomain).to receive(:owners).and_return(owners_index)
         expect(Onetime::CustomDomain).not_to receive(:record_owner)
@@ -531,7 +531,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
 
         expect(report['repaired']).to eq([{ 'action' => 'display_domain_index_cleaned', 'count' => 1 }])
         expect(display_index).to have_received(:release_field).with('stale.example.com', 'gone999').once
-        expect(canonical_issues(report).first['check']).to eq('canonical_index_unreadable')
+        expect(canonical_issues(report).first['check']).to eq('ascii_index_unreadable')
         expect(last_exit_code).to eq(2)
       end
     end
@@ -542,7 +542,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       issues = json_report('domains', 'doctor', '--all', '--json')['issues']
         .find { |group| group['type'] == 'indexes' }['issues']
 
-      expect(issues.map { |i| [i['check'], i['severity']] }).to eq([%w[canonical_index_audit_unavailable warning]])
+      expect(issues.map { |i| [i['check'], i['severity']] }).to eq([%w[ascii_index_audit_unavailable warning]])
     end
   end
 

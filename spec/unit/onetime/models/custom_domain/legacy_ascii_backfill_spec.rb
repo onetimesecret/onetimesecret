@@ -1,13 +1,13 @@
-# spec/unit/onetime/models/custom_domain/legacy_canonical_backfill_spec.rb
+# spec/unit/onetime/models/custom_domain/legacy_ascii_backfill_spec.rb
 #
 # frozen_string_literal: true
 
-# Legacy custom domain records without a canonical entry, in several stored
-# spellings, and what the canonical index backfill changes for them.
+# Legacy custom domain records without a ASCII entry, in several stored
+# spellings, and what the ASCII index backfill changes for them.
 #
 # Each fixture is written with raw commands, the way such a record sits in the
 # datastore: a JSON-encoded hash, its display_domain_index entry, an instances
-# member, and no canonical entry.
+# member, and no ASCII entry.
 #
 # Real datastore: the lookups and the claim are index reads and a server-side
 # compare-and-set.
@@ -16,13 +16,13 @@ require 'spec_helper'
 require 'securerandom'
 
 # rubocop:disable RSpec/SpecFilePathFormat
-RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index backfill', :datastore do
+RSpec.describe Onetime::CustomDomain, 'legacy records and the ASCII index backfill', :datastore do
   include LegacyCustomDomainRecords
 
   let(:suffix) { SecureRandom.hex(4) }
   let(:nfc_name) { "bücher-#{suffix}.com" }
-  let(:a_label) { described_class.canonical_display_domain(nfc_name) }
-  let(:index) { described_class.canonical_display_domain_index }
+  let(:a_label) { described_class.ascii_display_domain(nfc_name) }
+  let(:index) { described_class.ascii_display_domain_index }
   let(:holder_org) { Onetime::Organization.new(display_name: "Legacy holder #{suffix}").tap(&:save) }
   let(:other_org) { Onetime::Organization.new(display_name: "Second org #{suffix}").tap(&:save) }
   let(:legacy_ids) { [] }
@@ -32,17 +32,17 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
     created.each do |rec|
       rec.destroy! if rec.exists?
     rescue StandardError => ex
-      warn "[legacy_canonical_backfill_spec cleanup] #{ex.class}: #{ex.message}"
+      warn "[legacy_ascii_backfill_spec cleanup] #{ex.class}: #{ex.message}"
     end
     legacy_ids.each { |id, name| remove_legacy_custom_domain(id, name) }
     [holder_org, other_org].each do |org|
       org.destroy! if org.exists?
     rescue StandardError => ex
-      warn "[legacy_canonical_backfill_spec cleanup] #{ex.class}: #{ex.message}"
+      warn "[legacy_ascii_backfill_spec cleanup] #{ex.class}: #{ex.message}"
     end
   end
 
-  # A record as written before the canonical index existed.
+  # A record as written before the ASCII index existed.
   def write_legacy_record(display_domain, org_id:)
     id = write_legacy_custom_domain(display_domain, org_id: org_id)
     legacy_ids << [id, display_domain]
@@ -50,8 +50,8 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
   end
 
   def run_backfill
-    require 'onetime/operations/domains/canonical_index_backfill'
-    Onetime::Operations::Domains::CanonicalIndexBackfill.new(dry_run: false).call
+    require 'onetime/operations/domains/ascii_index_backfill'
+    Onetime::Operations::Domains::AsciiIndexBackfill.new(dry_run: false).call
   end
 
   def register(name, org)
@@ -66,9 +66,9 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
     }
   end
 
-  describe 'a legacy record without a canonical entry' do
+  describe 'a legacy record without a ASCII entry' do
     it 'shares the A-label of the NFC spelling (fixture sanity)' do
-      keys = spellings.values.map { |name| described_class.canonical_display_domain(name) }
+      keys = spellings.values.map { |name| described_class.ascii_display_domain(name) }
 
       expect(keys.uniq).to eq([a_label])
     end
@@ -85,7 +85,7 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
       'fullwidth',
     ].each do |label|
       context "when stored #{label}" do
-        it 'has no canonical entry before the backfill, and is found by its stored name' do
+        it 'has no ASCII entry before the backfill, and is found by its stored name' do
           stored = spellings.fetch(label)
           legacy = write_legacy_record(stored, org_id: holder_org.objid)
 
@@ -116,9 +116,9 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
 
     context 'when stored with mixed A-label and Unicode labels' do
       let(:mixed) { "xn--bcher-kva.bücher-#{suffix}.com" }
-      let(:full_a_label) { described_class.canonical_display_domain(mixed) }
+      let(:full_a_label) { described_class.ascii_display_domain(mixed) }
 
-      it 'has no canonical entry before the backfill, and is found by its stored name' do
+      it 'has no ASCII entry before the backfill, and is found by its stored name' do
         legacy = write_legacy_record(mixed, org_id: holder_org.objid)
 
         expect(index.get(full_a_label)).to be_nil

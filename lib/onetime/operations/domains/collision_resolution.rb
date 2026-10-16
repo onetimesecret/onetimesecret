@@ -5,7 +5,7 @@
 # Domain-owned (app-scoped) operation — see decision D3 in
 # lib/onetime/operations/README.md. Loaded at the call site (the CLI
 # command), so require what it builds on.
-require 'onetime/operations/domains/canonical_index_audit'
+require 'onetime/operations/domains/ascii_index_audit'
 require 'onetime/operations/domains/remove'
 require 'onetime/operations/admin_verify_domain'
 require 'onetime/domain_validation/strategy'
@@ -17,7 +17,7 @@ require_relative 'collision_resolution/text'
 module Onetime
   module Operations
     module Domains
-      # Resolve the collision groups that {CanonicalIndexAudit} reports: two
+      # Resolve the collision groups that {AsciiIndexAudit} reports: two
       # or more custom domain records for one DNS name. The backfill never
       # writes them; this operation decides which record to keep by a fixed
       # rule ({Rule}), writes the decision to a plan an operator reviews,
@@ -54,7 +54,7 @@ module Onetime
       #      kept record that never verified has none, and the vhost now
       #      answers for it.
       #
-      # The canonical index is left to `backfill-canonical-index --apply`,
+      # The ASCII index is left to `backfill-ascii-index --apply`,
       # which the runbook runs next.
       #
       # ## Run it with the application stopped
@@ -80,7 +80,7 @@ module Onetime
         #   :partial   a removal failed, or a kept-record step did
         #   :dry_run   previewed only
         #   :skipped   nothing was done; reason says why
-        Outcome = Data.define(:canonical, :status, :reason, :keep, :removals, :index_claim, :verify_state, :errors) do
+        Outcome = Data.define(:ascii_name, :status, :reason, :keep, :removals, :index_claim, :verify_state, :errors) do
           def skipped?
             status == :skipped
           end
@@ -112,16 +112,16 @@ module Onetime
 
         STRATEGIES_WITH_VHOST = ['approximated'].freeze
 
-        # @param audit [CanonicalIndexAudit::Result, nil] reuse an audit the
+        # @param audit [AsciiIndexAudit::Result, nil] reuse an audit the
         #   caller already ran
         # @return [Plan]
         def plan(audit: nil)
-          audit ||= CanonicalIndexAudit.new.call
-          groups  = audit.collision_groups.map do |canonical, rows|
+          audit ||= AsciiIndexAudit.new.call
+          groups  = audit.collision_groups.map do |ascii_name, rows|
             records  = rows.map { |row| record_for(row) }
             decision = Rule.decide(records)
             Group.new(
-              canonical: canonical,
+              ascii_name: ascii_name,
               decision: decision.decision,
               rule: decision.rule,
               keep: ref_of(records, decision.keep),
@@ -144,12 +144,12 @@ module Onetime
         # @param plan [Plan]
         # @param actor [String] public identity for the audit events ('cli')
         # @param dry_run [Boolean] preview the removals, write nothing
-        # @param only [String, nil] apply one group, by its canonical name
+        # @param only [String, nil] apply one group, by its ASCII name
         # @return [ApplyResult]
         def apply(plan, actor:, dry_run: true, only: nil)
-          live     = CanonicalIndexAudit.new.call.collision_groups
-          groups   = only ? plan.groups.select { |group| group.canonical == only } : plan.groups
-          outcomes = groups.map { |group| apply_group(group, live[group.canonical], actor: actor, dry_run: dry_run) }
+          live     = AsciiIndexAudit.new.call.collision_groups
+          groups   = only ? plan.groups.select { |group| group.ascii_name == only } : plan.groups
+          outcomes = groups.map { |group| apply_group(group, live[group.ascii_name], actor: actor, dry_run: dry_run) }
 
           ApplyResult.new(dry_run: dry_run, strategy: strategy_name, outcomes: outcomes)
         end
@@ -191,7 +191,7 @@ module Onetime
 else
 (org.archived? ? :archived : :active)
 end,
-            served: served_id(row.canonical) == row.domain_id,
+            served: served_id(row.ascii_name) == row.domain_id,
             verification_state: row.verification_state,
             ownership_verified: row.ownership_verified == true,
             verified_by_override: row.verified_by_override == true,
@@ -207,9 +207,9 @@ end,
 
         # The record a request for the name (its A-label, the form on the
         # wire) resolves to.
-        def served_id(canonical)
-          @served_ids                                         ||= {}
-          @served_ids.fetch(canonical) { @served_ids[canonical] = model.display_domain_id_for(canonical) }
+        def served_id(ascii_name)
+          @served_ids                                           ||= {}
+          @served_ids.fetch(ascii_name) { @served_ids[ascii_name] = model.display_domain_id_for(ascii_name) }
         end
 
         def config_kinds(domain_id, strong_only:)
@@ -239,7 +239,7 @@ end,
           end
 
           Outcome.new(
-            canonical: group.canonical,
+            ascii_name: group.ascii_name,
             status: status,
             reason: nil,
             keep: keeper&.ref,
@@ -297,7 +297,7 @@ end,
           domain = model.find_by_identifier(record.domain_id)
           return Removal.new(ref: record.ref, display_domain: record.display_domain, status: :failed, detail: 'record not found') unless domain
 
-          reason = "canonical collision #{group.canonical}: kept #{keeper ? keeper.ref : 'none'} by rule #{group.rule}"
+          reason = "name collision #{group.ascii_name}: kept #{keeper ? keeper.ref : 'none'} by rule #{group.rule}"
           result = Domains::Remove.new(
             domain: domain, actor: actor, dry_run: dry_run, reason: reason, keep_vhost: !keeper.nil?,
           ).call
@@ -310,7 +310,7 @@ end,
         rescue Domains::Remove::RemovalCommitted => ex
           Removal.new(ref: record.ref, display_domain: record.display_domain, status: :removed, detail: ex.message)
         rescue StandardError => ex
-          OT.le "[Domains::CollisionResolution] removing #{record.ref} (#{group.canonical}) raised #{ex.class}: #{ex.message}"
+          OT.le "[Domains::CollisionResolution] removing #{record.ref} (#{group.ascii_name}) raised #{ex.class}: #{ex.message}"
           Removal.new(ref: record.ref, display_domain: record.display_domain, status: :failed, detail: "#{ex.class}: #{ex.message}")
         end
 
@@ -328,7 +328,7 @@ end,
         end
 
         def claim_exact_entry(group, domain, errors)
-          return nil if model.display_domain_id_for(group.canonical) == domain.identifier
+          return nil if model.display_domain_id_for(group.ascii_name) == domain.identifier
 
           outcome = model.display_domain_index.claim_field(domain.display_domain.to_s, domain.identifier)
           case outcome
@@ -356,7 +356,7 @@ end,
 
         def skipped(group, reason)
           Outcome.new(
-            canonical: group.canonical,
+            ascii_name: group.ascii_name,
             status: :skipped,
             reason: reason,
             keep: group.keep,

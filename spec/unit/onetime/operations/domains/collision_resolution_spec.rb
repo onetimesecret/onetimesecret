@@ -8,7 +8,7 @@
 #
 # The rule and the plan file are pure and tested without the datastore. The
 # facts (#plan) and the removals (#apply) run against the real datastore with
-# legacy records (written raw, as pre-canonical-index records sit) that share
+# legacy records (written raw, as pre-ascii-index records sit) that share
 # one name; every name carries a random suffix so the audit's other rows do
 # not matter. Audit events are stubbed: Remove and AdminVerifyDomain own them.
 #
@@ -141,7 +141,7 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
         strategy: 'passthrough',
         groups: [
           op_class::Group.new(
-            canonical: 'pair.example',
+            ascii_name: 'pair.example',
             decision: :auto,
             rule: :dns_proof,
             keep: 'cdb',
@@ -152,7 +152,7 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
             skip: false,
           ),
           op_class::Group.new(
-            canonical: 'two.example',
+            ascii_name: 'two.example',
             decision: :manual,
             rule: :manual_several_in_use,
             keep: nil,
@@ -169,7 +169,7 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
     it 'round-trips through JSON' do
       parsed = plan_class.parse(plan.to_json)
 
-      expect(parsed.groups.map(&:canonical)).to eq(['pair.example', 'two.example'])
+      expect(parsed.groups.map(&:ascii_name)).to eq(['pair.example', 'two.example'])
       expect(parsed.group('pair.example').keep).to eq('cdb')
       expect(parsed.group('pair.example').records.map(&:domain_id)).to eq(%w[a b])
       expect(parsed.group('pair.example').records.last.verified_confirmed_at).to eq(5)
@@ -236,7 +236,7 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
     end
 
     def group_of(plan)
-      plan.group(name) || raise("no group for #{name} in #{plan.groups.map(&:canonical)}")
+      plan.group(name) || raise("no group for #{name} in #{plan.groups.map(&:ascii_name)}")
     end
 
     it 'plans the group from the records\' facts' do
@@ -275,7 +275,7 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
 
       it 'previews on a dry run and removes nothing' do
         result  = op_class.new.apply(plan, actor: 'cli', dry_run: true)
-        outcome = result.outcomes.find { |o| o.canonical == name }
+        outcome = result.outcomes.find { |o| o.ascii_name == name }
 
         expect(result.dry_run).to be true
         expect(outcome.status).to eq(:dry_run)
@@ -286,7 +286,7 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
 
       it 'removes the other record and makes the name resolve to the kept one' do
         result  = op_class.new.apply(plan, actor: 'cli', dry_run: false, only: name)
-        outcome = result.outcomes.find { |o| o.canonical == name }
+        outcome = result.outcomes.find { |o| o.ascii_name == name }
 
         expect(result.outcomes.size).to eq(1)
         expect(outcome.status).to eq(:applied)
@@ -329,7 +329,7 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
 
       it 'skips an undecided manual group, a skipped group, and an inconsistent edit' do
         edited = JSON.parse(plan.to_json)
-        group  = edited['groups'].find { |g| g['canonical'] == name }
+        group  = edited['groups'].find { |g| g['ascii_name'] == name }
 
         group['decision'] = 'manual'
         group['keep']     = nil
@@ -355,7 +355,7 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
 
       it 'applies an approved manual group with the operator\'s keep' do
         edited            = JSON.parse(plan.to_json)
-        group             = edited['groups'].find { |g| g['canonical'] == name }
+        group             = edited['groups'].find { |g| g['ascii_name'] == name }
         b_ref             = group['records'].find { |r| r['domain_id'] == id_b }['extid']
         group['decision'] = 'manual'
         group['keep']     = b_ref

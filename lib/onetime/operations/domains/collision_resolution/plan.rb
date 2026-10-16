@@ -26,7 +26,7 @@ module Onetime
         # @!attribute approved [r] Boolean — an operator approved a manual
         #   group (apply refuses a manual group without it)
         # @!attribute skip [r] Boolean — apply leaves the group alone
-        Group = Data.define(:canonical, :decision, :rule, :keep, :remove, :notes, :records, :approved, :skip) do
+        Group = Data.define(:ascii_name, :decision, :rule, :keep, :remove, :notes, :records, :approved, :skip) do
           def manual?
             decision == :manual
           end
@@ -41,7 +41,7 @@ module Onetime
 
           def to_h
             {
-              canonical: canonical,
+              ascii_name: ascii_name,
               decision: decision.to_s,
               rule: rule.to_s,
               keep: keep,
@@ -55,13 +55,13 @@ module Onetime
 
           def self.from_h(hash)
             h = hash.transform_keys(&:to_sym)
-            raise InvalidPlan, 'a group has no canonical name' if h[:canonical].to_s.empty?
+            raise InvalidPlan, 'a group has no ASCII name' if h[:ascii_name].to_s.empty?
 
             records = Array(h[:records]).map { |record| Record.from_h(record) }
-            raise InvalidPlan, "group #{h[:canonical]} has no records" if records.empty?
+            raise InvalidPlan, "group #{h[:ascii_name]} has no records" if records.empty?
 
             new(
-              canonical: h[:canonical].to_s,
+              ascii_name: h[:ascii_name].to_s,
               decision: h[:decision].to_s == 'manual' ? :manual : :auto,
               rule: h[:rule].to_s.empty? ? :unknown : h[:rule].to_sym,
               keep: h[:keep].to_s.empty? ? nil : h[:keep].to_s,
@@ -87,8 +87,8 @@ module Onetime
             groups.select(&:manual?)
           end
 
-          def group(canonical)
-            groups.find { |group| group.canonical == canonical }
+          def group(ascii_name)
+            groups.find { |group| group.ascii_name == ascii_name }
           end
 
           # Whether an operator still has to decide a group.
@@ -133,7 +133,7 @@ module Onetime
             raise InvalidPlan, 'the plan has no groups array' unless h[:groups].is_a?(Array)
 
             groups = h[:groups].map { |group| Group.from_h(group) }
-            dupes  = groups.map(&:canonical).tally.select { |_, n| n > 1 }.keys
+            dupes  = groups.map(&:ascii_name).tally.select { |_, n| n > 1 }.keys
             raise InvalidPlan, "the plan lists #{dupes.join(', ')} more than once" if dupes.any?
 
             new(

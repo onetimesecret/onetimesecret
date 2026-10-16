@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # Decide and apply which custom domain record to keep when two or more share
-# one DNS name (the collision groups `backfill-canonical-index` reports and
+# one DNS name (the collision groups `backfill-ascii-index` reports and
 # never writes). Thin adapter over
 # Onetime::Operations::Domains::CollisionResolution, which owns the facts, the
 # rule, the plan file and the writes.
@@ -17,10 +17,10 @@
 #   bin/ots domains resolve-collisions --apply --plan plan.json --yes      # remove without prompting
 #   bin/ots domains resolve-collisions --apply --plan plan.json --group demo.example
 #
-# STOP THE APPLICATION BEFORE --apply, as for backfill-canonical-index, and
+# STOP THE APPLICATION BEFORE --apply, as for backfill-ascii-index, and
 # run that backfill's --apply afterwards: removing a record leaves the kept
-# record's canonical entry to the backfill. Runbook:
-# docs/runbooks/custom-domain-canonical-index-backfill.md, step 6.
+# record's ASCII entry to the backfill. Runbook:
+# docs/runbooks/custom-domain-ascii-index-backfill.md, step 6.
 #
 # Exit status: plan: 0 when no group needs an operator (no groups, or every
 # group decided by the rule), 1 when a manual group is left undecided.
@@ -38,7 +38,7 @@ module Onetime
       include Customers::Shared
       include Domains::Shared
 
-      RUNBOOK = 'docs/runbooks/custom-domain-canonical-index-backfill.md'
+      RUNBOOK = 'docs/runbooks/custom-domain-ascii-index-backfill.md'
 
       desc 'Plan and apply which record to keep for each custom-domain name collision (stop the app before --apply)'
 
@@ -61,7 +61,7 @@ module Onetime
       option :group,
         type: :string,
         default: nil,
-        desc: 'With --apply: apply one group only, by its canonical (A-label) name'
+        desc: 'With --apply: apply one group only, by its ASCII (A-label) name'
       option :yes,
         type: :boolean,
         default: false,
@@ -149,7 +149,7 @@ module Onetime
 
       # Exits 1 unless the operator answers y.
       def confirm_apply(plan, group)
-        groups   = group ? plan.groups.select { |g| g.canonical == group } : plan.groups
+        groups   = group ? plan.groups.select { |g| g.ascii_name == group } : plan.groups
         removals = groups.reject { |g| g.skip || (g.manual? && !(g.approved && g.keep)) }
           .sum { |g| g.keep ? g.records.size - 1 : g.records.size }
         puts "This permanently removes up to #{removals} custom domain records in #{groups.size} groups,"
@@ -175,7 +175,7 @@ module Onetime
 
           Description:
             A collision is two or more custom domain records for one DNS name;
-            backfill-canonical-index reports them and never writes them. Without
+            backfill-ascii-index reports them and never writes them. Without
             --apply this command gathers, for every record in a collision group,
             whether a request for the name resolves to it today, its DNS proof,
             its ownership flag, its organization's state, its receipts, its
@@ -198,7 +198,7 @@ module Onetime
             stored vhost status is current. The provider vhost is keyed by the
             name; the removals leave it in place for the kept record. A group
             whose records changed since the plan is skipped. Run
-            backfill-canonical-index --apply afterwards.
+            backfill-ascii-index --apply afterwards.
 
           STOP THE APPLICATION BEFORE --apply. Snapshot the datastore first.
           Runbook: #{RUNBOOK}
@@ -208,7 +208,7 @@ module Onetime
             --apply        Apply a plan file
             --plan FILE    The plan to apply
             --dry-run      With --apply: check and preview, write nothing
-            --group NAME   With --apply: one group, by canonical name
+            --group NAME   With --apply: one group, by ASCII name
             --yes, -y      With --apply: skip the confirmation prompt
             --json         JSON output (--apply --json requires --yes or --dry-run)
             --help, -h     Show this help

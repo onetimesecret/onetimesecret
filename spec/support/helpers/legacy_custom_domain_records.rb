@@ -5,10 +5,10 @@
 require 'securerandom'
 
 # CustomDomain records as they sit in the datastore when they were registered
-# before canonical_display_domain_index existed: the JSON-encoded hash
+# before ascii_display_domain_index existed: the JSON-encoded hash
 # (including extid), the extid_lookup entry, the exact display_domain_index
-# entry, an instances member, and no canonical entry. Written with raw
-# commands so no model hook (create!, IdentityGuard) adds the canonical entry.
+# entry, an instances member, and no ASCII entry. Written with raw
+# commands so no model hook (create!, IdentityGuard) adds the ASCII entry.
 #
 # extid and extid_lookup are written the way Familia 2.12.0's save writes
 # them: the extid derived from the objid, stored as a JSON-encoded field, and
@@ -49,18 +49,18 @@ module LegacyCustomDomainRecords
   end
 
   # Removes the hash, the extid_lookup entry, the exact index entry and the
-  # instances member, and the canonical entry when it names this record.
+  # instances member, and the ASCII entry when it names this record.
   def remove_legacy_custom_domain(id, display_domain)
     model     = Onetime::CustomDomain
     model.dbclient.del(model.dbkey(id))
     model.extid_lookup.remove_field(legacy_custom_domain_extid(id))
     model.display_domain_index.release_field(display_domain, id)
     model.dbclient.zrem(model.instances.dbkey, id)
-    canonical = begin
-      model.canonical_display_domain(display_domain)
+    ascii_name = begin
+      model.ascii_display_domain(display_domain)
     rescue Onetime::DomainValidation::AsciiHostname::ConversionError
       nil
     end
-    model.canonical_display_domain_index.release_field(canonical, id) if canonical
+    model.ascii_display_domain_index.release_field(ascii_name, id) if ascii_name
   end
 end

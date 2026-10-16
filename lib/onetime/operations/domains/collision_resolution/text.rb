@@ -38,7 +38,7 @@ else
 'auto'
 end)
 end
-            lines << "#{group.canonical}  #{state}: #{group.rule}"
+            lines << "#{group.ascii_name}  #{state}: #{group.rule}"
             group.records.each do |record|
               tag = if record.named_by?(group.keep) then 'KEEP  '
                     elsif group.manual? && !group.keep then '?     '
@@ -77,7 +77,7 @@ end
             end
             lines << 'Review the plan, then with the application stopped:'
             lines << '  bin/ots domains resolve-collisions --apply --plan <file>'
-            lines << 'then run bin/ots domains backfill-canonical-index --apply.'
+            lines << 'then run bin/ots domains backfill-ascii-index --apply.'
             lines
           end
 
@@ -98,7 +98,7 @@ end
           end
 
           def outcome_lines(outcome)
-            lines = ["#{outcome.canonical}  #{outcome.status}#{": #{outcome.reason}" if outcome.reason}"]
+            lines = ["#{outcome.ascii_name}  #{outcome.status}#{": #{outcome.reason}" if outcome.reason}"]
             lines << "  keep   #{outcome.keep}" if outcome.keep && !outcome.skipped?
             outcome.removals.each do |removal|
               detail = removal.detail ? " - #{removal.detail}" : ''
@@ -121,7 +121,7 @@ end
               lines << 'Dry run. Run again without --dry-run to remove the records.'
             else
               lines << 'Next, with the application still stopped:'
-              lines << '  bin/ots domains backfill-canonical-index --apply'
+              lines << '  bin/ots domains backfill-ascii-index --apply'
             end
             lines
           end
