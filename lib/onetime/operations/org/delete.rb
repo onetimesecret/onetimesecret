@@ -78,7 +78,7 @@ module Onetime
       #                        (read-only phase, step 6). NOT overridable — the
       #                        remediation is to create the replacement org
       #                        first, or to purge the account outright with
-      #                        `bin/ots customers purge-one`.
+      #                        `bin/ots customers purge`.
       #
       # ## The is_default hole this closes
       #

@@ -9,7 +9,7 @@ performing irreversible writes.
 ## Administrative purge contract
 
 Colonel `DELETE /api/colonel/users/:user_id` and
-`bin/ots customers purge-one` use the same customer purge lifecycle. They
+`bin/ots customers purge` use the same customer purge lifecycle. They
 differ only in discovery depth (see *Discovery depth*): the CLI command sweeps
 the global registries, the endpoint does not.
 
@@ -40,7 +40,7 @@ Discovery is **shallow** by default: it reaches organizations through the
 customer's own reverse indexes (participations, `organization_instances`,
 `default_org_id`) and the contact-email claim, and keeps every
 per-organization drift check. Only the CLI single-account path
-(`bin/ots customers purge-one`) passes `deep: true`, which additionally sweeps
+(`bin/ots customers purge`) passes `deep: true`, which additionally sweeps
 the global `Organization`, `OrganizationMembership` and `CustomDomain`
 registries to catch a reference no reverse index points at — an organization
 whose `owner_id` names the customer but which is absent from their
@@ -49,8 +49,22 @@ re-runs preflight once per planned action plus three times during teardown, so
 they are never used on a request path — the colonel endpoint
 (`DELETE /api/colonel/users/:id`) is shallow, like self-service closure — or
 in the bulk sweep. An operator who needs the global sweep for one account runs
-`purge-one` from the CLI. Deep mode runs the sweeps at the initial plan and the
+`purge` from the CLI. Deep mode runs the sweeps at the initial plan and the
 final post-teardown validation; the intermediate revalidations stay shallow.
+
+The sweep itself is a `RegistrySweep`: each registry's `instances` set is
+listed once and the rows are probed in pipelined batches for the few fields
+discovery needs (`owner_id`, the `members` set and the target's own membership
+row for an organization; `organization_objid` and `customer_objid` for a
+membership row; `org_id` for a domain). It holds identifiers only: the
+organizations, rows and domains it points at are re-loaded by the preflight
+that uses it, so the evidence is live and only the where-to-look is reused. The
+initial plan captures one and `Org::Delete`'s capability recheck on that plan
+(`AccountPurgeContext`) reuses it; the post-teardown check captures its own, so
+a reference written to any organization during the purge is still seen there.
+Before this, each deep preflight loaded every registry record one round trip
+at a time, three times per purge, which on a registry of hundreds of thousands
+of workspaces was minutes of wall time and a saturated core per account.
 
 Shallow discovery derives an organization's membership rows from the
 organization's own `members` set (plus the purge target's row, loaded

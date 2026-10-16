@@ -1,45 +1,45 @@
-# try/unit/cli/customers/purge_command_try.rb
+# try/unit/cli/customers/purge_inactive_command_try.rb
 #
 # frozen_string_literal: true
 
-# Unit tests for CustomersPurgeCommand utility methods.
+# Unit tests for CustomersPurgeInactiveCommand utility methods.
 # Tests parse_duration, parse_ts, parse_json_field, format_ttl,
 # and stripe_billing? logic without requiring a full Redis scan
 # or boot_application!.
 #
-# Run: bundle exec try try/unit/cli/customers/purge_command_try.rb
+# Run: bundle exec try try/unit/cli/customers/purge_inactive_command_try.rb
 
 require_relative '../../../support/test_helpers'
 require 'onetime/cli'
 
-@cmd = Onetime::CLI::CustomersPurgeCommand.new
+@cmd = Onetime::CLI::CustomersPurgeInactiveCommand.new
 
 # -------------------------------------------------------------------
 # Command class basics
 # -------------------------------------------------------------------
 
-## CustomersPurgeCommand exists and inherits from Command
-Onetime::CLI::CustomersPurgeCommand.ancestors.include?(Onetime::CLI::Command)
+## CustomersPurgeInactiveCommand exists and inherits from Command
+Onetime::CLI::CustomersPurgeInactiveCommand.ancestors.include?(Onetime::CLI::Command)
 #=> true
 
-## CustomersPurgeCommand is a Dry::CLI::Command
+## CustomersPurgeInactiveCommand is a Dry::CLI::Command
 @cmd.is_a?(Dry::CLI::Command)
 #=> true
 
 ## CACHE_TTL is 30 minutes (1800 seconds)
-Onetime::CLI::CustomersPurgeCommand::CACHE_TTL
+Onetime::CLI::CustomersPurgeInactiveCommand::CACHE_TTL
 #=> 1800
 
 ## SCAN_COUNT is 200
-Onetime::CLI::CustomersPurgeCommand::SCAN_COUNT
+Onetime::CLI::CustomersPurgeInactiveCommand::SCAN_COUNT
 #=> 200
 
 ## BATCH_SIZE is 50
-Onetime::CLI::CustomersPurgeCommand::BATCH_SIZE
+Onetime::CLI::CustomersPurgeInactiveCommand::BATCH_SIZE
 #=> 50
 
 ## ACTIVITY_CACHE key has expected prefix
-Onetime::CLI::CustomersPurgeCommand::ACTIVITY_CACHE.start_with?('tmp:cli:')
+Onetime::CLI::CustomersPurgeInactiveCommand::ACTIVITY_CACHE.start_with?('tmp:cli:')
 #=> true
 
 # -------------------------------------------------------------------

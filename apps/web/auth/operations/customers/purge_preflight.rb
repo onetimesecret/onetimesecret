@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'auth/operations/customers/registry_sweep'
+
 module Auth
   module Operations
     module Customers
@@ -81,13 +83,14 @@ module Auth
           attr_reader :customer_objid
 
           def initialize(customer:, organization_objid:, plan_signature:, deep: false,
-                         membership_snapshot: nil)
+                         membership_snapshot: nil, registry_sweep: nil)
             @customer             = customer
             @customer_objid       = customer.objid.to_s
             @organization_objid   = organization_objid.to_s
             @plan_signature       = plan_signature
             @deep                 = deep
             @membership_snapshot  = membership_snapshot
+            @registry_sweep       = registry_sweep
           end
 
           def authorized_for?(organization)
@@ -97,6 +100,7 @@ module Auth
               customer: @customer,
               deep: @deep,
               membership_snapshot: @membership_snapshot,
+              registry_sweep: @registry_sweep,
             ).call
             return false unless plan.executable? && plan.signature == @plan_signature
 
@@ -114,13 +118,20 @@ module Auth
         #   GLOBAL Organization, OrganizationMembership and CustomDomain
         #   registries. That catches references no reverse index points at
         #   (an org whose `owner_id` names the customer but which is absent from
-        #   their participations), at a cost of three full registry scans PER
-        #   CALL. `Purge` re-runs preflight once per action plus three teardown
-        #   revalidations, so deep discovery is reserved for operator sweeps that
-        #   can afford it and is never used on a request path. Shallow discovery
-        #   reaches the same organizations through the customer's own reverse
-        #   indexes (participations, organization_instances, default_org_id and
-        #   the contact-email claim) and keeps every per-organization drift check.
+        #   their participations). The sweep is a {RegistrySweep}: pipelined
+        #   field reads over every registry row, captured once per preflight
+        #   unless the caller hands one in. `Purge` re-runs preflight once per
+        #   action plus three teardown revalidations, so deep discovery is
+        #   reserved for operator sweeps and is never used on a request path.
+        #   Shallow discovery reaches the same organizations through the
+        #   customer's own reverse indexes (participations,
+        #   organization_instances, default_org_id and the contact-email claim)
+        #   and keeps every per-organization drift check.
+        # @param registry_sweep [RegistrySweep, nil] the registries as an
+        #   earlier deep preflight of the same purge listed them. The sweep
+        #   holds identifiers only: every organization, membership row and
+        #   domain it points at is re-loaded here, so the evidence is live and
+        #   only the WHERE-TO-LOOK is reused. Ignored unless `deep` is true.
         # @param membership_snapshot [MembershipSnapshot, nil] membership objids
         #   grouped by organization, captured ONCE by a bulk run. Shallow
         #   discovery otherwise derives an organization's rows from its own
@@ -128,12 +139,13 @@ module Auth
         #   invisible and the workspace can read as sole-owned. The snapshot
         #   closes that gap for every candidate of a sweep at the cost of one
         #   registry read per run instead of one per preflight.
-        attr_reader :pending_organization_checks
+        attr_reader :pending_organization_checks, :registry_sweep
 
-        def initialize(customer:, deep: false, membership_snapshot: nil)
+        def initialize(customer:, deep: false, membership_snapshot: nil, registry_sweep: nil)
           @customer                    = customer
           @deep                        = deep
           @membership_snapshot         = membership_snapshot
+          @registry_sweep              = deep ? registry_sweep : nil
           @registered_org_ids          = {}
           @blockers                    = []
           @organizations               = {}
@@ -146,18 +158,22 @@ module Auth
           @active_memberships_by_org   = Hash.new { |hash, key| hash[key] = [] }
           @pending_memberships_by_org  = Hash.new { |hash, key| hash[key] = [] }
           @retained_memberships_by_org = Hash.new { |hash, key| hash[key] = [] }
-          @domain_references_by_org    = Hash.new { |hash, key| hash[key] = [] }
         end
 
         # @return [Plan]
         def call
           add_blocker(:migration_in_flight) if migration_in_flight?(@customer)
+          # The sweep is captured once per preflight unless the caller supplied
+          # one. A registry that could not be listed is reported by the
+          # discovery step that depends on it, so the blocker codes match the
+          # per-row walk this replaced.
+          @registry_sweep ||= RegistrySweep.capture(customer_objid: customer_objid) if @deep
           discover_participations
           check_pending_organization_purges
           discover_contact_email_holder
           discover_instances
           discover_memberships
-          discover_domain_references if @deep
+          check_domain_scan if @deep
 
           actions = (@organizations.values.filter_map { |org| classify(org) } + @stale_participation_actions)
             .sort_by { |action| [action.organization.objid.to_s, action.type.to_s, action.reference.to_s] }
@@ -325,7 +341,7 @@ module Auth
         end
 
         def discover_memberships
-          @deep ? discover_memberships_globally : discover_memberships_for_candidates
+          @deep ? discover_memberships_from_sweep : discover_memberships_for_candidates
         rescue StandardError => ex
           add_blocker(:membership_scan_failed, message: ex.class.name)
         end
@@ -362,23 +378,34 @@ module Auth
           end
         end
 
-        def discover_memberships_globally
-          Onetime::OrganizationMembership.instances.each do |objid|
+        # The sweep lists every registry row by organization and names the rows
+        # whose `customer_objid` was the target. Rows are re-loaded here: one
+        # removed since the capture is skipped, one that still names the target
+        # adds its organization (or an orphan blocker when the organization is
+        # gone), and the rows of each candidate organization are bucketed from
+        # live state exactly as the per-row registry walk did.
+        def discover_memberships_from_sweep
+          sweep = @registry_sweep
+          add_blocker(:membership_scan_failed, message: sweep.failures[:memberships]) if sweep.failed?(:memberships)
+
+          sweep.target_membership_objids.each do |objid|
             membership = Onetime::OrganizationMembership.load(objid)
-            next unless membership
+            next unless membership && membership.customer_objid.to_s == customer_objid
 
             org_id = membership.organization_objid.to_s
             next if org_id.empty?
-
-            bucket(membership, org_id)
-
-            next unless membership.customer_objid.to_s == customer_objid
 
             org = Onetime::Organization.load(org_id)
             if org
               add_organization(org)
             else
               add_blocker(:orphan_customer_membership, membership_id: membership.objid.to_s)
+            end
+          end
+
+          @organizations.keys.each do |org_id|
+            sweep.membership_objids_for(org_id).each do |objid|
+              bucket(Onetime::OrganizationMembership.load(objid), org_id)
             end
           end
         end
@@ -396,24 +423,33 @@ module Auth
           target << membership unless target.any? { |known| known.objid.to_s == membership.objid.to_s }
         end
 
+        # The sweep names the organizations whose `owner_id`, `members` set or
+        # target membership row referenced the customer when it was captured.
+        # Each is re-loaded and the reference re-checked against live state, so
+        # an organization the purge has since cleaned up drops out here rather
+        # than being judged on stale evidence.
         def discover_instances
           return unless @deep
 
-          Onetime::Organization.instances.each do |objid|
-            objid = objid.to_s
-            @instance_ids << objid
-            org   = Onetime::Organization.load(objid)
+          sweep         = @registry_sweep
+          @instance_ids = sweep.organization_ids
+          add_blocker(:organization_scan_failed, message: sweep.failures[:organizations]) if sweep.failed?(:organizations)
+
+          sweep.referenced_org_ids.each do |objid|
+            org = Onetime::Organization.load(objid)
             next unless org
 
-            raw_member_ids  = org.members.to_a.map(&:to_s)
-            target_relation = Onetime::OrganizationMembership.find_by_org_customer(objid, customer_objid)
-            referenced      = org.owner_id.to_s == customer_objid ||
-                              raw_member_ids.include?(customer_objid) ||
-                              target_relation&.active?
-            add_organization(org) if referenced
+            add_organization(org) if references_customer?(org)
           end
         rescue StandardError => ex
           add_blocker(:organization_scan_failed, message: ex.class.name)
+        end
+
+        def references_customer?(org)
+          return true if org.owner_id.to_s == customer_objid
+          return true if org.members.to_a.map(&:to_s).include?(customer_objid)
+
+          Onetime::OrganizationMembership.find_by_org_customer(org.objid.to_s, customer_objid)&.active? || false
         end
 
         # Deep discovery already materialized the whole registry; shallow probes
@@ -461,16 +497,10 @@ module Auth
           add_blocker(:contact_email_lookup_failed, message: ex.class.name)
         end
 
-        def discover_domain_references
-          Onetime::CustomDomain.instances.each do |objid|
-            domain = Onetime::CustomDomain.load(objid)
-            next unless domain
+        def check_domain_scan
+          return unless @registry_sweep.failed?(:domains)
 
-            org_id = domain.org_id.to_s
-            @domain_references_by_org[org_id] << domain unless org_id.empty?
-          end
-        rescue StandardError => ex
-          add_blocker(:domain_scan_failed, message: ex.class.name)
+          add_blocker(:domain_scan_failed, message: @registry_sweep.failures[:domains])
         end
 
         def add_organization(org)
@@ -693,15 +723,18 @@ module Auth
         # Both directions are covered without the global CustomDomain registry:
         # `unlisted_owned_domains` reads the owners hashkey for records pointing
         # AT this organization but missing from its list, and the listed ids are
-        # existence-checked for the reverse. Deep discovery keeps using the
-        # materialized reference map so its evidence is unchanged.
+        # existence-checked for the reverse. Deep discovery keeps the registry
+        # evidence: the sweep names every domain whose `org_id` pointed at this
+        # organization, and each is re-loaded so the comparison is live.
         def drifted_domains?(org)
           return true if org.unlisted_owned_domains.any?
 
+          org_id         = org.objid.to_s
           listed_ids     = org.domains.to_a.map(&:to_s).sort
           referenced_ids = if @deep
-                             @domain_references_by_org.fetch(org.objid.to_s, [])
-                               .map { |domain| domain.objid.to_s }.sort
+                             @registry_sweep.domain_objids_for(org_id).select do |objid|
+                               Onetime::CustomDomain.load(objid)&.org_id.to_s == org_id
+                             end.sort
                            else
                              listed_ids.select { |objid| Onetime::CustomDomain.load(objid) }.sort
                            end
@@ -776,6 +809,7 @@ module Auth
                 plan_signature: signature,
                 deep: @deep,
                 membership_snapshot: @membership_snapshot,
+                registry_sweep: @registry_sweep,
               ),
             )
           end

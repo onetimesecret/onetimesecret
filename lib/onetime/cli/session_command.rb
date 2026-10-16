@@ -30,7 +30,7 @@ require 'onetime/operations/sessions/delete_session'
 require 'onetime/operations/sessions/revoke_all_for_customer'
 
 # Customers::Shared must exist before `include Customers::Shared` below (same
-# explicit require as customers/purge_one_command.rb, so this file cannot be
+# explicit require as customers/purge_command.rb, so this file cannot be
 # loaded in a broken order).
 require_relative 'customers/shared'
 
