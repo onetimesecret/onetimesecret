@@ -75,7 +75,7 @@ RSpec.describe 'Domains Command', type: :cli do
       output = run_cli_command_quietly('domains')
 
       usage_verbs = output[:stdout].scan(/^  bin\/ots domains (\S+)/).flatten
-      expect(usage_verbs).to eq(%w[list info create verify probe transfer remove orphaned repair doctor backfill-canonical-index])
+      expect(usage_verbs).to eq(%w[list info create verify probe transfer remove orphaned repair doctor backfill-canonical-index resolve-collisions])
       expect(output[:stdout]).not_to include('migrate-sso')
     end
   end

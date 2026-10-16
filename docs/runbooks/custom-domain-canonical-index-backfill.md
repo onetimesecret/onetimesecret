@@ -43,8 +43,9 @@ audit found. A second `--apply` over the same data changes nothing.
 - Keep `jobs.maintenance.index_rebuild.auto_repair` set to `false` (the
   default) during the backfill. The index-rebuild job is fixed in PR #4787.
 - Snapshot the datastore before `--apply`.
-- Remove a duplicate record with `bin/ots domains remove <extid>`, never by
-  deleting keys or index fields directly.
+- Remove duplicate records with `bin/ots domains resolve-collisions --apply`
+  (or, for one record, `bin/ots domains remove <extid>`), never by deleting
+  keys or index fields directly.
 
 ## Procedure
 
@@ -165,38 +166,83 @@ once it is back.
 **Collisions.** Each group lists every record that shares one A-label, with
 its extid, stored name, organization, verification state, date of the last
 passing DNS check (`dns-confirmed`), whether ownership was set by an operator
-override, and creation date. For each group:
+override, and creation date, and marks the one record a request for the name
+resolves to today (`served`); the others are `shadow`. Only one record per
+name can be kept. `bin/ots domains resolve-collisions` decides which, by a
+fixed rule, and removes the others.
 
-1. Find the record whose organization has proven DNS ownership. A record with
-   a recent `dns-confirmed` date passed the TXT check. `ownership_verified`
-   alone can be an operator override. To check now, run
-   `bin/ots domains verify <extid> --dry-run` for each record in the group.
-   `--dry-run` saves nothing to the record. It still records an audit event,
-   and on the Approximated strategy it creates the vhost for the name when
-   none exists.
-2. Keep that record. Remove each other record in the group by its extid:
+On a release that has the backfill command but not `resolve-collisions`
+(v0.26.17), the same operation runs as a script:
+`bundle exec ruby scripts/resolve_canonical_collisions.rb plan|apply ...`,
+with the same options. Its header lists the files to copy into the
+application directory.
+
+1. Make the plan. This reads only, so it can run before the window:
 
    ```console
-   bin/ots domains remove <extid>
+   bin/ots domains resolve-collisions --write collision-plan.json
    ```
 
-   The command shows what it will remove and asks for confirmation
-   (`--dry-run` only shows; `--apply` skips the prompt). Use the extid, not
-   the domain name: the name resolves to one record of the group, not
-   necessarily the one to remove. If the extid is not found, pass the
-   record's objid instead (`domain_id` in the `--json` report).
+   For every record it gathers: whether a request for the name resolves to
+   it, its DNS proof, its ownership flag, its organization's state, its
+   receipts, its configs and brand settings. It decides each group by this
+   rule, in order; the first step that names exactly one record decides, and
+   a step that names several marks the group `manual`:
 
-   It works with the application stopped: it writes to Valkey/Redis from the
-   shell. It also calls external services over the network. On the
-   Approximated strategy it deletes the vhost registered for the removed
-   record's name, and when the record has a mail sender configured it deletes
-   that sender identity at the mail provider.
-3. On deployments using the Approximated strategy, the deleted vhost can be
-   the one the kept record uses. Run `bin/ots domains verify <extid>` for the
-   kept record (it creates the vhost again when it is missing), then
+   1. A record whose organization no longer exists is removed.
+   2. Exactly one record has a passing TXT check on file: keep it.
+   3. Exactly one record has `ownership_verified` (the strategy's check or a
+      colonel override): keep it.
+   4. Exactly one record is in use, meaning it has receipts, brand settings,
+      or an SSO or mailer config: keep it. The five configs an operator action
+      can create disabled (signin, signup, homepage, api, incoming) do not
+      count.
+   5. None is in use: keep the record a request resolves to today, or, when
+      none does, the oldest.
+
+   Ownership evidence outranks use on purpose: a record that proved DNS
+   control is kept over a record that was used without proof, and the plan
+   notes it when the removed record answers for the name today or carries
+   receipts, brand settings or configs. Brand settings and configs are
+   deleted with the record; receipts keep their `share_domain`.
+
+2. Review the plan. Every group's facts and decision are in the file and in
+   the report. For each `manual` group set `keep` to the extid of the record
+   to keep and `approved` to `true`, or set `skip` to `true` to leave it.
+   Leave `remove` empty: apply derives it from `keep`. Do not edit `auto`
+   groups' records; change `keep` and set `approved` if you disagree with the
+   rule, or `skip` the group.
+
+3. Apply, with the application stopped:
+
+   ```console
+   bin/ots domains resolve-collisions --apply --plan collision-plan.json --dry-run
+   bin/ots domains resolve-collisions --apply --plan collision-plan.json
+   ```
+
+   The dry run checks each group against the datastore and previews the
+   removals. The apply, for each group: compares the group with a fresh audit
+   and skips it when its records or their identity changed since the plan;
+   removes each other record through the same operation as
+   `bin/ots domains remove`, with a reason naming the kept record, the record
+   that answers for the name last; re-enters the kept record in the exact
+   name index when the name no longer resolves to it; and on the Approximated
+   strategy verifies the kept record again, because the removal deletes the
+   vhost for the name, which the kept record shared. Each removal and
+   verification records its own audit event.
+
+   A removal calls external services: on the Approximated strategy it deletes
+   the vhost for the name, and when the removed record has a mail sender
+   configured it deletes that sender identity at the mail provider.
+
+   The command exits 1 when a group was skipped or did not complete; the
+   report says why for each. Fix the plan or the record and apply again, or
+   apply one group with `--group <canonical name>`.
+
+4. On the Approximated strategy, check the kept records afterwards with
    `bin/ots domains probe <name>`.
 
-If no record in the group can show DNS ownership, leave the group in place
+If a `manual` group has no record you can justify keeping, leave it skipped
 and contact the organizations. The backfill leaves the group untouched and
 keeps reporting it.
 
@@ -278,3 +324,6 @@ it starts claim entries that the saved copy does not have.
   read-only.
 - `lib/onetime/operations/domains/canonical_index_audit.rb` and
   `canonical_index_backfill.rb`: the audit and the writes.
+- `lib/onetime/operations/domains/collision_resolution.rb` and
+  `collision_resolution/rule.rb`: the collision facts, rule, plan and
+  removals behind `bin/ots domains resolve-collisions`.

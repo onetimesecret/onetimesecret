@@ -113,7 +113,7 @@ RSpec.describe 'Domains backfill-canonical-index command', type: :cli do
 
     output = run_cli_command_quietly('domains', 'backfill-canonical-index')
 
-    expect(output[:stdout]).to include('Collision groups', 'cdid2', 'cdid3', 'bin/ots domains remove <extid>')
+    expect(output[:stdout]).to include('Collision groups', 'cdid2', 'cdid3', 'bin/ots domains resolve-collisions')
     expect(last_exit_code).to eq(1)
   end
 

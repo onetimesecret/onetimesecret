@@ -37,6 +37,7 @@ module Onetime
         puts '  bin/ots domains repair DOMAIN --org-id X   # Fix org relationship issues'
         puts '  bin/ots domains doctor --all               # Check all domains'
         puts '  bin/ots domains backfill-canonical-index   # Audit/backfill the name index (app stopped)'
+        puts '  bin/ots domains resolve-collisions         # Decide which record to keep per name collision'
         puts
         puts 'Run bin/ots domains -h for available subcommands'
       end

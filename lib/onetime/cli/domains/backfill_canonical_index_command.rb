@@ -180,13 +180,22 @@ module Onetime
         groups = audit.collision_groups
         return if groups.empty?
 
-        puts 'Collision groups (two or more records for one DNS name; resolve by hand):'
+        puts 'Collision groups (two or more records for one DNS name; see domains resolve-collisions):'
         groups.each do |canonical, rows|
           holder = rows.first.holder_id
-          puts "  #{canonical}  (index entry: #{holder || 'none'})"
-          rows.each { |row| puts "    #{describe_row(row)}" }
+          served = served_id(canonical)
+          puts "  #{canonical}  (index entry: #{holder || 'none'}; a request resolves to: #{served || 'none'})"
+          rows.each { |row| puts "    #{row.domain_id == served ? 'served' : 'shadow'}  #{describe_row(row)}" }
         end
         puts
+      end
+
+      # The record a request for the name (its A-label) resolves to today.
+      # Read-only; nil when the name resolves to nothing or the read fails.
+      def served_id(canonical)
+        Onetime::CustomDomain.display_domain_id_for(canonical)
+      rescue StandardError
+        nil
       end
 
       def print_rows(title, rows)
@@ -251,9 +260,10 @@ module Onetime
         end
         return unless Onetime::Operations::Domains::CanonicalIndexAudit::ATTENTION_CATEGORIES.any? { |cat| audit.count(cat).positive? }
 
-        puts 'For each collision group keep the record whose organization has proven DNS'
-        puts 'ownership, remove the others by extid with `bin/ots domains remove <extid>`,'
-        puts 'then run this command again. Resolve conflicts by hand.'
+        puts 'Collision groups: `bin/ots domains resolve-collisions --write plan.json` decides'
+        puts 'each group by a fixed rule (DNS proof, then ownership, then use); review the'
+        puts 'plan, apply it with --apply --plan plan.json, then run this command again.'
+        puts 'Resolve conflicts by hand.'
       end
 
       def describe_row(row)
