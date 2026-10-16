@@ -347,8 +347,10 @@ apply step described below.
    provider per run, with the installation's provider credentials, even
    during `--dry-run`: a SendGrid run pages through the account's domain
    authentications, a Lettermint run makes one list request. The cost does
-   not grow with the number of custom domain records. Unreadable or
-   unresolved identities skip affected groups before deletion. The skip reason names the
+   not grow with the number of custom domain records. A sender domain the
+   provider's list does not hold has no identity to retain; deletion reads
+   the same list and deletes nothing for it. Unreadable identities skip
+   affected groups before deletion. The skip reason names the
    record it stopped on (by extid) and whether its local mailer config could
    not be read or the provider lookup failed; a provider failure is worth a
    retry, a local one needs the record repaired or its mailer config removed.

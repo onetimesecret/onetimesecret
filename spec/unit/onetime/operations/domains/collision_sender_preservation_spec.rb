@@ -258,9 +258,21 @@ RSpec.describe Onetime::Operations::Domains::CollisionSenderPreservation do
       expect(identity_cache.keys.grep(String)).to match_array(%w[keeper victim] + others.map(&:domain_id))
     end
 
-    it 'refuses a domain absent from the listing rather than treating it as no identity' do
+    it 'treats a sender domain absent from the complete listing as no identity, as deletion does' do
       allow(strategy).to receive(:domain_authentications).and_return(listing.first(1))
-      expect { preservation }.to raise_error(described_class::UnsafeIdentity, 'sender identity for victim: sendgrid lookup returned no identity for the sender domain')
+      allow(strategy).to receive(:each_domain_authentication_page).and_yield(listing.first(1)).and_return(true)
+
+      expect(preservation).to eq('victim' => false)
+      # Nothing to share, so the keeper is never resolved.
+      expect(identity_cache).to include('victim' => nil)
+      expect(identity_cache).not_to have_key('keeper')
+      expect(strategy.send(:find_domain_id, 'other.example.com', api_key: 'test-token')).to be_nil
+    end
+
+    it 'does not share an identity with a keeper the provider does not list' do
+      allow(strategy).to receive(:domain_authentications).and_return(listing.last(1))
+      expect(preservation).to eq('victim' => false)
+      expect(identity_cache).to include('keeper' => nil, 'victim' => %w[sendgrid 43])
     end
 
     it 'refuses a failed listing as a retryable provider failure and lists again next time' do
@@ -322,9 +334,19 @@ RSpec.describe Onetime::Operations::Domains::CollisionSenderPreservation do
       expect { preservation }.to raise_error(described_class::UnsafeIdentity, 'sender identity for victim: lettermint lookup failed; the provider did not answer or refused the request, retry may succeed')
     end
 
-    it 'refuses a missing provider ID' do
+    it 'treats a sender domain absent from the listing as no identity, as deletion does' do
+      allow(victim_config).to receive(:from_address).and_return('remove@unlisted.example.com')
+      allow(strategy).to receive(:list_domains).with(client).and_return(listing)
+
+      expect(preservation).to eq('victim' => false)
+      expect(identity_cache).to include('victim' => nil)
+      expect(identity_cache).not_to have_key('keeper')
+      expect(strategy.send(:find_domain_by_name, client, 'unlisted.example.com')).to be_nil
+    end
+
+    it 'refuses a listed sender domain without a provider ID' do
       allow(strategy).to receive(:list_domains).and_return([{ 'domain' => 'example.com' }])
-      expect { preservation }.to raise_error(described_class::UnsafeIdentity, 'sender identity for victim: lettermint lookup returned no identity for the sender domain')
+      expect { preservation }.to raise_error(described_class::UnsafeIdentity, 'sender identity for victim: lettermint lists the sender domain without an identity')
     end
 
     it 'reports unreadable installation credentials as a local failure, not a provider one' do

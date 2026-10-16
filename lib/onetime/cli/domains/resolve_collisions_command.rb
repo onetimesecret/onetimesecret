@@ -225,8 +225,9 @@ module Onetime
             Shared sender identities are retained, including references outside
             the selected groups. SendGrid/Lettermint identity checks read the
             provider's domain list once per provider per run, even during
-            --dry-run; unresolved identities skip the group, and the reason
-            names the record and whether its local mailer config or the
+            --dry-run; a sender domain the provider does not list has no
+            identity to retain. Unreadable identities skip the group, and the
+            reason names the record and whether its local mailer config or the
             provider lookup failed. Identities shared by multiple
             planned removals are also kept and may need manual provider cleanup
             afterwards.

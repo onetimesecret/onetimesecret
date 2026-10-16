@@ -62,7 +62,8 @@ module Onetime
 
         # @return [Array(String, String), nil] the provider and the target
         #   its delete_sender_identity would delete; nil when the record has
-        #   no remote sender identity
+        #   no remote sender identity: no mailer config, a local provider, or
+        #   a sender domain the provider's complete domain list does not hold
         def identity_for(record)
           domain = Onetime::CustomDomain.find_by_identifier(record.domain_id)
           raise UnsafeIdentity, unsafe(record, 'record not found') unless domain
@@ -71,8 +72,9 @@ module Onetime
           return nil if provider.nil?
 
           target = deletion_target(record, provider, strategy, sender_domain)
-          raise UnsafeIdentity, unsafe(record, "#{provider} lookup returned no identity for the sender domain") unless target.is_a?(String) || target.is_a?(Integer)
-          raise UnsafeIdentity, unsafe(record, "#{provider} lookup returned no identity for the sender domain") if target.to_s.strip.empty?
+          return nil if target.nil?
+          raise UnsafeIdentity, unsafe(record, "#{provider} lists the sender domain without an identity") unless target.is_a?(String) || target.is_a?(Integer)
+          raise UnsafeIdentity, unsafe(record, "#{provider} lists the sender domain without an identity") if target.to_s.strip.empty?
 
           [provider, target.to_s]
         end
@@ -107,6 +109,13 @@ module Onetime
         # (see #provider_listing), not once per record. A failure there is the
         # provider's, and a retry may succeed. Reading the credentials is local
         # and says so.
+        #
+        # A complete list without the sender domain returns nil: the record
+        # has nothing at the provider to share or to delete. Deletion reads
+        # the same list and treats the same absence as nothing to delete, and
+        # --apply runs with the provisioning workers stopped, so nothing
+        # creates the identity between this read and the removal. Only a
+        # list that could not be read refuses (#provider_listing).
         def deletion_target(record, provider, strategy, sender_domain)
           case provider
           when 'ses', 'smtp2go'
@@ -127,7 +136,10 @@ module Onetime
               end
               remote_lookup(record, provider) { strategy.send(:list_domains, client) }
             end
-            strategy.send(:domain_entry, listing, sender_domain)&.dig('id')
+            entry       = strategy.send(:domain_entry, listing, sender_domain)
+            # An entry without an id is the provider's malformed answer, not
+            # an absence: :malformed is neither nil nor an identity.
+            entry.nil? ? nil : (entry['id'] || :malformed)
           end
         end
 
