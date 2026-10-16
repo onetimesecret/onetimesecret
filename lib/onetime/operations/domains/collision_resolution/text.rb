@@ -59,7 +59,7 @@ end
               record.served ? 'served' : 'shadow',
               record.verification_state.to_s,
               record.dns_proof? ? "dns-confirmed #{date(record.verified_confirmed_at)}" : 'no dns confirmation',
-              record.verified_by_override ? 'override' : nil,
+              record.override? ? 'override' : nil,
               "receipts=#{record.receipts}",
               "configs=#{record.configs.empty? ? '-' : record.configs.join(',')}",
               "brand=#{record.brand}",

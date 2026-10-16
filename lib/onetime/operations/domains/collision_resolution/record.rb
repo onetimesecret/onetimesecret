@@ -54,6 +54,11 @@ module Onetime
             org_state == :missing
           end
 
+          # The ownership flag was set by an operator override, not by a check.
+          def override?
+            verified_by_override == true
+          end
+
           def dns_proof?
             !verified_confirmed_at.nil?
           end
