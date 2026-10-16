@@ -553,6 +553,15 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
         expect(outcome).to have_attributes(status: :skipped, reason: /outside the group/)
       end
 
+      it 'reports a failed preview as partial and requiring attention' do
+        saved = plan
+        allow(Onetime::Operations::Domains::Remove).to receive(:new).and_raise('preview failed')
+        result = op_class.new.apply(saved, actor: 'cli', dry_run: true, only: name)
+        expect(result.outcomes.first.status).to eq(:partial)
+        expect(result).to be_attention
+        expect(summary_events).to be_empty
+      end
+
       %i[extid verification_state ownership_verified verified_by_override verified_confirmed_at served receipts configs all_configs brand vhost].each do |field|
         it "refuses changed #{field} evidence" do
           saved = plan
@@ -596,15 +605,6 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
         expect(outcome).to have_attributes(status: :skipped, reason: /changed since the plan/)
       end
 
-      it 'reports a failed preview as partial and requiring attention' do
-        saved = plan
-        allow(Onetime::Operations::Domains::Remove).to receive(:new).and_raise('preview failed')
-        result = op_class.new.apply(saved, actor: 'cli', dry_run: true, only: name)
-        expect(result.outcomes.first.status).to eq(:partial)
-        expect(result).to be_attention
-        expect(summary_events).to be_empty
-      end
-
       it 'preserves committed removals and writes a partial summary when keeper reload raises' do
         saved = plan
         allow(model).to receive(:find_by_identifier).and_call_original
@@ -636,6 +636,196 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
           expect(outcome.verify_state).to eq(:pending)
           expect(outcome.errors).not_to be_empty
           expect(summary_events.last[:detail][:totals][:removed]).to eq(1)
+        end
+      end
+
+      it 'skips sender detection errors before any removal' do
+        saved = plan
+        allow_any_instance_of(Onetime::Operations::Domains::CollisionSenderPreservation).to receive(:call).and_raise('unknown sender identity')
+        expect(Onetime::Operations::Domains::Remove).not_to receive(:new)
+        outcome = op_class.new.apply(saved, actor: 'cli', dry_run: false, only: name).outcomes.first
+        expect(outcome).to have_attributes(status: :skipped, reason: /unknown sender identity/)
+      end
+
+      it 'checks live evidence before invoking sender detection' do
+        saved = plan
+        org_b.archive!
+        expect(Onetime::Operations::Domains::CollisionSenderPreservation).not_to receive(:new)
+        expect(Onetime::Operations::Domains::Remove).not_to receive(:new)
+        expect(op_class.new.apply(saved, actor: 'cli', only: name).outcomes.first.status).to eq(:skipped)
+      end
+
+      it 'captures sender preservation during preflight and passes true only for a shared sender' do
+        saved = plan
+        detector = instance_double(Onetime::Operations::Domains::CollisionSenderPreservation, call: { id_b => true })
+        expect(Onetime::Operations::Domains::CollisionSenderPreservation).to receive(:new)
+                  .with(group: group_of(saved), records: kind_of(Array), identity_cache: {}).once.and_return(detector)
+        expect(Onetime::Operations::Domains::Remove).to receive(:new).with(hash_including(keep_sender_identity: true))
+          .and_return(double(call: double(reasserts_survivor: false)))
+        expect(op_class.new.apply(saved, actor: 'cli', only: name).outcomes.first.status).to eq(:dry_run)
+      end
+
+      it 'uses a fresh sender identity cache on each apply of the same operation' do
+        saved = plan
+        operation = op_class.new
+        caches = []
+        allow(Onetime::Operations::Domains::CollisionSenderPreservation).to receive(:new) do |group:, records:, identity_cache:|
+          expect(identity_cache).to be_empty
+          expect(records.map(&:domain_id)).to include(id_a, id_b)
+          caches << identity_cache
+          identity_cache[id_b] = ['ses', 'previous.example']
+          double(call: { id_b => false })
+        end
+
+        2.times do
+          expect(operation.apply(saved, actor: 'cli', only: name).outcomes.first.status).to eq(:dry_run)
+        end
+        expect(caches.size).to eq(2)
+        expect(caches.last).not_to equal(caches.first)
+      end
+
+      it 'preflights all selected groups before removing and retains skipped outcomes' do
+        other_name = "other-#{sfx}.example"
+        legacy[:o1] = [write_legacy_custom_domain(other_name, org_id: nil), other_name]
+        legacy[:o2] = [write_legacy_custom_domain(other_name, org_id: nil), other_name]
+        saved = op_class.new.plan
+        selected = saved.with(groups: [group_of(saved), saved.group(other_name)])
+        checked = []
+        caches = []
+        allow(Onetime::Operations::Domains::CollisionSenderPreservation).to receive(:new) do |group:, records:, identity_cache:|
+          expect(records.map(&:domain_id)).to include(id_a, id_b, legacy[:o1].first, legacy[:o2].first)
+          caches << identity_cache
+          expect(caches.last).to equal(caches.first)
+          checked << group.ascii_name
+          raise 'unsafe other sender' if group.ascii_name == other_name
+
+          double(call: { id_b => false })
+        end
+        allow(Onetime::Operations::Domains::Remove).to receive(:new).and_wrap_original do |original, **args|
+          expect(checked).to eq([name, other_name])
+          expect(args).not_to have_key(:keep_sender_identity)
+          original.call(**args)
+        end
+        result = op_class.new.apply(selected, actor: 'cli', dry_run: false)
+        expect(result.outcomes.map(&:status)).to eq([:applied, :skipped])
+        expect(result.outcomes.last.reason).to include('unsafe other sender')
+      end
+
+      context 'with persisted SES sender identities' do
+        let(:sender_configs) { [] }
+        let(:sender_name) { "sender-#{sfx}.example.com" }
+        let(:mailer_model) { Onetime::CustomDomain::MailerConfig }
+
+        after do
+          sender_configs.each { |config| config.destroy! if config.exists? }
+        end
+
+        def ses_config(domain_id)
+          mailer_model.create!(domain_id: domain_id, provider: 'ses',
+            from_address: "notify@#{sender_name}").tap { |config| sender_configs << config }
+        end
+
+        def other_sender_record(label, fqdn, verified: false)
+          legacy[label] = [write_legacy_custom_domain(fqdn, org_id: org_b.objid,
+            fields: { 'ownership_verified' => verified }), fqdn]
+          legacy[label].first
+        end
+
+        it 'preserves the keeper sender while deleting the loser and its local config' do
+          ses_config(id_a)
+          ses_config(id_b)
+          saved = plan
+          expect(Onetime::Operations::DeleteSenderDomain).not_to receive(:new)
+
+          outcome = op_class.new.apply(saved, actor: 'cli', dry_run: false, only: name).outcomes.first
+
+          expect(outcome.status).to eq(:applied)
+          expect(model.find_by_identifier(id_b)).to be_nil
+          expect(mailer_model.exists_for_domain?(id_b)).to be false
+          expect(mailer_model.exists_for_domain?(id_a)).to be true
+        end
+
+        [false, true].each do |only_selected|
+          it "preserves a sender shared across collision groups (only: #{only_selected})" do
+            other_name = "other-#{sfx}.example"
+            other_keeper = other_sender_record(:other_keeper, other_name, verified: true)
+            other_loser = other_sender_record(:other_loser, other_name)
+            ses_config(id_b)
+            ses_config(other_keeper)
+            saved = plan
+            # A nil-config deletion in the other group is harmless; no SES
+            # identity may reach the remote cleanup operation.
+            allow(Onetime::Operations::DeleteSenderDomain).to receive(:new).and_wrap_original do |original, **args|
+              expect(args[:mailer_config]).to be_nil
+              original.call(**args)
+            end
+
+            result = op_class.new.apply(saved, actor: 'cli', dry_run: false, only: only_selected ? name : nil)
+
+            expect(result.outcomes.map(&:status)).to all(eq(:applied))
+            expect(model.find_by_identifier(id_b)).to be_nil
+            expect(mailer_model.exists_for_domain?(id_b)).to be false
+            expect(model.find_by_identifier(other_keeper)).not_to be_nil
+            expect(mailer_model.exists_for_domain?(other_keeper)).to be true
+            expect(model.find_by_identifier(other_loser).nil?).to eq(!only_selected)
+          end
+        end
+
+        it 'preserves a sender shared with a noncollision survivor outside --only' do
+          survivor = other_sender_record(:survivor, "single-#{sfx}.example")
+          ses_config(survivor)
+          ses_config(id_b)
+          saved = plan
+          expect(saved.groups.map(&:ascii_name)).not_to include("single-#{sfx}.example")
+          expect(Onetime::Operations::DeleteSenderDomain).not_to receive(:new)
+
+          result = op_class.new.apply(saved, actor: 'cli', dry_run: false, only: name)
+
+          expect(result.outcomes.first.status).to eq(:applied)
+          expect(model.find_by_identifier(id_b)).to be_nil
+          expect(mailer_model.exists_for_domain?(id_b)).to be false
+          expect(model.find_by_identifier(survivor)).not_to be_nil
+          expect(mailer_model.exists_for_domain?(survivor)).to be true
+        end
+
+        it 'preserves a shared sender when the first planned removal fails and the second commits' do
+          id_c = legacy!(:c, org: org_b)
+          ses_config(id_b)
+          ses_config(id_c)
+          saved = plan
+          lock = mailer_model.sender_identity_lock(id_b)
+          token = lock.acquire(ttl: 60)
+          expect(token).to be_truthy
+          expect(Onetime::Operations::DeleteSenderDomain).not_to receive(:new)
+
+          result = op_class.new.apply(saved, actor: 'cli', dry_run: false, only: name)
+          outcome = result.outcomes.first
+
+          expect(outcome.status).to eq(:partial)
+          expect(outcome.removals.map(&:status)).to eq([:failed, :removed])
+          expect(model.find_by_identifier(id_b)).not_to be_nil
+          expect(mailer_model.exists_for_domain?(id_b)).to be true
+          expect(model.find_by_identifier(id_c)).to be_nil
+          expect(mailer_model.exists_for_domain?(id_c)).to be false
+          expect(summary_events.last[:detail][:totals]).to include(removed: 1, failed: 1)
+        ensure
+          lock.release(token) if token
+        end
+
+        it 'still invokes sender cleanup for an unshared SES identity' do
+          ses_config(id_b)
+          saved = plan
+          strategy = Onetime::Mail::SenderStrategies.for_provider('ses')
+          allow(Onetime::Mail::SenderStrategies).to receive(:for_provider).with('ses').and_return(strategy)
+          expect(strategy).to receive(:delete_sender_identity)
+            .with(have_attributes(domain_id: id_b), credentials: anything)
+            .and_return(deleted: true, message: 'test cleanup')
+
+          outcome = op_class.new.apply(saved, actor: 'cli', dry_run: false, only: name).outcomes.first
+
+          expect(outcome.status).to eq(:applied)
+          expect(model.find_by_identifier(id_b)).to be_nil
+          expect(mailer_model.exists_for_domain?(id_b)).to be false
         end
       end
 

@@ -7,6 +7,7 @@
 # command), so require what it builds on.
 require 'onetime/operations/domains/ascii_index_audit'
 require 'onetime/operations/domains/remove'
+require 'onetime/operations/domains/collision_sender_preservation'
 require 'onetime/operations/admin_verify_domain'
 require 'onetime/domain_validation/strategy'
 require 'securerandom'
@@ -38,9 +39,11 @@ module Onetime
       #
       # For every group that is :auto, or :manual with keep and approved:
       #
-      #   1. Compare the group with a fresh audit. A group whose records or
-      #      their identity (display_domain, org_id, created) changed since
-      #      the plan is skipped.
+      #   1. Reject incomplete audits, then preflight all selected groups before
+      #      any removal. Compare fresh identity, ownership, use, routing and
+      #      billing evidence with the plan; changed groups are skipped.
+      #      Check sender identities against every audited record and retain
+      #      shared identities, even when both records are planned removals.
       #   2. Remove each other record through {Domains::Remove}, with a
       #      reason naming the kept record, shadows first and the record that
       #      answers for the name last. The provider vhost is keyed by the
@@ -160,15 +163,20 @@ module Onetime
         def apply(plan, actor:, dry_run: true, only: nil)
           raise InvalidPlan, 'rule version changed; regenerate and review the plan' unless plan.rule_version == Rule::VERSION
 
-          @served_ids = {}
-          audit       = AsciiIndexAudit.new.call
+          @served_ids    = {}
+          audit          = AsciiIndexAudit.new.call
           require_complete_audit!(audit)
-          live        = audit.collision_groups
-          groups      = only ? plan.groups.select { |group| group.ascii_name == only } : plan.groups
-          run_id      = SecureRandom.uuid
-          started     = Time.now.utc.iso8601
-          checksum    = Digest::SHA256.hexdigest(plan.to_json)
-          outcomes    = groups.map do |group|
+          live           = audit.collision_groups
+          groups         = only ? plan.groups.select { |group| group.ascii_name == only } : plan.groups
+          run_id         = SecureRandom.uuid
+          started        = Time.now.utc.iso8601
+          checksum       = Digest::SHA256.hexdigest(plan.to_json)
+          # Finish every selected group's read-only checks before any mutation.
+          identity_cache = {}
+          preflights     = groups.map do |group|
+            preflight(group, live[group.ascii_name], records: audit.rows, identity_cache: identity_cache)
+          end
+          outcomes       = groups.zip(preflights).map do |group, (reason, sender_preservation)|
             context = {
               run_id: run_id,
               run_started_at: started,
@@ -183,7 +191,11 @@ module Onetime
               records: group.records.map(&:to_h),
               notes: group.notes,
             }
-            outcome = apply_group(group, live[group.ascii_name], actor: actor, dry_run: dry_run, context: context)
+            outcome = if reason
+                        skipped(group, reason).with(context: context)
+                      else
+                        apply_group(group, sender_preservation, actor: actor, dry_run: dry_run, context: context)
+                      end
             dry_run ? outcome : audit_outcome(outcome, actor: actor)
           end
 
@@ -271,13 +283,34 @@ module Onetime
 
         # ----- apply -------------------------------------------------------
 
-        def apply_group(group, live_rows, actor:, dry_run:, context:)
+        def preflight(group, live_rows, records:, identity_cache:)
           reason = refusal(group, live_rows)
-          return skipped(group, reason).with(context: context) if reason
+          return [reason, nil] if reason
 
+          preservation = CollisionSenderPreservation.new(group: group, records: records, identity_cache: identity_cache).call
+          removal_records(group, group.keep_record).each do |record|
+            value = preservation.fetch(record.domain_id)
+            raise InvalidPlan, "unknown sender preservation for #{record.ref}" unless [true, false].include?(value)
+          end
+          [nil, preservation]
+        rescue StandardError => ex
+          ["preflight failed: #{ex.class}: #{ex.message}; nothing removed", nil]
+        end
+
+        def apply_group(group, sender_preservation, actor:, dry_run:, context:)
           keeper    = group.keep_record
           removals  = removal_records(group, keeper)
-          results   = removals.map { |record| remove(record, group, keeper, actor: actor, dry_run: dry_run, run_id: context[:run_id]) }
+          results   = removals.map do |record|
+            remove(
+              record,
+              group,
+              keeper,
+              actor: actor,
+              dry_run: dry_run,
+              run_id: context[:run_id],
+              keep_sender_identity: sender_preservation.fetch(record.domain_id),
+            )
+          end
           errors    = []
           claim     = nil
           verified  = nil
@@ -390,13 +423,18 @@ module Onetime
           (group.records - [keeper].compact).sort_by { |record| record.served ? 1 : 0 }
         end
 
-        def remove(record, group, keeper, actor:, dry_run:, run_id:)
+        def remove(record, group, keeper, actor:, dry_run:, run_id:, keep_sender_identity: false)
           domain = model.find_by_identifier(record.domain_id)
           return Removal.new(ref: record.ref, display_domain: record.display_domain, status: :failed, detail: 'record not found') unless domain
 
           reason = "collision run=#{run_id}: kept #{keeper ? keeper.ref : 'none'} by rule #{group.rule}; name=#{group.ascii_name}"
           result = Domains::Remove.new(
-            domain: domain, actor: actor, dry_run: dry_run, reason: reason, keep_vhost: !keeper.nil?,
+            domain: domain,
+            actor: actor,
+            dry_run: dry_run,
+            reason: reason,
+            keep_vhost: !keeper.nil?,
+            **(keep_sender_identity ? { keep_sender_identity: true } : {}),
           ).call
           Removal.new(
             ref: record.ref,
