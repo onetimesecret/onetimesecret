@@ -52,6 +52,21 @@ in the bulk sweep. An operator who needs the global sweep for one account runs
 `purge-one` from the CLI. Deep mode runs the sweeps at the initial plan and the
 final post-teardown validation; the intermediate revalidations stay shallow.
 
+The sweep itself is a `RegistrySweep`: each registry's `instances` set is
+listed once and the rows are probed in pipelined batches for the few fields
+discovery needs (`owner_id`, the `members` set and the target's own membership
+row for an organization; `organization_objid` and `customer_objid` for a
+membership row; `org_id` for a domain). It holds identifiers only: the
+organizations, rows and domains it points at are re-loaded by the preflight
+that uses it, so the evidence is live and only the where-to-look is reused. The
+first deep preflight captures it; the post-teardown check refreshes it, listing
+the registries again and probing only identifiers new since the plan, so a row
+written during the purge is still seen without re-reading the registries; and
+`Org::Delete`'s capability recheck (`AccountPurgeContext`) reuses it unchanged.
+Before this, each deep preflight loaded every registry record one round trip
+at a time, three times per purge, which on a registry of hundreds of thousands
+of workspaces was minutes of wall time and a saturated core per account.
+
 Shallow discovery derives an organization's membership rows from the
 organization's own `members` set (plus the purge target's row, loaded
 directly). A live row whose customer is missing from that set is reachable
