@@ -65,7 +65,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
 
     before do
       allow(Onetime::ColonelAuditEvent).to receive(:record)
-      allow(Onetime::Operations::Domains::Teardown).to receive(:new).with(domain: domain, keep_vhost: false).and_return(teardown)
+      allow(Onetime::Operations::Domains::Teardown).to receive(:new).with(domain: domain, keep_vhost: false, keep_sender_identity: false).and_return(teardown)
       allow(Onetime::Organization).to receive(:load).with('org-1').and_return(org)
       allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(index)
     end
@@ -91,25 +91,54 @@ RSpec.describe Onetime::Operations::Domains::Remove do
       end
     end
 
+    it 'audits sender preservation on the preview without tearing anything down' do
+      operation = described_class.new(domain: domain, actor: actor, keep_sender_identity: true)
+      expect(operation).to receive(:record_preview_observation)
+        .with(hash_including(sender_identity_kept: true))
+
+      expect(operation.call.status).to eq(:planned)
+      expect(teardown).not_to have_received(:call)
+    end
+
+    it 'omits the sender preservation detail on ordinary previews' do
+      operation = described_class.new(domain: domain, actor: actor)
+      expect(operation).to receive(:record_preview_observation) do |detail|
+        expect(detail).not_to have_key(:sender_identity_kept)
+      end
+      operation.call
+    end
+
     # 2. apply delegation + exactly-one audit + no org.remove_domain.
     describe 'apply (dry_run: false)' do
       it 'delegates teardown exactly once to the shared operation' do
         described_class.new(domain: domain, actor: actor, dry_run: false).call
 
-        expect(Onetime::Operations::Domains::Teardown).to have_received(:new).with(domain: domain, keep_vhost: false).once
+        expect(Onetime::Operations::Domains::Teardown).to have_received(:new).with(domain: domain, keep_vhost: false, keep_sender_identity: false).once
         expect(teardown).to have_received(:call).once
         expect(domain).not_to have_received(:destroy!)
       end
 
       it 'forwards keep_vhost to the teardown and records it in the audit detail' do
         allow(Onetime::Operations::Domains::Teardown).to receive(:new)
-          .with(domain: domain, keep_vhost: true).and_return(teardown)
+          .with(domain: domain, keep_vhost: true, keep_sender_identity: false).and_return(teardown)
 
         described_class.new(domain: domain, actor: actor, dry_run: false, keep_vhost: true).call
 
-        expect(Onetime::Operations::Domains::Teardown).to have_received(:new).with(domain: domain, keep_vhost: true).once
+        expect(Onetime::Operations::Domains::Teardown).to have_received(:new).with(domain: domain, keep_vhost: true, keep_sender_identity: false).once
         expect(Onetime::ColonelAuditEvent).to have_received(:record)
           .with(hash_including(verb: 'domain.remove', result: :success, detail: hash_including(vhost_kept: true)))
+      end
+
+      it 'forwards sender preservation independently of keep_vhost and audits it' do
+        allow(Onetime::Operations::Domains::Teardown).to receive(:new)
+          .with(domain: domain, keep_vhost: false, keep_sender_identity: true).and_return(teardown)
+
+        described_class.new(domain: domain, actor: actor, dry_run: false, keep_sender_identity: true).call
+
+        expect(Onetime::Operations::Domains::Teardown).to have_received(:new)
+          .with(domain: domain, keep_vhost: false, keep_sender_identity: true).once
+        expect(Onetime::ColonelAuditEvent).to have_received(:record)
+          .with(hash_including(result: :success, detail: hash_including(sender_identity_kept: true)))
       end
 
       it 'records EXACTLY ONE audit event (verb domain.remove, success, reasserted false)' do

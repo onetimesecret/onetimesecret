@@ -115,12 +115,15 @@ module Onetime
         # @param keep_vhost [Boolean] leave the provider vhost in place
         #   (Teardown#initialize): for a record that shares its name with a
         #   record that stays. Recorded in the audit detail as vhost_kept.
-        def initialize(domain:, actor:, dry_run: true, reason: nil, keep_vhost: false)
-          @domain     = domain
-          @actor      = actor
-          @dry_run    = dry_run
-          @reason     = normalize_reason(reason)
-          @keep_vhost = keep_vhost
+        # @param keep_sender_identity [Boolean] preserve a keeper's shared remote
+        #   sender identity, while still deleting this record and its local config.
+        def initialize(domain:, actor:, dry_run: true, reason: nil, keep_vhost: false, keep_sender_identity: false)
+          @domain               = domain
+          @actor                = actor
+          @dry_run              = dry_run
+          @reason               = normalize_reason(reason)
+          @keep_vhost           = keep_vhost
+          @keep_sender_identity = keep_sender_identity
         end
 
         # @return [Result]
@@ -200,6 +203,7 @@ module Onetime
           # observation on the access trail (#4337), never this operator event.
           detail           = { org_id: org_id.to_s, reasserted: reasserts }
           detail           = detail.merge(vhost_kept: true) if @keep_vhost
+          detail           = detail.merge(sender_identity_kept: true) if @keep_sender_identity
           if lease_error
             detail[:removal_committed] = true
             detail[:lease_lost]        = true
@@ -241,11 +245,16 @@ module Onetime
         def record_preview_event(_plan, org_id, reasserts)
           detail = { org_id: org_id.to_s, reasserted: reasserts }
           detail = detail.merge(vhost_kept: true) if @keep_vhost
+          detail = detail.merge(sender_identity_kept: true) if @keep_sender_identity
           record_preview_observation(with_reason(detail))
         end
 
         def teardown_domain
-          Onetime::Operations::Domains::Teardown.new(domain: @domain, keep_vhost: @keep_vhost).call
+          Onetime::Operations::Domains::Teardown.new(
+            domain: @domain,
+            keep_vhost: @keep_vhost,
+            keep_sender_identity: @keep_sender_identity,
+          ).call
         rescue Onetime::Operations::Domains::Teardown::Busy => ex
           # Preserve the toolbox exception contract and failure-audit class.
           raise SenderIdentityBusy, ex.message

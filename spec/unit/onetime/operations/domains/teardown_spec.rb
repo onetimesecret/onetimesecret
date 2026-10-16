@@ -54,6 +54,23 @@ RSpec.describe Onetime::Operations::Domains::Teardown do
       expect(domain).to have_received(:destroy!)
     end
 
+    [false, true].each do |keep_vhost|
+      it "preserves the remote sender while destroying the record (keep_vhost: #{keep_vhost})" do
+        result = described_class.new(domain: domain, keep_vhost: keep_vhost, keep_sender_identity: true).call
+
+        expect(result.removal_committed).to be true
+        expect(Onetime::Operations::DeleteSenderDomain).not_to have_received(:new)
+        expect(sender_op).not_to have_received(:call)
+        expect(domain).to have_received(:destroy!).once
+        if keep_vhost
+          expect(strategy).not_to have_received(:delete_vhost)
+        else
+          expect(strategy).to have_received(:delete_vhost).with(domain)
+        end
+        expect(lock).to have_received(:release).with('lock-token')
+      end
+    end
+
     context 'without a mailer config' do
       let(:mailer_config) { nil }
 
@@ -244,6 +261,18 @@ RSpec.describe Onetime::Operations::Domains::Teardown do
         expect(model.exists_for_domain?(domain.identifier)).to be true
       ensure
         lock.release(token)
+      end
+
+      it 'deletes the local mailer config but never calls remote sender cleanup when preserving' do
+        domain_id = domain.identifier
+        allow(Onetime::Operations::DeleteSenderDomain).to receive(:new)
+
+        result = described_class.new(domain: domain, keep_vhost: true, keep_sender_identity: true).call
+
+        expect(result.removal_committed).to be true
+        expect(domain.exists?).to be false
+        expect(model.exists_for_domain?(domain_id)).to be false
+        expect(Onetime::Operations::DeleteSenderDomain).not_to have_received(:new)
       end
 
       it 'holds the lock from the provider teardown through destroy!' do

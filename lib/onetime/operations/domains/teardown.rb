@@ -30,9 +30,12 @@ module Onetime
         #   caller removing one of several records that share a name passes
         #   true to keep it for the record that stays
         #   (Domains::CollisionResolution). The default deletes it.
-        def initialize(domain:, keep_vhost: false)
-          @domain     = domain
-          @keep_vhost = keep_vhost
+        # @param keep_sender_identity [Boolean] skip remote sender deletion only;
+        #   destroy! still removes the local domain and its mailer config.
+        def initialize(domain:, keep_vhost: false, keep_sender_identity: false)
+          @domain               = domain
+          @keep_vhost           = keep_vhost
+          @keep_sender_identity = keep_sender_identity
         end
 
         def call
@@ -53,7 +56,9 @@ module Onetime
                 delete_vhost
               end
               lease.check!
-              Onetime::Operations::DeleteSenderDomain.new(mailer_config: @domain.mailer_config).call
+              unless @keep_sender_identity
+                Onetime::Operations::DeleteSenderDomain.new(mailer_config: @domain.mailer_config).call
+              end
               lease.check!
               @domain.destroy!
               removal_committed = true
