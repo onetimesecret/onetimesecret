@@ -1,13 +1,13 @@
-# spec/unit/onetime/models/custom_domain/claim_orphan_canonical_spec.rb
+# spec/unit/onetime/models/custom_domain/claim_orphan_ascii_spec.rb
 #
 # frozen_string_literal: true
 
-# CustomDomain.claim_orphaned_domain and canonical_display_domain_index.
+# CustomDomain.claim_orphaned_domain and ascii_display_domain_index.
 #
 # create!(adopt_orphan: true) hands an existing record with no organization
 # (an orphan) to the registering organization through claim_orphaned_domain.
 # Before its
-# WATCH/MULTI, that claim enters the record's name into the canonical index
+# WATCH/MULTI, that claim enters the record's name into the ASCII index
 # for the record, the way create! claims a new record's name:
 #
 # - an orphan registered before the index existed gains an entry;
@@ -26,13 +26,13 @@ require 'spec_helper'
 require 'securerandom'
 
 # rubocop:disable RSpec/SpecFilePathFormat
-RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', :datastore do
+RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain ASCII claim', :datastore do
   include LegacyCustomDomainRecords
 
   let(:suffix) { SecureRandom.hex(4) }
   let(:orphan_name) { "orphan-ü-#{suffix}.com" }
-  let(:canonical) { described_class.canonical_display_domain(orphan_name) }
-  let(:index) { described_class.canonical_display_domain_index }
+  let(:ascii_name) { described_class.ascii_display_domain(orphan_name) }
+  let(:index) { described_class.ascii_display_domain_index }
   let(:org_a) { Onetime::Organization.new(display_name: "Orphan A #{suffix}").tap(&:save) }
   let(:org_b) { Onetime::Organization.new(display_name: "Orphan B #{suffix}").tap(&:save) }
   let(:legacy) { [] }
@@ -51,25 +51,25 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
     created.each do |rec|
       rec.destroy! if rec.exists?
     rescue StandardError => ex
-      warn "[claim_orphan_canonical_spec cleanup] #{ex.class}: #{ex.message}"
+      warn "[claim_orphan_ascii_spec cleanup] #{ex.class}: #{ex.message}"
     end
     legacy.each do |id, display|
       # A claimed orphan belongs to an organization now; destroy! removes it
       # from that organization too.
       reload(id)&.destroy!
     rescue StandardError => ex
-      warn "[claim_orphan_canonical_spec cleanup] #{ex.class}: #{ex.message}"
+      warn "[claim_orphan_ascii_spec cleanup] #{ex.class}: #{ex.message}"
     ensure
       remove_legacy_custom_domain(id, display)
     end
     [org_a, org_b].each do |org|
       org.destroy! if org.exists?
     rescue StandardError => ex
-      warn "[claim_orphan_canonical_spec cleanup] #{ex.class}: #{ex.message}"
+      warn "[claim_orphan_ascii_spec cleanup] #{ex.class}: #{ex.message}"
     end
   end
 
-  # An orphan written before the canonical index existed: no org_id, no entry.
+  # An orphan written before the ASCII index existed: no org_id, no entry.
   def legacy_orphan(display = orphan_name)
     id = write_legacy_custom_domain(display, org_id: nil)
     legacy << [id, display]
@@ -86,42 +86,42 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
     end
   end
 
-  it 'enters an orphan with no entry into the canonical index when an organization claims it' do
+  it 'enters an orphan with no entry into the ASCII index when an organization claims it' do
     id = legacy_orphan
 
-    claimed = register(canonical, org_b)
+    claimed = register(ascii_name, org_b)
 
-    expect([claimed.identifier, reload(id).org_id, index.get(canonical)]).to eq([id, org_b.objid, id])
+    expect([claimed.identifier, reload(id).org_id, index.get(ascii_name)]).to eq([id, org_b.objid, id])
   end
 
   it 'keeps the entry of an orphan that already holds it' do
     id = legacy_orphan
-    index.put(canonical, id)
+    index.put(ascii_name, id)
 
     register(orphan_name, org_b)
 
-    expect([reload(id).org_id, index.get(canonical)]).to eq([org_b.objid, id])
+    expect([reload(id).org_id, index.get(ascii_name)]).to eq([org_b.objid, id])
   end
 
   it 'refuses the orphan when another organization record holds its name, and leaves it an orphan' do
     id     = legacy_orphan
     holder = register("holder-#{suffix}.com", org_a)
-    index.put(canonical, holder.identifier)
+    index.put(ascii_name, holder.identifier)
 
     expect { register(orphan_name, org_b) }.to raise_error(Onetime::Problem, 'Domain is registered to another organization')
-    expect([reload(id).org_id.to_s, index.get(canonical)]).to eq(['', holder.identifier])
+    expect([reload(id).org_id.to_s, index.get(ascii_name)]).to eq(['', holder.identifier])
   ensure
-    index.release_field(canonical, holder.identifier) if holder
+    index.release_field(ascii_name, holder.identifier) if holder
   end
 
   it 'refuses the orphan as already registered when a record of the same organization holds its name' do
     legacy_orphan
     holder = register("holder-#{suffix}.com", org_b)
-    index.put(canonical, holder.identifier)
+    index.put(ascii_name, holder.identifier)
 
     expect { register(orphan_name, org_b) }.to raise_error(Onetime::Problem, 'Domain already registered in your organization')
   ensure
-    index.release_field(canonical, holder.identifier) if holder
+    index.release_field(ascii_name, holder.identifier) if holder
   end
 
   it 'keeps the claim for the live orphan when the organization is gone by the time it assigns it' do
@@ -131,7 +131,7 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
     allow(Onetime::Organization).to receive(:load).with(org_b.objid).and_return(nil)
 
     expect { described_class.claim_orphaned_domain(existing, org_b.objid) }.to raise_error(Onetime::RecordNotFound)
-    expect([reload(id).org_id.to_s, index.get(canonical)]).to eq(['', id])
+    expect([reload(id).org_id.to_s, index.get(ascii_name)]).to eq(['', id])
   end
 
   it 'releases the claim it took when the record is deleted before its transaction lands' do
@@ -144,7 +144,7 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
 
     expect { described_class.claim_orphaned_domain(existing, org_b.objid) }
       .to raise_error(Onetime::TemporarilyUnavailable)
-    expect(index.get(canonical)).to be_nil
+    expect(index.get(ascii_name)).to be_nil
   end
 
   it 'keeps the claim when another organization takes the record first' do
@@ -158,7 +158,7 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
 
     expect { described_class.claim_orphaned_domain(existing, org_b.objid) }
       .to raise_error(Onetime::TemporarilyUnavailable)
-    expect([reload(id).org_id, index.get(canonical)]).to eq([org_a.objid, id])
+    expect([reload(id).org_id, index.get(ascii_name)]).to eq([org_a.objid, id])
   end
 
   describe 'an orphan still listed in an organization' do
@@ -168,7 +168,7 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
 
       expect { register(orphan_name, org_b) }
         .to raise_error(Onetime::Problem, /still listed in the domains of organization #{org_a.extid}.*domains doctor --org #{org_a.extid}`.*--repair/)
-      expect([reload(id).org_id.to_s, index.get(canonical), org_b.domains.member?(reload(id))]).to eq(['', nil, false])
+      expect([reload(id).org_id.to_s, index.get(ascii_name), org_b.domains.member?(reload(id))]).to eq(['', nil, false])
     end
 
     it 'adopts it once that listing is removed' do
@@ -209,7 +209,7 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
 
           register(orphan_name, org_b)
 
-          expect([reload(id).org_id, index.get(canonical)]).to eq([org_b.objid, id])
+          expect([reload(id).org_id, index.get(ascii_name)]).to eq([org_b.objid, id])
         end
 
         it 'refuses the adoption while another organization lists it' do
@@ -228,7 +228,7 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
           allow(Onetime::Organization).to receive(:load).with(org_b.objid).and_return(nil)
 
           expect { described_class.claim_orphaned_domain(existing, org_b.objid) }.to raise_error(Onetime::RecordNotFound)
-          expect([described_class.dbclient.hget(described_class.dbkey(id), 'org_id'), index.get(canonical)]).to eq([raw, id])
+          expect([described_class.dbclient.hget(described_class.dbkey(id), 'org_id'), index.get(ascii_name)]).to eq([raw, id])
         end
       end
     end
@@ -241,11 +241,11 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
     context "with a legacy #{spelling} name" do
       let(:orphan_name) { "#{prefix}-#{suffix}.com" }
 
-      it 'keeps the canonical claim after successful adoption despite a stale cleanup org_id read' do
+      it 'keeps the ASCII claim after successful adoption despite a stale cleanup org_id read' do
         id       = legacy_orphan
         existing = reload(id)
         allow(existing).to receive(:atomic_write).and_return(false)
-        allow(described_class).to receive(:release_orphan_canonical_claim).and_wrap_original do |cleanup, record, key|
+        allow(described_class).to receive(:release_orphan_ascii_claim).and_wrap_original do |cleanup, record, key|
           # Deterministically model the baseline's split check/release: its
           # org_id read is empty, then a real adoption commits with the same ID.
           # Only the losing request's cleanup sees that stale org_id snapshot.
@@ -258,8 +258,8 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
 
         expect { described_class.claim_orphaned_domain(existing, org_b.objid) }
           .to raise_error(Onetime::TemporarilyUnavailable)
-        expect([reload(id).org_id, index.get(canonical)]).to eq([org_a.objid, id])
-        expect { register(canonical, org_b) }
+        expect([reload(id).org_id, index.get(ascii_name)]).to eq([org_a.objid, id])
+        expect { register(ascii_name, org_b) }
           .to raise_error(Onetime::Problem, 'Domain is registered to another organization')
       end
     end
@@ -268,7 +268,7 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
   it 'keeps the claim for a record recreated with the same ID after a stale absence observation' do
     id       = legacy_orphan
     existing = reload(id)
-    index.put(canonical, id)
+    index.put(ascii_name, id)
     client = described_class.dbclient
     fields = client.hgetall(existing.dbkey)
     client.del(existing.dbkey)
@@ -279,9 +279,9 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
     # would trust the stale absence and remove this live record's claim.
     client.hset(existing.dbkey, fields)
     allow(existing).to receive(:exists?).and_return(absent)
-    described_class.send(:release_orphan_canonical_claim, existing, canonical)
+    described_class.send(:release_orphan_ascii_claim, existing, ascii_name)
 
-    expect([reload(id).identifier, index.get(canonical)]).to eq([id, id])
+    expect([reload(id).identifier, index.get(ascii_name)]).to eq([id, id])
   end
 
   it 'keeps the replacement claim when deletion and registration precede failed adoption cleanup' do
@@ -290,25 +290,25 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
     replacement = nil
     allow(existing).to receive(:atomic_write) do
       existing.destroy!
-      replacement = register(canonical, org_a)
+      replacement = register(ascii_name, org_a)
       false # EXEC discarded: the WATCHed record was deleted
     end
 
     expect { described_class.claim_orphaned_domain(existing, org_b.objid) }
       .to raise_error(Onetime::TemporarilyUnavailable)
     expect(replacement.identifier).not_to eq(id)
-    expect([reload(id), index.get(canonical)]).to eq([nil, replacement.identifier])
+    expect([reload(id), index.get(ascii_name)]).to eq([nil, replacement.identifier])
   end
 
   it 'leaves an entry it did not create when the orphan claim fails' do
     id       = legacy_orphan
-    index.put(canonical, id)
+    index.put(ascii_name, id)
     existing = reload(id)
     allow(Onetime::Organization).to receive(:load).and_call_original
     allow(Onetime::Organization).to receive(:load).with(org_b.objid).and_return(nil)
 
     expect { described_class.claim_orphaned_domain(existing, org_b.objid) }.to raise_error(Onetime::RecordNotFound)
-    expect(index.get(canonical)).to eq(id)
+    expect(index.get(ascii_name)).to eq(id)
   end
 end
 # rubocop:enable RSpec/SpecFilePathFormat

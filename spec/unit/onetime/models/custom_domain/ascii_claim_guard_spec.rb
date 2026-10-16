@@ -1,11 +1,11 @@
-# spec/unit/onetime/models/custom_domain/canonical_claim_guard_spec.rb
+# spec/unit/onetime/models/custom_domain/ascii_claim_guard_spec.rb
 #
 # frozen_string_literal: true
 
-# CustomDomain::IdentityGuard: every write path either keeps the canonical
+# CustomDomain::IdentityGuard: every write path either keeps the ASCII
 # display-domain claim in step with the stored record or is refused.
 #
-# canonical_display_domain_index holds one entry per DNS name (its A-label
+# ascii_display_domain_index holds one entry per DNS name (its A-label
 # form). create! takes the entry before it saves; the guard covers the other
 # writers:
 #
@@ -27,11 +27,11 @@ require 'onetime/operations/domains/transfer'
 require 'onetime/operations/verify_domain'
 
 # rubocop:disable RSpec/SpecFilePathFormat
-RSpec.describe Onetime::CustomDomain, 'canonical claim guard', :datastore do
+RSpec.describe Onetime::CustomDomain, 'ASCII claim guard', :datastore do
   let(:suffix) { SecureRandom.hex(4) }
   let(:unicode_name) { "bücher-#{suffix}.com" }
-  let(:ascii_name) { described_class.canonical_display_domain(unicode_name) }
-  let(:index) { described_class.canonical_display_domain_index }
+  let(:ascii_name) { described_class.ascii_display_domain(unicode_name) }
+  let(:index) { described_class.ascii_display_domain_index }
   let(:records) { [] }
   let(:org) { Onetime::Organization.new(display_name: "Guard #{suffix}").tap(&:save) }
 
@@ -39,7 +39,7 @@ RSpec.describe Onetime::CustomDomain, 'canonical claim guard', :datastore do
     records.each do |rec|
       rec.destroy! if rec.exists?
     rescue StandardError => ex
-      warn "[canonical_claim_guard_spec cleanup] #{ex.class}: #{ex.message}"
+      warn "[ascii_claim_guard_spec cleanup] #{ex.class}: #{ex.message}"
     end
     index.remove_field(ascii_name)
     org.destroy! if org.exists?
@@ -57,26 +57,26 @@ RSpec.describe Onetime::CustomDomain, 'canonical claim guard', :datastore do
     described_class.find_by_identifier(rec.identifier)
   end
 
-  # Stand-in for a domain registered before canonical_display_domain_index existed.
-  def without_canonical_entry(rec)
-    index.remove_field(described_class.canonical_display_domain(rec.display_domain))
+  # Stand-in for a domain registered before ascii_display_domain_index existed.
+  def without_ascii_entry(rec)
+    index.remove_field(described_class.ascii_display_domain(rec.display_domain))
     rec
   end
 
   describe 'a record saved without create!' do
-    it 'claims its canonical name on save' do
+    it 'claims its ASCII name on save' do
       rec = build
 
       expect([rec.save, index.get(ascii_name)]).to eq([true, rec.identifier])
     end
 
-    it 'claims its canonical name on save_if_not_exists!' do
+    it 'claims its ASCII name on save_if_not_exists!' do
       rec = build
 
       expect([rec.save_if_not_exists!, index.get(ascii_name)]).to eq([true, rec.identifier])
     end
 
-    it 'claims its canonical name on commit_fields' do
+    it 'claims its ASCII name on commit_fields' do
       rec = build
       rec.commit_fields
 
@@ -108,7 +108,7 @@ RSpec.describe Onetime::CustomDomain, 'canonical claim guard', :datastore do
           super(field, val)
         end
       end
-      allow(described_class).to receive(:canonical_display_domain_index).and_return(recorder.new(real))
+      allow(described_class).to receive(:ascii_display_domain_index).and_return(recorder.new(real))
       rec = build(org_id: nil)
 
       expect { rec.save }.to raise_error(Onetime::Problem, 'Organization ID required')
@@ -431,16 +431,16 @@ RSpec.describe Onetime::CustomDomain, 'canonical claim guard', :datastore do
       end
     end
 
-    context 'with no canonical entry (registered before the index existed)' do
+    context 'with no ASCII entry (registered before the index existed)' do
       it 'saves a change to other fields and adds no entry' do
-        rec        = without_canonical_entry(create)
+        rec        = without_ascii_entry(create)
         rec.status = 'reviewed'
 
         expect([rec.save, reload(rec).status, index.get(ascii_name)]).to eq([true, 'reviewed', nil])
       end
 
       it 'migrates a v1 owner to an organization and adds no entry' do
-        rec           = without_canonical_entry(create)
+        rec           = without_ascii_entry(create)
         Familia.dbclient.hdel(rec.dbkey, 'org_id')
         rec.v1_custid = "owner-#{suffix}@example.com"
         rec.save_fields(:v1_custid)

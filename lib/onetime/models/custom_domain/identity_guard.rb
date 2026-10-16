@@ -4,22 +4,22 @@
 
 module Onetime
   class CustomDomain < Familia::Horreum
-    # Keeps the canonical display-domain claim in step with what is stored.
+    # Keeps the ASCII display-domain claim in step with what is stored.
     #
-    # canonical_display_domain_index holds one entry per DNS name (the A-label
+    # ascii_display_domain_index holds one entry per DNS name (the A-label
     # form), so the Unicode and A-label spellings of a name cannot both be
     # registered. create! takes that claim before it saves. This module covers
     # every other write:
     #
     # - A full write (save, commit_fields, save_if_not_exists!) of a record
     #   that is not stored yet gets create!'s canonical-host check
-    #   (refuse_canonical_overlap!), then claims the canonical name, and
+    #   (refuse_canonical_overlap!), then claims the ASCII name, and
     #   refuses when the name belongs to another record or has no A-label
     #   form. A claim this write created is released again if the write
     #   does not land. create! has already claimed the name, so here the
     #   claim is :owned and stays create!'s to release.
     # - A full write of a stored record passes through unchanged when its
-    #   identity fields match what is stored, without reading the canonical
+    #   identity fields match what is stored, without reading the ASCII
     #   index. Records registered before the index existed have no entry and
     #   keep saving normally. When the identity fields differ, the write is
     #   refused: there is no rename.
@@ -126,7 +126,7 @@ module Onetime
                 # Stored at the previous read: destroy! took it in between.
                 # Writing now would store the hash again, without the rest
                 # of the record (organization listing, sibling configs,
-                # canonical claim) that destroy! removed.
+                # ASCII claim) that destroy! removed.
                 raise Onetime::Problem, 'The custom domain no longer exists' if was_stored
 
                 conn.unwatch
@@ -170,14 +170,14 @@ module Onetime
 
         # The same canonical-host check create! applies, before the claim.
         self.class.refuse_canonical_overlap!(display_domain.to_s.downcase)
-        canonical, created = claim_canonical_for_new_record!
+        ascii_name, created = claim_ascii_for_new_record!
         begin
           result = yield
         rescue StandardError
-          release_claim_unless_stored(canonical) if created
+          release_claim_unless_stored(ascii_name) if created
           raise
         end
-        release_claim_unless_stored(canonical) if created && !write_landed?(result)
+        release_claim_unless_stored(ascii_name) if created && !write_landed?(result)
         result
       end
 
@@ -186,12 +186,12 @@ module Onetime
       # writes run after it), and a failed MultiResult may still have
       # written the hash. When existence cannot be read the claim is kept,
       # so the name stays taken rather than open to a second record.
-      def release_claim_unless_stored(canonical)
+      def release_claim_unless_stored(ascii_name)
         return if exists?
 
-        self.class.canonical_display_domain_index.release_field(canonical, identifier)
+        self.class.ascii_display_domain_index.release_field(ascii_name, identifier)
       rescue StandardError => ex
-        OT.le "[CustomDomain] Kept the canonical claim for #{extid}: #{ex.class}: #{ex.message}"
+        OT.le "[CustomDomain] Kept the ASCII claim for #{extid}: #{ex.class}: #{ex.message}"
       end
 
       # @return [Hash{Symbol => String, nil}, nil] raw stored identity values,
@@ -233,13 +233,13 @@ module Onetime
           deserialize_value(raw, field_name: name) == value
       end
 
-      # @return [Array(String, Boolean)] canonical name, and whether this call
+      # @return [Array(String, Boolean)] ASCII name, and whether this call
       #   created the claim (and so must release it if the write fails)
       # @raise [Onetime::Problem] when another record holds the name, or the
       #   name has no A-label form
-      def claim_canonical_for_new_record!
-        canonical, claim = self.class.claim_canonical_display_domain(display_domain, identifier)
-        return [canonical, claim == :created] if [:created, :owned].include?(claim)
+      def claim_ascii_for_new_record!
+        ascii_name, claim = self.class.claim_ascii_display_domain(display_domain, identifier)
+        return [ascii_name, claim == :created] if [:created, :owned].include?(claim)
 
         raise Onetime::Problem, 'Domain already registered'
       rescue Onetime::DomainValidation::AsciiHostname::ConversionError => ex

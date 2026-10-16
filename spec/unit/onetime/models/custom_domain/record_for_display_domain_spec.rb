@@ -19,7 +19,7 @@ RSpec.describe Onetime::CustomDomain, '.record_for_display_domain', :datastore d
   let(:name_a) { "a-#{suffix}.example.com" }
   let(:name_b) { "b-#{suffix}.example.com" }
   let(:exact_index) { described_class.display_domain_index }
-  let(:canonical_index) { described_class.canonical_display_domain_index }
+  let(:ascii_index) { described_class.ascii_display_domain_index }
   let(:records) { [] }
   let(:org) { Onetime::Organization.new(display_name: "Lookup #{suffix}").tap(&:save) }
 
@@ -55,7 +55,7 @@ RSpec.describe Onetime::CustomDomain, '.record_for_display_domain', :datastore d
     unicode = "bücher-#{suffix}.example.com"
     rec     = create(unicode)
 
-    expect(lookups(described_class.canonical_display_domain(unicode))).to eq([rec.identifier] * 3)
+    expect(lookups(described_class.ascii_display_domain(unicode))).to eq([rec.identifier] * 3)
   end
 
   it 'refuses an exact index entry that names a record stored under another name' do
@@ -68,16 +68,16 @@ RSpec.describe Onetime::CustomDomain, '.record_for_display_domain', :datastore d
     exact_index.put(name_a, rec_a.identifier) if rec_a
   end
 
-  it 'refuses a canonical index entry that names a record stored under another name' do
-    rec_a     = create(name_a)
-    canonical = described_class.canonical_display_domain(name_a)
-    exact_index.remove(name_a) # the lookup falls through to the canonical index
-    canonical_index.put(canonical, create(name_b).identifier)
+  it 'refuses an ASCII index entry that names a record stored under another name' do
+    rec_a      = create(name_a)
+    ascii_name = described_class.ascii_display_domain(name_a)
+    exact_index.remove(name_a) # the lookup falls through to the ASCII index
+    ascii_index.put(ascii_name, create(name_b).identifier)
 
     expect(lookups(name_a)).to eq([nil, nil, nil])
   ensure
     exact_index.put(name_a, rec_a.identifier) if rec_a
-    canonical_index.put(canonical, rec_a.identifier) if rec_a && canonical
+    ascii_index.put(ascii_name, rec_a.identifier) if rec_a && ascii_name
   end
 
   it 'returns nil for an entry whose record is gone' do

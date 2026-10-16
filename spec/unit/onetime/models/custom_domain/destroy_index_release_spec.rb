@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # CustomDomain#destroy! releases the display_domain_index and
-# canonical_display_domain_index entries under the name as stored, whatever
+# ascii_display_domain_index entries under the name as stored, whatever
 # the copy being destroyed holds in memory, and only entries that name the
 # record (ownership-checked).
 #
@@ -15,10 +15,10 @@ require 'securerandom'
 # rubocop:disable RSpec/SpecFilePathFormat
 RSpec.describe Onetime::CustomDomain, '#destroy! index release', :datastore do
   let(:suffix) { SecureRandom.hex(4) }
-  let(:name) { "bücher-#{suffix}.example.com" } # the exact and canonical keys differ
-  let(:canonical) { described_class.canonical_display_domain(name) }
+  let(:name) { "bücher-#{suffix}.example.com" } # the exact and ASCII keys differ
+  let(:ascii_name) { described_class.ascii_display_domain(name) }
   let(:exact_index) { described_class.display_domain_index }
-  let(:canonical_index) { described_class.canonical_display_domain_index }
+  let(:ascii_index) { described_class.ascii_display_domain_index }
   let(:records) { [] }
   let(:org) { Onetime::Organization.new(display_name: "Destroy #{suffix}").tap(&:save) }
 
@@ -29,7 +29,7 @@ RSpec.describe Onetime::CustomDomain, '#destroy! index release', :datastore do
       warn "[destroy_index_release_spec cleanup] #{ex.class}: #{ex.message}"
     end
     exact_index.remove(name)
-    canonical_index.remove_field(canonical)
+    ascii_index.remove_field(ascii_name)
     org.destroy! if org.exists?
   end
 
@@ -38,7 +38,7 @@ RSpec.describe Onetime::CustomDomain, '#destroy! index release', :datastore do
   end
 
   def entries
-    [exact_index.get(name), canonical_index.get(canonical)]
+    [exact_index.get(name), ascii_index.get(ascii_name)]
   end
 
   it 'releases the entries under the stored name when the copy holds another name in memory' do
@@ -62,11 +62,11 @@ RSpec.describe Onetime::CustomDomain, '#destroy! index release', :datastore do
   it 'leaves the entries of the record they name when a shadow under the same name is destroyed' do
     survivor = create(name)
     exact_index.remove(name)
-    canonical_index.remove_field(canonical)
+    ascii_index.remove_field(ascii_name)
     shadow   = described_class.new(display_domain: name, org_id: org.objid).tap { |rec| records << rec }
     shadow.save
     exact_index.put(name, survivor.identifier)
-    canonical_index.put(canonical, survivor.identifier)
+    ascii_index.put(ascii_name, survivor.identifier)
 
     shadow.destroy!
 

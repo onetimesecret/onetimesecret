@@ -396,8 +396,27 @@ module Onetime
         # @return [Hash, nil] Domain entry hash with 'id' key, or nil if not found
         #
         def find_domain_by_name(client, domain)
-          result = client.domains.list
-          result['data']&.find { |d| d['domain'] == domain }
+          domain_entry(list_domains(client), domain)
+        end
+
+        # The account's domain entries, for callers that resolve many domains
+        # at once: one list request instead of one per domain. Match entries
+        # with {#domain_entry}, the same comparison {#find_domain_by_name}
+        # makes. Same pagination caveat as {#find_domain_by_name}.
+        #
+        # @param client [Lettermint::TeamAPI] SDK client instance
+        # @return [Array<Hash>, nil] the entries, or nil when the response has none
+        #
+        def list_domains(client)
+          client.domains.list['data']
+        end
+
+        # @param domains [Array<Hash>, nil] domain entries from {#list_domains}
+        # @param domain [String] Domain name to find
+        # @return [Hash, nil] the entry, or nil when no entry matches
+        #
+        def domain_entry(domains, domain)
+          domains&.find { |d| d['domain'] == domain }
         end
 
         # Creates a new domain or retrieves existing one on 409 conflict.

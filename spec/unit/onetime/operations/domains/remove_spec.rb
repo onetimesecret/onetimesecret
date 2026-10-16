@@ -13,13 +13,13 @@
 #      and never calls org.remove_domain
 #      (destroy! owns org participation). No datastore.
 #
-#   2. Real datastore — the display_domain_index re-assertion crux. Familia's
-#      destroy! ends in a bare `super` whose transaction UNCONDITIONALLY HDELs
-#      display_domain_index[fqdn] with no owner check, so removing a drift-shadow
-#      would wipe the surviving canonical owner's pointer. These examples build
-#      REAL CustomDomain records (super's HDEL only fires against real Redis) and
-#      prove the survivor pointer is re-asserted, that a normal removal clears the
-#      index (not resurrected), and that a pre-drifted nil owner is a no-op.
+#   2. Real datastore — index entries. CustomDomain#destroy! releases its
+#      display_domain_index and ascii_display_domain_index entries
+#      ownership-checked, so removing a drift-shadow leaves the surviving
+#      owner's entries in place. These examples build REAL CustomDomain
+#      records and prove the survivor's entries survive, that a normal removal
+#      clears both entries (not resurrected), and that a pre-drifted nil owner
+#      is a no-op.
 #
 # Run: tests/lanes/run --only spec/unit/onetime/operations/domains/remove_spec.rb
 
@@ -61,7 +61,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
 
     before do
       allow(Onetime::ColonelAuditEvent).to receive(:record)
-      allow(Onetime::Operations::Domains::Teardown).to receive(:new).with(domain: domain).and_return(teardown)
+      allow(Onetime::Operations::Domains::Teardown).to receive(:new).with(domain: domain, keep_vhost: false, keep_sender_identity: false).and_return(teardown)
       allow(Onetime::Organization).to receive(:load).with('org-1').and_return(org)
     end
 
@@ -85,14 +85,54 @@ RSpec.describe Onetime::Operations::Domains::Remove do
       end
     end
 
+    it 'audits sender preservation on the preview without tearing anything down' do
+      operation = described_class.new(domain: domain, actor: actor, keep_sender_identity: true)
+      expect(operation).to receive(:record_preview_observation)
+        .with(hash_including(sender_identity_kept: true))
+
+      expect(operation.call.status).to eq(:planned)
+      expect(teardown).not_to have_received(:call)
+    end
+
+    it 'omits the sender preservation detail on ordinary previews' do
+      operation = described_class.new(domain: domain, actor: actor)
+      expect(operation).to receive(:record_preview_observation) do |detail|
+        expect(detail).not_to have_key(:sender_identity_kept)
+      end
+      operation.call
+    end
+
     # 2. apply delegation + exactly-one audit + no org.remove_domain.
     describe 'apply (dry_run: false)' do
       it 'delegates teardown exactly once to the shared operation' do
         described_class.new(domain: domain, actor: actor, dry_run: false).call
 
-        expect(Onetime::Operations::Domains::Teardown).to have_received(:new).with(domain: domain).once
+        expect(Onetime::Operations::Domains::Teardown).to have_received(:new).with(domain: domain, keep_vhost: false, keep_sender_identity: false).once
         expect(teardown).to have_received(:call).once
         expect(domain).not_to have_received(:destroy!)
+      end
+
+      it 'forwards keep_vhost to the teardown and records it in the audit detail' do
+        allow(Onetime::Operations::Domains::Teardown).to receive(:new)
+          .with(domain: domain, keep_vhost: true, keep_sender_identity: false).and_return(teardown)
+
+        described_class.new(domain: domain, actor: actor, dry_run: false, keep_vhost: true).call
+
+        expect(Onetime::Operations::Domains::Teardown).to have_received(:new).with(domain: domain, keep_vhost: true, keep_sender_identity: false).once
+        expect(Onetime::ColonelAuditEvent).to have_received(:record)
+          .with(hash_including(verb: 'domain.remove', result: :success, detail: hash_including(vhost_kept: true)))
+      end
+
+      it 'forwards sender preservation independently of keep_vhost and audits it' do
+        allow(Onetime::Operations::Domains::Teardown).to receive(:new)
+          .with(domain: domain, keep_vhost: false, keep_sender_identity: true).and_return(teardown)
+
+        described_class.new(domain: domain, actor: actor, dry_run: false, keep_sender_identity: true).call
+
+        expect(Onetime::Operations::Domains::Teardown).to have_received(:new)
+          .with(domain: domain, keep_vhost: false, keep_sender_identity: true).once
+        expect(Onetime::ColonelAuditEvent).to have_received(:record)
+          .with(hash_including(result: :success, detail: hash_including(sender_identity_kept: true)))
       end
 
       it 'records EXACTLY ONE audit event (verb domain.remove, success)' do
@@ -283,7 +323,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
   end
 
   # ------------------------------------------------------------------ #
-  # Layer 2 — real datastore (the display_domain_index re-assertion crux)
+  # Layer 2 — real datastore (index entries left by destroy!)
   #
   # These require the test Valkey (spec/config.test.yaml -> :2163). No blanket
   # flush: each example registers its records/fqdns and the after(:each) hook
@@ -310,7 +350,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
       @fqdns.uniq.each { |fqdn| index.remove(fqdn) }
     end
 
-    # Create a real, fully-persisted canonical domain and register it for cleanup.
+    # Create a real, fully-persisted ascii_name domain and register it for cleanup.
     def create_domain(fqdn, org_id)
       rec = Onetime::CustomDomain.create!(fqdn, org_id)
       @records << rec
@@ -322,22 +362,22 @@ RSpec.describe Onetime::Operations::Domains::Remove do
     #
     # Familia 2.11's save now guards unique indexes (RecordExistsError if the
     # index already points at another record), and CustomDomain's save claims
-    # the canonical name (CustomDomain::IdentityGuard), so the raw "parse +
+    # the ASCII name (CustomDomain::IdentityGuard), so the raw "parse +
     # save" bypass the op's docstring describes no longer works directly. We
     # reproduce the SAME end state deterministically: drop both index entries
     # so the guards pass, save the shadow (which points both at itself), then
     # FORCE both back to the survivor. Result: two live hashes for one fqdn,
     # both indexes -> survivor.
     def create_shadow(fqdn, org_id, survivor)
-      canonical_index = Onetime::CustomDomain.canonical_display_domain_index
-      canonical       = Onetime::CustomDomain.canonical_display_domain(fqdn)
+      ascii_index = Onetime::CustomDomain.ascii_display_domain_index
+      ascii_name       = Onetime::CustomDomain.ascii_display_domain(fqdn)
       index.remove(fqdn)
-      canonical_index.remove_field(canonical)
+      ascii_index.remove_field(ascii_name)
       shadow = Onetime::CustomDomain.parse(fqdn, org_id)
       shadow.save
       @records << shadow
       index.put(fqdn, survivor.objid)
-      canonical_index.put(canonical, survivor.objid)
+      ascii_index.put(ascii_name, survivor.objid)
       shadow
     end
 
@@ -354,7 +394,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
       survivor   = create_domain(fqdn, "orgA-#{SecureRandom.hex(3)}")
       shadow_org = "orgB-#{SecureRandom.hex(3)}"
       shadow     = create_shadow(fqdn, shadow_org, survivor)
-      canonical  = Onetime::CustomDomain.canonical_display_domain(fqdn)
+      ascii_name = Onetime::CustomDomain.ascii_display_domain(fqdn)
 
       result = described_class.new(domain: shadow, actor: 'cli', dry_run: false).call
 
@@ -363,7 +403,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
       expect(shadow.exists?).to be false
       # (b) both index entries still name the survivor
       expect(index.get(fqdn)).to eq(survivor.objid)
-      expect(Onetime::CustomDomain.canonical_display_domain_index.get(canonical)).to eq(survivor.objid)
+      expect(Onetime::CustomDomain.ascii_display_domain_index.get(ascii_name)).to eq(survivor.objid)
       # (c) resolution follows the index to the survivor
       expect(Onetime::CustomDomain.load_by_display_domain(fqdn).objid).to eq(survivor.objid)
       # (d) exactly one audit
@@ -408,10 +448,10 @@ RSpec.describe Onetime::Operations::Domains::Remove do
 
     # 6. Normal removal clears both index entries.
     it 'clears the index entries on a normal removal' do
-      fqdn      = unique_fqdn('clear')
-      org_id    = "org-#{SecureRandom.hex(3)}"
-      domain    = create_domain(fqdn, org_id)
-      canonical = Onetime::CustomDomain.canonical_display_domain(fqdn)
+      fqdn       = unique_fqdn('clear')
+      org_id     = "org-#{SecureRandom.hex(3)}"
+      domain     = create_domain(fqdn, org_id)
+      ascii_name = Onetime::CustomDomain.ascii_display_domain(fqdn)
 
       expect(index.get(fqdn)).to eq(domain.objid) # sanity: index points at it
 
@@ -419,7 +459,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
 
       expect(result.status).to eq(:removed)
       expect(index.get(fqdn)).to be_nil
-      expect(Onetime::CustomDomain.canonical_display_domain_index.get(canonical)).to be_nil
+      expect(Onetime::CustomDomain.ascii_display_domain_index.get(ascii_name)).to be_nil
       expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(detail: hash_including(org_id: org_id))
       )

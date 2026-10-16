@@ -24,8 +24,18 @@ module Onetime
         # Commitment describes local destruction, not successful remote cleanup.
         Result = Data.define(:removal_committed, :lease_error)
 
-        def initialize(domain:)
-          @domain = domain
+        # @param domain [Onetime::CustomDomain]
+        # @param keep_vhost [Boolean] leave the provider vhost in place. The
+        #   vhost is keyed by the domain's name, not by the record, so a
+        #   caller removing one of several records that share a name passes
+        #   true to keep it for the record that stays
+        #   (Domains::CollisionResolution). The default deletes it.
+        # @param keep_sender_identity [Boolean] skip remote sender deletion only;
+        #   destroy! still removes the local domain and its mailer config.
+        def initialize(domain:, keep_vhost: false, keep_sender_identity: false)
+          @domain               = domain
+          @keep_vhost           = keep_vhost
+          @keep_sender_identity = keep_sender_identity
         end
 
         def call
@@ -40,9 +50,15 @@ module Onetime
           lease_error       = nil
           begin
             lease.protect do
-              delete_vhost
+              if @keep_vhost
+                OT.info "[Domains::Teardown] #{@domain.display_domain} vhost kept for the record that shares the name"
+              else
+                delete_vhost
+              end
               lease.check!
-              Onetime::Operations::DeleteSenderDomain.new(mailer_config: @domain.mailer_config).call
+              unless @keep_sender_identity
+                Onetime::Operations::DeleteSenderDomain.new(mailer_config: @domain.mailer_config).call
+              end
               lease.check!
               @domain.destroy!
               removal_committed = true

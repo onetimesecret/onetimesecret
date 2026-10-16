@@ -1,11 +1,11 @@
-# spec/unit/onetime/models/custom_domain/destroy_canonical_release_spec.rb
+# spec/unit/onetime/models/custom_domain/destroy_ascii_release_spec.rb
 #
 # frozen_string_literal: true
 
-# CustomDomain#destroy! releases the canonical display-domain claim from inside
+# CustomDomain#destroy! releases the ASCII display-domain claim from inside
 # Familia's destroy transaction.
 #
-# The canonical gate (canonical_display_domain_index) folds the Unicode and
+# The ASCII gate (ascii_display_domain_index) folds the Unicode and
 # A-label spellings of a name onto one field. It is app-managed, not a declared
 # Familia index, so destroy! has to release it itself. Releasing after the
 # MULTI would let a Redis failure in between leave a claim naming a record that
@@ -28,8 +28,8 @@ require 'delegate'
 require 'securerandom'
 
 # rubocop:disable RSpec/SpecFilePathFormat
-RSpec.describe Onetime::CustomDomain, '#destroy! canonical release', :datastore do
-  let(:index) { described_class.canonical_display_domain_index }
+RSpec.describe Onetime::CustomDomain, '#destroy! ASCII release', :datastore do
+  let(:index) { described_class.ascii_display_domain_index }
   let(:releases) { [] }
   let(:records) { [] }
   let(:suffix) { SecureRandom.hex(4) }
@@ -39,25 +39,25 @@ RSpec.describe Onetime::CustomDomain, '#destroy! canonical release', :datastore 
     # Memoize the real index before the accessor is stubbed: recording_index
     # wraps whatever `index` returns, and the stub must not be that wrapper.
     real = index
-    allow(described_class).to receive(:canonical_display_domain_index).and_return(recording_index(real))
+    allow(described_class).to receive(:ascii_display_domain_index).and_return(recording_index(real))
   end
 
   after do
     records.each do |rec|
       rec.destroy! if rec.exists?
     rescue StandardError => ex
-      warn "[destroy_canonical_release_spec cleanup] #{ex.class}: #{ex.message}"
+      warn "[destroy_ascii_release_spec cleanup] #{ex.class}: #{ex.message}"
     end
-    index.remove_field(canonical)
+    index.remove_field(ascii_name)
     begin
       org.destroy! if org.exists?
     rescue StandardError => ex
-      warn "[destroy_canonical_release_spec cleanup] #{ex.class}: #{ex.message}"
+      warn "[destroy_ascii_release_spec cleanup] #{ex.class}: #{ex.message}"
     end
   end
 
-  def canonical
-    described_class.canonical_display_domain(unicode_name)
+  def ascii_name
+    described_class.ascii_display_domain(unicode_name)
   end
 
   def org
@@ -86,7 +86,7 @@ RSpec.describe Onetime::CustomDomain, '#destroy! canonical release', :datastore 
   it 'claims the A-label form on create! (sanity)' do
     domain = create_domain
 
-    expect([canonical.start_with?('xn--'), index.get(canonical)]).to eq([true, domain.identifier])
+    expect([ascii_name.start_with?('xn--'), index.get(ascii_name)]).to eq([true, domain.identifier])
   end
 
   it 'releases the claim inside the destroy transaction' do
@@ -97,12 +97,12 @@ RSpec.describe Onetime::CustomDomain, '#destroy! canonical release', :datastore 
 
     # Queued in the MULTI, so the release returns a future rather than a count.
     observed = [
-      index.get(canonical),
+      index.get(ascii_name),
       described_class.find_by_identifier(domain.identifier),
       releases.map { |c| c.values_at(:field, :val, :in_transaction) },
       releases.map { |c| c[:ret].class.name },
     ]
-    expect(observed).to eq([nil, nil, [[canonical, domain.identifier, true]], ['Redis::Future']])
+    expect(observed).to eq([nil, nil, [[ascii_name, domain.identifier, true]], ['Redis::Future']])
   end
 
   it 'lets both spellings be registered again after destroy!' do
@@ -110,7 +110,7 @@ RSpec.describe Onetime::CustomDomain, '#destroy! canonical release', :datastore 
 
     again = create_domain
 
-    expect(index.get(canonical)).to eq(again.identifier)
+    expect(index.get(ascii_name)).to eq(again.identifier)
   end
 
   it 'removes the record from the organization so the org can be destroyed afterwards' do
@@ -126,11 +126,11 @@ RSpec.describe Onetime::CustomDomain, '#destroy! canonical release', :datastore 
 
   it 'leaves a claim held by a different identifier alone' do
     domain           = create_domain
-    index[canonical] = "other-#{suffix}"
+    index[ascii_name] = "other-#{suffix}"
 
     domain.destroy!
 
-    expect([index.get(canonical), described_class.find_by_identifier(domain.identifier)])
+    expect([index.get(ascii_name), described_class.find_by_identifier(domain.identifier)])
       .to eq(["other-#{suffix}", nil])
   end
 end

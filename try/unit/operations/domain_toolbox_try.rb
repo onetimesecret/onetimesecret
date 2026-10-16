@@ -20,7 +20,7 @@
 # - A Transfer that blows up mid-apply records ONE result: :failure event via
 #   Onetime::AuditedFailure and re-raises (the success-path record never runs).
 # - Repair --org-id and Transfer of an ORPHANED domain adopt it through
-#   CustomDomain.claim_orphaned_domain: the canonical-name entry is taken, the
+#   CustomDomain.claim_orphaned_domain: the ASCII-name entry is taken, the
 #   ownership verification is reset, the TXT value is new, and the kept
 #   per-domain state is reported.
 #
@@ -284,37 +284,37 @@ Onetime::Operations::Domains::Transfer.new(
 Onetime::Organization.load(@org3.objid).nil?
 #=> true
 
-# ---- Records with no canonical-name entry -----------------------------
+# ---- Records with no ASCII-name entry -----------------------------
 #
-# Domains registered before canonical_display_domain_index existed have no
+# Domains registered before ascii_display_domain_index existed have no
 # entry in it. Saving them with their name unchanged must keep working and
 # must not add one: the entries are created by a separate backfill, not by
 # whichever save comes first.
 
-## a transfer saves a domain that has no canonical entry, and adds none
+## a transfer saves a domain that has no ASCII entry, and adds none
 @pc_tdom = Onetime::CustomDomain.create!("dt-pc-transfer-#{@test_id}.example.com", @org1.objid)
 @org1.add_domain(@pc_tdom)
-@pc_tkey = Onetime::CustomDomain.canonical_display_domain(@pc_tdom.display_domain)
-Onetime::CustomDomain.canonical_display_domain_index.remove_field(@pc_tkey)
+@pc_tkey = Onetime::CustomDomain.ascii_display_domain(@pc_tdom.display_domain)
+Onetime::CustomDomain.ascii_display_domain_index.remove_field(@pc_tkey)
 @pc_t = Onetime::Operations::Domains::Transfer.new(
   domain: @pc_tdom, to_org: @org2, actor: @actor, dry_run: false,
 ).call
 [@pc_t.status,
  Onetime::CustomDomain.find_by_identifier(@pc_tdom.identifier).org_id == @org2.org_id,
- Onetime::CustomDomain.canonical_display_domain_index.get(@pc_tkey)]
+ Onetime::CustomDomain.ascii_display_domain_index.get(@pc_tkey)]
 #=> [:transferred, true, nil]
 
-## a repair that adopts an orphan with no canonical entry enters its name, like any other adoption
+## a repair that adopts an orphan with no ASCII entry enters its name, like any other adoption
 @pc_rseed = Onetime::CustomDomain.create!("dt-pc-repair-#{@test_id}.example.com", @org1.objid)
-@pc_rkey  = Onetime::CustomDomain.canonical_display_domain(@pc_rseed.display_domain)
-Onetime::CustomDomain.canonical_display_domain_index.remove_field(@pc_rkey)
+@pc_rkey  = Onetime::CustomDomain.ascii_display_domain(@pc_rseed.display_domain)
+Onetime::CustomDomain.ascii_display_domain_index.remove_field(@pc_rkey)
 @pc_rseed.remove_from_organization_domains(@org1)
 Familia.dbclient.hset(@pc_rseed.dbkey, 'org_id', '')
 @pc_rdom = Onetime::CustomDomain.find_by_identifier(@pc_rseed.domainid)
 @pc_r = Onetime::Operations::Domains::Repair.new(domain: @pc_rdom, actor: @actor, org: @org2, dry_run: false).call
 [@pc_r.status,
  Onetime::CustomDomain.find_by_identifier(@pc_rdom.identifier).org_id == @org2.org_id,
- Onetime::CustomDomain.canonical_display_domain_index.get(@pc_rkey) == @pc_rdom.identifier]
+ Onetime::CustomDomain.ascii_display_domain_index.get(@pc_rkey) == @pc_rdom.identifier]
 #=> [:repaired, true, true]
 
 # ---- Adopting a verified orphan: Repair --org-id and Transfer ---------
@@ -358,8 +358,8 @@ AE.events.clear
 Familia.dbclient.hdel(@at_seed.dbkey, 'org_id')
 Familia.dbclient.hset(@at_seed.dbkey, { 'verified' => 'true', 'resolving' => 'true' })
 Onetime::CustomDomain.owners.remove(@at_seed.to_s)
-@at_key = Onetime::CustomDomain.canonical_display_domain(@at_seed.display_domain)
-Onetime::CustomDomain.canonical_display_domain_index.remove_field(@at_key)
+@at_key = Onetime::CustomDomain.ascii_display_domain(@at_seed.display_domain)
+Onetime::CustomDomain.ascii_display_domain_index.remove_field(@at_key)
 @at_dom = Onetime::CustomDomain.find_by_identifier(@at_seed.domainid)
 @at_txt = @at_dom.txt_validation_value
 @at_before = [@at_dom.ownership_verified, @at_dom.ready?]
@@ -368,7 +368,7 @@ Onetime::CustomDomain.canonical_display_domain_index.remove_field(@at_key)
 [@at_before, @at_t.status, @at_stored.org_id == @org2.org_id, @at_stored.ownership_verified, @at_stored.ready?,
  @at_stored.txt_validation_value == @at_txt, @org2.domain?(@at_stored),
  Onetime::CustomDomain.owners.get(@at_stored.domainid) == @org2.objid,
- Onetime::CustomDomain.canonical_display_domain_index.get(@at_key) == @at_stored.identifier]
+ Onetime::CustomDomain.ascii_display_domain_index.get(@at_key) == @at_stored.identifier]
 #=> [[true, true], :transferred, true, false, false, false, true, true, true]
 
 ## the transfer result reports the adoption, and its audit event records it

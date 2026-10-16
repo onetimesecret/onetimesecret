@@ -13,27 +13,32 @@ require 'onetime/operations/domains/teardown'
 module Onetime
   module Operations
     module Domains
-      # Remove (permanently delete) a custom domain — the SINGLE toolbox
-      # implementation of the remove verb (#3731 P3). The colonel endpoint
-      # (DELETE /api/colonel/domains/:extid) and 'bin/ots domains remove' are
-      # thin adapters over it. Mirrors the Transfer op: dry_run:true default,
-      # exactly-once ColonelAuditEvent emitted FROM THE OP ONLY, Result Data.
+      # Permanently delete a custom domain. This is the shared implementation
+      # of the remove operation (#3731 P3), called by thin adapters in the
+      # colonel endpoint (DELETE /api/colonel/domains/:extid) and
+      # `bin/ots domains remove`.
       #
-      # ## Teardown parity
+      # Like Transfer, this operation defaults to dry_run: true and returns a
+      # Result Data object. The operation alone emits ColonelAuditEvent;
+      # adapters must not emit duplicate events.
       #
-      # The apply path delegates to Domains::Teardown, also used by the customer
-      # API. It owns provider teardown and destruction under the sender identity
-      # lease. This wrapper owns preview and operator auditing. Teardown does
-      # not call org.remove_domain: CustomDomain#destroy! already removes org
-      # participation internally.
+      # ## Shared teardown
+      #
+      # The apply path delegates to Domains::Teardown, which the customer API
+      # also uses. Teardown handles provider cleanup and record destruction
+      # under the sender identity lease. This wrapper handles previews and
+      # operator auditing.
+      #
+      # Teardown does not call org.remove_domain because CustomDomain#destroy!
+      # already removes the domain's organization participation.
       #
       # ## Index entries
       #
       # CustomDomain#destroy! releases its display_domain_index and
-      # canonical_display_domain_index entries itself, ownership-checked and
-      # under the name as stored. Removing a drift-produced shadow record that
-      # shares a hostname with the record the index names leaves that record's
-      # entries in place, so there is nothing for this wrapper to repair.
+      # ascii_display_domain_index entries itself, ownership-checked and under
+      # the name as stored. Removing a drift-produced shadow record that shares
+      # a hostname with the record the index names leaves that record's entries
+      # in place, so this wrapper has nothing to repair.
       class Remove
         include Onetime::AuditedFailure
         include Onetime::AuditReason
@@ -95,11 +100,18 @@ module Onetime
         #   preceded it. Blank is treated as absent and both details keep their
         #   pre-#4338 shape; see {Onetime::AuditReason} for the bound and the
         #   optional-now / required-later rollout.
-        def initialize(domain:, actor:, dry_run: true, reason: nil)
-          @domain  = domain
-          @actor   = actor
-          @dry_run = dry_run
-          @reason  = normalize_reason(reason)
+        # @param keep_vhost [Boolean] leave the provider vhost in place
+        #   (Teardown#initialize): for a record that shares its name with a
+        #   record that stays. Recorded in the audit detail as vhost_kept.
+        # @param keep_sender_identity [Boolean] preserve a keeper's shared remote
+        #   sender identity, while still deleting this record and its local config.
+        def initialize(domain:, actor:, dry_run: true, reason: nil, keep_vhost: false, keep_sender_identity: false)
+          @domain               = domain
+          @actor                = actor
+          @dry_run              = dry_run
+          @reason               = normalize_reason(reason)
+          @keep_vhost           = keep_vhost
+          @keep_sender_identity = keep_sender_identity
         end
 
         # @return [Result]
@@ -144,6 +156,8 @@ module Onetime
           # The dry-run path returns above, recording only a preview
           # observation on the access trail (#4337), never this operator event.
           detail           = { org_id: org_id.to_s }
+          detail           = detail.merge(vhost_kept: true) if @keep_vhost
+          detail           = detail.merge(sender_identity_kept: true) if @keep_sender_identity
           if lease_error
             detail[:removal_committed] = true
             detail[:lease_lost]        = true
@@ -183,11 +197,18 @@ module Onetime
         # is what tells them apart, and the detail mirrors the applied event's —
         # including the operator's `reason` (#4338) when one was given.
         def record_preview_event(org_id)
-          record_preview_observation(with_reason(org_id: org_id.to_s))
+          detail = { org_id: org_id.to_s }
+          detail = detail.merge(vhost_kept: true) if @keep_vhost
+          detail = detail.merge(sender_identity_kept: true) if @keep_sender_identity
+          record_preview_observation(with_reason(detail))
         end
 
         def teardown_domain
-          Onetime::Operations::Domains::Teardown.new(domain: @domain).call
+          Onetime::Operations::Domains::Teardown.new(
+            domain: @domain,
+            keep_vhost: @keep_vhost,
+            keep_sender_identity: @keep_sender_identity,
+          ).call
         rescue Onetime::Operations::Domains::Teardown::Busy => ex
           # Preserve the toolbox exception contract and failure-audit class.
           raise SenderIdentityBusy, ex.message

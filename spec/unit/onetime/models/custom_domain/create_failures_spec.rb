@@ -34,7 +34,7 @@ RSpec.describe Onetime::CustomDomain, '.create! failures', :datastore do
     rescue StandardError => ex
       warn "[create_failures_spec cleanup] #{ex.class}: #{ex.message}"
     end
-    described_class.canonical_display_domain_index.remove_field(described_class.canonical_display_domain(name))
+    described_class.ascii_display_domain_index.remove_field(described_class.ascii_display_domain(name))
     org.destroy! if org.exists?
   end
 
@@ -51,8 +51,8 @@ RSpec.describe Onetime::CustomDomain, '.create! failures', :datastore do
     failing = Class.new(SimpleDelegator) do
       define_method(:claim_field) { |*| raise Redis::CannotConnectError, 'datastore unreachable' }
     end
-    allow(described_class).to receive(:canonical_display_domain_index)
-      .and_return(failing.new(described_class.canonical_display_domain_index))
+    allow(described_class).to receive(:ascii_display_domain_index)
+      .and_return(failing.new(described_class.ascii_display_domain_index))
 
     expect { described_class.create!(name, org.objid) }
       .to raise_error(Onetime::TemporarilyUnavailable) { |ex| expect(ex.reason).to eq(:datastore) }
@@ -71,8 +71,8 @@ RSpec.describe Onetime::CustomDomain, '.create! failures', :datastore do
 
     it 'refuses the orphan like a record of another organization, logs it, and changes nothing' do
       orphaned  = orphan
-      canonical = described_class.canonical_display_domain(name)
-      described_class.canonical_display_domain_index.remove_field(canonical)
+      ascii_name = described_class.ascii_display_domain(name)
+      described_class.ascii_display_domain_index.remove_field(ascii_name)
       stored    = Familia.dbclient.hgetall(orphaned.dbkey)
 
       expect { described_class.create!(name, org.objid) }
@@ -81,7 +81,7 @@ RSpec.describe Onetime::CustomDomain, '.create! failures', :datastore do
         .with('custom_domain.orphan_claim_refused', hash_including(extid: orphaned.extid))
       expect([
         Familia.dbclient.hgetall(orphaned.dbkey) == stored,
-        described_class.canonical_display_domain_index.get(canonical),
+        described_class.ascii_display_domain_index.get(ascii_name),
         described_class.owners.get(orphaned.to_s),
         org.domains.member?(orphaned.identifier),
       ]).to eq([true, nil, nil, false])

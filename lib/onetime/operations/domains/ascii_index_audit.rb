@@ -1,4 +1,4 @@
-# lib/onetime/operations/domains/canonical_index_audit.rb
+# lib/onetime/operations/domains/ascii_index_audit.rb
 #
 # frozen_string_literal: true
 
@@ -10,12 +10,12 @@ module Onetime
   module Operations
     module Domains
       # Compare every custom domain record with
-      # CustomDomain.canonical_display_domain_index, the index that holds one
+      # CustomDomain.ascii_display_domain_index, the index that holds one
       # entry per DNS name (its lower-case A-label form) and that create! and
       # CustomDomain::IdentityGuard claim for new records.
       #
       # This audit reports where the index and the records disagree.
-      # {CanonicalIndexBackfill} acts on the result, and
+      # {AsciiIndexBackfill} acts on the result, and
       # `bin/ots domains doctor` reports it.
       #
       # READ-ONLY: no writes and no {Onetime::ColonelAuditEvent}.
@@ -45,7 +45,7 @@ module Onetime
       # also finds records that are missing from `instances`, and `instances`
       # adds only members whose records are gone. SCAN does not block the
       # server, and records are loaded in pipelined batches.
-      class CanonicalIndexAudit
+      class AsciiIndexAudit
         CATEGORIES = [:ok, :missing, :collision, :conflict, :stale, :unconvertible].freeze
 
         # Categories an operator has to resolve; the backfill never writes
@@ -55,7 +55,7 @@ module Onetime
         SCAN_BATCH = 500
 
         # @!attribute category [r] Symbol, one of CATEGORIES
-        # @!attribute canonical [r] String, nil — the A-label; nil when :unconvertible
+        # @!attribute ascii_name [r] String, nil — the A-label; nil when :unconvertible
         # @!attribute holder_id [r] String, nil — identifier the index entry names
         # @!attribute verified_confirmed_at [r] Integer, nil — epoch seconds of
         #   the last passing TXT check (DNS proof); ownership_verified alone may
@@ -65,7 +65,7 @@ module Onetime
           :domain_id,
           :extid,
           :display_domain,
-          :canonical,
+          :ascii_name,
           :holder_id,
           :org_id,
           :verification_state,
@@ -77,7 +77,7 @@ module Onetime
         )
 
         # An index field that no record row accounts for.
-        Entry = Data.define(:category, :canonical, :holder_id, :detail)
+        Entry = Data.define(:category, :ascii_name, :holder_id, :detail)
 
         # A record that exists but could not be loaded.
         Unreadable = Data.define(:domain_id, :message)
@@ -101,7 +101,7 @@ module Onetime
 
           # @return [Hash{String => Array<Row>}] A-label => records sharing it
           def collision_groups
-            rows_in(:collision).group_by(&:canonical)
+            rows_in(:collision).group_by(&:ascii_name)
           end
 
           # Whether anything needs an operator: collisions, conflicts, or
@@ -133,7 +133,7 @@ module Onetime
         end
 
         def index
-          model.canonical_display_domain_index
+          model.ascii_display_domain_index
         end
 
         def client
@@ -178,7 +178,7 @@ module Onetime
         def load_batch(batch)
           batch.zip(model.load_multi(batch))
         rescue StandardError => ex
-          OT.le "[Domains::CanonicalIndexAudit] Batch load failed (#{ex.class}); loading one at a time"
+          OT.le "[Domains::AsciiIndexAudit] Batch load failed (#{ex.class}); loading one at a time"
           batch.map { |identifier| [identifier, load_one(identifier)] }
         end
 
@@ -188,33 +188,33 @@ module Onetime
           Unreadable.new(domain_id: identifier, message: "#{ex.class}: #{ex.message}")
         end
 
-        def canonical_for(display_domain)
+        def ascii_name_for(display_domain)
           return nil if display_domain.to_s.empty?
 
-          model.canonical_display_domain(display_domain)
+          model.ascii_display_domain(display_domain)
         rescue Onetime::DomainValidation::AsciiHostname::ConversionError
           nil
         end
 
         def classify_records(records, holders)
-          canonicals = records.transform_values { |record| canonical_for(record.display_domain) }
-          groups     = canonicals.compact.group_by { |_id, canonical| canonical }.transform_values(&:size)
+          ascii_names = records.transform_values { |record| ascii_name_for(record.display_domain) }
+          groups      = ascii_names.compact.group_by { |_id, ascii_name| ascii_name }.transform_values(&:size)
 
           rows = records.map do |identifier, record|
-            canonical        = canonicals[identifier]
-            holder           = canonical && holders[canonical]
-            category, detail = categorize(identifier, canonical, holder, groups, records)
-            build_row(identifier, record, category, canonical, holder, detail)
+            ascii_name       = ascii_names[identifier]
+            holder           = ascii_name && holders[ascii_name]
+            category, detail = categorize(identifier, ascii_name, holder, groups, records)
+            build_row(identifier, record, category, ascii_name, holder, detail)
           end
 
-          rows.sort_by { |row| [row.canonical.to_s, row.display_domain.to_s, row.domain_id.to_s] }
+          rows.sort_by { |row| [row.ascii_name.to_s, row.display_domain.to_s, row.domain_id.to_s] }
         end
 
-        def categorize(identifier, canonical, holder, groups, records)
-          return [:unconvertible, 'name is blank or has no A-label form'] if canonical.nil?
+        def categorize(identifier, ascii_name, holder, groups, records)
+          return [:unconvertible, 'name is blank or has no A-label form'] if ascii_name.nil?
 
-          shared = groups.fetch(canonical, 0)
-          return [:collision, "#{shared} records share #{canonical}"] if shared > 1
+          shared = groups.fetch(ascii_name, 0)
+          return [:collision, "#{shared} records share #{ascii_name}"] if shared > 1
           return [:missing, nil] if holder.nil?
           return [:ok, nil] if holder == identifier
 
@@ -234,13 +234,13 @@ module Onetime
         # The identifier is the one from the record's key, not record.identifier:
         # a hash without an objid field would otherwise get a generated one (and
         # an extid derived from it).
-        def build_row(identifier, record, category, canonical, holder, detail)
+        def build_row(identifier, record, category, ascii_name, holder, detail)
           Row.new(
             category: category,
             domain_id: identifier,
             extid: record.objid.to_s == identifier ? record.extid : nil,
             display_domain: record.display_domain,
-            canonical: canonical,
+            ascii_name: ascii_name,
             holder_id: holder,
             org_id: record.org_id.to_s.empty? ? nil : record.org_id,
             verification_state: record.verification_state,
@@ -254,29 +254,29 @@ module Onetime
 
         # Index fields keyed by a name that no record has.
         def classify_unmatched_entries(holders, rows, records)
-          matched = rows.filter_map(&:canonical).to_set
+          matched = rows.filter_map(&:ascii_name).to_set
 
-          entries = holders.filter_map do |canonical, holder|
-            next if matched.include?(canonical)
+          entries = holders.filter_map do |ascii_name, holder|
+            next if matched.include?(ascii_name)
 
             if records.key?(holder) || record_exists?(holder)
               Entry.new(
                 category: :conflict,
-                canonical: canonical,
+                ascii_name: ascii_name,
                 holder_id: holder,
-                detail: "no record is named #{canonical}; the entry names #{holder}, #{describe_holder(records[holder])}",
+                detail: "no record is named #{ascii_name}; the entry names #{holder}, #{describe_holder(records[holder])}",
               )
             else
               Entry.new(
                 category: :stale,
-                canonical: canonical,
+                ascii_name: ascii_name,
                 holder_id: holder,
-                detail: "no record is named #{canonical}; the entry names #{holder}, which no longer exists",
+                detail: "no record is named #{ascii_name}; the entry names #{holder}, which no longer exists",
               )
             end
           end
 
-          entries.sort_by(&:canonical)
+          entries.sort_by(&:ascii_name)
         end
 
         def record_exists?(identifier)

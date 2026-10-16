@@ -4,8 +4,7 @@
 
 # Permanently remove a custom domain — the CLI peer of
 # `DELETE /api/colonel/domains/:extid`. Both adapters call the same op
-# (Onetime::Operations::Domains::Remove), which owns the teardown, the
-# display_domain_index survivor re-assertion (the shadowed-record fix) and the
+# (Onetime::Operations::Domains::Remove), which owns the teardown and the
 # single `domain.remove` ColonelAuditEvent. This command owns only CLI concerns.
 #
 # Usage:
@@ -19,9 +18,8 @@
 #
 # TWO-PHASE UX (mirrors AdminDomainDetail.vue's dry-run preview -> apply): the
 # bare invocation runs the op with dry_run:true first and prints the plan — what
-# will be removed, and whether the removal re-asserts a surviving canonical
-# record over a drift-produced SHADOW (the crux the op guards). Nothing is
-# deleted until the operator confirms at the prompt or passes --apply / --yes.
+# will be removed. Nothing is deleted until the operator confirms at the prompt
+# or passes --apply / --yes.
 #
 # --dry-run wins over --apply: `--dry-run --apply` still mutates nothing.
 #
