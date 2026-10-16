@@ -9,7 +9,7 @@ performing irreversible writes.
 ## Administrative purge contract
 
 Colonel `DELETE /api/colonel/users/:user_id` and
-`bin/ots customers purge-one` use the same customer purge lifecycle. They
+`bin/ots customers purge` use the same customer purge lifecycle. They
 differ only in discovery depth (see *Discovery depth*): the CLI command sweeps
 the global registries, the endpoint does not.
 
@@ -40,7 +40,7 @@ Discovery is **shallow** by default: it reaches organizations through the
 customer's own reverse indexes (participations, `organization_instances`,
 `default_org_id`) and the contact-email claim, and keeps every
 per-organization drift check. Only the CLI single-account path
-(`bin/ots customers purge-one`) passes `deep: true`, which additionally sweeps
+(`bin/ots customers purge`) passes `deep: true`, which additionally sweeps
 the global `Organization`, `OrganizationMembership` and `CustomDomain`
 registries to catch a reference no reverse index points at — an organization
 whose `owner_id` names the customer but which is absent from their
@@ -49,7 +49,7 @@ re-runs preflight once per planned action plus three times during teardown, so
 they are never used on a request path — the colonel endpoint
 (`DELETE /api/colonel/users/:id`) is shallow, like self-service closure — or
 in the bulk sweep. An operator who needs the global sweep for one account runs
-`purge-one` from the CLI. Deep mode runs the sweeps at the initial plan and the
+`purge` from the CLI. Deep mode runs the sweeps at the initial plan and the
 final post-teardown validation; the intermediate revalidations stay shallow.
 
 The sweep itself is a `RegistrySweep`: each registry's `instances` set is

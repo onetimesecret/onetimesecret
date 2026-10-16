@@ -14,7 +14,7 @@ module Auth
       # membership row and custom domain belongs to; and which membership rows
       # name the target. Loading every record to answer that (an EXISTS and an
       # HGETALL per row, one round trip at a time, and a full Familia object
-      # for each) is what made `bin/ots customers purge-one` take minutes and
+      # for each) is what made `bin/ots customers purge` take minutes and
       # a core against a registry of hundreds of thousands of workspaces, and
       # a purge ran that sweep three times: the initial plan, Org::Delete's
       # capability recheck and the post-teardown revalidation.

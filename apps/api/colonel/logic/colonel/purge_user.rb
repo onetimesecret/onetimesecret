@@ -95,7 +95,7 @@ module ColonelAPI
           # RegistrySweep per purge, refreshed for the post-teardown check),
           # synchronously in this worker, so a client timeout would not stop
           # the mutation. That sweep is the CLI's job:
-          # `bin/ots customers purge-one` is the only deep path, for the
+          # `bin/ots customers purge` is the only deep path, for the
           # reference no reverse index points at. The bulk purge stays shallow
           # too, over a once-per-run MembershipSnapshot.
           @result = Auth::Operations::Customers::Purge.new(

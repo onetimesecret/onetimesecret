@@ -101,9 +101,25 @@ subcommands.length > 0
 get_subcommands(cli_children['customers']).include?('dates')
 #=> true
 
-## 'customers' includes 'purge' subcommand
+## 'customers' includes 'purge' subcommand (the single-account purge)
 get_subcommands(cli_children['customers']).include?('purge')
 #=> true
+
+## 'customers purge' is the single-account command, not the inactivity sweep
+get_command_class(cli_children['customers'].instance_variable_get(:@children)['purge'])
+#=> Onetime::CLI::CustomersPurgeCommand
+
+## 'customers' includes 'purge-inactive' subcommand (the bulk inactivity sweep)
+get_subcommands(cli_children['customers']).include?('purge-inactive')
+#=> true
+
+## 'customers purge-inactive' is the bulk command
+get_command_class(cli_children['customers'].instance_variable_get(:@children)['purge-inactive'])
+#=> Onetime::CLI::CustomersPurgeInactiveCommand
+
+## the former 'purge-one' name is gone
+get_subcommands(cli_children['customers']).include?('purge-one')
+#=> false
 
 ## 'customers' includes 'sync-auth-accounts' subcommand
 get_subcommands(cli_children['customers']).include?('sync-auth-accounts')
