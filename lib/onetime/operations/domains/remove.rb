@@ -13,33 +13,43 @@ require 'onetime/operations/domains/teardown'
 module Onetime
   module Operations
     module Domains
-      # Remove (permanently delete) a custom domain — the SINGLE toolbox
-      # implementation of the remove verb (#3731 P3). The colonel endpoint
-      # (DELETE /api/colonel/domains/:extid) and 'bin/ots domains remove' are
-      # thin adapters over it. Mirrors the Transfer op: dry_run:true default,
-      # exactly-once ColonelAuditEvent emitted FROM THE OP ONLY, Result Data.
+      # Permanently delete a custom domain. This is the shared implementation
+      # of the remove operation (#3731 P3), called by thin adapters in the
+      # colonel endpoint (DELETE /api/colonel/domains/:extid) and
+      # `bin/ots domains remove`.
       #
-      # ## Teardown parity
+      # Like Transfer, this operation defaults to dry_run: true and returns a
+      # Result Data object. The operation alone emits ColonelAuditEvent;
+      # adapters must not emit duplicate events.
       #
-      # The apply path delegates to Domains::Teardown, also used by the customer
-      # API. It owns provider teardown and destruction under the sender identity
-      # lease. This wrapper owns preview, index repair, and operator auditing.
-      # Teardown does not call org.remove_domain: CustomDomain#destroy! already
-      # removes org participation internally.
+      # ## Shared teardown
       #
-      # ## display_domain_index re-assertion (the crux)
+      # The apply path delegates to Domains::Teardown, which the customer API
+      # also uses. Teardown handles provider cleanup and record destruction
+      # under the sender identity lease. This wrapper handles previews, index
+      # repair, and operator auditing.
       #
-      # CustomDomain#destroy! ends in a bare 'super' (Familia) whose transaction
-      # UNCONDITIONALLY HDELs display_domain_index[fqdn], keyed on THIS record's
-      # own display_domain, with NO check of which objid the entry holds
-      # (unique_index_generators). Two live records cannot legitimately share one
-      # FQDN (create! gates on HSETNX), but a drift-produced SHADOW hash can
-      # coexist while the index points at the single canonical owner. If we are
-      # removing such a shadow, destroy!'s blind HDEL wipes the survivor's
-      # pointer. So: snapshot index_owner_id = display_domain_index.get(fqdn) and
-      # victim_objid = domain.objid BEFORE destroy!, then AFTER destroy! re-assert
-      # ONLY when index_owner_id is present AND != victim_objid (reload the
-      # survivor + confirm its display_domain still == fqdn before re-pointing).
+      # Teardown does not call org.remove_domain because CustomDomain#destroy!
+      # already removes the domain's organization participation.
+      #
+      # ## Preserving another record's display_domain_index entry
+      #
+      # CustomDomain#destroy! ends with a bare super call to Familia. Its
+      # transaction unconditionally deletes display_domain_index[fqdn], using
+      # this record's display_domain, without checking which objid the entry
+      # references (unique_index_generators).
+      #
+      # Normal creation prevents two live records from sharing an FQDN:
+      # create! claims the index entry with HSETNX. Data drift can nevertheless
+      # leave a duplicate ("shadow") hash alongside the original owner. Deleting
+      # that shadow would also delete the original owner's index entry.
+      #
+      # Before destruction, capture index_owner_id from the index and
+      # victim_objid from domain.objid. After destruction, restore the entry
+      # only if index_owner_id is present and differs from victim_objid.
+      # Before restoring it, reload the surviving owner and confirm that its
+      # display_domain still matches the FQDN.
+
       class Remove
         include Onetime::AuditedFailure
         include Onetime::AuditReason
