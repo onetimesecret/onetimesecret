@@ -355,14 +355,13 @@ module Onetime
         # {#find_domain_id} makes.
         #
         # @param api_key [String] SendGrid API key
-        # @return [Array<Hash>, nil] all entries, or nil when any page failed
+        # @return [Array<Hash>] all validated entries
+        # @raise [APIError] if any page is incomplete or invalid
         #
         def domain_authentications(api_key:)
           domains = []
           each_domain_authentication_page(api_key: api_key) { |page| domains.concat(page) }
           domains
-        rescue APIError
-          nil
         end
 
         # @param domains [Array<Hash>] domain authentication entries
@@ -370,8 +369,23 @@ module Onetime
         # @return [Integer, nil] the entry's ID, or nil when no entry matches
         #
         def domain_authentication_id(domains, domain)
+          validate_domain_authentications!(domains)
           match = domains.find { |d| d['domain'] == domain }
           match && match['id']
+        end
+
+        def validate_domain_authentications!(domains)
+          unless domains.is_a?(Array)
+            raise APIError.new('Invalid domain authentication list: expected an array', status_code: nil)
+          end
+
+          domains.each do |entry|
+            next if entry.is_a?(Hash) && entry['domain'].is_a?(String) &&
+                    !entry['domain'].strip.empty? && entry['domain'].match?(/\A\S+\z/) &&
+                    entry['id'].is_a?(Integer) && entry['id'].positive?
+
+            raise APIError.new('Invalid domain authentication entry: domain and valid id required', status_code: nil)
+          end
         end
 
         # Yields each page of the domain authentication list.
@@ -388,7 +402,7 @@ module Onetime
               "/whitelabel/domains?limit=#{limit}&offset=#{offset}",
               api_key: api_key,
             )
-            unless response[:success]
+            unless response[:success] == true
               raise APIError.new(
                 response[:error] || 'Domain authentication lookup failed',
                 status_code: response[:status_code],
@@ -396,10 +410,7 @@ module Onetime
             end
 
             domains = response[:data]
-            unless domains.is_a?(Array)
-              raise APIError.new('Invalid domain authentication list: expected an array', status_code: nil)
-            end
-
+            validate_domain_authentications!(domains)
             yield domains
 
             # Stop when fewer results than the limit: we've seen all pages

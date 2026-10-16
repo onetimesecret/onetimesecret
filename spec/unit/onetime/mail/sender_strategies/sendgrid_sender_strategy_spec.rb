@@ -380,7 +380,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
       [0, 50].each do |failed_offset|
         it "reports an error instead of absence when page offset #{failed_offset} is rate limited" do
           if failed_offset.positive?
-            page = 50.times.map { |i| { 'id' => i, 'domain' => "other#{i}.com" } }
+            page = 50.times.map { |i| { 'id' => i + 1, 'domain' => "other#{i}.com" } }
             allow(strategy).to receive(:get_request)
               .with('/whitelabel/domains?limit=50&offset=0', api_key: credentials['api_key'])
               .and_return({ success: true, data: page })
@@ -739,7 +739,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
       expect(strategy.send(:domain_authentication_id, listing, 'missing.com')).to be_nil
     end
 
-    it 'returns nil, not a partial list, when a later page fails' do
+    it 'raises, never returning a partial list, when a later page fails' do
       allow(strategy).to receive(:get_request)
         .with('/whitelabel/domains?limit=50&offset=0', api_key: api_key)
         .and_return({ success: true, data: make_domains(50) })
@@ -747,13 +747,46 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
         .with('/whitelabel/domains?limit=50&offset=50', api_key: api_key)
         .and_return({ success: false, error: 'HTTP 503' })
 
-      expect(strategy.send(:domain_authentications, api_key: api_key)).to be_nil
+      expect { strategy.send(:domain_authentications, api_key: api_key) }.to raise_error(described_class::APIError)
     end
 
-    it 'returns nil when a page is not a list' do
+    it 'raises when a page is not a list' do
       allow(strategy).to receive(:get_request).and_return({ success: true, data: { 'errors' => [] } })
 
-      expect(strategy.send(:domain_authentications, api_key: api_key)).to be_nil
+      expect { strategy.send(:domain_authentications, api_key: api_key) }.to raise_error(described_class::APIError)
+    end
+  end
+
+  describe 'lookup evidence and deletion outcomes' do
+    [0, 49, 50, 51, 1000].each do |count|
+      it "walks #{count} entries with 50-item offsets, including a terminal empty page for exact multiples" do
+        entries = count.times.map { |i| { 'id' => i + 1, 'domain' => "other#{i}.com" } }
+        calls = []
+        allow(strategy).to receive(:get_request) do |path, api_key:|
+          offset = path.split('offset=').last.to_i
+          calls << offset
+          { success: true, data: entries.slice(offset, 50) || [] }
+        end
+        expect(strategy.send(:domain_authentications, api_key: 'key')).to eq(entries)
+        expect(calls).to eq((0..(count / 50)).map { |i| i * 50 })
+        calls.clear
+        expect(strategy.send(:find_domain_id, 'missing.com', api_key: 'key')).to be_nil
+        expect(calls).to eq((0..(count / 50)).map { |i| i * 50 })
+      end
+    end
+
+    it 'allows an individual early match but requires a complete inventory' do
+      page = 50.times.map { |i| { 'id' => i + 1, 'domain' => i.zero? ? 'example.com' : "other#{i}.com" } }
+      allow(strategy).to receive(:get_request).with('/whitelabel/domains?limit=50&offset=0', api_key: 'key').and_return(success: true, data: page)
+      allow(strategy).to receive(:get_request).with('/whitelabel/domains?limit=50&offset=50', api_key: 'key').and_return(success: true, data: [{ 'domain' => 'example.com' }])
+      expect(strategy.send(:find_domain_id, 'example.com', api_key: 'key')).to eq(1)
+      expect(strategy).to have_received(:get_request).once
+      expect { strategy.send(:domain_authentications, api_key: 'key') }.to raise_error(described_class::APIError)
+    end
+
+    it 'does not accept an early match on a malformed page' do
+      allow(strategy).to receive(:get_request).and_return(success: true, data: [{ 'id' => 1, 'domain' => 'example.com' }, {}])
+      expect { strategy.send(:find_domain_id, 'example.com', api_key: 'key') }.to raise_error(described_class::APIError)
     end
   end
 
