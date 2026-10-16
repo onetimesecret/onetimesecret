@@ -9,8 +9,11 @@ module Onetime
         # The facts the rule reads for one record of a collision group, and
         # what the plan file stores for it.
         #
-        # @!attribute org_state [r] Symbol — :missing (no organization, or
-        #   the organization no longer exists), :archived, :active
+        # @!attribute org_state [r] Symbol — :missing (the record names no
+        #   organization), :dangling (org_id names an organization that
+        #   cannot be loaded: deleted, or not readable right now), :archived,
+        #   :active. Both :missing and :dangling make an orphan; a dangling
+        #   record's billing is unknown, so its removal requires approval.
         # @!attribute served [r] Boolean — a request for the group's DNS
         #   name (its A-label) resolves to this record today
         #   (CustomDomain.display_domain_id_for)
@@ -57,8 +60,11 @@ module Onetime
           end
 
           # These are cached facts, not a Stripe lookup or evidence of DNS control.
-          # Unknown billing cannot silently authorize an automatic deletion.
+          # Unknown billing cannot silently authorize an automatic deletion. An
+          # organization that cannot be loaded leaves every billing field nil,
+          # which is indistinguishable from no subscription; the state says so.
           def billing_label
+            return 'unknown' if org_state == :dangling
             return 'live_or_recoverable' if LIVE_STATUSES.include?(subscription_status.to_s)
             return 'not_live' if NOT_LIVE_STATUSES.include?(subscription_status.to_s)
             return 'no_local_subscription' if [subscription_status, stripe_customer_id, stripe_subscription_id].all? { |value| value.to_s.strip.empty? }
@@ -82,8 +88,10 @@ module Onetime
             receipts.to_i.positive? || configs.any? || brand == true
           end
 
+          # No organization to keep the record for: none named, or the named
+          # one cannot be loaded.
           def orphan?
-            org_state == :missing
+            [:missing, :dangling].include?(org_state)
           end
 
           # The ownership flag was set by an operator override, not by a check.

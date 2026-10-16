@@ -84,7 +84,13 @@ module Onetime
 
           # What an operator should know before approving the decision.
           def notes_for(records, keep, orphans)
-            notes = orphans.map { |record| "#{record.ref} has no organization; it is removed" }
+            notes = orphans.map do |record|
+              if record.org_state == :dangling
+                "#{record.ref} names organization #{record.org_id}, which cannot be loaded; it is removed (billing unknown: approval required)"
+              else
+                "#{record.ref} has no organization; it is removed"
+              end
+            end
             return notes unless keep
 
             notes << "kept record #{keep.ref} belongs to an archived organization" if keep.org_state == :archived

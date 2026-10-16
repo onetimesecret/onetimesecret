@@ -199,8 +199,10 @@ module Onetime
             billing-protected, even for an auto proposal. Billing source is always
             local_cache, never live Stripe. Active, trialing, past_due and unpaid
             subscriptions, or uncertain status with Stripe references/status,
-            protect deletion. Labels are live_or_recoverable, unknown,
-            no_local_subscription and not_live. Billing never selects the keeper.
+            protect deletion, and so does an org_id that names no loadable
+            organization (state dangling: an orphan whose billing cannot be read).
+            Labels are live_or_recoverable, unknown, no_local_subscription and
+            not_live. Billing never selects the keeper.
             --yes skips only the prompt; it does not approve any plan group.
             Older rule-version plans are rejected: regenerate and review them,
             rather than changing their version number.

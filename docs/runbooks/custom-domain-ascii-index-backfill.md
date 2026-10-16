@@ -251,6 +251,12 @@ apply step described below.
      `unknown`. `no_local_subscription` and `not_live` describe local cache
      state only, not a current Stripe check. A plan ID alone is not live
      subscription evidence.
+   - A record whose `org_id` names an organization that cannot be loaded is
+     reported with state `dangling`. It is still an orphan and proposed for
+     removal, but its billing cannot be read, so it is labelled `unknown` and
+     the group needs `approved`. Check why the organization is gone (deleted,
+     or a datastore problem) before approving. A record with no `org_id` at
+     all is `missing` and is removed without approval.
    - Do not edit saved record evidence to bypass the guard. If the evidence
      changed, regenerate the plan and review it again. Billing data is not
      used to override the keeper-selection rule.

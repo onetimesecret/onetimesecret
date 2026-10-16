@@ -102,6 +102,24 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
       end
     end
 
+    it 'labels a dangling organization as unknown billing, whatever the cached fields say' do
+      dangling = record('a', org_state: :dangling)
+
+      expect(dangling).to be_orphan
+      expect(dangling.billing_label).to eq('unknown')
+      expect(dangling).to be_billing_protected
+      expect(record('a', org_state: :dangling, subscription_status: 'canceled').billing_label).to eq('unknown')
+      expect(record('a', org_state: :missing).billing_label).to eq('no_local_subscription')
+      expect(record('a', org_state: :missing)).to be_orphan
+    end
+
+    it 'round-trips the dangling state through the plan file' do
+      parsed = op_class::Record.from_h(JSON.parse(JSON.generate(record('a', org_state: :dangling).to_h)))
+
+      expect(parsed.org_state).to eq(:dangling)
+      expect(parsed).to be_billing_protected
+    end
+
     it 'defaults all four optional billing fields to nil' do
       snapshot = record('a')
 
@@ -201,6 +219,23 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
       expect(decision.keep).to eq('b')
       expect(decision.remove).to eq(['a'])
       expect(decision.notes).to include('cda has no organization; it is removed')
+    end
+
+    it 'removes a dangling-organization orphan too, but the group then needs approval' do
+      dangling = record('a', org_state: :dangling, org_id: 'org-gone', receipts: 40, verified_confirmed_at: 1_700_000_100)
+      decision = rule.decide([dangling, record('b')])
+
+      expect(decision.decision).to eq(:auto)
+      expect(decision.rule).to eq(:only_owned)
+      expect(decision.keep).to eq('b')
+      expect(decision.remove).to eq(['a'])
+      expect(decision.notes).to include('cda names organization org-gone, which cannot be loaded; it is removed (billing unknown: approval required)')
+
+      group = collision_group(rule: decision.rule, keep: 'cdb', remove: ['cda'], records: [dangling, record('b')])
+      expect(group.protected_removals.map(&:domain_id)).to eq(['a'])
+      expect(group).to be_approval_required
+      expect(group).to be_approval_pending
+      expect(group.with(approved: true)).not_to be_approval_pending
     end
 
     it 'removes a group of orphans outright' do
@@ -509,6 +544,23 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
       expect(c.org_state).to eq(:missing)
       expect(group.remove).to include(c.ref)
       expect(group.keep).to eq(group.records.find { |r| r.domain_id == id_a }.ref)
+    end
+
+    it 'marks a record whose org_id names no organization as dangling and billing-protected' do
+      legacy!(:c, org: nil, fields: { 'org_id' => "org-gone-#{sfx}" })
+
+      group = group_of(op_class.new.plan)
+      c     = group.records.find { |r| r.domain_id == legacy[:c].first }
+
+      expect(c.org_state).to eq(:dangling)
+      expect(c.org_id).to eq("org-gone-#{sfx}")
+      expect(c).to be_orphan
+      expect(c.billing_label).to eq('unknown')
+      expect(group.remove).to include(c.ref)
+      expect(group.keep).to eq(group.records.find { |r| r.domain_id == id_a }.ref)
+      expect(group.protected_removals.map(&:domain_id)).to eq([c.domain_id])
+      expect(group).to be_approval_pending
+      expect(group.notes).to include("#{c.ref} names organization org-gone-#{sfx}, which cannot be loaded; it is removed (billing unknown: approval required)")
     end
 
     it 'snapshots cached billing without changing the keeper or rule' do
@@ -883,6 +935,35 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
         expect(outcome).to have_attributes(status: :skipped, reason: /approv/i)
         expect(audit_events).to be_empty
         expect(model.find_by_identifier(id_b)).not_to be_nil
+      end
+
+      it 'does not remove a dangling-organization record until the group is approved' do
+        legacy!(:c, org: nil, fields: { 'org_id' => "org-gone-#{sfx}", 'verified_confirmed_at' => 1_700_000_100 })
+        saved = plan
+        c_id  = legacy[:c].first
+
+        outcome = op_class.new.apply(saved, actor: 'cli', dry_run: false, only: name).outcomes.first
+        expect(outcome).to have_attributes(status: :skipped, reason: /approv/i)
+        expect(model.find_by_identifier(c_id)).not_to be_nil
+
+        outcome = op_class.new.apply(approve(saved), actor: 'cli', dry_run: false, only: name).outcomes.first
+        expect(outcome.status).to eq(:applied)
+        expect(outcome.removals.map(&:ref)).to include(group_of(saved).records.find { |r| r.domain_id == c_id }.ref)
+        expect(model.find_by_identifier(c_id)).to be_nil
+        expect(model.find_by_identifier(id_a)).not_to be_nil
+      end
+
+      it 'does not let an edited org_state turn a dangling record into an unprotected orphan' do
+        legacy!(:c, org: nil, fields: { 'org_id' => "org-gone-#{sfx}" })
+        edited = JSON.parse(plan.to_json)
+        group  = edited['groups'].find { |g| g['ascii_name'] == name }
+        group['records'].find { |r| r['domain_id'] == legacy[:c].first }['org_state'] = 'missing'
+        expect(op_class::Plan.from_h(edited).group(name)).not_to be_approval_required
+
+        outcome = op_class.new.apply(op_class::Plan.from_h(edited), actor: 'cli', dry_run: false, only: name).outcomes.first
+
+        expect(outcome).to have_attributes(status: :skipped, reason: /organization or billing changed since the plan/)
+        expect(model.find_by_identifier(legacy[:c].first)).not_to be_nil
       end
 
       it 'removes a canceled subscription record without approval despite its Stripe references' do

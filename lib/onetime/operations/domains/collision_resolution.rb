@@ -242,7 +242,7 @@ module Onetime
             org_id: row.org_id,
             org_extid: org&.extid,
             org_name: org&.display_name,
-            org_state: org_state_for(org),
+            org_state: org_state_for(org, row.org_id),
             served: served_id(row.ascii_name) == row.domain_id,
             verification_state: row.verification_state,
             ownership_verified: row.ownership_verified == true,
@@ -262,8 +262,12 @@ module Onetime
           BILLING_FIELDS.to_h { |field| [field, org&.public_send(field)] }
         end
 
-        def org_state_for(org)
-          return :missing if org.nil?
+        # A non-empty org_id that loads nothing is :dangling, not :missing:
+        # the record is still an orphan, but the billing facts the removal
+        # guard reads are unreadable, so the plan requires approval for it.
+        def org_state_for(org, org_id)
+          return :missing if org.nil? && org_id.to_s.empty?
+          return :dangling if org.nil?
 
           org.archived? ? :archived : :active
         end
