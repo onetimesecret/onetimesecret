@@ -222,8 +222,10 @@ module Onetime
             Shared sender identities are retained, including references outside
             the selected groups. SendGrid/Lettermint identity checks can contact
             the provider even during --dry-run; unresolved identities skip the
-            group. Identities shared by multiple planned removals are also kept
-            and may need manual provider cleanup afterwards.
+            group, and the reason names the record and whether its local mailer
+            config or the provider lookup failed. Identities shared by multiple
+            planned removals are also kept and may need manual provider cleanup
+            afterwards.
             Configs and brand settings are deleted, not merged into the keeper;
             receipts retain share_domain. Run backfill-ascii-index --apply afterwards.
 

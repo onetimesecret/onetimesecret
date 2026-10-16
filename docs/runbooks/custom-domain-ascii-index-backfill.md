@@ -345,7 +345,11 @@ apply step described below.
    are compared by sender domain; SendGrid and Lettermint use provider IDs.
    The latter can require read-only provider requests even during `--dry-run`,
    using the installation's provider credentials. Unreadable or unresolved
-   identities skip affected groups before deletion.
+   identities skip affected groups before deletion. The skip reason names the
+   record it stopped on (by extid) and whether its local mailer config could
+   not be read or the provider lookup failed; a provider failure is worth a
+   retry, a local one needs the record repaired or its mailer config removed.
+   The record named can be any audited domain, not only one in the group.
 
    A shared sender identity is retained, with `sender_identity_kept` in the
    removal's preview/apply audit detail. The removed record's local config is

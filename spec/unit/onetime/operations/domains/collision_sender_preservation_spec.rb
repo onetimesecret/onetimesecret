@@ -107,12 +107,31 @@ RSpec.describe Onetime::Operations::Domains::CollisionSenderPreservation do
     expect { preservation }.to raise_error(described_class::UnsafeIdentity)
   end
 
-  it 'refuses the entire group on an unreadable config without leaking the underlying error' do
+  it 'refuses the entire group on an unreadable config, naming the record but not the underlying error' do
     allow(victim_domain).to receive(:mailer_config).and_raise(IOError, 'secret credential')
     expect { preservation }.to raise_error(described_class::UnsafeIdentity) do |error|
-      expect(error.message).to eq('Cannot safely establish collision sender identities; nothing removed')
+      expect(error.message).to eq('sender identity for victim: mailer config unreadable')
       expect(error.cause).to be_nil
     end
+  end
+
+  it 'names the record by extid when the audit row carries one' do
+    allow(victim).to receive(:extid).and_return('cdvictim')
+    allow(victim_config).to receive(:from_address).and_return('invalid')
+    expect { preservation }.to raise_error(described_class::UnsafeIdentity, 'sender identity for cdvictim: mailer config has no sender domain')
+  end
+
+  it 'never puts the sender address or provider name from the config in the refusal' do
+    allow(victim_config).to receive(:effective_provider).and_return('secret-provider')
+    expect { preservation }.to raise_error(described_class::UnsafeIdentity) do |error|
+      expect(error.message).to eq('sender identity for victim: mailer config names an unsupported provider')
+      expect(error.message).not_to include('secret-provider', 'remove@example.com')
+    end
+  end
+
+  it 'refuses a missing live domain by name' do
+    allow(Onetime::CustomDomain).to receive(:find_by_identifier).with('victim').and_return(nil)
+    expect { preservation }.to raise_error(described_class::UnsafeIdentity, 'sender identity for victim: record not found')
   end
 
   it 'does not need other identities when no removal can delete a remote identity' do
@@ -171,10 +190,10 @@ RSpec.describe Onetime::Operations::Domains::CollisionSenderPreservation do
       expect(Onetime::CustomDomain).to have_received(:find_by_identifier).with('victim').once
     end
 
-    it 'refuses unreadable external identities instead of assuming they are independent' do
+    it 'refuses unreadable external identities instead of assuming they are independent, naming the external record' do
       allow(external_domain).to receive(:mailer_config).and_raise(IOError, 'private response')
       expect { preservation }.to raise_error(described_class::UnsafeIdentity) do |error|
-        expect(error.message).not_to include('private response')
+        expect(error.message).to eq('sender identity for external: mailer config unreadable')
         expect(error.cause).to be_nil
       end
     end
@@ -258,14 +277,33 @@ RSpec.describe Onetime::Operations::Domains::CollisionSenderPreservation do
       expect(preservation).to eq('victim' => false)
     end
 
-    it 'refuses an unavailable provider without including its response in the error' do
+    it 'refuses an unavailable provider as a retryable lookup failure, without its response' do
       allow(strategy).to receive(:find_domain_by_name).and_raise(IOError, 'secret response')
-      expect { preservation }.to raise_error(described_class::UnsafeIdentity, /nothing removed/)
+      expect { preservation }.to raise_error(described_class::UnsafeIdentity) do |error|
+        expect(error.message).to eq('sender identity for victim: lettermint lookup failed; the provider did not answer or refused the request, retry may succeed')
+        expect(error.message).not_to include('secret response', 'test-token', 'example.com')
+        expect(error.cause).to be_nil
+      end
     end
 
     it 'refuses a missing provider ID' do
       allow(strategy).to receive(:find_domain_by_name).and_return({})
-      expect { preservation }.to raise_error(described_class::UnsafeIdentity)
+      expect { preservation }.to raise_error(described_class::UnsafeIdentity, 'sender identity for victim: lettermint lookup returned no identity for the sender domain')
+    end
+
+    it 'reports unreadable installation credentials as a local failure, not a provider one' do
+      allow(Onetime::Mail::Mailer).to receive(:provider_credentials).with('lettermint').and_raise(IOError, 'vault down')
+      expect(strategy).not_to receive(:build_client)
+      expect { preservation }.to raise_error(described_class::UnsafeIdentity) do |error|
+        expect(error.message).to eq('sender identity for victim: lettermint installation credentials unreadable')
+        expect(error.cause).to be_nil
+      end
+    end
+
+    it 'refuses missing installation credentials by key name, without contacting the provider' do
+      allow(Onetime::Mail::Mailer).to receive(:provider_credentials).with('lettermint').and_return({})
+      expect(strategy).not_to receive(:build_client)
+      expect { preservation }.to raise_error(described_class::UnsafeIdentity, 'sender identity for victim: lettermint credentials have no team_token; the identity cannot be resolved')
     end
   end
 end
