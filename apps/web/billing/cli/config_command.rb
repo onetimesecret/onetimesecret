@@ -79,8 +79,7 @@ module Onetime
       # @param api_key [String] Stripe API key
       # @return [Hash, nil] Account info with :name, or nil if fetch fails
       def fetch_account_info(api_key)
-        return nil if api_key.nil? || api_key.to_s.strip.empty?
-        return nil if api_key == 'nostripekey'
+        return nil if Onetime::BillingConfig.placeholder?(api_key)
 
         Stripe.api_key = api_key
         account        = Stripe::Account.retrieve
@@ -107,7 +106,7 @@ module Onetime
         end
 
         # Check for placeholder values
-        if %w[nostripekey nosigningsecret].include?(value)
+        if Onetime::BillingConfig::PLACEHOLDER_VALUES.include?(value.to_s.strip)
           puts '  Status: ✗ Using placeholder value (not configured)'
           return
         end

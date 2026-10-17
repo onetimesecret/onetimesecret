@@ -20,6 +20,10 @@ Billing is optional and disabled by default. To enable:
    STRIPE_WEBHOOK_SIGNING_SECRET=whsec_...  # From webhook endpoint setup
    ```
 
+   Set both in the same step. With `STRIPE_API_KEY` set and no signing
+   secret, the app refuses to boot and names the missing variable; a
+   placeholder such as `nosigningsecret` or `CHANGEME` counts as unset.
+
 3. **Enable billing** in `etc/billing.yaml`:
    ```yaml
    billing:

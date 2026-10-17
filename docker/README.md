@@ -136,22 +136,13 @@ published images, pre-create the ownership once:
 
 ## Debugging Valkey
 
-The simple stack publishes Valkey on `127.0.0.1:6379` (loopback only)
-for host tooling:
-
-```bash
-valkey-cli -h 127.0.0.1 -p 6379
-```
-
-If that collides with a Redis already on your host, delete the `ports`
-block from the `maindb` service — no published port is needed for the
-stack itself, and you can always debug from inside the network:
+Neither stack publishes Valkey to the host: the `maindb` service uses
+`expose` only, and `VALKEY_PASSWORD` is required. Debug from inside the
+compose network, where `REDISCLI_AUTH` is already set:
 
 ```bash
 docker compose exec maindb valkey-cli
 ```
-
-The full stack does not publish Valkey at all (`expose` only).
 
 ## Building Images
 

@@ -82,21 +82,66 @@ module Onetime
       result
     end
 
-    # Value that copies of etc/examples/billing.example.yaml fell back to
-    # when STRIPE_WEBHOOK_SIGNING_SECRET was unset. It is public, so a
-    # signature made with it proves nothing; treat it as "not configured".
-    WEBHOOK_SECRET_PLACEHOLDER = 'nosigningsecret'
+    # Values that mean "not configured" wherever a Stripe credential is read:
+    # the fallbacks older copies of etc/examples/billing.example.yaml evaluated
+    # to when STRIPE_API_KEY or STRIPE_WEBHOOK_SIGNING_SECRET was unset, and the
+    # generic placeholder the other example files use. They are public, so a
+    # signature made with one proves nothing. Shared by the accessor below, the
+    # boot check, Billing::WebhookValidator and the billing config CLI.
+    PLACEHOLDER_VALUES = %w[CHANGEME nosigningsecret nostripekey].freeze
+
+    # True for nil, blank, or any PLACEHOLDER_VALUES entry.
+    def self.placeholder?(value)
+      value.to_s.strip.empty? || PLACEHOLDER_VALUES.include?(value.to_s.strip)
+    end
 
     # Stripe webhook signing secret
     #
-    # Returns nil when the key is absent, blank, or still the placeholder,
-    # so callers (WebhookValidator, the CLI, the boot banner) see an
-    # unconfigured secret rather than a string anyone can sign with.
+    # Returns nil when the key is absent, blank, or a placeholder, so callers
+    # (WebhookValidator, the CLI, the boot banner) see an unconfigured secret
+    # rather than a string anyone can sign with.
     def webhook_signing_secret
       value = config['webhook_signing_secret']
-      return nil if value.to_s.strip.empty? || value == WEBHOOK_SECRET_PLACEHOLDER
+      return nil if self.class.placeholder?(value)
 
       value
+    end
+
+    # Boot-time enforcement for the webhook signing secret.
+    #
+    # Raises Onetime::ConfigError when a real Stripe API key resolves and the
+    # signing secret is unset, blank or a placeholder. Such a deployment is
+    # already refusing every genuine Stripe event (WebhookValidator refuses to
+    # start without a secret), and before that guard existed it accepted
+    # events signed with the public placeholder instead. Without a real key
+    # the same condition only warns: StripeSetup supports booting with billing
+    # enabled and no key (the state an untouched example file produces), and
+    # the validator guard closes the forgery there on its own. Called from
+    # StripeSetup#execute, so it only runs when billing is enabled.
+    def validate_webhook_signing_secret!
+      return unless webhook_signing_secret.nil?
+
+      raw    = config['webhook_signing_secret']
+      detail = if raw.nil?
+                 'is not set'
+               elsif raw.to_s.strip.empty?
+                 'is blank'
+               else
+                 "is the placeholder #{raw.to_s.strip.inspect}"
+               end
+
+      if real_stripe_key?
+        raise Onetime::ConfigError, <<~MSG.strip
+          STRIPE_WEBHOOK_SIGNING_SECRET (or billing.yaml webhook_signing_secret) #{detail} while a Stripe API key is configured.
+
+          Set it to the whsec_... signing secret of the webhook endpoint (Stripe Dashboard → Developers → Webhooks).
+          Until it is set, POST /billing/webhook refuses every event, genuine or forged.
+          To run without Stripe, unset STRIPE_API_KEY or set BILLING_ENABLED=false.
+        MSG
+      end
+
+      OT.lw "[BillingConfig] webhook signing secret #{detail}; POST /billing/webhook answers 500 " \
+            'until STRIPE_WEBHOOK_SIGNING_SECRET is set'
     end
 
     # Stripe API version
@@ -314,6 +359,12 @@ module Onetime
     end
 
     private
+
+    # A Stripe API key that is not nil, blank or a placeholder: the condition
+    # under which validate_webhook_signing_secret! refuses instead of warning.
+    def real_stripe_key?
+      !self.class.placeholder?(stripe_key)
+    end
 
     def load_config
       unless @path && File.exist?(@path)

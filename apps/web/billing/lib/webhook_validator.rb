@@ -66,15 +66,15 @@ module Billing
     # This accounts for minor clock drift between Stripe and our servers
     MAX_FUTURE_TOLERANCE = 60 # seconds
 
-    # What copies of etc/examples/billing.example.yaml made before the fallback
-    # was removed evaluate to when STRIPE_WEBHOOK_SIGNING_SECRET is unset. It is
-    # public, so signatures made with it prove nothing.
-    PLACEHOLDER_SECRET = 'nosigningsecret'
-
     def initialize(webhook_secret: nil)
       @webhook_secret = webhook_secret || Onetime.billing_config.webhook_signing_secret
 
-      if @webhook_secret.to_s.strip.empty? || @webhook_secret == PLACEHOLDER_SECRET
+      # Blank or a placeholder (Onetime::BillingConfig::PLACEHOLDER_VALUES): a
+      # signing key everybody knows verifies everybody's events, so refuse to
+      # start rather than verify with it. Covers an explicit webhook_secret:
+      # argument as well as a billing.yaml copied before the fallback was
+      # removed from etc/examples/billing.example.yaml.
+      if Onetime::BillingConfig.placeholder?(@webhook_secret)
         raise ArgumentError, 'Webhook signing secret not configured'
       end
     end

@@ -295,7 +295,7 @@ Capability matrix (initial):
 ### R9. Test scenarios and operational documentation
 - retain Stripe fixtures, VCR cassettes (~230), stripe-mock, webhook tooling, e2e paths
 - add shared application-contract scenarios (checkout intent, subscription snapshot, cancellation, entitlement application, benefit provenance) plus provider-specific verification tests; one shared example group both adapters must pass
-- update `apps/web/billing/README.md` (Stripe alignment table), `docs/stripe-configuration.md` (names `STRIPE_WEBHOOK_SECRET`; code reads `STRIPE_WEBHOOK_SIGNING_SECRET`), runbooks `duplicate-plans-on-plans-page.md` and `entitlement-rematerialization.md`, ADR-041 path list
+- update `apps/web/billing/README.md` (Stripe alignment table), `docs/stripe-configuration.md` (done: now names `STRIPE_WEBHOOK_SIGNING_SECRET`, which the code reads), runbooks `duplicate-plans-on-plans-page.md` and `entitlement-rematerialization.md`, ADR-041 path list
 
 ## 5. SUGGESTED
 
