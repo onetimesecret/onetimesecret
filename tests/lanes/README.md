@@ -54,7 +54,13 @@ $ tests/lanes/run --only spec/api/v2/secret_ttl_entitlement_spec.rb:20          
   directories (any `try/` tree) are rejected because RSpec would otherwise
   report a false-green zero-example run. Pass individual `_try.rb` files or
   run the complete lane.
-- `path:LINE` selects an RSpec example.
+- `path:LINE` narrows a file. Both runners take it; the runner forwards the
+  argument untouched. RSpec: a list is allowed (`path:12:34`), and a line
+  inside a `describe`/`context` body selects every example nested in that
+  group, so one line per top-level group chunks a file. Tryouts: one line
+  or one range (`path:19`, `path:19-45`, `path:L19-L45`), matching every
+  test case whose span overlaps it. Repeating the same tryouts file with
+  different lines keeps only the last one; use a range instead.
 - `--only` preserves the lane's isolation and environment guarantees, but skips
   generated prerequisites and every other task. Run the complete lane before
   pushing; CI validates lanes, not individual files.
