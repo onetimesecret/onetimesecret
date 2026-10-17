@@ -95,6 +95,12 @@ module Onetime
           :sender_cleanup,
         )
 
+        # The applied teardown's sender cleanup outcome
+        # (Teardown::Result#sender_cleanup), set before the success audit
+        # write, so a caller can still report it when that write raises.
+        # nil until a teardown returns.
+        attr_reader :sender_cleanup
+
         # @param domain [Onetime::CustomDomain] resolved target (caller ensures non-nil).
         # @param actor [String, #extid] acting principal's PUBLIC id (colonel extid
         #   or the 'cli' sentinel) — never an objid.
@@ -151,6 +157,7 @@ module Onetime
           # check failed. Complete the auditing before reporting loss.
           teardown           = teardown_domain
           @removal_committed = teardown.removal_committed
+          @sender_cleanup    = teardown.sender_cleanup
           lease_error        = teardown.lease_error
 
           # --- EXACTLY ONE audit event, applied path only ---

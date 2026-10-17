@@ -285,9 +285,10 @@ RSpec.describe Onetime::Operations::Domains::Remove do
         .with(hash_including(verb: 'domain.remove'))
         .and_raise(Onetime::AuditWriteFailure.new(verb: 'domain.remove', target: 'cd_ext1'))
 
-      expect do
-        described_class.new(domain: domain, actor: actor, dry_run: false).call
-      end.to raise_error(Onetime::AuditWriteFailure)
+      operation = described_class.new(domain: domain, actor: actor, dry_run: false)
+      expect(operation.sender_cleanup).to be_nil
+      expect { operation.call }.to raise_error(Onetime::AuditWriteFailure)
+      expect(operation.sender_cleanup).to eq(:deleted)
 
       expect(Onetime::ColonelAuditEvent).to have_received(:record).with(hash_including(
         verb: 'domain.remove', result: :success,

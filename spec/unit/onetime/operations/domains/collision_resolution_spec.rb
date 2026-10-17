@@ -1375,11 +1375,39 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
         expect(model.find_by_identifier(id_a)).not_to be_nil
         expect(outcome.status).to eq(:partial)
         expect(outcome.removals.first).to have_attributes(ref: removed_ref, status: :removed_audit_failed, detail: /domain.remove/)
+        # The fixture has no mailer config; the returned teardown's outcome survives the audit failure.
+        expect(outcome.removals.first.sender_cleanup).to eq(:skipped)
         expect(result).to be_attention
         expect(summary_events.first).to include(result: :failure)
         expect(json_value(summary_events.first[:detail])['totals']).to include(
           'records' => 2, 'removals' => 1, 'removed' => 1, 'failed' => 0, 'audit_failed' => 1,
         )
+      end
+
+      it 'keeps a failed sender cleanup when the committed removal audit write fails' do
+        removed_ref = legacy_custom_domain_extid(id_b)
+        allow_any_instance_of(Onetime::Operations::DeleteSenderDomain).to receive(:call).and_return(
+          Onetime::Operations::DeleteSenderDomain::Result.new(success: false, message: nil, error: 'provider unavailable', outcome: :failed),
+        )
+        allow(Onetime::ColonelAuditEvent).to receive(:record) do |**event|
+          audit_events << event
+          if event[:verb] == 'domain.remove' && event[:result] == :success && event[:target] == removed_ref
+            raise Onetime::AuditWriteFailure.new(verb: event[:verb], target: event[:target])
+          end
+        end
+
+        result  = op_class.new.apply(plan, actor: 'cli', dry_run: false, only: name)
+        outcome = result.outcomes.first
+
+        expect(model.find_by_identifier(id_b)).to be_nil
+        expect(outcome.status).to eq(:partial)
+        expect(outcome.removals.first).to have_attributes(ref: removed_ref, status: :removed_audit_failed, sender_cleanup: :failed)
+        expect(outcome.errors).to include(
+          "sender identity cleanup failed for #{removed_ref}: the record was removed, the provider identity may remain",
+        )
+        summary = json_value(summary_events.first[:detail])
+        expect(summary['totals']).to include('removed' => 1, 'audit_failed' => 1, 'sender_cleanup_failed' => 1)
+        expect(summary['removals'].first).to include('status' => 'removed_audit_failed', 'sender_cleanup' => 'failed')
       end
 
       it 'reports mixed successful, uncommitted failed, and removed-audit-failed deletions accurately' do

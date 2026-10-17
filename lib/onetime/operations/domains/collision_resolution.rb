@@ -80,9 +80,10 @@ module Onetime
         #   :planned   dry run; Remove previewed it
         #   :failed    Remove raised; detail names the error
         #   :removed_audit_failed  deletion committed, but its audit write failed
-        # sender_cleanup is Remove::Result#sender_cleanup for a removal that
-        # returned (:kept, :deleted, :absent, :skipped, or :failed); nil when
-        # Remove raised or only previewed.
+        # sender_cleanup is the teardown's outcome (:kept, :deleted, :absent,
+        # :skipped, or :failed) for a removal that returned, or whose audit
+        # write failed after the teardown returned; nil when Remove raised
+        # otherwise or only previewed.
         Removal = Data.define(:ref, :display_domain, :status, :detail, :sender_cleanup) do
           def initialize(sender_cleanup: nil, **attributes)
             super(**attributes, sender_cleanup: sender_cleanup)
@@ -450,24 +451,26 @@ module Onetime
           domain = model.find_by_identifier(record.domain_id)
           return Removal.new(ref: record.ref, display_domain: record.display_domain, status: :failed, detail: 'record not found') unless domain
 
-          reason = "collision run=#{run_id}: kept #{keeper ? keeper.ref : 'none'} by rule #{group.rule}; name=#{group.ascii_name}"
-          result = Domains::Remove.new(
+          reason  = "collision run=#{run_id}: kept #{keeper ? keeper.ref : 'none'} by rule #{group.rule}; name=#{group.ascii_name}"
+          # Kept in a local so the audit-failure rescue can read its sender_cleanup.
+          remover = Domains::Remove.new(
             domain: domain,
             actor: actor,
             dry_run: dry_run,
             reason: reason,
             keep_vhost: !keeper.nil?,
             **(keep_sender_identity ? { keep_sender_identity: true } : {}),
-          ).call
-          Removal.new(ref: record.ref, display_domain: record.display_domain, status: dry_run ? :planned : :removed, detail: nil, sender_cleanup: result.sender_cleanup)
+          )
+          Removal.new(ref: record.ref, display_domain: record.display_domain, status: dry_run ? :planned : :removed, detail: nil, sender_cleanup: remover.call.sender_cleanup)
         rescue Domains::Remove::RemovalCommitted => ex
           Removal.new(ref: record.ref, display_domain: record.display_domain, status: :removed, detail: ex.message, sender_cleanup: ex.result.sender_cleanup)
         rescue Onetime::AuditWriteFailure => ex
           # Remove writes its own fail-closed success event only AFTER teardown.
           # Do not turn an unrecorded, committed deletion into a claimed failure
           # to delete. Failures from a different nested verb make no such claim.
+          # A returned teardown's sender cleanup outcome is still reported.
           status = ex.verb == Domains::Remove::AUDIT_VERB && !dry_run ? :removed_audit_failed : :failed
-          Removal.new(ref: record.ref, display_domain: record.display_domain, status: status, detail: ex.message)
+          Removal.new(ref: record.ref, display_domain: record.display_domain, status: status, detail: ex.message, sender_cleanup: remover&.sender_cleanup)
         rescue StandardError => ex
           OT.le "[Domains::CollisionResolution] removing #{record.ref} (#{group.ascii_name}) raised #{ex.class}: #{ex.message}"
           Removal.new(ref: record.ref, display_domain: record.display_domain, status: :failed, detail: "#{ex.class}: #{ex.message}")
