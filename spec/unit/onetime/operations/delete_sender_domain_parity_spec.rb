@@ -87,7 +87,18 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain, 'real SES strategy parit
     end
   end
 
-  it 'does not report success for transport failure' do
+  it '[D05] does not report success for a connection timeout before the request is sent' do
+    stub_request(:delete, endpoint).to_timeout
+
+    result = delete_domain
+
+    expect(result.failed?).to be true
+    expect(result.error.strip).not_to be_empty
+    expect(log).to have_received(:error).with('Sender domain deletion failed', hash_including(outcome: :failed))
+    expect(log).not_to have_received(:info).with(/\ASender domain /, anything)
+  end
+
+  it '[D05] does not report success for transport failure' do
     stub_request(:delete, endpoint).to_raise(Net::ReadTimeout)
 
     result = delete_domain
@@ -212,6 +223,33 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain, 'real provider strategy 
         expect(log).to have_received(:error).with('Sender domain deletion failed', hash_including(provider: provider, outcome: :failed))
         expect(log).not_to have_received(:info).with(/\ASender domain /, anything)
         expect(a_request(*api[:delete])).not_to have_been_made
+      end
+
+      it '[D05] reports a lookup timeout, before any delete request, as failure' do
+        stub_request(*api[:lookup]).to_timeout
+
+        result = call_operation
+
+        expect(result.failed?).to be true
+        expect(result.error.strip).not_to be_empty
+        expect(log).to have_received(:error).with('Sender domain deletion failed', hash_including(provider: provider, outcome: :failed))
+        expect(log).not_to have_received(:info).with(/\ASender domain /, anything)
+        expect(a_request(*api[:delete])).not_to have_been_made
+      end
+
+      it '[D05] reports a timeout on the dispatched delete request as failure, not deletion' do
+        stub_request(*api[:lookup]).to_return(
+          status: 200, body: api[:present].to_json, headers: { 'content-type' => 'application/json' },
+        )
+        stub_request(*api[:delete]).to_raise(Net::ReadTimeout)
+
+        result = call_operation
+
+        expect(result.failed?).to be true
+        expect(result.error.strip).not_to be_empty
+        expect(log).to have_received(:error).with('Sender domain deletion failed', hash_including(provider: provider, outcome: :failed))
+        expect(log).not_to have_received(:info).with(/\ASender domain /, anything)
+        expect(a_request(*api[:delete])).to have_been_made.once
       end
 
       it 'reports rejected deletion as failure' do
