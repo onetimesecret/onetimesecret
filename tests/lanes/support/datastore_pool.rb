@@ -1,0 +1,61 @@
+# tests/lanes/support/datastore_pool.rb
+#
+# frozen_string_literal: true
+
+require 'connection_pool'
+
+module Lanes
+  # A bounded Familia connection pool for a test process that has not run
+  # the application's SetupConnectionPool initializer.
+  #
+  # Without a connection provider, every Familia.dbclient lookup falls
+  # through to Familia's fallback handler, which creates a fresh Redis
+  # client (familia 2.12, delano/familia#456). Unit specs never boot, and
+  # unit tryouts that boot with connect_to_db=false skip the initializer,
+  # so one datastore-heavy spec file opened thousands of short-lived
+  # connections to the test valkey. On macOS those exhausted the ephemeral
+  # port range (49152-65535): connects failed with Errno::EADDRNOTAVAIL and
+  # the runner reported the test services lost mid-run (exit 69).
+  #
+  # install! gives such a process the same provider a full boot installs
+  # (Onetime.pooled_connection_provider): the pinned-connection stack first,
+  # otherwise a pool checkout. Connections are created lazily, against
+  # Familia.uri as it stands at the first checkout, so a helper may install
+  # the pool before it knows whether the process will touch the datastore.
+  #
+  # The pool is also registered as Onetime::Runtime.infrastructure
+  # .database_pool, so Onetime.with_pinned_dbclient and the WATCH-guarded
+  # write paths behave as they do after a full boot.
+  #
+  # A full boot replaces the provider and the registered pool with its own;
+  # the idle connections this pool holds stay open until the process ends.
+  # A spec that snapshots the Familia pool configuration around its examples
+  # (OnetimeStateHelpers) sees this pool as the baseline it restores.
+  module DatastorePool
+    DEFAULT_SIZE    = 25
+    DEFAULT_TIMEOUT = 5
+
+    class << self
+      # The pool install! created, or nil when it did not install one.
+      attr_reader :pool
+
+      # Install the pool unless a provider is already in place (an
+      # application boot, or a spec fixture, owns it then).
+      #
+      # Size and timeout follow the initializer's FAMILIA_POOL_SIZE and
+      # FAMILIA_POOL_TIMEOUT so a lane env can tune both the same way.
+      #
+      # @return [ConnectionPool, nil] the installed pool, or nil when a
+      #   provider was already present
+      def install!(size: Integer(ENV.fetch('FAMILIA_POOL_SIZE', DEFAULT_SIZE)),
+                   timeout: Integer(ENV.fetch('FAMILIA_POOL_TIMEOUT', DEFAULT_TIMEOUT)))
+        return nil if Familia.connection_provider
+
+        pool = ConnectionPool.new(size: size, timeout: timeout) { Familia.create_dbclient }
+        Familia.connection_provider = Onetime.pooled_connection_provider(pool)
+        Onetime::Runtime.update_infrastructure(database_pool: pool)
+        @pool = pool
+      end
+    end
+  end
+end

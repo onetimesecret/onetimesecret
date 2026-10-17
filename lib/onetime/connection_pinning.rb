@@ -3,6 +3,35 @@
 # frozen_string_literal: true
 
 module Onetime
+  # The connection provider that serves Familia.dbclient from +pool+.
+  #
+  # Pinned path (preferred for WATCH/MULTI and any read-then-write flow):
+  # callers wrap their critical section in Onetime.with_pinned_dbclient,
+  # which pushes a single pool.with checkout onto a fiber-local stack.
+  # While the stack is populated, every Familia.dbclient call on this
+  # fiber resolves to that same conn, so all commands land on one socket.
+  #
+  # Unpinned path: pool.with checks a conn out and immediately checks it
+  # back in; the caller uses a reference that is technically released.
+  # This is safe for single-command ad-hoc calls (the overwhelming
+  # majority) but must not be relied on for multi-step coherence.
+  #
+  # SetupConnectionPool installs this at boot; test helpers that never run
+  # the initializer install it over a pool of their own
+  # (tests/lanes/support/datastore_pool.rb), so the two cannot drift.
+  #
+  # @param pool [ConnectionPool] a pool of Redis connections
+  # @return [Proc] a lambda taking the URI Familia resolved (ignored: the
+  #   pool decides the target) and returning a connection
+  def self.pooled_connection_provider(pool)
+    ->(_provided_uri) do
+      stack = Fiber[:ots_pinned_dbclient_stack]
+      next stack.last if stack && !stack.empty?
+
+      pool.with { |conn| conn }
+    end
+  end
+
   # Pin a single database_pool connection to the current fiber for the
   # duration of the block. While pinned, every call to Familia.dbclient
   # resolves to the same connection, so WATCH/MULTI and read-then-write

@@ -1,0 +1,87 @@
+# spec/unit/lanes/datastore_pool_spec.rb
+#
+# frozen_string_literal: true
+
+require 'spec_helper'
+
+# The bounded connection pool spec_helper and try/support/test_helpers.rb
+# install for a process that never runs SetupConnectionPool
+# (tests/lanes/support/datastore_pool.rb).
+#
+# Without it, every Familia.dbclient lookup in a unit spec opened a fresh
+# connection (familia 2.12 fallback, delano/familia#456): one datastore-heavy
+# spec file exhausted the ephemeral port range on macOS and the lane runner
+# reported the test valkey lost mid-run. Each example here starts from the
+# pre-install state, no provider and no registered pool, and puts the
+# process's own pool back afterwards.
+RSpec.describe Lanes::DatastorePool do
+  include OnetimeStateHelpers
+
+  let(:lookups) { 50 }
+  let(:installed) { [] }
+
+  around do |example|
+    snapshot = snapshot_familia_pool_config
+
+    Familia.connection_provider = nil
+    Onetime::Runtime.update_infrastructure(database_pool: nil)
+    example.run
+  ensure
+    restore_familia_pool_config(snapshot)
+  end
+
+  after { installed.each { |pool| pool.shutdown(&:close) } }
+
+  def install!(**)
+    described_class.install!(**).tap { |pool| installed << pool }
+  end
+
+  def registered_pool
+    Onetime::Runtime.infrastructure.database_pool
+  end
+
+  # The server-side id of the connection a lookup returns. Distinct ids mean
+  # distinct sockets.
+  def connection_ids(count)
+    Array.new(count) { Familia.dbclient.call('CLIENT', 'ID') }
+  end
+
+  it 'serves repeated Familia.dbclient lookups from one pooled connection' do
+    install!
+
+    expect(connection_ids(lookups).uniq.size).to eq(1)
+  end
+
+  it 'registers the pool so with_pinned_dbclient resolves lookups to the pinned connection' do
+    pool = install!
+
+    pinned_served = Onetime.with_pinned_dbclient { |pinned| Familia.dbclient.equal?(pinned) }
+    expect([registered_pool, pinned_served]).to eq([pool, true])
+  end
+
+  it 'takes the size and timeout it is given' do
+    pool = install!(size: 3, timeout: 7)
+
+    expect([pool.size, pool.instance_variable_get(:@timeout)]).to eq([3, 7])
+  end
+
+  it 'leaves a provider that is already installed alone' do
+    provider = ->(_uri) { :owned_elsewhere }
+
+    Familia.connection_provider = provider
+
+    expect([described_class.install!, Familia.connection_provider, registered_pool]).to eq([nil, provider, nil])
+  end
+
+  # The behaviour the pool exists to replace, kept small: five sockets, each
+  # closed. A familia release that reuses fallback connections makes this
+  # example fail, which is the cue to revisit whether the pool is still
+  # needed.
+  it 'without it, the fallback opens a connection per lookup' do
+    clients = Array.new(5) { Familia.dbclient }
+
+    expect(clients.map { |client| client.call('CLIENT', 'ID') }.uniq.size).to eq(5)
+  ensure
+    clients&.each(&:close)
+  end
+end

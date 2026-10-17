@@ -658,6 +658,26 @@ checkouts while sharing the local test service instances:
 
 The shared `onetime_auth_test` database does not match this query.
 
+## Datastore connections in a test process
+
+A process that runs the application's `SetupConnectionPool` initializer (an
+integration spec, a tryout that boots with the database) serves every
+`Familia.dbclient` lookup from the boot's connection pool. A process that
+does not (unit specs never boot; unit tryouts boot with `connect_to_db:
+false`) would fall through to Familia's fallback, which opens a fresh
+connection per lookup (familia 2.12, delano/familia#456). One datastore-heavy
+spec file made thousands of such connections, exhausted the ephemeral port
+range on macOS (`Errno::EADDRNOTAVAIL ... 127.0.0.1:2163`), and the runner
+reported the test services lost mid-run (exit 69) although valkey was fine.
+
+`spec/spec_helper.rb` and `try/support/test_helpers.rb` therefore install a
+bounded pool on load (`tests/lanes/support/datastore_pool.rb`), with the
+same provider a full boot installs: the pinned-connection stack first,
+otherwise a pool checkout. Connections are created lazily against
+`Familia.uri` at the first lookup. A later full boot replaces the provider
+with its own pool. `FAMILIA_POOL_SIZE` and `FAMILIA_POOL_TIMEOUT` size it,
+as they do the initializer's pool.
+
 ## Hermetic environment boundary
 
 `tests/lanes/run` does not inherit development-shell configuration. It creates

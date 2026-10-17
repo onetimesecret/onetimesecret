@@ -65,23 +65,9 @@ module Onetime
       # Note: config.uri is already set by configure_familia_uri initializer
       Familia.configure do |config|
         # Provider pattern: Familia calls this lambda to get connections.
-        #
-        # Pinned path (preferred for WATCH/MULTI and any read-then-write flow):
-        # callers wrap their critical section in Onetime.with_pinned_dbclient,
-        # which pushes a single pool.with checkout onto a fiber-local stack.
-        # While the stack is populated, every Familia.dbclient call on this
-        # fiber resolves to that same conn, so all commands land on one socket.
-        #
-        # Unpinned path: pool.with checks a conn out and immediately checks it
-        # back in — the caller uses a reference that is technically released.
-        # This is safe for single-command ad-hoc calls (the overwhelming
-        # majority) but must not be relied on for multi-step coherence.
-        config.connection_provider = ->(_provided_uri) do
-          stack = Fiber[:ots_pinned_dbclient_stack]
-          next stack.last if stack && !stack.empty?
-
-          database_pool.with { |conn| conn }
-        end
+        # The pinned path and the pool.with path are described on
+        # Onetime.pooled_connection_provider (lib/onetime/connection_pinning.rb).
+        config.connection_provider = Onetime.pooled_connection_provider(database_pool)
 
         config.transaction_mode = :warn
         config.pipelined_mode   = :warn
