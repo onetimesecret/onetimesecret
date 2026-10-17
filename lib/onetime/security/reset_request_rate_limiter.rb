@@ -228,16 +228,17 @@ module Onetime
       # (record_security) and the same one-event-per-cap-hit bound.
       EMAIL_LOGIN_REQUEST_AUDIT_VERB = 'auth.email_login_request_throttled'
 
-      # Default per-IP cap for the :email_login_request scope. Looser than the
-      # reset cap above because a magic link is a SIGN-IN method, not a
-      # recovery flow: everyone behind one masked /24 (an office NAT) requests
-      # one per sign-in, and a reset-sized cap there would lock that network
-      # out of signing in. Still bounds one origin to this many link emails per
-      # window across all the addresses it names.
-      EMAIL_LOGIN_REQUEST_DEFAULT_MAX_PER_IP = 30
+      # Default per-IP cap for the :email_login_request scope, the same as the
+      # reset cap above. A magic link is a SIGN-IN method: everyone behind one
+      # masked /24 (an office NAT) requests one per sign-in, and the login
+      # route's magic links count against this bucket too, so a dense network
+      # can exhaust it; raise EMAIL_LOGIN_REQUEST_RATE_LIMIT_MAX_PER_IP there.
+      # Bounds one origin to this many link emails per window across all the
+      # addresses it names.
+      EMAIL_LOGIN_REQUEST_DEFAULT_MAX_PER_IP = 10
 
-      # Default per-login backstop for the :email_login_request scope: three
-      # times its per-IP cap. The per-email tier must stay the LOOSER one (see
+      # Default per-login backstop for the :email_login_request scope, well
+      # above its per-IP cap. The per-email tier must stay the LOOSER one (see
       # the RL-3 note in the module header), or a single IP could lock a
       # victim out of magic-link sign-in from every IP, renewably (SEC-B02).
       # How much looser (SEC-B09): requests a locked IP sends are denied

@@ -14,7 +14,7 @@
 # 2. The two scopes never share a bucket (no cross-charging either way)
 # 3. The scope reads site.authentication.email_login_request_rate_limit
 # 4. The 429 message, audit verb and log tag are the scope's own
-# 5. Absent/garbage caps fall back to the scope's defaults (30 per IP)
+# 5. Absent/garbage caps fall back to the scope's defaults (10 per IP)
 # 6. enabled:false on one scope leaves the other enforcing
 # 7. An unknown scope is a programming error (KeyError), even when disabled
 
@@ -195,7 +195,7 @@ set_limit_block('email_login_request_rate_limit', nil)
  @tester.send(:reset_request_max_per_email, :email_login_request),
  @tester.send(:reset_request_window, :email_login_request),
  @tester.send(:reset_request_lockout, :email_login_request)]
-#=> [true, 30, 90, 3600, 3600]
+#=> [true, 10, 90, 3600, 3600]
 
 ## Garbage caps fall back to the scope defaults rather than inverting enforcement
 set_limit_block(
@@ -208,7 +208,7 @@ set_limit_block(
 )
 [@tester.send(:reset_request_max_per_ip, :email_login_request),
  @tester.send(:reset_request_max_per_email, :email_login_request)]
-#=> [30, 90]
+#=> [10, 90]
 
 ## -- One source cannot lock a victim (SEC-B02) ------------------------------
 
@@ -230,7 +230,7 @@ denied     = (1..35).count { @raises.call(@attacker, @victim) }
  @redis.exists?("email_login_request:locked:ip:#{@attacker}"),
  @redis.exists?("email_login_request:locked:email:#{@victim}"),
  @redis.get("email_login_request:attempts:email:#{@victim}").to_i]
-#=> [5, true, false, 30]
+#=> [25, true, false, 10]
 
 ## ...and the victim can still request a link from any other IP
 @raises.call(@bystander, @victim)
