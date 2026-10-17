@@ -129,9 +129,9 @@ RSpec.describe 'Sender provider response parity through DeleteSenderDomain' do
       expect(a_request(:post, remove_url)).not_to have_been_made
     end
 
-    it 'logs deletion from the documented removal acknowledgement without a third request' do
-      # Official v3.0.2 /domain/remove 200 example: data.domains = []
-      # https://developers.smtp2go.com/reference/remove-sender-domain
+    it 'logs deletion from the archived v3.0.2 removal acknowledgement without a third request' do
+      # Archived official v3.0.2 /domain/remove 200 example: data.domains = []
+      # (sender-identity-validation-report.md, SMTP2GO)
       stub_request(:post, view_url).to_return(status: 200, body: present_body)
       stub_request(:post, remove_url).with(body: { 'domain' => 'example.com' }).to_return(status: 200, body: absent_body)
       expect_disposition(call_operation, :deleted)
@@ -173,6 +173,34 @@ RSpec.describe 'Sender provider response parity through DeleteSenderDomain' do
         expect(a_request(:post, view_url)).to have_been_made.once
         expect(a_request(:post, remove_url)).to have_been_made.once
       end
+    end
+
+    # Official v3.0.0 reference, Remove Sender Domain: HTTP 200 whose body
+    # holds only a string request_id.
+    # https://smtp2go.github.io/smtp2go.apidocs/#remove-sender-domain
+    it '[D13] logs deletion from the request-ID-only acknowledgement without a confirmation lookup' do
+      stub_request(:post, view_url).to_return(status: 200, body: present_body)
+      stub_request(:post, remove_url).with(body: { 'domain' => 'example.com' })
+        .to_return(status: 200, body: '{"request_id":"40cbb6f2-935f-11e7-b5be-480fcf01a6f2"}')
+      expect_disposition(call_operation, :deleted)
+      expect(a_request(:post, view_url)).to have_been_made.once
+      expect(a_request(:post, remove_url)).to have_been_made.once
+    end
+
+    ['{"request_id":""}', '{"request_id":"  "}', '{"request_id":7}', '{"request_id":null}',
+     '{"request_id":"r1","error":"rejected"}', '{"request_id":"r1","data":null}', '["r1"]', '<html>ok</html>'].each do |body|
+      it "[D13] does not claim deletion for removal body #{body}" do
+        stub_request(:post, view_url).to_return(status: 200, body: present_body)
+        stub_request(:post, remove_url).to_return(status: 200, body: body)
+        expect_disposition(call_operation, :failed)
+        expect(a_request(:post, view_url)).to have_been_made.once
+      end
+    end
+
+    it '[D13] does not accept a request-ID-only body from a rejected removal' do
+      stub_request(:post, view_url).to_return(status: 200, body: present_body)
+      stub_request(:post, remove_url).to_return(status: 403, body: '{"request_id":"r1"}')
+      expect_disposition(call_operation, :failed)
     end
 
     it 'does not claim deletion if the removal acknowledgement retains the target' do

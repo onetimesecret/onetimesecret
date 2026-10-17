@@ -70,6 +70,19 @@ module Onetime
       # @return [Hash] The parsed `data` hash from the response envelope
       # @raise [APIError] On non-2xx responses or unparseable success bodies
       def post(path, payload = {})
+        envelope_data(post_envelope(path, payload))
+      end
+
+      # Makes a POST request like #post, with the same failure handling, but
+      # returns the whole parsed envelope (request_id and data) for callers
+      # whose success response may carry no data hash at all. An empty body
+      # or a non-object JSON body returns an empty hash.
+      #
+      # @param path [String] API path relative to base URL
+      # @param payload [Hash] JSON request body
+      # @return [Hash] The parsed response envelope
+      # @raise [APIError] On non-2xx responses or unparseable success bodies
+      def post_envelope(path, payload = {})
         uri  = URI("#{@base_url}#{path}")
         http = build_http_client(uri)
 
@@ -109,12 +122,13 @@ module Onetime
       # Parses the response envelope and raises APIError on failure.
       #
       # @param response [Net::HTTPResponse]
-      # @return [Hash] The `data` hash on success
+      # @return [Hash] The parsed envelope on success
       # @raise [APIError]
       def handle_response(response)
-        code = response.code.to_i
-        body = response.body.to_s
-        data = parse_data(body)
+        code     = response.code.to_i
+        body     = response.body.to_s
+        envelope = parse_envelope(body)
+        data     = envelope && envelope_data(envelope)
 
         if code.between?(200, 299)
           if data.nil?
@@ -137,7 +151,7 @@ module Onetime
             )
           end
 
-          return data
+          return envelope
         end
 
         error_code = data&.dig('error_code') if data.is_a?(Hash)
@@ -150,22 +164,28 @@ module Onetime
         )
       end
 
-      # Extracts the `data` hash from the response envelope, tolerating
-      # non-JSON bodies (returns nil) and envelopes without a data key
-      # (returns an empty hash so callers can dig safely).
+      # Parses the response envelope, tolerating an empty body or a JSON
+      # body that is not an object (returns an empty hash).
       #
       # @param body [String] Raw response body
-      # @return [Hash, nil] Parsed data hash, or nil when body is not JSON
-      def parse_data(body)
+      # @return [Hash, nil] Parsed envelope, or nil when body is not JSON
+      def parse_envelope(body)
         return {} if body.empty?
 
         parsed = JSON.parse(body)
-        return {} unless parsed.is_a?(Hash)
-
-        data = parsed['data']
-        data.is_a?(Hash) ? data : {}
+        parsed.is_a?(Hash) ? parsed : {}
       rescue JSON::ParserError
         nil
+      end
+
+      # The envelope's `data` hash, or an empty hash when it has none, so
+      # callers can dig safely.
+      #
+      # @param envelope [Hash] Parsed response envelope
+      # @return [Hash]
+      def envelope_data(envelope)
+        data = envelope['data']
+        data.is_a?(Hash) ? data : {}
       end
     end
   end

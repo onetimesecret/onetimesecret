@@ -289,8 +289,8 @@ module Onetime
             return deletion_result(outcome: :absent, message: "Domain #{domain} was already deleted or never existed")
           end
 
-          response = client.post('/domain/remove', { 'domain' => domain })
-          if extract_domain_entry(response, domain)
+          envelope = client.post_envelope('/domain/remove', { 'domain' => domain })
+          unless removal_acknowledged?(envelope, domain)
             return deletion_failure("SMTP2GO did not confirm removal of #{domain}")
           end
 
@@ -310,6 +310,31 @@ module Onetime
 
         def deletion_failure(message)
           deletion_result(outcome: :failed, message: message, error: message)
+        end
+
+        # Whether a successful /domain/remove envelope acknowledges removal.
+        # Two documented HTTP 200 success bodies:
+        #   - v3.0.0, only a string request_id and no data:
+        #     https://smtp2go.github.io/smtp2go.apidocs/#remove-sender-domain
+        #   - archived v3.0.2, request_id plus data.domains without the target
+        #     (sender-identity-validation-report.md, SMTP2GO).
+        # Provided data must be a valid domains list without the domain; an
+        # envelope without data must carry a nonempty string request_id and
+        # no error. An empty envelope acknowledges nothing. The client has
+        # already raised on non-2xx responses and on data.error/error_code.
+        #
+        # @param envelope [Hash] Parsed response envelope from the client
+        # @param domain [String] Domain whose removal was requested
+        # @return [Boolean]
+        # @raise [Smtp2goClient::APIError] if provided data is malformed
+        #
+        def removal_acknowledged?(envelope, domain)
+          return false unless envelope.is_a?(Hash)
+          return extract_domain_entry(envelope['data'], domain).nil? if envelope.key?('data')
+          return false if envelope['error'] || envelope['error_code']
+
+          request_id = envelope['request_id']
+          request_id.is_a?(String) && !request_id.strip.empty?
         end
 
         # Build API client from credentials.

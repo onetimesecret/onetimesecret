@@ -173,6 +173,47 @@ RSpec.describe Onetime::Mail::Smtp2goClient do
     end
   end
 
+  describe '#post_envelope' do
+    let(:remove_endpoint) { 'https://api.smtp2go.com/v3/domain/remove' }
+
+    it 'returns the whole envelope, keeping a request_id that has no data beside it' do
+      stub_request(:post, remove_endpoint)
+        .with(body: { 'domain' => 'example.com' }.to_json)
+        .to_return(status: 200, body: { 'request_id' => '40cbb6f2-935f-11e7-b5be-480fcf01a6f2' }.to_json)
+
+      expect(client.post_envelope('/domain/remove', { 'domain' => 'example.com' }))
+        .to eq('request_id' => '40cbb6f2-935f-11e7-b5be-480fcf01a6f2')
+    end
+
+    it 'returns request_id and data together' do
+      body = { 'request_id' => 'r1', 'data' => { 'domains' => [] } }
+      stub_request(:post, remove_endpoint).to_return(status: 200, body: body.to_json)
+
+      expect(client.post_envelope('/domain/remove')).to eq(body)
+    end
+
+    it 'returns an empty hash for an empty or non-object body, never a request_id' do
+      stub_request(:post, remove_endpoint).to_return({ status: 200, body: '' }, { status: 200, body: '["r1"]' })
+
+      expect(client.post_envelope('/domain/remove')).to eq({})
+      expect(client.post_envelope('/domain/remove')).to eq({})
+    end
+
+    it 'raises like #post for a 2xx error envelope, invalid JSON, and non-2xx responses' do
+      stub_request(:post, remove_endpoint).to_return(
+        { status: 200, body: { 'request_id' => 'r1', 'data' => { 'error' => 'rejected', 'error_code' => 'E_X' } }.to_json },
+        { status: 200, body: '<html>gateway page</html>' },
+        { status: 404, body: { 'request_id' => 'r1' }.to_json },
+      )
+
+      expect { client.post_envelope('/domain/remove') }.to raise_error(described_class::APIError, 'rejected')
+      expect { client.post_envelope('/domain/remove') }.to raise_error(described_class::APIError, /Invalid JSON/)
+      expect { client.post_envelope('/domain/remove') }.to raise_error(described_class::APIError, 'HTTP 404') { |err|
+        expect(err.status_code).to eq(404)
+      }
+    end
+  end
+
   describe 'APIError' do
     it 'exposes status_code, error_code and response_body' do
       err = described_class::APIError.new(
