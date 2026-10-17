@@ -295,6 +295,8 @@
   const activeAction = ref<ActionKey | null>(null);
   /** The last verify outcome, read in onConfirm to pick an honest message. */
   const verifyResult = ref<ColonelDomainVerifyDetails | null>(null);
+  /** The applied removal's ack, read in onConfirm for its sender cleanup. */
+  const removeResult = ref<ColonelDomainRemoveDetails | null>(null);
 
   const {
     loading: mutationLoading,
@@ -338,6 +340,7 @@
         if (!removeAck || removeAck.dry_run !== false) {
           throw new Error(t('web.admin.domains.actions.remove.notApplied'));
         }
+        removeResult.value = removeAck;
         return;
       }
       default:
@@ -419,6 +422,14 @@
     if (action === 'verify') {
       notifyVerifyOutcome();
       verifyResult.value = null;
+    } else if (action === 'remove' && removeResult.value?.sender_cleanup === 'failed') {
+      // The record is gone, but the provider sender identity may remain.
+      notifications.show(
+        t('web.admin.domains.actions.remove.senderCleanupFailed', {
+          domain: record.value?.display_domain ?? publicId.value,
+        }),
+        'warning'
+      );
     } else {
       notifications.show(t(`${ACTION_I18N_ROOT[action]}.success`), 'success');
     }
@@ -426,6 +437,7 @@
     if (action === 'remove') {
       // The record no longer exists — drop the cached row and return to the list.
       store.forget(publicId.value);
+      removeResult.value = null;
       activeAction.value = null;
       router.push({ name: 'AdminDomains' });
       return;

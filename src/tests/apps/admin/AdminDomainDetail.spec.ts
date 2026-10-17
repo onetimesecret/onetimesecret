@@ -175,7 +175,7 @@ function probeAck() {
   };
 }
 
-function removeAck(dry_run: boolean) {
+function removeAck(dry_run: boolean, sender_cleanup: string | null = dry_run ? null : 'deleted') {
   return {
     shrimp: '',
     record: {
@@ -189,6 +189,7 @@ function removeAck(dry_run: boolean) {
       dry_run,
       org_id: 'org1',
       org_name: 'Acme',
+      sender_cleanup,
     },
   };
 }
@@ -537,6 +538,35 @@ describe('AdminDomainDetail', () => {
         CONFIRM_HEADERS
       );
       expect(showMock).toHaveBeenCalledWith('web.admin.domains.actions.remove.success', 'success');
+      expect(pushMock).toHaveBeenCalledWith({ name: 'AdminDomains' });
+    });
+
+    // The record is gone, so the view still returns to the list, but it must
+    // not toast a clean removal while the provider sender identity may remain.
+    it('warns instead of reporting success when the sender cleanup failed', async () => {
+      mockApi.delete.mockImplementation((url: string) => {
+        const dryRun = url.includes('dry_run=true');
+        return Promise.resolve({ data: removeAck(dryRun, dryRun ? null : 'failed') });
+      });
+      wrapper = mountView();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="remove-preview"]').trigger('click');
+      await flushPromises();
+      await wrapper.find('[data-testid="remove-button"]').trigger('click');
+      await flushPromises();
+      await dialogInput(wrapper).setValue(EXTID);
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(showMock).toHaveBeenCalledWith(
+        'web.admin.domains.actions.remove.senderCleanupFailed',
+        'warning'
+      );
+      expect(showMock).not.toHaveBeenCalledWith(
+        'web.admin.domains.actions.remove.success',
+        'success'
+      );
       expect(pushMock).toHaveBeenCalledWith({ name: 'AdminDomains' });
     });
   });
