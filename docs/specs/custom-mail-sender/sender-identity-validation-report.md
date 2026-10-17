@@ -7,7 +7,7 @@
 
 Date: 2026-10-16. Status: focused fixes implemented and tested; not blanket production-readiness approval. Revision: 2026-10-16, provider-contract review added below. Revision: 2026-10-17, `lettermint` 0.2.1: deletion absence reads `NotFoundError#code`, and the gem's live-captured 404 bodies are recorded under Lettermint. SendGrid termination, domain casing, and SMTP2GO v3.0.0 acknowledgement changes are proposals, not implemented fixes.
 
-Tested state: commit `0e9389a40b` on `feat/domains-resolve-collisions-feedback` (commits `4cdaf69a36` through `0e9389a40b`, based on `01cfb53244`). The commands below ran on that code, except for a whitespace-only alignment change in `collision_sender_preservation.rb` that the commit includes. No live-provider requests were made. This report is execution evidence, not an accepted project guarantee.
+Tested state: commit `9ce521378f` on `feat/domains-resolve-collisions-feedback` (commits `4cdaf69a36` through `9ce521378f`, based on `01cfb53244`). The focused commands below ran at `0e9389a40b`, except for a whitespace-only alignment change in `collision_sender_preservation.rb` that the commit includes; the full unit lane ran on the tree committed as `9ce521378f`. No live-provider requests were made by this work; the Lettermint 404 capture cited under Lettermint was made by the gem's maintainers. This report is execution evidence, not an accepted project guarantee.
 
 References: [design proposal](sender-identity-contracts-design.md), [coverage specification](sender-identity-contracts-test-coverage.md).
 
@@ -115,7 +115,7 @@ git --no-pager diff --check 01cfb53244
 
 Result: **8 Ruby files inspected, no offenses**. The whitespace check compares the base commit with the working tree, so it covers the committed spec files that were untracked when the earlier check ran; it passed. This report file was untracked and checked separately for trailing whitespace. The repository RuboCop configuration excludes spec files.
 
-`tests/lanes/run unit --quiet` was attempted before the final SMTP2GO acknowledgement revision and **timed out at 120 seconds**. No complete full-lane result exists for this work, and the run was not repeated. No full simple lane, CI run, production execution, or real-provider cleanup was run.
+`tests/lanes/run unit` completed on the tree committed as `9ce521378f` (`lettermint` 0.2.1): `try:unit` 8350 testcases passed, 0 failed in 362 files; `spec:fast` exit 0; lane wall time 122 s, exit 0. An earlier `--quiet` attempt before the final SMTP2GO acknowledgement revision had timed out at 120 seconds. No full simple lane, production execution, or real-provider cleanup was run; CI status is recorded on the pull request, not here.
 
 Regression capture: the expanded SendGrid/SMTP2GO baseline produced 51 failures across 170 examples before those fixes. The Lettermint baseline also failed the new pagination/outcome regressions; its first capture included an invalid test-token fixture, so that capture is not a clean behavioral failure count. No command, seed, or base commit was recorded for these baseline runs, so the counts cannot be reproduced from this report. Obsolete absence-as-deleted and missing-data-as-nil expectations were updated explicitly.
 
