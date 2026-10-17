@@ -101,8 +101,8 @@ importers:
         specifier: 17.0.6
         version: 17.0.6
       marked-highlight:
-        specifier: 2.2.3
-        version: 2.2.3(marked@17.0.6)
+        specifier: 2.2.4
+        version: 2.2.4(marked@17.0.6)
       nanoid:
         specifier: 5.1.16
         version: 5.1.16
@@ -3457,10 +3457,10 @@ packages:
     resolution: {integrity: sha512-sHHjZ5fJKlgrG4qns2YwVcdNep35h5fERrfkD2YNsb9UFk0UIHarbiTaHKVMlPuWAoiilyK8Fv/jAm11slsY7Q==}
     hasBin: true
 
-  marked-highlight@2.2.3:
-    resolution: {integrity: sha512-FCfZRxW/msZAiasCML4isYpxyQWKEEx44vOgdn5Kloae+Qc3q4XR7WjpKKf8oMLk7JP9ZCRd2vhtclJFdwxlWQ==}
+  marked-highlight@2.2.4:
+    resolution: {integrity: sha512-PZxisNMJDduSjc0q6uvjsnqqHCXc9s0eyzxDO9sB1eNGJnd/H1/Fu+z6g/liC1dfJdFW4SftMwMlLvsBhUPrqQ==}
     peerDependencies:
-      marked: '>=4 <18'
+      marked: '>=4 <19'
 
   marked@17.0.6:
     resolution: {integrity: sha512-gB0gkNafnonOw0obSTEGZTT86IuhILt2Wfx0mWH/1Au83kybTayroZ/V6nS25mN7u8ASy+5fMhgB3XPNrOZdmA==}
@@ -7916,7 +7916,7 @@ snapshots:
       punycode.js: 2.3.1
       uc.micro: 2.1.0
 
-  marked-highlight@2.2.3(marked@17.0.6):
+  marked-highlight@2.2.4(marked@17.0.6):
     dependencies:
       marked: 17.0.6
 
