@@ -5,7 +5,7 @@
 
 # Sender identity fixes: validation report
 
-Date: 2026-10-16. Status: focused fixes implemented and tested; not blanket production-readiness approval. Revision: 2026-10-16, provider-contract review added below. Revision: 2026-10-17, `lettermint` 0.2.1: deletion absence reads `NotFoundError#code`, and the gem's live-captured 404 bodies are recorded under Lettermint. Revision: 2026-10-16, remaining runtime work: SendGrid returned-count pagination, case-insensitive domain-name matching, the SMTP2GO v3.0.0 removal acknowledgement, and removal-outcome reporting are implemented in the uncommitted working tree; see [This run](#this-run-working-tree-on-9620a1ff55).
+Date: 2026-10-16. Status: focused fixes implemented and tested; not blanket production-readiness approval. Revision: 2026-10-16, provider-contract review added below. Revision: 2026-10-17, `lettermint` 0.2.1: deletion absence reads `NotFoundError#code`, and the gem's live-captured 404 bodies are recorded under Lettermint. Revision: 2026-10-16, remaining runtime work: SendGrid returned-count pagination, case-insensitive domain-name matching, the SMTP2GO v3.0.0 removal acknowledgement, and removal-outcome reporting are implemented (`c62148f200` through `95597d2c5f`); see [This run](#this-run-working-tree-on-9620a1ff55).
 
 Historical tested state: commit `9ce521378f` on `feat/domains-resolve-collisions-feedback` (commits `4cdaf69a36` through `9ce521378f`, based on `01cfb53244`). The focused commands below ran at `0e9389a40b`, except for a whitespace-only alignment change in `collision_sender_preservation.rb` that the commit includes; the full unit lane ran on the tree committed as `9ce521378f`. No live-provider requests were made by this work; the Lettermint 404 capture cited under Lettermint was made by the gem's maintainers. This report is execution evidence, not an accepted project guarantee.
 
@@ -13,7 +13,7 @@ References: [design proposal](sender-identity-contracts-design.md), [coverage sp
 
 Preparation addendum (2026-10-16): public-source and static configuration checks are recorded separately in the preparation record; they do not rerun or extend the historical test results below. Current SES clients explicitly supply two-part credentials, bypassing the default chain and omitting session tokens. Actual deployed configuration remains untested.
 
-Current tested state: uncommitted working tree on `9620a1ff55` (same branch). The working tree was clean when this run started; no ambiguity-detection code existed to reconcile with the conflicting-identity scope decision. Results marked historical belong to their recorded revision and do not validate this run; [This run](#this-run-working-tree-on-9620a1ff55) lists the commands executed against the working tree.
+Current tested state: the working tree on `9620a1ff55` (same branch), committed afterwards as `c62148f200` through `95597d2c5f`. The committed code matches the tested tree except a comment on `CollisionResolution::Removal` and the collision spec's connection-pool fixture (`95597d2c5f`), which have not been run. The working tree was clean when this run started; no ambiguity-detection code existed to reconcile with the conflicting-identity scope decision. Results marked historical belong to their recorded revision and do not validate this run; [This run](#this-run-working-tree-on-9620a1ff55) lists the commands executed against the working tree.
 
 ## Implemented scope
 
