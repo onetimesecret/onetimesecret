@@ -19,9 +19,9 @@ module Lanes
   #
   # install! gives such a process the same provider a full boot installs
   # (Onetime.pooled_connection_provider): the pinned-connection stack first,
-  # otherwise a pool checkout. Connections are created lazily, against
-  # Familia.uri as it stands at the first checkout, so a helper may install
-  # the pool before it knows whether the process will touch the datastore.
+  # otherwise a pool checkout. Connections are created lazily, so a helper
+  # may install the pool before it knows whether the process will touch the
+  # datastore, and every one of them targets the URI install! was given.
   #
   # The pool is also registered as Onetime::Runtime.infrastructure
   # .database_pool, so Onetime.with_pinned_dbclient and the WATCH-guarded
@@ -40,7 +40,14 @@ module Lanes
       attr_reader :pool
 
       # Install the pool unless a provider is already in place (an
-      # application boot, or a spec fixture, owns it then).
+      # application boot, or a spec fixture, owns it then; Familia.uri is
+      # left alone too).
+      #
+      # +uri+ becomes Familia.uri and the target of every pooled connection.
+      # The target is fixed here, not read from Familia.uri at each
+      # checkout: Familia.uri defaults to 127.0.0.1:6379, the development
+      # datastore, and a lookup made before a helper set the test URI would
+      # otherwise keep a connection there for the life of the process.
       #
       # Connections are built as SetupConnectionPool builds them
       # (Onetime.create_pooled_dbclient), reconnect attempts included.
@@ -52,13 +59,17 @@ module Lanes
       # the test process stops at load instead of running on a pool that
       # cannot hand out a connection.
       #
+      # @param uri [String, URI] the test datastore
       # @return [ConnectionPool, nil] the installed pool, or nil when a
       #   provider was already present
-      def install!(size: Integer(ENV.fetch('FAMILIA_POOL_SIZE', DEFAULT_SIZE)),
+      def install!(uri:,
+                   size: Integer(ENV.fetch('FAMILIA_POOL_SIZE', DEFAULT_SIZE)),
                    timeout: Integer(ENV.fetch('FAMILIA_POOL_TIMEOUT', DEFAULT_TIMEOUT)))
         return nil if Familia.connection_provider
 
-        pool = ConnectionPool.new(size: size, timeout: timeout) { Onetime.create_pooled_dbclient(Familia.uri) }
+        target      = Familia.normalize_uri(uri)
+        Familia.uri = target
+        pool        = ConnectionPool.new(size: size, timeout: timeout) { Onetime.create_pooled_dbclient(target) }
         Familia.connection_provider = Onetime.pooled_connection_provider(pool)
         Onetime::Runtime.update_infrastructure(database_pool: pool)
         @pool = pool
