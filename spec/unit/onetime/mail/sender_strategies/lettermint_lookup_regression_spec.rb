@@ -5,7 +5,7 @@ require 'lettermint'
 require 'onetime/mail/sender_strategies/lettermint_sender_strategy'
 require 'onetime/operations/delete_sender_domain'
 
-# SDK 0.2.0: page_cursor becomes page[cursor]. The Team API OpenAPI schema
+# SDK 0.2.1: page_cursor becomes page[cursor]. The Team API OpenAPI schema
 # /docs/api-reference/team/0.0.1/lettermint-team-openapi.json specifies a
 # top-level next_cursor (null terminates), and MessageResponse for deletion.
 RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy, 'lookup regressions' do
@@ -95,25 +95,54 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy, 'looku
     end
   end
 
+  it '[L13] does not turn a RESOURCE_NOT_FOUND from the list endpoint into absence' do
+    allow(resource).to receive(:list).with(no_args).and_raise(
+      Lettermint::NotFoundError.new(message: 'Resource not found.', code: 'RESOURCE_NOT_FOUND',
+        response_body: { 'error' => { 'code' => 'RESOURCE_NOT_FOUND', 'message' => 'Resource not found.' } }),
+    )
+    result = strategy.delete_sender_identity(config, credentials: credentials)
+    expect(result).to include(outcome: :failed, deleted: false, error: 'Resource not found.')
+    expect(resource).not_to have_received(:delete)
+  end
+
+  # Error bodies as lettermint-ruby 0.2.1 captured them live on 2026-10-16
+  # (spec/fixtures/errors/README.md in the gem): a missing domain answers with
+  # an ApiError carrying code RESOURCE_NOT_FOUND; an unknown route answers
+  # with a message-only ErrorMessage. The gem raises NotFoundError for both
+  # and exposes the code; only the code establishes absence.
   it '[D03] recognizes documented structured not-found only at the delete endpoint' do
     allow(resource).to receive(:delete).with('target-id').and_raise(
-      Lettermint::HttpRequestError.new(message: 'HTTP 404', status_code: 404,
-        response_body: { 'error' => { 'code' => 'RESOURCE_NOT_FOUND', 'message' => 'Not found' } }),
+      Lettermint::NotFoundError.new(message: 'Resource not found.', code: 'RESOURCE_NOT_FOUND',
+        response_body: { 'error' => { 'code' => 'RESOURCE_NOT_FOUND', 'message' => 'Resource not found.' } }),
     )
     expect(strategy.delete_sender_identity(config, credentials: credentials))
       .to include(outcome: :absent, deleted: false, error: nil)
   end
 
-  # The schema's delete 404 is anyOf [ErrorMessage, ApiError]. Only ApiError
-  # names RESOURCE_NOT_FOUND; a message-only body reads like a proxy 404.
   it '[D11] does not treat a message-only 404 body as absence' do
+    message = 'The route v1/domains/target-id could not be found.'
     allow(resource).to receive(:delete).with('target-id').and_raise(
-      Lettermint::HttpRequestError.new(message: 'Not found', status_code: 404,
-        response_body: { 'message' => 'Not found' }),
+      Lettermint::NotFoundError.new(message: message, response_body: { 'message' => message }),
     )
     expect(strategy.delete_sender_identity(config, credentials: credentials))
-      .to include(outcome: :failed, deleted: false, error: 'Not found')
+      .to include(outcome: :failed, deleted: false, error: message)
     expect(resource).to have_received(:delete).once
+  end
+
+  it '[D11] does not treat a string-error 404 body as absence' do
+    allow(resource).to receive(:delete).with('target-id').and_raise(
+      Lettermint::NotFoundError.new(message: 'HTTP 404', code: 'not_found', response_body: { 'error' => 'not_found' }),
+    )
+    expect(strategy.delete_sender_identity(config, credentials: credentials))
+      .to include(outcome: :failed, deleted: false, error: 'HTTP 404')
+  end
+
+  it '[D11] does not treat a proxy HTML 404 as absence' do
+    allow(resource).to receive(:delete).with('target-id').and_raise(
+      Lettermint::NotFoundError.new(message: 'HTTP 404', response_body: '<html><body>404 Not Found</body></html>'),
+    )
+    expect(strategy.delete_sender_identity(config, credentials: credentials))
+      .to include(outcome: :failed, deleted: false, error: 'HTTP 404')
   end
 
   [nil, {}, { 'message' => '' }, { 'message' => 1 }, { 'message' => 'ok', 'error' => 'denied' }].each do |response|

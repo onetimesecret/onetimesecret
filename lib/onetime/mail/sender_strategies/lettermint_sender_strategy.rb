@@ -155,7 +155,7 @@ module Onetime
             error: 'timeout',
           }
         rescue Lettermint::HttpRequestError => ex
-          error_detail = parse_error_response(ex.response_body) || ex.message
+          error_detail = api_error_detail(ex)
           log_error "[lettermint-sender] Provisioning failed for #{domain}: HTTP #{ex.status_code} - #{error_detail}"
           {
             success: false,
@@ -260,7 +260,7 @@ module Onetime
             },
           }
         rescue Lettermint::HttpRequestError => ex
-          error_detail = parse_error_response(ex.response_body) || ex.message
+          error_detail = api_error_detail(ex)
           log_error "[lettermint-sender] Verification check failed for #{domain}: HTTP #{ex.status_code} - #{error_detail}"
           {
             verified: nil,
@@ -311,22 +311,19 @@ module Onetime
 
           begin
             response = client.domains.delete(entry['id'])
-          rescue Lettermint::HttpRequestError => ex
+          rescue Lettermint::NotFoundError => ex
             # Only the documented target-specific error establishes absence.
             # https://lettermint.co/docs/api-reference/team/0.0.1/lettermint-team-openapi.json
-            # DELETE /domains/{domainId}, 404: RESOURCE_NOT_FOUND.
-            # A list/proxy 404 or a message resembling not-found is not evidence.
-            # The schema also allows a message-only 404 body (ErrorMessage);
-            # it carries no code, so it stays a failure.
-            body = ex.response_body
-            if ex.status_code == 404 && body.is_a?(Hash) && body['error'].is_a?(Hash) &&
-               body['error']['code'] == 'RESOURCE_NOT_FOUND'
-              return deletion_result(
-                outcome: :absent,
-                message: "Domain #{domain} was already deleted or never existed",
-              )
-            end
-            raise
+            # DELETE /domains/{domainId}, 404: RESOURCE_NOT_FOUND. The SDK
+            # (lettermint >= 0.2.1) exposes that code as NotFoundError#code.
+            # A router or proxy 404 carries no code and stays a failure; the
+            # gem's spec/fixtures/errors/README.md records both live shapes.
+            raise unless ex.code == 'RESOURCE_NOT_FOUND'
+
+            return deletion_result(
+              outcome: :absent,
+              message: "Domain #{domain} was already deleted or never existed",
+            )
           end
 
           unless response.is_a?(Hash) && response['message'].is_a?(String) &&
@@ -492,12 +489,12 @@ module Onetime
         # @param client [Lettermint::TeamAPI] SDK client instance
         # @param domain [String] Domain name (e.g., "example.com")
         # @return [Hash] Parsed API response with id, domain, status, dns_records
-        # @raise [Lettermint::HttpRequestError] if domain not found
+        # @raise [Lettermint::NotFoundError] if domain not found
         #
         def retrieve_existing_domain(client, domain)
           log_info "[lettermint-sender] Domain #{domain} already exists, retrieving..."
           existing = find_domain_by_name(client, domain)
-          raise Lettermint::HttpRequestError.new(message: "Domain #{domain} not found", status_code: 404) unless existing
+          raise Lettermint::NotFoundError.new(message: "Domain #{domain} not found") unless existing
 
           client.domains.find(existing['id'], include: 'dnsRecords')
         end
@@ -545,34 +542,15 @@ module Onetime
           end
         end
 
-        # Parse error response body to extract meaningful error message.
+        # Error detail for a Lettermint HTTP error: the API error code when
+        # the body carried one, then the message the SDK resolved from the
+        # body (error.message, then message, then "HTTP <status>").
         #
-        # Lettermint API typically returns JSON errors like:
-        #   { "error": "message" } or { "message": "..." } or { "errors": [...] }
+        # @param ex [Lettermint::HttpRequestError]
+        # @return [String]
         #
-        # @param response_body [String, Hash, nil] Raw response body
-        # @return [String, nil] Extracted error message or nil
-        #
-        def parse_error_response(response_body)
-          return nil if response_body.nil? || response_body.to_s.empty?
-
-          body = response_body.is_a?(String) ? JSON.parse(response_body) : response_body
-
-          # Lettermint returns { "code": "...", "message": "..." }
-          if body['code'] && body['message']
-            "#{body['code']}: #{body['message']}"
-          elsif body['error']
-            body['error']
-          elsif body['message']
-            body['message']
-          elsif body['errors']&.first
-            body['errors'].first
-          else
-            JSON.generate(body)
-          end
-        rescue JSON::ParserError
-          # Not JSON, return raw body (truncated for safety)
-          response_body.to_s[0, 200]
+        def api_error_detail(ex)
+          ex.code ? "#{ex.code}: #{ex.message}" : ex.message
         end
 
         # Maps verification state to human-readable message.

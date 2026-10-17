@@ -482,12 +482,12 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       end
     end
 
-    context 'when delete API returns an unclassified 404' do
+    context 'when delete API returns a 404 without an error code' do
       before do
         allow(mock_domains).to receive(:list)
           .and_return(list_response)
         allow(mock_domains).to receive(:delete)
-          .and_raise(Lettermint::HttpRequestError.new(message: 'Not Found', status_code: 404))
+          .and_raise(Lettermint::NotFoundError.new(message: 'HTTP 404'))
       end
 
       it 'does not infer absence from a generic HTTP status' do
