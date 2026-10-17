@@ -10,11 +10,11 @@ require 'argon2'
 #
 # MECHANISM: a PREPENDED module (RouteScopedGuards) rather than the
 # `auth_class_eval` class-level defs used by the sibling override files. The
-# reason is composition: config/overrides/reset_password_enumeration.rb already
+# reason is composition: config/overrides/login_request_enumeration.rb already
 # defines `account_from_login` at the class level, and a second class-level
 # definition would silently clobber it (same last-writer-wins semantics as
 # hooks; see config/hooks.rb and #3275). Prepending puts these methods BEFORE
-# the class in the ancestry, so `super` falls through to the reset override's
+# the class in the ancestry, so `super` falls through to that override's
 # class-level def and from there to the stock Rodauth feature modules. Every
 # override below is scoped by `current_route`, which is nil under
 # `internal_request` (the internal dispatch calls `_handle_*` directly and
@@ -72,11 +72,11 @@ require 'argon2'
 # The generic responses are produced by Rodauth's `response` macro methods
 # (create_account_response / unlock_account_request_response), which run
 # through require_response — Rodauth RAISES if the response does not halt, so
-# unlike the reset-password override these paths fail LOUD rather than open if
+# unlike the login-request override these paths fail LOUD rather than open if
 # a future Rodauth changes halt semantics. Pinned against Rodauth 2.44.0.
 #
 # RESIDUAL: TIMING SIDE-CHANNELS (accepted, same rationale as
-# reset_password_enumeration.rb) — the duplicate-signup and unlock paths halt
+# login_request_enumeration.rb) — the duplicate-signup and unlock paths halt
 # without the DB writes/email dispatch of their genuine counterparts, and the
 # login miss path skips the account_password_hashes SELECT (the dummy Argon2
 # verification closes the dominant gap). Content equalization is the
@@ -85,9 +85,10 @@ require 'argon2'
 # path (config/overrides/password_migration.rb), whose latency differs — that
 # population shrinks to zero as migration completes.
 #
-# See also: config/overrides/reset_password_enumeration.rb (#3857, the same
-# treatment for reset-password-request) and config/rodauth_overrides.rb
-# (verify_account error-flash genericization).
+# See also: config/overrides/login_request_enumeration.rb (#3857,
+# RISK-2026-08-14-M03, the same treatment for reset-password-request,
+# email-login-request and verify-account-resend) and
+# config/rodauth_overrides.rb (verify_account error-flash genericization).
 #
 module Auth::Config::Overrides
   module AccountEnumeration
@@ -113,9 +114,10 @@ module Auth::Config::Overrides
       # M-1: generic message for the login route's "no matching login"
       # branch. Set GLOBALLY on purpose — its only reachable consumers among
       # the enabled features are (a) the login route (genericized here), (b)
-      # reset-password-request and unlock-account-request, whose miss
-      # branches halt with generic successes BEFORE this message is used
-      # (reset_password_enumeration.rb / the L-6 overrides below), and (c)
+      # reset-password-request, email-login-request, verify-account-resend
+      # and unlock-account-request, whose miss branches halt with generic
+      # successes BEFORE this message is used (login_request_enumeration.rb /
+      # the L-6 overrides below), and (c)
       # webauthn-login's unknown-email branch, where the generic message is
       # equally correct — the stock "no matching login" would be the same
       # existence oracle there.
@@ -228,7 +230,7 @@ module Auth::Config::Overrides
       # L-6: unlock email recently sent — keep the throttle (do NOT resend)
       # but answer with the same generic success, mirroring the
       # reset_password_email_recently_sent? treatment in
-      # reset_password_enumeration.rb. HALTS on the throttled path.
+      # login_request_enumeration.rb. HALTS on the throttled path.
       def unlock_account_email_recently_sent?
         return super unless current_route == :unlock_account_request
         return false unless super

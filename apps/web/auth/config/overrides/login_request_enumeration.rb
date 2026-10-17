@@ -163,7 +163,9 @@
 # email_within) caps its emails, not its request volume.
 #
 # See also: config/rodauth_overrides.rb (verify_account error-flash overrides),
-# config/overrides/duplicate_signup.rb (the same idea for create-account) and
+# config/overrides/account_enumeration.rb (the same idea for login,
+# create-account and unlock-account-request, prepended so its
+# account_from_login reaches this one through super) and
 # config/overrides/password_migration.rb (the `super` override idiom).
 #
 module Auth::Config::Overrides

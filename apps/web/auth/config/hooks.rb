@@ -114,7 +114,8 @@
 # Method overrides (a different mechanism — they replace Rodauth methods, not
 # register hooks) live in config/overrides/: error_handling.rb defines the
 # around_rodauth wrapper, password_migration.rb overrides password_match?,
-# login_request_enumeration.rb owns account_from_login.
+# login_request_enumeration.rb defines account_from_login, and
+# account_enumeration.rb prepends route-scoped guards that reach it via super.
 # See config/overrides.rb.
 #
 # Log levels:
@@ -139,7 +140,6 @@ module Auth::Config::Hooks
   require_relative 'hooks/reset_password_request'
   require_relative 'hooks/restrict_to'
   require_relative 'hooks/email_auth'
-  require_relative 'hooks/email_auth_request'
   require_relative 'hooks/two_factor'
   require_relative 'hooks/webauthn'
 end
