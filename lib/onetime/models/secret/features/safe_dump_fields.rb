@@ -61,6 +61,13 @@ module Onetime::Secret::Features
 
       base.safe_dump_field :has_passphrase, ->(m) { m.has_passphrase? }
       base.safe_dump_field :verification, ->(m) { m.verification? }
+
+      # Always one of Secret.display_types: pre-field records, unknown
+      # values and types this platform has turned off normalize to 'text' at
+      # this read boundary, so the client never has to reason about nil or
+      # the platform flag (see the display_type feature). Safe to emit
+      # before reveal; the type says how to show the value, not what it is.
+      base.safe_dump_field :display_type, ->(m) { m.display_type_or_default }
       base.safe_dump_field :created, ->(m) { m.created.to_f }
       base.safe_dump_field :updated, ->(m) { m.updated.to_f }
 

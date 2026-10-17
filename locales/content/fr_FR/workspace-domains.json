@@ -999,6 +999,14 @@
     "text": "Échec de l'envoi de l'e-mail de test",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Trop d'e-mails de test ont été envoyés récemment. Réessayez plus tard.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Trop d'e-mails de test ont été envoyés récemment. Réessayez dans environ {minutes} minutes.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Envoyé à {email}",
     "source_hash": "8ceb9588"
@@ -1662,5 +1670,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "Nous n'avons pas trouvé l'enregistrement TXT attendu. Vérifiez qu'il existe et que sa valeur correspond exactement. Les nouveaux enregistrements DNS peuvent mettre quelques minutes à apparaître.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Vérification de la configuration enregistrée réussie",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "La vérification de la configuration enregistrée a détecté un problème",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "La vérification de la configuration enregistrée n'a pas permis de conclure",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Échec de la vérification de la configuration enregistrée",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "Cette configuration a été vérifiée trop souvent récemment. Réessayez plus tard.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "Cette configuration a été vérifiée trop souvent récemment. Réessayez dans environ {minutes} minutes.",
+    "source_hash": "fdbdeaf6"
   }
 }

@@ -53,6 +53,8 @@ describe('useReauth', () => {
   });
 
   it('submits password and MFA values with the current CSRF token', async () => {
+    // Success refreshes the session; that refresh is not under test here.
+    vi.spyOn(useAuthStore(), 'refresh').mockResolvedValue('applied');
     axiosMock.onPost('/auth/reauth').replyOnce(200, {
       mfa_required: true,
       mfa_methods: ['otp', 'recovery_code'],
@@ -81,6 +83,8 @@ describe('useReauth', () => {
   });
 
   it('completes password plus required WebAuthn without dropping the primary', async () => {
+    // Success refreshes the session; that refresh is not under test here.
+    vi.spyOn(useAuthStore(), 'refresh').mockResolvedValue('applied');
     const { startAuthentication } = await import('@simplewebauthn/browser');
     vi.mocked(startAuthentication).mockResolvedValue({ id: 'assertion' } as never);
 
@@ -105,6 +109,8 @@ describe('useReauth', () => {
   });
 
   it('completes a WebAuthn challenge delivered in a 422 response', async () => {
+    // Success refreshes the session; that refresh is not under test here.
+    vi.spyOn(useAuthStore(), 'refresh').mockResolvedValue('applied');
     const { startAuthentication } = await import('@simplewebauthn/browser');
     vi.mocked(startAuthentication).mockResolvedValue({ id: 'assertion' } as never);
 

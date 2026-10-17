@@ -396,10 +396,6 @@
     "text": "Ali ste prepričani?",
     "source_hash": "f0762c4f"
   },
-  "web.COMMON.danger_zone": {
-    "text": "Nevarno območje",
-    "source_hash": "3c1c01b4"
-  },
   "web.COMMON.caution_zone": {
     "text": "Območje previdnosti",
     "source_hash": "fe27a3a8"
@@ -1507,10 +1503,6 @@
   "web.TITLES.domain_signin": {
     "text": "Konfiguracija prijave",
     "source_hash": "2da38c03"
-  },
-  "web.TITLES.domain_sso": {
-    "text": "SSO domene",
-    "source_hash": "13161464"
   },
   "web.TITLES.domain_signup": {
     "text": "Preverjanje registracije domene",

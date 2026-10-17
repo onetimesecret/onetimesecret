@@ -39,7 +39,7 @@ GET /api/internal/acme/ask?domain=example.com
 
 - **Localhost-only**: `LocalhostOnly` middleware rejects non-loopback IPs (127.0.0.1, ::1, ::ffff:127.0.0.1)
 - **Fail-closed**: Database errors return 403 (no certificate issued)
-- **DNS ownership required**: Only domains with `ready?` status (DNS TXT verified) are allowed. Under the `caddy_on_demand` strategy the application checks the TXT challenge record with its own DNS lookup (`lib/onetime/domain_validation/txt_verifier.rb`). Caddy completing the ACME challenge is not an ownership check. `ready?` also requires `resolving`, which the same strategy sets from its own A/AAAA lookup (`lib/onetime/domain_validation/tls_probe.rb`); it does not wait for a certificate to exist.
+- **DNS ownership required**: Only domains with `ready?` status (DNS TXT verified) that are authorized to be served (`serving_authorized?`; a record with no organization never is) are allowed. Under the `caddy_on_demand` strategy the application checks the TXT challenge record with its own DNS lookup (`lib/onetime/domain_validation/txt_verifier.rb`). Caddy completing the ACME challenge is not an ownership check. `ready?` also requires `resolving`, which the same strategy sets from its own A/AAAA lookup (`lib/onetime/domain_validation/tls_probe.rb`); it does not wait for a certificate to exist.
 - **No bypass parameter**: the endpoint ignores `check_verification`. It was removed from the HTTP interface so a local process cannot skip the ownership check through the query string.
 
 ### Blocking external access at the reverse proxy
@@ -129,7 +129,8 @@ Caddy TLS request
         → Application.domain_allowed?(domain)
           → CustomDomain.load_by_display_domain
             → nil? → 403 Forbidden
-            → custom_domain.ready? (DNS TXT verified?)
+            → custom_domain.serving_authorized? && custom_domain.ready?
+              (has an organization, DNS TXT verified?)
               → 200 OK / 403 Forbidden
 ```
 

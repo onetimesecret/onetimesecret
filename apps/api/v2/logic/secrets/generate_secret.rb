@@ -24,6 +24,15 @@ module V2::Logic
         super
       end
 
+      # A generated password is always plain text. Markdown would mangle the
+      # very characters a strong password relies on (`*`, `_`, `` ` ``, `<`),
+      # so any display_type in a generate request is ignored rather than
+      # honored or rejected: the field is a conceal-time choice about content
+      # the creator wrote, and there is no such content here.
+      def process_display_type
+        @display_type = Onetime::Secret.default_display_type
+      end
+
       def process_secret
         @kind = 'generate'
 

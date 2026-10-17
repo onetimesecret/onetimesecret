@@ -15,7 +15,7 @@ RSpec.describe Onetime::Middleware::DomainStrategy do
   describe 'env stash for :custom classifications' do
     let(:downstream) { ->(env) { [200, { 'content-type' => 'text/plain' }, ['ok']] } }
     let(:middleware) { described_class.new(downstream) }
-    let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: 'domain-abc-123') }
+    let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: 'domain-abc-123', served_as_tenant?: true) }
 
     before do
       # Feature-flag the domains subsystem on; the class-level state is loaded

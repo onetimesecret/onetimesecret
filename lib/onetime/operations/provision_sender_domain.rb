@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../mail/sender_strategies'
+require_relative 'sender_identity_lease'
 
 module Onetime
   module Operations
@@ -78,13 +79,25 @@ module Onetime
         validation_error = validate_config
         return failure_result(validation_error) if validation_error
 
-        # Acquire distributed lock to prevent concurrent provisioning
-        lock_token = @mailer_config.provisioning.acquire(ttl: 60)
-        unless lock_token
-          return failure_result("Domain provisioning already in progress for #{@mailer_config.domain_id}")
+        # The domain's sender identity lock, shared with the provider
+        # teardowns in DeleteSenderConfig and domain removal
+        # (MailerConfig.sender_identity_lock).
+        lock       = @mailer_config.sender_identity_lock
+        lease      = Onetime::Operations::SenderIdentityLease.new(lock)
+        unless lease.acquire
+          return failure_result("Sender identity provisioning or deletion already in progress for #{@mailer_config.domain_id}")
         end
 
-        begin
+        lease.protect do
+          # The record was loaded before the lock was taken. A sender config
+          # delete or a domain removal tears the identity down and deletes
+          # the record while holding this lock, so one that finished in the
+          # meantime has left nothing to provision for: registering the
+          # identity now would leave it at the provider with no record of it.
+          unless Onetime::CustomDomain::MailerConfig.exists_for_domain?(@mailer_config.domain_id)
+            return failure_result("Sender config for #{@mailer_config.domain_id} was deleted before provisioning")
+          end
+
           provider = effective_provider
 
           # Step 2: Verify provider supports provisioning
@@ -120,7 +133,9 @@ module Onetime
             provider: provider,
             from_address: @mailer_config.from_address
 
+          lease.check!
           provision_result = strategy.provision_dns_records(@mailer_config, credentials: credentials)
+          lease.check!
 
           # Step 6: Handle strategy result
           unless provision_result[:success]
@@ -151,9 +166,12 @@ module Onetime
             provider_data: provider_data,
             error: nil,
           )
-        ensure
-          @mailer_config.provisioning.release(lock_token)
         end
+      rescue Onetime::Operations::SenderIdentityLease::Lost => ex
+        logger.error 'Sender identity lease lost during provisioning',
+          domain_id: @mailer_config&.domain_id,
+          error: ex.message
+        failure_result(ex.message)
       rescue ArgumentError => ex
         # Strategy selection or validation errors
         logger.error 'Provisioning argument error',
@@ -363,10 +381,23 @@ module Onetime
       # @param identity_id [String, nil] Provider's identity identifier
       # @raise [StandardError] if persistence fails
       def persist_provider_data(provider_data, dns_records, identity_id)
-        @mailer_config.provider_dns_data = provider_data
-        @mailer_config.dns_records       = dns_records
-        @mailer_config.updated           = Familia.now.to_i
-        @mailer_config.save
+        # This record was loaded before the provider calls. Bump `updated` on
+        # the record as stored now (MailerConfig.record_job_result!), which
+        # also confirms it still exists and still sends from the address
+        # provisioned; then write the two jsonkeys, which write their own
+        # keys on assignment.
+        stored, = Onetime::CustomDomain::MailerConfig.record_job_result!(
+          @mailer_config.domain_id, @mailer_config.from_address
+        ) do |config|
+          config.updated = Familia.now.to_i
+        end
+        unless stored
+          raise Onetime::Problem,
+            "Sender config for #{@mailer_config.domain_id} was deleted or changed its address during provisioning"
+        end
+
+        stored.provider_dns_data = provider_data
+        stored.dns_records       = dns_records
 
         logger.debug 'Persisted provider DNS data',
           domain_id: @mailer_config.domain_id,

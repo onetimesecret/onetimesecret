@@ -34,11 +34,11 @@ RSpec.describe 'Organization.create_from_v1_customer! created_by dual-write',
     # disabled. billing_isolation.rb disables billing before every example
     # group's context hooks (#3418), so no per-spec toggle is needed here.
     begin
-      # Full boot, not partial (`:test, false`): a partial boot skips
-      # configure_familia (VERIFIABLE_ID_HMAC_SECRET, encryption keys) yet
-      # marks boot complete, so later files' plain `boot!` re-entries no-op
-      # and inherit the partial state (PR #3817 seed-60018 CI failure).
-      OT.boot! :test unless OT.ready?
+      # Full boot, not partial (`:test, false`): these examples need
+      # configure_familia (VERIFIABLE_ID_HMAC_SECRET, encryption keys). No
+      # `unless OT.ready?`: boot! reuses an earlier full boot and upgrades a
+      # partial one, which the guard would skip (PR #3817 seed-60018 CI failure).
+      OT.boot! :test
     rescue Redis::CannotConnectError, Redis::ConnectionError => e
       puts "SKIP: Requires Redis connection (#{e.class})"
       exit 0

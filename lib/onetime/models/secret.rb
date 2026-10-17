@@ -23,6 +23,7 @@ module Onetime
     feature :state_cas
     feature :secret_state_management
     feature :passphrase_hashing
+    feature :display_type
     feature :deprecated_fields
     feature :housekeeping
 

@@ -404,10 +404,6 @@
     "text": "Are you sure?",
     "content_hash": "f0762c4f"
   },
-  "web.COMMON.danger_zone": {
-    "text": "Danger Zone",
-    "content_hash": "3c1c01b4"
-  },
   "web.COMMON.caution_zone": {
     "text": "Careful Consideration Zone",
     "content_hash": "fe27a3a8"
@@ -429,8 +425,8 @@
     "content_hash": "47d2a515"
   },
   "web.COMMON.save_changes": {
-    "text": "Save Changes",
-    "content_hash": "35322b5b"
+    "text": "Save changes",
+    "content_hash": "dd0ae7a5"
   },
   "web.COMMON.saving": {
     "text": "Saving...",
@@ -467,6 +463,10 @@
   "web.COMMON.remove": {
     "text": "Remove",
     "content_hash": "c3812fc4"
+  },
+  "web.COMMON.delete": {
+    "text": "Delete",
+    "content_hash": "e2d0a549"
   },
   "web.COMMON.add": {
     "text": "Add",
@@ -1363,9 +1363,9 @@
     "text": "Sign-In Configuration",
     "content_hash": "2da38c03"
   },
-  "web.TITLES.domain_sso": {
-    "text": "Domain SSO",
-    "content_hash": "13161464"
+  "web.TITLES.domain_signin_sso": {
+    "text": "Single Sign-On Configuration",
+    "content_hash": "4bbf1a2f"
   },
   "web.TITLES.domain_signup": {
     "text": "Domain Signup Validation",

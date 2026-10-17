@@ -4,8 +4,8 @@
     "content_hash": "2f17a0f8"
   },
   "web.admin.jobs.description": {
-    "text": "Scheduler status, dead-letter queues and maintenance chores.",
-    "content_hash": "674e0986"
+    "text": "Monitor background jobs and manage maintenance tasks.",
+    "content_hash": "5d9260bd"
   },
   "web.admin.jobs.retry": {
     "text": "Retry",

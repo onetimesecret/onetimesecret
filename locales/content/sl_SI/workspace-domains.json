@@ -735,6 +735,14 @@
     "text": "Preizkusnega e-poštnega sporočila ni bilo mogoče poslati",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "V zadnjem času je bilo poslanih preveč preizkusnih e-poštnih sporočil. Poskusite znova pozneje.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "V zadnjem času je bilo poslanih preveč preizkusnih e-poštnih sporočil. Poskusite znova čez približno {minutes} min.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Poslano na {email}",
     "source_hash": "8ceb9588"
@@ -1662,5 +1670,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "Pričakovanega zapisa TXT nismo našli. Preverite, ali obstaja in ali se njegova vrednost natančno ujema. Novi zapisi DNS se lahko pojavijo šele po nekaj minutah.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Preverjanje shranjene konfiguracije je uspelo",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "Preverjanje shranjene konfiguracije je odkrilo težavo",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "Preverjanje shranjene konfiguracije ni dalo jasnega rezultata",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Shranjene konfiguracije ni bilo mogoče preveriti",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "Ta konfiguracija je bila v zadnjem času prevečkrat preverjena. Poskusite znova pozneje.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "Ta konfiguracija je bila v zadnjem času prevečkrat preverjena. Poskusite znova čez približno {minutes} min.",
+    "source_hash": "fdbdeaf6"
   }
 }

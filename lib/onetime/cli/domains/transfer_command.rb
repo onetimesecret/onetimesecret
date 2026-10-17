@@ -22,6 +22,10 @@
 # --from-org is an optional OWNERSHIP ASSERTION: when it does not match the
 # domain's current owner the op returns :mismatch and mutates nothing.
 #
+# A transfer of an ORPHANED domain (no org_id) is an adoption: the domain's
+# ownership verification is reset and a new TXT value issued. The output
+# lists the per-domain state the record kept.
+#
 # --dry-run wins over --yes: `--dry-run --yes` still mutates nothing.
 #
 # Lives under lib/onetime/cli (not apps/api/domains/cli) so the require of the
@@ -138,7 +142,7 @@ module Onetime
         puts 'Transfer Details:'
         puts "  Domain:               #{plan.display_domain}"
         if plan.from_org_id.to_s.empty?
-          puts '  From Organization:    ORPHANED'
+          puts '  From Organization:    ORPHANED (adopting it resets its ownership verification)'
         else
           puts "  From Organization:    #{plan.from_org_name || 'N/A'} (#{plan.from_org_id})"
         end
@@ -161,6 +165,7 @@ module Onetime
           puts "  Removed from #{result.from_org_name || result.from_org_id}" unless result.from_org_id.to_s.empty?
           puts "  Added to #{result.to_org_name || result.to_org_id}"
           puts '  Updated org_id field'
+          result.adoption&.lines&.each { |line| puts "  #{line}" }
           puts
           puts 'Transfer complete'
         end
@@ -177,6 +182,7 @@ module Onetime
           to_org_id: result.to_org_id,
           to_org_name: result.to_org_name,
           dry_run: result.dry_run,
+          adoption: result.adoption&.to_payload,
         )
         exit 1 unless OK_STATUSES.include?(result.status)
       end

@@ -19,6 +19,10 @@
 #   traceable as one that raises.
 # - A Transfer that blows up mid-apply records ONE result: :failure event via
 #   Onetime::AuditedFailure and re-raises (the success-path record never runs).
+# - Repair --org-id and Transfer of an ORPHANED domain adopt it through
+#   CustomDomain.claim_orphaned_domain: the canonical-name entry is taken, the
+#   ownership verification is reset, the TXT value is new, and the kept
+#   per-domain state is reported.
 #
 # Run: try --agent try/unit/operations/domain_toolbox_try.rb
 
@@ -280,9 +284,112 @@ Onetime::Operations::Domains::Transfer.new(
 Onetime::Organization.load(@org3.objid).nil?
 #=> true
 
+# ---- Records with no canonical-name entry -----------------------------
+#
+# Domains registered before canonical_display_domain_index existed have no
+# entry in it. Saving them with their name unchanged must keep working and
+# must not add one: the entries are created by a separate backfill, not by
+# whichever save comes first.
+
+## a transfer saves a domain that has no canonical entry, and adds none
+@pc_tdom = Onetime::CustomDomain.create!("dt-pc-transfer-#{@test_id}.example.com", @org1.objid)
+@org1.add_domain(@pc_tdom)
+@pc_tkey = Onetime::CustomDomain.canonical_display_domain(@pc_tdom.display_domain)
+Onetime::CustomDomain.canonical_display_domain_index.remove_field(@pc_tkey)
+@pc_t = Onetime::Operations::Domains::Transfer.new(
+  domain: @pc_tdom, to_org: @org2, actor: @actor, dry_run: false,
+).call
+[@pc_t.status,
+ Onetime::CustomDomain.find_by_identifier(@pc_tdom.identifier).org_id == @org2.org_id,
+ Onetime::CustomDomain.canonical_display_domain_index.get(@pc_tkey)]
+#=> [:transferred, true, nil]
+
+## a repair that adopts an orphan with no canonical entry enters its name, like any other adoption
+@pc_rseed = Onetime::CustomDomain.create!("dt-pc-repair-#{@test_id}.example.com", @org1.objid)
+@pc_rkey  = Onetime::CustomDomain.canonical_display_domain(@pc_rseed.display_domain)
+Onetime::CustomDomain.canonical_display_domain_index.remove_field(@pc_rkey)
+@pc_rseed.remove_from_organization_domains(@org1)
+Familia.dbclient.hset(@pc_rseed.dbkey, 'org_id', '')
+@pc_rdom = Onetime::CustomDomain.find_by_identifier(@pc_rseed.domainid)
+@pc_r = Onetime::Operations::Domains::Repair.new(domain: @pc_rdom, actor: @actor, org: @org2, dry_run: false).call
+[@pc_r.status,
+ Onetime::CustomDomain.find_by_identifier(@pc_rdom.identifier).org_id == @org2.org_id,
+ Onetime::CustomDomain.canonical_display_domain_index.get(@pc_rkey) == @pc_rdom.identifier]
+#=> [:repaired, true, true]
+
+# ---- Adopting a verified orphan: Repair --org-id and Transfer ---------
+#
+# A verified, resolving orphan with a brand field; create! gave it the
+# default homepage and api configs. Adoption resets the verification and
+# issues a new TXT value, and reports what the record kept.
+
+## Repair --org-id adopts a verified orphan and resets its verification
+AE.events.clear
+@ad_seed = Onetime::CustomDomain.create!("dt-adopt-repair-#{@test_id}.example.com", @org1.objid)
+@ad_seed.brand['primary_color'] = '#336699'
+@ad_seed.remove_from_organization_domains(@org1)
+Familia.dbclient.hset(@ad_seed.dbkey, { 'org_id' => '', 'ownership_verified' => 'true', 'resolving' => 'true' })
+Onetime::CustomDomain.owners.remove(@ad_seed.to_s)
+@ad_dom = Onetime::CustomDomain.find_by_identifier(@ad_seed.domainid)
+@ad_txt = @ad_dom.txt_validation_value
+@ad_before = [@ad_dom.ownership_verified, @ad_dom.ready?]
+@ad_r = Onetime::Operations::Domains::Repair.new(domain: @ad_dom, actor: @actor, org: @org2, dry_run: false).call
+@ad_stored = Onetime::CustomDomain.find_by_identifier(@ad_dom.identifier)
+[@ad_before, @ad_r.status, @ad_stored.org_id == @org2.org_id, @ad_stored.ownership_verified, @ad_stored.resolving,
+ @ad_stored.ready?, @ad_stored.txt_validation_value == @ad_txt, @org2.domain?(@ad_stored),
+ Onetime::CustomDomain.owners.get(@ad_stored.domainid) == @org2.objid]
+#=> [[true, true], :repaired, true, false, false, false, false, true, true]
+
+## the plan and the applied repairs say so, and list what the record kept
+[@ad_r.issues,
+ @ad_r.repairs_applied[1] == "Ownership verification reset; new TXT value #{@ad_stored.validation_record} = #{@ad_stored.txt_validation_value}",
+ @ad_r.repairs_applied[2]]
+#=> [['Domain is orphaned (no org_id); adopting it resets its ownership verification'], true, 'Kept from the earlier owner: configs: homepage, api; brand (1 field)']
+
+## the repair's audit event records the adoption
+@ad_ev = AE.recent(1).first
+[@ad_ev['verb'], @ad_ev['target'] == @ad_dom.extid, @ad_ev['detail']['adopted_orphan'], @ad_ev['detail']['verification_reset']]
+#=> ['domain.repair', true, true, true]
+
+## a transfer from orphaned adopts a verified orphan the same way
+AE.events.clear
+@at_seed = Onetime::CustomDomain.create!("dt-adopt-transfer-#{@test_id}.example.com", @org1.objid)
+@at_seed.remove_from_organization_domains(@org1)
+Familia.dbclient.hdel(@at_seed.dbkey, 'org_id')
+Familia.dbclient.hset(@at_seed.dbkey, { 'verified' => 'true', 'resolving' => 'true' })
+Onetime::CustomDomain.owners.remove(@at_seed.to_s)
+@at_key = Onetime::CustomDomain.canonical_display_domain(@at_seed.display_domain)
+Onetime::CustomDomain.canonical_display_domain_index.remove_field(@at_key)
+@at_dom = Onetime::CustomDomain.find_by_identifier(@at_seed.domainid)
+@at_txt = @at_dom.txt_validation_value
+@at_before = [@at_dom.ownership_verified, @at_dom.ready?]
+@at_t = Onetime::Operations::Domains::Transfer.new(domain: @at_dom, to_org: @org2, actor: @actor, dry_run: false).call
+@at_stored = Onetime::CustomDomain.find_by_identifier(@at_dom.identifier)
+[@at_before, @at_t.status, @at_stored.org_id == @org2.org_id, @at_stored.ownership_verified, @at_stored.ready?,
+ @at_stored.txt_validation_value == @at_txt, @org2.domain?(@at_stored),
+ Onetime::CustomDomain.owners.get(@at_stored.domainid) == @org2.objid,
+ Onetime::CustomDomain.canonical_display_domain_index.get(@at_key) == @at_stored.identifier]
+#=> [[true, true], :transferred, true, false, false, false, true, true, true]
+
+## the transfer result reports the adoption, and its audit event records it
+@at_ev = AE.recent(1).first
+[@at_t.adoption.configs, @at_t.adoption.txt_value == @at_stored.txt_validation_value,
+ AE.count, @at_ev['detail']['adopted_orphan'], @at_ev['detail']['verification_reset']]
+#=> [['homepage', 'api'], true, 1, true, true]
+
+## a transfer between two organizations is not an adoption: no report, verification kept
+Familia.dbclient.hset(@at_stored.dbkey, 'ownership_verified', 'true')
+@at_live = Onetime::CustomDomain.find_by_identifier(@at_stored.identifier)
+@at_live_txt = @at_live.txt_validation_value
+@at_back = Onetime::Operations::Domains::Transfer.new(domain: @at_live, to_org: @org1, actor: @actor, dry_run: false).call
+@at_after = Onetime::CustomDomain.find_by_identifier(@at_live.identifier)
+[@at_back.status, @at_back.adoption, @at_after.org_id == @org1.org_id, @at_after.ownership_verified,
+ @at_after.txt_validation_value == @at_live_txt]
+#=> [:transferred, nil, true, true, true]
+
 # ---- Cleanup ----------------------------------------------------------
 
-[@orphan, @dom, @tdom, @rtdom].compact.each { |d| d.destroy! rescue nil }
+[@orphan, @dom, @tdom, @rtdom, @pc_tdom, @pc_rdom, @ad_dom, @at_dom].compact.each { |d| d.destroy! rescue nil }
 [@org1, @org2, @org3].compact.each { |o| o.destroy! rescue nil }
 [@cust1, @cust2, @cust3].compact.each { |c| c.destroy! rescue nil }
 AE.events.clear

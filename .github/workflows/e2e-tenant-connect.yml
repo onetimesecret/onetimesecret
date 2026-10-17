@@ -11,10 +11,10 @@
 # on the canonical host; nothing else exercises the tenant surface end to end.
 #
 # Companion check, same project and process:
-# e2e/system/tenant-sso-unverified-domain.spec.ts (issue #4579). A second
-# tenant host, seeded identical to the first except that its domain is NOT
-# verified, must refuse SSO initiation with
-# /signin?auth_error=sso_domain_unverified and never reach the (mock) IdP.
+# e2e/system/tenant-sso-unverified-domain.spec.ts. A second tenant host,
+# seeded identical to the first except that its domain is NOT verified, is
+# not served: /signin and the SSO initiation answer DomainStrategy's 404, and
+# nothing reaches the (mock) IdP.
 #
 # WHAT MAKES THIS LANE DIFFERENT (each item is load-bearing; see
 # e2e/system/README.md and the header of tenant_connect_test_boot.rb):
@@ -41,6 +41,13 @@
 #   + ORGS_SSO_ENABLED=true       host classifies :custom only with domains
 #                                 on, and the placeholder OIDC route registers
 #                                 only with org SSO on.
+#   DOMAINS_VALIDATION_STRATEGY=caddy_on_demand
+#                                 a strategy that checks ownership, so a
+#                                 registered host is served only once its
+#                                 ownership is verified. The verified tenant
+#                                 is served; the companion's unverified host
+#                                 answers 404. No ACME endpoint or Caddy is
+#                                 involved: jobs are off and nothing asks.
 #   HOST=canonical.example.org    the canonical host lives on a DIFFERENT
 #                                 registrable domain than the tenants
 #                                 (tenant.example.com, unverified.example.com)
@@ -197,6 +204,7 @@ jobs:
             echo "AUTH_SIGNIN=true"
             echo "AUTH_DATABASE_URL=sqlite://tmp/e2e-tenant-connect.db"
             echo "DOMAINS_ENABLED=true"
+            echo "DOMAINS_VALIDATION_STRATEGY=caddy_on_demand"
             echo "ORGS_SSO_ENABLED=true"
             # Full mode requires this; not one of the names
             # generate-test-secrets exports.
@@ -324,9 +332,9 @@ jobs:
       # ---- Failure forensics -------------------------------------------------
       # The auth events (omniauth_connect_reauth_required,
       # tenant_connect_membership_authorized, omniauth_identity_connected,
-      # omniauth_identity_connect_refused + reason, and for the companion
-      # check omniauth_tenant_domain_unverified) are the fastest way to tell
-      # a gate refusal from a UI regression.
+      # omniauth_identity_connect_refused + reason) are the fastest way to
+      # tell a gate refusal from a UI regression. The companion check's host
+      # never reaches the auth app, so it logs no auth event.
       - name: Server log on failure
         if: failure()
         run: |

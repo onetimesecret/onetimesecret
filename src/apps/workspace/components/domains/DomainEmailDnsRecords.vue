@@ -246,7 +246,7 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
               <OIcon
                 v-else
                 collection="heroicons"
-                name="clipboard-document"
+                name="clipboard"
                 class="size-4"
                 aria-hidden="true" />
             </button>
@@ -276,7 +276,7 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
               <OIcon
                 v-else
                 collection="heroicons"
-                name="clipboard-document"
+                name="clipboard"
                 class="size-4"
                 aria-hidden="true" />
             </button>

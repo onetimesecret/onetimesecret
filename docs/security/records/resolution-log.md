@@ -151,3 +151,50 @@ the original evidence; each entry here identifies the fix and the baseline used 
 - **Verification:** lockfile inspection only, on `main` and `develop`. The installed gem was not
   loaded and no test lane was run; the change is a version pin.
 - **Closure baseline:** `7d324f41d` (`main`) on 2026-10-07; first release `v0.26.14`.
+
+## 2026-10-11
+
+### RISK-2026-08-14-M02 — Resolved
+
+- **Finding:** Magic links kept the Rodauth 24-hour column-default deadline on PostgreSQL and
+  SQLite instead of the configured 15 minutes, because Rodauth writes key deadlines only when
+  `set_deadline_values?` is true (MySQL by default).
+- **Source:** [2026-08-14 historical risk register](../risk-registers/risk-register-2026-08-14.md), M-2.
+  Tracking: #4689.
+- **Resolution:** #4703 (`d69d7c80` on `main`). `email_auth_key_insert_hash`
+  (`apps/web/auth/config/features/email_auth.rb`) writes the deadline as
+  `Sequel.date_add(CURRENT_TIMESTAMP, minutes: 15)`; `set_deadline_values?` stays off, so reset
+  and lockout keys are unchanged. A resend inside the window reuses the existing key and does not
+  extend its deadline.
+- **Verification:** CI on the PR head `ef7f16ca` passed, including `T2 · Ruby Unit Tests`, which
+  runs the SQLite examples (`apps/web/auth/spec/config/features/email_auth_deadline_spec.rb`), and
+  `T3 · Ruby Auth Configuration (PG agnostic, billing: off)`, the lane named in the run line of the
+  PostgreSQL copy (`apps/web/auth/spec/integration/full/email_auth_deadline_on_postgres_spec.rb`,
+  shared examples in `apps/web/auth/spec/support/shared_examples/email_auth_deadline_examples.rb`).
+  The examples pin issue time + 15 minutes, refusal after 15 minutes, and a resend that keeps the
+  original key and deadline. The override and both specs are present at the closure baseline. No
+  lane was re-run for this entry.
+- **Closure baseline:** `c27d903e` (`main`) on 2026-10-11.
+
+### RISK-2026-10-10-03 — Resolved
+
+- **Finding:** Tenant SSO allowlist entries and asserted addresses were compared byte for byte, so
+  the Unicode and A-label forms of one IDN domain denied each other (fail-closed: lost sign-ins).
+- **Source:** [2026-10-10 G3 review](../audits/security-audit-2026-10-10.md) S7, probe P5.
+  Tracking: #4736.
+- **Resolution:** #4751 (`2fe5207f` on `main`), action R4. `SsoConfig#matching_allowed_domain`
+  (`lib/onetime/models/custom_domain/sso_config.rb`) tries an exact match first, then compares by
+  `AsciiHostname.comparison_key` (`lib/onetime/domain_validation/ascii_hostname.rb`), which
+  accepts a Unicode name's A-label only when it decodes back to the name's own NFC lower-case
+  spelling. A sign-in admitted only because the forms differed logs
+  `omniauth_tenant_domain_idn_match` with `reason: :idn_form_differed`. Entries stay stored as
+  typed.
+- **Verification:** CI on the PR head `9d6c819c` passed, including `T2 · Ruby Unit Tests` and
+  `T3 · Ruby Integration (Full, SQLite, billing: off)`, which carry
+  `spec/unit/onetime/domain_validation/ascii_hostname_spec.rb`,
+  `apps/web/auth/spec/unit/domain_sso_config_spec.rb` and
+  `apps/web/auth/spec/integration/full/callback_validation_spec.rb`. No lane was re-run for this
+  entry.
+- **Residual:** `SignupConfig#allowed_signup_domains` and the global `allowed_signup_domains`
+  still compare byte for byte on the account-creation path; #4751 left them out of scope.
+- **Closure baseline:** `c27d903e` (`main`) on 2026-10-11.

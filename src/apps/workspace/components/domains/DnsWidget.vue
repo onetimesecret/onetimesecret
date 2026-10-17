@@ -4,6 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import Skeleton from '@/shared/components/closet/Skeleton.vue';
   import { useDnsWidget, type DnsRecord } from '@/shared/composables/useDnsWidget';
+  import { txtChallengeLabel } from '@/shared/utils/txtRecordName';
   import { computed, onMounted, watch } from 'vue';
 
   interface Props {
@@ -14,17 +15,13 @@
     /** Whether this is an apex domain (requires A record instead of CNAME) */
     isApex?: boolean;
     /**
-     * TXT record host for domain ownership validation.
-     * From backend: includes TRD suffix (e.g., "_onetime-challenge-019bdd2.uk")
-     * @see lib/onetime/models/custom_domain.rb#generate_txt_validation_record
+     * TXT record host for domain ownership validation (`txt_validation_host`),
+     * relative to the base domain: the challenge label plus the subdomain,
+     * e.g. "_onetime-challenge-019bdd2.uk".
+     * @see lib/onetime/models/custom_domain.rb#txt_challenge_host
      */
     txtValidationHost?: string;
     txtValidationValue?: string;
-    /**
-     * Transit routing domain (subdomain portion), e.g., "uk" for "uk.metalbaum.com".
-     * Used to normalize txtValidationHost for the Approximated widget.
-     */
-    trd?: string;
   }
 
   const props = defineProps<Props>();
@@ -37,41 +34,21 @@
   const { t } = useI18n();
 
   /**
-   * Normalize the TXT validation host for the Approximated DNS widget.
+   * The TXT host for the Approximated DNS widget: the challenge label alone.
    *
-   * BACKGROUND: The Ruby backend and the Approximated widget handle DNS record
-   * construction differently:
-   *
-   * Ruby (lib/onetime/models/custom_domain.rb#validate_ownership via ApproximatedStrategy):
-   *   - Sends full FQDN as `address`: "_onetime-challenge-019bdd2.uk.metalbaum.com"
-   *   - Approximated API does a direct DNS lookup for this exact address
-   *
-   * Approximated Widget (dnswidget.v1.js):
-   *   - Receives separate `host` and `domain` fields
-   *   - The widget API combines these, extracting the subdomain from `domain`
-   *   - If we pass host="_onetime-challenge-019bdd2.uk" with domain="uk.metalbaum.com",
-   *     the API produces "uk" + "_onetime-challenge-019bdd2.uk" = double "uk"
-   *
-   * FIX: Strip the TRD suffix from txtValidationHost before passing to the widget,
-   * so the widget can correctly reconstruct the full record name.
+   * The widget reads each record's `host` as relative to `domain`, the same
+   * way '@' below means `domain` itself. txt_validation_host is relative to
+   * the base domain instead, so for a subdomain it already carries the
+   * subdomain, and passing it as is would name the subdomain twice. Its first
+   * label is the challenge label, whatever spelling the subdomain after it
+   * has (A-label for new records, as typed for some earlier ones).
    *
    * Example for "uk.metalbaum.com":
-   *   - Backend txtValidationHost: "_onetime-challenge-019bdd2.uk"
-   *   - TRD: "uk"
-   *   - Widget host (after normalization): "_onetime-challenge-019bdd2"
-   *   - Widget reconstructs: "_onetime-challenge-019bdd2.uk.metalbaum.com" ✓
+   *   - txt_validation_host: "_onetime-challenge-019bdd2.uk"
+   *   - Widget host:         "_onetime-challenge-019bdd2"
+   *   - Record name:         "_onetime-challenge-019bdd2.uk.metalbaum.com"
    */
-  const normalizedTxtValidationHost = computed(() => {
-    if (!props.txtValidationHost) return undefined;
-    if (!props.trd) return props.txtValidationHost;
-
-    // Strip trailing ".{trd}" suffix if present
-    const suffix = `.${props.trd}`;
-    if (props.txtValidationHost.endsWith(suffix)) {
-      return props.txtValidationHost.slice(0, -suffix.length);
-    }
-    return props.txtValidationHost;
-  });
+  const widgetTxtHost = computed(() => txtChallengeLabel(props.txtValidationHost) || undefined);
 
   // Build DNS records based on whether it's an apex domain
   const dnsRecords = computed<DnsRecord[]>(() => {
@@ -95,11 +72,10 @@
     }
 
     // Add TXT record for validation if provided
-    // Use normalized host to avoid double-subdomain issue with widget
-    if (normalizedTxtValidationHost.value && props.txtValidationValue) {
+    if (widgetTxtHost.value && props.txtValidationValue) {
       records.push({
         type: 'TXT',
-        host: normalizedTxtValidationHost.value,
+        host: widgetTxtHost.value,
         value: props.txtValidationValue,
         ttl: 3600,
       });

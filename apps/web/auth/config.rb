@@ -115,20 +115,22 @@ module Auth
       # Absolute URLs (every *_email_link, the WebAuthn origin) follow the
       # request's public host rather than the proxy-rewritten authority
       # (#4221). Also defines public_display_domain, which the email template
-      # blocks above read at request time.
+      # blocks above read at request time. Its per-route recipient-origin
+      # guards are prepended at the END of this block
+      # (configure_recipient_origins, below).
       Overrides::PublicBaseUrl.configure(self)
       Overrides::PasswordMigration.configure(self)
       Overrides::ErrorHandling.configure(self)
       # Stable `code` / `code_scope` on Rodauth's refusals (#4469): the
       # set_error_reason seam, policy in Auth::CredentialFailureCode.
       Overrides::FailureCode.configure(self)
-      # Enumeration safety for the reset-password-request path (issue #3857).
-      # Runs after AccountManagement enables :reset_password above, so the
-      # overridden methods exist.
-      Overrides::ResetPasswordEnumeration.configure(self)
+      # NOT HERE: enumeration safety for the login-request routes
+      # (Overrides::LoginRequestEnumeration) is configured at the END of this
+      # block, after every feature it covers can have been enabled.
+
       # Enumeration safety for login / create-account / unlock-account-request
       # (audit 2026-08-02 M-1, M-2, L-6). Uses a PREPENDED module so it
-      # composes with ResetPasswordEnumeration's class-level
+      # composes with LoginRequestEnumeration's class-level
       # account_from_login rather than clobbering it; all overrides are
       # route-scoped no-ops elsewhere, so ordering relative to the
       # conditionally-enabled features below (lockout) is immaterial.
@@ -173,13 +175,11 @@ module Auth
       if Onetime.auth_config.email_auth_enabled?
         Features::EmailAuth.configure(self)
         Hooks::EmailAuth.configure(self)
-        # Rate limiting for POST /auth/email-login-request (audit 2026-08-02
-        # L-5): bounds unauthenticated magic-link mail dispatch per client IP.
-        # Additive to Rodauth's per-account email_auth_skip_resend_email_within
-        # throttle. Runs inside this branch so the
-        # before_email_auth_request_route hook exists (requires :email_auth,
-        # enabled by Features::EmailAuth above).
-        Hooks::EmailAuthRequest.configure(self)
+        # Rate limiting for POST /auth/email-login-request
+        # (RISK-2026-08-14-M04): per client IP and per submitted login,
+        # before account lookup. before_email_auth_request_route only exists
+        # once :email_auth is enabled.
+        Hooks::EmailLoginRequest.configure(self)
         # before_email_auth_request only exists once :email_auth is enabled;
         # closes the multi-phase-login magic-link path on the /login route.
         Hooks::RestrictTo.configure_email_auth(self)
@@ -229,6 +229,20 @@ module Auth
       if Onetime.billing_config.enabled?
         Hooks::Billing.configure(self)
       end
+
+      # Enumeration safety for the login-request routes (issue #3857,
+      # RISK-2026-08-14-M03): reset-password-request, email-login-request and
+      # verify-account-resend answer every account state alike. LAST on
+      # purpose: it reads the class's enabled features to decide which
+      # overrides to install, and :email_auth (above) and :verify_account
+      # (AccountManagement, or transitively via webauthn_verify_account) are
+      # enabled conditionally. Configured earlier, an override for a feature
+      # enabled later would be silently skipped.
+      Overrides::LoginRequestEnumeration.configure(self)
+      # The recipient-origin half of the same guarantee: a recipient with no
+      # credential origin answers like a missing account on those routes,
+      # before any key write. Last for the same reason.
+      Overrides::PublicBaseUrl.configure_recipient_origins(self)
 
       # Single owner of only_json?. Must run AFTER all hooks so the
       # consolidated exemption logic can consult Hooks::OAuth::OAUTH_EXEMPT_PATHS

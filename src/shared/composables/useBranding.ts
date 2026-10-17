@@ -3,6 +3,7 @@
 import { createI18nInstance } from '@/i18n';
 import { ApplicationError } from '@/schemas';
 import { type BrandSettings, type ImageProps } from '@/schemas/shapes/v3';
+import { loggingService } from '@/services/logging.service';
 import { DEFAULT_BUTTON_TEXT_LIGHT } from '@/shared/constants/brand';
 import { useNotificationsStore } from '@/shared/stores';
 import { useBrandStore } from '@/shared/stores/brandStore';
@@ -114,7 +115,7 @@ export function useBranding(domainId?: string) {
 
       // Set locale immediately after getting settings
       if (settings.locale) {
-        console.debug('[useBranding] Setting locale:', settings.locale, settings);
+        loggingService.debug('[useBranding] Setting locale', { locale: settings.locale, settings });
         await setLocale(settings.locale);
       }
 

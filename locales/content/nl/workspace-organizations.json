@@ -219,10 +219,6 @@
     "text": "Abonnement",
     "source_hash": "4999c6c6"
   },
-  "web.organizations.danger_zone": {
-    "text": "Gevarenzone",
-    "source_hash": "3c1c01b4"
-  },
   "web.organizations.delete_organization": {
     "text": "Organisatie verwijderen",
     "source_hash": "54b2edc7"
@@ -686,10 +682,6 @@
   "web.organizations.sso.enabled_hint": {
     "text": "Wanneer ingeschakeld kunnen organisatieleden inloggen met deze SSO-provider",
     "source_hash": "d7da2fa2"
-  },
-  "web.organizations.sso.save_config": {
-    "text": "SSO-configuratie opslaan",
-    "source_hash": "70853769"
   },
   "web.organizations.sso.delete_config": {
     "text": "Configuratie verwijderen",
@@ -1215,33 +1207,9 @@
     "text": "De inloginstellingen van deze site zijn in conflict met de sitebrede beperking ({method}), waardoor geen van beide geldt en er op dit moment geen manier is om in te loggen.",
     "source_hash": "54cdfd61"
   },
-  "web.organizations.sso.connection_enabled": {
-    "text": "Verbinding actief",
-    "source_hash": "b6334b2b"
-  },
-  "web.organizations.sso.connection_enabled_hint": {
-    "text": "Wanneer de verbinding actief is, kunnen leden inloggen met deze SSO-provider. SSO moet ook zijn ingeschakeld als inlogmethode in de Inlogconfiguratie van het domein.",
-    "source_hash": "871db2f1"
-  },
-  "web.organizations.sso.enable_untested_warning": {
-    "text": "Deze verbinding heeft hier nog geen test doorstaan. Voer Verbinding testen uit voordat je de verbinding inschakelt, zodat een onjuiste configuratie nooit je inlogpagina bereikt.",
-    "source_hash": "c1fbdeca"
-  },
   "web.organizations.delete_organization_cancel_subscription_first": {
     "text": "Annuleer het abonnement van deze organisatie voordat je haar verwijdert.",
     "source_hash": "f0c54eca"
-  },
-  "web.organizations.sso.disable_action": {
-    "text": "SSO uitschakelen",
-    "source_hash": "2f072272"
-  },
-  "web.organizations.sso.disable_confirm": {
-    "text": "Deze SSO-verbinding uitschakelen? Niet-opgeslagen wijzigingen in het formulier worden niet opgeslagen. Opgeslagen inloggegevens blijven behouden.",
-    "source_hash": "608b142a"
-  },
-  "web.organizations.sso.disable_enforcement_warning": {
-    "text": "Het afdwingen van alleen SSO wordt ook uitgeschakeld, waardoor andere geconfigureerde inlogmethoden weer zijn toegestaan.",
-    "source_hash": "58abd552"
   },
   "web.organizations.sso.idp_sso_service_url": {
     "text": "IdP-SSO-service-URL",
@@ -1350,5 +1318,105 @@
   "web.organizations.sso.certificate_valid_from": {
     "text": "Certificaat geldig vanaf",
     "source_hash": "b13d3f30"
+  },
+  "web.organizations.sso.client_secret_looks_like_secret_id": {
+    "text": "Dit lijkt op de ‘Secret ID’. Entra heeft de waarde van het secret (‘Value’) nodig, die maar één keer wordt getoond bij het aanmaken van het secret.",
+    "source_hash": "168681cf"
+  },
+  "web.organizations.sso.diagnostics_title": {
+    "text": "Opgeslagen configuratie controleren",
+    "source_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_hint": {
+    "text": "Controleert wat er voor dit domein is opgeslagen — bij Microsoft Entra ID inclusief het opgeslagen client secret — en rapporteert elke laag afzonderlijk. Een volledige login wordt niet getest.",
+    "source_hash": "42505faa"
+  },
+  "web.organizations.sso.last_sign_in_none": {
+    "text": "Er is via dit domein nog geen login geregistreerd.",
+    "source_hash": "7f9d0f23"
+  },
+  "web.organizations.sso.last_sign_in_succeeded": {
+    "text": "De laatste login via dit domein is voltooid op {when}.",
+    "source_hash": "9a125080"
+  },
+  "web.organizations.sso.last_sign_in_failed": {
+    "text": "De laatste login via dit domein is mislukt op {when}, {stage} ({code}).",
+    "source_hash": "be81f392"
+  },
+  "web.organizations.sso.last_sign_in_last_success": {
+    "text": "De laatste voltooide login was op {when}.",
+    "source_hash": "34e63e57"
+  },
+  "web.organizations.sso.last_sign_in_stage_setup": {
+    "text": "voordat de identiteitsprovider werd benaderd",
+    "source_hash": "5a1b6839"
+  },
+  "web.organizations.sso.last_sign_in_stage_provider": {
+    "text": "bij de identiteitsprovider",
+    "source_hash": "40394567"
+  },
+  "web.organizations.sso.last_sign_in_stage_callback": {
+    "text": "toen de identiteitsprovider de gebruiker terugstuurde",
+    "source_hash": "2ab78fc4"
+  },
+  "web.organizations.sso.last_sign_in_stage_account": {
+    "text": "bij het koppelen van de gebruiker aan een account",
+    "source_hash": "1ebbb776"
+  },
+  "web.organizations.sso.diagnostics_button": {
+    "text": "Opgeslagen configuratie controleren",
+    "source_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_running": {
+    "text": "Controleren...",
+    "source_hash": "2e5f79bb"
+  },
+  "web.organizations.sso.diagnostics_checked_at": {
+    "text": "Gecontroleerd",
+    "source_hash": "0efd92a3"
+  },
+  "web.organizations.sso.diagnostics_check_stored_configuration": {
+    "text": "Opgeslagen configuratie",
+    "source_hash": "a988b06a"
+  },
+  "web.organizations.sso.diagnostics_check_discovery": {
+    "text": "Discovery van de identiteitsprovider",
+    "source_hash": "b5f90082"
+  },
+  "web.organizations.sso.diagnostics_check_certificate": {
+    "text": "Ondertekeningscertificaat",
+    "source_hash": "cc00e050"
+  },
+  "web.organizations.sso.diagnostics_check_credential": {
+    "text": "Client Secret",
+    "source_hash": "4aded5fa"
+  },
+  "web.organizations.sso.diagnostics_status_passed": {
+    "text": "Geslaagd",
+    "source_hash": "436fe71b"
+  },
+  "web.organizations.sso.diagnostics_status_failed": {
+    "text": "Mislukt",
+    "source_hash": "031a8f0f"
+  },
+  "web.organizations.sso.diagnostics_status_inconclusive": {
+    "text": "Geen uitsluitsel",
+    "source_hash": "9141583b"
+  },
+  "web.organizations.sso.diagnostics_status_unsupported": {
+    "text": "Niet beschikbaar",
+    "source_hash": "67a926f7"
+  },
+  "web.organizations.sso.diagnostics_status_skipped": {
+    "text": "Overgeslagen",
+    "source_hash": "12698ce1"
+  },
+  "web.organizations.sso.diagnostics_aadsts_code": {
+    "text": "Microsoft-foutcode",
+    "source_hash": "dc8f7060"
+  },
+  "web.organizations.sso.diagnostics_errors": {
+    "text": "Problemen",
+    "source_hash": "a7b182f8"
   }
 }

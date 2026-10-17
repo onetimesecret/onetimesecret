@@ -68,6 +68,9 @@ module Onetime
       # @return [Hash] See BaseStrategy#validate_ownership
       #
       def validate_ownership(custom_domain)
+        record_name = custom_domain.validation_record
+        return no_challenge if record_name.nil? || custom_domain.txt_validation_value.to_s.empty?
+
         api_key = Features.api_key
 
         if api_key.to_s.empty?
@@ -76,7 +79,7 @@ module Onetime
 
         records = [{
           type: 'TXT',
-          address: custom_domain.validation_record,
+          address: record_name,
           match_against: custom_domain.txt_validation_value,
         }]
 
@@ -336,6 +339,16 @@ module Onetime
               "#{match_records.inspect}"
 
         classify_native(custom_domain, match_records)
+      end
+
+      # No challenge has been generated, so there is no record name to ask
+      # either checker about. Like TxtVerifier's "not configured" false, this
+      # says nothing about the customer's DNS, so it does not demote.
+      #
+      # @return [Hash] See BaseStrategy#validate_ownership
+      #
+      def no_challenge
+        { validated: nil, indeterminate: true, message: 'TXT challenge is not configured for this domain (indeterminate)' }
       end
 
       # The upstream checker could not be asked (no API key, non-200, client

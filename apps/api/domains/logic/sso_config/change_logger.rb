@@ -38,7 +38,10 @@ module DomainsAPI
         SENSITIVE_FIELDS = %w[client_id client_secret idp_sso_service_url idp_entity_id idp_cert name_id_format callback_origins].freeze
 
         # Fields safe to log with their actual values
-        SAFE_FIELDS = %w[provider_type display_name enabled enforce_sso_only grant_org_scope tenant_id issuer allowed_domains].freeze
+        SAFE_FIELDS = %w[
+          provider_type display_name enabled enforce_sso_only grant_org_scope tenant_id issuer
+          token_endpoint_auth_method allowed_domains
+        ].freeze
 
         # Boolean fields: old value read via predicate, new value coerced
         BOOLEAN_FIELDS = %w[enabled enforce_sso_only grant_org_scope].freeze

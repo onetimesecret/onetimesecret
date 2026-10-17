@@ -8,8 +8,7 @@ require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/audit_reason'
 require 'onetime/operations/audit_attempt'
-require 'onetime/domain_validation/strategy'
-require 'onetime/operations/delete_sender_domain'
+require 'onetime/operations/domains/teardown'
 
 module Onetime
   module Operations
@@ -22,12 +21,11 @@ module Onetime
       #
       # ## Teardown parity
       #
-      # The apply path mirrors DomainsAPI::Logic::Domains::RemoveDomain#process
-      # VERBATIM: delete the external vhost (strategy), delete the external sender
-      # identity BEFORE destroy! wipes mailer_config, then destroy!. It does NOT
-      # call org.remove_domain — CustomDomain#destroy! already removes org
-      # participation internally (custom_domain.rb:457-460); adding it would be a
-      # redundant second removal against the same collection.
+      # The apply path delegates to Domains::Teardown, also used by the customer
+      # API. It owns provider teardown and destruction under the sender identity
+      # lease. This wrapper owns preview, index repair, and operator auditing.
+      # Teardown does not call org.remove_domain: CustomDomain#destroy! already
+      # removes org participation internally.
       #
       # ## display_domain_index re-assertion (the crux)
       #
@@ -49,6 +47,26 @@ module Onetime
 
         AUDIT_VERB = 'domain.remove'
 
+        # Raised by an apply, before any teardown, while another holder has
+        # the domain's sender identity lock (MailerConfig.sender_identity_lock):
+        # provisioning, a sender config delete, or another removal. The apply
+        # holds that lock from the teardown through destroy!. A provision
+        # that ran in between would register the identity again after the
+        # teardown, and destroy! would then delete the only record of it.
+        # audit_failures records the refused attempt like any other raise.
+        class SenderIdentityBusy < StandardError; end
+
+        # The deletion is irreversible, but the caller must still see lease
+        # loss. Carry the removed result instead of suggesting a safe retry.
+        class RemovalCommitted < Onetime::Operations::SenderIdentityLease::Lost
+          attr_reader :result
+
+          def initialize(result:, lease_error:)
+            @result = result
+            super("Domain removal committed for #{result.extid}, but #{lease_error.message}")
+          end
+        end
+
         # A destructive verb: a removal that blows up partway leaves the fleet in
         # an unknown state, so the attempt must be in the trail even though the
         # success-path record never runs. Records one `result: :failure` and
@@ -59,8 +77,9 @@ module Onetime
         # tell a blown-up preview from a blown-up removal.
         audit_failures :call,
           verb: AUDIT_VERB,
-          target: -> { @domain&.extid },
-          detail: -> { { dry_run: @dry_run } }
+          target: -> { @audit_extid || @domain&.extid },
+          detail: -> { { dry_run: @dry_run }.merge(@removal_committed ? { removal_committed: true } : {}) },
+          enabled: -> { !@removal_audited }
 
         # @!attribute status [r] Symbol — :planned (dry-run) | :removed (applied)
         Result = Data.define(
@@ -92,8 +111,11 @@ module Onetime
 
         # @return [Result]
         def call
-          org_id = @domain.org_id
-          org    = org_id.to_s.empty? ? nil : Onetime::Organization.load(org_id)
+          @removal_committed = false
+          @removal_audited   = false
+          @audit_extid       = @domain.extid
+          org_id             = @domain.org_id
+          org                = org_id.to_s.empty? ? nil : Onetime::Organization.load(org_id)
 
           # --- INDEX SNAPSHOT (before ANY mutation) ---
           index          = Onetime::CustomDomain.display_domain_index
@@ -124,10 +146,11 @@ module Onetime
             return plan
           end
 
-          # --- APPLY: teardown mirrors RemoveDomain#process (NO org.remove_domain) ---
-          delete_vhost(@domain)
-          Onetime::Operations::DeleteSenderDomain.new(mailer_config: @domain.mailer_config).call
-          @domain.destroy! # Familia 'super' HDELs display_domain_index[fqdn] here
+          # A returned teardown result is committed, even when its final lease
+          # check failed. Complete index repair and auditing before reporting loss.
+          teardown           = teardown_domain
+          @removal_committed = teardown.removal_committed
+          lease_error        = teardown.lease_error
 
           # --- CONDITIONAL INDEX RE-ASSERTION ---
           # Best-effort: destroy! has already committed, so a failure here must
@@ -161,16 +184,27 @@ module Onetime
           # removal is indistinguishable from a domain that was never added.
           # The dry-run path returns above, recording only a preview
           # observation on the access trail (#4337), never this operator event.
+          detail           = { org_id: org_id.to_s, reasserted: reasserts }
+          if lease_error
+            detail[:removal_committed] = true
+            detail[:lease_lost]        = true
+          end
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: plan.extid,
             result: :success,
-            detail: with_reason(org_id: org_id.to_s, reasserted: reasserts),
+            detail: with_reason(detail),
             fail_closed: true,
           )
+          @removal_audited = true
 
-          plan.with(status: :removed)
+          removed = plan.with(status: :removed)
+          if lease_error
+            raise RemovalCommitted.new(result: removed, lease_error: lease_error), cause: lease_error
+          end
+
+          removed
         end
 
         private
@@ -193,14 +227,11 @@ module Onetime
           record_preview_observation(with_reason(org_id: org_id.to_s, reasserted: reasserts))
         end
 
-        # Mirrors RemoveDomain#delete_vhost: no-op for non-Approximated strategies,
-        # swallows provider/transport errors so removal proceeds regardless.
-        def delete_vhost(domain)
-          strategy = Onetime::DomainValidation::Strategy.for_config(OT.conf)
-          result   = strategy.delete_vhost(domain)
-          OT.info "[Domains::Remove.delete_vhost] #{domain.display_domain} -> #{result && result[:message]}"
-        rescue HTTParty::ResponseError, Timeout::Error, Errno::ECONNREFUSED => ex
-          OT.le "[Domains::Remove.delete_vhost error] #{domain.display_domain} #{ex}"
+        def teardown_domain
+          Onetime::Operations::Domains::Teardown.new(domain: @domain).call
+        rescue Onetime::Operations::Domains::Teardown::Busy => ex
+          # Preserve the toolbox exception contract and failure-audit class.
+          raise SenderIdentityBusy, ex.message
         end
       end
     end

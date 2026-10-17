@@ -24,6 +24,9 @@
 #   bin/ots domains verify --all --unverified --limit=10
 #   bin/ots domains verify --all --orphaned --dry-run
 #
+# A domain with no organization is not checked and nothing is written for
+# it; the results list it as skipped (VerifyDomain#verify_single).
+#
 # The bulk filters and --limit/--rate-limit are rejected without --all rather
 # than ignored (see reject_bulk_only_options!).
 #
@@ -91,7 +94,7 @@ module Onetime
       option :orphaned,
         type: :boolean,
         default: false,
-        desc: 'Bulk filter: orphaned domains only'
+        desc: 'Bulk filter: orphaned domains only (listed as skipped, not checked)'
       option :verified,
         type: :boolean,
         default: false,
@@ -308,18 +311,21 @@ module Onetime
         puts 'Manual Verification Commands:'
         puts '-' * 70
 
-        txt_host  = domain.txt_validation_host
-        txt_value = domain.txt_validation_value
-        if txt_host && txt_value
-          full_txt_host = "#{txt_host}.#{domain.base_domain}"
+        txt_value           = domain.txt_validation_value
+        txt_name, txt_error = txt_record_name(domain)
+        if txt_error
+          puts
+          puts "1. DNS Ownership: TXT record name has no A-label form (#{txt_error})"
+          puts
+        elsif txt_name && txt_value
           puts
           puts '1. DNS Ownership (TXT record):'
           puts "   Status: #{result.dns_outcome.to_s.upcase}" # VALIDATED / FAILED / INDETERMINATE / OVERRIDE_HELD / CONFIRMATION_EXPIRED
-          puts "   Expected: TXT record at #{full_txt_host}"
+          puts "   Expected: TXT record at #{txt_name}"
           puts "   Value:    #{txt_value}"
           puts
           puts '   # Check TXT record:'
-          puts "   dig TXT #{full_txt_host} +short"
+          puts "   dig TXT #{txt_name} +short"
           puts
         else
           puts
@@ -346,6 +352,17 @@ module Onetime
         puts
       end
 
+      # The TXT record name in A-label form (CustomDomain#validation_record),
+      # the name the strategies query and dig has to ask for.
+      #
+      # @return [Array(String, nil)] name (nil without a challenge), no error
+      # @return [Array(nil, String)] no name, the conversion error message
+      def txt_record_name(domain)
+        [domain.validation_record, nil]
+      rescue Onetime::DomainValidation::AsciiHostname::ConversionError => ex
+        [nil, ex.message]
+      end
+
       def output_human_bulk(result, dry_run:)
         puts
         puts '=' * 70
@@ -359,6 +376,7 @@ module Onetime
         puts format('  Indeterminate:    %d', result.indeterminate_count)
         puts format('  Demoted:          %d', result.demoted_count)
         puts format('  Expired:          %d', result.confirmation_expired_count)
+        puts format('  Skipped:          %d (no organization)', result.skipped_count)
         puts format('  Duration:         %.2f seconds', result.duration_seconds)
         puts
 
@@ -389,9 +407,14 @@ module Onetime
       # on a domain held verified by an operator override. The third withdraws
       # it: indeterminate for longer than the confirmation window (counted
       # under Expired, and under Indeterminate and Demoted, in the summary).
+      # A domain with no organization is not checked (skipped).
       def format_dns(result)
-        { indeterminate: 'indeterminate', override_held: 'no (override)', confirmation_expired: 'expired' }
-          .fetch(result.dns_outcome) { format_bool(result.dns_validated) }
+        {
+          indeterminate: 'indeterminate',
+          override_held: 'no (override)',
+          confirmation_expired: 'expired',
+          skipped: 'skipped',
+        }.fetch(result.dns_outcome) { format_bool(result.dns_validated) }
       end
 
       def output_state_distribution(result)

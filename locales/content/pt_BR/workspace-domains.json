@@ -999,6 +999,14 @@
     "text": "Falha ao enviar e-mail de teste",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Foram enviados e-mails de teste demais recentemente. Tente novamente mais tarde.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Foram enviados e-mails de teste demais recentemente. Tente novamente em cerca de {minutes} minutos.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Enviado para {email}",
     "source_hash": "8ceb9588"
@@ -1662,5 +1670,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "Não encontramos o registro TXT esperado. Verifique se ele existe e se o valor corresponde exatamente. Novos registros DNS podem levar alguns minutos para aparecer.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Verificação da configuração salva concluída com sucesso",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "A verificação da configuração salva encontrou um problema",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "A verificação da configuração salva não chegou a uma conclusão",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Falha ao verificar a configuração salva",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "Esta configuração foi verificada vezes demais recentemente. Tente novamente mais tarde.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "Esta configuração foi verificada vezes demais recentemente. Tente novamente em cerca de {minutes} minutos.",
+    "source_hash": "fdbdeaf6"
   }
 }

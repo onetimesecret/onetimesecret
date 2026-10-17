@@ -14,6 +14,9 @@
 #   bin/ots domains repair example.com --yes --json       # apply, machine-readable
 #   bin/ots domains repair example.com --org-id on123abc  # adopt an ORPHANED domain
 #
+# Adopting an ORPHANED domain resets its ownership verification and issues a
+# new TXT value; the output lists the per-domain state the record kept.
+#
 # DOMAIN accepts the display domain (preferred), the domain extid, or its objid.
 #
 # --org-id accepts an organization extid (preferred) or objid and is ONLY
@@ -100,7 +103,7 @@ module Onetime
           puts
         end
 
-        result =
+        result = refuse_on_problem(json) do
           if dry_run
             run_op(target, org, dry_run: true)
           elsif yes
@@ -108,6 +111,7 @@ module Onetime
           else
             confirm_and_apply(target, org)
           end
+        end
 
         return if result.nil? # operator declined at the prompt
 
@@ -126,6 +130,16 @@ module Onetime
           actor: Customers::Shared::CLI_ACTOR,
           dry_run: dry_run,
         ).call
+      end
+
+      # Adopting an orphan can be refused (another record holds its name,
+      # another organization adopted it first) or hit a datastore error. The
+      # message is shown like any other refusal; the op has already audited
+      # the failure.
+      def refuse_on_problem(json)
+        yield
+      rescue Onetime::Problem => ex
+        error_exit(ex.message, json: json)
       end
 
       # Two op calls: plan, then apply. Only for the interactive path.

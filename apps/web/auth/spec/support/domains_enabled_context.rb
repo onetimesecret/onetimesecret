@@ -11,7 +11,7 @@
 # suite happened to run in.
 #
 #   include_context 'domains enabled'
-#   include_context 'domains enabled', 'operator-signin-gate.example.com'
+#   include_context 'domains enabled', 'operator.example.net'
 #
 # Inside the group, `canonical_host` is the operator host that was installed.
 #
@@ -84,12 +84,13 @@
 # PRIMARY canonical host (#3841), so the unparseable site.host is demoted to a
 # skipped set member instead of the entry that disables the whole feature.
 #
-# Pass a custom host when the file's own fixture hosts need to sit in a
-# specific relationship to it (see signin_enabled_enforcement_spec.rb, whose
-# tenant hosts are peers under example.com). Otherwise take the default: it is
-# the same host spec/config.test.yaml installs when DOMAINS_ENABLED=true, so
+# Take the default unless a file needs a specific operator host: it is the
+# same host spec/config.test.yaml installs when DOMAINS_ENABLED=true, so
 # opting in changes classification for the file's fixture hosts and nothing
-# else.
+# else. A custom host must not share a base domain with any CustomDomain the
+# file registers: saving a new record whose base domain matches an anchor
+# host raises (CustomDomain.refuse_canonical_overlap!, the check create!
+# applies).
 #
 # ---------------------------------------------------------------------------
 # RESTORATION

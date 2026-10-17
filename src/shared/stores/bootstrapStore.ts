@@ -18,6 +18,7 @@ import {
   updateBootstrapSnapshot,
 } from '@/services/bootstrap.service';
 import { setDiagnosticsActorContext } from '@/services/diagnostics.service';
+import { loggingService } from '@/services/logging.service';
 import { parseCompleteSnapshot } from '@/utils/snapshotOrdering';
 import { defineStore } from 'pinia';
 
@@ -359,7 +360,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
      */
     init(): { isInitialized: boolean } {
       if (this._initialized) {
-        console.debug('[BootstrapStore.init] Already initialized, skipping');
+        loggingService.debug('[BootstrapStore.init] Already initialized, skipping');
         return { isInitialized: true };
       }
 
@@ -370,7 +371,9 @@ export const useBootstrapStore = defineStore('bootstrap', {
         // status stays `checking` and the refresh coordinator asks the server
         // once (#4456).
         if (!snapshot) {
-          console.debug('[BootstrapStore.init] No bootstrap data available, status: checking');
+          loggingService.debug(
+            '[BootstrapStore.init] No bootstrap data available, status: checking'
+          );
           this._initialized = true;
           return { isInitialized: true };
         }
@@ -405,7 +408,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
           replaceBootstrapSnapshot(config as Partial<BootstrapPayload>);
         }
 
-        console.debug('[BootstrapStore.init] Initialized from snapshot:', {
+        loggingService.debug('[BootstrapStore.init] Initialized from snapshot', {
           authStatus: this.authStatus,
           locale: this.locale,
         });
@@ -486,7 +489,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
       // on null. It no-ops when diagnostics are disabled.
       setDiagnosticsActorContext(this.diagnostics_ref ?? null);
 
-      console.debug('[BootstrapStore.applySnapshot] Applied:', { authStatus: status });
+      loggingService.debug('[BootstrapStore.applySnapshot] Applied', { authStatus: status });
     },
 
     /**
@@ -621,7 +624,9 @@ export const useBootstrapStore = defineStore('bootstrap', {
       for (const key of CLIENT_ONLY_KEYS) delete mirror[key];
       replaceBootstrapSnapshot(mirror as Partial<BootstrapPayload>);
 
-      console.debug('[BootstrapStore.resetForLogout] Reset to defaults (server config preserved)');
+      loggingService.debug(
+        '[BootstrapStore.resetForLogout] Reset to defaults (server config preserved)'
+      );
     },
   },
 });

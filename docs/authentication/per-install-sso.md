@@ -83,6 +83,7 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `OIDC_CLIENT_ID` | Yes | OAuth client ID |
 | `OIDC_CLIENT_SECRET` | No | OAuth client secret (empty for PKCE-only flows) |
 | `OIDC_ROUTE_NAME` | No | URL segment (default: `oidc`) |
+| `OIDC_CLIENT_AUTH_METHOD` | No | How the client secret is sent to the token endpoint: `client_secret_basic` (`Authorization: Basic` header, the default when unset) or `client_secret_post` (request body). Leave unset unless the IdP requires one method. An unknown value is logged at boot and treated as unset. Custom-domain OIDC has its own per-domain setting and never inherits this value ([per-domain-sso.md](per-domain-sso.md#token-endpoint-authentication)) |
 
 ### Microsoft Entra ID
 

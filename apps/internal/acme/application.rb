@@ -152,7 +152,9 @@ module Internal
           # IMPORTANT: Only allow domains that have been verified via DNS TXT record.
           # This proves the customer actually owns the domain before Caddy issues a cert.
           # The ACME HTTP challenge (handled by Caddy) is separate from DNS ownership proof.
-          custom_domain.ready?
+          # serving_authorized? also refuses a record with no organization,
+          # which is never served, whatever its verified flag says.
+          custom_domain.serving_authorized? && custom_domain.ready?
         rescue StandardError => ex
           OT.le "[Internal::ACME] Error checking domain #{domain}: #{ex.message}"
           false

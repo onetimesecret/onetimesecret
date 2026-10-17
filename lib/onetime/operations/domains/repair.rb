@@ -10,6 +10,7 @@
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/operations/audit_attempt'
+require 'onetime/operations/domains/adoption_report'
 
 module Onetime
   module Operations
@@ -19,7 +20,10 @@ module Onetime
       # two relationship inconsistencies the CLI's `bin/ots domains repair` detects:
       #
       #   1. ORPHANED: `org_id` is blank. Repairable only when a target org is
-      #      supplied; the op assigns it and adds the domain to the org's collection.
+      #      supplied; the op adopts the domain for it through
+      #      CustomDomain.claim_orphaned_domain, which resets the domain's
+      #      ownership verification and issues a new TXT value. The kept
+      #      per-domain state is listed in `repairs_applied` (AdoptionReport).
       #   2. NOT-IN-COLLECTION: `org_id` is set and the org exists, but the domain is
       #      missing from that org's `domains` collection. The op adds it.
       #
@@ -134,19 +138,21 @@ module Onetime
             return result_for(:planned, issues, [])
           end
 
-          # Apply every repair, collecting the human-readable result of each.
-          repairs_applied = repairs.map(&:call)
+          # Apply every repair, collecting the human-readable result(s) of each.
+          repairs_applied = repairs.flat_map { |repair| Array(repair.call) }
 
           # Exactly one audit event per successful mutation. Non-secret detail only.
+          detail = { issues: issues, org_id: @domain.org_id.to_s }
+          if @adoption
+            detail[:adopted_orphan]     = true
+            detail[:verification_reset] = true
+          end
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @domain.extid,
             result: :success,
-            detail: {
-              issues: issues,
-              org_id: @domain.org_id.to_s,
-            },
+            detail: detail,
           )
 
           result_for(:repaired, issues, repairs_applied)
@@ -182,20 +188,17 @@ module Onetime
               return [issues, repairs, result_for(:needs_org, [], [])]
             end
 
-            issues << 'Domain is orphaned (no org_id)'
+            issues << 'Domain is orphaned (no org_id); adopting it resets its ownership verification'
             org = @org
             repairs << -> do
-              @domain.org_id  = org.org_id
-              @domain.updated = OT.now.to_i
-              @domain.save
-              # The `owners` class hashkey is a second ownership index that
-              # nothing maintains automatically; adopting an orphan has to
-              # write it or the org-deletion drift guard
-              # (Organization#unlisted_owned_domains) never learns who owns
-              # this domain. Same reason Domains::Transfer writes it.
-              Onetime::CustomDomain.record_owner(@domain, org.org_id)
-              org.add_domain(@domain)
-              "Assigned to organization #{org.org_id}"
+              # The same adoption as create!(adopt_orphan: true): one claim
+              # writes org_id, the organization's domains collection, the
+              # `owners` index (which Organization#unlisted_owned_domains
+              # reads as the org-deletion drift guard) and the canonical-name
+              # entry, and resets the earlier owner's verification.
+              Onetime::CustomDomain.claim_orphaned_domain(@domain, org.org_id)
+              @adoption = AdoptionReport.for(@domain).tap { |report| report.log('Domains::Repair') }
+              ["Assigned to organization #{org.org_id}", *@adoption.lines]
             end
           else
             # Case 2: org_id set — verify the org exists and the collection contains it.

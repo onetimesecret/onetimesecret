@@ -352,8 +352,8 @@
     "content_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
-    "text": "Monitor org billing sync health",
-    "content_hash": "d8f4398b"
+    "text": "Manage organizations, memberships, and subscriptions.",
+    "content_hash": "96047d0a"
   },
   "web.colonel.organizations.pageTitle": {
     "text": "Billing Health Monitor",
@@ -672,8 +672,8 @@
     "content_hash": "6170ab94"
   },
   "web.colonel.customDomains.description": {
-    "text": "Manage custom domains and branding",
-    "content_hash": "808ee2cb"
+    "text": "Manage custom domains and review their configuration.",
+    "content_hash": "2191ae61"
   },
   "web.colonel.customDomains.empty": {
     "text": "No custom domains configured",

@@ -116,7 +116,7 @@ describe('SsoButton', () => {
             Signing in...
           </span>
           <template v-else>
-            <span class="o-icon" data-icon="solid-building-office"></span>
+            <span class="o-icon" data-icon="building-office-16-solid"></span>
             {{ providerName ? 'Sign in with ' + providerName : 'Sign in with SSO' }}
           </template>
         </button>
@@ -186,7 +186,7 @@ describe('SsoButton', () => {
     it('renders building office icon', () => {
       wrapper = mountComponent();
 
-      const icon = wrapper.find('[data-icon="solid-building-office"]');
+      const icon = wrapper.find('[data-icon="building-office-16-solid"]');
       expect(icon.exists()).toBe(true);
     });
 
@@ -521,7 +521,7 @@ describe('SsoButton', () => {
       const icon = wrapper.find('[data-icon="key"]');
       expect(icon.exists()).toBe(true);
       expect(icon.attributes('data-collection')).toBe('mdi');
-      expect(wrapper.find('[data-icon="solid-building-office"]').exists()).toBe(false);
+      expect(wrapper.find('[data-icon="building-office-16-solid"]').exists()).toBe(false);
     });
 
     it('renders the mdi gitlab icon for the gitlab route', () => {
@@ -535,7 +535,7 @@ describe('SsoButton', () => {
     it('falls back to the building-office icon for an unmapped route', () => {
       wrapper = mountReal('some-custom-idp');
 
-      expect(wrapper.find('[data-icon="solid-building-office"]').exists()).toBe(true);
+      expect(wrapper.find('[data-icon="building-office-16-solid"]').exists()).toBe(true);
     });
   });
 });

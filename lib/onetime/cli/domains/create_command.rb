@@ -74,7 +74,7 @@ module Onetime
 
         # Validate BEFORE prompting so an obviously bad input fails fast, and so
         # the operator sees the normalised FQDN they are about to register.
-        check = operation.validate
+        check = refuse_on_problem(json) { operation.validate }
         error_exit(check.message, json: json) unless check.status == :ok
 
         unless yes
@@ -82,7 +82,7 @@ module Onetime
 
           puts "Domain:       #{check.display_domain}"
           puts "Organization: #{organization.display_name || organization.extid} (#{organization.extid})"
-          puts '  (claims an existing ORPHANED record)' if check.claims_orphan
+          puts '  (adopts an existing ORPHANED record; its ownership verification is reset)' if check.claims_orphan
           puts "Certificate:  #{cert ? 'request after create' : 'skipped (--no-cert)'}"
           puts
           print 'Create this domain? [y/N] '
@@ -93,7 +93,7 @@ module Onetime
           end
         end
 
-        result = operation.call
+        result = refuse_on_problem(json) { operation.call }
         error_exit(result.message, json: json) unless result.status == :created
 
         OT.info "[cli-domains-create] domain=#{result.display_domain} org=#{organization.extid} extid=#{result.extid}"
@@ -106,11 +106,12 @@ module Onetime
             display_domain: result.display_domain,
             org_id: organization.extid,
             claimed_orphan: result.claims_orphan,
+            adoption: result.adoption&.to_payload,
             cert_status: result.cert_status,
           )
         else
           puts "Created #{result.display_domain} (#{result.extid}) for #{organization.extid}"
-          puts '  Claimed a previously orphaned record' if result.claims_orphan
+          print_adoption(result.adoption) if result.adoption
           puts "  Certificate request: #{result.cert_status}" if result.cert_status
           puts
           puts "Next: bin/ots domains verify #{result.display_domain}"
@@ -118,6 +119,13 @@ module Onetime
       end
 
       private
+
+      # The adopted orphan's verification was reset; it kept the per-domain
+      # state listed, which the operator may want to review.
+      def print_adoption(report)
+        puts '  Adopted a previously orphaned record'
+        report.lines.each { |line| puts "  #{line}" }
+      end
 
       # extid first (the documented input), objid as a fallback — the same
       # precedence CreateCustomDomain uses on the HTTP side.
@@ -129,6 +137,17 @@ module Onetime
       def error_exit(message, json:)
         puts(json ? JSON.generate({ error: message }) : "Error: #{message}")
         exit 1
+      end
+
+      # CustomDomain.parse and create! refuse some names (too deep, TXT
+      # challenge name too long, already registered) and report datastore
+      # failures with an Onetime::Problem whose message is written for the
+      # person adding the domain. Shown like any other refusal, not as a
+      # stack trace. The op has already audited a raise from #call.
+      def refuse_on_problem(json)
+        yield
+      rescue Onetime::Problem => ex
+        error_exit(ex.message, json: json)
       end
     end
 

@@ -70,10 +70,11 @@ RSpec.describe 'per-domain signin_enabled enforcement — full mode (ADR-024 cus
   # (ADR-024#operator-defaults-require-positive-classification), i.e. a 404 for
   # a reason that has nothing to do with what these examples assert.
   #
-  # `.example.com`, matching the tenant fixture hosts below: those are
-  # registered CustomDomains, so they hit Chooserator's registration arm ahead
-  # of the peer sweep and keep :custom regardless.
-  include_context 'domains enabled', 'operator-signin-gate.example.com'
+  # The context's default operator host is on example.org; the tenant fixture
+  # hosts below are on example.com. The two base domains must differ: saving a
+  # new CustomDomain whose base domain matches an anchor host raises
+  # (CustomDomain.refuse_canonical_overlap!, the check create! applies).
+  include_context 'domains enabled'
 
   before(:all) { boot_onetime_app }
 

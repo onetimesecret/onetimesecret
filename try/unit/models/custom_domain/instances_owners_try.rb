@@ -70,7 +70,7 @@ Onetime::CustomDomain.owners.remove(@domain2.to_s)
 #=> false
 
 ## After claiming orphaned domain, sync is restored
-@claimed = Onetime::CustomDomain.create!("sync-two-#{@timestamp}.example.com", @org2.objid)
+@claimed = Onetime::CustomDomain.create!("sync-two-#{@timestamp}.example.com", @org2.objid, adopt_orphan: true)
 @instances_set = Onetime::CustomDomain.instances.members.to_set
 @owners_keys = Onetime::CustomDomain.owners.keys.to_set
 [@instances_set == @owners_keys, @instances_set.size]

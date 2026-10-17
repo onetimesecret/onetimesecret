@@ -19,6 +19,7 @@
 require 'spec_helper'
 require 'onetime/models/colonel_audit_event'
 require 'auth/operations/customers/purge'
+require 'auth/operations/customers/doctor'
 
 RSpec.describe Auth::Operations::Customers::Purge do
   let(:customer) do
@@ -37,7 +38,10 @@ RSpec.describe Auth::Operations::Customers::Purge do
   let(:empty_plan) do
     Auth::Operations::Customers::PurgePreflight::Plan.new(actions: [], blockers: [])
   end
-  let(:preflight) { instance_double(Auth::Operations::Customers::PurgePreflight, call: empty_plan) }
+  let(:preflight) do
+    instance_double(Auth::Operations::Customers::PurgePreflight,
+      call: empty_plan, pending_organization_checks: [])
+  end
 
   before do
     allow(Onetime::ColonelAuditEvent).to receive(:record)
@@ -289,7 +293,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
     )
     ready = Auth::Operations::Customers::PurgePreflight::Plan.new(actions: [action], blockers: [])
     planners = [ready, ready, empty_plan].map do |plan|
-      instance_double(Auth::Operations::Customers::PurgePreflight, call: plan)
+      instance_double(Auth::Operations::Customers::PurgePreflight, call: plan, pending_organization_checks: [])
     end
     allow(Auth::Operations::Customers::PurgePreflight).to receive(:new).and_return(*planners)
 
@@ -448,7 +452,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
     )
     ready = Auth::Operations::Customers::PurgePreflight::Plan.new(actions: [action], blockers: [])
     planners = [ready, ready, empty_plan].map do |plan|
-      instance_double(Auth::Operations::Customers::PurgePreflight, call: plan)
+      instance_double(Auth::Operations::Customers::PurgePreflight, call: plan, pending_organization_checks: [])
     end
     allow(Auth::Operations::Customers::PurgePreflight).to receive(:new).and_return(*planners)
 
@@ -474,7 +478,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
       actions: [delete_a], blockers: [],
     )
     planners = [ready, ready, empty_plan, empty_plan].map do |plan|
-      instance_double(Auth::Operations::Customers::PurgePreflight, call: plan)
+      instance_double(Auth::Operations::Customers::PurgePreflight, call: plan, pending_organization_checks: [])
     end
     allow(Auth::Operations::Customers::PurgePreflight).to receive(:new).and_return(*planners)
 
@@ -497,7 +501,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
       actions: [remove_a], blockers: [],
     )
     planners = [ready, ready, empty_plan, empty_plan].map do |plan|
-      instance_double(Auth::Operations::Customers::PurgePreflight, call: plan)
+      instance_double(Auth::Operations::Customers::PurgePreflight, call: plan, pending_organization_checks: [])
     end
     allow(Auth::Operations::Customers::PurgePreflight).to receive(:new).and_return(*planners)
 
@@ -521,7 +525,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
       actions: [action], blockers: [{ code: :target_participation_drift, org_id: 'on_shared' }],
     )
     planners = [ready, ready, residual].map do |plan|
-      instance_double(Auth::Operations::Customers::PurgePreflight, call: plan)
+      instance_double(Auth::Operations::Customers::PurgePreflight, call: plan, pending_organization_checks: [])
     end
     allow(Auth::Operations::Customers::PurgePreflight).to receive(:new).and_return(*planners)
     allow(Onetime::Operations::Memberships::Remove).to receive(:new).and_return(
@@ -536,6 +540,310 @@ RSpec.describe Auth::Operations::Customers::Purge do
     expect(result.blockers.map { |blocker| blocker[:code] })
       .to include(:target_participation_drift, :preflight_changed, :references_remain)
     expect(Auth::Operations::TeardownAccount).not_to have_received(:new)
+  end
+
+  describe 'automatic stale participation cleanup' do
+    let(:reference) { 'organization:org-gone:members' }
+    let(:stale_action) do
+      Auth::Operations::Customers::PurgePreflight::Action.new(
+        type: :remove_stale_participation,
+        organization: double('Deleted organization', objid: 'org-gone'),
+        org_id: 'org-gone', role: '', reference: reference,
+      )
+    end
+    let(:stale_plan) do
+      Auth::Operations::Customers::PurgePreflight::Plan.new(actions: [stale_action], blockers: [])
+    end
+    let(:participations) { double('Participations') }
+    let(:pending_checks) { double('Pending organization checks') }
+    let(:completed_action) { stale_action.public_detail(status: :success) }
+    let(:dependency_blockers) do
+      [{ code: :orphan_organization_dependencies_remain, org_id: 'org-gone' }]
+    end
+
+    before do
+      @references = [reference]
+      @pending_references = []
+      allow(customer).to receive(:purge_pending_organization_checks).and_return(pending_checks)
+      allow(pending_checks).to receive(:to_a) { @pending_references.dup }
+      allow(pending_checks).to receive(:add).with(reference) do
+        @pending_references |= [reference]
+        1
+      end
+      allow(customer).to receive(:participations).and_return(participations)
+      allow(participations).to receive(:to_a) { @references.dup }
+      allow(customer).to receive(:untrack_participation_in).with(reference) do
+        @references.delete(reference) ? 1 : 0
+      end
+      allow(preflight).to receive(:call).and_return(stale_plan, stale_plan, empty_plan)
+      allow(preflight).to receive(:stale_participation_blockers).with(stale_action).and_return([])
+    end
+
+    it 'records verified cleanup in the result and the fail-closed success audit' do
+      operation = described_class.new(customer: customer, actor: 'ur_col')
+      allow(customer).to receive(:untrack_participation_in).with(reference) do
+        expect(operation.mutation_started?).to be(true)
+        expect(@pending_references).to eq([reference])
+        @references.clear
+        1
+      end
+
+      result = operation.call
+
+      expect(result.status).to eq(:success)
+      expect(result.actions).to eq([completed_action])
+      expect(result.completed_stages).to include(:remove_stale_participation)
+      expect(customer).to have_received(:untrack_participation_in).with(reference).once
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
+        hash_including(verb: 'customer.purge', result: :success, fail_closed: true,
+          detail: hash_including(completed_actions: [completed_action])),
+      )
+    end
+
+    it 'returns partial without claiming completion when untracking silently does nothing' do
+      allow(customer).to receive(:untrack_participation_in).and_return(0)
+      operation = described_class.new(customer: customer, actor: 'ur_col')
+
+      result = operation.call
+
+      expect(result.status).to eq(:partial)
+      expect(result.blockers).to include(hash_including(code: :stale_participation_cleanup_failed))
+      expect(result.actions).to be_empty
+      expect(result.completed_stages).not_to include(:remove_stale_participation)
+      expect(@pending_references).to eq([reference])
+      expect(operation.mutation_started?).to be(true)
+      expect(@references).to eq([reference])
+      expect(Auth::Operations::TeardownAccount).not_to have_received(:new)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
+        hash_including(result: :failure, fail_closed: true,
+          detail: hash_including(status: 'partial', completed_actions: [])),
+      )
+    end
+
+    it 'retains the marker when untracking raises after removing the reverse index' do
+      failure = IOError.new('untrack response lost')
+      allow(customer).to receive(:untrack_participation_in).with(reference) do
+        expect(@pending_references).to eq([reference])
+        @references.clear
+        raise failure
+      end
+      operation = described_class.new(customer: customer, actor: 'ur_col')
+
+      expect { operation.call }.to raise_error { |error| expect(error).to be(failure) }
+      expect(@pending_references).to eq([reference])
+      expect(@references).to be_empty
+      expect(operation.mutation_started?).to be(true)
+      expect(operation.outcome_context[:actions]).to be_empty
+      expect(Auth::Operations::TeardownAccount).not_to have_received(:new)
+    end
+
+    it 'propagates a partial-audit failure without claiming that cleanup completed' do
+      allow(customer).to receive(:untrack_participation_in).and_return(0)
+      failure = Onetime::AuditWriteFailure.new(verb: 'customer.purge', target: 'ur_p')
+      allow(Onetime::ColonelAuditEvent).to receive(:record)
+        .with(hash_including(verb: 'customer.purge', fail_closed: true)).and_raise(failure)
+      operation = described_class.new(customer: customer, actor: 'ur_col')
+
+      expect { operation.call }.to raise_error { |error| expect(error).to be(failure) }
+      expect(operation.mutation_started?).to be(true)
+      expect(operation.outcome_context[:actions]).to be_empty
+      expect(Auth::Operations::TeardownAccount).not_to have_received(:new)
+      expect(@references).to eq([reference])
+    end
+
+    it 'uses verified absence rather than the removal count for idempotent cleanup' do
+      allow(customer).to receive(:untrack_participation_in).with(reference) do
+        @references.clear
+        0
+      end
+
+      result = described_class.new(customer: customer, actor: 'ur_col').call
+
+      expect(result.status).to eq(:success)
+      expect(result.actions).to eq([completed_action])
+    end
+
+    it 'refuses dependency drift before removing the reference' do
+      blocked = Auth::Operations::Customers::PurgePreflight::Plan.new(
+        actions: [], blockers: dependency_blockers,
+      )
+      allow(preflight).to receive(:call).and_return(stale_plan, blocked)
+
+      result = described_class.new(customer: customer, actor: 'ur_col').call
+
+      expect(result.status).to eq(:refused)
+      expect(result.blockers).to include(*dependency_blockers)
+      expect(customer).not_to have_received(:untrack_participation_in)
+      expect(Auth::Operations::TeardownAccount).not_to have_received(:new)
+    end
+
+    it 'retains the cleaned action for dependency checks after its reverse index is gone' do
+      allow(preflight).to receive(:stale_participation_blockers).with(stale_action) do
+        @references.empty? ? dependency_blockers : []
+      end
+
+      result = described_class.new(customer: customer, actor: 'ur_col').call
+
+      expect(result.status).to eq(:partial)
+      expect(result.stage).to eq(:post_cleanup_revalidation)
+      expect(result.actions).to eq([completed_action])
+      expect(result.blockers).to include(*dependency_blockers)
+      expect(@references).to be_empty
+      expect(Auth::Operations::TeardownAccount).not_to have_received(:new)
+    end
+
+    it 'rechecks a cleaned orphan before the next organization mutation' do
+      later_action = Auth::Operations::Customers::PurgePreflight::Action.new(
+        type: :remove_membership,
+        organization: double('Later organization', objid: 'org-later'),
+        org_id: 'on_later', role: 'member',
+      )
+      initial = Auth::Operations::Customers::PurgePreflight::Plan.new(
+        actions: [stale_action, later_action], blockers: [],
+      )
+      remaining = Auth::Operations::Customers::PurgePreflight::Plan.new(
+        actions: [later_action], blockers: [],
+      )
+      allow(preflight).to receive(:call).and_return(initial, initial, remaining)
+      allow(preflight).to receive(:stale_participation_blockers).with(stale_action) do
+        @references.empty? ? dependency_blockers : []
+      end
+      allow(Onetime::Operations::Memberships::Remove).to receive(:new)
+
+      result = described_class.new(customer: customer, actor: 'ur_col').call
+
+      expect(result.status).to eq(:partial)
+      expect(result.stage).to eq(:cleanup_revalidation)
+      expect(result.actions).to eq([completed_action])
+      expect(result.blockers).to include(*dependency_blockers)
+      expect(Onetime::Operations::Memberships::Remove).not_to have_received(:new)
+      expect(Auth::Operations::TeardownAccount).not_to have_received(:new)
+    end
+
+    it 'rechecks cleaned dependencies at each account mutation boundary' do
+      checks = []
+      dependency_present = false
+      allow(preflight).to receive(:stale_participation_blockers).with(stale_action) do
+        dependency_present ? dependency_blockers : []
+      end
+      allow(Auth::Operations::TeardownAccount).to receive(:new) do |**options|
+        allow(deleter).to receive(:call) do
+          checks << options.fetch(:before_mutation).call(:sessions)
+          dependency_present = true
+          checks << options.fetch(:before_mutation).call(:customer)
+          instance_double(Auth::Operations::TeardownAccount::Result,
+            status: :refused, completed_stages: [], blocked_stage: :customer)
+        end
+        deleter
+      end
+
+      result = described_class.new(customer: customer, actor: 'ur_col').call
+
+      expect(checks).to eq([true, false])
+      expect(result.status).to eq(:partial)
+      expect(result.blockers).to include(*dependency_blockers)
+      expect(result.actions).to eq([completed_action])
+    end
+
+    it 'detects dependencies appearing after account teardown despite an empty reverse index' do
+      dependency_present = false
+      allow(preflight).to receive(:stale_participation_blockers).with(stale_action) do
+        dependency_present ? dependency_blockers : []
+      end
+      allow(deleter).to receive(:call) do
+        dependency_present = true
+        deletion_result
+      end
+
+      result = described_class.new(customer: customer, actor: 'ur_col').call
+
+      expect(result.status).to eq(:partial)
+      expect(result.stage).to eq(:post_teardown_revalidation)
+      expect(result.blockers).to include(*dependency_blockers)
+      expect(result.actions).to eq([completed_action])
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        .with(hash_including(result: :success))
+    end
+
+    it 'retains marker-only reader actions after teardown clears the persistent markers' do
+      @references.clear
+      @pending_references = [reference]
+      allow(preflight).to receive(:call).and_return(empty_plan)
+      allow(preflight).to receive(:pending_organization_checks) do
+        @pending_references.empty? ? [] : [stale_action]
+      end
+      dependency_present = false
+      allow(preflight).to receive(:stale_participation_blockers).with(stale_action) do
+        dependency_present ? dependency_blockers : []
+      end
+      allow(deleter).to receive(:call) do
+        @pending_references.clear
+        dependency_present = true
+        deletion_result
+      end
+
+      result = described_class.new(customer: customer, actor: 'ur_col').call
+
+      expect(result.status).to eq(:partial)
+      expect(result.stage).to eq(:post_teardown_revalidation)
+      expect(result.blockers).to include(*dependency_blockers)
+      expect(result.actions).to be_empty
+      expect(result.planned_actions).to be_empty
+      expect(@pending_references).to be_empty
+      expect(customer).not_to have_received(:untrack_participation_in)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        .with(hash_including(result: :success))
+    end
+
+    it 'preserves the completed cleanup when teardown refuses and permits a fresh retry' do
+      allow(deletion_result).to receive(:status).and_return(:refused)
+      first = described_class.new(customer: customer, actor: 'ur_col').call
+
+      expect(first.status).to eq(:partial)
+      expect(first.actions).to eq([completed_action])
+      expect(@references).to be_empty
+
+      allow(preflight).to receive(:call).and_return(empty_plan)
+      allow(deletion_result).to receive(:status).and_return(:success)
+      retried = described_class.new(customer: customer, actor: 'ur_col').call
+
+      expect(retried.status).to eq(:success)
+      expect(retried.actions).to be_empty
+      expect(customer).to have_received(:untrack_participation_in).once
+    end
+
+    it 'propagates a success-audit failure after recording the completed cleanup payload' do
+      failure = Onetime::AuditWriteFailure.new(verb: 'customer.purge', target: 'ur_p')
+      allow(Onetime::ColonelAuditEvent).to receive(:record)
+        .with(hash_including(verb: 'customer.purge', result: :success)).and_raise(failure)
+
+      expect { described_class.new(customer: customer, actor: 'ur_col').call }
+        .to raise_error { |error| expect(error).to be(failure) }
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
+        hash_including(verb: 'customer.purge', result: :success,
+          detail: hash_including(completed_actions: [completed_action])),
+      )
+      expect(@references).to be_empty
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        .with(hash_including(verb: 'customer.purge', result: :failure))
+    end
+
+    [:success, :partial].each do |status|
+      it "routes self-service stale cleanup #{status} to the security audit only" do
+        allow(Onetime::ColonelAuditEvent).to receive(:record_security)
+        allow(customer).to receive(:untrack_participation_in).and_return(0) if status == :partial
+
+        result = described_class.new(customer: customer, self_service: true).call
+
+        expect(result.status).to eq(status)
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_security).with(
+          hash_including(verb: 'customer.purge',
+            result: status == :success ? :success : :failure,
+            detail: hash_including(completed_actions: status == :success ? [completed_action] : [])),
+        )
+      end
+    end
   end
 
   describe 'real datastore lifecycle', :datastore do
@@ -570,6 +878,256 @@ RSpec.describe Auth::Operations::Customers::Purge do
       Onetime::Organization.contact_email_index.remove(email)
     rescue StandardError => ex
       warn "[customer purge spec] cleanup failed: #{ex.class}: #{ex.message}"
+    end
+
+    def seed_previous_partial(shape, prefix: 'organization')
+      plan = Auth::Operations::Customers::PurgePreflight.new(customer: @real_customer).call
+      action = plan.actions.find { |entry| entry.type == :delete_organization }
+      deleted = Onetime::Operations::Org::Delete.new(
+        org: @real_org, actor: 'ur_col', dry_run: false,
+        account_purge_context: action.account_purge_context,
+      ).call
+      expect(deleted.status).to eq(:success)
+      expect(@real_org.exists?).to be(false)
+      expect(@real_customer.exists?).to be(true)
+
+      reference = "#{prefix}:#{@real_org.objid}:members"
+      set = @real_customer.participations
+      encoded = set.serialize_value(reference)
+      values = case shape
+               when :raw then [reference]
+               when :canonical then [encoded]
+               when :mixed then [reference, encoded]
+               end
+      set.dbclient.sadd(set.dbkey, values)
+      reference
+    end
+
+    [:raw, :canonical, :mixed].each do |shape|
+      it "retries a previous partial purge with #{shape} dangling bytes and audits the cleanup" do
+        reference = seed_previous_partial(shape)
+        allow(Auth::Operations::Customers::Doctor).to receive(:new).and_call_original
+        before = @real_customer.participations.membersraw.sort
+        plan = Auth::Operations::Customers::PurgePreflight.new(customer: @real_customer).call
+
+        expect(plan).to be_executable
+        expect(plan.actions.map(&:reference)).to eq([reference])
+        expect(@real_customer.participations.membersraw.sort).to eq(before)
+
+        result = described_class.new(customer: @real_customer, actor: 'ur_col').call
+
+        expect(result.status).to eq(:success), result.blockers.inspect
+        expect(result.actions).to eq(plan.action_details(status: :success))
+        expect(@real_customer.exists?).to be(false)
+        expect(@real_customer.participations.membersraw).to be_empty
+        expect(Auth::Operations::Customers::Doctor).not_to have_received(:new)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
+          hash_including(verb: 'customer.purge', result: :success, fail_closed: true,
+            detail: hash_including(completed_actions: result.actions)),
+        )
+      end
+    end
+
+    it 'cleans both organization prefix aliases without leaving physical encodings behind' do
+      reference = seed_previous_partial(:mixed)
+      legacy = reference.sub('organization:', 'org:')
+      set = @real_customer.participations
+      set.dbclient.sadd(set.dbkey, [legacy, set.serialize_value(legacy)])
+
+      result = described_class.new(customer: @real_customer, actor: 'ur_col').call
+
+      expect(result.status).to eq(:success), result.blockers.inspect
+      expect(result.actions.map { |action| action[:type] })
+        .to eq([:remove_stale_participation, :remove_stale_participation])
+      expect(set.membersraw).to be_empty
+      expect(@real_customer.exists?).to be(false)
+    end
+
+    %w[organization org].each do |prefix|
+      [:raw, :canonical, :mixed].each do |shape|
+        it "refuses #{shape} malformed #{prefix} participation before mutation on initial and subsequent purges" do
+          seed_previous_partial(:mixed)
+          set = @real_customer.participations
+          set.clear
+          invalid = "#{prefix}:org.gone:members"
+          encoded = set.serialize_value(invalid)
+          values = case shape
+                   when :raw then [invalid]
+                   when :canonical then [encoded]
+                   when :mixed then [invalid, encoded]
+                   end
+          set.dbclient.sadd(set.dbkey, values)
+          before = set.membersraw.sort
+          markers = @real_customer.purge_pending_organization_checks
+
+          2.times do
+            operation = described_class.new(customer: @real_customer, actor: 'ur_col')
+            result = operation.call
+
+            expect(result.status).to eq(:refused)
+            expect(result.stage).to eq(:preflight)
+            expect(result.blockers).to include(code: :dangling_customer_participation, reference: invalid)
+            expect(result.actions).to be_empty
+            expect(result.planned_actions).to be_empty
+            expect(operation.mutation_started?).to be(false)
+            expect(set.membersraw.sort).to eq(before)
+            expect(markers.membersraw).to be_empty
+            expect(@real_customer.exists?).to be(true)
+          end
+          expect(Auth::Operations::TeardownAccount).not_to have_received(:new)
+        end
+      end
+    end
+
+    it 'shares dependency scans within each checker but checks again across cleanup and teardown' do
+      reference = seed_previous_partial(:mixed)
+      legacy = reference.sub('organization:', 'org:')
+      @real_customer.participations.add(legacy)
+      checkers = []
+      allow(Auth::Operations::Customers::PurgePreflight).to receive(:new).and_wrap_original do |original, **options|
+        checker = original.call(**options)
+        allow(checker).to receive(:orphan_dependencies?).and_call_original
+        checkers << checker
+        checker
+      end
+
+      result = described_class.new(customer: @real_customer, actor: 'ur_col').call
+
+      expect(result.status).to eq(:success), result.blockers.inspect
+      expect(result.actions.map { |action| action[:reference] }).to eq([reference, legacy].sort)
+      expect(checkers.size).to be > 4
+      checkers.each do |checker|
+        expect(checker).to have_received(:orphan_dependencies?).once
+      end
+      expect(@real_customer.exists?).to be(false)
+      expect(@real_customer.purge_pending_organization_checks.membersraw).to be_empty
+    end
+
+    it 'refuses a fresh purge after late receipt data appears until that dependency is removed' do
+      reference = seed_previous_partial(:mixed)
+      markers = @real_customer.purge_pending_organization_checks
+      receipt_key = @real_org.receipts.dbkey
+      redis = Onetime::Organization.dbclient
+      allow(@real_customer).to receive(:untrack_participation_in).and_wrap_original do |original, key|
+        expect(markers.to_a).to eq([reference])
+        removed = original.call(key)
+        redis.zadd(receipt_key, 1, 'late-receipt')
+        removed
+      end
+
+      begin
+        first = described_class.new(customer: @real_customer, actor: 'ur_col').call
+
+        expect(first.status).to eq(:partial)
+        expect(first.stage).to eq(:post_cleanup_revalidation)
+        expect(first.actions).to include(hash_including(type: :remove_stale_participation))
+        expect(@real_customer.participations.to_a).to be_empty
+        expect(markers.to_a).to eq([reference])
+        expect(@real_customer.exists?).to be(true)
+
+        reloaded = Onetime::Customer.load(@real_customer.objid)
+        second = described_class.new(customer: reloaded, actor: 'ur_col').call
+
+        expect(second.status).to eq(:refused)
+        expect(second.stage).to eq(:preflight)
+        expect(second.actions).to be_empty
+        expect(second.blockers).to include(hash_including(code: :orphan_organization_dependencies_remain))
+        expect(reloaded.exists?).to be(true)
+        expect(reloaded.participations.to_a).to be_empty
+        expect(reloaded.purge_pending_organization_checks.to_a).to eq([reference])
+        expect(redis.zrange(receipt_key, 0, -1)).to eq(['late-receipt'])
+        expect(Auth::Operations::TeardownAccount).not_to have_received(:new)
+
+        redis.del(receipt_key)
+        ready = Auth::Operations::Customers::PurgePreflight.new(customer: reloaded).call
+        expect(ready).to be_executable
+        expect(ready.actions).to be_empty
+        expect(reloaded.purge_pending_organization_checks.to_a).to eq([reference])
+
+        third = described_class.new(customer: reloaded, actor: 'ur_col').call
+
+        expect(third.status).to eq(:success), third.blockers.inspect
+        expect(third.actions).to be_empty
+        expect(reloaded.exists?).to be(false)
+        expect(markers.dbclient.exists?(markers.dbkey)).to be(false)
+      ensure
+        redis.del(receipt_key)
+      end
+    end
+
+    it 'returns partial for a marker-only retry when receipt data appears after successful teardown' do
+      reference = seed_previous_partial(:mixed)
+      @real_customer.purge_pending_organization_checks.add(reference)
+      @real_customer.untrack_participation_in(reference)
+      reloaded = Onetime::Customer.load(@real_customer.objid)
+      markers = reloaded.purge_pending_organization_checks
+      receipt_key = @real_org.receipts.dbkey
+      redis = Onetime::Organization.dbclient
+      checker = Auth::Operations::Customers::PurgePreflight.new(customer: reloaded)
+      plan = checker.call
+      expect(plan).to be_executable
+      expect(plan.actions).to be_empty
+      expect(checker.pending_organization_checks.map(&:reference)).to eq([reference])
+
+      allow(Auth::Operations::TeardownAccount).to receive(:new).and_wrap_original do |original, **options|
+        operation = original.call(**options)
+        allow(operation).to receive(:call).and_wrap_original do |call|
+          deletion = call.call
+          expect(deletion.status).to eq(:success)
+          expect(reloaded.exists?).to be(false)
+          expect(markers.dbclient.exists?(markers.dbkey)).to be(false)
+          redis.zadd(receipt_key, 1, 'post-teardown-receipt')
+          deletion
+        end
+        operation
+      end
+
+      begin
+        result = described_class.new(customer: reloaded, actor: 'ur_col').call
+
+        expect(result.status).to eq(:partial)
+        expect(result.stage).to eq(:post_teardown_revalidation)
+        expect(result.actions).to be_empty
+        expect(result.planned_actions).to be_empty
+        expect(result.blockers).to include(hash_including(code: :orphan_organization_dependencies_remain))
+        expect(reloaded.exists?).to be(false)
+        expect(markers.dbclient.exists?(markers.dbkey)).to be(false)
+        expect(redis.zrange(receipt_key, 0, -1)).to eq(['post-teardown-receipt'])
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+          .with(hash_including(verb: 'customer.purge', result: :success))
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
+          hash_including(verb: 'customer.purge', result: :failure, fail_closed: true,
+            detail: hash_including(status: 'partial', stage: 'post_teardown_revalidation')),
+        )
+      ensure
+        redis.del(receipt_key)
+      end
+    end
+
+    it 'retries account teardown after stale cleanup completed without requiring doctor' do
+      seed_previous_partial(:mixed)
+      refused = instance_double(Auth::Operations::TeardownAccount::Result,
+        status: :refused, completed_stages: [], blocked_stage: :customer)
+      allow(Auth::Operations::TeardownAccount).to receive(:new)
+        .and_return(instance_double(Auth::Operations::TeardownAccount, call: refused))
+
+      first = described_class.new(customer: @real_customer, actor: 'ur_col').call
+
+      expect(first.status).to eq(:partial)
+      expect(first.actions).to include(hash_including(type: :remove_stale_participation, status: :success))
+      expect(@real_customer.exists?).to be(true)
+      expect(@real_customer.participations.membersraw).to be_empty
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
+        hash_including(verb: 'customer.purge', result: :failure,
+          detail: hash_including(status: 'partial', completed_actions: first.actions)),
+      )
+
+      allow(Auth::Operations::TeardownAccount).to receive(:new).and_call_original
+      retried = described_class.new(customer: @real_customer, actor: 'ur_col').call
+
+      expect(retried.status).to eq(:success), retried.blockers.inspect
+      expect(retried.actions).to be_empty
+      expect(@real_customer.exists?).to be(false)
     end
 
     it 'removes the eligible default workspace, customer, and email reservation' do

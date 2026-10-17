@@ -4,8 +4,8 @@
     "content_hash": "0bc449a3"
   },
   "web.admin.banner.description": {
-    "text": "Publish a site-wide announcement shown to every visitor, or clear the current one.",
-    "content_hash": "a0f720d7"
+    "text": "Publish and manage site-wide announcements.",
+    "content_hash": "2d7ecd0d"
   },
   "web.admin.banner.loadError": {
     "text": "Could not load the current banner.",
