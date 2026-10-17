@@ -40,7 +40,7 @@ services:
     # DEV sidecar and deliberately keeps the canonical 1025/8025 ports. Same
     # separation as every other test service: a leaked dev config can never
     # reach the test instance, and a test run can never read dev mail.
-    image: axllent/mailpit:v1.31.3@sha256:ed9b00c609e77e99c79b93f1178255ebc271868920f2c69a8d166bd5634ed10d
+    image: axllent/mailpit:v1.31.4@sha256:b68349e3a014b90c5610bfb26b2ae36f3892d7b8cf25ee140c6c71c98d2fcf48
     # No persistence flags: the store is in-memory by default, so every
     # `up` starts from an empty mailbox and `down` takes it with it.
     ports:
