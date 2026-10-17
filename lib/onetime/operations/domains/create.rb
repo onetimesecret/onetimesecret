@@ -9,6 +9,7 @@
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/domain_validation/strategy'
+require 'onetime/operations/domains/adoption_report'
 
 module Onetime
   module Operations
@@ -110,6 +111,9 @@ module Onetime
         # @!attribute domain [r] Onetime::CustomDomain, nil
         # @!attribute cert_status [r] String, nil — strategy result, 'error', or
         #   nil when no certificate request was attempted.
+        # @!attribute adoption [r] AdoptionReport, nil — set when an orphaned
+        #   record was adopted: its verification was reset, and it lists the
+        #   per-domain state the record kept.
         Result = Data.define(
           :status,
           :domain,
@@ -119,6 +123,7 @@ module Onetime
           :message,
           :claims_orphan,
           :cert_status,
+          :adoption,
         )
 
         # @param domain [String] raw operator input (adapter pre-sanitises HTML).
@@ -152,7 +157,7 @@ module Onetime
           return reject(:duplicate_in_org, display_domain) if existing.org_id.to_s == @org.objid.to_s
           return reject(:duplicate_other_org, display_domain) unless existing.org_id.to_s.empty?
 
-          # Orphaned record (no org_id): create! claims it atomically.
+          # Orphaned record (no org_id): #call has create! adopt it.
           Check.new(status: :ok, display_domain: display_domain, message: nil, claims_orphan: true)
         end
 
@@ -168,23 +173,30 @@ module Onetime
           # Atomicity: the #validate duplicate/orphan pre-checks run in a
           # separate step and can race a concurrent request — they are advisory
           # (for precise field errors), NOT for correctness. create! is the sole
-          # atomic gate: HSETNX on display_domain_index claims a new domain, and
-          # claim_orphaned_domain uses a pinned-connection WATCH/MULTI to claim
-          # an orphan. The concurrent request that loses the gate gets an
-          # Onetime::Problem raised here, so no double-registration occurs.
-          domain = Onetime::CustomDomain.create!(check.display_domain, @org.objid)
-          cert   = @request_certificate ? provision_certificate(domain) : nil
+          # atomic gate: a new domain claims its canonical A-label field
+          # (claim_canonical_display_domain), and claim_orphaned_domain uses a
+          # pinned-connection WATCH/MULTI to claim an orphan. The concurrent
+          # request that loses the gate gets an error raised here, so no
+          # double-registration occurs.
+          #
+          # Adopt only the orphan validate found (and showed the operator).
+          # A name that turned into an orphan after validate is refused.
+          domain   = Onetime::CustomDomain.create!(check.display_domain, @org.objid, adopt_orphan: check.claims_orphan)
+          adoption = adoption_report(domain) if check.claims_orphan
+          cert     = @request_certificate ? provision_certificate(domain) : nil
 
           # Exactly one audit event per successful create. Public ids only.
+          detail = { org_id: @org.extid, display_domain: domain.display_domain }
+          if adoption
+            detail[:adopted_orphan]     = true
+            detail[:verification_reset] = true
+          end
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: domain.extid,
             result: :success,
-            detail: {
-              org_id: @org.extid,
-              display_domain: domain.display_domain,
-            },
+            detail: detail,
           )
 
           OT.info "[Domains::Create] #{domain.display_domain} -> org=#{@org.extid} extid=#{domain.extid}"
@@ -198,6 +210,7 @@ module Onetime
             message: nil,
             claims_orphan: check.claims_orphan,
             cert_status: cert,
+            adoption: adoption,
           )
         end
 
@@ -229,6 +242,14 @@ module Onetime
           )
         rescue StandardError => ex
           OT.le "[Domains::Create] refusal audit failed: #{ex.class}: #{ex.message}"
+        end
+
+        # The adopted orphan's verification was reset by the claim; report
+        # what it kept from the earlier owner (configs, brand, receipts).
+        #
+        # @return [AdoptionReport]
+        def adoption_report(domain)
+          AdoptionReport.for(domain).tap { |report| report.log('Domains::Create') }
         end
 
         # Certificate provisioning is best-effort: the domain record already
@@ -278,6 +299,7 @@ module Onetime
             message: check.message,
             claims_orphan: false,
             cert_status: nil,
+            adoption: nil,
           )
         end
       end

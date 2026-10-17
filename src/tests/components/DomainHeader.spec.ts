@@ -120,6 +120,16 @@ describe('DomainHeader', () => {
     });
   });
 
+  describe('band width', () => {
+    // Consumers stick the header at the full width of the main column and
+    // inset their cards by a px-4 sm:px-6 lg:px-8 gutter; the band takes the
+    // same inset so its edges and bottom border end at the card edges.
+    it("insets the band by the consumers' content gutter", () => {
+      const wrapper = mountComponent({ domain: createMockDomain() });
+      expect(wrapper.classes()).toEqual(expect.arrayContaining(['mx-4', 'sm:mx-6', 'lg:mx-8']));
+    });
+  });
+
   describe('domain display', () => {
     it('displays the domain name', () => {
       const domain = createMockDomain({ display_domain: 'test.example.com' });

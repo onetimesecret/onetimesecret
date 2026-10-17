@@ -28,8 +28,12 @@ import { createTestingPinia } from '@pinia/testing';
 import { createTestI18n } from '@tests/setup';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { useRealRouter } from '@/tests/utils/routerSetup';
 import { nextTick } from 'vue';
 import { createMemoryHistory, createRouter, Router } from 'vue-router';
+
+// Mounts with a real router; see useRealRouter.
+useRealRouter();
 
 // Mock child components to isolate Login view testing
 vi.mock('@/apps/session/components/AuthMethodSelector.vue', async () => {

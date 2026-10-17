@@ -119,7 +119,9 @@ RSpec.describe 'operator-supplied reason on destructive verbs (#4338)' do
     let(:empty_plan) do
       Auth::Operations::Customers::PurgePreflight::Plan.new(actions: [], blockers: [])
     end
-    let(:preflight) { instance_double(Auth::Operations::Customers::PurgePreflight) }
+    let(:preflight) do
+      instance_double(Auth::Operations::Customers::PurgePreflight, pending_organization_checks: [])
+    end
 
     def expect_mandatory_preflight
       expect(Auth::Operations::Customers::PurgePreflight).to receive(:new)

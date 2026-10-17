@@ -9,6 +9,7 @@
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/operations/audit_attempt'
+require 'onetime/operations/domains/adoption_report'
 
 module Onetime
   module Operations
@@ -29,6 +30,17 @@ module Onetime
       # returns `:mismatch` and mutates nothing (the CLI's "org_id does not match
       # --from-org" guard). A domain with a blank `org_id` transfers from "orphaned"
       # (nothing to remove).
+      #
+      # ## From an orphan
+      #
+      # A transfer from orphaned is an adoption, the same as
+      # `domains create` / `domains repair --org-id` on an orphan: it goes
+      # through CustomDomain.claim_orphaned_domain, which writes org_id, the
+      # destination's domains collection, the owners index and the
+      # canonical-name entry together, resets the domain's ownership
+      # verification and issues a new TXT value. Result#adoption lists the
+      # per-domain state the record kept. A transfer between two
+      # organizations is not an adoption and keeps the domain's verification.
       #
       # ## Dry-run + exactly-once audit (CONTRACT 4)
       #
@@ -75,6 +87,8 @@ module Onetime
         # @!attribute status [r] Symbol —
         #   :planned (dry-run), :transferred (applied),
         #   :mismatch (explicit from_org != current owner — blocked)
+        # @!attribute adoption [r] AdoptionReport, nil — set when a transfer
+        #   from orphaned was applied
         Result = Data.define(
           :status,
           :domain_id,
@@ -85,6 +99,7 @@ module Onetime
           :to_org_id,
           :to_org_name,
           :dry_run,
+          :adoption,
         )
 
         # @param domain [Onetime::CustomDomain] target domain (caller ensures non-nil).
@@ -121,6 +136,40 @@ module Onetime
             return build(:planned, original_from_id, original_from_nm)
           end
 
+          if original_from_id.to_s.empty?
+            adopt_orphan
+          else
+            move_between_organizations(current_org, original_from_id)
+          end
+
+          # Exactly one audit event per successful transfer. Non-secret detail only.
+          detail = { from_org_id: original_from_id.to_s, to_org_id: @to_org.org_id.to_s }
+          if @adoption
+            detail[:adopted_orphan]     = true
+            detail[:verification_reset] = true
+          end
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @domain.extid,
+            result: :success,
+            detail: detail,
+          )
+
+          build(:transferred, original_from_id, original_from_nm)
+        end
+
+        private
+
+        # From orphaned: the adoption shared with Create and Repair (see the
+        # class comment). A failed claim writes nothing, so there is nothing
+        # to roll back.
+        def adopt_orphan
+          Onetime::CustomDomain.claim_orphaned_domain(@domain, @to_org.org_id)
+          @adoption = AdoptionReport.for(@domain).tap { |report| report.log('Domains::Transfer') }
+        end
+
+        def move_between_organizations(current_org, original_from_id)
           # Remove from the old organization's collection, if there is one.
           current_org&.remove_domain(@domain.domainid)
 
@@ -139,34 +188,14 @@ module Onetime
           begin
             @to_org.add_domain(@domain.domainid)
           rescue StandardError => ex
-            # Roll back both writes. A transfer FROM orphaned cannot restore a
-            # blank org_id (CustomDomain#save requires one), so `owners` is
-            # realigned to whatever org_id actually ends up persisted rather
-            # than being cleared — a consistent pair beats a tidy index.
-            unless original_from_id.to_s.empty?
-              @domain.org_id = original_from_id
-              @domain.save
-            end
+            # Roll back both writes, so `owners` stays consistent with the
+            # org_id actually persisted.
+            @domain.org_id = original_from_id
+            @domain.save
             Onetime::CustomDomain.record_owner(@domain, @domain.org_id)
             raise "Failed to add domain to organization collection: #{ex.message}"
           end
-
-          # Exactly one audit event per successful transfer. Non-secret detail only.
-          Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @domain.extid,
-            result: :success,
-            detail: {
-              from_org_id: original_from_id.to_s,
-              to_org_id: @to_org.org_id.to_s,
-            },
-          )
-
-          build(:transferred, original_from_id, original_from_nm)
         end
-
-        private
 
         # The #4337 envelope's target hook: the domain's public id, same as the
         # applied event's. `audit_verb` defaults to AUDIT_VERB, `audit_actor`
@@ -218,6 +247,7 @@ module Onetime
             to_org_id: @to_org.org_id,
             to_org_name: @to_org.display_name,
             dry_run: @dry_run,
+            adoption: @adoption,
           )
         end
       end

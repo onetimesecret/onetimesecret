@@ -53,9 +53,19 @@ RSpec.describe Core::Views::SystemSerializer do
       end
     end
 
-    it 'still emits the security values, which are not version related' do
+    it 'still emits the CSRF token, which is not version related' do
       expect(output['shrimp']).to eq('token-abc')
-      expect(output['nonce']).to eq('nonce-xyz')
+    end
+
+    # RISK-2026-08-14-M08: the CSP nonce stays server-side. The view var is
+    # present here on purpose, to prove the serializer does not copy it.
+    it 'never emits the CSP nonce, even when the view var carries one' do
+      expect(output).not_to have_key('nonce')
+      expect(output.values.map(&:to_s)).not_to include(a_string_including('nonce-xyz'))
+    end
+
+    it 'does not declare nonce in the output template, so the registry would strip it' do
+      expect(described_class.output_template).not_to have_key('nonce')
     end
   end
 

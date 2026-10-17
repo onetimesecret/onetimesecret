@@ -58,17 +58,31 @@ RUN set -eux && \
 # Install yq (optimized for multi-arch)
 # Used for migrating config from v0.22 to v0.23+.
 # Pinned to a specific version to prevent breaking changes from upstream.
+#
+# Supply-chain hardening (RISK-2026-08-14-M12): the binary is copied into
+# every final image and runs at build time against package.json, so a
+# tampered or truncated download must fail the build, not ship. The SHA256
+# of each per-arch release asset is pinned here (from the release's
+# `checksums-bsd` file) and verified with `sha256sum -c` BEFORE the file is
+# made executable. Bumping YQ_VERSION therefore also means updating both
+# digests; a mismatch fails loudly rather than silently installing whatever
+# the download returned. Only amd64 and arm64 are built, so any other
+# architecture is refused instead of falling back to an unverified binary.
 ARG YQ_VERSION=v4.52.4
+ARG YQ_SHA256_AMD64=0c4d965ea944b64b8fddaf7f27779ee3034e5693263786506ccd1c120f184e8c
+ARG YQ_SHA256_ARM64=4c2cc022a129be5cc1187959bb4b09bebc7fb543c5837b93001c68f97ce39a5d
 RUN set -eux && \
     ARCH=$(dpkg --print-architecture) && \
     case "$ARCH" in \
-        amd64) YQ_ARCH="amd64" ;; \
-        arm64) YQ_ARCH="arm64" ;; \
-        *) YQ_ARCH="amd64" ;; \
+        amd64) YQ_ARCH="amd64"; YQ_SHA256="${YQ_SHA256_AMD64}" ;; \
+        arm64) YQ_ARCH="arm64"; YQ_SHA256="${YQ_SHA256_ARM64}" ;; \
+        *) echo "Unsupported architecture for yq: ${ARCH}" >&2; exit 1 ;; \
     esac && \
     curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${YQ_ARCH}" \
-        -o /usr/local/bin/yq && \
-    chmod +x /usr/local/bin/yq && \
+        -o /tmp/yq && \
+    echo "${YQ_SHA256}  /tmp/yq" | sha256sum -c - && \
+    install -m 0755 /tmp/yq /usr/local/bin/yq && \
+    rm -f /tmp/yq && \
     yq --version
 
 # Copy Node.js binaries (more efficient than full copy)

@@ -475,7 +475,7 @@
           testid="provider-status-loading-2" />
         <StatCard
           :label="t('web.admin.emailtools.providerStatus.quota.maxRate')"
-          icon="bolt"
+          icon="bolt-solid"
           :loading="true"
           testid="provider-status-loading-3" />
       </div>
@@ -545,7 +545,7 @@
           <StatCard
             :label="t('web.admin.emailtools.providerStatus.quota.maxRate')"
             :value="psSes.max_send_rate"
-            icon="bolt"
+            icon="bolt-solid"
             :loading="providerStatusLoading"
             testid="provider-status-maxrate" />
         </div>

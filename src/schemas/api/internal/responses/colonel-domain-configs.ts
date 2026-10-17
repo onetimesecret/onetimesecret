@@ -142,6 +142,9 @@ export const colonelSsoConfigSchema = z.object({
   provider_type: z.string().nullable(),
   display_name: z.string().nullable(),
   issuer: z.string().nullable(),
+  // OIDC token endpoint auth method (#4764): null = gem default. Optional
+  // so a payload from an API that predates the key still parses.
+  token_endpoint_auth_method: z.string().nullable().optional(),
   tenant_id: z.string().nullable(),
   has_client_id: z.boolean(),
   has_client_secret: z.boolean(),

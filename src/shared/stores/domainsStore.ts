@@ -249,7 +249,7 @@ export const useDomainsStore = defineStore('domains', () => {
     } catch (error: unknown) {
       // Handle 404 or other expected errors silently
       if ((error as AxiosError).response?.status === 404) {
-        console.debug(`[domainsStore] No logo found for extid: ${extid}`);
+        loggingService.debug(`[domainsStore] No logo found for extid: ${extid}`);
         return null;
       }
       throw error;
@@ -294,7 +294,7 @@ export const useDomainsStore = defineStore('domains', () => {
     } catch (error: unknown) {
       // Handle 404 or other expected errors silently
       if ((error as AxiosError).response?.status === 404) {
-        console.debug(`[domainsStore] No favicon found for extid: ${extid}`);
+        loggingService.debug(`[domainsStore] No favicon found for extid: ${extid}`);
         return null;
       }
       throw error;

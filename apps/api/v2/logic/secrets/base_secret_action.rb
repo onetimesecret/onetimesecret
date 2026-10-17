@@ -4,6 +4,7 @@
 
 require 'onetime/secret_lifetime_policy'
 require 'onetime/security/conceal_secret_rate_limiter'
+require_relative 'display_type_param'
 
 module V2::Logic
   module Secrets
@@ -12,6 +13,7 @@ module V2::Logic
     class BaseSecretAction < V2::Logic::Base
       include Onetime::LoggerMethods
       include Onetime::Security::ConcealSecretRateLimiter
+      include DisplayTypeParam
 
       attr_reader :passphrase,
         :secret_value,
@@ -45,6 +47,7 @@ module V2::Logic
 
         process_ttl
         process_secret
+        process_display_type
         process_passphrase
         process_recipient
         process_share_domain
@@ -75,6 +78,7 @@ module V2::Logic
         validate_recipient
         validate_share_domain
         validate_passphrase
+        validate_display_type
       end
 
       def process
@@ -106,6 +110,7 @@ module V2::Logic
           recipient: recipient,
           ttl: ttl,
           kind: kind,
+          display_type: display_type,
         }
       end
 
@@ -444,7 +449,7 @@ module V2::Logic
 
       def create_secret_pair
         @receipt, @secret = Onetime::Receipt.spawn_pair(
-          cust&.objid, ttl, secret_value, passphrase: passphrase, domain: share_domain, kind: kind
+          cust&.objid, ttl, secret_value, passphrase:, domain: share_domain, kind:, display_type:
         )
 
         @greenlighted = receipt.valid? && secret.valid?
@@ -632,16 +637,23 @@ module V2::Logic
         false
       end
 
-      # Rejects secret creation against an unverified custom share_domain when
-      # the features.domains.require_verified toggle is on. Canonical domains
-      # are filtered out earlier in process_share_domain via default_domain?.
+      # Rejects secret creation against a custom share_domain that is not
+      # served as a tenant domain (CustomDomain#served_as_tenant?, the same
+      # answer DomainStrategy classifies the host by), whatever
+      # features.domains.require_verified says. A link on such a domain would
+      # open to a 404.
+      #
+      # features.domains.require_verified, when on, additionally requires the
+      # verified flag, including under passthrough. Canonical domains are
+      # filtered out earlier in process_share_domain via default_domain?.
       #
       # @param domain_record [CustomDomain] The domain record to check
-      # @raise [FormError] If require_verified is on and the domain is not
-      #   yet verified
+      # @raise [FormError] If the domain is not served, or require_verified is
+      #   on and the domain is not yet verified
       def validate_domain_verification(domain_record)
-        return unless OT.conf.dig('features', 'domains', 'require_verified').to_s == 'true'
-        return if domain_record.verified.to_s == 'true'
+        served   = domain_record.served_as_tenant?
+        required = OT.conf.dig('features', 'domains', 'require_verified').to_s == 'true'
+        return if served && (!required || domain_record.verified.to_s == 'true')
 
         secret_logger.warn 'Unverified custom share_domain rejected',
           {

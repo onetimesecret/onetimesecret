@@ -78,13 +78,22 @@ RSpec.describe 'Remember me: a fixed 14-day session (simple mode)', type: :integ
     expect(session_cookie_header[/max-age=(\d+)/i, 1].to_i).to be_within(5).of(duration)
   end
 
-  it 'does not extend a remembered session on activity' do
+  it 'does not extend a remembered session on activity', :aggregate_failures do
+    signed_in_at   = Time.at(Time.now.to_i)
+    allow(Time).to receive(:now).and_return(signed_in_at)
     login!('remember-me' => true)
-    Familia.dbclient.expire(blob_key, duration - 7200)
     remember_until = session_blob.fetch('remember_until')
 
+    # Age the session, not just its Redis TTL: a fresh 14-day renewal must fail.
+    # Keep Ruby's clock fixed through the write and assertion so Redis's rounded
+    # TTL is not compared with a remaining lifetime from a later second.
+    allow(Time).to receive(:now).and_return(signed_in_at + 7200)
+    remaining = duration - 7200
+
     expect(account_request).to eq(200)
-    expect(blob_ttl).to be <= (remember_until - Time.now.to_i)
+    expect(session_blob.fetch('remember_until')).to eq(remember_until)
+    expect(blob_ttl).to be_between(1, remaining)
+    expect(session_cookie_header[/max-age=(\d+)/i, 1].to_i).to eq(remaining)
   end
 
   it 'ignores the parameter for anything but the truthy values' do

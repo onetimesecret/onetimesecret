@@ -35,6 +35,7 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
       updated: nil,
       save: true,
       safe_dump: { display_domain: 'example.com' },
+      served_as_tenant?: true,
     )
   end
 
@@ -355,6 +356,42 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
     end
   end
 
+  # Under a strategy that checks ownership, a new domain is not served until
+  # it is verified (CustomDomain#served_as_tenant?). It does not become the
+  # session's domain context, which would make it the share_domain of every
+  # secret created next, and secret creation refuses an unserved domain.
+  describe 'domain_context for a new domain that is not served (approximated)' do
+    let(:new_domain) { Onetime::CustomDomain.new(display_domain: 'example.com', org_id: 'org123') }
+    let(:strategy) do
+      instance_double(
+        Onetime::DomainValidation::ApproximatedStrategy,
+        request_certificate: { status: 'requested' },
+        proves_ownership?: true,
+      )
+    end
+    let(:session) do
+      { 'authenticated' => true, 'csrf' => 'test-csrf-token', 'domain_context' => 'old-domain.com' }
+    end
+
+    before do
+      allow(OT).to receive(:conf).and_return({
+        'site' => {},
+        'features' => { 'domains' => { 'enabled' => true, 'validation_strategy' => 'approximated' } },
+      })
+      allow(Onetime::CustomDomain).to receive(:create!).and_return(new_domain)
+      allow(Onetime::DomainValidation::Strategy).to receive(:for_config).and_return(strategy)
+      logic.instance_variable_set(:@display_domain, 'example.com')
+    end
+
+    it 'leaves the session domain_context as it was and returns none' do
+      result = logic.send(:process)
+
+      expect(new_domain.served_as_tenant?).to be(false)
+      expect(session['domain_context']).to eq('old-domain.com')
+      expect([result[:domain_context], result[:details][:domain_context]]).to eq([nil, nil])
+    end
+  end
+
   describe 'domain_context integration' do
     let(:strategy) { instance_double(Onetime::DomainValidation::PassthroughStrategy) }
     let(:result) { { status: 'external' } }
@@ -377,6 +414,13 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
 
       expect(session['domain_context']).to eq('example.com')
       expect(logic.send(:success_data)[:domain_context]).to eq('example.com')
+    end
+
+    # The client reads it from details (customDomainDetailsSchema).
+    it 'returns the domain_context in details too' do
+      result_data = logic.send(:process)
+
+      expect(result_data[:details][:domain_context]).to eq('example.com')
     end
   end
 end

@@ -5,24 +5,39 @@
  * Domain SSO Configuration Form
  *
  * Presentational component that receives SSO config state via props
- * and emits events for actions. Parent (DomainSso.vue) manages state
- * via useSsoConfig composable.
+ * and emits events for actions. The host page (DomainSigninSso.vue)
+ * manages state via the useSsoConfig composable. Laid out as a settings
+ * page: flat sections top to bottom, the primary action in a sticky
+ * footer. Delete is the page's: its Careful Consideration Zone sits below
+ * the card that hosts this form.
  */
 import { useI18n } from 'vue-i18n';
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
 import CopyToClipboardButton from '@/shared/components/ui/CopyToClipboardButton.vue';
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import { useClipboard } from '@/shared/composables/useClipboard';
+import type { TenantSsoVerdict } from '@/schemas/api/domains/responses/signin-config';
 import {
   SSO_PROVIDER_ROUTE_NAMES,
+  SSO_TOKEN_ENDPOINT_AUTH_METHODS,
   ssoProviderUsesClientCredentials,
+  tokenEndpointAuthMethodSchema,
   type CustomDomainSsoConfig,
   type SsoProviderType,
+  type SsoTokenEndpointAuthMethod,
+  type SsoTokenEndpointAuthMethodRequest,
 } from '@/schemas/shapes/domains/sso-config';
 import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
-import type { TestSsoConnectionResponse } from '@/services/sso.service';
+import type {
+  SsoDiagnosticActivation,
+  SsoDiagnosticCheck,
+  SsoDiagnosticOverall,
+  SsoDiagnosticStatus,
+  SsoDiagnosticsResponse,
+  TestSsoConnectionResponse,
+} from '@/services/sso.service';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -39,11 +54,33 @@ const props = defineProps<{
   isSaving: boolean;
   isDeleting: boolean;
   isTesting: boolean;
+  /** Whether a saved-configuration diagnostics request is in flight. */
+  isDiagnosing: boolean;
   hasUnsavedChanges: boolean;
   isConfigured: boolean;
   clientSecretMasked: string | null;
   testResult: TestSsoConnectionResponse | null;
   testError: string;
+  /** Result of the last "Check saved configuration" run; null until one ran. */
+  diagnosticsResult: SsoDiagnosticsResponse | null;
+  /** Passing saved-credential checks, retained across activation-only saves. */
+  savedCredentialsChecked: boolean;
+  /**
+   * A save in this session changed the stored credentials and no passing
+   * run has covered them since (useSsoConfig). After that save the form
+   * matches the record, so this is the only trace of the change.
+   */
+  savedCredentialsUnchecked: boolean;
+  /** Transport failure of the last run (no verdict), '' otherwise. */
+  diagnosticsError: string;
+  /** Whether a last-sign-in refresh is in flight. */
+  isRefreshingLastSignIn: boolean;
+  /**
+   * The page's tenant-SSO verdict (#4111, `details.tenant_sso`), rendered
+   * verbatim. Absent or null until the sign-in details have loaded; nothing
+   * is claimed without it.
+   */
+  tenantSso?: TenantSsoVerdict | null;
   /**
    * The install-wide SAML switch (SAML_ENABLED, #4604; features.isSamlEnabled
    * on the bootstrap payload). While false the API refuses to save or edit
@@ -57,11 +94,17 @@ const props = defineProps<{
 // ---------------------------------------------------------------------------
 
 const emit = defineEmits<{
+  /** Save only: the footer button, for a record that already exists. */
   (e: 'save'): void;
-  (e: 'disable'): void;
-  (e: 'delete'): void;
   (e: 'test'): void;
+  /**
+   * The primary action: run the saved-configuration check, saving a new
+   * record or unsaved edits first. A record that is off is turned on when
+   * the check passes (useSsoConfig.saveAndRunDiagnostics).
+   */
+  (e: 'diagnostics'): void;
   (e: 'discard'): void;
+  (e: 'refresh-last-sign-in'): void;
   (e: 'update:formState', value: SsoConfigFormState): void;
 }>();
 
@@ -98,7 +141,7 @@ const providerOptions: { value: SsoProviderType; label: string; description: str
  * install-wide switch is off (#4604): the API would refuse the save on
  * provider_type. `providerOptions` stays complete so a saved saml record
  * (provider type locked while editing) still resolves its label through
- * `currentProviderOption`; disabling or deleting such a record stays possible.
+ * `currentProviderOption`; deleting such a record stays possible.
  */
 const selectableProviderOptions = computed(() =>
   providerOptions.filter((option) => option.value !== 'saml' || props.samlEnabled)
@@ -118,24 +161,85 @@ const UNREADABLE_FIELD_LABELS: Record<string, string> = {
   idp_cert: 'web.organizations.sso.idp_cert',
 };
 
+/**
+ * Token endpoint client authentication (#4764, oidc only). '' is the
+ * "Automatic" option — the gem default — and is what the composable sends
+ * so a PATCH clears a stored choice. Labels are keyed per contract value so
+ * a method added to the contract fails type-check here until it has one.
+ */
+const TOKEN_ENDPOINT_AUTH_METHOD_LABELS: Record<SsoTokenEndpointAuthMethod, string> = {
+  client_secret_basic: 'web.organizations.sso.token_endpoint_auth_method_client_secret_basic',
+  client_secret_post: 'web.organizations.sso.token_endpoint_auth_method_client_secret_post',
+};
+
+const tokenEndpointAuthMethodOptions: {
+  value: SsoTokenEndpointAuthMethodRequest;
+  labelKey: string;
+}[] = [
+  { value: '', labelKey: 'web.organizations.sso.token_endpoint_auth_method_automatic' },
+  ...SSO_TOKEN_ENDPOINT_AUTH_METHODS.map((method) => ({
+    value: method,
+    labelKey: TOKEN_ENDPOINT_AUTH_METHOD_LABELS[method],
+  })),
+];
+
 // ---------------------------------------------------------------------------
 // Local UI state
 // ---------------------------------------------------------------------------
 
-const showDeleteConfirm = ref(false);
-const showDisableConfirm = ref(false);
-const actionPending = computed(
-  () => props.isLoading || props.isSaving || props.isDeleting || props.isTesting
-);
-watch(
-  () => props.domainExtId,
-  () => {
-    showDisableConfirm.value = false;
-  }
-);
 const showClientSecret = ref(false);
 const newDomain = ref('');
 const domainInputError = ref('');
+
+/**
+ * The Advanced disclosure is collapsed by default, but a saved record that
+ * carries a non-default token endpoint auth method opens it so the choice
+ * is never hidden from the admin editing it.
+ */
+const advancedOpen = ref(false);
+watch(
+  () => props.ssoConfig?.token_endpoint_auth_method ?? null,
+  (stored) => {
+    if (stored) advancedOpen.value = true;
+  },
+  { immediate: true }
+);
+
+/**
+ * The provider discovery check is an advanced disclosure, collapsed by
+ * default. A result (or transport error) opens it so what the admin asked
+ * for is never hidden behind a closed summary; closing it again is theirs.
+ */
+const providerCheckOpen = ref(false);
+watch(
+  () => !!props.testResult || !!props.testError,
+  (hasResult) => {
+    if (hasResult) providerCheckOpen.value = true;
+  },
+  { immediate: true }
+);
+
+/**
+ * The check action sits in the sticky footer, so its verdict lands in the
+ * check panel, which may have scrolled away by the time the run completes.
+ * Bring the verdict (or the transport error) into view when it arrives;
+ * `nearest` leaves a result that is already visible where it is. jsdom has
+ * no scrollIntoView, and a reduced-motion preference gets an instant jump.
+ */
+const diagnosticsOutcomeEl = ref<HTMLElement | null>(null);
+watch(
+  [() => props.diagnosticsResult, () => props.diagnosticsError],
+  async ([result, error]) => {
+    if (!result && !error) return;
+    await nextTick();
+    const el = diagnosticsOutcomeEl.value;
+    if (!el || typeof el.scrollIntoView !== 'function') return;
+    const reduceMotion =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' });
+  }
+);
 
 // ---------------------------------------------------------------------------
 // Form state helpers (emit updates to parent)
@@ -151,6 +255,12 @@ function updateField<K extends keyof SsoConfigFormState>(
   });
 }
 
+/** A select value is a string; only a contract value (or '') reaches the state. */
+function updateTokenEndpointAuthMethod(raw: string): void {
+  const parsed = tokenEndpointAuthMethodSchema.safeParse(raw);
+  updateField('token_endpoint_auth_method', parsed.success ? parsed.data : '');
+}
+
 // ---------------------------------------------------------------------------
 // Computed: form validation and display logic
 // ---------------------------------------------------------------------------
@@ -162,6 +272,20 @@ const isSaml = computed(() => props.formState.provider_type === 'saml');
 const requiresTenantId = computed(() => props.formState.provider_type === 'entra_id');
 
 const requiresIssuer = computed(() => props.formState.provider_type === 'oidc');
+
+/**
+ * Test Connection (#4764): the advertised token endpoint auth methods, and
+ * whether the selected one is among them. `false` keeps the test successful
+ * (an IdP may accept a method it does not list) but turns the API's note
+ * into a warning rather than a confirmation.
+ */
+const advertisedTokenEndpointAuthMethods = computed(
+  () => props.testResult?.details?.token_endpoint_auth_methods_supported ?? null
+);
+
+const tokenEndpointAuthMethodUnadvertised = computed(
+  () => props.testResult?.details?.token_endpoint_auth_method_supported === false
+);
 
 // OAuth-family providers only; SAML's trust anchor is the IdP certificate.
 const requiresClientCredentials = computed(() =>
@@ -315,8 +439,8 @@ const showDomainFilter = computed(() => false);
  * the control.
  *
  * The latch keeps it visible for the whole edit session even after the admin
- * flips it off, so it doesn't vanish mid-edit. It is scoped per domain: this
- * instance is reused across domains (no :key in SsoCredentialsModal), so when
+ * flips it off, so it doesn't vanish mid-edit. It is scoped per domain: a
+ * host may reuse this instance across domains (no :key), so when
  * domainExtId changes the latch is recomputed from the incoming
  * grant_org_scope. A fresh domain with grant_org_scope=false therefore clears a
  * latch left true by a previously-loaded domain, rather than inheriting it.
@@ -383,6 +507,16 @@ const clientSecretPlaceholder = computed(() => {
   return t('web.organizations.sso.client_secret_placeholder');
 });
 
+// Entra shows a Secret ID (a UUID) next to the secret Value and the ID is
+// never the credential; a Value is never UUID-shaped. Warn before the save,
+// the way the saved-configuration check flags a stored one (secret_shape).
+const UUID_SHAPE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const clientSecretLooksLikeSecretId = computed(
+  () =>
+    props.formState.provider_type === 'entra_id' &&
+    UUID_SHAPE.test(props.formState.client_secret?.trim() ?? '')
+);
+
 const discoveryUrl = computed(() => {
   const issuer = props.formState.issuer?.trim();
   if (!issuer) return null;
@@ -431,63 +565,364 @@ const certificateExpiry = computed(() => {
 // Handlers
 // ---------------------------------------------------------------------------
 
+// A saved record with nothing changed has nothing to save: the footer's Save
+// is disabled, and a keyboard submit of the form is a no-op for the same
+// reason.
 const handleSave = () => {
-  if (!isFormValid.value || props.isSaving) return;
+  if (!isFormValid.value || props.isSaving || props.isDeleting) return;
+  if (props.isConfigured && !props.hasUnsavedChanges) return;
   emit('save');
 };
 
-const handleDisable = () => {
-  // Saved state controls recovery; repair-form validity and drafts do not.
-  if (!props.ssoConfig?.enabled || actionPending.value) return;
-  emit('disable');
-  showDisableConfirm.value = false;
-};
-
-const handleDelete = () => {
-  if (props.isDeleting) return;
-  emit('delete');
-  showDeleteConfirm.value = false;
-};
-
 /**
- * Weak test-before-enable warning (#4111 part 4).
- *
- * Deliberately NOT a gate: the availability ladder still guards runtime, and
- * blocking the save would strand the #4107 cohort (configs saved with live
- * intent, flag-stuck since June) with no way to turn their connection back on.
- * Industry practice (Okta/Auth0/WorkOS) sequences activation after a test, so
- * we advise the same order and let the operator proceed.
- *
- * Scope is this editing session: the record carries no "has ever passed a
- * test" field, so the only honest claim is about the test run here. Warning on
- * every already-enabled config would be noise on every open, so it fires only
- * when the operator flips the toggle ON without a passing test in view; it
- * clears when they flip it back off, when a test passes, or when a different
- * domain's config is loaded into this reused instance.
+ * Discovery alone cannot vouch for credentials because it does not exercise
+ * the saved ones, so only a passing saved-configuration check counts.
+ * Compare credential fields with the saved record so a passing result
+ * survives edits to other fields, but a new secret or a different client ID,
+ * tenant, issuer, auth method or SAML IdP field does not.
  */
-const connectionEnabledTouchedOn = ref(false);
+const savedCredentialsMatchForm = computed(() => {
+  const record = props.ssoConfig;
+  const form = props.formState;
+  if (!record || form.provider_type !== record.provider_type) return false;
+  if (isSaml.value) {
+    return (['idp_sso_service_url', 'idp_entity_id', 'idp_cert'] as const).every(
+      (field) => form[field].trim() === (record[field] ?? '').trim()
+    );
+  }
+  if (form.client_secret.trim() || form.client_id.trim() !== (record.client_id ?? '').trim()) {
+    return false;
+  }
+  return requiresTenantId.value
+    ? form.tenant_id.trim() === (record.tenant_id ?? '').trim()
+    : form.issuer.trim() === (record.issuer ?? '').trim() &&
+        form.token_endpoint_auth_method === (record.token_endpoint_auth_method ?? '');
+});
 
-const testPassedThisSession = computed(() => props.testResult?.success === true);
-
-const showEnableUntestedWarning = computed(
-  () => connectionEnabledTouchedOn.value && props.formState.enabled && !testPassedThisSession.value
+const savedChecksPassed = computed(
+  () =>
+    props.isConfigured &&
+    props.savedCredentialsChecked &&
+    savedCredentialsMatchForm.value
 );
 
-const handleConnectionEnabledChange = (value: boolean) => {
-  connectionEnabledTouchedOn.value = value;
-  updateField('enabled', value);
-};
+/** The stored record is on: sign-in through it is live (subject to the ladder). */
+const connectionOn = computed(() => props.ssoConfig?.enabled === true);
 
-watch(
-  () => props.domainExtId,
-  () => {
-    connectionEnabledTouchedOn.value = false;
-  }
+/**
+ * Advisory, never a gate (saving an active connection stays possible: it is
+ * how a broken one is repaired). Shown on a connection that is on while
+ * its credentials differ from what a passing check covered: edited in the
+ * form, or saved in this session and not checked since. Opening an active
+ * connection with nothing changed shows nothing, although no check has run
+ * in this session.
+ */
+const showUncheckedCredentialsWarning = computed(
+  () =>
+    connectionOn.value &&
+    !savedChecksPassed.value &&
+    (!savedCredentialsMatchForm.value || props.savedCredentialsUnchecked)
 );
 
 const handleTestConnection = () => {
   if (!canTestConnection.value || props.isTesting) return;
   emit('test');
+};
+
+// ---------------------------------------------------------------------------
+// Check saved configuration (diagnostics)
+// ---------------------------------------------------------------------------
+
+/**
+ * Diagnostics run against the SAVED record (for Entra including the stored
+ * client secret), so a new record or unsaved edits are saved first: a
+ * result about the stored record would otherwise be read as a verdict on
+ * what the form shows. One button carries both steps, so setup has one
+ * save path and one primary action.
+ */
+const checkNeedsSave = computed(() => !props.isConfigured || props.hasUnsavedChanges);
+
+const canRunCheck = computed(() => {
+  if (props.isSaving || props.isDeleting || props.isDiagnosing) return false;
+  return checkNeedsSave.value ? isFormValid.value : true;
+});
+
+/**
+ * Save and check (unsaved) → Check and turn on (saved, off) → Check saved
+ * configuration (saved, on; nothing to turn on).
+ */
+const checkButtonLabel = computed(() => {
+  if (props.isSaving) return t('web.COMMON.saving');
+  if (props.isDiagnosing) return t('web.organizations.sso.diagnostics_running');
+  if (checkNeedsSave.value) return t('web.organizations.sso.diagnostics_save_and_check');
+  if (!connectionOn.value) return t('web.organizations.sso.diagnostics_check_and_activate');
+  return t('web.organizations.sso.diagnostics_button');
+});
+
+const handleRunCheck = () => {
+  if (!canRunCheck.value) return;
+  emit('diagnostics');
+};
+
+/**
+ * Form submission. An existing record has the footer Save as its submit
+ * button. A new record has none, so browsers do not submit on Enter (the
+ * form has several text fields); a submit that arrives anyway runs the
+ * primary action, so the first save never skips the check.
+ */
+const handleSubmit = () => {
+  if (props.isConfigured) handleSave();
+  else handleRunCheck();
+};
+
+/**
+ * The provider name in the not_permitted message. A legacy record can carry
+ * a type the selector no longer offers (google, github): its raw name is
+ * shown rather than nothing.
+ */
+const providerLabel = (type: string): string =>
+  providerOptions.find((option) => option.value === type)?.label ?? type;
+
+/**
+ * What the last run did to the connection, one message per outcome the API
+ * reports (keyed per contract value, so a new outcome fails type-check here
+ * until it has one). null = nothing to add: the record was already on, or
+ * activation was not requested.
+ */
+const ACTIVATION_NOTICES: Record<
+  SsoDiagnosticActivation,
+  { key: string; tone: 'ok' | 'warn' } | null
+> = {
+  activated: { key: 'web.organizations.sso.diagnostics_activation_activated', tone: 'ok' },
+  not_passed: { key: 'web.organizations.sso.diagnostics_activation_stays_off', tone: 'warn' },
+  not_permitted: {
+    key: 'web.organizations.sso.diagnostics_activation_not_permitted',
+    tone: 'warn',
+  },
+  configuration_changed: {
+    key: 'web.organizations.sso.diagnostics_activation_configuration_changed',
+    tone: 'warn',
+  },
+  already_enabled: null,
+  not_requested: null,
+};
+
+const activationNotice = computed(() => {
+  const result = props.diagnosticsResult;
+  if (!result) return null;
+  const notice = ACTIVATION_NOTICES[result.activation] ?? null;
+  if (!notice) return null;
+  // Each warning says the connection stays off. A copy that was off here
+  // asks for activation even when the record was turned on elsewhere, and
+  // the response's `enabled` is the stored state: trust it over the copy.
+  if (notice.tone === 'warn' && result.enabled) return null;
+  return {
+    activation: result.activation,
+    tone: notice.tone,
+    text: t(notice.key, { provider: providerLabel(result.provider_type) }),
+  };
+});
+
+/**
+ * "Next: confirm sign-in" follows a pass only when the connection is on
+ * afterwards. A pass that did not turn it on (not_permitted,
+ * configuration_changed) has its own message instead.
+ */
+const showDiagnosticsNext = computed(
+  () => props.diagnosticsResult?.overall === 'passed' && props.diagnosticsResult.enabled === true
+);
+
+/**
+ * The setup guide stays until the connection is on, and through the result
+ * of the run that turned it on, so the page does not shift under the admin
+ * reading that result.
+ */
+const showSetupGuide = computed(
+  () => !connectionOn.value || props.diagnosticsResult?.activation === 'activated'
+);
+
+/**
+ * The connection is on but the domain's sign-in settings withhold SSO, so
+ * the sign-in page does not offer it and Confirm sign-in cannot work. The
+ * server's verdict reports this rung only for a record that is on (it
+ * checks sso_config_disabled first), so it appears once the page has
+ * re-read the verdict after activation. Rendered from the verdict
+ * verbatim; never derived from raw flags (ADR-024).
+ */
+const signInNotPermitted = computed(
+  () => connectionOn.value && props.tenantSso?.unavailable_reason === 'sso_not_permitted'
+);
+
+/** Label key per check name the API emits; an unknown name renders raw. */
+const DIAGNOSTIC_CHECK_LABELS: Record<string, string> = {
+  stored_configuration: 'web.organizations.sso.diagnostics_check_stored_configuration',
+  discovery: 'web.organizations.sso.diagnostics_check_discovery',
+  certificate: 'web.organizations.sso.diagnostics_check_certificate',
+  credential: 'web.organizations.sso.diagnostics_check_credential',
+};
+
+const diagnosticCheckLabel = (check: SsoDiagnosticCheck): string => {
+  const key = DIAGNOSTIC_CHECK_LABELS[check.check];
+  return key ? t(key) : check.check;
+};
+
+const hasDiagnosticTechnicalDetails = (check: SsoDiagnosticCheck): boolean => {
+  const details = check.details;
+  if (!details) return false;
+  return !!(
+    details.error_code ||
+    details.aadsts_code ||
+    details.http_status ||
+    details.errors?.length ||
+    details.certificate_not_after ||
+    details.token_endpoint_auth_methods_supported?.length
+  );
+};
+
+/**
+ * Status chip per check. The colour alone never carries the meaning (WCAG
+ * 1.4.1): the status word is printed in the chip. Keyed per contract status
+ * so a new status fails type-check here until it has a chip.
+ */
+const DIAGNOSTIC_STATUS_CHIPS: Record<
+  SsoDiagnosticStatus,
+  { labelKey: string; classes: string }
+> = {
+  passed: {
+    labelKey: 'web.organizations.sso.diagnostics_status_passed',
+    classes: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200',
+  },
+  failed: {
+    labelKey: 'web.organizations.sso.diagnostics_status_failed',
+    classes: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200',
+  },
+  inconclusive: {
+    labelKey: 'web.organizations.sso.diagnostics_status_inconclusive',
+    classes: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200',
+  },
+  unsupported: {
+    labelKey: 'web.organizations.sso.diagnostics_status_unsupported',
+    classes: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200',
+  },
+  skipped: {
+    labelKey: 'web.organizations.sso.diagnostics_status_skipped',
+    classes: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200',
+  },
+};
+
+/**
+ * The result container borrows the Test Connection result's look: green
+ * status box for a pass, red alert for a failure, amber status box when the
+ * run could not reach a verdict.
+ */
+const DIAGNOSTIC_OVERALL_STYLES: Record<
+  SsoDiagnosticOverall,
+  {
+    role: 'status' | 'alert';
+    live: 'polite' | 'assertive';
+    box: string;
+    icon: string;
+    iconClass: string;
+    text: string;
+  }
+> = {
+  passed: {
+    role: 'status',
+    live: 'polite',
+    box: 'rounded-md bg-green-50 p-4 dark:bg-green-900/20',
+    icon: 'check-circle-solid',
+    iconClass: 'size-5 text-green-400',
+    text: 'text-green-800 dark:text-green-200',
+  },
+  failed: {
+    role: 'alert',
+    live: 'assertive',
+    box: 'rounded-md bg-red-50 p-4 dark:bg-red-900/20',
+    icon: 'x-circle-solid',
+    iconClass: 'size-5 text-red-400',
+    text: 'text-red-800 dark:text-red-200',
+  },
+  inconclusive: {
+    role: 'status',
+    live: 'polite',
+    box: 'rounded-md bg-amber-50 p-4 dark:bg-amber-900/20',
+    icon: 'exclamation-triangle-solid',
+    iconClass: 'size-5 text-amber-500',
+    text: 'text-amber-800 dark:text-amber-200',
+  },
+};
+
+const diagnosticsOverallStyle = computed(() =>
+  props.diagnosticsResult ? DIAGNOSTIC_OVERALL_STYLES[props.diagnosticsResult.overall] : null
+);
+
+/**
+ * The last tenant sign-in outcome on the saved record (null = none
+ * recorded). Timestamps are Unix epoch seconds; shown in the admin's locale.
+ */
+const lastSignIn = computed(() => props.ssoConfig?.last_sign_in ?? null);
+
+const LAST_SIGN_IN_STAGE_KEYS: Record<string, string> = {
+  setup: 'web.organizations.sso.last_sign_in_stage_setup',
+  provider: 'web.organizations.sso.last_sign_in_stage_provider',
+  callback: 'web.organizations.sso.last_sign_in_stage_callback',
+  account: 'web.organizations.sso.last_sign_in_stage_account',
+};
+
+const epochToLocale = (epoch: number) => new Date(epoch * 1000).toLocaleString();
+
+/**
+ * t() for a message that interpolates a formatted date or time as {name}.
+ * Some locales end one with an abbreviation period ("11:44 p.m.", "μ.μ.",
+ * Hungarian "2026. 10. 14."); when the message puts its own period right after
+ * it, that one period ends both the abbreviation and the sentence, so the
+ * message's period is dropped.
+ */
+const tWithDate = (
+  key: string,
+  name: string,
+  formatted: string,
+  params: Record<string, string> = {}
+) => {
+  const text = t(key, { ...params, [name]: formatted });
+  return formatted.endsWith('.') ? text.replace(`${formatted}.`, () => formatted) : text;
+};
+
+/** tWithDate for a message that interpolates an epoch as {when}. */
+const tWithWhen = (key: string, epoch: number, params: Record<string, string> = {}) =>
+  tWithDate(key, 'when', epochToLocale(epoch), params);
+
+const lastSignInText = computed(() => {
+  const outcome = lastSignIn.value;
+  if (!outcome) return t('web.organizations.sso.last_sign_in_none');
+  if (outcome.result === 'succeeded') {
+    return tWithWhen('web.organizations.sso.last_sign_in_succeeded', outcome.at);
+  }
+  const stageKey = LAST_SIGN_IN_STAGE_KEYS[outcome.failure_stage ?? ''];
+  const parts = [
+    tWithWhen('web.organizations.sso.last_sign_in_failed', outcome.at, {
+      stage: stageKey ? t(stageKey) : (outcome.failure_stage ?? ''),
+      code: outcome.failure_code ?? '',
+    }),
+  ];
+  if (outcome.succeeded_at !== null) {
+    parts.push(tWithWhen('web.organizations.sso.last_sign_in_last_success', outcome.succeeded_at));
+  }
+  return parts.join(' ');
+});
+
+/** checked_at is ISO 8601 UTC from the API; shown in the admin's locale. */
+const diagnosticsCheckedAt = computed(() => {
+  const raw = props.diagnosticsResult?.checked_at;
+  if (!raw) return null;
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? raw : date.toLocaleString();
+});
+
+/** The same date handling as the Test Connection certificate rows. */
+const formatDiagnosticDate = (raw: string): string => {
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? raw : date.toLocaleDateString();
 };
 
 const addDomain = () => {
@@ -528,16 +963,58 @@ watch(newDomain, () => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div>
     <!-- Loading State -->
     <SettingsSkeleton
       v-if="isLoading"
       :heading="false" />
 
-    <!-- Form -->
-    <form v-else
-@submit.prevent="handleSave"
-class="space-y-6">
+    <!-- Form. The sticky footer (bottom) and the host's sticky header (top)
+         cover the edges a browser scrolls a newly focused control to, so every
+         focusable descendant carries a scroll margin that clears them (WCAG
+         2.4.11 Focus Not Obscured). The footer sits on top of what the layout
+         fixes to the viewport bottom, so the bottom margin is that element's
+         measured height plus the footer's own: the mobile nav below md
+         (--workspace-mobile-nav-height) plus 11rem, since on a phone the
+         footer's buttons wrap to as many as three rows (about 10.5rem); the
+         app footer at md+ (--workspace-footer-height) plus 7rem. -->
+    <form
+      v-else
+      @submit.prevent="handleSubmit"
+      class="space-y-8 [&_:is(input,select,textarea,button,summary,a)]:scroll-mt-24 [&_:is(input,select,textarea,button,summary,a)]:scroll-mb-[calc(var(--workspace-mobile-nav-height,3.5625rem)+11rem)] md:[&_:is(input,select,textarea,button,summary,a)]:scroll-mb-[calc(var(--workspace-footer-height,6rem)+7rem)]">
+      <!-- Setup guide: one line, with the numbered stages behind a
+           disclosure. Stays until the connection is on (showSetupGuide). -->
+      <section
+        v-if="showSetupGuide"
+        data-testid="sso-setup-guide"
+        aria-labelledby="sso-setup-title"
+        class="text-sm">
+        <p
+          id="sso-setup-title"
+          class="text-gray-700 dark:text-gray-300">
+          {{ t('web.organizations.sso.setup_summary') }}
+        </p>
+        <details class="mt-1">
+          <summary
+            class="cursor-pointer font-medium text-brand-600 select-none hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
+            {{ t('web.organizations.sso.setup_steps') }}
+          </summary>
+          <ol class="mt-2 list-decimal space-y-1 pl-5 text-gray-600 dark:text-gray-300">
+            <li>
+              {{
+                t(
+                  isSaml
+                    ? 'web.organizations.sso.setup_register_saml'
+                    : 'web.organizations.sso.setup_register'
+                )
+              }}
+            </li>
+            <li>{{ t('web.organizations.sso.setup_save_check') }}</li>
+            <li>{{ t('web.organizations.sso.setup_confirm') }}</li>
+          </ol>
+        </details>
+      </section>
+
       <!-- Reveal failure (#4450): a stored encrypted value that will not
            decrypt is served as null AND named in unreadable_fields. It is an
            error state, not "unset" — the inputs below are blank, marked
@@ -572,7 +1049,7 @@ class="space-y-6">
           class="mt-0.5 size-4 flex-shrink-0 text-red-600 dark:text-red-400"
           aria-hidden="true" />
         <p class="text-sm text-red-700 dark:text-red-300">
-          {{ t('web.organizations.sso.idp_cert_expired_alert', { date: storedCertExpiry.date }) }}
+          {{ tWithDate('web.organizations.sso.idp_cert_expired_alert', 'date', storedCertExpiry.date) }}
         </p>
       </div>
       <div
@@ -586,38 +1063,41 @@ class="space-y-6">
           class="mt-0.5 size-4 flex-shrink-0 text-amber-600 dark:text-amber-400"
           aria-hidden="true" />
         <p class="text-sm text-amber-700 dark:text-amber-300">
-          {{ t('web.organizations.sso.idp_cert_expiring_notice', { date: storedCertExpiry.date }) }}
+          {{ tWithDate('web.organizations.sso.idp_cert_expiring_notice', 'date', storedCertExpiry.date) }}
         </p>
       </div>
 
-      <!-- Provider Selection (locked when editing, selectable when creating) -->
+      <!-- Provider identity: the label for a saved record (the type is
+           locked while editing), the picker for a new one. -->
       <fieldset>
-        <legend class="text-sm font-medium text-gray-900 dark:text-white">
+        <legend
+          id="provider-type-legend"
+          class="border-b border-gray-200 pb-2 text-sm font-medium text-gray-900 dark:border-gray-700 dark:text-white w-full">
           {{ t('web.organizations.sso.provider_type') }}
         </legend>
-        <p v-if="!isEditing" class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p v-if="!isEditing" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.organizations.sso.provider_type_description') }}
         </p>
 
         <!-- Locked display when editing existing config -->
-        <div v-if="isEditing && currentProviderOption" class="mt-4">
-          <div class="relative flex rounded-lg border border-brand-500 bg-brand-50 p-4 dark:border-brand-400 dark:bg-brand-900/20">
-            <span class="flex flex-1 flex-col">
-              <span class="block text-sm font-medium text-brand-900 dark:text-brand-100">
-                {{ currentProviderOption.label }}
+        <div
+          v-if="isEditing && currentProviderOption"
+          class="mt-3 flex items-start gap-2">
+          <OIcon
+            collection="heroicons"
+            name="check-circle-solid"
+            class="mt-0.5 size-5 shrink-0 text-brand-600 dark:text-brand-400"
+            aria-hidden="true" />
+          <div class="text-sm">
+            <p class="font-medium text-gray-900 dark:text-white">
+              {{ currentProviderOption.label }}
+              <span class="font-normal text-gray-500 dark:text-gray-400">
+                · {{ currentProviderOption.description }}
               </span>
-              <span class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {{ currentProviderOption.description }}
-              </span>
-              <span class="mt-2 text-xs text-gray-400 dark:text-gray-500">
-                {{ t('web.organizations.sso.provider_type_locked_hint') }}
-              </span>
-            </span>
-            <OIcon
-              collection="heroicons"
-              name="check-circle-solid"
-              class="size-5 text-brand-600 dark:text-brand-400"
-              aria-hidden="true" />
+            </p>
+            <p class="mt-0.5 text-gray-500 dark:text-gray-400">
+              {{ t('web.organizations.sso.provider_type_locked_hint') }}
+            </p>
           </div>
         </div>
 
@@ -671,6 +1151,125 @@ class="space-y-6">
         </div>
       </fieldset>
 
+      <!-- Unverified domain (#4579): tenant SSO is refused on this host until
+           ownership verification completes; verification does not change the
+           values below. Directly above the callback / SP block so an admin
+           copying them reads it first. role="status"
+           like the certificate advisory; amber is the fixed warning hue
+           (#4132) and the text carries the meaning on its own (WCAG 1.4.1). -->
+      <div
+        v-if="showDomainUnverifiedNotice"
+        data-testid="sso-domain-unverified-notice"
+        role="status"
+        class="flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 dark:bg-amber-900/20">
+        <OIcon
+          collection="heroicons"
+          name="information-circle"
+          class="mt-0.5 size-4 flex-shrink-0 text-amber-600 dark:text-amber-400"
+          aria-hidden="true" />
+        <p class="text-sm text-amber-700 dark:text-amber-300">
+          {{ t('web.organizations.sso.domain_unverified_notice') }}
+        </p>
+      </div>
+
+      <!-- Callback URL (OAuth-family providers): what the admin registers at
+           the IdP, as one utility row with its copy control. -->
+      <div
+        v-if="callbackUrl && !isSaml"
+        data-testid="sso-callback-url"
+        class="sm:flex sm:items-start sm:gap-4">
+        <p
+          id="domain-sso-callback-url-label"
+          class="text-sm font-medium text-gray-900 sm:w-44 sm:shrink-0 sm:pt-2 dark:text-white">
+          {{ t('web.organizations.sso.callback_url') }}
+        </p>
+        <div class="mt-1 min-w-0 flex-1 sm:mt-0">
+          <div class="flex items-center gap-2">
+            <code
+              aria-labelledby="domain-sso-callback-url-label"
+              class="block flex-1 overflow-x-auto rounded-md bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:bg-gray-900 dark:text-gray-200">
+              {{ callbackUrl }}
+            </code>
+            <CopyToClipboardButton
+              :is-copied="isCallbackCopied"
+              @click="copyToClipboard(callbackUrl ?? '')" />
+          </div>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {{ t('web.organizations.sso.callback_url_hint') }}
+          </p>
+        </div>
+      </div>
+
+      <!-- SAML service-provider identifiers (#4450), read-only: what the admin
+           registers at the IdP. SP Entity ID doubles as the SP metadata URL.
+           Host-derived values are labelled a preview (spDetailsArePreview)
+           because the static default route may not be the deployed one (#3932). -->
+      <div
+        v-if="isSaml && (spEntityId || callbackUrl)"
+        data-testid="sso-saml-sp-details">
+        <p class="text-sm font-medium text-gray-900 dark:text-white">
+          {{ t('web.organizations.sso.sp_details') }}
+        </p>
+        <p
+          data-testid="sso-saml-sp-details-hint"
+          class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {{
+            spDetailsArePreview
+              ? t('web.organizations.sso.sp_details_preview_hint')
+              : t('web.organizations.sso.sp_details_hint')
+          }}
+        </p>
+        <dl class="mt-3 space-y-3">
+          <div v-if="spEntityId" class="sm:flex sm:items-start sm:gap-4">
+            <dt
+              id="domain-sso-sp-entity-id-label"
+              class="text-sm font-medium text-gray-900 sm:w-44 sm:shrink-0 sm:pt-2 dark:text-white">
+              {{ t('web.organizations.sso.sp_entity_id') }}
+            </dt>
+            <dd class="mt-1 flex min-w-0 flex-1 items-center gap-2 sm:mt-0">
+              <code
+                data-testid="sso-saml-sp-entity-id"
+                aria-labelledby="domain-sso-sp-entity-id-label"
+                class="block flex-1 overflow-x-auto rounded-md bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:bg-gray-900 dark:text-gray-200">
+                {{ spEntityId }}
+              </code>
+              <CopyToClipboardButton
+                :is-copied="isSpEntityIdCopied"
+                @click="copySpEntityId(spEntityId ?? '')" />
+            </dd>
+          </div>
+          <div v-if="callbackUrl" class="sm:flex sm:items-start sm:gap-4">
+            <dt
+              id="domain-sso-acs-url-label"
+              class="text-sm font-medium text-gray-900 sm:w-44 sm:shrink-0 sm:pt-2 dark:text-white">
+              {{ t('web.organizations.sso.acs_url') }}
+            </dt>
+            <dd class="mt-1 flex min-w-0 flex-1 items-center gap-2 sm:mt-0">
+              <code
+                data-testid="sso-saml-acs-url"
+                aria-labelledby="domain-sso-acs-url-label"
+                class="block flex-1 overflow-x-auto rounded-md bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:bg-gray-900 dark:text-gray-200">
+                {{ callbackUrl }}
+              </code>
+              <CopyToClipboardButton
+                :is-copied="isCallbackCopied"
+                @click="copyToClipboard(callbackUrl ?? '')" />
+            </dd>
+          </div>
+        </dl>
+      </div>
+
+      <!-- Identity provider details: a flat form, one spacing rhythm. -->
+      <section
+        data-testid="sso-provider-details"
+        aria-labelledby="sso-provider-details-title"
+        class="space-y-5">
+        <h3
+          id="sso-provider-details-title"
+          class="border-b border-gray-200 pb-2 text-sm font-medium text-gray-900 dark:border-gray-700 dark:text-white">
+          {{ t('web.organizations.sso.provider_details_title') }}
+        </h3>
+
       <!-- Display Name -->
       <div>
         <label
@@ -693,6 +1292,31 @@ class="space-y-6">
           maxlength="100"
           :placeholder="t('web.organizations.sso.display_name_placeholder')"
           aria-describedby="domain-display-name-hint"
+          class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
+      </div>
+
+      <!-- Tenant ID (Entra ID only) -->
+      <div v-if="requiresTenantId">
+        <label
+          for="domain-sso-tenant-id"
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          {{ t('web.organizations.sso.tenant_id') }}
+          <span class="text-red-500" aria-hidden="true">*</span>
+        </label>
+        <p
+          id="domain-tenant-id-hint"
+          class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.organizations.sso.tenant_id_hint') }}
+        </p>
+        <input
+          id="domain-sso-tenant-id"
+          :value="formState.tenant_id"
+          @input="updateField('tenant_id', ($event.target as HTMLInputElement).value)"
+          type="text"
+          required
+          autocomplete="off"
+          :placeholder="t('web.organizations.sso.tenant_id_placeholder')"
+          aria-describedby="domain-tenant-id-hint"
           class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
       </div>
 
@@ -769,31 +1393,13 @@ aria-hidden="true">*</span>
               aria-hidden="true" />
           </button>
         </div>
-      </div>
-
-      <!-- Tenant ID (Entra ID only) -->
-      <div v-if="requiresTenantId">
-        <label
-          for="domain-sso-tenant-id"
-          class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {{ t('web.organizations.sso.tenant_id') }}
-          <span class="text-red-500" aria-hidden="true">*</span>
-        </label>
         <p
-          id="domain-tenant-id-hint"
-          class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.organizations.sso.tenant_id_hint') }}
+          v-if="clientSecretLooksLikeSecretId"
+          data-testid="sso-client-secret-shape-hint"
+          role="status"
+          class="mt-1 text-sm text-amber-700 dark:text-amber-300">
+          {{ t('web.organizations.sso.client_secret_looks_like_secret_id') }}
         </p>
-        <input
-          id="domain-sso-tenant-id"
-          :value="formState.tenant_id"
-          @input="updateField('tenant_id', ($event.target as HTMLInputElement).value)"
-          type="text"
-          required
-          autocomplete="off"
-          :placeholder="t('web.organizations.sso.tenant_id_placeholder')"
-          aria-describedby="domain-tenant-id-hint"
-          class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
       </div>
 
       <!-- Issuer URL (OIDC only) -->
@@ -828,6 +1434,44 @@ aria-hidden="true">*</span>
           {{ t('web.organizations.sso.view_discovery_document') }}
         </a>
       </div>
+
+      <!-- Advanced (OIDC only, #4764): token endpoint client authentication.
+           Collapsed unless the saved record carries a non-default method. -->
+      <details
+        v-if="requiresIssuer"
+        :open="advancedOpen"
+        @toggle="advancedOpen = ($event.target as HTMLDetailsElement).open"
+        data-testid="sso-advanced-oidc">
+        <summary
+          class="cursor-pointer text-sm font-medium text-gray-700 select-none hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
+          {{ t('web.organizations.sso.advanced_section') }}
+        </summary>
+        <div class="mt-3">
+          <label
+            for="domain-sso-token-endpoint-auth-method"
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ t('web.organizations.sso.token_endpoint_auth_method') }}
+          </label>
+          <p
+            id="domain-token-endpoint-auth-method-hint"
+            class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {{ t('web.organizations.sso.token_endpoint_auth_method_hint') }}
+          </p>
+          <select
+            id="domain-sso-token-endpoint-auth-method"
+            :value="formState.token_endpoint_auth_method"
+            @change="updateTokenEndpointAuthMethod(($event.target as HTMLSelectElement).value)"
+            aria-describedby="domain-token-endpoint-auth-method-hint"
+            class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+            <option
+              v-for="option in tokenEndpointAuthMethodOptions"
+              :key="option.value"
+              :value="option.value">
+              {{ t(option.labelKey) }}
+            </option>
+          </select>
+        </div>
+      </details>
 
       <!-- SAML IdP trust anchor (#4450): SSO URL, EntityID, signing cert.
            None is a secret (the IdP publishes all three), so the stored values
@@ -946,296 +1590,7 @@ aria-hidden="true">*</span>
           </p>
         </div>
       </template>
-
-      <!-- Test Connection -->
-      <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <h4 class="text-sm font-medium text-gray-900 dark:text-white">
-              {{ t('web.organizations.sso.test_connection') }}
-            </h4>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {{ isSaml ? t('web.organizations.sso.test_connection_hint_saml') : t('web.organizations.sso.test_connection_hint') }}
-            </p>
-          </div>
-          <button
-            type="button"
-            @click="handleTestConnection"
-            :disabled="!canTestConnection || isTesting || isSaving"
-            class="ml-4 inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-gray-100 dark:ring-gray-500 dark:hover:bg-gray-500">
-            <OIcon
-              v-if="isTesting"
-              collection="heroicons"
-              name="arrow-path"
-              size="4"
-              class="animate-spin motion-reduce:animate-none"
-              aria-hidden="true" />
-            <OIcon
-              v-else
-              collection="heroicons"
-              name="signal"
-              size="4"
-              aria-hidden="true" />
-            {{ isTesting ? t('web.organizations.sso.testing') : t('web.organizations.sso.test_button') }}
-          </button>
-        </div>
-
-        <!-- Test Result -->
-        <div
-          v-if="testResult || testError"
-          class="mt-4">
-          <!-- Success Result -->
-          <div
-            v-if="testResult?.success"
-            role="status"
-            aria-live="polite"
-            class="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
-            <div class="flex">
-              <OIcon
-                collection="heroicons"
-                name="check-circle-solid"
-                class="size-5 text-green-400"
-                aria-hidden="true" />
-              <div class="ml-3">
-                <h5 class="text-sm font-medium text-green-800 dark:text-green-200">
-                  {{ testResult.message }}
-                </h5>
-                <p
-                  v-if="testResult.details?.note"
-                  class="mt-1 text-sm text-green-700 dark:text-green-300">
-                  {{ testResult.details.note }}
-                </p>
-                <!-- SAML (#4450): the test is local, so it reports what it
-                     parsed — the certificate's subject and expiry. -->
-                <dl
-                  v-if="testResult.details?.certificate_subject || certificateExpiry"
-                  data-testid="sso-test-saml-details"
-                  class="mt-2 space-y-1 text-sm text-green-700 dark:text-green-300">
-                  <div v-if="testResult.details.certificate_subject" class="flex gap-2">
-                    <dt class="font-medium">{{ t('web.organizations.sso.certificate_subject') }}:</dt>
-                    <dd class="break-all">{{ testResult.details.certificate_subject }}</dd>
-                  </div>
-                  <div v-if="certificateExpiry" class="flex gap-2">
-                    <dt class="font-medium">{{ t('web.organizations.sso.certificate_expires') }}:</dt>
-                    <dd>
-                      {{ certificateExpiry.date }}
-                      <span v-if="certificateExpiry.days !== undefined">
-                        ({{ t('web.organizations.sso.certificate_expires_in_days', certificateExpiry.days) }})
-                      </span>
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
-          </div>
-
-          <!-- Failure Result -->
-          <div
-            v-else-if="testResult && !testResult.success"
-            role="alert"
-            aria-live="assertive"
-            class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
-            <div class="flex">
-              <OIcon
-                collection="heroicons"
-                name="x-circle-solid"
-                class="size-5 text-red-400"
-                aria-hidden="true" />
-              <div class="ml-3">
-                <h5 class="text-sm font-medium text-red-800 dark:text-red-200">
-                  {{ testResult.message }}
-                </h5>
-                <div
-                  v-if="testResult.details"
-                  class="mt-2 text-sm text-red-700 dark:text-red-300">
-                  <dl class="space-y-1">
-                    <div v-if="testResult.details.error_code" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.COMMON.error_code') }}:</dt>
-                      <dd>{{ testResult.details.error_code }}</dd>
-                    </div>
-                    <div v-if="testResult.details.http_status" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.COMMON.http_status') }}:</dt>
-                      <dd>{{ testResult.details.http_status }}</dd>
-                    </div>
-                    <div v-if="testResult.details.field" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.COMMON.field') }}:</dt>
-                      <dd>{{ t(UNREADABLE_FIELD_LABELS[testResult.details.field] ?? testResult.details.field) }}</dd>
-                    </div>
-                    <div v-if="testResult.details.description" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.COMMON.details') }}:</dt>
-                      <dd>{{ testResult.details.description }}</dd>
-                    </div>
-                    <div v-if="certificateValidFrom" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.organizations.sso.certificate_valid_from') }}:</dt>
-                      <dd>{{ certificateValidFrom }}</dd>
-                    </div>
-                    <div v-if="certificateExpiry" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.organizations.sso.certificate_expires') }}:</dt>
-                      <dd>{{ certificateExpiry.date }}</dd>
-                    </div>
-                    <div v-if="testResult.details.missing_fields?.length" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.organizations.sso.missing_fields') }}:</dt>
-                      <dd>{{ testResult.details.missing_fields.join(', ') }}</dd>
-                    </div>
-                    <template v-if="testResult.details.error_code === 'issuer_mismatch'">
-                      <div class="flex gap-2">
-                        <dt class="shrink-0 font-medium">
-                          {{ t('web.organizations.sso.configured_issuer') }}:
-                        </dt>
-                        <dd>
-                          <code
-                            class="font-mono break-all"
-                            data-testid="sso-configured-issuer">{{
-                              testResult.details.configured_issuer
-                            }}</code>
-                        </dd>
-                      </div>
-                      <div class="flex gap-2">
-                        <dt class="shrink-0 font-medium">
-                          {{ t('web.organizations.sso.discovery_issuer') }}:
-                        </dt>
-                        <dd>
-                          <code
-                            class="font-mono break-all"
-                            data-testid="sso-discovery-issuer">{{
-                              testResult.details.discovery_issuer ?? '—'
-                            }}</code>
-                        </dd>
-                      </div>
-                    </template>
-                  </dl>
-                  <p
-                    v-if="testResult.details.error_code === 'issuer_mismatch'"
-                    class="mt-2"
-                    data-testid="sso-issuer-mismatch-hint">
-                    {{ t('web.organizations.sso.issuer_mismatch_hint') }}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Error (exception) -->
-          <div
-            v-else-if="testError"
-            class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
-            <div class="flex">
-              <OIcon
-                collection="heroicons"
-                name="exclamation-triangle-solid"
-                class="size-5 text-red-400"
-                aria-hidden="true" />
-              <div class="ml-3">
-                <p class="text-sm font-medium text-red-800 dark:text-red-200">
-                  {{ testError }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Unverified domain (#4579): tenant SSO is refused on this host until
-           ownership verification completes; verification does not change the
-           values below. Directly above the callback / SP block so an admin
-           copying them reads it first. role="status"
-           like the certificate advisory; amber is the fixed warning hue
-           (#4132) and the text carries the meaning on its own (WCAG 1.4.1). -->
-      <div
-        v-if="showDomainUnverifiedNotice"
-        data-testid="sso-domain-unverified-notice"
-        role="status"
-        class="flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 dark:bg-amber-900/20">
-        <OIcon
-          collection="heroicons"
-          name="information-circle"
-          class="mt-0.5 size-4 flex-shrink-0 text-amber-600 dark:text-amber-400"
-          aria-hidden="true" />
-        <p class="text-sm text-amber-700 dark:text-amber-300">
-          {{ t('web.organizations.sso.domain_unverified_notice') }}
-        </p>
-      </div>
-
-      <!-- Callback URL (OAuth-family providers) -->
-      <div
-        v-if="callbackUrl && !isSaml"
-        class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-        <label class="block text-sm font-medium text-gray-900 dark:text-white">
-          {{ t('web.organizations.sso.callback_url') }}
-        </label>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.organizations.sso.callback_url_hint') }}
-        </p>
-        <div class="mt-2 flex items-center gap-2">
-          <code
-            class="block flex-1 overflow-x-auto rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-            {{ callbackUrl }}
-          </code>
-          <CopyToClipboardButton
-            :is-copied="isCallbackCopied"
-            @click="copyToClipboard(callbackUrl ?? '')" />
-        </div>
-      </div>
-
-      <!-- SAML service-provider identifiers (#4450), read-only: what the admin
-           registers at the IdP. SP Entity ID doubles as the SP metadata URL.
-           Host-derived values are labelled a preview (spDetailsArePreview)
-           because the static default route may not be the deployed one (#3932). -->
-      <div
-        v-if="isSaml && (spEntityId || callbackUrl)"
-        data-testid="sso-saml-sp-details"
-        class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-        <p class="text-sm font-medium text-gray-900 dark:text-white">
-          {{ t('web.organizations.sso.sp_details') }}
-        </p>
-        <p
-          data-testid="sso-saml-sp-details-hint"
-          class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {{
-            spDetailsArePreview
-              ? t('web.organizations.sso.sp_details_preview_hint')
-              : t('web.organizations.sso.sp_details_hint')
-          }}
-        </p>
-        <dl class="mt-3 space-y-3">
-          <div v-if="spEntityId">
-            <dt
-              id="domain-sso-sp-entity-id-label"
-              class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-              {{ t('web.organizations.sso.sp_entity_id') }}
-            </dt>
-            <dd class="mt-1 flex items-center gap-2">
-              <code
-                data-testid="sso-saml-sp-entity-id"
-                aria-labelledby="domain-sso-sp-entity-id-label"
-                class="block flex-1 overflow-x-auto rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                {{ spEntityId }}
-              </code>
-              <CopyToClipboardButton
-                :is-copied="isSpEntityIdCopied"
-                @click="copySpEntityId(spEntityId ?? '')" />
-            </dd>
-          </div>
-          <div v-if="callbackUrl">
-            <dt
-              id="domain-sso-acs-url-label"
-              class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-              {{ t('web.organizations.sso.acs_url') }}
-            </dt>
-            <dd class="mt-1 flex items-center gap-2">
-              <code
-                data-testid="sso-saml-acs-url"
-                aria-labelledby="domain-sso-acs-url-label"
-                class="block flex-1 overflow-x-auto rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                {{ callbackUrl }}
-              </code>
-              <CopyToClipboardButton
-                :is-copied="isCallbackCopied"
-                @click="copyToClipboard(callbackUrl ?? '')" />
-            </dd>
-          </div>
-        </dl>
-      </div>
+      </section>
 
       <!-- Domain Allowlist (only for providers without IdP-side access control) -->
       <div v-if="showDomainFilter">
@@ -1305,57 +1660,591 @@ aria-hidden="true">*</span>
         </p>
       </div>
 
-      <!-- Connection Enabled Toggle (#4107) — writes SsoConfig.enabled, the
-           credential record's own operational flag. Deliberately independent of
-           the SigninConfig sso_enabled policy toggle on Sign-in Settings: the
-           availability ladder requires BOTH before the sign-in page offers SSO.
-           This was the field's only UI writer; dropping it (7326689cdc) left
-           every saved config stuck at enabled=false. -->
-      <div
-        class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-900 dark:text-white">
-              {{ t('web.organizations.sso.connection_enabled') }}
-            </p>
-            <p
-              id="domain-connection-enabled-hint"
-              class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {{ t('web.organizations.sso.connection_enabled_hint') }}
-            </p>
-          </div>
-          <ToggleWithIcon
-            data-testid="sso-connection-enabled-toggle"
-            :enabled="formState.enabled"
-            :disabled="isSaving"
-            @update:enabled="handleConnectionEnabledChange" />
-        </div>
+      <!-- The primary check panel: heading, hint, warnings and results. Its
+           action (sso-diagnostics-run) is in the sticky footer. The run
+           saves when needed, checks the saved configuration, and turns a
+           record that is off on when the check passes. -->
+      <section
+        data-testid="sso-diagnostics"
+        aria-labelledby="sso-diagnostics-title">
+        <h3
+          id="sso-diagnostics-title"
+          class="border-b border-gray-200 pb-2 text-sm font-medium text-gray-900 dark:border-gray-700 dark:text-white">
+          {{ t('web.organizations.sso.diagnostics_title') }}
+        </h3>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          {{
+            t(
+              isSaml
+                ? 'web.organizations.sso.diagnostics_hint_saml'
+                : requiresTenantId
+                  ? 'web.organizations.sso.diagnostics_hint_entra'
+                  : 'web.organizations.sso.diagnostics_hint'
+            )
+          }}
+        </p>
+        <p
+          v-if="!connectionOn"
+          data-testid="sso-diagnostics-activation-hint"
+          class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.organizations.sso.diagnostics_activation_hint') }}
+        </p>
 
-        <!-- Weak test-before-enable warning (#4111): advisory only, never a
-             gate. role="alert" so it is announced when it appears; amber is
-             the fixed warning hue (#4132) and the text carries the meaning on
-             its own (WCAG 1.4.1). -->
+        <!-- Changed credentials on a connection that is on (advisory, never
+             a gate: saving stays possible). role="alert" so it is announced
+             when it appears; amber is the fixed warning hue (#4132) and the
+             text carries the meaning on its own (WCAG 1.4.1). -->
         <div
-          v-if="showEnableUntestedWarning"
-          data-testid="sso-enable-untested-warning"
+          v-if="showUncheckedCredentialsWarning"
+          data-testid="sso-credentials-unchecked-warning"
           role="alert"
           class="mt-3 flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 dark:bg-amber-900/20">
           <OIcon
             collection="heroicons"
             name="exclamation-triangle"
-            class="mt-0.5 size-4 flex-shrink-0 text-amber-600 dark:text-amber-400"
+            class="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
             aria-hidden="true" />
           <p class="text-sm text-amber-700 dark:text-amber-300">
-            {{ t('web.organizations.sso.enable_untested_warning') }}
+            {{ t('web.organizations.sso.credentials_unchecked_warning') }}
           </p>
         </div>
-      </div>
+
+        <!-- Until a check runs the panel has nothing to show; say where the
+             results land so the body is not blank. Static text, not a live
+             region: the result box announces itself when it arrives. -->
+        <p
+          v-if="!diagnosticsResult && !diagnosticsError && !isDiagnosing && !isSaving"
+          data-testid="sso-diagnostics-placeholder"
+          class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.organizations.sso.diagnostics_placeholder') }}
+        </p>
+
+        <!-- Diagnostics Result -->
+        <div
+          v-if="diagnosticsResult || diagnosticsError"
+          class="mt-4">
+          <div
+            v-if="diagnosticsResult && diagnosticsOverallStyle"
+            ref="diagnosticsOutcomeEl"
+            data-testid="sso-diagnostics-result"
+            :data-overall="diagnosticsResult.overall"
+            :role="diagnosticsOverallStyle.role"
+            :aria-live="diagnosticsOverallStyle.live"
+            :class="diagnosticsOverallStyle.box">
+            <div class="flex">
+              <OIcon
+                collection="heroicons"
+                :name="diagnosticsOverallStyle.icon"
+                :class="diagnosticsOverallStyle.iconClass"
+                aria-hidden="true" />
+              <div class="ml-3 min-w-0 flex-1">
+                <p
+                  data-testid="sso-diagnostics-summary"
+                  class="text-sm font-medium"
+                  :class="diagnosticsOverallStyle.text">
+                  {{ t(`web.organizations.sso.diagnostics_${diagnosticsResult.overall}`) }}
+                </p>
+                <!-- What the run did to the connection (activation). -->
+                <p
+                  v-if="activationNotice"
+                  data-testid="sso-activation-notice"
+                  :data-activation="activationNotice.activation"
+                  :class="[
+                    'mt-2 text-sm font-medium',
+                    activationNotice.tone === 'ok'
+                      ? 'text-green-800 dark:text-green-200'
+                      : 'text-amber-800 dark:text-amber-200',
+                  ]">
+                  {{ activationNotice.text }}
+                </p>
+                <p
+                  v-if="diagnosticsResult.overall === 'passed' && (hasUnsavedChanges || showDiagnosticsNext)"
+                  data-testid="sso-diagnostics-next"
+                  class="mt-2 text-sm text-gray-800 dark:text-gray-100">
+                  {{
+                    t(
+                      hasUnsavedChanges
+                        ? 'web.organizations.sso.diagnostics_saved_result'
+                        : 'web.organizations.sso.diagnostics_next'
+                    )
+                  }}
+                </p>
+                <ul class="mt-3 space-y-3">
+                  <li
+                    v-for="check in diagnosticsResult.checks"
+                    :key="check.check"
+                    :data-testid="`sso-diagnostics-check-${check.check}`"
+                    :data-status="check.status"
+                    class="text-sm text-gray-800 dark:text-gray-100">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span
+                        data-testid="sso-diagnostics-status"
+                        class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                        :class="DIAGNOSTIC_STATUS_CHIPS[check.status].classes">
+                        {{ t(DIAGNOSTIC_STATUS_CHIPS[check.status].labelKey) }}
+                      </span>
+                      <span class="font-medium">{{ diagnosticCheckLabel(check) }}</span>
+                    </div>
+                    <p class="mt-1 text-gray-700 dark:text-gray-300">{{ check.message }}</p>
+                    <p
+                      v-if="check.details?.note"
+                      data-testid="sso-diagnostics-note"
+                      class="mt-1 text-gray-700 dark:text-gray-300">
+                      {{ check.details.note }}
+                    </p>
+                    <details
+                      v-if="hasDiagnosticTechnicalDetails(check)"
+                      data-testid="sso-diagnostics-technical-details"
+                      :open="
+                        check.status !== 'passed' ||
+                        check.details.token_endpoint_auth_method_supported === false
+                      "
+                      class="mt-2">
+                      <summary class="cursor-pointer font-medium">
+                        {{ t('web.organizations.sso.technical_details') }}
+                      </summary>
+                      <dl
+                        data-testid="sso-diagnostics-details"
+                        class="mt-1 space-y-1 text-gray-700 dark:text-gray-300">
+                        <div
+                          v-if="check.details.error_code"
+                          class="flex gap-2">
+                          <dt class="shrink-0 font-medium">{{ t('web.COMMON.error_code') }}:</dt>
+                          <dd class="font-mono break-all">{{ check.details.error_code }}</dd>
+                        </div>
+                        <div
+                          v-if="check.details.aadsts_code"
+                          class="flex gap-2">
+                          <dt class="shrink-0 font-medium">
+                            {{ t('web.organizations.sso.diagnostics_aadsts_code') }}:
+                          </dt>
+                          <dd class="font-mono break-all">{{ check.details.aadsts_code }}</dd>
+                        </div>
+                        <div
+                          v-if="check.details.http_status"
+                          class="flex gap-2">
+                          <dt class="shrink-0 font-medium">{{ t('web.COMMON.http_status') }}:</dt>
+                          <dd>{{ check.details.http_status }}</dd>
+                        </div>
+                        <template v-if="check.details.error_code === 'issuer_mismatch'">
+                          <div class="flex gap-2">
+                            <dt class="shrink-0 font-medium">
+                              {{ t('web.organizations.sso.configured_issuer') }}:
+                            </dt>
+                            <dd>
+                              <code
+                                class="font-mono break-all"
+                                data-testid="sso-diagnostics-configured-issuer"
+                                >{{ check.details.configured_issuer }}</code
+                              >
+                            </dd>
+                          </div>
+                          <div class="flex gap-2">
+                            <dt class="shrink-0 font-medium">
+                              {{ t('web.organizations.sso.discovery_issuer') }}:
+                            </dt>
+                            <dd>
+                              <code
+                                class="font-mono break-all"
+                                data-testid="sso-diagnostics-discovery-issuer"
+                                >{{ check.details.discovery_issuer ?? '—' }}</code
+                              >
+                            </dd>
+                          </div>
+                        </template>
+                        <div
+                          v-if="check.details.errors?.length"
+                          class="flex gap-2">
+                          <dt class="shrink-0 font-medium">
+                            {{ t('web.organizations.sso.diagnostics_errors') }}:
+                          </dt>
+                          <dd class="break-words">{{ check.details.errors.join('; ') }}</dd>
+                        </div>
+                        <div
+                          v-if="check.details.certificate_not_after"
+                          class="flex gap-2">
+                          <dt class="shrink-0 font-medium">
+                            {{ t('web.organizations.sso.certificate_expires') }}:
+                          </dt>
+                          <dd>
+                            {{ formatDiagnosticDate(check.details.certificate_not_after) }}
+                            <span v-if="check.details.certificate_expires_in_days !== undefined">
+                              ({{
+                                t(
+                                  'web.organizations.sso.certificate_expires_in_days',
+                                  check.details.certificate_expires_in_days
+                                )
+                              }})
+                            </span>
+                          </dd>
+                        </div>
+                        <div
+                          v-if="check.details.token_endpoint_auth_methods_supported?.length"
+                          class="flex gap-2">
+                          <dt class="shrink-0 font-medium">
+                            {{ t('web.organizations.sso.token_endpoint_auth_methods_supported') }}:
+                          </dt>
+                          <dd class="font-mono break-all">
+                            {{ check.details.token_endpoint_auth_methods_supported.join(', ') }}
+                          </dd>
+                        </div>
+                      </dl>
+                    </details>
+                  </li>
+                </ul>
+                <details
+                  data-testid="sso-diagnostics-run-details"
+                  :open="diagnosticsResult.overall !== 'passed'"
+                  class="mt-3 text-sm text-gray-700 dark:text-gray-300">
+                  <summary class="cursor-pointer font-medium">
+                    {{ t('web.organizations.sso.check_details') }}
+                  </summary>
+                  <p
+                    data-testid="sso-diagnostics-checked-at"
+                    class="mt-1">
+                    {{ t('web.organizations.sso.diagnostics_checked_at') }}:
+                    {{ diagnosticsCheckedAt }}
+                  </p>
+                </details>
+              </div>
+            </div>
+          </div>
+
+          <!-- No verdict was received; the server may still have activated
+               the connection. Announced like the failed verdict (role="alert"). -->
+          <div
+            v-else-if="diagnosticsError"
+            ref="diagnosticsOutcomeEl"
+            data-testid="sso-diagnostics-error"
+            role="alert"
+            aria-live="assertive"
+            class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+            <div class="flex">
+              <OIcon
+                collection="heroicons"
+                name="exclamation-triangle-solid"
+                class="size-5 text-red-400"
+                aria-hidden="true" />
+              <div class="ml-3">
+                <p class="text-sm font-medium text-red-800 dark:text-red-200">
+                  {{ diagnosticsError }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Provider discovery check (D7): an optional check of the CURRENT form
+             values. It saves nothing and never verifies the secret, so it is
+             neither the saved-configuration check it sits under nor a sign-in.
+             Collapsed by default; a result opens it so it is never hidden. Its
+             body is indented so it reads as a child of the check. -->
+        <details
+          data-testid="sso-provider-check"
+          :open="providerCheckOpen"
+          @toggle="providerCheckOpen = ($event.target as HTMLDetailsElement).open"
+          class="mt-4">
+          <summary
+            class="cursor-pointer text-sm font-medium text-gray-700 select-none hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
+            {{ t('web.organizations.sso.test_connection') }}
+          </summary>
+          <div class="mt-3 border-l border-gray-200 pl-4 dark:border-gray-700">
+            <div class="flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
+              <p class="min-w-0 flex-1 text-sm text-gray-500 dark:text-gray-400">
+                {{ isSaml ? t('web.organizations.sso.test_connection_hint_saml') : t('web.organizations.sso.test_connection_hint') }}
+              </p>
+              <button
+                type="button"
+                @click="handleTestConnection"
+                :disabled="!canTestConnection || isTesting || isSaving"
+                class="inline-flex shrink-0 items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-gray-100 dark:ring-gray-500 dark:hover:bg-gray-500">
+                <OIcon
+                  v-if="isTesting"
+                  collection="heroicons"
+                  name="arrow-path"
+                  size="4"
+                  class="animate-spin motion-reduce:animate-none"
+                  aria-hidden="true" />
+                <OIcon
+                  v-else
+                  collection="heroicons"
+                  name="signal"
+                  size="4"
+                  aria-hidden="true" />
+                {{ isTesting ? t('web.organizations.sso.testing') : t('web.organizations.sso.test_button') }}
+              </button>
+            </div>
+
+            <!-- Test Result -->
+            <div
+              v-if="testResult || testError"
+              class="mt-4">
+              <!-- Success Result -->
+              <div
+                v-if="testResult?.success"
+                role="status"
+                aria-live="polite"
+                class="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
+                <div class="flex">
+                  <OIcon
+                    collection="heroicons"
+                    name="check-circle-solid"
+                    class="size-5 text-green-400"
+                    aria-hidden="true" />
+                  <div class="ml-3">
+                    <h4 class="text-sm font-medium text-green-800 dark:text-green-200">
+                      {{ testResult.message }}
+                    </h4>
+                    <!-- The API's note. With an unadvertised token endpoint auth
+                         method (#4764) it explains a gap, so it reads as a warning;
+                         otherwise it is part of the confirmation. -->
+                    <p
+                      v-if="testResult.details?.note"
+                      data-testid="sso-test-note"
+                      :class="
+                        tokenEndpointAuthMethodUnadvertised
+                          ? 'mt-2 flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-300'
+                          : 'mt-1 text-sm text-green-700 dark:text-green-300'
+                      ">
+                      <OIcon
+                        v-if="tokenEndpointAuthMethodUnadvertised"
+                        collection="heroicons"
+                        name="exclamation-triangle"
+                        class="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
+                        aria-hidden="true" />
+                      <span>{{ testResult.details.note }}</span>
+                    </p>
+                    <p
+                      class="mt-2 text-sm text-green-800 dark:text-green-200"
+                      data-testid="sso-provider-check-next">
+                      {{ t('web.organizations.sso.provider_check_next') }}
+                    </p>
+                    <details
+                      v-if="advertisedTokenEndpointAuthMethods?.length"
+                      data-testid="sso-test-technical-details"
+                      :open="tokenEndpointAuthMethodUnadvertised"
+                      class="mt-2 text-sm text-green-700 dark:text-green-300">
+                      <summary class="cursor-pointer font-medium">
+                        {{ t('web.organizations.sso.technical_details') }}
+                      </summary>
+                      <dl
+                        v-if="advertisedTokenEndpointAuthMethods?.length"
+                        data-testid="sso-test-token-endpoint-auth-methods"
+                        class="mt-2 space-y-1 text-sm text-green-700 dark:text-green-300">
+                        <div class="flex gap-2">
+                          <dt class="shrink-0 font-medium">
+                            {{ t('web.organizations.sso.token_endpoint_auth_methods_supported') }}:
+                          </dt>
+                          <dd class="font-mono break-all">
+                            {{ advertisedTokenEndpointAuthMethods.join(', ') }}
+                          </dd>
+                        </div>
+                      </dl>
+                    </details>
+                    <!-- SAML (#4450): the test is local, so it reports what it
+                         parsed — the certificate's subject and expiry. -->
+                    <dl
+                      v-if="testResult.details?.certificate_subject || certificateExpiry"
+                      data-testid="sso-test-saml-details"
+                      class="mt-2 space-y-1 text-sm text-green-700 dark:text-green-300">
+                      <div v-if="testResult.details.certificate_subject" class="flex gap-2">
+                        <dt class="font-medium">{{ t('web.organizations.sso.certificate_subject') }}:</dt>
+                        <dd class="break-all">{{ testResult.details.certificate_subject }}</dd>
+                      </div>
+                      <div v-if="certificateExpiry" class="flex gap-2">
+                        <dt class="font-medium">{{ t('web.organizations.sso.certificate_expires') }}:</dt>
+                        <dd>
+                          {{ certificateExpiry.date }}
+                          <span v-if="certificateExpiry.days !== undefined">
+                            ({{ t('web.organizations.sso.certificate_expires_in_days', certificateExpiry.days) }})
+                          </span>
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Failure Result -->
+              <div
+                v-else-if="testResult && !testResult.success"
+                role="alert"
+                aria-live="assertive"
+                class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+                <div class="flex">
+                  <OIcon
+                    collection="heroicons"
+                    name="x-circle-solid"
+                    class="size-5 text-red-400"
+                    aria-hidden="true" />
+                  <div class="ml-3">
+                    <h4 class="text-sm font-medium text-red-800 dark:text-red-200">
+                      {{ testResult.message }}
+                    </h4>
+                    <div
+                      v-if="testResult.details"
+                      class="mt-2 text-sm text-red-700 dark:text-red-300">
+                      <dl class="space-y-1">
+                        <div v-if="testResult.details.error_code" class="flex gap-2">
+                          <dt class="font-medium">{{ t('web.COMMON.error_code') }}:</dt>
+                          <dd>{{ testResult.details.error_code }}</dd>
+                        </div>
+                        <div v-if="testResult.details.http_status" class="flex gap-2">
+                          <dt class="font-medium">{{ t('web.COMMON.http_status') }}:</dt>
+                          <dd>{{ testResult.details.http_status }}</dd>
+                        </div>
+                        <div v-if="testResult.details.field" class="flex gap-2">
+                          <dt class="font-medium">{{ t('web.COMMON.field') }}:</dt>
+                          <dd>{{ t(UNREADABLE_FIELD_LABELS[testResult.details.field] ?? testResult.details.field) }}</dd>
+                        </div>
+                        <div v-if="testResult.details.description" class="flex gap-2">
+                          <dt class="font-medium">{{ t('web.COMMON.details') }}:</dt>
+                          <dd>{{ testResult.details.description }}</dd>
+                        </div>
+                        <div v-if="certificateValidFrom" class="flex gap-2">
+                          <dt class="font-medium">{{ t('web.organizations.sso.certificate_valid_from') }}:</dt>
+                          <dd>{{ certificateValidFrom }}</dd>
+                        </div>
+                        <div v-if="certificateExpiry" class="flex gap-2">
+                          <dt class="font-medium">{{ t('web.organizations.sso.certificate_expires') }}:</dt>
+                          <dd>{{ certificateExpiry.date }}</dd>
+                        </div>
+                        <div v-if="testResult.details.missing_fields?.length" class="flex gap-2">
+                          <dt class="font-medium">{{ t('web.organizations.sso.missing_fields') }}:</dt>
+                          <dd>{{ testResult.details.missing_fields.join(', ') }}</dd>
+                        </div>
+                        <template v-if="testResult.details.error_code === 'issuer_mismatch'">
+                          <div class="flex gap-2">
+                            <dt class="shrink-0 font-medium">
+                              {{ t('web.organizations.sso.configured_issuer') }}:
+                            </dt>
+                            <dd>
+                              <code
+                                class="font-mono break-all"
+                                data-testid="sso-configured-issuer">{{
+                                  testResult.details.configured_issuer
+                                }}</code>
+                            </dd>
+                          </div>
+                          <div class="flex gap-2">
+                            <dt class="shrink-0 font-medium">
+                              {{ t('web.organizations.sso.discovery_issuer') }}:
+                            </dt>
+                            <dd>
+                              <code
+                                class="font-mono break-all"
+                                data-testid="sso-discovery-issuer">{{
+                                  testResult.details.discovery_issuer ?? '—'
+                                }}</code>
+                            </dd>
+                          </div>
+                        </template>
+                      </dl>
+                      <p
+                        v-if="testResult.details.error_code === 'issuer_mismatch'"
+                        class="mt-2"
+                        data-testid="sso-issuer-mismatch-hint">
+                        {{ t('web.organizations.sso.issuer_mismatch_hint') }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Error (exception) -->
+              <div
+                v-else-if="testError"
+                class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+                <div class="flex">
+                  <OIcon
+                    collection="heroicons"
+                    name="exclamation-triangle-solid"
+                    class="size-5 text-red-400"
+                    aria-hidden="true" />
+                  <div class="ml-3">
+                    <p class="text-sm font-medium text-red-800 dark:text-red-200">
+                      {{ testError }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <section
+        data-testid="sso-confirm-sign-in"
+        aria-labelledby="sso-confirm-sign-in-title">
+        <h3
+          id="sso-confirm-sign-in-title"
+          class="border-b border-gray-200 pb-2 text-sm font-medium text-gray-900 dark:border-gray-700 dark:text-white">
+          {{ t('web.organizations.sso.confirm_sign_in') }}
+        </h3>
+        <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+          {{ t('web.organizations.sso.confirm_sign_in_hint', { domain: domainHost }) }}
+        </p>
+        <!-- The domain's sign-in settings withhold SSO (verdict
+             sso_not_permitted), so this step cannot work yet. role="status";
+             amber is the fixed warning hue (#4132) and the text carries the
+             meaning on its own (WCAG 1.4.1). -->
+        <div
+          v-if="signInNotPermitted"
+          data-testid="sso-confirm-sign-in-not-permitted"
+          role="status"
+          class="mt-3 flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 dark:bg-amber-900/20">
+          <OIcon
+            collection="heroicons"
+            name="exclamation-triangle"
+            class="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
+            aria-hidden="true" />
+          <p class="text-sm text-amber-700 dark:text-amber-300">
+            {{ t('web.organizations.sso.confirm_sign_in_not_permitted') }}
+          </p>
+        </div>
+        <div
+          v-if="isConfigured"
+          class="mt-2 flex flex-wrap items-start justify-between gap-2">
+          <p
+            data-testid="sso-last-sign-in"
+            :data-result="lastSignIn?.result ?? 'none'"
+            aria-live="polite"
+            :class="[
+              'min-w-0 flex-1 text-sm',
+              lastSignIn?.result === 'failed'
+                ? 'text-red-700 dark:text-red-300'
+                : 'text-gray-700 dark:text-gray-300',
+            ]">
+            {{ lastSignInText }}
+          </p>
+          <button
+            type="button"
+            data-testid="sso-last-sign-in-refresh"
+            :disabled="isRefreshingLastSignIn"
+            :aria-busy="isRefreshingLastSignIn"
+            @click="emit('refresh-last-sign-in')"
+            class="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+            <OIcon
+              collection="heroicons"
+              name="arrow-path"
+              size="4"
+              :class="isRefreshingLastSignIn ? 'animate-spin motion-reduce:animate-none' : ''"
+              aria-hidden="true" />
+            {{ t('web.organizations.sso.last_sign_in_refresh') }}
+          </button>
+        </div>
+        <!-- What a real sign-in proves that the checks above cannot: the
+             section's closing caveat. -->
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.organizations.sso.confirm_sign_in_limits') }}
+        </p>
+      </section>
 
       <!-- Grant Org Scope Toggle (withheld pending testing unless already
            granted, so an existing grant stays revocable — see showGrantOrgScope) -->
       <div
         v-if="showGrantOrgScope"
-        class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+        class="flex items-center justify-between gap-4">
         <div>
           <p class="text-sm font-medium text-gray-900 dark:text-white">
             {{ t('web.organizations.sso.grant_org_scope') }}
@@ -1373,113 +2262,66 @@ aria-hidden="true">*</span>
           @update:enabled="updateField('grant_org_scope', $event)" />
       </div>
 
-      <!-- Action Buttons -->
+      <!-- Footer, sticky to the viewport bottom, in the usual order: Discard
+           alone on the left whenever there is something to discard; on the
+           right, Save for a record that exists (enabled only with unsaved
+           changes; saving never turns the connection on) and then the primary
+           check action as the rightmost control. A new record is saved by the
+           check, so setup has one save path. One control per action. The
+           negative margin spans the host card's horizontal padding so the top
+           border meets the card edges. WorkspaceFooter fixes an element to the
+           viewport bottom at every width and publishes its measured height:
+           the mobile nav below md (--workspace-mobile-nav-height, fallback
+           3.5625rem from its classes) and the app footer at md+
+           (--workspace-footer-height, fallback 6rem, the layout's mb-24). The
+           bar sticks exactly on top of whichever is shown rather than
+           competing with it on z-index, so nothing shows between the two. -->
       <div
-        v-if="ssoConfig?.enabled"
-        class="space-y-3 border-t border-gray-200 pt-6 dark:border-gray-700">
+        data-testid="sso-form-footer"
+        class="sticky bottom-[var(--workspace-mobile-nav-height,3.5625rem)] z-10 -mx-6 flex flex-wrap items-center justify-between gap-3 rounded-b-lg border-t border-gray-200 bg-white px-6 py-4 md:bottom-[var(--workspace-footer-height,6rem)] dark:border-gray-700 dark:bg-gray-800">
         <button
-          v-if="!showDisableConfirm"
+          v-if="hasUnsavedChanges"
           type="button"
-          data-testid="disable-sso"
-          :disabled="actionPending"
-          class="rounded-md px-3 py-2 text-sm font-semibold text-red-600 ring-1 ring-red-300 disabled:opacity-50 dark:text-red-400"
-          @click="showDisableConfirm = true">
-          {{ t('web.organizations.sso.disable_action') }}
+          @click="emit('discard')"
+          :disabled="isSaving"
+          class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+          {{ t('web.domains.email.discard_changes') }}
         </button>
-        <div
-          v-else
-          class="space-y-3">
-          <p
-            class="text-sm text-gray-600 dark:text-gray-400"
-            data-testid="disable-sso-confirmation">
-            {{ t('web.organizations.sso.disable_confirm') }}
-            <span v-if="ssoConfig.enforce_sso_only">{{
-              t('web.organizations.sso.disable_enforcement_warning')
-            }}</span>
-          </p>
-          <button
-            type="button"
-            data-testid="confirm-disable-sso"
-            :disabled="actionPending"
-            class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
-            @click="handleDisable">
-            {{ t('web.organizations.sso.disable_action') }}
-          </button>
-          <button
-            type="button"
-            :disabled="actionPending"
-            class="px-3 py-2 text-sm text-gray-700 dark:text-gray-200"
-            @click="showDisableConfirm = false">
-            {{ t('web.COMMON.word_cancel') }}
-          </button>
-        </div>
-      </div>
 
-      <div class="flex items-center justify-between border-t border-gray-200 pt-6 dark:border-gray-700">
-        <!-- Left: Delete + Discard -->
-        <div class="flex items-center gap-3">
-          <!-- Delete button (only when editing existing config) -->
-          <template v-if="isEditing && !showDeleteConfirm">
-            <button
-              type="button"
-              @click="showDeleteConfirm = true"
-              :disabled="isDeleting || isSaving"
-              class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-red-400 dark:ring-red-700 dark:hover:bg-red-900/20">
-              <OIcon
-                collection="heroicons"
-                name="trash"
-                class="size-4"
-                aria-hidden="true" />
-              {{ t('web.organizations.sso.delete_config') }}
-            </button>
-          </template>
-
-          <!-- Delete confirmation -->
-          <div v-if="showDeleteConfirm" class="flex items-center gap-2">
-            <span class="text-sm text-gray-600 dark:text-gray-400">
-              {{ t('web.organizations.sso.delete_confirm') }}
-            </span>
-            <button
-              type="button"
-              @click="handleDelete"
-              :disabled="isDeleting"
-              class="inline-flex items-center rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-400">
-              {{ isDeleting ? t('web.COMMON.processing') : t('web.COMMON.yes_delete') }}
-            </button>
-            <button
-              type="button"
-              @click="showDeleteConfirm = false"
-              :disabled="isDeleting"
-              class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
-              {{ t('web.COMMON.word_cancel') }}
-            </button>
-          </div>
-
-          <!-- Discard changes button -->
+        <!-- ml-auto keeps the group at the right edge when Discard is absent. -->
+        <div class="ml-auto flex flex-wrap items-center justify-end gap-3">
           <button
-            v-if="hasUnsavedChanges && !showDeleteConfirm"
-            type="button"
-            @click="emit('discard')"
-            :disabled="isSaving"
+            v-if="isEditing"
+            type="submit"
+            data-testid="sso-save"
+            :disabled="!hasUnsavedChanges || !isFormValid || isSaving || isDeleting"
             class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
-            {{ t('web.domains.email.discard_changes') }}
+            <OIcon
+              v-if="isSaving"
+              collection="heroicons"
+              name="arrow-path"
+              class="size-4 animate-spin motion-reduce:animate-none"
+              aria-hidden="true" />
+            <span v-if="isSaving">{{ t('web.COMMON.saving') }}</span>
+            <span v-else>{{ t('web.COMMON.save_changes') }}</span>
+          </button>
+          <button
+            type="button"
+            data-testid="sso-diagnostics-run"
+            :data-action="checkNeedsSave ? 'save-and-check' : connectionOn ? 'check' : 'check-and-activate'"
+            @click="handleRunCheck"
+            :disabled="!canRunCheck"
+            class="inline-flex shrink-0 items-center gap-2 rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
+            <OIcon
+              v-if="isDiagnosing || isSaving"
+              collection="heroicons"
+              name="arrow-path"
+              size="4"
+              class="animate-spin motion-reduce:animate-none"
+              aria-hidden="true" />
+            {{ checkButtonLabel }}
           </button>
         </div>
-
-        <!-- Right: Save button -->
-        <button
-          type="submit"
-          :disabled="!isFormValid || isSaving || isDeleting"
-          class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
-          <OIcon
-            v-if="isSaving"
-            collection="heroicons"
-            name="arrow-path"
-            class="size-4 animate-spin motion-reduce:animate-none"
-            aria-hidden="true" />
-          <span v-if="isSaving">{{ t('web.COMMON.saving') }}</span>
-          <span v-else>{{ isEditing ? t('web.COMMON.save_changes') : t('web.organizations.sso.save_config') }}</span>
-        </button>
       </div>
     </form>
   </div>

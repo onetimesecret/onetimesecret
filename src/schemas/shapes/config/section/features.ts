@@ -15,6 +15,7 @@ import {
   featuresRegionsSchema,
   featuresIncomingSchema,
   featuresDomainsSchema,
+  featuresMarkdownSchema,
 } from '@/schemas/contracts/config/section/features';
 import { augment } from '@/schemas/utils/augment';
 
@@ -23,6 +24,7 @@ export {
   featuresRegionsSchema,
   featuresIncomingSchema,
   featuresDomainsSchema,
+  featuresMarkdownSchema,
 };
 
 const featuresIncomingShape = augment(featuresIncomingSchema, {
@@ -41,6 +43,10 @@ const featuresDomainsShape = augment(featuresDomainsSchema, {
   validation_strategy: (e) => e.default('passthrough'),
 });
 
+const featuresMarkdownShape = augment(featuresMarkdownSchema, {
+  enabled: (b) => b.default(false),
+});
+
 const featuresShape = augment(featuresSchema, {
   regions: { enabled: (b) => b.default(false) },
   incoming: {
@@ -53,6 +59,7 @@ const featuresShape = augment(featuresSchema, {
     require_verified: (b) => b.default(false),
     validation_strategy: (e) => e.default('passthrough'),
   },
+  markdown: { enabled: (b) => b.default(false) },
 });
 
 export {
@@ -60,4 +67,5 @@ export {
   featuresRegionsShape,
   featuresIncomingShape,
   featuresDomainsShape,
+  featuresMarkdownShape,
 };

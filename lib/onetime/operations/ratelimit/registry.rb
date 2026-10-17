@@ -86,6 +86,20 @@ module Onetime
             keys: ['reset_request:attempts:email:%s', 'reset_request:locked:email:%s'],
             dbclient: -> { Onetime::Customer.dbclient },
           },
+          # The same limiter's :email_login_request scope (POST
+          # /auth/email-login-request, RISK-2026-08-14-M04): two subject TYPES,
+          # the same stored forms and the same Customer shard as the two rows
+          # above, under its own key prefix (ResetRequestRateLimiter::SCOPES).
+          'email_login_request_ip' => {
+            subject: 'masked client IP (/24 IPv4, /48 IPv6)',
+            keys: ['email_login_request:attempts:ip:%s', 'email_login_request:locked:ip:%s'],
+            dbclient: -> { Onetime::Customer.dbclient },
+          },
+          'email_login_request_email' => {
+            subject: 'normalized email (strip + NFC + case-fold)',
+            keys: ['email_login_request:attempts:email:%s', 'email_login_request:locked:email:%s'],
+            dbclient: -> { Onetime::Customer.dbclient },
+          },
           # Single-tier IP limiter on unauthenticated account creation. SUBJECT
           # IS THE STORED FORM: the privacy-masked IP (/24 IPv4, /48 IPv6), not
           # the raw address and not the /16-obscured form the lockout log line
@@ -148,6 +162,24 @@ module Onetime
             subject: 'masked client IP (/24 IPv4, /48 IPv6)',
             keys: ['create_secret:attempts:ip:%s', 'create_secret:locked:ip:%s'],
             dbclient: -> { Onetime::Secret.dbclient },
+          },
+          # "Check saved configuration" runs on a custom domain's SSO record
+          # (POST /api/domains/:extid/sso/diagnostics), keyed on the acting
+          # customer's PUBLIC external id. Customer shard, matching
+          # SsoDiagnosticsRateLimiter#sso_diagnostics_redis.
+          'sso_diagnostics' => {
+            subject: 'customer external id (extid)',
+            keys: ['sso_diagnostics:attempts:%s', 'sso_diagnostics:locked:%s'],
+            dbclient: -> { Onetime::Customer.dbclient },
+          },
+          # "Send test" on a custom domain's email sender
+          # (POST /api/domains/:extid/email-config/test), keyed on the acting
+          # customer's PUBLIC external id. Customer shard, matching
+          # PerCustomerRateLimit.redis.
+          'sender_test_email' => {
+            subject: 'customer external id (extid)',
+            keys: ['sender_test_email:attempts:%s', 'sender_test_email:locked:%s'],
+            dbclient: -> { Onetime::Customer.dbclient },
           },
         }.freeze
 

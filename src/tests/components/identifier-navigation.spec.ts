@@ -12,12 +12,16 @@
 
 import { mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useRealRouter } from '@/tests/utils/routerSetup';
 import { computed, defineComponent } from 'vue';
 import { createRouter, createWebHistory, type Router } from 'vue-router';
 
 import { createTestI18n } from '@tests/setup';
 import { toExtId, toObjId, type ExtId, type ObjId } from '@/types/identifiers';
 import type { Organization } from '@/types/organization';
+
+// Mounts with a real router; see useRealRouter.
+useRealRouter();
 
 // Mock organization data with branded types
 const mockOrganization: Organization = {

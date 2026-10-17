@@ -12,13 +12,14 @@
   import { useDomain } from '@/shared/composables/useDomain';
   import { useEntitlements } from '@/shared/composables/useEntitlements';
   import { useUnsavedInputGuard } from '@/shared/composables/useUnsavedInputGuard';
+  import { useUnsavedRouteGuard } from '@/shared/composables/useUnsavedRouteGuard';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { ENTITLEMENTS } from '@/types/organization';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
-  import { useRouter, onBeforeRouteLeave } from 'vue-router';
+  import { useRouter } from 'vue-router';
 
   const { t } = useI18n(); // auto-import
   const router = useRouter();
@@ -103,8 +104,9 @@
   );
 
   // Native navigations bypass Vue Router: the masthead logo is a hard <a href>
-  // and the UserMenu has external <a href> items, so onBeforeRouteLeave (which
-  // only guards in-app routing, e.g. the Back button) never fires for them.
+  // and the UserMenu has external <a href> items, so the route guard below
+  // (which only guards in-app routing, e.g. the Back button or the domain
+  // switcher) never fires for them.
   // The shared guard catches those hard navigations — plus refresh, tab close
   // and a forced page load (ADR-046) — and registers its beforeunload listener
   // only while edits are pending, mirroring the in-app confirm below.
@@ -115,15 +117,7 @@
     initializeDomain();
   });
 
-  onBeforeRouteLeave((to, from, next) => {
-    if (hasUnsavedChanges.value) {
-      const answer = window.confirm(t('web.branding.you_have_unsaved_changes_are_you_sure'));
-      if (answer) next();
-      else next(false);
-    } else {
-      next();
-    }
-  });
+  useUnsavedRouteGuard(hasUnsavedChanges);
 </script>
 
 <template>

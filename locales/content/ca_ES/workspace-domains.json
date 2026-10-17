@@ -735,6 +735,14 @@
     "text": "No s'ha pogut enviar el correu de prova",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "S'han enviat massa correus de prova recentment. Torna-ho a provar més tard.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "S'han enviat massa correus de prova recentment. Torna-ho a provar d'aquí a uns {minutes} minuts.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Enviat a {email}",
     "source_hash": "8ceb9588"
@@ -1662,5 +1670,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "No hem trobat el registre TXT esperat. Comprova que existeix i que el seu valor coincideix exactament. Els registres DNS nous poden trigar uns minuts a aparèixer.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Comprovació de la configuració desada superada",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "La comprovació de la configuració desada ha trobat un problema",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "La comprovació de la configuració desada no ha pogut arribar a cap conclusió",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "No s'ha pogut comprovar la configuració desada",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "Aquesta configuració s'ha comprovat massa vegades recentment. Torna-ho a provar més tard.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "Aquesta configuració s'ha comprovat massa vegades recentment. Torna-ho a provar d'aquí a uns {minutes} minuts.",
+    "source_hash": "fdbdeaf6"
   }
 }

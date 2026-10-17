@@ -19,7 +19,9 @@
 
 import {
   customDomainSsoConfigCanonical,
+  ssoLastSignInSchema,
   ssoProviderTypeSchema,
+  tokenEndpointAuthMethodSchema,
 } from '@/schemas/contracts/custom-domain/sso-config';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
@@ -89,6 +91,11 @@ export const customDomainSsoConfigSchema = customDomainSsoConfigCanonical
     tenant_id: z.string().nullish().transform((v) => v ?? null),
     issuer: z.string().nullish().transform((v) => v ?? null),
 
+    // OIDC token endpoint auth method (#4764): null = gem default; nullish-
+    // tolerant for a record served by an API that predates the key. The
+    // form maps null → '' (the "Automatic" option).
+    token_endpoint_auth_method: tokenEndpointAuthMethodSchema.nullish().transform((v) => v ?? null),
+
     // SAML (#4450): nullish-tolerant so a record served by an API that
     // predates these keys (rolling deploy) still parses. A null here is
     // "unset" ONLY when unreadable_fields does not name the field.
@@ -105,6 +112,10 @@ export const customDomainSsoConfigSchema = customDomainSsoConfigCanonical
     // Boolean with default for resilience during rolling deploys
     enforce_sso_only: z.boolean().default(false),
     grant_org_scope: z.boolean().default(false),
+
+    // Last sign-in outcome: nullish-tolerant so a record served by an API
+    // that predates the key reads as "none recorded", never as an error.
+    last_sign_in: ssoLastSignInSchema.nullish().transform((v) => v ?? null),
   });
 
 export type CustomDomainSsoConfig = z.infer<typeof customDomainSsoConfigSchema>;

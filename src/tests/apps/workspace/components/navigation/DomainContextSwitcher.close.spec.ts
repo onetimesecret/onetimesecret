@@ -16,7 +16,7 @@
 
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { nextTick, reactive, ref } from 'vue';
+import { computed, nextTick, reactive, ref } from 'vue';
 import DomainContextSwitcher from '@/apps/workspace/components/navigation/DomainContextSwitcher.vue';
 
 // NOTE: no vi.mock('@headlessui/vue') here — that is the whole point.
@@ -70,10 +70,14 @@ const mockCurrentContext = ref({
   extid: undefined as string | undefined,
 });
 const mockIsContextActive = ref(true);
+const mockRegisteredDomainCount = computed(
+  () => mockAvailableDomains.value.filter((domain) => mockGetExtidByDomain(domain)).length
+);
 vi.mock('@/shared/composables/useDomainContext', () => ({
   useDomainContext: () => ({
     currentContext: mockCurrentContext,
     availableDomains: mockAvailableDomains,
+    registeredDomainCount: mockRegisteredDomainCount,
     isContextActive: mockIsContextActive,
     setContext: vi.fn(),
     getDomainDisplayName: (domain: string) => domain,

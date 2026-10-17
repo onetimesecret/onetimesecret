@@ -31,9 +31,10 @@ module Auth
         ].freeze
 
         class Action
-          attr_reader :type, :organization, :org_id, :role, :notes, :account_purge_context
+          attr_reader :type, :organization, :org_id, :role, :notes, :account_purge_context, :reference
 
-          def initialize(type:, organization:, org_id:, role:, notes: [], account_purge_context: nil)
+          def initialize(type:, organization:, org_id:, role:, notes: [], account_purge_context: nil, reference: nil)
+            @reference             = reference
             @type                  = type
             @organization          = organization
             @org_id                = org_id
@@ -47,7 +48,8 @@ module Auth
           # NOT part of the plan signature: data the purge is about to delete must
           # not change under a concurrent write and invalidate an in-flight plan.
           def public_detail(status: :planned)
-            detail = { type: type, org_id: org_id, role: role, status: status }
+            detail             = { type: type, org_id: org_id, role: role, status: status }
+            detail[:reference] = reference if type == :remove_stale_participation
             notes.empty? ? detail : detail.merge(notes: notes)
           end
         end
@@ -57,7 +59,11 @@ module Auth
 
           def signature
             [
-              actions.map { |action| [action.type, action.organization.objid.to_s, action.role.to_s] }.sort,
+              actions.map do |action|
+                              entry = [action.type, action.organization.objid.to_s, action.role.to_s]
+                              entry << action.reference if action.type == :remove_stale_participation
+                              entry
+              end.sort,
               blockers.map { |blocker| blocker.sort_by { |key, _value| key.to_s } }.sort_by(&:to_s),
             ]
           end
@@ -122,6 +128,8 @@ module Auth
         #   invisible and the workspace can read as sole-owned. The snapshot
         #   closes that gap for every candidate of a sweep at the cost of one
         #   registry read per run instead of one per preflight.
+        attr_reader :pending_organization_checks
+
         def initialize(customer:, deep: false, membership_snapshot: nil)
           @customer                    = customer
           @deep                        = deep
@@ -130,6 +138,9 @@ module Auth
           @blockers                    = []
           @organizations               = {}
           @participation_ids           = []
+          @stale_participation_actions = []
+          @pending_organization_checks = []
+          @orphan_dependency_blockers  = {}
           @instance_ids                = []
           @email_holder_id             = nil
           @active_memberships_by_org   = Hash.new { |hash, key| hash[key] = [] }
@@ -142,13 +153,14 @@ module Auth
         def call
           add_blocker(:migration_in_flight) if migration_in_flight?(@customer)
           discover_participations
+          check_pending_organization_purges
           discover_contact_email_holder
           discover_instances
           discover_memberships
           discover_domain_references if @deep
 
-          actions = @organizations.values.filter_map { |org| classify(org) }
-            .sort_by { |action| [action.organization.objid.to_s, action.type.to_s] }
+          actions = (@organizations.values.filter_map { |org| classify(org) } + @stale_participation_actions)
+            .sort_by { |action| [action.organization.objid.to_s, action.type.to_s, action.reference.to_s] }
           plan    = Plan.new(actions: actions, blockers: sorted_blockers)
 
           attach_account_purge_contexts(plan)
@@ -157,7 +169,44 @@ module Auth
           Plan.new(actions: [], blockers: sorted_blockers)
         end
 
+        # Recheck retained cleanup actions even after their participation (or the
+        # customer itself) has been deleted. Share evidence only within this
+        # checker; every preflight after a mutation must use a fresh checker.
+        def stale_participation_blockers(action)
+          blockers = orphan_dependency_blockers(action.organization)
+          return [] if blockers.empty?
+
+          [{ code: :dangling_customer_participation, reference: action.reference }] + blockers
+        end
+
         private
+
+        # Markers outlive reverse-index removal, so a fresh purge must inspect
+        # them even when discovery no longer has a relationship to follow. They
+        # authorize no cleanup action and remain until the customer is destroyed.
+        def check_pending_organization_purges
+          @customer.purge_pending_organization_checks.to_a.sort_by(&:to_s).each do |reference|
+            objid = reference.is_a?(String) ? organization_id_from_participation(reference) : nil
+            unless valid_purge_organization_id?(objid)
+              add_blocker(:invalid_purge_pending_organization_check, reference: reference.to_s)
+              next
+            end
+
+            action = Action.new(
+              type: :remove_stale_participation,
+              organization: Onetime::Organization.new(objid: objid),
+              org_id: objid,
+              role: '',
+              reference: reference,
+            )
+            @pending_organization_checks << action
+            stale_participation_blockers(action).each do |blocker|
+              add_blocker(blocker.fetch(:code), **blocker.reject { |key, _| key == :code })
+            end
+          end
+        rescue StandardError => ex
+          add_blocker(:purge_pending_organization_checks_lookup_failed, message: ex.class.name)
+        end
 
         def discover_participations
           raw_keys           = @customer.participations.to_a.map(&:to_s)
@@ -168,7 +217,8 @@ module Auth
             if org
               add_organization(org)
             else
-              add_blocker(:dangling_customer_participation, reference: "organization:#{objid}:members")
+              references = raw_keys.select { |key| organization_id_from_participation(key) == objid }.uniq.sort
+              discover_stale_participations(objid, references)
             end
           end
 
@@ -188,6 +238,90 @@ module Auth
           end
         rescue StandardError => ex
           add_blocker(:participation_lookup_failed, message: ex.class.name)
+        end
+
+        # Only the orphan path pays for these scans. An absent object hash alone
+        # does not prove teardown completed: through-model keys wrap a composite
+        # objid, and invitations/domains can survive without their reverse indexes.
+        def discover_stale_participations(objid, references)
+          unless valid_purge_organization_id?(objid)
+            references.each { |reference| add_blocker(:dangling_customer_participation, reference: reference) }
+            return
+          end
+
+          org = Onetime::Organization.new(objid: objid)
+          references.each do |reference|
+            action   = Action.new(
+              type: :remove_stale_participation,
+              organization: org,
+              org_id: objid,
+              role: '',
+              reference: reference,
+            )
+            blockers = stale_participation_blockers(action)
+            if blockers.empty?
+              @stale_participation_actions << action
+            else
+              blockers.each { |blocker| add_blocker(blocker.fetch(:code), **blocker.reject { |key, _| key == :code }) }
+            end
+          end
+        end
+
+        # Cache only organization evidence, never reference-specific blockers.
+        # Read failures are evidence too: aliases must all fail closed together.
+        def orphan_dependency_blockers(org)
+          org_id = org.objid.to_s
+          @orphan_dependency_blockers.fetch(org_id) do
+            @orphan_dependency_blockers[org_id] = if orphan_dependencies?(org)
+                                                  [{ code: :orphan_organization_dependencies_remain, org_id: org_id }]
+                                                else
+                                                  []
+                                                end
+          end
+        rescue StandardError => ex
+          @orphan_dependency_blockers[org_id] = [
+            { code: :organization_evidence_incomplete, org_id: org_id, message: ex.class.name },
+          ]
+        end
+
+        def orphan_dependencies?(org)
+          objid = org.objid.to_s
+          return true if Onetime::Organization.load(objid)
+          return true if Onetime::Organization.instances.member?(org)
+
+          %w[organization org].each do |prefix|
+            return true if Onetime::Organization.dbclient.scan_each(match: "#{prefix}:*")
+              .any? { |key| key.start_with?("#{prefix}:#{objid}:") }
+          end
+          [:contact_email_index, :extid_lookup, :stripe_customer_id_index, :stripe_subscription_id_index].each do |index|
+            return true if Onetime::Organization.public_send(index).hgetall.values.any? { |id| id.to_s == objid }
+          end
+
+          membership_class = Onetime::OrganizationMembership
+          membership_ids   = []
+          membership_class.dbclient.scan_each(match: "#{membership_class.prefix}:*").each do |key|
+            # Include subkeys even when the membership object has already gone.
+            return true if %w[organization org].any? do |prefix|
+              key.start_with?("#{membership_class.prefix}:#{prefix}:#{objid}:")
+            end
+
+            if key.end_with?(':object')
+              membership_ids << key.delete_prefix("#{membership_class.prefix}:").delete_suffix(':object')
+            end
+          end
+          membership_class.instances.each { |id| membership_ids << id.to_s }
+          return true if membership_ids.uniq.any? do |id|
+            membership_class.load(id)&.organization_objid.to_s == objid
+          end
+
+          return true if Onetime::CustomDomain.owners.hgetall.values.any? { |id| id.to_s == objid }
+
+          domain_ids = []
+          Onetime::CustomDomain.instances.each { |id| domain_ids << id.to_s }
+          Onetime::CustomDomain.dbclient.scan_each(match: "#{Onetime::CustomDomain.prefix}:*:object").each do |key|
+            domain_ids << key.delete_prefix("#{Onetime::CustomDomain.prefix}:").delete_suffix(':object')
+          end
+          domain_ids.uniq.any? { |id| Onetime::CustomDomain.load(id)&.org_id.to_s == objid }
         end
 
         def discover_memberships
@@ -646,6 +780,10 @@ module Auth
             )
           end
           Plan.new(actions: actions, blockers: plan.blockers)
+        end
+
+        def valid_purge_organization_id?(objid)
+          objid && objid.match?(/\A[A-Za-z0-9_-]+\z/)
         end
 
         def organization_id_from_participation(key)

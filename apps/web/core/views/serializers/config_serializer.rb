@@ -269,6 +269,11 @@ module Core
               # Decision 4). Only an explicit true enables it.
               'geo_country_enabled' => features.dig('secret_activity', 'geo_country_enabled').to_s == 'true',
             },
+            # Markdown secrets (display_type). DEFAULT-OFF (opt-in): only an
+            # explicit true shows the create forms' Markdown control. The same
+            # rule as Secret.display_type_enabled?, which the conceal API and
+            # safe_dump enforce; this is only the display gate.
+            'markdown' => features.dig('markdown', 'enabled').to_s == 'true',
           }
         end
 

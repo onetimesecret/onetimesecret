@@ -123,6 +123,14 @@ module Onetime
           with_error_correlation(error.to_h, req, error)
         end
 
+        # A write that a retry can clear (datastore unreachable, an optimistic
+        # lock lost to a concurrent write). 503, like the entry above, so the
+        # client retries rather than treating it as bad input; the body's
+        # retry_after becomes the Retry-After header.
+        router.register_error_handler(Onetime::TemporarilyUnavailable, status: 503, log_level: :warn) do |error, req|
+          with_error_correlation(error.to_h, req, error)
+        end
+
         # Rate limit exceeded errors return 429 with retry info
         router.register_error_handler(Onetime::LimitExceeded, status: 429, log_level: :warn) do |error, req|
           Onetime::Application::ErrorResolver.resolve!(error, req)

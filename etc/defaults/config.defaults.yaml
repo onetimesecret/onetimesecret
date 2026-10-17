@@ -421,6 +421,38 @@ site:
       window: <%= ENV['RESET_REQUEST_RATE_LIMIT_WINDOW'] || 3600 %>  # Since v0.26.3
       # Lockout duration in seconds once a tier's cap is hit (1 hour).
       lockout: <%= ENV['RESET_REQUEST_RATE_LIMIT_LOCKOUT'] || 3600 %>  # Since v0.26.3
+    # Rate limiting for magic-link requests, POST /auth/email-login-request
+    # (RISK-2026-08-14-M04). Full mode only: the route exists only with
+    # AUTH_EMAIL_AUTH_ENABLED=true. Same two tiers as reset_request_rate_limit
+    # above — per client IP, plus a per-submitted-login backstop — under their
+    # own keys, enforced in the Rodauth before_email_auth_request_route hook
+    # BEFORE any account lookup, so a 429 says nothing about whether the login
+    # has an account. Bounds mailbox bombing and enumeration sampling; Rodauth's
+    # own resend window caps emails per account, not requests per source.
+    # Enabled by default (protective); set
+    # EMAIL_LOGIN_REQUEST_RATE_LIMIT_ENABLED=false to opt out.
+    # See lib/onetime/security/reset_request_rate_limiter.rb (scope
+    # :email_login_request).
+    email_login_request_rate_limit:
+      enabled: <%= ENV['EMAIL_LOGIN_REQUEST_RATE_LIMIT_ENABLED'] != 'false' %>  # Since unreleased
+      # Requests permitted per window from a single masked client IP. Looser
+      # than the reset-request cap: a magic link is a sign-in method, and a
+      # whole /24 (an office NAT) shares this bucket.
+      max_per_ip: <%= ENV['EMAIL_LOGIN_REQUEST_RATE_LIMIT_MAX_PER_IP'] || 30 %>  # Since unreleased
+      # Backstop cap per submitted login (catches IP rotation). Keep
+      # max_per_email >= 2 * max_per_ip AND lockout >= window: a single IP
+      # timing its requests around its own window boundary lands up to
+      # 2 * max_per_ip - 2 requests in one login's window, and with a shorter
+      # lockout it is free again inside that window, so one source could lock
+      # a victim out of magic-link sign-in from every IP. The defaults
+      # (30/90, 3600/3600) satisfy both. Rodauth's resend window already caps
+      # the mail an account receives.
+      max_per_email: <%= ENV['EMAIL_LOGIN_REQUEST_RATE_LIMIT_MAX_PER_EMAIL'] || 90 %>  # Since unreleased
+      # Counting window in seconds (1 hour).
+      window: <%= ENV['EMAIL_LOGIN_REQUEST_RATE_LIMIT_WINDOW'] || 3600 %>  # Since unreleased
+      # Lockout duration in seconds once a tier's cap is hit (1 hour). Keep it
+      # >= window (see max_per_email).
+      lockout: <%= ENV['EMAIL_LOGIN_REQUEST_RATE_LIMIT_LOCKOUT'] || 3600 %>  # Since unreleased
     # Rate limiting for unauthenticated account creation (#3948, audit
     # 2026-07-30 finding #4). POST /auth/create-account previously had no
     # limiter in EITHER auth mode, leaving unthrottled account creation: one
@@ -1184,9 +1216,22 @@ features:
   domains:
     enabled: <%= ENV['DOMAINS_ENABLED'] == 'true' || false %>  # Since v0.24.0
     # When true, secret creation rejects an unverified custom share_domain
-    # with a form error. When false (default), creation is allowed regardless
-    # of the domain's verification status. Canonical domains are unaffected.
+    # with a form error, under every validation strategy. When false
+    # (default), creation still requires the domain to be served (see
+    # serve_unverified below). Canonical domains are unaffected.
     require_verified: <%= ENV['DOMAINS_REQUIRE_VERIFIED'] == 'true' || false %>  # Since v0.25.2
+    # Under a validation_strategy that checks ownership (approximated,
+    # caddy_on_demand), a registered custom domain is served only once its
+    # ownership is verified, by its TXT record or an operator override.
+    # Until then its host answers 404 for every path, and the domain is not
+    # offered for links. Under passthrough, registration by the owning
+    # organization is enough. A domain record with no organization is never
+    # served.
+    #
+    # When true, every registered custom domain that has an organization
+    # is served whatever its ownership state, and a warning is logged at
+    # boot. Only the value true enables it.
+    serve_unverified: <%= ENV['DOMAINS_SERVE_UNVERIFIED'] == 'true' || false %>  # Since unreleased
     # The default domain used for link URLs. When not set or empty,
     # site.host is used.
     default: <%= ENV['DEFAULT_DOMAIN'] || nil %>  # Since v0.24.0
@@ -1276,6 +1321,40 @@ features:
     # box — this is an opt-out exclusion (ORGS_AUDIT_LOGS_ENABLED=false),
     # not an opt-in feature. Does not stop event collection.
     audit_logs_enabled: <%= ENV['ORGS_AUDIT_LOGS_ENABLED'] != 'false' %>  # Since v0.26.4
+    # Per-customer cap on "Check saved configuration" runs for a custom
+    # domain's SSO record (POST /api/domains/:extid/sso/diagnostics). Every
+    # run contacts the identity provider, and for Entra ID sends the stored
+    # client secret in a token request, so the volume is bounded per acting
+    # customer (keyed on the customer's public id, kind `sso_diagnostics`).
+    # Enabled by default (protective); set SSO_DIAGNOSTICS_RATE_LIMIT_ENABLED=false
+    # to opt out. See lib/onetime/security/sso_diagnostics_rate_limiter.rb.
+    sso_diagnostics_rate_limit:
+      enabled: <%= ENV['SSO_DIAGNOSTICS_RATE_LIMIT_ENABLED'] != 'false' %>  # Since unreleased
+      # Runs permitted per window for one customer, across all their domains.
+      # A run is deterministic (the same stored record gets the same verdict
+      # until the record or the IdP changes), so ten covers several full
+      # edit-save-check cycles.
+      max_per_customer: <%= ENV['SSO_DIAGNOSTICS_RATE_LIMIT_MAX_PER_CUSTOMER'] || 10 %>  # Since unreleased
+      # Counting window in seconds (1 hour).
+      window: <%= ENV['SSO_DIAGNOSTICS_RATE_LIMIT_WINDOW'] || 3600 %>  # Since unreleased
+      # Lockout duration in seconds once the cap is hit (1 hour).
+      lockout: <%= ENV['SSO_DIAGNOSTICS_RATE_LIMIT_LOCKOUT'] || 3600 %>  # Since unreleased
+    # Per-customer cap on "Send test" for a custom domain's email sender
+    # (POST /api/domains/:extid/email-config/test). Every send is a real
+    # email through the delivery provider and one security audit trail row,
+    # so the volume is bounded per acting customer (keyed on the customer's
+    # public id, kind `sender_test_email`). Enabled by default (protective);
+    # set SENDER_TEST_EMAIL_RATE_LIMIT_ENABLED=false to opt out. See
+    # lib/onetime/security/sender_test_email_rate_limiter.rb.
+    sender_test_email_rate_limit:
+      enabled: <%= ENV['SENDER_TEST_EMAIL_RATE_LIMIT_ENABLED'] != 'false' %>  # Since unreleased
+      # Test sends permitted per window for one customer, across all their
+      # domains.
+      max_per_customer: <%= ENV['SENDER_TEST_EMAIL_RATE_LIMIT_MAX_PER_CUSTOMER'] || 10 %>  # Since unreleased
+      # Counting window in seconds (1 hour).
+      window: <%= ENV['SENDER_TEST_EMAIL_RATE_LIMIT_WINDOW'] || 3600 %>  # Since unreleased
+      # Lockout duration in seconds once the cap is hit (1 hour).
+      lockout: <%= ENV['SENDER_TEST_EMAIL_RATE_LIMIT_LOCKOUT'] || 3600 %>  # Since unreleased
   # Secret Activity Trail (collection)
   # The data-existence axis of the org secret-activity trail: whether events
   # are recorded at all (GDPR data minimization). UI + list API exposure is
@@ -1294,6 +1373,15 @@ features:
     # (opt-in) — the inverse polarity of the sibling flags — because this is
     # the not-yet-reviewed surface, not an already-approved one.
     geo_country_enabled: <%= ENV['SECRET_ACTIVITY_GEO_COUNTRY_ENABLED'] == 'true' %>  # Since v0.26.5
+  # Markdown secrets
+  # Lets senders mark a secret as Markdown (display_type), which the
+  # recipient sees rendered and sanitized. Defaults OFF (opt-in). When off,
+  # the create forms show no Markdown control, the conceal endpoints refuse
+  # display_type=markdown with a 422, and secrets already stored as Markdown
+  # read back, and are shown, as plain text. Turning it back on shows those
+  # as Markdown again; the stored value is never rewritten.
+  markdown:
+    enabled: <%= ENV['MARKDOWN_ENABLED'] == 'true' %>  # Since unreleased
 
 # Main Database Configuration
 redis:
@@ -1320,6 +1408,23 @@ redis:
           'redis://host.docker.internal:6379' :
           'redis://CHANGEME@127.0.0.1:6379')
       %>
+  # Require TLS to the datastore (RISK-2026-08-14-L07). When true, boot
+  # refuses to start unless the URI above uses rediss:// or valkeys:// (with
+  # no `ssl` query parameter, which would override the scheme), whatever the
+  # host. When false (the default, so existing deployments keep booting), a
+  # plaintext URI is reported once at boot, graded by where the host is:
+  #   - a dotted hostname or public IP: a WARNING — the datastore password,
+  #     session data and secrets would cross the network unencrypted;
+  #   - a single-label name (a compose service such as `maindb`) or a private,
+  #     CGNAT or link-local IP (RFC 1918, 100.64/10, 169.254/16, fc00::/7,
+  #     fe80::/10): an INFO line, so the default compose stack does not warn
+  #     on every boot;
+  #   - loopback or a unix socket: nothing.
+  # The host graded is the one the client connects to, including a `host` or
+  # `path` query parameter. Hostnames are never resolved. Set
+  # VALKEY_REQUIRE_TLS=true or REDIS_REQUIRE_TLS=true (either one enables it).
+  # See lib/onetime/initializers/configure_familia.rb.
+  require_tls: <%= ENV['VALKEY_REQUIRE_TLS'] == 'true' || ENV['REDIS_REQUIRE_TLS'] == 'true' %>  # Since unreleased
   # Database Mapping Configuration
   # By default, all data types use database 0 for simplified connection pooling
   # and compatibility with Redis-as-a-Service providers. For advanced setups,

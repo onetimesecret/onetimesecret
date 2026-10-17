@@ -248,14 +248,15 @@ module Onetime
           return
         end
 
-        total             = candidates.size
-        destroyed         = 0
-        skipped           = 0
-        billing_protected = 0
-        refused           = 0
-        partial           = 0
-        not_found         = 0
-        errors            = []
+        total                        = candidates.size
+        destroyed                    = 0
+        skipped                      = 0
+        billing_protected            = 0
+        refused                      = 0
+        partial                      = 0
+        not_found                    = 0
+        errors                       = []
+        stale_participations_removed = 0
 
         bulk_audit_context = start_bulk_audit(cutoff: cutoff, candidate_targets: candidates)
 
@@ -293,6 +294,8 @@ module Onetime
               next
             end
 
+            operation       = nil
+            actions_counted = false
             begin
               cust = record[:_model]
               unless cust
@@ -300,7 +303,11 @@ module Onetime
                 next
               end
 
-              result = purge_customer(cust, cutoff, bulk_audit_context, membership_snapshot)
+              result                        = purge_customer(cust, cutoff, bulk_audit_context, membership_snapshot) do |purge_operation|
+                operation = purge_operation
+              end
+              stale_participations_removed += completed_stale_cleanup_count(result.actions)
+              actions_counted               = true
 
               case result.status
               when :success
@@ -325,6 +332,9 @@ module Onetime
                 errors << lifecycle_error(objid, result)
               end
             rescue StandardError => ex
+              if operation && !actions_counted
+                stale_participations_removed += completed_stale_cleanup_count(operation.outcome_context[:actions])
+              end
               errors << "#{objid}: #{ex.message}"
               OT.le "[purge] Error destroying #{objid}: #{ex.message}"
             end
@@ -353,12 +363,14 @@ module Onetime
         puts "  Not found:         #{not_found}"
         puts "  Skipped:           #{skipped}"
         puts "  Errors:            #{errors.size}"
+        puts "  Stale references removed: #{stale_participations_removed}"
 
         record_bulk_audit(
           bulk_audit_context: bulk_audit_context,
           cutoff: cutoff,
           candidates: total,
           destroyed: destroyed,
+          stale_participations_removed: stale_participations_removed,
           billing_protected: billing_protected,
           refused: refused,
           partial: partial,
@@ -511,14 +523,22 @@ module Onetime
       # sessions is declined (the tracked revocation still runs). See
       # Purge#initialize.
       def purge_customer(customer, cutoff, bulk_audit_context, membership_snapshot)
-        Auth::Operations::Customers::Purge.new(
+        operation = Auth::Operations::Customers::Purge.new(
           customer: customer,
           actor: Customers::Shared::CLI_ACTOR,
           reason: "bulk inactivity purge before #{cutoff.strftime('%Y-%m-%d')}",
           bulk_audit_context: bulk_audit_context,
           membership_snapshot: membership_snapshot,
           sweep_untracked_sessions: false,
-        ).call
+        )
+        yield operation if block_given?
+        operation.call
+      end
+
+      def completed_stale_cleanup_count(actions)
+        actions.count do |action|
+          action[:type] == :remove_stale_participation && action[:status] == :success
+        end
       end
 
       def start_bulk_audit(cutoff:, candidate_targets:)
@@ -536,7 +556,7 @@ module Onetime
         )
       end
 
-      def record_bulk_audit(bulk_audit_context:, cutoff:, candidates:, destroyed:,
+      def record_bulk_audit(bulk_audit_context:, cutoff:, candidates:, destroyed:, stale_participations_removed:,
                             billing_protected:, refused:, partial:, not_found:, skipped:, errors:)
         result = errors.positive? || partial.positive? ? :failure : :success
         bulk_audit_context.complete!(
@@ -545,6 +565,7 @@ module Onetime
             cutoff: cutoff.utc.strftime('%Y-%m-%d'),
             candidates: candidates,
             destroyed: destroyed,
+            stale_participations_removed: stale_participations_removed,
             billing_protected: billing_protected,
             refused: refused,
             partial: partial,
@@ -598,8 +619,8 @@ module Onetime
         # Check Organization-level billing via raw Redis, matching the
         # stripe_billing? check in local mode. The customer's participations
         # set (customer:{objid}:participations) contains entries like
-        # "organization:{org_id}:members". We extract org IDs and check
-        # each organization's stripe_customer_id field.
+        # "organization:{org_id}:members", stored JSON-quoted. We extract org
+        # IDs and check each organization's stripe_customer_id field.
         has_billing ||= org_billing_raw?(redis, objid)
 
         source, activity = activity_source(last_login, updated)
@@ -616,7 +637,10 @@ module Onetime
         participations = redis.smembers("customer:#{objid}:participations")
         return false if participations.nil? || participations.empty?
 
-        participations.each do |key|
+        participations.each do |entry|
+          # Familia stores each collection key JSON-quoted. parse_json_field
+          # decodes it and passes a non-JSON entry through unchanged.
+          key = parse_json_field(entry).to_s
           next unless key.start_with?('organization:')
 
           # Parse "organization:{org_id}:members" → org_id

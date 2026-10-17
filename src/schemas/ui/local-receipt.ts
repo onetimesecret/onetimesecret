@@ -3,7 +3,9 @@
 /**
  * LocalReceipt Zod schemas and derived types
  *
- * Schemas are the source of truth for sessionStorage-persisted receipt data.
+ * Schemas are the source of truth for sessionStorage-persisted receipt data
+ * (storedLocalReceiptSchema) and the in-memory record built on it
+ * (localReceiptSchema).
  * Types are inferred from schemas using z.infer<>.
  *
  * Runtime validation is critical here because data comes from sessionStorage
@@ -13,25 +15,36 @@
 import { z } from 'zod';
 
 /**
- * LocalReceipt schema
+ * StoredLocalReceipt schema
  *
- * Minimal data stored in sessionStorage for guest users' recent secrets.
- * Intentionally minimal to reduce attack surface and storage footprint.
+ * The part of a guest's recent-secret record that is persisted to
+ * sessionStorage: enough to list the receipt, refresh its status and re-open
+ * it at /receipt/{receiptExtid}. Intentionally minimal to reduce attack
+ * surface and storage footprint.
+ *
+ * The secret identifier (the share link's bearer key) is deliberately absent
+ * (RISK-2026-08-14-M10): it lives only on the in-memory record for the page
+ * that created it. Entries written by older versions still carry
+ * `secretExtid`; parsing strips it (z.object drops unknown keys), so those
+ * entries load and the next write leaves it out.
+ *
+ * `receiptExtid` is still a capability: a standard receipt's payload can
+ * carry the share link and its secret identifier (Receipt#shows_share_link?
+ * in lib/onetime/models/receipt.rb). Only entries whose secret has not
+ * expired are persisted.
  *
  * State terminology follows the Receipt model:
  * - isPreviewed: secret link was accessed (confirmation page shown)
  * - isRevealed: secret content was decrypted/consumed
  * - isBurned: secret was manually destroyed before being revealed
  */
-export const localReceiptSchema = z.object({
+export const storedLocalReceiptSchema = z.object({
   /** Client-generated unique ID for deduplication */
   id: z.string(),
   /** Full receipt identifier for URL routing (/receipt/{receiptExtid}) */
   receiptExtid: z.string(),
   /** Truncated receipt ID for display (8 chars) */
   receiptShortid: z.string(),
-  /** Full secret identifier for share URLs (/secret/{secretExtid}) */
-  secretExtid: z.string(),
   /** Truncated secret ID for display (8 chars) */
   secretShortid: z.string(),
   /** Custom domain for share URL construction, null for canonical */
@@ -52,10 +65,31 @@ export const localReceiptSchema = z.object({
   isBurned: z.boolean().optional(),
 });
 
+export type StoredLocalReceipt = z.infer<typeof storedLocalReceiptSchema>;
+
+/**
+ * Array of StoredLocalReceipts for storage validation
+ */
+export const storedLocalReceiptsArraySchema = z.array(storedLocalReceiptSchema);
+
+/**
+ * LocalReceipt schema
+ *
+ * The in-memory record: the stored fields plus the secret identifier, which
+ * is present only for receipts created during the current page lifecycle.
+ * Records restored from sessionStorage have no `secretExtid`; the UI then
+ * links to the receipt page, which shows the share link, instead of building
+ * it locally.
+ */
+export const localReceiptSchema = storedLocalReceiptSchema.extend({
+  /** Full secret identifier for share URLs (/secret/{secretExtid}); memory only */
+  secretExtid: z.string().optional(),
+});
+
 export type LocalReceipt = z.infer<typeof localReceiptSchema>;
 
 /**
- * Array of LocalReceipts for storage validation
+ * Array of LocalReceipts
  */
 export const localReceiptsArraySchema = z.array(localReceiptSchema);
 

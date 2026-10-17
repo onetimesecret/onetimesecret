@@ -386,6 +386,7 @@ export function toV2WireSecretBase(canonical: SecretBaseCanonical & { created: D
     // Booleans: string
     has_passphrase: booleanToString(canonical.has_passphrase),
     verification: booleanToString(canonical.verification),
+    display_type: canonical.display_type,
     is_previewed: booleanToString(canonical.is_previewed),
     is_revealed: booleanToString(canonical.is_revealed),
 
@@ -417,6 +418,7 @@ export function toV2WireSecret(canonical: SecretCanonical & { created: Date; upd
     // Booleans: string
     has_passphrase: booleanToString(canonical.has_passphrase),
     verification: booleanToString(canonical.verification),
+    display_type: canonical.display_type,
     is_previewed: booleanToString(canonical.is_previewed),
     is_revealed: booleanToString(canonical.is_revealed),
 
@@ -479,6 +481,9 @@ export function toV3WireSecretBase(canonical: SecretWithTimestampsCanonical): V3
     verification: canonical.verification,
     is_previewed: canonical.is_previewed,
     is_revealed: canonical.is_revealed,
+
+    // Presentation hint: plain string in every wire format
+    display_type: canonical.display_type,
 
     // TTL fields: native numbers
     secret_ttl: canonical.secret_ttl,

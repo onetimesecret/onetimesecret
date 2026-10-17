@@ -134,7 +134,7 @@ const { t } = useI18n();
 :disabled="!canAdmin"
 v-slot="{ active }">
           <router-link
-            :to="canAdmin ? { name: 'DomainSignin', params: { orgid: props.orgid, extid: domain.extid }, query: { modal: 'sso' } } : ''"
+            :to="canAdmin ? { name: 'DomainSigninSso', params: { orgid: props.orgid, extid: domain.extid } } : ''"
             :class="[
               active && canAdmin
                 ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'

@@ -999,6 +999,14 @@
     "text": "Не удалось отправить тестовое письмо",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "За последнее время было отправлено слишком много тестовых писем. Повторите попытку позже.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "За последнее время было отправлено слишком много тестовых писем. Повторите попытку примерно через {minutes} мин.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Отправлено на {email}",
     "source_hash": "8ceb9588"
@@ -1662,5 +1670,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "Мы не нашли ожидаемую TXT-запись. Убедитесь, что она существует и её значение точно совпадает. Новые DNS-записи могут появиться только через несколько минут.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Проверка сохранённой конфигурации пройдена",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "Проверка сохранённой конфигурации выявила проблему",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "Проверка сохранённой конфигурации не дала однозначного результата",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Не удалось проверить сохранённую конфигурацию",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "Эта конфигурация проверялась слишком много раз за последнее время. Повторите попытку позже.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "Эта конфигурация проверялась слишком много раз за последнее время. Повторите попытку примерно через {minutes} мин.",
+    "source_hash": "fdbdeaf6"
   }
 }

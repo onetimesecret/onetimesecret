@@ -110,6 +110,32 @@ post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => 'not-a-valid-
 last_response.status < 500
 #=> true
 
+## Create: a domain nested too deep is a 422 form error with the reason
+post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => "#{(['a'] * 10).join('.')}.deep-#{@timestamp}.example.com" }, colonel_headers
+[last_response.status, JSON.parse(last_response.body)['error']]
+#=> [422, 'Domain too deep (max: 10)']
+
+## Create: a domain whose TXT challenge record name would not fit is a 422 form error with the reason
+@long_name = "#{(['a' * 63] * 3).join('.')}.#{'b' * (31 - @timestamp.to_s.size)}#{@timestamp}.com"
+post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => @long_name }, colonel_headers
+[@long_name.bytesize, last_response.status, JSON.parse(last_response.body)['error']]
+#=> [227, 422, 'Domain too long for its TXT validation record']
+
+## Create: a datastore error during create! is a 503 with Retry-After, not a form error
+# The class-level instances set is moved aside and replaced by a string, so the
+# write to it inside create! gets a real WRONGTYPE error from the datastore.
+# Request handling before create! does not read that key. Restored before the
+# expectation is evaluated.
+@inst_key   = Onetime::CustomDomain.instances.dbkey
+@inst_aside = "#{@inst_key}:aside-#{@timestamp}"
+@inst_moved = Familia.dbclient.exists?(@inst_key) && Familia.dbclient.rename(@inst_key, @inst_aside)
+Familia.dbclient.set(@inst_key, 'not-a-sorted-set')
+post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => "outage-#{@timestamp}.example.com" }, colonel_headers
+Familia.dbclient.del(@inst_key)
+Familia.dbclient.rename(@inst_aside, @inst_key) if @inst_moved
+[last_response.status, last_response.headers['Retry-After'], Onetime::CustomDomain.load_by_display_domain("outage-#{@timestamp}.example.com")]
+#=> [503, '5', nil]
+
 ## Create: 200 with { record, details } envelope
 @before_count = Onetime::ColonelAuditEvent.count
 post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => @domain }, colonel_headers
@@ -173,6 +199,40 @@ post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => @domain_dup }
 #=> [true, true]
 
 # ----------------------------------------------------------------
+# Create — adopting an orphaned record (no org_id)
+# ----------------------------------------------------------------
+
+## Create: an orphaned record is adopted with its verification reset, and details.adoption lists what it kept
+# A verified, resolving orphan with a brand field. create! gave it the default
+# homepage and api configs.
+@orphan_name = "colonel-orphan-#{@timestamp}.example.com"
+@orphan_seed = Onetime::CustomDomain.create!(@orphan_name, @org.objid)
+@orphan_seed.brand['primary_color'] = '#336699'
+@org.remove_domain(@orphan_seed)
+Familia.dbclient.hdel(@orphan_seed.dbkey, 'org_id')
+Familia.dbclient.hset(@orphan_seed.dbkey, { 'ownership_verified' => 'true', 'resolving' => 'true' })
+Onetime::CustomDomain.owners.remove(@orphan_seed.to_s)
+@orphan_txt = @orphan_seed.txt_validation_value
+post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => @orphan_name }, colonel_headers
+@resp = JSON.parse(last_response.body)
+r = @resp['record']
+a = @resp['details']['adoption']
+[last_response.status, r['extid'] == @orphan_seed.extid, r['verified'], r['ready'], r['verification_state'],
+ a['verification_reset'], a['txt_validation_value'] == r['txt_validation_value'], a['txt_validation_value'] == @orphan_txt,
+ a['kept']['configs'], a['kept']['brand_keys']]
+#=> [200, true, false, false, 'pending', true, true, false, ['homepage', 'api'], 1]
+
+## Create: the adoption's audit event says the record was adopted and its verification reset
+@evt = Onetime::ColonelAuditEvent.recent(1).first
+[@evt['target'] == @orphan_seed.extid, @evt['detail']['adopted_orphan'], @evt['detail']['verification_reset']]
+#=> [true, true, true]
+
+## Create: a record that is not an orphan has no details.adoption
+post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => "colonel-fresh-#{@timestamp}.example.com" }, colonel_headers
+[last_response.status, JSON.parse(last_response.body)['details'].key?('adoption')]
+#=> [200, false]
+
+# ----------------------------------------------------------------
 # Detail — GET /domains/:extid
 # ----------------------------------------------------------------
 
@@ -211,6 +271,8 @@ r = @resp['record']
 # Teardown
 # ----------------------------------------------------------------
 Onetime::CustomDomain.find_by_extid(@created_extid)&.destroy! rescue nil
+Onetime::CustomDomain.find_by_extid(@orphan_seed&.extid.to_s)&.destroy! rescue nil
+Onetime::CustomDomain.load_by_display_domain("colonel-fresh-#{@timestamp}.example.com")&.destroy! rescue nil
 @org.destroy!       rescue nil
 @org_owner.destroy! rescue nil
 @colonel.destroy!   rescue nil
