@@ -27,6 +27,11 @@
 # interactive path makes two (plan, then apply). The printed plan is ADVISORY,
 # not transactional — state can change between the two calls.
 #
+# SENDER CLEANUP: an apply reports the teardown's remote sender identity
+# outcome (Remove::Result#sender_cleanup). A :failed cleanup does not undo the
+# removal, but it exits 1: the record is gone, the provider identity may
+# remain, and a rerun cannot retry the cleanup.
+#
 # Lives under lib/onetime/cli (not apps/api/domains/cli) so the require of the
 # op is unambiguous at load time; registration is identical either way.
 
@@ -93,7 +98,7 @@ module Onetime
         return if result.nil? # operator declined at the prompt
 
         OT.info "[cli-domains-remove] domain=#{target.display_domain} status=#{result.status} " \
-                "dry_run=#{result.dry_run}"
+                "dry_run=#{result.dry_run} sender_cleanup=#{result.sender_cleanup}"
 
         json ? output_json(result) : output_text(result)
       end
@@ -146,7 +151,14 @@ module Onetime
           puts 'Dry run - nothing changed. Re-run with --apply to remove.'
         when :removed
           puts "Removed #{result.display_domain} (#{result.extid})"
+          puts "  Sender identity:      #{result.sender_cleanup}"
           puts
+          if sender_cleanup_failed?(result)
+            puts 'Removal incomplete: the domain record was removed, but the provider sender identity may remain.'
+            puts "  The 'Sender domain deletion failed' log names the provider and the error."
+            puts '  A rerun cannot retry this cleanup; remove the identity at the provider.'
+            exit 1
+          end
           puts 'Removal complete'
         end
       end
@@ -160,8 +172,14 @@ module Onetime
           org_id: result.org_id,
           org_name: result.org_name,
           dry_run: result.dry_run,
+          sender_cleanup: result.sender_cleanup,
         )
         exit 1 unless OK_STATUSES.include?(result.status)
+        exit 1 if sender_cleanup_failed?(result)
+      end
+
+      def sender_cleanup_failed?(result)
+        result.sender_cleanup == :failed
       end
     end
 

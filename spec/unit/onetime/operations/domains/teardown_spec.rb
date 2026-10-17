@@ -13,7 +13,10 @@ RSpec.describe Onetime::Operations::Domains::Teardown do
         mailer_config: mailer_config, destroy!: true)
     end
     let(:strategy) { double('Strategy', delete_vhost: { message: 'deleted' }) }
-    let(:sender_op) { double('DeleteSenderDomain', call: nil) }
+    let(:sender_result) do
+      Onetime::Operations::DeleteSenderDomain::Result.new(success: true, message: 'deleted', error: nil, outcome: :deleted)
+    end
+    let(:sender_op) { double('DeleteSenderDomain', call: sender_result) }
     let(:lock) do
       double('Familia::Lock', acquire: 'lock-token', release: true,
         dbkey: 'sender-identity-lock', dbclient: double('Redis', eval: 1))
@@ -31,13 +34,13 @@ RSpec.describe Onetime::Operations::Domains::Teardown do
       allow(lock).to receive(:acquire) { calls << :acquire; 'lock-token' }
       allow(lock.dbclient).to receive(:eval) { calls << :check; 1 }
       allow(strategy).to receive(:delete_vhost) { calls << :vhost; { message: 'deleted' } }
-      allow(sender_op).to receive(:call) { calls << :sender }
+      allow(sender_op).to receive(:call) { calls << :sender; sender_result }
       allow(domain).to receive(:destroy!) { calls << :destroy }
       allow(lock).to receive(:release) { calls << :release }
 
       result = described_class.new(domain: domain).call
 
-      expect(result).to eq(described_class::Result.new(removal_committed: true, lease_error: nil))
+      expect(result).to eq(described_class::Result.new(removal_committed: true, lease_error: nil, sender_cleanup: :deleted))
       expect(Onetime::Operations::DeleteSenderDomain).to have_received(:new).with(mailer_config: mailer_config)
       expect(strategy).to have_received(:delete_vhost).with(domain)
       expect(lock).to have_received(:acquire).with(ttl: 60)
@@ -48,7 +51,7 @@ RSpec.describe Onetime::Operations::Domains::Teardown do
     it 'leaves the provider vhost in place with keep_vhost and still tears down the rest' do
       result = described_class.new(domain: domain, keep_vhost: true).call
 
-      expect(result).to eq(described_class::Result.new(removal_committed: true, lease_error: nil))
+      expect(result).to eq(described_class::Result.new(removal_committed: true, lease_error: nil, sender_cleanup: :deleted))
       expect(strategy).not_to have_received(:delete_vhost)
       expect(sender_op).to have_received(:call)
       expect(domain).to have_received(:destroy!)
@@ -59,6 +62,7 @@ RSpec.describe Onetime::Operations::Domains::Teardown do
         result = described_class.new(domain: domain, keep_vhost: keep_vhost, keep_sender_identity: true).call
 
         expect(result.removal_committed).to be true
+        expect(result.sender_cleanup).to eq(:kept)
         expect(Onetime::Operations::DeleteSenderDomain).not_to have_received(:new)
         expect(sender_op).not_to have_received(:call)
         expect(domain).to have_received(:destroy!).once
@@ -73,6 +77,11 @@ RSpec.describe Onetime::Operations::Domains::Teardown do
 
     context 'without a mailer config' do
       let(:mailer_config) { nil }
+      let(:sender_result) do
+        Onetime::Operations::DeleteSenderDomain::Result.new(
+          success: true, message: 'skipped: no mailer config', error: nil, outcome: :skipped,
+        )
+      end
 
       it 'passes nil to sender teardown and still commits destruction' do
         result = described_class.new(domain: domain).call
@@ -80,19 +89,27 @@ RSpec.describe Onetime::Operations::Domains::Teardown do
         expect(Onetime::Operations::DeleteSenderDomain).to have_received(:new).with(mailer_config: nil)
         expect(sender_op).to have_received(:call).once
         expect(domain).to have_received(:destroy!).once
-        expect(result).to eq(described_class::Result.new(removal_committed: true, lease_error: nil))
+        expect(result).to eq(described_class::Result.new(removal_committed: true, lease_error: nil, sender_cleanup: :skipped))
       end
     end
 
-    it 'reports local commitment even when sender cleanup returns a failure' do
+    it 'reports local commitment and the failed sender cleanup when cleanup returns a failure' do
       allow(sender_op).to receive(:call).and_return(
-        Onetime::Operations::DeleteSenderDomain::Result.new(success: false, message: nil, error: 'provider unavailable')
+        Onetime::Operations::DeleteSenderDomain::Result.new(success: false, message: nil, error: 'provider unavailable', outcome: :failed)
       )
 
       result = described_class.new(domain: domain).call
 
       expect(domain).to have_received(:destroy!).once
-      expect(result).to eq(described_class::Result.new(removal_committed: true, lease_error: nil))
+      expect(result).to eq(described_class::Result.new(removal_committed: true, lease_error: nil, sender_cleanup: :failed))
+    end
+
+    it 'reports an absent sender identity as absent, not deleted' do
+      allow(sender_op).to receive(:call).and_return(
+        Onetime::Operations::DeleteSenderDomain::Result.new(success: true, message: 'already absent', error: nil, outcome: :absent)
+      )
+
+      expect(described_class.new(domain: domain).call.sender_cleanup).to eq(:absent)
     end
 
     it 'raises Busy naming the domain before any teardown on contention' do
@@ -128,7 +145,7 @@ RSpec.describe Onetime::Operations::Domains::Teardown do
             else
               allow(lock.dbclient).to receive(:eval).and_return(failure)
             end
-            { message: 'done' }
+            phase == :vhost ? { message: 'done' } : sender_result
           end
           if phase == :vhost
             allow(strategy).to receive(:delete_vhost, &lose_lease)
@@ -242,7 +259,7 @@ RSpec.describe Onetime::Operations::Domains::Teardown do
       def stub_teardown
         allow_any_instance_of(Onetime::Operations::DeleteSenderDomain).to receive(:call) do
           yield
-          Onetime::Operations::DeleteSenderDomain::Result.new(success: true, message: 'stubbed', error: nil)
+          Onetime::Operations::DeleteSenderDomain::Result.new(success: true, message: 'stubbed', error: nil, outcome: :deleted)
         end
       end
 

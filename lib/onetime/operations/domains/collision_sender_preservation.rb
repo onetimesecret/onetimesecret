@@ -73,8 +73,10 @@ module Onetime
 
           target = deletion_target(record, provider, strategy, sender_domain)
           return nil if target.nil?
-          raise UnsafeIdentity, unsafe(record, "#{provider} lists the sender domain without an identity") unless target.is_a?(String) || target.is_a?(Integer)
-          raise UnsafeIdentity, unsafe(record, "#{provider} lists the sender domain without an identity") if target.to_s.strip.empty?
+          # The strategies validate listed ids; this guards the configured
+          # SendGrid domain_id override, which no listing checks.
+          raise UnsafeIdentity, unsafe(record, "#{provider} gave no usable identity for the sender domain") unless target.is_a?(String) || target.is_a?(Integer)
+          raise UnsafeIdentity, unsafe(record, "#{provider} gave no usable identity for the sender domain") if target.to_s.strip.empty?
 
           [provider, target.to_s]
         end
@@ -104,11 +106,11 @@ module Onetime
         # All deletion strategies use installation-level credentials, not the
         # config's encrypted delivery API key. SES/SMTP2GO target domain names.
         # SendGrid/Lettermint resolve provider IDs from the provider's domain
-        # list, matched exactly as their find_domain_id/find_domain_by_name
-        # match for deletion; the list is fetched once per provider per apply
-        # (see #provider_listing), not once per record. A failure there is the
-        # provider's, and a retry may succeed. Reading the credentials is local
-        # and says so.
+        # list, matched as their find_domain_id/find_domain_by_name match for
+        # deletion (case-insensitive full names, IDs unchanged); the list is
+        # fetched once per provider per apply (see #provider_listing), not
+        # once per record. A failure there is the provider's, and a retry may
+        # succeed. Reading the credentials is local and says so.
         #
         # A complete list without the sender domain returns nil: the record
         # has nothing at the provider to share or to delete. Deletion reads
@@ -136,10 +138,10 @@ module Onetime
               end
               remote_lookup(record, provider) { strategy.send(:list_domains, client) }
             end
+            # list_domains and domain_entry raise on an entry without an id,
+            # so a match always carries one.
             entry       = strategy.send(:domain_entry, listing, sender_domain)
-            # An entry without an id is the provider's malformed answer, not
-            # an absence: :malformed is neither nil nor an identity.
-            entry.nil? ? nil : (entry['id'] || :malformed)
+            entry && entry['id']
           end
         end
 

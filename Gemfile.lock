@@ -179,7 +179,7 @@ GEM
     kramdown-parser-gfm (1.1.0)
       kramdown (~> 2.0)
     language_server-protocol (3.17.0.6)
-    lettermint (0.2.0)
+    lettermint (0.2.1)
       faraday (~> 2.0)
     lint_roller (1.1.0)
     listen (3.10.0)
@@ -645,7 +645,7 @@ DEPENDENCIES
   jwt (~> 3.2)
   kanayago (~> 0.7)
   kicks (~> 3.0)
-  lettermint (~> 0.2.0)
+  lettermint (~> 0.2.1)
   logger
   mail
   omniauth-apple (~> 1.4)

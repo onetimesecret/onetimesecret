@@ -273,68 +273,31 @@ module Onetime
         # @param mailer_config [CustomDomain::MailerConfig] Mailer configuration
         # @param credentials [Hash] Must include 'api_key'
         # @return [Hash] Deletion result:
-        #   - :deleted [Boolean]
+        #   - :outcome [Symbol] :deleted, :absent, or :failed
+        #   - :deleted [Boolean] True only for a confirmed removal
         #   - :message [String]
+        #   - :error [String, nil] Nonempty on failure, nil otherwise
         #
         def delete_sender_identity(mailer_config, credentials:)
           domain = extract_domain(mailer_config.from_address)
-
-          unless domain
-            return {
-              deleted: false,
-              message: 'Invalid from_address: cannot extract domain',
-            }
-          end
-
-          api_key = credentials['api_key']
-          unless api_key && !api_key.empty?
-            return {
-              deleted: false,
-              message: 'SMTP2GO API key is required',
-            }
-          end
+          return deletion_failure('Invalid from_address: cannot extract domain') unless domain
+          return deletion_failure('SMTP2GO API key is required') if credentials['api_key'].to_s.strip.empty?
 
           log_info "[smtp2go-sender] Deleting sender domain for #{domain}"
-
           client = build_client(credentials)
-
-          # Domains are keyed by name; check existence first so a domain
-          # that was already removed reads as a successful deletion.
-          entry = find_domain(client, domain)
-
-          unless entry
-            return {
-              deleted: true,
-              message: "Domain #{domain} was already deleted or never existed",
-            }
+          unless find_domain(client, domain)
+            return deletion_result(outcome: :absent, message: "Domain #{domain} was already deleted or never existed")
           end
 
-          client.post('/domain/remove', { 'domain' => domain })
-
-          {
-            deleted: true,
-            message: "Domain #{domain} removed from SMTP2GO",
-          }
-        rescue Smtp2goClient::APIError => ex
-          if not_found_error?(ex)
-            # Domain doesn't exist - treat as successful deletion
-            {
-              deleted: true,
-              message: "Domain #{domain} was already deleted or never existed",
-            }
-          else
-            log_error "[smtp2go-sender] Deletion failed for #{domain}: HTTP #{ex.status_code} - #{ex.message}"
-            {
-              deleted: false,
-              message: "Deletion failed: #{ex.message}",
-            }
+          envelope = client.post_envelope('/domain/remove', { 'domain' => domain })
+          unless removal_acknowledged?(envelope, domain)
+            return deletion_failure("SMTP2GO did not confirm removal of #{domain}")
           end
+
+          deletion_result(outcome: :deleted, message: "Domain #{domain} removed from SMTP2GO")
         rescue StandardError => ex
           log_error "[smtp2go-sender] Deletion failed: #{ex.message}"
-          {
-            deleted: false,
-            message: "Deletion failed: #{ex.message}",
-          }
+          deletion_failure("Deletion failed: #{deletion_error_message(ex)}")
         end
 
         protected
@@ -344,6 +307,37 @@ module Onetime
         end
 
         private
+
+        def deletion_failure(message)
+          deletion_result(outcome: :failed, message: message, error: message)
+        end
+
+        # Whether a successful /domain/remove envelope acknowledges removal.
+        # Two documented HTTP 200 success bodies:
+        #   - v3.0.0, only a string request_id and no data:
+        #     https://smtp2go.github.io/smtp2go.apidocs/#remove-sender-domain
+        #   - archived v3.0.2, request_id plus data.domains without the target
+        #     (sender-identity-validation-report.md, SMTP2GO).
+        # A top-level error or error_code refuses either shape. Provided data
+        # must be a valid domains list without the domain; an envelope
+        # without data must carry a nonempty string request_id. An empty
+        # envelope acknowledges nothing. The client has already raised on
+        # non-2xx responses and on error/error_code at either level; the
+        # top-level check keeps this rule complete on its own.
+        #
+        # @param envelope [Hash] Parsed response envelope from the client
+        # @param domain [String] Domain whose removal was requested
+        # @return [Boolean]
+        # @raise [Smtp2goClient::APIError] if provided data is malformed
+        #
+        def removal_acknowledged?(envelope, domain)
+          return false unless envelope.is_a?(Hash)
+          return false if envelope['error'] || envelope['error_code']
+          return extract_domain_entry(envelope['data'], domain).nil? if envelope.key?('data')
+
+          request_id = envelope['request_id']
+          request_id.is_a?(String) && !request_id.strip.empty?
+        end
 
         # Build API client from credentials.
         #
@@ -389,11 +383,7 @@ module Onetime
         rescue Smtp2goClient::APIError => ex
           raise ex unless plausibly_exists_error?(ex)
 
-          existing = begin
-            find_domain(client, domain)
-          rescue StandardError
-            nil
-          end
+          existing = find_domain(client, domain)
           raise ex unless existing
 
           log_info "[smtp2go-sender] Domain #{domain} already exists, using existing entry " \
@@ -444,15 +434,12 @@ module Onetime
         #
         # @param client [Smtp2goClient] API client instance
         # @param domain [String] Domain name to find (e.g., "example.com")
-        # @return [Hash, nil] Domain entry hash, or nil if not found
+        # @return [Hash, nil] Valid domain entry, or nil for a valid list without a match
+        # @raise [Smtp2goClient::APIError] if lookup evidence is invalid or incomplete
         #
         def find_domain(client, domain)
           data = client.post('/domain/view', { 'domain' => domain })
           extract_domain_entry(data, domain)
-        rescue Smtp2goClient::APIError => ex
-          return nil if not_found_error?(ex)
-
-          raise
         end
 
         # Selects the matching domain entry from a response data hash.
@@ -469,15 +456,24 @@ module Onetime
         # @return [Hash, nil] Matching entry or nil
         #
         def extract_domain_entry(data, domain)
-          entries = data.is_a?(Hash) ? Array(data['domains']) : []
-          target  = domain.to_s.downcase
+          unless data.is_a?(Hash) && data['domains'].is_a?(Array) &&
+                 !data['error'] && !data['error_code'] && data['success'] != false
+            raise Smtp2goClient::APIError.new('Invalid SMTP2GO domain list: expected domains array', status_code: nil)
+          end
 
-          entries.find { |e| e.is_a?(Hash) && entry_domain_name(e).to_s.downcase == target }
+          entries = data['domains']
+          entries.each do |entry|
+            name = entry_domain_name(entry)
+            unless name.is_a?(String) && !name.strip.empty? && name.match?(/\A\S+\z/)
+              raise Smtp2goClient::APIError.new('Invalid SMTP2GO domain entry: domain name required', status_code: nil)
+            end
+          end
+          entries.find { |entry| entry_domain_name(entry).casecmp?(domain) }
         end
 
         # Extracts the domain name from an entry, tolerating both the
         # documented nested shape ({'domain' => {'fulldomain' => ...}}) and
-        # a flat string ({'domain' => 'example.com'}).
+        # a flat string ({'domain' => 'example.com'}) or flat fulldomain.
         #
         # @param entry [Hash] Domain entry from the API
         # @return [String, nil]
@@ -487,19 +483,22 @@ module Onetime
 
           dom = entry['domain']
           return dom if dom.is_a?(String)
+          return nil if entry.key?('domain') && !dom.is_a?(Hash)
 
           domain_object(entry)['fulldomain'] || domain_object(entry)['domain']
         end
 
-        # Returns the nested domain object of an entry (empty hash when the
-        # entry carries none, so callers can index safely).
+        # Returns the nested or flat domain object (empty hash when the entry
+        # carries neither, so callers can index safely).
         #
         # @param entry [Hash] Domain entry from the API
         # @return [Hash]
         #
         def domain_object(entry)
           dom = entry.is_a?(Hash) ? entry['domain'] : nil
-          dom.is_a?(Hash) ? dom : {}
+          return dom if dom.is_a?(Hash)
+
+          entry.is_a?(Hash) && entry.key?('fulldomain') ? entry : {}
         end
 
         # Normalize an SMTP2GO domain entry to standard DNS record format.
@@ -641,26 +640,6 @@ module Onetime
         #
         def truthy?(value)
           value == true || value.to_s == 'true'
-        end
-
-        # Detects not-found API errors for name-keyed domain operations.
-        #
-        # SMTP2GO does not document a dedicated not-found error_code for
-        # /domain/remove or /domain/view, so this matches the generic 404
-        # status plus plausible code spellings. The free-text fallback
-        # requires domain/sender context so unrelated messages (e.g.
-        # 'API key not found') never read as a missing domain.
-        #
-        # @param error [Smtp2goClient::APIError]
-        # @return [Boolean]
-        #
-        def not_found_error?(error)
-          return true if error.status_code.to_i == 404
-          return true if error.error_code.to_s.match?(/NOT_?FOUND|NONEXISTENT/i)
-
-          error.message.to_s.match?(
-            /\b(?:domain|sender)\b.{0,40}\b(?:not found|does not exist|unknown)\b|\b(?:no such|unknown) (?:domain|sender)\b/i,
-          )
         end
 
         # Maps verification state to human-readable message. Tracking is
