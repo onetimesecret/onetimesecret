@@ -127,6 +127,7 @@ migrations/
   2026-07-03/20260703_01_disable_homepage_auth_links.rb
   2026-07-03/20260703_02_backfill_homepage_secrets_mode.rb
   2026-07-27/20260727_01_backfill_signin_config.rb
+  2026-10-15/20261015_01_rename_ascii_display_domain_index.rb
 ```
 
 `bin/ots migrate` defaults to the newest dated folder, not every migration

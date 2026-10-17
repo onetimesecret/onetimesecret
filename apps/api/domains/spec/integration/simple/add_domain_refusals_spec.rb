@@ -135,8 +135,8 @@ RSpec.describe 'POST /api/domains/add refusals', type: :integration do
     failing = Class.new(SimpleDelegator) do
       define_method(:claim_field) { |*| raise Redis::CannotConnectError, 'datastore unreachable' }
     end
-    index = Onetime::CustomDomain.canonical_display_domain_index
-    allow(Onetime::CustomDomain).to receive(:canonical_display_domain_index).and_return(failing.new(index))
+    index = Onetime::CustomDomain.ascii_display_domain_index
+    allow(Onetime::CustomDomain).to receive(:ascii_display_domain_index).and_return(failing.new(index))
     name = "outage-#{test_run_id}.example.com"
 
     status, = add_domain(name)

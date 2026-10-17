@@ -76,7 +76,7 @@ Three gaps, each independently fatal:
   catching it.
 - **No write path.** Nothing sets the hashkey: no account-settings endpoint,
   no colonel surface, no CLI. The only other reference in `lib/`/`apps/` is
-  the purge command (`lib/onetime/cli/customers/purge_command.rb:52`). Today
+  the purge command (`lib/onetime/cli/customers/purge_inactive_command.rb:52`). Today
   an opt-in means hand-editing Redis.
 - **No registry.** `z.record(z.string(), z.boolean())` accepts any string.
   This is precisely the unvalidated-namespace rot #3491 §0.2 harm 3 documents
