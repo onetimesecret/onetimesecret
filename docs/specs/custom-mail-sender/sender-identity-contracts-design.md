@@ -2,7 +2,9 @@
 
 Status: Proposed design, not an implemented or accepted guarantee.
 
-Companion: [Test coverage specification](sender-identity-contracts-test-coverage.md).
+Companions: [Test coverage specification](sender-identity-contracts-test-coverage.md), [preparation evidence and deployment checklist](sender-identity-contracts-preparation.md).
+
+Preparation distinguishes documented contracts, maintainer captures, static deployment wiring, and unexecuted account checks. No additional pagination defect is established beyond the historical Lettermint omission. Current SMTP2GO responses, some missing-target semantics, and duplicate selection remain unresolved. SES currently uses explicit credentials, not the default SDK credential chain; deployment validation must test that actual configuration.
 
 ## Objective and scope
 
