@@ -117,7 +117,8 @@ run is cancelled when another push to `main` lands behind it, so look at the
 commit's checks instead of assuming. For a commit without them, or any other
 ref such as a release branch, use **Run workflow** on the Actions page for
 each of the three, with `run_all` ticked for CI. The tag push then runs all
-three again.
+three again. Image publication for the tag waits for that tag's main-CI
+`ci-verdict`; the two E2E workflows do not gate it.
 
 ## Requesting a run on a pull request
 
