@@ -68,8 +68,14 @@ const globex: TestOrg = {
   display_name: 'Globex',
   current_user_role: 'owner',
 };
+const initech: TestOrg = {
+  objid: 'o3',
+  extid: 'org3',
+  display_name: 'Initech',
+  current_user_role: 'owner',
+};
 
-const mockOrganizations = ref<TestOrg[]>([acme, globex]);
+const mockOrganizations = ref<TestOrg[]>([acme, globex, initech]);
 const mockCurrentOrganization = ref<TestOrg | null>(acme);
 const mockSelectOrganization = vi.fn(async () => undefined);
 const mockOrgStore = reactive({
@@ -85,12 +91,31 @@ vi.mock('@/shared/stores/organizationStore', () => ({
 
 const Page = { render: () => null };
 
-async function selectGlobex(wrapper: VueWrapper) {
+async function selectOrg(wrapper: VueWrapper, extid: string) {
   await wrapper.get('[data-testid="org-scope-switcher-trigger"]').trigger('click');
   await nextTick();
   await flushPromises();
-  await wrapper.get('[data-testid="org-menu-item-org2"]').trigger('click');
+  await wrapper.get(`[data-testid="org-menu-item-${extid}"]`).trigger('click');
   await flushPromises();
+}
+
+const selectGlobex = (wrapper: VueWrapper) => selectOrg(wrapper, 'org2');
+
+/**
+ * Holds the next navigation to /dashboard in a guard until release() is
+ * called, the way a role fetch still waiting on the API would. Later
+ * navigations pass straight through.
+ */
+function holdNextDashboardNavigation(): () => void {
+  let release!: () => void;
+  const released = new Promise<void>((resolve) => (release = resolve));
+  let held = false;
+  router.beforeEach((to) => {
+    if (to.path !== '/dashboard' || held) return true;
+    held = true;
+    return released.then(() => true);
+  });
+  return release;
 }
 
 describe('OrganizationScopeSwitcher switching organizations', () => {
@@ -98,7 +123,7 @@ describe('OrganizationScopeSwitcher switching organizations', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    mockOrganizations.value = [acme, globex];
+    mockOrganizations.value = [acme, globex, initech];
     mockCurrentOrganization.value = acme;
     mockRoute.name = 'Dashboard';
     mockRoute.meta = { scopesAvailable: { onOrgSwitch: '/dashboard' } };
@@ -150,6 +175,54 @@ describe('OrganizationScopeSwitcher switching organizations', () => {
     await router.push('/elsewhere');
     expect(router.currentRoute.value.path).toBe('/elsewhere');
     expect(mockSelectOrganization).not.toHaveBeenCalled();
+  });
+
+  it('leaves the organization as it is when another navigation replaces the switch', async () => {
+    const release = holdNextDashboardNavigation();
+    wrapper = mount(OrganizationScopeSwitcher, { attachTo: document.body });
+
+    await selectGlobex(wrapper);
+    // While the switch waits on its guard, the user goes somewhere else.
+    await router.push('/elsewhere');
+
+    expect(router.currentRoute.value.path).toBe('/elsewhere');
+    expect(mockSelectOrganization).not.toHaveBeenCalled();
+
+    release();
+    await flushPromises();
+
+    expect(router.currentRoute.value.path).toBe('/elsewhere');
+    expect(mockSelectOrganization).not.toHaveBeenCalled();
+  });
+
+  it('switches to the later organization only when a second switch replaces the first', async () => {
+    const release = holdNextDashboardNavigation();
+    wrapper = mount(OrganizationScopeSwitcher, { attachTo: document.body });
+
+    // Both switches go to /dashboard. The second replaces the first and
+    // lands while the first still waits on its guard.
+    await selectGlobex(wrapper);
+    await selectOrg(wrapper, 'org3');
+
+    expect(router.currentRoute.value.path).toBe('/dashboard');
+    expect(mockSelectOrganization).toHaveBeenCalledTimes(1);
+    expect(mockSelectOrganization).toHaveBeenCalledWith(initech);
+
+    release();
+    await flushPromises();
+
+    expect(mockSelectOrganization).toHaveBeenCalledTimes(1);
+  });
+
+  it('switches the organization when a guard redirects the switch elsewhere', async () => {
+    router.beforeEach((to) => (to.path === '/dashboard' ? '/elsewhere' : true));
+    wrapper = mount(OrganizationScopeSwitcher, { attachTo: document.body });
+
+    await selectGlobex(wrapper);
+
+    expect(router.currentRoute.value.path).toBe('/elsewhere');
+    expect(mockSelectOrganization).toHaveBeenCalledTimes(1);
+    expect(mockSelectOrganization).toHaveBeenCalledWith(globex);
   });
 
   it('switches the organization when the page is already where the switch goes', async () => {

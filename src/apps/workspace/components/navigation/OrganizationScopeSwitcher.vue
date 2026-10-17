@@ -212,10 +212,20 @@ const switchTargetFor = (org: Organization): RouteLocationRaw | null => {
  * show. The switch is made from a one-shot beforeResolve hook: that runs after
  * the page's leave and update guards and before the destination renders, so
  * the destination mounts, and fetches, under the organization it was opened
- * for. A refused navigation never reaches the hook, and the hook is removed
- * once the navigation settles either way. A duplicated navigation (the page
- * is already where the switch goes) runs no guards, so it switches directly.
+ * for. A refused navigation never reaches the hook. A duplicated navigation
+ * (the page is already where the switch goes) runs no guards, so it switches
+ * directly.
+ *
+ * The hook is global, and it stays registered until the switch's push
+ * settles. A navigation that another one replaced settles only once its
+ * pending guard returns (a route chunk still loading, say), and meanwhile the
+ * replacing navigation runs the hook too. So the hook acts only on a
+ * navigation to where the switch goes (or one a guard redirected from there),
+ * and only for the latest switch: a switch that a later one replaced does
+ * nothing.
  */
+let latestSwitch = 0;
+
 const onSelect = async (id: string): Promise<void> => {
   const org = orgForId(id);
   if (!org) return;
@@ -226,9 +236,12 @@ const onSelect = async (id: string): Promise<void> => {
     return;
   }
 
-  const removeHook = router.beforeResolve(() => {
+  const switchId = ++latestSwitch;
+  const switchPath = router.resolve(target).fullPath;
+  const removeHook = router.beforeResolve((to) => {
+    if ((to.redirectedFrom ?? to).fullPath !== switchPath) return;
     removeHook();
-    void organizationStore.selectOrganization(org);
+    if (switchId === latestSwitch) void organizationStore.selectOrganization(org);
   });
   let failure;
   try {
