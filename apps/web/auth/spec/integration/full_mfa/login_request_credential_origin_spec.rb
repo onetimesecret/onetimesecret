@@ -30,12 +30,15 @@ ENV['AUTH_EMAIL_AUTH_ENABLED'] = 'true'
 
 require_relative '../../spec_helper'
 require_relative '../../support/tenant_test_fixtures'
+require_relative '../../support/external_https_browser'
 require_relative '../../../lib/public_host'
 
 # rubocop:disable-next RSpec/SpecFilePathFormat -- the full-mfa lane owns this integration directory
 RSpec.describe Auth::PublicHost, :aggregate_failures, :full_auth_mode, :shared_db_state, type: :integration do
   include_context 'domains enabled'
   include_context 'tenant fixtures'
+  # Requests carry X-Forwarded-Proto: https from a browser on https.
+  include_context 'external HTTPS browser'
 
   let(:delivered) { [] }
   let(:account_email) { unique_test_email('nonmember') }

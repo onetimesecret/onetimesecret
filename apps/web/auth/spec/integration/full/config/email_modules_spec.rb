@@ -181,7 +181,7 @@ RSpec.describe 'Auth::Config::Email modules' do
       end
     end
 
-    before { require_relative '../../config/email/helpers' }
+    before { require_relative '../../../../config/email/helpers' }
 
     # A Rodauth instance with the production helper installed, its inputs
     # stubbed (the pattern of spec/config/hooks/*_spec.rb).
