@@ -334,13 +334,16 @@ module Onetime
           domains
         end
 
+        # Domain names compare case-insensitively over the full name, as
+        # SMTP2GO's lookup does; the returned ID is the provider's, unchanged.
+        #
         # @param domains [Array<Hash>] domain authentication entries
         # @param domain [String] Domain to search for
         # @return [Integer, nil] the entry's ID, or nil when no entry matches
         #
         def domain_authentication_id(domains, domain)
           validate_domain_authentications!(domains)
-          match = domains.find { |d| d['domain'] == domain }
+          match = domains.find { |d| d['domain'].casecmp?(domain) }
           match && match['id']
         end
 

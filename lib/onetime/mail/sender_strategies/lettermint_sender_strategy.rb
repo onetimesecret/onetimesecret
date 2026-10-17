@@ -408,7 +408,7 @@ module Onetime
           entries
         end
 
-        # SDK 0.2.0 maps page_cursor to page[cursor]. The Team API schema uses
+        # SDK 0.2.1 maps page_cursor to page[cursor]. The Team API schema uses
         # a top-level next_cursor, with null marking exhaustion, not page size.
         def each_domain_page(client)
           cursor = nil
@@ -445,13 +445,16 @@ module Onetime
           end
         end
 
+        # Domain names compare case-insensitively over the full name, as
+        # SMTP2GO's lookup does; the entry and its ID are returned unchanged.
+        #
         # @param domains [Array<Hash>] domain entries from {#list_domains}
         # @param domain [String] Domain name to find
         # @return [Hash, nil] the entry, or nil when no entry matches
         #
         def domain_entry(domains, domain)
           validate_domain_entries!(domains)
-          domains.find { |entry| entry['domain'] == domain }
+          domains.find { |entry| entry['domain'].casecmp?(domain) }
         end
 
         # Creates a new domain or retrieves existing one on 409 conflict.

@@ -182,6 +182,51 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy, 'looku
       .to include(verified: nil, status: 'error')
   end
 
+  context '[L15] domain names that differ only in case' do
+    let(:target) { { 'domain' => 'Example.COM', 'id' => 'Dom_MixedCase-ID' } }
+
+    it 'selects the same entry and unchanged ID in individual lookup and inventory matching' do
+      expect(strategy.send(:find_domain_by_name, client, 'example.com')).to eq(target)
+      inventory = strategy.send(:list_domains, client)
+      expect(strategy.send(:domain_entry, inventory, 'example.com')).to equal(inventory.last)
+      expect(strategy.send(:domain_entry, inventory, 'EXAMPLE.com')['id']).to eq('Dom_MixedCase-ID')
+      expect(strategy.send(:domain_entry, inventory, 'OTHER.example.com')).to eq(other)
+    end
+
+    it 'does not match a partial or unrelated name' do
+      inventory = strategy.send(:list_domains, client)
+      %w[ample.com example.co sub.example.com example.com.evil].each do |name|
+        expect(strategy.send(:domain_entry, inventory, name)).to be_nil
+      end
+    end
+
+    it 'deletes the case-variant identity by its unchanged provider ID' do
+      allow(resource).to receive(:delete).with('Dom_MixedCase-ID').and_return('message' => 'Domain deleted successfully.')
+      expect(strategy.delete_sender_identity(config, credentials: credentials))
+        .to include(outcome: :deleted, deleted: true, error: nil)
+      expect(resource).to have_received(:delete).with('Dom_MixedCase-ID').once
+    end
+
+    it 'recovers the case-variant identity after duplicate creation' do
+      allow(config).to receive(:from_address).and_return('sender@EXAMPLE.com')
+      allow(resource).to receive(:create).with(domain: 'EXAMPLE.com')
+        .and_raise(Lettermint::HttpRequestError.new(message: 'Conflict', status_code: 409))
+      allow(resource).to receive(:find).with('Dom_MixedCase-ID', include: 'dnsRecords')
+        .and_return(target.merge('dns_records' => []))
+      result = strategy.provision_dns_records(config, credentials: credentials)
+      expect(result).to include(success: true, identity_id: 'Example.COM')
+      expect(resource).to have_received(:create).once
+    end
+
+    it 'checks verification on the case-variant identity' do
+      allow(resource).to receive(:verify_dns).with('Dom_MixedCase-ID')
+      allow(resource).to receive(:find).with('Dom_MixedCase-ID', include: 'dnsRecords')
+        .and_return(target.merge('status' => 'verified', 'dns_records' => []))
+      expect(strategy.check_provider_verification_status(config, credentials: credentials))
+        .to include(verified: true, status: 'verified')
+    end
+  end
+
   it '[O08] does not reuse preflight evidence to mask a later cleanup lookup failure' do
     expect(strategy.send(:list_domains, client)).to eq([other, target])
     allow(resource).to receive(:list).with(page_cursor: 'second').and_raise(IOError, 'fresh failure')

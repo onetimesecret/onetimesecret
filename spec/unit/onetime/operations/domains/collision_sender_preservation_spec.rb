@@ -285,6 +285,22 @@ RSpec.describe Onetime::Operations::Domains::CollisionSenderPreservation do
       expect(identity_cache).to include('keeper' => nil, 'victim' => %w[sendgrid 43])
     end
 
+    it '[L15] protects an identity whose sender domains differ from the listing only in case' do
+      listing.replace([{ 'domain' => 'unrelated.example', 'id' => 7 }, { 'domain' => 'Example.COM', 'id' => 42 }])
+      allow(victim_config).to receive(:from_address).and_return('remove@EXAMPLE.com')
+      allow(strategy).to receive(:domain_authentications).with(api_key: 'test-token').and_return(listing)
+      expect(preservation).to eq('victim' => true)
+      expect(identity_cache).to include('keeper' => %w[sendgrid 42], 'victim' => %w[sendgrid 42])
+    end
+
+    it '[L15] still separates unrelated names after case-insensitive matching' do
+      listing.replace([{ 'domain' => 'Example.COM', 'id' => 42 }, { 'domain' => 'MAIL.example.com', 'id' => 43 }])
+      allow(victim_config).to receive(:from_address).and_return('remove@mail.EXAMPLE.com')
+      allow(strategy).to receive(:domain_authentications).with(api_key: 'test-token').and_return(listing)
+      expect(preservation).to eq('victim' => false)
+      expect(identity_cache).to include('keeper' => %w[sendgrid 42], 'victim' => %w[sendgrid 43])
+    end
+
     it 'refuses a failed listing as a retryable provider failure and lists again next time' do
       allow(strategy).to receive(:domain_authentications).and_return(nil, listing)
       expect { preservation }.to raise_error(described_class::UnsafeIdentity) do |error|
@@ -451,6 +467,14 @@ RSpec.describe Onetime::Operations::Domains::CollisionSenderPreservation do
       allow(victim_config).to receive(:from_address).and_return('remove@other.example.com')
       allow(strategy).to receive(:list_domains).with(client).and_return(listing)
       expect(preservation).to eq('victim' => false)
+    end
+
+    it '[L15] protects an identity whose sender domains differ from the listing only in case, keeping its ID' do
+      listing.replace([{ 'domain' => 'Other.Example.com', 'id' => 'remote-2' }, { 'domain' => 'EXAMPLE.com', 'id' => 'Remote-1' }])
+      allow(keeper_config).to receive(:from_address).and_return('keep@Example.Com')
+      allow(strategy).to receive(:list_domains).with(client).and_return(listing)
+      expect(preservation).to eq('victim' => true)
+      expect(identity_cache).to include('keeper' => %w[lettermint Remote-1], 'victim' => %w[lettermint Remote-1])
     end
 
     it 'lists the account domains once per apply and builds one client' do

@@ -106,11 +106,11 @@ module Onetime
         # All deletion strategies use installation-level credentials, not the
         # config's encrypted delivery API key. SES/SMTP2GO target domain names.
         # SendGrid/Lettermint resolve provider IDs from the provider's domain
-        # list, matched exactly as their find_domain_id/find_domain_by_name
-        # match for deletion; the list is fetched once per provider per apply
-        # (see #provider_listing), not once per record. A failure there is the
-        # provider's, and a retry may succeed. Reading the credentials is local
-        # and says so.
+        # list, matched as their find_domain_id/find_domain_by_name match for
+        # deletion (case-insensitive full names, IDs unchanged); the list is
+        # fetched once per provider per apply (see #provider_listing), not
+        # once per record. A failure there is the provider's, and a retry may
+        # succeed. Reading the credentials is local and says so.
         #
         # A complete list without the sender domain returns nil: the record
         # has nothing at the provider to share or to delete. Deletion reads

@@ -775,6 +775,52 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
       end
     end
 
+    context '[L15] domain names that differ only in case' do
+      let(:listing) do
+        [{ 'id' => 7, 'domain' => 'unrelated.example' }, { 'id' => 42, 'domain' => 'Example.COM' },
+         { 'id' => 9, 'domain' => 'mail.example.com' }]
+      end
+
+      before do
+        allow(strategy).to receive(:get_request)
+          .with('/whitelabel/domains?limit=50&offset=0', api_key: credentials['api_key'])
+          .and_return(success: true, data: listing)
+        allow(strategy).to receive(:get_request)
+          .with('/whitelabel/domains?limit=50&offset=3', api_key: credentials['api_key'])
+          .and_return(success: true, data: [])
+      end
+
+      it 'selects the same provider ID in individual lookup and inventory matching' do
+        expect(strategy.send(:find_domain_id, 'example.com', api_key: credentials['api_key'])).to eq(42)
+        inventory = strategy.send(:domain_authentications, api_key: credentials['api_key'])
+        expect(strategy.send(:domain_authentication_id, inventory, 'example.com')).to eq(42)
+        expect(strategy.send(:domain_authentication_id, inventory, 'EXAMPLE.com')).to eq(42)
+        expect(strategy.send(:domain_authentication_id, inventory, 'mail.EXAMPLE.com')).to eq(9)
+      end
+
+      it 'does not match a partial or unrelated name' do
+        inventory = strategy.send(:domain_authentications, api_key: credentials['api_key'])
+        %w[ample.com example.co sub.example.com example.com.evil].each do |name|
+          expect(strategy.send(:domain_authentication_id, inventory, name)).to be_nil
+        end
+      end
+
+      it 'deletes the case-variant identity by its provider ID' do
+        expect(strategy).to receive(:delete_request).with('/whitelabel/domains/42', api_key: credentials['api_key'])
+          .and_return(success: true, data: {})
+        expect(strategy.delete_sender_identity(mailer_config, credentials: credentials))
+          .to include(outcome: :deleted, deleted: true, error: nil)
+      end
+
+      it 'validates the case-variant identity for an upper-case sender address' do
+        allow(mailer_config).to receive(:from_address).and_return('noreply@EXAMPLE.com')
+        expect(strategy).to receive(:post_request).with('/whitelabel/domains/42/validate', {}, api_key: credentials['api_key'])
+          .and_return(success: true, data: { 'valid' => true })
+        expect(strategy.check_provider_verification_status(mailer_config, credentials: credentials))
+          .to include(verified: true, status: 'verified')
+      end
+    end
+
     [nil, 'bad', {}, { 'domain' => '' }, { 'id' => 1 },
      { 'domain' => 'example.com' }, { 'domain' => 'other.com', 'id' => nil },
      { 'domain' => 'example.com', 'id' => '' }, { 'domain' => 'example.com', 'id' => false },
