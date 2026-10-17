@@ -37,6 +37,7 @@ RSpec.describe 'Sender provider response parity through DeleteSenderDomain' do
     let(:provider) { 'sendgrid' }
     let(:listing_url) { 'https://api.sendgrid.com/v3/whitelabel/domains?limit=50&offset=0' }
     let(:delete_url) { 'https://api.sendgrid.com/v3/whitelabel/domains/123' }
+    let(:sendgrid_api) { %r{\Ahttps://api\.sendgrid\.com/} }
 
     it 'logs absence, not deletion, after a validated empty inventory' do
       stub_request(:get, listing_url).to_return(status: 200, body: '[]')
@@ -49,14 +50,15 @@ RSpec.describe 'Sender provider response parity through DeleteSenderDomain' do
       stub_request(:delete, delete_url).to_return(status: 204, body: '')
       expect_disposition(call_operation, :deleted)
       expect(a_request(:delete, delete_url)).to have_been_made.once
+      expect(a_request(:delete, sendgrid_api)).to have_been_made.once
     end
 
     ['{}', '[{"domain":"example.com"}]', '[{"id":123}]', '[null]'].each do |body|
       it "fails closed for malformed lookup #{body}" do
         stub_request(:get, listing_url).to_return(status: 200, body: body)
         expect_disposition(call_operation, :failed)
-        expect(a_request(:delete, /api\.sendgrid\.com/)).not_to have_been_made
-        expect(a_request(:post, /api\.sendgrid\.com/)).not_to have_been_made
+        expect(a_request(:delete, sendgrid_api)).not_to have_been_made
+        expect(a_request(:post, sendgrid_api)).not_to have_been_made
       end
     end
 
@@ -66,7 +68,7 @@ RSpec.describe 'Sender provider response parity through DeleteSenderDomain' do
       stub_request(:get, 'https://api.sendgrid.com/v3/whitelabel/domains?limit=50&offset=50')
         .to_return(status: 429, body: '{"errors":[{"message":"rate limited"}]}')
       expect_disposition(call_operation, :failed)
-      expect(a_request(:delete, /api\.sendgrid\.com/)).not_to have_been_made
+      expect(a_request(:delete, sendgrid_api)).not_to have_been_made
     end
 
     it 'reports a rejected DELETE as failure' do
@@ -78,7 +80,7 @@ RSpec.describe 'Sender provider response parity through DeleteSenderDomain' do
     it 'keeps blank transport exceptions as failures, not no-ops' do
       stub_request(:get, listing_url).to_raise(StandardError.new(''))
       expect_disposition(call_operation, :failed)
-      expect(a_request(:delete, /api\.sendgrid\.com/)).not_to have_been_made
+      expect(a_request(:delete, sendgrid_api)).not_to have_been_made
     end
 
     def stub_listing_page(offset, entries)
@@ -105,14 +107,14 @@ RSpec.describe 'Sender provider response parity through DeleteSenderDomain' do
 
       expect_disposition(call_operation, :absent)
       [0, 2, 4, 5].each { |offset| expect(a_request(:get, /offset=#{offset}\z/)).to have_been_made.once }
-      expect(a_request(:delete, /api\.sendgrid\.com/)).not_to have_been_made
+      expect(a_request(:delete, sendgrid_api)).not_to have_been_made
     end
 
     it '[L17] fails closed on a page larger than the requested limit' do
       stub_listing_page(0, 51.times.map { |i| { id: i + 1, domain: i == 50 ? 'example.com' : "other#{i}.example" } })
 
       expect_disposition(call_operation, :failed)
-      expect(a_request(:delete, /api\.sendgrid\.com/)).not_to have_been_made
+      expect(a_request(:delete, sendgrid_api)).not_to have_been_made
     end
   end
 
