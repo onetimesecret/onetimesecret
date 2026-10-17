@@ -63,7 +63,7 @@ module Lanes
       #
       # Size and timeout read the initializer's FAMILIA_POOL_SIZE and
       # FAMILIA_POOL_TIMEOUT, so a lane env tunes both the same way. A value
-      # that is not an integer raises here, where the initializer's
+      # that is not a decimal integer raises here, where the initializer's
       # String#to_i reads it as 0 (setup_connection_pool_spec pins that):
       # the test process stops at load instead of running on a pool that
       # cannot hand out a connection.
@@ -73,8 +73,8 @@ module Lanes
       #   provider was already present
       # @raise [ArgumentError] when +uri+ is not on TEST_DATASTORE_PORT
       def install!(uri:,
-                   size: Integer(ENV.fetch('FAMILIA_POOL_SIZE', DEFAULT_SIZE)),
-                   timeout: Integer(ENV.fetch('FAMILIA_POOL_TIMEOUT', DEFAULT_TIMEOUT)))
+                   size: env_integer('FAMILIA_POOL_SIZE', DEFAULT_SIZE),
+                   timeout: env_integer('FAMILIA_POOL_TIMEOUT', DEFAULT_TIMEOUT))
         return nil if Familia.connection_provider
 
         target = Familia.normalize_uri(uri)
@@ -89,6 +89,13 @@ module Lanes
         Familia.connection_provider = Onetime.pooled_connection_provider(pool)
         Onetime::Runtime.update_infrastructure(database_pool: pool)
         @pool = pool
+      end
+
+      private
+
+      # A decimal integer from ENV: '010' is 10, where Integer('010') is 8.
+      def env_integer(name, default)
+        Integer(ENV.fetch(name, default.to_s), 10)
       end
     end
   end

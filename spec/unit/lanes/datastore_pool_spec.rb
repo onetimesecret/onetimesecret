@@ -84,12 +84,29 @@ RSpec.describe Lanes::DatastorePool do
       expect(Familia.uri.to_s).to eq(test_uri)
     end
 
+    # Two threads each hold a checkout, so the pool creates two clients
+    # after Familia.uri moved (a nested pool.with on one thread returns the
+    # same client).
     it 'connects every pooled client to that URI, even after Familia.uri changes' do
       pool        = install!(uri: test_uri)
       Familia.uri = default_uri
 
-      targets = pool.with { |first| pool.with { |second| [first, second].map { |conn| target_of(conn) } } }
-      expect(targets).to eq([target_of(Familia.create_dbclient(test_uri))] * 2)
+      held    = Queue.new
+      release = Queue.new
+      threads = Array.new(2) do
+        Thread.new do
+          pool.with do |conn|
+            held << conn
+            release.pop
+          end
+        end
+      end
+      clients = Array.new(2) { held.pop }
+      2.times { release << true }
+      threads.each(&:join)
+
+      expected = target_of(Familia.create_dbclient(test_uri))
+      expect([clients.uniq(&:object_id).size, clients.map { |conn| target_of(conn) }]).to eq([2, [expected] * 2])
     end
 
     it 'refuses a URI outside the test datastore' do
@@ -122,16 +139,33 @@ RSpec.describe Lanes::DatastorePool do
     expect([installed, Familia.connection_provider, registered_pool, Familia.uri.to_s]).to eq([nil, provider, nil, uri])
   end
 
-  it 'refuses a FAMILIA_POOL_SIZE that is not an integer' do
-    original                 = ENV.fetch('FAMILIA_POOL_SIZE', nil)
-    ENV['FAMILIA_POOL_SIZE'] = 'abc'
+  {
+    'FAMILIA_POOL_SIZE' => ->(pool) { pool.size },
+    'FAMILIA_POOL_TIMEOUT' => ->(pool) { pool.instance_variable_get(:@timeout) },
+  }.each do |name, setting|
+    context "with #{name} set" do
+      around do |example|
+        original = ENV.fetch(name, nil)
+        example.run
+      ensure
+        if original.nil?
+          ENV.delete(name)
+        else
+          ENV[name] = original
+        end
+      end
 
-    expect { described_class.install!(uri: Familia.uri) }.to raise_error(ArgumentError)
-  ensure
-    if original.nil?
-      ENV.delete('FAMILIA_POOL_SIZE')
-    else
-      ENV['FAMILIA_POOL_SIZE'] = original
+      it 'refuses a value that is not an integer' do
+        ENV[name] = 'abc'
+
+        expect { described_class.install!(uri: Familia.uri) }.to raise_error(ArgumentError)
+      end
+
+      it 'reads a zero-padded value as decimal' do
+        ENV[name] = '010'
+
+        expect(setting.call(install!)).to eq(10)
+      end
     end
   end
 
