@@ -86,6 +86,23 @@ RSpec.describe Onetime::Mail::Smtp2goClient do
         end
       end
 
+      it 'raises APIError when a 200 envelope carries a top-level error beside success data' do
+        stub_request(:post, endpoint).to_return(
+          { status: 200, body: { 'error' => 'rejected', 'data' => { 'domains' => [] } }.to_json },
+          { status: 200, body: { 'error_code' => 'E_X', 'data' => { 'succeeded' => 1 } }.to_json },
+        )
+
+        expect { client.post('/email/send') }.to raise_error(described_class::APIError) do |err|
+          expect(err.message).to eq('rejected')
+          expect(err.status_code).to eq(200)
+          expect(err.error_code).to be_nil
+        end
+        expect { client.post('/email/send') }.to raise_error(described_class::APIError) do |err|
+          expect(err.message).to eq('HTTP 200')
+          expect(err.error_code).to eq('E_X')
+        end
+      end
+
       it 'raises APIError for a non-JSON success body' do
         stub_request(:post, endpoint).to_return(status: 200, body: '<html>gateway page</html>')
 

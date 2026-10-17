@@ -140,13 +140,17 @@ module Onetime
           end
 
           # SMTP2GO can carry an error envelope inside a 2xx response;
-          # treat data.error/error_code as a failure so callers never
-          # mistake it for success data.
-          if data['error'] || data['error_code']
+          # treat data.error/error_code, or the same fields at the top
+          # level, as a failure so callers never mistake it for success
+          # data. #post returns only data, so its callers cannot see a
+          # top-level error themselves.
+          error      = data['error'] || envelope['error']
+          error_code = data['error_code'] || envelope['error_code']
+          if error || error_code
             raise APIError.new(
-              data['error'] || "HTTP #{code}",
+              error || "HTTP #{code}",
               status_code: code,
-              error_code: data['error_code'],
+              error_code: error_code,
               response_body: body[0, 500],
             )
           end

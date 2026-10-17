@@ -142,7 +142,8 @@ RSpec.describe 'Sender provider response parity through DeleteSenderDomain' do
     end
 
     ['', 'null', '{}', '{"data":{}}', '{"data":{"domains":null}}', '{"data":{"success":false,"domains":[]}}',
-     '{"data":{"domains":[{}]}}', '{"data":{"domains":[{"domain":{"fulldomain":false}}]}}'].each do |body|
+     '{"data":{"domains":[{}]}}', '{"data":{"domains":[{"domain":{"fulldomain":false}}]}}',
+     '{"error":"rejected","data":{"domains":[]}}', '{"error_code":"API_EXCEPTION","data":{"domains":[]}}'].each do |body|
       it "fails closed for malformed lookup envelope #{body.inspect}" do
         stub_request(:post, view_url).to_return(status: 200, body: body)
         expect_disposition(call_operation, :failed)

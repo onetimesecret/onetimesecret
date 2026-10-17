@@ -322,7 +322,8 @@ module Onetime
         # must be a valid domains list without the domain; an envelope
         # without data must carry a nonempty string request_id. An empty
         # envelope acknowledges nothing. The client has already raised on
-        # non-2xx responses and on data.error/error_code.
+        # non-2xx responses and on error/error_code at either level; the
+        # top-level check keeps this rule complete on its own.
         #
         # @param envelope [Hash] Parsed response envelope from the client
         # @param domain [String] Domain whose removal was requested
