@@ -46,9 +46,15 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
 
     allow(Onetime::CustomDomain).to receive(:from_display_domain) do |host|
       if verified_custom_hosts.include?(host.to_s)
-        double('CustomDomain', verified: true)
+        double('CustomDomain', verified: true, serving_authorized?: true)
       elsif unverified_custom_hosts.include?(host.to_s)
-        double('CustomDomain', verified: false)
+        double('CustomDomain', verified: false, serving_authorized?: true)
+      elsif orphan_custom_hosts.include?(host.to_s)
+        # A real record with no organization, verified and resolving.
+        Onetime::CustomDomain.new(display_domain: host.to_s).tap do |record|
+          record.ownership_verified = true
+          record.resolving          = true
+        end
       end
     end
 
@@ -59,6 +65,7 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
   let(:canonical_hosts) { ['onetimesecret.com'] }
   let(:verified_custom_hosts) { ['secret.asi.nz', 'local-secrets4.afb.pet'] }
   let(:unverified_custom_hosts) { [] }
+  let(:orphan_custom_hosts) { [] }
 
   # A Rack env in the shape DetectHost + DomainStrategy leave behind.
   #
@@ -102,6 +109,16 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
       it 'declines a registered custom domain that is not TXT-verified' do
         unverified_custom_hosts << 'pending.tenant.example'
         env = env_for(host: 'nz.onetime.co', display_domain: 'pending.tenant.example')
+        expect(described_class.resolve(env)).to be_nil
+      end
+
+      # A record with no organization is never served
+      # (CustomDomain#serving_authorized?), whatever its verified flag says.
+      it 'declines a verified custom domain that has no organization' do
+        orphan_custom_hosts << 'secrets.orphan-tenant.com'
+        env = env_for(host: 'nz.onetime.co', display_domain: 'secrets.orphan-tenant.com')
+
+        expect(Onetime::CustomDomain.from_display_domain('secrets.orphan-tenant.com').verified).to be(true)
         expect(described_class.resolve(env)).to be_nil
       end
 
@@ -277,7 +294,9 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
       let(:recipient) { { id: 7, external_id: 'recipient-extid' } }
       let(:organization) { instance_double(Onetime::Organization, objid: 'domain-org') }
       let(:customer) { instance_double(Onetime::Customer, objid: 'recipient-customer') }
-      let(:domain) { instance_double(Onetime::CustomDomain, verified: true, primary_organization: organization) }
+      let(:domain) do
+        instance_double(Onetime::CustomDomain, verified: true, serving_authorized?: true, primary_organization: organization)
+      end
       let(:membership) { instance_double(Onetime::OrganizationMembership, active?: true, can_access_domain?: true) }
 
       before do

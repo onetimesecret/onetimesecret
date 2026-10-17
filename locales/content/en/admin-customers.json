@@ -4,8 +4,8 @@
     "content_hash": "aabe76f1"
   },
   "web.admin.customers.description": {
-    "text": "Find a customer and resolve support issues.",
-    "content_hash": "00961ea3"
+    "text": "Find customer accounts and manage access.",
+    "content_hash": "8610d198"
   },
   "web.admin.customers.list.roleFilter": {
     "text": "Role",

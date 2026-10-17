@@ -146,9 +146,10 @@ namespace :qa do
         domain = Onetime::CustomDomain.load_by_display_domain(host) ||
                  Onetime::CustomDomain.create!(host, org.objid)
 
-        # Verification is not required to serve branded traffic, but set it
-        # for realism and to silence warn logs. String 'true' matches the
-        # production writer (lib/onetime/operations/verify_domain.rb).
+        # Verified, because a strategy that checks ownership serves a
+        # domain only once it is verified (CustomDomain#served_as_tenant?),
+        # and resolving for realism and to silence warn logs. String 'true'
+        # matches the production writer (lib/onetime/operations/verify_domain.rb).
         domain.verified  = 'true'
         domain.resolving = 'true'
         domain.updated   = OT.now.to_i

@@ -34,7 +34,7 @@
 #                        it first unless you know otherwise.
 #   last_org             no override. The owner would be left with no workspace;
 #                        create the replacement org first, or purge the account
-#                        with `bin/ots customers purge-one`.
+#                        with `bin/ots customers purge`.
 #
 # ## This is not `bin/console`
 #
@@ -286,7 +286,7 @@ module Onetime
           error_exit(
             "#{result.org_id} is the only organization #{result.owner_id} belongs to; deleting it " \
             'leaves them with no workspace. Create the replacement org first (bin/ots org create), ' \
-            'or purge the account (bin/ots customers purge-one). There is no override',
+            'or purge the account (bin/ots customers purge). There is no override',
             json: false,
           )
         else

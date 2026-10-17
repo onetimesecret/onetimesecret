@@ -73,6 +73,7 @@ vi.mock('vue-router', () => ({
   useRouter: vi.fn(() => ({ push: vi.fn() })),
   useRoute: vi.fn(() => ({ params: {}, query: {} })),
   onBeforeRouteLeave: vi.fn(),
+  onBeforeRouteUpdate: vi.fn(),
 }));
 
 vi.mock('vue-i18n', async (importOriginal) => ({

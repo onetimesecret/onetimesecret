@@ -189,7 +189,6 @@ function removeAck(dry_run: boolean) {
       dry_run,
       org_id: 'org1',
       org_name: 'Acme',
-      reasserts_survivor: false,
     },
   };
 }

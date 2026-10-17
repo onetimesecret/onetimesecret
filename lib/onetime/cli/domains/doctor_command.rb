@@ -15,6 +15,9 @@
 #   8. domain has no org_id at all — ORPHANED (HIGH, report-only)
 #   9. org_id points to an ARCHIVED organization (HIGH, report-only)
 #  10. CustomDomain.owners agrees with the domain's org_id (MEDIUM)
+#  11. ascii_display_domain_index agrees with the records (report-only):
+#      missing entries, collisions, conflicts and unreadable records (HIGH),
+#      stale entries (MEDIUM). From Operations::Domains::AsciiIndexAudit.
 #
 # Additional checks (opt-in):
 #   --familia-audit   Run Familia's generic CustomDomain.health_check, which
@@ -30,6 +33,11 @@
 #
 #   bin/ots domains doctor [--all|--org] [--repair]
 #     Broad multi-check scanner including index integrity. Never assigns an org.
+#
+# Check #11 never repairs. Its writes belong to
+# `bin/ots domains backfill-ascii-index --apply`, which runs with the
+# application stopped (docs/runbooks/custom-domain-ascii-index-backfill.md);
+# doctor --repair runs against a live deployment.
 #
 # Check #10 is the org-deletion unblocker: Organization#unlisted_owned_domains
 # reads the `owners` class hashkey as a second source of truth, so an entry left
@@ -62,6 +70,7 @@
 
 require 'json'
 require 'onetime/operations/domains/repair'
+require 'onetime/operations/domains/ascii_index_audit'
 
 require_relative '../customers/shared'
 
@@ -102,6 +111,33 @@ module Onetime
         desc: 'Additionally run CustomDomain.health_check (Familia generic audit)'
 
       SEVERITY_ORDER = { critical: 0, high: 1, medium: 2, warning: 3, low: 4 }.freeze
+
+      # Check #11 (see check_ascii_index_integrity).
+      ASCII_INDEX_RUNBOOK = 'docs/runbooks/custom-domain-ascii-index-backfill.md'
+
+      ASCII_INDEX_FINDINGS = {
+        missing: {
+          severity: :high,
+          message: 'records missing from ascii_display_domain_index',
+          repair_action: 'Stop the application, then run bin/ots domains backfill-ascii-index --apply',
+        },
+        collision: {
+          severity: :high,
+          message: 'records share an A-label with another record (collision)',
+          repair_action: 'Keep the record whose organization has proven DNS ownership, remove the others ' \
+                         'with bin/ots domains remove <extid>, then run the backfill',
+        },
+        conflict: {
+          severity: :high,
+          message: 'records or ascii_display_domain_index entries name a different live record',
+          repair_action: 'Manual decision required: compare the records the entry and the name point at',
+        },
+        stale: {
+          severity: :medium,
+          message: 'ascii_display_domain_index entries name a record that no longer exists',
+          repair_action: 'Stop the application, then run bin/ots domains backfill-ascii-index --apply',
+        },
+      }.freeze
 
       # Valid 32-char hex pattern for txt_validation_value
       TXT_VALIDATION_PATTERN = /\A[a-f0-9]{32}\z/i
@@ -172,6 +208,8 @@ module Onetime
             8. domain has no org_id - ORPHANED (HIGH, report-only)
             9. org_id points to an ARCHIVED organization (HIGH, report-only)
            10. CustomDomain.owners matches the domain's org_id (MEDIUM)
+           11. ASCII name index agrees with the records (report-only;
+               fixed by bin/ots domains backfill-ascii-index)
             +. Familia.health_check (opt-in via --familia-audit)
 
           Doctor never assigns an organization. To adopt an orphaned domain:
@@ -267,6 +305,7 @@ module Onetime
 
         check_display_domain_index_integrity(issues, report, repair: repair)
         check_owners_index_integrity(issues, report, repair: repair, scope_org: scope_org)
+        check_ascii_index_integrity(issues)
 
         if scope_org
           check_stale_org_domains(scope_org, report, repair: repair)
@@ -294,11 +333,9 @@ module Onetime
       # real problems surfaced as 2N issues and 2N repairs.
       #
       # display_domain_index is declared `unique_index :display_domain,
-      # :display_domain_index` — a single Familia HashKey. Deleting a field uses
-      # `.remove`, matching the canonical deletes in
-      # lib/onetime/models/custom_domain.rb (rename, and the create rollback).
-      # `.remove_field` is only an alias of the same method on HashKey, so the
-      # old pair was never doing two different things.
+      # :display_domain_index` — a single Familia HashKey. The repair releases
+      # each entry with `release_field(fqdn, identifier)`, the ownership-checked
+      # delete Familia's own index release uses.
       def check_display_domain_index_integrity(issues, report, repair:)
         stale_entries = []
 
@@ -325,15 +362,90 @@ module Onetime
 
         return unless repair
 
-        stale_entries.each do |entry|
-          Onetime::CustomDomain.display_domain_index.remove(entry[:fqdn])
-          OT.info "[domains doctor] Removed stale display_domain_index[#{entry[:fqdn]}]"
+        # Ownership-checked: the entry is removed only while it still names the
+        # identifier read above, so an entry that changed since the scan (a new
+        # registration of the name) is left alone.
+        released = stale_entries.count do |entry|
+          index   = Onetime::CustomDomain.display_domain_index
+          removed = index.release_field(entry[:fqdn], entry[:identifier]).to_i == 1
+          if removed
+            OT.info "[domains doctor] Removed stale display_domain_index[#{entry[:fqdn]}] (was #{entry[:identifier]})"
+          else
+            OT.info "[domains doctor] Left display_domain_index[#{entry[:fqdn]}]: it no longer names #{entry[:identifier]}"
+          end
+          removed
         end
+        return unless released.positive?
 
         report[:repaired] << {
           action: :display_domain_index_cleaned,
-          count: stale_entries.size,
+          count: released,
         }
+      end
+
+      # CHECK #11: ascii_display_domain_index agrees with the records
+      #
+      # The index holds one entry per DNS name (its A-label) and is claimed for
+      # new records by create! and IdentityGuard. Records registered before it
+      # existed have no entry until the backfill enters them. REPORT-ONLY: the
+      # writes belong to `bin/ots domains backfill-ascii-index --apply`,
+      # which runs with the application stopped, and collisions and conflicts
+      # need an operator's decision. Global, like check #3, in --org mode too.
+      def check_ascii_index_integrity(issues)
+        audit = Onetime::Operations::Domains::AsciiIndexAudit.new.call
+
+        ASCII_INDEX_FINDINGS.each do |category, finding|
+          examples = audit.rows_in(category).map { |row| ascii_row_example(row) } +
+                     audit.entries_in(category).map { |entry| entry.to_h.slice(:ascii_name, :holder_id, :detail) }
+          next if examples.empty?
+
+          issues << {
+            check: :"ascii_index_#{category}",
+            severity: finding[:severity],
+            message: "#{examples.size} #{finding[:message]}",
+            examples: examples.first(10),
+            total: examples.size,
+            repairable: false,
+            repair_action: "#{finding[:repair_action]} (see #{ASCII_INDEX_RUNBOOK})",
+          }
+        end
+
+        unless audit.errors.empty?
+          examples = audit.errors.first(10).map do |error|
+            { domain_objid: error.domain_id, message: error.message }
+          end
+          issues << {
+            check: :ascii_index_unreadable,
+            severity: :high,
+            message: "#{audit.errors.size} domain records could not be loaded by the ASCII index audit " \
+                     '(backfill-ascii-index --apply writes nothing while they remain): ' \
+                     "#{examples.map { |example| "#{example[:domain_objid]}: #{example[:message]}" }.join('; ')}",
+            examples: examples,
+            total: audit.errors.size,
+            repairable: false,
+            repair_action: 'Inspect each with Onetime::CustomDomain.storage_inspect(<domain_id>) from ' \
+                           "bin/ots console and correct it (see #{ASCII_INDEX_RUNBOOK})",
+          }
+        end
+      rescue StandardError => ex
+        issues << {
+          check: :ascii_index_audit_unavailable,
+          severity: :warning,
+          message: "ASCII index audit unavailable: #{ex.class}: #{ex.message}",
+          repairable: false,
+        }
+      end
+
+      def ascii_row_example(row)
+        {
+          ascii_name: row.ascii_name,
+          domain_extid: row.extid,
+          domain_objid: row.domain_id,
+          display_domain: row.display_domain,
+          org_id: row.org_id,
+          holder_id: row.holder_id,
+          detail: row.detail,
+        }.compact
       end
 
       # CHECK: org.domains sorted set entries have valid domain objects
@@ -368,8 +480,14 @@ module Onetime
 
         return unless repair
 
+        removed = 0
         stale_domains.each do |entry|
-          organization.domains.remove(entry[:objid])
+          unless remove_org_domain_entry(organization, entry[:objid])
+            OT.info "[domains doctor] org.domains entry #{entry[:objid]} was already gone from #{organization.extid}"
+            next
+          end
+
+          removed += 1
 
           # Clear the domain's own org_id if it pointed to this org,
           # so loading the domain independently won't yield stale data.
@@ -385,11 +503,35 @@ module Onetime
           OT.info "[domains doctor] Removed stale org.domains entry #{entry[:objid]} from #{organization.extid}"
         end
 
+        return if removed.zero?
+
         report[:repaired] << {
           org: organization.extid,
           action: :stale_org_domains_removed,
-          count: stale_domains.size,
+          count: removed,
         }
+      end
+
+      # Remove one entry from org.domains, whether or not its domain record
+      # still exists.
+      #
+      # org.domains is a participation collection that stores raw identifiers,
+      # and Familia JSON-quotes a String argument, so a bare objid never matches.
+      # An identifier-only CustomDomain (the stand-in Organization#domain? uses)
+      # serializes to the raw identifier. Organization#remove_domain is not an
+      # option: it loads the record and raises when it is gone.
+      #
+      # The domain's reverse index drops the collection key as well, as
+      # remove_from_organization_domains would. Organization#add_domain reads
+      # that index for its cross-org guard.
+      #
+      # @return [Boolean] true when ZREM removed the entry
+      def remove_org_domain_entry(organization, domain_objid)
+        member  = Onetime::CustomDomain.new(objid: domain_objid)
+        removed = organization.domains.remove(member)
+        member.untrack_participation_in(organization.domains.dbkey)
+        # redis-rb answers a single-member ZREM with a Boolean; accept a count too.
+        removed == true || (removed.is_a?(Integer) && removed.positive?)
       end
 
       # CHECK all orgs for stale domain entries
@@ -485,8 +627,9 @@ module Onetime
         organization = Onetime::Organization.load(domain.org_id)
         return unless organization # Already flagged by stale_org_reference
 
-        in_set = organization.domains.member?(domain.objid)
-        return if in_set
+        # domain?, not organization.domains.member?(objid): the collection
+        # stores raw identifiers and a bare String argument never matches.
+        return if organization.domain?(domain)
 
         issues << {
           check: :org_domains_missing,
@@ -503,10 +646,10 @@ module Onetime
 
       # Delegate the MUTATION for check #4 to Onetime::Operations::Domains::Repair.
       #
-      # Detection stays on organization.domains.member? above: it is O(1), while
+      # Detection stays on Organization#domain? above: it is O(1), while
       # the op's own check does a load_multi of the whole collection. Do not
       # "unify" the two into the slow path — that makes --all quadratic. The two
-      # mechanisms can in principle disagree (member? sees a set entry whose
+      # mechanisms can in principle disagree (domain? sees a set entry whose
       # record fails to load; list_domains .compacts it away), so any non
       # :repaired status here is recorded as a failed repair rather than
       # silently swallowed.
@@ -633,7 +776,8 @@ module Onetime
           if scope_org
             # Only entries that touch THIS org can affect its deletion.
             next unless [recorded_org_id.to_s, actual_org_id].include?(scope_org.objid)
-            next if scope_org.domains.member?(domain_id)
+            # Repair removes stale memberships before the per-domain scan.
+            next if domain && scope_org.domain?(domain_id) && (!repair || actual_org_id == scope_org.objid)
           elsif domain && Onetime::CustomDomain.instances.member?(domain_id)
             next
           end
@@ -978,6 +1122,9 @@ module Onetime
         has_repairable = all_issues.any? { |i| i[:repairable] }
 
         if repair
+          # An unrelated successful repair cannot make an incomplete audit healthy.
+          exit 2 if all_issues.any? { |i| i[:check] == :ascii_index_unreadable }
+
           if report[:repaired].empty?
             if has_repairable
               exit 1

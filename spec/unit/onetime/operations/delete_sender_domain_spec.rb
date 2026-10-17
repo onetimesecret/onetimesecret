@@ -171,6 +171,51 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
   # ==========================================================================
 
   describe '#call error handling' do
+    it 'reports a SendGrid lookup failure after a successful preflight as an error, not a no-op' do
+      config      = mailer_config_for('sendgrid')
+      strategy    = Onetime::Mail::SenderStrategies::SendGridSenderStrategy.new
+      log         = double('logger', info: nil, error: nil)
+      credentials = { 'api_key' => 'SG.test-key' }
+
+      allow(Onetime).to receive(:get_logger).and_return(log)
+      allow(Onetime::Mail::Mailer).to receive(:provider_credentials).and_return(credentials)
+      allow(Onetime::Mail::SenderStrategies).to receive(:for_provider).with('sendgrid').and_return(strategy)
+      stub_request(:get, 'https://api.sendgrid.com/v3/whitelabel/domains?limit=50&offset=0')
+        .to_return(status: 200, body: [{ id: 123, domain: 'example.com' }].to_json)
+        .then.to_return(status: 429, body: { errors: [{ message: 'Rate limited' }] }.to_json)
+
+      expect(strategy.send(:domain_authentications, api_key: credentials['api_key']))
+        .to eq([{ 'id' => 123, 'domain' => 'example.com' }])
+
+      result = described_class.new(mailer_config: config).call
+
+      expect(result.failed?).to be true
+      expect(result.error).to include('Rate limited')
+      expect(log).to have_received(:error).with('Sender domain deletion failed', hash_including(error: /Rate limited/))
+      expect(log).not_to have_received(:info).with('Sender domain deletion skipped (no-op)', anything)
+      expect(a_request(:delete, 'https://api.sendgrid.com/v3/whitelabel/domains/123')).not_to have_been_made
+    end
+
+    it 'keeps a confirmed missing SendGrid identity as a no-op' do
+      config   = mailer_config_for('sendgrid')
+      strategy = Onetime::Mail::SenderStrategies::SendGridSenderStrategy.new
+      log      = double('logger', info: nil, error: nil)
+
+      allow(Onetime).to receive(:get_logger).and_return(log)
+      allow(Onetime::Mail::Mailer).to receive(:provider_credentials).and_return({ 'api_key' => 'SG.test-key' })
+      allow(Onetime::Mail::SenderStrategies).to receive(:for_provider).with('sendgrid').and_return(strategy)
+      stub_request(:get, 'https://api.sendgrid.com/v3/whitelabel/domains?limit=50&offset=0')
+        .to_return(status: 200, body: '[]')
+
+      result = described_class.new(mailer_config: config).call
+
+      expect(result.success?).to be true
+      expect(result.error).to be_nil
+      expect(result.message).to include('not found')
+      expect(log).to have_received(:info).with('Sender domain deletion skipped (no-op)', anything)
+      expect(log).not_to have_received(:error)
+    end
+
     it 'swallows strategy errors into a failure Result' do
       config   = mailer_config_for('lettermint')
       strategy = instance_double(Onetime::Mail::SenderStrategies::LettermintSenderStrategy)

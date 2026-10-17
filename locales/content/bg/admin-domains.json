@@ -215,10 +215,6 @@
     "text": "Организация:",
     "source_hash": "5300e286"
   },
-  "web.admin.domains.actions.remove.reassertsSurvivor": {
-    "text": "Друг запис претендира за същото име на домейн и ще поеме индекса за търсене.",
-    "source_hash": "902838f4"
-  },
   "web.admin.domains.actions.remove.confirmTitle": {
     "text": "Премахване на домейн?",
     "source_hash": "716dfac9"

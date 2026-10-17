@@ -142,9 +142,9 @@ module Onetime
   # IS recorded, and a trim failure is retention pressure, not a missing trail.
   #
   # {.record_security} is fail-open ALWAYS and takes no such keyword. Its
-  # writers are reachable by unauthenticated callers, and a fail-closed
-  # security write would hand those callers an abort primitive over the code
-  # path that logged them.
+  # writers are reachable by unauthenticated callers or by any customer, and a
+  # fail-closed security write would hand those callers an abort primitive
+  # over the code path that logged them.
   #
   # {.record_access} is fail-open ALWAYS too, for a different reason: its
   # writers mutated nothing, so there is no destroyed-with-no-trail outcome for
@@ -181,8 +181,9 @@ module Onetime
     class_sorted_set :events
 
     # SECOND, SEPARATE RETENTION DOMAIN for security telemetry that an
-    # UNAUTHENTICATED caller can trigger (see {.record_security}). Same member
-    # shape and same score, different Redis key, different budget.
+    # UNAUTHENTICATED caller can trigger, and for a customer's SELF-SERVICE
+    # actions (see {.record_security}). Same member shape and same score,
+    # different Redis key, different budget.
     #
     # Why a second collection rather than a bigger cap: the operator trail is
     # capped by COUNT and evicts oldest-first, so any writer an attacker can
@@ -261,10 +262,13 @@ module Onetime
     #
     #   1. `events` (this cap) accepts AUTHENTICATED operator activity only, via
     #      {.record}. Every caller is an admin Operation.
-    #   2. Anything an unauthenticated caller can trigger goes to
-    #      `security_events` via {.record_security}, under MAX_SECURITY_EVENTS +
-    #      SECURITY_EVENT_RETENTION. Flooding it evicts only other anonymous
-    #      telemetry.
+    #   2. Anything an unauthenticated caller can trigger, and every
+    #      customer's self-service action (an op called with `self_service:
+    #      true`, or a customer-facing logic class; the list is in
+    #      docs/architecture/audit-logging.md), goes to `security_events` via
+    #      {.record_security}, under MAX_SECURITY_EVENTS +
+    #      SECURITY_EVENT_RETENTION. Flooding it evicts only other events in
+    #      that trail, never an operator record.
     #   3. Failure auditing ({Onetime::AuditedFailure}) still excludes bare
     #      authorization/authentication rejections outright — see
     #      AuditedFailure.authorization_rejection?, which also bars the
@@ -506,19 +510,20 @@ module Onetime
       # bound.
       #
       # Use this — never {.record} — for any event an UNAUTHENTICATED caller can
-      # cause. The separation is the control described in the WRITE-FREQUENCY
-      # INVARIANT above: writes here can never evict an operator record, so a
-      # caller does not have to argue that its own rate limiting is tight enough
-      # to protect the operator trail. Callers should still bound their write
-      # rate for signal quality (a per-request event is noise), but that is no
-      # longer load-bearing for the integrity of `events`.
+      # cause, and for a customer's SELF-SERVICE action. The separation is the
+      # control described in the WRITE-FREQUENCY INVARIANT above: writes here
+      # can never evict an operator record, so a caller does not have to argue
+      # that its own rate limiting is tight enough to protect the operator
+      # trail. Callers should still bound their write rate for signal quality
+      # (a per-request event is noise), but that is no longer load-bearing for
+      # the integrity of `events`.
       #
       # ALWAYS best-effort — and unlike {.record} there is no `fail_closed`
       # keyword to opt out of it. Every writer here is reachable by an
-      # unauthenticated caller, so an abort-on-write-failure mode would be an
-      # abort primitive over whatever code path emitted the telemetry: trip the
-      # audit write, take the surrounding request down with it. Errors are
-      # logged and swallowed, unconditionally.
+      # unauthenticated caller or by any customer, so an abort-on-write-failure
+      # mode would be an abort primitive over whatever code path emitted the
+      # telemetry: trip the audit write, take the surrounding request down with
+      # it. Errors are logged and swallowed, unconditionally.
       #
       # @return [Hash, nil] the stored event (string keys), or nil if it failed.
       def record_security(actor:, verb:, target:, result:, detail: nil)

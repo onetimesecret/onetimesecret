@@ -151,10 +151,18 @@ module Onetime
           'domains' => {
             'enabled' => false,
             # When true, secret creation against an unverified custom
-            # share_domain raises a form error. When false (default),
-            # creation is allowed regardless of the domain's verification
-            # status. Canonical domains are unaffected.
+            # share_domain raises a form error, under every validation
+            # strategy. When false (default), creation still requires the
+            # domain to be served (see serve_unverified). Canonical domains
+            # are unaffected.
             'require_verified' => false,
+            # When true, every registered custom domain that has an
+            # organization is served whatever its ownership state, and a
+            # warning is logged at boot.
+            # When false (default), a domain is served only once its
+            # ownership is verified under a strategy that checks ownership
+            # (CustomDomain#served_as_tenant?). Read as a strict boolean.
+            'serve_unverified' => false,
             # NO 'link_domains' KEY HERE — deliberate, do not "complete" this
             # block by adding one. deep_merge has an explicit `v2.nil? -> v1`
             # arm, so a default would resolve unset LINK_DOMAINS back to that

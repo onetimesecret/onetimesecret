@@ -1,0 +1,9 @@
+# actionlint configuration.
+#
+# actionlint ships a built-in list of GitHub-hosted runner labels and flags
+# anything else as `runner-label`. That list lags GitHub: `ubuntu-26.04` is
+# generally available (actions/runner-images#14748) but unknown to the
+# actionlint version CI pins. Labels listed here are accepted as valid.
+self-hosted-runner:
+  labels:
+    - ubuntu-26.04

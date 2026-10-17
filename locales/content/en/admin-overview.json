@@ -1,4 +1,8 @@
 {
+  "web.admin.overview.description": {
+    "text": "View activity, usage trends, and recent feedback.",
+    "content_hash": "ced28dc7"
+  },
   "web.admin.overview.retry": {
     "text": "Retry",
     "content_hash": "942087cc"

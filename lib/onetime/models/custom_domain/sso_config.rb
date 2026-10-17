@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'digest'
 require_relative '../features/boolean_encoding'
 require_relative '../features/guarded_config_writes'
 require_relative '../../domain_validation/ascii_hostname'
@@ -207,6 +208,17 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   field :created
   field :updated
 
+  # Stable across edits, fresh on delete/recreate (including within one second).
+  field :outcome_generation
+
+  def signin_outcome_generation
+    return outcome_generation unless outcome_generation.to_s.empty?
+
+    # Pre-existing configs have no generation. Their creation stamp is stable;
+    # every replacement created by this version gets a random generation.
+    "legacy:#{created}" unless created.to_s.empty?
+  end
+
   # Enforcement settings
   field :enforce_sso_only  # Boolean string ('true'/'false')
   field :grant_org_scope   # Boolean string ('true'/'false')
@@ -282,6 +294,28 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # @return [void]
   def disable!
     update_stored!(enabled: 'false')
+  end
+
+  # Fields that decide whether a sign-in through this record can work.
+  # display_name, allowed domains, the enforcement flags and timestamps
+  # are left out: editing them does not change what a check proved.
+  CREDENTIAL_PLAIN_FIELDS     = [:provider_type, :tenant_id, :issuer, :token_endpoint_auth_method].freeze
+  CREDENTIAL_ENCRYPTED_FIELDS = [:client_id, :client_secret, *SAML_FIELDS, :name_id_format, :callback_origins_json].freeze
+
+  # Digest of the stored credential fields, to tell whether a record is
+  # still the one a check ran against.
+  #
+  # Encrypted fields contribute their stored ciphertext, never a revealed
+  # value. Each write encrypts with a fresh nonce, so re-saving the same
+  # secret changes the digest: a false "changed", never a false "same".
+  # `updated` cannot serve here; it has one-second resolution, and a save
+  # and a check can fall in the same second.
+  #
+  # @return [String] hex SHA-256
+  def credential_fingerprint
+    values  = CREDENTIAL_PLAIN_FIELDS.map { public_send(it).to_s }
+    values += CREDENTIAL_ENCRYPTED_FIELDS.map { public_send(it)&.encrypted_value.to_s }
+    Digest::SHA256.hexdigest(JSON.generate(values))
   end
 
   # Get the list of allowed email domains.
@@ -807,7 +841,7 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
       exists_message = 'SSO config already exists for this domain'
       refuse_existing_config!(domain_id, exists_message)
 
-      config = new(domain_id: domain_id)
+      config = new(domain_id: domain_id, outcome_generation: SecureRandom.uuid)
 
       # Set simple fields
       config.provider_type    = attrs[:provider_type] if attrs.key?(:provider_type)

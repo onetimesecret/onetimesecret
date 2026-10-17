@@ -84,20 +84,23 @@ module Auth
                        expected_plan_signature: nil,
                        self_service: false, deep: false, membership_snapshot: nil,
                        sweep_untracked_sessions: true)
-          @customer                 = customer
-          @self_service             = self_service
-          @deep                     = deep
-          @membership_snapshot      = membership_snapshot
-          @sweep_untracked_sessions = sweep_untracked_sessions
-          @actor                    = actor || (self_service ? customer : nil)
-          @reason                   = normalize_reason(reason)
-          @bulk_audit_context       = bulk_audit_context
-          @expected_plan_signature  = expected_plan_signature
-          @stage                    = :initialized
-          @completed_actions        = []
-          @completed_stages         = []
-          @planned_actions          = []
-          @mutation_started         = false
+          @customer                     = customer
+          @self_service                 = self_service
+          @deep                         = deep
+          @membership_snapshot          = membership_snapshot
+          @sweep_untracked_sessions     = sweep_untracked_sessions
+          @actor                        = actor || (self_service ? customer : nil)
+          @reason                       = normalize_reason(reason)
+          @bulk_audit_context           = bulk_audit_context
+          @expected_plan_signature      = expected_plan_signature
+          @stage                        = :initialized
+          @completed_actions            = []
+          @cleaned_stale_participations = []
+          @pending_organization_checks  = []
+          @completed_stages             = []
+          @planned_actions              = []
+          @mutation_started             = false
+          @registry_sweep               = nil
         end
 
         def mutation_started?
@@ -181,8 +184,11 @@ module Auth
 
           # Redis/SQL are not atomic. Scan again after teardown so a concurrent
           # organization write cannot be reported as a successful clean purge.
-          @stage   = :post_teardown_revalidation
-          residual = preflight(deep: @deep)
+          # The deep sweep is captured afresh here, not reused: a reference
+          # written to any organization during the purge must be seen.
+          @stage          = :post_teardown_revalidation
+          @registry_sweep = nil
+          residual        = preflight(deep: @deep)
           unless same_remaining_plan?(residual, [])
             blockers = residual.blockers.dup
             blockers << { code: :preflight_changed } if residual.signature != signature_for([])
@@ -192,11 +198,13 @@ module Auth
           complete_stage(:reference_cleanup)
 
           if audit_enabled?
-            @stage = :customer_audit
+            @stage                     = :customer_audit
+            detail                     = { email: obscure(@customer) }
+            detail[:completed_actions] = @completed_actions if @cleaned_stale_participations.any?
             record_audit_event(
               target: extid,
               result: :success,
-              detail: with_reason(email: obscure(@customer)),
+              detail: with_reason(**detail),
               fail_closed: true,
             )
             complete_stage(:customer_audit)
@@ -268,13 +276,33 @@ module Auth
         # Revalidation between mutations is deliberately SHALLOW even when the
         # caller asked for a deep sweep: the operator-grade registry scan runs at
         # the two boundaries that matter (the initial plan and the final
-        # post-teardown check) rather than once per action.
+        # post-teardown check) rather than once per action. The initial deep
+        # preflight captures a RegistrySweep that Org::Delete's capability
+        # recheck (through the plan's AccountPurgeContext) reuses, re-loading
+        # only the rows it points at; the post-teardown check captures its own.
         def preflight(deep: false)
-          Auth::Operations::Customers::PurgePreflight.new(
+          checker                      = Auth::Operations::Customers::PurgePreflight.new(
             customer: @customer,
             deep: deep,
             membership_snapshot: @membership_snapshot,
-          ).call
+            registry_sweep: deep ? @registry_sweep : nil,
+          )
+          plan                         = checker.call
+          @registry_sweep              = checker.registry_sweep if deep
+          @pending_organization_checks = (@pending_organization_checks + checker.pending_organization_checks)
+            .uniq { |action| action.reference }
+          # Removing the reverse reference must not hide late dependent writes
+          # from subsequent checks, including the check after account teardown.
+          blockers                     = (@cleaned_stale_participations + @pending_organization_checks)
+            .uniq { |action| action.reference }.flat_map do |action|
+            checker.stale_participation_blockers(action)
+          end
+          return plan if blockers.empty?
+
+          Auth::Operations::Customers::PurgePreflight::Plan.new(
+            actions: plan.actions,
+            blockers: (plan.blockers + blockers).uniq,
+          )
         end
 
         def apply_cleanup(plan, extid, custid)
@@ -296,6 +324,21 @@ module Auth
             operation_result = case action.type
                                when :delete_organization then delete_organization(action)
                                when :remove_membership then remove_membership(action)
+                               when :remove_stale_participation
+                                 mark_mutation_started(action.type)
+                                 # Persist the verification target before removing its
+                                 # discovery edge, so a new process can safely retry.
+                                 @customer.purge_pending_organization_checks.add(action.reference)
+                                 @customer.untrack_participation_in(action.reference)
+                                 if @customer.participations.to_a.include?(action.reference)
+                                   return partial_result(
+                                     extid,
+                                     custid,
+                                     blockers: [{ code: :stale_participation_cleanup_failed, reference: action.reference }],
+                                   )
+                                 end
+                                 @cleaned_stale_participations << action
+                                 Result.new(status: :success, extid: extid, custid: custid)
                                else
                                  return partial_or_refused(
                                    extid,

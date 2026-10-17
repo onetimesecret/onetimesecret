@@ -215,10 +215,6 @@
     "text": "Organisation:",
     "source_hash": "5300e286"
   },
-  "web.admin.domains.actions.remove.reassertsSurvivor": {
-    "text": "En anden post hævder det samme domænenavn og vil overtage opslagsindekset.",
-    "source_hash": "902838f4"
-  },
   "web.admin.domains.actions.remove.confirmTitle": {
     "text": "Fjern domæne?",
     "source_hash": "716dfac9"

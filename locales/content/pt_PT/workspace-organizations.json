@@ -219,10 +219,6 @@
     "text": "Subscrição",
     "source_hash": "4999c6c6"
   },
-  "web.organizations.danger_zone": {
-    "text": "Zona de Perigo",
-    "source_hash": "3c1c01b4"
-  },
   "web.organizations.delete_organization": {
     "text": "Eliminar Organização",
     "source_hash": "54b2edc7"
@@ -907,10 +903,6 @@
     "text": "Os novos membros que aderirem através do SSO deste domínio terão acesso a todos os domínios da organização. Os membros existentes não são afetados. Quando desativado (predefinição), os novos membros só podem aceder a este domínio.",
     "source_hash": "2ac9f345"
   },
-  "web.organizations.sso.save_config": {
-    "text": "Guardar Configuração de SSO",
-    "source_hash": "70853769"
-  },
   "web.organizations.sso.delete_config": {
     "text": "Eliminar Configuração",
     "source_hash": "9ac1ac7b"
@@ -1207,33 +1199,9 @@
     "text": "As definições de início de sessão deste site entram em conflito com a restrição aplicada a todo o site ({method}), pelo que nenhuma se aplica e de momento não há forma de iniciar sessão.",
     "source_hash": "54cdfd61"
   },
-  "web.organizations.sso.connection_enabled": {
-    "text": "Ligação ativa",
-    "source_hash": "b6334b2b"
-  },
-  "web.organizations.sso.connection_enabled_hint": {
-    "text": "Quando ativa, os membros podem iniciar sessão com este fornecedor de SSO. O SSO também tem de estar ativado como método de início de sessão na Configuração de Início de Sessão do domínio.",
-    "source_hash": "871db2f1"
-  },
-  "web.organizations.sso.enable_untested_warning": {
-    "text": "Esta ligação ainda não passou num teste aqui. Executa Testar Ligação antes de a ativares, para que uma configuração incorreta nunca chegue à tua página de início de sessão.",
-    "source_hash": "c1fbdeca"
-  },
   "web.organizations.delete_organization_cancel_subscription_first": {
     "text": "Cancela a subscrição desta organização antes de a eliminares.",
     "source_hash": "f0c54eca"
-  },
-  "web.organizations.sso.disable_action": {
-    "text": "Desativar SSO",
-    "source_hash": "2f072272"
-  },
-  "web.organizations.sso.disable_confirm": {
-    "text": "Desativar esta ligação SSO? As alterações por guardar no formulário serão perdidas. As credenciais armazenadas serão mantidas.",
-    "source_hash": "608b142a"
-  },
-  "web.organizations.sso.disable_enforcement_warning": {
-    "text": "A imposição de apenas SSO também será desativada, permitindo outros métodos de início de sessão configurados.",
-    "source_hash": "58abd552"
   },
   "web.organizations.sso.idp_sso_service_url": {
     "text": "URL do serviço SSO do IdP",
@@ -1342,5 +1310,105 @@
   "web.organizations.sso.certificate_valid_from": {
     "text": "Certificado válido desde",
     "source_hash": "b13d3f30"
+  },
+  "web.organizations.sso.client_secret_looks_like_secret_id": {
+    "text": "Isto parece ser o “Secret ID”. O Entra precisa do “Value” do secret, mostrado apenas uma vez quando o secret é criado.",
+    "source_hash": "168681cf"
+  },
+  "web.organizations.sso.diagnostics_title": {
+    "text": "Verificar configuração guardada",
+    "source_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_hint": {
+    "text": "Verifica o que está armazenado para este domínio — no caso do Microsoft Entra ID, incluindo o client secret guardado — e reporta cada camada separadamente. Não testa um início de sessão completo.",
+    "source_hash": "42505faa"
+  },
+  "web.organizations.sso.last_sign_in_none": {
+    "text": "Ainda não foi registado nenhum início de sessão através deste domínio.",
+    "source_hash": "7f9d0f23"
+  },
+  "web.organizations.sso.last_sign_in_succeeded": {
+    "text": "O último início de sessão através deste domínio foi concluído em {when}.",
+    "source_hash": "9a125080"
+  },
+  "web.organizations.sso.last_sign_in_failed": {
+    "text": "O último início de sessão através deste domínio falhou em {when}, {stage} ({code}).",
+    "source_hash": "be81f392"
+  },
+  "web.organizations.sso.last_sign_in_last_success": {
+    "text": "O último início de sessão concluído foi em {when}.",
+    "source_hash": "34e63e57"
+  },
+  "web.organizations.sso.last_sign_in_stage_setup": {
+    "text": "antes de o fornecedor de identidade ser contactado",
+    "source_hash": "5a1b6839"
+  },
+  "web.organizations.sso.last_sign_in_stage_provider": {
+    "text": "no fornecedor de identidade",
+    "source_hash": "40394567"
+  },
+  "web.organizations.sso.last_sign_in_stage_callback": {
+    "text": "quando o fornecedor de identidade devolveu o utilizador",
+    "source_hash": "2ab78fc4"
+  },
+  "web.organizations.sso.last_sign_in_stage_account": {
+    "text": "ao associar o utilizador a uma conta",
+    "source_hash": "1ebbb776"
+  },
+  "web.organizations.sso.diagnostics_button": {
+    "text": "Verificar configuração guardada",
+    "source_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_running": {
+    "text": "A verificar...",
+    "source_hash": "2e5f79bb"
+  },
+  "web.organizations.sso.diagnostics_checked_at": {
+    "text": "Verificado",
+    "source_hash": "0efd92a3"
+  },
+  "web.organizations.sso.diagnostics_check_stored_configuration": {
+    "text": "Configuração armazenada",
+    "source_hash": "a988b06a"
+  },
+  "web.organizations.sso.diagnostics_check_discovery": {
+    "text": "Descoberta do fornecedor de identidade",
+    "source_hash": "b5f90082"
+  },
+  "web.organizations.sso.diagnostics_check_certificate": {
+    "text": "Certificado de assinatura",
+    "source_hash": "cc00e050"
+  },
+  "web.organizations.sso.diagnostics_check_credential": {
+    "text": "Client Secret",
+    "source_hash": "4aded5fa"
+  },
+  "web.organizations.sso.diagnostics_status_passed": {
+    "text": "Aprovada",
+    "source_hash": "436fe71b"
+  },
+  "web.organizations.sso.diagnostics_status_failed": {
+    "text": "Reprovada",
+    "source_hash": "031a8f0f"
+  },
+  "web.organizations.sso.diagnostics_status_inconclusive": {
+    "text": "Inconclusiva",
+    "source_hash": "9141583b"
+  },
+  "web.organizations.sso.diagnostics_status_unsupported": {
+    "text": "Não disponível",
+    "source_hash": "67a926f7"
+  },
+  "web.organizations.sso.diagnostics_status_skipped": {
+    "text": "Ignorada",
+    "source_hash": "12698ce1"
+  },
+  "web.organizations.sso.diagnostics_aadsts_code": {
+    "text": "Código de erro da Microsoft",
+    "source_hash": "dc8f7060"
+  },
+  "web.organizations.sso.diagnostics_errors": {
+    "text": "Problemas",
+    "source_hash": "a7b182f8"
   }
 }

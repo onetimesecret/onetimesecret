@@ -6,7 +6,10 @@ require 'spec_helper'
 require 'onetime/operations/provision_sender_domain'
 
 RSpec.describe Onetime::Operations::ProvisionSenderDomain do
-  let(:mock_lock) { double('Lock', acquire: 'mock-token', release: true) }
+  let(:mock_lock) do
+    double('Lock', acquire: 'mock-token', release: true,
+      dbkey: 'sender-identity-lock', dbclient: double('Redis', eval: 1))
+  end
 
   let(:mailer_config) do
     double(
@@ -38,6 +41,7 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
     allow(Onetime::Mail::Mailer).to receive(:provider_credentials).and_return(mock_credentials)
     allow(Onetime::Mail::SenderStrategies).to receive(:supports_provisioning?).with('ses').and_return(true)
     allow(Onetime::Mail::SenderStrategies).to receive(:for_provider).with('ses').and_return(mock_strategy)
+    allow(Onetime::CustomDomain::MailerConfig).to receive(:exists_for_domain?).and_return(true)
   end
 
   # ==========================================================================
@@ -293,6 +297,88 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
       end
     end
 
+    context 'when ownership is lost during the provider call' do
+      [0, IOError.new('renewal unavailable')].each do |renewal_failure|
+        it "fails without persisting provider data on #{renewal_failure.inspect}" do
+          allow(mock_strategy).to receive(:provision_dns_records) do
+            if renewal_failure.is_a?(Exception)
+              allow(mock_lock.dbclient).to receive(:eval).and_raise(renewal_failure)
+            else
+              allow(mock_lock.dbclient).to receive(:eval).and_return(renewal_failure)
+            end
+            { success: true, dns_records: [], provider_data: { identity_id: 'example.com' } }
+          end
+          expect(Onetime::CustomDomain::MailerConfig).not_to receive(:record_job_result!)
+
+          result = described_class.new(mailer_config: mailer_config, strategy: mock_strategy).call
+
+          expect(result.success?).to be false
+          expect(result.error).to include('lock lost', 'provider state may have changed')
+          expect(mock_lock).to have_received(:release).with('mock-token')
+        end
+      end
+    end
+
+    context 'with a real renewable lease', :datastore do
+      let(:mock_lock) do
+        Onetime::CustomDomain::MailerConfig.sender_identity_lock("provision-lease-#{SecureRandom.hex(8)}")
+      end
+
+      before do
+        stub_const('Onetime::Operations::SenderIdentityLease::TTL', 1)
+        stub_const('Onetime::Operations::SenderIdentityLease::RENEW_INTERVAL', 0.05)
+      end
+
+      after { mock_lock.force_unlock! }
+
+      it 'excludes teardown beyond the initial TTL through provider calls and persistence' do
+        token = nil
+        allow(mock_strategy).to receive(:provision_dns_records) do
+          token = mock_lock.value
+          sleep 1.2
+          expect(mock_lock.held_by?(token)).to be true
+          expect(mock_lock.acquire(ttl: 1)).to be false
+          { success: true, dns_records: [], provider_data: {} }
+        end
+        allow(Onetime::CustomDomain::MailerConfig).to receive(:record_job_result!) do |*_args, &block|
+          sleep 1.2
+          expect(mock_lock.held_by?(token)).to be true
+          expect(mock_lock.acquire(ttl: 1)).to be false
+          [mailer_config, block.call(mailer_config)]
+        end
+
+        result = described_class.new(mailer_config: mailer_config, strategy: mock_strategy).call
+
+        expect(result.success?).to be true
+        expect(mock_lock.locked?).to be false
+      end
+
+      it 'does not persist or report success after watchdog failure during provisioning' do
+        client = mock_lock.dbclient
+        allow(mock_lock).to receive(:dbclient).and_return(client)
+        allow(client).to receive(:eval).and_call_original
+        attempted = Queue.new
+        allow(mock_strategy).to receive(:provision_dns_records) do
+          allow(client).to receive(:eval)
+            .with(Onetime::Operations::SenderIdentityLease::RENEW_SCRIPT, [mock_lock.dbkey], anything) do
+              attempted << true
+              raise IOError, 'renewal unavailable'
+            end
+          Timeout.timeout(3) { attempted.pop }
+          allow(client).to receive(:eval)
+            .with(Onetime::Operations::SenderIdentityLease::RENEW_SCRIPT, [mock_lock.dbkey], anything).and_return(1)
+          { success: true, dns_records: [], provider_data: {} }
+        end
+        expect(Onetime::CustomDomain::MailerConfig).not_to receive(:record_job_result!)
+
+        result = described_class.new(mailer_config: mailer_config, strategy: mock_strategy).call
+
+        expect(result.success?).to be false
+        expect(result.error).to include('lock lost', 'renewal failed')
+        expect(mock_lock.locked?).to be false
+      end
+    end
+
     context 'when the sender identity lock is held' do
       let(:mock_lock) { double('Lock', acquire: false) }
 
@@ -302,6 +388,25 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
         expect(result.success?).to be false
         expect(result.error).to include('already in progress')
         expect(Onetime::Mail::Mailer).not_to have_received(:provider_credentials)
+      end
+    end
+
+    # A sender config delete or a domain removal that finished between the
+    # record's load and the lock has torn the identity down and deleted the
+    # record; registering the identity now would leave nothing pointing to it.
+    context 'when the record was deleted before the lock was taken' do
+      before do
+        allow(Onetime::CustomDomain::MailerConfig).to receive(:exists_for_domain?)
+          .with('cd:test123').and_return(false)
+      end
+
+      it 'fails without calling the provider and releases the lock' do
+        result = described_class.new(mailer_config: mailer_config, strategy: mock_strategy, persist: false).call
+
+        expect(result.success?).to be false
+        expect(result.error).to include('was deleted before provisioning')
+        expect(Onetime::Mail::Mailer).not_to have_received(:provider_credentials)
+        expect(mock_lock).to have_received(:release).with('mock-token')
       end
     end
 

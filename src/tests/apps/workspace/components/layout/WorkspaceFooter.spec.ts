@@ -123,6 +123,100 @@ vi.mock('@/shared/stores', () => ({
 
 import WorkspaceFooter from '@/apps/workspace/components/layout/WorkspaceFooter.vue';
 
+describe('WorkspaceFooter height variables', () => {
+  const PROPERTY = '--workspace-footer-height';
+  const NAV_PROPERTY = '--workspace-mobile-nav-height';
+  let heightSpy: ReturnType<typeof vi.spyOn> | undefined;
+
+  afterEach(() => {
+    heightSpy?.mockRestore();
+    vi.unstubAllGlobals();
+    document.documentElement.style.removeProperty(PROPERTY);
+    document.documentElement.style.removeProperty(NAV_PROPERTY);
+  });
+
+  const mountFooter = () =>
+    mount(WorkspaceFooter, {
+      global: {
+        plugins: [
+          createTestingPinia({
+            createSpy: vi.fn,
+            initialState: {
+              bootstrap: {
+                ot_version: '1.0.0',
+                ot_version_long: '1.0.0-test',
+                authenticated: true,
+                ui: { footer_links: { enabled: false, groups: [] } },
+              },
+            },
+          }),
+        ],
+        mocks: { $t: (key: string) => key },
+      },
+    });
+
+  // jsdom lays nothing out, so give the nav and the footer distinct heights.
+  const stubHeights = (heights: { nav: number; footer: number }) => {
+    function offsetHeight(this: HTMLElement) {
+      return this.tagName === 'NAV' ? heights.nav : heights.footer;
+    }
+
+    heightSpy = vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get');
+    heightSpy.mockImplementation(offsetHeight);
+  };
+
+  it('publishes its measured height on the root element so a page can stick a bar above it', () => {
+    heightSpy = vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(88);
+    const wrapper = mountFooter();
+    expect(document.documentElement.style.getPropertyValue(PROPERTY)).toBe('88px');
+    wrapper.unmount();
+  });
+
+  it('publishes the mobile nav height separately, for a bar stuck above the nav below md', () => {
+    stubHeights({ nav: 57, footer: 88 });
+    const wrapper = mountFooter();
+    expect(document.documentElement.style.getPropertyValue(NAV_PROPERTY)).toBe('57px');
+    expect(document.documentElement.style.getPropertyValue(PROPERTY)).toBe('88px');
+    wrapper.unmount();
+  });
+
+  it('re-publishes both heights from one observer when either element resizes', () => {
+    const observed: Element[] = [];
+    let notify: (() => void) | undefined;
+    class FakeResizeObserver {
+      constructor(callback: () => void) {
+        notify = callback;
+      }
+      observe(el: Element) {
+        observed.push(el);
+      }
+      unobserve() {}
+      disconnect() {}
+    }
+    vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+    const heights = { nav: 57, footer: 88 };
+    stubHeights(heights);
+    const wrapper = mountFooter();
+    expect(observed.map((el) => el.tagName)).toEqual(['NAV', 'FOOTER']);
+
+    // At md+ the nav is display:none and measures 0; the footer reflows.
+    heights.nav = 0;
+    heights.footer = 72;
+    notify?.();
+    expect(document.documentElement.style.getPropertyValue(NAV_PROPERTY)).toBe('0px');
+    expect(document.documentElement.style.getPropertyValue(PROPERTY)).toBe('72px');
+    wrapper.unmount();
+  });
+
+  it('removes both variables when it unmounts', () => {
+    stubHeights({ nav: 57, footer: 88 });
+    const wrapper = mountFooter();
+    wrapper.unmount();
+    expect(document.documentElement.style.getPropertyValue(PROPERTY)).toBe('');
+    expect(document.documentElement.style.getPropertyValue(NAV_PROPERTY)).toBe('');
+  });
+});
+
 describe('WorkspaceFooter footerLinks', () => {
   let wrapper: VueWrapper;
 
@@ -139,7 +233,8 @@ describe('WorkspaceFooter footerLinks', () => {
   const mountComponent = (
     bootstrapState: Record<string, unknown> = {},
     props: Record<string, unknown> = {}
-  ) => mount(WorkspaceFooter, {
+  ) =>
+    mount(WorkspaceFooter, {
       props,
       global: {
         plugins: [
@@ -201,8 +296,8 @@ describe('WorkspaceFooter footerLinks', () => {
       });
 
       const links = wrapper.findAll('a');
-      const customLink1 = links.find(link => link.text() === 'Custom Link 1');
-      const customLink2 = links.find(link => link.text() === 'Custom Link 2');
+      const customLink1 = links.find((link) => link.text() === 'Custom Link 1');
+      const customLink2 = links.find((link) => link.text() === 'Custom Link 2');
 
       expect(customLink1).toBeDefined();
       expect(customLink2).toBeDefined();
@@ -257,10 +352,10 @@ describe('WorkspaceFooter footerLinks', () => {
       });
 
       const links = wrapper.findAll('a');
-      const hiddenLink = links.find(link => link.text() === 'Should Not Appear');
+      const hiddenLink = links.find((link) => link.text() === 'Should Not Appear');
       expect(hiddenLink).toBeUndefined();
       // Also no default links should render
-      const feedbackLink = links.find(link => link.text() === 'web.TITLES.feedback');
+      const feedbackLink = links.find((link) => link.text() === 'web.TITLES.feedback');
       expect(feedbackLink).toBeUndefined();
     });
 
@@ -297,7 +392,7 @@ describe('WorkspaceFooter footerLinks', () => {
 
       const links = wrapper.findAll('a');
       // With mock t() returning the key, the label should be the i18n key
-      const customLink = links.find(link => link.text() === 'web.custom.label');
+      const customLink = links.find((link) => link.text() === 'web.custom.label');
       expect(customLink).toBeDefined();
     });
 
@@ -317,7 +412,7 @@ describe('WorkspaceFooter footerLinks', () => {
       });
 
       const links = wrapper.findAll('a');
-      const plainLink = links.find(link => link.text() === 'Plain Text Label');
+      const plainLink = links.find((link) => link.text() === 'Plain Text Label');
       expect(plainLink).toBeDefined();
     });
   });
@@ -347,9 +442,9 @@ describe('WorkspaceFooter footerLinks', () => {
       });
 
       const links = wrapper.findAll('a');
-      const validLink = links.find(link => link.text() === 'Valid Link');
-      const emptyLink = links.find(link => link.text() === 'Empty URL');
-      const whitespaceLink = links.find(link => link.text() === 'Whitespace URL');
+      const validLink = links.find((link) => link.text() === 'Valid Link');
+      const emptyLink = links.find((link) => link.text() === 'Empty URL');
+      const whitespaceLink = links.find((link) => link.text() === 'Whitespace URL');
 
       expect(validLink).toBeDefined();
       expect(emptyLink).toBeUndefined();
@@ -365,7 +460,9 @@ describe('WorkspaceFooter footerLinks', () => {
         },
       });
 
-      const versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      const versionLink = wrapper.find(
+        'a[href*="github.com/onetimesecret/onetimesecret/releases"]'
+      );
       expect(versionLink.exists()).toBe(true);
       expect(versionLink.text()).toContain('v1.0.0');
     });
@@ -379,7 +476,9 @@ describe('WorkspaceFooter footerLinks', () => {
         },
       });
 
-      const versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      const versionLink = wrapper.find(
+        'a[href*="github.com/onetimesecret/onetimesecret/releases"]'
+      );
       const textContainer = versionLink.element.closest('.text-xs');
       expect(textContainer).not.toBeNull();
       expect(textContainer!.classList.contains('text-gray-600')).toBe(true);
@@ -391,7 +490,9 @@ describe('WorkspaceFooter footerLinks', () => {
         ui: {},
       });
 
-      const versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      const versionLink = wrapper.find(
+        'a[href*="github.com/onetimesecret/onetimesecret/releases"]'
+      );
       expect(versionLink.exists()).toBe(true);
     });
 
@@ -402,7 +503,9 @@ describe('WorkspaceFooter footerLinks', () => {
         },
       });
 
-      const versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      const versionLink = wrapper.find(
+        'a[href*="github.com/onetimesecret/onetimesecret/releases"]'
+      );
       expect(versionLink.exists()).toBe(false);
     });
 
@@ -436,7 +539,9 @@ describe('WorkspaceFooter footerLinks', () => {
         },
       });
 
-      const versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      const versionLink = wrapper.find(
+        'a[href*="github.com/onetimesecret/onetimesecret/releases"]'
+      );
       expect(versionLink.exists()).toBe(false);
     });
 
@@ -471,7 +576,9 @@ describe('WorkspaceFooter footerLinks', () => {
         },
       });
 
-      const versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      const versionLink = wrapper.find(
+        'a[href*="github.com/onetimesecret/onetimesecret/releases"]'
+      );
       expect(versionLink.exists()).toBe(false);
     });
   });

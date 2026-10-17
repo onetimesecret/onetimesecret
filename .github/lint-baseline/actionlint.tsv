@@ -28,5 +28,3 @@
 .github/workflows/migration-tests.yml	shellcheck:SC2034	1
 .github/workflows/migration-tests.yml	shellcheck:SC2086	16
 .github/workflows/migration-tests.yml	shellcheck:SC2129	1
-.github/workflows/visual-archive.yml	runner-label	1
-.github/workflows/visual.yml	runner-label	1

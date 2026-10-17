@@ -247,12 +247,18 @@ module Core
           output['custom_domains'] = cust.custom_domains_list.filter_map { |obj| serialize_domain_entry(obj) }.sort
         end
 
-        # Returns the display_domain for a custom domain entry, logging unverified ones.
+        # Returns the display_domain for a custom domain entry, or nil to leave
+        # it out of the domain-context picker.
+        #
+        # A domain that is not served as a tenant domain
+        # (CustomDomain#served_as_tenant?) is left out: its links would open
+        # to a 404, and secret creation refuses it as a share_domain. It stays
+        # listed on the domain settings pages, which do not read this list.
         def serialize_domain_entry(obj)
-          # For now just log until we can reliably re-attempt verification and
-          # have some visibility which customers this will affect. We've made
-          # the verification more stringent so currently many existing domains
-          # would return obj.ready? == false.
+          return nil unless obj.served_as_tenant?
+
+          # A served domain can still be short of ready? (under passthrough,
+          # or while not resolving). Logged for visibility only.
           unless obj.ready?
             app_logger.warn 'Serializing unverified custom domain',
               {

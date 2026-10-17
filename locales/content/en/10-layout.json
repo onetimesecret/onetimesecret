@@ -362,6 +362,18 @@
     "text": "Workspace context",
     "content_hash": "dc6fa4f5"
   },
+  "web.layout.console_warning_heading": {
+    "text": "Welcome to the Real Danger Zone ™",
+    "content_hash": "076fef59"
+  },
+  "web.layout.console_warning_body": {
+    "text": "This panel can run code in your browser. Scammers may ask you to paste something here to fix a problem or unlock a feature. That code could steal your secrets or give someone access to your account.",
+    "content_hash": "0f9d8053"
+  },
+  "web.layout.console_warning_closing": {
+    "text": "Do not paste anything here.",
+    "content_hash": "583d171a"
+  },
   "web.help.default_content": {
     "text": "Please contact support for assistance",
     "content_hash": "752bca14"

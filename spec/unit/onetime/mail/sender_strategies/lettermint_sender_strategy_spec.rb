@@ -552,6 +552,31 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
     end
   end
 
+  describe '#list_domains and #domain_entry (private)' do
+    let(:entries) { [{ 'id' => 'domain-uuid-1', 'domain' => 'example.com' }, { 'id' => 'domain-uuid-2', 'domain' => 'other.example.com' }] }
+
+    before do
+      allow(mock_domains).to receive(:list).and_return('data' => entries)
+    end
+
+    it 'lists once and matches entries like find_domain_by_name' do
+      listing = strategy.send(:list_domains, mock_client)
+
+      expect(listing).to eq(entries)
+      expect(mock_domains).to have_received(:list).once
+      expect(strategy.send(:domain_entry, listing, 'other.example.com')).to eq(entries.last)
+      expect(strategy.send(:domain_entry, listing, 'missing.example.com')).to be_nil
+      expect(strategy.send(:find_domain_by_name, mock_client, 'example.com')).to eq(entries.first)
+    end
+
+    it 'returns nil for a response without data' do
+      allow(mock_domains).to receive(:list).and_return({})
+
+      expect(strategy.send(:list_domains, mock_client)).to be_nil
+      expect(strategy.send(:domain_entry, nil, 'example.com')).to be_nil
+    end
+  end
+
   describe '#strategy_name' do
     it 'returns lettermint' do
       expect(strategy.strategy_name).to eq('lettermint')

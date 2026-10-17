@@ -46,6 +46,7 @@ module AccountAPI::Logic
     #         {
     #           extid: "dom789",
     #           display_domain: "example.com",
+    #           served: true,
     #           permissions: {
     #             can_view: true,
     #             can_edit: true,
@@ -79,6 +80,11 @@ module AccountAPI::Logic
     #   membership: { ... },
     #   permissions: { ... }
     # }
+    #
+    # Each domain carries `served`: whether it is served as a tenant domain
+    # (CustomDomain#served_as_tenant?). The domain-context picker offers only
+    # served domains; every domain is listed so the settings pages can find
+    # its permissions.
     #
     # ## Permission Logic
     #
@@ -199,6 +205,7 @@ module AccountAPI::Logic
         {
           extid: domain.extid,
           display_domain: domain.display_domain,
+          served: domain.served_as_tenant?,
           permissions: domain_permissions_for(mem),
         }
       end

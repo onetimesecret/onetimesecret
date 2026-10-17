@@ -15,7 +15,8 @@ module ColonelAPI
       # Thin adapter over {Onetime::Operations::Domains::Remove} — the single,
       # audited implementation of the remove verb. The op owns the teardown, the
       # display_domain_index re-assertion, and the ColonelAuditEvent; this class
-      # resolves the domain and threads the `dry_run` flag.
+      # resolves the domain and threads the `dry_run` flag, and answers the op's
+      # SenderIdentityBusy refusal with a conflict.
       #
       # `dry_run` defaults to TRUE (dry-run default): the screen previews the
       # domain details, then re-issues with `dry_run: false` behind a
@@ -75,6 +76,10 @@ module ColonelAPI
           # NOTE: no audit here — the op owns the single ColonelAuditEvent
           # (exactly-once, applied path only). This adapter never audits.
           success_data
+        rescue Onetime::Operations::Domains::Remove::SenderIdentityBusy => ex
+          # Provisioning or another sender identity change holds the lock;
+          # nothing was torn down.
+          raise_form_error(ex.message, field: :extid, error_type: :conflict)
         end
 
         def success_data
@@ -90,7 +95,6 @@ module ColonelAPI
               dry_run: result.dry_run,
               org_id: result.org_id.to_s,
               org_name: result.org_name,
-              reasserts_survivor: result.reasserts_survivor,
             },
           }
         end
