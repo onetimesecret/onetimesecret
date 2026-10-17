@@ -35,6 +35,10 @@ module Lanes
     DEFAULT_SIZE    = 25
     DEFAULT_TIMEOUT = 5
 
+    # The isolated test valkey (tests/lanes/README.md). boot.rb refuses a
+    # test boot against any other port; install! refuses a pool there.
+    TEST_DATASTORE_PORT = 2163
+
     class << self
       # The pool install! created, or nil when it did not install one.
       attr_reader :pool
@@ -49,6 +53,11 @@ module Lanes
       # datastore, and a lookup made before a helper set the test URI would
       # otherwise keep a connection there for the life of the process.
       #
+      # A +uri+ on any port but TEST_DATASTORE_PORT raises. spec_helper
+      # passes the Familia.uri it reads from spec/config.test.yaml, and when
+      # that load fails it warns and carries on with the 6379 default; the
+      # refusal is what stops the run there.
+      #
       # Connections are built as SetupConnectionPool builds them
       # (Onetime.create_pooled_dbclient), reconnect attempts included.
       #
@@ -62,12 +71,19 @@ module Lanes
       # @param uri [String, URI] the test datastore
       # @return [ConnectionPool, nil] the installed pool, or nil when a
       #   provider was already present
+      # @raise [ArgumentError] when +uri+ is not on TEST_DATASTORE_PORT
       def install!(uri:,
                    size: Integer(ENV.fetch('FAMILIA_POOL_SIZE', DEFAULT_SIZE)),
                    timeout: Integer(ENV.fetch('FAMILIA_POOL_TIMEOUT', DEFAULT_TIMEOUT)))
         return nil if Familia.connection_provider
 
-        target      = Familia.normalize_uri(uri)
+        target = Familia.normalize_uri(uri)
+        unless target.port == TEST_DATASTORE_PORT
+          raise ArgumentError,
+            "Lanes::DatastorePool refuses #{OT::Utils.redact_uri_userinfo(target.to_s)}: a test process " \
+            "uses the test datastore on port #{TEST_DATASTORE_PORT}. Did spec/config.test.yaml fail to load?"
+        end
+
         Familia.uri = target
         pool        = ConnectionPool.new(size: size, timeout: timeout) { Onetime.create_pooled_dbclient(target) }
         Familia.connection_provider = Onetime.pooled_connection_provider(pool)

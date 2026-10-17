@@ -91,6 +91,10 @@ RSpec.describe Lanes::DatastorePool do
       targets = pool.with { |first| pool.with { |second| [first, second].map { |conn| target_of(conn) } } }
       expect(targets).to eq([target_of(Familia.create_dbclient(test_uri))] * 2)
     end
+
+    it 'refuses a URI outside the test datastore' do
+      expect { described_class.install!(uri: default_uri) }.to raise_error(ArgumentError, /port 2163/)
+    end
   end
 
   it 'builds connections with the reconnect attempts a booted pool uses' do
@@ -106,12 +110,16 @@ RSpec.describe Lanes::DatastorePool do
     expect([pool.size, pool.instance_variable_get(:@timeout)]).to eq([3, 7])
   end
 
-  it 'leaves a provider that is already installed alone' do
+  # Given a URI install! would refuse, so a provider check that ran after
+  # the Familia.uri write or the port guard would show.
+  it 'leaves a provider that is already installed, and Familia.uri, alone' do
     provider = ->(_uri) { :owned_elsewhere }
+    uri      = Familia.uri.to_s
 
     Familia.connection_provider = provider
 
-    expect([described_class.install!(uri: Familia.uri), Familia.connection_provider, registered_pool]).to eq([nil, provider, nil])
+    installed = described_class.install!(uri: 'redis://127.0.0.1:6379/0')
+    expect([installed, Familia.connection_provider, registered_pool, Familia.uri.to_s]).to eq([nil, provider, nil, uri])
   end
 
   it 'refuses a FAMILIA_POOL_SIZE that is not an integer' do
