@@ -200,6 +200,56 @@ RSpec.describe 'Auth::Migrator SQLite Integration', :sqlite_database do
     end
   end
 
+  describe 'migration 012 (ADR-051 expand: login + contact verification columns)' do
+    before do
+      Sequel::Migrator.run(test_db, migrations_dir)
+    end
+
+    let(:columns) { test_db.schema(:accounts).map(&:first) }
+
+    it 'adds the four nullable columns and keeps email NOT NULL' do
+      expect(columns).to include(:login, :email_verified_at, :email_verified_by, :email_verification_hold)
+
+      expect do
+        test_db[:accounts].insert(status_id: 2, external_id: SecureRandom.uuid)
+      end.to raise_error(Sequel::NotNullConstraintViolation)
+    end
+
+    it 'lets the current binary keep inserting rows with NULL login (NULLs are distinct)' do
+      a = test_db[:accounts].insert(email: 'a-012@example.com', status_id: 2)
+      b = test_db[:accounts].insert(email: 'b-012@example.com', status_id: 2)
+
+      expect(test_db[:accounts].where(id: [a, b], login: nil).count).to eq(2)
+    end
+
+    it 'refuses two rows with the same login' do
+      a = test_db[:accounts].insert(email: 'a-012@example.com', status_id: 2, login: 'objid-a')
+      b = test_db[:accounts].insert(email: 'b-012@example.com', status_id: 2)
+
+      expect(test_db[:accounts].where(id: a).get(:login)).to eq('objid-a')
+      expect do
+        test_db[:accounts].where(id: b).update(login: 'objid-a')
+      end.to raise_error(Sequel::UniqueConstraintViolation)
+    end
+
+    it 'rolls back without touching pre-existing columns or rows' do
+      id = test_db[:accounts].insert(
+        email: 'keep-012@example.com', status_id: 2, external_id: SecureRandom.uuid,
+        login: 'objid-keep', email_verified_by: 'email',
+      )
+
+      Sequel::Migrator.run(test_db, migrations_dir, target: 11)
+
+      cols = test_db.schema(:accounts).map(&:first)
+      expect(cols).not_to include(:login, :email_verified_at, :email_verified_by, :email_verification_hold)
+      expect(test_db[:accounts].where(id: id).get(:email)).to eq('keep-012@example.com')
+
+      Sequel::Migrator.run(test_db, migrations_dir)
+      expect(test_db.schema(:accounts).map(&:first)).to include(:login)
+      expect(test_db[:accounts].where(id: id).get(:login)).to be_nil
+    end
+  end
+
   describe 'all migrations applied correctly' do
     before do
       Sequel::Migrator.run(test_db, migrations_dir)

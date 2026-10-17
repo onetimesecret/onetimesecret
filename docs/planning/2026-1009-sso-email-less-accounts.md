@@ -1,6 +1,6 @@
 # SSO email-less accounts: Phase 2 proposal
 
-**Status: PROPOSED — not implemented.** Date: 2026-10-09. Design for G2 approval: [account-model-design](../specs/sso-email-less-accounts/account-model-design.md) and [ADR-051](../adr/adr-051-account-login-is-not-the-contact-email.md) (2026-10-10).
+**Status: IN PROGRESS — M012 expand step implemented 2026-10-10; nothing else.** Date: 2026-10-09. Design: [account-model-design](../specs/sso-email-less-accounts/account-model-design.md) and [ADR-051](../adr/adr-051-account-login-is-not-the-contact-email.md) (2026-10-10). Implementation order and status: design §7 (migration 012, `Auth::Operations::BackfillAccountLogins`, `bin/ots customers backfill-logins`, doctor checks shipped; N+1 binary, M013, M014 and the flag not started). Email-less account creation remains disabled.
 
 Scope: followup item 3 from [#3478](https://github.com/onetimesecret/onetimesecret/issues/3478), revising the Phase 2 direction in [#3499](https://github.com/onetimesecret/onetimesecret/issues/3499). Followup item 1 is the [operator guide](../authentication/per-install-sso.md). Approval to document this proposal is not approval to implement it or widen tenant access.
 

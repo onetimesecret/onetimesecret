@@ -6,7 +6,10 @@ title: "ADR-051: The Account Login Is Not the Contact Email"
 
 ## Status
 
-Proposed
+Proposed. The decision below describes the target model, not current
+runtime behavior. The [expand migration](../../apps/web/auth/migrations/012_account_login_and_contact_verification.rb)
+adds nullable login and verification columns, but email remains required and
+is still Rodauth's login column. Email-less account creation remains disabled.
 
 ## Date
 
@@ -14,101 +17,149 @@ Proposed
 
 ## Context
 
-Rodauth authenticates against `accounts.email` (`login_column :email`,
-`apps/web/auth/config/base.rb`). The column is `NOT NULL`, carries the only
-unique index on the table, and is also the key by which the SQL account is
-joined to its Redis `Customer` after creation (`EnsureCustomerForAccount`
-looks the Customer up by normalized email, then writes `external_id`).
-`Customer.create!` refuses an empty email, and the Customer keeps a global and
-an organization-scoped unique email index.
+This ADR proposes separating the stable internal account login from the
+optional contact email. Here, *login* means the value Rodauth uses internally,
+not the email a user types to sign in. Existing email-based sign-in remains
+available for accounts with an address.
 
-Consequences in the field:
+Rodauth currently uses `accounts.email` as its login column
+([configuration](../../apps/web/auth/config/base.rb)). The column is `NOT NULL`
+and has a unique index for active accounts where partial indexes are supported
+([schema](../../apps/web/auth/migrations/001_initial.rb)). The table also has a
+unique `external_id` column. After account creation,
+[`EnsureCustomerForAccount`](../../apps/web/auth/operations/ensure_customer_for_account.rb)
+finds or creates the Redis `Customer` by normalized email, then writes the
+Customer's `extid` to SQL `external_id` to link the records.
+[`Customer.create!`](../../lib/onetime/models/customer.rb) refuses an empty
+email, and Customer has both global and organization-scoped unique email indexes.
 
-- An identity provider that validates a user but supplies no usable `email`
-  claim cannot provision an account (#3478, #3499). The documented position is
-  that `upn`, `preferred_username`, a fabricated address, or a relaxed tenant
-  allowlist are not acceptable substitutes.
-- Mailbox verification, account status, and "is this the same person" are
-  three different facts that the current model represents with one column
-  and one status value. The 2026-10-10 G3 review
-  (`docs/security/audits/security-audit-2026-10-10.md`) registered three
-  Medium findings that come from reading the email claim as more than a
-  contact address.
-- Provisioning writes to SQL and Redis inside one Rodauth transaction whose
-  exit semantics (commit on redirect, rollback on exception) leave either an
-  account without a Customer or a Customer that owns an address without an
-  account. Both states are only repairable by hand.
+This coupling has three consequences:
 
-The design that resolves this is written up in
-`docs/specs/sso-email-less-accounts/account-model-design.md`. This record
-captures the decision it depends on.
+- An identity provider (IdP) that authenticates a user but supplies no usable
+  `email` claim cannot provision a new account
+  ([#3478](https://github.com/onetimesecret/onetimesecret/issues/3478),
+  [#3499](https://github.com/onetimesecret/onetimesecret/issues/3499)). The
+  [Phase 2 proposal](../planning/2026-1009-sso-email-less-accounts.md) excludes
+  `upn`, `preferred_username`, fabricated addresses, and relaxed tenant
+  allowlists as substitutes.
+- Mailbox control, account status, and identity ownership are different
+  facts. The current model does not separate them consistently. The
+  [2026-10-10 G3 security review](../security/audits/security-audit-2026-10-10.md)
+  examined email-claim authorization, verification, and domain-name comparison.
+  The [active risk register](../security/active-risk-register.md) records three
+  Medium ratings by operator decision; the audit's own ratings differ.
+- SQL and Redis do not share a transaction. Redis provisioning runs inside
+  Rodauth's SQL transaction, which can commit on a redirect or roll back on
+  an exception without undoing Redis writes. As described in the
+  [provisioning design](../specs/sso-email-less-accounts/account-model-design.md),
+  this can leave an account without a Customer, or a Customer holding an
+  email-index entry without an account. The current protocol has no durable,
+  email-independent checkpoint for recovery.
+
+The [account-model design](../specs/sso-email-less-accounts/account-model-design.md)
+contains the implementation details, migration sequence, and acceptance
+requirements. This ADR records the proposed architectural decision.
 
 ## Decision
 
-1. **Login, contact email and verification are separate columns.**
-   `accounts.login` becomes Rodauth's `login_column`: an opaque, server-generated,
-   `NOT NULL UNIQUE` value that is never derived from, compared with, or
-   displayed as a claim. `accounts.email` becomes a nullable contact address
-   (structural CHECK and active-row uniqueness kept for present values; empty
-   string forbidden). `email_verified_at`, `email_verified_by` and
-   `email_verification_hold` state whether and how control of the current
-   address was established. Account status keeps meaning "open or not".
-2. **The login value is the Customer's `objid`, reserved in the account
-   INSERT.** `external_id` (the Customer `extid`) is a deterministic function
-   of it and is written in the same statement. The SQL row therefore reserves
-   the Redis identity before anything else exists, and the account–Customer
-   join is resolved by `external_id` only. Email is never used to find, link
-   or merge a Customer.
-3. **External identity ownership is unchanged.** `account_identities` stays
-   keyed by `(provider, issuer, uid)` with the existing issuer sentinel and
-   refusal rules; Entra keeps the gem's `tid` + `oid` UID. No row is re-keyed
-   and no synthetic `{provider}:{uid}` login is created.
-4. **Redis and SQL change together.** An absent contact email writes no entry
-   in either Customer email index; present addresses are claimed through the
-   existing compare-and-set path; conflicts fail closed and are never merged.
-5. **Provisioning is checkpointed.** The SQL account and identity commit
-   first; the Customer, workspace or tenant membership, and session are
-   materialised afterwards from the committed row, idempotently, on every
-   login. Every crash boundary has a defined recovery that needs no email.
-6. **Mailbox flows address an account only through its contact email** and
-   send only to a verified one. An account without a contact email is
-   unreachable by password reset, magic link and the other email-keyed
-   entry points by construction, and must keep a non-email authenticator.
-7. **Policy is not widened by this change.** Tenant allowlists, trusted
-   linking, Connect gates and the recipient-delivery restriction stay as they
-   are. Email-less creation ships behind a default-off flag on the platform
-   route; the tenant case waits for the separate decision tied to
-   RISK-2026-10-10-01.
+1. **Separate internal login, contact email, and verification state.**
+   `accounts.login` becomes Rodauth's `login_column`: an opaque,
+   server-generated, `NOT NULL UNIQUE` value. It is never derived from or
+   compared with an IdP claim, and is never shown to the user.
+   `accounts.email` becomes a nullable contact address. Structural validation
+   and active-account uniqueness remain for present values; empty strings
+   are forbidden. `email_verified_at`, `email_verified_by`, and
+   `email_verification_hold` record verification state, its source, and any
+   reason verification was withheld for the current address. Email changes
+   clear that state. Account status continues to gate account access, including
+   the existing password-signup verification gate; it is not mailbox evidence.
+2. **Reserve the Customer identity in the account INSERT.**
+   The login value is the Customer's `objid` (internal object identifier).
+   SQL `external_id` stores the Customer's `extid` (external identifier),
+   derived deterministically from `objid` and written in the same INSERT.
+   The committed SQL row therefore reserves the Redis identity before the
+   Customer exists. After backfill and cutover, the account–Customer join uses
+   `external_id` only; email is never used to find, link, or merge a Customer
+   during login or provisioning recovery.
+3. **Preserve external identity ownership.**
+   `account_identities` stays keyed by `(provider, issuer, uid)`: the provider,
+   validated issuer, and provider user identifier. The empty-string issuer
+   sentinel and existing issuerless-provider refusal rules remain. Entra keeps
+   the strategy gem's `tid` + `oid` UID. No row is re-keyed and no synthetic
+   `{provider}:{uid}` login is created.
+4. **Change Redis and SQL together.**
+   An absent contact email writes no entry in either Customer email index.
+   Present addresses use the existing compare-and-set path, which claims an
+   address only when it is unowned or already belongs to the same Customer.
+   Conflicts refuse provisioning; they never merge Customers.
+5. **Provision in recoverable checkpoints.**
+   The SQL account and identity commit first. Customer creation, workspace or
+   tenant membership, and session setup follow from the committed row. These
+   steps run idempotently on every login, so a retry resumes incomplete
+   provisioning without an email lookup. Email-index conflicts are reported
+   for reconciliation, not retried as merges.
+6. **Use contact email for mailbox-dependent flows.**
+   Password reset, magic links, and other recovery or notification flows
+   resolve an account through its contact email and send only when that
+   address meets the verification policy. Verification messages are the
+   necessary exception: they establish control of a new or changed address.
+   An account without a contact email cannot use email-keyed entry points
+   and must retain a usable non-email authenticator. Adding verification
+   columns does not itself establish that an IdP assertion proves mailbox
+   control; that policy is tracked separately under
+   [#4735](https://github.com/onetimesecret/onetimesecret/issues/4735).
+7. **Do not widen access policy.**
+   This change does not relax tenant allowlists, trusted-email linking,
+   authenticated identity-linking (Connect) gates, or the recipient-email
+   delivery restriction. Email-less creation is planned behind a default-off
+   flag on the platform/per-install route only. Tenant email-less creation
+   remains refused pending the separate security/product decision tied to
+   `RISK-2026-10-10-01`. This ADR does not replace or approve the separate G3
+   remediations recorded in the [active risk register](../security/active-risk-register.md).
 
-Why this approach: it removes the dependency on a mutable, unverifiable claim
-from the one place that must be stable (the login), while keeping every
-existing identifier (`objid`, `extid`, identity tuple) and every existing
-email-based user flow working for accounts that have an address. Making the
-reservation part of the INSERT is what turns cross-store provisioning from
-"compensate by hand" into "retry converges".
+## Rationale
+
+The internal login must be stable even when the contact address changes or is
+absent. [OpenID Connect Core 1.0 §5.7](https://openid.net/specs/openid-connect-core-1_0.html#ClaimStability)
+states that "the only guaranteed unique identifier for a given End-User is the
+combination of the `iss` Claim and the `sub` Claim." Email has no equivalent
+stability guarantee. This supports separating contact data from identity; it
+does not require changing existing identity keys.
+
+The proposed model preserves `objid`, `extid`, and the external identity tuple.
+Email remains the user-facing lookup value for local sign-in and mailbox flows,
+subject to each flow's verification requirements. Reserving the Customer
+identity in the account INSERT gives later provisioning steps a stable key to
+resume after a crash, rather than using an email address to infer ownership.
 
 ## Trade-offs
 
-- **We lose**: the simplicity of "one email, one account, one column". Code
-  that treated `account[:email]` as the account identity (68 `account[:email]` reads in `apps/web/auth`, eleven of them
-  Customer lookups by that address, plus CLI and frontend readers) must be
-  audited and moved to `external_id`, and every mailbox-dependent feature needs an
-  explicit "no mailbox" outcome.
-- **We gain**: accounts that can exist without a mailbox, verification state
-  that can be reasoned about separately from account status, a provisioning
-  path that is recoverable from the SQL row alone, and a schema in which the
-  G3 findings can be remediated without further structural change.
-- **Risk**: a three-step expand/backfill/enforce migration with a mixed-version
-  window; the rollback boundary moves once the first null-email account
-  exists (binary rollback is replaced by flag-off). A Familia fix is needed so
-  an empty string can never become a shared index key; until it ships the
-  application guards are load-bearing.
+- **Cost:** email can no longer serve as a shortcut for account identity.
+  Authentication hooks, CLI commands, and frontend readers must distinguish
+  contact data from identifiers. Customer lookups that currently use
+  `account[:email]` must move to `external_id`. Every mailbox-dependent feature
+  needs an explicit outcome for absent or unverified email. The design records
+  the source inventory and feature-by-feature requirements.
+- **Benefit:** accounts can exist without a contact email, verification state
+  is separate from account status, and interrupted provisioning can resume
+  from the committed SQL row. The schema supports separating IdP assertions
+  from mailbox evidence; it does not resolve the G3 risks by itself.
+- **Migration risk:** expand, backfill, deploy compatible readers/writers,
+  enforce constraints, then enable email-less creation. Older binaries are
+  compatible only during the expand step. Once a null-email account exists,
+  rollback means turning the flag off while retaining a compatible binary,
+  not reverting to an email-required binary or schema. The design contains
+  the compatibility matrix and rollback limits.
+- **Index risk:** a Familia fix is needed to prevent empty strings from
+  becoming shared email-index keys. Until it is available, application-level
+  blank-email guards and index checks are required for correctness.
 
 ## Related
 
-- `docs/specs/sso-email-less-accounts/account-model-design.md` (design, checklist, acceptance evidence)
-- `docs/planning/2026-1009-sso-email-less-accounts.md` (Phase 2 proposal)
-- `docs/security/audits/security-audit-2026-10-10.md`; tracking issues #4734, #4735, #4736
-- ADR-016 (domain ownership axis), ADR-048 (evidence basis for security decisions)
-- Rodauth alternative-login guide: https://rodauth.jeremyevans.net/rdoc/files/doc/guides/alternative_login_rdoc.html
-- OIDC Core 1.0 §5.7 claim stability: https://openid.net/specs/openid-connect-core-1_0.html#ClaimStability
+- [Account-model design](../specs/sso-email-less-accounts/account-model-design.md): implementation details, migration sequence, and acceptance requirements.
+- [Phase 2 proposal](../planning/2026-1009-sso-email-less-accounts.md): scope and review/release gates.
+- [G3 security review](../security/audits/security-audit-2026-10-10.md) and [active risk register](../security/active-risk-register.md): evidence and current risk disposition; tracking issues [#4734](https://github.com/onetimesecret/onetimesecret/issues/4734), [#4735](https://github.com/onetimesecret/onetimesecret/issues/4735), and [#4736](https://github.com/onetimesecret/onetimesecret/issues/4736).
+- [ADR-016: Domain Validation State Model](adr-016-domain-validation-state-model.md): domain ownership axis.
+- [ADR-048: Evidence Basis for Security Decisions](adr-048-evidence-basis-for-security-decisions.md): evidence requirements.
+- [Rodauth alternative-login guide](https://rodauth.jeremyevans.net/rdoc/files/doc/guides/alternative_login_rdoc.html).
+- [OpenID Connect Core 1.0 §5.7: Claim Stability and Uniqueness](https://openid.net/specs/openid-connect-core-1_0.html#ClaimStability).

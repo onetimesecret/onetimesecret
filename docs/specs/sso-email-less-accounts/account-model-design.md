@@ -268,10 +268,10 @@ account, or requires a destructive downgrade.
 | Step | Schema | Binary | Data | Notes |
 |---|---|---|---|---|
 | S0 | current | N | D0: all rows have email | baseline |
-| M012 expand | add `login` NULL, `email_verified_at`, `email_verified_by`, `email_verification_hold`; leave `email NOT NULL` | N | D0 | old binary ignores new columns; its inserts leave `login` NULL |
-| Backfill op | — | N or N+1 | D0 | `Auth::Operations::BackfillAccountLogins` (dry-run default, `--after-id`, idempotent; precedent [normalize_account_emails.rb](../../../apps/web/auth/operations/customers/normalize_account_emails.rb)). Per row: Customer by `external_id` → `login = objid`; else by normalized email when exactly one Customer matches and that Customer has no other account → `login = objid`, `external_id = extid`; else fresh UUIDv7 as `login` with `external_id = extid(login)` (the next K2 creates the Customer under it). `email_verified_at` copied from `status_id = VERIFIED` plus Customer `verified`/`verified_by`/`verification_hold`. Report counts per branch; never merge two Customers. |
+| M012 expand | add `login` NULL **with its UNIQUE index**, `email_verified_at`, `email_verified_by`, `email_verification_hold`; leave `email NOT NULL` | N | D0 | old binary ignores new columns; its inserts leave `login` NULL. The unique index is created here rather than at M013 because both engines treat NULLs as distinct, so it costs the old binary nothing and stops two concurrent backfills from putting one objid on two rows. **Shipped** ([012_account_login_and_contact_verification.rb](../../../apps/web/auth/migrations/012_account_login_and_contact_verification.rb)). |
+| Backfill op | — | N or N+1 | D0 | `Auth::Operations::BackfillAccountLogins` / `bin/ots customers backfill-logins` (dry-run default, `--limit`, `--after-id`, idempotent, compare-and-set on `login IS NULL`; precedent [normalize_account_emails.rb](../../../apps/web/auth/operations/customers/normalize_account_emails.rb)). Per row: Customer by `external_id` → `login = objid`; else by the stored or normalized email when exactly one Customer matches and no other row links that Customer → `login = objid`, `external_id = extid`; else `skipped_no_customer`, or with `--mint-missing` a fresh UUIDv7 as `login` with `external_id = extid(login)` (the next K2 creates the Customer under it). Minting is opt-in because binary N re-links such a row by email on its next sign-in and overwrites the minted `external_id`; use it only once N+1 is the only binary. An `external_id` naming a missing Customer is reported (`skipped_dangling_external_id`), never rewritten. Verification: `status_id = VERIFIED` **and** Customer `verified` → `email_verified_at = now`, `email_verified_by = verified_by \|\| 'legacy'`; a Customer `verification_hold` is copied; otherwise NULL. The login value is never printed or logged. **Shipped** ([backfill_account_logins.rb](../../../apps/web/auth/operations/backfill_account_logins.rb)). |
 | Deploy N+1 | M012 | N+1 | D0 | N+1 writes `login`/`external_id` on every INSERT, reads by `external_id`, keeps email fallbacks read-only for rows still lacking `login`; email-less writes **disabled** (flag default off) |
-| M013 enforce | `login NOT NULL UNIQUE` | N+1 only | D0 | refuses to run while any row has NULL `login` (rows inserted by N during the window are swept by re-running the backfill first) |
+| M013 enforce | `login NOT NULL` (the UNIQUE index exists since M012) | N+1 only | D0 | refuses to run while any row has NULL `login` (rows inserted by N during the window are swept by re-running the backfill first). **Boot constraint:** `Auth::Migrator.run_if_needed` applies every migration file present at process start, so a refusing M013 is a boot failure. M013 therefore ships in a release deployed only after the operator has confirmed `backfill-logins` reports zero candidates (and `customers doctor` zero `auth_login_missing`), and its refusal message names that command. |
 | M014 enable | `email` nullable, CHECK `email <> ''`, `external_id NOT NULL` | N+1 | D0 → D1 once the flag is on | flag `SSO_EMAILLESS_ACCOUNTS` (default off) gates null-email INSERTs on the platform route only |
 
 Compatibility matrix (binary × data):
@@ -289,10 +289,13 @@ N+1"; the `down` of M014 refuses while null-email rows exist, and no
 migration deletes or rewrites those rows.
 
 Operational checks added to `bin/ots customers doctor`: `login` ↔ Customer
-objid, `external_id` ↔ `extid(login)`, `""` key in either email index,
-`email_verified_at` ↔ Customer `verified` drift, rows with `login` but no
-Customer (K2 pending), accounts without `email` on a tenant domain (must be
-zero).
+objid (`auth_login_missing`, `auth_login_mismatch`; shipped), `""` key in the
+global email index (`email_index_blank_key`, repairable; shipped),
+`email_verified_at` ↔ Customer `verified` drift (`auth_email_verification_drift`,
+report-only until the N+1 binary makes SQL the writer; shipped), the
+org-scoped index `""` key, rows with `login` but no Customer (K2 pending), and
+accounts without `email` on a tenant domain (must be zero) (the last three
+with the N+1 binary).
 
 ## 8. Acceptance evidence (maps to the proposal's list)
 
