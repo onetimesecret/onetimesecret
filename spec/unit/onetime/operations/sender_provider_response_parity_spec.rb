@@ -80,6 +80,40 @@ RSpec.describe 'Sender provider response parity through DeleteSenderDomain' do
       expect_disposition(call_operation, :failed)
       expect(a_request(:delete, /api\.sendgrid\.com/)).not_to have_been_made
     end
+
+    def stub_listing_page(offset, entries)
+      stub_request(:get, "https://api.sendgrid.com/v3/whitelabel/domains?limit=50&offset=#{offset}")
+        .to_return(status: 200, body: JSON.generate(entries))
+    end
+
+    it '[L16] advances by the returned count when the server caps pages below the limit' do
+      stub_listing_page(0, [{ id: 1, domain: 'a.example' }, { id: 2, domain: 'b.example' }])
+      stub_listing_page(2, [{ id: 3, domain: 'c.example' }, { id: 4, domain: 'd.example' }])
+      stub_listing_page(4, [{ id: 123, domain: 'Example.com' }])
+      stub_request(:delete, delete_url).to_return(status: 204, body: '')
+
+      expect_disposition(call_operation, :deleted)
+      expect(a_request(:get, /offset=5/)).not_to have_been_made
+      expect(a_request(:delete, delete_url)).to have_been_made.once
+    end
+
+    it '[L16] reports absence only after the empty page that follows capped pages' do
+      stub_listing_page(0, [{ id: 1, domain: 'a.example' }, { id: 2, domain: 'b.example' }])
+      stub_listing_page(2, [{ id: 3, domain: 'c.example' }, { id: 4, domain: 'd.example' }])
+      stub_listing_page(4, [{ id: 5, domain: 'e.example' }])
+      stub_listing_page(5, [])
+
+      expect_disposition(call_operation, :absent)
+      [0, 2, 4, 5].each { |offset| expect(a_request(:get, /offset=#{offset}\z/)).to have_been_made.once }
+      expect(a_request(:delete, /api\.sendgrid\.com/)).not_to have_been_made
+    end
+
+    it '[L17] fails closed on a page larger than the requested limit' do
+      stub_listing_page(0, 51.times.map { |i| { id: i + 1, domain: i == 50 ? 'example.com' : "other#{i}.example" } })
+
+      expect_disposition(call_operation, :failed)
+      expect(a_request(:delete, /api\.sendgrid\.com/)).not_to have_been_made
+    end
   end
 
   context 'with the real SMTP2GO adapter and client' do

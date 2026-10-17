@@ -323,6 +323,9 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
       stub_request(:get, 'https://api.sendgrid.com/v3/whitelabel/domains?limit=50&offset=0')
         .to_return(status: 200, body: [{ id: 123, domain: 'example.com' }].to_json)
         .then.to_return(status: 429, body: { errors: [{ message: 'Rate limited' }] }.to_json)
+      # The preflight walk ends on an empty page after the short first page.
+      stub_request(:get, 'https://api.sendgrid.com/v3/whitelabel/domains?limit=50&offset=1')
+        .to_return(status: 200, body: '[]')
 
       expect(strategy.send(:domain_authentications, api_key: credentials['api_key']))
         .to eq([{ 'id' => 123, 'domain' => 'example.com' }])

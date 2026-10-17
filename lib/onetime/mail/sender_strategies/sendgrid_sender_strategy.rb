@@ -303,8 +303,8 @@ module Onetime
         # Finds domain authentication ID by domain name.
         #
         # Paginates through SendGrid's domain authentication list using
-        # limit/offset, since the default response is capped at ~50 domains,
-        # and stops at the first page holding the domain.
+        # limit/offset (see #each_domain_authentication_page) and stops at the
+        # first page holding the domain.
         #
         # @param domain [String] Domain to search for
         # @param api_key [String] SendGrid API key
@@ -363,12 +363,21 @@ module Onetime
 
         # Yields each page of the domain authentication list.
         #
+        # The list reference documents limit/offset but no default or maximum
+        # page size, so a short page does not prove the list is exhausted:
+        # the offset advances by the entries actually returned and only an
+        # empty page ends the walk. A page larger than the requested limit,
+        # or one repeating an ID from an earlier page, means the offset did
+        # not advance as requested and fails the walk instead of looping.
+        # https://www.twilio.com/docs/sendgrid/api-reference/domain-authentication/list-all-authenticated-domains
+        #
         # @return [Boolean] true when every page was read
         # @raise [APIError] if a request failed or returned something other than a list
         #
         def each_domain_authentication_page(api_key:)
           limit  = DOMAIN_LIST_PAGE_SIZE
           offset = 0
+          seen   = Set.new
 
           loop do
             response = get_request(
@@ -384,12 +393,21 @@ module Onetime
 
             domains = response[:data]
             validate_domain_authentications!(domains)
+            return true if domains.empty?
+
+            if domains.size > limit
+              raise APIError.new('Invalid domain authentication list: page exceeds the requested limit', status_code: nil)
+            end
+
+            ids = domains.map { |entry| entry['id'] }
+            if ids.any? { |id| seen.include?(id) }
+              raise APIError.new('Invalid domain authentication list: page repeats an earlier entry', status_code: nil)
+            end
+
+            seen.merge(ids)
             yield domains
 
-            # Stop when fewer results than the limit: we've seen all pages
-            return true if domains.size < limit
-
-            offset += limit
+            offset += domains.size
           end
         end
 
