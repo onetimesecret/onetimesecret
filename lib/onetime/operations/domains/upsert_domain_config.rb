@@ -31,8 +31,25 @@ module Onetime
       # only the provided fields are applied, on the record re-read under
       # WATCH (GuardedConfigWrites#update_for_domain!), so fields this call
       # does not name keep a concurrent writer's values; `updated` is bumped.
+      #
+      # Both paths refuse a write that adds a validation error the record did
+      # not already have (the model's #validation_errors, e.g. SignupConfig's
+      # allowlist requirement), raising {InvalidConfig} before anything is
+      # saved. Errors the record already had do not count, so a record that is
+      # already invalid can still be disabled or repaired one field at a time.
       class UpsertDomainConfig
         include Onetime::AuditedFailure
+
+        # A write that would add a validation error. The message lists the
+        # added errors (model text, no values beyond what the model prints).
+        class InvalidConfig < Onetime::Problem
+          attr_reader :added_errors
+
+          def initialize(added_errors)
+            @added_errors = Array(added_errors)
+            super("This change would leave the config invalid: #{@added_errors.join('; ')}")
+          end
+        end
 
         # Audit verb recorded for every applied upsert.
         AUDIT_VERB = 'domain.config_upsert'
@@ -70,6 +87,7 @@ module Onetime
         # @return [Result]
         # @raise [Onetime::Problem] on model-level validation failure
         #   (e.g. allowed_signup_domains PublicSuffix rejection)
+        # @raise [InvalidConfig] when the attrs would add a validation error
         def call
           model     = registry.model_for(@kind)
           domain_id = @domain.identifier
@@ -78,6 +96,8 @@ module Onetime
             status = :updated
             config = apply_update(model, domain_id)
           else
+            # Checked on an unsaved instance first: create! saves as it goes.
+            refuse_invalid_create!(model, domain_id)
             begin
               status = :created
               config = model.create!(domain_id: domain_id, **@attrs.transform_keys(&:to_sym))
@@ -112,18 +132,43 @@ module Onetime
         end
 
         # Partial update: only provided fields are applied (storage-encoded by
-        # the registry), then `updated` is bumped. Setter failures raise BEFORE
-        # the commit, so no partial state persists.
+        # the registry), then `updated` is bumped. Setter failures and
+        # refuse_added_errors! raise BEFORE the commit, so no partial state
+        # persists. The before/after comparison runs on the re-read record,
+        # the one the write applies to.
         #
+        # @raise [InvalidConfig] the attrs would add a validation error
         # @raise [Familia::KeyNotFoundError] deleted concurrently
         # @raise [Familia::OptimisticLockError] still changing after the retries
         def apply_update(model, domain_id)
           config, = model.update_for_domain!(domain_id) do |stored|
-            @attrs.each { |field, value| registry.apply_field(stored, @kind, field, value) }
+            before = stored.validation_errors
+            apply_attrs(stored)
+            refuse_added_errors!(stored, before)
+
             stored.created ||= Familia.now.to_i # repair missing created from legacy records
             stored.updated   = Familia.now.to_i
           end
           config
+        end
+
+        # The create path's check: apply the attrs to an unsaved instance
+        # carrying the model's defaults and refuse any error they add.
+        def refuse_invalid_create!(model, domain_id)
+          probe  = model.new(domain_id: domain_id)
+          before = probe.validation_errors
+          apply_attrs(probe)
+          refuse_added_errors!(probe, before)
+        end
+
+        def apply_attrs(config)
+          @attrs.each { |field, value| registry.apply_field(config, @kind, field, value) }
+        end
+
+        # @raise [InvalidConfig] when config reports an error not in before
+        def refuse_added_errors!(config, before)
+          added = config.validation_errors - before
+          raise InvalidConfig, added unless added.empty?
         end
       end
     end

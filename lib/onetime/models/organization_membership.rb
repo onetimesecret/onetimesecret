@@ -94,6 +94,7 @@ module Onetime
       'flexible_from_domain',
       'custom_signin_config',
       'custom_signup_validation',
+      'base_domain_signup',
       'manage_sso',
       'manage_org',
       'manage_billing',

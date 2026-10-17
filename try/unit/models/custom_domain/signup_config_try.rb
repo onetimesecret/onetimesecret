@@ -7,9 +7,10 @@
 # Covers:
 #   - SignupConfig creation with valid attributes
 #   - Validation (missing domain_id, missing strategy, invalid strategy)
-#   - Strategy metadata (requires_allowlist, network_validation)
+#   - Strategy metadata (uses_allowlist, network_validation)
 #   - valid_signup_email? dispatch for each strategy
 #   - valid_email_domain? against allowed_signup_domains
+#   - allow_base_domain: the domain's own base_domain joins the allowlist
 #   - find_by_domain_id, exists_for_domain?, delete_for_domain!
 #   - enable!/disable! state management
 #
@@ -85,17 +86,17 @@ Onetime::CustomDomain::SignupConfig.exists_for_domain?(@domain.identifier)
 
 # --- Strategy Metadata ---
 
-## passthrough does not require allowlist
-@config.requires_allowlist?
+## passthrough does not use the allowlist
+@config.uses_allowlist?
 #=> false
 
 ## passthrough is not network validation
 @config.network_validation?
 #=> false
 
-## domain_allowlist strategy requires allowlist
+## domain_allowlist strategy uses the allowlist
 @cfg_allowlist = Onetime::CustomDomain::SignupConfig.new(domain_id: 'test_dummy', validation_strategy: 'domain_allowlist')
-@cfg_allowlist.requires_allowlist?
+@cfg_allowlist.uses_allowlist?
 #=> true
 
 ## mx strategy is network validation
@@ -178,10 +179,10 @@ Onetime::CustomDomain::SignupConfig.exists_for_domain?(@domain.identifier)
 
 # --- valid_email_domain? ---
 
-## valid_email_domain? returns true when allowlist is empty
+## valid_email_domain? admits no one when the allowlist is empty
 @allowlist_config.allowed_signup_domains = []
 @allowlist_config.valid_email_domain?('anyone@anywhere.com')
-#=> true
+#=> false
 
 ## valid_email_domain? checks against allowlist
 @allowlist_config.allowed_signup_domains = ['acme.com']
@@ -236,14 +237,14 @@ rescue Onetime::Problem
 end
 #=> :raised_problem
 
-# --- Corrupted JSON: display helpers fail open, the sign-up gate fails closed ---
+# --- Corrupted JSON: config surfaces keep rendering, nothing admits anyone ---
 #
 # When allowed_signup_domains_json contains invalid JSON, allowed_signup_domains
-# returns [] so config surfaces keep rendering, and valid_email_domain? reads
-# that as "no allowlist". The sign-up gate must not inherit that reading: the
-# operator chose domain_allowlist, so an unreadable or empty list denies every
-# sign-up (allowed_signup_domains_corrupt?, validate_domain_allowlist) rather
-# than silently admitting everyone. Same stance as SsoConfig on the SSO path.
+# returns [] so config surfaces keep rendering, and valid_email_domain? admits
+# no one against that []. The operator chose domain_allowlist, so an
+# unreadable or empty list denies every sign-up (allowed_signup_domains_corrupt?,
+# validate_domain_allowlist) rather than silently admitting everyone. Same
+# stance as SsoConfig on the SSO path.
 
 ## Create config with valid allowlist to corrupt
 @ts3 = Familia.now.to_i
@@ -267,13 +268,13 @@ end
 @corrupt_config.allowed_signup_domains
 #=> []
 
-## valid_email_domain? returns true for ANY email when allowlist is corrupted (fail-open)
+## valid_email_domain? admits no one when the allowlist is corrupted
 @corrupt_config.valid_email_domain?('anyone@anywhere.com')
-#=> true
+#=> false
 
-## valid_email_domain? returns true for previously-restricted domain
-@corrupt_config.valid_email_domain?('attacker@evil.com')
-#=> true
+## valid_email_domain? does not admit the previously allowed domain either
+@corrupt_config.valid_email_domain?('user@valid.com')
+#=> false
 
 ## valid_signup_email? with domain_allowlist strategy still validates format
 @corrupt_config.valid_signup_email?('not-an-email')
@@ -313,8 +314,237 @@ end
 @empty_allowlist.valid_signup_email?('anyone@anywhere.com')
 #=> false
 
-## valid_email_domain? alone still reads an empty list as unrestricted (display helper)
+## valid_email_domain? alone also admits no one against an empty list
 @empty_allowlist.valid_email_domain?('anyone@anywhere.com')
+#=> false
+
+# --- allow_base_domain: the domain's own registrable domain joins the allowlist ---
+#
+# secrets.corp.com → base_domain corp.com (PublicSuffix). With the flag set,
+# @corp.com addresses sign up without corp.com being listed; the list stays
+# for partners. The base domain is read from the CustomDomain record at
+# validation time. Only the domain_allowlist gate consults it, and a missing
+# base_domain adds nothing (fail closed) rather than falling back to allow-all.
+# It takes effect only while the install flag
+# features.organizations.base_domain_signup_enabled is on and the owning
+# organization holds base_domain_signup (standalone mode grants it here).
+
+## FIELD_SPECS declares allow_base_domain as a native boolean (colonel-writable)
+Onetime::CustomDomain::SignupConfig::FIELD_SPECS['allow_base_domain']
+#=> { type: :boolean, storage: :native }
+
+## A new config defaults allow_base_domain to false (not nil)
+@fresh_abd = Onetime::CustomDomain::SignupConfig.new(domain_id: 'abd_init')
+[@fresh_abd.allow_base_domain, @fresh_abd.allow_base_domain?]
+#=> [false, false]
+
+## Setup: the install offers allow_base_domain (restored at the end of this section)
+@orgs_conf = (OT.conf['features'] ||= {})['organizations'] ||= {}
+@saved_base_domain_signup = @orgs_conf['base_domain_signup_enabled']
+@orgs_conf['base_domain_signup_enabled'] = true
+Onetime::CustomDomain::SignupConfig.base_domain_signup_enabled?
+#=> true
+
+## The install flag must be a real true: a stray string does not turn it on
+@orgs_conf['base_domain_signup_enabled'] = 'true'
+result = Onetime::CustomDomain::SignupConfig.base_domain_signup_enabled?
+@orgs_conf['base_domain_signup_enabled'] = true
+result
+#=> false
+
+## Setup: a tenant domain whose base_domain is example.com
+@ts_abd     = Familia.now.to_i
+@domain_abd = Onetime::CustomDomain.create!("sc-own-#{@ts_abd}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@domain_abd.base_domain
+#=> 'example.com'
+
+## create! with allow_base_domain and NO explicit list persists the flag
+@abd_config = Onetime::CustomDomain::SignupConfig.create!(
+  domain_id: @domain_abd.identifier,
+  validation_strategy: 'domain_allowlist',
+  allow_base_domain: true,
+  enabled: true,
+)
+[@abd_config.allow_base_domain?, @abd_config.allowed_signup_domains]
+#=> [true, []]
+
+## The flag satisfies the domain_allowlist requirement (no validation error)
+@abd_config.validation_errors
+#=> []
+
+## base_domain reads the owning domain's registrable domain
+@abd_config.base_domain
+#=> 'example.com'
+
+## effective_allowed_signup_domains is the base domain alone when nothing is listed
+@abd_config.effective_allowed_signup_domains
+#=> ['example.com']
+
+## The gate admits an address at the base domain
+@abd_config.valid_signup_email?('user@example.com')
+#=> true
+
+## ...case-insensitively
+@abd_config.valid_signup_email?('USER@Example.COM')
+#=> true
+
+## The gate refuses other domains
+@abd_config.valid_signup_email?('user@other.com')
+#=> false
+
+## A subdomain of the base domain is not admitted by the flag (exact match, like a listed entry)
+@abd_config.valid_signup_email?("user@#{@domain_abd.display_domain}")
+#=> false
+
+## Listed partners combine with the base domain, de-duplicated
+@abd_config.allowed_signup_domains = ['partner.com', 'example.com']
+@abd_config.effective_allowed_signup_domains.sort
+#=> ['example.com', 'partner.com']
+
+## Both the listed partner and the base domain are admitted
+[@abd_config.valid_signup_email?('a@partner.com'), @abd_config.valid_signup_email?('b@example.com')]
+#=> [true, true]
+
+## With the flag off, only the list counts
+@abd_config.allowed_signup_domains = ['partner.com']
+@abd_config.allow_base_domain      = false
+[@abd_config.effective_allowed_signup_domains, @abd_config.valid_signup_email?('b@example.com')]
+#=> [['partner.com'], false]
+
+## Flag off with an empty list is still the invalid configuration it always was
+@abd_config.allowed_signup_domains = []
+@abd_config.validation_errors.any? { |e| e.include?('allowed_signup_domains') }
+#=> true
+
+## The flag round-trips through save/load as a real boolean
+@abd_config.allow_base_domain = true
+@abd_config.save
+Onetime::CustomDomain::SignupConfig.find_by_domain_id(@domain_abd.identifier).allow_base_domain?
+#=> true
+
+## With the install flag off, a stored true is inert: the base domain is not admitted
+@orgs_conf['base_domain_signup_enabled'] = false
+result = [
+  @abd_config.allow_base_domain?,
+  @abd_config.allow_base_domain_effective?,
+  @abd_config.effective_allowed_signup_domains,
+  @abd_config.valid_signup_email?('user@example.com'),
+]
+@orgs_conf['base_domain_signup_enabled'] = true
+result
+#=> [true, false, [], false]
+
+## ...and validation_errors agrees: the empty list is required again
+@orgs_conf['base_domain_signup_enabled'] = false
+result = @abd_config.validation_errors
+@orgs_conf['base_domain_signup_enabled'] = true
+result.include?(Onetime::CustomDomain::SignupConfig::ALLOWLIST_REQUIRED_ERROR)
+#=> true
+
+## Without the base_domain_signup entitlement the stored true is inert as well
+unentitled = Object.new
+unentitled.define_singleton_method(:can?) { |_name| false }
+stub = Struct.new(:base_domain, :primary_organization).new('example.com', unentitled)
+@abd_config.allow_base_domain_effective?(domain: stub)
+#=> false
+
+## With it the flag takes effect, asked for by name on the owning organization
+asked    = []
+entitled = Object.new
+entitled.define_singleton_method(:can?) { |name| asked << name; true }
+stub = Struct.new(:base_domain, :primary_organization).new('example.com', entitled)
+[@abd_config.allow_base_domain_effective?(domain: stub), asked]
+#=> [true, ['base_domain_signup']]
+
+## base_domain_signup_available_for? is the one statement of that rule (the API asks it too)
+entitled = Object.new
+entitled.define_singleton_method(:can?) { |_name| true }
+klass    = Onetime::CustomDomain::SignupConfig
+@orgs_conf['base_domain_signup_enabled'] = false
+flag_off = klass.base_domain_signup_available_for?(entitled)
+@orgs_conf['base_domain_signup_enabled'] = true
+[klass.base_domain_signup_available_for?(entitled), flag_off, klass.base_domain_signup_available_for?(nil)]
+#=> [true, false, false]
+
+## A corrupt list still denies everyone, flag or not (nothing stored is trusted)
+@abd_config.allowed_signup_domains_json = '{invalid json['
+@abd_config.valid_signup_email?('user@example.com')
+#=> false
+
+## ...and validation_errors agrees: the flag cannot satisfy an unreadable list
+errors = @abd_config.validation_errors
+[
+  @abd_config.allow_base_domain?,
+  errors.include?(Onetime::CustomDomain::SignupConfig::ALLOWLIST_UNREADABLE_ERROR),
+  errors.include?(Onetime::CustomDomain::SignupConfig::ALLOWLIST_REQUIRED_ERROR),
+]
+#=> [true, true, false]
+
+## An unreadable list is not an error under a strategy that ignores the list
+@abd_config.validation_strategy = 'mx'
+result = @abd_config.validation_errors
+@abd_config.validation_strategy = 'domain_allowlist'
+result
+#=> []
+
+## Without a domain record there is no base domain: the flag adds nothing and the gate denies
+@abd_orphan = Onetime::CustomDomain::SignupConfig.new(
+  domain_id: 'abd_no_such_domain',
+  validation_strategy: 'domain_allowlist',
+  allow_base_domain: true,
+)
+[@abd_orphan.base_domain, @abd_orphan.effective_allowed_signup_domains, @abd_orphan.valid_signup_email?('user@example.com')]
+#=> [nil, [], false]
+
+## ...and validation_errors agrees with the gate: the flag cannot satisfy the list requirement
+@abd_orphan.validation_errors.include?(Onetime::CustomDomain::SignupConfig::ALLOWLIST_REQUIRED_ERROR)
+#=> true
+
+# The readable-list cases of allowlist_requirement_error live in the shared
+# table tests/fixtures/signup_allowlist_requirement_cases.json (read by
+# spec/unit/onetime/models/custom_domain/signup_allowlist_requirement_spec.rb
+# and its TypeScript twin). Only the server-only cases stay here.
+
+## allowlist_requirement_error: a blank base domain gives the flag nothing to add
+@sc_klass = Onetime::CustomDomain::SignupConfig
+@sc_klass.allowlist_requirement_error(
+  strategy: 'domain_allowlist', domains: [], corrupt: false, allow_base_domain: true, base_domain: '  ',
+)
+#=> @sc_klass::ALLOWLIST_REQUIRED_ERROR
+
+## allowlist_requirement_error: an unreadable list is refused even when the flag would satisfy the rule
+@sc_klass.allowlist_requirement_error(
+  strategy: 'domain_allowlist', domains: [], corrupt: true, allow_base_domain: true, base_domain: 'example.com',
+)
+#=> @sc_klass::ALLOWLIST_UNREADABLE_ERROR
+
+## allowlist_requirement_error: strategies without an allowlist always pass, even with an unreadable list
+%w[passthrough mx smtp].map do |strategy|
+  @sc_klass.allowlist_requirement_error(
+    strategy: strategy, domains: [], corrupt: true, allow_base_domain: false, base_domain: nil,
+  )
+end
+#=> [nil, nil, nil]
+
+## allowlist_requirement_error: the corrupt answer cannot be skipped by leaving it out
+begin
+  @sc_klass.allowlist_requirement_error(
+    strategy: 'domain_allowlist', domains: ['partner.com'], allow_base_domain: false, base_domain: nil,
+  )
+  :no_error
+rescue ArgumentError => ex
+  ex.message.include?('corrupt')
+end
+#=> true
+
+## passthrough ignores the flag (format-only, as before)
+@abd_orphan.validation_strategy = 'passthrough'
+@abd_orphan.valid_signup_email?('anyone@anywhere.com')
+#=> true
+
+## Restore the install flag for the rest of the file
+@orgs_conf['base_domain_signup_enabled'] = @saved_base_domain_signup
+Onetime::CustomDomain::SignupConfig.base_domain_signup_enabled? == (@saved_base_domain_signup == true)
 #=> true
 
 # --- Network Validation Strategy Tests (mx / smtp) ---

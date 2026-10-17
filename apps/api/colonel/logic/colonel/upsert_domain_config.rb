@@ -21,7 +21,9 @@ module ColonelAPI
       # and they remain managed in workspace domain settings. Unknown kinds
       # are 404. Writable fields and their coercions live in
       # {Onetime::CustomDomain::ConfigRegistry} — unknown fields are silently
-      # ignored, invalid enum/boolean values are 422 form errors.
+      # ignored, invalid enum/boolean values are 422 form errors, and so is a
+      # write that would leave the record with a validation error it did not
+      # already have.
       #
       # Thin adapter over {Onetime::Operations::Domains::UpsertDomainConfig} —
       # the audited single implementation (CONTRACT 4: exactly one
@@ -103,8 +105,11 @@ module ColonelAPI
           raise_form_error(ex.message, error_key: ex.error_key, args: ex.args, field: ex.field.to_sym)
         rescue Onetime::Problem => ex
           # Any other model-level refusal from the op → untagged 422 form
-          # error. Every setter refusal the four kinds have today is typed
-          # above; a new one should be typed the same way, not matched here.
+          # error. That includes the op's InvalidConfig (a write that would
+          # add a validation error), which concerns the whole record rather
+          # than one field. Every setter refusal the four kinds have today is
+          # typed above; a new one should be typed the same way, not matched
+          # here.
           raise_form_error(ex.message)
         end
 
