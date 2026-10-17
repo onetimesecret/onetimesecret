@@ -4,7 +4,7 @@ Status: Proposed design, not an implemented or accepted guarantee.
 
 Companions: [Test coverage specification](sender-identity-contracts-test-coverage.md), [preparation evidence and deployment checklist](sender-identity-contracts-preparation.md).
 
-Preparation distinguishes documented contracts, maintainer captures, static deployment wiring, and unexecuted account checks. No additional pagination defect is established beyond the historical Lettermint omission. Current SMTP2GO responses, some missing-target semantics, and duplicate selection remain unresolved. SES currently uses explicit credentials, not the default SDK credential chain; deployment validation must test that actual configuration.
+Preparation distinguishes documented contracts, maintainer captures, static deployment wiring, and unexecuted account checks. No additional pagination defect is established beyond the historical Lettermint omission. Current SMTP2GO responses and some missing-target semantics remain unresolved. Conflicting provider identities are explicitly deferred; see [Alternatives and decisions](#alternatives-and-decisions). SES currently uses explicit credentials, not the default SDK credential chain; deployment validation must test that actual configuration.
 
 ## Objective and scope
 
@@ -122,6 +122,8 @@ Changing shared lookup helpers affects provisioning, verification, and preflight
 
 ## Alternatives and decisions
 
+- **Conflicting provider identities — not addressed (2026-10-16).** The same domain appearing with distinct IDs in one SendGrid or Lettermint account inventory is assessed as a very-low-likelihood edge case, not an observed provider behavior. No such inventory has been established. Retain first-match selection; do not add ambiguity detection or provider-side deduplication. Revisit if a conflicting inventory is observed or provider documentation establishes that this can occur. This decision does not change local duplicate-record resolution or shared sender identity preservation.
+  - **Deferred hardening proposal:** resolve name-based lookups only after complete enumeration; reject multiple distinct matching IDs (not repeated entries with the same ID) consistently in lookup, preflight, and cleanup. This adds requests and latency, and makes an early match depend on later-page success. Synthetic tests demonstrate the proposed behavior, not provider occurrence or a need to ship it. Implementation requires an explicit decision superseding the exclusion above.
 - Adding missing `error` fields alone addresses known branches but leaves malformed results and incomplete evidence indistinguishable from success. It is insufficient as the final design.
 - Treating every `deleted: false` as failure breaks SMTP and idempotent absence.
 - Implementing pagination only in collision code leaves individual provisioning/deletion inconsistent.
