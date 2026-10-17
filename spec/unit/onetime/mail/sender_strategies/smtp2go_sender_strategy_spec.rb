@@ -1005,7 +1005,9 @@ RSpec.describe Onetime::Mail::SenderStrategies::Smtp2goSenderStrategy do
      { 'request_id' => 123 }, { 'request_id' => ['req-1'] }, { 'request_id' => { 'id' => 'req-1' } },
      { 'request_id' => 'req-1', 'error' => 'rejected' }, { 'request_id' => 'req-1', 'error_code' => 'API_EXCEPTION' },
      { 'request_id' => 'req-1', 'data' => nil }, { 'request_id' => 'req-1', 'data' => {} },
-     { 'request_id' => 'req-1', 'data' => [] }].each do |envelope|
+     { 'request_id' => 'req-1', 'data' => [] },
+     { 'request_id' => 'req-1', 'error' => 'rejected', 'data' => { 'domains' => [] } },
+     { 'request_id' => 'req-1', 'error_code' => 'API_EXCEPTION', 'data' => { 'domains' => [] } }].each do |envelope|
       it "[D13] does not claim removal for envelope #{envelope.inspect}" do
         allow(mock_client).to receive(:post).with('/domain/view', anything).and_return(view_response)
         allow(mock_client).to receive(:post_envelope).with('/domain/remove', anything).and_return(envelope)

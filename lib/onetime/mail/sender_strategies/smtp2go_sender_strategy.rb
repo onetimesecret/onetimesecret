@@ -318,10 +318,11 @@ module Onetime
         #     https://smtp2go.github.io/smtp2go.apidocs/#remove-sender-domain
         #   - archived v3.0.2, request_id plus data.domains without the target
         #     (sender-identity-validation-report.md, SMTP2GO).
-        # Provided data must be a valid domains list without the domain; an
-        # envelope without data must carry a nonempty string request_id and
-        # no error. An empty envelope acknowledges nothing. The client has
-        # already raised on non-2xx responses and on data.error/error_code.
+        # A top-level error or error_code refuses either shape. Provided data
+        # must be a valid domains list without the domain; an envelope
+        # without data must carry a nonempty string request_id. An empty
+        # envelope acknowledges nothing. The client has already raised on
+        # non-2xx responses and on data.error/error_code.
         #
         # @param envelope [Hash] Parsed response envelope from the client
         # @param domain [String] Domain whose removal was requested
@@ -330,8 +331,8 @@ module Onetime
         #
         def removal_acknowledged?(envelope, domain)
           return false unless envelope.is_a?(Hash)
-          return extract_domain_entry(envelope['data'], domain).nil? if envelope.key?('data')
           return false if envelope['error'] || envelope['error_code']
+          return extract_domain_entry(envelope['data'], domain).nil? if envelope.key?('data')
 
           request_id = envelope['request_id']
           request_id.is_a?(String) && !request_id.strip.empty?

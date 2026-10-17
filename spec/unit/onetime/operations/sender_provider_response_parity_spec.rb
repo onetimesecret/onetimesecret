@@ -165,7 +165,8 @@ RSpec.describe 'Sender provider response parity through DeleteSenderDomain' do
 
     ['', 'null', '{}', '{"data":{}}', '{"data":{"success":true}}',
      '{"data":{"domains":null}}', '{"data":{"domains":{}}}', '{"data":{"domains":[{}]}}',
-     '{"data":{"domains":[{"domain":"other.com"},{}]}}'].each do |body|
+     '{"data":{"domains":[{"domain":"other.com"},{}]}}',
+     '{"error":"rejected","data":{"domains":[]}}', '{"error_code":"API_EXCEPTION","data":{"domains":[]}}'].each do |body|
       it "does not claim deletion for malformed removal acknowledgement #{body.inspect}" do
         stub_request(:post, view_url).to_return(status: 200, body: present_body)
         stub_request(:post, remove_url).to_return(status: 200, body: body)
