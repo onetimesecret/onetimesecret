@@ -80,7 +80,7 @@ GEM
       bigdecimal
       rexml
     crass (1.0.7)
-    csv (3.3.5)
+    csv (3.3.6)
     database_cleaner-core (2.0.1)
     database_cleaner-sequel (2.0.2)
       database_cleaner-core (~> 2.0.0)
@@ -137,7 +137,7 @@ GEM
       logger
     highline (3.0.1)
     htmlbeautifier (1.4.3)
-    httparty (0.24.2)
+    httparty (0.24.3)
       csv
       mini_mime (>= 1.0.0)
       multi_xml (>= 0.5.2)
