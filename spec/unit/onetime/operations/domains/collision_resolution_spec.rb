@@ -469,6 +469,28 @@ RSpec.describe Onetime::Operations::Domains::CollisionResolution do
 
   describe 'against the datastore', :datastore do
     include LegacyCustomDomainRecords
+    include OnetimeStateHelpers
+
+    # The unit lane boots without the connection pool, and Familia's
+    # fallback opens a new client for every dbclient lookup. One plan or
+    # apply makes thousands of lookups, enough for a run of this file to
+    # exhaust the client's ephemeral ports (EADDRNOTAVAIL). Install the
+    # provider SetupConnectionPool installs, as the WATCH specs do, so each
+    # example reuses its pool's connections; the hook wraps setup and
+    # cleanup too.
+    around do |example|
+      snapshot = snapshot_familia_pool_config
+      pool     = ConnectionPool.new(size: 2, timeout: 5) { Familia.create_dbclient }
+      Onetime::Runtime.update_infrastructure(database_pool: pool)
+      Familia.connection_provider = lambda do |_uri|
+        stack = Fiber[:ots_pinned_dbclient_stack]
+        stack && !stack.empty? ? stack.last : pool.with { |conn| conn }
+      end
+      example.run
+    ensure
+      restore_familia_pool_config(snapshot)
+      pool&.shutdown(&:close)
+    end
 
     let(:model) { Onetime::CustomDomain }
     let(:sfx) { SecureRandom.hex(4) }
