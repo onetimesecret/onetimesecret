@@ -1040,6 +1040,44 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
       end
     end
 
+    context 'with an SMTP sender config' do
+      let(:events) { [] }
+
+      before do
+        Onetime::CustomDomain::MailerConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          provider: 'smtp',
+          from_address: 'delete-smtp@example.com',
+          api_key: 'delete-smtp-key',
+          enabled: true,
+        )
+        login_as(test_owner)
+        allow(OT).to receive(:info).and_call_original
+        allow(OT).to receive(:info).with('[DOMAIN_SENDER_CONFIG] domain_sender_config_deleted', anything) do |_, payload|
+          events << JSON.parse(payload)
+        end
+      end
+
+      it '[C10] skips remote cleanup through the real SMTP strategy and audits the skip' do
+        csrf_delete api_path(test_custom_domain.extid)
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect(json_body).to include(
+          'success' => true,
+          'message' => "Sender configuration deleted for domain #{tenant_domain}",
+        )
+        expect(json_body).not_to have_key('provider_cleanup')
+        expect(json_body).not_to have_key('provider_outcome')
+        expect(Onetime::CustomDomain::MailerConfig.find_by_domain_id(test_custom_domain.identifier)).to be_nil
+        expect(a_request(:any, /.*/)).not_to have_been_made
+        expect(events.size).to eq(1)
+        expect(events.first).to include('event' => 'domain_sender_config_deleted', 'provider' => 'smtp')
+        expect(events.first['details']).to include('config_deleted' => true, 'lease_lost' => false,
+          'provider_cleanup' => 'completed', 'provider_outcome' => 'skipped')
+        expect(events.first.to_json).not_to include('delete-smtp-key')
+      end
+    end
+
     context 'when sender config does not exist' do
       before do
         login_as(test_owner)
