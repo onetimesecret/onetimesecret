@@ -42,8 +42,15 @@ module Lanes
       # Install the pool unless a provider is already in place (an
       # application boot, or a spec fixture, owns it then).
       #
-      # Size and timeout follow the initializer's FAMILIA_POOL_SIZE and
-      # FAMILIA_POOL_TIMEOUT so a lane env can tune both the same way.
+      # Connections are built as SetupConnectionPool builds them
+      # (Onetime.create_pooled_dbclient), reconnect attempts included.
+      #
+      # Size and timeout read the initializer's FAMILIA_POOL_SIZE and
+      # FAMILIA_POOL_TIMEOUT, so a lane env tunes both the same way. A value
+      # that is not an integer raises here, where the initializer's
+      # String#to_i reads it as 0 (setup_connection_pool_spec pins that):
+      # the test process stops at load instead of running on a pool that
+      # cannot hand out a connection.
       #
       # @return [ConnectionPool, nil] the installed pool, or nil when a
       #   provider was already present
@@ -51,7 +58,7 @@ module Lanes
                    timeout: Integer(ENV.fetch('FAMILIA_POOL_TIMEOUT', DEFAULT_TIMEOUT)))
         return nil if Familia.connection_provider
 
-        pool = ConnectionPool.new(size: size, timeout: timeout) { Familia.create_dbclient }
+        pool = ConnectionPool.new(size: size, timeout: timeout) { Onetime.create_pooled_dbclient(Familia.uri) }
         Familia.connection_provider = Onetime.pooled_connection_provider(pool)
         Onetime::Runtime.update_infrastructure(database_pool: pool)
         @pool = pool

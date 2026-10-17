@@ -47,18 +47,10 @@ module Onetime
 
       # Belt-and-suspenders reconnection resilience:
       # 1. ConnectionPool retries checkout once on connection errors
-      # 2. Redis driver retries once with minimal delay for stale connections
+      # 2. Redis driver retries stale connections on the
+      #    Onetime::DATABASE_RECONNECT_ATTEMPTS ladder
       database_pool = ConnectionPool.new(size: pool_size, timeout: pool_timeout, reconnect_attempts: 4) do
-        Redis.new(
-          parsed_uri.conf.merge(
-            reconnect_attempts: [
-              0.05, # 50ms delay before first retry
-              0.20, # 200ms for 2nd
-              1,    # 1000ms
-              2,    # wait a full 2000s for final retry
-            ],
-          ),
-        )
+        Onetime.create_pooled_dbclient(parsed_uri)
       end
 
       # Configure Familia connection provider and transaction settings

@@ -59,6 +59,13 @@ RSpec.describe Lanes::DatastorePool do
     expect([registered_pool, pinned_served]).to eq([pool, true])
   end
 
+  it 'builds connections with the reconnect attempts a booted pool uses' do
+    pool = install!
+
+    delays = pool.with { |conn| Array.new(5) { |attempt| conn._client.config.retriable?(attempt) } }
+    expect(delays).to eq([*Onetime::DATABASE_RECONNECT_ATTEMPTS, nil])
+  end
+
   it 'takes the size and timeout it is given' do
     pool = install!(size: 3, timeout: 7)
 
@@ -71,6 +78,19 @@ RSpec.describe Lanes::DatastorePool do
     Familia.connection_provider = provider
 
     expect([described_class.install!, Familia.connection_provider, registered_pool]).to eq([nil, provider, nil])
+  end
+
+  it 'refuses a FAMILIA_POOL_SIZE that is not an integer' do
+    original                 = ENV.fetch('FAMILIA_POOL_SIZE', nil)
+    ENV['FAMILIA_POOL_SIZE'] = 'abc'
+
+    expect { described_class.install! }.to raise_error(ArgumentError)
+  ensure
+    if original.nil?
+      ENV.delete('FAMILIA_POOL_SIZE')
+    else
+      ENV['FAMILIA_POOL_SIZE'] = original
+    end
   end
 
   # The behaviour the pool exists to replace, kept small: five sockets, each

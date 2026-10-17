@@ -674,9 +674,10 @@ reported the test services lost mid-run (exit 69) although valkey was fine.
 bounded pool on load (`tests/lanes/support/datastore_pool.rb`), with the
 same provider a full boot installs: the pinned-connection stack first,
 otherwise a pool checkout. Connections are created lazily against
-`Familia.uri` at the first lookup. A later full boot replaces the provider
-with its own pool. `FAMILIA_POOL_SIZE` and `FAMILIA_POOL_TIMEOUT` size it,
-as they do the initializer's pool.
+`Familia.uri` at the first lookup, with the initializer's reconnect attempts.
+A later full boot replaces the provider with its own pool. `FAMILIA_POOL_SIZE`
+and `FAMILIA_POOL_TIMEOUT` size it, as they do the initializer's pool, except
+that a value that is not an integer stops the test process at load.
 
 ## Hermetic environment boundary
 

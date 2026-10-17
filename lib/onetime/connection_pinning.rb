@@ -3,6 +3,24 @@
 # frozen_string_literal: true
 
 module Onetime
+  # Delays, in seconds, before each of the Redis driver's reconnect attempts
+  # on a pooled connection: 50ms, 200ms, 1s, then a final 2s.
+  DATABASE_RECONNECT_ATTEMPTS = [0.05, 0.20, 1, 2].freeze
+
+  # A Redis client for the connection pool behind Familia.dbclient, with the
+  # DATABASE_RECONNECT_ATTEMPTS ladder so a stale or briefly unreachable
+  # connection is retried instead of failing the command.
+  #
+  # SetupConnectionPool fills the application's pool with these; test
+  # helpers that never run the initializer fill theirs the same way
+  # (tests/lanes/support/datastore_pool.rb).
+  #
+  # @param uri [String, URI] the datastore the client connects to
+  # @return [Redis] a client that connects on its first command
+  def self.create_pooled_dbclient(uri)
+    Redis.new(Familia.normalize_uri(uri).conf.merge(reconnect_attempts: DATABASE_RECONNECT_ATTEMPTS))
+  end
+
   # The connection provider that serves Familia.dbclient from +pool+.
   #
   # Pinned path (preferred for WATCH/MULTI and any read-then-write flow):
