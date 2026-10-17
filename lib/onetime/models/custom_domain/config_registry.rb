@@ -309,6 +309,8 @@ module Onetime::CustomDomain::ConfigRegistry
         enabled: config.enabled?,
         secrets_mode: config.secrets_mode_value,
         disabled_homepage_variant: config.disabled_homepage_variant_value,
+        allowed_cidrs: config.allowed_cidrs,
+        denied_cidrs: config.denied_cidrs,
         created: epoch_or_nil(config.created),
         updated: epoch_or_nil(config.updated),
       }

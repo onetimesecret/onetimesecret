@@ -316,6 +316,9 @@ const organizationFeaturesInner = z.object({
   saml_enabled: z.boolean().default(false),
   custom_mail_enabled: z.boolean().default(false),
   incoming_secrets_enabled: z.boolean().default(false),
+  // ORGS_HOMEPAGE_NETWORK_RULES_UI_ENABLED. Off stops edits to homepage
+  // network rules; rules already stored stay enforced.
+  homepage_network_rules_ui_enabled: z.boolean().default(false),
   // Default-ON (unlike siblings): only an explicit false — set via
   // ORGS_AUDIT_LOGS_ENABLED=false — hides the org Secret Activity tab.
   // Absent (older backends without the flag) keeps the feature enabled.

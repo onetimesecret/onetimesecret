@@ -35,6 +35,22 @@ module DomainsAPI
       #   incoming_secrets entitlement AND a ready IncomingConfig (enabled
       #   with at least one recipient) — otherwise the homepage would present
       #   a form with nowhere to deliver.
+      # - allowed_cidrs: Array<String> (optional) — IPv4/IPv6 addresses or
+      #   CIDR ranges that may use the interactive homepage. null/omitted
+      #   leaves the stored list unchanged; [] clears it (everyone not denied).
+      #   Entries are normalized to "address/prefix" and de-duplicated; an
+      #   unparseable entry or more than HomepageConfig::MAX_CIDRS entries is
+      #   a 422 tagged with the field.
+      # - denied_cidrs: Array<String> (optional) — ranges that may never use
+      #   it; a deny match wins over the allow list. Same semantics.
+      #   Visitors refused by network get the private landing page and a 403
+      #   from anonymous secret creation, exactly like a disabled homepage.
+      #   Signed-in members and the management pages are never affected, so
+      #   an operator cannot lock themselves out of fixing a list.
+      #   Sending either list requires the platform flag
+      #   features.organizations.homepage_network_rules_ui_enabled and the
+      #   homepage_network_rules entitlement (Identity Plus) on top of
+      #   homepage_secrets; see #verify_network_rules_allowed!.
       #
       class PutHomepageConfig < Base
         include Onetime::LoggerMethods
@@ -50,6 +66,10 @@ module DomainsAPI
           @deprecated_auth_params    = %w[signup_enabled signin_enabled].select { |key| params.key?(key) }
           @disabled_homepage_variant = params['disabled_homepage_variant']
           @secrets_mode              = params['secrets_mode']&.to_s&.strip
+          # Merge semantics: nil (omitted/null) leaves the stored list alone.
+          # Shape and entries are validated in raise_concerns, before any write.
+          @allowed_cidrs             = params['allowed_cidrs']
+          @denied_cidrs              = params['denied_cidrs']
         end
 
         def raise_concerns
@@ -68,6 +88,9 @@ module DomainsAPI
           raise_form_error('enabled is required', field: :enabled, error_type: :missing) if params['enabled'].nil?
 
           validate_secrets_mode!
+          verify_network_rules_allowed!
+          @allowed_cidrs = validate_cidr_list!(:allowed_cidrs, @allowed_cidrs)
+          @denied_cidrs  = validate_cidr_list!(:denied_cidrs, @denied_cidrs)
         end
 
         def process
@@ -86,6 +109,8 @@ module DomainsAPI
               enabled: @enabled,
               disabled_homepage_variant: @disabled_homepage_variant,
               secrets_mode: @secrets_mode,
+              allowed_cidrs: @allowed_cidrs,
+              denied_cidrs: @denied_cidrs,
             )
           end
 
@@ -93,6 +118,8 @@ module DomainsAPI
                        "enabled=#{@homepage_config.enabled?} signup=#{@homepage_config.signup_enabled?} " \
                        "signin=#{@homepage_config.signin_enabled?} " \
                        "variant=#{@homepage_config.disabled_homepage_variant_value.inspect} " \
+                       "allowed_cidrs=#{@homepage_config.allowed_cidrs.length} " \
+                       "denied_cidrs=#{@homepage_config.denied_cidrs.length} " \
                        "updated=#{@homepage_config.updated}"
 
           success_data
@@ -113,6 +140,10 @@ module DomainsAPI
               signup_enabled: @homepage_config.signup_enabled?,
               signin_enabled: @homepage_config.signin_enabled?,
               disabled_homepage_variant: @homepage_config.disabled_homepage_variant_value,
+              # Normalized ("address/prefix", de-duplicated) — what the gate
+              # actually evaluates, not the entries as typed.
+              allowed_cidrs: @homepage_config.allowed_cidrs,
+              denied_cidrs: @homepage_config.denied_cidrs,
               created_at: @homepage_config.created.to_i,
               updated_at: @homepage_config.updated.to_i,
             },
@@ -120,6 +151,83 @@ module DomainsAPI
         end
 
         private
+
+        # Require the platform flag and the homepage_network_rules
+        # entitlement when a list is sent.
+        #
+        # The flag (ORGS_HOMEPAGE_NETWORK_RULES_UI_ENABLED, default off) is the
+        # install-wide switch, checked first so an install without it never
+        # suggests an upgrade. Network rules are also a paid tier (homepage_network_rules, Identity
+        # Plus) layered on homepage_secrets, which the free plan carries. Only
+        # a request that sends a list needs it: the experience selector's
+        # writes omit both lists and stay available on every plan.
+        #
+        # Freeze, don't drop, on downgrade or with the flag off: stored rules
+        # keep being enforced (neither check runs on the anonymous paths, and
+        # dropping them would widen access), while changing them, clearing
+        # included, needs both back. The draft AccessConfig spec
+        # (docs/specs/domain-ip-allowlist) takes the same position for its
+        # allowlist.
+        def verify_network_rules_allowed!
+          sent = { allowed_cidrs: @allowed_cidrs, denied_cidrs: @denied_cidrs }.compact
+          return if sent.empty?
+
+          unless OT.conf.dig('features', 'organizations', 'homepage_network_rules_ui_enabled')
+            raise_form_error(
+              'Homepage network rules are not enabled on this installation',
+              error_key: 'api.domains.errors.homepage_network_rules_disabled',
+              field: sent.keys.first,
+              error_type: :forbidden,
+            )
+          end
+          return if @organization.can?('homepage_network_rules')
+
+          raise_form_error(
+            'Homepage network rules require the homepage_network_rules entitlement. Please upgrade your plan.',
+            error_key: 'api.entitlements.errors.homepage_network_rules_required',
+            field: sent.keys.first,
+            error_type: :forbidden,
+          )
+        end
+
+        # Validate one optional CIDR-list param.
+        #
+        # nil = merge semantics, leave the stored list unchanged. Anything
+        # else must be an Array of strings (rejecting a bare string here
+        # rather than letting Array() wrap it keeps the request shape strict),
+        # every entry must parse as an IPv4/IPv6 address or range, and the
+        # de-duplicated list must fit HomepageConfig::MAX_CIDRS. Returns the
+        # normalized list so the write stores exactly what was validated; the
+        # model setter re-normalizes (idempotent) as the last line of defence.
+        #
+        # @param field [Symbol] :allowed_cidrs | :denied_cidrs
+        # @param value [Object] raw param value
+        # @return [Array<String>, nil]
+        def validate_cidr_list!(field, value)
+          return nil if value.nil?
+
+          unless value.is_a?(Array) && value.all?(String)
+            raise_form_error("#{field} must be an array of strings", field: field, error_type: :invalid)
+          end
+
+          Onetime::Utils::CidrList.normalize(value)
+        rescue Onetime::Utils::CidrList::InvalidEntry => ex
+          raise_form_error(
+            "Invalid CIDR: #{ex.entry}",
+            error_key: Onetime::CustomDomain::HomepageConfig::InvalidCidr::ERROR_KEY,
+            args: { cidr: ex.entry },
+            field: field,
+            error_type: :invalid,
+          )
+        rescue Onetime::Utils::CidrList::TooManyEntries => ex
+          raise_form_error(
+            "#{field} accepts at most #{ex.max} entries",
+            error_key: Onetime::CustomDomain::HomepageConfig::TooManyCidrs::ERROR_KEY,
+            args: { max: ex.max },
+            field: field,
+            error_type: :invalid,
+          )
+        end
 
         # Validate the optional secrets_mode param.
         #

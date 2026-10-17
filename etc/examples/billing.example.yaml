@@ -154,6 +154,10 @@ entitlements:
     category: advanced
     description: IP-based access restrictions
 
+  homepage_network_rules:
+    category: advanced
+    description: Limit a custom domain's homepage create form by network (allowed/denied CIDRs)
+
   audit_logs:
     category: advanced
     description: Access to audit log features
@@ -260,6 +264,7 @@ plans:
       - custom_privacy_defaults
       - custom_signin_config
       - extended_default_expiration
+      - homepage_network_rules
       - homepage_secrets
       - incoming_secrets
       - view_receipt
@@ -317,6 +322,7 @@ plans:
   #     - custom_domains
   #     - custom_branding
   #     - homepage_secrets
+  #     - homepage_network_rules
   #     - incoming_secrets
   #     - custom_mail_sender
   #     - custom_signin_config

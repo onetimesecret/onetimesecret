@@ -703,6 +703,11 @@
     "text": "One origin per line, including the scheme, for example https://vault.example.com. An origin on another organization's domain is refused.",
     "content_hash": "4a4e1d33"
   },
+  "web.admin.domains.configs.edit.cidrsHint": {
+    "text": "One IPv4 or IPv6 address or CIDR range per line, for example 203.0.113.0/24. Leave empty for no network restriction.",
+    "context": "Help text under the allowed_cidrs / denied_cidrs textareas in the colonel homepage config edit modal",
+    "content_hash": "3cd4dfa9"
+  },
   "web.admin.domains.configs.delete.button": {
     "text": "Delete",
     "content_hash": "e2d0a549"
@@ -794,6 +799,16 @@
   "web.admin.domains.configs.fields.disabled_homepage_variant": {
     "text": "Disabled homepage variant",
     "content_hash": "4695633b"
+  },
+  "web.admin.domains.configs.fields.allowed_cidrs": {
+    "text": "Allowed networks (CIDR)",
+    "context": "Field label for HomepageConfig allowed_cidrs in the colonel domain configs grid and edit modal",
+    "content_hash": "a918daab"
+  },
+  "web.admin.domains.configs.fields.denied_cidrs": {
+    "text": "Denied networks (CIDR)",
+    "context": "Field label for HomepageConfig denied_cidrs in the colonel domain configs grid and edit modal",
+    "content_hash": "460d6857"
   },
   "web.admin.domains.configs.fields.ready": {
     "text": "Ready",

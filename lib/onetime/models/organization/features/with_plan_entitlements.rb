@@ -49,7 +49,7 @@ module Onetime
           create_secrets view_receipt api_access notifications
           extended_default_expiration
           manage_teams manage_members audit_logs workspace_branding ip_access_rules
-          custom_domains homepage_secrets incoming_secrets
+          custom_domains homepage_secrets homepage_network_rules incoming_secrets
           custom_branding custom_privacy_defaults
           custom_mail_sender flexible_from_domain
           custom_signin_config custom_signup_validation manage_sso manage_org manage_billing

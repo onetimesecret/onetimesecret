@@ -1,8 +1,9 @@
 // src/tests/apps/workspace/domains/DomainDetail.spec.ts
 
 import { flushPromises, mount } from '@vue/test-utils';
-import { beforeEach, describe, it, expect, vi } from 'vitest';
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import { ref } from 'vue';
+import { onBeforeRouteLeave } from 'vue-router';
 import DomainDetail from '@/apps/workspace/domains/DomainDetail.vue';
 
 vi.mock('vue-i18n', () => ({
@@ -12,6 +13,7 @@ vi.mock('vue-i18n', () => ({
 vi.mock('vue-router', () => ({
   useRoute: vi.fn(() => ({ path: '/', query: {}, params: {} })),
   useRouter: vi.fn(() => ({ push: vi.fn() })),
+  onBeforeRouteLeave: vi.fn(),
   RouterLink: {
     name: 'RouterLink',
     template: '<a><slot /></a>',
@@ -53,8 +55,10 @@ vi.mock('@/shared/composables/useDomainsManager', () => ({
   }),
 }));
 
+const mockCan = vi.fn((_entitlement: string) => true);
+
 vi.mock('@/shared/composables/useEntitlements', () => ({
-  useEntitlements: () => ({ can: () => true }),
+  useEntitlements: () => ({ can: (entitlement: string) => mockCan(entitlement) }),
 }));
 
 vi.mock('@/shared/stores/notificationsStore', () => ({
@@ -67,9 +71,12 @@ vi.mock('@/shared/stores/organizationStore', () => ({
   }),
 }));
 
+const mockNetworkRulesUiEnabled = vi.fn(() => true);
+
 vi.mock('@/utils/features', () => ({
   isDomainOwnershipChecked: () => false,
   isOrgsCustomMailEnabled: () => false,
+  isOrgsHomepageNetworkRulesUiEnabled: () => mockNetworkRulesUiEnabled(),
   isOrgsIncomingSecretsEnabled: () => true,
 }));
 
@@ -210,5 +217,122 @@ describe('DomainDetail - homepage save feedback', () => {
 
     expect(mockInitialize).not.toHaveBeenCalled();
     expect(mockNotifyShow).not.toHaveBeenCalled();
+  });
+});
+
+describe('DomainDetail - unsaved network rules', () => {
+  beforeEach(() => {
+    mockDomain.value = {
+      extid: 'dm-test-extid',
+      homepage_config: {
+        enabled: true,
+        secrets_mode: 'create',
+        allowed_cidrs: [],
+        denied_cidrs: [],
+      },
+      incoming_ready: false,
+    };
+  });
+
+  type LeaveGuard = (to: unknown, from: unknown, next: (arg?: boolean) => void) => void;
+
+  function lastLeaveGuard(): LeaveGuard {
+    const calls = vi.mocked(onBeforeRouteLeave).mock.calls;
+    return calls[calls.length - 1][0] as unknown as LeaveGuard;
+  }
+
+  it('confirms before leaving while the network editor holds staged edits', async () => {
+    const wrapper = mountDetail();
+    await flushPromises();
+    const guard = lastLeaveGuard();
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    await wrapper
+      .findComponent({ name: 'DomainHomepageNetworkAccess' })
+      .vm.$emit('update:dirty', true);
+    const next = vi.fn();
+    guard({}, {}, next);
+
+    expect(confirmSpy).toHaveBeenCalledWith('web.domains.unsaved_changes_confirmation');
+    expect(next).toHaveBeenCalledWith(false);
+    expect(wrapper.findComponent({ name: 'DomainHeader' }).props('hasUnsavedChanges')).toBe(true);
+    confirmSpy.mockRestore();
+  });
+
+  it('leaves without asking when nothing is staged', async () => {
+    mountDetail();
+    await flushPromises();
+    const guard = lastLeaveGuard();
+    const confirmSpy = vi.spyOn(window, 'confirm');
+
+    const next = vi.fn();
+    guard({}, {}, next);
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith();
+    confirmSpy.mockRestore();
+  });
+});
+
+describe('DomainDetail - network rules flag and entitlement', () => {
+  beforeEach(() => {
+    mockDomain.value = {
+      extid: 'dm-test-extid',
+      homepage_config: {
+        enabled: true,
+        secrets_mode: 'create',
+        allowed_cidrs: ['10.0.0.0/8'],
+        denied_cidrs: [],
+      },
+      incoming_ready: false,
+    };
+  });
+
+  afterEach(() => {
+    mockCan.mockImplementation(() => true);
+    mockNetworkRulesUiEnabled.mockImplementation(() => true);
+  });
+
+  it('locks the editor when the plan lacks homepage_network_rules', async () => {
+    mockCan.mockImplementation((entitlement) => entitlement !== 'homepage_network_rules');
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const editor = wrapper.findComponent({ name: 'DomainHomepageNetworkAccess' });
+    expect(editor.props('lockReason')).toBe('plan');
+    // Stored rules stay enforced after a downgrade, so the badge stays too.
+    expect(wrapper.find('[data-testid="homepage-network-badge"]').exists()).toBe(true);
+  });
+
+  it('unlocks the editor when the plan includes homepage_network_rules', async () => {
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const editor = wrapper.findComponent({ name: 'DomainHomepageNetworkAccess' });
+    expect(editor.props('lockReason')).toBeNull();
+  });
+
+  it('locks stored rules by instance when the platform flag is off, whatever the plan', async () => {
+    mockNetworkRulesUiEnabled.mockImplementation(() => false);
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const editor = wrapper.findComponent({ name: 'DomainHomepageNetworkAccess' });
+    expect(editor.props('lockReason')).toBe('instance');
+    // The flag stops edits only; the stored rules are still enforced.
+    expect(wrapper.find('[data-testid="homepage-network-badge"]').exists()).toBe(true);
+  });
+
+  it('hides the editor when the platform flag is off and no rules are stored', async () => {
+    mockNetworkRulesUiEnabled.mockImplementation(() => false);
+    mockDomain.value = {
+      extid: 'dm-test-extid',
+      homepage_config: { enabled: true, secrets_mode: 'create', allowed_cidrs: [], denied_cidrs: [] },
+      incoming_ready: false,
+    };
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    expect(wrapper.findComponent({ name: 'DomainHomepageNetworkAccess' }).exists()).toBe(false);
   });
 });

@@ -13,6 +13,9 @@ import { useConfirmDialog } from '@vueuse/core';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
+import DomainHomepageNetworkAccess, {
+  type HomepageNetworkRules,
+} from '@/apps/workspace/components/domains/DomainHomepageNetworkAccess.vue';
 import DomainHomepageSelector, {
   type HomepageChoice,
 } from '@/apps/workspace/components/domains/DomainHomepageSelector.vue';
@@ -25,11 +28,12 @@ import { ENTITLEMENTS } from '@/types/organization';
 import {
   isDomainOwnershipChecked,
   isOrgsCustomMailEnabled,
+  isOrgsHomepageNetworkRulesUiEnabled,
   isOrgsIncomingSecretsEnabled,
 } from '@/utils/features';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { onBeforeRouteLeave, useRouter } from 'vue-router';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -69,6 +73,7 @@ const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
 const canEmailConfig = computed(() => can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
 const canIncomingSecrets = computed(() => can(ENTITLEMENTS.INCOMING_SECRETS));
 const canCustomSignin = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNIN_CONFIG));
+const canHomepageNetwork = computed(() => can(ENTITLEMENTS.HOMEPAGE_NETWORK_RULES));
 const canCustomSignup = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNUP_VALIDATION));
 
 /** Current user is owner or admin — can modify domain settings */
@@ -160,6 +165,79 @@ const handleHomepageSelect = async (choice: HomepageChoice) => {
     }
   } finally {
     homepageSaving.value = false;
+  }
+};
+
+// ---------------------------------------------------------------------------
+// Homepage network rules (allowed / denied CIDR ranges)
+//
+// Stored on the same HomepageConfig record with merge semantics; the editor
+// stages entries and writes both lists explicitly. `enabled` is required by
+// the PUT, so the current stored choice is re-sent unchanged alongside.
+// ---------------------------------------------------------------------------
+
+const homepageAllowedCidrs = computed<string[]>(
+  () => customDomainRecord.value?.homepage_config?.allowed_cidrs ?? []
+);
+const homepageDeniedCidrs = computed<string[]>(
+  () => customDomainRecord.value?.homepage_config?.denied_cidrs ?? []
+);
+const homepageNetworkRestricted = computed(
+  () => homepageAllowedCidrs.value.length > 0 || homepageDeniedCidrs.value.length > 0
+);
+/**
+ * Why the network editor is read-only, if it is. The install-wide flag
+ * comes first: with it off there is no plan to upgrade to. Either way,
+ * stored rules stay enforced and are shown.
+ */
+const homepageNetworkLockReason = computed<'plan' | 'instance' | null>(() => {
+  if (!isOrgsHomepageNetworkRulesUiEnabled()) return 'instance';
+  return canHomepageNetwork.value ? null : 'plan';
+});
+/** With the flag off, the editor only appears to show rules still enforced. */
+const showHomepageNetwork = computed(
+  () => homepageNetworkLockReason.value !== 'instance' || homepageNetworkRestricted.value
+);
+const homepageNetworkSaving = ref(false);
+/** The network editor holds staged, unsaved list edits. */
+const homepageNetworkDirty = ref(false);
+
+// The network editor is the one explicit-save form on this hub; guard its
+// staged edits the way the dedicated domain config pages guard theirs.
+onBeforeRouteLeave((_to, _from, next) => {
+  if (homepageNetworkDirty.value) {
+    const answer = window.confirm(t('web.domains.unsaved_changes_confirmation'));
+    if (answer) next();
+    else next(false);
+  } else {
+    next();
+  }
+});
+
+const handleHomepageNetworkSave = async (rules: HomepageNetworkRules) => {
+  const domain = customDomainRecord.value;
+  if (!domain || homepageNetworkSaving.value || homepageSaving.value) return;
+
+  homepageNetworkSaving.value = true;
+  try {
+    const result = await updateHomepageConfig(
+      domain.extid,
+      { enabled: domain.homepage_config?.enabled ?? false, ...rules },
+      organization.value?.current_user_role,
+    );
+    if (result) {
+      // Same refetch gate as the experience selector: the editor re-seeds
+      // from the refreshed record (normalized entries), so only confirm
+      // once that record has landed. homepageNetworkSaving stays set until
+      // then; the editor relies on it to tell this refresh from an
+      // unrelated one that must keep its staged edits.
+      const refreshed = await initializeDomain();
+      if (refreshed) {
+        notifications.show(t('web.domains.homepage.network_update_success'), 'success', 'top');
+      }
+    }
+  } finally {
+    homepageNetworkSaving.value = false;
   }
 };
 
@@ -268,11 +346,12 @@ onMounted(() => {
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <!-- Header Section. Back folded into the header row (opt-in affordance),
-         so there's no separate Back row above it. This hub has no save. -->
+         so there's no separate Back row above it. The only explicit save on
+         this hub is the homepage network editor. -->
     <div class="sticky top-0 z-30">
       <DomainHeader
         :domain="customDomainRecord"
-        :has-unsaved-changes="false"
+        :has-unsaved-changes="homepageNetworkDirty"
         :orgid="props.orgid"
         external-path="/"
         back-visible
@@ -321,6 +400,18 @@ onMounted(() => {
                   data-testid="homepage-status">
                   {{ t(homepageStatusKey) }}
                 </span>
+                <!-- Network rules narrow who gets that experience -->
+                <span
+                  v-if="homepageNetworkRestricted"
+                  class="hidden items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 sm:inline-flex dark:bg-amber-900/20 dark:text-amber-300"
+                  data-testid="homepage-network-badge">
+                  <OIcon
+                    collection="heroicons"
+                    name="globe-alt"
+                    class="size-3"
+                    aria-hidden="true" />
+                  {{ t('web.domains.homepage.status_network_restricted') }}
+                </span>
                 <OIcon
                   collection="heroicons"
                   name="chevron-down"
@@ -332,16 +423,43 @@ onMounted(() => {
               </div>
             </button>
 
+            <!-- v-show, not v-if: collapsing must not discard the network
+                 editor's staged edits. -->
             <div
-              v-if="homepageExpanded"
+              v-show="homepageExpanded"
               class="border-t border-gray-100 px-5 py-4 dark:border-gray-700/50">
               <DomainHomepageSelector
                 :model-value="homepageChoice"
-                :disabled="domainLoading || homepageSaving || !canAdmin"
+                :disabled="domainLoading || homepageSaving || homepageNetworkSaving || !canAdmin"
                 :incoming-available="homepageIncomingAvailable"
                 :incoming-ready="homepageIncomingReady"
                 :incoming-config-route="incomingConfigRoute"
                 @update:model-value="handleHomepageSelect" />
+
+              <!-- Network rules apply to whichever interactive experience is selected -->
+              <DomainHomepageNetworkAccess
+                v-if="showHomepageNetwork"
+                class="mt-5 border-t border-gray-100 pt-4 dark:border-gray-700/50"
+                :allowed-cidrs="homepageAllowedCidrs"
+                :denied-cidrs="homepageDeniedCidrs"
+                :disabled="domainLoading || homepageSaving || !canAdmin"
+                :saving="homepageNetworkSaving"
+                :lock-reason="homepageNetworkLockReason"
+                @save="handleHomepageNetworkSave"
+                @update:dirty="homepageNetworkDirty = $event">
+                <template #upgrade>
+                  <RouterLink
+                    :to="`/billing/${props.orgid}/plans`"
+                    class="inline-flex items-center gap-1 font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300">
+                    {{ t('web.billing.overview.view_plans_action') }}
+                    <OIcon
+                      collection="heroicons"
+                      name="arrow-right"
+                      class="size-3"
+                      aria-hidden="true" />
+                  </RouterLink>
+                </template>
+              </DomainHomepageNetworkAccess>
             </div>
           </div>
 
