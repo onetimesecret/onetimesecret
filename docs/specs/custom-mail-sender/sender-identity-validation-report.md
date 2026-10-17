@@ -5,25 +5,27 @@
 
 # Sender identity fixes: validation report
 
-Date: 2026-10-16. Status: focused fixes implemented and tested; not blanket production-readiness approval. Revision: 2026-10-16, provider-contract review added below. Revision: 2026-10-17, `lettermint` 0.2.1: deletion absence reads `NotFoundError#code`, and the gem's live-captured 404 bodies are recorded under Lettermint. SendGrid termination, domain casing, and SMTP2GO v3.0.0 acknowledgement changes are proposals, not implemented fixes.
+Date: 2026-10-16. Status: focused fixes implemented and tested; not blanket production-readiness approval. Revision: 2026-10-16, provider-contract review added below. Revision: 2026-10-17, `lettermint` 0.2.1: deletion absence reads `NotFoundError#code`, and the gem's live-captured 404 bodies are recorded under Lettermint. Revision: 2026-10-16, remaining runtime work: SendGrid returned-count pagination, case-insensitive domain-name matching, the SMTP2GO v3.0.0 removal acknowledgement, and removal-outcome reporting are implemented in the uncommitted working tree; see [This run](#this-run-working-tree-on-9620a1ff55).
 
-Tested state: commit `9ce521378f` on `feat/domains-resolve-collisions-feedback` (commits `4cdaf69a36` through `9ce521378f`, based on `01cfb53244`). The focused commands below ran at `0e9389a40b`, except for a whitespace-only alignment change in `collision_sender_preservation.rb` that the commit includes; the full unit lane ran on the tree committed as `9ce521378f`. No live-provider requests were made by this work; the Lettermint 404 capture cited under Lettermint was made by the gem's maintainers. This report is execution evidence, not an accepted project guarantee.
+Historical tested state: commit `9ce521378f` on `feat/domains-resolve-collisions-feedback` (commits `4cdaf69a36` through `9ce521378f`, based on `01cfb53244`). The focused commands below ran at `0e9389a40b`, except for a whitespace-only alignment change in `collision_sender_preservation.rb` that the commit includes; the full unit lane ran on the tree committed as `9ce521378f`. No live-provider requests were made by this work; the Lettermint 404 capture cited under Lettermint was made by the gem's maintainers. This report is execution evidence, not an accepted project guarantee.
 
 References: [design proposal](sender-identity-contracts-design.md), [coverage specification](sender-identity-contracts-test-coverage.md), [preparation evidence and deployment checklist](sender-identity-contracts-preparation.md).
 
 Preparation addendum (2026-10-16): public-source and static configuration checks are recorded separately in the preparation record; they do not rerun or extend the historical test results below. Current SES clients explicitly supply two-part credentials, bypassing the default chain and omitting session tokens. Actual deployed configuration remains untested.
 
-The tested-state and executed-command records below describe the earlier implementation. This documentation revision changes the proposed acceptance criteria and adds one source citation in a Ruby comment; it does not implement the new behavior or rerun the Ruby suites. Earlier passing examples do not demonstrate the new criteria.
+Current tested state: uncommitted working tree on `9620a1ff55` (same branch). The working tree was clean when this run started; no ambiguity-detection code existed to reconcile with the conflicting-identity scope decision. Results marked historical belong to their recorded revision and do not validate this run; [This run](#this-run-working-tree-on-9620a1ff55) lists the commands executed against the working tree.
 
 ## Implemented scope
 
 - Every strategy produces a validated hash with `outcome`, derived `deleted`, nonempty `message`, and `error`. `DeleteSenderDomain` rejects malformed or contradictory results instead of inferring success from a missing error.
 - Deletion, confirmed absence, deliberate skip, and failure have distinct operation log outcomes. The operation retains `success?`, `message`, and `error`, and also exposes `outcome`.
 - Lettermint individual lookups and complete inventories share cursor traversal and entry validation. Individual lookup may stop on a valid page containing the target; absence and bulk inventory require exhaustion. Later-page failures and cursor cycles raise rather than exposing partial inventories.
-- SendGrid retains limit/offset pagination and configured deletion-ID overrides. Malformed entries, including a matching domain without a valid numeric ID, raise.
-- SMTP2GO retains filtered domain lookup and supported legacy entry shapes, but rejects malformed/rejected evidence. Removal validates the archived v3.0.2 acknowledgement, not the v3.0.0 request-ID-only variant described below; it does not add a post-removal lookup or infer absence from generic errors.
+- SendGrid retains limit/offset pagination and configured deletion-ID overrides. Malformed entries, including a matching domain without a valid numeric ID, raise. The offset advances by the number of entries returned, and only an empty page ends a walk; a page larger than the requested limit, or one repeating an ID from an earlier page, raises.
+- SendGrid (`domain_authentication_id`) and Lettermint (`domain_entry`) compare domain names case-insensitively over the full name with `casecmp?`, as SMTP2GO's `extract_domain_entry` already did. Individual lookup, inventory matching, verification, Lettermint duplicate-create recovery, deletion, and collision preflight share these matchers. Entries and provider IDs are returned unchanged.
+- SMTP2GO retains filtered domain lookup and supported legacy entry shapes, but rejects malformed/rejected evidence. Removal accepts the two documented HTTP 200 acknowledgements described below: the v3.0.0 envelope with a nonempty string `request_id` and no `data`, and the archived v3.0.2 `data.domains` without the target. `Smtp2goClient#post_envelope` returns the parsed envelope for this purpose; `#post` is unchanged for its other callers. Removal adds no post-removal lookup and infers no absence from generic errors.
 - SES still deletes directly by name; SDK `NotFoundException` means absence. SMTP reports a deliberate skip.
-- No lookup result-class hierarchy, retries, reconciliation queue, local rollback, locking changes, or public API schema changes were introduced.
+- Removal-outcome reporting: collision removal keeps the teardown's `sender_cleanup` when the `domain.remove` audit write then fails (`Domains::Remove#sender_cleanup`). Customer `RemoveDomain` logs `sender_cleanup` through `Onetime::LoggerMethods#app_logger` on the normal and lease-loss paths, at warn for `failed`; its response is unchanged.
+- No lookup result-class hierarchy, conflicting-identity detection, retries, reconciliation queue, local rollback, locking changes, credential changes, or public API schema changes were introduced.
 
 ## Provider evidence and limits
 
@@ -47,9 +49,9 @@ An HTTP-level test exercises the installed SDK's actual query encoding. Other ad
 
 ### SendGrid and SES
 
-SendGrid's official [list](https://www.twilio.com/docs/sendgrid/api-reference/domain-authentication/list-all-authenticated-domains) reference documents `limit` and `offset` enumeration, with no stated default or maximum `limit`, and types each entry's `id` as `number`. The [delete](https://www.twilio.com/docs/sendgrid/api-reference/domain-authentication/delete-an-authenticated-domain) reference lists HTTP 204 with no body as its only response; it documents nothing for a missing domain ID. Tests preserve the existing 50-entry short-page termination policy.
+SendGrid's official [list](https://www.twilio.com/docs/sendgrid/api-reference/domain-authentication/list-all-authenticated-domains) reference documents `limit` and `offset` enumeration, with no stated default or maximum `limit`, and types each entry's `id` as `number`. The [delete](https://www.twilio.com/docs/sendgrid/api-reference/domain-authentication/delete-an-authenticated-domain) reference lists HTTP 204 with no body as its only response; it documents nothing for a missing domain ID.
 
-Limit: if the server caps a response below the requested `limit=50` while more entries remain, the current loop stops after that nonempty short page and can report false absence for a later target. This is a conditional failure scenario, not evidence that such a cap is deployed. The only 50-entry default statement found in the inspected sources is the user's unanswered [sendgrid-python #1084](https://github.com/sendgrid/sendgrid-python/issues/1084), not provider confirmation. The revised proposal advances offset by returned count and terminates only on an empty page; that behavior is not implemented or demonstrated by the existing request-count fixtures.
+Pagination: `each_domain_authentication_page` requests `limit=50`, advances the offset by the number of entries each page returns, and ends a walk only on an empty page. A server that caps pages below the requested limit therefore no longer ends a walk early on a nonempty short page. This is defensive; no cap has been observed, and the only 50-entry default statement found in the inspected sources is the user's unanswered [sendgrid-python #1084](https://github.com/sendgrid/sendgrid-python/issues/1084), not provider confirmation. A page larger than the requested limit raises. The preparation record reports that the list reference describes offsets as multiples of page size (not rechecked in this run); a server that does not honor a returned-count offset and repeats earlier entries makes the walk raise on the repeated ID instead of looping or reporting absence. Neither behavior has been observed against a live account.
 
 Limit: the code accepts only a positive `Integer` ID. JSON integer IDs parse to `Integer`; a non-integral number would be rejected as a malformed entry and fail the lookup. The official validate-domain reference types its input and returned ID as `integer`, unlike the list/retrieve `number` schemas; see the preparation record for citations. This supports integer semantics but does not establish positivity or exclusively integer JSON serialization across endpoints.
 
@@ -70,17 +72,59 @@ That dated schema specifies:
 
 The official [GitHub Pages v3.0.0 reference, Remove Sender Domain](https://smtp2go.github.io/smtp2go.apidocs/#remove-sender-domain), separately documents `POST /domain/remove`, HTTP 200, "Success – sender domain removed from account", with a success example containing only `{"request_id":"40cbb6f2-935f-11e7-b5be-480fcf01a6f2"}`. Its success field list contains only string `request_id`; no `data` collection or `success` boolean is specified. This differs from the archived v3.0.2 example, but does not establish which variant current deployments return.
 
-Limit: with a successful request-ID-only response, `Smtp2goClient#parse_data` discards the envelope and returns `{}`; `extract_domain_entry` then rejects the missing `domains` collection, and cleanup reports `failed` after acknowledged removal. This path is established by code inspection, not a newly executed regression. The revised design proposes accepting this endpoint-specific acknowledgement while preserving envelope/status evidence and rejecting malformed/error responses; accepting an arbitrary empty hash would not distinguish valid acknowledgement from malformed input.
+Removal acknowledgement: `Smtp2goClient#post_envelope` applies the same status, invalid-JSON, and `data.error`/`data.error_code` failures as `#post`, and returns the parsed envelope. `Smtp2goSenderStrategy#removal_acknowledged?` accepts an envelope with `data` only when `data.domains` is a valid list without the target (v3.0.2), and an envelope without `data` only when it carries a nonempty string `request_id` and no top-level `error`/`error_code` (v3.0.0). An empty envelope, an empty or non-object body, `data: null`, `data: {}`, and a non-string or blank `request_id` remain failures. `/domain/view` validation is unchanged: a view response without `data.domains` still fails.
 
 A commit-pinned [third-party v3.0.4 harvest](https://github.com/api-evangelist/smtp2go/blob/b078fa4283fb4b5d287ccb05229d2f12410b60e8/openapi/_original/smtp2go-openapi-original.yml#L2689-L2737) also describes `request_id` plus `data.domains` for removal. Its `info.x-harvest` says `harvested: '2026-08-13'` and names the provider's documentation MCP endpoint as its source. This is a research lead, not independently verified provider evidence; the September 2, 2026 documentation date supplied in review was not independently verified.
 
-The currentness of the archived contract and actual deployment responses remain unverified. The official v3.0.0/v3.0.2 documentation divergence is now an explicit compatibility gap, not merely a lack of currentness evidence.
+Both documented removal variants are accepted. Which variant, if either, current deployments return remains unverified, as do missing-domain error semantics and filtered-view completeness.
 
 ### Domain casing
 
-Limit: `SendGridSenderStrategy#domain_authentication_id` and `LettermintSenderStrategy#domain_entry` compare domain strings exactly; SMTP2GO uses case-insensitive comparison. None of the inspected provider references specifies the stored/returned casing. If `Example.COM` is returned for `example.com`, the first two matchers can report absence despite the identity existing, including during collision preflight or provisioning recovery. The revised proposal requires case-insensitive full-name comparison consistently across consumers; it does not case-fold provider IDs, rewrite stored values, or introduce other canonicalization. This is a conditional failure scenario, not evidence of observed provider storage behavior.
+`SendGridSenderStrategy#domain_authentication_id`, `LettermintSenderStrategy#domain_entry`, and `Smtp2goSenderStrategy#extract_domain_entry` compare full domain names with `casecmp?`. Provider IDs are not case-folded, and stored names, request targets, and domain canonicalization are unchanged; collision preflight already lower-cases SES/SMTP2GO name targets. None of the inspected provider references specifies stored or returned casing, so this addresses a conditional failure scenario, not observed provider behavior.
 
-## Final executed commands
+Consequence under the conflicting-identity scope decision: if one account listed two entries differing only in case with different IDs, both now match and the first is selected. That is the deferred L14 case; no detection was added.
+
+## Executed commands
+
+### This run: working tree on 9620a1ff55
+
+The checkout already contained `.test-mode`. All Ruby tests used `tests/lanes/run`; provider HTTP/SDK boundaries were stubbed and no live-provider request was made.
+
+```sh
+tests/lanes/run unit --quiet \
+  --only spec/unit/onetime/mail/sender_strategies \
+  --only spec/unit/onetime/mail/sender_strategies_spec.rb \
+  --only spec/unit/onetime/mail/smtp2go_client_spec.rb \
+  --only spec/unit/onetime/operations/delete_sender_domain_spec.rb \
+  --only spec/unit/onetime/operations/delete_sender_domain_parity_spec.rb \
+  --only spec/unit/onetime/operations/sender_provider_response_parity_spec.rb \
+  --only spec/unit/onetime/operations/domains/collision_sender_preservation_spec.rb \
+  --only spec/unit/onetime/operations/domains/remove_spec.rb \
+  --only apps/api/domains/spec/logic/domains/remove_domain_spec.rb
+```
+
+Result: **666 examples, 0 failures**, seed `6291`.
+
+Datastore-backed files, run one at a time with `tests/lanes/run unit --quiet --only <file>`: `domains/collision_sender_pagination_regression_spec.rb` 3/0, `domains/failure_audit_spec.rb` 12/0, `domains/teardown_spec.rb` 34/0, `provision_sender_domain_spec.rb` 34/0, `validate_sender_domain_spec.rb` 18/0, `sender_identity_lease_spec.rb` 11/0 (examples/failures, paths under `spec/unit/onetime/operations/`). `domains/collision_resolution_spec.rb` was run in five line-number chunks; every example passed except `:817` with `only: false`, which selected a billing-protected group (`coll-ab137471.example`) left in this checkout's lane database by earlier runs aborted mid-run, and skipped it. That example passed in the full unit lane below.
+
+```sh
+tests/lanes/run simple --quiet --only apps/api/domains/spec/integration/simple/domain_sender_config_spec.rb
+tests/lanes/run api --quiet --only spec/api/domains/remove_domain_role_gate_spec.rb \
+  --only spec/api/domains/domain_scope_enforcement_spec.rb
+tests/lanes/run unit
+```
+
+Results: simple **76 examples, 0 failures**; api **31 examples, 0 failures**; full unit lane exit 0 in 129 s, with `try:unit` 8350 testcases passed, 0 failed in 362 files, and `spec:fast` 16256 examples passed, 13 pending, 0 failed (counted from the lane's worker status file, which includes all 144 `collision_resolution_spec.rb` examples).
+
+`bundle exec rubocop --force-exclusion` on the changed library files and their strategy directory: 11 files inspected, no offenses. `git --no-pager diff --check`: passed.
+
+Environment limits observed in this run:
+
+- Focused runs of the datastore-backed collision and teardown specs failed with `Errno::EADDRNOTAVAIL` on `127.0.0.1:2163`, and the runner reported the services lost mid-run (exit 69). Every failure in those runs carried that error. Cause: in the unit lane Familia has no connection pool, and its fallback opens a new client for every `dbclient` lookup, exhausting the client's ephemeral ports (about 16,000 sockets in `TIME_WAIT` after one file). The operator reproduced the churn on committed `9620a1ff55` without these changes; that run is operator-supplied evidence, not repeated here.
+- `collision_resolution_spec.rb` now installs the `SetupConnectionPool` provider around its datastore examples, as the WATCH specs do. That fixture was added after the full unit lane above; its rerun is blocked because the test Valkey on 127.0.0.1:2163 stopped accepting connections and the runner could not start compose (podman API socket unavailable).
+- The leftover fixtures (46 keys in this checkout's unit-lane database) were not flushed: the flush command was refused by the session's permission policy.
+
+### Historical: tested state 9ce521378f
 
 The checkout already contained `.test-mode`. All Ruby tests used the lane runner and its isolated services; provider HTTP/SDK boundaries were stubbed. No pending examples were reported by these focused runs.
 
@@ -123,22 +167,24 @@ Regression capture: the expanded SendGrid/SMTP2GO baseline produced 51 failures 
 
 ## Coverage reconciliation
 
-Paths below are under `spec/unit/onetime/` unless an API path is named. “Covered” describes the identified examples, not every provider/scenario combination in the proposal. “Partial” means the examples exercise the scenario with the limit shown. “Not covered” means no example asserts the scenario.
+Status reflects this run's working tree; rows are evidenced by examples that passed in [This run](#this-run-working-tree-on-9620a1ff55). Paths below are under `spec/unit/onetime/` unless an API path is named. “Covered” describes the identified examples, not every provider/scenario combination in the proposal. “Partial” means the examples exercise the scenario with the limit shown. “Deferred” means a scope decision excludes the row.
 
 | IDs | Status | Evidence | Applicability / limits |
 |---|---|---|---|
-| L01–L04 | Partial under revised proposal | `mail/sender_strategies/lettermint_lookup_regression_spec.rb`: later target, early target, exhausted absence, empty inventory; SendGrid strategy pagination examples | SES uses direct deletion; SMTP has no inventory. SMTP2GO filtered absence is tested separately. |
+| L01–L04 | Covered | `mail/sender_strategies/lettermint_lookup_regression_spec.rb`: later target, early target, exhausted absence, empty inventory; `sendgrid_sender_strategy_spec.rb`: first-page and later-page targets, empty-page exhaustion, empty inventory | SES uses direct deletion; SMTP has no inventory. SMTP2GO filtered absence is tested separately. |
 | L05–L08 | Covered | Lettermint malformed later-page parameterization and HTTP failures; SendGrid malformed-entry and later-page examples; SMTP2GO malformed lookup examples; HTTP-level `operations/sender_provider_response_parity_spec.rb` | Transport/SDK boundaries are fake; partial inventories are never returned on failure. |
 | L09 | Covered | Lettermint cursor-cycle/malformed-cursor examples and collision refusal examples | Cursor-specific; not applicable to SendGrid offset or name-targeted SES/SMTP2GO paths. |
-| L10 | Partial under revised proposal | SendGrid generated inventories of 0/49/50/51/1000 entries | Existing examples assert 1/1/2/2/21 requests under short-page termination. Revised empty-page acceptance requires 1/2/2/3/21; those fixtures are not updated. |
+| L10 | Covered | `sendgrid_sender_strategy_spec.rb` `[L10]`: generated 0/49/50/51/1000-entry inventories through inventory, individual absence, and deletion absence | Asserts 1/2/2/3/21 requests at offsets advanced by returned count; a short first page requires the next-offset request. |
 | L11–L13 | Covered | Supported SMTP2GO shapes; unrelated-domain matching; early-match versus failed full inventory; list 404 versus target deletion 404 examples | SMTP2GO has no documented pagination in the dated schema; undocumented caps remain unknown. |
-| L14 | Not covered | Existing first-match behavior retained | Conflicting duplicate provider entries were not independently verified, and no example was added. |
-| L15–L17 | Not covered | New acceptance rows for case-insensitive matching, capped SendGrid pages, and oversized pages | Current code retains exact SendGrid/Lettermint matching and SendGrid short-page termination; no regression pass for the proposed behavior is recorded. |
-| D01–D02 | Partial under revised proposal | All remote strategy specs and real-adapter `delete_sender_domain_parity_spec.rb`; `sender_provider_response_parity_spec.rb` | SES absence is delete-time, not an artificial list lookup. |
+| L14 | Deferred | None; existing first-match selection retained | Scope decision 2026-10-16 in the design's Alternatives and decisions. Case-insensitive matching means entries differing only in case now count as the same domain; the first is selected. |
+| L15 | Covered | SendGrid: lookup, inventory, deletion by ID 42, verification for an upper-case sender. Lettermint (`lettermint_lookup_regression_spec.rb`): lookup, inventory, deletion, duplicate-create recovery, verification. `collision_sender_preservation_spec.rb`: shared case-variant identities protected for both providers | IDs (`Dom_MixedCase-ID`, `Remote-1`) are asserted unchanged; partial and unrelated names (`sub.example.com`, `example.com.evil`) do not match. SendGrid provisioning creates directly and has no recovery lookup. |
+| L16 | Covered | `sendgrid_sender_strategy_spec.rb`: entries served 2/2/1/0 with `limit=50` at offsets 0/2/4/5 for later-target lookup, inventory, absence, deletion, and later-page failure; `operations/sender_provider_response_parity_spec.rb`: same through the real HTTP client and `DeleteSenderDomain` | A failed later page exposes no inventory and deletes nothing. |
+| L17 | Covered | 51-entry page rejected in lookup, inventory, deletion, and verification; HTTP-level operation parity | Oversized pages authorize no absence, creation, or deletion. Also: a page repeating an earlier page's IDs fails instead of looping. |
+| D01–D02 | Covered | All remote strategy specs and real-adapter `delete_sender_domain_parity_spec.rb`; `sender_provider_response_parity_spec.rb` | SES absence is delete-time, not an artificial list lookup. |
 | D03 / D11 | Covered (SES, Lettermint); not applicable (SendGrid, SMTP2GO) | SES typed/untyped not-found; Lettermint `NotFoundError` with `RESOURCE_NOT_FOUND` at the delete endpoint, and message-only, String-error, proxy-HTML, and list-endpoint 404 regressions; SendGrid/SMTP2GO unproven errors remain failures | Neither SendGrid nor SMTP2GO documents a missing-target response, so no absence mapping was added for them. |
-| D04 / D06 / D09 / D12 | D04/D06/D09 covered; D12 partial | Strategy rejection/malformed acknowledgement/blank-error examples; real operation parity | SendGrid 204 and SES empty success are accepted. SMTP2GO accepts the v3.0.2 shape but rejects the separately documented v3.0.0 success variant; revised acknowledgement boundaries are untested. |
-| D13 | Not covered | New HTTP-client-to-operation acceptance row for SMTP2GO request-ID-only removal success | Current client loses the acknowledgement envelope and cleanup reports failure; no new regression was executed. |
-| D05 | Partial | Transport failures in strategy/parity examples, including SES HTTP timeout | Not an exhaustive before/after-dispatch matrix for each provider; no remote-state guarantee after timeout. |
+| D04 / D06 / D09 / D12 | Covered | Strategy rejection/malformed acknowledgement/blank-error examples; real operation parity | SendGrid 204, SES empty success, Lettermint `MessageResponse`, and both SMTP2GO removal variants are accepted; malformed acknowledgements fail. |
+| D13 | Covered | `mail/smtp2go_client_spec.rb` `#post_envelope`; `smtp2go_sender_strategy_spec.rb` `[D13]` accept/reject matrix; `sender_provider_response_parity_spec.rb` `[D13]` through the real client, strategy, and operation | Request-ID-only success is `deleted` with one view and one remove request. Rejected: blank, whitespace, non-string, or null `request_id`; top-level `error`; `data: null`/`{}`/`[]`; non-object JSON; HTML; HTTP 403 with a `request_id`; v3.0.2 lists retaining the target. `/domain/view` stays strict. |
+| D05 | Covered | `delete_sender_domain_parity_spec.rb` `[D05]`: lookup timeout before any delete request and read timeout on the dispatched delete request for SendGrid, SMTP2GO, and Lettermint; SES connection timeout and read timeout | Each reports `failed`; no assertion about remote state after a timeout. |
 | D07–D08 | Partial | Invalid addresses and missing configured credentials in strategy/operation examples | SES environment/instance-profile credential-chain deployment behavior not exercised. |
 | D10 | Covered | `mail/sender_strategies/smtp_sender_strategy_spec.rb` and operation SMTP examples | Deliberate skip, no remote identity request. |
 | O01–O04 | Covered (O01 partial) | Both real-strategy operation parity files; failed/absent/deleted log assertions | Real adapter methods run, not final-result stubs. O01 is not the exhaustive D01–D09 cross-product. |
@@ -147,17 +193,21 @@ Paths below are under `spec/unit/onetime/` unless an API path is named. “Cover
 | C01–C03 | Covered | `operations/domains/collision_sender_preservation_spec.rb` and `collision_sender_pagination_regression_spec.rb` | Real Lettermint pagination; SDK-resource list is stubbed, not `list_domains`. |
 | C04–C05 | Covered | Retained unreadable-reference, external-survivor, removal-candidate, cross-group examples | Existing all-reference/refusal policy remains exercised. |
 | C06–C08 | Covered | 1000-record/multiple-group request budget, failed-walk retry, datastore-backed dry-run/apply fresh enumeration | Proves request reuse, not a production maintenance-window duration or atomic inventory snapshot. |
-| C09–C10 | C09 covered; C10 partial | `apps/api/domains/spec/integration/simple/domain_sender_config_spec.rb`: real SES cleanup denial/deletion/absence | Local removal, normal API response, and failed audit cleanup tested. No API-level SMTP skip example. |
+| C09–C10 | Covered | `apps/api/domains/spec/integration/simple/domain_sender_config_spec.rb`: real SES cleanup denial/deletion/absence; `[C10]` SMTP config through the real SMTP strategy | Local removal, normal API response, and audit `provider_cleanup`/`provider_outcome` tested; SMTP records `completed`/`skipped` with no HTTP request. |
 | C11 | Covered | Retained API lease-loss/contention examples and `operations/sender_identity_lease_spec.rb` | Selected lifecycle tests, not every possible concurrent interleaving. |
 | C12–C13 | Covered | Lettermint later-page duplicate recovery and failed lookup without another create; SMTP2GO failed duplicate-recovery lookup | Existing create-first provider duplicate recovery remains intentional; no new lookup-first creation policy. |
 | C14 | Covered | Exact fixed collision refusal text, nil cause, no SDK response/token/address, no failed cache entry | Does not establish that all adapter logs across the project are scrubbed. |
-| C15 | Partial | Adapter verification regressions; selected provision/validate/lease suites; caller inspection | Domain-removal call sites inspected, but a dedicated broader domain-removal suite was not run. |
+| C15 | Covered | Adapter verification regressions; provision/validate/lease suites; `domain_sender_config_spec.rb` `[C15]` domain removal with real SES cleanup deleted/absent/failed; `remove_domain_spec.rb`; `domains/collision_resolution_spec.rb` audit-failure propagation; `domains/remove_spec.rb` `#sender_cleanup`; caller review below | Removal responses unchanged; vhost cleanup outcome remains log-only and untested here. |
 
 ## Callers and lifecycle
 
 Read-only review traced `DeleteSenderDomain`, `DeleteSenderConfig`, domain removal, collision preservation, and strategy provisioning/verification helper callers. Valid identities/nil-for-confirmed-absence are preserved; failed lookup evidence raises into existing consumer error handling. SendGrid `domain_authentications` now raises instead of returning nil on failed enumeration; collision preflight already wraps provider failures and does not cache them. No remaining discovered caller requires a new result-class migration.
 
 `CollisionSenderPreservation` no longer carries a `:malformed` fallback for a Lettermint entry without an ID: `list_domains` and `domain_entry` raise on such an entry first. Its identity check now guards only the configured SendGrid `domain_id` override, which no listing validates; a blank or non-scalar override refuses with "sendgrid gave no usable identity for the sender domain". `Mailer.provider_credentials('sendgrid')` builds only `api_key`, so installation credentials never supply that override today.
+
+Callers of the changed matchers and paginators, reviewed in this run: SendGrid `find_domain_id` (verification, deletion) and `domain_authentications` plus `domain_authentication_id` (collision preflight); Lettermint `find_domain_by_name` (verification, deletion, duplicate-create recovery) and `list_domains` plus `domain_entry` (collision preflight); SMTP2GO `extract_domain_entry` (provisioning recovery, verification, lookup, v3.0.2 removal). Only `/domain/remove` uses `Smtp2goClient#post_envelope`; `Delivery::Smtp2go` and every other SMTP2GO call keep `#post`. Return shapes are unchanged: identity, entry, or list on success, nil for confirmed absence, raise on failed evidence.
+
+`Teardown#sender_cleanup` consumers: `Domains::Remove` records it in the `domain.remove` audit detail and now also exposes it as `#sender_cleanup`, which `CollisionResolution#remove` reads when the audit write raises `AuditWriteFailure`, so a `removed_audit_failed` removal counts toward `sender_cleanup_failed` and the group's cleanup errors. Customer `RemoveDomain` logs it; it adds no audit event, persisted record, or response field, because the customer path has no audit trail of its own and adding one is separate design work. `Teardown#delete_vhost` failures remain log-only and are outside these contracts.
 
 Local-removal and locking production code was not changed. The selected API tests demonstrate that remote failure is recorded after local config removal without rollback or incidental response changes. Collision tests demonstrate that unknown inventory refuses preflight rather than authorizing removal. These observations are narrower than a project-wide persistence/security guarantee.
 
@@ -176,7 +226,7 @@ The delegated findings were produced in a separate session and their original te
 | DOC-S2G-1-NF | SMTP2GO missing-domain error semantics are undocumented. | Unspecified provider semantics; conservative failure retained. No verified idempotent missing-target error mapping. |
 | DOC-S2G-1-ALT | SMTP2GO alternate entry shapes are undocumented. | Legacy variants preserved/tested; independent provider documentation remains unavailable. |
 | DOC-S2G-1-CURRENT | The SMTP2GO contract is an archived capture. | Unresolved evidence limit: current deployment contract not independently observed. |
-| DOC-S2G-1-V300 | Official v3.0.0 documents request-ID-only removal success, unlike the v3.0.2 capture; current code reports failure for that response. | Documented compatibility gap; acceptance proposal and D13 added. Runtime fix and HTTP-level regression remain unimplemented. The third-party v3.0.4 harvest is only a lead. |
+| DOC-S2G-1-V300 | Official v3.0.0 documents request-ID-only removal success, unlike the v3.0.2 capture; the earlier code reported failure for that response. | Fixed in this run (RT-S2G-V300): both documented variants accepted, D13 covered through the real client. Current deployment response unverified. The third-party v3.0.4 harvest is only a lead. |
 | Final independent review | Review of the final diff. | No concrete introduced failure scenario found; final SMTP2GO revision reconciled. Review is not proof of absence of defects. |
 | R1 | The O05–O07 row cited base result-constructor specs that did not exist. | Fixed: `#deletion_result` and `#deletion_error_message` examples in `base_sender_strategy_spec.rb`. |
 | R2 | The coverage table had no status per ID. | Fixed: Status column. |
@@ -197,13 +247,31 @@ The following material findings concern the three documents and the citation-onl
 | ID | Finding and materiality | Document disposition and evidence | Verification |
 |---|---|---|---|
 | DREV-LM | Material: design and fixture guidance called verified pagination inputs unverified; report omitted list-ID typing and filter semantics. | Addressed in design provider responsibilities, coverage fixtures, and report Lettermint section. | Rechecked installed 0.2.0 gem and official OpenAPI schema. |
-| DREV-SG | Material: short-page completion can yield false absence under a server cap. | Addressed as a revised proposal with returned-count offsets, empty-page termination, oversized-page rejection, updated counts, and L16–L17; runtime gap remains explicit. | Compared current paginator with official list reference and #1084; no cap or 50-entry default inferred from that issue. |
-| DREV-CASE | Material: exact matching can miss a case-variant identity. | Addressed as a comparison-only proposal, L15, and explicit current-code limit; no runtime change. | Inspected both exact matchers, SMTP2GO comparator, and cited provider references; stored casing remains unspecified in those sources. |
-| DREV-S2G | Material: v3.0.0 success is rejected; treating every empty hash as success would lose validation. | Addressed with both official variants, endpoint-scoped acknowledgement proposal, D13, and DOC-S2G-1-V300. | Official Pages reference checked; client unwrapping and strategy rejection inspected. Archived v3.0.2 extraction was not repeated; third-party harvest remains a lead and its supplied September date is unverified. |
+| DREV-SG | Material: short-page completion can yield false absence under a server cap. | Addressed as a revised proposal with returned-count offsets, empty-page termination, oversized-page rejection, updated counts, and L16–L17. Runtime change: RT-SG-PAGE. | Compared current paginator with official list reference and #1084; no cap or 50-entry default inferred from that issue. |
+| DREV-CASE | Material: exact matching can miss a case-variant identity. | Addressed as a comparison-only proposal and L15. Runtime change: RT-CASE. | Inspected both exact matchers, SMTP2GO comparator, and cited provider references; stored casing remains unspecified in those sources. |
+| DREV-S2G | Material: v3.0.0 success is rejected; treating every empty hash as success would lose validation. | Addressed with both official variants, endpoint-scoped acknowledgement proposal, D13, and DOC-S2G-1-V300. Runtime change: RT-S2G-V300. | Official Pages reference checked; client unwrapping and strategy rejection inspected. Archived v3.0.2 extraction was not repeated; third-party harvest remains a lead and its supplied September date is unverified. |
 | DREV-CITE | Material: code comment lacked the schema source for the Lettermint error code. | Addressed with an OpenAPI JSON citation in the deletion rescue comment and updated R3 disposition. | Confirmed `DELETE /domains/{domainId}` 404 description in the schema; comment-only diff. |
 
 Documentation revision validation: `git --no-pager diff --check` passed; `bundle exec rubocop --force-exclusion lib/onetime/mail/sender_strategies/lettermint_sender_strategy.rb` inspected one file with no offenses. A Python check resolved all 17 local file/directory/heading links in the three documents. Final diff and finding coverage were reviewed, including a read-only independent review with no findings. No applicable Markdown linter/build was configured in the inspected package scripts or `.github` checks; `.prettierignore` excludes `docs`. No Ruby suites were rerun for documentation and comment-only changes.
 
 External-source checks for this revision: installed Lettermint gem source, official Lettermint schema, official SendGrid list reference, #1084, official SMTP2GO Pages reference (including its anchor), and the pinned third-party harvest were inspected. The previously cited Common Crawl payload and WordPress sources were not revalidated; no current SMTP2GO deployment response or supplied September 2 documentation date was verified. These limits remain explicit rather than being treated as passing checks.
 
-The previously executed focused lookup and cleanup-reporting regressions pass for the recorded tested state. The full abstraction is not required for those results. This does **not** establish complete coverage of the proposed acceptance matrix or unconditional readiness for large-scale destructive execution. Remaining work includes implementing and testing the revised SendGrid termination rule, case-insensitive matching, and SMTP2GO v3.0.0 acknowledgement handling; a complete broader lane run and CI; current SMTP2GO contract confirmation for installations using it; and the partial and uncovered rows above. Proxy trust, tenant authorization, sessions, CSRF, SAML, and unrelated listing paths were not audited by this work.
+### Runtime implementation ledger (this run)
+
+| ID | Finding | Disposition |
+|---|---|---|
+| RT-SG-PAGE | SendGrid stopped on a nonempty short page and advanced by the requested limit (DREV-SG, L10, L16). | Fixed: offsets advance by returned count; only an empty page ends a walk; oversized pages raise (L17). |
+| RT-SG-LOOP | Advancing by returned count could loop without end if a server ignored the offset and repeated a nonempty page. | Fixed: a page repeating an ID from an earlier page raises. Not observed live. |
+| RT-CASE | SendGrid and Lettermint matched domain names case-sensitively (DREV-CASE, L15). | Fixed: `casecmp?` full-name comparison in both shared matchers; IDs unchanged. |
+| RT-S2G-V300 | SMTP2GO request-ID-only removal success reported `failed` (DREV-S2G, DOC-S2G-1-V300, D13). | Fixed: `post_envelope` plus `removal_acknowledged?`; malformed and error responses still fail. |
+| RT-PROP-COLL | Collision removal lost `sender_cleanup` when the `domain.remove` audit write failed. | Fixed: `Remove#sender_cleanup` read in the `AuditWriteFailure` rescue. |
+| RT-PROP-RD | Customer `RemoveDomain` ignored `Teardown#sender_cleanup`. | Fixed as a log through `app_logger`, warn on `failed`; no audit event, persistence, or response change. |
+| RT-LOG | Operator instruction: use `Onetime::LoggerMethods` rather than the `OT.info`/`OT.ld` shims. | Done for `RemoveDomain#process`; the category stays `App`, the one the shim inferred for that path. |
+| RT-VHOST | Vhost cleanup failures are log-only. | `[risk: not assessed]` Deferred (scope): outside the sender identity contracts. |
+| RT-TYPES | `LookupResult`/`InventoryResult` from the design were not introduced. | `[risk: not assessed]` Deferred (scope): behavior uses existing return shapes, with nil only for confirmed absence and raises for failed evidence. |
+| RT-DUP | Conflicting provider identities (L14). | Deferred under the 2026-10-16 scope decision; first-match selection retained. |
+| RT-ENV-PORTS | Unit-lane datastore specs exhaust client ephemeral ports through Familia's per-lookup fallback clients. | `collision_resolution_spec.rb` installs the boot pool provider around its datastore examples; other datastore specs unchanged. Rerun of that fixture blocked (see This run). |
+
+### Conclusion
+
+The focused, simple, api, and full unit lane runs listed under This run passed for the working tree, except the fixture-only rerun noted there. This does **not** establish unconditional readiness for large-scale destructive execution. Remaining: CI on a pushed revision; a full `simple` lane run; current SMTP2GO response confirmation for installations using it; SES explicit-credential validation in deployment; SendGrid deletion-time missing-target semantics (generic 404 remains failure); the Lettermint message-only 404 alternative (remains failure); vhost cleanup reporting; and the deferred L14 and explicit lookup types. Proxy trust, tenant authorization, sessions, CSRF, SAML, and unrelated listing paths were not audited by this work.
