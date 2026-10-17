@@ -410,17 +410,17 @@ site:
     # :email_login_request).
     email_login_request_rate_limit:
       enabled: <%= ENV['EMAIL_LOGIN_REQUEST_RATE_LIMIT_ENABLED'] != 'false' %>  # Since unreleased
-      # Requests permitted per window from a single masked client IP. A whole
-      # /24 (an office NAT) shares this bucket, and the login route's magic
-      # links count against it too: raise it for dense networks.
-      max_per_ip: <%= ENV['EMAIL_LOGIN_REQUEST_RATE_LIMIT_MAX_PER_IP'] || 10 %>  # Since unreleased
+      # Requests permitted per window from a single masked client IP. Looser
+      # than the reset-request cap: a magic link is a sign-in method, and a
+      # whole /24 (an office NAT) shares this bucket.
+      max_per_ip: <%= ENV['EMAIL_LOGIN_REQUEST_RATE_LIMIT_MAX_PER_IP'] || 30 %>  # Since unreleased
       # Backstop cap per submitted login (catches IP rotation). Keep
       # max_per_email >= 2 * max_per_ip AND lockout >= window: a single IP
       # timing its requests around its own window boundary lands up to
       # 2 * max_per_ip - 2 requests in one login's window, and with a shorter
       # lockout it is free again inside that window, so one source could lock
       # a victim out of magic-link sign-in from every IP. The defaults
-      # (10/90, 3600/3600) satisfy both. Rodauth's resend window already caps
+      # (30/90, 3600/3600) satisfy both. Rodauth's resend window already caps
       # the mail an account receives.
       max_per_email: <%= ENV['EMAIL_LOGIN_REQUEST_RATE_LIMIT_MAX_PER_EMAIL'] || 90 %>  # Since unreleased
       # Counting window in seconds (1 hour).
