@@ -54,7 +54,13 @@ $ tests/lanes/run --only spec/api/v2/secret_ttl_entitlement_spec.rb:20          
   directories (any `try/` tree) are rejected because RSpec would otherwise
   report a false-green zero-example run. Pass individual `_try.rb` files or
   run the complete lane.
-- `path:LINE` selects an RSpec example.
+- `path:LINE` narrows a file. Both runners take it; the runner forwards the
+  argument untouched. RSpec: a list is allowed (`path:12:34`), and a line
+  inside a `describe`/`context` body selects every example nested in that
+  group, so one line per top-level group chunks a file. Tryouts: one line
+  or one range (`path:19`, `path:19-45`, `path:L19-L45`), matching every
+  test case whose span overlaps it. Repeating the same tryouts file with
+  different lines keeps only the last one; use a range instead.
 - `--only` preserves the lane's isolation and environment guarantees, but skips
   generated prerequisites and every other task. Run the complete lane before
   pushing; CI validates lanes, not individual files.
@@ -651,6 +657,28 @@ checkouts while sharing the local test service instances:
   ```
 
 The shared `onetime_auth_test` database does not match this query.
+
+## Datastore connections in a test process
+
+A process that runs the application's `SetupConnectionPool` initializer (an
+integration spec, a tryout that boots with the database) serves every
+`Familia.dbclient` lookup from the boot's connection pool. A process that
+does not (unit specs never boot; unit tryouts boot with `connect_to_db:
+false`) would fall through to Familia's fallback, which opens a fresh
+connection per lookup (familia 2.12, delano/familia#456). One datastore-heavy
+spec file made thousands of such connections, exhausted the ephemeral port
+range on macOS (`Errno::EADDRNOTAVAIL ... 127.0.0.1:2163`), and the runner
+reported the test services lost mid-run (exit 69) although valkey was fine.
+
+`spec/spec_helper.rb` and `try/support/test_helpers.rb` therefore install a
+bounded pool on load (`tests/lanes/support/datastore_pool.rb`), with the
+same provider a full boot installs: the pinned-connection stack first,
+otherwise a pool checkout. Each helper passes the test datastore URL, which
+becomes `Familia.uri` and the target of every pooled connection; connections
+are created lazily, with the initializer's reconnect attempts. A later full
+boot replaces the provider with its own pool. `FAMILIA_POOL_SIZE` and
+`FAMILIA_POOL_TIMEOUT` size it, as they do the initializer's pool, except
+that a value that is not an integer stops the test process at load.
 
 ## Hermetic environment boundary
 

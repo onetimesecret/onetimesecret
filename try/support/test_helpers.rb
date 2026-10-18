@@ -89,6 +89,16 @@ $LOAD_PATH.unshift(File.join(app_root))
 require 'onetime'
 require 'onetime/models'
 
+# A bounded connection pool for this process, the same one spec_helper
+# installs. A tryout that boots with connect_to_db=false skips
+# SetupConnectionPool, so its Familia.dbclient lookups otherwise open a
+# connection each (familia 2.12 fallback, delano/familia#456). Nothing has
+# set Familia.uri yet (it reads 127.0.0.1:6379, the development datastore),
+# so the pool is pointed at the isolated URL above, which install! also
+# makes Familia.uri. A full boot replaces the provider with its own.
+require_relative '../../tests/lanes/support/datastore_pool'
+Lanes::DatastorePool.install!(uri: ENV.fetch('REDIS_URL'))
+
 # Log using the current thread to avoid async/concurrency issues
 require 'semantic_logger/sync'
 
