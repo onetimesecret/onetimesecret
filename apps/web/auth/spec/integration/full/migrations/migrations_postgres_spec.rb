@@ -529,4 +529,36 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
       expect(setup_db[:account_active_session_keys].where(session_id: 'pre-011').count).to eq(1)
     end
   end
+
+  describe 'account login + contact verification migration (012, ADR-051)' do
+    it 'adds four nullable columns, a unique login index that ignores NULLs, keeps email NOT NULL, and rolls back', :aggregate_failures do
+      Sequel::Migrator.run(migration_db, migrations_dir, target: 11)
+      pre = insert_account(setup_db, 'pre-012@example.com')
+
+      Sequel::Migrator.run(migration_db, migrations_dir, target: 12)
+      schema = test_db.schema(:accounts, reload: true).to_h
+      expect(schema).to include(
+        login: hash_including(allow_null: true),
+        email_verified_at: hash_including(allow_null: true),
+        email_verified_by: hash_including(allow_null: true),
+        email_verification_hold: hash_including(allow_null: true),
+      )
+      expect(schema[:email]).to include(allow_null: false)
+      expect(setup_db[:accounts].where(id: pre).get(:login)).to be_nil
+
+      # The old binary keeps inserting rows with NULL login.
+      a = insert_account(setup_db, 'a-012@example.com')
+      expect(setup_db[:accounts].where(id: [pre, a], login: nil).count).to eq(2)
+
+      setup_db[:accounts].where(id: pre).update(login: 'objid-pre')
+      expect do
+        setup_db[:accounts].where(id: a).update(login: 'objid-pre')
+      end.to raise_error(Sequel::UniqueConstraintViolation)
+
+      Sequel::Migrator.run(migration_db, migrations_dir, target: 11)
+      expect(test_db.schema(:accounts, reload: true).map(&:first))
+        .not_to include(:login, :email_verified_at, :email_verified_by, :email_verification_hold)
+      expect(setup_db[:accounts].where(id: [pre, a]).count).to eq(2)
+    end
+  end
 end

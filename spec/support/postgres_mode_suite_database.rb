@@ -52,7 +52,7 @@ require_relative 'factories/auth_account_factory'
 module PostgresModeSuiteDatabase
   REQUIRED_TABLES = %i[accounts account_statuses account_password_hashes].freeze
   # Migration 011 adds remember_until to account_active_session_keys.
-  EXPECTED_SCHEMA_VERSION = 11
+  EXPECTED_SCHEMA_VERSION = 12
 
   class << self
     attr_reader :database, :migration_database

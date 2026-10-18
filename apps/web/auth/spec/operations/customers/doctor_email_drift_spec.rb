@@ -69,7 +69,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       allow(accounts).to receive(:where).with(id: 42).and_return(by_id)
       # The doctor reads the accounts row ONCE (memoized `auth_account`) and
       # shares it with :sso_customer_unverified, hence :status_id in the select.
-      allow(by_external_id).to receive(:select).with(:id, :email, :status_id).and_return(by_external_id)
+      allow(by_external_id).to receive(:select).with(*described_class::AUTH_ACCOUNT_COLUMNS).and_return(by_external_id)
     end
 
     def run(repair: false)
@@ -174,7 +174,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       allow(db).to receive(:transaction) { |&blk| blk.call }
       allow(accounts).to receive(:where).with(external_id: 'ur_c').and_return(by_external_id)
       allow(accounts).to receive(:where).with(id: 42).and_return(by_id)
-      allow(by_external_id).to receive(:select).with(:id, :email, :status_id).and_return(by_external_id)
+      allow(by_external_id).to receive(:select).with(*described_class::AUTH_ACCOUNT_COLUMNS).and_return(by_external_id)
     end
 
     def run(repair: false)

@@ -73,7 +73,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     allow(Auth::Database).to receive(:connection).and_return(db)
     allow(db).to receive(:[]).with(:accounts).and_return(accounts)
     allow(accounts).to receive(:where).with(external_id: 'ur_c').and_return(by_external_id)
-    allow(by_external_id).to receive(:select).with(:id, :email, :status_id).and_return(by_external_id)
+    allow(by_external_id).to receive(:select).with(*described_class::AUTH_ACCOUNT_COLUMNS).and_return(by_external_id)
     allow(by_external_id).to receive(:first).and_return(account_row)
 
     allow(Auth::Operations::SetCustomerVerification).to receive(:new) do |**kwargs|
