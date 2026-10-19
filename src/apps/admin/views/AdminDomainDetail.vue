@@ -268,8 +268,7 @@
    * The apply button exists ONLY behind a preview that says `planned`, matching
    * repair and transfer. Without this gate the typed-confirm dialog opens cold:
    * the operator retypes the extid having never been told which org loses the
-   * domain or whether a survivor row reasserts the display_domain index. The
-   * server guard (`dry_run !== false`) keeps the apply honest, but honesty
+   * domain. The server guard (`dry_run !== false`) keeps the apply honest, but honesty
    * about WHAT was destroyed is not the same as showing it first.
    *
    * Ops::Domains::Remove emits `planned` on every dry run and `removed` only on
@@ -296,6 +295,8 @@
   const activeAction = ref<ActionKey | null>(null);
   /** The last verify outcome, read in onConfirm to pick an honest message. */
   const verifyResult = ref<ColonelDomainVerifyDetails | null>(null);
+  /** The applied removal's ack, read in onConfirm for its sender cleanup. */
+  const removeResult = ref<ColonelDomainRemoveDetails | null>(null);
 
   const {
     loading: mutationLoading,
@@ -339,6 +340,7 @@
         if (!removeAck || removeAck.dry_run !== false) {
           throw new Error(t('web.admin.domains.actions.remove.notApplied'));
         }
+        removeResult.value = removeAck;
         return;
       }
       default:
@@ -420,6 +422,14 @@
     if (action === 'verify') {
       notifyVerifyOutcome();
       verifyResult.value = null;
+    } else if (action === 'remove' && removeResult.value?.sender_cleanup === 'failed') {
+      // The record is gone, but the provider sender identity may remain.
+      notifications.show(
+        t('web.admin.domains.actions.remove.senderCleanupFailed', {
+          domain: record.value?.display_domain ?? publicId.value,
+        }),
+        'warning'
+      );
     } else {
       notifications.show(t(`${ACTION_I18N_ROOT[action]}.success`), 'success');
     }
@@ -427,6 +437,7 @@
     if (action === 'remove') {
       // The record no longer exists — drop the cached row and return to the list.
       store.forget(publicId.value);
+      removeResult.value = null;
       activeAction.value = null;
       router.push({ name: 'AdminDomains' });
       return;
@@ -840,12 +851,6 @@
                   <span class="font-medium">{{
                     removePlan.org_name || removePlan.org_id || t('web.admin.domains.detail.none')
                   }}</span>
-                </p>
-                <p
-                  v-if="removePlan.reasserts_survivor"
-                  class="mt-1 text-amber-700 dark:text-amber-400"
-                  data-testid="remove-reasserts">
-                  {{ t('web.admin.domains.actions.remove.reassertsSurvivor') }}
                 </p>
               </div>
               <button

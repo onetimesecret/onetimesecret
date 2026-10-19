@@ -1,19 +1,19 @@
-# lib/onetime/operations/domains/canonical_index_backfill.rb
+# lib/onetime/operations/domains/ascii_index_backfill.rb
 #
 # frozen_string_literal: true
 
 # Domain-owned (app-scoped) operation — see decision D3 in
 # lib/onetime/operations/README.md. Loaded at the call site (CLI), so require
 # the audit it builds on explicitly.
-require 'onetime/operations/domains/canonical_index_audit'
+require 'onetime/operations/domains/ascii_index_audit'
 
 module Onetime
   module Operations
     module Domains
       # Enter existing custom domain records into
-      # CustomDomain.canonical_display_domain_index, from the result of
-      # {CanonicalIndexAudit}. The CLI adapter is
-      # `bin/ots domains backfill-canonical-index`.
+      # CustomDomain.ascii_display_domain_index, from the result of
+      # {AsciiIndexAudit}. The CLI adapter is
+      # `bin/ots domains backfill-ascii-index`.
       #
       # ## What it writes
       #
@@ -49,18 +49,18 @@ module Onetime
       # The writes take no lock shared with create!, destroy! or
       # CustomDomain::IdentityGuard, so they are only safe while nothing else
       # writes custom domains. See
-      # docs/runbooks/custom-domain-canonical-index-backfill.md.
+      # docs/runbooks/custom-domain-ascii-index-backfill.md.
       #
       # ## Audit trail
       #
       # Index housekeeping, like the index repairs in `bin/ots domains doctor`:
       # each write is logged (OT.info) and no ColonelAuditEvent is recorded.
-      class CanonicalIndexBackfill
+      class AsciiIndexBackfill
         # @!attribute kind [r] Symbol — :claim (missing entry), :reclaim (stale
         #   entry on the record's own name), :release (stale entry on a name no
         #   record has)
         # @!attribute outcome [r] Symbol — see OUTCOMES
-        Action = Data.define(:kind, :canonical, :domain_id, :display_domain, :stale_id, :outcome, :detail)
+        Action = Data.define(:kind, :ascii_name, :domain_id, :display_domain, :stale_id, :outcome, :detail)
 
         # :planned       dry run, or an apply that was refused (nothing written)
         # :claimed       the entry now names the record (after a release, for :reclaim)
@@ -80,9 +80,9 @@ module Onetime
         #   :unreadable_records  the audit found records it could not load
         REFUSALS = [:unreadable_records].freeze
 
-        # @!attribute audit [r] CanonicalIndexAudit::Result the actions were
+        # @!attribute audit [r] AsciiIndexAudit::Result the actions were
         #   planned from, read before any write
-        # @!attribute final_audit [r] CanonicalIndexAudit::Result read after the
+        # @!attribute final_audit [r] AsciiIndexAudit::Result read after the
         #   writes; the same as audit when nothing was applied, nil when that
         #   audit raised
         # @!attribute recheck_error [r] String, nil — why final_audit is nil
@@ -125,7 +125,7 @@ module Onetime
 
         # @return [Result]
         def call
-          audit   = CanonicalIndexAudit.new.call
+          audit   = AsciiIndexAudit.new.call
           planned = plan(audit)
           return unapplied(audit, planned, nil) if @dry_run
           return unapplied(audit, planned, :unreadable_records) if refuse_unreadable?(audit)
@@ -150,27 +150,27 @@ module Onetime
         end
 
         def index
-          model.canonical_display_domain_index
+          model.ascii_display_domain_index
         end
 
         def plan(audit)
           claims   = audit.rows_in(:missing).map do |row|
-            planned_action(:claim, row.canonical, row.domain_id, row.display_domain, nil)
+            planned_action(:claim, row.ascii_name, row.domain_id, row.display_domain, nil)
           end
           reclaims = audit.rows_in(:stale).map do |row|
-            planned_action(:reclaim, row.canonical, row.domain_id, row.display_domain, row.holder_id)
+            planned_action(:reclaim, row.ascii_name, row.domain_id, row.display_domain, row.holder_id)
           end
           releases = audit.entries_in(:stale).map do |entry|
-            planned_action(:release, entry.canonical, nil, nil, entry.holder_id)
+            planned_action(:release, entry.ascii_name, nil, nil, entry.holder_id)
           end
 
           claims + reclaims + releases
         end
 
-        def planned_action(kind, canonical, domain_id, display_domain, stale_id)
+        def planned_action(kind, ascii_name, domain_id, display_domain, stale_id)
           Action.new(
             kind: kind,
-            canonical: canonical,
+            ascii_name: ascii_name,
             domain_id: domain_id,
             display_domain: display_domain,
             stale_id: stale_id,
@@ -193,18 +193,18 @@ module Onetime
         def refuse_unreadable?(audit)
           return false if audit.errors.empty?
 
-          OT.le "[Domains::CanonicalIndexBackfill] Not applying: #{audit.errors.size} custom domain " \
+          OT.le "[Domains::AsciiIndexBackfill] Not applying: #{audit.errors.size} custom domain " \
                 'records could not be loaded; nothing was written'
           true
         end
 
         # The audit after the writes.
         #
-        # @return [Array(CanonicalIndexAudit::Result, nil), Array(nil, String)]
+        # @return [Array(AsciiIndexAudit::Result, nil), Array(nil, String)]
         def recheck
-          [CanonicalIndexAudit.new.call, nil]
+          [AsciiIndexAudit.new.call, nil]
         rescue StandardError => ex
-          OT.le "[Domains::CanonicalIndexBackfill] Audit after the writes failed: #{ex.class}: #{ex.message}"
+          OT.le "[Domains::AsciiIndexBackfill] Audit after the writes failed: #{ex.class}: #{ex.message}"
           [nil, "#{ex.class}: #{ex.message}"]
         end
 
@@ -213,7 +213,7 @@ module Onetime
         def apply_recording_errors(action)
           apply(action)
         rescue StandardError => ex
-          OT.le "[Domains::CanonicalIndexBackfill] #{action.kind} of #{action.canonical} raised #{ex.class}: #{ex.message}"
+          OT.le "[Domains::AsciiIndexBackfill] #{action.kind} of #{action.ascii_name} raised #{ex.class}: #{ex.message}"
           action.with(outcome: :error, detail: "#{ex.class}: #{ex.message}")
         end
 
@@ -228,13 +228,13 @@ module Onetime
         def claim(action)
           return action.with(outcome: :skipped, detail: 'record no longer exists') unless record_exists?(action.domain_id)
 
-          result = index.claim_field(action.canonical, action.domain_id)
+          result = index.claim_field(action.ascii_name, action.domain_id)
 
           case result
           when :created then verify_claim(action)
           when :owned then action.with(outcome: :already_held)
           else
-            OT.le "[Domains::CanonicalIndexBackfill] #{action.canonical} is held by #{result}, " \
+            OT.le "[Domains::AsciiIndexBackfill] #{action.ascii_name} is held by #{result}, " \
                   "not claimed for #{action.domain_id}"
             action.with(outcome: :refused, detail: "entry names #{result}")
           end
@@ -244,15 +244,15 @@ module Onetime
         # is released again, ownership-checked, so a value that is not this
         # record's is left alone.
         def verify_claim(action)
-          stored = index.get(action.canonical)
+          stored = index.get(action.ascii_name)
           if stored == action.domain_id
-            OT.info '[Domains::CanonicalIndexBackfill] Claimed canonical_display_domain_index' \
-                    "[#{action.canonical}] for #{action.domain_id} (#{action.display_domain})"
+            OT.info '[Domains::AsciiIndexBackfill] Claimed ascii_display_domain_index' \
+                    "[#{action.ascii_name}] for #{action.domain_id} (#{action.display_domain})"
             return action.with(outcome: :claimed)
           end
 
-          index.release_field(action.canonical, action.domain_id)
-          OT.le "[Domains::CanonicalIndexBackfill] Claim of #{action.canonical} for #{action.domain_id} " \
+          index.release_field(action.ascii_name, action.domain_id)
+          OT.le "[Domains::AsciiIndexBackfill] Claim of #{action.ascii_name} for #{action.domain_id} " \
                 "read back as #{stored.inspect}"
           action.with(outcome: :unverified, detail: "entry read back as #{stored.inspect}")
         end
@@ -276,10 +276,10 @@ module Onetime
 
         # @return [Boolean] whether the entry was removed
         def release_stale(action)
-          released = index.release_field(action.canonical, action.stale_id).to_i == 1
+          released = index.release_field(action.ascii_name, action.stale_id).to_i == 1
           if released
-            OT.info '[Domains::CanonicalIndexBackfill] Released canonical_display_domain_index' \
-                    "[#{action.canonical}] from #{action.stale_id}, which no longer exists"
+            OT.info '[Domains::AsciiIndexBackfill] Released ascii_display_domain_index' \
+                    "[#{action.ascii_name}] from #{action.stale_id}, which no longer exists"
           end
           released
         end

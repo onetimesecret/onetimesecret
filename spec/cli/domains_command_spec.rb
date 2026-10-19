@@ -75,7 +75,7 @@ RSpec.describe 'Domains Command', type: :cli do
       output = run_cli_command_quietly('domains')
 
       usage_verbs = output[:stdout].scan(/^  bin\/ots domains (\S+)/).flatten
-      expect(usage_verbs).to eq(%w[list info create verify probe transfer remove orphaned repair doctor backfill-canonical-index])
+      expect(usage_verbs).to eq(%w[list info create verify probe transfer remove orphaned repair doctor backfill-ascii-index resolve-collisions])
       expect(output[:stdout]).not_to include('migrate-sso')
     end
   end
@@ -309,11 +309,11 @@ RSpec.describe 'Domains Command', type: :cli do
   end
 
   describe 'remove subcommand' do
-    def remove_result(status:, dry_run:, reasserts: false)
+    def remove_result(status:, dry_run:, sender_cleanup: dry_run ? nil : :deleted)
       double('RemoveResult',
         status: status, domain_id: 'example.com', extid: 'ext123',
         display_domain: 'example.com', org_id: 'org123', org_name: 'Test Org',
-        reasserts_survivor: reasserts, dry_run: dry_run)
+        dry_run: dry_run, sender_cleanup: sender_cleanup)
     end
 
     before do
@@ -328,15 +328,14 @@ RSpec.describe 'Domains Command', type: :cli do
     it 'previews (dry-run) then applies after confirmation — two op calls' do
       op = double('Remove')
       allow(op).to receive(:call).and_return(
-        remove_result(status: :planned, dry_run: true, reasserts: true),
-        remove_result(status: :removed, dry_run: false, reasserts: true),
+        remove_result(status: :planned, dry_run: true),
+        remove_result(status: :removed, dry_run: false),
       )
       allow(Onetime::Operations::Domains::Remove).to receive(:new).and_return(op)
       allow($stdin).to receive(:gets).and_return("y\n")
 
       output = run_cli_command_quietly('domains', 'remove', 'example.com')
       expect(output[:stdout]).to include('Removal Details')
-      expect(output[:stdout]).to include('SHADOW record')
       expect(output[:stdout]).to include('Removal complete')
       expect(last_exit_code).to eq(0)
     end
@@ -373,6 +372,58 @@ RSpec.describe 'Domains Command', type: :cli do
       output = run_cli_command_quietly('domains', 'remove', 'example.com', '--apply', '--json')
       expect(JSON.parse(output[:stdout])['error']).to include('datastore unavailable')
       expect(last_exit_code).to eq(1)
+    end
+
+    it 'reports the sender cleanup outcome of an apply' do
+      op = double('Remove', call: remove_result(status: :removed, dry_run: false))
+      allow(Onetime::Operations::Domains::Remove).to receive(:new).and_return(op)
+
+      output = run_cli_command_quietly('domains', 'remove', 'example.com', '--apply')
+      expect(output[:stdout]).to include('Sender identity:      deleted')
+      expect(output[:stdout]).to include('Removal complete')
+      expect(last_exit_code).to eq(0)
+    end
+
+    it 'does not report completion and exits 1 when the sender cleanup failed' do
+      op = double('Remove', call: remove_result(status: :removed, dry_run: false, sender_cleanup: :failed))
+      allow(Onetime::Operations::Domains::Remove).to receive(:new).and_return(op)
+
+      output = run_cli_command_quietly('domains', 'remove', 'example.com', '--apply')
+      expect(output[:stdout]).to include('Removed example.com (ext123)')
+      expect(output[:stdout]).to include('Sender identity:      failed')
+      expect(output[:stdout]).to include('provider sender identity may remain')
+      expect(output[:stdout]).not_to include('Removal complete')
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'emits sender_cleanup under --json and exits 1 when it failed' do
+      op = double('Remove', call: remove_result(status: :removed, dry_run: false, sender_cleanup: :failed))
+      allow(Onetime::Operations::Domains::Remove).to receive(:new).and_return(op)
+
+      output = run_cli_command_quietly('domains', 'remove', 'example.com', '--apply', '--json')
+      payload = JSON.parse(output[:stdout])
+      expect(payload['status']).to eq('removed')
+      expect(payload['sender_cleanup']).to eq('failed')
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'emits sender_cleanup under --json and exits 0 when it succeeded' do
+      op = double('Remove', call: remove_result(status: :removed, dry_run: false))
+      allow(Onetime::Operations::Domains::Remove).to receive(:new).and_return(op)
+
+      output = run_cli_command_quietly('domains', 'remove', 'example.com', '--apply', '--json')
+      expect(JSON.parse(output[:stdout])['sender_cleanup']).to eq('deleted')
+      expect(last_exit_code).to eq(0)
+    end
+
+    it 'emits a null sender_cleanup for a --dry-run under --json' do
+      op = double('Remove', call: remove_result(status: :planned, dry_run: true))
+      allow(Onetime::Operations::Domains::Remove).to receive(:new).and_return(op)
+
+      output = run_cli_command_quietly('domains', 'remove', 'example.com', '--dry-run', '--json')
+      payload = JSON.parse(output[:stdout])
+      expect(payload).to include('status' => 'planned', 'sender_cleanup' => nil)
+      expect(last_exit_code).to eq(0)
     end
 
     it 'aborts without applying when the operator declines' do

@@ -130,6 +130,22 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
     end
   end
 
+  # A RegistrySweep as a capture over these doubles would have produced it:
+  # every organization listed and referenced, membership rows grouped by their
+  # organization with the target's rows named, domains grouped by org_id. The
+  # preflight re-loads each through the stubbed loaders.
+  def registry_sweep(organizations: [], memberships: [], domains: [], failures: {})
+    Auth::Operations::Customers::RegistrySweep.new(
+      customer_objid: customer.objid,
+      organization_ids: organizations.map(&:objid),
+      referenced_org_ids: organizations.map(&:objid),
+      membership_objids_by_org: memberships.group_by(&:organization_objid).transform_values { |rows| rows.map(&:objid) },
+      target_membership_objids: memberships.select { |row| row.customer_objid == customer.objid }.map(&:objid),
+      domain_objids_by_org: domains.group_by(&:org_id).transform_values { |rows| rows.map(&:objid) },
+      failures: failures,
+    )
+  end
+
   describe 'already-deleted organization participation' do
     let(:reference) { 'organization:org-gone:members' }
     let(:redis) { double('read-only Redis') }
@@ -763,12 +779,137 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
 
     # Reachable only through the global registry sweep: the customer's own
     # reverse indexes do not name this organization.
-    plan = described_class.new(customer: customer, deep: true).call
+    sweep = registry_sweep(organizations: [org], memberships: [target_membership, owner_membership])
+    plan  = described_class.new(customer: customer, deep: true, registry_sweep: sweep).call
 
     expect(plan).not_to be_executable
     expect(plan.blockers.map { |blocker| blocker[:code] })
       .to include(:membership_index_drift, :target_membership_drift)
     expect(plan.actions).to be_empty
+  end
+
+  it 'captures the registry sweep once and exposes it for reuse' do
+    sweep = registry_sweep
+    allow(Auth::Operations::Customers::RegistrySweep).to receive(:capture)
+      .with(customer_objid: customer.objid).and_return(sweep)
+
+    checker = described_class.new(customer: customer, deep: true)
+    checker.call
+
+    expect(checker.registry_sweep).to be(sweep)
+    expect(Auth::Operations::Customers::RegistrySweep).to have_received(:capture).once
+
+    reused = described_class.new(customer: customer, deep: true, registry_sweep: sweep)
+    reused.call
+    expect(reused.registry_sweep).to be(sweep)
+    expect(Auth::Operations::Customers::RegistrySweep).to have_received(:capture).once
+  end
+
+  it 'hands the sweep to the deletion capability so the recheck does not rescan' do
+    org              = organization
+    owner_membership = membership(org_objid: org.objid, customer_objid: customer.objid, role: 'owner')
+    allow(customer).to receive(:participations)
+      .and_return(collection(["organization:#{org.objid}:members"]))
+    allow(customer).to receive(:organization_instances).and_return(collection([org]))
+    stub_organization_scan(org)
+    stub_membership_scan(owner_membership)
+    stub_membership_lookup(org, customer.objid => owner_membership)
+    allow(Onetime::Customer).to receive(:load).with(customer.objid).and_return(customer)
+    allow(contact_index).to receive(:get).with('target@example.com').and_return(org.objid)
+    allow(Auth::Operations::Customers::RegistrySweep).to receive(:capture)
+
+    sweep = registry_sweep(organizations: [org], memberships: [owner_membership])
+    plan  = described_class.new(customer: customer, deep: true, registry_sweep: sweep).call
+
+    expect(plan.actions.map(&:type)).to eq([:delete_organization])
+    context = plan.actions.first.account_purge_context
+    expect(context.authorized_for?(org)).to be(true)
+    expect(Auth::Operations::Customers::RegistrySweep).not_to have_received(:capture)
+  end
+
+  it 'ignores a registry sweep on a shallow preflight' do
+    org              = organization
+    owner_membership = membership(org_objid: org.objid, customer_objid: customer.objid, role: 'owner')
+    allow(customer).to receive(:participations)
+      .and_return(collection(["organization:#{org.objid}:members"]))
+    allow(customer).to receive(:organization_instances).and_return(collection([org]))
+    stub_organization_scan(org)
+    stub_membership_scan(owner_membership)
+    stub_membership_lookup(org, customer.objid => owner_membership)
+    allow(Onetime::Customer).to receive(:load).with(customer.objid).and_return(customer)
+    allow(contact_index).to receive(:get).with('target@example.com').and_return(org.objid)
+    allow(Auth::Operations::Customers::RegistrySweep).to receive(:capture)
+
+    sweep   = registry_sweep(organizations: [org], memberships: [owner_membership])
+    checker = described_class.new(customer: customer, registry_sweep: sweep)
+    plan    = checker.call
+
+    # Shallow discovery reaches the workspace through the customer's own
+    # indexes, exactly as without the sweep: the sweep adds no evidence.
+    expect(plan.actions.map(&:type)).to eq([:delete_organization])
+    expect(checker.registry_sweep).to be_nil
+    expect(Auth::Operations::Customers::RegistrySweep).not_to have_received(:capture)
+  end
+
+  it 'drops a swept organization that no longer references the customer' do
+    owner = double('Owner', objid: 'cust-owner')
+    org   = organization(
+      objid: 'org-left',
+      extid: 'on_left',
+      owner_id: owner.objid,
+      created_by: owner.objid,
+      contact_email: 'owner@example.com',
+      is_default: 'false',
+      members: collection([owner.objid]),
+    )
+    owner_membership = membership(org_objid: org.objid, customer_objid: owner.objid, role: 'owner')
+    # Named by the sweep (the row existed at capture) but removed since, as
+    # the purge's own remove_membership action does.
+    removed_row = Onetime::OrganizationMembership.composite_objid(org.objid, customer.objid)
+    stub_organization_scan(org)
+    stub_membership_scan(owner_membership)
+    stub_membership_lookup(org, owner.objid => owner_membership)
+    allow(Onetime::Customer).to receive(:load).with(owner.objid).and_return(owner)
+
+    sweep = Auth::Operations::Customers::RegistrySweep.new(
+      customer_objid: customer.objid,
+      organization_ids: [org.objid],
+      referenced_org_ids: [org.objid],
+      membership_objids_by_org: { org.objid => [owner_membership.objid, removed_row] },
+      target_membership_objids: [removed_row],
+    )
+    plan = described_class.new(customer: customer, deep: true, registry_sweep: sweep).call
+
+    expect(plan).to be_executable
+    expect(plan.actions).to be_empty
+    expect(plan.blockers).to be_empty
+    expect(Onetime::Organization).to have_received(:load).with(org.objid)
+    expect(Onetime::OrganizationMembership).to have_received(:load).with(removed_row)
+  end
+
+  it 'reports an orphan membership row that still names the customer' do
+    row = membership(org_objid: 'org-vanished', customer_objid: customer.objid, role: 'member')
+    stub_membership_scan(row)
+
+    sweep = registry_sweep(memberships: [row])
+    plan  = described_class.new(customer: customer, deep: true, registry_sweep: sweep).call
+
+    expect(plan).not_to be_executable
+    expect(plan.blockers).to include(code: :orphan_customer_membership, membership_id: row.objid)
+  end
+
+  it 'turns a sweep that could not list a registry into the matching blockers' do
+    sweep = registry_sweep(
+      failures: { organizations: 'IOError', memberships: 'Familia::Problem', domains: 'IOError' },
+    )
+    plan = described_class.new(customer: customer, deep: true, registry_sweep: sweep).call
+
+    expect(plan).not_to be_executable
+    expect(plan.blockers).to include(
+      { code: :organization_scan_failed, message: 'IOError' },
+      { code: :membership_scan_failed, message: 'Familia::Problem' },
+      { code: :domain_scan_failed, message: 'IOError' },
+    )
   end
 
   it 'fails closed on drift and billing state, not on the account own workspace content' do
@@ -1158,7 +1299,8 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
     allow(Onetime::Customer).to receive(:load).with(customer.objid).and_return(customer)
     allow(contact_index).to receive(:get).with('target@example.com').and_return(org.objid)
 
-    plan = described_class.new(customer: customer, deep: true).call
+    sweep = registry_sweep(organizations: [org], memberships: [owner_membership], domains: [domain])
+    plan  = described_class.new(customer: customer, deep: true, registry_sweep: sweep).call
 
     expect(plan).not_to be_executable
     expect(plan.blockers).to include(hash_including(code: :drifted_domains))

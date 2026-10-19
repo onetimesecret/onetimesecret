@@ -1,22 +1,22 @@
-# lib/onetime/cli/domains/backfill_canonical_index_command.rb
+# lib/onetime/cli/domains/backfill_ascii_index_command.rb
 #
 # frozen_string_literal: true
 
-# Audit custom domain records against the canonical name index
-# (CustomDomain.canonical_display_domain_index) and enter the records that are
+# Audit custom domain records against the ASCII name index
+# (CustomDomain.ascii_display_domain_index) and enter the records that are
 # missing from it. Thin adapter over
-# Onetime::Operations::Domains::CanonicalIndexBackfill, which owns the audit
+# Onetime::Operations::Domains::AsciiIndexBackfill, which owns the audit
 # categories and the writes.
 #
 # Usage:
-#   bin/ots domains backfill-canonical-index                 # dry run: report and plan
-#   bin/ots domains backfill-canonical-index --json          # dry run, machine-readable
-#   bin/ots domains backfill-canonical-index --apply         # confirm, then write
-#   bin/ots domains backfill-canonical-index --apply --yes   # write without prompting
+#   bin/ots domains backfill-ascii-index                 # dry run: report and plan
+#   bin/ots domains backfill-ascii-index --json          # dry run, machine-readable
+#   bin/ots domains backfill-ascii-index --apply         # confirm, then write
+#   bin/ots domains backfill-ascii-index --apply --yes   # write without prompting
 #
 # STOP THE APPLICATION FIRST. The writes take no lock shared with the web,
 # worker and scheduler processes; run --apply only while none of them is
-# running. Runbook: docs/runbooks/custom-domain-canonical-index-backfill.md.
+# running. Runbook: docs/runbooks/custom-domain-ascii-index-backfill.md.
 #
 # After --apply the report describes the index as the writes left it (the
 # audit runs again) and lists the outcome of every write. --apply writes
@@ -34,21 +34,21 @@
 # one go, possibly with the application running.
 
 require 'json'
-require 'onetime/operations/domains/canonical_index_backfill'
+require 'onetime/operations/domains/ascii_index_backfill'
 require_relative 'shared'
 
 module Onetime
   module CLI
-    class DomainsBackfillCanonicalIndexCommand < Command
+    class DomainsBackfillAsciiIndexCommand < Command
       include Domains::Shared
 
       # Planned writes listed in a text dry run; --json lists every one, and
       # so does the text report of an apply.
       TEXT_ACTION_LIMIT = 20
 
-      RUNBOOK = 'docs/runbooks/custom-domain-canonical-index-backfill.md'
+      RUNBOOK = 'docs/runbooks/custom-domain-ascii-index-backfill.md'
 
-      desc 'Audit and backfill the custom-domain canonical name index (stop the app before --apply)'
+      desc 'Audit and backfill the custom-domain ASCII name index (stop the app before --apply)'
 
       option :apply,
         type: :boolean,
@@ -82,7 +82,7 @@ module Onetime
 
         result = run_backfill(dry_run: !apply, json: json)
 
-        OT.info "[cli-domains-backfill-canonical-index] dry_run=#{result.dry_run} refusal=#{result.refusal.inspect} " \
+        OT.info "[cli-domains-backfill-ascii-index] dry_run=#{result.dry_run} refusal=#{result.refusal.inspect} " \
                 "counts=#{result.report_audit.counts} changes=#{result.changes.size} failures=#{result.failures.size}"
 
         json ? output_json(result) : output_text(result)
@@ -92,14 +92,14 @@ module Onetime
       private
 
       def run_backfill(dry_run:, json:)
-        Onetime::Operations::Domains::CanonicalIndexBackfill.new(dry_run: dry_run).call
+        Onetime::Operations::Domains::AsciiIndexBackfill.new(dry_run: dry_run).call
       rescue StandardError => ex
         error_exit("Backfill failed: #{ex.class}: #{ex.message}", json: json)
       end
 
       # Exits 1 unless the operator answers y.
       def confirm_stopped
-        puts 'This writes to the canonical name index. The web, worker and scheduler'
+        puts 'This writes to the ASCII name index. The web, worker and scheduler'
         puts 'processes must be stopped, and the datastore snapshotted, before it runs.'
         print 'Is the application stopped? [y/N] '
         response = $stdin.gets&.strip&.downcase
@@ -112,7 +112,7 @@ module Onetime
       def output_text(result)
         audit = result.report_audit
 
-        puts 'Custom domain canonical index'
+        puts 'Custom domain ASCII index'
         puts '=' * 40
         puts "Mode: #{mode_label(result)}"
         puts "Records scanned: #{audit.rows.size}"
@@ -144,7 +144,7 @@ module Onetime
 
       def print_counts(audit)
         counts = audit.counts
-        Onetime::Operations::Domains::CanonicalIndexAudit::CATEGORIES.each do |category|
+        Onetime::Operations::Domains::AsciiIndexAudit::CATEGORIES.each do |category|
           puts format('  %-14s %d', category, counts[category])
         end
         puts format('  %-14s %d', 'unreadable', audit.errors.size)
@@ -162,7 +162,7 @@ module Onetime
         shown.each do |action|
           target = action.domain_id ? "#{action.domain_id} #{spelled(action.display_domain)}" : "(was #{action.stale_id})"
           detail = action.detail ? " - #{action.detail}" : ''
-          puts format('  %-8s %-12s %s -> %s%s', action.kind, action.outcome, action.canonical, target, detail)
+          puts format('  %-8s %-12s %s -> %s%s', action.kind, action.outcome, action.ascii_name, target, detail)
         end
         remaining = actions.size - shown.size
         puts "  ... and #{remaining} more (--json lists all)" if remaining.positive?
@@ -180,13 +180,22 @@ module Onetime
         groups = audit.collision_groups
         return if groups.empty?
 
-        puts 'Collision groups (two or more records for one DNS name; resolve by hand):'
-        groups.each do |canonical, rows|
+        puts 'Collision groups (two or more records for one DNS name; see domains resolve-collisions):'
+        groups.each do |ascii_name, rows|
           holder = rows.first.holder_id
-          puts "  #{canonical}  (index entry: #{holder || 'none'})"
-          rows.each { |row| puts "    #{describe_row(row)}" }
+          served = served_id(ascii_name)
+          puts "  #{ascii_name}  (index entry: #{holder || 'none'}; a request resolves to: #{served || 'none'})"
+          rows.each { |row| puts "    #{row.domain_id == served ? 'served' : 'shadow'}  #{describe_row(row)}" }
         end
         puts
+      end
+
+      # The record a request for the name (its A-label) resolves to today.
+      # Read-only; nil when the name resolves to nothing or the read fails.
+      def served_id(ascii_name)
+        Onetime::CustomDomain.display_domain_id_for(ascii_name)
+      rescue StandardError
+        nil
       end
 
       def print_rows(title, rows)
@@ -204,7 +213,7 @@ module Onetime
         return if entries.empty?
 
         puts "#{title}:"
-        entries.each { |entry| puts "  #{entry.canonical} -> #{entry.holder_id}" }
+        entries.each { |entry| puts "  #{entry.ascii_name} -> #{entry.holder_id}" }
         puts
       end
 
@@ -222,9 +231,9 @@ module Onetime
           puts "See #{RUNBOOK}."
         elsif result.dry_run && result.changes.any?
           puts 'With the application stopped, apply with:'
-          puts '  bin/ots domains backfill-canonical-index --apply'
+          puts '  bin/ots domains backfill-ascii-index --apply'
         else
-          puts 'The canonical index agrees with every record.'
+          puts 'The ASCII index agrees with every record.'
         end
       end
 
@@ -249,11 +258,12 @@ module Onetime
           puts 'Entries are still missing or stale after the writes. With the application'
           puts 'stopped, run this command again.'
         end
-        return unless Onetime::Operations::Domains::CanonicalIndexAudit::ATTENTION_CATEGORIES.any? { |cat| audit.count(cat).positive? }
+        return unless Onetime::Operations::Domains::AsciiIndexAudit::ATTENTION_CATEGORIES.any? { |cat| audit.count(cat).positive? }
 
-        puts 'For each collision group keep the record whose organization has proven DNS'
-        puts 'ownership, remove the others by extid with `bin/ots domains remove <extid>`,'
-        puts 'then run this command again. Resolve conflicts by hand.'
+        puts 'Collision groups: `bin/ots domains resolve-collisions --write plan.json` decides'
+        puts 'each group by a fixed rule (DNS proof, then ownership, then use); review the'
+        puts 'plan, apply it with --apply --plan plan.json, then run this command again.'
+        puts 'Resolve conflicts by hand.'
       end
 
       def describe_row(row)
@@ -318,13 +328,13 @@ module Onetime
       def show_usage_help
         puts <<~USAGE
 
-          Custom domain canonical index: audit and backfill
+          Custom domain ASCII index: audit and backfill
 
           Usage:
-            bin/ots domains backfill-canonical-index [--apply [--yes]] [--json]
+            bin/ots domains backfill-ascii-index [--apply [--yes]] [--json]
 
           Description:
-            Compares every custom domain record with the canonical name index (one
+            Compares every custom domain record with the ASCII name index (one
             entry per DNS name, keyed by its A-label) and reports each record as ok,
             missing, collision, conflict, stale or unconvertible.
 
@@ -357,6 +367,6 @@ module Onetime
       end
     end
 
-    register 'domains backfill-canonical-index', DomainsBackfillCanonicalIndexCommand
+    register 'domains backfill-ascii-index', DomainsBackfillAsciiIndexCommand
   end
 end

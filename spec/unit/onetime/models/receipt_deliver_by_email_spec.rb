@@ -79,6 +79,10 @@ RSpec.describe Onetime::Receipt do
         display_domain_index = double('display_domain_index')
         allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(display_domain_index)
         allow(display_domain_index).to receive(:get).with(share_domain).and_return(expected_domain_id)
+        # The lookup loads the record the entry names and checks it is stored
+        # under the name looked up (CustomDomain.record_for_display_domain).
+        allow(Onetime::CustomDomain).to receive(:find_by_identifier).with(expected_domain_id)
+          .and_return(instance_double(Onetime::CustomDomain, identifier: expected_domain_id, display_domain: share_domain))
         allow(Onetime::Jobs::Publisher).to receive(:enqueue_email).and_return(true)
       end
 

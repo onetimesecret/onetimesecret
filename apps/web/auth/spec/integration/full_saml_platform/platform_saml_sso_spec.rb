@@ -315,10 +315,13 @@ RSpec.shared_examples 'platform SAML SSO' do
   # feature on the IP site.host drops out of the parsed canonical set.
   #
   # The test config's site.host is an IP literal, which CustomDomain#init
-  # refuses (PublicSuffix), so the record carries a parseable display_domain
-  # and only the display_domain_index entry — the seam the hook's
-  # resolve_custom_domain -> load_by_display_domain reads — is keyed on the
-  # platform host. The hook consumes nothing but the record's identifier.
+  # refuses (PublicSuffix), so the record is saved with a parseable
+  # display_domain and then re-pointed at the platform host with a raw write
+  # (loading a record does not run init). The lookup the hook reads
+  # (resolve_custom_domain -> load_by_display_domain) returns a record only
+  # when it is stored under the name looked up, so both the record's stored
+  # display_domain and its display_domain_index entry carry the platform
+  # host. The hook consumes nothing but the record's identifier.
   describe 'on the platform host with a stale CustomDomain record' do
     let(:platform_host) { URI.parse(platform_base).host }
 
@@ -330,6 +333,7 @@ RSpec.shared_examples 'platform SAML SSO' do
       domain      = Onetime::CustomDomain.new(display_domain: record_host, org_id: org.org_id)
       domain.verified = true
       domain.save
+      Onetime::CustomDomain.dbclient.hset(domain.dbkey, 'display_domain', Familia::JsonSerializer.dump(platform_host))
       Onetime::CustomDomain.display_domain_index.put(platform_host, domain.domainid)
       allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
       allow(Auth::Config::Hooks::OmniAuthTenant).to receive(:handle_missing_tenant_config).and_call_original

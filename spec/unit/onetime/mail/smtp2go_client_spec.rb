@@ -86,6 +86,23 @@ RSpec.describe Onetime::Mail::Smtp2goClient do
         end
       end
 
+      it 'raises APIError when a 200 envelope carries a top-level error beside success data' do
+        stub_request(:post, endpoint).to_return(
+          { status: 200, body: { 'error' => 'rejected', 'data' => { 'domains' => [] } }.to_json },
+          { status: 200, body: { 'error_code' => 'E_X', 'data' => { 'succeeded' => 1 } }.to_json },
+        )
+
+        expect { client.post('/email/send') }.to raise_error(described_class::APIError) do |err|
+          expect(err.message).to eq('rejected')
+          expect(err.status_code).to eq(200)
+          expect(err.error_code).to be_nil
+        end
+        expect { client.post('/email/send') }.to raise_error(described_class::APIError) do |err|
+          expect(err.message).to eq('HTTP 200')
+          expect(err.error_code).to eq('E_X')
+        end
+      end
+
       it 'raises APIError for a non-JSON success body' do
         stub_request(:post, endpoint).to_return(status: 200, body: '<html>gateway page</html>')
 
@@ -170,6 +187,47 @@ RSpec.describe Onetime::Mail::Smtp2goClient do
 
         expect { client.post('/email/send') }.to raise_error(SocketError)
       end
+    end
+  end
+
+  describe '#post_envelope' do
+    let(:remove_endpoint) { 'https://api.smtp2go.com/v3/domain/remove' }
+
+    it 'returns the whole envelope, keeping a request_id that has no data beside it' do
+      stub_request(:post, remove_endpoint)
+        .with(body: { 'domain' => 'example.com' }.to_json)
+        .to_return(status: 200, body: { 'request_id' => '40cbb6f2-935f-11e7-b5be-480fcf01a6f2' }.to_json)
+
+      expect(client.post_envelope('/domain/remove', { 'domain' => 'example.com' }))
+        .to eq('request_id' => '40cbb6f2-935f-11e7-b5be-480fcf01a6f2')
+    end
+
+    it 'returns request_id and data together' do
+      body = { 'request_id' => 'r1', 'data' => { 'domains' => [] } }
+      stub_request(:post, remove_endpoint).to_return(status: 200, body: body.to_json)
+
+      expect(client.post_envelope('/domain/remove')).to eq(body)
+    end
+
+    it 'returns an empty hash for an empty or non-object body, never a request_id' do
+      stub_request(:post, remove_endpoint).to_return({ status: 200, body: '' }, { status: 200, body: '["r1"]' })
+
+      expect(client.post_envelope('/domain/remove')).to eq({})
+      expect(client.post_envelope('/domain/remove')).to eq({})
+    end
+
+    it 'raises like #post for a 2xx error envelope, invalid JSON, and non-2xx responses' do
+      stub_request(:post, remove_endpoint).to_return(
+        { status: 200, body: { 'request_id' => 'r1', 'data' => { 'error' => 'rejected', 'error_code' => 'E_X' } }.to_json },
+        { status: 200, body: '<html>gateway page</html>' },
+        { status: 404, body: { 'request_id' => 'r1' }.to_json },
+      )
+
+      expect { client.post_envelope('/domain/remove') }.to raise_error(described_class::APIError, 'rejected')
+      expect { client.post_envelope('/domain/remove') }.to raise_error(described_class::APIError, /Invalid JSON/)
+      expect { client.post_envelope('/domain/remove') }.to raise_error(described_class::APIError, 'HTTP 404') { |err|
+        expect(err.status_code).to eq(404)
+      }
     end
   end
 

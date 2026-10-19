@@ -736,16 +736,18 @@ RSpec.describe Onetime::Mail::SenderStrategies::Smtp2goSenderStrategy do
         allow(mock_client).to receive(:post)
           .with('/domain/view', { 'domain' => 'example.com' })
           .and_return(view_response)
-        allow(mock_client).to receive(:post)
+        allow(mock_client).to receive(:post_envelope)
           .with('/domain/remove', { 'domain' => 'example.com' })
-          .and_return({})
+          .and_return({ 'request_id' => 'req-1', 'data' => { 'domains' => [] } })
       end
 
-      it 'returns deleted true' do
+      it 'returns deleted from the removal acknowledgement without another view request' do
         result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
 
-        expect(result[:deleted]).to be true
+        expect(result).to include(outcome: :deleted, deleted: true, error: nil)
         expect(result[:message]).to include('removed')
+        expect(mock_client).to have_received(:post).with('/domain/view', { 'domain' => 'example.com' }).once
+        expect(mock_client).to have_received(:post_envelope).with('/domain/remove', { 'domain' => 'example.com' }).once
       end
     end
 
@@ -756,48 +758,49 @@ RSpec.describe Onetime::Mail::SenderStrategies::Smtp2goSenderStrategy do
           .and_return({ 'domains' => [] })
       end
 
-      it 'returns deleted true without calling /domain/remove' do
+      it 'returns absent without calling /domain/remove' do
+        expect(mock_client).not_to receive(:post_envelope)
+
         result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
 
-        expect(result[:deleted]).to be true
+        expect(result).to include(outcome: :absent, deleted: false, error: nil)
         expect(result[:message]).to include('already deleted')
-        expect(mock_client).not_to have_received(:post).with('/domain/remove', anything)
       end
     end
 
-    context 'when remove API returns 404 (idempotent)' do
+    context 'when remove API returns an unproven 404' do
       before do
         allow(mock_client).to receive(:post)
           .with('/domain/view', { 'domain' => 'example.com' })
           .and_return(view_response)
-        allow(mock_client).to receive(:post)
+        allow(mock_client).to receive(:post_envelope)
           .with('/domain/remove', { 'domain' => 'example.com' })
           .and_raise(api_error('Not Found', status_code: 404))
       end
 
-      it 'returns deleted true' do
+      it 'reports failure rather than guessing absence' do
         result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
 
-        expect(result[:deleted]).to be true
-        expect(result[:message]).to include('already deleted')
+        expect(result).to include(outcome: :failed, deleted: false, error: a_string_matching(/\S/))
+        expect(result[:message]).to include('Deletion failed')
       end
     end
 
-    context 'when remove fails with a domain-scoped not-found message (idempotent)' do
+    context 'when remove fails with unproven domain-scoped not-found wording' do
       before do
         allow(mock_client).to receive(:post)
           .with('/domain/view', { 'domain' => 'example.com' })
           .and_return(view_response)
-        allow(mock_client).to receive(:post)
+        allow(mock_client).to receive(:post_envelope)
           .with('/domain/remove', { 'domain' => 'example.com' })
           .and_raise(api_error('Domain does not exist', status_code: 400))
       end
 
-      it 'returns deleted true' do
+      it 'reports failure rather than guessing absence' do
         result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
 
-        expect(result[:deleted]).to be true
-        expect(result[:message]).to include('already deleted')
+        expect(result).to include(outcome: :failed, deleted: false, error: a_string_matching(/\S/))
+        expect(result[:message]).to include('Deletion failed')
       end
     end
 
@@ -806,7 +809,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::Smtp2goSenderStrategy do
         allow(mock_client).to receive(:post)
           .with('/domain/view', { 'domain' => 'example.com' })
           .and_return(view_response)
-        allow(mock_client).to receive(:post)
+        allow(mock_client).to receive(:post_envelope)
           .with('/domain/remove', { 'domain' => 'example.com' })
           .and_raise(api_error('API key not found', status_code: 400))
       end
@@ -824,7 +827,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::Smtp2goSenderStrategy do
         allow(mock_client).to receive(:post)
           .with('/domain/view', { 'domain' => 'example.com' })
           .and_return(view_response)
-        allow(mock_client).to receive(:post)
+        allow(mock_client).to receive(:post_envelope)
           .with('/domain/remove', { 'domain' => 'example.com' })
           .and_raise(api_error('Forbidden', status_code: 403))
       end
@@ -886,23 +889,146 @@ RSpec.describe Onetime::Mail::SenderStrategies::Smtp2goSenderStrategy do
     end
   end
 
-  describe 'not_found_error? (private)' do
-    it 'matches 404s and NOT_FOUND/NONEXISTENT codes regardless of message' do
-      expect(strategy.send(:not_found_error?, api_error('nope', status_code: 404))).to be true
-      expect(strategy.send(:not_found_error?, api_error('nope', status_code: 400, error_code: 'E_NOT_FOUND'))).to be true
-      expect(strategy.send(:not_found_error?, api_error('nope', status_code: 400, error_code: 'E_NONEXISTENT_DOMAIN'))).to be true
+  describe 'lookup evidence and deletion outcomes' do
+    [nil, [], {}, { 'domains' => nil }, { 'domains' => {} }, { 'domains' => 'bad' },
+     { 'domains' => [nil] }, { 'domains' => [{}] }, { 'domains' => [{ 'domain' => {} }] },
+     { 'domains' => [{ 'domain' => 123 }] }, { 'domains' => [{ 'domain' => '  ' }] },
+     { 'domains' => [{ 'domain' => { 'fulldomain' => false } }] },
+     { 'domains' => [{ 'domain' => false, 'fulldomain' => 'other.com' }] },
+     { 'domains' => [{ 'domain' => [] }] },
+     { 'success' => false, 'domains' => [] },
+     { 'error' => 'rejected', 'domains' => [] }, { 'error_code' => 'API_EXCEPTION', 'domains' => [] }].each do |data|
+      it "rejects malformed lookup #{data.inspect} without removing anything" do
+        allow(mock_client).to receive(:post).with('/domain/view', { 'domain' => 'example.com' }).and_return(data)
+        expect(mock_client).not_to receive(:post_envelope)
+        expect { strategy.send(:find_domain, mock_client, 'example.com') }.to raise_error(Onetime::Mail::Smtp2goClient::APIError)
+        allow(mock_client).to receive(:post).with('/domain/verify', anything).and_return('domains' => [])
+        expect(strategy.check_provider_verification_status(mailer_config, credentials: credentials)).to include(verified: nil, status: 'error')
+        result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
+        expect(result.class).to eq(Hash)
+        expect(result).to include(outcome: :failed, deleted: false, message: a_string_matching(/\S/), error: a_string_matching(/\S/))
+      end
     end
 
-    it 'matches free-text messages only with domain/sender context' do
-      expect(strategy.send(:not_found_error?, api_error('domain not found', status_code: 400))).to be true
-      expect(strategy.send(:not_found_error?, api_error('Sender does not exist', status_code: 400))).to be true
-      expect(strategy.send(:not_found_error?, api_error('no such domain', status_code: 400))).to be true
-      expect(strategy.send(:not_found_error?, api_error('unknown domain', status_code: 400))).to be true
+    [
+      { 'domain' => 'EXAMPLE.COM' },
+      { 'domain' => { 'fulldomain' => 'EXAMPLE.COM' } },
+      { 'domain' => { 'domain' => 'EXAMPLE.COM' } },
+      { 'fulldomain' => 'EXAMPLE.COM' },
+    ].each do |entry|
+      it "accepts supported domain shape #{entry.inspect}" do
+        allow(mock_client).to receive(:post).with('/domain/view', { 'domain' => 'example.com' }).and_return('domains' => [entry])
+        expect(strategy.send(:find_domain, mock_client, 'example.com')).to eq(entry)
+      end
     end
 
-    it 'does not match unrelated not-found wording' do
-      expect(strategy.send(:not_found_error?, api_error('API key not found', status_code: 400))).to be false
-      expect(strategy.send(:not_found_error?, api_error('template not found', status_code: 400))).to be false
+    it 'validates entries after the matching entry' do
+      allow(mock_client).to receive(:post).and_return('domains' => [domain_entry, {}])
+      expect { strategy.send(:find_domain, mock_client, 'example.com') }.to raise_error(Onetime::Mail::Smtp2goClient::APIError)
+    end
+
+    [404, 400, 401, 403, 429, 500].each do |status|
+      it "does not classify API error #{status} as absence" do
+        allow(mock_client).to receive(:post).with('/domain/view', anything)
+          .and_raise(api_error('Domain not found or lookup failed', status_code: status, error_code: 'E_ApiResponseCodes.API_EXCEPTION'))
+        expect(mock_client).not_to receive(:post_envelope)
+        expect { strategy.send(:find_domain, mock_client, 'example.com') }.to raise_error(Onetime::Mail::Smtp2goClient::APIError)
+        expect(strategy.delete_sender_identity(mailer_config, credentials: credentials)).to include(outcome: :failed, deleted: false, error: a_string_matching(/\S/))
+      end
+    end
+
+    it 'returns nil only for a valid filtered list without a match' do
+      allow(mock_client).to receive(:post).with('/domain/view', { 'domain' => 'missing.com' }).and_return(view_response)
+      expect(strategy.send(:find_domain, mock_client, 'missing.com')).to be_nil
+    end
+
+    it 'does not call add again after a failed recovery lookup' do
+      expect(mock_client).to receive(:post).with('/domain/add', anything).once.and_raise(api_error('already exists', status_code: 400))
+      expect(mock_client).to receive(:post).with('/domain/view', anything).once.and_return({})
+      expect(mock_client).not_to receive(:post_envelope)
+      expect(strategy.provision_dns_records(mailer_config, credentials: credentials)).to include(success: false, error: a_string_matching(/\S/))
+    end
+
+    [nil, false, [], {}, { 'success' => true }, { 'success' => false },
+     { 'domains' => nil }, { 'domains' => {} }, { 'domains' => 'bad' },
+     { 'domains' => [nil] }, { 'domains' => [{}] },
+     { 'domains' => [{ 'domain' => 'other.com' }, {}] },
+     { 'error' => 'rejected', 'domains' => [] }, { 'error_code' => 'API_EXCEPTION', 'domains' => [] }].each do |response|
+      it "does not claim removal for invalid or rejected response data #{response.inspect}" do
+        allow(mock_client).to receive(:post).with('/domain/view', anything).and_return(view_response)
+        allow(mock_client).to receive(:post_envelope).with('/domain/remove', anything)
+          .and_return('request_id' => 'req-1', 'data' => response)
+        expect(strategy.delete_sender_identity(mailer_config, credentials: credentials)).to include(outcome: :failed, deleted: false, error: a_string_matching(/\S/))
+        expect(mock_client).to have_received(:post).with('/domain/view', anything).once
+      end
+    end
+
+    [
+      { 'domain' => 'EXAMPLE.COM' },
+      { 'domain' => { 'fulldomain' => 'EXAMPLE.COM' } },
+      { 'domain' => { 'domain' => 'EXAMPLE.COM' } },
+      { 'fulldomain' => 'EXAMPLE.COM' },
+    ].each do |entry|
+      it "rejects a removal acknowledgement retaining the target in shape #{entry.inspect}" do
+        allow(mock_client).to receive(:post).with('/domain/view', anything).and_return(view_response)
+        allow(mock_client).to receive(:post_envelope).with('/domain/remove', anything)
+          .and_return('request_id' => 'req-1', 'data' => { 'domains' => [entry] })
+        expect(strategy.delete_sender_identity(mailer_config, credentials: credentials))
+          .to include(outcome: :failed, deleted: false, error: a_string_matching(/\S/))
+        expect(mock_client).to have_received(:post).with('/domain/view', anything).once
+      end
+    end
+
+    it 'accepts a valid removal acknowledgement listing only other domains' do
+      allow(mock_client).to receive(:post).with('/domain/view', anything).and_return(view_response)
+      allow(mock_client).to receive(:post_envelope).with('/domain/remove', anything)
+        .and_return('request_id' => 'req-1', 'data' => { 'domains' => [{ 'domain' => 'other.com' }] })
+      expect(strategy.delete_sender_identity(mailer_config, credentials: credentials))
+        .to include(outcome: :deleted, deleted: true, error: nil)
+      expect(mock_client).to have_received(:post).with('/domain/view', anything).once
+    end
+
+    # Official v3.0.0 reference, Remove Sender Domain: HTTP 200 with only a
+    # string request_id and no data.
+    # https://smtp2go.github.io/smtp2go.apidocs/#remove-sender-domain
+    it '[D13] accepts the documented request-ID-only removal acknowledgement' do
+      allow(mock_client).to receive(:post).with('/domain/view', anything).and_return(view_response)
+      allow(mock_client).to receive(:post_envelope).with('/domain/remove', { 'domain' => 'example.com' })
+        .and_return('request_id' => '40cbb6f2-935f-11e7-b5be-480fcf01a6f2')
+      expect(strategy.delete_sender_identity(mailer_config, credentials: credentials))
+        .to include(outcome: :deleted, deleted: true, error: nil)
+      expect(mock_client).to have_received(:post).with('/domain/view', anything).once
+      expect(mock_client).to have_received(:post_envelope).once
+    end
+
+    [nil, false, [], 'ok', {}, { 'request_id' => nil }, { 'request_id' => '' }, { 'request_id' => '   ' },
+     { 'request_id' => 123 }, { 'request_id' => ['req-1'] }, { 'request_id' => { 'id' => 'req-1' } },
+     { 'request_id' => 'req-1', 'error' => 'rejected' }, { 'request_id' => 'req-1', 'error_code' => 'API_EXCEPTION' },
+     { 'request_id' => 'req-1', 'data' => nil }, { 'request_id' => 'req-1', 'data' => {} },
+     { 'request_id' => 'req-1', 'data' => [] },
+     { 'request_id' => 'req-1', 'error' => 'rejected', 'data' => { 'domains' => [] } },
+     { 'request_id' => 'req-1', 'error_code' => 'API_EXCEPTION', 'data' => { 'domains' => [] } }].each do |envelope|
+      it "[D13] does not claim removal for envelope #{envelope.inspect}" do
+        allow(mock_client).to receive(:post).with('/domain/view', anything).and_return(view_response)
+        allow(mock_client).to receive(:post_envelope).with('/domain/remove', anything).and_return(envelope)
+        expect(strategy.delete_sender_identity(mailer_config, credentials: credentials))
+          .to include(outcome: :failed, deleted: false, error: a_string_matching(/\S/))
+        expect(mock_client).to have_received(:post).with('/domain/view', anything).once
+      end
+    end
+
+    it '[D13] keeps /domain/view strict: a request-ID-only view is not an empty list' do
+      allow(mock_client).to receive(:post).with('/domain/view', anything).and_return({})
+      expect(mock_client).not_to receive(:post_envelope)
+      expect(strategy.delete_sender_identity(mailer_config, credentials: credentials))
+        .to include(outcome: :failed, deleted: false)
+    end
+
+    ['', '   '].each do |message|
+      it "keeps nonempty failure diagnostics for exception #{message.inspect}" do
+        allow(mock_client).to receive(:post).and_raise(StandardError.new(message))
+        expect(strategy.delete_sender_identity(mailer_config, credentials: credentials)).to include(outcome: :failed, deleted: false, error: a_string_matching(/\S/))
+      end
     end
   end
 

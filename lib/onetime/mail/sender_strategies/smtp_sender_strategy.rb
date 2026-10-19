@@ -60,10 +60,7 @@ module Onetime
 
           log_info "[smtp-sender] Identity deletion not applicable for SMTP (#{domain})"
 
-          {
-            deleted: false,
-            message: 'SMTP providers do not have sender identities to delete.',
-          }
+          deletion_result(outcome: :skipped, message: 'SMTP providers do not have sender identities to delete.')
         end
       end
     end

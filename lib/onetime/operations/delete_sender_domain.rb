@@ -21,11 +21,15 @@ module Onetime
     #
     #   result = DeleteSenderDomain.new(mailer_config: config).call
     #   result.success?  # => true/false
+    #   result.outcome   # => :deleted, :absent, :skipped, or :failed
     #
     class DeleteSenderDomain
       include Onetime::LoggerMethods
 
-      Result = Data.define(:success, :message, :error) do
+      # outcome is the validated strategy outcome, or :failed when the
+      # strategy raised or returned an invalid result. success is false only
+      # for :failed.
+      Result = Data.define(:success, :message, :error, :outcome) do
         def success? = success == true
         def failed? = !success?
       end
@@ -43,42 +47,79 @@ module Onetime
         # Legacy configs predating the provider field resolve correctly here
         # via that installation-level fallback.
         provider = @mailer_config.effective_provider.to_s
-        return skipped('no effective provider') if provider.empty?
-        return skipped("unsupported provider '#{provider}'") unless
+        return skipped('no effective provider', provider: provider) if provider.empty?
+        return skipped("unsupported provider '#{provider}'", provider: provider) unless
           Onetime::Mail::SenderStrategies.supported?(provider)
 
         credentials = Onetime::Mail::Mailer.provider_credentials(provider)
         strategy    = Onetime::Mail::SenderStrategies.for_provider(provider)
         result      = strategy.delete_sender_identity(@mailer_config, credentials: credentials)
 
-        # Strategies signal an actual teardown via result[:deleted]. SMTP —
-        # and some error/no-op cases — return deleted:false, so log those
-        # distinctly to keep audit trails free of false "deleted" events.
-        if result[:deleted]
-          logger.info 'Sender domain deleted',
-            domain_id: @mailer_config.domain_id,
-            provider: provider,
-            message: result[:message]
-        else
-          logger.info 'Sender domain deletion skipped (no-op)',
-            domain_id: @mailer_config.domain_id,
-            provider: provider,
-            message: result[:message]
+        validate_deletion_result!(result)
+
+        context = {
+          domain_id: @mailer_config.domain_id,
+          provider: provider,
+          outcome: result[:outcome],
+          message: result[:message],
+        }
+        case result[:outcome]
+        when :failed
+          logger.error 'Sender domain deletion failed', **context, error: result[:error]
+          return Result.new(success: false, message: result[:message], error: result[:error], outcome: :failed)
+        when :deleted
+          logger.info 'Sender domain deleted', **context
+        when :absent
+          logger.info 'Sender domain already absent', **context
+        when :skipped
+          logger.info 'Sender domain deletion skipped (no-op)', **context
         end
 
-        Result.new(success: true, message: result[:message], error: nil)
+        Result.new(success: true, message: result[:message], error: nil, outcome: result[:outcome])
       rescue StandardError => ex
+        error = ex.message.to_s
+        error = ex.class.to_s if error.strip.empty?
         logger.error 'Sender domain deletion failed',
           domain_id: @mailer_config&.domain_id,
-          error: ex.message,
+          provider: provider,
+          outcome: :failed,
+          error: error,
           error_class: ex.class.name
-        Result.new(success: false, message: nil, error: ex.message)
+        Result.new(success: false, message: nil, error: error, outcome: :failed)
       end
 
       private
 
-      def skipped(reason)
-        Result.new(success: true, message: "skipped: #{reason}", error: nil)
+      def validate_deletion_result!(result)
+        unless result.is_a?(Hash) && [:outcome, :deleted, :message, :error].all? { |key| result.key?(key) }
+          raise ArgumentError, 'Invalid sender deletion result: expected a hash with outcome, deleted, message, and error'
+        end
+        unless [:deleted, :absent, :skipped, :failed].include?(result[:outcome])
+          raise ArgumentError, 'Invalid sender deletion result: unknown outcome'
+        end
+        unless result[:deleted] == (result[:outcome] == :deleted)
+          raise ArgumentError, 'Invalid sender deletion result: deleted contradicts outcome'
+        end
+        unless nonempty_string?(result[:message])
+          raise ArgumentError, 'Invalid sender deletion result: message must be a nonempty string'
+        end
+
+        valid_error = result[:outcome] == :failed ? nonempty_string?(result[:error]) : result[:error].nil?
+        raise ArgumentError, 'Invalid sender deletion result: error contradicts outcome' unless valid_error
+      end
+
+      def nonempty_string?(value)
+        value.is_a?(String) && !value.strip.empty?
+      end
+
+      def skipped(reason, provider: nil)
+        message = "skipped: #{reason}"
+        logger.info 'Sender domain deletion skipped (no-op)',
+          domain_id: @mailer_config&.domain_id,
+          provider: provider,
+          outcome: :skipped,
+          message: message
+        Result.new(success: true, message: message, error: nil, outcome: :skipped)
       end
 
       def logger

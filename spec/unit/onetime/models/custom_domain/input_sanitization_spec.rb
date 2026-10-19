@@ -31,7 +31,7 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
       end
 
       it "rejects an overlong A-label name before creation: #{name}" do
-        expect(described_class).not_to receive(:claim_canonical_display_domain)
+        expect(described_class).not_to receive(:claim_ascii_display_domain)
         expect { described_class.create!(name, 'org-test') }.to raise_error(Onetime::Problem, /DNS name limits/)
       end
     end
@@ -41,7 +41,7 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
     it 'rejects a name whose TXT challenge record name would exceed 253 bytes, before creation' do
       name = "#{(['a' * 63] * 3).join('.')}.#{'b' * 31}.com" # 227 bytes, challenge 254
 
-      expect(described_class).not_to receive(:claim_canonical_display_domain)
+      expect(described_class).not_to receive(:claim_ascii_display_domain)
       expect { described_class.create!(name, 'org-test') }
         .to raise_error(Onetime::Problem, 'Domain too long for its TXT validation record')
     end
