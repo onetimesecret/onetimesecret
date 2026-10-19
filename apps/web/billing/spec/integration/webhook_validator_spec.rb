@@ -37,6 +37,20 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
       end.to raise_error(ArgumentError, /webhook signing secret/i)
     end
 
+    # An HMAC key everybody knows verifies everybody's events. The placeholder
+    # is what older copies of billing.example.yaml fall back to.
+    ['', '   ', 'nosigningsecret'].each do |not_a_secret|
+      it "raises ArgumentError when the configured secret is #{not_a_secret.inspect}" do
+        allow(Onetime).to receive(:billing_config).and_return(
+          double(webhook_signing_secret: not_a_secret),
+        )
+
+        expect do
+          described_class.new
+        end.to raise_error(ArgumentError, /webhook signing secret/i)
+      end
+    end
+
     it 'uses configured webhook secret by default' do
       allow(Onetime).to receive(:billing_config).and_return(
         double(webhook_signing_secret: 'configured_secret'),
