@@ -91,11 +91,11 @@ module ColonelAPI
 
           # REQUEST PATH: shallow discovery only (the customer's reverse indexes
           # plus the contact-email claim), per PurgePreflight's contract. The
-          # deep global sweep is three whole-registry scans per preflight, and
-          # Purge runs the deep preflight twice (initial plan and post-teardown
-          # validation), synchronously in this worker, so a client timeout
-          # would not stop the mutation. That sweep is the CLI's job:
-          # `bin/ots customers purge-one` is the only deep path, for the
+          # deep global sweep lists three whole registries (one pipelined
+          # RegistrySweep per purge, refreshed for the post-teardown check),
+          # synchronously in this worker, so a client timeout would not stop
+          # the mutation. That sweep is the CLI's job:
+          # `bin/ots customers purge` is the only deep path, for the
           # reference no reverse index points at. The bulk purge stays shallow
           # too, over a once-per-run MembershipSnapshot.
           @result = Auth::Operations::Customers::Purge.new(

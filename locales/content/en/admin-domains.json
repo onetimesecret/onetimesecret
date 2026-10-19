@@ -551,10 +551,6 @@
     "text": "Organization:",
     "content_hash": "5300e286"
   },
-  "web.admin.domains.actions.remove.reassertsSurvivor": {
-    "text": "Another record claims the same domain name and will take over the lookup index.",
-    "content_hash": "902838f4"
-  },
   "web.admin.domains.actions.remove.confirmTitle": {
     "text": "Remove domain?",
     "content_hash": "716dfac9"
@@ -570,6 +566,10 @@
   "web.admin.domains.actions.remove.notApplied": {
     "text": "The server previewed the removal instead of applying it — the domain was NOT removed. Retry, and report this if it persists.",
     "content_hash": "dc6d70ae"
+  },
+  "web.admin.domains.actions.remove.senderCleanupFailed": {
+    "text": "{domain} was removed, but its sender identity could not be removed from the mail provider and may remain. A retry cannot clean it up from here; remove it at the provider.",
+    "content_hash": "7e684e95"
   },
   "web.admin.domains.configs.title": {
     "text": "Domain configuration",

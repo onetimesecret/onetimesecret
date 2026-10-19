@@ -286,6 +286,19 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
       end
     end
 
+    context 'when the domain lookup fails (provider API error)' do
+      it 'returns an indeterminate error instead of not_found' do
+        allow(strategy).to receive(:get_request)
+          .and_return({ success: false, error: 'Rate limited' })
+
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
+
+        expect(result[:verified]).to be_nil
+        expect(result[:status]).to eq('error')
+        expect(result[:message]).to include('Rate limited')
+      end
+    end
+
     context 'when an unexpected error occurs (transport failure)' do
       before do
         allow(strategy).to receive(:find_domain_id).and_raise(StandardError.new('connection reset'))
@@ -359,6 +372,51 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
 
         expect(result[:deleted]).to be false
         expect(result[:message]).to include('Forbidden')
+        expect(result[:error]).to eq('Forbidden')
+      end
+    end
+
+    context 'when the domain lookup fails' do
+      [0, 50].each do |failed_offset|
+        it "reports an error instead of absence when page offset #{failed_offset} is rate limited" do
+          if failed_offset.positive?
+            page = 50.times.map { |i| { 'id' => i + 1, 'domain' => "other#{i}.com" } }
+            allow(strategy).to receive(:get_request)
+              .with('/whitelabel/domains?limit=50&offset=0', api_key: credentials['api_key'])
+              .and_return({ success: true, data: page })
+          end
+          allow(strategy).to receive(:get_request)
+            .with("/whitelabel/domains?limit=50&offset=#{failed_offset}", api_key: credentials['api_key'])
+            .and_return({ success: false, error: 'Rate limited' })
+          expect(strategy).not_to receive(:delete_request)
+
+          result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
+
+          expect(result[:deleted]).to be false
+          expect(result[:error]).to include('Rate limited')
+          expect(result[:message]).not_to include('not found')
+        end
+      end
+
+      it 'reports malformed list data as an error instead of absence' do
+        allow(strategy).to receive(:get_request).and_return({ success: true, data: {} })
+        expect(strategy).not_to receive(:delete_request)
+
+        result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
+
+        expect(result[:deleted]).to be false
+        expect(result[:error]).to include('Invalid domain authentication list')
+        expect(result[:message]).not_to include('not found')
+      end
+
+      it 'reports transport failures as errors' do
+        allow(strategy).to receive(:get_request).and_raise(Net::ReadTimeout)
+        expect(strategy).not_to receive(:delete_request)
+
+        result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
+
+        expect(result[:deleted]).to be false
+        expect(result[:error]).to include('Net::ReadTimeout')
       end
     end
 
@@ -535,39 +593,48 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
 
     context 'when domain is not found across all pages' do
       before do
-        # First page: exactly 50 (triggers next page)
+        # First page: exactly 50
         page1 = make_domains(50, start_id: 1)
         allow(strategy).to receive(:get_request)
           .with('/whitelabel/domains?limit=50&offset=0', api_key: api_key)
           .and_return({ success: true, data: page1 })
 
-        # Second page: fewer than 50 (last page, no match)
+        # Second page: fewer than 50, no match
         page2 = make_domains(10, start_id: 51)
         allow(strategy).to receive(:get_request)
           .with('/whitelabel/domains?limit=50&offset=50', api_key: api_key)
           .and_return({ success: true, data: page2 })
+
+        # Third page: empty, the only proof of exhaustion
+        allow(strategy).to receive(:get_request)
+          .with('/whitelabel/domains?limit=50&offset=60', api_key: api_key)
+          .and_return({ success: true, data: [] })
       end
 
-      it 'returns nil' do
+      it 'returns nil after the terminal empty page' do
         result = strategy.send(:find_domain_id, 'example.com', api_key: api_key)
 
         expect(result).to be_nil
+        expect(strategy).to have_received(:get_request).exactly(3).times
       end
     end
 
-    context 'when first page has fewer than limit results (single page)' do
+    context 'when first page has fewer than limit results' do
       before do
         domains = make_domains(3)
         allow(strategy).to receive(:get_request)
           .with('/whitelabel/domains?limit=50&offset=0', api_key: api_key)
           .and_return({ success: true, data: domains })
+        allow(strategy).to receive(:get_request)
+          .with('/whitelabel/domains?limit=50&offset=3', api_key: api_key)
+          .and_return({ success: true, data: [] })
       end
 
-      it 'returns nil without requesting a second page' do
+      it '[L10] returns nil only after requesting the next offset and reading an empty page' do
         result = strategy.send(:find_domain_id, 'example.com', api_key: api_key)
 
         expect(result).to be_nil
-        expect(strategy).to have_received(:get_request).once
+        expect(strategy).to have_received(:get_request).twice
       end
     end
 
@@ -600,13 +667,12 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
     context 'when API returns failure on first request' do
       before do
         allow(strategy).to receive(:get_request)
-          .and_return({ success: false, error: 'Unauthorized' })
+          .and_return({ success: false, error: 'Unauthorized', status_code: 401 })
       end
 
-      it 'returns nil' do
-        result = strategy.send(:find_domain_id, 'example.com', api_key: api_key)
-
-        expect(result).to be_nil
+      it 'raises an API error instead of reporting absence' do
+        expect { strategy.send(:find_domain_id, 'example.com', api_key: api_key) }
+          .to raise_error(described_class::APIError, 'Unauthorized') { |error| expect(error.status_code).to eq(401) }
       end
     end
 
@@ -622,10 +688,9 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
           .and_return({ success: false, error: 'Rate limited' })
       end
 
-      it 'returns nil' do
-        result = strategy.send(:find_domain_id, 'example.com', api_key: api_key)
-
-        expect(result).to be_nil
+      it 'raises an API error instead of reporting absence' do
+        expect { strategy.send(:find_domain_id, 'example.com', api_key: api_key) }
+          .to raise_error(described_class::APIError, 'Rate limited')
       end
     end
 
@@ -635,10 +700,9 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
           .and_return({ success: true, data: { 'error' => 'unexpected format' } })
       end
 
-      it 'returns nil' do
-        result = strategy.send(:find_domain_id, 'example.com', api_key: api_key)
-
-        expect(result).to be_nil
+      it 'raises an API error instead of reporting absence' do
+        expect { strategy.send(:find_domain_id, 'example.com', api_key: api_key) }
+          .to raise_error(described_class::APIError, /Invalid domain authentication list/)
       end
     end
 
@@ -654,6 +718,264 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
 
         expect(result).to be_nil
         expect(strategy).to have_received(:get_request).once
+      end
+    end
+  end
+
+  describe '#domain_authentications (private, paginated)' do
+    let(:api_key) { 'SG.test-api-key-example' }
+
+    def make_domains(count, start_id: 1)
+      count.times.map { |i| { 'id' => start_id + i, 'domain' => "other#{start_id + i}.com" } }
+    end
+
+    it 'concatenates every page and matches entries like find_domain_id' do
+      page1 = make_domains(50, start_id: 1)
+      page2 = make_domains(4, start_id: 51) + [{ 'id' => 99, 'domain' => 'example.com' }]
+      allow(strategy).to receive(:get_request)
+        .with('/whitelabel/domains?limit=50&offset=0', api_key: api_key)
+        .and_return({ success: true, data: page1 })
+      allow(strategy).to receive(:get_request)
+        .with('/whitelabel/domains?limit=50&offset=50', api_key: api_key)
+        .and_return({ success: true, data: page2 })
+      allow(strategy).to receive(:get_request)
+        .with('/whitelabel/domains?limit=50&offset=55', api_key: api_key)
+        .and_return({ success: true, data: [] })
+
+      listing = strategy.send(:domain_authentications, api_key: api_key)
+
+      expect(listing.size).to eq(55)
+      expect(strategy).to have_received(:get_request).exactly(3).times
+      expect(strategy.send(:domain_authentication_id, listing, 'example.com')).to eq(99)
+      expect(strategy.send(:domain_authentication_id, listing, 'other7.com')).to eq(7)
+      expect(strategy.send(:domain_authentication_id, listing, 'missing.com')).to be_nil
+    end
+
+    it 'raises, never returning a partial list, when a later page fails' do
+      allow(strategy).to receive(:get_request)
+        .with('/whitelabel/domains?limit=50&offset=0', api_key: api_key)
+        .and_return({ success: true, data: make_domains(50) })
+      allow(strategy).to receive(:get_request)
+        .with('/whitelabel/domains?limit=50&offset=50', api_key: api_key)
+        .and_return({ success: false, error: 'HTTP 503' })
+
+      expect { strategy.send(:domain_authentications, api_key: api_key) }.to raise_error(described_class::APIError)
+    end
+
+    it 'raises when a page is not a list' do
+      allow(strategy).to receive(:get_request).and_return({ success: true, data: { 'errors' => [] } })
+
+      expect { strategy.send(:domain_authentications, api_key: api_key) }.to raise_error(described_class::APIError)
+    end
+  end
+
+  describe 'lookup evidence and deletion outcomes' do
+    # Requested page size 50; the server honors it. Exhaustion is proven
+    # only by an empty page: 1, 2, 2, 3, and 21 requests.
+    { 0 => [0], 49 => [0, 49], 50 => [0, 50], 51 => [0, 50, 51],
+      1000 => (0..20).map { |i| i * 50 } }.each do |count, offsets|
+      it "[L10] walks #{count} entries with #{offsets.size} requests, ending on an empty page" do
+        entries = count.times.map { |i| { 'id' => i + 1, 'domain' => "other#{i}.com" } }
+        calls = []
+        allow(strategy).to receive(:get_request) do |path, api_key:|
+          expect(path).to start_with('/whitelabel/domains?limit=50&')
+          offset = path.split('offset=').last.to_i
+          calls << offset
+          { success: true, data: entries.slice(offset, 50) || [] }
+        end
+        expect(strategy.send(:domain_authentications, api_key: 'key')).to eq(entries)
+        expect(calls).to eq(offsets)
+        calls.clear
+        expect(strategy.send(:find_domain_id, 'missing.com', api_key: 'key')).to be_nil
+        expect(calls).to eq(offsets)
+        calls.clear
+        expect(strategy.delete_sender_identity(mailer_config, credentials: credentials.merge('api_key' => 'key')))
+          .to include(outcome: :absent, deleted: false, error: nil)
+        expect(calls).to eq(offsets)
+      end
+    end
+
+    context 'when the server returns fewer entries than requested on every page' do
+      # Five entries served as 2, 2, 1, then 0 despite limit=50.
+      let(:entries) do
+        [{ 'id' => 1, 'domain' => 'a.example' }, { 'id' => 2, 'domain' => 'b.example' },
+         { 'id' => 3, 'domain' => 'c.example' }, { 'id' => 4, 'domain' => 'd.example' },
+         { 'id' => 5, 'domain' => 'example.com' }]
+      end
+      let(:calls) { [] }
+
+      before do
+        allow(strategy).to receive(:get_request) do |path, api_key:|
+          expect(path).to start_with('/whitelabel/domains?limit=50&')
+          offset = path.split('offset=').last.to_i
+          calls << offset
+          { success: true, data: entries.slice(offset, 2) || [] }
+        end
+      end
+
+      it '[L16] advances by the returned count and finds a target on the third page' do
+        expect(strategy.send(:find_domain_id, 'example.com', api_key: 'key')).to eq(5)
+        expect(calls).to eq([0, 2, 4])
+      end
+
+      it '[L16] completes the inventory and proves absence only through the empty page' do
+        expect(strategy.send(:domain_authentications, api_key: 'key')).to eq(entries)
+        expect(calls).to eq([0, 2, 4, 5])
+        calls.clear
+        expect(strategy.send(:find_domain_id, 'missing.example', api_key: 'key')).to be_nil
+        expect(calls).to eq([0, 2, 4, 5])
+      end
+
+      it '[L16/D01] deletes the third-page target through the real paginator' do
+        expect(strategy).to receive(:delete_request).with('/whitelabel/domains/5', api_key: 'key').and_return(success: true, data: {})
+        expect(strategy.delete_sender_identity(mailer_config, credentials: { 'api_key' => 'key' }))
+          .to include(outcome: :deleted, deleted: true, error: nil)
+        expect(calls).to eq([0, 2, 4])
+      end
+
+      it '[L06/L16] does not expose earlier short pages as an inventory when a later page fails' do
+        allow(strategy).to receive(:get_request).with('/whitelabel/domains?limit=50&offset=4', api_key: 'key')
+          .and_return(success: false, error: 'HTTP 503', status_code: 503)
+        expect { strategy.send(:domain_authentications, api_key: 'key') }.to raise_error(described_class::APIError, 'HTTP 503')
+        expect(strategy).not_to receive(:delete_request)
+        expect(strategy.delete_sender_identity(mailer_config, credentials: { 'api_key' => 'key' }))
+          .to include(outcome: :failed, deleted: false, error: a_string_including('HTTP 503'))
+      end
+    end
+
+    it '[L17] rejects a page larger than the requested limit in every lookup path' do
+      oversized = 51.times.map { |i| { 'id' => i + 1, 'domain' => i == 50 ? 'example.com' : "other#{i}.com" } }
+      allow(strategy).to receive(:get_request).and_return(success: true, data: oversized)
+      expect(strategy).not_to receive(:delete_request)
+      expect(strategy).not_to receive(:post_request)
+
+      expect { strategy.send(:find_domain_id, 'example.com', api_key: 'key') }
+        .to raise_error(described_class::APIError, /exceeds the requested limit/)
+      expect { strategy.send(:domain_authentications, api_key: 'key') }
+        .to raise_error(described_class::APIError, /exceeds the requested limit/)
+      expect(strategy.delete_sender_identity(mailer_config, credentials: credentials))
+        .to include(outcome: :failed, deleted: false, error: a_string_including('exceeds the requested limit'))
+      expect(strategy.check_provider_verification_status(mailer_config, credentials: credentials))
+        .to include(verified: nil, status: 'error')
+      expect(strategy).to have_received(:get_request).exactly(4).times
+    end
+
+    it 'fails instead of looping when a later page repeats entries from an earlier one' do
+      page = [{ 'id' => 1, 'domain' => 'a.example' }, { 'id' => 2, 'domain' => 'b.example' }]
+      allow(strategy).to receive(:get_request).and_return(success: true, data: page)
+      expect { strategy.send(:domain_authentications, api_key: 'key') }
+        .to raise_error(described_class::APIError, /repeats an earlier entry/)
+      expect(strategy).to have_received(:get_request).twice
+      expect(strategy.delete_sender_identity(mailer_config, credentials: credentials))
+        .to include(outcome: :failed, deleted: false)
+    end
+
+    context '[L15] domain names that differ only in case' do
+      let(:listing) do
+        [{ 'id' => 7, 'domain' => 'unrelated.example' }, { 'id' => 42, 'domain' => 'Example.COM' },
+         { 'id' => 9, 'domain' => 'mail.example.com' }]
+      end
+
+      before do
+        allow(strategy).to receive(:get_request)
+          .with('/whitelabel/domains?limit=50&offset=0', api_key: credentials['api_key'])
+          .and_return(success: true, data: listing)
+        allow(strategy).to receive(:get_request)
+          .with('/whitelabel/domains?limit=50&offset=3', api_key: credentials['api_key'])
+          .and_return(success: true, data: [])
+      end
+
+      it 'selects the same provider ID in individual lookup and inventory matching' do
+        expect(strategy.send(:find_domain_id, 'example.com', api_key: credentials['api_key'])).to eq(42)
+        inventory = strategy.send(:domain_authentications, api_key: credentials['api_key'])
+        expect(strategy.send(:domain_authentication_id, inventory, 'example.com')).to eq(42)
+        expect(strategy.send(:domain_authentication_id, inventory, 'EXAMPLE.com')).to eq(42)
+        expect(strategy.send(:domain_authentication_id, inventory, 'mail.EXAMPLE.com')).to eq(9)
+      end
+
+      it 'does not match a partial or unrelated name' do
+        inventory = strategy.send(:domain_authentications, api_key: credentials['api_key'])
+        %w[ample.com example.co sub.example.com example.com.evil].each do |name|
+          expect(strategy.send(:domain_authentication_id, inventory, name)).to be_nil
+        end
+      end
+
+      it 'deletes the case-variant identity by its provider ID' do
+        expect(strategy).to receive(:delete_request).with('/whitelabel/domains/42', api_key: credentials['api_key'])
+          .and_return(success: true, data: {})
+        expect(strategy.delete_sender_identity(mailer_config, credentials: credentials))
+          .to include(outcome: :deleted, deleted: true, error: nil)
+      end
+
+      it 'validates the case-variant identity for an upper-case sender address' do
+        allow(mailer_config).to receive(:from_address).and_return('noreply@EXAMPLE.com')
+        expect(strategy).to receive(:post_request).with('/whitelabel/domains/42/validate', {}, api_key: credentials['api_key'])
+          .and_return(success: true, data: { 'valid' => true })
+        expect(strategy.check_provider_verification_status(mailer_config, credentials: credentials))
+          .to include(verified: true, status: 'verified')
+      end
+    end
+
+    [nil, 'bad', {}, { 'domain' => '' }, { 'id' => 1 },
+     { 'domain' => 'example.com' }, { 'domain' => 'other.com', 'id' => nil },
+     { 'domain' => 'example.com', 'id' => '' }, { 'domain' => 'example.com', 'id' => false },
+     { 'domain' => 'example.com', 'id' => -1 }, { 'domain' => 'example.com', 'id' => '1/path' }].each do |entry|
+      it "rejects malformed entry #{entry.inspect} in both lookup paths" do
+        allow(strategy).to receive(:get_request).and_return(success: true, data: [entry])
+        expect { strategy.send(:find_domain_id, 'example.com', api_key: 'key') }.to raise_error(described_class::APIError)
+        expect { strategy.send(:domain_authentications, api_key: 'key') }.to raise_error(described_class::APIError)
+        expect { strategy.send(:domain_authentication_id, [entry], 'example.com') }.to raise_error(described_class::APIError)
+        expect(strategy).not_to receive(:delete_request)
+        expect(strategy).not_to receive(:post_request)
+        result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
+        expect(result).to include(outcome: :failed, deleted: false, error: a_string_matching(/\S/))
+        expect(strategy.check_provider_verification_status(mailer_config, credentials: credentials)).to include(verified: nil, status: 'error')
+      end
+    end
+
+    it 'allows an individual early match but requires a complete inventory' do
+      page = 50.times.map { |i| { 'id' => i + 1, 'domain' => i.zero? ? 'example.com' : "other#{i}.com" } }
+      allow(strategy).to receive(:get_request).with('/whitelabel/domains?limit=50&offset=0', api_key: 'key').and_return(success: true, data: page)
+      allow(strategy).to receive(:get_request).with('/whitelabel/domains?limit=50&offset=50', api_key: 'key').and_return(success: true, data: [{ 'domain' => 'example.com' }])
+      expect(strategy.send(:find_domain_id, 'example.com', api_key: 'key')).to eq(1)
+      expect(strategy).to have_received(:get_request).once
+      expect { strategy.send(:domain_authentications, api_key: 'key') }.to raise_error(described_class::APIError)
+    end
+
+    it 'does not accept an early match on a malformed page' do
+      allow(strategy).to receive(:get_request).and_return(success: true, data: [{ 'id' => 1, 'domain' => 'example.com' }, {}])
+      expect { strategy.send(:find_domain_id, 'example.com', api_key: 'key') }.to raise_error(described_class::APIError)
+    end
+
+    it 'returns a plain absent result only for a validated empty listing' do
+      allow(strategy).to receive(:get_request).and_return(success: true, data: [])
+      result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
+      expect(result.class).to eq(Hash)
+      expect(result).to match(outcome: :absent, deleted: false, message: a_string_matching(/\S/), error: nil)
+    end
+
+    it 'retains the configured domain_id override and reports actual deletion' do
+      expect(strategy).not_to receive(:get_request)
+      expect(strategy).to receive(:delete_request).with('/whitelabel/domains/789', api_key: credentials['api_key']).and_return(success: true, data: {})
+      expect(strategy.delete_sender_identity(mailer_config, credentials: credentials.merge('domain_id' => 789)))
+        .to match(outcome: :deleted, deleted: true, message: a_string_matching(/\S/), error: nil)
+    end
+
+    [nil, '', '   '].each do |message|
+      it "keeps a nonempty error for rejected deletion #{message.inspect}" do
+        allow(strategy).to receive(:get_request).and_return(success: true, data: [{ 'domain' => 'example.com', 'id' => 123 }])
+        allow(strategy).to receive(:delete_request).and_return(success: false, error: message)
+        expect(strategy.delete_sender_identity(mailer_config, credentials: credentials))
+          .to include(outcome: :failed, deleted: false, message: a_string_matching(/\S/), error: a_string_matching(/\S/))
+      end
+    end
+
+    ['', '   '].each do |message|
+      it "keeps a nonempty error for exception #{message.inspect}" do
+        allow(strategy).to receive(:get_request).and_raise(StandardError.new(message))
+        expect(strategy).not_to receive(:delete_request)
+        expect(strategy.delete_sender_identity(mailer_config, credentials: credentials))
+          .to include(outcome: :failed, deleted: false, message: a_string_matching(/\S/), error: a_string_matching(/\S/))
       end
     end
   end

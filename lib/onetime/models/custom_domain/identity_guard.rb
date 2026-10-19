@@ -4,22 +4,22 @@
 
 module Onetime
   class CustomDomain < Familia::Horreum
-    # Keeps the canonical display-domain claim in step with what is stored.
+    # Keeps the ASCII display-domain claim in step with what is stored.
     #
-    # canonical_display_domain_index holds one entry per DNS name (the A-label
+    # ascii_display_domain_index holds one entry per DNS name (the A-label
     # form), so the Unicode and A-label spellings of a name cannot both be
     # registered. create! takes that claim before it saves. This module covers
     # every other write:
     #
     # - A full write (save, commit_fields, save_if_not_exists!) of a record
     #   that is not stored yet gets create!'s canonical-host check
-    #   (refuse_canonical_overlap!), then claims the canonical name, and
+    #   (refuse_canonical_overlap!), then claims the ASCII name, and
     #   refuses when the name belongs to another record or has no A-label
     #   form. A claim this write created is released again if the write
     #   does not land. create! has already claimed the name, so here the
     #   claim is :owned and stays create!'s to release.
     # - A full write of a stored record passes through unchanged when its
-    #   identity fields match what is stored, without reading the canonical
+    #   identity fields match what is stored, without reading the ASCII
     #   index. Records registered before the index existed have no entry and
     #   keep saving normally. When the identity fields differ, the write is
     #   refused: there is no rename.
@@ -32,6 +32,16 @@ module Onetime
     # Stored values are read with HMGET and compared with the in-memory
     # values. Dirty tracking cannot be used: new and the loaders set fields
     # and then clear the dirty flags.
+    #
+    # A stored record is written under WATCH of its key, with the read and
+    # the write on one pinned connection. A record that destroy! removes
+    # between the read and the write is not stored again: Redis discards the
+    # EXEC, the read runs again, finds nothing, and the write is refused.
+    # A record another writer changed in between is read and written again.
+    # Without a connection pool (partial boots) the WATCH does not hold, and
+    # the write behaves as a plain save. The guard ends with UNWATCH, so a
+    # caller must not hold its own WATCH on the pinned connection across a
+    # full write.
     #
     # Raw hash commands (hset, hmset, remove_field) are not guarded: they are
     # the plumbing the writers above use inside their own transactions.
@@ -51,7 +61,7 @@ module Onetime
       end
 
       def save_if_not_exists!(...)
-        guard_identity_full_write { super }
+        guard_identity_full_write(create_only: true) { super }
       end
 
       def atomic_write(...)
@@ -94,32 +104,80 @@ module Onetime
         end
       end
 
+      # Reads and writes of a stored record before the guard gives up on a
+      # key that keeps changing under it.
+      ATTEMPTS = 3
+
       private
 
-      def guard_identity_full_write
+      def guard_identity_full_write(create_only: false, &)
         # Familia refuses a save inside a transaction or pipeline; reads here
         # would only return futures.
         return yield if Fiber[:familia_transaction] || Fiber[:familia_pipeline]
 
-        stored = stored_identity
-        if stored
-          refuse_identity_change!(stored)
-          return yield
-        end
+        with_guarded_connection do |conn|
+          was_stored = false
+          result     = nil
+          ATTEMPTS.times do
+            conn.watch(dbkey)
+            begin
+              stored = stored_identity
+              if stored.nil?
+                # Stored at the previous read: destroy! took it in between.
+                # Writing now would store the hash again, without the rest
+                # of the record (organization listing, sibling configs,
+                # ASCII claim) that destroy! removed.
+                raise Onetime::Problem, 'The custom domain no longer exists' if was_stored
 
-        # Not stored yet. A blank name has nothing to claim (save refuses it).
+                conn.unwatch
+                return guard_new_record_full_write(&)
+              end
+
+              # Familia retries create-only saves internally, without re-reading
+              # this guard. Never let it recreate a record we observed as stored.
+              raise Familia::RecordExistsError, dbkey if create_only
+
+              was_stored = true
+              refuse_identity_change!(stored)
+              result     = yield
+            ensure
+              # No-op after EXEC; otherwise clears a WATCH that would follow
+              # the connection back into the pool.
+              conn.unwatch
+            end
+            return result if write_landed?(result)
+            # The EXEC was discarded: the key changed after the WATCH. Read
+            # again; a destroyed record is refused above, a changed one is
+            # written again.
+          end
+
+          raise Familia::OptimisticLockError, "#{dbkey} changed during #{ATTEMPTS} attempts"
+        end
+      end
+
+      # WATCH, the read and the write must share one connection. Without a
+      # pool Familia may answer each call with another client, and the WATCH
+      # does not hold.
+      def with_guarded_connection
+        return yield(dbclient) unless Onetime::Runtime.infrastructure.database_pool
+
+        Onetime.with_pinned_dbclient { yield dbclient }
+      end
+
+      def guard_new_record_full_write
+        # A blank name has nothing to claim (save refuses it).
         return yield if display_domain.to_s.empty?
 
         # The same canonical-host check create! applies, before the claim.
         self.class.refuse_canonical_overlap!(display_domain.to_s.downcase)
-        canonical, created = claim_canonical_for_new_record!
+        ascii_name, created = claim_ascii_for_new_record!
         begin
           result = yield
         rescue StandardError
-          release_claim_unless_stored(canonical) if created
+          release_claim_unless_stored(ascii_name) if created
           raise
         end
-        release_claim_unless_stored(canonical) if created && !write_landed?(result)
+        release_claim_unless_stored(ascii_name) if created && !write_landed?(result)
         result
       end
 
@@ -128,12 +186,12 @@ module Onetime
       # writes run after it), and a failed MultiResult may still have
       # written the hash. When existence cannot be read the claim is kept,
       # so the name stays taken rather than open to a second record.
-      def release_claim_unless_stored(canonical)
+      def release_claim_unless_stored(ascii_name)
         return if exists?
 
-        self.class.canonical_display_domain_index.release_field(canonical, identifier)
+        self.class.ascii_display_domain_index.release_field(ascii_name, identifier)
       rescue StandardError => ex
-        OT.le "[CustomDomain] Kept the canonical claim for #{extid}: #{ex.class}: #{ex.message}"
+        OT.le "[CustomDomain] Kept the ASCII claim for #{extid}: #{ex.class}: #{ex.message}"
       end
 
       # @return [Hash{Symbol => String, nil}, nil] raw stored identity values,
@@ -175,13 +233,13 @@ module Onetime
           deserialize_value(raw, field_name: name) == value
       end
 
-      # @return [Array(String, Boolean)] canonical name, and whether this call
+      # @return [Array(String, Boolean)] ASCII name, and whether this call
       #   created the claim (and so must release it if the write fails)
       # @raise [Onetime::Problem] when another record holds the name, or the
       #   name has no A-label form
-      def claim_canonical_for_new_record!
-        canonical, claim = self.class.claim_canonical_display_domain(display_domain, identifier)
-        return [canonical, claim == :created] if [:created, :owned].include?(claim)
+      def claim_ascii_for_new_record!
+        ascii_name, claim = self.class.claim_ascii_display_domain(display_domain, identifier)
+        return [ascii_name, claim == :created] if [:created, :owned].include?(claim)
 
         raise Onetime::Problem, 'Domain already registered'
       rescue Onetime::DomainValidation::AsciiHostname::ConversionError => ex

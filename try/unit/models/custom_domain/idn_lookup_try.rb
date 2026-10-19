@@ -39,7 +39,7 @@ require_relative '../../../../apps/internal/acme/application'
 
 # A decomposed Unicode registration whose exact index key is not NFC.
 @nfd_name   = "bu\u0308cher-nfd-#{@suffix}.com"
-@nfd_ascii  = Onetime::CustomDomain.canonical_display_domain(@nfd_name)
+@nfd_ascii  = Onetime::CustomDomain.ascii_display_domain(@nfd_name)
 @nfd_domain = Onetime::CustomDomain.create!(@nfd_name, @org.objid)
 @nfd_domain.verified  = true
 @nfd_domain.resolving = true
@@ -199,12 +199,12 @@ Onetime::CustomDomain.load_by_display_domain(@plain_name.upcase)&.identifier
 #=> @plain_domain.identifier
 
 ## A crafted A-label is its own DNS name: registering it makes a separate record
-## with its own canonical claim, and the existing record's verification does not
+## with its own ASCII claim, and the existing record's verification does not
 ## carry over to it. (Before the round-trip guard the preflight aliased it onto the
 ## Unicode record and refused it as a duplicate.)
 @decomposed_domain = Onetime::CustomDomain.create!(@decomposed_ascii, @org.objid)
 [@decomposed_domain.identifier != @unicode_domain.identifier,
- Onetime::CustomDomain.canonical_display_domain_index.get(@decomposed_ascii),
+ Onetime::CustomDomain.ascii_display_domain_index.get(@decomposed_ascii),
  Onetime::CustomDomain.load_by_display_domain(@ascii_name)&.identifier,
  @decomposed_domain.ready?,
  idn_try_acme_allowed?(@decomposed_ascii)]
@@ -221,11 +221,11 @@ Onetime::CustomDomain.load_by_display_domain(@plain_name.upcase)&.identifier
  idn_try_acme_allowed?(@decomposed_ascii)]
 #=> [true, true, true, true]
 
-## Both records keep their names and canonical claims
+## Both records keep their names and ASCII claim
 [Onetime::CustomDomain.find_by_identifier(@unicode_domain.identifier).display_domain,
  Onetime::CustomDomain.find_by_identifier(@decomposed_domain.identifier).display_domain,
- Onetime::CustomDomain.canonical_display_domain_index.get(@ascii_name),
- Onetime::CustomDomain.canonical_display_domain_index.get(@decomposed_ascii)]
+ Onetime::CustomDomain.ascii_display_domain_index.get(@ascii_name),
+ Onetime::CustomDomain.ascii_display_domain_index.get(@decomposed_ascii)]
 #=> [@unicode_name, @decomposed_ascii, @unicode_domain.identifier, @decomposed_domain.identifier]
 
 ## A blank name has no keys

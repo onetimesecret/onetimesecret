@@ -215,10 +215,6 @@
     "text": "ארגון:",
     "source_hash": "5300e286"
   },
-  "web.admin.domains.actions.remove.reassertsSurvivor": {
-    "text": "רשומה אחרת טוענת לאותו שם דומיין ותשתלט על אינדקס החיפוש.",
-    "source_hash": "902838f4"
-  },
   "web.admin.domains.actions.remove.confirmTitle": {
     "text": "להסיר דומיין?",
     "source_hash": "716dfac9"

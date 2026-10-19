@@ -1,10 +1,10 @@
 // src/plugins/core/appInitializer.ts
 
 import { createApi } from '@/api';
-import i18n from '@/i18n';
+import i18n, { globalComposer } from '@/i18n';
 import { setupRouterGuards } from '@/router/guards.routes';
 import { consumeBootstrapData, getBootstrapValue } from '@/services/bootstrap.service';
-import { loggingService } from '@/services/logging.service';
+import { loggingService, type ConsoleWarning } from '@/services/logging.service';
 import { setAllowedCheckoutHost } from '@/utils/redirect';
 import { AxiosInstance } from 'axios';
 import { createPinia } from 'pinia';
@@ -117,6 +117,16 @@ function initializeApp(app: App, options: AppInitializerOptions) {
 
   app.use(router);
 
-  // Display startup banner
-  loggingService.banner();
+  // Display the self-XSS warning
+  loggingService.banner(consoleWarning());
+}
+
+/** The self-XSS warning, in the visitor's language. */
+function consoleWarning(): ConsoleWarning {
+  const { t } = globalComposer;
+  return {
+    heading: t('web.layout.console_warning_heading'),
+    body: t('web.layout.console_warning_body'),
+    closing: t('web.layout.console_warning_closing'),
+  };
 }

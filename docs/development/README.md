@@ -102,7 +102,7 @@ frameworks through the [lane runner](../../tests/lanes/README.md).
 
 #### Instrumenting a frozen Familia index
 
-The [CustomDomain canonical-release spec](../../spec/unit/onetime/models/custom_domain/destroy_canonical_release_spec.rb)
+The [CustomDomain ASCII-release spec](../../spec/unit/onetime/models/custom_domain/destroy_ascii_release_spec.rb)
 is the reference pattern:
 
 1. Capture the real index **before** stubbing its class accessor.
@@ -136,7 +136,7 @@ release inside the destroy transaction with the correct field and identifier,
 a `Redis::Future` return value, removal of the record and claim, re-registration
 after destroy, and preservation of a claim owned by another identifier. The
 re-registration check in both versions creates the Unicode spelling again
-and inspects its canonical A-label claim; it does not separately register
+and inspects its ASCII A-label claim; it does not separately register
 both spellings. The dropped shared-object identity assertion justified the
 old recorder, rather than testing model behavior. The current spec also
 checks that destruction removes the domain from its organization.

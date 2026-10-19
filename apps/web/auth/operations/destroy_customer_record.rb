@@ -6,7 +6,8 @@
 # Deletes a Customer record. The single delete primitive for the customer
 # domain, used by:
 #   - account closure (passes the Rodauth `account:` hash)
-#   - admin purge, both the colonel endpoint and `bin/ots customers purge`
+#   - admin purge: the colonel endpoint, `bin/ots customers purge` and the
+#     `customers purge-inactive` sweep
 #     (pass a pre-resolved `customer:`, wrapped by Auth::Operations::Customers::Purge
 #     which adds the admin audit event)
 #
@@ -26,7 +27,7 @@ module Auth
       # when purging directly against a foreign Redis (e.g. a pre-migration db via
       # `--redis-url`) where Familia models and their indexes are not available.
       # Owned here so there is one authoritative list (folded from the former CLI
-      # copy in customers/purge_command.rb).
+      # copy in customers/purge_inactive_command.rb).
       CUSTOMER_SUB_KEYS = %w[object metadata receipts reset_secret
                              pending_email_change pending_email_delivery_status
                              feature_flags].freeze

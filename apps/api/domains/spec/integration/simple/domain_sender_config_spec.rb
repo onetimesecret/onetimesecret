@@ -198,7 +198,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
   def stub_teardown
     allow_any_instance_of(Onetime::Operations::DeleteSenderDomain).to receive(:call) do
       yield
-      Onetime::Operations::DeleteSenderDomain::Result.new(success: true, message: 'stubbed', error: nil)
+      Onetime::Operations::DeleteSenderDomain::Result.new(success: true, message: 'stubbed', error: nil, outcome: :deleted)
     end
   end
 
@@ -852,6 +852,56 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         expect(config).to be_nil
       end
 
+      context 'with the real provider cleanup operation' do
+        let(:events) { [] }
+        let(:strategy) { Onetime::Mail::SenderStrategies.for_provider('ses') }
+        let(:ses_client) { Aws::SESV2::Client.new(region: 'us-east-1', stub_responses: true) }
+
+        before do
+          require 'aws-sdk-sesv2'
+          allow(Onetime::Mail::Mailer).to receive(:provider_credentials).with('ses')
+            .and_return('access_key_id' => 'test-access-key', 'secret_access_key' => 'test-secret-key')
+          allow(Onetime::Mail::SenderStrategies).to receive(:for_provider).with('ses').and_return(strategy)
+          allow(strategy).to receive(:build_ses_client).and_return(ses_client)
+          allow(OT).to receive(:info).and_call_original
+          allow(OT).to receive(:info).with('[DOMAIN_SENDER_CONFIG] domain_sender_config_deleted', anything) do |_, payload|
+            events << JSON.parse(payload)
+          end
+        end
+
+        {
+          'deleted' => ['C10', {}, 'completed', 'deleted'],
+          'already absent' => ['C10', 'NotFoundException', 'completed', 'absent'],
+          'provider denied deletion' => ['C09', 'AccessDeniedException', 'failed', 'failed'],
+        }.each do |scenario, (case_id, response, cleanup, outcome)|
+          it "[#{case_id}] keeps the local deletion response and audits #{cleanup} when #{scenario}" do
+            ses_client.stub_responses(:delete_email_identity, response)
+
+            csrf_delete api_path(test_custom_domain.extid)
+
+            expect(last_response.status).to eq(200), last_response.body
+            expect(json_body).to include(
+              'success' => true,
+              'message' => "Sender configuration deleted for domain #{tenant_domain}",
+            )
+            expect(json_body).not_to have_key('error')
+            expect(json_body).not_to have_key('provider_cleanup')
+            expect(json_body).not_to have_key('provider_outcome')
+            expect(Onetime::CustomDomain::MailerConfig.find_by_domain_id(test_custom_domain.identifier)).to be_nil
+            expect(test_custom_domain.exists?).to be true
+            expect(Onetime::CustomDomain::MailerConfig.sender_identity_lock(test_custom_domain.identifier).locked?).to be false
+            expect(ses_client.api_requests.map { |request| [request[:operation_name], request[:params]] })
+              .to eq([[:delete_email_identity, { email_identity: 'example.com' }]])
+            expect(events.size).to eq(1)
+            expect(events.first).to include('event' => 'domain_sender_config_deleted', 'provider' => 'ses',
+              'domain_id' => test_custom_domain.identifier, 'actor_id' => test_owner.custid)
+            expect(events.first['details']).to include('config_deleted' => true, 'lease_lost' => false,
+              'provider_cleanup' => cleanup, 'provider_outcome' => outcome, 'from_address' => 'delete-test@example.com')
+            expect(events.first.to_json).not_to include('delete-test-key', 'test-access-key', 'test-secret-key', 'api_key')
+          end
+        end
+      end
+
       # Provisioning and the provider teardown share this lock: a provider
       # reuses an existing identity, so a provision that overlapped the
       # teardown would save DNS records for an identity the teardown deletes.
@@ -943,13 +993,15 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
             expect(json_body['error']).to include('configuration was deleted', 'lock lost')
             expect(json_body['details']).to include('config_deleted' => true, 'lease_lost' => true,
               'provider_cleanup' => phase == :before_provider ? 'not_attempted' : 'completed')
+            expect(json_body['details']).not_to have_key('provider_outcome')
             expect(model.exists_for_domain?(test_custom_domain.identifier)).to be false
             expect(events.size).to eq(1)
             expect(events.first).to include('event' => 'domain_sender_config_deleted', 'provider' => 'ses',
               'domain_id' => test_custom_domain.identifier, 'actor_id' => test_owner.custid)
             expect(events.first['details']).to include('config_deleted' => true, 'lease_lost' => true,
               'from_address' => 'delete-test@example.com',
-              'provider_cleanup' => phase == :before_provider ? 'not_attempted' : 'completed')
+              'provider_cleanup' => phase == :before_provider ? 'not_attempted' : 'completed',
+              'provider_outcome' => phase == :before_provider ? nil : 'deleted')
             expect(events.first.to_json).not_to include('delete-test-key', 'api_key')
           end
         end
@@ -985,6 +1037,44 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
           expect(strategy).not_to have_received(:provision_dns_records)
           expect(model.find_by_domain_id(test_custom_domain.identifier)&.provisioned?).to be false
         end
+      end
+    end
+
+    context 'with an SMTP sender config' do
+      let(:events) { [] }
+
+      before do
+        Onetime::CustomDomain::MailerConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          provider: 'smtp',
+          from_address: 'delete-smtp@example.com',
+          api_key: 'delete-smtp-key',
+          enabled: true,
+        )
+        login_as(test_owner)
+        allow(OT).to receive(:info).and_call_original
+        allow(OT).to receive(:info).with('[DOMAIN_SENDER_CONFIG] domain_sender_config_deleted', anything) do |_, payload|
+          events << JSON.parse(payload)
+        end
+      end
+
+      it '[C10] skips remote cleanup through the real SMTP strategy and audits the skip' do
+        csrf_delete api_path(test_custom_domain.extid)
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect(json_body).to include(
+          'success' => true,
+          'message' => "Sender configuration deleted for domain #{tenant_domain}",
+        )
+        expect(json_body).not_to have_key('provider_cleanup')
+        expect(json_body).not_to have_key('provider_outcome')
+        expect(Onetime::CustomDomain::MailerConfig.find_by_domain_id(test_custom_domain.identifier)).to be_nil
+        expect(a_request(:any, /.*/)).not_to have_been_made
+        expect(events.size).to eq(1)
+        expect(events.first).to include('event' => 'domain_sender_config_deleted', 'provider' => 'smtp')
+        expect(events.first['details']).to include('config_deleted' => true, 'lease_lost' => false,
+          'provider_cleanup' => 'completed', 'provider_outcome' => 'skipped')
+        expect(events.first.to_json).not_to include('delete-smtp-key')
       end
     end
 
@@ -1048,6 +1138,42 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
       login_as(test_owner)
     end
 
+    context 'with the real SES sender cleanup' do
+      let(:strategy) { Onetime::Mail::SenderStrategies.for_provider('ses') }
+      let(:ses_client) { Aws::SESV2::Client.new(region: 'us-east-1', stub_responses: true) }
+      let(:app_log) { double('App logger', debug: nil, info: nil, warn: nil) }
+
+      before do
+        require 'aws-sdk-sesv2'
+        allow(Onetime::Mail::Mailer).to receive(:provider_credentials).with('ses')
+          .and_return('access_key_id' => 'test-access-key', 'secret_access_key' => 'test-secret-key')
+        allow(Onetime::Mail::SenderStrategies).to receive(:for_provider).with('ses').and_return(strategy)
+        allow(strategy).to receive(:build_ses_client).and_return(ses_client)
+        allow_any_instance_of(DomainsAPI::Logic::Domains::RemoveDomain).to receive(:app_logger).and_return(app_log)
+      end
+
+      {
+        'deleted' => [{}, :info],
+        'absent' => ['NotFoundException', :info],
+        'failed' => ['AccessDeniedException', :warn],
+      }.each do |cleanup, (response, level)|
+        it "[C15] removes the domain and logs sender cleanup #{cleanup} without changing the response" do
+          ses_client.stub_responses(:delete_email_identity, response)
+
+          csrf_post remove_path(test_custom_domain.extid)
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(json_body).to include('message' => "Removed #{tenant_domain}")
+          expect(json_body.to_json).not_to include('sender_cleanup')
+          expect(test_custom_domain.exists?).to be false
+          expect(model.exists_for_domain?(test_custom_domain.identifier)).to be false
+          expect(ses_client.api_requests.map { |request| request[:operation_name] }).to eq([:delete_email_identity])
+          expect(app_log).to have_received(level).with('[RemoveDomain] Domain removed',
+            hash_including(event: 'domain_removed', domain_extid: test_custom_domain.extid, sender_cleanup: cleanup)).once
+        end
+      end
+    end
+
     context 'with the sender identity lock' do
       it 'refuses with a conflict and keeps the domain while another holder has the lock' do
         token = lock.acquire(ttl: 60)
@@ -1082,11 +1208,12 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
       end
 
       it 'clears session context and identifies committed deletion when the lease is lost after real destroy' do
-        events = []
-        allow(OT).to receive(:info).and_call_original
-        allow(OT).to receive(:info).with('[RemoveDomain] Domain removal committed with lease loss', anything) do |_, payload|
-          events << JSON.parse(payload)
+        events  = []
+        app_log = double('App logger', debug: nil, warn: nil)
+        allow(app_log).to receive(:info) do |message, **payload|
+          events << payload if message == '[RemoveDomain] Domain removal committed with lease loss'
         end
+        allow_any_instance_of(DomainsAPI::Logic::Domains::RemoveDomain).to receive(:app_logger).and_return(app_log)
         allow_any_instance_of(DomainsAPI::Logic::Domains::RemoveDomain).to receive(:process).and_wrap_original do |original|
           original.receiver.sess['domain_context'] = tenant_domain
           original.call
@@ -1107,13 +1234,15 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         expect(test_custom_domain.exists?).to be false
         expect(model.exists_for_domain?(test_custom_domain.identifier)).to be false
         expect(events.size).to eq(1)
-        expect(events.first).to include('event' => 'domain_removed', 'domain_extid' => test_custom_domain.extid,
-          'removal_committed' => true, 'lease_lost' => true)
+        expect(events.first).to include(event: 'domain_removed', domain_extid: test_custom_domain.extid,
+          removal_committed: true, lease_lost: true, sender_cleanup: 'deleted')
+        expect(app_log).not_to have_received(:info).with('[RemoveDomain] Domain removed', anything)
       end
 
       it 'keeps the successor lock, domain, and session when ownership changes during teardown' do
         successor = nil
-        allow(OT).to receive(:info).and_call_original
+        app_log   = double('App logger', debug: nil, info: nil, warn: nil)
+        allow_any_instance_of(DomainsAPI::Logic::Domains::RemoveDomain).to receive(:app_logger).and_return(app_log)
         allow_any_instance_of(DomainsAPI::Logic::Domains::RemoveDomain).to receive(:process).and_wrap_original do |original|
           original.receiver.sess['domain_context'] = tenant_domain
           original.call
@@ -1131,7 +1260,8 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         expect(model.exists_for_domain?(test_custom_domain.identifier)).to be true
         expect(lock.held_by?(successor)).to be true
         expect(last_request.env['rack.session']['domain_context']).to eq(tenant_domain)
-        expect(OT).not_to have_received(:info).with('[RemoveDomain] Domain removal committed with lease loss', anything)
+        expect(app_log).not_to have_received(:info).with('[RemoveDomain] Domain removal committed with lease loss', anything)
+        expect(app_log).not_to have_received(:info).with('[RemoveDomain] Domain removed', anything)
       ensure
         lock.release(successor) if successor
       end

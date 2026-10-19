@@ -40,9 +40,11 @@ module Onetime
           if error.is_a?(::Lettermint::HttpRequestError)
             details = {
               error_class: error.class.name,
-              status_code: error.respond_to?(:status_code) ? error.status_code : nil,
+              status_code: error.status_code,
+              code: error.code,
+              details: error.details,
               error_type: error.respond_to?(:error_type) ? error.error_type : nil,
-              response_body: error.respond_to?(:response_body) ? error.response_body : nil,
+              response_body: error.response_body,
             }
             msg     = "[mail] Lettermint API error details: #{details.inspect}"
             defined?(OT) && OT.respond_to?(:le) ? OT.le(msg) : warn(msg)

@@ -4,8 +4,7 @@
 
 # Permanently remove a custom domain — the CLI peer of
 # `DELETE /api/colonel/domains/:extid`. Both adapters call the same op
-# (Onetime::Operations::Domains::Remove), which owns the teardown, the
-# display_domain_index survivor re-assertion (the shadowed-record fix) and the
+# (Onetime::Operations::Domains::Remove), which owns the teardown and the
 # single `domain.remove` ColonelAuditEvent. This command owns only CLI concerns.
 #
 # Usage:
@@ -19,15 +18,19 @@
 #
 # TWO-PHASE UX (mirrors AdminDomainDetail.vue's dry-run preview -> apply): the
 # bare invocation runs the op with dry_run:true first and prints the plan — what
-# will be removed, and whether the removal re-asserts a surviving canonical
-# record over a drift-produced SHADOW (the crux the op guards). Nothing is
-# deleted until the operator confirms at the prompt or passes --apply / --yes.
+# will be removed. Nothing is deleted until the operator confirms at the prompt
+# or passes --apply / --yes.
 #
 # --dry-run wins over --apply: `--dry-run --apply` still mutates nothing.
 #
 # CALL COUNT: --dry-run and --apply each make exactly ONE op call. The
 # interactive path makes two (plan, then apply). The printed plan is ADVISORY,
 # not transactional — state can change between the two calls.
+#
+# SENDER CLEANUP: an apply reports the teardown's remote sender identity
+# outcome (Remove::Result#sender_cleanup). A :failed cleanup does not undo the
+# removal, but it exits 1: the record is gone, the provider identity may
+# remain, and a rerun cannot retry the cleanup.
 #
 # Lives under lib/onetime/cli (not apps/api/domains/cli) so the require of the
 # op is unambiguous at load time; registration is identical either way.
@@ -95,7 +98,7 @@ module Onetime
         return if result.nil? # operator declined at the prompt
 
         OT.info "[cli-domains-remove] domain=#{target.display_domain} status=#{result.status} " \
-                "dry_run=#{result.dry_run} reasserts=#{result.reasserts_survivor}"
+                "dry_run=#{result.dry_run} sender_cleanup=#{result.sender_cleanup}"
 
         json ? output_json(result) : output_text(result)
       end
@@ -138,10 +141,6 @@ module Onetime
         else
           puts "  Organization:         #{plan.org_name || 'N/A'} (#{plan.org_id})"
         end
-        if plan.reasserts_survivor
-          puts '  Note:                 removing a SHADOW record; the canonical'
-          puts '                        display_domain index entry will survive'
-        end
         puts
       end
 
@@ -152,8 +151,14 @@ module Onetime
           puts 'Dry run - nothing changed. Re-run with --apply to remove.'
         when :removed
           puts "Removed #{result.display_domain} (#{result.extid})"
-          puts '  Re-asserted the surviving canonical index entry' if result.reasserts_survivor
+          puts "  Sender identity:      #{result.sender_cleanup}"
           puts
+          if sender_cleanup_failed?(result)
+            puts 'Removal incomplete: the domain record was removed, but the provider sender identity may remain.'
+            puts "  The 'Sender domain deletion failed' log names the provider and the error."
+            puts '  A rerun cannot retry this cleanup; remove the identity at the provider.'
+            exit 1
+          end
           puts 'Removal complete'
         end
       end
@@ -166,10 +171,15 @@ module Onetime
           display_domain: result.display_domain,
           org_id: result.org_id,
           org_name: result.org_name,
-          reasserts_survivor: result.reasserts_survivor,
           dry_run: result.dry_run,
+          sender_cleanup: result.sender_cleanup,
         )
         exit 1 unless OK_STATUSES.include?(result.status)
+        exit 1 if sender_cleanup_failed?(result)
+      end
+
+      def sender_cleanup_failed?(result)
+        result.sender_cleanup == :failed
       end
     end
 

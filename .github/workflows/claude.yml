@@ -34,7 +34,9 @@ jobs:
       (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
       (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
       (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
-    runs-on: ubuntu-latest
+    # Pinned explicitly: ubuntu-latest is migrating to 26.04 and this job
+    # has id-token: write, so it should not move images on GitHub's clock.
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       pull-requests: read
@@ -49,7 +51,7 @@ jobs:
 
       - name: Run Claude Code
         id: claude
-        uses: anthropics/claude-code-action@fd1c128679612beff4ca259c78021c506e8aa7a7 # v1.0.237
+        uses: anthropics/claude-code-action@ed670b4cf9de2a5a570d130d2f6197b9e543cd64 # v1.0.240
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
@@ -57,16 +59,18 @@ jobs:
           additional_permissions: |
             actions: read
 
-          # Model selection. The action's own default (claude-sonnet-4-20250514)
-          # is retired and 404s before the run starts, so this must always
-          # resolve to something live. Set the ANTHROPIC_MODEL repo variable to
-          # change models without a PR; the literal is the floor, so an unset or
-          # cleared variable stays harmless (an empty value would hand the action
-          # back its own retired default). Spelled out rather than passed as the
-          # 'opus' alias: this ref bundles Claude Code 1.0.234, whose aliases
-          # may resolve against its own build-time table.
-          model: "${{ vars.ANTHROPIC_MODEL || 'claude-opus-5' }}"
-          fallback_model: "${{ vars.CLAUDE_FALLBACK_MODEL || 'claude-haiku-4-5-20251001' }}"
+          # Model selection. v1 of the action has no `model` or `fallback_model`
+          # inputs (those were v0/beta); it drops unknown inputs with only a
+          # warning, so the v1 spelling is `claude_args`. The action's own
+          # default is retired and 404s before the run starts, so this must
+          # always resolve to something live. Set the ANTHROPIC_MODEL repo
+          # variable to change models without a PR; the literal is the floor, so
+          # an unset or cleared variable stays harmless. Spelled out rather than
+          # passed as the 'opus' alias, which resolves against the bundled
+          # Claude Code's own build-time table.
+          claude_args: |
+            --model ${{ vars.ANTHROPIC_MODEL || 'claude-opus-5' }}
+            --fallback-model ${{ vars.CLAUDE_FALLBACK_MODEL || 'claude-haiku-4-5-20251001' }}
 
           # Optional: Customize the trigger phrase (default: @claude)
           # trigger_phrase: "/claude"

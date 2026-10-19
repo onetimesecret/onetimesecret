@@ -215,10 +215,6 @@
     "text": "Organizasyon:",
     "source_hash": "5300e286"
   },
-  "web.admin.domains.actions.remove.reassertsSurvivor": {
-    "text": "Başka bir kayıt aynı alan adını talep ediyor ve arama dizinini devralacak.",
-    "source_hash": "902838f4"
-  },
   "web.admin.domains.actions.remove.confirmTitle": {
     "text": "Alan adı kaldırılsın mı?",
     "source_hash": "716dfac9"
