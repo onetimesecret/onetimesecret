@@ -82,9 +82,21 @@ module Onetime
       result
     end
 
+    # Value that copies of etc/examples/billing.example.yaml fell back to
+    # when STRIPE_WEBHOOK_SIGNING_SECRET was unset. It is public, so a
+    # signature made with it proves nothing; treat it as "not configured".
+    WEBHOOK_SECRET_PLACEHOLDER = 'nosigningsecret'
+
     # Stripe webhook signing secret
+    #
+    # Returns nil when the key is absent, blank, or still the placeholder,
+    # so callers (WebhookValidator, the CLI, the boot banner) see an
+    # unconfigured secret rather than a string anyone can sign with.
     def webhook_signing_secret
-      config['webhook_signing_secret']
+      value = config['webhook_signing_secret']
+      return nil if value.to_s.strip.empty? || value == WEBHOOK_SECRET_PLACEHOLDER
+
+      value
     end
 
     # Stripe API version
