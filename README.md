@@ -12,8 +12,12 @@ recipient ever sees the contents.
 ## Quick Start (Docker)
 
 ```bash
-# 1. Start Redis
-docker run -p 6379:6379 -d redis:trixie
+# 1. Start Redis on a private Docker network, password-protected and with
+#    no host port — the app reaches it by container name
+docker network create onetime
+openssl rand -hex 32 > .ots_redis_password && chmod 600 .ots_redis_password
+docker run -d --name onetime-redis --network onetime redis:trixie \
+  redis-server --requirepass "$(cat .ots_redis_password)"
 
 # 2. Generate and store a persistent secret key — back this up safely
 openssl rand -hex 32 > .ots_secret && chmod 600 .ots_secret
@@ -21,8 +25,8 @@ openssl rand -hex 32 > .ots_secret && chmod 600 .ots_secret
 # 3. Run Onetime Secret (set SSL=true for production)
 docker run -p 3000:3000 -d \
   --name onetimesecret \
-  --add-host=host.docker.internal:host-gateway \
-  -e REDIS_URL=redis://host.docker.internal:6379/0 \
+  --network onetime \
+  -e REDIS_URL="redis://:$(cat .ots_redis_password)@onetime-redis:6379/0" \
   -e SECRET="$(cat .ots_secret)" \
   -e HOST=localhost:3000 \
   -e SSL=false \

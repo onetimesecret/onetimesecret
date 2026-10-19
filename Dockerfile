@@ -23,12 +23,15 @@
 #     # 1. Create a dedicated docker network
 #     $ docker network create onetime-network
 #
-#     # 2. Start a Valkey/Redis container with persistent storage:
+#     # 2. Start a password-protected Valkey/Redis container with persistent
+#     #    storage. No -p: the app reaches it by name over onetime-network, and
+#     #    publishing 6379 would expose the datastore to the host's network.
+#     $ openssl rand -hex 32 > .ots_valkey_password && chmod 600 .ots_valkey_password
 #     $ docker run -d --name onetime-maindb \
 #         --network onetime-network \
-#         -p 6379:6379 \
 #         -v onetime_maindb_data:/data \
-#         valkey/valkey
+#         valkey/valkey \
+#         valkey-server --requirepass "$(cat .ots_valkey_password)"
 #
 #     # 3. Set a unique secret:
 #     $ openssl rand -hex 24
@@ -42,7 +45,7 @@
 #         --network onetime-network \
 #         -e SECRET=$SECRET \
 #         -e SESSION_SECRET=$SESSION_SECRET \
-#         -e REDIS_URL=redis://onetime-maindb:6379/0 \
+#         -e REDIS_URL="redis://:$(cat .ots_valkey_password)@onetime-maindb:6379/0" \
 #         --detach \
 #         onetimesecret
 #
