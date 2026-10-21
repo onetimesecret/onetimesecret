@@ -45,6 +45,7 @@ RSpec.describe DomainsAPI::Logic::Domains::RemoveDomain do
 
   let(:params) { { 'extid' => 'ext-domain123' } }
   let(:logic) { described_class.new(strategy_result, params) }
+  let(:app_log) { double('App logger', debug: nil, info: nil, warn: nil) }
 
   before do
     allow(OT).to receive(:info)
@@ -57,6 +58,7 @@ RSpec.describe DomainsAPI::Logic::Domains::RemoveDomain do
     })
 
     allow(logic).to receive(:require_organization!)
+    allow(logic).to receive(:app_logger).and_return(app_log)
 
     allow(Onetime::CustomDomain).to receive(:find_by_extid)
       .and_return(custom_domain)
@@ -65,7 +67,7 @@ RSpec.describe DomainsAPI::Logic::Domains::RemoveDomain do
 
   describe '#process' do
     let(:teardown_result) do
-      Onetime::Operations::Domains::Teardown::Result.new(removal_committed: true, lease_error: nil)
+      Onetime::Operations::Domains::Teardown::Result.new(removal_committed: true, lease_error: nil, sender_cleanup: :deleted)
     end
     let(:teardown) { instance_double(Onetime::Operations::Domains::Teardown, call: teardown_result) }
     let(:lease_error) { Onetime::Operations::SenderIdentityLease::Lost.new('Sender identity lock lost') }
@@ -90,6 +92,21 @@ RSpec.describe DomainsAPI::Logic::Domains::RemoveDomain do
       expect(teardown).to have_received(:call).once
       expect(custom_domain).not_to have_received(:destroy!)
       expect(result).to include(user_id: customer.objid, record: {}, message: 'Removed example.com')
+    end
+
+    { deleted: :info, absent: :info, skipped: :info, kept: :info, failed: :warn }.each do |cleanup, level|
+      it "logs the #{cleanup} sender cleanup outcome at #{level} without changing the success response" do
+        allow(teardown).to receive(:call).and_return(
+          Onetime::Operations::Domains::Teardown::Result.new(removal_committed: true, lease_error: nil, sender_cleanup: cleanup)
+        )
+
+        expect(logic.send(:process)).to eq(user_id: customer.objid, record: {}, message: 'Removed example.com')
+        expect(app_log).to have_received(level).with(
+          '[RemoveDomain] Domain removed',
+          event: 'domain_removed', domain_extid: 'ext-domain123', domain_display: 'example.com',
+          actor_extid: customer.extid, sender_cleanup: cleanup.to_s,
+        ).once
+      end
     end
 
     context 'domain_context clearing' do
@@ -121,7 +138,7 @@ RSpec.describe DomainsAPI::Logic::Domains::RemoveDomain do
       }
       expect(session['domain_context']).to eq('example.com')
       expect(custom_domain).not_to have_received(:destroy!)
-      expect(OT).not_to have_received(:info).with('[RemoveDomain] Domain removal committed with lease loss', anything)
+      expect(app_log).not_to have_received(:info).with('[RemoveDomain] Domain removal committed with lease loss', anything)
     end
 
     it 'maps pre-commit lease loss to a conflict, retaining the session and not logging commitment' do
@@ -133,29 +150,30 @@ RSpec.describe DomainsAPI::Logic::Domains::RemoveDomain do
       }
       expect(session['domain_context']).to eq('example.com')
       expect(custom_domain).not_to have_received(:destroy!)
-      expect(OT).not_to have_received(:info).with('[RemoveDomain] Domain removal committed with lease loss', anything)
+      expect(app_log).not_to have_received(:info).with('[RemoveDomain] Domain removal committed with lease loss', anything)
     end
 
     [true, false].each do |matching_context|
       it "finalizes the #{matching_context ? 'matching' : 'unrelated'} session and logs before reporting committed loss" do
         session['domain_context'] = matching_context ? 'example.com' : 'other.example.com'
         allow(teardown).to receive(:call).and_return(
-          Onetime::Operations::Domains::Teardown::Result.new(removal_committed: true, lease_error: lease_error)
+          Onetime::Operations::Domains::Teardown::Result.new(removal_committed: true, lease_error: lease_error, sender_cleanup: :deleted)
         )
         expected_context = matching_context ? nil : 'other.example.com'
-        expect(OT).to receive(:info).with('[RemoveDomain] Domain removal committed with lease loss', anything).once do |_, payload|
+        expect(app_log).to receive(:info).with('[RemoveDomain] Domain removal committed with lease loss', anything).once do |_, **payload|
           expect(session['domain_context']).to eq(expected_context)
-          expect(JSON.parse(payload)).to include(
-            'event' => 'domain_removed', 'domain_extid' => 'ext-domain123',
-            'domain_display' => 'example.com', 'actor_extid' => customer.extid,
-            'removal_committed' => true, 'lease_lost' => true
+          expect(payload).to eq(
+            event: 'domain_removed', domain_extid: 'ext-domain123',
+            domain_display: 'example.com', actor_extid: customer.extid,
+            removal_committed: true, lease_lost: true, sender_cleanup: 'deleted',
           )
         end
+        expect(app_log).not_to receive(:info).with('[RemoveDomain] Domain removed', anything)
 
         expect { logic.send(:process) }.to raise_error(OT::FormError) { |ex|
           expect(ex.error_type).to eq(:conflict)
           expect(ex.message).to include('was removed', 'lock lost')
-          expect(ex.details).to include(removal_committed: true, lease_lost: true)
+          expect(ex.details).to eq(removal_committed: true, lease_lost: true)
         }
         expect(session['domain_context']).to eq(expected_context)
         expect(teardown).to have_received(:call).once
@@ -168,7 +186,7 @@ RSpec.describe DomainsAPI::Logic::Domains::RemoveDomain do
 
       expect { logic.send(:process) }.to raise_error { |ex| expect(ex).to equal(error) }
       expect(session['domain_context']).to eq('example.com')
-      expect(OT).not_to have_received(:info).with('[RemoveDomain] Domain removal committed with lease loss', anything)
+      expect(app_log).not_to have_received(:info).with('[RemoveDomain] Domain removal committed with lease loss', anything)
     end
   end
 

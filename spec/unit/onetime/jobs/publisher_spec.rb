@@ -50,6 +50,12 @@ RSpec.describe Onetime::Jobs::Publisher do
   describe '#publish with RabbitMQ' do
     subject(:publisher) { described_class.new }
 
+    # The example installs a pool double in the global; clear it so the
+    # double does not reach a later example that publishes.
+    after do
+      $rmq_channel_pool = nil
+    end
+
     it 'includes message_id in UUID format when publishing' do
       mock_channel = instance_double(Bunny::Channel)
       mock_exchange = instance_double(Bunny::Exchange)

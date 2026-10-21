@@ -54,7 +54,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
     let(:org) { double('Organization', display_name: 'Acme Inc', remove_domain: nil) }
 
     let(:teardown_result) do
-      Onetime::Operations::Domains::Teardown::Result.new(removal_committed: true, lease_error: nil)
+      Onetime::Operations::Domains::Teardown::Result.new(removal_committed: true, lease_error: nil, sender_cleanup: :deleted)
     end
     let(:teardown) { instance_double(Onetime::Operations::Domains::Teardown, call: teardown_result) }
     let(:lease_error) { Onetime::Operations::SenderIdentityLease::Lost.new('Sender identity lock lost') }
@@ -139,15 +139,35 @@ RSpec.describe Onetime::Operations::Domains::Remove do
         result = described_class.new(domain: domain, actor: actor, dry_run: false).call
 
         expect(result.status).to eq(:removed)
+        expect(result.sender_cleanup).to eq(:deleted)
         expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
           actor: actor,
           verb: 'domain.remove',
           target: 'cd_ext1',
           result: :success,
-          detail: hash_including(org_id: 'org-1'),
+          detail: hash_including(org_id: 'org-1', sender_cleanup: 'deleted'),
           # #4333: destroy! has committed by now, so the write is fail-closed.
           fail_closed: true,
         )
+      end
+
+      [:failed, :absent, :skipped, :kept].each do |cleanup|
+        it "records sender_cleanup #{cleanup} in the result and the success audit" do
+          allow(teardown).to receive(:call).and_return(
+            Onetime::Operations::Domains::Teardown::Result.new(removal_committed: true, lease_error: nil, sender_cleanup: cleanup)
+          )
+
+          result = described_class.new(domain: domain, actor: actor, dry_run: false).call
+
+          expect(result).to have_attributes(status: :removed, sender_cleanup: cleanup)
+          expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+            hash_including(verb: 'domain.remove', result: :success, detail: hash_including(sender_cleanup: cleanup.to_s)),
+          )
+        end
+      end
+
+      it 'reports no sender cleanup on a dry run' do
+        expect(described_class.new(domain: domain, actor: actor).call.sender_cleanup).to be_nil
       end
 
       it 'does NOT call org.remove_domain (destroy! owns org participation)' do
@@ -210,7 +230,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
 
     describe 'when shared teardown returns committed lease loss' do
       let(:teardown_result) do
-        Onetime::Operations::Domains::Teardown::Result.new(removal_committed: true, lease_error: lease_error)
+        Onetime::Operations::Domains::Teardown::Result.new(removal_committed: true, lease_error: lease_error, sender_cleanup: :failed)
       end
 
       it 'carries the removed result and original cause, auditing success rather than failure' do
@@ -219,13 +239,14 @@ RSpec.describe Onetime::Operations::Domains::Remove do
         end.to raise_error(described_class::RemovalCommitted) { |ex|
           expect(ex.result).to be_a(described_class::Result)
           expect(ex.result.status).to eq(:removed)
+          expect(ex.result.sender_cleanup).to eq(:failed)
           expect(ex.result.extid).to eq('cd_ext1')
           expect(ex.message).to include('removal committed', lease_error.message)
           expect(ex.cause).to equal(lease_error)
         }
         expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(hash_including(
           result: :success, fail_closed: true,
-          detail: hash_including(removal_committed: true, lease_lost: true)
+          detail: hash_including(removal_committed: true, lease_lost: true, sender_cleanup: 'failed')
         ))
       end
     end
@@ -258,15 +279,16 @@ RSpec.describe Onetime::Operations::Domains::Remove do
 
     it 'does not relabel a committed removal as failed when its committed-outcome audit write fails' do
       allow(teardown).to receive(:call).and_return(
-        Onetime::Operations::Domains::Teardown::Result.new(removal_committed: true, lease_error: lease_error)
+        Onetime::Operations::Domains::Teardown::Result.new(removal_committed: true, lease_error: lease_error, sender_cleanup: :deleted)
       )
       allow(Onetime::ColonelAuditEvent).to receive(:record)
         .with(hash_including(verb: 'domain.remove'))
         .and_raise(Onetime::AuditWriteFailure.new(verb: 'domain.remove', target: 'cd_ext1'))
 
-      expect do
-        described_class.new(domain: domain, actor: actor, dry_run: false).call
-      end.to raise_error(Onetime::AuditWriteFailure)
+      operation = described_class.new(domain: domain, actor: actor, dry_run: false)
+      expect(operation.sender_cleanup).to be_nil
+      expect { operation.call }.to raise_error(Onetime::AuditWriteFailure)
+      expect(operation.sender_cleanup).to eq(:deleted)
 
       expect(Onetime::ColonelAuditEvent).to have_received(:record).with(hash_including(
         verb: 'domain.remove', result: :success,
@@ -419,7 +441,9 @@ RSpec.describe Onetime::Operations::Domains::Remove do
         domain = shadow_removal ? create_shadow(fqdn, 'shadow-org', survivor) : create_domain(fqdn, 'victim-org')
         extid = domain.extid
         lock = Onetime::CustomDomain::MailerConfig.sender_identity_lock(domain.identifier)
-        sender_op = double('DeleteSenderDomain', call: nil)
+        sender_op = double('DeleteSenderDomain', call: Onetime::Operations::DeleteSenderDomain::Result.new(
+          success: true, message: 'deleted', error: nil, outcome: :deleted,
+        ))
         allow(Onetime::Operations::DeleteSenderDomain).to receive(:new).and_return(sender_op)
         allow(domain).to receive(:destroy!).and_wrap_original do |original|
           value = original.call

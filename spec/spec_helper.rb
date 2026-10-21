@@ -219,6 +219,16 @@ rescue StandardError => ex
   warn 'Tests requiring OT.conf will fail'
 end
 
+# A bounded connection pool for this process. Unit specs never boot, so
+# without this every Familia.dbclient lookup opened a connection of its own
+# (familia 2.12 fallback, delano/familia#456) and one datastore-heavy spec
+# file exhausted the ephemeral ports on macOS. Installs the provider a full
+# boot installs, over a pool created here; connections are made lazily,
+# all against the Familia.uri set above. A spec that boots gets the boot's
+# pool.
+require_relative '../tests/lanes/support/datastore_pool'
+Lanes::DatastorePool.install!(uri: Familia.uri)
+
 # Test helpers module
 module SpecHelpers
   # Add shared test helpers here

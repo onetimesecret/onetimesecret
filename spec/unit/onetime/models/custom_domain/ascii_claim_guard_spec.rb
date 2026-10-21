@@ -225,10 +225,11 @@ RSpec.describe Onetime::CustomDomain, 'ASCII claim guard', :datastore do
     # strings. A plain string that reads as a JSON number loads as a number
     # ("1e100" as 1.0e+100, "1.50" as 1.5), and the record must still save.
     # The guard pins its WATCH, the read and the write to one pool
-    # connection. The unit lane boots without the pool, and Familia's
-    # fallback opens a connection per call, so the WATCH would never hold.
-    # These examples install a pool and the provider SetupConnectionPool
-    # installs; the concurrent writer uses a connection of its own.
+    # connection. These examples install a pool of their own with the
+    # provider SetupConnectionPool installs, independent of whichever pool
+    # the process started with (spec_helper installs one; see
+    # tests/lanes/support/datastore_pool.rb); the concurrent writer uses a
+    # connection of its own.
     context 'with a connection pool, as after a full boot' do
       include OnetimeStateHelpers
 
@@ -238,10 +239,7 @@ RSpec.describe Onetime::CustomDomain, 'ASCII claim guard', :datastore do
         snapshot = snapshot_familia_pool_config
         pool     = ConnectionPool.new(size: 2, timeout: 5) { Familia.create_dbclient }
         Onetime::Runtime.update_infrastructure(database_pool: pool)
-        Familia.connection_provider = lambda do |_uri|
-          stack = Fiber[:ots_pinned_dbclient_stack]
-          stack && !stack.empty? ? stack.last : pool.with { |conn| conn }
-        end
+        Familia.connection_provider = Onetime.pooled_connection_provider(pool)
         example.run
       ensure
         restore_familia_pool_config(snapshot)
