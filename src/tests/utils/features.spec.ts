@@ -23,6 +23,7 @@ import {
   isMagicLinksEnabled,
   isOrganizationSwitcherEnabled,
   isOrgsAuditLogsEnabled,
+  isOrgsBaseDomainSignupEnabled,
   isOrgsCustomMailEnabled,
   isOrgsHomepageNetworkRulesUiEnabled,
   isOrgsIncomingSecretsEnabled,
@@ -1197,6 +1198,29 @@ describe('features utility', () => {
       });
 
       expect(isOrgsHomepageNetworkRulesUiEnabled()).toBe(false);
+    });
+  });
+
+  describe('isOrgsBaseDomainSignupEnabled', () => {
+    it('returns true when organizations.base_domain_signup_enabled is true', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { base_domain_signup_enabled: true } });
+
+      expect(isOrgsBaseDomainSignupEnabled()).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+    });
+
+    it('returns false when organizations.base_domain_signup_enabled is false', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { base_domain_signup_enabled: false } });
+
+      expect(isOrgsBaseDomainSignupEnabled()).toBe(false);
+    });
+
+    it('defaults to false when the key or the features object is missing', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: {} });
+      expect(isOrgsBaseDomainSignupEnabled()).toBe(false);
+
+      getBootstrapValueMock.mockReturnValue(undefined);
+      expect(isOrgsBaseDomainSignupEnabled()).toBe(false);
     });
   });
 

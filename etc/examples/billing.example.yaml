@@ -182,6 +182,13 @@ entitlements:
     category: advanced
     description: Per-domain signup validation strategy (passthrough, allowlist, MX, SMTP)
 
+  # Not granted by any plan below: add it to a plan to offer it. Takes
+  # effect only while features.organizations.base_domain_signup_enabled
+  # (ORGS_BASE_DOMAIN_SIGNUP_ENABLED) is on.
+  base_domain_signup:
+    category: advanced
+    description: Admit the custom domain's own base domain to its signup allowlist automatically
+
 # Plan Definitions
 #
 # All plans are synced to Stripe via `bin/ots billing catalog push`, including

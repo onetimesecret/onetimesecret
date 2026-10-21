@@ -126,6 +126,7 @@ export type OrganizationRole = z.infer<typeof organizationRoleSchema>;
 export const KNOWN_ENTITLEMENTS = [
   'api_access',
   'audit_logs',
+  'base_domain_signup',
   'create_secrets',
   'custom_branding',
   'custom_domains',

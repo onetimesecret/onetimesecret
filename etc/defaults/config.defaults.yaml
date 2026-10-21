@@ -1281,6 +1281,12 @@ features:
     # stay enforced, the same as after a plan downgrade, so the switch never
     # opens a homepage a tenant restricted.
     homepage_network_rules_ui_enabled: <%= ENV['ORGS_HOMEPAGE_NETWORK_RULES_UI_ENABLED'] == 'true' %>  # Since unreleased
+    # Lets organizations with the base_domain_signup entitlement admit their
+    # custom domain's own base domain to its sign-up allowlist automatically
+    # (secrets.acme.com admits @acme.com). Also checked when a sign-up is
+    # validated, so turning it off stops a saved setting from admitting
+    # anyone.
+    base_domain_signup_enabled: <%= ENV['ORGS_BASE_DOMAIN_SIGNUP_ENABLED'] == 'true' %>  # Since unreleased
     # Gates exposure (UI + list API) of the organization secret-activity
     # trail; pairs with the `audit_logs` entitlement. Defaults ON, unlike
     # the sibling flags above, because the trail ships working out of the

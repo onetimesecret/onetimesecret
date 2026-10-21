@@ -1,0 +1,117 @@
+{
+  "_readme": {
+    "purpose": "Language-neutral table for the signup allowlist requirement: whether a custom domain's signup config has at least one domain to admit. The server enforces the rule on save; the workspace form mirrors it to gate Save. Both read this file, so a rule changed on one side fails a test instead of letting the form offer a save the API refuses, or the reverse.",
+    "implementations": [
+      {
+        "language": "ruby",
+        "source": "lib/onetime/models/custom_domain/signup_config.rb",
+        "entrypoint": "Onetime::CustomDomain::SignupConfig.allowlist_requirement_error (met when it returns nil; called with corrupt: false)"
+      },
+      {
+        "language": "typescript",
+        "source": "src/schemas/contracts/custom-domain/signup-config.ts",
+        "entrypoint": "allowlistRequirementMet"
+      }
+    ],
+    "consumers": [
+      "spec/unit/onetime/models/custom_domain/signup_allowlist_requirement_spec.rb",
+      "src/tests/schemas/contracts/custom-domain/signup-allowlist-requirement.spec.ts"
+    ],
+    "scope": "Readable lists only. An unreadable stored list is a server-only case (the wire format cannot carry one) and stays in try/unit/models/custom_domain/signup_config_try.rb.",
+    "how_to_read_a_case": {
+      "id": "stable, unique slug; both suites put it in the test name",
+      "strategy": "validation_strategy",
+      "domains": "the listed domains; null means the list is absent",
+      "allow_base_domain": "allow_base_domain as it counts: stored true AND available (install flag on, organization entitled). Availability is decided before the rule runs, by SignupConfig.base_domain_signup_available_for? on the server and by the form's props in the browser.",
+      "base_domain": "the custom domain's registrable domain, or null when it has none",
+      "met": "the answer BOTH implementations must give",
+      "note": "optional; present whenever the answer is not obvious"
+    }
+  },
+  "cases": [
+    {
+      "id": "listed-domain",
+      "strategy": "domain_allowlist",
+      "domains": ["partner.com"],
+      "allow_base_domain": false,
+      "base_domain": null,
+      "met": true
+    },
+    {
+      "id": "listed-domain-and-base-domain",
+      "strategy": "domain_allowlist",
+      "domains": ["partner.com"],
+      "allow_base_domain": true,
+      "base_domain": "acme.com",
+      "met": true
+    },
+    {
+      "id": "base-domain-only",
+      "strategy": "domain_allowlist",
+      "domains": [],
+      "allow_base_domain": true,
+      "base_domain": "acme.com",
+      "met": true,
+      "note": "The base domain is the whole list."
+    },
+    {
+      "id": "base-domain-only-list-absent",
+      "strategy": "domain_allowlist",
+      "domains": null,
+      "allow_base_domain": true,
+      "base_domain": "acme.com",
+      "met": true
+    },
+    {
+      "id": "flag-without-base-domain",
+      "strategy": "domain_allowlist",
+      "domains": [],
+      "allow_base_domain": true,
+      "base_domain": null,
+      "met": false,
+      "note": "The flag has nothing to add, so the effective list is empty and the sign-up gate would deny everyone."
+    },
+    {
+      "id": "empty-list-flag-off",
+      "strategy": "domain_allowlist",
+      "domains": [],
+      "allow_base_domain": false,
+      "base_domain": "acme.com",
+      "met": false,
+      "note": "Also the case for a stored true that is not available: callers pass false."
+    },
+    {
+      "id": "list-absent-flag-off",
+      "strategy": "domain_allowlist",
+      "domains": null,
+      "allow_base_domain": false,
+      "base_domain": "acme.com",
+      "met": false
+    },
+    {
+      "id": "passthrough-empty",
+      "strategy": "passthrough",
+      "domains": [],
+      "allow_base_domain": false,
+      "base_domain": null,
+      "met": true,
+      "note": "Only domain_allowlist uses the allowlist."
+    },
+    {
+      "id": "mx-empty",
+      "strategy": "mx",
+      "domains": [],
+      "allow_base_domain": false,
+      "base_domain": null,
+      "met": true
+    },
+    {
+      "id": "smtp-empty",
+      "strategy": "smtp",
+      "domains": [],
+      "allow_base_domain": false,
+      "base_domain": null,
+      "met": true
+    }
+  ]
+}

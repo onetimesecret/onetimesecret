@@ -49,6 +49,7 @@
       'autoverify',
       'validation_strategy',
       'allowed_signup_domains',
+      'allow_base_domain',
       'created',
       'updated',
     ],

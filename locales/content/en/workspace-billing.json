@@ -243,6 +243,10 @@
     "text": "Custom Signup Validation",
     "content_hash": "0ff55bfa"
   },
+  "web.billing.overview.entitlements.base_domain_signup": {
+    "text": "Automatic Base Domain Signup",
+    "content_hash": "4cc30024"
+  },
   "web.billing.overview.entitlements.sso": {
     "text": "Single Sign-On (SSO)",
     "content_hash": "5db5c812"
