@@ -148,7 +148,11 @@ module Core
           # private landing page as a disabled homepage — the rule is not
           # advertised — and the anonymous create API refuses them through
           # the same predicate (CustomDomain#allow_public_secret_creation?),
-          # so the form shown and the gate behind it always agree. Only
+          # so in create mode the form shown and the gate behind it always
+          # agree. In incoming mode the rules decide only whether the
+          # homepage shows the form: the /incoming page and the incoming API
+          # are governed by IncomingConfig, never by HomepageConfig (the same
+          # holds for enabled: false), and the editor copy says so. Only
           # consulted when the homepage is otherwise interactive, so a
           # domain without rules never logs a network decision.
           effective_enabled = homepage_config.effectively_enabled?(custom_domain: custom_domain) &&

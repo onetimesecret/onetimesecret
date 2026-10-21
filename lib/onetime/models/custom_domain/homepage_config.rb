@@ -302,8 +302,10 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
   # Whether the requesting client's network may use the interactive
   # homepage. Consumed by the bootstrap serializer (together with
   # #effectively_enabled?) and by CustomDomain#allow_public_secret_creation?
-  # (the anonymous create-API gate), so the form a visitor sees and the API
-  # it posts to can never disagree.
+  # (the anonymous create-API gate), so in create mode the form a visitor
+  # sees and the API it posts to can never disagree. Incoming mode is
+  # narrower: this decides whether the homepage shows the incoming form,
+  # while /incoming and the incoming API follow IncomingConfig alone.
   #
   # Decision (Onetime::Utils::CidrList.permitted?): no rules → true; a
   # denied range matches → false; allowed ranges configured and none

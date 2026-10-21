@@ -22,6 +22,10 @@
    * Signed-in members and the management pages are never gated by these
    * rules, so an operator cannot lock themselves out of fixing a list.
    *
+   * In incoming mode the rules decide only whether the homepage shows the
+   * form: the /incoming page and its API follow the Incoming settings, not
+   * these rules, so `incomingMode` adds a note saying so.
+   *
    * Editing needs the install-wide flag (ORGS_HOMEPAGE_NETWORK_RULES_UI_ENABLED)
    * and the plan feature (homepage_network_rules). Without either the parent
    * sets `lockReason`: stored rules, which stay enforced after a downgrade
@@ -54,12 +58,15 @@
      * network rules) or 'instance' (the install-wide flag is off).
      */
     lockReason?: 'plan' | 'instance' | null;
+    /** The homepage presents the incoming form (adds the scope note). */
+    incomingMode?: boolean;
   }
 
   const props = withDefaults(defineProps<Props>(), {
     disabled: false,
     saving: false,
     lockReason: null,
+    incomingMode: false,
   });
 
   const emit = defineEmits<{
@@ -208,6 +215,12 @@
         </h4>
         <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
           {{ t('web.domains.homepage.network_description') }}
+        </p>
+        <p
+          v-if="incomingMode"
+          class="mt-1 text-xs text-gray-500 dark:text-gray-400"
+          data-testid="homepage-network-incoming-note">
+          {{ t('web.domains.homepage.network_incoming_note') }}
         </p>
       </div>
     </div>

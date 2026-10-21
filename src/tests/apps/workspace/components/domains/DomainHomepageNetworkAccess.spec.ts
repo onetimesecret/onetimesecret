@@ -51,6 +51,14 @@ describe('DomainHomepageNetworkAccess', () => {
     expect(wrapper.find('[data-testid="homepage-network-save"]').exists()).toBe(false);
   });
 
+  it('notes the narrower scope only in incoming mode', () => {
+    const note = '[data-testid="homepage-network-incoming-note"]';
+    expect(mountEditor().find(note).exists()).toBe(false);
+    expect(mountEditor({ incomingMode: true }).find(note).text()).toBe(
+      'web.domains.homepage.network_incoming_note'
+    );
+  });
+
   it('stages an added entry and emits the dirty state', async () => {
     const wrapper = mountEditor();
     await addAllowed(wrapper, '192.0.2.0/24');

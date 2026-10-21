@@ -445,6 +445,7 @@ onMounted(() => {
                 :disabled="domainLoading || homepageSaving || !canAdmin"
                 :saving="homepageNetworkSaving"
                 :lock-reason="homepageNetworkLockReason"
+                :incoming-mode="homepageChoice === 'incoming'"
                 @save="handleHomepageNetworkSave"
                 @update:dirty="homepageNetworkDirty = $event">
                 <template #upgrade>

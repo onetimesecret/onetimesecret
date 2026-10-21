@@ -16,7 +16,9 @@ Added
   through the ``otto.ip_match`` verdict, so single-address entries work and
   the privacy-masked address is never consulted. Secret links still open
   from any network, so staff can create from a known network while
-  recipients open links from anywhere.
+  recipients open links from anywhere. In incoming mode the rules decide
+  who sees the form on the homepage only: the ``/incoming`` page and the
+  incoming API are not restricted by network.
 
 - New ``homepage_network_rules`` entitlement (Identity Plus in the example
   catalog). Changing either list requires it; the homepage experience
@@ -29,7 +31,9 @@ Added
   (``features.organizations.homepage_network_rules_ui_enabled``), off by
   default. Editing network rules needs it on, in addition to the
   entitlement, on every install. With it off the workspace editor is hidden
-  and ``PUT /api/domains/:extid/homepage-config`` refuses either list (a
-  422 form error of type ``forbidden`` on that field). Turning it off stops edits only: rules already stored stay enforced
+  and ``PUT /api/domains/:extid/homepage-config`` refuses a changed list (a
+  422 form error of type ``forbidden`` on that field). A list sent back
+  unchanged is accepted, so read-modify-write clients keep working. Turning
+  it off stops edits only: rules already stored stay enforced
   and are shown read-only, so the switch never opens a homepage a tenant
   restricted. The colonel domain configs editor is not gated by it.

@@ -1773,6 +1773,11 @@
     "context": "Description under the Network access heading in the homepage network rules editor",
     "content_hash": "c9b552ff"
   },
+  "web.domains.homepage.network_incoming_note": {
+    "text": "In incoming mode, these rules only decide who sees the form on the homepage. The /incoming page follows your Incoming settings and is not limited by network.",
+    "context": "Note under the Network access description, shown only while the homepage presents the incoming form; /incoming is a URL path, do not translate it",
+    "content_hash": "5ddbcd71"
+  },
   "web.domains.homepage.network_allowed_label": {
     "text": "Allowed networks",
     "context": "Label for the list of CIDR ranges that may use the interactive homepage",
