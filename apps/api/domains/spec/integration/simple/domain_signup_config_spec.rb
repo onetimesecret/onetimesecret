@@ -562,10 +562,25 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
           expect(last_response.status).to eq(200)
 
           stub_base_domain_signup_flag(false)
-          csrf_patch api_path(test_custom_domain.extid), { enabled: true }
+          csrf_patch api_path(test_custom_domain.extid), { validation_strategy: 'domain_allowlist' }
 
           expect(last_response.status).to eq(422)
           expect(json_body['error']).to include('allowed_signup_domains is required')
+        end
+
+        it 'still accepts a PATCH that sends no allowlist input after the saved allow_base_domain stops counting' do
+          csrf_patch api_path(test_custom_domain.extid), { allow_base_domain: true, allowed_signup_domains: [], enabled: true }
+          expect(last_response.status).to eq(200)
+
+          stub_base_domain_signup_flag(false)
+          csrf_patch api_path(test_custom_domain.extid), { enabled: false }
+
+          expect(last_response.status).to eq(200)
+          expect(json_body['record']).to include(
+            'enabled' => false,
+            'allow_base_domain' => true,
+            'allowed_signup_domains' => [],
+          )
         end
 
         it 'updates only provided fields (PATCH semantics)' do
@@ -655,6 +670,13 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
 
             expect(last_response.status).to eq(422)
             expect(json_body['error']).to include('cannot be read')
+          end
+
+          it 'can still be disabled without replacing it' do
+            csrf_patch api_path(test_custom_domain.extid), { enabled: false }
+
+            expect(last_response.status).to eq(200)
+            expect(json_body['record']['enabled']).to be false
           end
 
           it 'replaces it when allowed_signup_domains is sent' do

@@ -36,3 +36,9 @@ Changed
   config invalid, such as switching sign-up validation to the allowlist
   strategy with nothing to admit, instead of saving it. A config that is
   already invalid can still be disabled or repaired.
+- A PATCH to the domain signup-config API that sends none of
+  ``validation_strategy``, ``allowed_signup_domains`` and
+  ``allow_base_domain`` is no longer refused because the stored allowlist
+  fails the list requirement. A config whose saved ``allow_base_domain``
+  stopped counting, or whose stored list cannot be read, can still be
+  disabled or have its other settings changed.

@@ -157,6 +157,8 @@ module DomainsAPI
             )
           end
 
+          return if keeps_allowlist_inputs?
+
           # Validate domain_allowlist has at least one domain (using effective
           # values). A stored list kept by this PATCH must also be readable;
           # sending allowed_signup_domains replaces it.
@@ -173,6 +175,22 @@ module DomainsAPI
             corrupt: keeps_corrupt_list,
             allow_base_domain: effective_allow_base_domain,
           )
+        end
+
+        # Whether this PATCH updates a stored config without sending any input
+        # the allowlist rule reads (validation_strategy, allowed_signup_domains,
+        # allow_base_domain). Such a request cannot add an allowlist error, so
+        # it is not judged by the rule: a config that stopped meeting it, for
+        # example because a saved allow_base_domain no longer counts after
+        # the install flag or the entitlement went away, can still be
+        # disabled or have its other fields changed. Same principle as
+        # Operations::Domains::UpsertDomainConfig. The sign-up gate still
+        # judges the stored values, and a disabled config resolves like a
+        # deleted one (SignupValidation), which the owner can already do.
+        def keeps_allowlist_inputs?
+          return false unless @existing_config
+
+          @validation_strategy.to_s.empty? && !@allowed_signup_domains_provided && !@allow_base_domain_provided
         end
 
         # PATCH semantics: strategy preserves existing if not provided.

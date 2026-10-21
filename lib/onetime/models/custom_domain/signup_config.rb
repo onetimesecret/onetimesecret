@@ -378,9 +378,8 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     errors << 'validation_strategy is required' if validation_strategy.to_s.empty?
     errors << "validation_strategy must be one of: #{STRATEGY_TYPES.join(', ')}" unless STRATEGY_TYPES.include?(validation_strategy)
 
-    domain             = (custom_domain if allow_base_domain?) # skip the lookups when unused
-    base_domain_counts = allow_base_domain_counts_for_validation?(domain)
-    allowlist_error    = self.class.allowlist_requirement_error(
+    base_domain_counts, domain = allow_base_domain_for_validation
+    allowlist_error            = self.class.allowlist_requirement_error(
       strategy: validation_strategy,
       domains: allowed_signup_domains,
       corrupt: allowed_signup_domains_corrupt?,
@@ -720,20 +719,30 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     raise Onetime::SignupPolicyUnavailable
   end
 
-  # allow_base_domain_effective? as #validation_errors applies it. A read
-  # that raises (policy_read_failure?) makes the flag not count, so the
-  # list is judged on its own: a broken plan catalog cannot fail an
-  # unrelated write, such as the colonel upsert's before/after comparison
-  # (Operations::Domains::UpsertDomainConfig), and cannot block disabling
-  # or repairing the config. Only validation reads it this way; the gate
-  # answers 503 for the same failure (#validate_domain_allowlist).
-  def allow_base_domain_counts_for_validation?(domain)
-    allow_base_domain_effective?(domain: domain)
+  # allow_base_domain_effective? as #validation_errors applies it, with the
+  # domain record it was judged against. A read that raises
+  # (policy_read_failure?), the domain record's own included, makes the
+  # flag not count, so the list is judged on its own: a datastore blip or a
+  # broken plan catalog cannot fail an unrelated write, such as the colonel
+  # upsert's before/after comparison (Operations::Domains::UpsertDomainConfig),
+  # and cannot block disabling or repairing the config. Only validation
+  # reads it this way; the gate answers 503 for the same failure
+  # (#validate_domain_allowlist).
+  #
+  # @return [Array(Boolean, CustomDomain)] whether the flag counts, and the
+  #   domain record when it does (nil otherwise)
+  def allow_base_domain_for_validation
+    return [false, nil] unless allow_base_domain? && self.class.base_domain_signup_enabled? # skips the record lookups
+
+    domain = custom_domain
+    return [false, nil] unless domain && allow_base_domain_effective?(domain: domain)
+
+    [true, domain]
   rescue StandardError => ex
     raise unless policy_read_failure?(ex)
 
     OT.le "[SignupConfig] allow_base_domain not counted for validation domain_id=#{domain_id} #{ex.class}"
-    false
+    [false, nil]
   end
 
   # A datastore read that raised, or an entitlement check that failed

@@ -640,6 +640,18 @@ rescue StandardError => ex
 end
 #=> ArgumentError
 
+## validation_errors does not raise when the domain record read itself fails: the list is judged alone
+@abd_unreadable = Onetime::CustomDomain::SignupConfig.new(
+  domain_id: @domain_abd.identifier,
+  validation_strategy: 'domain_allowlist',
+  allow_base_domain: true,
+)
+@abd_unreadable.define_singleton_method(:custom_domain) { raise Redis::CannotConnectError, 'datastore down' }
+empty_errors = @abd_unreadable.validation_errors
+@abd_unreadable.allowed_signup_domains = ['partner.com']
+[empty_errors, @abd_unreadable.validation_errors]
+#=> [[Onetime::CustomDomain::SignupConfig::ALLOWLIST_REQUIRED_ERROR], []]
+
 ## passthrough ignores the flag (format-only, as before)
 @abd_orphan.validation_strategy = 'passthrough'
 @abd_orphan.valid_signup_email?('anyone@anywhere.com')
