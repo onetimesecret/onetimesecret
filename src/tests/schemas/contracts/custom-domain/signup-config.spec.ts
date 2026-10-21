@@ -78,6 +78,15 @@ describe('customDomainSignupConfigCanonical', () => {
     expect(parsed.allow_base_domain).toBe(true);
   });
 
+  it('parses a response from an API that predates the uses_allowlist rename', () => {
+    const { uses_allowlist: _omitted, ...rest } = base;
+    const result = customDomainSignupConfigCanonical.safeParse({
+      ...rest,
+      requires_allowlist: true,
+    });
+    expect(result.success).toBe(true);
+  });
+
   it('rejects a non-boolean allow_base_domain', () => {
     const result = customDomainSignupConfigCanonical.safeParse({
       ...base,

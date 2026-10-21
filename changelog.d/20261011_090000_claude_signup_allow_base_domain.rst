@@ -29,9 +29,11 @@ Added
 Changed
 -------
 
-- The domain signup-config API reports ``uses_allowlist`` in place of
+- The domain signup-config API reports ``uses_allowlist``, the new name for
   ``requires_allowlist``: with ``allow_base_domain`` the allowlist strategy
   can run on an empty list, so the old name overstated it.
+  ``requires_allowlist`` is still sent with the same value but is deprecated
+  and will be removed in a later release.
 - The colonel domain config editor refuses a change that would leave a
   config invalid, such as switching sign-up validation to the allowlist
   strategy with nothing to admit, instead of saving it. A config that is

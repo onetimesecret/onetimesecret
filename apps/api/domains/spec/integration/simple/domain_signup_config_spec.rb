@@ -881,6 +881,7 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
         expect(record['allowed_signup_domains']).to contain_exactly('acme.com', 'partner.com')
         expect(record['enabled']).to be true
         expect(record['uses_allowlist']).to be true
+        expect(record['requires_allowlist']).to be true # deprecated alias
         expect(record['network_validation']).to be false
         expect(record['allow_base_domain']).to be false
       end

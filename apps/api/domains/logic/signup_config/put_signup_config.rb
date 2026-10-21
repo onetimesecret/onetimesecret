@@ -182,6 +182,10 @@ module DomainsAPI
             signup_enabled: config.signup_enabled?,
             autoverify: config.autoverify?,
             uses_allowlist: config.uses_allowlist?,
+            # Former name of uses_allowlist, still sent so a client built
+            # before the rename parses the response during a deploy.
+            # Deprecated; remove in a later release.
+            requires_allowlist: config.uses_allowlist?,
             network_validation: config.network_validation?,
             created_at: config.created.to_i,
             updated_at: config.updated.to_i,

@@ -151,8 +151,13 @@ export const customDomainSignupConfigCanonical = z.object({
    * Whether the current strategy consults the allowlist. A listed domain is
    * not necessarily required: allow_base_domain can supply the only one.
    * Read-only, computed from validation_strategy.
+   *
+   * Optional because an API from before the rename sends it as
+   * requires_allowlist; tolerating its absence keeps the settings page
+   * rendering during a deploy. The UI reads SIGNUP_STRATEGY_METADATA, not
+   * this field.
    */
-  uses_allowlist: z.boolean(),
+  uses_allowlist: z.boolean().optional(),
 
   /**
    * Whether the current strategy performs network calls (DNS or SMTP).
