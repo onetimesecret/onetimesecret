@@ -197,9 +197,11 @@ ORGS_CUSTOM_MAIL_ENABLED=true
   (DKIM/SPF, removing "via sendgrid.net"); click/open-tracking links are a
   different SendGrid feature (`/v3/whitelabel/links`) that the platform does
   not provision.
-- **Domain matching is exact-string.** `find_domain_id` matches
-  `d['domain'] == domain`, so a domain authenticated for `mail.example.com`
-  will not be found for `example.com` or vice versa.
+- **Domain matching is full-name and case-insensitive.** `find_domain_id`
+  (through `domain_authentication_id`) matches `d['domain'].casecmp?(domain)`,
+  so `Example.COM` finds an entry for `example.com`, but a domain
+  authenticated for `mail.example.com` will not be found for `example.com` or
+  vice versa. The returned ID is SendGrid's, unchanged.
 
 ## Troubleshooting
 
@@ -211,7 +213,8 @@ ORGS_CUSTOM_MAIL_ENABLED=true
   case where `SMTP_PASSWORD` is being used as the key.
 - `check_provider_verification_status` returns `not_found`: the domain
   authentication was deleted, was created under a different account/subuser,
-  or the from-address domain doesn't exactly match — re-run provisioning.
+  or the from-address domain is not the authenticated name (a parent or
+  subdomain does not match) — re-run provisioning.
 - Validate returns `pending` with some records valid: inspect `:details`
   (SendGrid's per-record `validation_results`) to see which CNAME is wrong.
 - Delete reports "Domain authentication not found": already removed on the

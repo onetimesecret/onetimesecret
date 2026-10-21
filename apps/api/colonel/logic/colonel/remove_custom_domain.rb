@@ -22,10 +22,16 @@ module ColonelAPI
       # domain details, then re-issues with `dry_run: false` behind a
       # typed-confirmation dialog to apply.
       #
+      # `details.sender_cleanup` is the applied teardown's remote sender
+      # identity outcome (Remove::Result#sender_cleanup), null on a dry run. A
+      # `failed` cleanup does not undo the removal, so the response still
+      # reports it as deleted.
+      #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class RemoveCustomDomain < ColonelAPI::Logic::Base
         include DomainResolver
+        include Onetime::LoggerMethods
 
         attr_reader :extid, :dry_run, :custom_domain, :result
 
@@ -69,9 +75,19 @@ module ColonelAPI
           ).call
 
           # Log from result (snapshotted pre-destroy!) — on the applied path
-          # destroy! nils custom_domain.display_domain in memory.
-          OT.info "[RemoveCustomDomain] #{result.display_domain} -> " \
-                  "status=#{result.status}, dry_run=#{dry_run}, org=#{result.org_id}"
+          # destroy! nils custom_domain.display_domain in memory. A failed
+          # sender cleanup logs at warn; DeleteSenderDomain has already logged
+          # the provider error.
+          level = result.sender_cleanup == :failed ? :warn : :info
+          app_logger.public_send(
+            level,
+            '[RemoveCustomDomain] Domain removal',
+            domain_display: result.display_domain,
+            status: result.status.to_s,
+            dry_run: dry_run,
+            org_id: result.org_id.to_s,
+            sender_cleanup: result.sender_cleanup.to_s,
+          )
 
           # NOTE: no audit here — the op owns the single ColonelAuditEvent
           # (exactly-once, applied path only). This adapter never audits.
@@ -95,7 +111,7 @@ module ColonelAPI
               dry_run: result.dry_run,
               org_id: result.org_id.to_s,
               org_name: result.org_name,
-              reasserts_survivor: result.reasserts_survivor,
+              sender_cleanup: result.sender_cleanup&.to_s,
             },
           }
         end

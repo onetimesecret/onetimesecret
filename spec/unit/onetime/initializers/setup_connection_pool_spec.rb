@@ -234,6 +234,18 @@ RSpec.describe Onetime::Initializers::SetupConnectionPool do
       expect(ConnectionPool).to receive(:new).once.and_return(mock_pool)
       instance.execute(nil)
     end
+
+    # The test pool builds its connections the same way
+    # (tests/lanes/support/datastore_pool.rb).
+    it 'fills the pool with Onetime.create_pooled_dbclient' do
+      allow(ConnectionPool).to receive(:new) do |*_args, &factory|
+        factory.call
+        mock_pool
+      end
+      allow(Onetime).to receive(:create_pooled_dbclient).and_return(mock_redis)
+      instance.execute(nil)
+      expect(Onetime).to have_received(:create_pooled_dbclient).with(Familia.uri)
+    end
   end
 
   describe 'Familia.configure side-effects' do

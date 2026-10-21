@@ -37,7 +37,7 @@ module Onetime
       # `domains create` / `domains repair --org-id` on an orphan: it goes
       # through CustomDomain.claim_orphaned_domain, which writes org_id, the
       # destination's domains collection, the owners index and the
-      # canonical-name entry together, resets the domain's ownership
+      # ASCII-name entry together, resets the domain's ownership
       # verification and issues a new TXT value. Result#adoption lists the
       # per-domain state the record kept. A transfer between two
       # organizations is not an adoption and keeps the domain's verification.

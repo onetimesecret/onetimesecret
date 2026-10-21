@@ -95,7 +95,7 @@ model, or a frozen index object to observe a call leaks that patch into every
 later file. RSpec stubs are installed per example and restored on every exit
 path, so instrumentation belongs there: stub the app-level accessor to return
 a delegator over the real object, record what you need, and let RSpec put the
-accessor back (`spec/unit/onetime/models/custom_domain/destroy_canonical_release_spec.rb`).
+accessor back (`spec/unit/onetime/models/custom_domain/destroy_ascii_release_spec.rb`).
 
 A linear scenario over real records, with no stubs and no patches, stays a
 tryout. The same real datastore is available in both, so the choice is about

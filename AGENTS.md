@@ -121,6 +121,8 @@ Use `--only <path>` (repeatable) while iterating: it runs just that file
 in the lane's environment — seconds instead of minutes — with the same
 env scrub. `*_try.rb` routes to tryouts, everything else to rspec. It
 skips the lane's other tasks, so run the whole lane before pushing.
+`path:LINE` works for both: rspec takes a list (`:12:34`) and a describe
+line runs its whole group; tryouts takes a line or a range (`:19-45`).
 On a CI failure the first command is `tests/lanes/run --only <path>:<LINE>`
 with the path and line from the CI log (the lane is inferred;
 `tests/lanes/run --which <path>` prints it), and the full lane runs once
@@ -140,6 +142,13 @@ shellcheck/actionlint. Both also run in the `Static analysis` workflow.
 **Dev-environment worktrees**: The `.test-mode` sentinel file marks a
 repo checkout that has loaded the test environment. Do not run tests
 unless `.test-mode` already exists.
+
+## Terms and phrases to avoid
+
+Do not use any of the following terms or phrases or sentence structures:
+
+- holds, claims, lands
+- "A isn't only B, but also C"
 
 ## Replying to review comments
 

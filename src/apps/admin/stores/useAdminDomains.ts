@@ -74,15 +74,16 @@ export const colonelDomainRemoveRecordSchema = z.object({
  * domain 404s before the op runs. `dry_run` echoes whether this was a PREVIEW —
  * the endpoint
  * defaults it to TRUE, so a plain DELETE never destroys anything.
- * `reasserts_survivor` is true when tearing this record down hands the
- * display_domain index back to another CustomDomain row.
+ * `sender_cleanup` is the applied teardown's remote sender identity outcome
+ * (`kept`, `deleted`, `absent`, `skipped` or `failed`), null on a dry run. A
+ * `failed` cleanup does not undo the removal.
  */
 export const colonelDomainRemoveDetailsSchema = z.object({
   status: z.string(),
   dry_run: z.boolean(),
   org_id: z.string(),
   org_name: z.string().nullable(),
-  reasserts_survivor: z.boolean(),
+  sender_cleanup: z.string().nullable(),
 });
 
 export const colonelDomainRemoveResponseSchema = createApiResponseSchema(
