@@ -108,13 +108,35 @@ RSpec.describe 'Domains Command', type: :cli do
         Onetime::CustomDomain::HomepageConfig,
         network_restricted?: true,
         allowed_cidrs: ['10.0.0.0/8', '2001:db8::/32'],
+        allowed_cidrs_corrupt?: false,
         denied_cidrs: [],
+        denied_cidrs_corrupt?: false,
       )
       allow(Onetime::CustomDomain::HomepageConfig).to receive(:find_by_domain_id)
         .with('example.com').and_return(homepage_config)
 
       output = run_cli_command_quietly('domains', 'info', 'example.com')
       expect(output[:stdout]).to include('Homepage Allowed CIDRs: 10.0.0.0/8, 2001:db8::/32')
+      expect(output[:stdout]).to include('Homepage Denied CIDRs:  (none)')
+    end
+
+    # An unreadable list reads back as [] but denies every visitor, so it
+    # must not print as "(any)".
+    it 'says when a stored list is unreadable' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+      homepage_config = instance_double(
+        Onetime::CustomDomain::HomepageConfig,
+        network_restricted?: true,
+        allowed_cidrs: [],
+        allowed_cidrs_corrupt?: true,
+        denied_cidrs: [],
+        denied_cidrs_corrupt?: false,
+      )
+      allow(Onetime::CustomDomain::HomepageConfig).to receive(:find_by_domain_id)
+        .with('example.com').and_return(homepage_config)
+
+      output = run_cli_command_quietly('domains', 'info', 'example.com')
+      expect(output[:stdout]).to include('Homepage Allowed CIDRs: (unreadable: every visitor is denied)')
       expect(output[:stdout]).to include('Homepage Denied CIDRs:  (none)')
     end
 
