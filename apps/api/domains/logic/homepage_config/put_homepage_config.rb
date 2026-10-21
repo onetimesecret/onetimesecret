@@ -47,10 +47,12 @@ module DomainsAPI
       #   from anonymous secret creation, exactly like a disabled homepage.
       #   Signed-in members and the management pages are never affected, so
       #   an operator cannot lock themselves out of fixing a list.
-      #   Sending either list requires the platform flag
+      #   Changing either list requires the platform flag
       #   features.organizations.homepage_network_rules_ui_enabled and the
       #   homepage_network_rules entitlement (Identity Plus) on top of
-      #   homepage_secrets; see #verify_network_rules_allowed!.
+      #   homepage_secrets; see #verify_network_rules_allowed!. A list equal
+      #   to the stored one after normalization counts as omitted, so a
+      #   GET-then-PUT round-trip passes without either.
       #
       class PutHomepageConfig < Base
         include Onetime::LoggerMethods
@@ -88,9 +90,10 @@ module DomainsAPI
           raise_form_error('enabled is required', field: :enabled, error_type: :missing) if params['enabled'].nil?
 
           validate_secrets_mode!
-          verify_network_rules_allowed!
           @allowed_cidrs = validate_cidr_list!(:allowed_cidrs, @allowed_cidrs)
           @denied_cidrs  = validate_cidr_list!(:denied_cidrs, @denied_cidrs)
+          drop_unchanged_cidr_lists!
+          verify_network_rules_allowed!
         end
 
         def process
@@ -152,15 +155,47 @@ module DomainsAPI
 
         private
 
+        # Treat a sent list identical to the stored one as omitted.
+        #
+        # GET echoes both lists, so a read-modify-write client sends them
+        # back on every PUT. Without this, that round-trip would be refused
+        # by #verify_network_rules_allowed! (flag off, or no entitlement)
+        # though it changes nothing. Dropping the list, rather than only
+        # skipping the check, also keeps the write off a list the request
+        # did not change. Runs after #validate_cidr_list!, so both sides are
+        # normalized. An unreadable stored list never matches: replacing it
+        # is a real change, and an entitled operator must still be able to
+        # clear it with [].
+        def drop_unchanged_cidr_lists!
+          return if @allowed_cidrs.nil? && @denied_cidrs.nil?
+
+          stored         = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@custom_domain.identifier)
+          @allowed_cidrs = nil if stored_cidr_list?(@allowed_cidrs, stored, :allowed_cidrs)
+          @denied_cidrs  = nil if stored_cidr_list?(@denied_cidrs, stored, :denied_cidrs)
+        end
+
+        # @param list [Array<String>, nil] normalized incoming list
+        # @param stored [HomepageConfig, nil]
+        # @param field [Symbol] :allowed_cidrs | :denied_cidrs
+        def stored_cidr_list?(list, stored, field)
+          return false if list.nil?
+          return list.empty? if stored.nil?
+          return false if stored.public_send(:"#{field}_corrupt?")
+
+          list == stored.public_send(field)
+        end
+
         # Require the platform flag and the homepage_network_rules
-        # entitlement when a list is sent.
+        # entitlement when a list is changed.
         #
         # The flag (ORGS_HOMEPAGE_NETWORK_RULES_UI_ENABLED, default off) is the
         # install-wide switch, checked first so an install without it never
         # suggests an upgrade. Network rules are also a paid tier (homepage_network_rules, Identity
         # Plus) layered on homepage_secrets, which the free plan carries. Only
-        # a request that sends a list needs it: the experience selector's
-        # writes omit both lists and stay available on every plan.
+        # a request that changes a list needs it: the experience selector's
+        # writes omit both lists, and a round-trip that sends them back
+        # unchanged has them dropped by #drop_unchanged_cidr_lists!, so both
+        # stay available on every plan.
         #
         # Freeze, don't drop, on downgrade or with the flag off: stored rules
         # keep being enforced (neither check runs on the anonymous paths, and

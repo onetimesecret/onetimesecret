@@ -7,6 +7,8 @@
 #
 # Merge semantics: an omitted/null list leaves the stored one unchanged,
 # [] clears it, anything else replaces it with the normalized entries.
+# A list equal to the stored one after normalization counts as omitted, so a
+# GET-then-PUT round-trip needs neither the platform flag nor the entitlement.
 # Refusals are field-tagged 422s with locale keys, raised in raise_concerns
 # before any write. Responses echo the NORMALIZED lists — what the gate
 # evaluates — not the entries as typed.
@@ -201,6 +203,28 @@ record = run_put(@test_cust, @test_domain, { 'enabled' => true, 'secrets_mode' =
 [record[:allowed_cidrs].length, record[:denied_cidrs]]
 #=> [HomepageConfig::MAX_CIDRS, ['192.168.0.0/16']]
 
+## With the flag off, a GET-then-PUT round-trip that sends both lists back unchanged is accepted
+@stored = run_get(@test_cust, @test_domain)[:record]
+params  = { 'enabled' => false, 'allowed_cidrs' => @stored[:allowed_cidrs], 'denied_cidrs' => @stored[:denied_cidrs] }
+record  = run_put(@test_cust, @test_domain, params, network_rules_enabled: false)[:record]
+[record[:enabled], record[:allowed_cidrs].length, record[:denied_cidrs]]
+#=> [false, HomepageConfig::MAX_CIDRS, ['192.168.0.0/16']]
+
+## With the flag off, an entry that normalizes to the stored one also counts as unchanged
+record = run_put(@test_cust, @test_domain, { 'enabled' => true, 'denied_cidrs' => ['192.168.7.7/16'] }, network_rules_enabled: false)[:record]
+[record[:enabled], record[:denied_cidrs]]
+#=> [true, ['192.168.0.0/16']]
+
+## With the flag off, an unchanged list does not carry a changed one: the refusal names the changed field
+params = { 'enabled' => true, 'allowed_cidrs' => @stored[:allowed_cidrs], 'denied_cidrs' => ['192.168.0.0/16', '172.16.0.0/12'] }
+begin
+  run_put(@test_cust, @test_domain, params, network_rules_enabled: false)
+  :no_raise
+rescue Onetime::FormError => ex
+  [ex.field.to_s, ex.error_key]
+end
+#=> ['denied_cidrs', 'api.domains.errors.homepage_network_rules_disabled']
+
 ## With the flag off, the stored rules still decide who may use the homepage (edits stop, enforcement does not)
 cfg = HomepageConfig.find_by_domain_id(@test_domain.identifier)
 with_network_rules_flag(false) do
@@ -251,10 +275,14 @@ end
   end
   selector = run_put(@test_cust, @test_domain, { 'enabled' => true, 'secrets_mode' => 'create' })[:record]
 
+  stored     = run_get(@test_cust, @test_domain)[:record]
+  round_trip = run_put(@test_cust, @test_domain, { 'enabled' => true, 'allowed_cidrs' => stored[:allowed_cidrs], 'denied_cidrs' => stored[:denied_cidrs] })[:record]
+
   {
     preconditions: [org.can?('homepage_secrets'), org.can?('homepage_network_rules')],
     refused: refused,
     selector_lists: [selector[:allowed_cidrs].length, selector[:denied_cidrs]],
+    round_trip_lists: [round_trip[:allowed_cidrs].length, round_trip[:denied_cidrs]],
   }
 end
 @gating[:preconditions]
@@ -267,6 +295,23 @@ end
 ## The experience selector's write still works, and the stored rules stay in force (frozen, not dropped)
 @gating[:selector_lists]
 #=> [HomepageConfig::MAX_CIDRS, ['192.168.0.0/16']]
+
+## Without the entitlement, a round-trip that sends the stored lists back unchanged is accepted
+@gating[:round_trip_lists]
+#=> [HomepageConfig::MAX_CIDRS, ['192.168.0.0/16']]
+
+# --- PUT: an unreadable stored list ---
+
+## Clearing an unreadable stored list is a change, not a no-op, though it reads back as []
+cfg                   = HomepageConfig.find_by_domain_id(@test_domain.identifier)
+cfg.denied_cidrs_json = '{not json'
+cfg.save
+
+before = HomepageConfig.find_by_domain_id(@test_domain.identifier)
+record = run_put(@test_cust, @test_domain, { 'enabled' => true, 'denied_cidrs' => [] })[:record]
+after  = HomepageConfig.find_by_domain_id(@test_domain.identifier)
+[before.denied_cidrs, before.denied_cidrs_corrupt?, record[:denied_cidrs], after.denied_cidrs_corrupt?]
+#=> [[], true, [], false]
 
 # --- teardown ---
 HomepageConfig.delete_for_domain!(@test_domain.identifier)
