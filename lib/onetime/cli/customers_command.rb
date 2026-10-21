@@ -43,6 +43,8 @@ module Onetime
         puts '  bin/ots customers purge ID                 # Purge ONE account (audited)'
         puts '  bin/ots customers purge-inactive --older-than 3y  # Dry-run BULK inactivity purge preview'
         puts '  bin/ots customers purge-inactive --older-than 3y --purge  # Execute bulk purge'
+        puts '  bin/ots customers prune-closed-accounts    # Dry-run: closed auth rows left by old closures (#4819)'
+        puts '  bin/ots customers prune-closed-accounts --confirm  # Delete them with their audit logs'
         puts '  bin/ots customers sync-auth-accounts       # Sync to auth DB'
         puts '  bin/ots customers normalize-emails         # Dry-run: mixed-case auth emails (#4726)'
         puts '  bin/ots customers normalize-emails --confirm  # Canonicalize them'

@@ -10,6 +10,7 @@ require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
 require 'auth/account_statuses'
 require 'auth/operations/customers/purge'
 require 'auth/operations/customers/purge_preflight'
+require 'auth/operations/remove_authentication_data'
 
 module Auth::Config::Hooks
   module Account
@@ -81,8 +82,11 @@ module Auth::Config::Hooks
           throw_rodauth_error
         end
 
-        # Closed rows retain audit history but no longer reserve the address.
-        # The Redis check below still refuses reuse if customer cleanup is incomplete.
+        # A closure deletes the accounts row (#4819), so a closed row here is
+        # one a closure left before that change and `bin/ots customers
+        # prune-closed-accounts` has not yet removed. Such rows never reserve
+        # the address. The Redis check below still refuses reuse if customer
+        # cleanup is incomplete.
         existing_account = db[:accounts].where(email: email)
           .exclude(status_id: Auth::AccountStatuses::CLOSED).first
 
@@ -1150,7 +1154,8 @@ module Auth::Config::Hooks
       # after_close_account chain (omniauth identities, two-factor secrets,
       # active sessions, remember keys), reached via `super()`, and through
       # TeardownAccount's SQL removal, which covers every table whether or not
-      # its feature is loaded in this boot.
+      # its feature is loaded in this boot. The accounts row and its audit log
+      # are removed last, by the delete_account override below (#4819).
       #
       auth.before_close_account do
         customer = Auth::Config::Hooks::Account.resolve_customer(account)
@@ -1187,6 +1192,7 @@ module Auth::Config::Hooks
         purge  = Auth::Operations::Customers::Purge.new(
           customer: @close_account_customer,
           self_service: true,
+          retain_auth_account: true,
           expected_plan_signature: @close_account_plan_signature,
         )
         result = purge.call
@@ -1254,6 +1260,32 @@ module Auth::Config::Hooks
           )
         end
         nil
+      end
+
+      #
+      # Account Row Deletion After Closure (#4819)
+      #
+      # Rodauth's close_account route runs, inside one transaction:
+      # before_close_account, close_account (status to closed, password hash
+      # dropped), after_close_account, clear_session, clear_tokens and, with
+      # delete_account_on_close? on, delete_account (rodauth 2.45.0
+      # close_account.rb). The audit_logging feature inserts its "Account
+      # closed" row from hook_action at the end of after_close_account, AFTER
+      # the block above returns, so the teardown there leaves the accounts row
+      # in place (retain_auth_account: true) and the row goes here, last.
+      #
+      # The override deletes every row still referencing the account first:
+      # the audit log, including the row Rodauth just inserted, and anything
+      # a feature wrote between the hook and this point. Nothing of the
+      # account survives the commit: no accounts row, no audit history.
+      # Administrative purges run outside Rodauth and delete the same rows in
+      # TeardownAccount.
+      #
+      auth.delete_account_on_close? true
+
+      auth.delete_account do
+        Auth::Operations::RemoveAuthenticationData.delete_dependent_rows(db, account_id)
+        super()
       end
     end
     # rubocop:enable Metrics/PerceivedComplexity, Metrics/MethodLength

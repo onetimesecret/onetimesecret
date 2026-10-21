@@ -47,7 +47,7 @@ RSpec.describe Auth::Operations::TeardownAccount do
         db: nil,
         allow_missing: true,
         revoke_sessions: false,
-        retain_account: true,
+        retain_account: false,
       ).ordered
       .and_return(success: true, account_id: 42)
     expect(customer_deleter).to receive(:call).ordered.and_return(true)
@@ -141,7 +141,7 @@ RSpec.describe Auth::Operations::TeardownAccount do
     db      = double('Auth database')
     allow(Onetime::Customer).to receive(:find_by_extid).with('ur_target').and_return(customer)
 
-    result = described_class.new(account: account, db: db).call
+    result = described_class.new(account: account, db: db, retain_auth_account: true).call
 
     expect(result.status).to eq(:success)
     expect(result.account_id).to eq(42)
@@ -170,7 +170,7 @@ RSpec.describe Auth::Operations::TeardownAccount do
       db: db,
       allow_missing: true,
       revoke_sessions: false,
-      retain_account: true,
+      retain_account: false,
     )
     expect(customer_deleter).not_to have_received(:call)
   end
@@ -184,5 +184,23 @@ RSpec.describe Auth::Operations::TeardownAccount do
       .to raise_error(Onetime::Problem, /database unavailable/)
 
     expect(customer_deleter).not_to have_received(:call)
+  end
+
+  # The after_close_account hook runs inside Rodauth's close_account
+  # transaction, which inserts the "Account closed" audit row after the hook
+  # and deletes the row itself last, so only that caller leaves the row and
+  # its audit log behind. Everywhere else, admin purge and the simple-mode
+  # delete endpoint included, the row and its audit log go here (#4819).
+  it 'deletes the SQL identity and its audit log outright unless Rodauth owns the last step' do
+    allow(Onetime.auth_config).to receive(:full_enabled?).and_return(true)
+
+    described_class.new(customer: customer, actor: 'ur_colonel', reason: 'request').call
+    described_class.new(customer: customer, self_service: true).call
+    expect(Auth::Operations::RemoveAuthenticationData).to have_received(:call)
+      .with(hash_including(retain_account: false)).twice
+
+    described_class.new(customer: customer, self_service: true, retain_auth_account: true).call
+    expect(Auth::Operations::RemoveAuthenticationData).to have_received(:call)
+      .with(hash_including(retain_account: true)).once
   end
 end

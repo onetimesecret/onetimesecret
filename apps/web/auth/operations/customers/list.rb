@@ -163,7 +163,9 @@ module Auth
         # Wire names for accounts.status_id, keyed on the seed ids the
         # account_statuses table pins (Auth::AccountStatuses). Anything else
         # is 'unknown' rather than a raise: a status this code has not heard
-        # of must not blank the search.
+        # of must not blank the search. A 'closed' orphan is a row a closure
+        # left before #4819 (closures now delete the row); `bin/ots customers
+        # prune-closed-accounts` removes them.
         ORPHAN_STATUS_NAMES = {
           Auth::AccountStatuses::UNVERIFIED => 'unverified',
           Auth::AccountStatuses::VERIFIED => 'verified',

@@ -12,14 +12,22 @@ module Auth
     # Permanently removes one account through the same ordered teardown in every
     # authentication mode and from both self-service and administrative callers.
     #
-    # The operation revokes sessions first, closes the Rodauth identity and removes
-    # its credentials when full auth is enabled, and deletes the Redis Customer
-    # last. Rodauth's own close_account only flips the status column and drops
-    # the password hash; the SQL credential rows (identities, MFA secrets,
-    # remember and refresh keys, active sessions) are removed here on every
-    # path, including the after_close_account hook, which runs inside the same
-    # SQL transaction and keeps closure committed once a Redis mutation has
-    # started.
+    # The operation revokes sessions first, removes the Rodauth identity with
+    # its credentials and its authentication audit log when full auth is
+    # enabled, and deletes the Redis Customer last. Rodauth's own close_account
+    # only flips the status column and drops the password hash; the SQL
+    # credential rows (identities, MFA secrets, remember and refresh keys,
+    # active sessions) are removed here on every path, including the
+    # after_close_account hook, which runs inside the same SQL transaction and
+    # keeps closure committed once a Redis mutation has started.
+    #
+    # `retain_auth_account: true` is for that hook only (#4819). There the
+    # accounts row and its audit log stay in place, the row set to CLOSED,
+    # because Rodauth still inserts the "Account closed" audit row after the
+    # hook returns; Rodauth's delete_account (config/hooks/account.rb) then
+    # removes the audit log and the row as the last statements of the same
+    # transaction. Every other caller runs outside Rodauth and deletes the row
+    # and its audit log here. No path keeps a closed row or its audit history.
     #
     # Colonel auditing remains in Customers::Purge. Supplying actor selects the
     # audited administrative session-revocation operation; self-service callers do
@@ -47,7 +55,7 @@ module Auth
       def initialize(customer: nil, account: nil, actor: nil, reason: nil, db: nil,
                      before_mutation: nil, on_mutation: nil,
                      bulk_audit_context: nil, sweep_untracked_sessions: true,
-                     self_service: false)
+                     self_service: false, retain_auth_account: false)
         raise ArgumentError, 'Must provide either customer: or account:' if customer.nil? && account.nil?
         raise ArgumentError, 'Cannot provide both customer: and account:' if customer && account
 
@@ -61,6 +69,7 @@ module Auth
         @bulk_audit_context       = bulk_audit_context
         @sweep_untracked_sessions = sweep_untracked_sessions
         @self_service             = self_service
+        @retain_auth_account      = retain_auth_account
         @completed_stages         = []
       end
 
@@ -182,7 +191,7 @@ module Auth
           db: @db,
           allow_missing: true,
           revoke_sessions: false,
-          retain_account: true,
+          retain_account: @retain_auth_account,
         )
         return result[:account_id] if result[:success]
 

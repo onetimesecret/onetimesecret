@@ -404,7 +404,8 @@ without aborting the migration; Redis duplicates skip individual entries.
 issuer sentinel. Parameterized, operator-run repairs of auth data do
 not belong in this directory; they are `Auth::Operations` classes with a
 `bin/ots` command in front, as `sso backfill-issuer`,
-`customers role reconcile` and `customers normalize-emails` are. See the
+`customers role reconcile`, `customers normalize-emails` and
+`customers prune-closed-accounts` are. See the
 [auth migration guide](../../apps/web/auth/migrations/README.md).
 
 ### Mixed-case SSO account emails (`bin/ots customers normalize-emails`)
@@ -458,6 +459,35 @@ the run; a lowercase accounts row over a mixed-case Customer record (the
 `:auth_email_drift` check compares the two stores case-insensitively on
 purpose and never fires on either shape. The dry run is the row-by-row
 before/after check.
+
+### Closed account rows (`bin/ots customers prune-closed-accounts`)
+
+Before #4819, closing an account (self-service or administrative) set the
+Rodauth `accounts` row to status 3 (Closed) and kept every
+`account_authentication_audit_logs` row for it: the plaintext email plus a
+per-event record of client IP, user agent and correlation id, with no
+expiry, for an account whose Customer record was already deleted. Closure
+now deletes the row and its audit log as the last statements of Rodauth's
+`close_account` transaction (the `delete_account` override in
+`apps/web/auth/config/hooks/account.rb`), and administrative purges delete
+them in `TeardownAccount`. This command removes the rows that predate the
+change, through `Auth::Operations::Customers::PruneClosedAccounts`.
+
+```bash
+bin/ots customers prune-closed-accounts              # dry run: counts only
+bin/ots customers prune-closed-accounts --json       # {dry_run, accounts, rows}
+bin/ots customers prune-closed-accounts --confirm    # delete
+```
+
+Every status-3 row is a candidate: signup ignores closed rows, the partial
+unique index on `accounts.email` does not cover them, and nothing resolves
+one to a Customer. The live run deletes, inside one transaction, every row
+in `RemoveAuthenticationData::DEPENDENT_TABLES` that references a closed
+account (the audit log, plus any credential row an interrupted closure left),
+then the `accounts` rows. The deletes use an `IN` subquery on the closed
+ids, so the same statements run on PostgreSQL and SQLite. Run it once after
+upgrading; re-running reports nothing to prune. Export the audit rows first
+if a compliance requirement needs them; nothing keeps them after the run.
 
 ## Moving keys between Redis databases or instances
 

@@ -206,16 +206,20 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
       end
     end
 
-    it 'closes the Rodauth account, removes credentials, and deletes the Redis customer' do
+    # Outside Rodauth's close_account transaction (admin purge, the
+    # simple-mode delete endpoint) the teardown deletes the Rodauth row and
+    # its audit log itself (#4819).
+    it 'deletes the Rodauth account, its credentials and audit log, and the Redis customer' do
       customer = find_customer_by_email(test_email)
       account  = find_account_by_email(test_email)
+      expect(test_db[:account_authentication_audit_logs].where(account_id: account[:id]).count).to be >= 1
 
       result = Auth::Operations::TeardownAccount.new(customer: customer).call
 
-      closed_account = find_account_by_email(test_email)
       expect(result.status).to eq(:success)
-      expect(closed_account[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
+      expect(find_account_by_email(test_email)).to be_nil
       expect(test_db[:account_password_hashes].where(id: account[:id]).first).to be_nil
+      expect(test_db[:account_authentication_audit_logs].where(account_id: account[:id]).count).to eq(0)
       expect(find_customer_by_email(test_email)).to be_nil
     end
   end
@@ -263,23 +267,29 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         )
         expect(test_db[:account_active_session_keys].where(account_id: account[:id]).count).to be >= 1
 
+        # Signup and login above wrote audit rows. Closure removes the whole
+        # history, including the "Account closed" row Rodauth inserts after
+        # the hook, and the accounts row itself (#4819).
+        expect(test_db[:account_authentication_audit_logs].where(account_id: account[:id]).count).to be >= 1
+
         # Now attempt to close account with correct password
         post_json '/auth/close-account', { password: valid_password }
 
         # Should succeed (200) or redirect (302)
         expect([200, 302]).to include(last_response.status),
           "Expected 200/302 but got #{last_response.status}: #{last_response.body[0..200]}"
-        closed_account = find_account_by_email(test_email)
-        expect(closed_account[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
-        expect(test_db[:account_password_hashes].where(id: closed_account[:id]).first).to be_nil
-        expect(test_db[:account_identities].where(account_id: closed_account[:id]).count).to eq(0)
-        expect(test_db[:account_remember_keys].where(id: closed_account[:id]).count).to eq(0)
-        expect(test_db[:account_active_session_keys].where(account_id: closed_account[:id]).count).to eq(0)
+        expect(find_account_by_email(test_email)).to be_nil
+        expect(test_db[:accounts].where(id: account[:id]).count).to eq(0)
+        expect(test_db[:account_password_hashes].where(id: account[:id]).first).to be_nil
+        expect(test_db[:account_identities].where(account_id: account[:id]).count).to eq(0)
+        expect(test_db[:account_remember_keys].where(id: account[:id]).count).to eq(0)
+        expect(test_db[:account_active_session_keys].where(account_id: account[:id]).count).to eq(0)
+        expect(test_db[:account_authentication_audit_logs].where(account_id: account[:id]).count).to eq(0)
         expect(find_customer_by_email(test_email)).to be_nil
         expect(Onetime::Organization.load(org_id)).to be_nil
       end
 
-      it 'keeps the Rodauth account closed when post-teardown revalidation reports a partial purge' do
+      it 'still deletes the Rodauth account when post-teardown revalidation reports a partial purge' do
         login(email: test_email, password: valid_password)
         expect(last_response.status).to eq(200)
 
@@ -309,7 +319,7 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
 
         expect([200, 302]).to include(last_response.status),
           "Expected closure to commit, got #{last_response.status}: #{last_response.body[0..200]}"
-        expect(find_account_by_email(test_email)[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
+        expect(find_account_by_email(test_email)).to be_nil
         expect(find_customer_by_email(test_email)).to be_nil
         expect(Onetime::Organization.load(organization.objid)).to be_nil
         expect(Auth::Logging).to have_received(:log_auth_event).with(
@@ -353,7 +363,7 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         post_json '/auth/close-account', { password: valid_password }
 
         expect([200, 302]).to include(last_response.status)
-        expect(find_account_by_email(test_email)[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
+        expect(find_account_by_email(test_email)).to be_nil
         expect(find_customer_by_email(test_email)).to be_nil
       end
 
@@ -372,7 +382,7 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
 
         expect([200, 302]).to include(last_response.status),
           "Expected closure to commit, got #{last_response.status}: #{last_response.body[0..200]}"
-        expect(find_account_by_email(test_email)[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
+        expect(find_account_by_email(test_email)).to be_nil
         expect(find_customer_by_email(test_email)).to be_nil
         expect(Onetime::Organization.load(organization.objid)).to be_nil
       end

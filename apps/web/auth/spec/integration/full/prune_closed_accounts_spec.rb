@@ -1,0 +1,182 @@
+# apps/web/auth/spec/integration/full/prune_closed_accounts_spec.rb
+#
+# frozen_string_literal: true
+
+# =============================================================================
+# TEST TYPE: Integration (full mode)
+# =============================================================================
+#
+# Issue: #4819. Closures before that change left a CLOSED `accounts` row and
+# the account's whole authentication audit log behind, with no expiry.
+# Auth::Operations::Customers::PruneClosedAccounts removes those rows; this
+# file drives it against the REAL migrated schema (Auth::Database.connection)
+# so the IN-subquery deletes are exercised on whichever engine the lane runs
+# (`full-sqlite`, `full-pg-agnostic`).
+#
+# Fixtures are inserted directly: the rows under test are the ones an OLD
+# closure produced, which no current code path writes.
+# =============================================================================
+
+require_relative '../../spec_helper'
+
+RSpec.describe 'Closed account pruning (#4819)', type: :integration do
+  before(:all) do
+    require 'onetime' unless defined?(Onetime)
+    Onetime.boot! :test unless Onetime.ready?
+    # Lazily required by the CLI, not autoloaded; needs the app booted.
+    require 'auth/operations/customers/prune_closed_accounts'
+  end
+
+  let(:db) { Auth::Database.connection }
+  let(:accounts) { db[:accounts] }
+  let(:audit_logs) { db[:account_authentication_audit_logs] }
+  let(:run) { SecureRandom.hex(6) }
+
+  # Belt-and-suspenders cleanup; the auth spec_helper clears the auth DB
+  # around every :integration example, but the datastore is shared so every
+  # fixture this file creates is also removed explicitly (see `after` below).
+  let(:created_account_ids) { [] }
+
+  # Two closed rows (one with history, one bare), a verified row and an
+  # unverified row, each with audit rows of its own. The closed row with
+  # history also keeps an active-session row and an SSO identity, the shape
+  # an interrupted old closure could leave.
+  let!(:closed_with_history) do
+    id = insert_account('closed-a', status_id: AuthTestConstants::STATUS_CLOSED)
+    insert_audit_rows(id, 3)
+    db[:account_active_session_keys].insert(
+      account_id: id,
+      session_id: "sess-#{run}",
+      created_at: Time.now,
+      last_use: Time.now,
+    )
+    db[:account_identities].insert(
+      account_id: id,
+      provider: 'google',
+      issuer: 'https://accounts.google.com',
+      uid: "uid-#{run}",
+    )
+    id
+  end
+  let!(:closed_bare) { insert_account('closed-b', status_id: AuthTestConstants::STATUS_CLOSED) }
+  let!(:verified) do
+    id = insert_account('verified', status_id: AuthTestConstants::STATUS_VERIFIED)
+    insert_audit_rows(id, 2)
+    id
+  end
+  let!(:unverified) do
+    id = insert_account('unverified', status_id: AuthTestConstants::STATUS_UNVERIFIED)
+    insert_audit_rows(id, 1)
+    id
+  end
+
+  after do
+    created_account_ids.each do |id|
+      Auth::Operations::RemoveAuthenticationData.delete_dependent_rows(db, id)
+      accounts.where(id: id).delete
+    end
+  end
+
+  def insert_account(label, status_id:)
+    id = accounts.insert(
+      email: "#{label}-#{run}@prune.example.com",
+      status_id: status_id,
+      external_id: "ur_#{label}_#{run}",
+    )
+    created_account_ids << id
+    id
+  end
+
+  def insert_audit_rows(account_id, count)
+    count.times do |index|
+      audit_logs.insert(
+        account_id: account_id,
+        message: "Login successful #{index}",
+        metadata: '{"ip":"10.0.0.1","user_agent":"spec"}',
+      )
+    end
+  end
+
+  def audit_count(account_id)
+    audit_logs.where(account_id: account_id).count
+  end
+
+  def new_operation(dry_run: true)
+    Auth::Operations::Customers::PruneClosedAccounts.new(dry_run: dry_run)
+  end
+
+  describe 'dry run (default)' do
+    it 'counts the closed rows and their dependent rows and writes nothing' do
+      result = new_operation.call
+
+      expect(result.dry_run).to be(true)
+      expect(result.accounts).to eq(2)
+      # `include`, not `eq`: the active-session insert also fires the
+      # account_activity_times trigger (migration 004), and the report lists
+      # every referencing table with rows.
+      expect(result.rows).to include(
+        account_authentication_audit_logs: 3,
+        account_active_session_keys: 1,
+        account_identities: 1,
+      )
+
+      expect(accounts.where(id: [closed_with_history, closed_bare]).count).to eq(2)
+      expect(audit_count(closed_with_history)).to eq(3)
+      expect(db[:account_active_session_keys].where(account_id: closed_with_history).count).to eq(1)
+      expect(db[:account_identities].where(account_id: closed_with_history).count).to eq(1)
+    end
+
+    it 'is the default mode' do
+      expect(Auth::Operations::Customers::PruneClosedAccounts.new.call.dry_run).to be(true)
+    end
+  end
+
+  describe 'live run' do
+    it 'deletes the closed rows with every row that references them and reports the counts' do
+      result = new_operation(dry_run: false).call
+
+      expect(result.dry_run).to be(false)
+      expect(result.accounts).to eq(2)
+      expect(result.rows).to include(
+        account_authentication_audit_logs: 3,
+        account_active_session_keys: 1,
+        account_identities: 1,
+      )
+
+      expect(accounts.where(id: [closed_with_history, closed_bare]).count).to eq(0)
+      Auth::Operations::RemoveAuthenticationData::DEPENDENT_TABLES.each do |table|
+        column = Auth::Operations::RemoveAuthenticationData.fk_column_for(table)
+        expect(db[table].where(column => [closed_with_history, closed_bare]).count).to eq(0),
+          "#{table} still references a pruned account"
+      end
+    end
+
+    it 'leaves live accounts and their audit history alone' do
+      new_operation(dry_run: false).call
+
+      expect(accounts.where(id: verified).get(:status_id)).to eq(AuthTestConstants::STATUS_VERIFIED)
+      expect(accounts.where(id: unverified).get(:status_id)).to eq(AuthTestConstants::STATUS_UNVERIFIED)
+      expect(audit_count(verified)).to eq(2)
+      expect(audit_count(unverified)).to eq(1)
+    end
+
+    it 'is a no-op the second time' do
+      new_operation(dry_run: false).call
+      result = new_operation(dry_run: false).call
+
+      expect(result.accounts).to eq(0)
+      expect(result.rows).to eq({})
+    end
+  end
+
+  describe 'without an auth database' do
+    it 'refuses to construct' do
+      expect { Auth::Operations::Customers::PruneClosedAccounts.new(db: nil).tap { nil } }
+        .not_to raise_error
+
+      allow(Auth::Database).to receive(:connection).and_return(nil)
+      expect { Auth::Operations::Customers::PruneClosedAccounts.new }
+        .to raise_error(Onetime::Problem, /Auth database unavailable/)
+    end
+  end
+end

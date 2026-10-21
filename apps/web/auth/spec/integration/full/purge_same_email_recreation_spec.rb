@@ -114,7 +114,6 @@ RSpec.describe 'Customer purge and same-email recreation (#4440)',
     shared_owner, shared_org, shared_membership = build_shared_membership(original)
 
     original_objid       = original.objid
-    original_extid       = original.extid
     workspace_objid      = original_workspace.objid
     owner_membership_id  = original_membership.objid
     shared_membership_id = shared_membership.objid
@@ -139,9 +138,9 @@ RSpec.describe 'Customer purge and same-email recreation (#4440)',
     expect(shared_owner.organization_instances.to_a.map(&:objid)).to include(shared_org.objid)
     expect(original.participations.to_a).to be_empty
 
-    closed = auth_db[:accounts].where(id: original_account[:id]).first
-    expect(closed[:external_id]).to eq(original_extid)
-    expect(closed[:status_id]).to eq(AuthTestConstants::STATUS_CLOSED)
+    # The purge deletes the Rodauth row and its audit log outright (#4819).
+    expect(auth_db[:accounts].where(id: original_account[:id]).first).to be_nil
+    expect(auth_db[:account_authentication_audit_logs].where(account_id: original_account[:id]).count).to eq(0)
 
     recreated, recreated_account, = create_and_verify(normalized_email)
     expect(recreated.objid).not_to eq(original_objid)
@@ -247,10 +246,8 @@ RSpec.describe 'Customer purge and same-email recreation (#4440)',
         expect(Onetime::OrganizationMembership.load(other_membership.objid)).to be_active
         expect(other_org.member?(other_owner)).to be(true)
         expect(other_owner.organization_instances.to_a.map(&:objid)).to contain_exactly(other_org.objid)
-        expect(auth_db[:accounts].where(id: account[:id]).first).to include(
-          external_id: customer.extid,
-          status_id: AuthTestConstants::STATUS_CLOSED,
-        )
+        expect(auth_db[:accounts].where(id: account[:id]).first).to be_nil
+        expect(auth_db[:account_authentication_audit_logs].where(account_id: account[:id]).count).to eq(0)
         expect(auth_db[:account_password_hashes].where(id: account[:id]).count).to eq(0)
 
         # Exercise local index release and reuse, not the signup flow.
