@@ -302,7 +302,9 @@ module Auth::Config::Hooks
             # region and steal their federated subscription at signup time. The
             # deferred claim runs from after_verify_account below.
             #
-            # When verify_account is disabled for this deployment there is no
+            # When the verify_account feature is not loaded (neither the
+            # verify_account flag nor webauthn_verify_account, which depends on
+            # it: Onetime.auth_config.verify_account_loaded?) there is no
             # verification step to defer to, so we preserve the immediate-claim
             # behavior (require_verification: false) rather than never claiming.
             #
@@ -315,7 +317,7 @@ module Auth::Config::Hooks
             # EnsureDefaultWorkspace instead emits a loud security-audit log for
             # each such unverified immediate claim. See
             # EnsureDefaultWorkspace#apply_pending_federation! and #initialize.
-            require_verification = Onetime.auth_config.verify_account_enabled?
+            require_verification = Onetime.auth_config.verify_account_loaded?
 
             Onetime::ErrorHandler.safe_execute('ensure_default_workspace', external_id: customer.extid) do
               Auth::Operations::EnsureDefaultWorkspace.new(
@@ -432,16 +434,26 @@ module Auth::Config::Hooks
       #
       # Hook: After Account Verification
       #
-      # This hook is triggered when a user verifies their account (e.g., by
-      # clicking a link in an email). It updates the verification status of
-      # the associated Onetime::Customer record.
+      # This hook is triggered when a user verifies their account by following
+      # the emailed key, with or without the passkey ceremony of
+      # webauthn_verify_account. It updates the verification status of the
+      # associated Onetime::Customer record, runs the federated claim the
+      # signup hook above deferred, and surfaces the pending plan intent and
+      # return destination.
       #
-      # This hook is only registered when the verify_account feature is enabled.
-      # When disabled (e.g., in test environments via auth.yaml config), the
-      # Rodauth :verify_account feature isn't loaded, so the after_verify_account
-      # DSL method doesn't exist.
+      # Registered whenever the Rodauth :verify_account feature is loaded,
+      # which is what Onetime.auth_config.verify_account_loaded? answers: by
+      # the verify_account flag, or as the dependency of
+      # webauthn_verify_account (features/webauthn.rb, configured after these
+      # hooks). Features::AccountManagement enables the feature under the same
+      # predicate, so the after_verify_account DSL method exists here in both
+      # cases. Checked against the flag alone, a passkey-only deployment
+      # verified the account in SQL while the Customer stayed unverified and
+      # the deferred claim never ran. When neither flag is on (the test default
+      # via auth.yaml), the feature isn't loaded and the DSL method doesn't
+      # exist.
       #
-      if Onetime.auth_config.verify_account_enabled?
+      if Onetime.auth_config.verify_account_loaded?
         auth.after_verify_account do
           Auth::Logging.log_auth_event(
             :account_verified,

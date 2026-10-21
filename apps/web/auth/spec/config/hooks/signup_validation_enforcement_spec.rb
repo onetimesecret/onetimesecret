@@ -242,7 +242,7 @@ RSpec.describe 'signup validation request lookup wiring (F1)' do
   end
 
   before do
-    allow(Onetime).to receive(:auth_config).and_return(double(verify_account_enabled?: false))
+    allow(Onetime).to receive(:auth_config).and_return(double(verify_account_loaded?: false))
     allow(Auth::Logging).to receive(:log_auth_event)
     allow(OT).to receive(:le)
     allow(OT).to receive(:conf).and_return(

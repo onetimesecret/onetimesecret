@@ -93,6 +93,14 @@ module AuthModeHelpers
       @verify_account_enabled
     end
 
+    # Mirrors Onetime::AuthConfig#verify_account_loaded?. Calls the three
+    # predicates rather than reading the ivars, so a spec that stubs one of
+    # them on this mock (allow(Onetime.auth_config).to receive(...)) is seen
+    # here as well.
+    def verify_account_loaded?
+      verify_account_enabled? || (webauthn_enabled? && webauthn_verify_account_enabled?)
+    end
+
     def mfa_enabled?
       @mfa_enabled
     end

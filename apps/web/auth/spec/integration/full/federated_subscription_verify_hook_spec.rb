@@ -17,10 +17,12 @@
 # NOT exercise is the account.rb wiring:
 #
 #   - after_create_account derives `require_verification` from
-#     `Onetime.auth_config.verify_account_enabled?` (account.rb) and passes it
-#     into EnsureDefaultWorkspace, and
-#   - after_verify_account (registered ONLY when verify_account is enabled)
-#     re-invokes EnsureDefaultWorkspace.claim_pending_federation_for.
+#     `Onetime.auth_config.verify_account_loaded?` (account.rb; true by the
+#     verify_account flag or for webauthn_verify_account) and passes it into
+#     EnsureDefaultWorkspace, and
+#   - after_verify_account (registered ONLY when that predicate is true, so
+#     the Rodauth feature is loaded) re-invokes
+#     EnsureDefaultWorkspace.claim_pending_federation_for.
 #
 # The default test config DISABLES verify_account, so the after_verify_account
 # hook block is not even registered under a normal boot. These tests drive the
@@ -158,8 +160,9 @@ RSpec.describe 'Federated subscription claim through the real signup/verify hook
 
   describe 'verify_account ENABLED: standard signup defers the federated claim' do
     it 'creates the workspace but does NOT claim, then claims once verified' do
-      # account.rb computes require_verification from this predicate; force it on
-      # so the real signup hook takes the verify-enabled (deferred) branch.
+      # account.rb computes require_verification from verify_account_loaded?,
+      # which reads this flag; force it on so the real signup hook takes the
+      # verify-enabled (deferred) branch.
       allow(Onetime.auth_config).to receive(:verify_account_enabled?).and_return(true)
 
       @signup_email = unique_email('verify-enabled')

@@ -164,6 +164,22 @@ module Onetime
       feature_enabled?('verify_account', default: true)
     end
 
+    # Whether the Rodauth verify_account feature is part of this deployment's
+    # auth config (apps/web/auth/config.rb), whichever flag brings it in: its
+    # own (#verify_account_enabled?), or webauthn_verify_account, which depends
+    # on it and is enabled only together with webauthn
+    # (config/features/webauthn.rb). With the feature loaded every new account
+    # starts unverified and is verified through the emailed key, with a
+    # password set at signup or a passkey set at verification. The code that
+    # follows the feature rather than the flag reads this: the enable call and
+    # settings in config/features/account_management.rb, the verification
+    # email template (config/email.rb), the after_verify_account hook and the
+    # deferral of the federated-subscription claim to it
+    # (config/hooks/account.rb, Auth::Operations::EnsureDefaultWorkspace).
+    def verify_account_loaded?
+      verify_account_enabled? || (webauthn_enabled? && webauthn_verify_account_enabled?)
+    end
+
     # Whether MFA is enabled (TOTP, recovery codes)
     # Default: false
     def mfa_enabled?
