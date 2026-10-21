@@ -62,6 +62,15 @@ RSpec.describe 'RemoveAuthenticationData::DEPENDENT_TABLES against the schema', 
     end
   end
 
+  # One catalog read per closure replaces 22 table_exists? probes (each a
+  # savepoint inside the open transaction); the result must be the full list
+  # on a migrated schema, in delete order, minus whatever the caller excepts.
+  it 'resolves the present tables from one catalog read, in list order, honoring except:' do
+    expect(operation.existing_dependent_tables(db)).to eq(operation::DEPENDENT_TABLES)
+    expect(operation.existing_dependent_tables(db, except: [:account_authentication_audit_logs]))
+      .to eq(operation::DEPENDENT_TABLES - [:account_authentication_audit_logs])
+  end
+
   it 'keeps the test factory table list in step, cascading tables excepted' do
     missing = referencing.keys - AuthAccountFactory::RODAUTH_TABLES
     missing.each do |table|

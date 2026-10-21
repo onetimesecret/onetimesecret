@@ -6,7 +6,9 @@ require 'spec_helper'
 require 'auth/operations/teardown_account'
 
 RSpec.describe Auth::Operations::TeardownAccount do
-  let(:customer) { double('Customer', extid: 'ur_target', custid: 'target@example.com') }
+  let(:customer) do
+    double('Customer', extid: 'ur_target', custid: 'target@example.com', mark_closure_started!: nil)
+  end
   let(:customer_deleter) { instance_double(Auth::Operations::DestroyCustomerRecord, call: true) }
   let(:admin_revoker) { instance_double(Onetime::Operations::Sessions::RevokeAllForCustomer, call: nil) }
   let(:self_revoker) do
@@ -35,6 +37,29 @@ RSpec.describe Auth::Operations::TeardownAccount do
       .to have_received(:new).with(customer: customer, except_session_id: nil)
     expect(Onetime::Operations::Sessions::RevokeAllForCustomer).not_to have_received(:new)
     expect(Auth::Operations::RemoveAuthenticationData).not_to have_received(:call)
+  end
+
+  # The marker is what keeps `customers sync-auth-accounts` from provisioning
+  # a new auth account for a record whose closure stalled after the SQL
+  # identity was deleted (#4819); the closed accounts row used to do that.
+  it 'marks the customer as closing before the first irreversible step' do
+    allow(Onetime.auth_config).to receive(:full_enabled?).and_return(false)
+
+    expect(customer).to receive(:mark_closure_started!).ordered
+    expect(self_revoker).to receive(:call).ordered
+    expect(customer_deleter).to receive(:call).ordered.and_return(true)
+
+    expect(described_class.new(customer: customer).call.status).to eq(:success)
+  end
+
+  it 'leaves the customer unmarked when the first mutation is refused' do
+    allow(Onetime.auth_config).to receive(:full_enabled?).and_return(true)
+
+    result = described_class.new(customer: customer, before_mutation: ->(_stage) { false }).call
+
+    expect(result.status).to eq(:refused)
+    expect(customer).not_to have_received(:mark_closure_started!)
+    expect(self_revoker).not_to have_received(:call)
   end
 
   it 'revokes sessions, closes SQL credentials, then deletes Redis state for an admin purge' do

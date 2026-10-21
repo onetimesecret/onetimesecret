@@ -29,6 +29,13 @@ module Auth
     # transaction. Every other caller runs outside Rodauth and deletes the row
     # and its audit log here. No path keeps a closed row or its audit history.
     #
+    # Before its first irreversible step the operation marks the Customer
+    # (Customer#mark_closure_started!). A completed closure deletes the
+    # record, marker included. One interrupted after the SQL identity is gone
+    # leaves a record that says so, and `customers sync-auth-accounts` leaves
+    # that record alone rather than provisioning a new auth account for it:
+    # the closed accounts row used to be the only thing standing in its way.
+    #
     # Colonel auditing remains in Customers::Purge. Supplying actor selects the
     # audited administrative session-revocation operation; self-service callers do
     # not write to the Colonel audit trail.
@@ -94,6 +101,8 @@ module Auth
 
         return blocked_result(:session_revocation, extid, custid) unless mutation_allowed?(:session_revocation)
 
+        # A failure here (Redis unreachable) raises before anything changed.
+        customer.mark_closure_started!
         mutation_started!(:session_revocation)
         revoke_sessions(customer)
         @completed_stages << :session_revocation

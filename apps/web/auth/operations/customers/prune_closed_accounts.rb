@@ -40,7 +40,9 @@ module Auth
       # credential tables were cleared at closure, but a row left by an
       # interrupted closure is removed too), then the accounts rows. Each
       # delete uses an IN subquery on the closed ids, so the same statements
-      # run on PostgreSQL and SQLite. Re-running is a no-op.
+      # run on PostgreSQL and SQLite. The closed rows are locked first (FOR
+      # UPDATE, ignored by SQLite) for the reason given at
+      # RemoveAuthenticationData.delete_dependent_rows. Re-running is a no-op.
       class PruneClosedAccounts
         # @!attribute dry_run [r]
         #   @return [Boolean]
@@ -86,7 +88,7 @@ module Auth
         end
 
         def dependent_tables
-          RemoveAuthenticationData::DEPENDENT_TABLES.select { |table| @db.table_exists?(table) }
+          RemoveAuthenticationData.existing_dependent_tables(@db)
         end
 
         def count_rows
@@ -99,6 +101,7 @@ module Auth
 
         def delete_rows
           @db.transaction do
+            closed_accounts.for_update.select_map(:id)
             rows = dependent_tables.each_with_object({}) do |table, counts|
               count         = dependent_rows(table).delete
               counts[table] = count if count.positive?

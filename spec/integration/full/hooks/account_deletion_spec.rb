@@ -333,6 +333,41 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         )
       end
 
+      # A Redis failure after the SQL identity is gone is swallowed by the
+      # hook so the closure stays committed: the accounts row is deleted all
+      # the same. The record that survives carries the closure marker, which
+      # is what keeps `customers sync-auth-accounts` from provisioning a new,
+      # live accounts row for it now that no closed row remains (#4819).
+      it 'marks a customer that survives a Redis failure after SQL closure as closing' do
+        login(email: test_email, password: valid_password)
+        expect(last_response.status).to eq(200)
+
+        customer = find_customer_by_email(test_email)
+        expect(customer.closing?).to be(false)
+
+        deleter = instance_double(Auth::Operations::DestroyCustomerRecord)
+        allow(deleter).to receive(:call).and_raise(RuntimeError, 'valkey unavailable')
+        allow(Auth::Operations::DestroyCustomerRecord).to receive(:new).and_return(deleter)
+        allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+        post_json '/auth/close-account', { password: valid_password }
+
+        expect([200, 302]).to include(last_response.status),
+          "Expected closure to commit, got #{last_response.status}: #{last_response.body[0..200]}"
+        expect(find_account_by_email(test_email)).to be_nil
+
+        survivor = find_customer_by_email(test_email)
+        expect(survivor).not_to be_nil
+        expect(survivor.closing?).to be(true)
+        expect(Auth::Logging).to have_received(:log_auth_event).with(
+          :account_close_cleanup_failed_after_mutation,
+          hash_including(level: :error, message: 'valkey unavailable'),
+        )
+      ensure
+        # Nothing else deletes the survivor.
+        find_customer_by_email(test_email)&.destroy!
+      end
+
       # An unfinished v1->v2 migration owns rows OUTSIDE this workspace, so it
       # still blocks. A plain workspace description does not: it is the account's
       # own content and is deleted with the organization (see the companion

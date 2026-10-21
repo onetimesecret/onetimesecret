@@ -24,6 +24,7 @@
 # @see https://github.com/onetimesecret/onetimesecret/issues/4819
 
 require 'json'
+require 'sequel'
 
 # The CLI runs outside the auth app's autoloader, so the op is required
 # explicitly (its own requires cover the auth DB).
@@ -57,7 +58,7 @@ module Onetime
 
         dry_run = !confirm
         op      = build_operation(dry_run, json)
-        result  = op.call
+        result  = run_operation(op, json)
 
         if json
           output_json(result)
@@ -72,6 +73,15 @@ module Onetime
         Auth::Operations::Customers::PruneClosedAccounts.new(dry_run: dry_run)
       rescue Onetime::Problem => ex
         fail_with("Cannot prune: #{ex.message}", json)
+      end
+
+      # The op connects lazily, so an unreachable database surfaces here, on
+      # the first query, not in build_operation. Rendered the same way: a JSON
+      # error document under --json, otherwise a line on stderr, exit 1.
+      def run_operation(op, json)
+        op.call
+      rescue Sequel::Error => ex
+        fail_with("Pruning failed: #{ex.message}", json)
       end
 
       def fail_with(message, json)

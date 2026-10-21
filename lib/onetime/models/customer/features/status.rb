@@ -48,6 +48,15 @@ module Onetime::Customer::Features
       base.field :suspended_at      # Unix timestamp when the suspension was applied
       base.field :suspended_by      # acting admin's PUBLIC id (extid), never an objid
       base.field :suspended_reason  # optional operator-supplied reason
+
+      # Account closure in progress or interrupted (#4819). Written by
+      # Auth::Operations::TeardownAccount before its first irreversible step
+      # and deleted with the record when the closure completes. A record
+      # that outlives its closure (the Redis deletion failed after the SQL
+      # identity was removed) keeps it, and `bin/ots customers
+      # sync-auth-accounts` refuses to provision a new auth account for it.
+      # Unix timestamp; nil on every record no closure has touched.
+      base.field :closure_started_at
     end
 
     module ClassMethods
@@ -101,6 +110,21 @@ module Onetime::Customer::Features
       # predate the field) reads as not suspended.
       def suspended?
         !anonymous? && suspended == 'true'
+      end
+
+      # Has an account closure started for this record? Advisory: no access
+      # gate reads it, because a closure that commits deletes the record
+      # outright. Provisioning tools do read it, so an interrupted closure
+      # is never "repaired" by re-creating the auth account it deleted.
+      def closing?
+        !closure_started_at.to_s.empty?
+      end
+
+      # Single-field write (HSET). The teardown is on its way out of the
+      # record; a full save would push stale in-memory state over newer
+      # writes.
+      def mark_closure_started!(at: Familia.now.to_i)
+        closure_started_at!(at)
       end
 
       def active?

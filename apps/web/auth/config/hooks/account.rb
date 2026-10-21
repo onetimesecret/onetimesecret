@@ -1276,10 +1276,15 @@ module Auth::Config::Hooks
       #
       # The override deletes every row still referencing the account first:
       # the audit log, including the row Rodauth just inserted, and anything
-      # a feature wrote between the hook and this point. Nothing of the
-      # account survives the commit: no accounts row, no audit history.
-      # Administrative purges run outside Rodauth and delete the same rows in
-      # TeardownAccount.
+      # a feature wrote between the hook and this point. delete_dependent_rows
+      # also holds the accounts row FOR UPDATE (taken by the teardown above,
+      # re-taken here, released at commit), so on PostgreSQL a request still
+      # in flight for the account cannot slip a child row in between these
+      # deletes and super()'s DELETE and fail its foreign-key check; the
+      # insert waits for the commit and then fails on the missing parent.
+      # Nothing of the account survives the commit: no accounts row, no audit
+      # history. Administrative purges run outside Rodauth and delete the
+      # same rows in TeardownAccount.
       #
       auth.delete_account_on_close? true
 

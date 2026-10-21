@@ -130,19 +130,45 @@ module Auth
       # Deletes every row that references one account, in foreign-key order.
       # Shared by #call and by Rodauth's delete_account override
       # (config/hooks/account.rb), which runs it last in the close_account
-      # transaction. Runs on the caller's connection and transaction.
+      # transaction. Runs on the caller's connection and transaction, which
+      # the caller must have opened: the lock below lives exactly as long as
+      # that transaction.
+      #
+      # The accounts row is locked first (SELECT ... FOR UPDATE; SQLite
+      # ignores the clause, its writers serialize anyway). On PostgreSQL an
+      # insert into a referencing table takes a KEY SHARE lock on the parent
+      # row, which the status update close_account made earlier does not
+      # block, so a request still in flight for the account (a login writing
+      # its audit row) could otherwise commit a child row between these
+      # deletes and the deletion of the row itself and fail that deletion's
+      # foreign-key check, rolling the closure back after the Redis customer
+      # is already gone. Held to the commit, the lock makes such an insert
+      # wait and then fail on the missing parent instead.
       #
       # @param db [Sequel::Database]
       # @param account_id [Integer]
       # @param except [Array<Symbol>] DEPENDENT_TABLES entries to leave alone
       # @return [Hash{Symbol=>Integer}] rows deleted per table (non-zero only)
       def self.delete_dependent_rows(db, account_id, except: [])
-        (DEPENDENT_TABLES - except).each_with_object({}) do |table, deleted|
-          next unless db.table_exists?(table)
+        db[:accounts].where(id: account_id).for_update.get(:id)
 
+        existing_dependent_tables(db, except: except).each_with_object({}) do |table, deleted|
           count          = db[table].where(fk_column_for(table) => account_id).delete
           deleted[table] = count if count.positive?
         end
+      end
+
+      # The DEPENDENT_TABLES present in this database, from one catalog read.
+      # (Sequel's table_exists? probes one table per call, each inside a
+      # savepoint when a transaction is open; 22 of those per closure was the
+      # cost of checking table by table.)
+      #
+      # @param db [Sequel::Database]
+      # @param except [Array<Symbol>] DEPENDENT_TABLES entries to leave out
+      # @return [Array<Symbol>] in DEPENDENT_TABLES order
+      def self.existing_dependent_tables(db, except: [])
+        present = db.tables
+        (DEPENDENT_TABLES - except).select { |table| present.include?(table) }
       end
 
       # @param extid [String] The customer's external ID

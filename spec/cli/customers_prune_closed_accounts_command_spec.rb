@@ -6,6 +6,7 @@ require_relative 'cli_spec_helper'
 
 # The CLI manifest (lib/onetime/cli.rb) require is applied centrally; require
 # the command here so the registry has it regardless of manifest ordering.
+require 'sequel'
 require 'onetime/cli/customers/prune_closed_accounts_command'
 require 'auth/operations/customers/prune_closed_accounts'
 
@@ -13,8 +14,9 @@ require 'auth/operations/customers/prune_closed_accounts'
 # apps/web/auth/spec/integration/full/prune_closed_accounts_spec.rb; these
 # examples assert what the ADAPTER adds: dry run by default, --confirm threads
 # dry_run: false, the report names the counts, --json emits the documented
-# document and nothing else on stdout, a missing auth database exits 1, and
-# --help renders.
+# document and nothing else on stdout, a missing auth database exits 1, a
+# database failure during the run exits 1 the same way (under --json too),
+# and --help renders.
 RSpec.describe 'customers prune-closed-accounts', type: :cli do
   let(:op) { instance_double(Auth::Operations::Customers::PruneClosedAccounts) }
 
@@ -96,6 +98,29 @@ RSpec.describe 'customers prune-closed-accounts', type: :cli do
 
       expect(last_exit_code).to eq(1)
       expect(JSON.parse(output[:stdout])).to include('error' => a_string_including('Auth database unavailable'))
+    end
+  end
+
+  # The op connects lazily: an unreachable database surfaces from op.call,
+  # not from PruneClosedAccounts.new.
+  describe 'when the database fails during the run' do
+    before do
+      allow(op).to receive(:call).and_raise(Sequel::DatabaseConnectionError, 'could not connect to server')
+    end
+
+    it 'exits 1 with the reason on stderr' do
+      output = run_cli_command_quietly('customers', 'prune-closed-accounts', '--confirm')
+
+      expect(last_exit_code).to eq(1)
+      expect(output[:stderr]).to include('could not connect to server')
+      expect(output[:stdout]).not_to include('Deleted closed accounts rows')
+    end
+
+    it 'reports the reason as JSON under --json and nothing else on stdout' do
+      output = run_cli_command_quietly('customers', 'prune-closed-accounts', '--json')
+
+      expect(last_exit_code).to eq(1)
+      expect(JSON.parse(output[:stdout])).to eq('error' => 'Pruning failed: could not connect to server')
     end
   end
 
