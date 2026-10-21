@@ -24,6 +24,8 @@
 # - PUT invalid enum -> 422 form error, no audit; PUT sso -> 422 not editable
 # - PUT signup allowed_signup_domains: model-setter validation surfaces as a
 #   4xx form error; valid arrays round-trip
+# - PUT signup that would add a validation error (create or update) -> 422,
+#   nothing stored; an already-invalid record can still be changed
 # - DELETE: one domain.config_delete audit event; repeat delete -> 404;
 #   sso records are deletable too
 # - Redaction: an SsoConfig with real client_id/client_secret and a
@@ -284,6 +286,55 @@ put "/api/colonel/domains/#{@extid}/configs/signup",
 @resp = JSON.parse(last_response.body)
 [last_response.status, @resp['details']['config']['validation_strategy'], @resp['details']['config']['allowed_signup_domains']]
 #=> [200, 'domain_allowlist', ['corp.example.com']]
+
+## PUT signup allow_base_domain: a yes-token coerces to a real boolean, stored and serialized as one
+put "/api/colonel/domains/#{@extid}/configs/signup",
+  { 'allow_base_domain' => 'true' }, confirming_config(@domain, 'signup')
+@resp = JSON.parse(last_response.body)
+[last_response.status, @resp['details']['config']['allow_base_domain'],
+ Onetime::CustomDomain::SignupConfig.find_by_domain_id(@domain.identifier).allow_base_domain]
+#=> [200, true, true]
+
+# ----------------------------------------------------------------
+# PUT signup: a write may not add a validation error
+#
+# The upsert refuses attrs that would leave the record with an error it did
+# not already have; here SignupConfig's allowlist requirement (the install
+# flag is off, so the stored allow_base_domain cannot stand in for the
+# list). Errors the record already had do not count, so a broken record can
+# still be disabled or repaired.
+# ----------------------------------------------------------------
+
+## PUT signup clearing the only listed domain -> 422 naming the error, audited, nothing stored
+@before_audit = Onetime::ColonelAuditEvent.count
+put "/api/colonel/domains/#{@extid}/configs/signup", { 'allowed_signup_domains' => [] }.to_json,
+  confirming_config(@domain, 'signup').merge('CONTENT_TYPE' => 'application/json')
+[last_response.status,
+ JSON.parse(last_response.body)['error'].to_s.include?(Onetime::CustomDomain::SignupConfig::ALLOWLIST_REQUIRED_ERROR),
+ Onetime::ColonelAuditEvent.count - @before_audit,
+ Onetime::CustomDomain::SignupConfig.find_by_domain_id(@domain.identifier).allowed_signup_domains]
+#=> [422, true, 1, ['corp.example.com']]
+
+## A record that is already invalid can still be changed: only added errors count
+@broken = Onetime::CustomDomain::SignupConfig.find_by_domain_id(@domain.identifier)
+@broken.allowed_signup_domains_json = '{invalid json['
+@broken.save
+put "/api/colonel/domains/#{@extid}/configs/signup", { 'enabled' => 'false' }, confirming_config(@domain, 'signup')
+last_response.status
+#=> 200
+
+## ...and repaired by replacing the unreadable list
+put "/api/colonel/domains/#{@extid}/configs/signup",
+  { 'allowed_signup_domains' => ['corp.example.com'] }, confirming_config(@domain, 'signup')
+@repaired = Onetime::CustomDomain::SignupConfig.find_by_domain_id(@domain.identifier)
+[last_response.status, @repaired.allowed_signup_domains, @repaired.allowed_signup_domains_corrupt?]
+#=> [200, ['corp.example.com'], false]
+
+## A FIRST signup write that would be invalid -> 422 and no config is created
+put "/api/colonel/domains/#{@extid2}/configs/signup",
+  { 'validation_strategy' => 'domain_allowlist' }, confirming_config(@domain2, 'signup')
+[last_response.status, Onetime::CustomDomain::SignupConfig.exists_for_domain?(@domain2.identifier)]
+#=> [422, false]
 
 # ----------------------------------------------------------------
 # PUT signin related_origins — organization ownership (#4421)

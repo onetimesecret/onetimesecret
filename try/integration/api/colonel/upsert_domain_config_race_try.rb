@@ -84,10 +84,11 @@ end
 # Validation failure -> propagates, never takes the race path
 # ----------------------------------------------------------------
 
-## A model validation failure in create! (PublicSuffix-invalid
+## A model validation failure on the create path (PublicSuffix-invalid
 ## allowed_signup_domains) re-raises UNCHANGED: update_for_domain! is never
-## called, so invalid input can never be applied to a record a concurrent
-## writer created
+## called. The unsaved-instance check refuses it before create!, and the race
+## rescue would not take it either, so invalid input can never be applied to
+## a record a concurrent writer created
 @before_audit = Onetime::ColonelAuditEvent.count
 update_calls = []
 @klass.singleton_class.alias_method(:__race_real_update, :update_for_domain!)

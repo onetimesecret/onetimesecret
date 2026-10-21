@@ -65,6 +65,7 @@ export const DOMAIN_CONFIG_EDIT_FIELDS: Record<
       defaultValue: 'passthrough',
     },
     { name: 'allowed_signup_domains', type: 'domains', defaultValue: [] },
+    { name: 'allow_base_domain', type: 'boolean', defaultValue: false },
   ],
   homepage: [
     { name: 'enabled', type: 'boolean', defaultValue: false },

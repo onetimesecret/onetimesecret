@@ -79,6 +79,11 @@
     "context": "Returned when EntitlementRequired is raised for custom_signup_validation",
     "content_hash": "93c9befa"
   },
+  "api.entitlements.errors.base_domain_signup_required": {
+    "text": "Automatic base domain signup requires a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for base_domain_signup",
+    "content_hash": "19e6fd26"
+  },
   "api.entitlements.errors.create_secrets_required": {
     "text": "Creating secrets requires a plan upgrade",
     "context": "Returned when EntitlementRequired is raised for create_secrets",

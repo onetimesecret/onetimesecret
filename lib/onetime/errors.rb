@@ -198,7 +198,9 @@ module Onetime
   # SignupConfig.resolve_lookup_failure, which carves out positively-classified
   # operator hosts via the same SigninConfig.operator_host? predicate the
   # sign-in path uses, so the two gates cannot disagree about which hosts
-  # survive a datastore blip.
+  # survive a datastore blip. The one other raiser,
+  # SignupConfig#validate_domain_allowlist, has no host to carve out: it runs
+  # only after the host's own config was read.
   class SignupPolicyUnavailable < AuthPolicyUnavailable
     DEFAULT_MESSAGE = 'Sign-up is temporarily unavailable. Please try again shortly.'
   end
