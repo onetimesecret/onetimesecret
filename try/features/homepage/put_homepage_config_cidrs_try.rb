@@ -2,8 +2,8 @@
 #
 # frozen_string_literal: true
 
-# Tests for PutHomepageConfig / GetHomepageConfig: the homepage network
-# rules (allowed_cidrs / denied_cidrs).
+# Tests for PutHomepageConfig / GetHomepageConfig / DeleteHomepageConfig:
+# the homepage network rules (allowed_cidrs / denied_cidrs).
 #
 # Merge semantics: an omitted/null list leaves the stored one unchanged,
 # [] clears it, anything else replaces it with the normalized entries.
@@ -11,7 +11,8 @@
 # GET-then-PUT round-trip needs neither the platform flag nor the entitlement.
 # Refusals are field-tagged 422s with locale keys, raised in raise_concerns
 # before any write. Responses echo the NORMALIZED lists — what the gate
-# evaluates — not the entries as typed.
+# evaluates — not the entries as typed. DELETE drops both lists, so deleting
+# a config that holds rules needs the flag and the entitlement too.
 
 require_relative '../../support/test_helpers'
 require_relative '../../../apps/web/billing/lib/test_support/billing_helpers'
@@ -22,10 +23,12 @@ require 'api/domains/logic/base'
 require 'api/domains/logic/homepage_config/base'
 require 'api/domains/logic/homepage_config/get_homepage_config'
 require 'api/domains/logic/homepage_config/put_homepage_config'
+require 'api/domains/logic/homepage_config/delete_homepage_config'
 
-HomepageConfig    = Onetime::CustomDomain::HomepageConfig
-PutHomepageConfig = DomainsAPI::Logic::HomepageConfig::PutHomepageConfig
-GetHomepageConfig = DomainsAPI::Logic::HomepageConfig::GetHomepageConfig
+HomepageConfig       = Onetime::CustomDomain::HomepageConfig
+PutHomepageConfig    = DomainsAPI::Logic::HomepageConfig::PutHomepageConfig
+GetHomepageConfig    = DomainsAPI::Logic::HomepageConfig::GetHomepageConfig
+DeleteHomepageConfig = DomainsAPI::Logic::HomepageConfig::DeleteHomepageConfig
 
 @ts      = Familia.now.to_i
 @entropy = SecureRandom.hex(4)
@@ -71,6 +74,16 @@ end
 def run_put(customer, domain, params, network_rules_enabled: true)
   strategy = create_strategy_with_domain(customer, domain.display_domain)
   logic = PutHomepageConfig.new(strategy, params.merge('extid' => domain.extid))
+  with_network_rules_flag(network_rules_enabled) do
+    logic.process_params
+    logic.raise_concerns
+    logic.process
+  end
+end
+
+def run_delete(customer, domain, network_rules_enabled: true)
+  strategy = create_strategy_with_domain(customer, domain.display_domain)
+  logic    = DeleteHomepageConfig.new(strategy, { 'extid' => domain.extid })
   with_network_rules_flag(network_rules_enabled) do
     logic.process_params
     logic.raise_concerns
@@ -278,11 +291,19 @@ end
   stored     = run_get(@test_cust, @test_domain)[:record]
   round_trip = run_put(@test_cust, @test_domain, { 'enabled' => true, 'allowed_cidrs' => stored[:allowed_cidrs], 'denied_cidrs' => stored[:denied_cidrs] })[:record]
 
+  delete_refused = begin
+    run_delete(@test_cust, @test_domain)
+    :no_raise
+  rescue Onetime::FormError => ex
+    [ex.field.to_s, ex.error_key, ex.error_type]
+  end
+
   {
     preconditions: [org.can?('homepage_secrets'), org.can?('homepage_network_rules')],
     refused: refused,
     selector_lists: [selector[:allowed_cidrs].length, selector[:denied_cidrs]],
     round_trip_lists: [round_trip[:allowed_cidrs].length, round_trip[:denied_cidrs]],
+    delete_refused: delete_refused,
   }
 end
 @gating[:preconditions]
@@ -300,6 +321,10 @@ end
 @gating[:round_trip_lists]
 #=> [HomepageConfig::MAX_CIDRS, ['192.168.0.0/16']]
 
+## Without the entitlement, deleting a config that holds rules is a forbidden error too
+@gating[:delete_refused]
+#=> ['allowed_cidrs', 'api.entitlements.errors.homepage_network_rules_required', :forbidden]
+
 # --- PUT: an unreadable stored list ---
 
 ## Clearing an unreadable stored list is a change, not a no-op, though it reads back as []
@@ -312,6 +337,50 @@ record = run_put(@test_cust, @test_domain, { 'enabled' => true, 'denied_cidrs' =
 after  = HomepageConfig.find_by_domain_id(@test_domain.identifier)
 [before.denied_cidrs, before.denied_cidrs_corrupt?, record[:denied_cidrs], after.denied_cidrs_corrupt?]
 #=> [[], true, [], false]
+
+# --- DELETE: a config that holds network rules ---
+#
+# A later PUT would recreate the homepage with no rules, so deleting a
+# config that holds them is a change to them.
+
+## With the flag off, deleting a config that holds rules is a forbidden error on the restricted list
+begin
+  run_delete(@test_cust, @test_domain, network_rules_enabled: false)
+  :no_raise
+rescue Onetime::FormError => ex
+  [ex.field.to_s, ex.error_key, ex.error_type]
+end
+#=> ['allowed_cidrs', 'api.domains.errors.homepage_network_rules_disabled', :forbidden]
+
+## The refused delete left the record and its rules in place
+cfg = HomepageConfig.find_by_domain_id(@test_domain.identifier)
+[cfg.nil?, cfg&.allowed_cidrs&.length]
+#=> [false, HomepageConfig::MAX_CIDRS]
+
+## With the flag off, an unreadable list counts as rules too
+run_put(@test_cust, @test_domain, { 'enabled' => true, 'allowed_cidrs' => [] })
+cfg                   = HomepageConfig.find_by_domain_id(@test_domain.identifier)
+cfg.denied_cidrs_json = '{not json'
+cfg.save
+
+begin
+  run_delete(@test_cust, @test_domain, network_rules_enabled: false)
+  :no_raise
+rescue Onetime::FormError => ex
+  [ex.field.to_s, ex.error_key]
+end
+#=> ['denied_cidrs', 'api.domains.errors.homepage_network_rules_disabled']
+
+## With the flag on and the entitlement, deleting a config that holds rules works
+result = run_delete(@test_cust, @test_domain)
+[result[:deleted], HomepageConfig.find_by_domain_id(@test_domain.identifier).nil?]
+#=> [true, true]
+
+## With the flag off, deleting a config with no rules still works
+run_put(@test_cust, @test_domain, { 'enabled' => true }, network_rules_enabled: false)
+result = run_delete(@test_cust, @test_domain, network_rules_enabled: false)
+[result[:deleted], HomepageConfig.find_by_domain_id(@test_domain.identifier).nil?]
+#=> [true, true]
 
 # --- teardown ---
 HomepageConfig.delete_for_domain!(@test_domain.identifier)

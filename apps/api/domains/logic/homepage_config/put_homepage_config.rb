@@ -186,43 +186,16 @@ module DomainsAPI
         end
 
         # Require the platform flag and the homepage_network_rules
-        # entitlement when a list is changed.
-        #
-        # The flag (ORGS_HOMEPAGE_NETWORK_RULES_UI_ENABLED, default off) is the
-        # install-wide switch, checked first so an install without it never
-        # suggests an upgrade. Network rules are also a paid tier (homepage_network_rules, Identity
-        # Plus) layered on homepage_secrets, which the free plan carries. Only
-        # a request that changes a list needs it: the experience selector's
-        # writes omit both lists, and a round-trip that sends them back
-        # unchanged has them dropped by #drop_unchanged_cidr_lists!, so both
-        # stay available on every plan.
-        #
-        # Freeze, don't drop, on downgrade or with the flag off: stored rules
-        # keep being enforced (neither check runs on the anonymous paths, and
-        # dropping them would widen access), while changing them, clearing
-        # included, needs both back. The draft AccessConfig spec
-        # (docs/specs/domain-ip-allowlist) takes the same position for its
-        # allowlist.
+        # entitlement when a list is changed (see
+        # Base#verify_network_rules_editable!). Only a request that changes a
+        # list needs them: the experience selector's writes omit both lists,
+        # and a round-trip that sends them back unchanged has them dropped by
+        # #drop_unchanged_cidr_lists!, so both stay available on every plan.
         def verify_network_rules_allowed!
           sent = { allowed_cidrs: @allowed_cidrs, denied_cidrs: @denied_cidrs }.compact
           return if sent.empty?
 
-          unless OT.conf.dig('features', 'organizations', 'homepage_network_rules_ui_enabled')
-            raise_form_error(
-              'Homepage network rules are not enabled on this installation',
-              error_key: 'api.domains.errors.homepage_network_rules_disabled',
-              field: sent.keys.first,
-              error_type: :forbidden,
-            )
-          end
-          return if @organization.can?('homepage_network_rules')
-
-          raise_form_error(
-            'Homepage network rules require the homepage_network_rules entitlement. Please upgrade your plan.',
-            error_key: 'api.entitlements.errors.homepage_network_rules_required',
-            field: sent.keys.first,
-            error_type: :forbidden,
-          )
+          verify_network_rules_editable!(sent.keys.first)
         end
 
         # Validate one optional CIDR-list param.

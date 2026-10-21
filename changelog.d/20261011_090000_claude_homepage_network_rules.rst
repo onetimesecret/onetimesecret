@@ -33,7 +33,9 @@ Added
   entitlement, on every install. With it off the workspace editor is hidden
   and ``PUT /api/domains/:extid/homepage-config`` refuses a changed list (a
   422 form error of type ``forbidden`` on that field). A list sent back
-  unchanged is accepted, so read-modify-write clients keep working. Turning
-  it off stops edits only: rules already stored stay enforced
-  and are shown read-only, so the switch never opens a homepage a tenant
-  restricted. The colonel domain configs editor is not gated by it.
+  unchanged is accepted, so read-modify-write clients keep working.
+  ``DELETE`` on the same path is refused the same way when the stored config
+  holds rules, since deleting drops them. Turning it off stops edits only:
+  rules already stored stay enforced and are shown read-only, so the switch
+  never opens a homepage a tenant restricted. The colonel domain configs
+  editor is not gated by it.
