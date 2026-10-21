@@ -33,12 +33,17 @@ RSpec.describe Onetime::SignupValidation do
     expect(Onetime::CustomDomain).not_to receive(:from_display_domain)
 
     expect(validate).to be(false)
-    expect(config).to have_received(:valid_signup_email?).with(email)
+    expect(config).to have_received(:valid_signup_email?).with(email, domain: domain)
   end
 
   it 'accepts an email allowed by the tenant policy' do
-    allow(config).to receive(:valid_signup_email?).with(email).and_return(true)
+    allow(config).to receive(:valid_signup_email?).with(email, domain: domain).and_return(true)
     expect(validate).to be(true)
+  end
+
+  it 'keeps a failed read inside the tenant config fail-closed even on an operator host' do
+    allow(config).to receive(:valid_signup_email?).and_raise(Onetime::SignupPolicyUnavailable)
+    expect { validate(strategy: :canonical) }.to raise_error(Onetime::SignupPolicyUnavailable)
   end
 
   it 'matches the shared host case-insensitively like SignupConfigResolution' do
