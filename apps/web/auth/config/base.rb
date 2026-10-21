@@ -92,6 +92,25 @@ module Auth::Config::Base
       session.destroy
     end
 
+    # Refuse a logged-in session on the routes Rodauth serves to the logged
+    # out: login, webauthn-login, create-account, verify-account, the
+    # email-login request and redemption, the reset-password request and
+    # redemption, and unlock-account. Rodauth's default is a no-op (2.47
+    # warns at boot that it is unconfigured; Rodauth 3 will raise), and the
+    # router's active-session gate only diverts REJECTED sessions
+    # (router.rb revoked_outcome), so without this a valid login could run
+    # signup again or switch accounts through a verify or magic link. The
+    # reason is withdrawn from the failure-code stash
+    # (Auth::CredentialFailureCode), so the 403 stays uncoded. In JSON-only
+    # mode `redirect` answers with the JSON error body (json feature); the
+    # login_redirect target is never followed.
+    auth.already_logged_in do
+      set_redirect_error_status 403
+      set_error_reason :already_logged_in
+      set_redirect_error_flash 'Already logged in'
+      redirect login_redirect
+    end
+
     # auth.max_invalid_logins 2
     # auth.account_password_hash_column :ph
     # auth.title_instance_variable :@page_title

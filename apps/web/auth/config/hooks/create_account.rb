@@ -40,11 +40,13 @@ require 'onetime/security/create_account_rate_limiter'
 # ORDERING relative to the already-logged-in guard is inherited from Rodauth
 # and is the one we want: the route runs check_already_logged_in BEFORE
 # before_create_account_route, so an authenticated caller is turned away
-# without consuming budget. That matches the deliberate placement of the simple
-# mode call site after CreateAccount#raise_concerns' authenticated check —
-# a signed-in caller hitting this route is a UI mistake, not the abuse this
-# bounds, and charging them would let one user's stray form posts drain a
-# shared masked-IP bucket.
+# without consuming budget. The guard halts only because `already_logged_in`
+# is configured to (config/base.rb); Rodauth's own default is a no-op, under
+# which a signed-in caller reaches this limiter. That matches the deliberate
+# placement of the simple mode call site after CreateAccount#raise_concerns'
+# authenticated check — a signed-in caller hitting this route is a UI mistake,
+# not the abuse this bounds, and charging them would let one user's stray form
+# posts drain a shared masked-IP bucket.
 #
 # CLIENT IP: the universal MiddlewareStack mounts Otto's IPPrivacyMiddleware
 # once, which resolves the canonical env['otto.client_ip'] via the

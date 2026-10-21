@@ -47,7 +47,7 @@ RSpec.describe Auth::Config::Overrides::LoginRequestEnumeration, :aggregate_fail
       send_email_auth_email { sent << [:email_auth, account[:email]] } if features.include?(:email_auth)
       send_verify_account_email { sent << [:verify_account, account[:email]] } if features.include?(:verify_account)
       Auth::Config::Overrides::LoginRequestEnumeration.configure(self) if with_override
-    end.tap { |klass| klass.plugin :json_parser } # the helper app has no body parser
+    end.tap { |klass| klass.plugin :json_parser, content_type_regexp: %r{\Aapplication/json\b}i } # no body parser otherwise
   end
 
   def probe(path, login)
