@@ -250,6 +250,11 @@ module Core
               # could never reach IncomingConfig.ready?. Same canonical/custom
               # split as RecipientResolver / HomepageConfig#incoming_available?.
               'incoming_secrets_enabled' => features.dig('organizations', 'incoming_secrets_enabled') || false,
+              # Whether the per-domain sign-up form offers allow_base_domain;
+              # pairs with the base_domain_signup entitlement. Strict like
+              # SignupConfig.base_domain_signup_enabled?, so the form and the
+              # server agree on a non-boolean value.
+              'base_domain_signup_enabled' => features.dig('organizations', 'base_domain_signup_enabled') == true,
               # Default-true contract: only an explicit false disables — a
               # missing key (older config file) must still read as enabled.
               # Compare on the string form so a hand-edited config that yields

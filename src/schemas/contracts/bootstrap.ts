@@ -316,6 +316,9 @@ const organizationFeaturesInner = z.object({
   saml_enabled: z.boolean().default(false),
   custom_mail_enabled: z.boolean().default(false),
   incoming_secrets_enabled: z.boolean().default(false),
+  // ORGS_BASE_DOMAIN_SIGNUP_ENABLED: whether the per-domain sign-up form
+  // offers allow_base_domain (pairs with the base_domain_signup entitlement).
+  base_domain_signup_enabled: z.boolean().default(false),
   // Default-ON (unlike siblings): only an explicit false — set via
   // ORGS_AUDIT_LOGS_ENABLED=false — hides the org Secret Activity tab.
   // Absent (older backends without the flag) keeps the feature enabled.
