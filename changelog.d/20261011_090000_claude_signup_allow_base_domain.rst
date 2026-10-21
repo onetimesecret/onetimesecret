@@ -21,6 +21,11 @@ Added
   validated, so turning the flag off or losing the entitlement stops a saved
   setting from admitting anyone; the saved value stays and takes effect
   again once both are back.
+- If the datastore or plan catalog cannot be read while deciding whether
+  the base domain counts, the sign-up answers 503 ("Sign-up is temporarily
+  unavailable"), the same as any other unreadable sign-up policy, instead of
+  a server error. Addresses on the explicit list do not depend on those
+  reads and are still admitted.
 
 Changed
 -------

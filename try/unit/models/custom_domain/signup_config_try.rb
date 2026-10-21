@@ -21,6 +21,9 @@ require_relative '../../../support/test_models'
 
 OT.boot! :test
 
+# Billing::PlanCacheMissError, for the allow_base_domain read-failure cases
+require_relative '../../../../apps/web/billing/errors'
+
 Familia.dbclient.flushdb
 OT.info "Cleaned Redis for SignupConfig test run"
 
@@ -536,6 +539,61 @@ rescue ArgumentError => ex
   ex.message.include?('corrupt')
 end
 #=> true
+
+## Setup: a gate whose allow_base_domain reads raise (the domain record read fails)
+@abd_raising = Onetime::CustomDomain::SignupConfig.new(
+  domain_id: @domain_abd.identifier,
+  validation_strategy: 'domain_allowlist',
+  allow_base_domain: true,
+)
+@abd_raising.allowed_signup_domains = ['partner.com']
+@abd_raising.define_singleton_method(:custom_domain) { raise Redis::CannotConnectError, 'datastore down' }
+@abd_raising.allow_base_domain?
+#=> true
+
+## A listed address is admitted from the loaded record: the failing reads are never reached
+@abd_raising.valid_signup_email?('a@partner.com')
+#=> true
+
+## An address only the base domain could admit gets policy-unavailable (503), not a denial or a 500
+begin
+  @abd_raising.valid_signup_email?('user@example.com')
+rescue Onetime::SignupPolicyUnavailable => ex
+  [ex.class, ex.cause.class]
+end
+#=> [Onetime::SignupPolicyUnavailable, Redis::CannotConnectError]
+
+## A plan-cache miss in the entitlement check is the same policy failure
+missing_plan = Object.new
+missing_plan.define_singleton_method(:can?) { |_name| raise Billing::PlanCacheMissError.new(plan_id: 'gone_v1') }
+stub = Struct.new(:base_domain, :primary_organization).new('example.com', missing_plan)
+begin
+  @abd_raising.valid_signup_email?('user@example.com', domain: stub)
+rescue Onetime::SignupPolicyUnavailable => ex
+  ex.cause.class
+end
+#=> Billing::PlanCacheMissError
+
+## Any other error is not reclassified
+broken = Object.new
+broken.define_singleton_method(:can?) { |_name| raise ArgumentError, 'bug' }
+stub = Struct.new(:base_domain, :primary_organization).new('example.com', broken)
+begin
+  @abd_raising.valid_signup_email?('user@example.com', domain: stub)
+rescue StandardError => ex
+  ex.class
+end
+#=> ArgumentError
+
+## A domain record handed in is used instead of a re-read (custom_domain still raises here)
+entitled = Object.new
+entitled.define_singleton_method(:can?) { |_name| true }
+stub = Struct.new(:base_domain, :primary_organization).new('example.com', entitled)
+[
+  @abd_raising.valid_signup_email?('user@example.com', domain: stub),
+  @abd_raising.valid_signup_email?('user@other.com', domain: stub),
+]
+#=> [true, false]
 
 ## passthrough ignores the flag (format-only, as before)
 @abd_orphan.validation_strategy = 'passthrough'

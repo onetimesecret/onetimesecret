@@ -295,12 +295,14 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   # (lower-cased), the same as for a listed entry: a subdomain of the base
   # domain (mail.acme.com) is not admitted by the flag.
   #
+  # @param domain [CustomDomain, nil] the domain record, when the caller
+  #   already loaded it
   # @return [Array<String>] Lowercase domain names, de-duplicated
-  def effective_allowed_signup_domains
+  def effective_allowed_signup_domains(domain: nil)
     domains = allowed_signup_domains
     return domains unless allow_base_domain?
 
-    domain = custom_domain
+    domain ||= custom_domain
     return domains unless allow_base_domain_effective?(domain: domain)
 
     own = base_domain(domain: domain)
@@ -324,13 +326,18 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   # Validate an email address using this config's strategy.
   #
   # @param email [String] Email address to validate
+  # @param domain [CustomDomain, nil] the domain record this config belongs
+  #   to, when the caller already loaded it (SignupValidation does); saves
+  #   the allow_base_domain re-read under domain_allowlist
   # @return [Boolean] true if email passes validation
-  def valid_signup_email?(email)
+  # @raise [Onetime::SignupPolicyUnavailable] when a read allow_base_domain
+  #   needs raised (see #validate_domain_allowlist)
+  def valid_signup_email?(email, domain: nil)
     case validation_strategy
     when 'passthrough'
       validate_passthrough(email)
     when 'domain_allowlist'
-      validate_domain_allowlist(email)
+      validate_domain_allowlist(email, domain: domain)
     when 'mx'
       validate_with_truemail(email, :mx)
     when 'smtp'
@@ -686,12 +693,38 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   # false (install flag off, entitlement missing); valid_email_domain? then
   # admits no one. Same reasoning as SsoConfig#allowed_domains_corrupt? on
   # the SSO sign-in path.
-  def validate_domain_allowlist(email)
+  #
+  # A listed address is admitted from the loaded record alone. Only an
+  # address the list does not admit reaches the reads behind
+  # allow_base_domain (domain record, owning organization, entitlements).
+  # When one of those raises (policy_read_failure?) the gate cannot tell
+  # whether the base domain counts, so it raises
+  # Onetime::SignupPolicyUnavailable (503) rather than denying with the
+  # wrong answer or escaping as a 500. Unconditional, unlike
+  # resolve_lookup_failure: this host's own config was already read, so
+  # there is no operator default to keep.
+  def validate_domain_allowlist(email, domain: nil)
     # Must also pass format check
     return false unless Onetime::Utils::EmailFormat.valid_format?(email)
     return false if allowed_signup_domains_corrupt?
+    return true if valid_email_domain?(email, domains: allowed_signup_domains)
 
-    valid_email_domain?(email)
+    valid_email_domain?(email, domains: effective_allowed_signup_domains(domain: domain))
+  rescue StandardError => ex
+    raise unless policy_read_failure?(ex)
+
+    OT.le "[SignupConfig] Sign-up allowlist lookup failed domain_id=#{domain_id} #{ex.class}"
+    raise Onetime::SignupPolicyUnavailable
+  end
+
+  # A datastore read that raised, or an entitlement check that failed
+  # closed on an unresolvable plan. PlanCacheMissError is matched by name:
+  # builds without the billing app never define (or raise) it.
+  def policy_read_failure?(ex)
+    return true if ex.is_a?(Redis::BaseError)
+    return false unless defined?(::Billing::PlanCacheMissError)
+
+    ex.is_a?(::Billing::PlanCacheMissError)
   end
 
   # Truemail validation with per-call configuration.
