@@ -14,6 +14,7 @@ vi.mock('vue-router', () => ({
   useRoute: vi.fn(() => ({ path: '/', query: {}, params: {} })),
   useRouter: vi.fn(() => ({ push: vi.fn() })),
   onBeforeRouteLeave: vi.fn(),
+  onBeforeRouteUpdate: vi.fn(),
   RouterLink: {
     name: 'RouterLink',
     template: '<a><slot /></a>',
@@ -234,7 +235,8 @@ describe('DomainDetail - unsaved network rules', () => {
     };
   });
 
-  type LeaveGuard = (to: unknown, from: unknown, next: (arg?: boolean) => void) => void;
+  // useUnsavedRouteGuard's leave guard: true lets the navigation proceed.
+  type LeaveGuard = () => boolean;
 
   function lastLeaveGuard(): LeaveGuard {
     const calls = vi.mocked(onBeforeRouteLeave).mock.calls;
@@ -250,13 +252,27 @@ describe('DomainDetail - unsaved network rules', () => {
     await wrapper
       .findComponent({ name: 'DomainHomepageNetworkAccess' })
       .vm.$emit('update:dirty', true);
-    const next = vi.fn();
-    guard({}, {}, next);
 
+    expect(guard()).toBe(false);
     expect(confirmSpy).toHaveBeenCalledWith('web.domains.unsaved_changes_confirmation');
-    expect(next).toHaveBeenCalledWith(false);
-    expect(wrapper.findComponent({ name: 'DomainHeader' }).props('hasUnsavedChanges')).toBe(true);
     confirmSpy.mockRestore();
+  });
+
+  it('guards a reload or tab close only while the network editor holds staged edits', async () => {
+    const addSpy = vi.spyOn(window, 'addEventListener');
+    const removeSpy = vi.spyOn(window, 'removeEventListener');
+    const wrapper = mountDetail();
+    await flushPromises();
+    expect(addSpy).not.toHaveBeenCalledWith('beforeunload', expect.any(Function));
+
+    const editor = wrapper.findComponent({ name: 'DomainHomepageNetworkAccess' });
+    await editor.vm.$emit('update:dirty', true);
+    expect(addSpy).toHaveBeenCalledWith('beforeunload', expect.any(Function));
+
+    await editor.vm.$emit('update:dirty', false);
+    expect(removeSpy).toHaveBeenCalledWith('beforeunload', expect.any(Function));
+    addSpy.mockRestore();
+    removeSpy.mockRestore();
   });
 
   it('leaves without asking when nothing is staged', async () => {
@@ -265,11 +281,8 @@ describe('DomainDetail - unsaved network rules', () => {
     const guard = lastLeaveGuard();
     const confirmSpy = vi.spyOn(window, 'confirm');
 
-    const next = vi.fn();
-    guard({}, {}, next);
-
+    expect(guard()).toBe(true);
     expect(confirmSpy).not.toHaveBeenCalled();
-    expect(next).toHaveBeenCalledWith();
     confirmSpy.mockRestore();
   });
 });

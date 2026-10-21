@@ -22,6 +22,8 @@ import DomainHomepageSelector, {
 import { useDomain } from '@/shared/composables/useDomain';
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
+import { useUnsavedInputGuard } from '@/shared/composables/useUnsavedInputGuard';
+import { useUnsavedRouteGuard } from '@/shared/composables/useUnsavedRouteGuard';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
@@ -33,7 +35,7 @@ import {
 } from '@/utils/features';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref } from 'vue';
-import { onBeforeRouteLeave, useRouter } from 'vue-router';
+import { useRouter } from 'vue-router';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -203,16 +205,11 @@ const homepageNetworkSaving = ref(false);
 const homepageNetworkDirty = ref(false);
 
 // The network editor is the one explicit-save form on this hub; guard its
-// staged edits the way the dedicated domain config pages guard theirs.
-onBeforeRouteLeave((_to, _from, next) => {
-  if (homepageNetworkDirty.value) {
-    const answer = window.confirm(t('web.domains.unsaved_changes_confirmation'));
-    if (answer) next();
-    else next(false);
-  } else {
-    next();
-  }
-});
+// staged edits the way the dedicated domain config pages guard theirs: in-app
+// navigation (leaving, or a param change that remounts the view) and, as
+// DomainBrand does, document unloads.
+useUnsavedRouteGuard(homepageNetworkDirty, 'web.domains.unsaved_changes_confirmation');
+useUnsavedInputGuard(homepageNetworkDirty);
 
 const handleHomepageNetworkSave = async (rules: HomepageNetworkRules) => {
   const domain = customDomainRecord.value;
@@ -351,7 +348,7 @@ onMounted(() => {
     <div class="sticky top-0 z-30">
       <DomainHeader
         :domain="customDomainRecord"
-        :has-unsaved-changes="homepageNetworkDirty"
+        :has-unsaved-changes="false"
         :orgid="props.orgid"
         external-path="/"
         back-visible
