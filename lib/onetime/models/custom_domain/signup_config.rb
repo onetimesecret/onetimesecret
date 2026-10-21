@@ -258,7 +258,7 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   # secrets.acme.com → acme.com, acme.co.uk → acme.co.uk), lower-cased.
   #
   # Read from the domain record on each call rather than copied into this
-  # record, so a renamed domain is followed automatically. nil when the
+  # record, so the domain record stays the one source for it. nil when the
   # domain record is missing or carries no base_domain; allow_base_domain
   # then adds nothing (fail closed) and never falls back to allow-all.
   #
@@ -376,7 +376,7 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     errors << "validation_strategy must be one of: #{STRATEGY_TYPES.join(', ')}" unless STRATEGY_TYPES.include?(validation_strategy)
 
     domain             = (custom_domain if allow_base_domain?) # skip the lookups when unused
-    base_domain_counts = allow_base_domain_effective?(domain: domain)
+    base_domain_counts = allow_base_domain_counts_for_validation?(domain)
     allowlist_error    = self.class.allowlist_requirement_error(
       strategy: validation_strategy,
       domains: allowed_signup_domains,
@@ -715,6 +715,22 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
 
     OT.le "[SignupConfig] Sign-up allowlist lookup failed domain_id=#{domain_id} #{ex.class}"
     raise Onetime::SignupPolicyUnavailable
+  end
+
+  # allow_base_domain_effective? as #validation_errors applies it. A read
+  # that raises (policy_read_failure?) makes the flag not count, so the
+  # list is judged on its own: a broken plan catalog cannot fail an
+  # unrelated write, such as the colonel upsert's before/after comparison
+  # (Operations::Domains::UpsertDomainConfig), and cannot block disabling
+  # or repairing the config. Only validation reads it this way; the gate
+  # answers 503 for the same failure (#validate_domain_allowlist).
+  def allow_base_domain_counts_for_validation?(domain)
+    allow_base_domain_effective?(domain: domain)
+  rescue StandardError => ex
+    raise unless policy_read_failure?(ex)
+
+    OT.le "[SignupConfig] allow_base_domain not counted for validation domain_id=#{domain_id} #{ex.class}"
+    false
   end
 
   # A datastore read that raised, or an entitlement check that failed

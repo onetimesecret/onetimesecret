@@ -595,6 +595,36 @@ stub = Struct.new(:base_domain, :primary_organization).new('example.com', entitl
 ]
 #=> [true, false]
 
+## validation_errors does not raise on a plan-cache miss: the flag just does not count
+missing_plan = Object.new
+missing_plan.define_singleton_method(:can?) { |_name| raise Billing::PlanCacheMissError.new(plan_id: 'gone_v1') }
+missing_plan_domain = Struct.new(:base_domain, :primary_organization).new('example.com', missing_plan)
+@abd_validating = Onetime::CustomDomain::SignupConfig.new(
+  domain_id: @domain_abd.identifier,
+  validation_strategy: 'domain_allowlist',
+  allow_base_domain: true,
+)
+@abd_validating.define_singleton_method(:custom_domain) { missing_plan_domain }
+@abd_validating.validation_errors
+#=> [Onetime::CustomDomain::SignupConfig::ALLOWLIST_REQUIRED_ERROR]
+
+## ...so with a listed domain the record stays valid and a colonel write that keeps it is not refused
+@abd_validating.allowed_signup_domains = ['partner.com']
+@abd_validating.validation_errors
+#=> []
+
+## ...while any other error from the entitlement check still raises
+broken = Object.new
+broken.define_singleton_method(:can?) { |_name| raise ArgumentError, 'bug' }
+broken_domain = Struct.new(:base_domain, :primary_organization).new('example.com', broken)
+@abd_validating.define_singleton_method(:custom_domain) { broken_domain }
+begin
+  @abd_validating.validation_errors
+rescue StandardError => ex
+  ex.class
+end
+#=> ArgumentError
+
 ## passthrough ignores the flag (format-only, as before)
 @abd_orphan.validation_strategy = 'passthrough'
 @abd_orphan.valid_signup_email?('anyone@anywhere.com')
