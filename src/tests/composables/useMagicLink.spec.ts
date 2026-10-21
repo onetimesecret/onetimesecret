@@ -70,12 +70,15 @@ describe('useMagicLink', () => {
       expect(fieldError.value).toEqual(['login', 'Not found']);
     });
 
-    it('retries transparently on 403 and succeeds', async () => {
+    // A CSRF rejection is rack-protection's text/plain "Forbidden", not JSON
+    // (Rack::Protection::Base#deny); the token refresh happens in the Axios
+    // error interceptor, so the composable only has to post again.
+    it('retries transparently on a CSRF 403 and succeeds', async () => {
       let callCount = 0;
       setup.axiosMock?.onPost('/auth/email-login-request').reply(() => {
         callCount++;
         if (callCount === 1) {
-          return [403, { error: 'Forbidden' }];
+          return [403, 'Forbidden'];
         }
         return [200, { success: 'Link sent' }];
       });
@@ -89,10 +92,8 @@ describe('useMagicLink', () => {
       expect(error.value).toBeNull();
     });
 
-    it('shows sessionExpired when 403 retry also fails', async () => {
-      setup.axiosMock?.onPost('/auth/email-login-request').reply(403, {
-        error: 'Forbidden',
-      });
+    it('shows sessionExpired when the CSRF 403 retry also fails', async () => {
+      setup.axiosMock?.onPost('/auth/email-login-request').reply(403, 'Forbidden');
 
       const { requestMagicLink, sent, error } = useMagicLink();
       const result = await requestMagicLink('user@example.com');
@@ -100,6 +101,27 @@ describe('useMagicLink', () => {
       expect(result).toBe(false);
       expect(sent.value).toBe(false);
       expect(error.value).toBe('web.auth.magicLink.sessionExpired');
+    });
+
+    // Rodauth's already_logged_in (apps/web/auth/config/base.rb) answers 403
+    // with a JSON error when the session signed in elsewhere while this page
+    // stayed open. That is the server's answer, not a stale token: show it,
+    // and do not post the request a second time.
+    it('shows the server message on a 403 that carries one, without retrying', async () => {
+      let callCount = 0;
+      setup.axiosMock?.onPost('/auth/email-login-request').reply(() => {
+        callCount++;
+        return [403, { error: 'Already logged in' }];
+      });
+
+      const { requestMagicLink, sent, error, fieldError } = useMagicLink();
+      const result = await requestMagicLink('user@example.com');
+
+      expect(callCount).toBe(1);
+      expect(result).toBe(false);
+      expect(sent.value).toBe(false);
+      expect(error.value).toBe('Already logged in');
+      expect(fieldError.value).toBeNull();
     });
 
     it('returns false with networkError on network failure', async () => {
