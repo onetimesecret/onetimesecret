@@ -97,6 +97,19 @@ RSpec.describe Onetime::CustomDomain::HomepageConfig do
       expect(config.validation_errors).to include('denied_cidrs is unreadable')
     end
 
+    it 'treats an array holding an entry that does not parse as corrupt' do
+      config.allowed_cidrs_json = '["10.0.0.0/8","bogus"]'
+      expect(config.allowed_cidrs).to eq(['10.0.0.0/8', 'bogus'])
+      expect(config.allowed_cidrs_corrupt?).to be(true)
+      expect(config.network_restricted?).to be(true)
+      expect(config.validation_errors).to include('allowed_cidrs is unreadable')
+    end
+
+    it 'treats an entry with invalid UTF-8 bytes as corrupt' do
+      config.denied_cidrs_json = "[\"\xFF\"]".dup.force_encoding('UTF-8')
+      expect(config.denied_cidrs_corrupt?).to be(true)
+    end
+
     it 'does not call a well-formed empty array corrupt' do
       config.allowed_cidrs_json = '[]'
       expect(config.allowed_cidrs_corrupt?).to be(false)
@@ -141,10 +154,10 @@ RSpec.describe Onetime::CustomDomain::HomepageConfig do
         expect(OT).to have_received(:le).with(a_string_including('ArgumentError').and(satisfy { |m| !m.include?('203.0.113.9') }))
       end
 
-      it 'fails closed when a stored entry no longer parses' do
+      it 'fails closed when a stored entry no longer parses, even for a client its other entries admit' do
         config.allowed_cidrs_json = '["10.0.0.0/8","junk"]'
         expect(config.network_allowed?(matcher_for('10.1.2.3'))).to be(false)
-        expect(OT).to have_received(:le).with(/network match failed/)
+        expect(OT).to have_received(:le).with(/unreadable/)
       end
 
       it 'fails closed when a stored list is unreadable, even for a client the other list admits' do

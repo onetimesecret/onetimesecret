@@ -279,7 +279,8 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
     self.denied_cidrs_json = encode_cidr_list('denied_cidrs', entries)
   end
 
-  # Whether allowed_cidrs_json holds something we cannot read as a list.
+  # Whether allowed_cidrs_json holds something we cannot read as a list of
+  # ranges: bad JSON, a non-array, or an entry that does not parse.
   # Absent/empty is NOT corrupt (the cleared state the setter writes).
   # Mirrors SignupConfig#allowed_signup_domains_corrupt?.
   def allowed_cidrs_corrupt?
@@ -478,14 +479,23 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
     raise TooManyCidrs.new(field, ex.count, ex.max)
   end
 
-  # Present but not a JSON array → corrupt. Absent/empty is the cleared
-  # state the setters write, never corrupt.
+  # Present but not a JSON array, or holding an entry CidrList.parse
+  # refuses → corrupt. That is the same per-entry IPAddr parse
+  # CidrList.permitted? applies in #network_allowed?, so a list judged
+  # readable here never fails the verdict on its entries. Absent/empty is
+  # the cleared state the setters write, never corrupt.
   def cidr_list_corrupt?(raw)
     str = raw.to_s
     return false if str.empty?
 
-    !JSON.parse(str).is_a?(Array)
-  rescue JSON::ParserError
+    parsed = JSON.parse(str)
+    return true unless parsed.is_a?(Array)
+
+    Onetime::Utils::CidrList.parse(parsed)
+    false
+  rescue JSON::ParserError, ArgumentError
+    # ArgumentError covers IPAddr::Error (its subclass) and an entry with
+    # invalid UTF-8 bytes, which JSON.parse passes through.
     true
   end
 
