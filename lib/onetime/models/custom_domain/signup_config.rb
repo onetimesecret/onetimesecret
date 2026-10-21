@@ -328,11 +328,14 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   # @param email [String] Email address to validate
   # @param domain [CustomDomain, nil] the domain record this config belongs
   #   to, when the caller already loaded it (SignupValidation does); saves
-  #   the allow_base_domain re-read under domain_allowlist
+  #   the allow_base_domain re-read under domain_allowlist. A record for
+  #   another domain is ignored and this config's own record is read.
   # @return [Boolean] true if email passes validation
   # @raise [Onetime::SignupPolicyUnavailable] when a read allow_base_domain
   #   needs raised (see #validate_domain_allowlist)
   def valid_signup_email?(email, domain: nil)
+    domain = nil unless domain&.identifier == domain_id
+
     case validation_strategy
     when 'passthrough'
       validate_passthrough(email)

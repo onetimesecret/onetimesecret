@@ -566,7 +566,7 @@ end
 ## A plan-cache miss in the entitlement check is the same policy failure
 missing_plan = Object.new
 missing_plan.define_singleton_method(:can?) { |_name| raise Billing::PlanCacheMissError.new(plan_id: 'gone_v1') }
-stub = Struct.new(:base_domain, :primary_organization).new('example.com', missing_plan)
+stub = Struct.new(:identifier, :base_domain, :primary_organization).new(@domain_abd.identifier, 'example.com', missing_plan)
 begin
   @abd_raising.valid_signup_email?('user@example.com', domain: stub)
 rescue Onetime::SignupPolicyUnavailable => ex
@@ -577,7 +577,7 @@ end
 ## Any other error is not reclassified
 broken = Object.new
 broken.define_singleton_method(:can?) { |_name| raise ArgumentError, 'bug' }
-stub = Struct.new(:base_domain, :primary_organization).new('example.com', broken)
+stub = Struct.new(:identifier, :base_domain, :primary_organization).new(@domain_abd.identifier, 'example.com', broken)
 begin
   @abd_raising.valid_signup_email?('user@example.com', domain: stub)
 rescue StandardError => ex
@@ -588,12 +588,27 @@ end
 ## A domain record handed in is used instead of a re-read (custom_domain still raises here)
 entitled = Object.new
 entitled.define_singleton_method(:can?) { |_name| true }
-stub = Struct.new(:base_domain, :primary_organization).new('example.com', entitled)
+stub = Struct.new(:identifier, :base_domain, :primary_organization).new(@domain_abd.identifier, 'example.com', entitled)
 [
   @abd_raising.valid_signup_email?('user@example.com', domain: stub),
   @abd_raising.valid_signup_email?('user@other.com', domain: stub),
 ]
 #=> [true, false]
+
+## A handed-in record for another domain is ignored: the gate reads this config's own record
+@abd_mismatch = Onetime::CustomDomain::SignupConfig.new(
+  domain_id: @domain_abd.identifier,
+  validation_strategy: 'domain_allowlist',
+  allow_base_domain: true,
+)
+entitled = Object.new
+entitled.define_singleton_method(:can?) { |_name| true }
+other = Struct.new(:identifier, :base_domain, :primary_organization).new('someone-else', 'evil.com', entitled)
+[
+  @abd_mismatch.valid_signup_email?('user@evil.com', domain: other),
+  @abd_mismatch.valid_signup_email?('user@example.com', domain: other),
+]
+#=> [false, true]
 
 ## validation_errors does not raise on a plan-cache miss: the flag just does not count
 missing_plan = Object.new
