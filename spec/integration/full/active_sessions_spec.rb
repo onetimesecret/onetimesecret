@@ -453,6 +453,10 @@ RSpec.describe 'Active Sessions Management', type: :integration do
 
       before do
         create_verified_account(db: test_db, email: other_email, password: test_password)
+        # From a signed-out browser: the enclosing context is logged in, and
+        # a logged-in session is refused by already_logged_in (config/base.rb)
+        # before the login, and so the stamp, would run.
+        clear_cookies
         allow(OT).to receive(:le).and_call_original
         # The computation is stubbed, not the stamp itself, so the stamp's
         # rescue (error log, clear_session, re-raise) is what runs.
