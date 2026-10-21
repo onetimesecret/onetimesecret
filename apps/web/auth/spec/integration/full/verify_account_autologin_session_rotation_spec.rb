@@ -149,4 +149,21 @@ RSpec.describe 'Verify-account autologin starts a new session id (#4466)', type:
     expect(rodauth_account_status_for(new_sid)).to eq(200)
     expect(rodauth_account_status_for(old_sid)).to eq(401)
   end
+
+  # useAuth.verifyAccount sends the browser to /signin, and the password
+  # login posts on the autologin cookie. Rodauth counts that session as
+  # logged in, so `already_logged_in` (config/base.rb) is consulted; it must
+  # not refuse a session the app has not marked authenticated.
+  it 'lets the password login the SPA sends next complete on the autologin cookie', :aggregate_failures do
+    account = sign_up!
+    fetch_csrf_token
+    csrf_json_post('/auth/verify-account', key: emailed_verify_key)
+    expect(last_response.status).to eq(200), last_response.body
+    expect(blob_for(current_sid)).to include('account_id' => account[:id])
+    expect(blob_for(current_sid)['authenticated']).not_to be(true)
+
+    csrf_json_post('/auth/login', login: account_email, password: password)
+    expect(last_response.status).to eq(200), last_response.body
+    expect(blob_for(current_sid)).to include('account_id' => account[:id], 'authenticated' => true)
+  end
 end
