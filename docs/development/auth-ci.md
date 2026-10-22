@@ -13,7 +13,8 @@ select these jobs:
 - The `full-pg-agnostic` lane. It runs the database-agnostic full-mode suite
   a second time, against PostgreSQL, and is the slowest row in the Ruby
   matrix.
-- The `full-mfa` and `full-saml-platform` configuration lanes.
+- The `full-mfa`, `full-saml-platform` and `full-webauthn-verify`
+  configuration lanes.
 - The `browser` lane, which exercises SAML callbacks in Chromium, Firefox, and
   WebKit.
 - [Full-auth E2E](../../.github/workflows/e2e-full-auth.yml), including real
