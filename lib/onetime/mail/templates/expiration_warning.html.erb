@@ -7,12 +7,12 @@
   <%= t('email.expiration_warning.view_before_gone') %>
 </p>
 
-<!-- Secret link (the visible text is the exact destination) -->
+<!-- Receipt link (the visible text is the exact destination) -->
 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 0 0 20px 0;">
   <tr>
     <td bgcolor="#f7f8fa" style="background-color: #f7f8fa; border: 1px solid #e3e7eb; border-radius: 8px; padding: 16px 18px;">
       <div style="font-family: Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #97a1ab; margin: 0 0 8px 0;">
-        <%= t('email.common.secret_link_label') %>
+        <%= t('email.expiration_warning.receipt_link_label') %>
       </div>
       <a href="<%= brand_baseuri %><%= uri_path %>" style="display: block; text-decoration: none; word-break: break-all; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 14px; line-height: 22px;" rel="noopener noreferrer"><span style="color: <%= brand_color %>; font-weight: 700;"><%= h(brand_baseuri) %></span><span style="color: #8a96a3;"><%= h(uri_path) %></span></a>
     </td>

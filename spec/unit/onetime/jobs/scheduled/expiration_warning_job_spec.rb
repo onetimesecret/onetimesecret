@@ -224,10 +224,24 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
         :expiration_warning,
         hash_including(
           recipient: 'owner@example.com',
-          secret_key: 'abc123'
+          receipt_identifier: 'meta123'
         ),
         hash_including(:delay_seconds)
       )
+
+      described_class.send(:process_expiring_secrets)
+    end
+
+    # The email links to the owner's receipt page. A secret shortid resolves
+    # to no page, so the payload must not carry one.
+    it 'does not send the secret shortid' do
+      allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta123'])
+      allow(Onetime::Receipt).to receive(:load).with('meta123').and_return(metadata_with_owner)
+
+      expect(Onetime::Jobs::Publisher).to receive(:schedule_email) do |_template, data, _options|
+        expect(data).not_to have_key(:secret_key)
+        expect(data.values).not_to include('abc123')
+      end
 
       described_class.send(:process_expiring_secrets)
     end

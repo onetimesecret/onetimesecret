@@ -141,7 +141,7 @@ module Onetime
               :expiration_warning,
               {
                 recipient: owner.email,
-                secret_key: receipt.secret_shortid,
+                receipt_identifier: receipt.identifier,
                 expires_at: receipt.secret_expiration,
                 share_domain: receipt.share_domain,
               },

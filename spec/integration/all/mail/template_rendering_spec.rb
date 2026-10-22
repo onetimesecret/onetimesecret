@@ -460,10 +460,11 @@ RSpec.describe 'Email Template Rendering', type: :integration do
   end
 
   describe Onetime::Mail::Templates::ExpirationWarning do
+    let(:receipt_identifier) { '0195f3a2-8c4e-7b1d-9a6f-2e3d4c5b6a70' }
     let(:data) do
       {
         recipient: test_email,
-        secret_key: secret_key,
+        receipt_identifier: receipt_identifier,
         expires_at: Time.now.to_i + 3600, # 1 hour from now
         share_domain: nil
       }
@@ -490,8 +491,12 @@ RSpec.describe 'Email Template Rendering', type: :integration do
         expect(text).to match(/\d+\s+(hour|minute|day)/)
       end
 
-      it 'includes secret URI' do
-        expect(template.render_text).to include("/secret/#{secret_key}")
+      it 'includes the receipt URI with the full receipt identifier' do
+        expect(template.render_text).to match(%r{https?://\S+/receipt/#{receipt_identifier}$})
+      end
+
+      it 'does not link to a secret' do
+        expect(template.render_text).not_to include('/secret/')
       end
     end
 
@@ -502,6 +507,38 @@ RSpec.describe 'Email Template Rendering', type: :integration do
 
       it 'contains no raw translation keys' do
         expect(contains_raw_translation_key?(template.render_html)).to be false
+      end
+
+      it 'links to the receipt URI with the full receipt identifier' do
+        expect(template.render_html).to match(%r{href="https?://[^"/]+/receipt/#{receipt_identifier}"})
+      end
+
+      it 'labels the link as a receipt link' do
+        expect(template.render_html).to include('Receipt link')
+        expect(template.render_html).not_to include('Secret link')
+      end
+
+      it 'does not link to a secret' do
+        expect(template.render_html).not_to include('/secret/')
+      end
+    end
+
+    # Payloads queued by the job before the receipt link carry an 8-character
+    # secret shortid under secret_key. That resolves to no page, so the
+    # template refuses it and the email worker drops the message.
+    describe 'legacy secret_key payload' do
+      let(:data) do
+        {
+          recipient: test_email,
+          secret_key: 'abc123de',
+          expires_at: Time.now.to_i + 3600,
+          share_domain: nil
+        }
+      end
+
+      it 'raises instead of rendering a dead /secret/ link' do
+        expect { described_class.new(data) }
+          .to raise_error(ArgumentError, /Receipt identifier required/)
       end
     end
 
@@ -771,17 +808,17 @@ RSpec.describe 'Email Template Rendering', type: :integration do
     end
 
     it 'ExpirationWarning requires recipient' do
-      expect { Onetime::Mail::Templates::ExpirationWarning.new({ secret_key: 'abc', expires_at: Time.now.to_i }) }
+      expect { Onetime::Mail::Templates::ExpirationWarning.new({ receipt_identifier: 'abc', expires_at: Time.now.to_i }) }
         .to raise_error(ArgumentError, /Recipient required/)
     end
 
-    it 'ExpirationWarning requires secret_key' do
+    it 'ExpirationWarning requires receipt_identifier' do
       expect { Onetime::Mail::Templates::ExpirationWarning.new({ recipient: 'a@b.com', expires_at: Time.now.to_i }) }
-        .to raise_error(ArgumentError, /Secret key required/)
+        .to raise_error(ArgumentError, /Receipt identifier required/)
     end
 
     it 'ExpirationWarning requires expires_at' do
-      expect { Onetime::Mail::Templates::ExpirationWarning.new({ recipient: 'a@b.com', secret_key: 'abc' }) }
+      expect { Onetime::Mail::Templates::ExpirationWarning.new({ recipient: 'a@b.com', receipt_identifier: 'abc' }) }
         .to raise_error(ArgumentError, /Expiration time required/)
     end
 
@@ -820,12 +857,12 @@ RSpec.describe 'Email Template Rendering', type: :integration do
     it 'ExpirationWarning uses share_domain when provided' do
       template = Onetime::Mail::Templates::ExpirationWarning.new({
         recipient: 'a@b.com',
-        secret_key: 'abc',
+        receipt_identifier: 'abc',
         expires_at: Time.now.to_i + 3600,
         share_domain: 'custom.example.com'
       })
-      expect(template.secret_uri).to match(%r{\Ahttps?://custom\.example\.com/secret/abc\z})
-      expect(template.render_text).to include('custom.example.com')
+      expect(template.receipt_uri).to match(%r{\Ahttps?://custom\.example\.com/receipt/abc\z})
+      expect(template.render_text).to include('custom.example.com/receipt/abc')
     end
   end
 

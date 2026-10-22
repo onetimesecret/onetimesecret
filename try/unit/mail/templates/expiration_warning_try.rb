@@ -5,9 +5,9 @@
 # Tests for Onetime::Mail::Templates::ExpirationWarning class.
 #
 # ExpirationWarning is used to notify secret owners that their secret
-# is about to expire.
+# is about to expire. The email links to the owner's receipt page.
 #
-# Required data: recipient, secret_key, expires_at
+# Required data: recipient, receipt_identifier, expires_at
 # Optional: share_domain, baseuri
 
 require_relative '../../../support/test_helpers'
@@ -21,18 +21,29 @@ require 'onetime/mail'
 # Expiration in 2 hours from now
 @expires_soon = Time.now.to_i + 7200
 
+@receipt_identifier = '0195f3a2-8c4e-7b1d-9a6f-2e3d4c5b6a70'
+
 @valid_data = {
   recipient: 'owner@example.com',
-  secret_key: 'abc123def456',
+  receipt_identifier: @receipt_identifier,
   expires_at: @expires_soon,
   share_domain: nil
 }
 
 @valid_data_with_domain = {
   recipient: 'owner@example.com',
-  secret_key: 'xyz789',
+  receipt_identifier: 'f0e1d2c3b4a5968778695a4b3c2d1e0f',
   expires_at: @expires_soon,
   share_domain: 'custom.example.com'
+}
+
+# Payload shape queued by the job before the receipt link: an 8-character
+# secret shortid under secret_key and no receipt identifier.
+@legacy_data = {
+  recipient: 'owner@example.com',
+  secret_key: 'abc123de',
+  expires_at: @expires_soon,
+  share_domain: nil
 }
 
 # TRYOUTS
@@ -40,7 +51,7 @@ require 'onetime/mail'
 ## ExpirationWarning validates presence of recipient
 begin
   Onetime::Mail::Templates::ExpirationWarning.new({
-    secret_key: 'abc123',
+    receipt_identifier: @receipt_identifier,
     expires_at: @expires_soon
   })
 rescue ArgumentError => e
@@ -48,7 +59,7 @@ rescue ArgumentError => e
 end
 #=> 'Recipient required'
 
-## ExpirationWarning validates presence of secret_key
+## ExpirationWarning validates presence of receipt_identifier
 begin
   Onetime::Mail::Templates::ExpirationWarning.new({
     recipient: 'test@example.com',
@@ -57,13 +68,29 @@ begin
 rescue ArgumentError => e
   e.message
 end
-#=> 'Secret key required'
+#=> 'Receipt identifier required'
+
+## ExpirationWarning rejects an empty receipt_identifier
+begin
+  Onetime::Mail::Templates::ExpirationWarning.new(@valid_data.merge(receipt_identifier: ''))
+rescue ArgumentError => e
+  e.message
+end
+#=> 'Receipt identifier required'
+
+## ExpirationWarning rejects a legacy secret_key payload instead of rendering a dead link
+begin
+  Onetime::Mail::Templates::ExpirationWarning.new(@legacy_data)
+rescue ArgumentError => e
+  e.message
+end
+#=> 'Receipt identifier required'
 
 ## ExpirationWarning validates presence of expires_at
 begin
   Onetime::Mail::Templates::ExpirationWarning.new({
     recipient: 'test@example.com',
-    secret_key: 'abc123'
+    receipt_identifier: @receipt_identifier
   })
 rescue ArgumentError => e
   e.message
@@ -109,22 +136,22 @@ template = Onetime::Mail::Templates::ExpirationWarning.new(data)
 template.time_remaining
 #=> 'soon'
 
-## ExpirationWarning secret_uri includes secret key
+## ExpirationWarning uri_path is the receipt path with the full identifier
 template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
-template.secret_uri
-#=~> /\/secret\/abc123def456/
+template.uri_path
+#=> '/receipt/0195f3a2-8c4e-7b1d-9a6f-2e3d4c5b6a70'
 
-## ExpirationWarning secret_uri links to the canonical host by default
-# secret_uri is built from brand_baseuri, which falls back to the canonical
+## ExpirationWarning receipt_uri links to the canonical host by default
+# receipt_uri is built from brand_baseuri, which falls back to the canonical
 # site baseuri when the message carries no share_domain.
 template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
-template.secret_uri
-#=~> /\Ahttps?:\/\/.+\/secret\/abc123def456\z/
+template.receipt_uri
+#=~> /\Ahttps?:\/\/.+\/receipt\/0195f3a2-8c4e-7b1d-9a6f-2e3d4c5b6a70\z/
 
-## ExpirationWarning secret_uri links to the share_domain when present
+## ExpirationWarning receipt_uri links to the share_domain when present
 template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data_with_domain)
-template.secret_uri
-#=> 'https://custom.example.com/secret/xyz789'
+template.receipt_uri
+#=> 'https://custom.example.com/receipt/f0e1d2c3b4a5968778695a4b3c2d1e0f'
 
 ## ExpirationWarning baseuri uses site config by default
 template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
@@ -142,9 +169,29 @@ template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
 template.render_text.class
 #=> String
 
-## ExpirationWarning render_text contains secret URI
+## ExpirationWarning render_text contains the receipt URI
 template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
-template.render_text.include?('/secret/abc123def456')
+template.render_text.include?(template.receipt_uri)
+#=> true
+
+## ExpirationWarning render_text has no /secret/ link
+template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
+template.render_text.include?('/secret/')
+#=> false
+
+## ExpirationWarning render_html links to the receipt URI
+template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
+template.render_html.include?(%Q(href="#{template.receipt_uri}"))
+#=> true
+
+## ExpirationWarning render_html has no /secret/ link
+template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
+template.render_html.include?('/secret/')
+#=> false
+
+## ExpirationWarning render_html links to the receipt on the share_domain
+template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data_with_domain)
+template.render_html.include?('href="https://custom.example.com/receipt/f0e1d2c3b4a5968778695a4b3c2d1e0f"')
 #=> true
 
 ## ExpirationWarning render_text contains expiration message
@@ -173,5 +220,5 @@ email[:text_body].is_a?(String) && !email[:text_body].empty?
 ## ExpirationWarning handles nil share_domain gracefully
 data = @valid_data.merge(share_domain: nil)
 template = Onetime::Mail::Templates::ExpirationWarning.new(data)
-template.secret_uri
-#=~> /\Ahttps?:\/\/.+\/secret\/abc123def456\z/
+template.receipt_uri
+#=~> /\Ahttps?:\/\/.+\/receipt\/0195f3a2-8c4e-7b1d-9a6f-2e3d4c5b6a70\z/

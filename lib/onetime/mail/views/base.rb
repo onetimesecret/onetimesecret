@@ -211,7 +211,7 @@ module Onetime
         # share_domain when the message carries one, otherwise the
         # (overridable) canonical base URI. Delegates to
         # TemplateContext#brand_baseuri — the same helper templates render
-        # with — so Ruby-side callers (e.g. ExpirationWarning#secret_uri)
+        # with — so Ruby-side callers (e.g. ExpirationWarning#receipt_uri)
         # cannot drift from what the rendered output links to.
         # @return [String]
         def brand_baseuri

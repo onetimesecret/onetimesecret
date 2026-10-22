@@ -340,9 +340,14 @@
     "content_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "View it before it's gone:",
+    "text": "View the receipt before your secret expires:",
     "renderer": "erb",
-    "content_hash": "30342c04"
+    "content_hash": "934237d2"
+  },
+  "email.expiration_warning.receipt_link_label": {
+    "text": "Receipt link",
+    "renderer": "erb",
+    "content_hash": "b9073fde"
   },
   "email.expiration_warning.after_expiration_short": {
     "text": "After expiration, the secret will be permanently deleted.",

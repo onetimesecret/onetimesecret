@@ -9,10 +9,15 @@ module Onetime
     module Templates
       # Email template for warning users that their secret is about to expire.
       #
+      # Links to the owner's receipt page, not to the secret. The receipt page
+      # applies the provenance gate (Receipt#shows_share_link?) before showing
+      # the share link, and the email keeps the secret identifier out of the
+      # owner's inbox.
+      #
       # Required data:
-      #   recipient:    Recipient email address (secret owner)
-      #   secret_key:   Secret shortid for URL
-      #   expires_at:   Unix timestamp when secret expires
+      #   recipient:          Recipient email address (secret owner)
+      #   receipt_identifier: Full receipt identifier for the receipt URL
+      #   expires_at:         Unix timestamp when secret expires
       #
       # Optional data:
       #   share_domain: Custom domain for secret sharing
@@ -23,7 +28,10 @@ module Onetime
 
         def validate_data!
           raise ArgumentError, 'Recipient required' unless data[:recipient]
-          raise ArgumentError, 'Secret key required' unless data[:secret_key]
+          # Payloads queued before the receipt link carry only secret_key (a
+          # secret shortid), which resolves to no page. They fail here so the
+          # email worker drops them instead of sending a dead link.
+          raise ArgumentError, 'Receipt identifier required' if data[:receipt_identifier].to_s.empty?
           raise ArgumentError, 'Expiration time required' unless data[:expires_at]
         end
 
@@ -60,12 +68,12 @@ module Onetime
         end
 
         def uri_path
-          "/secret/#{data[:secret_key]}"
+          "/receipt/#{data[:receipt_identifier]}"
         end
 
-        # Full URI to view the secret, on the domain the secret was shared
-        # from (share_domain when present, canonical host otherwise).
-        def secret_uri
+        # Full URI to the owner's receipt page, on the domain the secret was
+        # shared from (share_domain when present, canonical host otherwise).
+        def receipt_uri
           "#{brand_baseuri}#{uri_path}"
         end
 
@@ -79,7 +87,7 @@ module Onetime
         def template_binding
           computed_data = data.merge(
             time_remaining: time_remaining,
-            secret_uri: secret_uri,
+            receipt_uri: receipt_uri,
             uri_path: uri_path,
             baseuri: baseuri,
           )
