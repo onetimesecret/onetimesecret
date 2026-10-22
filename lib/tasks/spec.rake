@@ -583,9 +583,9 @@ namespace :spec do
         'AUTH_WEBAUTHN_VERIFY_ACCOUNT' => 'true',
       }
 
-      # One process per MFA setting. Off is production's default and the
-      # lane's coverage; on reproduces the open recovery-codes defect as a
-      # pending example (full_webauthn_verify_mfa/, whose spec says why). Both
+      # One process per MFA setting. Off is production's default; on loads
+      # recovery_codes, which adds codes while the passkey verifies the
+      # account (full_webauthn_verify_mfa/, whose spec says why). Both
       # always run, as spec:fast's legs do, and a red one fails the task at
       # the end; the results files take the directory's name.
       legs = {

@@ -15,11 +15,11 @@
 # The lane's task runs a second process with it ON, for
 # apps/web/auth/spec/integration/full_webauthn_verify_mfa/: with MFA on,
 # Rodauth's recovery_codes adds the account's codes when the passkey is added
-# during verification, keyed on a session the ceremony does not have yet, and
-# the verification fails (NOT NULL constraint on account_recovery_codes.id).
-# That open defect is kept reproducible there as a pending example, which
-# fails the lane once the defect is fixed. The value below is the one --only
-# runs get; that spec sets its own at load time.
+# during verification, before the autologin gives the ceremony a session.
+# Released rodauth failed that insert (NOT NULL constraint on
+# account_recovery_codes.id); that spec asserts the verification and the
+# codes in this boot. The value below is the one --only runs get; that spec
+# sets its own at load time.
 #
 # NOTE: lib/tasks/spec.rake hardcodes these values for the task as a
 # defense against ambient env (per process, for AUTH_MFA_ENABLED). Keep

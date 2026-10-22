@@ -22,8 +22,8 @@ require 'webauthn/fake_client'
 # the credential-creation options (and the field error for the missing
 # attestation); the second carries the attestation the webauthn gem's
 # FakeClient signs for those options. They are separate methods so a spec can
-# assert on the first and treat the second differently (the MFA probe asserts
-# the second's known failure before marking the rest pending).
+# assert on the first and take measurements between the two (the MFA spec
+# counts the recovery-code rows before the second).
 #
 # Unlike support/webauthn_flow_helper.rb, requiring this file sets no ENV:
 # the lane exports AUTH_WEBAUTHN_ENABLED and AUTH_WEBAUTHN_VERIFY_ACCOUNT.
