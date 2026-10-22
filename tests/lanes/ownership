@@ -50,6 +50,7 @@ declare -A LANES_OWNER_TASKS=(
   [full-pg-agnostic]='spec:integration:full:agnostic_on_pg'
   [full-mfa]='spec:integration:full:mfa'
   [full-saml-platform]='spec:integration:full:saml_platform'
+  [full-webauthn-verify]='spec:integration:full:webauthn_verify'
   [migrations-sqlite]='spec:integration:migrations:sqlite'
   [migrations-pg]='spec:integration:migrations:postgres spec:integration:migrations:verify_dual_url'
   [api]='spec:api'
@@ -192,6 +193,8 @@ lanes_for_path() {  # <path>
       echo full-mfa ;;
     ${app}/spec/integration/full_saml_platform|${app}/spec/integration/full_saml_platform/*)
       echo full-saml-platform ;;
+    ${app}/spec/integration/full_webauthn_verify|${app}/spec/integration/full_webauthn_verify/*)
+      echo full-webauthn-verify ;;
     # spec:integration:billing — the files directly under the billing app's
     # integration/, which has no mode subdirectories (BILLING_INTEGRATION_SPEC_PATTERN
     # in lib/tasks/spec.rake; ADOPTED_PATTERNS in lib/tasks/spec_selection.rake).

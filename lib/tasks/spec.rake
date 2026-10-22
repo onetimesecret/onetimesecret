@@ -489,8 +489,8 @@ namespace :spec do
       # (auth-config-one-shot.md): the Rodauth OTP, email_auth (magic link)
       # and webauthn feature sets can only exist in a boot whose auth config
       # said so from the start. In :full_auth_mode that config is
-      # AuthModeHelpers::MockAuthConfig (mfa_enabled hardcoded true; the
-      # email_auth and webauthn flags read the env below). AUTH_MFA_ENABLED
+      # AuthModeHelpers::MockAuthConfig (mfa_enabled on unless the env says
+      # 'false'; the email_auth and webauthn flags need 'true'). AUTH_MFA_ENABLED
       # here is the separate-process defence against ambient env, not what
       # loads the feature. SQLite lane only, mirroring the default full-mode
       # environment above. Keep identical to tests/lanes/full-mfa/env.
@@ -565,6 +565,32 @@ namespace :spec do
       end
 
       sh env, "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database #{rspec_format_options('saml_platform')}"
+    end
+
+    desc 'Run full-mode specs with passkey signup and the verify_account flag off (own process)'
+    task 'full:webauthn_verify' do
+      # Own process for the same one-shot reason as full:mfa: Rodauth's
+      # webauthn_verify_account depends on verify_account, so this boot loads
+      # verify_account through the sub-feature alone, and every signup in it
+      # waits on email verification and a passkey. AuthModeHelpers::MockAuthConfig
+      # reads all three flags below. AUTH_MFA_ENABLED=false is production's
+      # default; tests/lanes/full-webauthn-verify/env says why it matters here.
+      # Keep identical to that file.
+      env = {
+        'RACK_ENV' => 'test',
+        'AUTHENTICATION_MODE' => 'full',
+        'AUTH_DATABASE_URL' => 'sqlite::memory:',
+        'AUTH_MFA_ENABLED' => 'false',
+        'AUTH_WEBAUTHN_ENABLED' => 'true',
+        'AUTH_WEBAUTHN_VERIFY_ACCOUNT' => 'true',
+      }
+
+      patterns = Dir.glob('apps/*/*/spec/integration/full_webauthn_verify')
+      if patterns.empty?
+        abort '[spec:integration:full:webauthn_verify] no apps/*/*/spec/integration/full_webauthn_verify directories found'
+      end
+
+      sh env, "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database #{rspec_format_options('webauthn_verify')}"
     end
 
     desc 'Run full mode with PostgreSQL (PG-only specs)'
@@ -662,10 +688,10 @@ namespace :spec do
     end
 
     desc 'Run all integration tests (all modes, isolated processes)'
-    task all: INTEGRATION_MODES + ['full:mfa', 'full:saml_platform']
+    task all: INTEGRATION_MODES + ['full:mfa', 'full:saml_platform', 'full:webauthn_verify']
 
     desc 'Run all integration tests including Postgres'
-    task 'all:with_postgres': INTEGRATION_MODES + ['full:mfa', 'full:saml_platform', 'full:postgres']
+    task 'all:with_postgres': INTEGRATION_MODES + ['full:mfa', 'full:saml_platform', 'full:webauthn_verify', 'full:postgres']
   end
 
   # API contract specs (spec/api/) are organized by API surface and version

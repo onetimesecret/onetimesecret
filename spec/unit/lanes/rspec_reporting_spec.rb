@@ -126,6 +126,7 @@ module LaneReportingProbe
     'full-pg' => [''],
     'full-pg-agnostic' => [''],
     'full-saml-platform' => ['_saml_platform'],
+    'full-webauthn-verify' => ['_webauthn_verify'],
     'full-sqlite' => [''],
     'harness' => [''],
     'migrations-pg' => [''],
@@ -364,7 +365,8 @@ RSpec.describe 'lane rspec reporting' do
       through_rake = lanes.reject { |_, invocations| invocations.empty? }.keys.sort
 
       expect(through_rake).to eq(%w[api billing billing-integration disabled full-mfa full-pg full-pg-agnostic
-                                    full-saml-platform full-sqlite harness migrations-pg migrations-sqlite simple unit])
+                                    full-saml-platform full-sqlite full-webauthn-verify harness migrations-pg
+                                    migrations-sqlite simple unit])
     end
 
     it 'never gives two invocations of one lane the same file' do
@@ -378,7 +380,7 @@ RSpec.describe 'lane rspec reporting' do
     # the run would report only its last invocation.
     it 'suffixes the tasks an aggregate runs together, by their own names' do
       expect(outs(together.fetch('spec:integration:all')))
-        .to eq(%w[integration_simple integration_full integration_disabled mfa saml_platform]
+        .to eq(%w[integration_simple integration_full integration_disabled mfa saml_platform webauthn_verify]
                  .map { |suffix| "#{stem}_#{suffix}.json" })
     end
 

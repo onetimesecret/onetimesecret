@@ -227,6 +227,20 @@ module Auth
       # before any key write. Last for the same reason.
       Overrides::PublicBaseUrl.configure_recipient_origins(self)
 
+      # Onetime.auth_config.verify_account_loaded? restates which enables
+      # above bring in :verify_account, for the code that runs before this
+      # class has a feature list (AccountManagement's enable, the email
+      # template, the after_verify_account hook, the signup deferral). Refuse
+      # a boot where the two disagree: an enable added without updating the
+      # predicate would load the verify-account route while the hook, the
+      # email and the deferral stay off.
+      verify_account_loaded = auth.features.include?(:verify_account)
+      unless verify_account_loaded == Onetime.auth_config.verify_account_loaded?
+        raise "[Auth::Config] :verify_account loaded is #{verify_account_loaded} but " \
+              "Onetime.auth_config.verify_account_loaded? is #{!verify_account_loaded}; " \
+              'update the predicate together with the enable (lib/onetime/auth_config.rb)'
+      end
+
       # Mark configuration complete
       Auth::Config.configured = true
     end

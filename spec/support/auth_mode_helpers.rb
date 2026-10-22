@@ -32,7 +32,9 @@ module AuthModeHelpers
       # Off in tests unless the full-mfa lane exports AUTH_VERIFY_ACCOUNT_ENABLED,
       # for the same one-shot reason as email_auth and webauthn below.
       @verify_account_enabled = options.fetch(:verify_account_enabled) { ENV['AUTH_VERIFY_ACCOUNT_ENABLED'] == 'true' }
-      @mfa_enabled = options.fetch(:mfa_enabled, true)
+      # On unless a lane exports AUTH_MFA_ENABLED=false: full-webauthn-verify
+      # boots production's MFA default (off). Every other lane leaves it unset.
+      @mfa_enabled = options.fetch(:mfa_enabled) { ENV['AUTH_MFA_ENABLED'] != 'false' }
       # Magic links and passkeys default OFF, but honor env the same way the
       # SSO flags below do: this mock is what config.rb reads at the one-shot
       # boot of a :full_auth_mode process, so the full-mfa lane (which exports
@@ -43,6 +45,13 @@ module AuthModeHelpers
       # match etc/defaults/auth.defaults.yaml.
       @email_auth_enabled = options.fetch(:email_auth_enabled) { ENV['AUTH_EMAIL_AUTH_ENABLED'] == 'true' }
       @webauthn_enabled = options.fetch(:webauthn_enabled) { ENV['AUTH_WEBAUTHN_ENABLED'] == 'true' }
+      # Passkey signup (Rodauth webauthn_verify_account), read the same way:
+      # the full-webauthn-verify lane exports AUTH_WEBAUTHN_VERIFY_ACCOUNT=true
+      # with webauthn on and verify_account off, the one process that loads
+      # verify_account through the sub-feature alone.
+      @webauthn_verify_account_enabled = options.fetch(:webauthn_verify_account_enabled) do
+        ENV['AUTH_WEBAUTHN_VERIFY_ACCOUNT'] == 'true'
+      end
       # SSO flags default OFF in tests, but honor env so the per-mode rake
       # batches (which run integration/full/ with provider env set) can exercise
       # the real omniauth route registration. Unset env preserves the old false.
@@ -115,9 +124,10 @@ module AuthModeHelpers
 
     # The two WebAuthn sub-features config/features/webauthn.rb consults at
     # configure time. Both are separate opt-ins in production
-    # (AUTH_WEBAUTHN_VERIFY_ACCOUNT / AUTH_WEBAUTHN_AUTOFILL); off here.
+    # (AUTH_WEBAUTHN_VERIFY_ACCOUNT / AUTH_WEBAUTHN_AUTOFILL). Autofill is off
+    # here; passkey signup follows the env (initialize, above).
     def webauthn_verify_account_enabled?
-      false
+      @webauthn_verify_account_enabled
     end
 
     def webauthn_autofill_enabled?

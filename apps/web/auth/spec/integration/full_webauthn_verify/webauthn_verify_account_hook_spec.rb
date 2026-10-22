@@ -1,9 +1,9 @@
-# apps/web/auth/spec/integration/full/webauthn_verify_account_hook_spec.rb
+# apps/web/auth/spec/integration/full_webauthn_verify/webauthn_verify_account_hook_spec.rb
 #
 # frozen_string_literal: true
 
 # =============================================================================
-# TEST TYPE: Integration (full mode)
+# TEST TYPE: Integration (full mode, passkey signup lane)
 # =============================================================================
 #
 # after_verify_account runs when verify_account is loaded through
@@ -20,24 +20,25 @@
 # (config/email.rb), the hook and the signup deferral now all follow
 # Onetime.auth_config.verify_account_loaded?, which counts either path.
 #
-# The lanes boot verify_account and webauthn OFF (spec/support/auth_mode_helpers.rb
-# MockAuthConfig), and Auth::Config is configured once per process. So, as in
-# verify_account_autologin_session_rotation_spec.rb, the examples run against
-# a router subclass with the production modules applied in config.rb's order
-# (the hook module before the WebAuthn module), with the two webauthn flags
-# stubbed on and verify_account_enabled? left at the lane's false.
+# The app is the real one: tests/lanes/full-webauthn-verify boots config.rb
+# with webauthn and the sub-feature on, verify_account and MFA off
+# (MockAuthConfig reads all four from the lane env), so every configure step,
+# RestrictTo and LoginRequestEnumeration included, runs as in production. The
+# first example pins that boot, since the others would also pass under the
+# verify_account flag.
 #
 # The verification is Rodauth's own two-phase JSON ceremony
 # (webauthn_verify_account.rb before_verify_account): the first POST with the
 # key answers 422 with the credential-creation options, the second carries the
 # attestation the webauthn gem's FakeClient signs for them, as the passkey
 # specs do through support/webauthn_flow_helper.rb. That helper is not
-# required here: requiring it sets AUTH_WEBAUTHN_ENABLED for the whole
-# process, and this file runs in the lanes that boot without webauthn.
+# required here: it sets AUTH_WEBAUTHN_ENABLED at load time, which this lane
+# already exports.
 #
 # RUN:
-#   tests/lanes/run full-sqlite \
-#     --only apps/web/auth/spec/integration/full/webauthn_verify_account_hook_spec.rb
+#   tests/lanes/run full-webauthn-verify
+#   tests/lanes/run full-webauthn-verify \
+#     --only apps/web/auth/spec/integration/full_webauthn_verify/webauthn_verify_account_hook_spec.rb
 # =============================================================================
 
 require_relative '../../spec_helper'
@@ -47,8 +48,12 @@ require 'cgi'
 require 'webauthn'
 require 'webauthn/fake_client'
 
+# :full_auth_mode is explicit, as in integration/full_mfa: the directory-derived
+# tag (spec/spec_helper.rb) matches only /integration/full/, and that tag is
+# what installs the full-mode suite database and MockAuthConfig before boot.
 RSpec.describe 'after_verify_account with verify_account loaded by webauthn_verify_account only',
-  type: :integration do
+  :full_auth_mode, type: :integration,
+  lane_env: { 'AUTH_WEBAUTHN_VERIFY_ACCOUNT' => 'true' } do
   include Rack::Test::Methods
 
   before(:all) { boot_onetime_app }
@@ -63,45 +68,6 @@ RSpec.describe 'after_verify_account with verify_account loaded by webauthn_veri
   let(:normalized_email) { OT::Utils.normalize_email(account_email) }
 
   before do
-    # The configuration under test is the one the lane cannot boot: the
-    # webauthn_verify_account sub-feature on, the verify_account flag off. A
-    # lane that boots the flag on cannot run this file (harness breakage, so
-    # a failure rather than a skip).
-    if Onetime.auth_config.verify_account_enabled?
-      raise 'this file covers verify_account OFF; the lane booted it on (AUTH_VERIFY_ACCOUNT_ENABLED)'
-    end
-
-    allow(Onetime.auth_config).to receive_messages(webauthn_enabled?: true, webauthn_verify_account_enabled?: true)
-
-    router = Class.new(Auth::Router)
-    router.plugin :rodauth do
-      Auth::Config::Features::AccountManagement.configure(self)
-      Auth::Config::Email::VerifyAccount.configure(self)
-      Auth::Config::Hooks::Account.configure(self)
-      Auth::Config::Features::WebAuthn.configure(self)
-      Auth::Config::Hooks::WebAuthn.configure(self)
-
-      # The lanes boot MFA (the mock's default), and with recovery_codes
-      # loaded Rodauth adds the account's codes whenever a credential is
-      # added: add_webauthn_credential -> auto_add_missing_recovery_codes,
-      # since auto_add_recovery_codes? is on in features/mfa.rb. The insert is
-      # keyed on session_value (rodauth 2.45.0 recovery_codes.rb,
-      # add_recovery_code), which the verify-account ceremony does not have
-      # yet: the autologin comes after the hook. So the passkey verification
-      # fails with "NOT NULL constraint failed: account_recovery_codes.id"
-      # before verify_account runs, in production too when AUTH_MFA_ENABLED
-      # and AUTH_WEBAUTHN_VERIFY_ACCOUNT are both on. That is the
-      # webauthn_verify_account + recovery_codes interplay, not what this file
-      # covers, so the ceremony here runs without the auto-add.
-      auto_add_recovery_codes? false if auth.features.include?(:recovery_codes)
-    end
-    allow_any_instance_of(Auth::Application).to receive(:build_router).and_return(router) # rubocop:disable RSpec/AnyInstance
-
-    @verify_app = build_rack_app
-    # Building the middleware reinitializes DomainStrategy; keep the shared
-    # context's classification of the canonical host.
-    Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
-
     # The delivery seam: the rendered verification email, as the publisher
     # would receive it.
     @delivered = []
@@ -118,10 +84,6 @@ RSpec.describe 'after_verify_account with verify_account loaded by webauthn_veri
     Onetime::Customer.find_by_email(normalized_email)&.destroy!
   rescue StandardError
     nil
-  end
-
-  def app
-    @verify_app || super
   end
 
   def customer
@@ -177,6 +139,13 @@ RSpec.describe 'after_verify_account with verify_account loaded by webauthn_veri
     )
     expect(last_response.status).to eq(200),
       "Phase-2 verify-account should verify the account (#{last_response.status}: #{last_response.body})"
+  end
+
+  it 'boots verify_account through webauthn_verify_account, with the flag and MFA off', :aggregate_failures do
+    expect(Onetime.auth_config.verify_account_enabled?).to be(false)
+    expect(Onetime.auth_config.verify_account_loaded?).to be(true)
+    expect(Auth::Config.features).to include(:webauthn_verify_account, :verify_account)
+    expect(Auth::Config.features).not_to include(:recovery_codes)
   end
 
   it 'verifies the Customer, removes the key row and runs the deferred claim', :aggregate_failures do

@@ -1,0 +1,30 @@
+# Lane: full-webauthn-verify — full auth mode with passkey signup
+# (AUTH_WEBAUTHN_VERIFY_ACCOUNT) and the verify_account flag OFF, against
+# in-memory SQLite. Rodauth's webauthn_verify_account depends on
+# verify_account, so this is the boot where the feature is loaded through the
+# sub-feature alone (Onetime::AuthConfig#verify_account_loaded?).
+#
+# Own process for the one-shot reason the full-mfa lane gives: Auth::Config
+# configures once per process, and with verify_account loaded every signup
+# waits on email verification and a passkey, which the full-sqlite/full-pg
+# specs do not expect. Both flags are read by AuthModeHelpers::MockAuthConfig
+# (spec/support/auth_mode_helpers.rb), which :full_auth_mode boots against.
+# CI job: ruby-integration-auth (T3, "SQLite, passkey signup" matrix row), selected by auth
+#
+# MFA is OFF, production's default (etc/defaults/auth.defaults.yaml). With
+# MFA on, Rodauth's recovery_codes adds the account's codes when the passkey
+# is added during verification, keyed on a session the ceremony does not
+# have yet, and the verification fails (NOT NULL constraint on
+# account_recovery_codes.id). That combination is a known open defect, not
+# what this lane covers.
+#
+# NOTE: lib/tasks/spec.rake hardcodes these values for the task as a
+# defense against ambient env. Keep identical.
+AUTHENTICATION_MODE=full
+AUTH_DATABASE_URL='sqlite::memory:'
+AUTH_MFA_ENABLED=false
+AUTH_WEBAUTHN_ENABLED=true
+AUTH_WEBAUTHN_VERIFY_ACCOUNT=true
+
+# Generated prerequisites, produced by tests/lanes/run before the tasks below.
+LANES_CODEGEN='locales'

@@ -176,6 +176,14 @@ module Onetime
     # email template (config/email.rb), the after_verify_account hook and the
     # deferral of the federated-subscription claim to it
     # (config/hooks/account.rb, Auth::Operations::EnsureDefaultWorkspace).
+    #
+    # This restates config.rb's conditional enables, because its callers run
+    # before the Rodauth class has a feature list to ask (request-time code,
+    # such as config/hooks/restrict_to.rb, asks rodauth.features instead).
+    # The two agree only while every enable that pulls in :verify_account is
+    # spelled here: a new one (a feature that `depends :verify_account`, such
+    # as verify_account_grace_period) must be added to this expression in the
+    # same change. config.rb refuses to boot when they disagree.
     def verify_account_loaded?
       verify_account_enabled? || (webauthn_enabled? && webauthn_verify_account_enabled?)
     end
