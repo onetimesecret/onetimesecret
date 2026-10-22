@@ -9,14 +9,20 @@
 # and the template built /secret/<short id>: the page shell opened, but an
 # 8-character prefix is not a secret identifier, so the lookup behind it
 # failed and every warning led to a not-found page. The payload now carries
-# the short id under
-# its own name, and the template names the secret by it and links to the
-# owner's recent-secrets page on the canonical host, which requires a
-# session. Neither the receipt identifier nor the secret identifier appears
-# in the mail: /receipt/<identifier> answers without an ownership check and
-# returns the share link, so either would turn the mailbox into a key to the
-# secret. This drives the job over a real owned receipt and checks the
-# payload and the rendered mail.
+# the short id under its own name, and the template names the secret by it
+# and links to the owner's recent-secrets page on the canonical host, which
+# requires a session. Neither the receipt identifier nor the secret
+# identifier appears in the mail: /receipt/<identifier> answers without an
+# ownership check and returns the share link, so either would turn the
+# mailbox into a key to the secret.
+#
+# The job also used to hand the mail to Publisher.schedule_email with a
+# delay, which published to email.message.schedule, a queue nothing
+# consumed: with jobs enabled the warning expired into the DLQ and was
+# discarded (#4844). It now calls Publisher.enqueue_email with the template
+# and payload only, so the mail takes the same path as every other
+# notification. This drives the job over a real owned receipt and checks
+# the publisher call and the rendered mail.
 
 require_relative '../integration_spec_helper'
 require 'onetime/jobs/scheduled/expiration_warning_job'
@@ -38,10 +44,10 @@ RSpec.describe 'Expiration warning email', type: :integration do
   let(:receipt) { pair[0] }
   let(:secret) { pair[1] }
 
-  it 'sends the secret short id and links to the sign-in page, never an identifier' do
-    scheduled = []
-    allow(Onetime::Jobs::Publisher).to receive(:schedule_email) do |*args|
-      scheduled << args
+  it 'enqueues the secret short id and links to the sign-in page, never an identifier' do
+    enqueued = []
+    allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |*args|
+      enqueued << args
       true
     end
     # The timeline is shared with every other receipt in the datastore; this
@@ -50,15 +56,20 @@ RSpec.describe 'Expiration warning email', type: :integration do
 
     Onetime::Jobs::Scheduled::ExpirationWarningJob.send(:process_expiring_secrets)
 
-    expect(scheduled.size).to eq(1)
-    template, payload, options = scheduled.first
-    expect(template).to eq(:expiration_warning)
-    expect(options).to have_key(:delay_seconds)
-    expect(payload).to eq(
-      recipient: owner.email,
-      secret_shortid: secret.shortid,
-      expires_at: receipt.secret_expiration,
-    )
+    # Template and payload, nothing else: no delay option and no fallback
+    # override, so the mail goes to email.message.send like every other
+    # notification.
+    expect(enqueued).to eq([
+      [
+        :expiration_warning,
+        {
+          recipient: owner.email,
+          secret_shortid: secret.shortid,
+          expires_at: receipt.secret_expiration,
+        },
+      ],
+    ])
+    payload = enqueued.first[1]
 
     mail = Onetime::Mail::Templates::ExpirationWarning.new(payload)
     text = mail.render_text

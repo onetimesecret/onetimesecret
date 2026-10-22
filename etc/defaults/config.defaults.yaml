@@ -1731,7 +1731,9 @@ jobs:
     enabled: false  # Since v0.24.0
     # How often to scan for expiring secrets (rufus-scheduler interval)
     check_interval: '1h'  # Since v0.24.0
-    # Send warning N hours before secret expires
+    # Warn once a secret is within N hours of expiring. The warning is sent on
+    # the next scan, so it arrives between N and (N - check_interval) hours
+    # before expiry.
     warning_hours: 24  # Since v0.24.0
     # Only warn for secrets with TTL greater than this (hours)
     # Prevents spamming for short-lived secrets

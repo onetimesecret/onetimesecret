@@ -4,7 +4,7 @@
 
 # ExpirationWarningJob Test Suite
 #
-# Tests the scheduled job that scans for expiring secrets and schedules
+# Tests the scheduled job that scans for expiring secrets and enqueues
 # warning emails to their owners.
 #
 # Test Categories:
@@ -22,13 +22,13 @@
 #      - Tests deduplication via warning_sent?
 #      - Tests anonymous secret filtering
 #      - Tests owner email validation
-#      - Tests warning email scheduling
+#      - Tests warning email enqueuing (immediate, no delay: #4844)
 #      - Tests timeline cleanup
 #
 # Setup Requirements:
 #   - Mocked OT.conf for configuration
 #   - Mocked Receipt class methods
-#   - Mocked Publisher.schedule_email
+#   - Mocked Publisher.enqueue_email
 #
 # Run with: pnpm run test:rspec spec/onetime/jobs/scheduled/expiration_warning_job_spec.rb
 
@@ -168,7 +168,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       allow(Onetime::Receipt).to receive(:load)
 
       # Mock Publisher
-      allow(Onetime::Jobs::Publisher).to receive(:schedule_email)
+      allow(Onetime::Jobs::Publisher).to receive(:enqueue_email)
     end
 
     it 'queries secrets expiring within warning window (24 hours)' do
@@ -192,7 +192,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta123'])
       allow(Onetime::Receipt).to receive(:load).with('meta123').and_return(non_existent_metadata)
 
-      expect(Onetime::Jobs::Publisher).not_to receive(:schedule_email)
+      expect(Onetime::Jobs::Publisher).not_to receive(:enqueue_email)
 
       described_class.send(:process_expiring_secrets)
     end
@@ -201,7 +201,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta456'])
       allow(Onetime::Receipt).to receive(:load).with('meta456').and_return(anonymous_metadata)
 
-      expect(Onetime::Jobs::Publisher).not_to receive(:schedule_email)
+      expect(Onetime::Jobs::Publisher).not_to receive(:enqueue_email)
 
       described_class.send(:process_expiring_secrets)
     end
@@ -210,30 +210,31 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta789'])
       allow(Onetime::Receipt).to receive(:load).with('meta789').and_return(metadata_no_email)
 
-      expect(Onetime::Jobs::Publisher).not_to receive(:schedule_email)
+      expect(Onetime::Jobs::Publisher).not_to receive(:enqueue_email)
 
       described_class.send(:process_expiring_secrets)
     end
 
     # The payload is an account notification: the secret's short id under
     # its own name, nothing that resolves. The short id used to travel as
-    # secret_key and was built into /secret/<short id>, a link no route
-    # resolves; a receipt identifier would be a bearer capability.
-    it 'schedules warning email for valid secrets with the secret short id only' do
+    # secret_key and was built into /secret/<short id>: the page shell opened
+    # but the lookup behind it failed, an 8-character prefix not being a
+    # secret identifier. A receipt identifier would be a bearer capability.
+    it 'enqueues the warning email for valid secrets with the secret short id only' do
       allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta123'])
       allow(Onetime::Receipt).to receive(:load).with('meta123').and_return(metadata_with_owner)
 
-      expect(Onetime::Jobs::Publisher).to receive(:schedule_email) do |template, data, options|
+      expect(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |template, data, *rest|
         expect(template).to eq(:expiration_warning)
         expect(data).to include(recipient: 'owner@example.com', secret_shortid: 'abc123')
         expect(data.keys).to contain_exactly(:recipient, :secret_shortid, :expires_at)
-        expect(options).to have_key(:delay_seconds)
+        expect(rest).to be_empty
       end
 
       described_class.send(:process_expiring_secrets)
     end
 
-    it 'marks warning as sent after scheduling' do
+    it 'marks warning as sent after enqueuing' do
       allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta123'])
       allow(Onetime::Receipt).to receive(:load).with('meta123').and_return(metadata_with_owner)
 
@@ -242,55 +243,18 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       described_class.send(:process_expiring_secrets)
     end
 
-    it 'calculates delay to send email WARNING_BUFFER_SECONDS before expiration' do
-      fixed_now = Time.at(1_700_000_000) # Fixed timestamp to prevent flakiness
-      # IMPORTANT: Familia.now returns a Float (Unix timestamp), not a Time object.
-      # Returning a Time object causes mock leaks into SemanticLogger's async thread
-      # which tries to call strftime on the mock.
-      allow(Familia).to receive(:now).and_return(fixed_now.to_f)
-
-      metadata = instance_double(
-        'Onetime::Receipt',
-        identifier: 'meta123',
-        exists?: true,
-        anonymous?: false,
-        load_owner: owner_with_email,
-        secret_shortid: 'abc123',
-        secret_expiration: (fixed_now.to_i + 7200), # exactly 2 hours from fixed_now
-      )
-
+    # No delayed delivery. The job used to pass delay_seconds to
+    # Publisher.schedule_email, which published to email.message.schedule, a
+    # queue nothing consumed: with jobs enabled the warning expired into the
+    # DLQ and was discarded (#4844). The warning now goes out on the scan
+    # that finds the secret inside the warning window, on the queue
+    # EmailWorker reads.
+    it 'enqueues for immediate delivery, with no delay option' do
       allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta123'])
-      allow(Onetime::Receipt).to receive(:load).with('meta123').and_return(metadata)
+      allow(Onetime::Receipt).to receive(:load).with('meta123').and_return(metadata_with_owner)
 
-      expect(Onetime::Jobs::Publisher).to receive(:schedule_email) do |_template, _data, options|
-        # Delay = seconds_until_expiry - WARNING_BUFFER_SECONDS = 7200 - 3600 = 3600
-        expect(options[:delay_seconds]).to eq(described_class::WARNING_BUFFER_SECONDS)
-      end
-
-      described_class.send(:process_expiring_secrets)
-    end
-
-    it 'uses zero delay when less than WARNING_BUFFER_SECONDS remains' do
-      fixed_now = Time.at(1_700_000_000) # Fixed timestamp to prevent flakiness
-      # Return Float, not Time - see comment in previous test
-      allow(Familia).to receive(:now).and_return(fixed_now.to_f)
-
-      soon_metadata = instance_double(
-        'Onetime::Receipt',
-        identifier: 'soon123',
-        exists?: true,
-        anonymous?: false,
-        load_owner: owner_with_email,
-        secret_shortid: 'xyz789',
-        secret_expiration: (fixed_now.to_i + 1800), # 30 minutes from fixed_now
-      )
-
-      allow(Onetime::Receipt).to receive(:expiring_within).and_return(['soon123'])
-      allow(Onetime::Receipt).to receive(:load).with('soon123').and_return(soon_metadata)
-
-      expect(Onetime::Jobs::Publisher).to receive(:schedule_email) do |_template, _data, options|
-        expect(options[:delay_seconds]).to eq(0)
-      end
+      expect(Onetime::Jobs::Publisher).to receive(:enqueue_email).with(:expiration_warning, kind_of(Hash))
+      expect(Onetime::Jobs::Publisher).not_to respond_to(:schedule_email)
 
       described_class.send(:process_expiring_secrets)
     end
@@ -311,22 +275,22 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta123'])
       allow(Onetime::Receipt).to receive(:load).with('meta123').and_return(metadata_with_owner)
 
-      expect(Onetime::Jobs::Publisher).to receive(:schedule_email) do |_template, data, _options|
+      expect(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |_template, data|
         expect(data).not_to include(:share_domain, :receipt_identifier, :secret_key)
       end
 
       described_class.send(:process_expiring_secrets)
     end
 
-    context 'when scheduling fails' do
+    context 'when enqueuing fails' do
       it 'does not mark warning as sent on failure' do
         allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta123'])
         allow(Onetime::Receipt).to receive(:load).with('meta123').and_return(metadata_with_owner)
-        allow(Onetime::Jobs::Publisher).to receive(:schedule_email).and_raise(StandardError, 'Connection error')
+        allow(Onetime::Jobs::Publisher).to receive(:enqueue_email).and_raise(StandardError, 'Connection error')
 
         described_class.send(:process_expiring_secrets)
 
-        # Should NOT mark as sent when scheduling fails (allows retry on next run)
+        # Should NOT mark as sent when enqueuing fails (allows retry on next run)
         expect(Onetime::Receipt).not_to have_received(:mark_warning_sent).with('meta123')
       end
 
@@ -347,7 +311,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
 
         # First call raises, second should succeed
         call_count = 0
-        allow(Onetime::Jobs::Publisher).to receive(:schedule_email) do
+        allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do
           call_count += 1
           raise StandardError, 'Connection error' if call_count == 1
         end
@@ -450,7 +414,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       allow(Onetime::Receipt).to receive(:warning_sent?).and_return(false)
       allow(Onetime::Receipt).to receive(:mark_warning_sent)
       allow(Onetime::Receipt).to receive(:cleanup_expired_from_timeline).and_return(0)
-      allow(Onetime::Jobs::Publisher).to receive(:schedule_email)
+      allow(Onetime::Jobs::Publisher).to receive(:enqueue_email)
     end
 
     let(:metadata1) do
@@ -498,7 +462,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       described_class.send(:process_expiring_secrets)
 
       # Only first 2 (batch_size) should be processed
-      expect(Onetime::Jobs::Publisher).to have_received(:schedule_email).exactly(2).times
+      expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email).exactly(2).times
       expect(Onetime::Receipt).to have_received(:mark_warning_sent).with('meta1')
       expect(Onetime::Receipt).to have_received(:mark_warning_sent).with('meta2')
       expect(Onetime::Receipt).not_to have_received(:mark_warning_sent).with('meta3')
@@ -510,7 +474,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
 
       described_class.send(:process_expiring_secrets)
 
-      expect(Onetime::Jobs::Publisher).to have_received(:schedule_email).exactly(1).time
+      expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email).exactly(1).time
     end
   end
 end
