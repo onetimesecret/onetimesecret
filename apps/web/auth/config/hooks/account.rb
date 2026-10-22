@@ -443,6 +443,17 @@ module Auth::Config::Hooks
       #
       if Onetime.auth_config.verify_account_enabled?
         auth.after_verify_account do
+          # Delete the verification key row. Through rodauth 2.45 the verify
+          # route's clear_tokens(:verify_account) deleted it; since 2.46 that
+          # call rotates the key in place (and backdates email_last_sent)
+          # for every reason but :close_account, so a verified account kept
+          # a row that reads as a pending verification
+          # (Operations::Customers::Diagnose, and the suite's
+          # account_verification_keys assertions). This hook runs inside
+          # Rodauth's verify transaction, after its clear_tokens and before
+          # the autologin, so the row goes with the status change as before.
+          remove_verify_account_key
+
           Auth::Logging.log_auth_event(
             :account_verified,
             level: :info,
