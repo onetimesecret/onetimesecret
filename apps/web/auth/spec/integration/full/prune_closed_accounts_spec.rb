@@ -189,6 +189,48 @@ RSpec.describe 'Closed account pruning (#4819)', type: :integration do
       expect(new_operation(dry_run: false).call.accounts).to eq(1)
     end
 
+    # A closure before #4819 that stopped after closing the row and before
+    # deleting the Customer record left both behind. The closed row was the
+    # only thing keeping `customers sync-auth-accounts` from giving that
+    # record a live account again; the marker takes over before it goes.
+    context 'when a closed row still names a customer record' do
+      let(:closed_at) { Time.at(1_700_000_000) }
+      let!(:leftover) { Onetime::Customer.create!(email: "leftover-#{run}@prune.example.com") }
+      let!(:leftover_row) do
+        id = accounts.insert(
+          email: leftover.email,
+          status_id: AuthTestConstants::STATUS_CLOSED,
+          external_id: leftover.extid,
+          updated_at: closed_at,
+        )
+        created_account_ids << id
+        id
+      end
+
+      it 'counts the record on a dry run without marking it' do
+        result = new_operation.call
+
+        expect(result.marked).to eq(1)
+        expect(Onetime::Customer.load(leftover.objid).closing?).to be(false)
+      end
+
+      it 'marks the record as closing, dated when its row closed, before deleting the row' do
+        result = new_operation(dry_run: false).call
+
+        expect(result.marked).to eq(1)
+        expect(accounts.where(id: leftover_row).count).to eq(0)
+        expect(Onetime::Customer.load(leftover.objid).closure_started_at).to eq(closed_at.to_i)
+      end
+
+      it 'deletes nothing when the marker cannot be written' do
+        allow_any_instance_of(Onetime::Customer).to receive(:mark_closure_started!)
+          .and_raise(Redis::CannotConnectError, 'valkey unavailable')
+
+        expect { new_operation(dry_run: false).call }.to raise_error(Redis::CannotConnectError)
+        expect(accounts.where(id: [leftover_row, closed_with_history, closed_bare]).count).to eq(3)
+      end
+    end
+
     it 'is a no-op the second time' do
       new_operation(dry_run: false).call
       result = new_operation(dry_run: false).call

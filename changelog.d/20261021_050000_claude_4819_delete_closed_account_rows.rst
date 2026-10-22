@@ -37,7 +37,11 @@ Added
 
 - ``bin/ots customers prune-closed-accounts`` deletes the closed rows and
   audit logs that closures before this release left behind. It previews by
-  default; add ``--confirm`` to delete. Run it once after upgrading. (#4819)
+  default; add ``--confirm`` to delete. Run it once after upgrading. A
+  closed row that still names a customer record belongs to a closure that
+  stopped before the record was deleted: the record is marked as closing
+  before the row goes, and ``bin/ots customers finish-closures`` finishes
+  it. (#4819)
 
 - ``bin/ots customers finish-closures`` purges every customer record left
   by a closure that stopped before the record was deleted. It previews by

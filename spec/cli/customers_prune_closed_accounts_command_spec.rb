@@ -20,8 +20,10 @@ require 'auth/operations/customers/prune_closed_accounts'
 RSpec.describe 'customers prune-closed-accounts', type: :cli do
   let(:op) { instance_double(Auth::Operations::Customers::PruneClosedAccounts) }
 
-  def build_result(dry_run:, accounts: 2, rows: { account_authentication_audit_logs: 17 })
-    double('Result', dry_run: dry_run, accounts: accounts, rows: rows)
+  def build_result(dry_run:, accounts: 2, rows: { account_authentication_audit_logs: 17 }, marked: 0)
+    Auth::Operations::Customers::PruneClosedAccounts::Result.new(
+      dry_run: dry_run, accounts: accounts, rows: rows, marked: marked,
+    )
   end
 
   before do
@@ -40,6 +42,15 @@ RSpec.describe 'customers prune-closed-accounts', type: :cli do
       expect(output[:stdout]).to include('Would delete account_authentication_audit_logs rows:')
       expect(output[:stdout]).to include('--confirm')
       expect(last_exit_code).to eq(0)
+    end
+
+    it 'names the customer records it would mark and points at finish-closures' do
+      allow(op).to receive(:call).and_return(build_result(dry_run: true, marked: 3))
+
+      output = run_cli_command_quietly('customers', 'prune-closed-accounts')
+
+      expect(output[:stdout]).to include('Would mark customer records as closing:')
+      expect(output[:stdout]).to include('bin/ots customers finish-closures --confirm')
     end
 
     it 'says so when there is nothing to prune' do
@@ -68,11 +79,12 @@ RSpec.describe 'customers prune-closed-accounts', type: :cli do
   end
 
   describe '--json' do
-    it 'emits exactly one JSON document {dry_run, accounts, rows} and nothing else on stdout' do
+    it 'emits exactly one JSON document {dry_run, accounts, rows, marked} and nothing else on stdout' do
       output  = run_cli_command_quietly('customers', 'prune-closed-accounts', '--json')
       payload = JSON.parse(output[:stdout])
 
-      expect(payload.keys).to match_array(%w[dry_run accounts rows])
+      expect(payload.keys).to match_array(%w[dry_run accounts rows marked])
+      expect(payload['marked']).to eq(0)
       expect(payload['dry_run']).to be(true)
       expect(payload['accounts']).to eq(2)
       expect(payload['rows']).to eq('account_authentication_audit_logs' => 17)

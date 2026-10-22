@@ -43,7 +43,7 @@ module Onetime
       option :json,
         type: :boolean,
         default: false,
-        desc: 'JSON output: {dry_run, accounts, rows} and nothing else'
+        desc: 'JSON output: {dry_run, accounts, rows, marked} and nothing else'
 
       option :help,
         type: :boolean,
@@ -104,8 +104,17 @@ module Onetime
         result.rows.each do |table, count|
           puts format('  %-50s %d', "#{verb} #{table} rows:", count)
         end
+        marking = result.dry_run ? 'Would mark' : 'Marked'
+        puts format('  %-50s %d', "#{marking} customer records as closing:", result.marked)
 
         puts
+        if result.marked.positive?
+          puts 'Some closed rows still name a customer record: a closure before #4819 that'
+          puts 'stopped before the record was deleted. Those records are marked as closing'
+          puts 'before their rows go; finish them afterwards with:'
+          puts '  bin/ots customers finish-closures --confirm'
+          puts
+        end
         if result.accounts.zero? && result.rows.empty?
           puts 'Nothing to prune: no closed accounts rows remain.'
         elsif result.dry_run
@@ -121,6 +130,7 @@ module Onetime
           dry_run: result.dry_run,
           accounts: result.accounts,
           rows: result.rows,
+          marked: result.marked,
         )
       end
 
@@ -144,13 +154,16 @@ module Onetime
             This command deletes the closed rows that predate that change,
             together with every row that still references them (the audit
             log, and any credential row an interrupted closure left behind).
-            A closed row has no product use: sign-up ignores it and nothing
-            resolves it to a customer. Run the command once after upgrading.
-            Re-running is a no-op.
+            A closed row has no product use: sign-up ignores it. A closed
+            row that still names a customer record belongs to a closure
+            that stopped before the record was deleted; that record is
+            marked as closing before the row goes, and
+            `bin/ots customers finish-closures` finishes it. Run the command
+            once after upgrading. Re-running is a no-op.
 
           Options:
             --confirm               Delete the rows (default is dry-run)
-            --json                  JSON output: {dry_run, accounts, rows}
+            --json                  JSON output: {dry_run, accounts, rows, marked}
             --help, -h              Show this help message
 
           Examples:

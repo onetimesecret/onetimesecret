@@ -475,16 +475,22 @@ change, through `Auth::Operations::Customers::PruneClosedAccounts`.
 
 ```bash
 bin/ots customers prune-closed-accounts              # dry run: counts only
-bin/ots customers prune-closed-accounts --json       # {dry_run, accounts, rows}
+bin/ots customers prune-closed-accounts --json       # {dry_run, accounts, rows, marked}
 bin/ots customers prune-closed-accounts --confirm    # delete
 ```
 
-Every status-3 row is a candidate: signup ignores closed rows, the partial
-unique index on `accounts.email` does not cover them, and nothing resolves
-one to a Customer. The live run deletes, inside one transaction, every row
-in `RemoveAuthenticationData::DEPENDENT_TABLES` that references a closed
-account (the audit log, plus any credential row an interrupted closure left),
-then the `accounts` rows. The closed ids are read once and locked, and every
+Every status-3 row is a candidate: signup ignores closed rows and the
+partial unique index on `accounts.email` does not cover them. One kind still
+means something: a closure before #4819 that stopped after closing the row
+and before deleting the Customer record left that record behind, and the
+closed row was its only tombstone (`sync-auth-accounts` skips any customer
+whose extid is on a row). Before the rows go, every Customer a closed row
+still names is marked as closing, dated from the row's `updated_at` (the
+time it closed); the report counts them as `marked`, and `customers
+finish-closures` finishes them afterwards. The live run deletes, inside one
+transaction, every row in `RemoveAuthenticationData::DEPENDENT_TABLES` that
+references a closed account (the audit log, plus any credential row an
+interrupted closure left), then the `accounts` rows. The closed ids are read once and locked, and every
 delete is keyed on that list (500 ids per statement), so the rows locked and
 the rows deleted are the same set; a row closed during the run is left for
 the next one. The same statements run on PostgreSQL and SQLite. Run it once

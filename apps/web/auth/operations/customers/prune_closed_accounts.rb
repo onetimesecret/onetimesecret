@@ -27,11 +27,23 @@ module Auth
       #
       # ## What it does
       #
-      # A closed row has no product use: signup ignores it, the partial unique
-      # index on accounts.email does not cover it, and no reader resolves one
-      # to a Customer. Every status-3 row is therefore a candidate, whether or
-      # not a Customer with the same address exists now (a re-signup created a
-      # new row of its own).
+      # A closed row has no product use: signup ignores it and the partial
+      # unique index on accounts.email does not cover it. Every status-3 row
+      # is therefore a candidate, whether or not a Customer with the same
+      # address exists now (a re-signup created a new row of its own).
+      #
+      # One kind of closed row still means something. A closure before #4819
+      # that stopped after closing the row and before deleting the Customer
+      # record (a partial cleanup) left the record behind, and the closed row
+      # was its only tombstone: `customers sync-auth-accounts` skips any
+      # customer whose extid is on a row. accounts.external_id is unique, so
+      # no live row can name such a customer. Before its row is deleted, each
+      # Customer a closed row still resolves to gets the closure marker
+      # (Customer#mark_closure_started!), dated from the row's updated_at,
+      # which the update trigger set when the row closed. The record then
+      # reads as an interrupted closure to `customers diagnose` and `doctor`,
+      # sync skips it, and `customers finish-closures` purges it. A failed
+      # marker write raises and the transaction deletes nothing.
       #
       # Dry run (the default) counts and writes nothing. A live run deletes,
       # inside one transaction, every row in
@@ -54,7 +66,10 @@ module Auth
         # @!attribute rows [r]
         #   @return [Hash{Symbol=>Integer}] dependent rows found or deleted,
         #     per table; only tables with at least one row are listed
-        Result = Data.define(:dry_run, :accounts, :rows)
+        # @!attribute marked [r]
+        #   @return [Integer] Customer records a closed row still resolves to,
+        #     found (dry run) or marked as closing
+        Result = Data.define(:dry_run, :accounts, :rows, :marked)
 
         # Closed ids per DELETE statement.
         DELETE_BATCH = 500
@@ -69,16 +84,17 @@ module Auth
 
         # @return [Result]
         def call
-          accounts, rows = @dry_run ? count_rows : delete_rows
+          accounts, rows, marked = @dry_run ? count_rows : delete_rows
 
           Auth::Logging.log_operation(
             :prune_closed_accounts,
             dry_run: @dry_run,
             accounts: accounts,
+            marked: marked,
             **rows,
           )
 
-          Result.new(dry_run: @dry_run, accounts: accounts, rows: rows)
+          Result.new(dry_run: @dry_run, accounts: accounts, rows: rows, marked: marked)
         end
 
         private
@@ -102,12 +118,13 @@ module Auth
             count         = dependent_rows(table).count
             counts[table] = count if count.positive?
           end
-          [closed_accounts.count, rows]
+          [closed_accounts.count, rows, leftover_customers(closed_accounts.select_order_map(:id)).size]
         end
 
         def delete_rows
           @db.transaction do
             ids      = closed_accounts.for_update.select_order_map(:id)
+            marked   = mark_leftover_customers(ids)
             tables   = dependent_tables
             rows     = Hash.new(0)
             accounts = ids.each_slice(DELETE_BATCH).sum do |slice|
@@ -117,7 +134,29 @@ module Auth
               end
               @db[:accounts].where(id: slice).delete
             end
-            [accounts, rows.select { |_table, count| count.positive? }]
+            [accounts, rows.select { |_table, count| count.positive? }, marked]
+          end
+        end
+
+        # Before the rows go (see the class comment). A failed write raises
+        # and the transaction deletes nothing.
+        def mark_leftover_customers(ids)
+          leftover_customers(ids).count do |customer, closed_at|
+            customer.mark_closure_started!(at: closed_at)
+          end
+        end
+
+        # [customer, closed_at] for every Customer a closed row still names
+        # (see the class comment). closed_at is the row's updated_at in epoch
+        # seconds.
+        def leftover_customers(ids)
+          ids.each_slice(DELETE_BATCH).flat_map do |slice|
+            @db[:accounts].where(id: slice).exclude(external_id: nil)
+              .select_map([:external_id, :updated_at])
+              .filter_map do |extid, updated_at|
+                customer = Onetime::Customer.find_by_extid(extid)
+                [customer, updated_at.to_time.to_i] if customer
+              end
           end
         end
       end

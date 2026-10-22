@@ -328,6 +328,15 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
       expect(codes(result)).not_to include(:closure_rolled_back)
     end
 
+    it 'reports a closure that started minutes ago as in progress, not interrupted' do
+      allow(customer).to receive(:closure_started_at).and_return(Familia.now.to_i - 60)
+
+      result = diagnose(customer: customer)
+
+      expect(codes(result)).to include(:closure_in_progress)
+      expect(codes(result)).not_to include(:closure_interrupted, :closure_rolled_back, :missing_auth_account)
+    end
+
     it 'names a closing customer with a closed auth account as an interrupted closure' do
       allow(customer).to receive(:closure_started_at).and_return(1_700_000_000)
       insert_account(status_id: 3)

@@ -529,10 +529,23 @@ module Auth
         # its own (find_account also matches by email, which can reach a row
         # linked to another record), the closure's transaction rolled back
         # and the account is open. A failed authdb read decides neither;
-        # check_existence reports it.
+        # check_existence reports it. A marker younger than
+        # Customer::CLOSURE_STALE_AFTER can belong to a closure still
+        # running, which a purge would race, so it is reported as that.
         def check_closure(sections, findings)
           started_at = sections.dig(:customer, :closure_started_at)
           return if started_at.nil?
+
+          if Familia.now.to_i - started_at.to_i < Onetime::Customer::CLOSURE_STALE_AFTER
+            add(
+              findings,
+              :info,
+              :closure_in_progress,
+              "Account closure started at #{format_epoch(started_at)} and may still be running. " \
+              'Check again in 15 minutes before acting on it.',
+            )
+            return
+          end
 
           account = sections[:auth_account]
           if account[:found] == true && account[:status] != 'closed' &&

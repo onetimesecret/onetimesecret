@@ -135,6 +135,43 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     end
   end
 
+  # Every other check runs after this one. A record still marked then is a
+  # closure that has not finished, so they see a report-only run.
+  describe 'the other checks' do
+    let(:repair_seen) { {} }
+
+    before do
+      (described_class.private_instance_methods(false).grep(/\Acheck_/) - [:check_closure_marker]).each do |name|
+        allow_any_instance_of(described_class).to receive(name) do |doctor, *_args|
+          repair_seen[name] = doctor.instance_variable_get(:@repair)
+        end
+      end
+    end
+
+    context 'when the closure was interrupted' do
+      let(:account_row) { nil }
+
+      it 'repair nothing under --repair' do
+        described_class.new(customer: customer, repair: true).call
+
+        expect(repair_seen).not_to be_empty
+        expect(repair_seen.values.uniq).to eq([false])
+      end
+    end
+
+    context 'when the closure rolled back and --repair cleared the marker' do
+      before do
+        allow(customer).to receive(:clear_closure_marker!) { customer.closure_started_at = nil }
+      end
+
+      it 'repair as usual' do
+        described_class.new(customer: customer, repair: true).call
+
+        expect(repair_seen.values.uniq).to eq([true])
+      end
+    end
+  end
+
   context 'in simple mode' do
     before { allow(Auth::Database).to receive(:connection).and_return(nil) }
 

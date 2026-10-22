@@ -120,6 +120,14 @@ module Auth
           issues   = []
           repaired = []
 
+          # First, so a closure that rolled back is cleared before anything
+          # else runs. A record still marked after it belongs to a closure
+          # that has not finished: its owner asked for it to be deleted, so
+          # the checks below report on it but repair nothing (no workspace
+          # provisioned, no index rebuilt), and finish-closures deletes it.
+          check_closure_marker(issues, repaired)
+          @repair &&= !@customer.closing?
+
           check_workspace_collision(issues, repaired)
           check_provisioning_failure(issues, repaired)
           check_orphan_default_org(issues, repaired)
@@ -134,7 +142,6 @@ module Auth
           check_sso_customer_unverified(issues, repaired)
           check_counter_sanity(issues, repaired)
           check_field_serialization(issues, repaired)
-          check_closure_marker(issues, repaired)
 
           audit_repair_outcome(repaired) if @repair
 
