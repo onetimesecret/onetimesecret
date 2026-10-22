@@ -24,7 +24,12 @@ module Onetime::Receipt::Features
         base.field :burned, fast_method: false
         base.field :custid
         base.field :truncate # boolean
-        base.field :secret_key # use secret_identifier
+        # secret_key (the pre-v0.24 name of secret_identifier) is no longer
+        # declared. Familia assigns declared fields only when it loads a hash
+        # and save never deletes a field, so a stale secret_key on a receipt
+        # written before the rename sits unread until the key expires.
+        # Nothing reads it: Receipt#load_secret resolves the secret by
+        # secret_identifier alone (#4835).
       end
 
       # MIGRATION NOTE: New canonical fields for state terminology rename.
@@ -259,7 +264,6 @@ module Onetime::Receipt::Features
         self.state              = 'expired'
         self.updated            = Familia.now.to_i
         self.secret_identifier  = ''
-        self.secret_key         = ''
         save update_expiration: false
 
         secret_logger.info 'Receipt state transition to expired',
