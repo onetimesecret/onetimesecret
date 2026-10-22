@@ -35,6 +35,10 @@
 #                                 Publisher's :sync fallback would deliver
 #                                 inline and the queue path would go untested.
 #
+# A second job, e2e-simple-auth, covers the same email round-trip in SIMPLE
+# mode (#4831): there the emailed link is a /secret/ reveal, not Rodauth's
+# /verify-account. auth-e2e-verdict requires both.
+#
 # The lane runs on the runner (bin/setup + pnpm run build + bin/ots server),
 # the same shape as visual.yml — NOT the baked OCI image e2e.yml uses. The
 # authdb is boot-migrated sqlite under tmp/ (apps/web/auth/database.rb
@@ -315,7 +319,7 @@ jobs:
           tail -n 200 "$WORKER_LOG" || true
           exit 1
 
-      # SCOPED, not `e2e/auth/`. Of the six specs in that directory:
+      # SCOPED, not `e2e/auth/`. Of the seven specs in that directory:
       #   signup-redirect-preservation  the target of this lane.
       #   session-consistency           #4456/#4459/#4460/#4464: hydration,
       #                                 the refresh coordinator, verification
@@ -336,6 +340,8 @@ jobs:
       #                                 is not validated against this stack;
       #                                 including it would make an unrelated
       #                                 red the default outcome of this lane.
+      #   simple-mode-email-verification
+      #                                 simple mode only; e2e-simple-auth runs it.
       # Widen this list as specs are proven against this stack, not before.
       #
       # e2e/all/auth-hydration is the anonymous half of session-consistency
@@ -454,35 +460,255 @@ jobs:
           done
           docker compose -f compose.test.yml -f compose.e2e.yml down --volumes || true
 
+  e2e-simple-auth:
+    # Simple mode verifies an account by revealing a secret from the welcome
+    # email (Logic::Base#send_verification_email), not through Rodauth. That
+    # journey broke for every anonymous visitor in #4831 with all of the
+    # above green, because e2e.yml's simple lane runs with AUTH_AUTOVERIFY=true
+    # and sends no email. This job is the same shape as e2e-full-auth with
+    # three differences:
+    #
+    #   AUTHENTICATION_MODE=simple   no Rodauth, no authdb, no ACCOUNT_ID_SECRET
+    #   AUTH_AUTOVERIFY=false        signup leaves the account pending and
+    #                                sends the welcome email
+    #   no RabbitMQ, no worker       simple-mode signup delivers the welcome
+    #                                email inline, so JOBS_ENABLED=false
+    #
+    # The spec asserts the mode and autoverify from /bootstrap/me, so a
+    # drifted config fails instead of passing vacuously.
+    name: simple mode signup → verify email (real SMTP)
+    needs: changes
+    if: needs.changes.outputs.auth == 'true'
+    runs-on: ubuntu-24.04
+    # Same budget and reasoning as e2e-full-auth.
+    timeout-minutes: 45
+    env:
+      SERVER_LOG: tmp/e2e-simple-auth-server.log
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Start test services (valkey, mailpit)
+        run: docker compose -f compose.test.yml -f compose.e2e.yml up --wait -d valkey mailpit
+
+      - name: Setup Ruby (.ruby-version)
+        uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
+        with:
+          bundler-cache: false # bin/setup runs `bundle install` itself
+
+      - name: Setup Node (.node-version)
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: '.node-version'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - name: Setup Python (locales:sync)
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+
+      - name: Run bin/setup
+        run: bin/setup
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Build frontend assets
+        run: pnpm run build
+
+      - name: Generate ephemeral test secrets
+        uses: ./.github/actions/generate-test-secrets
+
+      - name: Provision simple-auth lane env
+        run: |
+          {
+            echo "RACK_ENV=production"
+            echo "LANG=en_US.UTF-8"
+            echo "SSL=false"
+            # Plain HTTP in production mode: see e2e-full-auth.
+            echo "SESSION_COOKIE_SECURE=false"
+            echo "HOST=localhost:${APP_PORT}"
+            echo "LOG_FORMATTER=default"
+
+            # --- Auth: simple mode, verification REQUIRED ------------------
+            # AUTH_AUTOVERIFY=false is the config default; stated because it
+            # is the whole point of this job. With it on, signup verifies the
+            # account at once and sends nothing.
+            echo "AUTHENTICATION_MODE=simple"
+            echo "AUTH_AUTOVERIFY=false"
+            echo "AUTH_SIGNUP=true"
+            echo "AUTH_SIGNIN=true"
+
+            # --- Datastore -------------------------------------------------
+            echo "REDIS_URL=redis://127.0.0.1:2163/0"
+
+            # --- Mail: real SMTP into Mailpit, delivered inline -------------
+            echo "EMAILER_MODE=smtp"
+            echo "SMTP_HOST=127.0.0.1"
+            echo "SMTP_PORT=2125"
+            echo "SMTP_TLS=false"
+            echo "FROM_EMAIL=e2e-simple-auth@test.onetimesecret.com"
+            echo "FROM_NAME=Onetime Secret E2E"
+            echo "JOBS_ENABLED=false"
+
+            # --- Rate limiting ---------------------------------------------
+            # CI retries a failed test twice and every attempt signs up again.
+            echo "CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false"
+
+            # --- Surfaces this lane does not exercise ----------------------
+            echo "BILLING_ENABLED=false"
+            echo "DOMAINS_ENABLED=false"
+            echo "I18N_ENABLED=true"
+            echo "I18N_DEFAULT_LOCALE=en"
+          } >> "$GITHUB_ENV"
+
+          mkdir -p tmp
+
+      - name: Boot the application server
+        run: |
+          bin/ots server --port="$APP_PORT" >"$SERVER_LOG" 2>&1 &
+          echo "$!" > tmp/e2e-simple-auth-server.pid
+
+      - name: Wait for the server to serve a bootstrapped page
+        run: |
+          for _ in $(seq 1 60); do
+            if curl -fsS "$APP_URL/" 2>/dev/null | grep -q '__BOOTSTRAP_ME__'; then
+              echo "Server ready at $APP_URL"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::Server did not become ready at $APP_URL within 120s"
+          tail -n 200 "$SERVER_LOG" || true
+          exit 1
+
+      # Reporters come from e2e/playwright.config.ts; do NOT pass --reporter
+      # (see e2e-full-auth).
+      - name: Run the simple-auth E2E specs
+        id: playwright
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ env.APP_URL }}
+          CI: 'true'
+        run: |
+          pnpm test:playwright \
+            e2e/auth/simple-mode-email-verification.spec.ts \
+            --project=chromium
+
+      - name: Fail on flaky tests (passed only on retry)
+        if: ${{ !cancelled() && steps.playwright.outcome != 'skipped' }}
+        run: |
+          REPORT=e2e/test-results/results.json
+
+          if [ ! -f "$REPORT" ]; then
+            echo "❌ Playwright JSON report not found at $REPORT."
+            echo "The reporter pipeline is broken (see e2e/playwright.config.ts)."
+            exit 1
+          fi
+
+          FLAKY=$(jq -r '.stats.flaky // 0' "$REPORT")
+          if [ "$FLAKY" -gt 0 ]; then
+            echo "❌ $FLAKY test(s) passed only on retry (flaky outcome)."
+            echo "Flake is blocking, not silent - fix or quarantine via e2e/QUARANTINE.md."
+            echo ""
+            echo "Flaky tests:"
+            jq -r '.. | objects | select(has("tests")) | select(any(.tests[]?; .status == "flaky"))
+                   | "  - \(.file):\(.line) › \(.title)"' "$REPORT"
+            exit 1
+          fi
+
+          echo "✅ No flaky (retry-only) passes detected."
+
+      - name: Server log on failure
+        if: failure()
+        run: |
+          echo "::group::$SERVER_LOG (last 200 lines)"
+          tail -n 200 "$SERVER_LOG" || true
+          echo "::endgroup::"
+
+      - name: Mailpit mailbox on failure
+        if: failure()
+        run: |
+          echo "::group::Mailpit message summaries"
+          curl -fsS "$MAILPIT_URL/api/v1/messages?limit=50" | jq '.' || \
+            echo "Mailpit API unreachable at $MAILPIT_URL"
+          echo "::endgroup::"
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: playwright-report-e2e-simple-auth
+          path: e2e/playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload Playwright test artifacts (traces, screenshots, videos)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: playwright-test-results-e2e-simple-auth
+          path: e2e/test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload server log
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: e2e-simple-auth-logs
+          path: tmp/e2e-simple-auth-server.log
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Stop background processes
+        if: always()
+        run: |
+          if [ -f tmp/e2e-simple-auth-server.pid ]; then
+            kill "$(cat tmp/e2e-simple-auth-server.pid)" 2>/dev/null || true
+          fi
+          docker compose -f compose.test.yml -f compose.e2e.yml down --volumes || true
+
   auth-e2e-verdict:
     # Require this check, not the conditional test job. Detection errors and
     # unexpected skips must fail even when GitHub would treat a skip as passing.
     runs-on: ubuntu-24.04
     timeout-minutes: 5
-    needs: [changes, e2e-full-auth]
+    needs: [changes, e2e-full-auth, e2e-simple-auth]
     if: always()
     steps:
       - name: Require auth tests to pass, or an intentional skip
         env:
           CHANGES_RESULT: ${{ needs.changes.result }}
           AUTH_CHANGED: ${{ needs.changes.outputs.auth }}
-          TEST_RESULT: ${{ needs.e2e-full-auth.result }}
+          FULL_RESULT: ${{ needs.e2e-full-auth.result }}
+          SIMPLE_RESULT: ${{ needs.e2e-simple-auth.result }}
         run: |
           if [ "$CHANGES_RESULT" != "success" ]; then
             echo "Change detection did not succeed (changes: $CHANGES_RESULT)."
             exit 1
           fi
 
-          if [ "$AUTH_CHANGED" = "false" ] && [ "$TEST_RESULT" = "skipped" ]; then
+          if [ "$AUTH_CHANGED" = "false" ] && [ "$FULL_RESULT" = "skipped" ] && [ "$SIMPLE_RESULT" = "skipped" ]; then
             echo "No auth-relevant changes; auth E2E tests intentionally skipped."
             exit 0
           fi
 
-          if [ "$AUTH_CHANGED" = "true" ] && [ "$TEST_RESULT" = "success" ]; then
+          if [ "$AUTH_CHANGED" = "true" ] && [ "$FULL_RESULT" = "success" ] && [ "$SIMPLE_RESULT" = "success" ]; then
             echo "Auth E2E tests passed."
             exit 0
           fi
 
-          echo "No passing auth E2E verdict (auth: '$AUTH_CHANGED', tests: $TEST_RESULT)."
-          echo "Expected auth=false with skipped tests, or auth=true with successful tests."
+          echo "No passing auth E2E verdict (auth: '$AUTH_CHANGED', full: $FULL_RESULT, simple: $SIMPLE_RESULT)."
+          echo "Expected auth=false with both jobs skipped, or auth=true with both successful."
           exit 1

@@ -51,14 +51,20 @@ def scalar(text, key, indent):
 
 checkout = "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803"
 concurrency_group = "${{ github.workflow }}-${{ github.ref }}"
+# Each test job: (job ID, check name, the verdict env key carrying its result).
 workflows = [
-    ("e2e-full-auth.yml", "e2e-full-auth", "auth-e2e-verdict", "23 4 * * *",
-     "signup → verify email → signin (real SMTP)"),
-    ("e2e-tenant-connect.yml", "e2e-tenant-connect", "tenant-connect-verdict", "43 4 * * *",
-     "custom host → /reauth → Connect callback (armed test process)"),
+    ("e2e-full-auth.yml", "auth-e2e-verdict", "23 4 * * *", [
+        ("e2e-full-auth", "signup → verify email → signin (real SMTP)", "FULL_RESULT"),
+        ("e2e-simple-auth", "simple mode signup → verify email (real SMTP)", "SIMPLE_RESULT"),
+    ]),
+    ("e2e-tenant-connect.yml", "tenant-connect-verdict", "43 4 * * *", [
+        ("e2e-tenant-connect", "custom host → /reauth → Connect callback (armed test process)",
+         "TEST_RESULT"),
+    ]),
 ]
 
-for filename, test_id, verdict_id, cron, test_name in workflows:
+for filename, verdict_id, cron, test_jobs in workflows:
+    test_ids = [test_id for test_id, _, _ in test_jobs]
     text = (root / ".github/workflows" / filename).read_text()
     events = block(text, "on", 0)
     check(set(re.findall(r"^  ([a-z_]+):", events, re.M)) == {
@@ -93,7 +99,7 @@ for filename, test_id, verdict_id, cron, test_name in workflows:
 
     jobs = block(text, "jobs", 0)
     check(set(re.findall(r"^  ([a-z0-9-]+):", jobs, re.M))
-          == {"changes", test_id, verdict_id}, f"{filename}: stable job IDs")
+          == {"changes", verdict_id, *test_ids}, f"{filename}: stable job IDs")
     detection = block(jobs, "changes", 2)
     check(not re.search(r"^    if:", detection, re.M),
           f"{filename}: detection runs for every event")
@@ -113,22 +119,23 @@ for filename, test_id, verdict_id, cron, test_name in workflows:
                         steps, re.M),
           f"{filename}: shared selector owns auth selection")
 
-    tests = block(jobs, test_id, 2)
-    check(scalar(tests, "name", 4) == test_name, f"{filename}: test check name retained")
-    check(scalar(tests, "needs", 4) == "changes", f"{filename}: tests need detection")
-    check(scalar(tests, "if", 4) == "needs.changes.outputs.auth == 'true'",
-          f"{filename}: only selected tests run")
+    for test_id, test_name, _ in test_jobs:
+        tests = block(jobs, test_id, 2)
+        check(scalar(tests, "name", 4) == test_name, f"{filename}: {test_id} check name retained")
+        check(scalar(tests, "needs", 4) == "changes", f"{filename}: {test_id} needs detection")
+        check(scalar(tests, "if", 4) == "needs.changes.outputs.auth == 'true'",
+              f"{filename}: {test_id} runs only when selected")
     verdict = block(jobs, verdict_id, 2)
     check(not re.search(r"^    name:", verdict, re.M),
           f"{filename}: verdict check name stays equal to its stable ID")
-    check(scalar(verdict, "needs", 4) == f"[changes, {test_id}]",
+    check(scalar(verdict, "needs", 4) == f"[changes, {', '.join(test_ids)}]",
           f"{filename}: verdict waits for detection and tests")
     check(scalar(verdict, "if", 4) == "always()", f"{filename}: verdict is never conditionally skipped")
     env = block(verdict, "env", 8)
     for key, expression in {
         "CHANGES_RESULT": "needs.changes.result",
         "AUTH_CHANGED": "needs.changes.outputs.auth",
-        "TEST_RESULT": f"needs.{test_id}.result",
+        **{env_key: f"needs.{test_id}.result" for test_id, _, env_key in test_jobs},
     }.items():
         check(scalar(env, key, 10) == "${{ " + expression + " }}",
               f"{filename}: {key} reaches verdict safely via env")
@@ -142,21 +149,24 @@ for filename, test_id, verdict_id, cron, test_name in workflows:
     results = ("success", "failure", "cancelled", "skipped", "", "unknown")
     flags = ("true", "false", "", "TRUE", "false ", "$(exit 0)")
     cases = 0
-    for detection_result, auth, test_result in itertools.product(results, flags, results):
+    env_keys = [env_key for _, _, env_key in test_jobs]
+    for detection_result, auth, *test_results in itertools.product(
+        results, flags, *([results] * len(test_jobs))
+    ):
         expected = 0 if detection_result == "success" and (
-            (auth == "true" and test_result == "success")
-            or (auth == "false" and test_result == "skipped")
+            (auth == "true" and all(r == "success" for r in test_results))
+            or (auth == "false" and all(r == "skipped" for r in test_results))
         ) else 1
         outcome = subprocess.run(
             [bash, "--noprofile", "--norc", "-e", "-o", "pipefail", "-c", script],
             env={"PATH": os.environ.get("PATH", os.defpath),
                  "CHANGES_RESULT": detection_result, "AUTH_CHANGED": auth,
-                 "TEST_RESULT": test_result},
+                 **dict(zip(env_keys, test_results))},
             capture_output=True, text=True, timeout=5,
         )
         check(outcome.returncode == expected,
               f"{filename}: detection={detection_result!r}, auth={auth!r}, "
-              f"tests={test_result!r}: expected {expected}, got {outcome.returncode}\n"
+              f"tests={test_results!r}: expected {expected}, got {outcome.returncode}\n"
               + outcome.stdout + outcome.stderr)
         cases += 1
     print(f"PASS {verdict_id}: {cases} verdict cases", flush=True)
