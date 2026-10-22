@@ -263,6 +263,27 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       end
     end
 
+    # On auth=noauth routes the strategy gives an anonymous caller no customer
+    # at all (#2733), which is how the emailed link arrives (#4831).
+    context 'when the caller has no customer (noauth route)' do
+      it 'verifies the owner and reveals the plaintext' do
+        owner.reset_secret = secret.identifier
+        org = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
+        allow(org).to receive(:can?).and_return(true)
+        strategy_result = double('StrategyResult',
+          session: mock_session,
+          user: nil,
+          metadata: { organization: org },
+          auth_method: 'noauth')
+        logic = described_class.new(strategy_result, { 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.secret_value).to eq('a secret value')
+        expect(Onetime::Customer.load(owner.objid).verified?).to be true
+      end
+    end
+
     context 'when logged in as the unverified owner' do
       # Second half of the disjunction that gates the verify branch:
       # cust.custid == owner.custid && !owner.verified?
