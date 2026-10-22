@@ -406,6 +406,7 @@ positive = [
     'tests/browser/saml_callback_spec.rb', 'tests/browser/saml_callback.mjs',
     'tests/lanes/browser/tasks', 'tests/lanes/full-mfa/env',
     'tests/lanes/full-saml-platform/env', 'tests/lanes/full-pg-agnostic/tasks',
+    'tests/lanes/full-webauthn-verify/env',
     'e2e/auth/signup-redirect-preservation.spec.ts', 'e2e/all/auth-hydration.spec.ts',
     'e2e/system/connected-identities-custom-host.spec.ts',
     'e2e/system/tenant_connect_seed.rb', 'e2e/system/tenant_connect_test_boot.rb',
@@ -418,9 +419,9 @@ positive = [
     '.github/actions/detect-auth-changes/action.yml',
     '.github/actions/setup-ruby-test-env/action.yml',
 ]
-# Pin all three exact full-auth directories across root and arbitrary apps.
+# Pin the exact full-auth directories across root and arbitrary apps.
 for base in ('spec', 'apps/web/new_app/spec', 'apps/api/new_app/spec'):
-    for lane in ('full', 'full_mfa', 'full_saml_platform'):
+    for lane in ('full', 'full_mfa', 'full_saml_platform', 'full_webauthn_verify', 'full_webauthn_verify_mfa'):
         positive.append(f'{base}/integration/{lane}/nested/routes_spec.rb')
 negative = [
     # Selected by the billing filter in ci.yml, not by auth.
