@@ -127,6 +127,36 @@ RSpec.describe 'Interrupted account closures (#4830)', type: :integration do
       expect(auth_db[:accounts].where(email: OT::Utils.normalize_email(email)).count).to eq(0)
     end
 
+    # The closure may still be running (an administrative purge deletes the
+    # accounts row before the record), so the sign-up waits it out.
+    it 'refuses the sign-up, purging nothing, while the closure is under 15 minutes old' do
+      recent = interrupt_closure(sign_up(unique_test_email('recent')), at: Familia.now.to_i - 60)
+      allow(Auth::Operations::Customers::Purge).to receive(:new).and_call_original
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+      expect { Auth::Config.create_account(login: recent.email, password: password) }
+        .to raise_error(Rodauth::InternalRequestError)
+
+      expect(Auth::Operations::Customers::Purge).not_to have_received(:new)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:interrupted_closure_not_finished, hash_including(reason: :closure_in_progress))
+      expect(recent.exists?).to be(true)
+    end
+
+    # The invite preconditions run before anything is written to Redis; the
+    # leftover is finished only once they pass.
+    it 'leaves the record alone when an invite precondition refuses the sign-up' do
+      allow(Auth::Operations::Customers::Purge).to receive(:new).and_call_original
+
+      expect do
+        Auth::Config.create_account(login: email, password: password, params: { 'invite_token' => 'no-such-token' })
+      end.to raise_error(Rodauth::InternalRequestError)
+
+      expect(Auth::Operations::Customers::Purge).not_to have_received(:new)
+      expect(leftover.exists?).to be(true)
+      expect(leftover.closing?).to be(true)
+    end
+
     # The SSO JIT and invite paths create the accounts row first and adopt
     # an existing record by email in EnsureCustomerForAccount.
     context 'when the accounts row already exists (adopting callers)' do

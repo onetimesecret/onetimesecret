@@ -139,31 +139,16 @@ module Auth::Config::Hooks
         end
 
         # A record a closure left behind when it stopped part-way (#4830) does
-        # not hold the address: its owner asked for it to be deleted, so the
-        # closure is finished here and the check below finds nothing. A
-        # closure still running has its accounts row, refused above. When the
-        # closure cannot be finished (the purge refused or stopped, logged as
-        # interrupted_closure_not_finished with its blockers), the sign-up is
-        # refused under its own event; the shared-Redis hint below would
-        # point the wrong way.
+        # not hold the address: its owner asked for it to be deleted. The check
+        # below lets it through, and it is finished at the end of this hook,
+        # after every precondition, so a refused sign-up changes nothing in
+        # Redis. A closure still running has its accounts row, refused above.
         leftover = Onetime::Customer.find_by_email(email) if Onetime::Customer.email_exists?(email)
-        if leftover&.closing? &&
-           !Auth::Operations::EnsureCustomerForAccount.finish_interrupted_closure(leftover)
-          Auth::Logging.log_auth_event(
-            :registration_blocked_interrupted_closure,
-            level: :error,
-            email: OT::Utils.obscure_email(email),
-            external_id: leftover.extid,
-          )
-
-          set_error_flash(create_account_error_flash)
-          request.env['rodauth.error_flash'] = create_account_error_flash
-          throw_rodauth_error
-        end
+        leftover = nil unless leftover&.closing?
 
         # Check Redis (customer database)
         # Note: In shared Redis dev setups, a customer may exist without an auth account
-        if Onetime::Customer.email_exists?(email)
+        if leftover.nil? && Onetime::Customer.email_exists?(email)
           diagnostic_hint = <<~HINT.strip
             Registration blocked: Customer record exists in Redis but no auth account
             found. This typically occurs in worktree/multi-instance dev setups with
@@ -217,6 +202,24 @@ module Auth::Config::Hooks
             request.env['rodauth.error_flash'] = create_account_error_flash
             throw_rodauth_error
           end
+        end
+
+        # Last: finish the leftover closure (see above). When it cannot be
+        # finished (the purge refused or stopped, or the closure is too recent
+        # to tell from one still running; logged as
+        # interrupted_closure_not_finished), the sign-up is refused under its
+        # own event, since the shared-Redis hint above would point the wrong way.
+        if leftover && !Auth::Operations::EnsureCustomerForAccount.finish_interrupted_closure(leftover)
+          Auth::Logging.log_auth_event(
+            :registration_blocked_interrupted_closure,
+            level: :error,
+            email: OT::Utils.obscure_email(email),
+            external_id: leftover.extid,
+          )
+
+          set_error_flash(create_account_error_flash)
+          request.env['rodauth.error_flash'] = create_account_error_flash
+          throw_rodauth_error
         end
       end
 

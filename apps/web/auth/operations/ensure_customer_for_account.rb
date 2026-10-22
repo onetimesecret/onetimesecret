@@ -33,21 +33,27 @@ module Auth
       # before_create_account, which otherwise refuses a password sign-up
       # whose address has a Customer record.
       #
-      # A marked record with an open accounts row of its own is a closure
-      # that rolled back: the account is live and is never purged here (the
-      # same rule as Customers::FinishClosures).
+      # Two records are left alone, by the same rules as
+      # Customers::FinishClosures: a marker younger than
+      # Customer::CLOSURE_STALE_AFTER, which can belong to a closure still
+      # running (an administrative purge deletes the accounts row in its own
+      # transaction before it deletes the record), and a marked record with
+      # an open accounts row of its own, a closure that rolled back. The
+      # sign-up is refused instead; the first clears with time.
       #
       # @param customer [Onetime::Customer] a record with closing? true
       # @return [Boolean] true when the record is gone afterwards; false when
-      #   it has an open auth account, or the purge stopped (blockers, a
+      #   it is left alone (above), or the purge stopped (blockers, a
       #   failure) and the record is still there
       def self.finish_interrupted_closure(customer)
-        if open_auth_account?(customer)
+        reason   = :closure_in_progress unless customer.closure_stale?
+        reason ||= :open_auth_account if open_auth_account?(customer)
+        if reason
           Auth::Logging.log_auth_event(
             :interrupted_closure_not_finished,
             level: :error,
             external_id: customer.extid,
-            reason: :open_auth_account,
+            reason: reason,
           )
           return false
         end
