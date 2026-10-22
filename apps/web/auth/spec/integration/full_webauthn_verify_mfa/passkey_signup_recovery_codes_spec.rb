@@ -20,14 +20,18 @@
 # 500 and the transaction rolls back: verify_account, clear_tokens and the
 # app's after_verify_account hook never run. Unchanged in rodauth 2.48.0.
 #
-# The example below marks itself pending at the point the defect bites:
-#   - before the `pending` call, failures are real (the boot, the signup and
-#     the ceremony's first phase), so a broken setup is not hidden;
-#   - after it, the expected behaviour is asserted; while the defect is open
-#     the first assertion fails and RSpec reports the example as pending;
-#   - once it is fixed the example passes, RSpec fails it ("Expected pending
-#     ... to fail"), and the fix removes the `pending` line, turning this into
-#     its regression spec.
+# The example asserts the defect itself, then marks itself pending:
+#   - before the `pending` call, failures are real: the boot, the signup, the
+#     ceremony's first phase, and the second phase's answer, which must be
+#     this 500 from this insert. A different failure is reported as a
+#     failure, not as pending;
+#   - after it, the expected behaviour is asserted. It is reached only in the
+#     known-defect state, where its first assertion fails, so RSpec reports
+#     the example as pending;
+#   - once the defect is fixed the second phase answers 200 and the 500
+#     expectation fails the example. The fix deletes the known-defect
+#     expectations and the `pending` line, turning this into its regression
+#     spec.
 # No :aggregate_failures: it defers every failure, the pre-pending ones too,
 # to the end of the example, where `pending` would absorb them.
 #
@@ -83,10 +87,26 @@ RSpec.describe 'Passkey signup verification with recovery codes loaded',
     key     = emailed_verify_key
     options = passkey_setup_options(key, host: canonical_host)
 
+    # The router's error_handler passes every unhandled exception here.
+    unhandled = []
+    allow(Auth::ErrorTranslator).to receive(:log_entry).and_wrap_original do |original, error|
+      unhandled << error
+      original.call(error)
+    end
+    submit_passkey_setup(key, options, host: canonical_host)
+
+    # The known defect, and nothing else.
+    expect(last_response.status).to eq(500),
+      "expected the known 500, got #{last_response.status}. A 200 means the defect is fixed: delete " \
+      'these two expectations and the pending call, as the header of this file says'
+    expect(unhandled).to contain_exactly(
+      an_instance_of(Sequel::NotNullConstraintViolation)
+        .and(having_attributes(message: include('account_recovery_codes.id'))),
+    )
+
     pending 'recovery_codes inserts under a nil session_value during passkey verification (500, NOT NULL ' \
             'constraint on account_recovery_codes.id); see the header of this file'
 
-    submit_passkey_setup(key, options, host: canonical_host)
     expect(last_response.status).to eq(200), "#{last_response.status}: #{last_response.body}"
     expect(auth_db[:accounts].where(id: account[:id]).get(:status_id)).to eq(AuthTestConstants::STATUS_VERIFIED)
     expect(auth_db[:account_webauthn_keys].where(account_id: account[:id]).count).to eq(1)
