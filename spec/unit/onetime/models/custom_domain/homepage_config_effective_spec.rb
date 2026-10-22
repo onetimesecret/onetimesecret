@@ -142,4 +142,43 @@ RSpec.describe Onetime::CustomDomain::HomepageConfig do
       end
     end
   end
+
+  # The per-client answer: #effectively_enabled? narrowed by the network
+  # rules. The bootstrap serializer's `enabled` and the homepage-config API's
+  # effective_enabled both come from here, so for the same request they
+  # cannot disagree.
+  describe '#effectively_enabled_for?' do
+    let(:secrets_mode) { 'create' }
+
+    # A stand-in for env['otto.ip_match']: membership of ONE client IP.
+    def matcher_for(ip)
+      addr = IPAddr.new(ip)
+      ->(ranges) { ranges.any? { |range| range.family == addr.family && range.include?(addr) } }
+    end
+
+    before { allow(OT).to receive(:ld) }
+
+    it 'is the effective enablement when no network rules exist' do
+      expect(config.effectively_enabled_for?(nil, custom_domain: custom_domain)).to be(true)
+    end
+
+    it 'admits a caller inside the allowed ranges' do
+      config.allowed_cidrs = ['10.0.0.0/8']
+      expect(config.effectively_enabled_for?(matcher_for('10.1.2.3'), custom_domain: custom_domain)).to be(true)
+    end
+
+    it 'refuses a caller outside the allowed ranges, though the homepage is enabled' do
+      config.allowed_cidrs = ['10.0.0.0/8']
+      expect(config.effectively_enabled_for?(matcher_for('192.0.2.1'), custom_domain: custom_domain)).to be(false)
+    end
+
+    it 'never consults the network rules for a homepage that is not otherwise interactive' do
+      config.enabled       = 'false'
+      config.allowed_cidrs = ['10.0.0.0/8']
+      calls                = 0
+      counting             = ->(_ranges) { (calls += 1).positive? }
+
+      expect([config.effectively_enabled_for?(counting, custom_domain: custom_domain), calls]).to eq([false, 0])
+    end
+  end
 end
