@@ -104,6 +104,63 @@ module Auth::Config::Features
       # count as an authentication method.
       auth.auto_remove_recovery_codes? true
 
+      # Recovery codes on the verify-account route belong to the account the
+      # key names.
+      #
+      # Rodauth's recovery_codes keys both the lookup (recovery_codes_ds) and
+      # the insert (add_recovery_code) on session_value, the account id in the
+      # session (rodauth 2.48.0 recovery_codes.rb). With
+      # AUTH_WEBAUTHN_VERIFY_ACCOUNT, POST /auth/verify-account adds the
+      # passkey inside the verify transaction, before the autologin
+      # (webauthn_verify_account.rb before_verify_account), and adding a
+      # credential tops up the codes (recovery_codes.rb add_webauthn_credential
+      # -> auto_add_missing_recovery_codes, on via auto_add_recovery_codes?
+      # above). So on that route session_value is either nil (the insert
+      # fails NOT NULL on account_recovery_codes.id and the verification
+      # answers 500) or the id of a different account: already_logged_in
+      # (config/base.rb) lets a session the app has not marked authenticated,
+      # such as an earlier verify autologin, through to this route. In that
+      # case the codes were counted and added on the session's account and the
+      # account being verified got none. Rodauth's webauthn feature already
+      # takes the loaded account over the session for its own tables
+      # (webauthn_account_id -> account_id_or_session_value).
+      #
+      # SECURITY: which account's codes these methods read and write is the
+      # point of the override, so it is limited to the verify-account route
+      # and to the account loaded from the verify key there
+      # (account_from_verify_account_key sets @account with retrieval type
+      # :verify_account before any hook runs). On that route the session's
+      # account is never used, including before the key has loaded an
+      # account: the id is then nil, the lookup matches no rows and an
+      # insert fails closed. Every other route keeps Rodauth's session_value.
+      # rubocop:disable-next Lint/NestedMethodDefinition -- auth_class_eval evaluates in Auth class context
+      auth.auth_class_eval do
+        def add_recovery_code
+          return super unless current_route == :verify_account
+
+          # Rodauth's body (recovery_codes.rb add_recovery_code) with the id
+          # from verify_account_recovery_codes_id instead of session_value.
+          retry_on_uniqueness_violation do
+            recovery_codes_ds.insert(
+              recovery_codes_id_column => verify_account_recovery_codes_id,
+              recovery_codes_column => new_recovery_code,
+            )
+          end
+        end
+
+        def recovery_codes_ds
+          return super unless current_route == :verify_account
+
+          db[recovery_codes_table].where(recovery_codes_id_column => verify_account_recovery_codes_id)
+        end
+
+        def verify_account_recovery_codes_id
+          account_id if @account_retrieval_type == :verify_account
+        end
+
+        private :recovery_codes_ds, :verify_account_recovery_codes_id
+      end
+
       # Require second factor during login if user has MFA setup
       #
       # NOTE: The require_two_factor_authenticated method is called in route blocks,
