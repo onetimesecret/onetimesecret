@@ -22,11 +22,14 @@ import Inspector from 'vite-plugin-vue-inspector';
  * Click an element on the dev server, write what should change, and the agent
  * gets its exact file, line and column. The plugin stamps
  * data-spotnote="file:line:col" on template elements and injects a picker
- * (launcher in the bottom-left corner). It does nothing in `vite build` or
- * under Vitest. https://github.com/harukikuri/spotnote
+ * (launcher in the bottom-left corner). The plugin list below adds it only
+ * for `vite` (serve), so `vite build` never runs it whatever the installed
+ * version does; vitest.config.ts does not load this file.
+ * https://github.com/harukikuri/spotnote
  *
  * It is a devDependency, loaded only when installed: a --prod install, or
- * removing the package, leaves this config working.
+ * removing the package, leaves this config working. Run with
+ * NODE_ENV=development (the `vite` default) to see why it did not load.
  *
  * MCP server (optional, once per machine) so a local agent picks up notes as
  * you write them and can reply on them:
@@ -43,10 +46,15 @@ import Inspector from 'vite-plugin-vue-inspector';
  * links (GET /__spotnote/open) 404 when browsing through the Ruby app. Notes,
  * prompts and MCP are unaffected.
  */
-const spotnote = await import('spotnote').then(
-  (m) => m.default,
-  () => null
-);
+const spotnote = await import('spotnote')
+  .then((m) => {
+    if (typeof m.default !== 'function') throw new TypeError('no default export');
+    return m.default;
+  })
+  .catch((error: unknown) => {
+    if (DEBUG) console.log(`[vite] Spotnote not loaded: ${String(error)}`);
+    return null;
+  });
 
 // Remember, for security reasons, only variables prefixed with VITE_ are
 // available here to prevent accidental exposure of sensitive
@@ -136,7 +144,7 @@ const viteAdditionalServerAllowedHosts = process.env.VITE_ADDITIONAL_SERVER_ALLO
 const isAdminBuild = process.env.VITE_BUILD_TARGET === 'admin';
 
 // eslint-disable-next-line max-lines-per-function
-export default defineConfig(({ command: _command }) => ({
+export default defineConfig(({ command }) => ({
   // Project root is ./src (imports resolve from here, index.html lives here)
   root: './src',
 
@@ -238,7 +246,7 @@ export default defineConfig(({ command: _command }) => ({
     Inspector(),
 
     // Optional dev-only element picker for coding agents; see the note above.
-    spotnote?.(),
+    command === 'serve' ? spotnote?.() : null,
 
     // https://github.com/unplugin/unplugin-vue-markdown
     Markdown({}),
