@@ -445,11 +445,12 @@ export const useDomainsStore = defineStore('domains', () => {
       // stays in sync on custom domains without requiring a full page
       // reload. The bootstrap slot carries the EFFECTIVE enabled value (the
       // backend serializer downgrades incoming-mode homepages whose
-      // incoming config is unavailable); the server computes it in the PUT
-      // response so the admin's own session never renders an interactive
-      // homepage the next visitor wouldn't get. Older backends omit the
-      // field — fall back to the stored flag (they also predate incoming
-      // mode, so stored == effective there).
+      // incoming config is unavailable, and the network rules refuse
+      // visitors outside them); the server computes it for this caller in
+      // the PUT response so the admin's own session follows both without a
+      // reload. Older backends omit the field — fall back to the stored
+      // flag (they also predate incoming mode, so stored == effective
+      // there).
       //
       // The slot's signin_enabled / signup_enabled are LIVE resolver-computed
       // values (SigninConfig/SignupConfig ANDed with the site flags — what

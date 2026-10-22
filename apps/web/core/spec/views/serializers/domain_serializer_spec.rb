@@ -486,9 +486,10 @@ RSpec.describe Core::Views::DomainSerializer do
       describe 'homepage_config secrets_mode serialization' do
         # The bootstrap payload is the read-path invariant for the homepage
         # secrets_mode feature. The availability matrix itself (feature flag,
-        # site.secret, IncomingConfig readiness, entitlement) lives on
-        # HomepageConfig#effectively_enabled? — the single source of truth
-        # shared with the homepage-config API responses — and is covered by
+        # site.secret, IncomingConfig readiness, entitlement, network rules)
+        # lives on HomepageConfig#effectively_enabled_for? — the single source
+        # of truth shared with the homepage-config API responses — and is
+        # covered by
         # spec/unit/onetime/models/custom_domain/homepage_config_effective_spec.rb.
         # Here we pin the delegation: `enabled` carries the EFFECTIVE value
         # while the stored secrets_mode is preserved so intent survives a
@@ -503,7 +504,6 @@ RSpec.describe Core::Views::DomainSerializer do
             signup_enabled?: false,
             signin_enabled?: false,
             disabled_homepage_variant_value: nil,
-            network_allowed?: true,
             created: 1_700_000_000,
             updated: 1_700_000_000,
           )
@@ -516,8 +516,8 @@ RSpec.describe Core::Views::DomainSerializer do
         end
 
         it 'emits the effective enablement, passing the already-loaded domain through' do
-          allow(homepage_config).to receive(:effectively_enabled?)
-            .with(custom_domain: custom_domain)
+          allow(homepage_config).to receive(:effectively_enabled_for?)
+            .with(nil, custom_domain: custom_domain)
             .and_return(true)
 
           result = described_class.serialize(custom_domain_view_vars)
@@ -526,30 +526,21 @@ RSpec.describe Core::Views::DomainSerializer do
         end
 
         it 'preserves the stored secrets_mode through a downgrade so intent survives' do
-          allow(homepage_config).to receive(:effectively_enabled?)
-            .with(custom_domain: custom_domain)
+          allow(homepage_config).to receive(:effectively_enabled_for?)
+            .with(nil, custom_domain: custom_domain)
             .and_return(false)
 
           result = described_class.serialize(custom_domain_view_vars)
           expect(result['homepage_config']['enabled']).to be(false)
           expect(result['homepage_config']['secrets_mode']).to eq('incoming')
         end
-
-        it 'never consults the network rules for a homepage that is not otherwise interactive' do
-          allow(homepage_config).to receive(:effectively_enabled?)
-            .with(custom_domain: custom_domain)
-            .and_return(false)
-
-          described_class.serialize(custom_domain_view_vars)
-          expect(homepage_config).not_to have_received(:network_allowed?)
-        end
       end
 
       describe 'homepage_config network rules' do
         # Per-visitor narrowing of the effective enablement: the serializer
-        # hands HomepageConfig#network_allowed? the request's otto.ip_match
-        # closure (view_vars['ip_match'], lifted from env by
-        # InitializeViewVars) and ANDs the verdict into `enabled`. A refused
+        # hands HomepageConfig#effectively_enabled_for? the request's
+        # otto.ip_match closure (view_vars['ip_match'], lifted from env by
+        # InitializeViewVars) and emits its answer as `enabled`. A refused
         # visitor gets exactly the payload of a disabled homepage — stored
         # mode preserved, no extra field advertising the rule.
         let(:ip_match) { ->(_ranges) { false } }
@@ -563,7 +554,6 @@ RSpec.describe Core::Views::DomainSerializer do
             signup_enabled?: false,
             signin_enabled?: false,
             disabled_homepage_variant_value: nil,
-            effectively_enabled?: true,
             created: 1_700_000_000,
             updated: 1_700_000_000,
           )
@@ -577,16 +567,21 @@ RSpec.describe Core::Views::DomainSerializer do
             .and_return(homepage_config)
         end
 
-        it 'passes the request matcher to the network verdict' do
-          allow(homepage_config).to receive(:network_allowed?).with(ip_match).and_return(true)
+        it 'passes the request matcher to the per-visitor verdict' do
+          allow(homepage_config).to receive(:effectively_enabled_for?)
+            .with(ip_match, custom_domain: custom_domain)
+            .and_return(true)
 
           result = described_class.serialize(network_view_vars)
           expect(result['homepage_config']['enabled']).to be(true)
-          expect(homepage_config).to have_received(:network_allowed?).with(ip_match)
+          expect(homepage_config).to have_received(:effectively_enabled_for?)
+            .with(ip_match, custom_domain: custom_domain)
         end
 
         it 'renders the private landing page to a visitor the rules refuse' do
-          allow(homepage_config).to receive(:network_allowed?).with(ip_match).and_return(false)
+          allow(homepage_config).to receive(:effectively_enabled_for?)
+            .with(ip_match, custom_domain: custom_domain)
+            .and_return(false)
 
           result = described_class.serialize(network_view_vars)
           expect(result['homepage_config']['enabled']).to be(false)
@@ -595,10 +590,13 @@ RSpec.describe Core::Views::DomainSerializer do
         end
 
         it 'hands a nil matcher through when the stack installed none (the model fails closed on rules)' do
-          allow(homepage_config).to receive(:network_allowed?).with(nil).and_return(true)
+          allow(homepage_config).to receive(:effectively_enabled_for?)
+            .with(nil, custom_domain: custom_domain)
+            .and_return(true)
 
           described_class.serialize(custom_domain_view_vars)
-          expect(homepage_config).to have_received(:network_allowed?).with(nil)
+          expect(homepage_config).to have_received(:effectively_enabled_for?)
+            .with(nil, custom_domain: custom_domain)
         end
       end
 

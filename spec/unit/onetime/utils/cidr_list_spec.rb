@@ -173,5 +173,10 @@ RSpec.describe Onetime::Utils::CidrList do
       expect { described_class.permitted?(matcher_for('10.1.2.3'), allowed: ['junk']) }
         .to raise_error(IPAddr::Error)
     end
+
+    it 'raises on a nil list rather than reading it as no rules' do
+      expect { described_class.permitted?(matcher_for('10.1.2.3'), allowed: nil, denied: nil) }
+        .to raise_error(ArgumentError)
+    end
   end
 end

@@ -121,7 +121,7 @@ module V1::Logic
       end
 
       def redirect_uri
-        ['/receipt/', receipt.key].join
+        ['/receipt/', receipt.identifier].join
       end
 
       protected

@@ -246,7 +246,7 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
 
   # Ranges that may use the interactive homepage. Empty = everyone not
   # denied. Unreadable stored JSON reads as [] here (display), and as a
-  # fail-closed deny in #network_allowed? via #allowed_cidrs_corrupt?.
+  # fail-closed deny in #network_allowed? (see #allowed_cidrs_corrupt?).
   #
   # @return [Array<String>] canonical "address/prefix" entries
   def allowed_cidrs
@@ -296,8 +296,9 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
   # (either list non-empty, or a stored list unreadable — which
   # #network_allowed? treats as a restriction that denies everyone).
   def network_restricted?
-    allowed_cidrs_corrupt? || denied_cidrs_corrupt? ||
-      !(allowed_cidrs.empty? && denied_cidrs.empty?)
+    allowed = parse_cidr_ranges(allowed_cidrs_json)
+    denied  = parse_cidr_ranges(denied_cidrs_json)
+    allowed.nil? || denied.nil? || !(allowed.empty? && denied.empty?)
   end
 
   # Whether the requesting client's network may use the interactive
@@ -329,13 +330,14 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
   # @param ip_match [#call, nil] env['otto.ip_match'] for the request
   # @return [Boolean]
   def network_allowed?(ip_match)
-    if allowed_cidrs_corrupt? || denied_cidrs_corrupt?
+    # Each stored list is parsed once; the parsed ranges feed the verdict.
+    allowed = parse_cidr_ranges(allowed_cidrs_json)
+    denied  = parse_cidr_ranges(denied_cidrs_json)
+    if allowed.nil? || denied.nil?
       OT.le "[HomepageConfig] network rules unreadable for domain #{domain_id}; denying"
       return false
     end
 
-    allowed = allowed_cidrs
-    denied  = denied_cidrs
     return true if allowed.empty? && denied.empty?
 
     unless ip_match.respond_to?(:call)
@@ -357,10 +359,11 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
   # visitors right now. For create mode this is just enabled?; for
   # incoming mode it additionally requires that incoming can actually
   # receive secrets (see incoming_available?). This is the single
-  # source of truth consumed by both the bootstrap serializer (read
-  # path) and the homepage-config API responses, so the two can never
-  # drift: a homepage pointed at an unavailable incoming form fails
-  # closed to the non-interactive trust card.
+  # source of truth consumed, through #effectively_enabled_for?, by both
+  # the bootstrap serializer (read path) and the homepage-config API
+  # responses, so the two can never drift: a homepage pointed at an
+  # unavailable incoming form fails closed to the non-interactive trust
+  # card.
   #
   # @param custom_domain [CustomDomain, nil] pass the already-loaded
   #   domain to avoid a redundant Redis read; falls back to loading it.
@@ -375,6 +378,21 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
     return true unless incoming_mode?
 
     incoming_available?(custom_domain: custom_domain)
+  end
+
+  # Whether the homepage is interactive for ONE requesting client:
+  # #effectively_enabled? narrowed by #network_allowed?. This is the
+  # `enabled` the bootstrap serializer hands that client, and the
+  # `effective_enabled` the homepage-config API responses report to their
+  # caller, so an admin's own session mirrors exactly what their next page
+  # load would get. The network verdict is only consulted when the homepage
+  # is otherwise interactive, so a disabled homepage never logs one.
+  #
+  # @param ip_match [#call, nil] env['otto.ip_match'] for the request
+  # @param custom_domain [CustomDomain, nil] optional pre-loaded domain
+  # @return [Boolean]
+  def effectively_enabled_for?(ip_match, custom_domain: nil)
+    effectively_enabled?(custom_domain: custom_domain) && network_allowed?(ip_match)
   end
 
   # Whether the domain can actually serve the incoming form to
@@ -457,14 +475,12 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
 
   private
 
-  # Stored JSON list → Array<String>. Unreadable → [] (see *_corrupt?).
+  # Stored JSON list → Array<String> for display. Unreadable JSON → []
+  # (see *_corrupt?); an array holding an entry that does not parse reads
+  # as its entries, while #network_allowed? refuses it.
   def read_cidr_list(raw)
-    return [] if raw.to_s.empty?
-
-    parsed = JSON.parse(raw)
-    parsed.is_a?(Array) ? parsed.map(&:to_s) : []
-  rescue JSON::ParserError
-    []
+    entries = decode_cidr_json(raw)
+    entries ? entries.map(&:to_s) : []
   end
 
   # Array<String> → stored JSON (nil when empty), normalizing and
@@ -479,24 +495,37 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
     raise TooManyCidrs.new(field, ex.count, ex.max)
   end
 
-  # Present but not a JSON array, or holding an entry CidrList.parse
-  # refuses → corrupt. That is the same per-entry IPAddr parse
-  # CidrList.permitted? applies in #network_allowed?, so a list judged
-  # readable here never fails the verdict on its entries. Absent/empty is
-  # the cleared state the setters write, never corrupt.
+  # Unreadable (see #parse_cidr_ranges) → corrupt.
   def cidr_list_corrupt?(raw)
+    parse_cidr_ranges(raw).nil?
+  end
+
+  # Stored JSON → the Array it holds, or nil when it is not a JSON array.
+  # Absent/empty is the cleared state the setters write: [], never nil.
+  # The one JSON-level judgment both read paths share, display
+  # (#read_cidr_list) and verdict (#parse_cidr_ranges), so they cannot
+  # disagree about which stored values are lists.
+  def decode_cidr_json(raw)
     str = raw.to_s
-    return false if str.empty?
+    return [] if str.empty?
 
     parsed = JSON.parse(str)
-    return true unless parsed.is_a?(Array)
+    parsed.is_a?(Array) ? parsed : nil
+  rescue JSON::ParserError
+    nil
+  end
 
-    Onetime::Utils::CidrList.parse(parsed)
-    false
-  rescue JSON::ParserError, ArgumentError
-    # ArgumentError covers IPAddr::Error (its subclass) and an entry with
-    # invalid UTF-8 bytes, which JSON.parse passes through.
-    true
+  # Stored JSON list → Array<IPAddr>, or nil when the list is unreadable:
+  # not a JSON array, or holding an entry CidrList.parse refuses. This is
+  # the single read-path judgment behind #cidr_list_corrupt?,
+  # #network_restricted? and the ranges #network_allowed? matches against.
+  def parse_cidr_ranges(raw)
+    entries = decode_cidr_json(raw)
+    entries && Onetime::Utils::CidrList.parse(entries)
+  rescue ArgumentError
+    # IPAddr::Error (its subclass) and an entry with invalid UTF-8 bytes,
+    # which JSON.parse passes through.
+    nil
   end
 
   class << self
