@@ -65,10 +65,17 @@ export function useSecret(secretIdentifier: string, options?: SecretOptions) {
 
   const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
 
+  // The store outlives the page: a visitor who opens a second secret link in
+  // the same tab mounts the secret view with the first secret's record still
+  // in it. Drop that record before the fetch, so the view shows its skeleton
+  // (or, on a 404, the unknown-secret view) rather than the previous secret
+  // under the new URL. A reveal keeps the record, so the confirmation form
+  // stays mounted while it is in flight.
   const load = () =>
     wrap(async () => {
       state.error = '';
       state.errorCode = null;
+      store.clear();
       await store.fetch(secretIdentifier);
     });
 
