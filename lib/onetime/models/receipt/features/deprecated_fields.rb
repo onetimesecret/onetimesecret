@@ -25,11 +25,12 @@ module Onetime::Receipt::Features
         base.field :custid
         base.field :truncate # boolean
         # secret_key (the pre-v0.24 name of secret_identifier) is no longer
-        # declared. Familia assigns declared fields only when it loads a hash
-        # and save never deletes a field, so a stale secret_key on a receipt
-        # written before the rename sits unread until the key expires.
-        # Nothing reads it: Receipt#load_secret resolves the secret by
-        # secret_identifier alone (#4835).
+        # declared. Familia reads and writes declared fields only: a load
+        # assigns them, and save HMSETs their values and HDELs the ones set
+        # to nil, touching nothing else in the hash. So a stale secret_key on
+        # a receipt written before the rename sits unread until the key
+        # expires. Nothing reads it: Receipt#load_secret resolves the secret
+        # by secret_identifier alone (#4835).
       end
 
       # MIGRATION NOTE: New canonical fields for state terminology rename.
