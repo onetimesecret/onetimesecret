@@ -318,14 +318,14 @@ importers:
         specifier: 4.21.0
         version: 4.21.0
       typedoc:
-        specifier: 0.28.17
-        version: 0.28.17(typescript@5.9.3)
+        specifier: 0.28.20
+        version: 0.28.20(typescript@5.9.3)
       typedoc-plugin-mdn-links:
         specifier: 5.1.1
-        version: 5.1.1(typedoc@0.28.17(typescript@5.9.3))
+        version: 5.1.1(typedoc@0.28.20(typescript@5.9.3))
       typedoc-plugin-zod:
         specifier: 1.4.3
-        version: 1.4.3(typedoc@0.28.17(typescript@5.9.3))
+        version: 1.4.3(typedoc@0.28.20(typescript@5.9.3))
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -3518,6 +3518,10 @@ packages:
     resolution: {integrity: sha512-oRjTw/97aTBN0RHbYCdtF1MQfvusSIBQM0IZEgzl6426+8jSC0nF1a/GmnVLpfB9yyr6g6FTqWqiZVbxrtaCIg==}
     engines: {node: 18 || 20 || >=22}
 
+  minimatch@10.2.6:
+    resolution: {integrity: sha512-vpLQEs+VLCr1nU0BXS07maYoFwlDAH0gngQuuttxIwutDFEMHq2blX+8vpgxDdK3J1PwjCJiep77OitTZ4Ll1A==}
+    engines: {node: 18 || 20 || >=22}
+
   minimatch@3.1.5:
     resolution: {integrity: sha512-VgjWUsnnT6n+NUk6eZq77zeFdpW2LWDzP6zFGrCbHXiYNul5Dzqk2HHQ5uFH2DNW5Xbp8+jVzaeNt94ssEEl4w==}
 
@@ -4319,12 +4323,12 @@ packages:
     peerDependencies:
       typedoc: 0.23.x || 0.24.x || 0.25.x || 0.26.x || 0.27.x || 0.28.x
 
-  typedoc@0.28.17:
-    resolution: {integrity: sha512-ZkJ2G7mZrbxrKxinTQMjFqsCoYY6a5Luwv2GKbTnBCEgV2ihYm5CflA9JnJAwH0pZWavqfYxmDkFHPt4yx2oDQ==}
+  typedoc@0.28.20:
+    resolution: {integrity: sha512-uSKqkh8Cr48vllnEy+jdaAgOeR6Y+QCBW7usgUsKj7gJEfR7stw9U/fE49LBnj2tPRKPY0c0EBJSWe9Appmplg==}
     engines: {node: '>= 18', pnpm: '>= 10'}
     hasBin: true
     peerDependencies:
-      typescript: 5.0.x || 5.1.x || 5.2.x || 5.3.x || 5.4.x || 5.5.x || 5.6.x || 5.7.x || 5.8.x || 5.9.x
+      typescript: 5.0.x || 5.1.x || 5.2.x || 5.3.x || 5.4.x || 5.5.x || 5.6.x || 5.7.x || 5.8.x || 5.9.x || 6.0.x
 
   typescript-eslint@8.57.0:
     resolution: {integrity: sha512-W8GcigEMEeB07xEZol8oJ26rigm3+bfPHxHvwbYUlu1fUDsGuQ7Hiskx5xGW/xM4USc9Ephe3jtv7ZYPQntHeA==}
@@ -7977,6 +7981,10 @@ snapshots:
     dependencies:
       brace-expansion: 5.0.12
 
+  minimatch@10.2.6:
+    dependencies:
+      brace-expansion: 5.0.12
+
   minimatch@3.1.5:
     dependencies:
       brace-expansion: 1.1.21
@@ -8750,20 +8758,20 @@ snapshots:
       possible-typed-array-names: 1.1.0
       reflect.getprototypeof: 1.0.10
 
-  typedoc-plugin-mdn-links@5.1.1(typedoc@0.28.17(typescript@5.9.3)):
+  typedoc-plugin-mdn-links@5.1.1(typedoc@0.28.20(typescript@5.9.3)):
     dependencies:
-      typedoc: 0.28.17(typescript@5.9.3)
+      typedoc: 0.28.20(typescript@5.9.3)
 
-  typedoc-plugin-zod@1.4.3(typedoc@0.28.17(typescript@5.9.3)):
+  typedoc-plugin-zod@1.4.3(typedoc@0.28.20(typescript@5.9.3)):
     dependencies:
-      typedoc: 0.28.17(typescript@5.9.3)
+      typedoc: 0.28.20(typescript@5.9.3)
 
-  typedoc@0.28.17(typescript@5.9.3):
+  typedoc@0.28.20(typescript@5.9.3):
     dependencies:
       '@gerrit0/mini-shiki': 3.23.0
       lunr: 2.3.9
       markdown-it: 14.3.2
-      minimatch: 9.0.9
+      minimatch: 10.2.6
       typescript: 5.9.3
       yaml: 2.8.3
 
