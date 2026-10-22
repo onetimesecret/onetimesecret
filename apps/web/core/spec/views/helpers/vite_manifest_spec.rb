@@ -51,14 +51,17 @@ RSpec.describe Core::Views::ViteManifest do
     }
   end
 
-  around do |example|
-    Dir.mktmpdir do |dir|
-      FileUtils.mkdir_p(File.join(dir, 'dist', '.vite'))
-      File.write(File.join(dir, 'dist', '.vite', 'manifest.json'), JSON.generate(manifest))
-      stub_const('Core::Views::ViteManifest::PUBLIC_DIR', dir)
-      example.run
-    end
+  # A before hook, not an around hook: stub_const needs rspec-mocks' per-example
+  # lifecycle, which is set up after around hooks have started.
+  let(:public_dir) { Dir.mktmpdir }
+
+  before do
+    FileUtils.mkdir_p(File.join(public_dir, 'dist', '.vite'))
+    File.write(File.join(public_dir, 'dist', '.vite', 'manifest.json'), JSON.generate(manifest))
+    stub_const('Core::Views::ViteManifest::PUBLIC_DIR', public_dir)
   end
+
+  after { FileUtils.remove_entry(public_dir) }
 
   def tags(html)
     html.lines.map(&:strip)
