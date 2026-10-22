@@ -260,7 +260,7 @@
     "vite-plugin-vue-inspector": "5.4.0",
     "vitest": "4.1.11",
     "vitest-axe": "0.1.0",
-    "vue-eslint-parser": "10.4.0",
+    "vue-eslint-parser": "10.4.1",
     "vue-router-mock": "2.0.2",
     "vue-tsc": "3.3.2"
   },
