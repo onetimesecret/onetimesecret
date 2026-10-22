@@ -8,7 +8,7 @@
 # ExpirationWarningJob used to send receipt.secret_shortid under :secret_key,
 # and the template built /secret/<short id>: the page shell opened, but an
 # 8-character prefix is not a secret identifier, so the lookup behind it
-# failed and every warning led to a not-found page. The payload now carries
+# failed and every warning led to a not-found page. The payload now sends
 # the short id under its own name, and the template names the secret by it
 # and links to the owner's recent-secrets page on the canonical host, which
 # requires a session. Neither the receipt identifier nor the secret

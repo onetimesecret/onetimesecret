@@ -30,7 +30,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
     end
     # The second message is dead-lettered from another queue, so a run that
     # found the first queue missing still publishes it. The name is one a
-    # leftover message can carry: email.message.schedule is retired (#4844)
+    # leftover message can have: email.message.schedule is retired (#4844)
     # and no longer declared, and the consumer replays to whatever queue
     # x-death names.
     let(:other_properties) do

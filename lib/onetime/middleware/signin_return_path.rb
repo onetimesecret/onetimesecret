@@ -38,7 +38,7 @@ module Onetime
     #   POST's path is not one;
     # - Otto's auth chain refused the request: env['otto.strategy_result'] is
     #   the anonymous result the chain leaves on a refusal, whose metadata
-    #   carries :auth_failure. An app's own redirect to the sign-in page (the
+    #   has the :auth_failure key. An app's own redirect to the sign-in page (the
     #   sign-out handler, a completed registration) runs after the chain
     #   admitted the request and is left alone;
     # - the response is a 302 whose location is exactly SIGNIN_PATH, with no

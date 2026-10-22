@@ -54,7 +54,7 @@ RSpec.describe Onetime::Middleware::SigninReturnPath do
       expect(result[1]['x-frame-options']).to eq('DENY')
     end
 
-    it 'carries the query string inside the return path' do
+    it 'keeps the query string inside the return path' do
       _status, headers, _body = call(otto_redirect, env_for('/recent', query: 'page=2'))
 
       expect(headers['location']).to eq('/signin?redirect=%2Frecent%3Fpage%3D2')
@@ -100,7 +100,7 @@ RSpec.describe Onetime::Middleware::SigninReturnPath do
       expect(headers['location']).to eq('/signin')
     end
 
-    it 'a sign-in redirect that already carries a query' do
+    it 'a sign-in redirect that already has a query' do
       response = otto_redirect('/signin?auth_error=sso_failed')
       _status, headers, _body = call(response, env_for('/recent'))
 
