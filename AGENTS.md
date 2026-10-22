@@ -144,7 +144,7 @@ repo checkout that has loaded the test environment. Do not run tests
 unless `.test-mode` already exists. When the required Ruby version
 (`.ruby-version`) is already available, run `bin/setup --test` to enable
 proper test mode. The lane creates `.test-mode` only when direnv is
-installed.
+installed. Without direnv, install it and rerun `bin/setup --test`.
 
 ## Terms and phrases to avoid
 
