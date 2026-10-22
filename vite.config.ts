@@ -16,6 +16,46 @@ import { DEBUG } from './src/utils/debug';
 import VueDevTools from 'vite-plugin-vue-devtools';
 import Inspector from 'vite-plugin-vue-inspector';
 
+/**
+ * Spotnote: optional, dev-only UI feedback for coding agents
+ * ------------------------------------------------
+ * Click an element on the dev server, write what should change, and the agent
+ * gets its exact file, line and column. The plugin stamps
+ * data-spotnote="file:line:col" on template elements and injects a picker
+ * (launcher in the bottom-left corner). The plugin list below adds it only
+ * for `vite` (serve), so `vite build` never runs it whatever the installed
+ * version does; vitest.config.ts does not load this file.
+ * https://github.com/harukikuri/spotnote
+ *
+ * It is a devDependency, loaded only when installed: a --prod install, or
+ * removing the package, leaves this config working. Run with
+ * NODE_ENV=development (the `vite` default) to see why it did not load.
+ *
+ * MCP server (optional, once per machine) so a local agent picks up notes as
+ * you write them and can reply on them:
+ *
+ *   claude mcp add --scope user spotnote -- npx -y spotnote-mcp
+ *   codex mcp add spotnote -- npx -y spotnote-mcp
+ *
+ * Then ask the agent: "Watch my Spotnote notes." The server listens on
+ * 127.0.0.1:4848 only and saves notes in ~/.spotnote/. If the port is taken,
+ * set SPOTNOTE_PORT to the same free port for the agent and for `pnpm dev`.
+ * Without it, Enter copies the note as a prompt to paste instead.
+ *
+ * The backend proxies only /dist/* to Vite, so the picker's open-in-editor
+ * links (GET /__spotnote/open) 404 when browsing through the Ruby app. Notes,
+ * prompts and MCP are unaffected.
+ */
+const spotnote = await import('spotnote')
+  .then((m) => {
+    if (typeof m.default !== 'function') throw new TypeError('no default export');
+    return m.default;
+  })
+  .catch((error: unknown) => {
+    if (DEBUG) console.log(`[vite] Spotnote not loaded: ${String(error)}`);
+    return null;
+  });
+
 // Remember, for security reasons, only variables prefixed with VITE_ are
 // available here to prevent accidental exposure of sensitive
 // environment variables to the client-side code.
@@ -104,7 +144,7 @@ const viteAdditionalServerAllowedHosts = process.env.VITE_ADDITIONAL_SERVER_ALLO
 const isAdminBuild = process.env.VITE_BUILD_TARGET === 'admin';
 
 // eslint-disable-next-line max-lines-per-function
-export default defineConfig(({ command: _command }) => ({
+export default defineConfig(({ command }) => ({
   // Project root is ./src (imports resolve from here, index.html lives here)
   root: './src',
 
@@ -204,6 +244,9 @@ export default defineConfig(({ command: _command }) => ({
     // Enable Vue Devtools
     VueDevTools({ launchEditor: 'zed' }),
     Inspector(),
+
+    // Optional dev-only element picker for coding agents; see the note above.
+    command === 'serve' ? spotnote?.() : null,
 
     // https://github.com/unplugin/unplugin-vue-markdown
     Markdown({}),

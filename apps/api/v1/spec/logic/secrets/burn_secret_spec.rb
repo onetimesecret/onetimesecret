@@ -24,6 +24,7 @@ RSpec.describe V1::Logic::Secrets::BurnSecret do
   let(:receipt) do
     double('Onetime::Receipt',
       key: 'receipt123',
+      identifier: 'receipt123',
       secret_key: 'secret123',
       share_domain: '',
       recipients: '',
@@ -97,6 +98,30 @@ RSpec.describe V1::Logic::Secrets::BurnSecret do
         expect(secret).to have_received(:burned!).with(
           actor_context: { 'actor' => 'anonymous' },
         )
+      end
+
+      # #4835: burned! cascades through its own freshly loaded receipt, and
+      # the controller renders logic.receipt, so the logic must swap in the
+      # persisted post-burn receipt rather than keep the pre-burn instance.
+      it 'reloads the receipt after the burn' do
+        burned_receipt = double('Onetime::Receipt (post-burn)')
+        allow(Onetime::Receipt).to receive(:load).with('receipt123').and_return(receipt, burned_receipt)
+
+        subject.process
+
+        expect(subject.receipt).to be(burned_receipt)
+      end
+
+      # The receipt expired or was deleted mid-burn: answer not found (as a
+      # follow-up fetch would) instead of rendering the stale instance. The
+      # burn itself happened, so its bookkeeping still runs.
+      it 'raises MissingSecret after counting the burn when the receipt is gone' do
+        allow(Onetime::Receipt).to receive(:load).with('receipt123').and_return(receipt, nil)
+
+        expect { subject.process }.to raise_error(OT::MissingSecret)
+
+        expect(secret).to have_received(:burned!)
+        expect(owner).to have_received(:increment_field).with(:secrets_burned)
       end
     end
 

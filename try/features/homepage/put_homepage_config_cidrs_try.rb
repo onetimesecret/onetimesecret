@@ -37,7 +37,7 @@ DeleteHomepageConfig = DomainsAPI::Logic::HomepageConfig::DeleteHomepageConfig
 @test_org    = Onetime::Organization.create!("Put HpCidr Test #{@ts}", @test_cust, "org_hpcidr_#{@ts}_#{@entropy}@test.com")
 @test_domain = Onetime::CustomDomain.create!("put-hpcidr-#{@ts}-#{@entropy}.example.com", @test_org.objid)
 
-def create_strategy_with_domain(customer, domain_fqdn, domain_strategy: :custom)
+def create_strategy_with_domain(customer, domain_fqdn, domain_strategy: :custom, ip_match: nil)
   session = MockSession.new
   org = customer.organization_instances.to_a.first
   org_context = {
@@ -53,6 +53,7 @@ def create_strategy_with_domain(customer, domain_fqdn, domain_strategy: :custom)
       organization_context: org_context,
       domain_strategy: domain_strategy,
       display_domain: domain_fqdn,
+      ip_match: ip_match,
     }
   )
 end
@@ -71,8 +72,8 @@ ensure
   OT.instance_variable_set(:@conf, original_conf)
 end
 
-def run_put(customer, domain, params, network_rules_enabled: true)
-  strategy = create_strategy_with_domain(customer, domain.display_domain)
+def run_put(customer, domain, params, network_rules_enabled: true, ip_match: nil)
+  strategy = create_strategy_with_domain(customer, domain.display_domain, ip_match: ip_match)
   logic = PutHomepageConfig.new(strategy, params.merge('extid' => domain.extid))
   with_network_rules_flag(network_rules_enabled) do
     logic.process_params
@@ -97,8 +98,8 @@ def matcher_for(ip)
   ->(ranges) { ranges.any? { |range| range.family == addr.family && range.include?(addr) } }
 end
 
-def run_get(customer, domain)
-  strategy = create_strategy_with_domain(customer, domain.display_domain)
+def run_get(customer, domain, ip_match: nil)
+  strategy = create_strategy_with_domain(customer, domain.display_domain, ip_match: ip_match)
   logic = GetHomepageConfig.new(strategy, { 'extid' => domain.extid })
   logic.process_params
   logic.raise_concerns
@@ -244,6 +245,31 @@ with_network_rules_flag(false) do
   [cfg.network_allowed?(matcher_for('10.0.0.9')), cfg.network_allowed?(matcher_for('192.168.1.1')), cfg.network_allowed?(matcher_for('198.51.100.1'))]
 end
 #=> [true, false, false]
+
+# --- effective_enabled: for the caller, network rules included ---
+#
+# The bootstrap gives each visitor HomepageConfig#effectively_enabled_for?
+# with their own otto.ip_match; GET and PUT report the same predicate for
+# the caller, so the admin frontend's mirror matches their next page load.
+
+## PUT reports effective_enabled true to a caller inside the allowed ranges
+record = run_put(@test_cust, @test_domain, { 'enabled' => true }, ip_match: matcher_for('10.0.0.9'))[:record]
+[record[:enabled], record[:effective_enabled]]
+#=> [true, true]
+
+## PUT reports false to a caller the rules refuse, though the stored flag is on
+record = run_put(@test_cust, @test_domain, { 'enabled' => true }, ip_match: matcher_for('198.51.100.1'))[:record]
+[record[:enabled], record[:effective_enabled]]
+#=> [true, false]
+
+## GET agrees with PUT for the same caller
+[run_get(@test_cust, @test_domain, ip_match: matcher_for('10.0.0.9'))[:record][:effective_enabled],
+ run_get(@test_cust, @test_domain, ip_match: matcher_for('192.168.1.1'))[:record][:effective_enabled]]
+#=> [true, false]
+
+## Without a matcher (a stack that never ran IPPrivacyMiddleware) the rules fail closed
+run_get(@test_cust, @test_domain)[:record][:effective_enabled]
+#=> false
 
 # --- PUT: plan gating (homepage_network_rules) ---
 #

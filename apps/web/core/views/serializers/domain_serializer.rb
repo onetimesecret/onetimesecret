@@ -138,7 +138,7 @@ module Core
           # never let anonymous visitors see upgrade/misconfiguration copy
           # on the branded front door. The stored secrets_mode is preserved
           # so re-readying incoming restores the operator's intent.
-          # HomepageConfig#effectively_enabled? is the single source of
+          # HomepageConfig#effectively_enabled_for? is the single source of
           # truth, shared with the homepage-config API responses.
           #
           # Network rules narrow that further, per visitor: a homepage with
@@ -155,8 +155,7 @@ module Core
           # holds for enabled: false), and the editor copy says so. Only
           # consulted when the homepage is otherwise interactive, so a
           # domain without rules never logs a network decision.
-          effective_enabled = homepage_config.effectively_enabled?(custom_domain: custom_domain) &&
-                              homepage_config.network_allowed?(ip_match)
+          effective_enabled = homepage_config.effectively_enabled_for?(ip_match, custom_domain: custom_domain)
 
           # signup_enabled / signin_enabled drive the branded homepage
           # masthead auth links. They carry the effective_* value — custom

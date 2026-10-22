@@ -364,7 +364,9 @@ jobs:
 
   typescript-lint:
     name: T1 · TypeScript Lint
-    timeout-minutes: 5
+    # Same headroom as the other setup-node-env jobs: pnpm/action-setup's
+    # self-install alone has taken ~5 minutes on hosted runners.
+    timeout-minutes: 10
     runs-on: *runs-on
     needs: [changes]
     if: needs.changes.outputs.typescript == 'true'
