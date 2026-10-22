@@ -19,9 +19,9 @@
 # nil until the autologin after the transaction: the insert failed
 # (NOT NULL constraint failed: account_recovery_codes.id), the request
 # answered 500 and the transaction rolled back, so the account stayed
-# unverified. The rodauth fork the Gemfile pins and the verify-route override
-# in config/features/mfa.rb key the codes on the account the verify key
-# loads. This example fails if either regresses in this boot;
+# unverified. The rodauth fork the Gemfile pins keys the codes on the account
+# the verify key loads (onetimesecret/rodauth#3). This example fails if that
+# regresses in this boot;
 # integration/full_mfa/webauthn_verify_account_recovery_codes_spec.rb covers
 # the account scoping against a router subclass.
 #
