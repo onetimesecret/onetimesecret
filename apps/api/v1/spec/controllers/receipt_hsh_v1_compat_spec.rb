@@ -345,8 +345,9 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
     end
 
     # #4835: terminal transitions clear secret_identifier but leave the
-    # deprecated secret_key field alone (only expired! clears both). The
-    # legacy fallback must never hand a terminal receipt its key back.
+    # deprecated secret_key field alone (only expired! clears both), and V1
+    # ShowReceipt no longer clears it on read. A terminal receipt never gets
+    # its key back from that field.
     %w[burned expired orphaned].each do |terminal_state|
       context "when state is #{terminal_state} and the legacy secret_key field is populated" do
         let(:base_hash) do
@@ -389,20 +390,25 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
       end
     end
 
+    # Receipt#load_secret resolves the secret by secret_identifier alone, so a
+    # receipt with only the legacy field has no secret the app can load: V1
+    # ShowReceipt finds no secret and BurnSecret cannot burn it. The
+    # serializer must not hand out a key the receipt itself cannot resolve.
     context 'when the receipt is live and only the legacy secret_key field is set' do
       let(:base_hash) do
         super().merge('secret_identifier' => '', 'secret_key' => 'legacy_secret_abc')
       end
 
-      it 'falls back to the legacy secret_key' do
-        expect(result['secret_key']).to eq('legacy_secret_abc')
+      it 'returns an empty secret_key, not the legacy value' do
+        expect(result['secret_key']).to eq('')
+        expect(result['secret_identifier']).to eq('')
       end
     end
 
     context 'when the receipt is live and both fields are set' do
       let(:base_hash) { super().merge('secret_key' => 'legacy_secret_abc') }
 
-      it 'prefers the canonical secret_identifier' do
+      it 'returns the canonical secret_identifier' do
         expect(result['secret_key']).to eq('secret_xyz')
       end
     end

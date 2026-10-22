@@ -12,6 +12,10 @@ Changed
   returns 404, as a follow-up fetch would, instead of the receipt's
   pre-burn state. The secret is still destroyed. (#4835)
 
+- v1 ``GET /receipt/{id}`` no longer writes the deprecated ``secret_key``
+  receipt field, and v1 responses no longer read it. A key found only in
+  that field named a secret the receipt cannot load. (#4835)
+
 Fixed
 -----
 
@@ -28,6 +32,12 @@ Fixed
 - v1 no longer returns a secret key for a revealed, burned, expired or
   orphaned receipt that still has a value in the deprecated ``secret_key``
   field. (#4835)
+
+- A burn request that does not commit (``continue=false``) now includes
+  ``secret_identifier`` under the same rule as ``GET /receipt/{id}``: only
+  while the secret has no passphrase and the receipt has not been
+  previewed. The two responses disagreed for passphrase-protected secrets
+  and previewed receipts. ``share_url`` is unchanged. (#4835)
 
 Security
 --------

@@ -64,13 +64,13 @@ module V1::Logic
 
           burned_or_revealed = receipt.state?(:burned) || receipt.state?(:revealed) || receipt.state?(:received)
 
+          # This GET leaves the deprecated secret_key field alone: the V1
+          # serializer never reads it (V1::Controllers::ClassMethods#v1_secret_key).
           if !burned_or_revealed && receipt.secret_expired?
             OT.le("[show_receipt] Receipt has expired secret. #{receipt.shortid}")
-            receipt.secret_key = nil
             receipt.expired!
           elsif !burned_or_revealed
             OT.le("[show_receipt] Receipt is an orphan. #{receipt.shortid}")
-            receipt.secret_key = nil
             receipt.orphaned!
           end
 
@@ -80,10 +80,6 @@ module V1::Logic
           @is_expired = receipt.state?(:expired)
           @is_orphaned = receipt.state?(:orphaned)
           @is_destroyed = @is_burned || @is_received || @is_expired || @is_orphaned
-
-          if is_destroyed && receipt.secret_key
-            receipt.secret_key! nil
-          end
         else
           @secret_state = secret.state
           @secret_realttl = secret.current_expiration

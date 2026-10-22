@@ -148,4 +148,69 @@ RSpec.describe 'Burn responses report the post-burn receipt (#4835)', type: :int
       expect_fetch_to_agree(last_response, burned)
     end
   end
+
+  # A burn that does not commit (continue=false) leaves the secret in place.
+  # Its response and a follow-up fetch include secret_identifier under the
+  # same rule (Receipt#offers_secret?): only while the receipt still offers
+  # the secret. share_url names the secret in both either way.
+  {
+    'POST /api/v2/receipt/:identifier/burn' => ['/api/v2/secret/conceal', '/api/v2/receipt/%s'],
+    'POST /api/v3/guest/receipt/:identifier/burn' => ['/api/v3/guest/secret/conceal', '/api/v3/guest/receipt/%s'],
+  }.each do |label, (conceal_path, show_path)|
+    describe "#{label} with continue=false" do
+      # @return [Array(Hash, Hash)] the burn and fetch records
+      def uncommitted_burn_and_fetch(show_path, receipt_id)
+        anonymous_post format("#{show_path}/burn", receipt_id), { continue: false }
+        expect(last_response.status).to eq(200), last_response.body
+        burned = JSON.parse(last_response.body)['record']
+
+        get format(show_path, receipt_id), {}, { 'HTTP_ACCEPT' => 'application/json' }
+        expect(last_response.status).to eq(200), last_response.body
+        fetched = JSON.parse(last_response.body)['record']
+
+        [burned, fetched]
+      end
+
+      it 'includes secret_identifier in both for a secret without a passphrase' do
+        anonymous_post conceal_path, { secret: { secret: 'uncommitted plain', ttl: 3600 } }
+        receipt_id, secret_id = receipt_and_secret_ids
+
+        burned, fetched = uncommitted_burn_and_fetch(show_path, receipt_id)
+
+        expect(burned['secret_identifier']).to eq(secret_id)
+        expect(fetched['secret_identifier']).to eq(secret_id)
+        expect(burned['share_url']).to eq(fetched['share_url'])
+        expect(Onetime::Secret.load(secret_id)&.viewable?).to be true
+      end
+
+      it 'omits secret_identifier from both for a passphrase-protected secret' do
+        anonymous_post conceal_path,
+          { secret: { secret: 'uncommitted passphrase', ttl: 3600, passphrase: 'correct horse battery' } }
+        receipt_id, secret_id = receipt_and_secret_ids
+
+        burned, fetched = uncommitted_burn_and_fetch(show_path, receipt_id)
+
+        expect(burned).not_to have_key('secret_identifier')
+        expect(fetched).not_to have_key('secret_identifier')
+        expect(burned['share_url']).to end_with("/secret/#{secret_id}")
+        expect(burned['share_url']).to eq(fetched['share_url'])
+        expect(Onetime::Secret.load(secret_id)&.viewable?).to be true
+      end
+
+      it 'omits secret_identifier from both for a previewed receipt' do
+        anonymous_post conceal_path, { secret: { secret: 'uncommitted previewed', ttl: 3600 } }
+        receipt_id, secret_id = receipt_and_secret_ids
+        receipt       = Onetime::Receipt.load(receipt_id)
+        receipt.state = 'previewed'
+        receipt.save
+
+        burned, fetched = uncommitted_burn_and_fetch(show_path, receipt_id)
+
+        expect(burned).not_to have_key('secret_identifier')
+        expect(fetched).not_to have_key('secret_identifier')
+        expect(burned['share_url']).to end_with("/secret/#{secret_id}")
+        expect(burned['share_url']).to eq(fetched['share_url'])
+      end
+    end
+  end
 end

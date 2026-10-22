@@ -107,8 +107,14 @@ RSpec.describe 'V1 burn and receipt responses (#4835)', type: :integration do
     expect(json_body.dig('state', 'secret_key')).to eq('')
     expect(json_body.dig('state', 'secret_identifier')).to eq('')
     expect(last_response.body).not_to include(secret_key)
-    # The field is still populated: the serializer, not a cleanup write, is
-    # what keeps it out of the response.
+
+    get "/api/v1/receipt/#{metadata_key}"
+    expect(last_response.status).to eq(200), last_response.body
+    expect(json_body['secret_key']).to eq('')
+    expect(last_response.body).not_to include(secret_key)
+
+    # The field is still populated after the burn and the GET: the
+    # serializer, not a cleanup write, is what keeps it out of the response.
     expect(Onetime::Receipt.load(metadata_key).secret_key).to eq(secret_key)
   end
 
@@ -121,6 +127,47 @@ RSpec.describe 'V1 burn and receipt responses (#4835)', type: :integration do
       expect(last_response.status).to eq(200), last_response.body
       expect(json_body['metadata_url']).to end_with("/receipt/#{metadata_key}")
       expect(json_body['receipt_url']).to eq(json_body['metadata_url'])
+    end
+
+    # The GET used to clear the deprecated field on the way to orphaned!;
+    # it no longer writes it at all.
+    it 'reports an orphaned receipt without a key and leaves the legacy field alone' do
+      metadata_key, secret_key = create_secret
+      receipt            = Onetime::Receipt.load(metadata_key)
+      receipt.secret_key = secret_key
+      receipt.save
+      Onetime::Secret.dbclient.del(Onetime::Secret.load(secret_key).dbkey)
+
+      get "/api/v1/receipt/#{metadata_key}"
+
+      expect(last_response.status).to eq(200), last_response.body
+      expect(json_body['state']).to eq('orphaned')
+      expect(json_body['secret_key']).to eq('')
+      expect(last_response.body).not_to include(secret_key)
+
+      stored = Onetime::Receipt.load(metadata_key)
+      expect(stored.state).to eq('orphaned')
+      expect(stored.secret_key).to eq(secret_key)
+    end
+
+    # Receipt#load_secret resolves the secret by secret_identifier alone, so
+    # a key found only in the legacy field names a secret the receipt cannot
+    # load. The GET hid it with an in-memory clear before orphaned!; the
+    # serializer now never reads the field.
+    it 'returns no key for a live receipt whose key is only in the legacy field' do
+      metadata_key, secret_key   = create_secret
+      receipt                    = Onetime::Receipt.load(metadata_key)
+      receipt.secret_identifier  = ''
+      receipt.secret_key         = secret_key
+      receipt.save
+
+      get "/api/v1/receipt/#{metadata_key}"
+
+      expect(last_response.status).to eq(200), last_response.body
+      expect(json_body['secret_key']).to eq('')
+      expect(json_body['secret_identifier']).to eq('')
+      expect(last_response.body).not_to include(secret_key)
+      expect(Onetime::Receipt.load(metadata_key).secret_key).to eq(secret_key)
     end
 
     it 'returns the secret key for a live standard receipt' do

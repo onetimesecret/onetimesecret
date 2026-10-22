@@ -209,6 +209,34 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       expect(record[:share_url]).to end_with("/secret/#{receipt.secret_identifier}")
       expect(record[:secret_identifier]).to eq(receipt.secret_identifier)
     end
+
+    # #4835: secret_identifier as its own field follows ShowReceipt's rule
+    # (Receipt#offers_secret?), so a burn that does not commit and a later
+    # fetch agree on it. The share link still names the secret, as
+    # ShowReceipt's does.
+    it 'withholds secret_identifier, but not the share link, for a passphrase-protected secret' do
+      secret.update_passphrase!('correct horse battery')
+
+      logic  = build_logic('identifier' => receipt.identifier, 'continue' => 'false')
+      logic.process_params
+      record = logic.process[:record]
+
+      expect(record[:share_url]).to end_with("/secret/#{receipt.secret_identifier}")
+      expect(record).not_to have_key(:secret_identifier)
+      expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
+    end
+
+    it 'withholds secret_identifier, but not the share link, for a previewed receipt' do
+      receipt.state = 'previewed'
+      receipt.save
+
+      logic  = build_logic('identifier' => receipt.identifier, 'continue' => 'false')
+      logic.process_params
+      record = logic.process[:record]
+
+      expect(record[:share_url]).to end_with("/secret/#{receipt.secret_identifier}")
+      expect(record).not_to have_key(:secret_identifier)
+    end
   end
 
   # The double-reveal race, burn variant: Secret#burned! performs an atomic

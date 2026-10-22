@@ -106,6 +106,10 @@ module Onetime
     # the API versions agree on when a receipt may still carry a secret key.
     TERMINAL_STATES = %w[revealed received burned expired orphaned].freeze
 
+    # States in which the receipt no longer offers its secret (#offers_secret?):
+    # every terminal state, plus 'previewed' and its legacy name 'viewed'.
+    SECRET_WITHDRAWN_STATES = (TERMINAL_STATES + %w[previewed viewed]).freeze
+
     # Provenance gate on the share link, by :source value. See
     # #shows_share_link?; class-level so a serializer working from a raw field
     # hash (V1 receipt_hsh) applies the same rule.
@@ -153,6 +157,21 @@ module Onetime
     # @return [Boolean]
     def share_link_available?
       shows_share_link? && !secret_identifier.to_s.empty?
+    end
+
+    # Whether the receipt still offers its secret (ShowReceipt's show_secret):
+    # the secret exists, has no passphrase, and the receipt has not been
+    # previewed or consumed. A response includes secret_identifier as its own
+    # field only when this and #share_link_available? are both true. Shared
+    # by ShowReceipt and BurnSecret so a burn that does not commit
+    # (continue=false) and a later fetch agree on it (#4835).
+    #
+    # @param secret [Onetime::Secret, nil] this receipt's loaded secret
+    # @return [Boolean]
+    def offers_secret?(secret)
+      return false if secret.nil? || secret.has_passphrase?
+
+      !SECRET_WITHDRAWN_STATES.include?(state.to_s)
     end
 
     # Clean up class-level collections before destroying the object.

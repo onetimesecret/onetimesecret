@@ -60,10 +60,13 @@ module V1
       # Onetime::Receipt::TERMINAL_STATES) and for a provenance that withholds
       # the link from the receipt holder (incoming secrets; see
       # Onetime::Receipt.shows_share_link_for?). Otherwise the canonical
-      # secret_identifier, falling back to the deprecated secret_key field for
-      # a live receipt written before secret_identifier existed. Terminal
-      # transitions clear secret_identifier but leave secret_key alone, so the
-      # fallback must never apply to a terminal receipt (#4835).
+      # secret_identifier.
+      #
+      # The deprecated secret_key field is never read. Receipt#load_secret
+      # resolves the secret by secret_identifier alone, so a key found only in
+      # the legacy field names a secret the receipt cannot load (V1
+      # ShowReceipt finds no secret, BurnSecret cannot burn it), and terminal
+      # transitions leave the field populated (#4835).
       #
       # @param hsh [Hash] the receipt's field hash (Receipt#to_h)
       # @param raw_state [String] the receipt state in v0.24 vocabulary
@@ -72,10 +75,7 @@ module V1
         return '' if Onetime::Receipt::TERMINAL_STATES.include?(raw_state.to_s)
         return '' unless Onetime::Receipt.shows_share_link_for?(hsh.fetch('source', nil))
 
-        canonical = hsh.fetch('secret_identifier', nil).to_s
-        return canonical unless canonical.empty?
-
-        hsh.fetch('secret_key', nil).to_s
+        hsh.fetch('secret_identifier', nil).to_s
       end
 
       # Translate a single state value from v0.24 to v0.23.4 vocabulary.

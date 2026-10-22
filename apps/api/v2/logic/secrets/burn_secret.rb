@@ -182,7 +182,12 @@ module V2::Logic
         # provenance that withholds it, e.g. an incoming secret answered with
         # continue=false, or for a burned secret with nothing left to link to.
         link_visible = receipt.share_link_available?
-        attributes.delete(:secret_identifier) unless link_visible
+
+        # secret_identifier as its own field follows ShowReceipt's stricter
+        # rule: only while the receipt still offers the secret (no passphrase,
+        # not previewed). share_url keeps the id either way, as ShowReceipt's
+        # does. After a burn, link_visible is already false.
+        attributes.delete(:secret_identifier) unless link_visible && receipt.offers_secret?(potential_secret)
 
         # Resolve the domain for URL generation: use the custom domain
         # the secret was created on when available, otherwise canonical.
