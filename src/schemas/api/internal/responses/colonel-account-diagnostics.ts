@@ -83,6 +83,7 @@ export const diagnosisCustomerSectionSchema = z.object({
   provisioning_failure_code: z.string().nullable().optional(),
   provisioning_failure_classification: z.string().nullable().optional(),
   provisioning_failed_at: z.number().nullable().optional(),
+  closure_started_at: z.number().nullable().optional(),
   error: z.string().nullable().optional(),
 });
 

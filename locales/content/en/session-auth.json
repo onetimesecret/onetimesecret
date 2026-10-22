@@ -183,6 +183,11 @@
     "context": "Shown on signin page when tenant-domain SSO authenticated but the organization join produced no membership (orphaned account). Admins/ops must investigate; the user cannot self-resolve.",
     "content_hash": "155e71bb"
   },
+  "web.login.errors.account_closing": {
+    "text": "Your previous account with this email address is still being closed. Try again in a few minutes. If this keeps happening, contact support.",
+    "context": "Shown on signin page when an SSO sign-in finds an earlier account with this address whose closure stopped part-way (#4830) and cannot be finished yet: the closure started under 15 minutes ago, or its cleanup is blocked. Nothing is created. A retry after 15 minutes finishes the closure; a blocked one needs an operator.",
+    "content_hash": "aeb5fd6a"
+  },
   "web.login.errors.link_sso_failed": {
     "text": "We couldn't link that sign-in method. Sign in with your existing password, then connect this provider under Security settings → Connected identities.",
     "context": "Shown on /signin after the #3840 Phase 3 sign-in interstitial is cancelled, its challenge token expires/is spent, or password linking otherwise dead-ends. Points the user at the Phase 2 Connected Identities flow; the interstitial routes here with ?redirect=/account/settings/security/connections so the panel opens after they sign in.",

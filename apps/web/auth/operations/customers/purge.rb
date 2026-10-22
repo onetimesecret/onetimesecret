@@ -80,12 +80,18 @@ module Auth
         #   ACCOUNT; a bulk inactivity sweep turns it off because its candidates
         #   have been idle for months and every blob they could own has
         #   expired. The tracked revocation still runs.
+        # @param retain_auth_account [Boolean] leave the Rodauth accounts row
+        #   (closed) and its audit log for Rodauth's own delete_account to
+        #   remove. True ONLY from the after_close_account hook, which runs
+        #   inside Rodauth's close_account transaction; see TeardownAccount.
+        #   Every other caller deletes the row and its audit log outright.
         def initialize(customer:, actor: nil, reason: nil, bulk_audit_context: nil,
                        expected_plan_signature: nil,
                        self_service: false, deep: false, membership_snapshot: nil,
-                       sweep_untracked_sessions: true)
+                       sweep_untracked_sessions: true, retain_auth_account: false)
           @customer                     = customer
           @self_service                 = self_service
+          @retain_auth_account          = retain_auth_account
           @deep                         = deep
           @membership_snapshot          = membership_snapshot
           @sweep_untracked_sessions     = sweep_untracked_sessions
@@ -164,6 +170,7 @@ module Auth
             bulk_audit_context: @bulk_audit_authorization,
             sweep_untracked_sessions: @sweep_untracked_sessions,
             self_service: @self_service,
+            retain_auth_account: @retain_auth_account,
           ).call
           deletion.completed_stages.each { |completed| complete_stage(completed) }
           unless deletion.status == :success

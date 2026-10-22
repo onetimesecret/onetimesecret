@@ -165,4 +165,22 @@ RSpec.describe Onetime::CLI::CustomersPurgeCommand do
   ensure
     $stdin = original_stdin
   end
+
+  # bin/ots resolves simple auth mode whenever AUTHENTICATION_MODE is not
+  # exported into its shell; on a full-mode install the purge would then
+  # delete the record and leave the auth account open.
+  it 'refuses before resolving the customer when simple auth mode was resolved by default' do
+    allow(command).to receive(:boot_application!)
+    allow(Onetime.auth_config).to receive(:simple_by_default?).and_return(true)
+    expect(command).not_to receive(:resolve_customer)
+    expect(Auth::Operations::Customers::Purge).not_to receive(:new)
+
+    original_stdout = $stdout
+    $stdout         = StringIO.new
+    expect { command.call(identifier: 'ur_target', yes: true, json: true) }
+      .to raise_error(SystemExit) { |error| expect(error.status).to eq(1) }
+    expect(JSON.parse($stdout.string)['error']).to include('AUTHENTICATION_MODE is not set')
+  ensure
+    $stdout = original_stdout
+  end
 end

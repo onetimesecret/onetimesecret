@@ -12,10 +12,103 @@
 # intentionally does not track the class name.
 #
 
+require 'auth/account_statuses'
+require 'auth/operations/customers/purge'
+
 module Auth
   module Operations
     class EnsureCustomerForAccount
       include Onetime::LoggerMethods
+
+      # The record a sign-up with +email+ would meet, when it is marked as
+      # closing (Customer#closing?); otherwise nil. Reads only:
+      # finish_leftover_closure is the call that acts on it.
+      def self.closing_customer(email)
+        email    = OT::Utils.normalize_email(email)
+        customer = Onetime::Customer.find_by_email(email) if Onetime::Customer.email_exists?(email)
+        customer if customer&.closing?
+      end
+
+      # A record marked as closing under a sign-up's address is what a
+      # closure left behind when it stopped after removing the sign-in and
+      # before deleting the record (#4830). Its owner asked for it to be
+      # deleted, so a new sign-up with the address does not adopt it, with
+      # its data and its marker: the closure is finished through the same
+      # purge `bin/ots customers finish-closures` runs, and the sign-up gets
+      # a new record. The purge is the record's own (self_service:), as the
+      # continuation of the closure it asked for.
+      #
+      # Every sign-up path calls this, and decides nothing about the record
+      # itself: before_create_account (password sign-ups; the invite sign-up
+      # endpoint refuses an address with any Customer record before it gets
+      # there) and before_omniauth_create_account (SSO JIT) call it before
+      # the accounts row exists, so a sign-up refused there leaves no row
+      # behind. The call in find_or_create_customer below is a backstop for
+      # a record marked between that check and the insert: by then the row
+      # is committed, and all it can do is refuse to adopt the record.
+      #
+      # Only a closure Customer.closure_state classifies as :interrupted is
+      # finished, as in Customers::FinishClosures. Two records are left
+      # alone: a marker younger than Customer::CLOSURE_STALE_AFTER
+      # (:in_progress), which can belong to a closure still running (an
+      # administrative purge deletes the accounts row in its own transaction
+      # before it deletes the record), and a marked record with an open
+      # accounts row of its own (:rolled_back). The sign-up is refused
+      # instead, and a retry once the marker is old enough finishes the
+      # first.
+      #
+      # @param email [String] the sign-up's address
+      # @return [Onetime::Customer, nil] the closing record when it is still
+      #   there afterwards (left alone, or the purge stopped), and the
+      #   sign-up must be refused; nil when no record under the address was
+      #   closing or the closure is now finished
+      def self.finish_leftover_closure(email)
+        leftover = closing_customer(email)
+        leftover unless leftover.nil? || finish_interrupted_closure(leftover)
+      end
+
+      # @return [Boolean] true when +customer+ is gone afterwards
+      def self.finish_interrupted_closure(customer)
+        state = customer.closure_state(open_auth_account: open_auth_account?(customer))
+        unless state == :interrupted
+          # A sign-up inside a running closure's window is the design at
+          # work; a rolled-back closure or an unreadable account is not.
+          Auth::Logging.log_auth_event(
+            :interrupted_closure_not_finished,
+            level: state == :in_progress ? :info : :error,
+            external_id: customer.extid,
+            closure_state: state,
+          )
+          return false
+        end
+
+        result   = Auth::Operations::Customers::Purge.new(
+          customer: customer,
+          self_service: true,
+          reason: 'finish an interrupted closure before a sign-up with the same address',
+        ).call
+        finished = !customer.exists?
+
+        Auth::Logging.log_auth_event(
+          finished ? :interrupted_closure_finished : :interrupted_closure_not_finished,
+          level: finished ? :info : :error,
+          external_id: customer.extid,
+          status: result.status,
+          stage: result.stage,
+          blockers: result.blockers,
+        )
+        finished
+      end
+      private_class_method :finish_interrupted_closure
+
+      def self.open_auth_account?(customer)
+        return false unless Onetime.auth_config.full_enabled?
+
+        Auth::Database.connection[:accounts]
+          .where(external_id: customer.extid, status_id: Auth::AccountStatuses::LIVE)
+          .any?
+      end
+      private_class_method :open_auth_account?
 
       # @param account_id [Integer] The ID of the Rodauth account
       # @param account [Hash] The Rodauth account hash, containing at least :email
@@ -90,31 +183,39 @@ module Auth
         # index, so we must use email_exists?/find_by_email here.
         email = OT::Utils.normalize_email(@account[:email])
 
-        if Onetime::Customer.email_exists?(email)
-          customer = Onetime::Customer.find_by_email(email)
-          auth_logger.info "[create-customer] Found existing customer: #{customer.custid}"
-        else
-          # New accounts default to 'customer' role. Colonel promotion
-          # is handled exclusively via CLI: bin/ots customers role promote user@example.com
-          customer = Onetime::Customer.create!(
-            email: email,
-            role: 'customer',
-            # Default false: the password-signup shape, flipped later by
-            # after_verify_account. True only when the caller has already
-            # established verification (see the `verified:` param docs).
-            verified: @verified,
-            verified_by: @verified_by,
-            verification_hold: @verification_hold,
-            provisioning_origin: @provisioning_origin,
-            signup_domain_id: @signup_domain_id,
-          )
-
-          auth_logger.info "[create-customer] Created new customer: #{customer.custid} (role: customer, " \
-                           "origin: #{@provisioning_origin || 'unknown'}, " \
-                           "signup_domain_id: #{@signup_domain_id || 'none'}, " \
-                           "verified: #{@verified}, verified_by: #{@verified_by || 'none'}, " \
-                           "verification_hold: #{@verification_hold || 'none'})"
+        # A record still closing under the address is finished first, and
+        # never adopted (see finish_leftover_closure).
+        unfinished = self.class.finish_leftover_closure(email)
+        if unfinished
+          raise Onetime::Problem, "The interrupted closure of #{unfinished.extid} could not be finished"
         end
+
+        existing = Onetime::Customer.find_by_email(email) if Onetime::Customer.email_exists?(email)
+        if existing
+          auth_logger.info "[create-customer] Found existing customer: #{existing.custid}"
+          return existing
+        end
+
+        # New accounts default to 'customer' role. Colonel promotion
+        # is handled exclusively via CLI: bin/ots customers role promote user@example.com
+        customer = Onetime::Customer.create!(
+          email: email,
+          role: 'customer',
+          # Default false: the password-signup shape, flipped later by
+          # after_verify_account. True only when the caller has already
+          # established verification (see the `verified:` param docs).
+          verified: @verified,
+          verified_by: @verified_by,
+          verification_hold: @verification_hold,
+          provisioning_origin: @provisioning_origin,
+          signup_domain_id: @signup_domain_id,
+        )
+
+        auth_logger.info "[create-customer] Created new customer: #{customer.custid} (role: customer, " \
+                         "origin: #{@provisioning_origin || 'unknown'}, " \
+                         "signup_domain_id: #{@signup_domain_id || 'none'}, " \
+                         "verified: #{@verified}, verified_by: #{@verified_by || 'none'}, " \
+                         "verification_hold: #{@verification_hold || 'none'})"
 
         customer
       end

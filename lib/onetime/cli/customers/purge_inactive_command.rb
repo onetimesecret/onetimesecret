@@ -96,6 +96,13 @@ module Onetime
 
         boot_application!
 
+        # A deletion refuses before any work; the dry run lists in any mode
+        # (Customers::Shared#auth_mode_refusal).
+        if purge && (refusal = auth_mode_refusal)
+          puts "Error: #{refusal}"
+          exit 1
+        end
+
         cache_redis   = Familia.dbclient
         source_redis  = redis_url ? redis_client_from_url(redis_url) : cache_redis
         @using_remote = !redis_url.nil?

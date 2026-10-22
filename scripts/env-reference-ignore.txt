@@ -23,6 +23,12 @@ GITHUB_JOB
 COVERAGE
 RSPEC_OUTPUT_FILE
 TEST_ENV_NUMBER
+# TZ is the process time zone, which the application reads nowhere; the
+# lanes pin it to UTC (tests/lanes/base.env). One spec sets and restores
+# it around a zone-sensitive read
+# (apps/web/auth/spec/operations/customers/diagnose_spec.rb), which is
+# the only ENV['TZ'] in the tree.
+TZ
 # Lane runner (tests/lanes/run) and its per-worker shim
 # (tests/lanes/support/worker-env): exported into the task process only.
 LANES_RSPEC_STATUS_FILE
