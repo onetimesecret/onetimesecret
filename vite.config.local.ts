@@ -54,8 +54,9 @@ export default defineConfig(async (env) =>
           },
         },
       },
-      // Defines a build timestamp that can be used in the app
-      // to force reloads when a new version is deployed.
+      // Defines a build timestamp, intended for forcing reloads after a
+      // deploy. Nothing in src/ reads __BUILD_TIME__, so it has no effect
+      // until app code uses it.
       define: {
         __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
       },
