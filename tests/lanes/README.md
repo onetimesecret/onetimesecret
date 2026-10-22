@@ -170,7 +170,9 @@ Each rspec invocation writes a results file of its own:
   `<stem>_apps_config_ru.json`.
 - A lane with a single invocation writes `<stem>.json` (`full-mfa` and
   `full-saml-platform` write `<stem>_mfa.json` and
-  `<stem>_saml_platform.json`).
+  `<stem>_saml_platform.json`). `full-webauthn-verify` runs rspec twice, MFA
+  off and on, and writes `<stem>_webauthn_verify.json` and
+  `<stem>_webauthn_verify_mfa.json`.
 - An `--only` run writes `<stem>_only.json`, a name no lane uses. Without
   `--quiet` or a results file it adds no formatter and `.rspec` decides, as
   for plain rspec.
@@ -472,7 +474,7 @@ generated locale is a logged line at boot, not a failure), leaves
 `last.log` untouched, and prints no timing line. It takes the lane name and
 overlays only; `--only`, `--quiet`, `--capture-logs`, `--log-console`,
 `--skip-codegen` and `--` exit 64 with it. Under `sqlite::memory:`
-(`full-sqlite`, `full-mfa`, `full-saml-platform`) the auth database is empty
+(`full-sqlite`, `full-mfa`, `full-saml-platform`, `full-webauthn-verify`) the auth database is empty
 and unmigrated in a fresh process, so the console logs
 `no such table: accounts` at boot; the PostgreSQL lanes address the
 per-worktree database the lane's runs use.
@@ -529,6 +531,7 @@ duration exceeds its wall clock.
 | `full-sqlite`        | valkey, rabbitmq           | `spec:integration:full`                                       | 4       | ruby-integration-full — SQLite row               |
 | `full-mfa`           | valkey, rabbitmq           | `spec:integration:full:mfa`                                   | 1       | ruby-integration-auth — SQLite MFA row           |
 | `full-saml-platform` | valkey, rabbitmq           | `spec:integration:full:saml_platform`                         | 1       | ruby-integration-auth — SQLite platform SAML row |
+| `full-webauthn-verify` | valkey, rabbitmq         | `spec:integration:full:webauthn_verify`                       | 1       | ruby-integration-auth — SQLite passkey signup row |
 | `full-pg`            | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                              | 1 (PG)  | ruby-integration-full — PG row                   |
 | `full-pg-agnostic`   | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`                        | 1 (PG)  | ruby-integration-auth — PG agnostic row          |
 | `disabled`           | valkey, rabbitmq           | `spec:integration:disabled`                                   | 1       | ruby-integration-disabled (T3)                   |

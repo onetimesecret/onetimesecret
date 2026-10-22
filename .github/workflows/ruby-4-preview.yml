@@ -297,6 +297,8 @@ jobs:
     # Same lane + overlay pairing as ci.yml's SQLite matrix rows; the
     # billing rows are the full-sqlite lane with the billing overlay, and
     # the MFA row is the only process that boots with AUTH_MFA_ENABLED.
+    # The passkey signup row boots verify_account through
+    # webauthn_verify_account alone.
     strategy:
       fail-fast: false
       matrix:
@@ -312,6 +314,9 @@ jobs:
             overlay: ''
           - name: 'SQLite, platform SAML'
             lane: full-saml-platform
+            overlay: ''
+          - name: 'SQLite, passkey signup'
+            lane: full-webauthn-verify
             overlay: ''
 
     steps:

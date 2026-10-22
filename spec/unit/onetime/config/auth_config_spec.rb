@@ -29,7 +29,7 @@ RSpec.describe Onetime::AuthConfig do
           password_requirements: <%= ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED'] != 'false' %>
           active_sessions: <%= ENV['AUTH_ACTIVE_SESSIONS_ENABLED'] != 'false' %>
           remember_me: <%= ENV['AUTH_REMEMBER_ME_ENABLED'] != 'false' %>
-          verify_account: false
+          verify_account: <%= ENV['AUTH_VERIFY_ACCOUNT_ENABLED'] == 'true' %>
           mfa: <%= ENV['AUTH_MFA_ENABLED'] == 'true' %>
           email_auth: <%= ENV['AUTH_EMAIL_AUTH_ENABLED'] == 'true' %>
           webauthn: <%= ENV['AUTH_WEBAUTHN_ENABLED'] == 'true' %>
@@ -58,7 +58,7 @@ RSpec.describe Onetime::AuthConfig do
     %w[
       AUTHENTICATION_MODE
       AUTH_LOCKOUT_ENABLED AUTH_PASSWORD_REQUIREMENTS_ENABLED
-      AUTH_ACTIVE_SESSIONS_ENABLED AUTH_REMEMBER_ME_ENABLED
+      AUTH_ACTIVE_SESSIONS_ENABLED AUTH_REMEMBER_ME_ENABLED AUTH_VERIFY_ACCOUNT_ENABLED
       AUTH_MFA_ENABLED AUTH_EMAIL_AUTH_ENABLED AUTH_WEBAUTHN_ENABLED
       AUTH_WEBAUTHN_VERIFY_ACCOUNT AUTH_WEBAUTHN_AUTOFILL
       AUTH_SSO_ENABLED AUTH_SSO_ONLY AUTH_LEGACY_SSO_ONLY
@@ -290,6 +290,44 @@ RSpec.describe Onetime::AuthConfig do
           expect(config.public_send(:"#{feature}_enabled?")).to be false
         end
       end
+    end
+  end
+
+  # The Rodauth verify_account feature is loaded by its own flag or as the
+  # dependency of webauthn_verify_account (apps/web/auth/config/features/
+  # webauthn.rb enables that sub-feature only with webauthn on).
+  describe '#verify_account_loaded?' do
+    it 'is false when neither flag is on' do
+      config = fresh_config('AUTH_WEBAUTHN_ENABLED' => 'true')
+      expect(config.verify_account_loaded?).to be false
+    end
+
+    it 'is true by the verify_account flag' do
+      config = fresh_config('AUTH_VERIFY_ACCOUNT_ENABLED' => 'true')
+      expect(config.verify_account_loaded?).to be true
+    end
+
+    it 'is true for webauthn_verify_account with webauthn on' do
+      config = fresh_config('AUTH_WEBAUTHN_ENABLED' => 'true', 'AUTH_WEBAUTHN_VERIFY_ACCOUNT' => 'true')
+      expect(config.verify_account_loaded?).to be true
+    end
+
+    it 'ignores webauthn_verify_account without webauthn, as config.rb does' do
+      config = fresh_config('AUTH_WEBAUTHN_VERIFY_ACCOUNT' => 'true')
+      expect(config.verify_account_loaded?).to be false
+    end
+
+    it 'is false in simple mode regardless' do
+      config = fresh_config('AUTHENTICATION_MODE' => 'simple', 'AUTH_VERIFY_ACCOUNT_ENABLED' => 'true')
+      expect(config.verify_account_loaded?).to be false
+    end
+
+    # The enables read the YAML values by truthiness, so a quoted "true" loads
+    # the feature; config.rb compares this answer with the loaded features.
+    it 'is a Boolean when a flag is a quoted YAML string' do
+      File.write(config_path, base_yaml.sub(/^    verify_account: .*$/, '    verify_account: "true"'))
+      described_class.instance_variable_set(:@singleton__instance__, nil)
+      expect(described_class.instance.verify_account_loaded?).to be true
     end
   end
 
