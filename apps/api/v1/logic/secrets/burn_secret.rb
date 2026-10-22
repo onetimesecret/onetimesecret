@@ -71,6 +71,18 @@ module V1::Logic
             # TODO:
             # Onetime::Customer.global.increment_field :secrets_burned
 
+            # burned! cascades through its own freshly loaded receipt, so the
+            # instance from process_params still holds the pre-burn state and
+            # the destroyed secret's identifier. The controller renders
+            # logic.receipt, so reload it (#4835). A receipt that expired or
+            # was deleted mid-burn gets the same not-found answer a follow-up
+            # fetch would; serializing the stale instance would report the
+            # pre-burn state instead.
+            persisted_receipt = Onetime::Receipt.load(receipt.identifier)
+            raise OT::MissingSecret if persisted_receipt.nil?
+
+            @receipt = persisted_receipt
+
           elsif continue && !correct_passphrase
             # Record failed attempt for rate limiting. Only a committed burn
             # reaches this branch: without the continue guard a probe with a
@@ -89,6 +101,10 @@ module V1::Logic
         # Get base receipt attributes
         attributes = receipt.safe_dump
 
+        # Same share-link gate as V2: no link to a consumed secret, and none
+        # for a provenance that withholds it.
+        link_visible = receipt.share_link_available?
+
         # Resolve the domain for URL generation: use the custom domain
         # the secret was created on when available, otherwise canonical.
         domain = if domains_enabled && !receipt.share_domain.to_s.empty?
@@ -104,12 +120,12 @@ module V1::Logic
           natural_expiration: natural_duration(receipt.default_expiration.to_i),
           expiration: (receipt.default_expiration.to_i + receipt.created.to_i),
           expiration_in_seconds: (receipt.default_expiration.to_i),
-          share_path: build_path(:secret, receipt.secret_key),
-          burn_path: build_path(:receipt, receipt.key, 'burn'),
-          metadata_path: build_path(:receipt, receipt.key), # maintain public API
-          share_url: build_url(domain_uri, build_path(:secret, receipt.secret_key)),
-          metadata_url: build_url(domain_uri, build_path(:receipt, receipt.key)), # maintain public API
-          burn_url: build_url(domain_uri, build_path(:receipt, receipt.key, 'burn')),
+          share_path: (build_path(:secret, receipt.secret_identifier) if link_visible),
+          burn_path: build_path(:receipt, receipt.identifier, 'burn'),
+          metadata_path: build_path(:receipt, receipt.identifier), # maintain public API
+          share_url: (build_url(domain_uri, build_path(:secret, receipt.secret_identifier)) if link_visible),
+          metadata_url: build_url(domain_uri, build_path(:receipt, receipt.identifier)), # maintain public API
+          burn_url: build_url(domain_uri, build_path(:receipt, receipt.identifier, 'burn')),
         })
 
         {

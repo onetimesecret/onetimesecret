@@ -54,6 +54,30 @@ module V1
         'secret_value'      => 'value',
       }.freeze
 
+      # The V1 secret_key: the share link's bearer key, '' when there is none.
+      #
+      # Empty once the secret is gone (a terminal state; see
+      # Onetime::Receipt::TERMINAL_STATES) and for a provenance that withholds
+      # the link from the receipt holder (incoming secrets; see
+      # Onetime::Receipt.shows_share_link_for?). Otherwise the canonical
+      # secret_identifier.
+      #
+      # The deprecated secret_key field is never read. Receipt#load_secret
+      # resolves the secret by secret_identifier alone, so a key found only in
+      # the legacy field names a secret the receipt cannot load (V1
+      # ShowReceipt finds no secret, BurnSecret cannot burn it), and terminal
+      # transitions leave the field populated (#4835).
+      #
+      # @param hsh [Hash] the receipt's field hash (Receipt#to_h)
+      # @param raw_state [String] the receipt state in v0.24 vocabulary
+      # @return [String]
+      def v1_secret_key(hsh, raw_state)
+        return '' if Onetime::Receipt::TERMINAL_STATES.include?(raw_state.to_s)
+        return '' unless Onetime::Receipt.shows_share_link_for?(hsh.fetch('source', nil))
+
+        hsh.fetch('secret_identifier', nil).to_s
+      end
+
       # Translate a single state value from v0.24 to v0.23.4 vocabulary.
       # Unknown states pass through unchanged.
       #
@@ -199,7 +223,6 @@ module V1
           .uniq
 
         owner_id_val = hsh.fetch('owner_id', nil)
-        secret_id_val = hsh.fetch('secret_identifier', nil)
 
         # V1 compat: resolve custid to email address.
         # In v0.24, owner_id stores Customer objid (UUID). Legacy custid stored email.
@@ -228,7 +251,7 @@ module V1
         ret = {
           'custid' => v1_custid,
           'metadata_key' => md.identifier,
-          'secret_key' => (secret_id_val && !secret_id_val.empty? ? secret_id_val : hsh.fetch('secret_key', '').to_s),
+          'secret_key' => v1_secret_key(hsh, raw_state),
           'ttl' => receipt_ttl, # static value from database hash field
           'metadata_ttl' => receipt_realttl, # actual number of seconds left to live
           'secret_ttl' => secret_realttl, # ditto, actual number

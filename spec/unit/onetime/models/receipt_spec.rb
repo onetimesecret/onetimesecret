@@ -276,4 +276,37 @@ RSpec.describe Onetime::Receipt do
       end
     end
   end
+
+  # Shared by V2/V3 ShowReceipt (show_secret) and BurnSecret, so a burn that
+  # does not commit and a later fetch agree on secret_identifier (#4835).
+  describe '#offers_secret?' do
+    let(:receipt) { described_class.new(state: 'new') }
+    let(:secret)  { double('Onetime::Secret', has_passphrase?: false) }
+
+    it 'is true for a live receipt whose secret has no passphrase' do
+      expect(receipt.offers_secret?(secret)).to be true
+    end
+
+    it 'is false when the secret is gone' do
+      expect(receipt.offers_secret?(nil)).to be false
+    end
+
+    it 'is false when the secret has a passphrase' do
+      allow(secret).to receive(:has_passphrase?).and_return(true)
+
+      expect(receipt.offers_secret?(secret)).to be false
+    end
+
+    described_class::SECRET_WITHDRAWN_STATES.each do |withdrawn|
+      it "is false in state #{withdrawn}" do
+        receipt.state = withdrawn
+
+        expect(receipt.offers_secret?(secret)).to be false
+      end
+    end
+
+    it 'withdraws the secret in every terminal state' do
+      expect(described_class::SECRET_WITHDRAWN_STATES).to include(*described_class::TERMINAL_STATES)
+    end
+  end
 end
