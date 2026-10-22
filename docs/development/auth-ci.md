@@ -18,7 +18,8 @@ select these jobs:
 - The `browser` lane, which exercises SAML callbacks in Chromium, Firefox, and
   WebKit.
 - [Full-auth E2E](../../.github/workflows/e2e-full-auth.yml), including real
-  verification email delivery.
+  verification email delivery in full mode and, in its simple-mode matrix
+  row, in simple mode.
 - [Tenant Connect E2E](../../.github/workflows/e2e-tenant-connect.yml).
 
 ## What every Ruby change still runs
@@ -75,8 +76,9 @@ workflow** with `run_all` ticked, or run the lanes locally:
 The detector evaluates the **whole PR diff**, not just the latest commit. Auth
 runs if any changed path matches the list, or the PR has the `ci:auth` label.
 
-The list is narrow on purpose. It names the code that implements sign-in,
-sessions, SSO, MFA, invitations and tenant identity, anything in application
+The list is narrow on purpose. It names the code that implements sign-up and
+account verification, sign-in, sessions, SSO, MFA, invitations and tenant
+identity, anything in application
 code named for one of those concepts, and the tests and configuration that
 only the selected jobs run. Shared backend and frontend code, dependencies
 other than gems, translations, and documentation do not select auth. A change
