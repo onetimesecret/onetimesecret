@@ -443,19 +443,12 @@ module Auth::Config::Hooks
       #
       if Onetime.auth_config.verify_account_enabled?
         auth.after_verify_account do
-          # Fallback: with the rodauth the Gemfile pins, this deletes nothing.
-          # The verify route's clear_tokens(:verify_account) deletes the
-          # verification key row itself, in the onetimesecret fork
-          # (onetimesecret/rodauth#3) and in rodauth through 2.45. Released
-          # 2.46 through 2.48 instead rotate the key in place (and backdate
-          # email_last_sent) for every reason but :close_account, so a
-          # verified account kept a row that reads as a pending verification
-          # (Operations::Customers::Diagnose, and the suite's
-          # account_verification_keys assertions). The call keeps that row
-          # from surviving a build on one of those releases. It runs inside
-          # Rodauth's verify transaction, after its clear_tokens and before
-          # the autologin. Drop it once every rodauth the app can install
-          # deletes the key itself.
+          # A verified account must not keep a verification key row: it reads
+          # as a pending verification (Operations::Customers::Diagnose).
+          # Rodauth's clear_tokens(:verify_account) deletes the row in the
+          # onetimesecret fork (onetimesecret/rodauth#3) and through 2.45,
+          # but released 2.46 through 2.48 rotate it in place instead. The
+          # delete is idempotent and runs inside the verify transaction.
           remove_verify_account_key
 
           Auth::Logging.log_auth_event(
