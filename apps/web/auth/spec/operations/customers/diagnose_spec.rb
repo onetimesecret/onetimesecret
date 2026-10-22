@@ -38,6 +38,7 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
       provisioning_failure_code: nil,
       provisioning_failure_classification: nil,
       provisioning_failed_at: nil,
+      closure_started_at: nil,
     )
   end
 
@@ -290,6 +291,49 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
       expect(codes(result)).to include(:missing_auth_account)
     end
 
+    # #4830: the sync advice of :missing_auth_account would hand the closed
+    # account a live auth account again.
+    it 'names a closing customer with no auth account row as an interrupted closure' do
+      allow(customer).to receive(:closure_started_at).and_return(1_700_000_000)
+
+      result = diagnose(customer: customer)
+
+      expect(codes(result)).to include(:closure_interrupted)
+      expect(codes(result)).not_to include(:missing_auth_account)
+      expect(finding(result, :closure_interrupted)[:message]).to include('finish-closures')
+      expect(result.sections[:customer][:closure_started_at]).to eq(1_700_000_000.0)
+    end
+
+    it 'names a closing customer with an open auth account as a rolled-back closure' do
+      allow(customer).to receive(:closure_started_at).and_return(1_700_000_000)
+      insert_account
+
+      result = diagnose(customer: customer)
+
+      expect(codes(result)).to include(:closure_rolled_back)
+      expect(codes(result)).not_to include(:closure_interrupted)
+      expect(finding(result, :closure_rolled_back)[:severity]).to eq(:warning)
+    end
+
+    # The email fallback in find_account can reach a live row that belongs
+    # to another record (a later sign-up with the address).
+    it "does not read another record's open auth account as a rolled-back closure" do
+      allow(customer).to receive(:closure_started_at).and_return(1_700_000_000)
+      insert_account(external_id: 'ur_newer_signup')
+
+      result = diagnose(customer: customer)
+
+      expect(codes(result)).to include(:closure_interrupted)
+      expect(codes(result)).not_to include(:closure_rolled_back)
+    end
+
+    it 'names a closing customer with a closed auth account as an interrupted closure' do
+      allow(customer).to receive(:closure_started_at).and_return(1_700_000_000)
+      insert_account(status_id: 3)
+
+      expect(codes(diagnose(customer: customer))).to include(:closure_interrupted)
+    end
+
     # An orphaned account is only reachable by email if the operator HAS the
     # email. Support is usually handed an extid or the numeric account id from
     # a log line, and neither resolves to a Customer for an orphan.
@@ -359,6 +403,16 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
 
       expect(codes(result)).to include(:authdb_unavailable)
       expect(codes(result)).not_to include(:missing_auth_account)
+    end
+
+    it 'does not guess the state of a closing customer it cannot check' do
+      allow(Auth::Database).to receive(:connection).and_return(failing_db)
+      allow(customer).to receive(:closure_started_at).and_return(1_700_000_000)
+
+      result = diagnose(customer: customer)
+
+      expect(codes(result)).to include(:authdb_unavailable)
+      expect(codes(result)).not_to include(:closure_interrupted, :closure_rolled_back)
     end
 
     # A sidecar query can fail AFTER the accounts row was read, degrading the
@@ -566,6 +620,13 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
       expect(result.sections[:audit_log][:available]).to be(false)
       expect(result.sections[:customer][:found]).to be(true)
       expect(result.sections[:auth_account][:reason_code]).to eq(:simple_mode)
+    end
+
+    it 'names a closing customer as an interrupted closure' do
+      allow(Auth::Database).to receive(:connection).and_return(nil)
+      allow(customer).to receive(:closure_started_at).and_return(1_700_000_000)
+
+      expect(codes(diagnose(customer: customer))).to include(:closure_interrupted)
     end
 
     # The mirror of the authdb_unavailable case: with no authdb BY DESIGN the

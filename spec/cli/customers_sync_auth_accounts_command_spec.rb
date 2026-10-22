@@ -74,7 +74,7 @@ RSpec.describe 'customers sync-auth-accounts', type: :cli do
     expect(db[:accounts].select_map(:external_id)).to eq(['ur_migrating'])
     expect(db[:accounts].where(email: 'closed@example.com').count).to eq(0)
     expect(output[:stdout]).to include('Skipped (closing):   1')
-    expect(output[:stdout]).to include('bin/ots customers purge ID')
+    expect(output[:stdout]).to include('bin/ots customers finish-closures')
     expect(last_exit_code).to eq(0)
   end
 

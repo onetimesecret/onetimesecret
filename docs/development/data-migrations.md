@@ -404,8 +404,8 @@ without aborting the migration; Redis duplicates skip individual entries.
 issuer sentinel. Parameterized, operator-run repairs of auth data do
 not belong in this directory; they are `Auth::Operations` classes with a
 `bin/ots` command in front, as `sso backfill-issuer`,
-`customers role reconcile`, `customers normalize-emails` and
-`customers prune-closed-accounts` are. See the
+`customers role reconcile`, `customers normalize-emails`,
+`customers prune-closed-accounts` and `customers finish-closures` are. See the
 [auth migration guide](../../apps/web/auth/migrations/README.md).
 
 ### Mixed-case SSO account emails (`bin/ots customers normalize-emails`)
@@ -484,10 +484,46 @@ unique index on `accounts.email` does not cover them, and nothing resolves
 one to a Customer. The live run deletes, inside one transaction, every row
 in `RemoveAuthenticationData::DEPENDENT_TABLES` that references a closed
 account (the audit log, plus any credential row an interrupted closure left),
-then the `accounts` rows. The deletes use an `IN` subquery on the closed
-ids, so the same statements run on PostgreSQL and SQLite. Run it once after
-upgrading; re-running reports nothing to prune. Export the audit rows first
-if a compliance requirement needs them; nothing keeps them after the run.
+then the `accounts` rows. The closed ids are read once and locked, and every
+delete is keyed on that list (500 ids per statement), so the rows locked and
+the rows deleted are the same set; a row closed during the run is left for
+the next one. The same statements run on PostgreSQL and SQLite. Run it once
+after upgrading; re-running reports nothing to prune. Export the audit rows
+first if a compliance requirement needs them; nothing keeps them after the
+run.
+
+### Interrupted closures (`bin/ots customers finish-closures`)
+
+A closure marks the Customer record (`closure_started_at`) just before it
+removes the sign-in, and a completed closure deletes the record with it. A
+closure that stopped in between (a partial organization cleanup that still
+committed, a Redis failure during the record deletion) leaves the record in
+Redis, marked, with no `accounts` row. `customers diagnose` reports it as
+`:closure_interrupted`, `customers doctor` as `closure_interrupted`, and
+`customers sync-auth-accounts` skips it rather than give it a live auth
+account again. This command finds every such record and purges it through
+`Auth::Operations::Customers::FinishClosures`, which runs the same audited
+`Customers::Purge` as `bin/ots customers purge ID`.
+
+```bash
+bin/ots customers finish-closures                       # dry run: one line per record
+bin/ots customers finish-closures --json                # {dry_run, candidates, results}
+bin/ots customers finish-closures --confirm --reason "Ticket 123"  # purge
+```
+
+A record is selected when it is marked, the marker is older than 15 minutes
+(a younger one can belong to a closure still running), and, in full mode,
+no open `accounts` row carries its extid. A marked record with an open row
+is a closure whose transaction rolled back: the account is live, so it is
+never purged here; `customers doctor` reports it as `closure_rolled_back`
+and `--repair` clears the marker. Each purge runs the purge preflight, so a
+record that now has blockers is refused, reported with its blockers, and
+left as it is; the exit code is then 1.
+
+A new sign-up with the address of such a record does not wait for this
+command: it finishes the closure itself (the same purge, attributed to the
+record) and gets a new record, on the password path and on the paths that
+adopt an existing record by email (SSO first sign-in, invites).
 
 ## Moving keys between Redis databases or instances
 

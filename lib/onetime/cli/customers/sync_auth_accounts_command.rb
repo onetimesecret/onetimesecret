@@ -27,8 +27,8 @@
 # (Customer#closing?) is skipped: its auth account was deleted on purpose,
 # and a closure deletes the accounts row outright (#4819), so nothing in
 # the auth database says so any more. Re-creating the row would reopen the
-# account through a password reset. Finish such a closure with
-# `bin/ots customers purge` instead.
+# account through a password reset. Finish such closures with
+# `bin/ots customers finish-closures` instead.
 
 module Onetime
   module CLI
@@ -175,7 +175,7 @@ module Onetime
 
             #{stats[:skipped_closing]} customer record(s) belong to an account closure that did
             not finish. Their auth accounts were deleted on purpose and are not
-            re-created here. Finish each closure with: bin/ots customers purge ID
+            re-created here. Finish them with: bin/ots customers finish-closures
           MESSAGE
         end
 

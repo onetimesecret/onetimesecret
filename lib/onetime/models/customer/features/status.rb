@@ -6,6 +6,20 @@ require_relative '../../field_types'
 
 module Onetime::Customer::Features
   module Status
+    # See InstanceMethods#mark_closure_started!. Returns the stored marker,
+    # or nil when the record is gone.
+    MARK_CLOSURE_STARTED = <<~LUA
+      if redis.call('EXISTS', KEYS[1]) == 0 then return false end
+      redis.call('HSETNX', KEYS[1], 'closure_started_at', ARGV[1])
+      return redis.call('HGET', KEYS[1], 'closure_started_at')
+    LUA
+
+    # A closure runs inside one request and is done in seconds. A marker
+    # older than this belongs to a closure that is no longer running, so the
+    # tools that act on a marker (the customers doctor, finish-closures) can
+    # do so without racing the request that wrote it.
+    CLOSURE_STALE_AFTER = 15 * 60
+
     def self.included(base)
       OT.ld "[features] #{base}: #{name}"
 
@@ -122,11 +136,35 @@ module Onetime::Customer::Features
         !closure_started_at.to_s.empty?
       end
 
-      # Single-field write (HSET). The teardown is on its way out of the
-      # record; a full save would push stale in-memory state over newer
-      # writes.
+      # Closing, and for longer than any closure takes (CLOSURE_STALE_AFTER).
+      def closure_stale?(now: Familia.now.to_i)
+        closing? && now.to_i - closure_started_at.to_i >= CLOSURE_STALE_AFTER
+      end
+
+      # Single-field write, not a save: the teardown is on its way out of the
+      # record, and a full save would push stale in-memory state over newer
+      # writes. Not the fast writer either: its HSET would recreate a record
+      # a concurrent closure deleted in between, as a one-field hash re-added
+      # to the instances index, with no expiry. The script writes only while
+      # the record exists, and only once, so a closure that resumes keeps the
+      # time the first one started.
+      #
+      # @return [Boolean] false when the record no longer exists
       def mark_closure_started!(at: Familia.now.to_i)
-        closure_started_at!(at)
+        stored = dbclient.eval(MARK_CLOSURE_STARTED, keys: [dbkey], argv: [serialize_value(at)])
+        return false if stored.nil?
+
+        self.closure_started_at = deserialize_value(stored, field_name: :closure_started_at)
+        clear_dirty!(:closure_started_at) if respond_to?(:clear_dirty!)
+        true
+      end
+
+      # For a closure that rolled back: the auth account is open, so the
+      # record is live again. HDEL never recreates a deleted record.
+      def clear_closure_marker!
+        remove_field('closure_started_at')
+        self.closure_started_at = nil
+        clear_dirty!(:closure_started_at) if respond_to?(:clear_dirty!)
       end
 
       def active?

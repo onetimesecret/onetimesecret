@@ -134,6 +134,7 @@ module Auth
           check_sso_customer_unverified(issues, repaired)
           check_counter_sanity(issues, repaired)
           check_field_serialization(issues, repaired)
+          check_closure_marker(issues, repaired)
 
           audit_repair_outcome(repaired) if @repair
 
@@ -1058,7 +1059,8 @@ module Auth
                             db[:accounts].where(external_id: extid).select(:id, :email, :status_id).first
                           end
         rescue StandardError
-          @auth_account = nil
+          @auth_account_unreadable = true
+          @auth_account            = nil
         end
 
         # CHECK: an SSO-provisioned Customer left unverified (#3973)
@@ -1153,6 +1155,71 @@ module Auth
           # one unreachable DB or one bad record.
           OT.le "[customers doctor] sso_customer_unverified check failed for #{@customer.extid}: " \
                 "#{ex.class} #{ex.message}"
+        end
+
+        # CHECK: a closure marker on a record that still exists (#4830)
+        #
+        # Customer#mark_closure_started! runs just before a closure removes
+        # the sign-in, and a completed closure deletes the record with it. A
+        # record that still carries the marker is in one of two states, told
+        # apart by the auth account (the memoized read the cross-store checks
+        # share; in simple mode there is none):
+        #
+        #   no open auth account  The closure stopped before the record was
+        #                         deleted. Reported, never repaired here:
+        #                         finishing it deletes the account, which is
+        #                         `bin/ots customers finish-closures`.
+        #   open auth account     The closure's transaction rolled back and
+        #                         the account is live. --repair clears the
+        #                         marker, so the record stops reading as a
+        #                         closure and finish-closures leaves it alone.
+        #
+        # A marker younger than Customer::CLOSURE_STALE_AFTER can belong to a
+        # closure still running, whose uncommitted transaction reads here as
+        # an open account: it is reported as in progress and left alone. An
+        # unreadable auth database decides neither state, so nothing is
+        # reported.
+        def check_closure_marker(issues, repaired)
+          return unless @customer.closing?
+
+          started = Time.at(@customer.closure_started_at.to_i).utc.strftime('%Y-%m-%d %H:%M UTC')
+          unless @customer.closure_stale?
+            issues << {
+              check: :closure_in_progress,
+              severity: :low,
+              message: "account closure started at #{started} and may still be running",
+              repairable: false,
+            }
+            return
+          end
+
+          account = auth_account
+          return if @auth_account_unreadable
+
+          unless account && AccountStatuses::LIVE.include?(account[:status_id])
+            issues << {
+              check: :closure_interrupted,
+              severity: :high,
+              message: "account closure started at #{started} stopped before the record was deleted; " \
+                       'finish it with `bin/ots customers finish-closures --confirm`',
+              repairable: false,
+            }
+            return
+          end
+
+          issues << {
+            check: :closure_rolled_back,
+            severity: :medium,
+            message: "account closure started at #{started} rolled back; the auth account is open " \
+                     'and the record still carries the closure marker',
+            repairable: true,
+            repair_action: 'Clear the closure marker',
+          }
+          return unless @repair
+
+          @customer.clear_closure_marker!
+          OT.info "[customers doctor] Cleared the closure marker of #{@customer.extid} (closure rolled back)"
+          repaired << { customer: @customer.extid, action: :closure_marker_cleared }
         end
 
         # Auth database handle, or nil in simple mode / when unreachable.

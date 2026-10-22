@@ -183,6 +183,7 @@ module Auth
             provisioning_failure_code: customer.provisioning_failure_code,
             provisioning_failure_classification: customer.provisioning_failure_classification,
             provisioning_failed_at: numeric_epoch(customer.provisioning_failed_at),
+            closure_started_at: numeric_epoch(customer.closure_started_at),
           }
         # `error` is the wire contract the colonel panel renders; `available` /
         # `reason` are the same failure in the shape every other section uses, so
@@ -448,6 +449,7 @@ module Auth
         def derive_findings(sections)
           findings = []
           check_existence(sections, findings)
+          check_closure(sections, findings)
           check_customer_state(sections, findings)
           check_provisioning_state(sections, findings)
           check_auth_account(sections, findings)
@@ -507,13 +509,50 @@ module Auth
               'Auth account exists but has no customer record — login will misbehave. ' \
               'Run `bin/ots customers doctor` for repair options.',
             )
-          elsif customer_found && account[:available] && account[:found] != true
+          elsif customer_found && account[:available] && account[:found] != true &&
+                sections.dig(:customer, :closure_started_at).nil?
             add(
               findings,
               :critical,
               :missing_auth_account,
               'Customer record exists but has no auth account row — password login is impossible. ' \
               'Run `bin/ots customers sync-auth-accounts`.',
+            )
+          end
+        end
+
+        # A closure marker (Customer#closing?) on a record that still exists.
+        # Without a live auth account, the closure deleted the sign-in and
+        # stopped before the record went: re-creating the auth account (what
+        # :missing_auth_account advises) would reopen an account its owner
+        # closed, so this replaces that finding. With a live auth account of
+        # its own (find_account also matches by email, which can reach a row
+        # linked to another record), the closure's transaction rolled back
+        # and the account is open. A failed authdb read decides neither;
+        # check_existence reports it.
+        def check_closure(sections, findings)
+          started_at = sections.dig(:customer, :closure_started_at)
+          return if started_at.nil?
+
+          account = sections[:auth_account]
+          if account[:found] == true && account[:status] != 'closed' &&
+             account[:linked_extid] == sections.dig(:customer, :extid)
+            add(
+              findings,
+              :warning,
+              :closure_rolled_back,
+              "Customer record is marked as closing since #{format_epoch(started_at)}, but its auth " \
+              'account is open: the closure rolled back and the account is live. ' \
+              '`bin/ots customers doctor --repair` clears the marker.',
+            )
+          elsif account[:available] != false || account[:reason_code] == :simple_mode
+            add(
+              findings,
+              :critical,
+              :closure_interrupted,
+              "Customer record is marked as closing since #{format_epoch(started_at)} and has no open " \
+              'auth account: an account closure stopped before the record was deleted. Finish it ' \
+              'with `bin/ots customers finish-closures --confirm`; do not re-create the auth account.',
             )
           end
         end

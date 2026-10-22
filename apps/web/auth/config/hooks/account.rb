@@ -138,6 +138,13 @@ module Auth::Config::Hooks
           refuse_signup_for_existing_account(email)
         end
 
+        # A record a closure left behind when it stopped part-way (#4830) does
+        # not hold the address: its owner asked for it to be deleted, so the
+        # closure is finished here and the check below finds nothing. A
+        # closure still running has its accounts row, refused above.
+        leftover = Onetime::Customer.find_by_email(email) if Onetime::Customer.email_exists?(email)
+        Auth::Operations::EnsureCustomerForAccount.finish_interrupted_closure(leftover) if leftover&.closing?
+
         # Check Redis (customer database)
         # Note: In shared Redis dev setups, a customer may exist without an auth account
         if Onetime::Customer.email_exists?(email)
@@ -1304,15 +1311,14 @@ module Auth::Config::Hooks
       # is marked here, before anything is deleted; unmarked, it would read
       # as a customer that never had an auth account and `customers
       # sync-auth-accounts` would give it a live one. A failed write raises
-      # and the whole closure rolls back. A customer TeardownAccount already
-      # marked is not written to again: its record may be deleted, and a
-      # write would bring it back.
+      # and the whole closure rolls back. The write is a no-op for a record
+      # TeardownAccount already marked or deleted (see
+      # Customer#mark_closure_started!).
       #
       auth.delete_account_on_close? true
 
       auth.delete_account do
-        customer = @close_account_customer
-        customer.mark_closure_started! unless customer.closing?
+        @close_account_customer.mark_closure_started!
         Auth::Operations::RemoveAuthenticationData.delete_dependent_rows(db, account_id)
         super()
       end

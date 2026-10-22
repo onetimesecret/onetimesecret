@@ -12,10 +12,39 @@
 # intentionally does not track the class name.
 #
 
+require 'auth/operations/customers/purge'
+
 module Auth
   module Operations
     class EnsureCustomerForAccount
       include Onetime::LoggerMethods
+
+      # A record marked as closing (Customer#closing?) under a sign-up's
+      # address is what a closure left behind when it stopped after removing
+      # the sign-in and before deleting the record (#4830). Its owner asked
+      # for it to be deleted, so a new sign-up with the address does not
+      # adopt it, with its data and its marker: the closure is finished
+      # through the same purge `bin/ots customers finish-closures` runs, and
+      # the sign-up gets a new record. The purge is the record's own
+      # (self_service:), as the continuation of the closure it asked for.
+      #
+      # Called here for every adopting caller (SSO JIT, invite) and from
+      # before_create_account, which otherwise refuses a password sign-up
+      # whose address has a Customer record.
+      #
+      # @param customer [Onetime::Customer] a record with closing? true
+      # @return [Boolean] true when the record is gone afterwards; false when
+      #   the purge stopped (blockers, a failure) and the record is still there
+      def self.finish_interrupted_closure(customer)
+        result = Auth::Operations::Customers::Purge.new(
+          customer: customer,
+          self_service: true,
+          reason: 'finish an interrupted closure before a sign-up with the same address',
+        ).call
+        OT.auth_logger.info "[create-customer] Finished the interrupted closure of #{customer.extid} " \
+                            "before sign-up (status: #{result.status})"
+        !customer.exists?
+      end
 
       # @param account_id [Integer] The ID of the Rodauth account
       # @param account [Hash] The Rodauth account hash, containing at least :email
@@ -88,33 +117,38 @@ module Auth
         # mixed-case email misses the find branch and re-enters create!, raising
         # RecordExistsError. exists?(identifier) checks objid, never the email
         # index, so we must use email_exists?/find_by_email here.
-        email = OT::Utils.normalize_email(@account[:email])
+        email    = OT::Utils.normalize_email(@account[:email])
+        existing = Onetime::Customer.find_by_email(email) if Onetime::Customer.email_exists?(email)
 
-        if Onetime::Customer.email_exists?(email)
-          customer = Onetime::Customer.find_by_email(email)
-          auth_logger.info "[create-customer] Found existing customer: #{customer.custid}"
-        else
-          # New accounts default to 'customer' role. Colonel promotion
-          # is handled exclusively via CLI: bin/ots customers role promote user@example.com
-          customer = Onetime::Customer.create!(
-            email: email,
-            role: 'customer',
-            # Default false: the password-signup shape, flipped later by
-            # after_verify_account. True only when the caller has already
-            # established verification (see the `verified:` param docs).
-            verified: @verified,
-            verified_by: @verified_by,
-            verification_hold: @verification_hold,
-            provisioning_origin: @provisioning_origin,
-            signup_domain_id: @signup_domain_id,
-          )
-
-          auth_logger.info "[create-customer] Created new customer: #{customer.custid} (role: customer, " \
-                           "origin: #{@provisioning_origin || 'unknown'}, " \
-                           "signup_domain_id: #{@signup_domain_id || 'none'}, " \
-                           "verified: #{@verified}, verified_by: #{@verified_by || 'none'}, " \
-                           "verification_hold: #{@verification_hold || 'none'})"
+        if existing && !existing.closing?
+          auth_logger.info "[create-customer] Found existing customer: #{existing.custid}"
+          return existing
         end
+
+        if existing && !self.class.finish_interrupted_closure(existing)
+          raise Onetime::Problem, "The interrupted closure of #{existing.extid} could not be finished"
+        end
+
+        # New accounts default to 'customer' role. Colonel promotion
+        # is handled exclusively via CLI: bin/ots customers role promote user@example.com
+        customer = Onetime::Customer.create!(
+          email: email,
+          role: 'customer',
+          # Default false: the password-signup shape, flipped later by
+          # after_verify_account. True only when the caller has already
+          # established verification (see the `verified:` param docs).
+          verified: @verified,
+          verified_by: @verified_by,
+          verification_hold: @verification_hold,
+          provisioning_origin: @provisioning_origin,
+          signup_domain_id: @signup_domain_id,
+        )
+
+        auth_logger.info "[create-customer] Created new customer: #{customer.custid} (role: customer, " \
+                         "origin: #{@provisioning_origin || 'unknown'}, " \
+                         "signup_domain_id: #{@signup_domain_id || 'none'}, " \
+                         "verified: #{@verified}, verified_by: #{@verified_by || 'none'}, " \
+                         "verification_hold: #{@verification_hold || 'none'})"
 
         customer
       end

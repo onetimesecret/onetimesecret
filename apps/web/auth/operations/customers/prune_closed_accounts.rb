@@ -38,11 +38,14 @@ module Auth
       # RemoveAuthenticationData::DEPENDENT_TABLES that references a closed
       # account (the audit log is the table expected to have rows; the
       # credential tables were cleared at closure, but a row left by an
-      # interrupted closure is removed too), then the accounts rows. Each
-      # delete uses an IN subquery on the closed ids, so the same statements
-      # run on PostgreSQL and SQLite. The closed rows are locked first (FOR
-      # UPDATE, ignored by SQLite) for the reason given at
-      # RemoveAuthenticationData.delete_dependent_rows. Re-running is a no-op.
+      # interrupted closure is removed too), then the accounts rows. The
+      # closed ids are read once, locked (FOR UPDATE, ignored by SQLite) for
+      # the reason given at RemoveAuthenticationData.delete_dependent_rows,
+      # and every delete is keyed on that list, so the rows locked and the
+      # rows deleted are the same set. The list goes out in slices of
+      # DELETE_BATCH ids per statement, which bounds the statement size
+      # however large the backlog is. The same statements run on PostgreSQL
+      # and SQLite. Re-running is a no-op.
       class PruneClosedAccounts
         # @!attribute dry_run [r]
         #   @return [Boolean]
@@ -52,6 +55,9 @@ module Auth
         #   @return [Hash{Symbol=>Integer}] dependent rows found or deleted,
         #     per table; only tables with at least one row are listed
         Result = Data.define(:dry_run, :accounts, :rows)
+
+        # Closed ids per DELETE statement.
+        DELETE_BATCH = 500
 
         # @param dry_run [Boolean] report only (default). `false` deletes.
         # @param db [Sequel::Database, nil] defaults to Auth::Database.connection
@@ -101,12 +107,17 @@ module Auth
 
         def delete_rows
           @db.transaction do
-            closed_accounts.for_update.select_map(:id)
-            rows = dependent_tables.each_with_object({}) do |table, counts|
-              count         = dependent_rows(table).delete
-              counts[table] = count if count.positive?
+            ids      = closed_accounts.for_update.select_order_map(:id)
+            tables   = dependent_tables
+            rows     = Hash.new(0)
+            accounts = ids.each_slice(DELETE_BATCH).sum do |slice|
+              tables.each do |table|
+                column       = RemoveAuthenticationData.fk_column_for(table)
+                rows[table] += @db[table].where(column => slice).delete
+              end
+              @db[:accounts].where(id: slice).delete
             end
-            [closed_accounts.delete, rows]
+            [accounts, rows.select { |_table, count| count.positive? }]
           end
         end
       end

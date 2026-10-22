@@ -160,6 +160,35 @@ RSpec.describe 'Closed account pruning (#4819)', type: :integration do
       expect(audit_count(unverified)).to eq(1)
     end
 
+    it 'deletes the same rows when the closed ids go out one per statement' do
+      stub_const('Auth::Operations::Customers::PruneClosedAccounts::DELETE_BATCH', 1)
+
+      result = new_operation(dry_run: false).call
+
+      expect(result.accounts).to eq(2)
+      expect(result.rows).to include(account_authentication_audit_logs: 3, account_identities: 1)
+      expect(accounts.where(id: [closed_with_history, closed_bare]).count).to eq(0)
+      expect(audit_count(verified)).to eq(2)
+    end
+
+    # The deletes are keyed on the ids the lock read returned, not on a
+    # status subquery evaluated again per statement: a row closed after the
+    # lock was never locked, so it is left for the next run.
+    it 'leaves a row closed after the lock read for the next run' do
+      operation = new_operation(dry_run: false)
+      allow(operation).to receive(:dependent_tables).and_wrap_original do |original|
+        accounts.where(id: verified).update(status_id: AuthTestConstants::STATUS_CLOSED)
+        original.call
+      end
+
+      result = operation.call
+
+      expect(result.accounts).to eq(2)
+      expect(accounts.where(id: verified).count).to eq(1)
+      expect(audit_count(verified)).to eq(2)
+      expect(new_operation(dry_run: false).call.accounts).to eq(1)
+    end
+
     it 'is a no-op the second time' do
       new_operation(dry_run: false).call
       result = new_operation(dry_run: false).call
