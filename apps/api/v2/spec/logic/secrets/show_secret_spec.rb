@@ -33,15 +33,17 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
     session
   end
 
-  # customer: overrides the default anonymous caller for the verification
-  # branches that depend on who is logged in. Pass params as a braced hash --
-  # the customer: kwarg would otherwise swallow a bare trailing hash.
+  # Without customer: the caller is anonymous and the user is nil, which is
+  # what NoAuthStrategy returns on the auth=noauth guest routes (#2733). The
+  # same anonymous Customer double in reveal_secret_spec.rb hid #4831.
+  # customer: sets who is logged in for the branches that depend on it. Pass
+  # params as a braced hash -- the customer: kwarg would otherwise swallow a
+  # bare trailing hash.
   # ip:/user_agent: model the request context the auth strategy resolves into
   # StrategyResult metadata (already edge-masked by Otto in production); nil by
   # default so pre-existing examples run the no-network-context path unchanged.
   def build_logic(params, customer: nil, ip: nil, user_agent: nil)
-    customer ||= double('Customer', custid: 'anon', anonymous?: true, objid: nil)
-    org      = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
+    org = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
     allow(org).to receive(:can?).and_return(true)
 
     metadata = { organization: org }
@@ -52,7 +54,7 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       session: mock_session,
       user: customer,
       metadata: metadata,
-      auth_method: 'basicauth')
+      auth_method: customer ? 'basicauth' : 'noauth')
 
     described_class.new(strategy_result, params)
   end
