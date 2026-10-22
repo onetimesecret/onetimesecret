@@ -135,23 +135,28 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     end
   end
 
-  # The data checks run after this one, and only for a record that is no
-  # longer closing: an unfinished closure is deleted by finish-closures, not
-  # reported on or repaired into shape.
+  # The data checks run after this one. For a record that is still closing
+  # they report but repair nothing: an unfinished closure is deleted by
+  # finish-closures, not repaired into shape, and a blocked one still needs
+  # the read-out.
   describe 'the data checks' do
-    let(:doctor) do
-      described_class.new(customer: customer, repair: true).tap do |instance|
-        allow(instance).to receive(:check_customer_data)
+    let(:runs) { [] }
+
+    before do
+      allow_any_instance_of(described_class).to receive(:check_customer_data) do |doctor, issues, _repaired|
+        runs << doctor.instance_variable_get(:@repair)
+        issues << { check: :data_check, severity: :low, message: 'data', repairable: true }
       end
     end
 
     context 'when the closure was interrupted' do
       let(:account_row) { nil }
 
-      it 'do not run, even under --repair' do
-        doctor.call
+      it 'report without repairing, even under --repair' do
+        report = described_class.new(customer: customer, repair: true).call
 
-        expect(doctor).not_to have_received(:check_customer_data)
+        expect(runs).to eq([false])
+        expect(report.issues.map { |issue| issue[:check] }).to include(:closure_interrupted, :data_check)
       end
     end
 
@@ -161,9 +166,9 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       end
 
       it 'run as usual' do
-        doctor.call
+        described_class.new(customer: customer, repair: true).call
 
-        expect(doctor).to have_received(:check_customer_data)
+        expect(runs).to eq([true])
       end
     end
   end

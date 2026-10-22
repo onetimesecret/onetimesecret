@@ -123,11 +123,16 @@ module Auth
           # First, so a closure that rolled back is cleared before anything
           # else runs. A record still marked after it belongs to a closure
           # that has not finished: its owner asked for it to be deleted, and
-          # finish-closures deletes it. The data checks would only report on,
-          # or repair into shape (a workspace provisioned, an index rebuilt),
-          # a record on its way out, so they do not run for it.
+          # finish-closures deletes it. Nothing repairs it into shape (a
+          # workspace provisioned, an index rebuilt), but a closure whose purge
+          # stays blocked still needs the read-out, so a report-only doctor
+          # runs the data checks for it.
           check_closure_marker(issues, repaired)
-          check_customer_data(issues, repaired) unless @customer.closing?
+          if @customer.closing?
+            self.class.new(customer: @customer).check_customer_data(issues, [])
+          else
+            check_customer_data(issues, repaired)
+          end
 
           audit_repair_outcome(repaired) if @repair
 
@@ -151,6 +156,8 @@ module Auth
         end
 
         # Every per-customer check but the closure marker (see #call).
+        # Protected: #call runs it on a report-only instance for a record
+        # that is still closing.
         def check_customer_data(issues, repaired)
           check_workspace_collision(issues, repaired)
           check_provisioning_failure(issues, repaired)
@@ -167,7 +174,7 @@ module Auth
           check_counter_sanity(issues, repaired)
           check_field_serialization(issues, repaired)
         end
-        private :check_customer_data
+        protected :check_customer_data
 
         # Index-level check: email_index entries point to live customers with the
         # right email. Returns { issues:, repaired: }. Cross-customer, so it is a

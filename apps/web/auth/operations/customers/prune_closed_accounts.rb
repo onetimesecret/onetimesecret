@@ -121,10 +121,15 @@ module Auth
           [closed_accounts.count, rows, leftover_customers(closed_accounts.select_order_map(:id)).size]
         end
 
+        # The leftover records are resolved and marked before the transaction
+        # opens, so its row locks are not held across a Redis round trip per
+        # row; only rows that closed in between are marked under the lock.
         def delete_rows
+          premarked = closed_accounts.select_order_map(:id)
+          marked    = mark_leftover_customers(premarked)
           @db.transaction do
             ids      = closed_accounts.for_update.select_order_map(:id)
-            marked   = mark_leftover_customers(ids)
+            marked  += mark_leftover_customers(ids - premarked)
             tables   = dependent_tables
             rows     = Hash.new(0)
             accounts = ids.each_slice(DELETE_BATCH).sum do |slice|
@@ -139,7 +144,7 @@ module Auth
         end
 
         # Before the rows go (see the class comment). A failed write raises
-        # and the transaction deletes nothing.
+        # and nothing is deleted.
         def mark_leftover_customers(ids)
           leftover_customers(ids).count do |customer, closed_at|
             customer.mark_closure_started!(at: closed_at)
