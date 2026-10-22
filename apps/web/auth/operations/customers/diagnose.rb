@@ -551,8 +551,9 @@ module Auth
               :critical,
               :closure_interrupted,
               "Customer record is marked as closing since #{format_epoch(started_at)} and has no open " \
-              'auth account: an account closure stopped before the record was deleted. Finish it ' \
-              'with `bin/ots customers finish-closures --confirm`; do not re-create the auth account.',
+              'auth account: an account closure stopped before the record was deleted. Finish it with ' \
+              "`bin/ots customers purge #{sections.dig(:customer, :extid)}` (or every such closure with " \
+              '`bin/ots customers finish-closures --confirm`); do not re-create the auth account.',
             )
           end
         end

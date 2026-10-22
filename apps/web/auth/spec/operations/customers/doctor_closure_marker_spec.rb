@@ -75,7 +75,8 @@ RSpec.describe Auth::Operations::Customers::Doctor do
 
       expect(checks).to eq([:closure_interrupted])
       expect(issues.first).to include(severity: :high, repairable: false)
-      expect(issues.first[:message]).to include('finish-closures')
+      expect(issues.first[:message])
+        .to include("bin/ots customers purge #{customer.extid}").and include('finish-closures')
       expect(customer).not_to have_received(:clear_closure_marker!)
     end
   end

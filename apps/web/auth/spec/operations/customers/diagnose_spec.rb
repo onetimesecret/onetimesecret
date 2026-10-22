@@ -300,7 +300,8 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
 
       expect(codes(result)).to include(:closure_interrupted)
       expect(codes(result)).not_to include(:missing_auth_account)
-      expect(finding(result, :closure_interrupted)[:message]).to include('finish-closures')
+      expect(finding(result, :closure_interrupted)[:message])
+        .to include('bin/ots customers purge ur_target').and include('finish-closures')
       expect(result.sections[:customer][:closure_started_at]).to eq(1_700_000_000.0)
     end
 

@@ -1201,7 +1201,8 @@ module Auth
               check: :closure_interrupted,
               severity: :high,
               message: "account closure started at #{started} stopped before the record was deleted; " \
-                       'finish it with `bin/ots customers finish-closures --confirm`',
+                       "finish it with `bin/ots customers purge #{@customer.extid}` (or every such " \
+                       'closure with `bin/ots customers finish-closures --confirm`)',
               repairable: false,
             }
             return

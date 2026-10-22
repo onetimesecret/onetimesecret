@@ -1207,6 +1207,18 @@ module Auth::Config::Hooks
         # where implicit-argument super is not allowed.
         super()
 
+        # The closure marker (#4819, #4830) goes on before the purge's first
+        # mutation. From here on the closure either commits, and
+        # delete_account below deletes the accounts row, or it is refused
+        # with nothing changed. A failed write (Valkey unreachable) refuses
+        # it here. A refusal clears the marker again (the rescue below).
+        # Writing it any later fails one way or the other in an outage that
+        # starts mid-purge: after the purge it is skipped and the surviving
+        # record reads as a customer that never had an auth account; in
+        # delete_account it raises and rolls back a closure whose Redis half
+        # is already gone.
+        @close_account_customer.mark_closure_started!
+
         purge  = Auth::Operations::Customers::Purge.new(
           customer: @close_account_customer,
           self_service: true,
@@ -1251,7 +1263,23 @@ module Auth::Config::Hooks
           cleanup_status: result.status,
         )
       rescue StandardError => ex
-        raise unless purge&.mutation_started?
+        unless purge&.mutation_started?
+          # Refused with nothing changed (the FormError above lands here too):
+          # the account stays open, so the marker goes. Best effort: a marker
+          # left on a live account reads as a closure that rolled back, which
+          # `customers doctor --repair` clears.
+          begin
+            @close_account_customer&.clear_closure_marker!
+          rescue StandardError => clear_error
+            OT.le(
+              '[account_close] closure marker not cleared after a refusal',
+              exception: clear_error,
+              original_exception: ex,
+              external_id: account[:external_id],
+            )
+          end
+          raise ex
+        end
 
         context = purge.outcome_context
         begin
@@ -1307,18 +1335,15 @@ module Auth::Config::Hooks
       # The row also goes when the cleanup stopped before TeardownAccount
       # closed the auth account: a partial Purge, or one that raised after its
       # first mutation, still commits (after_close_account above). Such a
-      # customer record is still in Redis and teardown never marked it, so it
-      # is marked here, before anything is deleted; unmarked, it would read
-      # as a customer that never had an auth account and `customers
-      # sync-auth-accounts` would give it a live one. A failed write raises
-      # and the whole closure rolls back. The write is a no-op for a record
-      # TeardownAccount already marked or deleted (see
-      # Customer#mark_closure_started!).
+      # customer record is still in Redis; after_close_account marked it
+      # before the purge started, so it reads as an interrupted closure and
+      # not as a customer that never had an auth account. Nothing here
+      # touches Redis: a write failing at this point would roll back a
+      # closure whose Redis half is already gone.
       #
       auth.delete_account_on_close? true
 
       auth.delete_account do
-        @close_account_customer.mark_closure_started!
         Auth::Operations::RemoveAuthenticationData.delete_dependent_rows(db, account_id)
         super()
       end

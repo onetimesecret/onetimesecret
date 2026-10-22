@@ -38,8 +38,8 @@ module Auth
     # leaves that record alone rather than provisioning a new auth account
     # for it: the closed accounts row used to be the only thing standing in
     # its way.
-    # A self-service closure whose cleanup stopped before this operation ran
-    # is marked by the delete_account override instead.
+    # A self-service closure is marked earlier, by after_close_account
+    # before its purge starts; the write here is then a no-op.
     #
     # Colonel auditing remains in Customers::Purge. Supplying actor selects the
     # audited administrative session-revocation operation; self-service callers do

@@ -65,9 +65,9 @@ module Onetime::Customer::Features
 
       # Account closure in progress or interrupted (#4819). Written by
       # Auth::Operations::TeardownAccount just before it removes the sign-in
-      # identity, or by the self-service closure's delete_account override
-      # when the cleanup stopped before that, and deleted with the record
-      # when the closure completes. A record that outlives its closure (the
+      # identity (a self-service closure: by after_close_account, before its
+      # purge starts), and deleted with the record when the closure
+      # completes. A record that outlives its closure (the
       # Redis deletion failed, or the cleanup stopped part-way, after the
       # SQL identity was removed) keeps it, and `bin/ots customers
       # sync-auth-accounts` refuses to provision a new auth account for it.

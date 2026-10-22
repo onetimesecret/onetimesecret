@@ -133,6 +133,18 @@ RSpec.describe 'Interrupted account closures (#4830)', type: :integration do
         expect(auth_db[:accounts].where(id: account_id).get(:external_id)).to eq(customer.extid)
       end
 
+      # A marked record with its own open accounts row is a closure that
+      # rolled back; the finish never purges a live account.
+      it 'never purges a marked record that has an open auth account' do
+        rolled_back = sign_up(unique_test_email('rolled-back'))
+        rolled_back.mark_closure_started!(at: an_hour_ago)
+        allow(Auth::Operations::Customers::Purge).to receive(:new).and_call_original
+
+        expect(Auth::Operations::EnsureCustomerForAccount.finish_interrupted_closure(rolled_back)).to be(false)
+        expect(Auth::Operations::Customers::Purge).not_to have_received(:new)
+        expect(rolled_back.exists?).to be(true)
+      end
+
       it 'refuses to adopt the record when the closure cannot be finished' do
         refused = Auth::Operations::Customers::Purge::Result.new(status: :refused, extid: leftover.extid, custid: nil)
         allow(Auth::Operations::Customers::Purge).to receive(:new)

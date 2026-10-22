@@ -12,6 +12,7 @@
 # intentionally does not track the class name.
 #
 
+require 'auth/account_statuses'
 require 'auth/operations/customers/purge'
 
 module Auth
@@ -32,10 +33,17 @@ module Auth
       # before_create_account, which otherwise refuses a password sign-up
       # whose address has a Customer record.
       #
+      # A marked record with an open accounts row of its own is a closure
+      # that rolled back: the account is live and is never purged here (the
+      # same rule as Customers::FinishClosures).
+      #
       # @param customer [Onetime::Customer] a record with closing? true
       # @return [Boolean] true when the record is gone afterwards; false when
-      #   the purge stopped (blockers, a failure) and the record is still there
+      #   it has an open auth account, or the purge stopped (blockers, a
+      #   failure) and the record is still there
       def self.finish_interrupted_closure(customer)
+        return false if open_auth_account?(customer)
+
         result = Auth::Operations::Customers::Purge.new(
           customer: customer,
           self_service: true,
@@ -45,6 +53,15 @@ module Auth
                             "before sign-up (status: #{result.status})"
         !customer.exists?
       end
+
+      def self.open_auth_account?(customer)
+        return false unless Onetime.auth_config.full_enabled?
+
+        Auth::Database.connection[:accounts]
+          .where(external_id: customer.extid, status_id: Auth::AccountStatuses::LIVE)
+          .any?
+      end
+      private_class_method :open_auth_account?
 
       # @param account_id [Integer] The ID of the Rodauth account
       # @param account [Hash] The Rodauth account hash, containing at least :email
