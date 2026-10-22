@@ -23,7 +23,7 @@
 #   - from a browser with no signed-in session the insert writes a NULL id
 #     ("NOT NULL constraint failed: account_recovery_codes.id") and the
 #     verification answers 500;
-#   - from a browser still holding another account's session that the app has
+#   - from a browser still signed in to another account in a session the app has
 #     not marked authenticated (which already_logged_in in config/base.rb lets
 #     through to this route), the codes are counted, and topped up, on that
 #     other account, and the account being verified gets none.
@@ -39,7 +39,7 @@
 #
 # The verification is Rodauth's own two-phase JSON ceremony: the first POST
 # with the key answers 422 with the credential-creation options, the second
-# carries the attestation the webauthn gem's FakeClient signs for them.
+# sends the attestation the webauthn gem's FakeClient signs for them.
 # support/webauthn_flow_helper.rb is not required here: requiring it sets
 # AUTH_WEBAUTHN_ENABLED for the whole process, and this file runs in lanes
 # that boot without webauthn.
@@ -206,7 +206,7 @@ RSpec.describe 'Passkey verify-account with recovery codes auto-added', type: :i
     expect(auth_db[:account_recovery_codes].count - rows_before).to eq(codes_limit)
   end
 
-  # A browser that verified one account by passkey still holds that account's
+  # A browser that verified one account by passkey keeps that account's
   # autologin session (account_id set, `authenticated` not), which
   # already_logged_in (config/base.rb) lets through to /auth/verify-account.
   # Following a second account's link there must add the codes to the second

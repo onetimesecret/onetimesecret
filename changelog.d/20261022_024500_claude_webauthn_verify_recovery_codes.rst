@@ -8,5 +8,5 @@ Fixed
   verification step answered with a server error and the account stayed
   unverified, because the recovery codes generated with the new passkey had
   no account to belong to yet. The codes now go to the account being
-  verified, also when the browser still holds another account's
-  not-yet-authenticated session.
+  verified, also when the browser still has a partly signed-in session for
+  another account, which could receive them instead.
