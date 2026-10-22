@@ -17,8 +17,8 @@ select these jobs:
 - The `browser` lane, which exercises SAML callbacks in Chromium, Firefox, and
   WebKit.
 - [Full-auth E2E](../../.github/workflows/e2e-full-auth.yml), including real
-  verification email delivery in full mode and, in its `e2e-simple-auth` job,
-  in simple mode.
+  verification email delivery in full mode and, in its simple-mode matrix
+  row, in simple mode.
 - [Tenant Connect E2E](../../.github/workflows/e2e-tenant-connect.yml).
 
 ## What every Ruby change still runs

@@ -41,7 +41,7 @@
 //     --project=chromium
 //   # with PLAYWRIGHT_BASE_URL=<simple-mode server> MAILPIT_URL=<its Mailpit>
 //
-// Run by .github/workflows/e2e-full-auth.yml (job e2e-simple-auth).
+// Run by .github/workflows/e2e-full-auth.yml (the matrix's simple row).
 
 import { expect, test, type APIRequestContext } from '@playwright/test';
 
