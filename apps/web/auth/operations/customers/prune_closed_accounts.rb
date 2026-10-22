@@ -43,7 +43,11 @@ module Auth
       # which the update trigger set when the row closed. The record then
       # reads as an interrupted closure to `customers diagnose` and `doctor`,
       # sync skips it, and `customers finish-closures` purges it. A failed
-      # marker write raises and the transaction deletes nothing.
+      # marker write raises and the transaction deletes nothing. Most
+      # markers are written before the transaction opens (see #delete_rows),
+      # so a run whose transaction rolls back leaves them in place. That is
+      # still accurate: each such record is an interrupted closure whether or
+      # not its row goes, and a re-run keeps the first marker's time.
       #
       # Dry run (the default) counts and writes nothing. A live run deletes,
       # inside one transaction, every row in

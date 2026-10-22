@@ -47,14 +47,15 @@ module Auth
       # a record marked between that check and the insert: by then the row
       # is committed, and all it can do is refuse to adopt the record.
       #
-      # Two records are left alone, by the same rules as
-      # Customers::FinishClosures: a marker younger than
-      # Customer::CLOSURE_STALE_AFTER, which can belong to a closure still
-      # running (an administrative purge deletes the accounts row in its own
-      # transaction before it deletes the record), and a marked record with
-      # an open accounts row of its own, a closure that rolled back. The
-      # sign-up is refused instead, and a retry once the marker is old
-      # enough finishes the first.
+      # Only a closure Customer.closure_state classifies as :interrupted is
+      # finished, as in Customers::FinishClosures. Two records are left
+      # alone: a marker younger than Customer::CLOSURE_STALE_AFTER
+      # (:in_progress), which can belong to a closure still running (an
+      # administrative purge deletes the accounts row in its own transaction
+      # before it deletes the record), and a marked record with an open
+      # accounts row of its own (:rolled_back). The sign-up is refused
+      # instead, and a retry once the marker is old enough finishes the
+      # first.
       #
       # @param email [String] the sign-up's address
       # @return [Onetime::Customer, nil] the closing record when it is still
@@ -68,14 +69,13 @@ module Auth
 
       # @return [Boolean] true when +customer+ is gone afterwards
       def self.finish_interrupted_closure(customer)
-        reason   = :closure_in_progress unless customer.closure_stale?
-        reason ||= :open_auth_account if open_auth_account?(customer)
-        if reason
+        state = customer.closure_state(open_auth_account: open_auth_account?(customer))
+        unless state == :interrupted
           Auth::Logging.log_auth_event(
             :interrupted_closure_not_finished,
             level: :error,
             external_id: customer.extid,
-            reason: reason,
+            closure_state: state,
           )
           return false
         end

@@ -17,8 +17,8 @@ module Onetime::Customer::Features
 
     # A closure runs inside one request and is done in seconds. A marker
     # older than this belongs to a closure that is no longer running, so the
-    # tools that act on a marker (the customers doctor, finish-closures) can
-    # do so without racing the request that wrote it.
+    # tools that act on a marker can do so without racing the request that
+    # wrote it (see ClassMethods#closure_state).
     CLOSURE_STALE_AFTER = 15 * 60
 
     def self.included(base)
@@ -92,6 +92,34 @@ module Onetime::Customer::Features
           "Unknown verification_hold #{value.inspect}; " \
           "expected one of: #{Onetime::Customer::VERIFICATION_HOLDS.keys.join(', ')}"
       end
+
+      # Where a closure stands: the one rule every reader of the closure
+      # marker applies (customers finish-closures, diagnose and doctor, and
+      # the sign-up that finishes a leftover closure), so none of them can
+      # disagree about a record.
+      #
+      #   :in_progress  the marker is younger than CLOSURE_STALE_AFTER: the
+      #                 closure may still be running, and an uncommitted one
+      #                 reads as an open account, so nothing acts on it
+      #   :rolled_back  older, and the record's own accounts row is live:
+      #                 the closure's transaction rolled back
+      #   :interrupted  older, with no live accounts row of its own: the
+      #                 closure stopped before the record was deleted
+      #
+      # @param started_at [Integer, String, nil] Customer#closure_started_at
+      # @param open_auth_account [Boolean, nil] whether the accounts row with
+      #   the record's external_id has a live status (false in simple mode,
+      #   which has none); nil when it could not be read
+      # @param now [Integer] epoch seconds
+      # @return [Symbol, nil] nil when the record is not closing, or when
+      #   open_auth_account is nil and the marker is old enough to need it
+      def closure_state(started_at, open_auth_account:, now: Familia.now.to_i)
+        return if started_at.to_s.empty?
+        return :in_progress if now.to_i - started_at.to_i < CLOSURE_STALE_AFTER
+        return if open_auth_account.nil?
+
+        open_auth_account ? :rolled_back : :interrupted
+      end
     end
 
     module InstanceMethods
@@ -137,9 +165,9 @@ module Onetime::Customer::Features
         !closure_started_at.to_s.empty?
       end
 
-      # Closing, and for longer than any closure takes (CLOSURE_STALE_AFTER).
-      def closure_stale?(now: Familia.now.to_i)
-        closing? && now.to_i - closure_started_at.to_i >= CLOSURE_STALE_AFTER
+      # Customer.closure_state for this record.
+      def closure_state(open_auth_account:, now: Familia.now.to_i)
+        self.class.closure_state(closure_started_at, open_auth_account: open_auth_account, now: now)
       end
 
       # Single-field write, not a save: the teardown is on its way out of the

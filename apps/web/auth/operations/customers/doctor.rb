@@ -1209,25 +1209,24 @@ module Auth
         # closure still running, whose uncommitted transaction reads here as
         # an open account: it is reported as in progress and left alone. An
         # unreadable auth database decides neither state, so nothing is
-        # reported.
+        # reported. Customer.closure_state is the classification, shared with
+        # finish-closures, diagnose and the sign-up finish.
         def check_closure_marker(issues, repaired)
           return unless @customer.closing?
 
+          account = auth_account
+          live    = @auth_account_unreadable ? nil : !account.nil? && AccountStatuses::LIVE.include?(account[:status_id])
           started = Time.at(@customer.closure_started_at.to_i).utc.strftime('%Y-%m-%d %H:%M UTC')
-          unless @customer.closure_stale?
+
+          case @customer.closure_state(open_auth_account: live)
+          when :in_progress
             issues << {
               check: :closure_in_progress,
               severity: :low,
               message: "account closure started at #{started} and may still be running",
               repairable: false,
             }
-            return
-          end
-
-          account = auth_account
-          return if @auth_account_unreadable
-
-          unless account && AccountStatuses::LIVE.include?(account[:status_id])
+          when :interrupted
             issues << {
               check: :closure_interrupted,
               severity: :high,
@@ -1236,22 +1235,21 @@ module Auth
                        'closure with `bin/ots customers finish-closures --confirm`)',
               repairable: false,
             }
-            return
+          when :rolled_back
+            issues << {
+              check: :closure_rolled_back,
+              severity: :medium,
+              message: "account closure started at #{started} rolled back; the auth account is open " \
+                       'and the record still carries the closure marker',
+              repairable: true,
+              repair_action: 'Clear the closure marker',
+            }
+            return unless repairing_closure_marker?
+
+            @customer.clear_closure_marker!
+            OT.info "[customers doctor] Cleared the closure marker of #{@customer.extid} (closure rolled back)"
+            repaired << { customer: @customer.extid, action: :closure_marker_cleared }
           end
-
-          issues << {
-            check: :closure_rolled_back,
-            severity: :medium,
-            message: "account closure started at #{started} rolled back; the auth account is open " \
-                     'and the record still carries the closure marker',
-            repairable: true,
-            repair_action: 'Clear the closure marker',
-          }
-          return unless repairing_closure_marker?
-
-          @customer.clear_closure_marker!
-          OT.info "[customers doctor] Cleared the closure marker of #{@customer.extid} (closure rolled back)"
-          repaired << { customer: @customer.extid, action: :closure_marker_cleared }
         end
 
         # Auth database handle, or nil in simple mode / when unreachable.

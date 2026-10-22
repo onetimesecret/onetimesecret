@@ -532,11 +532,14 @@ module Auth
         # check_existence reports it. A marker younger than
         # Customer::CLOSURE_STALE_AFTER can belong to a closure still
         # running, which a purge would race, so it is reported as that.
+        # Customer.closure_state is the classification, shared with doctor,
+        # finish-closures and the sign-up finish.
         def check_closure(sections, findings)
           started_at = sections.dig(:customer, :closure_started_at)
           return if started_at.nil?
 
-          if Familia.now.to_i - started_at.to_i < Onetime::Customer::CLOSURE_STALE_AFTER
+          case Onetime::Customer.closure_state(started_at, open_auth_account: own_auth_account_open(sections))
+          when :in_progress
             add(
               findings,
               :info,
@@ -544,12 +547,7 @@ module Auth
               "Account closure started at #{format_epoch(started_at)} and may still be running. " \
               'Check again in 15 minutes before acting on it.',
             )
-            return
-          end
-
-          account = sections[:auth_account]
-          if account[:found] == true && account[:status] != 'closed' &&
-             account[:linked_extid] == sections.dig(:customer, :extid)
+          when :rolled_back
             add(
               findings,
               :warning,
@@ -558,7 +556,7 @@ module Auth
               'account is open: the closure rolled back and the account is live. ' \
               '`bin/ots customers doctor --repair` clears the marker.',
             )
-          elsif account[:available] != false || account[:reason_code] == :simple_mode
+          when :interrupted
             add(
               findings,
               :critical,
@@ -569,6 +567,18 @@ module Auth
               '`bin/ots customers finish-closures --confirm`); do not re-create the auth account.',
             )
           end
+        end
+
+        # Whether the record's own accounts row is live, for
+        # Customer.closure_state: nil when the authdb could not be read (simple
+        # mode has none, so false). find_account also matches by email, and a
+        # row linked to another record is not this one's.
+        def own_auth_account_open(sections)
+          account = sections[:auth_account]
+          return if account[:available] == false && account[:reason_code] != :simple_mode
+
+          account[:found] == true && account[:status] != 'closed' &&
+            account[:linked_extid] == sections.dig(:customer, :extid)
         end
 
         def check_customer_state(sections, findings)

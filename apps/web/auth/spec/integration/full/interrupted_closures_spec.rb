@@ -140,7 +140,7 @@ RSpec.describe 'Interrupted account closures (#4830)', type: :integration do
 
       expect(Auth::Operations::Customers::Purge).not_to have_received(:new)
       expect(Auth::Logging).to have_received(:log_auth_event)
-        .with(:interrupted_closure_not_finished, hash_including(reason: :closure_in_progress))
+        .with(:interrupted_closure_not_finished, hash_including(closure_state: :in_progress))
       expect(recent.exists?).to be(true)
     end
 

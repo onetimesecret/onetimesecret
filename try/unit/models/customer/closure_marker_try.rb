@@ -2,7 +2,8 @@
 #
 # frozen_string_literal: true
 
-# Customer#mark_closure_started! and #clear_closure_marker! (#4819, #4830).
+# Customer#mark_closure_started!, #clear_closure_marker! and
+# Customer.closure_state (#4819, #4830).
 #
 # The marker is written only while the record exists, and only once: a
 # closure that resumes keeps the time the first one started, and a write
@@ -66,3 +67,29 @@ Familia.dbclient.exists(@gone_key)
 @cust.clear_closure_marker!
 Familia.dbclient.exists(@gone_key)
 #=> 0
+
+## closure_state: nil for a record no closure has touched
+Onetime::Customer.closure_state(nil, open_auth_account: false)
+#=> nil
+
+## closure_state: a marker younger than CLOSURE_STALE_AFTER is in progress, whatever the account reads
+now = 1_800_000_000
+[true, false, nil].map { |open| Onetime::Customer.closure_state(now - 60, open_auth_account: open, now: now) }
+#=> [:in_progress, :in_progress, :in_progress]
+
+## closure_state: from CLOSURE_STALE_AFTER on, a live account of its own means rolled back, none means interrupted
+now   = 1_800_000_000
+stale = now - Onetime::Customer::CLOSURE_STALE_AFTER
+[true, false].map { |open| Onetime::Customer.closure_state(stale, open_auth_account: open, now: now) }
+#=> [:rolled_back, :interrupted]
+
+## closure_state: an old marker with an unreadable account decides nothing
+now = 1_800_000_000
+Onetime::Customer.closure_state(now - Onetime::Customer::CLOSURE_STALE_AFTER, open_auth_account: nil, now: now)
+#=> nil
+
+## The instance form classifies the record's own marker
+record = Onetime::Customer.new(email: "closure_state_#{@test_id}@example.com", closure_started_at: 1_700_000_000)
+[record.closure_state(open_auth_account: false, now: 1_800_000_000),
+ Onetime::Customer.new(email: "unmarked_#{@test_id}@example.com").closure_state(open_auth_account: false)]
+#=> [:interrupted, nil]

@@ -28,9 +28,10 @@ module Auth
       #
       # ## What it does
       #
-      # Selects every record that is marked, whose marker is older than
+      # Selects every marked record that Customer.closure_state classifies
+      # as :interrupted: the marker is older than
       # Customer::CLOSURE_STALE_AFTER (a younger one can belong to a closure
-      # still running), and that has no open accounts row for its extid in
+      # still running), and there is no open accounts row for its extid in
       # full mode. A marked record with an open row is a closure that rolled
       # back: the account is live, so it is never selected here, and
       # `customers doctor --repair` clears its marker instead.
@@ -86,7 +87,7 @@ module Auth
 
         def interrupted_closures
           marked_customers.select do |customer|
-            customer.closure_stale?(now: @now) && !open_auth_account?(customer)
+            customer.closure_state(open_auth_account: open_auth_account?(customer), now: @now) == :interrupted
           end
         end
 

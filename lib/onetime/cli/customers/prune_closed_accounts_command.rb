@@ -178,7 +178,8 @@ module Onetime
           Safety:
             - Default mode is dry-run and writes nothing
             - The live run deletes inside one transaction; a failure leaves
-              every row in place
+              every row in place. Customer records a closed row still points
+              at may already be marked as closing, which they are
             - Works on PostgreSQL and SQLite
             - Export the audit rows first if a compliance requirement needs
               them; nothing keeps them after this run
