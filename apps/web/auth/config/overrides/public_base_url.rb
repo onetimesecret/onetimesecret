@@ -104,6 +104,20 @@ module Auth::Config::Overrides
         Auth::PublicHost.required_credential_base_url!(request.env, account)
       end
 
+      # Rodauth's host for the application. Its default is request.host, a
+      # client-settable value, which is why Rodauth 2.47 warns at boot when
+      # it is left unconfigured (Rodauth 3 raises). Nothing among the enabled
+      # features reads it after this app's overrides: base_url above,
+      # email_from (config/email.rb), otp_issuer (features/mfa.rb),
+      # webauthn_rp_id and webauthn_origin (features/webauthn.rb). It is the
+      # recipient-bound host the credential emails are branded with, as a
+      # bare hostname (Rodauth's base_url adds the port itself); an internal
+      # request, which has no request host, gets the canonical host.
+      auth.domain do
+        host = public_display_domain
+        Onetime::Utils::DomainParser.extract_hostname(host) || host
+      end
+
       # rubocop:disable-next Lint/NestedMethodDefinition -- Rodauth's auth_class_eval pattern
       auth.auth_class_eval do
         # Brand credential emails with the same recipient-bound origin.

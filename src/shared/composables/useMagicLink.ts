@@ -9,7 +9,7 @@ import { ensureAuthenticated } from '@/shared/composables/authCompletion';
 import { useApi } from '@/shared/composables/useApi';
 import { usePostAuthRedirect } from '@/shared/composables/usePostAuthRedirect';
 
-import { extractError } from './helpers/magicLinkHelpers';
+import { extractError, isCsrfRejection } from './helpers/magicLinkHelpers';
 
 type MagicLinkSuccessResponse = { success: string };
 type MagicLinkErrorResponse = { error: string; 'field-error'?: [string, string] };
@@ -58,9 +58,13 @@ export function useMagicLink() {
     try {
       return await doMagicLinkRequest(email);
     } catch (err: unknown) {
-      // On 403 (CSRF token rejection), the Axios error interceptor already
-      // refreshed the token from the response header. Retry once.
-      if ((err as { response?: { status?: number } })?.response?.status === 403) {
+      // A CSRF rejection is the one 403 worth retrying: the Axios error
+      // interceptor has already refreshed the token from the response header.
+      // The server's own refusals also answer 403, with a JSON `error` the
+      // user should see ("Already logged in" when the session signed in
+      // elsewhere while this page stayed open); re-posting those only repeats
+      // the refusal, and the server's message beats the session-expired copy.
+      if (isCsrfRejection(err)) {
         try {
           return await doMagicLinkRequest(email);
         } catch (_retryErr: unknown) {

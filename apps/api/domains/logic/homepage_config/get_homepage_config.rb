@@ -55,6 +55,10 @@ module DomainsAPI
                         signup_enabled: @homepage_config.signup_enabled?,
                         signin_enabled: @homepage_config.signin_enabled?,
                         disabled_homepage_variant: @homepage_config.disabled_homepage_variant_value,
+                        # Network rules (normalized "address/prefix" entries);
+                        # both empty = no restriction.
+                        allowed_cidrs: @homepage_config.allowed_cidrs,
+                        denied_cidrs: @homepage_config.denied_cidrs,
                         created_at: @homepage_config.created.to_i,
                         updated_at: @homepage_config.updated.to_i,
                       }

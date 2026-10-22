@@ -250,6 +250,9 @@ module Core
               # could never reach IncomingConfig.ready?. Same canonical/custom
               # split as RecipientResolver / HomepageConfig#incoming_available?.
               'incoming_secrets_enabled' => features.dig('organizations', 'incoming_secrets_enabled') || false,
+              # Whether domain owners can edit homepage network rules. Off
+              # stops edits only; stored rules stay enforced either way.
+              'homepage_network_rules_ui_enabled' => features.dig('organizations', 'homepage_network_rules_ui_enabled') || false,
               # Whether the per-domain sign-up form offers allow_base_domain;
               # pairs with the base_domain_signup entitlement. Strict like
               # SignupConfig.base_domain_signup_enabled?, so the form and the

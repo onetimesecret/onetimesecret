@@ -159,7 +159,7 @@ RSpec.describe 'RecentReauth.clear call sites (#4420)', :full_auth_mode, type: :
         # own defaults (key 'onetime.session', 24h) never install.
         use Onetime::Session, secret: SecureRandom.hex(64), secure: false, key: 'onetime.session', expire_after: 86_400
         plugin :json
-        plugin :json_parser
+        plugin :json_parser, content_type_regexp: %r{\Aapplication/json\b}i
         plugin :halt
 
         plugin :rodauth do

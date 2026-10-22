@@ -51,7 +51,7 @@ RSpec.describe Auth::Config::Features::AccountManagement, '.configure_create_acc
 
       Auth::Config::Features::AccountManagement.configure_create_account_response(self)
     end
-    app.plugin :json_parser # the helper app has no body parser
+    app.plugin :json_parser, content_type_regexp: %r{\Aapplication/json\b}i # the helper app has no body parser
     app
   end
 

@@ -48,6 +48,7 @@ export const ENTITLEMENTS = {
   CREATE_SECRETS: 'create_secrets',
   VIEW_RECEIPT: 'view_receipt',
   HOMEPAGE_SECRETS: 'homepage_secrets',
+  HOMEPAGE_NETWORK_RULES: 'homepage_network_rules',
   INCOMING_SECRETS: 'incoming_secrets',
   NOTIFICATIONS: 'notifications',
 
