@@ -1357,6 +1357,11 @@ module Auth::Config::Hooks
       # history. Administrative purges run outside Rodauth and delete the
       # same rows in TeardownAccount.
       #
+      # The lock is only held to super()'s DELETE while both run in one
+      # transaction. Rodauth runs delete_account inside close_account's,
+      # which db.transaction joins; should a later Rodauth call it outside,
+      # db.transaction opens one, so the boundary stays this override's.
+      #
       # The row also goes when the cleanup stopped before TeardownAccount
       # closed the auth account: a partial Purge, or one that raised after its
       # first mutation, still commits (after_close_account above). Such a
@@ -1369,8 +1374,10 @@ module Auth::Config::Hooks
       auth.delete_account_on_close? true
 
       auth.delete_account do
-        Auth::Operations::RemoveAuthenticationData.delete_dependent_rows(db, account_id)
-        super()
+        db.transaction do
+          Auth::Operations::RemoveAuthenticationData.delete_dependent_rows(db, account_id)
+          super()
+        end
       end
     end
     # rubocop:enable Metrics/PerceivedComplexity, Metrics/MethodLength

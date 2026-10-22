@@ -125,14 +125,10 @@ module Auth
           # that has not finished: its owner asked for it to be deleted, and
           # finish-closures deletes it. Nothing repairs it into shape (a
           # workspace provisioned, an index rebuilt), but a closure whose purge
-          # stays blocked still needs the read-out, so a report-only doctor
-          # runs the data checks for it.
+          # stays blocked still needs the read-out, so the data checks run for
+          # it and repair nothing (#repairing?).
           check_closure_marker(issues, repaired)
-          if @customer.closing?
-            self.class.new(customer: @customer).check_customer_data(issues, [])
-          else
-            check_customer_data(issues, repaired)
-          end
+          check_customer_data(issues, repaired)
 
           audit_repair_outcome(repaired) if @repair
 
@@ -156,8 +152,6 @@ module Auth
         end
 
         # Every per-customer check but the closure marker (see #call).
-        # Protected: #call runs it on a report-only instance for a record
-        # that is still closing.
         def check_customer_data(issues, repaired)
           check_workspace_collision(issues, repaired)
           check_provisioning_failure(issues, repaired)
@@ -174,7 +168,16 @@ module Auth
           check_counter_sanity(issues, repaired)
           check_field_serialization(issues, repaired)
         end
-        protected :check_customer_data
+        private :check_customer_data
+
+        # Whether the data checks may repair what they find: under
+        # repair: true, and only for a record that is not closing (see
+        # #call). The closure-marker check reads @repair itself, since a
+        # rolled-back closure is cleared while the record is still marked.
+        def repairing?
+          @repair && !@customer.closing?
+        end
+        private :repairing?
 
         # Index-level check: email_index entries point to live customers with the
         # right email. Returns { issues:, repaired: }. Cross-customer, so it is a
@@ -284,7 +287,7 @@ module Auth
           }
           issues << collision_issue
 
-          return unless @repair && repairable
+          return unless repairing? && repairable
           return unless WorkspaceCollision.compare_and_delete(collision)
 
           OT.info "[customers doctor] Removed stale contact-email claim for #{@customer.extid} (#{classification})"
@@ -390,7 +393,7 @@ module Auth
           }
           issues << issue
 
-          return unless @repair && release[:releasable]
+          return unless repairing? && release[:releasable]
 
           release_provisioning_latch(issue, issues, repaired, release)
         end
@@ -525,7 +528,7 @@ module Auth
               repair_action: 'Clear default_org_id field',
             }
 
-            if @repair
+            if repairing?
               @customer.default_org_id = nil
               @customer.save
               OT.info "[customers doctor] Cleared default_org_id for #{@customer.extid}"
@@ -549,7 +552,7 @@ module Auth
             repair_action: 'Clear default_org_id field',
           }
 
-          return unless @repair
+          return unless repairing?
 
           @customer.default_org_id = nil
           @customer.save
@@ -576,7 +579,7 @@ module Auth
               repair_action: 'Add email_index entry',
             }
 
-            if @repair
+            if repairing?
               Onetime::Customer.email_index[@customer.email] = @customer.objid
               OT.info "[customers doctor] Added email_index[#{@customer.email}] -> #{@customer.objid}"
               repaired << {
@@ -593,7 +596,7 @@ module Auth
               repair_action: 'Fix email_index entry',
             }
 
-            if @repair
+            if repairing?
               Onetime::Customer.email_index[@customer.email] = @customer.objid
               OT.info "[customers doctor] Fixed email_index[#{@customer.email}] -> #{@customer.objid}"
               repaired << {
@@ -651,7 +654,7 @@ module Auth
             repair_action: 'Write the Customer email into the Rodauth accounts row',
           }
 
-          return unless @repair
+          return unless repairing?
 
           db.transaction do
             db[:accounts].where(id: account[:id]).update(
@@ -800,7 +803,7 @@ module Auth
               repair_action: 'Re-key the org-scoped email index',
             }
 
-            next unless @repair
+            next unless repairing?
 
             # Add the correct entry BEFORE removing the stale ones, so there is
             # no window in which the customer is unfindable within the org.
@@ -867,7 +870,7 @@ module Auth
             }
 
             next if conflicted
-            next unless @repair
+            next unless repairing?
 
             org.contact_email = email
             org.update_in_class_contact_email_index(contact)
@@ -902,7 +905,7 @@ module Auth
                 repair_action: 'Remove stale participation entry',
               }
 
-              if @repair
+              if repairing?
                 @customer.untrack_participation_in(collection_key)
                 if @customer.participations.to_a.include?(collection_key)
                   raise Onetime::Problem, "Stale participation cleanup failed: #{collection_key}"
@@ -925,7 +928,7 @@ module Auth
                 repair_action: 'Add customer to org.members',
               }
 
-              if @repair
+              if repairing?
                 organization.add_members_instance(@customer)
                 OT.info "[customers doctor] Added #{@customer.extid} to #{organization.extid}.members"
                 repaired << {
@@ -968,7 +971,7 @@ module Auth
             repair_action: "Set verified_by to 'legacy'",
           }
 
-          return unless @repair
+          return unless repairing?
 
           @customer.verified_by = 'legacy'
           @customer.save
@@ -1000,7 +1003,7 @@ module Auth
             repair_action: 'Reset negative counters to 0',
           }
 
-          return unless @repair
+          return unless repairing?
 
           negative_counters.each do |counter|
             @customer.send(:"#{counter[:field]}=", 0)
@@ -1038,7 +1041,7 @@ module Auth
             repair_action: 'Re-serialize fields with Familia::JsonSerializer.dump',
           }
 
-          return unless @repair
+          return unless repairing?
 
           updates = bad_fields.to_h do |entry|
             [entry[:field], Familia::JsonSerializer.dump(raw_hash[entry[:field]])]
@@ -1153,7 +1156,7 @@ module Auth
                            "(verified_by: '#{provenance}')",
           }
 
-          return unless @repair
+          return unless repairing?
 
           Auth::Operations::SetCustomerVerification.new(
             customer: @customer,

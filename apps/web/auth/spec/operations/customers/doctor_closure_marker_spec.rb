@@ -144,7 +144,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
 
     before do
       allow_any_instance_of(described_class).to receive(:check_customer_data) do |doctor, issues, _repaired|
-        runs << doctor.instance_variable_get(:@repair)
+        runs << doctor.send(:repairing?)
         issues << { check: :data_check, severity: :low, message: 'data', repairable: true }
       end
     end
@@ -152,10 +152,14 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     context 'when the closure was interrupted' do
       let(:account_row) { nil }
 
-      it 'report without repairing, even under --repair' do
-        report = described_class.new(customer: customer, repair: true).call
+      it 'report without repairing, even under --repair, on the same doctor' do
+        doctor = described_class.new(customer: customer, repair: true)
+        allow(described_class).to receive(:new).and_call_original
+
+        report = doctor.call
 
         expect(runs).to eq([false])
+        expect(described_class).not_to have_received(:new)
         expect(report.issues.map { |issue| issue[:check] }).to include(:closure_interrupted, :data_check)
       end
     end
