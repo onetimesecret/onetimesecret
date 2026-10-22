@@ -27,13 +27,9 @@
 # first example pins that boot, since the others would also pass under the
 # verify_account flag.
 #
-# The verification is Rodauth's own two-phase JSON ceremony
-# (webauthn_verify_account.rb before_verify_account): the first POST with the
-# key answers 422 with the credential-creation options, the second carries the
-# attestation the webauthn gem's FakeClient signs for them, as the passkey
-# specs do through support/webauthn_flow_helper.rb. That helper is not
-# required here: it sets AUTH_WEBAUTHN_ENABLED at load time, which this lane
-# already exports.
+# The verification is Rodauth's own two-phase JSON ceremony, driven by
+# support/passkey_signup_helper.rb. The same boot with MFA on is the lane's
+# second process (integration/full_webauthn_verify_mfa/).
 #
 # RUN:
 #   tests/lanes/run full-webauthn-verify
@@ -43,10 +39,7 @@
 
 require_relative '../../spec_helper'
 require_relative '../../support/domains_enabled_context'
-require 'rack/test'
-require 'cgi'
-require 'webauthn'
-require 'webauthn/fake_client'
+require_relative '../../support/passkey_signup_helper'
 
 # :full_auth_mode is explicit, as in integration/full_mfa: the directory-derived
 # tag (spec/spec_helper.rb) matches only /integration/full/, and that tag is
@@ -54,7 +47,7 @@ require 'webauthn/fake_client'
 RSpec.describe 'after_verify_account with verify_account loaded by webauthn_verify_account only',
   :full_auth_mode, type: :integration,
   lane_env: { 'AUTH_WEBAUTHN_VERIFY_ACCOUNT' => 'true' } do
-  include Rack::Test::Methods
+  include PasskeySignupHelper
 
   before(:all) { boot_onetime_app }
 
@@ -68,14 +61,6 @@ RSpec.describe 'after_verify_account with verify_account loaded by webauthn_veri
   let(:normalized_email) { OT::Utils.normalize_email(account_email) }
 
   before do
-    # The delivery seam: the rendered verification email, as the publisher
-    # would receive it.
-    @delivered = []
-    allow(Onetime::Jobs::Publisher).to receive(:enqueue_email_raw) do |email, **_kwargs|
-      @delivered << email
-      true
-    end
-
     allow(Auth::Operations::EnsureDefaultWorkspace).to receive(:new).and_call_original
     allow(Auth::Operations::EnsureDefaultWorkspace).to receive(:claim_pending_federation_for).and_call_original
   end
@@ -90,53 +75,12 @@ RSpec.describe 'after_verify_account with verify_account loaded by webauthn_veri
     Onetime::Customer.find_by_email(normalized_email)
   end
 
-  def verification_key_rows(account_id)
-    auth_db[:account_verification_keys].where(id: account_id).count
-  end
-
-  # The key from the one delivered verification email.
-  def emailed_verify_key
-    expect(@delivered.size).to eq(1), "expected one delivered email, got #{@delivered.size}"
-    link = @delivered.first[:body].to_s[%r{https?://\S+?/verify-account\?key=\S+}]
-    expect(link).not_to be_nil, 'missing /verify-account link in the delivered email'
-    CGI.parse(URI.parse(link).query).fetch('key').first
-  end
-
   def sign_up!
-    clear_cookies
-    header 'Host', canonical_host
-    csrf_json_post('/auth/create-account', login: account_email, password: password)
-    expect(last_response.status).to eq(200), last_response.body
-    expect(json_body['next_action']).to eq('verify_email')
-
-    account = auth_db[:accounts].where(email: normalized_email).first
-    expect(account[:status_id]).to eq(AuthTestConstants::STATUS_UNVERIFIED)
-    account
+    passkey_signup!(account_email, password: password, host: canonical_host)
   end
 
-  # Rodauth's passkey verification: phase 1 answers 422 with the creation
-  # options (and the field error for the missing attestation), phase 2 posts
-  # the attestation signed for those options together with the key.
   def verify_with_passkey!(key)
-    csrf_json_post('/auth/verify-account', key: key)
-    expect(last_response.status).to eq(422),
-      "Phase-1 verify-account should return the creation options (#{last_response.status}: #{last_response.body})"
-    options   = json_body
-    challenge = options.fetch('webauthn_setup_challenge')
-    hmac      = options.fetch('webauthn_setup_challenge_hmac')
-    rp_id     = options.fetch('webauthn_setup').fetch('rp').fetch('id')
-    expect(rp_id).to eq(canonical_host)
-
-    client      = WebAuthn::FakeClient.new("http://#{canonical_host}")
-    attestation = client.create(challenge: challenge, rp_id: rp_id)
-
-    csrf_json_post(
-      '/auth/verify-account',
-      key: key,
-      webauthn_setup: attestation,
-      webauthn_setup_challenge: challenge,
-      webauthn_setup_challenge_hmac: hmac,
-    )
+    submit_passkey_setup(key, passkey_setup_options(key, host: canonical_host), host: canonical_host)
     expect(last_response.status).to eq(200),
       "Phase-2 verify-account should verify the account (#{last_response.status}: #{last_response.body})"
   end

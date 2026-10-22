@@ -126,7 +126,7 @@ module LaneReportingProbe
     'full-pg' => [''],
     'full-pg-agnostic' => [''],
     'full-saml-platform' => ['_saml_platform'],
-    'full-webauthn-verify' => ['_webauthn_verify'],
+    'full-webauthn-verify' => %w[_webauthn_verify _webauthn_verify_mfa],
     'full-sqlite' => [''],
     'harness' => [''],
     'migrations-pg' => [''],
@@ -380,7 +380,8 @@ RSpec.describe 'lane rspec reporting' do
     # the run would report only its last invocation.
     it 'suffixes the tasks an aggregate runs together, by their own names' do
       expect(outs(together.fetch('spec:integration:all')))
-        .to eq(%w[integration_simple integration_full integration_disabled mfa saml_platform webauthn_verify]
+        .to eq(%w[integration_simple integration_full integration_disabled mfa saml_platform webauthn_verify
+                  webauthn_verify_mfa]
                  .map { |suffix| "#{stem}_#{suffix}.json" })
     end
 

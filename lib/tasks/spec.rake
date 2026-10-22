@@ -567,30 +567,42 @@ namespace :spec do
       sh env, "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database #{rspec_format_options('saml_platform')}"
     end
 
-    desc 'Run full-mode specs with passkey signup and the verify_account flag off (own process)'
+    desc 'Run full-mode specs with passkey signup and the verify_account flag off (two processes, MFA off and on)'
     task 'full:webauthn_verify' do
-      # Own process for the same one-shot reason as full:mfa: Rodauth's
-      # webauthn_verify_account depends on verify_account, so this boot loads
-      # verify_account through the sub-feature alone, and every signup in it
+      # Own processes for the same one-shot reason as full:mfa: Rodauth's
+      # webauthn_verify_account depends on verify_account, so these boots load
+      # verify_account through the sub-feature alone, and every signup in them
       # waits on email verification and a passkey. AuthModeHelpers::MockAuthConfig
-      # reads all three flags below. AUTH_MFA_ENABLED=false is production's
-      # default; tests/lanes/full-webauthn-verify/env says why it matters here.
-      # Keep identical to that file.
+      # reads all three flags below. Keep identical to
+      # tests/lanes/full-webauthn-verify/env.
       env = {
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
         'AUTH_DATABASE_URL' => 'sqlite::memory:',
-        'AUTH_MFA_ENABLED' => 'false',
         'AUTH_WEBAUTHN_ENABLED' => 'true',
         'AUTH_WEBAUTHN_VERIFY_ACCOUNT' => 'true',
       }
 
-      patterns = Dir.glob('apps/*/*/spec/integration/full_webauthn_verify')
-      if patterns.empty?
-        abort '[spec:integration:full:webauthn_verify] no apps/*/*/spec/integration/full_webauthn_verify directories found'
-      end
+      # One process per MFA setting. Off is production's default and the
+      # lane's coverage; on reproduces the open recovery-codes defect as a
+      # pending example (full_webauthn_verify_mfa/, whose spec says why). Both
+      # always run, as spec:fast's legs do, and a red one fails the task at
+      # the end; the results files take the directory's name.
+      legs = {
+        'full_webauthn_verify' => 'false',
+        'full_webauthn_verify_mfa' => 'true',
+      }
+      failed = legs.filter_map do |dir, mfa|
+        patterns = Dir.glob("apps/*/*/spec/integration/#{dir}")
+        abort "[spec:integration:full:webauthn_verify] no apps/*/*/spec/integration/#{dir} directories found" if patterns.empty?
 
-      sh env, "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database #{rspec_format_options('webauthn_verify')}"
+        command = "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database " \
+                  "#{rspec_format_options(dir.delete_prefix('full_'))}"
+        ok = true
+        sh(env.merge('AUTH_MFA_ENABLED' => mfa), command) { |success, _status| ok = success }
+        dir unless ok
+      end
+      abort "[spec:integration:full:webauthn_verify] failed: #{failed.join(', ')}" if failed.any?
     end
 
     desc 'Run full mode with PostgreSQL (PG-only specs)'

@@ -168,9 +168,11 @@ Each rspec invocation writes a results file of its own:
 - A lane whose rake task runs rspec more than once suffixes the stem: `unit`
   writes `<stem>_root_fast.json`, `<stem>_apps_fast.json` and
   `<stem>_apps_config_ru.json`.
-- A lane with a single invocation writes `<stem>.json` (`full-mfa`,
-  `full-saml-platform` and `full-webauthn-verify` write `<stem>_mfa.json`,
-  `<stem>_saml_platform.json` and `<stem>_webauthn_verify.json`).
+- A lane with a single invocation writes `<stem>.json` (`full-mfa` and
+  `full-saml-platform` write `<stem>_mfa.json` and
+  `<stem>_saml_platform.json`). `full-webauthn-verify` runs rspec twice, MFA
+  off and on, and writes `<stem>_webauthn_verify.json` and
+  `<stem>_webauthn_verify_mfa.json`.
 - An `--only` run writes `<stem>_only.json`, a name no lane uses. Without
   `--quiet` or a results file it adds no formatter and `.rspec` decides, as
   for plain rspec.

@@ -11,15 +11,19 @@
 # (spec/support/auth_mode_helpers.rb), which :full_auth_mode boots against.
 # CI job: ruby-integration-auth (T3, "SQLite, passkey signup" matrix row), selected by auth
 #
-# MFA is OFF, production's default (etc/defaults/auth.defaults.yaml). With
-# MFA on, Rodauth's recovery_codes adds the account's codes when the passkey
-# is added during verification, keyed on a session the ceremony does not
-# have yet, and the verification fails (NOT NULL constraint on
-# account_recovery_codes.id). That combination is a known open defect, not
-# what this lane covers.
+# MFA is OFF here, production's default (etc/defaults/auth.defaults.yaml).
+# The lane's task runs a second process with it ON, for
+# apps/web/auth/spec/integration/full_webauthn_verify_mfa/: with MFA on,
+# Rodauth's recovery_codes adds the account's codes when the passkey is added
+# during verification, keyed on a session the ceremony does not have yet, and
+# the verification fails (NOT NULL constraint on account_recovery_codes.id).
+# That open defect is kept reproducible there as a pending example, which
+# fails the lane once the defect is fixed. The value below is the one --only
+# runs get; that spec sets its own at load time.
 #
 # NOTE: lib/tasks/spec.rake hardcodes these values for the task as a
-# defense against ambient env. Keep identical.
+# defense against ambient env (per process, for AUTH_MFA_ENABLED). Keep
+# identical.
 AUTHENTICATION_MODE=full
 AUTH_DATABASE_URL='sqlite::memory:'
 AUTH_MFA_ENABLED=false

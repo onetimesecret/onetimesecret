@@ -421,7 +421,7 @@ positive = [
 ]
 # Pin the exact full-auth directories across root and arbitrary apps.
 for base in ('spec', 'apps/web/new_app/spec', 'apps/api/new_app/spec'):
-    for lane in ('full', 'full_mfa', 'full_saml_platform', 'full_webauthn_verify'):
+    for lane in ('full', 'full_mfa', 'full_saml_platform', 'full_webauthn_verify', 'full_webauthn_verify_mfa'):
         positive.append(f'{base}/integration/{lane}/nested/routes_spec.rb')
 negative = [
     # Selected by the billing filter in ci.yml, not by auth.

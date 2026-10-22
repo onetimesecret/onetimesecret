@@ -72,6 +72,7 @@ auth:
   - '**/spec/integration/full_mfa/**'
   - '**/spec/integration/full_saml_platform/**'
   - '**/spec/integration/full_webauthn_verify/**'
+  - '**/spec/integration/full_webauthn_verify_mfa/**'
   - 'tests/browser/**'
   - 'tests/lanes/browser/**'
   - 'tests/lanes/{full-pg-agnostic,full-mfa,full-saml-platform,full-webauthn-verify}/**'

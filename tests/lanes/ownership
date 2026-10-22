@@ -193,7 +193,8 @@ lanes_for_path() {  # <path>
       echo full-mfa ;;
     ${app}/spec/integration/full_saml_platform|${app}/spec/integration/full_saml_platform/*)
       echo full-saml-platform ;;
-    ${app}/spec/integration/full_webauthn_verify|${app}/spec/integration/full_webauthn_verify/*)
+    ${app}/spec/integration/full_webauthn_verify|${app}/spec/integration/full_webauthn_verify/*|\
+    ${app}/spec/integration/full_webauthn_verify_mfa|${app}/spec/integration/full_webauthn_verify_mfa/*)
       echo full-webauthn-verify ;;
     # spec:integration:billing — the files directly under the billing app's
     # integration/, which has no mode subdirectories (BILLING_INTEGRATION_SPEC_PATTERN
