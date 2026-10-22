@@ -68,7 +68,7 @@ module Auth
       #   creation) leave it at the default (false) and claim immediately.
       #
       #   RESIDUAL (verify_account disabled): the standard-signup caller derives
-      #   this flag from `Onetime.auth_config.verify_account_enabled?`, so when a
+      #   this flag from `Onetime.auth_config.verify_account_loaded?`, so when a
       #   deployment turns email verification OFF the flag is false and the claim
       #   still happens immediately with no proof of email ownership. Gating on
       #   `verified?` cannot help there: with verify_account disabled the Redis
@@ -370,7 +370,7 @@ module Auth
       def unverified_immediate_claim?
         return false if @customer&.verified?
 
-        !Onetime.auth_config.verify_account_enabled?
+        !Onetime.auth_config.verify_account_loaded?
       rescue StandardError
         false
       end

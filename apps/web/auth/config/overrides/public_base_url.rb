@@ -130,10 +130,11 @@ module Auth::Config::Overrides
     # Prepend the guard of every enabled feature in RECIPIENT_ORIGIN_GUARDS.
     #
     # Separate from .configure because it reads the features enabled SO FAR,
-    # and :email_auth and :verify_account (the latter also transitively via
-    # webauthn_verify_account) are enabled after .configure runs; config.rb
-    # calls this after every feature block. A prepended module runs before the
-    # class's own definitions whatever the include order, so these chain with
+    # and :email_auth is enabled after .configure runs (:verify_account,
+    # whichever flag brings it in, is enabled before it, by
+    # Features::AccountManagement); config.rb calls this after every feature
+    # block. A prepended module runs before the class's own definitions
+    # whatever the include order, so these chain with
     # LoginRequestEnumeration's class-level verify_account_email_resend
     # (guard first, then that override, then Rodauth) rather than replace it.
     def self.configure_recipient_origins(auth)

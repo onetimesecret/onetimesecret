@@ -862,7 +862,7 @@ jobs:
 
   # Selected by auth (a path in .github/auth-paths.yml, the ci:auth label, or
   # any non-PR event), not by every Ruby change: the database-agnostic
-  # full-mode suite run a second time against PostgreSQL, and the two
+  # full-mode suite run a second time against PostgreSQL, and the three
   # feature-specific boots. The PG agnostic row is the slowest in the
   # matrix and runs the same specs as the SQLite row above on a second
   # engine, so a PR that touches no auth path leaves it to the main,
@@ -892,6 +892,11 @@ jobs:
             overlay: ''
             services: 'valkey rabbitmq'
             results-file: 'rspec_full_saml_platform_results.json'
+          - name: 'SQLite, passkey signup'
+            lane: full-webauthn-verify
+            overlay: ''
+            services: 'valkey rabbitmq'
+            results-file: 'rspec_full_webauthn_verify_results.json'
     steps: *full-integration-steps
 
   # Nightly and release-tag only, on the gate ruby-billing defines: the
