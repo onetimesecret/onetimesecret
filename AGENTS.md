@@ -143,9 +143,9 @@ shellcheck/actionlint. Both also run in the `Static analysis` workflow.
 repo checkout that has loaded the test environment. Do not run tests
 unless `.test-mode` already exists. When the required Ruby version
 (`.ruby-version`) is already available, run `bin/setup --test` to enable
-proper test mode. `bin/setup --test` creates `.test-mode` only when
-direnv is installed. Without direnv, install it and rerun
-`bin/setup --test`.
+proper test mode. `bin/setup --test` creates `.test-mode` with or
+without direnv; with direnv installed it also wires `.envrc` so every
+shell in the checkout runs with the test environment.
 
 ## Terms and phrases to avoid
 
