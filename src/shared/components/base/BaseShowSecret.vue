@@ -84,9 +84,10 @@
 
     <!-- Content wrapper  -->
     <div class="mx-auto w-full max-w-4xl px-4">
-      <!-- Global Loading State -->
+      <!-- Global Loading State: the secret fetch only. A reveal keeps the
+           confirmation form mounted so it can show its submitting state. -->
       <div
-        v-if="state.isLoading"
+        v-if="state.isLoading && !record"
         class="animate-pulse motion-reduce:animate-none space-y-6 p-4">
         <SecretSkeleton />
       </div>
