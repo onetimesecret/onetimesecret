@@ -31,7 +31,7 @@ RSpec.describe 'customers finish-closures', type: :cli do
   before do
     allow(Auth::Operations::Customers::FinishClosures).to receive(:new).and_return(op)
     allow(op).to receive(:call).and_return(build_result(dry_run: true))
-    allow(Onetime.auth_config).to receive(:full_enabled?).and_return(true)
+    allow(Onetime.auth_config).to receive(:simple_by_default?).and_return(false)
   end
 
   describe 'dry run by default' do
@@ -139,17 +139,18 @@ RSpec.describe 'customers finish-closures', type: :cli do
   end
 
   # bin/ots resolves simple mode whenever AUTHENTICATION_MODE is not exported
-  # into its shell, full-mode install or not; the op refuses a live run.
-  describe 'when the process resolved simple auth mode' do
+  # into its shell, full-mode install or not; the op refuses a live run on
+  # that fallback.
+  describe 'when the process resolved simple auth mode by default' do
     let(:refusal) { Auth::Operations::Customers::FinishClosures::AuthModeError }
 
-    before { allow(Onetime.auth_config).to receive(:full_enabled?).and_return(false) }
+    before { allow(Onetime.auth_config).to receive(:simple_by_default?).and_return(true) }
 
     it 'says so on the dry run and exits 0' do
       output = run_cli_command_quietly('customers', 'finish-closures')
 
-      expect(output[:stdout]).to include('simple mode resolved, so no auth account was checked')
-      expect(output[:stdout]).to include('AUTHENTICATION_MODE=full')
+      expect(output[:stdout]).to include('simple mode resolved by default (AUTHENTICATION_MODE is not set)')
+      expect(output[:stdout]).to include('--confirm is refused')
       expect(output[:stdout]).to include('ur_closing')
       expect(last_exit_code).to eq(0)
     end
@@ -160,9 +161,8 @@ RSpec.describe 'customers finish-closures', type: :cli do
       output = run_cli_command_quietly('customers', 'finish-closures', '--confirm')
 
       expect(last_exit_code).to eq(1)
-      expect(output[:stderr]).to include('Cannot finish closures: this process resolved simple auth mode')
-      expect(output[:stderr]).to include('AUTHENTICATION_MODE=full')
-      expect(output[:stderr]).to include('bin/ots customers purge ID')
+      expect(output[:stderr]).to include('Cannot finish closures: AUTHENTICATION_MODE is not set')
+      expect(output[:stderr]).to include('Export AUTHENTICATION_MODE=full on a full-mode install, or =simple')
     end
 
     it 'renders the refusal as JSON under --json, exit 1' do

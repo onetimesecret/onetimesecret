@@ -634,9 +634,27 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
 
     it 'names a closing customer as an interrupted closure' do
       allow(Auth::Database).to receive(:connection).and_return(nil)
+      allow(Onetime.auth_config).to receive(:simple_by_default?).and_return(false)
       allow(customer).to receive(:closure_started_at).and_return(1_700_000_000)
 
-      expect(codes(diagnose(customer: customer))).to include(:closure_interrupted)
+      result = diagnose(customer: customer)
+
+      expect(codes(result)).to include(:closure_interrupted)
+      expect(finding(result, :closure_interrupted)[:message]).to start_with('Customer record is marked as closing')
+    end
+
+    # bin/ots resolves simple mode whenever AUTHENTICATION_MODE is not
+    # exported into its shell, full-mode install or not: the finding then
+    # leads with what it stands on, before the purge it names.
+    it 'leads the interrupted closure with the unchecked account when the mode was only the fallback' do
+      allow(Auth::Database).to receive(:connection).and_return(nil)
+      allow(Onetime.auth_config).to receive(:simple_by_default?).and_return(true)
+      allow(customer).to receive(:closure_started_at).and_return(1_700_000_000)
+
+      message = finding(diagnose(customer: customer), :closure_interrupted)[:message]
+
+      expect(message).to start_with('No auth account was checked (AUTHENTICATION_MODE is not set')
+      expect(message).to include('bin/ots customers purge')
     end
 
     # The mirror of the authdb_unavailable case: with no authdb BY DESIGN the
@@ -782,6 +800,22 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
 
   # =========================================================================
   describe 'credential shape' do
+    # Liveness comes from AccountStatuses.live?, as in doctor and
+    # finish-closures: a status id outside the known set is not live, so a
+    # closing record whose row carries one reads as interrupted, not as a
+    # rolled-back closure with a live account.
+    it 'does not read an unknown account status as a live account' do
+      allow(customer).to receive(:closure_started_at).and_return(1_700_000_000)
+      db[:accounts].insert(id: 42, status_id: 99, email: email, external_id: 'ur_target', created_at: Time.now)
+      db[:account_password_hashes].insert(id: 42)
+
+      result = diagnose(customer: customer)
+
+      expect(result.sections[:auth_account]).to include(status: 'unknown (99)', status_id: 99)
+      expect(codes(result)).to include(:closure_interrupted)
+      expect(codes(result)).not_to include(:closure_rolled_back)
+    end
+
     # Stored as PostgreSQL stores it, a naive UTC wall clock, and read on a
     # connection with no database timezone pinned (this spec's SQLite) by a
     # process in a UTC-8 zone, as the lanes' TZ=UTC never is: Sequel labels

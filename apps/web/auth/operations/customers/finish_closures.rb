@@ -49,13 +49,12 @@ module Auth
       # whole account and a stale marker is an interrupted closure by
       # definition. The process cannot tell that mode from a full-mode
       # install whose shell did not export AUTHENTICATION_MODE: the config
-      # defaults to simple, and bin/ots then resolves simple mode and reads
-      # no accounts table, so every marked record, a rolled-back closure
-      # with a live account included, reads as interrupted. The dry run
-      # lists them, saying so. A live run refuses (AuthModeError) rather
-      # than purge on that basis: a full-mode install re-runs with
-      # AUTHENTICATION_MODE=full, a simple-mode one finishes each record
-      # with `bin/ots customers purge ID`.
+      # falls back to simple (Onetime::AuthConfig#simple_by_default?), and
+      # bin/ots then reads no accounts table, so every marked record, a
+      # rolled-back closure with a live account included, reads as
+      # interrupted. The dry run lists them, saying so. A live run on that
+      # fallback refuses (AuthModeError) rather than purge on that basis;
+      # with the variable exported, either value, it runs.
       class FinishClosures
         # @!attribute candidates [r]
         #   @return [Array<Hash>] {extid:, email:, closure_started_at:} per
@@ -66,13 +65,13 @@ module Auth
         Result = Data.define(:dry_run, :candidates, :results)
 
         # Raised by #call on a live run while the process resolves simple
-        # auth mode (see the class comment). Nothing was purged.
+        # auth mode by default (see the class comment). Nothing was purged.
         AuthModeError = Class.new(StandardError)
 
-        AUTH_MODE_MESSAGE = 'this process resolved simple auth mode, so no auth account was checked and an ' \
-                            'open one cannot be ruled out for any record. On a full-mode install re-run with ' \
-                            'AUTHENTICATION_MODE=full exported; on a simple-mode install finish each record ' \
-                            'with `bin/ots customers purge ID`.'
+        AUTH_MODE_MESSAGE = 'AUTHENTICATION_MODE is not set, so simple auth mode was resolved by default: no ' \
+                            'auth account was checked and an open one cannot be ruled out for any record. ' \
+                            'Export AUTHENTICATION_MODE=full on a full-mode install, or =simple on a ' \
+                            'simple-mode one, and re-run.'
 
         # Records per pipelined marker read.
         SCAN_BATCH = 500
@@ -90,11 +89,11 @@ module Auth
 
         # @return [Result]
         # @raise [AuthModeError] a live run while the process resolves simple
-        #   auth mode (see the class comment); nothing was purged
+        #   auth mode by default (see the class comment); nothing was purged
         # @raise [Sequel::Error] the auth database did not answer; nothing was
         #   purged, because an open account cannot be ruled out without it
         def call
-          raise AuthModeError, AUTH_MODE_MESSAGE if !@dry_run && !full_mode?
+          raise AuthModeError, AUTH_MODE_MESSAGE if !@dry_run && Onetime.auth_config.simple_by_default?
 
           customers  = interrupted_closures
           candidates = customers.map { |customer| candidate(customer) }

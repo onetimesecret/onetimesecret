@@ -121,6 +121,44 @@ RSpec.describe Onetime::AuthConfig do
     described_class.instance
   end
 
+  # bin/ots resolves simple mode whenever AUTHENTICATION_MODE is not exported
+  # into its shell; the destructive customer commands refuse on that
+  # fallback and run once the variable is exported, with either value.
+  describe '#simple_by_default?' do
+    context 'with a config that falls back to simple' do
+      let(:base_yaml) do
+        <<~YAML
+          ---
+          mode: <%= ENV['AUTHENTICATION_MODE'] || 'simple' %>
+          simple: {}
+          full: {}
+        YAML
+      end
+
+      it 'is true when nothing chose the mode' do
+        config = fresh_config
+
+        expect(config.simple_enabled?).to be(true)
+        expect(config.simple_by_default?).to be(true)
+      end
+
+      it 'is false once AUTHENTICATION_MODE=simple is exported' do
+        config = fresh_config(AUTHENTICATION_MODE: 'simple')
+
+        expect(config.simple_enabled?).to be(true)
+        expect(config.simple_by_default?).to be(false)
+      end
+
+      it 'is false when the variable selects full mode' do
+        expect(fresh_config(AUTHENTICATION_MODE: 'full').simple_by_default?).to be(false)
+      end
+    end
+
+    it 'is false when the config itself names full mode' do
+      expect(fresh_config.simple_by_default?).to be(false)
+    end
+  end
+
   describe 'request-scoped tenant origin cache' do
     let(:config) { fresh_config }
     let(:concealed_url) { double('concealed SSO URL') }

@@ -329,6 +329,7 @@ module Auth
               found: true,
               account_id: account_id,
               status: STATUS_NAMES.fetch(account[:status_id], "unknown (#{account[:status_id]})"),
+              status_id: account[:status_id],
               email: account[:email],
               email_matches_customer: customer.nil? || account[:email].to_s.casecmp?(customer.email.to_s),
               linked_extid: account[:external_id],
@@ -561,8 +562,8 @@ module Auth
               findings,
               :critical,
               :closure_interrupted,
-              "Customer record is marked as closing since #{format_epoch(started_at)} and has no open " \
-              'auth account: an account closure stopped before the record was deleted. Finish it with ' \
+              "#{auth_mode_caveat}Customer record is marked as closing since #{format_epoch(started_at)} " \
+              'and has no open auth account: an account closure stopped before the record was deleted. Finish it with ' \
               "`bin/ots customers purge #{sections.dig(:customer, :extid)}` (or every such closure with " \
               '`bin/ots customers finish-closures --confirm`); do not re-create the auth account.',
             )
@@ -571,14 +572,28 @@ module Auth
 
         # Whether the record's own accounts row is live, for
         # Customer.closure_state: nil when the authdb could not be read (simple
-        # mode has none, so false). find_account also matches by email, and a
-        # row linked to another record is not this one's.
+        # mode has none, so false; #auth_mode_caveat says when that mode was
+        # only the fallback). find_account also matches by email, and a row
+        # linked to another record is not this one's.
         def own_auth_account_open(sections)
           account = sections[:auth_account]
           return if account[:available] == false && account[:reason_code] != :simple_mode
 
-          account[:found] == true && account[:status] != 'closed' &&
+          account[:found] == true && AccountStatuses.live?(account[:status_id]) &&
             account[:linked_extid] == sections.dig(:customer, :extid)
+        end
+
+        # Leads the interrupted-closure finding when the process resolved
+        # simple auth mode by default (Onetime::AuthConfig#simple_by_default?):
+        # bin/ots does so whenever AUTHENTICATION_MODE is not exported into
+        # its shell, full-mode install or not, and on a full-mode install the
+        # record may then belong to a rolled-back closure with a live
+        # account. The purge the finding names refuses in the same state.
+        def auth_mode_caveat
+          return '' unless Onetime.auth_config.simple_by_default?
+
+          'No auth account was checked (AUTHENTICATION_MODE is not set, so simple auth mode was resolved ' \
+            'by default; on a full-mode install re-run with it exported before acting). '
         end
 
         def check_customer_state(sections, findings)

@@ -95,8 +95,8 @@ RSpec.describe 'Interrupted account closures (#4830)', type: :integration do
     # exported into its shell, this full-mode install included. No accounts
     # table is read then, so the rolled-back closure reads as interrupted:
     # listed on the dry run, never purged.
-    context 'when the process resolved simple auth mode' do
-      before { allow(Onetime.auth_config).to receive(:full_enabled?).and_return(false) }
+    context 'when the process resolved simple auth mode by default' do
+      before { allow(Onetime.auth_config).to receive_messages(full_enabled?: false, simple_by_default?: true) }
 
       it 'lists every stale marker on a dry run, the rolled-back closure included' do
         result = finish(dry_run: true)
@@ -108,7 +108,7 @@ RSpec.describe 'Interrupted account closures (#4830)', type: :integration do
 
       it 'refuses a live run and purges nothing' do
         expect { finish(dry_run: false) }
-          .to raise_error(Auth::Operations::Customers::FinishClosures::AuthModeError, /simple auth mode/)
+          .to raise_error(Auth::Operations::Customers::FinishClosures::AuthModeError, /AUTHENTICATION_MODE is not set/)
 
         expect([interrupted, rolled_back, running, untouched].map(&:exists?)).to eq([true, true, true, true])
         expect(auth_db[:accounts].where(external_id: rolled_back.extid).count).to eq(1)

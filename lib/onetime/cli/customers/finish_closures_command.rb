@@ -112,11 +112,12 @@ module Onetime
         puts "\nInterrupted Account Closures (#4830)"
         puts '=' * 60
         puts "  Mode: #{result.dry_run ? 'DRY RUN (re-run with --confirm to purge)' : 'LIVE'}"
-        # Only a dry run gets here in simple mode; a live run is refused by
-        # the op. The note says what the list stands on.
-        unless Onetime.auth_config.full_enabled?
-          puts '  Auth: simple mode resolved, so no auth account was checked and every marked record'
-          puts '        is listed; --confirm is refused. On a full-mode install export AUTHENTICATION_MODE=full.'
+        # Only a dry run gets here on the simple-mode fallback; a live run is
+        # refused by the op. The note says what the list stands on.
+        if Onetime.auth_config.simple_by_default?
+          puts '  Auth: simple mode resolved by default (AUTHENTICATION_MODE is not set), so no auth account'
+          puts '        was checked and every marked record is listed. --confirm is refused until the variable'
+          puts '        is exported: =full on a full-mode install, =simple on a simple-mode one.'
         end
         puts
 
@@ -187,10 +188,10 @@ module Onetime
             install or not, and in simple mode no auth account is checked:
             the dry run lists every marked record and says so, and
             --confirm is refused rather than purge a rolled-back closure
-            as if it were interrupted. On a full-mode install export
-            AUTHENTICATION_MODE=full; on a simple-mode install, where a
-            marked record is the whole account, purge each one with
-            `bin/ots customers purge ID`.
+            as if it were interrupted. Export the variable and re-run:
+            =full on a full-mode install, =simple on a simple-mode one,
+            where a marked record is the whole account. Inside the shipped
+            containers it is always exported.
 
           Options:
             --confirm               Purge the records (default is dry-run)

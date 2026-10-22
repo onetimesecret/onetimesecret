@@ -179,15 +179,29 @@ RSpec.describe Auth::Operations::Customers::Doctor do
 
   # No accounts table, so a stale marker is an interrupted closure by
   # definition. bin/ots resolves this mode whenever AUTHENTICATION_MODE is
-  # not exported into its shell, so the read-out says what it stands on.
+  # not exported into its shell, so a read-out decided on that fallback
+  # leads with what it stands on.
   context 'in simple mode' do
     before { allow(Auth::Database).to receive(:connection).and_return(nil) }
 
-    it 'reports an interrupted closure, naming the mode it was decided in' do
+    it 'reports an interrupted closure' do
+      allow(Onetime.auth_config).to receive(:simple_by_default?).and_return(false)
+
       check
 
       expect(checks).to eq([:closure_interrupted])
-      expect(issues.first[:message]).to include('simple auth mode resolved').and include('AUTHENTICATION_MODE=full')
+      expect(issues.first[:message]).to start_with('account closure started at')
+    end
+
+    it 'leads with the unchecked account when the mode was only the fallback' do
+      allow(Onetime.auth_config).to receive(:simple_by_default?).and_return(true)
+
+      check
+
+      expect(checks).to eq([:closure_interrupted])
+      expect(issues.first[:message])
+        .to start_with('no auth account was checked (AUTHENTICATION_MODE is not set')
+        .and include("bin/ots customers purge #{customer.extid}")
     end
   end
 

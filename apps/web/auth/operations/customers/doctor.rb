@@ -1215,7 +1215,7 @@ module Auth
           return unless @customer.closing?
 
           account = auth_account
-          live    = @auth_account_unreadable ? nil : !account.nil? && AccountStatuses::LIVE.include?(account[:status_id])
+          live    = @auth_account_unreadable ? nil : AccountStatuses.live?(account && account[:status_id])
           started = Time.at(@customer.closure_started_at.to_i).utc.strftime('%Y-%m-%d %H:%M UTC')
 
           case @customer.closure_state(open_auth_account: live)
@@ -1230,9 +1230,9 @@ module Auth
             issues << {
               check: :closure_interrupted,
               severity: :high,
-              message: "account closure started at #{started} stopped before the record was deleted; " \
-                       "finish it with `bin/ots customers purge #{@customer.extid}` (or every such " \
-                       "closure with `bin/ots customers finish-closures --confirm`)#{simple_mode_caveat}",
+              message: "#{auth_mode_caveat}account closure started at #{started} stopped before the record " \
+                       "was deleted; finish it with `bin/ots customers purge #{@customer.extid}` (or every " \
+                       'such closure with `bin/ots customers finish-closures --confirm`)',
               repairable: false,
             }
           when :rolled_back
@@ -1268,13 +1268,16 @@ module Auth
         # In simple mode no auth account exists, so a stale marker is an
         # interrupted closure by definition. bin/ots resolves simple mode
         # whenever AUTHENTICATION_MODE is not exported into its shell,
-        # full-mode install or not, so the read-out names its basis before
-        # it advises a purge.
-        def simple_mode_caveat
-          return '' if auth_db || @auth_account_unreadable
+        # full-mode install or not (Onetime::AuthConfig#simple_by_default?),
+        # and on a full-mode install the record may then belong to a
+        # rolled-back closure with a live account. The read-out leads with
+        # that before it names the purge, which refuses in the same state
+        # (Onetime::CLI::Customers::Shared#auth_mode_refusal).
+        def auth_mode_caveat
+          return '' unless Onetime.auth_config.simple_by_default?
 
-          '; simple auth mode resolved, so no auth account was checked ' \
-            '(on a full-mode install re-run with AUTHENTICATION_MODE=full)'
+          'no auth account was checked (AUTHENTICATION_MODE is not set, so simple auth mode was resolved ' \
+            'by default; on a full-mode install re-run with it exported before acting): '
         end
 
         # Memoized once per Doctor instance — three checks iterate it.
