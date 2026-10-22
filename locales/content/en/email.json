@@ -344,6 +344,16 @@
     "renderer": "erb",
     "content_hash": "30342c04"
   },
+  "email.expiration_warning.open_receipt": {
+    "text": "Open your receipt to check whether it has been viewed, or to burn it:",
+    "renderer": "erb",
+    "content_hash": "0e995314"
+  },
+  "email.expiration_warning.receipt_link_label": {
+    "text": "Receipt link",
+    "renderer": "erb",
+    "content_hash": "b9073fde"
+  },
   "email.expiration_warning.after_expiration_short": {
     "text": "After expiration, the secret will be permanently deleted.",
     "renderer": "erb",

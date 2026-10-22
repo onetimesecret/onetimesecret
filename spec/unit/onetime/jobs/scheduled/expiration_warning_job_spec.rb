@@ -58,7 +58,6 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       exists?: true,
       anonymous?: false,
       load_owner: owner_with_email,
-      secret_shortid: 'abc123',
       secret_expiration: (Familia.now.to_i + 7200), # 2 hours from now
       share_domain: nil
     )
@@ -216,18 +215,19 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       described_class.send(:process_expiring_secrets)
     end
 
-    it 'schedules warning email for valid secrets' do
+    # The payload names the receipt, not the secret: the template links to
+    # /receipt/<identifier>. The short id it used to send (secret_key) is not
+    # an address, so every link in every warning was dead.
+    it 'schedules warning email for valid secrets with the receipt identifier' do
       allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta123'])
       allow(Onetime::Receipt).to receive(:load).with('meta123').and_return(metadata_with_owner)
 
-      expect(Onetime::Jobs::Publisher).to receive(:schedule_email).with(
-        :expiration_warning,
-        hash_including(
-          recipient: 'owner@example.com',
-          secret_key: 'abc123'
-        ),
-        hash_including(:delay_seconds)
-      )
+      expect(Onetime::Jobs::Publisher).to receive(:schedule_email) do |template, data, options|
+        expect(template).to eq(:expiration_warning)
+        expect(data).to include(recipient: 'owner@example.com', receipt_identifier: 'meta123')
+        expect(data).not_to have_key(:secret_key)
+        expect(options).to have_key(:delay_seconds)
+      end
 
       described_class.send(:process_expiring_secrets)
     end
@@ -254,7 +254,6 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
         exists?: true,
         anonymous?: false,
         load_owner: owner_with_email,
-        secret_shortid: 'abc123',
         secret_expiration: (fixed_now.to_i + 7200), # exactly 2 hours from fixed_now
         share_domain: nil
       )
@@ -281,7 +280,6 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
         exists?: true,
         anonymous?: false,
         load_owner: owner_with_email,
-        secret_shortid: 'xyz789',
         secret_expiration: (fixed_now.to_i + 1800), # 30 minutes from fixed_now
         share_domain: 'custom.example.com'
       )
@@ -313,7 +311,6 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
         exists?: true,
         anonymous?: false,
         load_owner: owner_with_email,
-        secret_shortid: 'dom456',
         secret_expiration: (Familia.now.to_i + 7200),
         share_domain: 'secrets.example.com'
       )
@@ -349,7 +346,6 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
           exists?: true,
           anonymous?: false,
           load_owner: owner_with_email,
-          secret_shortid: 'second789',
           secret_expiration: (Familia.now.to_i + 7200),
           share_domain: nil
         )
@@ -473,7 +469,6 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
         exists?: true,
         anonymous?: false,
         load_owner: owner_with_email,
-        secret_shortid: 'key1',
         secret_expiration: (Familia.now.to_i + 7200),
         share_domain: nil
       )
@@ -486,7 +481,6 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
         exists?: true,
         anonymous?: false,
         load_owner: owner_with_email,
-        secret_shortid: 'key2',
         secret_expiration: (Familia.now.to_i + 7200),
         share_domain: nil
       )
@@ -499,7 +493,6 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
         exists?: true,
         anonymous?: false,
         load_owner: owner_with_email,
-        secret_shortid: 'key3',
         secret_expiration: (Familia.now.to_i + 7200),
         share_domain: nil
       )

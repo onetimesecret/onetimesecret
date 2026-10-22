@@ -7,23 +7,35 @@ require_relative 'base'
 module Onetime
   module Mail
     module Templates
-      # Email template for warning users that their secret is about to expire.
+      # Email template for warning a secret's owner that it is about to expire.
+      #
+      # The link is the owner's receipt page, /receipt/<receipt identifier>,
+      # where the owner sees whether the secret has been viewed and can burn
+      # it. It is not the secret link: the owner is not meant to consume their
+      # own secret. The previous payload carried the secret's 8-character short
+      # id under :secret_key and the template built /secret/<short id>, which
+      # no route resolves, so every link in every warning was dead.
       #
       # Required data:
-      #   recipient:    Recipient email address (secret owner)
-      #   secret_key:   Secret shortid for URL
-      #   expires_at:   Unix timestamp when secret expires
+      #   recipient:          Owner's email address
+      #   receipt_identifier: Full receipt identifier (Receipt#identifier)
+      #   expires_at:         Unix timestamp when the secret expires
       #
       # Optional data:
-      #   share_domain: Custom domain for secret sharing
+      #   share_domain: Custom domain the secret was shared from
       #   baseuri:      Override site base URI
+      #
+      # A payload without receipt_identifier (one queued by the previous job
+      # version) fails validate_data! with an ArgumentError. EmailWorker does
+      # not retry an ArgumentError: the message is rejected to the DLQ as
+      # invalid_message, so a dead link is never sent.
       #
       class ExpirationWarning < Base
         protected
 
         def validate_data!
           raise ArgumentError, 'Recipient required' unless data[:recipient]
-          raise ArgumentError, 'Secret key required' unless data[:secret_key]
+          raise ArgumentError, 'Receipt identifier required' if data[:receipt_identifier].to_s.strip.empty?
           raise ArgumentError, 'Expiration time required' unless data[:expires_at]
         end
 
@@ -60,12 +72,13 @@ module Onetime
         end
 
         def uri_path
-          "/secret/#{data[:secret_key]}"
+          "/receipt/#{data[:receipt_identifier]}"
         end
 
-        # Full URI to view the secret, on the domain the secret was shared
-        # from (share_domain when present, canonical host otherwise).
-        def secret_uri
+        # Full URI of the owner's receipt page, on the domain the secret was
+        # shared from (share_domain when present, canonical host otherwise),
+        # as the receipt endpoints build receipt_url.
+        def receipt_uri
           "#{brand_baseuri}#{uri_path}"
         end
 
@@ -79,7 +92,7 @@ module Onetime
         def template_binding
           computed_data = data.merge(
             time_remaining: time_remaining,
-            secret_uri: secret_uri,
+            receipt_uri: receipt_uri,
             uri_path: uri_path,
             baseuri: baseuri,
           )

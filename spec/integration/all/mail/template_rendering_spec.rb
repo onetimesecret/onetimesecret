@@ -460,10 +460,11 @@ RSpec.describe 'Email Template Rendering', type: :integration do
   end
 
   describe Onetime::Mail::Templates::ExpirationWarning do
+    let(:receipt_identifier) { 'receipt123xyz' }
     let(:data) do
       {
         recipient: test_email,
-        secret_key: secret_key,
+        receipt_identifier: receipt_identifier,
         expires_at: Time.now.to_i + 3600, # 1 hour from now
         share_domain: nil
       }
@@ -490,8 +491,13 @@ RSpec.describe 'Email Template Rendering', type: :integration do
         expect(text).to match(/\d+\s+(hour|minute|day)/)
       end
 
-      it 'includes secret URI' do
-        expect(template.render_text).to include("/secret/#{secret_key}")
+      # The owner's receipt page, never a secret link: the owner is not
+      # meant to consume their own secret, and the short id the payload used
+      # to carry resolved nothing.
+      it 'links to the receipt page and not to a secret link' do
+        text = template.render_text
+        expect(text).to include("/receipt/#{receipt_identifier}")
+        expect(text).not_to include('/secret/')
       end
     end
 
@@ -502,6 +508,10 @@ RSpec.describe 'Email Template Rendering', type: :integration do
 
       it 'contains no raw translation keys' do
         expect(contains_raw_translation_key?(template.render_html)).to be false
+      end
+
+      it 'links to the receipt page' do
+        expect(template.render_html).to include("/receipt/#{receipt_identifier}")
       end
     end
 
@@ -771,17 +781,25 @@ RSpec.describe 'Email Template Rendering', type: :integration do
     end
 
     it 'ExpirationWarning requires recipient' do
-      expect { Onetime::Mail::Templates::ExpirationWarning.new({ secret_key: 'abc', expires_at: Time.now.to_i }) }
+      expect { Onetime::Mail::Templates::ExpirationWarning.new({ receipt_identifier: 'abc', expires_at: Time.now.to_i }) }
         .to raise_error(ArgumentError, /Recipient required/)
     end
 
-    it 'ExpirationWarning requires secret_key' do
+    it 'ExpirationWarning requires receipt_identifier' do
       expect { Onetime::Mail::Templates::ExpirationWarning.new({ recipient: 'a@b.com', expires_at: Time.now.to_i }) }
-        .to raise_error(ArgumentError, /Secret key required/)
+        .to raise_error(ArgumentError, /Receipt identifier required/)
+    end
+
+    # The previous job version queued the secret's short id under secret_key.
+    # Such a message is refused (EmailWorker rejects an ArgumentError to the
+    # DLQ without retrying) rather than sent with a link nothing resolves.
+    it 'ExpirationWarning refuses the previous secret_key payload' do
+      expect { Onetime::Mail::Templates::ExpirationWarning.new({ recipient: 'a@b.com', secret_key: 'abc12345', expires_at: Time.now.to_i }) }
+        .to raise_error(ArgumentError, /Receipt identifier required/)
     end
 
     it 'ExpirationWarning requires expires_at' do
-      expect { Onetime::Mail::Templates::ExpirationWarning.new({ recipient: 'a@b.com', secret_key: 'abc' }) }
+      expect { Onetime::Mail::Templates::ExpirationWarning.new({ recipient: 'a@b.com', receipt_identifier: 'abc' }) }
         .to raise_error(ArgumentError, /Expiration time required/)
     end
 
@@ -820,11 +838,11 @@ RSpec.describe 'Email Template Rendering', type: :integration do
     it 'ExpirationWarning uses share_domain when provided' do
       template = Onetime::Mail::Templates::ExpirationWarning.new({
         recipient: 'a@b.com',
-        secret_key: 'abc',
+        receipt_identifier: 'abc',
         expires_at: Time.now.to_i + 3600,
         share_domain: 'custom.example.com'
       })
-      expect(template.secret_uri).to match(%r{\Ahttps?://custom\.example\.com/secret/abc\z})
+      expect(template.receipt_uri).to match(%r{\Ahttps?://custom\.example\.com/receipt/abc\z})
       expect(template.render_text).to include('custom.example.com')
     end
   end
