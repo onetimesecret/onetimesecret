@@ -1,9 +1,9 @@
-# apps/web/auth/spec/integration/full/webauthn_verify_account_recovery_codes_spec.rb
+# apps/web/auth/spec/integration/full_mfa/webauthn_verify_account_recovery_codes_spec.rb
 #
 # frozen_string_literal: true
 
 # =============================================================================
-# TEST TYPE: Integration (full mode)
+# TEST TYPE: Integration (full mode, MFA lane)
 # =============================================================================
 #
 # Passkey verification with MFA on adds the recovery codes to the account
@@ -34,10 +34,14 @@
 # for that pin. Moving back to a released rodauth without that change fails
 # both examples.
 #
-# The lanes boot verify_account and webauthn OFF (spec/support/auth_mode_helpers.rb
-# MockAuthConfig) and MFA ON, and Auth::Config is configured once per process.
-# So, as in verify_account_autologin_session_rotation_spec.rb, the examples run
-# against a router subclass: it inherits the booted Auth class (MFA and its
+# This file lives in full_mfa/ because it needs the process to boot with MFA:
+# Auth::Config is configured once per process, and the shared full lanes do
+# not guarantee that boot (in full-pg-agnostic the guard in the before block
+# fails). The full-mfa lane boots MFA, WebAuthn and verify_account on, while
+# MockAuthConfig (spec/support/auth_mode_helpers.rb) keeps
+# webauthn_verify_account off. So, as in
+# verify_account_autologin_session_rotation_spec.rb, the examples run against
+# a router subclass: it inherits the booted Auth class (MFA and its
 # recovery-code settings as shipped) and applies the verify-account and
 # WebAuthn modules in config.rb's order, with the three flags stubbed on. That
 # is the configuration of an install with AUTH_VERIFY_ACCOUNT_ENABLED,
@@ -46,17 +50,10 @@
 # The verification is Rodauth's own two-phase JSON ceremony: the first POST
 # with the key answers 422 with the credential-creation options, the second
 # sends the attestation the webauthn gem's FakeClient signs for them.
-# support/webauthn_flow_helper.rb is not required here: requiring it sets
-# AUTH_WEBAUTHN_ENABLED for the whole process, and this file runs in lanes
-# that boot without webauthn.
 #
 # RUN:
-#   tests/lanes/run full-sqlite \
-#     --only apps/web/auth/spec/integration/full/webauthn_verify_account_recovery_codes_spec.rb
-#
-# On PostgreSQL it runs with the whole full-pg-agnostic lane
-# (tests/lanes/run full-pg-agnostic). An --only run of this file in that lane
-# boots without MFA and fails the guard in the before block.
+#   tests/lanes/run full-mfa \
+#     --only apps/web/auth/spec/integration/full_mfa/webauthn_verify_account_recovery_codes_spec.rb
 # =============================================================================
 
 require_relative '../../spec_helper'
@@ -66,7 +63,7 @@ require 'cgi'
 require 'webauthn'
 require 'webauthn/fake_client'
 
-RSpec.describe 'Passkey verify-account with recovery codes auto-added', type: :integration do
+RSpec.describe 'Passkey verify-account with recovery codes auto-added', :full_auth_mode, type: :integration do
   include Rack::Test::Methods
 
   before(:all) { boot_onetime_app }
