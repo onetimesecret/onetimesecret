@@ -137,8 +137,11 @@ module DomainsAPI
               secrets_mode: @homepage_config.secrets_mode_value,
               # Server-computed effective enablement (the bootstrap
               # serializer's downgrade rule) so the admin frontend can
-              # mirror what anonymous visitors actually get without
-              # re-deriving readiness from possibly-stale client state.
+              # mirror it without re-deriving readiness from possibly-stale
+              # client state. Ignores the per-visitor network rules: the
+              # bootstrap also requires HomepageConfig#network_allowed? for
+              # the requesting visitor, so a visitor outside allowed_cidrs /
+              # denied_cidrs gets false even when this is true.
               effective_enabled: @homepage_config.effectively_enabled?(custom_domain: @custom_domain),
               signup_enabled: @homepage_config.signup_enabled?,
               signin_enabled: @homepage_config.signin_enabled?,

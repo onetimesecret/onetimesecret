@@ -108,13 +108,14 @@ module Onetime
       # Strict on purpose: a stored entry that does not parse raises rather
       # than being skipped, because silently dropping an entry narrows an
       # allow list or widens a deny list. Callers treat the raise as a
-      # fail-closed verdict.
+      # fail-closed verdict. Already-parsed IPAddr entries pass through
+      # unchanged (IPAddr#to_s drops the prefix, so they are never re-parsed).
       #
-      # @param entries [Array<String>]
+      # @param entries [Array<String, IPAddr>]
       # @return [Array<IPAddr>]
       # @raise [IPAddr::Error]
       def parse(entries)
-        Array(entries).map { IPAddr.new(it.to_s.strip) }
+        Array(entries).map { it.is_a?(IPAddr) ? it : IPAddr.new(it.to_s.strip) }
       end
 
       # The allow/deny verdict for one request.
@@ -130,8 +131,8 @@ module Onetime
       #   resolvable client IP, a deny match, or an allow miss.
       # @raise [IPAddr::Error] when a configured entry does not parse
       def permitted?(ip_match, allowed: [], denied: [])
-        allowed_ranges = allowed.map { it.is_a?(IPAddr) ? it : IPAddr.new(it.to_s.strip) }
-        denied_ranges  = denied.map { it.is_a?(IPAddr) ? it : IPAddr.new(it.to_s.strip) }
+        allowed_ranges = parse(allowed)
+        denied_ranges  = parse(denied)
         return true if allowed_ranges.empty? && denied_ranges.empty?
 
         return false unless ip_match.respond_to?(:call)

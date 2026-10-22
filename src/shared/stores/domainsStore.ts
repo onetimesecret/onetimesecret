@@ -446,8 +446,9 @@ export const useDomainsStore = defineStore('domains', () => {
       // reload. The bootstrap slot carries the EFFECTIVE enabled value (the
       // backend serializer downgrades incoming-mode homepages whose
       // incoming config is unavailable); the server computes it in the PUT
-      // response so the admin's own session never renders an interactive
-      // homepage the next visitor wouldn't get. Older backends omit the
+      // response so the admin's own session follows that downgrade without
+      // a reload. It ignores the per-visitor network rules (see
+      // homepageConfigAdminRecordSchema). Older backends omit the
       // field — fall back to the stored flag (they also predate incoming
       // mode, so stored == effective there).
       //

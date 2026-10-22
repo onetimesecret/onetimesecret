@@ -246,7 +246,7 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
 
   # Ranges that may use the interactive homepage. Empty = everyone not
   # denied. Unreadable stored JSON reads as [] here (display), and as a
-  # fail-closed deny in #network_allowed? via #allowed_cidrs_corrupt?.
+  # fail-closed deny in #network_allowed? (see #allowed_cidrs_corrupt?).
   #
   # @return [Array<String>] canonical "address/prefix" entries
   def allowed_cidrs
@@ -329,13 +329,14 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
   # @param ip_match [#call, nil] env['otto.ip_match'] for the request
   # @return [Boolean]
   def network_allowed?(ip_match)
-    if allowed_cidrs_corrupt? || denied_cidrs_corrupt?
+    # Each stored list is parsed once; the parsed ranges feed the verdict.
+    allowed = parse_cidr_ranges(allowed_cidrs_json)
+    denied  = parse_cidr_ranges(denied_cidrs_json)
+    if allowed.nil? || denied.nil?
       OT.le "[HomepageConfig] network rules unreadable for domain #{domain_id}; denying"
       return false
     end
 
-    allowed = allowed_cidrs
-    denied  = denied_cidrs
     return true if allowed.empty? && denied.empty?
 
     unless ip_match.respond_to?(:call)
@@ -479,24 +480,28 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
     raise TooManyCidrs.new(field, ex.count, ex.max)
   end
 
-  # Present but not a JSON array, or holding an entry CidrList.parse
-  # refuses → corrupt. That is the same per-entry IPAddr parse
-  # CidrList.permitted? applies in #network_allowed?, so a list judged
-  # readable here never fails the verdict on its entries. Absent/empty is
-  # the cleared state the setters write, never corrupt.
+  # Unreadable (see #parse_cidr_ranges) → corrupt.
   def cidr_list_corrupt?(raw)
+    parse_cidr_ranges(raw).nil?
+  end
+
+  # Stored JSON list → Array<IPAddr>, or nil when the list is unreadable:
+  # not a JSON array, or holding an entry CidrList.parse refuses. This is
+  # the single read-path judgment behind both #cidr_list_corrupt? and the
+  # ranges #network_allowed? matches against. Absent/empty is the cleared
+  # state the setters write: [] and never unreadable.
+  def parse_cidr_ranges(raw)
     str = raw.to_s
-    return false if str.empty?
+    return [] if str.empty?
 
     parsed = JSON.parse(str)
-    return true unless parsed.is_a?(Array)
+    return nil unless parsed.is_a?(Array)
 
     Onetime::Utils::CidrList.parse(parsed)
-    false
   rescue JSON::ParserError, ArgumentError
     # ArgumentError covers IPAddr::Error (its subclass) and an entry with
     # invalid UTF-8 bytes, which JSON.parse passes through.
-    true
+    nil
   end
 
   class << self
