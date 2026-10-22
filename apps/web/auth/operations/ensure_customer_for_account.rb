@@ -20,23 +20,32 @@ module Auth
     class EnsureCustomerForAccount
       include Onetime::LoggerMethods
 
-      # A record marked as closing (Customer#closing?) under a sign-up's
-      # address is what a closure left behind when it stopped after removing
-      # the sign-in and before deleting the record (#4830). Its owner asked
-      # for it to be deleted, so a new sign-up with the address does not
-      # adopt it, with its data and its marker: the closure is finished
-      # through the same purge `bin/ots customers finish-closures` runs, and
-      # the sign-up gets a new record. The purge is the record's own
-      # (self_service:), as the continuation of the closure it asked for.
+      # The record a sign-up with +email+ would meet, when it is marked as
+      # closing (Customer#closing?); otherwise nil. Reads only:
+      # finish_leftover_closure is the call that acts on it.
+      def self.closing_customer(email)
+        email    = OT::Utils.normalize_email(email)
+        customer = Onetime::Customer.find_by_email(email) if Onetime::Customer.email_exists?(email)
+        customer if customer&.closing?
+      end
+
+      # A record marked as closing under a sign-up's address is what a
+      # closure left behind when it stopped after removing the sign-in and
+      # before deleting the record (#4830). Its owner asked for it to be
+      # deleted, so a new sign-up with the address does not adopt it, with
+      # its data and its marker: the closure is finished through the same
+      # purge `bin/ots customers finish-closures` runs, and the sign-up gets
+      # a new record. The purge is the record's own (self_service:), as the
+      # continuation of the closure it asked for.
       #
-      # Called through unfinished_closure before the accounts row exists,
-      # from before_create_account (password sign-ups; the invite sign-up
+      # Every sign-up path calls this, and decides nothing about the record
+      # itself: before_create_account (password sign-ups; the invite sign-up
       # endpoint refuses an address with any Customer record before it gets
-      # there) and before_omniauth_create_account (SSO JIT), so a sign-up
-      # refused here leaves no row behind. The call in
-      # find_or_create_customer below is a backstop for a record marked
-      # between that check and the insert: by then the row is committed, and
-      # all it can do is refuse to adopt the record.
+      # there) and before_omniauth_create_account (SSO JIT) call it before
+      # the accounts row exists, so a sign-up refused there leaves no row
+      # behind. The call in find_or_create_customer below is a backstop for
+      # a record marked between that check and the insert: by then the row
+      # is committed, and all it can do is refuse to adopt the record.
       #
       # Two records are left alone, by the same rules as
       # Customers::FinishClosures: a marker younger than
@@ -47,10 +56,17 @@ module Auth
       # sign-up is refused instead, and a retry once the marker is old
       # enough finishes the first.
       #
-      # @param customer [Onetime::Customer] a record with closing? true
-      # @return [Boolean] true when the record is gone afterwards; false when
-      #   it is left alone (above), or the purge stopped (blockers, a
-      #   failure) and the record is still there
+      # @param email [String] the sign-up's address
+      # @return [Onetime::Customer, nil] the closing record when it is still
+      #   there afterwards (left alone, or the purge stopped), and the
+      #   sign-up must be refused; nil when no record under the address was
+      #   closing or the closure is now finished
+      def self.finish_leftover_closure(email)
+        leftover = closing_customer(email)
+        leftover unless leftover.nil? || finish_interrupted_closure(leftover)
+      end
+
+      # @return [Boolean] true when +customer+ is gone afterwards
       def self.finish_interrupted_closure(customer)
         reason   = :closure_in_progress unless customer.closure_stale?
         reason ||= :open_auth_account if open_auth_account?(customer)
@@ -81,26 +97,7 @@ module Auth
         )
         finished
       end
-
-      # The record a sign-up with +email+ would meet, when it is marked as
-      # closing (see finish_interrupted_closure); otherwise nil.
-      def self.closing_customer(email)
-        email    = OT::Utils.normalize_email(email)
-        customer = Onetime::Customer.find_by_email(email) if Onetime::Customer.email_exists?(email)
-        customer if customer&.closing?
-      end
-
-      # The one rule every sign-up path applies to a leftover closure: the
-      # closing record under +email+ is finished, and the sign-up is refused
-      # when it cannot be. Each caller renders the refusal its own way.
-      #
-      # @param leftover [Onetime::Customer, nil] closing_customer(email), for
-      #   a caller that looked it up earlier
-      # @return [Onetime::Customer, nil] the record that refuses the sign-up,
-      #   or nil when it may go on (no record was closing, or it is gone now)
-      def self.unfinished_closure(email, leftover: closing_customer(email))
-        leftover unless leftover.nil? || finish_interrupted_closure(leftover)
-      end
+      private_class_method :finish_interrupted_closure
 
       def self.open_auth_account?(customer)
         return false unless Onetime.auth_config.full_enabled?
@@ -182,16 +179,19 @@ module Auth
         # mixed-case email misses the find branch and re-enters create!, raising
         # RecordExistsError. exists?(identifier) checks objid, never the email
         # index, so we must use email_exists?/find_by_email here.
-        email    = OT::Utils.normalize_email(@account[:email])
-        existing = Onetime::Customer.find_by_email(email) if Onetime::Customer.email_exists?(email)
+        email = OT::Utils.normalize_email(@account[:email])
 
-        if existing && !existing.closing?
-          auth_logger.info "[create-customer] Found existing customer: #{existing.custid}"
-          return existing
+        # A record still closing under the address is finished first, and
+        # never adopted (see finish_leftover_closure).
+        unfinished = self.class.finish_leftover_closure(email)
+        if unfinished
+          raise Onetime::Problem, "The interrupted closure of #{unfinished.extid} could not be finished"
         end
 
-        if existing && self.class.unfinished_closure(email, leftover: existing)
-          raise Onetime::Problem, "The interrupted closure of #{existing.extid} could not be finished"
+        existing = Onetime::Customer.find_by_email(email) if Onetime::Customer.email_exists?(email)
+        if existing
+          auth_logger.info "[create-customer] Found existing customer: #{existing.custid}"
+          return existing
         end
 
         # New accounts default to 'customer' role. Colonel promotion

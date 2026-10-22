@@ -802,13 +802,13 @@ module Auth::Config::Hooks
         # attached, which cannot sign in and blocks every later sign-up with
         # the address. Refused here, the sign-in leaves nothing behind, and a
         # retry once the marker is 15 minutes old finishes the closure.
-        leftover = Auth::Operations::EnsureCustomerForAccount.unfinished_closure(email)
-        if leftover
+        unfinished = Auth::Operations::EnsureCustomerForAccount.finish_leftover_closure(email)
+        if unfinished
           Auth::Logging.log_auth_event(
             :omniauth_blocked_interrupted_closure,
             level: :error,
             email: OT::Utils.obscure_email(email),
-            external_id: leftover.extid,
+            external_id: unfinished.extid,
             provider: omniauth_provider,
           )
           record_tenant_sso_failure('account', 'account_closing') if respond_to?(:record_tenant_sso_failure)

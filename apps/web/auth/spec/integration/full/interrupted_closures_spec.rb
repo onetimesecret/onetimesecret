@@ -195,7 +195,8 @@ RSpec.describe 'Interrupted account closures (#4830)', type: :integration do
         rolled_back.mark_closure_started!(at: an_hour_ago)
         allow(Auth::Operations::Customers::Purge).to receive(:new).and_call_original
 
-        expect(Auth::Operations::EnsureCustomerForAccount.finish_interrupted_closure(rolled_back)).to be(false)
+        expect(Auth::Operations::EnsureCustomerForAccount.finish_leftover_closure(rolled_back.email)&.extid)
+          .to eq(rolled_back.extid)
         expect(Auth::Operations::Customers::Purge).not_to have_received(:new)
         expect(rolled_back.exists?).to be(true)
       end

@@ -205,17 +205,19 @@ module Auth::Config::Hooks
           end
         end
 
-        # Last: finish the leftover closure (see above). When it cannot be
-        # finished (the purge refused or stopped, or the closure is too recent
-        # to tell from one still running; logged as
+        # Last: finish the leftover closure (see above). finish_leftover_closure
+        # reads the record again, so it acts on its state after these checks.
+        # When it cannot be finished (the purge refused or stopped, or the
+        # closure is too recent to tell from one still running; logged as
         # interrupted_closure_not_finished), the sign-up is refused under its
         # own event, since the shared-Redis hint above would point the wrong way.
-        if Auth::Operations::EnsureCustomerForAccount.unfinished_closure(email, leftover: leftover)
+        unfinished = Auth::Operations::EnsureCustomerForAccount.finish_leftover_closure(email)
+        if unfinished
           Auth::Logging.log_auth_event(
             :registration_blocked_interrupted_closure,
             level: :error,
             email: OT::Utils.obscure_email(email),
-            external_id: leftover.extid,
+            external_id: unfinished.extid,
           )
 
           set_error_flash(create_account_error_flash)
