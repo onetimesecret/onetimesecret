@@ -147,7 +147,7 @@ module AccountAPI::Logic
       # vs simple vs SSO-only vs verify-account-disabled apart.
       def verify_account_resend_available?
         Onetime.auth_config.full_enabled? &&
-          Onetime.auth_config.verify_account_enabled? &&
+          Onetime.auth_config.verify_account_loaded? &&
           !Onetime.auth_config.sso_only_enabled?
       end
 
