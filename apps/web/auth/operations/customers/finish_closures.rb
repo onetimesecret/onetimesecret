@@ -42,6 +42,20 @@ module Auth
       # a record that now has blockers is refused and left as it is. The SQL
       # step finds no account to remove; the session revocation, the
       # organization cleanup and the record deletion run as in any purge.
+      #
+      # ## Simple auth mode
+      #
+      # In simple mode there is no accounts table, so a marked record is the
+      # whole account and a stale marker is an interrupted closure by
+      # definition. The process cannot tell that mode from a full-mode
+      # install whose shell did not export AUTHENTICATION_MODE: the config
+      # defaults to simple, and bin/ots then resolves simple mode and reads
+      # no accounts table, so every marked record, a rolled-back closure
+      # with a live account included, reads as interrupted. The dry run
+      # lists them, saying so. A live run refuses (AuthModeError) rather
+      # than purge on that basis: a full-mode install re-runs with
+      # AUTHENTICATION_MODE=full, a simple-mode one finishes each record
+      # with `bin/ots customers purge ID`.
       class FinishClosures
         # @!attribute candidates [r]
         #   @return [Array<Hash>] {extid:, email:, closure_started_at:} per
@@ -50,6 +64,15 @@ module Auth
         #   @return [Array<Hash>] {extid:, status:, stage:, blockers:} per
         #     record purged; empty on a dry run
         Result = Data.define(:dry_run, :candidates, :results)
+
+        # Raised by #call on a live run while the process resolves simple
+        # auth mode (see the class comment). Nothing was purged.
+        AuthModeError = Class.new(StandardError)
+
+        AUTH_MODE_MESSAGE = 'this process resolved simple auth mode, so no auth account was checked and an ' \
+                            'open one cannot be ruled out for any record. On a full-mode install re-run with ' \
+                            'AUTHENTICATION_MODE=full exported; on a simple-mode install finish each record ' \
+                            'with `bin/ots customers purge ID`.'
 
         # Records per pipelined marker read.
         SCAN_BATCH = 500
@@ -66,9 +89,13 @@ module Auth
         end
 
         # @return [Result]
+        # @raise [AuthModeError] a live run while the process resolves simple
+        #   auth mode (see the class comment); nothing was purged
         # @raise [Sequel::Error] the auth database did not answer; nothing was
         #   purged, because an open account cannot be ruled out without it
         def call
+          raise AuthModeError, AUTH_MODE_MESSAGE if !@dry_run && !full_mode?
+
           customers  = interrupted_closures
           candidates = customers.map { |customer| candidate(customer) }
           results    = @dry_run ? [] : customers.map { |customer| finish(customer) }
@@ -116,7 +143,11 @@ module Auth
         def auth_db
           return @auth_db if defined?(@auth_db)
 
-          @auth_db = Onetime.auth_config.full_enabled? ? Auth::Database.connection : nil
+          @auth_db = full_mode? ? Auth::Database.connection : nil
+        end
+
+        def full_mode?
+          Onetime.auth_config.full_enabled?
         end
 
         def candidate(customer)

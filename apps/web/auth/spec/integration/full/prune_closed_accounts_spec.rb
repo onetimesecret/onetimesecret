@@ -224,6 +224,26 @@ RSpec.describe 'Closed account pruning (#4819)', type: :integration do
         expect(Onetime::Customer.load(leftover.objid).closure_started_at).to eq(closed_at.to_i)
       end
 
+      # The records are resolved per batch (one pipelined index read, one
+      # load); the two other closed rows name extids no record has, in
+      # between the ones that do.
+      it 'marks every record the batch names, around rows whose extid resolves to nothing' do
+        second = Onetime::Customer.create!(email: "leftover-second-#{run}@prune.example.com")
+        created_account_ids << accounts.insert(
+          email: second.email,
+          status_id: AuthTestConstants::STATUS_CLOSED,
+          external_id: second.extid,
+          updated_at: closed_at.strftime('%Y-%m-%d %H:%M:%S'),
+        )
+
+        result = new_operation(dry_run: false).call
+
+        expect(result.marked).to eq(2)
+        expect([leftover, second].map { |customer| Onetime::Customer.load(customer.objid).closure_started_at })
+          .to eq([closed_at.to_i, closed_at.to_i])
+        expect(accounts.where(status_id: AuthTestConstants::STATUS_CLOSED).count).to eq(0)
+      end
+
       # What Sequel returns for that column on a UTC-7 host with no database
       # timezone pinned: the UTC wall clock labelled with the host's offset.
       it 'reads the row time as the UTC wall clock it is, whatever zone Sequel labels it with' do

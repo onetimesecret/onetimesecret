@@ -177,13 +177,28 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     end
   end
 
+  # No accounts table, so a stale marker is an interrupted closure by
+  # definition. bin/ots resolves this mode whenever AUTHENTICATION_MODE is
+  # not exported into its shell, so the read-out says what it stands on.
   context 'in simple mode' do
     before { allow(Auth::Database).to receive(:connection).and_return(nil) }
 
-    it 'reports an interrupted closure' do
+    it 'reports an interrupted closure, naming the mode it was decided in' do
       check
 
       expect(checks).to eq([:closure_interrupted])
+      expect(issues.first[:message]).to include('simple auth mode resolved').and include('AUTHENTICATION_MODE=full')
+    end
+  end
+
+  context 'when the auth database connection cannot be built' do
+    before { allow(Auth::Database).to receive(:connection).and_raise(Sequel::DatabaseConnectionError, 'down') }
+
+    it 'reports nothing rather than read "no connection" as "no account"' do
+      check(repair: true)
+
+      expect(issues).to be_empty
+      expect(customer).not_to have_received(:clear_closure_marker!)
     end
   end
 end

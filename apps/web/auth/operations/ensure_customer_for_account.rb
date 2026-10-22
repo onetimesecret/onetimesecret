@@ -71,9 +71,11 @@ module Auth
       def self.finish_interrupted_closure(customer)
         state = customer.closure_state(open_auth_account: open_auth_account?(customer))
         unless state == :interrupted
+          # A sign-up inside a running closure's window is the design at
+          # work; a rolled-back closure or an unreadable account is not.
           Auth::Logging.log_auth_event(
             :interrupted_closure_not_finished,
-            level: :error,
+            level: state == :in_progress ? :info : :error,
             external_id: customer.extid,
             closure_state: state,
           )

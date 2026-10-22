@@ -90,6 +90,30 @@ RSpec.describe 'Interrupted account closures (#4830)', type: :integration do
 
       expect(finish(dry_run: true).candidates).to be_empty
     end
+
+    # bin/ots resolves simple mode whenever AUTHENTICATION_MODE is not
+    # exported into its shell, this full-mode install included. No accounts
+    # table is read then, so the rolled-back closure reads as interrupted:
+    # listed on the dry run, never purged.
+    context 'when the process resolved simple auth mode' do
+      before { allow(Onetime.auth_config).to receive(:full_enabled?).and_return(false) }
+
+      it 'lists every stale marker on a dry run, the rolled-back closure included' do
+        result = finish(dry_run: true)
+
+        expect(result.candidates.map { |candidate| candidate[:extid] })
+          .to contain_exactly(interrupted.extid, rolled_back.extid)
+        expect(result.results).to be_empty
+      end
+
+      it 'refuses a live run and purges nothing' do
+        expect { finish(dry_run: false) }
+          .to raise_error(Auth::Operations::Customers::FinishClosures::AuthModeError, /simple auth mode/)
+
+        expect([interrupted, rolled_back, running, untouched].map(&:exists?)).to eq([true, true, true, true])
+        expect(auth_db[:accounts].where(external_id: rolled_back.extid).count).to eq(1)
+      end
+    end
   end
 
   describe 'a new sign-up with the address' do
@@ -139,8 +163,9 @@ RSpec.describe 'Interrupted account closures (#4830)', type: :integration do
         .to raise_error(Rodauth::InternalRequestError)
 
       expect(Auth::Operations::Customers::Purge).not_to have_received(:new)
+      # Logged below error level: a sign-up inside the window is the design at work.
       expect(Auth::Logging).to have_received(:log_auth_event)
-        .with(:interrupted_closure_not_finished, hash_including(closure_state: :in_progress))
+        .with(:interrupted_closure_not_finished, hash_including(level: :info, closure_state: :in_progress))
       expect(recent.exists?).to be(true)
     end
 

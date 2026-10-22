@@ -782,6 +782,39 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
 
   # =========================================================================
   describe 'credential shape' do
+    # Stored as PostgreSQL stores it, a naive UTC wall clock, and read on a
+    # connection with no database timezone pinned (this spec's SQLite) by a
+    # process in a UTC-8 zone, as the lanes' TZ=UTC never is: Sequel labels
+    # the wall clock with that zone, and Time#to_f on it would be eight
+    # hours ahead of the instant. 22:13:20 UTC that day is 1_700_000_000.
+    it 'reads the accounts row timestamps in the zone the database wrote them' do
+      allow(db).to receive(:database_type).and_return(:postgres)
+      in_time_zone('America/Los_Angeles') { insert_utc_row }
+
+      result = in_time_zone('America/Los_Angeles') { diagnose(customer: customer) }
+
+      expect(result.sections[:auth_account][:created_at]).to eq(1_700_000_000.0)
+    end
+
+    def in_time_zone(zone)
+      previous   = ENV.fetch('TZ', nil)
+      ENV['TZ'] = zone
+      yield
+    ensure
+      previous.nil? ? ENV.delete('TZ') : ENV['TZ'] = previous
+    end
+
+    def insert_utc_row
+      db[:accounts].insert(
+        id: 42,
+        status_id: 2,
+        email: email,
+        external_id: 'ur_target',
+        created_at: '2023-11-14 22:13:20',
+      )
+      db[:account_password_hashes].insert(id: 42)
+    end
+
     it 'flags email drift between the customer and the accounts row' do
       db[:accounts].insert(
         id: 42,

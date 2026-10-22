@@ -332,10 +332,10 @@ module Auth
               email: account[:email],
               email_matches_customer: customer.nil? || account[:email].to_s.casecmp?(customer.email.to_s),
               linked_extid: account[:external_id],
-              created_at: epoch(account[:created_at]),
+              created_at: epoch(db, account[:created_at]),
               has_password: db[:account_password_hashes].where(id: account_id).any?,
-              password_changed_at: epoch(db[:account_password_change_times].where(id: account_id).get(:changed_at)),
-              last_login_at: epoch(db[:account_activity_times].where(id: account_id).get(:last_login_at)),
+              password_changed_at: epoch(db, db[:account_password_change_times].where(id: account_id).get(:changed_at)),
+              last_login_at: epoch(db, db[:account_activity_times].where(id: account_id).get(:last_login_at)),
               external_identities: db[:account_identities]
                 .where(account_id: account_id)
                 .select_map([:provider, :issuer])
@@ -357,8 +357,8 @@ module Auth
           row = db[:account_verification_keys].where(id: account_id).first
           {
             pending: !row.nil?,
-            requested_at: epoch(row&.fetch(:requested_at, nil)),
-            email_last_sent: epoch(row&.fetch(:email_last_sent, nil)),
+            requested_at: epoch(db, row&.fetch(:requested_at, nil)),
+            email_last_sent: epoch(db, row&.fetch(:email_last_sent, nil)),
           }
         end
 
@@ -366,8 +366,8 @@ module Auth
           row = db[:account_password_reset_keys].where(id: account_id).first
           {
             pending: !row.nil?,
-            deadline: epoch(row&.fetch(:deadline, nil)),
-            email_last_sent: epoch(row&.fetch(:email_last_sent, nil)),
+            deadline: epoch(db, row&.fetch(:deadline, nil)),
+            email_last_sent: epoch(db, row&.fetch(:email_last_sent, nil)),
           }
         end
 
@@ -376,9 +376,9 @@ module Auth
           deadline = lockout&.fetch(:deadline, nil)
           {
             login_failures: db[:account_login_failures].where(id: account_id).get(:number).to_i,
-            locked: !deadline.nil? && deadline > Time.now,
-            deadline: epoch(deadline),
-            email_last_sent: epoch(lockout&.fetch(:email_last_sent, nil)),
+            locked: !deadline.nil? && epoch(db, deadline) > Time.now.to_f,
+            deadline: epoch(db, deadline),
+            email_last_sent: epoch(db, lockout&.fetch(:email_last_sent, nil)),
           }
         end
 
@@ -386,7 +386,7 @@ module Auth
           dataset = db[:account_active_session_keys].where(account_id: account_id)
           {
             active_count: dataset.count,
-            last_use: epoch(dataset.max(:last_use)),
+            last_use: epoch(db, dataset.max(:last_use)),
           }
         end
 
@@ -401,7 +401,7 @@ module Auth
             .select(:at, :message, :metadata)
             .map do |row|
               {
-                at: epoch(row[:at]),
+                at: epoch(db, row[:at]),
                 message: row[:message],
                 metadata: plain_json(row[:metadata], decode: true),
               }
@@ -884,10 +884,15 @@ module Auth
           value.to_f
         end
 
-        def epoch(value)
+        # The columns are filled by the database (defaults, Rodauth's
+        # CURRENT_TIMESTAMP writes); Auth::DatabaseConnection.timestamp reads
+        # them in the zone they were written in, which Time#to_f on the value
+        # as read gets wrong by the host's UTC offset on PostgreSQL.
+        def epoch(db, value)
           return nil if value.nil?
+          return value.to_f unless value.respond_to?(:to_time)
 
-          value.respond_to?(:to_time) ? value.to_time.to_f : value.to_f
+          Auth::DatabaseConnection.timestamp(db, value).to_f
         end
 
         def format_epoch(value)

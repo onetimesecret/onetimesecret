@@ -437,7 +437,7 @@ module Auth
             return []
           end
 
-          [orphaned_account_entry(row)]
+          [orphaned_account_entry(db, row)]
         rescue StandardError => ex
           # The connection is lazy, so an unreachable authdb raises HERE on the
           # first query rather than returning nil above. The Redis results are
@@ -468,14 +468,16 @@ module Auth
           safe_lookup { Onetime::Customer.find_by_extid(extid) }
         end
 
-        def orphaned_account_entry(row)
-          created_at = row[:created_at]
+        # created_at is the column's default, which the database wrote in
+        # the zone Auth::DatabaseConnection.timestamp knows; Time#to_i on the
+        # value as read would be off by the host's UTC offset on PostgreSQL.
+        def orphaned_account_entry(db, row)
           {
             email: row[:email].to_s,
             account_id: row[:id],
             external_id: row[:external_id],
             status: ORPHAN_STATUS_NAMES.fetch(row[:status_id], 'unknown'),
-            created_at: created_at.respond_to?(:to_time) ? created_at.to_time.to_i : nil,
+            created_at: Auth::DatabaseConnection.timestamp(db, row[:created_at])&.to_i,
           }
         end
 

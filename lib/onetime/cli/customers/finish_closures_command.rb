@@ -87,12 +87,15 @@ module Onetime
       private
 
       # Without the auth database an open account cannot be ruled out, so the
-      # op raises before it purges anything. Rendered as a JSON error document
-      # under --json, otherwise a line on stderr; exit 1 either way. An
-      # unreachable Redis, where the records are, is rendered the same way.
+      # op raises before it purges anything: when the database does not
+      # answer, and when the process resolved simple auth mode on a live run
+      # (AuthModeError; the op's class comment has why). Rendered as a JSON
+      # error document under --json, otherwise a line on stderr; exit 1
+      # either way. An unreachable Redis, where the records are, is rendered
+      # the same way.
       def run_operation(op, json)
         op.call
-      rescue Sequel::Error, Redis::BaseError => ex
+      rescue Auth::Operations::Customers::FinishClosures::AuthModeError, Sequel::Error, Redis::BaseError => ex
         fail_with("Cannot finish closures: #{ex.message}", json)
       end
 
@@ -109,6 +112,12 @@ module Onetime
         puts "\nInterrupted Account Closures (#4830)"
         puts '=' * 60
         puts "  Mode: #{result.dry_run ? 'DRY RUN (re-run with --confirm to purge)' : 'LIVE'}"
+        # Only a dry run gets here in simple mode; a live run is refused by
+        # the op. The note says what the list stands on.
+        unless Onetime.auth_config.full_enabled?
+          puts '  Auth: simple mode resolved, so no auth account was checked and every marked record'
+          puts '        is listed; --confirm is refused. On a full-mode install export AUTHENTICATION_MODE=full.'
+        end
         puts
 
         if result.candidates.empty?
@@ -172,6 +181,16 @@ module Onetime
             be running. A marked record with an open auth account is a
             closure that rolled back and is never purged here;
             `bin/ots customers doctor --repair` clears its marker.
+
+            Auth mode matters. bin/ots resolves simple mode whenever
+            AUTHENTICATION_MODE is not exported into its shell, full-mode
+            install or not, and in simple mode no auth account is checked:
+            the dry run lists every marked record and says so, and
+            --confirm is refused rather than purge a rolled-back closure
+            as if it were interrupted. On a full-mode install export
+            AUTHENTICATION_MODE=full; on a simple-mode install, where a
+            marked record is the whole account, purge each one with
+            `bin/ots customers purge ID`.
 
           Options:
             --confirm               Purge the records (default is dry-run)

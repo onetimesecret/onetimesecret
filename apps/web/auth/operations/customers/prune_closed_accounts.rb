@@ -157,30 +157,49 @@ module Auth
 
         # [customer, closed_at] for every Customer a closed row still names
         # (see the class comment). closed_at is the row's updated_at in epoch
-        # seconds (#closed_at_epoch).
+        # seconds (#closed_at_epoch). One pipelined read of the extid index
+        # and one load per DELETE_BATCH rows rather than a find_by_extid
+        # round trip per row: on the backlog this command exists to clear,
+        # the dry run was otherwise the slow half.
         def leftover_customers(ids)
           ids.each_slice(DELETE_BATCH).flat_map do |slice|
-            @db[:accounts].where(id: slice).exclude(external_id: nil)
-              .select_map([:external_id, :updated_at])
-              .filter_map do |extid, updated_at|
-                customer = Onetime::Customer.find_by_extid(extid)
-                [customer, closed_at_epoch(updated_at)] if customer
-              end
+            rows      = @db[:accounts].where(id: slice).exclude(external_id: nil).select_map([:external_id, :updated_at])
+            customers = customers_by_extid(rows.map(&:first))
+            rows.filter_map do |extid, updated_at|
+              customer = customers[extid]
+              [customer, closed_at_epoch(updated_at)] if customer
+            end
           end
         end
 
-        # accounts.updated_at is a naive UTC wall clock (the update trigger
-        # writes CURRENT_TIMESTAMP on SQLite, NOW() in a UTC session on
-        # PostgreSQL). Sequel reads a naive value in the host's zone unless
-        # the database timezone is pinned, so the wall clock is read back as
-        # UTC: on a UTC-7 host, Time#to_i would date the marker seven hours
-        # ahead, and Customer.closure_state would read the closure as still
-        # in progress until then. Never later than now, so a server that
-        # breaks the UTC convention cannot hold it there longer than
+        # @return [Hash{String => Onetime::Customer}] the records that exist,
+        #   by extid. An extid the index does not know, or whose record is
+        #   gone, is absent, as find_by_extid would return nil for it.
+        def customers_by_extid(extids)
+          return {} if extids.empty?
+
+          # The index stores each identifier serialized; read it back the way
+          # the index's own reader (Customer.find_by_extid) does.
+          lookup = Onetime::Customer.extid_lookup
+          raws   = lookup.dbclient.pipelined do |pipe|
+            extids.each { |extid| pipe.hget(lookup.dbkey, extid) }
+          end
+          objids = raws.map { |raw| raw.nil? ? nil : lookup.deserialize_value(raw) }
+          known  = extids.zip(objids).reject { |_extid, objid| objid.to_s.empty? }
+          return {} if known.empty?
+
+          known.map(&:first).zip(Onetime::Customer.load_multi(known.map(&:last))).to_h.compact
+        end
+
+        # accounts.updated_at is written by the update trigger, in UTC on
+        # both databases (Auth::DatabaseConnection.utc_timestamp has the zone
+        # rules): on a UTC-7 host, Time#to_i would date the marker seven
+        # hours ahead, and Customer.closure_state would read the closure as
+        # still in progress until then. Never later than now, so a server
+        # that breaks the UTC convention cannot hold it there longer than
         # CLOSURE_STALE_AFTER.
         def closed_at_epoch(updated_at)
-          wall = updated_at.to_time
-          [Time.utc(wall.year, wall.month, wall.day, wall.hour, wall.min, wall.sec).to_i, Familia.now.to_i].min
+          [Auth::DatabaseConnection.utc_timestamp(updated_at).to_i, Familia.now.to_i].min
         end
       end
     end

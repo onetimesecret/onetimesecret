@@ -1232,7 +1232,7 @@ module Auth
               severity: :high,
               message: "account closure started at #{started} stopped before the record was deleted; " \
                        "finish it with `bin/ots customers purge #{@customer.extid}` (or every such " \
-                       'closure with `bin/ots customers finish-closures --confirm`)',
+                       "closure with `bin/ots customers finish-closures --confirm`)#{simple_mode_caveat}",
               repairable: false,
             }
           when :rolled_back
@@ -1252,13 +1252,29 @@ module Auth
           end
         end
 
-        # Auth database handle, or nil in simple mode / when unreachable.
+        # Auth database handle, or nil in simple mode. A connection that
+        # cannot be built is nil too, flagged unreadable, so the account
+        # checks decide nothing rather than read "no connection" as "no
+        # account" (check_closure_marker would otherwise advise a purge).
         def auth_db
           return @auth_db if defined?(@auth_db)
 
           @auth_db = defined?(Auth::Database) ? Auth::Database.connection : nil
         rescue StandardError
-          @auth_db = nil
+          @auth_account_unreadable = true
+          @auth_db                 = nil
+        end
+
+        # In simple mode no auth account exists, so a stale marker is an
+        # interrupted closure by definition. bin/ots resolves simple mode
+        # whenever AUTHENTICATION_MODE is not exported into its shell,
+        # full-mode install or not, so the read-out names its basis before
+        # it advises a purge.
+        def simple_mode_caveat
+          return '' if auth_db || @auth_account_unreadable
+
+          '; simple auth mode resolved, so no auth account was checked ' \
+            '(on a full-mode install re-run with AUTHENTICATION_MODE=full)'
         end
 
         # Memoized once per Doctor instance — three checks iterate it.

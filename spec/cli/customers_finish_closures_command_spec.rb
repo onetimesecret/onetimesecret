@@ -15,7 +15,9 @@ require 'auth/operations/customers/finish_closures'
 # examples assert what the ADAPTER adds: dry run by default, --confirm and
 # --reason threaded through, the report lists each record and its outcome,
 # a purge that did not complete exits 1, --json emits the documented
-# document, a database or Redis failure exits 1, and --help renders.
+# document, a database or Redis failure exits 1, a process that resolved
+# simple auth mode is told so (a note on the dry run, the op's refusal on
+# --confirm rendered as the other failures are), and --help renders.
 RSpec.describe 'customers finish-closures', type: :cli do
   let(:op) { instance_double(Auth::Operations::Customers::FinishClosures) }
   let(:candidate) { { extid: 'ur_closing', email: 'cl***@e***.com', closure_started_at: 1_700_000_000 } }
@@ -29,6 +31,7 @@ RSpec.describe 'customers finish-closures', type: :cli do
   before do
     allow(Auth::Operations::Customers::FinishClosures).to receive(:new).and_return(op)
     allow(op).to receive(:call).and_return(build_result(dry_run: true))
+    allow(Onetime.auth_config).to receive(:full_enabled?).and_return(true)
   end
 
   describe 'dry run by default' do
@@ -132,6 +135,43 @@ RSpec.describe 'customers finish-closures', type: :cli do
 
       expect(last_exit_code).to eq(1)
       expect(JSON.parse(output[:stdout])).to eq('error' => 'Cannot finish closures: valkey unavailable')
+    end
+  end
+
+  # bin/ots resolves simple mode whenever AUTHENTICATION_MODE is not exported
+  # into its shell, full-mode install or not; the op refuses a live run.
+  describe 'when the process resolved simple auth mode' do
+    let(:refusal) { Auth::Operations::Customers::FinishClosures::AuthModeError }
+
+    before { allow(Onetime.auth_config).to receive(:full_enabled?).and_return(false) }
+
+    it 'says so on the dry run and exits 0' do
+      output = run_cli_command_quietly('customers', 'finish-closures')
+
+      expect(output[:stdout]).to include('simple mode resolved, so no auth account was checked')
+      expect(output[:stdout]).to include('AUTHENTICATION_MODE=full')
+      expect(output[:stdout]).to include('ur_closing')
+      expect(last_exit_code).to eq(0)
+    end
+
+    it 'renders the refusal of --confirm on stderr, exit 1' do
+      allow(op).to receive(:call).and_raise(refusal, Auth::Operations::Customers::FinishClosures::AUTH_MODE_MESSAGE)
+
+      output = run_cli_command_quietly('customers', 'finish-closures', '--confirm')
+
+      expect(last_exit_code).to eq(1)
+      expect(output[:stderr]).to include('Cannot finish closures: this process resolved simple auth mode')
+      expect(output[:stderr]).to include('AUTHENTICATION_MODE=full')
+      expect(output[:stderr]).to include('bin/ots customers purge ID')
+    end
+
+    it 'renders the refusal as JSON under --json, exit 1' do
+      allow(op).to receive(:call).and_raise(refusal, 'simple auth mode')
+
+      output = run_cli_command_quietly('customers', 'finish-closures', '--confirm', '--json')
+
+      expect(last_exit_code).to eq(1)
+      expect(JSON.parse(output[:stdout])).to eq('error' => 'Cannot finish closures: simple auth mode')
     end
   end
 
