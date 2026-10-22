@@ -89,8 +89,35 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
       attrs = subject.receipt_attributes
 
       expect(attrs[:share_url]).not_to be_nil
-      expect(attrs[:share_path]).not_to be_nil
-      expect(attrs[:secret_key]).to eq(receipt.secret_key)
+      expect(attrs[:share_path]).to eq("secret/#{receipt.secret_identifier}")
+      # The canonical secret_identifier; the deprecated secret_key field is
+      # never written for current receipts (#4835).
+      expect(attrs[:secret_key]).to eq(receipt.secret_identifier)
+    end
+
+    # #4835: the receipt URLs were built from the deprecated `key` field,
+    # which nothing writes, so every one ended in "/receipt/". The controller
+    # passes metadata_url straight into the V1 response.
+    it 'builds the receipt and burn URLs from the receipt identifier' do
+      subject.process
+
+      expect(subject.receipt_path).to eq("receipt/#{receipt.identifier}")
+      expect(subject.burn_path).to eq("receipt/#{receipt.identifier}/burn")
+      expect(subject.metadata_url).to end_with("/receipt/#{receipt.identifier}")
+      expect(subject.receipt_url).to eq(subject.metadata_url)
+      expect(subject.burn_url).to end_with("/receipt/#{receipt.identifier}/burn")
+    end
+
+    it 'withholds the share link once the secret is burned' do
+      expect(secret.burned!).to be true
+
+      subject.process
+      attrs = subject.receipt_attributes
+
+      expect(subject.is_burned).to be true
+      expect(attrs[:share_url]).to be_nil
+      expect(attrs[:share_path]).to be_nil
+      expect(attrs).not_to have_key(:secret_key)
     end
 
     context 'with a concealed (user-supplied) secret' do
@@ -160,9 +187,9 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
 
     let(:receipt) do
       double('Onetime::Receipt',
-        key: 'receipt_xyz',
+        identifier: 'receipt_xyz',
         shortid: 'rcpt1234',
-        secret_key: 'secret_abc',
+        secret_identifier: 'secret_abc',
         secret_shortid: 'sec1234',
         recipients: '',
         secret_natural_duration: '1 hour',
@@ -173,7 +200,7 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
         kind: 'generate',
         created: Time.now.to_i,
         owner?: false,
-        shows_share_link?: true, # standard provenance — share link permitted
+        share_link_available?: true, # standard provenance, live secret — share link permitted
         safe_dump: { key: 'receipt_xyz', state: 'new' },
         load_secret: nil) # overridden per-test below
     end

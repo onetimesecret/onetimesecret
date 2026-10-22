@@ -112,7 +112,7 @@ module V2::Logic
           # (state: new, is_burned: false). Reload it so success_data reports
           # what was persisted (#4835): burned for the winner, and whatever
           # the concurrent winner left (e.g. revealed) for a loser.
-          @receipt = Onetime::Receipt.load(receipt.identifier) || receipt
+          persisted_receipt = Onetime::Receipt.load(receipt.identifier)
 
           if greenlighted
             owner = secret.load_owner
@@ -138,6 +138,16 @@ module V2::Logic
                 result: :already_consumed,
               }
           end
+
+          # The receipt expired or was deleted while the burn ran. The
+          # in-memory instance still shows the pre-burn state and a link to
+          # the destroyed secret, and saving it would recreate the record.
+          # Answer as a follow-up fetch would: not found. A winner's
+          # bookkeeping above has already run, because the secret is destroyed
+          # regardless of what is left to report.
+          raise OT::MissingSecret if persisted_receipt.nil?
+
+          @receipt = persisted_receipt
 
         elsif continue && !correct_passphrase
           # Record failed attempt for rate limiting. Only a committed burn

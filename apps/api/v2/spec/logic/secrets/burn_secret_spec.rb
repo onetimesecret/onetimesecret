@@ -268,6 +268,43 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
     end
   end
 
+  # #4835: the receipt key expires (or is deleted) between process_params and
+  # the post-burn reload. Deleting the key is exactly what a TTL expiry does.
+  # The stale instance would report the pre-burn state and a link to the
+  # destroyed secret, so the request answers not found, the way a follow-up
+  # fetch would, and nothing writes the receipt back.
+  context 'when the receipt disappears during the burn' do
+    it 'counts the burn, destroys the secret, and raises MissingSecret without recreating the receipt' do
+      logic = build_logic('identifier' => receipt.identifier, 'continue' => 'true')
+      logic.process_params
+      Familia.dbclient.del(receipt.dbkey)
+      before_count = Onetime::Customer.secrets_burned.value
+
+      expect { logic.process }.to raise_error(OT::MissingSecret)
+
+      expect(logic.greenlighted).to be true
+      expect(Onetime::Customer.secrets_burned.value).to eq(before_count + 1)
+      expect(Onetime::Secret.load(secret.identifier)).to be_nil
+      expect(Onetime::Receipt.load(receipt.identifier)).to be_nil
+      expect(Familia.dbclient.exists(receipt.dbkey)).to eq(0)
+    end
+
+    it 'raises MissingSecret for a race loser as well, without counting the burn' do
+      logic = build_logic('identifier' => receipt.identifier, 'continue' => 'true')
+      logic.process_params
+      pin_stale_secret_on(logic)
+      expect(Onetime::Secret.load(secret.identifier).revealed!).to be true
+      Familia.dbclient.del(receipt.dbkey)
+      before_count = Onetime::Customer.secrets_burned.value
+
+      expect { logic.process }.to raise_error(OT::MissingSecret)
+
+      expect(logic.greenlighted).to be false
+      expect(Onetime::Customer.secrets_burned.value).to eq(before_count)
+      expect(Familia.dbclient.exists(receipt.dbkey)).to eq(0)
+    end
+  end
+
   # Actor attribution on burn (#3639). The burned event must carry the actor
   # discriminator computed from the request's customer, with the same anonymous
   # guard as reveal so an anonymous burn of a guest link is never misattributed.

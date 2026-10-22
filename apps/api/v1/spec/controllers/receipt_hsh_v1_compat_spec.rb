@@ -333,20 +333,112 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
       end
 
       it 'returns empty string for secret_key (not null)' do
-        # When secret_identifier is empty, receipt_hsh falls back to
-        # secret_key from the hash. If that's also nil, it returns nil.
-        # The fix should ensure burned secrets get "" not nil.
-        # Current behavior: secret_id_val is '' which is falsey-ish but
-        # the code checks !secret_id_val.empty? which is true for '',
-        # so it falls through to hsh.fetch('secret_key', nil).
-        expect(result['secret_key']).to satisfy('be empty string or nil') { |v|
-          v == '' || v.nil?
-        }
+        expect(result['secret_key']).to eq('')
+        expect(result['secret_identifier']).to eq('')
       end
     end
 
     context 'when state is new with valid secret_identifier' do
       it 'returns the secret_identifier as secret_key' do
+        expect(result['secret_key']).to eq('secret_xyz')
+      end
+    end
+
+    # #4835: terminal transitions clear secret_identifier but leave the
+    # deprecated secret_key field alone (only expired! clears both). The
+    # legacy fallback must never hand a terminal receipt its key back.
+    %w[burned expired orphaned].each do |terminal_state|
+      context "when state is #{terminal_state} and the legacy secret_key field is populated" do
+        let(:base_hash) do
+          super().merge(
+            'state' => terminal_state,
+            'secret_identifier' => '',
+            'secret_key' => 'legacy_secret_abc',
+          )
+        end
+
+        it 'returns an empty secret_key, not the legacy value' do
+          expect(result['secret_key']).to eq('')
+          expect(result['secret_identifier']).to eq('')
+        end
+      end
+    end
+
+    context 'when state is revealed and the legacy secret_key field is populated' do
+      let(:base_hash) do
+        super().merge(
+          'state' => 'revealed',
+          'secret_identifier' => '',
+          'secret_key' => 'legacy_secret_abc',
+        )
+      end
+
+      it 'omits secret_key and secret_identifier' do
+        expect(result).not_to have_key('secret_key')
+        expect(result).not_to have_key('secret_identifier')
+      end
+    end
+
+    # A stale in-memory receipt can carry a terminal state alongside the
+    # identifier it held before the transition; the state decides.
+    context 'when state is burned but secret_identifier is still set' do
+      let(:base_hash) { super().merge('state' => 'burned') }
+
+      it 'returns an empty secret_key' do
+        expect(result['secret_key']).to eq('')
+      end
+    end
+
+    context 'when the receipt is live and only the legacy secret_key field is set' do
+      let(:base_hash) do
+        super().merge('secret_identifier' => '', 'secret_key' => 'legacy_secret_abc')
+      end
+
+      it 'falls back to the legacy secret_key' do
+        expect(result['secret_key']).to eq('legacy_secret_abc')
+      end
+    end
+
+    context 'when the receipt is live and both fields are set' do
+      let(:base_hash) { super().merge('secret_key' => 'legacy_secret_abc') }
+
+      it 'prefers the canonical secret_identifier' do
+        expect(result['secret_key']).to eq('secret_xyz')
+      end
+    end
+  end
+
+  # ----------------------------------------------------------------
+  # Provenance gate: the same rule as Receipt#shows_share_link? (#4835)
+  # ----------------------------------------------------------------
+  describe 'secret_key provenance gate' do
+    context 'when source is incoming' do
+      let(:base_hash) { super().merge('source' => 'incoming') }
+
+      it 'withholds the secret key from the receipt holder' do
+        expect(result['secret_key']).to eq('')
+        expect(result['secret_identifier']).to eq('')
+      end
+    end
+
+    context 'when source is standard' do
+      let(:base_hash) { super().merge('source' => 'standard') }
+
+      it 'returns the secret key' do
+        expect(result['secret_key']).to eq('secret_xyz')
+      end
+    end
+
+    context 'when source is unrecognized' do
+      let(:base_hash) { super().merge('source' => 'imported') }
+
+      it 'fails closed' do
+        expect(result['secret_key']).to eq('')
+      end
+    end
+
+    context 'when source is absent (legacy receipt)' do
+      it 'treats the receipt as standard' do
         expect(result['secret_key']).to eq('secret_xyz')
       end
     end

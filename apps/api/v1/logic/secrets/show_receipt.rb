@@ -35,9 +35,13 @@ module V1::Logic
       def process # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
         @secret = @receipt.load_secret
 
-        @receipt_key = receipt.key
+        # Canonical fields only. The deprecated `key` and `secret_key` fields
+        # are never written for current receipts, so reading them built
+        # receipt URLs ending in "/receipt/" and share links ending in
+        # "/secret/" (#4835).
+        @receipt_key = receipt.identifier
         @receipt_shortid = receipt.shortid
-        @secret_key = receipt.secret_key
+        @secret_key = receipt.secret_identifier
         @secret_shortid = receipt.secret_shortid
 
         # Default the recipients to an empty string. When a Familia::Horreum
@@ -219,8 +223,9 @@ module V1::Logic
         attributes = receipt.safe_dump
 
         # Provenance gate: incoming secrets withhold the share link (and its
-        # bearer key) from the creator. See Receipt#shows_share_link?.
-        link_visible = receipt.shows_share_link?
+        # bearer key) from the creator, and a consumed secret has no link to
+        # give. See Receipt#share_link_available?.
+        link_visible = receipt.share_link_available?
 
         # Only include the secret's identifying key when necessary AND when
         # provenance permits sharing the link.
