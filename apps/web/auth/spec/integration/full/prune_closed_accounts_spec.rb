@@ -194,14 +194,16 @@ RSpec.describe 'Closed account pruning (#4819)', type: :integration do
     # only thing keeping `customers sync-auth-accounts` from giving that
     # record a live account again; the marker takes over before it goes.
     context 'when a closed row still names a customer record' do
-      let(:closed_at) { Time.at(1_700_000_000) }
+      let(:closed_at) { Time.at(1_700_000_000).utc }
       let!(:leftover) { Onetime::Customer.create!(email: "leftover-#{run}@prune.example.com") }
+      # Stored as the update trigger stores it: a naive UTC wall clock, not a
+      # Time Sequel would write and read back in the same host zone.
       let!(:leftover_row) do
         id = accounts.insert(
           email: leftover.email,
           status_id: AuthTestConstants::STATUS_CLOSED,
           external_id: leftover.extid,
-          updated_at: closed_at,
+          updated_at: closed_at.strftime('%Y-%m-%d %H:%M:%S'),
         )
         created_account_ids << id
         id
@@ -220,6 +222,32 @@ RSpec.describe 'Closed account pruning (#4819)', type: :integration do
         expect(result.marked).to eq(1)
         expect(accounts.where(id: leftover_row).count).to eq(0)
         expect(Onetime::Customer.load(leftover.objid).closure_started_at).to eq(closed_at.to_i)
+      end
+
+      # What Sequel returns for that column on a UTC-7 host with no database
+      # timezone pinned: the UTC wall clock labelled with the host's offset.
+      it 'reads the row time as the UTC wall clock it is, whatever zone Sequel labels it with' do
+        host_read = Time.new(2023, 11, 14, 22, 13, 20, '-07:00')
+
+        expect(new_operation.send(:closed_at_epoch, host_read)).to eq(closed_at.to_i)
+      end
+
+      # A marker dated ahead of the clock would read as a closure in progress
+      # until the clock caught up. Inserted rather than updated: the update
+      # trigger would overwrite updated_at with the current time.
+      it 'never dates the marker later than now' do
+        now    = Familia.now.to_i
+        ahead  = Onetime::Customer.create!(email: "ahead-#{run}@prune.example.com")
+        created_account_ids << accounts.insert(
+          email: ahead.email,
+          status_id: AuthTestConstants::STATUS_CLOSED,
+          external_id: ahead.extid,
+          updated_at: Time.at(now + 3600).utc.strftime('%Y-%m-%d %H:%M:%S'),
+        )
+
+        new_operation(dry_run: false).call
+
+        expect(Onetime::Customer.load(ahead.objid).closure_started_at.to_i).to be_between(now, Familia.now.to_i)
       end
 
       it 'deletes nothing when the marker cannot be written' do

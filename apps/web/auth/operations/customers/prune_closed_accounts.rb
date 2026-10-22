@@ -157,16 +157,30 @@ module Auth
 
         # [customer, closed_at] for every Customer a closed row still names
         # (see the class comment). closed_at is the row's updated_at in epoch
-        # seconds.
+        # seconds (#closed_at_epoch).
         def leftover_customers(ids)
           ids.each_slice(DELETE_BATCH).flat_map do |slice|
             @db[:accounts].where(id: slice).exclude(external_id: nil)
               .select_map([:external_id, :updated_at])
               .filter_map do |extid, updated_at|
                 customer = Onetime::Customer.find_by_extid(extid)
-                [customer, updated_at.to_time.to_i] if customer
+                [customer, closed_at_epoch(updated_at)] if customer
               end
           end
+        end
+
+        # accounts.updated_at is a naive UTC wall clock (the update trigger
+        # writes CURRENT_TIMESTAMP on SQLite, NOW() in a UTC session on
+        # PostgreSQL). Sequel reads a naive value in the host's zone unless
+        # the database timezone is pinned, so the wall clock is read back as
+        # UTC: on a UTC-7 host, Time#to_i would date the marker seven hours
+        # ahead, and Customer.closure_state would read the closure as still
+        # in progress until then. Never later than now, so a server that
+        # breaks the UTC convention cannot hold it there longer than
+        # CLOSURE_STALE_AFTER.
+        def closed_at_epoch(updated_at)
+          wall = updated_at.to_time
+          [Time.utc(wall.year, wall.month, wall.day, wall.hour, wall.min, wall.sec).to_i, Familia.now.to_i].min
         end
       end
     end
