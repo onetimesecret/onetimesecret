@@ -3,18 +3,22 @@
 <div style="font-family: Helvetica, Arial, sans-serif; font-size: 22px; line-height: 30px; color: #374550; margin: 0 0 6px 0;">
   <%= h(t('email.expiration_warning.expires_in', time_remaining: time_remaining)) %>
 </div>
+<p style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px; color: #5a6672; margin: 0 0 6px 0;">
+  <%= t('email.expiration_warning.secret_id_label') %> <span style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-weight: 700; color: #374550;"><%= h(secret_shortid) %></span>
+</p>
 <p style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px; color: #5a6672; margin: 0 0 16px 0;">
-  <%= t('email.expiration_warning.open_receipt') %>
+  <%= t('email.expiration_warning.sign_in_to_manage') %>
 </p>
 
-<!-- Receipt link (the visible text is the exact destination) -->
+<%# Recent-secrets link (the visible text is the exact destination). Canonical
+    host, never a receipt or secret identifier: see ExpirationWarning. -%>
 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 0 0 20px 0;">
   <tr>
     <td bgcolor="#f7f8fa" style="background-color: #f7f8fa; border: 1px solid #e3e7eb; border-radius: 8px; padding: 16px 18px;">
       <div style="font-family: Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #97a1ab; margin: 0 0 8px 0;">
-        <%= t('email.expiration_warning.receipt_link_label') %>
+        <%= t('email.expiration_warning.recent_link_label') %>
       </div>
-      <a href="<%= brand_baseuri %><%= uri_path %>" style="display: block; text-decoration: none; word-break: break-all; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 14px; line-height: 22px;" rel="noopener noreferrer"><span style="color: <%= brand_color %>; font-weight: 700;"><%= h(brand_baseuri) %></span><span style="color: #8a96a3;"><%= h(uri_path) %></span></a>
+      <a href="<%= baseuri %><%= uri_path %>" style="display: block; text-decoration: none; word-break: break-all; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 14px; line-height: 22px;" rel="noopener noreferrer"><span style="color: <%= brand_color %>; font-weight: 700;"><%= h(baseuri) %></span><span style="color: #8a96a3;"><%= h(uri_path) %></span></a>
     </td>
   </tr>
 </table>

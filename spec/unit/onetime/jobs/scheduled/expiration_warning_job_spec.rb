@@ -58,8 +58,8 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       exists?: true,
       anonymous?: false,
       load_owner: owner_with_email,
+      secret_shortid: 'abc123',
       secret_expiration: (Familia.now.to_i + 7200), # 2 hours from now
-      share_domain: nil
     )
   end
 
@@ -215,17 +215,18 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       described_class.send(:process_expiring_secrets)
     end
 
-    # The payload names the receipt, not the secret: the template links to
-    # /receipt/<identifier>. The short id it used to send (secret_key) is not
-    # an address, so every link in every warning was dead.
-    it 'schedules warning email for valid secrets with the receipt identifier' do
+    # The payload is an account notification: the secret's short id under
+    # its own name, nothing that resolves. The short id used to travel as
+    # secret_key and was built into /secret/<short id>, a link no route
+    # resolves; a receipt identifier would be a bearer capability.
+    it 'schedules warning email for valid secrets with the secret short id only' do
       allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta123'])
       allow(Onetime::Receipt).to receive(:load).with('meta123').and_return(metadata_with_owner)
 
       expect(Onetime::Jobs::Publisher).to receive(:schedule_email) do |template, data, options|
         expect(template).to eq(:expiration_warning)
-        expect(data).to include(recipient: 'owner@example.com', receipt_identifier: 'meta123')
-        expect(data).not_to have_key(:secret_key)
+        expect(data).to include(recipient: 'owner@example.com', secret_shortid: 'abc123')
+        expect(data.keys).to contain_exactly(:recipient, :secret_shortid, :expires_at)
         expect(options).to have_key(:delay_seconds)
       end
 
@@ -254,8 +255,8 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
         exists?: true,
         anonymous?: false,
         load_owner: owner_with_email,
+        secret_shortid: 'abc123',
         secret_expiration: (fixed_now.to_i + 7200), # exactly 2 hours from fixed_now
-        share_domain: nil
       )
 
       allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta123'])
@@ -280,8 +281,8 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
         exists?: true,
         anonymous?: false,
         load_owner: owner_with_email,
+        secret_shortid: 'xyz789',
         secret_expiration: (fixed_now.to_i + 1800), # 30 minutes from fixed_now
-        share_domain: 'custom.example.com'
       )
 
       allow(Onetime::Receipt).to receive(:expiring_within).and_return(['soon123'])
@@ -304,25 +305,15 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       described_class.send(:process_expiring_secrets)
     end
 
-    it 'includes share_domain in email data' do
-      metadata_with_domain = instance_double(
-        'Onetime::Receipt',
-        identifier: 'meta_domain',
-        exists?: true,
-        anonymous?: false,
-        load_owner: owner_with_email,
-        secret_expiration: (Familia.now.to_i + 7200),
-        share_domain: 'secrets.example.com'
-      )
+    # The email links to the canonical host, where the owner signs in, so
+    # the domain the secret was shared from is not part of the payload.
+    it 'does not include share_domain or any identifier in email data' do
+      allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta123'])
+      allow(Onetime::Receipt).to receive(:load).with('meta123').and_return(metadata_with_owner)
 
-      allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta_domain'])
-      allow(Onetime::Receipt).to receive(:load).with('meta_domain').and_return(metadata_with_domain)
-
-      expect(Onetime::Jobs::Publisher).to receive(:schedule_email).with(
-        :expiration_warning,
-        hash_including(share_domain: 'secrets.example.com'),
-        anything
-      )
+      expect(Onetime::Jobs::Publisher).to receive(:schedule_email) do |_template, data, _options|
+        expect(data).not_to include(:share_domain, :receipt_identifier, :secret_key)
+      end
 
       described_class.send(:process_expiring_secrets)
     end
@@ -346,8 +337,8 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
           exists?: true,
           anonymous?: false,
           load_owner: owner_with_email,
+          secret_shortid: 'second789',
           secret_expiration: (Familia.now.to_i + 7200),
-          share_domain: nil
         )
 
         allow(Onetime::Receipt).to receive(:expiring_within).and_return(%w[meta123 meta_second])
@@ -469,8 +460,8 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
         exists?: true,
         anonymous?: false,
         load_owner: owner_with_email,
+        secret_shortid: 'key1',
         secret_expiration: (Familia.now.to_i + 7200),
-        share_domain: nil
       )
     end
 
@@ -481,8 +472,8 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
         exists?: true,
         anonymous?: false,
         load_owner: owner_with_email,
+        secret_shortid: 'key2',
         secret_expiration: (Familia.now.to_i + 7200),
-        share_domain: nil
       )
     end
 
@@ -493,8 +484,8 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
         exists?: true,
         anonymous?: false,
         load_owner: owner_with_email,
+        secret_shortid: 'key3',
         secret_expiration: (Familia.now.to_i + 7200),
-        share_domain: nil
       )
     end
 

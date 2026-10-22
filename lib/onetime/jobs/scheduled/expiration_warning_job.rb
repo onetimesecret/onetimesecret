@@ -141,13 +141,14 @@ module Onetime
               :expiration_warning,
               {
                 recipient: owner.email,
-                # The template links to the owner's receipt page,
-                # /receipt/<identifier>. The secret's short id is not an
-                # address: no route resolves it, so the link it used to build
-                # (/secret/<short id>) never opened anything.
-                receipt_identifier: receipt.identifier,
+                # An account notification, like secret_revealed: the short id
+                # names the secret, and the template links to the owner's
+                # recent-secrets page on the canonical host. No receipt or
+                # secret identifier goes by email: both are bearer
+                # capabilities (the receipt route answers without an
+                # ownership check and returns the share link).
+                secret_shortid: receipt.secret_shortid,
                 expires_at: receipt.secret_expiration,
-                share_domain: receipt.share_domain,
               },
               delay_seconds: delay,
             )

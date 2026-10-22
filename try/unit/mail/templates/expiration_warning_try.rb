@@ -5,10 +5,13 @@
 # Tests for Onetime::Mail::Templates::ExpirationWarning class.
 #
 # ExpirationWarning is used to notify secret owners that their secret
-# is about to expire. It links to the owner's receipt page.
+# is about to expire. An account notification: it names the secret by its
+# short id and links to the owner's recent-secrets page on the canonical
+# host. It carries no receipt or secret identifier (both are bearer
+# capabilities for the secret).
 #
-# Required data: recipient, receipt_identifier, expires_at
-# Optional: share_domain, baseuri
+# Required data: recipient, secret_shortid, expires_at
+# Optional: baseuri
 
 require_relative '../../../support/test_helpers'
 
@@ -23,16 +26,8 @@ require 'onetime/mail'
 
 @valid_data = {
   recipient: 'owner@example.com',
-  receipt_identifier: 'abc123def456',
-  expires_at: @expires_soon,
-  share_domain: nil
-}
-
-@valid_data_with_domain = {
-  recipient: 'owner@example.com',
-  receipt_identifier: 'xyz789',
-  expires_at: @expires_soon,
-  share_domain: 'custom.example.com'
+  secret_shortid: 'a1b2c3d4',
+  expires_at: @expires_soon
 }
 
 # TRYOUTS
@@ -40,7 +35,7 @@ require 'onetime/mail'
 ## ExpirationWarning validates presence of recipient
 begin
   Onetime::Mail::Templates::ExpirationWarning.new({
-    receipt_identifier: 'abc123',
+    secret_shortid: 'a1b2c3d4',
     expires_at: @expires_soon
   })
 rescue ArgumentError => e
@@ -48,7 +43,7 @@ rescue ArgumentError => e
 end
 #=> 'Recipient required'
 
-## ExpirationWarning validates presence of receipt_identifier
+## ExpirationWarning validates presence of secret_shortid
 begin
   Onetime::Mail::Templates::ExpirationWarning.new({
     recipient: 'test@example.com',
@@ -57,40 +52,40 @@ begin
 rescue ArgumentError => e
   e.message
 end
-#=> 'Receipt identifier required'
+#=> 'Secret short id required'
 
-## ExpirationWarning rejects an empty receipt_identifier (it would build /receipt/)
+## ExpirationWarning rejects an empty secret_shortid
 begin
   Onetime::Mail::Templates::ExpirationWarning.new({
     recipient: 'test@example.com',
-    receipt_identifier: '',
+    secret_shortid: '',
     expires_at: @expires_soon
   })
 rescue ArgumentError => e
   e.message
 end
-#=> 'Receipt identifier required'
+#=> 'Secret short id required'
 
-## ExpirationWarning rejects the previous payload shape (secret_key short id, no receipt)
-# A message queued by the previous job version carries only the secret's
-# short id, which no route resolves. EmailWorker does not retry an
-# ArgumentError, so the message is rejected instead of sent with a dead link.
+## ExpirationWarning rejects the previous payload shape (secret_key, no secret_shortid)
+# A message queued by the previous job version carries the short id under
+# secret_key. EmailWorker does not retry an ArgumentError, so the message is
+# rejected instead of being sent.
 begin
   Onetime::Mail::Templates::ExpirationWarning.new({
     recipient: 'test@example.com',
-    secret_key: 'abc12345',
+    secret_key: 'a1b2c3d4',
     expires_at: @expires_soon
   })
 rescue ArgumentError => e
   e.message
 end
-#=> 'Receipt identifier required'
+#=> 'Secret short id required'
 
 ## ExpirationWarning validates presence of expires_at
 begin
   Onetime::Mail::Templates::ExpirationWarning.new({
     recipient: 'test@example.com',
-    receipt_identifier: 'abc123'
+    secret_shortid: 'a1b2c3d4'
   })
 rescue ArgumentError => e
   e.message
@@ -111,6 +106,11 @@ template.subject
 template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
 template.recipient_email
 #=> 'owner@example.com'
+
+## ExpirationWarning secret_shortid returns the short id from data
+template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
+template.secret_shortid
+#=> 'a1b2c3d4'
 
 ## ExpirationWarning time_remaining shows hours when > 1 hour
 data = @valid_data.merge(expires_at: Time.now.to_i + 7200) # 2 hours
@@ -136,22 +136,18 @@ template = Onetime::Mail::Templates::ExpirationWarning.new(data)
 template.time_remaining
 #=> 'soon'
 
-## ExpirationWarning receipt_uri is the receipt page for the receipt identifier
+## ExpirationWarning recent_uri is the recent-secrets page on the canonical host
 template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
-template.receipt_uri
-#=~> /\/receipt\/abc123def456\z/
+template.recent_uri
+#=~> /\Ahttps?:\/\/.+\/recent\z/
 
-## ExpirationWarning receipt_uri links to the canonical host by default
-# receipt_uri is built from brand_baseuri, which falls back to the canonical
-# site baseuri when the message carries no share_domain.
-template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
-template.receipt_uri
-#=~> /\Ahttps?:\/\/.+\/receipt\/abc123def456\z/
-
-## ExpirationWarning receipt_uri links to the share_domain when present
-template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data_with_domain)
-template.receipt_uri
-#=> 'https://custom.example.com/receipt/xyz789'
+## ExpirationWarning recent_uri ignores share_domain
+# Nothing sends share_domain any more. A payload that still carries one does
+# not move the link: the owner signs in on the canonical host.
+data = @valid_data.merge(share_domain: 'custom.example.com')
+template = Onetime::Mail::Templates::ExpirationWarning.new(data)
+[template.recent_uri.include?('custom.example.com'), template.recent_uri.end_with?('/recent')]
+#=> [false, true]
 
 ## ExpirationWarning baseuri uses site config by default
 template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
@@ -164,21 +160,28 @@ template = Onetime::Mail::Templates::ExpirationWarning.new(data)
 template.baseuri
 #=> 'https://override.example.com'
 
+## ExpirationWarning recent_uri follows the baseuri override
+data = @valid_data.merge(baseuri: 'https://override.example.com')
+template = Onetime::Mail::Templates::ExpirationWarning.new(data)
+template.recent_uri
+#=> 'https://override.example.com/recent'
+
 ## ExpirationWarning render_text returns string
 template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
 template.render_text.class
 #=> String
 
-## ExpirationWarning render_text contains the receipt URI and no secret link
+## ExpirationWarning render_text has the recent-secrets link and the short id, and no identifier path
 template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
 text = template.render_text
-[text.include?('/receipt/abc123def456'), text.include?('/secret/')]
-#=> [true, false]
+[text.include?('/recent'), text.include?('a1b2c3d4'), text.include?('/secret/'), text.include?('/receipt/')]
+#=> [true, true, false, false]
 
-## ExpirationWarning render_html links to the receipt URI
+## ExpirationWarning render_html has the recent-secrets link and the short id, and no identifier path
 template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
-template.render_html.include?('/receipt/abc123def456')
-#=> true
+html = template.render_html
+[html.include?('/recent'), html.include?('a1b2c3d4'), html.include?('/secret/'), html.include?('/receipt/')]
+#=> [true, true, false, false]
 
 ## ExpirationWarning render_text contains expiration message
 template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
@@ -202,9 +205,3 @@ template = Onetime::Mail::Templates::ExpirationWarning.new(@valid_data)
 email = template.to_email(from: 'noreply@example.com')
 email[:text_body].is_a?(String) && !email[:text_body].empty?
 #=> true
-
-## ExpirationWarning handles nil share_domain gracefully
-data = @valid_data.merge(share_domain: nil)
-template = Onetime::Mail::Templates::ExpirationWarning.new(data)
-template.receipt_uri
-#=~> /\Ahttps?:\/\/.+\/receipt\/abc123def456\z/

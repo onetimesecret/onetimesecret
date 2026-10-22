@@ -9,33 +9,38 @@ module Onetime
     module Templates
       # Email template for warning a secret's owner that it is about to expire.
       #
-      # The link is the owner's receipt page, /receipt/<receipt identifier>,
-      # where the owner sees whether the secret has been viewed and can burn
-      # it. It is not the secret link: the owner is not meant to consume their
-      # own secret. The previous payload carried the secret's 8-character short
-      # id under :secret_key and the template built /secret/<short id>, which
-      # no route resolves, so every link in every warning was dead.
+      # An account notification, like SecretRevealed: it names the secret by
+      # its short id and links to the owner's recent-secrets page, /recent,
+      # on the canonical host. That page requires a session. The email
+      # carries no identifier that resolves anything: /receipt/<identifier>
+      # and /secret/<identifier> are bearer capabilities (the receipt route
+      # answers without an ownership check and returns the share link), and
+      # a mailbox is not a place to keep one.
+      #
+      # The previous payload carried the secret's short id under :secret_key
+      # and the template built /secret/<short id>, which no route resolves,
+      # so every link in every warning was dead.
       #
       # Required data:
-      #   recipient:          Owner's email address
-      #   receipt_identifier: Full receipt identifier (Receipt#identifier)
-      #   expires_at:         Unix timestamp when the secret expires
+      #   recipient:      Owner's email address
+      #   secret_shortid: Secret#shortid, the 8-character prefix the receipt
+      #                   page shows the owner
+      #   expires_at:     Unix timestamp when the secret expires
       #
       # Optional data:
-      #   share_domain: Custom domain the secret was shared from
-      #   baseuri:      Override site base URI
+      #   baseuri: Override site base URI
       #
-      # A payload without receipt_identifier (one queued by the previous job
+      # A payload without secret_shortid (one queued by the previous job
       # version) fails validate_data! with an ArgumentError. EmailWorker does
       # not retry an ArgumentError: the message is rejected to the DLQ as
-      # invalid_message, so a dead link is never sent.
+      # invalid_message instead of being sent with the dead link.
       #
       class ExpirationWarning < Base
         protected
 
         def validate_data!
           raise ArgumentError, 'Recipient required' unless data[:recipient]
-          raise ArgumentError, 'Receipt identifier required' if data[:receipt_identifier].to_s.strip.empty?
+          raise ArgumentError, 'Secret short id required' if data[:secret_shortid].to_s.strip.empty?
           raise ArgumentError, 'Expiration time required' unless data[:expires_at]
         end
 
@@ -50,6 +55,10 @@ module Onetime
 
         def recipient_email
           data[:recipient]
+        end
+
+        def secret_shortid
+          data[:secret_shortid]
         end
 
         # Computed template variables
@@ -71,15 +80,17 @@ module Onetime
           end
         end
 
+        # The owner's recent-secrets page (web route: auth=sessionauth).
         def uri_path
-          "/receipt/#{data[:receipt_identifier]}"
+          '/recent'
         end
 
-        # Full URI of the owner's receipt page, on the domain the secret was
-        # shared from (share_domain when present, canonical host otherwise),
-        # as the receipt endpoints build receipt_url.
-        def receipt_uri
-          "#{brand_baseuri}#{uri_path}"
+        # Full URI of the recent-secrets page. Built from baseuri, the
+        # canonical host, as other install-level paths in mail are; the
+        # domain a secret was shared from plays no part in where its owner
+        # signs in.
+        def recent_uri
+          "#{baseuri}#{uri_path}"
         end
 
         def baseuri
@@ -92,7 +103,8 @@ module Onetime
         def template_binding
           computed_data = data.merge(
             time_remaining: time_remaining,
-            receipt_uri: receipt_uri,
+            secret_shortid: secret_shortid,
+            recent_uri: recent_uri,
             uri_path: uri_path,
             baseuri: baseuri,
           )

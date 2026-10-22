@@ -2,19 +2,25 @@
 #
 # frozen_string_literal: true
 
-# The expiration-warning email links to the owner's receipt page.
+# The expiration-warning email is an account notification with a working
+# link and no bearer capability.
 #
-# ExpirationWarningJob used to send receipt.secret_shortid (8 characters)
-# under :secret_key, and the template built /secret/<short id>. No route
-# resolves a short id, so every link in every warning was dead. The payload
-# now carries the receipt identifier and the template links to
-# /receipt/<identifier>. This drives the job over a real receipt and checks
-# that the identifier it sends loads that receipt and that the rendered mail
-# links to it.
+# ExpirationWarningJob used to send receipt.secret_shortid under :secret_key,
+# and the template built /secret/<short id>, which no route resolves: every
+# link in every warning was dead. The payload now carries the short id under
+# its own name, and the template names the secret by it and links to the
+# owner's recent-secrets page on the canonical host, which requires a
+# session. Neither the receipt identifier nor the secret identifier appears
+# in the mail: /receipt/<identifier> answers without an ownership check and
+# returns the share link, so either would turn the mailbox into a key to the
+# secret. This drives the job over a real owned receipt and checks the
+# payload and the rendered mail.
 
 require_relative '../integration_spec_helper'
+require 'onetime/jobs/scheduled/expiration_warning_job'
+require 'onetime/jobs/publisher'
 
-RSpec.describe 'Expiration warning email link', type: :integration do
+RSpec.describe 'Expiration warning email', type: :integration do
   before(:all) do
     Onetime.boot! :test
   end
@@ -26,9 +32,11 @@ RSpec.describe 'Expiration warning email link', type: :integration do
   # Two days: not below the default min_ttl_hours (48), so spawn_pair puts the
   # receipt on the expiration timeline the job scans.
   let(:lifespan) { 2 * 24 * 3600 }
-  let(:receipt) { Onetime::Receipt.spawn_pair(owner.objid, lifespan, 'expiring secret').first }
+  let(:pair) { Onetime::Receipt.spawn_pair(owner.objid, lifespan, 'expiring secret') }
+  let(:receipt) { pair[0] }
+  let(:secret) { pair[1] }
 
-  it 'sends the receipt identifier and links to the receipt page, not to a short id' do
+  it 'sends the secret short id and links to the sign-in page, never an identifier' do
     scheduled = []
     allow(Onetime::Jobs::Publisher).to receive(:schedule_email) do |*args|
       scheduled << args
@@ -44,18 +52,25 @@ RSpec.describe 'Expiration warning email link', type: :integration do
     template, payload, options = scheduled.first
     expect(template).to eq(:expiration_warning)
     expect(options).to have_key(:delay_seconds)
-    expect(payload[:recipient]).to eq(owner.email)
-    expect(payload[:receipt_identifier]).to eq(receipt.identifier)
-    expect(payload).not_to have_key(:secret_key)
-
-    # The identifier in the payload is the one the receipt endpoints resolve.
-    expect(Onetime::Receipt.load(payload[:receipt_identifier])&.identifier).to eq(receipt.identifier)
+    expect(payload).to eq(
+      recipient: owner.email,
+      secret_shortid: secret.shortid,
+      expires_at: receipt.secret_expiration,
+    )
 
     mail = Onetime::Mail::Templates::ExpirationWarning.new(payload)
-    expect(mail.receipt_uri).to end_with("/receipt/#{receipt.identifier}")
-    expect(mail.render_text).to include("/receipt/#{receipt.identifier}")
-    expect(mail.render_html).to include("/receipt/#{receipt.identifier}")
-    expect(mail.render_text).not_to include('/secret/')
-    expect(mail.render_html).not_to include('/secret/')
+    text = mail.render_text
+    html = mail.render_html
+
+    expect(mail.recent_uri).to end_with('/recent')
+    expect(mail.recent_uri).to start_with(mail.baseuri)
+    [text, html].each do |body|
+      expect(body).to include('/recent')
+      expect(body).to include(secret.shortid)
+      expect(body).not_to include(receipt.identifier)
+      expect(body).not_to include(secret.identifier)
+      expect(body).not_to include('/secret/')
+      expect(body).not_to include('/receipt/')
+    end
   end
 end
