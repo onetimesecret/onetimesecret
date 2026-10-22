@@ -141,7 +141,10 @@ shellcheck/actionlint. Both also run in the `Static analysis` workflow.
 
 **Dev-environment worktrees**: The `.test-mode` sentinel file marks a
 repo checkout that has loaded the test environment. Do not run tests
-unless `.test-mode` already exists.
+unless `.test-mode` already exists. When the required Ruby version
+(`.ruby-version`) is already available, run `bin/setup --test` to enable
+proper test mode. The lane creates `.test-mode` only when direnv is
+installed.
 
 ## Terms and phrases to avoid
 
