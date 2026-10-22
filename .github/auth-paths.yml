@@ -3,9 +3,9 @@
 # the full-auth and tenant-connect E2E workflows. docs/development/auth-ci.md
 # has the whole picture.
 #
-# Narrow on purpose. List the code that implements sign-in, sessions, SSO,
-# MFA, invitations and tenant identity, and the tests and configuration that
-# only those jobs run. Do not list shared code: every Ruby change already runs
+# Narrow on purpose. List the code that implements sign-up and account
+# verification, sign-in, sessions, SSO, MFA, invitations and tenant identity,
+# and the tests and configuration that only those jobs run. Do not list shared code: every Ruby change already runs
 # the unit, simple, disabled, API and full-mode SQLite lanes; main and
 # merge-queue runs execute everything but the billing jobs; the nightly and a
 # release tag execute everything. A change outside this list that wants the
@@ -34,6 +34,15 @@ auth:
   - 'src/apps/workspace/account/**'
   - 'src/apps/workspace/components/account/**'
   - 'src/**/*[Bb]ootstrap*'
+
+  # Account verification the names miss. Simple-mode signup and password
+  # reset; the welcome email, which carries the verification link in both
+  # modes; and the reveal that verifies a simple-mode account when the link is
+  # opened (#4831). e2e-full-auth.yml drives all of these.
+  - 'apps/web/core/controllers/registration.rb'
+  - 'lib/onetime/mail/views/welcome.rb'
+  - 'lib/onetime/mail/templates/welcome.*'
+  - 'apps/api/v2/logic/secrets/reveal_secret.rb'
 
   # The request-host seam: the middleware that decides which host a request
   # is for, and so which tenant the sign-in, SSO, WebAuthn and session code
