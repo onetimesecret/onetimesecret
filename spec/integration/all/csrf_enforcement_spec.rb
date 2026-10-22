@@ -82,7 +82,7 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
         response = @mock_request.get('/dashboard')
         # Should redirect to signin, not fail CSRF
         expect(response.status).to eq(302)
-        expect(response.headers['location']).to eq('/signin')
+        expect(response.headers['location']).to eq('/signin?redirect=%2Fdashboard')
       end
     end
 

@@ -21,10 +21,10 @@ require 'rack/mock'
   'HTTP_HOST' => 'localhost',
 }
 
-## Anonymous user gets 302 redirect when accessing colonel endpoint
+## Anonymous user gets 302 redirect when accessing colonel endpoint, with the page as the return path
 response = @mock_request.get('/colonel/info', @mock_env)
 [response.status, response.headers["location"]]
-#=> [302, "/signin"]
+#=> [302, "/signin?redirect=%2Fcolonel%2Finfo"]
 
 ## Authenticated non-colonel user should get 403 Forbidden (not 401)
 # Note: This test would require setting up a session with a non-colonel user

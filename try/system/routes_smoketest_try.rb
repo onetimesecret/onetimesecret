@@ -50,10 +50,10 @@ response = @mock_request.get('/')
 response.status
 #=> 200
 
-## Dashboard redirects to signin when not authenticated
+## Dashboard redirects to signin when not authenticated, carrying the page as the return path
 response = @mock_request.get('/dashboard')
 [response.status, response.headers["location"]]
-#=> [302, "/signin"]
+#=> [302, "/signin?redirect=%2Fdashboard"]
 
 ## Can access the feedback page
 response = @mock_request.get('/feedback')
