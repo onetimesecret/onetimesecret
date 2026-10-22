@@ -77,10 +77,12 @@ module Onetime
 
       # The op connects lazily, so an unreachable database surfaces here, on
       # the first query, not in build_operation. Rendered the same way: a JSON
-      # error document under --json, otherwise a line on stderr, exit 1.
+      # error document under --json, otherwise a line on stderr, exit 1. The
+      # live run also writes closure markers to Redis (see the op), so an
+      # unreachable Redis is rendered the same way; nothing is deleted then.
       def run_operation(op, json)
         op.call
-      rescue Sequel::Error => ex
+      rescue Sequel::Error, Redis::BaseError => ex
         fail_with("Pruning failed: #{ex.message}", json)
       end
 

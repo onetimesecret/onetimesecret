@@ -141,10 +141,11 @@ module Auth::Config::Hooks
         # A record a closure left behind when it stopped part-way (#4830) does
         # not hold the address: its owner asked for it to be deleted. The check
         # below lets it through, and it is finished at the end of this hook,
-        # after every precondition, so a refused sign-up changes nothing in
-        # Redis. A closure still running has its accounts row, refused above.
-        leftover = Onetime::Customer.find_by_email(email) if Onetime::Customer.email_exists?(email)
-        leftover = nil unless leftover&.closing?
+        # after every precondition, so a sign-up that a precondition refuses
+        # changes nothing in Redis. A finish that stops part-way also refuses
+        # the sign-up, with part of the record already purged. A closure still
+        # running has its accounts row, refused above.
+        leftover = Auth::Operations::EnsureCustomerForAccount.closing_customer(email)
 
         # Check Redis (customer database)
         # Note: In shared Redis dev setups, a customer may exist without an auth account
@@ -1236,7 +1237,7 @@ module Auth::Config::Hooks
         # record reads as a customer that never had an auth account; in
         # delete_account it raises and rolls back a closure whose Redis half
         # is already gone.
-        @close_account_customer.mark_closure_started!
+        marker = @close_account_customer.mark_closure_started!
 
         purge  = Auth::Operations::Customers::Purge.new(
           customer: @close_account_customer,
@@ -1284,18 +1285,23 @@ module Auth::Config::Hooks
       rescue StandardError => ex
         unless purge&.mutation_started?
           # Refused with nothing changed (the FormError above lands here too):
-          # the account stays open, so the marker goes. Best effort: a marker
-          # left on a live account reads as a closure that rolled back, which
+          # the account stays open, so the marker goes, if this request wrote
+          # it. A marker already there is an earlier request's, such as the
+          # first of two submits that committed and left the record behind,
+          # and still describes that closure. Best effort: a marker left on a
+          # live account reads as a closure that rolled back, which
           # `customers doctor --repair` clears.
-          begin
-            @close_account_customer&.clear_closure_marker!
-          rescue StandardError => clear_error
-            OT.le(
-              '[account_close] closure marker not cleared after a refusal',
-              exception: clear_error,
-              original_exception: ex,
-              external_id: account[:external_id],
-            )
+          if marker == :written
+            begin
+              @close_account_customer.clear_closure_marker!
+            rescue StandardError => clear_error
+              OT.le(
+                '[account_close] closure marker not cleared after a refusal',
+                exception: clear_error,
+                original_exception: ex,
+                external_id: account[:external_id],
+              )
+            end
           end
           raise ex
         end

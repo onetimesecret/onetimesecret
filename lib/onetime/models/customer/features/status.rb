@@ -6,12 +6,13 @@ require_relative '../../field_types'
 
 module Onetime::Customer::Features
   module Status
-    # See InstanceMethods#mark_closure_started!. Returns the stored marker,
-    # or nil when the record is gone.
+    # See InstanceMethods#mark_closure_started!. Returns whether this call
+    # wrote the marker (1 or 0) and the stored marker, or nil when the record
+    # is gone.
     MARK_CLOSURE_STARTED = <<~LUA
       if redis.call('EXISTS', KEYS[1]) == 0 then return false end
-      redis.call('HSETNX', KEYS[1], 'closure_started_at', ARGV[1])
-      return redis.call('HGET', KEYS[1], 'closure_started_at')
+      local written = redis.call('HSETNX', KEYS[1], 'closure_started_at', ARGV[1])
+      return {written, redis.call('HGET', KEYS[1], 'closure_started_at')}
     LUA
 
     # A closure runs inside one request and is done in seconds. A marker
@@ -149,14 +150,16 @@ module Onetime::Customer::Features
       # the record exists, and only once, so a closure that resumes keeps the
       # time the first one started.
       #
-      # @return [Boolean] false when the record no longer exists
+      # @return [Symbol, nil] :written when this call wrote the marker, :kept
+      #   when the record was already marked (only the writer of a marker
+      #   may clear it), nil when the record no longer exists
       def mark_closure_started!(at: Familia.now.to_i)
-        stored = dbclient.eval(MARK_CLOSURE_STARTED, keys: [dbkey], argv: [serialize_value(at)])
-        return false if stored.nil?
+        written, stored = dbclient.eval(MARK_CLOSURE_STARTED, keys: [dbkey], argv: [serialize_value(at)])
+        return if stored.nil?
 
         self.closure_started_at = deserialize_value(stored, field_name: :closure_started_at)
         clear_dirty!(:closure_started_at) if respond_to?(:clear_dirty!)
-        true
+        written == 1 ? :written : :kept
       end
 
       # For a closure that rolled back: the auth account is open, so the

@@ -469,6 +469,29 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         expect(find_customer_by_email(test_email).closing?).to be(false)
       end
 
+      # A double submit: the first request committed with the record left
+      # behind, marked; the second reaches the hook with that marker in place
+      # and its purge refuses (its preflight predates the first's deletions).
+      # The marker is the first closure's, so the refusal leaves it.
+      it 'keeps a marker it did not write when the purge refuses before changing anything' do
+        login(email: test_email, password: valid_password)
+        expect(last_response.status).to eq(200)
+
+        marked_at = Familia.now.to_i - 30
+        find_customer_by_email(test_email).mark_closure_started!(at: marked_at)
+        refused   = Auth::Operations::Customers::Purge::Result.new(
+          status: :refused, extid: nil, custid: nil, blockers: [{ code: :preflight_changed }],
+        )
+        allow(Auth::Operations::Customers::Purge).to receive(:new).and_wrap_original do |original, **kwargs|
+          original.call(**kwargs).tap { |operation| allow(operation).to receive(:call).and_return(refused) }
+        end
+
+        post_json '/auth/close-account', { password: valid_password }
+
+        expect(last_response.status).to eq(422)
+        expect(find_customer_by_email(test_email).closure_started_at).to eq(marked_at)
+      end
+
       it 'refuses with nothing changed when the marker cannot be written' do
         login(email: test_email, password: valid_password)
         expect(last_response.status).to eq(200)

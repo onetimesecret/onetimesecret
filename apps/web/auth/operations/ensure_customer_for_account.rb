@@ -29,9 +29,14 @@ module Auth
       # the sign-up gets a new record. The purge is the record's own
       # (self_service:), as the continuation of the closure it asked for.
       #
-      # Called here for every adopting caller (SSO JIT, invite) and from
-      # before_create_account, which otherwise refuses a password sign-up
-      # whose address has a Customer record.
+      # Called before the accounts row exists, from before_create_account
+      # (password sign-ups; the invite sign-up endpoint refuses an address
+      # with any Customer record before it gets there) and
+      # before_omniauth_create_account (SSO JIT), so a sign-up refused here
+      # leaves no row behind. The call in
+      # find_or_create_customer below is a backstop for a record marked
+      # between that check and the insert: by then the row is committed, and
+      # all it can do is refuse to adopt the record.
       #
       # Two records are left alone, by the same rules as
       # Customers::FinishClosures: a marker younger than
@@ -39,7 +44,8 @@ module Auth
       # running (an administrative purge deletes the accounts row in its own
       # transaction before it deletes the record), and a marked record with
       # an open accounts row of its own, a closure that rolled back. The
-      # sign-up is refused instead; the first clears with time.
+      # sign-up is refused instead, and a retry once the marker is old
+      # enough finishes the first.
       #
       # @param customer [Onetime::Customer] a record with closing? true
       # @return [Boolean] true when the record is gone afterwards; false when
@@ -74,6 +80,14 @@ module Auth
           blockers: result.blockers,
         )
         finished
+      end
+
+      # The record a sign-up with +email+ would meet, when it is marked as
+      # closing (see finish_interrupted_closure); otherwise nil.
+      def self.closing_customer(email)
+        email    = OT::Utils.normalize_email(email)
+        customer = Onetime::Customer.find_by_email(email) if Onetime::Customer.email_exists?(email)
+        customer if customer&.closing?
       end
 
       def self.open_auth_account?(customer)

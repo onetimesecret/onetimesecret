@@ -11,11 +11,11 @@ require 'onetime/cli/customers/finish_closures_command'
 require 'auth/operations/customers/finish_closures'
 
 # CLI-layer coverage only (#4830). The selection and the purges are covered
-# by apps/web/auth/spec/integration/full/finish_closures_spec.rb; these
+# by apps/web/auth/spec/integration/full/interrupted_closures_spec.rb; these
 # examples assert what the ADAPTER adds: dry run by default, --confirm and
 # --reason threaded through, the report lists each record and its outcome,
 # a purge that did not complete exits 1, --json emits the documented
-# document, a database failure exits 1, and --help renders.
+# document, a database or Redis failure exits 1, and --help renders.
 RSpec.describe 'customers finish-closures', type: :cli do
   let(:op) { instance_double(Auth::Operations::Customers::FinishClosures) }
   let(:candidate) { { extid: 'ur_closing', email: 'cl***@e***.com', closure_started_at: 1_700_000_000 } }
@@ -119,6 +119,19 @@ RSpec.describe 'customers finish-closures', type: :cli do
 
       expect(last_exit_code).to eq(1)
       expect(JSON.parse(output[:stdout])).to eq('error' => 'Cannot finish closures: could not connect to server')
+    end
+  end
+
+  describe 'when Redis is unreachable' do
+    before do
+      allow(op).to receive(:call).and_raise(Redis::CannotConnectError, 'valkey unavailable')
+    end
+
+    it 'reports the reason as JSON under --json, exit 1' do
+      output = run_cli_command_quietly('customers', 'finish-closures', '--confirm', '--json')
+
+      expect(last_exit_code).to eq(1)
+      expect(JSON.parse(output[:stdout])).to eq('error' => 'Cannot finish closures: valkey unavailable')
     end
   end
 

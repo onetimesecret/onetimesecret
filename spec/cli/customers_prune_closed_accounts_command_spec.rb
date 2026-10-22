@@ -15,7 +15,7 @@ require 'auth/operations/customers/prune_closed_accounts'
 # examples assert what the ADAPTER adds: dry run by default, --confirm threads
 # dry_run: false, the report names the counts, --json emits the documented
 # document and nothing else on stdout, a missing auth database exits 1, a
-# database failure during the run exits 1 the same way (under --json too),
+# database or Redis failure during the run exits 1 the same way (under --json too),
 # and --help renders.
 RSpec.describe 'customers prune-closed-accounts', type: :cli do
   let(:op) { instance_double(Auth::Operations::Customers::PruneClosedAccounts) }
@@ -133,6 +133,19 @@ RSpec.describe 'customers prune-closed-accounts', type: :cli do
 
       expect(last_exit_code).to eq(1)
       expect(JSON.parse(output[:stdout])).to eq('error' => 'Pruning failed: could not connect to server')
+    end
+  end
+
+  describe 'when Redis is unreachable' do
+    before do
+      allow(op).to receive(:call).and_raise(Redis::CannotConnectError, 'valkey unavailable')
+    end
+
+    it 'reports the reason as JSON under --json, exit 1' do
+      output = run_cli_command_quietly('customers', 'prune-closed-accounts', '--confirm', '--json')
+
+      expect(last_exit_code).to eq(1)
+      expect(JSON.parse(output[:stdout])).to eq('error' => 'Pruning failed: valkey unavailable')
     end
   end
 

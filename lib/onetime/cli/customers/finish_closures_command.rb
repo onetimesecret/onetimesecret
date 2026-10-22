@@ -88,10 +88,11 @@ module Onetime
 
       # Without the auth database an open account cannot be ruled out, so the
       # op raises before it purges anything. Rendered as a JSON error document
-      # under --json, otherwise a line on stderr; exit 1 either way.
+      # under --json, otherwise a line on stderr; exit 1 either way. An
+      # unreachable Redis, where the records are, is rendered the same way.
       def run_operation(op, json)
         op.call
-      rescue Sequel::Error => ex
+      rescue Sequel::Error, Redis::BaseError => ex
         fail_with("Cannot finish closures: #{ex.message}", json)
       end
 

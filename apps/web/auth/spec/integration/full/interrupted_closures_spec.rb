@@ -17,8 +17,9 @@
 #     record no closure has touched.
 #   - A new sign-up with the address finishes the closure and gets a new
 #     record instead of adopting the old one: the password path
-#     (before_create_account) and the adopting path every other sign-up
-#     takes (EnsureCustomerForAccount: SSO JIT, invites).
+#     (before_create_account), and EnsureCustomerForAccount's backstop for
+#     an accounts row that already exists. The SSO JIT path is driven
+#     through its callback in omniauth_interrupted_closure_spec.rb.
 #
 # Runs on every full lane (`full-sqlite`, `full-pg-agnostic`).
 # =============================================================================
@@ -157,8 +158,10 @@ RSpec.describe 'Interrupted account closures (#4830)', type: :integration do
       expect(leftover.closing?).to be(true)
     end
 
-    # The SSO JIT and invite paths create the accounts row first and adopt
-    # an existing record by email in EnsureCustomerForAccount.
+    # EnsureCustomerForAccount adopts an existing record by email once the
+    # accounts row exists. Every sign-up path has finished or refused a
+    # leftover closure before inserting the row; this is the backstop for a
+    # record marked in between.
     context 'when the accounts row already exists (adopting callers)' do
       let!(:account_id) do
         auth_db[:accounts].insert(
