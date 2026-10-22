@@ -206,16 +206,20 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
       end
     end
 
-    it 'closes the Rodauth account, removes credentials, and deletes the Redis customer' do
+    # Outside Rodauth's close_account transaction (admin purge, the
+    # simple-mode delete endpoint) the teardown deletes the Rodauth row and
+    # its audit log itself (#4819).
+    it 'deletes the Rodauth account, its credentials and audit log, and the Redis customer' do
       customer = find_customer_by_email(test_email)
       account  = find_account_by_email(test_email)
+      expect(test_db[:account_authentication_audit_logs].where(account_id: account[:id]).count).to be >= 1
 
       result = Auth::Operations::TeardownAccount.new(customer: customer).call
 
-      closed_account = find_account_by_email(test_email)
       expect(result.status).to eq(:success)
-      expect(closed_account[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
+      expect(find_account_by_email(test_email)).to be_nil
       expect(test_db[:account_password_hashes].where(id: account[:id]).first).to be_nil
+      expect(test_db[:account_authentication_audit_logs].where(account_id: account[:id]).count).to eq(0)
       expect(find_customer_by_email(test_email)).to be_nil
     end
   end
@@ -263,23 +267,29 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         )
         expect(test_db[:account_active_session_keys].where(account_id: account[:id]).count).to be >= 1
 
+        # Signup and login above wrote audit rows. Closure removes the whole
+        # history, including the "Account closed" row Rodauth inserts after
+        # the hook, and the accounts row itself (#4819).
+        expect(test_db[:account_authentication_audit_logs].where(account_id: account[:id]).count).to be >= 1
+
         # Now attempt to close account with correct password
         post_json '/auth/close-account', { password: valid_password }
 
         # Should succeed (200) or redirect (302)
         expect([200, 302]).to include(last_response.status),
           "Expected 200/302 but got #{last_response.status}: #{last_response.body[0..200]}"
-        closed_account = find_account_by_email(test_email)
-        expect(closed_account[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
-        expect(test_db[:account_password_hashes].where(id: closed_account[:id]).first).to be_nil
-        expect(test_db[:account_identities].where(account_id: closed_account[:id]).count).to eq(0)
-        expect(test_db[:account_remember_keys].where(id: closed_account[:id]).count).to eq(0)
-        expect(test_db[:account_active_session_keys].where(account_id: closed_account[:id]).count).to eq(0)
+        expect(find_account_by_email(test_email)).to be_nil
+        expect(test_db[:accounts].where(id: account[:id]).count).to eq(0)
+        expect(test_db[:account_password_hashes].where(id: account[:id]).first).to be_nil
+        expect(test_db[:account_identities].where(account_id: account[:id]).count).to eq(0)
+        expect(test_db[:account_remember_keys].where(id: account[:id]).count).to eq(0)
+        expect(test_db[:account_active_session_keys].where(account_id: account[:id]).count).to eq(0)
+        expect(test_db[:account_authentication_audit_logs].where(account_id: account[:id]).count).to eq(0)
         expect(find_customer_by_email(test_email)).to be_nil
         expect(Onetime::Organization.load(org_id)).to be_nil
       end
 
-      it 'keeps the Rodauth account closed when post-teardown revalidation reports a partial purge' do
+      it 'still deletes the Rodauth account when post-teardown revalidation reports a partial purge' do
         login(email: test_email, password: valid_password)
         expect(last_response.status).to eq(200)
 
@@ -309,7 +319,7 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
 
         expect([200, 302]).to include(last_response.status),
           "Expected closure to commit, got #{last_response.status}: #{last_response.body[0..200]}"
-        expect(find_account_by_email(test_email)[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
+        expect(find_account_by_email(test_email)).to be_nil
         expect(find_customer_by_email(test_email)).to be_nil
         expect(Onetime::Organization.load(organization.objid)).to be_nil
         expect(Auth::Logging).to have_received(:log_auth_event).with(
@@ -321,6 +331,183 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
             completed_stages: include(:customer_deletion),
           ),
         )
+      end
+
+      # A Redis failure after the SQL identity is gone is swallowed by the
+      # hook so the closure stays committed: the accounts row is deleted all
+      # the same. The record that survives carries the closure marker, which
+      # is what keeps `customers sync-auth-accounts` from provisioning a new,
+      # live accounts row for it now that no closed row remains (#4819).
+      it 'marks a customer that survives a Redis failure after SQL closure as closing' do
+        login(email: test_email, password: valid_password)
+        expect(last_response.status).to eq(200)
+
+        customer = find_customer_by_email(test_email)
+        expect(customer.closing?).to be(false)
+
+        deleter = instance_double(Auth::Operations::DestroyCustomerRecord)
+        allow(deleter).to receive(:call).and_raise(RuntimeError, 'valkey unavailable')
+        allow(Auth::Operations::DestroyCustomerRecord).to receive(:new).and_return(deleter)
+        allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+        post_json '/auth/close-account', { password: valid_password }
+
+        expect([200, 302]).to include(last_response.status),
+          "Expected closure to commit, got #{last_response.status}: #{last_response.body[0..200]}"
+        expect(find_account_by_email(test_email)).to be_nil
+
+        survivor = find_customer_by_email(test_email)
+        expect(survivor).not_to be_nil
+        expect(survivor.closing?).to be(true)
+        expect(Auth::Logging).to have_received(:log_auth_event).with(
+          :account_close_cleanup_failed_after_mutation,
+          hash_including(level: :error, message: 'valkey unavailable'),
+        )
+      ensure
+        # Nothing else deletes the survivor.
+        find_customer_by_email(test_email)&.destroy!
+      end
+
+      # The workspace is deleted, then the scan before teardown sees changed
+      # state and Purge returns partial without reaching TeardownAccount. The
+      # hook lets that closure commit, so the accounts row is deleted and the
+      # customer record survives, marked by the hook before the purge began.
+      it 'marks a customer that survives a partial cleanup before teardown as closing' do
+        login(email: test_email, password: valid_password)
+        expect(last_response.status).to eq(200)
+
+        customer     = find_customer_by_email(test_email)
+        organization = customer.organization_instances.first
+        expect(customer.closing?).to be(false)
+        residual = Auth::Operations::Customers::PurgePreflight::Plan.new(
+          actions: [],
+          blockers: [{ code: :post_cleanup_revalidation_failed }],
+        )
+
+        allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+        allow(Auth::Operations::TeardownAccount).to receive(:new).and_call_original
+        allow(Auth::Operations::Customers::Purge).to receive(:new).and_wrap_original do |original, **kwargs|
+          operation = original.call(**kwargs)
+          allow(operation).to receive(:preflight).and_wrap_original do |preflight, **options|
+            if operation.instance_variable_get(:@stage) == :post_cleanup_revalidation
+              residual
+            else
+              preflight.call(**options)
+            end
+          end
+          operation
+        end
+
+        post_json '/auth/close-account', { password: valid_password }
+
+        expect([200, 302]).to include(last_response.status),
+          "Expected closure to commit, got #{last_response.status}: #{last_response.body[0..200]}"
+        expect(find_account_by_email(test_email)).to be_nil
+        expect(Onetime::Organization.load(organization.objid)).to be_nil
+        expect(Auth::Operations::TeardownAccount).not_to have_received(:new)
+
+        survivor = find_customer_by_email(test_email)
+        expect(survivor).not_to be_nil
+        expect(survivor.closing?).to be(true)
+        expect(Auth::Logging).to have_received(:log_auth_event).with(
+          :account_close_cleanup_partial,
+          hash_including(cleanup_status: :partial, stage: :post_cleanup_revalidation),
+        )
+      ensure
+        find_customer_by_email(test_email)&.destroy!
+      end
+
+      # Valkey goes down mid-purge, at the record deletion, and stays down.
+      # The hook swallows the failure because Redis state already changed,
+      # so the closure must commit. Nothing after the hook may need Redis: a
+      # write there would raise and roll back a closure whose sessions and
+      # organizations are already gone, reopening the account.
+      it 'commits the closure with the survivor marked when Valkey goes down mid-purge' do
+        login(email: test_email, password: valid_password)
+        expect(last_response.status).to eq(200)
+
+        valkey_down = false
+        deleter     = instance_double(Auth::Operations::DestroyCustomerRecord)
+        allow(deleter).to receive(:call) do
+          valkey_down = true
+          raise Redis::CannotConnectError, 'valkey unavailable'
+        end
+        allow(Auth::Operations::DestroyCustomerRecord).to receive(:new).and_return(deleter)
+        allow_any_instance_of(Onetime::Customer).to receive(:mark_closure_started!)
+          .and_wrap_original do |original, *args, **kwargs|
+            raise Redis::CannotConnectError, 'valkey unavailable' if valkey_down
+
+            original.call(*args, **kwargs)
+          end
+
+        post_json '/auth/close-account', { password: valid_password }
+
+        expect([200, 302]).to include(last_response.status),
+          "Expected closure to commit, got #{last_response.status}: #{last_response.body[0..200]}"
+        expect(find_account_by_email(test_email)).to be_nil
+        expect(find_customer_by_email(test_email).closing?).to be(true)
+      ensure
+        find_customer_by_email(test_email)&.destroy!
+      end
+
+      it 'clears the marker when the purge refuses before changing anything' do
+        login(email: test_email, password: valid_password)
+        expect(last_response.status).to eq(200)
+
+        refused = Auth::Operations::Customers::Purge::Result.new(
+          status: :refused, extid: nil, custid: nil, blockers: [{ code: :plan_changed }],
+        )
+        allow(Auth::Operations::Customers::Purge).to receive(:new).and_wrap_original do |original, **kwargs|
+          original.call(**kwargs).tap { |operation| allow(operation).to receive(:call).and_return(refused) }
+        end
+
+        post_json '/auth/close-account', { password: valid_password }
+
+        expect(last_response.status).to eq(422)
+        expect(JSON.parse(last_response.body)['error_type']).to eq('account_deletion_refused')
+        expect(find_account_by_email(test_email)[:status_id]).not_to eq(Auth::AccountStatuses::CLOSED)
+        expect(find_customer_by_email(test_email).closing?).to be(false)
+      end
+
+      # A double submit: the first request committed with the record left
+      # behind, marked; the second reaches the hook with that marker in place
+      # and its purge refuses (its preflight predates the first's deletions).
+      # The marker is the first closure's, so the refusal leaves it.
+      it 'keeps a marker it did not write when the purge refuses before changing anything' do
+        login(email: test_email, password: valid_password)
+        expect(last_response.status).to eq(200)
+
+        marked_at = Familia.now.to_i - 30
+        find_customer_by_email(test_email).mark_closure_started!(at: marked_at)
+        refused   = Auth::Operations::Customers::Purge::Result.new(
+          status: :refused, extid: nil, custid: nil, blockers: [{ code: :preflight_changed }],
+        )
+        allow(Auth::Operations::Customers::Purge).to receive(:new).and_wrap_original do |original, **kwargs|
+          original.call(**kwargs).tap { |operation| allow(operation).to receive(:call).and_return(refused) }
+        end
+
+        post_json '/auth/close-account', { password: valid_password }
+
+        expect(last_response.status).to eq(422)
+        expect(find_customer_by_email(test_email).closure_started_at).to eq(marked_at)
+      end
+
+      it 'refuses with nothing changed when the marker cannot be written' do
+        login(email: test_email, password: valid_password)
+        expect(last_response.status).to eq(200)
+
+        organization = find_customer_by_email(test_email).organization_instances.first
+        allow_any_instance_of(Onetime::Customer).to receive(:mark_closure_started!)
+          .and_raise(Redis::CannotConnectError, 'valkey unavailable')
+        allow(Auth::Operations::Customers::Purge).to receive(:new).and_call_original
+
+        post_json '/auth/close-account', { password: valid_password }
+
+        expect([200, 302]).not_to include(last_response.status)
+        expect(find_account_by_email(test_email)[:status_id]).not_to eq(Auth::AccountStatuses::CLOSED)
+        expect(find_customer_by_email(test_email).closing?).to be(false)
+        expect(Onetime::Organization.load(organization.objid)).not_to be_nil
+        expect(Auth::Operations::Customers::Purge).not_to have_received(:new)
       end
 
       # An unfinished v1->v2 migration owns rows OUTSIDE this workspace, so it
@@ -353,7 +540,7 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         post_json '/auth/close-account', { password: valid_password }
 
         expect([200, 302]).to include(last_response.status)
-        expect(find_account_by_email(test_email)[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
+        expect(find_account_by_email(test_email)).to be_nil
         expect(find_customer_by_email(test_email)).to be_nil
       end
 
@@ -372,7 +559,7 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
 
         expect([200, 302]).to include(last_response.status),
           "Expected closure to commit, got #{last_response.status}: #{last_response.body[0..200]}"
-        expect(find_account_by_email(test_email)[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
+        expect(find_account_by_email(test_email)).to be_nil
         expect(find_customer_by_email(test_email)).to be_nil
         expect(Onetime::Organization.load(organization.objid)).to be_nil
       end

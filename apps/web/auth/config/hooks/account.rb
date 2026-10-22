@@ -10,6 +10,7 @@ require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
 require 'auth/account_statuses'
 require 'auth/operations/customers/purge'
 require 'auth/operations/customers/purge_preflight'
+require 'auth/operations/remove_authentication_data'
 
 module Auth::Config::Hooks
   module Account
@@ -81,8 +82,11 @@ module Auth::Config::Hooks
           throw_rodauth_error
         end
 
-        # Closed rows retain audit history but no longer reserve the address.
-        # The Redis check below still refuses reuse if customer cleanup is incomplete.
+        # A closure deletes the accounts row (#4819), so a closed row here is
+        # one a closure left before that change and `bin/ots customers
+        # prune-closed-accounts` has not yet removed. Such rows never reserve
+        # the address. The Redis check below still refuses reuse if customer
+        # cleanup is incomplete.
         existing_account = db[:accounts].where(email: email)
           .exclude(status_id: Auth::AccountStatuses::CLOSED).first
 
@@ -134,9 +138,18 @@ module Auth::Config::Hooks
           refuse_signup_for_existing_account(email)
         end
 
+        # A record a closure left behind when it stopped part-way (#4830) does
+        # not hold the address: its owner asked for it to be deleted. The check
+        # below lets it through, and it is finished at the end of this hook,
+        # after every precondition, so a sign-up that a precondition refuses
+        # changes nothing in Redis. A finish that stops part-way also refuses
+        # the sign-up, with part of the record already purged. A closure still
+        # running has its accounts row, refused above.
+        leftover = Auth::Operations::EnsureCustomerForAccount.closing_customer(email)
+
         # Check Redis (customer database)
         # Note: In shared Redis dev setups, a customer may exist without an auth account
-        if Onetime::Customer.email_exists?(email)
+        if leftover.nil? && Onetime::Customer.email_exists?(email)
           diagnostic_hint = <<~HINT.strip
             Registration blocked: Customer record exists in Redis but no auth account
             found. This typically occurs in worktree/multi-instance dev setups with
@@ -190,6 +203,26 @@ module Auth::Config::Hooks
             request.env['rodauth.error_flash'] = create_account_error_flash
             throw_rodauth_error
           end
+        end
+
+        # Last: finish the leftover closure (see above). finish_leftover_closure
+        # reads the record again, so it acts on its state after these checks.
+        # When it cannot be finished (the purge refused or stopped, or the
+        # closure is too recent to tell from one still running; logged as
+        # interrupted_closure_not_finished), the sign-up is refused under its
+        # own event, since the shared-Redis hint above would point the wrong way.
+        unfinished = Auth::Operations::EnsureCustomerForAccount.finish_leftover_closure(email)
+        if unfinished
+          Auth::Logging.log_auth_event(
+            :registration_blocked_interrupted_closure,
+            level: :error,
+            email: OT::Utils.obscure_email(email),
+            external_id: unfinished.extid,
+          )
+
+          set_error_flash(create_account_error_flash)
+          request.env['rodauth.error_flash'] = create_account_error_flash
+          throw_rodauth_error
         end
       end
 
@@ -1170,7 +1203,8 @@ module Auth::Config::Hooks
       # after_close_account chain (omniauth identities, two-factor secrets,
       # active sessions, remember keys), reached via `super()`, and through
       # TeardownAccount's SQL removal, which covers every table whether or not
-      # its feature is loaded in this boot.
+      # its feature is loaded in this boot. The accounts row and its audit log
+      # are removed last, by the delete_account override below (#4819).
       #
       auth.before_close_account do
         customer = Auth::Config::Hooks::Account.resolve_customer(account)
@@ -1204,9 +1238,22 @@ module Auth::Config::Hooks
         # where implicit-argument super is not allowed.
         super()
 
+        # The closure marker (#4819, #4830) goes on before the purge's first
+        # mutation. From here on the closure either commits, and
+        # delete_account below deletes the accounts row, or it is refused
+        # with nothing changed. A failed write (Valkey unreachable) refuses
+        # it here. A refusal clears the marker again (the rescue below).
+        # Writing it any later fails one way or the other in an outage that
+        # starts mid-purge: after the purge it is skipped and the surviving
+        # record reads as a customer that never had an auth account; in
+        # delete_account it raises and rolls back a closure whose Redis half
+        # is already gone.
+        marker = @close_account_customer.mark_closure_started!
+
         purge  = Auth::Operations::Customers::Purge.new(
           customer: @close_account_customer,
           self_service: true,
+          retain_auth_account: true,
           expected_plan_signature: @close_account_plan_signature,
         )
         result = purge.call
@@ -1247,7 +1294,28 @@ module Auth::Config::Hooks
           cleanup_status: result.status,
         )
       rescue StandardError => ex
-        raise unless purge&.mutation_started?
+        unless purge&.mutation_started?
+          # Refused with nothing changed (the FormError above lands here too):
+          # the account stays open, so the marker goes, if this request wrote
+          # it. A marker already there is an earlier request's, such as the
+          # first of two submits that committed and left the record behind,
+          # and still describes that closure. Best effort: a marker left on a
+          # live account reads as a closure that rolled back, which
+          # `customers doctor --repair` clears.
+          if marker == :written
+            begin
+              @close_account_customer.clear_closure_marker!
+            rescue StandardError => clear_error
+              OT.le(
+                '[account_close] closure marker not cleared after a refusal',
+                exception: clear_error,
+                original_exception: ex,
+                external_id: account[:external_id],
+              )
+            end
+          end
+          raise ex
+        end
 
         context = purge.outcome_context
         begin
@@ -1274,6 +1342,53 @@ module Auth::Config::Hooks
           )
         end
         nil
+      end
+
+      #
+      # Account Row Deletion After Closure (#4819)
+      #
+      # Rodauth's close_account route runs, inside one transaction:
+      # before_close_account, close_account (status to closed, password hash
+      # dropped), after_close_account, clear_session, clear_tokens and, with
+      # delete_account_on_close? on, delete_account (rodauth 2.48.0
+      # close_account.rb). The audit_logging feature inserts its "Account
+      # closed" row from hook_action at the end of after_close_account, AFTER
+      # the block above returns, so the teardown there leaves the accounts row
+      # in place (retain_auth_account: true) and the row goes here, last.
+      #
+      # The override deletes every row still referencing the account first:
+      # the audit log, including the row Rodauth just inserted, and anything
+      # a feature wrote between the hook and this point. delete_dependent_rows
+      # also holds the accounts row FOR UPDATE (taken by the teardown above,
+      # re-taken here, released at commit), so on PostgreSQL a request still
+      # in flight for the account cannot slip a child row in between these
+      # deletes and super()'s DELETE and fail its foreign-key check; the
+      # insert waits for the commit and then fails on the missing parent.
+      # Nothing of the account survives the commit: no accounts row, no audit
+      # history. Administrative purges run outside Rodauth and delete the
+      # same rows in TeardownAccount.
+      #
+      # The lock is only held to super()'s DELETE while both run in one
+      # transaction. Rodauth runs delete_account inside close_account's,
+      # which db.transaction joins; should a later Rodauth call it outside,
+      # db.transaction opens one, so the boundary stays this override's.
+      #
+      # The row also goes when the cleanup stopped before TeardownAccount
+      # closed the auth account: a partial Purge, or one that raised after its
+      # first mutation, still commits (after_close_account above). Such a
+      # customer record is still in Redis; after_close_account marked it
+      # before the purge started, so it reads as an interrupted closure and
+      # not as a customer that never had an auth account. Nothing here
+      # touches Redis: a write failing at this point would roll back a
+      # closure whose Redis half is already gone.
+      #
+      auth.delete_account_on_close? true
+
+      auth.delete_account do
+        db.transaction do
+          Auth::Operations::RemoveAuthenticationData.delete_dependent_rows(db, account_id)
+          super()
+        end
       end
     end
     # rubocop:enable Metrics/PerceivedComplexity, Metrics/MethodLength

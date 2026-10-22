@@ -62,11 +62,11 @@ module V1
       # Onetime::Receipt.shows_share_link_for?). Otherwise the canonical
       # secret_identifier.
       #
-      # The deprecated secret_key field is never read. Receipt#load_secret
-      # resolves the secret by secret_identifier alone, so a key found only in
-      # the legacy field names a secret the receipt cannot load (V1
-      # ShowReceipt finds no secret, BurnSecret cannot burn it), and terminal
-      # transitions leave the field populated (#4835).
+      # Only secret_identifier is read. The pre-v0.24 secret_key field is no
+      # longer declared on Receipt (a stale value in a stored hash never
+      # reaches to_h), and Receipt#load_secret resolves the secret by
+      # secret_identifier alone, so a key found only under the old name named
+      # a secret the receipt could not load (#4835).
       #
       # @param hsh [Hash] the receipt's field hash (Receipt#to_h)
       # @param raw_state [String] the receipt state in v0.24 vocabulary

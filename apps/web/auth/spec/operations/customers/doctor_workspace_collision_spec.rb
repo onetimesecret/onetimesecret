@@ -15,6 +15,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       objid: 'cust_current',
       organization_instances: [],
       provisioning_failure_classification: 'retained_data',
+      closing?: false,
     )
   end
   let(:classifier) { instance_double(Auth::Operations::WorkspaceCollision) }

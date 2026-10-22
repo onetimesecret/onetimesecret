@@ -7,8 +7,8 @@
 # - The burn response (and its /private and /metadata aliases) describes the
 #   receipt after the burn, not the instance the logic loaded before it, and
 #   agrees with a follow-up fetch.
-# - A terminal receipt never regains a secret key through the deprecated
-#   secret_key field, which terminal transitions leave in place.
+# - A terminal receipt never regains a secret key through a stale secret_key
+#   hash field (the pre-v0.24 name, no longer declared on the model).
 # - The receipt URLs are built from the receipt identifier, not the
 #   deprecated key field (which left every URL ending in "/receipt/").
 # - The V1 serializer applies the same provenance gate as V2/V3: an incoming
@@ -90,15 +90,14 @@ RSpec.describe 'V1 burn and receipt responses (#4835)', type: :integration do
     expect(json_body.dig('state', 'secret_key')).to eq('')
   end
 
-  # burned! clears secret_identifier but leaves the deprecated secret_key
-  # field, so the serializer's legacy fallback would hand the burned receipt
-  # its old key back.
-  it 'does not restore a populated legacy secret_key field on the burned receipt' do
+  # A receipt written before the rename to secret_identifier can still carry
+  # a secret_key hash field. The model no longer declares it, so the value
+  # never reaches to_h, and the serializer's old fallback to it is gone.
+  it 'does not restore a stale secret_key hash field on the burned receipt' do
     metadata_key, secret_key = create_secret
-    receipt            = Onetime::Receipt.load(metadata_key)
-    receipt.secret_key = secret_key
-    receipt.save
-    expect(Onetime::Receipt.load(metadata_key).secret_key).to eq(secret_key)
+    receipt = Onetime::Receipt.load(metadata_key)
+    Onetime::Receipt.dbclient.hset(receipt.dbkey, 'secret_key', secret_key)
+    expect(Onetime::Receipt.load(metadata_key).to_h).not_to have_key('secret_key')
 
     post "/api/v1/receipt/#{metadata_key}/burn", { continue: 'true' }
 
@@ -113,9 +112,9 @@ RSpec.describe 'V1 burn and receipt responses (#4835)', type: :integration do
     expect(json_body['secret_key']).to eq('')
     expect(last_response.body).not_to include(secret_key)
 
-    # The field is still populated after the burn and the GET: the
-    # serializer, not a cleanup write, is what keeps it out of the response.
-    expect(Onetime::Receipt.load(metadata_key).secret_key).to eq(secret_key)
+    # The stale field is still in the hash after the burn and the GET: no
+    # write touches it, and no read sees it.
+    expect(Onetime::Receipt.dbclient.hget(receipt.dbkey, 'secret_key')).to eq(secret_key)
   end
 
   describe 'GET /api/v1/receipt/:key' do
@@ -129,13 +128,12 @@ RSpec.describe 'V1 burn and receipt responses (#4835)', type: :integration do
       expect(json_body['receipt_url']).to eq(json_body['metadata_url'])
     end
 
-    # The GET used to clear the deprecated field on the way to orphaned!;
-    # it no longer writes it at all.
-    it 'reports an orphaned receipt without a key and leaves the legacy field alone' do
+    # The GET used to clear the old field on the way to orphaned!; the
+    # transition's save now leaves a stale hash field where it is.
+    it 'reports an orphaned receipt without a key and leaves a stale secret_key field alone' do
       metadata_key, secret_key = create_secret
-      receipt            = Onetime::Receipt.load(metadata_key)
-      receipt.secret_key = secret_key
-      receipt.save
+      receipt = Onetime::Receipt.load(metadata_key)
+      Onetime::Receipt.dbclient.hset(receipt.dbkey, 'secret_key', secret_key)
       Onetime::Secret.dbclient.del(Onetime::Secret.load(secret_key).dbkey)
 
       get "/api/v1/receipt/#{metadata_key}"
@@ -147,19 +145,20 @@ RSpec.describe 'V1 burn and receipt responses (#4835)', type: :integration do
 
       stored = Onetime::Receipt.load(metadata_key)
       expect(stored.state).to eq('orphaned')
-      expect(stored.secret_key).to eq(secret_key)
+      expect(stored.to_h).not_to have_key('secret_key')
+      expect(Onetime::Receipt.dbclient.hget(receipt.dbkey, 'secret_key')).to eq(secret_key)
     end
 
     # Receipt#load_secret resolves the secret by secret_identifier alone, so
-    # a key found only in the legacy field names a secret the receipt cannot
-    # load. The GET hid it with an in-memory clear before orphaned!; the
-    # serializer now never reads the field.
-    it 'returns no key for a live receipt whose key is only in the legacy field' do
-      metadata_key, secret_key   = create_secret
-      receipt                    = Onetime::Receipt.load(metadata_key)
-      receipt.secret_identifier  = ''
-      receipt.secret_key         = secret_key
+    # a key found only under the old hash field names a secret the receipt
+    # cannot load. The GET used to hide it with an in-memory clear before
+    # orphaned!; the model no longer sees the field at all.
+    it 'returns no key for a live receipt whose key is only in a stale secret_key field' do
+      metadata_key, secret_key  = create_secret
+      receipt                   = Onetime::Receipt.load(metadata_key)
+      receipt.secret_identifier = ''
       receipt.save
+      Onetime::Receipt.dbclient.hset(receipt.dbkey, 'secret_key', secret_key)
 
       get "/api/v1/receipt/#{metadata_key}"
 
@@ -167,7 +166,7 @@ RSpec.describe 'V1 burn and receipt responses (#4835)', type: :integration do
       expect(json_body['secret_key']).to eq('')
       expect(json_body['secret_identifier']).to eq('')
       expect(last_response.body).not_to include(secret_key)
-      expect(Onetime::Receipt.load(metadata_key).secret_key).to eq(secret_key)
+      expect(Onetime::Receipt.dbclient.hget(receipt.dbkey, 'secret_key')).to eq(secret_key)
     end
 
     it 'returns the secret key for a live standard receipt' do

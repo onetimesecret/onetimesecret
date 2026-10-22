@@ -26,30 +26,35 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
     Onetime.boot! :test
   end
 
-  def mock_session
-    store = {}
+  # Empty by default, the stateless (BasicAuth) shape. Pass entries to model a
+  # browser session, which carries at least its CSRF token.
+  def mock_session(entries = {})
+    store = entries.dup
     session = double('Session')
     allow(session).to receive(:[]) { |k| store[k] }
     allow(session).to receive(:[]=) { |k, v| store[k] = v }
-    allow(session).to receive(:empty?).and_return(true)
+    allow(session).to receive(:empty?) { store.empty? }
+    allow(session).to receive(:clear) { store.clear }
     session
   end
 
   # Build a RevealSecret over a real secret. process derives cust from
   # strategy_result.user and never needs org (that is a raise_concerns concern).
-  # customer: overrides the default anonymous caller for the verification
-  # branches that depend on who is logged in. Pass params as a braced hash --
-  # the customer: kwarg would otherwise swallow a bare trailing hash.
-  def build_logic(params, customer: nil)
-    customer ||= double('Customer', custid: 'anon', anonymous?: true, objid: nil, extid: nil)
-    org      = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
+  # Without customer: the caller is anonymous and the user is nil, which is
+  # what NoAuthStrategy returns on the auth=noauth guest reveal routes (#2733).
+  # The anonymous Customer double that used to stand in here hid #4831.
+  # customer: sets who is logged in for the branches that depend on it. Pass
+  # params as a braced hash -- the customer: kwarg would otherwise swallow a
+  # bare trailing hash.
+  def build_logic(params, customer: nil, session: mock_session)
+    org = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
     allow(org).to receive(:can?).and_return(true)
 
     strategy_result = double('StrategyResult',
-      session: mock_session,
+      session: session,
       user: customer,
       metadata: { organization: org },
-      auth_method: 'basicauth')
+      auth_method: customer ? 'basicauth' : 'noauth')
 
     described_class.new(strategy_result, params)
   end
@@ -242,6 +247,8 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
 
     before { flag_as_verification!(secret) }
 
+    # The emailed link is opened on an auth=noauth route, so the caller has no
+    # customer at all (build_logic's default). #4831 was this case.
     context 'when an anonymous caller verifies the unverified owner' do
       it 'verifies the owner and reveals the plaintext' do
         owner.reset_secret = secret.identifier # standalone dbkey, writes immediately
@@ -261,26 +268,18 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
         expect(reloaded.reset_secret.value).to be_nil
         expect(Onetime::Secret.load(secret.identifier)).to be_nil # consumed
       end
-    end
 
-    # On auth=noauth routes the strategy gives an anonymous caller no customer
-    # at all (#2733), which is how the emailed link arrives (#4831).
-    context 'when the caller has no customer (noauth route)' do
-      it 'verifies the owner and reveals the plaintext' do
-        owner.reset_secret = secret.identifier
-        org = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
-        allow(org).to receive(:can?).and_return(true)
-        strategy_result = double('StrategyResult',
-          session: mock_session,
-          user: nil,
-          metadata: { organization: org },
-          auth_method: 'noauth')
-        logic = described_class.new(strategy_result, { 'identifier' => secret.identifier, 'continue' => 'true' })
+      # The browser that opens the link has a guest session (its CSRF token at
+      # least). Verifying clears it; CsrfResponseHeader mints a fresh token on
+      # the same response (csrf_response_header_spec.rb).
+      it "clears the visitor's guest session" do
+        session = mock_session('csrf' => 'guest-token')
+        logic   = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' }, session: session)
         logic.process_params
         logic.process
 
         expect(logic.secret_value).to eq('a secret value')
-        expect(Onetime::Customer.load(owner.objid).verified?).to be true
+        expect(session).to be_empty
       end
     end
 
@@ -290,12 +289,18 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       it 'verifies the owner and reveals the plaintext' do
         as_owner = double('Customer', custid: owner.custid, anonymous?: false, objid: owner.objid,
           extid: owner.extid)
-        logic    = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' }, customer: as_owner)
+        session  = mock_session('csrf' => 'owner-token', 'external_id' => owner.extid)
+        logic    = build_logic(
+          { 'identifier' => secret.identifier, 'continue' => 'true' },
+          customer: as_owner,
+          session: session,
+        )
         logic.process_params
         logic.process
 
         expect(logic.show_secret).to be true
         expect(logic.success_data[:record][:secret_value]).to eq('a secret value')
+        expect(session).to be_empty # signed out; the owner signs in again
 
         reloaded = Onetime::Customer.load(owner.objid)
         expect(reloaded.verified?).to be true
@@ -369,9 +374,14 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       it 'raises a form error, consumes nothing, and verifies no one' do
         # Legacy-shaped custid (an email address) so the log assertion below
         # would catch a revert to custid in the payload.
-        other = double('Customer', custid: 'other@example.com', anonymous?: false, objid: 'objid_other',
+        other   = double('Customer', custid: 'other@example.com', anonymous?: false, objid: 'objid_other',
           extid: 'urother')
-        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' }, customer: other)
+        session = mock_session('csrf' => 'other-token', 'external_id' => 'urother')
+        logic   = build_logic(
+          { 'identifier' => secret.identifier, 'continue' => 'true' },
+          customer: other,
+          session: session,
+        )
         captured = capture_secret_logs(logic)
         logic.process_params
 
@@ -388,6 +398,7 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
         expect(reloaded.state).to eq('new')
         expect(reloaded.viewable?).to be true
         expect(Onetime::Customer.load(owner.objid).verified?).to be false
+        expect(session).not_to be_empty # the refusal does not sign them out
       end
     end
 

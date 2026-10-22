@@ -793,6 +793,27 @@ module Auth::Config::Hooks
           display_domain: display_domain,
           provider: omniauth_provider,
         )
+
+        # Last, after every policy check: a Customer record still marked as
+        # closing under this address (#4830) is finished here, before
+        # rodauth-omniauth inserts the accounts row, as before_create_account
+        # does for a password sign-up. Once the row exists, a closure that
+        # cannot be finished leaves it with no Customer and the SSO identity
+        # attached, which cannot sign in and blocks every later sign-up with
+        # the address. Refused here, the sign-in leaves nothing behind, and a
+        # retry once the marker is 15 minutes old finishes the closure.
+        unfinished = Auth::Operations::EnsureCustomerForAccount.finish_leftover_closure(email)
+        if unfinished
+          Auth::Logging.log_auth_event(
+            :omniauth_blocked_interrupted_closure,
+            level: :error,
+            email: OT::Utils.obscure_email(email),
+            external_id: unfinished.extid,
+            provider: omniauth_provider,
+          )
+          record_tenant_sso_failure('account', 'account_closing') if respond_to?(:record_tenant_sso_failure)
+          redirect '/signin?auth_error=account_closing'
+        end
       end
 
       # ========================================================================

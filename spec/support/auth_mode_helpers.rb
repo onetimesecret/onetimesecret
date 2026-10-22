@@ -69,6 +69,12 @@ module AuthModeHelpers
       @mode == 'simple'
     end
 
+    # Mirrors Onetime::AuthConfig#simple_by_default?: true only when simple
+    # mode is in force and nothing in the environment chose it.
+    def simple_by_default?
+      simple_enabled? && ENV['AUTHENTICATION_MODE'].to_s.strip.empty?
+    end
+
     def configured?
       true
     end

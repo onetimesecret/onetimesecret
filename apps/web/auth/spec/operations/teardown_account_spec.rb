@@ -6,7 +6,9 @@ require 'spec_helper'
 require 'auth/operations/teardown_account'
 
 RSpec.describe Auth::Operations::TeardownAccount do
-  let(:customer) { double('Customer', extid: 'ur_target', custid: 'target@example.com') }
+  let(:customer) do
+    double('Customer', extid: 'ur_target', custid: 'target@example.com', mark_closure_started!: nil)
+  end
   let(:customer_deleter) { instance_double(Auth::Operations::DestroyCustomerRecord, call: true) }
   let(:admin_revoker) { instance_double(Onetime::Operations::Sessions::RevokeAllForCustomer, call: nil) }
   let(:self_revoker) do
@@ -37,6 +39,75 @@ RSpec.describe Auth::Operations::TeardownAccount do
     expect(Auth::Operations::RemoveAuthenticationData).not_to have_received(:call)
   end
 
+  # The marker is what keeps `customers sync-auth-accounts` from provisioning
+  # a new auth account for a record whose closure stalled after the SQL
+  # identity was deleted (#4819); the closed accounts row used to do that.
+  it 'marks the customer as closing just before it closes the auth account' do
+    allow(Onetime.auth_config).to receive(:full_enabled?).and_return(true)
+
+    expect(self_revoker).to receive(:call).ordered
+    expect(customer).to receive(:mark_closure_started!).ordered
+    expect(Auth::Operations::RemoveAuthenticationData).to receive(:call).ordered
+      .and_return(success: true, account_id: 42)
+    expect(customer_deleter).to receive(:call).ordered.and_return(true)
+
+    expect(described_class.new(customer: customer).call.status).to eq(:success)
+  end
+
+  # Simple mode has no auth account: the sign-in lives on the record, so the
+  # record deletion is the step the marker precedes.
+  it 'marks a simple-mode customer just before it deletes the record' do
+    allow(Onetime.auth_config).to receive(:full_enabled?).and_return(false)
+
+    expect(self_revoker).to receive(:call).ordered
+    expect(customer).to receive(:mark_closure_started!).ordered
+    expect(customer_deleter).to receive(:call).ordered.and_return(true)
+
+    expect(described_class.new(customer: customer).call.status).to eq(:success)
+  end
+
+  it 'leaves the customer unmarked when the first mutation is refused' do
+    allow(Onetime.auth_config).to receive(:full_enabled?).and_return(true)
+
+    result = described_class.new(customer: customer, before_mutation: ->(_stage) { false }).call
+
+    expect(result.status).to eq(:refused)
+    expect(customer).not_to have_received(:mark_closure_started!)
+    expect(self_revoker).not_to have_received(:call)
+  end
+
+  # Sessions are gone but the account is intact and the customer signs in
+  # again: a marker here would report a live account as an interrupted
+  # closure, and a later switch to full mode would leave it without one.
+  it 'leaves a live account unmarked when revalidation stops it after session revocation' do
+    allow(Onetime.auth_config).to receive(:full_enabled?).and_return(true)
+    guard = lambda { |stage| stage == :session_revocation }
+
+    result = described_class.new(customer: customer, actor: 'ur_colonel', before_mutation: guard).call
+
+    expect(result.blocked_stage).to eq(:authentication_closure)
+    expect(customer).not_to have_received(:mark_closure_started!)
+  end
+
+  it 'leaves a live simple-mode account unmarked when revalidation stops it before the record deletion' do
+    allow(Onetime.auth_config).to receive(:full_enabled?).and_return(false)
+    guard = lambda { |stage| stage != :customer_deletion }
+
+    result = described_class.new(customer: customer, actor: 'ur_colonel', before_mutation: guard).call
+
+    expect(result.blocked_stage).to eq(:customer_deletion)
+    expect(customer).not_to have_received(:mark_closure_started!)
+  end
+
+  it 'leaves the customer unmarked when session revocation raises' do
+    allow(Onetime.auth_config).to receive(:full_enabled?).and_return(true)
+    allow(admin_revoker).to receive(:call).and_raise(RuntimeError, 'valkey unavailable')
+
+    expect { described_class.new(customer: customer, actor: 'ur_colonel').call }
+      .to raise_error(RuntimeError, 'valkey unavailable')
+    expect(customer).not_to have_received(:mark_closure_started!)
+  end
+
   it 'revokes sessions, closes SQL credentials, then deletes Redis state for an admin purge' do
     allow(Onetime.auth_config).to receive(:full_enabled?).and_return(true)
 
@@ -47,7 +118,7 @@ RSpec.describe Auth::Operations::TeardownAccount do
         db: nil,
         allow_missing: true,
         revoke_sessions: false,
-        retain_account: true,
+        retain_account: false,
       ).ordered
       .and_return(success: true, account_id: 42)
     expect(customer_deleter).to receive(:call).ordered.and_return(true)
@@ -141,7 +212,7 @@ RSpec.describe Auth::Operations::TeardownAccount do
     db      = double('Auth database')
     allow(Onetime::Customer).to receive(:find_by_extid).with('ur_target').and_return(customer)
 
-    result = described_class.new(account: account, db: db).call
+    result = described_class.new(account: account, db: db, retain_auth_account: true).call
 
     expect(result.status).to eq(:success)
     expect(result.account_id).to eq(42)
@@ -170,7 +241,7 @@ RSpec.describe Auth::Operations::TeardownAccount do
       db: db,
       allow_missing: true,
       revoke_sessions: false,
-      retain_account: true,
+      retain_account: false,
     )
     expect(customer_deleter).not_to have_received(:call)
   end
@@ -184,5 +255,23 @@ RSpec.describe Auth::Operations::TeardownAccount do
       .to raise_error(Onetime::Problem, /database unavailable/)
 
     expect(customer_deleter).not_to have_received(:call)
+  end
+
+  # The after_close_account hook runs inside Rodauth's close_account
+  # transaction, which inserts the "Account closed" audit row after the hook
+  # and deletes the row itself last, so only that caller leaves the row and
+  # its audit log behind. Everywhere else, admin purge and the simple-mode
+  # delete endpoint included, the row and its audit log go here (#4819).
+  it 'deletes the SQL identity and its audit log outright unless Rodauth owns the last step' do
+    allow(Onetime.auth_config).to receive(:full_enabled?).and_return(true)
+
+    described_class.new(customer: customer, actor: 'ur_colonel', reason: 'request').call
+    described_class.new(customer: customer, self_service: true).call
+    expect(Auth::Operations::RemoveAuthenticationData).to have_received(:call)
+      .with(hash_including(retain_account: false)).twice
+
+    described_class.new(customer: customer, self_service: true, retain_auth_account: true).call
+    expect(Auth::Operations::RemoveAuthenticationData).to have_received(:call)
+      .with(hash_including(retain_account: true)).once
   end
 end
