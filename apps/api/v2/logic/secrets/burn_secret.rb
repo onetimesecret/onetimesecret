@@ -107,6 +107,13 @@ module V2::Logic
           # or report success to the client.
           @greenlighted = secret.burned!(actor_context: actor_context)
 
+          # burned! cascades through its own freshly loaded receipt, so the
+          # instance from process_params still holds the pre-burn state
+          # (state: new, is_burned: false). Reload it so success_data reports
+          # what was persisted (#4835): burned for the winner, and whatever
+          # the concurrent winner left (e.g. revealed) for a loser.
+          @receipt = Onetime::Receipt.load(receipt.identifier) || receipt
+
           if greenlighted
             owner = secret.load_owner
             owner&.increment_field :secrets_burned unless owner&.anonymous?

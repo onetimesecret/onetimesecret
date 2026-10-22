@@ -157,6 +157,23 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       # (Owner increment is a no-op here: spawn_pair(nil, ...) has no owner.)
       expect(Onetime::Customer.secrets_burned.value).to eq(before_count + 1)
     end
+
+    # #4835: the response record must describe the receipt after the burn,
+    # not the instance process_params loaded before it.
+    it 'reports the burned receipt state in the response record' do
+      logic = build_logic('identifier' => receipt.identifier, 'continue' => 'true')
+      logic.process_params
+
+      logic.process
+      record = logic.success_data[:record]
+
+      expect(record[:state]).to eq('burned')
+      expect(record[:is_burned]).to be true
+      expect(record[:is_destroyed]).to be true
+      expect(record[:burned]).to be_a(Integer)
+      # Matches a fresh fetch of the receipt.
+      expect(record[:state]).to eq(Onetime::Receipt.load(receipt.identifier).state)
+    end
   end
 
   # The double-reveal race, burn variant: Secret#burned! performs an atomic
@@ -186,6 +203,9 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       # was the lost atomic claim -- not a collapsed race window at the
       # viewable?/continue guard -- that produced the false greenlight.
       expect(logic.secret).to be(stale)
+      # #4835: the record reports the winner's persisted state, not the
+      # pre-race snapshot.
+      expect(logic.success_data[:record][:state]).to eq('revealed')
     end
   end
 
@@ -209,6 +229,7 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       expect(stale).not_to have_received(:load_owner)
       # Branch-entry pin -- see the concurrent-reveal case above.
       expect(logic.secret).to be(stale)
+      expect(logic.success_data[:record][:state]).to eq('burned')
     end
   end
 
