@@ -69,12 +69,11 @@ row() { printf '%s\t%s' "$1" "$2"; }
 # exactly one thing and attribute the result to that removal.
 make_dist() { # <dir> <release>
   local dir="$1" release="$2"
-  mkdir -p "${dir}/assets" "${dir}/.vite"
+  mkdir -p "${dir}/assets"
   printf 'const r="%s";export default r;\n' "$release" > "${dir}/assets/main.a1b2c3.js"
   printf '{"version":3,"sources":[]}\n' > "${dir}/assets/main.a1b2c3.js.map"
   printf 'const r="%s";export default r;\n' "$release" > "${dir}/assets/admin.d4e5f6.js"
   printf '{"version":3,"sources":[]}\n' > "${dir}/assets/admin.d4e5f6.js.map"
-  printf '{}\n' > "${dir}/.vite/manifest.json"
 }
 
 printf '%s\n' "$ASSERT_SUITE"

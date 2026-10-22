@@ -7,7 +7,7 @@
    * Used for secrets with display_type 'markdown': the live preview on the
    * create forms and the recipient's reveal page. The parser, highlighter and
    * sanitizer live in src/shared/utils/markdown.ts, imported on first render
-   * (the single-chunk production build bundles them regardless). If rendering
+   * (their own chunk in the production build, fetched on first use). If rendering
    * fails for any reason the source is shown as plain text instead: a
    * recipient must never lose the value to a rendering bug.
    */

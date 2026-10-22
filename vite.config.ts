@@ -11,6 +11,7 @@ import Markdown from 'unplugin-vue-markdown/vite';
 import { defineConfig, type PluginOption } from 'vite';
 
 import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
+import { checkCspChunkGraph } from './src/build/plugins/checkCspChunkGraph';
 import { DEBUG } from './src/utils/debug';
 
 import VueDevTools from 'vite-plugin-vue-devtools';
@@ -270,6 +271,11 @@ export default defineConfig(({ command }) => ({
      * @see ./src/build/plugins/addTrailingNewline.ts for implementation details.
      */
     addTrailingNewline(),
+
+    // Fails the build if configureZod.ts leaves the zod chunk or an entry
+    // stops importing that chunk statically (the advancedChunks group below
+    // and the CSP note at the top of this file).
+    checkCspChunkGraph(),
     // Note: Sentry sourcemaps are uploaded via CI (sentry-cli), not at build time.
     // This keeps auth tokens out of the build context. See .github/workflows/build-and-publish-oci-images.yml
   ].filter(Boolean) as PluginOption[],
