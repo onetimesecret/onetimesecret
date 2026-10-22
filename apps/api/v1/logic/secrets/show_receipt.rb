@@ -35,10 +35,10 @@ module V1::Logic
       def process # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
         @secret = @receipt.load_secret
 
-        # Canonical fields only. The deprecated `key` and `secret_key` fields
-        # are never written for current receipts, so reading them built
-        # receipt URLs ending in "/receipt/" and share links ending in
-        # "/secret/" (#4835).
+        # Canonical fields only. The deprecated `key` field is never written
+        # for current receipts (and `secret_key` is no longer declared), so
+        # reading them built receipt URLs ending in "/receipt/" and share
+        # links ending in "/secret/" (#4835).
         @receipt_key = receipt.identifier
         @receipt_shortid = receipt.shortid
         @secret_key = receipt.secret_identifier
@@ -64,8 +64,6 @@ module V1::Logic
 
           burned_or_revealed = receipt.state?(:burned) || receipt.state?(:revealed) || receipt.state?(:received)
 
-          # This GET leaves the deprecated secret_key field alone: the V1
-          # serializer never reads it (V1::Controllers::ClassMethods#v1_secret_key).
           if !burned_or_revealed && receipt.secret_expired?
             OT.le("[show_receipt] Receipt has expired secret. #{receipt.shortid}")
             receipt.expired!

@@ -87,6 +87,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
       bulk_audit_context: nil,
       sweep_untracked_sessions: true,
       self_service: false,
+      retain_auth_account: false,
     )
     expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       actor: 'ur_col',
@@ -154,6 +155,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
       bulk_audit_context: nil,
       sweep_untracked_sessions: true,
       self_service: false,
+      retain_auth_account: false,
     )
   end
 
@@ -350,6 +352,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
       bulk_audit_context: nil,
       sweep_untracked_sessions: true,
       self_service: false,
+      retain_auth_account: false,
     )
   end
 
@@ -405,6 +408,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
       bulk_audit_context: kind_of(Onetime::Operations::BulkAuditContext::CandidateAuthorization),
       sweep_untracked_sessions: true,
       self_service: false,
+      retain_auth_account: false,
     )
     expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       hash_including(verb: 'customer.purge.bulk', result: :started)

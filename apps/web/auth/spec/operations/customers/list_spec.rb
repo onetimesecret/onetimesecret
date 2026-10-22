@@ -374,15 +374,21 @@ RSpec.describe Auth::Operations::Customers::List do
       let(:db) do
         instance_double(Sequel::Database).tap do |double|
           allow(double).to receive(:[]).with(:accounts).and_return(accounts)
+          # The orphan entry reads created_at in the zone the database wrote
+          # it in (Auth::DatabaseConnection.timestamp): UTC on PostgreSQL.
+          allow(double).to receive(:database_type).and_return(:postgres)
         end
       end
+      # created_at as Sequel returns it with no database timezone pinned: the
+      # stored UTC wall clock (22:13:20 is epoch 1_700_000_000) labelled with
+      # the host's zone, whatever that is.
       let(:live_row) do
         {
           id: 42,
           email: 'bob@example.com',
           external_id: 'ur-bob',
           status_id: Auth::AccountStatuses::VERIFIED,
-          created_at: Time.at(1_700_000_000),
+          created_at: Time.new(2023, 11, 14, 22, 13, 20),
         }
       end
 
@@ -464,6 +470,18 @@ RSpec.describe Auth::Operations::Customers::List do
             created_at: 1_700_000_000,
           },
         ])
+      end
+
+      # The same row read on a UTC-7 host: Time#to_i on it would be seven
+      # hours ahead of the instant the row was created.
+      it 'reads created_at as the UTC wall clock the database wrote, whatever zone Sequel labels it with' do
+        allow(Auth::Database).to receive(:connection).and_return(db)
+        host_read = live_row.merge(external_id: nil, created_at: Time.new(2023, 11, 14, 22, 13, 20, '-07:00'))
+        allow(accounts).to receive(:first).and_return(host_read)
+
+        result = described_class.new(search: 'bob@example.com').call
+
+        expect(result.orphaned_accounts.first).to include(created_at: 1_700_000_000)
       end
 
       it 'reports a row whose external_id resolves to nothing as an orphan too' do

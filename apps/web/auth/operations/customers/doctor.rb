@@ -109,9 +109,9 @@ module Auth
         # @param actor [String, #extid, #email, nil] acting admin's PUBLIC identity;
         #   when present and a repair is applied, one audit event is recorded
         def initialize(customer:, repair: false, actor: nil)
-          @customer = customer
-          @repair   = repair
-          @actor    = actor
+          @customer         = customer
+          @repair_requested = repair
+          @actor            = actor
         end
 
         # Run all per-customer checks. Returns a Report; the caller aggregates.
@@ -120,22 +120,17 @@ module Auth
           issues   = []
           repaired = []
 
-          check_workspace_collision(issues, repaired)
-          check_provisioning_failure(issues, repaired)
-          check_orphan_default_org(issues, repaired)
-          check_email_index_entry(issues, repaired)
-          check_auth_email_drift(issues, repaired)
-          check_auth_email_canonical(issues)
-          check_org_email_index(issues, repaired)
-          check_org_contact_email(issues, repaired)
-          check_org_membership_sync(issues, repaired)
-          check_role_validity(issues)
-          check_verified_consistency(issues, repaired)
-          check_sso_customer_unverified(issues, repaired)
-          check_counter_sanity(issues, repaired)
-          check_field_serialization(issues, repaired)
+          # First, so a closure that rolled back is cleared before anything
+          # else runs. A record still marked after it belongs to a closure
+          # that has not finished: its owner asked for it to be deleted, and
+          # finish-closures deletes it. Nothing repairs it into shape (a
+          # workspace provisioned, an index rebuilt), but a closure whose purge
+          # stays blocked still needs the read-out, so the data checks run for
+          # it and repair nothing (#repairing?).
+          check_closure_marker(issues, repaired)
+          check_customer_data(issues, repaired)
 
-          audit_repair_outcome(repaired) if @repair
+          audit_repair_outcome(repaired) if @repair_requested
 
           Report.new(issues: issues.sort_by { |i| SEVERITY_ORDER[i[:severity]] }, repaired: repaired)
         rescue StandardError => ex
@@ -152,9 +147,46 @@ module Auth
           # event: a REPAIR run with a known actor. A repair that blew up
           # partway is a mutation left in an unknown state, and that must be in
           # the trail. The record helper is shared, only the gate is bespoke.
-          audit_repair_failure(ex) if @repair && !@actor.nil?
+          audit_repair_failure(ex) if @repair_requested && !@actor.nil?
           raise
         end
+
+        # Every per-customer check but the closure marker (see #call).
+        def check_customer_data(issues, repaired)
+          check_workspace_collision(issues, repaired)
+          check_provisioning_failure(issues, repaired)
+          check_orphan_default_org(issues, repaired)
+          check_email_index_entry(issues, repaired)
+          check_auth_email_drift(issues, repaired)
+          check_auth_email_canonical(issues)
+          check_org_email_index(issues, repaired)
+          check_org_contact_email(issues, repaired)
+          check_org_membership_sync(issues, repaired)
+          check_role_validity(issues)
+          check_verified_consistency(issues, repaired)
+          check_sso_customer_unverified(issues, repaired)
+          check_counter_sanity(issues, repaired)
+          check_field_serialization(issues, repaired)
+        end
+        private :check_customer_data
+
+        # Whether the data checks may repair what they find: under
+        # repair: true, and only for a record that is not closing (see
+        # #call). Every check gates its repairs on this or on
+        # #repairing_closure_marker?, never on @repair_requested.
+        def repairing?
+          @repair_requested && !@customer.closing?
+        end
+        private :repairing?
+
+        # Whether #check_closure_marker may clear a rolled-back closure's
+        # marker: under repair: true. Unlike #repairing?, the record being
+        # closing does not stop it, since the record it clears is the one
+        # still marked.
+        def repairing_closure_marker?
+          @repair_requested
+        end
+        private :repairing_closure_marker?
 
         # Index-level check: email_index entries point to live customers with the
         # right email. Returns { issues:, repaired: }. Cross-customer, so it is a
@@ -264,7 +296,7 @@ module Auth
           }
           issues << collision_issue
 
-          return unless @repair && repairable
+          return unless repairing? && repairable
           return unless WorkspaceCollision.compare_and_delete(collision)
 
           OT.info "[customers doctor] Removed stale contact-email claim for #{@customer.extid} (#{classification})"
@@ -370,7 +402,7 @@ module Auth
           }
           issues << issue
 
-          return unless @repair && release[:releasable]
+          return unless repairing? && release[:releasable]
 
           release_provisioning_latch(issue, issues, repaired, release)
         end
@@ -505,7 +537,7 @@ module Auth
               repair_action: 'Clear default_org_id field',
             }
 
-            if @repair
+            if repairing?
               @customer.default_org_id = nil
               @customer.save
               OT.info "[customers doctor] Cleared default_org_id for #{@customer.extid}"
@@ -529,7 +561,7 @@ module Auth
             repair_action: 'Clear default_org_id field',
           }
 
-          return unless @repair
+          return unless repairing?
 
           @customer.default_org_id = nil
           @customer.save
@@ -556,7 +588,7 @@ module Auth
               repair_action: 'Add email_index entry',
             }
 
-            if @repair
+            if repairing?
               Onetime::Customer.email_index[@customer.email] = @customer.objid
               OT.info "[customers doctor] Added email_index[#{@customer.email}] -> #{@customer.objid}"
               repaired << {
@@ -573,7 +605,7 @@ module Auth
               repair_action: 'Fix email_index entry',
             }
 
-            if @repair
+            if repairing?
               Onetime::Customer.email_index[@customer.email] = @customer.objid
               OT.info "[customers doctor] Fixed email_index[#{@customer.email}] -> #{@customer.objid}"
               repaired << {
@@ -631,7 +663,7 @@ module Auth
             repair_action: 'Write the Customer email into the Rodauth accounts row',
           }
 
-          return unless @repair
+          return unless repairing?
 
           db.transaction do
             db[:accounts].where(id: account[:id]).update(
@@ -780,7 +812,7 @@ module Auth
               repair_action: 'Re-key the org-scoped email index',
             }
 
-            next unless @repair
+            next unless repairing?
 
             # Add the correct entry BEFORE removing the stale ones, so there is
             # no window in which the customer is unfindable within the org.
@@ -847,7 +879,7 @@ module Auth
             }
 
             next if conflicted
-            next unless @repair
+            next unless repairing?
 
             org.contact_email = email
             org.update_in_class_contact_email_index(contact)
@@ -882,7 +914,7 @@ module Auth
                 repair_action: 'Remove stale participation entry',
               }
 
-              if @repair
+              if repairing?
                 @customer.untrack_participation_in(collection_key)
                 if @customer.participations.to_a.include?(collection_key)
                   raise Onetime::Problem, "Stale participation cleanup failed: #{collection_key}"
@@ -905,7 +937,7 @@ module Auth
                 repair_action: 'Add customer to org.members',
               }
 
-              if @repair
+              if repairing?
                 organization.add_members_instance(@customer)
                 OT.info "[customers doctor] Added #{@customer.extid} to #{organization.extid}.members"
                 repaired << {
@@ -948,7 +980,7 @@ module Auth
             repair_action: "Set verified_by to 'legacy'",
           }
 
-          return unless @repair
+          return unless repairing?
 
           @customer.verified_by = 'legacy'
           @customer.save
@@ -980,7 +1012,7 @@ module Auth
             repair_action: 'Reset negative counters to 0',
           }
 
-          return unless @repair
+          return unless repairing?
 
           negative_counters.each do |counter|
             @customer.send(:"#{counter[:field]}=", 0)
@@ -1018,7 +1050,7 @@ module Auth
             repair_action: 'Re-serialize fields with Familia::JsonSerializer.dump',
           }
 
-          return unless @repair
+          return unless repairing?
 
           updates = bad_fields.to_h do |entry|
             [entry[:field], Familia::JsonSerializer.dump(raw_hash[entry[:field]])]
@@ -1058,7 +1090,8 @@ module Auth
                             db[:accounts].where(external_id: extid).select(:id, :email, :status_id).first
                           end
         rescue StandardError
-          @auth_account = nil
+          @auth_account_unreadable = true
+          @auth_account            = nil
         end
 
         # CHECK: an SSO-provisioned Customer left unverified (#3973)
@@ -1132,7 +1165,7 @@ module Auth
                            "(verified_by: '#{provenance}')",
           }
 
-          return unless @repair
+          return unless repairing?
 
           Auth::Operations::SetCustomerVerification.new(
             customer: @customer,
@@ -1155,13 +1188,96 @@ module Auth
                 "#{ex.class} #{ex.message}"
         end
 
-        # Auth database handle, or nil in simple mode / when unreachable.
+        # CHECK: a closure marker on a record that still exists (#4830)
+        #
+        # Customer#mark_closure_started! runs just before a closure removes
+        # the sign-in, and a completed closure deletes the record with it. A
+        # record that still carries the marker is in one of two states, told
+        # apart by the auth account (the memoized read the cross-store checks
+        # share; in simple mode there is none):
+        #
+        #   no open auth account  The closure stopped before the record was
+        #                         deleted. Reported, never repaired here:
+        #                         finishing it deletes the account, which is
+        #                         `bin/ots customers finish-closures`.
+        #   open auth account     The closure's transaction rolled back and
+        #                         the account is live. --repair clears the
+        #                         marker, so the record stops reading as a
+        #                         closure and finish-closures leaves it alone.
+        #
+        # A marker younger than Customer::CLOSURE_STALE_AFTER can belong to a
+        # closure still running, whose uncommitted transaction reads here as
+        # an open account: it is reported as in progress and left alone. An
+        # unreadable auth database decides neither state, so nothing is
+        # reported. Customer.closure_state is the classification, shared with
+        # finish-closures, diagnose and the sign-up finish.
+        def check_closure_marker(issues, repaired)
+          return unless @customer.closing?
+
+          account = auth_account
+          live    = @auth_account_unreadable ? nil : AccountStatuses.live?(account && account[:status_id])
+          started = Time.at(@customer.closure_started_at.to_i).utc.strftime('%Y-%m-%d %H:%M UTC')
+
+          case @customer.closure_state(open_auth_account: live)
+          when :in_progress
+            issues << {
+              check: :closure_in_progress,
+              severity: :low,
+              message: "account closure started at #{started} and may still be running",
+              repairable: false,
+            }
+          when :interrupted
+            issues << {
+              check: :closure_interrupted,
+              severity: :high,
+              message: "#{auth_mode_caveat}account closure started at #{started} stopped before the record " \
+                       "was deleted; finish it with `bin/ots customers purge #{@customer.extid}` (or every " \
+                       'such closure with `bin/ots customers finish-closures --confirm`)',
+              repairable: false,
+            }
+          when :rolled_back
+            issues << {
+              check: :closure_rolled_back,
+              severity: :medium,
+              message: "account closure started at #{started} rolled back; the auth account is open " \
+                       'and the record still carries the closure marker',
+              repairable: true,
+              repair_action: 'Clear the closure marker',
+            }
+            return unless repairing_closure_marker?
+
+            @customer.clear_closure_marker!
+            OT.info "[customers doctor] Cleared the closure marker of #{@customer.extid} (closure rolled back)"
+            repaired << { customer: @customer.extid, action: :closure_marker_cleared }
+          end
+        end
+
+        # Auth database handle, or nil in simple mode. A connection that
+        # cannot be built is nil too, flagged unreadable, so the account
+        # checks decide nothing rather than read "no connection" as "no
+        # account" (check_closure_marker would otherwise advise a purge).
         def auth_db
           return @auth_db if defined?(@auth_db)
 
           @auth_db = defined?(Auth::Database) ? Auth::Database.connection : nil
         rescue StandardError
-          @auth_db = nil
+          @auth_account_unreadable = true
+          @auth_db                 = nil
+        end
+
+        # In simple mode no auth account exists, so a stale marker is an
+        # interrupted closure by definition. bin/ots resolves simple mode
+        # whenever AUTHENTICATION_MODE is not exported into its shell,
+        # full-mode install or not (Onetime::AuthConfig#simple_by_default?),
+        # and on a full-mode install the record may then belong to a
+        # rolled-back closure with a live account. The read-out leads with
+        # that before it names the purge, which refuses in the same state
+        # (Onetime::CLI::Customers::Shared#auth_mode_refusal).
+        def auth_mode_caveat
+          return '' unless Onetime.auth_config.simple_by_default?
+
+          'no auth account was checked (AUTHENTICATION_MODE is not set, so simple auth mode was resolved ' \
+            'by default; on a full-mode install re-run with it exported before acting): '
         end
 
         # Memoized once per Doctor instance — three checks iterate it.

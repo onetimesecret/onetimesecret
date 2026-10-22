@@ -17,6 +17,7 @@
  * - domain_not_allowed -> web.login.errors.domain_not_allowed
  * - account_exists_link_required -> web.login.errors.account_exists_link_required
  * - org_join_failed -> web.login.errors.org_join_failed
+ * - account_closing -> web.login.errors.account_closing
  *
  * Unrecognized codes fall back to the generic sso_failed message so the page
  * never renders blank (issue #3478 — the "frozen loading screen").
@@ -297,6 +298,16 @@ describe('Login.vue auth_error handling', () => {
       const alert = wrapper.find('[role="alert"]');
       expect(alert.exists()).toBe(true);
       expect(alert.text()).toContain('web.login.errors.org_join_failed');
+    });
+
+    it('displays account_closing when an SSO sign-in meets an unfinished closure', async () => {
+      wrapper = await createWrapper({ auth_error: 'account_closing' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.account_closing');
+      expect(alert.text()).not.toContain('web.login.errors.sso_failed');
     });
 
     it('displays the unusable-config copy when auth_error=sso_config_unusable', async () => {

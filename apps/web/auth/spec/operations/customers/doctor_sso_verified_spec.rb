@@ -54,6 +54,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       verified_by: verified_by,
       verification_hold: verification_hold,
       provisioning_origin: provisioning_origin,
+      closing?: false,
     )
   end
 

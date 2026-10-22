@@ -19,6 +19,24 @@ module Onetime
         # public tag — never an internal objid.
         CLI_ACTOR = 'cli'
 
+        # bin/ots resolves simple auth mode whenever AUTHENTICATION_MODE is
+        # not exported into its shell (Onetime::AuthConfig#simple_by_default?).
+        # A purge in that state on a full-mode install deletes the record and
+        # leaves the auth account open: the next sign-in provisions a blank
+        # record. The destructive customer commands refuse until the shell
+        # says which mode the install runs; inside the shipped containers the
+        # variable is always exported, so this reaches host shells only.
+        AUTH_MODE_DEFAULTED_MESSAGE =
+          'AUTHENTICATION_MODE is not set in this shell, so simple auth mode was resolved by default. ' \
+          'On a full-mode install this command would delete the customer record and leave the auth ' \
+          'account open. Export AUTHENTICATION_MODE=full, or =simple if that is what this install ' \
+          'runs, and re-run.'
+
+        # @return [String, nil] the refusal, or nil when the mode is settled
+        def auth_mode_refusal
+          Onetime.auth_config.simple_by_default? ? AUTH_MODE_DEFAULTED_MESSAGE : nil
+        end
+
         # Approximate durations for human-readable time thresholds.
         # Not calendar-precise (no leap years, 30-day months) but
         # sufficient for bucket boundaries and CLI duration parsing.

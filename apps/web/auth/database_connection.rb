@@ -87,6 +87,61 @@ module Auth
       db
     end
 
+    # ## Reading timestamp columns
+    #
+    # The authdb's timestamp columns are naive (timestamp without time zone
+    # on PostgreSQL, text on SQLite) and .open does not pin Sequel's database
+    # timezone, so Sequel returns a stored wall clock labelled with the
+    # host's zone. Time#to_i on that value is off by the host's UTC offset
+    # whenever the wall clock was written in another zone, and which zone
+    # that is depends on the writer:
+    #
+    # - PostgreSQL writes NOW() and CURRENT_TIMESTAMP in the session's zone,
+    #   UTC under the deployment convention.
+    # - A SQLite trigger (raw CURRENT_TIMESTAMP, e.g. accounts.updated_at)
+    #   writes UTC.
+    # - Sequel::CURRENT_TIMESTAMP on SQLite, which the migrations' column
+    #   defaults (accounts.created_at, audit log `at`) and Rodauth's own
+    #   writes go through, is rewritten by Sequel to
+    #   datetime(CURRENT_TIMESTAMP, 'localtime') unless the connection sets
+    #   current_timestamp_utc: the host's LOCAL wall clock, baked into the
+    #   schema's defaults at migration time.
+    #
+    # The test connections pin timezone and current_timestamp_utc to UTC
+    # (apps/web/auth/spec/spec_helper.rb), which is why CI never sees the
+    # offset. Pinning both here is the fix at the source; it also needs the
+    # SQLite defaults rebuilt, so it is a change of its own. Until then,
+    # readers convert with the two helpers below.
+
+    # The instant of a wall clock the database wrote in UTC (a PostgreSQL
+    # NOW(), a SQLite trigger's CURRENT_TIMESTAMP), whatever zone Sequel
+    # labelled it with. Correct with or without a pinned database timezone:
+    # a pinned connection already returns the UTC components.
+    #
+    # @param value [Time, DateTime, nil] as read from the row
+    # @return [Time, nil] in UTC
+    def self.utc_timestamp(value)
+      return if value.nil? || !value.respond_to?(:to_time)
+
+      wall = value.to_time
+      Time.utc(wall.year, wall.month, wall.day, wall.hour, wall.min, wall.sec) + wall.subsec
+    end
+
+    # The instant of a column the database filled through
+    # Sequel::CURRENT_TIMESTAMP (a column default, a Rodauth write): UTC,
+    # except on a SQLite connection that leaves current_timestamp_utc unset,
+    # where it is the host's local wall clock and Sequel's own read is right.
+    #
+    # @param db [Sequel::Database] the connection the value was read on
+    # @param value [Time, DateTime, nil] as read from the row
+    # @return [Time, nil]
+    def self.timestamp(db, value)
+      return if value.nil? || !value.respond_to?(:to_time)
+      return value.to_time if db.database_type == :sqlite && !db.current_timestamp_utc
+
+      utc_timestamp(value)
+    end
+
     # A connection URL with its userinfo and query string replaced by "***",
     # for exception messages. libpq takes a password in either place
     # (`?password=`). Shares a dependency-free primitive with the application:

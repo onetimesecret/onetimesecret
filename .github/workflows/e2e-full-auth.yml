@@ -35,6 +35,11 @@
 #                                 Publisher's :sync fallback would deliver
 #                                 inline and the queue path would go untested.
 #
+# The test job is a two-row matrix. Everything above describes the full row;
+# the simple row covers the same email round-trip in SIMPLE mode (#4831), where
+# the emailed link is a /secret/ reveal, not Rodauth's /verify-account. Each
+# row is its own check, and auth-e2e-verdict requires both.
+#
 # The lane runs on the runner (bin/setup + pnpm run build + bin/ots server),
 # the same shape as visual.yml — NOT the baked OCI image e2e.yml uses. The
 # authdb is boot-migrated sqlite under tmp/ (apps/web/auth/database.rb
@@ -71,8 +76,6 @@ env:
   APP_PORT: '7143'
   APP_URL: http://localhost:7143
   MAILPIT_URL: http://127.0.0.1:12125
-  SERVER_LOG: tmp/e2e-full-auth-server.log
-  WORKER_LOG: tmp/e2e-full-auth-worker.log
 
 jobs:
   changes:
@@ -92,7 +95,7 @@ jobs:
         uses: ./.github/actions/detect-auth-changes
 
   e2e-full-auth:
-    name: signup → verify email → signin (real SMTP)
+    name: ${{ matrix.name }}
     needs: changes
     if: needs.changes.outputs.auth == 'true'
     runs-on: ubuntu-24.04
@@ -102,6 +105,36 @@ jobs:
     # timeout fires before globalTimeout the `if: always()` artifact steps die
     # with it, which is exactly the run whose traces are needed.
     timeout-minutes: 45
+    strategy:
+      # A red row must not cancel the other: each row's traces are the
+      # evidence for its own failure.
+      fail-fast: false
+      matrix:
+        include:
+          - mode: full
+            name: signup → verify email → signin (real SMTP)
+          # Simple mode verifies an account by revealing a secret from the
+          # welcome email (Logic::Base#send_verification_email), not through
+          # Rodauth. That journey broke for every anonymous visitor in #4831
+          # with the full row green, because e2e.yml's simple lane runs with
+          # AUTH_AUTOVERIFY=true and sends no email. How it differs:
+          #
+          #   AUTHENTICATION_MODE=simple   no Rodauth, no authdb, no
+          #                                ACCOUNT_ID_SECRET
+          #   AUTH_AUTOVERIFY=false        signup leaves the account pending
+          #                                and sends the welcome email
+          #   no RabbitMQ, no worker       simple-mode signup delivers the
+          #                                welcome email inline, so
+          #                                JOBS_ENABLED=false
+          #
+          # Its spec asserts the mode and autoverify from /bootstrap/me, so a
+          # drifted config fails instead of passing vacuously.
+          - mode: simple
+            name: simple mode signup → verify email (real SMTP)
+    env:
+      E2E_MODE: ${{ matrix.mode }}
+      SERVER_LOG: tmp/e2e-${{ matrix.mode }}-auth-server.log
+      WORKER_LOG: tmp/e2e-${{ matrix.mode }}-auth-worker.log
 
     steps:
       - name: Checkout code
@@ -110,11 +143,16 @@ jobs:
       # Services come from compose.test.yml plus compose.e2e.yml (same
       # ots-test project; the e2e file holds services only this lane uses,
       # kept out of compose.test.yml so bin/setup's port probe and the lanes'
-      # bare `up` never depend on them). valkey = app datastore, rabbitmq =
-      # the job queue the verification email travels on, mailpit = the
-      # mailbox the spec reads it back out of.
-      - name: Start test services (valkey, rabbitmq, mailpit)
-        run: docker compose -f compose.test.yml -f compose.e2e.yml up --wait -d valkey rabbitmq mailpit
+      # bare `up` never depend on them). valkey = app datastore, mailpit =
+      # the mailbox the spec reads the email back out of, rabbitmq = the job
+      # queue full mode's verification email travels on.
+      - name: Start test services
+        run: |
+          services=(valkey mailpit)
+          if [ "$E2E_MODE" = full ]; then
+            services+=(rabbitmq)
+          fi
+          docker compose -f compose.test.yml -f compose.e2e.yml up --wait -d "${services[@]}"
 
       - name: Setup Ruby (.ruby-version)
         uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
@@ -166,7 +204,7 @@ jobs:
       # and the Playwright process all agree. Splitting it across three step
       # `env:` blocks is how a lane ends up with a web process publishing to one
       # broker and a worker consuming from another.
-      - name: Provision full-auth lane env
+      - name: Provision lane env
         run: |
           {
             echo "RACK_ENV=production"
@@ -185,33 +223,45 @@ jobs:
             # gate below, and escape codes help neither.
             echo "LOG_FORMATTER=default"
 
-            # --- Auth: full mode, verification REQUIRED --------------------
-            # AUTH_VERIFY_ACCOUNT_ENABLED=true is what makes signup send a
-            # verification email: with Rodauth's verify_account off, accounts
-            # are open at once, no email is sent, and the whole lane would
-            # pass vacuously. It is the default outside RACK_ENV=test; stated
-            # anyway. AUTH_AUTOVERIFY=false is the config default too; it has
-            # no effect on full-mode signups (only simple-mode signup and
-            # sign-in read it) and is stated only to keep this lane's config
-            # explicit.
-            echo "AUTHENTICATION_MODE=full"
+            # --- Auth: verification REQUIRED in both modes -----------------
+            # AUTH_AUTOVERIFY=false is the config default. In simple mode it is
+            # the whole point of the row: with it on, signup verifies the
+            # account at once and sends nothing. Full-mode signups do not read
+            # it (only simple-mode signup and sign-in do); stated there only to
+            # keep the lane's config explicit.
+            echo "AUTHENTICATION_MODE=${E2E_MODE}"
             echo "AUTH_AUTOVERIFY=false"
-            echo "AUTH_VERIFY_ACCOUNT_ENABLED=true"
             echo "AUTH_SIGNUP=true"
             echo "AUTH_SIGNIN=true"
-            # TOTP second factor (default OFF). session-consistency.spec.ts
-            # enrols its own TOTP key over /auth/otp-setup and completes the
-            # challenge in the browser; with this unset that scenario skips
-            # itself and "MFA completion" (#4459) has no browser coverage.
-            # Accounts that never enrol are unaffected, so the other specs in
-            # this lane see no difference.
-            echo "AUTH_MFA_ENABLED=true"
-            # Boot-migrated sqlite authdb — the same path compose-smoke and
-            # visual.yml exercise. The engine is irrelevant to this journey.
-            echo "AUTH_DATABASE_URL=sqlite://tmp/e2e-full-auth.db"
-            # Full mode + RACK_ENV=production requires this; it is not one of
-            # the names generate-test-secrets exports.
-            echo "ACCOUNT_ID_SECRET=$(openssl rand -hex 32)"
+            case "$E2E_MODE" in
+              full)
+                # AUTH_VERIFY_ACCOUNT_ENABLED=true is what makes signup send
+                # a verification email: with Rodauth's verify_account off,
+                # accounts are open at once, no email is sent, and the whole
+                # lane would pass vacuously. It is the default outside
+                # RACK_ENV=test; stated anyway.
+                echo "AUTH_VERIFY_ACCOUNT_ENABLED=true"
+                # TOTP second factor (default OFF). session-consistency.spec.ts
+                # enrols its own TOTP key over /auth/otp-setup and completes
+                # the challenge in the browser; with this unset that scenario
+                # skips itself and "MFA completion" (#4459) has no browser
+                # coverage. Accounts that never enrol are unaffected, so the
+                # other specs in this lane see no difference.
+                echo "AUTH_MFA_ENABLED=true"
+                # Boot-migrated sqlite authdb — the same path compose-smoke
+                # and visual.yml exercise. The engine is irrelevant to this
+                # journey.
+                echo "AUTH_DATABASE_URL=sqlite://tmp/e2e-full-auth.db"
+                # Full mode + RACK_ENV=production requires this; it is not one
+                # of the names generate-test-secrets exports.
+                echo "ACCOUNT_ID_SECRET=$(openssl rand -hex 32)"
+                ;;
+              simple) ;;
+              *)
+                echo "::error::Unknown E2E_MODE '$E2E_MODE'" >&2
+                exit 1
+                ;;
+            esac
 
             # --- Datastore -------------------------------------------------
             echo "REDIS_URL=redis://127.0.0.1:2163/0"
@@ -224,16 +274,22 @@ jobs:
             echo "SMTP_HOST=127.0.0.1"
             echo "SMTP_PORT=2125"
             echo "SMTP_TLS=false"
-            echo "FROM_EMAIL=e2e-full-auth@test.onetimesecret.com"
+            echo "FROM_EMAIL=e2e-${E2E_MODE}-auth@test.onetimesecret.com"
             echo "FROM_NAME=Onetime Secret E2E"
 
-            # --- Jobs: enqueue on RabbitMQ, deliver from the worker --------
-            # No trailing slash: that addresses the DEFAULT vhost '/', which
-            # is the one a stock broker ships. The same value tests/lanes/
-            # base.env uses. A trailing '/dev' (the config default) names a
-            # vhost nothing creates, and every publish would fail.
-            echo "JOBS_ENABLED=true"
-            echo "RABBITMQ_URL=amqp://guest:guest@127.0.0.1:2156"
+            # --- Jobs: full mode enqueues on RabbitMQ, the worker delivers --
+            # Simple-mode signup delivers the welcome email inline and never
+            # touches the queue. No trailing slash on the URL: that addresses
+            # the DEFAULT vhost '/', which is the one a stock broker ships.
+            # The same value tests/lanes/base.env uses. A trailing '/dev' (the
+            # config default) names a vhost nothing creates, and every publish
+            # would fail.
+            if [ "$E2E_MODE" = full ]; then
+              echo "JOBS_ENABLED=true"
+              echo "RABBITMQ_URL=amqp://guest:guest@127.0.0.1:2156"
+            else
+              echo "JOBS_ENABLED=false"
+            fi
 
             # --- Rate limiting ---------------------------------------------
             # The signup-redirect spec creates 4 accounts per run against a
@@ -264,12 +320,13 @@ jobs:
       # order the processes below happen to warm up in.
       # Exit 3 = RabbitMQ unreachable, exit 2 = config error.
       - name: Validate worker config and declare queue topology
+        if: matrix.mode == 'full'
         run: bin/ots worker --check --queues=email.message.send
 
       - name: Boot the application server
         run: |
           bin/ots server --port="$APP_PORT" >"$SERVER_LOG" 2>&1 &
-          echo "$!" > tmp/e2e-full-auth-server.pid
+          echo "$!" > "tmp/e2e-${E2E_MODE}-auth-server.pid"
 
       # __BOOTSTRAP_ME__ rather than a bare 2xx: the marker proves the built
       # assets are being served and the bootstrap state is being injected, not
@@ -288,6 +345,7 @@ jobs:
           exit 1
 
       - name: Start the email job worker
+        if: matrix.mode == 'full'
         run: |
           bin/ots worker --queues=email.message.send --concurrency=2 \
             >"$WORKER_LOG" 2>&1 &
@@ -302,6 +360,7 @@ jobs:
       # --check step above already declared the durable queue, so a message
       # published in that window waits instead of being dropped.
       - name: Wait for the worker process to boot
+        if: matrix.mode == 'full'
         run: |
           for _ in $(seq 1 45); do
             if grep -Eq 'Starting [0-9]+ worker|Workers: ' "$WORKER_LOG" 2>/dev/null; then
@@ -315,7 +374,7 @@ jobs:
           tail -n 200 "$WORKER_LOG" || true
           exit 1
 
-      # SCOPED, not `e2e/auth/`. Of the six specs in that directory:
+      # The full row is SCOPED, not `e2e/auth/`. Of the seven specs there:
       #   signup-redirect-preservation  the target of this lane.
       #   session-consistency           #4456/#4459/#4460/#4464: hydration,
       #                                 the refresh coordinator, verification
@@ -336,6 +395,8 @@ jobs:
       #                                 is not validated against this stack;
       #                                 including it would make an unrelated
       #                                 red the default outcome of this lane.
+      #   simple-mode-email-verification
+      #                                 simple mode only: the simple row's spec.
       # Widen this list as specs are proven against this stack, not before.
       #
       # e2e/all/auth-hydration is the anonymous half of session-consistency
@@ -347,18 +408,28 @@ jobs:
       # Reporters come from e2e/playwright.config.ts (CI branch: list, github,
       # html, json, blob). Do NOT pass --reporter — a CLI override replaces the
       # whole array and breaks both the report artifacts and the flaky gate.
-      - name: Run the full-auth E2E specs
+      - name: Run the E2E specs
         id: playwright
         env:
           PLAYWRIGHT_BASE_URL: ${{ env.APP_URL }}
           CI: 'true'
         run: |
-          pnpm test:playwright \
-            e2e/auth/signup-redirect-preservation.spec.ts \
-            e2e/auth/sso-missing-email.spec.ts \
-            e2e/auth/session-consistency.spec.ts \
-            e2e/all/auth-hydration.spec.ts \
-            --project=chromium
+          case "$E2E_MODE" in
+            full)
+              specs=(
+                e2e/auth/signup-redirect-preservation.spec.ts
+                e2e/auth/sso-missing-email.spec.ts
+                e2e/auth/session-consistency.spec.ts
+                e2e/all/auth-hydration.spec.ts
+              )
+              ;;
+            simple) specs=(e2e/auth/simple-mode-email-verification.spec.ts) ;;
+            *)
+              echo "::error::Unknown E2E_MODE '$E2E_MODE'"
+              exit 1
+              ;;
+          esac
+          pnpm test:playwright "${specs[@]}" --project=chromium
 
       - name: Fail on flaky tests (passed only on retry)
         if: ${{ !cancelled() && steps.playwright.outcome != 'skipped' }}
@@ -396,9 +467,11 @@ jobs:
           echo "::group::$SERVER_LOG (last 200 lines)"
           tail -n 200 "$SERVER_LOG" || true
           echo "::endgroup::"
-          echo "::group::$WORKER_LOG (last 200 lines)"
-          tail -n 200 "$WORKER_LOG" || true
-          echo "::endgroup::"
+          if [ -f "$WORKER_LOG" ]; then
+            echo "::group::$WORKER_LOG (last 200 lines)"
+            tail -n 200 "$WORKER_LOG" || true
+            echo "::endgroup::"
+          fi
 
       - name: Mailpit mailbox on failure
         if: failure()
@@ -409,7 +482,7 @@ jobs:
           echo "::endgroup::"
 
       - name: RabbitMQ queue depths on failure
-        if: failure()
+        if: failure() && matrix.mode == 'full'
         run: |
           echo "::group::RabbitMQ queues"
           docker compose -f compose.test.yml -f compose.e2e.yml exec -T rabbitmq \
@@ -420,7 +493,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
-          name: playwright-report-e2e-full-auth
+          name: playwright-report-e2e-${{ matrix.mode }}-auth
           path: e2e/playwright-report/
           retention-days: 7
           if-no-files-found: ignore
@@ -429,7 +502,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
-          name: playwright-test-results-e2e-full-auth
+          name: playwright-test-results-e2e-${{ matrix.mode }}-auth
           path: e2e/test-results/
           retention-days: 7
           if-no-files-found: ignore
@@ -438,17 +511,17 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
-          name: e2e-full-auth-logs
+          name: e2e-${{ matrix.mode }}-auth-logs
           path: |
-            tmp/e2e-full-auth-server.log
-            tmp/e2e-full-auth-worker.log
+            ${{ env.SERVER_LOG }}
+            ${{ env.WORKER_LOG }}
           retention-days: 7
           if-no-files-found: ignore
 
       - name: Stop background processes
         if: always()
         run: |
-          for pidfile in tmp/e2e-full-auth-server.pid tmp/e2e-full-auth-worker.pid; do
+          for pidfile in "tmp/e2e-${E2E_MODE}-auth-server.pid" tmp/e2e-full-auth-worker.pid; do
             [ -f "$pidfile" ] || continue
             kill "$(cat "$pidfile")" 2>/dev/null || true
           done

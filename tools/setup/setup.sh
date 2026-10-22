@@ -477,19 +477,27 @@ cmd_test() {
     fi
   fi
 
+  # --- Test mode marker --------------------------------------------------
+  #
+  # .test-mode marks a checkout that has entered the test lane: the dev lane
+  # removes it, and AGENTS.md allows running tests only where it is present.
+  # It does not depend on direnv. tests/lanes/run loads the lane environment
+  # itself, so the marker is created here whether or not direnv is installed.
+
+  echo "---"
+  echo "Activating test mode (.test-mode)..."
+  touch .test-mode
+
   # --- Optional: direnv lane switching ---------------------------------
   #
   # direnv is a convenience, not a requirement. The RSpec suite forces
   # RACK_ENV=test in spec_helper and the test config hardcodes its values,
   # so tests run fine without it. When direnv IS installed we wire up the
-  # .envrc/.test-mode flow so `cd` into the checkout selects the test lane.
+  # .envrc flow so `cd` into the checkout selects the test lane while the
+  # marker is present.
 
-  echo "---"
   if has direnv; then
     generate_envrc
-
-    echo "Activating test mode (.test-mode)..."
-    touch .test-mode
     echo ""
     echo "  +------------------------------------------------------------+"
     echo "  |  TEST MODE ACTIVE (.test-mode present)                      |"
@@ -500,6 +508,7 @@ cmd_test() {
     echo ""
     direnv allow .
   else
+    echo "OK:   Test mode active (.test-mode present). Exit test mode: bin/setup"
     echo "Skip: direnv not installed — the test suite runs fine without it"
     echo "      (spec_helper forces RACK_ENV=test and the test config is self-contained)."
     echo ""
@@ -935,9 +944,9 @@ doctor_files() {
 
   if [[ -f .test-mode ]]; then
     if [[ "$DOCTOR_CONTEXT" == "operator" ]]; then
-      doc_fail ".test-mode marker present — shells here run RACK_ENV=test" "rm .test-mode (or bin/setup)"
+      doc_fail ".test-mode marker present — test mode (direnv shells run RACK_ENV=test)" "rm .test-mode (or bin/setup)"
     else
-      doc_warn "TEST MODE active (.test-mode) — shells here run RACK_ENV=test" "exit test mode: bin/setup"
+      doc_warn "TEST MODE active (.test-mode) — direnv shells run RACK_ENV=test" "exit test mode: bin/setup"
     fi
   else
     doc_ok "No .test-mode marker (normal mode)"
