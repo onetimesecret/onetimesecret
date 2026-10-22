@@ -333,7 +333,9 @@ export default defineConfig(({ command }) => ({
           groups: [
             {
               name: 'zod',
-              test: /node_modules\/zod\/|src\/plugins\/core\/configureZod\.ts$/,
+              test: (id: string) =>
+                id.includes('/node_modules/zod/') ||
+                id.endsWith('/src/plugins/core/configureZod.ts'),
             },
           ],
         },
