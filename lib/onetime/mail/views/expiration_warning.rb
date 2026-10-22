@@ -18,8 +18,10 @@ module Onetime
       # a mailbox is not a place to keep one.
       #
       # The previous payload carried the secret's short id under :secret_key
-      # and the template built /secret/<short id>, which no route resolves,
-      # so every link in every warning was dead.
+      # and the template built /secret/<short id>. That path serves the page
+      # shell (GET /secret/* in apps/web/core/routes.txt), but the lookup
+      # behind it fails: an 8-character prefix is not a secret identifier. So
+      # every link in every warning led to a not-found page.
       #
       # Required data:
       #   recipient:      Owner's email address
