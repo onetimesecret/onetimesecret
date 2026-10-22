@@ -109,9 +109,9 @@ module Auth
         # @param actor [String, #extid, #email, nil] acting admin's PUBLIC identity;
         #   when present and a repair is applied, one audit event is recorded
         def initialize(customer:, repair: false, actor: nil)
-          @customer = customer
-          @repair   = repair
-          @actor    = actor
+          @customer         = customer
+          @repair_requested = repair
+          @actor            = actor
         end
 
         # Run all per-customer checks. Returns a Report; the caller aggregates.
@@ -130,7 +130,7 @@ module Auth
           check_closure_marker(issues, repaired)
           check_customer_data(issues, repaired)
 
-          audit_repair_outcome(repaired) if @repair
+          audit_repair_outcome(repaired) if @repair_requested
 
           Report.new(issues: issues.sort_by { |i| SEVERITY_ORDER[i[:severity]] }, repaired: repaired)
         rescue StandardError => ex
@@ -147,7 +147,7 @@ module Auth
           # event: a REPAIR run with a known actor. A repair that blew up
           # partway is a mutation left in an unknown state, and that must be in
           # the trail. The record helper is shared, only the gate is bespoke.
-          audit_repair_failure(ex) if @repair && !@actor.nil?
+          audit_repair_failure(ex) if @repair_requested && !@actor.nil?
           raise
         end
 
@@ -172,12 +172,21 @@ module Auth
 
         # Whether the data checks may repair what they find: under
         # repair: true, and only for a record that is not closing (see
-        # #call). The closure-marker check reads @repair itself, since a
-        # rolled-back closure is cleared while the record is still marked.
+        # #call). Every check gates its repairs on this or on
+        # #repairing_closure_marker?, never on @repair_requested.
         def repairing?
-          @repair && !@customer.closing?
+          @repair_requested && !@customer.closing?
         end
         private :repairing?
+
+        # Whether #check_closure_marker may clear a rolled-back closure's
+        # marker: under repair: true. Unlike #repairing?, the record being
+        # closing does not stop it, since the record it clears is the one
+        # still marked.
+        def repairing_closure_marker?
+          @repair_requested
+        end
+        private :repairing_closure_marker?
 
         # Index-level check: email_index entries point to live customers with the
         # right email. Returns { issues:, repaired: }. Cross-customer, so it is a
@@ -1238,7 +1247,7 @@ module Auth
             repairable: true,
             repair_action: 'Clear the closure marker',
           }
-          return unless @repair
+          return unless repairing_closure_marker?
 
           @customer.clear_closure_marker!
           OT.info "[customers doctor] Cleared the closure marker of #{@customer.extid} (closure rolled back)"

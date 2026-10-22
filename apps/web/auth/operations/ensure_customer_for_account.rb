@@ -29,11 +29,11 @@ module Auth
       # the sign-up gets a new record. The purge is the record's own
       # (self_service:), as the continuation of the closure it asked for.
       #
-      # Called before the accounts row exists, from before_create_account
-      # (password sign-ups; the invite sign-up endpoint refuses an address
-      # with any Customer record before it gets there) and
-      # before_omniauth_create_account (SSO JIT), so a sign-up refused here
-      # leaves no row behind. The call in
+      # Called through unfinished_closure before the accounts row exists,
+      # from before_create_account (password sign-ups; the invite sign-up
+      # endpoint refuses an address with any Customer record before it gets
+      # there) and before_omniauth_create_account (SSO JIT), so a sign-up
+      # refused here leaves no row behind. The call in
       # find_or_create_customer below is a backstop for a record marked
       # between that check and the insert: by then the row is committed, and
       # all it can do is refuse to adopt the record.
@@ -88,6 +88,18 @@ module Auth
         email    = OT::Utils.normalize_email(email)
         customer = Onetime::Customer.find_by_email(email) if Onetime::Customer.email_exists?(email)
         customer if customer&.closing?
+      end
+
+      # The one rule every sign-up path applies to a leftover closure: the
+      # closing record under +email+ is finished, and the sign-up is refused
+      # when it cannot be. Each caller renders the refusal its own way.
+      #
+      # @param leftover [Onetime::Customer, nil] closing_customer(email), for
+      #   a caller that looked it up earlier
+      # @return [Onetime::Customer, nil] the record that refuses the sign-up,
+      #   or nil when it may go on (no record was closing, or it is gone now)
+      def self.unfinished_closure(email, leftover: closing_customer(email))
+        leftover unless leftover.nil? || finish_interrupted_closure(leftover)
       end
 
       def self.open_auth_account?(customer)
@@ -178,7 +190,7 @@ module Auth
           return existing
         end
 
-        if existing && !self.class.finish_interrupted_closure(existing)
+        if existing && self.class.unfinished_closure(email, leftover: existing)
           raise Onetime::Problem, "The interrupted closure of #{existing.extid} could not be finished"
         end
 

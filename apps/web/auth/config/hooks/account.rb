@@ -210,7 +210,7 @@ module Auth::Config::Hooks
         # to tell from one still running; logged as
         # interrupted_closure_not_finished), the sign-up is refused under its
         # own event, since the shared-Redis hint above would point the wrong way.
-        if leftover && !Auth::Operations::EnsureCustomerForAccount.finish_interrupted_closure(leftover)
+        if Auth::Operations::EnsureCustomerForAccount.unfinished_closure(email, leftover: leftover)
           Auth::Logging.log_auth_event(
             :registration_blocked_interrupted_closure,
             level: :error,

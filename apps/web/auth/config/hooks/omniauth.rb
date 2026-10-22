@@ -802,8 +802,8 @@ module Auth::Config::Hooks
         # attached, which cannot sign in and blocks every later sign-up with
         # the address. Refused here, the sign-in leaves nothing behind, and a
         # retry once the marker is 15 minutes old finishes the closure.
-        leftover = Auth::Operations::EnsureCustomerForAccount.closing_customer(email)
-        if leftover && !Auth::Operations::EnsureCustomerForAccount.finish_interrupted_closure(leftover)
+        leftover = Auth::Operations::EnsureCustomerForAccount.unfinished_closure(email)
+        if leftover
           Auth::Logging.log_auth_event(
             :omniauth_blocked_interrupted_closure,
             level: :error,
