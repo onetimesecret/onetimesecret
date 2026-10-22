@@ -13,6 +13,8 @@
 # Required data: recipient, secret_shortid, expires_at
 # Optional: baseuri
 
+require 'uri'
+
 require_relative '../../../support/test_helpers'
 
 # Load the app to get templates and config
@@ -146,7 +148,8 @@ template.recent_uri
 # not move the link: the owner signs in on the canonical host.
 data = @valid_data.merge(share_domain: 'custom.example.com')
 template = Onetime::Mail::Templates::ExpirationWarning.new(data)
-[template.recent_uri.include?('custom.example.com'), template.recent_uri.end_with?('/recent')]
+uri = URI.parse(template.recent_uri)
+[uri.host == 'custom.example.com', template.recent_uri == "#{template.baseuri}/recent"]
 #=> [false, true]
 
 ## ExpirationWarning baseuri uses site config by default

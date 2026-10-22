@@ -851,8 +851,8 @@ RSpec.describe 'Email Template Rendering', type: :integration do
         expires_at: Time.now.to_i + 3600,
         share_domain: 'custom.example.com'
       })
-      expect(template.recent_uri).to end_with('/recent')
-      expect(template.recent_uri).not_to include('custom.example.com')
+      expect(template.recent_uri).to eq("#{template.baseuri}/recent")
+      expect(URI.parse(template.recent_uri).host).not_to eq('custom.example.com')
     end
   end
 
