@@ -1,58 +1,65 @@
 // vite.config.local.ts
 
+import process from 'process';
 import { defineConfig, mergeConfig } from 'vite';
 import baseConfig from './vite.config';
 
 /**
  * Local Vite Configuration
  *
- * This configuration is optimized for generating builds that can be
- * easily checked into version control and run without a full JS
- * development environment.
+ * Builds the same bundles as `vite.config.ts`, but with predictable file
+ * names instead of content hashes (e.g. `assets/main.js`). Everything else,
+ * including minification, single-chunk output and the ES module format that
+ * matches the backend's `<script type="module">` tag, comes from the base
+ * config. The backend resolves files through the Vite manifests
+ * (apps/web/core/views/helpers/vite_manifest.rb), so it serves either build
+ * without changes.
  *
- * Purpose:
- * - Simplify deployment in environments where setting up a full JS dev
- *   stack is impractical.
- * - Enable quick testing and running of the frontend from the git repo.
- * - Facilitate easier integration with backend systems that may not
- *   have Node.js installed.
- *
- * Key features:
- * - Predictable file naming without content hashes
- * - Sourcemaps for easier debugging
- * - Disabled minification for better readability
- * - Single bundle output (no code splitting) for simpler deployment
- * - Build timestamp for cache busting
+ * Differences from the base config:
+ * - File names without content hashes
+ * - `__BUILD_TIME__` defined as the ISO timestamp of the build
  *
  * Usage:
- * Run `pnpm run build:local` to generate the build.
- * The output will be in the `public/web/dist` directory.
- * These files should be committed to the repository.
+ * Run `pnpm run build:local`. Like `pnpm run build`, it runs two passes: the
+ * customer bundle (main.ts), then the admin console (admin.ts, selected by
+ * VITE_BUILD_TARGET=admin). The output is written to `public/web/dist`,
+ * which is gitignored, so it is not committed.
+ *
+ * Note: the base config is a callback (`defineConfig(env => ...)`), and
+ * Vite's `mergeConfig` refuses callbacks, so this config is a callback too
+ * and resolves the base with the same env before merging.
  *
  */
-export default mergeConfig(
-  baseConfig,
-  defineConfig({
-    build: {
-      // Generate sourcemaps for easier debugging
-      sourcemap: true,
-      rolldownOptions: {
-        output: {
-          // Generate predictable filenames without hashes
-          entryFileNames: `assets/[name].js`,
-          chunkFileNames: `assets/[name].js`,
-          assetFileNames: `assets/[name].[ext]`,
-          // WARNING: UMD format has not been validated with Rolldown (Vite 8).
-          // Rolldown's UMD output may differ from Rollup's. If build:local
-          // produces runtime errors, try switching to 'es' or 'iife'.
-          format: 'umd',
+const isAdminBuild = process.env.VITE_BUILD_TARGET === 'admin';
+
+export default defineConfig(async (env) =>
+  mergeConfig(
+    typeof baseConfig === 'function' ? await baseConfig(env) : baseConfig,
+    defineConfig({
+      build: {
+        // Generate sourcemaps for easier debugging
+        sourcemap: true,
+        rolldownOptions: {
+          output: {
+            // Generate predictable filenames without hashes
+            entryFileNames: `assets/[name].js`,
+            chunkFileNames: `assets/[name].js`,
+            // Both passes emit a style.css with different contents into the
+            // same dist. Without a hash the admin pass would overwrite the
+            // customer stylesheet, so its CSS gets an admin- prefix.
+            assetFileNames: ({ names }) =>
+              isAdminBuild && names.some((name) => name.endsWith('.css'))
+                ? `assets/admin-[name].[ext]`
+                : `assets/[name].[ext]`,
+          },
         },
       },
-    },
-    // Defines a build timestamp that can be used in the app
-    // to force reloads when a new version is deployed.
-    define: {
-      __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
-    },
-  })
+      // Defines a build timestamp, intended for forcing reloads after a
+      // deploy. Nothing in src/ reads __BUILD_TIME__, so it has no effect
+      // until app code uses it.
+      define: {
+        __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+      },
+    })
+  )
 );

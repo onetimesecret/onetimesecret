@@ -157,6 +157,86 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       # (Owner increment is a no-op here: spawn_pair(nil, ...) has no owner.)
       expect(Onetime::Customer.secrets_burned.value).to eq(before_count + 1)
     end
+
+    # #4835: the response record must describe the receipt after the burn,
+    # not the instance process_params loaded before it.
+    it 'reports the burned receipt state in the response record' do
+      logic = build_logic('identifier' => receipt.identifier, 'continue' => 'true')
+      logic.process_params
+
+      logic.process
+      record = logic.success_data[:record]
+
+      expect(record[:state]).to eq('burned')
+      expect(record[:is_burned]).to be true
+      expect(record[:is_destroyed]).to be true
+      expect(record[:burned]).to be_a(Integer)
+      # Matches a fresh fetch of the receipt.
+      expect(record[:state]).to eq(Onetime::Receipt.load(receipt.identifier).state)
+      # Nothing left to link to: no dangling "secret/" link, no empty bearer key.
+      expect(record[:share_path]).to be_nil
+      expect(record[:share_url]).to be_nil
+      expect(record).not_to have_key(:secret_identifier)
+    end
+  end
+
+  # Burn's success_data shares ShowReceipt's share-link gate
+  # (Receipt#share_link_available?). A request that does not commit to the
+  # burn still gets the record back, so without the gate an incoming
+  # receipt's holder could read the share link that ShowReceipt withholds.
+  context 'share link gate' do
+    it 'withholds the share link and bearer key for an incoming receipt' do
+      receipt.source = 'incoming'
+      receipt.save
+
+      logic  = build_logic('identifier' => receipt.identifier, 'continue' => 'false')
+      logic.process_params
+      record = logic.process[:record]
+
+      expect(record[:share_path]).to be_nil
+      expect(record[:share_url]).to be_nil
+      expect(record).not_to have_key(:secret_identifier)
+      # Nothing was burned.
+      expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
+    end
+
+    it 'ships the share link for a standard receipt that was not burned' do
+      logic  = build_logic('identifier' => receipt.identifier, 'continue' => 'false')
+      logic.process_params
+      record = logic.process[:record]
+
+      expect(record[:share_path]).to eq("secret/#{receipt.secret_identifier}")
+      expect(record[:share_url]).to end_with("/secret/#{receipt.secret_identifier}")
+      expect(record[:secret_identifier]).to eq(receipt.secret_identifier)
+    end
+
+    # #4835: secret_identifier as its own field follows ShowReceipt's rule
+    # (Receipt#offers_secret?), so a burn that does not commit and a later
+    # fetch agree on it. The share link still names the secret, as
+    # ShowReceipt's does.
+    it 'withholds secret_identifier, but not the share link, for a passphrase-protected secret' do
+      secret.update_passphrase!('correct horse battery')
+
+      logic  = build_logic('identifier' => receipt.identifier, 'continue' => 'false')
+      logic.process_params
+      record = logic.process[:record]
+
+      expect(record[:share_url]).to end_with("/secret/#{receipt.secret_identifier}")
+      expect(record).not_to have_key(:secret_identifier)
+      expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
+    end
+
+    it 'withholds secret_identifier, but not the share link, for a previewed receipt' do
+      receipt.state = 'previewed'
+      receipt.save
+
+      logic  = build_logic('identifier' => receipt.identifier, 'continue' => 'false')
+      logic.process_params
+      record = logic.process[:record]
+
+      expect(record[:share_url]).to end_with("/secret/#{receipt.secret_identifier}")
+      expect(record).not_to have_key(:secret_identifier)
+    end
   end
 
   # The double-reveal race, burn variant: Secret#burned! performs an atomic
@@ -186,6 +266,9 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       # was the lost atomic claim -- not a collapsed race window at the
       # viewable?/continue guard -- that produced the false greenlight.
       expect(logic.secret).to be(stale)
+      # #4835: the record reports the winner's persisted state, not the
+      # pre-race snapshot.
+      expect(logic.success_data[:record][:state]).to eq('revealed')
     end
   end
 
@@ -209,6 +292,44 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       expect(stale).not_to have_received(:load_owner)
       # Branch-entry pin -- see the concurrent-reveal case above.
       expect(logic.secret).to be(stale)
+      expect(logic.success_data[:record][:state]).to eq('burned')
+    end
+  end
+
+  # #4835: the receipt key expires (or is deleted) between process_params and
+  # the post-burn reload. Deleting the key is exactly what a TTL expiry does.
+  # The stale instance would report the pre-burn state and a link to the
+  # destroyed secret, so the request answers not found, the way a follow-up
+  # fetch would, and nothing writes the receipt back.
+  context 'when the receipt disappears during the burn' do
+    it 'counts the burn, destroys the secret, and raises MissingSecret without recreating the receipt' do
+      logic = build_logic('identifier' => receipt.identifier, 'continue' => 'true')
+      logic.process_params
+      Familia.dbclient.del(receipt.dbkey)
+      before_count = Onetime::Customer.secrets_burned.value
+
+      expect { logic.process }.to raise_error(OT::MissingSecret)
+
+      expect(logic.greenlighted).to be true
+      expect(Onetime::Customer.secrets_burned.value).to eq(before_count + 1)
+      expect(Onetime::Secret.load(secret.identifier)).to be_nil
+      expect(Onetime::Receipt.load(receipt.identifier)).to be_nil
+      expect(Familia.dbclient.exists(receipt.dbkey)).to eq(0)
+    end
+
+    it 'raises MissingSecret for a race loser as well, without counting the burn' do
+      logic = build_logic('identifier' => receipt.identifier, 'continue' => 'true')
+      logic.process_params
+      pin_stale_secret_on(logic)
+      expect(Onetime::Secret.load(secret.identifier).revealed!).to be true
+      Familia.dbclient.del(receipt.dbkey)
+      before_count = Onetime::Customer.secrets_burned.value
+
+      expect { logic.process }.to raise_error(OT::MissingSecret)
+
+      expect(logic.greenlighted).to be false
+      expect(Onetime::Customer.secrets_burned.value).to eq(before_count)
+      expect(Familia.dbclient.exists(receipt.dbkey)).to eq(0)
     end
   end
 

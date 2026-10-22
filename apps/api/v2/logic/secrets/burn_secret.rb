@@ -107,6 +107,13 @@ module V2::Logic
           # or report success to the client.
           @greenlighted = secret.burned!(actor_context: actor_context)
 
+          # burned! cascades through its own freshly loaded receipt, so the
+          # instance from process_params still holds the pre-burn state
+          # (state: new, is_burned: false). Reload it so success_data reports
+          # what was persisted (#4835): burned for the winner, and whatever
+          # the concurrent winner left (e.g. revealed) for a loser.
+          persisted_receipt = Onetime::Receipt.load(receipt.identifier)
+
           if greenlighted
             owner = secret.load_owner
             owner&.increment_field :secrets_burned unless owner&.anonymous?
@@ -131,6 +138,16 @@ module V2::Logic
                 result: :already_consumed,
               }
           end
+
+          # The receipt expired or was deleted while the burn ran. The
+          # in-memory instance still shows the pre-burn state and a link to
+          # the destroyed secret, and saving it would recreate the record.
+          # Answer as a follow-up fetch would: not found. A winner's
+          # bookkeeping above has already run, because the secret is destroyed
+          # regardless of what is left to report.
+          raise OT::MissingSecret if persisted_receipt.nil?
+
+          @receipt = persisted_receipt
 
         elsif continue && !correct_passphrase
           # Record failed attempt for rate limiting. Only a committed burn
@@ -161,6 +178,17 @@ module V2::Logic
         # Get base receipt attributes
         attributes = receipt.safe_dump
 
+        # Same share-link gate as ShowReceipt: no link (or bearer key) for a
+        # provenance that withholds it, e.g. an incoming secret answered with
+        # continue=false, or for a burned secret with nothing left to link to.
+        link_visible = receipt.share_link_available?
+
+        # secret_identifier as its own field follows ShowReceipt's stricter
+        # rule: only while the receipt still offers the secret (no passphrase,
+        # not previewed). share_url keeps the id either way, as ShowReceipt's
+        # does. After a burn, link_visible is already false.
+        attributes.delete(:secret_identifier) unless link_visible && receipt.offers_secret?(potential_secret)
+
         # Resolve the domain for URL generation: use the custom domain
         # the secret was created on when available, otherwise canonical.
         domain     = if domains_enabled && !receipt.share_domain.to_s.empty?
@@ -177,11 +205,11 @@ module V2::Logic
             natural_expiration: natural_duration(receipt.default_expiration.to_i),
             expiration: (receipt.default_expiration.to_i + receipt.created.to_i),
             expiration_in_seconds: receipt.default_expiration.to_i,
-            share_path: build_path(:secret, receipt.secret_identifier),
+            share_path: (build_path(:secret, receipt.secret_identifier) if link_visible),
             burn_path: build_path(:receipt, receipt.identifier, 'burn'),
             receipt_path: build_path(:receipt, receipt.identifier),
             metadata_path: build_path(:receipt, receipt.identifier), # V2 backward-compat alias
-            share_url: build_url(domain_uri, build_path(:secret, receipt.secret_identifier)),
+            share_url: (build_url(domain_uri, build_path(:secret, receipt.secret_identifier)) if link_visible),
             receipt_url: build_url(domain_uri, build_path(:receipt, receipt.identifier)),
             metadata_url: build_url(domain_uri, build_path(:receipt, receipt.identifier)), # V2 backward-compat alias
             burn_url: build_url(domain_uri, build_path(:receipt, receipt.identifier, 'burn')),

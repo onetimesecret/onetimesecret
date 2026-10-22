@@ -57,7 +57,9 @@ module Onetime
       # CIDR membership of the resolved, unmasked client IP without exposing
       # it; nil when the stack never ran IPPrivacyMiddleware. Consumed by the
       # per-domain homepage network rules through
-      # CustomDomain#allow_public_secret_creation?(ip_match:).
+      # CustomDomain#allow_public_secret_creation?(ip_match:) and
+      # HomepageConfig#effectively_enabled_for? (the homepage-config API's
+      # effective_enabled).
       attr_reader :ip_match
 
       def initialize(strategy_result, params, locale = nil)
