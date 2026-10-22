@@ -344,12 +344,12 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
       end
     end
 
-    # #4835: terminal transitions clear secret_identifier but leave the
-    # deprecated secret_key field alone (only expired! clears both), and V1
-    # ShowReceipt no longer clears it on read. A terminal receipt never gets
-    # its key back from that field.
+    # #4835: terminal transitions clear secret_identifier. A receipt written
+    # before the rename can still carry a secret_key hash field; the model no
+    # longer declares it, so a real to_h never has it, but the serializer
+    # must not read it from any hash either.
     %w[burned expired orphaned].each do |terminal_state|
-      context "when state is #{terminal_state} and the legacy secret_key field is populated" do
+      context "when state is #{terminal_state} and the hash carries a stale secret_key" do
         let(:base_hash) do
           super().merge(
             'state' => terminal_state,
@@ -365,7 +365,7 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
       end
     end
 
-    context 'when state is revealed and the legacy secret_key field is populated' do
+    context 'when state is revealed and the hash carries a stale secret_key' do
       let(:base_hash) do
         super().merge(
           'state' => 'revealed',
