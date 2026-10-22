@@ -528,6 +528,13 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
         })
       end
 
+      # execute installs the connection and pool doubles in the globals;
+      # clear them so they do not reach a later example that publishes.
+      after do
+        $rmq_conn         = nil
+        $rmq_channel_pool = nil
+      end
+
       it 'attempts RabbitMQ connection' do
         mock_conn = instance_double(Bunny::Session, start: true, open?: true)
         mock_channel = instance_double(Bunny::Channel)
@@ -610,6 +617,13 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
             'channel_pool_size' => 10,
           }
         })
+      end
+
+      # execute installs the connection and pool doubles in the globals;
+      # clear them so they do not reach a later example that publishes.
+      after do
+        $rmq_conn         = nil
+        $rmq_channel_pool = nil
       end
 
       it 'uses the configured value for pool size' do

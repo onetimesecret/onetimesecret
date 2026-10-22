@@ -316,6 +316,9 @@ const organizationFeaturesInner = z.object({
   saml_enabled: z.boolean().default(false),
   custom_mail_enabled: z.boolean().default(false),
   incoming_secrets_enabled: z.boolean().default(false),
+  // ORGS_HOMEPAGE_NETWORK_RULES_UI_ENABLED. Off stops edits to homepage
+  // network rules; rules already stored stay enforced.
+  homepage_network_rules_ui_enabled: z.boolean().default(false),
   // ORGS_BASE_DOMAIN_SIGNUP_ENABLED: whether the per-domain sign-up form
   // offers allow_base_domain (pairs with the base_domain_signup entitlement).
   base_domain_signup_enabled: z.boolean().default(false),

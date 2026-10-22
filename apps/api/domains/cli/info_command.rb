@@ -78,6 +78,11 @@ module Onetime
         puts 'Feature Toggles:'
         puts "  Allow Public Home:    #{domain.allow_public_homepage? || 'false'}"
         puts "  Allow Public API:     #{domain.allow_public_api? || 'false'}"
+        homepage_config = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(domain.identifier)
+        if homepage_config&.network_restricted?
+          puts "  Homepage Allowed CIDRs: #{cidr_list_line(homepage_config, :allowed_cidrs, '(any)')}"
+          puts "  Homepage Denied CIDRs:  #{cidr_list_line(homepage_config, :denied_cidrs, '(none)')}"
+        end
         puts
 
         # Vhost (Approximated) details
@@ -114,6 +119,16 @@ module Onetime
         domain.validation_record || 'N/A'
       rescue Onetime::DomainValidation::AsciiHostname::ConversionError => ex
         "(no A-label form: #{ex.message})"
+      end
+
+      # An unreadable stored list reads back as [], but
+      # HomepageConfig#network_allowed? denies every visitor while it is
+      # there, so say that instead of the empty-list wording.
+      def cidr_list_line(homepage_config, field, empty_label)
+        return '(unreadable: every visitor is denied)' if homepage_config.public_send(:"#{field}_corrupt?")
+
+        list = homepage_config.public_send(field)
+        list.empty? ? empty_label : list.join(', ')
       end
     end
   end
