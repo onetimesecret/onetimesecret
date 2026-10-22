@@ -207,17 +207,6 @@ module Onetime
           "#{scheme}#{site_host}"
         end
 
-        # Full base URI for the domain this message concerns: the custom
-        # share_domain when the message carries one, otherwise the
-        # (overridable) canonical base URI. Delegates to
-        # TemplateContext#brand_baseuri — the same helper templates render
-        # with — so Ruby-side callers (e.g. ExpirationWarning#secret_uri)
-        # cannot drift from what the rendered output links to.
-        # @return [String]
-        def brand_baseuri
-          TemplateContext.new(data, locale).brand_baseuri
-        end
-
         # Install-wide product name for mail copy. brand.product_name is the
         # single authority (#3612); unconfigured installs fall through to the
         # neutral NEUTRAL_PRODUCT_NAME — never nil, since templates interpolate
