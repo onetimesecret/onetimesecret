@@ -29,12 +29,17 @@ module Auth
     # transaction. Every other caller runs outside Rodauth and deletes the row
     # and its audit log here. No path keeps a closed row or its audit history.
     #
-    # Before its first irreversible step the operation marks the Customer
-    # (Customer#mark_closure_started!). A completed closure deletes the
-    # record, marker included. One interrupted after the SQL identity is gone
-    # leaves a record that says so, and `customers sync-auth-accounts` leaves
-    # that record alone rather than provisioning a new auth account for it:
-    # the closed accounts row used to be the only thing standing in its way.
+    # Immediately before it removes the sign-in identity (the auth account in
+    # full mode, the record in simple mode) the operation marks the Customer
+    # (Customer#mark_closure_started!); a teardown refused or stopped before
+    # that point leaves a live account unmarked. A completed closure deletes
+    # the record, marker included. One interrupted after the SQL identity is
+    # gone leaves a record that says so, and `customers sync-auth-accounts`
+    # leaves that record alone rather than provisioning a new auth account
+    # for it: the closed accounts row used to be the only thing standing in
+    # its way.
+    # A self-service closure whose cleanup stopped before this operation ran
+    # is marked by the delete_account override instead.
     #
     # Colonel auditing remains in Customers::Purge. Supplying actor selects the
     # audited administrative session-revocation operation; self-service callers do
@@ -101,8 +106,6 @@ module Auth
 
         return blocked_result(:session_revocation, extid, custid) unless mutation_allowed?(:session_revocation)
 
-        # A failure here (Redis unreachable) raises before anything changed.
-        customer.mark_closure_started!
         mutation_started!(:session_revocation)
         revoke_sessions(customer)
         @completed_stages << :session_revocation
@@ -111,12 +114,19 @@ module Auth
           return blocked_result(:authentication_closure, extid, custid)
         end
 
+        # The marker goes on just before the sign-in identity goes: the auth
+        # account in full mode, the record itself in simple mode. A stop
+        # before that leaves a live account, which must not read as closing.
+        # A failed write (Redis unreachable) raises before the identity is
+        # touched.
+        customer.mark_closure_started! if full_auth_mode?
         mutation_started!(:authentication_closure) if full_auth_mode?
         account_id = close_auth_account(extid)
         @completed_stages << :authentication_closure if full_auth_mode?
 
         return blocked_result(:customer_deletion, extid, custid, account_id) unless mutation_allowed?(:customer_deletion)
 
+        customer.mark_closure_started! unless full_auth_mode?
         mutation_started!(:customer_deletion)
         deleted = Auth::Operations::DestroyCustomerRecord.new(customer: customer).call
         @completed_stages << :customer_deletion if deleted

@@ -14,7 +14,7 @@ Changed
   Signing up again with the address still creates a new, empty account.
   (#4819)
 
-- A customer record is marked when its closure starts, and
+- A customer record is marked when its closure removes the sign-in, and
   ``bin/ots customers sync-auth-accounts`` skips marked records (reported
   as ``Skipped (closing)``). A closure interrupted after the auth account
   was deleted used to be kept from re-provisioning by the closed row; the

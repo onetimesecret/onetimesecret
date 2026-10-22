@@ -1279,7 +1279,7 @@ module Auth::Config::Hooks
       # Rodauth's close_account route runs, inside one transaction:
       # before_close_account, close_account (status to closed, password hash
       # dropped), after_close_account, clear_session, clear_tokens and, with
-      # delete_account_on_close? on, delete_account (rodauth 2.45.0
+      # delete_account_on_close? on, delete_account (rodauth 2.48.0
       # close_account.rb). The audit_logging feature inserts its "Account
       # closed" row from hook_action at the end of after_close_account, AFTER
       # the block above returns, so the teardown there leaves the accounts row
@@ -1297,9 +1297,22 @@ module Auth::Config::Hooks
       # history. Administrative purges run outside Rodauth and delete the
       # same rows in TeardownAccount.
       #
+      # The row also goes when the cleanup stopped before TeardownAccount
+      # closed the auth account: a partial Purge, or one that raised after its
+      # first mutation, still commits (after_close_account above). Such a
+      # customer record is still in Redis and teardown never marked it, so it
+      # is marked here, before anything is deleted; unmarked, it would read
+      # as a customer that never had an auth account and `customers
+      # sync-auth-accounts` would give it a live one. A failed write raises
+      # and the whole closure rolls back. A customer TeardownAccount already
+      # marked is not written to again: its record may be deleted, and a
+      # write would bring it back.
+      #
       auth.delete_account_on_close? true
 
       auth.delete_account do
+        customer = @close_account_customer
+        customer.mark_closure_started! unless customer.closing?
         Auth::Operations::RemoveAuthenticationData.delete_dependent_rows(db, account_id)
         super()
       end

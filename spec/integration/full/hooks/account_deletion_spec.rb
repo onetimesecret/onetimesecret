@@ -368,6 +368,55 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         find_customer_by_email(test_email)&.destroy!
       end
 
+      # The workspace is deleted, then the scan before teardown sees changed
+      # state and Purge returns partial without reaching TeardownAccount. The
+      # hook lets that closure commit, so the accounts row is deleted and the
+      # customer record survives; the delete_account override marks it.
+      it 'marks a customer that survives a partial cleanup before teardown as closing' do
+        login(email: test_email, password: valid_password)
+        expect(last_response.status).to eq(200)
+
+        customer     = find_customer_by_email(test_email)
+        organization = customer.organization_instances.first
+        expect(customer.closing?).to be(false)
+        residual = Auth::Operations::Customers::PurgePreflight::Plan.new(
+          actions: [],
+          blockers: [{ code: :post_cleanup_revalidation_failed }],
+        )
+
+        allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+        allow(Auth::Operations::TeardownAccount).to receive(:new).and_call_original
+        allow(Auth::Operations::Customers::Purge).to receive(:new).and_wrap_original do |original, **kwargs|
+          operation = original.call(**kwargs)
+          allow(operation).to receive(:preflight).and_wrap_original do |preflight, **options|
+            if operation.instance_variable_get(:@stage) == :post_cleanup_revalidation
+              residual
+            else
+              preflight.call(**options)
+            end
+          end
+          operation
+        end
+
+        post_json '/auth/close-account', { password: valid_password }
+
+        expect([200, 302]).to include(last_response.status),
+          "Expected closure to commit, got #{last_response.status}: #{last_response.body[0..200]}"
+        expect(find_account_by_email(test_email)).to be_nil
+        expect(Onetime::Organization.load(organization.objid)).to be_nil
+        expect(Auth::Operations::TeardownAccount).not_to have_received(:new)
+
+        survivor = find_customer_by_email(test_email)
+        expect(survivor).not_to be_nil
+        expect(survivor.closing?).to be(true)
+        expect(Auth::Logging).to have_received(:log_auth_event).with(
+          :account_close_cleanup_partial,
+          hash_including(cleanup_status: :partial, stage: :post_cleanup_revalidation),
+        )
+      ensure
+        find_customer_by_email(test_email)&.destroy!
+      end
+
       # An unfinished v1->v2 migration owns rows OUTSIDE this workspace, so it
       # still blocks. A plain workspace description does not: it is the account's
       # own content and is deleted with the organization (see the companion
