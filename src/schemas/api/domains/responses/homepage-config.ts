@@ -16,16 +16,13 @@ import { homepageConfigCanonical } from '@/schemas/contracts/custom-domain';
 
 /**
  * Admin homepage-config record: the stored config plus the server-computed
- * `effective_enabled`, which is the stored flag after the bootstrap
- * serializer's downgrade rule (an incoming-mode homepage whose incoming
- * config is unavailable fails closed to the trust card). The frontend
+ * `effective_enabled`, which is the `enabled` the bootstrap would give the
+ * CALLER: the stored flag after the serializer's downgrade rule (an
+ * incoming-mode homepage whose incoming config is unavailable fails closed
+ * to the trust card), narrowed by the network rules (`allowed_cidrs` /
+ * `denied_cidrs`) judged against the caller's own request. The frontend
  * mirrors this into bootstrapStore instead of re-deriving readiness from
- * possibly-stale client state.
- *
- * It ignores the per-visitor network rules (`allowed_cidrs` /
- * `denied_cidrs`). The bootstrap `enabled` additionally requires the
- * requesting visitor's network to pass those rules, so a visitor outside
- * them gets `false` even when this field is `true`.
+ * possibly-stale client state. Other visitors can get a different answer.
  */
 export const homepageConfigAdminRecordSchema = homepageConfigCanonical.extend({
   effective_enabled: z.boolean().optional(),

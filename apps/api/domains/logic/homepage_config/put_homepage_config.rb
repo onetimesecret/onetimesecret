@@ -135,14 +135,13 @@ module DomainsAPI
               domain_id: @homepage_config.domain_id,
               enabled: @homepage_config.enabled?,
               secrets_mode: @homepage_config.secrets_mode_value,
-              # Server-computed effective enablement (the bootstrap
-              # serializer's downgrade rule) so the admin frontend can
-              # mirror it without re-deriving readiness from possibly-stale
-              # client state. Ignores the per-visitor network rules: the
-              # bootstrap also requires HomepageConfig#network_allowed? for
-              # the requesting visitor, so a visitor outside allowed_cidrs /
-              # denied_cidrs gets false even when this is true.
-              effective_enabled: @homepage_config.effectively_enabled?(custom_domain: @custom_domain),
+              # Server-computed effective enablement FOR THE CALLER: the
+              # bootstrap serializer's downgrade rule plus the network
+              # rules judged against this request's otto.ip_match, i.e. the
+              # `enabled` the caller's next page load would get. The admin
+              # frontend mirrors it into its own bootstrap state without
+              # re-deriving readiness from possibly-stale client state.
+              effective_enabled: @homepage_config.effectively_enabled_for?(ip_match, custom_domain: @custom_domain),
               signup_enabled: @homepage_config.signup_enabled?,
               signin_enabled: @homepage_config.signin_enabled?,
               disabled_homepage_variant: @homepage_config.disabled_homepage_variant_value,
