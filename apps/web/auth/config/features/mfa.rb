@@ -109,7 +109,7 @@ module Auth::Config::Features
       #
       # Rodauth's recovery_codes keys both the lookup (recovery_codes_ds) and
       # the insert (add_recovery_code) on session_value, the account id in the
-      # session (rodauth 2.48.0 recovery_codes.rb). With
+      # session (recovery_codes.rb in rodauth 2.45.0 and 2.48.0). With
       # AUTH_WEBAUTHN_VERIFY_ACCOUNT, POST /auth/verify-account adds the
       # passkey inside the verify transaction, before the autologin
       # (webauthn_verify_account.rb before_verify_account), and adding a
@@ -121,25 +121,29 @@ module Auth::Config::Features
       # (config/base.rb) lets a session the app has not marked authenticated,
       # such as an earlier verify autologin, through to this route. In that
       # case the codes were counted and added on the session's account and the
-      # account being verified got none. Rodauth's webauthn feature already
-      # takes the loaded account over the session for its own tables
+      # account being verified got none. Rodauth 2.48.0's webauthn feature
+      # already takes the loaded account over the session for its own tables
       # (webauthn_account_id -> account_id_or_session_value).
       #
       # SECURITY: which account's codes these methods read and write is the
       # point of the override, so it is limited to the verify-account route
-      # and to the account loaded from the verify key there
-      # (account_from_verify_account_key sets @account with retrieval type
-      # :verify_account before any hook runs). On that route the session's
-      # account is never used, including before the key has loaded an
-      # account: the id is then nil, the lookup matches no rows and an
-      # insert fails closed. Every other route keeps Rodauth's session_value.
+      # and to the account loaded there. Rodauth loads @account from the
+      # verify key (account_from_verify_account_key) before any verify hook
+      # runs and refuses a request whose key loads no account, so the codes
+      # the passkey ceremony counts and adds are the key's account's. This
+      # is the first branch of Rodauth 2.48.0's own account_id_or_session_value
+      # (a loaded account wins over the session) without its fallback to
+      # session_value: with no account loaded the id is nil, the lookup
+      # matches no rows and an insert fails closed. Every other route keeps
+      # Rodauth's session_value. @account is read directly rather than
+      # through #account, which in 2.48.0 can load the session's account.
       # rubocop:disable-next Lint/NestedMethodDefinition -- auth_class_eval evaluates in Auth class context
       auth.auth_class_eval do
         def add_recovery_code
           return super unless current_route == :verify_account
 
-          # Rodauth's body (recovery_codes.rb add_recovery_code) with the id
-          # from verify_account_recovery_codes_id instead of session_value.
+          # Rodauth's body (recovery_codes.rb add_recovery_code) with the
+          # loaded account's id instead of session_value.
           retry_on_uniqueness_violation do
             recovery_codes_ds.insert(
               recovery_codes_id_column => verify_account_recovery_codes_id,
@@ -155,7 +159,7 @@ module Auth::Config::Features
         end
 
         def verify_account_recovery_codes_id
-          account_id if @account_retrieval_type == :verify_account
+          @account[account_id_column] if @account
         end
 
         private :recovery_codes_ds, :verify_account_recovery_codes_id
