@@ -24,12 +24,13 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
     Onetime.boot! :test
   end
 
-  def mock_session
-    store = {}
+  def mock_session(entries = {})
+    store = entries.dup
     session = double('Session')
     allow(session).to receive(:[]) { |k| store[k] }
     allow(session).to receive(:[]=) { |k, v| store[k] = v }
-    allow(session).to receive(:empty?).and_return(true)
+    allow(session).to receive(:empty?) { store.empty? }
+    allow(session).to receive(:clear) { store.clear }
     session
   end
 
@@ -42,7 +43,7 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
   # ip:/user_agent: model the request context the auth strategy resolves into
   # StrategyResult metadata (already edge-masked by Otto in production); nil by
   # default so pre-existing examples run the no-network-context path unchanged.
-  def build_logic(params, customer: nil, ip: nil, user_agent: nil)
+  def build_logic(params, customer: nil, ip: nil, user_agent: nil, session: mock_session)
     org = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
     allow(org).to receive(:can?).and_return(true)
 
@@ -51,7 +52,7 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
     metadata[:user_agent] = user_agent if user_agent
 
     strategy_result = double('StrategyResult',
-      session: mock_session,
+      session: session,
       user: customer,
       metadata: metadata,
       auth_method: customer ? 'basicauth' : 'noauth')
@@ -388,6 +389,18 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
         # resurrect the secret.
         expect(Onetime::Secret.load(secret.identifier)).to be_nil
       end
+
+      # The browser that opens the link has a guest session (its CSRF token at
+      # least). Verifying clears it, as RevealSecret does.
+      it "clears the visitor's guest session" do
+        session = mock_session('csrf' => 'guest-token')
+        logic   = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' }, session: session)
+        logic.process_params
+        logic.process
+
+        expect(logic.secret_value).to eq('a secret value')
+        expect(session).to be_empty
+      end
     end
 
     context 'when logged in as the unverified owner' do
@@ -397,12 +410,18 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       # copy would otherwise be exercised nowhere.
       it 'verifies the owner and reveals the plaintext' do
         as_owner = double('Customer', custid: owner.custid, anonymous?: false, objid: owner.objid)
-        logic    = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' }, customer: as_owner)
+        session  = mock_session('csrf' => 'owner-token', 'external_id' => owner.extid)
+        logic    = build_logic(
+          { 'identifier' => secret.identifier, 'continue' => 'true' },
+          customer: as_owner,
+          session: session,
+        )
         logic.process_params
         logic.process
 
         expect(logic.show_secret).to be true
         expect(logic.success_data[:record][:secret_value]).to eq('a secret value')
+        expect(session).to be_empty # signed out; the owner signs in again
 
         reloaded = Onetime::Customer.load(owner.objid)
         expect(reloaded.verified?).to be true
@@ -440,8 +459,13 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
 
     context 'when already logged in as a different user' do
       it 'raises a form error and neither consumes nor previews the secret' do
-        other = double('Customer', custid: 'cust_other', anonymous?: false, objid: 'objid_other')
-        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' }, customer: other)
+        other   = double('Customer', custid: 'cust_other', anonymous?: false, objid: 'objid_other')
+        session = mock_session('csrf' => 'other-token', 'external_id' => 'ext_other')
+        logic   = build_logic(
+          { 'identifier' => secret.identifier, 'continue' => 'true' },
+          customer: other,
+          session: session,
+        )
         logic.process_params
 
         # Hardcoded message (not i18n) -- safe to match.
@@ -453,6 +477,7 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
         expect(reloaded.state).to eq('new')
         expect(reloaded.viewable?).to be true
         expect(Onetime::Customer.load(owner.objid).verified?).to be false
+        expect(session).not_to be_empty # the refusal does not sign them out
       end
     end
 
