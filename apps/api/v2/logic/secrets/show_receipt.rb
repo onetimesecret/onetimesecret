@@ -295,8 +295,9 @@ module V2::Logic
         # Provenance gate: incoming secrets withhold the share link (and its
         # secret_identifier bearer key) from the creator. safe_dump already
         # withholds secret_identifier for these; keep the re-add and the
-        # share_url/share_path merge below consistent with it.
-        link_visible = receipt.shows_share_link?
+        # share_url/share_path merge below consistent with it. A consumed
+        # receipt has no secret left to link to, so it gets no link either.
+        link_visible = receipt.share_link_available?
 
         # Only include the secret's identifying key when necessary
         # Remove it from safe_dump and only add it back if show_secret is true

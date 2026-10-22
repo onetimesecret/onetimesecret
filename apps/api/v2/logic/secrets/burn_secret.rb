@@ -168,6 +168,12 @@ module V2::Logic
         # Get base receipt attributes
         attributes = receipt.safe_dump
 
+        # Same share-link gate as ShowReceipt: no link (or bearer key) for a
+        # provenance that withholds it, e.g. an incoming secret answered with
+        # continue=false, or for a burned secret with nothing left to link to.
+        link_visible = receipt.share_link_available?
+        attributes.delete(:secret_identifier) unless link_visible
+
         # Resolve the domain for URL generation: use the custom domain
         # the secret was created on when available, otherwise canonical.
         domain     = if domains_enabled && !receipt.share_domain.to_s.empty?
@@ -184,11 +190,11 @@ module V2::Logic
             natural_expiration: natural_duration(receipt.default_expiration.to_i),
             expiration: (receipt.default_expiration.to_i + receipt.created.to_i),
             expiration_in_seconds: receipt.default_expiration.to_i,
-            share_path: build_path(:secret, receipt.secret_identifier),
+            share_path: (build_path(:secret, receipt.secret_identifier) if link_visible),
             burn_path: build_path(:receipt, receipt.identifier, 'burn'),
             receipt_path: build_path(:receipt, receipt.identifier),
             metadata_path: build_path(:receipt, receipt.identifier), # V2 backward-compat alias
-            share_url: build_url(domain_uri, build_path(:secret, receipt.secret_identifier)),
+            share_url: (build_url(domain_uri, build_path(:secret, receipt.secret_identifier)) if link_visible),
             receipt_url: build_url(domain_uri, build_path(:receipt, receipt.identifier)),
             metadata_url: build_url(domain_uri, build_path(:receipt, receipt.identifier)), # V2 backward-compat alias
             burn_url: build_url(domain_uri, build_path(:receipt, receipt.identifier, 'burn')),

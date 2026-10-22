@@ -173,6 +173,41 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       expect(record[:burned]).to be_a(Integer)
       # Matches a fresh fetch of the receipt.
       expect(record[:state]).to eq(Onetime::Receipt.load(receipt.identifier).state)
+      # Nothing left to link to: no dangling "secret/" link, no empty bearer key.
+      expect(record[:share_path]).to be_nil
+      expect(record[:share_url]).to be_nil
+      expect(record).not_to have_key(:secret_identifier)
+    end
+  end
+
+  # Burn's success_data shares ShowReceipt's share-link gate
+  # (Receipt#share_link_available?). A request that does not commit to the
+  # burn still gets the record back, so without the gate an incoming
+  # receipt's holder could read the share link that ShowReceipt withholds.
+  context 'share link gate' do
+    it 'withholds the share link and bearer key for an incoming receipt' do
+      receipt.source = 'incoming'
+      receipt.save
+
+      logic  = build_logic('identifier' => receipt.identifier, 'continue' => 'false')
+      logic.process_params
+      record = logic.process[:record]
+
+      expect(record[:share_path]).to be_nil
+      expect(record[:share_url]).to be_nil
+      expect(record).not_to have_key(:secret_identifier)
+      # Nothing was burned.
+      expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
+    end
+
+    it 'ships the share link for a standard receipt that was not burned' do
+      logic  = build_logic('identifier' => receipt.identifier, 'continue' => 'false')
+      logic.process_params
+      record = logic.process[:record]
+
+      expect(record[:share_path]).to eq("secret/#{receipt.secret_identifier}")
+      expect(record[:share_url]).to end_with("/secret/#{receipt.secret_identifier}")
+      expect(record[:secret_identifier]).to eq(receipt.secret_identifier)
     end
   end
 

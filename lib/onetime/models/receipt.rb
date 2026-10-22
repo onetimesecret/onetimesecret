@@ -127,6 +127,18 @@ module Onetime
       SOURCE_CAPABILITIES.fetch(source.to_s, WITHHELD_CAPABILITIES)[:shows_share_link]
     end
 
+    # Whether a receipt payload should carry a share link at all: the
+    # provenance permits it (#shows_share_link?) and there is still a secret
+    # to link to. Every terminal transition (revealed!, burned!, expired!,
+    # orphaned!) clears secret_identifier, so a consumed receipt would
+    # otherwise emit a dangling "secret/" path. Shared by ShowReceipt and
+    # BurnSecret so a burn response and a later fetch agree (#4835).
+    #
+    # @return [Boolean]
+    def share_link_available?
+      shows_share_link? && !secret_identifier.to_s.empty?
+    end
+
     # Clean up class-level collections before destroying the object.
     # Familia's base destroy! handles the main key and related fields,
     # but class-level sorted sets and sets need explicit cleanup.
