@@ -283,6 +283,14 @@ RSpec.describe Onetime::AuthConfig do
       config = fresh_config('AUTHENTICATION_MODE' => 'simple', 'AUTH_VERIFY_ACCOUNT_ENABLED' => 'true')
       expect(config.verify_account_loaded?).to be false
     end
+
+    # The enables read the YAML values by truthiness, so a quoted "true" loads
+    # the feature; config.rb compares this answer with the loaded features.
+    it 'is a Boolean when a flag is a quoted YAML string' do
+      File.write(config_path, base_yaml.sub(/^    verify_account: .*$/, '    verify_account: "true"'))
+      described_class.instance_variable_set(:@singleton__instance__, nil)
+      expect(described_class.instance.verify_account_loaded?).to be true
+    end
   end
 
   # ── restrict_to ────────────────────────────────────────────────────

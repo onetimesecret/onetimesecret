@@ -184,8 +184,12 @@ module Onetime
     # spelled here: a new one (a feature that `depends :verify_account`, such
     # as verify_account_grace_period) must be added to this expression in the
     # same change. config.rb refuses to boot when they disagree.
+    #
+    # A Boolean: the flags are YAML values the enables read by truthiness (a
+    # quoted "true" loads the feature), and config.rb compares this answer
+    # with auth.features.include?.
     def verify_account_loaded?
-      verify_account_enabled? || (webauthn_enabled? && webauthn_verify_account_enabled?)
+      !!(verify_account_enabled? || (webauthn_enabled? && webauthn_verify_account_enabled?))
     end
 
     # Whether MFA is enabled (TOTP, recovery codes)

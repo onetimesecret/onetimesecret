@@ -234,10 +234,11 @@ module Auth
       # a boot where the two disagree: an enable added without updating the
       # predicate would load the verify-account route while the hook, the
       # email and the deferral stay off.
-      verify_account_loaded = auth.features.include?(:verify_account)
-      unless verify_account_loaded == Onetime.auth_config.verify_account_loaded?
+      verify_account_loaded    = auth.features.include?(:verify_account)
+      verify_account_predicate = Onetime.auth_config.verify_account_loaded?
+      unless verify_account_loaded == verify_account_predicate
         raise "[Auth::Config] :verify_account loaded is #{verify_account_loaded} but " \
-              "Onetime.auth_config.verify_account_loaded? is #{!verify_account_loaded}; " \
+              "Onetime.auth_config.verify_account_loaded? is #{verify_account_predicate.inspect}; " \
               'update the predicate together with the enable (lib/onetime/auth_config.rb)'
       end
 

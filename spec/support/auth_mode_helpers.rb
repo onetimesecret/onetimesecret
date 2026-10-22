@@ -107,7 +107,7 @@ module AuthModeHelpers
     # them on this mock (allow(Onetime.auth_config).to receive(...)) is seen
     # here as well.
     def verify_account_loaded?
-      verify_account_enabled? || (webauthn_enabled? && webauthn_verify_account_enabled?)
+      !!(verify_account_enabled? || (webauthn_enabled? && webauthn_verify_account_enabled?))
     end
 
     def mfa_enabled?
