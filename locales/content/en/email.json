@@ -344,6 +344,21 @@
     "renderer": "erb",
     "content_hash": "30342c04"
   },
+  "email.expiration_warning.secret_id_label": {
+    "text": "Secret ID:",
+    "renderer": "erb",
+    "content_hash": "ab567438"
+  },
+  "email.expiration_warning.sign_in_to_manage": {
+    "text": "Sign in to check whether it has been viewed, or to burn it:",
+    "renderer": "erb",
+    "content_hash": "5d4b030b"
+  },
+  "email.expiration_warning.recent_link_label": {
+    "text": "Your recent secrets",
+    "renderer": "erb",
+    "content_hash": "66bbf656"
+  },
   "email.expiration_warning.after_expiration_short": {
     "text": "After expiration, the secret will be permanently deleted.",
     "renderer": "erb",

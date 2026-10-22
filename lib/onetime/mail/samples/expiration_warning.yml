@@ -1,3 +1,3 @@
 recipient: "owner@example.com"
-secret_key: "expiring-key-sample"
+secret_shortid: "a1b2c3d4"
 expires_at: 1800000000

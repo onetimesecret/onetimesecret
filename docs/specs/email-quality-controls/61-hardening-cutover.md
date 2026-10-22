@@ -94,10 +94,12 @@ operators and pentesters.
       idempotency re-verified on the real dumps.
 - [ ] DLQ peek shows obscured addresses in previews (CLI + colonel),
       byte-for-byte otherwise.
-- [ ] `schedule_email` + `email.message.schedule` queue removed;
+- [x] `schedule_email` + `email.message.schedule` queue removed;
       `ExpirationWarningJob` sends immediately via `enqueue_email` and a tryout
       confirms warnings actually deliver in a jobs-enabled config;
       `DlqEmailConsumerJob`'s discard behavior re-documented to match.
+      (#4844: the jobs-enabled check publishes through a real broker in
+      `spec/integration/all/jobs/rabbitmq_publishing_spec.rb`.)
 - [ ] Replay-time suppression tryout green.
 - [ ] Pentest scope updated; operator guide + runbooks merged; scriv fragments
       present.

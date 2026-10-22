@@ -451,8 +451,8 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
 
   describe 'queue count consistency' do
     it 'DEAD_LETTER_CONFIG covers all unique DLX references' do
-      # Multiple queues can share the same DLX (e.g., email.message.send and email.message.schedule
-      # both use dlx.email.message). Count unique DLX values, not queue count.
+      # Multiple queues can share the same DLX (e.g., domain.validation.check and domain.dns.check
+      # both use dlx.domain.validation). Count unique DLX values, not queue count.
       unique_dlx_refs = Onetime::Jobs::QueueConfig::QUEUES.values
         .map { |config| config.dig(:arguments, 'x-dead-letter-exchange') }
         .compact

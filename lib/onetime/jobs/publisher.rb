@@ -64,16 +64,13 @@ module Onetime
           new.enqueue_email(template, data, fallback: fallback, domain_id: domain_id)
         end
 
-        # Schedule an email for delayed delivery
-        # @param template [Symbol] Email template name
-        # @param data [Hash] Template data
-        # @param delay_seconds [Integer] Delay in seconds
-        # @param fallback [Symbol] Fallback strategy if RabbitMQ unavailable
-        # @param domain_id [String, nil] Domain identifier for per-domain sender config
-        # @return [Boolean] true if published to queue, false if fallback used
-        def schedule_email(template, data, delay_seconds:, fallback: DEFAULT_FALLBACK, domain_id: nil)
-          new.schedule_email(template, data, delay_seconds: delay_seconds, fallback: fallback, domain_id: domain_id)
-        end
+        # There is no delayed-delivery method. schedule_email published to
+        # email.message.schedule with a per-message TTL, and nothing consumed
+        # that queue: every message expired into dlq.email.message, where
+        # DlqEmailConsumerJob discards non-auth templates. A caller that
+        # wants mail at a later time keeps its own schedule and calls
+        # enqueue_email when the time comes (ExpirationWarningJob scans a
+        # timeline on an interval).
 
         # Enqueue a raw email (non-templated) for immediate delivery
         # Used for Rodauth integration where emails are pre-formatted
@@ -177,30 +174,6 @@ module Onetime
         with_fallback(fallback, :templated) do
           message_id = publish('email.message.send', { template: template, data: data, domain_id: domain_id })
           logger.info 'Enqueued email', template: template, message_id: message_id, queue: 'email.message.send'
-          true
-        end
-      end
-
-      # Schedule email for delayed delivery
-      def schedule_email(template, data, delay_seconds:, fallback: DEFAULT_FALLBACK, domain_id: nil)
-        validate_fallback!(fallback)
-        @pending_template  = template
-        @pending_data      = data
-        @pending_domain_id = domain_id
-
-        # Gracefully fallback if jobs are disabled (no pool initialized)
-        unless jobs_enabled?
-          logger.info 'Jobs disabled, using fallback', template: template, fallback: fallback
-          return execute_fallback(fallback, :templated)
-        end
-
-        with_fallback(fallback, :templated) do
-          message_id = publish(
-            'email.message.schedule',
-            { template: template, data: data, domain_id: domain_id },
-            expiration: (delay_seconds * 1000).to_s, # Convert to milliseconds
-          )
-          logger.info 'Scheduled email', template: template, message_id: message_id, delay_seconds: delay_seconds
           true
         end
       end

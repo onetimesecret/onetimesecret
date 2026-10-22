@@ -64,12 +64,24 @@ RSpec.describe 'routes_try', type: :integration do
     expect(result).to eq(200)
   end
 
-  it 'With default configuration, dashboard redirects to sign-in' do
+  # The refused page rides along as ?redirect= (SigninReturnPath), so the
+  # sign-in flow returns the visitor to it.
+  it 'With default configuration, dashboard redirects to sign-in with a return path' do
     result = begin
       response = @mock_request.get('/dashboard')
       [response.status, response.headers["location"]]
     end
-    expect(result).to eq([302, "/signin"])
+    expect(result).to eq([302, "/signin?redirect=%2Fdashboard"])
+  end
+
+  # The expiration-warning email links here; a signed-out owner must land
+  # back on the list after signing in, not on the default page.
+  it 'With default configuration, /recent redirects to sign-in with a return path' do
+    result = begin
+      response = @mock_request.get('/recent?page=2')
+      [response.status, response.headers["location"]]
+    end
+    expect(result).to eq([302, "/signin?redirect=%2Frecent%3Fpage%3D2"])
   end
 
   # SSO account-linking interstitials (#3840 Phases 3+4) are entered by

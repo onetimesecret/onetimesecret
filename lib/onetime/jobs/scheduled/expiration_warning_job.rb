@@ -10,7 +10,7 @@ module Onetime
       # Scheduled job to send expiration warning emails
       #
       # Scans for secrets that will expire within the configured warning window
-      # and schedules warning emails to their owners. Uses Redis sorted sets for
+      # and enqueues a warning email to each owner. Uses Redis sorted sets for
       # efficient time-range queries and a set for deduplication.
       #
       # Configuration (config.yaml):
@@ -18,9 +18,22 @@ module Onetime
       #     expiration_warnings:
       #       enabled: true
       #       check_interval: '1h'   # How often to scan
-      #       warning_hours: 24      # Warn N hours before expiry
+      #       warning_hours: 24      # Warn once a secret is within N hours of expiry
       #       min_ttl_hours: 48      # Only warn for secrets with TTL > this
       #       batch_size: 100        # Max warnings per run (rate limiting)
+      #
+      # Timing: the email is enqueued on the first scan that finds the secret
+      # inside the warning window, so it goes out between warning_hours and
+      # (warning_hours - check_interval) before the secret expires, and the
+      # warnings_sent set keeps it to one per receipt. There is no delayed
+      # delivery. The job used to publish to email.message.schedule with a
+      # per-message TTL so the mail would leave one hour before expiry, but
+      # nothing consumed that queue: with jobs enabled the message expired
+      # into dlq.email.message and DlqEmailConsumerJob discarded it, so no
+      # warning was ever sent, while with jobs disabled the publisher's
+      # fallback ignored the delay and sent at scan time. Scan time is now the
+      # one behavior on both paths (#4844). To warn closer to expiry, lower
+      # warning_hours.
       #
       # Data structures (in Receipt):
       #   - expiration_timeline: Sorted set (score = expiration timestamp)
@@ -35,9 +48,6 @@ module Onetime
       #   and self-healing: capacity = batch_size × runs_per_day.
       #
       class ExpirationWarningJob < ScheduledJob
-        # Send warning email 1 hour before secret expiration
-        WARNING_BUFFER_SECONDS = 3600
-
         # Grace period for cleanup: remove timeline entries that expired over 1 hour ago
         CLEANUP_GRACE_PERIOD_SECONDS = 3600
 
@@ -113,7 +123,7 @@ module Onetime
                 next
               end
 
-              if schedule_warning_email(receipt, owner)
+              if enqueue_warning_email(receipt, owner)
                 Onetime::Receipt.mark_warning_sent(receipt_id)
                 processed += 1
               end
@@ -129,30 +139,37 @@ module Onetime
             scheduler_logger.info "[ExpirationWarningJob] Processed: #{processed}, Skipped: #{skipped}, Cleaned: #{cleanup_count}, Orphans: #{orphan_cleanup_count}"
           end
 
-          # Schedule warning email for a secret
-          # @return [Boolean] true if successfully scheduled, false on failure
-          def schedule_warning_email(receipt, owner)
-            # Calculate delay: send warning before actual expiration
-            # (or immediately if less than the buffer time remains)
-            seconds_until_expiry = receipt.secret_expiration.to_i - Familia.now.to_i
-            delay                = [seconds_until_expiry - WARNING_BUFFER_SECONDS, 0].max
-
-            Onetime::Jobs::Publisher.schedule_email(
+          # Enqueue the warning email for immediate delivery.
+          #
+          # Publisher.enqueue_email returns true when the message reached
+          # email.message.send and false when the publisher's fallback
+          # delivered it instead (jobs disabled, broker unreachable). Both mean
+          # the mail is on its way, so the return value is not consulted. Only
+          # an exception leaves the receipt unmarked, to be retried on the
+          # next scan.
+          #
+          # @return [Boolean] true if the email was enqueued, false on failure
+          def enqueue_warning_email(receipt, owner)
+            Onetime::Jobs::Publisher.enqueue_email(
               :expiration_warning,
               {
                 recipient: owner.email,
-                secret_key: receipt.secret_shortid,
+                # An account notification, like secret_revealed: the short id
+                # names the secret, and the template links to the owner's
+                # recent-secrets page on the canonical host. No receipt or
+                # secret identifier goes by email: both are bearer
+                # capabilities (the receipt route answers without an
+                # ownership check and returns the share link).
+                secret_shortid: receipt.secret_shortid,
                 expires_at: receipt.secret_expiration,
-                share_domain: receipt.share_domain,
               },
-              delay_seconds: delay,
             )
 
-            scheduler_logger.debug "[ExpirationWarningJob] Scheduled warning for #{receipt.identifier} " \
-                                   "(delay: #{delay}s, expires: #{receipt.secret_expiration})"
+            scheduler_logger.debug "[ExpirationWarningJob] Enqueued warning for #{receipt.identifier} " \
+                                   "(expires: #{receipt.secret_expiration})"
             true
           rescue StandardError => ex
-            scheduler_logger.error "[ExpirationWarningJob] Failed to schedule warning for #{receipt.identifier}: #{ex.message}"
+            scheduler_logger.error "[ExpirationWarningJob] Failed to enqueue warning for #{receipt.identifier}: #{ex.message}"
             false
           end
         end
