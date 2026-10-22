@@ -74,7 +74,7 @@ make_dist() { # <dir> <release>
   printf '{"version":3,"sources":[]}\n' > "${dir}/assets/main.a1b2c3.js.map"
   printf 'const r="%s";export default r;\n' "$release" > "${dir}/assets/admin.d4e5f6.js"
   printf '{"version":3,"sources":[]}\n' > "${dir}/assets/admin.d4e5f6.js.map"
-  printf '{}\n' > "${dir}/.vite/manifest-admin.json"
+  printf '{}\n' > "${dir}/.vite/manifest.json"
 }
 
 printf '%s\n' "$ASSERT_SUITE"
@@ -154,11 +154,11 @@ assert_eq "maps present but no entry bundle blocks" "status=blocked" "$(emitted_
 # and only the Colonel console's traces are raw.
 
 printf '\npartial delivery: one bundle present, one missing\n'
-protects "a half-delivered two-pass build still uploads, so it must be recorded as a warning rather than allowed through silently"
+protects "a half-delivered build still uploads, so it must be recorded as a warning rather than allowed through silently"
 
 new_case
 make_dist "${CASE_DIR}/dist" abc1234
-rm -f "${CASE_DIR}/dist/assets/admin.d4e5f6.js.map" "${CASE_DIR}/dist/.vite/manifest-admin.json"
+rm -f "${CASE_DIR}/dist/assets/admin.d4e5f6.js.map"
 preflight SENTRY_AUTH_TOKEN=t0ken SENTRY_ORG=acme SENTRY_RELEASE=abc1234 \
   SENTRY_DIST_DIR="${CASE_DIR}/dist" SENTRY_PROJECTS='frontend' \
   SENTRY_PROJECT=frontend > /dev/null 2>&1
@@ -170,7 +170,7 @@ assert_not_contains "and not silently passed as ok" \
 
 # --- the healthy tree --------------------------------------------------------
 
-printf '\na complete two-pass build\n'
+printf '\na complete build\n'
 protects "the ready path has to stay reachable: a preflight that blocks a healthy tree stops sourcemaps shipping at all, which is the defect this pipeline was built to fix"
 
 new_case

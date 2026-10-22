@@ -111,37 +111,40 @@ function getSentryRelease(): string {
 const viteAdditionalServerAllowedHosts = process.env.VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS;
 
 /**
- * Vite Configuration - Consolidated Assets
+ * Vite Configuration - Code-split build under a nonce-only CSP
  * ------------------------------------------------
- * This configuration consolidates assets for simpler CSP management:
- * - Single JS bundle (no code splitting)
- * - Separate style.css entry
- * - Simplified manifest format
+ * One `vite build` pass emits both entries, main.ts (the customer bundle) and
+ * admin.ts (the isolated Colonel console), as ES module chunks that share
+ * code, plus one stylesheet and one manifest.
  *
- * The single-bundle approach enables strict Content Security Policy (CSP)
- * implementation with nonces, as each script chunk would otherwise require
- * its own unique nonce attribute.
+ * CSP model: the production script-src is nonce-only (otto's
+ * production_directives). The backend stamps the nonce on exactly one
+ * <script type="module"> per shell (apps/web/core/views/helpers/vite_manifest.rb).
+ * The chunks that script imports, statically or via import(), need no nonce
+ * of their own: the HTML spec defines a script's cryptographic nonce as "The
+ * cryptographic nonce metadata used for the initial fetch and for fetching any
+ * imported modules", and CSP's script pre-request check allows a request whose
+ * nonce metadata matches the policy. Two things do NOT inherit the nonce, and
+ * the backend helper handles both: <link rel="modulepreload"> tags (each is
+ * its own fetch, so the helper nonces the ones it emits) and the links Vite's
+ * preload helper creates before a dynamic import (it reads the nonce from
+ * <meta property="csp-nonce">, which the helper emits).
  *
- * Manifest Output Example:
+ * Manifest Output Example (.vite/manifest.json):
  * {
  *   "main.ts": {
  *     "file": "assets/main.[hash].js",
- *     "isEntry": true
+ *     "isEntry": true,
+ *     "imports": ["_vue-[hash].js", ...],
+ *     "dynamicImports": ["apps/secret/support/Help.vue", ...]
  *   },
+ *   "admin.ts": { ... },
+ *   "_vue-[hash].js": { "file": "assets/vue-[hash].js", "imports": [...] },
  *   "style.css": {
  *     "file": "assets/style.[hash].css"
  *   }
  * }
- *
- * @see 29ffd790d74599bbbe3755d0fcba2b59c2f59ed7
  */
-// Two-pass single-chunk build. Rolldown rejects multiple inputs under
-// output.codeSplitting:false, and our CSP nonce model wants exactly one script
-// tag per shell — so each entry is built as its OWN single-input pass, selected
-// by VITE_BUILD_TARGET (see the `build` npm script). Default pass = the customer
-// bundle (main.ts); the admin pass builds the isolated Colonel console (admin.ts)
-// into the same dist without wiping it, under a separate manifest.
-const isAdminBuild = process.env.VITE_BUILD_TARGET === 'admin';
 
 // eslint-disable-next-line max-lines-per-function
 export default defineConfig(({ command }) => ({
@@ -296,34 +299,44 @@ export default defineConfig(({ command }) => ({
     // version, and for an hour after the deploy for the redis cache to expire
     // (or be manually deleted). The key is template:global:vite_assets in db 0.
     //
-    // The admin pass runs AFTER the main pass and must NOT wipe the customer
-    // bundle it just built, so it appends to dist instead of emptying it.
-    emptyOutDir: !isAdminBuild,
+    // outDir is outside root (src/), so Vite only empties it when told to.
+    emptyOutDir: true,
 
-    // Single Bundle Strategy
-    //
-    // We intentionally disable code splitting to support CSP nonces.
-    // While this increases initial load time, it simplifies nonce
-    // management by requiring only one script tag. Code splitting would
-    // require generating and tracking nonces for each chunk, adding
-    // complexity without significant benefit for our use case.
-    //
-    // Each entry (main.ts, admin.ts) is built in its own pass so it stays a
-    // single self-contained chunk; the passes write separate manifests so the
-    // backend can resolve each shell's assets independently.
-    manifest: isAdminBuild ? '.vite/manifest-admin.json' : true,
+    // One manifest for both entries. The backend resolves an entry's chunk,
+    // its static imports (for modulepreload) and the stylesheet from it.
+    manifest: true,
     rolldownOptions: {
-      input: isAdminBuild
-        ? { admin: 'admin.ts' } // isolated Colonel admin console
-        : { main: 'main.ts' }, // customer bundle
+      input: {
+        main: 'main.ts', // customer bundle
+        admin: 'admin.ts', // isolated Colonel admin console
+      },
       output: {
-        // Enforce single chunk output (replaces deprecated inlineDynamicImports)
-        codeSplitting: false,
+        // Chunks shared between the entries, and one chunk per lazy route.
+        // See the CSP note at the top of this file for why chunks need no
+        // nonce of their own.
+        codeSplitting: true,
         format: 'es',
+        // Entries are `name.hash.js`, shared and lazy chunks `name-hash.js`,
+        // so a glob on main.*.js or admin.*.js only ever matches an entry
+        // (.github/scripts/sentry-sourcemap-preflight.sh relies on that).
         entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name].[hash].[ext]',
-        // Prevent dynamic imports
         preserveModules: false,
+        // Keep src/plugins/core/configureZod.ts in the same chunk as zod.
+        // Every schema module imports zod, so that chunk, and with it
+        // `z.config({ jitless: true })`, evaluates before any schema is built.
+        // Left to the default chunking, configureZod ended up in a chunk that
+        // ran after the first schemas, and Zod's `new Function("")` probe
+        // tripped a script-src violation on every page load.
+        advancedChunks: {
+          groups: [
+            {
+              name: 'zod',
+              test: /node_modules\/zod\/|src\/plugins\/core\/configureZod\.ts$/,
+            },
+          ],
+        },
         // Rolldown native minification options (replaces terserOptions).
         // Terser is incompatible with Rolldown's output format and produces
         // "undefined is not a function" at runtime.
@@ -337,9 +350,13 @@ export default defineConfig(({ command }) => ({
       },
     },
 
+    // One stylesheet for both shells, linked from the manifest's style.css
+    // entry; the admin console shares the customer styles plus its own.
     cssCodeSplit: false,
     sourcemap: true,
-    chunkSizeWarningLimit: 3000, // up from default 500 KB to accommodate single bundle
+    // Up from the default 500 KB: the chunk with the eagerly imported locales
+    // (src/i18n.ts) is still several MB.
+    chunkSizeWarningLimit: 3000,
   },
 
   css: {

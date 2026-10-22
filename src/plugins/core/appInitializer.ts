@@ -19,8 +19,8 @@ interface AppInitializerOptions {
   /**
    * The router to install. Injected by the caller (main.ts / admin.ts) so this
    * initializer does NOT import `@/router` itself — that keeps the customer
-   * route graph out of the admin bundle (and vice versa) under the single-chunk
-   * build. Each entry supplies its own router.
+   * route graph out of the admin bundle's chunks (and vice versa). Each entry
+   * supplies its own router.
    */
   router: Router;
   api?: AxiosInstance;

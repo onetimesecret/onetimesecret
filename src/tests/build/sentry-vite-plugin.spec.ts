@@ -110,11 +110,9 @@ describe('Sentry Vite Plugin Configuration', () => {
 
     it('generates manifest for asset tracking', () => {
       const content = fs.readFileSync(viteConfigPath, 'utf-8');
-      // Two-pass single-chunk build: the default (customer) pass enables the
-      // standard manifest (`: true`); the admin pass (VITE_BUILD_TARGET=admin)
-      // emits its own named manifest so the backend can resolve each shell's
-      // assets independently. See the isAdminBuild branch in vite.config.ts.
-      expect(content).toMatch(/manifest:\s*isAdminBuild\s*\?[^:]*manifest-admin[^:]*:\s*true/);
+      // One pass emits both entries into a single manifest that the backend
+      // (apps/web/core/views/helpers/vite_manifest.rb) resolves chunks from.
+      expect(content).toMatch(/manifest:\s*true/);
     });
   });
 });

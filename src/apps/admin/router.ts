@@ -12,7 +12,7 @@ import adminRoutes, { adminDefaultMeta } from './routes';
  *
  * Deliberately does NOT import `@/router`: the admin bundle must not pull the
  * customer route graph (public/session/secret/workspace/colonel) into its
- * single chunk. Only admin routes live here. Guards (auth, page title) are
+ * chunks. Only admin routes live here. Guards (auth, page title) are
  * still applied by the shared `AppInitializer` via `setupRouterGuards`.
  */
 export function createAdminRouter(): Router {
