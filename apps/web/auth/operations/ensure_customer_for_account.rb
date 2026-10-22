@@ -42,16 +42,32 @@ module Auth
       #   it has an open auth account, or the purge stopped (blockers, a
       #   failure) and the record is still there
       def self.finish_interrupted_closure(customer)
-        return false if open_auth_account?(customer)
+        if open_auth_account?(customer)
+          Auth::Logging.log_auth_event(
+            :interrupted_closure_not_finished,
+            level: :error,
+            external_id: customer.extid,
+            reason: :open_auth_account,
+          )
+          return false
+        end
 
-        result = Auth::Operations::Customers::Purge.new(
+        result   = Auth::Operations::Customers::Purge.new(
           customer: customer,
           self_service: true,
           reason: 'finish an interrupted closure before a sign-up with the same address',
         ).call
-        OT.auth_logger.info "[create-customer] Finished the interrupted closure of #{customer.extid} " \
-                            "before sign-up (status: #{result.status})"
-        !customer.exists?
+        finished = !customer.exists?
+
+        Auth::Logging.log_auth_event(
+          finished ? :interrupted_closure_finished : :interrupted_closure_not_finished,
+          level: finished ? :info : :error,
+          external_id: customer.extid,
+          status: result.status,
+          stage: result.stage,
+          blockers: result.blockers,
+        )
+        finished
       end
 
       def self.open_auth_account?(customer)

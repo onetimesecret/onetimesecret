@@ -122,26 +122,12 @@ module Auth
 
           # First, so a closure that rolled back is cleared before anything
           # else runs. A record still marked after it belongs to a closure
-          # that has not finished: its owner asked for it to be deleted, so
-          # the checks below report on it but repair nothing (no workspace
-          # provisioned, no index rebuilt), and finish-closures deletes it.
+          # that has not finished: its owner asked for it to be deleted, and
+          # finish-closures deletes it. The data checks would only report on,
+          # or repair into shape (a workspace provisioned, an index rebuilt),
+          # a record on its way out, so they do not run for it.
           check_closure_marker(issues, repaired)
-          @repair &&= !@customer.closing?
-
-          check_workspace_collision(issues, repaired)
-          check_provisioning_failure(issues, repaired)
-          check_orphan_default_org(issues, repaired)
-          check_email_index_entry(issues, repaired)
-          check_auth_email_drift(issues, repaired)
-          check_auth_email_canonical(issues)
-          check_org_email_index(issues, repaired)
-          check_org_contact_email(issues, repaired)
-          check_org_membership_sync(issues, repaired)
-          check_role_validity(issues)
-          check_verified_consistency(issues, repaired)
-          check_sso_customer_unverified(issues, repaired)
-          check_counter_sanity(issues, repaired)
-          check_field_serialization(issues, repaired)
+          check_customer_data(issues, repaired) unless @customer.closing?
 
           audit_repair_outcome(repaired) if @repair
 
@@ -163,6 +149,25 @@ module Auth
           audit_repair_failure(ex) if @repair && !@actor.nil?
           raise
         end
+
+        # Every per-customer check but the closure marker (see #call).
+        def check_customer_data(issues, repaired)
+          check_workspace_collision(issues, repaired)
+          check_provisioning_failure(issues, repaired)
+          check_orphan_default_org(issues, repaired)
+          check_email_index_entry(issues, repaired)
+          check_auth_email_drift(issues, repaired)
+          check_auth_email_canonical(issues)
+          check_org_email_index(issues, repaired)
+          check_org_contact_email(issues, repaired)
+          check_org_membership_sync(issues, repaired)
+          check_role_validity(issues)
+          check_verified_consistency(issues, repaired)
+          check_sso_customer_unverified(issues, repaired)
+          check_counter_sanity(issues, repaired)
+          check_field_serialization(issues, repaired)
+        end
+        private :check_customer_data
 
         # Index-level check: email_index entries point to live customers with the
         # right email. Returns { issues:, repaired: }. Cross-customer, so it is a

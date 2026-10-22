@@ -105,6 +105,28 @@ RSpec.describe 'Interrupted account closures (#4830)', type: :integration do
         .to eq(customer.extid)
     end
 
+    it 'refuses the password sign-up under its own event when the closure cannot be finished' do
+      refused = Auth::Operations::Customers::Purge::Result.new(
+        status: :refused, extid: leftover.extid, custid: nil, blockers: [{ code: :org_has_members }],
+      )
+      allow(Auth::Operations::Customers::Purge).to receive(:new)
+        .and_return(instance_double(Auth::Operations::Customers::Purge, call: refused))
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+      expect { Auth::Config.create_account(login: email, password: password) }
+        .to raise_error(Rodauth::InternalRequestError)
+
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :interrupted_closure_not_finished,
+        hash_including(level: :error, status: :refused, blockers: [{ code: :org_has_members }]),
+      )
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:registration_blocked_interrupted_closure, hash_including(external_id: leftover.extid))
+      expect(Auth::Logging).not_to have_received(:log_auth_event).with(:registration_blocked_redis_conflict, anything)
+      expect(leftover.exists?).to be(true)
+      expect(auth_db[:accounts].where(email: OT::Utils.normalize_email(email)).count).to eq(0)
+    end
+
     # The SSO JIT and invite paths create the accounts row first and adopt
     # an existing record by email in EnsureCustomerForAccount.
     context 'when the accounts row already exists (adopting callers)' do
