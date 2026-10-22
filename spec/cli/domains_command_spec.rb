@@ -81,6 +81,13 @@ RSpec.describe 'Domains Command', type: :cli do
   end
 
   describe 'info subcommand' do
+    # info reads the domain's HomepageConfig to print any homepage network
+    # rules; no rules (nil config) prints nothing extra.
+    before do
+      allow(domain).to receive(:identifier).and_return('example.com')
+      allow(Onetime::CustomDomain::HomepageConfig).to receive(:find_by_domain_id).and_return(nil)
+    end
+
     it 'requires a domain name' do
       output = run_cli_command_quietly('domains', 'info')
       expect(output[:stderr]).to include('was called with no arguments')
@@ -92,6 +99,45 @@ RSpec.describe 'Domains Command', type: :cli do
       output = run_cli_command_quietly('domains', 'info', 'example.com')
       expect(output[:stdout]).to include('Domain Information')
       expect(output[:stdout]).to include('example.com')
+      expect(output[:stdout]).not_to include('Homepage Allowed CIDRs')
+    end
+
+    it 'lists homepage network rules when the domain has any' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+      homepage_config = instance_double(
+        Onetime::CustomDomain::HomepageConfig,
+        network_restricted?: true,
+        allowed_cidrs: ['10.0.0.0/8', '2001:db8::/32'],
+        allowed_cidrs_corrupt?: false,
+        denied_cidrs: [],
+        denied_cidrs_corrupt?: false,
+      )
+      allow(Onetime::CustomDomain::HomepageConfig).to receive(:find_by_domain_id)
+        .with('example.com').and_return(homepage_config)
+
+      output = run_cli_command_quietly('domains', 'info', 'example.com')
+      expect(output[:stdout]).to include('Homepage Allowed CIDRs: 10.0.0.0/8, 2001:db8::/32')
+      expect(output[:stdout]).to include('Homepage Denied CIDRs:  (none)')
+    end
+
+    # An unreadable list reads back as [] but denies every visitor, so it
+    # must not print as "(any)".
+    it 'says when a stored list is unreadable' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+      homepage_config = instance_double(
+        Onetime::CustomDomain::HomepageConfig,
+        network_restricted?: true,
+        allowed_cidrs: [],
+        allowed_cidrs_corrupt?: true,
+        denied_cidrs: [],
+        denied_cidrs_corrupt?: false,
+      )
+      allow(Onetime::CustomDomain::HomepageConfig).to receive(:find_by_domain_id)
+        .with('example.com').and_return(homepage_config)
+
+      output = run_cli_command_quietly('domains', 'info', 'example.com')
+      expect(output[:stdout]).to include('Homepage Allowed CIDRs: (unreadable: every visitor is denied)')
+      expect(output[:stdout]).to include('Homepage Denied CIDRs:  (none)')
     end
 
     it 'shows a TXT record name that has no A-label form without failing' do

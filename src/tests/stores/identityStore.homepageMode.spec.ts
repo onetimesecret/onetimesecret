@@ -43,6 +43,8 @@ function homepageConfig(
     signup_enabled: false,
     signin_enabled: false,
     disabled_homepage_variant: null,
+    allowed_cidrs: [],
+    denied_cidrs: [],
     created_at: 1700000000,
     updated_at: 1700000000,
     ...overrides,

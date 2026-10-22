@@ -142,4 +142,55 @@ describe('homepageConfigCanonical', () => {
       expect(result.success && result.data.record?.secrets_mode).toBe('incoming');
     });
   });
+
+  describe('allowed_cidrs / denied_cidrs (homepage network rules)', () => {
+    it('defaults both lists to [] when omitted (payloads from older backends)', () => {
+      // No rules = no restriction; the editor must render empty lists, not
+      // crash on undefined, for a backend that pre-dates the fields.
+      const result = homepageConfigCanonical.safeParse(basePayload);
+      expect(result.success).toBe(true);
+      expect(result.success && result.data.allowed_cidrs).toEqual([]);
+      expect(result.success && result.data.denied_cidrs).toEqual([]);
+    });
+
+    it('carries normalized CIDR entries through', () => {
+      const result = homepageConfigCanonical.safeParse({
+        ...basePayload,
+        allowed_cidrs: ['203.0.113.0/24', '2001:db8::/32'],
+        denied_cidrs: ['203.0.113.7/32'],
+      });
+      expect(result.success).toBe(true);
+      expect(result.success && result.data.allowed_cidrs).toEqual([
+        '203.0.113.0/24',
+        '2001:db8::/32',
+      ]);
+      expect(result.success && result.data.denied_cidrs).toEqual(['203.0.113.7/32']);
+    });
+
+    it('rejects a non-array value instead of coercing it', () => {
+      // A bare string must not silently become a one-entry list: the
+      // backend contract is Array<String> and the editor spreads the array.
+      const result = homepageConfigCanonical.safeParse({
+        ...basePayload,
+        allowed_cidrs: '203.0.113.0/24',
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('round-trips through the PUT /homepage-config response envelope', () => {
+      // After a save the editor re-seeds from the response record, so the
+      // response schema must keep the lists (normalized by the server).
+      const result = homepageConfigResponseSchema.safeParse({
+        user_id: 'u_123',
+        record: {
+          ...basePayload,
+          allowed_cidrs: ['10.0.0.0/8'],
+          denied_cidrs: [],
+        },
+      });
+      expect(result.success).toBe(true);
+      expect(result.success && result.data.record?.allowed_cidrs).toEqual(['10.0.0.0/8']);
+      expect(result.success && result.data.record?.denied_cidrs).toEqual([]);
+    });
+  });
 });
