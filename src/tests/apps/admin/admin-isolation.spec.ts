@@ -67,8 +67,10 @@ describe('admin app — import isolation (CONTRACT 6)', () => {
  * own. The check therefore walks the entry's imports and dynamic imports
  * transitively from `.vite/manifest.json` (the graph the server shell preloads
  * from, see apps/web/core/views/helpers/vite_manifest.rb) and scans the
- * sourcemap of every reachable chunk. Rolldown's runtime and helper chunks (a
- * few dozen bytes, no source of ours) have no sourcemap and are skipped.
+ * sourcemap of every reachable chunk. Rolldown emits no sourcemap for its
+ * runtime and helper chunks, nor for a chunk that only re-exports; neither can
+ * contain source of ours, so they are skipped. Any other chunk without a
+ * sourcemap fails the check rather than shrinking it.
  *
  * When no build has been produced yet the check is skipped with a clear
  * pointer rather than silently passing. Run `pnpm build` first to enforce
@@ -120,6 +122,10 @@ describe('admin bundle — built-artifact isolation (CONTRACT 6)', () => {
     return files;
   }
 
+  // Chunks Rolldown emits without a sourcemap and without source of ours.
+  const HELPER_CHUNK = /^assets\/(?:preload-helper|rolldown-runtime|_plugin-vue_export-helper)-/;
+  const REEXPORT_ONLY = /^(?:\s*(?:import|export)\b[^;]*;)*\s*$/;
+
   const manifest = readManifest();
   const adminEntry = manifest?.[ADMIN_ENTRY] ?? null;
 
@@ -142,9 +148,15 @@ describe('admin bundle — built-artifact isolation (CONTRACT 6)', () => {
       const files = reachableChunks(manifest as Record<string, ManifestChunk>, ADMIN_ENTRY);
       const inspected: string[] = [];
       const offenders: string[] = [];
+      const unverifiable: string[] = [];
       for (const file of files) {
         const mapPath = join(dist, `${file}.map`);
-        if (!existsSync(mapPath)) continue; // Rolldown runtime / helper chunk
+        if (!existsSync(mapPath)) {
+          const harmless =
+            HELPER_CHUNK.test(file) || REEXPORT_ONLY.test(readFileSync(join(dist, file), 'utf8'));
+          if (!harmless) unverifiable.push(file);
+          continue;
+        }
         inspected.push(file);
         const map = JSON.parse(readFileSync(mapPath, 'utf8')) as { sources?: string[] };
         const sources = map.sources ?? [];
@@ -159,6 +171,8 @@ describe('admin bundle — built-artifact isolation (CONTRACT 6)', () => {
       // a walk that reached only the entry would be the vacuous check again.
       expect(inspected).toContain((adminEntry as ManifestChunk).file);
       expect(inspected.length).toBeGreaterThan(1);
+      // A chunk this check could not read is a gap, not a pass.
+      expect(unverifiable).toEqual([]);
       expect(offenders).toEqual([]);
     }
   );
