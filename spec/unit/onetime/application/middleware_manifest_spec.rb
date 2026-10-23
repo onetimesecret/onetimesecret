@@ -255,8 +255,10 @@ RSpec.describe 'Middleware manifest (characterization)' do
         'Onetime::Middleware::TenantCspExtras',
         'Core::Middleware::ErrorHandling',
         # Core-only: adds ?redirect= to Otto's 302 to /signin for a
-        # signed-out GET of a session page. Ahead of StaticFiles so asset
-        # requests never reach it; the API apps answer with a JSON 401.
+        # signed-out GET of a session page; the API apps answer with a JSON
+        # 401. Outside the router so it sees that 302 on the way out, inside
+        # ErrorHandling so an error raised here is rescued there. Asset
+        # requests pass through it and are left alone (no 302 to /signin).
         'Onetime::Middleware::SigninReturnPath',
         'Onetime::Middleware::StaticFiles',
         # Innermost: ahead of the router (and so the auth strategy), behind
