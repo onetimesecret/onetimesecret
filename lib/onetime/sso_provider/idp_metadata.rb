@@ -24,8 +24,11 @@ module Onetime
     # Net::HTTP and no egress guard; the caller fetches through
     # DiscoveryFetcher and hands the body here), and parse_to_hash is never
     # called (it is parse_to_array(...)[0], which silently picks the first IdP
-    # of a federation aggregate). What is read from the parser's hash, and
-    # what is deliberately not:
+    # of a federation aggregate). parse_to_array yields one entry per
+    # IDPSSODescriptor, not per entity: descriptors under more than one
+    # EntityDescriptor are an aggregate and refused, and one entity's
+    # descriptors are narrowed to its SAML 2.0 one (#selected_index). What is
+    # read from the selected entry, and what is deliberately not:
     #
     #   idp_entity_id            read; the issuer half of the identity key
     #   idp_sso_service_url      read; the first HTTP-Redirect Location
@@ -54,7 +57,7 @@ module Onetime
     # IdP gets no SSO URL rather than a POST endpoint the login would send
     # a redirect to. Which of "no endpoint", "wrong binding" and "endpoint
     # without a Location" applies is read from the SingleSignOnService
-    # children of the SAME IDPSSODescriptor the parser selected, not
+    # children of the SAME IDPSSODescriptor the selected entry came from, not
     # inferred from the parser's nil.
     #
     # ERROR BOUNDARY. The whole operation — the parser, the descriptor
@@ -96,6 +99,7 @@ module Onetime
     module IdpMetadata
       METADATA_NS      = 'urn:oasis:names:tc:SAML:2.0:metadata'
       REDIRECT_BINDING = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'
+      SAML2_PROTOCOL   = 'urn:oasis:names:tc:SAML:2.0:protocol'
       NAMESPACES       = { 'md' => METADATA_NS }.freeze
 
       BLOCKING = 'blocking'
@@ -276,12 +280,12 @@ module Onetime
 
       # See ERROR BOUNDARY / ENTITY EXPANSION in the module header.
       def parse_document(body, metadata_url)
-        parser  = OneLogin::RubySaml::IdpMetadataParser.new
-        entries = parser.parse_to_array(body, sso_binding: [REDIRECT_BINDING])
-        raise Error.new(:aggregate_metadata) if entries.size > 1
-        raise Error.new(:invalid_metadata, reason: 'no IDPSSODescriptor') if entries.empty?
+        parser      = OneLogin::RubySaml::IdpMetadataParser.new
+        entries     = parser.parse_to_array(body, sso_binding: [REDIRECT_BINDING])
+        descriptors = idp_descriptors(parser, entries)
+        index       = selected_index(descriptors)
 
-        build_result(entries.first, selected_descriptor(parser), metadata_url)
+        build_result(entries[index], descriptors[index], metadata_url)
       rescue ArgumentError, REXML::ParseException, OpenSSL::X509::CertificateError => ex
         raise Error.new(:invalid_metadata, reason: ex.class.name), cause: nil
       rescue RuntimeError => ex
@@ -290,14 +294,37 @@ module Onetime
         raise Error.new(:invalid_metadata, reason: 'REXML entity expansion limit'), cause: nil
       end
 
-      # The IDPSSODescriptor the parser built its single entry from: the
-      # same query (IdpMetadataParser.get_idps) over the same parsed
-      # document, so nothing here reads a second parse or another descriptor.
-      def selected_descriptor(parser)
-        descriptor = OneLogin::RubySaml::IdpMetadataParser.get_idps(parser.document, nil).first
-        raise Error.new(:invalid_metadata, reason: 'no IDPSSODescriptor') if descriptor.nil?
+      # The IDPSSODescriptor elements the parser built its entries from, in
+      # the same order: the same query (IdpMetadataParser.get_idps) over the
+      # same parsed document, one entry per descriptor (not per entity).
+      # More than one EntityDescriptor among them is a federation aggregate.
+      def idp_descriptors(parser, entries)
+        descriptors = OneLogin::RubySaml::IdpMetadataParser.get_idps(parser.document, nil)
+        if entries.empty? || descriptors.size != entries.size
+          raise Error.new(:invalid_metadata, reason: 'no IDPSSODescriptor')
+        end
+        raise Error.new(:aggregate_metadata) if descriptors.map(&:parent).uniq(&:object_id).size > 1
 
-        descriptor
+        descriptors
+      end
+
+      # Which of ONE entity's IDPSSODescriptors to read. A lone descriptor is
+      # read as it is. An entity may publish one per protocol (a SAML 1.1
+      # descriptor beside the SAML 2.0 one, SAML 2.0 Metadata section 2.4.3);
+      # then exactly one must list SAML 2.0 in protocolSupportEnumeration,
+      # and that one is read. None, or several, is not a document this form
+      # can import without guessing.
+      #
+      # @return [Integer] index into the descriptors and the parser's entries
+      def selected_index(descriptors)
+        return 0 if descriptors.size == 1
+
+        saml2 = descriptors.each_index.select do |index|
+          descriptors[index].attributes['protocolSupportEnumeration'].to_s.split.include?(SAML2_PROTOCOL)
+        end
+        raise Error.new(:invalid_metadata, reason: 'no single SAML 2.0 IDPSSODescriptor') unless saml2.size == 1
+
+        saml2.first
       end
 
       def build_result(entry, descriptor, metadata_url)

@@ -498,6 +498,56 @@ RSpec.describe Onetime::SsoProvider::IdpMetadata do
       end
     end
 
+    # parse_to_array yields one entry per IDPSSODescriptor, so one entity
+    # publishing a descriptor per protocol is not an aggregate.
+    describe 'one entity with several IDPSSODescriptors' do
+      let(:saml11_cert) { mint_cert(cn: 'saml11.idp.example.com') }
+
+      def descriptor_for(protocols, keys:, services:, formats: [])
+        %(<md:IDPSSODescriptor protocolSupportEnumeration="#{protocols}">) +
+          "#{keys.join}#{formats.join}#{services.join}</md:IDPSSODescriptor>"
+      end
+
+      let(:saml11_descriptor) do
+        descriptor_for(
+          'urn:oasis:names:tc:SAML:1.1:protocol urn:mace:shibboleth:1.0',
+          keys: [key_descriptor(b64(saml11_cert))],
+          services: [sso_service('urn:mace:shibboleth:1.0:profiles:AuthnRequest', 'https://idp.example.com/shibboleth/sso')],
+          formats: [name_id_format('urn:mace:shibboleth:1.0:nameIdentifier')],
+        )
+      end
+
+      it 'reads the SAML 2.0 descriptor and nothing from the SAML 1.1 one' do
+        saml2  = idp_descriptor(formats: [name_id_format(NAMEID_PERSISTENT)])
+        result = parse(document(entity(saml11_descriptor, extra: saml2)))
+
+        expect(result.idp_entity_id).to eq('https://idp.example.com/saml/metadata')
+        expect(result.idp_sso_service_url).to eq('https://idp.example.com/saml/sso')
+        expect(result.signing_certificates.map(&:subject)).to eq(['CN=signing.idp.example.com'])
+        expect(result.name_id_formats).to eq([NAMEID_PERSISTENT])
+        expect(result.problems).to eq([])
+      end
+
+      it 'refuses an entity with two SAML 2.0 descriptors as invalid_metadata, not aggregate_metadata' do
+        expect_invalid_metadata(document(entity(idp_descriptor, extra: idp_descriptor)))
+      end
+
+      it 'refuses an entity whose descriptors include no SAML 2.0 one as invalid_metadata' do
+        expect_invalid_metadata(document(entity(saml11_descriptor, extra: saml11_descriptor)))
+      end
+
+      it 'still reads a lone descriptor whatever its protocolSupportEnumeration says' do
+        lone   = descriptor_for(
+          'urn:oasis:names:tc:SAML:1.1:protocol',
+          keys: [key_descriptor(b64(signing_cert))],
+          services: [sso_service(BINDING_REDIRECT)],
+        )
+        result = parse(document(entity(lone)))
+
+        expect(result.idp_sso_service_url).to eq('https://idp.example.com/saml/sso')
+      end
+    end
+
     describe 'EntityID' do
       it 'reports a missing entityID as invalid_entity_id' do
         result = parse(document(entity(entity_id: nil)))
