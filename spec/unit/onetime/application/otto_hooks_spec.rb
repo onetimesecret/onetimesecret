@@ -124,6 +124,21 @@ RSpec.describe Onetime::Application::OttoHooks do
       end
     end
 
+    describe 'Onetime::ReauthenticationFailed (admin session password recovery)' do
+      it 'answers 403 with the reauthentication_failed code' do
+        entry = registered[Onetime::ReauthenticationFailed]
+
+        body = entry[:handler].call(Onetime::ReauthenticationFailed.new, nil)
+
+        expect(entry[:status]).to eq(403)
+        expect(body).to include(
+          error: 'Password verification failed.',
+          error_type: 'ReauthenticationFailed',
+          error_code: 'reauthentication_failed',
+        )
+      end
+    end
+
     describe 'Onetime::AccountProvisioningUnavailable (retryable provisioning)' do
       let(:entry) { registered[Onetime::AccountProvisioningUnavailable] }
 

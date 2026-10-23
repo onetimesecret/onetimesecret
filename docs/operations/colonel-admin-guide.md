@@ -319,7 +319,7 @@ one.
 | `colonel_mutation` | 120 / 5 min, 5 min lockout | every mutating colonel verb (POST/PUT/PATCH/DELETE), charged once per request |
 | `colonel_destructive` | 10 / 5 min, **15 min** lockout | the fifteen tier-1 verbs, charged **only when the request is about to execute** |
 | `colonel_handle_resolve` | 60 / 5 min, 5 min lockout | `GET`/`DELETE /sessions/:session_handle`, the two reads that may fall back to a bounded 10 000-key scan |
-| `colonel_elevation` | 5 / 15 min, 15 min lockout | `POST /elevation` (above) |
+| `colonel_elevation` | 5 / 15 min, 15 min lockout | `POST /elevation` (above) and `POST /reauthenticate` (below), one shared budget |
 
 Over a cap the API answers **429** with the usual body — `error`, `error_type:
 "LimitExceeded"`, `retry_after`, `max_attempts` — plus a `Retry-After` header.
@@ -395,9 +395,47 @@ also does not gate the `/colonel` SPA shell: the shell loads on a stale session,
 its first API call 401s, and the console renders an expired banner with a
 sign-in link rather than a bare JSON error on an HTML navigation.
 
-**Recovery is sign-in.** There is no refresh endpoint — signing in replaces the
-session, which also drops any step-up window. Nothing else in the console
-changes.
+**Recovery: re-enter your password, or sign in again.** Either restarts both
+bounds and drops any step-up window. Nothing else in the console changes.
+
+#### Password re-authentication — `POST /api/colonel/reauthenticate`
+
+The expired banner asks for the account password and sends it to
+`POST /api/colonel/reauthenticate` (body `{ "password": "..." }`). A correct
+password:
+
+- renews the session id (a copy of the old cookie does not get the window back),
+- re-stamps `authenticated_at`, which restarts the absolute bound,
+- writes a fresh `last_activity_at`, which restarts the idle bound,
+- drops any step-up window. Re-authentication does **not** elevate; tier-1
+  verbs still need `POST /api/colonel/elevation`.
+
+It answers `200` with `{ record: { reauthenticated: true, authenticated_at },
+details: { session_rotated } }`. A wrong password answers **403**
+`reauthentication_failed` and changes nothing.
+
+This is the one admin API request the lifetime bounds do not refuse: exactly
+`POST` on exactly that path (`AdminSessionLifetime::REAUTH_EXEMPT`). The
+exemption does not open the rest of the surface:
+
+- every other session check still applies (signed in, surface, suspension,
+  credential change since sign-in, revoked active session), and the route still
+  requires the colonel role;
+- the endpoint does nothing without the password, verified the same way as
+  step-up, and attempts share the `colonel_elevation` rate-limit bucket with
+  step-up (see the rate-limit table above);
+- an attempt on an expired session is not counted as activity, so a wrong
+  password neither re-stamps the sign-in time nor slides the idle window.
+
+Audit: success is `colonel.reauthenticate` on the operator trail; a failure is
+`colonel.reauthenticate` with `result: failure` in the security trail
+(`reason: session_not_rotated` when the password verified but the session id
+could not be renewed).
+
+**Limits.** An account with no password (SSO-only) cannot use this endpoint and
+signs in again. Re-stamping `authenticated_at` also restarts the site-wide
+30-day absolute session lifetime in simple mode; in full mode the active-session
+row still counts that lifetime from the original sign-in.
 
 **Two caveats worth understanding before you rely on the idle bound.** The
 sidecar it reads is best-effort: a session that predates the feature or whose

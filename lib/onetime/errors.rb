@@ -621,6 +621,29 @@ module Onetime
     end
   end
 
+  # Raised when the colonel's password re-authentication for a lapsed admin
+  # session window fails (POST /api/colonel/reauthenticate, see
+  # ColonelAPI::Logic::Colonel::ReauthenticateSession): a wrong password, or
+  # a verified password whose session id could not be renewed. The sibling of
+  # {ElevationFailed}; a separate code because the console answers it
+  # differently (the expired-session banner, not the step-up prompt).
+  class ReauthenticationFailed < Forbidden
+    ERROR_CODE = 'reauthentication_failed'
+
+    def initialize(message = 'Password verification failed.', error_key: nil, args: {})
+      super
+    end
+
+    def to_h
+      {
+        error: message,
+        error_type: 'ReauthenticationFailed',
+        error_code: ERROR_CODE,
+        error_key: error_key,
+      }.compact
+    end
+  end
+
   # A destructive-action guard was called with no expected token — a programming
   # error in the calling logic class, never a caller-triggerable condition. 500,
   # never a silent admit. Distinct from a bare Onetime::Problem because Otto
