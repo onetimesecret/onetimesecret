@@ -3498,6 +3498,34 @@ describe('useSsoConfig', () => {
         expect(composable.applyMetadata()).toBe(false);
       });
 
+      // The save's response rehydrates the form, so values applied while it
+      // is pending would be discarded.
+      it('is refused while a save is pending and available again after it', async () => {
+        const composable = await loadIdpA();
+        await fetchB(composable);
+        let resolveSave: (value: unknown) => void;
+        mockSaveConfigForDomain.mockImplementation(
+          () =>
+            new Promise((resolve) => {
+              resolveSave = resolve;
+            })
+        );
+
+        const savePromise = composable.saveConfig();
+
+        expect(composable.isSaving.value).toBe(true);
+        expect(composable.canApplyMetadata.value).toBe(false);
+        expect(composable.applyMetadata()).toBe(false);
+        expect(trioAndSource(composable)).toEqual(IDP_A_VALUES);
+
+        resolveSave!({ record: recordA });
+        await savePromise;
+
+        expect(composable.canApplyMetadata.value).toBe(true);
+        expect(composable.applyMetadata()).toBe(true);
+        expect(composable.formState.value.idp_metadata_url).toBe(IDP_B_METADATA_URL);
+      });
+
       it('applies advertised NameID formats nowhere: no policy reaches the form or the save', async () => {
         const composable = await loadIdpA();
         mockSaveConfigForDomain.mockResolvedValue({ record: recordA });

@@ -630,11 +630,14 @@ export function useSsoConfig(domainExtId: string) {
   /**
    * Whether "Apply metadata" may copy the preview into the form: a saml form,
    * and a preview with an EntityID, an HTTP-Redirect SSO URL, no blocking
-   * problem and an eligible chosen certificate.
+   * problem and an eligible chosen certificate. Never while a save or delete
+   * is pending: its response rehydrates the form and would discard the
+   * applied values. The preview survives the save, so Apply comes back after.
    */
   const canApplyMetadata = computed(() => {
     const preview = metadataPreview.value;
     if (!preview || formState.value.provider_type !== 'saml') return false;
+    if (isSaving.value || isDeleting.value) return false;
     return metadataPreviewApplicable(preview);
   });
 
