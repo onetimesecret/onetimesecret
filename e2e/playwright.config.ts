@@ -228,9 +228,24 @@ export default defineConfig({
     {
       // Credential-free suites: all/ (runs in CI) and auth/ (unauthenticated
       // signup/SSO-CSRF flows). Keep the historical project name so existing
-      // `--project=chromium` invocations keep working.
+      // `--project=chromium` invocations keep working. i18n/ has its own
+      // project below.
       name: 'chromium',
-      testIgnore: ['full/**', 'full-billing/**', 'system/**', 'visual/**'],
+      testIgnore: ['full/**', 'full-billing/**', 'i18n/**', 'system/**', 'visual/**'],
+      use: {
+        ...devices['Desktop Chrome'],
+        // Extra time for container responses
+        actionTimeout: 30000,
+      },
+    },
+
+    {
+      // Locale loading (i18n/). Credential-free like `chromium`, so no
+      // `setup` dependency and no storageState, but the target must run with
+      // I18N_ENABLED=true, which is off by default: each test asserts that
+      // first. CI runs it in the `i18n` lane of .github/workflows/e2e.yml.
+      name: 'i18n',
+      testMatch: 'i18n/**/*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
         // Extra time for container responses
@@ -343,7 +358,8 @@ export default defineConfig({
    *
    * Container E2E (.github/workflows/e2e.yml) runs each suite as its own
    * matrix lane, one invocation on a single serial worker per lane:
-   * e2e/all/ (~70 tests, simple auth mode) and e2e/full/ (~300 tests incl.
+   * e2e/all/ (~70 tests, simple auth mode), e2e/i18n/ (a handful, simple
+   * auth mode with i18n on) and e2e/full/ (~300 tests incl.
    * setup, full auth mode; about 160 run, the rest are quarantined or
    * env-gated, ~3 min locally). The full lane sizes this budget: the old
    * 10-minute budget aborted runs at exactly 10.0m with hundreds of tests

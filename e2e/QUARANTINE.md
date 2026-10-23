@@ -1,13 +1,14 @@
 # E2E Test Quarantine
 
 > Part of the [E2E remediation plan](./docs/e2e-remediation-plan.md).
-> Container E2E (`.github/workflows/e2e.yml`) runs two **blocking** lanes, each
+> Container E2E (`.github/workflows/e2e.yml`) runs three **blocking** lanes, each
 > with its own image build, Valkey and flaky gate:
 >
 > | Lane | Auth mode | Suite |
 > |------|-----------|-------|
 > | `container-e2e-tests (simple)` | simple | `e2e/all/` |
 > | `container-e2e-tests (full)` | full | `e2e/full/` (plus the `setup` project) |
+> | `container-e2e-tests (i18n)` | simple, `I18N_ENABLED=true` | `e2e/i18n/` |
 >
 > **Flake is blocking, not silent**: a lane fails on any test that passes only
 > on retry (a `flaky` outcome). A flaky test gets fixed, or it gets
