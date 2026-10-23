@@ -16,14 +16,13 @@ import './assets/style.css';
 import { createAppRouter } from './router';
 import { AppInitializer } from './plugins/core/appInitializer';
 import { loggingService } from './services/logging.service';
+import { installPreloadErrorHandler } from './utils/preloadError';
 
-// Handle Vite chunk loading failures that occur when cached HTML references
-// stale chunk hashes after a deployment. Without this, users see a blank page.
-// A single reload fetches the fresh HTML with correct chunk references.
-window.addEventListener('vite:preloadError', (event) => {
-  event.preventDefault();
-  window.location.reload();
-});
+// A lazy chunk that fails to load (typically a tab still running the previous
+// build after a deployment) reloads the page once, through the ADR-046 forced
+// page load bound so a chunk that keeps failing cannot reload the tab in a
+// loop. See src/utils/preloadError.ts.
+installPreloadErrorHandler();
 
 /**
  * Initialize and mount the Vue application with all required plugins.

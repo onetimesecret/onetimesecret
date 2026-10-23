@@ -109,18 +109,11 @@ module Core
           assets << build_modulepreload_tag(file, nonce)
         end
 
-        # Handle CSS attached to this entry's chunk
-        if entry_data['css']&.any?
-          entry_data['css'].each do |css_file|
-            assets << build_css_tag(css_file, nonce)
-          end
-        end
-
-        # Handle separate style.css entry. With cssCodeSplit:false the whole
-        # build emits one stylesheet; depending on which entry it attaches to in
-        # the manifest, this shared lookup guarantees the shell still links it.
-        if style_entry && style_entry['file']
-          assets << build_css_tag(style_entry['file'], nonce)
+        # The stylesheet. With cssCodeSplit:false the whole build emits one,
+        # exposed under the manifest's `style.css` key; a chunk's own `css`
+        # list is included for completeness and deduplicated against it.
+        [*Array(entry_data['css']), style_entry&.dig('file')].compact.uniq.each do |css_file|
+          assets << build_css_tag(css_file, nonce)
         end
 
         assets.concat(build_font_preloads(manifest, nonce))
