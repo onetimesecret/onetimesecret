@@ -3260,6 +3260,77 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
       end
     end
 
+    # The fetch endpoint end to end, through the routes and the full stack:
+    # the guard ladder, the SSRF-guarded fetcher (WebMock at the HTTP
+    # boundary, the guard's DNS seam stubbed) and the parser.
+    describe 'POST /sso/metadata' do
+      let(:metadata_url) { 'https://meta.idp.example.com/federationmetadata.xml?appid=abc-123' }
+
+      def metadata_path
+        "/api/domains/#{test_custom_domain.extid}/sso/metadata"
+      end
+
+      def metadata_xml
+        cert_base64 = saml_cert.lines.reject { it.start_with?('-----') }.join.delete("\n")
+        <<~XML
+          <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" entityID="https://idp.example.com/saml/metadata">
+            <md:IDPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+              <md:KeyDescriptor use="signing"><ds:KeyInfo><ds:X509Data><ds:X509Certificate>#{cert_base64}</ds:X509Certificate></ds:X509Data></ds:KeyInfo></md:KeyDescriptor>
+              <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://idp.example.com/saml/sso"/>
+            </md:IDPSSODescriptor>
+          </md:EntityDescriptor>
+        XML
+      end
+
+      before do
+        allow(Onetime::Http::Guard).to receive(:resolve_addresses).and_return(['203.0.113.10'])
+      end
+
+      it 'fetches the document with the SAML metadata Accept header and returns the preview' do
+        stub_request(:get, metadata_url)
+          .with(headers: { 'Accept' => 'application/samlmetadata+xml, application/xml, text/xml' })
+          .to_return(status: 200, body: metadata_xml, headers: { 'Content-Type' => 'text/xml; charset=utf-8' })
+
+        csrf_post metadata_path, { metadata_url: metadata_url }
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect(json_body).to include(
+          'success' => true,
+          'metadata_url' => metadata_url,
+          'idp_entity_id' => 'https://idp.example.com/saml/metadata',
+          'idp_sso_service_url' => 'https://idp.example.com/saml/sso',
+          'problems' => [],
+        )
+        expect(json_body['signing_certificates'].map { it['pem'] }).to eq([saml_cert.strip])
+        expect(stored_config).to be_nil
+      end
+
+      it 'answers a fetch failure with HTTP 200 and the failure envelope' do
+        stub_request(:get, metadata_url).to_return(status: 404, body: 'Not Found')
+
+        csrf_post metadata_path, { metadata_url: metadata_url }
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect(json_body).to include('success' => false, 'metadata_url' => metadata_url)
+        expect(json_body['details']).to include('error_code' => 'metadata_not_found', 'http_status' => 404)
+      end
+
+      it 'refuses a blank metadata_url as a form error' do
+        csrf_post metadata_path, { metadata_url: '' }
+
+        expect(last_response.status).to eq(422), last_response.body
+        expect(json_body).to include('field' => 'metadata_url', 'error_type' => 'missing')
+      end
+
+      it 'refuses while SAML is switched off on the install' do
+        ClimateControl.modify(SAML_ENABLED: nil) { csrf_post metadata_path, { metadata_url: metadata_url } }
+
+        expect(last_response.status).to eq(422), last_response.body
+        expect(json_body['field']).to eq('provider_type')
+        expect(a_request(:get, metadata_url)).not_to have_been_made
+      end
+    end
+
     describe 'POST /sso/test' do
       it 'validates locally and reports the certificate expiry, without a client_id' do
         allow(Net::HTTP).to receive(:new).and_call_original
