@@ -61,14 +61,14 @@ describe('admin app — import isolation (CONTRACT 6)', () => {
  * transitively via `App.vue` -> axios interceptors). Only the built sourcemaps
  * can catch that transitive class, so we assert against them directly.
  *
- * The build is code-split (vite.config.ts): the admin entry chunk holds only
+ * The build is code-split (vite.config.ts): the admin entry chunk has only
  * the modules nothing else uses, what it shares with the customer entry sits
  * in shared chunks (`assets/<name>-<hash>.js`), and its lazy routes load their
  * own. The check therefore walks the entry's imports and dynamic imports
  * transitively from `.vite/manifest.json` (the graph the server shell preloads
  * from, see apps/web/core/views/helpers/vite_manifest.rb) and scans the
  * sourcemap of every reachable chunk. Rolldown's runtime and helper chunks (a
- * few dozen bytes, no source of ours) carry no sourcemap and are skipped.
+ * few dozen bytes, no source of ours) have no sourcemap and are skipped.
  *
  * When no build has been produced yet the check is skipped with a clear
  * pointer rather than silently passing. Run `pnpm build` first to enforce

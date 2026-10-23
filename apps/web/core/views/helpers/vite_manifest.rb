@@ -15,17 +15,18 @@ module Core
     #
     # CSP nonce model. The production script-src is nonce-only (otto's
     # production_directives), and exactly one <script type="module"> per shell
-    # carries the nonce. The chunks that script imports, statically or via
+    # has the nonce. The chunks that script imports, statically or via
     # import(), need no nonce of their own: the HTML spec defines a script's
     # cryptographic nonce as "The cryptographic nonce metadata used for the
     # initial fetch and for fetching any imported modules", and CSP's script
     # pre-request check allows a request whose nonce metadata matches the policy.
     # Two things do NOT inherit the nonce, and a blocked one breaks the page
-    # (the browser then refuses the later import of the same URL, and main.ts
-    # reloads the page on vite:preloadError, in a loop):
+    # (the browser then refuses the later import of the same URL, and the entry
+    # reloads the page on vite:preloadError, at most once a minute; see
+    # src/utils/preloadError.ts):
     #
     # - <link rel="modulepreload"> tags: each is its own fetch. The ones this
-    #   helper emits for the entry's static imports carry the nonce.
+    #   helper emits for the entry's static imports get the nonce.
     # - The <link> tags Vite's preload helper creates before a dynamic import:
     #   it reads the nonce from <meta property="csp-nonce" nonce="..."> (vite 8,
     #   the preload() helper in importAnalysisBuild), so this helper emits that
