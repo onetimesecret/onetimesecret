@@ -51,15 +51,15 @@ const READERS: Record<string, Reader> = {
   },
   'src/apps/secret/composables/useSecretLifecycle.ts': {
     marks: false,
-    why: 'keeps the value in state and renders nothing',
+    why: 'has no importers in src/; keeps the value in state and renders nothing. A view adopting it must mark the page itself',
   },
   'src/apps/workspace/account/RecoveryCodes.vue': {
     marks: true,
-    why: 'marks from the regenerate request going out until the codes panel is closed',
+    why: 'marks from the regenerate request going out until the codes are cleared',
   },
   'src/apps/session/components/OtpSetupWizard.vue': {
     marks: true,
-    why: 'marks from the enable request going out until the wizard closes',
+    why: 'marks from the enable request going out until the codes leave state or the wizard closes',
   },
   'src/shared/composables/useMfa.ts': {
     marks: false,
