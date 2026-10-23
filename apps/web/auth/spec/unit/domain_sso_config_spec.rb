@@ -358,6 +358,30 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
         expect { config.to_omniauth_options }
           .to raise_error(Onetime::Problem, /unreadable \(Familia::EncryptionError\)\z/)
       end
+
+      # The metadata URL (where the trio was imported from) is not a login
+      # input: the builder never reveals it, so neither a value nor a
+      # failure to decrypt one changes what the strategy runs on.
+      describe 'with an idp_metadata_url' do
+        let(:metadata_url) { 'https://idp.example.com/saml/metadata.xml' }
+
+        it 'builds exactly the trio options, without the URL' do
+          config = build_domain_sso_config(:saml, idp_metadata_url: metadata_url)
+
+          expect(config.to_omniauth_options).to eq(expected_domain_omniauth_options(:saml))
+          expect(config.to_omniauth_options.inspect).not_to include('metadata.xml')
+        end
+
+        it 'still builds when the URL cannot be decrypted' do
+          config    = build_domain_sso_config(:saml, idp_metadata_url: metadata_url)
+          concealed = double('ConcealedString')
+          allow(concealed).to receive(:reveal).and_raise(Familia::EncryptionError, 'tag mismatch')
+          allow(config).to receive(:idp_metadata_url).and_return(concealed)
+
+          expect(config.to_omniauth_options).to eq(expected_domain_omniauth_options(:saml))
+          expect(concealed).not_to have_received(:reveal)
+        end
+      end
     end
 
     # Tenant SSO is OIDC/Entra/SAML-only (#3902): issuerless providers resolve to
@@ -1188,6 +1212,60 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
         allow(config).to receive(:reveal_saml_field).with(:idp_cert).and_raise(Familia::EncryptionError, 'tag')
 
         expect(config.validation_errors).to eq(['idp_cert cannot be read (re-enter the value)'])
+      end
+    end
+
+    # Optional, and checked structurally only when present: no DNS here (the
+    # API write path adds the SSRF host check for a new value).
+    context 'with an idp_metadata_url' do
+      let(:metadata_url) { 'https://login.microsoftonline.com/common/federationmetadata/2007-06/federationmetadata.xml?appid=x' }
+
+      it 'accepts a valid https URL with a query, without resolving it' do
+        allow(Resolv).to receive(:getaddresses)
+        config = build_domain_sso_config(:saml, idp_metadata_url: metadata_url)
+
+        expect(config.validation_errors).to eq([])
+        expect(Resolv).not_to have_received(:getaddresses)
+      end
+
+      it 'accepts its absence' do
+        expect(build_domain_sso_config(:saml, idp_metadata_url: '').validation_errors).to eq([])
+      end
+
+      it 'refuses a structurally invalid value in metadata-URL words' do
+        %w[http://idp.example.com/metadata https://idp.example.com/metadata#frag].each do |url|
+          errors = build_domain_sso_config(:saml, idp_metadata_url: url).validation_errors
+
+          expect(errors).to eq([Onetime::SsoProvider::IdpMetadata::METADATA_URL_SHAPE_PROBLEM]), url
+          expect(errors.join).not_to include('SSO service URL')
+        end
+      end
+
+      it 'reports a value that cannot be decrypted, like a trio field' do
+        config    = build_domain_sso_config(:saml, idp_metadata_url: metadata_url)
+        concealed = double('ConcealedString')
+        allow(concealed).to receive(:reveal).and_raise(Familia::EncryptionError, 'tag')
+        allow(config).to receive(:idp_metadata_url).and_return(concealed)
+
+        expect(config.validation_errors).to eq(['idp_metadata_url cannot be read (re-enter or clear the value)'])
+      end
+
+      it 'is not a trio field, nor part of the credential fingerprint' do
+        config = build_domain_sso_config(:saml)
+        before = config.credential_fingerprint
+
+        config.idp_metadata_url = metadata_url
+
+        expect(described_class::SAML_FIELDS).not_to include(:idp_metadata_url)
+        expect(config.saml_trio.keys).to eq(described_class::SAML_FIELDS)
+        expect(config.credential_fingerprint).to eq(before)
+      end
+
+      it 'is an encrypted field bound to the domain' do
+        config = build_domain_sso_config(:saml, idp_metadata_url: metadata_url)
+
+        expect(config.idp_metadata_url.encrypted_value).not_to include('login.microsoftonline.com')
+        expect(config.reveal_idp_metadata_url).to eq(metadata_url)
       end
     end
 

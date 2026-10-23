@@ -9,6 +9,10 @@ require_relative '../../domain_validation/ascii_hostname'
 # Configuration-only and gem-free (it never loads omniauth-saml/ruby-saml):
 # the shared SAML validators and the single hardened-options builder (#4450).
 require_relative '../../sso_provider/saml'
+# The metadata-URL rule (#saml_validation_errors). Gem-free at load: it
+# requires ruby-saml only when a document is parsed, which the model never
+# does.
+require_relative '../../sso_provider/idp_metadata'
 # The token endpoint client-authentication mapping shared with the platform
 # OIDC definition (#4764).
 require_relative '../../sso_provider/oidc'
@@ -179,6 +183,23 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   encrypted_field :idp_cert, aad_fields: [:domain_id]
   encrypted_field :name_id_format, aad_fields: [:domain_id]
   encrypted_field :callback_origins_json, aad_fields: [:domain_id]
+
+  # Where the admin last imported the trio from: the SAML IdP metadata URL
+  # (docs/specs/sso/saml-idp-metadata-consumption.md, Phase 1). Optional,
+  # saml only (the API clears it for every other provider type). Like the
+  # trio it is not a SECRET, and the serializer returns it in plaintext; it
+  # is an encrypted_field for the same INTEGRITY reason, bound to domain_id
+  # through AAD: once a scheduled refresh reads it (Phase 2), it is the
+  # source the trust anchor is updated from, and a value swapped in from
+  # another domain's record must fail to decrypt rather than quietly point
+  # this domain's refresh at another IdP. Declared this way now so that
+  # change needs no field migration.
+  #
+  # It is NOT a login input and NOT a trio field: it is outside SAML_FIELDS,
+  # #saml_trio, #credential_fingerprint and #build_saml_options, which never
+  # reveal it, so an unreadable or malformed value cannot stop a sign-in. It
+  # is checked structurally, only when present (#saml_validation_errors).
+  encrypted_field :idp_metadata_url, aad_fields: [:domain_id]
 
   def saml_name_id_format
     value = name_id_format&.reveal { it }.to_s
@@ -579,6 +600,38 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
     concealed.reveal { it }.to_s
   end
 
+  # Plaintext of the stored metadata URL ('' when unset). RAISES on a
+  # reveal failure, for the reason #reveal_saml_field does: "cannot
+  # decrypt" is corruption or a swapped value, never "unset".
+  #
+  # @return [String]
+  # @raise [StandardError] whatever Familia raises when reveal fails
+  def reveal_idp_metadata_url
+    concealed = idp_metadata_url
+    return '' if concealed.nil?
+
+    concealed.reveal { it }.to_s
+  end
+
+  # The metadata URL's share of #saml_validation_errors: structural, and only
+  # when a value is stored. Public because RunDiagnostics subtracts it from
+  # the stored_configuration check: the URL is not a login input, so an
+  # unreadable or malformed value is the form's to report and repair and
+  # must not refuse activation.
+  #
+  # @return [Array<String>] empty, or one problem description
+  def idp_metadata_url_errors
+    value = begin
+      reveal_idp_metadata_url
+    rescue StandardError
+      nil
+    end
+    return ['idp_metadata_url cannot be read (re-enter or clear the value)'] if value.nil?
+    return [] if value.strip.empty?
+
+    [Onetime::SsoProvider::IdpMetadata.metadata_url_problem(value)].compact
+  end
+
   # The revealed trio, keyed the way
   # Onetime::SsoProvider::Saml.strategy_options_for takes it.
   #
@@ -873,6 +926,7 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
 
       config.name_id_format   = attrs[:name_id_format] if attrs.key?(:name_id_format)
       config.callback_origins = attrs[:callback_origins] if attrs.key?(:callback_origins)
+      config.idp_metadata_url = attrs[:idp_metadata_url] if attrs.key?(:idp_metadata_url)
 
       # Set allowed domains
       config.allowed_domains = attrs[:allowed_domains] if attrs.key?(:allowed_domains)
@@ -1037,6 +1091,11 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # The SSO URL gets no SSRF host check anywhere (the server never fetches
   # it; see DomainsAPI::Logic::SsoConfig::SamlFields); this method does no
   # I/O.
+  #
+  # The optional idp_metadata_url is checked the same way, structurally and
+  # only when present: the server DOES fetch it, so the API write path adds
+  # the SSRF host check, but that resolves DNS and does not belong in a
+  # model invariant. An unreadable value is reported like a trio field.
   def saml_validation_errors
     saml = Onetime::SsoProvider::Saml
 
@@ -1046,7 +1105,7 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
       ['SAML policy cannot be read (re-enter the value)']
     end
 
-    policy_errors + SAML_FIELDS.filter_map do |name|
+    trio_errors = SAML_FIELDS.filter_map do |name|
       value = begin
         reveal_saml_field(name)
       rescue StandardError
@@ -1060,5 +1119,7 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
       when :idp_cert            then saml.cert_problem(value, allow_expired: true, allow_unsupported_key: true)
       end
     end
+
+    policy_errors + trio_errors + idp_metadata_url_errors
   end
 end
