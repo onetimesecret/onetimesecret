@@ -252,6 +252,7 @@
     error: deleteError,
     run: runDelete,
     reset: resetDelete,
+    ensureElevated,
   } = useAdminDestructiveMutation(async (reason?: string) => {
     const secretId = receiptRecord.value?.secret_id;
     if (!secretId) throw new Error('No secret loaded');
@@ -286,7 +287,10 @@
    */
   const deleteToken = computed(() => receiptDetails.value?.metadata?.shortid ?? '');
 
-  function requestDelete(): void {
+  async function requestDelete(): Promise<void> {
+    // DeleteSecret is TIER 1 (#4327): elevate before the dialog collects the
+    // token and reason. Cancel opens nothing.
+    if (!(await ensureElevated())) return;
     resetDelete();
     deleteDialogOpen.value = true;
   }

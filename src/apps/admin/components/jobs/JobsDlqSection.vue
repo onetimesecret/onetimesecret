@@ -337,6 +337,7 @@
     error: actionError,
     run: runAction,
     reset: resetAction,
+    ensureElevated,
   } = useAdminDestructiveMutation(async (reason?: string) => {
     const verb = actionVerb.value;
     const messageId = actionMessageId.value;
@@ -353,8 +354,13 @@
         : readDiscardAck(messageId, response.data);
   });
 
-  function requestAction(verb: MessageVerb, messageId: string): void {
+  async function requestAction(verb: MessageVerb, messageId: string): Promise<void> {
     if (!selectedShort.value || !messageId) return;
+    // Discard is TIER 1 (DiscardDlqMessage, #4327): elevate before the dialog
+    // collects the token and reason. Replay is TIER 2 and opens straight away.
+    if (verb === 'discard' && !(await ensureElevated())) return;
+    // Re-read after the await: the selected queue is live state, not a snapshot.
+    if (!selectedShort.value) return;
     actionVerb.value = verb;
     actionMessageId.value = messageId;
     actionQueue.value = selectedShort.value;

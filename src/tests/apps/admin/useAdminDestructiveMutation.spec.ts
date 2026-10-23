@@ -1,12 +1,26 @@
 // src/tests/apps/admin/useAdminDestructiveMutation.spec.ts
 
+import { flushPromises, mount } from '@vue/test-utils';
 import { AxiosError } from 'axios';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { defineComponent } from 'vue';
+
+vi.mock('@/shared/composables/useApi', () => ({
+  useApi: () => ({ get: vi.fn(), post: vi.fn(), delete: vi.fn() }),
+}));
 
 import {
   resolveGuardCode,
   retryAfterMinutes,
+  useAdminDestructiveMutation,
+  type UseAdminDestructiveMutation,
 } from '@/apps/admin/composables/useAdminDestructiveMutation';
+import {
+  __resetColonelElevationState,
+  useColonelElevation,
+} from '@/apps/admin/composables/useColonelElevation';
+import { createTestI18n } from '@tests/setup';
+import { startElevated } from '@tests/apps/admin/support/elevation';
 
 /**
  * The two pure resolvers behind the destructive-mutation loop.
@@ -83,5 +97,68 @@ describe('retryAfterMinutes', () => {
     expect(retryAfterMinutes(axiosError(429, { retry_after: -5 }))).toBeNull();
     expect(retryAfterMinutes(axiosError(429, { retry_after: 'soon' }))).toBeNull();
     expect(retryAfterMinutes(new Error('network down'))).toBeNull();
+  });
+});
+
+/**
+ * The composable itself, in a bare host component (it calls useI18n). The
+ * view-level flows live in AdminCustomerDetailPurge.spec.ts; these pin the
+ * two seams a view relies on.
+ */
+describe('useAdminDestructiveMutation (mounted)', () => {
+  const i18n = createTestI18n();
+
+  function host(perform: () => Promise<unknown>): UseAdminDestructiveMutation<[]> {
+    let mutation: UseAdminDestructiveMutation<[]> | undefined;
+    mount(
+      defineComponent({
+        setup() {
+          mutation = useAdminDestructiveMutation(perform);
+          return () => null;
+        },
+      }),
+      { global: { plugins: [i18n] } }
+    );
+    return mutation!;
+  }
+
+  beforeEach(() => __resetColonelElevationState());
+  afterEach(() => __resetColonelElevationState());
+
+  // The tier-1 opener's guard is the shared elevation one, not a copy.
+  it('returns ensureElevated, which prompts when no window is live', async () => {
+    const mutation = host(() => Promise.resolve());
+    const elevation = useColonelElevation();
+
+    const pending = mutation.ensureElevated();
+    expect(elevation.promptOpen.value).toBe(true);
+
+    elevation.resolvePrompt(true);
+    await expect(pending).resolves.toBe(true);
+  });
+
+  // Fallback: the window lapsed server-side while the local countdown still
+  // reads live. The 403 must open the prompt, not retry blind into another 403.
+  it('opens the prompt on a 403 elevation_required even while a window reads live locally', async () => {
+    startElevated();
+    const perform = vi
+      .fn<() => Promise<unknown>>()
+      .mockRejectedValueOnce(
+        axiosError(403, { error: 'Step-up required', error_code: 'elevation_required' })
+      )
+      .mockResolvedValueOnce(undefined);
+    const mutation = host(perform);
+    const elevation = useColonelElevation();
+
+    const running = mutation.run();
+    await flushPromises();
+
+    expect(elevation.elevated.value).toBe(false);
+    expect(elevation.promptOpen.value).toBe(true);
+    expect(perform).toHaveBeenCalledTimes(1);
+
+    elevation.resolvePrompt(true);
+    await expect(running).resolves.toBe(true);
+    expect(perform).toHaveBeenCalledTimes(2);
   });
 });

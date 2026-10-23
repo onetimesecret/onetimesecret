@@ -61,6 +61,7 @@ vi.mock('@headlessui/vue', () => ({
 import AdminSessions from '@/apps/admin/views/AdminSessions.vue';
 import type { ColonelSession } from '@/schemas/api/internal/responses/colonel-sessions';
 import { createTestI18n } from '@tests/setup';
+import { startElevated } from '@tests/apps/admin/support/elevation';
 
 const i18n = createTestI18n();
 
@@ -189,6 +190,9 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
     setActivePinia(pinia);
     vi.clearAllMocks();
     vi.useFakeTimers();
+    // A live step-up window: these examples are about the dialogs, which a
+    // tier-1 opener only shows once elevated (see support/elevation.ts).
+    startElevated();
   });
   afterEach(() => {
     vi.runOnlyPendingTimers();

@@ -758,5 +758,73 @@
   "web.admin.organizations.detail.delete.errors.notApplied": {
     "text": "The server returned a preview, not a deletion. Nothing was deleted.",
     "content_hash": "9d84971d"
+  },
+  "web.admin.organizations.members.columns.actions": {
+    "text": "Actions",
+    "content_hash": "ff8059dc"
+  },
+  "web.admin.organizations.members.ownerLocked": {
+    "text": "The owner cannot be removed or given another role here. Ownership moves only by transferring it to another member (bin/ots organizations transfer-ownership).",
+    "content_hash": "f527d469"
+  },
+  "web.admin.organizations.members.changeRole.button": {
+    "text": "Change role",
+    "content_hash": "a43a8d8c"
+  },
+  "web.admin.organizations.members.changeRole.ariaLabel": {
+    "text": "Change the role of {member}",
+    "content_hash": "65dafc43"
+  },
+  "web.admin.organizations.members.changeRole.title": {
+    "text": "Change member role?",
+    "content_hash": "008d4c6c"
+  },
+  "web.admin.organizations.members.changeRole.description": {
+    "text": "Choose a new role for {member} in {org}. Their access in this organization is recalculated for the new role.",
+    "content_hash": "95c2ed5f"
+  },
+  "web.admin.organizations.members.changeRole.currentRole": {
+    "text": "Current role: {role}",
+    "content_hash": "d3a1c171"
+  },
+  "web.admin.organizations.members.changeRole.roleLabel": {
+    "text": "New role",
+    "content_hash": "500f2f9d"
+  },
+  "web.admin.organizations.members.changeRole.confirm": {
+    "text": "Change role",
+    "content_hash": "a43a8d8c"
+  },
+  "web.admin.organizations.members.changeRole.success": {
+    "text": "{member} is now {role}.",
+    "content_hash": "185c9a43"
+  },
+  "web.admin.organizations.members.changeRole.noChange": {
+    "text": "This member already has the role {role}. Nothing changed.",
+    "content_hash": "a65653c7"
+  },
+  "web.admin.organizations.members.remove.button": {
+    "text": "Remove",
+    "content_hash": "c3812fc4"
+  },
+  "web.admin.organizations.members.remove.ariaLabel": {
+    "text": "Remove {member} from this organization",
+    "content_hash": "05439575"
+  },
+  "web.admin.organizations.members.remove.title": {
+    "text": "Remove member?",
+    "content_hash": "fd8bd097"
+  },
+  "web.admin.organizations.members.remove.description": {
+    "text": "Remove {member} from {org}. They lose the access this membership gave them. Their account itself is not deleted.",
+    "content_hash": "bbe4d614"
+  },
+  "web.admin.organizations.members.remove.confirm": {
+    "text": "Remove member",
+    "content_hash": "9438e0ba"
+  },
+  "web.admin.organizations.members.remove.success": {
+    "text": "{member} removed from {org}.",
+    "content_hash": "6dde0210"
   }
 }

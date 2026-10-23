@@ -7,9 +7,10 @@ import {
   colonelElevationGrantResponseSchema,
   colonelElevationStatusResponseSchema,
 } from '@/schemas/api/internal/responses/colonel-elevation';
+import { colonelReauthenticateResponseSchema } from '@/schemas/api/internal/responses/colonel-reauthenticate';
 import { classifyError } from '@/schemas/errors';
 import { useApi } from '@/shared/composables/useApi';
-import { useAuthStore } from '@/shared/stores/authStore';
+import { useAuthStore, type RefreshReason } from '@/shared/stores/authStore';
 import { gracefulParse } from '@/utils/schemaValidation';
 
 import {
@@ -19,6 +20,7 @@ import {
 } from '../utils/adminSessionExpiry';
 
 const ELEVATION_URL = '/api/colonel/elevation';
+const REAUTHENTICATE_URL = '/api/colonel/reauthenticate';
 
 /**
  * The colonel step-up (sudo) window, as the console sees it (#4327).
@@ -56,6 +58,21 @@ const ELEVATION_URL = '/api/colonel/elevation';
  * mutation, which adopts the new epoch in place. Left to the next ordinary
  * refresh, the new epoch would read as a session replaced elsewhere and force
  * a page load. That is one request per granted window, not a timer.
+ *
+ * ## Elevate before the dialog, not after the refusal
+ *
+ * A tier-1 verb's opener calls {@link ensureElevated} BEFORE its confirmation
+ * dialog opens (see useAdminDestructiveMutation), so the operator proves the
+ * credential first and fills in the reason and typed token once. The 403
+ * `elevation_required` loop stays as the fallback for a window that lapses
+ * while the dialog is open; {@link noteElevationRequired} lets that 403
+ * overrule a local countdown that still reads live.
+ *
+ * ## Recovering an expired admin session by password
+ *
+ * {@link reauthenticate} posts the operator's password to the one /api/colonel
+ * route exempt from the admin session bound (#4331). It is an operator
+ * gesture, never a timer, and it does not grant a step-up window.
  */
 
 // ─── Module-level singleton state ────────────────────────────────────────────
@@ -73,6 +90,14 @@ const factors = ref<string[]>(['password']);
 const activeFactor = ref<string | null>(null);
 const loading = ref(false);
 const error = ref<string | null>(null);
+
+/**
+ * Expired-session re-authentication (#4331). Separate from `loading`/`error`:
+ * those belong to the sudo prompt, and the elevation status refresh clears
+ * `error` on every run.
+ */
+const reauthLoading = ref(false);
+const reauthError = ref<string | null>(null);
 
 /** Prompt state, shared so ONE ElevationPrompt instance can serve the console. */
 const promptOpen = ref(false);
@@ -192,7 +217,7 @@ async function elevate(factor: string, password?: string): Promise<boolean> {
       if (parsed.data.record) applyRecord(parsed.data.record);
       activeFactor.value = parsed.data.details?.factor ?? factor;
     }
-    await adoptRenewedSession();
+    await adoptRenewedSession('elevation');
     return true;
   } catch (err) {
     error.value = classifyError(err).message;
@@ -207,13 +232,15 @@ async function elevate(factor: string, password?: string): Promise<boolean> {
 
 /**
  * Adopt the session id the server moved this session to on a granted window
- * (see the module doc). `refresh()` reports its own failures through its
- * outcome; a throw here (no active Pinia) must not turn a granted window into
- * an error in the prompt.
+ * or a re-authentication (see the module doc). `refresh()` reports its own
+ * failures through its outcome; a throw here (no active Pinia) must not turn a
+ * success into an error in the prompt.
  */
-async function adoptRenewedSession(): Promise<void> {
+async function adoptRenewedSession(
+  reason: Extract<RefreshReason, 'elevation' | 'reauth'>
+): Promise<void> {
   try {
-    await useAuthStore().refresh({ kind: 'auth-mutation', reason: 'elevation' });
+    await useAuthStore().refresh({ kind: 'auth-mutation', reason });
   } catch {
     // The next ordinary refresh still reconciles, by a page load.
   }
@@ -236,6 +263,52 @@ async function drop(): Promise<boolean> {
 }
 
 /**
+ * Re-authenticate an expired admin session with the account password (#4331).
+ *
+ * POST /api/colonel/reauthenticate is the one console route exempt from the
+ * admin session bound, so it answers while every other call 401s. On success
+ * the server has moved the session to a new id and re-stamped
+ * `authenticated_at`; it does NOT grant a step-up window.
+ *
+ * Returns false with the server's message in {@link reauthError} on failure
+ * (a wrong password is a 403 `reauthentication_failed`). On success it
+ * reloads the page and does not return in practice.
+ */
+async function reauthenticate(password: string): Promise<boolean> {
+  reauthLoading.value = true;
+  reauthError.value = null;
+  try {
+    const response = await client().post(REAUTHENTICATE_URL, { password });
+    // A 2xx means the server re-stamped the session whatever the ack shape;
+    // the parse keeps the contract a live tripwire without failing recovery.
+    gracefulParse(
+      colonelReauthenticateResponseSchema,
+      response.data,
+      'ColonelReauthenticateResponse'
+    );
+  } catch (err) {
+    reauthError.value = classifyError(err).message;
+    reauthLoading.value = false;
+    return false;
+  }
+
+  clearAdminSessionExpired();
+  // These two leave this tab's state correct on their own: a beforeunload
+  // handler can cancel the reload below, and the console must then still hold
+  // the new snapshot epoch and the live elevation state.
+  await adoptRenewedSession('reauth');
+  await refresh();
+  reauthLoading.value = false;
+
+  // Every view on screen already failed its load with a 401 and holds that
+  // error. A full reload at the current URL re-runs every loader against the
+  // renewed session; re-fetching each one in place would need a registry of
+  // loaders that the console does not have.
+  window.location.reload();
+  return true;
+}
+
+/**
  * Open the sudo prompt and wait for the operator.
  *
  * ALWAYS requires an explicit gesture — there is no silent grace-first
@@ -249,6 +322,31 @@ function requestElevation(): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
     promptResolve = resolve;
   });
+}
+
+/**
+ * Make sure a window is live BEFORE a tier-1 verb's own confirmation dialog
+ * opens, so the operator proves the credential first and then fills in the
+ * action (reason, typed confirmation) exactly once. Resolves true at once when
+ * step-up is disabled by config (the server will not ask for it) or a window is
+ * already live; otherwise opens the prompt and resolves with the operator's
+ * answer. The 403 retry loop in useAdminDestructiveMutation stays as the
+ * fallback for a window that lapses while the dialog is open.
+ */
+function ensureElevated(): Promise<boolean> {
+  if (!enabled.value) return Promise.resolve(true);
+  return requestElevation();
+}
+
+/**
+ * The server answered 403 `elevation_required`, so no window is live whatever
+ * the local countdown says (clock skew, a window dropped in another tab, an
+ * identity change). Clear it locally so {@link requestElevation} prompts
+ * instead of resolving true and letting the caller retry into the same 403.
+ * Issues no HTTP: the prompt refreshes status when it opens.
+ */
+function noteElevationRequired(): void {
+  applyRecord({ elevated: false, expires_at: null, seconds_remaining: 0 });
 }
 
 /** Called by the prompt when the operator finishes or dismisses it. */
@@ -287,12 +385,22 @@ export interface UseColonelElevation {
    * elevation state.
    */
   adminSessionExpired: Ref<boolean>;
+  /** True while a password re-authentication of the expired session is in flight. */
+  reauthLoading: Ref<boolean>;
+  /** The server's message for the last failed re-authentication, or null. */
+  reauthError: Ref<string | null>;
   promptOpen: Ref<boolean>;
   refresh: () => Promise<void>;
   elevate: (factor: string, password?: string) => Promise<boolean>;
   drop: () => Promise<boolean>;
+  /** Re-authenticate an expired admin session by password, then reload the page. */
+  reauthenticate: (password: string) => Promise<boolean>;
   /** Open the sudo prompt and resolve once the operator elevates or cancels. */
   requestElevation: () => Promise<boolean>;
+  /** Resolve true when elevated (or step-up is disabled), prompting first if needed. */
+  ensureElevated: () => Promise<boolean>;
+  /** A 403 `elevation_required` arrived: drop any window the local countdown still shows. */
+  noteElevationRequired: () => void;
   /** Called by the prompt when the operator finishes or dismisses it. */
   resolvePrompt: (didElevate: boolean) => void;
 }
@@ -317,11 +425,16 @@ export function useColonelElevation(): UseColonelElevation {
     error,
     unsatisfiable,
     adminSessionExpired,
+    reauthLoading,
+    reauthError,
     promptOpen,
     refresh,
     elevate,
     drop,
+    reauthenticate,
     requestElevation,
+    ensureElevated,
+    noteElevationRequired,
     resolvePrompt,
   };
 }
@@ -344,5 +457,7 @@ export function __resetColonelElevationState(): void {
   activeFactor.value = null;
   loading.value = false;
   error.value = null;
+  reauthLoading.value = false;
+  reauthError.value = null;
   clearAdminSessionExpired();
 }

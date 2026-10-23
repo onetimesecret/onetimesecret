@@ -303,6 +303,7 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
+    ensureElevated,
   } = useAdminDestructiveMutation(async (reason?: string) => {
     switch (activeAction.value) {
       case 'verify':
@@ -396,7 +397,16 @@
     };
   });
 
-  function requestAction(key: ActionKey): void {
+  /**
+   * TIER 1 (TransferDomain, RemoveCustomDomain): elevate before the dialog
+   * collects the token and reason (#4327). Repair is TIER 2 and verify is
+   * un-gated. The transfer/remove previews are dry runs, which the server
+   * exempts from the gate, so only the apply dialog prompts.
+   */
+  const ELEVATED_ACTIONS: readonly ActionKey[] = ['transfer', 'remove'];
+
+  async function requestAction(key: ActionKey): Promise<void> {
+    if (ELEVATED_ACTIONS.includes(key) && !(await ensureElevated())) return;
     activeAction.value = key;
     resetMutation();
     dialogOpen.value = true;

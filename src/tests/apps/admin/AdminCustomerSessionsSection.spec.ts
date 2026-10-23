@@ -30,6 +30,10 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 
 import AdminCustomerSessionsSection from '@/apps/admin/components/AdminCustomerSessionsSection.vue';
 import SessionAuthorityNotice from '@/apps/admin/components/SessionAuthorityNotice.vue';
+import {
+  __resetColonelElevationState,
+  useColonelElevation,
+} from '@/apps/admin/composables/useColonelElevation';
 import type { SessionAuthority } from '@/schemas/api/internal/responses/colonel-sessions';
 import {
   colonelCustomerSessionsResponseSchema,
@@ -204,6 +208,49 @@ describe('AdminCustomerSessionsSection — current-session badge', () => {
       expect(revokeAllDescription(wrapper)).toBe(
         'web.admin.customers.detail.sessions.revokeAll.selfDescription'
       );
+    });
+  });
+
+  // #4327: both verbs are tier 1, so the sudo prompt comes BEFORE the dialog
+  // that collects the reason. A cancelled prompt opens nothing.
+  describe('step-up before the dialog', () => {
+    /** [per-row revoke, revoke-all], in template order. */
+    const dialogOpen = (w: VueWrapper) =>
+      w.findAllComponents({ name: 'AdminConfirmDialog' }).map((d) => d.props('open'));
+
+    beforeEach(() => __resetColonelElevationState());
+    afterEach(() => __resetColonelElevationState());
+
+    it('prompts before the revoke-all dialog and opens it once elevated', async () => {
+      mockApi.get.mockResolvedValue({ data: sessionsPayload(undefined, null) });
+      wrapper = mountSection();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="sessions-revoke-all"]').trigger('click');
+      await flushPromises();
+
+      const elevation = useColonelElevation();
+      expect(elevation.promptOpen.value).toBe(true);
+      expect(dialogOpen(wrapper)).toEqual([false, false]);
+
+      elevation.resolvePrompt(true);
+      await flushPromises();
+      expect(dialogOpen(wrapper)).toEqual([false, true]);
+    });
+
+    it('prompts before a per-row revoke, and opens nothing when cancelled', async () => {
+      mockApi.get.mockResolvedValue({ data: sessionsPayload(undefined, null) });
+      wrapper = mountSection();
+      await flushPromises();
+
+      await revoke(wrapper, 'a15e5510000000000000000000000002').trigger('click');
+      await flushPromises();
+      expect(useColonelElevation().promptOpen.value).toBe(true);
+
+      useColonelElevation().resolvePrompt(false);
+      await flushPromises();
+      expect(dialogOpen(wrapper)).toEqual([false, false]);
+      expect(mockApi.delete).not.toHaveBeenCalled();
     });
   });
 });

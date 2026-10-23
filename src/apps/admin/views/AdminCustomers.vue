@@ -248,6 +248,7 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
+    ensureElevated,
   } = useAdminDestructiveMutation(async (reason?: string) => {
     const target = actionTarget.value;
     const action = activeAction.value;
@@ -316,10 +317,13 @@
     };
   });
 
-  function requestAction(key: ActionKey, row: ColonelUser): void {
+  async function requestAction(key: ActionKey, row: ColonelUser): Promise<void> {
     // Fail closed: never open a purge dialog whose typed token would be blank —
     // AdminConfirmDialog runs an empty token as a one-click simple confirm.
     if (key === 'purge' && !purgeTokenFor(row)) return;
+    // Purge is TIER 1 (#4327): elevate before the dialog collects the token and
+    // reason. Verify/unverify are not elevation-gated. Cancel opens nothing.
+    if (key === 'purge' && !(await ensureElevated())) return;
     activeAction.value = key;
     actionTarget.value = row;
     resetMutation(); // clear any error left from a previous attempt

@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import AdminAccountDiagnosticsSection from '@/apps/admin/components/AdminAccountDiagnosticsSection.vue';
   import AdminCustomerSessionsSection from '@/apps/admin/components/AdminCustomerSessionsSection.vue';
+  import AdminCustomerOrganizationsSection from '@/apps/admin/components/customers/AdminCustomerOrganizationsSection.vue';
   import {
     AdminConfirmDialog,
     DataTable,
@@ -399,6 +400,7 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
+    ensureElevated,
   } = useAdminDestructiveMutation(async (reason?: string) => {
     // Every DANGER action is gated server-side (#4326) on the SAME token the
     // dialog asks the operator to retype. A missing one is a bug, not a
@@ -647,12 +649,22 @@
     purge: 'web.admin.customers.actions.purge.success',
   };
 
-  function requestAction(key: ActionKey): void {
+  /**
+   * The TIER 1 verbs on this page (SetUserRole, PurgeUser in
+   * ColonelAPI::DestructiveActions). Their openers prove the step-up
+   * credential BEFORE the dialog collects the token and reason; the TIER 2 and
+   * un-gated verbs here open straight away.
+   */
+  const ELEVATED_ACTIONS: readonly ActionKey[] = ['setRole', 'purge'];
+
+  async function requestAction(key: ActionKey): Promise<void> {
     // Fail closed: never open a danger dialog whose typed token is blank —
     // AdminConfirmDialog runs an empty token as a one-click simple confirm.
     if (DANGER_ACTIONS.includes(key) && !confirmTokenFor(key)) return;
     // ...nor one the server's self-target interlocks will refuse (#4328).
     if (key === 'unverify' && selfUnverifyBlocked.value) return;
+    // Elevate first (#4327); a cancelled prompt opens nothing.
+    if (ELEVATED_ACTIONS.includes(key) && !(await ensureElevated())) return;
     activeAction.value = key;
     resetMutation();
     dialogOpen.value = true;
@@ -666,15 +678,15 @@
    */
   function requestImpersonate(): void {
     if (!impersonateAvailable.value || !impersonateReason.value.trim()) return;
-    requestAction('impersonate');
+    void requestAction('impersonate');
   }
 
-  function requestSetRole(): void {
+  async function requestSetRole(): Promise<void> {
     // No-op guard: ignore if the role is unchanged (nothing to confirm).
     if (!pendingRole.value || pendingRole.value === record.value?.role) return;
     // Fail closed on the interlocks the server enforces (#4328).
     if (selfDemoteBlocked.value) return;
-    requestAction('setRole');
+    await requestAction('setRole');
   }
 
   async function onConfirm(reason?: string): Promise<void> {
@@ -1274,68 +1286,13 @@
         </section>
       </div>
 
-      <!-- Organizations -->
-      <section
-        class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-            {{ t('web.admin.customers.detail.sections.organizations') }}
-            <span
-              v-if="details.organizations"
-              class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
-              >({{ details.organizations.length }})</span
-            >
-          </h3>
-        </div>
-        <p
-          v-if="!details.organizations"
-          class="px-6 py-8 text-center text-sm text-amber-700 dark:text-amber-400"
-          data-testid="section-invalid-organizations">
-          {{ t('web.admin.customers.detail.sectionInvalid') }}
-        </p>
-        <ul
-          v-else-if="details.organizations.length > 0"
-          class="divide-y divide-gray-200 dark:divide-gray-800"
-          data-testid="organizations-list">
-          <li
-            v-for="org in details.organizations"
-            :key="org.organization_id"
-            class="flex items-center justify-between px-6 py-3">
-            <div class="min-w-0">
-              <p class="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
-                {{ org.display_name || t('web.admin.customers.detail.none') }}
-              </p>
-              <p class="truncate font-mono text-xs text-gray-400 dark:text-gray-500">
-                {{ org.extid }}
-              </p>
-            </div>
-            <div class="ml-3 flex shrink-0 items-center gap-2">
-              <!-- This customer's default, not the owner's auto-created workspace -->
-              <span
-                v-if="org.is_customer_default"
-                data-testid="organization-default-badge"
-                class="rounded bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
-                {{ t('web.admin.customers.detail.organizations.default') }}
-              </span>
-              <router-link
-                :to="{ name: 'AdminOrganizationDetail', params: { id: org.extid } }"
-                data-testid="organization-link"
-                class="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800">
-                {{ t('web.admin.customers.detail.organizations.open') }}
-                <OIcon
-                  collection="heroicons"
-                  name="arrow-right"
-                  size="4" />
-              </router-link>
-            </div>
-          </li>
-        </ul>
-        <p
-          v-else
-          class="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.admin.customers.detail.organizations.empty') }}
-        </p>
-      </section>
+      <!-- Organizations, with this customer's default marked and the control
+           that moves the default to another organization in the list. -->
+      <AdminCustomerOrganizationsSection
+        :user-id="publicId"
+        :organizations="details.organizations"
+        :confirm-token="accountConfirmToken(record) ?? ''"
+        @changed="refreshUser().catch(() => {})" />
 
       <!-- Secrets -->
       <section

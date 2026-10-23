@@ -76,6 +76,7 @@ globalThis.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserv
 import AdminCustomers from '@/apps/admin/views/AdminCustomers.vue';
 import { useAdminCustomers } from '@/apps/admin/stores/useAdminCustomers';
 import { createTestI18n } from '@tests/setup';
+import { startElevated } from '@tests/apps/admin/support/elevation';
 
 const i18n = createTestI18n();
 
@@ -145,6 +146,9 @@ describe('AdminCustomers — drawer operator actions', () => {
     pinia = createPinia();
     setActivePinia(pinia);
     vi.clearAllMocks();
+    // A live step-up window: these examples are about the dialogs, which a
+    // tier-1 opener only shows once elevated (see support/elevation.ts).
+    startElevated();
   });
   afterEach(() => wrapper?.unmount());
 

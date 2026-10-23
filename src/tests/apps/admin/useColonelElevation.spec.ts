@@ -1,5 +1,6 @@
 // src/tests/apps/admin/useColonelElevation.spec.ts
 
+import { AxiosError } from 'axios';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
@@ -27,6 +28,10 @@ import {
   __resetColonelElevationState,
   useColonelElevation,
 } from '@/apps/admin/composables/useColonelElevation';
+import {
+  ADMIN_SESSION_EXPIRED_PREFIX,
+  noteAdminSessionExpiry,
+} from '@/apps/admin/utils/adminSessionExpiry';
 import { useAuthStore } from '@/shared/stores/authStore';
 
 const NOW = 1_700_000_000;
@@ -305,6 +310,203 @@ describe('useColonelElevation', () => {
       await elevation.refresh();
 
       expect(elevation.unsatisfiable.value).toBe(false);
+    });
+  });
+});
+
+// The tier-1 pre-prompt seam and expired-session recovery. Same harness as above.
+describe('useColonelElevation — pre-prompt and re-authentication', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW * 1000);
+    __resetColonelElevationState();
+  });
+
+  afterEach(() => {
+    __resetColonelElevationState();
+    vi.useRealTimers();
+  });
+
+  // The tier-1 openers' guard: prove the credential BEFORE the dialog.
+  describe('ensureElevated', () => {
+    it('resolves true without prompting when step-up is disabled by config', async () => {
+      mockApi.get.mockResolvedValue({ data: statusPayload({ details: { enabled: false } }) });
+      const elevation = useColonelElevation();
+      await elevation.refresh();
+
+      await expect(elevation.ensureElevated()).resolves.toBe(true);
+      expect(elevation.promptOpen.value).toBe(false);
+    });
+
+    it('resolves true without prompting when a window is already live', async () => {
+      mockApi.get.mockResolvedValue({
+        data: statusPayload({
+          record: { elevated: true, expires_at: NOW + 600, seconds_remaining: 600 },
+        }),
+      });
+      const elevation = useColonelElevation();
+      await elevation.refresh();
+
+      await expect(elevation.ensureElevated()).resolves.toBe(true);
+      expect(elevation.promptOpen.value).toBe(false);
+    });
+
+    it.each([true, false])(
+      'otherwise opens the prompt and resolves with the operator answer (%s)',
+      async (answer) => {
+        const elevation = useColonelElevation();
+        const pending = elevation.ensureElevated();
+
+        expect(elevation.promptOpen.value).toBe(true);
+        elevation.resolvePrompt(answer);
+        await expect(pending).resolves.toBe(answer);
+        expect(elevation.promptOpen.value).toBe(false);
+      }
+    );
+
+    it('makes no request of its own', async () => {
+      const elevation = useColonelElevation();
+      void elevation.ensureElevated();
+      elevation.resolvePrompt(false);
+      await vi.advanceTimersByTimeAsync(5_000);
+
+      expect(mockApi.get).not.toHaveBeenCalled();
+      expect(mockApi.post).not.toHaveBeenCalled();
+    });
+  });
+
+  // A 403 elevation_required outranks a local countdown that still reads live
+  // (clock skew, a window dropped elsewhere). Without this the retry loop's
+  // requestElevation() would resolve true at once and retry into the same 403.
+  describe('noteElevationRequired', () => {
+    it('clears a locally live window, so the next request prompts', async () => {
+      mockApi.get.mockResolvedValue({
+        data: statusPayload({
+          record: { elevated: true, expires_at: NOW + 600, seconds_remaining: 600 },
+        }),
+      });
+      const elevation = useColonelElevation();
+      await elevation.refresh();
+      const calls = mockApi.get.mock.calls.length;
+
+      elevation.noteElevationRequired();
+
+      expect(elevation.elevated.value).toBe(false);
+      expect(elevation.expiresAt.value).toBeNull();
+      expect(elevation.secondsRemaining.value).toBe(0);
+      expect(mockApi.get.mock.calls.length).toBe(calls);
+
+      void elevation.requestElevation();
+      expect(elevation.promptOpen.value).toBe(true);
+      elevation.resolvePrompt(false);
+    });
+  });
+
+  // Recovery from an expired admin session (#4331) without leaving the page.
+  describe('reauthenticate', () => {
+    function reauthPayload() {
+      return {
+        shrimp: '',
+        record: { reauthenticated: true, authenticated_at: NOW },
+        details: { session_rotated: true },
+      };
+    }
+
+    let reloadMock: ReturnType<typeof vi.fn>;
+    const originalLocation = window.location;
+
+    beforeEach(() => {
+      reloadMock = vi.fn();
+      Object.defineProperty(window, 'location', {
+        value: { ...originalLocation, reload: reloadMock },
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(window, 'location', {
+        value: originalLocation,
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    function expire(): void {
+      const error = new AxiosError('Request failed with status code 401');
+      error.response = {
+        status: 401,
+        statusText: 'Unauthorized',
+        headers: {},
+        config: {} as never,
+        data: {
+          error: 'Authentication Required',
+          message: `${ADMIN_SESSION_EXPIRED_PREFIX} Admin session idle timeout exceeded`,
+        },
+      };
+      noteAdminSessionExpiry(error);
+    }
+
+    it('POSTs the password, clears the expired flag, adopts the session, refreshes and reloads', async () => {
+      const authStore = useAuthStore();
+      const authRefresh = vi.spyOn(authStore, 'refresh').mockResolvedValue('applied');
+      mockApi.post.mockResolvedValue({ data: reauthPayload() });
+      mockApi.get.mockResolvedValue({ data: statusPayload() });
+      const elevation = useColonelElevation();
+      expire();
+      expect(elevation.adminSessionExpired.value).toBe(true);
+
+      const ok = await elevation.reauthenticate('hunter2');
+
+      expect(ok).toBe(true);
+      expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/reauthenticate', {
+        password: 'hunter2',
+      });
+      expect(elevation.adminSessionExpired.value).toBe(false);
+      expect(authRefresh).toHaveBeenCalledWith({ kind: 'auth-mutation', reason: 'reauth' });
+      expect(mockApi.get).toHaveBeenCalledWith('/api/colonel/elevation');
+      expect(reloadMock).toHaveBeenCalledTimes(1);
+      expect(elevation.reauthError.value).toBeNull();
+      expect(elevation.reauthLoading.value).toBe(false);
+    });
+
+    // Re-authentication renews the admin session; it is not a step-up.
+    it('does not grant an elevation window', async () => {
+      vi.spyOn(useAuthStore(), 'refresh').mockResolvedValue('applied');
+      mockApi.post.mockResolvedValue({ data: reauthPayload() });
+      mockApi.get.mockResolvedValue({ data: statusPayload() });
+      const elevation = useColonelElevation();
+
+      await elevation.reauthenticate('hunter2');
+
+      expect(elevation.elevated.value).toBe(false);
+      expect(mockApi.post).not.toHaveBeenCalledWith('/api/colonel/elevation', expect.anything());
+    });
+
+    it('reports a wrong password and changes nothing else', async () => {
+      const authRefresh = vi.spyOn(useAuthStore(), 'refresh').mockResolvedValue('applied');
+      const refused = new AxiosError('Request failed with status code 403');
+      refused.response = {
+        status: 403,
+        statusText: 'Forbidden',
+        headers: {},
+        config: {} as never,
+        data: { error: 'Password verification failed.', error_code: 'reauthentication_failed' },
+      };
+      mockApi.post.mockRejectedValue(refused);
+      const elevation = useColonelElevation();
+      expire();
+
+      const ok = await elevation.reauthenticate('wrong');
+
+      expect(ok).toBe(false);
+      expect(elevation.reauthError.value).toBe('Password verification failed.');
+      expect(elevation.reauthLoading.value).toBe(false);
+      expect(elevation.adminSessionExpired.value).toBe(true);
+      expect(authRefresh).not.toHaveBeenCalled();
+      expect(mockApi.get).not.toHaveBeenCalled();
+      expect(reloadMock).not.toHaveBeenCalled();
     });
   });
 });

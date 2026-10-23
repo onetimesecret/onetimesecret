@@ -15,9 +15,32 @@ import { useColonelElevation } from './useColonelElevation';
  * The sudo prompt is mounted ONCE in AdminLayout and driven through the shared
  * elevation state, so no view has to render or own it.
  *
- * ## The loop
+ * ## Elevate first: `ensureElevated` in the opener
+ *
+ * The opener of every TIER 1 action (the backend's
+ * `ColonelAPI::DestructiveActions::TIER1`) starts with
+ *
+ *   if (!(await ensureElevated())) return;
+ *
+ * and only then opens its own confirmation dialog. The dialog collects the
+ * typed token and the operator's reason; it must collect them ONCE, after the
+ * credential. Prompting only on the 403 meant the dialog closed under the
+ * operator, the reason was lost, and they could not tell whether the action
+ * had run. A cancelled prompt opens nothing and reports nothing.
+ *
+ * It is returned from here rather than imported per view so the guard sits
+ * next to the mutation it protects. One mutation can serve several verbs of
+ * different tiers (AdminCustomerDetail's role/verify/suspend/purge switch), so
+ * the opener decides per verb; TIER 2 verbs (suspend, unverify, replay, run
+ * chore, impersonate, ...) never call it.
+ *
+ * ## The fallback loop
  *
  *   attempt → 403 elevation_required → prompt → operator acts → retry ONCE
+ *
+ * The opener's guard leaves this for a window that lapses while the dialog is
+ * open. The 403 overrules any countdown still showing locally (see
+ * `noteElevationRequired`), so the prompt opens rather than a blind retry.
  *
  * The retry happens only AFTER the operator completes the prompt. It is never
  * silent: an automatic elevate-and-retry would put the whole flow back where the
@@ -113,9 +136,19 @@ function isOtsLimiterRejection(error: unknown): boolean {
   return responseOf(error)?.data?.error_type === 'LimitExceeded';
 }
 
+export interface UseAdminDestructiveMutation<
+  TArgs extends unknown[],
+> extends UseAdminMutation<TArgs> {
+  /**
+   * Resolve true once a step-up window is live (or step-up is disabled),
+   * prompting first. Call it at the top of a TIER 1 opener — see the header.
+   */
+  ensureElevated: () => Promise<boolean>;
+}
+
 export function useAdminDestructiveMutation<TArgs extends unknown[]>(
   perform: (...args: TArgs) => Promise<unknown>
-): UseAdminMutation<TArgs> {
+): UseAdminDestructiveMutation<TArgs> {
   const mutation = useAdminMutation(perform);
   const elevation = useColonelElevation();
   const { t } = useI18n();
@@ -141,6 +174,10 @@ export function useAdminDestructiveMutation<TArgs extends unknown[]>(
     }
     if (code !== 'needs_elevation') return false;
 
+    // The server just said no window is live; a countdown still running here
+    // must not short-circuit the prompt into a blind retry.
+    elevation.noteElevationRequired();
+
     // The server refreshes what the console knows about this account's factors
     // on the same fetch that opens the prompt.
     if (!(await elevation.requestElevation())) return false;
@@ -151,5 +188,5 @@ export function useAdminDestructiveMutation<TArgs extends unknown[]>(
     return false;
   }
 
-  return { ...mutation, run };
+  return { ...mutation, run, ensureElevated: elevation.ensureElevated };
 }

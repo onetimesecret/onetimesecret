@@ -233,6 +233,7 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
+    ensureElevated,
   } = useAdminDestructiveMutation(async () => {
     switch (activeAction.value) {
       case 'ensure': {
@@ -279,7 +280,10 @@
     dialogOpen.value = true;
   }
 
-  function requestDelete(kind: DomainConfigKind): void {
+  async function requestDelete(kind: DomainConfigKind): Promise<void> {
+    // DeleteDomainConfig is TIER 1 (#4327): elevate before the dialog opens.
+    // Ensure is un-gated and opens straight away. Cancel opens nothing.
+    if (!(await ensureElevated())) return;
     deleteKind.value = kind;
     requestAction('delete');
   }

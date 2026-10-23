@@ -75,9 +75,14 @@ vi.mock('@headlessui/vue', () => ({
   TransitionChild: { name: 'TransitionChild', template: '<div><slot /></div>', props: ['as'] },
 }));
 
+import {
+  __resetColonelElevationState,
+  useColonelElevation,
+} from '@/apps/admin/composables/useColonelElevation';
 import AdminCustomerDetail from '@/apps/admin/views/AdminCustomerDetail.vue';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { createTestI18n } from '@tests/setup';
+import { startElevated } from '@tests/apps/admin/support/elevation';
 
 const i18n = createTestI18n();
 
@@ -151,7 +156,12 @@ function actAs(extid: string | null): void {
 describe('AdminCustomerDetail — role change gate (#4326)', () => {
   let wrapper: VueWrapper;
 
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // A live step-up window: these examples are about the dialogs, which a
+    // tier-1 opener only shows once elevated (see support/elevation.ts).
+    startElevated();
+  });
   afterEach(() => wrapper?.unmount());
 
   async function mountLoaded(record: Record<string, unknown> = {}): Promise<void> {
@@ -263,6 +273,52 @@ describe('AdminCustomerDetail — role change gate (#4326)', () => {
       'Confirmation required'
     );
     expect(showMock).not.toHaveBeenCalled();
+  });
+
+  // ---- Step-up first (#4327) ------------------------------------------------
+  //
+  // SetUserRole is tier 1: the prompt comes BEFORE the dialog, so the typed
+  // token and the reason are entered once, after the credential.
+  describe('unelevated', () => {
+    beforeEach(() => __resetColonelElevationState());
+
+    it('prompts before the role dialog, then opens it and sends the reason typed there', async () => {
+      await mountLoaded();
+      mockApi.post.mockResolvedValue({ data: mutationAck() });
+
+      await requestRole('colonel');
+
+      const elevation = useColonelElevation();
+      expect(elevation.promptOpen.value).toBe(true);
+      expect(dialogInput(wrapper).exists()).toBe(false);
+
+      elevation.resolvePrompt(true);
+      await flushPromises();
+      expect(dialogInput(wrapper).exists()).toBe(true);
+
+      await dialogInput(wrapper).setValue(EMAIL);
+      await wrapper.find('[data-testid="admin-confirm-reason"]').setValue('Ticket 1234');
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(mockApi.post).toHaveBeenCalledTimes(1);
+      expect(mockApi.post).toHaveBeenCalledWith(
+        `/api/colonel/users/${PUBLIC_ID}/role`,
+        { role: 'colonel', reason: 'Ticket 1234' },
+        { headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) } }
+      );
+    });
+
+    it('opens no dialog and POSTs nothing when the prompt is cancelled', async () => {
+      await mountLoaded();
+
+      await requestRole('colonel');
+      useColonelElevation().resolvePrompt(false);
+      await flushPromises();
+
+      expect(dialogInput(wrapper).exists()).toBe(false);
+      expect(mockApi.post).not.toHaveBeenCalled();
+    });
   });
 
   // ---- Self-target interlocks (#4328) ---------------------------------------

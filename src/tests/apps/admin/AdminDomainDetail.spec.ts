@@ -67,6 +67,7 @@ vi.mock('@headlessui/vue', () => ({
 import AdminDomainDetail from '@/apps/admin/views/AdminDomainDetail.vue';
 import { useAdminDomains } from '@/apps/admin/stores/useAdminDomains';
 import { createTestI18n } from '@tests/setup';
+import { startElevated } from '@tests/apps/admin/support/elevation';
 
 const i18n = createTestI18n();
 
@@ -245,6 +246,9 @@ describe('AdminDomainDetail', () => {
     pinia = createPinia();
     setActivePinia(pinia);
     vi.clearAllMocks();
+    // A live step-up window: these examples are about the dialogs, which a
+    // tier-1 opener only shows once elevated (see support/elevation.ts).
+    startElevated();
     mockApi.get.mockResolvedValue({ data: detailPayload() });
   });
   afterEach(() => wrapper?.unmount());

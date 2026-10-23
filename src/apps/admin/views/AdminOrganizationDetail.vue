@@ -10,6 +10,7 @@
   import EntitlementPicker from '@/apps/admin/components/organizations/EntitlementPicker.vue';
   import type { AddMembershipRequest } from '@/apps/admin/components/organizations/membershipSchemas';
   import { colonelAddMembershipResponseSchema } from '@/apps/admin/components/organizations/membershipSchemas';
+  import OrganizationMembersSection from '@/apps/admin/components/organizations/OrganizationMembersSection.vue';
   import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { confirmHeaders, orgConfirmToken } from '@/apps/admin/utils/confirmHeader';
@@ -23,7 +24,6 @@
   import type {
     ColonelDeleteOrganizationDetails,
     ColonelOrganizationDetailDomain,
-    ColonelOrganizationDetailMember,
     ColonelReconcileOrganizationRecord,
   } from '@/schemas/api/internal/responses/colonel-organizations';
   import {
@@ -52,7 +52,10 @@
    * - Entitlements read on load: plan / grants / revokes / materialized are shown
    *   distinctly so the operator sees WHY each entitlement resolves, BEFORE any
    *   mutation. Drift + plan-stale are surfaced as warnings.
-   * - Members + Domains tables (previously invisible from the console).
+   * - Members + Domains tables (previously invisible from the console). The
+   *   members table sits ABOVE the entitlements: an org has a handful of
+   *   members and a long entitlement matrix, and the roster is where per-member
+   *   remove / change-role live (see OrganizationMembersSection).
    * - Investigate (read-only Stripe compare) PLUS Reconcile — the remediation the
    *   investigation points to (re-pull Stripe / re-materialize). Reconcile is
    *   MUTATING, so it is gated behind a typed-confirmation dialog (retype extid)
@@ -778,6 +781,7 @@
     error: deleteError,
     run: runDeleteMutation,
     reset: resetDelete,
+    ensureElevated,
   } = useAdminDestructiveMutation(async (reason?: string) => {
     // The server refuses these on the apply path too (4xx). Checking here means
     // the operator reads the reason instead of a generic request failure.
@@ -810,6 +814,11 @@
   });
 
   async function requestDelete(): Promise<void> {
+    // TIER 1: prove the credential BEFORE the plan and the dialog, so the
+    // operator fills in the typed token and reason once. A cancelled prompt
+    // previews nothing and opens nothing; the mutation's 403 -> prompt -> retry
+    // loop stays as the fallback for a window that lapses mid-dialog.
+    if (!(await ensureElevated())) return;
     resetDelete();
     deletePlan.value = null;
     deleteStatus.value = null;
@@ -857,7 +866,8 @@
   // Scoped deliberately to the one verb support actually needs: a person signed
   // up on their own, so they already have an account and the invite flow refuses
   // them, but they belong in this org. Removing a member and changing an
-  // existing member's role are different endpoints and are NOT surfaced here.
+  // existing member's role are separate TIER 1 endpoints, owned by
+  // OrganizationMembersSection.
 
   const addMemberOpen = ref(false);
   /** The account + role captured from the modal, held for the in-flight POST. */
@@ -970,14 +980,7 @@
     resetAddMember();
   }
 
-  // ---- Members + Domains tables ---------------------------------------------
-
-  const memberColumns = computed<DataTableColumn<ColonelOrganizationDetailMember>[]>(() => [
-    { key: 'email', label: t('web.admin.organizations.detail.members.email') },
-    { key: 'role', label: t('web.admin.organizations.detail.members.role') },
-    { key: 'status', label: t('web.admin.organizations.detail.members.status') },
-    { key: 'joined', label: t('web.admin.organizations.detail.members.joined') },
-  ]);
+  // ---- Domains table ---------------------------------------------------------
 
   const domainColumns = computed<DataTableColumn<ColonelOrganizationDetailDomain>[]>(() => [
     { key: 'display_domain', label: t('web.admin.organizations.detail.domains.domain') },
@@ -1238,6 +1241,29 @@
         </div>
       </section>
 
+      <!-- Members (above the entitlements: a short roster, a long matrix).
+           Per-member remove / change role live in the section component. -->
+      <OrganizationMembersSection
+        :org-url="orgUrl()"
+        :org-name="heading"
+        :members="details.members"
+        @changed="refreshOrg().catch(() => {})">
+        <template #actions>
+          <!-- Add an EXISTING account (the invite flow cannot cover this case). -->
+          <button
+            type="button"
+            data-testid="org-add-member-button"
+            class="inline-flex items-center gap-1.5 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none dark:bg-brand-500 dark:hover:bg-brand-600"
+            @click="openAddMember">
+            <OIcon
+              collection="heroicons"
+              name="user-plus"
+              size="4" />
+            {{ t('web.admin.organizations.addMember.button') }}
+          </button>
+        </template>
+      </OrganizationMembersSection>
+
       <!-- Entitlements: current state on load + grant/revoke/clear -->
       <section
         class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
@@ -1339,78 +1365,6 @@
             </button>
           </div>
         </div>
-      </section>
-
-      <!-- Members -->
-      <section
-        class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-        <div
-          class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-            {{ t('web.admin.organizations.detail.sections.members') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
-              >({{ details.members.length }})</span
-            >
-          </h3>
-          <!-- Add an EXISTING account (the invite flow cannot cover this case). -->
-          <button
-            type="button"
-            data-testid="org-add-member-button"
-            class="inline-flex items-center gap-1.5 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none dark:bg-brand-500 dark:hover:bg-brand-600"
-            @click="openAddMember">
-            <OIcon
-              collection="heroicons"
-              name="user-plus"
-              size="4" />
-            {{ t('web.admin.organizations.addMember.button') }}
-          </button>
-        </div>
-        <DataTable
-          :columns="memberColumns"
-          :rows="details.members"
-          row-key="extid"
-          :empty-text="t('web.admin.organizations.detail.members.empty')"
-          testid="members-table">
-          <template #cell-email="{ row }">
-            <span class="inline-flex items-center gap-2">
-              <RevealEmail :email="row.email" />
-              <span
-                v-if="row.is_owner"
-                class="inline-flex shrink-0 rounded bg-brand-50 px-1.5 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
-                {{ t('web.admin.organizations.detail.members.owner') }}
-              </span>
-            </span>
-            <!-- The customer's PUBLIC id, and the way through to their record.
-                 A real router-link, not a row-click handler, so middle-click and
-                 open-in-new-tab work — the operator comparing several members
-                 wants them side by side. GetUserDetails resolves by extid first
-                 (see its #process comment), so the extid IS the route param. -->
-            <router-link
-              :to="{ name: 'AdminCustomerDetail', params: { id: row.extid } }"
-              :data-testid="`member-detail-${row.extid}`"
-              :title="t('web.admin.organizations.detail.members.openCustomer')"
-              class="mt-0.5 inline-flex items-center gap-1 font-mono text-xs text-gray-500 hover:text-brand-600 hover:underline focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-gray-400 dark:hover:text-brand-400">
-              {{ row.extid }}
-              <OIcon
-                collection="heroicons"
-                name="arrow-top-right-on-square"
-                size="3"
-                aria-hidden="true" />
-              <span class="sr-only">{{
-                t('web.admin.organizations.detail.members.openCustomer')
-              }}</span>
-            </router-link>
-          </template>
-          <template #cell-role="{ row }">
-            {{ row.role || '—' }}
-          </template>
-          <template #cell-status="{ row }">
-            {{ row.status || '—' }}
-          </template>
-          <template #cell-joined="{ row }">
-            {{ row.joined_at ? formatDisplayDateTime(row.joined_at) : '—' }}
-          </template>
-        </DataTable>
       </section>
 
       <!-- Domains -->

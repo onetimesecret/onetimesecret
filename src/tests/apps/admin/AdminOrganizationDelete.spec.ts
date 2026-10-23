@@ -47,6 +47,19 @@ vi.mock('@/utils/format', () => ({
   formatDisplayDateTime: (d: Date) => `DT:${d.toISOString()}`,
 }));
 
+// Delete is TIER 1: the button proves the credential (ensureElevated) before
+// it previews. These specs are about the preview/apply shape, so the operator
+// is already elevated; the prompt-first ordering is pinned below.
+const ensureElevatedMock = vi.fn<() => Promise<boolean>>();
+const requestElevationMock = vi.fn<() => Promise<boolean>>();
+vi.mock('@/apps/admin/composables/useColonelElevation', () => ({
+  useColonelElevation: () => ({
+    ensureElevated: ensureElevatedMock,
+    requestElevation: requestElevationMock,
+    noteElevationRequired: vi.fn(),
+  }),
+}));
+
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({
   default: {
     name: 'OIcon',
@@ -233,6 +246,8 @@ describe('AdminOrganizationDetail — permanent delete', () => {
     pinia = createPinia();
     setActivePinia(pinia);
     vi.clearAllMocks();
+    ensureElevatedMock.mockResolvedValue(true);
+    requestElevationMock.mockResolvedValue(false);
   });
   afterEach(() => wrapper?.unmount());
 
@@ -455,6 +470,49 @@ describe('AdminOrganizationDetail — permanent delete', () => {
 
       expect(wrapper.find('[data-testid="org-delete-plan"]').exists()).toBe(true);
       expect(wrapper.find('[data-testid="org-delete-drifted-domains"]').exists()).toBe(false);
+    });
+  });
+
+  describe('step-up comes before the preview and the dialog', () => {
+    it('waits on the elevation prompt, then previews and opens the dialog', async () => {
+      let answer: (value: boolean) => void = () => {};
+      ensureElevatedMock.mockReturnValue(
+        new Promise<boolean>((resolve) => {
+          answer = resolve;
+        })
+      );
+      mockApi.get.mockResolvedValue({ data: detailPayload() });
+      mockApi.delete.mockResolvedValue({ data: deleteAck() });
+      wrapper = mountView();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="org-delete-button"]').trigger('click');
+      await flushPromises();
+
+      // The prompt is open: nothing previewed, no dialog yet.
+      expect(ensureElevatedMock).toHaveBeenCalledTimes(1);
+      expect(mockApi.delete).not.toHaveBeenCalled();
+      expect(wrapper.find('[data-testid="org-delete-plan"]').exists()).toBe(false);
+
+      answer(true);
+      await flushPromises();
+
+      expect(mockApi.delete).toHaveBeenCalledTimes(1);
+      expect(mockApi.delete.mock.calls[0][0]).toContain('dry_run=true');
+      expect(wrapper.find('[data-testid="org-delete-plan"]').exists()).toBe(true);
+    });
+
+    it('previews nothing and opens nothing when the operator cancels the prompt', async () => {
+      ensureElevatedMock.mockResolvedValue(false);
+      mockApi.get.mockResolvedValue({ data: detailPayload() });
+      wrapper = mountView();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="org-delete-button"]').trigger('click');
+      await flushPromises();
+
+      expect(mockApi.delete).not.toHaveBeenCalled();
+      expect(wrapper.find('[data-testid="admin-confirm-dialog"]').exists()).toBe(false);
     });
   });
 

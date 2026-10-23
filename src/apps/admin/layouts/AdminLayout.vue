@@ -11,6 +11,7 @@
   import { useRoute } from 'vue-router';
 
   import ElevationBanner from '../components/ElevationBanner.vue';
+  import ElevationControl from '../components/ElevationControl.vue';
   import ElevationPrompt from '../components/ElevationPrompt.vue';
   import { CONSOLE_GROUPS, CONSOLE_SECTIONS } from '../sections';
 
@@ -241,6 +242,10 @@
             data-testid="admin-current-user">
             {{ currentUserEmail }}
           </span>
+          <!-- Step-up state (#4327): opt in before acting, or see and drop the
+               live window. Renders nothing when step-up is disabled or the
+               admin session has expired. No HTTP until clicked. -->
+          <ElevationControl />
           <button
             type="button"
             class="inline-flex size-9 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-gray-400 dark:hover:bg-gray-800"

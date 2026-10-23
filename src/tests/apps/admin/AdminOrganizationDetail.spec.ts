@@ -1,6 +1,7 @@
 // src/tests/apps/admin/AdminOrganizationDetail.spec.ts
 
 import { flushPromises, mount, RouterLinkStub, VueWrapper } from '@vue/test-utils';
+import { AxiosError } from 'axios';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -17,7 +18,25 @@ vi.mock('@/shared/stores/notificationsStore', () => ({
 }));
 
 const pushMock = vi.fn();
-vi.mock('vue-router', () => ({ useRouter: () => ({ push: pushMock }) }));
+// `isNavigationFailure` is reached by the shared error classifier on every
+// failed mutation, so the mock carries it for the member-action failure paths.
+vi.mock('vue-router', () => ({
+  useRouter: () => ({ push: pushMock }),
+  isNavigationFailure: () => false,
+}));
+
+// Member remove / change role are TIER 1: the opener awaits ensureElevated()
+// before the dialog opens. Controlled here so a spec can hold the prompt open,
+// cancel it, or answer it.
+const ensureElevatedMock = vi.fn<() => Promise<boolean>>();
+const requestElevationMock = vi.fn<() => Promise<boolean>>();
+vi.mock('@/apps/admin/composables/useColonelElevation', () => ({
+  useColonelElevation: () => ({
+    ensureElevated: ensureElevatedMock,
+    requestElevation: requestElevationMock,
+    noteElevationRequired: vi.fn(),
+  }),
+}));
 
 vi.mock('@/utils/format', () => ({
   formatDisplayDateTime: (d: Date) => `DT:${d.toISOString()}`,
@@ -160,6 +179,67 @@ function detailPayload(overrides: Record<string, unknown> = {}) {
   };
 }
 
+/** Build a real AxiosError so the shared classifier extracts `data.error`. */
+function axiosError(status: number, data: unknown, message = 'Request failed'): AxiosError {
+  const err = new AxiosError(message);
+  err.response = { status, data, statusText: '', headers: {}, config: {} as never };
+  return err;
+}
+
+const OWNER = {
+  extid: 'mem_1',
+  email: 'alice@example.com',
+  role: 'owner',
+  status: 'active',
+  is_owner: true,
+  joined_at: 1700000000,
+  created: 1700000000,
+};
+const MEMBER = {
+  extid: 'mem_2',
+  email: 'bob@example.com',
+  role: 'member',
+  status: 'active',
+  is_owner: false,
+  joined_at: 1700000100,
+  created: 1700000100,
+};
+/** A second `owner` membership that is not `owner_id` (e.g. mid-transfer). */
+const CO_OWNER = {
+  extid: 'mem_3',
+  email: 'carol@example.com',
+  role: 'owner',
+  status: 'active',
+  is_owner: false,
+  joined_at: 1700000200,
+  created: 1700000200,
+};
+
+function rosterPayload() {
+  const payload = detailPayload();
+  return { ...payload, details: { ...payload.details, members: [OWNER, MEMBER, CO_OWNER] } };
+}
+
+/** The X-OTS-Confirm header a member verb carries: the MEMBER's email. */
+const MEMBER_CONFIRM_HEADERS = {
+  headers: { 'X-OTS-Confirm': encodeURIComponent('bob@example.com') },
+};
+const MEMBER_URL = `/api/colonel/organizations/${PUBLIC_ID}/members/mem_2`;
+
+function setRoleAck(status = 'success') {
+  return {
+    shrimp: '',
+    record: { org_id: PUBLIC_ID, member_id: 'mem_2', status, from: 'member', to: 'admin' },
+  };
+}
+
+function removeAck() {
+  return {
+    shrimp: '',
+    record: { org_id: PUBLIC_ID, member_id: 'mem_2', status: 'success', role: 'member' },
+  };
+}
+
 function grantAck() {
   return {
     shrimp: '',
@@ -294,6 +374,8 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
     pinia = createPinia();
     setActivePinia(pinia);
     vi.clearAllMocks();
+    ensureElevatedMock.mockResolvedValue(true);
+    requestElevationMock.mockResolvedValue(false);
   });
   afterEach(() => wrapper?.unmount());
 
@@ -730,5 +812,202 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
 
     expect(wrapper.find('[data-testid="detail-not-found"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="detail-content"]').exists()).toBe(false);
+  });
+
+  // ---- Members: order, owner lock, remove + change role (TIER 1) -----------
+
+  describe('members', () => {
+    const reasonInput = (w: VueWrapper) => w.find('[data-testid="admin-confirm-reason"]');
+    const dialog = (w: VueWrapper) => w.find('[data-testid="admin-confirm-dialog"]');
+
+    async function mountRoster() {
+      mockApi.get.mockResolvedValue({ data: rosterPayload() });
+      wrapper = mountView();
+      await flushPromises();
+    }
+
+    it('renders the members section above the entitlements', async () => {
+      await mountRoster();
+
+      const members = wrapper.find('[data-testid="members-section"]').element;
+      const entitlements = wrapper.find('[data-testid="entitlements-section"]').element;
+      // FOLLOWING: the entitlements section comes after the members section.
+      expect(
+        members.compareDocumentPosition(entitlements) & Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy();
+      // The add-member control still sits in the members header.
+      expect(
+        wrapper
+          .find('[data-testid="members-section"] [data-testid="org-add-member-button"]')
+          .exists()
+      ).toBe(true);
+    });
+
+    it('locks the owner row and any other owner membership', async () => {
+      await mountRoster();
+
+      for (const extid of ['mem_1', 'mem_3']) {
+        const role = wrapper.find(`[data-testid="member-change-role-${extid}"]`);
+        const remove = wrapper.find(`[data-testid="member-remove-${extid}"]`);
+        expect(role.attributes('disabled')).toBeDefined();
+        expect(remove.attributes('disabled')).toBeDefined();
+        // The reason is stated, not left as a dead button.
+        expect(wrapper.find(`[data-testid="member-actions-${extid}"]`).attributes('title')).toBe(
+          'web.admin.organizations.members.ownerLocked'
+        );
+        await role.trigger('click');
+        await remove.trigger('click');
+      }
+      await flushPromises();
+
+      expect(ensureElevatedMock).not.toHaveBeenCalled();
+      expect(dialog(wrapper).exists()).toBe(false);
+      // An ordinary member's controls stay live.
+      expect(
+        wrapper.find('[data-testid="member-change-role-mem_2"]').attributes('disabled')
+      ).toBeUndefined();
+      expect(
+        wrapper.find('[data-testid="member-remove-mem_2"]').attributes('disabled')
+      ).toBeUndefined();
+    });
+
+    it('changes a role: elevation first, then the dialog, then the gated POST', async () => {
+      let answer: (value: boolean) => void = () => {};
+      ensureElevatedMock.mockReturnValue(
+        new Promise<boolean>((resolve) => {
+          answer = resolve;
+        })
+      );
+      mockApi.post.mockResolvedValue({ data: setRoleAck() });
+      await mountRoster();
+
+      await wrapper.find('[data-testid="member-change-role-mem_2"]').trigger('click');
+      await flushPromises();
+
+      // The prompt is open; the action's own dialog is not.
+      expect(ensureElevatedMock).toHaveBeenCalledTimes(1);
+      expect(dialog(wrapper).exists()).toBe(false);
+
+      answer(true);
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="member-role-dialog"]').exists()).toBe(true);
+      // `owner` is never offered, and neither is the role the member holds.
+      const options = wrapper
+        .findAll('[data-testid="member-role-select"] option')
+        .map((o) => (o.element as HTMLOptionElement).value);
+      expect(options).toEqual(['admin']);
+
+      // Typed confirmation is the member's EMAIL — the same token the header sends.
+      expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
+      await dialogInput(wrapper).setValue('bob@example.com');
+      await reasonInput(wrapper).setValue('ticket 4242');
+      await dialogSubmit(wrapper).trigger('submit');
+      await flushPromises();
+
+      expect(mockApi.post).toHaveBeenCalledWith(
+        `${MEMBER_URL}/role`,
+        { role: 'admin', reason: 'ticket 4242' },
+        MEMBER_CONFIRM_HEADERS
+      );
+      expect(showMock).toHaveBeenCalledWith(
+        'web.admin.organizations.members.changeRole.success',
+        'success'
+      );
+      expect(dialog(wrapper).exists()).toBe(false);
+      // Refetched: detail + available-plans on mount, then the refresh.
+      expect(mockApi.get).toHaveBeenCalledTimes(3);
+    });
+
+    it('opens nothing and sends nothing when the operator cancels the prompt', async () => {
+      ensureElevatedMock.mockResolvedValue(false);
+      await mountRoster();
+
+      await wrapper.find('[data-testid="member-change-role-mem_2"]').trigger('click');
+      await wrapper.find('[data-testid="member-remove-mem_2"]').trigger('click');
+      await flushPromises();
+
+      expect(ensureElevatedMock).toHaveBeenCalledTimes(2);
+      expect(dialog(wrapper).exists()).toBe(false);
+      expect(mockApi.post).not.toHaveBeenCalled();
+      expect(mockApi.delete).not.toHaveBeenCalled();
+    });
+
+    it('reports an already-held role as no change, never as success', async () => {
+      mockApi.post.mockResolvedValue({ data: setRoleAck('no_change') });
+      await mountRoster();
+
+      await wrapper.find('[data-testid="member-change-role-mem_2"]').trigger('click');
+      await flushPromises();
+      await dialogInput(wrapper).setValue('bob@example.com');
+      await dialogSubmit(wrapper).trigger('submit');
+      await flushPromises();
+
+      expect(mockApi.post).toHaveBeenCalledWith(
+        `${MEMBER_URL}/role`,
+        { role: 'admin' },
+        MEMBER_CONFIRM_HEADERS
+      );
+      expect(dialog(wrapper).text()).toContain(
+        'web.admin.organizations.members.changeRole.noChange'
+      );
+      expect(showMock).not.toHaveBeenCalled();
+    });
+
+    it('removes a member: DELETE with the confirmation header and the reason query', async () => {
+      mockApi.delete.mockResolvedValue({ data: removeAck() });
+      await mountRoster();
+
+      await wrapper.find('[data-testid="member-remove-mem_2"]').trigger('click');
+      await flushPromises();
+
+      expect(ensureElevatedMock).toHaveBeenCalledTimes(1);
+      expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
+      await dialogInput(wrapper).setValue('bob@example.com');
+      await reasonInput(wrapper).setValue('left the company');
+      await dialogSubmit(wrapper).trigger('submit');
+      await flushPromises();
+
+      expect(mockApi.delete).toHaveBeenCalledWith(MEMBER_URL, {
+        ...MEMBER_CONFIRM_HEADERS,
+        params: { reason: 'left the company' },
+      });
+      expect(showMock).toHaveBeenCalledWith(
+        'web.admin.organizations.members.remove.success',
+        'success'
+      );
+      expect(mockApi.get).toHaveBeenCalledTimes(3);
+    });
+
+    it('sends no reason parameter when none is given', async () => {
+      mockApi.delete.mockResolvedValue({ data: removeAck() });
+      await mountRoster();
+
+      await wrapper.find('[data-testid="member-remove-mem_2"]').trigger('click');
+      await flushPromises();
+      await dialogInput(wrapper).setValue('bob@example.com');
+      await dialogSubmit(wrapper).trigger('submit');
+      await flushPromises();
+
+      expect(mockApi.delete).toHaveBeenCalledWith(MEMBER_URL, MEMBER_CONFIRM_HEADERS);
+    });
+
+    it('keeps a server refusal in the dialog and refreshes nothing', async () => {
+      mockApi.delete.mockRejectedValue(
+        axiosError(422, { error: 'Cannot remove the last remaining owner of the organization' })
+      );
+      await mountRoster();
+
+      await wrapper.find('[data-testid="member-remove-mem_2"]').trigger('click');
+      await flushPromises();
+      await dialogInput(wrapper).setValue('bob@example.com');
+      await dialogSubmit(wrapper).trigger('submit');
+      await flushPromises();
+
+      expect(dialog(wrapper).text()).toContain('Cannot remove the last remaining owner');
+      expect(showMock).not.toHaveBeenCalled();
+      // Mount-time detail + available-plans only: no refresh after a failure.
+      expect(mockApi.get).toHaveBeenCalledTimes(2);
+    });
   });
 });

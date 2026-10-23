@@ -332,6 +332,7 @@
     error: revokeError,
     run: runRevoke,
     reset: resetRevoke,
+    ensureElevated,
   } = useAdminDestructiveMutation(async (reason?: string) => {
     const handle = revokeTarget.value;
     if (!handle) throw new Error('No session selected');
@@ -376,10 +377,13 @@
     error: revokeError.value,
   }));
 
-  function requestRevoke(row: ColonelSession): void {
+  async function requestRevoke(row: ColonelSession): Promise<void> {
     // Fail closed: the disabled button is the UI affordance, this is the guard.
     // The server refuses a self-revoke regardless (#4328).
     if (isCurrentSession(row.session_handle)) return;
+    // DeleteSession is TIER 1 (#4327): elevate before the dialog collects the
+    // token and reason. Cancel opens nothing.
+    if (!(await ensureElevated())) return;
     revokeTarget.value = row.session_handle;
     revokeOwner.value = row.external_id ?? '';
     revokeToken.value = row.email?.trim() || row.external_id?.trim() || row.session_handle;

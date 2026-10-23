@@ -1,7 +1,7 @@
 // src/tests/apps/admin/AdminLayout.spec.ts
 
 import { createPinia, setActivePinia } from 'pinia';
-import { mount, VueWrapper } from '@vue/test-utils';
+import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('vue-router', () => ({
@@ -25,6 +25,18 @@ vi.mock('@/apps/admin/components/ElevationPrompt.vue', () => ({
   default: { name: 'ElevationPrompt', template: '<div />' },
 }));
 
+// The header's step-up control is real; only its transport is faked.
+const mockApi = {
+  get: vi.fn(),
+  post: vi.fn(),
+  delete: vi.fn(),
+};
+vi.mock('@/shared/composables/useApi', () => ({ useApi: () => mockApi }));
+
+import {
+  __resetColonelElevationState,
+  useColonelElevation,
+} from '@/apps/admin/composables/useColonelElevation';
 import AdminLayout from '@/apps/admin/layouts/AdminLayout.vue';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { createTestI18n } from '@tests/setup';
@@ -100,5 +112,90 @@ describe('AdminLayout (console shell)', () => {
     expect(wrapper.find('[data-testid="admin-app-version"]').exists()).toBe(false);
     // The escape hatch beside it is unaffected.
     expect(wrapper.find('[data-testid="admin-back-to-site"]').exists()).toBe(true);
+  });
+
+  // #4327: the step-up state beside the operator's email, so they can opt in
+  // before a destructive task and see (and end) a live window at a glance.
+  describe('header elevation control', () => {
+    const elevateButton = (w: VueWrapper) => w.find('[data-testid="elevation-control-elevate"]');
+    const dropButton = (w: VueWrapper) => w.find('[data-testid="elevation-control-drop"]');
+
+    beforeEach(() => __resetColonelElevationState());
+    afterEach(() => __resetColonelElevationState());
+
+    it('offers "Elevate" when step-up is on and no window is live, and opens the prompt', async () => {
+      wrapper = mountLayout();
+
+      expect(dropButton(wrapper).exists()).toBe(false);
+      const button = elevateButton(wrapper);
+      expect(button.exists()).toBe(true);
+      expect(button.text()).toContain('web.admin.elevation.control.elevate');
+      expect(button.find('[data-name="lock-closed"]').exists()).toBe(true);
+
+      await button.trigger('click');
+
+      expect(useColonelElevation().promptOpen.value).toBe(true);
+      // Opening the prompt is local; the prompt itself owns the status read.
+      expect(mockApi.get).not.toHaveBeenCalled();
+      expect(mockApi.post).not.toHaveBeenCalled();
+      useColonelElevation().resolvePrompt(false);
+    });
+
+    it('shows the unlocked icon and the m:ss left while a window is live, and drops it on click', async () => {
+      const elevation = useColonelElevation();
+      elevation.elevated.value = true;
+      elevation.expiresAt.value = Math.floor(Date.now() / 1000) + 299;
+      elevation.secondsRemaining.value = 299;
+      mockApi.delete.mockResolvedValue({ data: {} });
+      mockApi.get.mockResolvedValue({
+        data: {
+          shrimp: '',
+          record: { elevated: false, expires_at: null, seconds_remaining: 0 },
+          details: {
+            enabled: true,
+            window: 600,
+            reauth_grace: 0,
+            grace_available: false,
+            password_available: true,
+            factors: ['password'],
+          },
+        },
+      });
+
+      wrapper = mountLayout();
+
+      expect(elevateButton(wrapper).exists()).toBe(false);
+      const button = dropButton(wrapper);
+      expect(button.exists()).toBe(true);
+      expect(button.find('[data-name="lock-open"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="elevation-control-remaining"]').text()).toBe('4:59');
+      expect(button.attributes('aria-label')).toBe('web.admin.elevation.control.drop');
+
+      await button.trigger('click');
+      await flushPromises();
+
+      expect(mockApi.delete).toHaveBeenCalledWith('/api/colonel/elevation');
+      expect(dropButton(wrapper).exists()).toBe(false);
+      expect(elevateButton(wrapper).exists()).toBe(true);
+    });
+
+    it('renders nothing when step-up is disabled by config', () => {
+      useColonelElevation().enabled.value = false;
+      wrapper = mountLayout();
+
+      expect(elevateButton(wrapper).exists()).toBe(false);
+      expect(dropButton(wrapper).exists()).toBe(false);
+    });
+
+    it('renders nothing while the admin session has expired', () => {
+      const elevation = useColonelElevation();
+      elevation.elevated.value = true;
+      elevation.secondsRemaining.value = 120;
+      elevation.adminSessionExpired.value = true;
+      wrapper = mountLayout();
+
+      expect(elevateButton(wrapper).exists()).toBe(false);
+      expect(dropButton(wrapper).exists()).toBe(false);
+    });
   });
 });

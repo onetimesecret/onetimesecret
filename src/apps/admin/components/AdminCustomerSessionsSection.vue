@@ -113,6 +113,8 @@
     error: revokeError,
     run: runRevoke,
     reset: resetRevoke,
+    // One shared step-up window: this guard serves revoke-all below as well.
+    ensureElevated,
   } = useAdminDestructiveMutation(async (reason?: string) => {
     if (!revokeTarget.value) throw new Error('No session selected');
     // The store optimistically drops the row on a 2xx; a failure throws before
@@ -120,7 +122,10 @@
     await store.revoke(props.userId, revokeTarget.value, props.confirmToken, reason);
   });
 
-  function requestRevoke(sessionHandle: string): void {
+  async function requestRevoke(sessionHandle: string): Promise<void> {
+    // RevokeCustomerSession is TIER 1 (#4327): elevate before the dialog
+    // collects the reason. Cancel opens nothing.
+    if (!(await ensureElevated())) return;
     revokeTarget.value = sessionHandle;
     resetRevoke();
     revokeDialogOpen.value = true;
@@ -171,7 +176,9 @@
       : t('web.admin.customers.detail.sessions.revokeAll.confirmDescription')
   );
 
-  function requestRevokeAll(): void {
+  async function requestRevokeAll(): Promise<void> {
+    // RevokeAllCustomerSessions is TIER 1 (#4327): elevate first, as above.
+    if (!(await ensureElevated())) return;
     resetRevokeAll();
     revokeAllDialogOpen.value = true;
   }

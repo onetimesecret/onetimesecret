@@ -862,5 +862,33 @@
   "web.admin.customers.detail.rodauthAdmin.open": {
     "text": "Open in Rodauth Admin",
     "content_hash": "467173c8"
+  },
+  "web.admin.customers.defaultOrganization.button": {
+    "text": "Make default",
+    "content_hash": "f43b9425"
+  },
+  "web.admin.customers.defaultOrganization.ariaLabel": {
+    "text": "Make {org} this customer's default organization",
+    "content_hash": "9abae25c"
+  },
+  "web.admin.customers.defaultOrganization.confirmTitle": {
+    "text": "Change default organization?",
+    "content_hash": "b690e58c"
+  },
+  "web.admin.customers.defaultOrganization.confirmDescription": {
+    "text": "Make {org} this customer's default organization, replacing {current}. They stay a member of both.",
+    "content_hash": "da4e0a20"
+  },
+  "web.admin.customers.defaultOrganization.confirmDescriptionNoCurrent": {
+    "text": "Make {org} this customer's default organization.",
+    "content_hash": "762b52ca"
+  },
+  "web.admin.customers.defaultOrganization.confirm": {
+    "text": "Make default",
+    "content_hash": "f43b9425"
+  },
+  "web.admin.customers.defaultOrganization.success": {
+    "text": "{org} is now this customer's default organization.",
+    "content_hash": "8bfd7137"
   }
 }
