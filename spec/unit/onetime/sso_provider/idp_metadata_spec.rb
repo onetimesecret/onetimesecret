@@ -619,6 +619,21 @@ RSpec.describe Onetime::SsoProvider::IdpMetadata do
         expect(REXML::Security.entity_expansion_text_limit).to eq(10_240)
       end
 
+      # #rexml_expansion_error? depends on two REXML internals: the method it
+      # locates the library by, and REXML's fixed limit messages. A REXML
+      # bump that moves either fails here, by name, instead of turning
+      # expansion failures into unexpected_error at the endpoint.
+      it 'pins the REXML internals the expansion mapping relies on' do
+        parse(document)
+
+        expect { REXML::Document.instance_method(:record_entity_expansion) }.not_to raise_error
+        library_dir = described_class.send(:rexml_library_dir)
+        source      = Dir.glob(File.join(library_dir, '**', '*.rb')).map { File.read(it) }.join
+        described_class::REXML_EXPANSION_MESSAGES.each do |message|
+          expect(source).to include(%(raise "#{message}")), message
+        end
+      end
+
       it 'refuses an internal entity reference, raised on lazy text extraction' do
         xml = with_formats('&fmt;', doctype_decl: doctype(%(<!ENTITY fmt "#{NAMEID_EMAIL}">)))
         expect { REXML::Document.new(xml) }.not_to raise_error
@@ -677,7 +692,7 @@ RSpec.describe Onetime::SsoProvider::IdpMetadata do
           expect(Socket).not_to have_received(:tcp)
           expect(Net::HTTP).not_to have_received(:new)
           expect(Net::HTTP).not_to have_received(:start)
-          expect(a_request(:any, /attacker\.example\.net/)).not_to have_been_made
+          expect(a_request(:any, %r{\Ahttps?://attacker\.example\.net(?::\d+)?/})).not_to have_been_made
         end
 
         it 'refuses an external entity reference without fetching it' do
