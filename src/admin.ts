@@ -22,13 +22,11 @@ import App from './App.vue';
 import './assets/style.css';
 import { createAdminRouter } from './apps/admin/router';
 import { startApp } from './plugins/core/startApp';
+import { installPreloadErrorHandler } from './utils/preloadError';
 
-// Handle Vite chunk loading failures that occur when cached HTML references
-// stale chunk hashes after a deployment. Without this, users see a blank page.
-window.addEventListener('vite:preloadError', (event) => {
-  event.preventDefault();
-  window.location.reload();
-});
+// A lazy chunk that fails to load reloads the page once, through the ADR-046
+// forced page load bound (see src/main.ts and src/utils/preloadError.ts).
+installPreloadErrorHandler();
 
 /**
  * Initialize and mount the admin Vue application. Shares the customer app's

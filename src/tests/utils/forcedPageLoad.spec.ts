@@ -7,6 +7,7 @@ import {
   FORCED_RELOAD_MARKER,
   FORCED_RELOAD_WINDOW_MS,
 } from '@/utils/forcedPageLoad';
+import { markUnrecoverableContent } from '@/utils/unrecoverableContent';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const NOW = 1_800_000_000_000;
@@ -30,7 +31,9 @@ describe('attemptForcedPageLoad', () => {
     const reload = vi.fn();
     attemptForcedPageLoad({ now: NOW, reload });
 
-    expect(attemptForcedPageLoad({ now: NOW + FORCED_RELOAD_WINDOW_MS - 1, reload })).toBe('bounded');
+    expect(attemptForcedPageLoad({ now: NOW + FORCED_RELOAD_WINDOW_MS - 1, reload })).toBe(
+      'bounded'
+    );
 
     expect(reload).toHaveBeenCalledTimes(1);
     // A refused attempt does not extend the window.
@@ -71,6 +74,22 @@ describe('attemptForcedPageLoad', () => {
 
     expect(attemptForcedPageLoad({ now: NOW, storage, reload })).toBe('bounded');
     expect(reload).not.toHaveBeenCalled();
+  });
+
+  it('refuses while the page shows unrecoverable content, without spending the window', () => {
+    const reload = vi.fn();
+    const release = markUnrecoverableContent();
+    try {
+      expect(attemptForcedPageLoad({ now: NOW, reload })).toBe('refused');
+      expect(reload).not.toHaveBeenCalled();
+      expect(sessionStorage.getItem(FORCED_RELOAD_MARKER)).toBeNull();
+    } finally {
+      release();
+    }
+
+    // The value is gone (the page unmounted): the next attempt reloads.
+    expect(attemptForcedPageLoad({ now: NOW, reload })).toBe('reloading');
+    expect(reload).toHaveBeenCalledTimes(1);
   });
 
   it('never calls reload more than once per call, and schedules nothing', () => {
