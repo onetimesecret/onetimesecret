@@ -48,11 +48,14 @@
   // One session transition, one message (#4461). A session that ended or was
   // replaced outside this tab ends in a forced page load; the page that loads
   // next (this one) says why, once. consume removes the parked kind, so a
-  // remount or a later navigation cannot repeat it.
+  // remount or a later navigation cannot repeat it. enqueue, not show: the app
+  // mounts after the initial navigation, whose guards may already have raised
+  // a notice (an org-role refusal); this one waits for it instead of
+  // replacing it.
   const announceSessionTransition = () => {
     const kind = consumeSessionTransition();
     if (!kind) return;
-    useNotificationsStore().show(t(`web.auth.session.${kind}`), 'info', 'top', 10000);
+    useNotificationsStore().enqueue(t(`web.auth.session.${kind}`), 'info', 'top', 10000);
   };
 
   // The fallback for owned rejections (ADR-046#rejection-disposition). When

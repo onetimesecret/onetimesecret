@@ -144,6 +144,9 @@ describe('App: session state at the root', () => {
     });
   });
 
+  // The notice is queued, not shown over whatever is up: the app mounts after
+  // the initial navigation, whose guards may already have raised a notice
+  // (an org-role refusal), and that one must not be replaced.
   describe('one transition, one message (#4461)', () => {
     it.each(['ended', 'replaced'] as const)('announces a parked `%s` once and removes it', (kind) => {
       sessionStorage.setItem(SESSION_TRANSITION_KEY, kind);
@@ -151,8 +154,14 @@ describe('App: session state at the root', () => {
       mountApp('anonymous', false);
       const notifications = useNotificationsStore();
 
-      expect(notifications.show).toHaveBeenCalledTimes(1);
-      expect(notifications.show).toHaveBeenCalledWith(`web.auth.session.${kind}`, 'info', 'top', 10000);
+      expect(notifications.enqueue).toHaveBeenCalledTimes(1);
+      expect(notifications.enqueue).toHaveBeenCalledWith(
+        `web.auth.session.${kind}`,
+        'info',
+        'top',
+        10000
+      );
+      expect(notifications.show).not.toHaveBeenCalled();
       expect(sessionStorage.getItem(SESSION_TRANSITION_KEY)).toBeNull();
     });
 
@@ -162,12 +171,14 @@ describe('App: session state at the root', () => {
 
       mountApp('anonymous', false);
 
+      expect(useNotificationsStore().enqueue).not.toHaveBeenCalled();
       expect(useNotificationsStore().show).not.toHaveBeenCalled();
     });
 
     it('says nothing on an ordinary page load', () => {
       mountApp('authenticated', true);
 
+      expect(useNotificationsStore().enqueue).not.toHaveBeenCalled();
       expect(useNotificationsStore().show).not.toHaveBeenCalled();
     });
   });

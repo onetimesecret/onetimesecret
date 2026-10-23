@@ -15,7 +15,7 @@ import { createDiagnostics } from './enableDiagnostics';
 import { createErrorBoundary } from './globalErrorBoundary';
 import { autoInitPlugin } from '../pinia/autoInitPlugin';
 
-interface AppInitializerOptions {
+export interface AppInitializerOptions {
   /**
    * The router to install. Injected by the caller (main.ts / admin.ts) so this
    * initializer does NOT import `@/router` itself — that keeps the customer
@@ -43,7 +43,10 @@ export const AppInitializer: Plugin<AppInitializerOptions> = {
  *    - Store initialization
  * 2. Global error boundary
  * 3. Internationalization
- * 4. Routing
+ * 4. Routing. Installing the router starts the initial navigation, whose
+ *    guards activate the visitor's locale. Nothing here waits for it: the
+ *    entry awaits router.isReady() before mounting (see startApp.ts), and
+ *    work that needs translations, such as the console warning, runs after.
  *
  * We separate this from the main plugin to interface for testing purposes.
  */
@@ -116,12 +119,18 @@ function initializeApp(app: App, options: AppInitializerOptions) {
   setupRouterGuards(router);
 
   app.use(router);
+}
 
-  // Display the self-XSS warning
+/**
+ * Prints the self-XSS warning to the console in the visitor's language. Call
+ * it after the initial navigation has activated the locale; startApp does,
+ * right after mount.
+ */
+export function showConsoleWarning(): void {
   loggingService.banner(consoleWarning());
 }
 
-/** The self-XSS warning, in the visitor's language. */
+/** The self-XSS warning, in the active locale. */
 function consoleWarning(): ConsoleWarning {
   const { t } = globalComposer;
   return {
