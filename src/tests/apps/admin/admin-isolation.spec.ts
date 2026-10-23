@@ -122,8 +122,11 @@ describe('admin bundle — built-artifact isolation (CONTRACT 6)', () => {
     return files;
   }
 
-  // Chunks Rolldown emits without a sourcemap and without source of ours.
-  const HELPER_CHUNK = /^assets\/(?:preload-helper|rolldown-runtime|_plugin-vue_export-helper)-/;
+  // Chunks Rolldown emits without a sourcemap and without source of ours. The
+  // name is followed by `-<hash>` in the production build and by nothing (or a
+  // numeric suffix) under vite.config.local.ts's hash-free chunkFileNames.
+  const HELPER_CHUNK =
+    /^assets\/(?:preload-helper|rolldown-runtime|_plugin-vue_export-helper)\d*(?:-[^/]*)?\.js$/;
   const REEXPORT_ONLY = /^(?:\s*(?:import|export)\b[^;]*;)*\s*$/;
 
   const manifest = readManifest();
