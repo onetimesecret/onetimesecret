@@ -12,6 +12,7 @@ import { defineConfig, type PluginOption } from 'vite';
 
 import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 import { checkCspChunkGraph } from './src/build/plugins/checkCspChunkGraph';
+import { checkLocaleChunks } from './src/build/plugins/checkLocaleChunks';
 import { DEBUG } from './src/utils/debug';
 
 import VueDevTools from 'vite-plugin-vue-devtools';
@@ -276,6 +277,11 @@ export default defineConfig(({ command }) => ({
     // stops importing that chunk statically (the advancedChunks group below
     // and the CSP note at the top of this file).
     checkCspChunkGraph(),
+
+    // Fails the build if a locale other than en.json lands in an entry chunk
+    // or in a chunk an entry imports statically. src/i18n.ts loads every other
+    // locale on demand, one chunk each.
+    checkLocaleChunks(),
     // Note: Sentry sourcemaps are uploaded via CI (sentry-cli), not at build time.
     // This keeps auth tokens out of the build context. See .github/workflows/build-and-publish-oci-images.yml
   ].filter(Boolean) as PluginOption[],
@@ -362,9 +368,10 @@ export default defineConfig(({ command }) => ({
     // entry; the admin console shares the customer styles plus its own.
     cssCodeSplit: false,
     sourcemap: true,
-    // Up from the default 500 KB: the chunk with the eagerly imported locales
-    // (src/i18n.ts) is still several MB.
-    chunkSizeWarningLimit: 3000,
+    // Up from the default 500 KB: the customer entry carries the English
+    // messages (src/i18n.ts bundles en; every other locale is its own chunk,
+    // the largest under 400 KB) and is just over 500 KB.
+    chunkSizeWarningLimit: 600,
   },
 
   css: {
