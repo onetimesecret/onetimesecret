@@ -5,6 +5,7 @@
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import { useMfa } from '@/shared/composables/useMfa';
   import { useClipboard } from '@/shared/composables/useClipboard';
+  import { useUnrecoverableContent } from '@/shared/composables/useUnrecoverableContent';
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { ref, onMounted, computed } from 'vue';
 
@@ -12,6 +13,7 @@
   const {
     mfaStatus,
     recoveryCodes,
+    revealingRecoveryCodes,
     isLoading,
     error,
     fetchMfaStatus,
@@ -27,6 +29,14 @@
   // Track whether regenerated codes have been saved
   const showRegeneratedCodes = ref(false);
   const codesSaved = ref(false);
+
+  // Regenerating invalidates the old codes and the new ones arrive only in the
+  // response, so from the request going out until the panel is closed this tab
+  // has the only copy: an automatic page reload (a lazy chunk that failed to
+  // load, an ended session; see src/utils/forcedPageLoad.ts) must stand down.
+  useUnrecoverableContent(
+    () => revealingRecoveryCodes.value || (showRegeneratedCodes.value && recoveryCodes.value.length > 0)
+  );
 
   onMounted(async () => {
     // Fetch MFA status to get the recovery codes count

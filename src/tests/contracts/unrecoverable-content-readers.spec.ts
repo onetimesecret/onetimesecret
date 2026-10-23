@@ -2,12 +2,14 @@
 //
 // A view that puts a one-time value on screen must mark the page as showing
 // unrecoverable content (src/utils/unrecoverableContent.ts): otherwise an
-// automatic reload (a lazy chunk that failed to load, an ended session) shows
-// "viewed or expired" and destroys the only copy. The mark is opt-in per view,
-// so this test keeps the list of code that reads the `secret_value` field
-// explicit. A new reader fails here until it either calls
-// useUnrecoverableContent() itself, or renders inside a view that does, and is
-// listed below with that reason.
+// automatic reload (a lazy chunk that failed to load, an ended session)
+// destroys the only copy. The mark is opt-in per view, so this test keeps the
+// list of code that handles such a value explicit, keyed on how each value
+// appears in frontend code: the `secret_value` field of a revealed secret or a
+// receipt, and the `recoveryCodes` ref of the MFA composable. A new reader
+// fails here until it either calls useUnrecoverableContent() itself, or
+// renders inside a view that does, or keeps the value without rendering it,
+// and is listed below with that reason.
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
@@ -15,7 +17,8 @@ import { describe, expect, it } from 'vitest';
 
 const ROOT = resolve(process.cwd());
 const SKIP = [/^src\/tests\//, /^src\/schemas\//, /^src\/types\//];
-const READS_SECRET_VALUE = /\bsecret_value\b/;
+/** How a one-time value appears in frontend code. i18n keys are snake_case and do not match. */
+const ONE_TIME_VALUE = /\bsecret_value\b|\brecoveryCodes\b/;
 
 interface Reader {
   /** The file calls useUnrecoverableContent() itself. */
@@ -26,7 +29,7 @@ interface Reader {
   renderedInside?: string;
 }
 
-/** Every source file that reads `secret_value`. */
+/** Every source file that handles a one-time value. */
 const READERS: Record<string, Reader> = {
   'src/shared/components/base/BaseShowSecret.vue': {
     marks: true,
@@ -50,6 +53,18 @@ const READERS: Record<string, Reader> = {
     marks: false,
     why: 'keeps the value in state and renders nothing',
   },
+  'src/apps/workspace/account/RecoveryCodes.vue': {
+    marks: true,
+    why: 'marks from the regenerate request going out until the codes panel is closed',
+  },
+  'src/apps/session/components/OtpSetupWizard.vue': {
+    marks: true,
+    why: 'marks from the enable request going out until the wizard closes',
+  },
+  'src/shared/composables/useMfa.ts': {
+    marks: false,
+    why: 'keeps the codes in state and renders nothing; exposes revealingRecoveryCodes for the views',
+  },
 };
 
 function sourceFiles(dir: string): string[] {
@@ -72,9 +87,9 @@ function importersOf(rel: string): string[] {
   return files.filter((f) => f !== rel && read(f).includes(alias));
 }
 
-describe('readers of secret_value are accounted for (unrecoverable content)', () => {
-  it('every file that reads secret_value is listed with how it stays off an automatic reload', () => {
-    const readers = files.filter((rel) => READS_SECRET_VALUE.test(read(rel))).sort();
+describe('readers of one-time values are accounted for (unrecoverable content)', () => {
+  it('every file that handles a one-time value is listed with how it stays off an automatic reload', () => {
+    const readers = files.filter((rel) => ONE_TIME_VALUE.test(read(rel))).sort();
     // A new entry here needs useUnrecoverableContent() in that view, or a
     // reason in READERS why the value is never on screen without it.
     expect(readers).toEqual(Object.keys(READERS).sort());

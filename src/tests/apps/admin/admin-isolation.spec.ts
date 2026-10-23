@@ -126,7 +126,7 @@ describe('admin bundle — built-artifact isolation (CONTRACT 6)', () => {
   // name is followed by `-<hash>` in the production build and by nothing (or a
   // numeric suffix) under vite.config.local.ts's hash-free chunkFileNames.
   const HELPER_CHUNK =
-    /^assets\/(?:preload-helper|rolldown-runtime|_plugin-vue_export-helper)\d*(?:-[^/]*)?\.js$/;
+    /^assets\/(?:preload-helper|rolldown-runtime|_plugin-vue_export-helper)\d*(?:-[A-Za-z0-9_-]{8})?\.js$/;
   const REEXPORT_ONLY = /^(?:\s*(?:import|export)\b[^;]*;)*\s*$/;
 
   /** A chunk without a sourcemap that cannot contain source of ours. */
