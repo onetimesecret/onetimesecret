@@ -1205,6 +1205,21 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
       end
     end
 
+    # Same reasoning: a templated EntityID saved before the placeholder rule
+    # existed must stay editable. The rule applies where an EntityID is
+    # accepted (API, metadata preview) and used (to_omniauth_options).
+    context 'when a stored SAML EntityID is a template' do
+      let(:config) { build_domain_sso_config(:saml, idp_entity_id: 'https://sts.windows.net/{tenantid}/') }
+
+      it 'stays valid at the model level' do
+        expect(config.validation_errors).to eq([])
+      end
+
+      it 'is refused where the options are built' do
+        expect { config.to_omniauth_options }.to raise_error(Onetime::Problem, /unusable: IdP EntityID contains a template placeholder/)
+      end
+    end
+
     context 'when a SAML trio field cannot be decrypted' do
       it 'reports it as unreadable rather than missing' do
         config = build_domain_sso_config(:saml)

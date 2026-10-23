@@ -52,6 +52,8 @@ Fetched 2026-10-22 from `https://login.microsoftonline.com/common/federationmeta
 | Document signature | present (enveloped `ds:Signature` on the root) |
 | Other descriptors | two WS-Federation `RoleDescriptor` entries (ignored by the parser) |
 
+Its `entityID` is a template: every response Issuer carries the tenant's GUID where it says `{tenantid}`, so the template itself can never match. `Saml.entity_id_problem` refuses a brace-delimited placeholder (`Saml::ENTITY_ID_PLACEHOLDER`) wherever an EntityID is accepted or used, so a preview of this document reports a blocking `invalid_entity_id`.
+
 The tenant-level document lists the tenant's global signing keys. For an Enterprise Application with its own SAML signing certificate (the normal Entra setup, three-year default lifetime, admin-selectable up to three years), the admin must use the **App Federation Metadata Url** that Entra shows on the app's SAML page: the same path with `?appid=<application-id>`. That document carries the application's certificates.
 
 What it carries during rollover is documented by Microsoft, not just observed. The Entra tutorial on managing federation certificates tells ISVs to "download metadata on a regular cadence, add newly discovered certificates as a secondary signing certificate while the new key is still inactive, and then seamlessly promote it to primary after the customer activates it," and to "monitor metadata at least every 24 hours." So the per-app document lists an added-but-inactive certificate alongside the active one, and SAML metadata has no flag for which is active; Entra's portal shows that, the XML does not. Two more Entra behaviours from the same page bear on Phase 2:

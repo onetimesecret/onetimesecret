@@ -382,12 +382,34 @@ module Onetime
       end
       private_class_method :csp_origin_for
 
+      # A brace-delimited template token: {tenantid}, {{tenant}}, ${id}.
+      # Entra's tenant-neutral metadata publishes its EntityID as
+      # "https://sts.windows.net/{tenantid}/" while every response Issuer
+      # carries the tenant's GUID in that place, so a stored template is
+      # compared byte-for-byte with an Issuer it can never equal and every
+      # sign-in is refused. An EntityID is a URI (SAML 2.0 Core 8.3.6), and
+      # a URI has no unescaped braces, so no conforming value is refused.
+      ENTITY_ID_PLACEHOLDER = /\{[^{}]*\}/
+
+      ENTITY_ID_PLACEHOLDER_PROBLEM = 'IdP EntityID contains a template placeholder such as {tenantid}; ' \
+                                      'enter the EntityID the IdP issues for your tenant'
+
+      # allow_placeholder: exists for ONE caller, the tenant record's own
+      # validity check (CustomDomain::SsoConfig#saml_validation_errors), for
+      # the reason allow_expired does on .cert_problem: a record saved before
+      # the placeholder rule existed must stay editable and disableable. The
+      # rule still applies wherever an EntityID is ACCEPTED or USED: the API
+      # write path, test_connection, the metadata preview
+      # (IdpMetadata.parse) and .strategy_options_for.
+      #
+      # @param allow_placeholder [Boolean] skip ENTITY_ID_PLACEHOLDER
       # @return [String, nil] problem description, or nil when usable
-      def self.entity_id_problem(entity_id)
+      def self.entity_id_problem(entity_id, allow_placeholder: false)
         str = entity_id.to_s
         return 'IdP EntityID is blank' if str.strip.empty?
         return 'IdP EntityID has leading or trailing whitespace' unless str == str.strip
         return 'IdP EntityID contains control characters' if str.match?(/[\x00-\x1f\x7f]/)
+        return ENTITY_ID_PLACEHOLDER_PROBLEM if !allow_placeholder && str.match?(ENTITY_ID_PLACEHOLDER)
 
         nil
       end

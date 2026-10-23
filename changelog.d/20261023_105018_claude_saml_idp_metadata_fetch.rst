@@ -20,3 +20,14 @@ Added
   ``_MAX_PER_CUSTOMER``, ``_WINDOW`` and ``_LOCKOUT``
   (``features.organizations.sso_metadata_fetch_rate_limit``, limiter kind
   ``sso_metadata_fetch``).
+
+Changed
+-------
+
+- A SAML EntityID that contains a template placeholder in braces, such as
+  ``https://sts.windows.net/{tenantid}/`` from Entra's tenant-wide
+  metadata, is refused when a domain SSO configuration is saved or tested,
+  and a platform ``SAML_IDP_ENTITY_ID`` with one leaves the SAML provider
+  off. Sign-in through such an EntityID failed at the issuer check. A
+  configuration saved earlier with one can still be disabled, but not
+  re-enabled or edited until the EntityID is replaced.

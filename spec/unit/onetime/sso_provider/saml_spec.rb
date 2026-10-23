@@ -156,6 +156,41 @@ RSpec.describe Onetime::SsoProvider::Saml do
     end
   end
 
+  describe '.entity_id_problem' do
+    let(:placeholder) { described_class::ENTITY_ID_PLACEHOLDER_PROBLEM }
+
+    it 'accepts URL and URN EntityIDs, including the issuer Entra actually sends' do
+      [
+        'https://idp.example.com/saml/metadata',
+        'urn:example:idp',
+        'https://sts.windows.net/00000000-1111-2222-3333-444444444444/',
+      ].each { expect(described_class.entity_id_problem(it)).to be_nil, it }
+    end
+
+    it 'refuses a brace-delimited template placeholder' do
+      [
+        'https://sts.windows.net/{tenantid}/',
+        'https://idp.example.com/{{tenant}}/metadata',
+        'https://idp.example.com/${id}',
+        'urn:idp:{}',
+      ].each { expect(described_class.entity_id_problem(it)).to eq(placeholder), it }
+    end
+
+    it 'does not echo the value in the problem' do
+      expect(described_class.entity_id_problem('https://idp.example.com/{secret-detail}/')).not_to include('secret-detail')
+    end
+
+    it 'leaves a lone brace to the other rules' do
+      expect(described_class.entity_id_problem('https://idp.example.com/{tenant')).to be_nil
+    end
+
+    it 'skips only the placeholder rule with allow_placeholder: true' do
+      expect(described_class.entity_id_problem('https://sts.windows.net/{tenantid}/', allow_placeholder: true)).to be_nil
+      expect(described_class.entity_id_problem(' {tenantid}', allow_placeholder: true))
+        .to eq('IdP EntityID has leading or trailing whitespace')
+    end
+  end
+
   describe '.session_cookie_problem' do
     it 'is nil for SameSite=None with Secure' do
       expect(described_class.session_cookie_problem('same_site' => 'none', 'secure' => true)).to be_nil
@@ -301,6 +336,11 @@ RSpec.describe Onetime::SsoProvider::Saml do
       end
       expect(described_class.strategy_options_for(**trio)[:name_identifier_format]).to eq(described_class::PERSISTENT_NAME_ID_FORMAT)
       expect { described_class.strategy_options_for(**trio, name_id_format: 'invalid') }.to raise_error(ArgumentError, /NameID/)
+    end
+
+    it 'refuses to build options for a templated EntityID' do
+      expect { described_class.strategy_options_for(**trio, idp_entity_id: 'https://sts.windows.net/{tenantid}/') }
+        .to raise_error(ArgumentError, described_class::ENTITY_ID_PLACEHOLDER_PROBLEM)
     end
 
     # A transient NameID is a fresh value per login; without a uid attribute

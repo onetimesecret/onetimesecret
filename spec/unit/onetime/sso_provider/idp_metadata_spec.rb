@@ -258,18 +258,29 @@ RSpec.describe Onetime::SsoProvider::IdpMetadata do
         expect(result.signing_certificates.map(&:problem)).to all(be_nil)
       end
 
-      it 'reports no blocking problem and advertises no NameID format' do
-        expect(result.problems).to eq([])
+      # Every Issuer Entra sends carries the tenant GUID where the template
+      # says {tenantid}, so the template cannot be imported as is.
+      it 'blocks the {tenantid} EntityID template and advertises no NameID format' do
+        expect(result.problems.map(&:to_api_h)).to eq(
+          [{
+            code: 'invalid_entity_id',
+            severity: 'blocking',
+            message: Onetime::SsoProvider::Saml::ENTITY_ID_PLACEHOLDER_PROBLEM,
+          }],
+        )
+        expect(result).to be_blocking
         expect(result.name_id_formats).to eq([])
       end
 
       it 'adds the tenant-level advisory when fetched from the tenant-level URL' do
-        advisory = parse(body, metadata_url: ENTRA_COMMON_METADATA_URL).problems
+        problems = parse(body, metadata_url: ENTRA_COMMON_METADATA_URL).problems
+        advisory = problems.find { it.code == 'tenant_level_entra_metadata' }
 
-        expect(advisory.map(&:to_api_h)).to contain_exactly(
+        expect(problems.map(&:to_api_h)).to contain_exactly(
+          hash_including(code: 'invalid_entity_id', severity: 'blocking'),
           hash_including(code: 'tenant_level_entra_metadata', severity: 'advisory'),
         )
-        expect(advisory.first.message).to include('App Federation Metadata Url', '?appid=')
+        expect(advisory.message).to include('App Federation Metadata Url', '?appid=')
       end
     end
 
@@ -563,6 +574,14 @@ RSpec.describe Onetime::SsoProvider::IdpMetadata do
 
         expect(result.idp_entity_id).to eq(' https://idp.example.com/saml/metadata')
         expect(problem_codes(result)).to eq(['invalid_entity_id'])
+      end
+
+      it 'returns a templated EntityID unchanged and reports it as blocking' do
+        result = parse(document(entity(entity_id: 'https://idp.example.com/{tenant}/metadata')))
+
+        expect(result.idp_entity_id).to eq('https://idp.example.com/{tenant}/metadata')
+        expect(problem_codes(result)).to eq(['invalid_entity_id'])
+        expect(result).to be_blocking
       end
     end
 

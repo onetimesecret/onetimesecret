@@ -1088,6 +1088,11 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # it is used (#build_saml_options, and ruby-saml's
   # check_idp_cert_expiration at login).
   #
+  # Nor is an EntityID template placeholder (allow_placeholder: true), for
+  # the same reason: a record saved before Saml::ENTITY_ID_PLACEHOLDER was
+  # refused must stay editable. It is refused where an EntityID is accepted
+  # (API write path, metadata preview) and used (#build_saml_options).
+  #
   # The SSO URL gets no SSRF host check anywhere (the server never fetches
   # it; see DomainsAPI::Logic::SsoConfig::SamlFields); this method does no
   # I/O.
@@ -1115,7 +1120,7 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
 
       case name
       when :idp_sso_service_url then saml.sso_url_problem(value)
-      when :idp_entity_id       then saml.entity_id_problem(value)
+      when :idp_entity_id       then saml.entity_id_problem(value, allow_placeholder: true)
       when :idp_cert            then saml.cert_problem(value, allow_expired: true, allow_unsupported_key: true)
       end
     end

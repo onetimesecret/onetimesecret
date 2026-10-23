@@ -2480,6 +2480,17 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         expect(json_body).to include('error_type' => 'invalid', 'field' => 'idp_sso_service_url')
       end
 
+      # Entra's tenant-neutral metadata publishes this template; no response
+      # Issuer can ever equal it.
+      it 'returns 422 (invalid) for a templated EntityID' do
+        csrf_put api_path(test_custom_domain.extid),
+          valid_saml_params.merge(idp_entity_id: 'https://sts.windows.net/{tenantid}/')
+
+        expect(last_response.status).to eq(422)
+        expect(json_body).to include('error_type' => 'invalid', 'field' => 'idp_entity_id')
+        expect(json_body['error']).to include('template placeholder')
+      end
+
       # The server never fetches the SSO URL (the browser is redirected to
       # it), so the OIDC issuer's SSRF host check does not apply: an IdP that
       # only the user's browser can reach is a legitimate configuration.
@@ -2653,6 +2664,33 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
           expect(last_response.status).to eq(200), last_response.body
           expect(stored_config.enabled?).to be false
           expect(stored_config.reveal_saml_field(:idp_cert)).to eq(expired.strip)
+        end
+
+        # A templated EntityID saved before Saml::ENTITY_ID_PLACEHOLDER was
+        # refused gets the expired certificate's treatment: the form save
+        # that switches it off goes through, any other edit does not.
+        context 'when the stored EntityID is a template' do
+          let(:template) { 'https://sts.windows.net/{tenantid}/' }
+
+          before do
+            config               = stored_config
+            config.idp_entity_id = template
+            config.commit_fields
+          end
+
+          it 'can disable via a form save that re-sends the stored EntityID' do
+            csrf_patch api_path(test_custom_domain.extid), valid_saml_params.merge(idp_entity_id: template, enabled: false)
+
+            expect(last_response.status).to eq(200), last_response.body
+            expect(stored_config.enabled?).to be false
+          end
+
+          it 'refuses an edit that leaves the config enabled' do
+            csrf_patch api_path(test_custom_domain.extid), { display_name: 'Renamed' }
+
+            expect(last_response.status).to eq(422)
+            expect(json_body).to include('error_type' => 'invalid', 'field' => 'idp_entity_id')
+          end
         end
 
         it 'refuses to re-enable a disabled config whose unchanged certificate is expired' do
