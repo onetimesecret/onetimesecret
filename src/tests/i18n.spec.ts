@@ -62,6 +62,7 @@ const mockedFiles = new Set<string>();
 afterEach(() => {
   for (const code of mockedFiles) vi.doUnmock(localeFile(code));
   mockedFiles.clear();
+  document.documentElement.removeAttribute('lang');
 });
 
 const sorted = (locales: readonly string[]) => [...locales].sort();
@@ -309,6 +310,52 @@ describe('src/i18n.ts', () => {
       expect(globalComposer.locale.value).toBe('bg');
       expect(preview.composer.locale.value).toBe('en');
       expect(preview.composer.availableLocales).toEqual(['en']);
+    });
+  });
+
+  describe('<html lang>', () => {
+    it('converts locale codes to BCP 47 tags', async () => {
+      const { toLanguageTag } = await loadI18n();
+
+      expect(toLanguageTag('pt_BR')).toBe('pt-BR');
+      expect(toLanguageTag('de_AT')).toBe('de-AT');
+      expect(toLanguageTag('bg')).toBe('bg');
+    });
+
+    it('follows the global instance on activation', async () => {
+      const { setGlobalLocale } = await loadI18n();
+      document.documentElement.lang = 'en';
+
+      await setGlobalLocale('pt_BR');
+
+      expect(document.documentElement.lang).toBe('pt-BR');
+    });
+
+    it('is not touched by a preview instance', async () => {
+      const { createI18nInstance } = await loadI18n();
+      document.documentElement.lang = 'en';
+
+      await createI18nInstance().setLocale('bg');
+
+      expect(document.documentElement.lang).toBe('en');
+    });
+
+    it('stays put for a superseded or failed global switch', async () => {
+      failChunk('ko');
+      const { globalComposer, setGlobalLocale } = await loadI18n();
+      document.documentElement.lang = 'en';
+
+      const older = setGlobalLocale('pt_BR');
+      const newer = setGlobalLocale('de_AT');
+      expect(await Promise.all([older, newer])).toEqual([false, true]);
+      expect(document.documentElement.lang).toBe('de-AT');
+
+      await expect(setGlobalLocale('ko')).rejects.toHaveProperty(
+        'cause.message',
+        'chunk ko failed'
+      );
+      expect(document.documentElement.lang).toBe('de-AT');
+      expect(globalComposer.locale.value).toBe('de_AT');
     });
   });
 });

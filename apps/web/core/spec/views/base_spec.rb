@@ -569,11 +569,16 @@ RSpec.describe Core::Views::BaseView do
         vars = subject.serialized_data
         expect(vars['locale']).to eq(expected[:locale])
       end
+
+      it 'renders the locale as a BCP 47 tag for <html lang>' do
+        expect(subject.html_lang).to eq(expected[:html_lang])
+      end
     end
 
     context 'with default locale' do
       it_behaves_like 'locale initialization', 'en', {
         locale: 'en',
+        html_lang: 'en',
         is_default: true,
       }
     end
@@ -581,6 +586,7 @@ RSpec.describe Core::Views::BaseView do
     context 'with Canadian French locale' do
       it_behaves_like 'locale initialization', 'fr_CA', {
         locale: 'fr_CA',
+        html_lang: 'fr-CA',
         is_default: true,
       }
     end
@@ -588,6 +594,7 @@ RSpec.describe Core::Views::BaseView do
     context 'with French locale' do
       it_behaves_like 'locale initialization', 'fr_FR', {
         locale: 'fr_FR',
+        html_lang: 'fr-FR',
         is_default: true,
       }
     end
@@ -595,6 +602,7 @@ RSpec.describe Core::Views::BaseView do
     context 'with unsupported locale' do
       it_behaves_like 'locale initialization', 'es', {
         locale: 'es',
+        html_lang: 'es',
         is_default: true,
       }
     end
@@ -620,6 +628,10 @@ RSpec.describe Core::Views::BaseView do
       it 'falls back to default locale' do
         vars = subject.serialized_data
         expect(vars['locale']).to eq('en')
+      end
+
+      it 'falls back to the default locale for <html lang>' do
+        expect(subject.html_lang).to eq('en')
       end
     end
 

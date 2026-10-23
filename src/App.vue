@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import { toLanguageTag } from '@/i18n';
   import { routeViewKey } from '@/router/viewKey';
   import StaleSessionNotice from '@/shared/components/auth/StaleSessionNotice.vue';
   import VerificationUnavailable from '@/shared/components/auth/VerificationUnavailable.vue';
@@ -199,7 +200,7 @@
   <!-- Dynamic layout selection based on route.meta.layout -->
   <component
     :is="layout"
-    :lang="locale"
+    :lang="toLanguageTag(locale)"
     v-bind="layoutProps">
     <!-- Router view with forced component recreation on route changes.
          RouteErrorBoundary swaps a thrown route subtree for a visible error

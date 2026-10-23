@@ -207,8 +207,21 @@ function normalizeFallbackKeys(fallback: FallbackConfig): FallbackConfig {
  */
 const fallbackLocale = normalizeFallbackKeys(getBootstrapValue('fallback_locale') || {});
 
-/** Builds an i18n instance; see createI18nInstance. */
-function buildI18nInstance() {
+/**
+ * The BCP 47 language tag for one of our locale codes: pt_BR -> pt-BR,
+ * de_AT -> de-AT, bg -> bg. Locale files and supported_locales use
+ * underscores; `lang` attributes take hyphens.
+ */
+export function toLanguageTag(locale: string): string {
+  return locale.replaceAll('_', '-');
+}
+
+/**
+ * Builds an i18n instance; see createI18nInstance. `onActivate` runs in the
+ * same synchronous step that changes composer.locale, and only for a call
+ * that activates its locale. Only the global instance passes one.
+ */
+function buildI18nInstance(onActivate?: (locale: string) => void) {
   // A new object on every call. vue-i18n keeps the `messages` object as the
   // instance's message store without copying it, and setLocaleMessage writes
   // into it, so one object passed to several instances would share every
@@ -287,6 +300,7 @@ function buildI18nInstance() {
       registered.add(code);
     }
     composer.locale.value = locale;
+    onActivate?.(locale);
     return true;
   };
 
@@ -328,11 +342,20 @@ export function createI18nInstance() {
   return buildI18nInstance();
 }
 
+/**
+ * Keeps <html lang> on the global instance's active locale, so content
+ * outside the layout root (modals and toasts teleported to <body>) carries
+ * the right language too. Preview instances never touch the document.
+ */
+const setDocumentLanguage = (locale: string) => {
+  if (typeof document !== 'undefined') document.documentElement.lang = toLanguageTag(locale);
+};
+
 /** Create and export the global instance */
 const {
   instance: i18n,
   composer: globalComposer,
   setLocale: setGlobalLocale,
-} = buildI18nInstance();
+} = buildI18nInstance(setDocumentLanguage);
 export default i18n;
 export { globalComposer, setGlobalLocale };
