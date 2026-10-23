@@ -78,6 +78,8 @@
     no_signing_certificates: 'web.organizations.sso.metadata_problem_no_signing_certificates',
     no_usable_signing_certificates:
       'web.organizations.sso.metadata_problem_no_usable_signing_certificates',
+    unreadable_signing_certificates:
+      'web.organizations.sso.metadata_problem_unreadable_signing_certificates',
     tenant_level_entra_metadata:
       'web.organizations.sso.metadata_problem_tenant_level_entra_metadata',
   };

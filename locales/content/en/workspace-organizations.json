@@ -1057,8 +1057,12 @@
     "content_hash": "102b59c7"
   },
   "web.organizations.sso.metadata_problem_no_usable_signing_certificates": {
-    "text": "None of the signing certificates in this metadata can be used. Each one has expired, is not valid yet, or does not use an RSA key.",
-    "content_hash": "4c9188c5"
+    "text": "None of the signing certificates in this metadata can be used. Each one could not be read, has expired, is not valid yet, or does not use an RSA key.",
+    "content_hash": "86549c52"
+  },
+  "web.organizations.sso.metadata_problem_unreadable_signing_certificates": {
+    "text": "Some signing certificates in this metadata could not be read and are not listed. If the certificate you need is missing, copy it from your identity provider.",
+    "content_hash": "e75e7b39"
   },
   "web.organizations.sso.metadata_problem_tenant_level_entra_metadata": {
     "text": "This is Microsoft Entra ID's tenant-wide metadata, which can list the tenant's keys instead of this application's signing certificate. Use the App Federation Metadata Url from the application's SAML page in Entra.",

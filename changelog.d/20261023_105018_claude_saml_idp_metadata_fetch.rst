@@ -6,9 +6,11 @@ Added
 - The SAML SSO settings for a custom domain can fill the IdP SSO URL,
   EntityID and signing certificate from the identity provider's metadata
   URL. For Microsoft Entra ID, use the App Federation Metadata Url on the
-  application's SAML page. The form lists every signing certificate the
-  metadata publishes with its validity window, SHA-256 fingerprint and the
-  SHA-1 thumbprint the Entra portal shows, and the admin picks one. Nothing
+  application's SAML page. The form lists every readable signing
+  certificate the metadata publishes with its validity window, SHA-256
+  fingerprint and the SHA-1 thumbprint the Entra portal shows, and the
+  admin picks one. Certificates that cannot be read are left out with a
+  warning. Nothing
   is saved until the admin applies the values and saves the form, which
   validates them as before. The metadata URL is stored with the
   configuration as the source of the imported values. Sign-in does not read

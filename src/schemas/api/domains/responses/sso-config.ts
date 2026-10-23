@@ -115,8 +115,9 @@ export type SsoMetadataFetchErrorCode = (typeof SSO_METADATA_FETCH_ERROR_CODES)[
 
 /**
  * Record-level problem codes of a parsed metadata document. Every one but
- * tenant_level_entra_metadata blocks the import; that one is advisory.
- * Severity comes from the response, never from this list.
+ * unreadable_signing_certificates and tenant_level_entra_metadata blocks the
+ * import; those two are advisory. Severity comes from the response, never
+ * from this list.
  */
 export const SSO_METADATA_PROBLEM_CODES = [
   'invalid_entity_id',
@@ -125,6 +126,7 @@ export const SSO_METADATA_PROBLEM_CODES = [
   'unsupported_sso_binding',
   'no_signing_certificates',
   'no_usable_signing_certificates',
+  'unreadable_signing_certificates',
   'tenant_level_entra_metadata',
 ] as const;
 

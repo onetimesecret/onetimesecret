@@ -4253,6 +4253,25 @@ describe('DomainSsoConfigForm', () => {
         ).toBeUndefined();
       });
 
+      it('names left-out unreadable certificates without disabling Apply', async () => {
+        const unreadable = {
+          code: 'unreadable_signing_certificates',
+          severity: 'advisory' as const,
+          message: 'Some signing certificates could not be read',
+        };
+        wrapper = await mountSamlA({
+          metadataPreview: previewOf(metadataB({ problems: [unreadable] }), 0),
+          canApplyMetadata: true,
+        });
+
+        expect(wrapper.get('[data-testid="sso-metadata-advisories"]').text()).toBe(
+          'web.organizations.sso.metadata_problem_unreadable_signing_certificates'
+        );
+        expect(
+          wrapper.get('[data-testid="sso-metadata-apply"]').attributes('disabled')
+        ).toBeUndefined();
+      });
+
       it("points tenant-level Entra metadata at the application's App Federation Metadata Url", async () => {
         wrapper = mount(DomainSsoConfigForm, {
           props: {

@@ -68,10 +68,19 @@ module Onetime
     # LAZILY, when text or an attribute value is first read, so an entity
     # reference fails after REXML::Document.new has already succeeded,
     # anywhere a value is read (in the parser or here); hence one boundary
-    # around all of it, not a rescue around document construction. A
-    # malformed certificate aborts the WHOLE parse: the upstream fingerprint
-    # computation can raise before the parser returns anything, so there is
-    # no promise to keep the well-formed siblings of a bad entry.
+    # around all of it, not a rescue around document construction.
+    #
+    # UNREADABLE CERTIFICATES. A signing entry OpenSSL will not parse is left
+    # out of signing_certificates and reported once, as the advisory
+    # unreadable_signing_certificates, so one bad KeyDescriptor beside good
+    # ones still leaves the good ones to pick from; when no readable entry
+    # is left, no_usable_signing_certificates blocks. One shape fails the
+    # whole parse instead: where ruby-saml fingerprints the certificate
+    # itself (merge_certificates_into: the descriptor's only certificate,
+    # signing or encryption, or one of each that are the same), its
+    # CertificateError is raised inside parse_to_array before any entry is
+    # returned, and the boundary maps it to :invalid_metadata. That shape
+    # has no sibling to keep, so there is nothing to import either way.
     #
     # ENTITY EXPANSION. ruby-saml's normal load path (xml_security.rb, loaded
     # by `require 'ruby-saml'`) sets REXML::Security.entity_expansion_limit to
@@ -328,15 +337,15 @@ module Onetime
       end
 
       def build_result(entry, descriptor, metadata_url)
-        entity_id      = entry[:idp_entity_id]
-        entity_problem = Saml.entity_id_problem(entity_id)
-        sso            = sso_service(descriptor, entry[:idp_sso_service_url])
-        certificates   = signing_certificates(entry)
+        entity_id                = entry[:idp_entity_id]
+        entity_problem           = Saml.entity_id_problem(entity_id)
+        sso                      = sso_service(descriptor, entry[:idp_sso_service_url])
+        certificates, unreadable = signing_certificates(entry)
 
         problems = []
         problems << blocking('invalid_entity_id', entity_problem) if entity_problem
         problems << sso[:problem] if sso[:problem]
-        problems.concat(certificate_problems(certificates))
+        problems.concat(certificate_problems(certificates, unreadable))
         problems << tenant_level_entra_problem if metadata_url && tenant_level_entra_metadata?(metadata_url)
 
         Result.new(
@@ -399,38 +408,63 @@ module Onetime
       # idp_cert_multi[:signing] and nothing else (see the module header).
       # Each entry is the X509Certificate element text, bare base64;
       # Utils.format_cert wraps it into ONE PEM block, the form the save path
-      # accepts. OpenSSL::X509::Certificate.new raises CertificateError for
-      # an entry that is not a certificate, which aborts the parse.
+      # accepts. An entry OpenSSL::X509::Certificate.new refuses (an empty
+      # element, base64 that is not a certificate) is left out and counted
+      # (UNREADABLE CERTIFICATES in the module header).
+      #
+      # @return [Array(Array<SigningCertificate>, Integer)] the readable
+      #   certificates in document order, and the number left out
       def signing_certificates(entry)
-        Array(entry.dig(:idp_cert_multi, :signing)).map do |base64|
-          pem  = OneLogin::RubySaml::Utils.format_cert(base64.to_s)
-          cert = OpenSSL::X509::Certificate.new(pem)
-          der  = cert.to_der
-
-          SigningCertificate.new(
-            pem: pem,
-            subject: cert.subject.to_utf8,
-            not_before: cert.not_before,
-            not_after: cert.not_after,
-            fingerprint_sha256: colon_hex(OpenSSL::Digest::SHA256.digest(der)),
-            thumbprint_sha1: colon_hex(OpenSSL::Digest::SHA1.digest(der)),
-            problem: Saml.cert_problem(pem),
-          )
+        unreadable   = 0
+        certificates = Array(entry.dig(:idp_cert_multi, :signing)).filter_map do |base64|
+          signing_certificate(base64.to_s)
+        rescue OpenSSL::X509::CertificateError
+          unreadable += 1
+          nil
         end
+
+        [certificates, unreadable]
       end
 
-      def certificate_problems(certificates)
-        if certificates.empty?
-          [blocking('no_signing_certificates', 'The metadata lists no signing certificate.')]
+      def signing_certificate(base64)
+        pem  = OneLogin::RubySaml::Utils.format_cert(base64)
+        cert = OpenSSL::X509::Certificate.new(pem)
+        der  = cert.to_der
+
+        SigningCertificate.new(
+          pem: pem,
+          subject: cert.subject.to_utf8,
+          not_before: cert.not_before,
+          not_after: cert.not_after,
+          fingerprint_sha256: colon_hex(OpenSSL::Digest::SHA256.digest(der)),
+          thumbprint_sha1: colon_hex(OpenSSL::Digest::SHA1.digest(der)),
+          problem: Saml.cert_problem(pem),
+        )
+      end
+
+      # Blocking problems first, then the unreadable-entries advisory.
+      def certificate_problems(certificates, unreadable)
+        problems = []
+        if certificates.empty? && unreadable.zero?
+          problems << blocking('no_signing_certificates', 'The metadata lists no signing certificate.')
         elsif certificates.none? { it.problem.nil? }
-          [blocking(
+          problems << blocking(
             'no_usable_signing_certificates',
             'None of the signing certificates in the metadata can be used ' \
-            '(each is expired, not yet valid, or not an RSA certificate).',
-          )]
-        else
-          []
+            '(each is unreadable, expired, not yet valid, or not an RSA certificate).',
+          )
         end
+        problems << unreadable_certificates_problem if unreadable.positive?
+        problems
+      end
+
+      def unreadable_certificates_problem
+        Problem.new(
+          code: 'unreadable_signing_certificates',
+          severity: ADVISORY,
+          message: 'Some signing certificates in the metadata could not be read as X.509 ' \
+                   'certificates and are not listed.',
+        )
       end
 
       def tenant_level_entra_problem

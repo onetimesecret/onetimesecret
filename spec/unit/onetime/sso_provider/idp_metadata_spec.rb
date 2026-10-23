@@ -353,6 +353,75 @@ RSpec.describe Onetime::SsoProvider::IdpMetadata do
       end
     end
 
+    # Two or more signing entries: the parser does not fingerprint, so a bad
+    # member first meets OpenSSL in the wrapper, which leaves it out.
+    describe 'unreadable signing certificates' do
+      let(:not_a_certificate) { Base64.strict_encode64('not a certificate') }
+
+      it 'leaves an unreadable member out, keeps its readable siblings and reports an advisory' do
+        keys = [key_descriptor(not_a_certificate), key_descriptor(b64(signing_cert))]
+        xml  = document(entity(idp_descriptor(keys: keys)))
+        expect { OneLogin::RubySaml::IdpMetadataParser.new.parse_to_array(xml, sso_binding: [BINDING_REDIRECT]) }
+          .not_to raise_error
+
+        result = parse(xml)
+
+        expect(result.signing_certificates.map(&:subject)).to eq(['CN=signing.idp.example.com'])
+        expect(result.problems.map(&:to_api_h)).to eq(
+          [{
+            code: 'unreadable_signing_certificates',
+            severity: 'advisory',
+            message: 'Some signing certificates in the metadata could not be read as X.509 certificates and are not listed.',
+          }],
+        )
+        expect(result).not_to be_blocking
+      end
+
+      it 'treats an empty X509Certificate element among several the same way' do
+        keys   = [key_descriptor(b64(signing_cert)), key_descriptor('')]
+        result = parse(document(entity(idp_descriptor(keys: keys))))
+
+        expect(result.signing_certificates.size).to eq(1)
+        expect(problem_codes(result)).to eq(['unreadable_signing_certificates'])
+      end
+
+      it 'reports one advisory however many members are unreadable' do
+        keys   = [key_descriptor(not_a_certificate), key_descriptor(b64(signing_cert)), key_descriptor('')]
+        result = parse(document(entity(idp_descriptor(keys: keys))))
+
+        expect(problem_codes(result)).to eq(['unreadable_signing_certificates'])
+      end
+
+      it 'blocks when no member is readable, never as no_signing_certificates' do
+        keys   = [key_descriptor(not_a_certificate), key_descriptor('')]
+        result = parse(document(entity(idp_descriptor(keys: keys))))
+
+        expect(result.signing_certificates).to eq([])
+        expect(problem_codes(result)).to eq(%w[no_usable_signing_certificates unreadable_signing_certificates])
+        expect(result).to be_blocking
+      end
+
+      it 'blocks when the readable members are all ineligible' do
+        expired = mint_cert(cn: 'expired', not_before: IDP_METADATA_NOW - (400 * 86_400), not_after: IDP_METADATA_NOW - 86_400)
+        keys    = [key_descriptor(not_a_certificate), key_descriptor(b64(expired))]
+        result  = parse(document(entity(idp_descriptor(keys: keys))))
+
+        expect(result.signing_certificates.map(&:subject)).to eq(['CN=expired'])
+        expect(problem_codes(result)).to eq(%w[no_usable_signing_certificates unreadable_signing_certificates])
+      end
+
+      # One signing entry beside a DIFFERENT encryption key: the parser does
+      # not fingerprint (the two differ), so the parse completes with nothing
+      # to sign with.
+      it 'blocks an unreadable lone signing entry beside a distinct encryption key' do
+        keys   = [key_descriptor(not_a_certificate), key_descriptor(b64(signing_cert), use: 'encryption')]
+        result = parse(document(entity(idp_descriptor(keys: keys))))
+
+        expect(result.signing_certificates).to eq([])
+        expect(problem_codes(result)).to eq(%w[no_usable_signing_certificates unreadable_signing_certificates])
+      end
+    end
+
     describe 'SSO service selection (HTTP-Redirect only)' do
       def result_for(services)
         parse(document(entity(idp_descriptor(services: services))))
@@ -647,24 +716,6 @@ RSpec.describe Onetime::SsoProvider::IdpMetadata do
         bad = key_descriptor(Base64.strict_encode64('not a certificate'), use: 'encryption')
 
         expect_invalid_metadata(document(entity(idp_descriptor(keys: [bad]))))
-      end
-
-      # Two signing entries: the parser does not fingerprint, so the bad
-      # member reaches the wrapper's own OpenSSL parse, which aborts the
-      # whole fetch rather than returning the good sibling alone.
-      it 'refuses a malformed member that fails during wrapper enrichment, keeping no partial list' do
-        keys = [key_descriptor(b64(signing_cert)), key_descriptor(Base64.strict_encode64('not a certificate'))]
-        xml  = document(entity(idp_descriptor(keys: keys)))
-        expect { OneLogin::RubySaml::IdpMetadataParser.new.parse_to_array(xml, sso_binding: [BINDING_REDIRECT]) }
-          .not_to raise_error
-
-        expect_invalid_metadata(xml) { expect(it.reason).to eq('OpenSSL::X509::CertificateError') }
-      end
-
-      it 'refuses an empty X509Certificate element among several' do
-        keys = [key_descriptor(b64(signing_cert)), key_descriptor('')]
-
-        expect_invalid_metadata(document(entity(idp_descriptor(keys: keys))))
       end
     end
 
