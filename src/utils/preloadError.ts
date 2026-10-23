@@ -13,10 +13,17 @@
 // forced page load bound of ADR-046 (src/utils/forcedPageLoad.ts): one forced
 // page load per tab per minute, whatever its cause.
 //
+// A reload is also refused while the page shows content a reload would
+// destroy (src/utils/unrecoverableContent.ts): a revealed secret exists only
+// in the tab once the reveal request has run, and a reload of that page shows
+// "viewed or expired". There the import is left to fail, and the view's own
+// fallback (MarkdownRenderer shows the source as plain text) is the final
+// state.
+//
 // Vite's preload helper rethrows the error unless the event was
 // default-prevented. A refused reload leaves the event alone, so the dynamic
-// import rejects and its caller (the router) reports a failed navigation
-// instead of the page reloading forever.
+// import rejects and its caller (the router, a component) reports the failure
+// instead of the page reloading.
 
 import { loggingService } from '@/services/logging.service';
 import {
@@ -24,30 +31,51 @@ import {
   type ForcedPageLoadDeps,
   type ForcedPageLoadResult,
 } from '@/utils/forcedPageLoad';
+import { hasUnrecoverableContent } from '@/utils/unrecoverableContent';
+
+export type PreloadErrorOutcome =
+  | ForcedPageLoadResult
+  /** The page shows unrecoverable content: no reload, the import is left to fail. */
+  | 'refused';
 
 /**
- * Handles one `vite:preloadError` event: reloads the page when the forced page
- * load bound allows it, otherwise logs the cause and leaves the import to fail.
+ * Handles one `vite:preloadError` event: reloads the page when nothing on it
+ * would be lost and the forced page load bound allows it, otherwise logs the
+ * cause and leaves the import to fail.
  */
 export function handlePreloadError(
   event: Event,
   deps: ForcedPageLoadDeps = {}
-): ForcedPageLoadResult {
+): PreloadErrorOutcome {
+  if (hasUnrecoverableContent()) {
+    loggingService.error(
+      new Error(
+        '[preload] a chunk failed to load while the page shows content a reload ' +
+          `would destroy; the import is left to fail: ${describeCause(event)}`
+      )
+    );
+    return 'refused';
+  }
+
   const result = attemptForcedPageLoad(deps);
   if (result === 'reloading') {
     event.preventDefault();
     return result;
   }
 
-  const cause = (event as { payload?: unknown }).payload;
-  const detail = cause instanceof Error ? cause.message : String(cause);
   loggingService.error(
     new Error(
       '[preload] a chunk failed to load and the forced page load was refused ' +
-        `(one per tab per minute, ADR-046); the import is left to fail: ${detail}`
+        `(one per tab per minute, ADR-046); the import is left to fail: ${describeCause(event)}`
     )
   );
   return result;
+}
+
+/** The error Vite's helper attached to the event, as text. */
+function describeCause(event: Event): string {
+  const cause = (event as { payload?: unknown }).payload;
+  return cause instanceof Error ? cause.message : String(cause);
 }
 
 /** Installs the handler on `target`, the window by default. */

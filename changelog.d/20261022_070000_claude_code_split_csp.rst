@@ -14,4 +14,7 @@ Changed
 - A lazy chunk that fails to load reloads the page once, through the same
   one-per-tab-per-minute bound as the stale-session reload (ADR-046),
   instead of on every failure. A chunk that keeps failing now fails its
-  navigation and is logged rather than reloading the tab in a loop.
+  navigation and is logged rather than reloading the tab in a loop. While a
+  revealed secret, or the one-time generated value on a receipt, is on
+  screen the page never reloads itself: the value exists only in that tab,
+  and a failed chunk there falls back to showing the source as plain text.

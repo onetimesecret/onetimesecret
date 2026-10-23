@@ -14,6 +14,7 @@
 
 import BaseShowSecret from '@/shared/components/base/BaseShowSecret.vue';
 import { useSecretStore } from '@/shared/stores/secretStore';
+import { hasUnrecoverableContent } from '@/utils/unrecoverableContent';
 import { createTestingPinia } from '@pinia/testing';
 import { flushPromises, mount } from '@vue/test-utils';
 import axios from 'axios';
@@ -199,5 +200,31 @@ describe('BaseShowSecret while a reveal is in flight', () => {
     expect(formMounts).toBe(1);
     expect(wrapper.find('[data-testid="probe-submit"]').attributes('disabled')).toBeUndefined();
     expect(wrapper.find('[data-testid="probe-error"]').exists()).toBe(true);
+  });
+});
+
+describe('BaseShowSecret while the revealed value is on screen', () => {
+  beforeEach(() => {
+    formMounts = 0;
+    captureAppLogs();
+  });
+
+  // The reveal destroys the secret server-side, so an automatic reload of this
+  // page (src/utils/preloadError.ts on a failed lazy chunk) would show "viewed
+  // or expired" and lose the only copy. The page marks itself for as long as
+  // the value is on screen.
+  it('refuses automatic reloads from the reveal until the page unmounts', async () => {
+    const { wrapper, store } = await mountLoaded();
+    expect(hasUnrecoverableContent()).toBe(false);
+
+    store.record = { ...record, secret_value: 'the plaintext' } as never;
+    store.details = { ...details, show_secret: true } as never;
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="revealed"]').exists()).toBe(true);
+    expect(hasUnrecoverableContent()).toBe(true);
+
+    wrapper.unmount();
+    expect(hasUnrecoverableContent()).toBe(false);
   });
 });

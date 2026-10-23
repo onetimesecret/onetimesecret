@@ -13,6 +13,7 @@
   import TimelineDisplay from '@/apps/secret/components/receipt/TimelineDisplay.vue';
   import { useReceipt } from '@/shared/composables/useReceipt';
   import { useSecretExpiration, EXPIRATION_EVENTS } from '@/shared/composables/useSecretExpiration';
+  import { useUnrecoverableContent } from '@/shared/composables/useUnrecoverableContent';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { storeToRefs } from 'pinia';
   import { onMounted, onUnmounted, watch, computed, ref } from 'vue';
@@ -32,6 +33,11 @@
   const warningMessage = ref<HTMLElement | null>(null);
 
   const { record, details, isLoading, fetch, reset } = useReceipt(props.receiptIdentifier);
+
+  // A generated value is shown here once (the server claims that display), so
+  // while it is on screen an automatic page reload (a lazy chunk that failed
+  // to load, see src/utils/preloadError.ts) must stand down.
+  useUnrecoverableContent(() => !!(details.value?.show_secret && details.value?.secret_value));
 
   const { onExpirationEvent } = useSecretExpiration(
     record.value?.created ?? new Date(),

@@ -7,6 +7,7 @@
 import { loggingService } from '@/services/logging.service';
 import { FORCED_RELOAD_MARKER, FORCED_RELOAD_WINDOW_MS } from '@/utils/forcedPageLoad';
 import { handlePreloadError, installPreloadErrorHandler } from '@/utils/preloadError';
+import { markUnrecoverableContent } from '@/utils/unrecoverableContent';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/services/logging.service', () => ({
@@ -71,6 +72,30 @@ describe('handlePreloadError', () => {
 
     expect(reload).not.toHaveBeenCalled();
     expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('never reloads while the page shows unrecoverable content (a revealed secret)', () => {
+    const release = markUnrecoverableContent();
+    const reload = vi.fn();
+    const event = preloadErrorEvent('chunk 404');
+    try {
+      expect(handlePreloadError(event, { now: NOW, reload })).toBe('refused');
+
+      expect(reload).not.toHaveBeenCalled();
+      // Not default-prevented: the import rejects and the view's own fallback
+      // (MarkdownRenderer's plain text) is what stays on screen.
+      expect(event.defaultPrevented).toBe(false);
+      // A refused reload does not spend the forced page load bound either.
+      expect(sessionStorage.getItem(FORCED_RELOAD_MARKER)).toBeNull();
+      expect(loggingService.error).toHaveBeenCalledTimes(1);
+      expect(vi.mocked(loggingService.error).mock.calls[0][0].message).toContain('chunk 404');
+    } finally {
+      release();
+    }
+
+    // Once the content is gone (the view unmounted), reloads resume.
+    expect(handlePreloadError(preloadErrorEvent(), { now: NOW, reload })).toBe('reloading');
+    expect(reload).toHaveBeenCalledTimes(1);
   });
 
   it('reloads again once the minute has passed', () => {
