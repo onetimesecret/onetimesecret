@@ -129,6 +129,34 @@ describe('admin bundle — built-artifact isolation (CONTRACT 6)', () => {
     /^assets\/(?:preload-helper|rolldown-runtime|_plugin-vue_export-helper)\d*(?:-[^/]*)?\.js$/;
   const REEXPORT_ONLY = /^(?:\s*(?:import|export)\b[^;]*;)*\s*$/;
 
+  /** A chunk without a sourcemap that cannot contain source of ours. */
+  function maplessIsHarmless(file: string): boolean {
+    return HELPER_CHUNK.test(file) || REEXPORT_ONLY.test(readFileSync(join(dist, file), 'utf8'));
+  }
+
+  /**
+   * Sourcemap `sources` of every chunk in `files` that has one. A chunk without
+   * a sourcemap is a gap in the check unless it is harmless, and is reported in
+   * `unverifiable`.
+   */
+  function sourcesOf(files: string[]): {
+    inspected: Array<{ file: string; sources: string[] }>;
+    unverifiable: string[];
+  } {
+    const inspected: Array<{ file: string; sources: string[] }> = [];
+    const unverifiable: string[] = [];
+    for (const file of files) {
+      const mapPath = join(dist, `${file}.map`);
+      if (!existsSync(mapPath)) {
+        if (!maplessIsHarmless(file)) unverifiable.push(file);
+        continue;
+      }
+      const map = JSON.parse(readFileSync(mapPath, 'utf8')) as { sources?: string[] };
+      inspected.push({ file, sources: map.sources ?? [] });
+    }
+    return { inspected, unverifiable };
+  }
+
   const manifest = readManifest();
   const adminEntry = manifest?.[ADMIN_ENTRY] ?? null;
 
@@ -149,30 +177,16 @@ describe('admin bundle — built-artifact isolation (CONTRACT 6)', () => {
     'no chunk the admin entry loads contains colonelInfoStore / apps/colonel / customer-router source',
     () => {
       const files = reachableChunks(manifest as Record<string, ManifestChunk>, ADMIN_ENTRY);
-      const inspected: string[] = [];
-      const offenders: string[] = [];
-      const unverifiable: string[] = [];
-      for (const file of files) {
-        const mapPath = join(dist, `${file}.map`);
-        if (!existsSync(mapPath)) {
-          const harmless =
-            HELPER_CHUNK.test(file) || REEXPORT_ONLY.test(readFileSync(join(dist, file), 'utf8'));
-          if (!harmless) unverifiable.push(file);
-          continue;
-        }
-        inspected.push(file);
-        const map = JSON.parse(readFileSync(mapPath, 'utf8')) as { sources?: string[] };
-        const sources = map.sources ?? [];
-        offenders.push(
-          ...FORBIDDEN.flatMap(([label, re]) =>
-            sources.filter((s) => re.test(s)).map((s) => `${file}: ${label}: ${s}`)
-          )
-        );
-      }
+      const { inspected, unverifiable } = sourcesOf(files);
+      const offenders = inspected.flatMap(({ file, sources }) =>
+        FORBIDDEN.flatMap(([label, re]) =>
+          sources.filter((s) => re.test(s)).map((s) => `${file}: ${label}: ${s}`)
+        )
+      );
 
       // The entry's own chunk and the ones it shares with the customer entry:
       // a walk that reached only the entry would be the vacuous check again.
-      expect(inspected).toContain((adminEntry as ManifestChunk).file);
+      expect(inspected.map((c) => c.file)).toContain((adminEntry as ManifestChunk).file);
       expect(inspected.length).toBeGreaterThan(1);
       // A chunk this check could not read is a gap, not a pass.
       expect(unverifiable).toEqual([]);
@@ -187,17 +201,12 @@ describe('admin bundle — built-artifact isolation (CONTRACT 6)', () => {
     'no chunk the customer entry loads contains admin app source',
     () => {
       const files = reachableChunks(manifest as Record<string, ManifestChunk>, 'main.ts');
-      const offenders: string[] = [];
-      for (const file of files) {
-        const mapPath = join(dist, `${file}.map`);
-        if (!existsSync(mapPath)) continue; // helper or re-export stub, checked above
-        const map = JSON.parse(readFileSync(mapPath, 'utf8')) as { sources?: string[] };
-        offenders.push(
-          ...(map.sources ?? [])
-            .filter((s) => /src\/apps\/admin\//.test(s))
-            .map((s) => `${file}: ${s}`)
-        );
-      }
+      const { inspected, unverifiable } = sourcesOf(files);
+      const offenders = inspected.flatMap(({ file, sources }) =>
+        sources.filter((s) => /src\/apps\/admin\//.test(s)).map((s) => `${file}: ${s}`)
+      );
+      expect(inspected.length).toBeGreaterThan(1);
+      expect(unverifiable).toEqual([]);
       expect(offenders).toEqual([]);
     }
   );
