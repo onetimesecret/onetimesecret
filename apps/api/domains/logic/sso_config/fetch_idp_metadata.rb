@@ -274,14 +274,9 @@ module DomainsAPI
         end
 
         # The TLS / socket error text with addresses and ports masked and the
-        # length capped — DiscoveryCheck#sanitize_error_message's rule (that
-        # method is private to the discovery mixin, which this endpoint does
-        # not include).
+        # length capped, by the discovery check's own rule.
         def sanitized_description(error, fallback)
-          text = error&.message.to_s
-            .gsub(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/, '[IP]')
-            .gsub(/:[0-9]+/, ':[PORT]')
-            .slice(0, 200)
+          text = DiscoveryCheck.sanitize_error_message(error&.message)
           text.strip.empty? ? fallback : text
         end
 

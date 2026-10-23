@@ -58,6 +58,16 @@ module DomainsAPI
         # which is not evidence about the configuration.
         UNREACHABLE_ERROR_CODES = %w[timeout connection_failed ssl_error].freeze
 
+        # The one rule for echoing a TLS / socket error from a fetch through
+        # DiscoveryFetcher, shared with FetchIdpMetadata (which does not
+        # include this mixin).
+        def self.sanitize_error_message(message)
+          # Remove potentially sensitive information from error messages
+          message.to_s.gsub(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/, '[IP]')
+            .gsub(/:[0-9]+/, ':[PORT]')
+            .slice(0, 200) # Limit length
+        end
+
         private
 
         def test_oidc_connection
@@ -260,10 +270,7 @@ module DomainsAPI
         end
 
         def sanitize_error_message(message)
-          # Remove potentially sensitive information from error messages
-          message.to_s.gsub(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/, '[IP]')
-            .gsub(/:[0-9]+/, ':[PORT]')
-            .slice(0, 200) # Limit length
+          DiscoveryCheck.sanitize_error_message(message)
         end
       end
     end
