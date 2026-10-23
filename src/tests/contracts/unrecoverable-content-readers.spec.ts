@@ -30,11 +30,11 @@ interface Reader {
 const READERS: Record<string, Reader> = {
   'src/shared/components/base/BaseShowSecret.vue': {
     marks: true,
-    why: 'marks while record.secret_value is set (the recipient reveal)',
+    why: 'marks from the reveal request going out until record.secret_value is gone',
   },
   'src/apps/secret/reveal/ShowReceipt.vue': {
     marks: true,
-    why: 'marks while details.secret_value is shown (the one-time generated value)',
+    why: 'marks during the receipt fetch and while details.secret_value is shown',
   },
   'src/apps/secret/components/canonical/SecretDisplayCase.vue': {
     marks: false,

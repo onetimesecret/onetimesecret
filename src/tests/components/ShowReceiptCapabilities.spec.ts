@@ -17,12 +17,13 @@ enableAutoUnmount(afterEach);
 
 const recordRef = ref<Record<string, unknown> | null>(null);
 const detailsRef = ref<Record<string, unknown> | null>(null);
+const isLoadingRef = ref(false);
 
 vi.mock('@/shared/composables/useReceipt', () => ({
   useReceipt: vi.fn(() => ({
     record: recordRef,
     details: detailsRef,
-    isLoading: ref(false),
+    isLoading: isLoadingRef,
     passphrase: ref(''),
     error: ref(null),
     canBurn: ref(true),
@@ -71,9 +72,9 @@ const mountReceipt = (
 ) => {
   recordRef.value = record;
   detailsRef.value = baseDetails();
+  isLoadingRef.value = false;
 
-  const capabilities =
-    burnCapability === undefined ? {} : { burn: burnCapability };
+  const capabilities = burnCapability === undefined ? {} : { burn: burnCapability };
 
   return mount(ShowReceipt, {
     props: { receiptIdentifier: 'testkey' },
@@ -138,7 +139,7 @@ describe('ShowReceipt while the one-time generated value is on screen', () => {
     vi.clearAllMocks();
   });
 
-  // The server claims the display of a generated value once, so an automatic
+  // The server consumes the display of a generated value once, so an automatic
   // reload of this page (src/utils/preloadError.ts on a failed lazy chunk)
   // would lose it. The page marks itself for as long as the value is shown.
   it('refuses automatic reloads while the value is shown, until the page unmounts', () => {
@@ -153,6 +154,21 @@ describe('ShowReceipt while the one-time generated value is on screen', () => {
 
     detailsRef.value = { ...baseDetails(), show_secret: true, secret_value: 'generated-value' };
     wrapper.unmount();
+    expect(hasUnrecoverableContent()).toBe(false);
+  });
+
+  // The receipt fetch is what consumes the one-time display server-side, so
+  // the mark must be up while that request is in flight, before any value is
+  // on screen.
+  it('refuses automatic reloads while the receipt fetch is in flight', () => {
+    mountReceipt(true);
+    expect(hasUnrecoverableContent()).toBe(false);
+
+    isLoadingRef.value = true;
+    expect(hasUnrecoverableContent()).toBe(true);
+
+    // Settled without a value to show: nothing to protect.
+    isLoadingRef.value = false;
     expect(hasUnrecoverableContent()).toBe(false);
   });
 });

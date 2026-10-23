@@ -227,4 +227,35 @@ describe('BaseShowSecret while the revealed value is on screen', () => {
     wrapper.unmount();
     expect(hasUnrecoverableContent()).toBe(false);
   });
+
+  // The server destroys the secret when it receives the reveal request, so the
+  // mark has to be up for the whole round trip, not only once the value is on
+  // screen: a chunk that fails during the request would otherwise reload the
+  // page onto "viewed or expired" with the plaintext still in flight.
+  it('marks from the moment the reveal request goes out, before the value arrives', async () => {
+    const { wrapper, store } = await mountLoaded();
+
+    const pending = deferred();
+    store.reveal = vi.fn(() => pending.promise);
+    await wrapper.find('[data-testid="probe-submit"]').trigger('click');
+    expect(hasUnrecoverableContent()).toBe(true);
+
+    // Settled without a value (wrong passphrase): nothing to protect.
+    pending.reject(new Error('Cannot verify when logged in'));
+    await flushPromises();
+    expect(hasUnrecoverableContent()).toBe(false);
+
+    // Settled with a value: the mark carries over from the request to the screen.
+    const again = deferred();
+    store.reveal = vi.fn(() => again.promise);
+    await wrapper.find('[data-testid="probe-submit"]').trigger('click');
+    expect(hasUnrecoverableContent()).toBe(true);
+    store.record = { ...record, secret_value: 'the plaintext' } as never;
+    again.resolve(undefined as never);
+    await flushPromises();
+    expect(hasUnrecoverableContent()).toBe(true);
+
+    wrapper.unmount();
+    expect(hasUnrecoverableContent()).toBe(false);
+  });
 });

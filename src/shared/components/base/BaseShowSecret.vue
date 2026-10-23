@@ -37,12 +37,14 @@
 
   const props = defineProps<Props>();
 
-  const { record, details, state, load, reveal } = useSecret(props.secretIdentifier);
+  const { record, details, state, load, reveal, revealing } = useSecret(props.secretIdentifier);
 
-  // The reveal request destroys the secret server-side, so while the value is
-  // on screen this tab has the only copy: an automatic page reload (a lazy
-  // chunk that failed to load, see src/utils/preloadError.ts) must stand down.
-  useUnrecoverableContent(() => !!record.value?.secret_value);
+  // The reveal request destroys the secret server-side the moment it is
+  // received, so from the request going out until the value leaves the screen
+  // this tab has the only copy: an automatic page reload (a lazy chunk that
+  // failed to load, an ended session; see src/utils/forcedPageLoad.ts) must
+  // stand down for that whole window.
+  useUnrecoverableContent(() => revealing.value || !!record.value?.secret_value);
 
   // #3424: distinguish a terminal "not found" (404 — consumed/expired/missing),
   // which legitimately renders the "viewed or expired" UnknownSecret view, from a

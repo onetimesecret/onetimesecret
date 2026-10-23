@@ -34,10 +34,14 @@
 
   const { record, details, isLoading, fetch, reset } = useReceipt(props.receiptIdentifier);
 
-  // A generated value is shown here once (the server claims that display), so
-  // while it is on screen an automatic page reload (a lazy chunk that failed
-  // to load, see src/utils/preloadError.ts) must stand down.
-  useUnrecoverableContent(() => !!(details.value?.show_secret && details.value?.secret_value));
+  // A generated value is shown here once: the receipt fetch itself consumes
+  // that one-time display server-side, so from the request going out until the
+  // value leaves the screen an automatic page reload (a lazy chunk that failed
+  // to load, an ended session; see src/utils/forcedPageLoad.ts) must stand
+  // down. isLoading covers the fetch in flight.
+  useUnrecoverableContent(
+    () => isLoading.value || !!(details.value?.show_secret && details.value?.secret_value)
+  );
 
   const { onExpirationEvent } = useSecretExpiration(
     record.value?.created ?? new Date(),

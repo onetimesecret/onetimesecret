@@ -24,6 +24,12 @@
 // default-prevented. A refused reload leaves the event alone, so the dynamic
 // import rejects and its caller (the router, a component) reports the failure
 // instead of the page reloading.
+//
+// Only dynamic imports reach this handler: Vite dispatches the event from its
+// preload helper. A chunk of the entry's static import graph that fails to
+// load (deploy skew between containers) fails the entry itself, before any of
+// this runs; the server shell's stalled-load notice with its manual reload
+// link (#4596) is the backstop there.
 
 import { loggingService } from '@/services/logging.service';
 import {
