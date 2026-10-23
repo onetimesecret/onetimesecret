@@ -4,6 +4,7 @@ import { createApp, type Component } from 'vue';
 import { isNavigationFailure, NavigationFailureType, type Router } from 'vue-router';
 
 import { AppInitializer, showConsoleWarning, type AppInitializerOptions } from './appInitializer';
+import { reloadPending } from '@/utils/preloadError';
 
 export interface StartAppOptions extends Omit<AppInitializerOptions, 'router'> {
   /** The entry's root component. */
@@ -41,10 +42,12 @@ export async function startApp(options: StartAppOptions): Promise<void> {
     app.mount('#app');
     showConsoleWarning();
   } catch (error) {
-    // A guard aborts the first navigation only for a hard navigation out of
-    // this bundle, which replaces the page. Leave the shell up for that load;
-    // neither mount nor flag.
-    if (isNavigationFailure(error, NavigationFailureType.aborted)) return;
+    // Two failures hand off to a document load, which replaces the page:
+    // a guard aborts the first navigation only for a hard navigation out of
+    // this bundle, and a failed chunk may have started a reload
+    // (src/utils/preloadError.ts). Leave the shell up for that load; neither
+    // mount nor flag.
+    if (isNavigationFailure(error, NavigationFailureType.aborted) || reloadPending()) return;
 
     // Startup failed before the app took over #app: an initializer threw, or
     // the initial navigation failed (a guard threw, a route chunk or the

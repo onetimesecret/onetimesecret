@@ -126,3 +126,31 @@ describe('installPreloadErrorHandler', () => {
     expect(event.defaultPrevented).toBe(true);
   });
 });
+
+describe('reloadPending', () => {
+  beforeEach(() => sessionStorage.clear());
+
+  // The flag is module state: each test imports a fresh copy.
+  async function freshModule() {
+    vi.resetModules();
+    return import('@/utils/preloadError');
+  }
+
+  it('turns true once a failed chunk starts the reload', async () => {
+    const { handlePreloadError, reloadPending } = await freshModule();
+    expect(reloadPending()).toBe(false);
+
+    handlePreloadError(preloadErrorEvent(), { now: NOW, reload: vi.fn() });
+
+    expect(reloadPending()).toBe(true);
+  });
+
+  it('stays false when the bound refuses the reload', async () => {
+    sessionStorage.setItem(FORCED_RELOAD_MARKER, String(NOW));
+    const { handlePreloadError, reloadPending } = await freshModule();
+
+    handlePreloadError(preloadErrorEvent(), { now: NOW + 1, reload: vi.fn() });
+
+    expect(reloadPending()).toBe(false);
+  });
+});

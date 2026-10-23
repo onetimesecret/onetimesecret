@@ -38,6 +38,9 @@ import {
   type ForcedPageLoadResult,
 } from '@/utils/forcedPageLoad';
 
+// Set once a failed chunk has made this page call reload(). See reloadPending.
+let reloading = false;
+
 /**
  * Handles one `vite:preloadError` event: reloads the page when nothing on it
  * would be lost and the forced page load bound allows it, otherwise logs the
@@ -49,6 +52,7 @@ export function handlePreloadError(
 ): ForcedPageLoadResult {
   const result = attemptForcedPageLoad(deps);
   if (result === 'reloading') {
+    reloading = true;
     event.preventDefault();
     return result;
   }
@@ -64,6 +68,17 @@ export function handlePreloadError(
     )
   );
   return result;
+}
+
+/**
+ * True once a failed chunk has started this page's reload. The import that
+ * failed resolves with undefined (the event was default-prevented), so its
+ * caller can still fail on it: an initial navigation whose route component or
+ * locale did not load. startApp then leaves the shell to the reload instead
+ * of flagging a failure the reload is about to replace.
+ */
+export function reloadPending(): boolean {
+  return reloading;
 }
 
 /** The error Vite's helper attached to the event, as text. */

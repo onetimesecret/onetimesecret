@@ -4,13 +4,14 @@
 // src/admin.ts: install → await the initial navigation (which activates the
 // visitor's locale) → mount → console warning → html[data-app-ready]. A
 // failed start flags the server-rendered shell (html[data-app-failed]) and
-// leaves it in place, unless a guard hands off to a page load.
+// leaves it in place, unless the failure hands off to a page load.
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryHistory, createRouter, type Router } from 'vue-router';
 
 const h = vi.hoisted(() => ({
   order: [] as string[],
+  reloadPending: false,
   installError: null as Error | null,
 }));
 
@@ -28,6 +29,10 @@ vi.mock('@/plugins/core/appInitializer', () => ({
     const ready = document.documentElement.dataset.appReady ?? 'unset';
     h.order.push(`banner (mounted: ${mounted}, ready: ${ready})`);
   },
+}));
+
+vi.mock('@/utils/preloadError', () => ({
+  reloadPending: () => h.reloadPending,
 }));
 
 import { startApp } from '@/plugins/core/startApp';
@@ -60,6 +65,7 @@ function routerWith(decide: () => unknown): Router {
 
 beforeEach(() => {
   h.order = [];
+  h.reloadPending = false;
   h.installError = null;
   document.body.innerHTML = '<div id="app">SHELL</div>';
   delete html.dataset.appReady;
@@ -134,6 +140,21 @@ describe('startApp', () => {
     await expect(
       startApp({ root: Root, createRouter: () => routerWith(() => false) })
     ).resolves.toBeUndefined();
+
+    expect(html.dataset.appFailed).toBeUndefined();
+    expect(html.dataset.appReady).toBeUndefined();
+    expect(appText()).toBe('SHELL');
+  });
+
+  // A failed chunk already started a reload, which replaces the page;
+  // flagging a failure now would flash the notice before it.
+  it('leaves the shell unflagged when a recovery reload is pending', async () => {
+    h.reloadPending = true;
+    const router = routerWith(() => {
+      throw new Error('messages for bg did not load');
+    });
+
+    await expect(startApp({ root: Root, createRouter: () => router })).resolves.toBeUndefined();
 
     expect(html.dataset.appFailed).toBeUndefined();
     expect(html.dataset.appReady).toBeUndefined();
