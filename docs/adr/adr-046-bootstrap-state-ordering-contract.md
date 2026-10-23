@@ -283,7 +283,10 @@ header and a test that asserts it.
 ### Forced page load
 
 An ended session, a replaced session, and a second consecutive anomaly all end
-in `window.location.reload()`. A reload can discard input the user has not
+in `window.location.reload()`. Since the code-split build, so does a lazy
+chunk that fails to load (`src/utils/preloadError.ts`): one reload fetches a
+shell that references the current chunks after a deployment, and the bound
+below caps it at one per minute. A reload can discard input the user has not
 submitted, such as a secret being typed, so the path follows the platform's
 documented behaviour and guidance instead of a project-specific mechanism:
 
