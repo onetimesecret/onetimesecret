@@ -38,10 +38,18 @@
   let loading: Promise<RenderFn> | null = null;
 
   const loadRenderer = (): Promise<RenderFn> => {
-    loading ??= import('@/shared/utils/markdown').then((mod) => {
-      renderFn = mod.renderMarkdown;
-      return renderFn;
-    });
+    loading ??= import('@/shared/utils/markdown').then(
+      (mod) => {
+        renderFn = mod.renderMarkdown;
+        return renderFn;
+      },
+      (error: unknown) => {
+        // Forget the failed load so the next render retries the fetch; the
+        // plain-text fallback stays up until one succeeds.
+        loading = null;
+        throw error;
+      }
+    );
     return loading;
   };
 
