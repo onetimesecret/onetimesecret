@@ -4,7 +4,7 @@ import { globalComposer } from '@/i18n';
 import { resolveProductName } from '@/shared/constants/brand';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { storeToRefs } from 'pinia';
-import { computed, watch } from 'vue';
+import { computed, effectScope, watch } from 'vue';
 
 /**
  * Composable for managing page titles and meta tags dynamically.
@@ -35,6 +35,33 @@ import { computed, watch } from 'vue';
  */
 
 const TITLE_SEPARATOR = ' - ';
+
+type TitleArg = string | null | undefined;
+
+/**
+ * The last title passed to setTitle, as given (an i18n key or plain text),
+ * with the setter that applied it. Module-level so the locale watcher below
+ * can apply it again: whoever set the title last, the router's afterEach or a
+ * component, keeps it, translated into the new language.
+ */
+let lastTitle: { title: TitleArg; apply: (title: TitleArg) => void } | null = null;
+
+/**
+ * Re-applies the last title when the active locale changes, so the document
+ * title, og:title and twitter:title follow a language switch that involves
+ * no navigation (the router only sets a title when the route's title
+ * changes). One watcher for the module, created in a detached scope so it
+ * belongs to no component and no unmount stops it.
+ *
+ * The getter reads the locale with `?.` because unit tests that mock '@/i18n'
+ * supply a composer without one; the watcher then never fires.
+ */
+effectScope(true).run(() => {
+  watch(
+    () => globalComposer.locale?.value,
+    () => lastTitle?.apply(lastTitle.title)
+  );
+});
 
 export function usePageTitle() {
   // Use the global i18n composer instance directly to avoid requiring
@@ -105,11 +132,8 @@ export function usePageTitle() {
     return `${translatedTitle}${TITLE_SEPARATOR}${appName}`;
   };
 
-  /**
-   * Updates the document title and related meta tags
-   * @param title - The new title (can be plain string or i18n key)
-   */
-  const setTitle = (title: string | null | undefined) => {
+  /** Writes the formatted title to the document title and its meta tags. */
+  const applyTitle = (title: TitleArg) => {
     try {
       const finalTitle = title ? formatTitle(title) : getAppName();
 
@@ -134,6 +158,16 @@ export function usePageTitle() {
     } catch (error) {
       console.error('Failed to update page title:', error);
     }
+  };
+
+  /**
+   * Updates the document title and related meta tags, and keeps them in the
+   * active language: a later locale change applies the same title again.
+   * @param title - The new title (can be plain string or i18n key)
+   */
+  const setTitle = (title: TitleArg) => {
+    lastTitle = { title, apply: applyTitle };
+    applyTitle(title);
   };
 
   /**
