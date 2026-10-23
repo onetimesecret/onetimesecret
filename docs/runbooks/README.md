@@ -48,6 +48,9 @@ happens, and the steps to resolve or verify.
   credentials healthy: the layered checks (stored config, discovery, expiry,
   Test Connection, real sign-ins), what Onetime Secret covers today, why a
   client-credentials token request is not an SSO test, and proposed monitoring.
+- [sso-provider-switch.md](./sso-provider-switch.md) — Existing SSO users
+  refused with `tenant_sso_link_unavailable` after an org changes its tenant
+  SSO provider; triage cohorts, purge vs. password-then-Connect routes.
 - [sso-accounts-unverified.md](./sso-accounts-unverified.md) — Repairing
   SSO-provisioned customers left unverified before v0.26.5, so their colonel /
   admin / staff role takes effect (`bin/ots customers doctor --all --repair`);
