@@ -348,6 +348,16 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::FetchIdpMetadata do
         expect(fetcher).not_to have_received(:fetch)
       end
 
+      # The host check resolves the caller-chosen name, so the budget covers
+      # it (SsoMetadataFetchRateLimiter): a refused URL is charged.
+      it 'charges a URL the host check refuses' do
+        allow(Resolv).to receive(:getaddresses).with('idp.example.com').and_return(['10.0.0.5'])
+        allow(logic).to receive(:enforce_sso_metadata_fetch_rate_limit!)
+
+        expect(run[:details][:error_code]).to eq('invalid_metadata_url')
+        expect(logic).to have_received(:enforce_sso_metadata_fetch_rate_limit!).with('ext-owner123')
+      end
+
       it 'builds the SSRF-guarded fetcher with the discovery timeouts and the SAML metadata Accept header' do
         allow(logic).to receive(:metadata_fetcher).and_call_original
         allow(Onetime::SsoProvider::DiscoveryFetcher).to receive(:new).and_return(fetcher)

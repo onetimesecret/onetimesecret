@@ -28,8 +28,11 @@ module Onetime
     # cap-hit) are {PerCustomerRateLimit}'s; this module declares the policy.
     # Charged from the END of FetchIdpMetadata#raise_concerns — after the
     # session, ownership and entitlement guards, the install-wide SAML
-    # switch and the presence of a metadata URL — so a refused request
-    # costs nothing and the budget counts requests that will be fetched.
+    # switch and the presence of a metadata URL — so a request those refuse
+    # costs nothing. A URL refused later, by the structural or SSRF host
+    # check in #process, IS charged: that host check resolves the
+    # caller-chosen hostname, so the budget bounds DNS lookups as well as
+    # fetches.
     #
     # CLEARING A STUCK LOCKOUT — the same two paths as every other limiter,
     # over kind `sso_metadata_fetch`:

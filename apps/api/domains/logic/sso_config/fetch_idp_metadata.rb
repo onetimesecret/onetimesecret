@@ -40,7 +40,9 @@ module DomainsAPI
       # fetched could be saved), a nonblank metadata_url, and LAST the
       # per-customer rate limit (Onetime::Security::SsoMetadataFetchRateLimiter,
       # kind `sso_metadata_fetch`, 30 per hour by default; over the cap the
-      # API answers 429 with retry_after), so a refused request costs nothing.
+      # API answers 429 with retry_after), so a request the guards refuse
+      # costs nothing. A URL refused by the structural or SSRF host check is
+      # still charged: the host check resolves the caller-chosen name.
       #
       # Response (HTTP 200 either way):
       # - success: true, metadata_url (as submitted, stripped), idp_entity_id,
@@ -117,7 +119,8 @@ module DomainsAPI
 
           raise_form_error('Metadata URL is required', field: :metadata_url, error_type: :missing) if @metadata_url.empty?
 
-          # Last, so only a fetch that will actually happen is charged.
+          # Last, so a request the guards above refuse is not charged. The URL
+          # checks in #process resolve DNS, so a URL they refuse is.
           enforce_sso_metadata_fetch_rate_limit!(cust.extid)
         end
 
