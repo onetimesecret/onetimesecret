@@ -18,6 +18,10 @@
  * - saveAndRunDiagnostics: saves unsaved edits (or a new record) first, then
  *   runs the check
  * - refreshLastSignIn: re-reads only the record's last sign-in outcome
+ * - fetchMetadata / selectMetadataCertificate / applyMetadata: SAML IdP
+ *   metadata import. A fetch fills a PREVIEW kept apart from the form; only
+ *   applyMetadata copies a complete preview into the form, and only a save
+ *   persists it
  * - discardChanges: resets form state to last-saved snapshot
  * - hasUnsavedChanges: computed diff between form and saved state
  *
@@ -28,7 +32,8 @@ import type {
   PatchSsoConfigRequest,
   PutSsoConfigRequest,
 } from '@/schemas/api/domains/requests/sso-config';
-import type { ApplicationError } from '@/schemas/errors';
+import type { IdpMetadataPreviewResponse } from '@/schemas/api/domains/responses/sso-config';
+import { errorGuards, type ApplicationError } from '@/schemas/errors';
 import {
   ssoProviderUsesClientCredentials,
   type CustomDomainSsoConfig,
@@ -65,6 +70,12 @@ import { useAsyncHandler, type AsyncHandlerOptions } from './useAsyncHandler';
  * `enabled` mirrors the stored record and has no control: the record is
  * created off and only a passing saved-configuration check turns it on. It
  * stays here so the snapshot comparison and hydration keep one shape.
+ *
+ * idp_metadata_url (saml only) is the metadata URL the trio was imported
+ * from, '' when none. It changes only by applying a metadata preview or by
+ * clearing it; the metadata fetch input is separate (metadataFetchUrl). It
+ * is saved with the record but is not a login input, so it is not part of
+ * the test payload or of credential-check evidence.
  */
 export interface SsoConfigFormState {
   provider_type: SsoProviderType;
@@ -77,6 +88,7 @@ export interface SsoConfigFormState {
   idp_sso_service_url: string;
   idp_entity_id: string;
   idp_cert: string;
+  idp_metadata_url: string;
   allowed_domains: string[];
   enabled: boolean;
   enforce_sso_only: boolean;
@@ -98,6 +110,7 @@ const SCALAR_FORM_FIELDS = [
   'idp_sso_service_url',
   'idp_entity_id',
   'idp_cert',
+  'idp_metadata_url',
   'enabled',
   'enforce_sso_only',
   'grant_org_scope',
@@ -115,6 +128,7 @@ function createDefaultFormState(): SsoConfigFormState {
     idp_sso_service_url: '',
     idp_entity_id: '',
     idp_cert: '',
+    idp_metadata_url: '',
     allowed_domains: [],
     enabled: false,
     enforce_sso_only: false,
@@ -158,6 +172,7 @@ function configToFormState(config: CustomDomainSsoConfig): SsoConfigFormState {
     idp_sso_service_url: config.idp_sso_service_url ?? '',
     idp_entity_id: config.idp_entity_id ?? '',
     idp_cert: config.idp_cert ?? '',
+    idp_metadata_url: config.idp_metadata_url ?? '',
     allowed_domains: config.allowed_domains ?? [],
     enabled: config.enabled,
     enforce_sso_only: config.enforce_sso_only,
@@ -174,8 +189,9 @@ function usesClientCredentials(state: SsoConfigFormState): boolean {
  * result is only meaningful for the fields the test was run against, so this
  * is also the definition of "test-affecting": any edit that changes it makes
  * the last result stale (see the watcher in useSsoConfig). display_name,
- * enabled, enforce_sso_only, grant_org_scope, allowed_domains and
- * client_secret are not sent to the test and so do not count.
+ * enabled, enforce_sso_only, grant_org_scope, allowed_domains,
+ * client_secret and idp_metadata_url are not sent to the test and so do not
+ * count.
  */
 function testFingerprint(state: SsoConfigFormState): string {
   return JSON.stringify({ provider_type: state.provider_type, ...providerFields(state) });
@@ -259,6 +275,23 @@ function providerFields(state: SsoConfigFormState): {
 }
 
 /**
+ * The saml metadata source for a save. Kept out of providerFields because
+ * that also defines the test payload and the credential evidence keys, and
+ * the source is neither a login input nor something a test checks.
+ *
+ * saml always sends the key, '' included: on PATCH a present blank clears
+ * the stored URL while an absent key keeps it, so a cleared source has to
+ * travel as '' (the token_endpoint_auth_method rule). That also clears a
+ * stored URL the API could not reveal (seeded blank, see configToFormState):
+ * it is optional, so unlike the trio there is no refusal to force re-entry.
+ * Every other provider type omits it; the API clears it for them.
+ */
+function metadataSourceField(state: SsoConfigFormState): { idp_metadata_url?: string } {
+  if (state.provider_type !== 'saml') return {};
+  return { idp_metadata_url: state.idp_metadata_url.trim() };
+}
+
+/**
  * The PUT/PATCH body for a save. `enabled` is passed in: it is the stored
  * record's value, never the form's (see saveConfig).
  *
@@ -274,6 +307,7 @@ function savePayload(
     provider_type: state.provider_type,
     display_name: state.display_name.trim(),
     ...providerFields(state),
+    ...metadataSourceField(state),
     allowed_domains: state.allowed_domains,
     enforce_sso_only: state.enforce_sso_only,
     grant_org_scope: state.grant_org_scope,
@@ -286,6 +320,62 @@ function savePayload(
     payload.enabled = enabled;
   }
   return payload;
+}
+
+/**
+ * A parsed SAML metadata document, held apart from the form until applied.
+ *
+ * - requestId: the fetch that produced it. A preview exists only while that
+ *   fetch is the current one (see fetchMetadata).
+ * - metadataUrl: the URL that fetch sent (trimmed); applying records it as
+ *   the trio's source (formState.idp_metadata_url).
+ * - selectedCertIndex: the signing certificate chosen for idp_cert, or null
+ *   while none is. Only a certificate without a `problem` can be chosen.
+ */
+export interface SsoMetadataPreview {
+  requestId: number;
+  metadataUrl: string;
+  response: IdpMetadataPreviewResponse;
+  selectedCertIndex: number | null;
+}
+
+/**
+ * A metadata fetch that produced no preview. errorCode is the API's
+ * `details.error_code` for a fetch or parse failure (`success: false`), and
+ * null for a request the API refused or that failed in transit; `message`
+ * is then already localized here.
+ */
+export interface SsoMetadataFetchFailure {
+  metadataUrl: string;
+  errorCode: string | null;
+  message: string;
+  httpStatus: number | null;
+}
+
+/**
+ * Nothing is chosen for the admin when there is a choice to make (two or
+ * more certificates, or one the save would refuse). With exactly one
+ * certificate and no problem there is no choice, so it starts selected.
+ */
+function initialCertificateSelection(response: IdpMetadataPreviewResponse): number | null {
+  const certificates = response.signing_certificates;
+  return certificates.length === 1 && certificates[0].problem === null ? 0 : null;
+}
+
+/**
+ * Whether a preview is complete enough to replace the form's trio: an
+ * EntityID and an HTTP-Redirect SSO URL, no blocking problem, and a chosen
+ * certificate the save would accept. Advisories do not block. The values are
+ * not re-validated here: the save runs the API's validators as for pasted
+ * values.
+ */
+function metadataPreviewApplicable(preview: SsoMetadataPreview): boolean {
+  const { response, selectedCertIndex } = preview;
+  if (!response.idp_entity_id?.trim() || !response.idp_sso_service_url?.trim()) return false;
+  if (response.problems.some((problem) => problem.severity === 'blocking')) return false;
+  if (selectedCertIndex === null) return false;
+  const certificate = response.signing_certificates[selectedCertIndex];
+  return !!certificate && certificate.problem === null && certificate.pem.trim() !== '';
 }
 
 /* eslint max-lines-per-function: off */
@@ -368,6 +458,45 @@ export function useSsoConfig(domainExtId: string) {
   const isRefreshingLastSignIn = ref(false);
 
   /**
+   * SAML metadata import. The fetch input is its own value, seeded from the
+   * saved idp_metadata_url on load; editing it never edits the form.
+   */
+  const metadataFetchUrl = ref('');
+
+  /** The current fetch's parsed document, or null. Never part of formState. */
+  const metadataPreview = ref<SsoMetadataPreview | null>(null);
+
+  /** Whether the current metadata fetch is in flight. */
+  const isFetchingMetadata = ref(false);
+
+  /** Why the current metadata fetch produced no preview, or null. */
+  const metadataFetchFailure = ref<SsoMetadataFetchFailure | null>(null);
+
+  /**
+   * Metadata fetches are numbered. Starting a fetch, changing the fetch
+   * input, a reload and a delete each advance the number, and a response for
+   * an earlier number is dropped when it lands: it is about a URL (or a
+   * page state) that is no longer the one shown, so it must never become
+   * the preview that Apply copies into the form.
+   */
+  let metadataRequestId = 0;
+
+  const invalidateMetadataPreview = () => {
+    metadataRequestId += 1;
+    metadataPreview.value = null;
+    metadataFetchFailure.value = null;
+    isFetchingMetadata.value = false;
+  };
+
+  // sync: an edit to the input invalidates before a response landing in the
+  // same tick can be shown as a preview of the new value.
+  watch(
+    () => metadataFetchUrl.value.trim(),
+    () => invalidateMetadataPreview(),
+    { flush: 'sync' }
+  );
+
+  /**
    * A diagnostics result is about the saved record, so it is cleared when
    * that record changes (save, delete) — not by a form edit, which the
    * test-result fingerprint watcher handles for Test Connection.
@@ -447,6 +576,19 @@ export function useSsoConfig(domainExtId: string) {
     notify: false,
   });
 
+  // A fourth for the metadata fetch: wrapAction's handling, plus a copy of
+  // the classified error so its message is read from this request and not
+  // from `error`, which a save failing meanwhile would also set.
+  let metadataRequestError: ApplicationError | null = null;
+  const { wrap: wrapMetadataFetch } = useAsyncHandler({
+    ...defaultAsyncHandlerOptions,
+    setLoading: undefined,
+    onError: (err) => {
+      metadataRequestError = err;
+      defaultAsyncHandlerOptions.onError?.(err);
+    },
+  });
+
   // ---------------------------------------------------------------------------
   // Computed
   // ---------------------------------------------------------------------------
@@ -485,6 +627,17 @@ export function useSsoConfig(domainExtId: string) {
     );
   });
 
+  /**
+   * Whether "Apply metadata" may copy the preview into the form: a saml form,
+   * and a preview with an EntityID, an HTTP-Redirect SSO URL, no blocking
+   * problem and an eligible chosen certificate.
+   */
+  const canApplyMetadata = computed(() => {
+    const preview = metadataPreview.value;
+    if (!preview || formState.value.provider_type !== 'saml') return false;
+    return metadataPreviewApplicable(preview);
+  });
+
   // ---------------------------------------------------------------------------
   // Actions
   // ---------------------------------------------------------------------------
@@ -510,6 +663,10 @@ export function useSsoConfig(domainExtId: string) {
         ...formState.value,
         allowed_domains: [...formState.value.allowed_domains],
       };
+      // The fetch input starts from the saved source; a preview from before
+      // the reload is dropped either way.
+      metadataFetchUrl.value = formState.value.idp_metadata_url;
+      invalidateMetadataPreview();
       isInitialized.value = true;
     });
 
@@ -602,6 +759,8 @@ export function useSsoConfig(domainExtId: string) {
         formState.value = createDefaultFormState();
         clearTestResult();
         clearDiagnosticsResult();
+        metadataFetchUrl.value = '';
+        invalidateMetadataPreview();
         checkedCredentialsFingerprint.value = null;
         savedCredentialsUnchecked.value = false;
         savedFormState.value = {
@@ -819,6 +978,123 @@ export function useSsoConfig(domainExtId: string) {
     });
   };
 
+  // ---------------------------------------------------------------------------
+  // SAML metadata import
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Fetch the metadata at the fetch input's URL into a fresh preview. The
+   * form is never touched: a success, a `success: false` envelope, a refused
+   * request (ownership, SAML off, rate limit) and a transport failure all
+   * leave formState as it was. Starting a fetch drops the previous preview,
+   * and a response is shown only while its fetch is still the current one.
+   */
+  const fetchMetadata = async () => {
+    const metadataUrl = metadataFetchUrl.value.trim();
+    if (!metadataUrl) return;
+    invalidateMetadataPreview();
+    const requestId = metadataRequestId;
+    isFetchingMetadata.value = true;
+    metadataRequestError = null;
+
+    try {
+      const response = await wrapMetadataFetch(() =>
+        SsoService.fetchIdpMetadataForDomain(domainExtId, { metadata_url: metadataUrl })
+      );
+      if (requestId !== metadataRequestId) return;
+
+      if (!response) {
+        metadataFetchFailure.value = {
+          metadataUrl,
+          errorCode: null,
+          message: metadataFetchErrorMessage(metadataRequestError),
+          httpStatus: null,
+        };
+      } else if (!response.success) {
+        metadataFetchFailure.value = {
+          metadataUrl,
+          errorCode: response.details?.error_code ?? null,
+          message: response.message,
+          httpStatus: response.details?.http_status ?? null,
+        };
+      } else {
+        metadataPreview.value = {
+          requestId,
+          metadataUrl,
+          response,
+          selectedCertIndex: initialCertificateSelection(response),
+        };
+      }
+    } finally {
+      if (requestId === metadataRequestId) isFetchingMetadata.value = false;
+    }
+  };
+
+  /**
+   * The message for a fetch the API refused or that failed in transit. A
+   * 429 is the per-customer fetch limit (retry_after in seconds); a refusal
+   * the API explained (a 4xx form error) keeps its message; anything else
+   * is a generic failure.
+   */
+  const metadataFetchErrorMessage = (failure: ApplicationError | null): string => {
+    if (failure?.code === 429) {
+      const retryAfter = Number(failure.details?.retry_after);
+      if (!Number.isFinite(retryAfter) || retryAfter <= 0) {
+        return t('web.organizations.sso.metadata_rate_limited');
+      }
+      return t('web.organizations.sso.metadata_rate_limited_retry', {
+        minutes: Math.max(1, Math.ceil(retryAfter / 60)),
+      });
+    }
+    if (failure && errorGuards.isOfHumanInterest(failure) && failure.message) {
+      return failure.message;
+    }
+    return t('web.organizations.sso.metadata_fetch_error');
+  };
+
+  /**
+   * Choose the preview's signing certificate. Only the preview changes;
+   * idp_cert is written by applyMetadata alone. A certificate the save would
+   * refuse (a `problem`) cannot be chosen.
+   */
+  const selectMetadataCertificate = (index: number) => {
+    const preview = metadataPreview.value;
+    if (!preview) return;
+    const certificate = preview.response.signing_certificates[index];
+    if (!certificate || certificate.problem !== null) return;
+    metadataPreview.value = { ...preview, selectedCertIndex: index };
+  };
+
+  /**
+   * Copy a complete preview into the form as ONE update: EntityID, SSO URL,
+   * the chosen certificate and the URL they came from, together, so the form
+   * never pairs one IdP's values with another's. It goes through formState
+   * like a typed edit, so the same machinery follows: the test result is
+   * dropped by the watcher when the tested fields change, hasUnsavedChanges
+   * turns on, and the next save leaves the new trio unchecked. Nothing is
+   * persisted until that save.
+   *
+   * @returns true when the preview was applied
+   */
+  const applyMetadata = (): boolean => {
+    const preview = metadataPreview.value;
+    if (!preview || preview.requestId !== metadataRequestId || !canApplyMetadata.value) {
+      return false;
+    }
+    const { response, selectedCertIndex, metadataUrl } = preview;
+    const certificate = response.signing_certificates[selectedCertIndex ?? -1];
+    if (!certificate || !response.idp_entity_id || !response.idp_sso_service_url) return false;
+
+    formState.value = {
+      ...formState.value,
+      idp_entity_id: response.idp_entity_id,
+      idp_sso_service_url: response.idp_sso_service_url,
+      idp_cert: certificate.pem,
+      idp_metadata_url: metadataUrl,
+    };
+    return true;
+  };
+
   /**
    * Reset form to last-saved state.
    */
@@ -848,6 +1124,10 @@ export function useSsoConfig(domainExtId: string) {
     diagnosticsError,
     savedCredentialsUnchecked,
     isRefreshingLastSignIn,
+    metadataFetchUrl,
+    metadataPreview,
+    isFetchingMetadata,
+    metadataFetchFailure,
 
     // Computed
     isConfigured,
@@ -856,6 +1136,7 @@ export function useSsoConfig(domainExtId: string) {
     unreadableFields,
     savedCredentialsChecked,
     hasUnsavedChanges,
+    canApplyMetadata,
 
     // Actions
     initialize,
@@ -865,6 +1146,9 @@ export function useSsoConfig(domainExtId: string) {
     runDiagnostics,
     saveAndRunDiagnostics,
     refreshLastSignIn,
+    fetchMetadata,
+    selectMetadataCertificate,
+    applyMetadata,
     discardChanges,
   };
 }

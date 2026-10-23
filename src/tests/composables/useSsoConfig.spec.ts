@@ -11,12 +11,20 @@
 // 8. runDiagnostics(): activation of a record that is off, and the stored
 //    `enabled` the next save re-sends
 // 9. saveAndRunDiagnostics(), refreshLastSignIn(), savedCredentialsUnchecked
+// 10. SAML metadata import: idp_metadata_url, the preview kept apart from
+//     formState, certificate selection and applyMetadata
 
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { watch } from 'vue';
 import { useSsoConfig } from '../../shared/composables/useSsoConfig';
 
 import type { CustomDomainSsoConfig } from '../../schemas/shapes/domains/sso-config';
+import type {
+  FetchIdpMetadataResponse,
+  IdpMetadataCertificate,
+  IdpMetadataPreviewResponse,
+} from '../../schemas/api/domains/responses/sso-config';
 import type { SsoDiagnosticsResponse, TestSsoConnectionResponse } from '../../services/sso.service';
 
 // -----------------------------------------------------------------------------
@@ -29,6 +37,7 @@ const mockPatchConfigForDomain = vi.fn();
 const mockDeleteConfigForDomain = vi.fn();
 const mockTestConnectionForDomain = vi.fn();
 const mockRunDiagnosticsForDomain = vi.fn();
+const mockFetchIdpMetadataForDomain = vi.fn();
 const mockNotificationsShow = vi.fn();
 const mockRouterPush = vi.fn();
 
@@ -40,6 +49,7 @@ vi.mock('@/services/sso.service', () => ({
     deleteConfigForDomain: (...args: unknown[]) => mockDeleteConfigForDomain(...args),
     testConnectionForDomain: (...args: unknown[]) => mockTestConnectionForDomain(...args),
     runDiagnosticsForDomain: (...args: unknown[]) => mockRunDiagnosticsForDomain(...args),
+    fetchIdpMetadataForDomain: (...args: unknown[]) => mockFetchIdpMetadataForDomain(...args),
   },
 }));
 
@@ -115,6 +125,7 @@ const mockSsoConfigData: CustomDomainSsoConfig = {
   idp_sso_service_url: null,
   idp_entity_id: null,
   idp_cert: null,
+  idp_metadata_url: null,
   sp_entity_id: null,
   acs_url: null,
   unreadable_fields: [],
@@ -295,6 +306,7 @@ describe('useSsoConfig', () => {
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
+        idp_metadata_url: '',
         allowed_domains: ['acme.com', 'acme.org'],
         enabled: true,
         enforce_sso_only: false,
@@ -338,6 +350,7 @@ describe('useSsoConfig', () => {
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
+        idp_metadata_url: '',
         allowed_domains: [],
         enabled: false,
         enforce_sso_only: false,
@@ -477,6 +490,7 @@ describe('useSsoConfig', () => {
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
+        idp_metadata_url: '',
         allowed_domains: [],
         enabled: true,
         enforce_sso_only: false,
@@ -515,6 +529,7 @@ describe('useSsoConfig', () => {
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
+        idp_metadata_url: '',
         allowed_domains: [],
         enabled: true,
         enforce_sso_only: false,
@@ -544,6 +559,7 @@ describe('useSsoConfig', () => {
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
+        idp_metadata_url: '',
         allowed_domains: [],
         enabled: true,
         enforce_sso_only: false,
@@ -573,6 +589,7 @@ describe('useSsoConfig', () => {
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
+        idp_metadata_url: '',
         allowed_domains: [],
         enabled: true,
         enforce_sso_only: false,
@@ -610,6 +627,7 @@ describe('useSsoConfig', () => {
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
+        idp_metadata_url: '',
         allowed_domains: [],
         enabled: true,
         enforce_sso_only: false,
@@ -646,6 +664,7 @@ describe('useSsoConfig', () => {
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
+        idp_metadata_url: '',
         allowed_domains: [],
         enabled: true,
         enforce_sso_only: false,
@@ -677,6 +696,7 @@ describe('useSsoConfig', () => {
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
+        idp_metadata_url: '',
         allowed_domains: [],
         enabled: true,
         enforce_sso_only: false,
@@ -708,6 +728,7 @@ describe('useSsoConfig', () => {
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
+        idp_metadata_url: '',
         allowed_domains: [],
         enabled: true,
         enforce_sso_only: true,
@@ -1158,6 +1179,7 @@ describe('useSsoConfig', () => {
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
+        idp_metadata_url: '',
         allowed_domains: [],
         enabled: false,
         enforce_sso_only: false,
@@ -1446,6 +1468,7 @@ describe('useSsoConfig', () => {
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
+        idp_metadata_url: '',
         allowed_domains: ['changed.com'],
         enabled: false,
         enforce_sso_only: false,
@@ -1478,6 +1501,7 @@ describe('useSsoConfig', () => {
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
+        idp_metadata_url: '',
         allowed_domains: [],
         enabled: false,
         enforce_sso_only: false,
@@ -2949,6 +2973,641 @@ describe('useSsoConfig', () => {
       await composable.initialize();
 
       expect(composable.clientSecretMasked.value).toBeNull();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // SAML metadata import (docs/specs/sso/saml-idp-metadata-consumption.md,
+  // Phase 1): idp_metadata_url on the form, and the preview kept apart from it
+  // ---------------------------------------------------------------------------
+
+  describe('SAML metadata import', () => {
+    const IDP_A_METADATA_URL = 'https://idp.example.com/saml/metadata';
+    const IDP_B_METADATA_URL = 'https://idp-b.example.com/saml/metadata';
+    const CERT_B1 = '-----BEGIN CERTIFICATE-----\nB1\n-----END CERTIFICATE-----';
+    const CERT_B2 = '-----BEGIN CERTIFICATE-----\nB2\n-----END CERTIFICATE-----';
+
+    // IdP A: the saved record, imported from its metadata URL.
+    const recordA: CustomDomainSsoConfig = {
+      ...mockSamlConfigData,
+      enabled: false,
+      idp_metadata_url: IDP_A_METADATA_URL,
+    };
+
+    const IDP_A_VALUES = {
+      idp_entity_id: 'https://idp.example.com/entity',
+      idp_sso_service_url: 'https://idp.example.com/sso',
+      idp_cert: SAML_CERT,
+      idp_metadata_url: IDP_A_METADATA_URL,
+    };
+
+    const certificate = (
+      overrides: Partial<IdpMetadataCertificate> = {}
+    ): IdpMetadataCertificate => ({
+      pem: CERT_B1,
+      subject: 'CN=IdP B signing',
+      not_before: '2026-01-01T00:00:00Z',
+      not_after: '2029-01-01T00:00:00Z',
+      fingerprint_sha256: 'B1:B1:B1',
+      thumbprint_sha1: 'B1:B1',
+      problem: null,
+      ...overrides,
+    });
+
+    // IdP B as its metadata describes it: one eligible certificate.
+    const metadataB = (
+      overrides: Partial<IdpMetadataPreviewResponse> = {}
+    ): IdpMetadataPreviewResponse => ({
+      success: true,
+      metadata_url: IDP_B_METADATA_URL,
+      idp_entity_id: 'https://idp-b.example.com/entity',
+      idp_sso_service_url: 'https://idp-b.example.com/sso/redirect',
+      signing_certificates: [certificate()],
+      name_id_formats: [
+        'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+        'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
+      ],
+      problems: [],
+      ...overrides,
+    });
+
+    const twoCertificates = [
+      certificate({ pem: CERT_B1, fingerprint_sha256: 'B1', thumbprint_sha1: 'B1' }),
+      certificate({
+        pem: CERT_B2,
+        fingerprint_sha256: 'B2',
+        thumbprint_sha1: 'B2',
+        not_before: '2026-06-01T00:00:00Z',
+      }),
+    ];
+
+    const blocking = (code: string) => ({
+      code,
+      severity: 'blocking' as const,
+      message: `${code} (server message)`,
+    });
+
+    const deferred = <T>() => {
+      let resolve: (value: T) => void = () => {};
+      const promise = new Promise<T>((res) => {
+        resolve = res;
+      });
+      return { promise, resolve };
+    };
+
+    const loadIdpA = async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: recordA });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+      return composable;
+    };
+
+    const trioAndSource = (composable: ReturnType<typeof useSsoConfig>) => {
+      const form = composable.formState.value;
+      return {
+        idp_entity_id: form.idp_entity_id,
+        idp_sso_service_url: form.idp_sso_service_url,
+        idp_cert: form.idp_cert,
+        idp_metadata_url: form.idp_metadata_url,
+      };
+    };
+
+    const fetchB = async (
+      composable: ReturnType<typeof useSsoConfig>,
+      response: FetchIdpMetadataResponse = metadataB()
+    ) => {
+      mockFetchIdpMetadataForDomain.mockResolvedValueOnce(response);
+      composable.metadataFetchUrl.value = IDP_B_METADATA_URL;
+      await composable.fetchMetadata();
+    };
+
+    describe('idp_metadata_url on the form', () => {
+      it('seeds idp_metadata_url and the fetch input from the saved record', async () => {
+        const composable = await loadIdpA();
+
+        expect(composable.formState.value.idp_metadata_url).toBe(IDP_A_METADATA_URL);
+        expect(composable.metadataFetchUrl.value).toBe(IDP_A_METADATA_URL);
+        expect(composable.metadataPreview.value).toBeNull();
+        expect(composable.hasUnsavedChanges.value).toBe(false);
+      });
+
+      it('seeds an unreadable source blank, like the trio', async () => {
+        mockGetConfigForDomain.mockResolvedValue({
+          record: { ...recordA, idp_metadata_url: null, unreadable_fields: ['idp_metadata_url'] },
+        });
+        const composable = useSsoConfig('dm-ext-123');
+        await composable.initialize();
+
+        expect(composable.formState.value.idp_metadata_url).toBe('');
+        expect(composable.metadataFetchUrl.value).toBe('');
+        expect(composable.unreadableFields.value).toEqual(['idp_metadata_url']);
+      });
+
+      it.each([
+        ['a kept source, trimmed', `  ${IDP_A_METADATA_URL}  `, IDP_A_METADATA_URL],
+        ['a cleared source, as "" so PATCH clears it', '', ''],
+      ])('a saml save sends %s', async (_label, value, sent) => {
+        const composable = await loadIdpA();
+        mockSaveConfigForDomain.mockResolvedValue({ record: recordA });
+        composable.formState.value = { ...composable.formState.value, idp_metadata_url: value };
+
+        await composable.saveConfig();
+
+        const [, payload] = mockSaveConfigForDomain.mock.calls[0] as [
+          string,
+          Record<string, unknown>,
+        ];
+        expect(payload).toHaveProperty('idp_metadata_url', sent);
+      });
+
+      it('a non-saml save sends no idp_metadata_url', async () => {
+        const composable = await loadIdpA();
+        composable.formState.value = {
+          ...composable.formState.value,
+          provider_type: 'oidc',
+          client_id: 'new-client',
+          issuer: 'https://idp.example.com',
+        };
+
+        await composable.saveConfig();
+
+        const [, payload] = mockSaveConfigForDomain.mock.calls[0] as [
+          string,
+          Record<string, unknown>,
+        ];
+        expect(payload).not.toHaveProperty('idp_metadata_url');
+      });
+
+      it('hasUnsavedChanges tracks idp_metadata_url', async () => {
+        const composable = await loadIdpA();
+
+        composable.formState.value = { ...composable.formState.value, idp_metadata_url: '' };
+        expect(composable.hasUnsavedChanges.value).toBe(true);
+
+        composable.discardChanges();
+        expect(composable.formState.value.idp_metadata_url).toBe(IDP_A_METADATA_URL);
+        expect(composable.hasUnsavedChanges.value).toBe(false);
+      });
+
+      it('is not a test input and not credential evidence', async () => {
+        const composable = await loadIdpA();
+        mockRunDiagnosticsForDomain.mockResolvedValue({
+          ...mockDiagnosticsPassed,
+          provider_type: 'saml',
+        });
+        await composable.runDiagnostics();
+        expect(composable.savedCredentialsChecked.value).toBe(true);
+        await composable.testConnection();
+        const [, tested] = mockTestConnectionForDomain.mock.calls[0] as [
+          string,
+          Record<string, unknown>,
+        ];
+        expect(tested).not.toHaveProperty('idp_metadata_url');
+
+        // Clearing only the source keeps the test result and, through the
+        // save, the passing check.
+        composable.formState.value = { ...composable.formState.value, idp_metadata_url: '' };
+        expect(composable.testResult.value).not.toBeNull();
+        mockSaveConfigForDomain.mockResolvedValue({
+          record: { ...recordA, enabled: true, idp_metadata_url: null },
+        });
+
+        await composable.saveConfig();
+
+        expect(composable.savedCredentialsChecked.value).toBe(true);
+        expect(composable.savedCredentialsUnchecked.value).toBe(false);
+      });
+    });
+
+    describe('fetchMetadata', () => {
+      it('fetches the trimmed input into a preview and leaves the form alone', async () => {
+        const composable = await loadIdpA();
+        const before = { ...composable.formState.value };
+        mockFetchIdpMetadataForDomain.mockResolvedValueOnce(metadataB());
+        composable.metadataFetchUrl.value = `  ${IDP_B_METADATA_URL}  `;
+
+        await composable.fetchMetadata();
+
+        expect(mockFetchIdpMetadataForDomain).toHaveBeenCalledWith('dm-ext-123', {
+          metadata_url: IDP_B_METADATA_URL,
+        });
+        expect(composable.metadataPreview.value).toMatchObject({
+          metadataUrl: IDP_B_METADATA_URL,
+          response: metadataB(),
+        });
+        expect(composable.formState.value).toEqual(before);
+        expect(composable.hasUnsavedChanges.value).toBe(false);
+        expect(composable.isFetchingMetadata.value).toBe(false);
+      });
+
+      it('does not fetch a blank input', async () => {
+        const composable = await loadIdpA();
+        composable.metadataFetchUrl.value = '   ';
+
+        await composable.fetchMetadata();
+
+        expect(mockFetchIdpMetadataForDomain).not.toHaveBeenCalled();
+      });
+
+      it('selects one eligible certificate in the preview only', async () => {
+        const composable = await loadIdpA();
+
+        await fetchB(composable);
+
+        expect(composable.metadataPreview.value?.selectedCertIndex).toBe(0);
+        expect(composable.canApplyMetadata.value).toBe(true);
+        expect(trioAndSource(composable)).toEqual(IDP_A_VALUES);
+      });
+
+      it('preselects nothing for two certificates; choosing one changes only the preview', async () => {
+        const composable = await loadIdpA();
+        await fetchB(composable, metadataB({ signing_certificates: twoCertificates }));
+
+        // Pending selection: nothing chosen, nothing to apply, form untouched.
+        expect(composable.metadataPreview.value?.selectedCertIndex).toBeNull();
+        expect(composable.canApplyMetadata.value).toBe(false);
+        expect(composable.applyMetadata()).toBe(false);
+        expect(trioAndSource(composable)).toEqual(IDP_A_VALUES);
+
+        composable.selectMetadataCertificate(1);
+
+        expect(composable.metadataPreview.value?.selectedCertIndex).toBe(1);
+        expect(composable.canApplyMetadata.value).toBe(true);
+        expect(composable.formState.value.idp_cert).toBe(SAML_CERT);
+        expect(composable.hasUnsavedChanges.value).toBe(false);
+      });
+
+      it('never selects a certificate with a problem', async () => {
+        const composable = await loadIdpA();
+        await fetchB(
+          composable,
+          metadataB({
+            signing_certificates: [
+              certificate({ problem: 'IdP certificate expired on 2025-01-01' }),
+              certificate({ pem: CERT_B2 }),
+            ],
+          })
+        );
+
+        composable.selectMetadataCertificate(0);
+        expect(composable.metadataPreview.value?.selectedCertIndex).toBeNull();
+        composable.selectMetadataCertificate(5);
+        expect(composable.metadataPreview.value?.selectedCertIndex).toBeNull();
+
+        composable.selectMetadataCertificate(1);
+        expect(composable.metadataPreview.value?.selectedCertIndex).toBe(1);
+      });
+
+      it('does not select a single certificate the save would refuse', async () => {
+        const composable = await loadIdpA();
+        await fetchB(
+          composable,
+          metadataB({
+            signing_certificates: [certificate({ problem: 'not an RSA key' })],
+            problems: [blocking('no_usable_signing_certificates')],
+          })
+        );
+
+        expect(composable.metadataPreview.value?.selectedCertIndex).toBeNull();
+        expect(composable.canApplyMetadata.value).toBe(false);
+      });
+    });
+
+    describe('a blocked or failed import from IdP A to IdP B', () => {
+      it.each([
+        [
+          'a POST-only IdP (unsupported_sso_binding)',
+          metadataB({ idp_sso_service_url: null, problems: [blocking('unsupported_sso_binding')] }),
+        ],
+        [
+          'an IdP without an SSO endpoint (no_sso_url)',
+          metadataB({ idp_sso_service_url: null, problems: [blocking('no_sso_url')] }),
+        ],
+        [
+          'an invalid EntityID',
+          metadataB({
+            idp_entity_id: ' https://idp-b.example.com/entity',
+            problems: [blocking('invalid_entity_id')],
+          }),
+        ],
+        [
+          'an invalid SSO URL',
+          metadataB({
+            idp_sso_service_url: 'https://user@idp-b.example.com/sso',
+            problems: [blocking('invalid_sso_url')],
+          }),
+        ],
+        [
+          'no eligible certificate',
+          metadataB({
+            signing_certificates: [
+              certificate({ problem: 'IdP certificate expired on 2025-01-01' }),
+              certificate({ pem: CERT_B2, problem: 'IdP certificate is not valid until 2030' }),
+            ],
+            problems: [blocking('no_usable_signing_certificates')],
+          }),
+        ],
+        [
+          'no signing certificate at all',
+          metadataB({ signing_certificates: [], problems: [blocking('no_signing_certificates')] }),
+        ],
+      ])('%s leaves the trio and its source unchanged', async (_label, response) => {
+        const composable = await loadIdpA();
+        await fetchB(composable, response);
+        composable.selectMetadataCertificate(0);
+        composable.selectMetadataCertificate(1);
+
+        expect(composable.canApplyMetadata.value).toBe(false);
+        expect(composable.applyMetadata()).toBe(false);
+        expect(trioAndSource(composable)).toEqual(IDP_A_VALUES);
+        expect(composable.hasUnsavedChanges.value).toBe(false);
+      });
+
+      it('a blocking problem blocks even when every value is present', async () => {
+        const composable = await loadIdpA();
+        await fetchB(composable, metadataB({ problems: [blocking('some_future_blocker')] }));
+
+        expect(composable.metadataPreview.value?.selectedCertIndex).toBe(0);
+        expect(composable.canApplyMetadata.value).toBe(false);
+        expect(composable.applyMetadata()).toBe(false);
+        expect(trioAndSource(composable)).toEqual(IDP_A_VALUES);
+      });
+
+      const rateLimited = {
+        name: 'ApplicationError',
+        message: 'Too many requests',
+        type: 'human',
+        severity: 'error',
+        code: 429,
+        details: { retry_after: 600 },
+      };
+      const refused = {
+        name: 'ApplicationError',
+        message: 'SAML is not enabled on this installation',
+        type: 'human',
+        severity: 'error',
+        code: 422,
+      };
+
+      it.each([
+        [
+          'a fetch failure envelope',
+          () =>
+            mockFetchIdpMetadataForDomain.mockResolvedValueOnce({
+              success: false,
+              metadata_url: IDP_B_METADATA_URL,
+              message: 'The identity provider returned HTTP 404.',
+              details: { error_code: 'http_error', http_status: 404, description: 'Not Found' },
+            }),
+          {
+            errorCode: 'http_error',
+            httpStatus: 404,
+            message: 'The identity provider returned HTTP 404.',
+          },
+        ],
+        [
+          'the rate limit (429)',
+          () => mockFetchIdpMetadataForDomain.mockRejectedValueOnce(rateLimited),
+          {
+            errorCode: null,
+            httpStatus: null,
+            message: 'web.organizations.sso.metadata_rate_limited_retry',
+          },
+        ],
+        [
+          'a refused request',
+          () => mockFetchIdpMetadataForDomain.mockRejectedValueOnce(refused),
+          { errorCode: null, httpStatus: null, message: refused.message },
+        ],
+        [
+          'a transport failure',
+          () => mockFetchIdpMetadataForDomain.mockRejectedValueOnce(new Error('Network down')),
+          {
+            errorCode: null,
+            httpStatus: null,
+            message: 'web.organizations.sso.metadata_fetch_error',
+          },
+        ],
+      ])(
+        '%s leaves the form unchanged and drops any earlier preview',
+        async (_label, arrange, failure) => {
+          const composable = await loadIdpA();
+          // A complete preview from an earlier fetch of the same URL.
+          await fetchB(composable);
+          expect(composable.canApplyMetadata.value).toBe(true);
+
+          arrange();
+          await composable.fetchMetadata();
+
+          expect(composable.metadataPreview.value).toBeNull();
+          expect(composable.metadataFetchFailure.value).toEqual({
+            metadataUrl: IDP_B_METADATA_URL,
+            ...failure,
+          });
+          expect(composable.canApplyMetadata.value).toBe(false);
+          expect(composable.applyMetadata()).toBe(false);
+          expect(trioAndSource(composable)).toEqual(IDP_A_VALUES);
+          expect(composable.isFetchingMetadata.value).toBe(false);
+        }
+      );
+    });
+
+    describe('applyMetadata', () => {
+      it('applies the trio and its source in one update and clears old check evidence', async () => {
+        const composable = await loadIdpA();
+        mockRunDiagnosticsForDomain.mockResolvedValue({
+          ...mockDiagnosticsPassed,
+          provider_type: 'saml',
+        });
+        await composable.runDiagnostics();
+        await composable.testConnection();
+        expect(composable.savedCredentialsChecked.value).toBe(true);
+        expect(composable.testResult.value).not.toBeNull();
+        await fetchB(composable, metadataB({ signing_certificates: twoCertificates }));
+        composable.selectMetadataCertificate(1);
+        let updates = 0;
+        watch(composable.formState, () => (updates += 1), { deep: true, flush: 'sync' });
+
+        expect(composable.applyMetadata()).toBe(true);
+
+        expect(updates).toBe(1);
+        expect(trioAndSource(composable)).toEqual({
+          idp_entity_id: 'https://idp-b.example.com/entity',
+          idp_sso_service_url: 'https://idp-b.example.com/sso/redirect',
+          idp_cert: CERT_B2,
+          idp_metadata_url: IDP_B_METADATA_URL,
+        });
+        // The same invalidation a typed trio edit gets.
+        expect(composable.testResult.value).toBeNull();
+        expect(composable.hasUnsavedChanges.value).toBe(true);
+        // Applying only changes the form.
+        expect(mockSaveConfigForDomain).not.toHaveBeenCalled();
+        expect(composable.ssoConfig.value?.idp_entity_id).toBe(IDP_A_VALUES.idp_entity_id);
+
+        const recordB = {
+          ...recordA,
+          idp_entity_id: 'https://idp-b.example.com/entity',
+          idp_sso_service_url: 'https://idp-b.example.com/sso/redirect',
+          idp_cert: CERT_B2,
+          idp_metadata_url: IDP_B_METADATA_URL,
+        };
+        mockSaveConfigForDomain.mockResolvedValue({ record: recordB });
+
+        await composable.saveConfig();
+
+        const [, payload] = mockSaveConfigForDomain.mock.calls[0] as [
+          string,
+          Record<string, unknown>,
+        ];
+        expect(payload).toMatchObject({
+          idp_entity_id: 'https://idp-b.example.com/entity',
+          idp_sso_service_url: 'https://idp-b.example.com/sso/redirect',
+          idp_cert: CERT_B2,
+          idp_metadata_url: IDP_B_METADATA_URL,
+        });
+        expect(composable.savedCredentialsChecked.value).toBe(false);
+        expect(composable.savedCredentialsUnchecked.value).toBe(true);
+      });
+
+      it('an advisory does not block an otherwise eligible import', async () => {
+        const composable = await loadIdpA();
+        await fetchB(
+          composable,
+          metadataB({
+            problems: [
+              {
+                code: 'tenant_level_entra_metadata',
+                severity: 'advisory',
+                message: 'Use the App Federation Metadata Url',
+              },
+            ],
+          })
+        );
+
+        expect(composable.canApplyMetadata.value).toBe(true);
+        expect(composable.applyMetadata()).toBe(true);
+        expect(composable.formState.value.idp_metadata_url).toBe(IDP_B_METADATA_URL);
+      });
+
+      it('is refused for a form that is not saml', async () => {
+        const composable = await loadIdpA();
+        await fetchB(composable);
+        composable.formState.value = { ...composable.formState.value, provider_type: 'oidc' };
+
+        expect(composable.canApplyMetadata.value).toBe(false);
+        expect(composable.applyMetadata()).toBe(false);
+      });
+
+      it('applies advertised NameID formats nowhere: no policy reaches the form or the save', async () => {
+        const composable = await loadIdpA();
+        mockSaveConfigForDomain.mockResolvedValue({ record: recordA });
+        await fetchB(composable);
+
+        composable.applyMetadata();
+        await composable.saveConfig();
+
+        expect(composable.formState.value).not.toHaveProperty('name_id_format');
+        const [, payload] = mockSaveConfigForDomain.mock.calls[0] as [
+          string,
+          Record<string, unknown>,
+        ];
+        expect(payload).not.toHaveProperty('name_id_format');
+        expect(payload).not.toHaveProperty('name_id_formats');
+      });
+    });
+
+    describe('stale previews', () => {
+      it('a changed fetch input drops the preview so it cannot be applied', async () => {
+        const composable = await loadIdpA();
+        await fetchB(composable);
+        expect(composable.canApplyMetadata.value).toBe(true);
+
+        composable.metadataFetchUrl.value = 'https://idp-c.example.com/saml/metadata';
+
+        expect(composable.metadataPreview.value).toBeNull();
+        expect(composable.canApplyMetadata.value).toBe(false);
+        expect(composable.applyMetadata()).toBe(false);
+        expect(trioAndSource(composable)).toEqual(IDP_A_VALUES);
+      });
+
+      it('whitespace around the same URL does not drop the preview', async () => {
+        const composable = await loadIdpA();
+        await fetchB(composable);
+
+        composable.metadataFetchUrl.value = `${IDP_B_METADATA_URL} `;
+
+        expect(composable.metadataPreview.value).not.toBeNull();
+      });
+
+      it('discards a response that lands after the fetch input changed', async () => {
+        const composable = await loadIdpA();
+        const response = deferred<FetchIdpMetadataResponse>();
+        mockFetchIdpMetadataForDomain.mockReturnValueOnce(response.promise);
+        composable.metadataFetchUrl.value = IDP_B_METADATA_URL;
+
+        const pending = composable.fetchMetadata();
+        expect(composable.isFetchingMetadata.value).toBe(true);
+        composable.metadataFetchUrl.value = 'https://idp-c.example.com/saml/metadata';
+        expect(composable.isFetchingMetadata.value).toBe(false);
+        response.resolve(metadataB());
+        await pending;
+
+        expect(composable.metadataPreview.value).toBeNull();
+        expect(composable.canApplyMetadata.value).toBe(false);
+        expect(trioAndSource(composable)).toEqual(IDP_A_VALUES);
+      });
+
+      it('a late response from a superseded fetch cannot replace the current preview', async () => {
+        const composable = await loadIdpA();
+        const first = deferred<FetchIdpMetadataResponse>();
+        const second = deferred<FetchIdpMetadataResponse>();
+        mockFetchIdpMetadataForDomain
+          .mockReturnValueOnce(first.promise)
+          .mockReturnValueOnce(second.promise);
+        composable.metadataFetchUrl.value = IDP_B_METADATA_URL;
+
+        const firstFetch = composable.fetchMetadata();
+        const secondFetch = composable.fetchMetadata();
+        second.resolve(metadataB());
+        await secondFetch;
+        // The superseded request answers last, with another IdP's values.
+        first.resolve(
+          metadataB({
+            idp_entity_id: 'https://stale.example.com/entity',
+            idp_sso_service_url: 'https://stale.example.com/sso',
+            signing_certificates: [certificate({ pem: CERT_B2 })],
+          })
+        );
+        await firstFetch;
+
+        expect(composable.metadataPreview.value?.response.idp_entity_id).toBe(
+          'https://idp-b.example.com/entity'
+        );
+        expect(composable.isFetchingMetadata.value).toBe(false);
+        expect(composable.applyMetadata()).toBe(true);
+        expect(trioAndSource(composable)).toEqual({
+          idp_entity_id: 'https://idp-b.example.com/entity',
+          idp_sso_service_url: 'https://idp-b.example.com/sso/redirect',
+          idp_cert: CERT_B1,
+          idp_metadata_url: IDP_B_METADATA_URL,
+        });
+      });
+
+      it.each(['initialize', 'deleteConfig'] as const)(
+        '%s drops the preview and reseeds the fetch input',
+        async (action) => {
+          const composable = await loadIdpA();
+          await fetchB(composable);
+          mockGetConfigForDomain.mockResolvedValue({ record: recordA });
+
+          await composable[action]();
+
+          expect(composable.metadataPreview.value).toBeNull();
+          expect(composable.metadataFetchUrl.value).toBe(
+            action === 'initialize' ? IDP_A_METADATA_URL : ''
+          );
+        }
+      );
     });
   });
 });

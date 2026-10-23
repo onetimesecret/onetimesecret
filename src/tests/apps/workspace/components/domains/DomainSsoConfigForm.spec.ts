@@ -9,6 +9,8 @@
 // 5. Form state updates via v-model
 // 6. The one primary action (save and check / check and turn on / check),
 //    the activation outcome of a run, and the Confirm sign-in step
+// 7. SAML metadata import: the preview, the certificate picker, Apply, and
+//    the trio's source URL (presentational, then wired to useSsoConfig)
 //
 // Note: This is a presentational component. It receives state via props
 // and emits events for actions. Parent manages state via useSsoConfig.
@@ -18,6 +20,7 @@ import { resolve } from 'path';
 import { createTestingPinia } from '@pinia/testing';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { defineComponent, h } from 'vue';
 import DomainSsoConfigForm from '../../../../../apps/workspace/components/domains/DomainSsoConfigForm.vue';
 import type { CustomDomainSsoConfig } from '../../../../../schemas/shapes/domains/sso-config';
 import type {
@@ -25,7 +28,17 @@ import type {
   SsoDiagnosticsResponse,
   TestSsoConnectionResponse,
 } from '../../../../../services/sso.service';
-import type { SsoConfigFormState } from '../../../../../shared/composables/useSsoConfig';
+import {
+  useSsoConfig,
+  type SsoConfigFormState,
+  type SsoMetadataFetchFailure,
+  type SsoMetadataPreview,
+} from '../../../../../shared/composables/useSsoConfig';
+import type {
+  FetchIdpMetadataResponse,
+  IdpMetadataCertificate,
+  IdpMetadataPreviewResponse,
+} from '../../../../../schemas/api/domains/responses/sso-config';
 import type { TenantSsoVerdict } from '../../../../../schemas/api/domains/responses/signin-config';
 import { createRealI18n, createTestI18n } from '../../../../setup';
 
@@ -69,6 +82,19 @@ vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
   },
 }));
 
+// The service, for the examples that wire the form to the real useSsoConfig
+// (SAML metadata import). The component itself imports only its types.
+const mockSsoService = vi.hoisted(() => ({
+  getConfigForDomain: vi.fn(),
+  saveConfigForDomain: vi.fn(),
+  deleteConfigForDomain: vi.fn(),
+  testConnectionForDomain: vi.fn(),
+  runDiagnosticsForDomain: vi.fn(),
+  fetchIdpMetadataForDomain: vi.fn(),
+}));
+
+vi.mock('@/services/sso.service', () => ({ SsoService: mockSsoService }));
+
 // The component reads SSO_PROVIDER_ROUTE_NAMES and
 // ssoProviderUsesClientCredentials from the real shapes module (which the
 // contract spec pins to the Ruby source) — deliberately NOT mocked.
@@ -92,6 +118,7 @@ function createDefaultFormState(): SsoConfigFormState {
     idp_sso_service_url: '',
     idp_entity_id: '',
     idp_cert: '',
+    idp_metadata_url: '',
     allowed_domains: [],
     enabled: false,
     enforce_sso_only: false,
@@ -114,6 +141,7 @@ const mockExistingConfig: CustomDomainSsoConfig = {
   idp_sso_service_url: null,
   idp_entity_id: null,
   idp_cert: null,
+  idp_metadata_url: null,
   sp_entity_id: null,
   acs_url: null,
   unreadable_fields: [],
@@ -136,6 +164,7 @@ const mockExistingFormState: SsoConfigFormState = {
   idp_sso_service_url: '',
   idp_entity_id: '',
   idp_cert: '',
+  idp_metadata_url: '',
   allowed_domains: ['example.com'],
   enabled: true,
   enforce_sso_only: false,
@@ -197,6 +226,11 @@ interface MountOptions {
   isRefreshingLastSignIn?: boolean;
   tenantSso?: TenantSsoVerdict | null;
   samlEnabled?: boolean;
+  metadataFetchUrl?: string;
+  metadataPreview?: SsoMetadataPreview | null;
+  isFetchingMetadata?: boolean;
+  metadataFetchFailure?: SsoMetadataFetchFailure | null;
+  canApplyMetadata?: boolean;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -259,6 +293,12 @@ describe('DomainSsoConfigForm', () => {
     // The install-wide SAML switch (SAML_ENABLED, #4604): on for the suite,
     // off only in the examples about the switch itself.
     samlEnabled: true,
+    // No metadata fetched (SAML metadata import).
+    metadataFetchUrl: '',
+    metadataPreview: null,
+    isFetchingMetadata: false,
+    metadataFetchFailure: null,
+    canApplyMetadata: false,
   };
 
   const mountComponent = async (options: MountOptions = {}) => {
@@ -3668,6 +3708,766 @@ describe('DomainSsoConfigForm', () => {
           'domain-sso-acs-url-label'
         );
         expect(wrapper.find('#domain-sso-acs-url-label').exists()).toBe(true);
+      });
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SAML metadata import (docs/specs/sso/saml-idp-metadata-consumption.md,
+  // Phase 1). A fetch fills a preview, never the form; Apply copies a
+  // complete preview into the form; Save (unchanged) persists it.
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('SAML metadata import', () => {
+    const IDP_A_METADATA_URL = 'https://idp.example.com/saml/metadata';
+    const IDP_B_METADATA_URL = 'https://idp-b.example.com/saml/metadata';
+    const CERT_B1 = '-----BEGIN CERTIFICATE-----\nB1\n-----END CERTIFICATE-----';
+    const CERT_B2 = '-----BEGIN CERTIFICATE-----\nB2\n-----END CERTIFICATE-----';
+
+    const certificate = (
+      overrides: Partial<IdpMetadataCertificate> = {}
+    ): IdpMetadataCertificate => ({
+      pem: CERT_B1,
+      subject: 'CN=IdP B signing',
+      not_before: '2026-01-01T00:00:00Z',
+      not_after: '2029-01-01T00:00:00Z',
+      fingerprint_sha256: 'B1:B1:B1',
+      thumbprint_sha1: 'B1:B1',
+      problem: null,
+      ...overrides,
+    });
+
+    const metadataB = (
+      overrides: Partial<IdpMetadataPreviewResponse> = {}
+    ): IdpMetadataPreviewResponse => ({
+      success: true,
+      metadata_url: IDP_B_METADATA_URL,
+      idp_entity_id: 'https://idp-b.example.com/entity',
+      idp_sso_service_url: 'https://idp-b.example.com/sso/redirect',
+      signing_certificates: [certificate()],
+      name_id_formats: [
+        'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+        'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
+      ],
+      problems: [],
+      ...overrides,
+    });
+
+    // Entra during a rollover: the active certificate, a newer one added but
+    // not yet active, and an expired one the save would refuse.
+    const rolloverCertificates = [
+      certificate({
+        pem: CERT_B1,
+        subject: 'CN=Active',
+        fingerprint_sha256: 'AA:01',
+        thumbprint_sha1: 'A1',
+      }),
+      certificate({
+        pem: CERT_B2,
+        subject: 'CN=Added',
+        not_before: '2026-06-01T00:00:00Z',
+        fingerprint_sha256: 'BB:02',
+        thumbprint_sha1: 'B2',
+      }),
+      certificate({
+        subject: 'CN=Expired',
+        not_before: '2020-01-01T00:00:00Z',
+        not_after: '2023-01-01T00:00:00Z',
+        fingerprint_sha256: 'CC:03',
+        thumbprint_sha1: 'C3',
+        problem: 'IdP certificate expired on 2023-01-01',
+      }),
+    ];
+
+    const previewOf = (
+      response: IdpMetadataPreviewResponse,
+      selectedCertIndex: number | null = null
+    ): SsoMetadataPreview => ({
+      requestId: 1,
+      metadataUrl: IDP_B_METADATA_URL,
+      response,
+      selectedCertIndex,
+    });
+
+    const blocking = (code: string) => ({
+      code,
+      severity: 'blocking' as const,
+      message: `${code} (server message)`,
+    });
+
+    // IdP A: the saved saml record, imported from its metadata URL.
+    const samlFormA: SsoConfigFormState = {
+      ...mockSamlFormState,
+      idp_metadata_url: IDP_A_METADATA_URL,
+    };
+    const samlRecordA: CustomDomainSsoConfig = {
+      ...mockSamlConfig,
+      idp_metadata_url: IDP_A_METADATA_URL,
+    };
+
+    const mountSamlA = (options: MountOptions = {}) =>
+      mountComponent({
+        formState: samlFormA,
+        ssoConfig: samlRecordA,
+        isConfigured: true,
+        metadataFetchUrl: IDP_B_METADATA_URL,
+        ...options,
+      });
+
+    // What the form shows for the trio and its source.
+    const shownValues = (w: VueWrapper) => ({
+      idp_sso_service_url: (w.get('#domain-sso-idp-sso-service-url').element as HTMLInputElement)
+        .value,
+      idp_entity_id: (w.get('#domain-sso-idp-entity-id').element as HTMLInputElement).value,
+      idp_cert: (w.get('#domain-sso-idp-cert').element as HTMLTextAreaElement).value,
+      source: w.find('[data-testid="sso-metadata-source-url"]').text(),
+    });
+
+    const IDP_A_SHOWN = {
+      idp_sso_service_url: 'https://idp.example.com/sso',
+      idp_entity_id: 'https://idp.example.com/entity',
+      idp_cert: SAML_CERT,
+      source: IDP_A_METADATA_URL,
+    };
+
+    const realI18n = () =>
+      createRealI18n({
+        en: JSON.parse(readFileSync(resolve(process.cwd(), 'generated/locales/en.json'), 'utf-8')),
+      });
+
+    describe('fetch input and source', () => {
+      it('sits in the SAML block above the trio and is absent for other providers', async () => {
+        wrapper = await mountSamlA();
+
+        const section = wrapper.get('[data-testid="sso-saml-metadata"]').element;
+        const ssoUrl = wrapper.get('#domain-sso-idp-sso-service-url').element;
+        expect(
+          section.compareDocumentPosition(ssoUrl) & Node.DOCUMENT_POSITION_FOLLOWING
+        ).toBeTruthy();
+        wrapper.unmount();
+
+        wrapper = await mountComponent({ formState: mockExistingFormState });
+        expect(wrapper.find('[data-testid="sso-saml-metadata"]').exists()).toBe(false);
+      });
+
+      it('labels the input and keeps Fetch a secondary action beside Save and check', async () => {
+        wrapper = await mountSamlA();
+
+        expect(wrapper.find('label[for="domain-sso-idp-metadata-url"]').exists()).toBe(true);
+        const input = wrapper.get('#domain-sso-idp-metadata-url');
+        expect(input.attributes('aria-describedby')).toBe('domain-sso-idp-metadata-url-hint');
+        // Not type=url: the fetch input is not saved, so a half-typed value
+        // must not trip the browser's validation of the surrounding form.
+        expect(input.attributes('type')).toBe('text');
+        expect(input.attributes('inputmode')).toBe('url');
+        expect(wrapper.find('#domain-sso-idp-metadata-url-hint').exists()).toBe(true);
+        const fetch = wrapper.get('[data-testid="sso-metadata-fetch"]');
+        expect(fetch.attributes('type')).toBe('button');
+        expect(fetch.classes()).not.toContain('bg-brand-600');
+        expect(fetch.text()).toBe('web.organizations.sso.metadata_fetch_button');
+        expect(wrapper.get('[data-testid="sso-diagnostics-run"]').classes()).toContain(
+          'bg-brand-600'
+        );
+      });
+
+      it('fetches from the button and from Enter, without submitting the form', async () => {
+        wrapper = await mountSamlA();
+
+        await wrapper.get('[data-testid="sso-metadata-fetch"]').trigger('click');
+        await wrapper.get('#domain-sso-idp-metadata-url').trigger('keydown', { key: 'Enter' });
+
+        expect(wrapper.emitted('fetch-metadata')).toHaveLength(2);
+        expect(wrapper.emitted('save')).toBeUndefined();
+        expect(wrapper.emitted('diagnostics')).toBeUndefined();
+      });
+
+      it('cannot fetch a blank URL or while a fetch is in flight', async () => {
+        wrapper = await mountSamlA({ metadataFetchUrl: '   ' });
+        expect(
+          wrapper.get('[data-testid="sso-metadata-fetch"]').attributes('disabled')
+        ).toBeDefined();
+        await wrapper.get('#domain-sso-idp-metadata-url').trigger('keydown', { key: 'Enter' });
+        expect(wrapper.emitted('fetch-metadata')).toBeUndefined();
+
+        await wrapper.setProps({ metadataFetchUrl: IDP_B_METADATA_URL, isFetchingMetadata: true });
+        const fetch = wrapper.get('[data-testid="sso-metadata-fetch"]');
+        expect(fetch.attributes('disabled')).toBeDefined();
+        expect(fetch.attributes('aria-busy')).toBe('true');
+        expect(wrapper.get('[data-testid="sso-metadata-fetching"]').attributes('role')).toBe(
+          'status'
+        );
+      });
+
+      it('typing a URL edits the fetch input only, never the form', async () => {
+        wrapper = await mountSamlA({ metadataFetchUrl: '' });
+
+        await wrapper.get('#domain-sso-idp-metadata-url').setValue(IDP_B_METADATA_URL);
+
+        expect(wrapper.emitted('update:metadataFetchUrl')).toEqual([[IDP_B_METADATA_URL]]);
+        expect(wrapper.emitted('update:formState')).toBeUndefined();
+      });
+
+      it('shows where the trio came from and clears only that', async () => {
+        wrapper = await mountSamlA();
+
+        expect(wrapper.get('[data-testid="sso-metadata-source-url"]').text()).toBe(
+          IDP_A_METADATA_URL
+        );
+        await wrapper.get('[data-testid="sso-metadata-source-clear"]').trigger('click');
+
+        expect(wrapper.emitted('update:formState')).toEqual([
+          [{ ...samlFormA, idp_metadata_url: '' }],
+        ]);
+      });
+
+      it('names an unreadable source in the alert and explains it beside the input', async () => {
+        wrapper = await mountSamlA({
+          formState: { ...samlFormA, idp_metadata_url: '' },
+          ssoConfig: {
+            ...samlRecordA,
+            idp_metadata_url: null,
+            unreadable_fields: ['idp_metadata_url'],
+          },
+        });
+
+        expect(wrapper.find('[data-testid="sso-unreadable-fields-alert"]').exists()).toBe(true);
+        expect(wrapper.get('[data-testid="sso-metadata-source-unreadable"]').text()).toBe(
+          'web.organizations.sso.metadata_source_unreadable'
+        );
+        expect(wrapper.find('[data-testid="sso-metadata-source-url"]').exists()).toBe(false);
+      });
+    });
+
+    describe('certificate picker', () => {
+      it('offers two or more certificates as radios with nothing preselected', async () => {
+        wrapper = await mountSamlA({
+          metadataPreview: previewOf(metadataB({ signing_certificates: rolloverCertificates })),
+        });
+
+        const group = wrapper.get('[data-testid="sso-metadata-certificates"] [role="radiogroup"]');
+        expect(group.attributes('aria-labelledby')).toBe('sso-metadata-certificates-title');
+        const radios = wrapper.findAll('input[name="sso-metadata-certificate"]');
+        expect(radios).toHaveLength(3);
+        expect(radios.map((radio) => (radio.element as HTMLInputElement).checked)).toEqual([
+          false,
+          false,
+          false,
+        ]);
+        // The choice is pending: Apply is disabled and says why.
+        const apply = wrapper.get('[data-testid="sso-metadata-apply"]');
+        expect(apply.attributes('disabled')).toBeDefined();
+        expect(apply.attributes('aria-describedby')).toBe('sso-metadata-select-hint');
+        expect(wrapper.get('#sso-metadata-select-hint').text()).toBe(
+          'web.organizations.sso.metadata_select_certificate'
+        );
+      });
+
+      it('labels the newest certificate without selecting it', async () => {
+        wrapper = await mountSamlA({
+          metadataPreview: previewOf(metadataB({ signing_certificates: rolloverCertificates })),
+        });
+
+        const newest = wrapper.findAll('[data-testid="sso-metadata-cert-newest"]');
+        expect(newest).toHaveLength(1);
+        expect(wrapper.get('[data-testid="sso-metadata-cert-1"]').text()).toContain(
+          'web.organizations.sso.metadata_cert_newest'
+        );
+        expect(wrapper.get('[data-testid="sso-metadata-cert-1"]').attributes('data-selected')).toBe(
+          'false'
+        );
+      });
+
+      it('disables a certificate with a problem and shows the server reason', async () => {
+        wrapper = await mountSamlA({
+          metadataPreview: previewOf(metadataB({ signing_certificates: rolloverCertificates })),
+        });
+
+        const radios = wrapper.findAll('input[name="sso-metadata-certificate"]');
+        expect(radios.map((radio) => radio.attributes('disabled') !== undefined)).toEqual([
+          false,
+          false,
+          true,
+        ]);
+        expect(
+          wrapper
+            .get('[data-testid="sso-metadata-cert-2"] [data-testid="sso-metadata-cert-problem"]')
+            .text()
+        ).toBe('IdP certificate expired on 2023-01-01');
+      });
+
+      it('choosing a certificate emits the choice and does not touch the form', async () => {
+        wrapper = await mountSamlA({
+          metadataPreview: previewOf(metadataB({ signing_certificates: rolloverCertificates })),
+        });
+
+        await wrapper.findAll('input[name="sso-metadata-certificate"]')[1].setValue(true);
+
+        expect(wrapper.emitted('select-metadata-certificate')).toEqual([[1]]);
+        expect(wrapper.emitted('update:formState')).toBeUndefined();
+        expect(shownValues(wrapper)).toEqual(IDP_A_SHOWN);
+      });
+
+      it('labels the SHA-256 fingerprint and the SHA-1 Entra thumbprint separately', async () => {
+        wrapper = await mountSamlA({
+          metadataPreview: previewOf(metadataB({ signing_certificates: rolloverCertificates })),
+        });
+
+        const first = wrapper.get('[data-testid="sso-metadata-cert-0"]');
+        expect(first.get('[data-testid="sso-metadata-cert-sha256-label"]').text()).toBe(
+          'web.organizations.sso.metadata_cert_fingerprint_sha256:'
+        );
+        expect(first.get('[data-testid="sso-metadata-cert-sha256"]').text()).toBe('AA:01');
+        expect(first.get('[data-testid="sso-metadata-cert-sha1-label"]').text()).toBe(
+          'web.organizations.sso.metadata_cert_thumbprint_sha1:'
+        );
+        expect(first.get('[data-testid="sso-metadata-cert-sha1"]').text()).toBe('A1');
+        // Each radio is named by its subject and described by its details.
+        const radio = first.get('input');
+        expect(radio.attributes('aria-labelledby')).toBe('sso-metadata-cert-0-subject');
+        expect(radio.attributes('aria-describedby')).toBe('sso-metadata-cert-0-details');
+      });
+
+      it('reads the two hash labels and the validity window in English', async () => {
+        wrapper = mount(DomainSsoConfigForm, {
+          props: {
+            ...defaultMountOptions,
+            formState: samlFormA,
+            ssoConfig: samlRecordA,
+            isConfigured: true,
+            metadataPreview: previewOf(metadataB({ signing_certificates: rolloverCertificates })),
+          },
+          global: { plugins: [realI18n(), pinia], stubs: { Teleport: true } },
+        });
+        await flushPromises();
+
+        const first = wrapper.get('[data-testid="sso-metadata-cert-0"]');
+        expect(first.get('[data-testid="sso-metadata-cert-sha256-label"]').text()).toBe(
+          'SHA-256 fingerprint:'
+        );
+        expect(first.get('[data-testid="sso-metadata-cert-sha1-label"]').text()).toBe(
+          'SHA-1 thumbprint (Entra portal):'
+        );
+        const validity = first.get('[data-testid="sso-metadata-cert-validity"]').text();
+        expect(validity).toContain(new Date('2026-01-01T00:00:00Z').toLocaleDateString());
+        expect(validity).toContain(new Date('2029-01-01T00:00:00Z').toLocaleDateString());
+        expect(validity).not.toContain('{');
+      });
+
+      it('shows a single eligible certificate without a picker, selected in the preview', async () => {
+        wrapper = await mountSamlA({
+          metadataPreview: previewOf(metadataB(), 0),
+          canApplyMetadata: true,
+        });
+
+        expect(wrapper.find('input[name="sso-metadata-certificate"]').exists()).toBe(false);
+        expect(
+          wrapper.find('[data-testid="sso-metadata-certificates"] [role="radiogroup"]').exists()
+        ).toBe(false);
+        expect(wrapper.get('[data-testid="sso-metadata-cert-0"]').attributes('data-selected')).toBe(
+          'true'
+        );
+        // Selected in the preview only: the form still shows IdP A.
+        expect(shownValues(wrapper)).toEqual(IDP_A_SHOWN);
+
+        const apply = wrapper.get('[data-testid="sso-metadata-apply"]');
+        expect(apply.attributes('disabled')).toBeUndefined();
+        await apply.trigger('click');
+        expect(wrapper.emitted('apply-metadata')).toHaveLength(1);
+        expect(wrapper.emitted('update:formState')).toBeUndefined();
+      });
+    });
+
+    describe('blocked and failed imports leave IdP A in the form', () => {
+      it.each([
+        [
+          'a POST-only IdP B (unsupported_sso_binding)',
+          metadataB({ idp_sso_service_url: null, problems: [blocking('unsupported_sso_binding')] }),
+        ],
+        [
+          'an invalid EntityID',
+          metadataB({ idp_entity_id: ' bad', problems: [blocking('invalid_entity_id')] }),
+        ],
+        [
+          'an invalid SSO URL',
+          metadataB({
+            idp_sso_service_url: 'https://user@idp-b.example.com/sso',
+            problems: [blocking('invalid_sso_url')],
+          }),
+        ],
+        [
+          'no eligible certificate',
+          metadataB({
+            signing_certificates: [rolloverCertificates[2]],
+            problems: [blocking('no_usable_signing_certificates')],
+          }),
+        ],
+      ])('%s renders an import error and disables Apply', async (_label, response) => {
+        const code = response.problems[0].code;
+        wrapper = await mountSamlA({ metadataPreview: previewOf(response) });
+
+        const errors = wrapper.get('[data-testid="sso-metadata-blocking"]');
+        expect(errors.attributes('role')).toBe('alert');
+        expect(errors.text()).toContain('web.organizations.sso.metadata_blocking_title');
+        const problem = errors.get('[data-testid="sso-metadata-problem"]');
+        expect(problem.attributes('data-code')).toBe(code);
+        expect(problem.text()).toBe(`web.organizations.sso.metadata_problem_${code}`);
+        expect(
+          wrapper.get('[data-testid="sso-metadata-apply"]').attributes('disabled')
+        ).toBeDefined();
+        expect(wrapper.find('[data-testid="sso-metadata-select-hint"]').exists()).toBe(false);
+        expect(shownValues(wrapper)).toEqual(IDP_A_SHOWN);
+        expect(wrapper.emitted('update:formState')).toBeUndefined();
+      });
+
+      it('says the POST-only IdP publishes no usable SSO URL', async () => {
+        wrapper = await mountSamlA({
+          metadataPreview: previewOf(
+            metadataB({
+              idp_sso_service_url: null,
+              problems: [blocking('unsupported_sso_binding')],
+            })
+          ),
+        });
+
+        expect(wrapper.get('[data-testid="sso-metadata-sso-url"]').text()).toBe(
+          'web.organizations.sso.metadata_value_missing'
+        );
+      });
+
+      it('shows the server message for a blocking code it does not know', async () => {
+        wrapper = await mountSamlA({
+          metadataPreview: previewOf(
+            metadataB({
+              problems: [{ code: 'future_check', severity: 'blocking', message: 'Server says no' }],
+            })
+          ),
+        });
+
+        expect(wrapper.get('[data-testid="sso-metadata-problem"]').text()).toBe('Server says no');
+      });
+
+      it('passes the server reason into the localized invalid EntityID message', async () => {
+        wrapper = mount(DomainSsoConfigForm, {
+          props: {
+            ...defaultMountOptions,
+            formState: samlFormA,
+            ssoConfig: samlRecordA,
+            isConfigured: true,
+            metadataPreview: previewOf(
+              metadataB({
+                problems: [
+                  {
+                    code: 'invalid_entity_id',
+                    severity: 'blocking',
+                    message: 'IdP EntityID has leading or trailing whitespace',
+                  },
+                ],
+              })
+            ),
+          },
+          global: { plugins: [realI18n(), pinia], stubs: { Teleport: true } },
+        });
+        await flushPromises();
+
+        const text = wrapper.get('[data-testid="sso-metadata-problem"]').text();
+        expect(text).toContain('IdP EntityID has leading or trailing whitespace');
+        expect(text).not.toContain('{reason}');
+      });
+
+      it.each([
+        ['a known error code', 'timeout', 'web.organizations.sso.metadata_error_timeout'],
+        ['an unknown error code', 'future_error', 'The server explains'],
+        ['no error code (a refused request)', null, 'The server explains'],
+      ])('announces a fetch failure with %s', async (_label, errorCode, expected) => {
+        wrapper = await mountSamlA({
+          metadataFetchFailure: {
+            metadataUrl: IDP_B_METADATA_URL,
+            errorCode,
+            message: 'The server explains',
+            httpStatus: null,
+          },
+        });
+
+        const failure = wrapper.get('[data-testid="sso-metadata-error"]');
+        expect(failure.attributes('role')).toBe('alert');
+        expect(failure.text()).toContain(expected);
+        expect(wrapper.find('[data-testid="sso-metadata-preview"]').exists()).toBe(false);
+        expect(shownValues(wrapper)).toEqual(IDP_A_SHOWN);
+      });
+    });
+
+    describe('advisories and advertised NameID formats', () => {
+      const entraAdvisory = {
+        code: 'tenant_level_entra_metadata',
+        severity: 'advisory' as const,
+        message: 'Use the App Federation Metadata Url',
+      };
+
+      it('renders an advisory as a warning that does not disable Apply', async () => {
+        wrapper = await mountSamlA({
+          metadataPreview: previewOf(metadataB({ problems: [entraAdvisory] }), 0),
+          canApplyMetadata: true,
+        });
+
+        const warning = wrapper.get('[data-testid="sso-metadata-advisories"]');
+        expect(warning.attributes('role')).toBe('status');
+        expect(warning.text()).toBe(
+          'web.organizations.sso.metadata_problem_tenant_level_entra_metadata'
+        );
+        expect(wrapper.find('[data-testid="sso-metadata-blocking"]').exists()).toBe(false);
+        expect(
+          wrapper.get('[data-testid="sso-metadata-apply"]').attributes('disabled')
+        ).toBeUndefined();
+      });
+
+      it("points tenant-level Entra metadata at the application's App Federation Metadata Url", async () => {
+        wrapper = mount(DomainSsoConfigForm, {
+          props: {
+            ...defaultMountOptions,
+            formState: samlFormA,
+            ssoConfig: samlRecordA,
+            isConfigured: true,
+            metadataPreview: previewOf(metadataB({ problems: [entraAdvisory] }), 0),
+            canApplyMetadata: true,
+          },
+          global: { plugins: [realI18n(), pinia], stubs: { Teleport: true } },
+        });
+        await flushPromises();
+
+        const text = wrapper.get('[data-testid="sso-metadata-advisory"]').text();
+        expect(text).toContain('App Federation Metadata Url');
+        expect(text).toContain("application's SAML page in Entra");
+      });
+
+      it('lists advertised NameID formats as information and changes nothing', async () => {
+        wrapper = await mountSamlA({ metadataPreview: previewOf(metadataB(), 0) });
+
+        const formats = wrapper.findAll('[data-testid="sso-metadata-name-id-format"]');
+        expect(formats.map((format) => format.text())).toEqual(metadataB().name_id_formats);
+        expect(
+          wrapper.get('[data-testid="sso-metadata-name-id-formats"]').find('input, select').exists()
+        ).toBe(false);
+        expect(wrapper.emitted('update:formState')).toBeUndefined();
+      });
+
+      it('says when the preview is already applied to the form', async () => {
+        wrapper = await mountSamlA({
+          formState: {
+            ...samlFormA,
+            idp_entity_id: 'https://idp-b.example.com/entity',
+            idp_sso_service_url: 'https://idp-b.example.com/sso/redirect',
+            idp_cert: CERT_B1,
+            idp_metadata_url: IDP_B_METADATA_URL,
+          },
+          metadataPreview: previewOf(metadataB(), 0),
+          canApplyMetadata: true,
+          hasUnsavedChanges: true,
+        });
+
+        expect(wrapper.get('[data-testid="sso-metadata-applied"]').attributes('role')).toBe(
+          'status'
+        );
+        expect(wrapper.get('[data-testid="sso-metadata-source-url"]').text()).toBe(
+          IDP_B_METADATA_URL
+        );
+      });
+    });
+
+    // The form wired to the real useSsoConfig the way DomainSigninSso wires
+    // it, with only the service mocked: what the admin sees in the trio
+    // inputs after each fetch.
+    describe('wired to useSsoConfig', () => {
+      let wired: VueWrapper | null = null;
+
+      afterEach(() => {
+        wired?.unmount();
+        wired = null;
+      });
+
+      const mountWired = async (record: CustomDomainSsoConfig = samlRecordA) => {
+        mockSsoService.getConfigForDomain.mockResolvedValue({ record });
+        let sso: ReturnType<typeof useSsoConfig> | null = null;
+        const Host = defineComponent({
+          setup() {
+            const composable = useSsoConfig('dm_123');
+            sso = composable;
+            void composable.initialize();
+            return () =>
+              h(DomainSsoConfigForm, {
+                domainExtId: 'dm_123',
+                domainHost: 'secrets.example.com',
+                domainVerified: true,
+                orgId: 'org_ext_123',
+                formState: composable.formState.value,
+                'onUpdate:formState': (value: SsoConfigFormState) => {
+                  composable.formState.value = value;
+                },
+                ssoConfig: composable.ssoConfig.value,
+                isLoading: composable.isLoading.value,
+                isSaving: composable.isSaving.value,
+                isDeleting: composable.isDeleting.value,
+                isTesting: composable.isTesting.value,
+                isDiagnosing: composable.isDiagnosing.value,
+                hasUnsavedChanges: composable.hasUnsavedChanges.value,
+                isConfigured: composable.isConfigured.value,
+                clientSecretMasked: composable.clientSecretMasked.value,
+                testResult: composable.testResult.value,
+                testError: composable.testError.value,
+                diagnosticsResult: composable.diagnosticsResult.value,
+                savedCredentialsChecked: composable.savedCredentialsChecked.value,
+                savedCredentialsUnchecked: composable.savedCredentialsUnchecked.value,
+                diagnosticsError: composable.diagnosticsError.value,
+                isRefreshingLastSignIn: composable.isRefreshingLastSignIn.value,
+                tenantSso: null,
+                samlEnabled: true,
+                metadataFetchUrl: composable.metadataFetchUrl.value,
+                'onUpdate:metadataFetchUrl': (value: string) => {
+                  composable.metadataFetchUrl.value = value;
+                },
+                metadataPreview: composable.metadataPreview.value,
+                isFetchingMetadata: composable.isFetchingMetadata.value,
+                metadataFetchFailure: composable.metadataFetchFailure.value,
+                canApplyMetadata: composable.canApplyMetadata.value,
+                onFetchMetadata: composable.fetchMetadata,
+                onSelectMetadataCertificate: composable.selectMetadataCertificate,
+                onApplyMetadata: composable.applyMetadata,
+              });
+          },
+        });
+        wired = mount(Host, { global: { plugins: [i18n, pinia], stubs: { Teleport: true } } });
+        await flushPromises();
+        if (!sso) throw new Error('useSsoConfig did not run');
+        return { w: wired, sso: sso as ReturnType<typeof useSsoConfig> };
+      };
+
+      const fetchFrom = async (w: VueWrapper, url: string) => {
+        await w.get('#domain-sso-idp-metadata-url').setValue(url);
+        await w.get('[data-testid="sso-metadata-fetch"]').trigger('click');
+        await flushPromises();
+      };
+
+      it.each([
+        [
+          'a POST-only IdP B',
+          metadataB({ idp_sso_service_url: null, problems: [blocking('unsupported_sso_binding')] }),
+        ],
+        [
+          'an IdP B with an invalid EntityID',
+          metadataB({ idp_entity_id: ' bad', problems: [blocking('invalid_entity_id')] }),
+        ],
+        [
+          'an IdP B with an invalid SSO URL',
+          metadataB({
+            idp_sso_service_url: 'https://user@idp-b.example.com/sso',
+            problems: [blocking('invalid_sso_url')],
+          }),
+        ],
+        [
+          'an IdP B without an eligible certificate',
+          metadataB({
+            signing_certificates: [rolloverCertificates[2]],
+            problems: [blocking('no_usable_signing_certificates')],
+          }),
+        ],
+        [
+          'a fetch failure',
+          {
+            success: false,
+            metadata_url: IDP_B_METADATA_URL,
+            message: 'Connection refused',
+            details: { error_code: 'connection_failed' },
+          } satisfies FetchIdpMetadataResponse,
+        ],
+      ])('IdP A, then %s: the trio and its source stay as they were', async (_label, response) => {
+        const { w, sso } = await mountWired();
+        mockSsoService.fetchIdpMetadataForDomain.mockResolvedValueOnce(response);
+
+        await fetchFrom(w, IDP_B_METADATA_URL);
+
+        expect(mockSsoService.fetchIdpMetadataForDomain).toHaveBeenCalledWith('dm_123', {
+          metadata_url: IDP_B_METADATA_URL,
+        });
+        // The outcome is on screen (a disabled Apply or the failure), not lost.
+        expect(
+          w
+            .find('[data-testid="sso-metadata-blocking"], [data-testid="sso-metadata-error"]')
+            .exists()
+        ).toBe(true);
+        expect(w.find('[data-testid="sso-metadata-applied"]').exists()).toBe(false);
+        expect(shownValues(w)).toEqual(IDP_A_SHOWN);
+        expect(sso.hasUnsavedChanges.value).toBe(false);
+      });
+
+      it('IdP A, then IdP B with two certificates: choosing changes nothing, Apply fills trio and source together', async () => {
+        const { w, sso } = await mountWired();
+        mockSsoService.fetchIdpMetadataForDomain.mockResolvedValueOnce(
+          metadataB({ signing_certificates: rolloverCertificates.slice(0, 2) })
+        );
+        await fetchFrom(w, IDP_B_METADATA_URL);
+
+        await w.findAll('input[name="sso-metadata-certificate"]')[1].setValue(true);
+        await flushPromises();
+        expect(shownValues(w)).toEqual(IDP_A_SHOWN);
+        expect(sso.hasUnsavedChanges.value).toBe(false);
+
+        await w.get('[data-testid="sso-metadata-apply"]').trigger('click');
+        await flushPromises();
+
+        expect(shownValues(w)).toEqual({
+          idp_sso_service_url: 'https://idp-b.example.com/sso/redirect',
+          idp_entity_id: 'https://idp-b.example.com/entity',
+          idp_cert: CERT_B2,
+          source: IDP_B_METADATA_URL,
+        });
+        expect(sso.hasUnsavedChanges.value).toBe(true);
+        expect(w.find('[data-testid="sso-metadata-applied"]').exists()).toBe(true);
+        // Applying is not saving.
+        expect(mockSsoService.saveConfigForDomain).not.toHaveBeenCalled();
+      });
+
+      it('a changed fetch input drops the preview before it can be applied', async () => {
+        const { w } = await mountWired();
+        mockSsoService.fetchIdpMetadataForDomain.mockResolvedValueOnce(metadataB());
+        await fetchFrom(w, IDP_B_METADATA_URL);
+        expect(w.find('[data-testid="sso-metadata-preview"]').exists()).toBe(true);
+
+        await w.get('#domain-sso-idp-metadata-url').setValue('https://idp-c.example.com/metadata');
+
+        expect(w.find('[data-testid="sso-metadata-preview"]').exists()).toBe(false);
+        expect(w.find('[data-testid="sso-metadata-apply"]').exists()).toBe(false);
+        expect(shownValues(w)).toEqual(IDP_A_SHOWN);
+      });
+
+      it('a late response for an earlier URL cannot replace the preview of the current one', async () => {
+        const { w } = await mountWired();
+        let answerB: (value: FetchIdpMetadataResponse) => void = () => {};
+        mockSsoService.fetchIdpMetadataForDomain
+          .mockReturnValueOnce(
+            new Promise<FetchIdpMetadataResponse>((resolve) => {
+              answerB = resolve;
+            })
+          )
+          .mockResolvedValueOnce(
+            metadataB({
+              metadata_url: 'https://idp-c.example.com/metadata',
+              idp_entity_id: 'https://idp-c.example.com/entity',
+            })
+          );
+
+        await fetchFrom(w, IDP_B_METADATA_URL);
+        await fetchFrom(w, 'https://idp-c.example.com/metadata');
+        answerB(metadataB());
+        await flushPromises();
+
+        expect(w.get('[data-testid="sso-metadata-entity-id"]').text()).toBe(
+          'https://idp-c.example.com/entity'
+        );
+        await w.get('[data-testid="sso-metadata-apply"]').trigger('click');
+        await flushPromises();
+        expect(shownValues(w)).toMatchObject({
+          idp_entity_id: 'https://idp-c.example.com/entity',
+          source: 'https://idp-c.example.com/metadata',
+        });
       });
     });
   });
