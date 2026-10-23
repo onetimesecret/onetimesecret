@@ -176,4 +176,26 @@ describe('admin bundle — built-artifact isolation (CONTRACT 6)', () => {
       expect(offenders).toEqual([]);
     }
   );
+
+  // The other direction of the invariant (src/admin.ts: "the customer views
+  // would leak back into this entry's chunks (and vice versa)"): the reason the
+  // admin entry exists is that admin code stops shipping to customers.
+  it.runIf(adminEntry !== null && manifest !== null && 'main.ts' in (manifest ?? {}))(
+    'no chunk the customer entry loads contains admin app source',
+    () => {
+      const files = reachableChunks(manifest as Record<string, ManifestChunk>, 'main.ts');
+      const offenders: string[] = [];
+      for (const file of files) {
+        const mapPath = join(dist, `${file}.map`);
+        if (!existsSync(mapPath)) continue; // helper or re-export stub, checked above
+        const map = JSON.parse(readFileSync(mapPath, 'utf8')) as { sources?: string[] };
+        offenders.push(
+          ...(map.sources ?? [])
+            .filter((s) => /src\/apps\/admin\//.test(s))
+            .map((s) => `${file}: ${s}`)
+        );
+      }
+      expect(offenders).toEqual([]);
+    }
+  );
 });

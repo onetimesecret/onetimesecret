@@ -16,5 +16,7 @@ Changed
   instead of on every failure. A chunk that keeps failing now fails its
   navigation and is logged rather than reloading the tab in a loop. While a
   revealed secret, or the one-time generated value on a receipt, is on
-  screen the page never reloads itself: the value exists only in that tab,
-  and a failed chunk there falls back to showing the source as plain text.
+  screen the page never reloads itself, whatever the cause: the value exists
+  only in that tab. A failed chunk there falls back to showing the source as
+  plain text, and an ended or replaced session shows the stale-session
+  notice with its reload button instead of reloading.

@@ -3,11 +3,13 @@
 // A page that shows a value the server will not serve again registers here
 // while the value is on screen: a revealed secret (the reveal request destroys
 // it, apps/api/v2/logic/secrets/reveal_secret.rb) or the one-time display of a
-// generated value on the receipt page (show_receipt.rb claims that display).
+// generated value on the receipt page (consumed by claim_secret_value_display!
+// in show_receipt.rb).
 // Reloading such a page shows "viewed or expired", and the copy in the tab was
-// the only one. src/utils/preloadError.ts consults this before reloading on a
-// failed chunk and leaves the import to fail instead; the user can still
-// reload by hand.
+// the only one. attemptForcedPageLoad (src/utils/forcedPageLoad.ts) refuses
+// every automatic reload while a mark is active: a failed chunk leaves its
+// import to fail (src/utils/preloadError.ts), and an ended or replaced session
+// stays in the stale-session notice. The user can still reload by hand.
 
 let active = 0;
 

@@ -13,11 +13,11 @@
 // forced page load bound of ADR-046 (src/utils/forcedPageLoad.ts): one forced
 // page load per tab per minute, whatever its cause.
 //
-// A reload is also refused while the page shows content a reload would
-// destroy (src/utils/unrecoverableContent.ts): a revealed secret exists only
-// in the tab once the reveal request has run, and a reload of that page shows
-// "viewed or expired". There the import is left to fail, and the view's own
-// fallback (MarkdownRenderer shows the source as plain text) is the final
+// attemptForcedPageLoad also refuses while the page shows content a reload
+// would destroy (src/utils/unrecoverableContent.ts): a revealed secret exists
+// only in the tab once the reveal request has run, and a reload of that page
+// shows "viewed or expired". There the import is left to fail, and the view's
+// own fallback (MarkdownRenderer shows the source as plain text) is the final
 // state.
 //
 // Vite's preload helper rethrows the error unless the event was
@@ -31,12 +31,6 @@ import {
   type ForcedPageLoadDeps,
   type ForcedPageLoadResult,
 } from '@/utils/forcedPageLoad';
-import { hasUnrecoverableContent } from '@/utils/unrecoverableContent';
-
-export type PreloadErrorOutcome =
-  | ForcedPageLoadResult
-  /** The page shows unrecoverable content: no reload, the import is left to fail. */
-  | 'refused';
 
 /**
  * Handles one `vite:preloadError` event: reloads the page when nothing on it
@@ -46,27 +40,21 @@ export type PreloadErrorOutcome =
 export function handlePreloadError(
   event: Event,
   deps: ForcedPageLoadDeps = {}
-): PreloadErrorOutcome {
-  if (hasUnrecoverableContent()) {
-    loggingService.error(
-      new Error(
-        '[preload] a chunk failed to load while the page shows content a reload ' +
-          `would destroy; the import is left to fail: ${describeCause(event)}`
-      )
-    );
-    return 'refused';
-  }
-
+): ForcedPageLoadResult {
   const result = attemptForcedPageLoad(deps);
   if (result === 'reloading') {
     event.preventDefault();
     return result;
   }
 
+  const why =
+    result === 'refused'
+      ? 'the page shows content a reload would destroy'
+      : 'the forced page load was refused (one per tab per minute, ADR-046)';
   loggingService.error(
     new Error(
-      '[preload] a chunk failed to load and the forced page load was refused ' +
-        `(one per tab per minute, ADR-046); the import is left to fail: ${describeCause(event)}`
+      `[preload] a chunk failed to load and ${why}; the import is left to fail: ` +
+        describeCause(event)
     )
   );
   return result;
