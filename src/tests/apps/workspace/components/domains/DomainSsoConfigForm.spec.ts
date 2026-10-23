@@ -3920,7 +3920,9 @@ describe('DomainSsoConfigForm', () => {
         ]);
       });
 
-      it('names an unreadable source in the alert and explains it beside the input', async () => {
+      // The save clears an unreadable source rather than refusing, so it is
+      // not one of the values the re-entry alert says must be entered again.
+      it('explains an unreadable source beside the input, not in the re-entry alert', async () => {
         wrapper = await mountSamlA({
           formState: { ...samlFormA, idp_metadata_url: '' },
           ssoConfig: {
@@ -3930,11 +3932,42 @@ describe('DomainSsoConfigForm', () => {
           },
         });
 
-        expect(wrapper.find('[data-testid="sso-unreadable-fields-alert"]').exists()).toBe(true);
+        expect(wrapper.find('[data-testid="sso-unreadable-fields-alert"]').exists()).toBe(false);
         expect(wrapper.get('[data-testid="sso-metadata-source-unreadable"]').text()).toBe(
           'web.organizations.sso.metadata_source_unreadable'
         );
         expect(wrapper.find('[data-testid="sso-metadata-source-url"]').exists()).toBe(false);
+      });
+
+      it('names only the values that must be entered again when the source is unreadable too', async () => {
+        // The pass-through test i18n drops interpolation; the real bundle
+        // shows which field names fill {fields}.
+        const realI18n = createRealI18n({
+          en: JSON.parse(
+            readFileSync(resolve(process.cwd(), 'generated/locales/en.json'), 'utf-8')
+          ),
+        });
+        wrapper = mount(DomainSsoConfigForm, {
+          props: {
+            ...defaultMountOptions,
+            formState: { ...samlFormA, idp_cert: '', idp_metadata_url: '' },
+            ssoConfig: {
+              ...samlRecordA,
+              idp_cert: null,
+              idp_metadata_url: null,
+              unreadable_fields: ['idp_cert', 'idp_metadata_url'],
+            },
+            isConfigured: true,
+            metadataFetchUrl: IDP_B_METADATA_URL,
+          },
+          global: { plugins: [realI18n, pinia], stubs: { Teleport: true } },
+        });
+        await flushPromises();
+
+        const alert = wrapper.get('[data-testid="sso-unreadable-fields-alert"]');
+        expect(alert.text()).toContain('IdP signing certificate');
+        expect(alert.text()).not.toContain('IdP metadata URL');
+        expect(wrapper.find('[data-testid="sso-metadata-source-unreadable"]').exists()).toBe(true);
       });
     });
 

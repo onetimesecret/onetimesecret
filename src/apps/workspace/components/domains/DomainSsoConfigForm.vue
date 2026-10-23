@@ -180,8 +180,15 @@ const UNREADABLE_FIELD_LABELS: Record<string, string> = {
   idp_sso_service_url: 'web.organizations.sso.idp_sso_service_url',
   idp_entity_id: 'web.organizations.sso.idp_entity_id',
   idp_cert: 'web.organizations.sso.idp_cert',
-  idp_metadata_url: 'web.organizations.sso.metadata_url',
 };
+
+/**
+ * Unreadable fields the save does NOT require again: the optional
+ * idp_metadata_url is seeded blank and cleared by the next save, so it stays
+ * out of the "must be entered again" alert and the metadata import explains
+ * it beside its own input (metadata_source_unreadable).
+ */
+const UNREADABLE_OPTIONAL_FIELDS = ['idp_metadata_url'];
 
 /**
  * Token endpoint client authentication (#4764, oidc only). '' is the
@@ -328,8 +335,13 @@ const unreadableFields = computed(() => props.ssoConfig?.unreadable_fields ?? []
 
 const isUnreadable = (field: string) => unreadableFields.value.includes(field);
 
+/** The unreadable fields the alert names: those the save needs entered again. */
+const unreadableRequiredFields = computed(() =>
+  unreadableFields.value.filter((field) => !UNREADABLE_OPTIONAL_FIELDS.includes(field))
+);
+
 const unreadableFieldNames = computed(() =>
-  unreadableFields.value
+  unreadableRequiredFields.value
     .map((field) => t(UNREADABLE_FIELD_LABELS[field] ?? field))
     .join(', ')
 );
@@ -1042,7 +1054,7 @@ watch(newDomain, () => {
            error state, not "unset" — the inputs below are blank, marked
            invalid, and the save stays disabled until each is re-entered. -->
       <div
-        v-if="unreadableFields.length > 0"
+        v-if="unreadableRequiredFields.length > 0"
         data-testid="sso-unreadable-fields-alert"
         role="alert"
         class="flex items-start gap-2 rounded-md bg-red-50 px-3 py-2 dark:bg-red-900/20">
