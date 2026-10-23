@@ -98,6 +98,11 @@
 
     try {
       await updateLanguage(newLocale);
+      // The UI stays in the old language until the new one is active.
+      // updateLanguage reports its own failures (useAsyncHandler) and resolves
+      // either way, so announce only a locale that actually became active: a
+      // failed load or a newer selection leaves currentLocale elsewhere.
+      if (currentLocale.value !== newLocale) return;
       emit('localeChanged', newLocale);
       announceLanguageChange(newLocale);
     } catch (err) {

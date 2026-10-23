@@ -3,7 +3,12 @@
 import { ApplicationError } from '@/schemas';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { mockCustomer } from '../fixtures/bootstrap.fixture';
-import { SESSION_STORAGE_KEY, useLanguageStore } from '@/shared/stores/languageStore';
+import {
+  SESSION_STORAGE_KEY,
+  UnsupportedLocaleError,
+  useLanguageStore,
+} from '@/shared/stores/languageStore';
+import { globalComposer } from '@/i18n';
 import type { AxiosInstance } from 'axios';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -45,21 +50,26 @@ describe('Language Store', () => {
     bootstrapStore.$reset();
   });
 
+  // init() records options and returns the preferred locale. It activates
+  // nothing: currentLocale stays null until the router's first activation,
+  // and getCurrentLocale reports the preferred locale meanwhile.
   describe('Initialization', () => {
     it('initializes correctly', () => {
       const store = useLanguageStore();
 
-      store.init();
-      expect(store.currentLocale).toBe('en'); // Should be 'en' after init, not null
+      expect(store.init()).toBe('en');
+      expect(store.currentLocale).toBeNull();
       expect(store.getCurrentLocale).toBe('en');
     });
 
     it('initializes with deviceLocale', () => {
       const store = useLanguageStore();
-      store.init({
-        deviceLocale: 'en-US',
-      });
-      expect(store.currentLocale).toBe('en');
+      expect(
+        store.init({
+          deviceLocale: 'en-US',
+        })
+      ).toBe('en');
+      expect(store.currentLocale).toBeNull();
       expect(store.getCurrentLocale).toBe('en');
     });
 
@@ -73,10 +83,13 @@ describe('Language Store', () => {
       vi.spyOn(sessionStorage, 'getItem').mockReturnValue(null);
 
       const store = useLanguageStore();
-      store.init({
-        deviceLocale: 'es-ES',
-      });
-      expect(store.currentLocale).toBe('es');
+      expect(
+        store.init({
+          deviceLocale: 'es-ES',
+        })
+      ).toBe('es');
+      expect(store.getCurrentLocale).toBe('es');
+      expect(store.currentLocale).toBeNull();
     });
 
     it('initializes with deviceLocale (de)', () => {
@@ -89,10 +102,13 @@ describe('Language Store', () => {
       vi.spyOn(sessionStorage, 'getItem').mockReturnValue(null);
 
       const store = useLanguageStore();
-      store.init({
-        deviceLocale: 'de',
-      });
-      expect(store.currentLocale).toBe('de');
+      expect(
+        store.init({
+          deviceLocale: 'de',
+        })
+      ).toBe('de');
+      expect(store.getCurrentLocale).toBe('de');
+      expect(store.currentLocale).toBeNull();
     });
 
     it('initializes with stored locale', () => {
@@ -101,11 +117,27 @@ describe('Language Store', () => {
         supported_locales: ['en', 'nl', 'es'],
       });
 
-      const sessionGetItemSpy = vi.spyOn(sessionStorage, 'getItem').mockReturnValueOnce('nl');
+      const sessionGetItemSpy = vi.spyOn(sessionStorage, 'getItem').mockReturnValue('nl');
       const store = useLanguageStore();
-      store.init();
-      expect(store.currentLocale).toBe('nl');
+      expect(store.init()).toBe('nl');
+      expect(store.getCurrentLocale).toBe('nl');
+      expect(store.currentLocale).toBeNull();
       expect(sessionGetItemSpy).toBeCalled();
+    });
+
+    // N1: LanguageToggle calls init() again on mount. On the cust branch
+    // that used to re-run selection and overwrite the active locale.
+    it('is idempotent: a later init() changes nothing and activates nothing', async () => {
+      bootstrapStore.update({ cust: { ...mockCustomer, locale: 'nl' } });
+      const store = useLanguageStore();
+      expect(store.init({ deviceLocale: 'es' })).toBe('nl');
+      await store.setCurrentLocale('es');
+
+      expect(store.init({ deviceLocale: 'en', storageKey: 'other.key' })).toBe('nl');
+
+      expect(store.currentLocale).toBe('es');
+      expect(store.deviceLocale).toBe('es');
+      expect(store.getStorageKey).toBe(SESSION_STORAGE_KEY);
     });
   });
 
@@ -126,27 +158,59 @@ describe('Language Store', () => {
       if (store.$dispose) store.$dispose();
     });
 
-    it('should set current locale correctly', () => {
+    it('should set current locale correctly', async () => {
       // Ensure supported locales is set correctly
       store.supportedLocales = ['en', 'nl'];
 
       // First verify that setting 'nl' works
-      store.setCurrentLocale('nl');
+      await expect(store.setCurrentLocale('nl')).resolves.toBe('nl');
       expect(store.currentLocale).toBe('nl');
+      expect(globalComposer.locale.value).toBe('nl');
       expect(sessionStorage.setItem).toHaveBeenCalledWith(SESSION_STORAGE_KEY, 'nl');
 
       // Test unsupported locale - should not change from 'nl'
-      const consoleSpy = vi.spyOn(console, 'warn');
-      store.setCurrentLocale('invalid');
+      await expect(store.setCurrentLocale('invalid')).rejects.toBeInstanceOf(
+        UnsupportedLocaleError
+      );
       expect(store.currentLocale).toBe('nl'); // Should not change from 'nl'
-      expect(consoleSpy).toHaveBeenCalled();
+      expect(sessionStorage.setItem).toHaveBeenCalledTimes(1);
     });
 
-    it('should determine locale correctly', () => {
+    // A supported locale whose messages fail to load (here: no generated
+    // file) leaves the active locale and the stored selection alone.
+    it('keeps the active locale and storage when the messages fail to load', async () => {
+      store.supportedLocales = ['en', 'nl', 'zh_Hant_TW'];
+      await store.setCurrentLocale('nl');
+
+      await expect(store.setCurrentLocale('zh_Hant_TW')).rejects.toThrow(
+        'No messages exist for locale "zh_Hant_TW"'
+      );
+
+      expect(store.currentLocale).toBe('nl');
+      expect(globalComposer.locale.value).toBe('nl');
+      expect(sessionStorage.setItem).toHaveBeenCalledTimes(1);
+    });
+
+    it('stores only the selection that wins when two overlap', async () => {
+      store.supportedLocales = ['en', 'nl', 'es'];
+
+      const older = store.setCurrentLocale('es');
+      const newer = store.setCurrentLocale('nl');
+      const [olderResult, newerResult] = await Promise.all([older, newer]);
+
+      // The superseded call reports whatever is active when it settles (en or
+      // nl, depending on which load finishes first), never its own locale.
+      expect(olderResult).not.toBe('es');
+      expect(newerResult).toBe('nl');
+      expect(store.currentLocale).toBe('nl');
+      expect(vi.mocked(sessionStorage.setItem).mock.calls).toEqual([[SESSION_STORAGE_KEY, 'nl']]);
+    });
+
+    it('should determine locale correctly', async () => {
       store.supportedLocales = ['en', 'nl'];
 
       // Set current locale to 'en' first so we have a baseline
-      store.setCurrentLocale('en');
+      await store.setCurrentLocale('en');
 
       expect(store.determineLocale('nl-NL')).toBe('nl');
       expect(store.determineLocale('invalid')).toBe('en'); // Should return current locale (en)
@@ -156,8 +220,42 @@ describe('Language Store', () => {
     it('should handle updateLanguage correctly', async () => {
       axiosMock?.onPost('/api/account/update-locale').reply(200, {});
 
-      await store.updateLanguage('nl');
+      await expect(store.updateLanguage('nl')).resolves.toBe('nl');
       expect(axiosMock?.history.post[0].data).toBe(JSON.stringify({ locale: 'nl' }));
+      expect(store.currentLocale).toBe('nl');
+    });
+
+    // The preference is saved only once the new language is on screen. A
+    // switch a newer one superseded, or one whose messages failed, sends
+    // nothing: the server would otherwise hold a language the visitor does
+    // not see.
+    it('saves only the winning choice when two switches overlap', async () => {
+      store.supportedLocales = ['en', 'nl', 'ru'];
+      axiosMock?.onPost('/api/account/update-locale').reply(200, {});
+
+      const older = store.updateLanguage('ru');
+      const newer = store.updateLanguage('nl');
+      const [olderResult, newerResult] = await Promise.all([older, newer]);
+
+      expect(olderResult).not.toBe('ru');
+      expect(newerResult).toBe('nl');
+      expect(store.currentLocale).toBe('nl');
+      expect(axiosMock?.history.post.map((request) => request.data)).toEqual([
+        JSON.stringify({ locale: 'nl' }),
+      ]);
+    });
+
+    it('saves nothing when the messages fail to load', async () => {
+      store.supportedLocales = ['en', 'nl', 'zh_Hant_TW'];
+      bootstrapStore.update({ cust: { ...mockCustomer, locale: 'en' } });
+      axiosMock?.onPost('/api/account/update-locale').reply(200, {});
+
+      await expect(store.updateLanguage('zh_Hant_TW')).rejects.toThrow(
+        'No messages exist for locale "zh_Hant_TW"'
+      );
+
+      expect(axiosMock?.history.post).toHaveLength(0);
+      expect(bootstrapStore.cust?.locale).toBe('en');
     });
 
     // The auth route guard re-applies bootstrapStore.cust.locale on every
@@ -281,40 +379,40 @@ describe('Language Store', () => {
       store.supportedLocales = ['en', 'it_IT', 'fr_FR', 'fr_CA', 'de', 'de_AT'];
     });
 
-    it('should handle exact match with underscores (it_IT)', () => {
-      store.setCurrentLocale('it_IT');
+    it('should handle exact match with underscores (it_IT)', async () => {
+      await store.setCurrentLocale('it_IT');
       expect(store.currentLocale).toBe('it_IT');
     });
 
-    it('should handle case-insensitive exact match (IT_IT -> it_IT)', () => {
-      store.setCurrentLocale('IT_IT');
+    it('should handle case-insensitive exact match (IT_IT -> it_IT)', async () => {
+      await store.setCurrentLocale('IT_IT');
       expect(store.currentLocale).toBe('it_IT');
     });
 
-    it('should normalize hyphen to underscore (it-IT -> it_IT)', () => {
-      store.setCurrentLocale('it-IT');
+    it('should normalize hyphen to underscore (it-IT -> it_IT)', async () => {
+      await store.setCurrentLocale('it-IT');
       expect(store.currentLocale).toBe('it_IT');
     });
 
-    it('should handle simple locale (en)', () => {
-      store.setCurrentLocale('en');
+    it('should handle simple locale (en)', async () => {
+      await store.setCurrentLocale('en');
       expect(store.currentLocale).toBe('en');
     });
 
-    it('should handle exact match with different case (fr-ca -> fr_CA)', () => {
-      store.setCurrentLocale('fr-ca');
+    it('should handle exact match with different case (fr-ca -> fr_CA)', async () => {
+      await store.setCurrentLocale('fr-ca');
       expect(store.currentLocale).toBe('fr_CA');
     });
 
-    it('should fallback to primary language match (de-CH -> de)', () => {
+    it('should fallback to primary language match (de-CH -> de)', async () => {
       // de-CH not in list, but 'de' is, so should match to 'de'
-      store.setCurrentLocale('de-CH');
+      await store.setCurrentLocale('de-CH');
       expect(store.currentLocale).toBe('de');
     });
 
-    it('should prefer exact match over primary match when both exist (fr_CA)', () => {
+    it('should prefer exact match over primary match when both exist (fr_CA)', async () => {
       // Both fr_CA and fr_FR exist, fr_CA should match exactly
-      store.setCurrentLocale('fr_CA');
+      await store.setCurrentLocale('fr_CA');
       expect(store.currentLocale).toBe('fr_CA');
     });
 
@@ -336,25 +434,34 @@ describe('Language Store', () => {
     it('should reject unsupported locale', async () => {
       // 'ja' not in supportedLocales
       await expect(store.updateLanguage('ja')).rejects.toThrow('Unsupported locale: ja');
+      await expect(store.updateLanguage('ja')).rejects.toBeInstanceOf(UnsupportedLocaleError);
+      expect(axiosMock?.history.post).toHaveLength(0);
     });
 
     // #4284: tags longer than xx-XX are valid BCP 47 and must fall back to
     // the primary language instead of failing schema validation.
+    // Matching only: no generated file exists for zh_Hant_TW, so the
+    // matched locale is checked with resolveSupportedLocale, which loads
+    // nothing.
     it('should exact-match multi-hyphen tags against supported locales (zh-Hant-TW -> zh_Hant_TW)', () => {
       // All hyphens must normalize for comparison, not just the first one.
       store.supportedLocales = ['en', 'zh_Hant_TW'];
-      store.setCurrentLocale('zh-Hant-TW');
-      expect(store.currentLocale).toBe('zh_Hant_TW');
+      expect(store.resolveSupportedLocale('zh-Hant-TW')).toBe('zh_Hant_TW');
     });
 
-    it('should fall back to primary language for script subtags (it-Latn-IT -> it_IT)', () => {
-      store.setCurrentLocale('it-Latn-IT');
+    it('should fall back to primary language for script subtags (it-Latn-IT -> it_IT)', async () => {
+      await store.setCurrentLocale('it-Latn-IT');
       expect(store.currentLocale).toBe('it_IT');
     });
 
-    it('should fall back to primary language for variant subtags (en-US-POSIX -> en)', () => {
-      store.setCurrentLocale('en-US-POSIX');
+    it('should fall back to primary language for variant subtags (en-US-POSIX -> en)', async () => {
+      await store.setCurrentLocale('en-US-POSIX');
       expect(store.currentLocale).toBe('en');
+    });
+
+    it('resolves no locale for one that matches nothing', () => {
+      expect(store.resolveSupportedLocale('ja')).toBeNull();
+      expect(store.resolveSupportedLocale('xx-YY')).toBeNull();
     });
 
     it('should initialize with default locale when deviceLocale is garbage', () => {
@@ -380,30 +487,40 @@ describe('Language Store', () => {
       store.init();
     });
 
-    it('should return array of unique languages', () => {
+    it('should return array of unique languages', async () => {
       vi.spyOn(navigator, 'language', 'get').mockReturnValue('uk-UA');
-      store.setCurrentLocale('en');
+      await store.setCurrentLocale('en');
       expect(store.acceptLanguages).toEqual(['en', 'uk-UA']); // Should include navigator.language
 
-      store.setCurrentLocale('nl');
+      await store.setCurrentLocale('nl');
       expect(store.acceptLanguages).toEqual(['nl', 'uk-UA']);
     });
 
-    it('should handle matching browser and selected languages', () => {
+    // Requests made during the initial navigation, before any activation,
+    // already ask for the locale about to be activated.
+    it('leads with the preferred locale before the first activation', () => {
+      vi.spyOn(navigator, 'language', 'get').mockReturnValue('uk-UA');
+      vi.spyOn(sessionStorage, 'getItem').mockReturnValue('es');
+
+      expect(store.currentLocale).toBeNull();
+      expect(store.acceptLanguageHeader).toBe('es,uk-UA');
+    });
+
+    it('should handle matching browser and selected languages', async () => {
       vi.spyOn(navigator, 'language', 'get').mockReturnValue('nl');
-      store.setCurrentLocale('nl');
+      await store.setCurrentLocale('nl');
       expect(store.acceptLanguages).toEqual(['nl']);
     });
 
-    it('should format header string correctly', () => {
+    it('should format header string correctly', async () => {
       vi.spyOn(navigator, 'language', 'get').mockReturnValue('uk-UA');
-      store.setCurrentLocale('nl');
+      await store.setCurrentLocale('nl');
       expect(store.acceptLanguageHeader).toBe('nl,uk-UA');
     });
 
-    it('should maintain selected language as primary', () => {
+    it('should maintain selected language as primary', async () => {
       vi.spyOn(navigator, 'language', 'get').mockReturnValue('de-DE');
-      store.setCurrentLocale('es');
+      await store.setCurrentLocale('es');
       const languages = store.acceptLanguages;
       expect(languages[0]).toBe('es');
       expect(languages).toContain('de-DE');
