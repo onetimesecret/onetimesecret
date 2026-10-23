@@ -66,6 +66,6 @@ module Onetime
       end
     end
 
-    register 'org entitlement grant', OrgEntitlementGrantCommand
+    register 'organizations entitlement grant', OrgEntitlementGrantCommand
   end
 end

@@ -39,7 +39,7 @@ module Onetime
       end
 
       def verbose?
-        ARGV.any? { |arg| ['-v', '--verbose'].include?(arg) }
+        ARGV.intersect?(['-v', '--verbose'])
       end
 
       def debug?
@@ -65,7 +65,7 @@ module Onetime
       end
 
       def verbose?
-        ARGV.any? { |arg| ['-v', '--verbose'].include?(arg) }
+        ARGV.intersect?(['-v', '--verbose'])
       end
 
       def debug?
@@ -104,6 +104,7 @@ require_relative 'cli/customers/doctor_command'
 require_relative 'cli/customers/diagnose_command'
 require_relative 'cli/customers/change_email_command'
 require_relative 'cli/customers/normalize_emails_command'
+require_relative 'cli/customers/set_default_org_command'
 require_relative 'cli/customers_command'
 require_relative 'cli/memberships/doctor_command'
 require_relative 'cli/memberships/shared'
@@ -143,7 +144,9 @@ require_relative 'cli/org/entitlement_grant_command'
 require_relative 'cli/org/entitlement_revoke_command'
 require_relative 'cli/org/entitlement_clear_command'
 require_relative 'cli/org/entitlement_show_command'
-require_relative 'cli/org_command'
+require_relative 'cli/org/list_command'
+require_relative 'cli/org/show_command'
+require_relative 'cli/organizations_command'
 require_relative 'cli/audit_command'
 require_relative 'cli/apitoken_command'
 require_relative 'cli/housekeeping_command'

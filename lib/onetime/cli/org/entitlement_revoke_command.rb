@@ -64,6 +64,6 @@ module Onetime
       end
     end
 
-    register 'org entitlement revoke', OrgEntitlementRevokeCommand
+    register 'organizations entitlement revoke', OrgEntitlementRevokeCommand
   end
 end

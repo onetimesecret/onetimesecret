@@ -2,10 +2,9 @@
 #
 # frozen_string_literal: true
 
-# Tests for CLI command: bin/ots organizations --list --plan=PLAN_ID
+# Tests for CLI command: bin/ots organizations list --plan=PLAN_ID
 #
 # Command options:
-#   --list      List all organizations
 #   --plan      Filter by plan ID (e.g., identity_plus_v1, free)
 #
 # Tested here: --plan filter behavior, plan matching logic, empty results,
@@ -29,36 +28,32 @@ OT.info 'Cleaned Redis for fresh test run'
 # -------------------------------------------------------------------
 
 ## Command class exists
-defined?(Onetime::CLI::OrganizationsListCommand)
+defined?(Onetime::CLI::OrgListCommand)
 #=> 'constant'
 
 ## Inherits from base Command
-Onetime::CLI::OrganizationsListCommand.ancestors.include?(Onetime::CLI::Command)
+Onetime::CLI::OrgListCommand.ancestors.include?(Onetime::CLI::Command)
 #=> true
 
 ## Can be instantiated
-@cmd = Onetime::CLI::OrganizationsListCommand.new
+@cmd = Onetime::CLI::OrgListCommand.new
 @cmd.is_a?(Dry::CLI::Command)
 #=> true
 
-## Registered under 'organizations'
-registry         = Onetime::CLI.get(['organizations'])
-registered_class = registry.respond_to?(:command) ? registry.command : registry
-registered_class == Onetime::CLI::OrganizationsListCommand
-#=> true
+## Registered as 'organizations list'
+Onetime::CLI.get(%w[organizations list]).command
+#=> Onetime::CLI::OrgListCommand
 
-## Also registered under 'organization' alias
-registry_alias   = Onetime::CLI.get(['organization'])
-alias_class      = registry_alias.respond_to?(:command) ? registry_alias.command : registry_alias
-alias_class == Onetime::CLI::OrganizationsListCommand
-#=> true
+## Reached through the 'organization' and 'org' aliases too
+[Onetime::CLI.get(%w[organization list]).command, Onetime::CLI.get(%w[org list]).command].uniq
+#=> [Onetime::CLI::OrgListCommand]
 
 # -------------------------------------------------------------------
 # Command has --plan option
 # -------------------------------------------------------------------
 
 ## Command has --plan option defined
-@opts = Onetime::CLI::OrganizationsListCommand.options
+@opts = Onetime::CLI::OrgListCommand.options
 @opts.any? { |opt| opt.name == :plan && opt.options[:type] == :string }
 #=> true
 
@@ -213,11 +208,11 @@ $stdout = @orig
 #=> true
 
 # -------------------------------------------------------------------
-# call: routes to list_organizations when --list provided
+# call: passes the filters through to list_organizations
 # -------------------------------------------------------------------
 
-## call routes to list_organizations with plan filter when both provided
-@call_source = File.read(Onetime::CLI::OrganizationsListCommand.instance_method(:call).source_location.first)
+## call routes to list_organizations with the plan filter
+@call_source = File.read(Onetime::CLI::OrgListCommand.instance_method(:call).source_location.first)
 @call_source.include?('list_organizations(owner: owner, plan: plan')
 #=> true
 
@@ -260,12 +255,12 @@ $stdout = @orig
 #=> 'exactly_twenty_char'
 
 # -------------------------------------------------------------------
-# owner_email helper
+# show: owner rendered by public id with an obscured email
 # -------------------------------------------------------------------
 
-## owner_email returns obscured email when owner exists
-@result = @cmd.send(:owner_email, @org_plus)
-@result.include?('***')
+## owner_label renders the owner's extid and obscured email
+@result = Onetime::CLI::OrgShowCommand.new.send(:owner_label, @org_plus)
+@result.start_with?(@owner_plus.extid) && @result.include?('***')
 #=> true
 
 # -------------------------------------------------------------------

@@ -174,12 +174,12 @@ module Onetime
           if m[:cascade_error]
             puts "Members rematerialized: NONE — the cascade raised (#{m[:cascade_error]})"
             puts '  Every member is still on their previous entitlements.'
-            puts "  Retry the cascade with: bin/ots org reconcile #{result.org_id} --yes"
+            puts "  Retry the cascade with: bin/ots organizations reconcile #{result.org_id} --yes"
           else
             puts "Members rematerialized: #{m[:success]}/#{m[:total]} (failed: #{m[:failed]})"
             if m[:failed].to_i.positive?
               puts "  FAILED (still on their previous entitlements): #{Array(m[:failed_ids]).join(', ')}"
-              puts "  Retry the cascade with: bin/ots org reconcile #{result.org_id} --yes"
+              puts "  Retry the cascade with: bin/ots organizations reconcile #{result.org_id} --yes"
             end
           end
           puts
@@ -231,10 +231,10 @@ module Onetime
       # One line per verb. `show` first: it is the read that makes the writes
       # legible, and an operator reaching this usage list is usually looking.
       USAGE_LINES = [
-        '  bin/ots org entitlement show ORG            # Plan / grants / revokes / drift',
-        '  bin/ots org entitlement grant ORG ENT       # Add an override grant',
-        '  bin/ots org entitlement revoke ORG ENT      # Add an override revoke',
-        '  bin/ots org entitlement clear ORG           # Wipe ALL overrides on the org',
+        '  bin/ots organizations entitlement show ORG            # Plan / grants / revokes / drift',
+        '  bin/ots organizations entitlement grant ORG ENT       # Add an override grant',
+        '  bin/ots organizations entitlement revoke ORG ENT      # Add an override revoke',
+        '  bin/ots organizations entitlement clear ORG           # Wipe ALL overrides on the org',
       ].freeze
 
       def call(**)
@@ -248,6 +248,6 @@ module Onetime
       end
     end
 
-    register 'org entitlement', OrgEntitlementCommand
+    register 'organizations entitlement', OrgEntitlementCommand
   end
 end

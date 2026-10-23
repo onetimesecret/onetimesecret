@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-# The `bin/ots org doctor` integrity checks, as a reusable assertion for
+# The `bin/ots organizations doctor` integrity checks, as a reusable assertion for
 # specs of any operation that produces or repairs an organization
 # (`Onetime::Operations::Org::Create`, `…::TransferOwnership`, the doctor's own
 # repair paths).
@@ -14,8 +14,8 @@
 #
 # The checks are a faithful port of lib/onetime/cli/org/doctor_command.rb
 # (check_owner_exists / check_owner_in_members / check_members_exist /
-# check_membership_role_sync / check_has_members / check_unique_indexes). If
-# that file changes, change this in lockstep — a spec that silently stops
+# check_membership_role_sync / check_has_members / check_unique_indexes /
+# check_display_name). If that file changes, change this in lockstep — a spec that silently stops
 # asserting an invariant is worse than no spec.
 #
 # Check 6 is ported in its NARROW form: "the org holds its own entry in every
@@ -27,7 +27,8 @@
 # The index list is read from the doctor's own UNIQUE_INDEXES rather than
 # copied, so a sixth index added there is asserted here without a second edit.
 module OrgDoctorInvariants
-  # Run all six checks against a live org.
+  # Run all seven per-org checks against a live org. (The doctor's --all
+  # sweeps are class-level and not an op's post-condition.)
   #
   # @param org [Onetime::Organization] a persisted org (NOT a double)
   # @return [Array<String>] one human-readable line per failed check; empty when
@@ -72,6 +73,9 @@ module OrgDoctorInvariants
     # carries an indexed field and does NOT hold its entry cannot complete
     # another full save, so an op that leaves one behind has failed.
     issues.concat(unique_index_issues(org))
+
+    # CHECK 7 (WARNING): display_name is not blank.
+    issues << 'check 7 (display_name): display_name is blank' if org.display_name.to_s.strip.empty?
 
     issues
   end

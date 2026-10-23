@@ -149,6 +149,6 @@ module Onetime
       end
     end
 
-    register 'org create', OrgCreateCommand
+    register 'organizations create', OrgCreateCommand
   end
 end

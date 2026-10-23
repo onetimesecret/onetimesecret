@@ -5,15 +5,18 @@
 # Check and repair organization data integrity issues.
 #
 # Performs the following integrity checks:
-#   1. owner_id points to an existing customer
+#   1. owner_id is set and points to an existing customer
 #   2. owner_id customer is in the members sorted set
 #   3. All members in sorted set have backing customer objects
 #   4. Membership role:'owner' records match org's owner_id
 #   5. Organization has at least one member
 #   6. every class-level unique index has an entry pointing back at this org
+#   7. display_name is not blank
 #
 # --all additionally sweeps each of those indexes for entries no live
-# organization carries (see sweep_unique_indexes).
+# organization carries (see sweep_unique_indexes), and the class-level
+# instances index for entries whose organization record is gone (see
+# sweep_stale_instances).
 #
 # --repair on check 1 promotes a member with role:'owner', writing owner_id as
 # the objid (#3907). When the stored created_by is that same person's legacy
@@ -29,10 +32,13 @@
 # context and never auto-fixed (#4205).
 #
 # Usage:
-#   bin/ots org doctor on8q30gih2uxu2cw77jzh7caq07     # Check single org
-#   bin/ots org doctor --all                            # Scan all orgs
-#   bin/ots org doctor --all --repair                   # Auto-repair issues
-#   bin/ots org doctor on8q... --json                   # JSON output
+#   bin/ots organizations doctor on8q30gih2uxu2cw77jzh7caq07     # Check single org
+#   bin/ots organizations doctor --all                            # Scan all orgs
+#   bin/ots organizations doctor --all --repair                   # Auto-repair issues
+#   bin/ots organizations doctor on8q... --json                   # JSON output
+#
+# ORG may be any form Org::Shared#resolve_org accepts (extid, objid, cus_/sub_
+# Stripe id, custom-domain hostname).
 
 require 'json'
 # Org::Shared must exist before `include Org::Shared` below. Required here (not
@@ -42,7 +48,7 @@ require_relative 'shared'
 
 module Onetime
   module CLI
-    # rubocop:disable Metrics/ClassLength
+    # rubocop:disable-next Metrics/ClassLength
     class OrgDoctorCommand < Command
       # Shared org resolution (extid first, objid fallback) + error_exit +
       # org_label. Doctor used to carry a private load_org; the two org commands
@@ -51,10 +57,10 @@ module Onetime
 
       desc 'Check organization data integrity'
 
-      argument :extid,
+      argument :org,
         type: :string,
         required: false,
-        desc: 'Organization extid or objid (omit for --all scan)'
+        desc: 'Organization extid, objid, cus_/sub_ Stripe id or hostname (omit for --all scan)'
 
       option :all,
         type: :boolean,
@@ -140,15 +146,33 @@ module Onetime
         return 0
       LUA
 
-      def call(extid: nil, all: false, repair: false, json: false, **)
+      # Remove one instances entry ONLY while its object hash is still absent,
+      # atomically. Same reasoning as INDEX_CAD_SCRIPT: the sweep classifies in
+      # one round trip and deletes in another, and a save of that objid in
+      # between writes the hash and the instances entry together (one MULTI),
+      # so a blind ZREM would hide a live org from every instances walk.
+      #
+      # KEYS[1] instances key, KEYS[2] the org's object key, ARGV[1] member.
+      # Returns ZREM's count: 0 when the hash reappeared, the member is gone, or
+      # it is stored in the legacy JSON-quoted form (Familia strips the quotes
+      # on read, so ARGV[1] is the bare id; `migrations dedupe-instances`
+      # normalizes those).
+      INSTANCE_CAD_SCRIPT = <<~LUA
+        if redis.call('EXISTS', KEYS[2]) == 1 then
+          return 0
+        end
+        return redis.call('ZREM', KEYS[1], ARGV[1])
+      LUA
+
+      def call(org: nil, all: false, repair: false, json: false, **)
         boot_application!
 
-        unless extid || all
+        unless org || all
           show_usage
           return
         end
 
-        orgs   = all ? scan_all_orgs : [resolve_org(extid, json: json)]
+        orgs   = all ? scan_all_orgs : [resolve_org(org, json: json)]
         report = { checked: 0, healthy: 0, issues: [], repaired: [] }
 
         # Before any check: which live orgs carry which value in each indexed
@@ -159,17 +183,21 @@ module Onetime
         index_unique_index_claims(orgs)
         @index_claims_complete = all
 
-        orgs.each do |org|
-          next unless org
+        orgs.each do |organization|
+          next unless organization
 
-          check_org(org, report, repair: repair)
+          check_org(organization, report, repair: repair)
         end
 
-        # --all only: the sweep skips values a live org still carries, and the
-        # claim map backing that skip covers exactly the orgs passed in above.
-        # On a single-org run it would name every other org's entry an orphan —
-        # and with --repair, delete them.
-        sweep_unique_indexes(report, repair: repair) if all
+        # --all only: the index sweep skips values a live org still carries,
+        # and the claim map backing that skip covers exactly the orgs passed in
+        # above. On a single-org run it would name every other org's entry an
+        # orphan — and with --repair, delete them. The instances sweep reads
+        # what scan_all_orgs recorded, which only an --all run has.
+        if all
+          sweep_unique_indexes(report, repair: repair)
+          sweep_stale_instances(report, repair: repair)
+        end
 
         output_report(report, json: json, repair: repair)
 
@@ -209,12 +237,13 @@ module Onetime
 
       def show_usage
         puts <<~USAGE
-          Usage: bin/ots org doctor [EXTID] [options]
+          Usage: bin/ots organizations doctor [ORG] [options]
 
           Check organization data integrity and optionally repair issues.
 
           Arguments:
-            EXTID                   Organization extid to check (optional if --all)
+            ORG                     Org extid, objid, cus_/sub_ Stripe id or
+                                    custom-domain hostname (optional if --all)
 
           Options:
             --all                   Scan all organizations
@@ -222,17 +251,18 @@ module Onetime
             --json                  JSON output
 
           Examples:
-            bin/ots org doctor on8q30gih2uxu2cw77jzh7caq07
-            bin/ots org doctor --all
-            bin/ots org doctor --all --repair
+            bin/ots organizations doctor on8q30gih2uxu2cw77jzh7caq07
+            bin/ots organizations doctor --all
+            bin/ots organizations doctor --all --repair
 
           Checks performed:
-            1. owner_id points to existing customer (CRITICAL)
+            1. owner_id is set and points to an existing customer (CRITICAL)
             2. owner_id customer is in members set (HIGH)
             3. All members have backing customer objects (MEDIUM)
             4. Membership role:'owner' matches owner_id (WARNING)
             5. Organization has at least one member (WARNING)
             6. class-level unique-index entries (CRITICAL/HIGH/MEDIUM)
+            7. display_name is not blank (WARNING)
 
           Check 6 covers every class-level unique index on Organization:
           contact_email, stripe_customer_id, stripe_subscription_id,
@@ -240,20 +270,29 @@ module Onetime
           on every full save, so one bad entry in any of them fails the write.
 
           With --all, each of those indexes is also swept for entries no live
-          organization carries (MEDIUM, repairable).
+          organization carries (MEDIUM, repairable), and the instances index
+          for entries whose organization record is gone (LOW, repairable).
 
           Two LIVE organizations carrying the same indexed value is reported,
           never auto-repaired. For a Stripe field: decide which org the Stripe
           customer belongs to, clear the stripe_* fields on the other, then run
-            bin/ots org reconcile ORG
+            bin/ots organizations reconcile ORG
         USAGE
       end
 
+      # Every loadable org in the instances index. An entry whose record does
+      # not load is remembered for #sweep_stale_instances rather than dropped
+      # silently.
       def scan_all_orgs
-        orgs = []
+        orgs                = []
+        @stale_instance_ids = []
         Onetime::Organization.instances.each do |objid|
           org = Onetime::Organization.load(objid)
-          orgs << org if org
+          if org
+            orgs << org
+          else
+            @stale_instance_ids << objid.to_s
+          end
         end
         orgs
       end
@@ -280,6 +319,9 @@ module Onetime
         # CHECK 6: class-level unique-index integrity
         check_unique_indexes(org, issues, report, repair: repair)
 
+        # CHECK 7: display_name present
+        check_display_name(org, issues)
+
         if issues.empty?
           report[:healthy] += 1
         else
@@ -292,11 +334,12 @@ module Onetime
         end
       end
 
+      # A blank owner_id is the same defect as one naming a deleted customer —
+      # nobody owns the org — and takes the same repair (promote the member
+      # whose membership says role:'owner').
       def check_owner_exists(org, issues, report, repair:)
-        return if org.owner_id.to_s.empty?
-
-        owner_customer = Onetime::Customer.load(org.owner_id)
-        return if owner_customer
+        owner_id = org.owner_id.to_s
+        return if !owner_id.empty? && Onetime::Customer.load(owner_id)
 
         # Find potential repair candidate (member with role:'owner')
         candidate = find_owner_candidate(org)
@@ -304,7 +347,7 @@ module Onetime
         issue = {
           check: :owner_exists,
           severity: :critical,
-          message: "owner_id '#{org.owner_id}' points to deleted customer",
+          message: owner_id.empty? ? 'owner_id is not set' : "owner_id '#{owner_id}' points to deleted customer",
           repairable: !candidate.nil?,
         }
 
@@ -350,7 +393,7 @@ module Onetime
         issues << {
           check: :owner_in_members,
           severity: :high,
-          message: "owner '#{org.owner_id}' not in members set",
+          message: "owner #{owner_customer.extid} (#{org.owner_id}) not in members set",
           repairable: true,
         }
 
@@ -406,6 +449,67 @@ module Onetime
           message: 'organization has no members',
           repairable: false,
         }
+      end
+
+      # CHECK 7: an org with a blank display_name has nothing human-readable
+      # where its name is shown. Not auto-repairable: the name is the
+      # customer's to choose.
+      def check_display_name(org, issues)
+        return unless org.display_name.to_s.strip.empty?
+
+        issues << {
+          check: :display_name,
+          severity: :warning,
+          message: 'display_name is blank',
+          repairable: false,
+          repair_action: 'Manual: set a display name on the organization',
+        }
+      end
+
+      # SWEEP (--all): instances entries with no organization record behind
+      # them. Every walk of Organization.instances (doctor, `organizations
+      # list`, the memberships doctor, the landing counts) skips or miscounts
+      # them. scan_all_orgs collected the misses; the repair removes each one
+      # with INSTANCE_CAD_SCRIPT, so a record that reappeared keeps its entry.
+      def sweep_stale_instances(report, repair:)
+        stale = @stale_instance_ids.to_a
+        return if stale.empty?
+
+        report[:issues] << {
+          type: :instances,
+          label: 'organization:instances',
+          issues: [{
+            check: :stale_instances,
+            severity: :low,
+            message: "#{stale.size} instances entr#{stale.size == 1 ? 'y' : 'ies'} with no organization record",
+            stale_ids: stale,
+            repairable: true,
+            repair_action: 'Will remove the entries whose organization record is still absent',
+          }],
+        }
+
+        return unless repair
+
+        removed = stale.count { |objid| release_stale_instance(objid) }
+        return if removed.zero?
+
+        report[:repaired] << {
+          action: :stale_instances_removed,
+          count: removed,
+          skipped: stale.size - removed,
+        }
+      end
+
+      # True iff THIS caller removed the entry.
+      def release_stale_instance(objid)
+        instances = Onetime::Organization.instances
+        removed   = instances.dbclient.eval(
+          INSTANCE_CAD_SCRIPT,
+          keys: [instances.dbkey, Onetime::Organization.dbkey(objid)],
+          argv: [objid],
+        ).to_i == 1
+        OT.info "[org doctor] #{removed ? 'Removed' : 'Left'} stale instances entry #{objid}"
+        removed
       end
 
       # CHECK 6: class-level unique-index integrity (#4205)
@@ -517,8 +621,16 @@ module Onetime
 
         return unless repair
 
-        repair_index_entry(org, index, issue, report,
-          spec: spec, value: value, raw_holder: raw_holder, holder_objid: holder_objid)
+        repair_index_entry(
+          org,
+          index,
+          issue,
+          report,
+          spec: spec,
+          value: value,
+          raw_holder: raw_holder,
+          holder_objid: holder_objid,
+        )
       end
 
       # The repair write. Compare-and-set against the value the classification
@@ -678,7 +790,7 @@ module Onetime
       def duplicate_repair_action(spec)
         if spec[:field].to_s.start_with?('stripe_')
           'Manual: confirm in Stripe which org the customer belongs to, clear the stripe_* ' \
-            'fields on the other, then run `bin/ots org reconcile` on the survivor'
+            'fields on the other, then run `bin/ots organizations reconcile` on the survivor'
         else
           "Manual: decide which org keeps #{spec[:field]}, change it on the other, then save both " \
             '(the index is claimed on the next full save)'
@@ -786,8 +898,12 @@ module Onetime
           if holder.nil?
             orphans << orphan_entry(value, objid, raw_objid, 'organization not found')
           elsif holder.public_send(spec[:field]).to_s != value
-            orphans << orphan_entry(value, objid, raw_objid,
-              "org #{holder.extid} carries #{display_value(spec, holder.public_send(spec[:field])).inspect}")
+            orphans << orphan_entry(
+              value,
+              objid,
+              raw_objid,
+              "org #{holder.extid} carries #{display_value(spec, holder.public_send(spec[:field])).inspect}",
+            )
           end
         end
 
@@ -1042,6 +1158,7 @@ module Onetime
 
           mismatches << {
             member_id: member_id,
+            member_extid: Onetime::Customer.load(member_id)&.extid,
             membership_role: 'owner',
             org_owner_id: org.owner_id,
           }
@@ -1072,7 +1189,7 @@ module Onetime
         puts JSON.pretty_generate(report)
       end
 
-      # rubocop:disable Metrics/PerceivedComplexity
+      # rubocop:disable-next Metrics/PerceivedComplexity
       def output_text(report, repair:)
         puts 'Organization Health Check'
         puts '=' * 40
@@ -1100,6 +1217,12 @@ module Onetime
             when :index_orphans_removed
               puts "  removed #{r[:count]} orphaned #{r[:index]} entr#{r[:count] == 1 ? 'y' : 'ies'}"
               puts "  left #{r[:skipped]} alone (claimed since the scan)" if r[:skipped].to_i.positive?
+            when :stale_instances_removed
+              puts "  removed #{r[:count]} stale instances entr#{r[:count] == 1 ? 'y' : 'ies'}"
+              if r[:skipped].to_i.positive?
+                puts "  left #{r[:skipped]} alone (record reappeared, or the entry is JSON-quoted: " \
+                     'run bin/ots migrations dedupe-instances)'
+              end
             else
               puts "  #{r[:org]}: #{r[:action]}"
             end
@@ -1144,7 +1267,6 @@ module Onetime
           puts 'All issues require manual intervention.'
         end
       end
-      # rubocop:enable Metrics/PerceivedComplexity
 
       # Most groups are one organization. The check-6 index sweep is a
       # class-level group with no org to name, so it labels itself.
@@ -1165,7 +1287,8 @@ module Onetime
 
         if issue[:mismatches]
           issue[:mismatches].first(3).each do |m|
-            puts "    - member #{m[:member_id]} has role:'owner' but owner_id=#{m[:org_owner_id]}"
+            member = m[:member_extid] ? "#{m[:member_extid]} (#{m[:member_id]})" : m[:member_id]
+            puts "    - member #{member} has role:'owner' but owner_id=#{m[:org_owner_id]}"
           end
           print_truncation(issue[:mismatches].size, 3)
         end
@@ -1192,7 +1315,7 @@ module Onetime
       def print_duplicate_detail(issue)
         ([issue[:contender]] + issue[:rivals].to_a).compact.each do |context|
           owner = context[:owner]
-          puts "    - #{context[:extid]} (#{context[:display_name]})#{context[:holds_index] ? ' [holds index entry]' : ''}"
+          puts "    - #{context[:extid]} (#{context[:display_name]})#{' [holds index entry]' if context[:holds_index]}"
           puts "        planid=#{context[:planid].inspect} " \
                "subscription_status=#{context[:subscription_status].inspect} " \
                "stripe_subscription_id=#{context[:stripe_subscription_id].inspect}"
@@ -1214,8 +1337,7 @@ module Onetime
         end
       end
     end
-    # rubocop:enable Metrics/ClassLength
 
-    register 'org doctor', OrgDoctorCommand
+    register 'organizations doctor', OrgDoctorCommand
   end
 end

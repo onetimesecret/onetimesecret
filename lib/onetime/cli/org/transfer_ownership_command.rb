@@ -229,6 +229,6 @@ module Onetime
       end
     end
 
-    register 'org transfer-ownership', OrgTransferOwnershipCommand
+    register 'organizations transfer-ownership', OrgTransferOwnershipCommand
   end
 end

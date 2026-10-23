@@ -124,6 +124,6 @@ module Onetime
       end
     end
 
-    register 'org unarchive', OrgUnarchiveCommand
+    register 'organizations unarchive', OrgUnarchiveCommand
   end
 end

@@ -9,6 +9,8 @@ RSpec.describe 'Domains Command', type: :cli do
     owner = double('Owner', email: 'owner@example.com')
     double('Organization',
       org_id: 'org123',
+      objid: 'org123',
+      extid: 'on123abc',
       display_name: 'Test Org',
       list_domains: ['example.com'],
       add_domain: true,
@@ -561,8 +563,10 @@ RSpec.describe 'Domains Command', type: :cli do
       expect(Onetime::Operations::AdminVerifyDomain).to receive(:new)
         .with(hash_including(persist: false)).and_return(op)
 
-      run_cli_command_quietly('domains', 'verify', 'example.com', '--dry-run')
+      output = run_cli_command_quietly('domains', 'verify', 'example.com', '--dry-run')
       expect(last_exit_code).to eq(0)
+      # The org renders by public id, objid alongside for Redis debugging.
+      expect(output[:stdout]).to include('Org:              on123abc (org123)')
     end
 
     it 'emits JSON for a single domain' do
@@ -771,6 +775,41 @@ RSpec.describe 'Domains Command', type: :cli do
       output = run_cli_command_quietly('domains', 'list', '--limit', '-1')
       expect(output[:stdout]).to include('--limit must be a positive integer')
       expect(last_exit_code).to eq(1)
+    end
+
+    describe 'org filters accept either identifier form' do
+      let(:list_org) { double('Organization', objid: 'org123', extid: 'on123abc') }
+
+      before do
+        stub_list(rows)
+        allow(Onetime::Organization).to receive_messages(find_by_extid: nil, load: nil)
+      end
+
+      it 'filters --org-extid given an objid' do
+        allow(Onetime::Organization).to receive(:load).with('org123').and_return(list_org)
+
+        output = run_cli_command_quietly('domains', 'list', '--org-extid', 'org123')
+        expect(output[:stdout]).to include('1 custom domains')
+        expect(output[:stdout]).to include('example.com')
+      end
+
+      it 'filters --org-id given an extid' do
+        allow(Onetime::Organization).to receive(:find_by_extid).with('on123abc').and_return(list_org)
+
+        output = run_cli_command_quietly('domains', 'list', '--org-id', 'on123abc')
+        expect(output[:stdout]).to include('1 custom domains')
+      end
+
+      it 'keeps an unresolvable --org-id as a raw objid filter' do
+        output = run_cli_command_quietly('domains', 'list', '--org-id', 'org123')
+        expect(output[:stdout]).to include('1 custom domains')
+      end
+
+      it 'exits 1 when --org-extid resolves to nothing' do
+        output = run_cli_command_quietly('domains', 'list', '--org-extid', 'on_missing')
+        expect(output[:stdout]).to include('Organization not found: on_missing')
+        expect(last_exit_code).to eq(1)
+      end
     end
 
     it 'groups duplicate display_domain records (the shadow-record diagnostic)' do

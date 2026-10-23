@@ -167,6 +167,6 @@ module Onetime
       end
     end
 
-    register 'org reconcile', OrgReconcileCommand
+    register 'organizations reconcile', OrgReconcileCommand
   end
 end

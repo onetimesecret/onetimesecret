@@ -285,7 +285,7 @@ module Onetime
         when :last_org
           error_exit(
             "#{result.org_id} is the only organization #{result.owner_id} belongs to; deleting it " \
-            'leaves them with no workspace. Create the replacement org first (bin/ots org create), ' \
+            'leaves them with no workspace. Create the replacement org first (bin/ots organizations create), ' \
             'or purge the account (bin/ots customers purge). There is no override',
             json: false,
           )
@@ -295,6 +295,6 @@ module Onetime
       end
     end
 
-    register 'org delete', OrgDeleteCommand
+    register 'organizations delete', OrgDeleteCommand
   end
 end

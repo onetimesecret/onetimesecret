@@ -178,7 +178,7 @@ module Onetime
         drift[:extra].each   { |e| puts "  + #{e}  (materialized but not expected — orphan)" }
         drift[:missing].each { |e| puts "  - #{e}  (expected but not materialized)" }
         puts
-        puts "Repair with: bin/ots org reconcile #{org_extid} --yes  (re-materializes all memberships; overrides survive)"
+        puts "Repair with: bin/ots organizations reconcile #{org_extid} --yes  (re-materializes all memberships; overrides survive)"
       end
 
       # Membership scope softens the org-level dead-letter warning: the sets

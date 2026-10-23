@@ -8,7 +8,7 @@
 # Usage:
 #   bin/ots memberships                         # Show count and usage
 #   bin/ots memberships doctor --all            # Check all memberships
-#   bin/ots memberships doctor --org EXTID      # Check memberships for one org
+#   bin/ots memberships doctor --org ORG        # Check memberships for one org
 #
 
 module Onetime
@@ -29,6 +29,7 @@ module Onetime
         puts
         puts 'Usage:'
         puts '  bin/ots memberships add ORG CUSTOMER [--role R]  # Add a member (materializes entitlements)'
+        puts '  bin/ots memberships add ORG CUSTOMER --default   # ...and make ORG their default org'
         puts '  bin/ots memberships set-role ORG CUSTOMER ROLE   # Change a member\'s role'
         puts '  bin/ots memberships remove ORG CUSTOMER          # Remove a member'
         puts '  bin/ots memberships entitlement show ORG CUSTOMER       # Baseline / overrides / drift'
@@ -36,11 +37,12 @@ module Onetime
         puts '  bin/ots memberships entitlement revoke ORG CUSTOMER ENT # Add an override revoke'
         puts '  bin/ots memberships entitlement clear ORG CUSTOMER      # Wipe ALL overrides (destructive)'
         puts '  bin/ots memberships doctor --all            # Check all memberships'
-        puts '  bin/ots memberships doctor --org EXTID      # Check memberships for one org'
+        puts '  bin/ots memberships doctor --org ORG        # Check memberships for one org'
         puts '  bin/ots memberships doctor --all --repair   # Auto-repair issues'
         puts '  bin/ots memberships doctor --all --json     # JSON output'
         puts
-        puts 'ORG = organization extid; CUSTOMER = email, extid, or Rodauth account id.'
+        puts 'ORG = org extid, objid, Stripe customer/subscription id (cus_/sub_), or custom-domain hostname.'
+        puts 'CUSTOMER = email, extid, objid, or Rodauth account id.'
         puts 'ROLE = one of: owner, admin, member.'
         puts
         puts 'Integrity checks:'

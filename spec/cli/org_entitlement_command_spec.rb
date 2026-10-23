@@ -96,8 +96,8 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
       output = run_cli_command_quietly('org', 'entitlement')
 
       expect(last_exit_code).to eq(0)
-      expect(output[:stdout]).to include('bin/ots org entitlement grant ORG ENT')
-      expect(output[:stdout]).to include('bin/ots org entitlement show ORG')
+      expect(output[:stdout]).to include('bin/ots organizations entitlement grant ORG ENT')
+      expect(output[:stdout]).to include('bin/ots organizations entitlement show ORG')
     end
   end
 
@@ -199,7 +199,7 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
       expect(last_exit_code).to eq(1)
       expect(output[:stdout]).to include('Members rematerialized: 1/2 (failed: 1)')
       expect(output[:stdout]).to include('mem_stale')
-      expect(output[:stdout]).to include('bin/ots org reconcile on_org_ext --yes')
+      expect(output[:stdout]).to include('bin/ots organizations reconcile on_org_ext --yes')
     end
 
     it 'exits 1 and says nobody was reached when the cascade itself raised' do
@@ -215,7 +215,7 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
       expect(last_exit_code).to eq(1)
       expect(output[:stdout]).to include('the cascade raised (RuntimeError: valkey unreachable)')
       expect(output[:stdout]).to include('Every member is still on their previous entitlements')
-      expect(output[:stdout]).to include('bin/ots org reconcile on_org_ext --yes')
+      expect(output[:stdout]).to include('bin/ots organizations reconcile on_org_ext --yes')
     end
 
     it 'exits 1 on a partial cascade in --json mode too' do
@@ -396,7 +396,7 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
 
       expect(output[:stdout]).to include('+ orphan_ent')
       expect(output[:stdout]).to include('- custom_branding')
-      expect(output[:stdout]).to include('bin/ots org reconcile on_org_ext --yes')
+      expect(output[:stdout]).to include('bin/ots organizations reconcile on_org_ext --yes')
     end
 
     it 'emits the whole report as JSON with --json' do

@@ -2,9 +2,12 @@
 #
 # frozen_string_literal: true
 
-# Tests for email normalization consistency in add_member_command.rb
+# Tests for email normalization consistency between CLI customer lookups and
+# model storage. The CLI resolves CUSTOMER arguments through
+# Onetime::CLI::Customers::Shared#resolve_customer, which normalizes with
+# OT::Utils.normalize_email before the email lookup.
 #
-# Issue: The CLI command was using `email.to_s.strip.downcase` but the model
+# Issue: a CLI command once used `email.to_s.strip.downcase` but the model
 # uses `OT::Utils.normalize_email` (NFC + case fold) for storage. Without
 # matching normalization, lookups for internationalized emails could fail.
 #
@@ -34,7 +37,7 @@ def cli_normalize_email(email)
   email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
 end
 
-# Helper to simulate CLI customer lookup (matching add_member_command.rb:99)
+# Helper to simulate the CLI customer lookup by email
 def find_customer_via_cli(email)
   normalized = cli_normalize_email(email)
   Onetime::Customer.find_by_email(normalized)

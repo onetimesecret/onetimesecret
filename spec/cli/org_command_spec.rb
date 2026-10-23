@@ -2,18 +2,19 @@
 #
 # frozen_string_literal: true
 
-# CLI adapter tests for `bin/ots org …` (#3731).
+# CLI adapter tests for `bin/ots organizations …` (#3731), driven here through
+# the `org` alias on purpose: every example doubles as a check that the alias
+# still reaches the `organizations` subcommands.
 #
-# Covers the landing command's usage list and the `org reconcile` adapter:
+# Covers the landing command's usage list and the `organizations reconcile` adapter:
 # resolution, the --yes / --json refusal, the interactive decline, and the
 # op-status -> exit-code mapping. The mutation itself is the op's job and is
 # covered by spec/unit/onetime/operations/org/reconcile_spec.rb — here the op is
 # stubbed at its constructor so these stay pure adapter tests.
 #
-# NOTE for later org PRs: append `describe` blocks to this file rather than
-# creating a sibling spec, so the whole `org` surface stays in one place.
+# NOTE: new `organizations` verbs append to spec/cli/organizations_command_spec.rb.
 #
-# Run: bundle exec rspec spec/cli/org_command_spec.rb
+# Run: tests/lanes/run unit --only spec/cli/org_command_spec.rb
 
 require_relative 'cli_spec_helper'
 
@@ -66,12 +67,12 @@ RSpec.describe 'Org Command', type: :cli do
       allow(Onetime::Organization).to receive(:instances).and_return(double('Instances', size: 3))
     end
 
-    it 'prints the count and every registered org verb' do
+    it 'prints the count and every registered verb under the canonical name' do
       output = run_cli_command_quietly('org')
 
       expect(output[:stdout]).to include('3 organizations')
-      expect(output[:stdout]).to include('bin/ots org doctor')
-      expect(output[:stdout]).to include('bin/ots org reconcile')
+      expect(output[:stdout]).to include('bin/ots organizations doctor')
+      expect(output[:stdout]).to include('bin/ots organizations reconcile')
     end
   end
 

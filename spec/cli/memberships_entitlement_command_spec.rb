@@ -71,6 +71,9 @@ RSpec.describe 'Memberships Entitlement Command', type: :cli do
   before do
     allow(Onetime::Organization).to receive(:find_by_extid).and_return(nil)
     allow(Onetime::Organization).to receive(:find_by_extid).with('on_org_ext').and_return(organization)
+    # ORG resolves through Org::Shared (extid first, objid fallback), so the
+    # objid branch needs a miss too.
+    allow(Onetime::Organization).to receive(:load).and_return(nil)
     allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(nil)
     allow(Onetime::Customer).to receive(:load_by_extid_or_email).with('ur_member').and_return(member)
     allow(Onetime::Operations::Memberships::EntitlementOverride).to receive(:new).and_return(operation)
@@ -400,7 +403,7 @@ RSpec.describe 'Memberships Entitlement Command', type: :cli do
 
       expect(output[:stdout]).to include('+ orphan_ent')
       expect(output[:stdout]).to include('- custom_branding')
-      expect(output[:stdout]).to include('bin/ots org reconcile on_org_ext --yes')
+      expect(output[:stdout]).to include('bin/ots organizations reconcile on_org_ext --yes')
     end
 
     it 'emits the whole report as JSON with --json' do

@@ -66,6 +66,6 @@ module Onetime
       end
     end
 
-    register 'org entitlement clear', OrgEntitlementClearCommand
+    register 'organizations entitlement clear', OrgEntitlementClearCommand
   end
 end
