@@ -56,7 +56,7 @@ module Onetime
         required: true,
         desc: 'Organization extid or objid'
 
-      write_gate_options 'Restore the organization', aliases: ['--run']
+      write_gate_options 'Restore the organization', aliases: [*APPLY_ALIASES, '--run']
       option :json,
         type: :boolean,
         default: false,

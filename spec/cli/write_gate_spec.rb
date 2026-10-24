@@ -51,15 +51,21 @@ RSpec.describe Onetime::CLI::WriteGate, type: :cli do
     end
 
     it 'leaves -f out for a command that uses it elsewhere' do
-      klass = build_command(force_alias: false)
+      klass = build_command(aliases: described_class::APPLY_ALIASES - ['-f'])
 
       expect(option_named(klass, :apply).aliases).to eq(['-y', '--yes'])
     end
 
-    it 'appends extra aliases for a flag the verb accepted before the gate' do
-      klass = build_command(aliases: ['--run'])
+    it 'extends the aliases for a flag the verb accepted before the gate' do
+      klass = build_command(aliases: [*described_class::APPLY_ALIASES, '--run'])
 
       expect(option_named(klass, :apply).aliases).to eq(['-y', '--yes', '-f', '--run'])
+    end
+
+    it 'declares no alias when the verb passes none' do
+      klass = build_command(aliases: [])
+
+      expect(option_named(klass, :apply).aliases).to eq([])
     end
   end
 

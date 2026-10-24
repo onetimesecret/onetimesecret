@@ -7,9 +7,12 @@
 # A verb that includes this module is a DRY RUN unless --apply is given. There
 # is no confirmation prompt: the bare run is the preview, and --apply is the
 # only way to write. `-y`, `--yes` and `-f` are aliases for --apply so a script
-# written against an earlier prompt-skipping flag still writes. --dry-run only
-# states the default, so passing it with --apply is an error rather than a
-# guess about which flag the operator meant.
+# written against an earlier prompt-skipping flag still writes. The exception
+# is a verb whose old prompt skip never wrote on its own (a bare `--yes` was a
+# preview): it passes `aliases: []` and keeps the old flag as a no-op, so the
+# same invocation still previews. --dry-run only states the default, so passing
+# it with --apply is an error rather than a guess about which flag the operator
+# meant.
 #
 #   class OrgDeleteCommand < Command
 #     include WriteGate
@@ -57,18 +60,17 @@ module Onetime
         # that order, where the call is made.
         #
         # @param verb [String] what --apply does, e.g. 'Delete the organization'
-        # @param force_alias [Boolean] false when the command already uses -f
-        #   for something else (a `--file` short flag, `--force` on a sibling
-        #   action); `-y`/`--yes` are always declared
-        # @param aliases [Array<String>] extra aliases for --apply, for a flag
-        #   the verb accepted before it joined the gate (`--run`)
-        def write_gate_options(verb, force_alias: true, aliases: [])
-          apply_aliases = force_alias ? APPLY_ALIASES : APPLY_ALIASES - ['-f']
-
+        # @param aliases [Array<String>] every alias of --apply. A verb narrows
+        #   APPLY_ALIASES when it uses one of them for something else (`-f` for
+        #   `--file`), extends it for a flag it accepted before the gate
+        #   (`--run`), and passes [] when its old `-y`/`--yes`/`-f` only skipped
+        #   a prompt that --apply also needed: a bare `--yes` was a preview
+        #   there, and an alias would turn it into a write.
+        def write_gate_options(verb, aliases: APPLY_ALIASES)
           option :apply,
             type: :boolean,
             default: false,
-            aliases: apply_aliases + aliases,
+            aliases: aliases,
             desc: "#{verb} (default: dry run, nothing written)"
           option :dry_run,
             type: :boolean,

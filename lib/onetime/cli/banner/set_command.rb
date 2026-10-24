@@ -49,7 +49,7 @@ module Onetime
         desc: 'Banner content (HTML; frontend sanitizes to <a> tags only)'
 
       # `-f` is --file below, so the gate declares -y/--yes only.
-      write_gate_options('Write the banner', force_alias: false)
+      write_gate_options('Write the banner', aliases: APPLY_ALIASES - ['-f'])
       option :file,
         type: :string,
         aliases: ['f'],
