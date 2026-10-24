@@ -17,12 +17,15 @@
 # (the membership read path has no billing short-circuit).
 require_relative 'entitlement_command'
 
+require_relative '../write_gate'
+
 module Onetime
   module CLI
     class MembershipsEntitlementRevokeCommand < Command
       include Customers::Shared
       include Memberships::Shared
       include Memberships::EntitlementSupport
+      include WriteGate
 
       desc 'Revoke an entitlement from an org member (operator override)'
 
@@ -39,15 +42,7 @@ module Onetime
         required: true,
         desc: 'Entitlement name'
 
-      option :apply,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '--yes', '-f'],
-        desc: 'Write the override (default: dry run, project the resulting sets)'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Preview only (the default; contradicts --apply)'
+      write_gate_options 'Write the override'
       option :json,
         type: :boolean,
         default: false,
@@ -56,6 +51,7 @@ module Onetime
       def call(org:, customer:, entitlement:, apply: false, dry_run: false, json: false, **)
         boot_application!
 
+        dry_run      = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
         organization = resolve_org(org, json: json)
         member       = resolve_member(customer, action: 'revoke entitlement from', json: json)
 
@@ -64,7 +60,6 @@ module Onetime
           member,
           action: 'revoke',
           entitlement: entitlement,
-          apply: apply,
           dry_run: dry_run,
           json: json,
         )

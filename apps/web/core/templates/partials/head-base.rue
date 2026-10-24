@@ -11,7 +11,7 @@
   <!-- Note: CSRF token is delivered via window.__BOOTSTRAP_ME__.shrimp and X-CSRF-Token header -->
 
   <!-- SEO and page metadata -->
-  <link nonce="{{app.nonce}}" rel="canonical" href="{{canonical_url}}">
+  <link nonce="{{app.nonce}}" rel="canonical" href="{{page_url}}">
   <title>{{page_title}}</title>
   <meta name="description" content="{{description}}">
 

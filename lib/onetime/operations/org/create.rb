@@ -182,6 +182,9 @@ module Onetime
         #   address.
         # @param description [String, nil] optional description.
         # @param dry_run [Boolean] validate and report, write nothing.
+        #   The DEFAULT IS A WRITE, unlike {Onetime::Operations::Org::Delete}
+        #   (where a dry run is the default): callers outside the CLI omit
+        #   the keyword and expect a write. The CLI always passes it explicitly.
         def initialize(display_name:, owner:, actor:, contact_email: nil, description: nil, dry_run: false)
           @display_name_input  = display_name
           @owner               = owner

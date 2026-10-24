@@ -207,7 +207,7 @@ RSpec.describe 'Org Delete Command', type: :cli do
     # Each guard exits non-zero and names its own remediation — and only the
     # override that unlocks THAT guard.
     {
-      has_domains: ['bin/ots domains remove', { domain_count: 1, domains: ['a.example.com'] }],
+      has_domains: ['bin/ots domains remove DOMAIN --apply', { domain_count: 1, domains: ['a.example.com'] }],
       drifted_domains: ['bin/ots domains doctor --all --repair',
                         { drifted_domains: ['ghost.example.com'] }],
       is_default: ['--force-default', { is_default: true }],

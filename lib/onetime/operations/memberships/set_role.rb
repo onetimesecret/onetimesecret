@@ -97,6 +97,10 @@ module Onetime
         #   refusal STATUS (see {#record_refusal}). See {Onetime::AuditReason}
         #   for the bound and the optional-now / required-later rollout.
         # @param dry_run [Boolean] check and report, write nothing.
+        #   The DEFAULT IS A WRITE, unlike {Onetime::Operations::Org::Delete}
+        #   (where a dry run is the default): the colonel adapter and
+        #   Org::TransferOwnership call this op without the keyword and expect it to
+        #   write. The CLI always passes it explicitly.
         def initialize(org:, customer:, new_role:, actor:, reason: nil, dry_run: false)
           @org      = org
           @customer = customer

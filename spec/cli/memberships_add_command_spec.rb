@@ -183,8 +183,9 @@ RSpec.describe 'Memberships Add Command', type: :cli do
       expect(last_exit_code).to eq(0)
       expect(add_op).to have_received(:new).with(hash_including(dry_run: true))
       expect($stdin).not_to have_received(:gets)
+      expect(output[:stdout]).to include('DRY RUN — nothing was written')
       expect(output[:stdout]).to include("Would add me***@example.com to on_org_ext as 'member'")
-      expect(output[:stdout]).to include('Dry run - nothing written. Re-run with --apply to write.')
+      expect(output[:stdout]).to include('Re-run with --apply to add.')
     end
 
     context 'with --apply' do
@@ -222,18 +223,19 @@ RSpec.describe 'Memberships Add Command', type: :cli do
 
         expect(last_exit_code).to eq(0)
         expect(set_default).to have_received(:new).with(hash_including(dry_run: true))
-        expect(output[:stdout]).to include('Dry run - nothing written. Re-run with --apply to write.')
+        expect(output[:stdout]).to include('Re-run with --apply to add.')
       end
     end
 
     context 'when nothing would change' do
       let(:status) { :no_change }
 
-      it 'says there is nothing to write' do
+      it 'prints the dry-run header but no --apply footer: --apply would change nothing' do
         output = run_cli_command_quietly('memberships', 'add', 'on_org_ext', 'ur_member')
 
         expect(last_exit_code).to eq(0)
-        expect(output[:stdout]).to include('Dry run - nothing to write.')
+        expect(output[:stdout]).to include('DRY RUN — nothing was written')
+        expect(output[:stdout]).not_to include('Re-run with --apply to')
       end
     end
 

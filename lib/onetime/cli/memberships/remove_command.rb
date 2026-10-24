@@ -27,11 +27,14 @@ require 'onetime/operations/memberships/remove'
 require_relative 'shared'
 require_relative '../customers/shared'
 
+require_relative '../write_gate'
+
 module Onetime
   module CLI
     class MembershipsRemoveCommand < Command
       include Customers::Shared
       include Memberships::Shared
+      include WriteGate
 
       desc 'Remove a member from an organization (clears their entitlements)'
 
@@ -51,15 +54,7 @@ module Onetime
         type: :string,
         default: nil,
         desc: 'Operator-supplied reason (recorded in the admin audit trail)'
-      option :apply,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '--yes', '-f'],
-        desc: 'Remove the member (default: dry run, nothing written)'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Preview only (the default; contradicts --apply)'
+      write_gate_options 'Remove the member'
       option :json,
         type: :boolean,
         default: false,
@@ -96,8 +91,9 @@ module Onetime
         when :success
           puts "Removed #{member.obscure_email} from #{result.org_id}"
         when :dry_run
+          dry_run_header
           puts "Would remove #{member.obscure_email} (role: #{result.role}) from #{result.org_id}"
-          puts 'Dry run - nothing written. Re-run with --apply to write.'
+          dry_run_footer('remove')
         when :not_found
           error_exit("#{member.obscure_email} is not a member of #{result.org_id}", json: false)
         when :last_owner

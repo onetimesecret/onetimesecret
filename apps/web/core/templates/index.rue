@@ -82,7 +82,11 @@
         }
       }, true);
     </script>
+    {{#if is_secret_page}}
+    {{> partials/head-secret-share}}
+    {{else}}
     {{> partials/head}}
+    {{/if}}
   </head>
   <body class="font-serif bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
     <div id="app">

@@ -94,6 +94,10 @@ module Onetime
         #   the count-capped operator trail: a user who can retry a deletion at
         #   will must not be able to evict operator history from it.
         # @param dry_run [Boolean] check and report, write nothing.
+        #   The DEFAULT IS A WRITE, unlike {Onetime::Operations::Org::Delete}
+        #   (where a dry run is the default): the colonel adapters and the
+        #   customer purge call this op without the keyword and expect it to
+        #   write. The CLI always passes it explicitly.
         def initialize(org:, customer:, actor:, reason: nil, bulk_audit_context: nil,
                        self_service: false, dry_run: false)
           @org                = org

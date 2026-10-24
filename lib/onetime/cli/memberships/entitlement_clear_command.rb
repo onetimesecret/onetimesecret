@@ -24,12 +24,15 @@
 # membership has no overrides (D15).
 require_relative 'entitlement_command'
 
+require_relative '../write_gate'
+
 module Onetime
   module CLI
     class MembershipsEntitlementClearCommand < Command
       include Customers::Shared
       include Memberships::Shared
       include Memberships::EntitlementSupport
+      include WriteGate
 
       desc 'Clear ALL entitlement overrides on an org member (destructive)'
 
@@ -42,15 +45,7 @@ module Onetime
         required: true,
         desc: 'Member email, extid, or Rodauth account ID'
 
-      option :apply,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '--yes', '-f'],
-        desc: 'Write the override (default: dry run, project the resulting sets)'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Preview only (the default; contradicts --apply)'
+      write_gate_options 'Write the override'
       option :json,
         type: :boolean,
         default: false,
@@ -59,6 +54,7 @@ module Onetime
       def call(org:, customer:, apply: false, dry_run: false, json: false, **)
         boot_application!
 
+        dry_run      = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
         organization = resolve_org(org, json: json)
         member       = resolve_member(customer, action: 'clear entitlement overrides on', json: json)
 
@@ -67,7 +63,6 @@ module Onetime
           member,
           action: 'clear',
           entitlement: nil,
-          apply: apply,
           dry_run: dry_run,
           json: json,
         )

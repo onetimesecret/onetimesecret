@@ -27,11 +27,14 @@ require 'onetime/operations/memberships/set_role'
 require_relative 'shared'
 require_relative '../customers/shared'
 
+require_relative '../write_gate'
+
 module Onetime
   module CLI
     class MembershipsSetRoleCommand < Command
       include Customers::Shared
       include Memberships::Shared
+      include WriteGate
 
       desc "Set an organization member's role (re-materializes entitlements)"
 
@@ -55,15 +58,7 @@ module Onetime
         type: :string,
         default: nil,
         desc: 'Operator-supplied reason (recorded in the admin audit trail)'
-      option :apply,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '--yes', '-f'],
-        desc: 'Change the role (default: dry run, nothing written)'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Preview only (the default; contradicts --apply)'
+      write_gate_options 'Change the role'
       option :json,
         type: :boolean,
         default: false,
@@ -98,15 +93,16 @@ module Onetime
       private
 
       def output_text(result, member, dry_run:)
+        dry_run_header if dry_run
+
         case result.status
         when :success
           puts "#{member.obscure_email}: #{result.from} -> #{result.to}"
         when :dry_run
           puts "Would change #{member.obscure_email}: #{result.from} -> #{result.to}"
-          puts 'Dry run - nothing written. Re-run with --apply to write.'
+          dry_run_footer('change the role')
         when :no_change
           puts "#{member.obscure_email} already has role '#{result.to}'"
-          puts 'Dry run - nothing to write.' if dry_run
         when :invalid_role
           error_exit("Invalid role. Must be one of: #{Onetime::Operations::Memberships::SetRole::VALID_ROLES.join(', ')}", json: false)
         when :not_found

@@ -37,6 +37,14 @@ module Core
 
       # Public directory for web assets
       PUBLIC_DIR = File.join(ENV.fetch('ONETIME_HOME', '.'), 'public', 'web').freeze
+
+      # Fonts the first paint needs: the upright Regular and Bold faces, woff2
+      # only. Keyed on the manifest's source path (root-relative, no hash).
+      # The italics and the .woff fallbacks stay in @font-face and load on
+      # demand; preloading them fetched six files no page used within the
+      # preload window, and browsers warn about each one.
+      PRELOADED_FONTS = %r{\Aassets/fonts/zs/ZillaSlab-(Regular|Bold)\.woff2\z}
+
       # Generates HTML tags for all required Vite assets.
       #
       # @param nonce [String, nil] Content Security Policy nonce
@@ -177,18 +185,17 @@ module Core
         %(    <link rel="stylesheet" nonce="#{nonce}" href="/dist/#{file}">)
       end
 
-      # Builds preload link tags for font assets.
+      # Builds preload link tags for the fonts in PRELOADED_FONTS.
       #
       # @param manifest [Hash] Vite manifest data
       # @param nonce [String] Content Security Policy nonce
       # @return [Array<String>] Array of HTML preload link tags
       def build_font_preloads(manifest, nonce)
-        manifest.values
-          .select { |entry| entry['file'] =~ /\.(woff2?|ttf|otf|eot)$/ }
-          .map do |font|
-            ext = File.extname(font['file']).delete('.')
-            %(    <link rel="preload" nonce="#{nonce}" href="/dist/#{font['file']}" as="font" type="font/#{ext}" crossorigin>)
-        end
+        manifest
+          .select { |key, _| key.match?(PRELOADED_FONTS) }
+          .map do |_, font|
+            %(    <link rel="preload" nonce="#{nonce}" href="/dist/#{font['file']}" as="font" type="font/woff2" crossorigin>)
+          end
       end
 
       # Builds an error script tag when asset loading fails.

@@ -190,6 +190,16 @@ RSpec.describe 'Memberships Entitlement Command', type: :cli do
       expect(Onetime::Operations::Memberships::EntitlementOverride).not_to have_received(:new)
     end
 
+    it 'reports --apply with --dry-run before resolving the org or member' do
+      output = run_cli_command_quietly(
+        'memberships', 'entitlement', 'grant', 'on_bogus', 'ur_bogus', 'custom_branding', '--apply', '--dry-run'
+      )
+
+      expect(last_exit_code).to eq(1)
+      expect(output[:stdout]).to include('--apply and --dry-run are contradictory')
+      expect(output[:stdout]).not_to include('not found')
+    end
+
     it 'passes dry_run: true for --dry-run, which only states the default' do
       run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--dry-run')
 

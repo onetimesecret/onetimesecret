@@ -57,7 +57,7 @@ audit found. A second `--apply` over the same data changes nothing.
   default) during the backfill. The index-rebuild job is fixed in PR #4787.
 - Snapshot the datastore before `--apply`.
 - Remove duplicate records with `bin/ots domains resolve-collisions --apply`
-  (or, for one record, `bin/ots domains remove <extid>`), never by deleting
+  (or, for one record, `bin/ots domains remove <extid> --apply`), never by deleting
   keys or index fields directly.
 
 ## Procedure
