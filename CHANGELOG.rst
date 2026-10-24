@@ -365,7 +365,9 @@ Added
   results omit secrets, tokens and Microsoft error text; audit records omit
   provider messages. Checks default to 10 per customer per hour
   (``SSO_DIAGNOSTICS_RATE_LIMIT_*``). The Entra secret field also warns about
-  entering a Secret ID instead of its Value.
+  entering a Secret ID instead of its Value. A passing check does not confirm
+  sign-in works; complete a real sign-in after setup or credential rotation.
+  See ``docs/runbooks/sso-credential-health.md``.
 
 - Domain SSO settings show the latest sign-in outcome and failure step,
   retaining the last success alongside later failures. Records expire after
@@ -374,8 +376,10 @@ Added
 - ``bin/ots domains backfill-canonical-index`` repairs missing domain-name
   index entries; ``bin/ots domains doctor --all`` reports missing entries
   and duplicate names. For pre-v0.26.14 domains, preview the backfill, then
-  apply with the application stopped, following
-  ``docs/runbooks/custom-domain-canonical-index-backfill.md``. (#4780)
+  stop all domain-writing application processes and snapshot the datastore
+  before applying it. Follow the
+  `v0.26.17 backfill runbook <https://github.com/onetimesecret/onetimesecret/blob/v0.26.17/docs/runbooks/custom-domain-canonical-index-backfill.md>`__.
+  (#4780)
 
 Changed
 -------
@@ -390,8 +394,8 @@ Changed
 - Under ``approximated`` and ``caddy_on_demand``, unverified custom domains
   now return 404 and cannot be used for new links. Keep TXT verification
   records published; losing verification also stops serving unless a
-  Colonel override holds it. ``passthrough`` still requires only registration
-  to an organization; orphaned records are never served.
+  Colonel override keeps it verified. ``passthrough`` still requires only
+  registration to an organization; orphaned records are never served.
 
   **Before upgrading**, run ``bin/ots domains verify --all`` and
   ``bin/ots domains orphaned``; resolve unverified or orphaned domains still
@@ -430,8 +434,10 @@ Fixed
 
 - The optional ``jobs.maintenance.index_rebuild`` job no longer reports
   false mismatches or damages indexes when ``auto_repair`` is enabled. If
-  earlier repair runs affected indexes, one repair run of the fixed job
-  restores them. The job remains off by default.
+  earlier repair runs affected indexes, run the corrected repair and review
+  its report; conflicting entries require manual resolution. The job remains
+  off by default. See ``jobs.maintenance.index_rebuild`` in
+  ``etc/defaults/config.defaults.yaml``.
 
 - Domain and membership doctor commands correctly detect and remove stale
   collection entries; ``--repair`` reports actual removals. Customer purge
@@ -458,9 +464,10 @@ Security
   markup and automatic remote loads. If sanitization is unavailable,
   instructions display as plain text. (RISK-2026-08-14-M09)
 
-- Guest recent-secret lists no longer persist secret links in browser tab
-  storage; existing entries are cleaned on load. After reloading, guests
-  copy links from the receipt page instead. (RISK-2026-08-14-M10)
+- Guest recent-secret lists no longer persist direct secret-link identifiers
+  in browser tab storage; older cached identifiers are removed on load. After
+  reloading, guests copy links from the receipt page instead. Receipt links
+  remain stored and can still retrieve share links. (RISK-2026-08-14-M10)
 
 - Magic-link and verification-resend requests no longer reveal missing,
   ineligible or recently mailed accounts through distinct response errors.
@@ -477,8 +484,8 @@ Security
   Passwordless ``POST /auth/login`` shares these limits; verification resend
   still has no per-source limit. Configure
   ``site.authentication.email_login_request_rate_limit`` using
-  ``EMAIL_LOGIN_REQUEST_RATE_LIMIT_*``. Keep the address cap at least twice
-  the IP cap and the lockout at least as long as the window.
+  ``EMAIL_LOGIN_REQUEST_RATE_LIMIT_*``; follow the limit constraints in
+  ``etc/defaults/config.defaults.yaml``.
   (RISK-2026-08-14-M04)
 
   **Before upgrading behind a reverse proxy**, configure trusted client-IP
@@ -495,11 +502,13 @@ Security
   by default, with boot notices graded by host. See ``redis.require_tls``
   in ``etc/defaults/config.defaults.yaml``. (RISK-2026-08-14-L07)
 
-- Customer email-change confirmations, workspace deletions and domain test
-  emails use the Colonel security audit sub-trail (newest 1,000, seven days)
-  rather than crowding out operator entries. Events are also emitted to the
-  ``ColonelAudit`` log stream; longer retention requires external collection.
-  Test recipients are obscured. See ``docs/architecture/audit-logging.md``.
+- Customer self-service email-change confirmations, workspace deletions and
+  domain test emails use the Colonel security audit sub-trail (newest 1,000,
+  seven days) rather than crowding out operator entries. Colonel-initiated
+  workspace deletions and test emails remain in the operator trail. Events
+  are also emitted to the ``ColonelAudit`` log stream; longer retention
+  requires external collection. Test recipients are obscured. See
+  ``docs/architecture/audit-logging.md``.
 
 - Domain sender test emails default to 10 per customer per hour across all
   their domains, including colonels, followed by a one-hour lockout. The form
