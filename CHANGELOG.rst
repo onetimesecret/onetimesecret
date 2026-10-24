@@ -9,9 +9,10 @@ this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.htm
 AI assistance and attribution
 -----------------------------
 
-GPT-6.1-Sol assisted with revising and fact-checking the 0.26.14–0.26.19
-release notes, moving detailed domain upgrade guidance into the operator
-reference, and reconstructing recorded AI-assistance credits for
+GPT-6.1-Sol assisted with revising the 0.26.0–0.26.19 release notes,
+fact-checking the 0.26.14–0.26.19 notes, moving detailed domain upgrade
+guidance into the operator reference, and reconstructing recorded
+AI-assistance credits for
 0.26.15–0.26.19 from commit history. These credits reflect available
 records, not a complete inventory of AI use. Release-specific credits below
 distinguish implementation and testing assistance from review feedback;
@@ -1362,25 +1363,20 @@ AI Assistance
 Added
 -----
 
-- ``RODAUTH_ADMIN_URL`` (config ``site.admin.rodauth_admin_url``): the base URL
-  of the standalone Rodauth Admin instance. Optional and credential-free. When
-  set in ``full`` authentication mode, the colonel customer page, the customers
-  list drawer, and each row of the sessions console link to the matching
-  Rodauth account, and the sessions console and per-customer sessions panel
-  link to it as the session authority. Nothing is ever requested from it;
-  unset renders plain text.
+- Colonel can link customer and session views to a standalone Rodauth
+  Admin instance in full authentication mode. Set ``RODAUTH_ADMIN_URL``
+  (``site.admin.rodauth_admin_url``) to its credential-free base URL;
+  leaving it unset shows plain text. See
+  ``docs/specs/rodauth-admin/README.md`` for integration details.
 
-- The admin console shows the running app version (linked to its release
-  notes) in the sidebar foot, so operators no longer have to leave the console
-  for a workspace page to check it.
+- The admin sidebar shows the running application version and links to
+  its release notes.
 
 Changed
 -------
 
-- In ``full`` authentication mode the colonel sessions console and the
-  per-customer sessions panel now state that they are not the session
-  authority (they read the Redis session store; Rodauth's session table is
-  authoritative) instead of presenting a partial list as complete.
+- In full authentication mode, Colonel session views now identify their
+  listings as partial and Rodauth as the session authority.
 
 - In ``full`` authentication mode, authenticated requests now require the
   authentication database. During an authdb outage, existing browser sessions
@@ -1487,9 +1483,9 @@ Added
 Changed
 -------
 
-- Reasons remain optional. Blank values are omitted; nonblank values are trimmed
-  and stored up to 255 characters. Audit-log readers and exports can view the
-  stored text (#4338).
+- Operator reasons are visible to audit-log readers and in exports.
+  Blank reasons are omitted; nonblank reasons are limited to 255
+  characters. (#4338)
 
 - Failed Colonel sign-ins use a separate 7-day telemetry stream, so attempt
   volume cannot evict destructive-action records from the operator trail
@@ -1638,19 +1634,15 @@ AI Assistance
 Changed
 -------
 
-- Frontend Sentry events now serialize nested extras to depth 6
-  (``normalizeDepth``), so schema-validation failures report their
-  ``issues[]`` payload instead of ``"[Array]"``.
+- Frontend Sentry reports now include nested schema-validation details
+  instead of replacing them with ``"[Array]"``.
 
 Fixed
 -----
 
-- The API Key settings page no longer breaks for accounts promoted to
-  ``admin`` or ``staff`` via ``bin/ots customers role`` (#4298). The
-  frontend role enum now mirrors the backend's assignable roles (enforced
-  by a contract test against ``SetRole::VALID_ROLES``), and an unknown or
-  missing ``role`` degrades to ``customer`` instead of failing the whole
-  account record parse.
+- The API Key settings page now works for accounts promoted to ``admin``
+  or ``staff`` with ``bin/ots customers role``. Unknown or missing roles
+  no longer prevent the account page from loading. (#4298)
 
 AI Assistance
 -------------
@@ -1667,31 +1659,22 @@ AI Assistance
 Added
 -----
 
-- Legal document URLs are now first-class ``site.legal`` configuration
-  (#4281). Set ``TERMS_URL`` and ``PRIVACY_URL`` (and optionally ``DPA_URL``,
-  ``COOKIE_URL``, ``AUP_URL``, ``SECURITY_URL``), or configure ``site.legal``
-  directly, to render Terms, Privacy Policy, and related documents as links.
-  All default to unset: when a URL is unset, the signup/invite consent
-  sentence renders the document name as plain text, the branded reveal footer
-  drops the link, and the entry is absent from the public footer's legal
-  group. These settings are independent of ``footer_links`` — existing Terms
-  and Privacy links configured there with explicit ``url:`` values continue to
-  work unchanged, and an operator-supplied footer URL takes precedence over
-  the default footer configuration.
+- Legal links can be configured through ``site.legal`` or ``TERMS_URL``,
+  ``PRIVACY_URL``, ``DPA_URL``, ``COOKIE_URL``, ``AUP_URL`` and
+  ``SECURITY_URL``. All default to unset: consent text then uses plain
+  document names, and footers omit the links. Existing explicit
+  ``footer_links`` URLs continue to work and take precedence. See
+  ``etc/config.yaml`` for configuration. (#4281)
 
 Removed
 -------
 
-- Stripe Payment Link provisioning has been retired. The ``/welcome`` endpoint
-  that handled Payment Link redirects now logs the attempt and redirects to
-  the homepage; the webhook handler skips Payment Link subscriptions (they
-  never carried the ``customer_extid`` metadata the webhook requires). The
-  ``bin/ots billing payment-links`` CLI command has been removed entirely.
-  Existing Payment Link subscriptions continue to bill normally in Stripe;
-  they simply no longer trigger automatic workspace creation. Customers who
-  paid via a legacy Payment Link and were not provisioned should contact
-  support. Use the Stripe Dashboard to audit or archive any remaining Payment
-  Links. (#4212)
+- Retired Stripe Payment Link provisioning and
+  ``bin/ots billing payment-links``. ``/welcome`` now redirects to the
+  homepage. Existing subscriptions continue billing in Stripe but no
+  longer trigger automatic workspace creation. Customers who paid without
+  receiving a workspace should contact support. Audit or archive remaining
+  Payment Links in the Stripe Dashboard. (#4212)
 
 Fixed
 -----
@@ -1700,25 +1683,14 @@ Fixed
   organization's lifetime limit (normally 14 or 30 days). The 7-day anonymous
   default remains specific to guest creation on canonical hosts. (#4279)
 
-- Malformed ``multipart/form-data`` requests now receive a ``400 Bad
-  Request`` with an explanatory JSON message instead of failing deep in the
-  middleware stack (#4283). Previously an empty or truncated multipart body
-  raised a 500 from the first middleware that read request params, and a
-  multipart Content-Type without a boundary parameter silently produced no
-  form fields — surfacing on ``POST /share`` as a misleading "You did not
-  provide anything to share". Well-formed multipart requests are unaffected;
-  their body is now parsed once, up front, and memoized for the rest of the
-  request.
+- Malformed ``multipart/form-data`` requests now return ``400 Bad
+  Request`` with a JSON explanation instead of a server error or a
+  misleading empty-secret error. (#4283)
 
-- The frontend locale schema now accepts any well-formed BCP 47 language
-  tag (#4284). Previously it capped tags at 5 characters with an
-  ``xx``/``xx-XX`` regex, rejecting legitimate values browsers actually
-  send — ``en-US-POSIX``, ``zh-Hant-TW``, ``es-419`` — and capturing a
-  Sentry error for each. Validation is now delegated to
-  ``Intl.getCanonicalLocales`` with a 35-character bound, and a
-  malformed visitor locale degrades silently to the supported-locale
-  matching and the default locale instead of being reported as an
-  application error.
+- Browser language tags such as ``zh-Hant-TW`` and ``es-419`` no longer
+  cause locale-validation errors. Malformed visitor locales fall back to
+  supported-language matching and the default locale without reporting an
+  application error. (#4284)
 
 Documentation
 -------------
@@ -1745,19 +1717,13 @@ Added
 - Added integer and float field declarations for Familia models, normalizing
   numeric inputs and legacy scalar values. (#4248)
 
-- Authenticated browser sessions and selected backend error captures now
-  carry a pseudonymous actor reference, so operators can correlate an
-  issue with the accounts it affects. The backend derives the 16-hex
-  ``actor_ref`` from the customer external identifier (extid), publishes
-  it to the frontend in the ``diagnostics_ref`` bootstrap payload, and
-  attaches it to supported backend captures. No direct identifiers, such
-  as email addresses or customer IDs, are sent; however, the reference
-  must still be handled as potentially personal data. Anonymous sessions
-  and installs without a usable keying secret send no user context, and
-  the frontend clears the reference on logout. Existing actor and
-  organization references re-key on the deploy that ships this change, so
-  a correlation discontinuity of up to the Sentry retention window is
-  expected rather than a defect.
+- Authenticated browser diagnostics and selected backend error reports
+  now include a pseudonymous account reference for issue correlation.
+  Treat it as potentially personal data. Existing diagnostic references
+  change on upgrade, breaking correlation with earlier reports. See
+  ``docs/development/frontend-diagnostics.md`` and
+  ``docs/development/backend-diagnostics.md`` for attribution and keying
+  details.
 
 Changed
 -------
@@ -1768,28 +1734,22 @@ Changed
 Fixed
 -----
 
-- Selected frontend Sentry issues use explicit grouping instead of
-  minified bundle stack frames. Schema validation errors with a schema
-  name group by that name. Axios-shaped request errors with ``config.url``
-  group by method, the path normalized by the existing URL scrubbers, and
-  an HTTP status or coarse ``aborted``/``network`` outcome; other errors
-  retain Sentry's default grouping.
+- Frontend Sentry reports now group named schema-validation errors by
+  schema and supported request errors by method, scrubbed path and outcome,
+  rather than minified stack frames. See
+  ``docs/development/frontend-diagnostics.md`` for grouping rules.
 
 Security
 --------
 
-- Passphrase verification on the v2 secret show, reveal, and burn endpoints
-  now runs only when ``continue=true``. A metadata-only request
-  (``continue`` absent or ``false``) no longer evaluates the supplied
-  passphrase, so it cannot be used to test guesses without consuming the
-  secret, and it no longer records or clears rate-limit state.
-  ``details.correct_passphrase`` has been removed from the v2 secret
-  responses; clients should use ``details.show_secret``, which is true only
-  when the passphrase was correct and the reveal was committed. The v2
-  reveal and burn endpoints now return the same status for a right or wrong
-  passphrase when ``continue=false``. The v1 logic classes carry the same
-  change for parity; the v1 API was not exposed, since its controller
-  always commits (``continue=true``) and never returned the verdict.
+- Metadata-only requests (``continue`` absent or ``false``) to v2 secret
+  show, reveal and burn endpoints no longer test passphrase guesses,
+  disclose whether a guess was correct, or change passphrase rate-limit
+  state. Passphrase checks require ``continue=true``. API clients must
+  replace the removed ``details.correct_passphrase`` field with
+  ``details.show_secret``, which indicates a correct passphrase and a
+  committed reveal. The v1 API was not exposed to this metadata-only
+  guessing issue.
 
 .. _changelog-0.26.6:
 
@@ -2127,11 +2087,10 @@ Changed
 
 - Unbranded installs now use the neutral ``Secure Links`` identity and keyhole
   mark; configured branding is unchanged. (#3048, #3049, #3612)
-- Brand settings are now centralized under ``brand:``. ``BRAND_LOGO_URL`` also
-  controls the masthead logo, and ``BRAND_TOTP_ISSUER`` (defaulting to the
-  product name) labels TOTP/MFA entries. Masthead layout knobs live under
-  ``site.interface.ui.header.logo`` (``LOGO_LINK``, ``LOGO_SHOW_NAME``,
-  ``LOGO_PROMINENT``). (#3612)
+- Centralized brand settings under ``brand:``. ``BRAND_LOGO_URL`` also
+  controls the masthead; ``BRAND_TOTP_ISSUER`` labels MFA entries, defaulting
+  to the product name. See ``docs/architecture/branding.md`` for migration
+  and masthead layout settings. (#3612)
 - Secret reads no longer change lifecycle state or extend expiration. Receipt
   access is reported through access telemetry instead. (#3633)
 - Custom-domain authentication links are hidden by default. Existing domains
@@ -2163,8 +2122,7 @@ Fixed
 - The global authentication kill switch (``AUTH_ENABLED`` / ``AUTH_SIGNIN`` /
   ``AUTH_SIGNUP``) can no longer be bypassed by per-domain configuration.
   (#3453)
-- The Content-Security-Policy header is now emitted on web responses by
-  default; it was previously gated behind ``CSP_ENABLED=true`` and not sent.
+- Web responses now include Content-Security-Policy by default.
   Set ``CSP_ENABLED=false`` to opt out.
 - The API v1 receipt endpoint no longer reveals a concealed (user-supplied)
   secret's plaintext to the creator, matching v2/v3.
