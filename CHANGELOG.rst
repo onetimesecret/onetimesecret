@@ -1525,8 +1525,8 @@ Added
   #4455
 
 - Full authentication mode now supports Sign in with Apple for platform
-  accounts. Configure the Apple client, team, key, and private-key settings;
-  Apple remains unavailable for custom-domain SSO. #4447
+  accounts, but not custom-domain SSO. See the Apple setup and session-cookie
+  requirements in ``docs/authentication/per-install-sso.md``. #4447
 
 Changed
 -------
@@ -1559,28 +1559,30 @@ Changed
 - ``bin/ots diagnostics sentry doctor`` now accounts for
   ``DIAGNOSTICS_ENABLED_IN_TEST`` under ``RACK_ENV=test``.
 
-- Auth database migrations add passkey scope and relying-party columns. Existing
-  passkeys continue to work. PostgreSQL deployments whose runtime role cannot
-  alter the schema must configure ``AUTH_DATABASE_URL_MIGRATIONS`` or apply the
-  migrations before upgrading. #4414
+- PostgreSQL deployments whose runtime role cannot alter the auth schema must
+  configure ``AUTH_DATABASE_URL_MIGRATIONS`` or apply the passkey migrations
+  before upgrading. See ``docs/authentication/per-install-sso.md``. #4414
 
 - Account purges now stop before deletion when an owned workspace retains
   resources or has inconsistent ownership, membership, migration, or contact
   indexes. Resolve reported blockers or run ``ots customers doctor`` before
   retrying. #4440, #4443
 - Default-workspace provisioning conflicts now return ``409`` and stop retrying
-  on each sign-in. ``ots customers diagnose`` reports them and
-  ``ots customers doctor`` repairs them. #4443
+  on each sign-in. Use ``ots customers diagnose`` to inspect conflicts;
+  ``ots customers doctor --repair`` repairs only eligible index conflicts.
+  See ``docs/runbooks/ownerless-workspace-email-index-collision.md`` for
+  resolution steps. #4443
 
-- Auth0 installations now use the generic OpenID Connect provider. Keep the
-  trailing slash in ``OIDC_ISSUER`` so it exactly matches Auth0's ``iss``
-  claim. #4512
+- Auth0 installations now use the generic OpenID Connect provider. Configure
+  the ``OIDC_*`` settings using ``docs/authentication/per-install-sso.md``;
+  keep the trailing slash in ``OIDC_ISSUER``. #4512
 
 Deprecated
 ----------
 
 - The bootstrap field ``had_valid_session`` is deprecated and scheduled for
-  removal in #4468.
+  removal in #4468. Use ``auth_status`` instead; see
+  ``docs/authentication/customer-session-failure-matrix.md``.
 
 Fixed
 -----
@@ -1604,7 +1606,6 @@ Fixed
   sign-in to be rejected as an invalid Connect attempt. #4431
 
 - Concurrent sign-ups using SQLite no longer fail with ``database is locked``.
-  Migration and request connections now use the same SQLite settings.
 - ``ots status`` and auth database migrations now accept multi-host PostgreSQL
   URLs.
 - ``/auth`` now returns retryable ``503`` responses when the auth database is
@@ -1660,6 +1661,8 @@ AI Assistance
 
 - Claude assisted with planning, implementation, review, and browser testing
   for the auth session consistency work in #4451.
+- GPT-6.1-Sol for trimming changelog entries
+
 
 .. _changelog-0.26.12:
 
