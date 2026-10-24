@@ -83,7 +83,7 @@ edits.
 Useful operator paths:
 
 ```console
-bin/ots org transfer-ownership ORG NEW_OWNER
+bin/ots org transfer-ownership ORG NEW_OWNER          # dry run; add --apply to transfer
 bin/ots memberships remove --help
 ```
 

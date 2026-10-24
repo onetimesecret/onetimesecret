@@ -29,10 +29,13 @@ require 'onetime/operations/org/reconcile'
 require_relative 'shared'
 require_relative '../customers/shared'
 
+require_relative '../write_gate'
+
 module Onetime
   module CLI
     class OrgReconcileCommand < Command
       include Org::Shared
+      include WriteGate
 
       # The dry-run statuses that an --apply run would act on.
       PLANNED_STATUSES = [:planned, :would_materialize].freeze
@@ -44,15 +47,7 @@ module Onetime
         required: true,
         desc: 'Organization extid or objid'
 
-      option :apply,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '--yes', '-f'],
-        desc: 'Reconcile (default: dry run, report the mode that would run)'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Preview only (the default; contradicts --apply)'
+      write_gate_options 'Reconcile'
       option :json,
         type: :boolean,
         default: false,
@@ -85,7 +80,7 @@ module Onetime
           error_exit("Stripe error: #{result.reason}", json: false)
         end
 
-        puts 'DRY RUN — nothing was written' if result.dry_run
+        dry_run_header if result.dry_run
         puts "Organization: #{result.org_id}"
         puts "Mode:         #{result.mode}"
         puts "Status:       #{result.status}"
@@ -93,7 +88,10 @@ module Onetime
         puts
         print_diff(result)
         print_cascade(result)
-        puts "\nRe-run with --apply to reconcile." if PLANNED_STATUSES.include?(result.status)
+        if PLANNED_STATUSES.include?(result.status)
+          puts
+          dry_run_footer('reconcile')
+        end
 
         exit 1 unless ok?(result)
       end

@@ -10,6 +10,7 @@ require 'onetime/migration'
 require 'v2/logic'
 
 require_relative 'cli/option_types'
+require_relative 'cli/write_gate'
 
 module Onetime
   module CLI
@@ -220,6 +221,7 @@ require_relative 'cli/migrations/dedupe_relationships_command'
 require_relative 'cli/migrations/dedupe_participations_command'
 require_relative 'cli/migrations/grant_probono_entitlements_command'
 require_relative 'cli/customers/role_command'
+require_relative 'cli/customers/role_reconcile_command'
 require_relative 'cli/passwords_command'
 require_relative 'cli/test_data_command'
 require_relative 'cli/session_command'

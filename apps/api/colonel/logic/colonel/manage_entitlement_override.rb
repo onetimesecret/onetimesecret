@@ -175,7 +175,7 @@ module ColonelAPI
             cascade = result.memberships || {}
             raise_form_error(
               "Override applied, but #{partial_cascade_summary(cascade)}; " \
-              'run `bin/ots org reconcile` to retry the cascade',
+              "run `bin/ots org reconcile #{@org.extid} --apply` to retry the cascade",
               field: :memberships,
               details: { memberships: cascade },
             )

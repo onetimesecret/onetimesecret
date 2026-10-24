@@ -28,11 +28,14 @@ require 'onetime/operations/customers/set_default_organization'
 require_relative 'shared'
 require_relative '../memberships/shared'
 
+require_relative '../write_gate'
+
 module Onetime
   module CLI
     class CustomersSetDefaultOrgCommand < Command
       include Customers::Shared
       include Memberships::Shared
+      include WriteGate
 
       desc "Set a customer's default organization (must already be an active member)"
 
@@ -51,15 +54,7 @@ module Onetime
         type: :string,
         default: nil,
         desc: 'Operator-supplied reason (recorded in the admin audit trail)'
-      option :apply,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '--yes', '-f'],
-        desc: 'Write the change (default: dry run, nothing written)'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Check eligibility and report only (the default; contradicts --apply)'
+      write_gate_options 'Write the change'
       option :json,
         type: :boolean,
         default: false,
@@ -99,8 +94,9 @@ module Onetime
         when :no_change
           puts "#{who}: #{org} is already the default organization"
         when :dry_run
-          puts "#{who}: would set default organization #{previous} -> #{org} (dry run, nothing written)"
-          puts 'Re-run with --apply to write.'
+          dry_run_header
+          puts "#{who}: would set default organization #{previous} -> #{org}"
+          dry_run_footer('set the default')
         when :not_member
           error_exit("#{who} is not an active member of #{org}", json: false)
         when :archived

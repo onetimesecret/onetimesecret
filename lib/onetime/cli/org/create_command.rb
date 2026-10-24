@@ -37,6 +37,8 @@ require 'onetime/operations/org/create'
 require_relative 'shared'
 require_relative '../customers/shared'
 
+require_relative '../write_gate'
+
 module Onetime
   module CLI
     class OrgCreateCommand < Command
@@ -44,6 +46,7 @@ module Onetime
       # Org::Shared       -> error_exit (json-aware) + org_label.
       include Customers::Shared
       include Org::Shared
+      include WriteGate
 
       desc 'Create an organization owned by an existing customer'
 
@@ -68,15 +71,7 @@ module Onetime
       option :description,
         type: :string,
         desc: 'Organization description'
-      option :apply,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '--yes', '-f'],
-        desc: 'Create the organization (default: dry run, nothing written)'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Preview only (the default; contradicts --apply)'
+      write_gate_options 'Create the organization'
       option :json,
         type: :boolean,
         default: false,
@@ -124,10 +119,10 @@ module Onetime
         error_exit(result.message, json: false) unless OK_STATUSES.include?(result.status)
 
         if result.status == :planned
-          puts 'DRY RUN — nothing was written'
+          dry_run_header
           puts "Would create '#{result.display_name}' owner=#{owner_customer.obscure_email}"
           puts "contact_email: #{result.contact_email}" if result.contact_email
-          puts 'Re-run with --apply to create.'
+          dry_run_footer('create')
           return
         end
 

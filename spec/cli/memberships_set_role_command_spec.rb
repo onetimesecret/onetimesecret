@@ -63,8 +63,9 @@ RSpec.describe 'Memberships Set Role Command', type: :cli do
         dry_run: true,
       )
       expect($stdin).not_to have_received(:gets)
+      expect(output[:stdout]).to include('DRY RUN — nothing was written')
       expect(output[:stdout]).to include('Would change me***@example.com: member -> admin')
-      expect(output[:stdout]).to include('Dry run - nothing written. Re-run with --apply to write.')
+      expect(output[:stdout]).to include('Re-run with --apply to change the role.')
     end
 
     it 'emits dry_run: true in --json and exits 0' do
@@ -91,12 +92,13 @@ RSpec.describe 'Memberships Set Role Command', type: :cli do
         )
       end
 
-      it 'says there is nothing to write and exits 0' do
+      it 'prints the dry-run header but no --apply footer, and exits 0' do
         output = run_cli_command_quietly('memberships', 'set-role', 'on_org_ext', 'ur_member', 'admin')
 
         expect(last_exit_code).to eq(0)
+        expect(output[:stdout]).to include('DRY RUN — nothing was written')
         expect(output[:stdout]).to include("me***@example.com already has role 'admin'")
-        expect(output[:stdout]).to include('Dry run - nothing to write.')
+        expect(output[:stdout]).not_to include('Re-run with --apply to')
       end
     end
 
@@ -123,7 +125,7 @@ RSpec.describe 'Memberships Set Role Command', type: :cli do
       expect(last_exit_code).to eq(0)
       expect(set_role_op).to have_received(:new).with(hash_including(dry_run: false, reason: 'promoted'))
       expect(output[:stdout]).to include('me***@example.com: member -> admin')
-      expect(output[:stdout]).not_to include('Dry run')
+      expect(output[:stdout]).not_to include('DRY RUN')
     end
 
     it 'treats --yes as --apply' do

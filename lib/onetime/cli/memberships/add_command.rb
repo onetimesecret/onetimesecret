@@ -39,11 +39,14 @@ require 'onetime/operations/customers/set_default_organization'
 require_relative 'shared'
 require_relative '../customers/shared'
 
+require_relative '../write_gate'
+
 module Onetime
   module CLI
     class MembershipsAddCommand < Command
       include Customers::Shared
       include Memberships::Shared
+      include WriteGate
 
       desc 'Add a customer to an organization (materializes entitlements)'
 
@@ -64,15 +67,7 @@ module Onetime
         type: :boolean,
         default: false,
         desc: "Also set ORG as the customer's default organization"
-      option :apply,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '--yes', '-f'],
-        desc: 'Write the membership (default: dry run, nothing written)'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Preview only (the default; contradicts --apply)'
+      write_gate_options 'Write the membership'
       option :json,
         type: :boolean,
         default: false,
@@ -144,6 +139,8 @@ module Onetime
       end
 
       def output_text(result, member, default_status, dry_run:)
+        dry_run_header if dry_run
+
         case result.status
         when :success
           puts "Added #{member.obscure_email} to #{result.org_id} as '#{result.role}'"
@@ -159,11 +156,9 @@ module Onetime
         print_default_org(result, member, default_status) unless default_status.nil?
         return unless dry_run
 
-        if result.status == :dry_run || default_status == :dry_run
-          puts 'Dry run - nothing written. Re-run with --apply to write.'
-        else
-          puts 'Dry run - nothing to write.'
-        end
+        # No footer when the preview found nothing to write: --apply would
+        # change nothing.
+        dry_run_footer('add') if result.status == :dry_run || default_status == :dry_run
       end
 
       def print_default_org(result, member, default_status)

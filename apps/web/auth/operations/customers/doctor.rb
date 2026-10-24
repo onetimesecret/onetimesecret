@@ -737,7 +737,7 @@ module Auth
             if sql_stale
               'Run `bin/ots customers normalize-emails` (dry run), then with --confirm'
             else
-              "Run `bin/ots customers change-email #{@customer.extid} <lowercase address>` " \
+              "Run `bin/ots customers change-email #{@customer.extid} <lowercase address> --apply` " \
                 '(the accounts row is already canonical; normalize-emails will not select it)'
             end
 

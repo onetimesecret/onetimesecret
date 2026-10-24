@@ -318,7 +318,7 @@ bin/ots customers role reconcile
 The following commands make changes:
 
 ```bash
-bin/ots domains repair DOMAIN
+bin/ots domains repair DOMAIN --apply
 bin/ots customers doctor --all --repair
 bin/ots customers role reconcile --apply
 ```

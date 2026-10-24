@@ -94,8 +94,8 @@ RSpec.describe 'Customers Set Default Org Command', type: :cli do
       expect(last_exit_code).to eq(0)
       expect($stdin).not_to have_received(:gets)
       expect(op_class).to have_received(:new).with(hash_including(dry_run: true))
-      expect(output[:stdout]).to include('(dry run, nothing written)')
-      expect(output[:stdout]).to include('Re-run with --apply to write.')
+      expect(output[:stdout]).to include('DRY RUN — nothing was written')
+      expect(output[:stdout]).to include('Re-run with --apply to set the default.')
     end
 
     it 'emits the dry run as JSON and exits 0' do
@@ -145,7 +145,7 @@ RSpec.describe 'Customers Set Default Org Command', type: :cli do
       expect(last_exit_code).to eq(0)
       expect($stdin).not_to have_received(:gets)
       expect(op_class).to have_received(:new).with(hash_including(dry_run: true))
-      expect(output[:stdout]).to include('would set default organization on_home -> on_team (dry run, nothing written)')
+      expect(output[:stdout]).to include('would set default organization on_home -> on_team')
     end
   end
 
