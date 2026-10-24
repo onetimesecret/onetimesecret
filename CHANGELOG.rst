@@ -737,9 +737,9 @@ Changed
   in progress when this release is deployed must also be restarted.
   (#4610, #4617)
 
-- Each request resolves its custom domain once. A failed lookup is not
-  retried later in the same request. Canonical-host organization loading
-  no longer depends on the custom-domain index. (#4220, #4620, #4670)
+- Canonical-host workspace loading no longer fails when the custom-domain
+  index is unavailable. Failed custom-domain lookups are not retried within
+  the same request. (#4220, #4620, #4670)
 
 - Authentication routes consistently return a domain-unavailable ``503``
   when the custom-domain record cannot be read. Starting SSO returns to
@@ -795,26 +795,22 @@ Fixed
   was dispatched. Mail modes with surrounding whitespace select the intended
   transport. (#4479, #4643, #4644)
 
-- Queue workers settle every rejected message and keep message identifiers
-  and schema checks separate during concurrent processing. Invalid email
-  templates are not retried, and favicon timeouts can be retried once rather
-  than skipped as duplicates. (#4479, #4644)
+- Rejected queue messages no longer remain unacknowledged, and concurrent
+  processing no longer mixes message identifiers or schema checks. Invalid
+  email templates are not retried; favicon timeouts can be retried once.
+  (#4479, #4644)
 
-- Manual CLI and Colonel DLQ replay release idempotency claims before
-  republishing and commit republish and removal together. Failed messages
-  remain in the queue; an unconfirmed commit stops the replay and reports
-  an unknown outcome. (#4479, #4644)
+- Manual CLI and Colonel DLQ replay no longer skips messages as duplicates.
+  Failed messages stay queued; an unconfirmed commit stops replay and
+  reports an unknown outcome. See ``lib/onetime/jobs/README.md`` for retry
+  behavior and duplicate-delivery risks. (#4479, #4644)
 
-- Automatic auth-email DLQ replay retains messages when claim release,
-  publication or processing fails, or the destination queue no longer
-  exists. It commits publication before removing the message, records
-  completed replay to avoid immediate duplicate publication, and does not
-  reconnect midway through a batch. Messages marked replayed by the previous
-  version wait at most an hour before retry. (#4652, #4653, #4656)
-
-- Automatic DLQ replay progresses past held or unroutable messages instead
-  of letting them consume each batch. Runs have a 240-second time budget;
-  held messages remain queued for later runs. (#4656)
+- Automatic auth-email DLQ replay retains messages when replay fails or the
+  destination queue is missing, and progresses past deferred messages
+  instead of blocking each batch. Messages marked replayed by the previous
+  version wait at most an hour before retry. See
+  ``lib/onetime/jobs/README.md`` for recovery behavior and duplicate-delivery
+  risks. (#4652, #4653, #4656)
 
 - DLQ listing and lookup visit messages beyond the first without repeating
   it. Inspection retains messages but may change their order. (#4650, #4651)
@@ -892,9 +888,9 @@ Security
   (#4655)
 
 - Application request logs redact secret and receipt capability paths,
-  including debug traces. Lifecycle logs use shortened identifiers and
-  receipt-list errors omit raw exception messages. External proxy access
-  logs still need their own redaction configuration. (#4647)
+  including debug traces; lifecycle and receipt-list error logs expose
+  fewer identifiers and exception details. External proxy access logs still
+  need their own redaction configuration. (#4647)
 
 .. _changelog-0.26.14:
 
