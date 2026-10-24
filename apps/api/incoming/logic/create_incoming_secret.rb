@@ -210,29 +210,15 @@ module Incoming
           secret_value,
           passphrase: passphrase,
           domain: share_domain,
+          # Select provenance here, not from client fields, before the first
+          # receipt save or any post-save work can expose a standard projection.
+          source: 'incoming',
+          memo: memo,
+          # Keep the resolved raw email at rest; safe_dump obscures it.
+          recipients: recipient_email,
+          recipient_name: lookup_recipient_display_name(@recipient_hash),
+          domain_id: share_domain ? resolved_domain_id : nil,
         )
-
-        # Store incoming-specific fields. Persist the raw email so the
-        # underlying record stays accurate; obscuring for display happens
-        # at the serializer (Receipt::Features::SafeDumpFields). For the
-        # frontend, prefer the recipient's display name when available.
-        receipt.memo           = memo
-        receipt.recipients     = recipient_email
-        receipt.recipient_name = lookup_recipient_display_name(@recipient_hash)
-
-        # Provenance: guest submission through an Incoming form. This is the one
-        # authoritative signal for withholding the share link from the creator
-        # (see Receipt#shows_share_link?). spawn_pair already defaulted 'standard';
-        # override it here before the save below.
-        receipt.source = 'incoming'
-
-        # Set domain_id for custom domain requests (#2864). Resolved from the
-        # same share_domain that spawn_pair persisted, keeping domain_id and
-        # share_domain consistent on the receipt. resolved_domain_id memoizes the
-        # datastore lookup so the notification step below reuses it.
-        receipt.domain_id = resolved_domain_id if share_domain
-
-        receipt.save
       end
 
       # The custom domain a secret submitted via /incoming should be bound to,
