@@ -24,7 +24,12 @@
 # `page_url` and `display_domain`): a tenant page advertises the tenant's
 # own origin, the canonical page the canonical one, and an unregistered
 # forwarded host its own name. The og_title column already names that host
-# for every row, so the two assertions read it from there.
+# for every row, so the two assertions read it from there. og:url also
+# carries the public port DetectHost validated on the trusted
+# X-Forwarded-Host (`page_authority`); the one row with such a port names
+# the authority it expects in `og_url`, and a port in Host alone (P11) is
+# not read. The rewrite setting changes nothing here: the view reads
+# DetectHost's authority, not Rack's Host.
 #
 # RUN:
 #   tests/lanes/run full-sqlite --only \
@@ -45,7 +50,7 @@ module HostProxyMatrix
     shape(:tenant_forwarded, id: 'P03', case: 'tenant in X-Forwarded-Host', csp: true, og_title: '{tenant}',
       og_image: false),
     shape(:tenant_forwarded_port, id: 'P04', case: 'tenant and a public port in X-Forwarded-Host',
-      csp: true, og_title: '{tenant}', og_image: false),
+      csp: true, og_title: '{tenant}', og_url: '{tenant}:8443', og_image: false),
     shape(:doubled_tenant, id: 'P05', case: 'doubled verified custom domain Host', csp: true, og_title: '{tenant}',
       og_image: false),
     shape(:forwarded_public_peer, id: 'P06', case: 'X-Forwarded-Host from a public peer',
@@ -58,6 +63,9 @@ module HostProxyMatrix
       csp: false, og_title: '{tenant}', og_image: false),
     shape(:read_fails_forwarded, id: 'P10', case: 'read failure, tenant in X-Forwarded-Host',
       csp: false, og_title: '{tenant}', og_image: true),
+    # No forwarded headers: the port in Host is never read into og:url.
+    shape(:canonical_port, id: 'P11', case: 'canonical host and a port in Host', csp: false, og_title: '{canonical}',
+      og_image: true),
   ].freeze
 end
 
@@ -73,11 +81,12 @@ RSpec.describe 'Host and proxy simulation matrix: the served document (#4223)',
     csp.to_s.split(';').map(&:strip).find { |directive| directive.start_with?('form-action') }.to_s
   end
 
-  # The URL page_url renders for GET / on `host`: the scheme follows
-  # site.ssl, as initialize_view_vars.rb does, not the request's proto.
-  def page_url_for(host)
+  # The URL page_url renders for GET / on the row's authority (`og_url`,
+  # else the og_title host): the scheme follows site.ssl, as
+  # initialize_view_vars.rb does, not the request's proto.
+  def page_url_for(row)
     scheme = OT.conf['site']['ssl'] == false ? 'http' : 'https'
-    "#{scheme}://#{host}/"
+    "#{scheme}://#{fill(row[:og_url] || row[:og_title])}/"
   end
 
   [false, true].each do |rewrite|
@@ -126,7 +135,7 @@ RSpec.describe 'Host and proxy simulation matrix: the served document (#4223)',
 
           doc = Nokogiri::HTML(last_response.body)
           expect(meta(doc, 'meta[property="og:title"]')).to eq(fill(row[:og_title]))
-          expect(meta(doc, 'meta[property="og:url"]')).to eq(page_url_for(fill(row[:og_title])))
+          expect(meta(doc, 'meta[property="og:url"]')).to eq(page_url_for(row))
           expect(meta(doc, 'meta[property="twitter:domain"]')).to eq(fill(row[:og_title]))
           expect(doc.css('meta[property="og:image"]').empty?).to eq(!row[:og_image]), "#{row[:id]}: og:image"
         end

@@ -183,6 +183,75 @@ RSpec.describe Core::Views::BaseView do
       expect(view.view_vars['page_url']).to eq('https://secrets.partner.example/')
     end
 
+    # DetectHost publishes the display domain without its port. The public
+    # port comes from the authority it validated on the trusted
+    # X-Forwarded-Host, or from the operator's configuration for a canonical
+    # host; the inbound Host is never read.
+    context 'with a public port' do
+      let(:authority_key) { Rack::DetectHost.forwarded_authority_field_name }
+
+      before do
+        allow(rack_request).to receive(:path).and_return('/secret/abc123')
+        allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_domains).and_return(['test.domain.com'])
+      end
+
+      it 'keeps the port DetectHost validated on the trusted X-Forwarded-Host' do
+        rack_request.env['onetime.display_domain'] = 'secrets.partner.example'
+        rack_request.env[authority_key]            = 'secrets.partner.example:8443'
+
+        expect(view.view_vars['page_url']).to eq('https://secrets.partner.example:8443/secret/abc123')
+      end
+
+      it 'ignores a forwarded authority that names another host' do
+        rack_request.env['onetime.display_domain'] = 'secrets.partner.example'
+        rack_request.env[authority_key]            = 'origin.internal:8443'
+
+        expect(view.view_vars['page_url']).to eq('https://secrets.partner.example/secret/abc123')
+      end
+
+      it "leaves out the configured scheme's default port" do
+        rack_request.env['onetime.display_domain'] = 'secrets.partner.example'
+        rack_request.env[authority_key]            = 'secrets.partner.example:443'
+
+        expect(view.view_vars['page_url']).to eq('https://secrets.partner.example/secret/abc123')
+      end
+
+      it 'keeps the port the operator configured for a canonical host' do
+        allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_domains).and_return(['test.domain.com:8443'])
+        rack_request.env['onetime.display_domain'] = 'test.domain.com'
+
+        expect(view.view_vars['page_url']).to eq('https://test.domain.com:8443/secret/abc123')
+      end
+
+      it 'prefers the forwarded port to the configured one' do
+        allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_domains).and_return(['test.domain.com:8443'])
+        rack_request.env['onetime.display_domain'] = 'test.domain.com'
+        rack_request.env[authority_key]            = 'test.domain.com:9443'
+
+        expect(view.view_vars['page_url']).to eq('https://test.domain.com:9443/secret/abc123')
+      end
+
+      # With the domains feature off, display_domain is site.host as written.
+      it 'keeps, and does not double, a port the display domain already carries' do
+        rack_request.env['onetime.display_domain'] = 'test.domain.com:3000'
+
+        expect(view.view_vars['page_url']).to eq('https://test.domain.com:3000/secret/abc123')
+      end
+
+      it 'keeps the brackets and port of an IPv6 site host' do
+        rack_request.env['onetime.display_domain'] = '[::1]:3000'
+
+        expect(view.view_vars['page_url']).to eq('https://[::1]:3000/secret/abc123')
+      end
+
+      it 'never reads the port from the inbound Host' do
+        rack_request.env['onetime.display_domain'] = 'secrets.partner.example'
+        rack_request.env['HTTP_HOST']              = 'secrets.partner.example:8443'
+
+        expect(view.view_vars['page_url']).to eq('https://secrets.partner.example/secret/abc123')
+      end
+    end
+
     {
       '/secret/abc123' => true,
       '/receipt/abc123/burn' => true,

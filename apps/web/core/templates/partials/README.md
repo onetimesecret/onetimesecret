@@ -37,8 +37,9 @@ This directory contains modernized HTML `<head>` templates for the Onetime Secre
 is true. The view sets that flag for `/secret/*` and `/receipt/*` requests
 (`initialize_view_vars.rb`), the same prefixes robots.rue disallows.
 **Variables**:
-- `page_url` - The page URL (served host plus path, no query string); also
-  the canonical link in head-base.rue and og:url in head.rue
+- `page_url` - The page URL (served host, its public port when one is
+  known, plus path, no query string); also the canonical link in
+  head-base.rue and og:url in head.rue
 - `display_domain` - The served host, for twitter:domain
 - `og_title`, `og_description` - Neutral text from `web.COMMON.secret_og_*`,
   so a link pasted into a chat unfurls without naming the page or sender
