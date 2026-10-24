@@ -401,8 +401,9 @@ async function reauthenticate(password: string): Promise<boolean> {
  * operator elevated: a dead caller must never see a go-ahead).
  */
 function requestElevation(caller: ElevationCaller = ALWAYS_LIVE): Promise<boolean> {
-  if (elevated.value) return Promise.resolve(true);
+  // Liveness first: a dead caller gets no go-ahead even while a window is live.
   if (!caller.live()) return Promise.resolve(false);
+  if (elevated.value) return Promise.resolve(true);
   // A second request while the prompt is open (a double click, a 403 beside an
   // opener) waits on the SAME answer. Replacing the resolver would leave the
   // first caller awaiting a promise nothing can settle.
@@ -458,7 +459,10 @@ function noteElevationRequired(): void {
  * The prompt reads `promptGeneration` before it awaits the elevate request and
  * passes it back here, so a completion from a cycle that was cancelled
  * meanwhile (and replaced by a newer request) is ignored rather than settling
- * the newer request. Internal callers may omit it.
+ * the newer request. If that stale completion was a successful elevate, the
+ * window it minted is live, but the newer prompt still waits for its own
+ * operator gesture: honouring it would be auto-elevation across callers.
+ * Internal callers may omit it.
  */
 function resolvePrompt(didElevate: boolean, promptGeneration?: number): void {
   if (!promptOpen.value) return;
