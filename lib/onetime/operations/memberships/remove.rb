@@ -27,6 +27,7 @@ module Onetime
       # delegates the three-structure invariant to Familia's remove_members_instance
       # (ZREM from org.members, SREM the org from customer.participations, destroy the
       # hash). So the member's materialized entitlements are fully cleared on removal.
+      # The member's default_org_id is cleared when it names the org (#4860).
       #
       # ## Sole-owner guardrail
       #
@@ -121,6 +122,13 @@ module Onetime
 
           removed_role = membership.role
           membership.destroy_with_index_cleanup!
+
+          # The teardown already cleared a default_org_id naming this org,
+          # through the membership's own copy of the customer
+          # (Organization#remove_members_instance, #4860). Repeat it on the
+          # caller's copy: Customers::Purge keeps using that object, and its
+          # later preflights must not follow a pointer to the org just left.
+          @org.clear_default_org_pointer(@customer)
 
           # One audit event per real removal, emitted from the op (adapters MUST
           # NOT audit). Public ids only; no secret detail.

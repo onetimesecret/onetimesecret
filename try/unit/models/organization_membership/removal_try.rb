@@ -368,11 +368,70 @@ Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @reinvite_custo
 @org.pending_invitation_count
 #=> 1
 
+# ============================================================================
+# default_org_id naming the org is cleared on removal (#4860)
+# ============================================================================
+
+## Pointer: a member whose default_org_id names the org
+@ptr_member = Onetime::Customer.create!(email: generate_unique_test_email("removal_ptr"))
+@ptr_ms = Onetime::OrganizationMembership.ensure_membership(@org, @ptr_member)
+@ptr_member.default_org_id = @org.objid
+@ptr_member.save
+Onetime::Customer.load(@ptr_member.objid).default_org_id == @org.objid
+#=> true
+
+## Pointer: removal deletes the stored field
+@ptr_ms.destroy_with_index_cleanup!
+Onetime::Customer.dbclient.hget(@ptr_member.dbkey, 'default_org_id')
+#=> nil
+
+## Pointer: the customer record itself is untouched
+Onetime::Customer.load(@ptr_member.objid)&.email == @ptr_member.email
+#=> true
+
+## Pointer elsewhere: a default_org_id naming another org survives the removal
+@kept_member = Onetime::Customer.create!(email: generate_unique_test_email("removal_ptr_kept"))
+@kept_ms = Onetime::OrganizationMembership.ensure_membership(@org, @kept_member)
+@kept_pointer = "elsewhere#{SecureRandom.hex(4)}"
+@kept_member.default_org_id = @kept_pointer
+@kept_member.save
+@kept_ms.destroy_with_index_cleanup!
+Onetime::Customer.load(@kept_member.objid).default_org_id == @kept_pointer
+#=> true
+
+## Legacy: a bare (not JSON-encoded) pointer is cleared too
+@legacy_member = Onetime::Customer.create!(email: generate_unique_test_email("removal_ptr_legacy"))
+@legacy_ms = Onetime::OrganizationMembership.ensure_membership(@org, @legacy_member)
+Onetime::Customer.dbclient.hset(@legacy_member.dbkey, 'default_org_id', @org.objid)
+@legacy_ms.destroy_with_index_cleanup!
+Onetime::Customer.dbclient.hget(@legacy_member.dbkey, 'default_org_id')
+#=> nil
+
+## Caller's copy: the object passed to remove_members_instance is cleared too
+@copy_member = Onetime::Customer.create!(email: generate_unique_test_email("removal_ptr_copy"))
+Onetime::OrganizationMembership.ensure_membership(@org, @copy_member)
+@copy_member.default_org_id = @org.objid
+@copy_member.save
+@org.remove_members_instance(@copy_member)
+[@copy_member.default_org_id, Onetime::Customer.dbclient.hget(@copy_member.dbkey, 'default_org_id')]
+#=> [nil, nil]
+
+## Deleted customer: clearing never writes the customer hash back
+@gone_member = Onetime::Customer.create!(email: generate_unique_test_email("removal_ptr_gone"))
+Onetime::OrganizationMembership.ensure_membership(@org, @gone_member)
+@gone_member.default_org_id = @org.objid
+@gone_member.save
+Onetime::Customer.dbclient.del(@gone_member.dbkey)
+@org.remove_members_instance(@gone_member)
+Onetime::Customer.dbclient.exists?(@gone_member.dbkey)
+#=> false
+
 # Cleanup
 @count_pending.destroy_with_index_cleanup! if @count_pending&.respond_to?(:destroy!)
 # Clean up reinvited member's active membership
 @reinvite_active = Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @reinvite_customer.objid)
 @reinvite_active&.destroy_with_index_cleanup!
-[@org, @owner, @member, @sc_member, @full_cleanup_customer, @idempotent_customer, @reinvite_customer, @count_member_a, @count_member_b].each do |obj|
+[@org, @owner, @member, @sc_member, @full_cleanup_customer, @idempotent_customer, @reinvite_customer, @count_member_a, @count_member_b,
+ @ptr_member, @kept_member, @legacy_member, @copy_member].each do |obj|
   obj.destroy! if obj&.respond_to?(:destroy!) && obj.exists?
 end
