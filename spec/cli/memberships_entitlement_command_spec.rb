@@ -5,14 +5,15 @@
 # CLI adapter tests for `bin/ots memberships entitlement …` (#3907).
 #
 # Covers the dry-cli three-level registration guard (D16), the landing command,
-# org + member resolution, the --yes / --json refusal, the interactive decline,
-# the membership-scoped advisories, the :not_found rendering and the op-status
-# -> exit-code mapping. The mutation itself is the op's job and is covered by
+# org + member resolution, the dry-run default (nothing written without
+# --apply, no prompt), the membership-scoped advisories, the :not_found
+# rendering and the op-status -> exit-code mapping. The mutation itself is the
+# op's job and is covered by
 # spec/unit/onetime/operations/memberships/entitlement_override_spec.rb — here
 # the op is stubbed at its constructor so these stay pure adapter tests.
 # Mirror of spec/cli/org_entitlement_command_spec.rb, one scope down.
 #
-# Run: bundle exec rspec spec/cli/memberships_entitlement_command_spec.rb
+# Run: tests/lanes/run unit --only spec/cli/memberships_entitlement_command_spec.rb
 
 require_relative 'cli_spec_helper'
 
@@ -71,6 +72,9 @@ RSpec.describe 'Memberships Entitlement Command', type: :cli do
   before do
     allow(Onetime::Organization).to receive(:find_by_extid).and_return(nil)
     allow(Onetime::Organization).to receive(:find_by_extid).with('on_org_ext').and_return(organization)
+    # ORG resolves through Org::Shared (extid first, objid fallback), so the
+    # objid branch needs a miss too.
+    allow(Onetime::Organization).to receive(:load).and_return(nil)
     allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(nil)
     allow(Onetime::Customer).to receive(:load_by_extid_or_email).with('ur_member').and_return(member)
     allow(Onetime::Operations::Memberships::EntitlementOverride).to receive(:new).and_return(operation)
@@ -113,7 +117,7 @@ RSpec.describe 'Memberships Entitlement Command', type: :cli do
 
   describe 'grant' do
     it 'exits 1 when the organization cannot be resolved' do
-      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'nope', 'ur_member', 'custom_branding', '--yes')
+      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'nope', 'ur_member', 'custom_branding', '--apply')
 
       expect(last_exit_code).to eq(1)
       expect(output[:stdout]).to include('Error: Organization not found: nope')
@@ -121,7 +125,7 @@ RSpec.describe 'Memberships Entitlement Command', type: :cli do
     end
 
     it 'exits 1 when the member cannot be resolved' do
-      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ghost', 'custom_branding', '--yes')
+      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ghost', 'custom_branding', '--apply')
 
       expect(last_exit_code).to eq(1)
       expect(output[:stdout]).to include('Error: Customer not found: ghost')
@@ -129,7 +133,7 @@ RSpec.describe 'Memberships Entitlement Command', type: :cli do
     end
 
     it 'calls the op with the shared CLI sentinel actor, never a Customer' do
-      run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--yes')
+      run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--apply')
 
       expect(Onetime::Operations::Memberships::EntitlementOverride).to have_received(:new).with(
         org: organization,
@@ -141,35 +145,52 @@ RSpec.describe 'Memberships Entitlement Command', type: :cli do
       )
     end
 
-    it 'refuses to apply without --yes in --json mode' do
-      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--json')
+    context 'without --apply (the default dry run)' do
+      before do
+        allow(operation).to receive(:call).and_return(result.with(status: :planned, dry_run: true))
+      end
+
+      it 'asks the op for a dry run, never prompting' do
+        allow($stdin).to receive(:gets)
+
+        output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding')
+
+        expect(last_exit_code).to eq(0)
+        expect(Onetime::Operations::Memberships::EntitlementOverride).to have_received(:new)
+          .with(hash_including(dry_run: true))
+        expect(output[:stdout]).to include('DRY RUN — nothing was written')
+        expect(output[:stdout]).to include('Re-run with --apply to grant.')
+        expect($stdin).not_to have_received(:gets)
+      end
+
+      it 'emits dry_run: true in --json and exits 0' do
+        output = run_cli_command_quietly(
+          'memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--json'
+        )
+
+        expect(last_exit_code).to eq(0)
+        expect(JSON.parse(output[:stdout])).to include('status' => 'planned', 'dry_run' => true)
+      end
+    end
+
+    it 'treats --yes as --apply' do
+      run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--yes')
+
+      expect(Onetime::Operations::Memberships::EntitlementOverride).to have_received(:new)
+        .with(hash_including(dry_run: false))
+    end
+
+    it 'refuses --apply with --dry-run before calling the op' do
+      output = run_cli_command_quietly(
+        'memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--apply', '--dry-run'
+      )
 
       expect(last_exit_code).to eq(1)
-      expect(JSON.parse(output[:stdout])['error'])
-        .to eq('Refusing to grant entitlement overrides without --yes in --json mode')
+      expect(output[:stdout]).to include('--apply and --dry-run are contradictory')
       expect(Onetime::Operations::Memberships::EntitlementOverride).not_to have_received(:new)
     end
 
-    it 'aborts without calling the op when the confirmation is declined' do
-      allow($stdin).to receive(:gets).and_return("n\n")
-
-      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding')
-
-      expect(last_exit_code).to eq(0)
-      expect(output[:stdout]).to include('Aborted.')
-      expect(Onetime::Operations::Memberships::EntitlementOverride).not_to have_received(:new)
-    end
-
-    it 'applies after an interactive confirmation' do
-      allow($stdin).to receive(:gets).and_return("y\n")
-
-      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding')
-
-      expect(output[:stdout]).to include("Grant 'custom_branding' to me*****@example.com in on_org_ext?")
-      expect(Onetime::Operations::Memberships::EntitlementOverride).to have_received(:new)
-    end
-
-    it 'passes dry_run: true for --dry-run and needs no confirmation' do
+    it 'passes dry_run: true for --dry-run, which only states the default' do
       run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--dry-run')
 
       expect(Onetime::Operations::Memberships::EntitlementOverride).to have_received(:new)
@@ -177,7 +198,7 @@ RSpec.describe 'Memberships Entitlement Command', type: :cli do
     end
 
     it 'prints the resulting override sets on the text path' do
-      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--yes')
+      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--apply')
 
       expect(last_exit_code).to eq(0)
       expect(output[:stdout]).to include('Member:       ur_member')
@@ -187,8 +208,8 @@ RSpec.describe 'Memberships Entitlement Command', type: :cli do
       expect(output[:stdout]).to include('Revokes (0):')
     end
 
-    it 'emits the flat Result payload and exits 0 on --json --yes' do
-      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--yes', '--json')
+    it 'emits the flat Result payload and exits 0 on --json --apply' do
+      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--apply', '--json')
 
       payload = JSON.parse(output[:stdout])
       expect(last_exit_code).to eq(0)
@@ -204,7 +225,7 @@ RSpec.describe 'Memberships Entitlement Command', type: :cli do
     it 'exits 0 on the idempotent :no_change status' do
       allow(operation).to receive(:call).and_return(result.with(status: :no_change))
 
-      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--yes', '--json')
+      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--apply', '--json')
 
       expect(last_exit_code).to eq(0)
       expect(JSON.parse(output[:stdout])['status']).to eq('no_change')
@@ -214,7 +235,7 @@ RSpec.describe 'Memberships Entitlement Command', type: :cli do
       allow(operation).to receive(:call)
         .and_return(result.with(status: :not_found, effective: nil, grants: nil, revokes: nil))
 
-      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--yes')
+      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--apply')
 
       expect(last_exit_code).to eq(1)
       expect(output[:stdout]).to include('Error: me*****@example.com is not an active member of on_org_ext')
@@ -224,7 +245,7 @@ RSpec.describe 'Memberships Entitlement Command', type: :cli do
       allow(operation).to receive(:call)
         .and_return(result.with(status: :missing_entitlement, effective: nil, grants: nil, revokes: nil))
 
-      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--yes')
+      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--apply')
 
       expect(last_exit_code).to eq(1)
       expect(output[:stdout]).to include('Error: Entitlement is required for grant/revoke')
@@ -235,7 +256,7 @@ RSpec.describe 'Memberships Entitlement Command', type: :cli do
   # grant reaches can? directly, unbounded by plan or role template.
   describe 'grant-scope advisory' do
     it 'warns on STDERR that a membership grant is unbounded' do
-      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--yes')
+      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--apply')
 
       expect(output[:stderr]).to include("NOT bounded by the org's plan or the role template")
     end
@@ -245,14 +266,14 @@ RSpec.describe 'Memberships Entitlement Command', type: :cli do
     let(:billing_enabled) { false }
 
     it 'warns on STDERR before the op runs, and still applies' do
-      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--yes')
+      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--apply')
 
       expect(output[:stderr]).to include('BILLING IS DISABLED ON THIS INSTALL')
       expect(Onetime::Operations::Memberships::EntitlementOverride).to have_received(:new)
     end
 
     it 'keeps STDOUT parseable in --json mode (advisories never contaminate it)' do
-      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--yes', '--json')
+      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'custom_branding', '--apply', '--json')
 
       expect { JSON.parse(output[:stdout]) }.not_to raise_error
       expect(output[:stderr]).to include('BILLING IS DISABLED ON THIS INSTALL')
@@ -264,7 +285,7 @@ RSpec.describe 'Memberships Entitlement Command', type: :cli do
       allow(Onetime::Operations::Memberships::EntitlementOverride)
         .to receive(:known_entitlement?).with('future_feature_xyz').and_return(false)
 
-      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'future_feature_xyz', '--yes')
+      output = run_cli_command_quietly('memberships', 'entitlement', 'grant', 'on_org_ext', 'ur_member', 'future_feature_xyz', '--apply')
 
       expect(output[:stderr]).to include("'future_feature_xyz' is not in the billing catalog")
       expect(Onetime::Operations::Memberships::EntitlementOverride).to have_received(:new)
@@ -281,24 +302,26 @@ RSpec.describe 'Memberships Entitlement Command', type: :cli do
     end
 
     it 'calls the op with action revoke' do
-      run_cli_command_quietly('memberships', 'entitlement', 'revoke', 'on_org_ext', 'ur_member', 'api_access', '--yes')
+      run_cli_command_quietly('memberships', 'entitlement', 'revoke', 'on_org_ext', 'ur_member', 'api_access', '--apply')
 
       expect(Onetime::Operations::Memberships::EntitlementOverride).to have_received(:new)
         .with(hash_including(action: 'revoke', entitlement: 'api_access', dry_run: false))
     end
 
     it 'does NOT print the grant-scope advisory (that is a grant concern)' do
-      output = run_cli_command_quietly('memberships', 'entitlement', 'revoke', 'on_org_ext', 'ur_member', 'api_access', '--yes')
+      output = run_cli_command_quietly('memberships', 'entitlement', 'revoke', 'on_org_ext', 'ur_member', 'api_access', '--apply')
 
       expect(output[:stderr]).not_to include('NOT bounded by')
     end
 
-    it 'prompts with revoke wording' do
-      allow($stdin).to receive(:gets).and_return("n\n")
+    it 'is a dry run without --apply' do
+      allow(operation).to receive(:call).and_return(result.with(status: :planned, dry_run: true))
 
       output = run_cli_command_quietly('memberships', 'entitlement', 'revoke', 'on_org_ext', 'ur_member', 'api_access')
 
-      expect(output[:stdout]).to include("Revoke 'api_access' from me*****@example.com in on_org_ext?")
+      expect(Onetime::Operations::Memberships::EntitlementOverride).to have_received(:new)
+        .with(hash_including(action: 'revoke', dry_run: true))
+      expect(output[:stdout]).to include('Re-run with --apply to revoke.')
     end
   end
 
@@ -312,33 +335,27 @@ RSpec.describe 'Memberships Entitlement Command', type: :cli do
     end
 
     it 'takes no ENTITLEMENT argument and calls the op with entitlement: nil' do
-      run_cli_command_quietly('memberships', 'entitlement', 'clear', 'on_org_ext', 'ur_member', '--yes')
+      run_cli_command_quietly('memberships', 'entitlement', 'clear', 'on_org_ext', 'ur_member', '--apply')
 
       expect(Onetime::Operations::Memberships::EntitlementOverride).to have_received(:new)
         .with(hash_including(action: 'clear', entitlement: nil, dry_run: false))
     end
 
-    it 'refuses to wipe overrides without --yes in --json mode' do
-      output = run_cli_command_quietly('memberships', 'entitlement', 'clear', 'on_org_ext', 'ur_member', '--json')
-
-      expect(last_exit_code).to eq(1)
-      expect(JSON.parse(output[:stdout])['error'])
-        .to eq('Refusing to clear entitlement overrides without --yes in --json mode')
-      expect(Onetime::Operations::Memberships::EntitlementOverride).not_to have_received(:new)
-    end
-
-    it 'prompts with the destructive wording and aborts on a decline' do
-      allow($stdin).to receive(:gets).and_return("n\n")
+    it 'is a dry run without --apply, never prompting' do
+      allow(operation).to receive(:call).and_return(result.with(status: :planned, dry_run: true))
+      allow($stdin).to receive(:gets)
 
       output = run_cli_command_quietly('memberships', 'entitlement', 'clear', 'on_org_ext', 'ur_member')
 
-      expect(output[:stdout]).to include('Clear ALL entitlement overrides (every grant AND revoke)')
-      expect(output[:stdout]).to include('Aborted.')
-      expect(Onetime::Operations::Memberships::EntitlementOverride).not_to have_received(:new)
+      expect(last_exit_code).to eq(0)
+      expect(Onetime::Operations::Memberships::EntitlementOverride).to have_received(:new)
+        .with(hash_including(action: 'clear', dry_run: true))
+      expect(output[:stdout]).to include('Re-run with --apply to clear.')
+      expect($stdin).not_to have_received(:gets)
     end
 
     it 'renders "(all overrides)" rather than a blank entitlement line' do
-      output = run_cli_command_quietly('memberships', 'entitlement', 'clear', 'on_org_ext', 'ur_member', '--yes')
+      output = run_cli_command_quietly('memberships', 'entitlement', 'clear', 'on_org_ext', 'ur_member', '--apply')
 
       expect(output[:stdout]).to include('Entitlement:  (all overrides)')
       expect(last_exit_code).to eq(0)
@@ -400,7 +417,7 @@ RSpec.describe 'Memberships Entitlement Command', type: :cli do
 
       expect(output[:stdout]).to include('+ orphan_ent')
       expect(output[:stdout]).to include('- custom_branding')
-      expect(output[:stdout]).to include('bin/ots org reconcile on_org_ext --yes')
+      expect(output[:stdout]).to include('bin/ots organizations reconcile on_org_ext --apply')
     end
 
     it 'emits the whole report as JSON with --json' do

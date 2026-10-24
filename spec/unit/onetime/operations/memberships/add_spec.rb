@@ -6,9 +6,10 @@
 #
 # Covers: fresh add (+ exactly one audit, via ensure_membership), already-member
 # idempotent :no_change (role untouched, attempt STILL audited with
-# outcome: 'no_change' — #4337), invalid role, and role convergence when
+# outcome: 'no_change' — #4337), invalid role, role convergence when
 # ensure_membership activates a pending invitation whose stored role differs
-# from the operator's request.
+# from the operator's request, and dry_run (no write, preview on the
+# observation trail).
 #
 # Run: pnpm run test:rspec spec/unit/onetime/operations/memberships/add_spec.rb
 
@@ -108,8 +109,8 @@ RSpec.describe Onetime::Operations::Memberships::Add do
 
     # The mutation is skipped, the attempt is not (#4337). Same verb and target
     # as the applied event; detail mirrors its shape (the member's CURRENT
-    # role, org_id) plus the outcome marker. The op has no dry_run, so the
-    # record is unconditional — and it never touches the observation trail.
+    # role, org_id) plus the outcome marker. A live call never touches the
+    # observation trail; the dry-run equivalent is covered below.
     it 'records ONE outcome: no_change attempt and does not call ensure_membership (#4337)' do
       allow(Onetime::OrganizationMembership).to receive(:ensure_membership)
 
@@ -124,6 +125,74 @@ RSpec.describe Onetime::Operations::Memberships::Add do
       )
       expect(Onetime::ColonelAuditEvent).not_to have_received(:record_access)
       expect(Onetime::OrganizationMembership).not_to have_received(:ensure_membership)
+    end
+  end
+
+  context 'with dry_run: true' do
+    def dry_run(role: 'member')
+      described_class.new(org: org, customer: customer, role: role, actor: actor, dry_run: true).call
+    end
+
+    before { allow(Onetime::OrganizationMembership).to receive(:ensure_membership) }
+
+    context 'when the customer is not yet a member' do
+      before { allow(org).to receive(:member?).with(customer).and_return(false) }
+
+      it 'returns :dry_run with the requested role and writes nothing' do
+        result = dry_run(role: 'admin')
+
+        expect(result.status).to eq(:dry_run)
+        expect(result.role).to eq('admin')
+        expect(Onetime::OrganizationMembership).not_to have_received(:ensure_membership)
+      end
+
+      it 'records ONE preview on the observation trail, never the operator trail (#4337)' do
+        dry_run
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+          actor: actor,
+          verb: 'membership.add',
+          target: 'ur_member',
+          result: 'preview',
+          detail: { role: 'member', org_id: 'on_org_ext', dry_run: true },
+        )
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      end
+    end
+
+    context 'when the customer is already a member' do
+      before do
+        allow(org).to receive(:member?).with(customer).and_return(true)
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+          .and_return(double('OrganizationMembership', role: 'admin'))
+      end
+
+      it 'is :no_change, previewed with the outcome marker instead of an attempt' do
+        result = dry_run
+
+        expect(result.status).to eq(:no_change)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+          actor: actor,
+          verb: 'membership.add',
+          target: 'ur_member',
+          result: 'preview',
+          detail: { role: 'admin', org_id: 'on_org_ext', outcome: 'no_change', dry_run: true },
+        )
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      end
+    end
+
+    it 'still records an invalid role as a refusal, marked dry_run' do
+      allow(org).to receive(:member?).and_return(false)
+
+      expect(dry_run(role: 'wizard').status).to eq(:invalid_role)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        actor: actor,
+        verb: 'membership.add',
+        target: 'ur_member',
+        result: :failure,
+        detail: { reason: 'invalid_role', role: 'wizard', org_id: 'on_org_ext', dry_run: true },
+      )
     end
   end
 

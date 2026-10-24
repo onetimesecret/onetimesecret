@@ -5,10 +5,9 @@
 # Wipe ALL operator entitlement overrides on an organization membership.
 #
 # Usage:
-#   bin/ots memberships entitlement clear ORG CUSTOMER --dry-run  # Project the result, write nothing
-#   bin/ots memberships entitlement clear ORG CUSTOMER            # Confirm, then apply
-#   bin/ots memberships entitlement clear ORG CUSTOMER --yes      # Apply, no prompt
-#   bin/ots memberships entitlement clear ORG CUSTOMER --yes --json
+#   bin/ots memberships entitlement clear ORG CUSTOMER            # Dry run (the default): project the result
+#   bin/ots memberships entitlement clear ORG CUSTOMER --apply    # Apply
+#   bin/ots memberships entitlement clear ORG CUSTOMER --apply --json
 #
 # ORG is an org extid (see Onetime::CLI::Memberships::Shared#resolve_org);
 # CUSTOMER is an email, extid, or Rodauth account id.
@@ -43,21 +42,21 @@ module Onetime
         required: true,
         desc: 'Member email, extid, or Rodauth account ID'
 
-      option :yes,
+      option :apply,
         type: :boolean,
         default: false,
-        aliases: ['-y', '-f'],
-        desc: 'Skip confirmation prompt (required to apply)'
+        aliases: ['-y', '--yes', '-f'],
+        desc: 'Write the override (default: dry run, project the resulting sets)'
       option :dry_run,
         type: :boolean,
         default: false,
-        desc: 'Project the resulting override sets; write nothing'
+        desc: 'Preview only (the default; contradicts --apply)'
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
-      def call(org:, customer:, yes: false, dry_run: false, json: false, **)
+      def call(org:, customer:, apply: false, dry_run: false, json: false, **)
         boot_application!
 
         organization = resolve_org(org, json: json)
@@ -68,7 +67,7 @@ module Onetime
           member,
           action: 'clear',
           entitlement: nil,
-          yes: yes,
+          apply: apply,
           dry_run: dry_run,
           json: json,
         )

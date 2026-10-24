@@ -6,14 +6,20 @@
   import { useI18n } from 'vue-i18n';
 
   import { useColonelElevation } from '../composables/useColonelElevation';
+  import AdminModal from './kit/AdminModal.vue';
 
   /**
    * The step-up (sudo) prompt (#4327).
    *
-   * Mounted ONCE, in AdminLayout, and driven by the module-level state in
+   * ONE instance is mounted at a time, driven by the module-level state in
    * {@link useColonelElevation}: a destructive mutation anywhere in the console
    * calls `requestElevation()`, this opens, and the promise resolves when the
-   * operator finishes or dismisses.
+   * operator finishes or dismisses. AdminLayout mounts it while no admin kit
+   * dialog is open; otherwise the top-most open kit dialog does, nested inside
+   * its headlessui Dialog (useElevationPromptHost explains why).
+   *
+   * Every fork renders through a headlessui Dialog, so it is portaled out of
+   * #app (which an open dialog makes inert) and nests under its host.
    *
    * ## It always requires an explicit operator gesture
    *
@@ -57,16 +63,21 @@
     }
   );
 
+  // Each completion settles the prompt cycle it was started in. If this cycle
+  // is cancelled while the request is in flight and a newer one opens, the late
+  // success must not resolve the newer caller's request.
   async function onPassword(password: string): Promise<void> {
-    if (await elevation.elevate('password', password)) elevation.resolvePrompt(true);
+    const generation = elevation.promptGeneration.value;
+    if (await elevation.elevate('password', password)) elevation.resolvePrompt(true, generation);
   }
 
   async function onGrace(): Promise<void> {
-    if (await elevation.elevate('recent_auth')) elevation.resolvePrompt(true);
+    const generation = elevation.promptGeneration.value;
+    if (await elevation.elevate('recent_auth')) elevation.resolvePrompt(true, generation);
   }
 
   function onCancel(): void {
-    elevation.resolvePrompt(false);
+    elevation.resolvePrompt(false, elevation.promptGeneration.value);
   }
 </script>
 
@@ -87,70 +98,70 @@
     @cancel="onCancel"
     @update:open="(value: boolean) => { if (!value) onCancel(); }" />
 
-  <!-- Forks 2 and 3 share a plain panel: neither takes a credential, and the
-       shared password modal cannot render without its input. -->
-  <div
-    v-else-if="elevation.promptOpen.value"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/75 p-4 dark:bg-gray-900/80"
-    role="dialog"
-    aria-modal="true"
-    :aria-label="t('web.admin.elevation.prompt.title')">
-    <div
-      class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-900"
-      data-testid="elevation-prompt-alt">
-      <h2 class="font-brand text-lg font-bold text-gray-900 dark:text-gray-100">
-        {{ t('web.admin.elevation.prompt.title') }}
-      </h2>
+  <!-- Forks 2 and 3 share the kit's modal shell: neither takes a credential,
+       and the shared password modal cannot render without its input. -->
+  <AdminModal
+    v-else
+    :open="elevation.promptOpen.value"
+    :title="t('web.admin.elevation.prompt.title')"
+    width-class="max-w-md"
+    testid="elevation-prompt-alt"
+    @close="onCancel">
+    <template v-if="useGraceFork">
+      <p class="text-sm text-gray-600 dark:text-gray-300">
+        {{ t('web.admin.elevation.prompt.confirmItsYouDescription', { minutes: windowMinutes }) }}
+      </p>
+      <p
+        v-if="elevation.error.value"
+        class="mt-3 text-sm text-red-600 dark:text-red-400"
+        data-testid="elevation-prompt-error">
+        {{ elevation.error.value }}
+      </p>
+    </template>
 
-      <template v-if="useGraceFork">
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
-          {{ t('web.admin.elevation.prompt.confirmItsYouDescription', { minutes: windowMinutes }) }}
-        </p>
-        <p
-          v-if="elevation.error.value"
-          class="mt-3 text-sm text-red-600 dark:text-red-400"
-          data-testid="elevation-prompt-error">
-          {{ elevation.error.value }}
-        </p>
-        <div class="mt-5 flex justify-end gap-3">
-          <button
-            type="button"
-            class="rounded-md px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
-            @click="onCancel">
-            {{ t('web.COMMON.word_cancel') }}
-          </button>
-          <!-- ONE deliberate click. Never fired on mount, never on a watcher. -->
-          <button
-            type="button"
-            class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
-            :disabled="elevation.loading.value"
-            data-testid="elevation-confirm-its-you"
-            @click="onGrace">
-            {{ t('web.admin.elevation.prompt.confirmItsYou') }}
-          </button>
-        </div>
-      </template>
+    <!-- Fork 3: password-less account, no grace configured. There is no input
+         to render — only the remediation an administrator must apply. -->
+    <template v-else>
+      <p
+        class="text-sm text-gray-600 dark:text-gray-300"
+        data-testid="elevation-prompt-unsatisfiable">
+        {{ t('web.admin.elevation.errors.noPassword') }}
+      </p>
+      <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+        {{ t('web.admin.elevation.errors.noGrace') }}
+      </p>
+    </template>
 
-      <!-- Fork 3: password-less account, no grace configured. There is no input
-           to render — only the remediation an administrator must apply. -->
-      <template v-else>
-        <p
-          class="mt-2 text-sm text-gray-600 dark:text-gray-300"
-          data-testid="elevation-prompt-unsatisfiable">
-          {{ t('web.admin.elevation.errors.noPassword') }}
-        </p>
-        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.admin.elevation.errors.noGrace') }}
-        </p>
-        <div class="mt-5 flex justify-end">
-          <button
-            type="button"
-            class="rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
-            @click="onCancel">
-            {{ t('web.LABELS.close') }}
-          </button>
-        </div>
-      </template>
-    </div>
-  </div>
+    <template #footer>
+      <div
+        v-if="useGraceFork"
+        class="flex justify-end gap-3">
+        <button
+          type="button"
+          class="rounded-md px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
+          @click="onCancel">
+          {{ t('web.COMMON.word_cancel') }}
+        </button>
+        <!-- ONE deliberate click. Never fired on mount, never on a watcher. -->
+        <button
+          type="button"
+          class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+          :disabled="elevation.loading.value"
+          data-testid="elevation-confirm-its-you"
+          @click="onGrace">
+          {{ t('web.admin.elevation.prompt.confirmItsYou') }}
+        </button>
+      </div>
+      <div
+        v-else
+        class="flex justify-end">
+        <button
+          type="button"
+          class="rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
+          @click="onCancel">
+          {{ t('web.LABELS.close') }}
+        </button>
+      </div>
+    </template>
+  </AdminModal>
 </template>

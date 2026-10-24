@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import AdminAccountDiagnosticsSection from '@/apps/admin/components/AdminAccountDiagnosticsSection.vue';
   import AdminCustomerSessionsSection from '@/apps/admin/components/AdminCustomerSessionsSection.vue';
+  import AdminCustomerOrganizationsSection from '@/apps/admin/components/customers/AdminCustomerOrganizationsSection.vue';
   import {
     AdminConfirmDialog,
     DataTable,
@@ -399,6 +400,7 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
+    useElevateThenOpen,
   } = useAdminDestructiveMutation(async (reason?: string) => {
     // Every DANGER action is gated server-side (#4326) on the SAME token the
     // dialog asks the operator to retype. A missing one is a bug, not a
@@ -647,16 +649,42 @@
     purge: 'web.admin.customers.actions.purge.success',
   };
 
-  function requestAction(key: ActionKey): void {
-    // Fail closed: never open a danger dialog whose typed token is blank —
-    // AdminConfirmDialog runs an empty token as a one-click simple confirm.
-    if (DANGER_ACTIONS.includes(key) && !confirmTokenFor(key)) return;
-    // ...nor one the server's self-target interlocks will refuse (#4328).
-    if (key === 'unverify' && selfUnverifyBlocked.value) return;
-    activeAction.value = key;
-    resetMutation();
-    dialogOpen.value = true;
-  }
+  /**
+   * The TIER 1 verbs on this page (SetUserRole, PurgeUser in
+   * ColonelAPI::DestructiveActions). Their openers prove the step-up
+   * credential BEFORE the dialog collects the token and reason; the TIER 2 and
+   * un-gated verbs here open straight away.
+   */
+  const ELEVATED_ACTIONS: readonly ActionKey[] = ['setRole', 'purge'];
+
+  const { open: requestAction, opening: actionOpening } = useElevateThenOpen(
+    (key: ActionKey) => {
+      activeAction.value = key;
+      resetMutation();
+      dialogOpen.value = true;
+    },
+    {
+      target: () => publicId.value,
+      canOpen: (key) => {
+        if (!record.value || dialogOpen.value || mutationLoading.value) return false;
+        // A blank danger token would turn typed confirmation into one click.
+        if (DANGER_ACTIONS.includes(key) && !confirmTokenFor(key)) return false;
+        if (key === 'unverify' && selfUnverifyBlocked.value) return false;
+        if (key === 'setRole') {
+          return (
+            !!pendingRole.value &&
+            pendingRole.value !== record.value.role &&
+            !selfDemoteBlocked.value
+          );
+        }
+        if (key === 'impersonate') {
+          return impersonateAvailable.value && !!impersonateReason.value.trim();
+        }
+        return true;
+      },
+      requiresElevation: (key) => ELEVATED_ACTIONS.includes(key),
+    }
+  );
 
   /**
    * Open the impersonation confirm. Refuses when the target is ineligible or
@@ -666,15 +694,15 @@
    */
   function requestImpersonate(): void {
     if (!impersonateAvailable.value || !impersonateReason.value.trim()) return;
-    requestAction('impersonate');
+    void requestAction('impersonate');
   }
 
-  function requestSetRole(): void {
+  async function requestSetRole(): Promise<void> {
     // No-op guard: ignore if the role is unchanged (nothing to confirm).
     if (!pendingRole.value || pendingRole.value === record.value?.role) return;
     // Fail closed on the interlocks the server enforces (#4328).
     if (selfDemoteBlocked.value) return;
-    requestAction('setRole');
+    await requestAction('setRole');
   }
 
   async function onConfirm(reason?: string): Promise<void> {
@@ -1077,7 +1105,13 @@
                 <button
                   type="button"
                   data-testid="role-apply"
-                  :disabled="pendingRole === record.role || selfDemoteBlocked"
+                  :disabled="
+                    pendingRole === record.role ||
+                    selfDemoteBlocked ||
+                    actionOpening ||
+                    dialogOpen ||
+                    mutationLoading
+                  "
                   :aria-describedby="selfDemoteBlocked ? 'self-demote-reason' : undefined"
                   class="inline-flex shrink-0 items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
                   @click="requestSetRole">
@@ -1107,6 +1141,7 @@
               v-if="!record.verified"
               type="button"
               data-testid="verify-button"
+              :disabled="actionOpening || dialogOpen || mutationLoading"
               class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
               @click="requestAction('verify')">
               <OIcon
@@ -1119,7 +1154,7 @@
               <button
                 type="button"
                 data-testid="unverify-button"
-                :disabled="selfUnverifyBlocked"
+                :disabled="selfUnverifyBlocked || actionOpening || dialogOpen || mutationLoading"
                 :aria-describedby="selfUnverifyBlocked ? 'self-unverify-reason' : undefined"
                 class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
                 @click="requestAction('unverify')">
@@ -1172,6 +1207,7 @@
                   <button
                     type="button"
                     data-testid="suspend-button"
+                    :disabled="actionOpening || dialogOpen || mutationLoading"
                     class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
                     @click="requestAction('suspend')">
                     <OIcon
@@ -1186,6 +1222,7 @@
                 v-else
                 type="button"
                 data-testid="unsuspend-button"
+                :disabled="actionOpening || dialogOpen || mutationLoading"
                 class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
                 @click="requestAction('unsuspend')">
                 <OIcon
@@ -1225,7 +1262,13 @@
               <button
                 type="button"
                 data-testid="impersonate-button"
-                :disabled="!impersonateAvailable || !impersonateReason.trim()"
+                :disabled="
+                  !impersonateAvailable ||
+                  !impersonateReason.trim() ||
+                  actionOpening ||
+                  dialogOpen ||
+                  mutationLoading
+                "
                 :aria-describedby="!impersonateAvailable ? 'impersonate-blocked-reason' : undefined"
                 class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-amber-400 px-3 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-amber-600 dark:text-amber-300 dark:hover:bg-amber-900/30"
                 @click="requestImpersonate">
@@ -1252,7 +1295,7 @@
               <button
                 type="button"
                 data-testid="purge-button"
-                :disabled="purgeBlocked"
+                :disabled="purgeBlocked || actionOpening || dialogOpen || mutationLoading"
                 :aria-describedby="purgeBlocked ? 'purge-blocked-reason' : undefined"
                 class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
                 @click="requestAction('purge')">
@@ -1274,68 +1317,13 @@
         </section>
       </div>
 
-      <!-- Organizations -->
-      <section
-        class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-            {{ t('web.admin.customers.detail.sections.organizations') }}
-            <span
-              v-if="details.organizations"
-              class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
-              >({{ details.organizations.length }})</span
-            >
-          </h3>
-        </div>
-        <p
-          v-if="!details.organizations"
-          class="px-6 py-8 text-center text-sm text-amber-700 dark:text-amber-400"
-          data-testid="section-invalid-organizations">
-          {{ t('web.admin.customers.detail.sectionInvalid') }}
-        </p>
-        <ul
-          v-else-if="details.organizations.length > 0"
-          class="divide-y divide-gray-200 dark:divide-gray-800"
-          data-testid="organizations-list">
-          <li
-            v-for="org in details.organizations"
-            :key="org.organization_id"
-            class="flex items-center justify-between px-6 py-3">
-            <div class="min-w-0">
-              <p class="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
-                {{ org.display_name || t('web.admin.customers.detail.none') }}
-              </p>
-              <p class="truncate font-mono text-xs text-gray-400 dark:text-gray-500">
-                {{ org.extid }}
-              </p>
-            </div>
-            <div class="ml-3 flex shrink-0 items-center gap-2">
-              <!-- This customer's default, not the owner's auto-created workspace -->
-              <span
-                v-if="org.is_customer_default"
-                data-testid="organization-default-badge"
-                class="rounded bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
-                {{ t('web.admin.customers.detail.organizations.default') }}
-              </span>
-              <router-link
-                :to="{ name: 'AdminOrganizationDetail', params: { id: org.extid } }"
-                data-testid="organization-link"
-                class="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800">
-                {{ t('web.admin.customers.detail.organizations.open') }}
-                <OIcon
-                  collection="heroicons"
-                  name="arrow-right"
-                  size="4" />
-              </router-link>
-            </div>
-          </li>
-        </ul>
-        <p
-          v-else
-          class="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.admin.customers.detail.organizations.empty') }}
-        </p>
-      </section>
+      <!-- Organizations, with this customer's default marked and the control
+           that moves the default to another organization in the list. -->
+      <AdminCustomerOrganizationsSection
+        :user-id="publicId"
+        :organizations="details.organizations"
+        :confirm-token="accountConfirmToken(record) ?? ''"
+        @changed="refreshUser().catch(() => {})" />
 
       <!-- Secrets -->
       <section

@@ -18,7 +18,9 @@ module Onetime
         default: false,
         desc: 'Refresh cache from Stripe before listing'
 
-      def call(refresh: false, **)
+      def call(args: [], refresh: false, **)
+        reject_unknown_subcommand(args)
+
         boot_application!
 
         return unless stripe_configured?

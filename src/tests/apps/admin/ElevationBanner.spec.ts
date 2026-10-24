@@ -38,6 +38,23 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
   },
 }));
 
+// The shared modal wraps Headless UI (own spec); a light stand-in that renders
+// while open, shows the error prop, and emits what the real one emits. Its
+// root takes the banner's data-testid through attribute fallthrough.
+vi.mock('@/shared/components/modals/PasswordConfirmModal.vue', () => ({
+  default: {
+    name: 'PasswordConfirmModal',
+    props: ['open', 'title', 'description', 'confirmText', 'loading', 'error', 'variant'],
+    emits: ['confirm', 'cancel', 'update:open'],
+    template: `
+      <div v-if="open">
+        <p data-testid="reauth-modal-error">{{ error }}</p>
+        <button data-testid="reauth-modal-confirm" @click="$emit('confirm', 'hunter2')">ok</button>
+        <button data-testid="reauth-modal-cancel" @click="$emit('cancel')">cancel</button>
+      </div>`,
+  },
+}));
+
 import ElevationBanner from '@/apps/admin/components/ElevationBanner.vue';
 import {
   __resetColonelElevationState,
@@ -47,11 +64,15 @@ import {
   ADMIN_SESSION_EXPIRED_PREFIX,
   noteAdminSessionExpiry,
 } from '@/apps/admin/utils/adminSessionExpiry';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
 
-function statusPayload(record: Record<string, unknown> = {}) {
+function statusPayload(
+  record: Record<string, unknown> = {},
+  details: Record<string, unknown> = {}
+) {
   return {
     shrimp: '',
     record: { elevated: false, expires_at: null, seconds_remaining: 0, ...record },
@@ -62,6 +83,7 @@ function statusPayload(record: Record<string, unknown> = {}) {
       grace_available: false,
       password_available: true,
       factors: ['password'],
+      ...details,
     },
   };
 }
@@ -218,6 +240,133 @@ describe('ElevationBanner', () => {
       await flushPromises();
 
       expect(wrapper.find('[data-testid="admin-session-expired-banner"]').exists()).toBe(false);
+    });
+  });
+
+  // Re-entering the password renews the admin session in place
+  // (POST /api/colonel/reauthenticate, exempt from the admin bound), so the
+  // operator does not lose the page to a sign-out round trip.
+  describe('re-authenticating the expired session by password', () => {
+    let reloadMock: ReturnType<typeof vi.fn>;
+    const originalLocation = window.location;
+
+    beforeEach(() => {
+      reloadMock = vi.fn();
+      Object.defineProperty(window, 'location', {
+        value: { ...originalLocation, reload: reloadMock, assign: vi.fn() },
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(window, 'location', {
+        value: originalLocation,
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    async function mountExpired(details: Record<string, unknown> = {}): Promise<void> {
+      mockApi.get.mockResolvedValue({ data: statusPayload({}, details) });
+      wrapper = mount(ElevationBanner, { global: { plugins: [i18n] } });
+      await flushPromises();
+      noteAdminSessionExpiry(expiredError('idle'));
+      await flushPromises();
+    }
+
+    it('offers "Re-enter password" first and keeps "Sign in" beside it', async () => {
+      await mountExpired();
+
+      const banner = wrapper.find('[data-testid="admin-session-expired-banner"]');
+      const reauth = banner.find('[data-testid="admin-session-reauth"]');
+      expect(reauth.exists()).toBe(true);
+      expect(reauth.text()).toBe('web.admin.session.reauth.button');
+      expect(banner.find('[data-testid="admin-session-signin"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="admin-session-reauth-modal"]').exists()).toBe(false);
+    });
+
+    it('opens the password modal, posts the password, and reloads on success', async () => {
+      const authRefresh = vi.spyOn(useAuthStore(), 'refresh').mockResolvedValue('applied');
+      await mountExpired();
+      mockApi.post.mockResolvedValue({
+        data: {
+          shrimp: '',
+          record: { reauthenticated: true, authenticated_at: 1_700_000_000 },
+          details: { session_rotated: true },
+        },
+      });
+
+      await wrapper.find('[data-testid="admin-session-reauth"]').trigger('click');
+      expect(wrapper.find('[data-testid="admin-session-reauth-modal"]').exists()).toBe(true);
+
+      await wrapper.find('[data-testid="reauth-modal-confirm"]').trigger('click');
+      await flushPromises();
+
+      expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/reauthenticate', {
+        password: 'hunter2',
+      });
+      // The renewed session id is adopted before the reload (see the composable).
+      expect(authRefresh).toHaveBeenCalledWith({ kind: 'auth-mutation', reason: 'reauth' });
+      expect(reloadMock).toHaveBeenCalledTimes(1);
+      expect(wrapper.find('[data-testid="admin-session-expired-banner"]').exists()).toBe(false);
+    });
+
+    it('shows the server error inside the modal and stays expired on a wrong password', async () => {
+      await mountExpired();
+      const refused = new AxiosError('Request failed with status code 403');
+      refused.response = {
+        status: 403,
+        statusText: 'Forbidden',
+        headers: {},
+        config: {} as never,
+        data: { error: 'Password verification failed.', error_code: 'reauthentication_failed' },
+      };
+      mockApi.post.mockRejectedValue(refused);
+
+      await wrapper.find('[data-testid="admin-session-reauth"]').trigger('click');
+      await wrapper.find('[data-testid="reauth-modal-confirm"]').trigger('click');
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="admin-session-reauth-modal"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="reauth-modal-error"]').text()).toBe(
+        'Password verification failed.'
+      );
+      expect(reloadMock).not.toHaveBeenCalled();
+      expect(wrapper.find('[data-testid="admin-session-expired-banner"]').exists()).toBe(true);
+    });
+
+    it('clears the error when the modal is cancelled', async () => {
+      await mountExpired();
+      mockApi.post.mockRejectedValue(
+        Object.assign(new AxiosError('Request failed with status code 403'), {
+          response: {
+            status: 403,
+            statusText: 'Forbidden',
+            headers: {},
+            config: {} as never,
+            data: { error: 'Password verification failed.' },
+          },
+        })
+      );
+
+      await wrapper.find('[data-testid="admin-session-reauth"]').trigger('click');
+      await wrapper.find('[data-testid="reauth-modal-confirm"]').trigger('click');
+      await flushPromises();
+      await wrapper.find('[data-testid="reauth-modal-cancel"]').trigger('click');
+
+      expect(wrapper.find('[data-testid="admin-session-reauth-modal"]').exists()).toBe(false);
+      expect(useColonelElevation().reauthError.value).toBeNull();
+    });
+
+    // An earlier status read said this account has no password (SSO-only):
+    // the password action could only fail, so only "Sign in" is offered.
+    it('offers only "Sign in" when the account is known to have no password', async () => {
+      await mountExpired({ password_available: false });
+
+      const banner = wrapper.find('[data-testid="admin-session-expired-banner"]');
+      expect(banner.find('[data-testid="admin-session-reauth"]').exists()).toBe(false);
+      expect(banner.find('[data-testid="admin-session-signin"]').exists()).toBe(true);
     });
   });
 

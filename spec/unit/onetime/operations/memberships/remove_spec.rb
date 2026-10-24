@@ -6,7 +6,8 @@
 #
 # Covers: successful removal (destroy_with_index_cleanup! + exactly one audit),
 # not-found and the sole-owner guardrail (no destroy, one result: :failure audit
-# event each), and a raising teardown (AuditedFailure records + re-raises).
+# event each), the dry run (no destroy, one preview observation), and a raising
+# teardown (AuditedFailure records + re-raises).
 #
 # Run: pnpm run test:rspec spec/unit/onetime/operations/memberships/remove_spec.rb
 
@@ -117,6 +118,58 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
 
       expect(result.status).to eq(:success)
       expect(owner_membership).to have_received(:destroy_with_index_cleanup!)
+    end
+  end
+
+  context 'with dry_run: true' do
+    let(:membership) do
+      double('OrganizationMembership', role: 'admin', owner?: false, destroy_with_index_cleanup!: true)
+    end
+
+    def dry_run(**)
+      described_class.new(org: org, customer: customer, actor: actor, dry_run: true, **).call
+    end
+
+    before do
+      allow(Onetime::ColonelAuditEvent).to receive(:record_access)
+      allow(Onetime::OrganizationMembership)
+        .to receive(:find_by_org_customer).with('org-obj-1', 'cust-obj-1').and_return(membership)
+    end
+
+    it 'returns :dry_run with the current role and destroys nothing' do
+      result = dry_run
+
+      expect(result.status).to eq(:dry_run)
+      expect(result.role).to eq('admin')
+      expect(membership).not_to have_received(:destroy_with_index_cleanup!)
+    end
+
+    it 'records ONE preview on the observation trail, never the operator trail (#4337)' do
+      dry_run(reason: 'left the company')
+
+      expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+        actor: actor,
+        verb: 'membership.remove',
+        target: 'ur_member',
+        result: 'preview',
+        detail: { org_id: 'on_org_ext', reason: 'left the company', dry_run: true },
+      )
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+    end
+
+    it 'still records a refusal, marked dry_run' do
+      allow(Onetime::OrganizationMembership)
+        .to receive(:find_by_org_customer).with('org-obj-1', 'cust-obj-1').and_return(nil)
+
+      expect(dry_run.status).to eq(:not_found)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        actor: actor,
+        verb: 'membership.remove',
+        target: 'ur_member',
+        result: :failure,
+        detail: { reason: 'not_found', role: nil, org_id: 'on_org_ext', dry_run: true },
+      )
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record_access)
     end
   end
 

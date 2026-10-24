@@ -12,7 +12,9 @@ module Onetime
 
       desc 'Manage billing, products, and prices'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         puts <<~HELP
           Billing Management Commands:
 

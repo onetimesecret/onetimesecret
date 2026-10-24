@@ -122,7 +122,7 @@ bin/ots org delete ORG --dry-run --json
 ```
 
 Review the plan and guardrail result. If policy authorizes deletion, apply
-through the same command's confirmed path; do not replace it with direct model
+through the same command with `--apply`; do not replace it with direct model
 or datastore deletion. Rerun organization and customer diagnostics afterward.
 
 ### D. The contact-email index is phantom or drifted

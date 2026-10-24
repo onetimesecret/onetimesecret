@@ -59,10 +59,9 @@ module Onetime
         aliases: ['-f'],
         desc: 'Skip confirmation prompt'
 
-      # reconcile-only options. --apply and --force are ORTHOGONAL on purpose
-      # (the org reconcile precedent): the default run writes nothing so it
-      # needs no confirmation; an applied run always needs --force (or an
-      # interactive 'y').
+      # reconcile-only options. --apply and --force are ORTHOGONAL on purpose:
+      # the default run writes nothing so it needs no confirmation; an applied
+      # run always needs --force (or an interactive 'y').
       option :apply,
         type: :boolean,
         default: false,
@@ -224,7 +223,7 @@ module Onetime
       # Default is a report-only dry run. Applying requires --apply plus
       # either --force or an interactive 'y'; a scripted --json apply without
       # --force is refused outright (never mutate from a script that did not
-      # say so — the org reconcile rule).
+      # say so).
       def reconcile_role_index(apply:, force:, json:)
         return unless confirm_reconcile!(apply: apply, force: force, json: json)
 

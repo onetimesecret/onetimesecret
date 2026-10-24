@@ -4,16 +4,16 @@
 
 # CLI adapter tests for `bin/ots org delete` (#4204).
 #
-# Pure adapter coverage: org resolution, the plan-then-prompt flow (the reason
-# the op's dry_run defaults to true), --dry-run winning over --yes, the --json
-# refusal, the interactive decline, the force-flag threading, and the
-# guardrail-status -> exit-code + operator-guidance mapping. The teardown, the
+# Pure adapter coverage: org resolution, the dry-run default (nothing deleted
+# without --apply, no prompt), the --apply/--dry-run contradiction, the
+# force-flag threading, and the guardrail-status -> exit-code +
+# operator-guidance mapping. The teardown, the
 # guardrails themselves and the audit event are the op's job and are covered
 # (against a real datastore) by
 # spec/unit/onetime/operations/org/delete_spec.rb, so here the op is stubbed at
 # its constructor.
 #
-# Run: bundle exec rspec spec/cli/org_delete_command_spec.rb
+# Run: tests/lanes/run unit --only spec/cli/org_delete_command_spec.rb
 
 require_relative 'cli_spec_helper'
 
@@ -56,9 +56,8 @@ RSpec.describe 'Org Delete Command', type: :cli do
     )
   end
 
-  # The interactive path calls the op TWICE — once to build the plan
-  # (dry_run: true), once to apply. Hand back whichever result the example
-  # configured for that phase, and record the constructor args in order.
+  # Hand back the plan for a dry run and the receipt for an applied run, and
+  # record the constructor args in order.
   let(:plan_result)    { result_with(status: :planned, dry_run: true) }
   let(:applied_result) { result_with(status: :success, dry_run: false) }
   let(:op_calls)       { [] }
@@ -79,83 +78,73 @@ RSpec.describe 'Org Delete Command', type: :cli do
 
   describe 'resolution' do
     it 'exits 1 when the org cannot be resolved' do
-      output = run_cli_command_quietly('org', 'delete', 'on_nope', '--yes')
+      output = run_cli_command_quietly('org', 'delete', 'on_nope', '--apply')
 
       expect(last_exit_code).to eq(1)
       expect(output[:stdout]).to include('Error: Organization not found: on_nope')
       expect(Onetime::Operations::Org::Delete).not_to have_received(:new)
     end
-
-    it 'resolves the org BEFORE prompting' do
-      allow($stdin).to receive(:gets).and_return("y\n")
-
-      run_cli_command_quietly('org', 'delete', 'on_nope')
-
-      expect(last_exit_code).to eq(1)
-      expect($stdin).not_to have_received(:gets)
-    end
   end
 
-  describe 'plan-then-prompt (why the op dry-runs by default)' do
-    it 'names everything the delete destroys before asking' do
-      allow($stdin).to receive(:gets).and_return("y\n")
+  describe 'dry run (the default)' do
+    it 'names everything the delete destroys and writes nothing, never prompting' do
+      allow($stdin).to receive(:gets)
 
       output = run_cli_command_quietly('org', 'delete', 'on_org_ext')
 
-      expect(output[:stdout]).to include('DRY RUN — nothing has been written yet')
+      expect(last_exit_code).to eq(0)
+      expect(output[:stdout]).to include('DRY RUN — nothing was written')
       expect(output[:stdout]).to include('Organization:   on_org_ext (Test Org)')
       expect(output[:stdout]).to include('Plan:           free_v1')
       expect(output[:stdout]).to include('  - ur_a  a@example.com')
       expect(output[:stdout]).to include('Invitations:    2 pending')
       expect(output[:stdout]).to include('default_org_id: cleared for ur_a')
-      expect(op_calls.map { |args| args[:dry_run] }).to eq([true, false])
-    end
-
-    it 'aborts without applying when the confirmation is declined' do
-      allow($stdin).to receive(:gets).and_return("n\n")
-
-      output = run_cli_command_quietly('org', 'delete', 'on_org_ext')
-
-      expect(last_exit_code).to eq(0)
-      expect(output[:stdout]).to include('Aborted.')
+      expect(output[:stdout]).to include('Re-run with --apply to delete.')
       expect(op_calls.map { |args| args[:dry_run] }).to eq([true])
+      expect($stdin).not_to have_received(:gets)
     end
 
-    it 'skips the plan pass entirely under --yes' do
-      run_cli_command_quietly('org', 'delete', 'on_org_ext', '--yes')
+    it 'calls the op once, applied, under --apply' do
+      run_cli_command_quietly('org', 'delete', 'on_org_ext', '--apply')
 
       expect(op_calls.map { |args| args[:dry_run] }).to eq([false])
     end
 
-    it '--dry-run wins over --yes and never applies' do
-      output = run_cli_command_quietly('org', 'delete', 'on_org_ext', '--dry-run', '--yes')
+    it 'treats --yes and -y as --apply' do
+      run_cli_command_quietly('org', 'delete', 'on_org_ext', '--yes')
+      run_cli_command_quietly('org', 'delete', 'on_org_ext', '-y')
+
+      expect(op_calls.map { |args| args[:dry_run] }).to eq([false, false])
+    end
+
+    it 'accepts --dry-run, which only states the default' do
+      run_cli_command_quietly('org', 'delete', 'on_org_ext', '--dry-run')
 
       expect(last_exit_code).to eq(0)
       expect(op_calls.map { |args| args[:dry_run] }).to eq([true])
-      expect(output[:stdout]).to include('Dry run only — re-run without --dry-run to apply.')
     end
 
-    it 'refuses to delete without --yes in --json mode' do
-      output = run_cli_command_quietly('org', 'delete', 'on_org_ext', '--json')
+    it 'refuses --apply with --dry-run before calling the op' do
+      output = run_cli_command_quietly('org', 'delete', 'on_org_ext', '--dry-run', '--apply')
 
       expect(last_exit_code).to eq(1)
-      expect(JSON.parse(output[:stdout])['error'])
-        .to eq('Refusing to delete without --yes in --json mode')
+      expect(output[:stdout]).to include('--apply and --dry-run are contradictory')
       expect(Onetime::Operations::Org::Delete).not_to have_received(:new)
     end
 
-    it 'allows --json --dry-run without --yes (it writes nothing)' do
-      output = run_cli_command_quietly('org', 'delete', 'on_org_ext', '--json', '--dry-run')
+    it 'emits the plan as JSON without --apply and exits 0' do
+      output = run_cli_command_quietly('org', 'delete', 'on_org_ext', '--json')
 
       expect(last_exit_code).to eq(0)
-      expect(JSON.parse(output[:stdout])['status']).to eq('planned')
+      payload = JSON.parse(output[:stdout])
+      expect(payload).to include('status' => 'planned', 'dry_run' => true)
       expect(op_calls.map { |args| args[:dry_run] }).to eq([true])
     end
   end
 
   describe 'op invocation' do
     it 'passes the resolved org, the CLI sentinel actor and no forces by default' do
-      run_cli_command_quietly('org', 'delete', 'on_org_ext', '--yes')
+      run_cli_command_quietly('org', 'delete', 'on_org_ext', '--apply')
 
       expect(op_calls.last).to include(
         org: organization,
@@ -167,17 +156,15 @@ RSpec.describe 'Org Delete Command', type: :cli do
     end
 
     it 'threads each force flag through independently' do
-      run_cli_command_quietly('org', 'delete', 'on_org_ext', '--yes', '--force-default')
+      run_cli_command_quietly('org', 'delete', 'on_org_ext', '--apply', '--force-default')
 
       expect(op_calls.last).to include(force_default: true, force_subscription: false)
     end
 
-    it 'uses the same force flags on the plan pass as on the apply' do
-      allow($stdin).to receive(:gets).and_return("y\n")
-
+    it 'threads the force flags into a dry run too' do
       run_cli_command_quietly('org', 'delete', 'on_org_ext', '--force-subscription')
 
-      expect(op_calls.map { |args| args[:force_subscription] }).to eq([true, true])
+      expect(op_calls.last).to include(dry_run: true, force_subscription: true)
     end
 
     # #4338 — the shell peer of the console's reason field. Same flag name,
@@ -185,7 +172,7 @@ RSpec.describe 'Org Delete Command', type: :cli do
     # verb; the op turns it into `detail[:reason]`.
     it 'threads --reason through to the op' do
       run_cli_command_quietly(
-        'org', 'delete', 'on_org_ext', '--yes', '--reason', 'closing dormant workspace',
+        'org', 'delete', 'on_org_ext', '--apply', '--reason', 'closing dormant workspace',
       )
 
       expect(op_calls.last).to include(reason: 'closing dormant workspace')
@@ -194,26 +181,23 @@ RSpec.describe 'Org Delete Command', type: :cli do
     # OPTIONAL rollout: omitting it must reach the op as nil, so the op's own
     # normalization keeps the audit detail byte-identical to its pre-#4338 shape.
     it 'passes reason: nil when the flag is omitted' do
-      run_cli_command_quietly('org', 'delete', 'on_org_ext', '--yes')
+      run_cli_command_quietly('org', 'delete', 'on_org_ext', '--apply')
 
       expect(op_calls.last).to include(reason: nil)
     end
 
-    # The plan pass and the apply pass must agree, exactly as they do on the
-    # force flags — the op records the reason on BOTH the preview observation
-    # and the applied event.
-    it 'uses the same reason on the plan pass as on the apply' do
-      allow($stdin).to receive(:gets).and_return("y\n")
-
+    # The op records the reason on the preview observation as well as on the
+    # applied event.
+    it 'threads --reason into a dry run too' do
       run_cli_command_quietly('org', 'delete', 'on_org_ext', '--reason', 'support req 22')
 
-      expect(op_calls.map { |args| args[:reason] }).to eq(['support req 22', 'support req 22'])
+      expect(op_calls.last).to include(dry_run: true, reason: 'support req 22')
     end
 
     it 'never audits from the adapter (the op owns the single event)' do
       allow(Onetime::ColonelAuditEvent).to receive(:record)
 
-      run_cli_command_quietly('org', 'delete', 'on_org_ext', '--yes')
+      run_cli_command_quietly('org', 'delete', 'on_org_ext', '--apply')
 
       expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
@@ -238,7 +222,7 @@ RSpec.describe 'Org Delete Command', type: :cli do
           )
         )
 
-        output = run_cli_command_quietly('org', 'delete', 'on_org_ext', '--yes')
+        output = run_cli_command_quietly('org', 'delete', 'on_org_ext', '--apply')
 
         expect(last_exit_code).to eq(1)
         expect(output[:stdout]).to include(guidance)
@@ -254,25 +238,23 @@ RSpec.describe 'Org Delete Command', type: :cli do
         )
       )
 
-      output = run_cli_command_quietly('org', 'delete', 'on_org_ext', '--yes')
+      output = run_cli_command_quietly('org', 'delete', 'on_org_ext', '--apply')
 
       expect(last_exit_code).to eq(1)
       expect(output[:stdout]).to include('ghost.example.com')
     end
 
-    it 'refuses at the plan pass without ever prompting' do
+    it 'refuses on a dry run with the same guidance' do
       allow(Onetime::Operations::Org::Delete).to receive(:new).and_return(
         instance_double(
           Onetime::Operations::Org::Delete,
           call: result_with(status: :is_default, dry_run: true, is_default: true),
         )
       )
-      allow($stdin).to receive(:gets).and_return("y\n")
 
       output = run_cli_command_quietly('org', 'delete', 'on_org_ext')
 
       expect(last_exit_code).to eq(1)
-      expect($stdin).not_to have_received(:gets)
       expect(output[:stdout]).to include('default (personal) workspace')
     end
 
@@ -285,7 +267,7 @@ RSpec.describe 'Org Delete Command', type: :cli do
         )
       )
 
-      output = run_cli_command_quietly('org', 'delete', 'on_org_ext', '--yes', '--json')
+      output = run_cli_command_quietly('org', 'delete', 'on_org_ext', '--apply', '--json')
 
       expect(last_exit_code).to eq(1)
       payload = JSON.parse(output[:stdout])
@@ -297,7 +279,7 @@ RSpec.describe 'Org Delete Command', type: :cli do
 
   describe 'applied output' do
     it 'reports the notification and repair counts' do
-      output = run_cli_command_quietly('org', 'delete', 'on_org_ext', '--yes')
+      output = run_cli_command_quietly('org', 'delete', 'on_org_ext', '--apply')
 
       expect(last_exit_code).to eq(0)
       expect(output[:stdout]).to include('Deleted on_org_ext (Test Org)')
@@ -306,8 +288,8 @@ RSpec.describe 'Org Delete Command', type: :cli do
       expect(output[:stdout]).to include('default_org_id cleared: ur_a')
     end
 
-    it 'emits the full JSON payload under --yes --json' do
-      output = run_cli_command_quietly('org', 'delete', 'on_org_ext', '--yes', '--json')
+    it 'emits the full JSON payload under --apply --json' do
+      output = run_cli_command_quietly('org', 'delete', 'on_org_ext', '--apply', '--json')
 
       payload = JSON.parse(output[:stdout])
       expect(payload).to include(

@@ -1,10 +1,26 @@
 {
   "web.admin.session.expired": {
-    "text": "Your admin session has expired. Sign in again to continue.",
-    "content_hash": "e970de7c"
+    "text": "Your admin session has expired. Re-enter your password or sign in again to continue.",
+    "content_hash": "0ecd7cc2"
   },
   "web.admin.session.signIn": {
     "text": "Sign in",
     "content_hash": "bfd402b2"
+  },
+  "web.admin.session.reauth.button": {
+    "text": "Re-enter password",
+    "content_hash": "20fbe8a7"
+  },
+  "web.admin.session.reauth.title": {
+    "text": "Continue your admin session",
+    "content_hash": "b402bea6"
+  },
+  "web.admin.session.reauth.description": {
+    "text": "Re-enter your password to renew your admin session. This page reloads afterwards. It does not unlock destructive actions.",
+    "content_hash": "a2f1ea21"
+  },
+  "web.admin.session.reauth.confirm": {
+    "text": "Continue",
+    "content_hash": "31fbef16"
   }
 }

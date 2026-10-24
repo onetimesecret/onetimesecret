@@ -11,7 +11,9 @@
   import { useRoute } from 'vue-router';
 
   import ElevationBanner from '../components/ElevationBanner.vue';
+  import ElevationControl from '../components/ElevationControl.vue';
   import ElevationPrompt from '../components/ElevationPrompt.vue';
+  import { useLayoutElevationPromptHost } from '../composables/useElevationPromptHost';
   import { CONSOLE_GROUPS, CONSOLE_SECTIONS } from '../sections';
 
   // App.vue passes the customer chrome layout props via v-bind; this console
@@ -21,6 +23,9 @@
 
   const { t } = useI18n();
   const route = useRoute();
+
+  /** The layout hosts the step-up prompt only while no admin kit dialog is open. */
+  const layoutHostsPrompt = useLayoutElevationPromptHost();
   const { isDarkMode, toggleDarkMode, initializeTheme } = useTheme();
   const bootstrapStore = useBootstrapStore();
 
@@ -241,6 +246,10 @@
             data-testid="admin-current-user">
             {{ currentUserEmail }}
           </span>
+          <!-- Step-up state (#4327): opt in before acting, or see and drop the
+               live window. Renders nothing when step-up is disabled or the
+               admin session has expired. No HTTP until clicked. -->
+          <ElevationControl />
           <button
             type="button"
             class="inline-flex size-9 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-gray-400 dark:hover:bg-gray-800"
@@ -257,16 +266,18 @@
       </header>
 
       <!-- The step-up (sudo) window (#4327). The banner renders only while a
-           window is live; the prompt is mounted ONCE here and opened through the
-           shared elevation state, so every destructive mutation in the console
-           gets a sudo prompt without any view owning one. Neither polls. -->
+           window is live; the prompt is opened through the shared elevation
+           state, so every destructive mutation in the console gets a sudo
+           prompt without any view owning one. It is mounted here while no
+           admin kit dialog is open, and nested in the top-most open one
+           otherwise (useElevationPromptHost). Neither polls. -->
       <ElevationBanner />
 
       <main class="flex-1 overflow-x-auto p-5 sm:p-8">
         <slot></slot>
       </main>
 
-      <ElevationPrompt />
+      <ElevationPrompt v-if="layoutHostsPrompt" />
     </div>
   </div>
 </template>

@@ -17,7 +17,9 @@ module Onetime
     class DomainsCommand < Command
       desc 'Manage custom domain records'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         boot_application!
 
         domain_count = Onetime::CustomDomain.instances.size

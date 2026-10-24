@@ -18,7 +18,9 @@ module Onetime
       option :customer, type: :string, desc: 'Filter by customer ID'
       option :limit, type: :integer, default: 100, desc: 'Maximum results to return'
 
-      def call(status: nil, customer: nil, limit: 100, **)
+      def call(args: [], status: nil, customer: nil, limit: 100, **)
+        reject_unknown_subcommand(args)
+
         boot_application!
 
         return unless stripe_configured?

@@ -142,11 +142,20 @@ module Onetime
 
         # -- Customer resolution -----------------------------------------
 
+        # Customer objids are UUIDs (Familia object_identifier, uuid_v7 by
+        # default; the checkout webhook matches the same 8-4-4-4-12 shape).
+        # No extid (`ur` + base36), email (has an '@') or Rodauth account id
+        # (digits only) can take this shape, so the objid branch never
+        # captures one of the other identifier forms.
+        OBJID_PATTERN = /\A\h{8}-\h{4}-\h{4}-\h{4}-\h{12}\z/
+
         # Resolve an identifier string to an Onetime::Customer.
-        # Accepts:
+        # Accepts, dispatched on the identifier's shape:
         #   - Numeric Rodauth account ID (e.g., "123") — full auth mode
         #     only; looks up accounts.external_id, then loads Customer
         #     by that extid. Returns nil in simple mode (no SQL DB).
+        #   - Objid (UUID, e.g. "0199…-…") — loaded directly with
+        #     Customer.load; nil when no record carries it.
         #   - Email (containing '@') — normalized via OT::Utils.
         #   - Extid (e.g., "ur123abc...") — passes through normalize
         #     unchanged since extids are already lowercase ASCII.
@@ -158,9 +167,15 @@ module Onetime
 
           if numeric_account_id?(normalized)
             resolve_by_rodauth_account_id(normalized.to_i)
+          elsif customer_objid?(normalized)
+            Onetime::Customer.load(normalized.downcase)
           else
             Onetime::Customer.load_by_extid_or_email(OT::Utils.normalize_email(normalized))
           end
+        end
+
+        def customer_objid?(str)
+          str.match?(OBJID_PATTERN)
         end
 
         # Look up the Rodauth accounts.id for a Customer.

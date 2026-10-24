@@ -266,4 +266,52 @@ RSpec.describe 'Customers Command', type: :cli do
       expect(last_exit_code).to eq(1)
     end
   end
+
+  # Customers::Shared#resolve_customer dispatches on the identifier's shape.
+  # A UUID-shaped argument is an objid and loads directly; extids and emails
+  # can never take that shape, so they keep the extid/email path.
+  describe 'objid identifier' do
+    let(:objid) { '0199d3c4-5b6a-7c8d-9e0f-a1b2c3d4e5f6' }
+    let(:resolver) { Class.new { include Onetime::CLI::Customers::Shared }.new }
+
+    before do
+      allow(Onetime::Customer).to receive(:load).and_return(nil)
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(nil)
+    end
+
+    it 'verifies a customer addressed by objid' do
+      allow(Onetime::Customer).to receive(:load).with(objid).and_return(target_customer)
+      allow(Auth::Operations::SetCustomerVerification).to receive(:new)
+        .with(customer: target_customer, verified: true, verified_by: 'cli_provision', db: nil)
+        .and_return(verification_op)
+      allow(verification_op).to receive(:call).and_return(:success)
+
+      output = run_cli_command_quietly('customers', 'verify', objid)
+
+      expect(output[:stdout]).to include('Verified:')
+      expect(last_exit_code).to eq(0)
+      expect(Onetime::Customer).not_to have_received(:load_by_extid_or_email)
+    end
+
+    it 'loads by objid, case-insensitively, without touching the extid/email lookup' do
+      allow(Onetime::Customer).to receive(:load).with(objid).and_return(target_customer)
+
+      expect(resolver.resolve_customer(" #{objid.upcase} ")).to eq(target_customer)
+      expect(Onetime::Customer).not_to have_received(:load_by_extid_or_email)
+    end
+
+    it 'returns nil for an objid no record carries' do
+      expect(resolver.resolve_customer(objid)).to be_nil
+      expect(Onetime::Customer).to have_received(:load).with(objid)
+    end
+
+    it 'never routes an extid or an email to Customer.load' do
+      resolver.resolve_customer('urasakn4f2nl2ew0pq275ky8j3v')
+      resolver.resolve_customer('Target@Example.com')
+
+      expect(Onetime::Customer).not_to have_received(:load)
+      expect(Onetime::Customer).to have_received(:load_by_extid_or_email).with('urasakn4f2nl2ew0pq275ky8j3v')
+      expect(Onetime::Customer).to have_received(:load_by_extid_or_email).with('target@example.com')
+    end
+  end
 end

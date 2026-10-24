@@ -5,8 +5,9 @@
 # CLI adapter tests for `bin/ots org entitlement …` (#3731).
 #
 # Covers the dry-cli three-level registration guard (D16), the landing command,
-# resolution, the --yes / --json refusal, the interactive decline, the
-# standalone dead-letter warning (D17) and the op-status -> exit-code mapping.
+# resolution, the dry-run default (nothing written without --apply, no
+# prompt), the standalone dead-letter warning (D17) and the op-status ->
+# exit-code mapping.
 # The mutation itself is the op's job and is covered by
 # spec/unit/onetime/operations/org/entitlement_override_spec.rb — here the op is
 # stubbed at its constructor so these stay pure adapter tests.
@@ -14,7 +15,7 @@
 # Kept in its own file rather than appended to spec/cli/org_command_spec.rb
 # because that file is owned by the `org reconcile` change landing in parallel.
 #
-# Run: bundle exec rspec spec/cli/org_entitlement_command_spec.rb
+# Run: tests/lanes/run unit --only spec/cli/org_entitlement_command_spec.rb
 
 require_relative 'cli_spec_helper'
 
@@ -96,14 +97,14 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
       output = run_cli_command_quietly('org', 'entitlement')
 
       expect(last_exit_code).to eq(0)
-      expect(output[:stdout]).to include('bin/ots org entitlement grant ORG ENT')
-      expect(output[:stdout]).to include('bin/ots org entitlement show ORG')
+      expect(output[:stdout]).to include('bin/ots organizations entitlement grant ORG ENT')
+      expect(output[:stdout]).to include('bin/ots organizations entitlement show ORG')
     end
   end
 
   describe 'grant' do
     it 'exits 1 when the organization cannot be resolved' do
-      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'nope', 'custom_branding', '--yes')
+      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'nope', 'custom_branding', '--apply')
 
       expect(last_exit_code).to eq(1)
       expect(output[:stdout]).to include('Error: Organization not found: nope')
@@ -111,7 +112,7 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
     end
 
     it 'calls the op with the shared CLI sentinel actor, never a Customer' do
-      run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--yes')
+      run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--apply')
 
       expect(Onetime::Operations::Org::EntitlementOverride).to have_received(:new).with(
         org: organization,
@@ -122,35 +123,50 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
       )
     end
 
-    it 'refuses to apply without --yes in --json mode' do
-      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--json')
+    context 'without --apply (the default dry run)' do
+      before do
+        allow(operation).to receive(:call).and_return(result.with(status: :planned, dry_run: true))
+      end
+
+      it 'asks the op for a dry run, never prompting' do
+        allow($stdin).to receive(:gets)
+
+        output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding')
+
+        expect(last_exit_code).to eq(0)
+        expect(Onetime::Operations::Org::EntitlementOverride).to have_received(:new)
+          .with(hash_including(dry_run: true))
+        expect(output[:stdout]).to include('DRY RUN — nothing was written')
+        expect(output[:stdout]).to include('Re-run with --apply to grant.')
+        expect($stdin).not_to have_received(:gets)
+      end
+
+      it 'emits dry_run: true in --json and exits 0' do
+        output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--json')
+
+        expect(last_exit_code).to eq(0)
+        expect(JSON.parse(output[:stdout])).to include('status' => 'planned', 'dry_run' => true)
+      end
+    end
+
+    it 'treats --yes as --apply' do
+      run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--yes')
+
+      expect(Onetime::Operations::Org::EntitlementOverride).to have_received(:new)
+        .with(hash_including(dry_run: false))
+    end
+
+    it 'refuses --apply with --dry-run before calling the op' do
+      output = run_cli_command_quietly(
+        'org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--apply', '--dry-run'
+      )
 
       expect(last_exit_code).to eq(1)
-      expect(JSON.parse(output[:stdout])['error'])
-        .to eq('Refusing to grant entitlement overrides without --yes in --json mode')
+      expect(output[:stdout]).to include('--apply and --dry-run are contradictory')
       expect(Onetime::Operations::Org::EntitlementOverride).not_to have_received(:new)
     end
 
-    it 'aborts without calling the op when the confirmation is declined' do
-      allow($stdin).to receive(:gets).and_return("n\n")
-
-      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding')
-
-      expect(last_exit_code).to eq(0)
-      expect(output[:stdout]).to include('Aborted.')
-      expect(Onetime::Operations::Org::EntitlementOverride).not_to have_received(:new)
-    end
-
-    it 'applies after an interactive confirmation' do
-      allow($stdin).to receive(:gets).and_return("y\n")
-
-      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding')
-
-      expect(output[:stdout]).to include("Grant 'custom_branding' to on_org_ext (Test Org)?")
-      expect(Onetime::Operations::Org::EntitlementOverride).to have_received(:new)
-    end
-
-    it 'passes dry_run: true for --dry-run and needs no confirmation' do
+    it 'passes dry_run: true for --dry-run, which only states the default' do
       run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--dry-run')
 
       expect(Onetime::Operations::Org::EntitlementOverride).to have_received(:new)
@@ -158,7 +174,7 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
     end
 
     it 'prints the resulting override sets on the text path' do
-      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--yes')
+      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--apply')
 
       expect(last_exit_code).to eq(0)
       expect(output[:stdout]).to include('Status:       granted')
@@ -167,8 +183,8 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
       expect(output[:stdout]).to include('Revokes (0):')
     end
 
-    it 'emits the flat Result payload and exits 0 on --json --yes' do
-      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--yes', '--json')
+    it 'emits the flat Result payload and exits 0 on --json --apply' do
+      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--apply', '--json')
 
       payload = JSON.parse(output[:stdout])
       expect(last_exit_code).to eq(0)
@@ -183,7 +199,7 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
     it 'exits 0 on the idempotent :no_change status' do
       allow(operation).to receive(:call).and_return(result.with(status: :no_change))
 
-      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--yes', '--json')
+      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--apply', '--json')
 
       expect(last_exit_code).to eq(0)
       expect(JSON.parse(output[:stdout])['status']).to eq('no_change')
@@ -194,12 +210,12 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
         result.with(status: :partial, memberships: { success: 1, failed: 1, total: 2, failed_ids: ['mem_stale'] }),
       )
 
-      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--yes')
+      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--apply')
 
       expect(last_exit_code).to eq(1)
       expect(output[:stdout]).to include('Members rematerialized: 1/2 (failed: 1)')
       expect(output[:stdout]).to include('mem_stale')
-      expect(output[:stdout]).to include('bin/ots org reconcile on_org_ext --yes')
+      expect(output[:stdout]).to include('bin/ots organizations reconcile on_org_ext --apply')
     end
 
     it 'exits 1 and says nobody was reached when the cascade itself raised' do
@@ -210,12 +226,12 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
         ),
       )
 
-      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--yes')
+      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--apply')
 
       expect(last_exit_code).to eq(1)
       expect(output[:stdout]).to include('the cascade raised (RuntimeError: valkey unreachable)')
       expect(output[:stdout]).to include('Every member is still on their previous entitlements')
-      expect(output[:stdout]).to include('bin/ots org reconcile on_org_ext --yes')
+      expect(output[:stdout]).to include('bin/ots organizations reconcile on_org_ext --apply')
     end
 
     it 'exits 1 on a partial cascade in --json mode too' do
@@ -223,7 +239,7 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
         result.with(status: :partial, memberships: { success: 1, failed: 1, total: 2, failed_ids: ['mem_stale'] }),
       )
 
-      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--yes', '--json')
+      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--apply', '--json')
 
       expect(last_exit_code).to eq(1)
       expect(JSON.parse(output[:stdout])['memberships']['failed_ids']).to eq(['mem_stale'])
@@ -233,7 +249,7 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
       allow(operation).to receive(:call)
         .and_return(result.with(status: :missing_entitlement, effective: nil, grants: nil, revokes: nil))
 
-      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--yes')
+      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--apply')
 
       expect(last_exit_code).to eq(1)
       expect(output[:stdout]).to include('Error: Entitlement is required for grant/revoke')
@@ -246,7 +262,7 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
     let(:billing_enabled) { false }
 
     it 'warns on STDERR before the op runs, and still applies' do
-      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--yes')
+      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--apply')
 
       expect(output[:stderr]).to include('BILLING IS DISABLED ON THIS INSTALL')
       expect(output[:stderr]).to include('DEAD LETTER')
@@ -254,7 +270,7 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
     end
 
     it 'keeps STDOUT parseable in --json mode (advisories never contaminate it)' do
-      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--yes', '--json')
+      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--apply', '--json')
 
       expect { JSON.parse(output[:stdout]) }.not_to raise_error
       expect(output[:stderr]).to include('BILLING IS DISABLED ON THIS INSTALL')
@@ -266,14 +282,14 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
       allow(Onetime::Operations::Org::EntitlementOverride)
         .to receive(:known_entitlement?).with('future_feature_xyz').and_return(false)
 
-      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'future_feature_xyz', '--yes')
+      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'future_feature_xyz', '--apply')
 
       expect(output[:stderr]).to include("'future_feature_xyz' is not in the billing catalog")
       expect(Onetime::Operations::Org::EntitlementOverride).to have_received(:new)
     end
 
     it 'warns that an org grant does not reach a member outside the role template' do
-      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--yes')
+      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--apply')
 
       expect(output[:stderr]).to include('Org scope is not member scope')
     end
@@ -289,24 +305,26 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
     end
 
     it 'calls the op with action revoke' do
-      run_cli_command_quietly('org', 'entitlement', 'revoke', 'on_org_ext', 'api_access', '--yes')
+      run_cli_command_quietly('org', 'entitlement', 'revoke', 'on_org_ext', 'api_access', '--apply')
 
       expect(Onetime::Operations::Org::EntitlementOverride).to have_received(:new)
         .with(hash_including(action: 'revoke', entitlement: 'api_access', dry_run: false))
     end
 
     it 'does NOT print the role-scope advisory (that is a grant concern)' do
-      output = run_cli_command_quietly('org', 'entitlement', 'revoke', 'on_org_ext', 'api_access', '--yes')
+      output = run_cli_command_quietly('org', 'entitlement', 'revoke', 'on_org_ext', 'api_access', '--apply')
 
       expect(output[:stderr]).not_to include('Org scope is not member scope')
     end
 
-    it 'prompts with revoke wording' do
-      allow($stdin).to receive(:gets).and_return("n\n")
+    it 'is a dry run without --apply' do
+      allow(operation).to receive(:call).and_return(result.with(status: :planned, dry_run: true))
 
       output = run_cli_command_quietly('org', 'entitlement', 'revoke', 'on_org_ext', 'api_access')
 
-      expect(output[:stdout]).to include("Revoke 'api_access' from on_org_ext (Test Org)?")
+      expect(Onetime::Operations::Org::EntitlementOverride).to have_received(:new)
+        .with(hash_including(action: 'revoke', dry_run: true))
+      expect(output[:stdout]).to include('Re-run with --apply to revoke.')
     end
   end
 
@@ -320,33 +338,27 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
     end
 
     it 'takes no ENTITLEMENT argument and calls the op with entitlement: nil' do
-      run_cli_command_quietly('org', 'entitlement', 'clear', 'on_org_ext', '--yes')
+      run_cli_command_quietly('org', 'entitlement', 'clear', 'on_org_ext', '--apply')
 
       expect(Onetime::Operations::Org::EntitlementOverride).to have_received(:new)
         .with(hash_including(action: 'clear', entitlement: nil, dry_run: false))
     end
 
-    it 'refuses to wipe overrides without --yes in --json mode' do
-      output = run_cli_command_quietly('org', 'entitlement', 'clear', 'on_org_ext', '--json')
-
-      expect(last_exit_code).to eq(1)
-      expect(JSON.parse(output[:stdout])['error'])
-        .to eq('Refusing to clear entitlement overrides without --yes in --json mode')
-      expect(Onetime::Operations::Org::EntitlementOverride).not_to have_received(:new)
-    end
-
-    it 'prompts with the destructive wording and aborts on a decline' do
-      allow($stdin).to receive(:gets).and_return("n\n")
+    it 'is a dry run without --apply, never prompting' do
+      allow(operation).to receive(:call).and_return(result.with(status: :planned, dry_run: true))
+      allow($stdin).to receive(:gets)
 
       output = run_cli_command_quietly('org', 'entitlement', 'clear', 'on_org_ext')
 
-      expect(output[:stdout]).to include('Clear ALL entitlement overrides (every grant AND revoke)')
-      expect(output[:stdout]).to include('Aborted.')
-      expect(Onetime::Operations::Org::EntitlementOverride).not_to have_received(:new)
+      expect(last_exit_code).to eq(0)
+      expect(Onetime::Operations::Org::EntitlementOverride).to have_received(:new)
+        .with(hash_including(action: 'clear', dry_run: true))
+      expect(output[:stdout]).to include('Re-run with --apply to clear.')
+      expect($stdin).not_to have_received(:gets)
     end
 
     it 'renders "(all overrides)" rather than a blank entitlement line' do
-      output = run_cli_command_quietly('org', 'entitlement', 'clear', 'on_org_ext', '--yes')
+      output = run_cli_command_quietly('org', 'entitlement', 'clear', 'on_org_ext', '--apply')
 
       expect(output[:stdout]).to include('Entitlement:  (all overrides)')
       expect(last_exit_code).to eq(0)
@@ -396,7 +408,7 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
 
       expect(output[:stdout]).to include('+ orphan_ent')
       expect(output[:stdout]).to include('- custom_branding')
-      expect(output[:stdout]).to include('bin/ots org reconcile on_org_ext --yes')
+      expect(output[:stdout]).to include('bin/ots organizations reconcile on_org_ext --apply')
     end
 
     it 'emits the whole report as JSON with --json' do

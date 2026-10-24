@@ -11,7 +11,7 @@
 # Usage:
 #   bin/ots domains list
 #   bin/ots domains list --orphaned
-#   bin/ots domains list --org-extid on123abc
+#   bin/ots domains list --org-extid on123abc     # extid or objid
 #   bin/ots domains list --status pending --unverified
 #   bin/ots domains list --sort created --desc --limit 20
 #   bin/ots domains list --vhost
@@ -46,11 +46,11 @@ module Onetime
       option :org_id,
         type: :string,
         default: nil,
-        desc: 'Filter by organization ID (internal objid)'
+        desc: 'Filter by organization (objid or extid; an unresolvable value filters as a raw objid)'
       option :org_extid,
         type: :string,
         default: nil,
-        desc: 'Filter by organization external ID'
+        desc: 'Filter by organization (extid or objid; must resolve)'
       option :status,
         type: :string,
         default: nil,
@@ -128,13 +128,20 @@ module Onetime
 
       private
 
+      # Both flags take either identifier form (extid first, objid fallback —
+      # Domains::Shared#resolve_org) and filter on the objid the rows carry.
+      # --org-id additionally keeps a value that resolves to no live org as a
+      # raw objid filter: a domain row can point at a deleted org, and that
+      # dead objid is the operator's only handle on it.
       def resolve_org_filter(org_id, org_extid, json:)
-        return org_id if org_id
+        if org_id
+          value = org_id.to_s.strip
+          org   = Onetime::Organization.find_by_extid(value) || Onetime::Organization.load(value)
+          return org ? org.objid : value
+        end
         return nil unless org_extid
 
-        org = Onetime::Organization.find_by_extid(org_extid)
-        error_exit("Organization with extid '#{org_extid}' not found", json: json) unless org
-        org.org_id
+        resolve_org(org_extid, json: json).objid
       end
 
       # Legacy DomainsHelpers#apply_filters, adapted to the op's row hashes.

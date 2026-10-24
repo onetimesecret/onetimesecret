@@ -8,7 +8,7 @@
 # Usage:
 #   bin/ots memberships                         # Show count and usage
 #   bin/ots memberships doctor --all            # Check all memberships
-#   bin/ots memberships doctor --org EXTID      # Check memberships for one org
+#   bin/ots memberships doctor --org ORG        # Check memberships for one org
 #
 
 module Onetime
@@ -16,7 +16,9 @@ module Onetime
     class MembershipsCommand < Command
       desc 'Manage organization membership records'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         boot_application!
 
         active_count  = Onetime::Organization.instances.sum do |objid|
@@ -28,20 +30,24 @@ module Onetime
         puts format('%d active memberships, %d pending invitations', active_count, pending_count)
         puts
         puts 'Usage:'
-        puts '  bin/ots memberships add ORG CUSTOMER [--role R]  # Add a member (materializes entitlements)'
-        puts '  bin/ots memberships set-role ORG CUSTOMER ROLE   # Change a member\'s role'
-        puts '  bin/ots memberships remove ORG CUSTOMER          # Remove a member'
+        puts '  bin/ots memberships add ORG CUSTOMER [--role R]  # Dry run: what an add would change'
+        puts '  bin/ots memberships add ORG CUSTOMER --apply     # Add a member (materializes entitlements)'
+        puts '  bin/ots memberships add ORG CUSTOMER --default --apply  # ...and make ORG their default org'
+        puts '  bin/ots memberships set-role ORG CUSTOMER ROLE --apply  # Change a member\'s role'
+        puts '  bin/ots memberships remove ORG CUSTOMER --apply  # Remove a member'
         puts '  bin/ots memberships entitlement show ORG CUSTOMER       # Baseline / overrides / drift'
-        puts '  bin/ots memberships entitlement grant ORG CUSTOMER ENT  # Add an override grant'
-        puts '  bin/ots memberships entitlement revoke ORG CUSTOMER ENT # Add an override revoke'
-        puts '  bin/ots memberships entitlement clear ORG CUSTOMER      # Wipe ALL overrides (destructive)'
+        puts '  bin/ots memberships entitlement grant ORG CUSTOMER ENT --apply   # Add an override grant'
+        puts '  bin/ots memberships entitlement revoke ORG CUSTOMER ENT --apply  # Add an override revoke'
+        puts '  bin/ots memberships entitlement clear ORG CUSTOMER --apply       # Wipe ALL overrides (destructive)'
         puts '  bin/ots memberships doctor --all            # Check all memberships'
-        puts '  bin/ots memberships doctor --org EXTID      # Check memberships for one org'
+        puts '  bin/ots memberships doctor --org ORG        # Check memberships for one org'
         puts '  bin/ots memberships doctor --all --repair   # Auto-repair issues'
         puts '  bin/ots memberships doctor --all --json     # JSON output'
         puts
-        puts 'ORG = organization extid; CUSTOMER = email, extid, or Rodauth account id.'
+        puts 'ORG = org extid, objid, Stripe customer/subscription id (cus_/sub_), or custom-domain hostname.'
+        puts 'CUSTOMER = email, extid, objid, or Rodauth account id.'
         puts 'ROLE = one of: owner, admin, member.'
+        puts 'Verbs that write are dry runs unless --apply (-y/--yes) is given.'
         puts
         puts 'Integrity checks:'
         puts '  1. organization_objid points to existing org (CRITICAL)'

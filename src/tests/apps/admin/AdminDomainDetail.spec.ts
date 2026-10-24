@@ -1,8 +1,8 @@
 // src/tests/apps/admin/AdminDomainDetail.spec.ts
 
+import { flushPromises, mount, RouterLinkStub, VueWrapper } from '@vue/test-utils';
 import { AxiosError } from 'axios';
 import { createPinia, setActivePinia } from 'pinia';
-import { flushPromises, mount, RouterLinkStub, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /** Build a real AxiosError so the shared classifier extracts `data.error`. */
@@ -64,8 +64,13 @@ vi.mock('@headlessui/vue', () => ({
   TransitionChild: { name: 'TransitionChild', template: '<div><slot /></div>', props: ['as'] },
 }));
 
-import AdminDomainDetail from '@/apps/admin/views/AdminDomainDetail.vue';
+import {
+  __resetColonelElevationState,
+  useColonelElevation,
+} from '@/apps/admin/composables/useColonelElevation';
 import { useAdminDomains } from '@/apps/admin/stores/useAdminDomains';
+import AdminDomainDetail from '@/apps/admin/views/AdminDomainDetail.vue';
+import { startElevated } from '@tests/apps/admin/support/elevation';
 import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
@@ -245,9 +250,86 @@ describe('AdminDomainDetail', () => {
     pinia = createPinia();
     setActivePinia(pinia);
     vi.clearAllMocks();
+    // A live step-up window: these examples are about the dialogs, which a
+    // tier-1 opener only shows once elevated (see support/elevation.ts).
+    startElevated();
     mockApi.get.mockResolvedValue({ data: detailPayload() });
   });
   afterEach(() => wrapper?.unmount());
+
+  describe('opener lifetime and concurrency', () => {
+    beforeEach(() => __resetColonelElevationState({ statusRead: true }));
+
+    async function requestRemove(): Promise<void> {
+      wrapper = mountView();
+      await flushPromises();
+      mockApi.delete.mockResolvedValue({ data: removeAck(true) });
+      await wrapper.find('[data-testid="remove-preview"]').trigger('click');
+      await flushPromises();
+      await wrapper.find('[data-testid="remove-button"]').trigger('click');
+      await flushPromises();
+      expect(useColonelElevation().promptOpen.value).toBe(true);
+      mockApi.delete.mockClear();
+    }
+
+    it.each([false, true])(
+      'drops the remove opener after a resource switch (return: %s)',
+      async (returnToOriginal) => {
+        await requestRemove();
+        await wrapper.setProps({ id: 'cd_other' });
+        if (returnToOriginal) await wrapper.setProps({ id: EXTID });
+        await flushPromises();
+        useColonelElevation().resolvePrompt(true);
+        await flushPromises();
+
+        expect(dialogInput(wrapper).exists()).toBe(false);
+        expect(mockApi.delete).not.toHaveBeenCalled();
+      }
+    );
+
+    it('rejects competing actions during elevation and while the dialog is open', async () => {
+      await requestRemove();
+      const verify = wrapper.find('[data-testid="verify-button"]');
+      expect(verify.attributes('disabled')).toBeDefined();
+      verify.element.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await flushPromises();
+      expect(dialogSubmit(wrapper).exists()).toBe(false);
+
+      useColonelElevation().resolvePrompt(true);
+      await flushPromises();
+      await dialogInput(wrapper).setValue(EXTID);
+      verify.element.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await flushPromises();
+      expect(dialogInput(wrapper).exists()).toBe(true);
+      expect((dialogInput(wrapper).element as HTMLInputElement).value).toBe(EXTID);
+      expect(mockApi.post).not.toHaveBeenCalled();
+    });
+
+    it('rechecks the remove preview after elevation', async () => {
+      await requestRemove();
+      const noPlan = removeAck(true);
+      noPlan.details.status = 'removed';
+      mockApi.delete.mockResolvedValue({ data: noPlan });
+      await wrapper.find('[data-testid="remove-preview"]').trigger('click');
+      await flushPromises();
+      useColonelElevation().resolvePrompt(true);
+      await flushPromises();
+
+      expect(dialogInput(wrapper).exists()).toBe(false);
+    });
+
+    it('opens a tier-2 repair without prompting', async () => {
+      wrapper = mountView();
+      await flushPromises();
+      mockApi.post.mockResolvedValue({ data: repairAck(true) });
+      await wrapper.find('[data-testid="repair-preview"]').trigger('click');
+      await flushPromises();
+      await wrapper.find('[data-testid="repair-apply"]').trigger('click');
+
+      expect(useColonelElevation().promptOpen.value).toBe(false);
+      expect(dialogInput(wrapper).exists()).toBe(true);
+    });
+  });
 
   describe('load states', () => {
     it('fetches the domain by public id and renders the read-out', async () => {
@@ -533,10 +615,7 @@ describe('AdminDomainDetail', () => {
       await flushPromises();
 
       // The apply MUST say dry_run=false — the endpoint defaults it to true.
-      expect(mockApi.delete).toHaveBeenCalledWith(
-        `${DETAIL_URL}?dry_run=false`,
-        CONFIRM_HEADERS
-      );
+      expect(mockApi.delete).toHaveBeenCalledWith(`${DETAIL_URL}?dry_run=false`, CONFIRM_HEADERS);
       expect(showMock).toHaveBeenCalledWith('web.admin.domains.actions.remove.success', 'success');
       expect(pushMock).toHaveBeenCalledWith({ name: 'AdminDomains' });
     });

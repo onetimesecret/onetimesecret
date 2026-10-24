@@ -174,7 +174,13 @@
   interface MenuItem {
     id: string;
     to?: string;
-    href?: string; // External link
+    /** Full-page navigation outside the SPA router (another bundle or site). */
+    href?: string;
+    /**
+     * Open `href` in a new tab. Opt-in per item: an `href` alone navigates in
+     * place, so a same-origin bundle like /colonel does not spawn a tab.
+     */
+    newTab?: boolean;
     label: string;
     icon: {
       collection: string;
@@ -269,6 +275,7 @@
     {
       id: 'help',
       href: 'https://docs.onetimesecret.com',
+      newTab: true,
       label: t('web.TITLES.help'),
       icon: { collection: 'heroicons', name: 'question-mark-circle' },
       condition: () => !props.awaitingMfa,
@@ -542,13 +549,14 @@
               {{ item.label }}
             </router-link>
 
-            <!-- External Link Item -->
+            <!-- Full-page link item: a new tab only when the item opts in -->
             <a
               v-else-if="item.href"
               :href="item.href"
-              target="_blank"
-              rel="noopener noreferrer"
+              :target="item.newTab ? '_blank' : undefined"
+              :rel="item.newTab ? 'noopener noreferrer' : undefined"
               :class="getMenuItemClasses(item.variant)"
+              :data-testid="`user-menu-link-${item.id}`"
               @click="closeMenu"
               role="menuitem">
               <OIcon
@@ -558,6 +566,7 @@
                 aria-hidden="true" />
               {{ item.label }}
               <OIcon
+                v-if="item.newTab"
                 collection="heroicons"
                 name="arrow-top-right-on-square"
                 class="ml-auto size-3.5 text-gray-400"

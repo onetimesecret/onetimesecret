@@ -1,9 +1,11 @@
 // src/apps/admin/components/organizations/membershipSchemas.ts
 
 /**
- * Contract for the colonel organization-membership ADD verb.
+ * Contracts for the colonel organization-membership verbs.
  *
- *   POST /api/colonel/organizations/:org_id/members
+ *   POST   /api/colonel/organizations/:org_id/members
+ *   POST   /api/colonel/organizations/:org_id/members/:member_id/role
+ *   DELETE /api/colonel/organizations/:org_id/members/:member_id
  *
  * Colocated with the organizations components rather than sitting in
  * `src/schemas/api/internal/responses/colonel-organizations.ts` (where the
@@ -11,13 +13,14 @@
  * edit that file. It is a straight lift-and-shift when it moves — see the
  * handoff note in the PR description.
  *
- * Two things live here:
+ * What lives here:
  *  - {@link MEMBERSHIP_ROLES}, mirrored from the backend's single source of
- *    truth for assignable roles.
- *  - {@link colonelAddMembershipResponseSchema}, the ack shape. Used as a
- *    TRIPWIRE (`gracefulParse`, never a gate) with ONE exception: `status` is
- *    load-bearing, because an idempotent `no_change` is a 200 that must NOT be
- *    reported to the operator as "added".
+ *    truth for assignable roles, and {@link CHANGEABLE_MEMBERSHIP_ROLES}, the
+ *    subset a role CHANGE offers.
+ *  - The three ack shapes. Each is used as a TRIPWIRE (`gracefulParse`, never
+ *    a gate) with ONE exception: `status` is load-bearing on add and set-role,
+ *    because an idempotent `no_change` is a 200 that must NOT be reported to
+ *    the operator as a change.
  */
 
 import { createApiResponseSchema } from '@/schemas/api/base';
@@ -75,3 +78,64 @@ export const colonelAddMembershipResponseSchema = createApiResponseSchema(
 
 export type ColonelAddMembershipRecord = z.infer<typeof colonelAddMembershipRecordSchema>;
 export type ColonelAddMembershipResponse = z.infer<typeof colonelAddMembershipResponseSchema>;
+
+/**
+ * Roles the console offers when CHANGING an existing member's role
+ * (`POST /organizations/:org_id/members/:member_id/role`).
+ *
+ * `owner` is deliberately absent even though `SetRole::VALID_ROLES` accepts it.
+ * A bare set-role to `owner` leaves a second `owner` membership beside the
+ * current one and does not move the organization's `owner_id`; promoting,
+ * pivoting `owner_id` and demoting the previous owner together is what
+ * `Onetime::Operations::Org::TransferOwnership` exists for. Ownership moves
+ * through that transfer, never through this control.
+ */
+export const CHANGEABLE_MEMBERSHIP_ROLES = [
+  'member',
+  'admin',
+] as const satisfies readonly MembershipRole[];
+
+export type ChangeableMembershipRole = (typeof CHANGEABLE_MEMBERSHIP_ROLES)[number];
+
+/**
+ * `SetMembershipRole#success_data`: `{ record }` only. `status` is `success`
+ * (a real change) or `no_change` (already at the target role — an idempotent
+ * 200 that must not be reported as a change). `from` / `to` are role names.
+ * Loose on purpose, like {@link colonelAddMembershipRecordSchema}: the ack is a
+ * tripwire, and the roster is redrawn from a refreshed detail GET.
+ */
+export const colonelSetMembershipRoleRecordSchema = z.object({
+  org_id: z.string(),
+  member_id: z.string(),
+  status: z.string(),
+  from: z.string().nullable(),
+  to: z.string().nullable(),
+});
+
+export const colonelSetMembershipRoleResponseSchema = createApiResponseSchema(
+  colonelSetMembershipRoleRecordSchema
+);
+
+export type ColonelSetMembershipRoleRecord = z.infer<typeof colonelSetMembershipRoleRecordSchema>;
+export type ColonelSetMembershipRoleResponse = z.infer<
+  typeof colonelSetMembershipRoleResponseSchema
+>;
+
+/**
+ * `RemoveMembership#success_data`: `{ record }` only. Refusals (`not_found`,
+ * `last_owner`) arrive as 4xx, so a 200 is always a completed removal; `role`
+ * is the role the membership held.
+ */
+export const colonelRemoveMembershipRecordSchema = z.object({
+  org_id: z.string(),
+  member_id: z.string(),
+  status: z.string(),
+  role: z.string().nullable(),
+});
+
+export const colonelRemoveMembershipResponseSchema = createApiResponseSchema(
+  colonelRemoveMembershipRecordSchema
+);
+
+export type ColonelRemoveMembershipRecord = z.infer<typeof colonelRemoveMembershipRecordSchema>;
+export type ColonelRemoveMembershipResponse = z.infer<typeof colonelRemoveMembershipResponseSchema>;

@@ -11,9 +11,9 @@
 #
 # ORG is an org extid or objid (Onetime::CLI::Org::Shared#resolve_org).
 #
-# Unlike `org delete` / `org transfer-ownership` there is no confirmation
-# prompt: the default IS the dry run, and --run is the explicit apply (the
-# `bin/ots migrations …` convention). The op is constructed exactly once per
+# There is no confirmation prompt: the default IS the dry run, and --run is
+# the explicit apply (the `bin/ots migrations …` convention; the other
+# organizations verbs that write take --apply). The op is constructed exactly once per
 # invocation.
 #
 # ## Statuses
@@ -124,6 +124,6 @@ module Onetime
       end
     end
 
-    register 'org unarchive', OrgUnarchiveCommand
+    register 'organizations unarchive', OrgUnarchiveCommand
   end
 end
