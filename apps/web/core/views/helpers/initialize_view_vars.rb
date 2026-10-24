@@ -227,13 +227,10 @@ module Core
         # The page's own URL for <link rel="canonical">, og:url and
         # twitter:url, which Open Graph defines as the object's canonical URL:
         # the host the request was served on (display_domain is sanitized by
-        # DomainStrategy, so a custom domain canonicalizes to itself, never to
-        # the install's site host) and the path without the query string.
-        # Rhales escapes both at the attribute.
-        canonical_host       = display_domain || site_host
-        request_path         = "#{req.env['SCRIPT_NAME']}#{req.env['PATH_INFO']}"
-        request_path         = '/' if request_path.empty?
-        canonical_url        = base_scheme + canonical_host + request_path
+        # DomainStrategy, so a page on a custom domain points at that domain,
+        # never at the install's site host) and the path without the query
+        # string. Rhales escapes it at the attribute.
+        page_url             = base_scheme + (display_domain || site_host) + req.path
 
         brand_defaults              = Onetime::CustomDomain::BrandSettingsConstants::DEFAULTS
         brand_primary_color         = brand_config['primary_color']
@@ -311,8 +308,7 @@ module Core
           'authenticated' => authenticated,
           'awaiting_mfa' => awaiting_mfa,
           'baseuri' => baseuri,
-          'canonical_host' => canonical_host,
-          'canonical_url' => canonical_url,
+          'page_url' => page_url,
           'cust' => cust,
           'description' => description,
           'development' => development,

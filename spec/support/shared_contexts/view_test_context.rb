@@ -112,6 +112,7 @@ RSpec.shared_context 'view_test_context' do
 
     request = instance_double('Rack::Request')
     allow(request).to receive(:env).and_return(env)
+    allow(request).to receive(:path).and_return('/')
     allow(request).to receive(:nil?).and_return(false)
     allow(request).to receive(:session).and_return(session)
     request

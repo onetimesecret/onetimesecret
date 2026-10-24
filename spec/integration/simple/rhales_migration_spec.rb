@@ -93,6 +93,7 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
   let(:customer) { nil } # Anonymous users have nil customer
   let(:locale) { 'en' }
   let(:nonce) { SecureRandom.base64(32) }
+  let(:request_path) { '/' }
 
   # Mock Otto StrategyResult
   let(:strategy_result) do
@@ -114,6 +115,7 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
 
     double('Request',
       env: env_hash,
+      path: request_path,
       locale: locale,
       user: customer,
       session: session,

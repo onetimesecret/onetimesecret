@@ -163,28 +163,24 @@ RSpec.describe Core::Views::BaseView do
     end
   end
 
-  describe 'canonical_url' do
-    # head-base.rue renders <link rel="canonical" href="{{canonical_url}}">
-    # and head.rue reuses it for og:url and twitter:url. The value is the
+  describe 'page_url' do
+    # head-base.rue renders <link rel="canonical" href="{{page_url}}">; the
+    # head partials reuse it for og:url and twitter:url. The value is the
     # served host plus the path, never the query string.
+    subject(:view) { described_class.new(rack_request) }
 
     it 'joins the configured scheme and site host with the request path' do
-      rack_request.env['PATH_INFO'] = '/signin'
+      allow(rack_request).to receive(:path).and_return('/signin')
       rack_request.env['QUERY_STRING'] = 'next=%2Fdashboard'
 
-      expect(subject.view_vars['canonical_url']).to eq('https://test.domain.com/signin')
+      expect(view.view_vars['page_url']).to eq('https://test.domain.com/signin')
     end
 
     it 'prefers the display domain DomainStrategy resolved for the request' do
       rack_request.env['onetime.display_domain'] = 'secrets.partner.example'
-      rack_request.env['PATH_INFO'] = '/'
+      allow(rack_request).to receive(:path).and_return('/')
 
-      expect(subject.view_vars['canonical_url']).to eq('https://secrets.partner.example/')
-      expect(subject.view_vars['canonical_host']).to eq('secrets.partner.example')
-    end
-
-    it 'falls back to the root path when the request carries none' do
-      expect(subject.view_vars['canonical_url']).to eq('https://test.domain.com/')
+      expect(view.view_vars['page_url']).to eq('https://secrets.partner.example/')
     end
   end
 
@@ -266,6 +262,7 @@ RSpec.describe Core::Views::BaseView do
 
       request = instance_double('Rack::Request')
       allow(request).to receive(:env).and_return(env)
+      allow(request).to receive(:path).and_return('/')
       allow(request).to receive(:nil?).and_return(false)
       allow(request).to receive(:session).and_return(authenticated_session)
       request
@@ -458,6 +455,7 @@ RSpec.describe Core::Views::BaseView do
 
       request = instance_double('Rack::Request')
       allow(request).to receive(:env).and_return(env)
+      allow(request).to receive(:path).and_return('/')
       allow(request).to receive(:nil?).and_return(false)
       allow(request).to receive(:session).and_return(session)
       request
@@ -585,6 +583,7 @@ RSpec.describe Core::Views::BaseView do
 
         request = instance_double(Rack::Request)
         allow(request).to receive(:env).and_return(env)
+        allow(request).to receive(:path).and_return('/')
         allow(request).to receive(:nil?).and_return(false)
         allow(request).to receive(:session).and_return({})
         request
@@ -645,6 +644,7 @@ RSpec.describe Core::Views::BaseView do
 
         request = instance_double(Rack::Request)
         allow(request).to receive(:env).and_return(env)
+        allow(request).to receive(:path).and_return('/')
         allow(request).to receive(:nil?).and_return(false)
         allow(request).to receive(:session).and_return(session)
         request
