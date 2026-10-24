@@ -17,7 +17,6 @@ import { setupTestPinia } from '../setup';
 import { captureAppLogs } from '../utils/appLogs';
 import type { ForcedPageLoadResult } from '@/utils/forcedPageLoad';
 import { handlePreloadError } from '@/utils/preloadError';
-import { resolve } from 'path';
 
 // zh_Hant_TW and xx_YY stand for locales whose chunks exist but fail to load:
 // the store keeps them supported, and src/i18n.ts rejects their loads because
@@ -29,7 +28,15 @@ import { resolve } from 'path';
 // English with its fallbacks then fails too, bundled as English is. The
 // fallback map is read when src/i18n.ts loads, so it is modelled here rather
 // than configured.
-const i18nControl = vi.hoisted(() => ({ englishFallbackFails: false }));
+//
+// failingChunk names a locale whose chunk fails to load in the browser's way:
+// Vite's preload helper dispatches `vite:preloadError` with the error as its
+// payload and then rethrows that same error, so the import rejects with the
+// object the handler saw (see src/utils/preloadError.ts).
+const i18nControl = vi.hoisted(() => ({
+  englishFallbackFails: false,
+  failingChunk: null as string | null,
+}));
 vi.mock('@/i18n', async (importOriginal) => {
   const FAILING_LOCALES = new Set(['zh_Hant_TW', 'xx_YY']);
   const actual = await importOriginal<typeof import('@/i18n')>();
@@ -40,6 +47,13 @@ vi.mock('@/i18n', async (importOriginal) => {
     setGlobalLocale: (locale: string, options?: Parameters<typeof actual.setGlobalLocale>[1]) => {
       if (locale === 'en' && options?.fallbacks !== false && i18nControl.englishFallbackFails) {
         return Promise.reject(new Error('chunk de failed'));
+      }
+      if (locale === i18nControl.failingChunk) {
+        const error = new Error(`chunk ${locale} failed`);
+        const event = new Event('vite:preloadError', { cancelable: true });
+        (event as Event & { payload: Error }).payload = error;
+        window.dispatchEvent(event);
+        return Promise.reject(error);
       }
       return actual.setGlobalLocale(locale, options);
     },
@@ -81,6 +95,7 @@ describe('Language Store', () => {
     vi.unstubAllGlobals();
     bootstrapStore.$reset();
     i18nControl.englishFallbackFails = false;
+    i18nControl.failingChunk = null;
   });
 
   // init() records options and returns the preferred locale. It activates
@@ -744,10 +759,13 @@ describe('Language Store', () => {
 
   // F24: a locale chunk is a chunk like any other. One that fails to load
   // reloads the page under the ADR-046 bound (the deployment-skew recovery),
-  // before anything is shown and on a later switch alike. When the bound
-  // refuses the reload, the switch fails: the active locale stays and the
-  // failure is recorded for LocaleLoadNotice. Each "chunk" here dispatches the
-  // event Vite's preload helper would and then fails; the real handler decides.
+  // before anything is shown and on a later switch alike. A locale the
+  // visitor chose is stored before that reload, so the reloaded page asks for
+  // it again instead of opening in the language shown before. When the bound
+  // refuses the reload, the switch fails in place: the active locale stays,
+  // nothing is stored, and the failure is recorded for LocaleLoadNotice. Each
+  // "chunk" here fails as a browser's would (see failingChunk); the real
+  // handler decides.
   describe('A failed chunk and the forced reload (F24)', () => {
     const results: ForcedPageLoadResult[] = [];
     const reload = vi.fn();
@@ -756,16 +774,12 @@ describe('Language Store', () => {
     const storage = { getItem: () => marker, setItem: vi.fn() };
     const onPreloadError = (event: Event) =>
       results.push(handlePreloadError(event, { now: Date.now(), reload, storage }));
-    const mockedFiles: string[] = [];
     let store: ReturnType<typeof useLanguageStore>;
 
+    const storedSelections = () => vi.mocked(sessionStorage.setItem).mock.calls;
+
     function failChunk(code: string) {
-      const file = resolve(process.cwd(), `generated/locales/${code}.json`);
-      mockedFiles.push(file);
-      vi.doMock(file, () => {
-        window.dispatchEvent(new Event('vite:preloadError', { cancelable: true }));
-        throw new Error(`chunk ${code} failed`);
-      });
+      i18nControl.failingChunk = code;
     }
 
     beforeEach(() => {
@@ -779,27 +793,45 @@ describe('Language Store', () => {
 
     afterEach(() => {
       window.removeEventListener('vite:preloadError', onPreloadError);
-      for (const file of mockedFiles.splice(0)) vi.doUnmock(file);
     });
 
-    it('lets the first activation reload the page', async () => {
+    it('lets the first activation reload the page, with the choice stored for it', async () => {
       failChunk('ko');
 
-      await expect(store.setCurrentLocale('ko')).rejects.toThrow();
+      await expect(store.setCurrentLocale('ko')).rejects.toThrow('chunk ko failed');
 
       expect(results).toEqual(['reloading']);
       expect(reload).toHaveBeenCalledTimes(1);
+      expect(store.currentLocale).toBeNull();
+      expect(storedSelections()).toEqual([[SESSION_STORAGE_KEY, 'ko']]);
     });
 
-    it('lets a later switch reload the page too, with the active locale unchanged', async () => {
+    it('lets a later switch reload the page too, with the active locale unchanged and the choice stored', async () => {
       await store.setCurrentLocale('nl');
       failChunk('pl');
 
-      await expect(store.setCurrentLocale('pl')).rejects.toThrow();
+      await expect(store.setCurrentLocale('pl')).rejects.toThrow('chunk pl failed');
 
       expect(results).toEqual(['reloading']);
       expect(reload).toHaveBeenCalledTimes(1);
       expect(store.currentLocale).toBe('nl');
+      expect(storedSelections()).toEqual([
+        [SESSION_STORAGE_KEY, 'nl'],
+        [SESSION_STORAGE_KEY, 'pl'],
+      ]);
+    });
+
+    // The guard activates the preferred locale and the store its fallbacks
+    // with remember false: a language the app picked is not the visitor's
+    // choice, and the reloaded page picks again.
+    it('stores nothing for a locale the app chose, though the page reloads for it', async () => {
+      failChunk('ko');
+
+      await expect(store.setCurrentLocale('ko', { remember: false })).rejects.toThrow();
+
+      expect(results).toEqual(['reloading']);
+      expect(reload).toHaveBeenCalledTimes(1);
+      expect(storedSelections()).toEqual([]);
     });
 
     it('keeps the locale and records the failure when the bound refuses the reload', async () => {
@@ -808,12 +840,15 @@ describe('Language Store', () => {
       marker = String(Date.now());
       failChunk('hu');
 
-      await expect(store.updateLanguage('hu')).rejects.toThrow();
+      await expect(store.updateLanguage('hu')).rejects.toThrow('chunk hu failed');
 
       expect(results).toEqual(['bounded']);
       expect(reload).not.toHaveBeenCalled();
       expect(store.currentLocale).toBe('nl');
       expect(store.localeLoadFailure).toEqual({ requested: 'hu', shown: 'nl' });
+      expect(storedSelections(), 'no reload, so the choice is not stored').toEqual([
+        [SESSION_STORAGE_KEY, 'nl'],
+      ]);
       // A chunk failing with the reload already spent is the page's error.
       expect(logs.error).toHaveBeenCalledTimes(1);
     });

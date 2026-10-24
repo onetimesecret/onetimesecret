@@ -20,9 +20,11 @@
 // shows the source as plain text) is the final state.
 //
 // A locale chunk is a chunk like any other: a language switch whose messages
-// fail to load reloads the page under the same bound, and when the reload is
-// refused the language store keeps the locale it shows and records the
-// failure for LocaleLoadNotice (src/shared/stores/languageStore.ts).
+// fail to load reloads the page under the same bound. The language store
+// keeps the language the visitor chose for the reloaded page (reloadingFor),
+// so the reload retries it rather than opening in the language shown before;
+// when the reload is refused the store keeps the locale it shows and records
+// the failure for LocaleLoadNotice (src/shared/stores/languageStore.ts).
 //
 // The import is left to fail in every case, reload or not. Vite's preload
 // helper rethrows the error unless the event is default-prevented, and this
@@ -61,6 +63,9 @@ let reloading = false;
 // rethrows them to the import's caller. See isChunkLoadError.
 const chunkErrors = new WeakSet<object>();
 
+// Those of them the page called reload() for. See reloadingFor.
+const reloadsStarted = new WeakSet<object>();
+
 /**
  * Handles one `vite:preloadError` event: records the failure, then reloads
  * the page when nothing on it would be lost and the forced page load bound
@@ -76,6 +81,7 @@ export function handlePreloadError(
   const result = attemptForcedPageLoad(deps);
   if (result === 'reloading') {
     reloading = true;
+    if (typeof cause === 'object' && cause !== null) reloadsStarted.add(cause);
     return result;
   }
 
@@ -117,6 +123,18 @@ export function reloadPending(): boolean {
  */
 export function isChunkLoadError(error: unknown): boolean {
   return typeof error === 'object' && error !== null && chunkErrors.has(error);
+}
+
+/**
+ * Whether the page is reloading for the chunk whose import rejected with
+ * `error`: this handler called reload() for it. The language store asks this
+ * when a locale fails to load, to keep the visitor's choice for the reloaded
+ * page. Unlike reloadPending it names the chunk, so a failure refused by the
+ * bound after an earlier reload (a cancelled prompt keeps the page up) is not
+ * mistaken for one the page is reloading for.
+ */
+export function reloadingFor(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && reloadsStarted.has(error);
 }
 
 /** The error Vite's helper attached to the event, as text. */

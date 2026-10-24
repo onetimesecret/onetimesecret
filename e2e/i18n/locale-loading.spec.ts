@@ -13,12 +13,13 @@
 // A locale that does not load never blocks the visitor. A failed chunk first
 // reloads the page once (src/utils/preloadError.ts), on the first load and on
 // a later switch alike, the usual cause being cached HTML that names chunks a
-// deployment replaced. That reload goes through the ADR-046 forced page load
-// bound, one per tab per minute; spendForcedReload uses it up for a test that
-// needs the outcome without the reload. When the reload is refused, the page
-// opens in English (or keeps the language it shows) with an inline notice
-// (LocaleLoadNotice) that names the language that failed and links to the
-// feedback form.
+// deployment replaced. The language asked for is stored before that reload
+// (languageStore.ts), so the reloaded page asks for it again. The reload goes
+// through the ADR-046 forced page load bound, one per tab per minute;
+// spendForcedReload uses it up for a test that needs the outcome without the
+// reload. When the reload is refused, the page opens in English (or keeps the
+// language it shows) with an inline notice (LocaleLoadNotice) that names the
+// language that failed and links to the feedback form.
 //
 // "First content" is measured in the page: an init script records every
 // distinct state of #app from the first byte (see recordAppStates). Vue sets
@@ -149,8 +150,12 @@ const test = base.extend<{
   localeChunks: {
     /** Delays every request for the chunk until release(). */
     hold(code: string): Promise<HeldChunk>;
-    /** Aborts every request for the chunk, as an unreachable asset host would. */
-    fail(code: string): Promise<ChunkRoute>;
+    /**
+     * Aborts every request for the chunk, as an unreachable asset host would;
+     * with `times`, only the first that many, as a deployment the next page
+     * load catches up with.
+     */
+    fail(code: string, options?: { times?: number }): Promise<ChunkRoute>;
   };
 }>({
   localeChunks: async ({ page }, use) => {
@@ -178,10 +183,14 @@ const test = base.extend<{
         );
       },
 
-      async fail(code) {
+      async fail(code, { times = Infinity } = {}) {
         let count = 0;
         await page.route(isLocaleChunk(code), async (route) => {
           count += 1;
+          if (count > times) {
+            await route.continue().catch(() => undefined);
+            return;
+          }
           await route.abort('failed');
         });
         return chunkRoute(code, () => count);
@@ -667,8 +676,8 @@ test.describe('initial locale', () => {
     await expectLocaleNotice(page, 'bg', 'Български');
     expect(
       await storedLocale(page),
-      'neither the failed locale nor the fallback is stored'
-    ).toBeNull();
+      'the language asked for is stored for the reload; the fallback is not'
+    ).toBe('bg');
     await dismissLocaleNotice(page);
     await expect(heading(page, 'en')).toBeVisible();
   });
@@ -797,9 +806,46 @@ test.describe('switching language', () => {
 
   // F24: a locale chunk is a chunk like any other. A switch whose chunk fails
   // reloads the page once under the ADR-046 bound, as a route chunk that
-  // fails after a deployment does. The failed choice is never stored, so the
-  // reloaded page opens in the language it showed before.
-  test('a bg chunk that fails during a switch reloads the page once, which opens in English', async ({
+  // fails after a deployment does. The choice is stored before the reload, so
+  // the reloaded page asks for the language the visitor chose: in the usual
+  // case, cached HTML naming chunks a deployment replaced, the reload is what
+  // fixes it, and the page opens in that language.
+  test('a bg chunk that fails once during a switch reloads the page, which opens in Bulgarian', async ({
+    page,
+    localeChunks,
+  }) => {
+    const states = await recordAppStates(page);
+    const documents = recordDocumentRequests(page);
+    const savedLocales = recordSavedLocales(page);
+    await page.goto('/');
+    await expectLocalesServed(page, ['bg']);
+    await waitForAppReady(page);
+    await expect(localeNotice(page)).toHaveCount(0);
+
+    const bg = await localeChunks.fail('bg', { times: 1 });
+    await chooseLanguage(page, 'bg');
+    await bg.requested();
+
+    await waitOutReloads(page, documents);
+    expect(documents, 'exactly one recovery reload').toEqual(['/', '/']);
+    expect(bg.count, 'the reloaded page asks for bg again').toBe(2);
+
+    await waitForAppReady(page);
+    await expect(htmlElement(page)).not.toHaveAttribute('data-app-failed');
+    await expect(heading(page, 'bg')).toBeVisible();
+    await expect(layoutRoot(page)).toHaveAttribute('lang', 'bg');
+    await expect(htmlElement(page)).toHaveAttribute('lang', 'bg');
+    const first = (await states()).find((state) => state.mounted);
+    expect(first?.copy, 'the reloaded page opens in Bulgarian').toEqual(['bg']);
+    await expect(localeNotice(page)).toHaveCount(0);
+    expect(await storedLocale(page), 'the choice is kept for the session').toBe('bg');
+    expect(savedLocales, 'nothing is saved to an account').toEqual([]);
+  });
+
+  // When the chunk fails on the reloaded page too, the bound refuses a second
+  // reload and that page opens in English with the notice. A reload back to
+  // the language shown before would have dropped the choice without a word.
+  test('a bg chunk that keeps failing during a switch reloads the page once, which opens in English with the notice', async ({
     page,
     localeChunks,
   }) => {
@@ -816,20 +862,24 @@ test.describe('switching language', () => {
 
     await waitOutReloads(page, documents);
     expect(documents, 'exactly one recovery reload').toEqual(['/', '/']);
-    expect(bg.count, 'the reloaded page does not ask for bg').toBe(1);
+    expect(bg.count, 'one bg request per page load').toBe(2);
 
     await waitForAppReady(page);
     await expect(htmlElement(page)).not.toHaveAttribute('data-app-failed');
     await expect(heading(page, 'en')).toBeVisible();
     await expect(layoutRoot(page)).toHaveAttribute('lang', 'en');
     await expect(htmlElement(page)).toHaveAttribute('lang', 'en');
-    expect(await storedLocale(page), 'the failed choice is not stored').toBeNull();
+    await expectLocaleNotice(page, 'bg', 'Български');
+    expect(await storedLocale(page), 'the choice stays stored').toBe('bg');
     expect(savedLocales, 'the failed choice is not saved').toEqual([]);
+
+    await dismissLocaleNotice(page);
+    await expect(heading(page, 'en')).toBeVisible();
   });
 
   // With the tab's forced reload spent, the switch fails in place: the page
-  // keeps its language and shows the notice, and what the visitor has typed
-  // stays.
+  // keeps its language and shows the notice, what the visitor has typed
+  // stays, and the choice is not stored (no reload will retry it).
   test('with the forced reload spent, a bg chunk that fails during a switch keeps English and shows the notice', async ({
     page,
     localeChunks,
@@ -860,7 +910,7 @@ test.describe('switching language', () => {
     await expect(layoutRoot(page)).toHaveAttribute('lang', 'en');
     await expect(htmlElement(page)).toHaveAttribute('lang', 'en');
     await expect(secret, 'the unsaved input survives').toHaveValue('typed before the switch');
-    expect(await storedLocale(page), 'the failed choice is not stored').toBeNull();
+    expect(await storedLocale(page), 'no reload, so the choice is not stored').toBeNull();
     expect(savedLocales, 'the failed choice is not saved').toEqual([]);
 
     await dismissLocaleNotice(page);

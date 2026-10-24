@@ -10,6 +10,7 @@ import {
   handlePreloadError,
   installPreloadErrorHandler,
   isChunkLoadError,
+  reloadingFor,
 } from '@/utils/preloadError';
 import { markUnrecoverableContent } from '@/utils/unrecoverableContent';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -199,5 +200,34 @@ describe('isChunkLoadError', () => {
   it('does not recognise a non-error', () => {
     expect(isChunkLoadError(undefined)).toBe(false);
     expect(isChunkLoadError('Failed to fetch dynamically imported module')).toBe(false);
+  });
+});
+
+// The language store stores the language a visitor chose before the page
+// reloads for its chunk (languageStore.ts activateLocale), and only then: a
+// refused reload leaves the page up with the locale it shows.
+describe('reloadingFor', () => {
+  beforeEach(() => sessionStorage.clear());
+
+  const payloadOf = (event: Event) => (event as Event & { payload: Error }).payload;
+
+  it('is true only for the error of a chunk the page is reloading for', () => {
+    const reloading = preloadErrorEvent('chunk 404');
+    expect(handlePreloadError(reloading, { now: NOW, reload: vi.fn() })).toBe('reloading');
+    const bounded = preloadErrorEvent('chunk 404');
+    expect(handlePreloadError(bounded, { now: NOW + 1, reload: vi.fn() })).toBe('bounded');
+    const release = markUnrecoverableContent();
+    const refused = preloadErrorEvent('chunk 404');
+    try {
+      expect(handlePreloadError(refused, { now: NOW + 2, reload: vi.fn() })).toBe('refused');
+    } finally {
+      release();
+    }
+
+    expect(reloadingFor(payloadOf(reloading))).toBe(true);
+    expect(reloadingFor(payloadOf(bounded))).toBe(false);
+    expect(reloadingFor(payloadOf(refused))).toBe(false);
+    expect(reloadingFor(new Error('chunk 404'))).toBe(false);
+    expect(reloadingFor(undefined)).toBe(false);
   });
 });

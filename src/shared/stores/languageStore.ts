@@ -8,6 +8,7 @@ import { localeCodeSchema } from '@/schemas/i18n/locale';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { localeCodes } from '@/sources/languages';
 import { useApi } from '@/shared/composables/useApi';
+import { reloadingFor } from '@/utils/preloadError';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 
@@ -48,6 +49,11 @@ export interface SetCurrentLocaleOptions {
    * locale, a language picked in the toggle. False for one the app picked
    * for them (the preferred locale, a fallback), which must not outrank a
    * domain locale that changes later in the session.
+   *
+   * A remembered locale is stored once it is active, and also when its chunk
+   * fails to load and the page reloads for it (see activateLocale): the
+   * reloaded page then retries the choice instead of opening in the language
+   * shown before.
    */
   remember?: boolean;
 }
@@ -227,7 +233,8 @@ export const useLanguageStore = defineStore('language', () => {
    *   (unchanged by this call; 'en' before any activation).
    * @throws UnsupportedLocaleError when `locale` matches no supported locale,
    *   or the load error when its messages fail to load. Either way the active
-   *   locale and session storage are unchanged.
+   *   locale is unchanged, and so is session storage unless the page is
+   *   reloading for the failed chunk (see SetCurrentLocaleOptions.remember).
    */
   async function setCurrentLocale(
     locale: string,
@@ -252,12 +259,22 @@ export const useLanguageStore = defineStore('language', () => {
     const request = ++latestSwitch;
     pendingLocale.value = normalizedLocale;
     // A chunk that fails to load may reload the page: the deployment-skew
-    // recovery of src/utils/preloadError.ts, bounded by ADR-046. When the
-    // reload is refused the load rejects, and the caller keeps the locale it
-    // shows (recoverFromLocaleLoadFailure).
+    // recovery of src/utils/preloadError.ts, bounded by ADR-046. The load
+    // rejects either way. When the page is reloading, a locale the visitor
+    // chose is stored first: nothing else would carry the choice across the
+    // reload, and the reloaded page would open in the language it showed
+    // before, with no notice, as if the switch had never happened. Stored, it
+    // is the reloaded page's preferred locale (see preferredLocale); a chunk
+    // that fails there too is refused a second reload by the bound, and that
+    // page opens in its fallback with the notice. When the reload is refused
+    // here, nothing is stored and the caller keeps the locale it shows
+    // (recoverFromLocaleLoadFailure).
     let activated: boolean;
     try {
       activated = await setGlobalLocale(normalizedLocale, { fallbacks });
+    } catch (error) {
+      if (remember && reloadingFor(error)) storeSelection(normalizedLocale);
+      throw error;
     } finally {
       if (request === latestSwitch) pendingLocale.value = null;
     }
@@ -265,14 +282,17 @@ export const useLanguageStore = defineStore('language', () => {
 
     currentLocale.value = normalizedLocale;
     localeLoadFailure.value = null;
-    if (remember) {
-      try {
-        sessionStorage.setItem(getStorageKey.value, normalizedLocale);
-      } catch (error) {
-        console.error('Failed to save locale to session storage:', error);
-      }
-    }
+    if (remember) storeSelection(normalizedLocale);
     return normalizedLocale;
+  }
+
+  /** Records `locale` as this session's selection (see preferredLocale). */
+  function storeSelection(locale: string): void {
+    try {
+      sessionStorage.setItem(getStorageKey.value, locale);
+    } catch (error) {
+      console.error('Failed to save locale to session storage:', error);
+    }
   }
 
   /**
