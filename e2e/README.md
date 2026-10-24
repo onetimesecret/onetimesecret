@@ -7,6 +7,7 @@ Playwright-based end-to-end tests. See `playwright.config.ts` for configuration.
 | Directory | Requires | Description |
 |-----------|----------|-------------|
 | `all/` | Nothing | Public pages, anonymous flows |
+| `i18n/` | A production build served with `I18N_ENABLED=true` | Locale loading: lazy locale chunks, first content in the requested language |
 | `full/` | Auth session, full auth mode | Signed-in workspace. Needs `TEST_USER_EMAIL` and `TEST_USER_PASSWORD`, and a server in full auth mode whose new accounts can sign in without verifying email (see [CI](#ci) for the server env) |
 | `full-billing/` | Auth + billing | Requires billing.yaml config |
 
@@ -141,13 +142,14 @@ Parallel sign-ups no longer need `--workers=1` against a SQLite authdb
 
 ## CI
 
-`.github/workflows/e2e.yml` builds the production image and runs it in two
+`.github/workflows/e2e.yml` builds the production image and runs it in three
 blocking lanes, each on its own runner with its own Valkey container:
 
 | Check | Server | Suite |
 |-------|--------|-------|
 | `container-e2e-tests (simple)` | `AUTHENTICATION_MODE=simple` | `e2e/all/` |
 | `container-e2e-tests (full)` | `AUTHENTICATION_MODE=full`, SQLite authdb, `AUTH_VERIFY_ACCOUNT_ENABLED=false`, `CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false`, `ENABLE_ORGS=true` | `e2e/full/` (the `setup` project signs up an ephemeral `TEST_USER_*` account first) |
+| `container-e2e-tests (i18n)` | `AUTHENTICATION_MODE=simple`, `I18N_ENABLED=true` | `e2e/i18n/` (the `i18n` project) |
 
 Each lane fails on any failed test and on any test that passed only on retry
 (the flaky gate).
@@ -155,7 +157,7 @@ Each lane fails on any failed test and on any test that passed only on retry
 `notify-results` is the required E2E check for `main`. It runs on every pull
 request into `develop`, `main` or `rel/*`, whatever the PR touches. The lanes
 run only when the PR changes an E2E-relevant path (the `changes` job's filter
-in `e2e.yml`); `notify-results` then fails unless both lanes pass. When the
+in `e2e.yml`); `notify-results` then fails unless every lane passes. When the
 PR changes none of those paths, the lanes are skipped and `notify-results`
 passes. It also fails if change detection itself fails or is cancelled.
 

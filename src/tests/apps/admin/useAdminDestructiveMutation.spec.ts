@@ -3,7 +3,7 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { AxiosError } from 'axios';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
 
 // One shared instance: useColonelElevation injects it once per reset, and the
 // liveness examples below defer its status GET.
@@ -20,8 +20,8 @@ import {
   __resetColonelElevationState,
   useColonelElevation,
 } from '@/apps/admin/composables/useColonelElevation';
-import { createTestI18n } from '@tests/setup';
 import { startElevated } from '@tests/apps/admin/support/elevation';
+import { createTestI18n } from '@tests/setup';
 
 /**
  * The two pure resolvers behind the destructive-mutation loop.
@@ -169,6 +169,169 @@ describe('useAdminDestructiveMutation (mounted)', () => {
     elevation.resolvePrompt(true);
     await expect(running).resolves.toBe(true);
     expect(perform).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('useElevateThenOpen', () => {
+  let wrapper: VueWrapper;
+  let mutation: UseAdminDestructiveMutation<[]>;
+
+  beforeEach(() => {
+    __resetColonelElevationState({ statusRead: true });
+    ({ mutation, wrapper } = mountHost(() => Promise.resolve()));
+  });
+  afterEach(() => {
+    if (wrapper.exists()) wrapper.unmount();
+    vi.restoreAllMocks();
+    __resetColonelElevationState();
+  });
+
+  it('captures the click arguments and opens only after elevation', async () => {
+    const opener = vi.fn();
+    const { open, opening } = mutation.useElevateThenOpen(opener);
+    const pending = open('purge', 'customer-a');
+    expect(opening.value).toBe(true);
+    expect(opener).not.toHaveBeenCalled();
+    expect(useColonelElevation().promptOpen.value).toBe(true);
+
+    useColonelElevation().resolvePrompt(true);
+    await pending;
+    expect(opener).toHaveBeenCalledExactlyOnceWith('purge', 'customer-a');
+    expect(opening.value).toBe(false);
+  });
+
+  it('opens nothing on cancellation and releases the lock for another click', async () => {
+    const opener = vi.fn();
+    const { open, opening } = mutation.useElevateThenOpen(opener);
+    const cancelled = open();
+    useColonelElevation().resolvePrompt(false);
+    await cancelled;
+    expect(opener).not.toHaveBeenCalled();
+    expect(opening.value).toBe(false);
+
+    const next = open();
+    useColonelElevation().resolvePrompt(true);
+    await next;
+    expect(opener).toHaveBeenCalledOnce();
+  });
+
+  it('drops repeated and competing actions while an opener awaits elevation', async () => {
+    const opener = vi.fn<(verb: string, messageId: string) => void>();
+    const { open } = mutation.useElevateThenOpen(opener, {
+      requiresElevation: (verb: string) => verb === 'discard',
+    });
+    const pending = open('discard', 'message-a');
+    await open('discard', 'message-b');
+    await open('replay', 'message-c');
+    expect(opener).not.toHaveBeenCalled();
+
+    useColonelElevation().resolvePrompt(true);
+    await pending;
+    expect(opener).toHaveBeenCalledExactlyOnceWith('discard', 'message-a');
+  });
+
+  it('shares an opening lock across separate dialogs', async () => {
+    const opening = ref(false);
+    const firstOpener = vi.fn();
+    const secondOpener = vi.fn();
+    const first = mutation.useElevateThenOpen(firstOpener, { opening });
+    const second = mutation.useElevateThenOpen(secondOpener, { opening });
+    const pending = first.open();
+    await second.open();
+    useColonelElevation().resolvePrompt(true);
+    await pending;
+    expect(firstOpener).toHaveBeenCalledOnce();
+    expect(secondOpener).not.toHaveBeenCalled();
+    expect(opening.value).toBe(false);
+  });
+
+  it.each([false, true])(
+    'invalidates a target that changes during elevation (restored: %s)',
+    async (restore) => {
+      const target = ref('customer-a');
+      const opener = vi.fn();
+      const { open, opening } = mutation.useElevateThenOpen(opener, { target: () => target.value });
+      const pending = open();
+      target.value = 'customer-b';
+      if (restore) target.value = 'customer-a';
+      useColonelElevation().resolvePrompt(true);
+      await pending;
+      expect(opener).not.toHaveBeenCalled();
+      expect(opening.value).toBe(false);
+    }
+  );
+
+  it('rechecks non-reactive target identity after elevation', async () => {
+    let target = 'domain-a';
+    const opener = vi.fn();
+    const { open } = mutation.useElevateThenOpen(opener, { target: () => target });
+    const pending = open();
+    target = 'domain-b';
+    useColonelElevation().resolvePrompt(true);
+    await pending;
+    expect(opener).not.toHaveBeenCalled();
+  });
+
+  it('checks eligibility before prompting and again before opening', async () => {
+    const eligible = ref(false);
+    const opener = vi.fn();
+    const { open } = mutation.useElevateThenOpen(opener, { canOpen: () => eligible.value });
+    await open();
+    expect(useColonelElevation().promptOpen.value).toBe(false);
+
+    eligible.value = true;
+    const pending = open();
+    eligible.value = false;
+    useColonelElevation().resolvePrompt(true);
+    await pending;
+    expect(opener).not.toHaveBeenCalled();
+  });
+
+  it('opens lower-tier actions synchronously without elevation', async () => {
+    const opener = vi.fn<(verb: string) => void>();
+    const { open, opening } = mutation.useElevateThenOpen(opener, {
+      requiresElevation: () => false,
+    });
+    const pending = open('verify');
+    expect(opener).toHaveBeenCalledExactlyOnceWith('verify');
+    expect(opening.value).toBe(false);
+    expect(useColonelElevation().promptOpen.value).toBe(false);
+    await pending;
+  });
+
+  it('does not open after unmount even if elevation was already live', async () => {
+    startElevated();
+    const opener = vi.fn();
+    const { open, opening } = mutation.useElevateThenOpen(opener);
+    const pending = open();
+    wrapper.unmount();
+    await pending;
+    expect(opener).not.toHaveBeenCalled();
+    expect(opening.value).toBe(false);
+  });
+
+  it('settles without opening when the caller unmounts under its prompt', async () => {
+    const opener = vi.fn();
+    const { open, opening } = mutation.useElevateThenOpen(opener);
+    const pending = open();
+    wrapper.unmount();
+    await pending;
+    expect(opener).not.toHaveBeenCalled();
+    expect(opening.value).toBe(false);
+    expect(useColonelElevation().promptOpen.value).toBe(false);
+  });
+
+  it('releases the lock when the opener throws', async () => {
+    const opener = vi.fn().mockImplementationOnce(() => {
+      throw new Error('opener failed');
+    });
+    const { open, opening } = mutation.useElevateThenOpen(opener, {
+      requiresElevation: () => false,
+    });
+    await expect(open()).rejects.toThrow('opener failed');
+    expect(opening.value).toBe(false);
+    await open();
+    expect(opener).toHaveBeenCalledTimes(2);
   });
 });
 

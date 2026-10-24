@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminDomainDetail.vue -->
 
 <script setup lang="ts">
-
   import AdminDomainDnsDetails from '@/apps/admin/components/AdminDomainDnsDetails.vue';
   import DomainConfigsSection from '@/apps/admin/components/domains/DomainConfigsSection.vue';
   import DomainProbeResult from '@/apps/admin/components/domains/DomainProbeResult.vue';
@@ -82,8 +81,7 @@
   /** A non-404 network/HTTP failure, or a Zod contract mismatch. */
   const loadFailed = computed(
     () =>
-      (domainError.value !== null && !domainNotFound.value) ||
-      domainValidationError.value !== null
+      (domainError.value !== null && !domainNotFound.value) || domainValidationError.value !== null
   );
 
   /** External URL so an operator can open the live domain in a new tab. */
@@ -152,17 +150,13 @@
       {
         key: 'created',
         label: t('web.admin.domains.fields.created'),
-        value: r.created
-          ? formatDisplayDateTime(r.created)
-          : t('web.admin.domains.detail.none'),
+        value: r.created ? formatDisplayDateTime(r.created) : t('web.admin.domains.detail.none'),
         mono: false,
       },
       {
         key: 'updated',
         label: t('web.admin.domains.fields.updated'),
-        value: r.updated
-          ? formatDisplayDateTime(r.updated)
-          : t('web.admin.domains.detail.never'),
+        value: r.updated ? formatDisplayDateTime(r.updated) : t('web.admin.domains.detail.never'),
         mono: false,
       },
     ];
@@ -303,7 +297,7 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
-    ensureElevated,
+    useElevateThenOpen,
   } = useAdminDestructiveMutation(async (reason?: string) => {
     switch (activeAction.value) {
       case 'verify':
@@ -332,12 +326,7 @@
         // drift) means the server only PREVIEWED — reporting success would
         // toast "removed", drop the cached row and navigate away while the
         // domain still exists.
-        const removeAck = await store.remove(
-          publicId.value,
-          false,
-          applyConfirmToken(),
-          reason
-        );
+        const removeAck = await store.remove(publicId.value, false, applyConfirmToken(), reason);
         if (!removeAck || removeAck.dry_run !== false) {
           throw new Error(t('web.admin.domains.actions.remove.notApplied'));
         }
@@ -405,12 +394,24 @@
    */
   const ELEVATED_ACTIONS: readonly ActionKey[] = ['transfer', 'remove'];
 
-  async function requestAction(key: ActionKey): Promise<void> {
-    if (ELEVATED_ACTIONS.includes(key) && !(await ensureElevated())) return;
-    activeAction.value = key;
-    resetMutation();
-    dialogOpen.value = true;
-  }
+  const { open: requestAction, opening: actionOpening } = useElevateThenOpen(
+    (key: ActionKey) => {
+      activeAction.value = key;
+      resetMutation();
+      dialogOpen.value = true;
+    },
+    {
+      target: () => publicId.value,
+      canOpen: (key) => {
+        if (!record.value || dialogOpen.value || mutationLoading.value) return false;
+        if (key === 'repair') return repairApplicable.value;
+        if (key === 'transfer') return transferApplicable.value && transferReady.value;
+        if (key === 'remove') return removeApplicable.value;
+        return true;
+      },
+      requiresElevation: (key) => ELEVATED_ACTIONS.includes(key),
+    }
+  );
 
   function notifyVerifyOutcome(): void {
     const { messageKey, severity } = verifyOutcomeNotice(verifyResult.value);
@@ -614,7 +615,8 @@
       class="space-y-6"
       data-testid="detail-content">
       <!-- Header -->
-      <div class="flex flex-wrap items-center gap-3 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+      <div
+        class="flex flex-wrap items-center gap-3 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
         <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
           {{ record.display_domain }}
         </h2>
@@ -636,7 +638,9 @@
           target="_blank"
           rel="noopener noreferrer"
           data-testid="detail-open-external"
-          :aria-label="t('web.admin.domains.attach.openExternal', { domain: record.display_domain })"
+          :aria-label="
+            t('web.admin.domains.attach.openExternal', { domain: record.display_domain })
+          "
           :title="t('web.admin.domains.attach.openExternal', { domain: record.display_domain })"
           class="rounded text-gray-400 hover:text-brand-600 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:hover:text-brand-400">
           <OIcon
@@ -651,7 +655,12 @@
       <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatCard
           :label="t('web.admin.domains.columns.state')"
-          :value="t(`web.colonel.customDomains.status.${record.verification_state}`, record.verification_state)"
+          :value="
+            t(
+              `web.colonel.customDomains.status.${record.verification_state}`,
+              record.verification_state
+            )
+          "
           icon="shield-check"
           testid="stat-state" />
         <StatCard
@@ -770,7 +779,8 @@
               v-for="field in overviewFields"
               :key="field.key"
               :data-testid="`profile-${field.key}`">
-              <dt class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+              <dt
+                class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ field.label }}
               </dt>
               <dd
@@ -798,6 +808,7 @@
             <button
               type="button"
               data-testid="verify-button"
+              :disabled="actionOpening || dialogOpen || mutationLoading"
               class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
               @click="requestAction('verify')">
               <OIcon
@@ -867,6 +878,7 @@
                 v-if="removeApplicable"
                 type="button"
                 data-testid="remove-button"
+                :disabled="actionOpening || dialogOpen || mutationLoading"
                 class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
                 @click="requestAction('remove')">
                 <OIcon
@@ -1024,7 +1036,9 @@
               {{ t('web.admin.domains.actions.repair.statusLabel') }}
               <span
                 class="font-mono font-medium"
-                data-testid="repair-status">{{ repairPlan.status }}</span>
+                data-testid="repair-status"
+                >{{ repairPlan.status }}</span
+              >
             </p>
             <ul
               v-if="repairPlan.issues.length"
@@ -1045,6 +1059,7 @@
               v-if="repairApplicable"
               type="button"
               data-testid="repair-apply"
+              :disabled="actionOpening || dialogOpen || mutationLoading"
               class="mt-4 inline-flex items-center gap-1 rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 focus:ring-2 focus:ring-amber-500 focus:outline-none"
               @click="requestAction('repair')">
               <OIcon
@@ -1145,6 +1160,7 @@
               v-if="transferApplicable"
               type="button"
               data-testid="transfer-apply"
+              :disabled="actionOpening || dialogOpen || mutationLoading"
               class="mt-4 inline-flex items-center gap-1 rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 focus:ring-2 focus:ring-amber-500 focus:outline-none"
               @click="requestAction('transfer')">
               <OIcon

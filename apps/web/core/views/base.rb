@@ -141,6 +141,7 @@ module Core
           # it never enters window.__BOOTSTRAP_ME__. Rhales escapes it, which
           # matters because Rack::RequestId accepts a client-supplied header.
           'request_id' => req.env['HTTP_X_REQUEST_ID'],
+          'html_lang' => html_lang,
           'vite_assets_html' => vite_assets(
             nonce: view_vars['nonce'],
             development: view_vars['frontend_development'],
@@ -159,6 +160,15 @@ module Core
         )
 
         rhales_view.render(template_name)
+      end
+
+      # BCP 47 language tag for <html lang>. Locale codes use underscores
+      # (pt_BR), which the lang attribute does not accept; it needs pt-BR. The
+      # frontend sets the same form when it activates a locale (src/i18n.ts).
+      #
+      # @return [String] Language tag, empty when no locale was detected
+      def html_lang
+        view_vars['locale'].to_s.tr('_', '-')
       end
 
       # Vite manifest entry to inject into the shell. Defaults to the customer

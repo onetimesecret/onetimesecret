@@ -1,11 +1,9 @@
 // src/shared/composables/useLanguage.ts
 
 import { useLanguageStore } from '@/shared/stores/languageStore';
-import { ref, reactive, computed } from 'vue';
+import { reactive, computed } from 'vue';
 
 import { useAsyncHandler, AsyncHandlerOptions } from './useAsyncHandler';
-
-const isInitialized = ref(false);
 
 export function useLanguage(options?: AsyncHandlerOptions) {
   const languageStore = useLanguageStore();
@@ -31,18 +29,17 @@ export function useLanguage(options?: AsyncHandlerOptions) {
 
   const { wrap } = useAsyncHandler(defaultOptions);
 
-  const initializeLanguage = () => {
-    if (!isInitialized.value) {
-      isInitialized.value = true;
-      return languageStore.init();
-    }
-  };
+  // Safe from any component at any time: init() is idempotent and activates
+  // nothing, so a component mounting mid-session cannot re-run locale
+  // selection or replace the active locale. The router activates locales.
+  const initializeLanguage = () => languageStore.init();
 
   const updateLanguage = (newLocale: string) => wrap(() => languageStore.updateLanguage(newLocale));
 
   return {
     // Expose store values through composable (wrapped in computed for reactivity)
     currentLocale: computed(() => languageStore.getCurrentLocale),
+    pendingLocale: computed(() => languageStore.pendingLocale),
     supportedLocales: computed(() => languageStore.getSupportedLocales),
     supportedLocalesWithNames: computed(() => languageStore.supportedLocalesWithNames),
 

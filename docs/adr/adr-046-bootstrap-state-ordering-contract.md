@@ -283,7 +283,10 @@ header and a test that asserts it.
 ### Forced page load
 
 An ended session, a replaced session, and a second consecutive anomaly all end
-in `window.location.reload()`. A reload can discard input the user has not
+in `window.location.reload()`. Since the code-split build, so does a lazy
+chunk that fails to load (`src/utils/preloadError.ts`): one reload fetches a
+shell that references the current chunks after a deployment, and the bound
+below caps it at one per minute. A reload can discard input the user has not
 submitted, such as a secret being typed, so the path follows the platform's
 documented behaviour and guidance instead of a project-specific mechanism:
 
@@ -312,6 +315,16 @@ documented behaviour and guidance instead of a project-specific mechanism:
   `sessionStorage` marker. If another forced page load is demanded within one
   minute of the last, the client enters the stale-session state instead of
   reloading. This bounds a reload loop whatever its cause.
+- A page that shows a value the server will not serve again (a revealed
+  secret; the one-time display of a generated value on a receipt; a fresh set
+  of MFA recovery codes) registers that fact while the value is on screen
+  (`src/utils/unrecoverableContent.ts`).
+  A forced page load demanded while it is registered is refused outright,
+  whatever its cause: the caller stays in the state it has entered (the
+  stale-session notice for a session transition) and the user decides when to
+  lose the value. The refusal does not spend the one-minute marker. The same
+  path serves a lazy chunk that fails to load (`src/utils/preloadError.ts`),
+  which otherwise reloads once per minute at most.
 - `beforeunload` is not reliable on mobile platforms and is not a persistence
   mechanism. The platform's recommendation for preserving state is to save it
   on `visibilitychange`. This contract will not do that for secret content,

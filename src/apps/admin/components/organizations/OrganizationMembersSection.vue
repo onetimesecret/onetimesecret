@@ -37,7 +37,7 @@
    *
    * ## Elevation comes before the dialog
    *
-   * Each opener awaits `ensureElevated()` and only then opens its dialog, so the
+   * Each opener uses `useElevateThenOpen` before opening its dialog, so the
    * operator proves the credential once and fills in the role, reason and typed
    * token once. The request still runs through useAdminDestructiveMutation,
    * whose 403 -> prompt -> retry-once loop covers a window that lapses while the
@@ -117,25 +117,16 @@
    */
   const opening = ref(false);
 
-  /**
-   * Prove the credential, THEN open the action's dialog. A cancelled prompt
-   * opens nothing. Fails closed when the member has no confirmation token: the
-   * dialog would otherwise degrade to a one-click confirm.
-   */
-  async function openAfterElevation(
-    member: ColonelOrganizationDetailMember,
-    open: () => void
-  ): Promise<void> {
-    if (isOwnerRow(member) || opening.value || !accountConfirmToken(member)) return;
-    opening.value = true;
-    let elevated = false;
-    try {
-      // Both mutations hand back the same shared seam; either one will do.
-      elevated = await ensureElevated();
-    } finally {
-      opening.value = false;
-    }
-    if (elevated) open();
+  function canOpenMemberAction(member: ColonelOrganizationDetailMember): boolean {
+    return (
+      props.members.includes(member) &&
+      !isOwnerRow(member) &&
+      !!accountConfirmToken(member) &&
+      !roleDialogOpen.value &&
+      !removeDialogOpen.value &&
+      !roleLoading.value &&
+      !removeLoading.value
+    );
   }
 
   // ---- Change role ------------------------------------------------------------
@@ -157,7 +148,7 @@
     error: roleError,
     run: runRoleChange,
     reset: resetRoleChange,
-    ensureElevated,
+    useElevateThenOpen,
   } = useAdminDestructiveMutation(async (reason?: string) => {
     roleNoChangeMessage = null;
     const target = roleTarget.value;
@@ -184,14 +175,15 @@
     }
   });
 
-  function requestRoleChange(member: ColonelOrganizationDetailMember): Promise<void> {
-    return openAfterElevation(member, () => {
+  const { open: requestRoleChange } = useElevateThenOpen(
+    (member: ColonelOrganizationDetailMember) => {
       roleTarget.value = member;
       pendingRole.value = roleOptions.value[0] ?? CHANGEABLE_MEMBERSHIP_ROLES[0];
       resetRoleChange();
       roleDialogOpen.value = true;
-    });
-  }
+    },
+    { opening, target: () => props.orgUrl, canOpen: canOpenMemberAction }
+  );
 
   async function onRoleConfirm(reason?: string): Promise<void> {
     const target = roleTarget.value;
@@ -250,13 +242,14 @@
     );
   });
 
-  function requestRemove(member: ColonelOrganizationDetailMember): Promise<void> {
-    return openAfterElevation(member, () => {
+  const { open: requestRemove } = useElevateThenOpen(
+    (member: ColonelOrganizationDetailMember) => {
       removeTarget.value = member;
       resetRemove();
       removeDialogOpen.value = true;
-    });
-  }
+    },
+    { opening, target: () => props.orgUrl, canOpen: canOpenMemberAction }
+  );
 
   async function onRemoveConfirm(reason?: string): Promise<void> {
     const target = removeTarget.value;

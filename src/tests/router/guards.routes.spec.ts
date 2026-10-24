@@ -4,6 +4,8 @@ import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, Mocked, test, vi } from 'vitest';
 import {
+  createMemoryHistory,
+  createRouter,
   NavigationGuardReturn,
   RouteLocationNormalized,
   RouteLocationRaw,
@@ -24,6 +26,8 @@ import { useAuthStore } from '@/shared/stores';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { isSsoOnlyMode } from '@/utils/features';
+import { mockCustomer } from '../fixtures/bootstrap.fixture';
+import { captureAppLogs } from '../utils/appLogs';
 
 /**
  * Registration order of the beforeEach guards in setupRouterGuards(). Tests
@@ -67,10 +71,64 @@ vi.mock('@/shared/stores/authStore', () => ({
   })),
 }));
 
+// The languageStore surface the main guard uses, with state, so the
+// navigation-locale cases can see what was activated. Reset in beforeEach to
+// "en already active": most specs call a guard directly without `from`,
+// which the guard treats as a later navigation, after the first activation.
+// The store's own recovery rules (which fallback, what is recorded) are in
+// the languageStore specs; here recovery keeps the active locale or shows
+// `fallback`, or throws `recoveryError` as when not even English activates.
+const languageState = vi.hoisted(() => ({
+  currentLocale: 'en' as string | null,
+  supported: ['en', 'bg', 'de', 'fr'],
+  preferred: 'en',
+  failing: new Set<string>(),
+  activations: [] as string[],
+  /** `remember` as each setCurrentLocale call passed it (undefined: the default). */
+  remembered: [] as Array<[string, boolean | undefined]>,
+  fallback: 'en',
+  recoveryError: null as Error | null,
+  recoveries: [] as string[],
+}));
+
 vi.mock('@/shared/stores/languageStore', () => ({
   useLanguageStore: vi.fn(() => ({
-    setCurrentLocale: vi.fn(),
+    get currentLocale() {
+      return languageState.currentLocale;
+    },
+    resolveSupportedLocale: (locale: string) =>
+      languageState.supported.includes(locale) ? locale : null,
+    preferredLocale: () => languageState.preferred,
+    // Resolves after the messages "load": a turn of the event loop, so a
+    // guard that forgot to await it would let the navigation finish first.
+    setCurrentLocale: async (locale: string, options?: { remember?: boolean }) => {
+      languageState.activations.push(locale);
+      languageState.remembered.push([locale, options?.remember]);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      if (languageState.failing.has(locale)) throw new Error(`messages for ${locale} did not load`);
+      languageState.currentLocale = locale;
+      return locale;
+    },
+    recoverFromLocaleLoadFailure: async (requested: string) => {
+      languageState.recoveries.push(requested);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      if (languageState.recoveryError) throw languageState.recoveryError;
+      languageState.currentLocale ??= languageState.fallback;
+      return languageState.currentLocale;
+    },
   })),
+}));
+
+// The theme query parameter's handler; a test makes it throw, as it does when
+// localStorage is blocked.
+const themeState = vi.hoisted(() => ({ error: null as Error | null }));
+
+vi.mock('@/shared/composables/useTheme', () => ({
+  useTheme: () => ({
+    setTheme: () => {
+      if (themeState.error) throw themeState.error;
+    },
+  }),
 }));
 
 vi.mock('@/shared/composables/usePageTitle', () => ({
@@ -148,6 +206,15 @@ describe('Router Guards', () => {
 
     vi.clearAllMocks();
     notificationState.isVisible = false;
+    languageState.currentLocale = 'en';
+    languageState.preferred = 'en';
+    languageState.failing.clear();
+    languageState.activations = [];
+    languageState.remembered = [];
+    languageState.fallback = 'en';
+    languageState.recoveryError = null;
+    languageState.recoveries = [];
+    themeState.error = null;
   });
 
   it('should setup router guards', () => {
@@ -1389,6 +1456,316 @@ describe('Router Guards', () => {
       const result = handleColonelRequirement(makeRoute({ meta: { requiresColonel: true } }));
       expect(assignMock).toHaveBeenCalledWith('/');
       expect(result).toBe(false);
+    });
+  });
+
+  // The main guard's locale step, through a real router: which locale each
+  // navigation activates, that it is active before the navigation resolves,
+  // and what a failed load does to the initial navigation and to a later one.
+  describe('navigation locale (main guard, real router)', () => {
+    const View = { render: () => null };
+    const anonymous = {
+      authStatus: 'anonymous',
+      isAuthenticated: false,
+      isFullyAuthenticated: false,
+      awaitingMfa: false,
+      refresh: vi.fn(),
+    };
+    const authenticated = {
+      ...anonymous,
+      authStatus: 'authenticated',
+      isAuthenticated: true,
+      isFullyAuthenticated: true,
+    };
+
+    let navigationErrors: unknown[];
+
+    function makeRouter(): Router {
+      const realRouter = createRouter({
+        history: createMemoryHistory(),
+        routes: [
+          { path: '/', name: 'Home', component: View },
+          { path: '/about', name: 'About', component: View },
+          { path: '/dashboard', name: 'Dashboard', component: View, meta: { requiresAuth: true } },
+          { path: '/signin', name: 'Sign In', component: View, meta: { isAuthRoute: true } },
+          { path: '/:pathMatch(.*)*', name: 'NotFound', component: View },
+        ],
+      });
+      setupRouterGuards(realRouter);
+      // Registered so vue-router hands a failed navigation's error here
+      // instead of printing it.
+      realRouter.onError((error) => navigationErrors.push(error));
+      return realRouter;
+    }
+
+    /** Runs the initial navigation; resolves with the isReady() outcome. */
+    async function startAt(realRouter: Router, path: string): Promise<'ready' | Error> {
+      realRouter.push(path).catch(() => undefined);
+      return realRouter.isReady().then(
+        () => 'ready' as const,
+        (error: Error) => error
+      );
+    }
+
+    const signInAs = (auth: typeof anonymous, accountLocale?: string) => {
+      vi.mocked(useAuthStore).mockReturnValue(auth as unknown as ReturnType<typeof useAuthStore>);
+      useBootstrapStore().$patch({
+        cust: accountLocale ? { ...mockCustomer, locale: accountLocale } : null,
+      });
+    };
+
+    beforeEach(() => {
+      navigationErrors = [];
+      // The initial navigation: nothing is active yet.
+      languageState.currentLocale = null;
+      signInAs(anonymous);
+    });
+
+    it('activates the preferred locale before the first navigation resolves', async () => {
+      languageState.preferred = 'fr';
+      const realRouter = makeRouter();
+
+      expect(await startAt(realRouter, '/about')).toBe('ready');
+
+      expect(languageState.activations).toEqual(['fr']);
+      expect(languageState.currentLocale).toBe('fr');
+    });
+
+    // D1: the URL locale wins over the account locale, on a protected route too.
+    it('activates the URL locale on a protected route, not the account locale', async () => {
+      signInAs(authenticated, 'de');
+      const realRouter = makeRouter();
+
+      expect(await startAt(realRouter, '/dashboard?locale=bg')).toBe('ready');
+
+      expect(realRouter.currentRoute.value.path).toBe('/dashboard');
+      expect(languageState.activations).toEqual(['bg']);
+    });
+
+    // The redirect to /signin drops the query, so the URL locale has to be
+    // applied before it.
+    it('activates the URL locale before redirecting an unauthenticated visitor to /signin', async () => {
+      const realRouter = makeRouter();
+
+      expect(await startAt(realRouter, '/dashboard?locale=bg')).toBe('ready');
+
+      expect(realRouter.currentRoute.value.path).toBe('/signin');
+      expect(realRouter.currentRoute.value.query).toEqual({ redirect: '/dashboard?locale=bg' });
+      expect(languageState.activations).toEqual(['bg']);
+    });
+
+    it('activates one locale across a redirect', async () => {
+      languageState.preferred = 'fr';
+      const realRouter = makeRouter();
+
+      expect(await startAt(realRouter, '/dashboard')).toBe('ready');
+
+      expect(realRouter.currentRoute.value.path).toBe('/signin');
+      expect(languageState.activations).toEqual(['fr']);
+    });
+
+    it('keeps the URL locale through the root redirect of a signed-in user', async () => {
+      signInAs(authenticated, 'de');
+      const realRouter = makeRouter();
+
+      expect(await startAt(realRouter, '/?locale=bg')).toBe('ready');
+
+      expect(realRouter.currentRoute.value.path).toBe('/dashboard');
+      expect(languageState.activations).toEqual(['bg']);
+    });
+
+    it('activates the account locale once for a signed-in user sent from / to /dashboard', async () => {
+      signInAs(authenticated, 'de');
+      // The store ranks the account locale first, so it is also the preferred one.
+      languageState.preferred = 'de';
+      const realRouter = makeRouter();
+
+      expect(await startAt(realRouter, '/')).toBe('ready');
+
+      expect(realRouter.currentRoute.value.path).toBe('/dashboard');
+      expect(languageState.activations).toEqual(['de']);
+    });
+
+    it('passes over an unsupported URL locale', async () => {
+      languageState.preferred = 'fr';
+      const realRouter = makeRouter();
+
+      expect(await startAt(realRouter, '/about?locale=sw')).toBe('ready');
+
+      expect(languageState.activations).toEqual(['fr']);
+    });
+
+    // F22: a locale that does not load never blocks the visitor. The guard
+    // logs the load error and hands the failure to the store, which keeps or
+    // activates the locale shown and records the failure for the notice.
+    it('continues the initial navigation in the fallback when the URL locale does not load', async () => {
+      const logs = captureAppLogs();
+      languageState.failing.add('bg');
+      languageState.preferred = 'fr';
+      const realRouter = makeRouter();
+
+      expect(await startAt(realRouter, '/about?locale=bg')).toBe('ready');
+
+      expect(languageState.recoveries).toEqual(['bg']);
+      expect(languageState.currentLocale).toBe('en');
+      // The URL decided the navigation's locale: the preferred one is not tried.
+      expect(languageState.activations).toEqual(['bg']);
+      expect(logs.error).toHaveBeenCalledTimes(1);
+      expect(logs.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'messages for bg did not load' })
+      );
+      expect(navigationErrors).toEqual([]);
+    });
+
+    it('continues in the fallback when the preferred locale does not load, through a redirect', async () => {
+      const logs = captureAppLogs();
+      languageState.failing.add('fr');
+      languageState.preferred = 'fr';
+      const realRouter = makeRouter();
+
+      expect(await startAt(realRouter, '/dashboard')).toBe('ready');
+
+      expect(realRouter.currentRoute.value.path).toBe('/signin');
+      expect(languageState.activations).toEqual(['fr']);
+      expect(languageState.recoveries).toEqual(['fr']);
+      expect(logs.error).toHaveBeenCalledTimes(1);
+    });
+
+    it('continues in the fallback when the account locale does not load', async () => {
+      const logs = captureAppLogs();
+      signInAs(authenticated, 'de');
+      languageState.failing.add('de');
+      const realRouter = makeRouter();
+
+      expect(await startAt(realRouter, '/dashboard')).toBe('ready');
+
+      expect(realRouter.currentRoute.value.path).toBe('/dashboard');
+      expect(languageState.recoveries).toEqual(['de']);
+      expect(logs.error).toHaveBeenCalledTimes(1);
+    });
+
+    // Only a locale failure with no fallback left (not even English) blocks.
+    it('fails the initial navigation when the fallback cannot be activated either', async () => {
+      const logs = captureAppLogs();
+      const fallbackError = new Error('messages for en did not load');
+      languageState.failing.add('bg');
+      languageState.recoveryError = fallbackError;
+      const realRouter = makeRouter();
+
+      const outcome = await startAt(realRouter, '/about?locale=bg');
+
+      expect(outcome).toBe(fallbackError);
+      expect(navigationErrors).toEqual([fallbackError]);
+      // The load error is logged; the fallback's rejects isReady().
+      expect(logs.error).toHaveBeenCalledTimes(1);
+      expect(logs.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'messages for bg did not load' })
+      );
+    });
+
+    it('logs a later failure, keeps the active locale and completes the navigation', async () => {
+      const logs = captureAppLogs();
+      languageState.preferred = 'fr';
+      const realRouter = makeRouter();
+      expect(await startAt(realRouter, '/about')).toBe('ready');
+      languageState.failing.add('bg');
+
+      await realRouter.push('/?locale=bg');
+
+      expect(realRouter.currentRoute.value.fullPath).toBe('/?locale=bg');
+      expect(languageState.currentLocale).toBe('fr');
+      expect(languageState.activations).toEqual(['fr', 'bg']);
+      expect(languageState.recoveries).toEqual(['bg']);
+      expect(logs.error).toHaveBeenCalledTimes(1);
+      expect(logs.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'messages for bg did not load' })
+      );
+      expect(navigationErrors).toEqual([]);
+    });
+
+    it('logs a failed fallback on a later navigation and completes it', async () => {
+      const logs = captureAppLogs();
+      const realRouter = makeRouter();
+      expect(await startAt(realRouter, '/about')).toBe('ready');
+      languageState.failing.add('bg');
+      languageState.recoveryError = new Error('recovery failed');
+
+      await realRouter.push('/?locale=bg');
+
+      expect(realRouter.currentRoute.value.fullPath).toBe('/?locale=bg');
+      expect(logs.error).toHaveBeenCalledTimes(2);
+      expect(logs.error).toHaveBeenLastCalledWith(
+        expect.objectContaining({ message: 'recovery failed' })
+      );
+      expect(navigationErrors).toEqual([]);
+    });
+
+    // F23: only the locale may change the course of a navigation.
+    it('logs a failed theme parameter on the initial navigation and continues', async () => {
+      const logs = captureAppLogs();
+      themeState.error = new Error('localStorage is blocked');
+      const realRouter = makeRouter();
+
+      expect(await startAt(realRouter, '/about?theme=dark')).toBe('ready');
+
+      expect(logs.error).toHaveBeenCalledTimes(1);
+      expect(logs.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'localStorage is blocked' })
+      );
+      expect(languageState.activations).toEqual(['en']);
+      expect(navigationErrors).toEqual([]);
+    });
+
+    // A locale the visitor or the account chose is kept for the session; one
+    // the app picked for them is not, so a domain locale that changes later in
+    // the session still applies.
+    it('remembers the URL and account locales, not the preferred one', async () => {
+      signInAs(authenticated, 'de');
+      const realRouter = makeRouter();
+      expect(await startAt(realRouter, '/about')).toBe('ready');
+      await realRouter.push('/about?locale=bg');
+      await realRouter.push('/dashboard');
+
+      expect(languageState.remembered).toEqual([
+        ['en', false], // preferred, on the initial public navigation
+        ['bg', undefined], // URL locale: setCurrentLocale's default, true
+        ['de', true], // account locale on a protected route
+      ]);
+    });
+
+    // D2: without a URL locale, a later public navigation changes nothing; a
+    // protected one applies the account locale when it differs.
+    it('changes nothing on a later public navigation without a URL locale', async () => {
+      const realRouter = makeRouter();
+      expect(await startAt(realRouter, '/about?locale=bg')).toBe('ready');
+
+      await realRouter.push('/');
+      await realRouter.push('/about');
+
+      expect(languageState.activations).toEqual(['bg']);
+    });
+
+    it('applies the account locale on a later protected navigation, once', async () => {
+      signInAs(authenticated, 'de');
+      const realRouter = makeRouter();
+      expect(await startAt(realRouter, '/about?locale=bg')).toBe('ready');
+
+      await realRouter.push('/dashboard');
+      expect(languageState.activations).toEqual(['bg', 'de']);
+
+      await realRouter.push('/about');
+      await realRouter.push('/dashboard');
+      expect(languageState.activations).toEqual(['bg', 'de']);
+    });
+
+    it('applies a URL locale on a later navigation', async () => {
+      const realRouter = makeRouter();
+      expect(await startAt(realRouter, '/about')).toBe('ready');
+
+      await realRouter.push('/about?locale=de');
+
+      expect(languageState.activations).toEqual(['en', 'de']);
+      expect(languageState.currentLocale).toBe('de');
     });
   });
 });

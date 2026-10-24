@@ -104,6 +104,7 @@
 
   // ---- Guarded revoke -------------------------------------------------------
 
+  const opening = ref(false);
   const revokeDialogOpen = ref(false);
   /** The session handle the confirm dialog is gating (request target). */
   const revokeTarget = ref('');
@@ -113,8 +114,7 @@
     error: revokeError,
     run: runRevoke,
     reset: resetRevoke,
-    // One shared step-up window: this guard serves revoke-all below as well.
-    ensureElevated,
+    useElevateThenOpen,
   } = useAdminDestructiveMutation(async (reason?: string) => {
     if (!revokeTarget.value) throw new Error('No session selected');
     // The store optimistically drops the row on a 2xx; a failure throws before
@@ -122,14 +122,21 @@
     await store.revoke(props.userId, revokeTarget.value, props.confirmToken, reason);
   });
 
-  async function requestRevoke(sessionHandle: string): Promise<void> {
-    // RevokeCustomerSession is TIER 1 (#4327): elevate before the dialog
-    // collects the reason. Cancel opens nothing.
-    if (!(await ensureElevated())) return;
-    revokeTarget.value = sessionHandle;
-    resetRevoke();
-    revokeDialogOpen.value = true;
-  }
+  const { open: requestRevoke } = useElevateThenOpen(
+    (sessionHandle: string) => {
+      revokeTarget.value = sessionHandle;
+      resetRevoke();
+      revokeDialogOpen.value = true;
+    },
+    {
+      opening,
+      target: () => props.userId,
+      canOpen: (sessionHandle) =>
+        canOpenRevokeDialog() &&
+        !isCurrentSession(sessionHandle) &&
+        sessions.value.some((session) => session.session_handle === sessionHandle),
+    }
+  );
 
   async function onRevokeConfirm(reason?: string): Promise<void> {
     const ok = await runRevoke(reason);
@@ -176,12 +183,27 @@
       : t('web.admin.customers.detail.sessions.revokeAll.confirmDescription')
   );
 
-  async function requestRevokeAll(): Promise<void> {
-    // RevokeAllCustomerSessions is TIER 1 (#4327): elevate first, as above.
-    if (!(await ensureElevated())) return;
-    resetRevokeAll();
-    revokeAllDialogOpen.value = true;
+  const busy = computed(
+    () => opening.value || loading.value || revokeLoading.value || revokeAllLoading.value
+  );
+
+  function canOpenRevokeDialog(): boolean {
+    return (
+      !loading.value &&
+      !revokeLoading.value &&
+      !revokeAllLoading.value &&
+      !revokeDialogOpen.value &&
+      !revokeAllDialogOpen.value
+    );
   }
+
+  const { open: requestRevokeAll } = useElevateThenOpen(
+    () => {
+      resetRevokeAll();
+      revokeAllDialogOpen.value = true;
+    },
+    { opening, target: () => props.userId, canOpen: canOpenRevokeDialog }
+  );
 
   async function onRevokeAllConfirm(reason?: string): Promise<void> {
     const ok = await runRevokeAll(reason);
@@ -229,7 +251,7 @@
         type="button"
         data-testid="sessions-revoke-all"
         class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/40"
-        :disabled="loading"
+        :disabled="busy"
         @click="requestRevokeAll">
         <OIcon
           collection="heroicons"
@@ -322,6 +344,7 @@
           type="button"
           :data-testid="`session-revoke-${row.session_handle}`"
           class="text-sm font-medium text-red-600 hover:text-red-800 focus:ring-2 focus:ring-red-500 focus:outline-none dark:text-red-400 dark:hover:text-red-300"
+          :disabled="busy"
           @click="requestRevoke(row.session_handle)">
           {{ t('web.admin.customers.detail.sessions.revoke.button') }}
         </button>

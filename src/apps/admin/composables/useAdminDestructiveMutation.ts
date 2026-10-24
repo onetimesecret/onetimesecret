@@ -1,6 +1,6 @@
 // src/apps/admin/composables/useAdminDestructiveMutation.ts
 
-import { getCurrentScope, onScopeDispose } from 'vue';
+import { getCurrentScope, onScopeDispose, ref, watch, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { useAdminMutation, type UseAdminMutation } from './useAdminMutation';
@@ -16,14 +16,14 @@ import { useColonelElevation, type ElevationCaller } from './useColonelElevation
  * The sudo prompt is mounted ONCE in AdminLayout and driven through the shared
  * elevation state, so no view has to render or own it.
  *
- * ## Elevate first: `ensureElevated` in the opener
+ * ## Elevate first: `useElevateThenOpen` in the opener
  *
- * The opener of every TIER 1 action (the backend's
- * `ColonelAPI::DestructiveActions::TIER1`) starts with
- *
- *   if (!(await ensureElevated())) return;
- *
- * and only then opens its own confirmation dialog. The dialog collects the
+ * A TIER 1 opener (the backend's `ColonelAPI::DestructiveActions::TIER1`) uses
+ * `useElevateThenOpen(openerFn, options)`. It captures the target,
+ * proves the credential, and re-checks the target and eligibility before opening
+ * the confirmation dialog. Concurrent clicks share an opening lock; a target
+ * that changes during the prompt invalidates that opener, even if restored.
+ * The dialog collects the
  * typed token and the operator's reason; it must collect them ONCE, after the
  * credential. Prompting only on the 403 meant the dialog closed under the
  * operator, the reason was lost, and they could not tell whether the action
@@ -32,8 +32,8 @@ import { useColonelElevation, type ElevationCaller } from './useColonelElevation
  * It is returned from here rather than imported per view so the guard sits
  * next to the mutation it protects. One mutation can serve several verbs of
  * different tiers (AdminCustomerDetail's role/verify/suspend/purge switch), so
- * the opener decides per verb; TIER 2 verbs (suspend, unverify, replay, run
- * chore, impersonate, ...) never call it.
+ * `requiresElevation` decides per verb; TIER 2 verbs (suspend, unverify, replay,
+ * run chore, impersonate, ...) open without prompting.
  *
  * ## The fallback loop
  *
@@ -143,14 +143,35 @@ function isOtsLimiterRejection(error: unknown): boolean {
   return responseOf(error)?.data?.error_type === 'LimitExceeded';
 }
 
+export interface ElevateThenOpenOptions<TArgs extends unknown[]> {
+  /** Stable resource identity, or null when its drawer/target is no longer available. */
+  target?: (...args: TArgs) => unknown;
+  /** Eligibility and dialog-state guards, checked both before and after elevation. */
+  canOpen?: (...args: TArgs) => boolean;
+  /** Mixed-tier dialogs can bypass elevation for their lower-tier actions. */
+  requiresElevation?: (...args: TArgs) => boolean;
+  /** Share with other openers that must not open competing dialogs. */
+  opening?: Ref<boolean>;
+}
+
+export interface ElevateThenOpen<TArgs extends unknown[]> {
+  opening: Ref<boolean>;
+  open: (...args: TArgs) => Promise<void>;
+}
+
 export interface UseAdminDestructiveMutation<
   TArgs extends unknown[],
 > extends UseAdminMutation<TArgs> {
   /**
    * Resolve true once a step-up window is live (or step-up is disabled),
-   * prompting first. Call it at the top of a TIER 1 opener — see the header.
+   * prompting first. Lower-level seam for flows with custom async preparation;
+   * ordinary dialog openers should use `useElevateThenOpen`.
    */
   ensureElevated: () => Promise<boolean>;
+  useElevateThenOpen: <TOpenArgs extends unknown[]>(
+    openerFn: (...args: TOpenArgs) => void,
+    options?: ElevateThenOpenOptions<TOpenArgs>
+  ) => ElevateThenOpen<TOpenArgs>;
 }
 
 /**
@@ -224,5 +245,51 @@ export function useAdminDestructiveMutation<TArgs extends unknown[]>(
     return false;
   }
 
-  return { ...mutation, run, ensureElevated: () => elevation.ensureElevated(caller) };
+  return {
+    ...mutation,
+    run,
+    ensureElevated: () => elevation.ensureElevated(caller),
+    useElevateThenOpen: (openerFn, options) =>
+      createElevateThenOpen(caller, () => elevation.ensureElevated(caller), openerFn, options),
+  };
+}
+
+function createElevateThenOpen<TArgs extends unknown[]>(
+  caller: ElevationCaller,
+  ensureElevated: () => Promise<boolean>,
+  openerFn: (...args: TArgs) => void,
+  options: ElevateThenOpenOptions<TArgs> = {}
+): ElevateThenOpen<TArgs> {
+  const opening = options.opening ?? ref(false);
+  const readTarget = options.target ?? (() => undefined);
+  const requiresElevation = options.requiresElevation ?? (() => true);
+  const canOpen = (...args: TArgs): boolean =>
+    caller.live() && options.canOpen?.(...args) !== false;
+
+  async function open(...args: TArgs): Promise<void> {
+    if (opening.value || !canOpen(...args)) return;
+    opening.value = true;
+    let stop: (() => void) | undefined;
+    try {
+      const target = readTarget(...args);
+      let targetChanged = false;
+      // Observe synchronously so closing and reopening the same drawer cannot
+      // revive an opener that belonged to its previous contents.
+      stop = watch(
+        () => readTarget(...args),
+        () => {
+          targetChanged = true;
+        },
+        { flush: 'sync' }
+      );
+      if (requiresElevation(...args) && !(await ensureElevated())) return;
+      if (targetChanged || !Object.is(target, readTarget(...args)) || !canOpen(...args)) return;
+      openerFn(...args);
+    } finally {
+      stop?.();
+      opening.value = false;
+    }
+  }
+
+  return { opening, open };
 }

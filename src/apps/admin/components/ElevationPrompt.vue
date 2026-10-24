@@ -35,9 +35,10 @@
    *      can do from the browser, so render the remediation and no input at all,
    *      rather than looping on an unsatisfiable prompt.
    *
-   * Imports from `@/shared/*` only. `src/apps/session/*` is banned here: the
-   * admin bundle is code-split-free, so one session import would drag the whole
-   * customer auth graph into it (admin-isolation.spec.ts).
+   * Imports from `@/shared/*` only. `src/apps/session/*` is banned here: one
+   * session import would pull the whole customer auth graph into the chunks
+   * the admin entry loads, which the bundle-isolation guard forbids
+   * (admin-isolation.spec.ts, CONTRACT 6).
    */
   const { t } = useI18n();
 

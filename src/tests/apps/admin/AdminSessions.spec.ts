@@ -1,8 +1,8 @@
 // src/tests/apps/admin/AdminSessions.spec.ts
 
+import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { AxiosError } from 'axios';
 import { createPinia, setActivePinia } from 'pinia';
-import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /** Build a real AxiosError so the shared classifier extracts `data.error`. */
@@ -58,10 +58,14 @@ vi.mock('@headlessui/vue', () => ({
   TransitionChild: { name: 'TransitionChild', template: '<div><slot /></div>', props: ['as'] },
 }));
 
+import {
+  __resetColonelElevationState,
+  useColonelElevation,
+} from '@/apps/admin/composables/useColonelElevation';
 import AdminSessions from '@/apps/admin/views/AdminSessions.vue';
 import type { ColonelSession } from '@/schemas/api/internal/responses/colonel-sessions';
-import { createTestI18n } from '@tests/setup';
 import { startElevated } from '@tests/apps/admin/support/elevation';
+import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
 
@@ -626,6 +630,72 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
   describe('confirm dialog placement (#4732)', () => {
     const drawer = (w: VueWrapper) => w.find('[data-testid="session-drawer"]');
     const dialogs = (w: VueWrapper) => w.findAll('[data-testid="admin-confirm-dialog"]');
+
+    it.each([false, true])(
+      'drops a revoke opener when its drawer closes (reopened: %s)',
+      async (reopen) => {
+        __resetColonelElevationState({ statusRead: true });
+        mockApi.get.mockResolvedValueOnce({ data: sessionsPayload() });
+        wrapper = mountView(pinia);
+        await flushPromises();
+        mockApi.get.mockResolvedValueOnce({ data: detailPayload() });
+        await wrapper.find('[data-testid="sessions-table"] tbody tr').trigger('click');
+        await flushPromises();
+        mockApi.get.mockResolvedValueOnce({
+          data: {
+            shrimp: '',
+            record: { elevated: false, expires_at: null, seconds_remaining: 0 },
+            details: {
+              enabled: true,
+              window: 600,
+              reauth_grace: 0,
+              grace_available: false,
+              password_available: true,
+              factors: ['password'],
+            },
+          },
+        });
+        await wrapper.find('[data-testid="session-revoke-button"]').trigger('click');
+        expect(useColonelElevation().promptOpen.value).toBe(true);
+
+        const detailDrawer = wrapper.findComponent({ name: 'DetailDrawer' });
+        detailDrawer.vm.$emit('update:open', false);
+        if (reopen) detailDrawer.vm.$emit('update:open', true);
+        useColonelElevation().resolvePrompt(true);
+        await flushPromises();
+        expect(dialogs(wrapper)).toHaveLength(0);
+        expect(mockApi.delete).not.toHaveBeenCalled();
+      }
+    );
+
+    it('keeps the first row target when another revoke is requested during elevation', async () => {
+      __resetColonelElevationState({ statusRead: true });
+      const otherHandle = 'fedcba9876543210fedcba9876543210';
+      mockApi.get.mockResolvedValueOnce({
+        data: sessionsPayload([
+          sessionRow(),
+          sessionRow({
+            session_handle: otherHandle,
+            email: 'bob@example.com',
+            external_id: 'ext_2',
+          }),
+        ]),
+      });
+      wrapper = mountView(pinia);
+      await flushPromises();
+      await wrapper.find(`[data-testid="revoke-${HANDLE}"]`).trigger('click');
+      expect(useColonelElevation().promptOpen.value).toBe(true);
+      wrapper
+        .find(`[data-testid="revoke-${otherHandle}"]`)
+        .element.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      useColonelElevation().resolvePrompt(true);
+      await flushPromises();
+
+      await dialogInput(wrapper).setValue(OWNER_EMAIL);
+      expect(dialogSubmit(wrapper).attributes('disabled')).toBeUndefined();
+      expect(dialogs(wrapper)).toHaveLength(1);
+      expect(mockApi.delete).not.toHaveBeenCalled();
+    });
 
     it('renders the revoke gate INSIDE the drawer when opened from the drawer footer', async () => {
       mockApi.get.mockResolvedValueOnce({ data: sessionsPayload() });

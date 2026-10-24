@@ -1,8 +1,8 @@
 // src/tests/apps/admin/DomainConfigsSection.spec.ts
 
+import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { AxiosError } from 'axios';
 import { createPinia, setActivePinia } from 'pinia';
-import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /** Build a real AxiosError so the shared classifier extracts `data.error`. */
@@ -61,13 +61,13 @@ vi.mock('@headlessui/vue', () => ({
 }));
 
 import DomainConfigsSection from '@/apps/admin/components/domains/DomainConfigsSection.vue';
-import { useAdminDomains } from '@/apps/admin/stores/useAdminDomains';
-import { createTestI18n } from '@tests/setup';
-import { startElevated } from '@tests/apps/admin/support/elevation';
 import {
   __resetColonelElevationState,
   useColonelElevation,
 } from '@/apps/admin/composables/useColonelElevation';
+import { useAdminDomains } from '@/apps/admin/stores/useAdminDomains';
+import { startElevated } from '@tests/apps/admin/support/elevation';
+import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
 
@@ -304,9 +304,9 @@ describe('DomainConfigsSection', () => {
 
       const grid = wrapper.find('[data-testid="config-fields-signin"]');
       expect(grid.exists()).toBe(true);
-      expect(
-        wrapper.find('[data-testid="config-field-signin-signin_enabled"]').text()
-      ).toContain('web.admin.domains.detail.yes');
+      expect(wrapper.find('[data-testid="config-field-signin-signin_enabled"]').text()).toContain(
+        'web.admin.domains.detail.yes'
+      );
       expect(wrapper.find('[data-testid="config-field-signin-restrict_to"]').text()).toContain(
         'web.admin.domains.detail.none'
       );
@@ -425,10 +425,7 @@ describe('DomainConfigsSection', () => {
       await flushPromises();
 
       expect(mockApi.post).toHaveBeenCalledWith(`${CONFIGS_URL}/ensure`, { dry_run: false });
-      expect(showMock).toHaveBeenCalledWith(
-        'web.admin.domains.configs.ensure.success',
-        'success'
-      );
+      expect(showMock).toHaveBeenCalledWith('web.admin.domains.configs.ensure.success', 'success');
       expect(mockApi.get).toHaveBeenCalledTimes(2);
     });
 
@@ -583,8 +580,10 @@ describe('DomainConfigsSection', () => {
         (wrapper.find('[data-testid="config-field-enabled"]').element as HTMLInputElement).checked
       ).toBe(true);
       expect(
-        (wrapper.find('[data-testid="config-field-email_auth_enabled"]').element as HTMLInputElement)
-          .checked
+        (
+          wrapper.find('[data-testid="config-field-email_auth_enabled"]')
+            .element as HTMLInputElement
+        ).checked
       ).toBe(false);
 
       await wrapper.find('[data-testid="config-field-email_auth_enabled"]').setValue(true);
@@ -652,8 +651,9 @@ describe('DomainConfigsSection', () => {
       // the prefill shows a valid choice, and submitting counts the repair as
       // a change (null -> 'passthrough').
       const payload = completePayload();
-      (payload.details.configs.signup.config as unknown as Record<string, unknown>).validation_strategy =
-        null;
+      (
+        payload.details.configs.signup.config as unknown as Record<string, unknown>
+      ).validation_strategy = null;
       mockApi.get.mockResolvedValue({ data: payload });
       mockApi.put.mockResolvedValue({ data: upsertAck('signup', 'updated') });
       wrapper = mountSection();
@@ -702,9 +702,7 @@ describe('DomainConfigsSection', () => {
     });
 
     it('keeps a 4xx failure inside the modal and does not toast or refetch', async () => {
-      mockApi.put.mockRejectedValue(
-        axiosError(422, { error: 'not one of the allowed values' })
-      );
+      mockApi.put.mockRejectedValue(axiosError(422, { error: 'not one of the allowed values' }));
       wrapper = mountSection();
       await flushPromises();
 
@@ -805,9 +803,9 @@ describe('DomainConfigsSection', () => {
       const modal = await submitRelatedOrigins('https://vault.rival.example');
       expect(modal.find('[data-testid="config-field-error-related_origins"]').exists()).toBe(true);
 
-      await wrapper.find('[data-testid="config-field-related_origins"]').setValue(
-        'https://vault.acme.example'
-      );
+      await wrapper
+        .find('[data-testid="config-field-related_origins"]')
+        .setValue('https://vault.acme.example');
       await wrapper.find('[data-testid="config-edit-submit"]').trigger('click');
       await flushPromises();
 
@@ -961,9 +959,46 @@ describe('DomainConfigsSection', () => {
       expect(deleteButton('sso').attributes('disabled')).toBeUndefined();
     });
 
-    // The post-await guard, independent of the hold: an opener that finds the
-    // dialog already open when its await returns does not re-target it.
-    describe('an opener whose await returns with the dialog already open', () => {
+    it.each([false, true])(
+      'drops a pending delete after the domain changes (returns to original: %s)',
+      async (returnToOriginal) => {
+        unelevated();
+        wrapper = mountSection();
+        await flushPromises();
+        await deleteButton().trigger('click');
+        await flushPromises();
+        expect(useColonelElevation().promptOpen.value).toBe(true);
+
+        await wrapper.setProps({ extid: 'cd_other' });
+        if (returnToOriginal) await wrapper.setProps({ extid: EXTID });
+        useColonelElevation().resolvePrompt(true);
+        await flushPromises();
+
+        expect(dialog().exists()).toBe(false);
+        expect(deleteButton().attributes('disabled')).toBeUndefined();
+        expect(mockApi.delete).not.toHaveBeenCalled();
+      }
+    );
+
+    it('rechecks the dialog guard when elevation finishes', async () => {
+      unelevated();
+      wrapper = mountSection();
+      await flushPromises();
+      await deleteButton('sso').trigger('click');
+      await flushPromises();
+
+      wrapper.findComponent({ name: 'DomainConfigActionDialog' }).vm.$emit('update:open', true);
+      await flushPromises();
+      useColonelElevation().resolvePrompt(true);
+      await flushPromises();
+
+      expect(
+        wrapper.findComponent({ name: 'DomainConfigActionDialog' }).props('action')
+      ).toBeNull();
+      expect(mockApi.delete).not.toHaveBeenCalled();
+    });
+
+    describe('an already-open dialog', () => {
       it('delete does not convert an open ensure dialog', async () => {
         unelevated();
         mockApi.post.mockResolvedValueOnce({ data: ensureAck(true) });
@@ -975,14 +1010,11 @@ describe('DomainConfigsSection', () => {
         await flushPromises();
         expect(dialog().text()).toContain('web.admin.domains.configs.ensure.confirmTitle');
 
-        // The hold is released (the ensure opener finished), so the row's
-        // Delete is clickable in this stubbed-headlessui render. Its opener
-        // awaits the prompt and returns to find the dialog open.
+        // The row is clickable in this stubbed render, but canOpen refuses
+        // before prompting because the ensure dialog is already open.
         await deleteButton('sso').trigger('click');
         await flushPromises();
-        expect(elevation.promptOpen.value).toBe(true);
-        elevation.resolvePrompt(true);
-        await flushPromises();
+        expect(elevation.promptOpen.value).toBe(false);
 
         expect(dialog().exists()).toBe(true);
         expect(dialog().text()).toContain('web.admin.domains.configs.ensure.confirmTitle');
@@ -1003,6 +1035,7 @@ describe('DomainConfigsSection', () => {
 
         await ensureButton().trigger('click');
         await flushPromises();
+        expect(mockApi.post).not.toHaveBeenCalled();
         preview.resolve({ data: ensureAck(true) });
         await flushPromises();
 
@@ -1029,14 +1062,8 @@ describe('DomainConfigsSection', () => {
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
-      expect(mockApi.delete).toHaveBeenCalledWith(
-        `${CONFIGS_URL}/sso`,
-        confirmHeadersFor('sso')
-      );
-      expect(showMock).toHaveBeenCalledWith(
-        'web.admin.domains.configs.delete.success',
-        'success'
-      );
+      expect(mockApi.delete).toHaveBeenCalledWith(`${CONFIGS_URL}/sso`, confirmHeadersFor('sso'));
+      expect(showMock).toHaveBeenCalledWith('web.admin.domains.configs.delete.success', 'success');
       expect(mockApi.get).toHaveBeenCalledTimes(2);
     });
 
@@ -1057,10 +1084,7 @@ describe('DomainConfigsSection', () => {
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
-      expect(showMock).toHaveBeenCalledWith(
-        'web.admin.domains.configs.delete.success',
-        'success'
-      );
+      expect(showMock).toHaveBeenCalledWith('web.admin.domains.configs.delete.success', 'success');
       expect(warnSpy).toHaveBeenCalledWith(
         expect.stringContaining('delete ack failed schema validation')
       );

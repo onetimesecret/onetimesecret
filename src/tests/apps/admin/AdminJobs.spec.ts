@@ -1,8 +1,8 @@
 // src/tests/apps/admin/AdminJobs.spec.ts
 
+import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { AxiosError } from 'axios';
 import { createPinia, setActivePinia } from 'pinia';
-import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /** Build a real AxiosError so the shared classifier extracts `data.error`. */
@@ -60,8 +60,8 @@ import {
   useColonelElevation,
 } from '@/apps/admin/composables/useColonelElevation';
 import AdminJobs from '@/apps/admin/views/AdminJobs.vue';
-import { createTestI18n } from '@tests/setup';
 import { startElevated } from '@tests/apps/admin/support/elevation';
+import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
 
@@ -1045,6 +1045,51 @@ describe('AdminJobs — dead-letter queues (step-up before the dialog)', () => {
     expect(openDialog(wrapper)).toBeUndefined();
     expect(mockApi.post).not.toHaveBeenCalled();
   });
+
+  it('shares the discard opener lock with replay, and does not overwrite its dialog', async () => {
+    routeGets();
+    wrapper = await mountView();
+    await openPeek(wrapper);
+    await byTestId(wrapper, 'dlq-discard-m1').trigger('click');
+    await flushPromises();
+    const replay = byTestId(wrapper, 'dlq-replay-m1');
+    expect(replay.attributes('disabled')).toBeDefined();
+    await replay.trigger('click');
+    useColonelElevation().resolvePrompt(true);
+    await flushPromises();
+    expect(openDialog(wrapper)?.props('variant')).toBe('danger');
+
+    await replay.trigger('click');
+    await flushPromises();
+    expect(openDialog(wrapper)?.props('variant')).toBe('danger');
+    expect(mockApi.post).not.toHaveBeenCalled();
+  });
+
+  it.each(['switch', 'close', 'close-reopen', 'switch-back'] as const)(
+    'drops a pending discard when the drawer changes: %s',
+    async (change) => {
+      routeGets({ [EMAIL_PEEK_URL]: () => peekPayload('dlq.email.message', 'e1') });
+      wrapper = await mountView();
+      await openPeek(wrapper);
+      await byTestId(wrapper, 'dlq-discard-m1').trigger('click');
+      await flushPromises();
+      expect(useColonelElevation().promptOpen.value).toBe(true);
+
+      if (change.startsWith('close')) {
+        wrapper.findComponent({ name: 'DetailDrawer' }).vm.$emit('close');
+        await flushPromises();
+      } else {
+        await byTestId(wrapper, 'dlq-peek-dlq.email.message').trigger('click');
+        await flushPromises();
+      }
+      if (change === 'close-reopen' || change === 'switch-back') await openPeek(wrapper);
+      useColonelElevation().resolvePrompt(true);
+      await flushPromises();
+
+      expect(openDialog(wrapper)).toBeUndefined();
+      expect(mockApi.post).not.toHaveBeenCalled();
+    }
+  );
 
   it('opens the replay dialog without a prompt', async () => {
     routeGets();

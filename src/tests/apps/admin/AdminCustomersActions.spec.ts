@@ -1,8 +1,8 @@
 // src/tests/apps/admin/AdminCustomersActions.spec.ts
 
+import { flushPromises, mount, RouterLinkStub, VueWrapper } from '@vue/test-utils';
 import { AxiosError } from 'axios';
 import { createPinia, setActivePinia } from 'pinia';
-import { flushPromises, mount, RouterLinkStub, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /** Build a real AxiosError so the shared classifier extracts `data.error`. */
@@ -73,10 +73,14 @@ class ResizeObserverStub {
 }
 globalThis.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver;
 
-import AdminCustomers from '@/apps/admin/views/AdminCustomers.vue';
+import {
+  __resetColonelElevationState,
+  useColonelElevation,
+} from '@/apps/admin/composables/useColonelElevation';
 import { useAdminCustomers } from '@/apps/admin/stores/useAdminCustomers';
-import { createTestI18n } from '@tests/setup';
+import AdminCustomers from '@/apps/admin/views/AdminCustomers.vue';
 import { startElevated } from '@tests/apps/admin/support/elevation';
+import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
 
@@ -159,12 +163,86 @@ describe('AdminCustomers — drawer operator actions', () => {
 
   /** Mount, load one row, and open its drawer. */
   async function openDrawer(overrides: { verified?: boolean } = {}): Promise<void> {
-    mockApi.get.mockResolvedValue({ data: usersPayload(overrides) });
+    mockApi.get.mockImplementation(async (url: string) => ({
+      data:
+        url === '/api/colonel/elevation'
+          ? {
+              shrimp: '',
+              record: { elevated: false, expires_at: null, seconds_remaining: 0 },
+              details: {
+                enabled: true,
+                window: 600,
+                reauth_grace: 0,
+                grace_available: false,
+                password_available: true,
+                factors: ['password'],
+              },
+            }
+          : usersPayload(overrides),
+    }));
     wrapper = mountView();
     await flushPromises();
     await wrapper.find('[data-testid="customers-table"] tbody tr').trigger('click');
     await flushPromises();
   }
+
+  describe('opener lifetime and concurrency', () => {
+    beforeEach(() => __resetColonelElevationState({ statusRead: true }));
+
+    it.each(['switch', 'switch back', 'close', 'close and reopen'])(
+      'drops a pending purge after drawer %s',
+      async (change) => {
+        await openDrawer();
+        await wrapper.find('[data-testid="drawer-purge-button"]').trigger('click');
+        await flushPromises();
+        expect(useColonelElevation().promptOpen.value).toBe(true);
+
+        if (change.startsWith('close')) {
+          wrapper.findComponent({ name: 'DetailDrawer' }).vm.$emit('update:open', false);
+          if (change === 'close and reopen') {
+            wrapper.findComponent({ name: 'DetailDrawer' }).vm.$emit('update:open', true);
+          }
+        } else {
+          const table = wrapper.findComponent({ name: 'DataTable' });
+          const original = useAdminCustomers().customers[0];
+          table.vm.$emit('row-click', { ...original, extid: 'ur_bob', email: 'bob@example.com' });
+          if (change === 'switch back') table.vm.$emit('row-click', original);
+        }
+        useColonelElevation().resolvePrompt(true);
+        await flushPromises();
+
+        expect(dialogInput(wrapper).exists()).toBe(false);
+        expect(mockApi.delete).not.toHaveBeenCalled();
+      }
+    );
+
+    it('rejects competing actions during elevation and while the dialog is open', async () => {
+      await openDrawer();
+      await wrapper.find('[data-testid="drawer-purge-button"]').trigger('click');
+      await flushPromises();
+      const verify = wrapper.find('[data-testid="drawer-verify-button"]');
+      expect(verify.attributes('disabled')).toBeDefined();
+      verify.element.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await flushPromises();
+      expect(dialogSubmit(wrapper).exists()).toBe(false);
+
+      useColonelElevation().resolvePrompt(true);
+      await flushPromises();
+      await dialogInput(wrapper).setValue(EMAIL);
+      verify.element.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await flushPromises();
+      expect(dialogInput(wrapper).exists()).toBe(true);
+      expect((dialogInput(wrapper).element as HTMLInputElement).value).toBe(EMAIL);
+      expect(mockApi.post).not.toHaveBeenCalled();
+    });
+
+    it('opens a tier-2 dialog without prompting', async () => {
+      await openDrawer({ verified: true });
+      await wrapper.find('[data-testid="drawer-unverify-button"]').trigger('click');
+      expect(useColonelElevation().promptOpen.value).toBe(false);
+      expect(dialogSubmit(wrapper).exists()).toBe(true);
+    });
+  });
 
   describe('verification state + verb selection', () => {
     it('shows the unverified pill and offers ONLY verify', async () => {
@@ -475,9 +553,8 @@ describe('useAdminCustomers — operator mutations', () => {
 
     await store.purge('ur alice/../colonel', EMAIL);
 
-    expect(mockApi.delete).toHaveBeenCalledWith(
-      '/api/colonel/users/ur%20alice%2F..%2Fcolonel',
-      { headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) } }
-    );
+    expect(mockApi.delete).toHaveBeenCalledWith('/api/colonel/users/ur%20alice%2F..%2Fcolonel', {
+      headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) },
+    });
   });
 });

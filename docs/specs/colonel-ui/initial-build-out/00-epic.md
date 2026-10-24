@@ -19,6 +19,7 @@ Today the CLI and admin API are parallel implementations, not a shared core. The
 So implementers don't follow stale assumptions:
 
 1. **Build tool is Rolldown-Vite.** Single-bundle output is configured via `vite.config.ts:257-282` (`rolldownOptions` / `output.codeSplitting:false`), NOT rollup/`manualChunks`/`inlineDynamicImports`. A second entry means a new rolldown input, not a rollup chunk config.
+   > **Status note (2026-10).** The single-bundle output was retired: the build is code-split (`output.codeSplitting: true` in `vite.config.ts`), imported chunks inherit the entry script's nonce, and `src/build/plugins/checkCspChunkGraph.ts` fails the build when the chunk graph breaks that model. The Rolldown-Vite point stands: a second entry is still a new rolldown input. See the matching note in `10-second-entry-shell.md`.
 2. **The HTML shell is a backend Rhales `.rue` template** (`apps/web/core/templates/index.rue`), NOT a static `index.html`. A second shell is a new `.rue` plus a manifest entry.
 3. **The incumbent Operations home is app-scoped** `apps/web/auth/operations/` (plus `apps/web/billing/operations/`), NOT a central `lib/onetime/operations/`. Decision D3 should treat app-scoped as the incumbent.
 

@@ -85,6 +85,12 @@ export function useMfa() {
   const mfaStatus = ref<MfaStatus | null>(null);
   const setupData = ref<OtpSetupData | null>(null);
   const recoveryCodes = ref<string[]>([]);
+  // True while enableMfa or generateNewRecoveryCodes is in flight. Both return
+  // a fresh set of recovery codes, and the second also invalidates the old set,
+  // so from the request going out the response body is the only copy: views
+  // that show the codes mark the page as unrecoverable for this window too
+  // (src/utils/unrecoverableContent.ts).
+  const revealingRecoveryCodes = ref(false);
   /**
    * The last successful two-factor completion body (#4306). For MFA-gated
    * logins the backend replays the plan intent (billing_redirect) here rather
@@ -241,6 +247,7 @@ export function useMfa() {
    */
   async function enableMfa(otpCode: string, password: string): Promise<boolean> {
     clearError();
+    revealingRecoveryCodes.value = true;
 
     const result = await wrap(async () => {
       const payload: Record<string, string> = { otp_code: otpCode, password };
@@ -277,6 +284,8 @@ export function useMfa() {
       // ordinary refresh would read it as a replaced session and reload.
       await authStore.refresh({ kind: 'auth-mutation', reason: 'mfa-setup' });
       return true;
+    }).finally(() => {
+      revealingRecoveryCodes.value = false;
     });
 
     return result ?? false;
@@ -418,6 +427,7 @@ export function useMfa() {
    */
   async function generateNewRecoveryCodes(password: string): Promise<string[]> {
     clearError();
+    revealingRecoveryCodes.value = true;
 
     const result = await wrap(async () => {
       // IMPORTANT: The 'add' parameter triggers code generation
@@ -430,6 +440,8 @@ export function useMfa() {
 
       recoveryCodes.value = validated.codes;
       return validated.codes;
+    }).finally(() => {
+      revealingRecoveryCodes.value = false;
     });
 
     if (result) {
@@ -521,6 +533,7 @@ export function useMfa() {
     setupData,
     verifyResponse,
     recoveryCodes,
+    revealingRecoveryCodes,
     fetchMfaStatus,
     setupMfa,
     enableMfa,
