@@ -163,6 +163,31 @@ RSpec.describe Core::Views::BaseView do
     end
   end
 
+  describe 'canonical_url' do
+    # head-base.rue renders <link rel="canonical" href="{{canonical_url}}">
+    # and head.rue reuses it for og:url and twitter:url. The value is the
+    # served host plus the path, never the query string.
+
+    it 'joins the configured scheme and site host with the request path' do
+      rack_request.env['PATH_INFO'] = '/signin'
+      rack_request.env['QUERY_STRING'] = 'next=%2Fdashboard'
+
+      expect(subject.view_vars['canonical_url']).to eq('https://test.domain.com/signin')
+    end
+
+    it 'prefers the display domain DomainStrategy resolved for the request' do
+      rack_request.env['onetime.display_domain'] = 'secrets.partner.example'
+      rack_request.env['PATH_INFO'] = '/'
+
+      expect(subject.view_vars['canonical_url']).to eq('https://secrets.partner.example/')
+      expect(subject.view_vars['canonical_host']).to eq('secrets.partner.example')
+    end
+
+    it 'falls back to the root path when the request carries none' do
+      expect(subject.view_vars['canonical_url']).to eq('https://test.domain.com/')
+    end
+  end
+
   describe 'has_brand_color contract' do
     # has_brand_color drives the conditional render of the brand-colored
     # head tags (mask-icon + light theme-color) in head-base.rue. It MUST be

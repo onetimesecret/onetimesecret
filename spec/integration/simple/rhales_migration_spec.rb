@@ -239,6 +239,14 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
         expect(doc.css('meta[name="twitter:card"]')).not_to be_empty
       end
 
+      it 'gives og:url and twitter:url the canonical page URL' do
+        canonical = doc.css('link[rel="canonical"]').first['href']
+
+        expect(canonical).to match(%r{\Ahttps?://[^/]+/\z})
+        expect(doc.css('meta[property="og:url"]').first['content']).to eq(canonical)
+        expect(doc.css('meta[property="twitter:url"]').first['content']).to eq(canonical)
+      end
+
       it 'renders page title from props' do
         expect(doc.css('title').text).not_to be_empty
       end

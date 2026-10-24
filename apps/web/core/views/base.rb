@@ -128,6 +128,8 @@ module Core
           'description' => view_vars['description'],
           'keywords' => view_vars['keywords'],
           'baseuri' => view_vars['baseuri'],
+          'canonical_host' => view_vars['canonical_host'],
+          'canonical_url' => view_vars['canonical_url'],
           'site_host' => view_vars['site_host'],
           'no_cache' => view_vars['no_cache'],
           'brand_primary_color' => view_vars['brand_primary_color'],
