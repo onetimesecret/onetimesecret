@@ -35,6 +35,10 @@ module Core
       # not read as a port.
       AUTHORITY_PORT = /\A(?:\[[^\]]*\]|[^:\[\]]+):(\d{1,5})\z/
 
+      # Request paths that render head-secret-share (`is_secret_page`): the
+      # /secret and /receipt prefixes, and an /incoming path with a key.
+      SECRET_PAGE_PATH = %r{\A/(?:secret|receipt)(?:/|\z)|\A/incoming/.}
+
       # Initialize core variables used throughout view rendering. These values
       # are the source of truth for te values that they represent. Any other
       # values that the serializers want can be derived from here.
@@ -241,11 +245,13 @@ module Core
         # escapes it at the attribute.
         page_url             = base_scheme + page_authority(req.env, display_domain, site_host, scheme) + req.path
 
-        # Secret links (/secret/*, /receipt/*) render the head-secret-share
-        # partial: robots noindex and neutral Open Graph text, so a link
-        # pasted into a chat unfurls without naming the page. robots.rue
-        # disallows the same prefixes.
-        secret_page          = req.path.match?(%r{\A/(secret|receipt)(/|\z)})
+        # Pages that carry a secret or receipt key (/secret/*, /receipt/*,
+        # and /incoming/:receiptKey, the sender's receipt for an incoming
+        # secret) render the head-secret-share partial: robots noindex and
+        # neutral Open Graph text, so a link pasted into a chat unfurls
+        # without naming the page. robots.rue disallows the same paths.
+        # /incoming itself is the public submission form and stays indexable.
+        secret_page          = req.path.match?(SECRET_PAGE_PATH)
 
         brand_defaults              = Onetime::CustomDomain::BrandSettingsConstants::DEFAULTS
         brand_primary_color         = brand_config['primary_color']

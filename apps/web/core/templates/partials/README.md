@@ -34,8 +34,10 @@ This directory contains modernized HTML `<head>` templates for the Onetime Secre
 - `noindex, nofollow` robots meta for secret pages
 
 **Usage**: index.rue includes it instead of head.rue when `is_secret_page`
-is true. The view sets that flag for `/secret/*` and `/receipt/*` requests
-(`initialize_view_vars.rb`), the same prefixes robots.rue disallows.
+is true. The view sets that flag for `/secret/*`, `/receipt/*` and
+`/incoming/:receiptKey` requests (`SECRET_PAGE_PATH` in
+`initialize_view_vars.rb`), the same paths robots.rue disallows. `/incoming`
+itself, the submission form, is not one.
 **Variables**:
 - `page_url` - The page URL (served host, its public port when one is
   known, plus path, no query string); also the canonical link in
