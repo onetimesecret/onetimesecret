@@ -37,7 +37,7 @@ module Onetime
       # scope has DIFFERENT hazards (see warn_grant_scope / warn_standalone).
       module EntitlementSupport
         # Run the shared op and render it. May `exit`. A dry run unless
-        # `apply` (see Org::Shared#dry_run_unless_applied).
+        # `apply` (see WriteGate#dry_run_unless_applied).
         #
         # @param organization [Onetime::Organization] already resolved
         # @param member [Onetime::Customer] already resolved
@@ -124,7 +124,7 @@ module Onetime
             error_exit("#{member.obscure_email} is not an active member of #{result.org_id}", json: false)
           end
 
-          puts 'DRY RUN — nothing was written' if result.dry_run
+          dry_run_header if result.dry_run
           puts "Organization: #{result.org_id}"
           puts "Member:       #{result.member_id}"
           puts "Action:       #{result.action}"
@@ -134,7 +134,7 @@ module Onetime
           print_set('Grants', result.grants)
           print_set('Revokes', result.revokes)
           print_set(result.dry_run ? 'Effective (projected)' : 'Effective', result.effective)
-          puts "Re-run with --apply to #{result.action}." if result.status == :planned
+          dry_run_footer(result.action) if result.status == :planned
 
           exit 1 unless override_ok?(result)
         end

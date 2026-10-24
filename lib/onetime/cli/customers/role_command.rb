@@ -12,23 +12,27 @@
 #   bin/ots customers role list                                  # List all colonels
 #   bin/ots customers role list --role admin                     # List users with specific role
 #   bin/ots customers role reconcile                             # Report role-index drift (dry run)
-#   bin/ots customers role reconcile --apply                     # Confirm, then repair the index
-#   bin/ots customers role reconcile --apply --force --json      # Repair, machine-readable
+#   bin/ots customers role reconcile --apply                     # Repair the index
+#   bin/ots customers role reconcile --apply --json              # Repair, machine-readable
 #
 # The actual role mutation + admin audit event is performed by the shared
 # Auth::Operations::Customers::SetRole op (single implementation); this command
-# owns only CLI concerns (arg parsing, confirmation prompt, output). The role
-# index check + repair likewise lives in the shared
-# Auth::Operations::Customers::ReconcileRoleIndex op. The CLI runs outside the
-# auth app's autoloader, so require the ops explicitly.
+# owns only CLI concerns (arg parsing, the promote/demote confirmation prompt,
+# output). The role index check + repair likewise lives in the shared
+# Auth::Operations::Customers::ReconcileRoleIndex op; `reconcile` is on the
+# shared write gate (dry run unless --apply, no prompt). The CLI runs outside
+# the auth app's autoloader, so require the ops explicitly.
 require 'json'
 require 'auth/operations/customers/set_role'
 require 'auth/operations/customers/reconcile_role_index'
 require 'onetime/cli/customers/shared'
+require 'onetime/cli/write_gate'
 
 module Onetime
   module CLI
     class CustomersRoleCommand < Command
+      include WriteGate
+
       desc 'Manage customer roles (promote, demote, list, reconcile)'
 
       argument :action,
@@ -57,15 +61,12 @@ module Onetime
         type: :boolean,
         default: false,
         aliases: ['-f'],
-        desc: 'Skip confirmation prompt'
+        desc: 'promote/demote: skip the confirmation prompt'
 
-      # reconcile-only options. --apply and --force are ORTHOGONAL on purpose:
-      # the default run writes nothing so it needs no confirmation; an applied
-      # run always needs --force (or an interactive 'y').
-      option :apply,
-        type: :boolean,
-        default: false,
-        desc: 'reconcile: write the repair (default: dry-run report)'
+      # reconcile-only. `-f` is --force above, so the gate declares -y/--yes
+      # only. --force is accepted with --apply and ignored: it was the
+      # prompt skip before reconcile joined the gate.
+      write_gate_options('reconcile: write the repair', force_alias: false)
 
       option :json,
         type: :boolean,
@@ -76,7 +77,8 @@ module Onetime
       # truth lives on the op; the CLI references it rather than forking a copy.
       VALID_ROLES = Auth::Operations::Customers::SetRole::VALID_ROLES
 
-      def call(action:, email: nil, role: 'colonel', reason: nil, force: false, apply: false, json: false, **)
+      def call(action:, email: nil, role: 'colonel', reason: nil, force: false, apply: false,
+               dry_run: false, json: false, **)
         boot_application!
 
         case action.downcase
@@ -87,7 +89,7 @@ module Onetime
         when 'list'
           list_customers_by_role(role)
         when 'reconcile'
-          reconcile_role_index(apply: apply, force: force, json: json)
+          reconcile_role_index(apply: apply, dry_run: dry_run, json: json)
         else
           puts "Unknown action: #{action}"
           puts 'Valid actions: promote, demote, list, reconcile'
@@ -218,21 +220,19 @@ module Onetime
       # al. never clear the previous value's bucket) and customer hashes whose
       # right-to-be-forgotten TTL expired while their index members persist.
       # See the ReconcileRoleIndex op for the full mechanism; this method owns
-      # only confirmation, output and exit codes.
+      # only the write gate, output and exit codes.
       #
-      # Default is a report-only dry run. Applying requires --apply plus
-      # either --force or an interactive 'y'; a scripted --json apply without
-      # --force is refused outright (never mutate from a script that did not
-      # say so).
-      def reconcile_role_index(apply:, force:, json:)
-        return unless confirm_reconcile!(apply: apply, force: force, json: json)
+      # Default is a report-only dry run (WriteGate); --apply repairs, with no
+      # prompt.
+      def reconcile_role_index(apply:, json:, dry_run: false)
+        dry_run = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
 
         result = Auth::Operations::Customers::ReconcileRoleIndex.new(
-          apply: apply,
+          apply: !dry_run,
           # Never fabricate a Customer for the shell (ADR-023) — the audit
           # trail records the shared CLI sentinel. Only attributed when the
           # run can actually mutate.
-          actor: apply ? Customers::Shared::CLI_ACTOR : nil,
+          actor: dry_run ? nil : Customers::Shared::CLI_ACTOR,
         ).call
 
         OT.info "[cli-customers-role-reconcile] status=#{result.status} " \
@@ -256,26 +256,8 @@ module Onetime
         exit 1
       end
 
-      # @return [Boolean] true to proceed
-      def confirm_reconcile!(apply:, force:, json:)
-        return true unless apply
-        return true if force
-
-        if json
-          puts JSON.pretty_generate(error: 'Refusing to apply without --force in --json mode')
-          exit 1
-        end
-
-        print 'Apply role-index repairs? [y/N] '
-        response = $stdin.gets&.strip&.downcase
-        return true if response == 'y'
-
-        puts 'Aborted.'
-        false
-      end
-
       def reconcile_output_text(result)
-        puts 'DRY RUN — nothing was written' if result.dry_run
+        dry_run_header if result.dry_run
         puts "Customers scanned: #{result.scanned}"
         puts "Status:            #{result.status}"
 
@@ -309,7 +291,7 @@ module Onetime
         return unless result.dry_run
 
         puts
-        puts 'To apply these repairs, run with --apply'
+        dry_run_footer('repair')
       end
 
       def reconcile_output_json(result)

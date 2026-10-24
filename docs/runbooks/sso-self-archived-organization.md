@@ -141,7 +141,7 @@ For each organization kept in the previous step:
 3. Apply:
 
    ```console
-   bin/ots org unarchive <ORG> --run
+   bin/ots org unarchive <ORG> --apply
    ```
 
    Expected output is `Unarchived <org extid> (<display name>)` with the

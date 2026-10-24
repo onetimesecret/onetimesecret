@@ -5,8 +5,8 @@
 #
 # CLI command for setting the global broadcast banner.
 #
-# Dry-run is the default — prints the valkey-cli commands it would run
-# and renders an ASCII preview. Pass --apply to actually write.
+# Dry run is the default (WriteGate) — prints the valkey-cli commands it would
+# run and renders an ASCII preview. Pass --apply to actually write.
 #
 # Usage:
 #   bin/ots banner set "Scheduled maintenance Sun 02:00 UTC"
@@ -30,6 +30,7 @@ require 'onetime/operations/banner'
 # Required here (not only from the lib/onetime/cli.rb manifest) so this file
 # cannot be loaded in a broken order.
 require_relative 'shared'
+require_relative '../write_gate'
 
 module Onetime
   module CLI
@@ -37,6 +38,7 @@ module Onetime
       desc 'Set the global broadcast banner (dry-run by default)'
 
       include Banner::Shared
+      include WriteGate
 
       # Inner display width of the ASCII preview box (between │ borders).
       INNER_WIDTH = 62
@@ -46,10 +48,8 @@ module Onetime
         required: false,
         desc: 'Banner content (HTML; frontend sanitizes to <a> tags only)'
 
-      option :apply,
-        type: :boolean,
-        default: false,
-        desc: 'Actually write to Redis (default is dry-run)'
+      # `-f` is --file below, so the gate declares -y/--yes only.
+      write_gate_options('Write the banner', force_alias: false)
       option :file,
         type: :string,
         aliases: ['f'],
@@ -63,9 +63,10 @@ module Onetime
         default: Onetime::Operations::BannerState::DEFAULT_SCOPE,
         desc: "Audience scope (#{Onetime::Operations::BannerState::VALID_SCOPES.join(', ')})"
 
-      def call(content: nil, apply: false, file: nil, ttl: nil, scope: nil, **)
+      def call(content: nil, apply: false, dry_run: false, file: nil, ttl: nil, scope: nil, **)
         boot_application!
 
+        dry_run = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: false)
         scope ||= Onetime::Operations::BannerState::DEFAULT_SCOPE
         unless Onetime::Operations::BannerState::VALID_SCOPES.include?(scope)
           warn "Error: invalid scope #{scope.inspect} " \
@@ -87,10 +88,10 @@ module Onetime
 
         render_preview(banner_text)
 
-        if apply
-          write_banner(banner_text, ttl, scope)
-        else
+        if dry_run
           render_dry_run(banner_text, ttl, scope)
+        else
+          write_banner(banner_text, ttl, scope)
         end
       end
 
@@ -160,7 +161,8 @@ module Onetime
         scope_key = Onetime::Operations::BannerState::SCOPE_KEY
 
         puts
-        puts 'Would run (re-run with --apply to write):'
+        dry_run_header
+        puts 'Would run:'
         puts '  # DB 0'
         if ttl
           puts "  SET #{BANNER_KEY} '#{escaped}' EX #{ttl}"
@@ -170,6 +172,7 @@ module Onetime
           puts "  SET #{scope_key} '#{scope}'"
         end
         puts '  # then refresh runtime: Onetime::Runtime.update_features(global_banner: ...)'
+        dry_run_footer
       end
 
       def write_banner(banner_text, ttl, scope)

@@ -16,11 +16,14 @@
 # entitlement the org never had is legal (it pre-empts a later plan change).
 require_relative 'entitlement_command'
 
+require_relative '../write_gate'
+
 module Onetime
   module CLI
     class OrgEntitlementRevokeCommand < Command
       include Org::Shared
       include Org::EntitlementSupport
+      include WriteGate
 
       desc 'Revoke an entitlement from an organization (operator override)'
 
@@ -33,15 +36,7 @@ module Onetime
         required: true,
         desc: 'Entitlement name (warns, does not block, when not in the catalog)'
 
-      option :apply,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '--yes', '-f'],
-        desc: 'Write the override (default: dry run, project the resulting sets)'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Preview only (the default; contradicts --apply)'
+      write_gate_options 'Write the override'
       option :json,
         type: :boolean,
         default: false,

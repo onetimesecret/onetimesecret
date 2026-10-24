@@ -45,6 +45,8 @@ require 'onetime/operations/org/transfer_ownership'
 require_relative 'shared'
 require_relative '../customers/shared'
 
+require_relative '../write_gate'
+
 module Onetime
   module CLI
     class OrgTransferOwnershipCommand < Command
@@ -52,6 +54,7 @@ module Onetime
       # Org::Shared       -> resolve_org + error_exit (json-aware) + org_label.
       include Customers::Shared
       include Org::Shared
+      include WriteGate
 
       desc 'Transfer an organization to a different existing member'
 
@@ -68,15 +71,7 @@ module Onetime
         type: :string,
         default: 'admin',
         desc: "Role for the outgoing owner: #{Onetime::Operations::Org::TransferOwnership::DEMOTABLE_ROLES.join(', ')}"
-      option :apply,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '--yes', '-f'],
-        desc: 'Transfer ownership (default: dry run, nothing written)'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Preview only (the default; contradicts --apply)'
+      write_gate_options 'Transfer ownership'
       option :json,
         type: :boolean,
         default: false,
@@ -125,14 +120,14 @@ module Onetime
       # The dry-run plan: what this will do — including HOW MANY owner
       # memberships get demoted (D29) — before an operator re-runs with --apply.
       def print_plan(plan, organization, owner_customer)
-        puts 'DRY RUN — nothing was written'
+        dry_run_header
         puts "Organization:  #{org_label(organization)}"
         puts "Current owner: #{plan.from_owner_id || '(none — owner_id points at no live customer)'}"
         puts "New owner:     #{owner_customer.extid} (#{owner_customer.obscure_email})"
         puts "Demote to:     #{plan.from_owner_role_after}"
         puts "Would demote:  #{plan.demoted.size} owner membership(s)#{demoted_list(plan)}"
         puts
-        puts 'Re-run with --apply to transfer.'
+        dry_run_footer('transfer')
       end
 
       # Refusals exit non-zero; :no_change reports and exits 0.

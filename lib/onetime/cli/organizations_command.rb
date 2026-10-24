@@ -50,7 +50,7 @@ module Onetime
         '  bin/ots organizations reconcile ORG --apply   # Re-apply billing + entitlements',
         '  bin/ots organizations show ORG [--json]       # Details, billing, members, domains',
         '  bin/ots organizations transfer-ownership ORG NEW_OWNER --apply  # Hand an org to another member',
-        '  bin/ots organizations unarchive ORG [--run]   # Restore an archived org',
+        '  bin/ots organizations unarchive ORG [--apply] # Restore an archived org',
       ].freeze
 
       # The ORG grammar every verb accepts (Org::Shared#resolve_org).
@@ -58,7 +58,7 @@ module Onetime
         'ORG = org extid, objid, Stripe customer id (cus_...), Stripe subscription id',
         '      (sub_...), or custom-domain hostname.',
         'Aliases: `bin/ots organization ...` and `bin/ots org ...` run the same verbs.',
-        'Verbs that write are dry runs unless --apply (-y/--yes) is given; unarchive takes --run.',
+        'Verbs that write are dry runs unless --apply (-y/--yes) is given.',
         'Members: bin/ots memberships add|set-role|remove ORG CUSTOMER',
       ].freeze
 

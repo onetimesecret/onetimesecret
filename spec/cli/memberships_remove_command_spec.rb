@@ -61,8 +61,9 @@ RSpec.describe 'Memberships Remove Command', type: :cli do
         dry_run: true,
       )
       expect($stdin).not_to have_received(:gets)
+      expect(output[:stdout]).to include('DRY RUN — nothing was written')
       expect(output[:stdout]).to include('Would remove me***@example.com (role: admin) from on_org_ext')
-      expect(output[:stdout]).to include('Dry run - nothing written. Re-run with --apply to write.')
+      expect(output[:stdout]).to include('Re-run with --apply to remove.')
     end
 
     it 'emits dry_run: true in --json and exits 0' do

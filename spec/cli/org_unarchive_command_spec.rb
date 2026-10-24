@@ -2,18 +2,19 @@
 #
 # frozen_string_literal: true
 
-# CLI adapter tests for `bin/ots org unarchive ORG [--run]` (#4717).
+# CLI adapter tests for `bin/ots org unarchive ORG [--apply]` (#4717).
 #
-# Pure adapter coverage: org resolution, the dry-run-by-default flow (no --run
-# means plan only, exit 0, nothing written), --run applying once, --json, the
-# advisory pointer line, and the status -> exit-code mapping. The clear and
-# the audit event are the op's job and are covered
-# (against a real datastore) by spec/unit/onetime/operations/org/unarchive_spec.rb,
-# so here the op is stubbed at its constructor.
+# Pure adapter coverage: org resolution, the dry-run-by-default flow (no
+# --apply means plan only, exit 0, nothing written), --apply applying once,
+# the `--run` alias, --json, the advisory pointer line, and the status ->
+# exit-code mapping. The clear and the audit event are the op's job and are
+# covered (against a real datastore) by
+# spec/unit/onetime/operations/org/unarchive_spec.rb, so here the op is
+# stubbed at its constructor.
 #
-# There is no confirmation prompt: the default IS the dry run, and --run is
-# the explicit apply (the `bin/ots migrations …` convention). The op is
-# therefore constructed exactly once per invocation.
+# There is no confirmation prompt (WriteGate): the default IS the dry run, and
+# --apply is the explicit write. The op is therefore constructed exactly once
+# per invocation.
 #
 # Run: tests/lanes/run unit --only spec/cli/org_unarchive_command_spec.rb
 
@@ -88,7 +89,7 @@ RSpec.describe 'Org Unarchive Command', type: :cli do
   end
 
   describe 'dry run by default' do
-    it 'plans, prints what would be cleared, writes nothing and exits 0 without --run' do
+    it 'plans, prints what would be cleared, writes nothing and exits 0 without --apply' do
       output = run_cli_command_quietly('org', 'unarchive', 'on_org_ext')
 
       expect(last_exit_code).to eq(0)
@@ -96,16 +97,30 @@ RSpec.describe 'Org Unarchive Command', type: :cli do
       expect(output[:stdout]).to include('DRY RUN')
       expect(output[:stdout]).to include('on_org_ext (Test Org)')
       expect(output[:stdout]).to include(archived_comment)
-      expect(output[:stdout]).to include('--run')
+      expect(output[:stdout]).to include('Re-run with --apply to restore.')
     end
 
     it 'never prompts' do
       allow($stdin).to receive(:gets).and_return("y\n")
 
       run_cli_command_quietly('org', 'unarchive', 'on_org_ext')
-      run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--run')
+      run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--apply')
 
       expect($stdin).not_to have_received(:gets)
+    end
+
+    it 'keeps --run as an alias of --apply (its flag before the shared gate)' do
+      run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--run')
+
+      expect(op_calls.map { |args| args[:dry_run] }).to eq([false])
+    end
+
+    it 'refuses --apply with --dry-run before calling the op' do
+      output = run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--apply', '--dry-run')
+
+      expect(last_exit_code).to eq(1)
+      expect(output[:stdout]).to include('--apply and --dry-run are contradictory')
+      expect(op_calls).to be_empty
     end
 
     it 'emits the plan as JSON under --json' do
@@ -129,8 +144,8 @@ RSpec.describe 'Org Unarchive Command', type: :cli do
       )
     end
 
-    it '--run applies exactly once with dry_run: false' do
-      run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--run')
+    it '--apply applies exactly once with dry_run: false' do
+      run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--apply')
 
       expect(op_calls.map { |args| args[:dry_run] }).to eq([false])
     end
@@ -139,7 +154,7 @@ RSpec.describe 'Org Unarchive Command', type: :cli do
       allow(Onetime::ColonelAuditEvent).to receive(:record)
       allow(Onetime::ColonelAuditEvent).to receive(:record_access)
 
-      run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--run')
+      run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--apply')
 
       expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
       expect(Onetime::ColonelAuditEvent).not_to have_received(:record_access)
@@ -156,7 +171,7 @@ RSpec.describe 'Org Unarchive Command', type: :cli do
     it ':not_archived exits 0 and says so' do
       stub_op_result(result_with(status: :not_archived, dry_run: false, archived_comment: nil))
 
-      output = run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--run')
+      output = run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--apply')
 
       expect(last_exit_code).to eq(0)
       expect(output[:stdout]).to include('on_org_ext')
@@ -176,10 +191,10 @@ RSpec.describe 'Org Unarchive Command', type: :cli do
         expect(output[:stdout]).to match(/default.*on_other_ext/i)
       end
 
-      it 'names it after --run too' do
+      it 'names it after --apply too' do
         stub_op_result(result_with(status: :success, dry_run: false, pointer_org_id: 'on_other_ext'))
 
-        output = run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--run')
+        output = run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--apply')
 
         expect(last_exit_code).to eq(0)
         expect(output[:stdout]).to include('Unarchived on_org_ext (Test Org)')
@@ -189,7 +204,7 @@ RSpec.describe 'Org Unarchive Command', type: :cli do
       it 'is in the JSON payload' do
         stub_op_result(result_with(status: :success, dry_run: false, pointer_org_id: 'on_other_ext'))
 
-        output = run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--run', '--json')
+        output = run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--apply', '--json')
 
         expect(last_exit_code).to eq(0)
         expect(JSON.parse(output[:stdout])).to include('status' => 'success', 'pointer_org_id' => 'on_other_ext')
@@ -199,14 +214,14 @@ RSpec.describe 'Org Unarchive Command', type: :cli do
 
   describe 'applied output' do
     it 'reports the unarchive' do
-      output = run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--run')
+      output = run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--apply')
 
       expect(last_exit_code).to eq(0)
       expect(output[:stdout]).to include('Unarchived on_org_ext (Test Org)')
     end
 
-    it 'emits the full JSON payload under --run --json' do
-      output = run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--run', '--json')
+    it 'emits the full JSON payload under --apply --json' do
+      output = run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--apply', '--json')
 
       payload = JSON.parse(output[:stdout])
       expect(payload).to eq(

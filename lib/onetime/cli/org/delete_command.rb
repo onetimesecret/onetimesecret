@@ -56,6 +56,8 @@ require 'onetime/operations/org/delete'
 require_relative 'shared'
 require_relative '../customers/shared'
 
+require_relative '../write_gate'
+
 module Onetime
   module CLI
     class OrgDeleteCommand < Command
@@ -63,6 +65,7 @@ module Onetime
       # Org::Shared       -> resolve_org + error_exit (json-aware) + org_label.
       include Customers::Shared
       include Org::Shared
+      include WriteGate
 
       desc 'Permanently delete an organization'
 
@@ -71,15 +74,7 @@ module Onetime
         required: true,
         desc: 'Organization extid or objid'
 
-      option :apply,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '--yes', '-f'],
-        desc: 'Delete the organization (default: dry run, nothing written)'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Preview only (the default; contradicts --apply)'
+      write_gate_options 'Delete the organization'
       option :force_default,
         type: :boolean,
         default: false,
@@ -134,7 +129,7 @@ module Onetime
       # The dry-run plan. It must name everything the delete destroys, so an
       # operator can catch a wrong ORG before re-running with --apply.
       def print_plan(plan)
-        puts 'DRY RUN — nothing was written'
+        dry_run_header
         puts "Organization:   #{plan.org_id} (#{plan.display_name})"
         puts "Plan:           #{plan.planid}#{subscription_suffix(plan)}"
         puts "Owner:          #{owner_line(plan)}"
@@ -179,7 +174,7 @@ module Onetime
 
         if result.status == :planned
           print_plan(result)
-          puts 'Re-run with --apply to delete.'
+          dry_run_footer('delete')
           return
         end
 

@@ -6,15 +6,15 @@
 #
 # Usage:
 #   bin/ots org unarchive ORG                   # dry run (the default): show what would be cleared
-#   bin/ots org unarchive ORG --run             # apply
-#   bin/ots org unarchive ORG --run --json      # machine-readable
+#   bin/ots org unarchive ORG --apply           # apply
+#   bin/ots org unarchive ORG --apply --json    # machine-readable
 #
 # ORG is an org extid or objid (Onetime::CLI::Org::Shared#resolve_org).
 #
-# There is no confirmation prompt: the default IS the dry run, and --run is
-# the explicit apply (the `bin/ots migrations …` convention; the other
-# organizations verbs that write take --apply). The op is constructed exactly once per
-# invocation.
+# DRY RUN IS THE DEFAULT (WriteGate). Nothing is written without --apply
+# (-y/--yes/-f are aliases). `--run` is kept as a further alias: it was this
+# verb's apply flag before it joined the shared gate. The op is constructed
+# exactly once per invocation.
 #
 # ## Statuses
 #
@@ -38,6 +38,7 @@ require 'onetime/operations/org/unarchive'
 # cannot be loaded in a broken order.
 require_relative 'shared'
 require_relative '../customers/shared'
+require_relative '../write_gate'
 
 module Onetime
   module CLI
@@ -46,26 +47,25 @@ module Onetime
       # Org::Shared       -> resolve_org + error_exit (json-aware) + org_label.
       include Customers::Shared
       include Org::Shared
+      include WriteGate
 
-      desc 'Restore an archived organization (dry run unless --run)'
+      desc 'Restore an archived organization (dry run unless --apply)'
 
       argument :org,
         type: :string,
         required: true,
         desc: 'Organization extid or objid'
 
-      option :run,
-        type: :boolean,
-        default: false,
-        desc: 'Apply the unarchive (without it, plan only)'
+      write_gate_options 'Restore the organization', aliases: ['--run']
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
-      def call(org:, run: false, json: false, **)
+      def call(org:, apply: false, dry_run: false, json: false, **)
         boot_application!
 
+        dry_run      = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
         organization = resolve_org(org, json: json)
 
         result = Onetime::Operations::Org::Unarchive.new(
@@ -73,7 +73,7 @@ module Onetime
           # Never fabricate a Customer for the shell (ADR-023) — the audit trail
           # records the shared CLI sentinel.
           actor: Customers::Shared::CLI_ACTOR,
-          dry_run: !run,
+          dry_run: dry_run,
         ).call
 
         OT.info "[cli-org-unarchive] org=#{result.org_id} status=#{result.status} dry_run=#{result.dry_run}"
@@ -93,7 +93,7 @@ module Onetime
           puts "#{label} is not archived; nothing to do."
         when :planned
           print_plan(result, label)
-          puts 'Dry run only — re-run with --run to apply.'
+          dry_run_footer('restore')
         else
           puts "Unarchived #{label}"
           puts "  cleared comment: #{result.archived_comment}" unless result.archived_comment.to_s.empty?
@@ -102,9 +102,9 @@ module Onetime
       end
 
       # The plan screen names everything the apply would change, so an operator
-      # can catch a wrong ORG before they re-run with --run.
+      # can catch a wrong ORG before they re-run with --apply.
       def print_plan(result, label)
-        puts 'DRY RUN — nothing has been written yet'
+        dry_run_header
         puts "Organization:     #{label}"
         puts "Owner:            #{result.owner_id || '(none — owner_id points at no live customer)'}"
         puts "Archived comment: #{result.archived_comment.to_s.empty? ? '(none)' : result.archived_comment}"

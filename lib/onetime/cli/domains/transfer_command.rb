@@ -9,10 +9,9 @@
 # `domain.transfer` ColonelAuditEvent. This command owns only CLI concerns.
 #
 # Usage:
-#   bin/ots domains transfer example.com --to-org on456   # preview, confirm, apply
-#   bin/ots domains transfer example.com --to-org on456 --dry-run
-#   bin/ots domains transfer example.com --to-org on456 --yes
-#   bin/ots domains transfer example.com --to-org on456 --yes --json
+#   bin/ots domains transfer example.com --to-org on456   # dry run (the default): the plan
+#   bin/ots domains transfer example.com --to-org on456 --apply
+#   bin/ots domains transfer example.com --to-org on456 --apply --json
 #   bin/ots domains transfer example.com --to-org on456 --from-org on123   # assert source
 #   bin/ots domains reassign example.com --to-org on456   # alias
 #
@@ -26,7 +25,10 @@
 # ownership verification is reset and a new TXT value issued. The output
 # lists the per-domain state the record kept.
 #
-# --dry-run wins over --yes: `--dry-run --yes` still mutates nothing.
+# DRY RUN IS THE DEFAULT (WriteGate). The bare run prints the plan and writes
+# nothing. There is no confirmation prompt: --apply (-y/--yes/-f) is the only
+# way to transfer, and --dry-run only states the default. Exactly ONE op call
+# per invocation.
 #
 # Lives under lib/onetime/cli (not apps/api/domains/cli) so the require of the
 # op is unambiguous at load time; registration is identical either way.
@@ -35,12 +37,14 @@ require 'json'
 require 'onetime/operations/domains/transfer'
 require_relative '../customers/shared'
 require_relative 'shared'
+require_relative '../write_gate'
 
 module Onetime
   module CLI
     class DomainsTransferCommand < Command
       include Customers::Shared
       include Domains::Shared
+      include WriteGate
 
       # Result statuses that are NOT a command failure. :mismatch is a refused
       # ownership assertion the operator must act on, so it exits 1.
@@ -62,41 +66,21 @@ module Onetime
         type: :string,
         default: nil,
         desc: 'Source org extid (or objid) to ASSERT against the current owner'
-      option :yes,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '-f'],
-        desc: 'Skip confirmation prompt'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Show the transfer plan without mutating (wins over --yes)'
+      write_gate_options 'Transfer the domain'
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
-      def call(domain:, to_org:, from_org: nil, yes: false, dry_run: false, json: false, **)
+      def call(domain:, to_org:, from_org: nil, apply: false, dry_run: false, json: false, **)
         boot_application!
 
+        dry_run     = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
         target      = resolve_domain(domain, json: json)
         destination = resolve_org(to_org, json: json)
         source      = from_org.to_s.strip.empty? ? nil : resolve_org(from_org, json: json)
 
-        if json && !yes && !dry_run
-          error_exit('Refusing to transfer without --yes in --json mode', json: true)
-        end
-
-        result =
-          if dry_run
-            run_op(target, destination, source, dry_run: true, json: json)
-          elsif yes
-            run_op(target, destination, source, dry_run: false, json: json)
-          else
-            confirm_and_apply(target, destination, source, json: json)
-          end
-
-        return if result.nil? # operator declined at the prompt
+        result = run_op(target, destination, source, dry_run: dry_run, json: json)
 
         OT.info "[cli-domains-transfer] domain=#{target.display_domain} status=#{result.status} " \
                 "to=#{result.to_org_id} dry_run=#{result.dry_run}"
@@ -120,24 +104,6 @@ module Onetime
         error_exit("Transfer failed: #{ex.message}", json: json)
       end
 
-      # Two op calls: plan, then apply. Only for the interactive path.
-      def confirm_and_apply(target, destination, source, json:)
-        plan = run_op(target, destination, source, dry_run: true, json: json)
-
-        # A blocked run (:mismatch) has nothing to confirm; report it verbatim.
-        return plan unless plan.status == :planned
-
-        print_plan(plan)
-        print "Confirm transfer of #{plan.display_domain}? [y/N] "
-        response = $stdin.gets&.strip&.downcase
-        unless response == 'y'
-          puts 'Aborted.'
-          return nil
-        end
-
-        run_op(target, destination, source, dry_run: false, json: json)
-      end
-
       def print_plan(plan)
         puts 'Transfer Details:'
         puts "  Domain:               #{plan.display_domain}"
@@ -159,8 +125,9 @@ module Onetime
             json: false,
           )
         when :planned
+          dry_run_header
           print_plan(result)
-          puts 'Dry run - nothing changed. Re-run with --yes to apply.'
+          dry_run_footer('transfer')
         when :transferred
           puts "  Removed from #{result.from_org_name || result.from_org_id}" unless result.from_org_id.to_s.empty?
           puts "  Added to #{result.to_org_name || result.to_org_id}"

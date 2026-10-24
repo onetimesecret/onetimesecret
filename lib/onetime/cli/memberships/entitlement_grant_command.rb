@@ -19,12 +19,15 @@
 # blocked.
 require_relative 'entitlement_command'
 
+require_relative '../write_gate'
+
 module Onetime
   module CLI
     class MembershipsEntitlementGrantCommand < Command
       include Customers::Shared
       include Memberships::Shared
       include Memberships::EntitlementSupport
+      include WriteGate
 
       desc 'Grant an entitlement to an org member (operator override)'
 
@@ -41,15 +44,7 @@ module Onetime
         required: true,
         desc: 'Entitlement name (warns, does not block, when not in the catalog)'
 
-      option :apply,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '--yes', '-f'],
-        desc: 'Write the override (default: dry run, project the resulting sets)'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Preview only (the default; contradicts --apply)'
+      write_gate_options 'Write the override'
       option :json,
         type: :boolean,
         default: false,

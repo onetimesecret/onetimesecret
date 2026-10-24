@@ -75,12 +75,12 @@ RSpec.describe 'Customers Role Reconcile Command' do
     # Runs the command's private reconcile with stdout captured, converting a
     # SystemExit into its status so exit-code expectations read directly.
     # @return [Hash] { stdout:, exit_code: } (exit_code 0 when no exit raised)
-    def run_reconcile(apply: false, force: false, json: false)
+    def run_reconcile(apply: false, dry_run: false, json: false)
       original = $stdout
       $stdout  = StringIO.new
       code     = 0
       begin
-        command.send(:reconcile_role_index, apply: apply, force: force, json: json)
+        command.send(:reconcile_role_index, apply: apply, dry_run: dry_run, json: json)
       rescue SystemExit => ex
         code = ex.status
       ensure
@@ -158,7 +158,7 @@ RSpec.describe 'Customers Role Reconcile Command' do
         # DEL-then-repopulate of the whole bucket.
         steady = create_customer("apply_steady_#{suffix}@onetimesecret.com", role: 'colonel')
 
-        outcome = run_reconcile(apply: true, force: true)
+        outcome = run_reconcile(apply: true)
 
         expect(outcome[:exit_code]).to eq(0)
         expect(outcome[:stdout]).to include('repaired')
@@ -173,18 +173,33 @@ RSpec.describe 'Customers Role Reconcile Command' do
         expect(run_reconcile[:exit_code]).to eq(0)
       end
 
-      it 'refuses a scripted --json apply without --force' do
-        outcome = run_reconcile(apply: true, force: false, json: true)
+      it 'never prompts: --apply writes without --force or a y/N answer' do
+        allow($stdin).to receive(:gets).and_return("n\n")
+        lost = create_customer("noprompt_lost_#{suffix}@onetimesecret.com", role: 'colonel')
+        colonel_bucket.remove_element(lost.objid)
+
+        outcome = run_reconcile(apply: true)
+
+        expect(outcome[:exit_code]).to eq(0)
+        expect($stdin).not_to have_received(:gets)
+        expect(colonel_bucket.member?(lost.objid)).to be(true)
+      end
+
+      it 'refuses --apply with --dry-run before calling the op' do
+        allow(Auth::Operations::Customers::ReconcileRoleIndex).to receive(:new).and_call_original
+
+        outcome = run_reconcile(apply: true, dry_run: true, json: true)
 
         expect(outcome[:exit_code]).to eq(1)
-        expect(outcome[:stdout]).to include('Refusing to apply without --force in --json mode')
+        expect(JSON.parse(outcome[:stdout])['error']).to include('contradictory')
+        expect(Auth::Operations::Customers::ReconcileRoleIndex).not_to have_received(:new)
       end
 
       it 'emits machine-readable JSON with --json' do
         lost = create_customer("json_lost_#{suffix}@onetimesecret.com", role: 'colonel')
         colonel_bucket.remove_element(lost.objid)
 
-        outcome = run_reconcile(apply: true, force: true, json: true)
+        outcome = run_reconcile(apply: true, json: true)
         payload = JSON.parse(outcome[:stdout])
 
         expect(outcome[:exit_code]).to eq(0)
@@ -274,7 +289,7 @@ RSpec.describe 'Customers Role Reconcile Command' do
         allow(op).to receive(:expected_memberships).and_return([expected, 1])
         allow(Auth::Operations::Customers::ReconcileRoleIndex).to receive(:new).and_return(op)
 
-        outcome = run_reconcile(apply: true, force: true)
+        outcome = run_reconcile(apply: true)
 
         expect(outcome[:exit_code]).to eq(0)
         expect(outcome[:stdout])

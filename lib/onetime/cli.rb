@@ -10,6 +10,7 @@ require 'onetime/migration'
 require 'v2/logic'
 
 require_relative 'cli/option_types'
+require_relative 'cli/write_gate'
 
 module Onetime
   module CLI

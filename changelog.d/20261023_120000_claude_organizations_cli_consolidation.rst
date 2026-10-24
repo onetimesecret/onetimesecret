@@ -33,7 +33,20 @@ Changed
   ``--apply`` is given, and no longer prompt. ``--yes``, ``-y`` and ``-f`` are
   aliases for ``--apply``, so scripts that pass ``--yes`` still write. A bare
   ``--json`` run now returns the dry-run result instead of refusing, and
-  ``--apply`` with ``--dry-run`` is an error.
+  ``--apply`` with ``--dry-run`` is an error. A piped confirmation
+  (``echo y | bin/ots organizations delete ORG``) no longer confirms anything:
+  the run is a dry run and exits 0, so a script that relied on the prompt must
+  pass ``--apply``.
+- The same gate now covers every ``bin/ots`` verb that writes: ``customers
+  change-email``, ``customers role reconcile``, ``domains remove``, ``domains
+  repair``, ``domains transfer``, ``banner set`` and ``banner clear``. Each is
+  a dry run unless ``--apply`` is given and none prompts any more;
+  ``change-email --apply`` and ``role reconcile --apply`` write without
+  ``--yes``/``--force``, and ``domains repair``/``transfer`` take ``--apply``
+  (``--yes`` stays as an alias). ``organizations unarchive`` takes ``--apply``
+  like its siblings; ``--run`` stays as an alias. Every dry run prints the same
+  two lines, ``DRY RUN — nothing was written`` first and ``Re-run with --apply
+  to …`` last.
 - Member listings (``organizations show``, ``organizations list --verbose``)
   show each member's public id (``ur…``), membership role and status, and an
   obscured email instead of internal ids. ``customers show`` prints the

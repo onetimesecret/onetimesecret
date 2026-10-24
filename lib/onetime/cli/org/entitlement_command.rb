@@ -34,7 +34,7 @@ module Onetime
       # rendering or exit codes — they differ ONLY in their arguments.
       module EntitlementSupport
         # Run the shared op and render it. May `exit`. A dry run unless
-        # `apply` (see Org::Shared#dry_run_unless_applied).
+        # `apply` (see WriteGate#dry_run_unless_applied).
         #
         # @param organization [Onetime::Organization] already resolved
         # @param action [String] 'grant' | 'revoke' | 'clear'
@@ -113,7 +113,7 @@ module Onetime
             error_exit('Entitlement is required for grant/revoke', json: false)
           end
 
-          puts 'DRY RUN — nothing was written' if result.dry_run
+          dry_run_header if result.dry_run
           puts "Organization: #{result.org_id}"
           puts "Action:       #{result.action}"
           puts "Entitlement:  #{result.entitlement || '(all overrides)'}"
@@ -123,7 +123,7 @@ module Onetime
           print_set('Revokes', result.revokes)
           print_set(result.dry_run ? 'Effective (projected)' : 'Effective', result.effective)
           print_cascade(result)
-          puts "Re-run with --apply to #{result.action}." if result.status == :planned
+          dry_run_footer(result.action) if result.status == :planned
 
           exit 1 unless override_ok?(result)
         end

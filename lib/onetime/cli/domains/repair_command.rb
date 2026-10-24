@@ -8,11 +8,10 @@
 # single `domain.repair` ColonelAuditEvent. This command owns only CLI concerns.
 #
 # Usage:
-#   bin/ots domains repair example.com                    # plan, confirm, apply
-#   bin/ots domains repair example.com --dry-run          # plan only, never mutates
-#   bin/ots domains repair example.com --yes              # apply without prompting
-#   bin/ots domains repair example.com --yes --json       # apply, machine-readable
-#   bin/ots domains repair example.com --org-id on123abc  # adopt an ORPHANED domain
+#   bin/ots domains repair example.com                    # dry run (the default): the plan
+#   bin/ots domains repair example.com --apply            # repair
+#   bin/ots domains repair example.com --apply --json     # repair, machine-readable
+#   bin/ots domains repair example.com --org-id on123abc --apply  # adopt an ORPHANED domain
 #
 # Adopting an ORPHANED domain resets its ownership verification and issues a
 # new TXT value; the output lists the per-domain state the record kept.
@@ -25,14 +24,11 @@
 # ignoring an explicit flag is how an operator ends up believing a reassignment
 # happened. Reassignment is `domains transfer`, a separate audited verb.
 #
-# --dry-run wins over --yes: `--dry-run --yes` still mutates nothing.
-#
-# CALL COUNT: --dry-run and --yes each make exactly ONE op call. The interactive
-# path makes two (plan, then apply). The printed plan is ADVISORY, not
-# transactional — state can change between the two calls.
-#
-# `--force` was renamed to `--yes` (`-y` / `-f` aliases). This is a deliberate
-# break; see the changelog.
+# DRY RUN IS THE DEFAULT (WriteGate). The bare run prints the plan and writes
+# nothing. There is no confirmation prompt: --apply (-y/--yes/-f) is the only
+# way to repair, and --dry-run only states the default. Exactly ONE op call per
+# invocation. The printed plan is ADVISORY, not transactional — state can
+# change between a dry run and the apply.
 #
 # Lives under lib/onetime/cli (not apps/api/domains/cli) so the require of the
 # op is unambiguous at load time; registration is identical either way.
@@ -44,12 +40,14 @@ require 'onetime/operations/domains/repair'
 # cannot be loaded in a broken order.
 require_relative '../customers/shared'
 require_relative 'shared'
+require_relative '../write_gate'
 
 module Onetime
   module CLI
     class DomainsRepairCommand < Command
       include Customers::Shared
       include Domains::Shared
+      include WriteGate
 
       # Result statuses that are NOT a command failure. :needs_org and
       # :org_not_found are blocked states the operator must act on, so they
@@ -67,26 +65,19 @@ module Onetime
         type: :string,
         default: nil,
         desc: 'Organization extid (or objid) to assign when the domain is ORPHANED'
-      option :yes,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '-f'],
-        desc: 'Skip confirmation prompt'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Show the repair plan without mutating (wins over --yes)'
+      write_gate_options 'Apply the repairs'
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
-      def call(domain:, org_id: nil, yes: false, dry_run: false, json: false, **)
+      def call(domain:, org_id: nil, apply: false, dry_run: false, json: false, **)
         boot_application!
 
-        target = resolve_domain(domain, json: json)
+        dry_run = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
+        target  = resolve_domain(domain, json: json)
 
-        # Resolve --org-id BEFORE prompting so bad input fails fast. The
+        # Resolve --org-id BEFORE the op so bad input fails fast. The
         # incumbent passed silent: true here, so an unresolvable org became an
         # invisible nil and the command then told the operator to supply the
         # very flag they had just supplied.
@@ -94,26 +85,12 @@ module Onetime
 
         reject_reassignment!(target, json: json) if org
 
-        if json && !yes && !dry_run
-          error_exit('Refusing to repair without --yes in --json mode', json: true)
-        end
-
         unless json
           puts "Checking domain: #{target.display_domain}"
           puts
         end
 
-        result = refuse_on_problem(json) do
-          if dry_run
-            run_op(target, org, dry_run: true)
-          elsif yes
-            run_op(target, org, dry_run: false)
-          else
-            confirm_and_apply(target, org)
-          end
-        end
-
-        return if result.nil? # operator declined at the prompt
+        result = refuse_on_problem(json) { run_op(target, org, dry_run: dry_run) }
 
         OT.info "[cli-domains-repair] domain=#{target.display_domain} status=#{result.status} " \
                 "dry_run=#{result.dry_run} issues=#{result.issues.size}"
@@ -142,27 +119,6 @@ module Onetime
         error_exit(ex.message, json: json)
       end
 
-      # Two op calls: plan, then apply. Only for the interactive path.
-      def confirm_and_apply(target, org)
-        plan = run_op(target, org, dry_run: true)
-
-        # Blocked (:needs_org / :org_not_found) or clean (:no_issues): there is
-        # nothing to confirm, so report the plan verbatim and skip the apply.
-        return plan unless plan.status == :planned
-
-        puts 'Issues Found:'
-        plan.issues.each_with_index { |issue, idx| puts "  #{idx + 1}. #{issue}" }
-        puts
-        print "Apply #{plan.issues.size} repair(s) to #{target.display_domain}? [y/N] "
-        response = $stdin.gets&.strip&.downcase
-        unless response == 'y'
-          puts 'Aborted.'
-          return nil
-        end
-
-        run_op(target, org, dry_run: false)
-      end
-
       # --org-id only adopts an ORPHANED domain. Anything else is a transfer.
       def reject_reassignment!(target, json:)
         return if target.org_id.to_s.strip.empty?
@@ -179,10 +135,11 @@ module Onetime
         when :no_issues
           puts 'No issues found - domain relationships are consistent'
         when :planned
+          dry_run_header
           puts 'Issues Found:'
           result.issues.each_with_index { |issue, idx| puts "  #{idx + 1}. #{issue}" }
           puts
-          puts 'Dry run - nothing changed. Re-run with --yes to apply.'
+          dry_run_footer('repair')
         when :repaired
           puts 'Applying repairs:'
           result.repairs_applied.each { |applied| puts "  #{applied}" }
