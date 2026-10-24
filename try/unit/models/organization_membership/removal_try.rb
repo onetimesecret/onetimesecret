@@ -426,12 +426,36 @@ Onetime::Customer.dbclient.del(@gone_member.dbkey)
 Onetime::Customer.dbclient.exists?(@gone_member.dbkey)
 #=> false
 
+## Outcome: :cleared when the call deletes a pointer naming the org
+@outcome_member = Onetime::Customer.create!(email: generate_unique_test_email("removal_ptr_outcome"))
+@outcome_member.default_org_id = @org.objid
+@outcome_member.save
+@org.clear_default_org_pointer(@outcome_member)
+#=> :cleared
+
+## Outcome: :unchanged once nothing names the org
+@org.clear_default_org_pointer(@outcome_member)
+#=> :unchanged
+
+## Outcome: :failed for an argument that is not a Customer
+@org.clear_default_org_pointer(@outcome_member.objid)
+#=> :failed
+
+## Outcome: :failed when the script raises, with the caller's copy left as it was
+@outcome_member.default_org_id = @org.objid
+@outcome_member.save
+def @outcome_member.dbclient = raise('test outage')
+@outcome = [@org.clear_default_org_pointer(@outcome_member), @outcome_member.default_org_id == @org.objid]
+@outcome_member.singleton_class.remove_method(:dbclient)
+@outcome
+#=> [:failed, true]
+
 # Cleanup
 @count_pending.destroy_with_index_cleanup! if @count_pending&.respond_to?(:destroy!)
 # Clean up reinvited member's active membership
 @reinvite_active = Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @reinvite_customer.objid)
 @reinvite_active&.destroy_with_index_cleanup!
 [@org, @owner, @member, @sc_member, @full_cleanup_customer, @idempotent_customer, @reinvite_customer, @count_member_a, @count_member_b,
- @ptr_member, @kept_member, @legacy_member, @copy_member].each do |obj|
+ @ptr_member, @kept_member, @legacy_member, @copy_member, @outcome_member].each do |obj|
   obj.destroy! if obj&.respond_to?(:destroy!) && obj.exists?
 end

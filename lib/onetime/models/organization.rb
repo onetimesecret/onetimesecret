@@ -222,12 +222,16 @@ module Onetime
     # request, as after Org::Delete and `customers doctor --repair`.
     #
     # The removal has committed by the time this runs, so a failure is
-    # logged and left for `customers doctor` (check orphan_default_org).
+    # logged and returned, not raised. `customers doctor` repairs the
+    # pointer later (check orphan_default_org).
     #
     # @param customer [Onetime::Customer]
-    # @return [Boolean] whether the stored pointer was deleted
+    # @return [Symbol] :cleared when this call deleted the stored pointer;
+    #   :unchanged when the stored pointer did not name this org (absent,
+    #   repointed, or already cleared); :failed when it was not checked
+    #   (not a Customer, or the script raised) and may still name this org
     def clear_default_org_pointer(customer)
-      return false unless customer.is_a?(Onetime::Customer)
+      return :failed unless customer.is_a?(Onetime::Customer)
 
       org_objid = objid.to_s
       cleared   = customer.dbclient.eval(
@@ -239,10 +243,10 @@ module Onetime
       # Keep the caller's copy in step, so a later read or save of this
       # object does not bring the pointer back.
       customer.default_org_id = nil if customer.default_org_id.to_s == org_objid
-      cleared
+      cleared ? :cleared : :unchanged
     rescue StandardError => ex
       OT.le "[Organization#clear_default_org_pointer] #{extid} for #{customer.extid}: #{ex.class}: #{ex.message}"
-      false
+      :failed
     end
 
     # Invitation management
