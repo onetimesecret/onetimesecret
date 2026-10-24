@@ -20,8 +20,10 @@
 #
 # DRY RUN IS THE DEFAULT (WriteGate). This is the single highest-value
 # account-takeover primitive an operator has: no mutation without an explicit
-# `--apply`. There is no confirmation prompt; `--yes` (the former prompt
-# skip) is an alias of --apply, so `--apply --yes` still executes.
+# `--apply`. There is no confirmation prompt. Unlike the other gated verbs,
+# `--yes`/`-y`/`-f` are NOT aliases of --apply here: they were a prompt skip
+# that also needed --apply, so a bare `--yes` was a preview. They stay as a
+# no-op, so `--yes` alone still previews and `--apply --yes` still executes.
 #
 # NOT gated by SSO-only mode (D37). `require_non_sso_only!` is an API-surface
 # concern; gating the shell would remove support's only remediation tool for
@@ -58,7 +60,13 @@ module Onetime
         required: true,
         desc: 'New account email address'
 
-      write_gate_options 'Execute the change'
+      # aliases: [] — see the header: a bare --yes previewed before the gate.
+      write_gate_options 'Execute the change', aliases: []
+      option :yes,
+        type: :boolean,
+        default: false,
+        aliases: ['-y', '-f'],
+        desc: 'No effect; --apply executes. Accepted so --apply --yes scripts still run'
       option :json,
         type: :boolean,
         default: false,

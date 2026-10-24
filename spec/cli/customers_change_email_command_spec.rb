@@ -98,6 +98,20 @@ RSpec.describe 'customers change-email', type: :cli do
       expect(Auth::Operations::Customers::ChangeEmail).to have_received(:new)
         .with(hash_including(new_email: 'new@example.com'))
     end
+
+    # Before the gate, --yes/-y/-f only skipped the prompt that --apply also
+    # needed, so a bare --yes previewed. It must not become a write.
+    ['--yes', '-y', '-f'].each do |flag|
+      it "stays a preview with a bare #{flag}" do
+        output = run_cli_command_quietly('customers', 'change-email',
+          'old@example.com', 'new@example.com', flag)
+
+        expect(Auth::Operations::Customers::ChangeEmail).to have_received(:new)
+          .with(hash_including(dry_run: true))
+        expect(output[:stdout]).to include('DRY RUN — nothing was written')
+        expect(last_exit_code).to eq(0)
+      end
+    end
   end
 
   describe '--apply' do
@@ -118,7 +132,7 @@ RSpec.describe 'customers change-email', type: :cli do
       expect(last_exit_code).to eq(0)
     end
 
-    it 'still executes with the former --apply --yes spelling (--yes is an alias of --apply)' do
+    it 'still executes with the former --apply --yes spelling (--yes is a no-op)' do
       output = run_cli_command_quietly('customers', 'change-email',
         'old@example.com', 'new@example.com', '--apply', '--yes')
 
