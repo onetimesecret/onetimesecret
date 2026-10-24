@@ -202,6 +202,32 @@ module Onetime
       self.class.warnings_sent.remove_element(identifier)
     end
 
+    # A memo edit must not save the loaded receipt's other fields: a concurrent
+    # display claim or terminal transition may have made that projection stale.
+    # EXISTS and HSET share one atomic operation; HSET retains the live key's
+    # expiry and a deleted/expired receipt is never recreated.
+    UPDATE_MEMO_SCRIPT = <<~LUA
+      if redis.call('EXISTS', KEYS[1]) == 0 then return 0 end
+      redis.call('HSET', KEYS[1], 'memo', ARGV[1], 'updated', ARGV[2])
+      return 1
+    LUA
+    private_constant :UPDATE_MEMO_SCRIPT
+
+    # @return [Boolean] whether the receipt still existed and was updated.
+    def update_memo!(value)
+      now     = Familia.now
+      written = dbclient.eval(
+        UPDATE_MEMO_SCRIPT,
+        keys: [dbkey],
+        argv: [serialize_value(value), serialize_value(now)],
+      ).to_i == 1
+      if written
+        self.memo    = value
+        self.updated = now
+      end
+      written
+    end
+
     def age
       @age ||= Familia.now.to_i - updated
       @age
@@ -353,7 +379,8 @@ module Onetime
 
         secret.save
 
-        # Single save with all fields populated — no partial-state window
+        # Populate the receipt before its first save. The secret and receipt
+        # are separate writes; this is not an atomic commit of the pair.
         receipt.secret_shortid = secret.shortid
         receipt.secret_ttl     = lifespan
         receipt.lifespan       = lifespan
