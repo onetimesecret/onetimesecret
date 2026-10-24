@@ -225,16 +225,22 @@ module Onetime
     # logged and returned, not raised. `customers doctor` repairs the
     # pointer later (check orphan_default_org).
     #
+    # The outcome describes the removal, not only this call: a removal runs
+    # it twice (the teardown, through the membership's own copy of the
+    # customer, then the caller on its copy), and the second call usually
+    # finds the stored field already gone.
+    #
     # @param customer [Onetime::Customer]
-    # @return [Symbol] :cleared when this call deleted the stored pointer;
-    #   :unchanged when the stored pointer did not name this org (absent,
-    #   repointed, or already cleared); :failed when it was not checked
-    #   (not a Customer, or the script raised) and may still name this org
+    # @return [Symbol] :cleared when the pointer named this org: this call
+    #   deleted the stored field, or the caller's copy still named the org
+    #   after an earlier clear deleted it; :unchanged when it named another
+    #   org or none; :failed when it was not checked (not a Customer, or the
+    #   script raised) and may still name this org
     def clear_default_org_pointer(customer)
       return :failed unless customer.is_a?(Onetime::Customer)
 
       org_objid = objid.to_s
-      cleared   = customer.dbclient.eval(
+      deleted   = customer.dbclient.eval(
         CLEAR_DEFAULT_ORG_SCRIPT,
         keys: [customer.dbkey],
         argv: [Familia::JsonSerializer.dump(org_objid), org_objid],
@@ -242,8 +248,9 @@ module Onetime
 
       # Keep the caller's copy in step, so a later read or save of this
       # object does not bring the pointer back.
-      customer.default_org_id = nil if customer.default_org_id.to_s == org_objid
-      cleared ? :cleared : :unchanged
+      named                   = customer.default_org_id.to_s == org_objid
+      customer.default_org_id = nil if named
+      deleted || named ? :cleared : :unchanged
     rescue StandardError => ex
       OT.le "[Organization#clear_default_org_pointer] #{extid} for #{customer.extid}: #{ex.class}: #{ex.message}"
       :failed

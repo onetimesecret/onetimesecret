@@ -77,11 +77,10 @@ module Onetime
         # @!attribute status [r] Symbol —
         #   :success | :dry_run | :not_found | :last_owner
         # @!attribute default_org_cleanup [r] Symbol, nil — nil unless the
-        #   removal was applied; then the op's own
-        #   Organization#clear_default_org_pointer outcome. :unchanged is the
-        #   usual value, since the teardown already cleared the pointer
-        #   through its own copy of the customer. :failed means the member's
-        #   default_org_id may still name this org.
+        #   removal was applied; then Organization#clear_default_org_pointer's
+        #   outcome for the removal: :cleared when the member's default_org_id
+        #   named this org, :unchanged when it named another org or none,
+        #   :failed when it may still name this org.
         Result = Data.define(:status, :org_id, :customer_id, :role, :default_org_cleanup) do
           def initialize(default_org_cleanup: nil, **attributes)
             super(**attributes, default_org_cleanup: default_org_cleanup)

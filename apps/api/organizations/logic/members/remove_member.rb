@@ -69,8 +69,8 @@ module OrganizationAPI::Logic
         # The teardown cleared a default_org_id naming this org through the
         # membership's own copy of the member (#4860), but its outcome does
         # not reach this adapter. Repeat it here, as Memberships::Remove does,
-        # so this request's audit line records whether the pointer may have
-        # survived.
+        # so this request's audit line records whether the pointer named this
+        # org and whether it may have survived.
         default_org_cleanup = @organization.clear_default_org_pointer(@target_member)
 
         # Audit log for member removal

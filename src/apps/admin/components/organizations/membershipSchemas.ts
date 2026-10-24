@@ -134,9 +134,10 @@ export const colonelRemoveMembershipRecordSchema = z.object({
 });
 
 /**
- * `default_org_cleanup` is the removal's default_org_id cleanup outcome
- * (`cleared`, `unchanged` or `failed`). A `failed` cleanup does not undo the
- * removal: the member's default organization may still point to this org.
+ * `default_org_cleanup` is the removal's default_org_id cleanup outcome:
+ * `cleared` when the member's default organization was this org, `unchanged`
+ * when it was another or none, `failed` when it may still point to this org.
+ * A `failed` cleanup does not undo the removal.
  */
 export const colonelRemoveMembershipDetailsSchema = z.object({
   default_org_cleanup: z.string().nullable(),
