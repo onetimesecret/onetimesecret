@@ -290,7 +290,7 @@ describe('Language Store', () => {
 
     // If an auth refresh swaps the account while the preference request is in
     // flight, the patch must not land on the account that signed in afterwards.
-    it('does not write the requesting account\'s choice onto a customer who signed in mid-request', async () => {
+    it("does not write the requesting account's choice onto a customer who signed in mid-request", async () => {
       bootstrapStore.update({ cust: { ...mockCustomer, locale: 'en' } });
       axiosMock?.onPost('/api/account/update-locale').reply(() => {
         bootstrapStore.update({
@@ -843,9 +843,9 @@ describe('Language Store', () => {
   // build, a locales sync that did not run, a custom locale list. The server
   // keeps it in supported_locales (lib/onetime/initializers/load_locales.rb
   // logs the missing file and goes on to the next). Activating it would
-  // always reject and land the visitor on a fallback with LocaleLoadNotice
-  // (src/router/guards.routes.ts), so init() drops it from the supported locales and nothing offers or chooses
-  // it. 'sw' has no generated file.
+  // always reject and show the visitor a fallback with LocaleLoadNotice
+  // (src/router/guards.routes.ts), so init() drops it from the supported
+  // locales and nothing offers or chooses it. 'sw' has no generated file.
   describe('a supported locale this build has no messages for', () => {
     beforeEach(() => {
       bootstrapStore.update({ supported_locales: ['en', 'sw', 'nl'], default_locale: 'sw' });

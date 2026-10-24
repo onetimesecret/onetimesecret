@@ -4,7 +4,7 @@
 // notice for a language whose messages did not load (F22). It names that
 // language and the one shown instead, each in its own name and marked with
 // its BCP 47 lang, says the visitor can carry on, and links to the feedback
-// form. It renders while the language store holds a failure and goes away on
+// form. It renders while the language store records a failure and goes away on
 // dismissal.
 //
 // Mounted with the app's real i18n instance, so the copy asserted is the

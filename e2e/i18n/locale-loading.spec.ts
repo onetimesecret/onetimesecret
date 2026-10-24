@@ -6,7 +6,7 @@
 // English ships in the entry bundle; every other locale is its own chunk
 // (src/i18n.ts). The app must not mount until the locale chosen for the first
 // navigation is loaded and active, and a later switch must not show two
-// languages at once. Each test holds or aborts a locale chunk with
+// languages at once. Each test delays or aborts a locale chunk with
 // page.route(), so the window in which English could appear lasts as long as
 // the test wants.
 //
@@ -148,7 +148,7 @@ function chunkRoute(code: string, counter: () => number): ChunkRoute {
 
 const test = base.extend<{
   localeChunks: {
-    /** Holds every request for the chunk until release(). */
+    /** Delays every request for the chunk until release(). */
     hold(code: string): Promise<HeldChunk>;
     /** Aborts every request for the chunk, as an unreachable asset host would. */
     fail(code: string): Promise<ChunkRoute>;
@@ -455,7 +455,7 @@ async function waitOutReloads(page: Page, documents: string[]): Promise<void> {
     .catch(() => undefined);
 }
 
-/** The app has not mounted: #app still holds the server-rendered shell. */
+/** The app has not mounted: #app still contains the server-rendered shell. */
 async function expectShellOnly(page: Page): Promise<void> {
   await expect(page.locator('#app .app-fallback')).toBeAttached();
   await expect(page.locator('#app')).not.toHaveAttribute('data-v-app');
