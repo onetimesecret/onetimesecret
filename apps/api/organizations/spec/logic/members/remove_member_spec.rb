@@ -41,7 +41,7 @@ RSpec.describe OrganizationAPI::Logic::Members::RemoveMember do
   end
 
   let(:target_membership) do
-    instance_double(Onetime::OrganizationMembership, destroy_with_index_cleanup!: true)
+    instance_double(Onetime::OrganizationMembership, destroy_with_index_cleanup!: true, default_org_cleanup: :cleared)
   end
 
   let(:logic) do
@@ -63,7 +63,7 @@ RSpec.describe OrganizationAPI::Logic::Members::RemoveMember do
     logic.process
 
     expect(target_membership).to have_received(:destroy_with_index_cleanup!).ordered
-    expect(organization).to have_received(:clear_default_org_pointer).with(target_member).ordered
+    expect(organization).to have_received(:clear_default_org_pointer).with(target_member, prior: :cleared).ordered
   end
 
   it 'records the cleanup outcome in the audit line and returns the usual response' do

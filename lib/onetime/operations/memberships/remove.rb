@@ -142,8 +142,9 @@ module Onetime
           # caller's copy: Customers::Purge keeps using that object, and its
           # later preflights must not follow a pointer to the org just left.
           # The outcome goes on the Result, so an adapter can report a
-          # pointer that may have survived.
-          @default_org_cleanup = @org.clear_default_org_pointer(@customer)
+          # pointer that may have survived. The teardown's outcome stands if
+          # this call cannot check.
+          @default_org_cleanup = @org.clear_default_org_pointer(@customer, prior: membership.default_org_cleanup)
 
           # One audit event per real removal, emitted from the op (adapters MUST
           # NOT audit). Public ids only; no secret detail.
