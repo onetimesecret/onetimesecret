@@ -50,13 +50,6 @@ export interface SetCurrentLocaleOptions {
    * domain locale that changes later in the session.
    */
   remember?: boolean;
-  /**
-   * Load the locale's configured fallback chain along with it (the default).
-   * False only for the last resort of recoverFromLocaleLoadFailure: English
-   * is bundled, and a fallback configured behind it (fallback_locale.default)
-   * whose chunk fails must not keep the page from opening in English.
-   */
-  fallbacks?: boolean;
 }
 
 interface StoreOptions extends PiniaPluginOptions {
@@ -238,10 +231,24 @@ export const useLanguageStore = defineStore('language', () => {
    */
   async function setCurrentLocale(
     locale: string,
-    { remember = true, fallbacks = true }: SetCurrentLocaleOptions = {}
+    { remember = true }: SetCurrentLocaleOptions = {}
   ): Promise<string> {
-    const normalizedLocale = requireSupportedLocale(locale);
+    return activateLocale(requireSupportedLocale(locale), { remember, fallbacks: true });
+  }
 
+  /**
+   * The activation behind setCurrentLocale, for a locale already known to be
+   * supported. `fallbacks` false loads the locale alone, without its
+   * configured fallback chain. Only the last resort of
+   * recoverFromLocaleLoadFailure passes it: English is bundled, and a locale
+   * configured behind it (fallback_locale.default) whose chunk fails must not
+   * keep the page from opening in English. Not a public option, so no caller
+   * can switch a visitor to a language with its fallbacks missing.
+   */
+  async function activateLocale(
+    normalizedLocale: string,
+    { remember, fallbacks }: { remember: boolean; fallbacks: boolean }
+  ): Promise<string> {
     const request = ++latestSwitch;
     pendingLocale.value = normalizedLocale;
     // A chunk that fails to load may reload the page: the deployment-skew
@@ -307,7 +314,7 @@ export const useLanguageStore = defineStore('language', () => {
         );
       }
     }
-    return setCurrentLocale(DEFAULT_LOCALE, { remember: false, fallbacks: false });
+    return activateLocale(DEFAULT_LOCALE, { remember: false, fallbacks: false });
   }
 
   /** Hides LocaleLoadNotice; the active locale stays. */
