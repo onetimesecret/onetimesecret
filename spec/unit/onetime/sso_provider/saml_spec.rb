@@ -14,7 +14,7 @@
 #                            (site.host); custom-domain fallback never rebinds it
 #   .cert_problem            the STRUCTURAL half of the IdP certificate rule:
 #                            exactly one PEM CERTIFICATE block and nothing
-#                            else (the validity-window half, allow_expired
+#                            else (the validity-window half, stored: true
 #                            and the builder are covered in registry_spec)
 #
 # RUN (always via the lane runner — see AGENTS.md):
@@ -184,9 +184,9 @@ RSpec.describe Onetime::SsoProvider::Saml do
       expect(described_class.entity_id_problem('https://idp.example.com/{tenant')).to be_nil
     end
 
-    it 'skips only the placeholder rule with allow_placeholder: true' do
-      expect(described_class.entity_id_problem('https://sts.windows.net/{tenantid}/', allow_placeholder: true)).to be_nil
-      expect(described_class.entity_id_problem(' {tenantid}', allow_placeholder: true))
+    it 'skips only the placeholder rule with stored: true' do
+      expect(described_class.entity_id_problem('https://sts.windows.net/{tenantid}/', stored: true)).to be_nil
+      expect(described_class.entity_id_problem(' {tenantid}', stored: true))
         .to eq('IdP EntityID has leading or trailing whitespace')
     end
   end
@@ -385,7 +385,7 @@ RSpec.describe Onetime::SsoProvider::Saml do
       cert.public_key = key
       cert.sign(OpenSSL::PKey::RSA.new(2048), OpenSSL::Digest.new('SHA256'))
       expect(described_class.cert_problem(cert.to_pem)).to include('RSA public key')
-      expect(described_class.cert_problem(cert.to_pem, allow_expired: true, allow_unsupported_key: true)).to be_nil
+      expect(described_class.cert_problem(cert.to_pem, stored: true)).to be_nil
     end
 
     it 'caches parsing but rechecks both validity bounds on every call' do

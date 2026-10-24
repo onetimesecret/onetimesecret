@@ -1080,18 +1080,16 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # definition's own (Onetime::SsoProvider::Saml), so the two surfaces
   # cannot disagree about what a usable trio looks like.
   #
-  # Certificate EXPIRY is not an invariant here (allow_expired: true): a
-  # certificate expires without anyone writing to the record, and the API
-  # re-validates the whole record on every PATCH, so an expiry check here
-  # would make an expired config impossible to disable or edit. Expiry is
-  # enforced where a certificate is accepted (API write path) and where
-  # it is used (#build_saml_options, and ruby-saml's
-  # check_idp_cert_expiration at login).
-  #
-  # Nor is an EntityID template placeholder (allow_placeholder: true), for
-  # the same reason: a record saved before Saml::ENTITY_ID_PLACEHOLDER was
-  # refused must stay editable. It is refused where an EntityID is accepted
-  # (API write path, metadata preview) and used (#build_saml_options).
+  # The trio checks run with stored: true (Saml's "A SAVED RECORD IS CHECKED
+  # FOR STRUCTURE ONLY"): a certificate's validity window and key type, and
+  # an EntityID template placeholder, are not invariants here. A
+  # certificate expires without anyone writing to the record, the other two
+  # rules are newer than some saved records, and the API re-validates the
+  # whole record on every PATCH, so any of them here would make such a
+  # config impossible to disable or edit. They are enforced where a value is
+  # accepted (API write path, metadata preview) and where it is used
+  # (#build_saml_options, and ruby-saml's check_idp_cert_expiration at
+  # login).
   #
   # The SSO URL gets no SSRF host check anywhere (the server never fetches
   # it; see DomainsAPI::Logic::SsoConfig::SamlFields); this method does no
@@ -1120,8 +1118,8 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
 
       case name
       when :idp_sso_service_url then saml.sso_url_problem(value)
-      when :idp_entity_id       then saml.entity_id_problem(value, allow_placeholder: true)
-      when :idp_cert            then saml.cert_problem(value, allow_expired: true, allow_unsupported_key: true)
+      when :idp_entity_id       then saml.entity_id_problem(value, stored: true)
+      when :idp_cert            then saml.cert_problem(value, stored: true)
       end
     end
 
