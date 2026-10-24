@@ -1086,7 +1086,16 @@ RSpec.describe 'Domains Command', type: :cli do
       allow(Onetime::Organization).to receive(:find_by_extid).with('on999xyz').and_return(organization)
 
       output = run_cli_command_quietly('domains', 'repair', 'example.com', '--org-id', 'on999xyz', '--yes')
-      expect(output[:stdout]).to include('domains transfer example.com --to-org')
+      expect(output[:stdout]).to include('domains transfer example.com --to-org <ORG> --apply')
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'names the adopting command, with --apply, for an orphan given no --org-id' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(orphan)
+      allow(Onetime::Organization).to receive(:load).and_return(nil)
+
+      output = run_cli_command_quietly('domains', 'repair', 'orphan.com', '--apply')
+      expect(output[:stdout]).to include('bin/ots domains repair orphan.com --org-id <ORG> --apply')
       expect(last_exit_code).to eq(1)
     end
 

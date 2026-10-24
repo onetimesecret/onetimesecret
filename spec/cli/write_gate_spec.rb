@@ -69,6 +69,44 @@ RSpec.describe Onetime::CLI::WriteGate, type: :cli do
     end
   end
 
+  # A verb that narrows the aliases does so because another option owns the
+  # flag (banner set: -f is --file). Pinned across every gated command, so a
+  # call site that drops its narrowing fails here rather than letting two
+  # options claim one flag.
+  describe 'every command on the gate' do
+    def flag_names(param)
+      own = param.argument? ? [] : ["--#{param.name.to_s.tr('_', '-')}"]
+      own + param.aliases.map do |name|
+        bare = name.sub(/\A-{1,2}/, '')
+        bare.size == 1 ? "-#{bare}" : "--#{bare}"
+      end
+    end
+
+    let(:gated) do
+      ObjectSpace.each_object(Class).select do |klass|
+        klass < Onetime::CLI::Command && klass.include?(described_class) && klass.name
+      end
+    end
+
+    it 'finds the gated verbs' do
+      expect(gated.map(&:name)).to include(
+        'Onetime::CLI::BannerSetCommand', 'Onetime::CLI::CustomersChangeEmailCommand',
+        'Onetime::CLI::CustomersRoleReconcileCommand'
+      )
+    end
+
+    it 'gives no other option a flag that --apply also claims' do
+      clashes = gated.flat_map do |klass|
+        apply = flag_names(klass.params.find { |param| param.name == :apply })
+        klass.params.reject { |param| param.name == :apply }.flat_map do |param|
+          (flag_names(param) & apply).map { |flag| "#{klass.name} #{flag} (--apply and :#{param.name})" }
+        end
+      end
+
+      expect(clashes).to eq([])
+    end
+  end
+
   describe '#dry_run_unless_applied' do
     let(:command) { build_command.new }
 

@@ -431,6 +431,13 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       expect(missing['repair_action']).to include('backfill-ascii-index --apply', 'custom-domain-ascii-index-backfill.md')
     end
 
+    it 'names --apply on the removal it suggests for a collision' do
+      issues    = ascii_issues(json_report('domains', 'doctor', '--all', '--json'))
+      collision = issues.find { |i| i['check'] == 'ascii_index_collision' }
+
+      expect(collision['repair_action']).to include('bin/ots domains remove <extid> --apply')
+    end
+
     it 'writes nothing to the ASCII index with --repair' do
       index = double('AsciiIndex')
       allow(Onetime::CustomDomain).to receive(:ascii_display_domain_index).and_return(index)
@@ -723,6 +730,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       output = run_cli_command_quietly('domains', 'bulk-repair')
 
       expect(output[:stderr]).to include('bin/ots domains doctor --all --repair')
+      expect(output[:stderr]).to include('bin/ots domains repair DOMAIN --org-id ORG --apply')
       expect(last_exit_code).to eq(1)
     end
 
