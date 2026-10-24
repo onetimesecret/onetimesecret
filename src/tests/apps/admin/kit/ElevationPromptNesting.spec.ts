@@ -1,8 +1,9 @@
 // src/tests/apps/admin/kit/ElevationPromptNesting.spec.ts
 
+import { AxiosError } from 'axios';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { defineComponent, h, ref, type Ref } from 'vue';
+import { defineComponent, h, ref, type Ref, type VNode } from 'vue';
 
 /**
  * The step-up prompt over an open admin dialog, with the REAL headlessui.
@@ -48,6 +49,10 @@ import AdminConfirmDialog from '@/apps/admin/components/kit/AdminConfirmDialog.v
 import DetailDrawer from '@/apps/admin/components/kit/DetailDrawer.vue';
 import ElevationPrompt from '@/apps/admin/components/ElevationPrompt.vue';
 import {
+  useAdminDestructiveMutation,
+  type UseAdminDestructiveMutation,
+} from '@/apps/admin/composables/useAdminDestructiveMutation';
+import {
   __resetColonelElevationState,
   useColonelElevation,
 } from '@/apps/admin/composables/useColonelElevation';
@@ -57,6 +62,7 @@ import {
 } from '@/apps/admin/composables/useElevationPromptHost';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { createTestI18n } from '@tests/setup';
+import { captureConsole } from '@tests/utils/appLogs';
 
 const i18n = createTestI18n();
 
@@ -89,6 +95,14 @@ async function settle(): Promise<void> {
   for (let i = 0; i < 5; i += 1) {
     await new Promise((resolve) => setTimeout(resolve, 10));
     await flushPromises();
+  }
+}
+
+/** `settle()` until `done`, bounded: a leave transition plus a cancel needs more than one pass. */
+async function settleUntil(done: () => boolean, passes = 10): Promise<void> {
+  for (let i = 0; i < passes; i += 1) {
+    await settle();
+    if (done()) return;
   }
 }
 
@@ -126,7 +140,12 @@ interface Counts {
  * slot, as the views place it since #4732) plus the layout's own prompt
  * instance, mounted only while no kit dialog hosts it.
  */
-function mountConsole(state: { drawer: Ref<boolean>; confirm: Ref<boolean> }): {
+function mountConsole(state: {
+  drawer: Ref<boolean>;
+  confirm: Ref<boolean>;
+  /** Extra content for the drawer's body slot: a view that lives and dies with the drawer. */
+  inDrawer?: () => VNode | null;
+}): {
   wrapper: VueWrapper;
   counts: Counts;
 } {
@@ -155,6 +174,7 @@ function mountConsole(state: { drawer: Ref<boolean>; confirm: Ref<boolean> }): {
                   'onUpdate:open': (value: boolean) => (state.confirm.value = value),
                   onCancel: () => (counts.confirmCancels.value += 1),
                 }),
+                state.inDrawer?.() ?? null,
               ],
             }
           ),
@@ -378,6 +398,115 @@ describe('the step-up prompt over an open admin dialog (real headlessui)', () =>
       await expect(pending).resolves.toBe(false);
       expect(mounted.counts.drawerCloses.value).toBe(0);
       expect(drawer.value).toBe(true);
+    });
+  });
+
+  // The host invariant: the host stack must not change while the prompt is
+  // open. A view inside the drawer that owns the 403 fallback prompt cancels
+  // its request when the drawer closes (its scope is disposed with the slot),
+  // so nothing is left for the layout's instance to show.
+  describe('the drawer closes under the 403 fallback prompt', () => {
+    function axiosError(status: number, data: unknown) {
+      const err = new AxiosError('Request failed');
+      err.response = { status, data, statusText: '', headers: {}, config: {} as never };
+      return err;
+    }
+
+    /** A view in the drawer body that runs a tier-1 verb through the shared loop. */
+    function callerInDrawer(perform: () => Promise<unknown>): {
+      render: () => VNode;
+      mutation: () => UseAdminDestructiveMutation<[]>;
+    } {
+      let mutation: UseAdminDestructiveMutation<[]> | undefined;
+      const Caller = defineComponent({
+        setup() {
+          mutation = useAdminDestructiveMutation(perform);
+          return () => h('span', { 'data-testid': 'drawer-caller' });
+        },
+      });
+      return { render: () => h(Caller), mutation: () => mutation! };
+    }
+
+    it('leaves no prompt in the document, resolves run() false and never retries', async () => {
+      const perform = vi
+        .fn<() => Promise<unknown>>()
+        .mockRejectedValueOnce(
+          axiosError(403, { error: 'Step-up required', error_code: 'elevation_required' })
+        )
+        .mockResolvedValueOnce(undefined);
+      const drawer = ref(true);
+      const caller = callerInDrawer(perform);
+      wrapper = mountConsole({ drawer, confirm: ref(false), inDrawer: caller.render }).wrapper;
+      await settle();
+      expect(q('[data-testid="drawer-caller"]')).not.toBeNull();
+
+      const running = caller.mutation().run();
+      await settle();
+      expect(useColonelElevation().promptOpen.value).toBe(true);
+      expect(document.querySelectorAll('#password-confirm-input')).toHaveLength(1);
+      expect(perform).toHaveBeenCalledTimes(1);
+
+      // Closing the top host under the open prompt cancels the prompt before
+      // the token is released, so the layout never re-hosts it (next test).
+      captureConsole('warn');
+      drawer.value = false;
+      await settleUntil(() => document.querySelectorAll('#password-confirm-input').length === 0);
+
+      expect(q('[data-testid="drawer-caller"]')).toBeNull();
+      expect(document.querySelectorAll('#password-confirm-input')).toHaveLength(0);
+      expect(useColonelElevation().promptOpen.value).toBe(false);
+      await expect(running).resolves.toBe(false);
+      expect(perform).toHaveBeenCalledTimes(1);
+    });
+
+    // Ordering that this pins: the drawer's host token is released the moment
+    // `open` flips (the prop watcher runs pre-flush), but its slot content
+    // lives on through the headlessui leave transition, so the slot caller's
+    // onScopeDispose would cancel the request only ~200 ms later. Without the
+    // cancel-before-release rule in useElevationPromptHost the layout would
+    // mount a second ElevationPrompt in between (typed password lost, focus
+    // moved) and the dev guard would fire. The guard staying silent is the
+    // assertion that the host stack did not change under the open prompt.
+    it('does not move the prompt to the layout while the drawer is leaving', async () => {
+      const perform = vi
+        .fn<() => Promise<unknown>>()
+        .mockRejectedValueOnce(
+          axiosError(403, { error: 'Step-up required', error_code: 'elevation_required' })
+        );
+      const drawer = ref(true);
+      const caller = callerInDrawer(perform);
+      wrapper = mountConsole({ drawer, confirm: ref(false), inDrawer: caller.render }).wrapper;
+      await settle();
+
+      const running = caller.mutation().run();
+      await settle();
+      expect(useColonelElevation().promptOpen.value).toBe(true);
+
+      const warn = captureConsole('warn');
+      drawer.value = false;
+      await settleUntil(() => useColonelElevation().promptOpen.value === false);
+      await expect(running).resolves.toBe(false);
+
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    // Positive control for the dev-only guard: a host that opens UNDER the
+    // open prompt moves the prompt, and the watcher says so.
+    it('the host-transition guard warns when a kit dialog opens under the open prompt', async () => {
+      const confirm = ref(false);
+      wrapper = mountConsole({ drawer: ref(true), confirm }).wrapper;
+      await settle();
+
+      const pending = useColonelElevation().requestElevation();
+      await settle();
+      const warn = captureConsole('warn');
+
+      confirm.value = true;
+      await settle();
+
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('[useElevationPromptHost]'));
+      useColonelElevation().resolvePrompt(false);
+      await expect(pending).resolves.toBe(false);
     });
   });
 

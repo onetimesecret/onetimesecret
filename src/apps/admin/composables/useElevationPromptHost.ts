@@ -2,7 +2,7 @@
 
 import { computed, onScopeDispose, ref, watch, type ComputedRef } from 'vue';
 
-import { elevationPromptOpen } from './useColonelElevation';
+import { cancelElevationPrompt, elevationPromptOpen } from './useColonelElevation';
 
 /**
  * Where the console's ONE step-up prompt (ElevationPrompt) renders.
@@ -19,12 +19,31 @@ import { elevationPromptOpen } from './useColonelElevation';
  * AdminLayout only while none is open. Exactly one instance is mounted at a
  * time. Each kit dialog registers while it is open; the most recently opened
  * one is the host.
+ *
+ * Invariant: the stack never changes under an open prompt (a change would
+ * remount the prompt mid-entry). A top host that closes or unmounts under the
+ * open prompt cancels it first; a caller that unmounts cancels its request; and
+ * openers of a shared dialog are serialised by their views.
  */
 const hosts = ref<symbol[]>([]);
 
 function release(token: symbol): void {
   const index = hosts.value.indexOf(token);
   if (index !== -1) hosts.value.splice(index, 1);
+}
+
+/**
+ * A host leaving the stack. The `open` prop flips false before headlessui's
+ * leave transition ends, so the slot content (and the caller waiting on the
+ * prompt) is disposed only ~200 ms later; releasing the token at once would
+ * hand the still-open prompt to the layout meanwhile. The top host cancels the
+ * prompt before it goes.
+ */
+function releaseHost(token: symbol): void {
+  if (hosts.value[hosts.value.length - 1] === token && elevationPromptOpen.value) {
+    cancelElevationPrompt();
+  }
+  release(token);
 }
 
 export interface ElevationPromptHost {
@@ -48,15 +67,28 @@ export function useElevationPromptHost(isOpen: () => boolean): ElevationPromptHo
   watch(
     isOpen,
     (open) => {
-      release(token);
+      releaseHost(token);
       if (open) hosts.value.push(token);
     },
     { immediate: true }
   );
-  onScopeDispose(() => release(token));
+  onScopeDispose(() => releaseHost(token));
+
+  const hostsPrompt = computed(() => hosts.value[hosts.value.length - 1] === token);
+
+  // A guard for the invariant above, not a mechanism: nothing here recovers
+  // from the transition, it only makes one visible in development.
+  if (import.meta.env.DEV) {
+    watch(hostsPrompt, () => {
+      if (!elevationPromptOpen.value) return;
+      console.warn(
+        '[useElevationPromptHost] the host stack changed while the step-up prompt is open; the prompt remounts. A caller that unmounts must cancel its request.'
+      );
+    });
+  }
 
   return {
-    hostsPrompt: computed(() => hosts.value[hosts.value.length - 1] === token),
+    hostsPrompt,
     promptOpen: elevationPromptOpen,
   };
 }
