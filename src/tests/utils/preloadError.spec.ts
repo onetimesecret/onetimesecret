@@ -154,3 +154,102 @@ describe('reloadPending', () => {
     expect(reloadPending()).toBe(false);
   });
 });
+
+// F24: a load that the page absorbs in place (a language switch on a page
+// already showing a locale) must not reload the tab. A reload would discard
+// LocaleLoadNotice and any unsaved input, and would spend the ADR-046 bound.
+describe('withoutForcedReload', () => {
+  beforeEach(() => sessionStorage.clear());
+
+  // The counter and the reloading flag are module state: each test imports a
+  // fresh copy, with the logger it uses.
+  async function freshModules() {
+    vi.resetModules();
+    const preloadError = await import('@/utils/preloadError');
+    const { loggingService: logger } = await import('@/services/logging.service');
+    vi.mocked(logger.error).mockClear();
+    return { ...preloadError, logger };
+  }
+
+  it('leaves a chunk that fails meanwhile to fail in place, and logs it', async () => {
+    const { handlePreloadError, reloadPending, withoutForcedReload, logger } = await freshModules();
+    const reload = vi.fn();
+    const event = preloadErrorEvent('chunk bg failed');
+
+    const result = await withoutForcedReload(async () =>
+      handlePreloadError(event, { now: NOW, reload })
+    );
+
+    expect(result).toBe('in-place');
+    expect(reload).not.toHaveBeenCalled();
+    // Not default-prevented: Vite's helper rethrows, so the import rejects.
+    expect(event.defaultPrevented).toBe(false);
+    expect(reloadPending()).toBe(false);
+    // The forced page load bound is not spent.
+    expect(sessionStorage.getItem(FORCED_RELOAD_MARKER)).toBeNull();
+    expect(logger.error).toHaveBeenCalledTimes(1);
+    const message = vi.mocked(logger.error).mock.calls[0][0].message;
+    expect(message).toContain('fails in place (withoutForcedReload)');
+    expect(message).toContain('chunk bg failed');
+  });
+
+  it('resolves with what the load resolves and rejects with what it rejects', async () => {
+    const { withoutForcedReload } = await freshModules();
+    const failure = new Error('messages for bg did not load');
+
+    await expect(withoutForcedReload(async () => 'nl')).resolves.toBe('nl');
+    await expect(withoutForcedReload(() => Promise.reject(failure))).rejects.toBe(failure);
+  });
+
+  it('is released once the load resolves: the next failure reloads', async () => {
+    const { handlePreloadError, withoutForcedReload } = await freshModules();
+    const reload = vi.fn();
+
+    await withoutForcedReload(async () => 'nl');
+
+    expect(handlePreloadError(preloadErrorEvent(), { now: NOW, reload })).toBe('reloading');
+    expect(reload).toHaveBeenCalledTimes(1);
+  });
+
+  it('is released once the load rejects: the next failure reloads', async () => {
+    const { handlePreloadError, withoutForcedReload } = await freshModules();
+    const reload = vi.fn();
+
+    await expect(
+      withoutForcedReload(() => Promise.reject(new Error('messages for bg did not load')))
+    ).rejects.toThrow();
+
+    expect(handlePreloadError(preloadErrorEvent(), { now: NOW, reload })).toBe('reloading');
+  });
+
+  it('stays in place until the outer of two nested loads settles', async () => {
+    const { handlePreloadError, withoutForcedReload } = await freshModules();
+    const reload = vi.fn();
+    const results: string[] = [];
+
+    await withoutForcedReload(async () => {
+      await withoutForcedReload(async () => undefined);
+      results.push(handlePreloadError(preloadErrorEvent(), { now: NOW, reload }));
+    });
+    results.push(handlePreloadError(preloadErrorEvent(), { now: NOW, reload }));
+
+    expect(results).toEqual(['in-place', 'reloading']);
+  });
+
+  it('stays in place while any of two overlapping loads still runs', async () => {
+    const { handlePreloadError, withoutForcedReload } = await freshModules();
+    const reload = vi.fn();
+    let finishFirst!: () => void;
+    const first = withoutForcedReload(
+      () => new Promise<void>((resolve) => (finishFirst = resolve))
+    );
+    await withoutForcedReload(async () => undefined);
+
+    // The second load has settled; the first still runs.
+    expect(handlePreloadError(preloadErrorEvent(), { now: NOW, reload })).toBe('in-place');
+
+    finishFirst();
+    await first;
+    expect(handlePreloadError(preloadErrorEvent(), { now: NOW, reload })).toBe('reloading');
+  });
+});

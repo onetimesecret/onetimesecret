@@ -161,10 +161,14 @@ const localeDecided = new WeakSet<object>();
  * redirected pass then skips them. An aborted navigation (`false`, e.g. a hard
  * navigation out of the bundle) renders nothing and activates nothing.
  *
- * A locale that fails to load during the initial navigation fails it, so
- * router.isReady() rejects and the app does not mount in a language nobody
- * asked for. On a later navigation the failure is logged and the previous
- * locale stays.
+ * A locale that fails to load, from any of these sources, never blocks the
+ * visitor. The failure is logged and the language store records it for
+ * LocaleLoadNotice, which names the language that failed and the one shown.
+ * On a later navigation the previous locale stays. On the initial navigation
+ * no locale is active yet, so the store activates a fallback (the
+ * installation's default_locale, else 'en') and the navigation continues.
+ * Only a fallback that cannot be activated either fails the initial
+ * navigation (router.isReady() rejects and the entry flags the shell).
  */
 function createAuthGuard(router: Router): NavigationGuardWithThis<undefined> {
   return async (to, from) => {
@@ -176,23 +180,43 @@ function createAuthGuard(router: Router): NavigationGuardWithThis<undefined> {
     // router.isReady() waits for, redirects included.
     const initial = from === START_LOCATION;
 
-    for (const param of await processQueryParams(to.query)) {
-      if (param.key === 'locale') localeDecided.add(navigation);
-      if (!param.ok) failOrLog(param.error, initial);
-    }
+    await applyQueryParams(to, navigation, initial);
 
     const { result, accountLocale } = await decideRoute(to, router, authStore);
 
     if (result !== false && !localeDecided.has(navigation)) {
-      const locale = navigationLocale(accountLocale);
-      if (locale) {
+      const choice = navigationLocale(accountLocale);
+      if (choice) {
         localeDecided.add(navigation);
-        await activateLocale(locale, initial);
+        await activateLocale(choice, initial);
       }
     }
 
     return result;
   };
+}
+
+/**
+ * Step 1 of createAuthGuard, and the other query parameters. A URL that names
+ * a valid, supported locale decides the navigation's locale, whether or not
+ * its messages load. Any other parameter that fails (?theme= when storage is
+ * blocked) is logged and never blocks the navigation.
+ */
+async function applyQueryParams(
+  to: RouteLocationNormalized,
+  navigation: object,
+  initial: boolean
+): Promise<void> {
+  for (const param of await processQueryParams(to.query)) {
+    if (param.key === 'locale') localeDecided.add(navigation);
+    if (param.ok) continue;
+    if (param.key === 'locale') {
+      // processQueryParams runs the locale handler only for a string value.
+      await recoverLocale(String(to.query.locale), param.error, initial);
+    } else {
+      logError(param.error);
+    }
+  }
 }
 
 /** What the auth checks decided for one pass of the main guard. */
@@ -237,34 +261,64 @@ async function decideRoute(
   return { result: true }; // Always return true for non-auth routes
 }
 
+/** A locale for the navigation to activate, and whether the session keeps it. */
+interface LocaleChoice {
+  locale: string;
+  /** See SetCurrentLocaleOptions.remember. */
+  remember: boolean;
+}
+
 /**
  * The locale a pass without a URL locale activates (steps 2 and 3 of
  * createAuthGuard), or null when the active locale stays. An account locale
  * that is no longer supported is passed over, as the store's preference
- * hierarchy passes over it.
+ * hierarchy passes over it. The account locale is an explicit choice and is
+ * remembered for the session; the preferred locale is not.
  */
-function navigationLocale(accountLocale: string | undefined): string | null {
+function navigationLocale(accountLocale: string | undefined): LocaleChoice | null {
   const languageStore = useLanguageStore();
   const account = accountLocale ? languageStore.resolveSupportedLocale(accountLocale) : null;
-  if (account) return account === languageStore.currentLocale ? null : account;
-  return languageStore.currentLocale === null ? languageStore.preferredLocale() : null;
+  if (account) {
+    return account === languageStore.currentLocale ? null : { locale: account, remember: true };
+  }
+  if (languageStore.currentLocale !== null) return null;
+  return { locale: languageStore.preferredLocale(), remember: false };
 }
 
-async function activateLocale(locale: string, initial: boolean): Promise<void> {
+async function activateLocale({ locale, remember }: LocaleChoice, initial: boolean) {
   try {
-    await useLanguageStore().setCurrentLocale(locale);
+    await useLanguageStore().setCurrentLocale(locale, { remember });
   } catch (error) {
-    failOrLog(error, initial);
+    await recoverLocale(locale, error, initial);
   }
 }
 
 /**
- * A query parameter or locale that could not be applied. The initial
- * navigation fails with it (router.isReady() rejects and the entry flags the
- * shell); a later navigation logs it and continues in the previous state.
+ * Handles a locale whose messages did not load, whichever source chose it
+ * (see createAuthGuard): logs the load error, then has the language store
+ * keep or choose the locale shown and record the failure.
+ */
+async function recoverLocale(locale: string, error: unknown, initial: boolean): Promise<void> {
+  logError(error);
+  try {
+    await useLanguageStore().recoverFromLocaleLoadFailure(locale);
+  } catch (fallbackError) {
+    failOrLog(fallbackError, initial);
+  }
+}
+
+/**
+ * A locale failure with no fallback left to show. The initial navigation
+ * fails with it
+ * (router.isReady() rejects and the entry flags the shell); a later
+ * navigation logs it and continues in the previous state.
  */
 function failOrLog(error: unknown, initial: boolean): void {
   if (initial) throw error;
+  logError(error);
+}
+
+function logError(error: unknown): void {
   loggingService.error(
     error instanceof Error ? error : new Error(`[RouterGuard] ${String(error)}`)
   );

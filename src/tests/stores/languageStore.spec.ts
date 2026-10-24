@@ -13,6 +13,9 @@ import type { AxiosInstance } from 'axios';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
+import { captureAppLogs } from '../utils/appLogs';
+import { handlePreloadError, type PreloadErrorResult } from '@/utils/preloadError';
+import { resolve } from 'path';
 
 describe('Language Store', () => {
   let axiosMock: AxiosMockAdapter | null;
@@ -471,6 +474,298 @@ describe('Language Store', () => {
       freshStore.$reset();
       const result = freshStore.init({ deviceLocale: '!!not-a-locale!!' });
       expect(result).toBe('en');
+    });
+  });
+
+  // Store a locale as the session's selection only when the visitor or the
+  // account chose it; one the app picked must not outrank a domain locale that
+  // changes later in the session.
+  describe('Remembering the selection', () => {
+    let store: ReturnType<typeof useLanguageStore>;
+
+    beforeEach(() => {
+      store = useLanguageStore();
+      store.supportedLocales = ['en', 'nl'];
+    });
+
+    it('stores the locale by default', async () => {
+      await store.setCurrentLocale('nl');
+
+      expect(sessionStorage.setItem).toHaveBeenCalledWith(SESSION_STORAGE_KEY, 'nl');
+    });
+
+    it('activates without storing when told not to remember', async () => {
+      await expect(store.setCurrentLocale('nl', { remember: false })).resolves.toBe('nl');
+
+      expect(store.currentLocale).toBe('nl');
+      expect(globalComposer.locale.value).toBe('nl');
+      expect(sessionStorage.setItem).not.toHaveBeenCalled();
+    });
+  });
+
+  // pendingLocale is the latest choice while it loads; LanguageToggle uses it
+  // so that picking the active language again supersedes a pending switch.
+  describe('pendingLocale', () => {
+    let store: ReturnType<typeof useLanguageStore>;
+
+    beforeEach(() => {
+      store = useLanguageStore();
+      store.supportedLocales = ['en', 'nl', 'es', 'zh_Hant_TW'];
+    });
+
+    it('names the locale while it loads and clears once it is active', async () => {
+      expect(store.pendingLocale).toBeNull();
+
+      const switching = store.setCurrentLocale('nl');
+      expect(store.pendingLocale).toBe('nl');
+      await switching;
+
+      expect(store.pendingLocale).toBeNull();
+    });
+
+    it('is cleared only by the latest call', async () => {
+      // en needs no load and settles first while the newer call still loads.
+      // tr is used nowhere else in this file, so the global composer (which
+      // outlives each test's store) has not loaded it yet.
+      store.supportedLocales = ['en', 'tr'];
+      const older = store.setCurrentLocale('en');
+      const newer = store.setCurrentLocale('tr');
+      expect(store.pendingLocale).toBe('tr');
+
+      await older;
+      expect(store.pendingLocale).toBe('tr');
+
+      await newer;
+      expect(store.pendingLocale).toBeNull();
+      expect(store.currentLocale).toBe('tr');
+    });
+
+    it('clears when the load fails', async () => {
+      await expect(store.setCurrentLocale('zh_Hant_TW')).rejects.toThrow();
+
+      expect(store.pendingLocale).toBeNull();
+    });
+
+    // F20: picking the active language while another one loads is a new
+    // choice. The pending switch neither activates nor saves its locale.
+    it('lets a switch back to the active locale supersede a pending one', async () => {
+      axiosMock?.onPost('/api/account/update-locale').reply(200, {});
+      store.supportedLocales = ['en', 'nl', 'ru'];
+      await store.setCurrentLocale('en');
+
+      const away = store.updateLanguage('ru');
+      expect(store.pendingLocale).toBe('ru');
+      const back = store.updateLanguage('en');
+      expect(store.pendingLocale).toBe('en');
+
+      expect(await Promise.all([away, back])).toEqual(['en', 'en']);
+      expect(store.currentLocale).toBe('en');
+      expect(store.pendingLocale).toBeNull();
+      expect(axiosMock?.history.post.map((request) => request.data)).toEqual([
+        JSON.stringify({ locale: 'en' }),
+      ]);
+    });
+  });
+
+  // F22: a locale whose messages do not load never blocks the visitor. The
+  // store settles the locale shown and records the failure for
+  // LocaleLoadNotice. zh_Hant_TW is supported here but has no generated file,
+  // so its load rejects as a failed chunk does.
+  describe('Locale load failures', () => {
+    let store: ReturnType<typeof useLanguageStore>;
+
+    beforeEach(() => {
+      bootstrapStore.update({ supported_locales: ['en', 'nl', 'es', 'zh_Hant_TW', 'xx_YY'] });
+      store = useLanguageStore();
+      store.init();
+    });
+
+    it('keeps the active locale and records the failure', async () => {
+      await store.setCurrentLocale('nl');
+      vi.mocked(sessionStorage.setItem).mockClear();
+
+      await expect(store.recoverFromLocaleLoadFailure('zh_Hant_TW')).resolves.toBe('nl');
+
+      expect(store.currentLocale).toBe('nl');
+      expect(store.localeLoadFailure).toEqual({ requested: 'zh_Hant_TW', shown: 'nl' });
+      expect(sessionStorage.setItem).not.toHaveBeenCalled();
+    });
+
+    it('records the requested locale normalized, or as given when unsupported', async () => {
+      await store.setCurrentLocale('nl');
+
+      await store.recoverFromLocaleLoadFailure('ZH-hant-tw');
+      expect(store.localeLoadFailure?.requested).toBe('zh_Hant_TW');
+
+      await store.recoverFromLocaleLoadFailure('sw');
+      expect(store.localeLoadFailure?.requested).toBe('sw');
+    });
+
+    describe('before any locale is active', () => {
+      it("activates the installation's default_locale, without storing it", async () => {
+        bootstrapStore.update({ default_locale: 'nl' });
+
+        await expect(store.recoverFromLocaleLoadFailure('zh_Hant_TW')).resolves.toBe('nl');
+
+        expect(store.currentLocale).toBe('nl');
+        expect(globalComposer.locale.value).toBe('nl');
+        expect(store.localeLoadFailure).toEqual({ requested: 'zh_Hant_TW', shown: 'nl' });
+        expect(sessionStorage.setItem).not.toHaveBeenCalled();
+      });
+
+      it.each([
+        ['the locale that failed', 'zh_Hant_TW'],
+        ['not supported', 'ja'],
+        ['English already', 'en'],
+      ])('activates English when default_locale is %s', async (_label, defaultLocale) => {
+        bootstrapStore.update({ default_locale: defaultLocale });
+
+        await expect(store.recoverFromLocaleLoadFailure('zh_Hant_TW')).resolves.toBe('en');
+
+        expect(store.currentLocale).toBe('en');
+        expect(store.localeLoadFailure).toEqual({ requested: 'zh_Hant_TW', shown: 'en' });
+        expect(sessionStorage.setItem).not.toHaveBeenCalled();
+      });
+
+      it('activates English and logs it when default_locale does not load either', async () => {
+        const logs = captureAppLogs();
+        bootstrapStore.update({ default_locale: 'xx_YY' });
+
+        await expect(store.recoverFromLocaleLoadFailure('zh_Hant_TW')).resolves.toBe('en');
+
+        expect(store.localeLoadFailure).toEqual({ requested: 'zh_Hant_TW', shown: 'en' });
+        expect(logs.error).toHaveBeenCalledTimes(1);
+        expect(logs.error).toHaveBeenCalledWith(
+          expect.objectContaining({ message: '[i18n] No messages exist for locale "xx_YY"' })
+        );
+      });
+    });
+
+    it('clears the failure on the next successful activation', async () => {
+      await store.setCurrentLocale('nl');
+      await store.recoverFromLocaleLoadFailure('zh_Hant_TW');
+
+      await store.setCurrentLocale('es', { remember: false });
+
+      expect(store.localeLoadFailure).toBeNull();
+    });
+
+    it('clears the failure on dismissal and keeps the locale', async () => {
+      await store.setCurrentLocale('nl');
+      await store.recoverFromLocaleLoadFailure('zh_Hant_TW');
+
+      store.dismissLocaleLoadFailure();
+
+      expect(store.localeLoadFailure).toBeNull();
+      expect(store.currentLocale).toBe('nl');
+    });
+
+    // The language toggle path: the failed switch is recorded before its load
+    // error reaches the caller, and nothing is saved.
+    it('updateLanguage records a failed load, keeps the locale and rethrows', async () => {
+      axiosMock?.onPost('/api/account/update-locale').reply(200, {});
+      await store.setCurrentLocale('nl');
+
+      await expect(store.updateLanguage('zh_Hant_TW')).rejects.toThrow(
+        'No messages exist for locale "zh_Hant_TW"'
+      );
+
+      expect(store.currentLocale).toBe('nl');
+      expect(store.localeLoadFailure).toEqual({ requested: 'zh_Hant_TW', shown: 'nl' });
+      expect(axiosMock?.history.post).toHaveLength(0);
+    });
+
+    it('updateLanguage records nothing for an unsupported locale', async () => {
+      await expect(store.updateLanguage('ja')).rejects.toBeInstanceOf(UnsupportedLocaleError);
+
+      expect(store.localeLoadFailure).toBeNull();
+    });
+
+    it('$reset clears the pending locale and the failure', async () => {
+      await store.setCurrentLocale('nl');
+      await store.recoverFromLocaleLoadFailure('zh_Hant_TW');
+      const switching = store.setCurrentLocale('es');
+      expect(store.pendingLocale).toBe('es');
+
+      store.$reset();
+
+      expect(store.pendingLocale).toBeNull();
+      expect(store.localeLoadFailure).toBeNull();
+      expect(store.currentLocale).toBeNull();
+      // Let the switch settle inside this test.
+      await switching;
+    });
+  });
+
+  // F24: a failed chunk reloads the page only before anything is shown (the
+  // deployment-skew recovery). Once a locale is active, a failed switch stays
+  // in place: the locale stays, the notice shows, and no reload discards it or
+  // the visitor's unsaved input. Each "chunk" here dispatches the event Vite's
+  // preload helper would and then fails; the real handler decides.
+  describe('A failed chunk and the forced reload (F24)', () => {
+    const results: PreloadErrorResult[] = [];
+    const reload = vi.fn();
+    // A storage with no marker, so the ADR-046 bound always allows a reload.
+    const storage = { getItem: () => null, setItem: vi.fn() };
+    const onPreloadError = (event: Event) =>
+      results.push(handlePreloadError(event, { now: Date.now(), reload, storage }));
+    const mockedFiles: string[] = [];
+    let store: ReturnType<typeof useLanguageStore>;
+
+    function failChunk(code: string) {
+      const file = resolve(process.cwd(), `generated/locales/${code}.json`);
+      mockedFiles.push(file);
+      vi.doMock(file, () => {
+        window.dispatchEvent(new Event('vite:preloadError', { cancelable: true }));
+        throw new Error(`chunk ${code} failed`);
+      });
+    }
+
+    beforeEach(() => {
+      results.length = 0;
+      reload.mockReset();
+      window.addEventListener('vite:preloadError', onPreloadError);
+      store = useLanguageStore();
+      store.supportedLocales = ['en', 'nl', 'ko', 'pl', 'hu'];
+    });
+
+    afterEach(() => {
+      window.removeEventListener('vite:preloadError', onPreloadError);
+      for (const file of mockedFiles.splice(0)) vi.doUnmock(file);
+    });
+
+    it('lets the first activation reload the page', async () => {
+      failChunk('ko');
+
+      await expect(store.setCurrentLocale('ko')).rejects.toThrow();
+
+      expect(results).toEqual(['reloading']);
+      expect(reload).toHaveBeenCalledTimes(1);
+    });
+
+    it('fails a later activation in place: no reload, the locale stays', async () => {
+      const logs = captureAppLogs();
+      await store.setCurrentLocale('nl');
+      failChunk('pl');
+
+      await expect(store.setCurrentLocale('pl')).rejects.toThrow();
+
+      expect(results).toEqual(['in-place']);
+      expect(reload).not.toHaveBeenCalled();
+      expect(store.currentLocale).toBe('nl');
+      expect(logs.error).toHaveBeenCalledTimes(1);
+    });
+
+    it('fails a later language switch in place and records it for the notice', async () => {
+      captureAppLogs();
+      await store.setCurrentLocale('nl');
+      failChunk('hu');
+
+      await expect(store.updateLanguage('hu')).rejects.toThrow();
+
+      expect(results).toEqual(['in-place']);
+      expect(reload).not.toHaveBeenCalled();
+      expect(store.localeLoadFailure).toEqual({ requested: 'hu', shown: 'nl' });
     });
   });
 

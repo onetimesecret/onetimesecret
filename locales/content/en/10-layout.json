@@ -346,6 +346,22 @@
     "text": "Reset to {0}",
     "content_hash": "c0cfa9b2"
   },
+  "web.layout.locale_load_failed.title": {
+    "text": "There was a problem loading {requested}",
+    "content_hash": "96c3410c"
+  },
+  "web.layout.locale_load_failed.body": {
+    "text": "You can keep using the site in {shown}. If this keeps happening, please {feedback}.",
+    "content_hash": "08974954"
+  },
+  "web.layout.locale_load_failed.feedback_link": {
+    "text": "let us know through the feedback form",
+    "content_hash": "a9717f06"
+  },
+  "web.layout.locale_load_failed.dismiss": {
+    "text": "Dismiss language notice",
+    "content_hash": "ff705dea"
+  },
   "web.layout.switch_to_blank_mode": {
     "text": "Switch to {0} mode",
     "content_hash": "c8b909e0"

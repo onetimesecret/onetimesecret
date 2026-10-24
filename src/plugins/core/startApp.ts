@@ -20,11 +20,15 @@ export interface StartAppOptions extends Omit<AppInitializerOptions, 'router'> {
  *    here relies on app.use() awaiting a plugin.
  * 2. Await router.isReady(): the first navigation has resolved, including
  *    its lazy route components and the activation of the visitor's locale,
- *    which the route guards await. The server-rendered shell stays on screen
- *    meanwhile.
+ *    which the route guards await. A locale that does not load is replaced
+ *    by a fallback there and does not fail the navigation (see
+ *    createAuthGuard in src/router/guards.routes.ts). The server-rendered
+ *    shell stays on screen meanwhile.
  * 3. Mount, so the first render already has that locale's messages. English
  *    is bundled with the entry, but a visitor on /?locale=bg must not see it
- *    while Bulgarian loads.
+ *    while Bulgarian loads. Not when a failed chunk has started a reload: the
+ *    navigation then resolved in the fallback locale, and mounting would show
+ *    it for a moment before the reloaded page replaces it.
  * 4. Run startup work that needs translations (the console warning).
  * 5. Mark the app ready.
  *
@@ -39,6 +43,8 @@ export async function startApp(options: StartAppOptions): Promise<void> {
     const router = createRouter();
     app.use(AppInitializer, { ...initializerOptions, router });
     await router.isReady();
+    // The shell stays up for the reload, unflagged; see step 3.
+    if (reloadPending()) return;
     app.mount('#app');
     showConsoleWarning();
   } catch (error) {
@@ -50,11 +56,11 @@ export async function startApp(options: StartAppOptions): Promise<void> {
     if (isNavigationFailure(error, NavigationFailureType.aborted) || reloadPending()) return;
 
     // Startup failed before the app took over #app: an initializer threw, or
-    // the initial navigation failed (a guard threw, a route chunk or the
-    // visitor's locale did not load). Flag the server-rendered shell: its
-    // stalled-load notice (#4596) then switches from the timeout copy to a
-    // detected failure and stops the orb. Rethrow so the error still reaches
-    // the console and global handlers.
+    // the initial navigation failed (a guard threw, a route chunk did not
+    // load, or not even the fallback locale could be activated). Flag the
+    // server-rendered shell: its stalled-load notice (#4596) then switches
+    // from the timeout copy to a detected failure and stops the orb. Rethrow
+    // so the error still reaches the console and global handlers.
     document.documentElement.dataset.appFailed = 'true';
     throw error instanceof Error
       ? error

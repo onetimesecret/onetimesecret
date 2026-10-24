@@ -2,11 +2,13 @@
 
 import { setGlobalLocale } from '@/i18n';
 import { getBootstrapValue } from '@/services/bootstrap.service';
+import { loggingService } from '@/services/logging.service';
 import type { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { localeCodeSchema } from '@/schemas/i18n/locale';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { localeCodes } from '@/sources/languages';
 import { useApi } from '@/shared/composables/useApi';
+import { withoutForcedReload } from '@/utils/preloadError';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 
@@ -29,6 +31,28 @@ export class UnsupportedLocaleError extends Error {
   }
 }
 
+/**
+ * A locale whose messages did not load, and the locale the visitor sees
+ * instead. LocaleLoadNotice shows it until it is dismissed or a later
+ * activation succeeds.
+ */
+export interface LocaleLoadFailure {
+  requested: string;
+  shown: string;
+}
+
+export interface SetCurrentLocaleOptions {
+  /**
+   * Store the locale as this session's selection, which preferredLocale()
+   * ranks above the domain and device locales. True (the default) for a
+   * locale the visitor or the account chose: a URL locale, the account
+   * locale, a language picked in the toggle. False for one the app picked
+   * for them (the preferred locale, a fallback), which must not outrank a
+   * domain locale that changes later in the session.
+   */
+  remember?: boolean;
+}
+
 interface StoreOptions extends PiniaPluginOptions {
   deviceLocale?: string;
   storageKey?: string;
@@ -46,9 +70,17 @@ export const useLanguageStore = defineStore('language', () => {
   // The locale active in the global i18n composer. Null until the first
   // setCurrentLocale() succeeds; from then on its messages are always loaded.
   const currentLocale = ref<string | null>(null);
+  // The target of the latest setCurrentLocale() call while its messages
+  // load; null once it settles. A newer call replaces it.
+  const pendingLocale = ref<string | null>(null);
+  const localeLoadFailure = ref<LocaleLoadFailure | null>(null);
   const storageKey = ref<string | null>(null);
   const supportedLocales = ref<string[]>([]);
   const _initialized = ref(false);
+
+  // Incremented by every setCurrentLocale() call, so only the latest one
+  // clears pendingLocale.
+  let latestSwitch = 0;
 
   // Getters
   const getDeviceLocale = computed(() => deviceLocale.value);
@@ -178,9 +210,12 @@ export const useLanguageStore = defineStore('language', () => {
   }
 
   /**
-   * Activates a locale in the global i18n instance and remembers it for this
-   * browser session. The locale changes only once its messages (and its
-   * fallbacks) are loaded and registered.
+   * Activates a locale in the global i18n instance and, unless told not to,
+   * remembers it for this browser session (see SetCurrentLocaleOptions). The
+   * locale changes only once its messages (and its fallbacks) are loaded and
+   * registered; pendingLocale names it meanwhile. A successful activation
+   * clears localeLoadFailure: the notice would name a language no longer
+   * shown.
    *
    * Does not touch the account preference; updateLanguage() does that.
    *
@@ -191,19 +226,83 @@ export const useLanguageStore = defineStore('language', () => {
    *   or the load error when its messages fail to load. Either way the active
    *   locale and session storage are unchanged.
    */
-  async function setCurrentLocale(locale: string): Promise<string> {
+  async function setCurrentLocale(
+    locale: string,
+    { remember = true }: SetCurrentLocaleOptions = {}
+  ): Promise<string> {
     const normalizedLocale = requireSupportedLocale(locale);
 
-    const activated = await setGlobalLocale(normalizedLocale);
+    const request = ++latestSwitch;
+    pendingLocale.value = normalizedLocale;
+    // Before the first activation nothing is shown yet, and a failed chunk
+    // may reload the page: the deployment-skew recovery of
+    // src/utils/preloadError.ts. Once a locale is shown, a reload would
+    // discard LocaleLoadNotice and any unsaved input, so the switch fails in
+    // place and the caller keeps that locale.
+    const load = () => setGlobalLocale(normalizedLocale);
+    let activated: boolean;
+    try {
+      activated = await (currentLocale.value === null ? load() : withoutForcedReload(load));
+    } finally {
+      if (request === latestSwitch) pendingLocale.value = null;
+    }
     if (!activated) return currentLocale.value ?? DEFAULT_LOCALE;
 
     currentLocale.value = normalizedLocale;
-    try {
-      sessionStorage.setItem(getStorageKey.value, normalizedLocale);
-    } catch (error) {
-      console.error('Failed to save locale to session storage:', error);
+    localeLoadFailure.value = null;
+    if (remember) {
+      try {
+        sessionStorage.setItem(getStorageKey.value, normalizedLocale);
+      } catch (error) {
+        console.error('Failed to save locale to session storage:', error);
+      }
     }
     return normalizedLocale;
+  }
+
+  /**
+   * Settles which locale the visitor sees after `requested` failed to load,
+   * and records the failure for LocaleLoadNotice. A failed language never
+   * blocks the visitor:
+   *  - with a locale already active, it stays;
+   *  - before the first activation, the installation's default_locale is
+   *    activated when it is supported, is not `requested`, and loads;
+   *    otherwise DEFAULT_LOCALE, whose messages are bundled.
+   * Neither is remembered as the session's selection. Logs nothing about
+   * `requested` itself; the caller owns that error.
+   *
+   * @returns The locale shown
+   * @throws Only when DEFAULT_LOCALE cannot be activated either
+   */
+  async function recoverFromLocaleLoadFailure(requested: string): Promise<string> {
+    const failed = resolveSupportedLocale(requested) ?? requested;
+    const shown = currentLocale.value ?? (await activateFallbackLocale(failed));
+    localeLoadFailure.value = { requested: failed, shown };
+    return shown;
+  }
+
+  async function activateFallbackLocale(failed: string): Promise<string> {
+    const configured = getBootstrapValue('default_locale');
+    if (
+      configured &&
+      configured !== failed &&
+      configured !== DEFAULT_LOCALE &&
+      supportedLocales.value.includes(configured)
+    ) {
+      try {
+        return await setCurrentLocale(configured, { remember: false });
+      } catch (error) {
+        loggingService.error(
+          error instanceof Error ? error : new Error(`[languageStore] ${String(error)}`)
+        );
+      }
+    }
+    return setCurrentLocale(DEFAULT_LOCALE, { remember: false });
+  }
+
+  /** Hides LocaleLoadNotice; the active locale stays. */
+  function dismissLocaleLoadFailure(): void {
+    localeLoadFailure.value = null;
   }
 
   function getBrowserAcceptLanguage(selectedLocale: string): Array<string> {
@@ -214,11 +313,20 @@ export const useLanguageStore = defineStore('language', () => {
   /**
    * Switches the language and saves it as the account preference. The
    * request goes out only after the locale is active; a failed switch, or
-   * one superseded by a newer switch, sends nothing.
+   * one superseded by a newer switch, sends nothing. A switch whose messages
+   * fail to load is recorded for LocaleLoadNotice before the load error is
+   * rethrown.
    */
   async function updateLanguage(newLocale: string): Promise<string> {
     const validatedLocale = requireSupportedLocale(newLocale);
-    const activeLocale = await setCurrentLocale(validatedLocale);
+    let activeLocale: string;
+    try {
+      activeLocale = await setCurrentLocale(validatedLocale);
+    } catch (error) {
+      // validatedLocale is supported, so this is a load failure.
+      await recoverFromLocaleLoadFailure(validatedLocale);
+      throw error;
+    }
     if (activeLocale !== validatedLocale) return activeLocale;
 
     // Remember who asked. An auth refresh can swap the bootstrap customer
@@ -328,6 +436,8 @@ export const useLanguageStore = defineStore('language', () => {
   function $reset() {
     deviceLocale.value = null;
     currentLocale.value = null;
+    pendingLocale.value = null;
+    localeLoadFailure.value = null;
     storageKey.value = null;
     supportedLocales.value = [];
     _initialized.value = false;
@@ -342,6 +452,8 @@ export const useLanguageStore = defineStore('language', () => {
     supportedLocales,
     supportedLocalesWithNames,
     currentLocale,
+    pendingLocale,
+    localeLoadFailure,
 
     // Getters
     getDeviceLocale,
@@ -356,6 +468,8 @@ export const useLanguageStore = defineStore('language', () => {
     determineLocale,
     updateLanguage,
     setCurrentLocale,
+    recoverFromLocaleLoadFailure,
+    dismissLocaleLoadFailure,
     acceptLanguages,
     acceptLanguageHeader,
 
