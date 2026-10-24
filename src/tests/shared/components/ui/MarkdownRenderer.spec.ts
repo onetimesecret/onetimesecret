@@ -60,12 +60,16 @@ describe('MarkdownRenderer', () => {
     vi.doUnmock(CHUNK);
   });
 
-  it('renders once the chunk has loaded', async () => {
-    const wrapper = mount(MarkdownRenderer, { props: { source: 'hello' } });
+  it(
+    'renders once the chunk has loaded',
+    async () => {
+      const wrapper = mount(MarkdownRenderer, { props: { source: 'hello' } });
 
-    expect(await renderedHtml(wrapper)).toContain('<p>hello</p>');
-    expect(logs.error).not.toHaveBeenCalled();
-  }, TEST_MS);
+      expect(await renderedHtml(wrapper)).toContain('<p>hello</p>');
+      expect(logs.error).not.toHaveBeenCalled();
+    },
+    TEST_MS
+  );
 
   it.each([
     [
