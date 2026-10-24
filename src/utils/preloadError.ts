@@ -27,7 +27,11 @@
 // Vite's preload helper rethrows the error unless the event was
 // default-prevented. A refused reload leaves the event alone, so the dynamic
 // import rejects and its caller (the router, a component) reports the failure
-// instead of the page reloading.
+// instead of the page reloading. The handler remembers that error
+// (wasLeftToFail), so the router can tell a route chunk that failed with the
+// reload declined from any other navigation error and show RouteLoadNotice,
+// with a manual reload button, for it (src/utils/routeLoadFailure.ts); a
+// component that imports a chunk itself renders its own fallback.
 //
 // Only dynamic imports reach this handler: Vite dispatches the event from its
 // preload helper. A chunk of the entry's static import graph that fails to
@@ -48,6 +52,10 @@ let reloading = false;
 // Loads running under withoutForcedReload.
 let inPlaceLoads = 0;
 
+// The errors of imports left to fail (the event not default-prevented), as
+// Vite attached them to the event and rethrows them. See wasLeftToFail.
+const leftToFail = new WeakSet<object>();
+
 /** 'in-place': a failed chunk under withoutForcedReload, left to fail. */
 export type PreloadErrorResult = ForcedPageLoadResult | 'in-place';
 
@@ -67,17 +75,22 @@ export function handlePreloadError(
     return result;
   }
 
+  const cause = (event as { payload?: unknown }).payload;
+  if (typeof cause === 'object' && cause !== null) leftToFail.add(cause);
+
   const why = {
     'in-place': 'its load fails in place (withoutForcedReload)',
     refused: 'the page shows content a reload would destroy',
     bounded: 'the forced page load was refused (one per tab per minute, ADR-046)',
   }[result];
-  loggingService.error(
-    new Error(
-      `[preload] a chunk failed to load and ${why}; the import is left to fail: ` +
-        describeCause(event)
-    )
-  );
+  const message =
+    `[preload] a chunk failed to load and ${why}; the import is left to fail: ` +
+    describeCause(event);
+  // A refusal and an in-place load are the page's own decisions, taken because
+  // the fallback costs less than a reload; a chunk that fails again inside the
+  // bound's window, with a reload already spent, is the page's error.
+  if (result === 'bounded') loggingService.error(new Error(message));
+  else loggingService.warn(message);
   return result;
 }
 
@@ -91,6 +104,17 @@ export function handlePreloadError(
  */
 export function reloadPending(): boolean {
   return reloading;
+}
+
+/**
+ * Whether `error` is one this handler left to fail: the rejection of an import
+ * whose chunk failed while the page declined to reload. The router records a
+ * navigation that fails with such an error for RouteLoadNotice
+ * (src/utils/routeLoadFailure.ts); any other error of a navigation is not a
+ * chunk the page chose not to reload for.
+ */
+export function wasLeftToFail(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && leftToFail.has(error);
 }
 
 /**

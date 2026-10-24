@@ -10,6 +10,7 @@
   import CriticalSprites from '@/shared/components/icons/sprites/CriticalSprites.vue';
   import ImpersonationBanner from '@/shared/components/ui/ImpersonationBanner.vue';
   import LocaleLoadNotice from '@/shared/components/ui/LocaleLoadNotice.vue';
+  import RouteLoadNotice from '@/shared/components/ui/RouteLoadNotice.vue';
   import { NotificationHost } from '@/shared/components/ui/notifications';
   import RouteErrorBoundary from '@/shared/components/errors/RouteErrorBoundary.vue';
   import QuietLayout from '@/shared/layouts/MinimalLayout.vue';
@@ -203,6 +204,12 @@
        same reason as the two above. It renders only while the language store
        has a failure recorded. -->
   <LocaleLoadNotice />
+
+  <!-- A page whose chunk did not load while this page declined to reload
+       (src/utils/routeLoadFailure.ts): names the problem and offers the manual
+       reload, since the clicked link otherwise seems to do nothing. Mounted
+       here for the same reason as the three above. -->
+  <RouteLoadNotice />
 
   <!-- Dynamic layout selection based on route.meta.layout -->
   <component
