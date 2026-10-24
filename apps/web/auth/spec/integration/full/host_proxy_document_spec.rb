@@ -19,11 +19,12 @@
 #             request that classified :custom (#4150), and it is on every
 #             other one, an unverified or unreadable tenant name included.
 #
-# Every row also checks og:url and twitter:domain. Both render from
-# configured site.host (apps/web/core/views/helpers/initialize_view_vars.rb,
-# `baseuri`), on a tenant page as on the canonical one. THIS FILE PINS
-# CURRENT BEHAVIOUR: a tenant page advertising the canonical og:url is what
-# ships today.
+# Every row also checks og:url and twitter:domain. Both render from the
+# display domain (apps/web/core/views/helpers/initialize_view_vars.rb,
+# `page_url` and `display_domain`): a tenant page advertises the tenant's
+# own origin, the canonical page the canonical one, and an unregistered
+# forwarded host its own name. The og_title column already names that host
+# for every row, so the two assertions read it from there.
 #
 # RUN:
 #   tests/lanes/run full-sqlite --only \
@@ -72,6 +73,13 @@ RSpec.describe 'Host and proxy simulation matrix: the served document (#4223)',
     csp.to_s.split(';').map(&:strip).find { |directive| directive.start_with?('form-action') }.to_s
   end
 
+  # The URL page_url renders for GET / on `host`: the scheme follows
+  # site.ssl, as initialize_view_vars.rb does, not the request's proto.
+  def page_url_for(host)
+    scheme = OT.conf['site']['ssl'] == false ? 'http' : 'https'
+    "#{scheme}://#{host}/"
+  end
+
   [false, true].each do |rewrite|
     context "with public_host_rewrite #{rewrite ? 'on' : 'off'}" do
       let(:rewrite_on) { rewrite }
@@ -118,8 +126,8 @@ RSpec.describe 'Host and proxy simulation matrix: the served document (#4223)',
 
           doc = Nokogiri::HTML(last_response.body)
           expect(meta(doc, 'meta[property="og:title"]')).to eq(fill(row[:og_title]))
-          expect(meta(doc, 'meta[property="og:url"]')).to eq(HostProxyMatrix::SITE_HOST_ORIGIN)
-          expect(meta(doc, 'meta[property="twitter:domain"]')).to eq(HostProxyMatrix::SITE_HOST)
+          expect(meta(doc, 'meta[property="og:url"]')).to eq(page_url_for(fill(row[:og_title])))
+          expect(meta(doc, 'meta[property="twitter:domain"]')).to eq(fill(row[:og_title]))
           expect(doc.css('meta[property="og:image"]').empty?).to eq(!row[:og_image]), "#{row[:id]}: og:image"
         end
       end
