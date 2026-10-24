@@ -197,6 +197,8 @@ module Core
         # although a serializer could still choose to include any of them).
         description          = I18n.t('web.COMMON.description', locale: i18n_locale, default: 'Keep sensitive info out of your chat logs & email')
         keywords             = I18n.t('web.COMMON.keywords', locale: i18n_locale, default: 'secret,password,share,private,link')
+        og_title             = I18n.t('web.COMMON.secret_og_title', locale: i18n_locale, default: 'A secret link was shared with you')
+        og_description       = I18n.t('web.COMMON.secret_og_description', locale: i18n_locale, default: 'This secure link works one time. Open it when you are ready to view the content.')
 
         # Brand config — source of truth for tag-level branding (page_title,
         # mask-icon, etc.) and for default Vue app theming on first paint.
@@ -231,6 +233,12 @@ module Core
         # never at the install's site host) and the path without the query
         # string. Rhales escapes it at the attribute.
         page_url             = base_scheme + (display_domain || site_host) + req.path
+
+        # Secret links (/secret/*, /receipt/*) render the head-secret-share
+        # partial: robots noindex and neutral Open Graph text, so a link
+        # pasted into a chat unfurls without naming the page. robots.rue
+        # disallows the same prefixes.
+        secret_page          = req.path.match?(%r{\A/(secret|receipt)(/|\z)})
 
         brand_defaults              = Onetime::CustomDomain::BrandSettingsConstants::DEFAULTS
         brand_primary_color         = brand_config['primary_color']
@@ -308,9 +316,12 @@ module Core
           'authenticated' => authenticated,
           'awaiting_mfa' => awaiting_mfa,
           'baseuri' => baseuri,
+          'is_secret_page' => secret_page,
           'page_url' => page_url,
           'cust' => cust,
           'description' => description,
+          'og_title' => og_title,
+          'og_description' => og_description,
           'development' => development,
           'diagnostics' => diagnostics,
           'display_domain' => display_domain,

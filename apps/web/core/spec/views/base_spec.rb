@@ -163,7 +163,7 @@ RSpec.describe Core::Views::BaseView do
     end
   end
 
-  describe 'page_url' do
+  describe 'page_url and is_secret_page' do
     # head-base.rue renders <link rel="canonical" href="{{page_url}}">; the
     # head partials reuse it for og:url and twitter:url. The value is the
     # served host plus the path, never the query string.
@@ -181,6 +181,21 @@ RSpec.describe Core::Views::BaseView do
       allow(rack_request).to receive(:path).and_return('/')
 
       expect(view.view_vars['page_url']).to eq('https://secrets.partner.example/')
+    end
+
+    {
+      '/secret/abc123' => true,
+      '/receipt/abc123/burn' => true,
+      '/secret' => true,
+      '/secrets' => false,
+      '/signin' => false,
+      '/' => false,
+    }.each do |path, expected|
+      it "sets is_secret_page to #{expected} for #{path}" do
+        allow(rack_request).to receive(:path).and_return(path)
+
+        expect(view.view_vars['is_secret_page']).to be(expected)
+      end
     end
   end
 

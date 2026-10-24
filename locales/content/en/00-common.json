@@ -68,6 +68,16 @@
     "text": "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time.",
     "content_hash": "4c895f85"
   },
+  "web.COMMON.secret_og_title": {
+    "text": "A secret link was shared with you",
+    "note": "og:title on /secret and /receipt pages; shown by chat and social unfurlers, so it must not name the page or the sender",
+    "content_hash": "cc3d83ce"
+  },
+  "web.COMMON.secret_og_description": {
+    "text": "This secure link works one time. Open it when you are ready to view the content.",
+    "note": "og:description on /secret and /receipt pages",
+    "content_hash": "781e497c"
+  },
   "web.COMMON.incorrect_passphrase": {
     "text": "Incorrect passphrase",
     "content_hash": "a55f9636"

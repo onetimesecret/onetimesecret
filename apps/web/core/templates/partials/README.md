@@ -33,12 +33,15 @@ This directory contains modernized HTML `<head>` templates for the Onetime Secre
 - Dynamic Open Graph/Twitter meta for custom secret sharing
 - `noindex, nofollow` robots meta for secret pages
 
-**Usage**: To be used when rendering secret view/burn pages
-**Variables needed**:
-- `current_url` - The URL of the secret page
-- `og_title` - Custom title for social sharing (e.g., "Someone shared a secret with you")
-- `og_description` - Custom description for social sharing
-- `is_secret_page` - Boolean to trigger robots noindex directive
+**Usage**: index.rue includes it instead of head.rue when `is_secret_page`
+is true. The view sets that flag for `/secret/*` and `/receipt/*` requests
+(`initialize_view_vars.rb`), the same prefixes robots.rue disallows.
+**Variables**:
+- `page_url` - The page URL (served host plus path, no query string); also
+  the canonical link in head-base.rue and og:url in head.rue
+- `display_domain` - The served host, for twitter:domain
+- `og_title`, `og_description` - Neutral text from `web.COMMON.secret_og_*`,
+  so a link pasted into a chat unfurls without naming the page or sender
 
 ## Modernization Changes
 
@@ -59,12 +62,6 @@ This directory contains modernized HTML `<head>` templates for the Onetime Secre
 - Redundant favicon declarations
 
 ## Future Enhancements
-
-### For Secret Pages
-Update the secret viewing controller/view to:
-1. Set `og_title`, `og_description`, and `current_url` variables
-2. Use `{{> partials/head-secret-share}}` instead of `{{> partials/head}}`
-3. Set `is_secret_page: true` for proper robots meta
 
 ### Content Security Policy
 Consider adding CSP meta tag or HTTP headers:

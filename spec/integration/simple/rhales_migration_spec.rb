@@ -229,6 +229,34 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
       end
     end
 
+    context 'when rendering a secret page (head-secret-share partial)' do
+      let(:request_path) { '/secret/abc123def456' }
+
+      it 'tells search engines not to index or follow' do
+        expect(doc.css('meta[name="robots"]').first['content']).to eq('noindex, nofollow')
+      end
+
+      it 'unfurls with neutral Open Graph text and the page URL', :aggregate_failures do
+        canonical = doc.css('link[rel="canonical"]').first['href']
+
+        expect(canonical).to end_with('/secret/abc123def456')
+        expect(doc.css('meta[property="og:url"]').first['content']).to eq(canonical)
+        expect(doc.css('meta[property="og:title"]').first['content']).to eq('A secret link was shared with you')
+        expect(doc.css('meta[property="og:description"]').first['content']).to include('works one time')
+        expect(doc.css('meta[name="twitter:title"]').first['content']).to eq('A secret link was shared with you')
+      end
+
+      it 'never carries a preview image', :aggregate_failures do
+        expect(doc.css('meta[property="og:image"], meta[name="twitter:image"]')).to be_empty
+        expect(doc.css('meta[name="twitter:card"]').first['content']).to eq('summary')
+      end
+
+      it 'still renders the base head once', :aggregate_failures do
+        expect(doc.css('meta[charset="UTF-8"]').length).to eq(1)
+        expect(doc.css('link[rel="canonical"]').length).to eq(1)
+      end
+    end
+
     context 'Partial Rendering' do
       it 'renders head partial' do
         expect(doc.css('meta[charset="UTF-8"]')).not_to be_empty
@@ -247,6 +275,10 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
         expect(canonical).to match(%r{\Ahttps?://[^/]+/\z})
         expect(doc.css('meta[property="og:url"]').first['content']).to eq(canonical)
         expect(doc.css('meta[property="twitter:url"]').first['content']).to eq(canonical)
+      end
+
+      it 'lets search engines index an ordinary page' do
+        expect(doc.css('meta[name="robots"]')).to be_empty
       end
 
       it 'renders page title from props' do
