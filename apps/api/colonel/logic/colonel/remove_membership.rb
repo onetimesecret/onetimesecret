@@ -21,10 +21,16 @@ module ColonelAPI
       # MUTATING + destructive; the colonel UI guards it behind a typed
       # confirmation client-side. The sole-owner guardrail lives in the op.
       #
+      # `details.default_org_cleanup` is the op's default_org_id cleanup
+      # outcome (Remove::Result#default_org_cleanup). A `failed` cleanup does
+      # not undo the removal, so the response still reports it as removed;
+      # `customers doctor MEMBER --repair` clears the pointer.
+      #
       # Security invariant: BOTH the router (role=colonel) AND this logic
       # (verify_one_of_roles!) enforce the colonel role.
       class RemoveMembership < ColonelAPI::Logic::Base
         include MembershipResolvers
+        include Onetime::LoggerMethods
 
         attr_reader :org, :customer, :result
 
@@ -72,13 +78,17 @@ module ColonelAPI
 
           handle_result_status
 
-          OT.info "[RemoveMembership] org=#{org.extid} member=#{customer.extid} status=#{result.status} " \
-                  "default_org_cleanup=#{result.default_org_cleanup}"
-          # The removal stands, so the response reports it as done. A pointer
-          # that may have survived is logged for `customers doctor MEMBER --repair`.
-          if result.default_org_cleanup == :failed
-            OT.lw "[RemoveMembership] #{customer.extid} default_org_id may still name #{org.extid}"
-          end
+          # A pointer that may have survived logs at warn; the model has
+          # already logged the error.
+          level = result.default_org_cleanup == :failed ? :warn : :info
+          app_logger.public_send(
+            level,
+            '[RemoveMembership] Member removal',
+            org_id: org.extid,
+            member_id: customer.extid,
+            status: result.status.to_s,
+            default_org_cleanup: result.default_org_cleanup.to_s,
+          )
 
           success_data
         end
@@ -90,6 +100,9 @@ module ColonelAPI
               member_id: customer.extid,
               status: result.status.to_s,
               role: result.role,
+            },
+            details: {
+              default_org_cleanup: result.default_org_cleanup&.to_s,
             },
           }
         end
