@@ -7,6 +7,7 @@ require 'onetime/application/otto_hooks'
 require 'onetime/middleware'
 require 'onetime/models'
 
+require_relative '../base_json_api'
 require_relative 'logic'
 require_relative 'auth_strategies'
 
@@ -15,8 +16,8 @@ module V2
   #
   # RESTful API for Onetime Secret v2. Serves JSON responses and uses
   # Otto router for authentication and routing. Returns string-encoded
-  # values (mirroring Redis storage). For new integrations, prefer V3
-  # which returns native JSON types.
+  # values through its legacy serializers. V3 uses native JSON types but
+  # remains in preview; its normal secret routes currently require a session.
   #
   # ## Architecture
   #
@@ -38,6 +39,11 @@ module V2
 
     protected
 
+    # Includes early parser/auth/security responses, not just routed bodies.
+    def build_rack_app
+      Rack::Head.new(super)
+    end
+
     # Build and configure Otto router instance
     #
     # Router-specific configuration happens here, after the router instance
@@ -47,7 +53,7 @@ module V2
     # @return [Otto] Configured router instance
     def build_router
       routes_path = File.join(__dir__, 'routes.txt')
-      router      = Otto.new(routes_path)
+      router      = Otto.new(routes_path, route_handler_factory: BaseJSONAPI::HTTPMethods::HandlerFactory)
 
       # Configure Otto request lifecycle hooks (from OttoHooks module)
       # Instance-level hook logging for operational metrics and audit trail
@@ -62,7 +68,7 @@ module V2
       # Register authentication strategies
       V2::AuthStrategies.register_essential(router)
 
-      # Default error responses per ADR-013 (4xx/5xx wire format).
+      # Router fallback responses only; ADR-013 remains proposed.
       # Schema: { error: string, error_type: string }
       headers             = { 'content-type' => 'application/json' }
       router.not_found    = [404, headers, [{ error: 'Not Found', error_type: 'NotFound' }.to_json]]
