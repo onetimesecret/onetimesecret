@@ -19,16 +19,20 @@ module Onetime
     # what makes any of it live.
     #
     # ruby-saml's OneLogin::RubySaml::IdpMetadataParser does the XML work,
-    # through ONE entry point: parse_to_array(body, sso_binding: [Redirect]).
-    # The parse_remote* methods are never called (they fetch with a bare
-    # Net::HTTP and no egress guard; the caller fetches through
-    # DiscoveryFetcher and hands the body here), and parse_to_hash is never
-    # called (it is parse_to_array(...)[0], which silently picks the first IdP
-    # of a federation aggregate). parse_to_array yields one entry per
-    # IDPSSODescriptor, not per entity: descriptors under more than one
-    # EntityDescriptor are an aggregate and refused, and one entity's
-    # descriptors are narrowed to its SAML 2.0 one (#selected_index). What is
-    # read from the selected entry, and what is deliberately not:
+    # through ONE entry point: parse_to_idp_metadata_array(body, options),
+    # one object per IDPSSODescriptor (not per entity), and #to_hash(options)
+    # on the ONE object selected, with options sso_binding: [Redirect]. That
+    # pair is what parse_to_array does for every descriptor; converting only
+    # the selected one means a descriptor that is never read (another
+    # entity's, a SAML 1.1 sibling's) cannot fail the parse. Descriptors
+    # under more than one EntityDescriptor are an aggregate and refused
+    # before any is converted, and one entity's descriptors are narrowed to
+    # its SAML 2.0 one (#selected_index). The parse_remote* methods are never
+    # called (they fetch with a bare Net::HTTP and no egress guard; the
+    # caller fetches through DiscoveryFetcher and hands the body here), and
+    # parse_to_hash is never called (it is parse_to_array(...)[0], which
+    # silently picks the first IdP of a federation aggregate). What is read
+    # from the selected entry, and what is deliberately not:
     #
     #   idp_entity_id            read; the issuer half of the identity key
     #   idp_sso_service_url      read; the first HTTP-Redirect Location
@@ -66,11 +70,11 @@ module Onetime
     # Error(:invalid_metadata), and a certificate OpenSSL rejects inside the
     # parser into Error(:unreadable_certificate) (UNREADABLE CERTIFICATES),
     # each with a fixed message: exception text can carry document content
-    # and is never echoed. REXML expands entities
-    # LAZILY, when text or an attribute value is first read, so an entity
-    # reference fails after REXML::Document.new has already succeeded,
-    # anywhere a value is read (in the parser or here); hence one boundary
-    # around all of it, not a rescue around document construction.
+    # and is never echoed. REXML expands entities LAZILY, when text or an
+    # attribute value is first read, so an entity reference fails after
+    # REXML::Document.new has already succeeded, anywhere a value is read
+    # (in the parser or here); hence one boundary around all of it, not a
+    # rescue around document construction.
     #
     # UNREADABLE CERTIFICATES. A signing entry OpenSSL will not parse is left
     # out of signing_certificates and reported once, as the advisory
@@ -80,11 +84,12 @@ module Onetime
     # whole parse instead: where ruby-saml fingerprints the certificate
     # itself (merge_certificates_into: the descriptor's only certificate,
     # signing or encryption, or one of each that are the same), its
-    # CertificateError is raised inside parse_to_array before any entry is
-    # returned, and the boundary maps it to :unreadable_certificate, which
-    # names the cause instead of calling the whole document unusable. That
-    # shape has no sibling to keep, so there is nothing to import either
-    # way.
+    # CertificateError is raised inside #to_hash before the entry exists,
+    # and the boundary maps it to :unreadable_certificate, which names the
+    # cause instead of calling the whole document unusable. Only the
+    # selected descriptor is converted, so this is always that descriptor's
+    # own certificate: it has no sibling to keep, and there is nothing to
+    # import either way.
     #
     # ENTITY EXPANSION. ruby-saml's normal load path (xml_security.rb, loaded
     # by `require 'ruby-saml'`) sets REXML::Security.entity_expansion_limit to
@@ -295,12 +300,12 @@ module Onetime
 
       # See ERROR BOUNDARY / ENTITY EXPANSION in the module header.
       def parse_document(body, metadata_url)
-        parser      = OneLogin::RubySaml::IdpMetadataParser.new
-        entries     = parser.parse_to_array(body, sso_binding: [REDIRECT_BINDING])
-        descriptors = idp_descriptors(parser, entries)
+        options     = { sso_binding: [REDIRECT_BINDING] }
+        idps        = OneLogin::RubySaml::IdpMetadataParser.new.parse_to_idp_metadata_array(body, options)
+        descriptors = idp_descriptors(idps)
         index       = selected_index(descriptors)
 
-        build_result(entries[index], descriptors[index], metadata_url)
+        build_result(idps[index].to_hash(options), descriptors[index], metadata_url)
       rescue OpenSSL::X509::CertificateError => ex
         raise Error.new(:unreadable_certificate, reason: ex.class.name), cause: nil
       rescue ArgumentError, REXML::ParseException => ex
@@ -311,15 +316,13 @@ module Onetime
         raise Error.new(:invalid_metadata, reason: 'REXML entity expansion limit'), cause: nil
       end
 
-      # The IDPSSODescriptor elements the parser built its entries from, in
-      # the same order: the same query (IdpMetadataParser.get_idps) over the
-      # same parsed document, one entry per descriptor (not per entity).
-      # More than one EntityDescriptor among them is a federation aggregate.
-      def idp_descriptors(parser, entries)
-        descriptors = OneLogin::RubySaml::IdpMetadataParser.get_idps(parser.document, nil)
-        if entries.empty? || descriptors.size != entries.size
-          raise Error.new(:invalid_metadata, reason: 'no IDPSSODescriptor')
-        end
+      # The IDPSSODescriptor element behind each of the parser's objects, in
+      # the same order, one per descriptor (not per entity). More than one
+      # EntityDescriptor among them is a federation aggregate. Reads no text
+      # or attribute value, so nothing is expanded here.
+      def idp_descriptors(idps)
+        descriptors = idps.map(&:idpsso_descriptor)
+        raise Error.new(:invalid_metadata, reason: 'no IDPSSODescriptor') if descriptors.empty?
         raise Error.new(:aggregate_metadata) if descriptors.map(&:parent).uniq(&:object_id).size > 1
 
         descriptors
@@ -332,7 +335,7 @@ module Onetime
       # and that one is read. None, or several, is not a document this form
       # can import without guessing.
       #
-      # @return [Integer] index into the descriptors and the parser's entries
+      # @return [Integer] index into the descriptors and the parser's objects
       def selected_index(descriptors)
         return 0 if descriptors.size == 1
 

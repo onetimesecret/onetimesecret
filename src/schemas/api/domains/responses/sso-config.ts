@@ -94,7 +94,8 @@ export type DeleteSsoConfigResponse = z.infer<typeof deleteSsoConfigResponseSche
  * discovery-check vocabulary with invalid_issuer renamed invalid_metadata_url
  * and discovery_* renamed metadata_*, plus invalid_metadata (a body the
  * parser rejects), aggregate_metadata (a document with several IdPs) and
- * unreadable_certificate (the document's only certificate is not X.509).
+ * unreadable_certificate (the IdP descriptor's only certificate, or its
+ * identical signing and encryption pair, is not X.509).
  * The wire value stays a string: a code added later renders the server's
  * message until it has a label.
  */

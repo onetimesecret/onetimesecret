@@ -6,10 +6,11 @@
 # preview (docs/specs/sso/saml-idp-metadata-consumption.md, sections 4.3 and
 # 4.4). What is pinned here:
 #
-#   - ruby-saml's parse_to_array is the one parser entry point; an
-#     aggregate is refused, and only idp_cert_multi[:signing] reaches the
-#     result (never idp_cert, never the encryption list, never a
-#     fingerprint or trust option);
+#   - ruby-saml's parse_to_idp_metadata_array is the one parser entry
+#     point, and only the selected descriptor is converted (#to_hash); an
+#     aggregate is refused before any is, and only idp_cert_multi[:signing]
+#     reaches the result (never idp_cert, never the encryption list, never
+#     a fingerprint or trust option);
 #   - SingleSignOnService and NameIDFormat are read from the SAME
 #     IDPSSODescriptor the parser selected, namespace-aware;
 #   - each signing certificate is PEM-wrapped, parsed, given SHA-256 and
@@ -583,7 +584,7 @@ RSpec.describe Onetime::SsoProvider::IdpMetadata do
       end
     end
 
-    # parse_to_array yields one entry per IDPSSODescriptor, so one entity
+    # The parser yields one object per IDPSSODescriptor, so one entity
     # publishing a descriptor per protocol is not an aggregate.
     describe 'one entity with several IDPSSODescriptors' do
       let(:saml11_cert) { mint_cert(cn: 'saml11.idp.example.com') }
@@ -611,6 +612,26 @@ RSpec.describe Onetime::SsoProvider::IdpMetadata do
         expect(result.signing_certificates.map(&:subject)).to eq(['CN=signing.idp.example.com'])
         expect(result.name_id_formats).to eq([NAMEID_PERSISTENT])
         expect(result.problems).to eq([])
+      end
+
+      # Only the selected descriptor is converted, so ruby-saml's fingerprint
+      # of a sibling's lone certificate never runs.
+      it 'reads the SAML 2.0 descriptor when the SAML 1.1 one has an unreadable lone certificate' do
+        broken = descriptor_for(
+          'urn:oasis:names:tc:SAML:1.1:protocol',
+          keys: [key_descriptor(Base64.strict_encode64('not a certificate'))],
+          services: [sso_service('urn:mace:shibboleth:1.0:profiles:AuthnRequest', 'https://idp.example.com/shibboleth/sso')],
+        )
+        result = parse(document(entity(broken, extra: idp_descriptor)))
+
+        expect(result.signing_certificates.map(&:subject)).to eq(['CN=signing.idp.example.com'])
+        expect(result.problems).to eq([])
+      end
+
+      it 'refuses the SAML 2.0 descriptor\'s own unreadable lone certificate as unreadable_certificate' do
+        broken = idp_descriptor(keys: [key_descriptor(Base64.strict_encode64('not a certificate'))])
+
+        expect_parse_error(document(entity(saml11_descriptor, extra: broken)), :unreadable_certificate)
       end
 
       it 'refuses an entity with two SAML 2.0 descriptors as invalid_metadata, not aggregate_metadata' do
@@ -705,6 +726,15 @@ RSpec.describe Onetime::SsoProvider::IdpMetadata do
           expect(error.code).to eq(:aggregate_metadata)
           expect(error.message).to eq('The document describes more than one identity provider')
         }
+      end
+
+      it 'refuses an aggregate as aggregate_metadata even when a member has an unreadable lone certificate' do
+        broken = idp_descriptor(keys: [key_descriptor(Base64.strict_encode64('not a certificate'))])
+        first  = %(<md:EntityDescriptor entityID="https://idp.example.com/saml/metadata">#{broken}</md:EntityDescriptor>)
+        second = '<md:EntityDescriptor entityID="https://other-idp.example.com/metadata">' \
+                 "#{idp_descriptor}</md:EntityDescriptor>"
+
+        expect_parse_error(document(entities(first, second)), :aggregate_metadata)
       end
 
       # The upstream parser fingerprints the certificate itself when there
@@ -869,14 +899,14 @@ RSpec.describe Onetime::SsoProvider::IdpMetadata do
       before { allow(OneLogin::RubySaml::IdpMetadataParser).to receive(:new).and_return(parser) }
 
       it 'propagates' do
-        allow(parser).to receive(:parse_to_array).and_raise(RuntimeError, 'boom')
+        allow(parser).to receive(:parse_to_idp_metadata_array).and_raise(RuntimeError, 'boom')
 
         expect { parse(document) }.to raise_error(RuntimeError, 'boom')
       end
 
       it "propagates even with REXML's message when it was not raised inside REXML" do
         message = 'number of entity expansions exceeded, processing aborted.'
-        allow(parser).to receive(:parse_to_array).and_raise(RuntimeError, message)
+        allow(parser).to receive(:parse_to_idp_metadata_array).and_raise(RuntimeError, message)
 
         expect { parse(document) }.to raise_error(RuntimeError, message) { |error|
           expect(error).not_to be_a(described_class::Error)
@@ -884,7 +914,7 @@ RSpec.describe Onetime::SsoProvider::IdpMetadata do
       end
 
       it 'propagates a RuntimeError subclass carrying the REXML message' do
-        allow(parser).to receive(:parse_to_array)
+        allow(parser).to receive(:parse_to_idp_metadata_array)
           .and_raise(Class.new(RuntimeError), 'entity expansion has grown too large')
 
         expect { parse(document) }.to raise_error(RuntimeError)
