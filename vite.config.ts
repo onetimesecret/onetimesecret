@@ -24,8 +24,12 @@ import Inspector from 'vite-plugin-vue-inspector';
  * Click an element on the dev server, write what should change, and the agent
  * gets its exact file, line and column. The plugin stamps
  * data-spotnote="file:line:col" on template elements and injects a picker
- * (launcher in the bottom-left corner). The plugin list below adds it only
- * for `vite` (serve), so `vite build` never runs it whatever the installed
+ * (launcher in the bottom-left corner). Opt in with:
+ *
+ *   SPOTNOTE_ENABLED=true pnpm dev
+ *
+ * The plugin list below adds it only for `vite` (serve), so `vite build`
+ * never runs it whatever the installed
  * version does; vitest.config.ts does not load this file.
  * https://github.com/harukikuri/spotnote
  *
@@ -43,20 +47,24 @@ import Inspector from 'vite-plugin-vue-inspector';
  * 127.0.0.1:4848 only and saves notes in ~/.spotnote/. If the port is taken,
  * set SPOTNOTE_PORT to the same free port for the agent and for `pnpm dev`.
  * Without it, Enter copies the note as a prompt to paste instead.
+ * The MCP server accepts browser origins only on localhost or loopback IPs;
+ * custom hosts such as dev.onetime.dev are rejected and cause repeated errors.
  *
  * The backend proxies only /dist/* to Vite, so the picker's open-in-editor
- * links (GET /__spotnote/open) 404 when browsing through the Ruby app. Notes,
- * prompts and MCP are unaffected.
+ * links (GET /__spotnote/open) 404 when browsing through the Ruby app.
  */
-const spotnote = await import('spotnote')
-  .then((m) => {
-    if (typeof m.default !== 'function') throw new TypeError('no default export');
-    return m.default;
-  })
-  .catch((error: unknown) => {
-    if (DEBUG) console.log(`[vite] Spotnote not loaded: ${String(error)}`);
-    return null;
-  });
+const spotnote =
+  process.env.SPOTNOTE_ENABLED === 'true'
+    ? await import('spotnote')
+        .then((m) => {
+          if (typeof m.default !== 'function') throw new TypeError('no default export');
+          return m.default;
+        })
+        .catch((error: unknown) => {
+          if (DEBUG) console.log(`[vite] Spotnote not loaded: ${String(error)}`);
+          return null;
+        })
+    : null;
 
 // Remember, for security reasons, only variables prefixed with VITE_ are
 // available here to prevent accidental exposure of sensitive
