@@ -211,7 +211,7 @@
   const opening = ref(false);
 
   async function onEnsure(): Promise<void> {
-    if (opening.value) return;
+    if (opening.value || dialogOpen.value || editOpen.value || !ensureVisible.value) return;
     opening.value = true;
     try {
       resetEnsurePreview();
@@ -249,7 +249,7 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
-    ensureElevated,
+    useElevateThenOpen,
   } = useAdminDestructiveMutation(async () => {
     switch (activeAction.value) {
       case 'ensure': {
@@ -296,21 +296,17 @@
     dialogOpen.value = true;
   }
 
-  async function requestDelete(kind: DomainConfigKind): Promise<void> {
-    // DeleteDomainConfig is TIER 1 (#4327): elevate before the dialog opens.
-    // Ensure is un-gated and opens straight away. Cancel opens nothing.
-    if (opening.value) return;
-    opening.value = true;
-    let elevated = false;
-    try {
-      elevated = await ensureElevated();
-    } finally {
-      opening.value = false;
+  const { open: requestDelete } = useElevateThenOpen(
+    (kind: DomainConfigKind) => {
+      deleteKind.value = kind;
+      requestAction('delete');
+    },
+    {
+      opening,
+      target: () => props.extid,
+      canOpen: () => !dialogOpen.value && !editOpen.value && !mutationLoading.value,
     }
-    if (!elevated || dialogOpen.value) return;
-    deleteKind.value = kind;
-    requestAction('delete');
-  }
+  );
 
   async function onConfirm(): Promise<void> {
     const action = activeAction.value;

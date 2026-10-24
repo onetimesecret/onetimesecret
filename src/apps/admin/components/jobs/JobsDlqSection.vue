@@ -337,7 +337,7 @@
     error: actionError,
     run: runAction,
     reset: resetAction,
-    ensureElevated,
+    useElevateThenOpen,
   } = useAdminDestructiveMutation(async (reason?: string) => {
     const verb = actionVerb.value;
     const messageId = actionMessageId.value;
@@ -354,27 +354,28 @@
         : readDiscardAck(messageId, response.data);
   });
 
-  async function requestAction(verb: MessageVerb, messageId: string): Promise<void> {
-    // Captured at the click: the prompt below must not redirect the action to
-    // whatever queue the drawer shows once it resolves.
-    const queue = selectedShort.value;
-    if (!queue || !messageId) return;
-    // Discard is TIER 1 (DiscardDlqMessage, #4327): elevate before the dialog
-    // collects the token and reason. Replay is TIER 2 and opens straight away.
-    if (verb === 'discard') {
-      if (!(await ensureElevated())) return;
-      // The dialog lives inside the drawer: open nothing if the drawer closed
-      // or moved to another queue during the prompt.
-      if (!drawerOpen.value || selectedShort.value !== queue) return;
+  const { open: requestAction, opening } = useElevateThenOpen(
+    (verb: MessageVerb, messageId: string) => {
+      actionVerb.value = verb;
+      actionMessageId.value = messageId;
+      actionQueue.value = selectedShort.value;
+      // A stale result must never read as this action's outcome.
+      lastAction.value = null;
+      resetAction();
+      actionDialogOpen.value = true;
+    },
+    {
+      target: () => (drawerOpen.value ? selectedShort.value : null),
+      canOpen: (_verb, messageId) =>
+        drawerOpen.value &&
+        !!selectedShort.value &&
+        !!messageId &&
+        !actionDialogOpen.value &&
+        !actionLoading.value,
+      // Discard is TIER 1; replay is TIER 2 and opens without a prompt.
+      requiresElevation: (verb) => verb === 'discard',
     }
-    actionVerb.value = verb;
-    actionMessageId.value = messageId;
-    actionQueue.value = queue;
-    // A stale result must never read as this action's outcome.
-    lastAction.value = null;
-    resetAction();
-    actionDialogOpen.value = true;
-  }
+  );
 
   /** One notification per action, matched to what actually happened. */
   function notifyAction(result: MessageActionResult): void {
@@ -632,6 +633,7 @@
             type="button"
             class="mt-2 inline-flex items-center gap-1 rounded-md border border-red-300 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
             data-testid="dlq-last-action-discard"
+            :disabled="opening || actionLoading"
             @click="requestAction('discard', lastAction.messageId)">
             <OIcon
               collection="heroicons"
@@ -857,6 +859,7 @@
                 type="button"
                 class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                 :data-testid="`dlq-replay-${message.message_id}`"
+                :disabled="opening || actionLoading"
                 @click="requestAction('replay', message.message_id)">
                 <OIcon
                   collection="heroicons"
@@ -868,6 +871,7 @@
                 type="button"
                 class="inline-flex items-center gap-1 rounded-md border border-red-300 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
                 :data-testid="`dlq-discard-${message.message_id}`"
+                :disabled="opening || actionLoading"
                 @click="requestAction('discard', message.message_id)">
                 <OIcon
                   collection="heroicons"

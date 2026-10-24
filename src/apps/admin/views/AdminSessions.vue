@@ -332,7 +332,7 @@
     error: revokeError,
     run: runRevoke,
     reset: resetRevoke,
-    ensureElevated,
+    useElevateThenOpen,
   } = useAdminDestructiveMutation(async (reason?: string) => {
     const handle = revokeTarget.value;
     if (!handle) throw new Error('No session selected');
@@ -377,19 +377,22 @@
     error: revokeError.value,
   }));
 
-  async function requestRevoke(row: ColonelSession): Promise<void> {
-    // Fail closed: the disabled button is the UI affordance, this is the guard.
-    // The server refuses a self-revoke regardless (#4328).
-    if (isCurrentSession(row.session_handle)) return;
-    // DeleteSession is TIER 1 (#4327): elevate before the dialog collects the
-    // token and reason. Cancel opens nothing.
-    if (!(await ensureElevated())) return;
-    revokeTarget.value = row.session_handle;
-    revokeOwner.value = row.external_id ?? '';
-    revokeToken.value = row.email?.trim() || row.external_id?.trim() || row.session_handle;
-    resetRevoke();
-    revokeDialogOpen.value = true;
-  }
+  const { open: requestRevoke, opening } = useElevateThenOpen(
+    (row: ColonelSession) => {
+      revokeTarget.value = row.session_handle;
+      revokeOwner.value = row.external_id ?? '';
+      revokeToken.value = row.email?.trim() || row.external_id?.trim() || row.session_handle;
+      resetRevoke();
+      revokeDialogOpen.value = true;
+    },
+    {
+      // Row actions can also start without a drawer. Moving between those
+      // contexts while elevating must not relocate the confirmation dialog.
+      target: () => (drawerOpen.value ? selectedSession.value?.session_handle : null),
+      canOpen: (row) =>
+        !revokeDialogOpen.value && !revokeLoading.value && !isCurrentSession(row.session_handle),
+    }
+  );
 
   async function onRevokeConfirm(reason?: string): Promise<void> {
     const revokedHandle = revokeTarget.value;
@@ -549,7 +552,9 @@
           <button
             type="button"
             :data-testid="`revoke-${row.session_handle}`"
-            :disabled="isCurrentSession(row.session_handle)"
+            :disabled="
+              opening || revokeLoading || revokeDialogOpen || isCurrentSession(row.session_handle)
+            "
             :title="
               isCurrentSession(row.session_handle)
                 ? t('web.admin.sessions.revoke.ownSession')
@@ -733,7 +738,13 @@
         <button
           type="button"
           data-testid="session-revoke-button"
-          :disabled="!selectedSession || isCurrentSession(selectedSession.session_handle)"
+          :disabled="
+            opening ||
+            revokeLoading ||
+            revokeDialogOpen ||
+            !selectedSession ||
+            isCurrentSession(selectedSession.session_handle)
+          "
           :title="
             selectedSession && isCurrentSession(selectedSession.session_handle)
               ? t('web.admin.sessions.revoke.ownSession')

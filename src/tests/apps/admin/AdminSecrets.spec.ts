@@ -1,8 +1,8 @@
 // src/tests/apps/admin/AdminSecrets.spec.ts
 
+import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { AxiosError } from 'axios';
 import { createPinia, setActivePinia } from 'pinia';
-import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /** Build a real AxiosError so the shared classifier extracts `data.error`. */
@@ -58,9 +58,13 @@ vi.mock('@headlessui/vue', () => ({
   TransitionChild: { name: 'TransitionChild', template: '<div><slot /></div>', props: ['as'] },
 }));
 
+import {
+  __resetColonelElevationState,
+  useColonelElevation,
+} from '@/apps/admin/composables/useColonelElevation';
 import AdminSecrets from '@/apps/admin/views/AdminSecrets.vue';
-import { createTestI18n } from '@tests/setup';
 import { startElevated } from '@tests/apps/admin/support/elevation';
+import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
 
@@ -176,9 +180,7 @@ describe('AdminSecrets (lookup-first inspect + guarded delete — ticket #30)', 
   });
 
   it('renders the not-found panel on a 404', async () => {
-    mockApi.get.mockRejectedValue(
-      Object.assign(new Error('nf'), { response: { status: 404 } })
-    );
+    mockApi.get.mockRejectedValue(Object.assign(new Error('nf'), { response: { status: 404 } }));
     wrapper = mountView(pinia);
 
     await lookup(wrapper, 'does-not-exist');
@@ -213,6 +215,37 @@ describe('AdminSecrets (lookup-first inspect + guarded delete — ticket #30)', 
       await lookup(wrapper);
     });
 
+    it.each([false, true])(
+      'drops a delete opener when another lookup starts (return: %s)',
+      async (restore) => {
+        __resetColonelElevationState({ statusRead: true });
+        await wrapper.find('[data-testid="secret-delete-button"]').trigger('click');
+        expect(useColonelElevation().promptOpen.value).toBe(true);
+        expect(dialogInput(wrapper).exists()).toBe(false);
+
+        const other = receiptPayload();
+        other.record.secret_id = 's2';
+        mockApi.get.mockResolvedValueOnce({ data: other });
+        await lookup(wrapper, 's2');
+        if (restore) await lookup(wrapper);
+        useColonelElevation().resolvePrompt(true);
+        await flushPromises();
+        expect(dialogInput(wrapper).exists()).toBe(false);
+        expect(mockApi.delete).not.toHaveBeenCalled();
+      }
+    );
+
+    it('keeps the current confirmation input when delete is requested again', async () => {
+      await wrapper.find('[data-testid="secret-delete-button"]').trigger('click');
+      await dialogInput(wrapper).setValue(RECEIPT_SHORT_ID);
+      wrapper
+        .find('[data-testid="secret-delete-button"]')
+        .element.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await flushPromises();
+      expect((dialogInput(wrapper).element as HTMLInputElement).value).toBe(RECEIPT_SHORT_ID);
+      expect(mockApi.delete).not.toHaveBeenCalled();
+    });
+
     it('opens a danger dialog whose confirm stays disabled until the RECEIPT short id is retyped', async () => {
       await wrapper.find('[data-testid="secret-delete-button"]').trigger('click');
       await flushPromises();
@@ -238,7 +271,12 @@ describe('AdminSecrets (lookup-first inspect + guarded delete — ticket #30)', 
           shrimp: '',
           record: {
             deleted: true,
-            secret: { secret_id: SECRET_ID, shortid: SHORT_ID, state: 'received', owner_id: 'ext_owner' },
+            secret: {
+              secret_id: SECRET_ID,
+              shortid: SHORT_ID,
+              state: 'received',
+              owner_id: 'ext_owner',
+            },
             metadata: { receipt_id: 'r1', shortid: 'rh1' },
           },
           details: { message: 'Secret and associated receipt deleted successfully' },
@@ -259,8 +297,7 @@ describe('AdminSecrets (lookup-first inspect + guarded delete — ticket #30)', 
       expect(showMock).toHaveBeenCalledWith('web.admin.secrets.actions.delete.success', 'success');
       // The read-out clears back to the lookup prompt (the secret is gone).
       expect(wrapper.find('[data-testid="secret-lookup-result"]').exists()).toBe(false);
-      const input = wrapper.find('[data-testid="secret-lookup-input"]')
-        .element as HTMLInputElement;
+      const input = wrapper.find('[data-testid="secret-lookup-input"]').element as HTMLInputElement;
       expect(input.value).toBe('');
     });
 

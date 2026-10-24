@@ -400,7 +400,7 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
-    ensureElevated,
+    useElevateThenOpen,
   } = useAdminDestructiveMutation(async (reason?: string) => {
     // Every DANGER action is gated server-side (#4326) on the SAME token the
     // dialog asks the operator to retype. A missing one is a bug, not a
@@ -657,18 +657,34 @@
    */
   const ELEVATED_ACTIONS: readonly ActionKey[] = ['setRole', 'purge'];
 
-  async function requestAction(key: ActionKey): Promise<void> {
-    // Fail closed: never open a danger dialog whose typed token is blank —
-    // AdminConfirmDialog runs an empty token as a one-click simple confirm.
-    if (DANGER_ACTIONS.includes(key) && !confirmTokenFor(key)) return;
-    // ...nor one the server's self-target interlocks will refuse (#4328).
-    if (key === 'unverify' && selfUnverifyBlocked.value) return;
-    // Elevate first (#4327); a cancelled prompt opens nothing.
-    if (ELEVATED_ACTIONS.includes(key) && !(await ensureElevated())) return;
-    activeAction.value = key;
-    resetMutation();
-    dialogOpen.value = true;
-  }
+  const { open: requestAction, opening: actionOpening } = useElevateThenOpen(
+    (key: ActionKey) => {
+      activeAction.value = key;
+      resetMutation();
+      dialogOpen.value = true;
+    },
+    {
+      target: () => publicId.value,
+      canOpen: (key) => {
+        if (!record.value || dialogOpen.value || mutationLoading.value) return false;
+        // A blank danger token would turn typed confirmation into one click.
+        if (DANGER_ACTIONS.includes(key) && !confirmTokenFor(key)) return false;
+        if (key === 'unverify' && selfUnverifyBlocked.value) return false;
+        if (key === 'setRole') {
+          return (
+            !!pendingRole.value &&
+            pendingRole.value !== record.value.role &&
+            !selfDemoteBlocked.value
+          );
+        }
+        if (key === 'impersonate') {
+          return impersonateAvailable.value && !!impersonateReason.value.trim();
+        }
+        return true;
+      },
+      requiresElevation: (key) => ELEVATED_ACTIONS.includes(key),
+    }
+  );
 
   /**
    * Open the impersonation confirm. Refuses when the target is ineligible or
@@ -1089,7 +1105,13 @@
                 <button
                   type="button"
                   data-testid="role-apply"
-                  :disabled="pendingRole === record.role || selfDemoteBlocked"
+                  :disabled="
+                    pendingRole === record.role ||
+                    selfDemoteBlocked ||
+                    actionOpening ||
+                    dialogOpen ||
+                    mutationLoading
+                  "
                   :aria-describedby="selfDemoteBlocked ? 'self-demote-reason' : undefined"
                   class="inline-flex shrink-0 items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
                   @click="requestSetRole">
@@ -1119,6 +1141,7 @@
               v-if="!record.verified"
               type="button"
               data-testid="verify-button"
+              :disabled="actionOpening || dialogOpen || mutationLoading"
               class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
               @click="requestAction('verify')">
               <OIcon
@@ -1131,7 +1154,7 @@
               <button
                 type="button"
                 data-testid="unverify-button"
-                :disabled="selfUnverifyBlocked"
+                :disabled="selfUnverifyBlocked || actionOpening || dialogOpen || mutationLoading"
                 :aria-describedby="selfUnverifyBlocked ? 'self-unverify-reason' : undefined"
                 class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
                 @click="requestAction('unverify')">
@@ -1184,6 +1207,7 @@
                   <button
                     type="button"
                     data-testid="suspend-button"
+                    :disabled="actionOpening || dialogOpen || mutationLoading"
                     class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
                     @click="requestAction('suspend')">
                     <OIcon
@@ -1198,6 +1222,7 @@
                 v-else
                 type="button"
                 data-testid="unsuspend-button"
+                :disabled="actionOpening || dialogOpen || mutationLoading"
                 class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
                 @click="requestAction('unsuspend')">
                 <OIcon
@@ -1237,7 +1262,13 @@
               <button
                 type="button"
                 data-testid="impersonate-button"
-                :disabled="!impersonateAvailable || !impersonateReason.trim()"
+                :disabled="
+                  !impersonateAvailable ||
+                  !impersonateReason.trim() ||
+                  actionOpening ||
+                  dialogOpen ||
+                  mutationLoading
+                "
                 :aria-describedby="!impersonateAvailable ? 'impersonate-blocked-reason' : undefined"
                 class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-amber-400 px-3 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-amber-600 dark:text-amber-300 dark:hover:bg-amber-900/30"
                 @click="requestImpersonate">
@@ -1264,7 +1295,7 @@
               <button
                 type="button"
                 data-testid="purge-button"
-                :disabled="purgeBlocked"
+                :disabled="purgeBlocked || actionOpening || dialogOpen || mutationLoading"
                 :aria-describedby="purgeBlocked ? 'purge-blocked-reason' : undefined"
                 class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
                 @click="requestAction('purge')">
