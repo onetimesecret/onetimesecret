@@ -35,7 +35,8 @@ bin/ots customers show <email>         # role, verified, memberships
 
 Record per account: `has_password`, WebAuthn present, identity rows
 (provider/issuer), `verified`, `signup_domain_id`, org owner yes/no, any
-membership in another org.
+membership in another org, and whether an old identity is still accepted on any
+other accessible domain (including a sibling domain in this org).
 
 In Colonel, on the domain: current `provider_type`, `allowed_domains`,
 `restrict_to`, last completed sign-in (who, and whether it was a new JIT).
@@ -45,17 +46,31 @@ Classify:
 | Cohort | Test | Route |
 |---|---|---|
 | **B** credentialed | has password or WebAuthn | self-service Connect, no operator action |
-| **A** captive | no credential, `signup_domain_id` = this domain, identity rows only under the old key, memberships in this org only, not owner | purge (today) or re-link (when built) |
-| **C** anything else | foreign membership, platform-minted, provenance blank, identity elsewhere | individual: see below |
+| **A** captive | no credential, `signup_domain_id` = this domain, identity rows only under the old key, none still accepted on another accessible domain, memberships in this org only, not owner | purge (today) or re-link (when built) |
+| **C** anything else | foreign membership, platform-minted, provenance blank, identity elsewhere, `identity_still_live_elsewhere` | individual: see below |
+
+An org-scoped membership can authorize sibling domains without a second
+membership. If a sibling still accepts the old shared Entra/OIDC row, classify
+the account as C (`identity_still_live_elsewhere`), not A. Check each accessible
+domain's current SSO config; matching provenance and no foreign membership are
+not sufficient.
 
 Never purge the org owner. If the owner is passwordless, stop and get them a
 password first (reset flow) before anything else.
 
 ## Decide with the customer
 
-Ask one question: **can the affected accounts be discarded?** Purge destroys
-each account's secrets (including unviewed ones they sent), API keys, personal
-workspace, and role assignments. State this in writing before they answer.
+Ask one question: **can the affected accounts be discarded?** Purge removes
+the account, API keys, eligible personal workspace, memberships and role
+assignments, and account/index access to secret history. It does **not** delete
+`Secret` or `Receipt` records or revoke already-shared links: those records
+remain TTL-bound. If links must be revoked, arrange explicit burning separately
+before losing account access. State this in writing before they answer.
+
+Source: `apps/web/auth/operations/customers/purge_preflight.rb`,
+`owned_workspace_notes`: "the organization's receipt index is dropped with it,
+while the Receipt and Secret records are TTL-bound and expire on their own
+schedule."
 
 - Disposable → Route 1.
 - Must keep → Route 2 (today) or Route 3 (once shipped).
@@ -110,15 +125,23 @@ the callback binds and logs them in. Nothing deleted.
 
 Individual handling. Foreign membership or platform-minted: Route 2 only, never
 purge. Provenance blank or identity elsewhere: Route 2 if they have or can set a
-password; otherwise escalate.
+password; otherwise escalate. `identity_still_live_elsewhere`: never purge;
+use Route 2 or escalate without deleting the account.
 
 ## What does not work (tell the owner once)
 
 Members-tab remove and re-invite (membership only; invite runs the same
-callback). Self-service account close (orphaned Customer record; also needs an
-operator purge afterwards). Deleting and recreating the SsoConfig. Rolling back
+callback). Deleting and recreating the SsoConfig. Rolling back
 to the old provider (works, but is itself a switch; the new-provider JIT
 accounts created meanwhile are now the stranded ones).
+
+Successful authenticated self-service account closure already calls `Purge`
+and deletes the auth account (`apps/web/auth/config/hooks/account.rb`,
+`after_close_account` and `delete_account`). **Never follow successful closure
+with another email-based purge**: a fresh JIT account may already have reused
+that email. Operator recovery is only for confirmed incomplete cleanup, after
+revalidating the exact original Customer identity and auth-account linkage
+against the closure evidence, not resolving a target by email alone.
 
 ## Prevention (say it in the closing reply)
 
