@@ -5,9 +5,13 @@
 # Remove a member from an organization.
 #
 # Usage:
-#   bin/ots memberships remove ORG CUSTOMER              # confirm, then remove
-#   bin/ots memberships remove ORG user@example.com --yes
-#   bin/ots memberships remove ORG ur123abc --json
+#   bin/ots memberships remove ORG CUSTOMER              # dry run (the default)
+#   bin/ots memberships remove ORG user@example.com --apply
+#   bin/ots memberships remove ORG ur123abc --apply --json
+#
+# DRY RUN IS THE DEFAULT. Nothing is written without --apply (-y/--yes/-f are
+# aliases). There is no confirmation prompt: the bare run reports what would
+# be removed, and --dry-run only says so explicitly.
 #
 # The mutation (membership teardown + materialized-entitlement cleanup) + admin
 # audit event is performed by the shared Onetime::Operations::Memberships::Remove
@@ -47,45 +51,42 @@ module Onetime
         type: :string,
         default: nil,
         desc: 'Operator-supplied reason (recorded in the admin audit trail)'
-      option :yes,
+      option :apply,
         type: :boolean,
         default: false,
-        aliases: ['-y', '-f'],
-        desc: 'Skip confirmation prompt'
+        aliases: ['-y', '--yes', '-f'],
+        desc: 'Remove the member (default: dry run, nothing written)'
+      option :dry_run,
+        type: :boolean,
+        default: false,
+        desc: 'Preview only (the default; contradicts --apply)'
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
-      def call(org:, customer:, reason: nil, yes: false, json: false, **)
+      # Statuses that exit 0.
+      OK_STATUSES = [:success, :dry_run].freeze
+
+      def call(org:, customer:, reason: nil, apply: false, dry_run: false, json: false, **)
         boot_application!
 
+        dry_run      = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
         organization = resolve_org(org, json: json)
         member       = resolve_member(customer, action: 'remove', json: json)
-
-        unless yes
-          if json
-            error_exit('Refusing to remove member without --yes in --json mode', json: true)
-          end
-
-          print "Remove #{member.obscure_email} from #{organization.extid}? [y/N] "
-          response = $stdin.gets&.strip&.downcase
-          unless response == 'y'
-            puts 'Aborted.'
-            return
-          end
-        end
 
         result = Onetime::Operations::Memberships::Remove.new(
           org: organization,
           customer: member,
           actor: Customers::Shared::CLI_ACTOR,
           reason: reason,
+          dry_run: dry_run,
         ).call
 
-        OT.info "[cli-memberships-remove] org=#{organization.extid} member=#{member.extid} status=#{result.status}"
+        OT.info "[cli-memberships-remove] org=#{organization.extid} member=#{member.extid} " \
+                "status=#{result.status} dry_run=#{dry_run}"
 
-        json ? output_json(result, member) : output_text(result, member)
+        json ? output_json(result, member, dry_run: dry_run) : output_text(result, member)
       end
 
       private
@@ -94,6 +95,9 @@ module Onetime
         case result.status
         when :success
           puts "Removed #{member.obscure_email} from #{result.org_id}"
+        when :dry_run
+          puts "Would remove #{member.obscure_email} (role: #{result.role}) from #{result.org_id}"
+          puts 'Dry run - nothing written. Re-run with --apply to write.'
         when :not_found
           error_exit("#{member.obscure_email} is not a member of #{result.org_id}", json: false)
         when :last_owner
@@ -101,16 +105,17 @@ module Onetime
         end
       end
 
-      def output_json(result, member)
+      def output_json(result, member, dry_run:)
         payload = {
           status: result.status,
           org_id: result.org_id,
           member_id: member.extid,
           email: member.obscure_email,
           role: result.role,
+          dry_run: dry_run,
         }
         puts JSON.pretty_generate(payload)
-        exit 1 unless result.status == :success
+        exit 1 unless OK_STATUSES.include?(result.status)
       end
     end
 

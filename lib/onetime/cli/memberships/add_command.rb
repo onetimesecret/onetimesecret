@@ -89,10 +89,7 @@ module Onetime
       def call(org:, customer:, role: 'member', default: false, apply: false, dry_run: false, json: false, **)
         boot_application!
 
-        if apply && dry_run
-          error_exit('--apply and --dry-run are contradictory; pass one or neither', json: json)
-        end
-
+        dry_run      = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
         organization = resolve_org(org, json: json)
         member       = resolve_member(customer, action: 'add', json: json)
         role         = role.to_s.strip.downcase
@@ -106,18 +103,18 @@ module Onetime
           customer: member,
           role: role,
           actor: Customers::Shared::CLI_ACTOR,
-          dry_run: !apply,
+          dry_run: dry_run,
         ).call
 
         OT.info "[cli-memberships-add] org=#{organization.extid} member=#{member.extid} " \
-                "status=#{result.status} role=#{result.role} dry_run=#{!apply}"
+                "status=#{result.status} role=#{result.role} dry_run=#{dry_run}"
 
-        default_status = default ? apply_default_org(result, member, organization, dry_run: !apply) : nil
+        default_status = default ? apply_default_org(result, member, organization, dry_run: dry_run) : nil
 
         if json
-          output_json(result, member, default_status, dry_run: !apply)
+          output_json(result, member, default_status, dry_run: dry_run)
         else
-          output_text(result, member, default_status, dry_run: !apply)
+          output_text(result, member, default_status, dry_run: dry_run)
         end
       end
 

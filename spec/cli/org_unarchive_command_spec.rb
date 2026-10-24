@@ -11,10 +11,9 @@
 # (against a real datastore) by spec/unit/onetime/operations/org/unarchive_spec.rb,
 # so here the op is stubbed at its constructor.
 #
-# Unlike `org delete` / `org transfer-ownership` there is no confirmation
-# prompt: the default IS the dry run, and --run is the explicit apply (the
-# `bin/ots migrations …` convention). The op is therefore constructed exactly
-# once per invocation.
+# There is no confirmation prompt: the default IS the dry run, and --run is
+# the explicit apply (the `bin/ots migrations …` convention). The op is
+# therefore constructed exactly once per invocation.
 #
 # Run: tests/lanes/run unit --only spec/cli/org_unarchive_command_spec.rb
 

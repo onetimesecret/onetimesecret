@@ -164,7 +164,7 @@ module Onetime
         drift[:extra].each   { |e| puts "  + #{e}  (materialized but not expected — orphan)" }
         drift[:missing].each { |e| puts "  - #{e}  (expected but not materialized)" }
         puts
-        puts "Repair with: bin/ots organizations reconcile #{org_extid} --yes"
+        puts "Repair with: bin/ots organizations reconcile #{org_extid} --apply"
       end
 
       # Same dead-letter advisory the write verbs print, and it matters MORE

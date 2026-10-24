@@ -5,10 +5,10 @@
 # Transfer an organization's ownership to an existing active member.
 #
 # Usage:
-#   bin/ots org transfer-ownership ORG NEW_OWNER                  # plan, confirm, apply
-#   bin/ots org transfer-ownership ORG user@example.com --yes     # skip the prompt
-#   bin/ots org transfer-ownership ORG ur123abc --yes --json      # machine-readable
-#   bin/ots org transfer-ownership ORG ur123abc --demote-to member
+#   bin/ots org transfer-ownership ORG NEW_OWNER                  # dry run (the default): the plan
+#   bin/ots org transfer-ownership ORG user@example.com --apply   # transfer
+#   bin/ots org transfer-ownership ORG ur123abc --apply --json    # machine-readable
+#   bin/ots org transfer-ownership ORG ur123abc --demote-to member --apply
 #
 # ORG is an org extid or objid (Onetime::CLI::Org::Shared#resolve_org).
 # NEW_OWNER is an email, customer extid, or Rodauth account ID
@@ -16,9 +16,10 @@
 # run `bin/ots memberships add ORG CUSTOMER --apply` first if they are not. This command
 # never fabricates a Customer (ADR-023: real, not synthesized).
 #
-# Without --yes the command runs a DRY RUN first and prints the plan (who loses
-# ownership, how many owner memberships get demoted, and to what) before asking
-# to confirm. Answering `n` is therefore also how you preview a transfer.
+# DRY RUN IS THE DEFAULT. Nothing is written without --apply (-y/--yes/-f are
+# aliases). There is no confirmation prompt: the bare run prints the plan (who
+# loses ownership, how many owner memberships get demoted, and to what), and
+# --dry-run only says so explicitly.
 #
 # ## If this command is interrupted
 #
@@ -27,8 +28,8 @@
 # where the org has two `role: 'owner'` memberships and `bin/ots org doctor`
 # reports check 4 (`membership_role_sync`) as a WARNING.
 #
-# RECOVERY IS TO RE-RUN THIS COMMAND, NOT THE DOCTOR. A re-run is idempotent and
-# demotes every other owner. `org doctor` marks check 4 `repairable: false` and
+# RECOVERY IS TO RE-RUN THIS COMMAND WITH --apply, NOT THE DOCTOR. A re-run is
+# idempotent and demotes every other owner. `org doctor` marks check 4 `repairable: false` and
 # will not fix it for you.
 #
 # The mutation + the admin audit event are performed by the shared
@@ -67,34 +68,34 @@ module Onetime
         type: :string,
         default: 'admin',
         desc: "Role for the outgoing owner: #{Onetime::Operations::Org::TransferOwnership::DEMOTABLE_ROLES.join(', ')}"
-      option :yes,
+      option :apply,
         type: :boolean,
         default: false,
-        aliases: ['-y', '-f'],
-        desc: 'Skip confirmation prompt'
+        aliases: ['-y', '--yes', '-f'],
+        desc: 'Transfer ownership (default: dry run, nothing written)'
+      option :dry_run,
+        type: :boolean,
+        default: false,
+        desc: 'Preview only (the default; contradicts --apply)'
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
-      def call(org:, new_owner:, demote_to: 'admin', yes: false, json: false, **)
+      def call(org:, new_owner:, demote_to: 'admin', apply: false, dry_run: false, json: false, **)
         boot_application!
 
+        dry_run        = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
         organization   = resolve_org(org, json: json)
-        # Resolve the incoming owner BEFORE anything else: an operator should
-        # learn the identifier is wrong without first confirming a transfer that
-        # cannot run.
         owner_customer = resolve_new_owner(new_owner, json: json)
         demote_to      = demote_to.to_s.strip.downcase
 
-        return unless confirm!(organization, owner_customer, demote_to, yes: yes, json: json)
-
-        result = transfer(organization, owner_customer, demote_to, dry_run: false)
+        result = transfer(organization, owner_customer, demote_to, dry_run: dry_run)
 
         OT.info "[cli-org-transfer-ownership] org=#{organization.extid} to=#{owner_customer.extid} " \
-                "status=#{result.status} demoted=#{result.demoted.size}"
+                "status=#{result.status} demoted=#{result.demoted.size} dry_run=#{result.dry_run}"
 
-        json ? output_json(result, owner_customer) : output_text(result, owner_customer)
+        json ? output_json(result, owner_customer) : output_text(result, organization, owner_customer)
       end
 
       private
@@ -121,57 +122,30 @@ module Onetime
         customer
       end
 
-      # @return [Boolean] true to proceed with the applied run
-      def confirm!(organization, owner_customer, demote_to, yes:, json:)
-        return true if yes
-
-        # Never mutate production org state from a scripted invocation that did
-        # not say so.
-        error_exit('Refusing to transfer ownership without --yes in --json mode', json: true) if json
-
-        # The whole point of dry_run defaulting to true: show the operator what
-        # this will do — including HOW MANY owner memberships get demoted (D29)
-        # — before they answer.
-        plan = transfer(organization, owner_customer, demote_to, dry_run: true)
-        return false unless print_plan(plan, organization, owner_customer)
-
-        print "Transfer #{org_label(organization)} to #{owner_customer.obscure_email}? [y/N] "
-        response = $stdin.gets&.strip&.downcase
-        return true if response == 'y'
-
-        puts 'Aborted.'
-        false
-      end
-
-      # @return [Boolean] true when the plan is worth prompting about. Refusals
-      #   exit non-zero here; :no_change reports and returns 0 without a prompt.
+      # The dry-run plan: what this will do — including HOW MANY owner
+      # memberships get demoted (D29) — before an operator re-runs with --apply.
       def print_plan(plan, organization, owner_customer)
-        refuse(plan, organization, owner_customer) unless
-          Onetime::Operations::Org::TransferOwnership::OK_STATUSES.include?(plan.status)
-
-        if plan.status == :no_change
-          puts "#{owner_customer.obscure_email} is already the sole owner of #{plan.org_id}"
-          return false
-        end
-
-        puts 'DRY RUN — nothing has been written yet'
+        puts 'DRY RUN — nothing was written'
         puts "Organization:  #{org_label(organization)}"
         puts "Current owner: #{plan.from_owner_id || '(none — owner_id points at no live customer)'}"
         puts "New owner:     #{owner_customer.extid} (#{owner_customer.obscure_email})"
         puts "Demote to:     #{plan.from_owner_role_after}"
         puts "Would demote:  #{plan.demoted.size} owner membership(s)#{demoted_list(plan)}"
         puts
-        true
+        puts 'Re-run with --apply to transfer.'
       end
 
-      def output_text(result, owner_customer)
-        refuse(result, nil, owner_customer) unless
+      # Refusals exit non-zero; :no_change reports and exits 0.
+      def output_text(result, organization, owner_customer)
+        refuse(result, organization, owner_customer) unless
           Onetime::Operations::Org::TransferOwnership::OK_STATUSES.include?(result.status)
 
         if result.status == :no_change
           puts "#{owner_customer.obscure_email} is already the sole owner of #{result.org_id}"
           return
         end
+
+        return print_plan(result, organization, owner_customer) if result.status == :planned
 
         puts "#{result.org_id}: owner #{result.from_owner_id || '(none)'} -> " \
              "#{result.to_owner_id} (#{owner_customer.obscure_email})"
@@ -205,15 +179,13 @@ module Onetime
         exit 1 unless Onetime::Operations::Org::TransferOwnership::OK_STATUSES.include?(result.status)
       end
 
-      # Refusal statuses render the SAME operator guidance on both the plan pass
-      # and the applied pass, so a --yes run and an interactive run cannot drift.
+      # Refusal statuses render the SAME operator guidance on a dry run and an
+      # applied run.
       def refuse(result, organization, owner_customer)
-        org_ref = organization ? org_label(organization) : result.org_id
-
         case result.status
         when :not_member
           error_exit(
-            "#{owner_customer.obscure_email} is not an active member of #{org_ref}. " \
+            "#{owner_customer.obscure_email} is not an active member of #{org_label(organization)}. " \
             'Run: bin/ots memberships add ORG CUSTOMER --apply first',
             json: false,
           )

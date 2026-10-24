@@ -32,23 +32,24 @@ module Onetime
       # lanes get a one-line diff instead of a conflict on a rewritten heredoc.
       # Pad the comment to the same column.
       USAGE_LINES = [
-        '  bin/ots organizations create NAME --owner ID  # Create an org owned by a customer',
-        '  bin/ots organizations delete ORG --yes        # Permanently delete an org (guarded)',
+        '  bin/ots organizations create NAME --owner ID --apply  # Create an org owned by a customer',
+        '  bin/ots organizations delete ORG              # Dry run: what a delete would take out',
+        '  bin/ots organizations delete ORG --apply      # Permanently delete an org (guarded)',
         '  bin/ots organizations doctor ORG              # Check single org integrity',
         '  bin/ots organizations doctor --all            # Check all organizations',
         '  bin/ots organizations doctor --all --repair   # Auto-repair issues',
         '  bin/ots organizations doctor ORG --json       # JSON output',
         '  bin/ots organizations entitlement show ORG    # Plan / overrides / materialized + drift',
-        '  bin/ots organizations entitlement grant ORG ENT   # Add an override grant',
-        '  bin/ots organizations entitlement revoke ORG ENT  # Add an override revoke',
-        '  bin/ots organizations entitlement clear ORG   # Wipe ALL overrides (destructive)',
+        '  bin/ots organizations entitlement grant ORG ENT --apply   # Add an override grant',
+        '  bin/ots organizations entitlement revoke ORG ENT --apply  # Add an override revoke',
+        '  bin/ots organizations entitlement clear ORG --apply   # Wipe ALL overrides (destructive)',
         '  bin/ots organizations list [--limit N]        # List organizations',
         '  bin/ots organizations list --owner EMAIL|--plan ID --run  # Filtered scan (dry run without --run)',
         '  bin/ots organizations list --verbose          # List with members and domains',
-        '  bin/ots organizations reconcile ORG --dry-run # Preview the reconcile mode',
-        '  bin/ots organizations reconcile ORG --yes     # Re-apply billing + entitlements',
+        '  bin/ots organizations reconcile ORG           # Dry run: the reconcile mode',
+        '  bin/ots organizations reconcile ORG --apply   # Re-apply billing + entitlements',
         '  bin/ots organizations show ORG [--json]       # Details, billing, members, domains',
-        '  bin/ots organizations transfer-ownership ORG NEW_OWNER  # Hand an org to another member',
+        '  bin/ots organizations transfer-ownership ORG NEW_OWNER --apply  # Hand an org to another member',
         '  bin/ots organizations unarchive ORG [--run]   # Restore an archived org',
       ].freeze
 
@@ -57,6 +58,7 @@ module Onetime
         'ORG = org extid, objid, Stripe customer id (cus_...), Stripe subscription id',
         '      (sub_...), or custom-domain hostname.',
         'Aliases: `bin/ots organization ...` and `bin/ots org ...` run the same verbs.',
+        'Verbs that write are dry runs unless --apply (-y/--yes) is given; unarchive takes --run.',
         'Members: bin/ots memberships add|set-role|remove ORG CUSTOMER',
       ].freeze
 

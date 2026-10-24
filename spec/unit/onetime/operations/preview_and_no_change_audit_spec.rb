@@ -40,7 +40,9 @@ require 'onetime/operations/email/send_test'
 require 'onetime/operations/email/sync_provider_feedback'
 require 'onetime/operations/memberships/add'
 require 'onetime/operations/memberships/entitlement_override'
+require 'onetime/operations/memberships/remove'
 require 'onetime/operations/memberships/set_role'
+require 'onetime/operations/org/create'
 require 'onetime/operations/org/delete'
 require 'onetime/operations/org/entitlement_override'
 require 'onetime/operations/org/reconcile'
@@ -862,7 +864,9 @@ RSpec.describe 'preview and no-change auditing' do
         Onetime::Operations::Email::SyncProviderFeedback,
         Onetime::Operations::Memberships::Add,
         Onetime::Operations::Memberships::EntitlementOverride,
+        Onetime::Operations::Memberships::Remove,
         Onetime::Operations::Memberships::SetRole,
+        Onetime::Operations::Org::Create,
         Onetime::Operations::Org::Delete,
         Onetime::Operations::Org::EntitlementOverride,
         Onetime::Operations::Org::Reconcile,
@@ -878,8 +882,8 @@ RSpec.describe 'preview and no-change auditing' do
     end
 
     # The module has no default target, so every op owes one. Checked
-    # structurally rather than by calling it, since building 24 ops here would
-    # duplicate 24 specs' worth of fixtures to learn nothing extra.
+    # structurally rather than by calling it, since building 26 ops here would
+    # duplicate 26 specs' worth of fixtures to learn nothing extra.
     it 'supplies the target hook in every op, since the module has no default' do
       missing = cohort.reject do |op|
         (op.private_instance_methods(false) + op.instance_methods(false)).include?(:audit_target)

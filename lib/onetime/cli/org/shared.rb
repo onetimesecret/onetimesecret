@@ -67,6 +67,20 @@ module Onetime
           exit 1
         end
 
+        # The write gate shared by every organizations / memberships verb that
+        # changes state: a dry run unless --apply (aliases -y, --yes, -f) is
+        # given. There is no confirmation prompt. --dry-run only states the
+        # default, so passing it with --apply is an error rather than a guess.
+        #
+        # @return [Boolean] true for a dry run
+        def dry_run_unless_applied(apply:, dry_run:, json:)
+          if apply && dry_run
+            error_exit('--apply and --dry-run are contradictory; pass one or neither', json: json)
+          end
+
+          !apply
+        end
+
         # Consistent operator-facing rendering of an org across org commands.
         # PUBLIC id only — never the objid.
         def org_label(org)

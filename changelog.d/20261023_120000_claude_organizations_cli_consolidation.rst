@@ -27,6 +27,13 @@ Changed
 - New ``bin/ots customers set-default-org CUSTOMER ORG`` sets the default
   organization of a customer who is already a member of ORG. It is a dry run
   unless ``--apply`` is given.
+- ``organizations create``, ``delete``, ``transfer-ownership``, ``reconcile``
+  and ``entitlement grant|revoke|clear``, and ``memberships remove``,
+  ``set-role`` and ``entitlement grant|revoke|clear`` are now dry runs unless
+  ``--apply`` is given, and no longer prompt. ``--yes``, ``-y`` and ``-f`` are
+  aliases for ``--apply``, so scripts that pass ``--yes`` still write. A bare
+  ``--json`` run now returns the dry-run result instead of refusing, and
+  ``--apply`` with ``--dry-run`` is an error.
 - Member listings (``organizations show``, ``organizations list --verbose``)
   show each member's public id (``ur…``), membership role and status, and an
   obscured email instead of internal ids. ``customers show`` prints the

@@ -5,10 +5,9 @@
 # Add an operator override GRANT to an organization membership.
 #
 # Usage:
-#   bin/ots memberships entitlement grant ORG CUSTOMER ENTITLEMENT --dry-run  # Project, write nothing
-#   bin/ots memberships entitlement grant ORG CUSTOMER ENTITLEMENT            # Confirm, then apply
-#   bin/ots memberships entitlement grant ORG CUSTOMER ENTITLEMENT --yes      # Apply, no prompt
-#   bin/ots memberships entitlement grant ORG CUSTOMER ENTITLEMENT --yes --json
+#   bin/ots memberships entitlement grant ORG CUSTOMER ENTITLEMENT            # Dry run (the default): project, write nothing
+#   bin/ots memberships entitlement grant ORG CUSTOMER ENTITLEMENT --apply    # Apply
+#   bin/ots memberships entitlement grant ORG CUSTOMER ENTITLEMENT --apply --json
 #
 # ORG is an org extid (see Onetime::CLI::Memberships::Shared#resolve_org);
 # CUSTOMER is an email, extid, or Rodauth account id.
@@ -42,24 +41,21 @@ module Onetime
         required: true,
         desc: 'Entitlement name (warns, does not block, when not in the catalog)'
 
-      option :yes,
+      option :apply,
         type: :boolean,
         default: false,
-        aliases: ['-y', '-f'],
-        desc: 'Skip confirmation prompt (required to apply)'
+        aliases: ['-y', '--yes', '-f'],
+        desc: 'Write the override (default: dry run, project the resulting sets)'
       option :dry_run,
         type: :boolean,
         default: false,
-        desc: 'Project the resulting override sets; write nothing'
+        desc: 'Preview only (the default; contradicts --apply)'
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
-      # --yes and --dry-run are ORTHOGONAL, matching `org entitlement grant`:
-      # --dry-run writes nothing so it needs no confirmation; an applied run
-      # always needs --yes (or an interactive 'y').
-      def call(org:, customer:, entitlement:, yes: false, dry_run: false, json: false, **)
+      def call(org:, customer:, entitlement:, apply: false, dry_run: false, json: false, **)
         boot_application!
 
         organization = resolve_org(org, json: json)
@@ -70,7 +66,7 @@ module Onetime
           member,
           action: 'grant',
           entitlement: entitlement,
-          yes: yes,
+          apply: apply,
           dry_run: dry_run,
           json: json,
         )

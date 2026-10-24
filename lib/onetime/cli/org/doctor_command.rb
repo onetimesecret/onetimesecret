@@ -276,7 +276,7 @@ module Onetime
           Two LIVE organizations carrying the same indexed value is reported,
           never auto-repaired. For a Stripe field: decide which org the Stripe
           customer belongs to, clear the stripe_* fields on the other, then run
-            bin/ots organizations reconcile ORG
+            bin/ots organizations reconcile ORG --apply
         USAGE
       end
 
@@ -790,7 +790,7 @@ module Onetime
       def duplicate_repair_action(spec)
         if spec[:field].to_s.start_with?('stripe_')
           'Manual: confirm in Stripe which org the customer belongs to, clear the stripe_* ' \
-            'fields on the other, then run `bin/ots organizations reconcile` on the survivor'
+            'fields on the other, then run `bin/ots organizations reconcile ORG --apply` on the survivor'
         else
           "Manual: decide which org keeps #{spec[:field]}, change it on the other, then save both " \
             '(the index is claimed on the next full save)'

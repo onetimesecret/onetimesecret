@@ -7,8 +7,8 @@
 # still reaches the `organizations` subcommands.
 #
 # Covers the landing command's usage list and the `organizations reconcile` adapter:
-# resolution, the --yes / --json refusal, the interactive decline, and the
-# op-status -> exit-code mapping. The mutation itself is the op's job and is
+# resolution, the dry-run default (nothing written without --apply, no prompt),
+# and the op-status -> exit-code mapping. The mutation itself is the op's job and is
 # covered by spec/unit/onetime/operations/org/reconcile_spec.rb — here the op is
 # stubbed at its constructor so these stay pure adapter tests.
 #
@@ -85,7 +85,7 @@ RSpec.describe 'Org Command', type: :cli do
     end
 
     it 'exits 1 when the organization cannot be resolved' do
-      output = run_cli_command_quietly('org', 'reconcile', 'nope', '--yes')
+      output = run_cli_command_quietly('org', 'reconcile', 'nope', '--apply')
 
       expect(last_exit_code).to eq(1)
       expect(output[:stdout]).to include('Error: Organization not found: nope')
@@ -95,34 +95,41 @@ RSpec.describe 'Org Command', type: :cli do
     it 'resolves by objid when the extid lookup misses' do
       allow(Onetime::Organization).to receive(:load).with('org-obj-1').and_return(organization)
 
-      run_cli_command_quietly('org', 'reconcile', 'org-obj-1', '--yes')
+      run_cli_command_quietly('org', 'reconcile', 'org-obj-1', '--apply')
 
       expect(Onetime::Operations::Org::Reconcile).to have_received(:new)
     end
 
-    it 'refuses to apply without --yes in --json mode' do
-      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--json')
+    context 'without --apply (the default dry run)' do
+      before do
+        allow(operation).to receive(:call).and_return(
+          result.with(status: :would_materialize, after: nil, memberships: nil, dry_run: true)
+        )
+      end
 
-      expect(last_exit_code).to eq(1)
-      expect(JSON.parse(output[:stdout])['error'])
-        .to eq('Refusing to reconcile without --yes in --json mode')
-      expect(Onetime::Operations::Org::Reconcile).not_to have_received(:new)
+      it 'asks the op for a dry run, never prompting' do
+        allow($stdin).to receive(:gets)
+
+        output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext')
+
+        expect(last_exit_code).to eq(0)
+        expect(Onetime::Operations::Org::Reconcile).to have_received(:new)
+          .with(hash_including(dry_run: true))
+        expect(output[:stdout]).to include('DRY RUN — nothing was written')
+        expect(output[:stdout]).to include('Re-run with --apply to reconcile.')
+        expect($stdin).not_to have_received(:gets)
+      end
+
+      it 'emits dry_run: true in --json and exits 0' do
+        output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--json')
+
+        expect(last_exit_code).to eq(0)
+        expect(JSON.parse(output[:stdout])).to include('status' => 'would_materialize', 'dry_run' => true)
+      end
     end
 
-    it 'aborts without calling the op when the confirmation is declined' do
-      allow($stdin).to receive(:gets).and_return("n\n")
-
-      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext')
-
-      expect(last_exit_code).to eq(0)
-      expect(output[:stdout]).to include('Aborted.')
-      expect(Onetime::Operations::Org::Reconcile).not_to have_received(:new)
-    end
-
-    it 'applies after an interactive confirmation' do
-      allow($stdin).to receive(:gets).and_return("y\n")
-
-      run_cli_command_quietly('org', 'reconcile', 'on_org_ext')
+    it 'applies under --apply' do
+      run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--apply')
 
       expect(Onetime::Operations::Org::Reconcile).to have_received(:new).with(
         org: organization,
@@ -131,14 +138,29 @@ RSpec.describe 'Org Command', type: :cli do
       )
     end
 
-    it 'attributes the audit actor to the shared CLI sentinel, never a Customer' do
+    it 'treats --yes as --apply' do
       run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--yes')
+
+      expect(Onetime::Operations::Org::Reconcile).to have_received(:new)
+        .with(hash_including(dry_run: false))
+    end
+
+    it 'refuses --apply with --dry-run before calling the op' do
+      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--apply', '--dry-run')
+
+      expect(last_exit_code).to eq(1)
+      expect(output[:stdout]).to include('--apply and --dry-run are contradictory')
+      expect(Onetime::Operations::Org::Reconcile).not_to have_received(:new)
+    end
+
+    it 'attributes the audit actor to the shared CLI sentinel, never a Customer' do
+      run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--apply')
 
       expect(Onetime::Operations::Org::Reconcile).to have_received(:new)
         .with(hash_including(actor: 'cli'))
     end
 
-    it 'passes dry_run: true for --dry-run and needs no confirmation' do
+    it 'passes dry_run: true for --dry-run, which only states the default' do
       run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--dry-run')
 
       expect(Onetime::Operations::Org::Reconcile).to have_received(:new)
@@ -146,7 +168,7 @@ RSpec.describe 'Org Command', type: :cli do
     end
 
     it 'prints the before/after diff on the text path' do
-      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--yes')
+      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--apply')
 
       expect(last_exit_code).to eq(0)
       expect(output[:stdout]).to include('entitlements_only')
@@ -154,7 +176,7 @@ RSpec.describe 'Org Command', type: :cli do
     end
 
     it 'prints the membership-cascade counts on the text path (#3907)' do
-      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--yes')
+      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--apply')
 
       expect(output[:stdout]).to include('Memberships:  3/3 re-materialized')
     end
@@ -164,7 +186,7 @@ RSpec.describe 'Org Command', type: :cli do
         result.with(memberships: { success: 1, failed: 2, total: 3, failed_ids: %w[mem_p mem_q] })
       )
 
-      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--yes')
+      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--apply')
 
       expect(output[:stdout]).to include('1/3 re-materialized — 2 FAILED: mem_p, mem_q')
     end
@@ -172,13 +194,13 @@ RSpec.describe 'Org Command', type: :cli do
     it 'prints no cascade line when the op reports none (dry run / skip / raised)' do
       allow(operation).to receive(:call).and_return(result.with(memberships: nil))
 
-      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--yes')
+      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--apply')
 
       expect(output[:stdout]).not_to include('Memberships:')
     end
 
-    it 'emits the flat Result payload and exits 0 on --json --yes' do
-      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--yes', '--json')
+    it 'emits the flat Result payload and exits 0 on --json --apply' do
+      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--apply', '--json')
 
       payload = JSON.parse(output[:stdout])
       expect(last_exit_code).to eq(0)
@@ -194,7 +216,7 @@ RSpec.describe 'Org Command', type: :cli do
         result.with(status: :skipped_no_plan, reason: 'Organization has no planid')
       )
 
-      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--yes', '--json')
+      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--apply', '--json')
 
       expect(last_exit_code).to eq(1)
       expect(JSON.parse(output[:stdout])['status']).to eq('skipped_no_plan')
@@ -205,7 +227,7 @@ RSpec.describe 'Org Command', type: :cli do
         result.with(status: :stripe_error, mode: 'stripe_sync', after: nil, reason: 'no such subscription')
       )
 
-      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--yes')
+      output = run_cli_command_quietly('org', 'reconcile', 'on_org_ext', '--apply')
 
       expect(last_exit_code).to eq(1)
       expect(output[:stdout]).to include('Error: Stripe error: no such subscription')

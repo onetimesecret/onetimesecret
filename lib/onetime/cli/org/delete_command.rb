@@ -5,19 +5,19 @@
 # Permanently delete an organization.
 #
 # Usage:
-#   bin/ots org delete ORG                      # plan, confirm, apply
-#   bin/ots org delete ORG --yes                # skip the prompt
-#   bin/ots org delete ORG --dry-run            # plan only (wins over --yes)
-#   bin/ots org delete ORG --yes --json         # machine-readable
-#   bin/ots org delete ORG --yes --force-default        # delete a default workspace
-#   bin/ots org delete ORG --yes --force-subscription   # delete a billing org
+#   bin/ots org delete ORG                      # dry run (the default): the plan
+#   bin/ots org delete ORG --apply              # delete
+#   bin/ots org delete ORG --apply --json       # machine-readable
+#   bin/ots org delete ORG --apply --force-default        # delete a default workspace
+#   bin/ots org delete ORG --apply --force-subscription   # delete a billing org
 #
 # ORG is an org extid or objid (Onetime::CLI::Org::Shared#resolve_org).
 #
-# Without --yes the command runs a DRY RUN first and prints the plan — display
-# name, plan, members and their emails, pending invitations, and every
-# `default_org_id` the delete will clear — before asking to confirm. Answering
-# `n` is therefore also how you preview a delete.
+# DRY RUN IS THE DEFAULT. Nothing is deleted without --apply (-y/--yes/-f are
+# aliases). There is no confirmation prompt: the bare run prints the plan —
+# display name, plan, members and their emails, pending invitations, and every
+# `default_org_id` the delete will clear — and --dry-run only says so
+# explicitly.
 #
 # ## Guardrails
 #
@@ -71,15 +71,15 @@ module Onetime
         required: true,
         desc: 'Organization extid or objid'
 
-      option :yes,
+      option :apply,
         type: :boolean,
         default: false,
-        aliases: ['-y', '-f'],
-        desc: 'Skip confirmation prompt'
+        aliases: ['-y', '--yes', '-f'],
+        desc: 'Delete the organization (default: dry run, nothing written)'
       option :dry_run,
         type: :boolean,
         default: false,
-        desc: 'Show the deletion plan without mutating (wins over --yes)'
+        desc: 'Preview only (the default; contradicts --apply)'
       option :force_default,
         type: :boolean,
         default: false,
@@ -100,30 +100,16 @@ module Onetime
         default: false,
         desc: 'Output as JSON'
 
-      def call(org:, yes: false, dry_run: false, force_default: false,
+      def call(org:, apply: false, dry_run: false, force_default: false,
                force_subscription: false, reason: nil, json: false, **)
         boot_application!
 
+        dry_run      = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
         organization = resolve_org(org, json: json)
         @force       = { force_default: force_default, force_subscription: force_subscription }
         @reason      = reason
 
-        # Never destroy production state from a scripted invocation that did not
-        # say so. --dry-run is exempt: it writes nothing by construction.
-        if json && !yes && !dry_run
-          error_exit('Refusing to delete without --yes in --json mode', json: true)
-        end
-
-        result =
-          if dry_run
-            run_op(organization, dry_run: true)
-          elsif yes
-            run_op(organization, dry_run: false)
-          else
-            confirm_and_apply(organization)
-          end
-
-        return if result.nil? # operator declined at the prompt
+        result = run_op(organization, dry_run: dry_run)
 
         OT.info "[cli-org-delete] org=#{result.org_id} status=#{result.status} " \
                 "dry_run=#{result.dry_run} members=#{result.members.size}"
@@ -145,31 +131,10 @@ module Onetime
         ).call
       end
 
-      # Two op calls: plan, then apply. Interactive path only.
-      #
-      # @return [Onetime::Operations::Org::Delete::Result, nil] nil when the
-      #   operator declines.
-      def confirm_and_apply(organization)
-        plan = run_op(organization, dry_run: true)
-
-        # A guardrail tripped: there is nothing to confirm. Report the refusal
-        # verbatim (exit 1) rather than prompting for a delete that cannot run.
-        return plan unless plan.status == :planned
-
-        print_plan(plan)
-
-        print "Permanently delete #{org_label(organization)}? [y/N] "
-        response = $stdin.gets&.strip&.downcase
-        return run_op(organization, dry_run: false) if response == 'y'
-
-        puts 'Aborted.'
-        nil
-      end
-
-      # The confirmation screen. It must name everything the delete destroys, so
-      # an operator can catch a wrong ORG before they answer.
+      # The dry-run plan. It must name everything the delete destroys, so an
+      # operator can catch a wrong ORG before re-running with --apply.
       def print_plan(plan)
-        puts 'DRY RUN — nothing has been written yet'
+        puts 'DRY RUN — nothing was written'
         puts "Organization:   #{plan.org_id} (#{plan.display_name})"
         puts "Plan:           #{plan.planid}#{subscription_suffix(plan)}"
         puts "Owner:          #{owner_line(plan)}"
@@ -214,7 +179,7 @@ module Onetime
 
         if result.status == :planned
           print_plan(result)
-          puts 'Dry run only — re-run without --dry-run to apply.'
+          puts 'Re-run with --apply to delete.'
           return
         end
 
@@ -249,10 +214,9 @@ module Onetime
         exit 1 unless Onetime::Operations::Org::Delete::OK_STATUSES.include?(result.status)
       end
 
-      # Refusal statuses render the SAME operator guidance on the plan pass and
-      # the applied pass, so a --yes run and an interactive run cannot drift.
-      # Each names the remediation, and only the override that unlocks that one
-      # guard.
+      # Refusal statuses render the SAME operator guidance on a dry run and an
+      # applied run. Each names the remediation, and only the override that
+      # unlocks that one guard.
       def refuse(result)
         case result.status
         when :has_domains

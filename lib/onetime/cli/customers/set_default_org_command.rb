@@ -68,10 +68,7 @@ module Onetime
       def call(customer:, org:, reason: nil, apply: false, dry_run: false, json: false, **)
         boot_application!
 
-        if apply && dry_run
-          error_exit('--apply and --dry-run are contradictory; pass one or neither', json: json)
-        end
-
+        dry_run      = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
         target       = resolve_member(customer, action: 'set the default organization of', json: json)
         organization = resolve_org(org, json: json)
 
@@ -80,7 +77,7 @@ module Onetime
           organization: organization,
           actor: Customers::Shared::CLI_ACTOR,
           reason: reason,
-          dry_run: !apply,
+          dry_run: dry_run,
         ).call
 
         OT.info "[cli-customers-set-default-org] customer=#{target.extid} org=#{organization.extid} " \
