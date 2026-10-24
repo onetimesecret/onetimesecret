@@ -133,4 +133,32 @@ RSpec.describe Core::Views::ViteManifest do
       )
     end
   end
+
+  # PRELOADED_FONTS names the woff2 files of the upright Regular (400) and
+  # Bold (700) faces by their root-relative source path. The stylesheet is the
+  # other half of that contract: if a face is renamed or moved there and the
+  # regex is not updated, the preload silently disappears. Read the real
+  # stylesheet and check both directions.
+  describe 'PRELOADED_FONTS against src/assets/style.css' do
+    let(:faces) do
+      css = File.read(File.join(Onetime::HOME, 'src', 'assets', 'style.css'))
+      css.scan(/@font-face\s*\{(.*?)\}/m).map(&:first).map do |block|
+        {
+          weight: block[/font-weight:\s*(\d+)/, 1].to_i,
+          style: block[/font-style:\s*(\w+)/, 1],
+          # url('./fonts/zs/X.woff2') relative to src/ is the manifest key assets/fonts/zs/X.woff2
+          woff2: block[%r{url\('\./(fonts/[^']+\.woff2)'\)}, 1]&.then { |path| "assets/#{path}" },
+        }
+      end
+    end
+
+    it 'preloads exactly the upright Regular and Bold faces the stylesheet declares', :aggregate_failures do
+      upright = faces.select { |f| f[:style] == 'normal' && [400, 700].include?(f[:weight]) }
+      others  = faces - upright
+
+      expect(upright.map { |f| f[:woff2] }).to all(match(described_class::PRELOADED_FONTS))
+      expect(others.map { |f| f[:woff2] }).to all(satisfy { |key| !key.match?(described_class::PRELOADED_FONTS) })
+      expect(upright.length).to eq(2)
+    end
+  end
 end
