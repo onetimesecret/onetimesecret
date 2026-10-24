@@ -80,7 +80,14 @@ const eagerMessages: DefineLocaleMessage | undefined = Object.entries(eagerModul
 const messageLoads = new Map<string, Promise<LocaleMessages>>();
 if (eagerMessages) messageLoads.set(EAGER_LOCALE, Promise.resolve(eagerMessages));
 
-const hasLocaleMessages = (locale: string): boolean =>
+/**
+ * Whether this build has messages for `locale`: bundled (en) or a lazy chunk.
+ * True means loadLocaleMessages() has something to import, not that the import
+ * will succeed. The language store drops a locale the server lists but this
+ * build has no messages for (languageStore.ts, loadSupportedLocales), so
+ * nothing activates it.
+ */
+export const hasLocaleMessages = (locale: string): boolean =>
   messageLoads.has(locale) || lazyLoaders.has(locale);
 
 /**

@@ -1,6 +1,6 @@
 // src/shared/stores/languageStore.ts
 
-import { setGlobalLocale } from '@/i18n';
+import { hasLocaleMessages, setGlobalLocale } from '@/i18n';
 import { getBootstrapValue } from '@/services/bootstrap.service';
 import type { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { localeCodeSchema } from '@/schemas/i18n/locale';
@@ -121,8 +121,10 @@ export const useLanguageStore = defineStore('language', () => {
    * follows a customer swapped in by an auth refresh.
    *
    * Order: account preference > in-session selection > custom-domain brand
-   * locale > device locale > the installation's default_locale, when it is
-   * supported > DEFAULT_LOCALE. DEFAULT_LOCALE ends the list even when the
+   * locale > device locale > the installation's default_locale > DEFAULT_LOCALE,
+   * each taken only when it is among the supported locales (the operator's
+   * list less the locales this build has no messages for, see
+   * loadSupportedLocales). DEFAULT_LOCALE ends the list even when the
    * operator's locale list omits it (see resolveSupportedLocale), so a config
    * gap never leaves the visitor without a locale to start in.
    */
@@ -156,7 +158,9 @@ export const useLanguageStore = defineStore('language', () => {
 
   /**
    * The supported locale `locale` normalizes to (it-IT -> it_IT, de-CH -> de),
-   * or null when none matches. Loads and activates nothing.
+   * or null when none matches. A listed locale this build has no messages for
+   * is not a supported locale here (see loadSupportedLocales), so it resolves
+   * to null like an unknown one. Loads and activates nothing.
    *
    * DEFAULT_LOCALE itself is always accepted, listed or not: its messages are
    * bundled, and it is preferredLocale()'s last resort, so an operator's
@@ -311,9 +315,25 @@ export const useLanguageStore = defineStore('language', () => {
     return primaryMatch || validatedLocale;
   };
 
+  /**
+   * The operator's locale list, less any locale this build has no messages
+   * for. The two can disagree: the server keeps a configured locale in
+   * supported_locales when its file is missing (load_all_locales_from_source
+   * in lib/onetime/initializers/load_locales.rb logs "Missing locale file"
+   * and goes on to the next), and a frontend build may have been given a
+   * different set of files. Dropping such a locale here keeps every reader of
+   * the list consistent: the preference hierarchy and resolveSupportedLocale
+   * pass over it as they pass over an unsupported one, so activating it can
+   * never fail the first navigation (src/router/guards.routes.ts fails the
+   * initial navigation on a locale that does not load), and the language
+   * pickers do not offer a language that cannot be shown. DEFAULT_LOCALE is
+   * bundled with the entry and is never dropped.
+   */
   const loadSupportedLocales = () => {
     const locales = bootstrapSupportedLocales.value;
-    supportedLocales.value = Array.isArray(locales) ? locales : [];
+    supportedLocales.value = (Array.isArray(locales) ? locales : []).filter(
+      (locale) => locale === DEFAULT_LOCALE || hasLocaleMessages(locale)
+    );
   };
 
   const loadStoredLocale = () => {

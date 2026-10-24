@@ -10,6 +10,13 @@
 // fails here until it either calls useUnrecoverableContent() itself, or
 // renders inside a view that does, or keeps the value without rendering it,
 // and is listed below with that reason.
+//
+// The net is as wide as ONE_TIME_VALUE and no wider: a one-time value that
+// reaches the frontend under a third identifier is not caught until the
+// pattern names it. Today's set is complete (the account API token in
+// APIKeyForm.vue is re-fetched by ApiSettings.vue through accountStore.fetch(),
+// so a reload does not lose it); widen the pattern when a response gains a
+// field a reload would destroy.
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
