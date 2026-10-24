@@ -201,25 +201,41 @@
     ensurePlan.value = plan;
   });
 
+  /**
+   * True while an opener of the shared action dialog is in flight: the ensure
+   * preview, or the delete's elevation prompt. Both end in `requestAction`, so
+   * two at once would convert the dialog the first opened into the second's
+   * action under the operator. One opener at a time, and the buttons that start
+   * one stay busy meanwhile (the OrganizationMembersSection pattern).
+   */
+  const opening = ref(false);
+
   async function onEnsure(): Promise<void> {
-    resetEnsurePreview();
-    ensurePlan.value = null;
-    const ok = await runEnsurePreview();
-    // Re-read through an asserted local: the mutation closure assigned the
-    // ref, which TS's narrowing (from the `= null` above) cannot see across
-    // the await — without the assertion it collapses the type to never.
-    const plan = ensurePlan.value as ColonelDomainConfigsEnsureDetails | null;
-    if (!ok || !plan) return;
-    if (plan.created.length === 0) {
-      // Race: another operator materialized the records between our load and
-      // this preview. Nothing to create — resync the rows instead of opening
-      // a no-op confirm dialog.
+    if (opening.value) return;
+    opening.value = true;
+    try {
+      resetEnsurePreview();
       ensurePlan.value = null;
-      notifications.show(t('web.admin.domains.configs.ensure.nothingMissing'), 'info');
-      await loadConfigs();
-      return;
+      const ok = await runEnsurePreview();
+      // Re-read through an asserted local: the mutation closure assigned the
+      // ref, which TS's narrowing (from the `= null` above) cannot see across
+      // the await — without the assertion it collapses the type to never.
+      const plan = ensurePlan.value as ColonelDomainConfigsEnsureDetails | null;
+      if (!ok || !plan) return;
+      if (plan.created.length === 0) {
+        // Race: another operator materialized the records between our load and
+        // this preview. Nothing to create — resync the rows instead of opening
+        // a no-op confirm dialog.
+        ensurePlan.value = null;
+        notifications.show(t('web.admin.domains.configs.ensure.nothingMissing'), 'info');
+        await loadConfigs();
+        return;
+      }
+      if (dialogOpen.value) return;
+      requestAction('ensure');
+    } finally {
+      opening.value = false;
     }
-    requestAction('ensure');
   }
 
   // ---- The shared guarded-action dialog (ensure apply + delete) --------------
@@ -283,7 +299,15 @@
   async function requestDelete(kind: DomainConfigKind): Promise<void> {
     // DeleteDomainConfig is TIER 1 (#4327): elevate before the dialog opens.
     // Ensure is un-gated and opens straight away. Cancel opens nothing.
-    if (!(await ensureElevated())) return;
+    if (opening.value) return;
+    opening.value = true;
+    let elevated = false;
+    try {
+      elevated = await ensureElevated();
+    } finally {
+      opening.value = false;
+    }
+    if (!elevated || dialogOpen.value) return;
     deleteKind.value = kind;
     requestAction('delete');
   }
@@ -385,6 +409,7 @@
     <DomainConfigsHeader
       :ensure-visible="ensureVisible"
       :ensure-loading="ensurePreviewLoading"
+      :ensure-disabled="opening"
       :ensure-error="ensurePreviewError"
       @ensure="onEnsure" />
 
@@ -452,6 +477,7 @@
         :editable="row.editable"
         :config="row.config"
         :expanded="!!expanded[row.kind]"
+        :disabled="opening"
         @toggle="toggleExpand(row.kind)"
         @edit="openEdit(row.kind)"
         @delete="requestDelete(row.kind)" />

@@ -64,6 +64,10 @@ import DomainConfigsSection from '@/apps/admin/components/domains/DomainConfigsS
 import { useAdminDomains } from '@/apps/admin/stores/useAdminDomains';
 import { createTestI18n } from '@tests/setup';
 import { startElevated } from '@tests/apps/admin/support/elevation';
+import {
+  __resetColonelElevationState,
+  useColonelElevation,
+} from '@/apps/admin/composables/useColonelElevation';
 
 const i18n = createTestI18n();
 
@@ -834,6 +838,178 @@ describe('DomainConfigsSection', () => {
         .find('[data-testid="config-field-related_origins"]')
         .attributes('aria-describedby');
       expect(wrapper.find(`#${hintId}`).text()).toBe('web.admin.domains.configs.edit.originsHint');
+    });
+  });
+
+  /**
+   * Ensure's preview and delete's step-up prompt both end in the ONE shared
+   * action dialog. Two openers in flight at once would convert the dialog the
+   * first opened into the second's action under the operator (preview pending,
+   * Delete clicked, prompt completed, then "ensure" becomes "delete"). One
+   * opener at a time; the buttons that start one are held meanwhile.
+   */
+  describe('one opener of the shared dialog at a time', () => {
+    function deferred<T>() {
+      let resolve!: (value: T) => void;
+      const promise = new Promise<T>((res) => {
+        resolve = res;
+      });
+      return { promise, resolve };
+    }
+
+    const ensureButton = () => wrapper.find('[data-testid="config-ensure"]');
+    const deleteButton = (kind = 'sso') => wrapper.find(`[data-testid="config-delete-${kind}"]`);
+    const dialog = () => wrapper.find('[data-testid="admin-confirm-dialog"]');
+
+    // No live window: the delete opener goes through the prompt, which is
+    // what gives it an await to be interrupted in.
+    const unelevated = () => __resetColonelElevationState({ statusRead: true });
+
+    it('holds Delete while the ensure preview is in flight, then opens the ensure dialog', async () => {
+      unelevated();
+      const preview = deferred<{ data: unknown }>();
+      mockApi.post.mockReturnValueOnce(preview.promise);
+      wrapper = mountSection();
+      await flushPromises();
+      const elevation = useColonelElevation();
+
+      await ensureButton().trigger('click');
+      await flushPromises();
+      expect(mockApi.post).toHaveBeenCalledTimes(1);
+      expect(deleteButton().attributes('disabled')).toBeDefined();
+
+      // A disabled button swallows the click; the opener is never entered.
+      await deleteButton().trigger('click');
+      await flushPromises();
+      expect(elevation.promptOpen.value).toBe(false);
+      // And the opener itself refuses while the hold is up (the row's emit,
+      // past the disabled attribute): no prompt for a dead-on-arrival delete.
+      wrapper.findComponent({ name: 'DomainConfigRow' }).vm.$emit('delete');
+      await flushPromises();
+      expect(elevation.promptOpen.value).toBe(false);
+
+      preview.resolve({ data: ensureAck(true) });
+      await flushPromises();
+
+      expect(dialog().exists()).toBe(true);
+      expect(dialog().text()).toContain('web.admin.domains.configs.ensure.confirmTitle');
+      expect(dialogInput(wrapper).exists()).toBe(false);
+      expect(elevation.promptOpen.value).toBe(false);
+      // Released once the opener finished.
+      expect(deleteButton().attributes('disabled')).toBeUndefined();
+    });
+
+    it('holds Ensure while the delete prompt is open, then opens the delete dialog', async () => {
+      unelevated();
+      wrapper = mountSection();
+      await flushPromises();
+      const elevation = useColonelElevation();
+
+      await deleteButton('sso').trigger('click');
+      await flushPromises();
+      expect(elevation.promptOpen.value).toBe(true);
+      expect(ensureButton().attributes('disabled')).toBeDefined();
+      // Other rows' Delete buttons are held too.
+      expect(deleteButton('signin').attributes('disabled')).toBeDefined();
+
+      await ensureButton().trigger('click');
+      await flushPromises();
+      expect(mockApi.post).not.toHaveBeenCalled();
+      // The opener itself refuses while the hold is up (the header's emit,
+      // past the disabled attribute): no preview request.
+      wrapper.findComponent({ name: 'DomainConfigsHeader' }).vm.$emit('ensure');
+      await flushPromises();
+      expect(mockApi.post).not.toHaveBeenCalled();
+
+      elevation.resolvePrompt(true);
+      await flushPromises();
+
+      expect(dialog().exists()).toBe(true);
+      expect(dialog().text()).toContain('web.admin.domains.configs.delete.confirmTitle');
+      expect(dialogInput(wrapper).exists()).toBe(true);
+      expect(mockApi.post).not.toHaveBeenCalled();
+      expect(ensureButton().attributes('disabled')).toBeUndefined();
+    });
+
+    it('releases the hold when the operator cancels the delete prompt, opening nothing', async () => {
+      unelevated();
+      wrapper = mountSection();
+      await flushPromises();
+      const elevation = useColonelElevation();
+
+      await deleteButton('sso').trigger('click');
+      await flushPromises();
+      elevation.resolvePrompt(false);
+      await flushPromises();
+
+      expect(dialog().exists()).toBe(false);
+      expect(ensureButton().attributes('disabled')).toBeUndefined();
+      expect(deleteButton('sso').attributes('disabled')).toBeUndefined();
+    });
+
+    it('releases the hold when the preview fails, opening nothing', async () => {
+      unelevated();
+      mockApi.post.mockRejectedValueOnce(axiosError(500, { error: 'boom' }));
+      wrapper = mountSection();
+      await flushPromises();
+
+      await ensureButton().trigger('click');
+      await flushPromises();
+
+      expect(dialog().exists()).toBe(false);
+      expect(wrapper.find('[data-testid="config-ensure-error"]').exists()).toBe(true);
+      expect(deleteButton('sso').attributes('disabled')).toBeUndefined();
+    });
+
+    // The post-await guard, independent of the hold: an opener that finds the
+    // dialog already open when its await returns does not re-target it.
+    describe('an opener whose await returns with the dialog already open', () => {
+      it('delete does not convert an open ensure dialog', async () => {
+        unelevated();
+        mockApi.post.mockResolvedValueOnce({ data: ensureAck(true) });
+        wrapper = mountSection();
+        await flushPromises();
+        const elevation = useColonelElevation();
+
+        await ensureButton().trigger('click');
+        await flushPromises();
+        expect(dialog().text()).toContain('web.admin.domains.configs.ensure.confirmTitle');
+
+        // The hold is released (the ensure opener finished), so the row's
+        // Delete is clickable in this stubbed-headlessui render. Its opener
+        // awaits the prompt and returns to find the dialog open.
+        await deleteButton('sso').trigger('click');
+        await flushPromises();
+        expect(elevation.promptOpen.value).toBe(true);
+        elevation.resolvePrompt(true);
+        await flushPromises();
+
+        expect(dialog().exists()).toBe(true);
+        expect(dialog().text()).toContain('web.admin.domains.configs.ensure.confirmTitle');
+        expect(dialog().text()).not.toContain('web.admin.domains.configs.delete.confirmTitle');
+        expect(dialogInput(wrapper).exists()).toBe(false);
+      });
+
+      it('ensure does not convert an open delete dialog', async () => {
+        startElevated();
+        const preview = deferred<{ data: unknown }>();
+        mockApi.post.mockReturnValueOnce(preview.promise);
+        wrapper = mountSection();
+        await flushPromises();
+
+        await deleteButton('sso').trigger('click');
+        await flushPromises();
+        expect(dialog().text()).toContain('web.admin.domains.configs.delete.confirmTitle');
+
+        await ensureButton().trigger('click');
+        await flushPromises();
+        preview.resolve({ data: ensureAck(true) });
+        await flushPromises();
+
+        expect(dialog().text()).toContain('web.admin.domains.configs.delete.confirmTitle');
+        expect(dialog().text()).not.toContain('web.admin.domains.configs.ensure.confirmTitle');
+        expect(dialogInput(wrapper).exists()).toBe(true);
+      });
     });
   });
 
