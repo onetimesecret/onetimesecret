@@ -72,7 +72,13 @@ module ColonelAPI
 
           handle_result_status
 
-          OT.info "[RemoveMembership] org=#{org.extid} member=#{customer.extid} status=#{result.status}"
+          OT.info "[RemoveMembership] org=#{org.extid} member=#{customer.extid} status=#{result.status} " \
+                  "default_org_cleanup=#{result.default_org_cleanup}"
+          # The removal stands, so the response reports it as done. A pointer
+          # that may have survived is logged for `customers doctor MEMBER --repair`.
+          if result.default_org_cleanup == :failed
+            OT.lw "[RemoveMembership] #{customer.extid} default_org_id may still name #{org.extid}"
+          end
 
           success_data
         end
