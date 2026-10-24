@@ -123,4 +123,102 @@ RSpec.describe 'Simple-mode colonel password re-authentication (#4331)', type: :
     expect(last_activity_at(new_sid)).to be_within(5).of(Familia.now.to_i)
     expect(colonel_info_status).to eq(200)
   end
+
+  # The exemption is matched on the method and SCRIPT_NAME + PATH_INFO as the
+  # auth strategy sees them (AdminSessionLifetime#admin_reauth_exempt?), while
+  # Otto dispatches on its own normalized path (one trailing slash stripped).
+  # These pin the request forms where the two could disagree: each one either
+  # reaches the handler AND the exemption, or neither. There is no
+  # Rack::MethodOverride in the stack, so `_method` is inert.
+  #
+  # The ABSOLUTE bound is lapsed here, not the idle one: any request that is
+  # not refused (a 404 included) counts as session activity by design (see the
+  # AdminSessionLifetime header), which would reopen an idle window and hide
+  # whether a form was admitted. Only a verified re-authentication re-stamps
+  # authenticated_at, so a colonel GET still answering 401 afterwards proves
+  # the form did not get through.
+  describe 'which request forms the exemption admits' do
+    before do
+      sign_in!
+      conf = YAML.load(YAML.dump(OT.conf))
+      ((conf['site'] ||= {})['admin'] ||= {})['session'] =
+        { 'enabled' => true, 'idle_timeout' => 0, 'absolute_timeout' => 60 }
+      OT.send(:conf=, conf)
+      @token     = fetch_csrf_token
+      @signed_at = Familia.now.to_i - 120
+      rewrite_session_blob { |data| data['authenticated_at'] = @signed_at }
+      @old_sid = current_session_id
+      expect(colonel_info_status).to eq(401)
+    end
+
+    def reauthenticate_at(path, with_password, extra = {})
+      post path,
+        { password: with_password, shrimp: @token }.merge(extra).to_json,
+        { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json', 'HTTP_X_CSRF_TOKEN' => @token }
+      last_response
+    end
+
+    def expect_window_still_lapsed
+      expect(current_session_id).to eq(@old_sid)
+      expect(session_blob['authenticated_at'].to_i).to eq(@signed_at)
+      expect(colonel_info_status).to eq(401)
+    end
+
+    def expect_reauthenticated(response)
+      expect(response.status).to eq(200), response.body
+      expect(JSON.parse(response.body).dig('record', 'reauthenticated')).to be(true)
+      expect(current_session_id).not_to eq(@old_sid)
+      expect(colonel_info_status).to eq(200)
+    end
+
+    it 'admits the trailing-slash form, which Otto routes to the handler', :aggregate_failures do
+      wrong = reauthenticate_at('/api/colonel/reauthenticate/', 'not-the-password')
+      expect(wrong.status).to eq(403), wrong.body
+      expect(JSON.parse(wrong.body)).to include('error_code' => 'reauthentication_failed')
+      expect_window_still_lapsed
+
+      expect_reauthenticated(reauthenticate_at('/api/colonel/reauthenticate/', password))
+    end
+
+    it 'admits a query string (PATH_INFO carries none)' do
+      expect_reauthenticated(reauthenticate_at('/api/colonel/reauthenticate?x=1', password))
+    end
+
+    # The auth strategy sees the decoded PATH_INFO, the same one Otto
+    # dispatches on, so the encoded form is the same request, not a bypass.
+    it 'treats a percent-encoded path as the same request' do
+      expect_reauthenticated(reauthenticate_at('/api/colonel/%72eauthenticate', password))
+    end
+
+    it 'does not admit a doubled slash, and nothing reaches the handler', :aggregate_failures do
+      response = reauthenticate_at('/api/colonel//reauthenticate', password)
+      expect(response.status).to eq(404), response.body
+      expect_window_still_lapsed
+    end
+
+    it 'does not admit a second trailing slash', :aggregate_failures do
+      response = reauthenticate_at('/api/colonel/reauthenticate//', password)
+      expect(response.status).to eq(404), response.body
+      expect_window_still_lapsed
+    end
+
+    it 'does not admit the path in another case', :aggregate_failures do
+      response = reauthenticate_at('/api/colonel/REAUTHENTICATE', password)
+      expect(response.status).to eq(404), response.body
+      expect_window_still_lapsed
+    end
+
+    it 'treats a _method override as inert: the request stays a POST', :aggregate_failures do
+      wrong = reauthenticate_at('/api/colonel/reauthenticate?_method=DELETE', 'not-the-password', _method: 'DELETE')
+      expect(wrong.status).to eq(403), wrong.body
+      expect(JSON.parse(wrong.body)).to include('error_code' => 'reauthentication_failed')
+      expect_window_still_lapsed
+    end
+
+    it 'does not admit GET on the path, with or without an override', :aggregate_failures do
+      get '/api/colonel/reauthenticate', { password: password, _method: 'POST' }, { 'HTTP_ACCEPT' => 'application/json' }
+      expect(last_response.status).to eq(404), last_response.body
+      expect_window_still_lapsed
+    end
+  end
 end

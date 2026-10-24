@@ -414,6 +414,21 @@ It answers `200` with `{ record: { reauthenticated: true, authenticated_at },
 details: { session_rotated } }`. A wrong password answers **403**
 `reauthentication_failed` and changes nothing.
 
+**Accounts with two-factor authentication (full auth mode).** The endpoint takes
+a password only, and a sign-in for such an account also asks for the second
+factor. So in full mode an account with any second factor enrolled (TOTP,
+recovery codes or a passkey/security key) gets **403**
+`reauthentication_unavailable` whatever password it sends, and signs in again
+to restore admin access. The same answer is returned when the second-factor
+state cannot be read (no auth account matches the customer, or the auth
+database is unavailable). Nothing is re-stamped or rotated. Simple mode has no
+second factor and is unaffected.
+
+If the password verifies but the session id cannot be renewed, the request
+answers **403** `reauthentication_failed` and nothing is re-stamped. When the
+session nevertheless moved to a new id, that id keeps the old idle-activity
+timestamp, so the idle bound stays lapsed.
+
 This is the one admin API request the lifetime bounds do not refuse: exactly
 `POST` on exactly that path (`AdminSessionLifetime::REAUTH_EXEMPT`). The
 exemption does not open the rest of the surface:
@@ -430,10 +445,11 @@ exemption does not open the rest of the surface:
 Audit: success is `colonel.reauthenticate` on the operator trail; a failure is
 `colonel.reauthenticate` with `result: failure` in the security trail
 (`reason: session_not_rotated` when the password verified but the session id
-could not be renewed).
+could not be renewed; `reason: mfa_required` for a full-mode account refused
+for its second factor).
 
-**Limits.** An account with no password (SSO-only) cannot use this endpoint and
-signs in again. Re-stamping `authenticated_at` also restarts the site-wide
+**Limits.** An account with no password (SSO-only), or in full mode an account
+with a second factor, cannot use this endpoint and signs in again. Re-stamping `authenticated_at` also restarts the site-wide
 30-day absolute session lifetime in simple mode; in full mode the active-session
 row still counts that lifetime from the original sign-in.
 

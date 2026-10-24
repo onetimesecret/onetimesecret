@@ -27,13 +27,16 @@ module Onetime
       #
       # ## Which organizations may be chosen
       #
-      # Only one the customer already belongs to: an ACTIVE
-      # OrganizationMembership (a pending invitation is not membership) that
-      # the organization's member set also lists (the set OrganizationLoader
-      # reads, so a record the loader would ignore is refused rather than
-      # written), on an organization that is not archived (the loader skips
-      # archived ones). An operator cannot use this verb to give a customer
-      # access to anything: membership is AddMembership's job.
+      # Only one the customer already belongs to, on every record that says
+      # so: an ACTIVE OrganizationMembership (a pending invitation is not
+      # membership), the organization's member set, and the customer's own
+      # organization list. The last is the one OrganizationLoader picks the
+      # default from (Onetime::MembershipSnapshot#organizations, i.e.
+      # customer.organization_instances), so an organization missing from it
+      # is refused as :not_member rather than written as a preference the
+      # loader would ignore. The organization must also not be archived (the
+      # loader skips archived ones). An operator cannot use this verb to give
+      # a customer access to anything: membership is AddMembership's job.
       #
       # ## Audit (CONTRACT 4: the op owns the event)
       #
@@ -145,8 +148,16 @@ module Onetime
             @organization.objid, @customer.objid
           )
           return false unless membership&.active?
+          return false unless @organization.member?(@customer)
 
-          @organization.member?(@customer)
+          listed_for_customer?
+        end
+
+        # The list OrganizationLoader#choose_default reads.
+        def listed_for_customer?
+          Onetime::MembershipSnapshot.for(@customer).organizations.any? do |org|
+            org.objid.to_s == @organization.objid.to_s
+          end
         end
 
         def change_detail

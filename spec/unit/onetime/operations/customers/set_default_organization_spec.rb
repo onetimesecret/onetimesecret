@@ -7,8 +7,9 @@
 # `POST /api/colonel/users/:user_id/default-organization` and
 # `bin/ots customers set-default-org`.
 #
-# Real datastore: eligibility is decided by the membership record, the
-# organization's member set and its archived flag together, and the result is
+# Real datastore: eligibility is decided by the membership record, both sides
+# of the membership index (the organization's member set and the customer's
+# own organization list) and the archived flag together, and the result is
 # read back through OrganizationLoader, so doubles would not prove the rule.
 # The audit sink is stubbed (message expectations; the write paths swallow
 # their own errors).
@@ -144,12 +145,45 @@ RSpec.describe Onetime::Operations::Customers::SetDefaultOrganization, :datastor
       include_examples 'a refused default change', :not_member
     end
 
+    # Eligibility needs BOTH halves: the active membership record AND the
+    # organization member set OrganizationLoader reads. A record whose customer
+    # has left the set (a half-removed membership) is not membership either.
+    context 'when the membership record is active but the member set no longer lists the customer' do
+      let(:target_org) { @team }
+
+      before do
+        @team.members.remove(@member)
+        expect(Onetime::OrganizationMembership.find_by_org_customer(@team.objid, @member.objid)).to be_active
+        expect(@team.member?(@member)).to be(false)
+      end
+
+      include_examples 'a refused default change', :not_member
+    end
+
     context 'when the organization is archived' do
       let(:target_org) { @team }
 
       before { @team.archive! }
 
       include_examples 'a refused default change', :archived
+    end
+
+    # OrganizationLoader picks the default from the customer's OWN
+    # organization list (MembershipSnapshot#organizations ->
+    # customer.organization_instances), not from the organization's member
+    # set. When the two disagree, a written preference would be ignored, so it
+    # is refused rather than reported as applied.
+    context "when the organization lists the customer but the customer's own list does not" do
+      let(:target_org) { @team }
+
+      before { @member.untrack_participation_in(@team.members.dbkey) }
+
+      it 'is the drift this context needs: one side lists the pair, the other does not', :aggregate_failures do
+        expect(@team.member?(@member)).to be(true)
+        expect(Onetime::Customer.load(@member.objid).organization_instances.map(&:objid)).not_to include(@team.objid)
+      end
+
+      include_examples 'a refused default change', :not_member
     end
 
     it 'refuses an anonymous customer without reading memberships' do
