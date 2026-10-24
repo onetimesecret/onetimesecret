@@ -262,7 +262,7 @@ function buildI18nInstance(onActivate?: (locale: string) => void) {
    */
   const composer = instance.global as GlobalComposer;
 
-  // Locales whose messages this composer holds, tracked here rather than
+  // Locales whose messages are registered in this composer, tracked here rather than
   // inferred from composer.availableLocales (the keys of its message store).
   const registered = new Set<string>(Object.keys(messages));
 

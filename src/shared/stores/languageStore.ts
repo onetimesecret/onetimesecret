@@ -431,11 +431,11 @@ export const useLanguageStore = defineStore('language', () => {
    * and goes on to the next), and a frontend build may have been given a
    * different set of files. Dropping such a locale here keeps every reader of
    * the list consistent: the preference hierarchy and resolveSupportedLocale
-   * pass over it as they pass over an unsupported one, so the visitor never
-   * lands on the fallback and LocaleLoadNotice for a locale that cannot load
-   * (see recoverFromLocaleLoadFailure), and the language pickers do not
-   * offer a language that cannot be shown. DEFAULT_LOCALE is
-   * bundled with the entry and is never dropped.
+   * pass over it as they pass over an unsupported one, so the visitor is
+   * never shown the fallback and LocaleLoadNotice for a locale that cannot
+   * load (see recoverFromLocaleLoadFailure), and the language pickers do not
+   * offer a language that cannot be shown. DEFAULT_LOCALE is bundled with the
+   * entry and is never dropped.
    */
   const loadSupportedLocales = () => {
     const locales = bootstrapSupportedLocales.value;

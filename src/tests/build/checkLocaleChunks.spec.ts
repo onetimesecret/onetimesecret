@@ -4,7 +4,7 @@
  * The build-time guard for lazy locales (src/build/plugins/checkLocaleChunks.ts):
  * generated/locales/en.json loads with the entries, every other locale module
  * stays out of the entries and out of every chunk they import statically, so
- * it is fetched only when its locale is activated, and no chunk holds more
+ * it is fetched only when its locale is activated, and no chunk contains more
  * than one locale, so a visitor downloads only the language they need.
  *
  * Run:
@@ -99,7 +99,7 @@ describe('findLocaleChunkViolations', () => {
     ]);
   });
 
-  it('ignores a locale that only an unloaded chunk holds', () => {
+  it('ignores a locale found only in an unloaded chunk', () => {
     const bundle = soundBundle();
     // A dynamic import is not in `imports`, so this chunk loads with nothing.
     bundle['assets/feature-GGGG.js'] = chunk('assets/feature-GGGG.js', {
@@ -109,7 +109,7 @@ describe('findLocaleChunkViolations', () => {
     expect(findLocaleChunkViolations(bundle)).toEqual([]);
   });
 
-  it('reports a lazy chunk that holds more than one locale', () => {
+  it('reports a lazy chunk that contains more than one locale', () => {
     const bundle = soundBundle();
     bundle['assets/bg-DDDD.js'].moduleIds = [locale('bg'), locale('nl')];
     delete bundle['assets/nl-EEEE.js'];
@@ -120,7 +120,7 @@ describe('findLocaleChunkViolations', () => {
     ]);
   });
 
-  it('counts English when a lazy chunk holds it with another locale', () => {
+  it('counts English when a lazy chunk contains it with another locale', () => {
     const bundle = soundBundle();
     bundle['assets/bg-DDDD.js'].moduleIds = [locale('en'), locale('bg')];
 
