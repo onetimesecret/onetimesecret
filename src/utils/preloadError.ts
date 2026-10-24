@@ -16,23 +16,30 @@
 // attemptForcedPageLoad also refuses while the page shows content a reload
 // would destroy (src/utils/unrecoverableContent.ts): a revealed secret exists
 // only in the tab once the reveal request has run, and a reload of that page
-// shows "viewed or expired". There the import is left to fail, and the view's
-// own fallback (MarkdownRenderer shows the source as plain text) is the final
-// state.
+// shows "viewed or expired". There the view's own fallback (MarkdownRenderer
+// shows the source as plain text) is the final state.
 //
 // A locale chunk is a chunk like any other: a language switch whose messages
 // fail to load reloads the page under the same bound, and when the reload is
 // refused the language store keeps the locale it shows and records the
 // failure for LocaleLoadNotice (src/shared/stores/languageStore.ts).
 //
-// Vite's preload helper rethrows the error unless the event was
-// default-prevented. A refused reload leaves the event alone, so the dynamic
-// import rejects and its caller (the router, a component) reports the failure
-// instead of the page reloading. The handler remembers that error
-// (wasLeftToFail), so the router can tell a route chunk that failed with the
-// reload declined from any other navigation error and show RouteLoadNotice,
-// with a manual reload button, for it (src/utils/routeLoadFailure.ts); a
-// component that imports a chunk itself renders its own fallback.
+// The import is left to fail in every case, reload or not. Vite's preload
+// helper rethrows the error unless the event is default-prevented, and this
+// handler never prevents it, so the dynamic import rejects with the error Vite
+// attached to the event and its caller (the router, a component) fails as it
+// would for any load error. The handler remembers that error
+// (isChunkLoadError), so the router can tell a route chunk that failed from
+// any other navigation error and record it for RouteLoadNotice, with a manual
+// reload button (src/utils/routeLoadFailure.ts); a component that imports a
+// chunk itself renders its own fallback.
+//
+// The failure is on record before reload() is called, which is the order
+// ADR-046 requires of every forced page load: browsers do not report whether
+// a `beforeunload` prompt was cancelled. When the reload proceeds, the page
+// and its record go together; when the user keeps the page (unsubmitted
+// input, the prompt dismissed), the notice stays up and explains the link
+// that did nothing. Nothing is retried.
 //
 // Only dynamic imports reach this handler: Vite dispatches the event from its
 // preload helper. A chunk of the entry's static import graph that fails to
@@ -50,28 +57,27 @@ import {
 // Set once a failed chunk has made this page call reload(). See reloadPending.
 let reloading = false;
 
-// The errors of imports left to fail (the event not default-prevented), as
-// Vite attached them to the event and rethrows them. See wasLeftToFail.
-const leftToFail = new WeakSet<object>();
+// The errors of failed chunks, as Vite attached them to the event and
+// rethrows them to the import's caller. See isChunkLoadError.
+const chunkErrors = new WeakSet<object>();
 
 /**
- * Handles one `vite:preloadError` event: reloads the page when nothing on it
- * would be lost and the forced page load bound allows it, otherwise logs the
- * cause and leaves the import to fail.
+ * Handles one `vite:preloadError` event: records the failure, then reloads
+ * the page when nothing on it would be lost and the forced page load bound
+ * allows it, otherwise logs the cause. The import fails either way.
  */
 export function handlePreloadError(
   event: Event,
   deps: ForcedPageLoadDeps = {}
 ): ForcedPageLoadResult {
+  const cause = (event as { payload?: unknown }).payload;
+  if (typeof cause === 'object' && cause !== null) chunkErrors.add(cause);
+
   const result = attemptForcedPageLoad(deps);
   if (result === 'reloading') {
     reloading = true;
-    event.preventDefault();
     return result;
   }
-
-  const cause = (event as { payload?: unknown }).payload;
-  if (typeof cause === 'object' && cause !== null) leftToFail.add(cause);
 
   const why = {
     refused: 'the page shows content a reload would destroy',
@@ -90,25 +96,27 @@ export function handlePreloadError(
 
 /**
  * True once a failed chunk has started this page's reload. The import that
- * failed resolves with undefined (the event was default-prevented), so its
- * caller can still fail on it: an initial navigation whose route component did
- * not load fails, and one whose locale did not load resolves in a fallback
- * locale. startApp leaves the shell to the reload in both cases, neither
- * flagging a failure nor mounting a page the reload is about to replace.
+ * failed rejects, so its caller fails on it: an initial navigation whose route
+ * component did not load fails, and one whose locale did not load resolves in
+ * a fallback locale. startApp leaves the shell to the reload in both cases,
+ * neither flagging a failure nor mounting a page the reload is about to
+ * replace. Never cleared: a cancelled `beforeunload` prompt leaves the page
+ * up with this still true, which is why nothing but startApp's one-time
+ * decision depends on it.
  */
 export function reloadPending(): boolean {
   return reloading;
 }
 
 /**
- * Whether `error` is one this handler left to fail: the rejection of an import
- * whose chunk failed while the page declined to reload. The router records a
+ * Whether `error` is the rejection of an import whose chunk failed to load,
+ * whether or not the page is reloading for it. The router records a
  * navigation that fails with such an error for RouteLoadNotice
  * (src/utils/routeLoadFailure.ts); any other error of a navigation is not a
- * chunk the page chose not to reload for.
+ * failed chunk.
  */
-export function wasLeftToFail(error: unknown): boolean {
-  return typeof error === 'object' && error !== null && leftToFail.has(error);
+export function isChunkLoadError(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && chunkErrors.has(error);
 }
 
 /** The error Vite's helper attached to the event, as text. */

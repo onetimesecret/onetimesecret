@@ -1,9 +1,10 @@
 // src/tests/utils/routeLoadFailure.spec.ts
 //
-// A route chunk that fails while the page declines to reload: the navigation
-// rejects, and watchRouteLoads records it for RouteLoadNotice. Driven through
-// a real router and the real preload handler, so the error that reaches
-// router.onError is the object Vite would rethrow.
+// A route chunk that fails: the navigation rejects, and watchRouteLoads
+// records it for RouteLoadNotice, whether the page declined to reload or
+// requested a reload the user may cancel. Driven through a real router and
+// the real preload handler, so the error that reaches router.onError is the
+// object Vite would rethrow.
 
 import { loggingService } from '@/services/logging.service';
 import { handlePreloadError } from '@/utils/preloadError';
@@ -108,34 +109,29 @@ describe('watchRouteLoads', () => {
     expect(loggingService.error).toHaveBeenCalledWith(error);
   });
 
-  it('stays quiet about the component vue-router cannot resolve while the page reloads, until a navigation completes', async () => {
-    // reloadPending() is module state: this case runs on fresh copies.
-    vi.resetModules();
-    const fresh = await import('@/utils/preloadError');
-    const { watchRouteLoads: watchFresh, routeLoadFailure: failureFresh } =
-      await import('@/utils/routeLoadFailure');
-    const { loggingService: logger } = await import('@/services/logging.service');
-    // A lazy component whose import resolved with undefined.
-    const resolvesUndefined = (() =>
-      Promise.resolve(undefined)) as unknown as () => Promise<Component>;
-    const router = await routerWithLazyRoute(resolvesUndefined, watchFresh);
+  // The record is made before reload() is called, the ordering ADR-046
+  // requires: browsers do not say whether the beforeunload prompt (unsubmitted
+  // input on the page) was cancelled. The page here stays up after the
+  // reload was requested, as it does after a cancelled prompt.
+  it('records the navigation whose chunk failed with a reload requested, so the notice stays if the page does', async () => {
+    const error = new TypeError('Failed to fetch dynamically imported module');
+    const reload = vi.fn();
+    expect(handlePreloadError(preloadErrorEvent(error), { now: NOW, reload })).toBe('reloading');
+    expect(reload).toHaveBeenCalledTimes(1);
+    const router = await routerWithLazyRoute(() => Promise.reject(error));
 
-    // The chunk fails during the /lazy navigation and the handler reloads;
-    // the default-prevented import resolves with undefined, and vue-router
-    // reports the component it could not resolve.
-    const event = preloadErrorEvent(new Error('chunk 404'));
-    expect(fresh.handlePreloadError(event, { now: NOW, reload: vi.fn() })).toBe('reloading');
-    await expect(router.push('/lazy')).rejects.toThrow(/resolve component/);
+    await expect(router.push('/lazy')).rejects.toBe(error);
 
-    expect(failureFresh.value).toBeNull();
-    expect(logger.error).not.toHaveBeenCalled();
+    expect(routeLoadFailure.value).toEqual({ path: '/lazy' });
+    expect(router.currentRoute.value.path).toBe('/');
+    // Nothing to log: the handler logs only a reload it declined.
+    expect(loggingService.error).not.toHaveBeenCalled();
 
-    // The page is still here (the reload's beforeunload prompt was cancelled):
-    // once a navigation completes, errors are logged again.
-    await router.push('/about');
-    await expect(router.push('/lazy')).rejects.toThrow(/resolve component/);
-
-    expect(logger.error).toHaveBeenCalledTimes(1);
+    // The page stayed, and errors of later navigations are still logged.
+    const other = new Error('the route guard threw');
+    router.addRoute({ path: '/other', component: () => Promise.reject(other) });
+    await expect(router.push('/other')).rejects.toBe(other);
+    expect(loggingService.error).toHaveBeenCalledWith(other);
   });
 });
 

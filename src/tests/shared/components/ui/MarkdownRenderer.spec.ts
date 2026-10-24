@@ -4,9 +4,9 @@
 // must leave the source up as plain text and be forgotten, so that the next
 // render fetches the chunk again. A chunk import fails in two ways: the
 // import rejects, or it resolves without the module (Vite's preload helper
-// resolves with undefined once vite:preloadError was default-prevented, see
-// src/utils/preloadError.ts). The second is modelled here by a module without
-// the renderer export.
+// resolves with undefined when a vite:preloadError handler calls
+// preventDefault(); ours does not, see src/utils/preloadError.ts). The second
+// is modelled here by a module without the renderer export.
 
 import MarkdownRenderer from '@/shared/components/ui/MarkdownRenderer.vue';
 import { captureAppLogs, type AppLogs } from '@/tests/utils/appLogs';

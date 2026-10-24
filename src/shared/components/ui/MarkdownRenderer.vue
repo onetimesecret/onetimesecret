@@ -41,8 +41,9 @@
     loading ??= import('@/shared/utils/markdown')
       .then((mod) => {
         // A failed chunk import can also resolve, with undefined: Vite's
-        // preload helper does that once the entry's vite:preloadError handler
-        // has called preventDefault() to reload (src/utils/preloadError.ts).
+        // preload helper does that when a vite:preloadError handler calls
+        // preventDefault(). Ours does not (src/utils/preloadError.ts), but
+        // the guard costs nothing and keeps a non-function out of renderFn.
         if (typeof mod?.renderMarkdown !== 'function') {
           throw new Error('[markdown] the renderer chunk did not load');
         }

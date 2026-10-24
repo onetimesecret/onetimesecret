@@ -1,21 +1,25 @@
 // src/utils/routeLoadFailure.ts
 //
-// A route whose chunk failed to load while the page declined to reload
-// (src/utils/preloadError.ts: a one-time value on screen, or the ADR-046
-// bound spent). The navigation rejects and nothing
-// renders: the URL stays, and the clicked link seems to do nothing. Vite's
-// helper rethrows the error it attached to the event, the handler remembers
-// it (wasLeftToFail), and the one router.onError below turns it into state
-// for RouteLoadNotice, which names the problem and offers the manual reload
-// that fixes a stale deployment. The record goes away with the next
-// navigation that completes, or when the notice is dismissed.
+// A route whose chunk failed to load (src/utils/preloadError.ts). The
+// navigation rejects and nothing renders: the URL stays, and the clicked link
+// seems to do nothing. Vite's helper rethrows the error it attached to the
+// event, the handler remembers it (isChunkLoadError), and the one
+// router.onError below turns it into state for RouteLoadNotice, which names
+// the problem and offers the manual reload that fixes a stale deployment.
+//
+// The record is made whether or not the handler started a reload. A reload
+// that proceeds takes the record with the page; one the user cancels at the
+// browser's beforeunload prompt (unsubmitted input on the page) leaves the
+// notice up to explain the link, which is the ordering ADR-046 requires of
+// every forced page load. The record goes away with the next navigation that
+// completes, or when the notice is dismissed.
 //
 // Shared by both bundles' routers (src/router/index.ts and
 // src/apps/admin/router.ts), which is why it lives outside src/router: the
 // admin bundle must not import the customer route graph.
 
 import { loggingService } from '@/services/logging.service';
-import { reloadPending, wasLeftToFail } from '@/utils/preloadError';
+import { isChunkLoadError } from '@/utils/preloadError';
 import { computed, shallowRef } from 'vue';
 import type { Router } from 'vue-router';
 
@@ -30,31 +34,22 @@ const failure = shallowRef<RouteLoadFailure | null>(null);
 export const routeLoadFailure = computed(() => failure.value);
 
 /**
- * Registers the router hooks. A navigation that fails with an import the
- * preload handler left to fail is recorded. Any other navigation error is
- * logged, as vue-router prints it itself when no error handler is registered,
- * except while a reload of this page is pending: the import then resolved
- * with undefined and vue-router reports the missing component, which the
- * reload is about to replace. That reload normally replaces the page within
- * moments; a navigation that completes after it was requested means the page
- * stayed (the browser's beforeunload prompt was cancelled), and errors are
- * logged again from then on. A navigation that completes also clears the
+ * Registers the router hooks. A navigation that fails with a chunk load error
+ * is recorded; the preload handler already logged it when it declined to
+ * reload. Any other navigation error is logged, as vue-router prints it itself
+ * when no error handler is registered. A navigation that completes clears the
  * record.
  */
 export function watchRouteLoads(router: Router): void {
-  let stayedAfterReload = false;
   router.onError((error, to) => {
-    if (wasLeftToFail(error)) {
+    if (isChunkLoadError(error)) {
       recordRouteLoadFailure(to.fullPath);
       return;
     }
-    if (reloadPending() && !stayedAfterReload) return;
     loggingService.error(error instanceof Error ? error : new Error(String(error)));
   });
   router.afterEach((_to, _from, navigationFailure) => {
-    if (navigationFailure) return;
-    failure.value = null;
-    if (reloadPending()) stayedAfterReload = true;
+    if (!navigationFailure) failure.value = null;
   });
 }
 

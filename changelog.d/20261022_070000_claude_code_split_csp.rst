@@ -16,7 +16,9 @@ Changed
   instead of on every failure. A chunk that keeps failing now fails its
   navigation and is logged rather than reloading the tab in a loop; the page
   then says so and offers a reload button, since the clicked link would
-  otherwise seem to do nothing. From the
+  otherwise seem to do nothing. The same notice stays up when the browser
+  asks before the automatic reload (unsubmitted input on the page) and the
+  user keeps the page. From the
   moment a reveal is requested until the revealed secret, the one-time
   generated value on a receipt, or a fresh set of MFA recovery codes leaves
   the screen, the page never reloads itself, whatever the cause: the server

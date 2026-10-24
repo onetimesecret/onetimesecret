@@ -7,9 +7,10 @@
 
   /**
    * The notice for a page that could not open because its chunk failed to
-   * load while this page declined to reload itself (src/utils/preloadError.ts:
-   * a one-time value on screen, or the ADR-046 bound spent). Without it the
-   * clicked link does nothing visible.
+   * load (src/utils/preloadError.ts). It stays when the page declined to
+   * reload itself (a one-time value on screen, or the ADR-046 bound spent)
+   * and when the user kept the page at the browser's beforeunload prompt.
+   * Without it the clicked link does nothing visible.
    *
    * Inline and persistent, like StaleSessionNotice: the page content stays
    * underneath so the user can copy what they still need, and the button is a

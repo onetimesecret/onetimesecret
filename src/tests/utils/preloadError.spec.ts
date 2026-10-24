@@ -9,7 +9,7 @@ import { FORCED_RELOAD_MARKER, FORCED_RELOAD_WINDOW_MS } from '@/utils/forcedPag
 import {
   handlePreloadError,
   installPreloadErrorHandler,
-  wasLeftToFail,
+  isChunkLoadError,
 } from '@/utils/preloadError';
 import { markUnrecoverableContent } from '@/utils/unrecoverableContent';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -40,14 +40,18 @@ describe('handlePreloadError', () => {
     vi.mocked(loggingService.warn).mockClear();
   });
 
-  it('reloads once and marks the event handled so the import does not reject', () => {
+  it('reloads once and still leaves the import to reject', () => {
     const reload = vi.fn();
     const event = preloadErrorEvent();
 
     expect(handlePreloadError(event, { now: NOW, reload })).toBe('reloading');
 
     expect(reload).toHaveBeenCalledTimes(1);
-    expect(event.defaultPrevented).toBe(true);
+    // Never default-prevented: Vite's helper rethrows the error, the caller
+    // fails as for any load error, and the router's record of a failed route
+    // (made from that error) is on screen if a beforeunload prompt keeps the
+    // page here. ADR-046: enter the state, then reload.
+    expect(event.defaultPrevented).toBe(false);
     expect(sessionStorage.getItem(FORCED_RELOAD_MARKER)).toBe(String(NOW));
     expect(loggingService.error).not.toHaveBeenCalled();
     expect(loggingService.warn).not.toHaveBeenCalled();
@@ -132,7 +136,7 @@ describe('installPreloadErrorHandler', () => {
     window.dispatchEvent(event);
 
     expect(reload).toHaveBeenCalledTimes(1);
-    expect(event.defaultPrevented).toBe(true);
+    expect(event.defaultPrevented).toBe(false);
   });
 });
 
@@ -164,39 +168,36 @@ describe('reloadPending', () => {
   });
 });
 
-// The router shows RouteLoadNotice for a navigation that fails with an import
-// the handler left to fail (src/utils/routeLoadFailure.ts). It tells that
-// error from any other by identity: Vite rethrows the very object it attached
-// to the event.
-describe('wasLeftToFail', () => {
+// The router shows RouteLoadNotice for a navigation that fails with a chunk
+// load error (src/utils/routeLoadFailure.ts). It tells that error from any
+// other by identity: Vite rethrows the very object it attached to the event.
+describe('isChunkLoadError', () => {
   beforeEach(() => sessionStorage.clear());
 
   const payloadOf = (event: Event) => (event as Event & { payload: Error }).payload;
 
-  it('recognises the error of an import left to fail, refused or bounded, by identity', () => {
+  it('recognises the error of a failed chunk by identity, whatever the handler decided', () => {
+    const reloading = preloadErrorEvent('chunk 404');
+    expect(handlePreloadError(reloading, { now: NOW, reload: vi.fn() })).toBe('reloading');
+    const bounded = preloadErrorEvent('chunk 404');
+    expect(handlePreloadError(bounded, { now: NOW + 1, reload: vi.fn() })).toBe('bounded');
     const release = markUnrecoverableContent();
     const refused = preloadErrorEvent('chunk 404');
     try {
-      expect(handlePreloadError(refused, { now: NOW, reload: vi.fn() })).toBe('refused');
+      expect(handlePreloadError(refused, { now: NOW + 2, reload: vi.fn() })).toBe('refused');
     } finally {
       release();
     }
-    sessionStorage.setItem(FORCED_RELOAD_MARKER, String(NOW));
-    const bounded = preloadErrorEvent('chunk 404');
-    expect(handlePreloadError(bounded, { now: NOW + 1, reload: vi.fn() })).toBe('bounded');
 
-    expect(wasLeftToFail(payloadOf(refused))).toBe(true);
-    expect(wasLeftToFail(payloadOf(bounded))).toBe(true);
+    expect(isChunkLoadError(payloadOf(reloading))).toBe(true);
+    expect(isChunkLoadError(payloadOf(bounded))).toBe(true);
+    expect(isChunkLoadError(payloadOf(refused))).toBe(true);
     // The same message on another object is another error.
-    expect(wasLeftToFail(new Error('chunk 404'))).toBe(false);
+    expect(isChunkLoadError(new Error('chunk 404'))).toBe(false);
   });
 
-  it('does not recognise the error of an import that reloads, nor a non-error', () => {
-    const reloading = preloadErrorEvent();
-    expect(handlePreloadError(reloading, { now: NOW, reload: vi.fn() })).toBe('reloading');
-
-    expect(wasLeftToFail(payloadOf(reloading))).toBe(false);
-    expect(wasLeftToFail(undefined)).toBe(false);
-    expect(wasLeftToFail('Failed to fetch dynamically imported module')).toBe(false);
+  it('does not recognise a non-error', () => {
+    expect(isChunkLoadError(undefined)).toBe(false);
+    expect(isChunkLoadError('Failed to fetch dynamically imported module')).toBe(false);
   });
 });
