@@ -20,9 +20,10 @@
 // own fallback (MarkdownRenderer shows the source as plain text) is the final
 // state.
 //
-// A load run through withoutForcedReload never reloads either: a language
-// switch on a page already showing a locale fails in place, and the page
-// keeps that locale (src/shared/stores/languageStore.ts, setCurrentLocale).
+// A locale chunk is a chunk like any other: a language switch whose messages
+// fail to load reloads the page under the same bound, and when the reload is
+// refused the language store keeps the locale it shows and records the
+// failure for LocaleLoadNotice (src/shared/stores/languageStore.ts).
 //
 // Vite's preload helper rethrows the error unless the event was
 // default-prevented. A refused reload leaves the event alone, so the dynamic
@@ -49,26 +50,20 @@ import {
 // Set once a failed chunk has made this page call reload(). See reloadPending.
 let reloading = false;
 
-// Loads running under withoutForcedReload.
-let inPlaceLoads = 0;
-
 // The errors of imports left to fail (the event not default-prevented), as
 // Vite attached them to the event and rethrows them. See wasLeftToFail.
 const leftToFail = new WeakSet<object>();
 
-/** 'in-place': a failed chunk under withoutForcedReload, left to fail. */
-export type PreloadErrorResult = ForcedPageLoadResult | 'in-place';
-
 /**
  * Handles one `vite:preloadError` event: reloads the page when nothing on it
- * would be lost, no in-place load is running and the forced page load bound
- * allows it, otherwise logs the cause and leaves the import to fail.
+ * would be lost and the forced page load bound allows it, otherwise logs the
+ * cause and leaves the import to fail.
  */
 export function handlePreloadError(
   event: Event,
   deps: ForcedPageLoadDeps = {}
-): PreloadErrorResult {
-  const result = inPlaceLoads > 0 ? 'in-place' : attemptForcedPageLoad(deps);
+): ForcedPageLoadResult {
+  const result = attemptForcedPageLoad(deps);
   if (result === 'reloading') {
     reloading = true;
     event.preventDefault();
@@ -79,16 +74,15 @@ export function handlePreloadError(
   if (typeof cause === 'object' && cause !== null) leftToFail.add(cause);
 
   const why = {
-    'in-place': 'its load fails in place (withoutForcedReload)',
     refused: 'the page shows content a reload would destroy',
     bounded: 'the forced page load was refused (one per tab per minute, ADR-046)',
   }[result];
   const message =
     `[preload] a chunk failed to load and ${why}; the import is left to fail: ` +
     describeCause(event);
-  // A refusal and an in-place load are the page's own decisions, taken because
-  // the fallback costs less than a reload; a chunk that fails again inside the
-  // bound's window, with a reload already spent, is the page's error.
+  // A refusal is the page's own decision, taken because the fallback costs
+  // less than a reload; a chunk that fails again inside the bound's window,
+  // with a reload already spent, is the page's error.
   if (result === 'bounded') loggingService.error(new Error(message));
   else loggingService.warn(message);
   return result;
@@ -115,24 +109,6 @@ export function reloadPending(): boolean {
  */
 export function wasLeftToFail(error: unknown): boolean {
   return typeof error === 'object' && error !== null && leftToFail.has(error);
-}
-
-/**
- * Runs `load` with the forced reload off: a chunk that fails meanwhile is
- * left to fail, and `load` rejects. For a load whose failure the page absorbs
- * in place, where a reload would cost more than the failure: a language
- * switch on a page already showing a locale keeps that locale and shows
- * LocaleLoadNotice, and a reload would discard the notice and any unsaved
- * input (a secret being typed). A route chunk that fails while such a load
- * runs is left to fail too.
- */
-export async function withoutForcedReload<T>(load: () => Promise<T>): Promise<T> {
-  inPlaceLoads += 1;
-  try {
-    return await load();
-  } finally {
-    inPlaceLoads -= 1;
-  }
 }
 
 /** The error Vite's helper attached to the event, as text. */

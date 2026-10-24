@@ -8,7 +8,6 @@ import { localeCodeSchema } from '@/schemas/i18n/locale';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { localeCodes } from '@/sources/languages';
 import { useApi } from '@/shared/composables/useApi';
-import { withoutForcedReload } from '@/utils/preloadError';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 
@@ -238,15 +237,13 @@ export const useLanguageStore = defineStore('language', () => {
 
     const request = ++latestSwitch;
     pendingLocale.value = normalizedLocale;
-    // Before the first activation nothing is shown yet, and a failed chunk
-    // may reload the page: the deployment-skew recovery of
-    // src/utils/preloadError.ts. Once a locale is shown, a reload would
-    // discard LocaleLoadNotice and any unsaved input, so the switch fails in
-    // place and the caller keeps that locale.
-    const load = () => setGlobalLocale(normalizedLocale);
+    // A chunk that fails to load may reload the page: the deployment-skew
+    // recovery of src/utils/preloadError.ts, bounded by ADR-046. When the
+    // reload is refused the load rejects, and the caller keeps the locale it
+    // shows (recoverFromLocaleLoadFailure).
     let activated: boolean;
     try {
-      activated = await (currentLocale.value === null ? load() : withoutForcedReload(load));
+      activated = await setGlobalLocale(normalizedLocale);
     } finally {
       if (request === latestSwitch) pendingLocale.value = null;
     }

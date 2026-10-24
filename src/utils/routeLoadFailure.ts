@@ -1,8 +1,8 @@
 // src/utils/routeLoadFailure.ts
 //
 // A route whose chunk failed to load while the page declined to reload
-// (src/utils/preloadError.ts: a one-time value on screen, a language switch
-// in flight, or the ADR-046 bound spent). The navigation rejects and nothing
+// (src/utils/preloadError.ts: a one-time value on screen, or the ADR-046
+// bound spent). The navigation rejects and nothing
 // renders: the URL stays, and the clicked link seems to do nothing. Vite's
 // helper rethrows the error it attached to the event, the handler remembers
 // it (wasLeftToFail), and the one router.onError below turns it into state

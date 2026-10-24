@@ -19,8 +19,9 @@ Changed
 - A language whose chunk fails to load does not block the page. On the
   first load the page opens in the installation's default language, or in
   English, with a notice that names the language that failed and links to
-  the feedback form. A failed switch later keeps the current language and
-  shows the same notice.
+  the feedback form. A failed switch later reloads the page once, as any
+  chunk that fails after a deployment does; when the page declines to
+  reload, the current language stays and the same notice shows.
 
 Fixed
 -----

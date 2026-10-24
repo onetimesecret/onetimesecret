@@ -15,7 +15,8 @@ import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
 import { captureAppLogs } from '../utils/appLogs';
-import { handlePreloadError, type PreloadErrorResult } from '@/utils/preloadError';
+import type { ForcedPageLoadResult } from '@/utils/forcedPageLoad';
+import { handlePreloadError } from '@/utils/preloadError';
 import { resolve } from 'path';
 
 // zh_Hant_TW and xx_YY stand for locales whose chunks exist but fail to load:
@@ -712,16 +713,18 @@ describe('Language Store', () => {
     });
   });
 
-  // F24: a failed chunk reloads the page only before anything is shown (the
-  // deployment-skew recovery). Once a locale is active, a failed switch stays
-  // in place: the locale stays, the notice shows, and no reload discards it or
-  // the visitor's unsaved input. Each "chunk" here dispatches the event Vite's
-  // preload helper would and then fails; the real handler decides.
+  // F24: a locale chunk is a chunk like any other. One that fails to load
+  // reloads the page under the ADR-046 bound (the deployment-skew recovery),
+  // before anything is shown and on a later switch alike. When the bound
+  // refuses the reload, the switch fails: the active locale stays and the
+  // failure is recorded for LocaleLoadNotice. Each "chunk" here dispatches the
+  // event Vite's preload helper would and then fails; the real handler decides.
   describe('A failed chunk and the forced reload (F24)', () => {
-    const results: PreloadErrorResult[] = [];
+    const results: ForcedPageLoadResult[] = [];
     const reload = vi.fn();
-    // A storage with no marker, so the ADR-046 bound always allows a reload.
-    const storage = { getItem: () => null, setItem: vi.fn() };
+    // The ADR-046 marker: null allows a reload, a fresh timestamp refuses it.
+    let marker: string | null = null;
+    const storage = { getItem: () => marker, setItem: vi.fn() };
     const onPreloadError = (event: Event) =>
       results.push(handlePreloadError(event, { now: Date.now(), reload, storage }));
     const mockedFiles: string[] = [];
@@ -739,6 +742,7 @@ describe('Language Store', () => {
     beforeEach(() => {
       results.length = 0;
       reload.mockReset();
+      marker = null;
       window.addEventListener('vite:preloadError', onPreloadError);
       store = useLanguageStore();
       store.supportedLocales = ['en', 'nl', 'ko', 'pl', 'hu'];
@@ -758,31 +762,31 @@ describe('Language Store', () => {
       expect(reload).toHaveBeenCalledTimes(1);
     });
 
-    it('fails a later activation in place: no reload, the locale stays', async () => {
-      const logs = captureAppLogs();
+    it('lets a later switch reload the page too, with the active locale unchanged', async () => {
       await store.setCurrentLocale('nl');
       failChunk('pl');
 
       await expect(store.setCurrentLocale('pl')).rejects.toThrow();
 
-      expect(results).toEqual(['in-place']);
-      expect(reload).not.toHaveBeenCalled();
+      expect(results).toEqual(['reloading']);
+      expect(reload).toHaveBeenCalledTimes(1);
       expect(store.currentLocale).toBe('nl');
-      // Failing in place is the page's decision: the handler logs a warning.
-      expect(logs.warn).toHaveBeenCalledTimes(1);
-      expect(logs.error).not.toHaveBeenCalled();
     });
 
-    it('fails a later language switch in place and records it for the notice', async () => {
-      captureAppLogs();
+    it('keeps the locale and records the failure when the bound refuses the reload', async () => {
+      const logs = captureAppLogs();
       await store.setCurrentLocale('nl');
+      marker = String(Date.now());
       failChunk('hu');
 
       await expect(store.updateLanguage('hu')).rejects.toThrow();
 
-      expect(results).toEqual(['in-place']);
+      expect(results).toEqual(['bounded']);
       expect(reload).not.toHaveBeenCalled();
+      expect(store.currentLocale).toBe('nl');
       expect(store.localeLoadFailure).toEqual({ requested: 'hu', shown: 'nl' });
+      // A chunk failing with the reload already spent is the page's error.
+      expect(logs.error).toHaveBeenCalledTimes(1);
     });
   });
 
