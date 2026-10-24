@@ -39,6 +39,7 @@ export function useLanguage(options?: AsyncHandlerOptions) {
   return {
     // Expose store values through composable (wrapped in computed for reactivity)
     currentLocale: computed(() => languageStore.getCurrentLocale),
+    pendingLocale: computed(() => languageStore.pendingLocale),
     supportedLocales: computed(() => languageStore.getSupportedLocales),
     supportedLocalesWithNames: computed(() => languageStore.supportedLocalesWithNames),
 
