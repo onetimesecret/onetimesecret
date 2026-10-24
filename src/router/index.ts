@@ -10,6 +10,7 @@ import sessionRoutes from '@/apps/session/routes';
 import workspaceRoutes from '@/apps/workspace/routes';
 
 // Cross-cutting routes
+import { watchRouteLoads } from '@/utils/routeLoadFailure';
 import { installPiiQueryDevWarning } from './piiQueryGuard';
 import publicRoutes from './public.routes';
 import { keepsRoutedView } from './viewKey';
@@ -141,12 +142,14 @@ export function createAppRouter(): Router {
    * after Pinia is installed. This is necessary because guards use
    * Pinia stores (via usePageTitle, useAuthStore, etc.).
    *
-   * router.onError() is intentionally omitted to avoid redundant error handling.
-   * Router errors are already handled by:
-   * 1. Route guards via setupRouterGuards()
-   * 2. Global error boundary (globalErrorBoundary.ts)
-   * 3. useAsyncHandler composable when used in navigation guards
+   * router.onError() has one job here, through watchRouteLoads: a navigation
+   * whose chunk failed to load while the page declined to reload is recorded
+   * for RouteLoadNotice (src/utils/routeLoadFailure.ts). Every other router
+   * error is logged there and otherwise left to the handling that already
+   * exists: route guards via setupRouterGuards(), the global error boundary
+   * (globalErrorBoundary.ts) and useAsyncHandler in navigation guards.
    */
+  watchRouteLoads(router);
 
   // Dev-only: warn when PII rides in a URL query. Registered here (not in
   // setupRouterGuards) because it needs no Pinia store and is tree-shaken from

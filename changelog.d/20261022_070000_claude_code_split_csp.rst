@@ -14,7 +14,9 @@ Changed
 - A lazy chunk that fails to load reloads the page once, through the same
   one-per-tab-per-minute bound as the stale-session reload (ADR-046),
   instead of on every failure. A chunk that keeps failing now fails its
-  navigation and is logged rather than reloading the tab in a loop. From the
+  navigation and is logged rather than reloading the tab in a loop; the page
+  then says so and offers a reload button, since the clicked link would
+  otherwise seem to do nothing. From the
   moment a reveal is requested until the revealed secret, the one-time
   generated value on a receipt, or a fresh set of MFA recovery codes leaves
   the screen, the page never reloads itself, whatever the cause: the server

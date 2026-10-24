@@ -768,7 +768,9 @@ describe('Language Store', () => {
       expect(results).toEqual(['in-place']);
       expect(reload).not.toHaveBeenCalled();
       expect(store.currentLocale).toBe('nl');
-      expect(logs.error).toHaveBeenCalledTimes(1);
+      // Failing in place is the page's decision: the handler logs a warning.
+      expect(logs.warn).toHaveBeenCalledTimes(1);
+      expect(logs.error).not.toHaveBeenCalled();
     });
 
     it('fails a later language switch in place and records it for the notice', async () => {
