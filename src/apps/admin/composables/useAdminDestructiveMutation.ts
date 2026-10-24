@@ -1,9 +1,10 @@
 // src/apps/admin/composables/useAdminDestructiveMutation.ts
 
+import { getCurrentScope, onScopeDispose } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { useAdminMutation, type UseAdminMutation } from './useAdminMutation';
-import { useColonelElevation } from './useColonelElevation';
+import { useColonelElevation, type ElevationCaller } from './useColonelElevation';
 
 /**
  * A TIER 1 (destructive) admin mutation — the same surface as
@@ -51,6 +52,12 @@ import { useColonelElevation } from './useColonelElevation';
  * Only ONE retry, and only when the retry itself is not another
  * elevation_required — otherwise a server that keeps refusing would loop the
  * operator through the prompt indefinitely.
+ *
+ * The loop lives no longer than the view that started it. A 403 that arrives
+ * after the view unmounted (browser back; a failed refresh emptying its
+ * subtree) opens no prompt, and a prompt completed after the unmount retries
+ * nothing: the request is bound to the component scope through an
+ * `ElevationCaller`, and every step after an await checks it is still live.
  *
  * ## Rate limiting (#4329)
  *
@@ -146,11 +153,33 @@ export interface UseAdminDestructiveMutation<
   ensureElevated: () => Promise<boolean>;
 }
 
+/**
+ * The calling component's lifetime, for the elevation seam. Bound to the
+ * current effect scope; without one (a bare call in a spec) it is always live.
+ */
+function scopeCaller(): ElevationCaller {
+  if (!getCurrentScope()) return { live: () => true, onDispose: () => {} };
+  let disposed = false;
+  const callbacks: Array<() => void> = [];
+  onScopeDispose(() => {
+    disposed = true;
+    for (const cb of callbacks.splice(0)) cb();
+  });
+  return {
+    live: () => !disposed,
+    onDispose: (cb) => {
+      if (disposed) cb();
+      else callbacks.push(cb);
+    },
+  };
+}
+
 export function useAdminDestructiveMutation<TArgs extends unknown[]>(
   perform: (...args: TArgs) => Promise<unknown>
 ): UseAdminDestructiveMutation<TArgs> {
   const mutation = useAdminMutation(perform);
   const elevation = useColonelElevation();
+  const caller = scopeCaller();
   const { t } = useI18n();
 
   /** Append the wait and the recovery path to the server's own message. */
@@ -175,12 +204,19 @@ export function useAdminDestructiveMutation<TArgs extends unknown[]>(
     if (code !== 'needs_elevation') return false;
 
     // The server just said no window is live; a countdown still running here
-    // must not short-circuit the prompt into a blind retry.
+    // must not short-circuit the prompt into a blind retry. That is true of
+    // the shared window whoever learned it, so it is noted before the
+    // liveness check below.
     elevation.noteElevationRequired();
+
+    // The view unmounted while the request was in flight: no prompt on
+    // whatever replaced it, and no retry from here.
+    if (!caller.live()) return false;
 
     // The server refreshes what the console knows about this account's factors
     // on the same fetch that opens the prompt.
-    if (!(await elevation.requestElevation())) return false;
+    if (!(await elevation.requestElevation(caller))) return false;
+    if (!caller.live()) return false;
 
     // Exactly one retry, after the operator's gesture.
     if (await mutation.run(...args)) return true;
@@ -188,5 +224,5 @@ export function useAdminDestructiveMutation<TArgs extends unknown[]>(
     return false;
   }
 
-  return { ...mutation, run, ensureElevated: elevation.ensureElevated };
+  return { ...mutation, run, ensureElevated: () => elevation.ensureElevated(caller) };
 }

@@ -27,6 +27,7 @@ vi.mock('@/shared/composables/useApi', () => ({ useApi: () => mockApi }));
 import {
   __resetColonelElevationState,
   useColonelElevation,
+  type ElevationCaller,
 } from '@/apps/admin/composables/useColonelElevation';
 import {
   ADMIN_SESSION_EXPIRED_PREFIX,
@@ -558,6 +559,249 @@ describe('useColonelElevation — pre-prompt and re-authentication', () => {
       expect(authRefresh).not.toHaveBeenCalled();
       expect(mockApi.get).not.toHaveBeenCalled();
       expect(reloadMock).not.toHaveBeenCalled();
+    });
+  });
+});
+
+/**
+ * A request dies with its caller, and a completion settles only the prompt
+ * cycle it started in. The module-level prompt outlives any one view; without
+ * these two rules a 403 arriving after browser-back would open the prompt on
+ * the destination page and, once answered, retry a destructive verb from the
+ * dead view. The mounted-component path is in useAdminDestructiveMutation.spec.ts;
+ * these drive the seam with a hand-rolled ElevationCaller.
+ */
+describe('useColonelElevation — caller liveness and prompt cycle identity', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW * 1000);
+    __resetColonelElevationState({ statusRead: true });
+  });
+
+  afterEach(() => {
+    __resetColonelElevationState();
+    vi.useRealTimers();
+  });
+
+  /** An ElevationCaller the test disposes by hand, shaped like the composable's scopeCaller(). */
+  function fakeCaller(): { caller: ElevationCaller; dispose: () => void } {
+    let disposed = false;
+    const callbacks: Array<() => void> = [];
+    return {
+      caller: {
+        live: () => !disposed,
+        onDispose: (cb) => {
+          if (disposed) cb();
+          else callbacks.push(cb);
+        },
+      },
+      dispose: () => {
+        disposed = true;
+        for (const cb of callbacks.splice(0)) cb();
+      },
+    };
+  }
+
+  /** Whether `promise` has settled, after the microtask queue drains. */
+  async function hasSettled(promise: Promise<unknown>): Promise<boolean> {
+    let settled = false;
+    void promise.then(
+      () => (settled = true),
+      () => (settled = true)
+    );
+    await vi.advanceTimersByTimeAsync(0);
+    return settled;
+  }
+
+  describe('requestElevation with a caller', () => {
+    it('resolves false at once for a caller already disposed, and opens no prompt', async () => {
+      const elevation = useColonelElevation();
+      const { caller, dispose } = fakeCaller();
+      dispose();
+
+      await expect(elevation.requestElevation(caller)).resolves.toBe(false);
+      expect(elevation.promptOpen.value).toBe(false);
+      expect(elevation.promptGeneration.value).toBe(0);
+    });
+
+    // Scenario 6: nobody is left to act on the answer, so the prompt closes.
+    it('closes the prompt when the last live waiter is disposed', async () => {
+      const elevation = useColonelElevation();
+      const { caller, dispose } = fakeCaller();
+
+      const pending = elevation.requestElevation(caller);
+      expect(elevation.promptOpen.value).toBe(true);
+
+      dispose();
+
+      expect(elevation.promptOpen.value).toBe(false);
+      await expect(pending).resolves.toBe(false);
+    });
+
+    // Scenario 5: the shared prompt stays up for the caller still mounted, and
+    // the operator's go-ahead reaches ONLY that caller.
+    it('keeps the prompt open for a second live waiter, who alone gets the answer', async () => {
+      const elevation = useColonelElevation();
+      const first = fakeCaller();
+      const second = fakeCaller();
+
+      const firstPending = elevation.requestElevation(first.caller);
+      const secondPending = elevation.requestElevation(second.caller);
+      expect(elevation.promptOpen.value).toBe(true);
+      // One cycle, shared: the second request joined the open prompt.
+      expect(elevation.promptGeneration.value).toBe(1);
+
+      first.dispose();
+      expect(elevation.promptOpen.value).toBe(true);
+      expect(await hasSettled(firstPending)).toBe(false);
+
+      elevation.resolvePrompt(true);
+
+      await expect(secondPending).resolves.toBe(true);
+      await expect(firstPending).resolves.toBe(false);
+      expect(elevation.promptOpen.value).toBe(false);
+    });
+
+    // The default caller has no lifetime: it keeps the prompt open on its own
+    // when a scoped co-waiter leaves.
+    it('counts a caller-less request as a live waiter', async () => {
+      const elevation = useColonelElevation();
+      const scoped = fakeCaller();
+
+      const bare = elevation.requestElevation();
+      const scopedPending = elevation.requestElevation(scoped.caller);
+
+      scoped.dispose();
+      expect(elevation.promptOpen.value).toBe(true);
+
+      elevation.resolvePrompt(false);
+      await expect(bare).resolves.toBe(false);
+      await expect(scopedPending).resolves.toBe(false);
+    });
+
+    it('resolves false for a caller disposed while the prompt was open, even on a go-ahead', async () => {
+      const elevation = useColonelElevation();
+      const bystander = fakeCaller();
+      const leaver = fakeCaller();
+
+      void elevation.requestElevation(bystander.caller);
+      const pending = elevation.requestElevation(leaver.caller);
+      leaver.dispose();
+
+      elevation.resolvePrompt(true);
+      await expect(pending).resolves.toBe(false);
+    });
+  });
+
+  // Scenario 2 at the seam: the opener unmounts while the first status read
+  // is still in flight. The read completes, but it must not prompt for a view
+  // that is gone.
+  describe('ensureElevated with a caller', () => {
+    it('resolves false, without a prompt, when the caller is disposed during the status read', async () => {
+      __resetColonelElevationState();
+      let settle!: (value: { data: unknown }) => void;
+      mockApi.get.mockReturnValueOnce(
+        new Promise((resolve) => {
+          settle = resolve;
+        })
+      );
+      const elevation = useColonelElevation();
+      const { caller, dispose } = fakeCaller();
+
+      const pending = elevation.ensureElevated(caller);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(mockApi.get).toHaveBeenCalledTimes(1);
+
+      dispose();
+      settle({ data: statusPayload() });
+
+      await expect(pending).resolves.toBe(false);
+      expect(elevation.promptOpen.value).toBe(false);
+      // The read itself still landed: `enabled` is now known.
+      expect(elevation.enabled.value).toBe(true);
+    });
+
+    it('resolves false at once for a caller already disposed', async () => {
+      const elevation = useColonelElevation();
+      const { caller, dispose } = fakeCaller();
+      dispose();
+
+      await expect(elevation.ensureElevated(caller)).resolves.toBe(false);
+      expect(elevation.promptOpen.value).toBe(false);
+      expect(mockApi.get).not.toHaveBeenCalled();
+    });
+  });
+
+  // Scenario 4: a completion from cycle A, arriving after A was cancelled and
+  // B opened, must not settle B.
+  describe('resolvePrompt with a generation', () => {
+    it('is a no-op while no prompt is open', async () => {
+      const elevation = useColonelElevation();
+
+      elevation.resolvePrompt(true);
+      elevation.resolvePrompt(true, 0);
+
+      expect(elevation.promptOpen.value).toBe(false);
+      // The seam still works afterwards: a fresh request opens cycle 1.
+      const pending = elevation.requestElevation();
+      expect(elevation.promptOpen.value).toBe(true);
+      expect(elevation.promptGeneration.value).toBe(1);
+      elevation.resolvePrompt(false);
+      await expect(pending).resolves.toBe(false);
+    });
+
+    it('ignores a stale generation and leaves the newer cycle pending', async () => {
+      const elevation = useColonelElevation();
+
+      const first = elevation.requestElevation();
+      const genA = elevation.promptGeneration.value;
+      elevation.resolvePrompt(false, genA);
+      await expect(first).resolves.toBe(false);
+
+      const second = elevation.requestElevation();
+      const genB = elevation.promptGeneration.value;
+      expect(genB).toBe(genA + 1);
+      expect(elevation.promptOpen.value).toBe(true);
+
+      // The late success of cycle A.
+      elevation.resolvePrompt(true, genA);
+
+      expect(elevation.promptOpen.value).toBe(true);
+      expect(await hasSettled(second)).toBe(false);
+
+      elevation.resolvePrompt(true, genB);
+      await expect(second).resolves.toBe(true);
+      expect(elevation.promptOpen.value).toBe(false);
+    });
+
+    it('ignores a stale generation after the cycle was closed by a caller disposal', async () => {
+      const elevation = useColonelElevation();
+      const { caller, dispose } = fakeCaller();
+
+      const first = elevation.requestElevation(caller);
+      const genA = elevation.promptGeneration.value;
+      dispose();
+      await expect(first).resolves.toBe(false);
+
+      const second = elevation.requestElevation();
+      elevation.resolvePrompt(true, genA);
+
+      expect(elevation.promptOpen.value).toBe(true);
+      expect(await hasSettled(second)).toBe(false);
+
+      elevation.resolvePrompt(false);
+      await expect(second).resolves.toBe(false);
+    });
+
+    it('settles the current cycle when given its own generation', async () => {
+      const elevation = useColonelElevation();
+      const pending = elevation.requestElevation();
+
+      elevation.resolvePrompt(true, elevation.promptGeneration.value);
+
+      await expect(pending).resolves.toBe(true);
+      expect(elevation.promptOpen.value).toBe(false);
     });
   });
 });

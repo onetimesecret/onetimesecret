@@ -62,16 +62,21 @@
     }
   );
 
+  // Each completion settles the prompt cycle it was started in. If this cycle
+  // is cancelled while the request is in flight and a newer one opens, the late
+  // success must not resolve the newer caller's request.
   async function onPassword(password: string): Promise<void> {
-    if (await elevation.elevate('password', password)) elevation.resolvePrompt(true);
+    const generation = elevation.promptGeneration.value;
+    if (await elevation.elevate('password', password)) elevation.resolvePrompt(true, generation);
   }
 
   async function onGrace(): Promise<void> {
-    if (await elevation.elevate('recent_auth')) elevation.resolvePrompt(true);
+    const generation = elevation.promptGeneration.value;
+    if (await elevation.elevate('recent_auth')) elevation.resolvePrompt(true, generation);
   }
 
   function onCancel(): void {
-    elevation.resolvePrompt(false);
+    elevation.resolvePrompt(false, elevation.promptGeneration.value);
   }
 </script>
 

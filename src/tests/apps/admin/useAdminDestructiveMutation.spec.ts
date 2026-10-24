@@ -1,13 +1,14 @@
 // src/tests/apps/admin/useAdminDestructiveMutation.spec.ts
 
-import { flushPromises, mount } from '@vue/test-utils';
+import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { AxiosError } from 'axios';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defineComponent } from 'vue';
 
-vi.mock('@/shared/composables/useApi', () => ({
-  useApi: () => ({ get: vi.fn(), post: vi.fn(), delete: vi.fn() }),
-}));
+// One shared instance: useColonelElevation injects it once per reset, and the
+// liveness examples below defer its status GET.
+const mockApi = { get: vi.fn(), post: vi.fn(), delete: vi.fn() };
+vi.mock('@/shared/composables/useApi', () => ({ useApi: () => mockApi }));
 
 import {
   resolveGuardCode,
@@ -100,26 +101,34 @@ describe('retryAfterMinutes', () => {
   });
 });
 
+const i18n = createTestI18n();
+
+/** The composable in a bare host component (it calls useI18n); `wrapper.unmount()` disposes its scope. */
+function mountHost(perform: () => Promise<unknown>): {
+  mutation: UseAdminDestructiveMutation<[]>;
+  wrapper: VueWrapper;
+} {
+  let mutation: UseAdminDestructiveMutation<[]> | undefined;
+  const wrapper = mount(
+    defineComponent({
+      setup() {
+        mutation = useAdminDestructiveMutation(perform);
+        return () => null;
+      },
+    }),
+    { global: { plugins: [i18n] } }
+  );
+  return { mutation: mutation!, wrapper };
+}
+
 /**
  * The composable itself, in a bare host component (it calls useI18n). The
  * view-level flows live in AdminCustomerDetailPurge.spec.ts; these pin the
  * two seams a view relies on.
  */
 describe('useAdminDestructiveMutation (mounted)', () => {
-  const i18n = createTestI18n();
-
   function host(perform: () => Promise<unknown>): UseAdminDestructiveMutation<[]> {
-    let mutation: UseAdminDestructiveMutation<[]> | undefined;
-    mount(
-      defineComponent({
-        setup() {
-          mutation = useAdminDestructiveMutation(perform);
-          return () => null;
-        },
-      }),
-      { global: { plugins: [i18n] } }
-    );
-    return mutation!;
+    return mountHost(perform).mutation;
   }
 
   beforeEach(() => __resetColonelElevationState({ statusRead: true }));
@@ -160,5 +169,164 @@ describe('useAdminDestructiveMutation (mounted)', () => {
     elevation.resolvePrompt(true);
     await expect(running).resolves.toBe(true);
     expect(perform).toHaveBeenCalledTimes(2);
+  });
+});
+
+/**
+ * The loop lives no longer than the view that started it. `wrapper.unmount()`
+ * disposes the component scope, which is the ElevationCaller the composable
+ * bound its request to. Every example asserts on the retry count: the prompt
+ * disappearing is not the property, the destructive verb NOT re-firing is.
+ */
+describe('useAdminDestructiveMutation — the caller unmounts mid-flow', () => {
+  function deferred<T>() {
+    let resolve!: (value: T) => void;
+    let reject!: (reason?: unknown) => void;
+    const promise = new Promise<T>((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  }
+
+  const elevationRequired = () =>
+    axiosError(403, { error: 'Step-up required', error_code: 'elevation_required' });
+
+  function statusPayload(details: Record<string, unknown> = {}) {
+    return {
+      shrimp: '',
+      record: { elevated: false, expires_at: null, seconds_remaining: 0 },
+      details: {
+        enabled: true,
+        window: 600,
+        reauth_grace: 0,
+        grace_available: false,
+        password_available: true,
+        factors: ['password'],
+        ...details,
+      },
+    };
+  }
+
+  beforeEach(() => {
+    mockApi.get.mockReset();
+    mockApi.post.mockReset();
+    mockApi.delete.mockReset();
+    __resetColonelElevationState({ statusRead: true });
+  });
+  afterEach(() => __resetColonelElevationState());
+
+  // Scenario 1: browser-back while the request is in flight; the 403 lands on
+  // a dead view. No prompt on whatever replaced it, no retry.
+  it('opens no prompt and does not retry when the 403 arrives after the unmount', async () => {
+    startElevated();
+    const request = deferred<unknown>();
+    const perform = vi.fn<() => Promise<unknown>>().mockReturnValueOnce(request.promise);
+    const { mutation, wrapper } = mountHost(perform);
+    const elevation = useColonelElevation();
+
+    const running = mutation.run();
+    await flushPromises();
+    expect(perform).toHaveBeenCalledTimes(1);
+
+    wrapper.unmount();
+    request.reject(elevationRequired());
+
+    await expect(running).resolves.toBe(false);
+    expect(elevation.promptOpen.value).toBe(false);
+    expect(perform).toHaveBeenCalledTimes(1);
+    // Deliberate: the 403 is a fact about the shared session window, so the
+    // locally live countdown is dropped even though this caller is gone.
+    expect(elevation.elevated.value).toBe(false);
+  });
+
+  // Scenario 2: a tier-1 opener clicked before the mount-time status read
+  // returned, then navigated away before it did.
+  it('ensureElevated resolves false, without a prompt, when the view unmounts during the status read', async () => {
+    __resetColonelElevationState();
+    const read = deferred<{ data: unknown }>();
+    mockApi.get.mockReturnValueOnce(read.promise);
+    const { mutation, wrapper } = mountHost(() => Promise.resolve());
+    const elevation = useColonelElevation();
+
+    const pending = mutation.ensureElevated();
+    await flushPromises();
+    expect(mockApi.get).toHaveBeenCalledTimes(1);
+    expect(elevation.promptOpen.value).toBe(false);
+
+    wrapper.unmount();
+    read.resolve({ data: statusPayload() });
+
+    await expect(pending).resolves.toBe(false);
+    expect(elevation.promptOpen.value).toBe(false);
+  });
+
+  // Scenario 3: the prompt is up for this view alone; the view goes away.
+  it('closes the prompt and does not retry when the view unmounts under the open prompt', async () => {
+    const perform = vi
+      .fn<() => Promise<unknown>>()
+      .mockRejectedValueOnce(elevationRequired())
+      .mockResolvedValueOnce(undefined);
+    const { mutation, wrapper } = mountHost(perform);
+    const elevation = useColonelElevation();
+
+    const running = mutation.run();
+    await flushPromises();
+    expect(elevation.promptOpen.value).toBe(true);
+    expect(perform).toHaveBeenCalledTimes(1);
+
+    wrapper.unmount();
+    await flushPromises();
+
+    expect(elevation.promptOpen.value).toBe(false);
+    await expect(running).resolves.toBe(false);
+    expect(perform).toHaveBeenCalledTimes(1);
+  });
+
+  // Scenario 5 at the mutation level: another live view keeps the prompt
+  // open and the operator elevates. The dead view's retry still never fires.
+  it('does not retry from a dead view even when a live co-waiter completes the prompt', async () => {
+    const perform = vi
+      .fn<() => Promise<unknown>>()
+      .mockRejectedValueOnce(elevationRequired())
+      .mockResolvedValueOnce(undefined);
+    const dead = mountHost(perform);
+    const live = mountHost(() => Promise.resolve());
+    const elevation = useColonelElevation();
+
+    const deadRun = dead.mutation.run();
+    await flushPromises();
+    expect(elevation.promptOpen.value).toBe(true);
+    const liveOpen = live.mutation.ensureElevated();
+    await flushPromises();
+
+    dead.wrapper.unmount();
+    await flushPromises();
+    expect(elevation.promptOpen.value).toBe(true);
+
+    elevation.resolvePrompt(true);
+
+    await expect(liveOpen).resolves.toBe(true);
+    await expect(deadRun).resolves.toBe(false);
+    expect(perform).toHaveBeenCalledTimes(1);
+    live.wrapper.unmount();
+  });
+
+  // The control: the same flow with the view still mounted DOES retry once.
+  it('retries exactly once when the view is still mounted after the prompt', async () => {
+    const perform = vi
+      .fn<() => Promise<unknown>>()
+      .mockRejectedValueOnce(elevationRequired())
+      .mockResolvedValueOnce(undefined);
+    const { mutation, wrapper } = mountHost(perform);
+    const elevation = useColonelElevation();
+
+    const running = mutation.run();
+    await flushPromises();
+    elevation.resolvePrompt(true);
+
+    await expect(running).resolves.toBe(true);
+    expect(perform).toHaveBeenCalledTimes(2);
+    wrapper.unmount();
   });
 });

@@ -76,6 +76,16 @@ const REAUTHENTICATE_URL = '/api/colonel/reauthenticate';
  * {@link reauthenticate} posts the operator's password to the one /api/colonel
  * route exempt from the admin session bound (#4331). It is an operator
  * gesture, never a timer, and it does not grant a step-up window.
+ *
+ * ## A request dies with its caller
+ *
+ * The pending prompt is module-level, so without an owner a request could
+ * outlive the view that made it: a 403 arriving after browser-back would open
+ * the prompt on the destination page and, once completed, retry the
+ * destructive verb from the dead view. Every request therefore carries an
+ * {@link ElevationCaller}: a caller that is disposed sees `false`, the prompt
+ * closes once no live caller waits on it, and a completion from an earlier
+ * prompt cycle cannot settle a later one (see {@link resolvePrompt}).
  */
 
 // ─── Module-level singleton state ────────────────────────────────────────────
@@ -107,6 +117,43 @@ const promptOpen = ref(false);
 let promptResolve: ((elevated: boolean) => void) | null = null;
 /** The operator's pending answer. Every caller while the prompt is open shares it. */
 let pendingPrompt: Promise<boolean> | null = null;
+/**
+ * Which opening of the prompt is current. Bumped each time the prompt opens so
+ * the prompt's own async completion can prove it belongs to THIS cycle.
+ */
+const generation = ref(0);
+
+/**
+ * Who asked for the prompt, from the prompt's side: whether the caller is
+ * still mounted, and a hook to learn when it is not.
+ */
+export interface ElevationCaller {
+  live(): boolean;
+  onDispose(cb: () => void): void;
+}
+
+/** A caller with no lifetime of its own: never disposed. */
+const ALWAYS_LIVE: ElevationCaller = {
+  live: () => true,
+  onDispose: () => {},
+};
+
+/** The callers waiting on the open prompt. Cleared when it settles. */
+const promptWaiters = new Set<ElevationCaller>();
+
+/**
+ * Register a waiter once per cycle. When its scope is disposed it stops
+ * waiting; the last one out closes the prompt, since nobody is left to act on
+ * the answer.
+ */
+function addPromptWaiter(caller: ElevationCaller): void {
+  if (promptWaiters.has(caller)) return;
+  promptWaiters.add(caller);
+  caller.onDispose(() => {
+    promptWaiters.delete(caller);
+    if (promptWaiters.size === 0 && promptOpen.value) resolvePrompt(false);
+  });
+}
 
 /**
  * Whether a status read has reported `enabled` yet. Until one has, `enabled`
@@ -349,20 +396,25 @@ async function reauthenticate(password: string): Promise<boolean> {
  *
  * ALWAYS requires an explicit gesture — there is no silent grace-first
  * auto-elevation, even when the server would accept `recent_auth`. Resolves true
- * once a window is live, false if the operator cancelled.
+ * once a window is live, false if the operator cancelled or the caller was
+ * disposed while waiting (even if another caller kept the prompt open and the
+ * operator elevated: a dead caller must never see a go-ahead).
  */
-function requestElevation(): Promise<boolean> {
+function requestElevation(caller: ElevationCaller = ALWAYS_LIVE): Promise<boolean> {
   if (elevated.value) return Promise.resolve(true);
+  if (!caller.live()) return Promise.resolve(false);
   // A second request while the prompt is open (a double click, a 403 beside an
   // opener) waits on the SAME answer. Replacing the resolver would leave the
   // first caller awaiting a promise nothing can settle.
-  if (pendingPrompt) return pendingPrompt;
-
-  promptOpen.value = true;
-  pendingPrompt = new Promise<boolean>((resolve) => {
-    promptResolve = resolve;
-  });
-  return pendingPrompt;
+  if (!pendingPrompt) {
+    promptOpen.value = true;
+    generation.value += 1;
+    pendingPrompt = new Promise<boolean>((resolve) => {
+      promptResolve = resolve;
+    });
+  }
+  addPromptWaiter(caller);
+  return pendingPrompt.then((result) => (caller.live() ? result : false));
 }
 
 /**
@@ -379,11 +431,14 @@ function requestElevation(): Promise<boolean> {
  * before deciding. A read that fails leaves the default, which prompts: the
  * server still decides.
  */
-async function ensureElevated(): Promise<boolean> {
+async function ensureElevated(caller: ElevationCaller = ALWAYS_LIVE): Promise<boolean> {
   if (elevated.value) return true;
   if (!statusRead) await (statusReadInFlight ?? refresh());
+  // The opener may have unmounted during that read; it must not open a prompt
+  // on whatever replaced it.
+  if (!caller.live()) return false;
   if (!enabled.value) return true;
-  return requestElevation();
+  return requestElevation(caller);
 }
 
 /**
@@ -397,9 +452,19 @@ function noteElevationRequired(): void {
   applyRecord({ elevated: false, expires_at: null, seconds_remaining: 0 });
 }
 
-/** Called by the prompt when the operator finishes or dismisses it. */
-function resolvePrompt(didElevate: boolean): void {
+/**
+ * Called by the prompt when the operator finishes or dismisses it.
+ *
+ * The prompt reads `promptGeneration` before it awaits the elevate request and
+ * passes it back here, so a completion from a cycle that was cancelled
+ * meanwhile (and replaced by a newer request) is ignored rather than settling
+ * the newer request. Internal callers may omit it.
+ */
+function resolvePrompt(didElevate: boolean, promptGeneration?: number): void {
+  if (!promptOpen.value) return;
+  if (promptGeneration !== undefined && promptGeneration !== generation.value) return;
   promptOpen.value = false;
+  promptWaiters.clear();
   const resolve = promptResolve;
   promptResolve = null;
   pendingPrompt = null;
@@ -412,6 +477,21 @@ function resolvePrompt(didElevate: boolean): void {
  * component context and injects no API client.
  */
 export const elevationPromptOpen: ComputedRef<boolean> = computed(() => promptOpen.value);
+
+/**
+ * Cancel the open prompt as if the operator dismissed it. Called by
+ * useElevationPromptHost when the top host closes or unmounts under the open
+ * prompt: the slot content (and the caller) only disposes once headlessui's
+ * leave transition ends, so without this the layout would mount a second prompt
+ * meanwhile. Like {@link elevationPromptOpen} it needs no component context. A
+ * no-op when no prompt is open.
+ */
+export function cancelElevationPrompt(): void {
+  resolvePrompt(false);
+}
+
+/** The current prompt cycle, read-only. See {@link resolvePrompt}. */
+const promptGeneration: ComputedRef<number> = computed(() => generation.value);
 
 // Nothing the operator can do from the browser: no password to re-enter and no
 // grace configured. The prompt renders the remediation, not an input.
@@ -450,19 +530,27 @@ export interface UseColonelElevation {
   /** The server's message for the last failed re-authentication, or null. */
   reauthError: Ref<string | null>;
   promptOpen: Ref<boolean>;
+  /** Which opening of the prompt is current; the prompt hands it back to `resolvePrompt`. */
+  promptGeneration: ComputedRef<number>;
   refresh: () => Promise<void>;
   elevate: (factor: string, password?: string) => Promise<boolean>;
   drop: () => Promise<boolean>;
   /** Re-authenticate an expired admin session by password, then reload the page. */
   reauthenticate: (password: string) => Promise<boolean>;
-  /** Open the sudo prompt and resolve once the operator elevates or cancels. */
-  requestElevation: () => Promise<boolean>;
+  /**
+   * Open the sudo prompt and resolve once the operator elevates or cancels.
+   * A disposed `caller` resolves false whatever the operator did.
+   */
+  requestElevation: (caller?: ElevationCaller) => Promise<boolean>;
   /** Resolve true when elevated (or step-up is disabled), prompting first if needed. */
-  ensureElevated: () => Promise<boolean>;
+  ensureElevated: (caller?: ElevationCaller) => Promise<boolean>;
   /** A 403 `elevation_required` arrived: drop any window the local countdown still shows. */
   noteElevationRequired: () => void;
-  /** Called by the prompt when the operator finishes or dismisses it. */
-  resolvePrompt: (didElevate: boolean) => void;
+  /**
+   * Called by the prompt when the operator finishes or dismisses it. With a
+   * `promptGeneration` that is no longer current, or no prompt open, a no-op.
+   */
+  resolvePrompt: (didElevate: boolean, promptGeneration?: number) => void;
 }
 
 export function useColonelElevation(): UseColonelElevation {
@@ -488,6 +576,7 @@ export function useColonelElevation(): UseColonelElevation {
     reauthLoading,
     reauthError,
     promptOpen,
+    promptGeneration,
     refresh,
     elevate,
     drop,
@@ -512,6 +601,8 @@ export function __resetColonelElevationState(options: { statusRead?: boolean } =
   api = null;
   promptResolve = null;
   pendingPrompt = null;
+  promptWaiters.clear();
+  generation.value = 0;
   statusRead = options.statusRead ?? false;
   statusReadInFlight = null;
   localDeadlineMs = null;
