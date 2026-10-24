@@ -1,6 +1,6 @@
 # Tenant SSO provider switch: operator reset route (classifier + guarded sweep)
 
-**Date:** 2026-10-23 · **Status:** draft ticket, not filed · **Parent:** [tenant-provider-migration.md](../specs/sso/tenant-provider-migration.md) §5 (Recovery outside the window) and Proportionality · **Trigger:** `claude/diagnosis/2026-1022-saml-cutover-oidc-accounts-refused-tenant-sso-link-unavailable.md`
+**Date:** 2026-10-23 · **Status:** draft ticket, not filed · **Parent:** [tenant-provider-migration.md](tenant-provider-migration.md) §5 (Recovery outside the window) and Proportionality · **Trigger:** `claude/diagnosis/2026-1022-saml-cutover-oidc-accounts-refused-tenant-sso-link-unavailable.md`
 
 ## Problem statement
 
@@ -28,12 +28,13 @@ Support burden: per-account classification by hand, plus writing the owner a lis
 Three parts, each independently useful:
 
 1. **Classifier** `Auth::Operations::Customers::TenantSsoCohort` (name open): given a domain D and an account, returns one of
-   - **A captive**: no password, no WebAuthn; `signup_domain_id == D`; every identity row's `(provider, issuer)` equals D's previous key; memberships: D only
+   - **A captive**: no password, no WebAuthn; `signup_domain_id == D`; every identity row's `(provider, issuer)` equals D's previous key and none is still accepted on another accessible domain, including same-org siblings; memberships: D's organization only
    - **B credentialed**: has a password or WebAuthn (self-service Connect; no operator action)
-   - **C global**: anything else, with a reason code (`foreign_membership`, `identity_elsewhere`, `provenance_other`, `provenance_blank`, `platform_minted`)
+   - **C global**: anything else, with a reason code (`foreign_membership`, `identity_elsewhere`, `identity_still_live_elsewhere`, `provenance_other`, `provenance_blank`, `platform_minted`)
    plus `email_verified` so the C route (self-service reset vs. operator `verify` first) is visible. Extracted from `backfill_tenant_issuer.rb` gates and the decision doc's gates 5-9 so both consumers share one definition.
 2. **Guarded sweep** `Auth::Operations::Customers::SsoProviderReset` modelled on `PurgeInactive`: classifies every member of D, purges **A only** through the existing `Purge` under one `BulkAuditContext`, prints B and C with routes. Refuses to run (not warn) when:
-   - any candidate would be purged with a membership outside D: new `PurgePreflight` blocker `foreign_membership`, enabled by the sweep (and available to `ots customers purge --refuse-foreign-membership` for single runs);
+   - any A candidate's old identity is still accepted on another accessible domain, including a sibling in D's organization: `identity_still_live_elsewhere`, revalidated before the first write;
+   - any candidate would be purged with a membership outside D's organization: new `PurgePreflight` blocker `foreign_membership`, enabled by the sweep (and available to `ots customers purge --refuse-foreign-membership` for single runs);
    - D's current `SsoConfig` would still mint identities under the key the A rows carry (config not switched yet);
    - the organization's owner account(s) have no local credential (the owner would be locked out of fixing their own config);
    - no `--confirm <A count>` matching the dry run (same pattern as `dlq purge`).
@@ -42,14 +43,14 @@ Three parts, each independently useful:
 
 ## Investigation questions
 
-1. **What does `Purge` destroy for a cohort-A customer?** Secrets they created (do active secrets die?), receipts, API keys, anything keyed by `custid` (CustomDomain is; could a member own one?). The owner must be told this in the dry-run output, not discover it.
+1. **What does `Purge` destroy for a cohort-A customer?** Inventory account/index access, API keys, eligible personal workspace, memberships and role assignments, and anything keyed by `custid` (CustomDomain is; could a member own one?). `purge_preflight.rb`, `owned_workspace_notes`, explicitly states: "the organization's receipt index is dropped with it, while the Receipt and Secret records are TTL-bound and expire on their own schedule." Purge does not revoke shared links; explicit burning is separate if needed. The owner must be told this in the dry-run output, not discover it.
 2. **Previous key for the ordering check.** Derive from the A rows (they all share one `(provider, issuer)`) or require `--from-issuer-key` explicitly? Deriving is friendlier; explicit is harder to misuse when a domain has had two switches.
-3. **Shared generation-0 OIDC rows.** A captive account's bare-issuer row would also work on another domain configured on the same Entra tenant, but only if the account had a membership there, which `foreign_membership` already refuses. Confirm there is no other path by which a bare-issuer row serves a second domain without a membership.
+3. **Shared generation-0 OIDC rows.** Check whether any other accessible domain still accepts the old row under its current SSO config. A same-org sibling can be accessible through the existing org-scoped membership, without a foreign membership: `OrganizationMembership#can_access_domain?` returns `org_scoped? || domain_scope_id == domain.objid`, and `lookup_identity` matches `(provider, resolved_issuer, uid)` exactly. Such an account is C (`identity_still_live_elsewhere`), not A. The classifier and sweep must check sibling domains as well as foreign memberships; provenance and tuple equality alone do not establish captivity.
 4. **Should `foreign_membership` become a default `Purge` blocker** (operator must pass `--remove-foreign-memberships` to get today's behaviour) rather than opt-in? Today's semantics are documented and audited; changing the default is a separate decision.
 5. **Owner accounts in cohort A or C.** Refuse the whole sweep, or exclude and report? Refuse: an owner without a credential is the one person who must not be stranded.
 6. **Pending invites** (`customer_objid` nil, `invited_email` set) on D: untouched, or re-sent after the switch?
 7. **Does the sweep need to run from Colonel as well as the CLI?** The CLI is enough for the operator; Colonel read-only view of the classified roster may be the useful half.
-8. **Classifier reuse.** Confirm the decision doc's gates 5-9 and this cohort A are the same predicate except for "memberships: D only", and decide whether the decision doc should adopt that stricter test too (an eligible account with a second membership migrates fine; it just must not be purged).
+8. **Classifier reuse.** Confirm the decision doc's gates 5-9 and this cohort A are the same predicate except for the purge-only exclusions (foreign memberships and identities still accepted on other accessible domains), and decide whether the decision doc should adopt that stricter test too (an eligible account with a second membership migrates fine; it just must not be purged).
 9. **Interaction with the account-model Phase 2** (nullable email): once email-less accounts exist, "purge frees the email" stops being the mechanism and the C route becomes membership replacement (decision doc §5). Does the classifier need an `email_less` outcome now, or is that Phase 2's problem?
 
 ## Out of scope
@@ -65,6 +66,7 @@ Three parts, each independently useful:
 - One classifier, unit-tested against fixtures for each A/B/C reason, shared by the sweep and (later) the decision doc preview; the `backfill_tenant_issuer.rb` gates either call it or are documented as equivalent.
 - `ots customers sso-reset <domain>` (name open) dry run lists every member with cohort, reason code, verification state, and route; live run requires `--confirm <count>` equal to the dry-run A count.
 - Live run purges only A; any A candidate with a foreign membership makes the whole run refuse before the first write (`PurgePreflight` blocker `foreign_membership`, covered by a test where one account in a roster of three is a member elsewhere).
+- Same-org sibling still accepting a shared Entra/OIDC row + active org-scoped membership → C (`identity_still_live_elsewhere`), never purged; if this becomes true for an A candidate after dry run, the whole live run refuses before the first write.
 - Ordering refusal tested: config unchanged → refused with a message naming the step.
 - Owner-credential refusal tested.
 - Every purge appears on the operator trail under one bulk receipt with the refused count.
@@ -74,8 +76,8 @@ Three parts, each independently useful:
 
 ## Related
 
-- [tenant-provider-migration.md](../specs/sso/tenant-provider-migration.md)
-- [email-less-accounts-account-model.md](../specs/sso/email-less-accounts-account-model.md) (Phase 2 dependency of the replacement route)
+- [tenant-provider-migration.md](tenant-provider-migration.md)
+- [email-less-accounts-account-model.md](email-less-accounts-account-model.md) (Phase 2 dependency of the replacement route)
 - `apps/web/auth/operations/customers/{purge,purge_preflight,purge_inactive,prune_closed_accounts,set_verification}.rb`
 - `apps/web/auth/operations/backfill_tenant_issuer.rb`
 - `lib/onetime/cli/customers/{purge_command,purge_inactive_command,verify_command}.rb`

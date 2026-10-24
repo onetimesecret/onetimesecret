@@ -26,7 +26,7 @@ The gem's `_handle_omniauth_callback` runs this sequence:
 5. login("omniauth")
 ```
 
-**Key point:** `account_from_omniauth` (step 2) runs BEFORE account creation. If it fails to find an existing account that should match, the flow creates a duplicate and hits the unique index on `accounts.email`. Both the lookup and creation paths must use the same resolved email.
+**Key point:** `account_from_omniauth` (step 2) runs BEFORE account creation. If it fails to find an existing account that should match, the flow creates a duplicate and hits the unique index on `accounts.email`. Both the lookup and creation paths must use the same resolved email. Finding a matching account does not authorize linking; the current OTS policy described in §4.2 still applies.
 
 ### OTS hook file
 
@@ -119,18 +119,20 @@ end
 - `OT::Utils.normalize_email` applies NFC + `:fold` for international addresses and lowercases. Already used in the existing `account_from_omniauth` hook.
 - Returns `nil` when no Tier 1 claim is available. Callers must handle nil.
 
-### 4.2 Override: `account_from_omniauth`
+### 4.2 Preserve authorization in `account_from_omniauth`
 
-```ruby
-auth.account_from_omniauth do
-  resolved = resolve_omniauth_email
-  _account_from_login(resolved) if resolved
-end
-```
+**Original replacement recipe superseded.** The earlier recipe returned `_account_from_login(resolved)` directly. Do not replace the current hook with that recipe: returning a matched account lets rodauth-omniauth bind the unlinked identity and sign in without the current account-proof or opt-in trust checks.
 
-**Why this changes:** The existing override normalizes `omniauth_email` directly. When `omniauth_email` is nil (the #3478 case), `OT::Utils.normalize_email(nil)` returns `""`, and `_account_from_login("")` finds nothing. If the user has a `mail` attribute that would match an existing account, the lookup misses it, and the creation path tries to INSERT a duplicate.
+The authoritative [identity-linking policy](../../authentication/per-install-sso.md#the-invariant) states: “An email claim may **locate** an account; only a **demonstrated credential** may **bind** an identity to it.” The [trusted-IdP flag](../../authentication/per-install-sso.md#the-flag) documents the opt-in exception.
 
-**Replaces:** Lines 27-30 of the current `hooks/omniauth.rb`.
+Integrate the resolved email into the existing lookup in [`hooks/omniauth.rb`](../../../apps/web/auth/config/hooks/omniauth.rb), preserving the surrounding control flow and branch order:
+
+- Keep authenticated Connect authorization and email-validity guards ahead of email-based lookup.
+- Keep trusted-email auto-linking platform-only, explicitly opted in for the provider, and subject to the existing email-verification checks.
+- With trusted-email linking disabled or ineligible, keep the platform password challenge and passwordless mailbox-proof paths. The callback must not bind the identity or sign in merely because the resolved email matches; mailbox proof still goes to the account's on-file address.
+- Keep the tenant refusal for unauthenticated email matches and the existing refusal when a platform proof path cannot proceed. Do not return the matched account, or return `nil` and attempt duplicate account creation, in those refusal paths.
+
+The fallback changes which email can locate a candidate account, not what authorizes linking it. A genuinely new email can continue through account creation; an existing account must follow the same authorization policy whether the address came from `info.email` or `raw_info["mail"]`.
 
 ### 4.3 Override: `omniauth_new_account`
 
@@ -261,14 +263,18 @@ it 'falls back to raw_info mail when info.email is nil' do
 end
 ```
 
-**New test: Account linking with `mail` fallback**
+**New test: Account proof with `mail` fallback**
 ```ruby
-it 'links to existing account when info.email is nil but mail matches' do
-  # Pre-create account with known email
+it 'requires account proof when info.email is nil but mail matches' do
+  # Disable trusted-email linking; pre-create a platform account with known email
   # SSO callback with info.email=nil, raw_info.mail=same email
-  # Verify identity linked to existing account, no duplicate created
+  # Verify password challenge or mailbox-proof notice, no identity linked,
+  # no sign-in, and no duplicate account created by the callback
+  # Complete the existing proof flow; only then verify identity linked
 end
 ```
+
+Also cover tenant refusal, authenticated Connect authorization, and the trusted-email opt-in and email-verification checks with the fallback address. Email resolution must not bypass any of those gates.
 
 **New test: Linking security (critical)**
 ```ruby
@@ -300,11 +306,11 @@ end
 ### Phase 1 PR
 
 - [ ] Add `resolve_omniauth_email` via `auth.auth_class_eval`
-- [ ] Override `account_from_omniauth` to use `resolve_omniauth_email`
+- [ ] Integrate `resolve_omniauth_email` into the existing lookup without replacing `account_from_omniauth` authorization (§4.2)
 - [ ] Override `omniauth_new_account` to use `resolve_omniauth_email`
 - [ ] Update `before_omniauth_create_account` to read `account[login_column]`
 - [ ] Add `mail` fallback test
-- [ ] Add account-linking test for `mail` fallback
+- [ ] Add account-proof and linking-policy regression tests for `mail` fallback (§6.1)
 - [ ] Add linking security test (preferred_username must NOT link)
 - [ ] Update tripwire test comments
 - [ ] Update `before_omniauth_callback_route` logging to include `raw_info["mail"]` presence
@@ -321,7 +327,7 @@ end
 
 | File | Change |
 |------|--------|
-| `apps/web/auth/config/hooks/omniauth.rb` | Add `resolve_omniauth_email`, update three hooks |
+| `apps/web/auth/config/hooks/omniauth.rb` | Add email resolution while preserving existing account-linking authorization (§4.2); update creation hooks |
 | `apps/web/auth/spec/integration/full/omniauth_missing_email_spec.rb` | Add `mail` fallback tests, linking security test, update tripwire comments |
 | `apps/web/auth/config/base.rb` | Phase 2 only: `login_column :login` |
 | `apps/web/auth/migrations/NNN_add_login_column.rb` | Phase 2 only: new migration |
