@@ -1,4 +1,4 @@
-# docs/specs/sso-entra-soverign/our-current-challenges.md
+# docs/specs/sso/entra-sovereign-clouds-challenges.md
 ---
 
 ## Background

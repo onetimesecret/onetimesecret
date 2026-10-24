@@ -1,4 +1,4 @@
-# docs/specs/sso-entra-soverign/omniauth-entra-id-research.md
+# docs/specs/sso/entra-sovereign-clouds-research.md
 ---
 
 ## omniauth-entra-id sovereign cloud research

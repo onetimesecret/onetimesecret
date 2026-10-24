@@ -11,10 +11,12 @@ require_relative '../http/guard'
 module Onetime
   module SsoProvider
     # SSRF-safe fetcher for OIDC discovery documents
-    # (/.well-known/openid-configuration).
+    # (/.well-known/openid-configuration) and SAML IdP metadata documents.
     #
-    # Shared by the tenant "Test Connection" endpoint and the install-wide
-    # request-phase issuer check. Deliberately narrower than
+    # Shared by the tenant "Test Connection" endpoint, the install-wide
+    # request-phase issuer check, and the tenant "Fetch from metadata"
+    # endpoint (DomainsAPI::Logic::SsoConfig::FetchIdpMetadata), which only
+    # changes the Accept header (see #accept). Deliberately narrower than
     # Onetime::Http::SafeFetch (which follows redirects and is shaped for
     # favicons): a discovery document lives at a fixed URL derived from the
     # issuer, so a redirect is reported as an HTTP error, never followed.
@@ -59,6 +61,7 @@ module Onetime
       DEFAULT_READ_TIMEOUT = 10
       DEFAULT_MAX_BYTES    = 256 * 1024
       DEFAULT_USER_AGENT   = 'OneTimeSecret-SSO-Discovery/1.0'
+      DEFAULT_ACCEPT       = 'application/json'
 
       STATUSES = [
         :ok, :not_found, :http_error, :too_large, :timeout, :ssl_error,
@@ -75,14 +78,21 @@ module Onetime
       class BodyTooLarge < StandardError; end
       class DeadlineExceeded < Timeout::Error; end
 
-      attr_reader :open_timeout, :read_timeout, :max_bytes, :user_agent
+      # accept is the request's Accept header, nothing more: the response
+      # Content-Type is never checked against it (callers that need a format
+      # parse the body and let the parser refuse it — IdP metadata arrives as
+      # text/xml, application/xml, application/samlmetadata+xml or even
+      # application/octet-stream depending on the IdP).
+      attr_reader :open_timeout, :read_timeout, :max_bytes, :user_agent, :accept
 
       def initialize(open_timeout: DEFAULT_OPEN_TIMEOUT, read_timeout: DEFAULT_READ_TIMEOUT,
-                     max_bytes: DEFAULT_MAX_BYTES, user_agent: DEFAULT_USER_AGENT)
+                     max_bytes: DEFAULT_MAX_BYTES, user_agent: DEFAULT_USER_AGENT,
+                     accept: DEFAULT_ACCEPT)
         @open_timeout = open_timeout
         @read_timeout = read_timeout
         @max_bytes    = max_bytes
         @user_agent   = user_agent
+        @accept       = accept
       end
 
       # Builds the discovery URL for an issuer. The trailing slash is trimmed
@@ -92,7 +102,7 @@ module Onetime
         "#{issuer.to_s.chomp('/')}/.well-known/openid-configuration"
       end
 
-      # @param url [String] absolute HTTPS URL of the discovery document
+      # @param url [String] absolute HTTPS URL of the document
       # @return [Result]
       def fetch(url)
         uri = parse_https_uri(url)
@@ -117,9 +127,12 @@ module Onetime
 
       private
 
+      # uri.request_uri is the path and query exactly as given: no path
+      # normalization, and a query string (Entra's per-application metadata
+      # URL carries ?appid=...) is forwarded unchanged.
       def perform(uri, url)
         request               = Net::HTTP::Get.new(uri.request_uri)
-        request['Accept']     = 'application/json'
+        request['Accept']     = accept
         request['User-Agent'] = user_agent
 
         Onetime::Http::Guard.try_each_address!(uri.host) do |pinned_ip|

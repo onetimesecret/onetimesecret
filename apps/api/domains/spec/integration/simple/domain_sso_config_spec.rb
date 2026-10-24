@@ -2480,6 +2480,17 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         expect(json_body).to include('error_type' => 'invalid', 'field' => 'idp_sso_service_url')
       end
 
+      # Entra's tenant-neutral metadata publishes this template; no response
+      # Issuer can ever equal it.
+      it 'returns 422 (invalid) for a templated EntityID' do
+        csrf_put api_path(test_custom_domain.extid),
+          valid_saml_params.merge(idp_entity_id: 'https://sts.windows.net/{tenantid}/')
+
+        expect(last_response.status).to eq(422)
+        expect(json_body).to include('error_type' => 'invalid', 'field' => 'idp_entity_id')
+        expect(json_body['error']).to include('template placeholder')
+      end
+
       # The server never fetches the SSO URL (the browser is redirected to
       # it), so the OIDC issuer's SSRF host check does not apply: an IdP that
       # only the user's browser can reach is a legitimate configuration.
@@ -2653,6 +2664,33 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
           expect(last_response.status).to eq(200), last_response.body
           expect(stored_config.enabled?).to be false
           expect(stored_config.reveal_saml_field(:idp_cert)).to eq(expired.strip)
+        end
+
+        # A templated EntityID saved before Saml::ENTITY_ID_PLACEHOLDER was
+        # refused gets the expired certificate's treatment: the form save
+        # that switches it off goes through, any other edit does not.
+        context 'when the stored EntityID is a template' do
+          let(:template) { 'https://sts.windows.net/{tenantid}/' }
+
+          before do
+            config               = stored_config
+            config.idp_entity_id = template
+            config.commit_fields
+          end
+
+          it 'can disable via a form save that re-sends the stored EntityID' do
+            csrf_patch api_path(test_custom_domain.extid), valid_saml_params.merge(idp_entity_id: template, enabled: false)
+
+            expect(last_response.status).to eq(200), last_response.body
+            expect(stored_config.enabled?).to be false
+          end
+
+          it 'refuses an edit that leaves the config enabled' do
+            csrf_patch api_path(test_custom_domain.extid), { display_name: 'Renamed' }
+
+            expect(last_response.status).to eq(422)
+            expect(json_body).to include('error_type' => 'invalid', 'field' => 'idp_entity_id')
+          end
         end
 
         it 'refuses to re-enable a disabled config whose unchanged certificate is expired' do
@@ -3041,6 +3079,293 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
           expect(json_body['record']).to include('unreadable_fields' => ['client_id'], 'client_id' => nil)
           expect(json_body['record']['client_secret_masked']).to end_with('cdef')
         end
+      end
+    end
+
+    # The SAML IdP metadata URL the trio was imported from
+    # (docs/specs/sso/saml-idp-metadata-consumption.md, section 4.5): saml
+    # only, optional, validated as a URL the server FETCHES (structure plus
+    # the SSRF host check) when new, never re-resolved when unchanged, and
+    # never a login input.
+    describe 'idp_metadata_url' do
+      let(:metadata_url) { 'https://meta.idp.example.com/federationmetadata.xml?appid=abc-123' }
+      let(:audit_payloads) { [] }
+
+      before do
+        allow(OT).to receive(:info) do |msg, json = nil|
+          audit_payloads << JSON.parse(json) if msg.to_s.start_with?('[DOMAIN_SSO_CHANGE] ') && json
+        end
+      end
+
+      def stored_metadata_url
+        stored_config.reveal_idp_metadata_url
+      end
+
+      def put_saml(extra = {})
+        csrf_put api_path(test_custom_domain.extid), valid_saml_params.merge(extra)
+      end
+
+      it 'is stored encrypted by PUT and served in plaintext by PUT and GET' do
+        put_saml(idp_metadata_url: "  #{metadata_url}  ")
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect(json_body['record']['idp_metadata_url']).to eq(metadata_url)
+        expect(Familia.dbclient.hget(stored_config.dbkey, 'idp_metadata_url')).not_to include('meta.idp.example.com')
+
+        json_get api_path(test_custom_domain.extid)
+
+        expect(json_body['record']).to include('idp_metadata_url' => metadata_url, 'unreadable_fields' => [])
+      end
+
+      it 'is null on a saml record that never had one' do
+        put_saml
+
+        expect(json_body['record']).to include('idp_metadata_url' => nil)
+      end
+
+      it 'is stored by a PATCH that creates the saml config' do
+        csrf_patch api_path(test_custom_domain.extid), valid_saml_params.merge(idp_metadata_url: metadata_url)
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect(stored_metadata_url).to eq(metadata_url)
+      end
+
+      it 'is cleared by a PUT that omits it' do
+        put_saml(idp_metadata_url: metadata_url)
+        put_saml
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect(stored_config.idp_metadata_url).to be_nil
+      end
+
+      describe 'PATCH on a saml record' do
+        before { put_saml(idp_metadata_url: metadata_url) }
+
+        it 'keeps it when the key is absent' do
+          csrf_patch api_path(test_custom_domain.extid), { display_name: 'Renamed' }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(json_body['record']).to include('display_name' => 'Renamed', 'idp_metadata_url' => metadata_url)
+        end
+
+        ['', nil].each do |blank|
+          it "clears it when the key is present and #{blank.inspect}" do
+            csrf_patch api_path(test_custom_domain.extid), { idp_metadata_url: blank }
+
+            expect(last_response.status).to eq(200), last_response.body
+            expect(json_body['record']['idp_metadata_url']).to be_nil
+            expect(stored_config.idp_metadata_url).to be_nil
+          end
+        end
+
+        it 'replaces it with a new valid value' do
+          csrf_patch api_path(test_custom_domain.extid), { idp_metadata_url: 'https://other.idp.example.com/metadata' }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_metadata_url).to eq('https://other.idp.example.com/metadata')
+        end
+
+        # The record keeps the trio it had; a login does not depend on it.
+        it 'leaves the trio and the login options untouched' do
+          csrf_patch api_path(test_custom_domain.extid), { idp_metadata_url: 'https://other.idp.example.com/metadata' }
+
+          expect(stored_config.saml_trio).to include(idp_entity_id: 'https://idp.example.com/saml/metadata')
+          expect(stored_config.to_omniauth_options.inspect).not_to include('other.idp.example.com')
+        end
+      end
+
+      describe 'on any other provider type' do
+        before { put_saml(idp_metadata_url: metadata_url) }
+
+        it 'is cleared by a PUT switching to oidc, even when sent' do
+          csrf_put api_path(test_custom_domain.extid), valid_oidc_params.merge(idp_metadata_url: metadata_url)
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(json_body['record']['idp_metadata_url']).to be_nil
+          expect(stored_config.idp_metadata_url).to be_nil
+        end
+
+        it 'is cleared by a PATCH switching to oidc, even when sent' do
+          csrf_patch api_path(test_custom_domain.extid), valid_oidc_params.merge(idp_metadata_url: metadata_url)
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_config.idp_metadata_url).to be_nil
+        end
+      end
+
+      describe 'validation of a new value' do
+        def expect_refused_on_field
+          expect(last_response.status).to eq(422), last_response.body
+          expect(json_body).to include('field' => 'idp_metadata_url', 'error_type' => 'invalid')
+          expect(json_body['error']).to start_with('IdP metadata URL')
+          expect(json_body['error']).not_to include('SSO service URL')
+        end
+
+        ['http://meta.idp.example.com/metadata', 'https://meta.idp.example.com/metadata#frag',
+         'https://user:pw@meta.idp.example.com/metadata'].each do |url|
+          it "refuses #{url} on PUT" do
+            put_saml(idp_metadata_url: url)
+
+            expect_refused_on_field
+            expect(stored_config).to be_nil
+          end
+        end
+
+        it 'refuses a host that resolves to a private address (SSRF), on PUT and PATCH' do
+          allow(Resolv).to receive(:getaddresses).with('internal.idp.example.com').and_return(['10.0.0.5'])
+          internal = 'https://internal.idp.example.com/metadata'
+
+          put_saml(idp_metadata_url: internal)
+          expect_refused_on_field
+          expect(json_body['error']).to include('public host')
+
+          put_saml
+          csrf_patch api_path(test_custom_domain.extid), { idp_metadata_url: internal }
+          expect_refused_on_field
+          expect(stored_config.idp_metadata_url).to be_nil
+        end
+
+        it 'refuses a private hostname without resolving it' do
+          put_saml(idp_metadata_url: 'https://idp.corp.internal/metadata')
+
+          expect_refused_on_field
+        end
+
+        # An unrelated edit must never re-resolve a stored URL: the value is
+        # accepted as it was accepted when saved.
+        it 'does not re-validate an unchanged stored value on PATCH or PUT' do
+          put_saml(idp_metadata_url: metadata_url)
+          expect(last_response.status).to eq(200), last_response.body
+          # From here on, resolving the stored host at all is a failure.
+          expect(Resolv).not_to receive(:getaddresses).with('meta.idp.example.com')
+
+          csrf_patch api_path(test_custom_domain.extid), { display_name: 'Renamed', idp_metadata_url: metadata_url }
+          expect(last_response.status).to eq(200), last_response.body
+
+          put_saml(idp_metadata_url: metadata_url)
+          expect(last_response.status).to eq(200), last_response.body
+
+          expect(stored_metadata_url).to eq(metadata_url)
+        end
+      end
+
+      context 'when the stored value cannot be decrypted' do
+        before do
+          put_saml(idp_metadata_url: metadata_url)
+          other                  = Onetime::CustomDomain::SsoConfig.new(domain_id: "other-#{test_run_id}")
+          other.idp_metadata_url = 'https://evil.example.net/metadata'
+          Familia.dbclient.hset(stored_config.dbkey, 'idp_metadata_url', other.idp_metadata_url.encrypted_value)
+          allow(OT).to receive(:lw)
+        end
+
+        it 'names it in unreadable_fields with a null value' do
+          json_get api_path(test_custom_domain.extid)
+
+          expect(last_response.status).to eq(200)
+          expect(json_body['record']).to include('unreadable_fields' => ['idp_metadata_url'], 'idp_metadata_url' => nil)
+          expect(json_body['record']['idp_cert']).to eq(saml_cert.strip)
+        end
+
+        it 'never stops the login options from building' do
+          expect { stored_config.to_omniauth_options }.not_to raise_error
+        end
+
+        it 'refuses an unrelated edit, and accepts clearing it or a disable-only PATCH' do
+          csrf_patch api_path(test_custom_domain.extid), { display_name: 'Renamed' }
+          expect(last_response.status).to eq(422), last_response.body
+          expect(json_body['error']).to include('idp_metadata_url cannot be read')
+
+          csrf_patch api_path(test_custom_domain.extid), { enabled: false }
+          expect(last_response.status).to eq(200), last_response.body
+
+          csrf_patch api_path(test_custom_domain.extid), { idp_metadata_url: '' }
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_config.idp_metadata_url).to be_nil
+        end
+      end
+
+      # A SENSITIVE_FIELDS entry: logged as changed, never with its value.
+      it 'is audited as changed without its value' do
+        put_saml(idp_metadata_url: metadata_url)
+        csrf_patch api_path(test_custom_domain.extid), { idp_metadata_url: 'https://other.idp.example.com/metadata' }
+
+        expect(last_response.status).to eq(200), last_response.body
+        updated = audit_payloads.find { it['event'] == 'domain_sso_config_updated' }
+        expect(updated.fetch('changes')).to include('idp_metadata_url' => { 'changed' => true })
+        serialized = JSON.generate(audit_payloads)
+        expect(serialized).not_to include('meta.idp.example.com')
+        expect(serialized).not_to include('other.idp.example.com')
+      end
+    end
+
+    # The fetch endpoint end to end, through the routes and the full stack:
+    # the guard ladder, the SSRF-guarded fetcher (WebMock at the HTTP
+    # boundary, the guard's DNS seam stubbed) and the parser.
+    describe 'POST /sso/metadata' do
+      let(:metadata_url) { 'https://meta.idp.example.com/federationmetadata.xml?appid=abc-123' }
+
+      def metadata_path
+        "/api/domains/#{test_custom_domain.extid}/sso/metadata"
+      end
+
+      def metadata_xml
+        cert_base64 = saml_cert.lines.reject { it.start_with?('-----') }.join.delete("\n")
+        <<~XML
+          <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" entityID="https://idp.example.com/saml/metadata">
+            <md:IDPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+              <md:KeyDescriptor use="signing"><ds:KeyInfo><ds:X509Data><ds:X509Certificate>#{cert_base64}</ds:X509Certificate></ds:X509Data></ds:KeyInfo></md:KeyDescriptor>
+              <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://idp.example.com/saml/sso"/>
+            </md:IDPSSODescriptor>
+          </md:EntityDescriptor>
+        XML
+      end
+
+      before do
+        allow(Onetime::Http::Guard).to receive(:resolve_addresses).and_return(['203.0.113.10'])
+      end
+
+      it 'fetches the document with the SAML metadata Accept header and returns the preview' do
+        stub_request(:get, metadata_url)
+          .with(headers: { 'Accept' => 'application/samlmetadata+xml, application/xml, text/xml' })
+          .to_return(status: 200, body: metadata_xml, headers: { 'Content-Type' => 'text/xml; charset=utf-8' })
+
+        csrf_post metadata_path, { metadata_url: metadata_url }
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect(json_body).to include(
+          'success' => true,
+          'metadata_url' => metadata_url,
+          'idp_entity_id' => 'https://idp.example.com/saml/metadata',
+          'idp_sso_service_url' => 'https://idp.example.com/saml/sso',
+          'problems' => [],
+        )
+        expect(json_body['signing_certificates'].map { it['pem'] }).to eq([saml_cert.strip])
+        expect(stored_config).to be_nil
+      end
+
+      it 'answers a fetch failure with HTTP 200 and the failure envelope' do
+        stub_request(:get, metadata_url).to_return(status: 404, body: 'Not Found')
+
+        csrf_post metadata_path, { metadata_url: metadata_url }
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect(json_body).to include('success' => false, 'metadata_url' => metadata_url)
+        expect(json_body['details']).to include('error_code' => 'metadata_not_found', 'http_status' => 404)
+      end
+
+      it 'refuses a blank metadata_url as a form error' do
+        csrf_post metadata_path, { metadata_url: '' }
+
+        expect(last_response.status).to eq(422), last_response.body
+        expect(json_body).to include('field' => 'metadata_url', 'error_type' => 'missing')
+      end
+
+      it 'refuses while SAML is switched off on the install' do
+        ClimateControl.modify(SAML_ENABLED: nil) { csrf_post metadata_path, { metadata_url: metadata_url } }
+
+        expect(last_response.status).to eq(422), last_response.body
+        expect(json_body['field']).to eq('provider_type')
+        expect(a_request(:get, metadata_url)).not_to have_been_made
       end
     end
 

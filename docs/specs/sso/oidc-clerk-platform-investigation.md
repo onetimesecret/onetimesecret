@@ -1,6 +1,6 @@
 # Clerk platform OIDC investigation results
 
-Related scope: [Clerk platform OIDC compatibility spike](clerk-platform-oidc.md).
+Related scope: [Clerk platform OIDC compatibility spike](oidc-clerk-platform-spike.md).
 
 ## Status
 
