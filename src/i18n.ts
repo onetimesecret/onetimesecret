@@ -97,10 +97,11 @@ export const hasLocaleMessages = (locale: string): boolean =>
  * 'en' resolves from the bundled import with no request.
  *
  * Rejects for a locale with no generated file and for a chunk that fails to
- * load. A failed chunk import dispatches `vite:preloadError`; the entry points
- * call preventDefault() on it (to reload), and Vite's preload helper then
- * resolves the import with undefined instead of rejecting. That case rejects
- * here too, so undefined is never registered as a locale's messages.
+ * load. A failed chunk import dispatches `vite:preloadError`, which may reload
+ * the page (src/utils/preloadError.ts); the import rejects either way. A
+ * module that resolves without messages (a default-prevented event would do
+ * that) rejects here too, so undefined is never registered as a locale's
+ * messages.
  *
  * Loading does not register or activate anything: each instance registers
  * messages in its own composer (see createI18nInstance).
@@ -189,6 +190,17 @@ function fallbackChain(start: string, fallback: unknown): string[] {
 
 type GlobalComposer = Composer<{}, {}, {}, Locale>;
 
+export interface SetLocaleOptions {
+  /**
+   * Load the locale's configured fallback chain along with it (the default).
+   * False loads the locale alone, for a recovery that must not depend on a
+   * further chunk: bundled English is complete, and a fallback behind it
+   * that fails to load must not keep it from showing. Keys the active locale
+   * lacks then miss instead of falling back.
+   */
+  fallbacks?: boolean;
+}
+
 type FallbackConfig = BootstrapPayload['fallback_locale'];
 
 /**
@@ -270,7 +282,8 @@ function buildI18nInstance(onActivate?: (locale: string) => void) {
   let latestRequest = 0;
 
   /**
-   * Loads `locale` and its fallback chain into this composer, then activates it.
+   * Loads `locale` and its fallback chain (unless `fallbacks` is false) into
+   * this composer, then activates it.
    *
    * Resolves true when this call activated the locale. Resolves false when a
    * newer setLocale call on this instance started before this one settled
@@ -283,9 +296,13 @@ function buildI18nInstance(onActivate?: (locale: string) => void) {
    *
    * @param locale - Target locale code, as named in generated/locales (e.g. bg, de_AT)
    */
-  const setLocale = async (locale: string): Promise<boolean> => {
+  const setLocale = async (
+    locale: string,
+    { fallbacks = true }: SetLocaleOptions = {}
+  ): Promise<boolean> => {
     const request = ++latestRequest;
-    const missing = fallbackChain(locale, composer.fallbackLocale.value).filter(
+    const chain = fallbacks ? fallbackChain(locale, composer.fallbackLocale.value) : [locale];
+    const missing = chain.filter(
       (code) => !registered.has(code) && (code === locale || hasLocaleMessages(code))
     );
 

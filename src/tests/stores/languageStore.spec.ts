@@ -23,6 +23,13 @@ import { resolve } from 'path';
 // the store keeps them supported, and src/i18n.ts rejects their loads because
 // generated/locales/ has no file for them. Without this, init() would drop
 // them like any locale this build has no messages for (loadSupportedLocales).
+//
+// englishFallbackFails stands for a fallback_locale.default that names another
+// locale before English (['de', 'en']) whose chunk fails: an activation of
+// English with its fallbacks then fails too, bundled as English is. The
+// fallback map is read when src/i18n.ts loads, so it is modelled here rather
+// than configured.
+const i18nControl = vi.hoisted(() => ({ englishFallbackFails: false }));
 vi.mock('@/i18n', async (importOriginal) => {
   const FAILING_LOCALES = new Set(['zh_Hant_TW', 'xx_YY']);
   const actual = await importOriginal<typeof import('@/i18n')>();
@@ -30,6 +37,12 @@ vi.mock('@/i18n', async (importOriginal) => {
     ...actual,
     hasLocaleMessages: (locale: string) =>
       FAILING_LOCALES.has(locale) || actual.hasLocaleMessages(locale),
+    setGlobalLocale: (locale: string, options?: Parameters<typeof actual.setGlobalLocale>[1]) => {
+      if (locale === 'en' && options?.fallbacks !== false && i18nControl.englishFallbackFails) {
+        return Promise.reject(new Error('chunk de failed'));
+      }
+      return actual.setGlobalLocale(locale, options);
+    },
   };
 });
 
@@ -67,6 +80,7 @@ describe('Language Store', () => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
     bootstrapStore.$reset();
+    i18nControl.englishFallbackFails = false;
   });
 
   // init() records options and returns the preferred locale. It activates
@@ -641,6 +655,21 @@ describe('Language Store', () => {
         expect(store.currentLocale).toBe('en');
         expect(store.localeLoadFailure).toEqual({ requested: 'zh_Hant_TW', shown: 'en' });
         expect(sessionStorage.setItem).not.toHaveBeenCalled();
+      });
+
+      // The chunk that failed may be the one configured behind English. The
+      // last resort loads English alone, so it opens whatever else failed.
+      it('activates English without its fallbacks when the chunk behind it fails', async () => {
+        bootstrapStore.update({ default_locale: 'en' });
+        i18nControl.englishFallbackFails = true;
+
+        await expect(store.recoverFromLocaleLoadFailure('zh_Hant_TW')).resolves.toBe('en');
+
+        expect(store.currentLocale).toBe('en');
+        expect(globalComposer.locale.value).toBe('en');
+        expect(store.localeLoadFailure).toEqual({ requested: 'zh_Hant_TW', shown: 'en' });
+        // Ordinary activations stay strict: English with its chain still fails.
+        await expect(store.setCurrentLocale('en')).rejects.toThrow('chunk de failed');
       });
 
       it('activates English and logs it when default_locale does not load either', async () => {

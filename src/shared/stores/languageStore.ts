@@ -50,6 +50,13 @@ export interface SetCurrentLocaleOptions {
    * domain locale that changes later in the session.
    */
   remember?: boolean;
+  /**
+   * Load the locale's configured fallback chain along with it (the default).
+   * False only for the last resort of recoverFromLocaleLoadFailure: English
+   * is bundled, and a fallback configured behind it (fallback_locale.default)
+   * whose chunk fails must not keep the page from opening in English.
+   */
+  fallbacks?: boolean;
 }
 
 interface StoreOptions extends PiniaPluginOptions {
@@ -231,7 +238,7 @@ export const useLanguageStore = defineStore('language', () => {
    */
   async function setCurrentLocale(
     locale: string,
-    { remember = true }: SetCurrentLocaleOptions = {}
+    { remember = true, fallbacks = true }: SetCurrentLocaleOptions = {}
   ): Promise<string> {
     const normalizedLocale = requireSupportedLocale(locale);
 
@@ -243,7 +250,7 @@ export const useLanguageStore = defineStore('language', () => {
     // shows (recoverFromLocaleLoadFailure).
     let activated: boolean;
     try {
-      activated = await setGlobalLocale(normalizedLocale);
+      activated = await setGlobalLocale(normalizedLocale, { fallbacks });
     } finally {
       if (request === latestSwitch) pendingLocale.value = null;
     }
@@ -268,7 +275,9 @@ export const useLanguageStore = defineStore('language', () => {
    *  - with a locale already active, it stays;
    *  - before the first activation, the installation's default_locale is
    *    activated when it is supported, is not `requested`, and loads;
-   *    otherwise DEFAULT_LOCALE, whose messages are bundled.
+   *    otherwise DEFAULT_LOCALE, whose messages are bundled, without its
+   *    fallbacks: a chunk configured behind English that fails (it may be
+   *    the one `requested` needed) must not keep English from showing.
    * Neither is remembered as the session's selection. Logs nothing about
    * `requested` itself; the caller owns that error.
    *
@@ -298,7 +307,7 @@ export const useLanguageStore = defineStore('language', () => {
         );
       }
     }
-    return setCurrentLocale(DEFAULT_LOCALE, { remember: false });
+    return setCurrentLocale(DEFAULT_LOCALE, { remember: false, fallbacks: false });
   }
 
   /** Hides LocaleLoadNotice; the active locale stays. */
