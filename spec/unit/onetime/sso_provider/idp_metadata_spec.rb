@@ -723,6 +723,23 @@ RSpec.describe Onetime::SsoProvider::IdpMetadata do
 
         expect_parse_error(document(entity(idp_descriptor(keys: [bad]))), :unreadable_certificate)
       end
+
+      # merge_certificates_into's second shape: one signing and one
+      # encryption certificate that are the same. A KeyDescriptor without a
+      # use attribute is listed as both, so it takes this path too, not the
+      # lone-certificate one.
+      it 'refuses a malformed certificate in a KeyDescriptor without a use attribute as unreadable_certificate' do
+        bad = key_descriptor(Base64.strict_encode64('not a certificate'), use: nil)
+
+        expect_parse_error(document(entity(idp_descriptor(keys: [bad]))), :unreadable_certificate)
+      end
+
+      it 'refuses an identical malformed signing and encryption pair as unreadable_certificate' do
+        bad  = Base64.strict_encode64('not a certificate')
+        keys = [key_descriptor(bad), key_descriptor(bad, use: 'encryption')]
+
+        expect_parse_error(document(entity(idp_descriptor(keys: keys))), :unreadable_certificate)
+      end
     end
 
     # ruby-saml's normal load path sets REXML::Security.entity_expansion_limit

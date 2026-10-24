@@ -466,12 +466,17 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::FetchIdpMetadata do
         expect([outcome.inspect, *logged].join).not_to include('leak.example.com')
       end
 
-      it 'maps an unreadable lone certificate to unreadable_certificate' do
-        body = metadata_document.sub(
+      let(:not_a_certificate) { Base64.strict_encode64('not a certificate') }
+
+      def unreadable_certificate_document
+        metadata_document.sub(
           %r{<ds:X509Certificate>[^<]*</ds:X509Certificate>},
-          "<ds:X509Certificate>#{Base64.strict_encode64('not a certificate')}</ds:X509Certificate>",
+          "<ds:X509Certificate>#{not_a_certificate}</ds:X509Certificate>",
         )
-        allow(fetcher).to receive(:fetch).and_return(fetched(:ok, body: body))
+      end
+
+      it 'maps an unreadable lone certificate to unreadable_certificate' do
+        allow(fetcher).to receive(:fetch).and_return(fetched(:ok, body: unreadable_certificate_document))
 
         outcome = run
 
@@ -483,6 +488,26 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::FetchIdpMetadata do
           error_code: 'unreadable_certificate',
           description: described_class::PARSE_FAILURE_DESCRIPTIONS.fetch(:unreadable_certificate),
         )
+      end
+
+      # The parser's reason is the exception class name; the log carries it
+      # beside the code and nothing from the document.
+      it 'logs an unreadable certificate as its code and exception class, never the certificate' do
+        allow(fetcher).to receive(:fetch).and_return(fetched(:ok, body: unreadable_certificate_document))
+        payloads = []
+        allow(OT).to receive(:info) { |*_msgs, **payload| payloads << payload }
+
+        run
+
+        expect(payloads).to include(
+          {
+            domain_id: 'ext-domain123',
+            success: false,
+            error_code: 'unreadable_certificate',
+            reason: 'OpenSSL::X509::CertificateError',
+          },
+        )
+        expect([payloads.inspect, *logged].join).not_to include(not_a_certificate)
       end
 
       it 'maps a federation aggregate to aggregate_metadata' do
