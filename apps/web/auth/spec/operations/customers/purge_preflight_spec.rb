@@ -1258,27 +1258,97 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
     expect(described_class.new(customer: customer).call).to be_executable
   end
 
-  it 'blocks a default workspace that is not the target customer default' do
-    org = organization
-    owner_membership = membership(
-      org_objid: org.objid,
-      customer_objid: customer.objid,
-      role: 'owner',
-    )
-    allow(customer).to receive(:default_org_id).and_return('org-other')
-    allow(customer).to receive(:participations)
-      .and_return(collection(["organization:#{org.objid}:members"]))
-    allow(customer).to receive(:organization_instances).and_return(collection([org]))
-    stub_organization_scan(org)
-    stub_membership_scan(owner_membership)
-    stub_membership_lookup(org, customer.objid => owner_membership)
-    allow(Onetime::Customer).to receive(:load).with(customer.objid).and_return(customer)
-    allow(contact_index).to receive(:get).with('target@example.com').and_return(org.objid)
+  describe 'default_org_id' do
+    let(:org) { organization }
+    let(:owner_membership) do
+      membership(org_objid: org.objid, customer_objid: customer.objid, role: 'owner')
+    end
+    let(:admin) { double('Customer', objid: 'cust-admin') }
+    let(:admin_membership) do
+      membership(org_objid: 'org-tenant', customer_objid: admin.objid, role: 'owner')
+    end
 
-    plan = described_class.new(customer: customer).call
+    # A custom-domain organization owned by someone else. It carries
+    # is_default because it is its owner's own default workspace.
+    def tenant_org(member_ids)
+      organization(
+        objid: 'org-tenant',
+        extid: 'on_tenant',
+        owner_id: admin.objid,
+        created_by: admin.objid,
+        contact_email: 'admin@tenant.example',
+        members: collection(member_ids),
+      )
+    end
 
-    expect(plan).not_to be_executable
-    expect(plan.blockers).to include(hash_including(code: :default_workspace_mismatch))
+    def stub_workspace(default_org_id:, participating: [org])
+      allow(customer).to receive(:default_org_id).and_return(default_org_id)
+      allow(customer).to receive(:participations)
+        .and_return(collection(participating.map { |each_org| "organization:#{each_org.objid}:members" }))
+      allow(customer).to receive(:organization_instances).and_return(collection(participating))
+      stub_membership_lookup(org, customer.objid => owner_membership)
+      allow(Onetime::Organization).to receive(:load).with(org.objid).and_return(org)
+      allow(Onetime::Customer).to receive(:load).with(customer.objid).and_return(customer)
+      allow(Onetime::Customer).to receive(:load).with(admin.objid).and_return(admin)
+      allow(contact_index).to receive(:get).with('target@example.com').and_return(org.objid)
+      allow(contact_index).to receive(:get).with('admin@tenant.example').and_return('org-tenant')
+    end
+
+    it 'blocks when it names a second default workspace the customer owns' do
+      other = organization(objid: 'org-other', extid: 'on_other')
+      stub_workspace(default_org_id: other.objid)
+      allow(Onetime::Organization).to receive(:load).with(other.objid).and_return(other)
+      stub_membership_lookup(
+        other,
+        customer.objid => membership(org_objid: other.objid, customer_objid: customer.objid, role: 'owner'),
+      )
+
+      plan = described_class.new(customer: customer).call
+
+      expect(plan).not_to be_executable
+      expect(plan.blockers).to include(code: :default_workspace_mismatch, org_id: 'on_personal')
+    end
+
+    # SSO sign-in on a custom domain points default_org_id at the tenant
+    # organization it joins (JoinDomainOrganization#adopt_domain_default_org).
+    it 'plans the purge when it names a tenant organization the customer belongs to' do
+      tenant = tenant_org([admin.objid, customer.objid])
+      stub_workspace(default_org_id: tenant.objid, participating: [org, tenant])
+      allow(Onetime::Organization).to receive(:load).with(tenant.objid).and_return(tenant)
+      stub_membership_lookup(
+        tenant,
+        admin.objid => admin_membership,
+        customer.objid => membership(org_objid: tenant.objid, customer_objid: customer.objid, role: 'member'),
+      )
+
+      plan = described_class.new(customer: customer).call
+
+      expect(plan.blockers).to be_empty
+      expect(plan.actions.map { |action| [action.type, action.org_id] })
+        .to contain_exactly([:delete_organization, 'on_personal'], [:remove_membership, 'on_tenant'])
+    end
+
+    it 'plans the purge when it names an organization the customer was removed from (#4860)' do
+      tenant = tenant_org([admin.objid])
+      stub_workspace(default_org_id: tenant.objid)
+      allow(Onetime::Organization).to receive(:load).with(tenant.objid).and_return(tenant)
+      stub_membership_lookup(tenant, admin.objid => admin_membership)
+
+      plan = described_class.new(customer: customer).call
+
+      expect(plan.blockers).to be_empty
+      expect(plan.actions.map { |action| [action.type, action.org_id] })
+        .to eq([[:delete_organization, 'on_personal']])
+    end
+
+    it 'plans the purge when it names an organization that no longer exists' do
+      stub_workspace(default_org_id: 'org-gone')
+
+      plan = described_class.new(customer: customer).call
+
+      expect(plan.blockers).to be_empty
+      expect(plan.actions.map(&:type)).to eq([:delete_organization])
+    end
   end
 
   it 'blocks a domain whose org_id references the workspace despite missing domain indexes' do
