@@ -10,16 +10,15 @@
 // page.route(), so the window in which English could appear lasts as long as
 // the test wants.
 //
-// A locale that does not load never blocks the visitor: the page opens in
-// English (or keeps the language it shows) with an inline notice
+// A locale that does not load never blocks the visitor. A failed chunk first
+// reloads the page once (src/utils/preloadError.ts), on the first load and on
+// a later switch alike, the usual cause being cached HTML that names chunks a
+// deployment replaced. That reload goes through the ADR-046 forced page load
+// bound, one per tab per minute; spendForcedReload uses it up for a test that
+// needs the outcome without the reload. When the reload is refused, the page
+// opens in English (or keeps the language it shows) with an inline notice
 // (LocaleLoadNotice) that names the language that failed and links to the
-// feedback form. On the first load, before any locale is shown, a failed
-// chunk also reloads the page once (src/utils/preloadError.ts), the usual
-// cause being cached HTML that names chunks a deployment replaced. That
-// reload goes through the ADR-046 forced page load bound, one per tab per
-// minute; spendForcedReload uses it up for a test that needs the notice
-// without the reload. Once a locale is shown, a failed switch fails in place:
-// no reload, so the notice and any unsaved input stay.
+// feedback form.
 //
 // "First content" is measured in the page: an init script records every
 // distinct state of #app from the first byte (see recordAppStates). Vue sets
@@ -796,13 +795,46 @@ test.describe('switching language', () => {
     expect(mixedStates(recorded), 'no state mixed two languages').toEqual([]);
   });
 
-  // F24: once a locale is shown, a failed switch fails in place. The page
-  // keeps its language and shows the notice; no reload discards the notice or
-  // what the visitor has typed, and the tab's forced reload stays unspent.
-  test('a bg chunk that fails during a switch keeps English and shows the notice, without reloading', async ({
+  // F24: a locale chunk is a chunk like any other. A switch whose chunk fails
+  // reloads the page once under the ADR-046 bound, as a route chunk that
+  // fails after a deployment does. The failed choice is never stored, so the
+  // reloaded page opens in the language it showed before.
+  test('a bg chunk that fails during a switch reloads the page once, which opens in English', async ({
     page,
     localeChunks,
   }) => {
+    const documents = recordDocumentRequests(page);
+    const savedLocales = recordSavedLocales(page);
+    await page.goto('/');
+    await expectLocalesServed(page, ['bg']);
+    await waitForAppReady(page);
+    await expect(localeNotice(page)).toHaveCount(0);
+
+    const bg = await localeChunks.fail('bg');
+    await chooseLanguage(page, 'bg');
+    await bg.requested();
+
+    await waitOutReloads(page, documents);
+    expect(documents, 'exactly one recovery reload').toEqual(['/', '/']);
+    expect(bg.count, 'the reloaded page does not ask for bg').toBe(1);
+
+    await waitForAppReady(page);
+    await expect(htmlElement(page)).not.toHaveAttribute('data-app-failed');
+    await expect(heading(page, 'en')).toBeVisible();
+    await expect(layoutRoot(page)).toHaveAttribute('lang', 'en');
+    await expect(htmlElement(page)).toHaveAttribute('lang', 'en');
+    expect(await storedLocale(page), 'the failed choice is not stored').toBeNull();
+    expect(savedLocales, 'the failed choice is not saved').toEqual([]);
+  });
+
+  // With the tab's forced reload spent, the switch fails in place: the page
+  // keeps its language and shows the notice, and what the visitor has typed
+  // stays.
+  test('with the forced reload spent, a bg chunk that fails during a switch keeps English and shows the notice', async ({
+    page,
+    localeChunks,
+  }) => {
+    await spendForcedReload(page);
     const documents = recordDocumentRequests(page);
     const savedLocales = recordSavedLocales(page);
     await page.goto('/');
@@ -821,7 +853,7 @@ test.describe('switching language', () => {
     await page
       .waitForRequest(isDocumentRequest, { timeout: RELOAD_WINDOW_MS })
       .catch(() => undefined);
-    expect(documents, 'no reload').toEqual(['/']);
+    expect(documents, 'no reload: the bound refused it').toEqual(['/']);
     await expect(localeNotice(page)).toBeVisible();
 
     await expect(heading(page, 'en')).toBeVisible();
@@ -830,10 +862,6 @@ test.describe('switching language', () => {
     await expect(secret, 'the unsaved input survives').toHaveValue('typed before the switch');
     expect(await storedLocale(page), 'the failed choice is not stored').toBeNull();
     expect(savedLocales, 'the failed choice is not saved').toEqual([]);
-    expect(
-      await page.evaluate((key) => sessionStorage.getItem(key), FORCED_RELOAD_MARKER),
-      "the tab's forced reload is not spent"
-    ).toBeNull();
 
     await dismissLocaleNotice(page);
     await expect(heading(page, 'en')).toBeVisible();
