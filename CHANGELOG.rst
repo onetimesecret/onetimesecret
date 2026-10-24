@@ -6,6 +6,17 @@ All notable changes to Onetime Secret are documented here.
 The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.1.0/>`__, and
 this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
+AI assistance and attribution
+-----------------------------
+
+GPT-6.1-Sol assisted with revising and fact-checking the 0.26.14–0.26.19
+release notes, moving detailed domain upgrade guidance into the operator
+reference, and reconstructing recorded AI-assistance credits for
+0.26.15–0.26.19 from commit history. These credits reflect available
+records, not a complete inventory of AI use. Release-specific credits below
+distinguish implementation and testing assistance from review feedback;
+linked release histories provide the underlying contribution records.
+
 .. raw:: html
 
    <!--scriv-insert-here-->
@@ -232,6 +243,18 @@ Security
   identifier, including the guest who submitted it. Burn previews with
   ``continue=false`` also omit the incoming secret's share link. (#4835)
 
+AI Assistance
+-------------
+
+- Claude Fable 5.1 — homepage network rules, base-domain signup, account
+  closure, authentication upgrades, expiration warnings, sign-in return
+  paths, frontend code splitting and route-load recovery.
+- Claude Opus 5.5 — interrupted closure recovery, receipt and burn responses,
+  verification and passkey recovery codes, domain rule validation,
+  configuration controls and local frontend builds.
+
+`Contribution records <https://github.com/onetimesecret/onetimesecret/compare/v0.26.18...bd298b83e5>`__.
+
 .. _changelog-0.26.18:
 
 0.26.18 — 2026-10-17
@@ -311,6 +334,14 @@ Fixed
 
 - Cancelling an organization switch at the unsaved-changes prompt keeps the
   current organization, edits and domain list. (#4802, #4809)
+
+AI Assistance
+-------------
+
+- Claude Opus 5.5 assisted with the production browser-console self-XSS
+  warning and multi-architecture container build configuration.
+
+`Contribution records <https://github.com/onetimesecret/onetimesecret/compare/v0.26.17...v0.26.18>`__.
 
 .. _changelog-0.26.17:
 
@@ -489,6 +520,24 @@ Security
   reports the wait after a 429. Configure ``SENDER_TEST_EMAIL_RATE_LIMIT_*``
   in ``etc/defaults/config.defaults.yaml``.
 
+AI Assistance
+-------------
+
+- Claude, including Opus 5.5 and Fable 5.1, assisted with Markdown secret
+  creation, previews, rendering and link presentation.
+
+- Claude Opus 5.5 assisted with email sign-in and verification, magic-link
+  request limits, guest receipt storage, DNS widget handling, datastore
+  transport configuration, container builds and console logging.
+
+- GPT-6-Astra was credited in the commit for Entra token-exchange
+  diagnostics and guidance.
+
+- Greptile feedback informed mobile SSO settings layout and coordination
+  of custom sender deletion and provisioning.
+
+`Contribution records <https://github.com/onetimesecret/onetimesecret/compare/v0.26.16...v0.26.17>`__.
+
 .. _changelog-0.26.16:
 
 0.26.16 — 2026-10-11
@@ -664,6 +713,20 @@ Documentation
   ``docs/runbooks/sso-entra-claim-smoke-test.md``. It distinguishes missing
   email claims from missing mailboxes and records only sanitized claim
   presence and type. (#3499, #4738)
+
+AI Assistance
+-------------
+
+- Claude Opus 5.5 assisted with magic-link expiration, trusted-provider
+  email linking and homepage CIDR matching.
+
+- Claude Fable 5.1 assisted with rejected-host organization-scope
+  diagnostics and operator documentation.
+
+- Copilot feedback informed organization archive and restoration fixes,
+  repair guidance, and re-authentication session handling.
+
+`Contribution records <https://github.com/onetimesecret/onetimesecret/compare/v0.26.15...v0.26.16>`__.
 
 .. _changelog-0.26.15:
 
@@ -878,6 +941,23 @@ Security
   including debug traces; lifecycle and receipt-list error logs expose
   fewer identifiers and exception details. External proxy access logs still
   need their own redaction configuration. (#4647)
+
+AI Assistance
+-------------
+
+- Claude Fable 5.1 assisted with custom-domain availability, workspace and
+  invitation handling, proxy Origin handling, and account-lockout tests.
+
+- Claude assisted with public-host rewriting, entitlement retries,
+  sender-domain verification and account language preferences.
+
+- Claude Opus 5.5 assisted with regional jurisdiction icons and names.
+
+- Copilot and Greptile feedback informed host and workspace fixes.
+  Greptile feedback also informed entitlement retries and API
+  authentication documentation.
+
+`Contribution records <https://github.com/onetimesecret/onetimesecret/compare/v0.26.14...v0.26.15>`__.
 
 .. _changelog-0.26.14:
 
@@ -1108,6 +1188,13 @@ Documentation
 
 - Added ``docs/development/data-migrations.md`` to explain migration and
   maintenance mechanisms, migration state and record-write behavior.
+
+AI Assistance
+-------------
+
+- AI-assisted implementation and regression testing of SAML review fixes. (#4450)
+
+`Contribution records <https://github.com/onetimesecret/onetimesecret/compare/v0.26.13...v0.26.14>`__.
 
 .. _changelog-0.26.13:
 
