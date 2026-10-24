@@ -4,9 +4,9 @@
 
 # CLI adapter tests for `bin/ots customers set-default-org CUSTOMER ORG`.
 #
-# Covers customer + org resolution, the --yes / --json refusal, the interactive
-# decline, the CLI actor sentinel, --dry-run, and the op-status -> output /
-# exit-code mapping. The membership / archived rule, the write and the audit
+# Covers customer + org resolution, the dry-run default (nothing written
+# without --apply, never a prompt), the CLI actor sentinel, and the op-status ->
+# output / exit-code mapping. The membership / archived rule, the write and the audit
 # event are the op's job and are covered by
 # spec/unit/onetime/operations/customers/set_default_organization_spec.rb — here
 # the op is stubbed at its constructor so these stay pure adapter tests.
@@ -83,33 +83,43 @@ RSpec.describe 'Customers Set Default Org Command', type: :cli do
     end
   end
 
-  describe 'confirmation' do
-    it 'refuses to apply without --yes in --json mode' do
-      output = run('ur_member', 'on_team', '--json')
+  describe 'dry run (the default)' do
+    before { stub_op(:dry_run, dry_run: true) }
 
-      expect(last_exit_code).to eq(1)
-      expect(JSON.parse(output[:stdout])['error'])
-        .to eq('Refusing to change the default organization without --yes in --json mode')
-      expect(op_class).not_to have_received(:new)
-    end
-
-    it 'aborts without calling the op when the prompt is declined' do
-      allow($stdin).to receive(:gets).and_return("n\n")
+    it 'asks the op for a dry run without --apply, never prompting' do
+      allow($stdin).to receive(:gets)
 
       output = run('ur_member', 'on_team')
 
       expect(last_exit_code).to eq(0)
-      expect(output[:stdout]).to include('Aborted.')
-      expect(op_class).not_to have_received(:new)
+      expect($stdin).not_to have_received(:gets)
+      expect(op_class).to have_received(:new).with(hash_including(dry_run: true))
+      expect(output[:stdout]).to include('(dry run, nothing written)')
+      expect(output[:stdout]).to include('Re-run with --apply to write.')
     end
 
-    it 'applies after an interactive confirmation' do
-      allow($stdin).to receive(:gets).and_return("y\n")
+    it 'emits the dry run as JSON and exits 0' do
+      output = run('ur_member', 'on_team', '--json')
 
-      output = run('ur_member', 'on_team')
+      expect(last_exit_code).to eq(0)
+      expect(JSON.parse(output[:stdout])).to include('status' => 'dry_run', 'dry_run' => true)
+      expect(op_class).to have_received(:new).with(hash_including(dry_run: true))
+    end
 
-      expect(output[:stdout]).to include('Set the default organization of me*****@example.com to on_team?')
-      expect(op_class).to have_received(:new)
+    it 'writes with --apply' do
+      stub_op(:success)
+
+      run('ur_member', 'on_team', '--apply')
+
+      expect(op_class).to have_received(:new).with(hash_including(dry_run: false))
+    end
+
+    it 'refuses --apply with --dry-run before calling the op' do
+      output = run('ur_member', 'on_team', '--apply', '--dry-run')
+
+      expect(last_exit_code).to eq(1)
+      expect(output[:stdout]).to include('--apply and --dry-run are contradictory')
+      expect(op_class).not_to have_received(:new)
     end
   end
 

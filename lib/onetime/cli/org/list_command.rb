@@ -5,11 +5,18 @@
 # List organizations, optionally filtered by owner email or plan.
 #
 # Usage:
-#   bin/ots organizations list                          # First 50 organizations
-#   bin/ots organizations list --owner acme.com         # Owner email contains "acme.com"
-#   bin/ots organizations list --plan identity_plus_v1  # Exact plan id
-#   bin/ots organizations list --verbose                # With members and domains
-#   bin/ots organizations list --limit 200 --json       # JSON output
+#   bin/ots organizations list                                # First 50 organizations
+#   bin/ots organizations list --owner acme.com --run         # Owner email contains "acme.com"
+#   bin/ots organizations list --plan identity_plus_v1 --run  # Exact plan id
+#   bin/ots organizations list --verbose                      # With members and domains
+#   bin/ots organizations list --limit 200 --json             # JSON output
+#
+# --owner and --plan have no index to read: matching loads organization
+# records one at a time (plus each owner for --owner) until --limit match, so
+# a rare match walks every organization. A filtered listing is therefore a
+# dry run unless --run is given: it reports the size of the walk and loads
+# nothing. The unfiltered listing loads at most --limit records and needs no
+# --run.
 #
 # One organization in depth: `bin/ots organizations show ORG`.
 
@@ -47,22 +54,46 @@ module Onetime
         default: false,
         desc: 'Show members and domains under each organization'
 
+      option :run,
+        type: :boolean,
+        default: false,
+        desc: 'Run an --owner/--plan scan (default: dry run, nothing loaded)'
+
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
-      def call(owner: nil, plan: nil, limit: 50, verbose: false, json: false, **)
+      def call(owner: nil, plan: nil, limit: 50, verbose: false, run: false, json: false, **)
         boot_application!
 
         # A negative --limit reaches Array#take, which raises on a negative
         # size; a zero limit is a silently empty listing. Reject both here.
         error_exit('--limit must be a positive integer', json: json) if limit.to_i < 1
 
+        if (owner || plan) && !run
+          return output_scan_plan(owner: owner, plan: plan, limit: limit.to_i, json: json)
+        end
+
         list_organizations(owner: owner, plan: plan, limit: limit.to_i, verbose: verbose, json: json)
       end
 
       private
+
+      def output_scan_plan(owner:, plan:, limit:, json:)
+        total = Onetime::Organization.instances.count
+
+        if json
+          puts JSON.pretty_generate(total: total, dry_run: true, owner: owner, plan: plan, limit: limit)
+          return
+        end
+
+        puts format('%d total organizations', total)
+        puts
+        puts "Matching #{filter_description(owner, plan)} loads up to #{total} organization records " \
+             "until #{limit} match."
+        puts 'Dry run - nothing loaded. Re-run with --run to scan.'
+      end
 
       def list_organizations(owner: nil, plan: nil, limit: 50, verbose: false, json: false)
         all_org_ids = Onetime::Organization.instances.all

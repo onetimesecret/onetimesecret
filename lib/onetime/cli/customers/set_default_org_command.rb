@@ -5,10 +5,13 @@
 # Set a customer's default organization.
 #
 # Usage:
-#   bin/ots customers set-default-org CUSTOMER ORG             # confirm, then set
-#   bin/ots customers set-default-org user@example.com on123abc --yes
-#   bin/ots customers set-default-org ur123abc on123abc --dry-run
-#   bin/ots customers set-default-org ur123abc on123abc --yes --json
+#   bin/ots customers set-default-org CUSTOMER ORG             # dry run (the default)
+#   bin/ots customers set-default-org user@example.com on123abc --apply
+#   bin/ots customers set-default-org ur123abc on123abc --apply --json
+#
+# DRY RUN IS THE DEFAULT. Nothing is written without --apply (-y/--yes/-f are
+# aliases). There is no confirmation prompt: the bare run is the preview, and
+# --dry-run only says so explicitly.
 #
 # Only an organization the customer is already an active member of, and not an
 # archived one, can be chosen. The check, the write and the admin audit event
@@ -48,34 +51,36 @@ module Onetime
         type: :string,
         default: nil,
         desc: 'Operator-supplied reason (recorded in the admin audit trail)'
+      option :apply,
+        type: :boolean,
+        default: false,
+        aliases: ['-y', '--yes', '-f'],
+        desc: 'Write the change (default: dry run, nothing written)'
       option :dry_run,
         type: :boolean,
         default: false,
-        desc: 'Check eligibility and report; write nothing'
-      option :yes,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '-f'],
-        desc: 'Skip confirmation prompt'
+        desc: 'Check eligibility and report only (the default; contradicts --apply)'
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
-      def call(customer:, org:, reason: nil, dry_run: false, yes: false, json: false, **)
+      def call(customer:, org:, reason: nil, apply: false, dry_run: false, json: false, **)
         boot_application!
+
+        if apply && dry_run
+          error_exit('--apply and --dry-run are contradictory; pass one or neither', json: json)
+        end
 
         target       = resolve_member(customer, action: 'set the default organization of', json: json)
         organization = resolve_org(org, json: json)
-
-        return unless dry_run || confirmed?(target, organization, yes: yes, json: json)
 
         result = Onetime::Operations::Customers::SetDefaultOrganization.new(
           customer: target,
           organization: organization,
           actor: Customers::Shared::CLI_ACTOR,
           reason: reason,
-          dry_run: dry_run,
+          dry_run: !apply,
         ).call
 
         OT.info "[cli-customers-set-default-org] customer=#{target.extid} org=#{organization.extid} " \
@@ -85,18 +90,6 @@ module Onetime
       end
 
       private
-
-      def confirmed?(target, organization, yes:, json:)
-        return true if yes
-
-        error_exit('Refusing to change the default organization without --yes in --json mode', json: true) if json
-
-        print "Set the default organization of #{target.obscure_email} to #{organization.extid}? [y/N] "
-        return true if $stdin.gets&.strip&.downcase == 'y'
-
-        puts 'Aborted.'
-        false
-      end
 
       def output_text(result)
         who      = result.customer.obscure_email
@@ -110,6 +103,7 @@ module Onetime
           puts "#{who}: #{org} is already the default organization"
         when :dry_run
           puts "#{who}: would set default organization #{previous} -> #{org} (dry run, nothing written)"
+          puts 'Re-run with --apply to write.'
         when :not_member
           error_exit("#{who} is not an active member of #{org}", json: false)
         when :archived

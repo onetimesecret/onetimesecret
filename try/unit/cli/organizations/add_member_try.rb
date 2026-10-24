@@ -8,8 +8,8 @@
 #
 # This file drives the models through the local add_member_cli helper below,
 # NOT through a CLI command. The operator verb is
-# `bin/ots memberships add ORG CUSTOMER [--role R] [--default]` (adapter spec:
-# spec/cli/memberships_add_command_spec.rb; op spec:
+# `bin/ots memberships add ORG CUSTOMER [--role R] [--default] --apply`
+# (adapter spec: spec/cli/memberships_add_command_spec.rb; op spec:
 # spec/unit/onetime/operations/memberships/add_spec.rb).
 #
 # Run: bundle exec try try/unit/cli/organizations/add_member_try.rb

@@ -30,8 +30,9 @@ module Onetime
         puts format('%d active memberships, %d pending invitations', active_count, pending_count)
         puts
         puts 'Usage:'
-        puts '  bin/ots memberships add ORG CUSTOMER [--role R]  # Add a member (materializes entitlements)'
-        puts '  bin/ots memberships add ORG CUSTOMER --default   # ...and make ORG their default org'
+        puts '  bin/ots memberships add ORG CUSTOMER [--role R]  # Dry run: what an add would change'
+        puts '  bin/ots memberships add ORG CUSTOMER --apply     # Add a member (materializes entitlements)'
+        puts '  bin/ots memberships add ORG CUSTOMER --default --apply  # ...and make ORG their default org'
         puts '  bin/ots memberships set-role ORG CUSTOMER ROLE   # Change a member\'s role'
         puts '  bin/ots memberships remove ORG CUSTOMER          # Remove a member'
         puts '  bin/ots memberships entitlement show ORG CUSTOMER       # Baseline / overrides / drift'

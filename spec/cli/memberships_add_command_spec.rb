@@ -5,8 +5,9 @@
 # CLI adapter tests for `bin/ots memberships add ORG CUSTOMER`.
 #
 # Covers the ORG grammar shared with `organizations …` (an org objid resolves,
-# not only an extid) and `--default`, which asks SetDefaultOrganization to make
-# ORG the customer's default once they are an active member of it. Both
+# not only an extid), the dry-run default (nothing written without --apply),
+# and `--default`, which asks SetDefaultOrganization to make ORG the
+# customer's default once they are an active member of it. Both
 # mutations are their ops' job (spec/unit/onetime/operations/memberships/
 # add_spec.rb and the SetDefaultOrganization op spec); here both ops are
 # stubbed at their constructors so these stay pure adapter tests.
@@ -89,7 +90,8 @@ RSpec.describe 'Memberships Add Command', type: :cli do
       output = run_cli_command_quietly('memberships', 'add', 'on_org_ext', 'ur_member', '--default', '--yes')
 
       expect(last_exit_code).to eq(0)
-      expect(set_default).to have_received(:new).with(customer: member, organization: organization, actor: 'cli')
+      expect(set_default).to have_received(:new)
+        .with(customer: member, organization: organization, actor: 'cli', dry_run: false)
       expect(output[:stdout]).to include('Default organization for me***@example.com: on_org_ext')
     end
 
@@ -154,16 +156,6 @@ RSpec.describe 'Memberships Add Command', type: :cli do
       end
     end
 
-    it 'mentions the default in the confirmation prompt, and a decline writes nothing' do
-      allow($stdin).to receive(:gets).and_return("n\n")
-
-      output = run_cli_command_quietly('memberships', 'add', 'on_org_ext', 'ur_member', '--default')
-
-      expect(output[:stdout]).to include('and make it their default organization? [y/N]')
-      expect(Onetime::Operations::Memberships::Add).not_to have_received(:new)
-      expect(set_default).not_to have_received(:new)
-    end
-
     it 'reports default_org_status in --json' do
       output  = run_cli_command_quietly('memberships', 'add', 'on_org_ext', 'ur_member', '--default', '--yes', '--json')
       payload = JSON.parse(output[:stdout])
@@ -175,6 +167,82 @@ RSpec.describe 'Memberships Add Command', type: :cli do
       output  = run_cli_command_quietly('memberships', 'add', 'on_org_ext', 'ur_member', '--yes', '--json')
 
       expect(JSON.parse(output[:stdout])).not_to have_key('default_org_status')
+    end
+  end
+
+  describe 'dry run (the default)' do
+    let(:add_op) { Onetime::Operations::Memberships::Add }
+    let(:set_default) { Onetime::Operations::Customers::SetDefaultOrganization }
+    let(:status) { :dry_run }
+
+    it 'asks the op for a dry run without --apply, never prompting' do
+      allow($stdin).to receive(:gets)
+
+      output = run_cli_command_quietly('memberships', 'add', 'on_org_ext', 'ur_member')
+
+      expect(last_exit_code).to eq(0)
+      expect(add_op).to have_received(:new).with(hash_including(dry_run: true))
+      expect($stdin).not_to have_received(:gets)
+      expect(output[:stdout]).to include("Would add me***@example.com to on_org_ext as 'member'")
+      expect(output[:stdout]).to include('Dry run - nothing written. Re-run with --apply to write.')
+    end
+
+    context 'with --apply' do
+      let(:status) { :success }
+
+      it 'writes' do
+        run_cli_command_quietly('memberships', 'add', 'on_org_ext', 'ur_member', '--apply')
+
+        expect(add_op).to have_received(:new).with(hash_including(dry_run: false))
+      end
+    end
+
+    it 'refuses --apply with --dry-run before calling the op' do
+      output = run_cli_command_quietly('memberships', 'add', 'on_org_ext', 'ur_member', '--apply', '--dry-run')
+
+      expect(last_exit_code).to eq(1)
+      expect(output[:stdout]).to include('--apply and --dry-run are contradictory')
+      expect(add_op).not_to have_received(:new)
+    end
+
+    it 'previews --default after a fresh add without asking SetDefaultOrganization' do
+      output = run_cli_command_quietly('memberships', 'add', 'on_org_ext', 'ur_member', '--default')
+
+      expect(last_exit_code).to eq(0)
+      expect(set_default).not_to have_received(:new)
+      expect(output[:stdout]).to include('Would make on_org_ext the default organization for me***@example.com')
+    end
+
+    context 'when the customer is already a member' do
+      let(:status) { :no_change }
+      let(:default_status) { :dry_run }
+
+      it 'asks SetDefaultOrganization for a dry run of --default' do
+        output = run_cli_command_quietly('memberships', 'add', 'on_org_ext', 'ur_member', '--default')
+
+        expect(last_exit_code).to eq(0)
+        expect(set_default).to have_received(:new).with(hash_including(dry_run: true))
+        expect(output[:stdout]).to include('Dry run - nothing written. Re-run with --apply to write.')
+      end
+    end
+
+    context 'when nothing would change' do
+      let(:status) { :no_change }
+
+      it 'says there is nothing to write' do
+        output = run_cli_command_quietly('memberships', 'add', 'on_org_ext', 'ur_member')
+
+        expect(last_exit_code).to eq(0)
+        expect(output[:stdout]).to include('Dry run - nothing to write.')
+      end
+    end
+
+    it 'emits dry_run: true in --json and exits 0' do
+      output  = run_cli_command_quietly('memberships', 'add', 'on_org_ext', 'ur_member', '--json')
+      payload = JSON.parse(output[:stdout])
+
+      expect(last_exit_code).to eq(0)
+      expect(payload).to include('status' => 'dry_run', 'dry_run' => true)
     end
   end
 end

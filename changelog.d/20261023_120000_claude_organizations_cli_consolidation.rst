@@ -8,7 +8,9 @@ Changed
   existing ``bin/ots org …`` invocation keeps working.
 - The old option-verbs are subcommands: ``organizations list [--owner EMAIL]
   [--plan ID] [--limit N] [--verbose] [--json]`` and ``organizations show ORG
-  [--json]``. ``show`` takes an org extid, objid, Stripe customer id
+  [--json]``. ``--owner`` and ``--plan`` load organizations one by one until
+  ``--limit`` match, so a filtered ``list`` is a dry run that reports the size
+  of that walk unless ``--run`` is given. ``show`` takes an org extid, objid, Stripe customer id
   (``cus_…``), Stripe subscription id (``sub_…``) or custom-domain hostname in
   place of the ``--show``, ``--customer`` and ``--subscription`` flags, and so
   does every other ``organizations`` and ``memberships`` verb that takes an
@@ -19,9 +21,12 @@ Changed
   (repairable with ``--repair``).
 - ``organizations add-member`` is folded into ``bin/ots memberships add ORG
   CUSTOMER [--role R] [--default]``. The new ``--default`` flag makes ORG the
-  customer's default organization once they are a member of it; the
-  confirmation prompt (skipped with ``--yes``) takes the place of
-  ``--dry-run``.
+  customer's default organization once they are a member of it.
+  ``memberships add`` is now a dry run unless ``--apply`` is given (``--yes``
+  is an alias), and no longer prompts.
+- New ``bin/ots customers set-default-org CUSTOMER ORG`` sets the default
+  organization of a customer who is already a member of ORG. It is a dry run
+  unless ``--apply`` is given.
 - Member listings (``organizations show``, ``organizations list --verbose``)
   show each member's public id (``ur…``), membership role and status, and an
   obscured email instead of internal ids. ``customers show`` prints the

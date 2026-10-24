@@ -42,7 +42,8 @@ module Onetime
         '  bin/ots organizations entitlement grant ORG ENT   # Add an override grant',
         '  bin/ots organizations entitlement revoke ORG ENT  # Add an override revoke',
         '  bin/ots organizations entitlement clear ORG   # Wipe ALL overrides (destructive)',
-        '  bin/ots organizations list [--owner EMAIL] [--plan ID] [--limit N]  # List organizations',
+        '  bin/ots organizations list [--limit N]        # List organizations',
+        '  bin/ots organizations list --owner EMAIL|--plan ID --run  # Filtered scan (dry run without --run)',
         '  bin/ots organizations list --verbose          # List with members and domains',
         '  bin/ots organizations reconcile ORG --dry-run # Preview the reconcile mode',
         '  bin/ots organizations reconcile ORG --yes     # Re-apply billing + entitlements',
@@ -76,7 +77,7 @@ module Onetime
       # Verbs removed from `organizations`, with where they went. Read by
       # SubcommandGuard#reject_unknown_subcommand (lib/onetime/cli.rb).
       REMOVED_SUBCOMMANDS = {
-        'add-member' => 'bin/ots memberships add ORG CUSTOMER [--role R] [--default]',
+        'add-member' => 'bin/ots memberships add ORG CUSTOMER [--role R] [--default] --apply',
       }.freeze
 
       # A token that names no child arrives in `args:`; see SubcommandGuard.

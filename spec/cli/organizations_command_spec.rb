@@ -6,9 +6,9 @@
 # `org`).
 #
 # Scoped to the operator-input contract the commands own: one parent with two
-# aliases, the `list` --limit guard, `show` resolving every ORG form
-# (Org::Shared#resolve_org: extid, objid, cus_, sub_, custom-domain hostname),
-# members rendered by public id with their membership role and status, and the
+# aliases, the `list` --limit guard and --run gate on filtered scans, `show`
+# resolving every ORG form (Org::Shared#resolve_org: extid, objid, cus_, sub_,
+# custom-domain hostname), members rendered by public id with their membership role and status, and the
 # missing-org error. Models are doubles; the integrity checks themselves are
 # covered by try/unit/cli/organizations/doctor_command_try.rb.
 #
@@ -151,6 +151,39 @@ RSpec.describe 'Organizations Command', type: :cli do
 
       expect(payload['total']).to eq(1)
       expect(payload['organizations'].first).to include('extid' => 'on_org_ext', 'planid' => 'identity_plus_v1')
+    end
+
+    describe '--owner / --plan without --run (dry run)' do
+      before do
+        allow(Onetime::Organization).to receive(:instances)
+          .and_return(double('Instances', all: [org_objid], count: 1234))
+        allow(Onetime::Organization).to receive(:load).with(org_objid).and_return(organization)
+      end
+
+      it 'reports the size of the walk and loads no organization' do
+        output = run_cli_command_quietly('organizations', 'list', '--plan', 'identity_plus_v1')
+
+        expect(last_exit_code).to eq(0)
+        expect(output[:stdout]).to include('1234 total organizations')
+        expect(output[:stdout]).to include('Re-run with --run to scan.')
+        expect(Onetime::Organization).not_to have_received(:load)
+      end
+
+      it 'emits dry_run: true in --json' do
+        payload = JSON.parse(run_cli_command_quietly('organizations', 'list', '--owner', 'acme', '--json')[:stdout])
+
+        expect(payload).to include('total' => 1234, 'dry_run' => true, 'owner' => 'acme')
+        expect(payload).not_to have_key('organizations')
+        expect(Onetime::Organization).not_to have_received(:load)
+      end
+
+      it 'scans with --run' do
+        output = run_cli_command_quietly('organizations', 'list', '--plan', 'identity_plus_v1', '--run')
+
+        expect(last_exit_code).to eq(0)
+        expect(output[:stdout]).to include('on_org_ext')
+        expect(Onetime::Organization).to have_received(:load).with(org_objid)
+      end
     end
   end
 

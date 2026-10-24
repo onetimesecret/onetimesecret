@@ -13,7 +13,7 @@
 # ORG is an org extid or objid (Onetime::CLI::Org::Shared#resolve_org).
 # NEW_OWNER is an email, customer extid, or Rodauth account ID
 # (Customers::Shared#resolve_customer) and MUST ALREADY BE AN ACTIVE MEMBER —
-# run `bin/ots memberships add ORG CUSTOMER` first if they are not. This command
+# run `bin/ots memberships add ORG CUSTOMER --apply` first if they are not. This command
 # never fabricates a Customer (ADR-023: real, not synthesized).
 #
 # Without --yes the command runs a DRY RUN first and prints the plan (who loses
@@ -214,7 +214,7 @@ module Onetime
         when :not_member
           error_exit(
             "#{owner_customer.obscure_email} is not an active member of #{org_ref}. " \
-            'Run: bin/ots memberships add ORG CUSTOMER first',
+            'Run: bin/ots memberships add ORG CUSTOMER --apply first',
             json: false,
           )
         when :invalid_role
