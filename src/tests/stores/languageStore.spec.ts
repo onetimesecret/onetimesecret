@@ -5,11 +5,13 @@ import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 import { baseBootstrap, mockCustomer } from '../fixtures/bootstrap.fixture';
 import {
+  PREFERENCE_SAVE_TIMEOUT_MS,
   SESSION_STORAGE_KEY,
   UnsupportedLocaleError,
   useLanguageStore,
 } from '@/shared/stores/languageStore';
 import { globalComposer } from '@/i18n';
+import { flushPromises } from '@vue/test-utils';
 import type { AxiosInstance } from 'axios';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -292,6 +294,101 @@ describe('Language Store', () => {
       expect(axiosMock?.history.post.map((request) => request.data)).toEqual([
         JSON.stringify({ locale: 'nl' }),
       ]);
+    });
+
+    // Two POSTs in flight could reach the server in either order, leaving the
+    // older choice saved. Each save waits for the one before it, and a save a
+    // newer choice replaced while it waited is never sent.
+    it('sends saves one at a time and drops a queued save a newer one replaced', async () => {
+      store.supportedLocales = ['en', 'nl', 'ru'];
+      let finish!: (response: [number, object]) => void;
+      axiosMock?.onPost('/api/account/update-locale', { locale: 'nl' }).reply(
+        () =>
+          new Promise((resolve) => {
+            finish = resolve;
+          })
+      );
+      axiosMock?.onPost('/api/account/update-locale').reply(200, {});
+
+      const first = store.updateLanguage('nl');
+      await vi.waitFor(() => expect(finish).toBeTypeOf('function'));
+      const second = store.updateLanguage('ru');
+      await vi.waitFor(() => expect(store.currentLocale).toBe('ru'));
+      await flushPromises();
+      const third = store.updateLanguage('en');
+      await vi.waitFor(() => expect(store.currentLocale).toBe('en'));
+      await flushPromises();
+      expect(axiosMock?.history.post).toHaveLength(1);
+
+      finish([200, {}]);
+      await Promise.all([first, second, third]);
+
+      expect(axiosMock?.history.post.map((request) => request.data)).toEqual([
+        JSON.stringify({ locale: 'nl' }),
+        JSON.stringify({ locale: 'en' }),
+      ]);
+      expect(axiosMock?.history.post[0].timeout).toBe(PREFERENCE_SAVE_TIMEOUT_MS);
+    });
+
+    it('drops a queued save when another account signs in while it waits', async () => {
+      store.supportedLocales = ['en', 'nl', 'ru'];
+      bootstrapStore.update({ cust: { ...mockCustomer, locale: 'en' } });
+      let finish!: (response: [number, object]) => void;
+      axiosMock?.onPost('/api/account/update-locale', { locale: 'nl' }).reply(
+        () =>
+          new Promise((resolve) => {
+            finish = resolve;
+          })
+      );
+      axiosMock?.onPost('/api/account/update-locale').reply(200, {});
+
+      const first = store.updateLanguage('nl');
+      await vi.waitFor(() => expect(finish).toBeTypeOf('function'));
+      const second = store.updateLanguage('ru');
+      await vi.waitFor(() => expect(store.currentLocale).toBe('ru'));
+      await flushPromises();
+      expect(store.savingLocale).toBe('ru');
+
+      bootstrapStore.update({
+        cust: { ...mockCustomer, objid: 'cust_obj_other', extid: 'cust_ext_other', locale: 'de' },
+      });
+      expect(store.savingLocale).toBeNull();
+      finish([200, {}]);
+      await Promise.all([first, second]);
+
+      expect(axiosMock?.history.post.map((request) => request.data)).toEqual([
+        JSON.stringify({ locale: 'nl' }),
+      ]);
+      expect(bootstrapStore.cust?.locale).toBe('de');
+    });
+
+    it('sends a queued save once the save before it settles', async () => {
+      store.supportedLocales = ['en', 'nl', 'ru'];
+      let finish!: (response: [number, object]) => void;
+      axiosMock?.onPost('/api/account/update-locale', { locale: 'nl' }).reply(
+        () =>
+          new Promise((resolve) => {
+            finish = resolve;
+          })
+      );
+      axiosMock?.onPost('/api/account/update-locale').reply(200, {});
+
+      const first = store.updateLanguage('nl');
+      await vi.waitFor(() => expect(finish).toBeTypeOf('function'));
+      const second = store.updateLanguage('ru');
+      await vi.waitFor(() => expect(store.currentLocale).toBe('ru'));
+      await flushPromises();
+      expect(axiosMock?.history.post).toHaveLength(1);
+
+      finish([500, {}]);
+      await expect(second).resolves.toBe('ru');
+      await first.catch(() => undefined);
+
+      expect(axiosMock?.history.post.map((request) => request.data)).toEqual([
+        JSON.stringify({ locale: 'nl' }),
+        JSON.stringify({ locale: 'ru' }),
+      ]);
+      expect(store.localeSaveFailure).toBeNull();
     });
 
     it('saves nothing when the messages fail to load', async () => {

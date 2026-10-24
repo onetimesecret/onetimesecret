@@ -2,7 +2,7 @@ import { globalComposer } from '@/i18n';
 import { setupRouterGuards } from '@/router/guards.routes';
 import type { ClientAuthStatus } from '@/schemas/contracts/bootstrap';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { useLanguageStore } from '@/shared/stores/languageStore';
+import { PREFERENCE_SAVE_TIMEOUT_MS, useLanguageStore } from '@/shared/stores/languageStore';
 import { mockCustomer } from '@/tests/fixtures/bootstrap.fixture';
 import { setupTestPinia } from '@/tests/setup';
 import { captureAppLogs } from '@/tests/utils/appLogs';
@@ -84,6 +84,8 @@ async function startAt(path: string) {
   await setupRouterGuards(router);
   await router.push(path);
   await router.isReady();
+  // A resumed save runs behind the navigation; let an answered one settle.
+  await flushPromises();
   return router;
 }
 
@@ -323,5 +325,97 @@ describe('resuming an interrupted language preference update', () => {
     expect(store.localeSaveFailure).toBeNull();
     expect(useBootstrapStore().cust?.locale).toBe('nl');
     expect(api.history.post).toHaveLength(2);
+  });
+
+  it('does not hold the initial navigation for the resumed save', async () => {
+    seedPending();
+    let finish!: (response: [number, object]) => void;
+    api.onPost('/api/account/update-locale').reply(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        })
+    );
+    const router = await startAt('/dashboard');
+    const store = useLanguageStore();
+    expect(store.currentLocale).toBe('nl');
+    expect(api.history.post).toHaveLength(1);
+    expect(api.history.post[0].timeout).toBe(PREFERENCE_SAVE_TIMEOUT_MS);
+    expect(useBootstrapStore().cust?.locale).toBe('en');
+    expect(store.savingLocale).toBe('nl');
+
+    // The snapshot still names the old account locale; the pending save wins.
+    await router.push('/other');
+    expect(store.currentLocale).toBe('nl');
+
+    finish([200, {}]);
+    await flushPromises();
+    expect(useBootstrapStore().cust?.locale).toBe('nl');
+    expect(store.savingLocale).toBeNull();
+  });
+
+  it.each([
+    [200, 'de'],
+    [500, 'en'],
+  ])(
+    'keeps a toggled language across protected navigation while its save is pending (%s)',
+    async (status, afterwards) => {
+      captureAppLogs();
+      const router = await startAt('/dashboard');
+      const store = useLanguageStore();
+      let finish!: (response: [number, object]) => void;
+      api.onPost('/api/account/update-locale').reply(
+        () =>
+          new Promise((resolve) => {
+            finish = resolve;
+          })
+      );
+      const switching = store.updateLanguage('de').catch(() => undefined);
+      await vi.waitFor(() => expect(finish).toBeTypeOf('function'));
+
+      await router.push('/other');
+      expect(store.currentLocale).toBe('de');
+
+      finish([status, {}]);
+      await switching;
+      expect(store.savingLocale).toBeNull();
+      // A failed save leaves the server's locale as the account's again.
+      await router.push('/dashboard');
+      expect(store.currentLocale).toBe(afterwards);
+    }
+  );
+
+  it('sends a newer choice only after a pending retry settles, so the newer one is saved', async () => {
+    captureAppLogs();
+    seedPending();
+    api.onPost('/api/account/update-locale').networkErrorOnce();
+    await startAt('/dashboard');
+    const store = useLanguageStore();
+    expect(store.localeSaveFailure).toEqual({ locale: 'nl', accountExtid: mockCustomer.extid });
+
+    let finish!: (response: [number, object]) => void;
+    api.onPost('/api/account/update-locale', { locale: 'nl' }).reply(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        })
+    );
+    api.onPost('/api/account/update-locale', { locale: 'de' }).reply(200, {});
+    const retrying = store.retryLanguageSave();
+    await vi.waitFor(() => expect(finish).toBeTypeOf('function'));
+    const switching = store.updateLanguage('de');
+    await vi.waitFor(() => expect(store.currentLocale).toBe('de'));
+    await flushPromises();
+    expect(api.history.post).toHaveLength(2);
+
+    finish([200, {}]);
+    await Promise.all([retrying, switching]);
+    expect(api.history.post.map((request) => JSON.parse(request.data).locale)).toEqual([
+      'nl',
+      'nl',
+      'de',
+    ]);
+    expect(useBootstrapStore().cust?.locale).toBe('de');
+    expect(store.localeSaveFailure).toBeNull();
   });
 });

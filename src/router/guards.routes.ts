@@ -153,8 +153,10 @@ const localeDecided = new WeakSet<object>();
  *     protected ones (the server ranks the URL first too);
  *  2. on initial navigation, resume a pending explicit preference update
  *     before the old account locale can override it (a conflicting URL
- *     locale cancels recovery);
- *  3. otherwise, on a protected route the user may enter, the account locale;
+ *     locale cancels recovery); its save does not hold the navigation;
+ *  3. otherwise, on a protected route the user may enter, the account locale,
+ *     which a preference save still pending stands in for (see
+ *     fetchCustomerPreferences);
  *  4. otherwise, while no locale is active yet, the language store's
  *     preferred locale;
  *  5. otherwise the active locale stays.
@@ -765,8 +767,9 @@ async function validateAuthentication(
  */
 async function fetchCustomerPreferences(): Promise<{ locale?: string }> {
   const bootstrapStore = useBootstrapStore();
-  // Explicitly handle null case and type narrow
-  const locale = bootstrapStore.cust?.locale ?? undefined;
+  // The snapshot changes only once a preference save succeeds. While one is
+  // pending, its locale is the account's: the snapshot's would revert it.
+  const locale = useLanguageStore().savingLocale ?? bootstrapStore.cust?.locale ?? undefined;
   return { locale };
 }
 
