@@ -30,6 +30,18 @@ module Core
         attr_reader :safe_site_fields
       end
 
+      # A trailing `:port` on a host or bracketed IPv6 authority, read by
+      # #page_authority. A bare IPv6 address ends in `:digits` too and must
+      # not read as a port.
+      AUTHORITY_PORT = /\A(?:\[[^\]]*\]|[^:\[\]]+):(\d{1,5})\z/
+
+      # Request paths that render head-secret-share (`is_secret_page`), split
+      # by who the page is for so the Open Graph text can address them:
+      # SECRET_LINK_PATH is the recipient's page, RECEIPT_PAGE_PATH the
+      # sender's (/receipt/* and /incoming/:receiptKey).
+      SECRET_LINK_PATH  = %r{\A/secret(?:/|\z)}
+      RECEIPT_PAGE_PATH = %r{\A/receipt(?:/|\z)|\A/incoming/.}
+
       # Initialize core variables used throughout view rendering. These values
       # are the source of truth for te values that they represent. Any other
       # values that the serializers want can be derived from here.
@@ -221,8 +233,30 @@ module Core
 
         # URI helpers for templates
         site_host            = safe_site['host']
-        base_scheme          = safe_site['ssl'] == false ? 'http://' : 'https://'
+        scheme               = safe_site['ssl'] == false ? 'http' : 'https'
+        base_scheme          = "#{scheme}://"
         baseuri              = base_scheme + site_host
+
+        # The page's own URL for <link rel="canonical">, og:url and
+        # twitter:url, which Open Graph defines as the object's canonical URL:
+        # the authority the request was served on (display_domain is
+        # sanitized by DomainStrategy, so a page on a custom domain points at
+        # that domain, never at the install's site host; see #page_authority
+        # for the public port) and the path without the query string. Rhales
+        # escapes it at the attribute.
+        page_url             = base_scheme + page_authority(req.env, display_domain, site_host, scheme) + req.path
+
+        # Pages that carry a secret or receipt key (/secret/*, /receipt/*,
+        # and /incoming/:receiptKey, the sender's receipt for an incoming
+        # secret) render the head-secret-share partial: robots noindex and
+        # neutral Open Graph text, so a link pasted into a chat unfurls
+        # without naming the page. The text addresses the recipient on a
+        # secret link and the sender on a receipt. robots.rue disallows the
+        # same paths. /incoming itself is the public submission form and
+        # stays indexable.
+        receipt_page             = req.path.match?(RECEIPT_PAGE_PATH)
+        secret_page              = receipt_page || req.path.match?(SECRET_LINK_PATH)
+        og_title, og_description = secret_share_copy(receipt_page, i18n_locale)
 
         brand_defaults              = Onetime::CustomDomain::BrandSettingsConstants::DEFAULTS
         brand_primary_color         = brand_config['primary_color']
@@ -300,8 +334,12 @@ module Core
           'authenticated' => authenticated,
           'awaiting_mfa' => awaiting_mfa,
           'baseuri' => baseuri,
+          'is_secret_page' => secret_page,
+          'page_url' => page_url,
           'cust' => cust,
           'description' => description,
+          'og_title' => og_title,
+          'og_description' => og_description,
           'development' => development,
           'diagnostics' => diagnostics,
           'display_domain' => display_domain,
@@ -366,6 +404,90 @@ module Core
           'support_email' => support_email,
           'docs_host' => docs_host,
         }
+      end
+
+      # The Open Graph title and description head-secret-share renders:
+      # addressed to the sender on a receipt page, to the recipient otherwise.
+      #
+      # @param receipt_page [Boolean] the path matched RECEIPT_PAGE_PATH
+      # @param locale [Symbol] I18n locale
+      # @return [Array(String, String)] title, description
+      def secret_share_copy(receipt_page, locale)
+        if receipt_page
+          [
+            I18n.t('web.COMMON.receipt_og_title', locale: locale, default: 'Receipt for a secret you sent'),
+            I18n.t(
+              'web.COMMON.receipt_og_description',
+              locale: locale,
+              default: 'This page shows the status of a secret you sent. Only the recipient can view the content.',
+            ),
+          ]
+        else
+          [
+            I18n.t('web.COMMON.secret_og_title', locale: locale, default: 'A secret link was shared with you'),
+            I18n.t(
+              'web.COMMON.secret_og_description',
+              locale: locale,
+              default: 'This secure link works one time. Open it when you are ready to view the content.',
+            ),
+          ]
+        end
+      end
+
+      # The authority page_url names: the display domain and, when one is
+      # known, its public port.
+      #
+      # DetectHost publishes the display domain without a port, so the port
+      # is read from the first of these that names the same hostname and
+      # carries one:
+      #
+      #   1. the authority DetectHost validated on the trusted
+      #      X-Forwarded-Host (the port in that header, or the single-valued
+      #      X-Forwarded-Port sent with it). PublicHostRewrite writes the
+      #      same value into HTTP_HOST when the rewrite is on; this reads it
+      #      whether or not the rewrite is on.
+      #   2. the display domain itself. With the domains feature off it is
+      #      site.host as configured, port included.
+      #   3. the configured canonical set (features.domains.default,
+      #      site.host, link_domains), each written as the operator wrote it.
+      #      A canonical page reached without forwarded headers keeps the
+      #      port the operator configured.
+      #
+      # A custom domain reached without a forwarded port is written bare.
+      # The inbound Host is never read: behind a proxy its port is the
+      # origin hop's. The default port of the configured scheme is left out,
+      # as a browser leaves it out of Host.
+      #
+      # @param env [Hash] Rack environment
+      # @param display_domain [String, nil] env['onetime.display_domain']
+      # @param site_host [String] site.host as configured
+      # @param scheme [String] 'https' or 'http', from site.ssl
+      # @return [String] host, or host:port
+      def page_authority(env, display_domain, site_host, scheme)
+        return site_host if display_domain.nil?
+
+        parser   = Onetime::Utils::DomainParser
+        hostname = parser.extract_hostname(display_domain)
+        return display_domain if hostname.nil?
+
+        # extract_hostname returns an IPv6 literal without its brackets; an
+        # authority needs them back.
+        host = hostname.include?(':') ? "[#{hostname}]" : hostname
+
+        candidates = [
+          env[Rack::DetectHost.forwarded_authority_field_name],
+          display_domain,
+          *Array(Onetime::Middleware::DomainStrategy.canonical_domains),
+        ]
+        authority  = candidates.compact.find do |candidate|
+          candidate.match?(AUTHORITY_PORT) && parser.extract_hostname(candidate) == hostname
+        end
+        return host if authority.nil?
+
+        port = authority[AUTHORITY_PORT, 1].to_i
+        return host if port == Rack::Request::DEFAULT_PORTS[scheme]
+
+        "#{host}:#{port}"
       end
 
       # Build safe site configuration for frontend exposure

@@ -163,6 +163,128 @@ RSpec.describe Core::Views::BaseView do
     end
   end
 
+  describe 'page_url and is_secret_page' do
+    # head-base.rue renders <link rel="canonical" href="{{page_url}}">; the
+    # head partials reuse it for og:url and twitter:url. The value is the
+    # served host plus the path, never the query string.
+    subject(:view) { described_class.new(rack_request) }
+
+    it 'joins the configured scheme and site host with the request path' do
+      allow(rack_request).to receive(:path).and_return('/signin')
+      rack_request.env['QUERY_STRING'] = 'next=%2Fdashboard'
+
+      expect(view.view_vars['page_url']).to eq('https://test.domain.com/signin')
+    end
+
+    it 'prefers the display domain DomainStrategy resolved for the request' do
+      rack_request.env['onetime.display_domain'] = 'secrets.partner.example'
+      allow(rack_request).to receive(:path).and_return('/')
+
+      expect(view.view_vars['page_url']).to eq('https://secrets.partner.example/')
+    end
+
+    # DetectHost publishes the display domain without its port. The public
+    # port comes from the authority it validated on the trusted
+    # X-Forwarded-Host, or from the operator's configuration for a canonical
+    # host; the inbound Host is never read.
+    context 'with a public port' do
+      let(:authority_key) { Rack::DetectHost.forwarded_authority_field_name }
+
+      before do
+        allow(rack_request).to receive(:path).and_return('/secret/abc123')
+        allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_domains).and_return(['test.domain.com'])
+      end
+
+      it 'keeps the port DetectHost validated on the trusted X-Forwarded-Host' do
+        rack_request.env['onetime.display_domain'] = 'secrets.partner.example'
+        rack_request.env[authority_key]            = 'secrets.partner.example:8443'
+
+        expect(view.view_vars['page_url']).to eq('https://secrets.partner.example:8443/secret/abc123')
+      end
+
+      it 'ignores a forwarded authority that names another host' do
+        rack_request.env['onetime.display_domain'] = 'secrets.partner.example'
+        rack_request.env[authority_key]            = 'origin.internal:8443'
+
+        expect(view.view_vars['page_url']).to eq('https://secrets.partner.example/secret/abc123')
+      end
+
+      it "leaves out the configured scheme's default port" do
+        rack_request.env['onetime.display_domain'] = 'secrets.partner.example'
+        rack_request.env[authority_key]            = 'secrets.partner.example:443'
+
+        expect(view.view_vars['page_url']).to eq('https://secrets.partner.example/secret/abc123')
+      end
+
+      it 'keeps the port the operator configured for a canonical host' do
+        allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_domains).and_return(['test.domain.com:8443'])
+        rack_request.env['onetime.display_domain'] = 'test.domain.com'
+
+        expect(view.view_vars['page_url']).to eq('https://test.domain.com:8443/secret/abc123')
+      end
+
+      it 'prefers the forwarded port to the configured one' do
+        allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_domains).and_return(['test.domain.com:8443'])
+        rack_request.env['onetime.display_domain'] = 'test.domain.com'
+        rack_request.env[authority_key]            = 'test.domain.com:9443'
+
+        expect(view.view_vars['page_url']).to eq('https://test.domain.com:9443/secret/abc123')
+      end
+
+      # With the domains feature off, display_domain is site.host as written.
+      it 'keeps, and does not double, a port the display domain already carries' do
+        rack_request.env['onetime.display_domain'] = 'test.domain.com:3000'
+
+        expect(view.view_vars['page_url']).to eq('https://test.domain.com:3000/secret/abc123')
+      end
+
+      it 'keeps the brackets and port of an IPv6 site host' do
+        rack_request.env['onetime.display_domain'] = '[::1]:3000'
+
+        expect(view.view_vars['page_url']).to eq('https://[::1]:3000/secret/abc123')
+      end
+
+      it 'never reads the port from the inbound Host' do
+        rack_request.env['onetime.display_domain'] = 'secrets.partner.example'
+        rack_request.env['HTTP_HOST']              = 'secrets.partner.example:8443'
+
+        expect(view.view_vars['page_url']).to eq('https://secrets.partner.example/secret/abc123')
+      end
+    end
+
+    {
+      '/secret/abc123' => true,
+      '/receipt/abc123/burn' => true,
+      '/secret' => true,
+      '/incoming/abc123' => true,
+      '/incoming' => false,
+      '/incoming/' => false,
+      '/secrets' => false,
+      '/signin' => false,
+      '/' => false,
+    }.each do |path, expected|
+      it "sets is_secret_page to #{expected} for #{path}" do
+        allow(rack_request).to receive(:path).and_return(path)
+
+        expect(view.view_vars['is_secret_page']).to be(expected)
+      end
+    end
+
+    # The Open Graph text addresses whoever the page is for: the recipient on
+    # a secret link, the sender on a receipt.
+    {
+      '/secret/abc123' => 'Test OG Title',
+      '/receipt/abc123' => 'Test Receipt OG Title',
+      '/incoming/abc123' => 'Test Receipt OG Title',
+    }.each do |path, title|
+      it "sets og_title to #{title.inspect} for #{path}" do
+        allow(rack_request).to receive(:path).and_return(path)
+
+        expect(view.view_vars['og_title']).to eq(title)
+      end
+    end
+  end
+
   describe 'has_brand_color contract' do
     # has_brand_color drives the conditional render of the brand-colored
     # head tags (mask-icon + light theme-color) in head-base.rue. It MUST be
@@ -241,6 +363,7 @@ RSpec.describe Core::Views::BaseView do
 
       request = instance_double('Rack::Request')
       allow(request).to receive(:env).and_return(env)
+      allow(request).to receive(:path).and_return('/')
       allow(request).to receive(:nil?).and_return(false)
       allow(request).to receive(:session).and_return(authenticated_session)
       request
@@ -433,6 +556,7 @@ RSpec.describe Core::Views::BaseView do
 
       request = instance_double('Rack::Request')
       allow(request).to receive(:env).and_return(env)
+      allow(request).to receive(:path).and_return('/')
       allow(request).to receive(:nil?).and_return(false)
       allow(request).to receive(:session).and_return(session)
       request
@@ -560,6 +684,7 @@ RSpec.describe Core::Views::BaseView do
 
         request = instance_double(Rack::Request)
         allow(request).to receive(:env).and_return(env)
+        allow(request).to receive(:path).and_return('/')
         allow(request).to receive(:nil?).and_return(false)
         allow(request).to receive(:session).and_return({})
         request
@@ -620,6 +745,7 @@ RSpec.describe Core::Views::BaseView do
 
         request = instance_double(Rack::Request)
         allow(request).to receive(:env).and_return(env)
+        allow(request).to receive(:path).and_return('/')
         allow(request).to receive(:nil?).and_return(false)
         allow(request).to receive(:session).and_return(session)
         request
