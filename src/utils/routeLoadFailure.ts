@@ -33,22 +33,28 @@ export const routeLoadFailure = computed(() => failure.value);
  * Registers the router hooks. A navigation that fails with an import the
  * preload handler left to fail is recorded. Any other navigation error is
  * logged, as vue-router prints it itself when no error handler is registered,
- * except while a reload of this page is already pending: the import then
- * resolved with undefined and vue-router reports the missing component, which
- * the reload is about to replace. A navigation that completes clears the
+ * except while a reload of this page is pending: the import then resolved
+ * with undefined and vue-router reports the missing component, which the
+ * reload is about to replace. That reload normally replaces the page within
+ * moments; a navigation that completes after it was requested means the page
+ * stayed (the browser's beforeunload prompt was cancelled), and errors are
+ * logged again from then on. A navigation that completes also clears the
  * record.
  */
 export function watchRouteLoads(router: Router): void {
+  let stayedAfterReload = false;
   router.onError((error, to) => {
     if (wasLeftToFail(error)) {
       recordRouteLoadFailure(to.fullPath);
       return;
     }
-    if (reloadPending()) return;
+    if (reloadPending() && !stayedAfterReload) return;
     loggingService.error(error instanceof Error ? error : new Error(String(error)));
   });
   router.afterEach((_to, _from, navigationFailure) => {
-    if (!navigationFailure) failure.value = null;
+    if (navigationFailure) return;
+    failure.value = null;
+    if (reloadPending()) stayedAfterReload = true;
   });
 }
 

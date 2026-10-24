@@ -108,25 +108,34 @@ describe('watchRouteLoads', () => {
     expect(loggingService.error).toHaveBeenCalledWith(error);
   });
 
-  it('stays quiet about the component vue-router cannot resolve while the page reloads', async () => {
+  it('stays quiet about the component vue-router cannot resolve while the page reloads, until a navigation completes', async () => {
     // reloadPending() is module state: this case runs on fresh copies.
     vi.resetModules();
     const fresh = await import('@/utils/preloadError');
     const { watchRouteLoads: watchFresh, routeLoadFailure: failureFresh } =
       await import('@/utils/routeLoadFailure');
     const { loggingService: logger } = await import('@/services/logging.service');
-    const event = preloadErrorEvent(new Error('chunk 404'));
-    expect(fresh.handlePreloadError(event, { now: NOW, reload: vi.fn() })).toBe('reloading');
-
-    // The default-prevented import resolves with undefined, and vue-router
-    // reports the component it could not resolve.
+    // A lazy component whose import resolved with undefined.
     const resolvesUndefined = (() =>
       Promise.resolve(undefined)) as unknown as () => Promise<Component>;
     const router = await routerWithLazyRoute(resolvesUndefined, watchFresh);
+
+    // The chunk fails during the /lazy navigation and the handler reloads;
+    // the default-prevented import resolves with undefined, and vue-router
+    // reports the component it could not resolve.
+    const event = preloadErrorEvent(new Error('chunk 404'));
+    expect(fresh.handlePreloadError(event, { now: NOW, reload: vi.fn() })).toBe('reloading');
     await expect(router.push('/lazy')).rejects.toThrow(/resolve component/);
 
     expect(failureFresh.value).toBeNull();
     expect(logger.error).not.toHaveBeenCalled();
+
+    // The page is still here (the reload's beforeunload prompt was cancelled):
+    // once a navigation completes, errors are logged again.
+    await router.push('/about');
+    await expect(router.push('/lazy')).rejects.toThrow(/resolve component/);
+
+    expect(logger.error).toHaveBeenCalledTimes(1);
   });
 });
 
