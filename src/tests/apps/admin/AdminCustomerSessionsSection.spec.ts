@@ -218,7 +218,7 @@ describe('AdminCustomerSessionsSection — current-session badge', () => {
     const dialogOpen = (w: VueWrapper) =>
       w.findAllComponents({ name: 'AdminConfirmDialog' }).map((d) => d.props('open'));
 
-    beforeEach(() => __resetColonelElevationState());
+    beforeEach(() => __resetColonelElevationState({ statusRead: true }));
     afterEach(() => __resetColonelElevationState());
 
     it('prompts before the revoke-all dialog and opens it once elevated', async () => {

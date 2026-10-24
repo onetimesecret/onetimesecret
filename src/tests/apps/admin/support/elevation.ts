@@ -12,7 +12,8 @@ import {
  * Tier-1 openers call `ensureElevated()` before their confirmation dialog, so
  * a spec about the dialog itself (typed token, reason, server errors) needs a
  * live window or the sudo prompt opens instead. Specs about the pre-prompt
- * call `__resetColonelElevationState()` instead and stay unelevated.
+ * call `__resetColonelElevationState({ statusRead: true })` instead and stay
+ * unelevated in a console whose status read has already returned.
  *
  * Sets the shared refs directly, so no countdown timer starts. The calling
  * spec must mock `@/shared/composables/useApi`: useColonelElevation injects it

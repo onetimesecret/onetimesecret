@@ -323,7 +323,13 @@
     if (key === 'purge' && !purgeTokenFor(row)) return;
     // Purge is TIER 1 (#4327): elevate before the dialog collects the token and
     // reason. Verify/unverify are not elevation-gated. Cancel opens nothing.
-    if (key === 'purge' && !(await ensureElevated())) return;
+    if (key === 'purge') {
+      if (!(await ensureElevated())) return;
+      // `row` was captured at the click. The dialog lives inside the drawer, so
+      // if the drawer closed or moved to another customer during the prompt,
+      // open nothing: a dialog opened now would surface later, over the wrong row.
+      if (!drawerOpen.value || selectedCustomer.value?.extid !== row.extid) return;
+    }
     activeAction.value = key;
     actionTarget.value = row;
     resetMutation(); // clear any error left from a previous attempt

@@ -355,15 +355,21 @@
   });
 
   async function requestAction(verb: MessageVerb, messageId: string): Promise<void> {
-    if (!selectedShort.value || !messageId) return;
+    // Captured at the click: the prompt below must not redirect the action to
+    // whatever queue the drawer shows once it resolves.
+    const queue = selectedShort.value;
+    if (!queue || !messageId) return;
     // Discard is TIER 1 (DiscardDlqMessage, #4327): elevate before the dialog
     // collects the token and reason. Replay is TIER 2 and opens straight away.
-    if (verb === 'discard' && !(await ensureElevated())) return;
-    // Re-read after the await: the selected queue is live state, not a snapshot.
-    if (!selectedShort.value) return;
+    if (verb === 'discard') {
+      if (!(await ensureElevated())) return;
+      // The dialog lives inside the drawer: open nothing if the drawer closed
+      // or moved to another queue during the prompt.
+      if (!drawerOpen.value || selectedShort.value !== queue) return;
+    }
     actionVerb.value = verb;
     actionMessageId.value = messageId;
-    actionQueue.value = selectedShort.value;
+    actionQueue.value = queue;
     // A stale result must never read as this action's outcome.
     lastAction.value = null;
     resetAction();

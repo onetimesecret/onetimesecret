@@ -122,7 +122,7 @@ describe('useAdminDestructiveMutation (mounted)', () => {
     return mutation!;
   }
 
-  beforeEach(() => __resetColonelElevationState());
+  beforeEach(() => __resetColonelElevationState({ statusRead: true }));
   afterEach(() => __resetColonelElevationState());
 
   // The tier-1 opener's guard is the shared elevation one, not a copy.

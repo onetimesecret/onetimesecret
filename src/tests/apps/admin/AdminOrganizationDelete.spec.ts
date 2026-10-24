@@ -58,6 +58,14 @@ vi.mock('@/apps/admin/composables/useColonelElevation', () => ({
     requestElevation: requestElevationMock,
     noteElevationRequired: vi.fn(),
   }),
+  // The kit dialogs host the prompt (useElevationPromptHost) and read this.
+  elevationPromptOpen: { value: false },
+}));
+
+// The open kit dialog hosts the console's step-up prompt, which reads the
+// whole composable; with the composable mocked above, the prompt is stubbed.
+vi.mock('@/apps/admin/components/ElevationPrompt.vue', () => ({
+  default: { name: 'ElevationPrompt', template: '<span data-testid="elevation-prompt-stub" />' },
 }));
 
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({

@@ -330,6 +330,11 @@ describe('useColonelElevation — pre-prompt and re-authentication', () => {
 
   // The tier-1 openers' guard: prove the credential BEFORE the dialog.
   describe('ensureElevated', () => {
+    // A console whose mount-time status read already returned the defaults:
+    // the guard decides from state, with no GET of its own. The first-read
+    // examples below reset to a console that has not read its status yet.
+    beforeEach(() => __resetColonelElevationState({ statusRead: true }));
+
     it('resolves true without prompting when step-up is disabled by config', async () => {
       mockApi.get.mockResolvedValue({ data: statusPayload({ details: { enabled: false } }) });
       const elevation = useColonelElevation();
@@ -373,6 +378,52 @@ describe('useColonelElevation — pre-prompt and re-authentication', () => {
 
       expect(mockApi.get).not.toHaveBeenCalled();
       expect(mockApi.post).not.toHaveBeenCalled();
+    });
+
+    // `enabled` is only a default until the first status read lands. An opener
+    // clicked before the mount-time GET returns must wait for it, not decide
+    // (prompt, or skip the prompt) on the default.
+    it('waits for the first status read before deciding', async () => {
+      __resetColonelElevationState();
+      let settle!: (value: { data: unknown }) => void;
+      mockApi.get.mockReturnValueOnce(
+        new Promise((resolve) => {
+          settle = resolve;
+        })
+      );
+      const elevation = useColonelElevation();
+
+      const pending = elevation.ensureElevated();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(mockApi.get).toHaveBeenCalledTimes(1);
+      expect(elevation.promptOpen.value).toBe(false);
+
+      settle({ data: statusPayload({ details: { enabled: false } }) });
+      await expect(pending).resolves.toBe(true);
+      expect(elevation.promptOpen.value).toBe(false);
+    });
+
+    it('shares the mount-time status read instead of issuing its own', async () => {
+      __resetColonelElevationState();
+      let settle!: (value: { data: unknown }) => void;
+      mockApi.get.mockReturnValueOnce(
+        new Promise((resolve) => {
+          settle = resolve;
+        })
+      );
+      const elevation = useColonelElevation();
+
+      void elevation.refresh();
+      const pending = elevation.ensureElevated();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(mockApi.get).toHaveBeenCalledTimes(1);
+      expect(elevation.promptOpen.value).toBe(false);
+
+      settle({ data: statusPayload() });
+      await vi.advanceTimersByTimeAsync(0);
+      expect(elevation.promptOpen.value).toBe(true);
+      elevation.resolvePrompt(false);
+      await expect(pending).resolves.toBe(false);
     });
   });
 

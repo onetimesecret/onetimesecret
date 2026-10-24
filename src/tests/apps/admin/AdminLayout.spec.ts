@@ -120,7 +120,7 @@ describe('AdminLayout (console shell)', () => {
     const elevateButton = (w: VueWrapper) => w.find('[data-testid="elevation-control-elevate"]');
     const dropButton = (w: VueWrapper) => w.find('[data-testid="elevation-control-drop"]');
 
-    beforeEach(() => __resetColonelElevationState());
+    beforeEach(() => __resetColonelElevationState({ statusRead: true }));
     afterEach(() => __resetColonelElevationState());
 
     it('offers "Elevate" when step-up is on and no window is live, and opens the prompt', async () => {

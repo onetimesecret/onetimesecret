@@ -41,8 +41,11 @@ const REAUTHENTICATE_URL = '/api/colonel/reauthenticate';
  *
  * So: {@link refresh} runs on admin mount, after every elevate/drop, and when a
  * 403 `elevation_required` arrives. The countdown between those is computed
- * CLIENT-SIDE from `expiresAt` by a `setInterval` that issues NO HTTP and, at
- * zero, flips `elevated` to false locally.
+ * CLIENT-SIDE by a `setInterval` that issues NO HTTP and, at zero, flips
+ * `elevated` to false locally. It counts down from the server's RELATIVE
+ * `seconds_remaining`, anchored to this browser's clock at receipt, never from
+ * the absolute `expires_at`: a client clock running behind the server's would
+ * otherwise show a live window the server has already ended.
  *
  * There is no other timer anywhere under `src/apps/admin/`, so an idle admin tab
  * genuinely makes no requests. That is a load-bearing property of a shipped
@@ -102,6 +105,23 @@ const reauthError = ref<string | null>(null);
 /** Prompt state, shared so ONE ElevationPrompt instance can serve the console. */
 const promptOpen = ref(false);
 let promptResolve: ((elevated: boolean) => void) | null = null;
+/** The operator's pending answer. Every caller while the prompt is open shares it. */
+let pendingPrompt: Promise<boolean> | null = null;
+
+/**
+ * Whether a status read has reported `enabled` yet. Until one has, `enabled`
+ * holds its default and must not decide whether to prompt (see
+ * {@link ensureElevated}). `statusReadInFlight` is the latest GET, so the first
+ * tier-1 opener can wait on the mount-time read instead of issuing its own.
+ */
+let statusRead = false;
+let statusReadInFlight: Promise<void> | null = null;
+
+/**
+ * The live window's end in THIS browser's `Date.now()` terms: the moment the
+ * record arrived plus its `seconds_remaining`. Null when no window is live.
+ */
+let localDeadlineMs: number | null = null;
 
 let countdownTimer: ReturnType<typeof setInterval> | null = null;
 let api: AxiosInstance | null = null;
@@ -113,21 +133,22 @@ function stopCountdown(): void {
 }
 
 /**
- * Recompute `secondsRemaining` from `expiresAt` locally. Issues no HTTP — see
+ * Recompute `secondsRemaining` from the local deadline. Issues no HTTP — see
  * the module doc block for why that is mandatory rather than an optimisation.
  */
 function tick(): void {
-  if (expiresAt.value === null) {
+  if (localDeadlineMs === null) {
     secondsRemaining.value = 0;
     elevated.value = false;
     stopCountdown();
     return;
   }
-  const remaining = Math.max(0, expiresAt.value - Math.floor(Date.now() / 1000));
+  const remaining = Math.max(0, Math.ceil((localDeadlineMs - Date.now()) / 1000));
   secondsRemaining.value = remaining;
   if (remaining === 0) {
     elevated.value = false;
     expiresAt.value = null;
+    localDeadlineMs = null;
     activeFactor.value = null;
     stopCountdown();
   }
@@ -135,7 +156,7 @@ function tick(): void {
 
 function startCountdown(): void {
   stopCountdown();
-  if (!elevated.value || expiresAt.value === null) return;
+  if (!elevated.value || localDeadlineMs === null) return;
   countdownTimer = setInterval(tick, 1000);
 }
 
@@ -147,8 +168,12 @@ interface ElevationRecordLike {
 
 function applyRecord(record: ElevationRecordLike): void {
   elevated.value = record.elevated;
+  // Informational only: the server's absolute expiry, in the server's clock.
   expiresAt.value = record.expires_at;
   secondsRemaining.value = record.seconds_remaining;
+  localDeadlineMs = record.elevated
+    ? Date.now() + Math.max(0, record.seconds_remaining) * 1000
+    : null;
   if (record.elevated) startCountdown();
   else {
     stopCountdown();
@@ -167,6 +192,16 @@ function client(): AxiosInstance {
 
 /** GET the current window and this account's capability. */
 async function refresh(): Promise<void> {
+  const read = readStatus();
+  statusReadInFlight = read;
+  try {
+    await read;
+  } finally {
+    if (statusReadInFlight === read) statusReadInFlight = null;
+  }
+}
+
+async function readStatus(): Promise<void> {
   loading.value = true;
   error.value = null;
   try {
@@ -188,6 +223,7 @@ async function refresh(): Promise<void> {
     graceAvailable.value = details.grace_available;
     passwordAvailable.value = details.password_available;
     factors.value = details.factors;
+    statusRead = true;
   } catch (err) {
     // This is the FIRST request the console makes on entry, so it is usually
     // where an expired admin window (#4331) is discovered.
@@ -317,11 +353,16 @@ async function reauthenticate(password: string): Promise<boolean> {
  */
 function requestElevation(): Promise<boolean> {
   if (elevated.value) return Promise.resolve(true);
+  // A second request while the prompt is open (a double click, a 403 beside an
+  // opener) waits on the SAME answer. Replacing the resolver would leave the
+  // first caller awaiting a promise nothing can settle.
+  if (pendingPrompt) return pendingPrompt;
 
   promptOpen.value = true;
-  return new Promise<boolean>((resolve) => {
+  pendingPrompt = new Promise<boolean>((resolve) => {
     promptResolve = resolve;
   });
+  return pendingPrompt;
 }
 
 /**
@@ -332,9 +373,16 @@ function requestElevation(): Promise<boolean> {
  * already live; otherwise opens the prompt and resolves with the operator's
  * answer. The 403 retry loop in useAdminDestructiveMutation stays as the
  * fallback for a window that lapses while the dialog is open.
+ *
+ * `enabled` is only a default until a status read reports it, so an opener
+ * clicked before the mount-time GET returns waits for that GET (or makes one)
+ * before deciding. A read that fails leaves the default, which prompts: the
+ * server still decides.
  */
-function ensureElevated(): Promise<boolean> {
-  if (!enabled.value) return Promise.resolve(true);
+async function ensureElevated(): Promise<boolean> {
+  if (elevated.value) return true;
+  if (!statusRead) await (statusReadInFlight ?? refresh());
+  if (!enabled.value) return true;
   return requestElevation();
 }
 
@@ -354,8 +402,16 @@ function resolvePrompt(didElevate: boolean): void {
   promptOpen.value = false;
   const resolve = promptResolve;
   promptResolve = null;
+  pendingPrompt = null;
   resolve?.(didElevate);
 }
+
+/**
+ * Whether the prompt is open, for components that only need to know that (the
+ * admin kit's dialogs). Unlike {@link useColonelElevation} it needs no
+ * component context and injects no API client.
+ */
+export const elevationPromptOpen: ComputedRef<boolean> = computed(() => promptOpen.value);
 
 // Nothing the operator can do from the browser: no password to re-enter and no
 // grace configured. The prompt renders the remediation, not an input.
@@ -365,6 +421,10 @@ const unsatisfiable = computed(
 
 export interface UseColonelElevation {
   elevated: Ref<boolean>;
+  /**
+   * The server's absolute expiry (epoch seconds, server clock). Informational:
+   * the countdown runs from `seconds_remaining` against the local clock.
+   */
   expiresAt: Ref<number | null>;
   secondsRemaining: Ref<number>;
   enabled: Ref<boolean>;
@@ -439,11 +499,22 @@ export function useColonelElevation(): UseColonelElevation {
   };
 }
 
-/** Test seam: reset the module-level singleton between specs. */
-export function __resetColonelElevationState(): void {
+/**
+ * Test seam: reset the module-level singleton between specs.
+ *
+ * `statusRead: true` starts from a console whose mount-time status read has
+ * already returned the defaults (step-up enabled, password factor), so
+ * {@link ensureElevated} decides without a GET. The default is a console that
+ * has not read its status yet.
+ */
+export function __resetColonelElevationState(options: { statusRead?: boolean } = {}): void {
   stopCountdown();
   api = null;
   promptResolve = null;
+  pendingPrompt = null;
+  statusRead = options.statusRead ?? false;
+  statusReadInFlight = null;
+  localDeadlineMs = null;
   promptOpen.value = false;
   elevated.value = false;
   expiresAt.value = null;

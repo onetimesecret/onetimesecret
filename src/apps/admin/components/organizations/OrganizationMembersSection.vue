@@ -110,8 +110,10 @@
   }
 
   /**
-   * True while an opener waits on the elevation prompt. Blocks a second click
-   * from stacking a second prompt behind the first.
+   * True while an opener waits on the elevation prompt. A second request would
+   * share the same prompt and resolve with the same answer, so without this a
+   * second click (say, Remove on another row) would open its dialog alongside
+   * the first one's. Also keeps the row controls busy meanwhile.
    */
   const opening = ref(false);
 
