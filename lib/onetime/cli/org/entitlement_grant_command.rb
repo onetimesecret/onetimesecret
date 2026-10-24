@@ -44,13 +44,13 @@ module Onetime
       def call(org:, entitlement:, apply: false, dry_run: false, json: false, **)
         boot_application!
 
+        dry_run      = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
         organization = resolve_org(org, json: json)
 
         execute_override(
           organization,
           action: 'grant',
           entitlement: entitlement,
-          apply: apply,
           dry_run: dry_run,
           json: json,
         )

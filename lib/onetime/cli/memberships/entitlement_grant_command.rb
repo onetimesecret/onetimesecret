@@ -53,6 +53,7 @@ module Onetime
       def call(org:, customer:, entitlement:, apply: false, dry_run: false, json: false, **)
         boot_application!
 
+        dry_run      = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
         organization = resolve_org(org, json: json)
         member       = resolve_member(customer, action: 'grant entitlement to', json: json)
 
@@ -61,7 +62,6 @@ module Onetime
           member,
           action: 'grant',
           entitlement: entitlement,
-          apply: apply,
           dry_run: dry_run,
           json: json,
         )

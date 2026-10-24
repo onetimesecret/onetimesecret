@@ -30,18 +30,18 @@ module Onetime
   module CLI
     module Org
       # Behaviour common to `org entitlement grant|revoke|clear`. Kept in one
-      # place so the three verbs cannot drift on the write gate, advisories,
-      # rendering or exit codes — they differ ONLY in their arguments.
+      # place so the three verbs cannot drift on advisories, rendering or exit
+      # codes — they differ ONLY in their arguments (and each calls the write
+      # gate first in its own `call`).
       module EntitlementSupport
-        # Run the shared op and render it. May `exit`. A dry run unless
-        # `apply` (see WriteGate#dry_run_unless_applied).
+        # Run the shared op and render it. May `exit`.
         #
         # @param organization [Onetime::Organization] already resolved
         # @param action [String] 'grant' | 'revoke' | 'clear'
         # @param entitlement [String, nil] nil for clear
-        def execute_override(organization, action:, entitlement: nil, apply: false, dry_run: false, json: false)
-          dry_run = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
-
+        # @param dry_run [Boolean] the gate's answer: each verb calls
+        #   WriteGate#dry_run_unless_applied first in `call`, before resolving
+        def execute_override(organization, action:, dry_run:, entitlement: nil, json: false)
           warn_advisories(organization, action: action, entitlement: entitlement)
 
           result = Onetime::Operations::Org::EntitlementOverride.new(
