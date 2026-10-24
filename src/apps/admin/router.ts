@@ -4,6 +4,7 @@ import type { Router, RouteRecordRaw } from 'vue-router';
 import { createRouter, createWebHistory } from 'vue-router';
 
 import NotFound from '@/shared/components/errors/ErrorNotFound.vue';
+import { watchRouteLoads } from '@/utils/routeLoadFailure';
 
 import adminRoutes, { adminDefaultMeta } from './routes';
 
@@ -36,11 +37,15 @@ export function createAdminRouter(): Router {
     },
   ];
 
-  return createRouter({
+  const router = createRouter({
     history: createWebHistory(),
     routes,
     scrollBehavior(_to, _from, savedPosition) {
       return savedPosition ?? { top: 0 };
     },
   });
+  // A route chunk that fails while the page declines to reload shows
+  // RouteLoadNotice, as in the customer router (src/router/index.ts).
+  watchRouteLoads(router);
+  return router;
 }

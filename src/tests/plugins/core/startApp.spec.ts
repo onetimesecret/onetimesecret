@@ -160,4 +160,22 @@ describe('startApp', () => {
     expect(html.dataset.appReady).toBeUndefined();
     expect(appText()).toBe('SHELL');
   });
+
+  // A failed locale chunk no longer fails the navigation: it resolves in the
+  // fallback locale. When that chunk also started a reload, mounting would
+  // show the fallback for a moment before the reloaded page replaces it.
+  it('does not mount after a successful navigation while a reload is pending', async () => {
+    const router = routerWith(() => {
+      // The failed chunk starts the reload during the navigation.
+      h.reloadPending = true;
+      return true;
+    });
+
+    await expect(startApp({ root: Root, createRouter: () => router })).resolves.toBeUndefined();
+
+    expect(h.order).toEqual(['install', 'guard']);
+    expect(appText()).toBe('SHELL');
+    expect(html.dataset.appReady).toBeUndefined();
+    expect(html.dataset.appFailed).toBeUndefined();
+  });
 });

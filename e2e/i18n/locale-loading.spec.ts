@@ -5,16 +5,21 @@
 //
 // English ships in the entry bundle; every other locale is its own chunk
 // (src/i18n.ts). The app must not mount until the locale chosen for the first
-// navigation is loaded and active, a later switch must not show two languages
-// at once, and a chunk that fails must fail visibly instead of falling back
-// to English. Each test holds or aborts a locale chunk with page.route(), so
-// the window in which English could appear lasts as long as the test wants.
+// navigation is loaded and active, and a later switch must not show two
+// languages at once. Each test delays or aborts a locale chunk with
+// page.route(), so the window in which English could appear lasts as long as
+// the test wants.
 //
-// A failed chunk reloads the page once (src/utils/preloadError.ts): the usual
-// cause is cached HTML naming chunks a deployment replaced. The reload goes
-// through the ADR-046 forced page load bound, one per tab per minute, so a
-// chunk that keeps failing ends in the shell's failure notice instead of a
-// reload loop.
+// A locale that does not load never blocks the visitor. A failed chunk first
+// reloads the page once (src/utils/preloadError.ts), on the first load and on
+// a later switch alike, the usual cause being cached HTML that names chunks a
+// deployment replaced. The language asked for is stored before that reload
+// (languageStore.ts), so the reloaded page asks for it again. The reload goes
+// through the ADR-046 forced page load bound, one per tab per minute;
+// spendForcedReload uses it up for a test that needs the outcome without the
+// reload. When the reload is refused, the page opens in English (or keeps the
+// language it shows) with an inline notice (LocaleLoadNotice) that names the
+// language that failed and links to the feedback form.
 //
 // "First content" is measured in the page: an init script records every
 // distinct state of #app from the first byte (see recordAppStates). Vue sets
@@ -83,6 +88,8 @@ if (new Set(Object.values(MARKERS)).size !== Object.keys(MARKERS).length) {
 
 /** src/shared/stores/languageStore.ts SESSION_STORAGE_KEY */
 const SESSION_STORAGE_KEY = 'selected.locale';
+/** src/utils/forcedPageLoad.ts FORCED_RELOAD_MARKER: when this tab last force-reloaded. */
+const FORCED_RELOAD_MARKER = 'ots_forced_reload_at';
 const UPDATE_LOCALE_PATH = '/api/account/update-locale';
 
 /**
@@ -141,10 +148,14 @@ function chunkRoute(code: string, counter: () => number): ChunkRoute {
 
 const test = base.extend<{
   localeChunks: {
-    /** Holds every request for the chunk until release(). */
+    /** Delays every request for the chunk until release(). */
     hold(code: string): Promise<HeldChunk>;
-    /** Aborts every request for the chunk, as an unreachable asset host would. */
-    fail(code: string): Promise<ChunkRoute>;
+    /**
+     * Aborts every request for the chunk, as an unreachable asset host would;
+     * with `times`, only the first that many, as a deployment the next page
+     * load catches up with.
+     */
+    fail(code: string, options?: { times?: number }): Promise<ChunkRoute>;
   };
 }>({
   localeChunks: async ({ page }, use) => {
@@ -172,10 +183,14 @@ const test = base.extend<{
         );
       },
 
-      async fail(code) {
+      async fail(code, { times = Infinity } = {}) {
         let count = 0;
         await page.route(isLocaleChunk(code), async (route) => {
           count += 1;
+          if (count > times) {
+            await route.continue().catch(() => undefined);
+            return;
+          }
           await route.abort('failed');
         });
         return chunkRoute(code, () => count);
@@ -395,6 +410,46 @@ function htmlElement(page: Page) {
 }
 
 /**
+ * Marks the tab as having force-reloaded just now, before any app script runs,
+ * so the forced page load bound (one per tab per minute) refuses the reload a
+ * failed chunk would otherwise trigger. Seeded once per test.
+ */
+async function spendForcedReload(page: Page): Promise<void> {
+  await page.addInitScript((key) => {
+    try {
+      if (sessionStorage.getItem(key) === null) sessionStorage.setItem(key, String(Date.now()));
+    } catch {
+      // about:blank has no storage.
+    }
+  }, FORCED_RELOAD_MARKER);
+}
+
+function localeNotice(page: Page) {
+  return page.getByTestId('locale-load-notice');
+}
+
+/**
+ * The notice for a language that did not load: an alert naming it (in its
+ * own name, with its BCP 47 lang) and English as the language shown, with a
+ * link to the feedback form. Its copy is English because the page is.
+ */
+async function expectLocaleNotice(page: Page, tag: string, name: string): Promise<void> {
+  const notice = localeNotice(page);
+  await expect(notice).toBeVisible();
+  await expect(notice).toHaveAttribute('role', 'alert');
+  await expect(notice.locator(`span[lang="${tag}"]`)).toHaveText(name);
+  await expect(notice.locator('span[lang="en"]')).toHaveText('English');
+  await expect(
+    notice.getByRole('link', { name: 'let us know through the feedback form' })
+  ).toHaveAttribute('href', '/feedback');
+}
+
+async function dismissLocaleNotice(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Dismiss language notice' }).click();
+  await expect(localeNotice(page)).toHaveCount(0);
+}
+
+/**
  * Waits for the one recovery reload a failed chunk triggers, then for the
  * outcome on the reloaded page. Ends early if the page reloads again;
  * otherwise waits out RELOAD_WINDOW_MS.
@@ -408,7 +463,7 @@ async function waitOutReloads(page: Page, documents: string[]): Promise<void> {
     .catch(() => undefined);
 }
 
-/** The app has not mounted: #app still holds the server-rendered shell. */
+/** The app has not mounted: #app still contains the server-rendered shell. */
 async function expectShellOnly(page: Page): Promise<void> {
   await expect(page.locator('#app .app-fallback')).toBeAttached();
   await expect(page.locator('#app')).not.toHaveAttribute('data-v-app');
@@ -588,7 +643,7 @@ test.describe('initial locale', () => {
     expect(await storedLocale(page)).toBe('pt_BR');
   });
 
-  test('a bg chunk that keeps failing reloads once, then fails startup visibly', async ({
+  test('a bg chunk that keeps failing reloads once, then opens in English with a notice', async ({
     page,
     localeChunks,
   }) => {
@@ -608,28 +663,50 @@ test.describe('initial locale', () => {
     ).toEqual(['/?locale=bg', '/?locale=bg']);
     expect(bg.count, 'one bg request per page load').toBe(2);
 
-    // On the reloaded page: startup fails, the app never mounts, and the shell
-    // says so.
+    // On the reloaded page the visitor is not blocked: the app runs in English.
+    await waitForAppReady(page);
     const html = htmlElement(page);
-    await expect(html).toHaveAttribute('data-app-failed', 'true');
-    await expect(html).not.toHaveAttribute('data-app-ready');
-    await expect(page.locator('#app')).not.toHaveAttribute('data-v-app');
+    await expect(html).not.toHaveAttribute('data-app-failed');
+    await expect(html).toHaveAttribute('lang', 'en');
+    await expect(heading(page, 'en')).toBeVisible();
+    const first = (await states()).find((state) => state.mounted);
+    expect(first?.copy, 'the reloaded page opens in English').toEqual(['en']);
 
-    // The shell's own copy (apps/web/core/templates/index.rue), which is not
-    // translated.
-    await expect(page.getByText("We couldn't load this page.")).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Reload page' })).toBeVisible();
-    await expect(page.getByText('This page is taking longer than expected to load.')).toBeHidden();
-
+    // ...and says why, until dismissed.
+    await expectLocaleNotice(page, 'bg', 'Български');
     expect(
-      (await states()).filter((state) => state.mounted),
-      'the app never mounted, so no English stood in for Bulgarian'
-    ).toEqual([]);
+      await storedLocale(page),
+      'the language asked for is stored for the reload; the fallback is not'
+    ).toBe('bg');
+    await dismissLocaleNotice(page);
+    await expect(heading(page, 'en')).toBeVisible();
+  });
+
+  test('with the forced reload spent, a failing bg chunk opens in English with a notice at once', async ({
+    page,
+    localeChunks,
+  }) => {
+    await spendForcedReload(page);
+    const documents = recordDocumentRequests(page);
+    const bg = await localeChunks.fail('bg');
+
+    await page.goto('/?locale=bg', { waitUntil: 'commit' });
+    await expectLocalesServed(page, ['bg']);
+    await bg.requested();
+    await waitForAppReady(page);
+
+    // startApp does not mount while a reload is pending, so a reload would
+    // have happened before the app was ready.
+    expect(documents, 'no reload: the bound refused it').toEqual(['/?locale=bg']);
+    await expect(htmlElement(page)).not.toHaveAttribute('data-app-failed');
+    await expect(htmlElement(page)).toHaveAttribute('lang', 'en');
+    await expect(heading(page, 'en')).toBeVisible();
+    await expectLocaleNotice(page, 'bg', 'Български');
   });
 
   // A locale and its whole fallback chain load before activation (de_AT falls
-  // back to de, then en), so a failed parent fails the start too.
-  test('a failed parent chunk in the fallback chain fails startup', async ({
+  // back to de, then en), so a failed parent fails the locale too.
+  test('a failed parent chunk in the fallback chain opens in English with a notice', async ({
     page,
     localeChunks,
   }) => {
@@ -642,9 +719,11 @@ test.describe('initial locale', () => {
 
     await waitOutReloads(page, documents);
     expect(documents, 'exactly one recovery reload').toHaveLength(2);
-    await expect(htmlElement(page)).toHaveAttribute('data-app-failed', 'true');
-    await expect(htmlElement(page)).not.toHaveAttribute('data-app-ready');
-    await expect(page.getByText("We couldn't load this page.")).toBeVisible();
+    await waitForAppReady(page);
+    await expect(htmlElement(page)).not.toHaveAttribute('data-app-failed');
+    await expect(htmlElement(page)).toHaveAttribute('lang', 'en');
+    await expect(heading(page, 'en')).toBeVisible();
+    await expectLocaleNotice(page, 'de-AT', 'Deutsch (Österreich)');
   });
 });
 
@@ -725,7 +804,48 @@ test.describe('switching language', () => {
     expect(mixedStates(recorded), 'no state mixed two languages').toEqual([]);
   });
 
-  test('a bg chunk that fails during a switch reloads once into English', async ({
+  // F24: a locale chunk is a chunk like any other. A switch whose chunk fails
+  // reloads the page once under the ADR-046 bound, as a route chunk that
+  // fails after a deployment does. The choice is stored before the reload, so
+  // the reloaded page asks for the language the visitor chose: in the usual
+  // case, cached HTML naming chunks a deployment replaced, the reload is what
+  // fixes it, and the page opens in that language.
+  test('a bg chunk that fails once during a switch reloads the page, which opens in Bulgarian', async ({
+    page,
+    localeChunks,
+  }) => {
+    const states = await recordAppStates(page);
+    const documents = recordDocumentRequests(page);
+    const savedLocales = recordSavedLocales(page);
+    await page.goto('/');
+    await expectLocalesServed(page, ['bg']);
+    await waitForAppReady(page);
+    await expect(localeNotice(page)).toHaveCount(0);
+
+    const bg = await localeChunks.fail('bg', { times: 1 });
+    await chooseLanguage(page, 'bg');
+    await bg.requested();
+
+    await waitOutReloads(page, documents);
+    expect(documents, 'exactly one recovery reload').toEqual(['/', '/']);
+    expect(bg.count, 'the reloaded page asks for bg again').toBe(2);
+
+    await waitForAppReady(page);
+    await expect(htmlElement(page)).not.toHaveAttribute('data-app-failed');
+    await expect(heading(page, 'bg')).toBeVisible();
+    await expect(layoutRoot(page)).toHaveAttribute('lang', 'bg');
+    await expect(htmlElement(page)).toHaveAttribute('lang', 'bg');
+    const first = (await states()).find((state) => state.mounted);
+    expect(first?.copy, 'the reloaded page opens in Bulgarian').toEqual(['bg']);
+    await expect(localeNotice(page)).toHaveCount(0);
+    expect(await storedLocale(page), 'the choice is kept for the session').toBe('bg');
+    expect(savedLocales, 'nothing is saved to an account').toEqual([]);
+  });
+
+  // When the chunk fails on the reloaded page too, the bound refuses a second
+  // reload and that page opens in English with the notice. A reload back to
+  // the language shown before would have dropped the choice without a word.
+  test('a bg chunk that keeps failing during a switch reloads the page once, which opens in English with the notice', async ({
     page,
     localeChunks,
   }) => {
@@ -734,25 +854,67 @@ test.describe('switching language', () => {
     await page.goto('/');
     await expectLocalesServed(page, ['bg']);
     await waitForAppReady(page);
+    await expect(localeNotice(page)).toHaveCount(0);
 
     const bg = await localeChunks.fail('bg');
     await chooseLanguage(page, 'bg');
     await bg.requested();
 
-    // The failure takes the one recovery reload. Nothing on the reloaded page
-    // asks for bg, so nothing fails again.
     await waitOutReloads(page, documents);
     expect(documents, 'exactly one recovery reload').toEqual(['/', '/']);
-    await waitForAppReady(page);
+    expect(bg.count, 'one bg request per page load').toBe(2);
 
-    // The previous locale is back and nothing recorded the failed choice.
+    await waitForAppReady(page);
+    await expect(htmlElement(page)).not.toHaveAttribute('data-app-failed');
     await expect(heading(page, 'en')).toBeVisible();
     await expect(layoutRoot(page)).toHaveAttribute('lang', 'en');
     await expect(htmlElement(page)).toHaveAttribute('lang', 'en');
-    // Not null: the initial navigation's activation of the preferred locale
-    // writes the session selection too (languageStore.setCurrentLocale).
-    expect(await storedLocale(page), 'the failed choice is not stored').not.toBe('bg');
+    await expectLocaleNotice(page, 'bg', 'Български');
+    expect(await storedLocale(page), 'the choice stays stored').toBe('bg');
     expect(savedLocales, 'the failed choice is not saved').toEqual([]);
-    expect(bg.count, 'the reloaded page does not ask for bg').toBe(1);
+
+    await dismissLocaleNotice(page);
+    await expect(heading(page, 'en')).toBeVisible();
+  });
+
+  // With the tab's forced reload spent, the switch fails in place: the page
+  // keeps its language and shows the notice, what the visitor has typed
+  // stays, and the choice is not stored (no reload will retry it).
+  test('with the forced reload spent, a bg chunk that fails during a switch keeps English and shows the notice', async ({
+    page,
+    localeChunks,
+  }) => {
+    await spendForcedReload(page);
+    const documents = recordDocumentRequests(page);
+    const savedLocales = recordSavedLocales(page);
+    await page.goto('/');
+    await expectLocalesServed(page, ['bg']);
+    await waitForAppReady(page);
+    await expect(localeNotice(page)).toHaveCount(0);
+    const secret = page.getByTestId('secret-content-input');
+    await secret.fill('typed before the switch');
+
+    const bg = await localeChunks.fail('bg');
+    await chooseLanguage(page, 'bg');
+    await bg.requested();
+
+    await expectLocaleNotice(page, 'bg', 'Български');
+    // A reload would start within milliseconds of the failure.
+    await page
+      .waitForRequest(isDocumentRequest, { timeout: RELOAD_WINDOW_MS })
+      .catch(() => undefined);
+    expect(documents, 'no reload: the bound refused it').toEqual(['/']);
+    await expect(localeNotice(page)).toBeVisible();
+
+    await expect(heading(page, 'en')).toBeVisible();
+    await expect(layoutRoot(page)).toHaveAttribute('lang', 'en');
+    await expect(htmlElement(page)).toHaveAttribute('lang', 'en');
+    await expect(secret, 'the unsaved input survives').toHaveValue('typed before the switch');
+    expect(await storedLocale(page), 'no reload, so the choice is not stored').toBeNull();
+    expect(savedLocales, 'the failed choice is not saved').toEqual([]);
+
+    await dismissLocaleNotice(page);
+    await expect(heading(page, 'en')).toBeVisible();
+    await expect(secret).toHaveValue('typed before the switch');
   });
 });

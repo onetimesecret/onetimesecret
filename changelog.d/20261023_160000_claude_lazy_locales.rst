@@ -8,11 +8,21 @@ Changed
   before a language switch takes effect. A page opened with ``?locale=bg``
   renders in Bulgarian from its first paint, and a switch never shows a
   half-translated page.
+- A locale the server lists but the frontend build has no messages for is
+  neither offered nor chosen; the next language in the visitor's preference
+  order is used instead.
 - A ``?locale=`` URL parameter now applies on signed-in pages too, as it
   already did on the server; the account language used to replace it. It
   is kept for the browser session and never saved to the account.
 - ``<html lang>`` follows language switches and uses BCP 47 tags
   (``pt-BR``, not ``pt_BR``). The page title follows switches too.
+- A language whose chunk fails to load does not block the page. On the
+  first load the page opens in the installation's default language, or in
+  English, with a notice that names the language that failed and links to
+  the feedback form. A failed switch later reloads the page once, as any
+  chunk that fails after a deployment does, and the reloaded page opens in
+  the language chosen; when the page declines to reload, the current
+  language stays and the same notice shows.
 
 Fixed
 -----

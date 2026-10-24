@@ -121,6 +121,17 @@ describe('src/i18n.ts', () => {
       }
     });
 
+    // The language store asks this before offering a locale the server lists
+    // (languageStore.ts, loadSupportedLocales).
+    it('reports which locales have messages, without loading any', async () => {
+      const { hasLocaleMessages } = await loadI18n();
+
+      for (const code of generatedLocales) expect(hasLocaleMessages(code), code).toBe(true);
+      for (const code of ['xx', 'zh_Hant_TW', 'constructor', '__proto__', 'toString']) {
+        expect(hasLocaleMessages(code), code).toBe(false);
+      }
+    });
+
     it('rejects a chunk that fails, then retries on the next call', async () => {
       failChunk('ko');
       const { loadLocaleMessages } = await loadI18n();
@@ -135,7 +146,8 @@ describe('src/i18n.ts', () => {
     });
 
     // vite:preloadError with preventDefault() resolves the import with
-    // undefined; the entries' handler does that when it reloads the page.
+    // undefined. The entries' handler does not prevent it, but the loader
+    // must never register undefined as messages whatever a handler does.
     it('rejects a module that resolves without messages', async () => {
       mockedFiles.add('tr');
       vi.doMock(localeFile('tr'), () => ({ default: undefined }));
@@ -224,6 +236,27 @@ describe('src/i18n.ts', () => {
 
       await expect(setLocale('de_AT')).rejects.toHaveProperty('cause.message', 'chunk de failed');
 
+      expect(composer.locale.value).toBe('nl');
+      expect(sorted(composer.availableLocales)).toEqual(['en', 'nl']);
+    });
+
+    // The language store's last resort (recoverFromLocaleLoadFailure): with
+    // fallback_locale.default naming another locale before English, English's
+    // own chain reaches that chunk, and a strict activation fails with it
+    // although English is bundled.
+    it('activates a locale without its fallbacks when told to', async () => {
+      failChunk('de');
+      const { createI18nInstance } = await loadI18n({ default: ['de', 'en'] });
+      const { composer, setLocale } = createI18nInstance();
+
+      await expect(setLocale('en')).rejects.toHaveProperty('cause.message', 'chunk de failed');
+
+      await expect(setLocale('en', { fallbacks: false })).resolves.toBe(true);
+      expect(composer.locale.value).toBe('en');
+      expect(composer.availableLocales).toEqual(['en']);
+
+      // The option loads any locale alone, not only the bundled one.
+      await expect(setLocale('nl', { fallbacks: false })).resolves.toBe(true);
       expect(composer.locale.value).toBe('nl');
       expect(sorted(composer.availableLocales)).toEqual(['en', 'nl']);
     });

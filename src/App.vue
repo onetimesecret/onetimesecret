@@ -9,6 +9,8 @@
   import { iconLibraryComponents } from '@/shared/components/icons/sprites';
   import CriticalSprites from '@/shared/components/icons/sprites/CriticalSprites.vue';
   import ImpersonationBanner from '@/shared/components/ui/ImpersonationBanner.vue';
+  import LocaleLoadNotice from '@/shared/components/ui/LocaleLoadNotice.vue';
+  import RouteLoadNotice from '@/shared/components/ui/RouteLoadNotice.vue';
   import { NotificationHost } from '@/shared/components/ui/notifications';
   import RouteErrorBoundary from '@/shared/components/errors/RouteErrorBoundary.vue';
   import QuietLayout from '@/shared/layouts/MinimalLayout.vue';
@@ -196,6 +198,18 @@
        refresh coordinator holds that state, i.e. after a forced reload was
        cancelled or bounded. -->
   <StaleSessionNotice />
+
+  <!-- A language that did not load: the page continues in the one shown
+       (src/router/guards.routes.ts, createAuthGuard). Mounted here for the
+       same reason as the two above. It renders only while the language store
+       has a failure recorded. -->
+  <LocaleLoadNotice />
+
+  <!-- A page whose chunk did not load while this page declined to reload
+       (src/utils/routeLoadFailure.ts): names the problem and offers the manual
+       reload, since the clicked link otherwise seems to do nothing. Mounted
+       here for the same reason as the three above. -->
+  <RouteLoadNotice />
 
   <!-- Dynamic layout selection based on route.meta.layout -->
   <component

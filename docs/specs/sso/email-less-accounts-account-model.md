@@ -3,7 +3,7 @@
 **Status: PROPOSED for G2 approval. No schema, Rodauth, Customer, or index
 change is made until this design is approved.** Date: 2026-10-10.
 
-This is the Phase 2 design for [SSO email-less accounts](../../planning/2026-1009-sso-email-less-accounts.md)
+This is the Phase 2 design for [SSO email-less accounts](email-less-accounts-proposal.md)
 (the proposal) and the design record behind [ADR-051](../../adr/adr-051-account-login-is-not-the-contact-email.md).
 The proposal's "Proposed identity and data changes", "Lifecycle and tenant
 decisions", and "Acceptance evidence" sections are the checklist; every item

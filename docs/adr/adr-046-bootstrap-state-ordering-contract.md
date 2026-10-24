@@ -316,8 +316,9 @@ documented behaviour and guidance instead of a project-specific mechanism:
   minute of the last, the client enters the stale-session state instead of
   reloading. This bounds a reload loop whatever its cause.
 - A page that shows a value the server will not serve again (a revealed
-  secret; the one-time display of a generated value on a receipt) registers
-  that fact while the value is on screen (`src/utils/unrecoverableContent.ts`).
+  secret; the one-time display of a generated value on a receipt; a fresh set
+  of MFA recovery codes) registers that fact while the value is on screen
+  (`src/utils/unrecoverableContent.ts`).
   A forced page load demanded while it is registered is refused outright,
   whatever its cause: the caller stays in the state it has entered (the
   stale-session notice for a session transition) and the user decides when to

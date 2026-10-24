@@ -17,6 +17,7 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
 import CopyToClipboardButton from '@/shared/components/ui/CopyToClipboardButton.vue';
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+import DomainSsoMetadataImport from '@/apps/workspace/components/domains/DomainSsoMetadataImport.vue';
 import { useClipboard } from '@/shared/composables/useClipboard';
 import type { TenantSsoVerdict } from '@/schemas/api/domains/responses/signin-config';
 import {
@@ -29,7 +30,11 @@ import {
   type SsoTokenEndpointAuthMethod,
   type SsoTokenEndpointAuthMethodRequest,
 } from '@/schemas/shapes/domains/sso-config';
-import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
+import type {
+  SsoConfigFormState,
+  SsoMetadataFetchFailure,
+  SsoMetadataPreview,
+} from '@/shared/composables/useSsoConfig';
 import type {
   SsoDiagnosticActivation,
   SsoDiagnosticCheck,
@@ -87,6 +92,16 @@ const props = defineProps<{
    * provider_type saml, so the selector does not offer it.
    */
   samlEnabled: boolean;
+  /**
+   * SAML metadata import (useSsoConfig): the fetch input, the current
+   * preview, and the gate on applying it. The preview is never form state;
+   * only the apply-metadata action copies it into the form.
+   */
+  metadataFetchUrl: string;
+  metadataPreview: SsoMetadataPreview | null;
+  isFetchingMetadata: boolean;
+  metadataFetchFailure: SsoMetadataFetchFailure | null;
+  canApplyMetadata: boolean;
 }>();
 
 // ---------------------------------------------------------------------------
@@ -106,6 +121,12 @@ const emit = defineEmits<{
   (e: 'discard'): void;
   (e: 'refresh-last-sign-in'): void;
   (e: 'update:formState', value: SsoConfigFormState): void;
+  (e: 'update:metadataFetchUrl', value: string): void;
+  /** Fetch the metadata URL into a preview (useSsoConfig.fetchMetadata). */
+  (e: 'fetch-metadata'): void;
+  (e: 'select-metadata-certificate', index: number): void;
+  /** Copy the preview into the form (useSsoConfig.applyMetadata); no save. */
+  (e: 'apply-metadata'): void;
 }>();
 
 const { t } = useI18n();
@@ -160,6 +181,14 @@ const UNREADABLE_FIELD_LABELS: Record<string, string> = {
   idp_entity_id: 'web.organizations.sso.idp_entity_id',
   idp_cert: 'web.organizations.sso.idp_cert',
 };
+
+/**
+ * Unreadable fields the save does NOT require again: the optional
+ * idp_metadata_url is seeded blank and cleared by the next save, so it stays
+ * out of the "must be entered again" alert and the metadata import explains
+ * it beside its own input (metadata_source_unreadable).
+ */
+const UNREADABLE_OPTIONAL_FIELDS = ['idp_metadata_url'];
 
 /**
  * Token endpoint client authentication (#4764, oidc only). '' is the
@@ -306,8 +335,13 @@ const unreadableFields = computed(() => props.ssoConfig?.unreadable_fields ?? []
 
 const isUnreadable = (field: string) => unreadableFields.value.includes(field);
 
+/** The unreadable fields the alert names: those the save needs entered again. */
+const unreadableRequiredFields = computed(() =>
+  unreadableFields.value.filter((field) => !UNREADABLE_OPTIONAL_FIELDS.includes(field))
+);
+
 const unreadableFieldNames = computed(() =>
-  unreadableFields.value
+  unreadableRequiredFields.value
     .map((field) => t(UNREADABLE_FIELD_LABELS[field] ?? field))
     .join(', ')
 );
@@ -1020,7 +1054,7 @@ watch(newDomain, () => {
            error state, not "unset" — the inputs below are blank, marked
            invalid, and the save stays disabled until each is re-entered. -->
       <div
-        v-if="unreadableFields.length > 0"
+        v-if="unreadableRequiredFields.length > 0"
         data-testid="sso-unreadable-fields-alert"
         role="alert"
         class="flex items-start gap-2 rounded-md bg-red-50 px-3 py-2 dark:bg-red-900/20">
@@ -1478,6 +1512,22 @@ aria-hidden="true">*</span>
            are shown and re-sent as-is; the API stores them AAD-bound to the
            domain for integrity, hence the unreadable_fields error state. -->
       <template v-if="isSaml">
+        <!-- Metadata import above the trio it fills. A fetch only fills a
+             preview; Apply copies it into these fields and Save keeps it. -->
+        <DomainSsoMetadataImport
+          :metadata-fetch-url="metadataFetchUrl"
+          :preview="metadataPreview"
+          :is-fetching="isFetchingMetadata"
+          :failure="metadataFetchFailure"
+          :can-apply="canApplyMetadata"
+          :form-state="formState"
+          :source-unreadable="isUnreadable('idp_metadata_url')"
+          @update:metadata-fetch-url="emit('update:metadataFetchUrl', $event)"
+          @fetch="emit('fetch-metadata')"
+          @select-certificate="emit('select-metadata-certificate', $event)"
+          @apply="emit('apply-metadata')"
+          @clear-source="updateField('idp_metadata_url', '')" />
+
         <!-- IdP SSO service URL -->
         <div>
           <label

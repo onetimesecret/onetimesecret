@@ -23,6 +23,8 @@ module DomainsAPI
       # - issuer: For OIDC
       # - idp_sso_service_url, idp_entity_id, idp_cert: For SAML, plaintext
       #   (none is a secret — see Serializers)
+      # - idp_metadata_url: For SAML, plaintext, the IdP metadata URL the
+      #   trio was imported from; null when unset
       # - sp_entity_id, acs_url: For SAML, read-only — the values to register
       #   at the IdP
       # - unreadable_fields: Encrypted fields that failed to decrypt ([] when

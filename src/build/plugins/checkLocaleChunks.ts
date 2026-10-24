@@ -6,45 +6,58 @@ import type { ChunkLike } from './checkCspChunkGraph';
 
 /**
  * Vite plugin that fails the build when a locale other than English loads
- * with an entry.
+ * with an entry, or when one chunk contains more than one locale.
  *
  * src/i18n.ts imports generated/locales/en.json eagerly (English is the
- * fallback for every locale) and every other locale lazily, one chunk each,
- * fetched when that locale is activated. A non-English locale module in an
- * entry chunk, or in any chunk an entry reaches through static imports, is
- * downloaded on every page load whatever the visitor's language. An eager
- * glob, a static import of one locale file, or a chunk group that merges the
- * locale chunks into a shared chunk each cause that, and nothing fails: the
- * entry graph grows by megabytes. This turns it into a failed build.
+ * fallback for every locale) and every other locale lazily, fetched when that
+ * locale is activated. A non-English locale module in an entry chunk, or in
+ * any chunk an entry reaches through static imports, is downloaded on every
+ * page load whatever the visitor's language. A lazy chunk holding several
+ * locales downloads all of them for a visitor who needs one. An eager glob, a
+ * static import of one locale file, or a chunk group that merges locale
+ * modules each cause one of these, and nothing fails: the download grows by
+ * megabytes. This turns them into a failed build.
  */
 
 const LOCALE_MODULE = /\/generated\/locales\/([^/?]+)\.json(?:\?.*)?$/;
 const EAGER_LOCALE = 'en';
 
 /**
- * Returns one message per chunk that loads with an entry and holds a
- * non-English locale module; an empty array means every such locale stays
- * in a lazy chunk.
+ * Returns one message per offending chunk: one that loads with an entry and
+ * contains a non-English locale module, or else one that contains more than one
+ * locale module. An empty array means English loads with the entries and
+ * every other locale has a lazy chunk of its own.
  */
 export function findLocaleChunkViolations(bundle: Readonly<Record<string, ChunkLike>>): string[] {
   const chunks = Object.values(bundle).filter((output) => output.type === 'chunk');
   const byFileName = new Map(chunks.map((chunk) => [chunk.fileName, chunk]));
+  const loadedBy = entriesByLoadedChunk(chunks, byFileName);
 
-  return [...entriesByLoadedChunk(chunks, byFileName)].flatMap(([chunk, entries]) => {
-    const locales = lazyLocalesIn(chunk);
-    if (locales.length === 0) return [];
-    const modules = locales.map((locale) => `generated/locales/${locale}.json`).join(', ');
-    return [`${chunk.fileName} contains ${modules} and loads with entry ${entries.join(', ')}`];
+  return chunks.flatMap((chunk) => {
+    const locales = localesIn(chunk);
+    const lazy = locales.filter((locale) => locale !== EAGER_LOCALE);
+    const entries = loadedBy.get(chunk);
+    if (entries && lazy.length > 0) {
+      const loadedWith = entries.join(', ');
+      return [`${chunk.fileName} contains ${modulePaths(lazy)} and loads with entry ${loadedWith}`];
+    }
+    if (locales.length > 1) {
+      return [`${chunk.fileName} contains ${modulePaths(locales)}, more than one locale`];
+    }
+    return [];
   });
 }
 
-/** Locale codes of the non-English locale modules in `chunk`. */
-function lazyLocalesIn(chunk: ChunkLike): string[] {
+/** Locale codes of the locale modules in `chunk`, English included. */
+function localesIn(chunk: ChunkLike): string[] {
   return (chunk.moduleIds ?? []).flatMap((id) => {
     const locale = LOCALE_MODULE.exec(id)?.[1];
-    return locale && locale !== EAGER_LOCALE ? [locale] : [];
+    return locale ? [locale] : [];
   });
 }
+
+const modulePaths = (locales: readonly string[]): string =>
+  locales.map((locale) => `generated/locales/${locale}.json`).join(', ');
 
 /**
  * Every chunk that loads with an entry (the entry itself and what it reaches
@@ -85,8 +98,8 @@ export const checkLocaleChunks = (): Plugin => ({
     const violations = findLocaleChunkViolations(bundle);
     if (violations.length > 0) {
       throw new Error(
-        '[check-locale-chunks] a non-English locale loads with an entry instead of ' +
-          `on demand (see src/i18n.ts):\n - ${violations.join('\n - ')}`
+        '[check-locale-chunks] locales must load on demand, one chunk each, with only ' +
+          `en.json in the entries (see src/i18n.ts):\n - ${violations.join('\n - ')}`
       );
     }
   },

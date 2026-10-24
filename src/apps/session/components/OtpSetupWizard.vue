@@ -27,10 +27,9 @@ const currentStep = ref<'setup' | 'codes'>('setup');
 // ever show for this enrollment, so from the request going out until the
 // wizard closes this tab has the only copy: an automatic page reload (a lazy
 // chunk that failed to load, an ended session; see src/utils/forcedPageLoad.ts)
-// must stand down.
-useUnrecoverableContent(
-  () => revealingRecoveryCodes.value || (currentStep.value === 'codes' && recoveryCodes.value.length > 0)
-);
+// must stand down. Keyed on the codes themselves, not on the step, so no gap
+// opens between the response settling and the step changing.
+useUnrecoverableContent(() => revealingRecoveryCodes.value || recoveryCodes.value.length > 0);
 // Track whether recovery codes have been saved (downloaded or copied)
 const codesSaved = ref(false);
 const otpCode = ref('');

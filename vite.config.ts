@@ -278,9 +278,9 @@ export default defineConfig(({ command }) => ({
     // and the CSP note at the top of this file).
     checkCspChunkGraph(),
 
-    // Fails the build if a locale other than en.json lands in an entry chunk
-    // or in a chunk an entry imports statically. src/i18n.ts loads every other
-    // locale on demand, one chunk each.
+    // Fails the build if a locale other than en.json ends up in an entry
+    // chunk or in a chunk an entry imports statically, or if one chunk has
+    // more than one locale. src/i18n.ts loads every other locale on demand.
     checkLocaleChunks(),
     // Note: Sentry sourcemaps are uploaded via CI (sentry-cli), not at build time.
     // This keeps auth tokens out of the build context. See .github/workflows/build-and-publish-oci-images.yml

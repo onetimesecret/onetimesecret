@@ -162,6 +162,15 @@ module Onetime
             keys: ['sso_diagnostics:attempts:%s', 'sso_diagnostics:locked:%s'],
             dbclient: -> { Onetime::Customer.dbclient },
           },
+          # "Fetch from metadata" on a custom domain's SAML settings
+          # (POST /api/domains/:extid/sso/metadata), keyed on the acting
+          # customer's PUBLIC external id. Customer shard, matching
+          # SsoMetadataFetchRateLimiter#sso_metadata_fetch_redis.
+          'sso_metadata_fetch' => {
+            subject: 'customer external id (extid)',
+            keys: ['sso_metadata_fetch:attempts:%s', 'sso_metadata_fetch:locked:%s'],
+            dbclient: -> { Onetime::Customer.dbclient },
+          },
           # "Send test" on a custom domain's email sender
           # (POST /api/domains/:extid/email-config/test), keyed on the acting
           # customer's PUBLIC external id. Customer shard, matching

@@ -31,12 +31,13 @@
   const codesSaved = ref(false);
 
   // Regenerating invalidates the old codes and the new ones arrive only in the
-  // response, so from the request going out until the panel is closed this tab
-  // has the only copy: an automatic page reload (a lazy chunk that failed to
-  // load, an ended session; see src/utils/forcedPageLoad.ts) must stand down.
-  useUnrecoverableContent(
-    () => revealingRecoveryCodes.value || (showRegeneratedCodes.value && recoveryCodes.value.length > 0)
-  );
+  // response, so from the request going out until the codes are cleared
+  // (closeCodesDisplay) this tab has the only copy: an automatic page reload
+  // (a lazy chunk that failed to load, an ended session; see
+  // src/utils/forcedPageLoad.ts) must stand down. Keyed on the codes
+  // themselves, not on the panel flag, so no gap opens between the response
+  // settling and the panel showing.
+  useUnrecoverableContent(() => revealingRecoveryCodes.value || recoveryCodes.value.length > 0);
 
   onMounted(async () => {
     // Fetch MFA status to get the recovery codes count

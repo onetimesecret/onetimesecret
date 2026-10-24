@@ -47,8 +47,8 @@ export const queryParamHandlers: QueryParamHandler[] = [
  * Runs every handler whose parameter is present and valid, and resolves once
  * all of them have settled, with one result per handler that ran. Never
  * rejects: a handler that throws or rejects is reported in its result, and
- * the caller decides what that failure means (the route guard fails the
- * initial navigation when the locale does not load).
+ * the caller decides what that failure means (for a locale that does not
+ * load, the route guard keeps or activates another one and shows a notice).
  *
  * @param query Vue Router query object
  */

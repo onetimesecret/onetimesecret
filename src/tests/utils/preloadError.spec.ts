@@ -6,7 +6,12 @@
 
 import { loggingService } from '@/services/logging.service';
 import { FORCED_RELOAD_MARKER, FORCED_RELOAD_WINDOW_MS } from '@/utils/forcedPageLoad';
-import { handlePreloadError, installPreloadErrorHandler } from '@/utils/preloadError';
+import {
+  handlePreloadError,
+  installPreloadErrorHandler,
+  isChunkLoadError,
+  reloadingFor,
+} from '@/utils/preloadError';
 import { markUnrecoverableContent } from '@/utils/unrecoverableContent';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -33,18 +38,24 @@ describe('handlePreloadError', () => {
   beforeEach(() => {
     sessionStorage.clear();
     vi.mocked(loggingService.error).mockClear();
+    vi.mocked(loggingService.warn).mockClear();
   });
 
-  it('reloads once and marks the event handled so the import does not reject', () => {
+  it('reloads once and still leaves the import to reject', () => {
     const reload = vi.fn();
     const event = preloadErrorEvent();
 
     expect(handlePreloadError(event, { now: NOW, reload })).toBe('reloading');
 
     expect(reload).toHaveBeenCalledTimes(1);
-    expect(event.defaultPrevented).toBe(true);
+    // Never default-prevented: Vite's helper rethrows the error, the caller
+    // fails as for any load error, and the router's record of a failed route
+    // (made from that error) is on screen if a beforeunload prompt keeps the
+    // page here. ADR-046: enter the state, then reload.
+    expect(event.defaultPrevented).toBe(false);
     expect(sessionStorage.getItem(FORCED_RELOAD_MARKER)).toBe(String(NOW));
     expect(loggingService.error).not.toHaveBeenCalled();
+    expect(loggingService.warn).not.toHaveBeenCalled();
   });
 
   it('refuses a second reload within the minute, leaves the event unhandled and logs the cause', () => {
@@ -87,8 +98,11 @@ describe('handlePreloadError', () => {
       expect(event.defaultPrevented).toBe(false);
       // A refused reload does not spend the forced page load bound either.
       expect(sessionStorage.getItem(FORCED_RELOAD_MARKER)).toBeNull();
-      expect(loggingService.error).toHaveBeenCalledTimes(1);
-      expect(vi.mocked(loggingService.error).mock.calls[0][0].message).toContain('chunk 404');
+      // The refusal is the page's own decision, so it is a warning, not an
+      // error that would file for every chunk the page declines to reload for.
+      expect(loggingService.error).not.toHaveBeenCalled();
+      expect(loggingService.warn).toHaveBeenCalledTimes(1);
+      expect(vi.mocked(loggingService.warn).mock.calls[0][0]).toContain('chunk 404');
     } finally {
       release();
     }
@@ -123,7 +137,7 @@ describe('installPreloadErrorHandler', () => {
     window.dispatchEvent(event);
 
     expect(reload).toHaveBeenCalledTimes(1);
-    expect(event.defaultPrevented).toBe(true);
+    expect(event.defaultPrevented).toBe(false);
   });
 });
 
@@ -152,5 +166,68 @@ describe('reloadPending', () => {
     handlePreloadError(preloadErrorEvent(), { now: NOW + 1, reload: vi.fn() });
 
     expect(reloadPending()).toBe(false);
+  });
+});
+
+// The router shows RouteLoadNotice for a navigation that fails with a chunk
+// load error (src/utils/routeLoadFailure.ts). It tells that error from any
+// other by identity: Vite rethrows the very object it attached to the event.
+describe('isChunkLoadError', () => {
+  beforeEach(() => sessionStorage.clear());
+
+  const payloadOf = (event: Event) => (event as Event & { payload: Error }).payload;
+
+  it('recognises the error of a failed chunk by identity, whatever the handler decided', () => {
+    const reloading = preloadErrorEvent('chunk 404');
+    expect(handlePreloadError(reloading, { now: NOW, reload: vi.fn() })).toBe('reloading');
+    const bounded = preloadErrorEvent('chunk 404');
+    expect(handlePreloadError(bounded, { now: NOW + 1, reload: vi.fn() })).toBe('bounded');
+    const release = markUnrecoverableContent();
+    const refused = preloadErrorEvent('chunk 404');
+    try {
+      expect(handlePreloadError(refused, { now: NOW + 2, reload: vi.fn() })).toBe('refused');
+    } finally {
+      release();
+    }
+
+    expect(isChunkLoadError(payloadOf(reloading))).toBe(true);
+    expect(isChunkLoadError(payloadOf(bounded))).toBe(true);
+    expect(isChunkLoadError(payloadOf(refused))).toBe(true);
+    // The same message on another object is another error.
+    expect(isChunkLoadError(new Error('chunk 404'))).toBe(false);
+  });
+
+  it('does not recognise a non-error', () => {
+    expect(isChunkLoadError(undefined)).toBe(false);
+    expect(isChunkLoadError('Failed to fetch dynamically imported module')).toBe(false);
+  });
+});
+
+// The language store stores the language a visitor chose before the page
+// reloads for its chunk (languageStore.ts activateLocale), and only then: a
+// refused reload leaves the page up with the locale it shows.
+describe('reloadingFor', () => {
+  beforeEach(() => sessionStorage.clear());
+
+  const payloadOf = (event: Event) => (event as Event & { payload: Error }).payload;
+
+  it('is true only for the error of a chunk the page is reloading for', () => {
+    const reloading = preloadErrorEvent('chunk 404');
+    expect(handlePreloadError(reloading, { now: NOW, reload: vi.fn() })).toBe('reloading');
+    const bounded = preloadErrorEvent('chunk 404');
+    expect(handlePreloadError(bounded, { now: NOW + 1, reload: vi.fn() })).toBe('bounded');
+    const release = markUnrecoverableContent();
+    const refused = preloadErrorEvent('chunk 404');
+    try {
+      expect(handlePreloadError(refused, { now: NOW + 2, reload: vi.fn() })).toBe('refused');
+    } finally {
+      release();
+    }
+
+    expect(reloadingFor(payloadOf(reloading))).toBe(true);
+    expect(reloadingFor(payloadOf(bounded))).toBe(false);
+    expect(reloadingFor(payloadOf(refused))).toBe(false);
+    expect(reloadingFor(new Error('chunk 404'))).toBe(false);
+    expect(reloadingFor(undefined)).toBe(false);
   });
 });

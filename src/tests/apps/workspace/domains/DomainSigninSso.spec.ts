@@ -17,7 +17,9 @@
 //   with its inline confirm, shown only once a record exists;
 // - the navigation around it: back to the sign-in settings, back after a
 //   successful delete, and the unsaved-changes guard on leaving and on a
-//   switch to another domain's SSO page (same route, new :extid).
+//   switch to another domain's SSO page (same route, new :extid);
+// - the SAML metadata import: the composable's fetch input, preview and
+//   apply gate handed to the form, and its actions routed back.
 //
 // The composables and the form are stubbed: the form's own behaviour is
 // DomainSsoConfigForm.spec.ts's business.
@@ -107,8 +109,24 @@ vi.mock('@/apps/workspace/components/domains/DomainSsoConfigForm.vue', () => ({
       savedCredentialsUnchecked: { type: Boolean, default: false },
       isRefreshingLastSignIn: { type: Boolean, default: false },
       samlEnabled: { type: Boolean, default: false },
+      metadataFetchUrl: { type: String, default: '' },
+      metadataPreview: { type: Object, default: null },
+      isFetchingMetadata: { type: Boolean, default: false },
+      metadataFetchFailure: { type: Object, default: null },
+      canApplyMetadata: { type: Boolean, default: false },
     },
-    emits: ['save', 'test', 'diagnostics', 'discard', 'refresh-last-sign-in', 'update:formState'],
+    emits: [
+      'save',
+      'test',
+      'diagnostics',
+      'discard',
+      'refresh-last-sign-in',
+      'update:formState',
+      'update:metadataFetchUrl',
+      'fetch-metadata',
+      'select-metadata-certificate',
+      'apply-metadata',
+    ],
     template: '<div data-testid="sso-form" />',
   },
 }));
@@ -175,6 +193,9 @@ const mockSsoDeleting = ref(false);
 const mockSsoHasUnsavedChanges = ref(false);
 const mockSavedCredentialsUnchecked = ref(false);
 const mockSavedCredentialsChecked = ref(false);
+const mockMetadataFetchUrl = ref('');
+const mockMetadataPreview = ref<{ requestId: number } | null>(null);
+const mockCanApplyMetadata = ref(false);
 const sso = {
   initialize: vi.fn(),
   saveConfig: vi.fn(record('saveConfig')),
@@ -183,6 +204,9 @@ const sso = {
   testConnection: vi.fn(record('testConnection')),
   discardChanges: vi.fn(record('discardChanges')),
   refreshLastSignIn: vi.fn(record('refreshLastSignIn')),
+  fetchMetadata: vi.fn(record('fetchMetadata')),
+  selectMetadataCertificate: vi.fn(record('selectMetadataCertificate')),
+  applyMetadata: vi.fn(record('applyMetadata')),
 };
 
 vi.mock('@/shared/composables/useSsoConfig', () => ({
@@ -207,6 +231,11 @@ vi.mock('@/shared/composables/useSsoConfig', () => ({
     isEnabled: ref(false),
     hasUnsavedChanges: mockSsoHasUnsavedChanges,
     clientSecretMasked: ref(null),
+    metadataFetchUrl: mockMetadataFetchUrl,
+    metadataPreview: mockMetadataPreview,
+    isFetchingMetadata: ref(false),
+    metadataFetchFailure: ref(null),
+    canApplyMetadata: mockCanApplyMetadata,
     ...sso,
   }),
 }));
@@ -254,6 +283,9 @@ describe('DomainSigninSso', () => {
     mockSsoHasUnsavedChanges.value = false;
     mockSavedCredentialsUnchecked.value = false;
     mockSavedCredentialsChecked.value = false;
+    mockMetadataFetchUrl.value = '';
+    mockMetadataPreview.value = null;
+    mockCanApplyMetadata.value = false;
   });
 
   afterEach(() => {
@@ -387,6 +419,30 @@ describe('DomainSigninSso', () => {
       expect(form().props('savedCredentialsUnchecked')).toBe(true);
       expect(form().props('savedCredentialsChecked')).toBe(true);
       expect(form().props('diagnosticsResult')).toBeNull();
+    });
+
+    it('hands the SAML metadata import through and routes its actions to the composable', async () => {
+      mockMetadataFetchUrl.value = 'https://idp.example.com/saml/metadata';
+      mockMetadataPreview.value = { requestId: 3 };
+      mockCanApplyMetadata.value = true;
+      wrapper = await mountPage();
+
+      expect(form().props('metadataFetchUrl')).toBe('https://idp.example.com/saml/metadata');
+      expect(form().props('metadataPreview')).toEqual({ requestId: 3 });
+      expect(form().props('canApplyMetadata')).toBe(true);
+      calls.length = 0;
+
+      form().vm.$emit('update:metadataFetchUrl', 'https://idp-b.example.com/saml/metadata');
+      form().vm.$emit('fetch-metadata');
+      form().vm.$emit('select-metadata-certificate', 1);
+      form().vm.$emit('apply-metadata');
+      await flushPromises();
+
+      expect(mockMetadataFetchUrl.value).toBe('https://idp-b.example.com/saml/metadata');
+      expect(calls).toEqual(['fetchMetadata', 'selectMetadataCertificate:[1]', 'applyMetadata']);
+      // Applying only changes the form: nothing is saved or re-read.
+      expect(calls).not.toContain('saveConfig');
+      expect(calls).not.toContain('refreshDetails');
     });
   });
 
