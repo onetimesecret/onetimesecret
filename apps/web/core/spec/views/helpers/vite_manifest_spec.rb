@@ -28,7 +28,8 @@ RSpec.describe Core::Views::ViteManifest do
   let(:shell) { shell_class.new }
   let(:nonce) { 'n0nce' }
 
-  # Two entries sharing a chunk graph, one lazy route, one stylesheet, one font.
+  # Two entries sharing a chunk graph, one lazy route, one stylesheet, and the
+  # font files Vite emits for the four @font-face blocks (woff2 + woff each).
   let(:manifest) do
     {
       'main.ts' => {
@@ -47,7 +48,12 @@ RSpec.describe Core::Views::ViteManifest do
       '_runtime-EEEE.js' => { 'file' => 'assets/runtime-EEEE.js' },
       'apps/secret/support/Help.vue' => { 'file' => 'assets/Help-FFFF.js', 'isDynamicEntry' => true },
       'style.css' => { 'file' => 'assets/style.GGGG.css' },
-      'assets/fonts/Inter.woff2' => { 'file' => 'assets/Inter.HHHH.woff2' },
+      'assets/fonts/zs/ZillaSlab-Regular.woff2' => { 'file' => 'assets/ZillaSlab-Regular.HHHH.woff2' },
+      'assets/fonts/zs/ZillaSlab-Regular.woff' => { 'file' => 'assets/ZillaSlab-Regular.IIII.woff' },
+      'assets/fonts/zs/ZillaSlab-Bold.woff2' => { 'file' => 'assets/ZillaSlab-Bold.JJJJ.woff2' },
+      'assets/fonts/zs/ZillaSlab-Bold.woff' => { 'file' => 'assets/ZillaSlab-Bold.KKKK.woff' },
+      'assets/fonts/zs/ZillaSlab-Italic.woff2' => { 'file' => 'assets/ZillaSlab-Italic.LLLL.woff2' },
+      'assets/fonts/zs/ZillaSlab-BoldItalic.woff2' => { 'file' => 'assets/ZillaSlab-BoldItalic.MMMM.woff2' },
     }
   end
 
@@ -95,13 +101,22 @@ RSpec.describe Core::Views::ViteManifest do
       expect(html).not_to include('Help-FFFF.js')
     end
 
-    it 'links the shared stylesheet and preloads fonts with the nonce' do
+    it 'links the shared stylesheet and preloads the upright woff2 faces with the nonce' do
       expect(html).to include(
         %(<link rel="stylesheet" nonce="n0nce" href="/dist/assets/style.GGGG.css">),
       )
-      expect(html).to include(
-        %(<link rel="preload" nonce="n0nce" href="/dist/assets/Inter.HHHH.woff2" as="font" type="font/woff2" crossorigin>),
+      expect(tags(html).grep(/as="font"/)).to eq(
+        [
+          %(<link rel="preload" nonce="n0nce" href="/dist/assets/ZillaSlab-Regular.HHHH.woff2" as="font" type="font/woff2" crossorigin>),
+          %(<link rel="preload" nonce="n0nce" href="/dist/assets/ZillaSlab-Bold.JJJJ.woff2" as="font" type="font/woff2" crossorigin>),
+        ],
       )
+    end
+
+    it 'leaves the italic faces and the woff fallbacks to @font-face' do
+      expect(html).not_to include('ZillaSlab-Italic')
+      expect(html).not_to include('ZillaSlab-BoldItalic')
+      expect(html).not_to include('.woff"')
     end
 
     it 'resolves the admin entry from the same manifest' do
