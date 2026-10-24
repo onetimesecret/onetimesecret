@@ -2,9 +2,10 @@
 
 /**
  * The build-time guard for lazy locales (src/build/plugins/checkLocaleChunks.ts):
- * generated/locales/en.json loads with the entries, and every other locale
- * module stays out of the entries and out of every chunk they import
- * statically, so it is fetched only when its locale is activated.
+ * generated/locales/en.json loads with the entries, every other locale module
+ * stays out of the entries and out of every chunk they import statically, so
+ * it is fetched only when its locale is activated, and no chunk holds more
+ * than one locale, so a visitor downloads only the language they need.
  *
  * Run:
  *   pnpm test src/tests/build/checkLocaleChunks.spec.ts
@@ -106,6 +107,50 @@ describe('findLocaleChunkViolations', () => {
     });
 
     expect(findLocaleChunkViolations(bundle)).toEqual([]);
+  });
+
+  it('reports a lazy chunk that holds more than one locale', () => {
+    const bundle = soundBundle();
+    bundle['assets/bg-DDDD.js'].moduleIds = [locale('bg'), locale('nl')];
+    delete bundle['assets/nl-EEEE.js'];
+
+    expect(findLocaleChunkViolations(bundle)).toEqual([
+      'assets/bg-DDDD.js contains generated/locales/bg.json, generated/locales/nl.json, ' +
+        'more than one locale',
+    ]);
+  });
+
+  it('counts English when a lazy chunk holds it with another locale', () => {
+    const bundle = soundBundle();
+    bundle['assets/bg-DDDD.js'].moduleIds = [locale('en'), locale('bg')];
+
+    expect(findLocaleChunkViolations(bundle)).toEqual([
+      'assets/bg-DDDD.js contains generated/locales/en.json, generated/locales/bg.json, ' +
+        'more than one locale',
+    ]);
+  });
+
+  it('accepts a lazy chunk with one locale next to other modules', () => {
+    const bundle = soundBundle();
+    bundle['assets/bg-DDDD.js'].moduleIds = ['/repo/src/feature.ts', locale('bg')];
+
+    expect(findLocaleChunkViolations(bundle)).toEqual([]);
+  });
+
+  // One message per chunk: the entry-loaded one says more than the count.
+  it('reports an entry-loaded chunk with several locales once, as loading with the entry', () => {
+    const bundle = soundBundle();
+    bundle['assets/i18n-BBBB.js'].moduleIds = [
+      '/repo/src/i18n.ts',
+      locale('en'),
+      locale('bg'),
+      locale('nl'),
+    ];
+
+    expect(findLocaleChunkViolations(bundle)).toEqual([
+      'assets/i18n-BBBB.js contains generated/locales/bg.json, generated/locales/nl.json ' +
+        'and loads with entry assets/main.AAAA.js, assets/admin.CCCC.js',
+    ]);
   });
 
   it('survives an import cycle between chunks', () => {
