@@ -76,6 +76,7 @@ describe('Language Store', () => {
     const sessionStorageMock = {
       getItem: vi.fn(),
       setItem: vi.fn(),
+      removeItem: vi.fn(),
       clear: vi.fn(),
     };
 
@@ -776,7 +777,8 @@ describe('Language Store', () => {
       results.push(handlePreloadError(event, { now: Date.now(), reload, storage }));
     let store: ReturnType<typeof useLanguageStore>;
 
-    const storedSelections = () => vi.mocked(sessionStorage.setItem).mock.calls;
+    const storedSelections = () =>
+      vi.mocked(sessionStorage.setItem).mock.calls.filter(([key]) => key === SESSION_STORAGE_KEY);
 
     function failChunk(code: string) {
       i18nControl.failingChunk = code;
