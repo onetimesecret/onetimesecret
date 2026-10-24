@@ -1156,6 +1156,10 @@
     "text": "The document describes more than one identity provider. Use the metadata URL for your identity provider alone.",
     "content_hash": "a383d38a"
   },
+  "web.organizations.sso.metadata_error_unreadable_certificate": {
+    "text": "The certificate in this metadata could not be read. Copy the signing certificate from your identity provider instead.",
+    "content_hash": "52515669"
+  },
   "web.organizations.sso.metadata_error_unexpected_error": {
     "text": "The metadata could not be read.",
     "content_hash": "e5f3a5bf"

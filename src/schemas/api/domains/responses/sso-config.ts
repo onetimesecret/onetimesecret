@@ -93,7 +93,8 @@ export type DeleteSsoConfigResponse = z.infer<typeof deleteSsoConfigResponseSche
  * error_code values of a failed metadata fetch (`success: false`). The
  * discovery-check vocabulary with invalid_issuer renamed invalid_metadata_url
  * and discovery_* renamed metadata_*, plus invalid_metadata (a body the
- * parser rejects) and aggregate_metadata (a document with several IdPs).
+ * parser rejects), aggregate_metadata (a document with several IdPs) and
+ * unreadable_certificate (the document's only certificate is not X.509).
  * The wire value stays a string: a code added later renders the server's
  * message until it has a label.
  */
@@ -108,6 +109,7 @@ export const SSO_METADATA_FETCH_ERROR_CODES = [
   'metadata_too_large',
   'invalid_metadata',
   'aggregate_metadata',
+  'unreadable_certificate',
   'unexpected_error',
 ] as const;
 

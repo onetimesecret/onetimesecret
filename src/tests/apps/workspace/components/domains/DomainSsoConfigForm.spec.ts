@@ -4209,6 +4209,11 @@ describe('DomainSsoConfigForm', () => {
 
       it.each([
         ['a known error code', 'timeout', 'web.organizations.sso.metadata_error_timeout'],
+        [
+          'an unreadable certificate',
+          'unreadable_certificate',
+          'web.organizations.sso.metadata_error_unreadable_certificate',
+        ],
         ['an unknown error code', 'future_error', 'The server explains'],
         ['no error code (a refused request)', null, 'The server explains'],
       ])('announces a fetch failure with %s', async (_label, errorCode, expected) => {

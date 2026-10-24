@@ -67,6 +67,7 @@
     metadata_too_large: 'web.organizations.sso.metadata_error_metadata_too_large',
     invalid_metadata: 'web.organizations.sso.metadata_error_invalid_metadata',
     aggregate_metadata: 'web.organizations.sso.metadata_error_aggregate_metadata',
+    unreadable_certificate: 'web.organizations.sso.metadata_error_unreadable_certificate',
     unexpected_error: 'web.organizations.sso.metadata_error_unexpected_error',
   };
 

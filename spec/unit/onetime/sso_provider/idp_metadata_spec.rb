@@ -16,8 +16,9 @@
 #     SHA-1 display hashes from its DER bytes and run through
 #     Saml.cert_problem;
 #   - one error boundary around the whole parse maps ArgumentError,
-#     REXML::ParseException, OpenSSL::X509::CertificateError and REXML's own
-#     expansion-limit RuntimeError to :invalid_metadata, and lets an
+#     REXML::ParseException and REXML's own expansion-limit RuntimeError to
+#     :invalid_metadata, the upstream fingerprint's
+#     OpenSSL::X509::CertificateError to :unreadable_certificate, and lets an
 #     unrelated RuntimeError through;
 #   - entity references fail on LAZY extraction under the expansion limit
 #     ruby-saml's normal load path sets, and nothing reaches the network.
@@ -130,13 +131,17 @@ RSpec.describe Onetime::SsoProvider::IdpMetadata do
     described_class.parse(xml, metadata_url: metadata_url)
   end
 
-  def expect_invalid_metadata(xml)
+  def expect_parse_error(xml, code)
     expect { parse(xml) }.to raise_error(described_class::Error) { |error|
-      expect(error.code).to eq(:invalid_metadata)
-      expect(error.message).to eq(described_class::Error::MESSAGES.fetch(:invalid_metadata))
+      expect(error.code).to eq(code)
+      expect(error.message).to eq(described_class::Error::MESSAGES.fetch(code))
       expect(error.cause).to be_nil
       yield error if block_given?
     }
+  end
+
+  def expect_invalid_metadata(xml, &)
+    expect_parse_error(xml, :invalid_metadata, &)
   end
 
   def problem_codes(result)
@@ -703,19 +708,20 @@ RSpec.describe Onetime::SsoProvider::IdpMetadata do
       end
 
       # The upstream parser fingerprints the certificate itself when there
-      # is exactly one, so the failure comes from inside parse_to_array.
-      it 'refuses a malformed single signing certificate that fails upstream fingerprinting' do
+      # is exactly one, so the failure comes from inside parse_to_array and
+      # names the certificate, not the document.
+      it 'refuses a malformed single signing certificate as unreadable_certificate' do
         xml = document(entity(idp_descriptor(keys: [key_descriptor(Base64.strict_encode64('not a certificate'))])))
         expect { OneLogin::RubySaml::IdpMetadataParser.new.parse_to_array(xml, sso_binding: [BINDING_REDIRECT]) }
           .to raise_error(OpenSSL::X509::CertificateError)
 
-        expect_invalid_metadata(xml) { expect(it.reason).to eq('OpenSSL::X509::CertificateError') }
+        expect_parse_error(xml, :unreadable_certificate) { expect(it.reason).to eq('OpenSSL::X509::CertificateError') }
       end
 
-      it 'refuses a malformed encryption-only certificate that fails upstream fingerprinting' do
+      it 'refuses a malformed encryption-only certificate as unreadable_certificate' do
         bad = key_descriptor(Base64.strict_encode64('not a certificate'), use: 'encryption')
 
-        expect_invalid_metadata(document(entity(idp_descriptor(keys: [bad]))))
+        expect_parse_error(document(entity(idp_descriptor(keys: [bad]))), :unreadable_certificate)
       end
     end
 

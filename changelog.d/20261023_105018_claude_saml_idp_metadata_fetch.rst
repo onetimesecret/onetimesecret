@@ -10,11 +10,11 @@ Added
   certificate the metadata publishes with its validity window, SHA-256
   fingerprint and the SHA-1 thumbprint the Entra portal shows, and the
   admin picks one. Certificates that cannot be read are left out with a
-  warning. Nothing
-  is saved until the admin applies the values and saves the form, which
-  validates them as before. The metadata URL is stored with the
-  configuration as the source of the imported values. Sign-in does not read
-  it.
+  warning; when the metadata's only certificate cannot be read, the form
+  says so. Nothing is saved until the admin applies the values and saves
+  the form, which validates them as before. The metadata URL is stored
+  with the configuration as the source of the imported values. Sign-in
+  does not read it.
 - ``POST /api/domains/:extid/sso/metadata`` fetches and parses the
   metadata without writing anything. The request goes through the same
   outbound guard as OIDC discovery. Each customer can make 30 requests per

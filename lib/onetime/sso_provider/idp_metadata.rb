@@ -62,9 +62,11 @@ module Onetime
     #
     # ERROR BOUNDARY. The whole operation — the parser, the descriptor
     # inspection and the certificate enrichment — runs inside one rescue
-    # that turns a document the parser or OpenSSL rejects into
-    # Error(:invalid_metadata), with a fixed message: exception text can
-    # carry document content and is never echoed. REXML expands entities
+    # that turns a document the parser or REXML rejects into
+    # Error(:invalid_metadata), and a certificate OpenSSL rejects inside the
+    # parser into Error(:unreadable_certificate) (UNREADABLE CERTIFICATES),
+    # each with a fixed message: exception text can carry document content
+    # and is never echoed. REXML expands entities
     # LAZILY, when text or an attribute value is first read, so an entity
     # reference fails after REXML::Document.new has already succeeded,
     # anywhere a value is read (in the parser or here); hence one boundary
@@ -79,8 +81,10 @@ module Onetime
     # itself (merge_certificates_into: the descriptor's only certificate,
     # signing or encryption, or one of each that are the same), its
     # CertificateError is raised inside parse_to_array before any entry is
-    # returned, and the boundary maps it to :invalid_metadata. That shape
-    # has no sibling to keep, so there is nothing to import either way.
+    # returned, and the boundary maps it to :unreadable_certificate, which
+    # names the cause instead of calling the whole document unusable. That
+    # shape has no sibling to keep, so there is nothing to import either
+    # way.
     #
     # ENTITY EXPANSION. ruby-saml's normal load path (xml_security.rb, loaded
     # by `require 'ruby-saml'`) sets REXML::Security.entity_expansion_limit to
@@ -157,6 +161,7 @@ module Onetime
         MESSAGES = {
           invalid_metadata: 'The document is not usable SAML 2.0 IdP metadata',
           aggregate_metadata: 'The document describes more than one identity provider',
+          unreadable_certificate: 'A certificate in the document could not be read as an X.509 certificate',
         }.freeze
 
         attr_reader :code, :reason
@@ -232,7 +237,8 @@ module Onetime
       # @param metadata_url [String, nil] the URL it was fetched from, for
       #   the tenant_level_entra_metadata advisory; nil skips it
       # @return [Result]
-      # @raise [Error] :invalid_metadata or :aggregate_metadata
+      # @raise [Error] :invalid_metadata, :aggregate_metadata or
+      #   :unreadable_certificate
       def parse(body, metadata_url: nil)
         load_parser!
         parse_document(body.to_s, metadata_url)
@@ -295,7 +301,9 @@ module Onetime
         index       = selected_index(descriptors)
 
         build_result(entries[index], descriptors[index], metadata_url)
-      rescue ArgumentError, REXML::ParseException, OpenSSL::X509::CertificateError => ex
+      rescue OpenSSL::X509::CertificateError => ex
+        raise Error.new(:unreadable_certificate, reason: ex.class.name), cause: nil
+      rescue ArgumentError, REXML::ParseException => ex
         raise Error.new(:invalid_metadata, reason: ex.class.name), cause: nil
       rescue RuntimeError => ex
         raise unless rexml_expansion_error?(ex)

@@ -466,6 +466,25 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::FetchIdpMetadata do
         expect([outcome.inspect, *logged].join).not_to include('leak.example.com')
       end
 
+      it 'maps an unreadable lone certificate to unreadable_certificate' do
+        body = metadata_document.sub(
+          %r{<ds:X509Certificate>[^<]*</ds:X509Certificate>},
+          "<ds:X509Certificate>#{Base64.strict_encode64('not a certificate')}</ds:X509Certificate>",
+        )
+        allow(fetcher).to receive(:fetch).and_return(fetched(:ok, body: body))
+
+        outcome = run
+
+        expect(outcome).to include(
+          success: false,
+          message: 'A certificate in the document could not be read as an X.509 certificate',
+        )
+        expect(outcome[:details]).to include(
+          error_code: 'unreadable_certificate',
+          description: described_class::PARSE_FAILURE_DESCRIPTIONS.fetch(:unreadable_certificate),
+        )
+      end
+
       it 'maps a federation aggregate to aggregate_metadata' do
         entity = ->(id) { metadata_document(entity_id: id).sub(/\A<md:EntityDescriptor [^>]*>/, %(<md:EntityDescriptor entityID="#{id}">)) }
         body   = '<md:EntitiesDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" ' \

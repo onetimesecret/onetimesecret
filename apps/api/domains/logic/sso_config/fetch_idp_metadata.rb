@@ -52,14 +52,16 @@ module DomainsAPI
       #   importable: a `blocking` problem (no HTTP-Redirect endpoint, no
       #   usable signing certificate, an EntityID or SSO URL the save would
       #   refuse) means the trio must not be applied; an `advisory` one
-      #   (tenant_level_entra_metadata) is a warning.
+      #   (unreadable_signing_certificates, tenant_level_entra_metadata) is a
+      #   warning.
       # - success: false, metadata_url, message, details: { error_code,
       #   description, ... } for a URL refused before fetching
       #   (invalid_metadata_url), a fetch outcome (blocked_target, timeout,
       #   ssl_error, connection_failed, http_error, metadata_not_found,
       #   metadata_too_large), a document the parser refuses
-      #   (invalid_metadata, aggregate_metadata), or unexpected_error. The
-      #   vocabulary is DiscoveryCheck's, with the metadata names.
+      #   (invalid_metadata, aggregate_metadata, unreadable_certificate), or
+      #   unexpected_error. The vocabulary is DiscoveryCheck's, with the
+      #   metadata names.
       #
       # Egress: one GET through Onetime::SsoProvider::DiscoveryFetcher, the
       # SSRF enforcement point shared with DiscoveryCheck (host resolved once
@@ -93,10 +95,11 @@ module DomainsAPI
                                   'no credentials and no fragment.'
 
         PARSE_FAILURE_DESCRIPTIONS = {
-          invalid_metadata: 'The response could not be read as SAML 2.0 identity provider metadata ' \
-                            'with readable signing certificates.',
+          invalid_metadata: 'The response could not be read as SAML 2.0 identity provider metadata.',
           aggregate_metadata: 'The document lists more than one identity provider. Use the metadata URL ' \
                               'of the single identity provider this domain signs in with.',
+          unreadable_certificate: 'The certificate in this metadata could not be read as an X.509 certificate. ' \
+                                  'Copy the signing certificate from the identity provider instead.',
         }.freeze
 
         def process_params
