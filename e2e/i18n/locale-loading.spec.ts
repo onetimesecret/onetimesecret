@@ -809,7 +809,8 @@ test.describe('switching language', () => {
   // fails after a deployment does. The choice is stored before the reload, so
   // the reloaded page asks for the language the visitor chose: in the usual
   // case, cached HTML naming chunks a deployment replaced, the reload is what
-  // fixes it, and the page opens in that language.
+  // fixes it, and the page opens in that language. The switch never reached
+  // its save before the reload, so the reloaded page saves it once.
   test('a bg chunk that fails once during a switch reloads the page, which opens in Bulgarian', async ({
     page,
     localeChunks,
@@ -839,7 +840,11 @@ test.describe('switching language', () => {
     expect(first?.copy, 'the reloaded page opens in Bulgarian').toEqual(['bg']);
     await expect(localeNotice(page)).toHaveCount(0);
     expect(await storedLocale(page), 'the choice is kept for the session').toBe('bg');
-    expect(savedLocales, 'nothing is saved to an account').toEqual([]);
+    await expect
+      .poll(() => savedLocales, { message: 'the reloaded page saves the bg choice' })
+      .toEqual(['bg']);
+    await renderFrames(page);
+    expect(savedLocales, 'and saves it once').toEqual(['bg']);
   });
 
   // When the chunk fails on the reloaded page too, the bound refuses a second

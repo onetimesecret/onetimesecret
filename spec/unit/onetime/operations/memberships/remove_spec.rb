@@ -19,7 +19,7 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
   let(:actor) { 'ur_col_public_extid' }
 
   let(:org) do
-    double('Organization', objid: 'org-obj-1', extid: 'on_org_ext')
+    double('Organization', objid: 'org-obj-1', extid: 'on_org_ext', clear_default_org_pointer: false)
   end
 
   let(:customer) do
@@ -47,6 +47,15 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
       expect(result.status).to eq(:success)
       expect(result.role).to eq('admin')
       expect(membership).to have_received(:destroy_with_index_cleanup!)
+    end
+
+    # #4860: the teardown clears the stored pointer through its own copy of
+    # the customer; the op repeats it on the caller's copy.
+    it "clears the caller's default_org_id after the teardown" do
+      described_class.new(org: org, customer: customer, actor: actor).call
+
+      expect(membership).to have_received(:destroy_with_index_cleanup!).ordered
+      expect(org).to have_received(:clear_default_org_pointer).with(customer).ordered
     end
 
     it 'records EXACTLY ONE audit event (verb membership.remove, public ids, org_id in detail)' do
@@ -100,6 +109,7 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
 
       expect(result.status).to eq(:last_owner)
       expect(owner_membership).not_to have_received(:destroy_with_index_cleanup!)
+      expect(org).not_to have_received(:clear_default_org_pointer)
       expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor,
         verb: 'membership.remove',
@@ -142,6 +152,7 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
       expect(result.status).to eq(:dry_run)
       expect(result.role).to eq('admin')
       expect(membership).not_to have_received(:destroy_with_index_cleanup!)
+      expect(org).not_to have_received(:clear_default_org_pointer)
     end
 
     it 'records ONE preview on the observation trail, never the operator trail (#4337)' do

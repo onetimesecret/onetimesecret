@@ -637,8 +637,7 @@ module Auth
                                      owner_memberships, target_membership)
           blockers       = []
           blockers << :not_default_workspace unless org.is_default.to_s == 'true'
-          default_org_id = @customer.default_org_id.to_s
-          blockers << :default_workspace_mismatch unless default_org_id.empty? || default_org_id == org.objid.to_s
+          blockers << :default_workspace_mismatch if competing_default_workspace?(org)
           blockers << :target_not_owner unless target_membership&.active? && target_membership.owner?
           blockers << :not_sole_owner unless owner_memberships.one? &&
                                              owner_memberships.first.customer_objid.to_s == customer_objid
@@ -655,6 +654,26 @@ module Auth
           blockers << :billing_state if billing_state?(org)
           blockers << :migration_in_flight if migration_in_flight?(org)
           blockers.uniq
+        end
+
+        # default_org_id is the customer's preference, deleted with the
+        # customer record. SSO sign-in on a custom domain points it at the
+        # tenant organization the customer joined, and a removal could leave
+        # it naming an organization they no longer belong to; neither is a
+        # reason to refuse. It is refused only when it names a second default
+        # workspace the customer owns, which leaves two candidates for the one
+        # workspace a purge deletes. A pointer to an organization that is
+        # gone is ignored, as in {#discover_participations}.
+        def competing_default_workspace?(org)
+          default_org_id = @customer.default_org_id.to_s
+          return false if default_org_id.empty? || default_org_id == org.objid.to_s
+
+          other = @organizations[default_org_id] || Onetime::Organization.load(default_org_id)
+          return false unless other && other.is_default.to_s == 'true'
+          return true if customer_reference?(other.owner_id)
+
+          membership = Onetime::OrganizationMembership.find_by_org_customer(default_org_id, customer_objid)
+          (membership&.active? && membership.owner?) || false
         end
 
         # Content of the sole-owner default workspace that goes WITH the

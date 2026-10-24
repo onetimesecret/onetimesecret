@@ -6,7 +6,7 @@
   import { useLanguageStore } from '@/shared/stores/languageStore';
   import { localeCodes } from '@/sources/languages';
   import { storeToRefs } from 'pinia';
-  import { computed } from 'vue';
+  import { computed, ref } from 'vue';
   import { I18nT, useI18n } from 'vue-i18n';
 
   /**
@@ -18,7 +18,9 @@
    * Inline and persistent, not a toast: after a failed start the visitor never
    * saw the language they asked for, and nothing else on the page says why. It
    * stays until dismissed or until a later activation succeeds (the store
-   * clears it then).
+   * clears it then). If messages loaded but the preference could not be saved,
+   * it offers retry and dismiss instead. A load failure takes priority when
+   * both failures exist.
    *
    * Its own text is in the active locale, i.e. the one shown. Mounted in
    * App.vue above the layout so it appears on every route of both bundles,
@@ -35,7 +37,8 @@
 
   const { t } = useI18n();
   const languageStore = useLanguageStore();
-  const { localeLoadFailure } = storeToRefs(languageStore);
+  const { localeLoadFailure, localeSaveFailure } = storeToRefs(languageStore);
+  const retrying = ref(false);
 
   const label = (locale: string): LanguageLabel => ({
     tag: toLanguageTag(locale),
@@ -50,6 +53,17 @@
   });
 
   const dismiss = () => languageStore.dismissLocaleLoadFailure();
+
+  const retrySave = async () => {
+    if (retrying.value) return;
+
+    retrying.value = true;
+    try {
+      await languageStore.retryLanguageSave();
+    } finally {
+      retrying.value = false;
+    }
+  };
 </script>
 
 <template>
@@ -116,6 +130,70 @@
           class="size-5"
           aria-hidden="true" />
       </button>
+    </div>
+  </div>
+  <div
+    v-else-if="localeSaveFailure"
+    role="alert"
+    data-testid="locale-save-notice"
+    :class="[
+      'border-b-2 border-amber-500 bg-amber-100 px-4 py-2 text-amber-900',
+      'dark:border-amber-400 dark:bg-amber-950 dark:text-amber-100',
+    ]">
+    <div class="container mx-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <div class="flex min-w-0 items-start gap-3">
+        <OIcon
+          collection="heroicons"
+          name="exclamation-triangle"
+          class="mt-0.5 size-5 shrink-0 text-amber-700 dark:text-amber-300"
+          aria-hidden="true" />
+        <div class="min-w-0 text-sm">
+          <p class="font-semibold">
+            {{ t('web.layout.locale_save_failed.title') }}
+          </p>
+          <p>{{ t('web.layout.locale_save_failed.body') }}</p>
+        </div>
+      </div>
+
+      <div class="flex shrink-0 items-center gap-2">
+        <button
+          type="button"
+          data-testid="locale-save-notice-retry"
+          :disabled="retrying"
+          :aria-busy="retrying"
+          :class="[
+            'inline-flex items-center gap-2 rounded-md border border-amber-700 px-3 py-1 text-sm font-semibold',
+            'text-amber-900 transition-colors hover:bg-amber-200',
+            'focus:ring-2 focus:ring-amber-600 focus:ring-offset-1 focus:outline-none',
+            'disabled:cursor-wait disabled:opacity-60',
+            'dark:border-amber-300 dark:text-amber-100 dark:hover:bg-amber-900/60 dark:focus:ring-amber-300',
+          ]"
+          @click="retrySave">
+          <OIcon
+            v-if="retrying"
+            collection="heroicons"
+            name="arrow-path"
+            class="size-4 animate-spin motion-reduce:animate-none"
+            aria-hidden="true" />
+          {{ t('web.layout.locale_save_failed.retry') }}
+        </button>
+        <button
+          type="button"
+          data-testid="locale-save-notice-dismiss"
+          :aria-label="t('web.layout.locale_save_failed.dismiss')"
+          :class="[
+            'rounded-md p-1 text-amber-800 transition-colors hover:bg-amber-200',
+            'focus:ring-2 focus:ring-amber-600 focus:outline-none',
+            'dark:text-amber-200 dark:hover:bg-amber-900/60 dark:focus:ring-amber-300',
+          ]"
+          @click="languageStore.dismissLocaleSaveFailure()">
+          <OIcon
+            collection="heroicons"
+            name="x-mark"
+            class="size-5"
+            aria-hidden="true" />
+        </button>
+      </div>
     </div>
   </div>
 </template>

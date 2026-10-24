@@ -151,13 +151,18 @@ const localeDecided = new WeakSet<object>();
  * returns, so no view renders before its locale's messages are active:
  *  1. a valid, supported `?locale=` on this pass, on every route including
  *     protected ones (the server ranks the URL first too);
- *  2. otherwise, on a protected route the user may enter, the account locale;
- *  3. otherwise, while no locale is active yet, the language store's
+ *  2. on initial navigation, resume a pending explicit preference update
+ *     before the old account locale can override it (a conflicting URL
+ *     locale cancels recovery); its save does not hold the navigation;
+ *  3. otherwise, on a protected route the user may enter, the account locale,
+ *     which a preference save still pending stands in for (see
+ *     fetchCustomerPreferences);
+ *  4. otherwise, while no locale is active yet, the language store's
  *     preferred locale;
- *  4. otherwise the active locale stays.
+ *  5. otherwise the active locale stays.
  * The URL locale is applied before the auth checks because a redirect drops
  * the query: unauthenticated /dashboard?locale=bg must render /signin in
- * Bulgarian. Steps 2 and 3 also run before a redirect is returned, and the
+ * Bulgarian. Steps 2–4 also run before a redirect is returned, and the
  * redirected pass then skips them. An aborted navigation (`false`, e.g. a hard
  * navigation out of the bundle) renders nothing and activates nothing.
  *
@@ -171,6 +176,7 @@ const localeDecided = new WeakSet<object>();
  * navigation (router.isReady() rejects and the entry flags the shell).
  */
 function createAuthGuard(router: Router): NavigationGuardWithThis<undefined> {
+  let recoveryChecked = false;
   return async (to, from) => {
     const authStore = useAuthStore();
     logNavigation(to, authStore);
@@ -183,6 +189,18 @@ function createAuthGuard(router: Router): NavigationGuardWithThis<undefined> {
     await applyQueryParams(to, navigation, initial);
 
     const { result, accountLocale } = await decideRoute(to, router, authStore);
+
+    if (initial && !recoveryChecked && result !== false) {
+      recoveryChecked = true;
+      const languageStore = useLanguageStore();
+      const queryLocale =
+        localeDecided.has(navigation) && typeof to.query.locale === 'string'
+          ? (languageStore.resolveSupportedLocale(to.query.locale) ?? undefined)
+          : undefined;
+      if (await languageStore.resumeLanguageUpdate(queryLocale)) {
+        localeDecided.add(navigation);
+      }
+    }
 
     if (result !== false && !localeDecided.has(navigation)) {
       const choice = navigationLocale(accountLocale);
@@ -269,7 +287,7 @@ interface LocaleChoice {
 }
 
 /**
- * The locale a pass without a URL locale activates (steps 2 and 3 of
+ * The locale a pass without a URL locale activates (steps 3 and 4 of
  * createAuthGuard), or null when the active locale stays. An account locale
  * that is no longer supported is passed over, as the store's preference
  * hierarchy passes over it. The account locale is an explicit choice and is
@@ -749,8 +767,9 @@ async function validateAuthentication(
  */
 async function fetchCustomerPreferences(): Promise<{ locale?: string }> {
   const bootstrapStore = useBootstrapStore();
-  // Explicitly handle null case and type narrow
-  const locale = bootstrapStore.cust?.locale ?? undefined;
+  // The snapshot changes only once a preference save succeeds. While one is
+  // pending, its locale is the account's: the snapshot's would revert it.
+  const locale = useLanguageStore().savingLocale ?? bootstrapStore.cust?.locale ?? undefined;
   return { locale };
 }
 
