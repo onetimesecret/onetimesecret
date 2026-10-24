@@ -40,11 +40,18 @@ Changed
 - The same gate now covers every ``bin/ots`` verb that writes: ``customers
   change-email``, ``customers role reconcile``, ``domains remove``, ``domains
   repair``, ``domains transfer``, ``banner set`` and ``banner clear``. Each is
-  a dry run unless ``--apply`` is given and none prompts any more;
-  ``change-email --apply`` and ``role reconcile --apply`` write without
-  ``--yes``/``--force``, and ``domains repair``/``transfer`` take ``--apply``
-  (``--yes`` stays as an alias). ``organizations unarchive`` takes ``--apply``
-  like its siblings; ``--run`` stays as an alias. Every dry run prints the same
+  a dry run unless ``--apply`` is given and none prompts any more.
+  ``domains repair``/``transfer`` take ``--apply`` (``--yes`` stays as an
+  alias). ``change-email --apply`` and ``role reconcile --apply`` write
+  without ``--yes``/``--force``. On those two verbs the old prompt skip is not
+  an alias for ``--apply``, because it never wrote without ``--apply``:
+  ``change-email`` accepts and ignores ``--yes``, ``-y`` and ``-f``, and
+  ``role reconcile`` accepts and ignores ``--force`` and ``-f``, so a bare
+  ``--yes`` or ``--force`` still previews. ``customers role reconcile`` is now
+  a subcommand of its own, so ``customers role promote`` and ``demote`` reject
+  ``--apply`` and ``--json``, which they accepted and ignored before.
+  ``organizations unarchive`` takes ``--apply`` like its siblings; ``--run``
+  stays as an alias. Every dry run prints the same
   two lines, ``DRY RUN — nothing was written`` first and ``Re-run with --apply
   to …`` last.
 - Member listings (``organizations show``, ``organizations list --verbose``)
