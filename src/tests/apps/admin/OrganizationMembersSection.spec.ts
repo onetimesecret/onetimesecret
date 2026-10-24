@@ -3,9 +3,10 @@ import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockApi = { post: vi.fn(), delete: vi.fn() };
+const notify = vi.hoisted(() => vi.fn());
 vi.mock('@/shared/composables/useApi', () => ({ useApi: () => mockApi }));
 vi.mock('@/shared/stores/notificationsStore', () => ({
-  useNotificationsStore: () => ({ show: vi.fn() }),
+  useNotificationsStore: () => ({ show: notify }),
 }));
 
 import OrganizationMembersSection from '@/apps/admin/components/organizations/OrganizationMembersSection.vue';
@@ -110,4 +111,70 @@ describe('OrganizationMembersSection — elevation openers', () => {
       expect(dialogOpen(wrapper)).toEqual([false, false]);
     }
   );
+});
+
+// A failed default_org_id cleanup does not undo the removal (#4860): the
+// toast says so instead of reporting a clean removal.
+describe('OrganizationMembersSection — remove outcome', () => {
+  let wrapper: VueWrapper;
+
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    vi.clearAllMocks();
+    __resetColonelElevationState({ statusRead: true });
+    wrapper = mount(OrganizationMembersSection, {
+      props: { orgUrl: ORG_URL, orgName: 'First', members: [member()] },
+      global: {
+        plugins: [createTestI18n()],
+        stubs: {
+          AdminConfirmDialog: true,
+          RevealEmail: true,
+          OIcon: true,
+          RouterLink: RouterLinkStub,
+        },
+      },
+    });
+  });
+
+  afterEach(() => {
+    wrapper.unmount();
+    __resetColonelElevationState();
+  });
+
+  async function removeWith(defaultOrgCleanup: string) {
+    mockApi.delete.mockResolvedValue({
+      data: {
+        record: { org_id: 'on_first', member_id: 'mem_2', status: 'success', role: 'member' },
+        details: { default_org_cleanup: defaultOrgCleanup },
+      },
+    });
+    await button(wrapper, 'remove').trigger('click');
+    await flushPromises();
+    useColonelElevation().resolvePrompt(true);
+    await flushPromises();
+    wrapper.findAllComponents({ name: 'AdminConfirmDialog' })[1].vm.$emit('confirm');
+    await flushPromises();
+  }
+
+  it('warns when the default organization may still point to the org', async () => {
+    await removeWith('failed');
+
+    expect(mockApi.delete).toHaveBeenCalledOnce();
+    expect(notify).toHaveBeenCalledOnce();
+    expect(notify).toHaveBeenCalledWith(
+      'web.admin.organizations.members.remove.defaultOrgCleanupFailed',
+      'warning'
+    );
+    expect(wrapper.emitted('changed')).toHaveLength(1);
+  });
+
+  it('reports a clean removal otherwise', async () => {
+    await removeWith('unchanged');
+
+    expect(notify).toHaveBeenCalledOnce();
+    expect(notify).toHaveBeenCalledWith(
+      'web.admin.organizations.members.remove.success',
+      'success'
+    );
+  });
 });

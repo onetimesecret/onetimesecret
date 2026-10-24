@@ -122,9 +122,9 @@ export type ColonelSetMembershipRoleResponse = z.infer<
 >;
 
 /**
- * `RemoveMembership#success_data`: `{ record }` only. Refusals (`not_found`,
- * `last_owner`) arrive as 4xx, so a 200 is always a completed removal; `role`
- * is the role the membership held.
+ * `RemoveMembership#success_data`: `{ record, details }`. Refusals
+ * (`not_found`, `last_owner`) arrive as 4xx, so a 200 is always a completed
+ * removal; `role` is the role the membership held.
  */
 export const colonelRemoveMembershipRecordSchema = z.object({
   org_id: z.string(),
@@ -133,9 +133,20 @@ export const colonelRemoveMembershipRecordSchema = z.object({
   role: z.string().nullable(),
 });
 
+/**
+ * `default_org_cleanup` is the removal's default_org_id cleanup outcome
+ * (`cleared`, `unchanged` or `failed`). A `failed` cleanup does not undo the
+ * removal: the member's default organization may still point to this org.
+ */
+export const colonelRemoveMembershipDetailsSchema = z.object({
+  default_org_cleanup: z.string().nullable(),
+});
+
 export const colonelRemoveMembershipResponseSchema = createApiResponseSchema(
-  colonelRemoveMembershipRecordSchema
+  colonelRemoveMembershipRecordSchema,
+  colonelRemoveMembershipDetailsSchema
 );
 
 export type ColonelRemoveMembershipRecord = z.infer<typeof colonelRemoveMembershipRecordSchema>;
+export type ColonelRemoveMembershipDetails = z.infer<typeof colonelRemoveMembershipDetailsSchema>;
 export type ColonelRemoveMembershipResponse = z.infer<typeof colonelRemoveMembershipResponseSchema>;

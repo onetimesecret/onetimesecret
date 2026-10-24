@@ -826,5 +826,9 @@
   "web.admin.organizations.members.remove.success": {
     "text": "{member} removed from {org}.",
     "content_hash": "6dde0210"
+  },
+  "web.admin.organizations.members.remove.defaultOrgCleanupFailed": {
+    "text": "{member} was removed from {org}, but their default organization may still point to it. Run bin/ots customers doctor {member} --repair to clear it.",
+    "content_hash": "34f3793d"
   }
 }
