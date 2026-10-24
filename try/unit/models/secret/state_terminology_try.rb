@@ -100,12 +100,11 @@ dump[:is_received]
 # burned! transitions (#2619)
 # ----------------------------------------------------------------
 
-## burned! from :new does not update secret state (secret is destroyed instead)
+## burned! leaves the consumed instance terminal as well as destroying its record
 receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
-original_state = secret.state
 secret.burned!
-secret.state == original_state
-#=> true
+[secret.state, secret.exists?, secret.viewable?]
+#=> ['burned', false, false]
 
 ## burned! from :new destroys the secret in Redis
 receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
