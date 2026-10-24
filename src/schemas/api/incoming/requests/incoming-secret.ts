@@ -16,3 +16,10 @@ export const incomingSecretPayloadSchema = z.object({
 });
 
 export type IncomingSecretPayload = z.infer<typeof incomingSecretPayloadSchema>;
+
+/** HTTP transport wrapper; the content schema above remains the frontend form type. */
+export const incomingSecretRequestSchema = z.object({
+  secret: incomingSecretPayloadSchema,
+});
+
+export type IncomingSecretRequest = z.infer<typeof incomingSecretRequestSchema>;
