@@ -526,9 +526,11 @@ Added
   on custom domains. (#4701, #4709)
 
 - ``bin/ots org unarchive ORG [--run]`` previews or restores an archived
-  organization and records the applied change in the audit log. Organizations
-  previously self-archived by tenant SSO are not restored automatically; see
-  ``docs/runbooks/sso-self-archived-organization.md`` for the repair procedure.
+  organization and records the applied change in the audit log. Previously
+  archived organizations are not restored automatically. For tenant
+  organizations that archived themselves, deploy this release before following
+  the `0.26.16 repair procedure <https://github.com/onetimesecret/onetimesecret/blob/v0.26.16/docs/runbooks/sso-self-archived-organization.md>`__;
+  it excludes personal workspaces archived in favor of another organization.
   (#4717, #4723)
 
 - Scheduler liveness, next-run times and latest job results on the Colonel
@@ -561,10 +563,12 @@ Changed
   adopts renewed sessions without a page reload. (#4466, #4708)
 
 - Homepage ``matching_cidrs`` now supports full IPv4 and IPv6 precision,
-  including /32 and /128. Entries narrower than /24 or /48 were previously
-  ignored and now take effect, including ``mode: external`` entries that
-  disable the homepage for matching visitors. IP privacy still masks the
-  client address seen by the application. (#4056, #4704)
+  including /32 and /128. Review configured ranges narrower than /24 or /48
+  before upgrading: previously ignored entries now take effect.
+  ``mode: external`` hides the homepage secret-creation form for matching
+  visitors; it does not restrict API access. IP privacy still masks the
+  client address seen by the application. See
+  ``etc/defaults/config.defaults.yaml``. (#4056, #4704)
 
 - Authenticated requests share one read of organization memberships,
   reducing datastore calls without caching memberships between requests.
@@ -606,14 +610,12 @@ Fixed
   rejects addresses whose canonical lowercase form would be changed by
   Unicode case folding. (#4726, #4730)
 
-- ``bin/ots customers normalize-emails`` previews repairs for previously
-  stored mixed-case SSO account emails; ``--confirm`` applies them without
-  signing users out, resetting verification or sending mail. Collisions and
-  addresses whose Unicode case-folded form differs from their lowercase
-  form are left for operator review. Batched runs support ``--limit`` and
-  ``--after-id``. Errors cause a nonzero exit; skipped rows also need review
-  even when the command exits successfully. ``bin/ots customers doctor``
-  reports these mismatches as ``auth_email_not_canonical``. (#4726, #4731)
+- Existing mixed-case SSO account emails can be repaired with
+  ``bin/ots customers normalize-emails``. Review the preview before applying
+  with ``--confirm``; skipped and errored rows require review. For a
+  ``:partial`` result, run ``bin/ots customers doctor <extid>`` before
+  retrying. See ``docs/development/data-migrations.md`` for batching and
+  unresolved repairs. (#4726, #4731)
 
 - Tenant SSO email-domain allowlists now match Unicode and A-label forms
   of internationalized domains interchangeably. Entries without an exact
@@ -665,7 +667,9 @@ Security
 
 - Opt-in trusted-provider SSO email linking no longer links an existing
   account when the provider explicitly reports an unverified email or its
-  verification claim cannot be read. (#4702)
+  verification claim cannot be read. For GitLab, missing email confirmation
+  also prevents automatic linking. See
+  ``docs/authentication/per-install-sso.md``. (#4702)
 
 - Full-page navigation validates destinations after URL normalization,
   rejecting paths that normalize into an external-authority form. (#4719)
