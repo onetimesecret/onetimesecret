@@ -262,6 +262,66 @@ RSpec.describe 'V3 current authentication boundaries in simple mode', type: :int
     end
   end
 
+  describe 'HTTP-05: authorization changes after login' do
+    %i[api_access_revoked membership_inactive].each do |state|
+      it "rechecks #{state} on reads and creation without falling back to Basic" do
+        customer = sign_in!
+        token = fresh_csrf_token
+        org = Onetime::Organization.create!("Authentication boundary #{SecureRandom.hex(6)}", customer)
+        membership = Onetime::OrganizationMembership.ensure_membership(org, customer, role: 'owner')
+        membership.grant_entitlement('api_access')
+        header 'O-Organization-ID', org.objid
+        presented_header = authorization(:basic)
+
+        post_creation '/api/v3/secret/conceal', authorization: presented_header, csrf_token: token
+        expect_created_pair(owner_id: customer.objid)
+        expect(last_request.env.fetch('otto.strategy_result').metadata.fetch(:organization_context))
+          .to include(organization_id: org.objid)
+
+        if state == :api_access_revoked
+          membership.revoke_entitlement('api_access')
+        else
+          membership.status!('declined')
+        end
+        before_storage = secret_storage
+
+        get '/api/v3/receipt/recent', {}, { 'HTTP_ACCEPT' => 'application/json', 'HTTP_AUTHORIZATION' => presented_header }
+        expect(last_response.status).to eq(403)
+        expect(json_response).to include('error_type' => 'EntitlementRequired', 'entitlement' => 'api_access')
+        expect(secret_storage).to eq(before_storage)
+
+        %w[conceal generate].each do |operation|
+          post_creation "/api/v3/secret/#{operation}", authorization: presented_header, csrf_token: token
+          expect(last_response.status).to eq(403)
+          expect(json_response).to include('error_type' => 'EntitlementRequired', 'entitlement' => 'api_access')
+          expect(last_request.env['onetime.csrf.rejected']).to be_nil
+          expect(last_request.env.fetch('otto.strategy_result').user.objid).to eq(customer.objid)
+          expect(secret_storage).to eq(before_storage)
+        end
+      ensure
+        header 'O-Organization-ID', nil
+      end
+    end
+
+    it 'refuses a previously accepted session after its credential watermark advances' do
+      customer = sign_in!
+      token = fresh_csrf_token
+      post_creation '/api/v3/secret/conceal', csrf_token: token
+      expect_created_pair(owner_id: customer.objid)
+      authenticated_at = last_request.env.fetch('rack.session').fetch('authenticated_at')
+      customer.last_password_update!(authenticated_at.to_i + 1)
+      before_storage = secret_storage
+
+      get '/api/v3/receipt/recent', {}, { 'HTTP_ACCEPT' => 'application/json' }
+      expect_session_refusal('stale_credentials')
+      %w[conceal generate].each do |operation|
+        post_creation "/api/v3/secret/#{operation}", authorization: authorization(:basic), csrf_token: token
+        expect_session_refusal('stale_credentials')
+        expect(secret_storage).to eq(before_storage)
+      end
+    end
+  end
+
   describe 'HTTP-01.R3/HTTP-05.R4: Incoming creation' do
     around do |example|
       original_config = OT.conf.fetch('features').fetch('incoming')
