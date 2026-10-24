@@ -248,6 +248,7 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
+    useElevateThenOpen,
   } = useAdminDestructiveMutation(async (reason?: string) => {
     const target = actionTarget.value;
     const action = activeAction.value;
@@ -316,15 +317,24 @@
     };
   });
 
-  function requestAction(key: ActionKey, row: ColonelUser): void {
-    // Fail closed: never open a purge dialog whose typed token would be blank —
-    // AdminConfirmDialog runs an empty token as a one-click simple confirm.
-    if (key === 'purge' && !purgeTokenFor(row)) return;
-    activeAction.value = key;
-    actionTarget.value = row;
-    resetMutation(); // clear any error left from a previous attempt
-    dialogOpen.value = true;
-  }
+  const { open: requestAction, opening: actionOpening } = useElevateThenOpen(
+    (key: ActionKey, row: ColonelUser) => {
+      activeAction.value = key;
+      actionTarget.value = row;
+      resetMutation();
+      dialogOpen.value = true;
+    },
+    {
+      target: () => (drawerOpen.value ? selectedCustomer.value?.extid : null),
+      canOpen: (key, row) =>
+        !dialogOpen.value &&
+        !mutationLoading.value &&
+        drawerOpen.value &&
+        selectedCustomer.value?.extid === row.extid &&
+        (key !== 'purge' || !!purgeTokenFor(row)),
+      requiresElevation: (key) => key === 'purge',
+    }
+  );
 
   /**
    * The page to re-read after a purge. The pagination envelope in hand still
@@ -788,6 +798,7 @@
             v-if="!selectedCustomer.verified"
             type="button"
             data-testid="drawer-verify-button"
+            :disabled="actionOpening || dialogOpen || mutationLoading"
             class="inline-flex items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
             @click="requestAction('verify', selectedCustomer)">
             <OIcon
@@ -800,6 +811,7 @@
             v-else
             type="button"
             data-testid="drawer-unverify-button"
+            :disabled="actionOpening || dialogOpen || mutationLoading"
             class="inline-flex items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
             @click="requestAction('unverify', selectedCustomer)">
             <OIcon
@@ -812,7 +824,7 @@
           <button
             type="button"
             data-testid="drawer-purge-button"
-            :disabled="purgeBlocked"
+            :disabled="purgeBlocked || actionOpening || dialogOpen || mutationLoading"
             :aria-describedby="purgeBlocked ? 'drawer-purge-blocked' : undefined"
             class="ml-auto inline-flex items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
             @click="requestAction('purge', selectedCustomer)">

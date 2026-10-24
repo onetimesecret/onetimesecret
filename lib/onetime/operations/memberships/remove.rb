@@ -7,6 +7,7 @@
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/audit_reason'
+require 'onetime/operations/audit_attempt'
 require 'onetime/operations/bulk_audit_context'
 require_relative 'support'
 
@@ -40,12 +41,20 @@ module Onetime
       # exactly like the raising privilege guard in
       # {Auth::Operations::Customers::SetSuspension}. A raise out of
       # `destroy_with_index_cleanup!` records the same way via
-      # {Onetime::AuditedFailure}. No dry_run: removal has no plan to preview; the
-      # confirmation lives in the adapters.
+      # {Onetime::AuditedFailure}.
+      #
+      # ## Dry run
+      #
+      # `dry_run: true` runs the same checks and writes nothing: `:dry_run` (with
+      # the member's current role) for a removal that would happen,
+      # `:not_found` / `:last_owner` as above. The preview goes to the
+      # observation trail (#4337), never the operator trail; a refusal is still
+      # recorded, marked `dry_run: true`.
       class Remove
         include Memberships::Support
         include Onetime::AuditedFailure
         include Onetime::AuditReason
+        include Onetime::Operations::AuditAttempt
 
         AUDIT_VERB = 'membership.remove'
 
@@ -64,7 +73,8 @@ module Onetime
           target: -> { @customer&.extid },
           enabled: -> { audit_enabled? && !@self_service }
 
-        # @!attribute status [r] Symbol — :success | :not_found | :last_owner
+        # @!attribute status [r] Symbol —
+        #   :success | :dry_run | :not_found | :last_owner
         Result = Data.define(:status, :org_id, :customer_id, :role)
 
         # @param org [Onetime::Organization] target org (caller resolves; required).
@@ -82,14 +92,16 @@ module Onetime
         #   {Onetime::ColonelAuditEvent.record_security} (fail-open) instead of
         #   the count-capped operator trail: a user who can retry a deletion at
         #   will must not be able to evict operator history from it.
+        # @param dry_run [Boolean] check and report, write nothing.
         def initialize(org:, customer:, actor:, reason: nil, bulk_audit_context: nil,
-                       self_service: false)
+                       self_service: false, dry_run: false)
           @org                = org
           @customer           = customer
           @actor              = actor
           @reason             = normalize_reason(reason)
           @bulk_audit_context = bulk_audit_context
           @self_service       = self_service
+          @dry_run            = dry_run ? true : false
         end
 
         # @return [Result]
@@ -101,6 +113,11 @@ module Onetime
           return build(:not_found, nil) unless membership
 
           return build(:last_owner, membership.role) if sole_owner?(@org, membership)
+
+          if @dry_run
+            record_preview_event if audit_enabled?
+            return build(:dry_run, membership.role)
+          end
 
           removed_role = membership.role
           membership.destroy_with_index_cleanup!
@@ -133,6 +150,18 @@ module Onetime
             scope: @org&.extid,
             operation: self,
           )
+        end
+
+        # The #4337 envelope's target hook: the customer's public extid, the same
+        # target the applied event carries. `audit_verb` defaults to AUDIT_VERB
+        # and `audit_actor` to @actor.
+        def audit_target = @customer.extid
+
+        # One OBSERVATION per preview, on the budgeted access trail. Same verb,
+        # target and detail as the applied event, so a preview lines up with
+        # the removal that followed it.
+        def record_preview_event
+          record_preview_observation(with_reason(org_id: @org.extid))
         end
 
         # Single exit point for every non-success status, so the refusal audit
@@ -171,12 +200,15 @@ module Onetime
             return
           end
 
+          detail           = { reason: status.to_s, role: role, org_id: @org.extid }
+          detail[:dry_run] = true if @dry_run
+
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,
             result: :failure,
-            detail: { reason: status.to_s, role: role, org_id: @org.extid },
+            detail: detail,
           )
         rescue StandardError => ex
           OT.le "[Memberships::Remove] refusal audit failed: #{ex.class}: #{ex.message}"

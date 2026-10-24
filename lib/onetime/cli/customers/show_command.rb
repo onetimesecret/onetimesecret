@@ -2,11 +2,13 @@
 #
 # frozen_string_literal: true
 
-# Show detailed customer information by email, extid, or Rodauth account ID.
+# Show detailed customer information by email, extid, objid, or Rodauth
+# account ID.
 #
 # Usage:
 #   bin/ots customers show user@example.com          # Lookup by email
 #   bin/ots customers show ur1234567890abcdef        # Lookup by extid
+#   bin/ots customers show 0199d3c4-5b6a-...         # Lookup by objid
 #   bin/ots customers show 123                       # Lookup by Rodauth account ID (full mode)
 #   bin/ots customers show user@example.com --full   # Show unobscured email
 #   bin/ots customers show user@example.com --json   # JSON output
@@ -34,7 +36,7 @@ module Onetime
       argument :identifier,
         type: :string,
         required: true,
-        desc: 'Email, extid, or Rodauth account ID of the customer'
+        desc: 'Email, extid, objid, or Rodauth account ID of the customer'
 
       option :full,
         type: :boolean,
@@ -98,7 +100,7 @@ module Onetime
         puts format('  %-18s %s', 'locale:', customer.locale.to_s.empty? ? '(default)' : customer.locale)
         puts format('  %-18s %s', 'verified:', customer.verified?)
         puts format('  %-18s %s', 'created:', format_timestamp(customer.created))
-        puts format('  %-18s %s', 'default_org_id:', customer.default_org_id.to_s.empty? ? '(none)' : customer.default_org_id)
+        puts format('  %-18s %s', 'default_org:', default_org_label(customer, orgs))
         # Only displayed in full auth mode (lookup_account_id returns nil
         # otherwise); useful for cross-referencing against the Rodauth
         # accounts table in admin queries.
@@ -116,7 +118,8 @@ module Onetime
           orgs.each do |org|
             next unless org
 
-            puts format('  - %s (%s)', org[:display_name] || org[:objid], org[:objid])
+            default = org[:objid].to_s == customer.default_org_id.to_s ? '  [default]' : ''
+            puts format('  - %s (%s)%s', org[:extid], org[:display_name], default)
           end
         end
       end
@@ -136,12 +139,31 @@ module Onetime
           created: customer.created.to_f,
           created_formatted: format_timestamp(customer.created),
           default_org_id: customer.default_org_id,
+          default_org_extid: default_org_extid(customer, orgs),
           rodauth_account_id: account_id,
           rodauth_admin_url: rodauth_admin_url,
           organizations: orgs,
         }
 
         puts JSON.pretty_generate(data)
+      end
+
+      # The default org by PUBLIC id, with the stored objid alongside for
+      # Redis debugging. Read from the membership list when it is there; a
+      # default pointing outside it (or at a deleted org) still shows the objid.
+      def default_org_label(customer, orgs)
+        objid = customer.default_org_id.to_s
+        return '(none)' if objid.empty?
+
+        "#{default_org_extid(customer, orgs) || '(not found)'} (#{objid})"
+      end
+
+      def default_org_extid(customer, orgs)
+        objid = customer.default_org_id.to_s
+        return nil if objid.empty?
+
+        match = orgs.compact.find { |org| org[:objid].to_s == objid }
+        match ? match[:extid] : Onetime::Organization.load(objid)&.extid
       end
 
       def format_timestamp(ts)

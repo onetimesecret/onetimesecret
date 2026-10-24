@@ -6,7 +6,8 @@
 #
 # Two layers:
 #   1. Mocked contract — status routing, exactly-one-audit, no-op audits
-#      nothing, invalid-role / not-found / last-owner guardrail. No datastore.
+#      nothing, invalid-role / not-found / last-owner guardrail, dry run.
+#      No datastore.
 #   2. Real materialization — a member -> owner change flips
 #      can?('manage_org') from false to true, proving the op re-materializes
 #      entitlements via change_role! (the whole point of the issue).
@@ -148,6 +149,69 @@ RSpec.describe Onetime::Operations::Memberships::SetRole do
           result: :failure,
           detail: hash_including(error: 'Onetime::Problem', message: 'materialize failed'),
         ),
+      )
+    end
+  end
+
+  describe 'with dry_run: true' do
+    let(:membership) do
+      double('OrganizationMembership', role: 'member', active?: true, owner?: false)
+    end
+
+    def dry_run(new_role: 'admin', **)
+      described_class.new(org: org, customer: customer, new_role: new_role, actor: actor, dry_run: true, **).call
+    end
+
+    before do
+      allow(Onetime::ColonelAuditEvent).to receive(:record_access)
+      allow(Onetime::OrganizationMembership)
+        .to receive(:find_by_org_customer).with('org-obj-1', 'cust-obj-1').and_return(membership)
+      allow(membership).to receive(:change_role!)
+    end
+
+    it 'returns :dry_run with from/to and changes nothing' do
+      result = dry_run
+
+      expect(result.status).to eq(:dry_run)
+      expect([result.from, result.to]).to eq(%w[member admin])
+      expect(membership).not_to have_received(:change_role!)
+    end
+
+    it 'records ONE preview on the observation trail, never the operator trail (#4337)' do
+      dry_run(reason: 'promoted')
+
+      expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+        actor: actor,
+        verb: 'membership.set_role',
+        target: 'ur_member',
+        result: 'preview',
+        detail: { from: 'member', to: 'admin', org_id: 'on_org_ext', reason: 'promoted', dry_run: true },
+      )
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+    end
+
+    it 'previews a :no_change with the outcome marker instead of an attempt' do
+      allow(membership).to receive(:role).and_return('admin')
+
+      expect(dry_run.status).to eq(:no_change)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+        actor: actor,
+        verb: 'membership.set_role',
+        target: 'ur_member',
+        result: 'preview',
+        detail: { from: 'admin', to: 'admin', org_id: 'on_org_ext', outcome: 'no_change', dry_run: true },
+      )
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+    end
+
+    it 'still records a refusal, marked dry_run' do
+      expect(dry_run(new_role: 'wizard').status).to eq(:invalid_role)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        actor: actor,
+        verb: 'membership.set_role',
+        target: 'ur_member',
+        result: :failure,
+        detail: { reason: 'invalid_role', from: nil, to: 'wizard', org_id: 'on_org_ext', dry_run: true },
       )
     end
   end

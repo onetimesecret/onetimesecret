@@ -11,6 +11,9 @@
   } from '@headlessui/vue';
   import { useI18n } from 'vue-i18n';
 
+  import { useElevationPromptHost } from '../../composables/useElevationPromptHost';
+  import ElevationPrompt from '../ElevationPrompt.vue';
+
   /**
    * Right-hand slide-over for inspecting a single record (ticket #11).
    *
@@ -20,8 +23,12 @@
    * `footer` slots let a view add a sticky title area / action bar. Closing (via
    * the button, the backdrop or Escape) emits both `update:open` (for
    * `v-model:open`) and `close`.
+   *
+   * While it is the top-most open admin dialog it hosts the step-up prompt as
+   * a nested Dialog (see useElevationPromptHost), and while that prompt is
+   * open it ignores backdrop clicks and Escape: those belong to the prompt.
    */
-  withDefaults(
+  const props = withDefaults(
     defineProps<{
       /** Whether the drawer is shown (use with `v-model:open`). */
       open: boolean;
@@ -49,9 +56,17 @@
 
   const { t } = useI18n();
 
+  const { hostsPrompt, promptOpen } = useElevationPromptHost(() => props.open);
+
   function close(): void {
     emit('update:open', false);
     emit('close');
+  }
+
+  /** headlessui `@close` (backdrop / Escape): never while the step-up prompt is up. */
+  function onDialogClose(): void {
+    if (promptOpen.value) return;
+    close();
   }
 </script>
 
@@ -61,7 +76,7 @@
     :show="open">
     <Dialog
       class="relative z-50"
-      @close="close">
+      @close="onDialogClose">
       <!-- Backdrop -->
       <TransitionChild
         as="template"
@@ -139,6 +154,10 @@
           </div>
         </div>
       </div>
+
+      <!-- The console's step-up prompt, nested so headlessui treats it as a
+           child of this dialog rather than an outside click. -->
+      <ElevationPrompt v-if="hostsPrompt" />
     </Dialog>
   </TransitionRoot>
 </template>

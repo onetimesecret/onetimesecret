@@ -5,10 +5,9 @@
 # Wipe ALL operator entitlement overrides on an organization.
 #
 # Usage:
-#   bin/ots org entitlement clear ORG --dry-run   # Project the result, write nothing
-#   bin/ots org entitlement clear ORG             # Confirm, then apply
-#   bin/ots org entitlement clear ORG --yes       # Apply, no prompt
-#   bin/ots org entitlement clear ORG --yes --json
+#   bin/ots org entitlement clear ORG             # Dry run (the default): project the result
+#   bin/ots org entitlement clear ORG --apply     # Apply
+#   bin/ots org entitlement clear ORG --apply --json
 #
 # ORG is an org extid or objid (see Onetime::CLI::Org::Shared#resolve_org).
 #
@@ -36,21 +35,21 @@ module Onetime
         required: true,
         desc: 'Organization extid or objid'
 
-      option :yes,
+      option :apply,
         type: :boolean,
         default: false,
-        aliases: ['-y', '-f'],
-        desc: 'Skip confirmation prompt (required to apply)'
+        aliases: ['-y', '--yes', '-f'],
+        desc: 'Write the override (default: dry run, project the resulting sets)'
       option :dry_run,
         type: :boolean,
         default: false,
-        desc: 'Project the resulting override sets; write nothing'
+        desc: 'Preview only (the default; contradicts --apply)'
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
-      def call(org:, yes: false, dry_run: false, json: false, **)
+      def call(org:, apply: false, dry_run: false, json: false, **)
         boot_application!
 
         organization = resolve_org(org, json: json)
@@ -59,13 +58,13 @@ module Onetime
           organization,
           action: 'clear',
           entitlement: nil,
-          yes: yes,
+          apply: apply,
           dry_run: dry_run,
           json: json,
         )
       end
     end
 
-    register 'org entitlement clear', OrgEntitlementClearCommand
+    register 'organizations entitlement clear', OrgEntitlementClearCommand
   end
 end

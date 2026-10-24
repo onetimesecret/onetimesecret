@@ -5,10 +5,9 @@
 # Add an operator override GRANT to an organization.
 #
 # Usage:
-#   bin/ots org entitlement grant ORG ENTITLEMENT --dry-run   # Project, write nothing
-#   bin/ots org entitlement grant ORG ENTITLEMENT             # Confirm, then apply
-#   bin/ots org entitlement grant ORG ENTITLEMENT --yes       # Apply, no prompt
-#   bin/ots org entitlement grant ORG ENTITLEMENT --yes --json
+#   bin/ots org entitlement grant ORG ENTITLEMENT             # Dry run (the default): project, write nothing
+#   bin/ots org entitlement grant ORG ENTITLEMENT --apply     # Apply
+#   bin/ots org entitlement grant ORG ENTITLEMENT --apply --json
 #
 # ORG is an org extid or objid (see Onetime::CLI::Org::Shared#resolve_org).
 #
@@ -33,24 +32,21 @@ module Onetime
         required: true,
         desc: 'Entitlement name (warns, does not block, when not in the catalog)'
 
-      option :yes,
+      option :apply,
         type: :boolean,
         default: false,
-        aliases: ['-y', '-f'],
-        desc: 'Skip confirmation prompt (required to apply)'
+        aliases: ['-y', '--yes', '-f'],
+        desc: 'Write the override (default: dry run, project the resulting sets)'
       option :dry_run,
         type: :boolean,
         default: false,
-        desc: 'Project the resulting override sets; write nothing'
+        desc: 'Preview only (the default; contradicts --apply)'
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
-      # --yes and --dry-run are ORTHOGONAL, matching `org reconcile`: --dry-run
-      # writes nothing so it needs no confirmation; an applied run always needs
-      # --yes (or an interactive 'y').
-      def call(org:, entitlement:, yes: false, dry_run: false, json: false, **)
+      def call(org:, entitlement:, apply: false, dry_run: false, json: false, **)
         boot_application!
 
         organization = resolve_org(org, json: json)
@@ -59,13 +55,13 @@ module Onetime
           organization,
           action: 'grant',
           entitlement: entitlement,
-          yes: yes,
+          apply: apply,
           dry_run: dry_run,
           json: json,
         )
       end
     end
 
-    register 'org entitlement grant', OrgEntitlementGrantCommand
+    register 'organizations entitlement grant', OrgEntitlementGrantCommand
   end
 end

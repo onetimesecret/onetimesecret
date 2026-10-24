@@ -99,6 +99,21 @@ module Onetime
           with_error_correlation(error.to_h, req, error)
         end
 
+        # Password re-authentication for a lapsed admin session window
+        # (POST /api/colonel/reauthenticate). Same 403 family, own
+        # registrations for the same exact-class reason: Failed is a refused
+        # attempt, Unavailable an account the endpoint does not serve (a
+        # second factor is enrolled in full mode).
+        router.register_error_handler(Onetime::ReauthenticationFailed, status: 403, log_level: :warn) do |error, req|
+          Onetime::Application::ErrorResolver.resolve!(error, req)
+          with_error_correlation(error.to_h, req, error)
+        end
+
+        router.register_error_handler(Onetime::ReauthenticationUnavailable, status: 403, log_level: :warn) do |error, req|
+          Onetime::Application::ErrorResolver.resolve!(error, req)
+          with_error_correlation(error.to_h, req, error)
+        end
+
         # Programming error in a destructive guard (#4326). Registered so it is a
         # deliberate 500 with correlation rather than an unhandled one.
         router.register_error_handler(Onetime::GuardMisconfigured, status: 500, log_level: :error) do |error, req|

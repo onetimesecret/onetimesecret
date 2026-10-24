@@ -51,6 +51,14 @@ module Onetime
       # a failed add would otherwise leave no trace at all. `:no_change` is NOT a
       # refusal: the customer is already a member, which is the requested end
       # state.
+      #
+      # ## Dry run
+      #
+      # `dry_run: true` runs the same checks and writes nothing: `:dry_run` for
+      # an add that would happen, `:no_change` / `:invalid_role` as above. The
+      # preview goes to the observation trail (#4337), never the operator trail;
+      # a refusal is still recorded, marked `dry_run: true`. A pending
+      # invitation is activated only by the applied run.
       class Add
         include Onetime::AuditedFailure
         include Onetime::Operations::AuditAttempt
@@ -72,7 +80,7 @@ module Onetime
         VALID_ROLES = Onetime::OrganizationMembership::ROLE_ENTITLEMENTS.keys.freeze
 
         # @!attribute status [r] Symbol —
-        #   :success | :no_change | :invalid_role
+        #   :success | :no_change | :dry_run | :invalid_role
         Result = Data.define(:status, :org_id, :customer_id, :role)
 
         # @param org [Onetime::Organization] target org (caller resolves; required).
@@ -80,11 +88,13 @@ module Onetime
         #   have an account — this op does not create invitations).
         # @param role [String, Symbol] role for a fresh add (default 'member').
         # @param actor [String, #extid, #email] acting admin's PUBLIC identity.
-        def initialize(org:, customer:, actor:, role: 'member')
+        # @param dry_run [Boolean] check and report, write nothing.
+        def initialize(org:, customer:, actor:, role: 'member', dry_run: false)
           @org      = org
           @customer = customer
           @role     = role.to_s
           @actor    = actor
+          @dry_run  = dry_run ? true : false
         end
 
         # @return [Result]
@@ -104,6 +114,11 @@ module Onetime
             role         = current_role.empty? ? @role : current_role
             record_no_change_event(role)
             return build(:no_change, role)
+          end
+
+          if @dry_run
+            record_preview_observation({ role: @role, org_id: @org.extid })
+            return build(:dry_run, @role)
           end
 
           membership = Onetime::OrganizationMembership.ensure_membership(@org, @customer, role: @role)
@@ -153,19 +168,26 @@ module Onetime
         # member's CURRENT role — the one the Result echoes — plus org_id) with
         # the `outcome: 'no_change'` marker. NOT fail-closed: nothing moved.
         # No local rescue — `record` is best-effort and swallows its own errors.
+        # A dry run found the same thing without firing: the observation trail.
         def record_no_change_event(role)
-          record_no_change_attempt({ role: role, org_id: @org.extid })
+          detail = { role: role, org_id: @org.extid }
+          return record_preview_observation(detail.merge(outcome: NO_CHANGE_OUTCOME)) if @dry_run
+
+          record_no_change_attempt(detail)
         end
 
         # Same verb/target/actor as the success event. Best-effort: never break
         # the op.
         def record_refusal(status, role)
+          detail           = { reason: status.to_s, role: role, org_id: @org.extid }
+          detail[:dry_run] = true if @dry_run
+
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,
             result: :failure,
-            detail: { reason: status.to_s, role: role, org_id: @org.extid },
+            detail: detail,
           )
         rescue StandardError => ex
           OT.le "[Memberships::Add] refusal audit failed: #{ex.class}: #{ex.message}"

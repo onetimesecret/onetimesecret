@@ -48,6 +48,13 @@ module Onetime
       #
       # Demoting the last remaining owner is refused (`:last_owner`) so the org is
       # never orphaned. See {Memberships::Support#sole_owner?}.
+      #
+      # ## Dry run
+      #
+      # `dry_run: true` runs the same checks and writes nothing: `:dry_run` for
+      # a change that would happen, every other status as above. The preview
+      # and a dry-run `:no_change` go to the observation trail (#4337), never
+      # the operator trail; a refusal is still recorded, marked `dry_run: true`.
       class SetRole
         include Memberships::Support
         include Onetime::AuditedFailure
@@ -74,7 +81,8 @@ module Onetime
         VALID_ROLES = Onetime::OrganizationMembership::ROLE_ENTITLEMENTS.keys.freeze
 
         # @!attribute status [r] Symbol —
-        #   :success | :no_change | :not_found | :invalid_role | :last_owner
+        #   :success | :no_change | :dry_run | :not_found | :invalid_role |
+        #   :last_owner
         Result = Data.define(:status, :org_id, :customer_id, :from, :to)
 
         # @param org [Onetime::Organization] target org (caller resolves; required).
@@ -88,12 +96,14 @@ module Onetime
         #   carried on the refusal event, whose `reason` key already means the
         #   refusal STATUS (see {#record_refusal}). See {Onetime::AuditReason}
         #   for the bound and the optional-now / required-later rollout.
-        def initialize(org:, customer:, new_role:, actor:, reason: nil)
+        # @param dry_run [Boolean] check and report, write nothing.
+        def initialize(org:, customer:, new_role:, actor:, reason: nil, dry_run: false)
           @org      = org
           @customer = customer
           @new_role = new_role.to_s
           @actor    = actor
           @reason   = normalize_reason(reason)
+          @dry_run  = dry_run ? true : false
         end
 
         # @return [Result]
@@ -112,6 +122,11 @@ module Onetime
           # Guardrail: never demote the sole remaining owner (would orphan the org).
           if from == 'owner' && sole_owner?(@org, membership)
             return build(:last_owner, from, @new_role)
+          end
+
+          if @dry_run
+            record_preview_observation(with_reason(from: from, to: @new_role, org_id: @org.extid))
+            return build(:dry_run, from, @new_role)
           end
 
           # change_role! re-materializes entitlements (the whole point of #3731)
@@ -154,9 +169,13 @@ module Onetime
         # than only the ones that moved. NOT fail-closed: no privilege moved,
         # so there is no untraceable grant for a hard failure to surface. The
         # operator's `reason` (#4338) rides here too — an attempted-but-no-op
-        # reach for `owner` still has a why.
+        # reach for `owner` still has a why. A dry run found the same thing
+        # without firing: the observation trail.
         def record_no_change_event(from)
-          record_no_change_attempt(with_reason(from: from, to: @new_role, org_id: @org.extid))
+          detail = with_reason(from: from, to: @new_role, org_id: @org.extid)
+          return record_preview_observation(detail.merge(outcome: NO_CHANGE_OUTCOME)) if @dry_run
+
+          record_no_change_attempt(detail)
         end
 
         # Single exit point for every non-success status, so the refusal audit
@@ -182,12 +201,15 @@ module Onetime
         # operator-reason feature. See {Remove#record_refusal} for the full
         # rationale — the two refusal paths share it.
         def record_refusal(status, from, to)
+          detail           = { reason: status.to_s, from: from, to: to, org_id: @org.extid }
+          detail[:dry_run] = true if @dry_run
+
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,
             result: :failure,
-            detail: { reason: status.to_s, from: from, to: to, org_id: @org.extid },
+            detail: detail,
           )
         rescue StandardError => ex
           OT.le "[Memberships::SetRole] refusal audit failed: #{ex.class}: #{ex.message}"

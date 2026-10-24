@@ -35,6 +35,7 @@ module ColonelAPI
       ReplayDlq ResetRateLimit
       ReplayDlqMessage RunChore
       ImpersonateUser
+      SetUserDefaultOrganization
     ].freeze
 
     # Reviewed 2026-09-01 for epic #4323 and deliberately un-gated. One reason
@@ -43,6 +44,9 @@ module ColonelAPI
       'GetElevationStatus' => 'read-only status of the caller\'s own step-up window',
       'ElevateSession' => 'step-up itself: carries its own throttle and audit events (#4327)',
       'DropElevation' => 'strictly de-escalating: ends the caller\'s own window',
+      'ReauthenticateSession' =>
+        'password recovery of the caller\'s own lapsed admin window; carries the step-up ' \
+        'throttle and its own audit events, grants no elevation',
       'SetEntitlementPreview' => 'session-scoped preview, no durable write',
       'UpdateUserPlan' => 'billing state, reversible, own reconciliation',
       'CreateCheckoutLink' => 'additive; produces a link, changes nothing',

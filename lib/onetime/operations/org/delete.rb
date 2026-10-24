@@ -419,7 +419,7 @@ module Onetime
           # STEP 2 — the step the console recipe forgets. Familia v2 uses
           # `remove`, not `rem`. Done BEFORE destroy! so a crash cannot leave the
           # zset pointing at a destroyed record (the direction `org doctor`,
-          # `memberships` counting and OrganizationsListCommand all walk).
+          # `memberships` counting and `organizations list` all walk).
           Onetime::Organization.instances.remove(@objid)
 
           # STEP 3 — members, pending invitations, contact_email_index.

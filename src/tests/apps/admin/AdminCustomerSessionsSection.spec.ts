@@ -30,11 +30,16 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 
 import AdminCustomerSessionsSection from '@/apps/admin/components/AdminCustomerSessionsSection.vue';
 import SessionAuthorityNotice from '@/apps/admin/components/SessionAuthorityNotice.vue';
-import type { SessionAuthority } from '@/schemas/api/internal/responses/colonel-sessions';
+import {
+  __resetColonelElevationState,
+  useColonelElevation,
+} from '@/apps/admin/composables/useColonelElevation';
+import { useAdminCustomerSessions } from '@/apps/admin/stores/useAdminCustomerSessions';
 import {
   colonelCustomerSessionsResponseSchema,
   type AdminCustomerSession,
 } from '@/schemas/api/internal/responses/colonel-customer-sessions';
+import type { SessionAuthority } from '@/schemas/api/internal/responses/colonel-sessions';
 import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
@@ -204,6 +209,119 @@ describe('AdminCustomerSessionsSection — current-session badge', () => {
       expect(revokeAllDescription(wrapper)).toBe(
         'web.admin.customers.detail.sessions.revokeAll.selfDescription'
       );
+    });
+  });
+
+  // #4327: both verbs are tier 1, so the sudo prompt comes BEFORE the dialog
+  // that collects the reason. A cancelled prompt opens nothing.
+  describe('step-up before the dialog', () => {
+    /** [per-row revoke, revoke-all], in template order. */
+    const dialogOpen = (w: VueWrapper) =>
+      w.findAllComponents({ name: 'AdminConfirmDialog' }).map((d) => d.props('open'));
+
+    beforeEach(() => __resetColonelElevationState({ statusRead: true }));
+    afterEach(() => __resetColonelElevationState());
+
+    it('prompts before the revoke-all dialog and opens it once elevated', async () => {
+      mockApi.get.mockResolvedValue({ data: sessionsPayload(undefined, null) });
+      wrapper = mountSection();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="sessions-revoke-all"]').trigger('click');
+      await flushPromises();
+
+      const elevation = useColonelElevation();
+      expect(elevation.promptOpen.value).toBe(true);
+      expect(dialogOpen(wrapper)).toEqual([false, false]);
+
+      elevation.resolvePrompt(true);
+      await flushPromises();
+      expect(dialogOpen(wrapper)).toEqual([false, true]);
+    });
+
+    it.each(['single', 'all'] as const)(
+      'shares the opening lock when %s starts first',
+      async (first) => {
+        mockApi.get.mockResolvedValue({ data: sessionsPayload() });
+        wrapper = mountSection();
+        await flushPromises();
+        const single = revoke(wrapper, sessionRow().session_handle);
+        const all = wrapper.find('[data-testid="sessions-revoke-all"]');
+        await (first === 'single' ? single : all).trigger('click');
+        await flushPromises();
+
+        expect(single.attributes('disabled')).toBeDefined();
+        expect(all.attributes('disabled')).toBeDefined();
+        await (first === 'single' ? all : single).trigger('click');
+        useColonelElevation().resolvePrompt(true);
+        await flushPromises();
+
+        expect(dialogOpen(wrapper)).toEqual(first === 'single' ? [true, false] : [false, true]);
+        // The lock has released, but an open dialog must not be overwritten.
+        await (first === 'single' ? all : single).trigger('click');
+        await flushPromises();
+        expect(dialogOpen(wrapper)).toEqual(first === 'single' ? [true, false] : [false, true]);
+        expect(useColonelElevation().promptOpen.value).toBe(false);
+      }
+    );
+
+    it.each([
+      ['single', false],
+      ['single', true],
+      ['all', false],
+      ['all', true],
+    ] as const)(
+      'drops %s after the customer changes (returns to original: %s)',
+      async (verb, returnToOriginal) => {
+        mockApi.get.mockResolvedValue({ data: sessionsPayload() });
+        wrapper = mountSection();
+        await flushPromises();
+        const button =
+          verb === 'single'
+            ? revoke(wrapper, sessionRow().session_handle)
+            : wrapper.find('[data-testid="sessions-revoke-all"]');
+        await button.trigger('click');
+        await flushPromises();
+        expect(useColonelElevation().promptOpen.value).toBe(true);
+
+        await wrapper.setProps({ userId: 'ur_other' });
+        if (returnToOriginal) await wrapper.setProps({ userId: USER_ID });
+        await flushPromises();
+        useColonelElevation().resolvePrompt(true);
+        await flushPromises();
+
+        expect(dialogOpen(wrapper)).toEqual([false, false]);
+        expect(mockApi.delete).not.toHaveBeenCalled();
+      }
+    );
+
+    it('does not open revoke if its row becomes the current session during elevation', async () => {
+      mockApi.get.mockResolvedValue({ data: sessionsPayload() });
+      wrapper = mountSection();
+      await flushPromises();
+      const sid = sessionRow().session_handle;
+      await revoke(wrapper, sid).trigger('click');
+      await flushPromises();
+      useAdminCustomerSessions().currentSessionHandle = sid;
+      useColonelElevation().resolvePrompt(true);
+      await flushPromises();
+
+      expect(dialogOpen(wrapper)).toEqual([false, false]);
+    });
+
+    it('prompts before a per-row revoke, and opens nothing when cancelled', async () => {
+      mockApi.get.mockResolvedValue({ data: sessionsPayload(undefined, null) });
+      wrapper = mountSection();
+      await flushPromises();
+
+      await revoke(wrapper, 'a15e5510000000000000000000000002').trigger('click');
+      await flushPromises();
+      expect(useColonelElevation().promptOpen.value).toBe(true);
+
+      useColonelElevation().resolvePrompt(false);
+      await flushPromises();
+      expect(dialogOpen(wrapper)).toEqual([false, false]);
+      expect(mockApi.delete).not.toHaveBeenCalled();
     });
   });
 });

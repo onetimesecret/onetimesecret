@@ -210,6 +210,80 @@ describe('ElevationPrompt', () => {
     });
   });
 
+  // A completion settles only the cycle it started in. The operator submits,
+  // the request is slow, the cycle is cancelled and a new request opens the
+  // prompt again: the late success must not resolve the NEW caller's request.
+  describe('a late completion from a cancelled cycle', () => {
+    function deferred<T>() {
+      let resolve!: (value: T) => void;
+      const promise = new Promise<T>((res) => {
+        resolve = res;
+      });
+      return { promise, resolve };
+    }
+
+    it('does not settle the newer cycle; its own password gesture does', async () => {
+      await mountWith();
+      const grant = deferred<{ data: unknown }>();
+      mockApi.post.mockReturnValueOnce(grant.promise);
+      const elevation = useColonelElevation();
+
+      const first = elevation.requestElevation();
+      await flushPromises();
+      const genA = elevation.promptGeneration.value;
+      wrapper.findComponent({ name: 'PasswordConfirmModal' }).vm.$emit('confirm', 'hunter2');
+      await flushPromises();
+      expect(mockApi.post).toHaveBeenCalledTimes(1);
+
+      // Cycle A is cancelled with its elevate request still in flight …
+      wrapper.findComponent({ name: 'PasswordConfirmModal' }).vm.$emit('cancel');
+      await expect(first).resolves.toBe(false);
+      expect(elevation.promptOpen.value).toBe(false);
+
+      // … and cycle B opens for a new caller.
+      let secondSettled = false;
+      const second = elevation.requestElevation().then((ok) => {
+        secondSettled = true;
+        return ok;
+      });
+      await flushPromises();
+      expect(elevation.promptOpen.value).toBe(true);
+      expect(elevation.promptGeneration.value).toBe(genA + 1);
+
+      // A's request completes late, successfully.
+      grant.resolve({ data: grantPayload() });
+      await flushPromises();
+
+      expect(secondSettled).toBe(false);
+      expect(elevation.promptOpen.value).toBe(true);
+      expect(wrapper.findComponent({ name: 'PasswordConfirmModal' }).props('open')).toBe(true);
+
+      // B settles on its own gesture.
+      mockApi.post.mockResolvedValueOnce({ data: grantPayload() });
+      wrapper.findComponent({ name: 'PasswordConfirmModal' }).vm.$emit('confirm', 'hunter2');
+      await flushPromises();
+      await expect(second).resolves.toBe(true);
+      expect(elevation.promptOpen.value).toBe(false);
+    });
+
+    it('cancel hands the current generation back, so a cancel after a reopen closes the reopened cycle', async () => {
+      await mountWith();
+      const elevation = useColonelElevation();
+
+      const first = elevation.requestElevation();
+      await flushPromises();
+      elevation.resolvePrompt(false);
+      await expect(first).resolves.toBe(false);
+
+      const second = elevation.requestElevation();
+      await flushPromises();
+      wrapper.findComponent({ name: 'PasswordConfirmModal' }).vm.$emit('cancel');
+
+      await expect(second).resolves.toBe(false);
+      expect(elevation.promptOpen.value).toBe(false);
+    });
+  });
+
   describe('unsatisfiable fork (SSO-only account, no grace)', () => {
     const details = { password_available: false, factors: ['password'] };
 

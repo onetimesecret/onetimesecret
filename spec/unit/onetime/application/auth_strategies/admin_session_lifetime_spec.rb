@@ -190,6 +190,64 @@ RSpec.describe Onetime::Application::AuthStrategies::AdminSessionLifetime do
     end
   end
 
+  # The password recovery for a lapsed window. Exactly one method on exactly one
+  # path is admitted; it is still marked as not-activity so a wrong password
+  # cannot slide the idle window (the commit's TrackMetadata reads the flag).
+  describe 'the REAUTH_EXEMPT request' do
+    let(:stale) { session_with_sid('sid1', 'authenticated_at' => now - 100_000) }
+
+    def reauth_env(method: 'POST', path_info: '/reauthenticate')
+      env_for(path_info: path_info).merge('REQUEST_METHOD' => method)
+    end
+
+    it 'admits POST /api/colonel/reauthenticate past the absolute bound' do
+      expect(host.admin_session_expiry_reason(stale, colonel, reauth_env)).to be_nil
+    end
+
+    it 'admits it past the idle bound' do
+      stub_sidecar(now - 3_601)
+      session = session_with_sid('sid1', 'authenticated_at' => now - 60)
+
+      expect(host.admin_session_expiry_reason(session, colonel, reauth_env)).to be_nil
+    end
+
+    it 'tolerates one trailing slash' do
+      expect(host.admin_session_expiry_reason(stale, colonel, reauth_env(path_info: '/reauthenticate/')))
+        .to be_nil
+    end
+
+    it 'marks the admitted request as not activity, naming the bound it was past' do
+      env = reauth_env
+
+      host.admin_session_expiry_reason(stale, colonel, env)
+
+      expect(env[described_class::EXPIRED_ENV_KEY]).to eq('absolute')
+    end
+
+    it 'leaves a request inside both bounds unmarked' do
+      fresh = session_with_sid('sid1', 'authenticated_at' => now - 60)
+      env   = reauth_env
+
+      expect(host.admin_session_expiry_reason(fresh, colonel, env)).to be_nil
+      expect(env).not_to have_key(described_class::EXPIRED_ENV_KEY)
+    end
+
+    it 'still bounds GET on the same path' do
+      expect(host.admin_session_expiry_reason(stale, colonel, reauth_env(method: 'GET')))
+        .to eq(:absolute)
+    end
+
+    it 'still bounds a path that merely extends it' do
+      expect(host.admin_session_expiry_reason(stale, colonel, reauth_env(path_info: '/reauthenticate-x')))
+        .to eq(:absolute)
+    end
+
+    it 'still bounds a request with no method at all' do
+      expect(host.admin_session_expiry_reason(stale, colonel, env_for(path_info: '/reauthenticate')))
+        .to eq(:absolute)
+    end
+  end
+
   describe 'configuration' do
     it 'is a no-op when enabled is false' do
       configure_bounds(enabled: false)

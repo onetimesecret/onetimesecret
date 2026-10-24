@@ -8,7 +8,9 @@ module Onetime
     class ConfigGroupCommand < DelayBootCommand
       desc 'Manage and validate application configuration'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         puts <<~HELP
           Config Management Commands:
 

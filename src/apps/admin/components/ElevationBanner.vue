@@ -2,11 +2,13 @@
 
 <script setup lang="ts">
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import { computed, onMounted } from 'vue';
+  import PasswordConfirmModal from '@/shared/components/modals/PasswordConfirmModal.vue';
+  import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   import { useColonelElevation } from '../composables/useColonelElevation';
   import { recoverAdminSession } from '../utils/adminSessionExpiry';
+  import { formatElevationCountdown } from '../utils/elevationCountdown';
 
   /**
    * A live step-up (sudo) window, shown while one is open (#4327), and the
@@ -34,6 +36,15 @@
    * is where the operator learns why nothing works. An elevation window is
    * meaningless once the surface itself refuses the session, so it is not shown
    * alongside.
+   *
+   * Recovery from the expired state is a password re-authentication first
+   * (POST /api/colonel/reauthenticate, exempt from the admin bound): the
+   * operator stays on the page and it reloads in place. "Sign in" stays as the
+   * second way out for an account with no password (SSO-only), which the
+   * re-authentication cannot serve. The banner usually cannot tell which
+   * account it has, because the status read that would say so is itself
+   * refused while expired; it hides the password action only when an earlier
+   * status read already reported no password.
    */
   const { t } = useI18n();
 
@@ -55,12 +66,37 @@
   const viaRecentAuth = computed(() => elevation.activeFactor.value === 'recent_auth');
 
   /** mm:ss, computed locally from the expiry — no request per tick. */
-  const remaining = computed(() => {
-    const total = Math.max(0, elevation.secondsRemaining.value);
-    const minutes = Math.floor(total / 60);
-    const seconds = total % 60;
-    return `${minutes}:${String(seconds).padStart(2, '0')}`;
-  });
+  const remaining = computed(() => formatElevationCountdown(elevation.secondsRemaining.value));
+
+  // ---- Re-authenticate the expired admin session by password ---------------
+
+  /**
+   * `passwordAvailable` defaults to true and turns false only when a status
+   * read said so, so an unknown account still gets the password action.
+   */
+  const canReauthenticate = computed(() => elevation.passwordAvailable.value);
+
+  const reauthOpen = ref(false);
+
+  function openReauth(): void {
+    elevation.reauthError.value = null;
+    reauthOpen.value = true;
+  }
+
+  function closeReauth(): void {
+    reauthOpen.value = false;
+    elevation.reauthError.value = null;
+  }
+
+  function onReauthOpenChange(open: boolean): void {
+    if (!open) closeReauth();
+  }
+
+  async function onReauth(password: string): Promise<void> {
+    // Success reloads the page; a failure keeps the modal open with the
+    // server's message.
+    if (await elevation.reauthenticate(password)) reauthOpen.value = false;
+  }
 </script>
 
 <template>
@@ -78,18 +114,43 @@
       <span class="truncate">{{ t('web.admin.session.expired') }}</span>
     </span>
 
-    <!--
-      Recovery CLEARS the session before sign-in (#4331): a bare link to /signin
-      is a no-op in simple mode while the cookie still reads authenticated. See
-      recoverAdminSession.
-    -->
-    <button
-      type="button"
-      class="shrink-0 rounded px-2 py-1 font-semibold underline underline-offset-2 hover:bg-black/5 dark:hover:bg-white/10"
-      data-testid="admin-session-signin"
-      @click="recoverAdminSession">
-      {{ t('web.admin.session.signIn') }}
-    </button>
+    <span class="flex shrink-0 items-center gap-2">
+      <!-- Primary: re-enter the password in place; the page reloads on success. -->
+      <button
+        v-if="canReauthenticate"
+        type="button"
+        class="rounded bg-red-700 px-2.5 py-1 font-semibold text-white hover:bg-red-800 focus:ring-2 focus:ring-red-500 focus:ring-offset-1 focus:outline-none dark:bg-red-600 dark:hover:bg-red-500"
+        data-testid="admin-session-reauth"
+        @click="openReauth">
+        {{ t('web.admin.session.reauth.button') }}
+      </button>
+
+      <!--
+        Secondary, and the only way out for an account with no password.
+        Recovery CLEARS the session before sign-in (#4331): a bare link to
+        /signin is a no-op in simple mode while the cookie still reads
+        authenticated. See recoverAdminSession.
+      -->
+      <button
+        type="button"
+        class="rounded px-2 py-1 font-semibold underline underline-offset-2 hover:bg-black/5 dark:hover:bg-white/10"
+        data-testid="admin-session-signin"
+        @click="recoverAdminSession">
+        {{ t('web.admin.session.signIn') }}
+      </button>
+    </span>
+
+    <PasswordConfirmModal
+      :open="reauthOpen"
+      :title="t('web.admin.session.reauth.title')"
+      :description="t('web.admin.session.reauth.description')"
+      :confirm-text="t('web.admin.session.reauth.confirm')"
+      :loading="elevation.reauthLoading.value"
+      :error="elevation.reauthError.value"
+      data-testid="admin-session-reauth-modal"
+      @confirm="onReauth"
+      @cancel="closeReauth"
+      @update:open="onReauthOpenChange" />
   </div>
 
   <div

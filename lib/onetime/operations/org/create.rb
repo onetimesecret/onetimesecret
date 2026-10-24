@@ -6,6 +6,7 @@
 # outside the app autoloaders — require the audit model explicitly.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 
 module Onetime
   module Operations
@@ -46,7 +47,15 @@ module Onetime
       #
       # Exactly ONE {Onetime::ColonelAuditEvent} per successful create, emitted
       # here. Adapters MUST NOT audit. Every rejection mutates nothing and
-      # audits nothing.
+      # records one `result: :failure` event (see REFUSAL_STATUSES).
+      #
+      # ## Dry run
+      #
+      # `dry_run: true` runs {#validate} and writes nothing: `:planned` with the
+      # normalized fields, or the rejection as above. The preview goes to the
+      # observation trail (#4337), never the operator trail; a refusal is
+      # still recorded, marked `dry_run: true`. The contact_email check is the
+      # read-only pre-check, so a dry run cannot catch the HSETNX race.
       #
       # ## Deliberate omissions — read these before "fixing" them
       #
@@ -84,6 +93,7 @@ module Onetime
       # memberships/set_role.rb:64).
       class Create
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
 
         AUDIT_VERB = 'organization.create'
 
@@ -142,7 +152,8 @@ module Onetime
 
         # Outcome of {#call}.
         #
-        # @!attribute status [r] Symbol — :created, or a rejection key.
+        # @!attribute status [r] Symbol — :created, :planned (dry run), or a
+        #   rejection key.
         # @!attribute org_id [r] String, nil — the org's PUBLIC id (extid).
         # @!attribute objid [r] String, nil — the org's internal id. Carried
         #   ONLY because `bin/ots org doctor` prints both and an operator needs
@@ -170,12 +181,14 @@ module Onetime
         # @param contact_email [String, nil] optional unique billing/contact
         #   address.
         # @param description [String, nil] optional description.
-        def initialize(display_name:, owner:, actor:, contact_email: nil, description: nil)
+        # @param dry_run [Boolean] validate and report, write nothing.
+        def initialize(display_name:, owner:, actor:, contact_email: nil, description: nil, dry_run: false)
           @display_name_input  = display_name
           @owner               = owner
           @actor               = actor
           @contact_email_input = contact_email
           @description_input   = description
+          @dry_run             = dry_run ? true : false
         end
 
         # Pure validation + normalization. No writes, no audit. Safe to call
@@ -214,6 +227,7 @@ module Onetime
         def call
           check = validate
           return rejected_result(check) unless check.status == :ok
+          return planned_result(check) if @dry_run
 
           org = create_org(check)
           return rejected_result(reject(:email_taken)) if org.nil?
@@ -248,6 +262,27 @@ module Onetime
         end
 
         private
+
+        # The #4337 envelope's target hook, used only by the preview. A dry
+        # run creates no org, so like the failure path (see the TARGET
+        # DEVIATION note above) it targets the owner's public extid.
+        def audit_target = @owner.extid
+
+        # One OBSERVATION per preview, on the budgeted access trail. Same verb
+        # and detail keys as the applied event.
+        def planned_result(check)
+          record_preview_observation(display_name: check.display_name, owner_id: @owner.extid)
+
+          Result.new(
+            status: :planned,
+            org_id: nil,
+            objid: nil,
+            display_name: check.display_name,
+            owner_id: @owner.extid,
+            contact_email: check.contact_email,
+            message: nil,
+          )
+        end
 
         # @return [Onetime::Organization, nil] nil when the contact_email
         #   reservation lost the race (rendered as :email_taken).
@@ -300,7 +335,14 @@ module Onetime
         # audit_failures for why the target is the owner rather than the org.
         # Best-effort: never break the op.
         def record_refusal(check)
-          owner_extid = @owner&.extid.to_s
+          owner_extid      = @owner&.extid.to_s
+          detail           = {
+            reason: check.status.to_s,
+            owner_id: @owner&.extid,
+            display_name: @display_name_input.to_s.strip,
+          }
+          detail[:dry_run] = true if @dry_run
+
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
@@ -308,11 +350,7 @@ module Onetime
             # macro's resolver falls back to, so the two failure paths agree.
             target: owner_extid.empty? ? Onetime::AuditedFailure::UNKNOWN : owner_extid,
             result: :failure,
-            detail: {
-              reason: check.status.to_s,
-              owner_id: @owner&.extid,
-              display_name: @display_name_input.to_s.strip,
-            },
+            detail: detail,
           )
         rescue StandardError => ex
           OT.le "[Org::Create] refusal audit failed: #{ex.class}: #{ex.message}"

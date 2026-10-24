@@ -79,6 +79,7 @@ import {
 } from '@/apps/admin/composables/useColonelElevation';
 import AdminCustomerDetail from '@/apps/admin/views/AdminCustomerDetail.vue';
 import { createTestI18n } from '@tests/setup';
+import { startElevated } from '@tests/apps/admin/support/elevation';
 
 const i18n = createTestI18n();
 
@@ -174,9 +175,10 @@ describe('AdminCustomerDetail — purge gate (typed email) + verification state'
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // The step-up window is module-level singleton state (#4327); reset it so
-    // one example's elevation cannot satisfy the next one's gate.
-    __resetColonelElevationState();
+    // The step-up window is module-level singleton state (#4327); reset it to
+    // a LIVE window so the purge opener shows its dialog straight away. The
+    // pre-prompt examples below start unelevated instead.
+    startElevated();
   });
   afterEach(() => wrapper?.unmount());
 
@@ -377,12 +379,106 @@ describe('AdminCustomerDetail — purge gate (typed email) + verification state'
     expect(wrapper.find('[data-testid="unverify-button"]').exists()).toBe(true);
   });
 
-  // ---- Step-up (sudo) window (#4327) ---------------------------------------
+  // ---- Step-up (sudo) window (#4327): elevate BEFORE the dialog -------------
   //
-  // The loop is: attempt -> 403 elevation_required -> prompt -> the operator
-  // acts -> retry ONCE. The retry must never fire without that gesture; an
-  // automatic elevate-and-retry would put a colonel session alone back in
-  // charge of a destructive verb, which is what this issue exists to stop.
+  // Purge is tier 1. The operator proves the credential first and fills in the
+  // typed email and reason once, afterwards. Prompting only on the 403 closed
+  // the dialog under them, lost the reason, and left them unsure whether the
+  // purge had run.
+  describe('the purge opener elevates before the dialog', () => {
+    beforeEach(() => {
+      // Unelevated, step-up enabled: the default state of a fresh console.
+      __resetColonelElevationState();
+    });
+
+    const purgeDialogOpen = (w: VueWrapper) => dialogInput(w).exists();
+
+    it('opens the sudo prompt first and the purge dialog only once it resolves', async () => {
+      await mountLoaded();
+      mockApi.delete.mockResolvedValue({ data: mutationAck() });
+
+      await wrapper.find('[data-testid="purge-button"]').trigger('click');
+      await flushPromises();
+
+      const elevation = useColonelElevation();
+      expect(elevation.promptOpen.value).toBe(true);
+      expect(purgeDialogOpen(wrapper)).toBe(false);
+      expect(mockApi.delete).not.toHaveBeenCalled();
+
+      elevation.resolvePrompt(true);
+      await flushPromises();
+
+      expect(elevation.promptOpen.value).toBe(false);
+      expect(purgeDialogOpen(wrapper)).toBe(true);
+    });
+
+    it('keeps the reason typed after elevating and sends it on the one DELETE', async () => {
+      await mountLoaded();
+      mockApi.delete.mockResolvedValue({ data: mutationAck() });
+
+      await wrapper.find('[data-testid="purge-button"]').trigger('click');
+      await flushPromises();
+      useColonelElevation().resolvePrompt(true);
+      await flushPromises();
+
+      await dialogInput(wrapper).setValue(EMAIL);
+      await wrapper.find('[data-testid="admin-confirm-reason"]').setValue('Ticket 1234');
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(mockApi.delete).toHaveBeenCalledTimes(1);
+      expect(mockApi.delete).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}`, {
+        headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) },
+        params: { reason: 'Ticket 1234' },
+      });
+      expect(showMock).toHaveBeenCalledWith('web.admin.customers.actions.purge.success', 'success');
+    });
+
+    it('opens nothing and reports nothing when the operator cancels the prompt', async () => {
+      await mountLoaded();
+
+      await wrapper.find('[data-testid="purge-button"]').trigger('click');
+      await flushPromises();
+      useColonelElevation().resolvePrompt(false);
+      await flushPromises();
+
+      expect(purgeDialogOpen(wrapper)).toBe(false);
+      expect(wrapper.find('[data-testid="admin-confirm-dialog"]').exists()).toBe(false);
+      expect(mockApi.delete).not.toHaveBeenCalled();
+      expect(showMock).not.toHaveBeenCalled();
+    });
+
+    it('opens the dialog straight away when step-up is disabled by config', async () => {
+      await mountLoaded();
+      useColonelElevation().enabled.value = false;
+
+      await wrapper.find('[data-testid="purge-button"]').trigger('click');
+      await flushPromises();
+
+      expect(useColonelElevation().promptOpen.value).toBe(false);
+      expect(purgeDialogOpen(wrapper)).toBe(true);
+    });
+
+    // Suspend is tier 2: confirmation only, never a sudo prompt.
+    it('does not prompt before a tier-2 verb (suspend)', async () => {
+      await mountLoaded();
+
+      await wrapper.find('[data-testid="suspend-button"]').trigger('click');
+      await flushPromises();
+
+      expect(useColonelElevation().promptOpen.value).toBe(false);
+      expect(dialogInput(wrapper).exists()).toBe(true);
+    });
+  });
+
+  // ---- Step-up (sudo) window (#4327): the fallback loop ---------------------
+  //
+  // The window was live when the dialog opened but lapsed server-side before
+  // submit. The loop is: attempt -> 403 elevation_required -> prompt -> the
+  // operator acts -> retry ONCE. The retry must never fire without that
+  // gesture; an automatic elevate-and-retry would put a colonel session alone
+  // back in charge of a destructive verb, which is what this issue exists to
+  // stop. The 403 overrules the local countdown, which still reads live here.
   describe('a 403 elevation_required opens the sudo prompt', () => {
     async function submitPurge(): Promise<void> {
       await wrapper.find('[data-testid="purge-button"]').trigger('click');
@@ -415,6 +511,39 @@ describe('AdminCustomerDetail — purge gate (typed email) + verification state'
 
       expect(mockApi.delete).toHaveBeenCalledTimes(2);
       expect(showMock).toHaveBeenCalledWith('web.admin.customers.actions.purge.success', 'success');
+    });
+
+    it('keeps the dialog and its reason through the prompt, and retries with the same reason', async () => {
+      await mountLoaded();
+      mockApi.delete.mockRejectedValueOnce(
+        axiosError(403, {
+          error: 'Step-up authentication required',
+          error_code: 'elevation_required',
+        })
+      );
+      mockApi.delete.mockResolvedValueOnce({ data: mutationAck() });
+
+      await wrapper.find('[data-testid="purge-button"]').trigger('click');
+      await dialogInput(wrapper).setValue(EMAIL);
+      await wrapper.find('[data-testid="admin-confirm-reason"]').setValue('Ticket 1234');
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      const elevation = useColonelElevation();
+      expect(elevation.promptOpen.value).toBe(true);
+      // The dialog behind the prompt still holds what the operator typed.
+      expect(
+        (wrapper.find('[data-testid="admin-confirm-reason"]').element as HTMLTextAreaElement).value
+      ).toBe('Ticket 1234');
+
+      elevation.resolvePrompt(true);
+      await flushPromises();
+
+      expect(mockApi.delete).toHaveBeenCalledTimes(2);
+      expect(mockApi.delete).toHaveBeenLastCalledWith(`/api/colonel/users/${PUBLIC_ID}`, {
+        headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) },
+        params: { reason: 'Ticket 1234' },
+      });
     });
 
     it('surfaces the original error and retries nothing when the operator cancels', async () => {

@@ -13,6 +13,9 @@
 
   import OIcon from '@/shared/components/icons/OIcon.vue';
 
+  import { useElevationPromptHost } from '../../composables/useElevationPromptHost';
+  import ElevationPrompt from '../ElevationPrompt.vue';
+
   /**
    * The D4 destructive-action gate for the admin console (ticket #11, CONTRACT 4).
    *
@@ -48,6 +51,14 @@
    * `maxlength` matches the backend's Onetime::AuditReason::MAX_LENGTH (255),
    * one under the audit model's per-value truncation — so what an operator can
    * type here is exactly what a reviewer will read back.
+   *
+   * ## The step-up prompt opens OVER this dialog
+   *
+   * A 403 `elevation_required` on confirm opens the prompt while this dialog
+   * is still open (useAdminDestructiveMutation's fallback). As the top-most
+   * open admin dialog it hosts that prompt as a nested Dialog (see
+   * useElevationPromptHost), and it ignores backdrop clicks and Escape while
+   * the prompt is open, so neither cancels the action being retried.
    */
   interface Props {
     /** Whether the dialog is shown (use with `v-model:open`). */
@@ -186,6 +197,14 @@
     emit('update:open', false);
   }
 
+  const { hostsPrompt, promptOpen } = useElevationPromptHost(() => props.open);
+
+  /** headlessui `@close` (backdrop / Escape): never while the step-up prompt is up. */
+  function onDialogClose(): void {
+    if (promptOpen.value) return;
+    handleCancel();
+  }
+
   // Clear the typed value when closed; focus the requested control when opened.
   watch(
     () => props.open,
@@ -212,7 +231,7 @@
     :show="open">
     <Dialog
       class="relative z-50"
-      @close="handleCancel">
+      @close="onDialogClose">
       <!-- Backdrop -->
       <TransitionChild
         as="template"
@@ -388,6 +407,10 @@
           </TransitionChild>
         </div>
       </div>
+
+      <!-- The console's step-up prompt, nested so headlessui treats it as a
+           child of this dialog rather than an outside click. -->
+      <ElevationPrompt v-if="hostsPrompt" />
     </Dialog>
   </TransitionRoot>
 </template>

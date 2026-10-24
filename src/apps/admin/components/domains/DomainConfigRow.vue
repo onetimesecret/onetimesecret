@@ -38,6 +38,8 @@
     config: Record<string, unknown> | null;
     /** Whether the field grid is expanded (parent-owned). */
     expanded: boolean;
+    /** Hold the delete button while the parent has another dialog opener in flight. */
+    disabled?: boolean;
   }>();
 
   const emit = defineEmits<{
@@ -95,7 +97,8 @@
         v-if="exists"
         type="button"
         :data-testid="`config-delete-${kind}`"
-        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
+        :disabled="disabled"
+        class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
         @click="emit('delete')">
         {{ t('web.admin.domains.configs.delete.button') }}
       </button>

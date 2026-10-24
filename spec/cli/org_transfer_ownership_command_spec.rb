@@ -4,10 +4,9 @@
 
 # CLI adapter tests for `bin/ots org transfer-ownership` (#3731).
 #
-# Pure adapter coverage: org + new-owner resolution, the plan-then-prompt flow
-# (the reason the op's dry_run defaults to true), the --yes / --json refusal, the
-# interactive decline, and the op-status -> exit-code + operator-guidance
-# mapping. The mutation, the ordering guarantee and the audit event are the op's
+# Pure adapter coverage: org + new-owner resolution, the dry-run default
+# (nothing written without --apply, no prompt), the --apply/--dry-run
+# contradiction, and the op-status -> exit-code + operator-guidance mapping. The mutation, the ordering guarantee and the audit event are the op's
 # job and are covered (against a real datastore) by
 # spec/unit/onetime/operations/org/transfer_ownership_spec.rb, so here the op is
 # stubbed at its constructor.
@@ -15,7 +14,7 @@
 # This lives in its own file rather than appended to spec/cli/org_command_spec.rb
 # because that file is owned by a concurrent lane.
 #
-# Run: bundle exec rspec spec/cli/org_transfer_ownership_command_spec.rb
+# Run: tests/lanes/run unit --only spec/cli/org_transfer_ownership_command_spec.rb
 
 require_relative 'cli_spec_helper'
 
@@ -61,9 +60,8 @@ RSpec.describe 'Org Transfer Ownership Command', type: :cli do
     )
   end
 
-  # The interactive path calls the op TWICE — once to build the plan
-  # (dry_run: true), once to apply. Hand back whichever result the example
-  # configured for that phase, and record the constructor args in order.
+  # Hand back the plan for a dry run and the receipt for an applied run, and
+  # record the constructor args in order.
   let(:plan_result)    { result_with(status: :planned, dry_run: true) }
   let(:applied_result) { result_with(status: :success, dry_run: false) }
   let(:op_calls)       { [] }
@@ -95,7 +93,7 @@ RSpec.describe 'Org Transfer Ownership Command', type: :cli do
     end
 
     it 'exits 1 when the org cannot be resolved' do
-      output = run_cli_command_quietly('org', 'transfer-ownership', 'on_nope', 'new@example.com', '--yes')
+      output = run_cli_command_quietly('org', 'transfer-ownership', 'on_nope', 'new@example.com', '--apply')
 
       expect(last_exit_code).to eq(1)
       expect(output[:stdout]).to include('Error: Organization not found: on_nope')
@@ -103,7 +101,7 @@ RSpec.describe 'Org Transfer Ownership Command', type: :cli do
     end
 
     it 'exits 1 when the new owner cannot be resolved' do
-      output = run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'nope@example.com', '--yes')
+      output = run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'nope@example.com', '--apply')
 
       expect(last_exit_code).to eq(1)
       expect(output[:stdout]).to include('Error: Customer not found: nope@example.com')
@@ -113,65 +111,64 @@ RSpec.describe 'Org Transfer Ownership Command', type: :cli do
     it 'refuses an anonymous new owner (ADR-023: never fabricate one)' do
       allow(new_owner).to receive(:anonymous?).and_return(true)
 
-      output = run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--yes')
+      output = run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--apply')
 
       expect(last_exit_code).to eq(1)
       expect(output[:stdout]).to include('anonymous customer')
       expect(Onetime::Operations::Org::TransferOwnership).not_to have_received(:new)
     end
 
-    it 'resolves both parties BEFORE prompting' do
-      allow($stdin).to receive(:gets).and_return("y\n")
-
-      run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'nope@example.com')
-
-      expect(last_exit_code).to eq(1)
-      expect($stdin).not_to have_received(:gets)
-    end
   end
 
-  describe 'plan-then-prompt (why the op dry-runs by default)' do
-    it 'prints the dry-run plan, including the demotion count, before asking' do
-      allow($stdin).to receive(:gets).and_return("y\n")
-
-      output = run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com')
-
-      expect(output[:stdout]).to include('DRY RUN — nothing has been written yet')
-      expect(output[:stdout]).to include('Current owner: ur_old_ext')
-      expect(output[:stdout]).to include('Would demote:  1 owner membership(s): ur_old_ext')
-      expect(op_calls.map { |args| args[:dry_run] }).to eq([true, false])
-    end
-
-    it 'aborts without applying when the confirmation is declined' do
-      allow($stdin).to receive(:gets).and_return("n\n")
+  describe 'dry run (the default)' do
+    it 'prints the plan, including the demotion count, and writes nothing, never prompting' do
+      allow($stdin).to receive(:gets)
 
       output = run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com')
 
       expect(last_exit_code).to eq(0)
-      expect(output[:stdout]).to include('Aborted.')
+      expect(output[:stdout]).to include('DRY RUN — nothing was written')
+      expect(output[:stdout]).to include('Current owner: ur_old_ext')
+      expect(output[:stdout]).to include('Would demote:  1 owner membership(s): ur_old_ext')
+      expect(output[:stdout]).to include('Re-run with --apply to transfer.')
       expect(op_calls.map { |args| args[:dry_run] }).to eq([true])
+      expect($stdin).not_to have_received(:gets)
     end
 
-    it 'skips the plan pass entirely under --yes' do
+    it 'calls the op once, applied, under --apply' do
+      run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--apply')
+
+      expect(op_calls.map { |args| args[:dry_run] }).to eq([false])
+    end
+
+    it 'treats --yes as --apply' do
       run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--yes')
 
       expect(op_calls.map { |args| args[:dry_run] }).to eq([false])
     end
 
-    it 'refuses to transfer without --yes in --json mode' do
-      output = run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--json')
+    it 'refuses --apply with --dry-run before calling the op' do
+      output = run_cli_command_quietly(
+        'org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--apply', '--dry-run'
+      )
 
       expect(last_exit_code).to eq(1)
-      expect(JSON.parse(output[:stdout])['error'])
-        .to eq('Refusing to transfer ownership without --yes in --json mode')
+      expect(output[:stdout]).to include('--apply and --dry-run are contradictory')
       expect(Onetime::Operations::Org::TransferOwnership).not_to have_received(:new)
+    end
+
+    it 'emits the plan as JSON without --apply and exits 0' do
+      output = run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--json')
+
+      expect(last_exit_code).to eq(0)
+      expect(JSON.parse(output[:stdout])).to include('status' => 'planned', 'dry_run' => true)
     end
   end
 
   describe 'op invocation' do
     it 'passes the resolved objects, the CLI sentinel actor and demote_to through' do
       run_cli_command_quietly(
-        'org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--yes', '--demote-to', 'MEMBER'
+        'org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--apply', '--demote-to', 'MEMBER'
       )
 
       expect(op_calls.last).to include(
@@ -184,7 +181,7 @@ RSpec.describe 'Org Transfer Ownership Command', type: :cli do
     end
 
     it "defaults --demote-to to 'admin' (D27 — no remove sentinel)" do
-      run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--yes')
+      run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--apply')
 
       expect(op_calls.last[:demote_to]).to eq('admin')
     end
@@ -192,7 +189,7 @@ RSpec.describe 'Org Transfer Ownership Command', type: :cli do
     it 'never audits from the adapter' do
       allow(Onetime::ColonelAuditEvent).to receive(:record)
 
-      run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--yes')
+      run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--apply')
 
       expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
@@ -200,7 +197,7 @@ RSpec.describe 'Org Transfer Ownership Command', type: :cli do
 
   describe 'output' do
     it 'reports the transfer and the demotions on the text path, exiting 0' do
-      output = run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--yes')
+      output = run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--apply')
 
       expect(last_exit_code).to eq(0)
       expect(output[:stdout]).to include('on_org_ext: owner ur_old_ext -> ur_new_ext (n****r@example.com)')
@@ -215,7 +212,7 @@ RSpec.describe 'Org Transfer Ownership Command', type: :cli do
       end
 
       it 'surfaces the repair' do
-        output = run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--yes')
+        output = run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--apply')
 
         expect(last_exit_code).to eq(0)
         expect(output[:stdout]).to include('owner (none) -> ur_new_ext')
@@ -223,9 +220,9 @@ RSpec.describe 'Org Transfer Ownership Command', type: :cli do
       end
     end
 
-    it 'emits the flat payload and exits 0 on --json --yes' do
+    it 'emits the flat payload and exits 0 on --json --apply' do
       output = run_cli_command_quietly(
-        'org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--yes', '--json'
+        'org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--apply', '--json'
       )
 
       payload = JSON.parse(output[:stdout])
@@ -239,41 +236,36 @@ RSpec.describe 'Org Transfer Ownership Command', type: :cli do
       expect(payload['demoted_to']).to eq('admin')
     end
 
-    context 'when the plan comes back :no_change' do
+    context 'when the dry run comes back :no_change' do
       let(:plan_result) { result_with(status: :no_change, dry_run: true, demoted: []) }
 
-      it 'reports it without applying or prompting, and exits 0' do
-        allow($stdin).to receive(:gets).and_return("y\n")
-
+      it 'reports it and exits 0' do
         output = run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com')
 
         expect(last_exit_code).to eq(0)
         expect(output[:stdout]).to include('n****r@example.com is already the sole owner of on_org_ext')
+        expect(output[:stdout]).not_to include('Re-run with --apply')
         expect(op_calls.map { |args| args[:dry_run] }).to eq([true])
-        expect($stdin).not_to have_received(:gets)
       end
     end
   end
 
-  describe 'refusals (identical guidance on the plan pass and the applied pass)' do
+  describe 'refusals (identical guidance on a dry run and an applied run)' do
     context 'when the target is not a member (D28)' do
       let(:plan_result)    { result_with(status: :not_member, dry_run: true, demoted: []) }
       let(:applied_result) { result_with(status: :not_member, dry_run: false, demoted: []) }
 
-      it 'points at `memberships add` and exits 1 on the interactive path — before any prompt' do
-        allow($stdin).to receive(:gets).and_return("y\n")
-
+      it 'points at `memberships add` and exits 1 on a dry run' do
         output = run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com')
 
         expect(last_exit_code).to eq(1)
-        expect(output[:stdout]).to include('is not an active member')
+        expect(output[:stdout]).to include('n****r@example.com is not an active member of on_org_ext (Test Org)')
         expect(output[:stdout]).to include('bin/ots memberships add')
         expect(op_calls.map { |args| args[:dry_run] }).to eq([true])
-        expect($stdin).not_to have_received(:gets)
       end
 
-      it 'points at `memberships add` and exits 1 on the --yes path' do
-        output = run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--yes')
+      it 'points at `memberships add` and exits 1 on the --apply path' do
+        output = run_cli_command_quietly('org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--apply')
 
         expect(last_exit_code).to eq(1)
         expect(output[:stdout]).to include('bin/ots memberships add')
@@ -281,7 +273,7 @@ RSpec.describe 'Org Transfer Ownership Command', type: :cli do
 
       it 'exits 1 with the refusal payload on the json path' do
         output = run_cli_command_quietly(
-          'org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--yes', '--json'
+          'org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--apply', '--json'
         )
 
         expect(last_exit_code).to eq(1)
@@ -294,7 +286,7 @@ RSpec.describe 'Org Transfer Ownership Command', type: :cli do
 
       it 'rejects it with the allowed values' do
         output = run_cli_command_quietly(
-          'org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--yes', '--demote-to', 'owner'
+          'org', 'transfer-ownership', 'on_org_ext', 'new@example.com', '--apply', '--demote-to', 'owner'
         )
 
         expect(last_exit_code).to eq(1)

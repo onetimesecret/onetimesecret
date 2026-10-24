@@ -31,7 +31,9 @@ module Onetime
 
       include Banner::Shared
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         boot_application!
 
         # Single implementation: read the current banner through the shared op.

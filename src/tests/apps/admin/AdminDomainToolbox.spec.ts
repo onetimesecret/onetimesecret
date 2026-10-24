@@ -60,6 +60,7 @@ vi.mock('@headlessui/vue', () => ({
 
 import AdminDomainToolbox from '@/apps/admin/views/AdminDomainToolbox.vue';
 import { createTestI18n } from '@tests/setup';
+import { startElevated } from '@tests/apps/admin/support/elevation';
 
 const i18n = createTestI18n();
 
@@ -149,6 +150,9 @@ describe('AdminDomainToolbox (orphaned + probe + repair + transfer — ticket #4
     pinia = createPinia();
     setActivePinia(pinia);
     vi.clearAllMocks();
+    // A live step-up window: these examples are about the dialogs, which a
+    // tier-1 opener only shows once elevated (see support/elevation.ts).
+    startElevated();
     // Default: the orphaned-scan GET on mount succeeds.
     mockApi.get.mockImplementation((url: string) =>
       url === ORPHAN_URL

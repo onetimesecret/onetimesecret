@@ -16,7 +16,7 @@
 #   9. contact-email index collisions are classified independently (HIGH)
 #
 # Usage:
-#   bin/ots customers doctor trytoremember@me.not  # Check by email or extid
+#   bin/ots customers doctor trytoremember@me.not  # Check one (email, extid, objid, Rodauth id)
 #   bin/ots customers doctor --all                 # Scan all customers
 #   bin/ots customers doctor --all --repair        # Auto-repair issues
 #   bin/ots customers doctor --all --json          # JSON output
@@ -32,14 +32,17 @@ require 'onetime/cli/customers/shared'
 
 module Onetime
   module CLI
-    # rubocop:disable Metrics/ClassLength
+    # rubocop:disable-next Metrics/ClassLength
     class CustomersDoctorCommand < Command
+      # resolve_customer: the one CUSTOMER grammar every customer verb accepts.
+      include Customers::Shared
+
       desc 'Check customer data integrity'
 
       argument :identifier,
         type: :string,
         required: false,
-        desc: 'Customer email or extid'
+        desc: 'Customer email, extid, objid, or Rodauth account ID'
 
       option :all,
         type: :boolean,
@@ -91,7 +94,7 @@ module Onetime
           Check customer data integrity and optionally repair issues.
 
           Arguments:
-            IDENTIFIER              Customer email or extid
+            IDENTIFIER              Customer email, extid, objid, or Rodauth account ID
 
           Options:
             --all                   Scan all customers
@@ -118,9 +121,7 @@ module Onetime
       end
 
       def load_customer(identifier)
-        # Try email first, then extid
-        customer   = Onetime::Customer.find_by_email(identifier)
-        customer ||= Onetime::Customer.find_by_extid(identifier)
+        customer = resolve_customer(identifier)
 
         unless customer
           puts "Customer not found: #{identifier}"
@@ -193,7 +194,7 @@ module Onetime
         puts JSON.pretty_generate(report)
       end
 
-      # rubocop:disable Metrics/PerceivedComplexity
+      # rubocop:disable-next Metrics/PerceivedComplexity
       def output_text(report, repair:)
         puts 'Customer Health Check'
         puts '=' * 40
@@ -272,7 +273,6 @@ module Onetime
           puts 'All issues require manual intervention.'
         end
       end
-      # rubocop:enable Metrics/PerceivedComplexity
 
       def severity_tag(severity)
         case severity
@@ -309,7 +309,6 @@ module Onetime
         end
       end
     end
-    # rubocop:enable Metrics/ClassLength
 
     register 'customers doctor', CustomersDoctorCommand
   end
