@@ -19,7 +19,7 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
   let(:actor) { 'ur_col_public_extid' }
 
   let(:org) do
-    double('Organization', objid: 'org-obj-1', extid: 'on_org_ext', clear_default_org_pointer: false)
+    double('Organization', objid: 'org-obj-1', extid: 'on_org_ext', clear_default_org_pointer: :unchanged)
   end
 
   let(:customer) do
@@ -56,6 +56,22 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
 
       expect(membership).to have_received(:destroy_with_index_cleanup!).ordered
       expect(org).to have_received(:clear_default_org_pointer).with(customer).ordered
+    end
+
+    it 'returns the pointer cleanup outcome on the result' do
+      result = described_class.new(org: org, customer: customer, actor: actor).call
+
+      expect(result.default_org_cleanup).to eq(:unchanged)
+    end
+
+    it 'still returns :success when the pointer could not be cleared' do
+      allow(org).to receive(:clear_default_org_pointer).and_return(:failed)
+
+      result = described_class.new(org: org, customer: customer, actor: actor).call
+
+      expect(result.status).to eq(:success)
+      expect(result.default_org_cleanup).to eq(:failed)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once
     end
 
     it 'records EXACTLY ONE audit event (verb membership.remove, public ids, org_id in detail)' do
@@ -151,6 +167,7 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
 
       expect(result.status).to eq(:dry_run)
       expect(result.role).to eq('admin')
+      expect(result.default_org_cleanup).to be_nil
       expect(membership).not_to have_received(:destroy_with_index_cleanup!)
       expect(org).not_to have_received(:clear_default_org_pointer)
     end

@@ -76,7 +76,17 @@ module Onetime
 
         # @!attribute status [r] Symbol —
         #   :success | :dry_run | :not_found | :last_owner
-        Result = Data.define(:status, :org_id, :customer_id, :role)
+        # @!attribute default_org_cleanup [r] Symbol, nil — nil unless the
+        #   removal was applied; then the op's own
+        #   Organization#clear_default_org_pointer outcome. :unchanged is the
+        #   usual value, since the teardown already cleared the pointer
+        #   through its own copy of the customer. :failed means the member's
+        #   default_org_id may still name this org.
+        Result = Data.define(:status, :org_id, :customer_id, :role, :default_org_cleanup) do
+          def initialize(default_org_cleanup: nil, **attributes)
+            super(**attributes, default_org_cleanup: default_org_cleanup)
+          end
+        end
 
         # @param org [Onetime::Organization] target org (caller resolves; required).
         # @param customer [Onetime::Customer] the member to remove.
@@ -132,7 +142,9 @@ module Onetime
           # (Organization#remove_members_instance, #4860). Repeat it on the
           # caller's copy: Customers::Purge keeps using that object, and its
           # later preflights must not follow a pointer to the org just left.
-          @org.clear_default_org_pointer(@customer)
+          # The outcome goes on the Result, so an adapter can report a
+          # pointer that may have survived.
+          @default_org_cleanup = @org.clear_default_org_pointer(@customer)
 
           # One audit event per real removal, emitted from the op (adapters MUST
           # NOT audit). Public ids only; no secret detail.
@@ -186,6 +198,7 @@ module Onetime
             org_id: @org.extid,
             customer_id: @customer.extid,
             role: role,
+            default_org_cleanup: @default_org_cleanup,
           )
         end
 
