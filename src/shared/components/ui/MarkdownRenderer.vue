@@ -38,18 +38,24 @@
   let loading: Promise<RenderFn> | null = null;
 
   const loadRenderer = (): Promise<RenderFn> => {
-    loading ??= import('@/shared/utils/markdown').then(
-      (mod) => {
+    loading ??= import('@/shared/utils/markdown')
+      .then((mod) => {
+        // A failed chunk import can also resolve, with undefined: Vite's
+        // preload helper does that once the entry's vite:preloadError handler
+        // has called preventDefault() to reload (src/utils/preloadError.ts).
+        if (typeof mod?.renderMarkdown !== 'function') {
+          throw new Error('[markdown] the renderer chunk did not load');
+        }
         renderFn = mod.renderMarkdown;
         return renderFn;
-      },
-      (error: unknown) => {
-        // Forget the failed load so the next render retries the fetch; the
-        // plain-text fallback stays up until one succeeds.
+      })
+      .catch((error: unknown) => {
+        // Forget the failed load, however it failed, so the next render
+        // retries the fetch; the plain-text fallback stays up until one
+        // succeeds.
         loading = null;
         throw error;
-      }
-    );
+      });
     return loading;
   };
 
