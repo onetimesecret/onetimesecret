@@ -5,6 +5,25 @@ provisioning. It describes the current coordination between local sender
 configuration and the sender identity registered at a mail provider. It is
 an implementation reference, not a guarantee that provider cleanup succeeds.
 
+## Removal responses and provider cleanup
+
+Domain-removal JSON from the CLI and Colonel API reports `sender_cleanup`.
+It is `null` during a preview; applied results distinguish a deleted, already
+absent, skipped or failed provider identity cleanup. Operations that explicitly
+keep the sender identity report `kept`. Response consumers upgrading from the
+former `reasserts_survivor` field must use `sender_cleanup` instead.
+
+A failed sender cleanup does not undo local domain deletion. The removal CLI
+exits 1 even though the local record has been deleted. Inspect the **Sender
+domain deletion failed** log for the provider and error, then remove the
+remaining identity at the provider. Rerunning domain removal cannot retry
+cleanup after the local record is gone.
+
+Lettermint cleanup treats a 404 with `RESOURCE_NOT_FOUND` as already absent;
+other 404 responses are failures. Logged errors include the provider API error
+code. See the [removal CLI](../../lib/onetime/cli/domains/remove_command.rb)
+and [sender deletion operation](../../lib/onetime/operations/delete_sender_domain.rb).
+
 ## Shared sender identity lock
 
 [MailerConfig.sender_identity_lock](../../lib/onetime/models/custom_domain/mailer_config.rb)

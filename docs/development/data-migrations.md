@@ -462,6 +462,10 @@ before/after check.
 
 ### Closed account rows (`bin/ots customers prune-closed-accounts`)
 
+For the 0.26.19 cleanup, preview and then confirm `prune-closed-accounts`
+before running `finish-closures`. Export authentication audit records first
+if retention requirements need them; the cleanup deletes them.
+
 Before #4819, closing an account (self-service or administrative) set the
 Rodauth `accounts` row to status 3 (Closed) and kept every
 `account_authentication_audit_logs` row for it: the plaintext email plus a
@@ -499,6 +503,14 @@ first if a compliance requirement needs them; nothing keeps them after the
 run.
 
 ### Interrupted closures (`bin/ots customers finish-closures`)
+
+Export `AUTHENTICATION_MODE=full` or `AUTHENTICATION_MODE=simple` to match the
+installation before confirming cleanup. The shipped containers export this
+setting; other CLI environments must supply it. With the variable unset,
+the CLI defaults to simple mode, previews without checking authentication
+accounts, and refuses `--confirm`. Do not select simple mode to bypass this
+check on a full-mode installation: a closure whose authentication transaction
+rolled back must not be purged as an interrupted closure.
 
 A closure marks the Customer record (`closure_started_at`) just before it
 removes the sign-in, and a completed closure deletes the record with it. A
