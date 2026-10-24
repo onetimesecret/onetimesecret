@@ -12,7 +12,7 @@
 
 <template layout="">
 <!doctype html>
-<html lang="{{locale}}" class="light">
+<html lang="{{html_lang}}" class="light">
   <head>
     <script nonce="{{app.nonce}}">
       (() => {

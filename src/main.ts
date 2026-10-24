@@ -8,66 +8,22 @@ import './plugins/core/configureZod';
 
 // Ensures modulepreload works in all browsers, improving
 // performance by preloading modules.
-import { createApp } from 'vue';
-
 import 'vite/modulepreload-polyfill';
 import App from './App.vue';
 import './assets/style.css';
+import { startApp } from './plugins/core/startApp';
 import { createAppRouter } from './router';
-import { AppInitializer } from './plugins/core/appInitializer';
-import { loggingService } from './services/logging.service';
+import { installPreloadErrorHandler } from './utils/preloadError';
 
-// Handle Vite chunk loading failures that occur when cached HTML references
-// stale chunk hashes after a deployment. Without this, users see a blank page.
-// A single reload fetches the fresh HTML with correct chunk references.
-window.addEventListener('vite:preloadError', (event) => {
-  event.preventDefault();
-  window.location.reload();
-});
+// A lazy chunk that fails to load (typically a tab still running the previous
+// build after a deployment) reloads the page once, through the ADR-046 forced
+// page load bound so a chunk that keeps failing cannot reload the tab in a
+// loop. See src/utils/preloadError.ts.
+installPreloadErrorHandler();
 
 /**
- * Initialize and mount the Vue application with all required plugins.
+ * Initialize the Vue application with all required plugins, then mount it
+ * once the initial navigation, including the visitor's locale, has resolved.
+ * startApp owns the order, the app-ready flag and the startup-failure flag.
  */
-const app = createApp(App);
-try {
-  app.use(AppInitializer, { router: createAppRouter(), debug: false });
-  app.mount('#app');
-} catch (error) {
-  // Startup threw before the app took over #app, so loading cannot complete.
-  // Flag the server-rendered shell: its stalled-load notice (#4596) then
-  // switches from the timeout copy to a detected failure and stops the orb.
-  // Rethrow so the error still reaches the console and global handlers.
-  document.documentElement.dataset.appFailed = 'true';
-  throw error;
-}
-
-/**
- * Deterministic app-readiness signal for E2E tests
- * (e2e/docs/e2e-remediation-plan.md, Phase 2.2). Tests wait on
- * `html[data-app-ready="true"]` instead of `networkidle` or polling
- * `window.__BOOTSTRAP_ME__`.
- *
- * Why this flag is truthful at this point:
- * - `app.mount()` is synchronous and runs App.vue's setup(), which activates
- *   useBrandTheme(). Its `immediate: true` watcher applies the brand palette
- *   (or clears overrides) with no awaits before the DOM writes, sourced from
- *   bootstrap data consumed before Pinia install — so by the time mount()
- *   returns, the initial brand theme has been applied.
- * - The initial route resolution (including lazy-loaded route components) IS
- *   asynchronous, so gate the flag on router.isReady(): "ready" then also
- *   means the first navigation has been resolved and rendered.
- */
-app.config.globalProperties.$router
-  .isReady()
-  .then(() => {
-    document.documentElement.dataset.appReady = 'true';
-  })
-  .catch((error: unknown) => {
-    // Deliberately do NOT set the flag: a failed initial navigation means the
-    // app is not usable, and E2E waits should fail loudly with a trace.
-    loggingService.error(
-      error instanceof Error
-        ? error
-        : new Error(`[main] Initial navigation failed; app-ready flag not set: ${String(error)}`)
-    );
-  });
+void startApp({ root: App, createRouter: createAppRouter, debug: false });

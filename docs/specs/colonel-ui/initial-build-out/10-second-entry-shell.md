@@ -9,6 +9,8 @@ epic: "#3653"
 ## Context
 Part of the Colonel Admin Rebuild epic. Phase-0 scaffold: stand up an isolated admin bundle and shell so admin code stops shipping in the customer bundle and future phases have a home. No user-visible change; rollback is a config flip.
 
+> **Status note (2026-10).** The "one chunk per entry" constraint below was retired when the build moved to code splitting (`vite.config.ts`): imported chunks inherit the entry script's nonce, the shell emits nonced `modulepreload` links and the `csp-nonce` meta tag for the preloads that do not, and `src/build/plugins/checkCspChunkGraph.ts` fails the build when the chunk graph breaks that model. The isolation goal is unchanged: `src/tests/apps/admin/admin-isolation.spec.ts` checks every chunk the admin entry loads. The single-chunk wording in Scope, Grounding and Acceptance criteria is historical.
+
 ## Scope
 - Add a **second Rolldown input** `src/admin.ts` alongside `src/main.ts` in the single-bundle config. Each entry stays one chunk (preserves the one-script-tag = one-nonce CSP model).
 - Add a new admin shell **Rhales `.rue` template** (sibling to `apps/web/core/templates/index.rue`) that injects the admin entry's assets + per-request nonce.
@@ -32,6 +34,6 @@ Part of the Colonel Admin Rebuild epic. Phase-0 scaffold: stand up an isolated a
 - [ ] Rollback is a config-flag change only — no code revert required.
 
 ## Notes / risks
-- CSP invariant is load-bearing: every entry must remain a single chunk; no dynamic import splitting.
+- CSP invariant is load-bearing. Historical form: every entry must remain a single chunk. Current form: the chunk graph must fit the nonce model described in `vite.config.ts` and enforced by `checkCspChunkGraph.ts` (see the status note above).
 - Reuse the core Page controller; resist standing up a second Rack app (D2).
 - Phase-0 exit gate lives here: flag on → shell renders; flag off → old app + no admin code in customer bundle.

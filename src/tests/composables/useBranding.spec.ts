@@ -10,6 +10,7 @@ import { useNotificationsStore } from '@/shared/stores';
 import { createPinia, setActivePinia } from 'pinia';
 import { nextTick } from 'vue';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { captureAppLogs } from '../utils/appLogs';
 
 // Reconfigured per-test (mockResolvedValueOnce / mockRejectedValueOnce) to drive
 // the save success/failure paths.
@@ -70,10 +71,14 @@ vi.mock('vue-router', () => ({
   }),
 }));
 
+// The preview instance's setLocale, shared so a test can make a locale fail.
+// Like the real one it resolves true once the locale is active.
+const { previewSetLocale } = vi.hoisted(() => ({ previewSetLocale: vi.fn() }));
+
 vi.mock('@/i18n', () => ({
   createI18nInstance: () => ({
     composer: {},
-    setLocale: vi.fn(),
+    setLocale: previewSetLocale,
   }),
 }));
 
@@ -97,6 +102,54 @@ describe('useBranding', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
+    previewSetLocale.mockReset().mockResolvedValue(true);
+  });
+
+  // The preview renders in the domain's Delivery language through its own
+  // i18n instance. A locale that fails to load leaves the preview in its
+  // previous language (src/i18n.ts setLocale) and must not fail loading the
+  // brand settings.
+  describe('preview locale', () => {
+    const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+    /** Serves domain-1's brand settings with this Delivery language. */
+    const brandWithLocale = (locale: string) => {
+      const settings = { ...mockCustomBrandingRed, locale };
+      mockBrandStore.mockImplementationOnce(() => ({
+        getSettings: () => settings,
+        fetchSettings: vi.fn(async () => settings),
+        fetchLogo: vi.fn(async () => null),
+        updateSettings: mockUpdateSettings,
+      }));
+      return settings;
+    };
+
+    it('loads the brand locale into the preview instance', async () => {
+      brandWithLocale('bg');
+
+      const { initialize } = useBranding('domain-1');
+      initialize();
+      await flush();
+
+      expect(previewSetLocale).toHaveBeenCalledWith('bg');
+    });
+
+    it('logs a locale that fails to load and still loads the brand settings', async () => {
+      const logs = captureAppLogs();
+      previewSetLocale.mockRejectedValue(new Error('chunk bg failed'));
+      const settings = brandWithLocale('bg');
+
+      const { initialize, brandSettings, error } = useBranding('domain-1');
+      initialize();
+      await flush();
+
+      expect(logs.warn).toHaveBeenCalledWith('[useBranding] Preview locale did not load', {
+        locale: 'bg',
+        error: 'chunk bg failed',
+      });
+      expect(error.value).toBeNull();
+      expect(brandSettings.value).toEqual(settings);
+    });
   });
 
   describe('brand settings resolution', () => {

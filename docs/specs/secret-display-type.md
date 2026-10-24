@@ -128,8 +128,10 @@ copy button always copies the raw value.
 ### 3.1 Rendering and sanitization
 
 `src/shared/utils/markdown.ts`. The renderer component imports it
-dynamically, but the production build is a single chunk, so the parser and
-highlighter ship in the main bundle either way:
+dynamically, so in the production build the parser and highlighter are their
+own chunk, fetched on the first render of Markdown. If that chunk fails to
+load, the source stays on screen as plain text: the page never reloads itself
+while a revealed secret is shown (`src/utils/preloadError.ts`).
 
 - `marked` (GFM, line breaks on) parses; `highlight.js/lib/common` colors fenced
   code with a declared language. No auto-detection: a wrong guess colors prose.

@@ -19,9 +19,9 @@
 //   app's utility classes to overlay the reveal page, claim one of its ids,
 //   or fetch a remote background image when CSP is disabled.
 //
-// MarkdownRenderer.vue imports this module dynamically, but the production
-// build is a single chunk (vite.config.ts, codeSplitting: false), so the
-// parser and highlighter ship in the main bundle either way.
+// MarkdownRenderer.vue imports this module dynamically, so the parser and
+// highlighter ship in their own chunk, fetched the first time a Markdown
+// secret is rendered (vite.config.ts, codeSplitting: true).
 
 import DOMPurify, {
   type Config,

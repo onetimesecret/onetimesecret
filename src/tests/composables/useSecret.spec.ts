@@ -79,9 +79,7 @@ describe('useSecret — error-code capture (#3424)', () => {
     // bug report cared about: a frontend parse failure must not look like a 404.
     const api = mountUseSecret();
     const store = useSecretStore();
-    store.fetch = vi
-      .fn()
-      .mockRejectedValue(new Error('Unable to load secret. Please try again.'));
+    store.fetch = vi.fn().mockRejectedValue(new Error('Unable to load secret. Please try again.'));
 
     await api.load();
 
@@ -101,5 +99,52 @@ describe('useSecret — error-code capture (#3424)', () => {
     await api.load();
     expect(api.state.errorCode).toBeNull();
     expect(api.state.error).toBe('');
+  });
+});
+
+describe('useSecret — revealing (the window in which the server has already destroyed the secret)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    captureAppLogs();
+  });
+
+  function deferred<T = void>() {
+    let resolve!: (value: T) => void;
+    let reject!: (e: unknown) => void;
+    const promise = new Promise<T>((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  }
+
+  it('is true from the moment the reveal request is issued until it settles', async () => {
+    const api = mountUseSecret();
+    const store = useSecretStore();
+    const pending = deferred();
+    store.reveal = vi.fn(() => pending.promise as never);
+
+    expect(api.revealing.value).toBe(false);
+    const revealed = api.reveal('');
+    expect(api.revealing.value).toBe(true);
+
+    pending.resolve();
+    await revealed;
+    expect(api.revealing.value).toBe(false);
+  });
+
+  it('clears when the request fails (wrong passphrase, 404)', async () => {
+    const api = mountUseSecret();
+    const store = useSecretStore();
+    const pending = deferred();
+    store.reveal = vi.fn(() => pending.promise as never);
+
+    const revealed = api.reveal('wrong');
+    expect(api.revealing.value).toBe(true);
+
+    pending.reject(httpError(404));
+    await revealed;
+    expect(api.revealing.value).toBe(false);
+    expect(api.state.errorCode).toBe(404);
   });
 });

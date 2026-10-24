@@ -16,7 +16,14 @@ import { useLanguageStore } from '@/shared/stores/languageStore';
 import { isSsoOnlyMode } from '@/utils/features';
 import { hardNavigate, routerOwnsPath } from '@/utils/navigation';
 import { isValidInternalPath } from '@/utils/redirect';
-import { RouteLocationNormalized, RouteLocationRaw, Router } from 'vue-router';
+import {
+  START_LOCATION,
+  type NavigationGuardReturn,
+  type NavigationGuardWithThis,
+  RouteLocationNormalized,
+  RouteLocationRaw,
+  Router,
+} from 'vue-router';
 
 import { processQueryParams } from './queryParams.handler';
 
@@ -85,43 +92,9 @@ export async function setupRouterGuards(router: Router): Promise<void> {
     return redirect ?? true;
   });
 
-  router.beforeEach(async (to: RouteLocationNormalized) => {
-    const authStore = useAuthStore();
-    const languageStore = useLanguageStore();
-
-    logNavigation(to, authStore);
-    processQueryParams(to.query as Record<string, string>);
-
-    if (to.name === 'NotFound') return true;
-
-    // Handle MFA requirement checks
-    const mfaRedirect = handleMfaAccess(to, authStore);
-    if (mfaRedirect) return mfaRedirect;
-
-
-    // Handle root path redirect
-    if (to.path === '/') return authStore.isFullyAuthenticated ? { name: 'Dashboard' } : true;
-
-    // Redirect fully authenticated users away from auth routes (respect redirect param)
-    // MFA pending users should still access auth routes like /mfa-verify
-    if (isAuthRoute(to) && authStore.isFullyAuthenticated) {
-      const redirect = handleAuthRouteRedirect(to, router);
-      if (redirect !== null) return redirect;
-    }
-
-    // Validate authentication for protected routes
-    if (requiresAuthentication(to)) {
-      const isAuthenticated = await validateAuthentication(authStore, to);
-      if (!isAuthenticated) return redirectToSignIn(to);
-
-      const userPreferences = await fetchCustomerPreferences();
-      if (userPreferences.locale) {
-        languageStore.setCurrentLocale(userPreferences.locale);
-      }
-    }
-
-    return true; // Always return true for non-auth routes
-  });
+  // Auth and locale: the redirects for MFA, auth routes and protected
+  // routes, and the one locale activation each navigation gets.
+  router.beforeEach(createAuthGuard(router));
 
   // Org-role gate (meta.requiresOrgRole); after the auth guard so it only runs
   // for signed-in users.
@@ -158,6 +131,197 @@ export async function setupRouterGuards(router: Router): Promise<void> {
       setTitle(newTitle);
     }
   });
+}
+
+type AuthStore = ReturnType<typeof useAuthStore>;
+
+/**
+ * Navigations whose locale is decided: the URL named one, or the guard
+ * activated one. Keyed by the location the navigation started from, which
+ * vue-router passes to every later pass of a redirected navigation as
+ * `to.redirectedFrom`, so a redirect does not activate a second locale.
+ */
+const localeDecided = new WeakSet<object>();
+
+/**
+ * The main guard: the MFA, auth-route and protected-route redirects, and the
+ * navigation's locale.
+ *
+ * Each navigation activates at most one locale and awaits it before the guard
+ * returns, so no view renders before its locale's messages are active:
+ *  1. a valid, supported `?locale=` on this pass, on every route including
+ *     protected ones (the server ranks the URL first too);
+ *  2. otherwise, on a protected route the user may enter, the account locale;
+ *  3. otherwise, while no locale is active yet, the language store's
+ *     preferred locale;
+ *  4. otherwise the active locale stays.
+ * The URL locale is applied before the auth checks because a redirect drops
+ * the query: unauthenticated /dashboard?locale=bg must render /signin in
+ * Bulgarian. Steps 2 and 3 also run before a redirect is returned, and the
+ * redirected pass then skips them. An aborted navigation (`false`, e.g. a hard
+ * navigation out of the bundle) renders nothing and activates nothing.
+ *
+ * A locale that fails to load, from any of these sources, never blocks the
+ * visitor. The failure is logged and the language store records it for
+ * LocaleLoadNotice, which names the language that failed and the one shown.
+ * On a later navigation the previous locale stays. On the initial navigation
+ * no locale is active yet, so the store activates a fallback (the
+ * installation's default_locale, else 'en') and the navigation continues.
+ * Only a fallback that cannot be activated either fails the initial
+ * navigation (router.isReady() rejects and the entry flags the shell).
+ */
+function createAuthGuard(router: Router): NavigationGuardWithThis<undefined> {
+  return async (to, from) => {
+    const authStore = useAuthStore();
+    logNavigation(to, authStore);
+
+    const navigation = to.redirectedFrom ?? to;
+    // `from` stays START_LOCATION for every pass of the navigation that
+    // router.isReady() waits for, redirects included.
+    const initial = from === START_LOCATION;
+
+    await applyQueryParams(to, navigation, initial);
+
+    const { result, accountLocale } = await decideRoute(to, router, authStore);
+
+    if (result !== false && !localeDecided.has(navigation)) {
+      const choice = navigationLocale(accountLocale);
+      if (choice) {
+        localeDecided.add(navigation);
+        await activateLocale(choice, initial);
+      }
+    }
+
+    return result;
+  };
+}
+
+/**
+ * Step 1 of createAuthGuard, and the other query parameters. A URL that names
+ * a valid, supported locale decides the navigation's locale, whether or not
+ * its messages load. Any other parameter that fails (?theme= when storage is
+ * blocked) is logged and never blocks the navigation.
+ */
+async function applyQueryParams(
+  to: RouteLocationNormalized,
+  navigation: object,
+  initial: boolean
+): Promise<void> {
+  for (const param of await processQueryParams(to.query)) {
+    if (param.key === 'locale') localeDecided.add(navigation);
+    if (param.ok) continue;
+    if (param.key === 'locale') {
+      // processQueryParams runs the locale handler only for a string value.
+      await recoverLocale(String(to.query.locale), param.error, initial);
+    } else {
+      logError(param.error);
+    }
+  }
+}
+
+/** What the auth checks decided for one pass of the main guard. */
+interface RouteDecision {
+  result: NavigationGuardReturn;
+  /** The account's locale, when the user may enter the protected route. */
+  accountLocale?: string;
+}
+
+async function decideRoute(
+  to: RouteLocationNormalized,
+  router: Router,
+  authStore: AuthStore
+): Promise<RouteDecision> {
+  if (to.name === 'NotFound') return { result: true };
+
+  // Handle MFA requirement checks
+  const mfaRedirect = handleMfaAccess(to, authStore);
+  if (mfaRedirect) return { result: mfaRedirect };
+
+  // Handle root path redirect
+  if (to.path === '/') {
+    return { result: authStore.isFullyAuthenticated ? { name: 'Dashboard' } : true };
+  }
+
+  // Redirect fully authenticated users away from auth routes (respect redirect param)
+  // MFA pending users should still access auth routes like /mfa-verify
+  if (isAuthRoute(to) && authStore.isFullyAuthenticated) {
+    const redirect = handleAuthRouteRedirect(to, router);
+    if (redirect !== null) return { result: redirect };
+  }
+
+  // Validate authentication for protected routes
+  if (requiresAuthentication(to)) {
+    const isAuthenticated = await validateAuthentication(authStore, to);
+    if (!isAuthenticated) return { result: redirectToSignIn(to) };
+
+    const userPreferences = await fetchCustomerPreferences();
+    return { result: true, accountLocale: userPreferences.locale };
+  }
+
+  return { result: true }; // Always return true for non-auth routes
+}
+
+/** A locale for the navigation to activate, and whether the session keeps it. */
+interface LocaleChoice {
+  locale: string;
+  /** See SetCurrentLocaleOptions.remember. */
+  remember: boolean;
+}
+
+/**
+ * The locale a pass without a URL locale activates (steps 2 and 3 of
+ * createAuthGuard), or null when the active locale stays. An account locale
+ * that is no longer supported is passed over, as the store's preference
+ * hierarchy passes over it. The account locale is an explicit choice and is
+ * remembered for the session; the preferred locale is not.
+ */
+function navigationLocale(accountLocale: string | undefined): LocaleChoice | null {
+  const languageStore = useLanguageStore();
+  const account = accountLocale ? languageStore.resolveSupportedLocale(accountLocale) : null;
+  if (account) {
+    return account === languageStore.currentLocale ? null : { locale: account, remember: true };
+  }
+  if (languageStore.currentLocale !== null) return null;
+  return { locale: languageStore.preferredLocale(), remember: false };
+}
+
+async function activateLocale({ locale, remember }: LocaleChoice, initial: boolean) {
+  try {
+    await useLanguageStore().setCurrentLocale(locale, { remember });
+  } catch (error) {
+    await recoverLocale(locale, error, initial);
+  }
+}
+
+/**
+ * Handles a locale whose messages did not load, whichever source chose it
+ * (see createAuthGuard): logs the load error, then has the language store
+ * keep or choose the locale shown and record the failure.
+ */
+async function recoverLocale(locale: string, error: unknown, initial: boolean): Promise<void> {
+  logError(error);
+  try {
+    await useLanguageStore().recoverFromLocaleLoadFailure(locale);
+  } catch (fallbackError) {
+    failOrLog(fallbackError, initial);
+  }
+}
+
+/**
+ * A locale failure with no fallback left to show. The initial navigation
+ * fails with it
+ * (router.isReady() rejects and the entry flags the shell); a later
+ * navigation logs it and continues in the previous state.
+ */
+function failOrLog(error: unknown, initial: boolean): void {
+  if (initial) throw error;
+  logError(error);
+}
+
+function logError(error: unknown): void {
+  loggingService.error(
+    error instanceof Error ? error : new Error(`[RouterGuard] ${String(error)}`)
+  );
 }
 
 function requiresAuthentication(route: RouteLocationNormalized): boolean {

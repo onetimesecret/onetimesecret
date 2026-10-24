@@ -10,7 +10,27 @@ module Core
     #
     # This module loads JavaScript, CSS, and font assets based on the Vite manifest,
     # supporting both production and development configurations. It handles the
-    # complexities of CSS bundling and font preloading.
+    # complexities of CSS bundling, font preloading and the CSP nonce model of a
+    # code-split build.
+    #
+    # CSP nonce model. The production script-src is nonce-only (otto's
+    # production_directives), and exactly one <script type="module"> per shell
+    # has the nonce. The chunks that script imports, statically or via
+    # import(), need no nonce of their own: the HTML spec defines a script's
+    # cryptographic nonce as "The cryptographic nonce metadata used for the
+    # initial fetch and for fetching any imported modules", and CSP's script
+    # pre-request check allows a request whose nonce metadata matches the policy.
+    # Two things do NOT inherit the nonce, and a blocked one breaks the page
+    # (the browser then refuses the later import of the same URL, and the entry
+    # reloads the page on vite:preloadError, at most once a minute; see
+    # src/utils/preloadError.ts):
+    #
+    # - <link rel="modulepreload"> tags: each is its own fetch. The ones this
+    #   helper emits for the entry's static imports get the nonce.
+    # - The <link> tags Vite's preload helper creates before a dynamic import:
+    #   it reads the nonce from <meta property="csp-nonce" nonce="..."> (vite 8,
+    #   the preload() helper in importAnalysisBuild), so this helper emits that
+    #   tag ahead of the entry script.
     #
     module ViteManifest
       include Onetime::LoggerMethods
@@ -57,15 +77,10 @@ module Core
       #
       # @param nonce [String] Content Security Policy nonce
       # @param entry [String] Vite manifest entry key to resolve (e.g. 'main.ts'
-      #   or 'admin.ts'). Each entry is its own single chunk (codeSplitting:false).
+      #   or 'admin.ts'). Both entries are built in one pass and share chunks.
       # @return [String] HTML tags for production assets
       def build_prod_assets(nonce, entry = 'main.ts')
-        # Each entry is built in its own single-input Vite pass and writes its
-        # own self-contained manifest (chunk + CSS + fonts). Resolve the file
-        # for the requested entry: the admin console has manifest-admin.json,
-        # everything else uses the default manifest.json.
-        manifest_file = entry == 'admin.ts' ? 'manifest-admin.json' : 'manifest.json'
-        manifest_path = File.join(PUBLIC_DIR, 'dist', '.vite', manifest_file)
+        manifest_path = File.join(PUBLIC_DIR, 'dist', '.vite', 'manifest.json')
 
         unless File.exist?(manifest_path)
           app_logger.error 'Vite manifest not found - frontend assets unavailable',
@@ -73,35 +88,64 @@ module Core
               manifest_path: manifest_path,
               instruction: 'Run `pnpm run build` to generate assets',
             }
-          return error_script(nonce, "Vite #{manifest_file} not found. Run `pnpm run build`")
+          return error_script(nonce, 'Vite manifest.json not found. Run `pnpm run build`')
         end
 
-        @manifest_caches      ||= {}
-        manifest                = (@manifest_caches[manifest_file] ||= Familia::JsonSerializer.parse(File.read(manifest_path)))
-        entry_data              = manifest[entry]
-        style_entry             = manifest['style.css'] # may not exist
+        @manifest_cache ||= Familia::JsonSerializer.parse(File.read(manifest_path))
+        manifest          = @manifest_cache
+        entry_data        = manifest[entry]
+        style_entry       = manifest['style.css'] # may not exist
 
         return error_script(nonce, "Entry '#{entry}' not found in Vite manifest") unless entry_data
 
         assets = []
+        assets << build_csp_nonce_meta(nonce)
         assets << build_script_tag(entry_data['file'], nonce)
 
-        # Handle CSS attached to this entry's chunk
-        if entry_data['css']&.any?
-          entry_data['css'].each do |css_file|
-            assets << build_css_tag(css_file, nonce)
-          end
+        # The entry's static imports, transitively. The browser would discover
+        # them anyway, one level per round trip as each chunk is parsed;
+        # preloading fetches them all at once. These links need the nonce (see
+        # the module comment).
+        imported_chunk_files(manifest, entry).each do |file|
+          assets << build_modulepreload_tag(file, nonce)
         end
 
-        # Handle separate style.css entry. With cssCodeSplit:false the whole
-        # build emits one stylesheet; depending on which entry it attaches to in
-        # the manifest, this shared lookup guarantees the shell still links it.
-        if style_entry && style_entry['file']
-          assets << build_css_tag(style_entry['file'], nonce)
+        # The stylesheet. With cssCodeSplit:false the whole build emits one,
+        # exposed under the manifest's `style.css` key; a chunk's own `css`
+        # list is included for completeness and deduplicated against it.
+        [*Array(entry_data['css']), style_entry&.dig('file')].compact.uniq.each do |css_file|
+          assets << build_css_tag(css_file, nonce)
         end
 
         assets.concat(build_font_preloads(manifest, nonce))
         assets.join("\n")
+      end
+
+      # Static imports of a manifest entry, transitively and without
+      # duplicates, as dist-relative file paths. Dynamic imports are left to
+      # Vite's preload helper at runtime.
+      #
+      # @param manifest [Hash] Vite manifest data
+      # @param key [String] Manifest key of the chunk to start from
+      # @param seen [Hash] Keys already visited (shared across the recursion)
+      # @return [Array<String>] Chunk file paths in preload order
+      def imported_chunk_files(manifest, key, seen = {})
+        Array(manifest.dig(key, 'imports')).flat_map do |dep|
+          next [] if seen[dep]
+
+          seen[dep] = true
+          [manifest.dig(dep, 'file'), *imported_chunk_files(manifest, dep, seen)]
+        end.compact
+      end
+
+      # Builds the meta tag Vite's preload helper reads the nonce from, for the
+      # <link> tags it creates before a dynamic import. Without it those links
+      # are blocked by the nonce-only script-src and every lazy route fails.
+      #
+      # @param nonce [String] Content Security Policy nonce
+      # @return [String] HTML meta tag
+      def build_csp_nonce_meta(nonce)
+        %(<meta property="csp-nonce" nonce="#{nonce}">)
       end
 
       # Builds a script tag for JavaScript assets.
@@ -111,6 +155,15 @@ module Core
       # @return [String] HTML script tag
       def build_script_tag(file, nonce)
         %(<script type="module" nonce="#{nonce}" src="/dist/#{file}"></script>)
+      end
+
+      # Builds a modulepreload link for a chunk the entry imports statically.
+      #
+      # @param file [String] Chunk file path
+      # @param nonce [String] Content Security Policy nonce
+      # @return [String] HTML link tag
+      def build_modulepreload_tag(file, nonce)
+        %(    <link rel="modulepreload" nonce="#{nonce}" href="/dist/#{file}">)
       end
 
       # Builds a link tag for CSS assets.

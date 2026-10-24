@@ -15,10 +15,10 @@
 #
 #   1. credentials configured but the dist tree / .map files are absent
 #      (nothing to upload — the upload would "succeed" with zero artifacts);
-#   2. the admin bundle (src/admin.ts, second vite pass) missing from the tree
-#      while the customer bundle is present — the Colonel console's traces
-#      would be the only unsymbolicated ones, which is exactly the kind of
-#      partial failure nobody notices;
+#   2. the admin entry (src/admin.ts) missing from the tree while the customer
+#      entry is present — the Colonel console's traces would be the only
+#      unsymbolicated ones, which is exactly the kind of partial failure
+#      nobody notices;
 #   3. the release string used for upload not matching the __SENTRY_RELEASE__
 #      value baked into the bundles by vite.config.ts (a bundle filed under a
 #      release no event will ever report);
@@ -124,22 +124,21 @@ if [ "${map_count:-0}" -eq 0 ]; then
   exit 0
 fi
 
-# --- 3. both bundles, not just the customer one ------------------------------
+# --- 3. both entries, not just the customer one ------------------------------
 #
-# package.json 'build' runs vite twice: the customer pass (src/main.ts) then
-# the admin pass (src/admin.ts, emptyOutDir: false, .vite/manifest-admin.json).
-# Both are instrumented — src/main.ts and src/admin.ts each construct the
-# AppInitializer that calls createDiagnostics(). A tree with only the first
-# pass is a half-delivery.
+# One vite pass emits both entries (src/main.ts and src/admin.ts, see
+# rolldownOptions.input in vite.config.ts) as assets/<name>.<hash>.js next to
+# the shared chunks (assets/<name>-<hash>.js). Both are instrumented —
+# src/main.ts and src/admin.ts each construct the AppInitializer that calls
+# createDiagnostics(). A tree with only one entry sourcemap is a half-delivery.
 main_ok=0
 admin_ok=0
 have_glob "${DIST_DIR}/assets/main.*.js.map" && main_ok=1
 have_glob "${DIST_DIR}/assets/admin.*.js.map" && admin_ok=1
-[ -f "${DIST_DIR}/.vite/manifest-admin.json" ] || admin_ok=0
 
 if [ "$main_ok" -eq 0 ] && [ "$admin_ok" -eq 0 ]; then
   report sourcemaps blocked \
-    "found ${map_count} .map file(s) in ${DIST_DIR} but no entry sourcemap for either bundle (expected assets/main.*.js.map and assets/admin.*.js.map) — the tree is not a completed two-pass vite build."
+    "found ${map_count} .map file(s) in ${DIST_DIR} but no entry sourcemap for either bundle (expected assets/main.*.js.map and assets/admin.*.js.map) — the tree is not a completed vite build."
   emit_status blocked
   exit 0
 fi
@@ -151,7 +150,7 @@ fi
 
 if [ "$admin_ok" -eq 0 ]; then
   warn sourcemaps warn \
-    "admin bundle missing or incomplete (want ${DIST_DIR}/assets/admin.*.js.map and ${DIST_DIR}/.vite/manifest-admin.json) — the second vite pass (VITE_BUILD_TARGET=admin) did not land, so Colonel console traces will not symbolicate."
+    "admin bundle sourcemap missing (no ${DIST_DIR}/assets/admin.*.js.map) — Colonel console traces for release ${RELEASE} will not symbolicate."
 fi
 
 # --- 4. release parity with __SENTRY_RELEASE__ -------------------------------
@@ -232,9 +231,9 @@ fi
 dist_in_bundle=0
 if [ -n "$UPLOAD_DIST" ]; then
   # Fixed strings, not a regex, so a dist containing regex metacharacters cannot
-  # loosen the match. The build minifies to a single chunk and minifiers do not
-  # quote keys that are valid identifiers, hence the bare `dist:`; the spaced
-  # forms cover an unminified tree.
+  # loosen the match. The build is minified and minifiers do not quote keys
+  # that are valid identifiers, hence the bare `dist:`; the spaced forms cover
+  # an unminified tree.
   for needle in "dist:\"${UPLOAD_DIST}\"" "dist:'${UPLOAD_DIST}'" \
                 "dist: \"${UPLOAD_DIST}\"" "dist: '${UPLOAD_DIST}'"; do
     if grep -RIlF -- "$needle" "${DIST_DIR}"/assets/*.js > /dev/null 2>&1; then

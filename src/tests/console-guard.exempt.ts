@@ -32,6 +32,7 @@ export const CONSOLE_GUARD_EXEMPT: ReadonlySet<string> = new Set<string>([
   'src/tests/apps/admin/useOrganizationsList.spec.ts',
   'src/tests/apps/admin/usePaginatedFetch.spec.ts',
   'src/tests/apps/admin/useResourceFetch.spec.ts',
+  'src/tests/apps/workspace/dashboard/passiveRefresh.spec.ts',
   'src/tests/services/signin-config.service.spec.ts',
   'src/tests/setup.harness.spec.ts',
   'src/tests/stores/identityStore.spec.ts',
@@ -68,14 +69,6 @@ export const CONSOLE_GUARD_EXEMPT: ReadonlySet<string> = new Set<string>([
   'src/tests/stores/domainsStore.spec.ts',
   'src/tests/stores/localReceiptStore.spec.ts',
   'src/tests/views/session/AcceptInvite.spec.ts',
-
-  // "Locale … is not in available locales": under vitest, src/i18n.ts's
-  // import.meta.glob('/../generated/locales/*.json') matches nothing (it is
-  // relative to Vite's root, ./src), so the real i18n module has no locales.
-  'src/tests/api/passiveRequest.spec.ts',
-  'src/tests/apps/workspace/dashboard/passiveRefresh.spec.ts',
-  'src/tests/stores/languageStore-locale-detection.spec.ts',
-  'src/tests/stores/languageStore.spec.ts',
 
   // Setup patches auth fields through bootstrapStore.update(), which ignores
   // them and warns: the tests do not get the auth state they set up.
