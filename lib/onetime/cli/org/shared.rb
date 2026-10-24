@@ -20,6 +20,8 @@ module Onetime
     #
     #   cus_…            Stripe customer id      -> find_by_stripe_customer_id
     #   sub_…            Stripe subscription id  -> find_by_stripe_subscription_id
+    #                    (both refuse an index entry naming an org that no
+    #                    longer holds the id; see #org_holding)
     #   contains a `.`   custom-domain hostname  -> the domain's primary org
     #   anything else    org extid FIRST, objid fallback
     #
@@ -104,14 +106,30 @@ module Onetime
 
         def lookup_org(id)
           if id.start_with?(STRIPE_CUSTOMER_PREFIX)
-            Onetime::Organization.find_by_stripe_customer_id(id)
+            org_holding(Onetime::Organization.find_by_stripe_customer_id(id), :stripe_customer_id, id)
           elsif id.start_with?(STRIPE_SUBSCRIPTION_PREFIX)
-            Onetime::Organization.find_by_stripe_subscription_id(id)
+            org_holding(Onetime::Organization.find_by_stripe_subscription_id(id), :stripe_subscription_id, id)
           elsif id.include?('.')
             Onetime::CustomDomain.from_display_domain(id)&.primary_organization
           else
             Onetime::Organization.find_by_extid(id) || Onetime::Organization.load(id)
           end
+        end
+
+        # The org a Stripe-id index entry names, only while that org still
+        # carries the id. The generated find_by_* finders load whatever the
+        # index names without reading the field back, and a stale entry is a
+        # real state (doctor check 6). Acting on it would aim `delete`,
+        # `reconcile`, `entitlement clear` or `transfer-ownership` at an org
+        # the operator did not name. Same refusal as
+        # CustomDomain.record_for_display_domain on the hostname branch.
+        def org_holding(org, field, value)
+          return nil unless org
+          return org if org.public_send(field).to_s == value
+
+          OT.le "[org cli] Refused the #{field} index entry for #{value}: it names " \
+                "#{org.extid}, which does not hold it (run bin/ots organizations doctor --all)"
+          nil
         end
       end
     end

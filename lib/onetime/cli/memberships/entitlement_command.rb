@@ -225,7 +225,9 @@ module Onetime
         '  bin/ots memberships entitlement clear ORG CUSTOMER           # Wipe ALL overrides on the membership',
       ].freeze
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         puts 'Usage:'
         USAGE_LINES.each { |line| puts line }
         puts

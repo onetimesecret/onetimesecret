@@ -364,7 +364,7 @@ module Onetime
 
         if candidate
           # Actually perform the promotion
-          promoted = promote_owner_from_membership(org)
+          promoted = attempt_owner_promotion(org, issue)
           if promoted
             report[:repaired] << {
               org: org.extid,
@@ -1069,6 +1069,24 @@ module Onetime
         nil
       end
 
+      # One org's failed write must not abort an --all scan: record the reason
+      # on the issue (it stays unrepaired, so exit_with_status still counts it)
+      # and let the remaining checks and orgs run. promote_owner_from_membership
+      # writes only owner_id/created_by/updated, which no unique index covers,
+      # so this is the guard for an index added to those fields later. The
+      # in-memory fields are put back so checks 2 and 4 read what is stored.
+      def attempt_owner_promotion(org, issue)
+        stored = { owner_id: org.owner_id, created_by: org.created_by, updated: org.updated }
+        promote_owner_from_membership(org)
+      rescue Familia::RecordExistsError => ex
+        stored.each { |field, value| org.public_send(:"#{field}=", value) }
+        reason                = "unique-index conflict with #{ex.existing_id || 'another record'}"
+        issue[:repair_failed] = reason
+        issue[:repair_action] = "Repair failed: #{reason}"
+        OT.le "[org doctor] Could not promote an owner for #{org.extid}: #{reason}"
+        nil
+      end
+
       def promote_owner_from_membership(org)
         # Find a member with role:'owner' in their membership record
         org.members.to_a.each do |member_id|
@@ -1092,10 +1110,16 @@ module Onetime
           # Update org.owner_id — the OBJID, matching what Organization.create!
           # writes and what check 4 compares against the members set (#3907)
           org.owner_id = customer.objid
-          unless org.save
-            OT.le "[org doctor] Failed to save org #{org.extid} after owner promotion"
-            next
-          end
+
+          # Field-scoped write, never a full save: save guards and claims EVERY
+          # unique index, so an org whose contact_email or Stripe id another
+          # org's index entry holds (check 6's duplicate state) would raise
+          # Familia::RecordExistsError here. save_fields guards only the
+          # fields it writes, and none of these is indexed. It does not stamp
+          # `updated` the way save does, so that is written explicitly.
+          org.updated = Familia.now
+          fields      = migrate_created_by ? [:owner_id, :created_by, :updated] : [:owner_id, :updated]
+          org.save_fields(*fields)
           OT.info "[org doctor] Promoted #{customer.extid} as owner of #{org.extid}"
           return {
             custid: customer.custid,

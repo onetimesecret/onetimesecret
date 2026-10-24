@@ -16,7 +16,9 @@ module Onetime
     class CustomersCommand < Command
       desc 'Manage customer records'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         boot_application!
 
         puts format('%d customers', Onetime::Customer.instances.size)

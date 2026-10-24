@@ -15,6 +15,59 @@ module Onetime
   module CLI
     extend Dry::CLI::Registry
 
+    # Included by both base classes below. Rejects a token that names no child
+    # of a parent command.
+    #
+    # dry-cli 1.4.1 (CommandRegistry#get): when a node is both a command and a
+    # parent, a following token that names no child falls back to that node,
+    # with the leftover words in `args:`. A parent whose `call(**)` ignores
+    # them prints its usage and exits 0, so a typo or a removed verb looks like
+    # success to a script. Every such parent takes `args: []` and calls
+    # `reject_unknown_subcommand(args)` first, before it boots anything.
+    #
+    # Per-command hooks:
+    # - REMOVED_SUBCOMMANDS = { 'verb' => 'replacement' } names verbs that were
+    #   removed and where they went; the hint replaces the spelling suggestion.
+    # - unknown_subcommand_usage(io) prints the usage after the error. The
+    #   default lists the registered children.
+    module SubcommandGuard
+      protected
+
+      def reject_unknown_subcommand(args)
+        return if args.nil? || args.empty?
+
+        token = args.first
+        warn "Unknown subcommand: #{token}"
+
+        removed = self.class.const_defined?(:REMOVED_SUBCOMMANDS) ? self.class::REMOVED_SUBCOMMANDS : {}
+        if removed.key?(token)
+          warn "`#{token}` was removed; use: #{removed[token]}"
+        else
+          suggestion = DidYouMean::SpellChecker.new(dictionary: subcommand_names).correct(token).first
+          warn "Did you mean `#{suggestion}`?" if suggestion
+        end
+        warn ''
+        unknown_subcommand_usage($stderr)
+        exit 1
+      end
+
+      def unknown_subcommand_usage(io)
+        io.puts "Subcommands: #{subcommand_names.join(', ')}"
+        io.puts 'Add --help for details.'
+      end
+
+      # The children registered under this command. CommandRegistry#set hands
+      # the node's children to the command class (Node#subcommands!), so the
+      # names come from the registry, not a hand-kept list. Hidden children are
+      # left out.
+      def subcommand_names
+        children = self.class.subcommands
+        return [] unless children.respond_to?(:each_pair)
+
+        children.each_pair.reject { |_name, node| node.hidden }.map(&:first).sort
+      end
+    end
+
     # Base command class that boots the application
     #
     # Dry::CLI 1.4.1 never coerces `type: :integer` / `type: :float`, so a
@@ -24,6 +77,8 @@ module Onetime
     # itself, so it applies to every command regardless of base class and no
     # command's ancestor chain is touched. See that file for the analysis.
     class Command < Dry::CLI::Command
+      include SubcommandGuard
+
       def boot_application!
         # Make sure all the models are loaded before calling boot
         OT.boot! :cli
@@ -55,6 +110,8 @@ module Onetime
 
     # Command class that delays boot (for commands that handle boot themselves)
     class DelayBootCommand < Dry::CLI::Command
+      include SubcommandGuard
+
       protected
 
       def require_sudo

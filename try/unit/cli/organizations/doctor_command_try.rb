@@ -1108,6 +1108,26 @@ Onetime::Organization.instances.member?(@ghost_objid)
 [@cmd31.send(:release_stale_instance, @live_org.objid), Onetime::Organization.instances.member?(@live_org.objid)]
 #=> [false, true]
 
+## The --repair sweep removes only the entries still absent when it writes:
+## an id classified stale whose record was saved since keeps its entry, and
+## the report counts it as skipped
+@race_owner  = create_customer("race_owner_#{@test_suffix}@test.com")
+@race_org    = create_org("Race Instance Org", @race_owner, "race_#{@test_suffix}@acme.com")
+@race_ghost  = SecureRandom.uuid_v7
+Onetime::Organization.instances.add(@race_ghost)
+@cmd31.instance_variable_set(:@stale_instance_ids, [@race_ghost, @race_org.objid])
+@report31r = { checked: 0, healthy: 0, issues: [], repaired: [] }
+@cmd31.send(:sweep_stale_instances, @report31r, repair: true)
+[@report31r[:repaired], Onetime::Organization.instances.member?(@race_ghost), Onetime::Organization.instances.member?(@race_org.objid)]
+#=> [[{ action: :stale_instances_removed, count: 1, skipped: 1 }], false, true]
+
+## When every classified entry has a record again, --repair records no repair
+@report31n = { checked: 0, healthy: 0, issues: [], repaired: [] }
+@cmd31.instance_variable_set(:@stale_instance_ids, [@race_org.objid])
+@cmd31.send(:sweep_stale_instances, @report31n, repair: true)
+[@report31n[:issues].size, @report31n[:repaired], Onetime::Organization.instances.member?(@race_org.objid)]
+#=> [1, [], true]
+
 # -------------------------------------------------------------------
 # Teardown
 # -------------------------------------------------------------------
@@ -1118,7 +1138,7 @@ Onetime::Organization.instances.member?(@ghost_objid)
  @multi_org, @ensure_org, @stripe_healthy_org, @stripe_missing_org,
  @stripe_stale_org, @moved_org_a, @moved_org_b, @dup_org_a, @dup_org_b,
  @dup2_org_a, @dup2_org_b, @json_org, @billing_org, @noowner_org, @blank_org,
- @live_org].compact.each do |org|
+ @live_org, @race_org].compact.each do |org|
   org.destroy! if org.respond_to?(:destroy!) && org.exists?
 rescue StandardError
   nil
@@ -1127,7 +1147,8 @@ end
 [@healthy_owner, @missing_member_owner, @stale_owner, @mismatch_owner, @mismatch_member,
  @empty_owner, @promote_candidate, @cleanup_owner, @repair_owner, @scan_owner1,
  @scan_owner2, @multi_owner, @ensure_owner, @ensure_member,
- @stripe_owner, @noowner_owner, @blank_owner, @live_owner].compact.each do |cust|
+ @stripe_owner, @noowner_owner, @blank_owner, @live_owner,
+ @race_owner].compact.each do |cust|
   cust.destroy! if cust.respond_to?(:destroy!) && cust.exists?
 rescue StandardError
   nil

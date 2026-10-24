@@ -12,7 +12,9 @@ module Onetime
 
       desc 'Testing utilities for billing integration'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         puts <<~HELP
           Billing Test Utilities
 

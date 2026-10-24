@@ -16,7 +16,9 @@ module Onetime
     class MembershipsCommand < Command
       desc 'Manage organization membership records'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         boot_application!
 
         active_count  = Onetime::Organization.instances.sum do |objid|

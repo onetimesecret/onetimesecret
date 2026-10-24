@@ -18,6 +18,8 @@
 #   bin/ots organizations doctor --all           # Check all organizations
 #
 
+require 'did_you_mean'
+
 module Onetime
   module CLI
     class OrganizationsCommand < Command
@@ -71,18 +73,38 @@ module Onetime
         '  entries no live organization backs (MEDIUM / LOW)',
       ].freeze
 
-      def call(**)
+      # Verbs removed from `organizations`, with where they went. Read by
+      # SubcommandGuard#reject_unknown_subcommand (lib/onetime/cli.rb).
+      REMOVED_SUBCOMMANDS = {
+        'add-member' => 'bin/ots memberships add ORG CUSTOMER [--role R] [--default]',
+      }.freeze
+
+      # A token that names no child arrives in `args:`; see SubcommandGuard.
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         boot_application!
 
         puts format('%d organizations', Onetime::Organization.instances.size)
         puts
-        puts 'Usage:'
-        USAGE_LINES.each { |line| puts line }
-        puts
-        IDENTIFIER_LINES.each { |line| puts line }
-        puts
-        puts 'Integrity checks (doctor):'
-        INTEGRITY_CHECKS.each { |line| puts line }
+        print_usage
+      end
+
+      private
+
+      def print_usage(io: $stdout)
+        io.puts 'Usage:'
+        USAGE_LINES.each { |line| io.puts line }
+        io.puts
+        IDENTIFIER_LINES.each { |line| io.puts line }
+        io.puts
+        io.puts 'Integrity checks (doctor):'
+        INTEGRITY_CHECKS.each { |line| io.puts line }
+      end
+
+      # SubcommandGuard hook: the full usage, not just the child names.
+      def unknown_subcommand_usage(io)
+        print_usage(io: io)
       end
     end
 

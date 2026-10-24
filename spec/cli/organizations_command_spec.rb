@@ -243,4 +243,74 @@ RSpec.describe 'Organizations Command', type: :cli do
       expect(JSON.parse(output[:stdout])).to eq('error' => 'Organization not found: cus_nope')
     end
   end
+
+  # The consolidation retired `organizations --list` / `--check` and moved
+  # `org` under `organizations`. An alias must reach the SAME new command and
+  # run it, and a retired option-verb must fail loudly rather than fall through
+  # to the parent's usage screen (which would look like success to a script).
+  describe 'alias invocations and retired forms' do
+    it 'runs `organization show ORG` through the show command' do
+      output = run_cli_command_quietly('organization', 'show', 'on_org_ext')
+
+      expect(last_exit_code).to eq(0)
+      expect(output[:stdout]).to include('Organization: Acme')
+    end
+
+    it 'prints the doctor help for `org doctor --help`' do
+      output = run_cli_command_quietly('org', 'doctor', '--help')
+
+      expect(last_exit_code).to eq(0)
+      expect(output[:stdout]).to match(/^Usage:\n\s+\S+ org doctor \[ORG\]/)
+      expect(output[:stdout]).to include('Check organization data integrity')
+    end
+
+    [%w[organizations --list], %w[org --list], %w[organizations --check on_org_ext]].each do |argv|
+      it "refuses the retired `#{argv.join(' ')}` with exit 1 and runs nothing" do
+        allow(Onetime::Organization).to receive(:instances)
+
+        output = run_cli_command_quietly(*argv)
+
+        expect(last_exit_code).to eq(1)
+        expect(output[:stderr]).to include(argv[1])
+        expect(output[:stdout]).to be_empty
+        expect(Onetime::Organization).not_to have_received(:instances)
+      end
+    end
+  end
+
+  # The doubles above use the readable 'on_org_ext'. These feed resolve_org the
+  # identifiers a real Organization generates (extid `on` + base36, objid a
+  # UUIDv7), so a change to either format that collides with the cus_/sub_
+  # prefixes or the hostname `.` test is caught here rather than in production.
+  describe 'resolve_org with generated identifier shapes' do
+    let(:generated) { Onetime::Organization.new(display_name: 'Shape Probe') }
+
+    def expect_no_stripe_or_hostname_lookup
+      expect(Onetime::Organization).not_to have_received(:find_by_stripe_customer_id)
+      expect(Onetime::Organization).not_to have_received(:find_by_stripe_subscription_id)
+      expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+    end
+
+    it 'routes a generated extid to the extid lookup only', :aggregate_failures do
+      allow(Onetime::Organization).to receive(:find_by_extid).with(generated.extid).and_return(organization)
+
+      run_cli_command_quietly('organizations', 'show', generated.extid)
+
+      expect(last_exit_code).to eq(0)
+      expect(Onetime::Organization).to have_received(:find_by_extid).with(generated.extid)
+      expect(Onetime::Organization).not_to have_received(:load)
+      expect_no_stripe_or_hostname_lookup
+    end
+
+    it 'routes a generated objid to extid-then-objid', :aggregate_failures do
+      allow(Onetime::Organization).to receive(:load).with(generated.objid).and_return(organization)
+
+      run_cli_command_quietly('organizations', 'show', generated.objid)
+
+      expect(last_exit_code).to eq(0)
+      expect(Onetime::Organization).to have_received(:find_by_extid).with(generated.objid).ordered
+      expect(Onetime::Organization).to have_received(:load).with(generated.objid).ordered
+      expect_no_stripe_or_hostname_lookup
+    end
+  end
 end

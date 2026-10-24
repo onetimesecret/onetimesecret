@@ -15,7 +15,9 @@ module Onetime
       option :email, type: :string, desc: 'Filter by email address'
       option :limit, type: :integer, default: 100, desc: 'Maximum results to return'
 
-      def call(email: nil, limit: 100, **)
+      def call(args: [], email: nil, limit: 100, **)
+        reject_unknown_subcommand(args)
+
         boot_application!
 
         return unless stripe_configured?

@@ -237,7 +237,9 @@ module Onetime
         '  bin/ots organizations entitlement clear ORG           # Wipe ALL overrides on the org',
       ].freeze
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         puts 'Usage:'
         USAGE_LINES.each { |line| puts line }
         puts

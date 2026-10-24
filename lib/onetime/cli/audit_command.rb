@@ -187,7 +187,9 @@ module Onetime
     class AuditCommand < Command
       desc 'Read the operator audit trail'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         boot_application!
 
         puts 'Operator audit trail'
