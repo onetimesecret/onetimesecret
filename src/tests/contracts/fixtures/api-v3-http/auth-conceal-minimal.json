@@ -1,0 +1,90 @@
+{
+  "name": "auth-conceal-minimal",
+  "method": "POST",
+  "path": "/api/v3/secret/conceal",
+  "request": {
+    "secret": {
+      "secret": "schema audit dummy auth-conceal-minimal",
+      "ttl": 3600
+    }
+  },
+  "response_schema": "concealData",
+  "request_schema": "concealSecret",
+  "status": 200,
+  "headers": {
+    "x-content-type-options": "nosniff",
+    "x-xss-protection": "1; mode=block",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "o-domain-strategy": "canonical",
+    "o-display-domain": "127.0.0.1:3000",
+    "x-request-id": "068478gxflg0j",
+    "content-length": "1435"
+  },
+  "body": {
+    "success": true,
+    "record": {
+      "receipt": {
+        "identifier": "iylrwqz3zhu1y8tu2zrhvhvubzv90fv7u03aur18m38n3xmpagm1wlns0nbe0l",
+        "key": "iylrwqz3zhu1y8tu2zrhvhvubzv90fv7u03aur18m38n3xmpagm1wlns0nbe0l",
+        "owner_id": "01a16ba9-4a05-74a5-ac4c-17efa1aba262",
+        "state": "new",
+        "secret_shortid": "oqkhvan6",
+        "secret_identifier": "oqkhvan6r20aawginhy6zkosjzv37il1bgxytoqp24n8a0yml8uim7qtgq4u31",
+        "secret_ttl": 3600,
+        "metadata_ttl": 3600,
+        "receipt_ttl": 3600,
+        "lifespan": 3600,
+        "share_domain": null,
+        "created": 1792807619.254899,
+        "updated": 1792807619.2549021,
+        "shared": null,
+        "recipients": null,
+        "recipient_name": null,
+        "memo": null,
+        "shortid": "iylrwqz3",
+        "show_recipients": false,
+        "previewed": null,
+        "revealed": null,
+        "is_previewed": false,
+        "viewed": null,
+        "received": null,
+        "burned": null,
+        "is_viewed": false,
+        "is_received": false,
+        "is_revealed": false,
+        "is_burned": false,
+        "is_expired": false,
+        "is_orphaned": false,
+        "is_destroyed": false,
+        "has_passphrase": false,
+        "kind": "conceal",
+        "source": "standard"
+      },
+      "secret": {
+        "identifier": "oqkhvan6r20aawginhy6zkosjzv37il1bgxytoqp24n8a0yml8uim7qtgq4u31",
+        "key": "oqkhvan6r20aawginhy6zkosjzv37il1bgxytoqp24n8a0yml8uim7qtgq4u31",
+        "shortid": "oqkhvan6",
+        "state": "new",
+        "lifespan": 3600,
+        "secret_ttl": 3600,
+        "has_passphrase": false,
+        "verification": false,
+        "display_type": "text",
+        "created": 1792807619.2538571,
+        "updated": 1792807619.253859,
+        "is_previewed": false,
+        "is_revealed": false,
+        "is_viewed": false,
+        "is_received": false
+      },
+      "share_domain": null
+    },
+    "details": {
+      "kind": "conceal",
+      "recipient": [],
+      "recipient_safe": []
+    }
+  }
+}

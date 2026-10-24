@@ -1,23 +1,9 @@
-// src/schemas/api/v3/responses/feedback.ts
-//
-// V3 API response schemas for feedback endpoints.
-// Wraps shapes from shapes/v3/ in API envelopes.
-
-import { createApiResponseSchema } from '@/schemas/api/base';
-import { feedbackSchema, feedbackDetailsSchema } from '@/schemas/shapes/v3/feedback';
+// ReceiveFeedback acknowledges submission; it does not return the stored entity.
 import { z } from 'zod';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Envelope-wrapped response schemas
-// ─────────────────────────────────────────────────────────────────────────────
-
-export const feedbackResponseSchema = createApiResponseSchema(
-  feedbackSchema,
-  feedbackDetailsSchema
-);
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Type exports
-// ─────────────────────────────────────────────────────────────────────────────
+export const feedbackResponseSchema = z.strictObject({
+  record: z.strictObject({}),
+  details: z.strictObject({ message: z.string() }),
+});
 
 export type FeedbackResponse = z.infer<typeof feedbackResponseSchema>;

@@ -4,6 +4,7 @@
 // all fields the backend sends. Prevents silent field stripping (issue #2685).
 
 import { receiptBaseSchema } from '@/schemas/shapes/v3/receipt';
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import { RECEIPT_SAFE_DUMP_FIELDS } from './receipt-safe-dump-fields';
@@ -47,27 +48,32 @@ const INTENTIONAL_EXCLUSIONS: Record<string, string> = {
 describe('Receipt schema contract (safe_dump_fields)', () => {
   const schemaKeys = Object.keys(receiptBaseSchema.shape);
 
+  it('the field mirror matches current Ruby safe_dump declarations (not runtime conformance)', () => {
+    const source = readFileSync(
+      new URL('../../../lib/onetime/models/receipt/features/safe_dump_fields.rb', import.meta.url),
+      'utf8'
+    );
+    const declared = Array.from(
+      source.matchAll(/^\s*base\.safe_dump_field\s+:(\w+)/gm),
+      (match) => match[1]
+    );
+    expect([...RECEIPT_SAFE_DUMP_FIELDS].sort()).toEqual(declared.sort());
+  });
+
   describe('field completeness', () => {
     // For each backend field, verify the Zod schema declares it
     // (or it appears in the explicit exclusion list).
-    const backendFields = RECEIPT_SAFE_DUMP_FIELDS.filter(
-      (f) => !(f in INTENTIONAL_EXCLUSIONS)
-    );
+    const backendFields = RECEIPT_SAFE_DUMP_FIELDS.filter((f) => !(f in INTENTIONAL_EXCLUSIONS));
 
-    it.each(backendFields)(
-      'receiptBaseSchema declares backend field "%s"',
-      (field) => {
-        expect(schemaKeys).toContain(field);
-      }
-    );
+    it.each(backendFields)('receiptBaseSchema declares backend field "%s"', (field) => {
+      expect(schemaKeys).toContain(field);
+    });
 
     it('all intentional exclusions reference real backend fields', () => {
       // Guard against stale exclusions: every key in INTENTIONAL_EXCLUSIONS
       // must actually exist in the backend field list.
       for (const excluded of Object.keys(INTENTIONAL_EXCLUSIONS)) {
-        expect(
-          RECEIPT_SAFE_DUMP_FIELDS as readonly string[]
-        ).toContain(excluded);
+        expect(RECEIPT_SAFE_DUMP_FIELDS as readonly string[]).toContain(excluded);
       }
     });
 
@@ -106,6 +112,7 @@ describe('Receipt schema contract (safe_dump_fields)', () => {
       updated: 1735204014,
       shared: null,
       recipients: ['recipient@example.com'],
+      recipient_name: null,
       memo: 'Test memo',
       shortid: 'abc12345',
       show_recipients: true,
@@ -124,6 +131,7 @@ describe('Receipt schema contract (safe_dump_fields)', () => {
       is_destroyed: false,
       has_passphrase: false,
       kind: 'conceal',
+      source: 'standard',
     };
 
     it('parses a full backend payload without errors (passthrough mode)', () => {
