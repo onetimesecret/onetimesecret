@@ -104,7 +104,7 @@ this format.
 
 - `email` absent on a first sign-in: expected `missing_email`. First-time
   provisioning without a claim is the
-  [proposed Phase 2 work](../planning/2026-1009-sso-email-less-accounts.md);
+  [proposed Phase 2 work](../specs/sso/email-less-accounts-proposal.md);
   an existing account holder may use the
   [conditional Connect path](../authentication/per-install-sso.md#existing-account-with-a-missing-email-claim).
 - `email` present but refused: check `invalid_email` (shape) against

@@ -1,9 +1,10 @@
 # #3780 — Favicon fetch worker: outstanding work & opportunities
 
 **Date:** 2026-08-11
-**Re-verified:** 2026-09-06 — every item in §0–§4 re-checked against the tree. **Nothing has
-been fixed; no item is closed.** #4135 is still OPEN. Line references below were refreshed
-where the code moved; the findings themselves are unchanged.
+**Re-verified:** 2026-10-22 — every item in §0–§4 re-checked against the tree. **Items #2 and #15
+are fixed; every other item is still open.** #4135 is still OPEN. Line references for the
+config defaults and the two fixed items are current as of 2026-10-22; the rest were last
+refreshed 2026-09-06.
 **Status of #3780 itself:** Implemented and merged (PR #3782, 2026-07-15). This document
 supersedes `3780-favicon-worker-blueprint.md`, `3780-favicon-worker-decisions.md`, and
 `3780-favicon-worker-phase23-blueprint.md` as the tracker for what's left — those three now
@@ -16,18 +17,18 @@ places as they land, and keep this document in sync with that issue.
 Produced by a code-verified audit (8 independent agents, each finding checked directly against
 the current tree, not against the original adversarial-review comment's claims) run against the
 current codebase on 2026-08-11. Every item below cites file:line evidence; see the audit for the
-full trace if needed. Line numbers re-confirmed 2026-09-06.
+full trace if needed.
 
 ## 0. Read this first: the flag-default contradiction
 
-**`jobs.favicon_fetch.enabled` currently defaults to `true`** (`etc/defaults/config.defaults.yaml:1579`,
+**`jobs.favicon_fetch.enabled` currently defaults to `true`** (`etc/defaults/config.defaults.yaml:1751`,
 comment: *"Feature flag — default ON (see #3780)"*). This directly contradicts:
 - Issue #3780's own Definition of Done: *"Feature flag defaults off"*.
 - PR #3782's description: *"Flag-gated OFF (`jobs.favicon_fetch`) — no runtime behaviour changes
   until enabled."*
 
 `jobs.favicon_backfill.enabled` (the nightly scan) correctly still defaults to `false`
-(`config.defaults.yaml:1600`), so the nightly-scan-specific bugs below (#2, #4, #5) are only live
+(`config.defaults.yaml:1772`), so the nightly-scan-specific bugs below (#2, #4, #5) are only live
 once an operator flips that second flag. But the fetch-on-add, fetch-on-verify, and manual-refresh
 triggers are live **today**, by default, on every deployment that also has `jobs.enabled: true`
 (or run inline-synchronously on the request/verification thread when `jobs.enabled` is `false`,
@@ -58,13 +59,10 @@ Findings the review raised that have since been fixed are *not* listed here (see
    forever. No regression test exists for the attempts counter on the timeout path either
    (`fetch_domain_favicon_try.rb:248-261` asserts status only, not attempts).
 
-2. **`requeue!` is a dead retry tier.** `claim_for_processing` (`base_worker.rb:250-255`) is never
-   released on the timeout/requeue path in `favicon_fetch_worker.rb:155` (still a bare `requeue!`,
-   no `release_processing_claim` anywhere in the file) — contrast
-   `session_revocation_sweep_worker.rb:110-118`, which calls `release_processing_claim` before
-   `reject!` specifically to avoid this trap. A broker redelivery of the same message within the
-   1h idempotency TTL is silently ack'd as a "duplicate" and never reprocessed; the domain stalls
-   at `PROCESSING` until the next nightly backfill (if enabled) or forever (if not).
+2. **Fixed.** `requeue!` was a dead retry tier: the processing claim taken by
+   `claim_for_processing` was never released on the timeout path, so the broker's redelivery was
+   ack'd as a duplicate. `favicon_fetch_worker.rb:177` now releases the claim before `requeue!`
+   and rejects to the DLQ when the release fails (commit b3fc3f8036, #4479).
 
 3. **No per-domain exception isolation in the nightly scan.**
    `lib/onetime/jobs/scheduled/favicon_backfill_job.rb:85-113` wraps the *entire* scan (all pages)
@@ -139,11 +137,9 @@ silently reopen the corresponding bug with the full suite staying green.
 14. **Relative/protocol-relative redirect `Location` absolutization is untested** — every redirect
     test uses a fully-qualified URL; `#absolutize`'s relative-path and `//host/` branches are
     never hit.
-15. **Teredo (`2001:0000::/32`) is missing from `BLOCKED_V6`** (no `2001:0000` literal appears
-    anywhere in `safe_fetch.rb`) — the same class of tunneling
-    prefix as the already-blocked 6to4 (`2002::/16`) and NAT64 (`64:ff9b::/96`) ranges, but
-    omitted. Narrow, defense-in-depth gap (requires the fetching host to have Teredo transport
-    configured).
+15. **Fixed.** Teredo (`2001::/32`) is blocked by the shared egress guard
+    (`lib/onetime/http/guard.rb:70`), which `SafeFetch` now uses instead of its own list
+    (`safe_fetch.rb:73`; commit d3ec7290fa).
 16. **No test drives an actual broker redelivery** of a requeued message through
     `work_with_params` a second time — the existing test only asserts the worker *calls*
     `requeue!`, not that a redelivery is handled correctly (it currently isn't — see #2).

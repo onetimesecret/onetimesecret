@@ -710,33 +710,33 @@ RSpec.describe Onetime::SsoProvider::Registry do
           expect(saml_valid?(SAML_IDP_CERT: future)).to be false
         end
 
-        # allow_expired: exists for the tenant RECORD's validity check only
-        # (an expired certificate must not make a stored config uneditable).
-        # It relaxes the WHOLE validity window — expiry and not-yet-valid —
-        # and nothing else, and the builder never uses it.
-        describe '.cert_problem(allow_expired: true)' do
+        # stored: exists for the tenant RECORD's validity check only (an
+        # expired certificate must not make a saved config uneditable). It
+        # relaxes the WHOLE validity window — expiry and not-yet-valid — and
+        # the key type, never the structure, and the builder never uses it.
+        describe '.cert_problem(stored: true)' do
           let(:expired) { SamlSpec::TestIdp.new(cert_not_after: Time.utc(2020, 1, 2)).cert_pem }
           let(:future) do
             SamlSpec::TestIdp.new(cert_not_before: Time.utc(2099, 1, 1), cert_not_after: Time.utc(2099, 1, 2)).cert_pem
           end
 
           it 'accepts an expired certificate that is otherwise well-formed' do
-            expect(Onetime::SsoProvider::Saml.cert_problem(expired, allow_expired: true)).to be_nil
+            expect(Onetime::SsoProvider::Saml.cert_problem(expired, stored: true)).to be_nil
             expect(Onetime::SsoProvider::Saml.cert_problem(expired)).to match(/expired on 2020-01-02/)
           end
 
           it 'accepts a not-yet-valid certificate too (the whole window is skipped)' do
-            expect(Onetime::SsoProvider::Saml.cert_problem(future, allow_expired: true)).to be_nil
+            expect(Onetime::SsoProvider::Saml.cert_problem(future, stored: true)).to be_nil
             expect(Onetime::SsoProvider::Saml.cert_problem(future)).to match(/not valid until 2099-01-01T00:00:00Z/)
           end
 
           it 'still refuses every structural problem' do
             saml = Onetime::SsoProvider::Saml
 
-            expect(saml.cert_problem('', allow_expired: true)).to match(/blank/)
-            expect(saml.cert_problem('AB:CD:EF', allow_expired: true)).to match(/PEM X\.509/)
-            expect(saml.cert_problem(expired + expired, allow_expired: true)).to match(/exactly one/)
-            expect(saml.cert_problem("-----BEGIN CERTIFICATE-----\nnope\n-----END CERTIFICATE-----", allow_expired: true))
+            expect(saml.cert_problem('', stored: true)).to match(/blank/)
+            expect(saml.cert_problem('AB:CD:EF', stored: true)).to match(/PEM X\.509/)
+            expect(saml.cert_problem(expired + expired, stored: true)).to match(/exactly one/)
+            expect(saml.cert_problem("-----BEGIN CERTIFICATE-----\nnope\n-----END CERTIFICATE-----", stored: true))
               .to match(/does not parse/)
           end
 
