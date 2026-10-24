@@ -2,7 +2,8 @@
 
 import { ApplicationError } from '@/schemas';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { mockCustomer } from '../fixtures/bootstrap.fixture';
+import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
+import { baseBootstrap, mockCustomer } from '../fixtures/bootstrap.fixture';
 import {
   SESSION_STORAGE_KEY,
   UnsupportedLocaleError,
@@ -819,6 +820,58 @@ describe('Language Store', () => {
       const languages = store.acceptLanguages;
       expect(languages[0]).toBe('es');
       expect(languages).toContain('de-DE');
+    });
+  });
+
+  // A locale the server lists without a generated messages file: a pruned
+  // build, a locales sync that did not run, a custom locale list. The server
+  // keeps it in supported_locales (lib/onetime/initializers/load_locales.rb
+  // logs the missing file and goes on to the next). Activating it would
+  // reject and fail the first navigation (src/router/guards.routes.ts), so
+  // init() drops it from the supported locales and nothing offers or chooses
+  // it. 'sw' has no generated file.
+  describe('a supported locale this build has no messages for', () => {
+    beforeEach(() => {
+      bootstrapStore.update({ supported_locales: ['en', 'sw', 'nl'], default_locale: 'sw' });
+    });
+
+    it('is dropped from the supported locales at init', () => {
+      const store = useLanguageStore();
+      store.init();
+
+      expect(store.getSupportedLocales).toEqual(['en', 'nl']);
+    });
+
+    it('is passed over at every rank of the preference hierarchy', () => {
+      bootstrapStore.update({
+        cust: { ...mockCustomer, locale: 'sw' },
+        domain_branding: {
+          ...(baseBootstrap.domain_branding as NonNullable<BootstrapPayload['domain_branding']>),
+          locale: 'sw',
+        },
+      });
+      vi.spyOn(sessionStorage, 'getItem').mockReturnValue('sw');
+
+      const store = useLanguageStore();
+      // Account, stored, brand, device and default_locale all name it; the
+      // bundled DEFAULT_LOCALE is what is left.
+      expect(store.init({ deviceLocale: 'sw' })).toBe('en');
+    });
+
+    it('yields to the next candidate that has messages', () => {
+      vi.spyOn(sessionStorage, 'getItem').mockReturnValue('sw');
+
+      const store = useLanguageStore();
+      expect(store.init({ deviceLocale: 'nl' })).toBe('nl');
+    });
+
+    it('resolves to nothing, so a URL naming it is ignored like an unsupported one', async () => {
+      const store = useLanguageStore();
+      store.init();
+
+      expect(store.resolveSupportedLocale('sw')).toBeNull();
+      await expect(store.setCurrentLocale('sw')).rejects.toBeInstanceOf(UnsupportedLocaleError);
+      expect(store.currentLocale).toBeNull();
     });
   });
 });

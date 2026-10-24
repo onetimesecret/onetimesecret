@@ -121,6 +121,17 @@ describe('src/i18n.ts', () => {
       }
     });
 
+    // The language store asks this before offering a locale the server lists
+    // (languageStore.ts, loadSupportedLocales).
+    it('reports which locales have messages, without loading any', async () => {
+      const { hasLocaleMessages } = await loadI18n();
+
+      for (const code of generatedLocales) expect(hasLocaleMessages(code), code).toBe(true);
+      for (const code of ['xx', 'zh_Hant_TW', 'constructor', '__proto__', 'toString']) {
+        expect(hasLocaleMessages(code), code).toBe(false);
+      }
+    });
+
     it('rejects a chunk that fails, then retries on the next call', async () => {
       failChunk('ko');
       const { loadLocaleMessages } = await loadI18n();

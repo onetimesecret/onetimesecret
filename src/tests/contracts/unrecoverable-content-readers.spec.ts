@@ -10,6 +10,13 @@
 // fails here until it either calls useUnrecoverableContent() itself, or
 // renders inside a view that does, or keeps the value without rendering it,
 // and is listed below with that reason.
+//
+// The net is as wide as ONE_TIME_VALUE and no wider: a one-time value that
+// reaches the frontend under a third identifier is not caught until the
+// pattern names it. Today's set is complete (the account API token in
+// APIKeyForm.vue is re-fetched by ApiSettings.vue through accountStore.fetch(),
+// so a reload does not lose it); widen the pattern when a response gains a
+// field a reload would destroy.
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
@@ -51,15 +58,15 @@ const READERS: Record<string, Reader> = {
   },
   'src/apps/secret/composables/useSecretLifecycle.ts': {
     marks: false,
-    why: 'keeps the value in state and renders nothing',
+    why: 'has no importers in src/; keeps the value in state and renders nothing. A view adopting it must mark the page itself',
   },
   'src/apps/workspace/account/RecoveryCodes.vue': {
     marks: true,
-    why: 'marks from the regenerate request going out until the codes panel is closed',
+    why: 'marks from the regenerate request going out until the codes are cleared',
   },
   'src/apps/session/components/OtpSetupWizard.vue': {
     marks: true,
-    why: 'marks from the enable request going out until the wizard closes',
+    why: 'marks from the enable request going out until the codes leave state or the wizard closes',
   },
   'src/shared/composables/useMfa.ts': {
     marks: false,
