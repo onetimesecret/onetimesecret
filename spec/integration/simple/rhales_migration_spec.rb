@@ -257,6 +257,21 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
       end
     end
 
+    context 'when rendering a receipt page (head-secret-share partial, sender copy)' do
+      let(:request_path) { '/receipt/abc123def456' }
+
+      it 'tells search engines not to index or follow' do
+        expect(doc.css('meta[name="robots"]').first['content']).to eq('noindex, nofollow')
+      end
+
+      it 'unfurls with text that addresses the sender', :aggregate_failures do
+        expect(doc.css('meta[property="og:title"]').first['content']).to eq('Receipt for a secret you sent')
+        expect(doc.css('meta[property="og:description"]').first['content']).to include('a secret you sent')
+        expect(doc.css('meta[name="twitter:title"]').first['content']).to eq('Receipt for a secret you sent')
+        expect(doc.css('meta[property="og:image"], meta[name="twitter:image"]')).to be_empty
+      end
+    end
+
     context 'Partial Rendering' do
       it 'renders head partial' do
         expect(doc.css('meta[charset="UTF-8"]')).not_to be_empty

@@ -269,6 +269,20 @@ RSpec.describe Core::Views::BaseView do
         expect(view.view_vars['is_secret_page']).to be(expected)
       end
     end
+
+    # The Open Graph text addresses whoever the page is for: the recipient on
+    # a secret link, the sender on a receipt.
+    {
+      '/secret/abc123' => 'Test OG Title',
+      '/receipt/abc123' => 'Test Receipt OG Title',
+      '/incoming/abc123' => 'Test Receipt OG Title',
+    }.each do |path, title|
+      it "sets og_title to #{title.inspect} for #{path}" do
+        allow(rack_request).to receive(:path).and_return(path)
+
+        expect(view.view_vars['og_title']).to eq(title)
+      end
+    end
   end
 
   describe 'has_brand_color contract' do

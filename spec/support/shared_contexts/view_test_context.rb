@@ -150,5 +150,7 @@ RSpec.shared_context 'view_test_context' do
     allow(I18n).to receive(:t).with('web.COMMON.keywords', anything).and_return('test,keywords')
     allow(I18n).to receive(:t).with('web.COMMON.secret_og_title', anything).and_return('Test OG Title')
     allow(I18n).to receive(:t).with('web.COMMON.secret_og_description', anything).and_return('Test OG Description')
+    allow(I18n).to receive(:t).with('web.COMMON.receipt_og_title', anything).and_return('Test Receipt OG Title')
+    allow(I18n).to receive(:t).with('web.COMMON.receipt_og_description', anything).and_return('Test Receipt OG Description')
   end
 end

@@ -43,8 +43,11 @@ itself, the submission form, is not one.
   known, plus path, no query string); also the canonical link in
   head-base.rue and og:url in head.rue
 - `display_domain` - The served host, for twitter:domain
-- `og_title`, `og_description` - Neutral text from `web.COMMON.secret_og_*`,
-  so a link pasted into a chat unfurls without naming the page or sender
+- `og_title`, `og_description` - Neutral text, so a link pasted into a chat
+  unfurls without naming the page, the sender or the recipient:
+  `web.COMMON.secret_og_*` addresses the recipient on `/secret/*`,
+  `web.COMMON.receipt_og_*` the sender on `/receipt/*` and
+  `/incoming/:receiptKey`
 
 ## Modernization Changes
 

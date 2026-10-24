@@ -70,13 +70,23 @@
   },
   "web.COMMON.secret_og_title": {
     "text": "A secret link was shared with you",
-    "note": "og:title on /secret and /receipt pages; shown by chat and social unfurlers, so it must not name the page or the sender",
+    "note": "og:title on /secret pages (the recipient's page); shown by chat and social unfurlers, so it must not name the page or the sender",
     "content_hash": "cc3d83ce"
   },
   "web.COMMON.secret_og_description": {
     "text": "This secure link works one time. Open it when you are ready to view the content.",
-    "note": "og:description on /secret and /receipt pages",
+    "note": "og:description on /secret pages",
     "content_hash": "781e497c"
+  },
+  "web.COMMON.receipt_og_title": {
+    "text": "Receipt for a secret you sent",
+    "note": "og:title on /receipt and /incoming/:receiptKey pages (the sender's page); shown by unfurlers, so it must not name the page or the recipient",
+    "content_hash": "6e81c2bb"
+  },
+  "web.COMMON.receipt_og_description": {
+    "text": "This page shows the status of a secret you sent. Only the recipient can view the content.",
+    "note": "og:description on /receipt and /incoming/:receiptKey pages",
+    "content_hash": "0eca018e"
   },
   "web.COMMON.incorrect_passphrase": {
     "text": "Incorrect passphrase",

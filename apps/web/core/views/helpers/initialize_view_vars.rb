@@ -35,9 +35,12 @@ module Core
       # not read as a port.
       AUTHORITY_PORT = /\A(?:\[[^\]]*\]|[^:\[\]]+):(\d{1,5})\z/
 
-      # Request paths that render head-secret-share (`is_secret_page`): the
-      # /secret and /receipt prefixes, and an /incoming path with a key.
-      SECRET_PAGE_PATH = %r{\A/(?:secret|receipt)(?:/|\z)|\A/incoming/.}
+      # Request paths that render head-secret-share (`is_secret_page`), split
+      # by who the page is for so the Open Graph text can address them:
+      # SECRET_LINK_PATH is the recipient's page, RECEIPT_PAGE_PATH the
+      # sender's (/receipt/* and /incoming/:receiptKey).
+      SECRET_LINK_PATH  = %r{\A/secret(?:/|\z)}
+      RECEIPT_PAGE_PATH = %r{\A/receipt(?:/|\z)|\A/incoming/.}
 
       # Initialize core variables used throughout view rendering. These values
       # are the source of truth for te values that they represent. Any other
@@ -206,8 +209,6 @@ module Core
         # although a serializer could still choose to include any of them).
         description          = I18n.t('web.COMMON.description', locale: i18n_locale, default: 'Keep sensitive info out of your chat logs & email')
         keywords             = I18n.t('web.COMMON.keywords', locale: i18n_locale, default: 'secret,password,share,private,link')
-        og_title             = I18n.t('web.COMMON.secret_og_title', locale: i18n_locale, default: 'A secret link was shared with you')
-        og_description       = I18n.t('web.COMMON.secret_og_description', locale: i18n_locale, default: 'This secure link works one time. Open it when you are ready to view the content.')
 
         # Brand config — source of truth for tag-level branding (page_title,
         # mask-icon, etc.) and for default Vue app theming on first paint.
@@ -249,9 +250,13 @@ module Core
         # and /incoming/:receiptKey, the sender's receipt for an incoming
         # secret) render the head-secret-share partial: robots noindex and
         # neutral Open Graph text, so a link pasted into a chat unfurls
-        # without naming the page. robots.rue disallows the same paths.
-        # /incoming itself is the public submission form and stays indexable.
-        secret_page          = req.path.match?(SECRET_PAGE_PATH)
+        # without naming the page. The text addresses the recipient on a
+        # secret link and the sender on a receipt. robots.rue disallows the
+        # same paths. /incoming itself is the public submission form and
+        # stays indexable.
+        receipt_page             = req.path.match?(RECEIPT_PAGE_PATH)
+        secret_page              = receipt_page || req.path.match?(SECRET_LINK_PATH)
+        og_title, og_description = secret_share_copy(receipt_page, i18n_locale)
 
         brand_defaults              = Onetime::CustomDomain::BrandSettingsConstants::DEFAULTS
         brand_primary_color         = brand_config['primary_color']
@@ -399,6 +404,34 @@ module Core
           'support_email' => support_email,
           'docs_host' => docs_host,
         }
+      end
+
+      # The Open Graph title and description head-secret-share renders:
+      # addressed to the sender on a receipt page, to the recipient otherwise.
+      #
+      # @param receipt_page [Boolean] the path matched RECEIPT_PAGE_PATH
+      # @param locale [Symbol] I18n locale
+      # @return [Array(String, String)] title, description
+      def secret_share_copy(receipt_page, locale)
+        if receipt_page
+          [
+            I18n.t('web.COMMON.receipt_og_title', locale: locale, default: 'Receipt for a secret you sent'),
+            I18n.t(
+              'web.COMMON.receipt_og_description',
+              locale: locale,
+              default: 'This page shows the status of a secret you sent. Only the recipient can view the content.',
+            ),
+          ]
+        else
+          [
+            I18n.t('web.COMMON.secret_og_title', locale: locale, default: 'A secret link was shared with you'),
+            I18n.t(
+              'web.COMMON.secret_og_description',
+              locale: locale,
+              default: 'This secure link works one time. Open it when you are ready to view the content.',
+            ),
+          ]
+        end
       end
 
       # The authority page_url names: the display domain and, when one is
