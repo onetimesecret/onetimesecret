@@ -327,6 +327,28 @@ describe('resuming an interrupted language preference update', () => {
     expect(api.history.post).toHaveLength(2);
   });
 
+  // The notice says the language "remains active for this page": the account
+  // still holds its saved locale, so a public page keeps the unsaved one and
+  // the next protected navigation restores the saved one, retry included.
+  it('restores the saved account locale on the next protected navigation after a failed save', async () => {
+    captureAppLogs();
+    seedPending();
+    api.onPost('/api/account/update-locale').networkError();
+    const router = await startAt('/dashboard');
+    const store = useLanguageStore();
+    expect(store.localeSaveFailure).toEqual({ locale: 'nl', accountExtid: mockCustomer.extid });
+
+    await router.push('/about');
+    expect(store.currentLocale).toBe('nl');
+    expect(store.localeSaveFailure).toEqual({ locale: 'nl', accountExtid: mockCustomer.extid });
+
+    await router.push('/other');
+    await flushPromises();
+    expect(store.currentLocale).toBe('en');
+    expect(store.localeSaveFailure).toBeNull();
+    expect(api.history.post).toHaveLength(1);
+  });
+
   it('does not hold the initial navigation for the resumed save', async () => {
     seedPending();
     let finish!: (response: [number, object]) => void;
