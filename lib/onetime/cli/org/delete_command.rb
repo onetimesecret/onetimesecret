@@ -217,7 +217,7 @@ module Onetime
         when :has_domains
           error_exit(
             "#{result.org_id} still has #{result.domain_count} domain(s): #{domain_summary(result)}. " \
-            'Run: bin/ots domains remove DOMAIN for each, then retry',
+            'Run: bin/ots domains remove DOMAIN --apply for each, then retry',
             json: false,
           )
         when :drifted_domains

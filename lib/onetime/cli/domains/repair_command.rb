@@ -125,7 +125,7 @@ module Onetime
 
         error_exit(
           "--org-id cannot reassign #{target.display_domain}: it already belongs to " \
-          "#{target.org_id}. Use: bin/ots domains transfer #{target.display_domain} --to-org <ORG>",
+          "#{target.org_id}. Use: bin/ots domains transfer #{target.display_domain} --to-org <ORG> --apply",
           json: json,
         )
       end
@@ -148,13 +148,13 @@ module Onetime
         when :needs_org
           error_exit(
             'Domain is orphaned (no org_id). Assign one with: ' \
-            "bin/ots domains repair #{target.display_domain} --org-id <ORG>",
+            "bin/ots domains repair #{target.display_domain} --org-id <ORG> --apply",
             json: false,
           )
         when :org_not_found
           error_exit(
             "org_id is #{target.org_id} but that organization does not exist. Reassign with: " \
-            "bin/ots domains transfer #{target.display_domain} --to-org <ORG>",
+            "bin/ots domains transfer #{target.display_domain} --to-org <ORG> --apply",
             json: false,
           )
         end

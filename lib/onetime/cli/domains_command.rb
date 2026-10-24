@@ -41,6 +41,8 @@ module Onetime
         puts '  bin/ots domains backfill-ascii-index       # Audit/backfill the name index (app stopped)'
         puts '  bin/ots domains resolve-collisions         # Decide which record to keep per name collision'
         puts
+        puts 'transfer, remove and repair are dry runs unless --apply (-y/--yes) is given.'
+        puts
         puts 'Run bin/ots domains -h for available subcommands'
       end
     end

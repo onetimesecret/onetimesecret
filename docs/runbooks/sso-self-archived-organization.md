@@ -72,7 +72,7 @@ not rearchive a restored organization.
 
    ```text
    [HIGH]     org_id '<org objid>' points to an archived organization [manual fix required]
-              Manual decision required: unarchive the organization, or move the domain (bin/ots domains transfer <fqdn> --to-org <ORG>)
+              Manual decision required: unarchive the organization, or move the domain (bin/ots domains transfer <fqdn> --to-org <ORG> --apply)
    ```
 
    Note that the message carries the organization's internal id (`org_id`),
@@ -87,12 +87,12 @@ not rearchive a restored organization.
    ```
 
    ```text
-   DRY RUN — nothing has been written yet
+   DRY RUN — nothing was written
    Organization:     <org extid> (<display name>)
    Owner:            <owner extid>
    Archived comment: Superseded by domain org <org extid> via SSO self-heal
 
-   Dry run only — re-run with --run to apply.
+   Re-run with --apply to restore.
    ```
 
    When the owner's `default_org_id` names a different live organization the

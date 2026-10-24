@@ -91,7 +91,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ManageEntitlementOverride do
     it 'refuses to answer 200 and carries the stale membership ids' do
       expect { run }.to raise_error(OT::FormError) { |ex|
         expect(ex.message).to include('1 of 2 memberships')
-        expect(ex.message).to include('org reconcile')
+        expect(ex.message).to include('bin/ots org reconcile on_org_ext --apply')
         expect(ex.field).to eq(:memberships)
         expect(ex.details).to eq(memberships: { success: 1, failed: 1, total: 2, failed_ids: ['mem_stale'] })
       }

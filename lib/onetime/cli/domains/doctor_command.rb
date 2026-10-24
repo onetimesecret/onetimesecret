@@ -125,7 +125,7 @@ module Onetime
           severity: :high,
           message: 'records share an A-label with another record (collision)',
           repair_action: 'Keep the record whose organization has proven DNS ownership, remove the others ' \
-                         'with bin/ots domains remove <extid>, then run the backfill',
+                         'with bin/ots domains remove <extid> --apply, then run the backfill',
         },
         conflict: {
           severity: :high,
@@ -213,7 +213,7 @@ module Onetime
             +. Familia.health_check (opt-in via --familia-audit)
 
           Doctor never assigns an organization. To adopt an orphaned domain:
-            bin/ots domains repair DOMAIN --org-id ORG
+            bin/ots domains repair DOMAIN --org-id ORG --apply
         USAGE
       end
 
@@ -583,7 +583,7 @@ module Onetime
           message: "org_id '#{domain.org_id}' points to an archived organization",
           repairable: false,
           repair_action: 'Manual decision required: unarchive the organization, ' \
-                         "or move the domain (bin/ots domains transfer #{domain.display_domain} --to-org <ORG>)",
+                         "or move the domain (bin/ots domains transfer #{domain.display_domain} --to-org <ORG> --apply)",
         }
       end
 
@@ -603,7 +603,7 @@ module Onetime
           severity: :high,
           message: 'domain has no org_id (orphaned)',
           repairable: false,
-          repair_action: "Assign an organization: bin/ots domains repair #{domain.display_domain} --org-id <ORG>",
+          repair_action: "Assign an organization: bin/ots domains repair #{domain.display_domain} --org-id <ORG> --apply",
         }
       end
 
@@ -723,7 +723,7 @@ module Onetime
                     "CustomDomain.owners says #{recorded} but org_id is #{actual}"
                   end
 
-        adopt  = "bin/ots domains repair #{domain.display_domain} --org-id <ORG>"
+        adopt  = "bin/ots domains repair #{domain.display_domain} --org-id <ORG> --apply"
         action = if actual.empty?
                    "Drop the stale CustomDomain.owners entry, then adopt the domain with: #{adopt}"
                  else
