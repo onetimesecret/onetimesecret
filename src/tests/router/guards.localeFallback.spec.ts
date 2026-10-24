@@ -2,8 +2,9 @@
 //
 // A locale that does not load never blocks the visitor (F22): the real route
 // guards, language store, router and src/i18n.ts together. The failing locale
-// is zh_Hant_TW, which the supported list names but generated/locales/ has no
-// file for, so its load rejects exactly as a failed chunk does.
+// is zh_Hant_TW: the @/i18n mock below has the store keep it supported, and
+// generated/locales/ has no file for it, so its load rejects exactly as a
+// failed chunk does.
 //
 // On the initial navigation nothing is active yet, so the store activates a
 // fallback: the installation's default_locale when it is supported, differs
@@ -29,6 +30,19 @@ vi.mock('@/shared/stores/authStore', async (importOriginal) => ({
 vi.mock('@/shared/composables/usePageTitle', () => ({
   usePageTitle: () => ({ setTitle: vi.fn() }),
 }));
+
+// Without this, init() would drop zh_Hant_TW and xx_YY (a default_locale that
+// fails too) like any locale this build has no messages for (languageStore.ts,
+// loadSupportedLocales).
+vi.mock('@/i18n', async (importOriginal) => {
+  const FAILING_LOCALES = new Set(['zh_Hant_TW', 'xx_YY']);
+  const actual = await importOriginal<typeof import('@/i18n')>();
+  return {
+    ...actual,
+    hasLocaleMessages: (locale: string) =>
+      FAILING_LOCALES.has(locale) || actual.hasLocaleMessages(locale),
+  };
+});
 
 import { globalComposer } from '@/i18n';
 import { setupRouterGuards } from '@/router/guards.routes';

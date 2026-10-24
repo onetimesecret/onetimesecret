@@ -18,6 +18,20 @@ import { captureAppLogs } from '../utils/appLogs';
 import { handlePreloadError, type PreloadErrorResult } from '@/utils/preloadError';
 import { resolve } from 'path';
 
+// zh_Hant_TW and xx_YY stand for locales whose chunks exist but fail to load:
+// the store keeps them supported, and src/i18n.ts rejects their loads because
+// generated/locales/ has no file for them. Without this, init() would drop
+// them like any locale this build has no messages for (loadSupportedLocales).
+vi.mock('@/i18n', async (importOriginal) => {
+  const FAILING_LOCALES = new Set(['zh_Hant_TW', 'xx_YY']);
+  const actual = await importOriginal<typeof import('@/i18n')>();
+  return {
+    ...actual,
+    hasLocaleMessages: (locale: string) =>
+      FAILING_LOCALES.has(locale) || actual.hasLocaleMessages(locale),
+  };
+});
+
 describe('Language Store', () => {
   let axiosMock: AxiosMockAdapter | null;
   let bootstrapStore: ReturnType<typeof useBootstrapStore>;
@@ -570,8 +584,8 @@ describe('Language Store', () => {
 
   // F22: a locale whose messages do not load never blocks the visitor. The
   // store settles the locale shown and records the failure for
-  // LocaleLoadNotice. zh_Hant_TW is supported here but has no generated file,
-  // so its load rejects as a failed chunk does.
+  // LocaleLoadNotice. zh_Hant_TW is supported here and its load rejects as a
+  // failed chunk does (see the @/i18n mock above).
   describe('Locale load failures', () => {
     let store: ReturnType<typeof useLanguageStore>;
 
@@ -827,8 +841,8 @@ describe('Language Store', () => {
   // build, a locales sync that did not run, a custom locale list. The server
   // keeps it in supported_locales (lib/onetime/initializers/load_locales.rb
   // logs the missing file and goes on to the next). Activating it would
-  // reject and fail the first navigation (src/router/guards.routes.ts), so
-  // init() drops it from the supported locales and nothing offers or chooses
+  // always reject and land the visitor on a fallback with LocaleLoadNotice
+  // (src/router/guards.routes.ts), so init() drops it from the supported locales and nothing offers or chooses
   // it. 'sw' has no generated file.
   describe('a supported locale this build has no messages for', () => {
     beforeEach(() => {
