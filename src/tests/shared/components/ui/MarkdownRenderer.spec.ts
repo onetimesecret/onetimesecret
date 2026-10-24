@@ -21,20 +21,33 @@ vi.mock('vue-i18n', () => ({
 const CHUNK = '@/shared/utils/markdown';
 
 // The chunk import settles over several turns of the event loop in vitest, so
-// each outcome is awaited rather than flushed.
+// each outcome is awaited rather than flushed. The real module (markdown-it,
+// highlight.js, DOMPurify) can take more than vi.waitFor's default second to
+// evaluate when the suite runs many files at once; the wait returns as soon as
+// the outcome is on screen, so a long limit costs nothing in the normal case.
+const SETTLE_MS = 15_000;
+// Each test waits for the chunk at most twice; its own limit must cover that.
+const TEST_MS = 2 * SETTLE_MS + 5_000;
+
 const renderedHtml = (wrapper: VueWrapper) =>
-  vi.waitFor(() => {
-    const rendered = wrapper.find('[data-testid="markdown-rendered"]');
-    expect(rendered.exists()).toBe(true);
-    return rendered.html();
-  });
+  vi.waitFor(
+    () => {
+      const rendered = wrapper.find('[data-testid="markdown-rendered"]');
+      expect(rendered.exists()).toBe(true);
+      return rendered.html();
+    },
+    { timeout: SETTLE_MS }
+  );
 
 const fallbackText = (wrapper: VueWrapper) =>
-  vi.waitFor(() => {
-    const fallback = wrapper.find('[data-testid="markdown-fallback"]');
-    expect(fallback.exists()).toBe(true);
-    return fallback.text();
-  });
+  vi.waitFor(
+    () => {
+      const fallback = wrapper.find('[data-testid="markdown-fallback"]');
+      expect(fallback.exists()).toBe(true);
+      return fallback.text();
+    },
+    { timeout: SETTLE_MS }
+  );
 
 describe('MarkdownRenderer', () => {
   let logs: AppLogs;
@@ -52,7 +65,7 @@ describe('MarkdownRenderer', () => {
 
     expect(await renderedHtml(wrapper)).toContain('<p>hello</p>');
     expect(logs.error).not.toHaveBeenCalled();
-  });
+  }, TEST_MS);
 
   it.each([
     [
@@ -77,6 +90,7 @@ describe('MarkdownRenderer', () => {
       await wrapper.setProps({ source: 'second' });
 
       expect(await renderedHtml(wrapper)).toContain('<p>second</p>');
-    }
+    },
+    TEST_MS
   );
 });
