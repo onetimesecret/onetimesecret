@@ -16,11 +16,16 @@
 # (apps/web/auth/spec/operations/customers/{set_role,set_verification}_spec.rb);
 # these examples own only the CLI's contract: message + exit status.
 #
+# The last groups pin the flag boundary between promote/demote (y/N prompt, no
+# write gate) and the `role reconcile` subcommand (write gate): a gate flag
+# promote or demote would ignore must be refused, not accepted.
+#
 # Run: bundle exec rspec spec/cli/customers_command_role_spec.rb
 
 require_relative 'cli_spec_helper'
 
 require 'auth/operations/customers/set_role'
+require 'auth/operations/customers/reconcile_role_index'
 require 'auth/operations/customers/set_verification'
 require 'auth/operations/set_customer_verification'
 
@@ -97,6 +102,95 @@ RSpec.describe 'Customers Role Command interlocks', type: :cli do
 
       expect(output[:stdout]).to include('-> admin')
       expect(last_exit_code).to eq(0)
+    end
+  end
+
+  describe 'role promote/demote and the write-gate flags' do
+    before { allow($stdin).to receive(:gets).and_return("y\n") }
+
+    # Before reconcile became its own subcommand, the gate declared --dry-run
+    # on the whole command and `demote EMAIL --dry-run --force` demoted.
+    it 'refuses --dry-run on demote without writing' do
+      stub_set_role(:success)
+
+      run_cli_command_quietly('customers', 'role', 'demote', 'colonel@example.com', '--dry-run', '--force')
+
+      expect(Auth::Operations::Customers::SetRole).not_to have_received(:new)
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'refuses --dry-run on promote without writing' do
+      stub_set_role(:success)
+
+      run_cli_command_quietly('customers', 'role', 'promote', 'colonel@example.com',
+        '--role', 'admin', '--dry-run', '--force')
+
+      expect(Auth::Operations::Customers::SetRole).not_to have_received(:new)
+      expect(last_exit_code).to eq(1)
+    end
+
+    ['--apply', '--yes', '-y'].each do |flag|
+      it "refuses #{flag} on promote instead of reaching the prompt" do
+        stub_set_role(:success)
+
+        run_cli_command_quietly('customers', 'role', 'promote', 'colonel@example.com', '--role', 'admin', flag)
+
+        expect($stdin).not_to have_received(:gets)
+        expect(Auth::Operations::Customers::SetRole).not_to have_received(:new)
+        expect(last_exit_code).to eq(1)
+      end
+    end
+  end
+
+  describe 'role reconcile subcommand' do
+    def stub_reconcile
+      allow(Auth::Operations::Customers::ReconcileRoleIndex).to receive(:new) do |apply:, **|
+        result = Auth::Operations::Customers::ReconcileRoleIndex::Result.new(
+          status: :clean, scanned: 0, buckets: {}, additions: [], removals: [], skipped: [], dry_run: !apply,
+        )
+        instance_double(Auth::Operations::Customers::ReconcileRoleIndex, call: result)
+      end
+    end
+
+    before { stub_reconcile }
+
+    it 'is a dry run by default' do
+      output = run_cli_command_quietly('customers', 'role', 'reconcile')
+
+      expect(Auth::Operations::Customers::ReconcileRoleIndex).to have_received(:new)
+        .with(hash_including(apply: false))
+      expect(output[:stdout]).to include('DRY RUN — nothing was written')
+      expect(last_exit_code).to eq(0)
+    end
+
+    ['--apply', '--yes', '-y'].each do |flag|
+      it "repairs with #{flag}" do
+        run_cli_command_quietly('customers', 'role', 'reconcile', flag)
+
+        expect(Auth::Operations::Customers::ReconcileRoleIndex).to have_received(:new)
+          .with(hash_including(apply: true))
+        expect(last_exit_code).to eq(0)
+      end
+    end
+
+    it 'still repairs with the former --apply --force spelling' do
+      run_cli_command_quietly('customers', 'role', 'reconcile', '--apply', '--force')
+
+      expect(Auth::Operations::Customers::ReconcileRoleIndex).to have_received(:new)
+        .with(hash_including(apply: true))
+      expect(last_exit_code).to eq(0)
+    end
+
+    # --force/-f only skipped the prompt that --apply also needed, so a bare
+    # --force was a dry run before the gate. It must not become a write.
+    ['--force', '-f'].each do |flag|
+      it "stays a dry run with a bare #{flag}" do
+        run_cli_command_quietly('customers', 'role', 'reconcile', flag)
+
+        expect(Auth::Operations::Customers::ReconcileRoleIndex).to have_received(:new)
+          .with(hash_including(apply: false))
+        expect(last_exit_code).to eq(0)
+      end
     end
   end
 

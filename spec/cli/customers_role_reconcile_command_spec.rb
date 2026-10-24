@@ -29,7 +29,7 @@ require 'stringio'
 RSpec.describe 'Customers Role Reconcile Command' do
   describe 'real datastore', :datastore do
     let(:suffix) { "#{Familia.now.to_i}_#{SecureRandom.hex(4)}" }
-    let(:command) { Onetime::CLI::CustomersRoleCommand.new }
+    let(:command) { Onetime::CLI::CustomersRoleReconcileCommand.new }
 
     def colonel_bucket
       Onetime::Customer.role_index_for('colonel')
