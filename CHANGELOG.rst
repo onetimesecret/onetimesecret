@@ -31,218 +31,145 @@ Added
 -----
 
 - Custom domain homepages support IPv4/IPv6 allow and deny lists for
-  anonymous secret creation. Denied visitors see the private landing page.
-  These rules do not restrict secret links, member access, management
-  pages, ``/incoming`` or the incoming API; they also control whether the
-  incoming form appears at the homepage. Both lists are empty by default.
+  anonymous secret creation, not whole-domain access control. Workspace
+  editing is opt-in and requires an entitlement. See
+  ``docs/operations/custom-domain-policies.md`` for setup, scope and proxy
+  requirements. (#4757, #4834)
 
-  Workspace and API editing requires the ``homepage_network_rules``
-  entitlement and ``ORGS_HOMEPAGE_NETWORK_RULES_UI_ENABLED=true`` (default
-  off); the Colonel editor is not gated by the flag. With billing enabled,
-  add the entitlement to the intended plans in the installation's
-  ``etc/billing.yaml`` and push the catalog; see
-  ``etc/examples/billing.example.yaml``. Stored rules remain enforced after
-  a downgrade or with the flag off; the API then refuses list changes and
-  deletion of a config with rules. Check ``site.network.trusted_proxy``
-  before configuring rules behind a proxy. See ``etc/config.yaml``.
-  (#4757, #4834)
+- Custom domain signup allowlists can automatically admit the domain's
+  base domain: ``secrets.acme.com`` can admit ``@acme.com``. This is opt-in
+  and requires an entitlement; see
+  ``docs/operations/custom-domain-policies.md`` for setup. (#4756)
 
-- Custom domain signup allowlists can include the domain's own base domain
-  without listing it explicitly: ``secrets.acme.com`` can admit
-  ``@acme.com``. Use ``allow_base_domain`` with the ``domain_allowlist``
-  validation strategy on the workspace Signup Validation page.
+- Custom domain SAML settings can import IdP settings from a metadata
+  URL, with a preview before saving. This does not enable automatic
+  certificate refresh. See ``docs/authentication/per-domain-sso.md``.
+  (#4850)
 
-  Enable ``ORGS_BASE_DOMAIN_SIGNUP_ENABLED=true`` and grant the
-  ``base_domain_signup`` entitlement; both are checked at signup. No billing
-  plan grants the entitlement by default; standalone installs grant every
-  entitlement. If the datastore or plan catalog cannot be read, signups
-  needing the base-domain check return 503. See ``etc/config.yaml`` and
-  ``apps/web/billing/docs/plan-definitions.md``. (#4756)
-
-- Custom domain SAML settings can import the IdP SSO URL, EntityID and a
-  selected signing certificate from a metadata URL. For Entra, use the App
-  Federation Metadata Url. Review the preview, apply it and save the form;
-  fetching alone changes nothing. This does not enable automatic metadata
-  or certificate refresh. ``POST /api/domains/:extid/sso/metadata`` allows
-  30 requests per customer per hour by default
-  (``SSO_METADATA_FETCH_RATE_LIMIT_*``). (#4850)
-
-- Added commands to remove closed authentication accounts and their audit
-  logs, and finish interrupted customer closures. After upgrading, preview
-  and then confirm ``bin/ots customers prune-closed-accounts``, followed by
-  ``bin/ots customers finish-closures``. Both preview by default; use
-  ``--confirm`` to delete.
-
-  Export audit records first if retention requirements need them. Outside
-  the shipped containers, export ``AUTHENTICATION_MODE`` as ``full`` or
-  ``simple`` to match the installation before confirming
-  ``finish-closures``. See ``docs/development/data-migrations.md`` for
-  selection, repair and cleanup guidance. (#4819, #4830)
+- Added cleanup commands for closed accounts and interrupted closures.
+  After upgrading, follow ``docs/development/data-migrations.md`` to run
+  ``customers prune-closed-accounts`` before ``customers finish-closures``.
+  Both preview by default. Export required audit records before deleting;
+  set ``AUTHENTICATION_MODE`` explicitly before confirming closure cleanup.
+  (#4819, #4830)
 
 - Administrators can set a member's default organization with
-  ``bin/ots customers set-default-org CUSTOMER ORG --apply`` or
-  ``bin/ots memberships add ORG CUSTOMER --default --apply``. (#4858)
+  ``bin/ots customers set-default-org`` or ``bin/ots memberships add --default``
+  (both require ``--apply``), or through Colonel. See command help and
+  ``docs/operations/colonel-admin-guide.md``. (#4858)
 
 Changed
 -------
 
-- Account closure in full authentication mode deletes the authentication
-  account and its authentication audit history on PostgreSQL and SQLite.
-  Administrative purges and the simple-mode delete endpoint remove the
-  same data. Signing up again with the address creates a new account. For
-  existing closed accounts, follow the cleanup procedure in
+- Account closure and administrative purges now delete authentication
+  accounts and their authentication audit history. Signing up again creates
+  a new account. Existing closed accounts need the cleanup procedure in
   ``docs/development/data-migrations.md``. (#4819)
 
-- Customer diagnostics report interrupted account closures, and
-  ``customers sync-auth-accounts`` skips them. A subsequent signup finishes
-  the old closure before creating a new customer record.
-  ``customers doctor --repair`` clears markers for closures that rolled
-  back. See ``docs/development/data-migrations.md``. (#4830)
+- Interrupted account closures are reported by customer diagnostics and
+  completed before a subsequent signup. See
+  ``docs/development/data-migrations.md`` for repair and cleanup. (#4830)
 
-- Organization administration uses ``bin/ots organizations``;
-  ``organization`` and ``org`` remain aliases. Replace ``--list``,
-  ``--show`` and ``--check`` with ``list``, ``show ORG`` and
-  ``doctor --all``. Replace ``add-member`` with
-  ``bin/ots memberships add ORG CUSTOMER [--role R] [--default] --apply``.
-  ORG accepts public or internal organization IDs, Stripe customer or
-  subscription IDs, and custom domain hostnames; customer arguments also
-  accept internal IDs. See command help for options and integrity checks.
-  (#4858)
+- Organization CLI commands replace ``--list``, ``--show`` and ``--check``
+  with ``list``, ``show ORG`` and ``doctor --all``. Replace ``add-member``
+  with ``bin/ots memberships add``. The ``org`` and ``organization`` aliases
+  remain supported; see command help for arguments and options. (#4858)
 
-- **Scripts that write through bin/ots may need --apply.** These verbs
-  are now dry runs unless given ``--apply`` and no longer prompt:
-  ``organizations create``, ``delete``, ``transfer-ownership``,
-  ``reconcile``, ``unarchive`` and ``entitlement grant|revoke|clear``;
-  ``memberships add``, ``remove``, ``set-role`` and ``entitlement
-  grant|revoke|clear``; ``customers set-default-org``, ``change-email`` and
-  ``role reconcile``; ``domains remove``, ``repair`` and ``transfer``;
-  ``banner set`` and ``banner clear``. ``--yes`` and ``-y`` remain aliases
-  for ``--apply``, except on ``change-email``, which ignores them. A piped
-  confirmation (``echo y | bin/ots organizations delete ORG``) now previews
-  and exits 0. ``organizations list --owner`` or ``--plan`` reports the
-  size of its walk unless given ``--run``. ``customers role reconcile`` is
-  its own subcommand, so ``role promote`` and ``demote`` reject ``--apply``
-  and ``--json``. (#4858, #4861)
+- **Update CLI automation:** selected write commands now preview unless
+  given ``--apply`` and no longer prompt. Piped confirmations do not apply
+  changes; ``customers change-email`` requires explicit ``--apply`` even
+  with ``--yes``. Filtered organization listings require ``--run`` for
+  results. Check command help for execution flags; this change does not
+  apply to every mutating command. (#4858, #4861)
 
-- The Colonel console supports password elevation before protected
-  actions, advance elevation with a countdown, and password renewal of an
-  expired admin session. Administrators can change or remove organization
-  memberships and set a customer's default organization. The user-menu
-  Admin link opens in the same window. See
+- Colonel supports password elevation, expired admin-session renewal and
+  organization membership management. See
   ``docs/operations/colonel-admin-guide.md``. (#4858)
 
-- Authentication uses Rodauth 2.48 from the onetimesecret fork, updated
-  from 2.45. Signed-in users receive 403
-  ``{"error":"Already logged in"}`` on login, signup, account verification,
-  magic-link login, passkey login and account-unlock routes, rather than
-  switching accounts through a verification or magic link. Sign out before
-  following a link for another account. Password reset and sessions not
-  yet marked authenticated are exempt. (#4822, #4840)
+- Updated Rodauth from 2.45 to 2.48. Signed-in users now receive 403 on
+  login, signup and account-verification routes rather than switching
+  accounts. Sign out before using a verification or magic link for another
+  account. Password reset is unaffected. (#4822, #4840)
 
-- The frontend loads route code on demand. Failed route loads offer a
-  reload notice, with automatic reload attempts limited to once per tab
-  per minute and suppressed while one-time values are displayed. See
-  ``docs/adr/adr-046-bootstrap-state-ordering-contract.md``. Custom asset
-  integrations must use ``.vite/manifest.json`` instead of the removed
-  ``.vite/manifest-admin.json``. Production ``script-src`` remains
-  nonce-only. (#4846)
+- Frontend routes load on demand, with automatic reloads after failed loads
+  suppressed while one-time values are displayed. Custom asset integrations
+  must replace ``.vite/manifest-admin.json`` with ``.vite/manifest.json``.
+  See ``docs/adr/adr-046-bootstrap-state-ordering-contract.md``. (#4846)
 
-- Non-English translations load on demand. ``?locale=`` also applies to
-  signed-in pages for the browser session without changing the account
-  preference. Page titles and the HTML language tag follow language
-  switches, using BCP 47 tags such as ``pt-BR``. Languages absent from the
-  build are not offered; an initial language load failure falls back to
-  the default language or English with a notice. (#4846)
+- Translations load on demand, with a fallback notice if loading fails.
+  ``?locale=`` now also changes signed-in pages for the browser session
+  without changing the account preference. Page titles and language tags
+  follow language switches. (#4846)
 
-- Receipt and burn responses no longer provide share links for revealed,
-  burned, expired or orphaned secrets. API clients must handle unavailable
-  links: ``share_path`` and ``share_url`` can be ``null``, v2/v3
-  ``secret_identifier`` can be absent, and v1 ``secret_key`` can be empty
-  or absent. A burn can return 404 if its receipt disappears during the
-  request even though the secret was destroyed. (#4835)
+- Receipt and burn responses omit share links for consumed or unavailable
+  secrets. Clients must handle nullable ``share_path`` and ``share_url``,
+  absent v2/v3 ``secret_identifier``, and empty or absent v1 ``secret_key``.
+  A burn may return 404 after destroying the secret if its receipt
+  disappears during the request. (#4835)
 
-- SAML configuration rejects EntityIDs containing unresolved brace
-  placeholders such as ``{tenantid}``. Replace them with the tenant's
-  actual EntityID before saving, testing or re-enabling domain SSO;
-  existing configurations can still be disabled. A placeholder in
-  ``SAML_IDP_ENTITY_ID`` prevents platform SAML from being enabled. See
-  ``docs/authentication/per-domain-sso.md`` and
-  ``docs/authentication/per-install-sso.md``. (#4850)
+- SAML configuration rejects unresolved EntityID placeholders such as
+  ``{tenantid}``. Replace them with the actual tenant EntityID before
+  saving or enabling SAML. See ``docs/authentication/per-domain-sso.md``
+  and ``docs/authentication/per-install-sso.md``. (#4850)
 
 - The domain signup-config API reports ``uses_allowlist``;
-  ``requires_allowlist`` remains as a deprecated alias. PATCH updates that
-  omit all allowlist inputs are no longer rejected because of the stored
-  list. The Colonel editor refuses invalid configuration changes but still
-  permits disabling or repairing an invalid config. (#4756)
+  ``requires_allowlist`` remains as a deprecated alias. (#4756)
 
 Removed
 -------
 
-- Removed the deprecated model-level ``secret_key`` field from receipts
-  and secrets. No data migration is required. The v1 API continues to use
-  ``secret_key`` as its response field name, subject to receipt visibility
-  rules. (#4835)
+- Removed the deprecated model-level ``secret_key`` field; no data
+  migration is required. The v1 API response field is unchanged. (#4835)
 
-- Removed ``Onetime::Jobs::Publisher.schedule_email`` and the
-  ``email.message.schedule`` queue. Once no running process uses the old
-  publisher, delete the retired durable queue with
-  ``rabbitmqctl delete_queue email.message.schedule``. See
+- Retired the ``email.message.schedule`` queue and its publisher. Delete
+  the queue once no running process publishes to it; see
   ``lib/onetime/jobs/queues/maintenance.md``. (#4844)
 
 Fixed
 -----
 
-- Fixed expiration warnings being discarded without delivery when the job
-  system is enabled. Warnings are dispatched when a scan processes the
-  secret within the warning window and link to the owner's recent secrets
-  page instead of a broken secret link, without including receipt or
-  secret identifiers. Previously queued warning payloads are rejected as
-  invalid. (#4844)
+- Fixed expiration-warning delivery when jobs are enabled and replaced
+  broken warning links with links to recent secrets. Previously queued
+  warning payloads are no longer accepted. (#4844)
 
-- Signed-out visitors return to the requested page after signing in.
-  Return destinations must be internal paths; POST requests are not used
-  as return destinations. (#4844)
+- Signed-out visitors return to the requested internal page after signing
+  in. POST requests are excluded as return destinations. (#4844)
 
-- In simple authentication mode, emailed verification links work without
-  an existing session. Verification through the v1 API no longer produces
-  a server error after verifying the account. Secret confirmation forms
-  display errors without requiring a passphrase and remain in the
-  submitting state during the request. (#4831, #4832, #4842)
+- Simple-mode email verification works without an existing session, and
+  v1 API verification no longer returns a server error after success.
+  (#4831, #4832)
 
-- Passkey signup with ``AUTH_WEBAUTHN_VERIFY_ACCOUNT=true`` completes
-  customer verification, pending federated subscription activation,
-  branded verification email and resend handling even when
-  ``AUTH_VERIFY_ACCOUNT_ENABLED=false``. Verification also works with
-  ``AUTH_MFA_ENABLED=true``, including recovery-code creation and
-  verification-key cleanup (onetimesecret/rodauth#3). (#4829, #4837, #4840)
+- Secret confirmation forms display errors without a passphrase and keep
+  their submitting state during requests. (#4842)
 
-- Successful ``POST /receipt/{id}/burn`` requests return the updated
-  receipt state across v1, v2 and v3, including the ``/private`` and
-  ``/metadata`` aliases. Burn previews with ``continue=false`` follow the
-  same secret-identifier visibility rules as receipt reads. v1
-  ``GET /receipt/{id}`` returns complete ``metadata_url`` and
-  ``receipt_url`` values and does not expose secret keys for consumed or
-  missing secrets. (#4835)
+- Passkey signup now completes required email verification and pending
+  subscription activation when ordinary account verification is disabled.
+  Fixed verification with MFA enabled, including recovery-code creation.
+  (#4829, #4837, #4840; onetimesecret/rodauth#3)
+
+- Burn responses return the updated receipt state across v1, v2 and v3.
+  V1 receipt reads return complete ``metadata_url`` and ``receipt_url``
+  values. (#4835)
+
+- Domain signup settings accept unrelated PATCH updates without rejecting
+  the stored allowlist. Colonel validates changes while permitting invalid
+  configurations to be disabled or repaired. (#4756)
 
 - Regional language fallbacks, including ``de-AT``, ``fr-CA`` and
   ``pt-BR``, work in the browser. (#4846)
 
-- Server-rendered pages preload fewer fonts. Canonical and social URLs
-  use the served host and public port without query strings, so custom
-  domain pages no longer advertise the installation's canonical host.
-  (#4859)
+- Server-rendered pages preload fewer fonts, and custom-domain canonical
+  and social URLs use the served host and public port. (#4859)
 
-- Secret and receipt pages (``/secret/*``, ``/receipt/*`` and
-  ``/incoming/:receiptKey``) emit ``noindex, nofollow`` and neutral social
-  preview text that does not name the page. (#4859)
+- Secret, receipt and incoming-confirmation pages discourage search
+  indexing and use neutral social previews. (#4859)
 
 Security
 --------
 
-- The v1 receipt API, including its ``/private`` and ``/metadata`` aliases,
-  no longer exposes an incoming secret's key to someone with its receipt
-  identifier, including the guest who submitted it. Burn previews with
-  ``continue=false`` also omit the incoming secret's share link. (#4835)
+- The v1 receipt API and burn previews no longer expose incoming secret
+  keys or share links to receipt holders, including submitting guests.
+  (#4835)
 
 AI Assistance
 -------------
@@ -264,13 +191,10 @@ AI Assistance
 Added
 -----
 
-- ``bin/ots domains resolve-collisions`` writes a reviewable plan for
-  duplicate custom domain records that share one name. Applying a plan
-  deletes the duplicates' settings and branding without merging them into
-  the kept record. Stop all custom domain writers and snapshot the
-  datastore before applying; follow
-  ``docs/runbooks/custom-domain-ascii-index-backfill.md`` for plan review,
-  required approvals and application. (#4807)
+- Added ``bin/ots domains resolve-collisions`` to plan duplicate-domain
+  cleanup. Applying deletes duplicate settings and branding without merging
+  them. Stop domain writers and snapshot the datastore first; follow
+  ``docs/runbooks/custom-domain-ascii-index-backfill.md``. (#4807)
 
 - Production builds print a self-XSS warning in the browser console.
   (#4804)
@@ -278,53 +202,35 @@ Added
 Changed
 -------
 
-- The custom domain name index is renamed to the ASCII index. The key
-  ``custom_domain:canonical_display_domain_index`` becomes
-  ``custom_domain:ascii_display_domain_index``, and ``bin/ots domains
-  backfill-canonical-index`` becomes ``bin/ots domains backfill-ascii-index``.
-  Update scripts and regenerate collision plans from older rule versions.
-  (#4807)
+- **Before starting this release**, migrate the renamed custom-domain
+  ASCII index with web, workers and scheduler stopped. Follow
+  ``docs/runbooks/custom-domain-ascii-index-backfill.md`` for the migration
+  command and validation. Update scripts from ``backfill-canonical-index``
+  to ``backfill-ascii-index`` and regenerate older collision plans. (#4807)
 
-  **Before starting the new release**, deployments with the former index
-  key must migrate it. With web, worker and scheduler stopped, preview
-  ``bin/ots migrate migrations/2026-10-15/20261015_01_rename_ascii_display_domain_index.rb``,
-  then repeat with ``--run``. Without the rename, the application sees an
-  empty ASCII index. Follow
-  ``docs/runbooks/custom-domain-ascii-index-backfill.md`` for preparation
-  and validation.
+- Customer purge commands are renamed: ``purge-one`` becomes ``purge``
+  for one account; the former bulk ``purge`` becomes ``purge-inactive``.
+  Update scripts: ``purge --older-than`` is rejected; use
+  ``purge-inactive --older-than DURATION`` to preview and add ``--purge``
+  to delete. (#4806)
 
-- Customer purge commands are renamed; update scripts that call them.
-  ``bin/ots customers purge IDENTIFIER`` deletes one account (was
-  ``purge-one``, which is gone). ``bin/ots customers purge-inactive
-  --older-than DURATION`` is the bulk sweep (was ``purge``); it previews
-  unless given ``--purge``, and ``purge --older-than`` is rejected. (#4806)
+- Domain-removal JSON and Colonel API responses replace
+  ``reasserts_survivor`` with ``sender_cleanup``; update response consumers.
+  Failed sender cleanup does not undo domain deletion and needs manual
+  provider cleanup. See ``docs/development/domain-sender-lifecycle.md``.
+  (#4798, #4814)
 
-- Domain removal responses from the CLI (JSON) and the Colonel API drop
-  ``reasserts_survivor`` and add ``sender_cleanup``: ``deleted``,
-  ``absent``, ``skipped`` or ``failed`` after removal, and ``null`` during
-  previews. Update response consumers. Failed sender cleanup does not undo
-  local domain deletion; ``bin/ots domains remove`` then exits 1. Inspect
-  the failure log and remove the remaining sender identity at the provider:
-  rerunning removal cannot retry cleanup. See
-  ``docs/development/domain-sender-lifecycle.md``. (#4798, #4814)
-
-- Lettermint sender domain removal uses ``lettermint`` 0.2.1. A 404 with
-  ``RESOURCE_NOT_FOUND`` counts as already absent; any other 404 is a
-  failed cleanup. Logged Lettermint errors include the API error code.
-  (#4814)
+- Lettermint sender cleanup distinguishes missing domains from other
+  provider errors and includes API error codes in logs. (#4814)
 
 Fixed
 -----
 
-- Custom domain lookups refuse and log an index entry that points to a
-  record stored under a different name, instead of serving that record.
-  Existing drift still needs repair; run ``bin/ots domains doctor --all``.
-  (#4798)
+- Custom-domain lookups no longer serve records indexed under a different
+  name. Check existing drift with ``bin/ots domains doctor --all``. (#4798)
 
-- Deleting a custom domain releases its name-index entries by the stored
-  name, without removing entries owned by another record that shares the
-  hostname. Fixed a save-versus-deletion race that could recreate a deleted
-  domain.
+- Deleting a custom domain no longer removes another record's name-index
+  entries or permits a concurrent save to recreate the deleted domain.
   (#4798)
 
 - Reduced datastore work during preflight for single-account customer

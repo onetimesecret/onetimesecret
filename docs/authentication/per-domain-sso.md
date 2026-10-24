@@ -781,6 +781,28 @@ refuses SAML creation or re-enablement while it is incompatible (422 on
 `provider_type`). Existing records retain disable, repair, replacement, and
 delete recovery paths.
 
+### Import IdP metadata
+
+In the domain's SAML settings, fetch the IdP's public HTTPS metadata URL.
+For Microsoft Entra, use the **App Federation Metadata Url**. Review the
+returned SSO URL and EntityID, select a signing certificate, apply the values
+to the form, and save. Fetching alone changes no saved configuration. This is
+a manual import, not automatic metadata or certificate refresh; plan
+certificate rotation separately.
+
+The preview endpoint is `POST /api/domains/:extid/sso/metadata`, with
+`metadata_url` in the request body. It permits 30 requests per customer per
+hour by default; configure the `SSO_METADATA_FETCH_RATE_LIMIT_*` settings in
+[`etc/config.yaml`](../../etc/config.yaml). See the
+[metadata fetch implementation](../../apps/api/domains/logic/sso_config/fetch_idp_metadata.rb)
+for request validation and response details.
+
+Use the actual tenant EntityID, not a template such as
+`https://sts.windows.net/{tenantid}/`. Unresolved brace placeholders are
+rejected when saving, testing or re-enabling domain SAML; an existing
+configuration can still be disabled. The same validation prevents platform
+SAML from being enabled with a placeholder in `SAML_IDP_ENTITY_ID`.
+
 ### Validation, test and expiry
 
 - **Test connection** for `saml` is local. The URL, EntityID and certificate
