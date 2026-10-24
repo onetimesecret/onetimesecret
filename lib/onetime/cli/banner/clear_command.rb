@@ -56,7 +56,7 @@ module Onetime
           puts '  # DB 0'
           puts "  DEL #{BANNER_KEY}"
           puts '  # then refresh runtime: Onetime::Runtime.update_features(global_banner: nil)'
-          dry_run_footer
+          dry_run_footer('clear the banner')
         else
           # Single implementation: the op owns the delete, the runtime refresh, and
           # (new) the admin audit event. The empty-banner short-circuit above means
