@@ -150,6 +150,7 @@
   );
 
   const roleTargetToken = computed(() => accountConfirmToken(roleTarget.value));
+  let roleNoChangeMessage: string | null = null;
 
   const {
     loading: roleLoading,
@@ -158,6 +159,7 @@
     reset: resetRoleChange,
     ensureElevated,
   } = useAdminDestructiveMutation(async (reason?: string) => {
+    roleNoChangeMessage = null;
     const target = roleTarget.value;
     const token = accountConfirmToken(target);
     if (!target || !token) throw new Error('No member selected');
@@ -172,15 +174,13 @@
       response.data,
       'ColonelSetMembershipRoleResponse'
     );
-    // `no_change` is an idempotent 200: the member already held that role (the
-    // roster on screen was stale). Say so rather than claiming a change. Ack
-    // drift stays non-fatal: an unparseable 2xx is still a success.
+    // `no_change` means the roster was stale: close and refresh as for a
+    // change, but report it as information. Ack drift stays non-fatal:
+    // an unparseable 2xx is still a success.
     if (parsed.ok && parsed.data.record.status === 'no_change') {
-      throw new Error(
-        t('web.admin.organizations.members.changeRole.noChange', {
-          role: roleLabel(parsed.data.record.to ?? pendingRole.value),
-        })
-      );
+      roleNoChangeMessage = t('web.admin.organizations.members.changeRole.noChange', {
+        role: roleLabel(parsed.data.record.to ?? pendingRole.value),
+      });
     }
   });
 
@@ -203,11 +203,12 @@
     roleDialogOpen.value = false;
     roleTarget.value = null;
     notifications.show(
-      t('web.admin.organizations.members.changeRole.success', {
-        member: target.extid,
-        role: roleLabel(role),
-      }),
-      'success'
+      roleNoChangeMessage ??
+        t('web.admin.organizations.members.changeRole.success', {
+          member: target.extid,
+          role: roleLabel(role),
+        }),
+      roleNoChangeMessage ? 'info' : 'success'
     );
     emit('changed');
   }

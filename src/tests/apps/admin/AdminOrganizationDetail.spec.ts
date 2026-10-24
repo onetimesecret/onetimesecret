@@ -941,9 +941,12 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
       expect(mockApi.delete).not.toHaveBeenCalled();
     });
 
-    it('reports an already-held role as no change, never as success', async () => {
+    it('refreshes a stale role after no_change and offers the other role when reopened', async () => {
       mockApi.post.mockResolvedValue({ data: setRoleAck('no_change') });
       await mountRoster();
+      const refreshed = rosterPayload();
+      refreshed.details.members = [OWNER, { ...MEMBER, role: 'admin' }, CO_OWNER];
+      mockApi.get.mockResolvedValue({ data: refreshed });
 
       await wrapper.find('[data-testid="member-change-role-mem_2"]').trigger('click');
       await flushPromises();
@@ -956,10 +959,62 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
         { role: 'admin' },
         MEMBER_CONFIRM_HEADERS
       );
-      expect(dialog(wrapper).text()).toContain(
-        'web.admin.organizations.members.changeRole.noChange'
+      expect(showMock).toHaveBeenCalledExactlyOnceWith(
+        'web.admin.organizations.members.changeRole.noChange',
+        'info'
       );
+      expect(dialog(wrapper).exists()).toBe(false);
+      expect(mockApi.get).toHaveBeenCalledTimes(3);
+      expect(mockApi.get).toHaveBeenLastCalledWith(
+        `/api/colonel/organizations/${PUBLIC_ID}`,
+        undefined
+      );
+
+      await wrapper.find('[data-testid="member-change-role-mem_2"]').trigger('click');
+      await flushPromises();
+
+      expect(
+        wrapper
+          .findAll('[data-testid="member-role-select"] option')
+          .map((o) => (o.element as HTMLOptionElement).value)
+      ).toEqual(['member']);
+      expect(dialogInput(wrapper).element).toHaveProperty('value', '');
+      expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
+      expect(dialog(wrapper).find('[role="alert"]').exists()).toBe(false);
+
+      mockApi.post.mockResolvedValue({
+        data: { ...setRoleAck(), record: { ...setRoleAck().record, from: 'admin', to: 'member' } },
+      });
+      await dialogInput(wrapper).setValue('bob@example.com');
+      await dialogSubmit(wrapper).trigger('submit');
+      await flushPromises();
+
+      expect(mockApi.post).toHaveBeenLastCalledWith(
+        `${MEMBER_URL}/role`,
+        { role: 'member' },
+        MEMBER_CONFIRM_HEADERS
+      );
+      expect(showMock).toHaveBeenLastCalledWith(
+        'web.admin.organizations.members.changeRole.success',
+        'success'
+      );
+      expect(dialog(wrapper).exists()).toBe(false);
+      expect(mockApi.get).toHaveBeenCalledTimes(4);
+    });
+
+    it('keeps a role-change refusal in the dialog without refreshing the roster', async () => {
+      mockApi.post.mockRejectedValue(axiosError(422, { error: 'Cannot change this role' }));
+      await mountRoster();
+
+      await wrapper.find('[data-testid="member-change-role-mem_2"]').trigger('click');
+      await flushPromises();
+      await dialogInput(wrapper).setValue('bob@example.com');
+      await dialogSubmit(wrapper).trigger('submit');
+      await flushPromises();
+
+      expect(dialog(wrapper).text()).toContain('Cannot change this role');
       expect(showMock).not.toHaveBeenCalled();
+      expect(mockApi.get).toHaveBeenCalledTimes(2);
     });
 
     it('removes a member: DELETE with the confirmation header and the reason query', async () => {
