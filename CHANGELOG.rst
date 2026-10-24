@@ -266,16 +266,12 @@ Added
 -----
 
 - ``bin/ots domains resolve-collisions`` writes a reviewable plan for
-  duplicate custom domain records that share one name. The keeper is chosen
-  by historical DNS confirmation, then stored ownership verification, then
-  use; this is stored evidence, not proof of current DNS control. Ambiguous
-  groups and removals with live or unknown billing need ``approved: true``
-  in the plan, and ``--yes`` skips only the prompt. Groups whose evidence
-  changed since review are skipped. ``--apply --plan`` deletes the
-  duplicates' settings and branding without merging them into the kept
-  record, and keeps its provider vhost. Stop custom domain writers and
-  snapshot the datastore first; see
-  ``docs/runbooks/custom-domain-ascii-index-backfill.md``. (#4807)
+  duplicate custom domain records that share one name. Applying a plan
+  deletes the duplicates' settings and branding without merging them into
+  the kept record. Stop all custom domain writers and snapshot the
+  datastore before applying; follow
+  ``docs/runbooks/custom-domain-ascii-index-backfill.md`` for plan review,
+  required approvals and application. (#4807)
 
 - Production builds print a self-XSS warning in the browser console.
   (#4804)
@@ -285,18 +281,18 @@ Changed
 
 - The custom domain name index is renamed to the ASCII index. The key
   ``custom_domain:canonical_display_domain_index`` becomes
-  ``custom_domain:ascii_display_domain_index``, ``bin/ots domains
-  backfill-canonical-index`` becomes ``backfill-ascii-index``, doctor
-  findings use ``ascii_index_*`` and collision plans use ``ascii_name``.
-  Plans from older rule versions are refused; regenerate them. Collision
-  reports from ``backfill-ascii-index`` name the record serving each name
-  and point to ``resolve-collisions``. (#4807)
+  ``custom_domain:ascii_display_domain_index``, and ``bin/ots domains
+  backfill-canonical-index`` becomes ``bin/ots domains backfill-ascii-index``.
+  Update scripts and regenerate collision plans from older rule versions.
+  (#4807)
 
-  **Before upgrading**, with web, worker and scheduler stopped, preview and
-  then apply the rename:
+  **Before starting the new release**, deployments with the former index
+  key must migrate it. With web, worker and scheduler stopped, preview
   ``bin/ots migrate migrations/2026-10-15/20261015_01_rename_ascii_display_domain_index.rb``,
-  then the same with ``--run``. Started without it, the application sees an
-  empty index. Follow ``docs/runbooks/custom-domain-ascii-index-backfill.md``.
+  then repeat with ``--run``. Without the rename, the application sees an
+  empty ASCII index. Follow
+  ``docs/runbooks/custom-domain-ascii-index-backfill.md`` for preparation
+  and validation.
 
 - Customer purge commands are renamed; update scripts that call them.
   ``bin/ots customers purge IDENTIFIER`` deletes one account (was
@@ -306,9 +302,12 @@ Changed
 
 - Domain removal responses from the CLI (JSON) and the Colonel API drop
   ``reasserts_survivor`` and add ``sender_cleanup``: ``deleted``,
-  ``absent``, ``skipped`` or ``failed``. Removal logs carry it and log at
-  warn when it failed; ``bin/ots domains remove`` then exits 1. (#4798,
-  #4814)
+  ``absent``, ``skipped`` or ``failed`` after removal, and ``null`` during
+  previews. Update response consumers. Failed sender cleanup does not undo
+  local domain deletion; ``bin/ots domains remove`` then exits 1. Inspect
+  the failure log and remove the remaining sender identity at the provider:
+  rerunning removal cannot retry cleanup. See
+  ``docs/development/domain-sender-lifecycle.md``. (#4798, #4814)
 
 - Lettermint sender domain removal uses ``lettermint`` 0.2.1. A 404 with
   ``RESOURCE_NOT_FOUND`` counts as already absent; any other 404 is a
@@ -325,12 +324,12 @@ Fixed
 
 - Deleting a custom domain releases its name-index entries by the stored
   name, without removing entries owned by another record that shares the
-  hostname. A concurrent save can no longer recreate a deleted domain.
+  hostname. Fixed a save-versus-deletion race that could recreate a deleted
+  domain.
   (#4798)
 
-- Single-account customer purges sweep the organization, membership and
-  domain registries once with pipelined reads, instead of loading every
-  record three times during preflight. (#4806)
+- Reduced datastore work during preflight for single-account customer
+  purges. (#4806)
 
 - SendGrid domain listings are read to the last page, and sender domains
   match case-insensitively. (#4814)
