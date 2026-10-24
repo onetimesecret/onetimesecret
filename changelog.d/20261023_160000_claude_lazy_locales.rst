@@ -13,6 +13,11 @@ Changed
   is kept for the browser session and never saved to the account.
 - ``<html lang>`` follows language switches and uses BCP 47 tags
   (``pt-BR``, not ``pt_BR``). The page title follows switches too.
+- A language whose chunk fails to load does not block the page. On the
+  first load the page opens in the installation's default language, or in
+  English, with a notice that names the language that failed and links to
+  the feedback form. A failed switch later keeps the current language and
+  shows the same notice.
 
 Fixed
 -----
