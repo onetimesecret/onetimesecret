@@ -20,12 +20,12 @@ Added
 
 - Custom domain homepages can limit anonymous secret creation by network:
   an allowed list and a denied list of IPv4/IPv6 addresses or CIDR ranges.
-  Visitors in a denied range, or outside every allowed range, see the
-  domain's private landing page, as if the homepage were disabled. Secret
-  links still open from any network, signed-in members and management
-  pages are never restricted, and in incoming mode ``/incoming`` and the
-  incoming API are not restricted. Both lists are empty by default. Edit
-  them in the workspace domain Homepage section,
+  Visitors in a denied range, or outside every allowed range when any are
+  configured, see the domain's private landing page, as if the homepage
+  were disabled. Secret links still open from any network, signed-in
+  members and management pages are never restricted, and in incoming mode
+  ``/incoming`` and the incoming API are not restricted. Both lists are
+  empty by default. Edit them in the workspace domain Homepage section,
   ``PUT /api/domains/:extid/homepage-config`` (``allowed_cidrs`` /
   ``denied_cidrs``) or the Colonel domain configs editor. Matching uses the
   trusted-proxy-resolved client address, so behind a reverse proxy it
