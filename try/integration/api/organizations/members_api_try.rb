@@ -236,6 +236,12 @@ last_response.status
 # DELETE /api/organizations/:extid/members/:member_extid - Remove Member
 # =============================================================================
 
+## DELETE - Setup: the member's default organization is this org (#4860)
+@member2.default_org_id = @org.objid
+@member2.save
+Onetime::Customer.load(@member2.objid).default_org_id == @org.objid
+#=> true
+
 ## DELETE - Owner can remove a member
 delete "/api/organizations/#{@org.extid}/members/#{@member2.extid}",
   nil,
@@ -246,6 +252,14 @@ resp = JSON.parse(last_response.body)
 
 ## DELETE - Verify member was actually removed
 @org.member?(@member2)
+#=> false
+
+## DELETE - Removal clears the member's default_org_id naming the org
+Onetime::Customer.dbclient.hget(@member2.dbkey, 'default_org_id')
+#=> nil
+
+## DELETE - The response does not carry the cleanup outcome
+JSON.parse(last_response.body).key?('default_org_cleanup')
 #=> false
 
 ## DELETE - Admin cannot remove another admin
