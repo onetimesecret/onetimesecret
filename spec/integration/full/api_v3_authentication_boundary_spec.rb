@@ -2,6 +2,7 @@
 
 require_relative '../integration_spec_helper'
 require_relative '../../support/customer_session_failure_matrix'
+
 require 'base64'
 
 # HTTP-05.R1: use the existing real full-mode login and active-session helpers.
@@ -47,6 +48,124 @@ RSpec.describe 'V3 current authentication boundaries in full mode', type: :integ
     [Onetime::Secret, Onetime::Receipt].to_h do |model|
       keys = model.dbclient.scan_each(match: "#{model.prefix}:*").to_a.sort
       [model.name, keys.to_h { |key| [key, model.dbclient.dump(key)] }]
+    end
+  end
+
+  describe 'HTTP-05: expired active sessions' do
+    %i[inactive absolute_expired].each do |state|
+      it "refuses #{state} reads and both creation routes without reviving the SQL row" do
+        header 'Content-Type', nil
+        token = fetch_csrf_token
+        expect(token).to be_a(String)
+        expect(token).not_to be_empty
+        @matrix_customer.regenerate_apitoken
+        presented_header = "Basic #{Base64.strict_encode64("#{@matrix_customer.email}:#{@matrix_customer.apitoken}")}"
+        get_json '/api/v3/receipt/recent'
+        expect(last_response.status).to eq(200)
+        expect(active_session_rows.count).to eq(1)
+
+        apply_matrix_state!(state)
+        before_storage = secret_storage
+        get '/api/v3/receipt/recent', {}, { 'HTTP_ACCEPT' => 'application/json', 'HTTP_AUTHORIZATION' => presented_header }
+        expect(last_response.status).to eq(401)
+        expect(json_response).to include('code' => 'active_session_revoked', 'code_scope' => 'customer_session')
+        expect(active_session_rows.count).to eq(0)
+        expect(secret_storage).to eq(before_storage)
+
+        %w[conceal generate].each do |operation|
+          post_creation "/api/v3/secret/#{operation}", authorization: presented_header, csrf_token: token
+          expect(last_response.status).to eq(401)
+          expect(json_response).to include('code' => 'active_session_revoked', 'code_scope' => 'customer_session')
+          expect(last_response.headers['www-authenticate']).to eq('Session realm="onetimesecret"')
+          expect(active_session_rows.count).to eq(0)
+          expect(secret_storage).to eq(before_storage)
+        end
+      end
+    end
+  end
+
+  describe 'HTTP-05: surface-bound session replay' do
+    let(:canonical_host) { 'auth-boundary.example.com' }
+
+    around do |example|
+      original_config = OT.conf.fetch('features').fetch('domains')
+      original_features = Onetime::Runtime.features
+      begin
+        OT.conf['features']['domains'] = original_config.merge('enabled' => true, 'default' => canonical_host)
+        Onetime::Runtime.features = original_features.with(domains_enabled: true)
+        Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
+        header 'Host', canonical_host
+        example.run
+      ensure
+        header 'Host', nil
+        OT.conf['features']['domains'] = original_config
+        Onetime::Runtime.features = original_features
+        Onetime::Middleware::DomainStrategy.initialize_from_config(original_config)
+      end
+    end
+
+    # Custom stamps are persisted fixtures, not SSO logins.
+    %i[canonical_to_tenant tenant_to_canonical tenant_to_other_tenant].each do |boundary|
+      it "refuses #{boundary} despite valid Basic credentials and CSRF" do
+        org = Onetime::Organization.create!("Surface boundary #{SecureRandom.hex(6)}", @matrix_customer)
+        domains = 2.times.map do
+          host = "auth-#{SecureRandom.hex(8)}.tenant-example.com"
+          domain = Onetime::CustomDomain.new(display_domain: host, org_id: org.org_id)
+          domain.verified = true
+          domain.save
+          Onetime::CustomDomain.display_domain_index.put(host, domain.domainid)
+          domain
+        end
+        source_host = boundary == :canonical_to_tenant ? canonical_host : domains.first.display_domain
+        target_host = boundary == :tenant_to_canonical ? canonical_host : domains.last.display_domain
+        source_surface = if boundary == :canonical_to_tenant
+                           Onetime::SessionSurface::CANONICAL
+                         else
+                           { 'kind' => 'custom', 'id' => domains.first.identifier }
+                         end
+        if boundary == :canonical_to_tenant
+          expect(session_blob.fetch(Onetime::SessionSurface::KEY)).to eq(source_surface)
+        else
+          rewrite_session_blob { |blob| blob[Onetime::SessionSurface::KEY] = source_surface }
+        end
+        cookie = current_session_id
+        @matrix_customer.regenerate_apitoken
+        presented_header = "Basic #{Base64.strict_encode64("#{@matrix_customer.email}:#{@matrix_customer.apitoken}")}"
+        env = { 'HTTP_HOST' => source_host, 'HTTP_COOKIE' => "onetime.session=#{cookie}",
+                'HTTP_ACCEPT' => 'application/json' }
+        header 'Content-Type', nil
+        get '/api/v3/receipt/recent', {}, env
+        expect(last_response.status).to eq(200)
+        expect(Onetime::SessionSurface.for_env(last_request.env)).to eq(source_surface)
+        expect(last_request.env.fetch('otto.strategy_result').user.objid).to eq(@matrix_customer.objid)
+        token = last_response.headers['X-CSRF-Token']
+        expect(token).to be_a(String)
+        expect(token).not_to be_empty
+        post '/api/v3/secret/conceal', { secret: { secret: 'matching surface', ttl: 3600 } }.to_json,
+          env.merge('CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => token)
+        expect(last_response.status).to eq(200)
+        record = json_response.fetch('record')
+        expect(Onetime::Secret.load(record.fetch('secret').fetch('identifier')).owner_id).to eq(@matrix_customer.objid)
+        before_storage = secret_storage
+
+        env = env.merge('HTTP_HOST' => target_host, 'HTTP_AUTHORIZATION' => presented_header)
+        get '/api/v3/receipt/recent', {}, env
+        expect(last_response.status).to eq(401)
+        expect(json_response).to include('code' => 'surface_mismatch', 'code_scope' => 'customer_session')
+        expected_surface = boundary == :tenant_to_canonical ? Onetime::SessionSurface::CANONICAL :
+          { 'kind' => 'custom', 'id' => domains.last.identifier }
+        expect(Onetime::SessionSurface.for_env(last_request.env)).to eq(expected_surface)
+        expect(secret_storage).to eq(before_storage)
+
+        %w[conceal generate].each do |operation|
+          post "/api/v3/secret/#{operation}", { secret: { secret: 'wrong surface', ttl: 3600 } }.to_json,
+            env.merge('CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => token)
+          expect(last_response.status).to eq(401)
+          expect(json_response).to include('code' => 'surface_mismatch', 'code_scope' => 'customer_session')
+          expect(last_response.headers['www-authenticate']).to eq('Session realm="onetimesecret"')
+          expect(secret_storage).to eq(before_storage)
+        end
+      end
     end
   end
 
