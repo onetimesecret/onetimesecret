@@ -20,9 +20,10 @@
    * stays until dismissed or until a later activation succeeds (the store
    * clears it then). If messages loaded but the preference could not be saved,
    * it offers retry and dismiss instead. That notice lasts only while the
-   * unsaved language is shown: the next protected navigation activates the
-   * account's saved locale, and the store clears the notice with it. A load
-   * failure takes priority when both failures exist.
+   * unsaved language is shown: when the account has a saved, supported
+   * locale, the next protected navigation activates it and the store clears
+   * the notice with it. A load failure takes priority when both failures
+   * exist.
    *
    * Its own text is in the active locale, i.e. the one shown. Mounted in
    * App.vue above the layout so it appears on every route of both bundles,
