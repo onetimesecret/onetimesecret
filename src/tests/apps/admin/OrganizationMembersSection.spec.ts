@@ -16,6 +16,7 @@ import {
 } from '@/apps/admin/composables/useColonelElevation';
 import type { ColonelOrganizationDetailMember } from '@/schemas/api/internal/responses/colonel-organizations';
 import { createTestI18n } from '@tests/setup';
+import { captureConsole } from '@tests/utils/appLogs';
 
 const ORG_URL = '/api/colonel/organizations/on_first';
 const member = (): ColonelOrganizationDetailMember => ({
@@ -142,12 +143,14 @@ describe('OrganizationMembersSection — remove outcome', () => {
   });
 
   async function removeWith(defaultOrgCleanup: string) {
-    mockApi.delete.mockResolvedValue({
-      data: {
-        record: { org_id: 'on_first', member_id: 'mem_2', status: 'success', role: 'member' },
-        details: { default_org_cleanup: defaultOrgCleanup },
-      },
+    await removeResponding({
+      record: { org_id: 'on_first', member_id: 'mem_2', status: 'success', role: 'member' },
+      details: { default_org_cleanup: defaultOrgCleanup },
     });
+  }
+
+  async function removeResponding(data: unknown) {
+    mockApi.delete.mockResolvedValue({ data });
     await button(wrapper, 'remove').trigger('click');
     await flushPromises();
     useColonelElevation().resolvePrompt(true);
@@ -176,5 +179,25 @@ describe('OrganizationMembersSection — remove outcome', () => {
       'web.admin.organizations.members.remove.success',
       'success'
     );
+  });
+
+  // Refusals arrive as 4xx, so a 200 is a removal even when its body does
+  // not parse; the page reports it as it did before the cleanup outcome.
+  it('reports a removal for a 200 whose body does not parse', async () => {
+    const consoleError = captureConsole('error');
+
+    await removeResponding({ unexpected: true });
+
+    expect(consoleError).toHaveBeenCalledWith(
+      expect.stringContaining('ColonelRemoveMembershipResponse'),
+      expect.anything()
+    );
+    expect(notify).toHaveBeenCalledOnce();
+    expect(notify).toHaveBeenCalledWith(
+      'web.admin.organizations.members.remove.success',
+      'success'
+    );
+    expect(dialogOpen(wrapper)).toEqual([false, false]);
+    expect(wrapper.emitted('changed')).toHaveLength(1);
   });
 });
