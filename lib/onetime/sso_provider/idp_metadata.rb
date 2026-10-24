@@ -319,10 +319,11 @@ module Onetime
       # The IDPSSODescriptor element behind each of the parser's objects, in
       # the same order, one per descriptor (not per entity). More than one
       # EntityDescriptor among them is a federation aggregate. Reads no text
-      # or attribute value, so nothing is expanded here.
+      # or attribute value, so nothing is expanded here. Never empty: the
+      # parser raises ArgumentError for a document with no IDPSSODescriptor,
+      # and #selected_index refuses an empty list should that change.
       def idp_descriptors(idps)
         descriptors = idps.map(&:idpsso_descriptor)
-        raise Error.new(:invalid_metadata, reason: 'no IDPSSODescriptor') if descriptors.empty?
         raise Error.new(:aggregate_metadata) if descriptors.map(&:parent).uniq(&:object_id).size > 1
 
         descriptors
