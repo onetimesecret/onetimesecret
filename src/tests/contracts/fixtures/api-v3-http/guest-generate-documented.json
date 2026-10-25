@@ -1,0 +1,98 @@
+{
+  "name": "guest-generate-documented",
+  "method": "POST",
+  "path": "/api/v3/guest/secret/generate",
+  "request": {
+    "secret": {
+      "ttl": 3600,
+      "kind": "generate",
+      "share_domain": "",
+      "length": 12,
+      "character_sets": {
+        "uppercase": true,
+        "lowercase": true,
+        "numbers": true,
+        "symbols": false
+      }
+    }
+  },
+  "response_schema": "concealData",
+  "request_schema": "generateSecret",
+  "status": 200,
+  "headers": {
+    "x-content-type-options": "nosniff",
+    "x-xss-protection": "1; mode=block",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "o-domain-strategy": "canonical",
+    "o-display-domain": "127.0.0.1:3000",
+    "x-request-id": "3kpwzfv2126av",
+    "content-length": "1401"
+  },
+  "body": {
+    "success": true,
+    "record": {
+      "receipt": {
+        "identifier": "a0zyls9n2vggzj9st1sxs6cigfbfxrccqydf2357ol6eprmwdf23pdbmt2xl8l",
+        "key": "a0zyls9n2vggzj9st1sxs6cigfbfxrccqydf2357ol6eprmwdf23pdbmt2xl8l",
+        "owner_id": null,
+        "state": "new",
+        "secret_shortid": "2raf4w6k",
+        "secret_identifier": "2raf4w6kjeph3gn8hhlco919gtjkgds26hpcwpavalnk2dlb7p5jwuypqf8x1x",
+        "secret_ttl": 3600,
+        "metadata_ttl": 3600,
+        "receipt_ttl": 3600,
+        "lifespan": 3600,
+        "share_domain": null,
+        "created": 1792807619.990459,
+        "updated": 1792807619.990462,
+        "shared": null,
+        "recipients": null,
+        "recipient_name": null,
+        "memo": null,
+        "shortid": "a0zyls9n",
+        "show_recipients": false,
+        "previewed": null,
+        "revealed": null,
+        "is_previewed": false,
+        "viewed": null,
+        "received": null,
+        "burned": null,
+        "is_viewed": false,
+        "is_received": false,
+        "is_revealed": false,
+        "is_burned": false,
+        "is_expired": false,
+        "is_orphaned": false,
+        "is_destroyed": false,
+        "has_passphrase": false,
+        "kind": "generate",
+        "source": "standard"
+      },
+      "secret": {
+        "identifier": "2raf4w6kjeph3gn8hhlco919gtjkgds26hpcwpavalnk2dlb7p5jwuypqf8x1x",
+        "key": "2raf4w6kjeph3gn8hhlco919gtjkgds26hpcwpavalnk2dlb7p5jwuypqf8x1x",
+        "shortid": "2raf4w6k",
+        "state": "new",
+        "lifespan": 3600,
+        "secret_ttl": 3600,
+        "has_passphrase": false,
+        "verification": false,
+        "display_type": "text",
+        "created": 1792807619.989571,
+        "updated": 1792807619.989574,
+        "is_previewed": false,
+        "is_revealed": false,
+        "is_viewed": false,
+        "is_received": false
+      },
+      "share_domain": null
+    },
+    "details": {
+      "kind": "generate",
+      "recipient": [],
+      "recipient_safe": []
+    }
+  }
+}

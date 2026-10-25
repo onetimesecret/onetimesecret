@@ -4,13 +4,13 @@
 // POST /guest/receipts
 //
 //
-// POST with array of identifiers to batch-fetch receipts.
+// POST with CSV or an array of identifiers to batch-fetch receipts.
 
 import { z } from 'zod';
 
 export const showMultipleReceiptsRequestSchema = z.object({
-  /** Array of receipt identifiers */
-  identifiers: z.array(z.string()),
+  /** Receipt identifiers as an array or comma-separated string (up to 25 after sanitization). */
+  identifiers: z.union([z.array(z.string()), z.string()]),
 });
 
 export type ShowMultipleReceiptsRequest = z.infer<typeof showMultipleReceiptsRequestSchema>;

@@ -1,0 +1,25 @@
+{
+  "name": "status-missing",
+  "method": "GET",
+  "path": "/api/v3/secret/absent-schema-probe/status",
+  "request": null,
+  "response_schema": "secret",
+  "request_schema": null,
+  "status": 200,
+  "headers": {
+    "x-content-type-options": "nosniff",
+    "x-xss-protection": "1; mode=block",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "o-domain-strategy": "canonical",
+    "o-display-domain": "127.0.0.1:3000",
+    "x-request-id": "0c35q43iso3d0",
+    "content-length": "30"
+  },
+  "body": {
+    "record": {
+      "state": "unknown"
+    }
+  }
+}

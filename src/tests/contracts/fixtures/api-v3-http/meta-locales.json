@@ -1,0 +1,29 @@
+{
+  "name": "meta-locales",
+  "method": "GET",
+  "path": "/api/v3/supported-locales",
+  "request": null,
+  "response_schema": "supportedLocales",
+  "request_schema": null,
+  "status": 200,
+  "headers": {
+    "x-content-type-options": "nosniff",
+    "x-xss-protection": "1; mode=block",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "o-domain-strategy": "canonical",
+    "o-display-domain": "127.0.0.1:3000",
+    "x-request-id": "2wxo4ccsve6i2",
+    "content-length": "70"
+  },
+  "body": {
+    "locales": [
+      "en",
+      "fr_CA",
+      "fr_FR"
+    ],
+    "default_locale": "en",
+    "locale": "en"
+  }
+}

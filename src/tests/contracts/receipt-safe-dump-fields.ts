@@ -1,11 +1,11 @@
 // src/tests/contracts/receipt-safe-dump-fields.ts
 //
-// Canonical field list from Receipt.safe_dump_fields (Ruby backend).
+// Manually maintained mirror of Receipt.safe_dump_fields (Ruby backend).
 // Source: lib/onetime/models/receipt/features/safe_dump_fields.rb
 //
 // Update this list when safe_dump_fields.rb changes.
-// The contract tests will fail if the Zod schema diverges from this list,
-// preventing the class of bug where Zod silently strips fields.
+// Declaration checks keep this mirror current. Real producer conformance is
+// checked separately by v3-http-producer-contract.spec.ts using HTTP captures.
 
 export const RECEIPT_SAFE_DUMP_FIELDS = [
   'identifier',
@@ -24,6 +24,7 @@ export const RECEIPT_SAFE_DUMP_FIELDS = [
   'updated',
   'shared',
   'recipients',
+  'recipient_name',
   'memo',
   'shortid',
   'show_recipients',
@@ -42,6 +43,7 @@ export const RECEIPT_SAFE_DUMP_FIELDS = [
   'is_destroyed',
   'has_passphrase',
   'kind',
+  'source',
 ] as const;
 
 export type ReceiptSafeDumpField = (typeof RECEIPT_SAFE_DUMP_FIELDS)[number];

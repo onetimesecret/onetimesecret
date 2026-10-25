@@ -9,8 +9,10 @@
 import { z } from 'zod';
 
 export const burnSecretRequestSchema = z.object({
-  /** Set to "true" to confirm burn */
-  continue: z.string().optional(),
+  /** Only boolean true or the string "true" confirms the burn. */
+  continue: z.union([z.boolean(), z.string()]).optional(),
+  /** Passphrase if the secret is protected. */
+  passphrase: z.string().optional(),
 });
 
 export type BurnSecretRequest = z.infer<typeof burnSecretRequestSchema>;

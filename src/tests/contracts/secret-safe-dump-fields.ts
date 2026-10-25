@@ -1,11 +1,11 @@
 // src/tests/contracts/secret-safe-dump-fields.ts
 //
-// Canonical field list from Secret.safe_dump_fields (Ruby backend).
+// Manually maintained mirror of Secret.safe_dump_fields (Ruby backend).
 // Source: lib/onetime/models/secret/features/safe_dump_fields.rb
 //
 // Update this list when safe_dump_fields.rb changes.
-// The contract tests will fail if the Zod schema diverges from this list,
-// preventing the class of bug where Zod silently strips fields.
+// Declaration checks keep this mirror current. Real producer conformance is
+// checked separately by v3-http-producer-contract.spec.ts using HTTP captures.
 
 export const SECRET_SAFE_DUMP_FIELDS = [
   'identifier',
@@ -16,6 +16,7 @@ export const SECRET_SAFE_DUMP_FIELDS = [
   'lifespan',
   'has_passphrase',
   'verification',
+  'display_type',
   'created',
   'updated',
   'is_previewed',
