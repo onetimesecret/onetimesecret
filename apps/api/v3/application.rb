@@ -29,7 +29,8 @@ module V3
   # - Inherits from BaseJSONAPI for common JSON API setup
   # - Router: Otto (configured in BaseJSONAPI#build_router)
   # - Middleware: Universal (MiddlewareStack) + JSON API common (BaseJSONAPI)
-  # - Authentication: Token-based and session-based strategies
+  # - Authentication: Normal secret routes require a session; explicit guest
+  #   routes use noauth. Basic auth is selected only by /version.
   #
   class Application < BaseJSONAPI
     @uri_prefix = '/api/v3'
