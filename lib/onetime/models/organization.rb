@@ -46,6 +46,13 @@ module Onetime
     # (Customer.participates_in :Organization, :members) and the archive
     # toggles; prepended so `super` reaches the generated methods. Archiving
     # affects every member's view, so it drops every snapshot in the request.
+    #
+    # Removal also clears the removed customer's default_org_id when it
+    # names this organization (#4860). The removal paths all reach this
+    # writer: Memberships::Remove, the organization members API (which
+    # calls destroy_with_index_cleanup! directly), the CustomDomain.destroy!
+    # cascade, Organization#destroy!, `memberships doctor` and the
+    # participation GC job.
     module MembershipSnapshotHooks
       def add_members_instance(customer, ...)
         super
@@ -54,7 +61,9 @@ module Onetime
       end
 
       def remove_members_instance(customer, ...)
-        super
+        result                    = super
+        @last_default_org_cleanup = clear_default_org_pointer(customer)
+        result
       ensure
         Onetime::MembershipSnapshot.forget(customer)
       end
@@ -189,6 +198,81 @@ module Onetime
       # compact filters stale references (IDs in set but record deleted/not migrated)
       Customer.load_multi(members.to_a).compact
     end
+
+    # KEYS[1] the customer's object key, ARGV[1] this org's objid as Familia
+    # stores a String field (JSON-encoded), ARGV[2] the bare objid a legacy
+    # row may hold. Returns HDEL's count.
+    CLEAR_DEFAULT_ORG_SCRIPT = <<~LUA
+      local current = redis.call('HGET', KEYS[1], 'default_org_id')
+      if current == ARGV[1] or current == ARGV[2] then
+        return redis.call('HDEL', KEYS[1], 'default_org_id')
+      end
+      return 0
+    LUA
+
+    # Clear the customer's default_org_id when it names this organization.
+    # Called once the customer is no longer a member: the loader already
+    # skips such a pointer, but it outlives the membership, and a later
+    # re-add would make it the default again (#4860).
+    #
+    # Compare-and-delete in one script, not `default_org_id = nil; save`:
+    # a pointer repointed since the customer was loaded survives, and a
+    # customer hash already deleted (mid-purge) is never written back.
+    # Clear, never repoint: OrganizationLoader picks a default on the next
+    # request, as after Org::Delete and `customers doctor --repair`.
+    #
+    # The removal has committed by the time this runs, so a failure is
+    # logged and returned, not raised. `customers doctor` repairs the
+    # pointer later (check orphan_default_org).
+    #
+    # The outcome describes the removal, not only this call: a removal runs
+    # it twice (the teardown, through the membership's own copy of the
+    # customer, then the caller on its copy), and the second call usually
+    # finds the stored field already gone. The caller passes the teardown's
+    # outcome as `prior` (OrganizationMembership#default_org_cleanup), so a
+    # second call that cannot check does not report a pointer the teardown
+    # already settled as possibly surviving.
+    #
+    # @param customer [Onetime::Customer]
+    # @param prior [Symbol, nil] the outcome of an earlier clear in the same
+    #   removal; used only when this call cannot check
+    # @return [Symbol] :cleared when the pointer named this org: this call
+    #   deleted the stored field, or the caller's copy still named the org
+    #   after an earlier clear deleted it; :unchanged when it named another
+    #   org or none; when this call could not check (not a Customer, or the
+    #   script raised), a :cleared or :unchanged prior, otherwise :failed,
+    #   meaning it may still name this org
+    def clear_default_org_pointer(customer, prior: nil)
+      return unchecked_default_org_cleanup(prior) unless customer.is_a?(Onetime::Customer)
+
+      # Keep the caller's copy in step, so a later read or save of this
+      # object does not bring the pointer back. Done before the script, so
+      # a script that raises still leaves the copy cleared.
+      org_objid               = objid.to_s
+      named                   = customer.default_org_id.to_s == org_objid
+      customer.default_org_id = nil if named
+
+      deleted = customer.dbclient.eval(
+        CLEAR_DEFAULT_ORG_SCRIPT,
+        keys: [customer.dbkey],
+        argv: [Familia::JsonSerializer.dump(org_objid), org_objid],
+      ).to_i.positive?
+      deleted || named ? :cleared : :unchanged
+    rescue StandardError => ex
+      OT.le "[Organization#clear_default_org_pointer] #{extid} for #{customer.extid}: #{ex.class}: #{ex.message}"
+      unchecked_default_org_cleanup(prior)
+    end
+
+    # A prior check stands; without one the pointer may have survived.
+    def unchecked_default_org_cleanup(prior)
+      [:cleared, :unchanged].include?(prior) ? prior : :failed
+    end
+    private :unchecked_default_org_cleanup
+
+    # The outcome of the last clear_default_org_pointer run by the removal
+    # hook on this object (nil before any removal). The teardown reads it
+    # into OrganizationMembership#default_org_cleanup.
+    attr_reader :last_default_org_cleanup
 
     # Invitation management
     # pending_invitations is auto-generated by Customer.participates_in staged: :pending_invitations

@@ -99,6 +99,7 @@ vi.mock('@/shared/stores/languageStore', () => ({
     resolveSupportedLocale: (locale: string) =>
       languageState.supported.includes(locale) ? locale : null,
     preferredLocale: () => languageState.preferred,
+    resumeLanguageUpdate: async () => false,
     // Resolves after the messages "load": a turn of the event loop, so a
     // guard that forgot to await it would let the navigation finish first.
     setCurrentLocale: async (locale: string, options?: { remember?: boolean }) => {

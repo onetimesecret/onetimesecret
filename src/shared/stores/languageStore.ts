@@ -1,19 +1,31 @@
 // src/shared/stores/languageStore.ts
 
 import { hasLocaleMessages, setGlobalLocale } from '@/i18n';
-import { getBootstrapValue } from '@/services/bootstrap.service';
-import { loggingService } from '@/services/logging.service';
 import type { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { localeCodeSchema } from '@/schemas/i18n/locale';
+import { getBootstrapValue } from '@/services/bootstrap.service';
+import { loggingService } from '@/services/logging.service';
+import { useApi } from '@/shared/composables/useApi';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { localeCodes } from '@/sources/languages';
-import { useApi } from '@/shared/composables/useApi';
+import {
+  clearPendingLocaleUpdate,
+  storePendingLocaleUpdate,
+  takePendingLocaleUpdate,
+} from '@/utils/pendingLocaleUpdate';
 import { reloadingFor } from '@/utils/preloadError';
 import { defineStore, storeToRefs } from 'pinia';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 export const SESSION_STORAGE_KEY = 'selected.locale';
 export const DEFAULT_LOCALE = 'en';
+/**
+ * A preference save still unanswered after this long fails like any other
+ * failed save. Each save waits for the one before it, so an unanswered
+ * request must not hold the later ones indefinitely.
+ */
+export const PREFERENCE_SAVE_TIMEOUT_MS = 10_000;
 
 /**
  * Thrown (as a rejection) by setCurrentLocale() and updateLanguage() for a
@@ -39,6 +51,11 @@ export class UnsupportedLocaleError extends Error {
 export interface LocaleLoadFailure {
   requested: string;
   shown: string;
+}
+
+export interface LocaleSaveFailure {
+  locale: string;
+  accountExtid: string | null;
 }
 
 export interface SetCurrentLocaleOptions {
@@ -79,6 +96,12 @@ export const useLanguageStore = defineStore('language', () => {
   // load; null once it settles. A newer call replaces it.
   const pendingLocale = ref<string | null>(null);
   const localeLoadFailure = ref<LocaleLoadFailure | null>(null);
+  const localeSaveFailure = ref<LocaleSaveFailure | null>(null);
+  // The locale of the latest preference save while it waits or is in flight;
+  // null once it settles. The bootstrap snapshot changes only when a save
+  // succeeds, so until then protected navigation reads the account's locale
+  // from here (fetchCustomerPreferences in src/router/guards.routes.ts).
+  const savingLocale = ref<string | null>(null);
   const storageKey = ref<string | null>(null);
   const supportedLocales = ref<string[]>([]);
   const _initialized = ref(false);
@@ -86,6 +109,33 @@ export const useLanguageStore = defineStore('language', () => {
   // Incremented by every setCurrentLocale() call, so only the latest one
   // clears pendingLocale.
   let latestSwitch = 0;
+  let latestUpdate = 0;
+  // A newer failed activation does not supersede the save for the language
+  // still shown. Only a switch that reaches persistence replaces this owner.
+  let activePreferenceRequest = 0;
+  // The tail of the save queue (see saveLanguagePreference). Never rejects.
+  let preferenceWrites: Promise<void> = Promise.resolve();
+
+  // A retry belongs to the account and language that failed to save, not to
+  // a later sign-in or a language chosen by a subsequent navigation.
+  watch(
+    [() => bootstrapCust.value?.extid ?? null, currentLocale],
+    ([account], [previousAccount]) => {
+      if (account !== previousAccount) {
+        ++latestUpdate;
+        activePreferenceRequest = 0;
+        savingLocale.value = null;
+      }
+      const failure = localeSaveFailure.value;
+      if (
+        failure &&
+        (!sameAccount(failure.accountExtid) || failure.locale !== currentLocale.value)
+      ) {
+        localeSaveFailure.value = null;
+      }
+    },
+    { flush: 'sync' }
+  );
 
   // Getters
   const getDeviceLocale = computed(() => deviceLocale.value);
@@ -273,7 +323,8 @@ export const useLanguageStore = defineStore('language', () => {
     try {
       activated = await setGlobalLocale(normalizedLocale, { fallbacks });
     } catch (error) {
-      if (remember && reloadingFor(error)) storeSelection(normalizedLocale);
+      if (remember && request === latestSwitch && reloadingFor(error))
+        storeSelection(normalizedLocale);
       throw error;
     } finally {
       if (request === latestSwitch) pendingLocale.value = null;
@@ -348,40 +399,198 @@ export const useLanguageStore = defineStore('language', () => {
   }
 
   /**
-   * Switches the language and saves it as the account preference. The
-   * request goes out only after the locale is active; a failed switch, or
-   * one superseded by a newer switch, sends nothing. A switch whose messages
-   * fail to load is recorded for LocaleLoadNotice before the load error is
-   * rethrown.
+   * Switches and saves the preference only once its messages are active.
+   * Record the operation before importing: Vite can initiate a reload before
+   * the import rejects. Only a reload-triggering failure retains the record.
    */
   async function updateLanguage(newLocale: string): Promise<string> {
-    const validatedLocale = requireSupportedLocale(newLocale);
-    let activeLocale: string;
+    const locale = requireSupportedLocale(newLocale);
+    const accountExtid = bootstrapCust.value?.extid ?? null;
+    const request = ++latestUpdate;
+    const selectionKey = getStorageKey.value;
+    const token = storePendingLocaleUpdate(selectionKey, locale, accountExtid);
     try {
-      activeLocale = await setCurrentLocale(validatedLocale);
+      const { active, saved } = await switchLanguage(locale, accountExtid, request);
+      await saved;
+      clearPendingLocaleUpdate(selectionKey, token);
+      return active;
     } catch (error) {
-      // validatedLocale is supported, so this is a load failure.
-      await recoverFromLocaleLoadFailure(validatedLocale);
+      if (!reloadingFor(error) || request !== latestUpdate) {
+        clearPendingLocaleUpdate(selectionKey, token);
+      }
       throw error;
     }
-    if (activeLocale !== validatedLocale) return activeLocale;
+  }
 
-    // Remember who asked. An auth refresh can swap the bootstrap customer
-    // while the request is in flight; the snapshot patch below belongs to the
-    // account that made the request, not to whoever is signed in afterwards.
-    const requester = bootstrapCust.value;
-    await $api.post('/api/account/update-locale', { locale: validatedLocale });
+  function sameAccount(accountExtid: string | null): boolean {
+    return (bootstrapCust.value?.extid ?? null) === accountExtid;
+  }
 
-    // The server now holds the new preference, so the local bootstrap snapshot
-    // must say the same. The auth route guard re-applies
-    // bootstrapStore.cust.locale on every protected navigation and nothing
-    // refreshes that snapshot on navigation, so a stale value there reverted
-    // the user's choice (and overwrote the stored locale) on the next page.
-    const current = bootstrapCust.value;
-    if (requester && current && current.extid === requester.extid) {
-      bootstrapStore.update({ cust: { ...current, locale: validatedLocale } });
+  /**
+   * Activates `locale` and, when it is still the latest update for the same
+   * account once active, queues its save. Resolves once the locale is active;
+   * `saved` is the queued save, null when none was queued.
+   */
+  async function switchLanguage(
+    locale: string,
+    accountExtid: string | null,
+    request: number,
+    resuming = false
+  ): Promise<{ active: string; saved: Promise<void> | null }> {
+    const switchRequest = latestSwitch + 1;
+    let active: string;
+    try {
+      active = await setCurrentLocale(locale);
+    } catch (error) {
+      if (request === latestUpdate) await recoverFromLocaleLoadFailure(locale);
+      throw error;
     }
-    return validatedLocale;
+    if (
+      active !== locale ||
+      switchRequest !== latestSwitch ||
+      request !== latestUpdate ||
+      !sameAccount(accountExtid) ||
+      (resuming && !verifiedAccount(accountExtid))
+    ) {
+      return { active, saved: null };
+    }
+    activePreferenceRequest = request;
+    localeSaveFailure.value = null;
+    return { active: locale, saved: saveLanguagePreference(locale, accountExtid, request) };
+  }
+
+  /**
+   * Saves run one at a time, in the order they were made: two POSTs in
+   * flight can reach the server in either order, and the older choice would
+   * then be the saved one. A save that a newer save or an account change
+   * superseded while it waited is never sent, and resolves.
+   */
+  function saveLanguagePreference(
+    locale: string,
+    accountExtid: string | null,
+    request: number
+  ): Promise<void> {
+    savingLocale.value = locale;
+    const save = preferenceWrites.then(() => sendLanguagePreference(locale, accountExtid, request));
+    preferenceWrites = save.catch(() => undefined);
+    return save;
+  }
+
+  async function sendLanguagePreference(
+    locale: string,
+    accountExtid: string | null,
+    request: number
+  ): Promise<void> {
+    if (request !== activePreferenceRequest || !sameAccount(accountExtid)) return;
+    try {
+      await $api.post(
+        '/api/account/update-locale',
+        { locale },
+        { timeout: PREFERENCE_SAVE_TIMEOUT_MS }
+      );
+    } catch (error) {
+      if (
+        request === activePreferenceRequest &&
+        sameAccount(accountExtid) &&
+        currentLocale.value === locale
+      ) {
+        localeSaveFailure.value = { locale, accountExtid };
+      }
+      throw error;
+    } finally {
+      if (request === activePreferenceRequest) savingLocale.value = null;
+    }
+
+    // Keep the snapshot used by protected navigation in step with the POST.
+    // Neither an old response nor an account swap may patch a newer choice.
+    if (request !== activePreferenceRequest || !sameAccount(accountExtid)) return;
+    const current = bootstrapCust.value;
+    if (current) bootstrapStore.update({ cust: { ...current, locale } });
+    localeSaveFailure.value = null;
+  }
+
+  /**
+   * Called once during initial navigation, after auth settles. A pending
+   * explicit switch temporarily outranks the old account locale; ordinary
+   * session selections retain their existing precedence. A valid URL locale
+   * has already been attempted by the guard and must not be loaded twice.
+   * Returns whether recovery decided this navigation's locale, even on failure.
+   *
+   * Only the activation is awaited. The save runs behind the navigation, so a
+   * slow request never holds startup: until it settles, savingLocale stands in
+   * for the account locale, and a failed save offers the retry notice.
+   */
+  async function resumeLanguageUpdate(queryLocale?: string): Promise<boolean> {
+    const operation = takePendingLocaleUpdate(getStorageKey.value);
+    if (!operation) return false;
+    const { locale, accountExtid } = operation;
+    if (!verifiedAccount(accountExtid)) return false;
+    if (resolveSupportedLocale(locale) !== locale) return false;
+    if (queryLocale !== undefined && queryLocale !== locale) return false;
+
+    const request = ++latestUpdate;
+    try {
+      const saved =
+        queryLocale === undefined
+          ? (await switchLanguage(locale, accountExtid, request, true)).saved
+          : saveShownLocale(locale, accountExtid, request);
+      if (saved) logFailedSave(saved);
+    } catch (error) {
+      // If even bundled English failed, preserve the initial-navigation
+      // failure contract rather than mounting without an active locale.
+      if (currentLocale.value === null) throw error;
+      loggingService.error(error instanceof Error ? error : new Error(String(error)));
+    }
+    return true;
+  }
+
+  /** Queues the save of `locale` when the guard's URL activation shows it. */
+  function saveShownLocale(
+    locale: string,
+    accountExtid: string | null,
+    request: number
+  ): Promise<void> | null {
+    if (currentLocale.value !== locale || localeLoadFailure.value?.requested === locale) {
+      return null;
+    }
+    activePreferenceRequest = request;
+    return saveLanguagePreference(locale, accountExtid, request);
+  }
+
+  function logFailedSave(save: Promise<void>): void {
+    save.catch((error: unknown) =>
+      loggingService.error(error instanceof Error ? error : new Error(String(error)))
+    );
+  }
+
+  function verifiedAccount(accountExtid: string | null): boolean {
+    const status = useAuthStore().authStatus;
+    return (
+      sameAccount(accountExtid) &&
+      status === (accountExtid === null ? 'anonymous' : 'authenticated')
+    );
+  }
+
+  /** Retries persistence only; never reloads chunks or requeues recovery. */
+  async function retryLanguageSave(): Promise<void> {
+    const failure = localeSaveFailure.value;
+    if (!failure || pendingLocale.value !== null) return;
+    if (!sameAccount(failure.accountExtid) || currentLocale.value !== failure.locale) {
+      localeSaveFailure.value = null;
+      return;
+    }
+    if (!verifiedAccount(failure.accountExtid)) return;
+    const request = ++latestUpdate;
+    activePreferenceRequest = request;
+    try {
+      await saveLanguagePreference(failure.locale, failure.accountExtid, request);
+    } catch (error) {
+      loggingService.error(error instanceof Error ? error : new Error(String(error)));
+    }
+  }
+
+  function dismissLocaleSaveFailure(): void {
+    localeSaveFailure.value = null;
   }
 
   function determineLocale(candidate?: string): string {
@@ -487,6 +696,11 @@ export const useLanguageStore = defineStore('language', () => {
   };
 
   function $reset() {
+    ++latestUpdate;
+    activePreferenceRequest = 0;
+    savingLocale.value = null;
+    clearPendingLocaleUpdate(getStorageKey.value);
+    localeSaveFailure.value = null;
     deviceLocale.value = null;
     currentLocale.value = null;
     pendingLocale.value = null;
@@ -507,6 +721,8 @@ export const useLanguageStore = defineStore('language', () => {
     currentLocale,
     pendingLocale,
     localeLoadFailure,
+    localeSaveFailure,
+    savingLocale,
 
     // Getters
     getDeviceLocale,
@@ -520,6 +736,9 @@ export const useLanguageStore = defineStore('language', () => {
     resolveSupportedLocale,
     determineLocale,
     updateLanguage,
+    resumeLanguageUpdate,
+    retryLanguageSave,
+    dismissLocaleSaveFailure,
     setCurrentLocale,
     recoverFromLocaleLoadFailure,
     dismissLocaleLoadFailure,

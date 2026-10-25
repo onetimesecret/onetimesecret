@@ -33,6 +33,8 @@ require_relative '../../../support/test_helpers'
 
 OT.boot! :test
 
+require 'onetime/operations/memberships/remove'
+
 @owner = Onetime::Customer.create!(email: generate_unique_test_email("removal_owner"))
 @org = Onetime::Organization.create!("Removal Test Org", @owner, generate_unique_test_email("removal_contact"))
 
@@ -368,11 +370,158 @@ Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @reinvite_custo
 @org.pending_invitation_count
 #=> 1
 
+# ============================================================================
+# default_org_id naming the org is cleared on removal (#4860)
+# ============================================================================
+
+## Pointer: a member whose default_org_id names the org
+@ptr_member = Onetime::Customer.create!(email: generate_unique_test_email("removal_ptr"))
+@ptr_ms = Onetime::OrganizationMembership.ensure_membership(@org, @ptr_member)
+@ptr_member.default_org_id = @org.objid
+@ptr_member.save
+Onetime::Customer.load(@ptr_member.objid).default_org_id == @org.objid
+#=> true
+
+## Pointer: removal deletes the stored field
+@ptr_ms.destroy_with_index_cleanup!
+Onetime::Customer.dbclient.hget(@ptr_member.dbkey, 'default_org_id')
+#=> nil
+
+## Pointer: the membership keeps the teardown's cleanup outcome
+@ptr_ms.default_org_cleanup
+#=> :cleared
+
+## Pointer: the customer record itself is untouched
+Onetime::Customer.load(@ptr_member.objid)&.email == @ptr_member.email
+#=> true
+
+## Pointer elsewhere: a default_org_id naming another org survives the removal
+@kept_member = Onetime::Customer.create!(email: generate_unique_test_email("removal_ptr_kept"))
+@kept_ms = Onetime::OrganizationMembership.ensure_membership(@org, @kept_member)
+@kept_pointer = "elsewhere#{SecureRandom.hex(4)}"
+@kept_member.default_org_id = @kept_pointer
+@kept_member.save
+@kept_ms.destroy_with_index_cleanup!
+[@kept_ms.default_org_cleanup, Onetime::Customer.load(@kept_member.objid).default_org_id == @kept_pointer]
+#=> [:unchanged, true]
+
+## Legacy: a bare (not JSON-encoded) pointer is cleared too
+@legacy_member = Onetime::Customer.create!(email: generate_unique_test_email("removal_ptr_legacy"))
+@legacy_ms = Onetime::OrganizationMembership.ensure_membership(@org, @legacy_member)
+Onetime::Customer.dbclient.hset(@legacy_member.dbkey, 'default_org_id', @org.objid)
+@legacy_ms.destroy_with_index_cleanup!
+Onetime::Customer.dbclient.hget(@legacy_member.dbkey, 'default_org_id')
+#=> nil
+
+## Caller's copy: the object passed to remove_members_instance is cleared too
+@copy_member = Onetime::Customer.create!(email: generate_unique_test_email("removal_ptr_copy"))
+Onetime::OrganizationMembership.ensure_membership(@org, @copy_member)
+@copy_member.default_org_id = @org.objid
+@copy_member.save
+@org.remove_members_instance(@copy_member)
+[@copy_member.default_org_id, Onetime::Customer.dbclient.hget(@copy_member.dbkey, 'default_org_id')]
+#=> [nil, nil]
+
+## Deleted customer: clearing never writes the customer hash back
+@gone_member = Onetime::Customer.create!(email: generate_unique_test_email("removal_ptr_gone"))
+Onetime::OrganizationMembership.ensure_membership(@org, @gone_member)
+@gone_member.default_org_id = @org.objid
+@gone_member.save
+Onetime::Customer.dbclient.del(@gone_member.dbkey)
+@org.remove_members_instance(@gone_member)
+Onetime::Customer.dbclient.exists?(@gone_member.dbkey)
+#=> false
+
+## Outcome: :cleared when the call deletes a pointer naming the org
+@outcome_member = Onetime::Customer.create!(email: generate_unique_test_email("removal_ptr_outcome"))
+@outcome_member.default_org_id = @org.objid
+@outcome_member.save
+@org.clear_default_org_pointer(@outcome_member)
+#=> :cleared
+
+## Outcome: :unchanged once nothing names the org
+@org.clear_default_org_pointer(@outcome_member)
+#=> :unchanged
+
+## Outcome: :failed for an argument that is not a Customer
+@org.clear_default_org_pointer(@outcome_member.objid)
+#=> :failed
+
+## Outcome: :failed when the script raises; the caller's copy is still cleared
+@outcome_member.default_org_id = @org.objid
+@outcome_member.save
+def @outcome_member.dbclient = raise('test outage')
+@outcome = [@org.clear_default_org_pointer(@outcome_member), @outcome_member.default_org_id]
+@outcome
+#=> [:failed, nil]
+
+## Outcome: a :cleared prior stands when the script raises
+@org.clear_default_org_pointer(@outcome_member, prior: :cleared)
+#=> :cleared
+
+## Outcome: an :unchanged prior stands when the script raises
+@org.clear_default_org_pointer(@outcome_member, prior: :unchanged)
+#=> :unchanged
+
+## Outcome: a :failed prior stays :failed when the script raises
+@outcome = @org.clear_default_org_pointer(@outcome_member, prior: :failed)
+@outcome_member.singleton_class.remove_method(:dbclient)
+@outcome
+#=> :failed
+
+## Outcome: a check that succeeds outranks the prior
+@org.clear_default_org_pointer(@outcome_member, prior: :failed)
+#=> :cleared
+
+## Outcome: :cleared on the caller's copy after an earlier clear deleted the stored field
+@outcome_member.default_org_id = @org.objid
+Onetime::Customer.dbclient.hdel(@outcome_member.dbkey, 'default_org_id')
+[@org.clear_default_org_pointer(@outcome_member), @outcome_member.default_org_id]
+#=> [:cleared, nil]
+
+## Outcome: :unchanged when the pointer names another org
+@outcome_other = "elsewhere#{SecureRandom.hex(4)}"
+@outcome_member.default_org_id = @outcome_other
+@outcome_member.save
+[@org.clear_default_org_pointer(@outcome_member), Onetime::Customer.load(@outcome_member.objid).default_org_id == @outcome_other]
+#=> [:unchanged, true]
+
+## Remove op: the result reports :cleared when the member's default org was this org
+@op_member = Onetime::Customer.create!(email: generate_unique_test_email("removal_op_ptr"))
+Onetime::OrganizationMembership.ensure_membership(@org, @op_member)
+@op_member.default_org_id = @org.objid
+@op_member.save
+@op_result = Onetime::Operations::Memberships::Remove.new(org: @org, customer: @op_member, actor: 'ur_removal_try').call
+[@op_result.status, @op_result.default_org_cleanup, Onetime::Customer.dbclient.hget(@op_member.dbkey, 'default_org_id')]
+#=> [:success, :cleared, nil]
+
+## Remove op: the result reports :unchanged when the member's default org is another org
+@op_other_member = Onetime::Customer.create!(email: generate_unique_test_email("removal_op_other"))
+Onetime::OrganizationMembership.ensure_membership(@org, @op_other_member)
+@op_other_member.default_org_id = @outcome_other
+@op_other_member.save
+@op_result = Onetime::Operations::Memberships::Remove.new(org: @org, customer: @op_other_member, actor: 'ur_removal_try').call
+[@op_result.status, @op_result.default_org_cleanup, Onetime::Customer.load(@op_other_member.objid).default_org_id == @outcome_other]
+#=> [:success, :unchanged, true]
+
+## Remove op: a pointer the teardown cleared reports :cleared when the repeat on the caller's copy raises
+@op_raise_member = Onetime::Customer.create!(email: generate_unique_test_email("removal_op_raise"))
+Onetime::OrganizationMembership.ensure_membership(@org, @op_raise_member)
+@op_raise_member.default_org_id = @org.objid
+@op_raise_member.save
+def @op_raise_member.dbclient = raise('test outage')
+@op_result = Onetime::Operations::Memberships::Remove.new(org: @org, customer: @op_raise_member, actor: 'ur_removal_try').call
+@op_raise_member.singleton_class.remove_method(:dbclient)
+[@op_result.status, @op_result.default_org_cleanup, @op_raise_member.default_org_id, Onetime::Customer.dbclient.hget(@op_raise_member.dbkey, 'default_org_id')]
+#=> [:success, :cleared, nil, nil]
+
 # Cleanup
 @count_pending.destroy_with_index_cleanup! if @count_pending&.respond_to?(:destroy!)
 # Clean up reinvited member's active membership
 @reinvite_active = Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @reinvite_customer.objid)
 @reinvite_active&.destroy_with_index_cleanup!
-[@org, @owner, @member, @sc_member, @full_cleanup_customer, @idempotent_customer, @reinvite_customer, @count_member_a, @count_member_b].each do |obj|
+[@org, @owner, @member, @sc_member, @full_cleanup_customer, @idempotent_customer, @reinvite_customer, @count_member_a, @count_member_b,
+ @ptr_member, @kept_member, @legacy_member, @copy_member, @outcome_member, @op_member, @op_other_member,
+ @op_raise_member].each do |obj|
   obj.destroy! if obj&.respond_to?(:destroy!) && obj.exists?
 end

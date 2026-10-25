@@ -29,10 +29,15 @@ RSpec.describe 'Memberships Remove Command', type: :cli do
   end
 
   let(:status) { :dry_run }
+  let(:default_org_cleanup) { nil }
 
   let(:result) do
     Onetime::Operations::Memberships::Remove::Result.new(
-      status: status, org_id: 'on_org_ext', customer_id: 'ur_member', role: 'admin',
+      status: status,
+      org_id: 'on_org_ext',
+      customer_id: 'ur_member',
+      role: 'admin',
+      default_org_cleanup: default_org_cleanup,
     )
   end
 
@@ -111,6 +116,37 @@ RSpec.describe 'Memberships Remove Command', type: :cli do
       run_cli_command_quietly('memberships', 'remove', 'on_org_ext', 'ur_member', '-y')
 
       expect(remove_op).to have_received(:new).with(hash_including(dry_run: false)).twice
+    end
+
+    context 'when the default org pointer could not be cleared (#4860)' do
+      let(:default_org_cleanup) { :failed }
+
+      it 'reports the removal, names the repair, and exits 1' do
+        output = run_cli_command_quietly('memberships', 'remove', 'on_org_ext', 'ur_member', '--apply')
+
+        expect(last_exit_code).to eq(1)
+        expect(output[:stdout]).to include('Removed me***@example.com from on_org_ext')
+        expect(output[:stdout]).to include('Removal incomplete')
+        expect(output[:stdout]).to include('bin/ots customers doctor ur_member --repair')
+      end
+
+      it 'carries the outcome in --json and exits 1' do
+        output = run_cli_command_quietly('memberships', 'remove', 'on_org_ext', 'ur_member', '--apply', '--json')
+
+        expect(last_exit_code).to eq(1)
+        expect(JSON.parse(output[:stdout])).to include('status' => 'success', 'default_org_cleanup' => 'failed')
+      end
+    end
+
+    context 'when the default org pointer did not name the org' do
+      let(:default_org_cleanup) { :unchanged }
+
+      it 'exits 0 with the outcome in --json' do
+        output = run_cli_command_quietly('memberships', 'remove', 'on_org_ext', 'ur_member', '--apply', '--json')
+
+        expect(last_exit_code).to eq(0)
+        expect(JSON.parse(output[:stdout])).to include('status' => 'success', 'default_org_cleanup' => 'unchanged')
+      end
     end
 
     context 'when the customer is not a member' do

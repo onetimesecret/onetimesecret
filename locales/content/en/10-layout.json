@@ -362,6 +362,22 @@
     "text": "Dismiss language notice",
     "content_hash": "ff705dea"
   },
+  "web.layout.locale_save_failed.title": {
+    "text": "Your language preference could not be saved",
+    "content_hash": "dc9bfbd0"
+  },
+  "web.layout.locale_save_failed.body": {
+    "text": "Your current language remains active for this page. Retry to remember your language preference.",
+    "content_hash": "eb6d6077"
+  },
+  "web.layout.locale_save_failed.retry": {
+    "text": "Retry",
+    "content_hash": "942087cc"
+  },
+  "web.layout.locale_save_failed.dismiss": {
+    "text": "Dismiss language preference notice",
+    "content_hash": "5149b547"
+  },
   "web.layout.route_load_failed.title": {
     "text": "This page could not be opened",
     "content_hash": "465b233a"

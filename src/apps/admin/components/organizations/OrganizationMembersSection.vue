@@ -216,6 +216,9 @@
   const removeDialogOpen = ref(false);
   const removeTarget = ref<ColonelOrganizationDetailMember | null>(null);
   const removeTargetToken = computed(() => accountConfirmToken(removeTarget.value));
+  // The applied removal's default_org_id cleanup outcome, or null when the
+  // response did not parse.
+  const removeCleanup = ref<string | null>(null);
 
   const {
     loading: removeLoading,
@@ -234,12 +237,14 @@
       headers: confirmHeaders(token),
       ...reasonConfig,
     });
-    // Tripwire only: refusals (not_found, last_owner) arrive as 4xx.
-    gracefulParse(
+    // Refusals (not_found, last_owner) arrive as 4xx, so a 200 is a removal
+    // even when the body does not parse.
+    const parsed = gracefulParse(
       colonelRemoveMembershipResponseSchema,
       response.data,
       'ColonelRemoveMembershipResponse'
     );
+    removeCleanup.value = parsed.ok ? (parsed.data.details?.default_org_cleanup ?? null) : null;
   });
 
   const { open: requestRemove } = useElevateThenOpen(
@@ -259,13 +264,26 @@
 
     removeDialogOpen.value = false;
     removeTarget.value = null;
-    notifications.show(
-      t('web.admin.organizations.members.remove.success', {
-        member: target.extid,
-        org: props.orgName,
-      }),
-      'success'
-    );
+    if (removeCleanup.value === 'failed') {
+      // The membership is gone, but the member's default organization may
+      // still point to this org.
+      notifications.show(
+        t('web.admin.organizations.members.remove.defaultOrgCleanupFailed', {
+          member: target.extid,
+          org: props.orgName,
+        }),
+        'warning'
+      );
+    } else {
+      notifications.show(
+        t('web.admin.organizations.members.remove.success', {
+          member: target.extid,
+          org: props.orgName,
+        }),
+        'success'
+      );
+    }
+    removeCleanup.value = null;
     emit('changed');
   }
 

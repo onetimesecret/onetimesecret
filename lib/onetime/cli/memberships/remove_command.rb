@@ -18,6 +18,11 @@
 # op (the single implementation; the colonel RemoveMembership Logic class is the
 # other adapter). This command owns only CLI concerns. The CLI runs outside the
 # app autoloaders, so require the op explicitly.
+#
+# DEFAULT ORG CLEANUP: an apply reports a member default_org_id that may
+# still name the org (Remove::Result#default_org_cleanup == :failed). The
+# removal stands, but it exits 1; `customers doctor MEMBER --repair` clears
+# the pointer.
 require 'json'
 require 'onetime/operations/memberships/remove'
 
@@ -79,7 +84,7 @@ module Onetime
         ).call
 
         OT.info "[cli-memberships-remove] org=#{organization.extid} member=#{member.extid} " \
-                "status=#{result.status} dry_run=#{dry_run}"
+                "status=#{result.status} dry_run=#{dry_run} default_org_cleanup=#{result.default_org_cleanup}"
 
         json ? output_json(result, member, dry_run: dry_run) : output_text(result, member)
       end
@@ -90,6 +95,11 @@ module Onetime
         case result.status
         when :success
           puts "Removed #{member.obscure_email} from #{result.org_id}"
+          if default_org_cleanup_failed?(result)
+            puts "Removal incomplete: the member's default organization may still be #{result.org_id}."
+            puts "  Run `bin/ots customers doctor #{member.extid} --repair` to clear it."
+            exit 1
+          end
         when :dry_run
           dry_run_header
           puts "Would remove #{member.obscure_email} (role: #{result.role}) from #{result.org_id}"
@@ -109,9 +119,15 @@ module Onetime
           email: member.obscure_email,
           role: result.role,
           dry_run: dry_run,
+          default_org_cleanup: result.default_org_cleanup,
         }
         puts JSON.pretty_generate(payload)
         exit 1 unless OK_STATUSES.include?(result.status)
+        exit 1 if default_org_cleanup_failed?(result)
+      end
+
+      def default_org_cleanup_failed?(result)
+        result.default_org_cleanup == :failed
       end
     end
 

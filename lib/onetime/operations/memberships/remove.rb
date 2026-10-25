@@ -27,6 +27,7 @@ module Onetime
       # delegates the three-structure invariant to Familia's remove_members_instance
       # (ZREM from org.members, SREM the org from customer.participations, destroy the
       # hash). So the member's materialized entitlements are fully cleared on removal.
+      # The member's default_org_id is cleared when it names the org (#4860).
       #
       # ## Sole-owner guardrail
       #
@@ -75,7 +76,16 @@ module Onetime
 
         # @!attribute status [r] Symbol —
         #   :success | :dry_run | :not_found | :last_owner
-        Result = Data.define(:status, :org_id, :customer_id, :role)
+        # @!attribute default_org_cleanup [r] Symbol, nil — nil unless the
+        #   removal was applied; then Organization#clear_default_org_pointer's
+        #   outcome for the removal: :cleared when the member's default_org_id
+        #   named this org, :unchanged when it named another org or none,
+        #   :failed when it may still name this org.
+        Result = Data.define(:status, :org_id, :customer_id, :role, :default_org_cleanup) do
+          def initialize(default_org_cleanup: nil, **attributes)
+            super(**attributes, default_org_cleanup: default_org_cleanup)
+          end
+        end
 
         # @param org [Onetime::Organization] target org (caller resolves; required).
         # @param customer [Onetime::Customer] the member to remove.
@@ -125,6 +135,16 @@ module Onetime
 
           removed_role = membership.role
           membership.destroy_with_index_cleanup!
+
+          # The teardown already cleared a default_org_id naming this org,
+          # through the membership's own copy of the customer
+          # (Organization#remove_members_instance, #4860). Repeat it on the
+          # caller's copy: Customers::Purge keeps using that object, and its
+          # later preflights must not follow a pointer to the org just left.
+          # The outcome goes on the Result, so an adapter can report a
+          # pointer that may have survived. The teardown's outcome stands if
+          # this call cannot check.
+          @default_org_cleanup = @org.clear_default_org_pointer(@customer, prior: membership.default_org_cleanup)
 
           # One audit event per real removal, emitted from the op (adapters MUST
           # NOT audit). Public ids only; no secret detail.
@@ -178,6 +198,7 @@ module Onetime
             org_id: @org.extid,
             customer_id: @customer.extid,
             role: role,
+            default_org_cleanup: @default_org_cleanup,
           )
         end
 

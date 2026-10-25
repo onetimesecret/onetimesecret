@@ -19,7 +19,7 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
   let(:actor) { 'ur_col_public_extid' }
 
   let(:org) do
-    double('Organization', objid: 'org-obj-1', extid: 'on_org_ext')
+    double('Organization', objid: 'org-obj-1', extid: 'on_org_ext', clear_default_org_pointer: :unchanged)
   end
 
   let(:customer) do
@@ -33,7 +33,13 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
 
   context 'when an active member is removed' do
     let(:membership) do
-      double('OrganizationMembership', role: 'admin', owner?: false, destroy_with_index_cleanup!: true)
+      double(
+        'OrganizationMembership',
+        role: 'admin',
+        owner?: false,
+        destroy_with_index_cleanup!: true,
+        default_org_cleanup: :cleared,
+      )
     end
 
     before do
@@ -47,6 +53,32 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
       expect(result.status).to eq(:success)
       expect(result.role).to eq('admin')
       expect(membership).to have_received(:destroy_with_index_cleanup!)
+    end
+
+    # #4860: the teardown clears the stored pointer through its own copy of
+    # the customer; the op repeats it on the caller's copy, passing the
+    # teardown's outcome for a repeat that cannot check.
+    it "clears the caller's default_org_id after the teardown" do
+      described_class.new(org: org, customer: customer, actor: actor).call
+
+      expect(membership).to have_received(:destroy_with_index_cleanup!).ordered
+      expect(org).to have_received(:clear_default_org_pointer).with(customer, prior: :cleared).ordered
+    end
+
+    it 'returns the pointer cleanup outcome on the result' do
+      result = described_class.new(org: org, customer: customer, actor: actor).call
+
+      expect(result.default_org_cleanup).to eq(:unchanged)
+    end
+
+    it 'still returns :success when the pointer could not be cleared' do
+      allow(org).to receive(:clear_default_org_pointer).and_return(:failed)
+
+      result = described_class.new(org: org, customer: customer, actor: actor).call
+
+      expect(result.status).to eq(:success)
+      expect(result.default_org_cleanup).to eq(:failed)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once
     end
 
     it 'records EXACTLY ONE audit event (verb membership.remove, public ids, org_id in detail)' do
@@ -85,7 +117,13 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
 
   context 'sole-owner guardrail' do
     let(:owner_membership) do
-      double('OrganizationMembership', role: 'owner', owner?: true, destroy_with_index_cleanup!: true)
+      double(
+        'OrganizationMembership',
+        role: 'owner',
+        owner?: true,
+        destroy_with_index_cleanup!: true,
+        default_org_cleanup: :cleared,
+      )
     end
 
     before do
@@ -100,6 +138,7 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
 
       expect(result.status).to eq(:last_owner)
       expect(owner_membership).not_to have_received(:destroy_with_index_cleanup!)
+      expect(org).not_to have_received(:clear_default_org_pointer)
       expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor,
         verb: 'membership.remove',
@@ -123,7 +162,13 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
 
   context 'with dry_run: true' do
     let(:membership) do
-      double('OrganizationMembership', role: 'admin', owner?: false, destroy_with_index_cleanup!: true)
+      double(
+        'OrganizationMembership',
+        role: 'admin',
+        owner?: false,
+        destroy_with_index_cleanup!: true,
+        default_org_cleanup: :cleared,
+      )
     end
 
     def dry_run(**)
@@ -141,7 +186,9 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
 
       expect(result.status).to eq(:dry_run)
       expect(result.role).to eq('admin')
+      expect(result.default_org_cleanup).to be_nil
       expect(membership).not_to have_received(:destroy_with_index_cleanup!)
+      expect(org).not_to have_received(:clear_default_org_pointer)
     end
 
     it 'records ONE preview on the observation trail, never the operator trail (#4337)' do
@@ -178,7 +225,13 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
   # (fail-open) instead; refusals log-only.
   context 'when the caller is self-service' do
     let(:membership) do
-      double('OrganizationMembership', role: 'admin', owner?: false, destroy_with_index_cleanup!: true)
+      double(
+        'OrganizationMembership',
+        role: 'admin',
+        owner?: false,
+        destroy_with_index_cleanup!: true,
+        default_org_cleanup: :cleared,
+      )
     end
 
     before do
