@@ -49,7 +49,8 @@ module Onetime
               input.rewind if input.respond_to?(:rewind)
             end
           end
-        when 'application/x-www-form-urlencoded'
+        when 'application/x-www-form-urlencoded', nil
+          # Rack also parses POST bodies without a Content-Type as form data.
           begin
             request.POST
           rescue Rack::BadRequest

@@ -74,6 +74,32 @@ RSpec.describe Onetime::Middleware::ValidateAPIParams, :aggregate_failures do
     expect_bad_request(env_for(body: 'x=%ZZ', type: 'application/x-www-form-urlencoded'), 'Invalid form parameters')
   end
 
+  ['%ZZ', 'x=one&x[]=two'].each do |body|
+    it "rejects malformed implicit form data #{body.inspect} without Content-Type" do
+      env = env_for(body: body)
+      env.delete('CONTENT_TYPE')
+      expect(env).not_to have_key('CONTENT_TYPE')
+      expect_bad_request(env, 'Invalid form parameters')
+      expect(env['rack.input'].pos).to eq(0)
+    end
+  end
+
+  it 'preserves valid implicit form data and rewinds the input' do
+    env = env_for(body: 'secret[secret]=body')
+    env.delete('CONTENT_TYPE')
+    expect(middleware.call(env).first).to eq(200)
+    expect(env['rack.input'].pos).to eq(0)
+    expect(Rack::Request.new(env).POST).to eq('secret' => { 'secret' => 'body' })
+    expect(env).not_to have_key('CONTENT_TYPE')
+  end
+
+  it 'does not interpret a headerless PUT as implicit form data' do
+    env = env_for(body: '%ZZ').merge('REQUEST_METHOD' => 'PUT')
+    env.delete('CONTENT_TYPE')
+    expect(middleware.call(env).first).to eq(200)
+    expect(Rack::Request.new(env).POST).to eq({})
+  end
+
   it 'preserves valid form data and rewinds the input' do
     env = env_for(body: 'secret[secret]=body', type: 'application/x-www-form-urlencoded')
     expect(middleware.call(env).first).to eq(200)
