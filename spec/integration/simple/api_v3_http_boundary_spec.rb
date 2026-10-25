@@ -69,7 +69,11 @@ RSpec.describe 'V2/V3 HTTP method and parser boundaries', :aggregate_failures, t
   def raw_response(path, query: '', method: 'GET', body: nil, content_type: nil)
     env                            = Rack::MockRequest.env_for(path, method: method, input: body.to_s)
     env['QUERY_STRING']            = query
-    env['CONTENT_TYPE']            = content_type if content_type
+    if content_type
+      env['CONTENT_TYPE'] = content_type
+    else
+      env.delete('CONTENT_TYPE')
+    end
     status, headers, response_body = app.call(env)
     chunks                         = []
     # Rack bodies require #each, not Enumerable#map.
@@ -115,6 +119,14 @@ RSpec.describe 'V2/V3 HTTP method and parser boundaries', :aggregate_failures, t
         response       = raw_response(path, method: 'POST', body: 'x=one&x[]=two&sensitive-body=hidden', content_type: 'application/x-www-form-urlencoded')
         expect(secret_storage).to eq(before_storage)
         expect_parser_error(response)
+      end
+
+      it "rejects malformed implicit form encoding without Content-Type or writes at #{path}" do
+        before_storage = secret_storage
+        response = raw_response(path, method: 'POST', body: '%ZZ')
+        expect(secret_storage).to eq(before_storage)
+        expect_parser_error(response)
+        expect(JSON.parse(response.last)).to eq('message' => 'Invalid form parameters')
       end
 
       it "keeps malformed multipart a client error at #{path}" do
