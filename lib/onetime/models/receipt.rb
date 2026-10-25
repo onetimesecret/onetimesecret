@@ -348,7 +348,11 @@ module Onetime
       #   unset, which reads as 'text'. It is not an encryption input and does
       #   not change what is stored.
       #
-      def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil, kind: nil, display_type: nil)
+      # - source/memo/recipients/recipient_name/domain_id: selected creation
+      #   metadata from the calling operation, never an unfiltered request hash.
+      #   A nil source retains Receipt#init's standard provenance default.
+      def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil, kind: nil, display_type: nil,
+                     source: nil, memo: nil, recipients: nil, recipient_name: nil, domain_id: nil)
         # Coerce at the single creation choke point so lifespan is always stored
         # as an Integer (#3299). Familia v2 storage is type-preserving, so a
         # String here ("604800" from unconverted ERB/params) would hydrate back
@@ -386,6 +390,11 @@ module Onetime
         receipt.lifespan       = lifespan
         receipt.share_domain   = domain
         receipt.kind           = kind
+        receipt.source         = source unless source.nil?
+        receipt.memo           = memo
+        receipt.recipients     = recipients
+        receipt.recipient_name = recipient_name
+        receipt.domain_id      = domain_id
         receipt.save
 
         receipt.register_for_expiration_notifications
