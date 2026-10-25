@@ -120,29 +120,11 @@ module Onetime::Receipt::Features
         ) # fallback: :async_thread is the default
       end
 
-      # NOTE: We override the default fast writer (bang!) methods from familia
-      # so that we can update two fields at once. To replicate the same behavior
-      # we pass update_expiration: false to save so that changing this receipt
-      # object's state doesn't affect its original expiration time.
-      #
-      # Every transition is gated by an atomic compare-and-set on the persisted
-      # +state+ field ({#compare_and_set_state!}) so it FAILS CLOSED. If the
-      # receipt's Redis key was TTL-evicted between the time this instance was
-      # loaded and the time the transition runs, the CAS's HGET matches nothing,
-      # the claim loses, and the unconditional `save` never fires -- so an
-      # evicted receipt is not resurrected as a TTL-less "immortal" key (#3625).
-      # If a concurrent caller already advanced the state, the CAS also loses, so
-      # a stale instance can never revert an already-terminal receipt. Only the
-      # caller that wins the claim persists the accompanying fields and emits the
-      # log/audit side effects.
-      #
-      # The winner's follow-up field writes still go through
-      # `save update_expiration: false` so advancing state never resets the
-      # receipt's original expiration. That write lands on the key the CAS just
-      # confirmed exists, so an HSET/HMSET on a live key leaves its TTL untouched
-      # -- exactly the guarantee `update_expiration: false` was approximating.
-      #
-      # TODO: Replace with transaction (i.e. MULTI/EXEC command)
+      # Receipt transitions extend the state CAS with their accompanying fields
+      # in the same Lua operation. There is no follow-up save that can overwrite
+      # a concurrent display claim/memo or recreate a key removed after the CAS.
+      # HGET rejects missing/terminal records; HSET preserves the existing expiry.
+      # Only the winner updates its local projection and emits log/audit events.
 
       # MIGRATION NOTE: Replaces legacy `received!` method.
       # - Sets state to 'revealed' (was 'received')
@@ -160,14 +142,22 @@ module Onetime::Receipt::Features
         # In-memory fast-path: short-circuit an already-terminal instance before
         # touching Redis. The authoritative, resurrection-proof guard is the CAS.
         return unless state?(:new) || state?(:previewed)
-        return unless compare_and_set_state!(:revealed, [:new, :previewed])
+
+        now = Familia.now
+        return unless compare_and_set_state!(
+          :revealed,
+          [:new, :previewed],
+          revealed: now.to_i,
+          secret_identifier: '',
+          updated: now,
+        )
 
         previous_state          = state
         original_secret_shortid = secret_identifier.to_s.slice(0, 8)
         self.state              = 'revealed'
-        self.revealed           = Familia.now.to_i
+        self.revealed           = now.to_i
         self.secret_identifier  = ''
-        save update_expiration: false
+        self.updated            = now
 
         secret_logger.info 'Receipt state transition to revealed',
           {
@@ -194,14 +184,20 @@ module Onetime::Receipt::Features
         return if secret_identifier.to_s.empty?
         # Only new or previewed secrets can be orphaned (was state?(:viewed))
         return unless state?(:new) || state?(:previewed)
-        return unless compare_and_set_state!(:orphaned, [:new, :previewed])
+
+        now = Familia.now
+        return unless compare_and_set_state!(
+          :orphaned,
+          [:new, :previewed],
+          secret_identifier: '',
+          updated: now,
+        )
 
         previous_state          = state
         original_secret_shortid = secret_identifier.to_s.slice(0, 8)
         self.state              = 'orphaned'
-        self.updated            = Familia.now.to_i
+        self.updated            = now
         self.secret_identifier  = ''
-        save update_expiration: false
 
         secret_logger.warn 'Receipt state transition to orphaned',
           {
@@ -225,14 +221,22 @@ module Onetime::Receipt::Features
       def burned!(actor_context: nil)
         # See guard comment on `revealed!` (was `received!`)
         return unless state?(:new) || state?(:previewed)
-        return unless compare_and_set_state!(:burned, [:new, :previewed])
+
+        now = Familia.now
+        return unless compare_and_set_state!(
+          :burned,
+          [:new, :previewed],
+          burned: now.to_i,
+          secret_identifier: '',
+          updated: now,
+        )
 
         previous_state          = state
         original_secret_shortid = secret_identifier.to_s.slice(0, 8)
         self.state              = 'burned'
-        self.burned             = Familia.now.to_i
+        self.burned             = now.to_i
         self.secret_identifier  = ''
-        save update_expiration: false
+        self.updated            = now
 
         secret_logger.info 'Receipt state transition to burned',
           {
@@ -258,14 +262,20 @@ module Onetime::Receipt::Features
         # so every later view of an expired receipt re-ran the transition
         # (redundant save, duplicate logs, duplicate audit events).
         return unless state?(:new) || state?(:previewed)
-        return unless compare_and_set_state!(:expired, [:new, :previewed])
+
+        now = Familia.now
+        return unless compare_and_set_state!(
+          :expired,
+          [:new, :previewed],
+          secret_identifier: '',
+          updated: now,
+        )
 
         previous_state          = state
         original_secret_shortid = secret_identifier.to_s.slice(0, 8)
         self.state              = 'expired'
-        self.updated            = Familia.now.to_i
+        self.updated            = now
         self.secret_identifier  = ''
-        save update_expiration: false
 
         secret_logger.info 'Receipt state transition to expired',
           {
@@ -312,8 +322,32 @@ module Onetime::Receipt::Features
         actor_context.is_a?(Hash) ? actor_context.transform_keys(&:to_s) : {}
       end
 
-      # See Onetime::Models::Features::StateCas for +compare_and_set_state!+,
-      # the shared atomic guard each transition above claims through.
+      RECEIPT_STATE_CAS_SCRIPT = <<~LUA
+        local current = redis.call('HGET', KEYS[1], 'state')
+        local from_count = tonumber(ARGV[1])
+        for i = 2, from_count + 1 do
+          if current == ARGV[i] then
+            redis.call('HSET', KEYS[1], unpack(ARGV, from_count + 2))
+            return 1
+          end
+        end
+        return 0
+      LUA
+      private_constant :RECEIPT_STATE_CAS_SCRIPT
+
+      # Receipt-local extension of StateCas: commit ONLY the transition's fields
+      # together with its state. A separate field save, even without expiration
+      # updates, would leave a deletion/expiry window after the state-only CAS.
+      # Values use Familia's JSON storage encoding, not the HTTP safe_dump.
+      def compare_and_set_state!(to_state, from_states, **fields)
+        argv = [from_states.length]
+        from_states.each { |from_state| argv << serialize_value(from_state.to_s) }
+        fields.merge(state: to_state.to_s).each do |field, value|
+          argv << field.to_s << serialize_value(value)
+        end
+
+        dbclient.eval(RECEIPT_STATE_CAS_SCRIPT, keys: [dbkey], argv: argv).to_i == 1
+      end
     end
   end
 end
