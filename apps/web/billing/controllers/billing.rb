@@ -336,6 +336,54 @@ module Billing
         json_error('Failed to retrieve invoices', status: 500)
       end
 
+      # Create a Stripe Customer Portal session for organization
+      #
+      # The portal is where the owner views and updates the payment method,
+      # billing details and subscription. Scoped to the organization in the
+      # URL; GET /billing/portal (Plans#customer_portal_redirect) always opens
+      # the caller's default organization, so it cannot serve an owner of
+      # several workspaces from a per-organization billing page.
+      #
+      # Owner-only for the same reason as the redirect path: the portal can
+      # change the payment method and cancel the subscription.
+      #
+      # POST /billing/api/org/:extid/portal
+      #
+      # @return [Hash] Portal session URL
+      def create_portal_session
+        org = load_organization(req.params['extid'], require_owner: true)
+
+        if org.stripe_customer_id.to_s.empty?
+          return json_error('No billing account for this organization', status: 400)
+        end
+
+        if stripe_api_key_missing?('create_portal_session')
+          return json_error('Billing service temporarily unavailable', status: 503)
+        end
+
+        portal_session = Stripe::BillingPortal::Session.create(
+          {
+            customer: org.stripe_customer_id,
+            return_url: "#{billing_base_url}/billing/#{org.extid}/overview",
+          },
+        )
+
+        billing_logger.info 'Customer portal session created',
+          {
+            extid: org.extid,
+            customer_id: org.stripe_customer_id,
+          }
+
+        json_response({ portal_url: portal_session.url })
+      rescue Stripe::StripeError => ex
+        billing_logger.error 'Stripe portal session creation failed',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+          }
+        json_error('Failed to open billing portal', status: 500)
+      end
+
       # List available billing plans
       #
       # Returns all available plans with their pricing and features.
