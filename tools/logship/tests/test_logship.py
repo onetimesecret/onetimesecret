@@ -1,18 +1,9 @@
-# tools/testsuite/test_logtide_ship.py
+# tools/logship/tests/test_logship.py
 
-"""Tests for scripts/logtide-ship.py.
-
-Run from repo root:
-    bin/testsuite logtide -v
-
-Requirements: pytest, httpx. cyclopts is only required to import the module
-itself; if it's missing the entire module skips. respx is not used — we mock
-httpx via httpx.MockTransport + monkeypatching httpx.Client.
-"""
+"""Log shipping regression tests. Run: bin/testsuite logship -v."""
 
 from __future__ import annotations
 
-import importlib.util
 import io
 import json
 import logging
@@ -27,23 +18,8 @@ from pathlib import Path
 import httpx
 import pytest
 
-# -- Module loader ------------------------------------------------------
-# logtide-ship.py has a hyphen, so we can't `import` it normally.
-
-_SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "logtide-ship.py"
-
-
-def _load_module():
-    spec = importlib.util.spec_from_file_location("logtide_ship", _SCRIPT)
-    mod = importlib.util.module_from_spec(spec)
-    try:
-        spec.loader.exec_module(mod)
-    except ModuleNotFoundError as e:
-        pytest.skip(f"logtide-ship dependency missing: {e}")
-    return mod
-
-
-ls = _load_module()
+from logship import cli as ls
+from logship import entries
 
 
 # -- Helpers ------------------------------------------------------------
@@ -77,7 +53,7 @@ def diag_caplog(caplog):
     temporarily enable propagation for the duration of the test."""
     prev = ls._diag.propagate
     ls._diag.propagate = True
-    caplog.set_level(logging.DEBUG, logger="logtide-ship")
+    caplog.set_level(logging.DEBUG, logger="logship")
     yield caplog
     ls._diag.propagate = prev
 
@@ -91,28 +67,6 @@ def _patched_client(monkeypatch, transport):
         return real_client(*args, **kwargs)
 
     monkeypatch.setattr(ls.httpx, "Client", factory)
-
-
-# -- _mask_key ----------------------------------------------------------
-
-
-class TestMaskKey:
-    def test_empty(self):
-        assert ls._mask_key("") == "***"
-
-    def test_short(self):
-        assert ls._mask_key("abcd") == "***"
-        assert ls._mask_key("abcdefgh") == "***"  # boundary: len==8
-
-    def test_long(self):
-        masked = ls._mask_key("sk-abcdef1234567890xyz")
-        assert masked == "sk-a***xyz"
-
-    def test_never_contains_full_key(self):
-        key = "supersecretapikey123456"
-        masked = ls._mask_key(key)
-        assert key not in masked
-        assert "secret" not in masked
 
 
 # -- detect_level -------------------------------------------------------
@@ -132,7 +86,7 @@ class TestDetectLevel:
         ],
     )
     def test_levels(self, msg, expected):
-        assert ls.detect_level(msg) == expected
+        assert entries.detect_level(msg) == expected
 
 
 # -- _now ---------------------------------------------------------------
@@ -140,7 +94,7 @@ class TestDetectLevel:
 
 class TestNow:
     def test_z_suffix(self):
-        s = ls._now()
+        s = entries._now()
         assert ISO_Z_RE.match(s), s
         assert s.endswith("Z")
         assert "+00:00" not in s
@@ -163,43 +117,64 @@ class TestCaddyDuration:
         ],
     )
     def test_go_duration_strings(self, val, expected):
-        assert ls._parse_caddy_duration_ms(val) == expected
+        assert entries._parse_caddy_duration_ms(val) == expected
 
     def test_float_seconds(self):
         # duration_format number → float seconds
-        assert ls._parse_caddy_duration_ms(0.074) == 74.0
-        assert ls._parse_caddy_duration_ms(1) == 1000.0
+        assert entries._parse_caddy_duration_ms(0.074) == 74.0
+        assert entries._parse_caddy_duration_ms(1) == 1000.0
 
     def test_malformed_returns_zero(self):
-        assert ls._parse_caddy_duration_ms("bogus") == 0
-        assert ls._parse_caddy_duration_ms("5xyz") == 0
-        assert ls._parse_caddy_duration_ms(None) == 0
+        assert entries._parse_caddy_duration_ms("bogus") == 0
+        assert entries._parse_caddy_duration_ms("5xyz") == 0
+        assert entries._parse_caddy_duration_ms(None) == 0
 
     def test_composite_not_supported_returns_zero(self):
         # _GO_DURATION_RE is anchored and doesn't handle composite units.
         # Documenting actual behavior: "1m30s" does not match.
-        assert ls._parse_caddy_duration_ms("1m30s") == 0
+        assert entries._parse_caddy_duration_ms("1m30s") == 0
 
 
 # -- Caddy timestamp parser --------------------------------------------
 
 
 class TestCaddyTimestamp:
+    @pytest.mark.parametrize("timestamp", [
+        1793127821.0,
+        1793127821000,
+        1793127821000000,
+        1793127821000000000,
+    ])
+    def test_common_numeric_epoch_units(self, timestamp):
+        assert entries._parse_caddy_ts(timestamp) == "2026-10-27T19:03:41.000Z"
+
+    def test_integer_nanoseconds_preserve_millisecond_boundary(self):
+        assert entries._parse_caddy_ts(1793127821999999999) == "2026-10-27T19:03:41.999Z"
+
+    @pytest.mark.parametrize("timestamp", [
+        None, True, False, "not-a-timestamp", {}, [],
+        float("nan"), float("inf"), float("-inf"),
+        1e308, -1e308, 10 ** 400,
+    ])
+    def test_invalid_timestamp_uses_current_time(self, monkeypatch, timestamp):
+        monkeypatch.setattr(entries, "_now", lambda: "2026-10-27T19:00:00.000Z")
+        assert entries._parse_caddy_ts(timestamp) == "2026-10-27T19:00:00.000Z"
+
     def test_unix_seconds_float(self):
         # 2022-03-09 21:30:01.524 UTC-ish
-        out = ls._parse_caddy_ts(1646861401.524)
+        out = entries._parse_caddy_ts(1646861401.524)
         assert ISO_Z_RE.match(out)
         assert out.startswith("2022-03-09T")
 
     def test_unix_milli_float(self):
         # > 1e12 → treated as millis
-        out = ls._parse_caddy_ts(1646861401524.0)
+        out = entries._parse_caddy_ts(1646861401524.0)
         assert ISO_Z_RE.match(out)
         assert out.startswith("2022-03-09T")
 
     def test_both_forms_equivalent(self):
-        a = ls._parse_caddy_ts(1646861401.524)
-        b = ls._parse_caddy_ts(1646861401524.0)
+        a = entries._parse_caddy_ts(1646861401.524)
+        b = entries._parse_caddy_ts(1646861401524.0)
         assert a == b
 
 
@@ -209,15 +184,15 @@ class TestCaddyTimestamp:
 class TestBuildEntryText:
     def test_strips_ansi(self):
         line = "\x1b[31mERROR: boom\x1b[0m"
-        e = ls._build_entry_text(line, "svc")
+        e = entries._build_entry_text(line, "svc")
         assert e["message"] == "ERROR: boom"
         assert e["level"] == "error"
         assert e["service"] == "svc"
-        assert e["hostname"] == ls._HOSTNAME
+        assert e["hostname"] == entries._HOSTNAME
         assert ISO_Z_RE.match(e["time"])
 
     def test_level_guess_info(self):
-        e = ls._build_entry_text("just a message", "svc")
+        e = entries._build_entry_text("just a message", "svc")
         assert e["level"] == "info"
 
 
@@ -230,16 +205,16 @@ class TestBuildEntryJson:
             "message": "hi",
             "name": "Onetime::App",
         }
-        e = ls._build_entry_json(raw, "backend")
+        e = entries._build_entry_json(raw, "backend")
         assert e["time"] == "2024-01-02T03:04:05.678Z"
         assert e["hostname"] == "box-1"
         assert e["level"] == "warn"
         assert json.loads(e["message"]) == raw
 
     def test_fallbacks(self):
-        e = ls._build_entry_json({}, "svc")
+        e = entries._build_entry_json({}, "svc")
         assert ISO_Z_RE.match(e["time"])
-        assert e["hostname"] == ls._HOSTNAME
+        assert e["hostname"] == entries._HOSTNAME
         assert e["level"] == "info"
 
 
@@ -255,7 +230,7 @@ class TestBuildEntryMetadata:
             "thread": "main",
             "payload": {"user_id": "u_1", "secret_id": "s_1"},
         }
-        e = ls._build_entry_metadata(raw, "backend")
+        e = entries._build_entry_metadata(raw, "backend")
         assert e["message"] == "boom"
         assert e["metadata"]["logger"] == "Onetime::Secret"
         assert e["metadata"]["pid"] == 1234
@@ -265,9 +240,9 @@ class TestBuildEntryMetadata:
 
     def test_no_metadata_key_when_empty(self):
         raw = {"message": "hi"}
-        e = ls._build_entry_metadata(raw, "svc")
+        e = entries._build_entry_metadata(raw, "svc")
         assert "metadata" not in e
-        assert e["hostname"] == ls._HOSTNAME
+        assert e["hostname"] == entries._HOSTNAME
 
 
 class TestBuildEntryCaddy:
@@ -293,13 +268,13 @@ class TestBuildEntryCaddy:
         }
 
     def test_message_format(self, sample):
-        e = ls._build_entry_caddy(sample, "caddy")
+        e = entries._build_entry_caddy(sample, "caddy")
         assert e["message"] == "GET /api/users 200 13.8kB 7.75ms"
         assert ISO_Z_RE.match(e["time"])
-        assert e["hostname"] == ls._HOSTNAME  # Caddy doesn't ship host
+        assert e["hostname"] == entries._HOSTNAME  # Caddy doesn't ship host
 
     def test_metadata_populated(self, sample):
-        e = ls._build_entry_caddy(sample, "caddy")
+        e = entries._build_entry_caddy(sample, "caddy")
         md = e["metadata"]
         assert md["remote_ip"] == "10.0.0.1"
         assert md["client_ip"] == "203.0.113.7"
@@ -312,24 +287,103 @@ class TestBuildEntryCaddy:
         assert md["tls_proto"] == "h2"
         assert md["user_agent"] == "Mozilla/5.0"
 
+    def test_explicit_request_id_takes_precedence(self, sample):
+        sample["request_id"] = "Edge-Id_123:abc.def"
+        sample["resp_headers"] = {"X-Request-Id": ["different-app-id"]}
+        sample["request"]["headers"]["X-Request-Id"] = ["caller-supplied-id"]
+
+        e = entries._build_entry_caddy(sample, "caddy")
+
+        assert e["metadata"]["request_id"] == "Edge-Id_123:abc.def"
+
+    @pytest.mark.parametrize(
+        "header_name", ["X-Request-Id", "x-request-id", "O-Request-ID"]
+    )
+    @pytest.mark.parametrize("value", ["joined-id", ["joined-id"]])
+    def test_response_request_id_fallback(self, sample, header_name, value):
+        sample["resp_headers"] = {header_name: value}
+
+        e = entries._build_entry_caddy(sample, "caddy")
+
+        assert e["metadata"]["request_id"] == "joined-id"
+
+    def test_app_response_id_precedes_legacy_edge_header(self, sample):
+        sample["resp_headers"] = {
+            "O-Request-Id": ["edge-id"],
+            "X-Request-Id": ["app-id"],
+        }
+
+        e = entries._build_entry_caddy(sample, "caddy")
+
+        assert e["metadata"]["request_id"] == "app-id"
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            None, "", " ", "id with spaces", "id,other", "id\n", "é-id",
+            "x" * 201, 123, True, ["id"], {"id": "value"},
+        ],
+    )
+    def test_malformed_explicit_request_id_is_omitted(self, sample, value):
+        sample["request_id"] = value
+
+        e = entries._build_entry_caddy(sample, "caddy")
+
+        assert "request_id" not in e["metadata"]
+
+    @pytest.mark.parametrize(
+        "headers",
+        [
+            None, [], "not-a-map", {"X-Request-Id": []},
+            {"X-Request-Id": ["one", "two"]}, {"X-Request-Id": [["nested"]]},
+            {"X-Request-Id": ["bad\rvalue"]}, {"X-Request-Id": [123]},
+            {"X-Request-Id": ["one"], "x-request-id": ["two"]},
+        ],
+    )
+    def test_malformed_response_request_id_is_omitted(self, sample, headers):
+        sample["resp_headers"] = headers
+
+        e = entries._build_entry_caddy(sample, "caddy")
+
+        assert "request_id" not in e["metadata"]
+
+    def test_max_length_request_id_is_preserved(self, sample):
+        sample["request_id"] = "x" * 200
+
+        e = entries._build_entry_caddy(sample, "caddy")
+
+        assert e["metadata"]["request_id"] == "x" * 200
+
+    def test_missing_request_id_does_not_copy_incoming_headers(self, sample):
+        sample["request"]["headers"].update({
+            "X-Request-Id": ["caller-id"],
+            "Authorization": ["Bearer sensitive"],
+            "Cookie": ["session=sensitive"],
+        })
+
+        e = entries._build_entry_caddy(sample, "caddy")
+
+        assert "request_id" not in e["metadata"]
+        assert "sensitive" not in json.dumps(e)
+
     def test_client_ip_equals_remote_ip_omitted(self, sample):
         sample["request"]["client_ip"] = sample["request"]["remote_ip"]
-        e = ls._build_entry_caddy(sample, "caddy")
+        e = entries._build_entry_caddy(sample, "caddy")
         assert "client_ip" not in e["metadata"]
 
     def test_unix_milli_timestamp(self, sample):
         sample["ts"] = 1646861401524.0
-        e = ls._build_entry_caddy(sample, "caddy")
+        e = entries._build_entry_caddy(sample, "caddy")
         assert e["time"].startswith("2022-03-09T")
 
     def test_float_duration_seconds(self, sample):
         sample["duration"] = 0.0775  # 77.5ms in float-seconds form
-        e = ls._build_entry_caddy(sample, "caddy")
+        e = entries._build_entry_caddy(sample, "caddy")
         assert e["metadata"]["duration_ms"] == 77.5
 
     def test_missing_ts_uses_now(self, sample):
         del sample["ts"]
-        e = ls._build_entry_caddy(sample, "caddy")
+        e = entries._build_entry_caddy(sample, "caddy")
         assert ISO_Z_RE.match(e["time"])
 
 
@@ -339,19 +393,19 @@ class TestBuildEntryCaddy:
 class TestBuildEntryDispatch:
     def test_plain_mode_ignores_json(self):
         line = '{"level":"warn","message":"hi"}'
-        e = ls._build_entry(line, "svc", mode="plain")
+        e = entries._build_entry(line, "svc", mode="plain")
         # plain always goes text path; raw line becomes the message
         assert e["message"] == line
         assert e["level"] == "warn"  # detect_level picks it up
 
     def test_non_json_line_in_json_mode_falls_through(self):
-        e = ls._build_entry("plain startup banner", "svc", mode="json")
+        e = entries._build_entry("plain startup banner", "svc", mode="json")
         assert e["message"] == "plain startup banner"
 
     def test_ansi_colored_line_in_metadata_mode(self):
         # ANSI-colored text doesn't start with '{' → text path
         line = "\x1b[31mERROR: boom\x1b[0m"
-        e = ls._build_entry(line, "svc", mode="metadata")
+        e = entries._build_entry(line, "svc", mode="metadata")
         assert e["message"] == "ERROR: boom"
         assert e["level"] == "error"
 
@@ -364,7 +418,7 @@ class TestBuildEntryDispatch:
             "name": "L",
         }
         line = json.dumps(raw)
-        e = ls._build_entry(line, "svc", mode="metadata")
+        e = entries._build_entry(line, "svc", mode="metadata")
         assert e["message"] == "m"
         assert e["metadata"]["logger"] == "L"
 
@@ -375,7 +429,7 @@ class TestBuildEntryDispatch:
             "status": 200,
         }
         line = json.dumps(raw)
-        e = ls._build_entry(line, "svc", mode="caddy")
+        e = entries._build_entry(line, "svc", mode="caddy")
         assert "GET /" in e["message"]
         assert e["time"].startswith("2022-")
 
@@ -384,6 +438,29 @@ class TestBuildEntryDispatch:
 
 
 class TestSendBatch:
+    def test_ships_matching_edge_and_app_request_ids(self, monkeypatch):
+        request_id = "joined-Request-123"
+        edge = entries._build_entry(json.dumps({
+            "request_id": request_id,
+            "request": {"method": "GET", "uri": "/", "host": "custom.example"},
+            "status": 200,
+        }), "caddy", mode="caddy")
+        app = entries._build_entry(json.dumps({
+            "message": "Request",
+            "payload": {"request_id": request_id, "status": 200},
+        }), "backend", mode="metadata")
+        t = FakeTransport([(200, {"ok": True})])
+        _patched_client(monkeypatch, t)
+
+        with httpx.Client() as client:
+            ls._send_batch(client, [edge, app])
+
+        logs = json.loads(t.requests[0].content)["logs"]
+        assert [entry["metadata"]["request_id"] for entry in logs] == [
+            request_id, request_id,
+        ]
+        assert logs[0]["metadata"]["host"] == "custom.example"
+
     def test_success_no_retry(self, monkeypatch):
         t = FakeTransport([(200, {"ok": True})])
         _patched_client(monkeypatch, t)
@@ -475,7 +552,7 @@ class TestPreflight:
         ls._preflight("follow", "svc", "json")  # must not raise
         msgs = " ".join(r.getMessage() for r in diag_caplog.records)
         assert "event=preflight_unreachable" in msgs
-        assert "refused" in msgs
+        assert "exc_type=ConnectError" in msgs
 
     def test_5xx_warns_but_continues(self, monkeypatch, diag_caplog):
         t = FakeTransport([(503, {})])
@@ -485,18 +562,27 @@ class TestPreflight:
         assert "event=preflight_server_error" in msgs
         assert "status=503" in msgs
 
-    def test_banner_masks_key(self, monkeypatch, diag_caplog, capfd):
-        monkeypatch.setattr(ls, "LOGTIDE_API_KEY", "supersecretapikey123456")
+    @pytest.mark.parametrize(
+        "key,configured,is_default",
+        [("", False, False), ("CHANGEME", True, True),
+         ("supersecretapikey123456", True, False)],
+    )
+    def test_banner_reports_key_state_without_key_material(
+        self, monkeypatch, diag_caplog, capfd, key, configured, is_default
+    ):
+        monkeypatch.setattr(ls, "LOGTIDE_API_KEY", key)
         t = FakeTransport([(200, {"ok": True})])
         _patched_client(monkeypatch, t)
         ls._preflight("follow", "svc", "json")
         msgs = " ".join(r.getMessage() for r in diag_caplog.records)
-        # Full secret must not appear in logged messages
-        assert "supersecretapikey123456" not in msgs
-        assert "supe***456" in msgs
-        # Also verify it never hits the raw stderr stream
+        assert f"api_key_configured={configured}" in msgs
+        assert f"api_key_is_default={is_default}" in msgs
+        assert "api_key=" not in msgs
+        assert "***" not in msgs
         err = capfd.readouterr().err
-        assert "supersecretapikey123456" not in err
+        if key:
+            assert key not in msgs
+            assert key not in err
 
     def test_auth_failure_emits_event(self, monkeypatch, diag_caplog):
         t = FakeTransport([(401, {"err": "nope"})])
@@ -604,6 +690,39 @@ class TestBatch:
 
         logs = json.loads(t.requests[0].content)["logs"]
         assert logs[0]["hostname"] == socket.gethostname()
+
+    def test_caddy_batch_continues_after_invalid_timestamps(self, monkeypatch, diag_caplog):
+        transport = FakeTransport([(200, {"ok": True})])
+        _patched_client(monkeypatch, transport)
+        monkeypatch.setattr(ls, "_preflight", lambda *a, **k: None)
+        monkeypatch.setattr(entries, "_now", lambda: "2026-10-27T19:00:00.000Z")
+        records = [{
+            "ts": timestamp,
+            "request_id": f"Request-{index}",
+            "status": 200,
+            "request": {
+                "method": "GET", "uri": "/health",
+                "headers": {"Authorization": ["Bearer private-payload"]},
+            },
+        } for index, timestamp in enumerate([
+            1793127821000000000, float("nan"), float("inf"), 1e308, "invalid",
+            1793127822,
+        ])]
+        monkeypatch.setattr(sys, "stdin", io.StringIO(
+            "".join(json.dumps(record) + "\n" for record in records)
+        ))
+
+        assert ls.batch("caddy", opts=ls.Global(mode="caddy")) == 0
+
+        logs = json.loads(transport.requests[0].content)["logs"]
+        assert len(logs) == len(records)
+        assert logs[0]["time"] == "2026-10-27T19:03:41.000Z"
+        assert all(log["time"] == "2026-10-27T19:00:00.000Z" for log in logs[1:5])
+        assert logs[-1]["time"] == "2026-10-27T19:03:42.000Z"
+        assert [log["metadata"]["request_id"] for log in logs] == [
+            record["request_id"] for record in records
+        ]
+        assert "private-payload" not in json.dumps(logs) + diag_caplog.text
 
 
 # -- _validate_service -------------------------------------------------

@@ -83,6 +83,9 @@
         }
       }, true);
     </script>
+    {{#if request_id}}
+    <meta name="request-id" content="{{request_id}}">
+    {{/if}}
     {{> partials/head}}
   </head>
   <body class="font-serif bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">

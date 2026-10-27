@@ -1,0 +1,22 @@
+[project]
+name = "ots-logship"
+version = "0.1.0"
+description = "Stdin log shipping for OneTime Secret operations"
+requires-python = ">=3.11"
+dependencies = ["httpx>=0.27,<1", "cyclopts>=4,<5"]
+
+[project.optional-dependencies]
+test = ["pytest>=8,<10", "trustme>=1.2,<2"]
+
+[project.scripts]
+logship = "logship.cli:main"
+
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/logship"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
