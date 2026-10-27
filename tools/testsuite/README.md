@@ -28,7 +28,9 @@ bin/testsuite verify-sentry-build --quick       # inspect existing build output
   `brew install bash`; the system `/bin/bash` is too old for this suite.
 - **`logship`** (󠄁a󠄁l󠄁s󠄁o󠄁 `logtide`)󠄁:󠄁 u󠄁v󠄁 a󠄁n󠄁d󠄁 P󠄁y󠄁t󠄁h󠄁o󠄁n󠄁 3󠄁.󠄁1󠄁1󠄁+󠄁.󠄁 U󠄁s󠄁e󠄁s󠄁 t󠄁h󠄁e󠄁
   [l󠄁o󠄁g󠄁s󠄁h󠄁i󠄁p󠄁 p󠄁a󠄁c󠄁k󠄁a󠄁g󠄁e󠄁](../logship/README.md)'󠄁s󠄁 o󠄁w󠄁n󠄁 `pyproject.toml`,󠄁 `uv.lock`,󠄁 a󠄁n󠄁d󠄁
-  t󠄁e󠄁s󠄁t󠄁 d󠄁e󠄁p󠄁e󠄁n󠄁d󠄁e󠄁n󠄁c󠄁i󠄁e󠄁s󠄁.󠄁 T󠄁h󠄁e󠄁 f󠄁i󠄁r󠄁s󠄁t󠄁 r󠄁u󠄁n󠄁 m󠄁a󠄁y󠄁 d󠄁o󠄁w󠄁n󠄁l󠄁o󠄁a󠄁d󠄁 t󠄁h󠄁e󠄁 i󠄁n󠄁t󠄁e󠄁r󠄁p󠄁r󠄁e󠄁t󠄁e󠄁r󠄁 a󠄁n󠄁d󠄁 d󠄁e󠄁p󠄁e󠄁n󠄁d󠄁e󠄁n󠄁c󠄁i󠄁e󠄁s󠄁.󠄁
+  t󠄁e󠄁s󠄁t󠄁 d󠄁e󠄁p󠄁e󠄁n󠄁d󠄁e󠄁n󠄁c󠄁i󠄁e󠄁s󠄁.󠄁 T󠄁e󠄁s󠄁t󠄁s󠄁 u󠄁s󠄁e󠄁 m󠄁o󠄁c󠄁k󠄁 H󠄁T󠄁T󠄁P󠄁 a󠄁n󠄁d󠄁 t󠄁e󠄁m󠄁p󠄁o󠄁r󠄁a󠄁r󠄁y󠄁 l󠄁o󠄁o󠄁p󠄁b󠄁a󠄁c󠄁k󠄁 H󠄁T󠄁T󠄁P󠄁/󠄁T󠄁L󠄁S󠄁
+  r󠄁e󠄁c󠄁e󠄁i󠄁v󠄁e󠄁r󠄁s󠄁.󠄁 T󠄁h󠄁e󠄁 f󠄁i󠄁r󠄁s󠄁t󠄁 r󠄁u󠄁n󠄁 m󠄁a󠄁y󠄁 d󠄁o󠄁w󠄁n󠄁l󠄁o󠄁a󠄁d󠄁 t󠄁h󠄁e󠄁 i󠄁n󠄁t󠄁e󠄁r󠄁p󠄁r󠄁e󠄁t󠄁e󠄁r󠄁 a󠄁n󠄁d󠄁 d󠄁e󠄁p󠄁e󠄁n󠄁d󠄁e󠄁n󠄁c󠄁i󠄁e󠄁s󠄁.󠄁
+  T󠄁h󠄁e󠄁 `logship-tests` j󠄁o󠄁b󠄁 i󠄁n󠄁 `static-analysis.yml` r󠄁u󠄁n󠄁s󠄁 t󠄁h󠄁i󠄁s󠄁 c󠄁o󠄁m󠄁m󠄁a󠄁n󠄁d󠄁.󠄁
 - **`caddy`:󠄁** T󠄁h󠄁i󠄁s󠄁 p󠄁a󠄁c󠄁k󠄁a󠄁g󠄁e󠄁'󠄁s󠄁 l󠄁o󠄁c󠄁k󠄁e󠄁d󠄁 Python environment, plus the Caddy build used by
   [the SAML transport guide](../../docs/authentication/saml-callback-transport.md#validation-coverage)
   (2.11.4 with transform-encoder). It launches Caddy and a temporary HTTP backend
