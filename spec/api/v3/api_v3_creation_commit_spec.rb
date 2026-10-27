@@ -4,9 +4,9 @@ require 'spec_helper'
 require_relative '../../../apps/api/v3/application'
 
 # Creation commit boundary (docs/specs/api/01-creation-commit.md) against
-# Valkey: the secret/receipt pair and its required registrations land in one
-# MULTI/EXEC, failures carry persistence evidence, and optional follow-ups run
-# after the commit without failing it.
+# Valkey: the secret/receipt pair and its required registrations are written
+# in one MULTI/EXEC, failures carry persistence evidence, and optional
+# follow-ups run after the commit without failing it.
 RSpec.describe 'API secret creation commit boundary', type: :integration do
   before(:all) { Onetime.boot! :test }
 

@@ -145,7 +145,8 @@ module Onetime
   #                The caller received no handle for them.
   # - :unconfirmed the commit raised without a datastore verdict (lost
   #                connection, timeout, an error raised while queuing); the
-  #                writes may or may not have landed, possibly as a complete pair
+  #                writes may or may not have been applied, possibly as a
+  #                complete pair
   #
   # Classification errs conservative: a failure inside the commit is never
   # :none, even where nothing was in fact sent. An error does not prove
