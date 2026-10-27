@@ -38,11 +38,12 @@ def snippet(text, name):
 
 
 def response_request_id(headers):
-    """Echo diagnostic IDs without reflecting folded or malformed headers."""
-    value = headers.get("X-Request-ID", "upstream-generated")
-    if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,199}", value) is None:
+    """Construct a canonical UUID header without returning incoming text."""
+    try:
+        number = int(uuid.UUID(headers.get("X-Request-ID", "")))
+    except (AttributeError, TypeError, ValueError):
         return "upstream-generated"
-    return value
+    return str(uuid.UUID(int=number))
 
 
 class CaddyLogRedactionTest(unittest.TestCase):
@@ -50,7 +51,10 @@ class CaddyLogRedactionTest(unittest.TestCase):
         valid = str(uuid.uuid4())
         cases = [
             (f"X-Request-ID: {valid}\r\n\r\n", valid),
+            (f"X-Request-ID: {valid.upper()}\r\n\r\n", valid),
             ("\r\n", "upstream-generated"),
+            ("X-Request-ID: \r\n\r\n", "upstream-generated"),
+            ("X-Request-ID: Request-ABC\r\n\r\n", "upstream-generated"),
             ("X-Request-ID: first\r\n continued\r\n\r\n", "upstream-generated"),
             ("X-Request-ID: first\n continued\r\n\r\n", "upstream-generated"),
             ("X-Request-ID: invalid\x00id\r\n\r\n", "upstream-generated"),
