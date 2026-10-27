@@ -10,9 +10,12 @@ LogTide (default), Papertrail TLS syslog, Loki, or Datadog.
 See tools/logship/README.md for destination configuration and delivery behavior.
 """
 
+import codecs
+import io
 import math
 import os
 import re
+import select
 import signal
 import ssl
 import sys
@@ -20,7 +23,7 @@ import threading
 import time
 from dataclasses import dataclass, field
 from queue import Empty, Full, Queue
-from typing import Annotated
+from typing import Annotated, Iterator, TextIO
 from urllib.parse import urlparse
 
 import httpx
@@ -281,6 +284,41 @@ def _drain(queue: Queue, thread: threading.Thread, state: ShippingState, timeout
         _diag.error("%s", _kv(event="shipper_join_timeout", seconds=timeout))
 
 
+def _follow_lines(stream: TextIO, crashed: threading.Event) -> Iterator[str]:
+    """Read POSIX stdin without blocking crash detection on an idle pipe.
+
+    Read the ready descriptor directly: TextIOWrapper.readline can block on a
+    partial line, and its read-ahead buffer cannot be monitored with select.
+    Incremental decoding retains split multibyte characters and universal
+    newlines. In-memory streams used by callers/tests retain normal iteration.
+    """
+    try:
+        descriptor = stream.fileno()
+    except (AttributeError, OSError):
+        yield from stream
+        return
+    decoder = io.IncrementalNewlineDecoder(
+        codecs.getincrementaldecoder(stream.encoding or "utf-8")(
+            errors=stream.errors or "strict"
+        ),
+        translate=True,
+    )
+    pending = ""
+    while not crashed.is_set():
+        readable, _, _ = select.select([descriptor], [], [], 0.1)
+        if not readable:
+            continue
+        chunk = os.read(descriptor, 65536)
+        pending += decoder.decode(chunk, final=not chunk)
+        while (end := pending.find("\n")) >= 0:
+            yield pending[:end + 1]
+            pending = pending[end + 1:]
+        if not chunk:
+            if pending:
+                yield pending
+            return
+
+
 # -- Subcommands ---------------------------------------------------------
 
 
@@ -320,7 +358,7 @@ def follow(service: str, *, opts: Global = Global()) -> int:
     dropped = 0                 # running total for current saturation episode
     last_reported = 0           # last value of `dropped` we emitted
     try:
-        for line in sys.stdin:
+        for line in _follow_lines(sys.stdin, state.crashed):
             if state.crashed.is_set():
                 stop_reason = "shipper_crash"
                 break
@@ -376,6 +414,8 @@ def follow(service: str, *, opts: Global = Global()) -> int:
                     backpressure_logged = False
                     dropped = 0
                     last_reported = 0
+        if state.crashed.is_set():
+            stop_reason = "shipper_crash"
     except KeyboardInterrupt:
         stop_reason = "keyboard_interrupt"
     except Exception as e:

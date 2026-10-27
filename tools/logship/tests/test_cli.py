@@ -164,6 +164,70 @@ def test_follow_reports_drain_timeout_and_cleans_up_test_worker(monkeypatch):
         assert stopped.wait(timeout=2)
 
 
+@pytest.mark.parametrize("partial_line", ["", "unfinished line"])
+def test_follow_exits_after_worker_crash_while_stdin_pipe_stays_open(partial_line):
+    code = """
+from logship import cli
+def crash(*args):
+    raise RuntimeError("injected worker crash")
+cli._build_entry = crash
+raise SystemExit(cli.follow("backend", opts=cli.Global(
+    backend="loki", mode="plain", shutdown_timeout=0.2,
+)))
+"""
+    env = {key: os.environ[key] for key in ("PATH", "HOME") if key in os.environ}
+    child = subprocess.Popen(
+        [sys.executable, "-c", code], stdin=subprocess.PIPE,
+        stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, env=env,
+        cwd=Path(__file__).resolve().parents[3],
+    )
+    try:
+        child.stdin.write("trigger worker failure\n" + partial_line)
+        child.stdin.flush()
+        # The producer keeps the pipe open and sends no more data. A dead
+        # worker must still wake follow and enter bounded shutdown.
+        assert child.wait(timeout=3) == 1
+        assert not child.stdin.closed
+        diagnostics = child.stderr.read()
+        assert "event=shipper_crash" in diagnostics
+        assert "reason=shipper_crash" in diagnostics
+    finally:
+        if child.poll() is None:
+            child.kill()
+            child.wait(timeout=3)
+        child.stdin.close()
+        child.stderr.close()
+
+
+def test_follow_reader_preserves_split_utf8_and_universal_newlines(monkeypatch):
+    read_descriptor, write_descriptor = os.pipe()
+    payload = "first\r\n€ 😀 second\rthird\nlast €"
+    os.write(write_descriptor, payload.encode("utf-8"))
+    os.close(write_descriptor)
+    real_read = os.read
+    # Force every multibyte character and CRLF sequence across read boundaries.
+    monkeypatch.setattr(cli.os, "read", lambda descriptor, size: real_read(descriptor, 1))
+    with os.fdopen(read_descriptor, "r", encoding="utf-8") as stream:
+        assert list(cli._follow_lines(stream, threading.Event())) == [
+            "first\n", "€ 😀 second\n", "third\n", "last €",
+        ]
+        assert not stream.closed
+
+
+def test_follow_reader_keeps_all_lines_from_a_regular_file(tmp_path):
+    lines = [f"{number}: " + "x" * 1000 + "\n" for number in range(100)]
+    lines.append("unterminated final line")
+    source = tmp_path / "input.log"
+    source.write_text("".join(lines), encoding="utf-8")
+    with source.open(encoding="utf-8") as stream:
+        assert list(cli._follow_lines(stream, threading.Event())) == lines
+
+
+def test_follow_reader_keeps_stringio_iteration():
+    source = io.StringIO("one\ntwo\nlast")
+    assert list(cli._follow_lines(source, threading.Event())) == ["one\n", "two\n", "last"]
+
+
 def test_invalid_json_diagnostic_does_not_sample_input(monkeypatch, caplog):
     monkeypatch.setattr(cli._diag, "propagate", True)
     caplog.set_level("DEBUG", logger="logship")
