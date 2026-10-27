@@ -19,6 +19,7 @@ import httpx
 import pytest
 
 from logship import cli as ls
+from logship import entries
 
 
 # -- Helpers ------------------------------------------------------------
@@ -85,7 +86,7 @@ class TestDetectLevel:
         ],
     )
     def test_levels(self, msg, expected):
-        assert ls.detect_level(msg) == expected
+        assert entries.detect_level(msg) == expected
 
 
 # -- _now ---------------------------------------------------------------
@@ -93,7 +94,7 @@ class TestDetectLevel:
 
 class TestNow:
     def test_z_suffix(self):
-        s = ls._now()
+        s = entries._now()
         assert ISO_Z_RE.match(s), s
         assert s.endswith("Z")
         assert "+00:00" not in s
@@ -116,22 +117,22 @@ class TestCaddyDuration:
         ],
     )
     def test_go_duration_strings(self, val, expected):
-        assert ls._parse_caddy_duration_ms(val) == expected
+        assert entries._parse_caddy_duration_ms(val) == expected
 
     def test_float_seconds(self):
         # duration_format number → float seconds
-        assert ls._parse_caddy_duration_ms(0.074) == 74.0
-        assert ls._parse_caddy_duration_ms(1) == 1000.0
+        assert entries._parse_caddy_duration_ms(0.074) == 74.0
+        assert entries._parse_caddy_duration_ms(1) == 1000.0
 
     def test_malformed_returns_zero(self):
-        assert ls._parse_caddy_duration_ms("bogus") == 0
-        assert ls._parse_caddy_duration_ms("5xyz") == 0
-        assert ls._parse_caddy_duration_ms(None) == 0
+        assert entries._parse_caddy_duration_ms("bogus") == 0
+        assert entries._parse_caddy_duration_ms("5xyz") == 0
+        assert entries._parse_caddy_duration_ms(None) == 0
 
     def test_composite_not_supported_returns_zero(self):
         # _GO_DURATION_RE is anchored and doesn't handle composite units.
         # Documenting actual behavior: "1m30s" does not match.
-        assert ls._parse_caddy_duration_ms("1m30s") == 0
+        assert entries._parse_caddy_duration_ms("1m30s") == 0
 
 
 # -- Caddy timestamp parser --------------------------------------------
@@ -140,19 +141,19 @@ class TestCaddyDuration:
 class TestCaddyTimestamp:
     def test_unix_seconds_float(self):
         # 2022-03-09 21:30:01.524 UTC-ish
-        out = ls._parse_caddy_ts(1646861401.524)
+        out = entries._parse_caddy_ts(1646861401.524)
         assert ISO_Z_RE.match(out)
         assert out.startswith("2022-03-09T")
 
     def test_unix_milli_float(self):
         # > 1e12 → treated as millis
-        out = ls._parse_caddy_ts(1646861401524.0)
+        out = entries._parse_caddy_ts(1646861401524.0)
         assert ISO_Z_RE.match(out)
         assert out.startswith("2022-03-09T")
 
     def test_both_forms_equivalent(self):
-        a = ls._parse_caddy_ts(1646861401.524)
-        b = ls._parse_caddy_ts(1646861401524.0)
+        a = entries._parse_caddy_ts(1646861401.524)
+        b = entries._parse_caddy_ts(1646861401524.0)
         assert a == b
 
 
@@ -162,15 +163,15 @@ class TestCaddyTimestamp:
 class TestBuildEntryText:
     def test_strips_ansi(self):
         line = "\x1b[31mERROR: boom\x1b[0m"
-        e = ls._build_entry_text(line, "svc")
+        e = entries._build_entry_text(line, "svc")
         assert e["message"] == "ERROR: boom"
         assert e["level"] == "error"
         assert e["service"] == "svc"
-        assert e["hostname"] == ls._HOSTNAME
+        assert e["hostname"] == entries._HOSTNAME
         assert ISO_Z_RE.match(e["time"])
 
     def test_level_guess_info(self):
-        e = ls._build_entry_text("just a message", "svc")
+        e = entries._build_entry_text("just a message", "svc")
         assert e["level"] == "info"
 
 
@@ -183,16 +184,16 @@ class TestBuildEntryJson:
             "message": "hi",
             "name": "Onetime::App",
         }
-        e = ls._build_entry_json(raw, "backend")
+        e = entries._build_entry_json(raw, "backend")
         assert e["time"] == "2024-01-02T03:04:05.678Z"
         assert e["hostname"] == "box-1"
         assert e["level"] == "warn"
         assert json.loads(e["message"]) == raw
 
     def test_fallbacks(self):
-        e = ls._build_entry_json({}, "svc")
+        e = entries._build_entry_json({}, "svc")
         assert ISO_Z_RE.match(e["time"])
-        assert e["hostname"] == ls._HOSTNAME
+        assert e["hostname"] == entries._HOSTNAME
         assert e["level"] == "info"
 
 
@@ -208,7 +209,7 @@ class TestBuildEntryMetadata:
             "thread": "main",
             "payload": {"user_id": "u_1", "secret_id": "s_1"},
         }
-        e = ls._build_entry_metadata(raw, "backend")
+        e = entries._build_entry_metadata(raw, "backend")
         assert e["message"] == "boom"
         assert e["metadata"]["logger"] == "Onetime::Secret"
         assert e["metadata"]["pid"] == 1234
@@ -218,9 +219,9 @@ class TestBuildEntryMetadata:
 
     def test_no_metadata_key_when_empty(self):
         raw = {"message": "hi"}
-        e = ls._build_entry_metadata(raw, "svc")
+        e = entries._build_entry_metadata(raw, "svc")
         assert "metadata" not in e
-        assert e["hostname"] == ls._HOSTNAME
+        assert e["hostname"] == entries._HOSTNAME
 
 
 class TestBuildEntryCaddy:
@@ -246,13 +247,13 @@ class TestBuildEntryCaddy:
         }
 
     def test_message_format(self, sample):
-        e = ls._build_entry_caddy(sample, "caddy")
+        e = entries._build_entry_caddy(sample, "caddy")
         assert e["message"] == "GET /api/users 200 13.8kB 7.75ms"
         assert ISO_Z_RE.match(e["time"])
-        assert e["hostname"] == ls._HOSTNAME  # Caddy doesn't ship host
+        assert e["hostname"] == entries._HOSTNAME  # Caddy doesn't ship host
 
     def test_metadata_populated(self, sample):
-        e = ls._build_entry_caddy(sample, "caddy")
+        e = entries._build_entry_caddy(sample, "caddy")
         md = e["metadata"]
         assert md["remote_ip"] == "10.0.0.1"
         assert md["client_ip"] == "203.0.113.7"
@@ -270,7 +271,7 @@ class TestBuildEntryCaddy:
         sample["resp_headers"] = {"X-Request-Id": ["different-app-id"]}
         sample["request"]["headers"]["X-Request-Id"] = ["caller-supplied-id"]
 
-        e = ls._build_entry_caddy(sample, "caddy")
+        e = entries._build_entry_caddy(sample, "caddy")
 
         assert e["metadata"]["request_id"] == "Edge-Id_123:abc.def"
 
@@ -281,7 +282,7 @@ class TestBuildEntryCaddy:
     def test_response_request_id_fallback(self, sample, header_name, value):
         sample["resp_headers"] = {header_name: value}
 
-        e = ls._build_entry_caddy(sample, "caddy")
+        e = entries._build_entry_caddy(sample, "caddy")
 
         assert e["metadata"]["request_id"] == "joined-id"
 
@@ -291,7 +292,7 @@ class TestBuildEntryCaddy:
             "X-Request-Id": ["app-id"],
         }
 
-        e = ls._build_entry_caddy(sample, "caddy")
+        e = entries._build_entry_caddy(sample, "caddy")
 
         assert e["metadata"]["request_id"] == "app-id"
 
@@ -305,7 +306,7 @@ class TestBuildEntryCaddy:
     def test_malformed_explicit_request_id_is_omitted(self, sample, value):
         sample["request_id"] = value
 
-        e = ls._build_entry_caddy(sample, "caddy")
+        e = entries._build_entry_caddy(sample, "caddy")
 
         assert "request_id" not in e["metadata"]
 
@@ -321,14 +322,14 @@ class TestBuildEntryCaddy:
     def test_malformed_response_request_id_is_omitted(self, sample, headers):
         sample["resp_headers"] = headers
 
-        e = ls._build_entry_caddy(sample, "caddy")
+        e = entries._build_entry_caddy(sample, "caddy")
 
         assert "request_id" not in e["metadata"]
 
     def test_max_length_request_id_is_preserved(self, sample):
         sample["request_id"] = "x" * 200
 
-        e = ls._build_entry_caddy(sample, "caddy")
+        e = entries._build_entry_caddy(sample, "caddy")
 
         assert e["metadata"]["request_id"] == "x" * 200
 
@@ -339,29 +340,29 @@ class TestBuildEntryCaddy:
             "Cookie": ["session=sensitive"],
         })
 
-        e = ls._build_entry_caddy(sample, "caddy")
+        e = entries._build_entry_caddy(sample, "caddy")
 
         assert "request_id" not in e["metadata"]
         assert "sensitive" not in json.dumps(e)
 
     def test_client_ip_equals_remote_ip_omitted(self, sample):
         sample["request"]["client_ip"] = sample["request"]["remote_ip"]
-        e = ls._build_entry_caddy(sample, "caddy")
+        e = entries._build_entry_caddy(sample, "caddy")
         assert "client_ip" not in e["metadata"]
 
     def test_unix_milli_timestamp(self, sample):
         sample["ts"] = 1646861401524.0
-        e = ls._build_entry_caddy(sample, "caddy")
+        e = entries._build_entry_caddy(sample, "caddy")
         assert e["time"].startswith("2022-03-09T")
 
     def test_float_duration_seconds(self, sample):
         sample["duration"] = 0.0775  # 77.5ms in float-seconds form
-        e = ls._build_entry_caddy(sample, "caddy")
+        e = entries._build_entry_caddy(sample, "caddy")
         assert e["metadata"]["duration_ms"] == 77.5
 
     def test_missing_ts_uses_now(self, sample):
         del sample["ts"]
-        e = ls._build_entry_caddy(sample, "caddy")
+        e = entries._build_entry_caddy(sample, "caddy")
         assert ISO_Z_RE.match(e["time"])
 
 
@@ -371,19 +372,19 @@ class TestBuildEntryCaddy:
 class TestBuildEntryDispatch:
     def test_plain_mode_ignores_json(self):
         line = '{"level":"warn","message":"hi"}'
-        e = ls._build_entry(line, "svc", mode="plain")
+        e = entries._build_entry(line, "svc", mode="plain")
         # plain always goes text path; raw line becomes the message
         assert e["message"] == line
         assert e["level"] == "warn"  # detect_level picks it up
 
     def test_non_json_line_in_json_mode_falls_through(self):
-        e = ls._build_entry("plain startup banner", "svc", mode="json")
+        e = entries._build_entry("plain startup banner", "svc", mode="json")
         assert e["message"] == "plain startup banner"
 
     def test_ansi_colored_line_in_metadata_mode(self):
         # ANSI-colored text doesn't start with '{' → text path
         line = "\x1b[31mERROR: boom\x1b[0m"
-        e = ls._build_entry(line, "svc", mode="metadata")
+        e = entries._build_entry(line, "svc", mode="metadata")
         assert e["message"] == "ERROR: boom"
         assert e["level"] == "error"
 
@@ -396,7 +397,7 @@ class TestBuildEntryDispatch:
             "name": "L",
         }
         line = json.dumps(raw)
-        e = ls._build_entry(line, "svc", mode="metadata")
+        e = entries._build_entry(line, "svc", mode="metadata")
         assert e["message"] == "m"
         assert e["metadata"]["logger"] == "L"
 
@@ -407,7 +408,7 @@ class TestBuildEntryDispatch:
             "status": 200,
         }
         line = json.dumps(raw)
-        e = ls._build_entry(line, "svc", mode="caddy")
+        e = entries._build_entry(line, "svc", mode="caddy")
         assert "GET /" in e["message"]
         assert e["time"].startswith("2022-")
 
@@ -418,12 +419,12 @@ class TestBuildEntryDispatch:
 class TestSendBatch:
     def test_ships_matching_edge_and_app_request_ids(self, monkeypatch):
         request_id = "joined-Request-123"
-        edge = ls._build_entry(json.dumps({
+        edge = entries._build_entry(json.dumps({
             "request_id": request_id,
             "request": {"method": "GET", "uri": "/", "host": "custom.example"},
             "status": 200,
         }), "caddy", mode="caddy")
-        app = ls._build_entry(json.dumps({
+        app = entries._build_entry(json.dumps({
             "message": "Request",
             "payload": {"request_id": request_id, "status": 200},
         }), "backend", mode="metadata")
