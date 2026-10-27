@@ -1,28 +1,30 @@
 # 2. Creation failure handling
 
-Status: Proposed. No client result-recovery service is introduced.
+Status: Direction approved by the user in conversation; not evidence of implementation or release approval. Requirements below paraphrase those decisions.
 
 ## Purpose and scope
 
-Creation errors report what is known without implying rollback. Internal consistency is separate from reliable delivery of creation handles.
+Creation failures are logged with effective, safe diagnostics and return an error when a response can be delivered. Internal persistence evidence is separate from the user-facing result and from reliable delivery of creation handles.
 
 ## Requirements
 
-| Outcome | Behavior |
+| Condition | Behavior |
 | --- | --- |
-| Definitely not committed | The request fails without a success result. |
-| Commit uncertain | The request reports uncertainty; no automatic retry or blind deletion follows. |
-| Committed, response lost | The pair retains its original expiry; delivery is not guaranteed. |
-| Incomplete persistence confirmed | Internal cleanup targets only the proven incomplete creation. |
+| Creation fails or runtime validation rejects its response | The consumer receives an error, not partial success, retained partial handles or a third “uncertain” state. |
+| Persistence acknowledgment is lost | Internal evidence records what is known; missing acknowledgment does not prove rollback or justify blind deletion of a complete pair. |
+| A complete pair is committed but its response is lost | The pair retains its original expiration; a fully lost response cannot deliver an error to the client. |
+| Incomplete persistence is confirmed | Safe cleanup targets only the unfinished incomplete creation under the [cleanup requirements](03-consumption-cleanup.md). |
+| Optional nonessential follow-up fails after commit | The failure is logged without failing committed creation under the [commit boundary](01-creation-commit.md). |
 
-A deliberate new POST creates a new secret and can duplicate an earlier uncertain creation. Diagnostics exclude secret content, passphrases and capability handles.
+Diagnostics identify the failing operation, stage and available persistence evidence without secret content, passphrases or capability handles. An error does not promise that no writes occurred. A deliberate new creation request can duplicate an earlier creation whose result was not received; neither server nor frontend automatically retries creation or mutation failures.
 
 ## Acceptance
 
-- A write followed by a lost acknowledgment is not mistaken for a definite no-write failure.
-- Cleanup cannot delete a committed pair or repeat unrelated accounting.
-- User-facing errors do not promise that retrying is duplicate-free.
+- Lost acknowledgments and client validation failures are not treated as proof of no writes.
+- Error handling and cleanup do not blindly delete complete pairs or repeat unrelated accounting.
+- Failures remain diagnosable without exposing sensitive values or promising duplicate-free retries.
+- User-facing success or error behavior remains simple even when internal persistence evidence is inconclusive.
 
-## Exclusions and open decisions
+## Exclusions and unresolved implementation details
 
-No operation-token API, plaintext cache, automatic resubmission or exactly-once delivery. The [commit boundary](01-creation-commit.md), partial-write detection and cleanup deadline require explicit resolution; expiry of complete unreturned pairs does not excuse incomplete writes.
+No operation-token API, plaintext cache, automatic resubmission, result-recovery service or exactly-once delivery guarantee is introduced. Persistence evidence and safe partial-write discovery require implementation inspection; neither an error response nor an in-memory exception establishes rollback. [Runtime validation](04-runtime-validation.md) uses the same failure behavior.
