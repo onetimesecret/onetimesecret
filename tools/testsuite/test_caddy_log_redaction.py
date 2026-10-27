@@ -7,6 +7,7 @@ No Ruby, datastore, external upstream or TLS issuance.
 """
 
 import http.client
+import io
 import json
 import os
 import re
@@ -36,7 +37,37 @@ def snippet(text, name):
     return match[0]
 
 
+def response_request_id(headers):
+    """Echo diagnostic IDs without reflecting folded or malformed headers."""
+    value = headers.get("X-Request-ID", "upstream-generated")
+    if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,199}", value) is None:
+        return "upstream-generated"
+    return value
+
+
 class CaddyLogRedactionTest(unittest.TestCase):
+    def test_upstream_request_id_header_rejects_folding_and_controls(self):
+        valid = str(uuid.uuid4())
+        cases = [
+            (f"X-Request-ID: {valid}\r\n\r\n", valid),
+            ("\r\n", "upstream-generated"),
+            ("X-Request-ID: first\r\n continued\r\n\r\n", "upstream-generated"),
+            ("X-Request-ID: first\n continued\r\n\r\n", "upstream-generated"),
+            ("X-Request-ID: invalid\x00id\r\n\r\n", "upstream-generated"),
+            ("X-Request-ID: invalid\x7fid\r\n\r\n", "upstream-generated"),
+            ("X-Request-ID: " + "a" * 201 + "\r\n\r\n", "upstream-generated"),
+        ]
+        for raw_headers, expected in cases:
+            with self.subTest(raw_headers=repr(raw_headers)):
+                headers = http.client.parse_headers(io.BytesIO(raw_headers.encode("ascii")))
+                handler = object.__new__(BaseHTTPRequestHandler)
+                handler.request_version = "HTTP/1.1"
+                handler.send_header("X-Request-ID", response_request_id(headers))
+                self.assertEqual(
+                    b"".join(handler._headers_buffer),
+                    f"X-Request-ID: {expected}\r\n".encode("ascii"),
+                )
+
     def test_example_and_live_logs(self):
         caddy = shutil.which("caddy")
         self.assertIsNotNone(
@@ -56,9 +87,7 @@ class CaddyLogRedactionTest(unittest.TestCase):
                 ))
                 self.send_response(303)
                 self.send_header("Location", location)
-                self.send_header("X-Request-ID", self.headers.get(
-                    "X-Request-ID", "upstream-generated"
-                ))
+                self.send_header("X-Request-ID", response_request_id(self.headers))
                 self.end_headers()
 
             def do_POST(self):
@@ -71,9 +100,7 @@ class CaddyLogRedactionTest(unittest.TestCase):
                 ))
                 self.send_response(303)
                 self.send_header("Location", location)
-                self.send_header("X-Request-ID", self.headers.get(
-                    "X-Request-ID", "upstream-generated"
-                ))
+                self.send_header("X-Request-ID", response_request_id(self.headers))
                 self.end_headers()
 
             def log_message(self, *args):
