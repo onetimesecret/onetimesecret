@@ -31,8 +31,8 @@ function responseKey(capture: HttpCapture): string {
 }
 
 describe('mounted Ruby HTTP captures → producer contracts', () => {
-  it('keeps all 41 audited captures and the four previously failing successes', () => {
-    if (!process.env.API_V3_SCHEMA_CAPTURE_DIR) expect(captures).toHaveLength(41);
+  it('keeps all 41 audited captures, the bearer token grant, and the four previously failing successes', () => {
+    if (!process.env.API_V3_SCHEMA_CAPTURE_DIR) expect(captures).toHaveLength(42);
     for (const name of ['status-found', 'status-missing', 'auth-update-memo', 'feedback-actual']) {
       expect(captures.find((capture) => capture.name === name)?.status).toBe(200);
     }

@@ -29,8 +29,10 @@ module V3
   # - Inherits from BaseJSONAPI for common JSON API setup
   # - Router: Otto (configured in BaseJSONAPI#build_router)
   # - Middleware: Universal (MiddlewareStack) + JSON API common (BaseJSONAPI)
-  # - Authentication: Normal secret routes require a session; explicit guest
-  #   routes use noauth. Basic auth is selected only by /version.
+  # - Authentication: Normal secret routes require a session, or -- once the
+  #   operator sets auth.paseto.enabled -- a PASETO v4.public bearer token
+  #   minted by POST /token (#2427). Explicit guest routes use noauth. Basic
+  #   auth is selected only by /version and /token.
   #
   class Application < BaseJSONAPI
     @uri_prefix = '/api/v3'

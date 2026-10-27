@@ -14,6 +14,7 @@
 #     base_session_auth_strategy.rb   - Abstract base for session auth
 #     session_auth_strategy.rb        - Authenticated sessions (auth=sessionauth)
 #     basic_auth_strategy.rb          - HTTP Basic Auth (auth=basicauth)
+#     paseto_auth_strategy.rb         - PASETO v4.public bearer tokens (auth=pasetoauth, #2427)
 #     dev_basic_auth_strategy.rb      - Development-only Basic Auth (auth=devbasicauth)
 #     dev_session_auth_strategy.rb    - Development-only Session Auth (auth=devsessionauth)
 #
@@ -29,6 +30,7 @@ require_relative 'auth_strategies/no_auth_strategy'
 require_relative 'auth_strategies/base_session_auth_strategy'
 require_relative 'auth_strategies/session_auth_strategy'
 require_relative 'auth_strategies/basic_auth_strategy'
+require_relative 'auth_strategies/paseto_auth_strategy'
 require_relative 'auth_strategies/dev_basic_auth_strategy'
 require_relative 'auth_strategies/dev_session_auth_strategy'
 
@@ -79,6 +81,23 @@ module Onetime
 
         # Auto-register dev strategy when enabled in config
         register_dev_basic_auth(otto) if dev_basic_auth_enabled?
+      end
+
+      # Registers the PASETO bearer token strategy (opt-in, #2427)
+      #
+      # Only call this for apps whose routes name `pasetoauth`. The strategy
+      # is registered unconditionally so a route chain that lists it always
+      # resolves (Otto answers 401 for an unregistered strategy name); whether
+      # it accepts a token is decided per request from
+      # Onetime.auth_config.paseto_enabled?, so the operator flag can change
+      # without a reboot and a disabled deployment behaves exactly as if the
+      # strategy were absent. The audience is per app: a token minted for
+      # the v3 API is refused by a verifier registered for another surface.
+      #
+      # @param otto [Otto] Otto router instance
+      # @param audience [String] the `aud` claim this app issues and accepts
+      def register_paseto_auth(otto, audience: Onetime::Paseto::V3_AUDIENCE)
+        otto.add_auth_strategy('pasetoauth', PasetoAuthStrategy.new(audience: audience))
       end
 
       # Check if development basic auth is enabled

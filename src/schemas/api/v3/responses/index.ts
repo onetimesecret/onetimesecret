@@ -45,6 +45,7 @@ export type {
 export type { FeedbackResponse } from './feedback';
 export type { SupportedLocalesResponse, SystemStatusResponse, SystemVersionResponse } from './meta';
 export type { ReceiptListResponse, ReceiptResponse, UpdateReceiptResponse } from './receipts';
+export type { BearerToken, BearerTokenResponse } from './tokens';
 export type {
   ConcealDataResponse,
   SecretListResponse,

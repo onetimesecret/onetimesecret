@@ -140,6 +140,8 @@ distinguishes an unknown account from a wrong password or an unverified one.
 |---|---|---|---|
 | `invalid_credentials` | `credential` | `POST /auth/login` (Rodauth's `no matching login` and `invalid password` alike), a passkey assertion, a second factor (`otp-auth`, `recovery-auth`, `webauthn-auth`), a password confirmation on an account route (`change-password`, `change-login`, `close-account`, `otp-setup`, `otp-disable`, `webauthn-setup`, `webauthn-remove`, `recovery-codes`), `POST /auth/reauth`, the password on `POST /auth/link-sso`, and the simple-mode `POST /auth/login` | 401 |
 | `api_key_invalid` | `credential` | A rejected `Authorization` header on any `basicauth` route: wrong scheme, malformed payload, unknown account, wrong key (one code, one constant-time path) | 401 |
+| `api_token_invalid` | `credential` | A `Bearer` token presented on a `pasetoauth` route (#2427) and rejected for anything but expiry: not a v4.public token, unknown signing key, bad signature, wrong audience or issuer, unsupported scope, unknown subject, or issued before the account's last password change (one code; the reason is in the debug log) | 401 |
+| `api_token_expired` | `credential` | A `Bearer` token whose signature verified and whose `exp` has passed. Its own code because the client's answer is routine: mint a new token | 401 |
 | `suspended_credentials` | `credential` | A valid API key, or the simple-mode password, on a suspended account. Only observable to a holder of the valid credential | 401 |
 | `account_locked` | `credential` | `POST /auth/login` on a locked-out account (Rodauth lockout; `lockout_error_status`, rodauth 2.45.0 `lib/rodauth/features/base.rb:54`). Rodauth already answers it with its own message | 403 |
 | `account_unverified` | `credential` | `POST /auth/login` on an account that has not completed verification (`unopen_account_error_status`, base.rb:81), with the generic message `config/rodauth_overrides.rb` returns | 403 |
@@ -150,12 +152,17 @@ The status and every existing field are unchanged.
 
 Every credential 401 carries a `WWW-Authenticate` challenge, chosen by the
 code that rejected the credential rather than by the route or by the
-request's headers. The Basic auth strategies stash the scheme they examined
-beside the reason (`Onetime::SessionFailureCode.stash_scheme`,
-`onetime.session_failure_scheme`), and only they do, so `api_key_invalid`
-and the `suspended_credentials` they stash are challenged with
-`Basic realm="onetimesecret"`: Basic is the scheme those strategies accept
-and the one the client used. Every other credential refusal
+request's headers. The strategies that examine an `Authorization` header
+stash the scheme they examined beside the reason
+(`Onetime::SessionFailureCode.stash_scheme`, `onetime.session_failure_scheme`),
+and only they do: the Basic auth strategies stash `Basic`, so
+`api_key_invalid` and the `suspended_credentials` they stash are challenged
+with `Basic realm="onetimesecret"`, the scheme those strategies accept and
+the one the client used; `PasetoAuthStrategy` stashes `Bearer`, so
+`api_token_invalid`, `api_token_expired` and the `suspended_credentials` it
+stashes are challenged with the RFC 6750
+`Bearer realm="onetimesecret", error="invalid_token"` (expiry adds
+`error_description="The access token expired"`). Every other credential refusal
 (`invalid_credentials` from Rodauth, the re-authentication and SSO-linking
 routes, and `invalid_credentials` or `suspended_credentials` from the
 simple-mode sign-in) is challenged with `Session realm="onetimesecret"`, as
@@ -187,9 +194,12 @@ mounted once in the universal stack, annotates every surface):
   route reached with an `Authorization` header is coded with the session
   reason: the header was never examined.
 - Otto credential refusals: `BasicAuthStrategy` stashes `api_key_invalid` or
-  `suspended_credentials` only on the terminal failure that fails the chain
-  closed (`Helpers#credentialed_failure`); on a `sessionauth,basicauth`
-  chain that terminal stash replaces the session strategy's. On the
+  `suspended_credentials`, and `PasetoAuthStrategy` stashes
+  `api_token_invalid`, `api_token_expired` or `suspended_credentials`, only
+  on the terminal failure that fails the chain closed
+  (`Helpers#credentialed_failure`); on a `sessionauth,basicauth` or
+  `sessionauth,pasetoauth` chain that terminal stash replaces the session
+  strategy's. On the
   carve-out branch (the request also resolves a customer identity) nothing
   is stashed: the chain continues to the session-resolving strategy, and if
   the evaluator had refused that session the response carries the session

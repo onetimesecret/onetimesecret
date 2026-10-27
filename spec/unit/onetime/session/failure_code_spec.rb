@@ -53,7 +53,13 @@ RSpec.describe Onetime::SessionFailureCode do
   it 'scopes exactly the credential vocabulary as credential' do
     credential = described_class::CODES.select { |_r, e| e['code_scope'] == 'credential' }
     expect(credential.keys).to contain_exactly(
-      :invalid_credentials, :api_key_invalid, :suspended_credentials, :account_locked, :account_unverified,
+      :invalid_credentials,
+      :api_key_invalid,
+      :api_token_invalid,
+      :api_token_expired,
+      :suspended_credentials,
+      :account_locked,
+      :account_unverified,
     )
   end
 

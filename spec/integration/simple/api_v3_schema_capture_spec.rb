@@ -148,6 +148,14 @@ RSpec.describe 'V3 mounted producer schema captures', type: :integration do
     observe('meta-version-authenticated', :get, '/api/v3/version', response_schema: 'systemVersion')
   end
 
+  it 'captures the bearer token grant with the operator flag on (#2427)' do
+    allow(Onetime.auth_config).to receive(:paseto_enabled?).and_return(true)
+    sign_in!
+    body = observe('auth-token', :post, '/api/v3/token', payload: {}, response_schema: 'bearerToken', authenticated: true)
+    expect(body.dig('record', 'token')).to start_with('v4.public.')
+    expect(body.dig('record', 'token_type')).to eq('Bearer')
+  end
+
   it 'captures accepted feedback and the rejected historical request shape' do
     observe('feedback-documented', :post, '/api/v3/feedback',
       payload: { message: 'schema audit obsolete body', email: 'schema@example.com' },

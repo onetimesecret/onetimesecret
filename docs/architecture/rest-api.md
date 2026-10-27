@@ -24,6 +24,17 @@ curl -u 'user@example.com:APITOKEN' https://us.onetimesecret.com/api/v2/receipt/
 
 The standard v3 secret and receipt paths require a browser session. Some routes in every version allow anonymous access, including the versioned guest routes. Check the endpoint reference before choosing an authentication method.
 
+### v3 bearer tokens (opt-in)
+
+Deployments that set `PASETO_ENABLED=true` also accept a short-lived signed bearer token on the authenticated v3 secret routes and `/api/v3/version`. Exchange a session or a Basic auth API key for one at `POST /api/v3/token`, then send it as `Authorization: Bearer v4.public...`:
+
+```bash
+curl -u 'user@example.com:APITOKEN' -X POST https://us.onetimesecret.com/api/v3/token
+curl -H 'Authorization: Bearer v4.public…' https://us.onetimesecret.com/api/v3/receipt/recent
+```
+
+Tokens expire after one hour by default, cannot mint further tokens, and are refused once the account is suspended or its password changes. Where the operator has not enabled them, `POST /api/v3/token` answers `403` with `code: BEARER_TOKENS_DISABLED` and a `Bearer` header is ignored. Details, refusal codes and rotation: [authentication/api-bearer-tokens.md](../authentication/api-bearer-tokens.md).
+
 ## Response Field Notes
 
 These conventions apply to secret and receipt responses. Field value *types* differ by version (see [Choose an API version](#choose-an-api-version)); the field *meanings* below are the same across versions unless noted.

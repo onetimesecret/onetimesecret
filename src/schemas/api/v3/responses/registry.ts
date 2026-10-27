@@ -48,6 +48,7 @@ import {
   secretResponseSchema,
   secretStatusResponseSchema,
 } from './secrets';
+import { bearerTokenResponseSchema } from './tokens';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Response schema registry
@@ -87,6 +88,9 @@ export const responseSchemas = {
 
   // Feedback
   feedback: feedbackResponseSchema,
+
+  // Bearer tokens (POST /api/v3/token)
+  bearerToken: bearerTokenResponseSchema,
 
   // Authentication (Rodauth-compatible)
   // NOTE: These auth schemas are not referenced by any API routes (auth routes

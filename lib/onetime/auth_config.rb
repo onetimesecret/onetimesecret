@@ -12,6 +12,8 @@ require_relative 'utils/config_resolver'
 require_relative 'utils/enumerables'
 require_relative 'sso_provider/registry'
 require_relative 'sso_provider/issuer_validation'
+# Onetime::Paseto::AccessToken clamps the configured bearer-token lifetime.
+require_relative 'paseto'
 
 # The origin validator otto applies to the request-scoped CSP extras channel;
 # #origin_from_url funnels through it so the two cannot drift (see there).
@@ -132,6 +134,28 @@ module Onetime
     # Exporting the variable, with either value, settles it.
     def simple_by_default?
       simple_enabled? && ENV['AUTHENTICATION_MODE'].to_s.strip.empty?
+    end
+
+    # Whether the v3 API issues and accepts PASETO v4.public bearer tokens
+    # (#2427). A top-level `paseto` section, independent of the auth mode:
+    # bearer tokens are an API credential, not a Rodauth feature, so simple
+    # (Redis-only) installs can use them too. Read per request by
+    # PasetoAuthStrategy and V3::Logic::Auth::GenerateToken, so the flag
+    # takes effect on the next request after a config reload.
+    #
+    # Default: false. V3's stable surface accepts browser sessions and the
+    # explicit guest routes only; enabling this is the operator's decision
+    # to add a third credential to the authenticated v3 secret routes.
+    def paseto_enabled?
+      paseto_config['enabled'] == true
+    end
+
+    # Lifetime of each issued bearer token in seconds, clamped into the
+    # range Onetime::Paseto::AccessToken accepts (60s..24h). Default 3600.
+    def paseto_token_ttl
+      Onetime::Paseto::AccessToken.clamp_ttl(
+        paseto_config.fetch('token_ttl', Onetime::Paseto::AccessToken::DEFAULT_TTL),
+      )
     end
 
     # Feature flags hash from full mode config
@@ -1172,6 +1196,14 @@ module Onetime
 
     def auth_config
       @config
+    end
+
+    # The `paseto` section, or an empty Hash when the file has none (an
+    # operator config written before the section existed, or a config that
+    # failed to load): both read as disabled.
+    def paseto_config
+      section = @config.is_a?(Hash) ? @config['paseto'] : nil
+      section.is_a?(Hash) ? section : {}
     end
   end
 
