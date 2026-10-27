@@ -86,7 +86,6 @@ jobs:
       # can never be the reason the application bundle changes.
       - uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
         with:
-          ruby-version-file: '.ruby-version'
           bundler-cache: false
 
       - name: Install pinned bundler-audit
