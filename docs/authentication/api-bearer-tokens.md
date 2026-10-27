@@ -116,7 +116,9 @@ every request:
 - **Expiry.** The default lifetime is one hour; the ceiling is one day.
 - **Password change.** A token issued at or before `Customer#last_password_update`
   is refused, the same watermark that retires sessions after a credential
-  change. Changing the password revokes every outstanding token.
+  change. Changing the password revokes every outstanding token. A token
+  requested in the same second as the change is issued one second past the
+  watermark, so it works at once instead of being refused for its whole life.
 - **Suspension.** A suspended account's tokens are refused on the next request.
 - **Account deletion.** The subject no longer resolves.
 

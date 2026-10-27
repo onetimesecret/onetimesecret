@@ -185,6 +185,25 @@ RSpec.describe 'API v3 PASETO bearer tokens', type: :integration do
       expect(mint_with_basic).to include('expires_in' => 900)
     end
 
+    it 'issues a usable token in the same second as a password change' do
+      # The verifier refuses iat <= last_password_update, the rule that retires
+      # pre-change sessions. A watermark stamped now (one second ahead, so the
+      # request cannot leave the window mid-flight) must not leave the caller
+      # holding a token that is refused for its whole life: issuance moves iat
+      # strictly past the watermark instead.
+      watermark = Time.now.to_i + 1
+      customer.last_password_update!(watermark)
+
+      record = mint_with_basic
+      expect(record.fetch('issued_at')).to be > watermark
+      expect(record.fetch('expires_at') - record.fetch('issued_at')).to eq(3600)
+
+      request(:get, '/api/v3/receipt/recent', authorization: "Bearer #{record.fetch('token')}")
+      expect(last_response.status).to eq(200), last_response.body
+    ensure
+      customer.last_password_update!(0)
+    end
+
     it 'refuses to mint from a bearer token: a leaked token cannot renew itself' do
       token = mint_with_basic.fetch('token')
       request(:post, '/api/v3/token', body: {}, authorization: "Bearer #{token}")

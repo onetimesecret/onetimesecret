@@ -65,6 +65,7 @@ module V3
             audience: Onetime::Paseto::V3_AUDIENCE,
             issuer: Onetime::Paseto.issuer,
             ttl: Onetime.auth_config.paseto_token_ttl,
+            now: issuance_time,
           )
 
           # The token itself is never logged; kid and jti identify it in a
@@ -99,6 +100,22 @@ module V3
         end
 
         private
+
+        # The moment the token is issued: now, or one second past the account's
+        # credential watermark when that is later. PasetoAuthStrategy refuses
+        # `iat <= Customer#last_password_update` (fail-closed, the rule that
+        # retires pre-change sessions), so a token minted in the same second as
+        # a password change, or by a node whose clock trails the one that
+        # stamped the change, would otherwise be refused on every request for
+        # its whole life. One second past the watermark is well inside the
+        # verifier's clock-skew allowance for `iat`/`nbf`, so the token works
+        # at once, and nothing issued at or before the watermark is spared.
+        def issuance_time(now = Time.now)
+          watermark = cust.last_password_update.to_i
+          return now if now.to_i > watermark
+
+          Time.at(watermark + 1).utc
+        end
 
         def impersonating?
           return false unless sess.respond_to?(:[])
