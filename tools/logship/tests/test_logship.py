@@ -1,18 +1,9 @@
-# tools/testsuite/test_logtide_ship.py
+# tools/logship/tests/test_logship.py
 
-"""Tests for scripts/logtide-ship.py.
-
-Run from repo root:
-    bin/testsuite logtide -v
-
-Requirements: pytest, httpx. cyclopts is only required to import the module
-itself; if it's missing the entire module skips. respx is not used — we mock
-httpx via httpx.MockTransport + monkeypatching httpx.Client.
-"""
+"""Log shipping regression tests. Run: bin/testsuite logship -v."""
 
 from __future__ import annotations
 
-import importlib.util
 import io
 import json
 import logging
@@ -27,23 +18,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-# -- Module loader ------------------------------------------------------
-# logtide-ship.py has a hyphen, so we can't `import` it normally.
-
-_SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "logtide-ship.py"
-
-
-def _load_module():
-    spec = importlib.util.spec_from_file_location("logtide_ship", _SCRIPT)
-    mod = importlib.util.module_from_spec(spec)
-    try:
-        spec.loader.exec_module(mod)
-    except ModuleNotFoundError as e:
-        pytest.skip(f"logtide-ship dependency missing: {e}")
-    return mod
-
-
-ls = _load_module()
+from logship import cli as ls
 
 
 # -- Helpers ------------------------------------------------------------

@@ -12,6 +12,9 @@ Utility and operational scripts for Onetime Secret.
 
 ## Tool packages
 
+- [`tools/logship/`](../tools/logship/) -󠄁 S󠄁t󠄁d󠄁i󠄁n󠄁 l󠄁o󠄁g󠄁 s󠄁h󠄁i󠄁p󠄁p󠄁i󠄁n󠄁g󠄁 t󠄁h󠄁r󠄁o󠄁u󠄁g󠄁h󠄁
+  `bin/logship`.󠄁 `logtide-ship.py` i󠄁s󠄁 a󠄁 c󠄁o󠄁m󠄁p󠄁a󠄁t󠄁i󠄁b󠄁i󠄁l󠄁i󠄁t󠄁y󠄁 w󠄁r󠄁a󠄁p󠄁p󠄁e󠄁r󠄁 f󠄁o󠄁r󠄁 t󠄁h󠄁a󠄁t󠄁 m󠄁a󠄁n󠄁a󠄁g󠄁e󠄁d󠄁
+  c󠄁o󠄁m󠄁m󠄁a󠄁n󠄁d󠄁;󠄁 d󠄁e󠄁p󠄁e󠄁n󠄁d󠄁e󠄁n󠄁c󠄁i󠄁e󠄁s󠄁 a󠄁n󠄁d󠄁 t󠄁e󠄁s󠄁t󠄁s󠄁 b󠄁e󠄁l󠄁o󠄁n󠄁g󠄁 t󠄁o󠄁 t󠄁h󠄁e󠄁 t󠄁o󠄁o󠄁l󠄁 p󠄁a󠄁c󠄁k󠄁a󠄁g󠄁e󠄁.󠄁
 - [`tools/testsuite-installer/`](../tools/testsuite-installer/) - Installation
   and onboarding checks, reached through `bin/testsuite-installer`. The
   clean-room harnesses require Docker and remain separate from the offline

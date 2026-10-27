@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# ADR-042: locate the package, start its locked runtime, pass arguments through.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if ! command -v uv > /dev/null 2>&1; then
+  printf 'bin/logship needs uv: https://docs.astral.sh/uv/getting-started/installation/\n' >&2
+  exit 69
+fi
+exec uv run --locked --project "$ROOT/tools/logship" --quiet logship "$@"
