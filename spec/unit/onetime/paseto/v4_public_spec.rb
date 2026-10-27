@@ -15,6 +15,10 @@ require 'json'
 require 'onetime/paseto'
 
 RSpec.describe Onetime::Paseto::V4Public do
+  # The official vectors from paseto-standard/test-vectors (v4.json), with the
+  # redundant `secret-key-pem` / `public-key-pem` members removed: the raw hex
+  # keys are the canonical form and the only one used here, and the PEM copies
+  # trip the detect-private-key pre-commit hook. Everything else is verbatim.
   let(:vectors) do
     JSON.parse(File.read(File.expand_path('../../../fixtures/paseto/v4.json', __dir__))).fetch('tests')
   end
