@@ -36,6 +36,9 @@ module Billing
           subscription: build_subscription_data(org),
           plan: build_plan_data(org),
           usage: build_usage_data(org),
+          # Whether POST /billing/api/org/:extid/portal has a Stripe customer
+          # to open. Ownership is checked by that endpoint, not here.
+          portal_available: !org.stripe_customer_id.to_s.empty?,
         }
 
         # Include federation notification when org is federated and not dismissed

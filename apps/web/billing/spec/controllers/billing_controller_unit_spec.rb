@@ -90,6 +90,23 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
       expect(data['usage']).to have_key('domains')
     end
 
+    it 'reports portal_available false when organization has no Stripe customer' do
+      get "/billing/api/org/#{organization.extid}"
+
+      expect(last_response.status).to eq(200)
+      expect(JSON.parse(last_response.body)['portal_available']).to be(false)
+    end
+
+    it 'reports portal_available true when organization has a Stripe customer' do
+      organization.stripe_customer_id = 'cus_test_overview_portal'
+      organization.commit_fields
+
+      get "/billing/api/org/#{organization.extid}"
+
+      expect(last_response.status).to eq(200)
+      expect(JSON.parse(last_response.body)['portal_available']).to be(true)
+    end
+
     it 'returns nil subscription when organization has no subscription' do
       get "/billing/api/org/#{organization.extid}"
 
