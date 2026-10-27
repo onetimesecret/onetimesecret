@@ -1,4 +1,4 @@
-import type { ErrorEvent, EventHint, Scope } from '@sentry/core';
+import type { BreadcrumbHint, ErrorEvent, EventHint, Scope } from '@sentry/core';
 
 // Diagnostic identifiers only: preserve case, reject controls, whitespace,
 // header lists and coerced values. Supports proxy UUIDs and app-generated IDs.
@@ -16,6 +16,26 @@ export function readResponseRequestId(headers: unknown): string | undefined {
 
   const matches = Object.entries(headers).filter(([name]) => name.toLowerCase() === 'x-request-id');
   return matches.length === 1 ? parseRequestId(matches[0][1]) : undefined;
+}
+
+/** Read the SDK's existing HTTP breadcrumb hint without copying response data. */
+export function readBreadcrumbRequestId(
+  category: string | undefined,
+  hint?: BreadcrumbHint
+): string | undefined {
+  try {
+    if (category === 'xhr') {
+      const xhr = hint?.xhr as Pick<XMLHttpRequest, 'getResponseHeader'> | undefined;
+      return parseRequestId(xhr?.getResponseHeader('X-Request-ID'));
+    }
+    if (category === 'fetch') {
+      const response = hint?.response as Pick<Response, 'headers'> | undefined;
+      return parseRequestId(response?.headers.get('X-Request-ID'));
+    }
+  } catch {
+    // Aborted requests or browser restrictions can make response headers unavailable.
+  }
+  return undefined;
 }
 
 /** The initial HTML request stays distinct from later, concurrent API calls. */

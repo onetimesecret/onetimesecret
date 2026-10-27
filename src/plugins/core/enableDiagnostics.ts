@@ -23,6 +23,7 @@ import {
 } from '@sentry/browser';
 import {
   type Breadcrumb,
+  type BreadcrumbHint,
   type ErrorEvent,
   type EventHint,
   type Integration,
@@ -39,7 +40,11 @@ import {
 } from './diagnostics/actorContext';
 import { isExpectedTransportOutcome } from './diagnostics/expectedOutcomes';
 import { applyGroupingRules } from './diagnostics/grouping';
-import { applyDocumentRequestId, applyRequestCorrelation } from './diagnostics/requestCorrelation';
+import {
+  applyDocumentRequestId,
+  applyRequestCorrelation,
+  readBreadcrumbRequestId,
+} from './diagnostics/requestCorrelation';
 import { collectValuesToRedact, scrubUrlWithValues } from './diagnostics/urlScrubbing';
 // Re-export scrubbing utilities from dependency-free module for backward compatibility
 export {
@@ -335,7 +340,7 @@ function scrubCommonEventFields(
  * @internal Exported for testing
  */
 function createBeforeBreadcrumbHandler(router: Router) {
-  return (breadcrumb: Breadcrumb): Breadcrumb | null => {
+  return (breadcrumb: Breadcrumb, hint?: BreadcrumbHint): Breadcrumb | null => {
     const category = breadcrumb.category;
 
     // Handle navigation breadcrumbs using route resolution
@@ -370,9 +375,13 @@ function createBeforeBreadcrumbHandler(router: Router) {
       return breadcrumb;
     }
 
-    // Handle HTTP breadcrumbs using regex patterns
-    if ((category === 'xhr' || category === 'fetch') && breadcrumb.data?.url) {
-      breadcrumb.data.url = scrubUrlWithPatterns(breadcrumb.data.url as string);
+    // Enrich the SDK's HTTP breadcrumb instead of adding a duplicate per response.
+    if ((category === 'xhr' || category === 'fetch') && breadcrumb.data) {
+      if (breadcrumb.data.url) {
+        breadcrumb.data.url = scrubUrlWithPatterns(breadcrumb.data.url as string);
+      }
+      const requestId = readBreadcrumbRequestId(category, hint);
+      if (requestId) breadcrumb.data.request_id = requestId;
       return breadcrumb;
     }
 

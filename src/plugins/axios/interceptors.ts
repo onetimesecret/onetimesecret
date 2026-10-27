@@ -119,19 +119,6 @@ export const responseInterceptor = (response: AxiosResponse) => {
     csrfStore.updateShrimp(responseShrimp);
   }
 
-  const requestId = readResponseRequestId(response.headers);
-  if (requestId) {
-    const method = response.config.method?.toUpperCase() ?? 'UNKNOWN';
-    const url = response.config.url ? scrubUrlWithPatterns(response.config.url) : 'unknown';
-    addBreadcrumb({
-      type: 'http',
-      category: 'axios',
-      level: 'info',
-      message: `${method} ${url}`,
-      data: { method, url, status_code: response.status, request_id: requestId },
-    });
-  }
-
   return response;
 };
 

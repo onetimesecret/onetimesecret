@@ -307,7 +307,7 @@ describe('axios interceptors', () => {
   // responseInterceptor - CSRF token update
   // ==========================================================================
   describe('responseInterceptor', () => {
-    it('adds a correlation breadcrumb for successful responses', () => {
+    it('does not duplicate the SDK breadcrumb for successful responses with request IDs', () => {
       const response: AxiosResponse = {
         status: 200,
         statusText: 'OK',
@@ -317,19 +317,8 @@ describe('axios interceptors', () => {
       };
 
       expect(responseInterceptor(response)).toBe(response);
-      expect(mockAddBreadcrumb).toHaveBeenCalledWith({
-        type: 'http',
-        category: 'axios',
-        level: 'info',
-        message: 'GET /api/v3/config',
-        data: {
-          method: 'GET',
-          url: '/api/v3/config',
-          status_code: 200,
-          request_id: 'api-success-123',
-        },
-      });
-      expect(JSON.stringify(mockAddBreadcrumb.mock.calls)).not.toContain('private-');
+      expect(mockAddBreadcrumb).not.toHaveBeenCalled();
+      expect(mockUpdateShrimp).toHaveBeenCalledWith('private-token');
     });
 
     it('does not create a correlation breadcrumb without a valid response ID', () => {
