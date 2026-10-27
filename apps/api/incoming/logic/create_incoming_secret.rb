@@ -110,13 +110,11 @@ module Incoming
       end
 
       def process
-        # Create and encrypt secret
+        # Create and encrypt secret. spawn_pair returns only a pair whose
+        # commit EXEC confirmed and raises Onetime::SecretCreationFailed
+        # otherwise, so no stats or notification follow an uncommitted pair.
         create_and_encrypt_secret
-
-        # Validate that spawn_pair produced valid objects before recording
-        # stats or enqueuing notifications for a potentially invalid secret.
-        @greenlighted = receipt.valid? && secret.valid?
-        raise_form_error 'Failed to create secret' unless @greenlighted
+        @greenlighted = true
 
         # Update stats
         update_customer_stats
@@ -218,7 +216,12 @@ module Incoming
           recipients: recipient_email,
           recipient_name: lookup_recipient_display_name(@recipient_hash),
           domain_id: share_domain ? resolved_domain_id : nil,
-        )
+        ) do |pending_receipt|
+          # Required registration, queued inside the commit: the owner's
+          # receipt list. Incoming routes are anonymous, so this is normally
+          # skipped.
+          cust.add_receipt pending_receipt unless anonymous_user?
+        end
       end
 
       # The custom domain a secret submitted via /incoming should be bound to,
@@ -255,15 +258,20 @@ module Incoming
         @resolved_domain_id = Onetime::CustomDomain.resolve_domain_id(share_domain)
       end
 
+      # Optional follow-ups run after the commit. Each failure is logged by
+      # creation_followup and never fails a creation that already committed.
       def update_customer_stats
         # Update customer stats if not anonymous
         unless anonymous_user?
-          cust.add_receipt receipt
-          cust.increment_field :secrets_created
+          Onetime::Receipt.creation_followup(:customer_stats, receipt) do
+            cust.increment_field :secrets_created
+          end
         end
 
         # Update global stats
-        Onetime::Customer.secrets_created.increment
+        Onetime::Receipt.creation_followup(:global_stats, receipt) do
+          Onetime::Customer.secrets_created.increment
+        end
       end
 
       def send_recipient_notification

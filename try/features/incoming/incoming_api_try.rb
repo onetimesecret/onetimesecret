@@ -511,37 +511,33 @@ logic.process
 logic.greenlighted
 #=> true
 
-## CreateIncomingSecret raises FormError when spawn_pair produces invalid objects
-# Verify the greenlighted guard fires before stats/notification by simulating
-# a failed spawn via temporary monkey-patching.
+## CreateIncomingSecret propagates a creation failure before stats or notification
+# spawn_pair raises Onetime::SecretCreationFailed unless its commit is
+# confirmed. Simulated on this logic instance only, so no process-wide
+# method is replaced.
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-@_spawn_pair_original = Onetime::Receipt.method(:spawn_pair)
-begin
-  # Replace spawn_pair with one that returns unsaved (invalid) objects
-  Onetime::Receipt.define_singleton_method(:spawn_pair) do |*_args, **_kwargs|
-    [Onetime::Receipt.new, Onetime::Secret.new]
-  end
-  logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
-    'secret' => {
-      'memo' => 'Guard test',
-      'secret' => 'Secret for guard test',
-      'recipient' => @test_recipient_hash
-    }
-  })
-  logic.process_params
-  logic.raise_concerns
-  logic.process
-  false # should not reach here
-rescue OT::FormError => e
-  e.message.include?('Failed to create secret')
-ensure
-  # Restore original spawn_pair
-  spawn_pair_backup = @_spawn_pair_original
-  Onetime::Receipt.define_singleton_method(:spawn_pair) do |*args, **kwargs|
-    spawn_pair_backup.call(*args, **kwargs)
-  end
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
+  'secret' => {
+    'memo' => 'Guard test',
+    'secret' => 'Secret for guard test',
+    'recipient' => @test_recipient_hash
+  }
+})
+followups = []
+logic.define_singleton_method(:create_and_encrypt_secret) do
+  raise Onetime::SecretCreationFailed.new(stage: :commit, persistence: :unconfirmed)
 end
-#=> true
+logic.define_singleton_method(:update_customer_stats) { followups << :stats }
+logic.define_singleton_method(:send_recipient_notification) { followups << :notification }
+logic.process_params
+logic.raise_concerns
+begin
+  logic.process
+  :no_error
+rescue Onetime::SecretCreationFailed => e
+  [e.persistence, logic.greenlighted, followups]
+end
+#=> [:unconfirmed, nil, []]
 
 ## anonymous_user? returns true for anonymous strategy in CreateIncomingSecret
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
