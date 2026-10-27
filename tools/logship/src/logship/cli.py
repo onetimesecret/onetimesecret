@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # tools/logship/src/logship/cli.py
 
 """Stdin log shipping through the managed bin/logship command.
