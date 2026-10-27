@@ -139,6 +139,27 @@ class TestCaddyDuration:
 
 
 class TestCaddyTimestamp:
+    @pytest.mark.parametrize("timestamp", [
+        1793127821.0,
+        1793127821000,
+        1793127821000000,
+        1793127821000000000,
+    ])
+    def test_common_numeric_epoch_units(self, timestamp):
+        assert entries._parse_caddy_ts(timestamp) == "2026-10-27T19:03:41.000Z"
+
+    def test_integer_nanoseconds_preserve_millisecond_boundary(self):
+        assert entries._parse_caddy_ts(1793127821999999999) == "2026-10-27T19:03:41.999Z"
+
+    @pytest.mark.parametrize("timestamp", [
+        None, True, False, "not-a-timestamp", {}, [],
+        float("nan"), float("inf"), float("-inf"),
+        1e308, -1e308, 10 ** 400,
+    ])
+    def test_invalid_timestamp_uses_current_time(self, monkeypatch, timestamp):
+        monkeypatch.setattr(entries, "_now", lambda: "2026-10-27T19:00:00.000Z")
+        assert entries._parse_caddy_ts(timestamp) == "2026-10-27T19:00:00.000Z"
+
     def test_unix_seconds_float(self):
         # 2022-03-09 21:30:01.524 UTC-ish
         out = entries._parse_caddy_ts(1646861401.524)
@@ -669,6 +690,39 @@ class TestBatch:
 
         logs = json.loads(t.requests[0].content)["logs"]
         assert logs[0]["hostname"] == socket.gethostname()
+
+    def test_caddy_batch_continues_after_invalid_timestamps(self, monkeypatch, diag_caplog):
+        transport = FakeTransport([(200, {"ok": True})])
+        _patched_client(monkeypatch, transport)
+        monkeypatch.setattr(ls, "_preflight", lambda *a, **k: None)
+        monkeypatch.setattr(entries, "_now", lambda: "2026-10-27T19:00:00.000Z")
+        records = [{
+            "ts": timestamp,
+            "request_id": f"Request-{index}",
+            "status": 200,
+            "request": {
+                "method": "GET", "uri": "/health",
+                "headers": {"Authorization": ["Bearer private-payload"]},
+            },
+        } for index, timestamp in enumerate([
+            1793127821000000000, float("nan"), float("inf"), 1e308, "invalid",
+            1793127822,
+        ])]
+        monkeypatch.setattr(sys, "stdin", io.StringIO(
+            "".join(json.dumps(record) + "\n" for record in records)
+        ))
+
+        assert ls.batch("caddy", opts=ls.Global(mode="caddy")) == 0
+
+        logs = json.loads(transport.requests[0].content)["logs"]
+        assert len(logs) == len(records)
+        assert logs[0]["time"] == "2026-10-27T19:03:41.000Z"
+        assert all(log["time"] == "2026-10-27T19:00:00.000Z" for log in logs[1:5])
+        assert logs[-1]["time"] == "2026-10-27T19:03:42.000Z"
+        assert [log["metadata"]["request_id"] for log in logs] == [
+            record["request_id"] for record in records
+        ]
+        assert "private-payload" not in json.dumps(logs) + diag_caplog.text
 
 
 # -- _validate_service -------------------------------------------------

@@ -1,6 +1,7 @@
 """Normalize plain, SemanticLogger JSON, and Caddy input records."""
 
 import json
+import math
 import re
 import socket
 from datetime import datetime, timezone
@@ -132,20 +133,33 @@ _DURATION_MULTIPLIERS = {
 }
 
 
-def _parse_caddy_ts(ts: int | float) -> str:
-    """Convert Caddy timestamp to ISO 8601.
+def _parse_caddy_ts(ts: object) -> str:
+    """Convert numeric epoch seconds, milliseconds, microseconds or nanoseconds.
 
-    Handles both ``unix_seconds_float`` (default) and
-    ``unix_milli_float`` (common in production configs).
-    Values above 1e12 are treated as milliseconds.
+    Infer units from contemporary epoch magnitudes. Invalid, nonfinite and
+    unrepresentable values use ingestion time without copying raw log data.
     """
-    if ts > 1e12:
-        ts = ts / 1000
-    return (
-        datetime.fromtimestamp(ts, tz=timezone.utc)
-        .strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]
-        + "Z"
+    if not isinstance(ts, (int, float)) or isinstance(ts, bool):
+        return _now()
+    if isinstance(ts, float) and not math.isfinite(ts):
+        return _now()
+    magnitude = abs(ts)
+    units = (
+        1_000_000_000 if magnitude >= 1e18 else
+        1_000_000 if magnitude >= 1e15 else
+        1_000 if magnitude >= 1e12 else 1
     )
+    try:
+        if isinstance(ts, int):
+            seconds, fraction = divmod(ts, units)
+            timestamp = datetime.fromtimestamp(seconds, tz=timezone.utc).replace(
+                microsecond=fraction * 1_000_000 // units
+            )
+        else:
+            timestamp = datetime.fromtimestamp(ts / units, tz=timezone.utc)
+        return timestamp.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    except (OverflowError, OSError, ValueError):
+        return _now()
 
 
 def _parse_caddy_duration_ms(val: str | int | float) -> float:
@@ -203,19 +217,12 @@ def _build_entry_caddy(raw: dict, service: str) -> dict:
     with the structured fields LogTide can query.
 
     Handles both default Caddy config and common overrides:
-    - ``time_format``: ``unix_seconds_float`` (default) or ``unix_milli_float``
+    - ``time_format``: numeric epoch seconds, milliseconds, microseconds or nanoseconds
     - ``duration_format``: ``number`` (float seconds) or ``string`` (Go duration)
     """
     # -- Timestamp -----------------------------------------------------------
-    # Caddy's `ts` field format depends on the Caddyfile `time_format`:
-    #   unix_seconds_float (default) → 1646861401.524  (seconds)
-    #   unix_milli_float             → 1775975893020.3 (milliseconds)
-    # _parse_caddy_ts auto-detects based on magnitude (> 1e12 = millis).
-    ts = raw.get("ts")
-    if isinstance(ts, (int, float)):
-        time_str = _parse_caddy_ts(ts)
-    else:
-        time_str = _now()
+    # Numeric units depend on Caddyfile time_format; infer them by magnitude.
+    time_str = _parse_caddy_ts(raw.get("ts"))
 
     # -- Human-readable message ----------------------------------------------
     # Condenses the request into a single line:  "GET /api/users 200 13.8kB 74.01ms"
