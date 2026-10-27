@@ -29,8 +29,8 @@ Four modes control how JSON log lines are handled:
     caddy    - Caddy structured JSON access logs are parsed. Timestamps
                (Unix epoch floats) are converted to ISO 8601. A readable
                message is built from method, URI, status, size, and duration.
-               Request details (remote_ip, proto, TLS, user_agent) go into
-               LogTide `metadata`. Machine hostname is used since Caddy
+               Request details (request_id, remote_ip, proto, TLS, user_agent)
+               go into LogTide `metadata`. Machine hostname is used since Caddy
                doesn't include it in log output.
 
 Plain text lines always use the text path regardless of mode.
@@ -451,6 +451,37 @@ def _parse_caddy_duration_ms(val: str | int | float) -> float:
     return 0
 
 
+_REQUEST_ID_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,199}")
+
+
+def _caddy_request_id(raw: dict) -> str | None:
+    """Read only the explicit log field or IDs actually returned in a response.
+
+    Incoming request headers can contain a caller's unrelated request ID.
+    Caddy's response headers use arrays, so accept only a single token value.
+    """
+    request_id = raw.get("request_id")
+    if isinstance(request_id, str) and _REQUEST_ID_RE.fullmatch(request_id):
+        return request_id
+
+    headers = raw.get("resp_headers")
+    if not isinstance(headers, dict):
+        return None
+    for header_name in ("x-request-id", "o-request-id"):
+        values = [
+            value for key, value in headers.items()
+            if isinstance(key, str) and key.lower() == header_name
+        ]
+        if len(values) != 1:
+            continue
+        value = values[0]
+        if isinstance(value, list):
+            value = value[0] if len(value) == 1 else None
+        if isinstance(value, str) and _REQUEST_ID_RE.fullmatch(value):
+            return value
+    return None
+
+
 def _build_entry_caddy(raw: dict, service: str) -> dict:
     """Build entry from Caddy structured JSON access log.
 
@@ -489,6 +520,8 @@ def _build_entry_caddy(raw: dict, service: str) -> dict:
     # Structured fields that LogTide can query/filter on.  Only included
     # when present to keep payloads lean.
     metadata: dict = {}
+    if request_id := _caddy_request_id(raw):
+        metadata["request_id"] = request_id
     if req.get("remote_ip"):
         metadata["remote_ip"] = req["remote_ip"]
     # client_ip differs from remote_ip when behind a proxy (X-Forwarded-For)

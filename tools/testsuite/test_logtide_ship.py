@@ -290,6 +290,85 @@ class TestBuildEntryCaddy:
         assert md["tls_proto"] == "h2"
         assert md["user_agent"] == "Mozilla/5.0"
 
+    def test_explicit_request_id_takes_precedence(self, sample):
+        sample["request_id"] = "Edge-Id_123:abc.def"
+        sample["resp_headers"] = {"X-Request-Id": ["different-app-id"]}
+        sample["request"]["headers"]["X-Request-Id"] = ["caller-supplied-id"]
+
+        e = ls._build_entry_caddy(sample, "caddy")
+
+        assert e["metadata"]["request_id"] == "Edge-Id_123:abc.def"
+
+    @pytest.mark.parametrize(
+        "header_name", ["X-Request-Id", "x-request-id", "O-Request-ID"]
+    )
+    @pytest.mark.parametrize("value", ["joined-id", ["joined-id"]])
+    def test_response_request_id_fallback(self, sample, header_name, value):
+        sample["resp_headers"] = {header_name: value}
+
+        e = ls._build_entry_caddy(sample, "caddy")
+
+        assert e["metadata"]["request_id"] == "joined-id"
+
+    def test_app_response_id_precedes_legacy_edge_header(self, sample):
+        sample["resp_headers"] = {
+            "O-Request-Id": ["edge-id"],
+            "X-Request-Id": ["app-id"],
+        }
+
+        e = ls._build_entry_caddy(sample, "caddy")
+
+        assert e["metadata"]["request_id"] == "app-id"
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            None, "", " ", "id with spaces", "id,other", "id\n", "é-id",
+            "x" * 201, 123, True, ["id"], {"id": "value"},
+        ],
+    )
+    def test_malformed_explicit_request_id_is_omitted(self, sample, value):
+        sample["request_id"] = value
+
+        e = ls._build_entry_caddy(sample, "caddy")
+
+        assert "request_id" not in e["metadata"]
+
+    @pytest.mark.parametrize(
+        "headers",
+        [
+            None, [], "not-a-map", {"X-Request-Id": []},
+            {"X-Request-Id": ["one", "two"]}, {"X-Request-Id": [["nested"]]},
+            {"X-Request-Id": ["bad\rvalue"]}, {"X-Request-Id": [123]},
+            {"X-Request-Id": ["one"], "x-request-id": ["two"]},
+        ],
+    )
+    def test_malformed_response_request_id_is_omitted(self, sample, headers):
+        sample["resp_headers"] = headers
+
+        e = ls._build_entry_caddy(sample, "caddy")
+
+        assert "request_id" not in e["metadata"]
+
+    def test_max_length_request_id_is_preserved(self, sample):
+        sample["request_id"] = "x" * 200
+
+        e = ls._build_entry_caddy(sample, "caddy")
+
+        assert e["metadata"]["request_id"] == "x" * 200
+
+    def test_missing_request_id_does_not_copy_incoming_headers(self, sample):
+        sample["request"]["headers"].update({
+            "X-Request-Id": ["caller-id"],
+            "Authorization": ["Bearer sensitive"],
+            "Cookie": ["session=sensitive"],
+        })
+
+        e = ls._build_entry_caddy(sample, "caddy")
+
+        assert "request_id" not in e["metadata"]
+        assert "sensitive" not in json.dumps(e)
+
     def test_client_ip_equals_remote_ip_omitted(self, sample):
         sample["request"]["client_ip"] = sample["request"]["remote_ip"]
         e = ls._build_entry_caddy(sample, "caddy")
@@ -362,6 +441,29 @@ class TestBuildEntryDispatch:
 
 
 class TestSendBatch:
+    def test_ships_matching_edge_and_app_request_ids(self, monkeypatch):
+        request_id = "joined-Request-123"
+        edge = ls._build_entry(json.dumps({
+            "request_id": request_id,
+            "request": {"method": "GET", "uri": "/", "host": "custom.example"},
+            "status": 200,
+        }), "caddy", mode="caddy")
+        app = ls._build_entry(json.dumps({
+            "message": "Request",
+            "payload": {"request_id": request_id, "status": 200},
+        }), "backend", mode="metadata")
+        t = FakeTransport([(200, {"ok": True})])
+        _patched_client(monkeypatch, t)
+
+        with httpx.Client() as client:
+            ls._send_batch(client, [edge, app])
+
+        logs = json.loads(t.requests[0].content)["logs"]
+        assert [entry["metadata"]["request_id"] for entry in logs] == [
+            request_id, request_id,
+        ]
+        assert logs[0]["metadata"]["host"] == "custom.example"
+
     def test_success_no_retry(self, monkeypatch):
         t = FakeTransport([(200, {"ok": True})])
         _patched_client(monkeypatch, t)
