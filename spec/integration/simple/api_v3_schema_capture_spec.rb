@@ -54,7 +54,7 @@ RSpec.describe 'V3 mounted producer schema captures', type: :integration do
       headers: last_response.headers.to_h.select { |key, _| key.match?(/\A(?:content-type|cache-control|x-request-id)\z/i) },
       body: body,
     }
-    File.write(File.join(@schema_capture_dir, "#{name}.json"), JSON.pretty_generate(capture))
+    File.write(File.join(@schema_capture_dir, "#{name}.json"), "#{JSON.pretty_generate(capture)}\n")
     expect(last_response.status).to eq(status), "#{method.upcase} #{path}: #{last_response.body}"
     body
   end
@@ -146,6 +146,14 @@ RSpec.describe 'V3 mounted producer schema captures', type: :integration do
     end
     sign_in!
     observe('meta-version-authenticated', :get, '/api/v3/version', response_schema: 'systemVersion')
+  end
+
+  it 'captures the bearer token grant with the operator flag on (#2427)' do
+    allow(Onetime.auth_config).to receive(:paseto_enabled?).and_return(true)
+    sign_in!
+    body = observe('auth-token', :post, '/api/v3/token', payload: {}, response_schema: 'bearerToken', authenticated: true)
+    expect(body.dig('record', 'token')).to start_with('v4.public.')
+    expect(body.dig('record', 'token_type')).to eq('Bearer')
   end
 
   it 'captures accepted feedback and the rejected historical request shape' do

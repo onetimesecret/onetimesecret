@@ -29,7 +29,7 @@ describe('session failure contract', () => {
     for (const scope of Object.values(SESSION_FAILURE_CODES)) {
       expect(sessionFailureScopeValues).toContain(scope);
     }
-    expect(Object.keys(SESSION_FAILURE_CODES)).toHaveLength(17);
+    expect(Object.keys(SESSION_FAILURE_CODES)).toHaveLength(19);
   });
 
   it('scopes exactly the credential vocabulary as credential (#4469)', () => {
@@ -40,6 +40,8 @@ describe('session failure contract', () => {
       'account_locked',
       'account_unverified',
       'api_key_invalid',
+      'api_token_expired',
+      'api_token_invalid',
       'invalid_credentials',
       'suspended_credentials',
     ]);

@@ -59,6 +59,12 @@ module AuthModeHelpers
       @orgs_sso_enabled = options.fetch(:orgs_sso_enabled) { ENV['ORGS_SSO_ENABLED'] == 'true' }
       @restrict_to = options.fetch(:restrict_to, nil)  # nil = show all enabled methods
       @omniauth_provider_name = options.fetch(:omniauth_provider_name, nil)
+      # v3 API bearer tokens (#2427): off, as etc/defaults/auth.defaults.yaml
+      # renders without PASETO_ENABLED, so the simple-lane boundary specs see
+      # the default surface. Specs that exercise tokens stub paseto_enabled?
+      # on this mock per example.
+      @paseto_enabled = options.fetch(:paseto_enabled) { ENV['PASETO_ENABLED'] == 'true' }
+      @paseto_token_ttl = options.fetch(:paseto_token_ttl, 3600)
     end
 
     def full_enabled?
@@ -86,6 +92,16 @@ module AuthModeHelpers
     # Predicate methods matching AuthConfig interface
     def lockout_enabled?
       @lockout_enabled
+    end
+
+    # Mirrors Onetime::AuthConfig#paseto_enabled? / #paseto_token_ttl: read
+    # per request by PasetoAuthStrategy and V3::Logic::Auth::GenerateToken.
+    def paseto_enabled?
+      @paseto_enabled
+    end
+
+    def paseto_token_ttl
+      @paseto_token_ttl
     end
 
     def password_requirements_enabled?

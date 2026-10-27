@@ -518,6 +518,29 @@ module Onetime
   # i18n shape: error_key + args inherited from Forbidden are resolved at
   # the HTTP edge by Onetime::Application::ErrorResolver, so logic code
   # passes the dotted i18n key and never touches I18n directly.
+  # Raised by POST /api/v3/token while auth.paseto.enabled is off (#2427).
+  # Carries a code so the client can tell the operator flag from any other
+  # 403; the route stays documented and routable so enabling the flag needs
+  # no deploy.
+  class BearerTokensDisabled < Forbidden
+    attr_reader :code
+
+    def initialize(message = 'API bearer tokens are not enabled on this instance',
+                   code: 'BEARER_TOKENS_DISABLED', error_key: nil, args: {})
+      super(message, error_key: error_key, args: args)
+      @code = code
+    end
+
+    def to_h
+      {
+        error: message,
+        error_type: 'BearerTokensDisabled',
+        code: code,
+        error_key: error_key,
+      }.compact
+    end
+  end
+
   class LimitExceeded < Forbidden
     attr_reader :retry_after, :attempts, :max_attempts
 

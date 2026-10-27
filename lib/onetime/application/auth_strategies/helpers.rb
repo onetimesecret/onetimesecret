@@ -55,11 +55,12 @@ module Onetime
         # that is the failure Otto renders as the 401, so the code describes
         # the refusal the client receives. On the session carve-out nothing is
         # stashed, because the chain goes on to answer the request as the
-        # session's and no credential refusal reaches the wire. The scheme
-        # (`Basic`) is stashed beside the reason: this is the only place a
-        # Basic credential is examined, and the middleware challenges with
-        # `Basic` only on that provenance, never because a request carried an
-        # `Authorization` header.
+        # session's and no credential refusal reaches the wire. The scheme is
+        # stashed beside the reason: `Basic` from the Basic auth strategies,
+        # `Bearer` from PasetoAuthStrategy, the only places those credentials
+        # are examined. The middleware challenges with that scheme only on
+        # that provenance, never because a request carried an `Authorization`
+        # header.
         #
         # @param reason [String] failure reason, e.g. '[CREDENTIALS_INVALID] ...'
         # @param env [Hash, nil] the Rack env, so the session carve-out can be
@@ -68,13 +69,17 @@ module Onetime
         # @param code [Symbol, nil] the credential reason
         #   (Onetime::SessionFailureCode::CREDENTIAL_REASON_SCOPES) the 401
         #   carries as its `code`, or nil to leave it uncoded
+        # @param scheme [String] the HTTP authentication scheme the rejected
+        #   credential used (Onetime::SessionFailureCode::SCHEME_BASIC or
+        #   SCHEME_BEARER); stashed with the code so the 401's challenge
+        #   names it
         # @return [Otto::Security::Authentication::AuthFailure]
-        def credentialed_failure(reason, env = nil, code: nil)
+        def credentialed_failure(reason, env = nil, code: nil, scheme: Onetime::SessionFailureCode::SCHEME_BASIC)
           return failure(reason) if valid_session_identity?(env)
 
           if code
             Onetime::SessionFailureCode.stash(env, code)
-            Onetime::SessionFailureCode.stash_scheme(env, Onetime::SessionFailureCode::SCHEME_BASIC)
+            Onetime::SessionFailureCode.stash_scheme(env, scheme)
           end
           failure(reason, terminal: true)
         end

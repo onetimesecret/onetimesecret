@@ -61,6 +61,10 @@ export const SESSION_FAILURE_CODES = {
   // already sends: one code for an unknown login and a wrong password.
   invalid_credentials: 'credential',
   api_key_invalid: 'credential',
+  // A rejected v3 API bearer token (#2427): everything but expiry under one
+  // code, expiry on its own so a client mints a new token without alarm.
+  api_token_invalid: 'credential',
+  api_token_expired: 'credential',
   suspended_credentials: 'credential',
   // Answered with 403 by Rodauth (lockout, unverified account); the only
   // 403s that carry the pair.

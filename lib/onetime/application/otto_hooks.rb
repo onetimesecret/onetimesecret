@@ -149,6 +149,13 @@ module Onetime
           with_error_correlation(error.to_h, req, error)
         end
 
+        # POST /api/v3/token while auth.paseto.enabled is off (#2427): an
+        # operator setting, not a caller mistake, so :info like the guest gate.
+        router.register_error_handler(Onetime::BearerTokensDisabled, status: 403, log_level: :info) do |error, req|
+          Onetime::Application::ErrorResolver.resolve!(error, req)
+          with_error_correlation(error.to_h, req, error)
+        end
+
         # Unauthorized errors return 401. Onetime::Unauthorized is a marker
         # class (no #to_h); messages are caller-supplied and verified
         # non-sensitive across call sites ('Invalid credentials',

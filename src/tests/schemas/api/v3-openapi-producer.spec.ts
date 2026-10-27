@@ -91,9 +91,27 @@ describe('actual OpenAPI generator, without generated output writes', () => {
     }
     expect(operation('v2', '/api/v2/private/{identifier}', 'get')?.deprecated).toBe(true);
     expect(operation('v3', '/api/v3/secret/{identifier}/status', 'get').security).toEqual([]);
+    // A bearer token is a third credential on the authenticated v3 secret
+    // routes (#2427); the exchange itself takes a session or an API key and
+    // never a token.
     expect(operation('v3', '/api/v3/receipt/{identifier}', 'patch').security).toEqual([
       { sessionAuth: [] },
+      { bearerAuth: [] },
     ]);
+    expect(operation('v3', '/api/v3/token', 'post').security).toEqual([
+      { sessionAuth: [] },
+      { basicAuth: [] },
+    ]);
+    expect(operation('v3', '/api/v3/version', 'get').security).toEqual([
+      { sessionAuth: [] },
+      { bearerAuth: [] },
+      { basicAuth: [] },
+    ]);
+    expect(documents.v3.components.securitySchemes.bearerAuth).toMatchObject({
+      type: 'http',
+      scheme: 'bearer',
+    });
+    expect(operation('v3', '/api/v3/token', 'post').requestBody).toBeUndefined();
     expect(operation('v2', '/api/v2/secret/{identifier}/status', 'get').security).toEqual([
       { basicAuth: [] },
       {},
@@ -106,10 +124,10 @@ describe('actual OpenAPI generator, without generated output writes', () => {
     ).toBe(true);
   });
 
-  it('REV-SCHEMA-001: publishes 24 V3 operations without inventing HEAD successes', () => {
+  it('REV-SCHEMA-001: publishes 25 V3 operations without inventing HEAD successes', () => {
     expect(
       Object.values(documents.v3.paths).flatMap((methods) => Object.keys(methods))
-    ).toHaveLength(24);
+    ).toHaveLength(25);
     for (const document of Object.values(documents)) {
       for (const methods of Object.values(document.paths)) {
         expect(methods).not.toHaveProperty('head');
