@@ -93,28 +93,6 @@ def _patched_client(monkeypatch, transport):
     monkeypatch.setattr(ls.httpx, "Client", factory)
 
 
-# -- _mask_key ----------------------------------------------------------
-
-
-class TestMaskKey:
-    def test_empty(self):
-        assert ls._mask_key("") == "***"
-
-    def test_short(self):
-        assert ls._mask_key("abcd") == "***"
-        assert ls._mask_key("abcdefgh") == "***"  # boundary: len==8
-
-    def test_long(self):
-        masked = ls._mask_key("sk-abcdef1234567890xyz")
-        assert masked == "sk-a***xyz"
-
-    def test_never_contains_full_key(self):
-        key = "supersecretapikey123456"
-        masked = ls._mask_key(key)
-        assert key not in masked
-        assert "secret" not in masked
-
-
 # -- detect_level -------------------------------------------------------
 
 
@@ -485,18 +463,27 @@ class TestPreflight:
         assert "event=preflight_server_error" in msgs
         assert "status=503" in msgs
 
-    def test_banner_masks_key(self, monkeypatch, diag_caplog, capfd):
-        monkeypatch.setattr(ls, "LOGTIDE_API_KEY", "supersecretapikey123456")
+    @pytest.mark.parametrize(
+        "key,configured,is_default",
+        [("", False, False), ("CHANGEME", True, True),
+         ("supersecretapikey123456", True, False)],
+    )
+    def test_banner_reports_key_state_without_key_material(
+        self, monkeypatch, diag_caplog, capfd, key, configured, is_default
+    ):
+        monkeypatch.setattr(ls, "LOGTIDE_API_KEY", key)
         t = FakeTransport([(200, {"ok": True})])
         _patched_client(monkeypatch, t)
         ls._preflight("follow", "svc", "json")
         msgs = " ".join(r.getMessage() for r in diag_caplog.records)
-        # Full secret must not appear in logged messages
-        assert "supersecretapikey123456" not in msgs
-        assert "supe***456" in msgs
-        # Also verify it never hits the raw stderr stream
+        assert f"api_key_configured={configured}" in msgs
+        assert f"api_key_is_default={is_default}" in msgs
+        assert "api_key=" not in msgs
+        assert "***" not in msgs
         err = capfd.readouterr().err
-        assert "supersecretapikey123456" not in err
+        if key:
+            assert key not in msgs
+            assert key not in err
 
     def test_auth_failure_emits_event(self, monkeypatch, diag_caplog):
         t = FakeTransport([(401, {"err": "nope"})])
