@@ -106,11 +106,11 @@ RSpec.describe 'Incoming provenance at first receipt persistence', type: :integr
     expect_incoming_metadata(Onetime::Receipt.load(logic.receipt.identifier))
   end
 
-  it 'retains selected metadata when a later Incoming process step raises' do
+  it 'reports success with selected metadata when a post-commit stats follow-up raises' do
     logic = incoming_logic
-    allow(logic).to receive(:update_customer_stats).and_raise(IOError, 'injected stats failure')
+    allow(Onetime::Customer).to receive(:secrets_created).and_raise(IOError, 'injected stats failure')
 
-    expect { logic.process }.to raise_error(IOError, 'injected stats failure')
+    expect(logic.process).to include(success: true)
 
     expect_incoming_metadata(Onetime::Receipt.load(logic.receipt.identifier))
     expect(Onetime::Secret.load(logic.secret.identifier)).not_to be_nil

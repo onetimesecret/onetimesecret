@@ -110,4 +110,71 @@ RSpec.describe 'API secret creation commit boundary', type: :integration do
       )
     end
   end
+
+  describe 'V3 conceal' do
+    let(:payload) { { 'secret' => 'logic commit fixture', 'ttl' => '3600' } }
+
+    def conceal_logic
+      strategy = double('CreationStrategy', user: owner, session: {}, auth_method: 'sessionauth',
+        metadata: { organization_context: { organization: org } })
+      V3::Logic::Secrets::ConcealSecret.new(strategy, { 'secret' => payload })
+    end
+
+    it 'commits the owner and organization registrations with the pair' do
+      committed = nil
+      allow(Familia).to receive(:atomic_write).and_wrap_original do |original, *instances, **kwargs, &block|
+        result = original.call(*instances, **kwargs, &block)
+        receipt = instances.find { |instance| instance.is_a?(Onetime::Receipt) }
+        committed = {
+          org_id: Onetime::Receipt.load(receipt.identifier).org_id,
+          owner_receipts: receipt_ids(owner.receipts),
+          org_receipts: receipt_ids(org.receipts),
+        }
+        result
+      end
+      # Not swallowed by a follow-up's rescue: mock expectation errors are not
+      # StandardErrors.
+      expect_any_instance_of(Onetime::Receipt).not_to receive(:save)
+      expect_any_instance_of(Onetime::Receipt).not_to receive(:save_fields)
+
+      logic = conceal_logic
+      logic.process
+
+      expect(Familia).to have_received(:atomic_write).once
+      expect(committed).to eq(
+        org_id: org.objid,
+        owner_receipts: [logic.receipt.identifier],
+        org_receipts: [logic.receipt.identifier],
+      )
+    end
+
+    context 'when every optional follow-up fails' do
+      let(:payload) { super().merge('recipient' => 'recipient@example.com') }
+
+      before do
+        allow(Onetime).to receive(:secret_logger).and_return(logger)
+        allow(owner).to receive(:increment_field).and_raise(IOError, 'injected customer stats failure')
+        allow(Onetime::Customer).to receive(:secrets_created).and_raise(IOError, 'injected global stats failure')
+        allow_any_instance_of(Onetime::Receipt).to receive(:record_org_secret_activity_event)
+          .and_raise(IOError, 'injected audit failure')
+        allow_any_instance_of(Onetime::Receipt).to receive(:deliver_by_email)
+          .and_raise(IOError, 'injected email failure')
+      end
+
+      it 'returns the committed creation and logs each failure' do
+        logic  = conceal_logic
+        result = logic.process
+
+        expect(result[:success]).to be(true)
+        expect(result.dig(:record, :receipt, :identifier)).to eq(logic.receipt.identifier)
+        expect(Onetime::Secret.load(logic.secret.identifier)).not_to be_nil
+        %w[customer_stats global_stats created_activity recipient_email].each do |followup|
+          expect(logger).to have_received(:error).with(
+            'Secret creation follow-up failed',
+            hash_including(followup: followup, persistence: 'committed', receipt: logic.receipt.shortid),
+          )
+        end
+      end
+    end
+  end
 end

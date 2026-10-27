@@ -724,9 +724,9 @@ RSpec.describe Onetime::Organization, type: :integration do
     end
 
     it 'omits both keys when share_domain is set without a registered domain' do
-      # index_receipt_to_domain can stamp share_domain with no CustomDomain
-      # resolved; the trail must not fabricate a domain_id-less "custom
-      # domain" event from it.
+      # Creation stamps share_domain even when receipt_custom_domain resolves
+      # no CustomDomain; the trail must not fabricate a domain_id-less
+      # "custom domain" event from it.
       receipt.share_domain = 'secrets.example.com'
       receipt.save_fields(:share_domain)
 
