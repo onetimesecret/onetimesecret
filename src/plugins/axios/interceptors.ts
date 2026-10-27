@@ -1,9 +1,7 @@
 // src/plugins/axios/interceptors.ts
 
-import {
-  scrubSensitiveStrings,
-  scrubUrlWithPatterns,
-} from '@/plugins/core/diagnostics/scrubbers';
+import { readResponseRequestId } from '@/plugins/core/diagnostics/requestCorrelation';
+import { scrubSensitiveStrings, scrubUrlWithPatterns } from '@/plugins/core/diagnostics/scrubbers';
 import {
   VERIFICATION_UNAVAILABLE_STATUS,
   parseSessionFailure,
@@ -64,8 +62,7 @@ export const SESSION_ACTIVITY_PASSIVE = 'passive';
 const PASSIVE_DECLARABLE_METHODS = new Set(['get', 'head']);
 
 const declaresPassive = (config: InternalAxiosRequestConfig): boolean =>
-  config.passive === true &&
-  PASSIVE_DECLARABLE_METHODS.has((config.method ?? 'get').toLowerCase());
+  config.passive === true && PASSIVE_DECLARABLE_METHODS.has((config.method ?? 'get').toLowerCase());
 
 /**
  * Request interceptor that adds the CSRF token to outgoing requests
@@ -122,6 +119,19 @@ export const responseInterceptor = (response: AxiosResponse) => {
     csrfStore.updateShrimp(responseShrimp);
   }
 
+  const requestId = readResponseRequestId(response.headers);
+  if (requestId) {
+    const method = response.config.method?.toUpperCase() ?? 'UNKNOWN';
+    const url = response.config.url ? scrubUrlWithPatterns(response.config.url) : 'unknown';
+    addBreadcrumb({
+      type: 'http',
+      category: 'axios',
+      level: 'info',
+      message: `${method} ${url}`,
+      data: { method, url, status_code: response.status, request_id: requestId },
+    });
+  }
+
   return response;
 };
 
@@ -142,6 +152,7 @@ export const errorInterceptor = (error: AxiosError) => {
   // The method/url in data object aligns with Sentry's http breadcrumb schema.
   const method = error.config?.method?.toUpperCase() ?? 'UNKNOWN';
   const url = error.config?.url ? scrubUrlWithPatterns(error.config.url) : 'unknown';
+  const requestId = readResponseRequestId(error.response?.headers);
   addBreadcrumb({
     type: 'http',
     category: 'axios',
@@ -151,6 +162,7 @@ export const errorInterceptor = (error: AxiosError) => {
       method,
       url,
       ...(error.response?.status != null && { status_code: error.response.status }),
+      ...(requestId && { request_id: requestId }),
       reason: scrubSensitiveStrings(error.message),
     },
   });

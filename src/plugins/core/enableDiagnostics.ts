@@ -39,6 +39,7 @@ import {
 } from './diagnostics/actorContext';
 import { isExpectedTransportOutcome } from './diagnostics/expectedOutcomes';
 import { applyGroupingRules } from './diagnostics/grouping';
+import { applyDocumentRequestId, applyRequestCorrelation } from './diagnostics/requestCorrelation';
 import { collectValuesToRedact, scrubUrlWithValues } from './diagnostics/urlScrubbing';
 // Re-export scrubbing utilities from dependency-free module for backward compatibility
 export {
@@ -499,7 +500,7 @@ function createBeforeSendHandler(router: Router) {
     // Events matching neither rule keep Sentry's default grouping.
     applyGroupingRules(event, hint);
 
-    return event;
+    return applyRequestCorrelation(event, hint);
   };
 }
 
@@ -811,6 +812,11 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
   // Deployment tags on both the isolated scope (manual captures) and the
   // current scope (integration-captured events). See applyDeploymentTags.
   applyDeploymentTags([scope, getCurrentScope()], host);
+
+  // The server-rendered meta tag survives Vue mounting. Keep this immutable
+  // document identity on both capture paths; API IDs belong to their own
+  // breadcrumbs and errors, since requests can complete out of order.
+  applyDocumentRequestId([scope, getCurrentScope()]);
 
   // User context from the server-provided `diagnostics_ref` bootstrap block,
   // on the same two scopes and for the same reason.

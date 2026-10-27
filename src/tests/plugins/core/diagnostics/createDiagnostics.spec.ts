@@ -10,6 +10,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { App, Plugin } from 'vue';
 import type { Router } from 'vue-router';
+import type { ErrorEvent, EventHint } from '@sentry/core';
 
 // ---------------------------------------------------------------------------
 // Mocks - must use vi.hoisted() for variables used in vi.mock factories
@@ -158,6 +159,67 @@ const baseConfig = {
 
 /** Test fixture host - uses 'localhost' to avoid CodeQL regex anchor false positives */
 const TEST_HOST = 'example.com';
+
+describe('createDiagnostics request correlation', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetBootstrapValue.mockReturnValue(null);
+  });
+
+  afterEach(() => {
+    document.querySelectorAll('meta[name="request-id"]').forEach((meta) => meta.remove());
+  });
+
+  it('attaches the initial document request ID to both capture scopes', () => {
+    const meta = document.createElement('meta');
+    meta.name = 'request-id';
+    meta.content = 'document-ABC';
+    document.head.append(meta);
+
+    createDiagnostics({ host: TEST_HOST, config: baseConfig, router: createMockRouter() });
+
+    expect(mockSetTag).toHaveBeenCalledWith('document_request_id', 'document-ABC');
+    expect(mockCurrentScopeSetTag).toHaveBeenCalledWith('document_request_id', 'document-ABC');
+  });
+
+  it('omits malformed document IDs from both capture scopes', () => {
+    const meta = document.createElement('meta');
+    meta.name = 'request-id';
+    meta.content = 'bad id';
+    document.head.append(meta);
+
+    createDiagnostics({ host: TEST_HOST, config: baseConfig, router: createMockRouter() });
+
+    expect(mockSetTag.mock.calls).not.toContainEqual(['document_request_id', 'bad id']);
+    expect(mockCurrentScopeSetTag.mock.calls).not.toContainEqual(['document_request_id', 'bad id']);
+  });
+
+  it('adds only the failing response ID to an API error without changing shared scopes', () => {
+    createDiagnostics({ host: TEST_HOST, config: baseConfig, router: createMockRouter() });
+    const options = getCapturedClientOptions();
+    if (!options) throw new Error('BrowserClient constructor was never called');
+    const beforeSend = options.beforeSend as (
+      event: ErrorEvent,
+      hint?: EventHint
+    ) => ErrorEvent | null;
+
+    const event: ErrorEvent = { type: undefined, tags: { document_request_id: 'document-ABC' } };
+    beforeSend(event, {
+      originalException: {
+        config: { method: 'get', url: '/api/v3/config' },
+        response: { status: 500, headers: { 'x-request-id': 'api-XYZ' } },
+      },
+    });
+
+    expect(event.tags).toEqual({ document_request_id: 'document-ABC', request_id: 'api-XYZ' });
+    expect(mockSetTag).not.toHaveBeenCalledWith('request_id', 'api-XYZ');
+    expect(mockCurrentScopeSetTag).not.toHaveBeenCalledWith('request_id', 'api-XYZ');
+
+    const unrelated: ErrorEvent = { type: undefined };
+    beforeSend(unrelated, { originalException: new Error('unrelated') });
+    expect(unrelated.tags).toBeUndefined();
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Tests

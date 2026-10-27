@@ -82,6 +82,9 @@
         }
       }, true);
     </script>
+    {{#if request_id}}
+    <meta name="request-id" content="{{request_id}}">
+    {{/if}}
     {{#if is_secret_page}}
     {{> partials/head-secret-share}}
     {{else}}

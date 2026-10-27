@@ -504,6 +504,7 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
 
         it 'omits the support reference when the request carries no id' do
           expect(doc.css('.loader-stalled-ref')).to be_empty
+          expect(doc.css('meta[name="request-id"]')).to be_empty
         end
 
         it 'is present in the admin shell too' do
@@ -524,6 +525,14 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
           it 'keeps the id out of window.__BOOTSTRAP_ME__' do
             expect(view.serialized_data.to_json).not_to include('trace-4596-abc')
           end
+
+          it 'exposes the document request id outside the Vue mount point on both shells' do
+            [doc, Nokogiri::HTML(Core::Views::AdminPoint.new(request).render)].each do |shell|
+              expect(shell.css('head meta[name="request-id"]').map { |meta| meta['content'] })
+                .to eq(['trace-4596-abc'])
+              expect(shell.css('#app meta[name="request-id"]')).to be_empty
+            end
+          end
         end
 
         it 'escapes a client-supplied request id' do
@@ -532,6 +541,15 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
           request.env['HTTP_X_REQUEST_ID'] = '<img src=x onerror=alert(1)>'
           expect(rendered_html).not_to include('<img src=x')
           expect(doc.css('.loader-stalled-ref').first.text).to eq('<img src=x onerror=alert(1)>')
+        end
+
+        it 'escapes attribute delimiters in the request-id meta tag on both shells' do
+          request.env['HTTP_X_REQUEST_ID'] = 'request" content="injected" onload="alert(1)'
+          [doc, Nokogiri::HTML(Core::Views::AdminPoint.new(request).render)].each do |shell|
+            meta = shell.css('head meta[name="request-id"]').first
+            expect(meta['content']).to eq(request.env['HTTP_X_REQUEST_ID'])
+            expect(meta.attribute_nodes.map(&:name)).to contain_exactly('name', 'content')
+          end
         end
       end
 

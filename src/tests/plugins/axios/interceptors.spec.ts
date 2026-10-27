@@ -9,7 +9,12 @@
 //   pnpm test src/tests/plugins/axios/interceptors.spec.ts
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import {
+  AxiosHeaders,
+  type AxiosError,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+} from 'axios';
 
 // ---------------------------------------------------------------------------
 // Mocks - must use vi.hoisted() for variables used in vi.mock factories
@@ -189,6 +194,48 @@ describe('axios interceptors', () => {
         expect(call.data.status_code).toBe(404);
       });
 
+      it('records the response request ID alongside the failed API request', async () => {
+        const error = createAxiosError({
+          status: 500,
+          responseHeaders: { 'x-request-id': 'API-Request-ABC' },
+        });
+
+        await expect(errorInterceptor(error)).rejects.toBe(error);
+
+        expect(mockAddBreadcrumb.mock.calls[0][0].data).toMatchObject({
+          url: '/api/test',
+          status_code: 500,
+          request_id: 'API-Request-ABC',
+        });
+      });
+
+      it.each(['bad id', 'abc\n', 'a'.repeat(201), 'abc,def'])(
+        'omits malformed response ID %j without changing error handling',
+        async (requestId) => {
+          const error = createAxiosError({
+            status: 500,
+            responseHeaders: { 'x-request-id': requestId },
+          });
+
+          await expect(errorInterceptor(error)).rejects.toBe(error);
+          expect(mockAddBreadcrumb.mock.calls[0][0].data).not.toHaveProperty('request_id');
+        }
+      );
+
+      it('does not substitute the document ID for a request without a response', async () => {
+        const meta = document.createElement('meta');
+        meta.name = 'request-id';
+        meta.content = 'document-request-123';
+        document.head.append(meta);
+        try {
+          const error = createAxiosError({ message: 'Network Error' });
+          await expect(errorInterceptor(error)).rejects.toBe(error);
+          expect(mockAddBreadcrumb.mock.calls[0][0].data).not.toHaveProperty('request_id');
+        } finally {
+          meta.remove();
+        }
+      });
+
       it('always rejects with the original error', async () => {
         const error = createAxiosError({ message: 'Test error' });
 
@@ -260,6 +307,44 @@ describe('axios interceptors', () => {
   // responseInterceptor - CSRF token update
   // ==========================================================================
   describe('responseInterceptor', () => {
+    it('adds a correlation breadcrumb for successful responses', () => {
+      const response: AxiosResponse = {
+        status: 200,
+        statusText: 'OK',
+        headers: { 'x-request-id': 'api-success-123', 'x-csrf-token': 'private-token' },
+        config: { method: 'get', url: '/api/v3/config', headers: new AxiosHeaders() },
+        data: { secret: 'private-body' },
+      };
+
+      expect(responseInterceptor(response)).toBe(response);
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith({
+        type: 'http',
+        category: 'axios',
+        level: 'info',
+        message: 'GET /api/v3/config',
+        data: {
+          method: 'GET',
+          url: '/api/v3/config',
+          status_code: 200,
+          request_id: 'api-success-123',
+        },
+      });
+      expect(JSON.stringify(mockAddBreadcrumb.mock.calls)).not.toContain('private-');
+    });
+
+    it('does not create a correlation breadcrumb without a valid response ID', () => {
+      const response: AxiosResponse = {
+        status: 200,
+        statusText: 'OK',
+        headers: { 'x-request-id': ['first', 'second'] },
+        config: { method: 'get', url: '/api/v3/config', headers: new AxiosHeaders() },
+        data: {},
+      };
+
+      expect(responseInterceptor(response)).toBe(response);
+      expect(mockAddBreadcrumb).not.toHaveBeenCalled();
+    });
+
     it('updates CSRF token from response headers', () => {
       const response = {
         status: 200,
