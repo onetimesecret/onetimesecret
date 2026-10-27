@@ -1,61 +1,27 @@
 #!/usr/bin/env python3
 # tools/logship/src/logship/cli.py
 
-"""logtide-ship - pipe stdin to LogTide
+"""Stdin log shipping through the managed bin/logship command.
 
-Reads log lines from stdin and ships them to a LogTide instance via the
-HTTP ingest API (/api/v1/ingest). Supports two subcommands:
+`follow SERVICE` uses an in-memory queue and timer/size-based batches.
+`batch SERVICE` streams a finite input synchronously. Both normalize plain,
+JSON, SemanticLogger metadata or Caddy records, then use one selected adapter:
+LogTide (default), Papertrail TLS syslog, Loki, or Datadog.
 
-    follow  - read stdin continuously, ship in batches (for long-running pipes)
-    batch   - read stdin to EOF, ship in batches (for one-shot imports)
-
-Four modes control how JSON log lines are handled:
-
-    plain    - All input treated as text. ANSI codes stripped, log level
-               guessed from message content. No JSON parsing. This is the
-               original behavior and works with any log formatter.
-
-    metadata - JSON lines are parsed. Level, timestamp, and hostname are
-               extracted into top-level LogTide fields. Structured fields
-               (logger name, pid, thread, SemanticLogger payload) are placed
-               in the LogTide `metadata` dict. Human-readable message is
-               preserved. Best when LogTide supports metadata queries.
-
-    json     - JSON lines are parsed. Level, timestamp, and hostname are
-               extracted into top-level fields. The full raw JSON is sent as
-               the LogTide `message`, allowing a LogTide pipeline with a JSON
-               parser step to extract and index all fields server-side.
-
-    caddy    - Caddy structured JSON access logs are parsed. Timestamps
-               (Unix epoch floats) are converted to ISO 8601. A readable
-               message is built from method, URI, status, size, and duration.
-               Request details (request_id, remote_ip, proto, TLS, user_agent)
-               go into LogTide `metadata`. Machine hostname is used since Caddy
-               doesn't include it in log output.
-
-Plain text lines always use the text path regardless of mode.
-
-Usage:
-    # Follow a process manager (default --mode json)
-    LOG_FORMATTER=json bin/backend | bin/logship follow backend
-
-    # Batch-ship an existing log file with text-mode fallback
-    cat /var/log/app.log | bin/logship batch backend --mode plain
-
-    # Use metadata mode for structured fields without pipeline parsing
-    LOG_FORMATTER=json bin/backend | bin/logship follow backend --mode metadata
-
-    # Follow Caddy access logs
-    tail -f /var/log/caddy/access.log | bin/logship follow caddy-proxy --mode caddy
+See tools/logship/README.md for destination configuration and delivery behavior.
 """
 
+import math
 import os
 import re
+import signal
+import ssl
 import sys
 import threading
 import time
-from dataclasses import dataclass
-from queue import Empty, Queue
+from dataclasses import dataclass, field
+from queue import Empty, Full, Queue
+from typing import Annotated
 from urllib.parse import urlparse
 
 import httpx
@@ -65,10 +31,16 @@ from cyclopts import App, Parameter
 #
 # stdlib logging -> stderr with a logfmt-style suffix of key=value pairs.
 # Keeps diagnostics consistent (timestamp, level, subcommand context) while
-# avoiding any new deps. Payloads shipped to LogTide are unaffected.
+# avoiding any new deps. Destination payloads are unaffected.
 
-from .diagnostics import _diag, _kv, _snippet
+from .diagnostics import _diag, _kv
 from .entries import LogMode, _build_entry
+from .sinks import (
+    Backend, ConfigurationError, DeliveryError, HttpSink, PapertrailSink,
+    configure, sink_for,
+)
+
+Sink = HttpSink | PapertrailSink
 
 
 _SERVICE_RE = re.compile(r"[\x00-\x1f\x7f]")
@@ -123,7 +95,7 @@ _DROP_REPORT_INTERVAL = 1000
 _QUEUE_RECOVERY_THRESHOLD = 5_000
 _QUEUE_MAXSIZE = 10_000
 
-app = App(name="logtide-ship", help="Ship logs to LogTide.")
+app = App(name="logship", help="Ship stdin logs to LogTide, Papertrail, Loki, or Datadog.")
 
 
 @Parameter(name="*")
@@ -137,253 +109,189 @@ class Global:
 
     plain    -- treat all input as text (original behavior)
     metadata -- parse JSON, extract structured fields into metadata
-    json     -- parse JSON, send full JSON as message for LogTide pipeline parsing
+    json     -- parse JSON, send the full object as the message
     caddy    -- parse Caddy structured JSON access logs
     """
 
+    backend: Annotated[Backend, Parameter(env_var="LOGSHIP_BACKEND")] = "logtide"
+    """Destination adapter; defaults to LogTide for existing invocations."""
 
-def _preflight(command: str, service: str, mode: LogMode) -> None:
-    """Print startup banner and verify LogTide connectivity and auth.
+    url: Annotated[str | None, Parameter(env_var="LOGSHIP_URL")] = None
+    """Override the destination's full ingestion URL."""
 
-    Sends an empty batch to the ingest endpoint. Exits on auth failure
-    (no point reading stdin if every batch will be rejected). Warns on
-    connection errors but continues (server may come up later).
-    """
-    _validate_service(service)
-    _validate_url(LOGTIDE_URL)
+    ca_file: Annotated[str | None, Parameter(env_var="LOGSHIP_CA_FILE")] = None
+    """Optional CA bundle for HTTPS or TLS syslog certificate verification."""
 
-    # Log boolean flags about the key rather than any derived form of it,
-    # to avoid CodeQL clear-text-logging flags on masked-secret output.
-    _diag.info(
-        "%s",
-        _kv(
-            event="startup",
-            subcommand=command,
-            service=service,
-            mode=mode,
-            url=LOGTIDE_URL,
-            api_key_configured=LOGTIDE_API_KEY != "",
-            api_key_is_default=LOGTIDE_API_KEY == "CHANGEME",
-        ),
-    )
+    shutdown_timeout: float = 35.0
+    """Maximum seconds to drain follow's worker after EOF or interruption."""
 
-    if LOGTIDE_API_KEY == "CHANGEME":
-        _diag.warning(
-            "%s",
-            _kv(
-                event="default_api_key",
-                subcommand=command,
-                hint="set LOGTIDE_API_KEY",
-            ),
-        )
 
-    # Probe with an empty batch.  We only care about the status code:
-    #   200/400 → connected and authed (400 = server dislikes empty logs, fine)
-    #   401/403 → bad key, no point reading stdin — exit immediately
-    #   5xx     → server-side issue, warn but continue (may recover)
-    #   ConnectError → server unreachable, warn but continue (may start later)
+@dataclass
+class ShippingState:
+    failed: threading.Event = field(default_factory=threading.Event)
+    crashed: threading.Event = field(default_factory=threading.Event)
+
+
+def _configured_sink(opts: Global) -> Sink:
     try:
-        with httpx.Client() as client:
-            resp = client.post(
-                LOGTIDE_URL,
-                json={"logs": []},
-                headers={"X-API-Key": LOGTIDE_API_KEY},
-                timeout=5,
-            )
-        if resp.status_code in (401, 403):
-            _diag.error(
-                "%s",
-                _kv(
-                    event="preflight_auth_failed",
-                    subcommand=command,
-                    status=resp.status_code,
-                    body=_snippet(resp.text),
-                    hint="check LOGTIDE_API_KEY",
-                ),
-            )
-            sys.exit(1)
-        if resp.status_code >= 500:
-            _diag.warning(
-                "%s",
-                _kv(
-                    event="preflight_server_error",
-                    subcommand=command,
-                    status=resp.status_code,
-                    body=_snippet(resp.text),
-                ),
-            )
+        if not math.isfinite(opts.shutdown_timeout) or opts.shutdown_timeout <= 0:
+            raise ConfigurationError("shutdown timeout must be a finite positive number")
+        env = dict(os.environ)
+        env.update(LOGTIDE_URL=LOGTIDE_URL, LOGTIDE_API_KEY=LOGTIDE_API_KEY)
+        config = configure(opts.backend, endpoint=opts.url, ca_file=opts.ca_file, environ=env)
+        config.tls_context()
+        return sink_for(config)
+    except ConfigurationError as error:
+        _diag.error("%s", _kv(event="invalid_configuration", reason=str(error)))
+    except (OSError, ssl.SSLError) as error:
+        _diag.error("%s", _kv(event="invalid_configuration", exc_type=type(error).__name__))
+    raise SystemExit(2)
+
+
+def _client(sink: Sink) -> httpx.Client:
+    return httpx.Client(verify=sink.config.tls_context())
+
+
+def _preflight(command: str, service: str, mode: LogMode, sink: Sink | None = None) -> None:
+    """Validate locally; retain the existing LogTide empty-batch probe only."""
+    _validate_service(service)
+    if sink is None:
+        _validate_url(LOGTIDE_URL)
+        sink = _configured_sink(Global())
+    config = sink.config
+    key = config.headers.get("X-API-Key", "")
+    _diag.info("%s", _kv(
+        event="startup", subcommand=command, service=service, mode=mode,
+        backend=config.backend, destination=config.destination,
+        api_key_configured=key != "", api_key_is_default=key == "CHANGEME",
+    ))
+    if config.backend != "logtide":
+        return
+    if key == "CHANGEME":
+        _diag.warning("%s", _kv(event="default_api_key", hint="set LOGTIDE_API_KEY"))
+    try:
+        with _client(sink) as client:
+            response = client.post(config.endpoint, json={"logs": []}, headers=config.headers, timeout=5)
+        if response.status_code in (401, 403):
+            _diag.error("%s", _kv(event="preflight_auth_failed", status=response.status_code))
+            raise SystemExit(1)
+        if response.status_code >= 500:
+            _diag.warning("%s", _kv(event="preflight_server_error", status=response.status_code))
         else:
-            _diag.info(
-                "%s",
-                _kv(
-                    event="preflight_ok",
-                    subcommand=command,
-                    status=resp.status_code,
-                ),
-            )
-    except httpx.ConnectError as e:
-        _diag.warning(
-            "%s",
-            _kv(
-                event="preflight_unreachable",
-                subcommand=command,
-                url=LOGTIDE_URL,
-                error=str(e),
-            ),
-        )
-    except httpx.HTTPError as e:
-        _diag.warning(
-            "%s",
-            _kv(
-                event="preflight_error",
-                subcommand=command,
-                error=str(e),
-            ),
-        )
+            _diag.info("%s", _kv(event="preflight_ok", status=response.status_code))
+    except httpx.ConnectError as error:
+        _diag.warning("%s", _kv(event="preflight_unreachable", exc_type=type(error).__name__))
+    except httpx.HTTPError as error:
+        _diag.warning("%s", _kv(event="preflight_error", exc_type=type(error).__name__))
 
 
-# -- HTTP transport ------------------------------------------------------
+# -- Delivery and retries ------------------------------------------------
 
 
 _SEND_RETRIES = 2
 _SEND_BACKOFF = 0.5  # seconds, doubled each retry
 
 
-def _is_retryable(exc: Exception) -> bool:
-    """True for transient failures worth retrying (connection errors, 5xx)."""
-    if isinstance(exc, (httpx.ConnectError, httpx.ReadTimeout, httpx.WriteTimeout)):
+def _is_retryable(error: Exception) -> bool:
+    if isinstance(error, DeliveryError):
+        return error.retryable
+    cause: BaseException | None = error
+    while cause is not None:
+        if isinstance(cause, ssl.SSLCertVerificationError):
+            return False
+        cause = cause.__cause__
+    if isinstance(error, (httpx.NetworkError, httpx.TimeoutException)):
         return True
-    if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code >= 500:
-        return True
-    return False
+    if isinstance(error, httpx.HTTPStatusError):
+        return error.response.status_code == 429 or error.response.status_code >= 500
+    return isinstance(error, OSError) and not isinstance(error, ssl.SSLError)
 
 
-def _send_batch(client: httpx.Client, batch: list[dict]) -> None:
-    """POST a batch of log entries to the LogTide ingest API.
-
-    Retries up to _SEND_RETRIES times on transient failures (connection
-    errors, 5xx). Non-retryable errors are logged and swallowed so a
-    LogTide outage doesn't kill the pipeline.
-    """
+def _send_batch(client: httpx.Client, batch: list[dict], sink: Sink | None = None) -> bool:
+    sink = sink or sink_for(configure("logtide", endpoint=LOGTIDE_URL, environ={"LOGTIDE_API_KEY": LOGTIDE_API_KEY}))
     delay = _SEND_BACKOFF
     for attempt in range(_SEND_RETRIES + 1):
         try:
-            resp = client.post(
-                LOGTIDE_URL,
-                json={"logs": batch},
-                headers={"X-API-Key": LOGTIDE_API_KEY},
-                timeout=10,
-            )
-            if resp.status_code != 200:
-                _diag.warning(
-                    "%s",
-                    _kv(
-                        event="send_non_200",
-                        status=resp.status_code,
-                        attempt=attempt + 1,
-                        batch_size=len(batch),
-                        body=_snippet(resp.text),
-                    ),
-                )
-            resp.raise_for_status()
-            return
-        except httpx.HTTPError as e:
-            if _is_retryable(e) and attempt < _SEND_RETRIES:
-                status = getattr(getattr(e, "response", None), "status_code", None)
-                _diag.warning(
-                    "%s",
-                    _kv(
-                        event="send_retry",
-                        attempt=attempt + 1,
-                        max_attempts=_SEND_RETRIES + 1,
-                        batch_size=len(batch),
-                        status=status,
-                        backoff=delay,
-                        error=str(e),
-                    ),
-                )
+            sink.send(client, batch)
+            return True
+        except (DeliveryError, httpx.HTTPError, OSError) as error:
+            status = error.status if isinstance(error, DeliveryError) else getattr(getattr(error, "response", None), "status_code", None)
+            if _is_retryable(error) and attempt < _SEND_RETRIES:
+                _diag.warning("%s", _kv(
+                    event="send_retry", backend=sink.config.backend, attempt=attempt + 1,
+                    max_attempts=_SEND_RETRIES + 1, batch_size=len(batch), status=status,
+                    backoff=delay, exc_type=type(error).__name__,
+                ))
                 time.sleep(delay)
                 delay *= 2
                 continue
-            status = getattr(getattr(e, "response", None), "status_code", None)
-            _diag.error(
-                "%s",
-                _kv(
-                    event="send_failed",
-                    attempt=attempt + 1,
-                    batch_size=len(batch),
-                    status=status,
-                    error=str(e),
-                ),
-            )
-            return
+            _diag.error("%s", _kv(
+                event="send_failed", backend=sink.config.backend, attempt=attempt + 1,
+                batch_size=len(batch), status=status, exc_type=type(error).__name__,
+            ))
+            return False
+    return False
 
 
-def _shipper(queue: Queue, service: str, mode: LogMode):
-    """Background thread that drains the queue and ships batches to LogTide.
-
-    Runs in a daemon thread started by the ``follow`` command.  The main
-    thread reads stdin and pushes raw lines into the queue; this thread
-    builds LogTide entries and flushes them in batches.
-
-    Shutdown protocol: the main thread pushes ``None`` into the queue
-    (on EOF or KeyboardInterrupt).  Any remaining entries are flushed
-    before the thread exits.
-    """
-    batch: list[dict] = []
+def _shipper(queue: Queue, service: str, mode: LogMode, sink: Sink | None = None, state: ShippingState | None = None):
+    state = state or ShippingState()
+    sink = sink or _configured_sink(Global(mode=mode))
+    pending: list[dict] = []
     last_flush = time.monotonic()
-    exit_reason = "unknown"
-
+    reason = "shutdown_sentinel"
     try:
-        with httpx.Client() as client:
+        with _client(sink) as client:
             while True:
                 try:
                     line = queue.get(timeout=0.5)
-                    if line is None:        # shutdown sentinel
-                        exit_reason = "shutdown_sentinel"
+                    if line is None:
                         break
-                    batch.append(_build_entry(line, service, mode))
+                    pending.append(_build_entry(line, service, mode))
                 except Empty:
-                    pass                    # no new lines — check flush timer
-
-                # Flush on batch-full or time-elapsed, whichever comes first
+                    pass
                 now = time.monotonic()
-                if len(batch) >= BATCH_SIZE or (
-                    batch and now - last_flush > FLUSH_INTERVAL
-                ):
-                    _send_batch(client, batch)
-                    batch = []
+                if len(pending) >= BATCH_SIZE or (pending and now - last_flush > FLUSH_INTERVAL):
+                    if not _send_batch(client, pending, sink):
+                        state.failed.set()
+                    pending = []
                     last_flush = now
-
-            # Drain remainder after shutdown sentinel
-            if batch:
-                _diag.debug(
-                    "%s", _kv(event="shipper_drain", remaining=len(batch))
-                )
-                _send_batch(client, batch)
-    except Exception as e:
-        exit_reason = f"exception:{type(e).__name__}"
-        _diag.error(
-            "%s",
-            _kv(event="shipper_crash", error=str(e), exc_type=type(e).__name__),
-        )
-        raise
+            if pending and not _send_batch(client, pending, sink):
+                state.failed.set()
+    except Exception as error:
+        state.failed.set()
+        state.crashed.set()
+        reason = "exception"
+        _diag.error("%s", _kv(event="shipper_crash", exc_type=type(error).__name__))
     finally:
-        _diag.info(
-            "%s", _kv(event="shipper_exit", reason=exit_reason)
-        )
+        _diag.info("%s", _kv(event="shipper_exit", reason=reason))
+
+
+def _drain(queue: Queue, thread: threading.Thread, state: ShippingState, timeout: float) -> None:
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            queue.put(None, timeout=min(0.1, max(0, deadline - time.monotonic())))
+            break
+        except Full:
+            if not thread.is_alive() or time.monotonic() >= deadline:
+                state.failed.set()
+                break
+    thread.join(timeout=max(0, deadline - time.monotonic()))
+    if thread.is_alive():
+        state.failed.set()
+        _diag.error("%s", _kv(event="shipper_join_timeout", seconds=timeout))
 
 
 # -- Subcommands ---------------------------------------------------------
 
 
 @app.command
-def follow(service: str, *, opts: Global = Global()):
-    """Read stdin continuously and ship lines to LogTide in batches.
+def follow(service: str, *, opts: Global = Global()) -> int:
+    """Read stdin continuously and ship to the selected destination in batches.
 
     Use with long-running pipes (process managers, ``tail -f``).
     Lines are queued and shipped by a background thread so stdin is
-    never blocked by HTTP latency.
+    never blocked by destination latency.
 
     Backpressure: the producer never blocks. When the queue is full,
     the oldest queued line is evicted (drop-oldest) and the incoming
@@ -398,11 +306,13 @@ def follow(service: str, *, opts: Global = Global()):
     service
         Service name attached to each log entry (e.g. "backend", "caddy-proxy").
     """
-    _preflight("follow", service, opts.mode)
+    sink = _configured_sink(opts)
+    _preflight("follow", service, opts.mode, sink)
+    state = ShippingState()
 
     queue: Queue = Queue(maxsize=_QUEUE_MAXSIZE)
     thread = threading.Thread(
-        target=_shipper, args=(queue, service, opts.mode), daemon=True
+        target=_shipper, args=(queue, service, opts.mode, sink, state), daemon=True
     )
     thread.start()
 
@@ -412,6 +322,9 @@ def follow(service: str, *, opts: Global = Global()):
     last_reported = 0           # last value of `dropped` we emitted
     try:
         for line in sys.stdin:
+            if state.crashed.is_set():
+                stop_reason = "shipper_crash"
+                break
             line = line.rstrip("\n")
             if opts.verbose:
                 sys.stdout.write(line + "\n")
@@ -422,7 +335,8 @@ def follow(service: str, *, opts: Global = Global()):
             # If the retry still fails (racy shipper enqueue), drop the new line.
             try:
                 queue.put_nowait(line)
-            except Exception:
+            except Full:
+                state.failed.set()
                 if not backpressure_logged:
                     _diag.warning(
                         "%s",
@@ -437,7 +351,7 @@ def follow(service: str, *, opts: Global = Global()):
                 try:
                     queue.get_nowait()          # evict oldest
                     queue.put_nowait(line)
-                except Exception:
+                except (Empty, Full):
                     pass                        # lost the race; drop incoming
                 dropped += 1
                 if dropped - last_reported >= _DROP_REPORT_INTERVAL:
@@ -469,26 +383,22 @@ def follow(service: str, *, opts: Global = Global()):
         stop_reason = f"exception:{type(e).__name__}"
         _diag.error(
             "%s",
-            _kv(event="reader_crash", error=str(e), exc_type=type(e).__name__),
+            _kv(event="reader_crash", exc_type=type(e).__name__),
         )
         raise
     finally:
         _diag.info(
             "%s", _kv(event="reader_exit", reason=stop_reason)
         )
-        queue.put(None)             # signal shipper to flush and exit
-        thread.join(timeout=5)
-        if thread.is_alive():
-            _diag.warning(
-                "%s", _kv(event="shipper_join_timeout", seconds=5)
-            )
+        _drain(queue, thread, state, opts.shutdown_timeout)
+    return int(state.failed.is_set())
 
 
 @app.command
-def batch(service: str, *, opts: Global = Global()):
-    """Read stdin to EOF and ship to LogTide in batches.
+def batch(service: str, *, opts: Global = Global()) -> int:
+    """Read stdin to EOF and ship to the selected destination in batches.
 
-    Use for one-shot imports (``cat logfile | logtide-ship batch ...``).
+    Use for one-shot imports (``cat logfile | bin/logship batch ...``).
     Reads synchronously (no background thread) and ships each batch as
     it fills, so memory stays bounded. Do NOT use with ``tail -f`` or
     other never-ending streams — use ``follow`` for those.
@@ -498,11 +408,13 @@ def batch(service: str, *, opts: Global = Global()):
     service
         Service name attached to each log entry (e.g. "backend", "caddy-proxy").
     """
-    _preflight("batch", service, opts.mode)
+    sink = _configured_sink(opts)
+    _preflight("batch", service, opts.mode, sink)
+    failed = False
 
     entries: list[dict] = []
 
-    with httpx.Client() as client:
+    with _client(sink) as client:
         for line in sys.stdin:
             line = line.rstrip("\n")
             if opts.verbose:
@@ -512,16 +424,28 @@ def batch(service: str, *, opts: Global = Global()):
                 continue
             entries.append(_build_entry(line, service, opts.mode))
             if len(entries) >= BATCH_SIZE:
-                _send_batch(client, entries)
+                failed = not _send_batch(client, entries, sink) or failed
                 entries = []
 
         if entries:
-            _send_batch(client, entries)
+            failed = not _send_batch(client, entries, sink) or failed
+
+    return int(failed)
+
+
+def _interrupt(_signum, _frame):
+    raise KeyboardInterrupt
 
 
 def main():
-    app()
+    previous = signal.signal(signal.SIGTERM, _interrupt)
+    try:
+        return app()
+    except KeyboardInterrupt:
+        return 130
+    finally:
+        signal.signal(signal.SIGTERM, previous)
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

@@ -6,13 +6,13 @@ import re
 import sys
 from typing import Any
 
-_LOG_LEVEL = os.environ.get("LOGTIDE_SHIP_LOG_LEVEL", "INFO").upper()
+_LOG_LEVEL = os.environ.get("LOGSHIP_LOG_LEVEL", os.environ.get("LOGTIDE_SHIP_LOG_LEVEL", "INFO")).upper()
 
-_diag = logging.getLogger("logtide-ship")
+_diag = logging.getLogger("logship")
 if not _diag.handlers:
     _handler = logging.StreamHandler(sys.stderr)
     _handler.setFormatter(
-        logging.Formatter("%(asctime)s %(levelname)s logtide-ship %(message)s")
+        logging.Formatter("%(asctime)s %(levelname)s logship %(message)s")
     )
     _diag.addHandler(_handler)
     _diag.propagate = False
@@ -48,11 +48,3 @@ def _kv(**fields: Any) -> str:
             s = '"' + s + '"'
         parts.append(f"{k}={s}")
     return " ".join(parts)
-
-
-def _snippet(text: str, limit: int = 200) -> str:
-    """Truncate arbitrary text for safe inclusion in a single log line."""
-    text = text.replace("\n", "\\n").replace("\r", "\\r")
-    if len(text) > limit:
-        return text[:limit] + "...<truncated>"
-    return text

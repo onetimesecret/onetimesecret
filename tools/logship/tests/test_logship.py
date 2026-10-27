@@ -53,7 +53,7 @@ def diag_caplog(caplog):
     temporarily enable propagation for the duration of the test."""
     prev = ls._diag.propagate
     ls._diag.propagate = True
-    caplog.set_level(logging.DEBUG, logger="logtide-ship")
+    caplog.set_level(logging.DEBUG, logger="logship")
     yield caplog
     ls._diag.propagate = prev
 
@@ -531,7 +531,7 @@ class TestPreflight:
         ls._preflight("follow", "svc", "json")  # must not raise
         msgs = " ".join(r.getMessage() for r in diag_caplog.records)
         assert "event=preflight_unreachable" in msgs
-        assert "refused" in msgs
+        assert "exc_type=ConnectError" in msgs
 
     def test_5xx_warns_but_continues(self, monkeypatch, diag_caplog):
         t = FakeTransport([(503, {})])

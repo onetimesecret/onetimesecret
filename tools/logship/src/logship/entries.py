@@ -6,7 +6,7 @@ import socket
 from datetime import datetime, timezone
 from typing import Literal
 
-from .diagnostics import _diag, _kv, _snippet
+from .diagnostics import _diag, _kv
 
 LogMode = Literal["plain", "metadata", "json", "caddy"]
 
@@ -57,7 +57,6 @@ def _try_parse_json(line: str) -> dict | None:
             _kv(
                 event="json_parse_failed",
                 error=str(e),
-                line=_snippet(line, 120),
             ),
         )
         return None
