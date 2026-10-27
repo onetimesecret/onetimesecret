@@ -29,8 +29,12 @@ vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
 }));
 
 const mockGetOverview = vi.fn();
+const mockCreatePortalSession = vi.fn();
 vi.mock('@/services/billing.service', () => ({
-  BillingService: { getOverview: (...args: unknown[]) => mockGetOverview(...args) },
+  BillingService: {
+    getOverview: (...args: unknown[]) => mockGetOverview(...args),
+    createPortalSession: (...args: unknown[]) => mockCreatePortalSession(...args),
+  },
 }));
 
 // Lightweight org shape for store mock (not full Organization type)
@@ -277,6 +281,101 @@ describe('BillingOverview', () => {
       wrapper = await mountComponent({ organizations: [mockFreeOrganization] });
       const billingDateEl = wrapper.find('[data-testid="next-billing-date"]');
       expect(billingDateEl.exists()).toBe(false);
+    });
+  });
+
+  describe('Billing Portal', () => {
+    const ownerOrganization = { ...mockOrganization, current_user_role: 'owner' };
+    const memberOrganization = { ...mockOrganization, current_user_role: 'member' };
+    const portalOverview = createMockOverviewResponse({
+      organization: { id: 'org_123', external_id: 'on1abc123', display_name: 'Test Org', billing_email: null },
+      portal_available: true,
+    });
+
+    let originalLocation: Location;
+
+    beforeEach(() => {
+      originalLocation = window.location;
+      Object.defineProperty(window, 'location', {
+        value: { href: '', origin: 'https://onetimesecret.com' },
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(window, 'location', {
+        value: originalLocation,
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    it('shows the portal card to an owner when the organization has a billing account', async () => {
+      mockGetOverview.mockResolvedValueOnce(portalOverview);
+      wrapper = await mountComponent({ organizations: [ownerOrganization] });
+
+      const card = wrapper.find('[data-testid="billing-portal-card"]');
+      expect(card.exists()).toBe(true);
+      expect(card.text()).toContain('web.billing.portal.open_portal');
+    });
+
+    it('hides the portal card from a non-owner member', async () => {
+      mockGetOverview.mockResolvedValueOnce(portalOverview);
+      wrapper = await mountComponent({ organizations: [memberOrganization] });
+
+      expect(wrapper.find('[data-testid="billing-portal-card"]').exists()).toBe(false);
+    });
+
+    it('hides the portal card when the organization has no billing account', async () => {
+      mockGetOverview.mockResolvedValueOnce(
+        createMockOverviewResponse({ portal_available: false })
+      );
+      wrapper = await mountComponent({ organizations: [ownerOrganization] });
+
+      expect(wrapper.find('[data-testid="billing-portal-card"]').exists()).toBe(false);
+    });
+
+    it('opens the portal session for the organization in the URL', async () => {
+      const portalUrl = 'https://billing.stripe.com/p/session/test_123';
+      mockGetOverview.mockResolvedValueOnce(portalOverview);
+      mockCreatePortalSession.mockResolvedValueOnce({ portal_url: portalUrl });
+      wrapper = await mountComponent({ organizations: [ownerOrganization] });
+
+      await wrapper.find('[data-testid="billing-portal-btn"]').trigger('click');
+      await flushPromises();
+
+      expect(mockCreatePortalSession).toHaveBeenCalledWith('on1abc123');
+      expect(window.location.href).toBe(portalUrl);
+    });
+
+    it('does not navigate to a portal_url outside the allowlist', async () => {
+      mockGetOverview.mockResolvedValueOnce(portalOverview);
+      mockCreatePortalSession.mockResolvedValueOnce({
+        portal_url: 'https://evil.example.com/p/session/test_123',
+      });
+      wrapper = await mountComponent({ organizations: [ownerOrganization] });
+
+      await wrapper.find('[data-testid="billing-portal-btn"]').trigger('click');
+      await flushPromises();
+
+      expect(window.location.href).toBe('');
+      expect(wrapper.text()).toContain('web.billing.portal.open_error');
+    });
+
+    it('shows the API error when the portal session cannot be created', async () => {
+      mockGetOverview.mockResolvedValueOnce(portalOverview);
+      mockCreatePortalSession.mockRejectedValueOnce(new Error('Failed to open billing portal'));
+      wrapper = await mountComponent({ organizations: [ownerOrganization] });
+
+      await wrapper.find('[data-testid="billing-portal-btn"]').trigger('click');
+      await flushPromises();
+
+      expect(window.location.href).toBe('');
+      expect(wrapper.text()).toContain('Failed to open billing portal');
+      expect(
+        wrapper.find('[data-testid="billing-portal-btn"]').attributes('disabled')
+      ).toBeUndefined();
     });
   });
 });
