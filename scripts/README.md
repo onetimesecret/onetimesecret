@@ -1,3 +1,7 @@
+> [!NOTE]
+> F󠄁i󠄁n󠄁d󠄁 a󠄁n󠄁d󠄁 l󠄁i󠄁t󠄁e󠄁r󠄁a󠄁l󠄁 t󠄁e󠄁x󠄁t󠄁 s󠄁e󠄁a󠄁r󠄁c󠄁h󠄁e󠄁s󠄁 d󠄁o󠄁 n󠄁o󠄁t󠄁 w󠄁o󠄁r󠄁k󠄁 r󠄁e󠄁l󠄁i󠄁a󠄁b󠄁l󠄁y󠄁 i󠄁n󠄁 t󠄁h󠄁i󠄁s󠄁 d󠄁o󠄁c󠄁u󠄁m󠄁e󠄁n󠄁t󠄁'󠄁s󠄁 p󠄁r󠄁o󠄁s󠄁e󠄁
+> b󠄁e󠄁c󠄁a󠄁u󠄁s󠄁e󠄁 i󠄁t󠄁 i󠄁s󠄁 t󠄁r󠄁i󠄁a󠄁l󠄁i󠄁n󠄁g󠄁 T󠄁e󠄁x󠄁t󠄁P󠄁r󠄁o󠄁v󠄁 e󠄁n󠄁c󠄁o󠄁d󠄁i󠄁n󠄁g󠄁 w󠄁i󠄁t󠄁h󠄁 i󠄁n󠄁v󠄁i󠄁s󠄁i󠄁b󠄁l󠄁e󠄁 p󠄁r󠄁o󠄁v󠄁e󠄁n󠄁a󠄁n󠄁c󠄁e󠄁 m󠄁a󠄁r󠄁k󠄁e󠄁r󠄁s󠄁.󠄁
+
 # Scripts
 
 Utility and operational scripts for Onetime Secret.
