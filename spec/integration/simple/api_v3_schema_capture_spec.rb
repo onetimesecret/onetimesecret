@@ -54,7 +54,7 @@ RSpec.describe 'V3 mounted producer schema captures', type: :integration do
       headers: last_response.headers.to_h.select { |key, _| key.match?(/\A(?:content-type|cache-control|x-request-id)\z/i) },
       body: body,
     }
-    File.write(File.join(@schema_capture_dir, "#{name}.json"), JSON.pretty_generate(capture))
+    File.write(File.join(@schema_capture_dir, "#{name}.json"), "#{JSON.pretty_generate(capture)}\n")
     expect(last_response.status).to eq(status), "#{method.upcase} #{path}: #{last_response.body}"
     body
   end
