@@ -165,6 +165,7 @@ locales/reviews/
 # envref tool package (ADR-042). uv writes .venv/.gitignore itself, but that
 # only helps once the venv exists; naming it here keeps a half-built one out.
 tools/envref/.venv/
+tools/logship/.venv/
 __pycache__/
 
 # Intermediate of `bin/envref archaeology`, consumed by `bin/envref map`. It is
