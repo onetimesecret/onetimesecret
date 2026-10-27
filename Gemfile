@@ -40,7 +40,11 @@ source 'https://rubygems.org/'
 # Onetime::Middleware::IsolateResponseHeaders; regression guard is
 # spec/integration/all/router_fallback_response_headers_spec.rb. 2.11 also
 # rejects fallback triples whose body does not respond to #each or #call.
-gem 'otto', '~> 2.11'
+# 2.12 floor: JSON request bodies merge BELOW path captures, query and form
+# parameters in Logic classes and are not parsed for GET/HEAD (delano/otto#285);
+# `require 'otto/testing'` (Otto::Testing.reset!, .env_for) for specs; path
+# matching survives malformed percent-escapes (delano/otto#288).
+gem 'otto', '~> 2.12'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
 # rodauth comes from the onetimesecret fork, pinned to a commit: upstream
@@ -188,7 +192,11 @@ gem 'truemail', '~> 3.3'
 # (2.11.2 remains the behavior floor for blank VERIFIABLE_ID_HMAC_SECRET
 # rejection, delano/familia#335, and for nil declared fields persisting as HDEL
 # instead of the JSON string "null".)
-gem 'familia', '~> 2.12'
+# 2.13 floor: configure_related_field (delano/familia#428), which
+# SecretActivity.configure! uses to apply the retention cap at boot; index
+# rebuilds fail closed and hold a rebuild lock (delano/familia#421, #424);
+# external identifier formats are validated (delano/familia#422).
+gem 'familia', '~> 2.13'
 gem 'pg', '~> 1.6'
 gem 'sequel', '~> 5.0'
 gem 'sqlite3', '~> 2.0'

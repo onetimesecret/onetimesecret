@@ -49,6 +49,24 @@ RSpec.describe Onetime::Organization, type: :integration do
     receipt.save_fields(:org_id)
   end
 
+  # Familia freezes a related field's definition once an instance of the class
+  # exists, and after that configure! refuses a different cap. Earlier
+  # examples have created organizations, so swap in an unfrozen copy to put
+  # the definition back in its boot-time state.
+  def thaw_secret_activity_definition!
+    described_class.related_fields_mutex.synchronize do
+      definition = described_class.related_fields[:secret_activity_events]
+      described_class.related_fields[:secret_activity_events] = definition.with(opts: definition.opts.dup)
+    end
+  end
+
+  def reset_secret_activity_cap!
+    thaw_secret_activity_definition!
+    Onetime::Organization::Features::SecretActivity.configure!(
+      Onetime::Organization::Features::SecretActivity::DEFAULT_MAX_EVENTS,
+    )
+  end
+
   describe '#record_secret_activity_event (accuracy)' do
     it 'stores kind, timestamp and context, and pages newest-first' do
       t1 = Familia.now.to_f - 20
@@ -86,10 +104,11 @@ RSpec.describe Onetime::Organization, type: :integration do
 
       # configure! clamps to the MIN_MAX_EVENTS floor, so the smallest
       # testable cap is the floor itself — pin the clamp while we're here.
+      thaw_secret_activity_definition!
       expect(feature.configure!(5)).to eq(feature::MIN_MAX_EVENTS)
 
-      # configure! is boot-time-only: an org whose accessor already ran has
-      # memoized a DataType with the old cap, so use a FRESH org here.
+      # configure! is boot-time-only: only an org built after it ran carries
+      # the new cap, so use a FRESH org here.
       capped_org = described_class.new(
         display_name: 'Capped Trail Org',
         contact_email: "audit-cap-#{SecureRandom.hex(6)}@example.com",
@@ -104,9 +123,7 @@ RSpec.describe Onetime::Organization, type: :integration do
       expect(ats.min).to be_within(0.001).of(base + 3)
       expect(ats.max).to be_within(0.001).of(base + cap + 2)
     ensure
-      Onetime::Organization::Features::SecretActivity.configure!(
-        Onetime::Organization::Features::SecretActivity::DEFAULT_MAX_EVENTS,
-      )
+      reset_secret_activity_cap!
     end
 
     it 'clamps pagination inputs and windows correctly' do
@@ -198,9 +215,8 @@ RSpec.describe Onetime::Organization, type: :integration do
       Onetime::Organization.related_fields[:secret_activity_events].opts[:max_length]
     end
 
-    after do
-      feature.configure!(feature::DEFAULT_MAX_EVENTS)
-    end
+    before { thaw_secret_activity_definition! }
+    after { reset_secret_activity_cap! }
 
     it 'applies and returns a cap above the floor' do
       expect(feature.configure!(2_500)).to eq(2_500)
@@ -231,19 +247,11 @@ RSpec.describe Onetime::Organization, type: :integration do
       expect(stored_cap).to eq(feature::DEFAULT_MAX_EVENTS)
     end
 
-    # BOOT-ORDERING (the memoization trap the initializer doc warns about):
-    # per-org DataType instances snapshot the definition's opts when they
-    # materialize (Familia copies opts into the frozen DataType), so
-    # configure! only reaches trails materialized AFTER it runs. This is why
-    # ConfigureSecretActivity must run at boot, before any org traffic.
-    it 'applies only to trails materialized after it runs (boot-time-only)' do
-      stale_org = described_class.new(
-        display_name: 'Materialized Before Configure',
-        contact_email: "audit-stale-#{SecureRandom.hex(6)}@example.com",
-      ).tap(&:save)
-      # Touch the accessor: the DataType memoizes with the current cap.
-      expect(stale_org.secret_activity_events.max_length).to eq(feature::DEFAULT_MAX_EVENTS)
-
+    # BOOT-ORDERING: Familia freezes the definition when the first
+    # organization materializes, so configure! reaches only organizations
+    # built after it runs. This is why ConfigureSecretActivity must run at
+    # boot, before any org traffic.
+    it 'reaches organizations materialized after it runs' do
       feature.configure!(2_500)
 
       fresh_org = described_class.new(
@@ -252,8 +260,26 @@ RSpec.describe Onetime::Organization, type: :integration do
       ).tap(&:save)
 
       expect(fresh_org.secret_activity_events.max_length).to eq(2_500)
-      # The already-materialized trail keeps the cap it was born with.
+    end
+
+    it 'refuses a different cap once an organization has materialized (boot-time-only)' do
+      stale_org = described_class.new(
+        display_name: 'Materialized Before Configure',
+        contact_email: "audit-stale-#{SecureRandom.hex(6)}@example.com",
+      ).tap(&:save)
       expect(stale_org.secret_activity_events.max_length).to eq(feature::DEFAULT_MAX_EVENTS)
+
+      expect { feature.configure!(2_500) }.to raise_error(Familia::RelatedFieldFrozenError)
+      expect(stored_cap).to eq(feature::DEFAULT_MAX_EVENTS)
+    end
+
+    it 'accepts the cap already in force after materialization (repeat boot)' do
+      described_class.new(
+        display_name: 'Materialized Before Repeat Boot',
+        contact_email: "audit-reboot-#{SecureRandom.hex(6)}@example.com",
+      )
+
+      expect(feature.configure!(feature::DEFAULT_MAX_EVENTS)).to eq(feature::DEFAULT_MAX_EVENTS)
     end
   end
 
