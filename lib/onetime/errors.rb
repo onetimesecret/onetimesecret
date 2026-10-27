@@ -131,6 +131,51 @@ module Onetime
     end
   end
 
+  # Secret creation did not reach a confirmed commit of its secret/receipt
+  # pair (Onetime::Receipt.spawn_pair; docs/specs/api/01-creation-commit.md).
+  # The caller gets an error, never partial success. `persistence` is internal
+  # evidence for diagnostics and cleanup, not a user-facing state:
+  #
+  # - :none        preparation failed before the commit was attempted, so no
+  #                write was issued
+  # - :incomplete  the datastore rejected a command in the commit, so the
+  #                commit is confirmed not complete. Valkey keeps the writes
+  #                that succeeded: the secret and receipt hashes may both exist
+  #                with their TTLs while a required registration is missing.
+  #                The caller received no handle for them.
+  # - :unconfirmed the commit raised without a datastore verdict (lost
+  #                connection, timeout, an error raised while queuing); the
+  #                writes may or may not have landed, possibly as a complete pair
+  #
+  # Classification errs conservative: a failure inside the commit is never
+  # :none, even where nothing was in fact sent. An error does not prove
+  # rollback, so nothing may delete a pair on :unconfirmed evidence alone.
+  #
+  # No `register_error_handler` entry: like AuditWriteFailure this is a
+  # backend failure on the generic 500 path, with `cause` set to the
+  # underlying exception. The message names shortids only, because the full
+  # secret and receipt identifiers are capability handles. The cause keeps
+  # the datastore's own message, which reaches the generic error handler and
+  # error reporting like any other datastore error.
+  class SecretCreationFailed < Problem
+    PERSISTENCE = [:none, :incomplete, :unconfirmed].freeze
+
+    attr_reader :stage, :persistence, :receipt_shortid, :secret_shortid
+
+    def initialize(stage:, persistence:, receipt_shortid: nil, secret_shortid: nil)
+      @stage           = stage.to_sym
+      @persistence     = persistence.to_sym
+      @receipt_shortid = receipt_shortid
+      @secret_shortid  = secret_shortid
+      raise ArgumentError, "unknown persistence evidence: #{@persistence}" unless PERSISTENCE.include?(@persistence)
+
+      super(
+        "Secret creation failed at #{@stage} (persistence: #{@persistence}, " \
+        "receipt: #{receipt_shortid || '-'}, secret: #{secret_shortid || '-'})",
+      )
+    end
+  end
+
   # An authentication gate could not READ the policy for the request host
   # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference /
   # #degradation-is-fail-closed,
