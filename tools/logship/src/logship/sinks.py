@@ -212,6 +212,10 @@ class PapertrailSink:
             with context.wrap_socket(raw, server_hostname=parsed.hostname) as connection:
                 connection.settimeout(10)
                 connection.sendall(frames)
+                # Complete TLS close_notify before closing TCP. An immediate
+                # close can race TLS 1.3 post-handshake tickets and reset the
+                # receiver before it reads the application records.
+                connection.unwrap().close()
 
 
 def sink_for(config: SinkConfig) -> HttpSink | PapertrailSink:

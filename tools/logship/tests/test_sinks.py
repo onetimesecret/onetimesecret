@@ -194,6 +194,7 @@ def test_real_papertrail_tls_transport(entry, tmp_path):
                     while chunk := connection.recv(65536):
                         chunks.append(chunk)
                     received.append(b"".join(chunks))
+                    connection.unwrap().close()
             except Exception as error:
                 errors.append(error)
         thread = threading.Thread(target=serve, daemon=True)
