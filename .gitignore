@@ -15,6 +15,7 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Directories
+.agent-telemetry
 .gems/
 .certs/
 .claude
