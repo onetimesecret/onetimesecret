@@ -90,6 +90,23 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
       expect(data['usage']).to have_key('domains')
     end
 
+    it 'reports portal_available false when organization has no Stripe customer' do
+      get "/billing/api/org/#{organization.extid}"
+
+      expect(last_response.status).to eq(200)
+      expect(JSON.parse(last_response.body)['portal_available']).to be(false)
+    end
+
+    it 'reports portal_available true when organization has a Stripe customer' do
+      organization.stripe_customer_id = 'cus_test_overview_portal'
+      organization.commit_fields
+
+      get "/billing/api/org/#{organization.extid}"
+
+      expect(last_response.status).to eq(200)
+      expect(JSON.parse(last_response.body)['portal_available']).to be(true)
+    end
+
     it 'returns nil subscription when organization has no subscription' do
       get "/billing/api/org/#{organization.extid}"
 
@@ -307,6 +324,105 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
       clear_authentication
 
       get "/billing/api/org/#{organization.extid}/invoices"
+
+      expect(last_response.status).to eq(401)
+    end
+  end
+
+  describe 'POST /billing/api/org/:extid/portal' do
+    let(:stripe_customer_id) { 'cus_test_portal' }
+    let(:portal_url) { 'https://billing.stripe.com/p/session/test_portal' }
+
+    before do
+      portal_session = Stripe::BillingPortal::Session.construct_from(
+        {
+          'id' => 'bps_test_portal',
+          'object' => 'billing_portal.session',
+          'url' => portal_url,
+        },
+      )
+      allow(Stripe::BillingPortal::Session).to receive(:create).and_return(portal_session)
+    end
+
+    context 'when organization has a Stripe customer' do
+      before do
+        organization.stripe_customer_id = stripe_customer_id
+        organization.commit_fields
+      end
+
+      it 'returns the portal URL for the organization in the path' do
+        post "/billing/api/org/#{organization.extid}/portal"
+
+        expect(last_response.status).to eq(200)
+        expect(last_response.content_type).to include('application/json')
+        expect(JSON.parse(last_response.body)['portal_url']).to eq(portal_url)
+
+        # The return URL names this organization, not the caller's default.
+        expect(Stripe::BillingPortal::Session).to have_received(:create).with(
+          hash_including(
+            customer: stripe_customer_id,
+            return_url: end_with("/billing/#{organization.extid}/overview"),
+          ),
+        )
+      end
+
+      it 'opens the portal of a second organization the caller owns' do
+        # No contact email: contact_email is uniquely indexed and the shared
+        # organization already holds the customer's address.
+        other_org = Onetime::Organization.create!('Second Workspace', customer)
+        created_organizations << other_org
+        other_org.stripe_customer_id = 'cus_test_portal_second'
+        other_org.commit_fields
+
+        post "/billing/api/org/#{other_org.extid}/portal"
+
+        expect(last_response.status).to eq(200)
+        expect(Stripe::BillingPortal::Session).to have_received(:create).with(
+          hash_including(customer: 'cus_test_portal_second'),
+        )
+      end
+
+      it 'returns 403 for a non-owner member' do
+        authenticate_as(create_organization_member)
+
+        post "/billing/api/org/#{organization.extid}/portal"
+
+        expect(last_response.status).to eq(403)
+        expect(last_response.body).to include('Owner access required')
+        expect(Stripe::BillingPortal::Session).not_to have_received(:create)
+      end
+
+      it 'returns 500 when Stripe rejects the session' do
+        allow(Stripe::BillingPortal::Session).to receive(:create)
+          .and_raise(Stripe::InvalidRequestError.new('No such customer', 'customer'))
+
+        post "/billing/api/org/#{organization.extid}/portal"
+
+        expect(last_response.status).to eq(500)
+        expect(last_response.body).to include('Failed to open billing portal')
+      end
+    end
+
+    it 'returns 400 when organization has no Stripe customer' do
+      post "/billing/api/org/#{organization.extid}/portal"
+
+      expect(last_response.status).to eq(400)
+      expect(last_response.body).to include('No billing account')
+      expect(Stripe::BillingPortal::Session).not_to have_received(:create)
+    end
+
+    it 'returns 403 when customer is not organization member' do
+      authenticate_as(create_other_customer)
+
+      post "/billing/api/org/#{organization.extid}/portal"
+
+      expect(last_response.status).to eq(403)
+    end
+
+    it 'requires authentication' do
+      clear_authentication
+
+      post "/billing/api/org/#{organization.extid}/portal"
 
       expect(last_response.status).to eq(401)
     end

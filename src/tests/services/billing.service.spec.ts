@@ -412,6 +412,36 @@ describe('BillingService', () => {
     });
   });
 
+  describe('createPortalSession', () => {
+    it('posts to the organization portal endpoint', async () => {
+      mockPost.mockResolvedValueOnce({
+        data: { portal_url: 'https://billing.stripe.com/p/session/test_123' },
+      });
+
+      const result = await BillingService.createPortalSession('org_abc');
+
+      expect(mockPost).toHaveBeenCalledWith('/billing/api/org/org_abc/portal');
+      expect(result.portal_url).toBe('https://billing.stripe.com/p/session/test_123');
+    });
+
+    // Security (M-9): same host allowlist as checkout_url.
+    it('rejects a portal_url pointing at a non-Stripe host', async () => {
+      mockPost.mockResolvedValueOnce({
+        data: { portal_url: 'https://evil.example.com/p/session/test_123' },
+      });
+
+      await expect(BillingService.createPortalSession('org_abc')).rejects.toThrow();
+    });
+
+    it('rejects a Stripe Checkout URL as a portal_url', async () => {
+      mockPost.mockResolvedValueOnce({
+        data: { portal_url: 'https://checkout.stripe.com/c/pay/cs_123' },
+      });
+
+      await expect(BillingService.createPortalSession('org_abc')).rejects.toThrow();
+    });
+  });
+
   describe('cancelSubscription', () => {
     it('calls correct endpoint with org extid', async () => {
       const mockResponse = {

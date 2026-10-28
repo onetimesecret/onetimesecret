@@ -1,6 +1,7 @@
 // src/tests/utils/redirect.spec.ts
 
 import {
+  isAllowedBillingPortalUrl,
   isAllowedCheckoutUrl,
   isValidInternalPath,
   MAX_REDIRECT_LENGTH,
@@ -324,5 +325,61 @@ describe('isAllowedCheckoutUrl', () => {
       setAllowedCheckoutHost('pay.onetimesecret.com:99999');
       expect(isAllowedCheckoutUrl('https://pay.onetimesecret.com/c/pay/cs')).toBe(false);
     });
+  });
+});
+
+describe('isAllowedBillingPortalUrl', () => {
+  let originalLocation: Location;
+
+  beforeEach(() => {
+    originalLocation = window.location;
+    Object.defineProperty(window, 'location', {
+      value: { origin: 'https://onetimesecret.com' },
+      writable: true,
+      configurable: true,
+    });
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'location', {
+      value: originalLocation,
+      writable: true,
+      configurable: true,
+    });
+    setAllowedCheckoutHost(null);
+  });
+
+  it('allows the shared Stripe portal host', () => {
+    expect(isAllowedBillingPortalUrl('https://billing.stripe.com/p/session/test_123')).toBe(true);
+  });
+
+  it('rejects the Stripe Checkout host', () => {
+    expect(isAllowedBillingPortalUrl('https://checkout.stripe.com/c/pay/cs_test_123')).toBe(false);
+  });
+
+  it('rejects the current app origin', () => {
+    expect(isAllowedBillingPortalUrl('https://onetimesecret.com/billing/portal')).toBe(false);
+  });
+
+  it('rejects an unrelated host and lookalike siblings', () => {
+    expect(isAllowedBillingPortalUrl('https://evil.example.com/p/session/x')).toBe(false);
+    expect(isAllowedBillingPortalUrl('https://billing.stripe.com.evil.com/p/session/x')).toBe(
+      false
+    );
+    expect(isAllowedBillingPortalUrl('http://billing.stripe.com/p/session/x')).toBe(false);
+  });
+
+  it('allows the configured Stripe custom domain only once it is set', () => {
+    expect(isAllowedBillingPortalUrl('https://pay.onetimesecret.com/p/session/x')).toBe(false);
+
+    setAllowedCheckoutHost('pay.onetimesecret.com');
+    expect(isAllowedBillingPortalUrl('https://pay.onetimesecret.com/p/session/x')).toBe(true);
+  });
+
+  it('rejects empty, null, and unparseable input', () => {
+    expect(isAllowedBillingPortalUrl('')).toBe(false);
+    expect(isAllowedBillingPortalUrl(null)).toBe(false);
+    expect(isAllowedBillingPortalUrl(undefined)).toBe(false);
+    expect(isAllowedBillingPortalUrl('not-a-url')).toBe(false);
   });
 });

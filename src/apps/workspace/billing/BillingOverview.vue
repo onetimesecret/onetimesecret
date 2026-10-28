@@ -17,6 +17,7 @@ import { getPlanLabel, isFreePlan, isLegacyPlan } from '@/types/billing';
 import type { Organization } from '@/types/organization';
 import { formatDisplayDate } from '@/utils/format';
 import { parseDateValue } from '@/utils/parse';
+import { isAllowedBillingPortalUrl } from '@/utils/redirect';
 import { computed, onMounted, ref, watch } from 'vue';
 
 const { t } = useI18n();
@@ -31,6 +32,8 @@ const paymentMethod = ref<PaymentMethod | null>(null);
 const nextBillingDate = ref<Date | null>(null);
 const planFeatures = ref<string[]>([]);
 const federationNotification = ref<FederationNotificationData | null>(null);
+const portalAvailable = ref(false);
+const isOpeningPortal = ref(false);
 // Best practice: Initialize loading states to `true` to prevent uninitialized
 // content or empty states from briefly flashing on mount.
 const isLoading = ref(true);
@@ -76,6 +79,12 @@ const isLegacyCustomer = computed(() =>
   selectedOrg.value?.planid ? isLegacyPlan(selectedOrg.value.planid) : false
 );
 
+// The portal endpoint is owner-only and needs a Stripe customer; hide the
+// card when either is missing rather than offer a button that fails.
+const canOpenPortal = computed(() =>
+  portalAvailable.value && selectedOrg.value?.current_user_role === 'owner'
+);
+
 // Extract billing overview state updates to reduce complexity
 const applyBillingOverview = (overview: Awaited<ReturnType<typeof BillingService.getOverview>>) => {
   // `period_end` is epoch SECONDS as a string, or null. parseDateValue yields
@@ -88,6 +97,7 @@ const applyBillingOverview = (overview: Awaited<ReturnType<typeof BillingService
   planFeatures.value = overview.plan?.features || [];
   paymentMethod.value = overview.payment_method || null;
   federationNotification.value = overview.federation_notification || null;
+  portalAvailable.value = overview.portal_available === true;
 };
 
 const loadOrganizationData = async (extid: string) => {
@@ -174,6 +184,31 @@ watch(selectedOrg, (org) => {
     billingEmailForm.value.email = org.billing_email || org.contact_email || '';
   }
 });
+
+// Open the Stripe Customer Portal for this organization
+const handleOpenPortal = async () => {
+  if (!orgExtid.value || isOpeningPortal.value) return;
+
+  isOpeningPortal.value = true;
+  error.value = '';
+
+  try {
+    const response = await BillingService.createPortalSession(orgExtid.value);
+
+    // Security (M-9): host-allowlist the API-derived URL before navigating.
+    if (isAllowedBillingPortalUrl(response.portal_url)) {
+      window.location.href = response.portal_url;
+    } else {
+      error.value = t('web.billing.portal.open_error');
+    }
+  } catch (err) {
+    const classified = classifyError(err);
+    error.value = classified.message || t('web.billing.portal.open_error');
+    console.error('[BillingOverview] Error opening billing portal:', err);
+  } finally {
+    isOpeningPortal.value = false;
+  }
+};
 
 // Handle federation notification dismissal
 const handleFederationNotificationDismissed = () => {
@@ -360,6 +395,43 @@ onMounted(async () => {
                 {{ t('web.billing.overview.no_entitlements') }}
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Billing Portal Card - payment method, billing details, subscription -->
+        <div
+          v-if="canOpenPortal"
+          class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60"
+          data-testid="billing-portal-card">
+          <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              {{ t('web.billing.portal.title') }}
+            </h2>
+          </div>
+          <div class="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              {{ t('web.billing.portal.description') }}
+            </p>
+            <button
+              type="button"
+              data-testid="billing-portal-btn"
+              :disabled="isOpeningPortal"
+              @click="handleOpenPortal"
+              class="inline-flex shrink-0 items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
+              <OIcon
+                v-if="isOpeningPortal"
+                collection="heroicons"
+                name="arrow-path"
+                class="size-4 animate-spin motion-reduce:animate-none"
+                aria-hidden="true" />
+              <OIcon
+                v-else
+                collection="heroicons"
+                name="arrow-top-right-on-square"
+                class="size-4"
+                aria-hidden="true" />
+              {{ isOpeningPortal ? t('web.billing.portal.redirecting') : t('web.billing.portal.open_portal') }}
+            </button>
           </div>
         </div>
 
