@@ -185,7 +185,7 @@
     "vue-i18n": "11.4.4",
     "vue-router": "4.6.4",
     "yaml": "2.8.3",
-    "zod": "4.3.6",
+    "zod": "4.6.6",
     "zod-validation-error": "5.0.0"
   },
   "devDependencies": {
