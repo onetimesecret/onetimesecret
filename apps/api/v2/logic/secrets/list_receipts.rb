@@ -43,8 +43,14 @@ module V2::Logic
         @now   = Familia.now
         @since = (Familia.now - 30.days).to_i
 
-        # Scope parameter: nil (default customer), 'org', or 'domain'
-        @scope        = params['scope']&.to_sym
+        # Preserve scalar scope handling (including the personal-scope fallback)
+        # but reject nested Rack parameters before calling to_sym.
+        raw_scope = params['scope']
+        unless raw_scope.nil? || raw_scope.is_a?(String) || raw_scope.is_a?(Symbol)
+          raise_form_error('Invalid scope')
+        end
+
+        @scope        = raw_scope&.to_sym
         @domain_extid = params['domain_extid']
       end
 

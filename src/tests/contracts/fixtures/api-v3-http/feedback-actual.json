@@ -1,0 +1,29 @@
+{
+  "name": "feedback-actual",
+  "method": "POST",
+  "path": "/api/v3/feedback",
+  "request": {
+    "msg": "schema audit accepted message",
+    "tz": "UTC"
+  },
+  "response_schema": "feedback",
+  "request_schema": "receiveFeedback",
+  "status": 200,
+  "headers": {
+    "x-content-type-options": "nosniff",
+    "x-xss-protection": "1; mode=block",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "o-domain-strategy": "canonical",
+    "o-display-domain": "127.0.0.1:3000",
+    "x-request-id": "0wggsfta45ei7",
+    "content-length": "81"
+  },
+  "body": {
+    "record": {},
+    "details": {
+      "message": "Message received. Send as much as you like!"
+    }
+  }
+}

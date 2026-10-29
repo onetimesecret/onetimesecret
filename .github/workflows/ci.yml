@@ -185,6 +185,17 @@ jobs:
               # host_proxy_matrix_spec.rb reads the probe's topology matrix
               # and calls its spoof predicate.
               - 'tools/host-seam/**'
+              # The simple job also checks fresh Ruby payloads against TS schemas.
+              - '.github/scripts/check-api-v3-fresh-schemas.sh'
+              - 'tools/testsuite/api-v3-fresh-schemas-test.sh'
+              - 'src/**'
+              - 'scripts/openapi/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'tsconfig*.json'
+              - 'vitest*.ts'
+              - 'vite.config.ts'
+              - '.node-version'
             typescript:
               - 'src/**/*.ts'
               - 'src/**/*.vue'
@@ -743,13 +754,13 @@ jobs:
         with:
           python-version: '3.14'
 
-      - name: Setup Node.js for locale sync
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
-        with:
-          node-version-file: '.node-version'
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      # Same-job handoff: no archive fallback or cross-job artifact dependency.
+      # Keep typescript-unit unchanged so historical fixture regressions still run.
+      - name: Check fresh API v3 producer schemas
+        run: bash .github/scripts/check-api-v3-fresh-schemas.sh
 
       - name: Run simple lane
         uses: ./.github/actions/run-test-lane

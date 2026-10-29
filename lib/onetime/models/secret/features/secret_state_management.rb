@@ -141,10 +141,17 @@ module Onetime::Secret::Features
         # bookkeeping (e.g. secrets_burned counters) happen exactly once.
         return false unless compare_and_set_state!(:burned, [:new, :previewed])
 
-        md               = load_receipt
-        md.burned!(actor_context: actor_context) unless md.nil?
-        @passphrase_temp = nil
-        destroy!
+        begin
+          md = load_receipt
+          md.burned!(actor_context: actor_context) unless md.nil?
+        ensure
+          # A receipt failure must not skip destruction after the secret's
+          # terminal claim. The exception still propagates; no success is sent.
+          @state           = 'burned'
+          @ciphertext      = nil
+          @passphrase_temp = nil
+          destroy!
+        end
         true
       end
 
@@ -219,7 +226,9 @@ module Onetime::Secret::Features
       def consume_after_reveal!(actor_context: nil)
         md = load_receipt
         md.revealed!(actor_context: actor_context) unless md.nil?
-
+      ensure
+        # Once claimed and decrypted, destruction is independent of receipt
+        # bookkeeping. Preserve fail-closed error propagation, not a retry.
         @state           = 'revealed'
         @ciphertext      = nil
         @passphrase_temp = nil

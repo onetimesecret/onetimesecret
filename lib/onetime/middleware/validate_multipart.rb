@@ -7,6 +7,7 @@ require 'rack'
 require 'rack/multipart'
 
 require_relative '../application/request_logger'
+require_relative 'validate_api_params'
 
 module Onetime
   module Middleware
@@ -68,7 +69,9 @@ module Onetime
       ].freeze
 
       def initialize(app)
-        @app    = app
+        # This mount precedes every parameter consumer. The API guard also
+        # validates query/JSON/form input here, not after locale has parsed it.
+        @app    = ValidateAPIParams.new(app)
         @logger = Onetime.get_logger('ValidateMultipart')
       end
 
@@ -138,6 +141,10 @@ module Onetime
             content_type: env['CONTENT_TYPE'],
             content_length: env['CONTENT_LENGTH'],
           }
+
+        if ValidateAPIParams.api_request?(env)
+          return ValidateAPIParams.bad_request(env, "Invalid multipart request: #{reason}")
+        end
 
         [
           400,

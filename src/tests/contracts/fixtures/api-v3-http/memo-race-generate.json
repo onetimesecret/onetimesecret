@@ -1,0 +1,89 @@
+{
+  "name": "memo-race-generate",
+  "method": "POST",
+  "path": "/api/v3/secret/generate",
+  "request": {
+    "secret": {
+      "ttl": 3600
+    }
+  },
+  "response_schema": "concealData",
+  "request_schema": "generateSecret",
+  "status": 200,
+  "headers": {
+    "x-content-type-options": "nosniff",
+    "x-xss-protection": "1; mode=block",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "o-domain-strategy": "canonical",
+    "o-display-domain": "127.0.0.1:3000",
+    "x-request-id": "0islw96sbw5g4",
+    "content-length": "1435"
+  },
+  "body": {
+    "success": true,
+    "record": {
+      "receipt": {
+        "identifier": "2m9ya5a7gvjuetrj2eckyto4dpgh7s9ayknnhfxq2krh9guzzaohzwzq8y4nrn",
+        "key": "2m9ya5a7gvjuetrj2eckyto4dpgh7s9ayknnhfxq2krh9guzzaohzwzq8y4nrn",
+        "owner_id": "01a16ba9-4771-71a1-960c-fb3211b16c22",
+        "state": "new",
+        "secret_shortid": "8r0sskb8",
+        "secret_identifier": "8r0sskb8ffdaf6omty2w0sjb8tnz8q5tp3x7ni3r51c9z1jbpn8gnvd05166wn",
+        "secret_ttl": 3600,
+        "metadata_ttl": 3600,
+        "receipt_ttl": 3600,
+        "lifespan": 3600,
+        "share_domain": null,
+        "created": 1792807618.782448,
+        "updated": 1792807618.782453,
+        "shared": null,
+        "recipients": null,
+        "recipient_name": null,
+        "memo": null,
+        "shortid": "2m9ya5a7",
+        "show_recipients": false,
+        "previewed": null,
+        "revealed": null,
+        "is_previewed": false,
+        "viewed": null,
+        "received": null,
+        "burned": null,
+        "is_viewed": false,
+        "is_received": false,
+        "is_revealed": false,
+        "is_burned": false,
+        "is_expired": false,
+        "is_orphaned": false,
+        "is_destroyed": false,
+        "has_passphrase": false,
+        "kind": "generate",
+        "source": "standard"
+      },
+      "secret": {
+        "identifier": "8r0sskb8ffdaf6omty2w0sjb8tnz8q5tp3x7ni3r51c9z1jbpn8gnvd05166wn",
+        "key": "8r0sskb8ffdaf6omty2w0sjb8tnz8q5tp3x7ni3r51c9z1jbpn8gnvd05166wn",
+        "shortid": "8r0sskb8",
+        "state": "new",
+        "lifespan": 3600,
+        "secret_ttl": 3600,
+        "has_passphrase": false,
+        "verification": false,
+        "display_type": "text",
+        "created": 1792807618.780624,
+        "updated": 1792807618.780628,
+        "is_previewed": false,
+        "is_revealed": false,
+        "is_viewed": false,
+        "is_received": false
+      },
+      "share_domain": null
+    },
+    "details": {
+      "kind": "generate",
+      "recipient": [],
+      "recipient_safe": []
+    }
+  }
+}

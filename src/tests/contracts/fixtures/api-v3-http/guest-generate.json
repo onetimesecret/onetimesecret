@@ -1,0 +1,89 @@
+{
+  "name": "guest-generate",
+  "method": "POST",
+  "path": "/api/v3/guest/secret/generate",
+  "request": {
+    "secret": {
+      "ttl": 3600
+    }
+  },
+  "response_schema": "concealData",
+  "request_schema": "generateSecret",
+  "status": 200,
+  "headers": {
+    "x-content-type-options": "nosniff",
+    "x-xss-protection": "1; mode=block",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "o-domain-strategy": "canonical",
+    "o-display-domain": "127.0.0.1:3000",
+    "x-request-id": "0j26w2yyzsdop",
+    "content-length": "1403"
+  },
+  "body": {
+    "success": true,
+    "record": {
+      "receipt": {
+        "identifier": "b1pyu7wi9pgzqwkdfj9c8a5wz0ldlqgvu00z8nd5ei42jkelrs91havjzu15jr",
+        "key": "b1pyu7wi9pgzqwkdfj9c8a5wz0ldlqgvu00z8nd5ei42jkelrs91havjzu15jr",
+        "owner_id": null,
+        "state": "new",
+        "secret_shortid": "4nyvi25n",
+        "secret_identifier": "4nyvi25n7x88ol88c18kv1css6l62cz7cs9dvnx2y8t1b82cci5hux8bpwmg76",
+        "secret_ttl": 3600,
+        "metadata_ttl": 3600,
+        "receipt_ttl": 3600,
+        "lifespan": 3600,
+        "share_domain": null,
+        "created": 1792807620.0533812,
+        "updated": 1792807620.053385,
+        "shared": null,
+        "recipients": null,
+        "recipient_name": null,
+        "memo": null,
+        "shortid": "b1pyu7wi",
+        "show_recipients": false,
+        "previewed": null,
+        "revealed": null,
+        "is_previewed": false,
+        "viewed": null,
+        "received": null,
+        "burned": null,
+        "is_viewed": false,
+        "is_received": false,
+        "is_revealed": false,
+        "is_burned": false,
+        "is_expired": false,
+        "is_orphaned": false,
+        "is_destroyed": false,
+        "has_passphrase": false,
+        "kind": "generate",
+        "source": "standard"
+      },
+      "secret": {
+        "identifier": "4nyvi25n7x88ol88c18kv1css6l62cz7cs9dvnx2y8t1b82cci5hux8bpwmg76",
+        "key": "4nyvi25n7x88ol88c18kv1css6l62cz7cs9dvnx2y8t1b82cci5hux8bpwmg76",
+        "shortid": "4nyvi25n",
+        "state": "new",
+        "lifespan": 3600,
+        "secret_ttl": 3600,
+        "has_passphrase": false,
+        "verification": false,
+        "display_type": "text",
+        "created": 1792807620.0523891,
+        "updated": 1792807620.052392,
+        "is_previewed": false,
+        "is_revealed": false,
+        "is_viewed": false,
+        "is_received": false
+      },
+      "share_domain": null
+    },
+    "details": {
+      "kind": "generate",
+      "recipient": [],
+      "recipient_safe": []
+    }
+  }
+}

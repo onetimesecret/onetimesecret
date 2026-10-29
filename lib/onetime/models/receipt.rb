@@ -202,6 +202,32 @@ module Onetime
       self.class.warnings_sent.remove_element(identifier)
     end
 
+    # A memo edit must not save the loaded receipt's other fields: a concurrent
+    # display claim or terminal transition may have made that projection stale.
+    # EXISTS and HSET share one atomic operation; HSET retains the live key's
+    # expiry and a deleted/expired receipt is never recreated.
+    UPDATE_MEMO_SCRIPT = <<~LUA
+      if redis.call('EXISTS', KEYS[1]) == 0 then return 0 end
+      redis.call('HSET', KEYS[1], 'memo', ARGV[1], 'updated', ARGV[2])
+      return 1
+    LUA
+    private_constant :UPDATE_MEMO_SCRIPT
+
+    # @return [Boolean] whether the receipt still existed and was updated.
+    def update_memo!(value)
+      now     = Familia.now
+      written = dbclient.eval(
+        UPDATE_MEMO_SCRIPT,
+        keys: [dbkey],
+        argv: [serialize_value(value), serialize_value(now)],
+      ).to_i == 1
+      if written
+        self.memo    = value
+        self.updated = now
+      end
+      written
+    end
+
     def age
       @age ||= Familia.now.to_i - updated
       @age
@@ -322,7 +348,11 @@ module Onetime
       #   unset, which reads as 'text'. It is not an encryption input and does
       #   not change what is stored.
       #
-      def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil, kind: nil, display_type: nil)
+      # - source/memo/recipients/recipient_name/domain_id: selected creation
+      #   metadata from the calling operation, never an unfiltered request hash.
+      #   A nil source retains Receipt#init's standard provenance default.
+      def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil, kind: nil, display_type: nil,
+                     source: nil, memo: nil, recipients: nil, recipient_name: nil, domain_id: nil)
         # Coerce at the single creation choke point so lifespan is always stored
         # as an Integer (#3299). Familia v2 storage is type-preserving, so a
         # String here ("604800" from unconverted ERB/params) would hydrate back
@@ -353,12 +383,18 @@ module Onetime
 
         secret.save
 
-        # Single save with all fields populated — no partial-state window
+        # Populate the receipt before its first save. The secret and receipt
+        # are separate writes; this is not an atomic commit of the pair.
         receipt.secret_shortid = secret.shortid
         receipt.secret_ttl     = lifespan
         receipt.lifespan       = lifespan
         receipt.share_domain   = domain
         receipt.kind           = kind
+        receipt.source         = source unless source.nil?
+        receipt.memo           = memo
+        receipt.recipients     = recipients
+        receipt.recipient_name = recipient_name
+        receipt.domain_id      = domain_id
         receipt.save
 
         receipt.register_for_expiration_notifications

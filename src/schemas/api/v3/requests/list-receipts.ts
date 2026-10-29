@@ -1,15 +1,17 @@
-// src/schemas/api/v3/requests/list-receipts.ts
-//
-// Request schema for V3::Logic::Secrets::ListReceipts
-// GET /receipt/recent
-//
-//
-// GET — no body. Returns recent receipts.
-
+// Query parameters for GET /receipt/recent; this operation has no body.
 import { z } from 'zod';
 
-// This endpoint accepts no request parameters.
-// Path params (if any) are handled by the OpenAPI generator.
-export const listReceiptsRequestSchema = z.object({});
+export const listReceiptsRequestSchema = z.object({
+  scope: z
+    .string()
+    .optional()
+    .describe(
+      'Omit for personal receipts. Use org or domain for scoped receipts, subject to existing authorization. Other scalar values currently fall back to the personal list.'
+    ),
+  domain_extid: z
+    .string()
+    .optional()
+    .describe('Required when scope=domain; the domain must be accessible to the caller.'),
+});
 
 export type ListReceiptsRequest = z.infer<typeof listReceiptsRequestSchema>;
