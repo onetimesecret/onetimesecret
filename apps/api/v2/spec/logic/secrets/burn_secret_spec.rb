@@ -13,6 +13,10 @@ require_relative '../../support/actor_attribution_helpers'
 # string — every non-empty string is truthy in Ruby, so reading the raw param
 # would burn the secret even when the caller explicitly sent continue=false.
 #
+# raise_concerns refuses an uncommitted burn outright (#4878), so no request
+# reaches process without continue=true; the process-level examples below
+# keep that method safe on its own.
+#
 # Also covers the burn variant of the double-reveal race: Secret#burned!
 # performs an atomic compare-and-set claim and returns true only to the caller
 # that won it; process must gate counters/success on that boolean.
@@ -156,6 +160,33 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       # The class counter moves by exactly one for the single winning burn.
       # (Owner increment is a no-op here: spawn_pair(nil, ...) has no owner.)
       expect(Onetime::Customer.secrets_burned.value).to eq(before_count + 1)
+    end
+  end
+
+  # #4878: an uncommitted burn used to answer 200 with the secret untouched and
+  # a "Secret burned" title. raise_concerns runs before process in the
+  # controller, so refusing it there turns that into a 422 on `continue`.
+  context 'when raise_concerns sees no committed continue' do
+    [nil, false, 'false', '', 'yes'].each do |value|
+      it "refuses continue=#{value.inspect} and leaves the secret intact" do
+        params             = { 'identifier' => receipt.identifier }
+        params['continue'] = value unless value.nil?
+        logic              = build_logic(params)
+        logic.process_params
+
+        expect { logic.raise_concerns }.to raise_error(OT::FormError) { |error|
+          expect(error.field).to eq(:continue)
+          expect(error.error_type).to eq(:missing)
+        }
+        expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
+      end
+    end
+
+    it 'does not refuse continue=true' do
+      logic = build_logic('identifier' => receipt.identifier, 'continue' => true)
+      logic.process_params
+
+      expect { logic.raise_concerns }.not_to raise_error
     end
   end
 
@@ -454,6 +485,28 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
 
         expect(correct.success_data[:success]).to eq(wrong.success_data[:success])
         expect(correct.success_data[:details]).to eq(wrong.success_data[:details])
+        expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
+      end
+
+      # The request path: raise_concerns refuses the probe before the
+      # passphrase is read, with one error whatever the guess (#4878).
+      it 'is refused by raise_concerns identically for a right and a wrong guess' do
+        refusals = ['wrong', 'correct horse battery'].map do |guess|
+          logic = build_logic(
+            'identifier' => receipt.identifier,
+            'continue'   => 'false',
+            'passphrase' => guess,
+          )
+          logic.process_params
+          logic.raise_concerns
+          nil
+        rescue OT::FormError => ex
+          [ex.message, ex.field, ex.error_type]
+        end
+
+        expect(refusals.first).not_to be_nil
+        expect(refusals.last).to eq(refusals.first)
+        expect(Onetime::Secret.dbclient.get("passphrase:attempts:#{secret.identifier}")).to be_nil
         expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
       end
     end
