@@ -11,8 +11,9 @@ module V2::Logic
     # Burn Secret
     #
     # @api Permanently destroys a secret before its expiration time. Requires
-    #   the receipt identifier and a passphrase if one was set. Returns the
-    #   updated receipt record with burn confirmation and related URLs.
+    #   the receipt identifier, continue set to true to confirm the burn, and
+    #   a passphrase if one was set. Returns the updated receipt record with
+    #   burn confirmation and related URLs.
     #
     # SECURITY NOTE: Ownership Not Required
     # =====================================
@@ -49,6 +50,18 @@ module V2::Logic
         require_entitlement!('api_access')
         raise OT::MissingSecret if receipt.nil?
 
+        # A burn is destructive, so it runs only on an explicit continue=true.
+        # Without one, this used to answer 200 with the secret untouched and a
+        # "Secret burned" title, and a client reading the status reported a
+        # burn that never happened (#4878). Refused here, ahead of the
+        # passphrase gate, so every uncommitted request gets the same answer
+        # whatever its guess and never touches rate-limit state.
+        unless continue
+          raise_form_error 'Set continue to true to burn this secret',
+            field: :continue,
+            error_type: :missing
+        end
+
         # Check passphrase rate limit before allowing passphrase attempts.
         # Burn is the same brute-force oracle as show/reveal: each wrong
         # guess confirms the passphrase is wrong, and a correct guess
@@ -64,7 +77,8 @@ module V2::Logic
         # Verify the passphrase ONLY on a committed burn (continue=true): a
         # request that is not going through with the burn must never learn
         # whether a guess was right, and never accrues or clears rate-limit
-        # state -- nothing was checked.
+        # state -- nothing was checked. raise_concerns already refuses such a
+        # request; the fold below keeps process safe on its own.
         #
         # `continue` is the parsed boolean (true / 'true' only), never the raw
         # param: the raw value treats any non-empty string as truthy, so a
