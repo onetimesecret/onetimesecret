@@ -201,57 +201,63 @@ the original evidence; each entry here identifies the fix and the baseline used 
 
 ## 2026-10-30
 
-T󠄁h󠄁e󠄁 t󠄁w󠄁o󠄁 e󠄁n󠄁t󠄁r󠄁i󠄁e󠄁s󠄁 b󠄁e󠄁l󠄁o󠄁w󠄁 u󠄁s󠄁e󠄁 c󠄁o󠄁d󠄁e󠄁 b󠄁a󠄁s󠄁e󠄁l󠄁i󠄁n󠄁e󠄁 `f42fdedc54afcb5973460358c65e3aef363dd5cd`
-o󠄁n󠄁 `main` a󠄁n󠄁d󠄁 [C󠄁I󠄁 r󠄁u󠄁n󠄁 4󠄁1󠄁1󠄁6󠄁7󠄁6󠄁9󠄁0󠄁9󠄁7󠄁0󠄁](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970).󠄁
-T󠄁h󠄁e󠄁 r󠄁u󠄁n󠄁 r󠄁e󠄁p󠄁o󠄁r󠄁t󠄁s󠄁 `success` f󠄁o󠄁r󠄁 `ci-verdict` a󠄁n󠄁d󠄁 e󠄁a󠄁c󠄁h󠄁 v󠄁a󠄁l󠄁i󠄁d󠄁a󠄁t󠄁i󠄁o󠄁n󠄁 l󠄁a󠄁n󠄁e󠄁 l󠄁i󠄁n󠄁k󠄁e󠄁d󠄁 b󠄁e󠄁l󠄁o󠄁w󠄁.󠄁
-N󠄁o󠄁 t󠄁e󠄁s󠄁t󠄁 l󠄁a󠄁n󠄁e󠄁 w󠄁a󠄁s󠄁 r󠄁e󠄁-󠄁r󠄁u󠄁n󠄁 l󠄁o󠄁c󠄁a󠄁l󠄁l󠄁y󠄁 f󠄁o󠄁r󠄁 t󠄁h󠄁e󠄁s󠄁e󠄁 d󠄁o󠄁c󠄁u󠄁m󠄁e󠄁n󠄁t󠄁a󠄁t󠄁i󠄁o󠄁n󠄁 c󠄁h󠄁a󠄁n󠄁g󠄁e󠄁s󠄁.󠄁
+The two entries below use code baseline `f42fdedc54afcb5973460358c65e3aef363dd5cd`
+on `main` and [CI run 41167690970](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970).
+The run reports `success` for `ci-verdict` and each validation lane linked below.
+No test lane was re-run locally for these documentation changes.
 
 ### RISK-2026-08-14-COOKIE-TOSSING — Resolved
 
-- **F󠄁i󠄁n󠄁d󠄁i󠄁n󠄁g󠄁:󠄁** D󠄁u󠄁p󠄁l󠄁i󠄁c󠄁a󠄁t󠄁e󠄁 s󠄁e󠄁s󠄁s󠄁i󠄁o󠄁n󠄁 c󠄁o󠄁o󠄁k󠄁i󠄁e󠄁s󠄁 w󠄁e󠄁r󠄁e󠄁 n󠄁o󠄁t󠄁 r󠄁e󠄁f󠄁u󠄁s󠄁e󠄁d󠄁,󠄁 a󠄁n󠄁d󠄁 s󠄁i󠄁m󠄁p󠄁l󠄁e󠄁-󠄁m󠄁o󠄁d󠄁e󠄁 p󠄁a󠄁s󠄁s󠄁w󠄁o󠄁r󠄁d󠄁 s󠄁i󠄁g󠄁n󠄁-󠄁i󠄁n󠄁
-  r󠄁e󠄁u󠄁s󠄁e󠄁d󠄁 t󠄁h󠄁e󠄁 s󠄁e󠄁s󠄁s󠄁i󠄁o󠄁n󠄁 I󠄁D󠄁 p󠄁r󠄁e󠄁s󠄁e󠄁n󠄁t󠄁e󠄁d󠄁 b󠄁e󠄁f󠄁o󠄁r󠄁e󠄁 a󠄁u󠄁t󠄁h󠄁e󠄁n󠄁t󠄁i󠄁c󠄁a󠄁t󠄁i󠄁o󠄁n󠄁.󠄁
-- **S󠄁o󠄁u󠄁r󠄁c󠄁e󠄁:󠄁** [2󠄁0󠄁2󠄁6󠄁-󠄁0󠄁8󠄁-󠄁1󠄁4󠄁 h󠄁i󠄁s󠄁t󠄁o󠄁r󠄁i󠄁c󠄁a󠄁l󠄁 r󠄁i󠄁s󠄁k󠄁 r󠄁e󠄁g󠄁i󠄁s󠄁t󠄁e󠄁r󠄁](../risk-registers/risk-register-2026-08-14.md).󠄁
-- **R󠄁e󠄁s󠄁o󠄁l󠄁u󠄁t󠄁i󠄁o󠄁n󠄁:󠄁** `d5e80277cc` m󠄁o󠄁u󠄁n󠄁t󠄁s󠄁 `Onetime::Middleware::CookieTossing` b󠄁e󠄁f󠄁o󠄁r󠄁e󠄁
-  `Onetime::Session`,󠄁 s󠄁o󠄁 a󠄁 d󠄁u󠄁p󠄁l󠄁i󠄁c󠄁a󠄁t󠄁e󠄁-󠄁c󠄁o󠄁o󠄁k󠄁i󠄁e󠄁 r󠄁e󠄁f󠄁u󠄁s󠄁a󠄁l󠄁 l󠄁o󠄁a󠄁d󠄁s󠄁 n󠄁o󠄁 s󠄁e󠄁s󠄁s󠄁i󠄁o󠄁n󠄁 a󠄁n󠄁d󠄁 r󠄁e󠄁t󠄁u󠄁r󠄁n󠄁s󠄁 o󠄁n󠄁l󠄁y󠄁 c󠄁o󠄁o󠄁k󠄁i󠄁e󠄁
-  c󠄁l󠄁e󠄁a󠄁r󠄁s󠄁.󠄁 T󠄁h󠄁e󠄁 m󠄁i󠄁d󠄁d󠄁l󠄁e󠄁w󠄁a󠄁r󠄁e󠄁 c󠄁h󠄁e󠄁c󠄁k󠄁s󠄁 t󠄁h󠄁e󠄁 c󠄁o󠄁n󠄁f󠄁i󠄁g󠄁u󠄁r󠄁e󠄁d󠄁 c󠄁o󠄁o󠄁k󠄁i󠄁e󠄁 n󠄁a󠄁m󠄁e󠄁,󠄁 c󠄁l󠄁e󠄁a󠄁r󠄁s󠄁 h󠄁o󠄁s󠄁t󠄁 a󠄁n󠄁d󠄁 p󠄁a󠄁r󠄁e󠄁n󠄁t󠄁-󠄁d󠄁o󠄁m󠄁a󠄁i󠄁n󠄁
-  c󠄁o󠄁p󠄁i󠄁e󠄁s󠄁,󠄁 a󠄁n󠄁d󠄁 k󠄁e󠄁e󠄁p󠄁s󠄁 i󠄁t󠄁s󠄁 r󠄁e󠄁f󠄁u󠄁s󠄁a󠄁l󠄁 s󠄁t󠄁a󠄁t󠄁e󠄁 p󠄁e󠄁r󠄁 r󠄁e󠄁q󠄁u󠄁e󠄁s󠄁t󠄁.󠄁
-  `59a40e1e08` c󠄁h󠄁a󠄁n󠄁g󠄁e󠄁s󠄁 s󠄁i󠄁m󠄁p󠄁l󠄁e󠄁-󠄁m󠄁o󠄁d󠄁e󠄁 p󠄁a󠄁s󠄁s󠄁w󠄁o󠄁r󠄁d󠄁 s󠄁i󠄁g󠄁n󠄁-󠄁i󠄁n󠄁:󠄁 `AuthenticateSession#start_new_session!`
-  c󠄁l󠄁e󠄁a󠄁r󠄁s󠄁 t󠄁h󠄁e󠄁 s󠄁e󠄁s󠄁s󠄁i󠄁o󠄁n󠄁,󠄁 c󠄁a󠄁l󠄁l󠄁s󠄁 `Onetime::SessionRotation.rotate!` b󠄁e󠄁f󠄁o󠄁r󠄁e󠄁 w󠄁r󠄁i󠄁t󠄁i󠄁n󠄁g󠄁 i󠄁d󠄁e󠄁n󠄁t󠄁i󠄁t󠄁y󠄁,󠄁 a󠄁n󠄁d󠄁
-  r󠄁e󠄁f󠄁u󠄁s󠄁e󠄁s󠄁 s󠄁i󠄁g󠄁n󠄁-󠄁i󠄁n󠄁 w󠄁h󠄁e󠄁n󠄁 r󠄁o󠄁t󠄁a󠄁t󠄁i󠄁o󠄁n󠄁 d󠄁o󠄁e󠄁s󠄁 n󠄁o󠄁t󠄁 c󠄁o󠄁m󠄁p󠄁l󠄁e󠄁t󠄁e󠄁.󠄁 B󠄁o󠄁t󠄁h󠄁 c󠄁h󠄁a󠄁n󠄁g󠄁e󠄁s󠄁 a󠄁r󠄁e󠄁 p󠄁r󠄁e󠄁s󠄁e󠄁n󠄁t󠄁 a󠄁t󠄁 t󠄁h󠄁e󠄁 b󠄁a󠄁s󠄁e󠄁l󠄁i󠄁n󠄁e󠄁.󠄁
-- **V󠄁e󠄁r󠄁i󠄁f󠄁i󠄁c󠄁a󠄁t󠄁i󠄁o󠄁n󠄁:󠄁** T󠄁h󠄁e󠄁 [u󠄁n󠄁i󠄁t󠄁 j󠄁o󠄁b󠄁](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970/job/124439029352)
-  i󠄁n󠄁c󠄁l󠄁u󠄁d󠄁e󠄁s󠄁 `spec/unit/onetime/middleware/cookie_tossing_spec.rb` a󠄁n󠄁d󠄁 t󠄁h󠄁e󠄁 m󠄁i󠄁d󠄁d󠄁l󠄁e󠄁w󠄁a󠄁r󠄁e󠄁 m󠄁a󠄁n󠄁i󠄁f󠄁e󠄁s󠄁t󠄁
-  a󠄁s󠄁s󠄁e󠄁r󠄁t󠄁i󠄁o󠄁n󠄁s󠄁.󠄁 T󠄁h󠄁e󠄁 [s󠄁i󠄁m󠄁p󠄁l󠄁e󠄁-󠄁m󠄁o󠄁d󠄁e󠄁 j󠄁o󠄁b󠄁](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970/job/124439029421)
-  i󠄁n󠄁c󠄁l󠄁u󠄁d󠄁e󠄁s󠄁 `spec/integration/simple/login_session_rotation_spec.rb`:󠄁 v󠄁e󠄁r󠄁i󠄁f󠄁i󠄁e󠄁d󠄁 a󠄁n󠄁d󠄁 p󠄁e󠄁n󠄁d󠄁i󠄁n󠄁g󠄁
-  a󠄁c󠄁c󠄁o󠄁u󠄁n󠄁t󠄁s󠄁 g󠄁e󠄁t󠄁 a󠄁 n󠄁e󠄁w󠄁 I󠄁D󠄁,󠄁 t󠄁h󠄁e󠄁 o󠄁l󠄁d󠄁 c󠄁o󠄁o󠄁k󠄁i󠄁e󠄁 i󠄁s󠄁 r󠄁e󠄁f󠄁u󠄁s󠄁e󠄁d󠄁,󠄁 p󠄁r󠄁i󠄁o󠄁r󠄁 s󠄁e󠄁s󠄁s󠄁i󠄁o󠄁n󠄁 s󠄁t󠄁a󠄁t󠄁e󠄁 i󠄁s󠄁 r󠄁e󠄁m󠄁o󠄁v󠄁e󠄁d󠄁,󠄁 a󠄁n󠄁d󠄁 a󠄁n󠄁
-  i󠄁n󠄁c󠄁o󠄁m󠄁p󠄁l󠄁e󠄁t󠄁e󠄁 r󠄁o󠄁t󠄁a󠄁t󠄁i󠄁o󠄁n󠄁 g󠄁r󠄁a󠄁n󠄁t󠄁s󠄁 n󠄁o󠄁 a󠄁u󠄁t󠄁h󠄁e󠄁n󠄁t󠄁i󠄁c󠄁a󠄁t󠄁e󠄁d󠄁 s󠄁e󠄁s󠄁s󠄁i󠄁o󠄁n󠄁.󠄁 T󠄁h󠄁e󠄁 [f󠄁u󠄁l󠄁l󠄁 S󠄁Q󠄁L󠄁i󠄁t󠄁e󠄁 j󠄁o󠄁b󠄁](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970/job/124439029430)
-  i󠄁n󠄁c󠄁l󠄁u󠄁d󠄁e󠄁s󠄁 `spec/integration/full/customer_session_continuation_baseline_spec.rb`,󠄁 w󠄁h󠄁i󠄁c󠄁h󠄁 c󠄁h󠄁e󠄁c󠄁k󠄁s󠄁
-  d󠄁u󠄁p󠄁l󠄁i󠄁c󠄁a󠄁t󠄁e󠄁 c󠄁o󠄁o󠄁k󠄁i󠄁e󠄁s󠄁 i󠄁n󠄁 b󠄁o󠄁t󠄁h󠄁 o󠄁r󠄁d󠄁e󠄁r󠄁s󠄁 a󠄁n󠄁d󠄁 a󠄁 r󠄁e󠄁f󠄁u󠄁s󠄁a󠄁l󠄁 c󠄁o󠄁n󠄁t󠄁a󠄁i󠄁n󠄁i󠄁n󠄁g󠄁 c󠄁l󠄁e󠄁a󠄁r󠄁s󠄁 o󠄁n󠄁l󠄁y󠄁.󠄁
-- **C󠄁l󠄁o󠄁s󠄁u󠄁r󠄁e󠄁 b󠄁a󠄁s󠄁e󠄁l󠄁i󠄁n󠄁e󠄁:󠄁** `f42fdedc54afcb5973460358c65e3aef363dd5cd` (󠄁`main`)󠄁 o󠄁n󠄁 2󠄁0󠄁2󠄁6󠄁-󠄁1󠄁0󠄁-󠄁3󠄁0󠄁.󠄁
+- **Finding:** Duplicate session cookies were not refused, and simple-mode password sign-in
+  reused the session ID presented before authentication.
+- **Source:** [2026-08-14 historical risk register](../risk-registers/risk-register-2026-08-14.md).
+- **Resolution:** `d5e80277cc` mounts `Onetime::Middleware::CookieTossing` before
+  `Onetime::Session`, so a duplicate-cookie refusal loads no session and returns only cookie
+  clears. The middleware checks the configured cookie name, clears host and parent-domain
+  copies, and keeps its refusal state per request.
+  `59a40e1e08` changes simple-mode password sign-in: `AuthenticateSession#start_new_session!`
+  clears the session, calls `Onetime::SessionRotation.rotate!` before writing identity, and
+  refuses sign-in when rotation does not complete. Both changes are present at the baseline.
+- **Verification:** The [unit job](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970/job/124439029352)
+  includes `spec/unit/onetime/middleware/cookie_tossing_spec.rb` and the middleware manifest
+  assertions. The [simple-mode job](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970/job/124439029421)
+  includes `spec/integration/simple/login_session_rotation_spec.rb`: verified and pending
+  accounts get a new ID, the old cookie is refused, prior session state is removed, and an
+  incomplete rotation grants no authenticated session. The [full SQLite job](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970/job/124439029430)
+  includes `spec/integration/full/customer_session_continuation_baseline_spec.rb`, which checks
+  duplicate cookies in both orders and a refusal containing clears only.
+- **Deployment conditions:** `site.middleware.cookie_tossing` defaults on, but an operator can
+  disable the middleware. Cookie-clear recovery uses the public host resolved by
+  `Rack::DetectHost`; `clear_host` falls back to Rack's host only when no host was detected.
+  If detection supplies no public host and a proxy rewrites `Host` to its origin target,
+  the clears target that origin instead of the browser's cookies, so the duplicate remains.
+- **Closure baseline:** `f42fdedc54afcb5973460358c65e3aef363dd5cd` (`main`) on 2026-10-30.
 
 ### RISK-2026-09-19-02 — Resolved
 
-- **F󠄁i󠄁n󠄁d󠄁i󠄁n󠄁g󠄁:󠄁** M󠄁F󠄁A󠄁 c󠄁o󠄁m󠄁p󠄁l󠄁e󠄁t󠄁i󠄁o󠄁n󠄁 k󠄁e󠄁p󠄁t󠄁 t󠄁h󠄁e󠄁 I󠄁D󠄁 i󠄁s󠄁s󠄁u󠄁e󠄁d󠄁 a󠄁t󠄁 t󠄁h󠄁e󠄁 p󠄁a󠄁s󠄁s󠄁w󠄁o󠄁r󠄁d󠄁 s󠄁t󠄁e󠄁p󠄁;󠄁 t󠄁h󠄁e󠄁 w󠄁i󠄁d󠄁e󠄁r󠄁 r󠄁e󠄁v󠄁i󠄁e󠄁w󠄁 a󠄁l󠄁s󠄁o󠄁
-  i󠄁d󠄁e󠄁n󠄁t󠄁i󠄁f󠄁i󠄁e󠄁d󠄁 r󠄁e󠄁-󠄁a󠄁u󠄁t󠄁h󠄁e󠄁n󠄁t󠄁i󠄁c󠄁a󠄁t󠄁i󠄁o󠄁n󠄁 p󠄁r󠄁o󠄁o󠄁f󠄁 a󠄁n󠄁d󠄁 f󠄁i󠄁r󠄁s󠄁t󠄁 s󠄁e󠄁c󠄁o󠄁n󠄁d󠄁-󠄁f󠄁a󠄁c󠄁t󠄁o󠄁r󠄁 s󠄁e󠄁t󠄁u󠄁p󠄁 w󠄁i󠄁t󠄁h󠄁o󠄁u󠄁t󠄁 r󠄁e󠄁n󠄁e󠄁w󠄁a󠄁l󠄁,󠄁 a󠄁n󠄁d󠄁 m󠄁i󠄁s󠄁s󠄁i󠄁n󠄁g󠄁
-  r󠄁o󠄁t󠄁a󠄁t󠄁i󠄁o󠄁n󠄁 a󠄁s󠄁s󠄁e󠄁r󠄁t󠄁i󠄁o󠄁n󠄁s󠄁 f󠄁o󠄁r󠄁 o󠄁t󠄁h󠄁e󠄁r󠄁 s󠄁i󠄁g󠄁n󠄁-󠄁i󠄁n󠄁 p󠄁a󠄁t󠄁h󠄁s󠄁.󠄁
-- **S󠄁o󠄁u󠄁r󠄁c󠄁e󠄁:󠄁** [2󠄁0󠄁2󠄁6󠄁-󠄁0󠄁9󠄁-󠄁1󠄁9󠄁 s󠄁e󠄁s󠄁s󠄁i󠄁o󠄁n󠄁-󠄁c󠄁o󠄁n󠄁s󠄁i󠄁s󠄁t󠄁e󠄁n󠄁c󠄁y󠄁 r󠄁e󠄁v󠄁i󠄁e󠄁w󠄁](../audits/security-audit-2026-09-19.md),󠄁 f󠄁i󠄁n󠄁d󠄁i󠄁n󠄁g󠄁 2󠄁.󠄁
-- **R󠄁e󠄁s󠄁o󠄁l󠄁u󠄁t󠄁i󠄁o󠄁n󠄁:󠄁** `64b2c23f23` a󠄁d󠄁d󠄁s󠄁 M󠄁F󠄁A󠄁-󠄁c󠄁o󠄁m󠄁p󠄁l󠄁e󠄁t󠄁i󠄁o󠄁n󠄁 r󠄁o󠄁t󠄁a󠄁t󠄁i󠄁o󠄁n󠄁;󠄁 `0e812e2279` r󠄁e󠄁f󠄁u󠄁s󠄁e󠄁s󠄁 c󠄁o󠄁m󠄁p󠄁l󠄁e󠄁t󠄁i󠄁o󠄁n󠄁 w󠄁h󠄁e󠄁n󠄁
-  t󠄁h󠄁e󠄁 o󠄁l󠄁d󠄁 I󠄁D󠄁 c󠄁a󠄁n󠄁n󠄁o󠄁t󠄁 b󠄁e󠄁 e󠄁n󠄁d󠄁e󠄁d󠄁.󠄁 `01fccc49dc`,󠄁 `645e149610` a󠄁n󠄁d󠄁 `54e32e56c3` a󠄁d󠄁d󠄁 r󠄁o󠄁t󠄁a󠄁t󠄁i󠄁o󠄁n󠄁 b󠄁e󠄁f󠄁o󠄁r󠄁e󠄁
-  c󠄁o󠄁l󠄁o󠄁n󠄁e󠄁l󠄁 e󠄁l󠄁e󠄁v󠄁a󠄁t󠄁i󠄁o󠄁n󠄁,󠄁 r󠄁e󠄁-󠄁a󠄁u󠄁t󠄁h󠄁e󠄁n󠄁t󠄁i󠄁c󠄁a󠄁t󠄁i󠄁o󠄁n󠄁 p󠄁r󠄁o󠄁o󠄁f󠄁 a󠄁n󠄁d󠄁 f󠄁i󠄁r󠄁s󠄁t󠄁 s󠄁e󠄁c󠄁o󠄁n󠄁d󠄁-󠄁f󠄁a󠄁c󠄁t󠄁o󠄁r󠄁 s󠄁e󠄁t󠄁u󠄁p󠄁 r󠄁e󠄁s󠄁p󠄁e󠄁c󠄁t󠄁i󠄁v󠄁e󠄁l󠄁y󠄁.󠄁
-  `4b406aac63` a󠄁n󠄁d󠄁 `ce47edc1a9` a󠄁d󠄁d󠄁 a󠄁s󠄁s󠄁e󠄁r󠄁t󠄁i󠄁o󠄁n󠄁s󠄁 f󠄁o󠄁r󠄁 t󠄁h󠄁e󠄁 r󠄁e󠄁m󠄁a󠄁i󠄁n󠄁i󠄁n󠄁g󠄁 s󠄁i󠄁g󠄁n󠄁-󠄁i󠄁n󠄁 p󠄁a󠄁t󠄁h󠄁s󠄁.󠄁
-  T󠄁h󠄁e󠄁 i󠄁m󠄁p󠄁l󠄁e󠄁m󠄁e󠄁n󠄁t󠄁a󠄁t󠄁i󠄁o󠄁n󠄁 a󠄁n󠄁d󠄁 p󠄁e󠄁r󠄁-󠄁p󠄁a󠄁t󠄁h󠄁 i󠄁n󠄁v󠄁e󠄁n󠄁t󠄁o󠄁r󠄁y󠄁 i󠄁n󠄁 `lib/onetime/session/rotation.rb` a󠄁r󠄁e󠄁 p󠄁r󠄁e󠄁s󠄁e󠄁n󠄁t󠄁
-  a󠄁t󠄁 t󠄁h󠄁e󠄁 b󠄁a󠄁s󠄁e󠄁l󠄁i󠄁n󠄁e󠄁.󠄁 I󠄁m󠄁p󠄁e󠄁r󠄁s󠄁o󠄁n󠄁a󠄁t󠄁i󠄁o󠄁n󠄁 s󠄁t󠄁a󠄁r󠄁t󠄁/󠄁s󠄁t󠄁o󠄁p󠄁 i󠄁n󠄁t󠄁e󠄁n󠄁t󠄁i󠄁o󠄁n󠄁a󠄁l󠄁l󠄁y󠄁 k󠄁e󠄁e󠄁p󠄁 t󠄁h󠄁e󠄁 s󠄁a󠄁m󠄁e󠄁 I󠄁D󠄁;󠄁 `61f4e7f639` a󠄁d󠄁d󠄁s󠄁
-  t󠄁h󠄁e󠄁 c󠄁o󠄁r󠄁r󠄁e󠄁s󠄁p󠄁o󠄁n󠄁d󠄁i󠄁n󠄁g󠄁 r󠄁e󠄁a󠄁l󠄁-󠄁r󠄁o󠄁u󠄁t󠄁e󠄁 a󠄁s󠄁s󠄁e󠄁r󠄁t󠄁i󠄁o󠄁n󠄁s󠄁.󠄁 O󠄁r󠄁g󠄁a󠄁n󠄁i󠄁z󠄁a󠄁t󠄁i󠄁o󠄁n󠄁 s󠄁w󠄁i󠄁t󠄁c󠄁h󠄁i󠄁n󠄁g󠄁 c󠄁h󠄁a󠄁n󠄁g󠄁e󠄁s󠄁 t󠄁h󠄁e󠄁 a󠄁c󠄁t󠄁i󠄁v󠄁e󠄁
-  o󠄁r󠄁g󠄁a󠄁n󠄁i󠄁z󠄁a󠄁t󠄁i󠄁o󠄁n󠄁 r󠄁a󠄁t󠄁h󠄁e󠄁r󠄁 t󠄁h󠄁a󠄁n󠄁 t󠄁h󠄁e󠄁 a󠄁u󠄁t󠄁h󠄁e󠄁n󠄁t󠄁i󠄁c󠄁a󠄁t󠄁e󠄁d󠄁 i󠄁d󠄁e󠄁n󠄁t󠄁i󠄁t󠄁y󠄁.󠄁
-- **V󠄁e󠄁r󠄁i󠄁f󠄁i󠄁c󠄁a󠄁t󠄁i󠄁o󠄁n󠄁:󠄁** T󠄁h󠄁e󠄁 [M󠄁F󠄁A󠄁 j󠄁o󠄁b󠄁](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970/job/124439029406)
-  i󠄁n󠄁c󠄁l󠄁u󠄁d󠄁e󠄁s󠄁 M󠄁F󠄁A󠄁 c󠄁o󠄁m󠄁p󠄁l󠄁e󠄁t󠄁i󠄁o󠄁n󠄁,󠄁 f󠄁a󠄁c󠄁t󠄁o󠄁r󠄁 s󠄁e󠄁t󠄁u󠄁p󠄁,󠄁 r󠄁e󠄁-󠄁a󠄁u󠄁t󠄁h󠄁e󠄁n󠄁t󠄁i󠄁c󠄁a󠄁t󠄁i󠄁o󠄁n󠄁,󠄁 m󠄁a󠄁g󠄁i󠄁c󠄁-󠄁l󠄁i󠄁n󠄁k󠄁 a󠄁n󠄁d󠄁 p󠄁a󠄁s󠄁s󠄁k󠄁e󠄁y󠄁 r󠄁o󠄁t󠄁a󠄁t󠄁i󠄁o󠄁n󠄁
-  s󠄁p󠄁e󠄁c󠄁s󠄁.󠄁 T󠄁h󠄁e󠄁 f󠄁u󠄁l󠄁l󠄁 S󠄁Q󠄁L󠄁i󠄁t󠄁e󠄁 j󠄁o󠄁b󠄁 l󠄁i󠄁n󠄁k󠄁e󠄁d󠄁 a󠄁b󠄁o󠄁v󠄁e󠄁 i󠄁n󠄁c󠄁l󠄁u󠄁d󠄁e󠄁s󠄁 O󠄁I󠄁D󠄁C󠄁 c󠄁a󠄁l󠄁l󠄁b󠄁a󠄁c󠄁k󠄁s󠄁,󠄁 v󠄁e󠄁r󠄁i󠄁f󠄁i󠄁c󠄁a󠄁t󠄁i󠄁o󠄁n󠄁 a󠄁n󠄁d󠄁 i󠄁n󠄁v󠄁i󠄁t󠄁e󠄁
-  a󠄁u󠄁t󠄁o󠄁l󠄁o󠄁g󠄁i󠄁n󠄁,󠄁 S󠄁S󠄁O󠄁 l󠄁i󠄁n󠄁k󠄁i󠄁n󠄁g󠄁/󠄁C󠄁o󠄁n󠄁n󠄁e󠄁c󠄁t󠄁,󠄁 i󠄁m󠄁p󠄁e󠄁r󠄁s󠄁o󠄁n󠄁a󠄁t󠄁i󠄁o󠄁n󠄁 a󠄁n󠄁d󠄁 f󠄁u󠄁l󠄁l󠄁-󠄁m󠄁o󠄁d󠄁e󠄁 e󠄁l󠄁e󠄁v󠄁a󠄁t󠄁i󠄁o󠄁n󠄁/󠄁p󠄁a󠄁s󠄁s󠄁w󠄁o󠄁r󠄁d󠄁-󠄁c󠄁h󠄁a󠄁n󠄁g󠄁e󠄁 s󠄁p󠄁e󠄁c󠄁s󠄁;󠄁
-  t󠄁h󠄁e󠄁 s󠄁i󠄁m󠄁p󠄁l󠄁e󠄁-󠄁m󠄁o󠄁d󠄁e󠄁 j󠄁o󠄁b󠄁 i󠄁n󠄁c󠄁l󠄁u󠄁d󠄁e󠄁s󠄁 s󠄁i󠄁m󠄁p󠄁l󠄁e󠄁-󠄁m󠄁o󠄁d󠄁e󠄁 e󠄁l󠄁e󠄁v󠄁a󠄁t󠄁i󠄁o󠄁n󠄁/󠄁p󠄁a󠄁s󠄁s󠄁w󠄁o󠄁r󠄁d󠄁-󠄁c󠄁h󠄁a󠄁n󠄁g󠄁e󠄁 s󠄁p󠄁e󠄁c󠄁s󠄁.󠄁
-  T󠄁h󠄁e󠄁 [p󠄁l󠄁a󠄁t󠄁f󠄁o󠄁r󠄁m󠄁-󠄁S󠄁A󠄁M󠄁L󠄁 j󠄁o󠄁b󠄁](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970/job/124439029355)
-  i󠄁n󠄁c󠄁l󠄁u󠄁d󠄁e󠄁s󠄁 p󠄁l󠄁a󠄁t󠄁f󠄁o󠄁r󠄁m󠄁 c󠄁a󠄁l󠄁l󠄁b󠄁a󠄁c󠄁k󠄁 r󠄁o󠄁t󠄁a󠄁t󠄁i󠄁o󠄁n󠄁 a󠄁s󠄁s󠄁e󠄁r󠄁t󠄁i󠄁o󠄁n󠄁s󠄁.󠄁 A󠄁l󠄁l󠄁 f󠄁o󠄁u󠄁r󠄁 j󠄁o󠄁b󠄁s󠄁 r󠄁e󠄁p󠄁o󠄁r󠄁t󠄁 `success`.󠄁
-- **S󠄁e󠄁p󠄁a󠄁r󠄁a󠄁t󠄁e󠄁 o󠄁p󠄁e󠄁n󠄁 f󠄁o󠄁l󠄁l󠄁o󠄁w󠄁-󠄁u󠄁p󠄁s󠄁:󠄁** [#󠄁4󠄁7󠄁0󠄁6󠄁](https://github.com/onetimesecret/onetimesecret/issues/4706)
-  t󠄁r󠄁a󠄁c󠄁k󠄁s󠄁 e󠄁x󠄁i󠄁s󠄁t󠄁i󠄁n󠄁g󠄁 s󠄁e󠄁s󠄁s󠄁i󠄁o󠄁n󠄁s󠄁 r󠄁e󠄁c󠄁e󠄁i󠄁v󠄁i󠄁n󠄁g󠄁 a󠄁 r󠄁o󠄁l󠄁e󠄁 g󠄁r󠄁a󠄁n󠄁t󠄁 w󠄁i󠄁t󠄁h󠄁o󠄁u󠄁t󠄁 a󠄁 n󠄁e󠄁w󠄁 s󠄁i󠄁g󠄁n󠄁-󠄁i󠄁n󠄁;󠄁
-  [#󠄁4󠄁7󠄁0󠄁7󠄁](https://github.com/onetimesecret/onetimesecret/issues/4707) t󠄁r󠄁a󠄁c󠄁k󠄁s󠄁 u󠄁s󠄁e󠄁r󠄁-󠄁m󠄁e󠄁n󠄁u󠄁 s󠄁i󠄁g󠄁n󠄁-󠄁o󠄁u󠄁t󠄁
-  b󠄁e󠄁i󠄁n󠄁g󠄁 r󠄁e󠄁f󠄁u󠄁s󠄁e󠄁d󠄁 d󠄁u󠄁r󠄁i󠄁n󠄁g󠄁 i󠄁m󠄁p󠄁e󠄁r󠄁s󠄁o󠄁n󠄁a󠄁t󠄁i󠄁o󠄁n󠄁.󠄁 B󠄁o󠄁t󠄁h󠄁 i󠄁s󠄁s󠄁u󠄁e󠄁s󠄁 r󠄁e󠄁m󠄁a󠄁i󠄁n󠄁 o󠄁p󠄁e󠄁n󠄁.󠄁 T󠄁h󠄁i󠄁s󠄁 c󠄁l󠄁o󠄁s󠄁u󠄁r󠄁e󠄁 n󠄁e󠄁i󠄁t󠄁h󠄁e󠄁r󠄁 r󠄁e󠄁s󠄁o󠄁l󠄁v󠄁e󠄁s󠄁
-  t󠄁h󠄁o󠄁s󠄁e󠄁 b󠄁e󠄁h󠄁a󠄁v󠄁i󠄁o󠄁r󠄁s󠄁 n󠄁o󠄁r󠄁 r󠄁e󠄁c󠄁o󠄁r󠄁d󠄁s󠄁 a󠄁n󠄁 a󠄁c󠄁c󠄁e󠄁p󠄁t󠄁a󠄁n󠄁c󠄁e󠄁 d󠄁e󠄁c󠄁i󠄁s󠄁i󠄁o󠄁n󠄁 f󠄁o󠄁r󠄁 t󠄁h󠄁e󠄁m󠄁.󠄁
-- **C󠄁l󠄁o󠄁s󠄁u󠄁r󠄁e󠄁 b󠄁a󠄁s󠄁e󠄁l󠄁i󠄁n󠄁e󠄁:󠄁** `f42fdedc54afcb5973460358c65e3aef363dd5cd` (󠄁`main`)󠄁 o󠄁n󠄁 2󠄁0󠄁2󠄁6󠄁-󠄁1󠄁0󠄁-󠄁3󠄁0󠄁.󠄁
+- **Finding:** MFA completion kept the ID issued at the password step; the wider review also
+  identified re-authentication proof and first second-factor setup without renewal, and missing
+  rotation assertions for other sign-in paths.
+- **Source:** [2026-09-19 session-consistency review](../audits/security-audit-2026-09-19.md), finding 2.
+- **Resolution:** `64b2c23f23` adds MFA-completion rotation; `0e812e2279` refuses completion when
+  the old ID cannot be ended. `01fccc49dc`, `645e149610` and `54e32e56c3` add rotation before
+  colonel elevation, re-authentication proof and first second-factor setup respectively.
+  `4b406aac63` and `ce47edc1a9` add assertions for the remaining sign-in paths.
+  The implementation and per-path inventory in `lib/onetime/session/rotation.rb` are present
+  at the baseline. Impersonation start/stop intentionally keep the same ID; `61f4e7f639` adds
+  the corresponding real-route assertions. Organization switching changes the active
+  organization rather than the authenticated identity.
+- **Verification:** The [MFA job](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970/job/124439029406)
+  includes MFA completion, factor setup, re-authentication, magic-link and passkey rotation
+  specs. The full SQLite job linked above includes OIDC callbacks, verification and invite
+  autologin, SSO linking/Connect, impersonation and full-mode elevation/password-change specs;
+  the simple-mode job includes simple-mode elevation/password-change specs.
+  The [platform-SAML job](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970/job/124439029355)
+  includes platform callback rotation assertions. The [full PostgreSQL job](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970/job/124439029414)
+  also passed at this baseline. All five jobs report `success`.
+- **Separate open follow-ups:** [#4706](https://github.com/onetimesecret/onetimesecret/issues/4706)
+  tracks existing sessions receiving a role grant without a new sign-in;
+  [#4707](https://github.com/onetimesecret/onetimesecret/issues/4707) tracks user-menu sign-out
+  being refused during impersonation. Both issues remain open. This closure neither resolves
+  those behaviors nor records an acceptance decision for them.
+- **Closure baseline:** `f42fdedc54afcb5973460358c65e3aef363dd5cd` (`main`) on 2026-10-30.

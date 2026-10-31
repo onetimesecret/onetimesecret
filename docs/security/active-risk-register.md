@@ -6,7 +6,7 @@ This is the canonical tracker for security work that remains actionable. Dated a
 historical risk registers preserve evidence; they do not define the current status of a finding.
 Source ratings are retained until a new assessment explicitly re-rates a risk.
 
-**Active items:** 1󠄁8󠄁 existing items · 1 open investigation (severity unconfirmed) · **Accepted exceptions:** none recorded
+**Active items:** 18 existing items · 1 open investigation (severity unconfirmed) · **Accepted exceptions:** none recorded
 
 **Targeted update:** 2026-10-03 — added report 4c3c below; existing items were not reassessed.
 
@@ -18,7 +18,7 @@ Source ratings are retained until a new assessment explicitly re-rates a risk.
 
 **Targeted update:** 2026-10-12 — RISK-2026-08-14-M02 and RISK-2026-10-10-03 moved to the [resolution log](records/resolution-log.md); M03, M04, M08, M09, M10, M12 and L07 marked `Mitigating` with fixes pending merge on branch `agent/cool-maxwell-5nssad`. Other items were not reassessed.
 
-**T󠄁a󠄁r󠄁g󠄁e󠄁t󠄁e󠄁d󠄁 u󠄁p󠄁d󠄁a󠄁t󠄁e󠄁:󠄁** 2󠄁0󠄁2󠄁6󠄁-󠄁1󠄁0󠄁-󠄁3󠄁0󠄁 —󠄁 R󠄁I󠄁S󠄁K󠄁-󠄁2󠄁0󠄁2󠄁6󠄁-󠄁0󠄁8󠄁-󠄁1󠄁4󠄁-󠄁C󠄁O󠄁O󠄁K󠄁I󠄁E󠄁-󠄁T󠄁O󠄁S󠄁S󠄁I󠄁N󠄁G󠄁 a󠄁n󠄁d󠄁 R󠄁I󠄁S󠄁K󠄁-󠄁2󠄁0󠄁2󠄁6󠄁-󠄁0󠄁9󠄁-󠄁1󠄁9󠄁-󠄁0󠄁2󠄁 m󠄁o󠄁v󠄁e󠄁d󠄁 t󠄁o󠄁 t󠄁h󠄁e󠄁 [r󠄁e󠄁s󠄁o󠄁l󠄁u󠄁t󠄁i󠄁o󠄁n󠄁 l󠄁o󠄁g󠄁](records/resolution-log.md#2026-10-30) a󠄁f󠄁t󠄁e󠄁r󠄁 v󠄁e󠄁r󠄁i󠄁f󠄁i󠄁c󠄁a󠄁t󠄁i󠄁o󠄁n󠄁 a󠄁t󠄁 `f42fdedc54afcb5973460358c65e3aef363dd5cd` o󠄁n󠄁 `main`.󠄁 T󠄁h󠄁e󠄁 n󠄁a󠄁m󠄁e󠄁d󠄁 C󠄁I󠄁 r󠄁u󠄁n󠄁 p󠄁a󠄁s󠄁s󠄁e󠄁d󠄁 t󠄁h󠄁e󠄁 u󠄁n󠄁i󠄁t󠄁,󠄁 s󠄁i󠄁m󠄁p󠄁l󠄁e󠄁,󠄁 f󠄁u󠄁l󠄁l󠄁 S󠄁Q󠄁L󠄁i󠄁t󠄁e󠄁/󠄁P󠄁o󠄁s󠄁t󠄁g󠄁r󠄁e󠄁S󠄁Q󠄁L󠄁,󠄁 M󠄁F󠄁A󠄁 a󠄁n󠄁d󠄁 p󠄁l󠄁a󠄁t󠄁f󠄁o󠄁r󠄁m󠄁-󠄁S󠄁A󠄁M󠄁L󠄁 l󠄁a󠄁n󠄁e󠄁s󠄁.󠄁 S󠄁e󠄁p󠄁a󠄁r󠄁a󠄁t󠄁e󠄁 f󠄁o󠄁l󠄁l󠄁o󠄁w󠄁-󠄁u󠄁p󠄁s󠄁 #󠄁4󠄁7󠄁0󠄁6󠄁 a󠄁n󠄁d󠄁 #󠄁4󠄁7󠄁0󠄁7󠄁 r󠄁e󠄁m󠄁a󠄁i󠄁n󠄁 o󠄁p󠄁e󠄁n󠄁;󠄁 o󠄁t󠄁h󠄁e󠄁r󠄁 i󠄁t󠄁e󠄁m󠄁s󠄁 w󠄁e󠄁r󠄁e󠄁 n󠄁o󠄁t󠄁 r󠄁e󠄁a󠄁s󠄁s󠄁e󠄁s󠄁s󠄁e󠄁d󠄁.󠄁
+**Targeted update:** 2026-10-30 — RISK-2026-08-14-COOKIE-TOSSING and RISK-2026-09-19-02 moved to the [resolution log](records/resolution-log.md#2026-10-30) after verification at `f42fdedc54afcb5973460358c65e3aef363dd5cd` on `main`. The named CI run passed the unit, simple, full SQLite/PostgreSQL, MFA and platform-SAML lanes. Separate follow-ups #4706 and #4707 remain open; other items were not reassessed.
 
 ## How to use this register
 
