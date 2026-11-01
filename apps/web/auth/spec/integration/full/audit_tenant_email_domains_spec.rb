@@ -340,6 +340,36 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
       expect(identity_exists?(outside[:identity_id])).to be true
     end
 
+    # Under a strategy that checks the TXT record, ownership_verified is the
+    # result of a passing check, so a domain counts without an override.
+    context 'under a validation strategy that checks the TXT record (approximated)' do
+      before do
+        @saved_domains_section         = OT.conf['features']['domains']
+        OT.conf['features']['domains'] = (@saved_domains_section || {}).merge('validation_strategy' => 'approximated')
+      end
+
+      after { OT.conf['features']['domains'] = @saved_domains_section }
+
+      it 'names the TXT basis and reports a domain verified without an override as inside (JSON)' do
+        expect(Onetime::CustomDomain.ownership_proof_checked?).to be(true)
+
+        tenant = build_tenant
+        run    = SecureRandom.hex(4)
+        add_org_domain(tenant, "txt-#{run}.example.com", verified: true, override: false)
+        txt_row = seed_identity(tenant, "a@txt-#{run}.example.com")
+        outside = seed_identity(tenant, "victim-#{SecureRandom.hex(4)}@unrelated.example.org")
+
+        output  = run_command(Onetime::CLI::SsoAuditEmailDomainsCommand.new,
+          domain: tenant.domain.display_domain, unlink: false, confirm: false, json: true)
+        payload = JSON.parse(output)
+
+        expect(payload['proof_basis']).to eq('txt_or_override')
+        statuses = payload['results'].to_h { |r| [r['account_id'], r['status']] }
+        expect(statuses[txt_row[:account_id]]).to eq('inside')
+        expect(statuses[outside[:account_id]]).to eq('outside')
+      end
+    end
+
     it 'unlinks with --unlink --confirm (JSON)' do
       tenant  = build_tenant
       outside = seed_identity(tenant, "victim-#{SecureRandom.hex(4)}@unrelated.example.org")
