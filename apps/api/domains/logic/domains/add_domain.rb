@@ -96,7 +96,7 @@ module DomainsAPI::Logic
 
         # Scenario 3: Orphaned domain (no org_id). Only an operator adopts
         # an orphan; this answers like Scenario 2 and logs the refusal, before
-        # anything is written or a certificate is requested.
+        # anything is written.
         refuse_on_problem { Onetime::CustomDomain.refuse_orphan_claim!(existing, target_organization.objid) }
       end
 

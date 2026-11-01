@@ -6,15 +6,15 @@
 #
 # This is the CLI peer of `POST /api/colonel/domains`. Both adapters call the
 # same op (Onetime::Operations::Domains::Create), which owns validation,
-# creation, certificate provisioning and the single `domain.create`
-# ColonelAuditEvent. Every other colonel domain verb (verify / probe / repair /
-# transfer / remove) already had a CLI peer; create was the gap.
+# creation and the single `domain.create` ColonelAuditEvent. No certificate is
+# requested here: the virtual host is created by `bin/ots domains verify` once
+# ownership is verified. Every other colonel domain verb (verify / probe /
+# repair / transfer / remove) already had a CLI peer; create was the gap.
 #
 # Usage:
 #   bin/ots domains create example.com --org on123abc            # confirm, then create
 #   bin/ots domains create example.com --org on123abc --yes
 #   bin/ots domains create example.com --org on123abc --yes --json
-#   bin/ots domains create example.com --org on123abc --yes --no-cert
 #
 # ORG accepts the organization extid (preferred — what every admin surface
 # routes by) or the internal objid.
