@@ -136,7 +136,7 @@ gem 'ruby-saml', '= 1.18.1'
 
 # Web server and middleware
 gem 'puma', '>= 6.0', '< 8.0'
-gem 'rack', '>= 3.2.6', '< 4.0'
+gem 'rack', '>= 3.2.8', '< 4.0'
 gem 'rack-contrib', '~> 2.5.0'
 # Mounted directly in MiddlewareStack (JSON/form body parsing); was transitive via otto < 2.10.
 gem 'rack-parser', '~> 0.7'
