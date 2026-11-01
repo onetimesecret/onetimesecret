@@ -12,7 +12,9 @@ module Onetime
 
       desc 'Manage the billing plan catalog'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         puts <<~HELP
           Manage the billing plan catalog including validation,
           synchronization with Stripe, and documentation generation.

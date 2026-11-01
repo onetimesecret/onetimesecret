@@ -175,6 +175,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetAccountDiagnostics do
         provisioning_failure_code: nil,
         provisioning_failure_classification: nil,
         provisioning_failed_at: nil,
+        closure_started_at: nil,
       )
     end
 

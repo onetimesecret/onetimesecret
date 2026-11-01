@@ -16,7 +16,9 @@ module Onetime
     class CustomersCommand < Command
       desc 'Manage customer records'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         boot_application!
 
         puts format('%d customers', Onetime::Customer.instances.size)
@@ -31,21 +33,29 @@ module Onetime
         puts '  bin/ots customers role promote EMAIL       # Promote to colonel'
         puts '  bin/ots customers role demote EMAIL        # Demote to customer'
         puts '  bin/ots customers role list                # List all colonels'
-        puts '  bin/ots customers show ID                  # Show customer details (email/extid/rodauth ID)'
+        puts '  bin/ots customers show ID                  # Show customer details'
         puts '  bin/ots customers verify ID                # Mark customer as verified'
         puts '  bin/ots customers unverify ID              # Mark customer as unverified'
         puts '  bin/ots customers suspend ID               # Suspend account (trust & safety)'
         puts '  bin/ots customers unsuspend ID             # Reinstate a suspended account'
         puts '  bin/ots customers plan set ID PLANID       # Set plan (validated against catalog)'
+        puts '  bin/ots customers set-default-org ID ORG   # Dry run: default organization change'
+        puts '  bin/ots customers set-default-org ID ORG --apply  # Set it (must be a member)'
         puts '  bin/ots customers dates                    # Count by creation year'
         puts '  bin/ots customers dates --by-age           # Count by age bucket'
         puts '  bin/ots customers dates --refresh          # Force cache rebuild'
         puts '  bin/ots customers purge ID                 # Purge ONE account (audited)'
         puts '  bin/ots customers purge-inactive --older-than 3y  # Dry-run BULK inactivity purge preview'
         puts '  bin/ots customers purge-inactive --older-than 3y --purge  # Execute bulk purge'
+        puts '  bin/ots customers prune-closed-accounts    # Dry-run: closed auth rows left by old closures (#4819)'
+        puts '  bin/ots customers prune-closed-accounts --confirm  # Delete them with their audit logs'
+        puts '  bin/ots customers finish-closures          # Dry-run: records left by interrupted closures (#4830)'
+        puts '  bin/ots customers finish-closures --confirm  # Purge them'
         puts '  bin/ots customers sync-auth-accounts       # Sync to auth DB'
         puts '  bin/ots customers normalize-emails         # Dry-run: mixed-case auth emails (#4726)'
         puts '  bin/ots customers normalize-emails --confirm  # Canonicalize them'
+        puts
+        puts 'ID = customer email, extid, objid, or Rodauth account id.'
         puts
         puts 'Remote source (pre-migration):'
         puts '  bin/ots customers dates --redis-url redis://host:6379/6'

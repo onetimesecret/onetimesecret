@@ -33,6 +33,10 @@ module DomainsAPI
       # - idp_sso_service_url, idp_entity_id, idp_cert: Required for saml
       #   (#4450; see SamlFields), cleared for others. idp_cert_fingerprint
       #   (and its ruby-saml siblings) is refused for every provider type.
+      # - idp_metadata_url: Optional, saml only: the SAML IdP metadata URL
+      #   the trio came from. Blank or omitted clears it; cleared for other
+      #   provider types. A new value must be a public https URL (see
+      #   SamlFields#validate_idp_metadata_url!).
       # - display_name: Optional. Human-readable name (defaults to empty)
       # - allowed_domains: Optional. Array of allowed email domains (defaults to empty)
       # - enabled: Optional. Boolean to enable/disable SSO (default: false)
@@ -154,6 +158,7 @@ module DomainsAPI
             token_endpoint_auth_method: @token_endpoint_auth_method,
             idp_sso_service_url: @idp_sso_service_url,
             idp_entity_id: @idp_entity_id,
+            idp_metadata_url: @idp_metadata_url,
             allowed_domains: @allowed_domains,
             enabled: @enabled,
             enforce_sso_only: @enforce_sso_only,
@@ -210,6 +215,9 @@ module DomainsAPI
             end
           when 'saml'
             validate_saml_fields!
+            # An unchanged metadata URL on the record being replaced is not
+            # re-resolved (SamlFields#validate_idp_metadata_url!).
+            validate_idp_metadata_url!(stored: @existing_config&.provider_type == 'saml' ? @existing_config : nil)
           end
         end
 

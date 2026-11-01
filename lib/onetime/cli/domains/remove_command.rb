@@ -8,24 +8,18 @@
 # single `domain.remove` ColonelAuditEvent. This command owns only CLI concerns.
 #
 # Usage:
-#   bin/ots domains remove example.com                 # preview, confirm, apply
-#   bin/ots domains remove example.com --dry-run       # preview only, never mutates
-#   bin/ots domains remove example.com --apply         # apply without prompting
+#   bin/ots domains remove example.com                 # dry run (the default): the plan
+#   bin/ots domains remove example.com --apply         # remove
 #   bin/ots domains remove example.com --yes           # alias of --apply
-#   bin/ots domains remove example.com --apply --json  # apply, machine-readable
+#   bin/ots domains remove example.com --apply --json  # remove, machine-readable
 #
 # DOMAIN accepts the display domain (preferred), the domain extid, or its objid.
 #
-# TWO-PHASE UX (mirrors AdminDomainDetail.vue's dry-run preview -> apply): the
-# bare invocation runs the op with dry_run:true first and prints the plan — what
-# will be removed. Nothing is deleted until the operator confirms at the prompt
-# or passes --apply / --yes.
-#
-# --dry-run wins over --apply: `--dry-run --apply` still mutates nothing.
-#
-# CALL COUNT: --dry-run and --apply each make exactly ONE op call. The
-# interactive path makes two (plan, then apply). The printed plan is ADVISORY,
-# not transactional — state can change between the two calls.
+# DRY RUN IS THE DEFAULT (WriteGate). The bare run prints the plan — what will
+# be removed — and writes nothing. There is no confirmation prompt: --apply
+# (-y/--yes/-f) is the only way to remove, and --dry-run only states the
+# default. Exactly ONE op call per invocation. The printed plan is ADVISORY,
+# not transactional — state can change between a dry run and the apply.
 #
 # SENDER CLEANUP: an apply reports the teardown's remote sender identity
 # outcome (Remove::Result#sender_cleanup). A :failed cleanup does not undo the
@@ -39,12 +33,14 @@ require 'json'
 require 'onetime/operations/domains/remove'
 require_relative '../customers/shared'
 require_relative 'shared'
+require_relative '../write_gate'
 
 module Onetime
   module CLI
     class DomainsRemoveCommand < Command
       include Customers::Shared
       include Domains::Shared
+      include WriteGate
 
       # Result statuses that are NOT a command failure.
       OK_STATUSES = [:planned, :removed].freeze
@@ -56,15 +52,7 @@ module Onetime
         required: true,
         desc: 'Domain to remove (display domain, extid, or objid)'
 
-      option :apply,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '--yes', '-f'],
-        desc: 'Apply the removal without prompting'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Show the removal plan without mutating (wins over --apply)'
+      write_gate_options 'Remove the domain'
       # OPTIONAL operator-supplied why (#4338), recorded in the audit detail
       # of the event this command's op writes. Same flag, same wording and same
       # blank-means-absent handling as every other destructive CLI verb.
@@ -80,22 +68,10 @@ module Onetime
       def call(domain:, apply: false, dry_run: false, reason: nil, json: false, **)
         boot_application!
 
-        target = resolve_domain(domain, json: json)
+        dry_run = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
+        target  = resolve_domain(domain, json: json)
 
-        if json && !apply && !dry_run
-          error_exit('Refusing to remove without --apply in --json mode', json: true)
-        end
-
-        result =
-          if dry_run
-            run_op(target, dry_run: true, reason: reason, json: json)
-          elsif apply
-            run_op(target, dry_run: false, reason: reason, json: json)
-          else
-            confirm_and_apply(target, reason: reason, json: json)
-          end
-
-        return if result.nil? # operator declined at the prompt
+        result = run_op(target, dry_run: dry_run, reason: reason, json: json)
 
         OT.info "[cli-domains-remove] domain=#{target.display_domain} status=#{result.status} " \
                 "dry_run=#{result.dry_run} sender_cleanup=#{result.sender_cleanup}"
@@ -118,21 +94,6 @@ module Onetime
         error_exit("Removal failed: #{ex.message}", json: json)
       end
 
-      # Two op calls: plan, then apply. Only for the interactive path.
-      def confirm_and_apply(target, reason:, json:)
-        plan = run_op(target, dry_run: true, reason: reason, json: json)
-
-        print_plan(plan)
-        print "Permanently remove #{plan.display_domain}? [y/N] "
-        response = $stdin.gets&.strip&.downcase
-        unless response == 'y'
-          puts 'Aborted.'
-          return nil
-        end
-
-        run_op(target, dry_run: false, reason: reason, json: json)
-      end
-
       def print_plan(plan)
         puts 'Removal Details:'
         puts "  Domain:               #{plan.display_domain}"
@@ -147,8 +108,9 @@ module Onetime
       def output_text(result)
         case result.status
         when :planned
+          dry_run_header
           print_plan(result)
-          puts 'Dry run - nothing changed. Re-run with --apply to remove.'
+          dry_run_footer('remove')
         when :removed
           puts "Removed #{result.display_domain} (#{result.extid})"
           puts "  Sender identity:      #{result.sender_cleanup}"

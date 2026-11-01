@@ -364,7 +364,9 @@ jobs:
 
   typescript-lint:
     name: T1 · TypeScript Lint
-    timeout-minutes: 5
+    # Same headroom as the other setup-node-env jobs: pnpm/action-setup's
+    # self-install alone has taken ~5 minutes on hosted runners.
+    timeout-minutes: 10
     runs-on: *runs-on
     needs: [changes]
     if: needs.changes.outputs.typescript == 'true'
@@ -895,7 +897,7 @@ jobs:
 
   # Selected by auth (a path in .github/auth-paths.yml, the ci:auth label, or
   # any non-PR event), not by every Ruby change: the database-agnostic
-  # full-mode suite run a second time against PostgreSQL, and the two
+  # full-mode suite run a second time against PostgreSQL, and the three
   # feature-specific boots. The PG agnostic row is the slowest in the
   # matrix and runs the same specs as the SQLite row above on a second
   # engine, so a PR that touches no auth path leaves it to the main,
@@ -925,6 +927,11 @@ jobs:
             overlay: ''
             services: 'valkey rabbitmq'
             results-file: 'rspec_full_saml_platform_results.json'
+          - name: 'SQLite, passkey signup'
+            lane: full-webauthn-verify
+            overlay: ''
+            services: 'valkey rabbitmq'
+            results-file: 'rspec_full_webauthn_verify_results.json'
     steps: *full-integration-steps
 
   # Nightly and release-tag only, on the gate ruby-billing defines: the
@@ -1199,7 +1206,7 @@ jobs:
       # .summary.example_count, which jq folded in as a zero-example suite.
       # Only run-test-lane publishes artifacts under the rspec- prefix.
       - name: Download all test result artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: 'rspec-*-results'
           path: test-results/

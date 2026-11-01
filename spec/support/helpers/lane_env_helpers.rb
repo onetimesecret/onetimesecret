@@ -39,6 +39,7 @@ module LaneEnv
     'SAML_ENABLED' => 'spec:integration:full',
     'AUTH_MFA_ENABLED' => 'spec:integration:full:mfa',
     'SAML_IDP_ENTITY_ID' => 'spec:integration:full:saml_platform',
+    'AUTH_WEBAUTHN_VERIFY_ACCOUNT' => 'spec:integration:full:webauthn_verify',
   }.freeze
 
   class MissingLaneEnv < StandardError; end

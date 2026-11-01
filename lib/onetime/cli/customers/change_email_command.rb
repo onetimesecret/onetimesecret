@@ -5,9 +5,9 @@
 # Change a customer's account email address (operator remediation).
 #
 # Usage:
-#   bin/ots customers change-email user@old.com user@new.com                  # PREVIEW (default)
-#   bin/ots customers change-email ur123abc user@new.com --apply --yes        # execute
-#   bin/ots customers change-email 123 user@new.com --apply -y --ticket Z-42  # with provenance
+#   bin/ots customers change-email user@old.com user@new.com                  # dry run (default)
+#   bin/ots customers change-email ur123abc user@new.com --apply              # execute
+#   bin/ots customers change-email 123 user@new.com --apply --ticket Z-42     # with provenance
 #   bin/ots customers change-email user@old.com user@new.com --json           # machine preview
 #
 # The cross-store mutation (Rodauth `accounts` row, Customer hash, the global +
@@ -15,12 +15,15 @@
 # change markers, session revocation, verification reset) AND the single
 # ColonelAuditEvent are all owned by Auth::Operations::Customers::ChangeEmail — the
 # one implementation. The colonel `POST /users/:user_id/email` endpoint is the
-# other adapter. This command owns only CLI concerns: resolution, flags, the
-# confirmation prompt, rendering, exit codes. It NEVER audits.
+# other adapter. This command owns only CLI concerns: resolution, flags,
+# rendering, exit codes. It NEVER audits.
 #
-# PREVIEW IS THE DEFAULT. This is the single highest-value account-takeover
-# primitive an operator has, so it follows the Operations::Domains::Remove
-# doctrine: no mutation without an explicit `--apply`.
+# DRY RUN IS THE DEFAULT (WriteGate). This is the single highest-value
+# account-takeover primitive an operator has: no mutation without an explicit
+# `--apply`. There is no confirmation prompt. Unlike the other gated verbs,
+# `--yes`/`-y`/`-f` are NOT aliases of --apply here: they were a prompt skip
+# that also needed --apply, so a bare `--yes` was a preview. They stay as a
+# no-op, so `--yes` alone still previews and `--apply --yes` still executes.
 #
 # NOT gated by SSO-only mode (D37). `require_non_sso_only!` is an API-surface
 # concern; gating the shell would remove support's only remediation tool for
@@ -38,11 +41,13 @@ require 'auth/operations/customers/change_email'
 # Required here (not only from the lib/onetime/cli.rb manifest) so this file
 # cannot be loaded in a broken order.
 require_relative 'shared'
+require_relative '../write_gate'
 
 module Onetime
   module CLI
     class CustomersChangeEmailCommand < Command
       include Customers::Shared
+      include WriteGate
 
       desc "Change a customer's account email across every store keyed on it"
 
@@ -55,19 +60,13 @@ module Onetime
         required: true,
         desc: 'New account email address'
 
-      option :apply,
-        type: :boolean,
-        default: false,
-        desc: 'Execute the change (without this the command only previews)'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Explicitly preview only (the default; refuses to combine with --apply)'
+      # aliases: [] — see the header: a bare --yes previewed before the gate.
+      write_gate_options 'Execute the change', aliases: []
       option :yes,
         type: :boolean,
         default: false,
         aliases: ['-y', '-f'],
-        desc: 'Skip confirmation prompt (only meaningful with --apply)'
+        desc: 'No effect; --apply executes. Accepted so --apply --yes scripts still run'
       option :json,
         type: :boolean,
         default: false,
@@ -96,32 +95,26 @@ module Onetime
         desc: 'Permit an address held only by a CLOSED Rodauth account'
 
       # rubocop:disable Metrics/ParameterLists
-      def call(identifier:, new_email:, apply: false, dry_run: false, yes: false, json: false,
+      def call(identifier:, new_email:, apply: false, dry_run: false, json: false,
                reason: nil, ticket: nil, notify: true, keep_verified: false,
                revoke_sessions: true, allow_closed_account_reuse: false, **)
         boot_application!
 
-        if apply && dry_run
-          error_exit('--apply and --dry-run are contradictory; pass one or neither', json: json)
-        end
-
+        dry_run   = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
         customer  = resolve_target(identifier, json: json)
         new_email = OT::Utils.normalize_email(new_email)
 
-        # Fail fast, before the prompt. Deliberately the SAME predicate the op
-        # uses (format-only, no DNS) so the pre-check and the op cannot disagree
-        # and produce a "confirmed then rejected" round trip.
+        # Fail fast, before the op. Deliberately the SAME predicate the op
+        # uses (format-only, no DNS) so the pre-check and the op cannot disagree.
         unless Onetime::Utils::EmailFormat.valid_format?(new_email)
           error_exit("Invalid email address: #{new_email}", json: json)
         end
-
-        confirm!(customer, new_email, json: json) if apply && !yes
 
         result = Auth::Operations::Customers::ChangeEmail.new(
           customer: customer,
           new_email: new_email,
           actor: Customers::Shared::CLI_ACTOR,
-          dry_run: !apply,
+          dry_run: dry_run,
           require_verification: !keep_verified,
           revoke_sessions: revoke_sessions,
           notify: notify,
@@ -150,29 +143,17 @@ module Onetime
 
       private
 
-      def confirm!(customer, new_email, json:)
-        if json
-          error_exit('Refusing to change email without --yes in --json mode', json: true)
-        end
-
-        print "Change email for #{customer.obscure_email} (#{customer.extid}) to #{new_email}? [y/N] "
-        response = $stdin.gets&.strip&.downcase
-        return if response == 'y'
-
-        puts 'Aborted.'
-        exit 0
-      end
-
       # rubocop:disable Metrics/MethodLength
       def output_text(result, customer)
         old_display = OT::Utils.obscure_email(result.from.to_s)
 
         case result.status
         when :planned
-          puts 'PREVIEW (nothing changed). Re-run with --apply to execute.'
+          dry_run_header
           puts "  customer:   #{customer.extid} #{old_display}"
           puts "  new email:  #{result.to}"
           puts "  orgs to reindex: #{result.orgs_reindexed}"
+          dry_run_footer('execute')
         when :success
           puts "Changed #{customer.extid}: #{old_display} -> #{result.to}"
           puts "  auth row updated:   #{result.auth_row_updated}"

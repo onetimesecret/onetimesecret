@@ -1290,6 +1290,18 @@ features:
     sso_enabled: <%= ENV['ORGS_SSO_ENABLED'] == 'true' %>  # Since v0.25.0
     custom_mail_enabled: <%= ENV['ORGS_CUSTOM_MAIL_ENABLED'] == 'true' %>  # Since v0.25.0
     incoming_secrets_enabled: <%= ENV['ORGS_INCOMING_SECRETS_ENABLED'] == 'true' %>  # Since v0.25.0
+    # Lets organizations with the homepage_network_rules entitlement edit
+    # their custom domains' homepage network rules (allowed/denied CIDRs).
+    # Default OFF. Turning it off stops edits only: rules already stored
+    # stay enforced, the same as after a plan downgrade, so the switch never
+    # opens a homepage a tenant restricted.
+    homepage_network_rules_ui_enabled: <%= ENV['ORGS_HOMEPAGE_NETWORK_RULES_UI_ENABLED'] == 'true' %>  # Since unreleased
+    # Lets organizations with the base_domain_signup entitlement admit their
+    # custom domain's own base domain to its sign-up allowlist automatically
+    # (secrets.acme.com admits @acme.com). Also checked when a sign-up is
+    # validated, so turning it off stops a saved setting from admitting
+    # anyone.
+    base_domain_signup_enabled: <%= ENV['ORGS_BASE_DOMAIN_SIGNUP_ENABLED'] == 'true' %>  # Since unreleased
     # Gates exposure (UI + list API) of the organization secret-activity
     # trail; pairs with the `audit_logs` entitlement. Defaults ON, unlike
     # the sibling flags above, because the trail ships working out of the
@@ -1314,6 +1326,22 @@ features:
       window: <%= ENV['SSO_DIAGNOSTICS_RATE_LIMIT_WINDOW'] || 3600 %>  # Since unreleased
       # Lockout duration in seconds once the cap is hit (1 hour).
       lockout: <%= ENV['SSO_DIAGNOSTICS_RATE_LIMIT_LOCKOUT'] || 3600 %>  # Since unreleased
+    # Per-customer cap on "Fetch from metadata" for a custom domain's SAML
+    # settings (POST /api/domains/:extid/sso/metadata). Every fetch is one
+    # outbound HTTPS request to a host the caller chooses (the SAML IdP
+    # metadata URL), so the egress volume is bounded per acting customer
+    # (keyed on the customer's public id, kind `sso_metadata_fetch`).
+    # Enabled by default (protective); set SSO_METADATA_FETCH_RATE_LIMIT_ENABLED=false
+    # to opt out. See lib/onetime/security/sso_metadata_fetch_rate_limiter.rb.
+    sso_metadata_fetch_rate_limit:
+      enabled: <%= ENV['SSO_METADATA_FETCH_RATE_LIMIT_ENABLED'] != 'false' %>  # Since unreleased
+      # Fetches permitted per window for one customer, across all their
+      # domains. Enough for an admin iterating on a metadata URL.
+      max_per_customer: <%= ENV['SSO_METADATA_FETCH_RATE_LIMIT_MAX_PER_CUSTOMER'] || 30 %>  # Since unreleased
+      # Counting window in seconds (1 hour).
+      window: <%= ENV['SSO_METADATA_FETCH_RATE_LIMIT_WINDOW'] || 3600 %>  # Since unreleased
+      # Lockout duration in seconds once the cap is hit (1 hour).
+      lockout: <%= ENV['SSO_METADATA_FETCH_RATE_LIMIT_LOCKOUT'] || 3600 %>  # Since unreleased
     # Per-customer cap on "Send test" for a custom domain's email sender
     # (POST /api/domains/:extid/email-config/test). Every send is a real
     # email through the delivery provider and one security audit trail row,
@@ -1734,7 +1762,9 @@ jobs:
     enabled: false  # Since v0.24.0
     # How often to scan for expiring secrets (rufus-scheduler interval)
     check_interval: '1h'  # Since v0.24.0
-    # Send warning N hours before secret expires
+    # Warn once a secret is within N hours of expiring. The warning is sent on
+    # the next scan, so it arrives between N and (N - check_interval) hours
+    # before expiry.
     warning_hours: 24  # Since v0.24.0
     # Only warn for secrets with TTL greater than this (hours)
     # Prevents spamming for short-lived secrets

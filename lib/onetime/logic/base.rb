@@ -53,6 +53,16 @@ module Onetime
       # host, or the domains feature off). See Onetime::CustomDomain::Lookup.
       attr_reader :custom_domain_lookup
 
+      # The request's env['otto.ip_match'] verdict closure, lifted from the
+      # strategy metadata (auth_strategies/helpers.rb build_metadata). Judges
+      # CIDR membership of the resolved, unmasked client IP without exposing
+      # it; nil when the stack never ran IPPrivacyMiddleware. Consumed by the
+      # per-domain homepage network rules through
+      # CustomDomain#allow_public_secret_creation?(ip_match:) and
+      # HomepageConfig#effectively_enabled_for? (the homepage-config API's
+      # effective_enabled).
+      attr_reader :ip_match
+
       # The value the router captured from the request path for +name+.
       #
       # +params+ is a shared namespace: path captures, query string, form
@@ -451,6 +461,7 @@ module Onetime
         @display_domain       = strategy_result.metadata[:display_domain]
         @custom_domain_id     = strategy_result.metadata[:custom_domain_id]
         @custom_domain_lookup = strategy_result.metadata[:custom_domain_lookup]
+        @ip_match             = strategy_result.metadata[:ip_match]
       end
 
       # Request rotation of the live Rack session. Logic paths that cross an

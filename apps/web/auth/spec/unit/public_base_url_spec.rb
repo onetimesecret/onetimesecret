@@ -470,7 +470,7 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
         plugin :sessions, secret: SecureRandom.hex(64)
         plugin :json
         plugin :halt
-        plugin :json_parser
+        plugin :json_parser, content_type_regexp: %r{\Aapplication/json\b}i
         plugin :rodauth do
           db app_db
           enable(*app_features)

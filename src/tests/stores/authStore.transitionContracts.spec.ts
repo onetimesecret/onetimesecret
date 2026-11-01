@@ -29,7 +29,8 @@ import {
 } from '@/tests/fixtures/bootstrap.fixture';
 import { toWire } from '@/tests/fixtures/bootstrap-wire';
 import { captureAppLogs } from '@/tests/utils/appLogs';
-import { attemptForcedPageLoad } from '@/utils/forcedPageLoad';
+import { attemptForcedPageLoad, FORCED_RELOAD_MARKER } from '@/utils/forcedPageLoad';
+import { markUnrecoverableContent } from '@/utils/unrecoverableContent';
 import { addBreadcrumb } from '@sentry/vue';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { getActivePinia } from 'pinia';
@@ -223,7 +224,7 @@ describe('authStore PR #4497 transition contracts', () => {
       expect(store.lastCheckTime).toBe(lastCheckAfterNewer);
     });
 
-    it("an older commit held in its cleanup imports does not reset the stores a newer commit populated", async () => {
+    it('an older commit held in its cleanup imports does not reset the stores a newer commit populated', async () => {
       await mountWith(authenticatedBootstrap);
       // Make receiptList an existing store so the cleanup must import it.
       const pinia = getActivePinia();
@@ -570,6 +571,32 @@ describe('authStore PR #4497 transition contracts', () => {
       // authStatus is untouched by the forced page load; the gate must not
       // rely on it alone.
       expect(store.authStatus).toBe('authenticated');
+      expect(store.protectedActionsAvailable).toBe(false);
+      expect(store.escapeActionsAvailable).toBe(true);
+    });
+
+    // A revealed secret exists only in this tab (src/utils/unrecoverableContent.ts).
+    // An ended or replaced session must not reload it away: the stale-session
+    // notice stays up with its own reload button and the user decides.
+    it('a forced page load is refused while a revealed secret is on screen; the notice stays up', async () => {
+      await mountWith(authenticatedBootstrap);
+      const actual =
+        await vi.importActual<typeof import('@/utils/forcedPageLoad')>('@/utils/forcedPageLoad');
+      vi.mocked(attemptForcedPageLoad).mockImplementationOnce(actual.attemptForcedPageLoad);
+      sessionStorage.removeItem(FORCED_RELOAD_MARKER);
+
+      const release = markUnrecoverableContent();
+      try {
+        store.forcePageLoad('ended');
+      } finally {
+        release();
+      }
+
+      expect(attemptForcedPageLoad).toHaveBeenCalledTimes(1);
+      expect(vi.mocked(attemptForcedPageLoad).mock.results[0]?.value).toBe('refused');
+      // Refused, not spent: the reload-loop marker was never written.
+      expect(sessionStorage.getItem(FORCED_RELOAD_MARKER)).toBeNull();
+      expect(store.staleSession).toBe(true);
       expect(store.protectedActionsAvailable).toBe(false);
       expect(store.escapeActionsAvailable).toBe(true);
     });

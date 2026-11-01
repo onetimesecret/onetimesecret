@@ -16,6 +16,15 @@ GIT
       base64
       rodauth (~> 2.28)
 
+GIT
+  remote: https://github.com/onetimesecret/rodauth.git
+  revision: 8abe3ebdb89739fc4b3c040105873d7cc281d216
+  ref: 8abe3ebdb89739fc4b3c040105873d7cc281d216
+  specs:
+    rodauth (2.48.0)
+      roda (>= 2.6.0)
+      sequel (>= 4)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -88,8 +97,8 @@ GEM
     crack (1.0.1)
       bigdecimal
       rexml
-    crass (1.0.7)
-    csv (3.3.5)
+    crass (1.0.8)
+    csv (3.3.6)
     database_cleaner-core (2.0.1)
     database_cleaner-sequel (2.0.2)
       database_cleaner-core (~> 2.0.0)
@@ -146,7 +155,7 @@ GEM
       logger
     highline (3.0.1)
     htmlbeautifier (1.4.3)
-    httparty (0.24.2)
+    httparty (0.24.3)
       csv
       mini_mime (>= 1.0.0)
       multi_xml (>= 0.5.2)
@@ -399,11 +408,8 @@ GEM
       json_schemer (~> 2)
       logger
       tilt (~> 2)
-    roda (3.106.0)
+    roda (3.108.0)
       rack
-    rodauth (2.45.0)
-      roda (>= 2.6.0)
-      sequel (>= 4)
     rodauth-omniauth (0.6.2)
       omniauth (~> 2.0)
       rodauth (~> 2.36)
@@ -471,8 +477,8 @@ GEM
       fugit (~> 1.1, >= 1.11.1)
     safety_net_attestation (0.5.0)
       jwt (>= 2.0, < 4.0)
-    sanitize (7.0.0)
-      crass (~> 1.0.2)
+    sanitize (7.0.1)
+      crass (~> 1.0.8)
       nokogiri (>= 1.16.8)
     securerandom (0.4.1)
     semantic_logger (4.18.0)
@@ -483,7 +489,7 @@ GEM
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
       logger
-    sequel (5.106.0)
+    sequel (5.109.0)
       bigdecimal
     serverengine (2.4.0)
       base64 (~> 0.1)
@@ -688,7 +694,7 @@ DEPENDENCIES
   rerun (~> 0.14)
   rhales (~> 0.7.1)
   roda (~> 3.0)
-  rodauth (~> 2.0)
+  rodauth!
   rodauth-oauth (~> 1.6)!
   rodauth-omniauth (~> 0.4)
   rodauth-tools (~> 0.4.0)
@@ -707,7 +713,7 @@ DEPENDENCIES
   ruby-lsp (~> 0.26.9)
   ruby-saml (= 1.18.1)
   rufus-scheduler (~> 3.9)
-  sanitize (~> 7.0)
+  sanitize (~> 7.0, >= 7.0.1)
   semantic_logger (~> 4.17)
   sendgrid-ruby
   sentry-ruby

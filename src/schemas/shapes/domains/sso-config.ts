@@ -11,7 +11,8 @@
 // - Contract layer declares nullability to match wire format
 // - Shape layer transforms null → safe defaults for frontend consumption
 // - Required form fields (client_id, display_name) → empty string
-// - Optional form fields (tenant_id, issuer, SAML trio, SP identifiers) → null
+// - Optional form fields (tenant_id, issuer, SAML trio, idp_metadata_url,
+//   SP identifiers) → null
 //   (form uses undefined / empty string)
 // - unreadable_fields → [] when absent (older API), so a missing key never
 //   reads as "every field is fine" by accident — but a listed field's null
@@ -102,6 +103,11 @@ export const customDomainSsoConfigSchema = customDomainSsoConfigCanonical
     idp_sso_service_url: z.string().nullish().transform((v) => v ?? null),
     idp_entity_id: z.string().nullish().transform((v) => v ?? null),
     idp_cert: z.string().nullish().transform((v) => v ?? null),
+    // SAML metadata source (the URL the trio was imported from): nullish-
+    // tolerant so a record served by an API that predates the key (rolling
+    // deploy) still parses. A null here is "unset" ONLY when
+    // unreadable_fields does not name the field.
+    idp_metadata_url: z.string().nullish().transform((v) => v ?? null),
     sp_entity_id: z.string().nullish().transform((v) => v ?? null),
     acs_url: z.string().nullish().transform((v) => v ?? null),
     unreadable_fields: z.array(z.string()).nullish().transform((v) => v ?? []),

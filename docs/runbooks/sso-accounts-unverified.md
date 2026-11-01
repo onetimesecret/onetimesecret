@@ -78,5 +78,5 @@ record with none is stamped `sso`. One `ColonelAuditEvent` per repaired customer
 
   ```bash
   bin/ots customers role reconcile            # dry-run report
-  bin/ots customers role reconcile --apply    # confirm, then repair the index
+  bin/ots customers role reconcile --apply    # repair the index (no prompt)
   ```

@@ -524,8 +524,10 @@ while [[ $# -gt 0 ]]; do
       # Iteration escape hatch: run one file (or a handful) inside the lane's
       # environment instead of its whole tasks list. The hermetic boundary is
       # unchanged — same scrub, same env, same exec — so this is the sanctioned
-      # way to loop on a single failing file. `path[:LINE]` is accepted and
-      # forwarded to rspec verbatim.
+      # way to loop on a single failing file. `path[:LINE]` is forwarded
+      # verbatim to whichever runner owns the file: rspec takes a list
+      # (`:12:34`) and a describe line selects its whole group; tryouts
+      # takes one line or a range (`:19-45`). See tests/lanes/README.md.
       [[ $# -ge 2 ]] || { echo "error: --only requires a path" >&2; exit 64; }
       # The command runs from the repo root, so a path is checked there (and
       # as given, so an absolute path or one typed from the repo root while

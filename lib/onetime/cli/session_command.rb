@@ -153,10 +153,12 @@ module Onetime
     end
 
     # Default session command (shows usage)
-    class SessionCommand < Dry::CLI::Command
+    class SessionCommand < DelayBootCommand
       desc 'Session management and inspection'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         puts '=' * 80
         puts 'Session Inspector'
         puts '=' * 80

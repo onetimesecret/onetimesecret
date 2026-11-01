@@ -391,6 +391,11 @@ positive = [
     'src/services/bootstrap.service.ts', 'src/shared/stores/bootstrapStore.ts',
     'src/schemas/contracts/bootstrap.ts', 'locales/content/en/session-auth.json',
     'locales/content/en/session-auth-extended.json',
+    # Account verification: signup, the welcome email, the verifying reveal.
+    'apps/web/core/controllers/registration.rb', 'lib/onetime/mail/views/welcome.rb',
+    'lib/onetime/mail/templates/welcome.html.erb', 'lib/onetime/mail/templates/welcome.txt.erb',
+    'apps/api/v2/logic/secrets/reveal_secret.rb',
+    'e2e/auth/simple-mode-email-verification.spec.ts',
     # The request-host seam.
     'lib/middleware/detect_host.rb', 'lib/onetime/middleware/domain_strategy.rb',
     'lib/onetime/middleware/strip_forwarded_host.rb',
@@ -406,6 +411,7 @@ positive = [
     'tests/browser/saml_callback_spec.rb', 'tests/browser/saml_callback.mjs',
     'tests/lanes/browser/tasks', 'tests/lanes/full-mfa/env',
     'tests/lanes/full-saml-platform/env', 'tests/lanes/full-pg-agnostic/tasks',
+    'tests/lanes/full-webauthn-verify/env',
     'e2e/auth/signup-redirect-preservation.spec.ts', 'e2e/all/auth-hydration.spec.ts',
     'e2e/system/connected-identities-custom-host.spec.ts',
     'e2e/system/tenant_connect_seed.rb', 'e2e/system/tenant_connect_test_boot.rb',
@@ -418,9 +424,9 @@ positive = [
     '.github/actions/detect-auth-changes/action.yml',
     '.github/actions/setup-ruby-test-env/action.yml',
 ]
-# Pin all three exact full-auth directories across root and arbitrary apps.
+# Pin the exact full-auth directories across root and arbitrary apps.
 for base in ('spec', 'apps/web/new_app/spec', 'apps/api/new_app/spec'):
-    for lane in ('full', 'full_mfa', 'full_saml_platform'):
+    for lane in ('full', 'full_mfa', 'full_saml_platform', 'full_webauthn_verify', 'full_webauthn_verify_mfa'):
         positive.append(f'{base}/integration/{lane}/nested/routes_spec.rb')
 negative = [
     # Selected by the billing filter in ci.yml, not by auth.
@@ -438,7 +444,8 @@ negative = [
     'lib/onetime/mail/templates/secret_link.html.erb',
     'lib/onetime/jobs/workers/email_worker.rb', 'lib/tasks/spec.rake',
     'etc/defaults/logging.defaults.yaml', 'etc/examples/puma.example.rb',
-    'apps/api/v2/logic/secrets/conceal_secret.rb',
+    'apps/api/v2/logic/secrets/conceal_secret.rb', 'apps/api/v3/logic/secrets.rb',
+    'lib/onetime/logic/base.rb', 'lib/onetime/mail/views/secret_link.rb',
     'apps/api/domains/logic/domains/add_domain.rb',
     'apps/api/organizations/logic/members.rb', 'apps/web/core/controllers/page.rb',
     'apps/internal/acme/application.rb',

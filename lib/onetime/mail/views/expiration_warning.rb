@@ -7,23 +7,42 @@ require_relative 'base'
 module Onetime
   module Mail
     module Templates
-      # Email template for warning users that their secret is about to expire.
+      # Email template for warning a secret's owner that it is about to expire.
+      #
+      # An account notification, like SecretRevealed: it names the secret by
+      # its short id and links to the owner's recent-secrets page, /recent,
+      # on the canonical host. That page requires a session. The email
+      # carries no identifier that resolves anything: /receipt/<identifier>
+      # and /secret/<identifier> are bearer capabilities (the receipt route
+      # answers without an ownership check and returns the share link), and
+      # a mailbox is not a place to keep one.
+      #
+      # The previous payload carried the secret's short id under :secret_key
+      # and the template built /secret/<short id>. That path serves the page
+      # shell (GET /secret/* in apps/web/core/routes.txt), but the lookup
+      # behind it fails: an 8-character prefix is not a secret identifier. So
+      # every link in every warning led to a not-found page.
       #
       # Required data:
-      #   recipient:    Recipient email address (secret owner)
-      #   secret_key:   Secret shortid for URL
-      #   expires_at:   Unix timestamp when secret expires
+      #   recipient:      Owner's email address
+      #   secret_shortid: Secret#shortid, the 8-character prefix the receipt
+      #                   page shows the owner
+      #   expires_at:     Unix timestamp when the secret expires
       #
       # Optional data:
-      #   share_domain: Custom domain for secret sharing
-      #   baseuri:      Override site base URI
+      #   baseuri: Override site base URI
+      #
+      # A payload without secret_shortid (one queued by the previous job
+      # version) fails validate_data! with an ArgumentError. EmailWorker does
+      # not retry an ArgumentError: the message is rejected to the DLQ as
+      # invalid_message instead of being sent with the dead link.
       #
       class ExpirationWarning < Base
         protected
 
         def validate_data!
           raise ArgumentError, 'Recipient required' unless data[:recipient]
-          raise ArgumentError, 'Secret key required' unless data[:secret_key]
+          raise ArgumentError, 'Secret short id required' if data[:secret_shortid].to_s.strip.empty?
           raise ArgumentError, 'Expiration time required' unless data[:expires_at]
         end
 
@@ -38,6 +57,10 @@ module Onetime
 
         def recipient_email
           data[:recipient]
+        end
+
+        def secret_shortid
+          data[:secret_shortid]
         end
 
         # Computed template variables
@@ -59,14 +82,17 @@ module Onetime
           end
         end
 
+        # The owner's recent-secrets page (web route: auth=sessionauth).
         def uri_path
-          "/secret/#{data[:secret_key]}"
+          '/recent'
         end
 
-        # Full URI to view the secret, on the domain the secret was shared
-        # from (share_domain when present, canonical host otherwise).
-        def secret_uri
-          "#{brand_baseuri}#{uri_path}"
+        # Full URI of the recent-secrets page. Built from baseuri, the
+        # canonical host, as other install-level paths in mail are; the
+        # domain a secret was shared from plays no part in where its owner
+        # signs in.
+        def recent_uri
+          "#{baseuri}#{uri_path}"
         end
 
         def baseuri
@@ -79,7 +105,8 @@ module Onetime
         def template_binding
           computed_data = data.merge(
             time_remaining: time_remaining,
-            secret_uri: secret_uri,
+            secret_shortid: secret_shortid,
+            recent_uri: recent_uri,
             uri_path: uri_path,
             baseuri: baseuri,
           )

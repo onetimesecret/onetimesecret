@@ -18,6 +18,8 @@ require_relative 'colonel/elevation'
 require_relative 'colonel/get_elevation_status'
 require_relative 'colonel/elevate_session'
 require_relative 'colonel/drop_elevation'
+# Password recovery for a lapsed admin session window (#4331).
+require_relative 'colonel/reauthenticate_session'
 
 # System info and stats
 require_relative 'colonel/get_colonel_info'
@@ -52,6 +54,7 @@ require_relative 'colonel/set_user_suspension'
 require_relative 'colonel/change_user_email'
 require_relative 'colonel/impersonate_user'
 require_relative 'colonel/purge_user'
+require_relative 'colonel/set_user_default_organization'
 
 # System monitoring
 require_relative 'colonel/get_proxy_headers_debug'
