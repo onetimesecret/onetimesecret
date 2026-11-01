@@ -86,7 +86,7 @@ module Billing
         # @param subscription [Stripe::Subscription] Stripe subscription (for logging)
         def clear_federated_org(org, _subscription)
           Billing::Operations::ApplySubscriptionToOrg.apply_free_tier(org, owner: false, save: false)
-          org.mark_subscription_synced!
+          mark_federated_sync!(org)
           org.save
           discard_superseded_pending(org)
         end

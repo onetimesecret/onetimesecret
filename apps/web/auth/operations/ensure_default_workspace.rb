@@ -50,6 +50,13 @@ module Auth
       CREATE_LOCK_WAIT     = 2.0
       CREATE_LOCK_INTERVAL = 0.1
 
+      # How long a claim waits for the per-hash federation lock while a
+      # webhook writes the same hash's subscription state
+      # (Billing::PendingFederatedSubscription.with_federation_lock). On
+      # timeout the claim gives up and leaves the pending record intact; a
+      # repeat verification is the retry.
+      CLAIM_LOCK_WAIT = 3.0
+
       # @param customer [Onetime::Customer] The customer for whom to create workspace
       # @param require_verification [Boolean] When true, defer claiming a
       #   pending federated subscription until the customer's email is verified.
@@ -503,7 +510,8 @@ module Auth
           return false
         end
 
-        return false if org.email_hash.to_s.empty?
+        email_hash = org.email_hash.to_s
+        return false if email_hash.empty?
 
         # Lazy load billing model (auth can operate without billing plugin)
         begin
@@ -516,28 +524,72 @@ module Auth
         # Guard: billing module may not be loaded
         return false unless defined?(Billing::PendingFederatedSubscription)
 
+        # Read, decide and write under the per-hash federation lock that the
+        # federated webhook path also takes. Without it a cancellation that
+        # ran after this claim read the org and the pending record was
+        # overwritten by the claim's save, restoring the paid plan (#4754
+        # review, F1).
+        Billing::PendingFederatedSubscription.with_federation_lock(email_hash, wait: CLAIM_LOCK_WAIT) do
+          claim_under_federation_lock(org, email_hash)
+        end
+      rescue StandardError => ex
+        if defined?(Billing::PendingFederatedSubscription::FederationLockTimeout) &&
+           ex.is_a?(Billing::PendingFederatedSubscription::FederationLockTimeout)
+          auth_logger.warn '[create-default-workspace] Federation lock busy; leaving the pending record for a retry',
+            { org: org.extid, waited_seconds: CLAIM_LOCK_WAIT }
+          return false
+        end
+
+        # Log but don't fail account creation - federation is secondary
+        auth_logger.error '[create-default-workspace] Failed to apply pending federation',
+          { error: ex.message, org: org.extid }
+        false
+      end
+
+      # The claim proper. Runs holding the federation lock for email_hash, so
+      # no webhook writes this hash's organizations or pending record until
+      # it returns.
+      #
+      # @param org [Onetime::Organization]
+      # @param email_hash [String] the hash the lock was taken for
+      # @return [Boolean] True if the pending subscription was applied
+      def claim_under_federation_lock(org, email_hash)
+        # Re-read the saved state now that no webhook can change it. A
+        # cancellation that ran before the lock was taken is in what we read
+        # here, so nothing below writes over it. refresh! drops the
+        # billing_email and hash just set on a workspace that has not saved
+        # them yet; set them again.
+        org.refresh!
+        org.billing_email ||= org.contact_email || @customer.email
+        org.compute_email_hash!
+        return false unless org.email_hash.to_s == email_hash
+
+        # A local subscription linked since the first ownership check.
+        return false if org.subscription_owner? || !org.stripe_subscription_id.to_s.empty?
+
         # Check for pending subscription
-        pending = Billing::PendingFederatedSubscription.find_by_email_hash(org.email_hash)
+        pending = Billing::PendingFederatedSubscription.find_by_email_hash(email_hash)
         return false unless pending
 
-        # A record received at or before the last state fully applied to this
-        # workspace is a snapshot the org already carries: a claim saved the
-        # org and then failed to destroy the record, or a webhook that found
-        # no org wrote the record after provisioning had claimed an earlier
-        # one. Every subscription event since — a cancellation, a plan change
-        # — reached the org directly (the webhook finds it by email_hash), so
-        # replaying the snapshot would restore a canceled subscription and its
-        # entitlements. Consume the leftover record instead of applying it
-        # (#4735 review, F8).
-        if pending_superseded?(org, pending)
+        # A record the workspace already has: a claim saved the org and
+        # then failed to destroy the record, or the record predates a direct
+        # webhook sync (a cancellation, a plan change) that reached the org
+        # by email_hash. Replaying it would restore a canceled subscription
+        # and its entitlements. Consume the leftover record instead of
+        # applying it (#4735 review, F8). Sync versions order the two, so a
+        # record stored after the last sync is applied even when it was
+        # stored in the same second (#4754 review, F2).
+        if pending.superseded_by?(org)
           auth_logger.info '[create-default-workspace] Pending federated subscription predates the last applied state; discarding the replayed snapshot',
             {
               org: org.extid,
-              hash_prefix: org.email_hash[0..7],
+              hash_prefix: email_hash[0..7],
               received_at: pending.received_at,
               synced_at: org.subscription_synced_at,
+              pending_version: pending.sync_version,
+              synced_version: org.subscription_sync_version,
             }
-          pending.destroy!
+          pending.destroy_if_unchanged!
           return false
         end
 
@@ -554,7 +606,7 @@ module Auth
           auth_logger.error '[create-default-workspace] Pending federated subscription has no planid; leaving unclaimed',
             {
               org: org.extid,
-              hash_prefix: org.email_hash[0..7],
+              hash_prefix: email_hash[0..7],
               status: pending.subscription_status,
               region: pending.region,
             }
@@ -575,7 +627,7 @@ module Auth
           auth_logger.warn '[create-default-workspace] SECURITY: federated subscription claimed WITHOUT email verification',
             {
               org: org.extid,
-              hash_prefix: org.email_hash[0..7],
+              hash_prefix: email_hash[0..7],
               plan: pending.planid,
               reason: 'verify_account disabled: no proof of email ownership at claim time',
             }
@@ -594,7 +646,7 @@ module Auth
         # Materialization saves the scalar fields set above — plan, status,
         # federation stamp — before it writes the entitlement collections. A
         # failure in between leaves a paid plan with no entitlements, so the
-        # sync marker that pending_superseded? reads is set only once this
+        # sync marker that superseded_by? reads is set only once this
         # returns: the retry then re-applies the record instead of discarding
         # it as delivered (#4735 review, F9).
         begin
@@ -604,48 +656,27 @@ module Auth
           auth_logger.debug '[create-default-workspace] Billing operations not available for materialization'
         end
 
-        org.mark_subscription_synced!
+        # Record which snapshot is now applied. A record written before
+        # versions existed takes a fresh version, which still orders it
+        # ahead of anything stored later.
+        applied_version = pending.sync_version.to_s
+        applied_version = Billing::PendingFederatedSubscription.next_sync_version if applied_version.empty?
+        org.mark_subscription_synced!(version: applied_version)
         org.save
 
         auth_logger.info '[create-default-workspace] Applied pending federated subscription',
           {
             org: org.extid,
-            hash_prefix: org.email_hash[0..7],
+            hash_prefix: email_hash[0..7],
             plan: pending.planid,
             status: pending.subscription_status,
           }
 
-        # Consume the pending record (it's been used)
-        pending.destroy!
+        # Consume the pending record (it's been used). Only the snapshot this
+        # claim applied: never a newer one stored for the hash since.
+        pending.destroy_if_unchanged!
 
         true
-      rescue StandardError => ex
-        # Log but don't fail account creation - federation is secondary
-        auth_logger.error '[create-default-workspace] Failed to apply pending federation',
-          { error: ex.message, org: org.extid }
-        false
-      end
-
-      # Was this pending record already delivered to the workspace?
-      #
-      # subscription_synced_at is written each time a claim completes or a
-      # webhook syncs the org directly, after the entitlements are
-      # materialized. A record received at or before it carries nothing the
-      # org does not already have. A legacy record without received_at reads
-      # as 0 and is superseded by any marker; an org never fully synced —
-      # including one whose claim failed between the scalar save and the
-      # entitlement writes — supersedes nothing, so the retry re-applies.
-      # The first-federation stamp is not consulted: it is saved ahead of the
-      # entitlements and does not move on later syncs (#4735 review, F8/F9).
-      #
-      # @param org [Onetime::Organization]
-      # @param pending [Billing::PendingFederatedSubscription]
-      # @return [Boolean]
-      def pending_superseded?(org, pending)
-        synced_at = org.subscription_synced_at.to_s
-        return false if synced_at.empty?
-
-        pending.received_at.to_i <= synced_at.to_i
       end
     end
   end

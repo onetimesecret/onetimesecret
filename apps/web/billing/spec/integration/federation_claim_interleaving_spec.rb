@@ -125,11 +125,19 @@ RSpec.describe 'Federation claim interleavings', :integration do
     # Barrier: the dispatcher already observed no match. Before its pending
     # writer executes, signup claims the earlier record and publishes the index.
     # Resume the ORIGINAL writer at a later instant, not a fabricated receipt.
+    #
+    # The dispatcher keeps the per-hash federation lock across the lookup and
+    # the write (#4754 review, F1/F2), so this interleaving needs the lock to
+    # have expired under a stalled writer. Release it the way its TTL would;
+    # the writer's own token-checked release then leaves the claim's alone.
     allow(Billing::PendingFederatedSubscription).to receive(:store_from_webhook).and_wrap_original do |original, **attributes|
       if attributes[:source_stripe_event_id] == deferred_event.id
         writer_interleavings += 1
         expect(writer_interleavings).to eq(1)
         expect(Onetime::Organization.find_federated_by_email_hash(email_hash)).to eq([])
+        federation_lock = Familia::Lock.new(Billing::PendingFederatedSubscription.federation_lock_key(email_hash))
+        expect(federation_lock.locked?).to be(true)
+        federation_lock.force_unlock!
         provision_workspace(verified: true)
         refresh_workspace!
         first_stamp = @organization.subscription_federated_at.to_i

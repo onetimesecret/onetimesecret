@@ -81,13 +81,23 @@ module Onetime
           # Unix timestamp of the last subscription state this org received
           # through federation: a completed pending claim or a direct webhook
           # sync. A pending record received at or before it carries nothing
-          # the org does not already have (EnsureDefaultWorkspace#pending_superseded?).
+          # the org does not already have (PendingFederatedSubscription#superseded_by?
+          # falls back to it for records without a sync_version).
           # Written after entitlements are materialized, never beforehand, so
           # it is also the proof that a claim completed — which
           # subscription_federated_at, saved with the scalar fields ahead of
           # the entitlement collections, cannot be (#4735 review, F8/F9).
           # Never cleared: it only ever moves forward.
           base.field :subscription_synced_at
+
+          # Position of that same sync in the federation sync order: the
+          # sync_version of the pending record a claim applied, or a fresh
+          # one for a direct webhook sync (both drawn from one Redis counter,
+          # Billing::PendingFederatedSubscription.next_sync_version). A
+          # pending record with a version at or below it is a snapshot the
+          # org already has. Unlike the timestamp it cannot tie with a
+          # newer record written in the same second (#4754 review, F2).
+          base.field :subscription_sync_version
 
           # Track when user dismissed the federation notification - for UX
           # Unix timestamp, nil if never dismissed
@@ -346,10 +356,14 @@ module Onetime
           # materialization step, immediately before the save that persists
           # it; see the field comment.
           #
+          # @param version [Integer, String, nil] the sync order position of
+          #   the state just applied (see subscription_sync_version). nil
+          #   leaves the recorded version unchanged.
           # @return [Integer] The timestamp set
           #
-          def mark_subscription_synced!
-            self.subscription_synced_at = Familia.now.to_i
+          def mark_subscription_synced!(version: nil)
+            self.subscription_synced_at    = Familia.now.to_i
+            self.subscription_sync_version = version.to_i unless version.to_s.empty?
             subscription_synced_at.to_i
           end
 
