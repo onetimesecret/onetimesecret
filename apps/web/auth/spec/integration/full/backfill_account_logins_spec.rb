@@ -9,7 +9,7 @@
 # ADR-051 / SSO email-less accounts Phase 2, step "Backfill op" (design §7).
 #
 # Drives Auth::Operations::BackfillAccountLogins against the REAL migrated
-# accounts schema (migration 012 applied by the suite) and real Valkey
+# accounts schema (migration 015 applied by the suite) and real Valkey
 # Customer fixtures. The contract pinned here:
 #
 #   * `login` becomes the Customer objid and `external_id` its extid, so the

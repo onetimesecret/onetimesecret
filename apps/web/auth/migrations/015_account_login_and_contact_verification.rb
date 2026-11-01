@@ -1,8 +1,8 @@
-# apps/web/auth/migrations/012_account_login_and_contact_verification.rb
+# apps/web/auth/migrations/015_account_login_and_contact_verification.rb
 #
 # frozen_string_literal: true
 
-# Phase 2 of SSO email-less accounts, step M012 "expand" (ADR-051,
+# Phase 2 of SSO email-less accounts, step M015 "expand" (ADR-051,
 # docs/specs/sso-email-less-accounts/account-model-design.md §3.1, §7).
 #
 # Separates three facts the `accounts` table has so far represented with one
@@ -15,7 +15,7 @@
 #                           accepted from a request, never written to a log.
 #   email                   the optional contact address. UNCHANGED here: it
 #                           stays NOT NULL and stays the Rodauth login column
-#                           until M013/M014 and the N+1 binary ship.
+#                           until M016/M017 and the N+1 binary ship.
 #   email_verified_at       when mailbox control was established for the
 #   email_verified_by       CURRENT email value, by which path (one of
 #                           Auth::Operations::Customers::Doctor::VALID_VERIFIED_BY),
@@ -29,9 +29,9 @@
 # supplied afterwards by `bin/ots customers backfill-logins`
 # (Auth::Operations::BackfillAccountLogins), which is resumable and
 # idempotent, and by the N+1 binary on every INSERT. `login NOT NULL` is a
-# later migration (M013) that refuses to run while any row still lacks one.
+# later migration (M016) that refuses to run while any row still lacks one.
 #
-# The UNIQUE index on `login` is created now rather than at M013 on purpose:
+# The UNIQUE index on `login` is created now rather than at M016 on purpose:
 # PostgreSQL and SQLite both treat NULLs as distinct in a unique index, so the
 # NULL-login rows the old binary keeps writing are unaffected, while two rows
 # can never be backfilled onto one Customer objid even if two operators run

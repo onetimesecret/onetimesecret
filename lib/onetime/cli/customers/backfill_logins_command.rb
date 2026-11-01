@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # Give every Rodauth `accounts` row its internal `login` and the contact-email
-# verification columns migration 012 added (ADR-051, SSO email-less accounts
+# verification columns migration 015 added (ADR-051, SSO email-less accounts
 # Phase 2, step "Backfill op" in
 # docs/specs/sso-email-less-accounts/account-model-design.md §7).
 #
@@ -226,7 +226,7 @@ module Onetime
             bin/ots customers backfill-logins [options]
 
           Description:
-            Migration 012 added `accounts.login` (the opaque internal Rodauth login,
+            Migration 015 added `accounts.login` (the opaque internal Rodauth login,
             equal to the account's Customer objid) and the contact-email
             verification columns `email_verified_at`, `email_verified_by` and
             `email_verification_hold`. Rows written before it carry NULLs. This

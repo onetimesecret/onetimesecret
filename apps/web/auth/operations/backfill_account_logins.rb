@@ -12,7 +12,7 @@ require 'auth/lib/logging'
 module Auth
   module Operations
     # Give every `accounts` row its internal `login` and the contact-email
-    # verification columns migration 012 added (ADR-051, Phase 2 of SSO
+    # verification columns migration 015 added (ADR-051, Phase 2 of SSO
     # email-less accounts, design §7 "Backfill op").
     #
     # ## What `login` is
@@ -127,7 +127,7 @@ module Auth
         @mint_missing = mint_missing ? true : false
         @db           = db || (defined?(Auth::Database) ? Auth::Database.connection : nil)
         raise Onetime::Problem, 'Auth database unavailable (simple auth mode?)' unless @db
-        raise Onetime::Problem, 'accounts.login column missing: run migration 012 first' unless login_column?
+        raise Onetime::Problem, 'accounts.login column missing: run migration 015 first' unless login_column?
       end
 
       # @return [Result]

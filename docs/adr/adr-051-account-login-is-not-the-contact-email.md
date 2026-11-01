@@ -7,7 +7,7 @@ title: "ADR-051: The Account Login Is Not the Contact Email"
 ## Status
 
 Proposed. The decision below describes the target model, not current
-runtime behavior. The [expand migration](../../apps/web/auth/migrations/012_account_login_and_contact_verification.rb)
+runtime behavior. The [expand migration](../../apps/web/auth/migrations/015_account_login_and_contact_verification.rb)
 adds nullable login and verification columns, but email remains required and
 is still Rodauth's login column. Email-less account creation remains disabled.
 

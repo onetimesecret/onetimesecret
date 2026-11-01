@@ -128,7 +128,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       expect(issues).to be_empty
     end
 
-    it 'does nothing when the row predates migration 012 (no :login key)' do
+    it 'does nothing when the row predates migration 015 (no :login key)' do
       stub_row({ id: 42, email: 'live@example.com', status_id: 2 })
 
       doctor.send(:check_auth_login_link, issues)

@@ -3,7 +3,7 @@
 Added
 -----
 
-- Auth database migration 012 adds an internal ``login`` column and three
+- Auth database migration 015 adds an internal ``login`` column and three
   contact-email verification columns (``email_verified_at``,
   ``email_verified_by``, ``email_verification_hold``) to ``accounts``. All
   four are nullable and unused by this release; sign-in, account creation and
@@ -14,4 +14,4 @@ Added
   their Customer. This is the first, expand-only step of the account-model
   change in ADR-051 (SSO email-less accounts); later steps are gated on the
   backfill having completed. Rolling back to a release without migration
-  012 is safe at this step.
+  015 is safe at this step.

@@ -102,7 +102,7 @@ module Auth
 
         # The one accounts-row read every cross-store check shares (memoized
         # `auth_account`). `login` and the `email_verified_*` columns arrive
-        # with migration 012 (ADR-051); the auth DB is migrated at boot, so a
+        # with migration 015 (ADR-051); the auth DB is migrated at boot, so a
         # doctor that can reach it always sees them.
         AUTH_ACCOUNT_COLUMNS = [
           :id, :email, :status_id, :login,
@@ -1127,7 +1127,7 @@ module Auth
         # `login` IS the Customer objid, and `email_verified_at` is meant to
         # agree with the Customer `verified` mirror. Report-only, three shapes:
         #
-        #   :auth_login_missing   the row predates migration 012 and has not
+        #   :auth_login_missing   the row predates migration 015 and has not
         #                         been backfilled (`bin/ots customers
         #                         backfill-logins`); medium, expected during
         #                         the cutover window and zero after it
@@ -1151,7 +1151,7 @@ module Auth
             issues << {
               check: :auth_login_missing,
               severity: :medium,
-              message: 'auth account has no internal login yet (migration 012 added the column)',
+              message: 'auth account has no internal login yet (migration 015 added the column)',
               repairable: false,
               repair_action: 'Run `bin/ots customers backfill-logins` (dry run first)',
             }
