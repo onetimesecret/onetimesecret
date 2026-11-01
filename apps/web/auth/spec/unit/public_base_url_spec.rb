@@ -284,7 +284,12 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
         env = env_for(host: 'onetimesecret.com', display_domain: 'onetimesecret.com')
 
         env['HTTP_HOST'] = 'onetimesecret.com, onetimesecret.com'
-        expect(Rack::Request.new(env).base_url).to include(', ')
+        # Rack 3.2.8 (GHSA-2j8w-xcrc-x985) no longer passes an invalid
+        # authority through: host_with_port is nil and base_url falls back to
+        # SERVER_NAME. The doubled value is still in the env, where anything
+        # reading HTTP_HOST directly would pick it up.
+        expect(env['HTTP_HOST']).to include(', ')
+        expect(Rack::Request.new(env).host_with_port).to be_nil
         expect(described_class.allowlisted_base_url(env)).to eq('https://onetimesecret.com')
       end
     end
