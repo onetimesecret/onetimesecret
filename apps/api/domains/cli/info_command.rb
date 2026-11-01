@@ -66,7 +66,7 @@ module Onetime
         puts 'DNS Configuration:'
         puts "  TXT Validation Host:  #{domain.txt_validation_host || 'N/A'}"
         puts "  TXT Validation Value: #{domain.txt_validation_value || 'N/A'}"
-        puts "  Validation Record:    #{domain.validation_record || 'N/A'}"
+        puts "  Validation Record:    #{validation_record_line(domain)}"
         puts
 
         # Domain attributes
@@ -78,6 +78,11 @@ module Onetime
         puts 'Feature Toggles:'
         puts "  Allow Public Home:    #{domain.allow_public_homepage? || 'false'}"
         puts "  Allow Public API:     #{domain.allow_public_api? || 'false'}"
+        homepage_config = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(domain.identifier)
+        if homepage_config&.network_restricted?
+          puts "  Homepage Allowed CIDRs: #{cidr_list_line(homepage_config, :allowed_cidrs, '(any)')}"
+          puts "  Homepage Denied CIDRs:  #{cidr_list_line(homepage_config, :denied_cidrs, '(none)')}"
+        end
         puts
 
         # Vhost (Approximated) details
@@ -105,6 +110,25 @@ module Onetime
         puts "  Domain ID:            #{domain.domainid}"
         puts "  DB Key:               #{domain.dbkey}"
         puts
+      end
+
+      private
+
+      # The full TXT record name in A-label form, the name to create in DNS.
+      def validation_record_line(domain)
+        domain.validation_record || 'N/A'
+      rescue Onetime::DomainValidation::AsciiHostname::ConversionError => ex
+        "(no A-label form: #{ex.message})"
+      end
+
+      # An unreadable stored list reads back as [], but
+      # HomepageConfig#network_allowed? denies every visitor while it is
+      # there, so say that instead of the empty-list wording.
+      def cidr_list_line(homepage_config, field, empty_label)
+        return '(unreadable: every visitor is denied)' if homepage_config.public_send(:"#{field}_corrupt?")
+
+        list = homepage_config.public_send(field)
+        list.empty? ? empty_label : list.join(', ')
       end
     end
   end

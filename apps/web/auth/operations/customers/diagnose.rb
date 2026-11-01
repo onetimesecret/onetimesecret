@@ -183,6 +183,7 @@ module Auth
             provisioning_failure_code: customer.provisioning_failure_code,
             provisioning_failure_classification: customer.provisioning_failure_classification,
             provisioning_failed_at: numeric_epoch(customer.provisioning_failed_at),
+            closure_started_at: numeric_epoch(customer.closure_started_at),
           }
         # `error` is the wire contract the colonel panel renders; `available` /
         # `reason` are the same failure in the shape every other section uses, so
@@ -328,13 +329,14 @@ module Auth
               found: true,
               account_id: account_id,
               status: STATUS_NAMES.fetch(account[:status_id], "unknown (#{account[:status_id]})"),
+              status_id: account[:status_id],
               email: account[:email],
               email_matches_customer: customer.nil? || account[:email].to_s.casecmp?(customer.email.to_s),
               linked_extid: account[:external_id],
-              created_at: epoch(account[:created_at]),
+              created_at: epoch(db, account[:created_at]),
               has_password: db[:account_password_hashes].where(id: account_id).any?,
-              password_changed_at: epoch(db[:account_password_change_times].where(id: account_id).get(:changed_at)),
-              last_login_at: epoch(db[:account_activity_times].where(id: account_id).get(:last_login_at)),
+              password_changed_at: epoch(db, db[:account_password_change_times].where(id: account_id).get(:changed_at)),
+              last_login_at: epoch(db, db[:account_activity_times].where(id: account_id).get(:last_login_at)),
               external_identities: db[:account_identities]
                 .where(account_id: account_id)
                 .select_map([:provider, :issuer])
@@ -356,8 +358,8 @@ module Auth
           row = db[:account_verification_keys].where(id: account_id).first
           {
             pending: !row.nil?,
-            requested_at: epoch(row&.fetch(:requested_at, nil)),
-            email_last_sent: epoch(row&.fetch(:email_last_sent, nil)),
+            requested_at: epoch(db, row&.fetch(:requested_at, nil)),
+            email_last_sent: epoch(db, row&.fetch(:email_last_sent, nil)),
           }
         end
 
@@ -365,8 +367,8 @@ module Auth
           row = db[:account_password_reset_keys].where(id: account_id).first
           {
             pending: !row.nil?,
-            deadline: epoch(row&.fetch(:deadline, nil)),
-            email_last_sent: epoch(row&.fetch(:email_last_sent, nil)),
+            deadline: epoch(db, row&.fetch(:deadline, nil)),
+            email_last_sent: epoch(db, row&.fetch(:email_last_sent, nil)),
           }
         end
 
@@ -375,9 +377,9 @@ module Auth
           deadline = lockout&.fetch(:deadline, nil)
           {
             login_failures: db[:account_login_failures].where(id: account_id).get(:number).to_i,
-            locked: !deadline.nil? && deadline > Time.now,
-            deadline: epoch(deadline),
-            email_last_sent: epoch(lockout&.fetch(:email_last_sent, nil)),
+            locked: !deadline.nil? && epoch(db, deadline) > Time.now.to_f,
+            deadline: epoch(db, deadline),
+            email_last_sent: epoch(db, lockout&.fetch(:email_last_sent, nil)),
           }
         end
 
@@ -385,7 +387,7 @@ module Auth
           dataset = db[:account_active_session_keys].where(account_id: account_id)
           {
             active_count: dataset.count,
-            last_use: epoch(dataset.max(:last_use)),
+            last_use: epoch(db, dataset.max(:last_use)),
           }
         end
 
@@ -400,7 +402,7 @@ module Auth
             .select(:at, :message, :metadata)
             .map do |row|
               {
-                at: epoch(row[:at]),
+                at: epoch(db, row[:at]),
                 message: row[:message],
                 metadata: plain_json(row[:metadata], decode: true),
               }
@@ -448,6 +450,7 @@ module Auth
         def derive_findings(sections)
           findings = []
           check_existence(sections, findings)
+          check_closure(sections, findings)
           check_customer_state(sections, findings)
           check_provisioning_state(sections, findings)
           check_auth_account(sections, findings)
@@ -507,7 +510,8 @@ module Auth
               'Auth account exists but has no customer record — login will misbehave. ' \
               'Run `bin/ots customers doctor` for repair options.',
             )
-          elsif customer_found && account[:available] && account[:found] != true
+          elsif customer_found && account[:available] && account[:found] != true &&
+                sections.dig(:customer, :closure_started_at).nil?
             add(
               findings,
               :critical,
@@ -516,6 +520,80 @@ module Auth
               'Run `bin/ots customers sync-auth-accounts`.',
             )
           end
+        end
+
+        # A closure marker (Customer#closing?) on a record that still exists.
+        # Without a live auth account, the closure deleted the sign-in and
+        # stopped before the record went: re-creating the auth account (what
+        # :missing_auth_account advises) would reopen an account its owner
+        # closed, so this replaces that finding. With a live auth account of
+        # its own (find_account also matches by email, which can reach a row
+        # linked to another record), the closure's transaction rolled back
+        # and the account is open. A failed authdb read decides neither;
+        # check_existence reports it. A marker younger than
+        # Customer::CLOSURE_STALE_AFTER can belong to a closure still
+        # running, which a purge would race, so it is reported as that.
+        # Customer.closure_state is the classification, shared with doctor,
+        # finish-closures and the sign-up finish.
+        def check_closure(sections, findings)
+          started_at = sections.dig(:customer, :closure_started_at)
+          return if started_at.nil?
+
+          case Onetime::Customer.closure_state(started_at, open_auth_account: own_auth_account_open(sections))
+          when :in_progress
+            add(
+              findings,
+              :info,
+              :closure_in_progress,
+              "Account closure started at #{format_epoch(started_at)} and may still be running. " \
+              'Check again in 15 minutes before acting on it.',
+            )
+          when :rolled_back
+            add(
+              findings,
+              :warning,
+              :closure_rolled_back,
+              "Customer record is marked as closing since #{format_epoch(started_at)}, but its auth " \
+              'account is open: the closure rolled back and the account is live. ' \
+              '`bin/ots customers doctor --repair` clears the marker.',
+            )
+          when :interrupted
+            add(
+              findings,
+              :critical,
+              :closure_interrupted,
+              "#{auth_mode_caveat}Customer record is marked as closing since #{format_epoch(started_at)} " \
+              'and has no open auth account: an account closure stopped before the record was deleted. Finish it with ' \
+              "`bin/ots customers purge #{sections.dig(:customer, :extid)}` (or every such closure with " \
+              '`bin/ots customers finish-closures --confirm`); do not re-create the auth account.',
+            )
+          end
+        end
+
+        # Whether the record's own accounts row is live, for
+        # Customer.closure_state: nil when the authdb could not be read (simple
+        # mode has none, so false; #auth_mode_caveat says when that mode was
+        # only the fallback). find_account also matches by email, and a row
+        # linked to another record is not this one's.
+        def own_auth_account_open(sections)
+          account = sections[:auth_account]
+          return if account[:available] == false && account[:reason_code] != :simple_mode
+
+          account[:found] == true && AccountStatuses.live?(account[:status_id]) &&
+            account[:linked_extid] == sections.dig(:customer, :extid)
+        end
+
+        # Leads the interrupted-closure finding when the process resolved
+        # simple auth mode by default (Onetime::AuthConfig#simple_by_default?):
+        # bin/ots does so whenever AUTHENTICATION_MODE is not exported into
+        # its shell, full-mode install or not, and on a full-mode install the
+        # record may then belong to a rolled-back closure with a live
+        # account. The purge the finding names refuses in the same state.
+        def auth_mode_caveat
+          return '' unless Onetime.auth_config.simple_by_default?
+
+          'No auth account was checked (AUTHENTICATION_MODE is not set, so simple auth mode was resolved ' \
+            'by default; on a full-mode install re-run with it exported before acting). '
         end
 
         def check_customer_state(sections, findings)
@@ -821,10 +899,15 @@ module Auth
           value.to_f
         end
 
-        def epoch(value)
+        # The columns are filled by the database (defaults, Rodauth's
+        # CURRENT_TIMESTAMP writes); Auth::DatabaseConnection.timestamp reads
+        # them in the zone they were written in, which Time#to_f on the value
+        # as read gets wrong by the host's UTC offset on PostgreSQL.
+        def epoch(db, value)
           return nil if value.nil?
+          return value.to_f unless value.respond_to?(:to_time)
 
-          value.respond_to?(:to_time) ? value.to_time.to_f : value.to_f
+          Auth::DatabaseConnection.timestamp(db, value).to_f
         end
 
         def format_epoch(value)

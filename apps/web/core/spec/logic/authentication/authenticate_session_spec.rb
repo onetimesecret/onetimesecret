@@ -807,10 +807,11 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
   # ATTEMPTED identity — the account the `login` param names — never against
   # strategy_result.user. Full mode has no carried-session fallback (Rodauth
   # resolves the account from the submitted `login` and verifies the password
-  # against that account alone; its default already_logged_in is a no-op and
-  # this app never configures it), so simple mode must not either. These
-  # scenarios mirror the carried-session-vs-login-param contexts in the
-  # colonel.signin_failed describe above.
+  # against that account alone; its already_logged_in, configured in
+  # apps/web/auth/config/base.rb, refuses a session the app has marked
+  # authenticated before the password is checked), so simple mode must not
+  # either. These scenarios mirror the carried-session-vs-login-param contexts
+  # in the colonel.signin_failed describe above.
   describe 'attempted-identity authentication (parity with full mode)' do
     # The customer whose session the request carries. Its passphrase MATCHES
     # the submitted password — the pre-fix hazard: on a mismatch with the

@@ -159,9 +159,19 @@ module Onetime
               return ack! # Don't retry -- config won't appear on its own
             end
 
+            # Every write goes through record_job_result!: it lands on the
+            # record as stored now, and is skipped once the record is gone
+            # or sends from another address than the one this job checks.
+            from_address = mailer_config.from_address
+
             # Mark job as processing
-            mailer_config.provider_check_status = JobLifecycle::PROCESSING
-            mailer_config.save_fields(:provider_check_status)
+            marked = Onetime::CustomDomain::MailerConfig.record_job_result!(domain_id, from_address) do |stored|
+              stored.provider_check_status = JobLifecycle::PROCESSING
+            end
+            unless marked
+              log_info "Sender domain validation skipped: #{domain_id} was deleted or its sender address changed"
+              return ack!
+            end
 
             # Delegate to operation with retry logic (DNS can be transiently flaky)
             # Don't retry rate limits - they won't clear for ~60 minutes
@@ -172,7 +182,7 @@ module Onetime
               retriable: ->(ex) { !ex.is_a?(Onetime::LimitExceeded) },
             ) do
               # persist: false because this worker controls verification_status
-              # through update_verification_status! after BOTH workers complete.
+              # (MailerConfig#derive_verification_status) after BOTH workers complete.
               # The operation would otherwise set verification_status='verified'
               # based on DNS alone, before the provider API check runs.
               result = Onetime::Operations::ValidateSenderDomain.new(
@@ -198,28 +208,26 @@ module Onetime
             # the jobs-disabled fallback in Publisher#enqueue_domain_validation
             # so both paths close the provider check the same way (tri-state
             # provider_verified; a raise inside completes without demoting).
-            Onetime::Operations::CheckProviderVerification.new(
+            # Closes the provider check and, when the DNS worker has already
+            # finished, derives verification_status in the same write.
+            stored = Onetime::Operations::CheckProviderVerification.new(
               mailer_config: mailer_config,
               dns_all_verified: result.all_verified,
               domain_id: domain_id,
               logger: logger,
             ).call
 
-            # Refresh from Redis so we see the DNS worker's latest status, not our
-            # in-memory copy which was loaded before that worker ran.
-            mailer_config.refresh!
-
-            # Update stored verification_status if both jobs are now complete
-            if mailer_config.jobs_completed?
-              final_status = mailer_config.update_verification_status!
+            if stored.nil?
+              log_info "Domain validation result dropped: #{domain_id} was deleted or its sender address changed"
+            elsif stored.jobs_completed?
               log_info "Domain validation final determination: #{domain_id}",
-                verification_status: final_status,
-                dns_verified: mailer_config.dns_verified,
-                provider_verified: mailer_config.provider_verified
+                verification_status: stored.verification_status,
+                dns_verified: stored.dns_verified,
+                provider_verified: stored.provider_verified
             else
               log_info "Domain validation awaiting DNS check: #{domain_id}",
-                provider_verified: mailer_config.provider_verified,
-                dns_check_status: mailer_config.dns_check_status
+                provider_verified: stored.provider_verified,
+                dns_check_status: stored.dns_check_status
             end
 
             ack!
@@ -229,11 +237,12 @@ module Onetime
           # User can manually re-trigger after the rate limit window
           # Mark as completed (not failed) but without setting provider_verified
           if mailer_config
-            mailer_config.provider_check_status       = JobLifecycle::COMPLETED
-            mailer_config.provider_check_completed_at = Familia.now.to_i
-            mailer_config.last_error                  = "Rate limited: retry after #{ex.retry_after}s"
-            mailer_config.updated                     = Familia.now.to_i
-            mailer_config.save_fields(:provider_check_status, :provider_check_completed_at, :last_error, :updated)
+            Onetime::CustomDomain::MailerConfig.record_job_result!(mailer_config.domain_id, mailer_config.from_address) do |stored|
+              stored.provider_check_status       = JobLifecycle::COMPLETED
+              stored.provider_check_completed_at = Familia.now.to_i
+              stored.last_error                  = "Rate limited: retry after #{ex.retry_after}s"
+              stored.updated                     = Familia.now.to_i
+            end
           end
 
           log_info 'Sender domain validation rate limited',
@@ -245,11 +254,12 @@ module Onetime
         rescue StandardError => ex
           # Mark job as failed before sending to DLQ
           if mailer_config
-            mailer_config.provider_check_status       = JobLifecycle::FAILED
-            mailer_config.provider_check_completed_at = Familia.now.to_i
-            mailer_config.last_error                  = ex.message
-            mailer_config.updated                     = Familia.now.to_i
-            mailer_config.save_fields(:provider_check_status, :provider_check_completed_at, :last_error, :updated)
+            Onetime::CustomDomain::MailerConfig.record_job_result!(mailer_config.domain_id, mailer_config.from_address) do |stored|
+              stored.provider_check_status       = JobLifecycle::FAILED
+              stored.provider_check_completed_at = Familia.now.to_i
+              stored.last_error                  = ex.message
+              stored.updated                     = Familia.now.to_i
+            end
           end
 
           log_error 'Unexpected error validating sender domain', ex

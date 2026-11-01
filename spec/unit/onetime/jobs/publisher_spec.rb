@@ -16,8 +16,9 @@ RSpec.describe Onetime::Jobs::Publisher do
       expect(described_class).to respond_to(:enqueue_email_raw)
     end
 
-    it 'responds to schedule_email' do
-      expect(described_class).to respond_to(:schedule_email)
+    # The delayed path published to a queue nothing consumed (#4844).
+    it 'has no schedule_email' do
+      expect(described_class).not_to respond_to(:schedule_email)
     end
   end
 
@@ -26,10 +27,6 @@ RSpec.describe Onetime::Jobs::Publisher do
 
     it 'responds to enqueue_email' do
       expect(publisher).to respond_to(:enqueue_email)
-    end
-
-    it 'responds to schedule_email' do
-      expect(publisher).to respond_to(:schedule_email)
     end
 
     it 'responds to publish' do
@@ -49,6 +46,12 @@ RSpec.describe Onetime::Jobs::Publisher do
 
   describe '#publish with RabbitMQ' do
     subject(:publisher) { described_class.new }
+
+    # The example installs a pool double in the global; clear it so the
+    # double does not reach a later example that publishes.
+    after do
+      $rmq_channel_pool = nil
+    end
 
     it 'includes message_id in UUID format when publishing' do
       mock_channel = instance_double(Bunny::Channel)
@@ -153,14 +156,6 @@ RSpec.describe Onetime::Jobs::Publisher do
 
       it 'propagates trace headers via enqueue_email' do
         publisher.enqueue_email(:secret_link, { secret_key: 'abc' })
-
-        expect(mock_exchange).to have_received(:publish) do |_payload, options|
-          expect(options[:headers]['sentry-trace']).to eq('00-abcd1234-5678ef90-01')
-        end
-      end
-
-      it 'propagates trace headers via schedule_email' do
-        publisher.schedule_email(:secret_link, { secret_key: 'abc' }, delay_seconds: 60)
 
         expect(mock_exchange).to have_received(:publish) do |_payload, options|
           expect(options[:headers]['sentry-trace']).to eq('00-abcd1234-5678ef90-01')
@@ -469,16 +464,6 @@ RSpec.describe Onetime::Jobs::Publisher do
         end
       end
 
-      it 'includes domain_id in scheduled email payload' do
-        publisher.schedule_email(:secret_link, { secret_key: 'abc' }, delay_seconds: 60, domain_id: 'dom_sched')
-
-        expect(mock_exchange).to have_received(:publish) do |payload_json, options|
-          payload = JSON.parse(payload_json, symbolize_names: true)
-          expect(payload[:domain_id]).to eq('dom_sched')
-          expect(options[:expiration]).to eq('60000')
-        end
-      end
-
       it 'includes domain_id in raw email payload' do
         raw_email = { to: 'user@example.com', from: 'noreply@example.com', subject: 'Test', body: 'Body' }
         publisher.enqueue_email_raw(raw_email, domain_id: 'dom_raw123')
@@ -595,22 +580,27 @@ RSpec.describe Onetime::Jobs::Publisher do
   end
 
   # Jobs disabled (no RabbitMQ pool): the sender-domain checks run inline and
-  # must reach the same conclusions the workers do.
+  # must reach the same conclusions the workers do. Writes go through
+  # MailerConfig.record_job_result!, stubbed to yield the same double as the
+  # stored record; `writes` captures what it was assigned.
   describe 'inline sender-domain checks without RabbitMQ' do
     subject(:publisher) { described_class.new }
 
-    let(:writes) { { saved: [] } }
+    let(:writes) { {} }
     let(:dns_results) { double('dns_check_results', :value= => nil) }
     let(:written_fields) do
       [:dns_verified, :dns_check_status, :dns_check_completed_at, :provider_check_status,
        :provider_check_completed_at, :updated]
     end
     let(:mailer_config) do
-      cfg = double('MailerConfig', effective_provider: 'ses', dns_check_results: dns_results)
+      cfg = double(
+        'MailerConfig',
+        domain_id: 'dom_inline', from_address: 'sender@example.com', effective_provider: 'ses',
+        dns_check_results: dns_results, derive_verification_status: nil
+      )
       written_fields.each do |field|
         allow(cfg).to receive(:"#{field}=") { |value| writes[field] = value }
       end
-      allow(cfg).to receive(:save_fields) { |*fields| writes[:saved].concat(fields) }
       cfg
     end
 
@@ -620,6 +610,8 @@ RSpec.describe Onetime::Jobs::Publisher do
       require 'onetime/mail/sender_strategies'
       require 'onetime/operations/validate_sender_domain'
       allow(Onetime::CustomDomain::MailerConfig).to receive(:find_by_domain_id).with('dom_inline').and_return(mailer_config)
+      allow(Onetime::CustomDomain::MailerConfig).to receive(:record_job_result!)
+        .with('dom_inline', 'sender@example.com') { |*_args, &block| [mailer_config, block.call(mailer_config)] }
     end
 
     describe '#enqueue_dns_record_check' do
@@ -638,7 +630,7 @@ RSpec.describe Onetime::Jobs::Publisher do
 
         expect(writes[:dns_verified]).to be(false)
         expect(writes[:dns_check_status]).to eq('completed')
-        expect(writes[:saved]).to include(:dns_verified, :dns_check_status)
+        expect(dns_results).to have_received(:value=).with([])
       end
 
       it 'marks verified only when every checked record matched' do
@@ -673,14 +665,16 @@ RSpec.describe Onetime::Jobs::Publisher do
         allow(Onetime::Operations::ValidateSenderDomain).to receive(:new).and_return(operation)
         allow(Onetime::Operations::CheckProviderVerification).to receive(:new).and_return(provider_check)
         allow(mailer_config).to receive(:last_error=) { |value| writes[:last_error] = value }
-        allow(mailer_config).to receive(:refresh!)
         allow(mailer_config).to receive(:jobs_completed?).and_return(jobs_completed)
-        allow(mailer_config).to receive(:update_verification_status!).and_return('verified')
+        allow(mailer_config).to receive(:computed_verification_status).and_return('verified')
+        allow(mailer_config).to receive(:verification_status=) { |value| writes[:verification_status] = value }
+        allow(mailer_config).to receive(:verified_at=) { |value| writes[:verified_at] = value }
+        allow(mailer_config).to receive(:verification_status) { writes[:verification_status] }
       end
 
       # The worker passes persist: false so verification_status is derived from
-      # BOTH outcomes by update_verification_status!, never written from DNS
-      # alone ahead of the provider check. The fallback must not differ.
+      # BOTH outcomes, never written from DNS alone ahead of the provider
+      # check. The fallback must not differ.
       it 'validates DNS without persisting a DNS-only verification_status' do
         publisher.enqueue_domain_validation('dom_inline', bypass_cache: true)
 
@@ -703,8 +697,8 @@ RSpec.describe Onetime::Jobs::Publisher do
       it 'derives the user-facing status from both outcomes once both checks are terminal' do
         publisher.enqueue_domain_validation('dom_inline')
 
-        expect(mailer_config).to have_received(:refresh!).ordered
-        expect(mailer_config).to have_received(:update_verification_status!).ordered
+        expect(mailer_config).to have_received(:computed_verification_status)
+        expect(writes[:verification_status]).to eq('verified')
       end
 
       # Nothing will ever complete a DNS record check this call did not run on
@@ -719,18 +713,14 @@ RSpec.describe Onetime::Jobs::Publisher do
           allow(mailer_config).to receive(:parse_boolean_field) do |value|
             { 'true' => true, 'false' => false }[value]
           end
-          allow(mailer_config).to receive(:verification_status=) { |value| writes[:verification_status] = value }
-          allow(mailer_config).to receive(:verified_at=) { |value| writes[:verified_at] = value }
-          allow(mailer_config).to receive(:verification_status) { writes[:verification_status] }
         end
 
         it 'marks verified when DNS validated and the provider agreed (or could not say)' do
           publisher.enqueue_domain_validation('dom_inline')
 
-          expect(mailer_config).not_to have_received(:update_verification_status!)
+          expect(mailer_config).not_to have_received(:computed_verification_status)
           expect(writes[:verification_status]).to eq('verified')
           expect(writes[:verified_at]).to match(/\A\d+\z/)
-          expect(writes[:saved]).to include(:verification_status, :verified_at)
         end
 
         context 'when the provider answered an authoritative no' do
@@ -753,7 +743,6 @@ RSpec.describe Onetime::Jobs::Publisher do
 
           expect(writes[:provider_check_status]).to eq('failed')
           expect(writes[:last_error]).to eq('DNS lookup timed out')
-          expect(writes[:saved]).to include(:provider_check_status, :last_error)
           expect(Onetime::Operations::CheckProviderVerification).not_to have_received(:new)
         end
       end
@@ -1206,11 +1195,7 @@ RSpec.describe Onetime::Jobs::Publisher do
         instance_double(
           Onetime::CustomDomain::MailerConfig,
           domain_id: 'dom_sync',
-          # The inline path runs the provider check and derives the final
-          # status afterwards, as the worker does.
-          refresh!: true,
-          jobs_completed?: true,
-          update_verification_status!: 'verified',
+          from_address: 'sender@example.com',
         )
       end
       let(:dns_result) { double('Result', error: nil, all_verified: true) }
@@ -1219,6 +1204,9 @@ RSpec.describe Onetime::Jobs::Publisher do
         $rmq_channel_pool = nil
         require 'onetime/operations/check_provider_verification'
         allow(Onetime::CustomDomain::MailerConfig).to receive(:find_by_domain_id).and_return(mock_config)
+        # The inline path runs the provider check and settles the final
+        # status afterwards, as the worker does; that write is not under test.
+        allow(Onetime::CustomDomain::MailerConfig).to receive(:record_job_result!).and_return([mock_config, 'verified'])
         allow(Onetime::Operations::CheckProviderVerification).to receive(:new)
           .and_return(double('CheckProviderVerification', call: nil))
       end

@@ -31,7 +31,11 @@ import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { defineComponent, ref } from 'vue';
 import { createMemoryHistory, createRouter, Router, RouterLink } from 'vue-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useRealRouter } from '@/tests/utils/routerSetup';
 import VerifyAccount from '@/apps/session/views/VerifyAccount.vue';
+
+// Mounts with a real router; see useRealRouter.
+useRealRouter();
 
 // useAuth is mocked wholesale: this file is about what the view renders when
 // verification does NOT navigate away, so the composable is reduced to a

@@ -205,10 +205,14 @@ module Auth
         #
         # `dry_run` is in the detail because it defaults to TRUE and the success
         # event is applied-path-only. Addresses are OBSCURED, as in record_audit.
+        #
+        # Off for a self-service redemption (see #initialize): a raise there
+        # must not put a row on the operator trail.
         audit_failures :call,
           verb: AUDIT_VERB,
           target: -> { failure_target },
-          detail: -> { { dry_run: @dry_run, to: OT::Utils.obscure_email(@new_email.to_s) } }
+          detail: -> { { dry_run: @dry_run, to: OT::Utils.obscure_email(@new_email.to_s) } },
+          enabled: -> { !@self_service }
 
         # Compare-and-delete on the global email index: drop the field ONLY while
         # it still names us (`release_index_claim`). A read-then-HDEL is NOT good
@@ -328,11 +332,23 @@ module Auth
         #   whatever it finds, which is no guard at all (review items 1/2/4).
         # @param db [Sequel::Database, nil] injectable; defaults to
         #   `Auth::Database.connection` at call time (nil in simple mode).
+        # @param self_service [Boolean] the account holder is redeeming their
+        #   own confirmation link (AccountAPI ConfirmEmailChange). Routes every
+        #   audit write this op makes (refusal, no-change attempt, applied
+        #   change, and the composed session revoke-all) to the security trail
+        #   via {Onetime::ColonelAuditEvent.record_security} instead of the
+        #   count-capped operator trail, and turns the failure wrapper off. That
+        #   route is unauthenticated and a refused redemption leaves the
+        #   pending change in place, so the same link can be replayed at will:
+        #   on the operator trail every replay would evict an operator record.
+        #   Self-service requires `require_verification: false` (ArgumentError
+        #   otherwise): the composed SetVerification writes the operator trail,
+        #   and the token already proves the new address.
         def initialize(customer:, new_email:, actor:, dry_run: true,
                        require_verification: true, revoke_sessions: true, notify: true,
                        reason: nil, ticket: nil, allow_closed_account_reuse: false,
                        allow_canonicalization: false, account_id: nil, expected_auth_email: nil,
-                       db: nil)
+                       db: nil, self_service: false)
           if account_id && !allow_canonicalization
             raise ArgumentError, 'account_id: is only accepted together with allow_canonicalization: true'
           end
@@ -341,6 +357,9 @@ module Auth
           end
           if expected_auth_email && account_id.nil?
             raise ArgumentError, 'expected_auth_email: is only accepted together with account_id:'
+          end
+          if self_service && require_verification
+            raise ArgumentError, 'self_service: requires require_verification: false'
           end
 
           @customer                   = customer
@@ -364,6 +383,7 @@ module Auth
           @ticket                     = normalize_reason(ticket)
           @allow_closed_account_reuse = allow_closed_account_reuse
           @db                         = db
+          @self_service               = self_service
           @warnings                   = []
         end
 
@@ -870,6 +890,7 @@ module Auth
           Onetime::Operations::Sessions::RevokeAllForCustomer.new(
             customer: @customer,
             actor: @actor,
+            self_service: @self_service,
           ).call
           true
         rescue StandardError => ex
@@ -968,7 +989,7 @@ module Auth
           # The wrapper never got far enough to record its own verb, and a
           # verification state change with no event is a hole in the trail. Same
           # verb and shape the wrapper would have emitted (epic #20 CONTRACT 4).
-          Onetime::ColonelAuditEvent.record(
+          record_event(
             actor: @actor,
             verb: 'customer.set_verification',
             target: @customer.extid,
@@ -1204,13 +1225,25 @@ module Auth
             return
           end
 
+          # Self-service: the same envelope as record_no_change_attempt, on the
+          # security trail (see #initialize).
+          if @self_service
+            return record_event(
+              actor: audit_actor,
+              verb: audit_verb,
+              target: audit_target,
+              result: :success,
+              detail: with_provenance(detail).merge(outcome: Onetime::Operations::AuditAttempt::NO_CHANGE_OUTCOME),
+            )
+          end
+
           record_no_change_attempt(with_provenance(detail))
         end
 
         # Same verb/target/actor as the success event; obscured addresses only,
         # exactly like record_audit. Best-effort: never break the op.
         def record_refusal(status, old_email)
-          Onetime::ColonelAuditEvent.record(
+          record_event(
             actor: @actor,
             verb: AUDIT_VERB,
             target: failure_target,
@@ -1373,13 +1406,24 @@ module Auth
           # trail records only actor='cli'.
           detail          = with_provenance(detail)
 
-          Onetime::ColonelAuditEvent.record(
+          record_event(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,
             result: result,
             detail: detail,
           )
+        end
+
+        # The one switch between the two trails this op writes: the security
+        # trail for a self-service redemption, the operator trail otherwise
+        # (see #initialize). Never fail-closed on either.
+        def record_event(**event)
+          if @self_service
+            Onetime::ColonelAuditEvent.record_security(**event)
+          else
+            Onetime::ColonelAuditEvent.record(**event)
+          end
         end
       end
       # rubocop:enable Metrics/ClassLength

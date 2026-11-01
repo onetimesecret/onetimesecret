@@ -28,7 +28,9 @@ module Onetime
 
       desc 'List known rate limiters and their subject types'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         puts 'Known rate limiters:'
         width = LIMITERS.keys.map(&:length).max
         LIMITERS.each do |kind, meta|

@@ -12,7 +12,8 @@ module AccountAPI::Logic
     #
     # The domain must be either:
     # - A canonical host (features.domains.default or site.host)
-    # - One of the user's custom domains from their organizations
+    # - One of the user's custom domains from their organizations that is
+    #   served as a tenant domain (CustomDomain#served_as_tenant?)
     #
     # Anonymous users can only use the canonical domain.
     class UpdateDomainContext < UpdateAccountField
@@ -85,8 +86,10 @@ module AccountAPI::Logic
         sess['domain_context'] = new_domain_context
       end
 
-      # Validates that the domain is either a canonical host or
-      # one of the user's custom domains
+      # Validates that the domain is either a canonical host or one of the
+      # user's custom domains that is served as a tenant domain
+      # (CustomDomain#served_as_tenant?), the same set the domain-context
+      # picker offers (DomainSerializer#serialize_domain_entry).
       #
       # @param domain [String] The domain to validate
       # @return [Boolean] true if domain is valid for this user
@@ -99,8 +102,9 @@ module AccountAPI::Logic
         # Check if domain is in user's custom domains list
         return false unless domains_enabled
 
-        custom_domains = cust.custom_domains_list.map(&:display_domain)
-        custom_domains.include?(domain)
+        cust.custom_domains_list.any? do |custom_domain|
+          custom_domain.display_domain == domain && custom_domain.served_as_tenant?
+        end
       end
 
       def log_update

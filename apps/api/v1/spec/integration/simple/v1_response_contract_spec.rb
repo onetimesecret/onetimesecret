@@ -32,13 +32,12 @@ RSpec.describe 'V1 API Response Contract', type: :integration do
     end
   end
 
-  # force: a partial boot (`OT.boot! :test, false`) from an earlier
-  # randomized-order spec marks boot complete while skipping configure_familia,
-  # and a plain boot! re-entry is a no-op — this spec needs the full
-  # initializer set (VERIFIABLE_ID_HMAC_SECRET, encryption keys) to mint
-  # secrets.
+  # A full boot: this spec needs the full initializer set
+  # (VERIFIABLE_ID_HMAC_SECRET, encryption keys) to mint secrets. If an
+  # earlier randomized-order spec left a partial boot (`OT.boot! :test, false`),
+  # boot! upgrades it rather than reusing it.
   before(:all) do
-    Onetime.boot! :test, force: true
+    Onetime.boot! :test
   end
 
   # The response=json wrapper adds top-level "success" and "data" keys;

@@ -340,6 +340,47 @@ AE.events.clear
 RAFC.new(customer: @bulk, actor: @actor).call.untracked_deleted
 #=> 1
 
+# ---- self-service: the security trail, never the operator trail ----------
+
+## a self-service revoke-all (Customers::Purge on close-account,
+## Customers::ChangeEmail on a redeemed link) writes ONE security-trail event
+## and nothing to the operator trail
+AE.events.clear
+AE.security_events.clear
+@ss_ghost = "ghost_ss_#{@nonce}@example.com"
+RAFC.new(custid: @ss_ghost, actor: @actor, self_service: true).call.revoked
+#=> true
+
+## ...as session.revoke_all, with the same target fallback
+@ss_ev = AE.recent_security(1).first
+[AE.count, AE.security_count, @ss_ev['verb'], @ss_ev['target']]
+#=> [0, 1, "session.revoke_all", "#{@ss_ghost}"]
+
+## an operator revoke-all that raises records ONE failure on the operator trail
+AE.events.clear
+AE.security_events.clear
+@op_boom = RAFC.new(custid: @ss_ghost, actor: @actor)
+def @op_boom.load_customer = raise(StandardError, 'boom')
+begin
+  @op_boom.call
+rescue StandardError => ex
+  [ex.message, AE.count, AE.recent(1).first['result']]
+end
+#=> ["boom", 1, "failure"]
+
+## a self-service revoke-all that raises records NOTHING on either trail: the
+## failure wrapper is off for self-service
+AE.events.clear
+AE.security_events.clear
+@ss_boom = RAFC.new(custid: @ss_ghost, actor: @actor, self_service: true)
+def @ss_boom.load_customer = raise(StandardError, 'boom')
+begin
+  @ss_boom.call
+rescue StandardError => ex
+  [ex.message, AE.count, AE.security_count]
+end
+#=> ["boom", 0, 0]
+
 # Cleanup
 DB.del("session:#{@bulk_tracked}")
 DB.del("session:#{@bulk_untracked}")
@@ -359,3 +400,4 @@ DB.del("sidecar:#{@untracked}:domain_context")
 @cust.destroy!
 @other.destroy!
 AE.events.clear
+AE.security_events.clear

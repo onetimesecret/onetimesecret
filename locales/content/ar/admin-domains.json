@@ -215,10 +215,6 @@
     "text": "المؤسسة:",
     "source_hash": "5300e286"
   },
-  "web.admin.domains.actions.remove.reassertsSurvivor": {
-    "text": "سجل آخر يطالب بنفس اسم النطاق وسيتولى فهرس البحث.",
-    "source_hash": "902838f4"
-  },
   "web.admin.domains.actions.remove.confirmTitle": {
     "text": "إزالة النطاق؟",
     "source_hash": "716dfac9"

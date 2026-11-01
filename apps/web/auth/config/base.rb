@@ -92,6 +92,44 @@ module Auth::Config::Base
       session.destroy
     end
 
+    # Refuse a signed-in session on the routes Rodauth serves to the logged
+    # out: login, webauthn-login, create-account, the verify-account resend
+    # and redemption, the email-login request and redemption, and the
+    # unlock-account request and redemption. Rodauth's default is a no-op
+    # (2.47 warns at boot that it is unconfigured; Rodauth 3 will raise), and
+    # the router's active-session gate only diverts REJECTED sessions
+    # (router.rb revoked_outcome), so without this a valid login could run
+    # signup again or switch accounts through a verify or magic link. The
+    # reason is withdrawn from the failure-code stash
+    # (Auth::CredentialFailureCode), so the 403 stays uncoded. In JSON-only
+    # mode `redirect` answers with the JSON error body (json feature); the
+    # login_redirect target is never followed.
+    #
+    # Rodauth calls this whenever `logged_in?` (an account_id in the session)
+    # is true. Two kinds of request in that state go through:
+    #
+    #   - A session the app has not marked `authenticated`, the flag that
+    #     after_login (Auth::Operations::SyncSession) and the SSO and MFA
+    #     completions write. The verify-account autologin never fires
+    #     after_login (session_recheck.rb, "Autologin sessions"), and the SPA
+    #     then sends the user to /signin to log in with the password chosen
+    #     at signup (useAuth.verifyAccount), on that cookie. An MFA-pending
+    #     session lacks the flag as well.
+    #   - The reset-password request and redemption, from any session: the
+    #     account settings page requests the mailbox-proof link from a
+    #     signed-in one (ResetPassword.vue; set-password mode for a
+    #     passwordless account, #3886), and the link is followed in the same
+    #     browser.
+    auth.already_logged_in do
+      next unless session['authenticated'] == true
+      next if [:reset_password_request, :reset_password].include?(current_route)
+
+      set_redirect_error_status 403
+      set_error_reason :already_logged_in
+      set_redirect_error_flash 'Already logged in'
+      redirect login_redirect
+    end
+
     # auth.max_invalid_logins 2
     # auth.account_password_hash_column :ph
     # auth.title_instance_variable :@page_title

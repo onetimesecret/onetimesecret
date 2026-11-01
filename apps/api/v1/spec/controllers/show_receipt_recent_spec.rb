@@ -65,6 +65,7 @@ RSpec.describe V1::Controllers::Index, '#show_receipt_recent' do
         .and_return(logic)
       allow(logic).to receive(:domain_strategy=)
       allow(logic).to receive(:display_domain=)
+      allow(logic).to receive(:ip_match=)
       allow(logic).to receive(:raise_concerns)
       allow(logic).to receive(:process)
     end

@@ -383,10 +383,17 @@ module Auth
       # an undefined one (ADR-034#reject-as-not-found-not-forbidden). Built here
       # rather than reusing the router's
       # status_handler because request.halt bypasses Roda's status handlers.
+      #
+      # It bypasses the router's default headers too, so the one the router
+      # adds to every answer it finishes (`plugin :default_headers`,
+      # router.rb, #4461) is stated here, in the same order: without it an
+      # undefined path's 404 carried cache-control and a gated route's did not,
+      # telling the two apart. Content-length is added outside the app
+      # (Rack::ContentLength) for both.
       def not_found_response
         [
           404,
-          { 'content-type' => 'application/json' },
+          { 'content-type' => 'application/json', 'cache-control' => 'private, no-store' },
           [JSON.generate(Auth::ErrorTranslator::NOT_FOUND_BODY)],
         ]
       end

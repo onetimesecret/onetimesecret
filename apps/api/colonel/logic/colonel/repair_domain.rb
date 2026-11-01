@@ -67,17 +67,33 @@ module ColonelAPI
         end
 
         def process
-          @result = Onetime::Operations::Domains::Repair.new(
-            domain: custom_domain,
-            org: target_org,
-            actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
-            dry_run: dry_run,
-          ).call
+          @result = refuse_on_problem do
+            Onetime::Operations::Domains::Repair.new(
+              domain: custom_domain,
+              org: target_org,
+              actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
+              dry_run: dry_run,
+            ).call
+          end
 
           OT.info "[RepairDomain] #{custom_domain.display_domain} -> " \
                   "status=#{result.status}, dry_run=#{dry_run}, issues=#{result.issues.size}"
 
           success_data
+        end
+
+        # Adopting an orphan can be refused with a bare Onetime::Problem whose
+        # message is written for the operator (another record holds the name,
+        # another organization adopted it first). No handler is registered for
+        # the bare class, so it would surface as a 500; it becomes a form
+        # error (422) instead. Subclasses keep their own handlers. The op has
+        # already audited the failure.
+        def refuse_on_problem
+          yield
+        rescue Onetime::Problem => ex
+          raise unless ex.instance_of?(Onetime::Problem)
+
+          raise_form_error(ex.message, field: :extid)
         end
 
         def success_data

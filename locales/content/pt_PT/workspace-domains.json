@@ -735,6 +735,14 @@
     "text": "Falha ao enviar o e-mail de teste",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Foram enviados demasiados e-mails de teste recentemente. Tenta novamente mais tarde.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Foram enviados demasiados e-mails de teste recentemente. Tenta novamente dentro de cerca de {minutes} minutos.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Enviado para {email}",
     "source_hash": "8ceb9588"
@@ -1658,5 +1666,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "Não encontrámos o registo TXT esperado. Verifica se existe e se o valor corresponde exatamente. Os novos registos DNS podem demorar alguns minutos a aparecer.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Verificação da configuração guardada concluída com êxito",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "A verificação da configuração guardada encontrou um problema",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "A verificação da configuração guardada não chegou a uma conclusão",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Falha ao verificar a configuração guardada",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "Esta configuração foi verificada demasiadas vezes recentemente. Tenta novamente mais tarde.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "Esta configuração foi verificada demasiadas vezes recentemente. Tenta novamente dentro de cerca de {minutes} minutos.",
+    "source_hash": "fdbdeaf6"
   }
 }

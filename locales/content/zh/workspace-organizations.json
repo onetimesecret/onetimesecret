@@ -219,10 +219,6 @@
     "text": "订阅",
     "source_hash": "4999c6c6"
   },
-  "web.organizations.danger_zone": {
-    "text": "危险区域",
-    "source_hash": "3c1c01b4"
-  },
   "web.organizations.delete_organization": {
     "text": "删除组织",
     "source_hash": "54b2edc7"
@@ -678,10 +674,6 @@
   "web.organizations.sso.remove_domain": {
     "text": "移除 {domain}",
     "source_hash": "ae708a1d"
-  },
-  "web.organizations.sso.save_config": {
-    "text": "保存 SSO 配置",
-    "source_hash": "70853769"
   },
   "web.organizations.sso.delete_config": {
     "text": "删除配置",
@@ -1207,33 +1199,9 @@
     "text": "此站点的登录设置与全站限制（{method}）冲突，因此两者都无法生效，目前无法登录。",
     "source_hash": "54cdfd61"
   },
-  "web.organizations.sso.connection_enabled": {
-    "text": "连接已启用",
-    "source_hash": "b6334b2b"
-  },
-  "web.organizations.sso.connection_enabled_hint": {
-    "text": "启用后，成员可以使用此 SSO 提供商登录。还必须在该域名的「登录配置」中将 SSO 启用为一种登录方式。",
-    "source_hash": "871db2f1"
-  },
-  "web.organizations.sso.enable_untested_warning": {
-    "text": "此连接尚未在此通过测试。请在启用前运行「测试连接」，以免有问题的配置出现在您的登录页面上。",
-    "source_hash": "c1fbdeca"
-  },
   "web.organizations.delete_organization_cancel_subscription_first": {
     "text": "删除此组织前，请先取消其订阅。",
     "source_hash": "f0c54eca"
-  },
-  "web.organizations.sso.disable_action": {
-    "text": "停用 SSO",
-    "source_hash": "2f072272"
-  },
-  "web.organizations.sso.disable_confirm": {
-    "text": "停用此 SSO 连接？未保存的表单修改将不会被保存。已存储的凭据将被保留。",
-    "source_hash": "608b142a"
-  },
-  "web.organizations.sso.disable_enforcement_warning": {
-    "text": "「强制仅 SSO」也将被关闭，从而允许使用其他已配置的登录方式。",
-    "source_hash": "58abd552"
   },
   "web.organizations.sso.idp_sso_service_url": {
     "text": "IdP SSO 服务 URL",
@@ -1342,5 +1310,105 @@
   "web.organizations.sso.certificate_valid_from": {
     "text": "证书生效时间",
     "source_hash": "b13d3f30"
+  },
+  "web.organizations.sso.client_secret_looks_like_secret_id": {
+    "text": "这看起来像是「Secret ID」。Entra 需要的是客户端密钥的「Value」（值），该值仅在创建密钥时显示一次。",
+    "source_hash": "168681cf"
+  },
+  "web.organizations.sso.diagnostics_title": {
+    "text": "检查已保存的配置",
+    "source_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_hint": {
+    "text": "检查此域名已存储的内容（对于 Microsoft Entra ID，包括已保存的客户端密钥），并分别报告每一层的结果。此操作不会测试完整的登录流程。",
+    "source_hash": "42505faa"
+  },
+  "web.organizations.sso.last_sign_in_none": {
+    "text": "尚未记录通过此域名进行的登录。",
+    "source_hash": "7f9d0f23"
+  },
+  "web.organizations.sso.last_sign_in_succeeded": {
+    "text": "通过此域名的最近一次登录已于 {when} 完成。",
+    "source_hash": "9a125080"
+  },
+  "web.organizations.sso.last_sign_in_failed": {
+    "text": "通过此域名的最近一次登录于 {when} 在{stage}失败（{code}）。",
+    "source_hash": "be81f392"
+  },
+  "web.organizations.sso.last_sign_in_last_success": {
+    "text": "最近一次完成的登录是在 {when}。",
+    "source_hash": "34e63e57"
+  },
+  "web.organizations.sso.last_sign_in_stage_setup": {
+    "text": "联系身份提供商之前",
+    "source_hash": "5a1b6839"
+  },
+  "web.organizations.sso.last_sign_in_stage_provider": {
+    "text": "身份提供商处",
+    "source_hash": "40394567"
+  },
+  "web.organizations.sso.last_sign_in_stage_callback": {
+    "text": "身份提供商返回用户时",
+    "source_hash": "2ab78fc4"
+  },
+  "web.organizations.sso.last_sign_in_stage_account": {
+    "text": "将用户与账户匹配时",
+    "source_hash": "1ebbb776"
+  },
+  "web.organizations.sso.diagnostics_button": {
+    "text": "检查已保存的配置",
+    "source_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_running": {
+    "text": "检查中...",
+    "source_hash": "2e5f79bb"
+  },
+  "web.organizations.sso.diagnostics_checked_at": {
+    "text": "检查时间",
+    "source_hash": "0efd92a3"
+  },
+  "web.organizations.sso.diagnostics_check_stored_configuration": {
+    "text": "已存储的配置",
+    "source_hash": "a988b06a"
+  },
+  "web.organizations.sso.diagnostics_check_discovery": {
+    "text": "身份提供商发现",
+    "source_hash": "b5f90082"
+  },
+  "web.organizations.sso.diagnostics_check_certificate": {
+    "text": "签名证书",
+    "source_hash": "cc00e050"
+  },
+  "web.organizations.sso.diagnostics_check_credential": {
+    "text": "客户端密钥",
+    "source_hash": "4aded5fa"
+  },
+  "web.organizations.sso.diagnostics_status_passed": {
+    "text": "通过",
+    "source_hash": "436fe71b"
+  },
+  "web.organizations.sso.diagnostics_status_failed": {
+    "text": "失败",
+    "source_hash": "031a8f0f"
+  },
+  "web.organizations.sso.diagnostics_status_inconclusive": {
+    "text": "无法判定",
+    "source_hash": "9141583b"
+  },
+  "web.organizations.sso.diagnostics_status_unsupported": {
+    "text": "不可用",
+    "source_hash": "67a926f7"
+  },
+  "web.organizations.sso.diagnostics_status_skipped": {
+    "text": "已跳过",
+    "source_hash": "12698ce1"
+  },
+  "web.organizations.sso.diagnostics_aadsts_code": {
+    "text": "Microsoft 错误代码",
+    "source_hash": "dc8f7060"
+  },
+  "web.organizations.sso.diagnostics_errors": {
+    "text": "问题",
+    "source_hash": "a7b182f8"
   }
 }

@@ -167,10 +167,33 @@ module Onetime
     # the constant defaults below; set enabled:false to disable (the test
     # config does, so full-mode suite POSTs are not throttled).
     #
+    # SCOPES. The same two-tier limiter also guards POST
+    # /auth/email-login-request (magic links; RISK-2026-08-14-M04), which has
+    # the same abuse shapes — one source mailing links to many addresses, and
+    # sampling an enumeration-safe route that keeps a timing residual — and the
+    # same answer to them. Each guarded route is a {LimiterScope} in {SCOPES}:
+    # its own Redis key prefix, config block, audit verb, 429 message, log tag
+    # and default caps, so the two routes never share a bucket and each is
+    # tuned and cleared on its own. The tiers, the Lua script, login
+    # normalization, subject obscuring and fail semantics are shared. Every
+    # value under the default :reset_request scope is the one this module had
+    # before scopes existed: keys, verb, message, log lines and config path
+    # are unchanged.
+    #
+    #   scope :email_login_request (full mode, email_auth enabled; enforced from
+    #   apps/web/auth/config/hooks/email_login_request.rb):
+    #     - email_login_request:{attempts,locked}:ip:{ip}
+    #     - email_login_request:{attempts,locked}:email:{email}
+    #     - config site.authentication.email_login_request_rate_limit
+    #     - audit verb auth.email_login_request_throttled
+    #     - ratelimit kinds email_login_request_ip / email_login_request_email
+    #
     # Usage:
     #   include Onetime::Security::ResetRequestRateLimiter
     #   enforce_reset_request_rate_limit!(client_ip, login) # before any
     #                                                        # account lookup
+    #   enforce_email_login_request_rate_limit!(client_ip, login) # same, scope
+    #                                                              # :email_login_request
     module ResetRequestRateLimiter
       # Default requests permitted per window from a single client IP. The
       # tight gate: far above any legitimate per-user need (Rodauth sends at
@@ -200,6 +223,79 @@ module Onetime
       # other verb in the trail (`<resource>.<action>`); the admin console
       # filters on the exact string, so it is a constant rather than a literal.
       AUDIT_VERB = 'auth.reset_request_throttled'
+
+      # Audit verb for the :email_login_request scope. Same trail
+      # (record_security) and the same one-event-per-cap-hit bound.
+      EMAIL_LOGIN_REQUEST_AUDIT_VERB = 'auth.email_login_request_throttled'
+
+      # Default per-IP cap for the :email_login_request scope. Looser than the
+      # reset cap above because a magic link is a SIGN-IN method, not a
+      # recovery flow: everyone behind one masked /24 (an office NAT) requests
+      # one per sign-in, and a reset-sized cap there would lock that network
+      # out of signing in. Still bounds one origin to this many link emails per
+      # window across all the addresses it names.
+      EMAIL_LOGIN_REQUEST_DEFAULT_MAX_PER_IP = 30
+
+      # Default per-login backstop for the :email_login_request scope: three
+      # times its per-IP cap. The per-email tier must stay the LOOSER one (see
+      # the RL-3 note in the module header), or a single IP could lock a
+      # victim out of magic-link sign-in from every IP, renewably (SEC-B02).
+      # How much looser (SEC-B09): requests a locked IP sends are denied
+      # before the email tier counts them, but an IP that fills its window to
+      # one under the cap just before that window expires, then spends a fresh
+      # window, lands up to 2 * max_per_ip - 2 requests in ONE email window;
+      # and when lockout < window the IP is free again inside the same email
+      # window, so there is no bound at all. Hence the rule this default keeps:
+      # max_per_email >= 2 * max_per_ip, and lockout >= window. Rodauth's
+      # resend window (email_auth_skip_resend_email_within) already caps the
+      # mail an account receives, so this tier only bounds distributed probing
+      # of one target.
+      EMAIL_LOGIN_REQUEST_DEFAULT_MAX_PER_EMAIL = 90
+
+      # Everything that differs between the routes this limiter guards. See
+      # SCOPES in the module header.
+      #
+      #   key_prefix         Redis key prefix ("<prefix>:attempts:ip:{ip}" ...)
+      #   config_key         block under site.authentication
+      #   audit_verb         ColonelAuditEvent verb on a cap hit
+      #   message            LimitExceeded message (the 429 `error`)
+      #   log_tag            tag on this limiter's log lines
+      #   max_per_ip_env     env var the collapsed-IP-tier hint names
+      #   default_max_per_ip, default_max_per_email
+      #                      caps used when config is absent or not positive
+      LimiterScope = Data.define(
+        :key_prefix,
+        :config_key,
+        :audit_verb,
+        :message,
+        :log_tag,
+        :max_per_ip_env,
+        :default_max_per_ip,
+        :default_max_per_email,
+      )
+
+      SCOPES = {
+        reset_request: LimiterScope.new(
+          key_prefix: 'reset_request',
+          config_key: 'reset_request_rate_limit',
+          audit_verb: AUDIT_VERB,
+          message: 'Too many password reset requests. Please try again later.',
+          log_tag: 'ResetRequestRateLimiter',
+          max_per_ip_env: 'RESET_REQUEST_RATE_LIMIT_MAX_PER_IP',
+          default_max_per_ip: DEFAULT_MAX_PER_IP,
+          default_max_per_email: DEFAULT_MAX_PER_EMAIL,
+        ),
+        email_login_request: LimiterScope.new(
+          key_prefix: 'email_login_request',
+          config_key: 'email_login_request_rate_limit',
+          audit_verb: EMAIL_LOGIN_REQUEST_AUDIT_VERB,
+          message: 'Too many login link requests. Please try again later.',
+          log_tag: 'ResetRequestRateLimiter:email_login_request',
+          max_per_ip_env: 'EMAIL_LOGIN_REQUEST_RATE_LIMIT_MAX_PER_IP',
+          default_max_per_ip: EMAIL_LOGIN_REQUEST_DEFAULT_MAX_PER_IP,
+          default_max_per_email: EMAIL_LOGIN_REQUEST_DEFAULT_MAX_PER_EMAIL,
+        ),
+      }.freeze
 
       # ASCII control characters (C0 + DEL) removed from the normalized login
       # before it is used as a Redis-key suffix or log subject. An email can
@@ -251,24 +347,40 @@ module Onetime
       # @param client_ip [String, nil] The caller's edge-masked client IP.
       # @param login [String, nil] The submitted login (target email), taken
       #   verbatim from the request params — existence is never consulted.
+      # @param scope [Symbol] a key of {SCOPES}; the route being throttled.
+      #   An unknown scope raises KeyError (a programming error, not input).
       # @raise [Onetime::LimitExceeded] If either tier's limit is exceeded.
       # @return [void]
-      def enforce_reset_request_rate_limit!(client_ip, login = nil)
-        return unless reset_request_rate_limit_enabled?
+      def enforce_reset_request_rate_limit!(client_ip, login = nil, scope: :reset_request)
+        reset_request_scope(scope) # fail fast on an unknown scope, even when disabled
+        return unless reset_request_rate_limit_enabled?(scope)
 
         # Per-IP first (the tighter gate): a locked IP is rejected before the
         # email tier is touched, so it never inflates the per-target count.
-        if (ip_keys = reset_request_ip_keys(client_ip))
-          enforce_reset_request_tier!(ip_keys, reset_request_max_per_ip, 'ip', client_ip)
+        if (ip_keys = reset_request_ip_keys(client_ip, scope))
+          enforce_reset_request_tier!(ip_keys, reset_request_max_per_ip(scope), 'ip', client_ip, scope)
         end
 
         # Normalize ONCE; the same value feeds the Redis key AND the
         # (obscured) log subject, so a raw attacker-supplied string never
         # reaches either.
         normalized     = normalize_reset_request_login(login)
-        if (email_keys = reset_request_email_keys(normalized))
-          enforce_reset_request_tier!(email_keys, reset_request_max_per_email, 'email', normalized)
+        if (email_keys = reset_request_email_keys(normalized, scope))
+          enforce_reset_request_tier!(email_keys, reset_request_max_per_email(scope), 'email', normalized, scope)
         end
+      end
+
+      # The :email_login_request scope of the same limiter, for POST
+      # /auth/email-login-request (RISK-2026-08-14-M04). Same contract as
+      # {#enforce_reset_request_rate_limit!}: call it before any account
+      # lookup.
+      #
+      # @param client_ip [String, nil] The caller's edge-masked client IP.
+      # @param login [String, nil] The submitted login, verbatim.
+      # @raise [Onetime::LimitExceeded] If either tier's limit is exceeded.
+      # @return [void]
+      def enforce_email_login_request_rate_limit!(client_ip, login = nil)
+        enforce_reset_request_rate_limit!(client_ip, login, scope: :email_login_request)
       end
 
       private
@@ -279,17 +391,19 @@ module Onetime
       # alert on these alongside the reset_password_request_no_account events).
       # The cap-hit also writes one ColonelAuditEvent, so the signal is queryable
       # and not only greppable — see record_reset_request_throttle_audit.
-      def enforce_reset_request_tier!(keys, max_attempts, tier_label, subject)
+      def enforce_reset_request_tier!(keys, max_attempts, tier_label, subject, scope = :reset_request)
+        limiter_scope   = reset_request_scope(scope)
+        lockout         = reset_request_lockout(scope)
         allowed, detail = reset_request_redis.eval(
           CHECK_AND_RECORD_SCRIPT,
           keys: [keys[:attempts], keys[:lockout]],
-          argv: [reset_request_window, max_attempts, reset_request_lockout],
+          argv: [reset_request_window(scope), max_attempts, lockout],
         )
 
         if allowed.to_i != 1
           raise Onetime::LimitExceeded.new(
-            'Too many password reset requests. Please try again later.',
-            retry_after: detail.to_i.positive? ? detail.to_i : reset_request_lockout,
+            limiter_scope.message,
+            retry_after: detail.to_i.positive? ? detail.to_i : lockout,
             max_attempts: max_attempts,
           )
         end
@@ -299,12 +413,12 @@ module Onetime
           # This cap-reaching request was itself ALLOWED (the Lua script locks
           # after incrementing); the lockout applies to subsequent requests.
           obscured = obscured_reset_request_subject(tier_label, subject)
-          OT.le "[ResetRequestRateLimiter] #{tier_label} #{obscured} " \
-                "hit cap (#{count}/#{max_attempts}); locked for #{reset_request_lockout}s" \
-                "#{collapsed_ip_tier_hint(tier_label)}"
-          record_reset_request_throttle_audit(tier_label, obscured, count, max_attempts)
+          OT.le "[#{limiter_scope.log_tag}] #{tier_label} #{obscured} " \
+                "hit cap (#{count}/#{max_attempts}); locked for #{lockout}s" \
+                "#{collapsed_ip_tier_hint(tier_label, scope)}"
+          record_reset_request_throttle_audit(tier_label, obscured, count, max_attempts, scope)
         elsif count >= max_attempts - 1
-          OT.li "[ResetRequestRateLimiter] #{tier_label} #{obscured_reset_request_subject(tier_label, subject)} at #{count}/#{max_attempts} requests"
+          OT.li "[#{limiter_scope.log_tag}] #{tier_label} #{obscured_reset_request_subject(tier_label, subject)} at #{count}/#{max_attempts} requests"
         end
       end
 
@@ -345,47 +459,50 @@ module Onetime
       #
       # Best-effort, matching every other audit call site: ColonelAuditEvent.record
       # already swallows its own errors, and this rescue covers assembly.
-      def record_reset_request_throttle_audit(tier_label, obscured_subject, count, max_attempts)
+      def record_reset_request_throttle_audit(tier_label, obscured_subject, count, max_attempts, scope = :reset_request)
+        limiter_scope = reset_request_scope(scope)
         Onetime::ColonelAuditEvent.record_security(
           actor: 'anonymous',
-          verb: AUDIT_VERB,
+          verb: limiter_scope.audit_verb,
           target: "#{tier_label}:#{obscured_subject}",
           result: :failure,
           detail: {
             tier: tier_label,
             count: count,
             max_attempts: max_attempts,
-            window: reset_request_window,
-            lockout: reset_request_lockout,
+            window: reset_request_window(scope),
+            lockout: reset_request_lockout(scope),
           },
         )
       rescue StandardError => ex
         # A reset request must never fail because its audit event could not be
         # assembled.
-        OT.le('[ResetRequestRateLimiter] audit record failed', exception: ex, tier: tier_label.to_s)
+        OT.le("[#{reset_request_scope(scope).log_tag}] audit record failed", exception: ex, tier: tier_label.to_s)
       end
 
       # Composite per-IP keys, or nil when no IP is available (skips the IP
       # tier rather than building a blank-suffixed key — same rationale as
       # LoginRateLimiter#login_ip_keys).
-      def reset_request_ip_keys(client_ip)
+      def reset_request_ip_keys(client_ip, scope = :reset_request)
         return nil if client_ip.to_s.empty?
 
+        prefix = reset_request_scope(scope).key_prefix
         {
-          attempts: "reset_request:attempts:ip:#{client_ip}",
-          lockout: "reset_request:locked:ip:#{client_ip}",
+          attempts: "#{prefix}:attempts:ip:#{client_ip}",
+          lockout: "#{prefix}:locked:ip:#{client_ip}",
         }
       end
 
       # Composite per-login keys from the ALREADY-NORMALIZED login, or nil
       # when no login was submitted (skips the email tier rather than keying
       # a blank suffix).
-      def reset_request_email_keys(normalized_login)
+      def reset_request_email_keys(normalized_login, scope = :reset_request)
         return nil if normalized_login.empty?
 
+        prefix = reset_request_scope(scope).key_prefix
         {
-          attempts: "reset_request:attempts:email:#{normalized_login}",
-          lockout: "reset_request:locked:email:#{normalized_login}",
+          attempts: "#{prefix}:attempts:email:#{normalized_login}",
+          lockout: "#{prefix}:locked:email:#{normalized_login}",
         }
       end
 
@@ -409,31 +526,38 @@ module Onetime
         value.gsub(CONTROL_CHAR_PATTERN, '')[0, MAX_EMAIL_KEY_LENGTH].to_s
       end
 
-      def reset_request_rate_limit_config
-        OT.conf.dig('site', 'authentication', 'reset_request_rate_limit') || {}
+      # @param scope [Symbol] a key of {SCOPES}
+      # @return [LimiterScope]
+      # @raise [KeyError] for an unknown scope
+      def reset_request_scope(scope)
+        SCOPES.fetch(scope)
+      end
+
+      def reset_request_rate_limit_config(scope = :reset_request)
+        OT.conf.dig('site', 'authentication', reset_request_scope(scope).config_key) || {}
       end
 
       # Enabled unless config explicitly sets enabled:false. Absent config
       # keeps the protective default on; the test config disables it so
       # full-mode specs are not throttled.
-      def reset_request_rate_limit_enabled?
-        reset_request_rate_limit_config.fetch('enabled', true) != false
+      def reset_request_rate_limit_enabled?(scope = :reset_request)
+        reset_request_rate_limit_config(scope).fetch('enabled', true) != false
       end
 
-      def reset_request_max_per_ip
-        positive_reset_request_setting('max_per_ip', DEFAULT_MAX_PER_IP)
+      def reset_request_max_per_ip(scope = :reset_request)
+        positive_reset_request_setting('max_per_ip', reset_request_scope(scope).default_max_per_ip, scope)
       end
 
-      def reset_request_max_per_email
-        positive_reset_request_setting('max_per_email', DEFAULT_MAX_PER_EMAIL)
+      def reset_request_max_per_email(scope = :reset_request)
+        positive_reset_request_setting('max_per_email', reset_request_scope(scope).default_max_per_email, scope)
       end
 
-      def reset_request_window
-        positive_reset_request_setting('window', DEFAULT_WINDOW)
+      def reset_request_window(scope = :reset_request)
+        positive_reset_request_setting('window', DEFAULT_WINDOW, scope)
       end
 
-      def reset_request_lockout
-        positive_reset_request_setting('lockout', DEFAULT_LOCKOUT)
+      def reset_request_lockout(scope = :reset_request)
+        positive_reset_request_setting('lockout', DEFAULT_LOCKOUT, scope)
       end
 
       # Read a numeric setting, falling back to its default unless the
@@ -442,8 +566,8 @@ module Onetime
       # invert enforcement — a zero cap locks on the first request and a
       # non-positive lockout makes the Lua SETEX fail, turning every reset
       # request into a 500 instead of a throttle.
-      def positive_reset_request_setting(key, default)
-        value = reset_request_rate_limit_config[key].to_i
+      def positive_reset_request_setting(key, default, scope = :reset_request)
+        value = reset_request_rate_limit_config(scope)[key].to_i
         value.positive? ? value : default
       end
 
@@ -486,14 +610,14 @@ module Onetime
       # address, so it must ask the same question that mount asked (#4087). No
       # require_relative — this file is reached via `require 'onetime'`, which
       # loads the middleware stack, and the constant resolves at call time.
-      def collapsed_ip_tier_hint(tier_label)
+      def collapsed_ip_tier_hint(tier_label, scope = :reset_request)
         return '' unless tier_label == 'ip'
         return '' if Onetime::Application::MiddlewareStack.trusted_proxy_enabled?
 
         '. NOTE: site.network.trusted_proxy is not enabled, so the client IP is ' \
           'REMOTE_ADDR; if this deployment is behind a reverse proxy every visitor ' \
           'shares this bucket and the lockout is deployment-wide. Set ' \
-          'TRUSTED_PROXY_ENABLED=true, or raise RESET_REQUEST_RATE_LIMIT_MAX_PER_IP'
+          "TRUSTED_PROXY_ENABLED=true, or raise #{reset_request_scope(scope).max_per_ip_env}"
       end
 
       # Redis connection via the Customer model's dbclient — the subject is an

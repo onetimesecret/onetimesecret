@@ -663,13 +663,14 @@ RSpec.describe 'V1 BaseSecretAction HomepageConfig read count (issue #3631)' do
 
   # A non-owner public custom-domain record whose allow_public_secret_creation?
   # we can count. accessible_by? is false so the anonymous branch consults the
-  # gate; verified 'true' clears validate_domain_verification.
+  # gate; served_as_tenant? and verified 'true' clear validate_domain_verification.
   def build_counting_domain_record(allow_public: true)
     double(
       'CustomDomain',
       accessible_by?: false,
       allow_public_secret_creation?: allow_public,
       verified: 'true',
+      served_as_tenant?: true,
     )
   end
 

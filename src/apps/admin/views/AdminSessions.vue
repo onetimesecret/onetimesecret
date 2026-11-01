@@ -332,6 +332,7 @@
     error: revokeError,
     run: runRevoke,
     reset: resetRevoke,
+    useElevateThenOpen,
   } = useAdminDestructiveMutation(async (reason?: string) => {
     const handle = revokeTarget.value;
     if (!handle) throw new Error('No session selected');
@@ -357,16 +358,41 @@
     );
   });
 
-  function requestRevoke(row: ColonelSession): void {
-    // Fail closed: the disabled button is the UI affordance, this is the guard.
-    // The server refuses a self-revoke regardless (#4328).
-    if (isCurrentSession(row.session_handle)) return;
-    revokeTarget.value = row.session_handle;
-    revokeOwner.value = row.external_id ?? '';
-    revokeToken.value = row.email?.trim() || row.external_id?.trim() || row.session_handle;
-    resetRevoke();
-    revokeDialogOpen.value = true;
-  }
+  /**
+   * Shared props for the revoke gate. The dialog is rendered twice (inside the
+   * drawer and as a page-level sibling, see the template) so the one binding
+   * lives here.
+   */
+  const revokeDialogProps = computed(() => ({
+    title: t('web.admin.sessions.revoke.confirmTitle'),
+    description: t('web.admin.sessions.revoke.confirmDescription', {
+      id: revokeTarget.value.slice(0, 12),
+      token: revokeToken.value,
+    }),
+    confirmToken: revokeToken.value,
+    variant: 'danger' as const,
+    confirmText: t('web.admin.sessions.revoke.button'),
+    requestReason: true,
+    loading: revokeLoading.value,
+    error: revokeError.value,
+  }));
+
+  const { open: requestRevoke, opening } = useElevateThenOpen(
+    (row: ColonelSession) => {
+      revokeTarget.value = row.session_handle;
+      revokeOwner.value = row.external_id ?? '';
+      revokeToken.value = row.email?.trim() || row.external_id?.trim() || row.session_handle;
+      resetRevoke();
+      revokeDialogOpen.value = true;
+    },
+    {
+      // Row actions can also start without a drawer. Moving between those
+      // contexts while elevating must not relocate the confirmation dialog.
+      target: () => (drawerOpen.value ? selectedSession.value?.session_handle : null),
+      canOpen: (row) =>
+        !revokeDialogOpen.value && !revokeLoading.value && !isCurrentSession(row.session_handle),
+    }
+  );
 
   async function onRevokeConfirm(reason?: string): Promise<void> {
     const revokedHandle = revokeTarget.value;
@@ -526,7 +552,9 @@
           <button
             type="button"
             :data-testid="`revoke-${row.session_handle}`"
-            :disabled="isCurrentSession(row.session_handle)"
+            :disabled="
+              opening || revokeLoading || revokeDialogOpen || isCurrentSession(row.session_handle)
+            "
             :title="
               isCurrentSession(row.session_handle)
                 ? t('web.admin.sessions.revoke.ownSession')
@@ -710,7 +738,13 @@
         <button
           type="button"
           data-testid="session-revoke-button"
-          :disabled="!selectedSession || isCurrentSession(selectedSession.session_handle)"
+          :disabled="
+            opening ||
+            revokeLoading ||
+            revokeDialogOpen ||
+            !selectedSession ||
+            isCurrentSession(selectedSession.session_handle)
+          "
           :title="
             selectedSession && isCurrentSession(selectedSession.session_handle)
               ? t('web.admin.sessions.revoke.ownSession')
@@ -725,24 +759,25 @@
           {{ t('web.admin.sessions.revoke.button') }}
         </button>
       </template>
+
+      <!-- Typed-confirmation revoke gate (danger), NESTED IN THE DRAWER ON
+           PURPOSE (#4732). headlessui only treats a dialog as a child when it
+           is rendered inside the parent dialog's component subtree; a sibling
+           is "outside" the drawer, so the drawer would close (and deselect the
+           session) on the first click into it. -->
+      <AdminConfirmDialog
+        v-model:open="revokeDialogOpen"
+        v-bind="revokeDialogProps"
+        @confirm="onRevokeConfirm"
+        @cancel="onRevokeCancel" />
     </DetailDrawer>
 
-    <!-- Typed-confirmation revoke gate (danger). -->
+    <!-- The same revoke gate for the table-row button while no drawer is open.
+         Exactly one of the two instances exists at a time. -->
     <AdminConfirmDialog
+      v-if="!drawerOpen"
       v-model:open="revokeDialogOpen"
-      :title="t('web.admin.sessions.revoke.confirmTitle')"
-      :description="
-        t('web.admin.sessions.revoke.confirmDescription', {
-          id: revokeTarget.slice(0, 12),
-          token: revokeToken,
-        })
-      "
-      :confirm-token="revokeToken"
-      variant="danger"
-      :confirm-text="t('web.admin.sessions.revoke.button')"
-      request-reason
-      :loading="revokeLoading"
-      :error="revokeError"
+      v-bind="revokeDialogProps"
       @confirm="onRevokeConfirm"
       @cancel="onRevokeCancel" />
   </div>

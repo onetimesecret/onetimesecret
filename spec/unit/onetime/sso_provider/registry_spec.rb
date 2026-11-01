@@ -249,6 +249,50 @@ RSpec.describe Onetime::SsoProvider::Registry do
       end
     end
 
+    # #4764: OIDC_CLIENT_AUTH_METHOD selects how the secret reaches the
+    # token endpoint. The option is top-level (not client_options) because
+    # that is where omniauth_openid_connect declares it.
+    describe 'OIDC_CLIENT_AUTH_METHOD' do
+      def oidc_options(value)
+        ClimateControl.modify(OIDC_CLIENT_ID: 'cid', OIDC_CLIENT_AUTH_METHOD: value) do
+          described_class.fetch(:oidc)[:strategy_options].call
+        end
+      end
+
+      before { allow(OT).to receive(:lw) }
+
+      it 'is nil (gem default) when the variable is unset' do
+        opts = oidc_options(nil)
+
+        expect(opts).to have_key(:client_auth_method)
+        expect(opts[:client_auth_method]).to be_nil
+        expect(opts[:client_options]).not_to have_key(:client_auth_method)
+      end
+
+      it 'is nil when the variable is blank' do
+        expect(oidc_options('  ')[:client_auth_method]).to be_nil
+      end
+
+      it 'maps client_secret_basic to :basic' do
+        expect(oidc_options('client_secret_basic')[:client_auth_method]).to eq(:basic)
+      end
+
+      it 'maps client_secret_post to :client_secret_post' do
+        expect(oidc_options('client_secret_post')[:client_auth_method]).to eq(:client_secret_post)
+      end
+
+      it 'tolerates surrounding whitespace' do
+        expect(oidc_options(' client_secret_post ')[:client_auth_method]).to eq(:client_secret_post)
+      end
+
+      # A typo in an optional variable must not take the provider down at
+      # boot: warn, keep the gem default.
+      it 'warns and falls back to the gem default on an unknown value' do
+        expect(oidc_options('private_key_jwt')[:client_auth_method]).to be_nil
+        expect(OT).to have_received(:lw).with(a_string_matching(/OIDC_CLIENT_AUTH_METHOD.*private_key_jwt/))
+      end
+    end
+
     # ========================================================================
     # SAML (#4450)
     # ========================================================================
@@ -666,33 +710,33 @@ RSpec.describe Onetime::SsoProvider::Registry do
           expect(saml_valid?(SAML_IDP_CERT: future)).to be false
         end
 
-        # allow_expired: exists for the tenant RECORD's validity check only
-        # (an expired certificate must not make a stored config uneditable).
-        # It relaxes the WHOLE validity window — expiry and not-yet-valid —
-        # and nothing else, and the builder never uses it.
-        describe '.cert_problem(allow_expired: true)' do
+        # stored: exists for the tenant RECORD's validity check only (an
+        # expired certificate must not make a saved config uneditable). It
+        # relaxes the WHOLE validity window — expiry and not-yet-valid — and
+        # the key type, never the structure, and the builder never uses it.
+        describe '.cert_problem(stored: true)' do
           let(:expired) { SamlSpec::TestIdp.new(cert_not_after: Time.utc(2020, 1, 2)).cert_pem }
           let(:future) do
             SamlSpec::TestIdp.new(cert_not_before: Time.utc(2099, 1, 1), cert_not_after: Time.utc(2099, 1, 2)).cert_pem
           end
 
           it 'accepts an expired certificate that is otherwise well-formed' do
-            expect(Onetime::SsoProvider::Saml.cert_problem(expired, allow_expired: true)).to be_nil
+            expect(Onetime::SsoProvider::Saml.cert_problem(expired, stored: true)).to be_nil
             expect(Onetime::SsoProvider::Saml.cert_problem(expired)).to match(/expired on 2020-01-02/)
           end
 
           it 'accepts a not-yet-valid certificate too (the whole window is skipped)' do
-            expect(Onetime::SsoProvider::Saml.cert_problem(future, allow_expired: true)).to be_nil
+            expect(Onetime::SsoProvider::Saml.cert_problem(future, stored: true)).to be_nil
             expect(Onetime::SsoProvider::Saml.cert_problem(future)).to match(/not valid until 2099-01-01T00:00:00Z/)
           end
 
           it 'still refuses every structural problem' do
             saml = Onetime::SsoProvider::Saml
 
-            expect(saml.cert_problem('', allow_expired: true)).to match(/blank/)
-            expect(saml.cert_problem('AB:CD:EF', allow_expired: true)).to match(/PEM X\.509/)
-            expect(saml.cert_problem(expired + expired, allow_expired: true)).to match(/exactly one/)
-            expect(saml.cert_problem("-----BEGIN CERTIFICATE-----\nnope\n-----END CERTIFICATE-----", allow_expired: true))
+            expect(saml.cert_problem('', stored: true)).to match(/blank/)
+            expect(saml.cert_problem('AB:CD:EF', stored: true)).to match(/PEM X\.509/)
+            expect(saml.cert_problem(expired + expired, stored: true)).to match(/exactly one/)
+            expect(saml.cert_problem("-----BEGIN CERTIFICATE-----\nnope\n-----END CERTIFICATE-----", stored: true))
               .to match(/does not parse/)
           end
 

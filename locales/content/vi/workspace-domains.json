@@ -735,6 +735,14 @@
     "text": "Không thể gửi email kiểm tra",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Đã gửi quá nhiều email kiểm tra trong thời gian gần đây. Hãy thử lại sau.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Đã gửi quá nhiều email kiểm tra trong thời gian gần đây. Hãy thử lại sau khoảng {minutes} phút.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Đã gửi đến {email}",
     "source_hash": "8ceb9588"
@@ -1658,5 +1666,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "Chúng tôi không tìm thấy bản ghi TXT như mong đợi. Hãy kiểm tra xem bản ghi có tồn tại và giá trị có khớp chính xác không. Bản ghi DNS mới có thể mất vài phút để xuất hiện.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Kiểm tra cấu hình đã lưu thành công",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "Kiểm tra cấu hình đã lưu phát hiện sự cố",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "Kiểm tra cấu hình đã lưu không thể đưa ra kết luận",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Không thể kiểm tra cấu hình đã lưu",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "Cấu hình này đã được kiểm tra quá nhiều lần gần đây. Hãy thử lại sau.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "Cấu hình này đã được kiểm tra quá nhiều lần gần đây. Hãy thử lại sau khoảng {minutes} phút.",
+    "source_hash": "fdbdeaf6"
   }
 }

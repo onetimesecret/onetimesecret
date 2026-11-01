@@ -25,7 +25,7 @@ require_relative '../../lib/public_host'
 # Keep the two call sites in lockstep on ORDERING and on which subjects are
 # passed: a change to that here belongs there too.
 #
-# The enumeration override (config/overrides/reset_password_enumeration.rb,
+# The enumeration override (config/overrides/login_request_enumeration.rb,
 # #3857) made every POST /auth/reset-password-request answer identically, which
 # closed the single-request content oracle but accepted a statistical TIMING
 # residual. Exploiting that residual needs many samples per target; this hook

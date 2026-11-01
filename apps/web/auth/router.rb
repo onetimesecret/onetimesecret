@@ -55,7 +55,11 @@ module Auth
     include Auth::Routes::LinkSso
     include Auth::Routes::SsoLinkConfirm
 
-    plugin :json, parser: true  # Parse incoming JSON request bodies
+    # Serializes Hash/Array route results as JSON. Request bodies are not
+    # parsed here: the plugin takes no :parser option, and Rack::Parser in the
+    # universal middleware stack (Onetime::Application::MiddlewareStack) has
+    # already parsed them before this app runs.
+    plugin :json
     plugin :halt
     plugin :status_handler
     plugin :flash  # Required for Rodauth flash messages on browser redirects (e.g., OmniAuth)

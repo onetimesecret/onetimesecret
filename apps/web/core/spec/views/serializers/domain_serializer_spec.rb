@@ -127,6 +127,56 @@ RSpec.describe Core::Views::DomainSerializer do
       end
     end
 
+    # The domain-context picker list. Only domains served as tenant domains
+    # (CustomDomain#served_as_tenant?) are offered: a link on any other one
+    # opens to a 404, and secret creation refuses it as a share_domain.
+    context 'custom_domains (the domain-context picker)' do
+      def picker_domain(host, served:, ready: served)
+        instance_double(
+          Onetime::CustomDomain,
+          display_domain: host,
+          served_as_tenant?: served,
+          ready?: ready,
+          verified: ready,
+          resolving: ready,
+        )
+      end
+
+      let(:customer) do
+        instance_double(
+          Onetime::Customer,
+          custom_domains_list: [
+            picker_domain('zeta.example.com', served: true),
+            picker_domain('pending.example.com', served: false),
+            picker_domain('alpha.example.com', served: true, ready: false),
+          ],
+        )
+      end
+
+      let(:view_vars) do
+        {
+          'authenticated' => true,
+          'cust' => customer,
+          'sess' => session,
+          'features' => { 'domains' => { 'enabled' => true } },
+          'domain_strategy' => :canonical,
+          'display_domain' => canonical_domain,
+        }
+      end
+
+      it 'lists the served domains, sorted, and leaves the others out' do
+        result = described_class.serialize(view_vars)
+        expect(result['custom_domains']).to eq(%w[alpha.example.com zeta.example.com])
+      end
+
+      it 'lists nothing when none of the domains is served' do
+        allow(customer).to receive(:custom_domains_list)
+          .and_return([picker_domain('pending.example.com', served: false)])
+
+        expect(described_class.serialize(view_vars)['custom_domains']).to eq([])
+      end
+    end
+
     context 'when session is missing' do
       let(:view_vars) do
         {
@@ -436,9 +486,10 @@ RSpec.describe Core::Views::DomainSerializer do
       describe 'homepage_config secrets_mode serialization' do
         # The bootstrap payload is the read-path invariant for the homepage
         # secrets_mode feature. The availability matrix itself (feature flag,
-        # site.secret, IncomingConfig readiness, entitlement) lives on
-        # HomepageConfig#effectively_enabled? — the single source of truth
-        # shared with the homepage-config API responses — and is covered by
+        # site.secret, IncomingConfig readiness, entitlement, network rules)
+        # lives on HomepageConfig#effectively_enabled_for? — the single source
+        # of truth shared with the homepage-config API responses — and is
+        # covered by
         # spec/unit/onetime/models/custom_domain/homepage_config_effective_spec.rb.
         # Here we pin the delegation: `enabled` carries the EFFECTIVE value
         # while the stored secrets_mode is preserved so intent survives a
@@ -465,8 +516,8 @@ RSpec.describe Core::Views::DomainSerializer do
         end
 
         it 'emits the effective enablement, passing the already-loaded domain through' do
-          allow(homepage_config).to receive(:effectively_enabled?)
-            .with(custom_domain: custom_domain)
+          allow(homepage_config).to receive(:effectively_enabled_for?)
+            .with(nil, custom_domain: custom_domain)
             .and_return(true)
 
           result = described_class.serialize(custom_domain_view_vars)
@@ -475,13 +526,77 @@ RSpec.describe Core::Views::DomainSerializer do
         end
 
         it 'preserves the stored secrets_mode through a downgrade so intent survives' do
-          allow(homepage_config).to receive(:effectively_enabled?)
-            .with(custom_domain: custom_domain)
+          allow(homepage_config).to receive(:effectively_enabled_for?)
+            .with(nil, custom_domain: custom_domain)
             .and_return(false)
 
           result = described_class.serialize(custom_domain_view_vars)
           expect(result['homepage_config']['enabled']).to be(false)
           expect(result['homepage_config']['secrets_mode']).to eq('incoming')
+        end
+      end
+
+      describe 'homepage_config network rules' do
+        # Per-visitor narrowing of the effective enablement: the serializer
+        # hands HomepageConfig#effectively_enabled_for? the request's
+        # otto.ip_match closure (view_vars['ip_match'], lifted from env by
+        # InitializeViewVars) and emits its answer as `enabled`. A refused
+        # visitor gets exactly the payload of a disabled homepage — stored
+        # mode preserved, no extra field advertising the rule.
+        let(:ip_match) { ->(_ranges) { false } }
+
+        let(:homepage_config) do
+          instance_double(
+            Onetime::CustomDomain::HomepageConfig,
+            domain_id: 'domain123',
+            enabled?: true,
+            secrets_mode_value: 'create',
+            signup_enabled?: false,
+            signin_enabled?: false,
+            disabled_homepage_variant_value: nil,
+            created: 1_700_000_000,
+            updated: 1_700_000_000,
+          )
+        end
+
+        let(:network_view_vars) { custom_domain_view_vars.merge('ip_match' => ip_match) }
+
+        before do
+          allow(Onetime::CustomDomain::HomepageConfig).to receive(:find_by_domain_id)
+            .with('domain123')
+            .and_return(homepage_config)
+        end
+
+        it 'passes the request matcher to the per-visitor verdict' do
+          allow(homepage_config).to receive(:effectively_enabled_for?)
+            .with(ip_match, custom_domain: custom_domain)
+            .and_return(true)
+
+          result = described_class.serialize(network_view_vars)
+          expect(result['homepage_config']['enabled']).to be(true)
+          expect(homepage_config).to have_received(:effectively_enabled_for?)
+            .with(ip_match, custom_domain: custom_domain)
+        end
+
+        it 'renders the private landing page to a visitor the rules refuse' do
+          allow(homepage_config).to receive(:effectively_enabled_for?)
+            .with(ip_match, custom_domain: custom_domain)
+            .and_return(false)
+
+          result = described_class.serialize(network_view_vars)
+          expect(result['homepage_config']['enabled']).to be(false)
+          expect(result['homepage_config']['secrets_mode']).to eq('create')
+          expect(result['homepage_config'].keys).not_to include('allowed_cidrs', 'denied_cidrs', 'network_allowed')
+        end
+
+        it 'hands a nil matcher through when the stack installed none (the model fails closed on rules)' do
+          allow(homepage_config).to receive(:effectively_enabled_for?)
+            .with(nil, custom_domain: custom_domain)
+            .and_return(true)
+
+          described_class.serialize(custom_domain_view_vars)
+          expect(homepage_config).to have_received(:effectively_enabled_for?)
+            .with(nil, custom_domain: custom_domain)
         end
       end
 

@@ -1,6 +1,6 @@
 # Tenant Connect system test
 
-`connected-identities-custom-host.spec.ts` is a dedicated security-acceptance journey. It is excluded from the normal Playwright projects and appears only when `E2E_TENANT_CONNECT_ARMED=1`. `tenant-sso-unverified-domain.spec.ts` is its companion check (#4579): the same tenant SSO shape on a domain whose ownership is not verified must be refused.
+`connected-identities-custom-host.spec.ts` is a dedicated security-acceptance journey. It is excluded from the normal Playwright projects and appears only when `E2E_TENANT_CONNECT_ARMED=1`. `tenant-sso-unverified-domain.spec.ts` is its companion check: the same tenant SSO shape on a domain whose ownership is not verified is not served.
 
 The target must be a disposable full-auth test process with:
 
@@ -29,7 +29,7 @@ One environment for all three processes. Pick a Valkey DB index that is not shar
 ```sh
 export RACK_ENV=test LANG=en_US.UTF-8 SSL=false
 export HOST=canonical.example.org:7143 DEFAULT_DOMAIN=canonical.example.org
-export DOMAINS_ENABLED=true ORGS_SSO_ENABLED=true
+export DOMAINS_ENABLED=true DOMAINS_VALIDATION_STRATEGY=caddy_on_demand ORGS_SSO_ENABLED=true
 export AUTHENTICATION_MODE=full AUTH_DATABASE_URL=sqlite://tmp/e2e-tenant-connect.db
 export REDIS_URL="redis://127.0.0.1:2163/$(ruby try/support/datastore_db.rb)"
 export EMAILER_MODE=logger JOBS_ENABLED=false BILLING_ENABLED=false
@@ -69,7 +69,7 @@ Two facts the journey is written around:
 - The Connect initiation that spends the login-time proof is issued from inside the page (`fetch` with `redirect: 'manual'`), not via `page.context().request`: the synthetic host resolves only through Chromium's `--host-resolver-rules`, which Playwright's Node-side request context does not consult.
 - A completed Connect returns to the panel on its own: the callback honours the `redirect` field the panel posts with the SSO form (validated as an internal path at initiation), so the spec waits for the connections path after the Connect click rather than opening the panel explicitly. `GET /auth/identities` masks the subject to `first4…last4`, and that masked form is what the panel assertions match.
 
-The companion check opens `/signin` on the unverified host as an anonymous visitor, asserts that no SSO button is offered, then submits the same form `SsoButton` posts (`POST /auth/sso/oidc`). The initiation must answer `302` to `/signin?auth_error=sso_domain_unverified` on the same host, the page must show the `sso_domain_unverified` message (not the generic SSO failure copy), and no request may reach `/auth/sso/oidc/callback` on any host. Under OmniAuth test mode the request phase stands in for the IdP by redirecting straight to that callback, so a callback request is what "reached the IdP" looks like here. The server logs `omniauth_tenant_domain_unverified` for the refusal.
+The companion check runs under `DOMAINS_VALIDATION_STRATEGY=caddy_on_demand`, a strategy that checks ownership, so a registered host is served only once its ownership is verified (`CustomDomain#served_as_tenant?`). It opens `/signin` on the unverified host as an anonymous visitor and expects DomainStrategy's 404 (`This domain is not configured`, `cache-control: no-store`, no `O-Domain-Strategy` header). It then submits the same form `SsoButton` posts (`POST /auth/sso/oidc`) from that page: the initiation gets the same 404 with no `Location`, and no request may reach `/auth/sso/oidc/callback` on any host. Under OmniAuth test mode the request phase stands in for the IdP by redirecting straight to that callback, so a callback request is what "reached the IdP" looks like here. The seed refuses to run under a strategy that does not check ownership.
 
 ## CI
 

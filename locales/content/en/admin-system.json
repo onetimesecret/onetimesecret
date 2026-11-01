@@ -4,8 +4,8 @@
     "content_hash": "6725e7bb"
   },
   "web.admin.system.description": {
-    "text": "Database, queue, and infrastructure status.",
-    "content_hash": "0115f495"
+    "text": "Monitor service health and infrastructure status.",
+    "content_hash": "db1f84d9"
   },
   "web.admin.system.retry": {
     "text": "Retry",

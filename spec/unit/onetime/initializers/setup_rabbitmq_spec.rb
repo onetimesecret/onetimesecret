@@ -451,8 +451,8 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
 
   describe 'queue count consistency' do
     it 'DEAD_LETTER_CONFIG covers all unique DLX references' do
-      # Multiple queues can share the same DLX (e.g., email.message.send and email.message.schedule
-      # both use dlx.email.message). Count unique DLX values, not queue count.
+      # Multiple queues can share the same DLX (e.g., domain.validation.check and domain.dns.check
+      # both use dlx.domain.validation). Count unique DLX values, not queue count.
       unique_dlx_refs = Onetime::Jobs::QueueConfig::QUEUES.values
         .map { |config| config.dig(:arguments, 'x-dead-letter-exchange') }
         .compact
@@ -526,6 +526,13 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
             'channel_pool_size' => 2
           }
         })
+      end
+
+      # execute installs the connection and pool doubles in the globals;
+      # clear them so they do not reach a later example that publishes.
+      after do
+        $rmq_conn         = nil
+        $rmq_channel_pool = nil
       end
 
       it 'attempts RabbitMQ connection' do
@@ -610,6 +617,13 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
             'channel_pool_size' => 10,
           }
         })
+      end
+
+      # execute installs the connection and pool doubles in the globals;
+      # clear them so they do not reach a later example that publishes.
+      after do
+        $rmq_conn         = nil
+        $rmq_channel_pool = nil
       end
 
       it 'uses the configured value for pool size' do

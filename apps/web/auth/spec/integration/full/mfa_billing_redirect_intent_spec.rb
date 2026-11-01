@@ -110,7 +110,7 @@ RSpec.describe 'MFA login preserves pending_plan_intent (issue #4306)', type: :i
     Class.new(Roda) do
       plugin :sessions, secret: SecureRandom.hex(64)
       plugin :json
-      plugin :json_parser
+      plugin :json_parser, content_type_regexp: %r{\Aapplication/json\b}i
       plugin :halt
 
       plugin :rodauth do

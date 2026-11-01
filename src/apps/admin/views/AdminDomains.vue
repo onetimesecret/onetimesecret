@@ -205,6 +205,19 @@
       : undefined
   );
 
+  /**
+   * Shared props for the verify gate. The dialog is rendered twice (inside the
+   * drawer and as a page-level sibling, see the template) so the one binding
+   * lives here.
+   */
+  const verifyDialogProps = computed(() => ({
+    title: t('web.admin.domains.verify.confirmTitle'),
+    description: dialogDescription.value,
+    confirmText: t('web.admin.domains.verify.button'),
+    loading: verifyLoading.value,
+    error: verifyError.value,
+  }));
+
   function requestVerify(domain: ColonelCustomDomain): void {
     activeDomain.value = domain;
     resetVerify();
@@ -1128,16 +1141,24 @@
           </button>
         </section>
       </div>
+
+      <!-- Verify gate, NESTED IN THE DRAWER ON PURPOSE (#4732). headlessui only
+           treats a dialog as a child when it is rendered inside the parent
+           dialog's component subtree; a sibling is "outside" the drawer, so
+           the drawer would close on the first click into it. -->
+      <AdminConfirmDialog
+        v-model:open="dialogOpen"
+        v-bind="verifyDialogProps"
+        @confirm="onConfirm"
+        @cancel="onCancel" />
     </DetailDrawer>
 
-    <!-- Shared guarded-action dialog (one-click confirm for the low-risk verb). -->
+    <!-- The same verify gate for the table-row button while no drawer is open.
+         Exactly one of the two instances exists at a time. -->
     <AdminConfirmDialog
+      v-if="!drawerOpen"
       v-model:open="dialogOpen"
-      :title="t('web.admin.domains.verify.confirmTitle')"
-      :description="dialogDescription"
-      :confirm-text="t('web.admin.domains.verify.button')"
-      :loading="verifyLoading"
-      :error="verifyError"
+      v-bind="verifyDialogProps"
       @confirm="onConfirm"
       @cancel="onCancel" />
 

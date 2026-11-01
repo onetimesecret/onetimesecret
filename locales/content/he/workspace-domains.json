@@ -735,6 +735,14 @@
     "text": "שליחת הודעת הבדיקה נכשלה",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "נשלחו יותר מדי הודעות בדיקה לאחרונה. נסה שוב מאוחר יותר.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "נשלחו יותר מדי הודעות בדיקה לאחרונה. נסה שוב בעוד כ-{minutes} דקות.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "נשלח אל {email}",
     "source_hash": "8ceb9588"
@@ -1658,5 +1666,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "לא מצאנו את רשומת ה-TXT הצפויה. ודא שהיא קיימת ושהערך שלה תואם בדיוק. רשומות DNS חדשות עשויות להופיע רק לאחר מספר דקות.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "בדיקת התצורה השמורה עברה בהצלחה",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "בדיקת התצורה השמורה מצאה בעיה",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "בדיקת התצורה השמורה לא הגיעה להכרעה",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "בדיקת התצורה השמורה נכשלה",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "תצורה זו נבדקה יותר מדי פעמים לאחרונה. נסה שוב מאוחר יותר.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "תצורה זו נבדקה יותר מדי פעמים לאחרונה. נסה שוב בעוד כ-{minutes} דקות.",
+    "source_hash": "fdbdeaf6"
   }
 }

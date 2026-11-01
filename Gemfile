@@ -43,7 +43,17 @@ source 'https://rubygems.org/'
 gem 'otto', '~> 2.11'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
-gem 'rodauth', '~> 2.0'
+# rodauth comes from the onetimesecret fork, pinned to a commit: upstream
+# 2.48.0 plus two fixes not yet in a rodauth release
+# (onetimesecret/rodauth#3). The verify route deletes the verify account key
+# again instead of rotating it (rotation since 2.46). Recovery codes added
+# while a passkey verifies an account go to that account instead of a nil
+# session id, which failed the verification with AUTH_MFA_ENABLED and
+# AUTH_WEBAUTHN_VERIFY_ACCOUNT both on. The fork's version is still 2.48.0;
+# the GIT section in Gemfile.lock is what distinguishes it from the release.
+gem 'rodauth',
+  git: 'https://github.com/onetimesecret/rodauth.git',
+  ref: '8abe3ebdb89739fc4b3c040105873d7cc281d216'
 gem 'rodauth-omniauth', '~> 0.4'
 gem 'rodauth-tools', '~> 0.4.0'
 
@@ -150,7 +160,7 @@ gem 'fastimage', '~> 2.4'
 gem 'i18n', '~> 1.14'
 gem 'mail'
 gem 'public_suffix', '~> 7.0'
-gem 'sanitize', '~> 7.0'
+gem 'sanitize', '~> 7.0', '>= 7.0.1'
 gem 'semantic_logger', '~> 4.17'
 gem 'simpleidn', '~> 0.2'
 gem 'tilt'
@@ -239,7 +249,7 @@ gem 'rufus-scheduler', '~> 3.9'  # Cron-style job scheduling
 # ====================================
 
 gem 'aws-sdk-sesv2', '~> 1.74', require: false
-gem 'lettermint', '~> 0.2.0', require: false
+gem 'lettermint', '~> 0.2.1', require: false
 gem 'sendgrid-ruby', require: false
 gem 'sentry-ruby', require: false
 gem 'stackprof', require: false

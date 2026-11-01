@@ -11,8 +11,8 @@
     />
     <OIcon
       class="size-5"
-      collection="heroicons-solid"
-      name="close"
+      collection="heroicons"
+      name="x-mark-solid"
       :aria-hidden="false"       // Override aria-hidden if the icon is interactive
       @click="closeModal"        // Example: Make the close icon interactive
     />

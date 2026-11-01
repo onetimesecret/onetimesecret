@@ -21,6 +21,10 @@ module DomainsAPI
       # - validation_strategy: Required for create, optional for update (preserves existing if omitted)
       # - allowed_signup_domains: Optional. Array or comma-separated string.
       #   When omitted: preserves existing. When provided as []: clears all.
+      # - allow_base_domain: Optional. Boolean; under domain_allowlist also admits
+      #   the custom domain's own registrable domain (preserves existing if omitted).
+      #   Turning it on needs features.organizations.base_domain_signup_enabled
+      #   and the base_domain_signup entitlement
       # - enabled: Optional. Boolean to enable/disable (preserves existing if omitted)
       #
       class PatchSignupConfig < Base
@@ -36,6 +40,8 @@ module DomainsAPI
           # Track whether allowed_signup_domains was explicitly provided (for PATCH semantics)
           @allowed_signup_domains_provided = params.key?('allowed_signup_domains')
           @allowed_signup_domains          = parse_allowed_domains(params['allowed_signup_domains'])
+          @allow_base_domain_provided      = params.key?('allow_base_domain')
+          @allow_base_domain               = parse_boolean(params['allow_base_domain'])
           # Track whether enabled was explicitly provided (for PATCH semantics)
           @enabled_provided                = !params['enabled'].nil?
           @enabled                         = parse_boolean(params['enabled'])
@@ -59,12 +65,7 @@ module DomainsAPI
           # Check if config already exists
           @existing_config = Onetime::CustomDomain::SignupConfig.find_by_domain_id(@custom_domain.identifier)
 
-          # Resolve effective strategy (PATCH semantics: preserves existing if not provided)
-          resolve_strategy
-
-          # Validate domain_allowlist has at least one domain (using effective values)
-          effective_domains = @allowed_signup_domains_provided ? @allowed_signup_domains : (@existing_config&.allowed_signup_domains || [])
-          validate_allowlist_has_domains(@effective_strategy, effective_domains)
+          resolve_against_stored_config
 
           # Validate domain formats only when explicitly provided
           validate_domain_formats(@allowed_signup_domains) if @allowed_signup_domains_provided
@@ -73,21 +74,22 @@ module DomainsAPI
         def process
           OT.ld "[PatchSignupConfig] Patching signup config for domain #{@domain_id} by user #{cust.extid}"
 
-          was_enabled = @existing_config&.enabled?
-
           if @existing_config
-            changes = compute_signup_changes(@existing_config, normalized_change_params)
-            update_existing_config
+            # Audit from the state this write replaced, not from the config
+            # raise_concerns loaded (see update_existing_config)
+            previous    = update_existing_config
+            was_enabled = previous[:was_enabled]
             log_signup_change_event(
               event: :domain_signup_config_updated,
               domain: @custom_domain,
               org: @organization,
               actor: cust,
               validation_strategy: @effective_strategy,
-              changes: changes,
+              changes: previous[:changes],
             )
           else
-            create_new_config
+            was_enabled = nil
+            guarded_config_write { create_new_config }
             log_signup_change_event(
               event: :domain_signup_config_created,
               domain: @custom_domain,
@@ -117,6 +119,7 @@ module DomainsAPI
             domain_id: @domain_id,
             validation_strategy: @effective_strategy,
             allowed_signup_domains: @allowed_signup_domains,
+            allow_base_domain: @allow_base_domain,
             enabled: @enabled,
           }
         end
@@ -135,8 +138,59 @@ module DomainsAPI
           payload                           = {}
           payload['validation_strategy']    = @effective_strategy unless @validation_strategy.to_s.empty?
           payload['allowed_signup_domains'] = @allowed_signup_domains if @allowed_signup_domains_provided
+          payload['allow_base_domain']      = @allow_base_domain if @allow_base_domain_provided
           payload['enabled']                = @enabled if @enabled_provided
           payload
+        end
+
+        # The checks that read the stored record. update_existing_config runs
+        # them again on the record it re-reads under WATCH, which is the one
+        # the write applies to.
+        def resolve_against_stored_config
+          # Resolve effective strategy (PATCH semantics: preserves existing if not provided)
+          resolve_strategy
+
+          if @allow_base_domain_provided
+            verify_allow_base_domain_permitted!(
+              requested: @allow_base_domain,
+              stored: @existing_config&.allow_base_domain? || false,
+            )
+          end
+
+          return if keeps_allowlist_inputs?
+
+          # Validate domain_allowlist has at least one domain (using effective
+          # values). A stored list kept by this PATCH must also be readable;
+          # sending allowed_signup_domains replaces it.
+          effective_domains           = @allowed_signup_domains_provided ? @allowed_signup_domains : (@existing_config&.allowed_signup_domains || [])
+          keeps_corrupt_list          = !@allowed_signup_domains_provided && (@existing_config&.allowed_signup_domains_corrupt? || false)
+          effective_allow_base_domain = if @allow_base_domain_provided
+                                          @allow_base_domain
+                                        else
+                                          @existing_config&.allow_base_domain? || false
+                                        end
+          validate_allowlist_requirement(
+            @effective_strategy,
+            effective_domains,
+            corrupt: keeps_corrupt_list,
+            allow_base_domain: effective_allow_base_domain,
+          )
+        end
+
+        # Whether this PATCH updates a stored config without sending any input
+        # the allowlist rule reads (validation_strategy, allowed_signup_domains,
+        # allow_base_domain). Such a request cannot add an allowlist error, so
+        # it is not judged by the rule: a config that stopped meeting it, for
+        # example because a saved allow_base_domain no longer counts after
+        # the install flag or the entitlement went away, can still be
+        # disabled or have its other fields changed. Same principle as
+        # Operations::Domains::UpsertDomainConfig. The sign-up gate still
+        # judges the stored values, and a disabled config resolves like a
+        # deleted one (SignupValidation), which the owner can already do.
+        def keeps_allowlist_inputs?
+          return false unless @existing_config
+
+          @validation_strategy.to_s.empty? && !@allowed_signup_domains_provided && !@allow_base_domain_provided
         end
 
         # PATCH semantics: strategy preserves existing if not provided.
@@ -159,14 +213,15 @@ module DomainsAPI
         end
 
         def create_new_config
-          attrs                  = {
+          attrs                     = {
             domain_id: @custom_domain.identifier,
             validation_strategy: @effective_strategy,
             allowed_signup_domains: @allowed_signup_domains,
             enabled: @enabled,
           }
-          attrs[:signup_enabled] = @signup_enabled if @signup_enabled_provided
-          attrs[:autoverify]     = @autoverify if @autoverify_provided
+          attrs[:signup_enabled]    = @signup_enabled if @signup_enabled_provided
+          attrs[:autoverify]        = @autoverify if @autoverify_provided
+          attrs[:allow_base_domain] = @allow_base_domain if @allow_base_domain_provided
 
           @signup_config = Onetime::CustomDomain::SignupConfig.create!(**attrs)
         end
@@ -180,16 +235,35 @@ module DomainsAPI
         # - Provided as []: explicitly clears all existing domains
         # - Provided with values: replaces with new values
         #
+        # allow_base_domain, like the other booleans, is applied only when
+        # provided.
+        #
+        # The record raise_concerns loaded can be stale by now, and writing it
+        # back would revert fields a concurrent writer committed since.
+        # update_for_domain! re-reads it under WATCH and retries when it
+        # changes before the commit (GuardedConfigWrites); the request is
+        # resolved again against that record, and the audit values come from
+        # it.
+        #
+        # @return [Hash] :changes and :was_enabled of the record before this write
         def update_existing_config
-          @signup_config                        = @existing_config
-          @signup_config.validation_strategy    = @effective_strategy
-          @signup_config.allowed_signup_domains = @allowed_signup_domains if @allowed_signup_domains_provided
-          @signup_config.enabled                = @enabled.to_s if @enabled_provided
-          @signup_config.signup_enabled         = @signup_enabled if @signup_enabled_provided
-          @signup_config.autoverify             = @autoverify if @autoverify_provided
-          @signup_config.updated                = Familia.now.to_i
+          @signup_config, previous = guarded_config_write do
+            Onetime::CustomDomain::SignupConfig.update_for_domain!(@custom_domain.identifier) do |config|
+              @existing_config = config
+              resolve_against_stored_config
+              state            = { changes: compute_signup_changes(config, normalized_change_params), was_enabled: config.enabled? }
 
-          @signup_config.commit_fields
+              config.validation_strategy    = @effective_strategy
+              config.allowed_signup_domains = @allowed_signup_domains if @allowed_signup_domains_provided
+              config.allow_base_domain      = @allow_base_domain if @allow_base_domain_provided
+              config.enabled                = @enabled.to_s if @enabled_provided
+              config.signup_enabled         = @signup_enabled if @signup_enabled_provided
+              config.autoverify             = @autoverify if @autoverify_provided
+              config.updated                = Familia.now.to_i
+              state
+            end
+          end
+          previous
         end
 
         def serialize_signup_config(config)
@@ -197,10 +271,15 @@ module DomainsAPI
             domain_id: @custom_domain.extid,
             validation_strategy: config.validation_strategy,
             allowed_signup_domains: config.allowed_signup_domains,
+            allow_base_domain: config.allow_base_domain?,
             enabled: config.enabled?,
             signup_enabled: config.signup_enabled?,
             autoverify: config.autoverify?,
-            requires_allowlist: config.requires_allowlist?,
+            uses_allowlist: config.uses_allowlist?,
+            # Former name of uses_allowlist, still sent so a client built
+            # before the rename parses the response during a deploy.
+            # Deprecated; remove in a later release.
+            requires_allowlist: config.uses_allowlist?,
             network_validation: config.network_validation?,
             created_at: config.created.to_i,
             updated_at: config.updated.to_i,

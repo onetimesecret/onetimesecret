@@ -10,10 +10,64 @@ require 'onetime/migration'
 require 'v2/logic'
 
 require_relative 'cli/option_types'
+require_relative 'cli/write_gate'
 
 module Onetime
   module CLI
     extend Dry::CLI::Registry
+
+    # Included by both base classes below. Rejects a token that names no child
+    # of a parent command.
+    #
+    # dry-cli 1.4.1 (CommandRegistry#get): when a node is both a command and a
+    # parent, a following token that names no child falls back to that node,
+    # with the leftover words in `args:`. A parent whose `call(**)` ignores
+    # them prints its usage and exits 0, so a typo or a removed verb looks like
+    # success to a script. Every such parent takes `args: []` and calls
+    # `reject_unknown_subcommand(args)` first, before it boots anything.
+    #
+    # Per-command hooks:
+    # - REMOVED_SUBCOMMANDS = { 'verb' => 'replacement' } names verbs that were
+    #   removed and where they went; the hint replaces the spelling suggestion.
+    # - unknown_subcommand_usage(io) prints the usage after the error. The
+    #   default lists the registered children.
+    module SubcommandGuard
+      protected
+
+      def reject_unknown_subcommand(args)
+        return if args.nil? || args.empty?
+
+        token = args.first
+        warn "Unknown subcommand: #{token}"
+
+        removed = self.class.const_defined?(:REMOVED_SUBCOMMANDS) ? self.class::REMOVED_SUBCOMMANDS : {}
+        if removed.key?(token)
+          warn "`#{token}` was removed; use: #{removed[token]}"
+        else
+          suggestion = DidYouMean::SpellChecker.new(dictionary: subcommand_names).correct(token).first
+          warn "Did you mean `#{suggestion}`?" if suggestion
+        end
+        warn ''
+        unknown_subcommand_usage($stderr)
+        exit 1
+      end
+
+      def unknown_subcommand_usage(io)
+        io.puts "Subcommands: #{subcommand_names.join(', ')}"
+        io.puts 'Add --help for details.'
+      end
+
+      # The children registered under this command. CommandRegistry#set hands
+      # the node's children to the command class (Node#subcommands!), so the
+      # names come from the registry, not a hand-kept list. Hidden children are
+      # left out.
+      def subcommand_names
+        children = self.class.subcommands
+        return [] unless children.respond_to?(:each_pair)
+
+        children.each_pair.reject { |_name, node| node.hidden }.map(&:first).sort
+      end
+    end
 
     # Base command class that boots the application
     #
@@ -24,6 +78,8 @@ module Onetime
     # itself, so it applies to every command regardless of base class and no
     # command's ancestor chain is touched. See that file for the analysis.
     class Command < Dry::CLI::Command
+      include SubcommandGuard
+
       def boot_application!
         # Make sure all the models are loaded before calling boot
         OT.boot! :cli
@@ -39,7 +95,7 @@ module Onetime
       end
 
       def verbose?
-        ARGV.any? { |arg| ['-v', '--verbose'].include?(arg) }
+        ARGV.intersect?(['-v', '--verbose'])
       end
 
       def debug?
@@ -55,6 +111,8 @@ module Onetime
 
     # Command class that delays boot (for commands that handle boot themselves)
     class DelayBootCommand < Dry::CLI::Command
+      include SubcommandGuard
+
       protected
 
       def require_sudo
@@ -65,7 +123,7 @@ module Onetime
       end
 
       def verbose?
-        ARGV.any? { |arg| ['-v', '--verbose'].include?(arg) }
+        ARGV.intersect?(['-v', '--verbose'])
       end
 
       def debug?
@@ -88,8 +146,10 @@ require_relative 'cli/migrate_command'
 require_relative 'cli/customers/shared'
 require_relative 'cli/customers/sync_auth_accounts_command'
 require_relative 'cli/customers/dates_command'
+require_relative 'cli/customers/purge_inactive_command'
 require_relative 'cli/customers/purge_command'
-require_relative 'cli/customers/purge_one_command'
+require_relative 'cli/customers/prune_closed_accounts_command'
+require_relative 'cli/customers/finish_closures_command'
 require_relative 'cli/customers/show_command'
 require_relative 'cli/customers/list_command'
 require_relative 'cli/customers/create_command'
@@ -102,6 +162,7 @@ require_relative 'cli/customers/doctor_command'
 require_relative 'cli/customers/diagnose_command'
 require_relative 'cli/customers/change_email_command'
 require_relative 'cli/customers/normalize_emails_command'
+require_relative 'cli/customers/set_default_org_command'
 require_relative 'cli/customers_command'
 require_relative 'cli/memberships/doctor_command'
 require_relative 'cli/memberships/shared'
@@ -124,6 +185,8 @@ require_relative 'cli/domains/transfer_command'
 require_relative 'cli/domains/verify_command'
 require_relative 'cli/domains/orphaned_command'
 require_relative 'cli/domains/list_command'
+require_relative 'cli/domains/backfill_ascii_index_command'
+require_relative 'cli/domains/resolve_collisions_command'
 require_relative 'cli/domains_command'
 require_relative 'cli/sso/backfill_issuer_command'
 require_relative 'cli/sso_command'
@@ -139,7 +202,9 @@ require_relative 'cli/org/entitlement_grant_command'
 require_relative 'cli/org/entitlement_revoke_command'
 require_relative 'cli/org/entitlement_clear_command'
 require_relative 'cli/org/entitlement_show_command'
-require_relative 'cli/org_command'
+require_relative 'cli/org/list_command'
+require_relative 'cli/org/show_command'
+require_relative 'cli/organizations_command'
 require_relative 'cli/audit_command'
 require_relative 'cli/apitoken_command'
 require_relative 'cli/housekeeping_command'
@@ -156,6 +221,7 @@ require_relative 'cli/migrations/dedupe_relationships_command'
 require_relative 'cli/migrations/dedupe_participations_command'
 require_relative 'cli/migrations/grant_probono_entitlements_command'
 require_relative 'cli/customers/role_command'
+require_relative 'cli/customers/role_reconcile_command'
 require_relative 'cli/passwords_command'
 require_relative 'cli/test_data_command'
 require_relative 'cli/session_command'

@@ -22,6 +22,7 @@ import {
   snapshotOrdering,
 } from '@/tests/fixtures/bootstrap.fixture';
 import { toWire } from '@/tests/fixtures/bootstrap-wire';
+import { captureAppLogs, captureConsole } from '@/tests/utils/appLogs';
 import { attemptForcedPageLoad } from '@/utils/forcedPageLoad';
 import { consumeSessionTransition, SESSION_TRANSITION_KEY } from '@/utils/sessionTransition';
 import { addBreadcrumb } from '@sentry/vue';
@@ -102,6 +103,9 @@ describe('authStore snapshot acceptance (#4464)', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.5);
     vi.mocked(attemptForcedPageLoad).mockClear();
     vi.mocked(addBreadcrumb).mockClear();
+    // Failed verifications and ordering anomalies are part of what these
+    // tests drive; the store logs both.
+    captureAppLogs();
   });
 
   afterEach(() => {
@@ -176,6 +180,7 @@ describe('authStore snapshot acceptance (#4464)', () => {
 
     it('a local patch never advances or replaces the watermark', async () => {
       await mountWith(authenticatedBootstrap);
+      const warn = captureConsole('warn');
 
       bootstrapStore.update({
         snapshot_epoch: otherSnapshotEpoch,
@@ -185,6 +190,10 @@ describe('authStore snapshot acceptance (#4464)', () => {
 
       expect(bootstrapStore.email).toBe('patched@example.com');
       expect(bootstrapStore.watermark).toEqual({ epoch: EPOCH, version: VERSION });
+      expect(warn.mock.calls.map(([m]) => m)).toEqual([
+        '[BootstrapStore.update] Ignored "snapshot_epoch": local patches cannot set auth state',
+        '[BootstrapStore.update] Ignored "snapshot_version": local patches cannot set auth state',
+      ]);
     });
 
     it('a malformed snapshot_generated_at still applies, with a diagnostic and an unknown age', async () => {

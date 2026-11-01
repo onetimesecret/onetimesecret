@@ -29,7 +29,9 @@ module Onetime
         default: false,
         desc: 'Show available subcommands'
 
-      def call(active_only: true, help: false, **)
+      def call(args: [], active_only: true, help: false, **)
+        reject_unknown_subcommand(args)
+
         if help
           show_help
           return 0

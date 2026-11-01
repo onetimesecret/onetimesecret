@@ -170,7 +170,10 @@ module V2::Logic
               # plaintext only if this caller won the one-shot claim.
               @secret_value = secret.reveal!(passphrase_input: @passphrase, actor_context: actor_context)
 
-            elsif owner && (cust&.anonymous? || (cust&.custid == owner.custid && !owner.mailbox_verified?))
+            # anonymous_user? treats a missing customer as anonymous: on
+            # auth=noauth routes the emailed link arrives with no customer at
+            # all (#4831). Past it, cust is present.
+            elsif owner && (anonymous_user? || (cust.custid == owner.custid && !owner.mailbox_verified?))
               # Following a link delivered to the address IS mailbox proof, so
               # this also upgrades an owner whose stamp carried none (payment,
               # autoverify, legacy) — the gate above is mailbox_verified?, not

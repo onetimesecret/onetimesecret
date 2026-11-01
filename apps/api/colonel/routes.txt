@@ -14,7 +14,7 @@
 # AdminNetworkIsolation is absent from the stack. The strict network=admin
 # below (on /system/proxy-headers) has no such fall-through and would 404 a
 # stock self-hosted install; do not use it on a route the console calls.
-# The 15 reversible tier-2 routes are deliberately NOT annotated.
+# The 16 reversible tier-2 routes are deliberately NOT annotated.
 
 # Colonel API  endpoints
 GET    /info                              ColonelAPI::Logic::Colonel::GetColonelInfo response=json auth=sessionauth role=colonel scope=internal
@@ -28,6 +28,16 @@ GET    /config                            ColonelAPI::Logic::Colonel::GetSystemS
 GET    /elevation                         ColonelAPI::Logic::Colonel::GetElevationStatus response=json auth=sessionauth role=colonel scope=internal
 POST   /elevation                         ColonelAPI::Logic::Colonel::ElevateSession response=json auth=sessionauth role=colonel scope=internal
 DELETE /elevation                         ColonelAPI::Logic::Colonel::DropElevation response=json auth=sessionauth role=colonel scope=internal
+
+# Password recovery for an expired admin session window (#4331): re-entering
+# the account password re-stamps the sign-in time and restarts both bounds,
+# instead of signing out and in. The ONE request the admin session lifetime
+# does not refuse (AdminSessionLifetime::REAUTH_EXEMPT, exact method + path):
+# a refused recovery would leave sign-out as the only way back. Every other
+# session check still applies, a password is required, attempts share the
+# step-up throttle, and a wrong password changes nothing. Grants no
+# elevation; see docs/operations/colonel-admin-guide.md.
+POST   /reauthenticate                    ColonelAPI::Logic::Colonel::ReauthenticateSession response=json auth=sessionauth role=colonel scope=internal
 
 # Entitlement Preview Mode
 GET    /available-plans                   ColonelAPI::Logic::Colonel::GetAvailablePlans response=json auth=sessionauth role=colonel scope=internal
@@ -53,6 +63,9 @@ POST   /users/:user_id/unverify           ColonelAPI::Logic::Colonel::UnverifyUs
 POST   /users/:user_id/suspend            ColonelAPI::Logic::Colonel::SuspendUser response=json auth=sessionauth role=colonel scope=internal
 POST   /users/:user_id/unsuspend          ColonelAPI::Logic::Colonel::UnsuspendUser response=json auth=sessionauth role=colonel scope=internal
 POST   /users/:user_id/impersonate        ColonelAPI::Logic::Colonel::ImpersonateUser response=json auth=sessionauth role=colonel scope=internal
+# Default organization: only one the customer is already an active member of,
+# and not archived. Tier 2 (X-OTS-Confirm = the account email), so no network=.
+POST   /users/:user_id/default-organization ColonelAPI::Logic::Colonel::SetUserDefaultOrganization response=json auth=sessionauth role=colonel scope=internal
 DELETE /users/:user_id                    ColonelAPI::Logic::Colonel::PurgeUser response=json auth=sessionauth role=colonel network=admin_if_configured scope=internal
 
 # System Monitoring

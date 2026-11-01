@@ -28,7 +28,8 @@ RSpec.describe 'customers doctor', type: :cli do
   end
 
   before do
-    allow(Onetime::Customer).to receive(:find_by_email).and_return(customer)
+    # The command resolves through Customers::Shared#resolve_customer.
+    allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(customer)
     allow(Auth::Operations::Customers::Doctor).to receive(:new).and_return(op)
     allow(op).to receive(:call).and_return(
       Auth::Operations::Customers::Doctor::Report.new(

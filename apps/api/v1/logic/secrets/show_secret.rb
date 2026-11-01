@@ -86,8 +86,9 @@ module V1::Logic
                 owner.verified_by = 'email'
                 owner.save
               end
-              # Skip for stateless auth (BasicAuth provides empty session)
-              sess.clear unless sess.empty?
+              # Skip for stateless auth. The v1 controllers pass no session at
+              # all (V1::ControllerBase#authorized), so sess is nil here.
+              sess.clear unless sess.nil? || sess.empty?
               @revealed = secret.revealed!(actor_context: lifecycle_actor_context(secret))
             else
               raise_form_error "You can't verify an account when you're already logged in."

@@ -155,6 +155,18 @@ still stamp the callback as validated for the domain.
 
 #### Unverified domains
 
+Under a validation strategy that checks ownership (`approximated`,
+`caddy_on_demand`), a custom domain whose ownership is not verified is not
+served at all: every request to its host, including the sign-in page, the SSO
+routes and the SAML ACS URL, answers 404 before any sign-in code runs
+(`CustomDomain#served_as_tenant?`). The tenant sees the domain's state on the
+SSO settings form, described below.
+
+The refusal described next applies where such a host is served: under
+`passthrough`, where registration is the basis for serving but SSO still
+needs a verify call to mark the domain verified, and under any strategy while
+the operator sets `features.domains.serve_unverified`.
+
 When a domain's SSO configuration is enabled and permitted but the domain's
 ownership is not verified yet, the hook refuses SSO at step 5: it logs
 `omniauth_tenant_domain_unverified` at warn level, clears any pending tenant
@@ -772,6 +784,28 @@ refuses SAML creation or re-enablement while it is incompatible (422 on
 `provider_type`). Existing records retain disable, repair, replacement, and
 delete recovery paths.
 
+### Import IdP metadata
+
+In the domain's SAML settings, fetch the IdP's public HTTPS metadata URL.
+For Microsoft Entra, use the **App Federation Metadata Url**. Review the
+returned SSO URL and EntityID, select a signing certificate, apply the values
+to the form, and save. Fetching alone changes no saved configuration. This is
+a manual import, not automatic metadata or certificate refresh; plan
+certificate rotation separately.
+
+The preview endpoint is `POST /api/domains/:extid/sso/metadata`, with
+`metadata_url` in the request body. It permits 30 requests per customer per
+hour by default; configure the `SSO_METADATA_FETCH_RATE_LIMIT_*` settings in
+[`etc/config.yaml`](../../etc/config.yaml). See the
+[metadata fetch implementation](../../apps/api/domains/logic/sso_config/fetch_idp_metadata.rb)
+for request validation and response details.
+
+Use the actual tenant EntityID, not a template such as
+`https://sts.windows.net/{tenantid}/`. Unresolved brace placeholders are
+rejected when saving, testing or re-enabling domain SAML; an existing
+configuration can still be disabled. The same validation prevents platform
+SAML from being enabled with a placeholder in `SAML_IDP_ENTITY_ID`.
+
 ### Validation, test and expiry
 
 - **Test connection** for `saml` is local. The URL, EntityID and certificate
@@ -815,6 +849,43 @@ callback are both derived from the record's `idp_sso_service_url` origin
 `saml` → `idp_sso_service_url`), never from the EntityID, and only on that
 domain's host. There is no per-domain override; an IdP whose login page posts
 back from a different origin than its SSO service URL cannot be used.
+
+## Generic OIDC for a Custom Domain
+
+Provider type `oidc`. The record holds the issuer, client ID and client
+secret. The issuer must serve OIDC discovery; Test Connection fetches the
+discovery document and compares its `issuer` value exactly (see
+[Common Issues](#common-issues)). The sovereign Entra section below uses this
+provider type.
+
+### Token endpoint authentication
+
+By default the client secret is sent to the IdP's token endpoint in an
+`Authorization: Basic` header (`client_secret_basic`). An IdP may accept only
+that form, or only the request-body form (`client_secret_post`). The
+**Advanced** section of the domain's SSO form has a **Token endpoint
+authentication** select with three choices:
+
+| Choice | Stored value | What is sent |
+|--------|--------------|--------------|
+| Automatic (default) | empty | `client_secret_basic`. A platform `OIDC_CLIENT_AUTH_METHOD` value never applies to a custom domain |
+| Authorization header (`client_secret_basic`) | `client_secret_basic` | The client ID and secret in an `Authorization: Basic` header |
+| Request body (`client_secret_post`) | `client_secret_post` | `client_id` and `client_secret` as form fields in the token request body |
+
+Leave it on Automatic unless the IdP requires one method. Test Connection
+reports the methods the IdP advertises in its discovery document
+(`token_endpoint_auth_methods_supported`). When the selected method is not in
+that list, the test still passes and shows a warning that names the
+advertised methods; sign-in may still work, but if the token exchange fails,
+choose an advertised method. A document that omits the list is treated as
+advertising `client_secret_basic` only, the default that OpenID Connect
+Discovery 1.0 section 3 gives for that field.
+
+Saving the form with Automatic selected clears a stored choice. Existing
+records have no stored choice and keep the default. The domain SSO change log
+records changes to this field (never the secret). The setting applies to
+`oidc` only: it is cleared for `entra_id` and `saml`, which have no option.
+Entra always sends the secret in the request body (#4764).
 
 ## OIDC for sovereign Microsoft Entra tenants
 
@@ -913,6 +984,7 @@ previously configured tenant that was pointed at the wrong cloud.
 | SSO configured but login fails | No custom domain with SSO config | Add custom domain and configure SSO |
 | Test Connection fails with `issuer_mismatch` (OIDC only) | The configured issuer is not exactly the discovery document's `issuer`. The comparison is exact, including any trailing slash (Auth0 uses one) | Set the Issuer URL to the **Discovered Issuer** value shown in the result, character for character, and test again |
 | Test Connection fails with `discovery_too_large` | The discovery document is larger than the 256 KiB limit | Check that the issuer URL points at the IdP, not at a page that returns a large document |
+| Generic OIDC sign-in fails at the token exchange with `invalid_client` from the IdP | The IdP refuses the way the client secret was sent (the default is the `Authorization: Basic` header), or the secret is wrong | Run Test Connection and read the advertised methods. Under **Advanced**, set **Token endpoint authentication** to a method the IdP lists, save, and sign in again. See [Token endpoint authentication](#token-endpoint-authentication). If every method fails, check the secret itself |
 | Platform SSO used instead of domain SSO | The custom domain has no active tenant SSO configuration and `SSO_ALLOW_PLATFORM_FALLBACK=true` | Configure and enable tenant SSO for the domain, or disable platform fallback. Platform SAML is excluded from this fallback, and so is a domain whose tenant SSO waits only on verification |
 | SSO sign-in lands on `sso_domain_unverified` | The domain's SSO configuration is enabled and permitted, but the domain's ownership is not verified (never verified, or verification lapsed) | Complete domain verification, or have the operator set a verification override. Check the `omniauth_tenant_domain_unverified` log event for the host and domain |
 | SAML sign-in lands on `sso_config_unusable` | The domain's SAML record is unusable: expired certificate, or a field that no longer decrypts | Check the `omniauth_tenant_config_unusable` log event; save a current certificate or re-enter the flagged fields |

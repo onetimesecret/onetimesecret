@@ -135,7 +135,7 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
           .and_raise(Redis::CannotConnectError, 'domain index unavailable')
 
         expect { logic.raise_concerns }.to raise_error(Onetime::FormError, /Is that a valid email address?/)
-        expect(signup_config).to have_received(:valid_signup_email?).with(email)
+        expect(signup_config).to have_received(:valid_signup_email?).with(email, domain: custom_domain)
         expect(Onetime::CustomDomain).not_to have_received(:display_domain_id_for)
       end
 

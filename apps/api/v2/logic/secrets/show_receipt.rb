@@ -177,21 +177,15 @@ module V2::Logic
           end
         end
 
-        # Show the secret if it exists and hasn't been seen yet.
+        # Show the secret if it exists, has no passphrase, and hasn't been
+        # previewed or consumed. See Receipt#offers_secret?, which BurnSecret
+        # shares so its response agrees with this one (#4835).
         #
-        # It will be true if:
-        #   1. The secret is not nil (i.e., a secret exists), AND
-        #   2. The receipt state is NOT in any of these states: previewed/viewed,
-        #      revealed/received, or burned
-        #
-        # Note: Check both new states (revealed) and legacy states (received).
-        # previewed/viewed are backward-compat guards for pre-#3633 data only —
-        # no GET path advances a receipt to those states anymore (the previewed!
-        # mutation was retired), so live receipts never reach them via this page.
-        secret_consumed = receipt.state?(:previewed) || receipt.state?(:viewed) ||
-                          receipt.state?(:revealed) || receipt.state?(:received) ||
-                          receipt.state?(:burned) || receipt.state?(:orphaned)
-        @show_secret    = !secret.nil? && !has_passphrase && !secret_consumed
+        # Note: previewed/viewed are backward-compat guards for pre-#3633 data
+        # only — no GET path advances a receipt to those states anymore (the
+        # previewed! mutation was retired), so live receipts never reach them
+        # via this page.
+        @show_secret = receipt.offers_secret?(secret)
 
         # The secret link is shown only when appropriate, considering the
         # state, ownership, and recipient information.
@@ -295,8 +289,9 @@ module V2::Logic
         # Provenance gate: incoming secrets withhold the share link (and its
         # secret_identifier bearer key) from the creator. safe_dump already
         # withholds secret_identifier for these; keep the re-add and the
-        # share_url/share_path merge below consistent with it.
-        link_visible = receipt.shows_share_link?
+        # share_url/share_path merge below consistent with it. A consumed
+        # receipt has no secret left to link to, so it gets no link either.
+        link_visible = receipt.share_link_available?
 
         # Only include the secret's identifying key when necessary
         # Remove it from safe_dump and only add it back if show_secret is true

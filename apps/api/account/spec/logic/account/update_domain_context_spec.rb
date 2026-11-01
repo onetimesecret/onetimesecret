@@ -25,6 +25,7 @@ RSpec.describe AccountAPI::Logic::Account::UpdateDomainContext do
       ready?: true,
       verified: true,
       resolving: true,
+      served_as_tenant?: true,
     )
   end
 
@@ -168,6 +169,33 @@ RSpec.describe AccountAPI::Logic::Account::UpdateDomainContext do
 
       it 'does not raise any error' do
         expect { logic.raise_concerns }.not_to raise_error
+      end
+    end
+
+    # The user's own domain, but one that is not served as a tenant domain
+    # (CustomDomain#served_as_tenant?): the picker does not offer it, and
+    # selecting it directly is refused the same way as a domain the user
+    # does not have.
+    context 'when the custom domain is not served' do
+      let(:params) { { 'domain' => custom_domain } }
+      let(:custom_domain_obj) do
+        instance_double(
+          Onetime::CustomDomain,
+          display_domain: custom_domain,
+          ready?: false,
+          verified: false,
+          resolving: false,
+          served_as_tenant?: false,
+        )
+      end
+
+      it 'raises the invalid-domain form error' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError, 'Invalid domain')
+      end
+
+      it 'leaves the session unchanged' do
+        logic.process
+        expect(session['domain_context']).to be_nil
       end
     end
   end

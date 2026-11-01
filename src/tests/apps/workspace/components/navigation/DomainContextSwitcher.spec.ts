@@ -14,9 +14,10 @@
  * the real open/close state machine.
  */
 
-import { mount, VueWrapper } from '@vue/test-utils';
+import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { reactive, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
+import { createMemoryHistory, createRouter, type NavigationFailure } from 'vue-router';
 import DomainContextSwitcher from '@/apps/workspace/components/navigation/DomainContextSwitcher.vue';
 
 // Shared spy for HeadlessUI's Menu `close` slot function so tests can assert the
@@ -70,7 +71,10 @@ const mockRoute = reactive<{ meta: Record<string, unknown>; params: Record<strin
   params: {},
   matched: [],
 });
-vi.mock('vue-router', () => ({
+// The rest of vue-router stays real: the switcher reads navigation failures
+// with isNavigationFailure, and the specs build real ones (navigationFailure).
+vi.mock('vue-router', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('vue-router')>()),
   useRoute: () => mockRoute,
   useRouter: () => ({ push: mockPush }),
 }));
@@ -119,10 +123,22 @@ const mockCurrentContext = ref({
 });
 const mockIsContextActive = ref(true);
 const mockSetContext = vi.fn();
+/**
+ * The org's registered custom domains, served or not. null derives it from
+ * the offered list (every offered domain with an extid), as when every
+ * registered domain is served.
+ */
+const mockRegisteredCount = ref<number | null>(null);
+const mockRegisteredDomainCount = computed(
+  () =>
+    mockRegisteredCount.value ??
+    mockAvailableDomains.value.filter((domain) => mockExtids[domain]).length
+);
 vi.mock('@/shared/composables/useDomainContext', () => ({
   useDomainContext: () => ({
     currentContext: mockCurrentContext,
     availableDomains: mockAvailableDomains,
+    registeredDomainCount: mockRegisteredDomainCount,
     isContextActive: mockIsContextActive,
     setContext: mockSetContext,
     getDomainDisplayName: (domain: string) => domain,
@@ -144,6 +160,7 @@ function resetSwitcherMocks() {
   mockSiteHost.value = 'canonical.example.com';
   mockExtids = { ...DEFAULT_EXTIDS };
   mockAvailableDomains.value = ['canonical.example.com'];
+  mockRegisteredCount.value = null;
   mockIsContextActive.value = true;
   mockCurrentContext.value = {
     domain: 'canonical.example.com',
@@ -185,6 +202,20 @@ describe('DomainContextSwitcher add/manage call-to-action', () => {
 
     expect(addIcon(wrapper).exists()).toBe(true);
     expect(manageLink(wrapper).exists()).toBe(true);
+    expect(addLink(wrapper).exists()).toBe(false);
+  });
+
+  // A domain pending verification is not offered in the list, but the org
+  // has it: "Manage Domains" stays, rather than an "Add Domain" link that
+  // would send the owner to add it again.
+  it('keeps the Manage link when the org has a custom domain that is not offered', () => {
+    mockAvailableDomains.value = ['canonical.example.com'];
+    mockRegisteredCount.value = 1;
+
+    wrapper = mount(DomainContextSwitcher);
+
+    expect(manageLink(wrapper).exists()).toBe(true);
+    expect(addIcon(wrapper).exists()).toBe(true);
     expect(addLink(wrapper).exists()).toBe(false);
   });
 
@@ -410,6 +441,78 @@ describe('DomainContextSwitcher operator link pool rows', () => {
     expect(shadowedRow.find('[aria-label="web.domains.domain_settings"]').exists()).toBe(true);
 
     await shadowedRow.trigger('click');
+    expect(mockSetContext).toHaveBeenCalledWith('acme.example.com');
+  });
+});
+
+/**
+ * The domain switch changes the context only once its navigation lands. A
+ * page's unsaved-changes guard can refuse the navigation; the page then still
+ * shows the previous domain, and the route.params.extid watcher cannot correct
+ * a context switched early because the param never changed.
+ */
+describe('DomainContextSwitcher switching domains on a domain page', () => {
+  let wrapper: VueWrapper;
+
+  const SSO_PATH = '/org/org1/domains/cd1/signin/sso';
+
+  /**
+   * A real navigation failure, as router.push resolves with it: refused by a
+   * guard (aborted), or already at the destination (duplicated).
+   */
+  async function navigationFailure(kind: 'aborted' | 'duplicated'): Promise<NavigationFailure> {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [{ path: '/:path(.*)*', component: { render: () => null } }],
+    });
+    await router.push('/here');
+    if (kind === 'aborted') router.beforeEach(() => false);
+    const failure = await router.push(kind === 'aborted' ? '/there' : '/here');
+    if (!failure) throw new Error(`expected a ${kind} navigation failure`);
+    return failure;
+  }
+
+  async function selectAcme() {
+    wrapper = mount(DomainContextSwitcher);
+    await wrapper.find('[data-testid="domain-menu-item-cd1"]').trigger('click');
+    await flushPromises();
+  }
+
+  beforeEach(() => {
+    resetSwitcherMocks();
+    mockAvailableDomains.value = ['acme.example.com', 'canonical.example.com'];
+    mockRoute.meta = { scopesAvailable: { onDomainSwitch: 'same' } };
+    mockRoute.matched = [{ path: '/org/:orgid/domains/:extid/signin/sso' }];
+  });
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount();
+  });
+
+  it('switches the context after the navigation lands', async () => {
+    await selectAcme();
+
+    expect(mockPush).toHaveBeenCalledWith(SSO_PATH);
+    expect(mockSetContext).toHaveBeenCalledWith('acme.example.com');
+    expect(mockPush.mock.invocationCallOrder[0]).toBeLessThan(
+      mockSetContext.mock.invocationCallOrder[0]
+    );
+  });
+
+  it('leaves the context unchanged when the page refuses the navigation', async () => {
+    mockPush.mockResolvedValueOnce(await navigationFailure('aborted'));
+
+    await selectAcme();
+
+    expect(mockPush).toHaveBeenCalledWith(SSO_PATH);
+    expect(mockSetContext).not.toHaveBeenCalled();
+  });
+
+  it('switches the context when the page is already at the destination', async () => {
+    mockPush.mockResolvedValueOnce(await navigationFailure('duplicated'));
+
+    await selectAcme();
+
     expect(mockSetContext).toHaveBeenCalledWith('acme.example.com');
   });
 });

@@ -321,7 +321,7 @@ describe('SecretForm - Domain Context Integration', () => {
       vi.mocked(
         await import('@/shared/composables/useSecretConcealer')
       ).useSecretConcealer.mockReturnValue({
-        form: { secret: '', passphrase: '', ttl: 300, share_domain: '' },
+        form: { secret: '', passphrase: '', ttl: 300, share_domain: '', display_type: 'text' },
         validation: {
           errors: reactive(new Map()),
           validate: vi.fn(() => true),
@@ -352,7 +352,7 @@ describe('SecretForm - Domain Context Integration', () => {
       vi.mocked(
         await import('@/shared/composables/useSecretConcealer')
       ).useSecretConcealer.mockReturnValue({
-        form: { secret: '', passphrase: '', ttl: 300, share_domain: '' },
+        form: { secret: '', passphrase: '', ttl: 300, share_domain: '', display_type: 'text' },
         validation: {
           errors: reactive(new Map()),
           validate: vi.fn(() => true),

@@ -294,17 +294,21 @@ module Onetime
       #
       # @param verification_status [String] "verified" or "failed"
       # @param verified_at [Time, nil] Verification timestamp
+      # Written through MailerConfig.record_job_result!: only the
+      # verification fields change, and nothing is written once the record
+      # is gone or sends from another address than the one validated.
+      #
       # @return [Boolean] Whether changes were saved
       def persist_verification(verification_status, verified_at)
-        @mailer_config.verification_status = verification_status
-        @mailer_config.verified_at         = verified_at&.to_i&.to_s
-        @mailer_config.updated             = Familia.now.to_i
-        # Partial save: only write verification fields, not the full record.
-        # A full save would overwrite api_key with stale in-memory ciphertext
-        # if a concurrent write updated it since we loaded.
-        @mailer_config.save_fields(:verification_status, :verified_at, :updated)
+        stored, = Onetime::CustomDomain::MailerConfig.record_job_result!(
+          @mailer_config.domain_id, @mailer_config.from_address
+        ) do |config|
+          config.verification_status = verification_status
+          config.verified_at         = verified_at&.to_i&.to_s
+          config.updated             = Familia.now.to_i
+        end
 
-        true
+        !stored.nil?
       rescue StandardError => ex
         logger.error 'Failed to persist sender verification state',
           domain_id: @mailer_config.domain_id,

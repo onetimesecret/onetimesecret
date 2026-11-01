@@ -12,9 +12,10 @@
 # Seams: the worker is instantiated for real (Sneakers::Queue does not connect
 # until subscribe), but everything stateful is stubbed — trace context yields
 # straight through, the idempotency claim is granted, MailerConfig lookup and
-# the sender strategy return doubles, and the logger is a null object. ack! /
-# reject! are Sneakers methods that just return symbols; asserting on the
-# return value pins the outcome.
+# the sender strategy return doubles, and the logger is a null object. Writes
+# go through MailerConfig.record_job_result!, stubbed to yield a double for
+# the stored record. ack! / reject! are Sneakers methods that just return
+# symbols; asserting on the return value pins the outcome.
 
 require 'spec_helper'
 require 'onetime/jobs/workers/dns_record_check_worker'
@@ -30,21 +31,23 @@ RSpec.describe Onetime::Jobs::Workers::DnsRecordCheckWorker do
 
   let(:dns_check_results_key) { double('dns_check_results', :value= => nil) }
   let(:mailer_config) do
+    double('MailerConfig', domain_id: 'domain-abc', from_address: 'sender@example.com', effective_provider: 'lettermint')
+  end
+  let(:stored) do
     double(
-      'MailerConfig',
-      dns_check_status: nil,
+      'stored MailerConfig',
       :dns_check_status= => nil,
       :dns_verified= => nil,
       :dns_check_completed_at= => nil,
+      :last_error= => nil,
       :updated= => nil,
-      save_fields: true,
-      refresh!: true,
-      jobs_completed?: false,
+      derive_verification_status: nil,
       provider_check_status: 'pending',
-      effective_provider: 'lettermint',
       dns_check_results: dns_check_results_key,
     )
   end
+  # Writes land on `stored`; nil = the record is gone or its address changed
+  let(:stored_on_write) { stored }
   let(:strategy) { double('SenderStrategy', check_dns_records: { records: dns_records, checked_at: Time.now }) }
 
   before do
@@ -55,6 +58,10 @@ RSpec.describe Onetime::Jobs::Workers::DnsRecordCheckWorker do
       .with('domain-abc').and_return(mailer_config)
     allow(Onetime::Mail::SenderStrategies).to receive(:for_provider)
       .with('lettermint').and_return(strategy)
+    allow(Onetime::CustomDomain::MailerConfig).to receive(:record_job_result!)
+      .with('domain-abc', 'sender@example.com') do |*_args, &block|
+        [stored_on_write, block.call(stored_on_write)] if stored_on_write
+      end
   end
 
   def work
@@ -67,14 +74,14 @@ RSpec.describe Onetime::Jobs::Workers::DnsRecordCheckWorker do
 
       it 'sets dns_verified false — absence of evidence is not verification' do
         expect(work).to eq(:ack)
-        expect(mailer_config).to have_received(:dns_verified=).with(false)
+        expect(stored).to have_received(:dns_verified=).with(false)
       end
 
       it 'still persists the (empty) fact-finding results and completion' do
         work
         expect(dns_check_results_key).to have_received(:value=).with([])
-        expect(mailer_config).to have_received(:save_fields)
-          .with(:dns_check_status, :dns_verified, :dns_check_completed_at, :updated)
+        expect(stored).to have_received(:dns_check_status=)
+          .with(Onetime::Jobs::Workers::JobLifecycle::COMPLETED)
       end
     end
 
@@ -88,7 +95,7 @@ RSpec.describe Onetime::Jobs::Workers::DnsRecordCheckWorker do
 
       it 'sets dns_verified true' do
         expect(work).to eq(:ack)
-        expect(mailer_config).to have_received(:dns_verified=).with(true)
+        expect(stored).to have_received(:dns_verified=).with(true)
       end
     end
 
@@ -97,7 +104,7 @@ RSpec.describe Onetime::Jobs::Workers::DnsRecordCheckWorker do
 
       it 'still recognizes the match' do
         work
-        expect(mailer_config).to have_received(:dns_verified=).with(true)
+        expect(stored).to have_received(:dns_verified=).with(true)
       end
     end
 
@@ -111,7 +118,7 @@ RSpec.describe Onetime::Jobs::Workers::DnsRecordCheckWorker do
 
       it 'sets dns_verified false' do
         expect(work).to eq(:ack)
-        expect(mailer_config).to have_received(:dns_verified=).with(false)
+        expect(stored).to have_received(:dns_verified=).with(false)
       end
     end
 
@@ -121,8 +128,19 @@ RSpec.describe Onetime::Jobs::Workers::DnsRecordCheckWorker do
 
       it 'treats nil records as empty and sets dns_verified false' do
         work
-        expect(mailer_config).to have_received(:dns_verified=).with(false)
+        expect(stored).to have_received(:dns_verified=).with(false)
       end
+    end
+  end
+
+  describe 'a record deleted, or moved to another address, while the job runs' do
+    let(:dns_records) { [{ 'type' => 'TXT', 'name' => 'a.example.com', 'value_matches' => true }] }
+    let(:stored_on_write) { nil }
+
+    it 'acks without checking DNS or writing results' do
+      expect(work).to eq(:ack)
+      expect(strategy).not_to have_received(:check_dns_records)
+      expect(dns_check_results_key).not_to have_received(:value=)
     end
   end
 end

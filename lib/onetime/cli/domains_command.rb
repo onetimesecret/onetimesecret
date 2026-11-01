@@ -17,7 +17,9 @@ module Onetime
     class DomainsCommand < Command
       desc 'Manage custom domain records'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         boot_application!
 
         domain_count = Onetime::CustomDomain.instances.size
@@ -36,6 +38,10 @@ module Onetime
         puts '  bin/ots domains orphaned                   # Domains with no organization'
         puts '  bin/ots domains repair DOMAIN --org-id X   # Fix org relationship issues'
         puts '  bin/ots domains doctor --all               # Check all domains'
+        puts '  bin/ots domains backfill-ascii-index       # Audit/backfill the name index (app stopped)'
+        puts '  bin/ots domains resolve-collisions         # Decide which record to keep per name collision'
+        puts
+        puts 'transfer, remove and repair are dry runs unless --apply (-y/--yes) is given.'
         puts
         puts 'Run bin/ots domains -h for available subcommands'
       end

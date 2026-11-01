@@ -231,7 +231,7 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
   end
 
   let(:domains_enabled) { true }
-  let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: 'domain-abc-123') }
+  let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: 'domain-abc-123', served_as_tenant?: true) }
 
   around do |example|
     original                         = Rack::Request.forwarded_priority

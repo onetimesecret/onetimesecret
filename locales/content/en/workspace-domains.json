@@ -555,6 +555,24 @@
     "text": "Configure single sign-on authentication for this domain",
     "content_hash": "f37a0b47"
   },
+  "web.domains.sso.page_description": {
+    "text": "Let people sign in to {domain} through your identity provider.",
+    "content_hash": "ea645199"
+  },
+  "web.domains.sso.back_to_signin": {
+    "text": "Sign-in settings",
+    "content_hash": "e2271e43"
+  },
+  "web.domains.sso.unavailable_on_instance": {
+    "text": "Single sign-on is not enabled on this instance",
+    "context": "Heading on the per-domain SSO configuration page when the install-wide ORGS_SSO_ENABLED flag is off; the page offers no form.",
+    "content_hash": "408e6465"
+  },
+  "web.domains.sso.unavailable_on_instance_hint": {
+    "text": "The operator of this instance has not turned on organization SSO, so there is nothing to configure for {domain}.",
+    "context": "Explanatory line under the heading above. {domain} is the custom domain's hostname.",
+    "content_hash": "acc7d380"
+  },
   "web.domains.sso.access_denied": {
     "text": "Access Denied",
     "content_hash": "d134ca02"
@@ -587,6 +605,30 @@
     "text": "Connection test failed",
     "content_hash": "a45a37dd"
   },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Saved configuration check passed",
+    "content_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "Saved configuration check found a problem",
+    "content_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "Saved configuration check could not reach a verdict",
+    "content_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Failed to check the saved configuration",
+    "content_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "This configuration has been checked too many times recently. Try again later.",
+    "content_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "This configuration has been checked too many times recently. Try again in about {minutes} minutes.",
+    "content_hash": "fdbdeaf6"
+  },
   "web.domains.sso.configure_sso": {
     "text": "Configure SSO",
     "content_hash": "80d3a144"
@@ -603,17 +645,22 @@
     "text": "Configure",
     "content_hash": "6defafa2"
   },
+  "web.domains.sso.finish_setup_button": {
+    "text": "Finish setup",
+    "context": "Button on the SSO row of domain Sign-In Configuration when SSO credentials are saved but the connection has not been turned on by a passing check.",
+    "content_hash": "bc01ae77"
+  },
   "web.domains.sso.upgrade_required": {
     "text": "Upgrade to configure",
     "content_hash": "571cfa98"
   },
   "web.domains.sso.connection_disabled_badge": {
-    "text": "Connection disabled",
-    "content_hash": "99d6092c"
+    "text": "Not turned on yet",
+    "content_hash": "43b96022"
   },
   "web.domains.sso.connection_disabled_hint": {
-    "text": "SSO credentials are saved but the connection is turned off. Enable it under Edit credentials.",
-    "content_hash": "90180d6c"
+    "text": "SSO credentials are saved, but the connection is not on yet. Open Finish setup and run the check; SSO turns on when it passes.",
+    "content_hash": "a080309e"
   },
   "web.domains.sso.status_active_badge": {
     "text": "Active",
@@ -1016,6 +1063,14 @@
     "text": "Failed to send test email",
     "content_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Too many test emails have been sent recently. Try again later.",
+    "content_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Too many test emails have been sent recently. Try again in about {minutes} minutes.",
+    "content_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Sent to {email}",
     "content_hash": "8ceb9588"
@@ -1303,6 +1358,14 @@
   "web.domains.dns.apex_notice": {
     "text": "Apex (root) domains can't use a CNAME record. Use your DNS provider's ALIAS or ANAME record, or point an A record at your server's IP address, instead.",
     "content_hash": "2d1c3298"
+  },
+  "web.domains.dns.display_name_hint": {
+    "text": "Some DNS providers display this name as:",
+    "content_hash": "b2bcf8d5"
+  },
+  "web.domains.dns.keep_txt_record": {
+    "text": "Keep this TXT record in place after the domain is verified. If a later check does not find it, the domain stops being served.",
+    "content_hash": "d31cfdc1"
   },
   "web.domains.detail.homepage_title": {
     "text": "Homepage Secrets",
@@ -1607,6 +1670,27 @@
     "text": "Override whether new accounts are automatically verified on this domain",
     "content_hash": "63866ecd"
   },
+  "web.domains.signup.allow_base_domain_label": {
+    "text": "Automatically allow {'@'}{domain}",
+    "content_hash": "9473555c"
+  },
+  "web.domains.signup.allow_base_domain_hint": {
+    "text": "People with an {'@'}{domain} email address can sign up here without you listing that domain. Any domains listed below are allowed as well.",
+    "content_hash": "a2e3a3d6"
+  },
+  "web.domains.signup.allow_base_domain_locked": {
+    "text": "Not included in your plan. Upgrade to allow sign-ups from your base domain automatically.",
+    "context": "Hint under the disabled allow_base_domain checkbox when the organization lacks the base_domain_signup entitlement",
+    "content_hash": "d0b7a98f"
+  },
+  "web.domains.signup.base_domain_automatic": {
+    "text": "automatic",
+    "content_hash": "53e0ff34"
+  },
+  "web.domains.signup.base_domain_automatic_label": {
+    "text": "{domain} is allowed automatically",
+    "content_hash": "ae9011f2"
+  },
   "web.domains.entitlement_required_owner": {
     "text": "This feature requires a plan upgrade.",
     "content_hash": "6de1f752"
@@ -1699,5 +1783,110 @@
     "text": "This domain's homepage currently presents the incoming secrets form. Disabling incoming secrets or removing all recipients will switch the homepage to a private landing page until incoming is ready again.",
     "context": "Warning on the Incoming Secrets config page when the homepage secrets_mode is incoming and a change could un-ready it",
     "content_hash": "cc0d4997"
+  },
+  "web.domains.homepage.network_title": {
+    "text": "Network access",
+    "context": "Heading of the homepage network rules editor (allowed / denied CIDR ranges) inside the domain detail Homepage section",
+    "content_hash": "0226fc91"
+  },
+  "web.domains.homepage.network_description": {
+    "text": "Limit the interactive homepage to specific networks. Visitors outside the allowed ranges, or inside a denied range, see the private landing page instead. Secret links still open from any network.",
+    "context": "Description under the Network access heading in the homepage network rules editor",
+    "content_hash": "c9b552ff"
+  },
+  "web.domains.homepage.network_incoming_note": {
+    "text": "In incoming mode, these rules only decide who sees the form on the homepage. The /incoming page follows your Incoming settings and is not limited by network.",
+    "context": "Note under the Network access description, shown only while the homepage presents the incoming form; /incoming is a URL path, do not translate it",
+    "content_hash": "5ddbcd71"
+  },
+  "web.domains.homepage.network_allowed_label": {
+    "text": "Allowed networks",
+    "context": "Label for the list of CIDR ranges that may use the interactive homepage",
+    "content_hash": "aa3e7495"
+  },
+  "web.domains.homepage.network_allowed_hint": {
+    "text": "IPv4 or IPv6 addresses and CIDR ranges, for example 203.0.113.0/24 or 2001:db8::/32. Leave empty to allow every network that is not denied.",
+    "context": "Hint under the allowed networks list in the homepage network rules editor",
+    "content_hash": "46eba008"
+  },
+  "web.domains.homepage.network_denied_label": {
+    "text": "Denied networks",
+    "context": "Label for the list of CIDR ranges that may never use the interactive homepage",
+    "content_hash": "a39cb700"
+  },
+  "web.domains.homepage.network_denied_hint": {
+    "text": "Ranges that can never use the homepage. A denied range wins over the allowed list.",
+    "context": "Hint under the denied networks list in the homepage network rules editor",
+    "content_hash": "b4a4b9be"
+  },
+  "web.domains.homepage.network_entry_placeholder": {
+    "text": "203.0.113.0/24",
+    "context": "Placeholder in the add-entry input of the homepage network rules editor (an example CIDR range; do not translate)",
+    "content_hash": "94c6699e"
+  },
+  "web.domains.homepage.network_invalid_entry": {
+    "text": "Enter an IP address or CIDR range",
+    "context": "Inline error when an added network entry does not look like an IP address or CIDR range",
+    "content_hash": "430dc407"
+  },
+  "web.domains.homepage.network_entry_exists": {
+    "text": "This range is already in the list",
+    "context": "Inline error when an added network entry duplicates one already staged in the same list",
+    "content_hash": "3e14cfb9"
+  },
+  "web.domains.homepage.network_remove_entry": {
+    "text": "Remove {cidr}",
+    "context": "Accessible label of the remove button on a network entry chip; {cidr} is the entry",
+    "content_hash": "5f9a6301"
+  },
+  "web.domains.homepage.network_save": {
+    "text": "Save network rules",
+    "context": "Button that writes the staged allowed / denied lists",
+    "content_hash": "870c57de"
+  },
+  "web.domains.homepage.network_saving": {
+    "text": "Saving…",
+    "context": "Save button label while the homepage network rules write is in flight",
+    "content_hash": "23e39291"
+  },
+  "web.domains.homepage.network_discard": {
+    "text": "Discard changes",
+    "context": "Button that resets the staged network lists to the stored values",
+    "content_hash": "f9bfa3dc"
+  },
+  "web.domains.homepage.network_update_success": {
+    "text": "Homepage network rules saved",
+    "context": "Notification after successfully saving the homepage allowed / denied networks",
+    "content_hash": "3c8f72ce"
+  },
+  "web.domains.homepage.network_management_note": {
+    "text": "Signed-in members and these settings are never restricted, so you can always change the lists.",
+    "context": "Footer note in the homepage network rules editor while any rule is configured",
+    "content_hash": "308164bf"
+  },
+  "web.domains.homepage.network_open_note": {
+    "text": "No network restriction: every visitor gets the selected experience.",
+    "context": "Footer note in the homepage network rules editor when both lists are empty",
+    "content_hash": "17c50e79"
+  },
+  "web.domains.homepage.network_locked_note": {
+    "text": "Upgrade your plan to limit the homepage by network.",
+    "context": "Shown in place of the homepage network rules editor when the organization's plan does not include network rules",
+    "content_hash": "5c122b73"
+  },
+  "web.domains.homepage.network_locked_enforced_note": {
+    "text": "These rules are still enforced. Upgrade your plan to change them.",
+    "context": "Shown under read-only homepage network rules when rules exist but the organization's plan no longer includes them",
+    "content_hash": "ea40c784"
+  },
+  "web.domains.homepage.network_instance_locked_note": {
+    "text": "These rules are still enforced but can't be changed on this installation.",
+    "context": "Shown under read-only homepage network rules when rules exist but the installation has network rules turned off (ORGS_HOMEPAGE_NETWORK_RULES_UI_ENABLED=false). There is no upgrade link: a plan change would not help",
+    "content_hash": "ed50e3ba"
+  },
+  "web.domains.homepage.status_network_restricted": {
+    "text": "Network restricted",
+    "context": "Badge on the domain detail Homepage row when allowed or denied networks are configured",
+    "content_hash": "02ce8253"
   }
 }

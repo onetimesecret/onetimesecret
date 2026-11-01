@@ -15,7 +15,9 @@ module Onetime
       option :charge, type: :string, desc: 'Filter by charge ID'
       option :limit, type: :integer, default: 100, desc: 'Maximum results to return'
 
-      def call(charge: nil, limit: 100, **)
+      def call(args: [], charge: nil, limit: 100, **)
+        reject_unknown_subcommand(args)
+
         boot_application!
 
         return unless stripe_configured?

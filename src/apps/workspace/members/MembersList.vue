@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
 import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
+import { loggingService } from '@/services/logging.service';
 import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
 import EmptyState from '@/shared/components/ui/EmptyState.vue';
 import ErrorDisplay from '@/shared/components/ui/ErrorDisplay.vue';
@@ -42,12 +43,12 @@ const loadMembers = async () => {
 
 const handleMemberUpdated = (member: OrganizationMember) => {
   // The store is already updated, but we could add additional handling here
-  console.debug('[MembersList] Member updated:', member.extid);
+  loggingService.debug('[MembersList] Member updated', { extid: member.extid });
 };
 
 const handleMemberRemoved = (memberExtid: string) => {
   // The store is already updated, but we could add additional handling here
-  console.debug('[MembersList] Member removed:', memberExtid);
+  loggingService.debug('[MembersList] Member removed', { extid: memberExtid });
 };
 
 // Single watcher handles both member loading and org fetching on route changes.

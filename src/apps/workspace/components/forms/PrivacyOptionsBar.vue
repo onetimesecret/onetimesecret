@@ -7,6 +7,11 @@
    * Responsive privacy controls for the workspace secret form.
    * - Desktop (sm+): Inline TtlSelector and PassphraseInput chips
    * - Mobile (<sm): Single button that opens PrivacyOptionsSheet
+   *
+   * The optional `trailing` slot holds other per-secret chips (the Markdown
+   * toggle) in their own right-aligned group, so they share the row without
+   * reading as privacy settings. They stay visible on mobile, outside the
+   * sheet.
    */
   import { computed, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -141,6 +146,13 @@
           class="size-3"
           aria-hidden="true" />
       </button>
+
+      <!-- Other per-secret options, kept apart from the privacy group -->
+      <div
+        v-if="$slots.trailing"
+        class="ml-auto flex items-center gap-2">
+        <slot name="trailing"></slot>
+      </div>
     </div>
   </div>
 

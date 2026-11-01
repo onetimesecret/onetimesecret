@@ -117,14 +117,24 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
     end
   end
 
+  # Teardown in foreign-key order (#4539). A completed sign-in writes
+  # active-session, audit-log and activity rows that reference the account
+  # and do not cascade (migrations/001_initial.rb), so a bare `accounts`
+  # delete raises on SQLite. AuthAccountFactory#cleanup_account walks
+  # RODAUTH_TABLES in dependency order; it swallows per-table errors, so the
+  # row count is checked afterwards. A cleanup error is a real problem and is
+  # allowed to surface rather than leave stray rows in the shared in-memory
+  # DB and a Customer in the shared test Valkey.
   after do
     created_emails.each do |email|
-      account_ids = db[:accounts].where(email: email).select_map(:id)
-      identities.where(account_id: account_ids).delete
-      db[:accounts].where(id: account_ids).delete
+      db[:accounts].where(email: email).select_map(:id).each do |account_id|
+        identities.where(account_id: account_id).delete
+        cleanup_account(db: db, account_id: account_id)
+      end
+      remaining = db[:accounts].where(email: email).count
+      raise "[tenant_saml_sso_spec] cleanup left #{remaining} accounts row(s) for #{OT::Utils.obscure_email(email)}" if remaining.positive?
+
       Onetime::Customer.find_by_email(email)&.destroy!
-    rescue StandardError => ex
-      OT.le "[tenant_saml_sso_spec] cleanup error for #{OT::Utils.obscure_email(email)}: #{ex.class}"
     end
 
     [tenant_a, tenant_b].each do |tenant|

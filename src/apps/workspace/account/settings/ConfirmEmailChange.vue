@@ -63,7 +63,7 @@
       <div v-if="isLoading">
         <OIcon
           collection="heroicons"
-          name="arrow-path-solid"
+          name="arrow-path"
           class="mx-auto size-8 animate-spin motion-reduce:animate-none
             text-brand-500"
           aria-hidden="true" />
