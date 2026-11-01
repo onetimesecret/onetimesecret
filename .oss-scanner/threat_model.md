@@ -64,8 +64,9 @@ supported configuration, not an imaginary deployment with mutually exclusive mod
 Record the authentication mode, enabled features and relevant settings in the report. Optionality alone does not
 lower the severity of demonstrated impact.
 
-- Authentication features: the `env` files of the `full-mfa` and `full-saml-platform` lanes under `tests/lanes/`
-  turn them all on between them (full mode, MFA, WebAuthn, magic links, SAML, organization and platform SSO).
+- Authentication features: the `env` files of the `full-mfa`, `full-saml-platform` and `full-webauthn-verify` lanes
+  under `tests/lanes/` turn them all on between them (full mode, MFA, WebAuthn, passkey signup, magic links, SAML,
+  organization and platform SSO).
 - Billing: `tests/lanes/overlays/billing.env`.
 - Organizations, custom domains, regions and incoming secrets are in scope even when disabled in a test lane.
   Specs that need organizations or custom domains set `ENABLE_ORGS` or `DOMAINS_ENABLED`; enable the relevant

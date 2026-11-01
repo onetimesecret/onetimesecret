@@ -241,7 +241,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       output = run_cli_command_quietly('domains', 'doctor', '--all')
 
       expect(output[:stdout]).to include('domain has no org_id (orphaned)')
-      expect(output[:stdout]).to include('bin/ots domains repair orphan.com --org-id <ORG>')
+      expect(output[:stdout]).to include('bin/ots domains repair orphan.com --org-id <ORG> --apply')
       expect(last_exit_code).to eq(1)
     end
 
@@ -271,7 +271,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       output = run_cli_command_quietly('domains', 'doctor', '--all')
 
       expect(output[:stdout]).to include("org_id 'org123' points to an archived organization")
-      expect(output[:stdout]).to include('bin/ots domains transfer example.com --to-org <ORG>')
+      expect(output[:stdout]).to include('bin/ots domains transfer example.com --to-org <ORG> --apply')
       expect(last_exit_code).to eq(1)
     end
 
@@ -431,6 +431,13 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       expect(missing['repair_action']).to include('backfill-ascii-index --apply', 'custom-domain-ascii-index-backfill.md')
     end
 
+    it 'names --apply on the removal it suggests for a collision' do
+      issues    = ascii_issues(json_report('domains', 'doctor', '--all', '--json'))
+      collision = issues.find { |i| i['check'] == 'ascii_index_collision' }
+
+      expect(collision['repair_action']).to include('bin/ots domains remove <extid> --apply')
+    end
+
     it 'writes nothing to the ASCII index with --repair' do
       index = double('AsciiIndex')
       allow(Onetime::CustomDomain).to receive(:ascii_display_domain_index).and_return(index)
@@ -560,7 +567,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       issue = output['issues'].flat_map { |group| group['issues'] }
         .find { |i| i['check'] == 'owners_index_drift' }
       expect(issue['message']).to include('orphaned (no org_id)')
-      expect(issue['repair_action']).to include('bin/ots domains repair orphan.com --org-id <ORG>')
+      expect(issue['repair_action']).to include('bin/ots domains repair orphan.com --org-id <ORG> --apply')
     end
 
     it 'removes the entry with --repair, and still assigns no organization' do
@@ -723,6 +730,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       output = run_cli_command_quietly('domains', 'bulk-repair')
 
       expect(output[:stderr]).to include('bin/ots domains doctor --all --repair')
+      expect(output[:stderr]).to include('bin/ots domains repair DOMAIN --org-id ORG --apply')
       expect(last_exit_code).to eq(1)
     end
 

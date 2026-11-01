@@ -26,10 +26,10 @@ module DomainsAPI
         include DomainsAPI::Logic::ConfigChangeLogger
 
         # Fields safe to log with their actual values
-        SAFE_FIELDS = %w[validation_strategy enabled allowed_signup_domains].freeze
+        SAFE_FIELDS = %w[validation_strategy enabled allowed_signup_domains allow_base_domain].freeze
 
         # Boolean fields: old value read via predicate, new value coerced
-        BOOLEAN_FIELDS = %w[enabled].freeze
+        BOOLEAN_FIELDS = %w[enabled allow_base_domain].freeze
 
         # Log a Domain Signup audit event with structured data.
         #

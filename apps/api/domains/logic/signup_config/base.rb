@@ -17,6 +17,11 @@ module DomainsAPI
       #   3. Verify user is organization owner
       #   4. Verify organization has custom_signup_validation entitlement
       #
+      # allow_base_domain is gated separately, per request
+      # (verify_allow_base_domain_permitted!), by the install flag
+      # features.organizations.base_domain_signup_enabled and the
+      # base_domain_signup entitlement.
+      #
       class Base < DomainsAPI::Logic::Base
         include DomainsAPI::Policies::DomainConfigAuthorization
 
@@ -93,19 +98,72 @@ module DomainsAPI
           )
         end
 
-        # Validate that domain_allowlist strategy has at least one domain.
+        # Whether allow_base_domain can take effect for this domain, asked of
+        # the organization authorize_domain_signup_config! loaded. The rule is
+        # SignupConfig.base_domain_signup_available_for?, the same one the
+        # sign-up gate applies.
+        #
+        # @return [Boolean]
+        def base_domain_signup_available?
+          return @base_domain_signup_available if defined?(@base_domain_signup_available)
+
+          @base_domain_signup_available =
+            Onetime::CustomDomain::SignupConfig.base_domain_signup_available_for?(@organization)
+        end
+
+        # Refuse a request that turns allow_base_domain on while
+        # base_domain_signup_available? is false. Re-sending a stored true is
+        # not refused: the value stays saved but has no effect until the
+        # feature is available again (SignupConfig#allow_base_domain_effective?),
+        # so a save after a downgrade does not get stuck on it. Turning it
+        # off is always allowed.
+        #
+        # @param requested [Boolean] allow_base_domain from the request
+        # @param stored [Boolean] the stored value, false for a new config
+        # @raise [Onetime::FormError] when the request would turn it on
+        def verify_allow_base_domain_permitted!(requested:, stored:)
+          return unless requested && !stored
+          return if base_domain_signup_available?
+
+          message = if Onetime::CustomDomain::SignupConfig.base_domain_signup_enabled?
+                      'Allowing the base domain automatically requires the base_domain_signup entitlement. ' \
+                        'Please upgrade your plan.'
+                    else
+                      'Allowing the base domain automatically is not enabled on this instance'
+                    end
+          raise_form_error(message, field: :allow_base_domain, error_type: :forbidden)
+        end
+
+        # Validate the allowlist the config will be saved with: under a
+        # strategy that consults it, it must be readable and hold at least
+        # one domain, listed explicitly or supplied by allow_base_domain. The
+        # rule is SignupConfig.allowlist_requirement_error, so the model
+        # reports the same verdict. Call after authorize_domain_signup_config!
+        # has loaded @custom_domain, whose base_domain the flag resolves
+        # against.
         #
         # @param strategy [String] The validation strategy
         # @param domains [Array<String>] The allowed domains
-        # @raise [Onetime::FormError] if domain_allowlist but no domains
-        def validate_allowlist_has_domains(strategy, domains)
-          return unless strategy == 'domain_allowlist'
-          return if domains && !domains.empty?
+        # @param corrupt [Boolean] true when domains is a stored list being
+        #   kept that cannot be read; false when the request replaces it
+        # @param allow_base_domain [Boolean] allow_base_domain as it will be
+        #   saved; it counts only while base_domain_signup_available?
+        # @raise [Onetime::FormError] when the requirement is not met
+        def validate_allowlist_requirement(strategy, domains, corrupt:, allow_base_domain: false)
+          base_domain_counts = allow_base_domain && base_domain_signup_available?
+          error              = Onetime::CustomDomain::SignupConfig.allowlist_requirement_error(
+            strategy: strategy,
+            domains: domains,
+            corrupt: corrupt,
+            allow_base_domain: base_domain_counts,
+            base_domain: @custom_domain&.base_domain,
+          )
+          return unless error
 
           raise_form_error(
-            'allowed_signup_domains is required when validation_strategy is domain_allowlist',
+            error,
             field: :allowed_signup_domains,
-            error_type: :missing,
+            error_type: error == Onetime::CustomDomain::SignupConfig::ALLOWLIST_UNREADABLE_ERROR ? :invalid : :missing,
           )
         end
 

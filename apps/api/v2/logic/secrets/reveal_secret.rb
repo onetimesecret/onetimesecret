@@ -170,7 +170,7 @@ module V2::Logic
               # plaintext only if this caller won the one-shot claim.
               @secret_value = secret.reveal!(passphrase_input: @passphrase, actor_context: actor_context)
 
-            elsif owner && (cust&.anonymous? || (cust&.custid == owner.custid && !owner.verified?))
+            elsif owner && (anonymous_user? || (cust.custid == owner.custid && !owner.verified?))
               secret_logger.info 'Owner verification successful',
                 {
                   secret_identifier: secret.shortid,

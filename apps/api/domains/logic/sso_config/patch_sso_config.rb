@@ -33,6 +33,10 @@ module DomainsAPI
       #   create (#4450; see SamlFields); each preserves its existing value if
       #   empty. idp_cert_fingerprint (and its ruby-saml siblings) is refused
       #   for every provider type.
+      # - idp_metadata_url: Optional, saml only. Omitted keeps the stored
+      #   value; present and blank ("" or null) clears it; a new value must
+      #   be a public https URL (see SamlFields#validate_idp_metadata_url!).
+      #   Cleared on a switch to any other provider type.
       # - tenant_id: Required for entra_id provider on create (preserves existing if empty)
       # - issuer: Required for oidc provider on create (preserves existing if empty)
       # - display_name: Optional. Human-readable name (preserves existing if empty)
@@ -153,6 +157,7 @@ module DomainsAPI
             token_endpoint_auth_method: @token_endpoint_auth_method,
             idp_sso_service_url: @idp_sso_service_url,
             idp_entity_id: @idp_entity_id,
+            idp_metadata_url: @idp_metadata_url,
             allowed_domains: @allowed_domains,
             enabled: @enabled,
             enforce_sso_only: @enforce_sso_only,
@@ -338,6 +343,7 @@ module DomainsAPI
             # whole trio must arrive with the request.
             stored = @existing_config&.provider_type == 'saml' ? @existing_config : nil
             validate_saml_fields!(stored: stored, enabled: @effective_enabled)
+            validate_idp_metadata_url!(stored: stored)
           end
         end
 

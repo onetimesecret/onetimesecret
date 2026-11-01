@@ -17,5 +17,12 @@ module Auth
 
     # Statuses covered by the partial unique index on accounts.email.
     LIVE = [UNVERIFIED, VERIFIED].freeze
+
+    # Whether a status id is one of the live ones. nil and an id outside
+    # the known set are not; every reader that decides liveness from a row
+    # goes through here, so none of them reads an unknown status as live.
+    def self.live?(status_id)
+      LIVE.include?(status_id)
+    end
   end
 end

@@ -208,8 +208,7 @@ describe('useMfa', () => {
       const setupResponse = {
         otp_setup: 'plain_secret',
         otp_raw_secret: 'JBSWY3DPEHPK3PXP',
-        provisioning_uri:
-          'otpauth://totp/OTS:test@example.com?secret=plain_secret&issuer=OTS',
+        provisioning_uri: 'otpauth://totp/OTS:test@example.com?secret=plain_secret&issuer=OTS',
       };
 
       axiosMock.onPost('/auth/otp-setup').reply(200, setupResponse);
@@ -529,6 +528,62 @@ describe('useMfa', () => {
 
       expect(result).toEqual([]);
       expect(error.value).toBe('web.auth.security.internal_error');
+    });
+  });
+
+  // src/utils/unrecoverableContent.ts: the views that show recovery codes mark
+  // the page for as long as this flag is up, so a failed lazy chunk or an ended
+  // session cannot reload the tab while the response is the only copy.
+  describe('revealingRecoveryCodes', () => {
+    function gate() {
+      let open!: () => void;
+      const opened = new Promise<void>((resolve) => (open = resolve));
+      return { opened, open };
+    }
+
+    it('is true from the regenerate request going out until it settles', async () => {
+      const g = gate();
+      axiosMock.onPost('/auth/recovery-codes').reply(async () => {
+        await g.opened;
+        return [200, { codes: ['NEW1', 'NEW2'] }];
+      });
+      const { generateNewRecoveryCodes, revealingRecoveryCodes, recoveryCodes } = useMfa();
+
+      expect(revealingRecoveryCodes.value).toBe(false);
+      const pending = generateNewRecoveryCodes('password123');
+      expect(revealingRecoveryCodes.value).toBe(true);
+
+      g.open();
+      await pending;
+      expect(revealingRecoveryCodes.value).toBe(false);
+      expect(recoveryCodes.value).toEqual(['NEW1', 'NEW2']);
+    });
+
+    it('clears when the regenerate request fails', async () => {
+      axiosMock.onPost('/auth/recovery-codes').reply(400, { error: 'Invalid password' });
+      const { generateNewRecoveryCodes, revealingRecoveryCodes } = useMfa();
+
+      const pending = generateNewRecoveryCodes('wrong_password');
+      expect(revealingRecoveryCodes.value).toBe(true);
+
+      await pending;
+      expect(revealingRecoveryCodes.value).toBe(false);
+    });
+
+    it('covers the enable request, whose response contains the enrollment codes', async () => {
+      const g = gate();
+      axiosMock.onPost('/auth/otp-setup').reply(async () => {
+        await g.opened;
+        return [400, { error: 'Invalid code' }];
+      });
+      const { enableMfa, revealingRecoveryCodes } = useMfa();
+
+      const pending = enableMfa('000000', 'password123');
+      expect(revealingRecoveryCodes.value).toBe(true);
+
+      g.open();
+      await pending;
+      expect(revealingRecoveryCodes.value).toBe(false);
     });
   });
 

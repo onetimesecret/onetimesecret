@@ -16,8 +16,9 @@ RSpec.describe Onetime::Jobs::Publisher do
       expect(described_class).to respond_to(:enqueue_email_raw)
     end
 
-    it 'responds to schedule_email' do
-      expect(described_class).to respond_to(:schedule_email)
+    # The delayed path published to a queue nothing consumed (#4844).
+    it 'has no schedule_email' do
+      expect(described_class).not_to respond_to(:schedule_email)
     end
   end
 
@@ -26,10 +27,6 @@ RSpec.describe Onetime::Jobs::Publisher do
 
     it 'responds to enqueue_email' do
       expect(publisher).to respond_to(:enqueue_email)
-    end
-
-    it 'responds to schedule_email' do
-      expect(publisher).to respond_to(:schedule_email)
     end
 
     it 'responds to publish' do
@@ -159,14 +156,6 @@ RSpec.describe Onetime::Jobs::Publisher do
 
       it 'propagates trace headers via enqueue_email' do
         publisher.enqueue_email(:secret_link, { secret_key: 'abc' })
-
-        expect(mock_exchange).to have_received(:publish) do |_payload, options|
-          expect(options[:headers]['sentry-trace']).to eq('00-abcd1234-5678ef90-01')
-        end
-      end
-
-      it 'propagates trace headers via schedule_email' do
-        publisher.schedule_email(:secret_link, { secret_key: 'abc' }, delay_seconds: 60)
 
         expect(mock_exchange).to have_received(:publish) do |_payload, options|
           expect(options[:headers]['sentry-trace']).to eq('00-abcd1234-5678ef90-01')
@@ -472,16 +461,6 @@ RSpec.describe Onetime::Jobs::Publisher do
         expect(mock_exchange).to have_received(:publish) do |payload_json, _options|
           payload = JSON.parse(payload_json, symbolize_names: true)
           expect(payload[:domain_id]).to be_nil
-        end
-      end
-
-      it 'includes domain_id in scheduled email payload' do
-        publisher.schedule_email(:secret_link, { secret_key: 'abc' }, delay_seconds: 60, domain_id: 'dom_sched')
-
-        expect(mock_exchange).to have_received(:publish) do |payload_json, options|
-          payload = JSON.parse(payload_json, symbolize_names: true)
-          expect(payload[:domain_id]).to eq('dom_sched')
-          expect(options[:expiration]).to eq('60000')
         end
       end
 

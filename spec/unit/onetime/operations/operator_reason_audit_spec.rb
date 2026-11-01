@@ -114,7 +114,13 @@ RSpec.describe 'operator-supplied reason on destructive verbs (#4338)' do
   # ---------------------------------------------------------------------------
   describe Auth::Operations::Customers::Purge do
     let(:customer) do
-      double('Customer', extid: 'ur_p', custid: 'cust_p', obscure_email: 'p***@e***.com')
+      double(
+        'Customer',
+        extid: 'ur_p',
+        custid: 'cust_p',
+        obscure_email: 'p***@e***.com',
+        mark_closure_started!: nil,
+      )
     end
     let(:empty_plan) do
       Auth::Operations::Customers::PurgePreflight::Plan.new(actions: [], blockers: [])

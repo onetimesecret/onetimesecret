@@ -341,6 +341,7 @@
     error: transferApplyError,
     run: runTransferApply,
     reset: resetTransferApply,
+    ensureElevated,
   } = useAdminDestructiveMutation(async (extid: string) => {
     const response = await $api.post(
       `/api/colonel/domains/${encodeURIComponent(extid)}/transfer`,
@@ -366,7 +367,10 @@
 
   const transferApplicable = computed(() => transferPlan.value?.status === 'planned');
 
-  function requestTransferApply(): void {
+  async function requestTransferApply(): Promise<void> {
+    // TransferDomain is TIER 1 (#4327): elevate before the dialog. The preview
+    // above is a dry run and stays un-prompted. Cancel opens nothing.
+    if (!(await ensureElevated())) return;
     resetTransferApply();
     transferDialogOpen.value = true;
   }

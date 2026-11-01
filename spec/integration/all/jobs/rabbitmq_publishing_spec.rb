@@ -25,6 +25,7 @@ require 'json'
 require 'timeout'
 require 'onetime/jobs/publisher'
 require 'onetime/jobs/queues/config'
+require 'onetime/jobs/scheduled/expiration_warning_job'
 
 RSpec.describe 'RabbitMQ Publishing', :rabbitmq, type: :integration do
   # Connection URL from environment or default
@@ -238,6 +239,52 @@ RSpec.describe 'RabbitMQ Publishing', :rabbitmq, type: :integration do
       expect(received[:email][:to]).to eq('user@example.com')
       expect(received[:email][:from]).to eq('noreply@example.com')
       expect(received[:email][:subject]).to eq('Test Subject')
+    end
+
+    # ExpirationWarningJob used to publish its mail to email.message.schedule,
+    # a queue nothing consumed, so with jobs enabled no warning was ever sent
+    # (#4844). The job now publishes to the queue EmailWorker reads. This runs
+    # the job against the broker with the timeline stubbed to one receipt.
+    it 'ExpirationWarningJob publishes the warning to email.message.send' do
+      queue = channel.queue(email_queue, passive: true)
+
+      expires_at = Familia.now.to_i + 7200
+      owner      = instance_double('Onetime::Customer', email: 'owner@example.com')
+      receipt    = instance_double(
+        'Onetime::Receipt',
+        identifier: 'rcpt-rabbit',
+        exists?: true,
+        anonymous?: false,
+        load_owner: owner,
+        secret_shortid: 'a1b2c3d4',
+        secret_expiration: expires_at,
+      )
+      allow(Onetime::Receipt).to receive_messages(
+        expiring_within: ['rcpt-rabbit'],
+        warning_sent?: false,
+        mark_warning_sent: nil,
+        cleanup_expired_from_timeline: 0,
+        cleanup_orphaned_warnings: 0,
+      )
+      allow(Onetime::Receipt).to receive(:load).with('rcpt-rabbit').and_return(receipt)
+
+      Onetime::Jobs::Scheduled::ExpirationWarningJob.send(:process_expiring_secrets)
+
+      received = nil
+      Timeout.timeout(5) do
+        queue.subscribe(manual_ack: false, block: false) do |_delivery_info, _metadata, payload|
+          received = JSON.parse(payload, symbolize_names: true)
+        end
+        sleep 0.1 until received
+      end
+
+      expect(received[:template]).to eq('expiration_warning')
+      expect(received[:data]).to eq(
+        recipient: 'owner@example.com',
+        secret_shortid: 'a1b2c3d4',
+        expires_at: expires_at,
+      )
+      expect(Onetime::Receipt).to have_received(:mark_warning_sent).with('rcpt-rabbit')
     end
   end
 

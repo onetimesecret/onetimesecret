@@ -19,6 +19,23 @@ RSpec.describe Onetime::CLI::CustomersPurgeInactiveCommand do
     $stdout = original
   end
 
+  # bin/ots resolves simple auth mode whenever AUTHENTICATION_MODE is not
+  # exported into its shell; a deletion on that fallback would leave a
+  # full-mode install's auth accounts open. The dry run is not gated.
+  it 'refuses --purge before touching the datastore when simple auth mode was resolved by default' do
+    allow(command).to receive(:boot_application!)
+    allow(Onetime.auth_config).to receive(:simple_by_default?).and_return(true)
+    expect(Familia).not_to receive(:dbclient)
+
+    original_stdout = $stdout
+    $stdout         = StringIO.new
+    expect { command.call(older_than: '3y', purge: true) }
+      .to raise_error(SystemExit) { |error| expect(error.status).to eq(1) }
+    expect($stdout.string).to include('Error: AUTHENTICATION_MODE is not set')
+  ensure
+    $stdout = original_stdout
+  end
+
   it 'routes local candidates through the receipt-backed bulk purge lifecycle' do
     customer = instance_double(Onetime::Customer)
     result   = instance_double(Auth::Operations::Customers::Purge::Result, status: :success, actions: [])

@@ -5,10 +5,9 @@
 # Add an operator override REVOKE to an organization.
 #
 # Usage:
-#   bin/ots org entitlement revoke ORG ENTITLEMENT --dry-run  # Project, write nothing
-#   bin/ots org entitlement revoke ORG ENTITLEMENT            # Confirm, then apply
-#   bin/ots org entitlement revoke ORG ENTITLEMENT --yes      # Apply, no prompt
-#   bin/ots org entitlement revoke ORG ENTITLEMENT --yes --json
+#   bin/ots org entitlement revoke ORG ENTITLEMENT            # Dry run (the default): project, write nothing
+#   bin/ots org entitlement revoke ORG ENTITLEMENT --apply    # Apply
+#   bin/ots org entitlement revoke ORG ENTITLEMENT --apply --json
 #
 # ORG is an org extid or objid (see Onetime::CLI::Org::Shared#resolve_org).
 #
@@ -17,11 +16,14 @@
 # entitlement the org never had is legal (it pre-empts a later plan change).
 require_relative 'entitlement_command'
 
+require_relative '../write_gate'
+
 module Onetime
   module CLI
     class OrgEntitlementRevokeCommand < Command
       include Org::Shared
       include Org::EntitlementSupport
+      include WriteGate
 
       desc 'Revoke an entitlement from an organization (operator override)'
 
@@ -34,36 +36,28 @@ module Onetime
         required: true,
         desc: 'Entitlement name (warns, does not block, when not in the catalog)'
 
-      option :yes,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '-f'],
-        desc: 'Skip confirmation prompt (required to apply)'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Project the resulting override sets; write nothing'
+      write_gate_options 'Write the override'
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
-      def call(org:, entitlement:, yes: false, dry_run: false, json: false, **)
+      def call(org:, entitlement:, apply: false, dry_run: false, json: false, **)
         boot_application!
 
+        dry_run      = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
         organization = resolve_org(org, json: json)
 
         execute_override(
           organization,
           action: 'revoke',
           entitlement: entitlement,
-          yes: yes,
           dry_run: dry_run,
           json: json,
         )
       end
     end
 
-    register 'org entitlement revoke', OrgEntitlementRevokeCommand
+    register 'organizations entitlement revoke', OrgEntitlementRevokeCommand
   end
 end

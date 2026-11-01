@@ -235,4 +235,43 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Serializers do
       end
     end
   end
+
+  # The SAML IdP metadata URL the trio was imported from: plaintext like the
+  # trio, AAD-bound like the trio, and a reveal failure is an error state
+  # named in unreadable_fields, never a quiet null.
+  describe '#serialize_sso_config idp_metadata_url' do
+    let(:url) { 'https://login.microsoftonline.com/contoso.onmicrosoft.com/federationmetadata/2007-06/federationmetadata.xml?appid=abc' }
+
+    it 'serves a stored value in plaintext' do
+      payload = serializer.serialize_sso_config(build_domain_sso_config(:saml, idp_metadata_url: url))
+
+      expect(payload).to include(idp_metadata_url: url, unreadable_fields: [])
+    end
+
+    it 'serves null when unset or cleared' do
+      expect(serializer.serialize_sso_config(build_domain_sso_config(:saml))[:idp_metadata_url]).to be_nil
+
+      cleared = build_domain_sso_config(:saml, idp_metadata_url: url)
+      cleared.idp_metadata_url = ''
+      expect(serializer.serialize_sso_config(cleared)[:idp_metadata_url]).to be_nil
+    end
+
+    it 'serves null for a non-saml record' do
+      expect(serializer.serialize_sso_config(build_domain_sso_config(:oidc))[:idp_metadata_url]).to be_nil
+    end
+
+    it 'names a value that will not decrypt in unreadable_fields and serves null' do
+      config    = build_domain_sso_config(:saml, idp_metadata_url: url)
+      concealed = double('ConcealedString')
+      allow(concealed).to receive(:reveal).and_raise(Familia::EncryptionError, 'tag mismatch')
+      allow(config).to receive(:idp_metadata_url).and_return(concealed)
+      allow(OT).to receive(:lw)
+
+      payload = serializer.serialize_sso_config(config)
+
+      expect(payload).to include(idp_metadata_url: nil, unreadable_fields: ['idp_metadata_url'])
+      expect(payload[:idp_cert]).to eq(DomainSsoTestFixtures.saml_cert_pem)
+      expect(OT).to have_received(:lw).with(/Failed to reveal encrypted field idp_metadata_url/)
+    end
+  end
 end

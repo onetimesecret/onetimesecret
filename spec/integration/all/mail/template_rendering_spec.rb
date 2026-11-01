@@ -460,12 +460,12 @@ RSpec.describe 'Email Template Rendering', type: :integration do
   end
 
   describe Onetime::Mail::Templates::ExpirationWarning do
+    let(:secret_shortid) { 'a1b2c3d4' }
     let(:data) do
       {
         recipient: test_email,
-        secret_key: secret_key,
-        expires_at: Time.now.to_i + 3600, # 1 hour from now
-        share_domain: nil
+        secret_shortid: secret_shortid,
+        expires_at: Time.now.to_i + 3600 # 1 hour from now
       }
     end
     let(:template) { described_class.new(data) }
@@ -490,8 +490,15 @@ RSpec.describe 'Email Template Rendering', type: :integration do
         expect(text).to match(/\d+\s+(hour|minute|day)/)
       end
 
-      it 'includes secret URI' do
-        expect(template.render_text).to include("/secret/#{secret_key}")
+      # An account notification: the short id names the secret and the link
+      # is the sign-in-only recent-secrets page. No receipt or secret
+      # identifier (both bearer capabilities) and no path built from one.
+      it 'names the secret and links to the recent-secrets page, with no identifier path' do
+        text = template.render_text
+        expect(text).to include('/recent')
+        expect(text).to include(secret_shortid)
+        expect(text).not_to include('/secret/')
+        expect(text).not_to include('/receipt/')
       end
     end
 
@@ -502,6 +509,14 @@ RSpec.describe 'Email Template Rendering', type: :integration do
 
       it 'contains no raw translation keys' do
         expect(contains_raw_translation_key?(template.render_html)).to be false
+      end
+
+      it 'links to the recent-secrets page and shows the short id' do
+        html = template.render_html
+        expect(html).to include('/recent')
+        expect(html).to include(secret_shortid)
+        expect(html).not_to include('/secret/')
+        expect(html).not_to include('/receipt/')
       end
     end
 
@@ -771,17 +786,25 @@ RSpec.describe 'Email Template Rendering', type: :integration do
     end
 
     it 'ExpirationWarning requires recipient' do
-      expect { Onetime::Mail::Templates::ExpirationWarning.new({ secret_key: 'abc', expires_at: Time.now.to_i }) }
+      expect { Onetime::Mail::Templates::ExpirationWarning.new({ secret_shortid: 'abc', expires_at: Time.now.to_i }) }
         .to raise_error(ArgumentError, /Recipient required/)
     end
 
-    it 'ExpirationWarning requires secret_key' do
+    it 'ExpirationWarning requires secret_shortid' do
       expect { Onetime::Mail::Templates::ExpirationWarning.new({ recipient: 'a@b.com', expires_at: Time.now.to_i }) }
-        .to raise_error(ArgumentError, /Secret key required/)
+        .to raise_error(ArgumentError, /Secret short id required/)
+    end
+
+    # The previous job version queued the short id under secret_key. Such a
+    # message is refused (EmailWorker rejects an ArgumentError to the DLQ
+    # without retrying) rather than sent.
+    it 'ExpirationWarning refuses the previous secret_key payload' do
+      expect { Onetime::Mail::Templates::ExpirationWarning.new({ recipient: 'a@b.com', secret_key: 'abc12345', expires_at: Time.now.to_i }) }
+        .to raise_error(ArgumentError, /Secret short id required/)
     end
 
     it 'ExpirationWarning requires expires_at' do
-      expect { Onetime::Mail::Templates::ExpirationWarning.new({ recipient: 'a@b.com', secret_key: 'abc' }) }
+      expect { Onetime::Mail::Templates::ExpirationWarning.new({ recipient: 'a@b.com', secret_shortid: 'abc' }) }
         .to raise_error(ArgumentError, /Expiration time required/)
     end
 
@@ -817,15 +840,19 @@ RSpec.describe 'Email Template Rendering', type: :integration do
       expect(template.render_text).to match(%r{https?://custom\.example\.com/secret/abc})
     end
 
-    it 'ExpirationWarning uses share_domain when provided' do
+    # The expiration warning is an account notification: its link is the
+    # sign-in page on the canonical host, whatever domain the secret was
+    # shared from. Nothing sends share_domain for it any more; a payload that
+    # still carries one does not move the link.
+    it 'ExpirationWarning links to the canonical host even when share_domain is present' do
       template = Onetime::Mail::Templates::ExpirationWarning.new({
         recipient: 'a@b.com',
-        secret_key: 'abc',
+        secret_shortid: 'abc',
         expires_at: Time.now.to_i + 3600,
         share_domain: 'custom.example.com'
       })
-      expect(template.secret_uri).to match(%r{\Ahttps?://custom\.example\.com/secret/abc\z})
-      expect(template.render_text).to include('custom.example.com')
+      expect(template.recent_uri).to eq("#{template.baseuri}/recent")
+      expect(URI.parse(template.recent_uri).host).not_to eq('custom.example.com')
     end
   end
 

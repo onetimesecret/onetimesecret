@@ -104,6 +104,15 @@ module Auth::Config::Features
       # count as an authentication method.
       auth.auto_remove_recovery_codes? true
 
+      # Recovery codes added during passkey verification (webauthn_verify_account
+      # with auto_add_recovery_codes? above) go to the account loaded from the
+      # verify key, not the session: the Gemfile pins rodauth to the
+      # onetimesecret fork, whose recovery_codes keys its lookup and insert on
+      # account_id_or_session_value (onetimesecret/rodauth#3). The guards are
+      # apps/web/auth/spec/integration/full_mfa/webauthn_verify_account_recovery_codes_spec.rb
+      # and, in the boot production gets, apps/web/auth/spec/integration/
+      # full_webauthn_verify_mfa/passkey_signup_recovery_codes_spec.rb.
+
       # Require second factor during login if user has MFA setup
       #
       # NOTE: The require_two_factor_authenticated method is called in route blocks,

@@ -233,5 +233,20 @@ RSpec.describe V2::Logic::Secrets::ShowReceipt, type: :integration do
       expect(record[:share_path]).not_to be_nil
       expect(record[:secret_identifier]).to eq(receipt.secret_identifier)
     end
+
+    # #4835: a consumed receipt has no secret to link to, so it emits a null
+    # link (as BurnSecret does) instead of a dangling "secret/" path.
+    it 'withholds the share link once the secret is burned' do
+      expect(secret.burned!).to be true
+
+      logic  = build_logic({ 'identifier' => receipt.identifier })
+      logic.process_params
+      logic.raise_concerns
+      record = logic.process[:record]
+
+      expect(record[:share_url]).to be_nil
+      expect(record[:share_path]).to be_nil
+      expect(record).not_to have_key(:secret_identifier)
+    end
   end
 end

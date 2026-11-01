@@ -13,7 +13,9 @@ module Onetime
 
       desc 'Inspect or validate a single coupon / promotion code'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         puts <<~HELP
           Coupon Commands:
 

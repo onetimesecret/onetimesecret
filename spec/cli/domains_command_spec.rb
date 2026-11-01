@@ -9,6 +9,8 @@ RSpec.describe 'Domains Command', type: :cli do
     owner = double('Owner', email: 'owner@example.com')
     double('Organization',
       org_id: 'org123',
+      objid: 'org123',
+      extid: 'on123abc',
       display_name: 'Test Org',
       list_domains: ['example.com'],
       add_domain: true,
@@ -81,6 +83,13 @@ RSpec.describe 'Domains Command', type: :cli do
   end
 
   describe 'info subcommand' do
+    # info reads the domain's HomepageConfig to print any homepage network
+    # rules; no rules (nil config) prints nothing extra.
+    before do
+      allow(domain).to receive(:identifier).and_return('example.com')
+      allow(Onetime::CustomDomain::HomepageConfig).to receive(:find_by_domain_id).and_return(nil)
+    end
+
     it 'requires a domain name' do
       output = run_cli_command_quietly('domains', 'info')
       expect(output[:stderr]).to include('was called with no arguments')
@@ -92,6 +101,45 @@ RSpec.describe 'Domains Command', type: :cli do
       output = run_cli_command_quietly('domains', 'info', 'example.com')
       expect(output[:stdout]).to include('Domain Information')
       expect(output[:stdout]).to include('example.com')
+      expect(output[:stdout]).not_to include('Homepage Allowed CIDRs')
+    end
+
+    it 'lists homepage network rules when the domain has any' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+      homepage_config = instance_double(
+        Onetime::CustomDomain::HomepageConfig,
+        network_restricted?: true,
+        allowed_cidrs: ['10.0.0.0/8', '2001:db8::/32'],
+        allowed_cidrs_corrupt?: false,
+        denied_cidrs: [],
+        denied_cidrs_corrupt?: false,
+      )
+      allow(Onetime::CustomDomain::HomepageConfig).to receive(:find_by_domain_id)
+        .with('example.com').and_return(homepage_config)
+
+      output = run_cli_command_quietly('domains', 'info', 'example.com')
+      expect(output[:stdout]).to include('Homepage Allowed CIDRs: 10.0.0.0/8, 2001:db8::/32')
+      expect(output[:stdout]).to include('Homepage Denied CIDRs:  (none)')
+    end
+
+    # An unreadable list reads back as [] but denies every visitor, so it
+    # must not print as "(any)".
+    it 'says when a stored list is unreadable' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+      homepage_config = instance_double(
+        Onetime::CustomDomain::HomepageConfig,
+        network_restricted?: true,
+        allowed_cidrs: [],
+        allowed_cidrs_corrupt?: true,
+        denied_cidrs: [],
+        denied_cidrs_corrupt?: false,
+      )
+      allow(Onetime::CustomDomain::HomepageConfig).to receive(:find_by_domain_id)
+        .with('example.com').and_return(homepage_config)
+
+      output = run_cli_command_quietly('domains', 'info', 'example.com')
+      expect(output[:stdout]).to include('Homepage Allowed CIDRs: (unreadable: every visitor is denied)')
+      expect(output[:stdout]).to include('Homepage Denied CIDRs:  (none)')
     end
 
     it 'shows a TXT record name that has no A-label form without failing' do
@@ -250,9 +298,22 @@ RSpec.describe 'Domains Command', type: :cli do
       expect(last_exit_code).to eq(0)
     end
 
-    it 'refuses --json without --yes or --dry-run' do
+    it 'is a dry run by default, never prompting, and --json emits the plan' do
+      stub_transfer(transfer_result(status: :planned, dry_run: true))
+      allow($stdin).to receive(:gets).and_return("y\n")
+
       output = run_cli_command_quietly('domains', 'transfer', 'example.com', '--to-org', 'org456', '--json')
-      expect(JSON.parse(output[:stdout])['error']).to include('--yes')
+      expect($stdin).not_to have_received(:gets)
+      expect(JSON.parse(output[:stdout])).to include('status' => 'planned', 'dry_run' => true)
+      expect(last_exit_code).to eq(0)
+    end
+
+    it 'refuses --apply with --dry-run before calling the op' do
+      allow(Onetime::Operations::Domains::Transfer).to receive(:new)
+
+      output = run_cli_command_quietly('domains', 'transfer', 'example.com', '--to-org', 'org456', '--apply', '--dry-run')
+      expect(output[:stdout]).to include('contradictory')
+      expect(Onetime::Operations::Domains::Transfer).not_to have_received(:new)
       expect(last_exit_code).to eq(1)
     end
 
@@ -278,7 +339,8 @@ RSpec.describe 'Domains Command', type: :cli do
       stub_transfer(transfer_result(status: :planned, dry_run: true))
 
       output = run_cli_command_quietly('domains', 'transfer', 'example.com', '--to-org', 'org456', '--dry-run')
-      expect(output[:stdout]).to include('Dry run')
+      expect(output[:stdout]).to include('DRY RUN — nothing was written')
+      expect(output[:stdout]).to include('Re-run with --apply to transfer.')
       expect(last_exit_code).to eq(0)
     end
 
@@ -325,22 +387,23 @@ RSpec.describe 'Domains Command', type: :cli do
       expect(output[:stderr]).to include('was called with no arguments')
     end
 
-    it 'previews (dry-run) then applies after confirmation — two op calls' do
-      op = double('Remove')
-      allow(op).to receive(:call).and_return(
-        remove_result(status: :planned, dry_run: true),
-        remove_result(status: :removed, dry_run: false),
-      )
+    it 'is a dry run by default: one op call, the plan, no prompt' do
+      op = double('Remove', call: remove_result(status: :planned, dry_run: true))
       allow(Onetime::Operations::Domains::Remove).to receive(:new).and_return(op)
       allow($stdin).to receive(:gets).and_return("y\n")
 
       output = run_cli_command_quietly('domains', 'remove', 'example.com')
+      expect(Onetime::Operations::Domains::Remove).to have_received(:new).once
+        .with(hash_including(dry_run: true))
+      expect($stdin).not_to have_received(:gets)
+      expect(output[:stdout]).to include('DRY RUN — nothing was written')
       expect(output[:stdout]).to include('Removal Details')
-      expect(output[:stdout]).to include('Removal complete')
+      expect(output[:stdout]).to include('Re-run with --apply to remove.')
+      expect(output[:stdout]).not_to include('Removal complete')
       expect(last_exit_code).to eq(0)
     end
 
-    it '--apply skips the prompt' do
+    it '--apply removes without prompting' do
       op = double('Remove', call: remove_result(status: :removed, dry_run: false))
       allow(Onetime::Operations::Domains::Remove).to receive(:new).and_return(op)
 
@@ -354,14 +417,26 @@ RSpec.describe 'Domains Command', type: :cli do
       allow(Onetime::Operations::Domains::Remove).to receive(:new).and_return(op)
 
       output = run_cli_command_quietly('domains', 'remove', 'example.com', '--dry-run')
-      expect(output[:stdout]).to include('Dry run')
+      expect(output[:stdout]).to include('DRY RUN — nothing was written')
       expect(last_exit_code).to eq(0)
     end
 
-    it 'refuses --json without --apply' do
-      output = run_cli_command_quietly('domains', 'remove', 'example.com', '--json')
-      expect(JSON.parse(output[:stdout])['error']).to include('--apply')
+    it 'refuses --apply with --dry-run before calling the op' do
+      allow(Onetime::Operations::Domains::Remove).to receive(:new)
+
+      output = run_cli_command_quietly('domains', 'remove', 'example.com', '--apply', '--dry-run')
+      expect(output[:stdout]).to include('contradictory')
+      expect(Onetime::Operations::Domains::Remove).not_to have_received(:new)
       expect(last_exit_code).to eq(1)
+    end
+
+    it 'emits the plan under a bare --json' do
+      op = double('Remove', call: remove_result(status: :planned, dry_run: true))
+      allow(Onetime::Operations::Domains::Remove).to receive(:new).and_return(op)
+
+      output = run_cli_command_quietly('domains', 'remove', 'example.com', '--json')
+      expect(JSON.parse(output[:stdout])).to include('status' => 'planned')
+      expect(last_exit_code).to eq(0)
     end
 
     it 'keeps a raised apply failure machine-readable under --json' do
@@ -426,13 +501,14 @@ RSpec.describe 'Domains Command', type: :cli do
       expect(last_exit_code).to eq(0)
     end
 
-    it 'aborts without applying when the operator declines' do
+    it 'ignores a piped confirmation: the bare run stays a dry run and exits 0' do
       op = double('Remove', call: remove_result(status: :planned, dry_run: true))
       allow(Onetime::Operations::Domains::Remove).to receive(:new).and_return(op)
-      allow($stdin).to receive(:gets).and_return("n\n")
+      allow($stdin).to receive(:gets).and_return("y\n")
 
-      output = run_cli_command_quietly('domains', 'remove', 'example.com')
-      expect(output[:stdout]).to include('Aborted.')
+      run_cli_command_quietly('domains', 'remove', 'example.com')
+      expect(Onetime::Operations::Domains::Remove).to have_received(:new).once
+        .with(hash_including(dry_run: true))
       expect(last_exit_code).to eq(0)
     end
   end
@@ -515,8 +591,10 @@ RSpec.describe 'Domains Command', type: :cli do
       expect(Onetime::Operations::AdminVerifyDomain).to receive(:new)
         .with(hash_including(persist: false)).and_return(op)
 
-      run_cli_command_quietly('domains', 'verify', 'example.com', '--dry-run')
+      output = run_cli_command_quietly('domains', 'verify', 'example.com', '--dry-run')
       expect(last_exit_code).to eq(0)
+      # The org renders by public id, objid alongside for Redis debugging.
+      expect(output[:stdout]).to include('Org:              on123abc (org123)')
     end
 
     it 'emits JSON for a single domain' do
@@ -725,6 +803,41 @@ RSpec.describe 'Domains Command', type: :cli do
       output = run_cli_command_quietly('domains', 'list', '--limit', '-1')
       expect(output[:stdout]).to include('--limit must be a positive integer')
       expect(last_exit_code).to eq(1)
+    end
+
+    describe 'org filters accept either identifier form' do
+      let(:list_org) { double('Organization', objid: 'org123', extid: 'on123abc') }
+
+      before do
+        stub_list(rows)
+        allow(Onetime::Organization).to receive_messages(find_by_extid: nil, load: nil)
+      end
+
+      it 'filters --org-extid given an objid' do
+        allow(Onetime::Organization).to receive(:load).with('org123').and_return(list_org)
+
+        output = run_cli_command_quietly('domains', 'list', '--org-extid', 'org123')
+        expect(output[:stdout]).to include('1 custom domains')
+        expect(output[:stdout]).to include('example.com')
+      end
+
+      it 'filters --org-id given an extid' do
+        allow(Onetime::Organization).to receive(:find_by_extid).with('on123abc').and_return(list_org)
+
+        output = run_cli_command_quietly('domains', 'list', '--org-id', 'on123abc')
+        expect(output[:stdout]).to include('1 custom domains')
+      end
+
+      it 'keeps an unresolvable --org-id as a raw objid filter' do
+        output = run_cli_command_quietly('domains', 'list', '--org-id', 'org123')
+        expect(output[:stdout]).to include('1 custom domains')
+      end
+
+      it 'exits 1 when --org-extid resolves to nothing' do
+        output = run_cli_command_quietly('domains', 'list', '--org-extid', 'on_missing')
+        expect(output[:stdout]).to include('Organization not found: on_missing')
+        expect(last_exit_code).to eq(1)
+      end
     end
 
     it 'groups duplicate display_domain records (the shadow-record diagnostic)' do
@@ -973,7 +1086,16 @@ RSpec.describe 'Domains Command', type: :cli do
       allow(Onetime::Organization).to receive(:find_by_extid).with('on999xyz').and_return(organization)
 
       output = run_cli_command_quietly('domains', 'repair', 'example.com', '--org-id', 'on999xyz', '--yes')
-      expect(output[:stdout]).to include('domains transfer example.com --to-org')
+      expect(output[:stdout]).to include('domains transfer example.com --to-org <ORG> --apply')
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'names the adopting command, with --apply, for an orphan given no --org-id' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(orphan)
+      allow(Onetime::Organization).to receive(:load).and_return(nil)
+
+      output = run_cli_command_quietly('domains', 'repair', 'orphan.com', '--apply')
+      expect(output[:stdout]).to include('bin/ots domains repair orphan.com --org-id <ORG> --apply')
       expect(last_exit_code).to eq(1)
     end
 
@@ -984,21 +1106,36 @@ RSpec.describe 'Domains Command', type: :cli do
       allow(organization).to receive(:add_domain)
 
       output = run_cli_command_quietly('domains', 'repair', 'example.com', '--dry-run')
-      expect(output[:stdout]).to include('Dry run')
+      expect(output[:stdout]).to include('DRY RUN — nothing was written')
+      expect(output[:stdout]).to include('Re-run with --apply to repair.')
       expect(organization).not_to have_received(:add_domain)
       expect(last_exit_code).to eq(0)
     end
 
-    it '--dry-run wins over --yes' do
+    it 'is a dry run by default, never prompting' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+      allow(Onetime::Organization).to receive(:load).and_return(organization)
+      allow(organization).to receive(:list_domains).and_return([])
+      allow(organization).to receive(:add_domain)
+      allow($stdin).to receive(:gets).and_return("y\n")
+
+      output = run_cli_command_quietly('domains', 'repair', 'example.com')
+      expect(output[:stdout]).to include('DRY RUN — nothing was written')
+      expect($stdin).not_to have_received(:gets)
+      expect(organization).not_to have_received(:add_domain)
+      expect(last_exit_code).to eq(0)
+    end
+
+    it 'refuses --apply with --dry-run' do
       allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
       allow(Onetime::Organization).to receive(:load).and_return(organization)
       allow(organization).to receive(:list_domains).and_return([])
       allow(organization).to receive(:add_domain)
 
       output = run_cli_command_quietly('domains', 'repair', 'example.com', '--dry-run', '--yes')
-      expect(output[:stdout]).to include('Dry run')
+      expect(output[:stdout]).to include('contradictory')
       expect(organization).not_to have_received(:add_domain)
-      expect(last_exit_code).to eq(0)
+      expect(last_exit_code).to eq(1)
     end
 
     it '--json --yes emits the Result shape' do
@@ -1019,36 +1156,14 @@ RSpec.describe 'Domains Command', type: :cli do
       expect(last_exit_code).to eq(0)
     end
 
-    it '--json without --yes or --dry-run refuses and exits 1' do
+    it 'a bare --json emits the plan and exits 0' do
       allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+      allow(Onetime::Organization).to receive(:load).and_return(organization)
+      allow(organization).to receive(:list_domains).and_return([])
+      allow(organization).to receive(:add_domain)
 
       output = run_cli_command_quietly('domains', 'repair', 'example.com', '--json')
-      expect(JSON.parse(output[:stdout])['error']).to include('--yes')
-      expect(last_exit_code).to eq(1)
-    end
-
-    it 'aborts without mutating when the operator declines the prompt' do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
-      allow(Onetime::Organization).to receive(:load).and_return(organization)
-      allow(organization).to receive(:list_domains).and_return([])
-      allow(organization).to receive(:add_domain)
-      allow($stdin).to receive(:gets).and_return("n\n")
-
-      output = run_cli_command_quietly('domains', 'repair', 'example.com')
-      expect(output[:stdout]).to include('Aborted.')
-      expect(organization).not_to have_received(:add_domain)
-      expect(last_exit_code).to eq(0)
-    end
-
-    it 'treats EOF on stdin as a declined prompt instead of raising' do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
-      allow(Onetime::Organization).to receive(:load).and_return(organization)
-      allow(organization).to receive(:list_domains).and_return([])
-      allow(organization).to receive(:add_domain)
-      allow($stdin).to receive(:gets).and_return(nil)
-
-      output = run_cli_command_quietly('domains', 'repair', 'example.com')
-      expect(output[:stdout]).to include('Aborted.')
+      expect(JSON.parse(output[:stdout])).to include('status' => 'planned', 'dry_run' => true)
       expect(organization).not_to have_received(:add_domain)
       expect(last_exit_code).to eq(0)
     end

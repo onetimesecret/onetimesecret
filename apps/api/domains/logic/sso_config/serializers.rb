@@ -29,6 +29,11 @@ module DomainsAPI
         # it is [] for a healthy record. It covers client_id / client_secret
         # too, which previously failed to null with only a log line.
         #
+        # idp_metadata_url (the SAML IdP metadata URL the trio was imported
+        # from) is served the same way: plaintext, an encrypted_field for
+        # integrity, named in `unreadable_fields` when it will not decrypt.
+        # null when unset (always, for a non-saml record).
+        #
         # sp_entity_id / acs_url are read-only values for the admin to paste
         # into their IdP; null for non-saml records. See #saml_sp_identifiers.
         #
@@ -63,6 +68,7 @@ module DomainsAPI
             idp_sso_service_url: reveal.call(:idp_sso_service_url),
             idp_entity_id: reveal.call(:idp_entity_id),
             idp_cert: reveal.call(:idp_cert),
+            idp_metadata_url: reveal.call(:idp_metadata_url).then { it.to_s.empty? ? nil : it },
             name_id_format: serialize_saml_policy(config, :name_id_format, unreadable) { config.saml_name_id_format },
             callback_origins: serialize_saml_policy(config, :callback_origins, unreadable) { config.callback_origins },
             sp_entity_id: sp[:sp_entity_id],
