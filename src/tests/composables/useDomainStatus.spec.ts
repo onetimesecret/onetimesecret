@@ -348,6 +348,42 @@ describe('useDomainStatus', () => {
     });
   });
 
+  // Under approximated the virtual host is created by verification once
+  // ownership is verified, so a domain that was just added has no blob. That
+  // is the ownership check outstanding, not an error.
+  describe('domain with no status blob', () => {
+    const noBlob = (overrides: Partial<CustomDomain> = {}) =>
+      ref(createMockDomain({ vhost: null, vhost_fetch_failed_at: null, ...overrides }));
+
+    it('needs the ownership check when not verified, without being an error', () => {
+      const status = useDomainStatus(noBlob({ verified: false }));
+
+      expect(status.needsOwnershipCheck.value).toBe(true);
+      expect(status.needsAttention.value).toBe(true);
+      expect(status.isError.value).toBe(false);
+      expect(status.displayStatus.value).toBe('Pending Verification');
+      expect(status.statusIcon.value).toBe('alert-circle');
+    });
+
+    it('is an error, not an outstanding ownership check, when verified', () => {
+      const status = useDomainStatus(noBlob({ verified: true }));
+
+      expect(status.needsOwnershipCheck.value).toBe(false);
+      expect(status.isError.value).toBe(true);
+      expect(status.displayStatus.value).toBe('Inactive');
+    });
+
+    it('keeps the DNS warning for an unverified domain', () => {
+      const status = useDomainStatus(
+        ref(createMockDomain({ vhost: { status: 'DNS_INCORRECT' }, verified: false }))
+      );
+
+      expect(status.needsOwnershipCheck.value).toBe(false);
+      expect(status.isWarning.value).toBe(true);
+      expect(status.displayStatus.value).toBe('DNS Incorrect');
+    });
+  });
+
   // The blob says what is on the network; `verified` says whether ownership
   // is confirmed. After a demotion under caddy_on_demand the certificate
   // issued earlier keeps serving, so the probe keeps writing ACTIVE_SSL while

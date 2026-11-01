@@ -41,16 +41,18 @@ ADR-015).
    - Add the nullable field on `CustomDomain`.
    - Add `Strategy.for(custom_domain)`, which falls back to the install default.
    - Include the effective strategy in `safe_dump` and the API schemas.
-2. Call sites (medium). Nine resolve the strategy from global config today:
+2. Call sites (medium). Seven resolve the strategy from global config today.
+   `AddDomain` and `Operations::Domains::Create` no longer do: they stopped
+   requesting a certificate when the virtual host moved to verification
+   (#4800), so the strategy that creates it is the one `VerifyDomain`
+   resolves.
    - `lib/onetime/operations/verify_domain.rb:185`. In bulk mode it caches one
      strategy per run, so it has to resolve per domain. Pacing then varies
      within a page.
-   - `lib/onetime/operations/domains/create.rb:253`.
    - `lib/onetime/operations/domains/teardown.rb:86` (the remove path).
    - `lib/onetime/operations/domains/collision_resolution.rb:228`.
    - `lib/onetime/models/custom_domain/serving_policy.rb:151`
      (`proves_ownership?` decision).
-   - `apps/api/domains/logic/domains/add_domain.rb:153`.
    - `apps/api/domains/logic/domains/get_dns_widget_token.rb:34`.
    - `apps/api/domains/cli/helpers.rb:100`.
    - The chore's `strategy_name` guard
