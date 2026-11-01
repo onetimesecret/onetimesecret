@@ -143,6 +143,11 @@ module Onetime
     # instead of a global SCAN+decrypt. Written best-effort by
     # Onetime::Operations::Sessions::TrackMetadata; see SessionMetadata.
     sorted_set :active_sessions
+
+    # Written before purge removes a stale participation. Keep its organization
+    # reachable for dependency checks across retries until customer destruction.
+    set :purge_pending_organization_checks
+
     hashkey :feature_flags # Per-customer feature toggles
 
     # Used to track the current and most recently created password reset secret.
@@ -194,6 +199,20 @@ module Onetime
     # Organization: org.members gives O(1) access to all members
     # Through model auto-creates OrganizationMembership with role, status, etc.
     participates_in :Organization, :members, score: :joined, through: Onetime::OrganizationMembership, staged: :pending_invitations
+
+    # Familia reads both legacy raw and JSON-encoded participation keys, but
+    # 2.12 removes only the JSON form. Remove both in one command so membership
+    # and organization deletion cannot leave a legacy reverse-index reference.
+    def untrack_participation_in(collection_key)
+      index   = participations
+      index.warn_if_dirty!
+      removed = index.dbclient.srem(
+        index.dbkey,
+        *[index.serialize_value(collection_key), collection_key.to_s].uniq,
+      )
+      index.update_expiration
+      removed
+    end
 
     field_group :core_fields do
       field :custid

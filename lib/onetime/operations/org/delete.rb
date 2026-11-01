@@ -78,7 +78,7 @@ module Onetime
       #                        (read-only phase, step 6). NOT overridable — the
       #                        remediation is to create the replacement org
       #                        first, or to purge the account outright with
-      #                        `bin/ots customers purge-one`.
+      #                        `bin/ots customers purge`.
       #
       # ## The is_default hole this closes
       #
@@ -419,7 +419,7 @@ module Onetime
           # STEP 2 — the step the console recipe forgets. Familia v2 uses
           # `remove`, not `rem`. Done BEFORE destroy! so a crash cannot leave the
           # zset pointing at a destroyed record (the direction `org doctor`,
-          # `memberships` counting and OrganizationsListCommand all walk).
+          # `memberships` counting and `organizations list` all walk).
           Onetime::Organization.instances.remove(@objid)
 
           # STEP 3 — members, pending invitations, contact_email_index.

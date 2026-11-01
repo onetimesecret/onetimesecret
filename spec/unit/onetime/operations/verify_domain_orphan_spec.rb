@@ -40,7 +40,7 @@ RSpec.describe Onetime::Operations::VerifyDomain, 'and a record with no organiza
 
   # The unit lane boots without the connection pool claim_orphaned_domain
   # pins its WATCH to; hand it a plain client instead. A block, not and_yield
-  # (see claim_orphan_canonical_spec).
+  # (see claim_orphan_ascii_spec).
   before do
     allow(Onetime).to receive(:with_pinned_dbclient) { |&block| block.call(Familia.dbclient) }
   end

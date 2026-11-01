@@ -19,7 +19,9 @@ module Onetime
     class HousekeepingCommand < Command
       desc 'Run Familia model housekeeping chores'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         boot_application!
 
         models = Onetime::Jobs::Scheduled::HousekeepingJob.models_with_chores

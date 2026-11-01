@@ -74,8 +74,14 @@
 </script>
 
 <template>
-  <div class="border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-    <div class="mx-auto max-w-7xl p-4 sm:px-6 lg:px-8">
+  <div
+    class="mx-4 border-b border-gray-200 bg-white sm:mx-6 lg:mx-8 dark:border-gray-700 dark:bg-gray-800">
+    <!-- Consumers stick this band at the full width of the main column and
+         put their cards in a container with a px-4 sm:px-6 lg:px-8 gutter, so
+         the band takes the same inset to end at the card edges. From sm the
+         inner px-6 matches the cards' px-6 header rows, so the title lines up
+         with theirs; below sm px-4 leaves the domain name more room. -->
+    <div class="p-4 sm:px-6">
       <!-- Title section - make text smaller on mobile -->
       <div
         v-if="domain"
@@ -92,7 +98,8 @@
                 name="arrow-left"
                 class="size-5"
                 aria-hidden="true" />
-              {{ t(backLabel) }}
+              <!-- Icon only on a phone, so the domain name keeps the room. -->
+              <span class="sr-only sm:not-sr-only">{{ t(backLabel) }}</span>
             </button>
             <!-- prettier-ignore-attribute class -->
             <h1

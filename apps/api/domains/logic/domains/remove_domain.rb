@@ -8,6 +8,8 @@ require_relative '../base'
 module DomainsAPI::Logic
   module Domains
     class RemoveDomain < DomainsAPI::Logic::Base
+      include Onetime::LoggerMethods
+
       attr_reader :greenlighted, :extid, :display_domain
 
       def process_params
@@ -51,7 +53,7 @@ module DomainsAPI::Logic
       end
 
       def process
-        OT.ld "[RemoveDomain] Processing #{@extid} (#{@custom_domain.display_domain})"
+        app_logger.debug '[RemoveDomain] Processing', domain_extid: @extid, domain_display: @custom_domain.display_domain
         @greenlighted   = true
         @display_domain = @custom_domain.display_domain
 
@@ -64,15 +66,23 @@ module DomainsAPI::Logic
           sess['domain_context'] = nil
         end
 
+        # sender_cleanup is the remote sender identity outcome
+        # (Teardown::Result#sender_cleanup). It is logged, not returned: the
+        # response shape is unchanged, and a failed cleanup does not undo the
+        # removal. A failed cleanup logs at warn; DeleteSenderDomain has
+        # already logged the provider error.
+        removal_log = {
+          event: 'domain_removed',
+          domain_extid: @extid,
+          domain_display: @display_domain,
+          actor_extid: cust.extid,
+          sender_cleanup: teardown.sender_cleanup.to_s,
+        }
+        level       = teardown.sender_cleanup == :failed ? :warn : :info
+
         if lease_error
           details = { removal_committed: true, lease_lost: true }
-          OT.info '[RemoveDomain] Domain removal committed with lease loss',
-            details.merge(
-              event: 'domain_removed',
-              domain_extid: @extid,
-              domain_display: @display_domain,
-              actor_extid: cust.extid,
-            ).to_json
+          app_logger.public_send(level, '[RemoveDomain] Domain removal committed with lease loss', **details, **removal_log)
           raise_form_error(
             "Domain #{@display_domain} was removed, but #{lease_error.message}",
             field: :extid,
@@ -81,6 +91,7 @@ module DomainsAPI::Logic
           )
         end
 
+        app_logger.public_send(level, '[RemoveDomain] Domain removed', **removal_log)
         success_data
       rescue Onetime::Operations::Domains::Teardown::Busy
         raise_form_error("Another change to this domain's sender configuration is in progress. Please try again.", field: :extid, error_type: :conflict)

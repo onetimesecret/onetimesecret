@@ -8,8 +8,8 @@
 #
 #   1. Mocked contract (no datastore) — normalization, the validation ruleset,
 #      the exactly-once audit event, the negative "a rejection writes and audits
-#      NOTHING" assertions, and the TOCTOU rescue around the contact_email
-#      reservation. Organization.create! is stubbed at the class boundary; it
+#      NOTHING" assertions, the dry run, and the TOCTOU rescue around the
+#      contact_email reservation. Organization.create! is stubbed at the class boundary; it
 #      has its own coverage.
 #
 #   2. Real datastore (Valkey on 2163, see spec/config.test.yaml) — the
@@ -248,6 +248,47 @@ RSpec.describe Onetime::Operations::Org::Create do
             ),
           ),
         )
+      end
+    end
+
+    describe 'with dry_run: true' do
+      before { allow(Onetime::ColonelAuditEvent).to receive(:record_access) }
+
+      it 'returns :planned with the normalized fields and creates nothing' do
+        result = build(display_name: ' Acme ', contact_email: ' Billing@ACME.test ', dry_run: true).call
+
+        expect(result.status).to eq(:planned)
+        expect(result.org_id).to be_nil
+        expect(result.objid).to be_nil
+        expect(result.display_name).to eq('Acme')
+        expect(result.owner_id).to eq('ur_owner_ext')
+        expect(result.contact_email).to eq('billing@acme.test')
+        expect(Onetime::Organization).not_to have_received(:create!)
+      end
+
+      # There is no org yet, so the preview targets the owner, like the
+      # failure path (the TARGET DEVIATION note on the op).
+      it 'records ONE preview on the observation trail, never the operator trail (#4337)' do
+        build(dry_run: true).call
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+          actor: actor,
+          verb: 'organization.create',
+          target: 'ur_owner_ext',
+          result: 'preview',
+          detail: { display_name: 'Acme', owner_id: 'ur_owner_ext', dry_run: true },
+        )
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      end
+
+      it 'still records a rejection, marked dry_run' do
+        result = build(display_name: '   ', dry_run: true).call
+
+        expect(result.status).to eq(:blank_name)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          hash_including(result: :failure, detail: hash_including(reason: 'blank_name', dry_run: true)),
+        )
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record_access)
       end
     end
 

@@ -62,6 +62,23 @@ describe('Dashboard Routes', () => {
     });
   });
 
+  describe('DomainSigninSso Route', () => {
+    it('mirrors the DomainSignin entry under /signin/sso', () => {
+      const signin = findRoute('DomainSignin');
+      const route = findRoute('DomainSigninSso');
+      expect(signin?.path).toBe('/org/:orgid/domains/:extid/signin');
+      expect(route?.path).toBe('/org/:orgid/domains/:extid/signin/sso');
+      expect(route?.meta?.title).toBe('web.TITLES.domain_signin_sso');
+      expect(route?.props).toBe(true);
+      expect(route?.component).toBeDefined();
+      // Same access and layout as the sign-in page it hangs off.
+      const { title: _signinTitle, ...signinMeta } = signin?.meta ?? {};
+      const { title: _ssoTitle, ...ssoMeta } = route?.meta ?? {};
+      expect(ssoMeta).toEqual(signinMeta);
+      expect(route?.meta?.requiresOrgRole).toBe('admin');
+    });
+  });
+
   describe('DNS / verification route guards', () => {
     const params = { orgid: 'org-1', extid: 'dm-1' };
 

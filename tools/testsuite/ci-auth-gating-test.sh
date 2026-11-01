@@ -351,10 +351,10 @@ def matrix(job_id):
 
 
 def matrix_coverage():
-    # Frozen copy of the eight full-mode cases; not derived from the changed
+    # Frozen copy of the nine full-mode cases; not derived from the changed
     # workflow or git HEAD. Every Ruby change runs the whole suite once, on
     # SQLite, and the PG-only specs, both with billing off. Auth selection
-    # adds the second pass of the whole suite on PostgreSQL and the two
+    # adds the second pass of the whole suite on PostgreSQL and the three
     # feature-specific boots. The nightly adds the three lanes again with
     # the billing overlay.
     general = [
@@ -365,6 +365,7 @@ def matrix_coverage():
         ("PG agnostic, billing: off", "full-pg-agnostic", "", "valkey rabbitmq postgres", "rspec_full_pg_agnostic_billing_off_results.json"),
         ("SQLite, MFA", "full-mfa", "", "valkey rabbitmq", "rspec_full_mfa_results.json"),
         ("SQLite, platform SAML", "full-saml-platform", "", "valkey rabbitmq", "rspec_full_saml_platform_results.json"),
+        ("SQLite, passkey signup", "full-webauthn-verify", "", "valkey rabbitmq", "rspec_full_webauthn_verify_results.json"),
     ]
     billing = [
         ("SQLite", "full-sqlite", "billing", "valkey rabbitmq", "rspec_full_sqlite_billing_on_results.json"),
@@ -374,12 +375,12 @@ def matrix_coverage():
     actual_general, actual_auth = matrix("ruby-integration-full"), matrix("ruby-integration-auth")
     actual_billing = matrix("ruby-integration-billing")
     check(actual_general == general, f"the two full rows every Ruby change runs changed: {actual_general}")
-    check(actual_auth == auth, f"the three auth-selected rows changed: {actual_auth}")
+    check(actual_auth == auth, f"the four auth-selected rows changed: {actual_auth}")
     check(actual_billing == billing, f"the three nightly billing-on rows changed: {actual_billing}")
     check(all(row[2] == "" for row in actual_general + actual_auth),
           "billing-on rows belong to ruby-integration-billing only")
     # Lane, overlay and results file identify a case; the display name may differ per job.
-    check(len({row[1:] for row in actual_general + actual_auth + actual_billing}) == 8,
+    check(len({row[1:] for row in actual_general + actual_auth + actual_billing}) == 9,
           "matrix split must neither drop nor duplicate an old case")
     check(scalar(block(jobs, "ruby-integration-billing", 2), "steps", 4) == "*full-integration-steps",
           "billing rows run the same steps, not a divergent copy")
@@ -434,6 +435,7 @@ def lane_tasks():
         "full-sqlite": "spec:integration:full", "full-pg": "spec:integration:full:postgres",
         "full-pg-agnostic": "spec:integration:full:agnostic_on_pg", "full-mfa": "spec:integration:full:mfa",
         "full-saml-platform": "spec:integration:full:saml_platform", "api": "spec:api",
+        "full-webauthn-verify": "spec:integration:full:webauthn_verify",
         "disabled": "spec:integration:disabled",
     }.items():
         actual = executable((root / "tests/lanes" / lane / "tasks").read_text())

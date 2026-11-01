@@ -276,10 +276,6 @@
     "text": "Subscription",
     "content_hash": "4999c6c6"
   },
-  "web.organizations.danger_zone": {
-    "text": "Danger Zone",
-    "content_hash": "3c1c01b4"
-  },
   "web.organizations.delete_organization": {
     "text": "Delete Organization",
     "content_hash": "54b2edc7"
@@ -837,8 +833,8 @@
     "content_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
-    "text": "Provider Type",
-    "content_hash": "bdfbb1ec"
+    "text": "Provider type",
+    "content_hash": "8c0f6d3e"
   },
   "web.organizations.sso.provider_type_description": {
     "text": "Select your organization's identity provider",
@@ -855,6 +851,10 @@
   "web.organizations.sso.display_name_placeholder": {
     "text": "e.g. Acme Corp SSO",
     "content_hash": "43c655c5"
+  },
+  "web.organizations.sso.provider_details_title": {
+    "text": "Identity provider details",
+    "content_hash": "97f3b667"
   },
   "web.organizations.sso.client_id": {
     "text": "Client ID",
@@ -980,6 +980,202 @@
     "text": "-----BEGIN CERTIFICATE-----",
     "content_hash": "ddddb6cb"
   },
+  "web.organizations.sso.metadata_url": {
+    "text": "IdP metadata URL",
+    "content_hash": "63e8aae5"
+  },
+  "web.organizations.sso.metadata_url_hint": {
+    "text": "Optional. Your identity provider's SAML metadata address. For Microsoft Entra ID, use the App Federation Metadata Url from the application's SAML page. Fetching only shows what the metadata contains; nothing changes until you apply it and save.",
+    "content_hash": "e0daf338"
+  },
+  "web.organizations.sso.metadata_url_placeholder": {
+    "text": "https://idp.example.com/saml/metadata",
+    "content_hash": "569daaba"
+  },
+  "web.organizations.sso.metadata_fetch_button": {
+    "text": "Fetch from metadata",
+    "content_hash": "39800511"
+  },
+  "web.organizations.sso.metadata_fetching": {
+    "text": "Fetching metadata…",
+    "content_hash": "ef6d4ef5"
+  },
+  "web.organizations.sso.metadata_source": {
+    "text": "Imported from",
+    "content_hash": "512505c5"
+  },
+  "web.organizations.sso.metadata_source_hint": {
+    "text": "The IdP fields below were imported from this metadata URL. It is saved with the connection; nothing is fetched from it automatically.",
+    "content_hash": "2ef68093"
+  },
+  "web.organizations.sso.metadata_source_clear": {
+    "text": "Clear",
+    "content_hash": "83b12c22"
+  },
+  "web.organizations.sso.metadata_source_clear_label": {
+    "text": "Clear the metadata URL these values were imported from",
+    "content_hash": "bea3f113"
+  },
+  "web.organizations.sso.metadata_source_unreadable": {
+    "text": "The stored metadata URL could not be read. Fetch and apply the metadata again, or save to clear it.",
+    "content_hash": "42aa6899"
+  },
+  "web.organizations.sso.metadata_preview_title": {
+    "text": "Metadata preview",
+    "content_hash": "25c4a9e5"
+  },
+  "web.organizations.sso.metadata_preview_hint": {
+    "text": "Review these values. Apply metadata copies them into the IdP fields below; Save keeps them.",
+    "content_hash": "cb1c6030"
+  },
+  "web.organizations.sso.metadata_value_missing": {
+    "text": "Not found in the metadata",
+    "content_hash": "846c55d2"
+  },
+  "web.organizations.sso.metadata_blocking_title": {
+    "text": "This metadata cannot be imported",
+    "content_hash": "fca0a231"
+  },
+  "web.organizations.sso.metadata_problem_invalid_entity_id": {
+    "text": "The Entity ID in this metadata cannot be used ({reason}).",
+    "content_hash": "e17774b9"
+  },
+  "web.organizations.sso.metadata_problem_invalid_sso_url": {
+    "text": "The HTTP-Redirect SSO URL in this metadata cannot be used ({reason}).",
+    "content_hash": "c15d8750"
+  },
+  "web.organizations.sso.metadata_problem_no_sso_url": {
+    "text": "The metadata does not publish an HTTP-Redirect SSO URL.",
+    "content_hash": "0d009fb9"
+  },
+  "web.organizations.sso.metadata_problem_unsupported_sso_binding": {
+    "text": "The metadata offers single sign-on only through bindings this service does not use. An HTTP-Redirect SSO endpoint is required.",
+    "content_hash": "fec55f65"
+  },
+  "web.organizations.sso.metadata_problem_no_signing_certificates": {
+    "text": "The metadata does not include a signing certificate.",
+    "content_hash": "102b59c7"
+  },
+  "web.organizations.sso.metadata_problem_no_usable_signing_certificates": {
+    "text": "None of the signing certificates in this metadata can be used. Each one could not be read, has expired, is not valid yet, or does not use an RSA key.",
+    "content_hash": "86549c52"
+  },
+  "web.organizations.sso.metadata_problem_unreadable_signing_certificates": {
+    "text": "Some signing certificates in this metadata could not be read and are not listed. If the certificate you need is missing, copy it from your identity provider.",
+    "content_hash": "e75e7b39"
+  },
+  "web.organizations.sso.metadata_problem_tenant_level_entra_metadata": {
+    "text": "This is Microsoft Entra ID's tenant-wide metadata, which can list the tenant's keys instead of this application's signing certificate. Use the App Federation Metadata Url from the application's SAML page in Entra.",
+    "content_hash": "7fbe36a1"
+  },
+  "web.organizations.sso.metadata_certificates": {
+    "text": "Signing certificates",
+    "content_hash": "a963371f"
+  },
+  "web.organizations.sso.metadata_certificates_choose_hint": {
+    "text": "Choose the certificate your identity provider signs with now. In Microsoft Entra ID, match the SHA-1 thumbprint of the certificate marked Active.",
+    "content_hash": "bfa63e8e"
+  },
+  "web.organizations.sso.metadata_cert_newest": {
+    "text": "Newest",
+    "content_hash": "d15efa17"
+  },
+  "web.organizations.sso.metadata_cert_validity": {
+    "text": "Valid from {from} until {until}",
+    "content_hash": "3d38ba01"
+  },
+  "web.organizations.sso.metadata_cert_fingerprint_sha256": {
+    "text": "SHA-256 fingerprint",
+    "content_hash": "684889f0"
+  },
+  "web.organizations.sso.metadata_cert_thumbprint_sha1": {
+    "text": "SHA-1 thumbprint (Entra portal)",
+    "content_hash": "88b59dad"
+  },
+  "web.organizations.sso.metadata_name_id_formats": {
+    "text": "Advertised NameID formats",
+    "content_hash": "9a17fb08"
+  },
+  "web.organizations.sso.metadata_name_id_formats_hint": {
+    "text": "For reference only. Importing metadata does not change this connection's NameID policy.",
+    "content_hash": "2eeb5584"
+  },
+  "web.organizations.sso.metadata_name_id_formats_none": {
+    "text": "The metadata does not advertise a NameID format.",
+    "content_hash": "aeeb93e0"
+  },
+  "web.organizations.sso.metadata_apply": {
+    "text": "Apply metadata",
+    "content_hash": "60e9c751"
+  },
+  "web.organizations.sso.metadata_select_certificate": {
+    "text": "Choose a signing certificate to apply this metadata.",
+    "content_hash": "da2e3d33"
+  },
+  "web.organizations.sso.metadata_applied": {
+    "text": "Applied to the IdP fields below.",
+    "content_hash": "82a00220"
+  },
+  "web.organizations.sso.metadata_error_invalid_metadata_url": {
+    "text": "The metadata URL is not valid. Use an https:// address on a public host.",
+    "content_hash": "c9a86aa5"
+  },
+  "web.organizations.sso.metadata_error_blocked_target": {
+    "text": "This service cannot connect to that address.",
+    "content_hash": "0ad98503"
+  },
+  "web.organizations.sso.metadata_error_timeout": {
+    "text": "The metadata server did not respond in time.",
+    "content_hash": "59e56242"
+  },
+  "web.organizations.sso.metadata_error_ssl_error": {
+    "text": "A secure connection to the metadata server could not be established.",
+    "content_hash": "46fad3dd"
+  },
+  "web.organizations.sso.metadata_error_connection_failed": {
+    "text": "Could not connect to the metadata server.",
+    "content_hash": "fede40d7"
+  },
+  "web.organizations.sso.metadata_error_http_error": {
+    "text": "The metadata server returned an error response.",
+    "content_hash": "b1cbd1db"
+  },
+  "web.organizations.sso.metadata_error_metadata_not_found": {
+    "text": "No metadata was found at that URL.",
+    "content_hash": "91046e48"
+  },
+  "web.organizations.sso.metadata_error_metadata_too_large": {
+    "text": "The metadata document is larger than this service accepts.",
+    "content_hash": "5dfe5bf8"
+  },
+  "web.organizations.sso.metadata_error_invalid_metadata": {
+    "text": "The document is not valid SAML identity provider metadata.",
+    "content_hash": "6d2fcd78"
+  },
+  "web.organizations.sso.metadata_error_aggregate_metadata": {
+    "text": "The document describes more than one identity provider. Use the metadata URL for your identity provider alone.",
+    "content_hash": "a383d38a"
+  },
+  "web.organizations.sso.metadata_error_unreadable_certificate": {
+    "text": "The certificate in this metadata could not be read. Copy the signing certificate from your identity provider instead.",
+    "content_hash": "52515669"
+  },
+  "web.organizations.sso.metadata_error_unexpected_error": {
+    "text": "The metadata could not be read.",
+    "content_hash": "e5f3a5bf"
+  },
+  "web.organizations.sso.metadata_fetch_error": {
+    "text": "Could not fetch the metadata.",
+    "content_hash": "caab3084"
+  },
+  "web.organizations.sso.metadata_rate_limited": {
+    "text": "Metadata has been fetched too many times recently. Try again later.",
+    "content_hash": "e32cb743"
+  },
+  "web.organizations.sso.metadata_rate_limited_retry": {
+    "text": "Metadata has been fetched too many times recently. Try again in about {minutes} minutes.",
+    "content_hash": "6d8366fd"
+  },
   "web.organizations.sso.sp_details": {
     "text": "Service provider details",
     "content_hash": "4b6617d2"
@@ -1064,12 +1260,16 @@
     "content_hash": "2ac9f345"
   },
   "web.organizations.sso.delete_config": {
-    "text": "Delete Configuration",
-    "content_hash": "9ac1ac7b"
+    "text": "Delete configuration",
+    "content_hash": "a9a30c7f"
   },
   "web.organizations.sso.delete_confirm": {
-    "text": "Are you sure? This will disable SSO for your organization.",
-    "content_hash": "5b3f5b9d"
+    "text": "Are you sure? This removes the SSO configuration for this domain.",
+    "content_hash": "ab6e2dcf"
+  },
+  "web.organizations.sso.delete_config_hint": {
+    "text": "Removes the saved configuration and its credentials from this domain. Members can no longer sign in with SSO here.",
+    "content_hash": "8d8c7368"
   },
   "web.organizations.sso.load_error": {
     "text": "Failed to load SSO configuration",
@@ -1100,8 +1300,8 @@
     "content_hash": "447b1969"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "Checks provider discovery using the values above. Does not check the client secret or complete a sign-in.",
-    "content_hash": "02cbb081"
+    "text": "Uses the values currently in the form to verify provider discovery. It does not save changes, check the client secret, or sign in a user.",
+    "content_hash": "1a6f8c9a"
   },
   "web.organizations.sso.test_connection_hint_saml": {
     "text": "Checks the URL, Entity ID and certificate above locally. Does not contact the identity provider or complete a sign-in.",
@@ -1119,9 +1319,13 @@
     "text": "Could not check provider settings",
     "content_hash": "3d7a4ea6"
   },
-  "web.organizations.sso.setup_title": {
-    "text": "Set up SSO for this domain",
-    "content_hash": "117a38e3"
+  "web.organizations.sso.setup_summary": {
+    "text": "Register this domain with your identity provider, save and check the configuration, then confirm with a real sign-in.",
+    "content_hash": "d0128d43"
+  },
+  "web.organizations.sso.setup_steps": {
+    "text": "Show the steps",
+    "content_hash": "450a5922"
   },
   "web.organizations.sso.setup_register": {
     "text": "Register the callback or service-provider details with your identity provider, then enter its credentials below.",
@@ -1140,56 +1344,56 @@
     "content_hash": "9721d7b9"
   },
   "web.organizations.sso.provider_check_next": {
-    "text": "This is not a sign-in test. Next, use Save and check below to check the saved configuration.",
-    "content_hash": "aa255e38"
+    "text": "This is not a sign-in test. Next, use Save and check to check the saved configuration.",
+    "content_hash": "347d4278"
   },
   "web.organizations.sso.technical_details": {
     "text": "Technical details",
     "content_hash": "890ab358"
   },
   "web.organizations.sso.check_details": {
-    "text": "Check time",
-    "content_hash": "b01627ad"
+    "text": "What this check does",
+    "content_hash": "c7a48ea2"
   },
   "web.organizations.sso.diagnostics_hint_entra": {
-    "text": "Checks saved fields, provider discovery and whether Microsoft Entra ID accepts the saved client secret. This does not test a full sign-in.",
-    "content_hash": "5d58ca04"
+    "text": "Verifies the saved settings and provider discovery. For Microsoft Entra ID, it also verifies that the saved client secret is accepted. It does not complete a user sign-in.",
+    "content_hash": "ad711ce1"
   },
   "web.organizations.sso.diagnostics_hint_saml": {
     "text": "Checks the saved fields and signing certificate locally. Does not contact the identity provider or test a full sign-in.",
     "content_hash": "297b2678"
   },
   "web.organizations.sso.diagnostics_passed": {
-    "text": "Available saved configuration checks passed",
-    "content_hash": "9c81efc4"
+    "text": "Saved configuration check passed",
+    "content_hash": "91fc2d97"
   },
   "web.organizations.sso.diagnostics_failed": {
-    "text": "Saved configuration needs attention. Fix the reported problems, save, then check again.",
-    "content_hash": "2c37a79a"
+    "text": "The saved configuration needs attention. Fix the issues below, then save and check again.",
+    "content_hash": "4ad9ee5b"
   },
   "web.organizations.sso.diagnostics_inconclusive": {
-    "text": "Some checks could not be completed. Review the results below before retrying.",
-    "content_hash": "b405a101"
+    "text": "Some checks could not be completed. Review the results below, then try again.",
+    "content_hash": "50ac1819"
   },
   "web.organizations.sso.diagnostics_next": {
-    "text": "Next: confirm sign-in with a real sign-in below.",
-    "content_hash": "c5bfd060"
+    "text": "Next, sign in through this domain to confirm the complete SSO flow.",
+    "content_hash": "e5d49daf"
   },
   "web.organizations.sso.diagnostics_saved_result": {
-    "text": "These results describe the saved settings, not your unsaved changes. Save and check again before confirming sign-in.",
-    "content_hash": "48c013ea"
+    "text": "These results apply to the saved settings, not your unsaved changes. Save and check again before testing sign-in.",
+    "content_hash": "29a63780"
   },
   "web.organizations.sso.confirm_sign_in": {
     "text": "Confirm sign-in",
     "content_hash": "f2e77970"
   },
   "web.organizations.sso.confirm_sign_in_hint": {
-    "text": "Open {domain} in a private window, sign in with SSO, then come back to this window. The result appears below.",
-    "content_hash": "28834c56"
+    "text": "In a private window, open {domain} and choose SSO to sign in. Return here to view the result.",
+    "content_hash": "2801179c"
   },
   "web.organizations.sso.confirm_sign_in_limits": {
-    "text": "Only a real sign-in confirms the redirect or callback, user assignment, access policies and claims work together.",
-    "content_hash": "97f6c49a"
+    "text": "Only a real sign-in verifies that the redirect or callback, user assignment, access policies, and claims work together.",
+    "content_hash": "c978b10c"
   },
   "web.organizations.sso.confirm_sign_in_not_permitted": {
     "text": "This domain’s sign-in settings do not offer Single Sign-On, so this step cannot work yet. Choose Single Sign-On on the domain’s Sign-In Configuration page first.",
@@ -1200,13 +1404,17 @@
     "text": "Check saved configuration",
     "content_hash": "5c68357a"
   },
+  "web.organizations.sso.diagnostics_placeholder": {
+    "text": "Run the check to see the results.",
+    "content_hash": "8b71cbfa"
+  },
   "web.organizations.sso.diagnostics_hint": {
-    "text": "Checks saved fields and provider discovery for this domain. A client secret check is not available for generic OIDC. This does not test a full sign-in.",
-    "content_hash": "8de1dd70"
+    "text": "Verifies the saved settings and provider discovery. A client secret check is not available for generic OIDC. It does not complete a user sign-in.",
+    "content_hash": "e7a4283d"
   },
   "web.organizations.sso.last_sign_in_none": {
-    "text": "No sign-in through this domain has been recorded yet.",
-    "content_hash": "7f9d0f23"
+    "text": "No SSO sign-in through this domain has been recorded yet.",
+    "content_hash": "cbf2fd10"
   },
   "web.organizations.sso.last_sign_in_refresh": {
     "text": "Refresh",
@@ -1256,16 +1464,16 @@
     "content_hash": "96ce6e12"
   },
   "web.organizations.sso.diagnostics_activation_hint": {
-    "text": "When the check passes, the SSO connection turns on. A failed or incomplete check leaves it off.",
-    "content_hash": "1b8dd872"
+    "text": "When this check passes, SSO is enabled. If it fails or is incomplete, SSO remains off.",
+    "content_hash": "533dc500"
   },
   "web.organizations.sso.diagnostics_activation_activated": {
-    "text": "The SSO connection is now on.",
-    "content_hash": "03688c15"
+    "text": "SSO is now enabled.",
+    "content_hash": "dec4e1a9"
   },
   "web.organizations.sso.diagnostics_activation_stays_off": {
-    "text": "SSO stays off until the saved configuration check passes.",
-    "content_hash": "0ac985c3"
+    "text": "SSO remains off until the saved configuration check passes.",
+    "content_hash": "ecb41edd"
   },
   "web.organizations.sso.diagnostics_activation_configuration_changed": {
     "text": "The configuration changed while the check ran, so SSO was not turned on. Run the check again.",
@@ -1277,9 +1485,9 @@
     "content_hash": "30c13798"
   },
   "web.organizations.sso.credentials_unchecked_warning": {
-    "text": "These credentials have not been checked. Saving keeps SSO on; run the check to confirm them.",
+    "text": "These credentials have not been checked. Saving keeps SSO enabled; run the saved configuration check to verify them.",
     "context": "Advisory warning on an SSO connection that is on, after its credentials were edited or saved without a passing saved-configuration check. Does not block saving.",
-    "content_hash": "6dd94dfc"
+    "content_hash": "140836ed"
   },
   "web.organizations.sso.diagnostics_running": {
     "text": "Checking...",

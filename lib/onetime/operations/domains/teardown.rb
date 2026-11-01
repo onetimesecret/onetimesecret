@@ -12,20 +12,35 @@ module Onetime
       # committed result before surfacing its lease_error.
       #
       # Accepted limitation for this refactor: local deletion can succeed while
-      # external resources remain, with no durable cleanup recovery record or
-      # automatic reconciliation. Even a nil lease_error does not confirm cleanup.
-      # This shares teardown sequencing and commitment-aware lease-loss handling;
-      # it does not guarantee provider cleanup or recoverable deletion.
+      # external resources remain, with no automatic retry or reconciliation.
+      # The result reports the sender cleanup outcome so callers can record
+      # it; vhost deletion failures are only logged. Even a nil lease_error
+      # does not confirm cleanup. This shares teardown sequencing and
+      # commitment-aware lease-loss handling; it does not guarantee provider
+      # cleanup or recoverable deletion.
       class Teardown
         class Busy < StandardError; end
 
         # Only returned after destroy! completes. Earlier failures propagate;
         # they do not imply that preceding provider calls had no side effects.
         # Commitment describes local destruction, not successful remote cleanup.
-        Result = Data.define(:removal_committed, :lease_error)
+        # sender_cleanup is :kept when keep_sender_identity skipped the remote
+        # deletion, otherwise the DeleteSenderDomain outcome (:deleted,
+        # :absent, :skipped, or :failed).
+        Result = Data.define(:removal_committed, :lease_error, :sender_cleanup)
 
-        def initialize(domain:)
-          @domain = domain
+        # @param domain [Onetime::CustomDomain]
+        # @param keep_vhost [Boolean] leave the provider vhost in place. The
+        #   vhost is keyed by the domain's name, not by the record, so a
+        #   caller removing one of several records that share a name passes
+        #   true to keep it for the record that stays
+        #   (Domains::CollisionResolution). The default deletes it.
+        # @param keep_sender_identity [Boolean] skip remote sender deletion only;
+        #   destroy! still removes the local domain and its mailer config.
+        def initialize(domain:, keep_vhost: false, keep_sender_identity: false)
+          @domain               = domain
+          @keep_vhost           = keep_vhost
+          @keep_sender_identity = keep_sender_identity
         end
 
         def call
@@ -38,11 +53,18 @@ module Onetime
 
           removal_committed = false
           lease_error       = nil
+          sender_cleanup    = :kept
           begin
             lease.protect do
-              delete_vhost
+              if @keep_vhost
+                OT.info "[Domains::Teardown] #{@domain.display_domain} vhost kept for the record that shares the name"
+              else
+                delete_vhost
+              end
               lease.check!
-              Onetime::Operations::DeleteSenderDomain.new(mailer_config: @domain.mailer_config).call
+              unless @keep_sender_identity
+                sender_cleanup = Onetime::Operations::DeleteSenderDomain.new(mailer_config: @domain.mailer_config).call.outcome
+              end
               lease.check!
               @domain.destroy!
               removal_committed = true
@@ -55,7 +77,7 @@ module Onetime
             lease_error = ex
           end
 
-          Result.new(removal_committed: removal_committed, lease_error: lease_error)
+          Result.new(removal_committed: removal_committed, lease_error: lease_error, sender_cleanup: sender_cleanup)
         end
 
         private

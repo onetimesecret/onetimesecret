@@ -4,7 +4,7 @@
 
   <!-- Open Graph meta tags -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="{{baseuri}}">
+  <meta property="og:url" content="{{page_url}}">
   <meta property="og:title" content="{{page_title}}">
   <meta property="og:description" content="{{description}}">
   <!-- Social card is OPT-IN (#4150): emitted only when a brand pack carries
@@ -17,8 +17,8 @@
 
   <!-- Twitter Card meta tags -->
   <meta name="twitter:card" content="{{twitter_card_type}}">
-  <meta property="twitter:domain" content="{{site_host}}">
-  <meta property="twitter:url" content="{{baseuri}}">
+  <meta property="twitter:domain" content="{{display_domain}}">
+  <meta property="twitter:url" content="{{page_url}}">
   <meta name="twitter:title" content="{{page_title}}">
   <meta name="twitter:description" content="{{description}}">
   {{#if brand_og_image_url}}

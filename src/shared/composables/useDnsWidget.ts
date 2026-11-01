@@ -87,13 +87,16 @@ export interface UseDnsWidgetOptions {
  * policy.
  *
  * Only the `nonce` IDL property of an already-nonced script is read. The shell
- * renders the Vite entry scripts with the per-request nonce; browsers then
+ * renders the Vite entry script with the per-request nonce; browsers then
  * empty the content attribute (nonce hiding) but keep the IDL property, which
- * only same-document script can read. A `<meta name="csp-nonce">` is not
- * consulted: no template emits one, and its content is readable by injected
- * markup (e.g. through CSS attribute selectors), so honouring one would hand
- * the nonce to the attacker the policy is meant to stop. The content
- * attribute is not read: after nonce hiding it is empty.
+ * only same-document script can read. The shell also emits
+ * `<meta property="csp-nonce" nonce="...">` for Vite's preload helper
+ * (apps/web/core/views/helpers/vite_manifest.rb). That tag uses the `nonce`
+ * attribute, not `content`, so nonce hiding empties it the same way and
+ * injected markup cannot read it through CSS attribute selectors either; a
+ * `content="..."` form would be readable and must never be introduced. This
+ * composable still does not consult the meta tag: the entry script is enough.
+ * The content attribute is not read: after nonce hiding it is empty.
  *
  * Returns undefined when no nonce is discoverable (e.g. CSP disabled), in
  * which case injection proceeds exactly as before.

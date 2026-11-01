@@ -29,10 +29,10 @@ OT.boot! :test
 @earlier = Onetime::Organization.create!("Earlier Owner #{@ts}", @owner, "adopt-earlier-#{@ts}@test.com")
 @adopter = Onetime::Organization.create!("Adopter #{@ts}", @owner, "adopt-adopter-#{@ts}@test.com")
 @client  = Familia.dbclient
-@index   = Onetime::CustomDomain.canonical_display_domain_index
+@index   = Onetime::CustomDomain.ascii_display_domain_index
 
 # A verified, resolving orphan from an earlier owner. Its verification is in
-# the legacy `verified` field only, it has no canonical-name entry, and it is
+# the legacy `verified` field only, it has no ASCII-name entry, and it is
 # in no organization.
 def verified_orphan(name, earlier_org)
   rec  = Onetime::CustomDomain.create!(name, earlier_org.objid)
@@ -49,7 +49,7 @@ def verified_orphan(name, earlier_org)
   })
   earlier_org.remove_domain(rec)
   Onetime::CustomDomain.owners.remove(rec.to_s)
-  @index.remove_field(Onetime::CustomDomain.canonical_display_domain(name))
+  @index.remove_field(Onetime::CustomDomain.ascii_display_domain(name))
   Onetime::CustomDomain.find_by_identifier(rec.identifier)
 end
 
@@ -92,8 +92,8 @@ end
 [@adopted.ownership_verified, @adopted.resolving, @adopted.txt_validation_value == @stored.txt_validation_value]
 #=> [false, false, true]
 
-## the record's name is entered into the canonical index for it
-@index.get(Onetime::CustomDomain.canonical_display_domain(@name)) == @orphan.identifier
+## the record's name is entered into the ASCII index for it
+@index.get(Onetime::CustomDomain.ascii_display_domain(@name)) == @orphan.identifier
 #=> true
 
 ## the record is in the organization and in the owners index
@@ -128,11 +128,11 @@ rescue Onetime::TemporarilyUnavailable => ex
 end
 #=> :concurrent_write
 
-## the discarded adoption leaves the orphan as it was, and keeps the canonical claim for the live record
+## the discarded adoption leaves the orphan as it was, and keeps the ASCII claim for the live record
 @stored3 = Onetime::CustomDomain.find_by_identifier(@orphan3.identifier)
 [@stored3.org_id.to_s, @stored3.ownership_verified, @stored3.txt_validation_value == @value3,
  @client.hexists(@stored3.dbkey, 'ownership_verified'),
- @index.get(Onetime::CustomDomain.canonical_display_domain(@name3)) == @orphan3.identifier]
+ @index.get(Onetime::CustomDomain.ascii_display_domain(@name3)) == @orphan3.identifier]
 #=> ['', true, true, false, true]
 
 # Teardown

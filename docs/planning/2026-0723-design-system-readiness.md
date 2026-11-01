@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-23
 **Counts last verified:** 2026-09-06 — every number in §2–§3 re-measured against the tree on
-that date. **Plan status: Wave 1 not started** (no `src/shared/components/base/BaseButton.vue`
+that date; re-measure before Wave 1 starts. **Plan status (verified 2026-10-22): Wave 1 not started** (no `src/shared/components/base/BaseButton.vue`
 or `BaseInput.vue`; no `--color-surface-*`/`--color-ink-*`/`--color-edge-*` tokens in
 `src/assets/style.css`; `pnpm-workspace.yaml` still has no `packages:` field). The raw-neutral
 surface has grown ~8% since the audit, so the case for Wave 1 is stronger, not weaker.

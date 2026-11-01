@@ -215,10 +215,6 @@
     "text": "Organizacija:",
     "source_hash": "5300e286"
   },
-  "web.admin.domains.actions.remove.reassertsSurvivor": {
-    "text": "Drug zapis zahteva isto ime domene in bo prevzel iskalni indeks.",
-    "source_hash": "902838f4"
-  },
   "web.admin.domains.actions.remove.confirmTitle": {
     "text": "Odstraniti domeno?",
     "source_hash": "716dfac9"

@@ -1,11 +1,11 @@
 {
   "web.admin.audit.title": {
-    "text": "Audit Log",
-    "content_hash": "47751f88"
+    "text": "Administration Log",
+    "content_hash": "a7fdb090"
   },
   "web.admin.audit.description": {
-    "text": "Every mutating admin action, newest first — who did what to whom, and how it went.",
-    "content_hash": "2326a1a0"
+    "text": "Review administrative actions and their outcomes.",
+    "content_hash": "79c569b3"
   },
   "web.admin.audit.columns.timestamp": {
     "text": "Timestamp",

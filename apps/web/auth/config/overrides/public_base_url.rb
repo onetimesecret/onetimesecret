@@ -104,6 +104,20 @@ module Auth::Config::Overrides
         Auth::PublicHost.required_credential_base_url!(request.env, account)
       end
 
+      # Rodauth's host for the application. Its default is request.host, a
+      # client-settable value, which is why Rodauth 2.47 warns at boot when
+      # it is left unconfigured (Rodauth 3 raises). Nothing among the enabled
+      # features reads it after this app's overrides: base_url above,
+      # email_from (config/email.rb), otp_issuer (features/mfa.rb),
+      # webauthn_rp_id and webauthn_origin (features/webauthn.rb). It is the
+      # recipient-bound host the credential emails are branded with, as a
+      # bare hostname (Rodauth's base_url adds the port itself); an internal
+      # request, which has no request host, gets the canonical host.
+      auth.domain do
+        host = public_display_domain
+        Onetime::Utils::DomainParser.extract_hostname(host) || host
+      end
+
       # rubocop:disable-next Lint/NestedMethodDefinition -- Rodauth's auth_class_eval pattern
       auth.auth_class_eval do
         # Brand credential emails with the same recipient-bound origin.
@@ -116,10 +130,11 @@ module Auth::Config::Overrides
     # Prepend the guard of every enabled feature in RECIPIENT_ORIGIN_GUARDS.
     #
     # Separate from .configure because it reads the features enabled SO FAR,
-    # and :email_auth and :verify_account (the latter also transitively via
-    # webauthn_verify_account) are enabled after .configure runs; config.rb
-    # calls this after every feature block. A prepended module runs before the
-    # class's own definitions whatever the include order, so these chain with
+    # and :email_auth is enabled after .configure runs (:verify_account,
+    # whichever flag brings it in, is enabled before it, by
+    # Features::AccountManagement); config.rb calls this after every feature
+    # block. A prepended module runs before the class's own definitions
+    # whatever the include order, so these chain with
     # LoginRequestEnumeration's class-level verify_account_email_resend
     # (guard first, then that override, then Rodauth) rather than replace it.
     def self.configure_recipient_origins(auth)

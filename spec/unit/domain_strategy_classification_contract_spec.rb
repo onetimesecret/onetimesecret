@@ -500,7 +500,7 @@ RSpec.describe 'DomainStrategy classification contract' do
       before do
         allow(index).to receive(:get).with('tenant.example.com').and_return('domain-1')
         allow(Onetime::CustomDomain).to receive(:find_by_identifier).with('domain-1')
-          .and_return(instance_double(Onetime::CustomDomain, identifier: 'domain-1', served_as_tenant?: true))
+          .and_return(instance_double(Onetime::CustomDomain, identifier: 'domain-1', display_domain: 'tenant.example.com', served_as_tenant?: true))
       end
 
       it 'answers for_env exactly as a healthy :custom request would' do
@@ -540,7 +540,7 @@ RSpec.describe 'DomainStrategy classification contract' do
       before do
         allow(index).to receive(:get).with('tenant.example.com').and_return('domain-1')
         allow(Onetime::CustomDomain).to receive(:find_by_identifier).with('domain-1')
-          .and_return(instance_double(Onetime::CustomDomain, identifier: 'domain-1', served_as_tenant?: false))
+          .and_return(instance_double(Onetime::CustomDomain, identifier: 'domain-1', display_domain: 'tenant.example.com', served_as_tenant?: false))
       end
 
       it 'answers nil to the descriptor consumers' do
@@ -580,18 +580,20 @@ RSpec.describe 'DomainStrategy classification contract' do
   # this finder.
   describe 'CustomDomain.from_display_domain host normalization' do
     let(:index) { instance_double(Familia::HashKey) }
+    # Stored under the indexed name, as record_for_display_domain requires.
+    let(:the_record) { instance_double(Onetime::CustomDomain, display_domain: 'tenant.example.com') }
 
     before do
       allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(index)
       allow(index).to receive(:get).and_return(nil)
       allow(index).to receive(:get).with('tenant.example.com').and_return('domain-1')
       allow(Onetime::CustomDomain).to receive(:find_by_identifier)
-        .with('domain-1').and_return(:the_record)
+        .with('domain-1').and_return(the_record)
     end
 
     ['tenant.example.com', 'Tenant.Example.com', 'TENANT.EXAMPLE.COM'].each do |host|
       it "resolves #{host.inspect} to the indexed record" do
-        expect(Onetime::CustomDomain.from_display_domain(host)).to be(:the_record)
+        expect(Onetime::CustomDomain.from_display_domain(host)).to be(the_record)
       end
     end
 

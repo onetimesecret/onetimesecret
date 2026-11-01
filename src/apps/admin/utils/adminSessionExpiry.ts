@@ -16,6 +16,16 @@ import { ref, type Ref } from 'vue';
  * (#4460): the shared refresh coordinator ignores the `admin_session` scope
  * and nothing here touches customer authentication state.
  *
+ * ## Two ways back
+ *
+ * 1. Re-enter the password (`useColonelElevation().reauthenticate`): POST
+ *    /api/colonel/reauthenticate is exempt from the admin bound, re-stamps
+ *    `authenticated_at` under a new session id, and the console reloads in
+ *    place. This is the banner's primary action.
+ * 2. {@link recoverAdminSession}: clear the session and sign in again. The
+ *    only way back for an account with no password (SSO-only), which the
+ *    re-authentication cannot verify.
+ *
  * ## Why a module-level ref and not a store
  *
  * Every admin request path — the paginated list fetch, the detail loader, every
@@ -59,7 +69,8 @@ export const adminSessionExpired: Ref<boolean> = ref(false);
 export const ADMIN_SIGN_IN_PATH = '/signin?redirect=/colonel';
 
 /**
- * Recover from an expired admin window (#4331).
+ * Recover from an expired admin window (#4331) by signing in again — the
+ * fallback to a password re-authentication (see "Two ways back" above).
  *
  * A bare link to {@link ADMIN_SIGN_IN_PATH} does NOT clear the window in simple
  * mode: while the shared `onetime.session` cookie still reads `authenticated`,
@@ -130,7 +141,7 @@ export function noteAdminSessionExpiry(error: unknown): boolean {
   return true;
 }
 
-/** Test seam, and the reset a future re-authentication flow would call. */
+/** Called once a password re-authentication renews the admin window; also a test seam. */
 export function clearAdminSessionExpired(): void {
   adminSessionExpired.value = false;
 }

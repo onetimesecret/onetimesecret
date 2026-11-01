@@ -1,6 +1,6 @@
 # .github/workflows/static-analysis.yml
 #
-# Shell-script static analysis and the shell test suite.
+# Static analysis and repository-tool package tests.
 #
 # WHY A SEPARATE WORKFLOW
 #
@@ -10,7 +10,7 @@
 # not covered by any lane — tests/lanes/ boots
 # datastores for Ruby, and ci.yml's tier structure reports per-tier timing
 # metrics that an unrelated lint job would distort. This lane is deliberately
-# outside both: no services, no matrix, ~30 seconds.
+# outside both: no backing services and no application lane timing.
 #
 # No path filter, for the same reason drift-guards.yml has none: the job costs
 # seconds, and a path filter would have to enumerate every directory that can
@@ -86,7 +86,6 @@ jobs:
       # can never be the reason the application bundle changes.
       - uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
         with:
-          ruby-version-file: '.ruby-version'
           bundler-cache: false
 
       - name: Install pinned bundler-audit
@@ -110,6 +109,32 @@ jobs:
       # assertions over .github/scripts/*.sh and the workflows that call them.
       - name: Run testsuite
         run: bash bin/testsuite run
+
+  logship-tests:
+    name: logship (Python ${{ matrix.python }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.14']
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install pinned uv
+        run: python -m pip install --disable-pip-version-check 'uv==0.9.7'
+
+      - name: Smoke-test the managed root command
+        run: bin/logship --help
+
+      - name: Test destination adapters and shipping lifecycle
+        run: bin/testsuite logship -q
 
   lint:
     name: shellcheck + actionlint

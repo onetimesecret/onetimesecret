@@ -96,6 +96,71 @@ RSpec.describe Onetime::SsoProvider::DiscoveryFetcher do
       end
     end
 
+    # The request line and headers, as handed to Net::HTTP#request.
+    context 'with the request it sends' do
+      let(:sent) { [] }
+
+      before do
+        response = http_response(Net::HTTPOK, '200', 'OK', chunks: ['{}'])
+        allow(http_instance).to receive(:request) do |request, &blk|
+          sent << request
+          blk&.call(response)
+          response
+        end
+      end
+
+      it 'asks for JSON by default (the discovery callers)' do
+        fetcher.fetch(url)
+
+        expect(fetcher.accept).to eq('application/json')
+        expect(sent.first['Accept']).to eq('application/json')
+        expect(sent.first['User-Agent']).to eq('OneTimeSecret-SSO-Discovery/1.0')
+      end
+
+      it 'sends a configured Accept header (SAML IdP metadata)' do
+        accept = 'application/samlmetadata+xml, application/xml, text/xml'
+
+        described_class.new(accept: accept).fetch(url)
+
+        expect(sent.first['Accept']).to eq(accept)
+      end
+
+      # Entra's App Federation Metadata Url carries ?appid=...; the request
+      # line must be the URL's path and query exactly as given.
+      it 'forwards the path and query unchanged, with no normalization' do
+        metadata_url = 'https://login.microsoftonline.com/Contoso.onmicrosoft.com/FederationMetadata/2007-06/' \
+                       'FederationMetadata.xml?appid=00000000-1111-2222-3333-444444444444&x=%2F..%2F&y=a+b'
+
+        result = fetcher.fetch(metadata_url)
+
+        expect(result).to be_ok
+        expect(sent.first.path).to eq(
+          '/Contoso.onmicrosoft.com/FederationMetadata/2007-06/FederationMetadata.xml' \
+          '?appid=00000000-1111-2222-3333-444444444444&x=%2F..%2F&y=a+b',
+        )
+        expect(Net::HTTP).to have_received(:new).with('login.microsoftonline.com', 443, nil)
+      end
+
+      it 'does not resolve dot segments in the path' do
+        fetcher.fetch('https://idp.example.com/a/../metadata.xml')
+
+        expect(sent.first.path).to eq('/a/../metadata.xml')
+      end
+
+      # The parser is the gate for a metadata document, not the media type.
+      it 'returns the body whatever Content-Type the server declares' do
+        response = http_response(Net::HTTPOK, '200', 'OK', chunks: ['<md/>'],
+          headers: { 'Content-Type' => 'application/octet-stream' })
+        respond_with(response)
+
+        result = described_class.new(accept: 'application/xml').fetch(url)
+
+        expect(result).to be_ok
+        expect(result.body).to eq('<md/>')
+        expect(result.content_type).to eq('application/octet-stream')
+      end
+    end
+
     context 'with the body size cap' do
       subject(:fetcher) { described_class.new(max_bytes: 16) }
 

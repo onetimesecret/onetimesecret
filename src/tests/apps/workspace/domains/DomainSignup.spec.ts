@@ -26,6 +26,7 @@ vi.mock('vue-router', () => ({
     push: mockRouterPush,
   }),
   onBeforeRouteLeave: vi.fn(),
+  onBeforeRouteUpdate: vi.fn(),
   RouterLink: {
     name: 'RouterLink',
     template: '<a :href="to"><slot /></a>',
@@ -168,6 +169,7 @@ vi.mock('pinia', async (importOriginal) => {
 vi.mock('@/types/organization', () => ({
   ENTITLEMENTS: {
     CUSTOM_SIGNUP_VALIDATION: 'custom_signup_validation',
+    BASE_DOMAIN_SIGNUP: 'base_domain_signup',
   },
 }));
 

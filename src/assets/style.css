@@ -179,9 +179,7 @@
   /* Zilla Slab font faces */
   @font-face {
     font-family: 'Zilla Slab';
-    src:
-      url('./fonts/zs/ZillaSlab-Regular.woff2') format('woff2'),
-      url('./fonts/zs/ZillaSlab-Regular.woff') format('woff');
+    src: url('./fonts/zs/ZillaSlab-Regular.woff2') format('woff2');
     font-weight: 400;
     font-style: normal;
     font-display: fallback;
@@ -189,9 +187,7 @@
 
   @font-face {
     font-family: 'Zilla Slab';
-    src:
-      url('./fonts/zs/ZillaSlab-Bold.woff2') format('woff2'),
-      url('./fonts/zs/ZillaSlab-Bold.woff') format('woff');
+    src: url('./fonts/zs/ZillaSlab-Bold.woff2') format('woff2');
     font-weight: 700;
     font-style: normal;
     font-display: fallback;
@@ -199,9 +195,7 @@
 
   @font-face {
     font-family: 'Zilla Slab';
-    src:
-      url('./fonts/zs/ZillaSlab-Italic.woff2') format('woff2'),
-      url('./fonts/zs/ZillaSlab-Italic.woff') format('woff');
+    src: url('./fonts/zs/ZillaSlab-Italic.woff2') format('woff2');
     font-weight: 400;
     font-style: italic;
     font-display: fallback;
@@ -209,9 +203,7 @@
 
   @font-face {
     font-family: 'Zilla Slab';
-    src:
-      url('./fonts/zs/ZillaSlab-BoldItalic.woff2') format('woff2'),
-      url('./fonts/zs/ZillaSlab-BoldItalic.woff') format('woff');
+    src: url('./fonts/zs/ZillaSlab-BoldItalic.woff2') format('woff2');
     font-weight: 700;
     font-style: italic;
     font-display: fallback;

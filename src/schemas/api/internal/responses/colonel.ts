@@ -872,6 +872,29 @@ export const colonelUserPurgeDetailsSchema = colonelUserMutationDetailsSchema.ex
   colonelUserPurgeLifecycleFields
 );
 
+/** An organization reference in the default-organization ack. Public ids only. */
+export const colonelOrganizationRefSchema = z.object({
+  extid: z.string(),
+  display_name: z.string().nullable(),
+});
+
+/**
+ * Default-organization ack
+ * (`POST /api/colonel/users/:user_id/default-organization`): the customer's
+ * public id plus the organization that is now their default. The server
+ * refuses (4xx) an organization the customer is not an active member of, so a
+ * 2xx always names one of their own organizations.
+ */
+export const colonelUserDefaultOrganizationRecordSchema = z.object({
+  extid: z.string(),
+  default_organization: colonelOrganizationRefSchema,
+});
+
+/** `previous_default_organization` is null when the customer had no default. */
+export const colonelUserDefaultOrganizationDetailsSchema = z.object({
+  previous_default_organization: colonelOrganizationRefSchema.nullable(),
+});
+
 /**
  * Checkout-link ack record (POST /api/colonel/users/:user_id/checkout-link).
  *
@@ -1045,6 +1068,12 @@ export const colonelUserPurgeResponseSchema = createApiResponseSchema(
   colonelUserPurgeRecordSchema,
   colonelUserPurgeDetailsSchema
 );
+
+// POST /api/colonel/users/:user_id/default-organization
+export const colonelUserDefaultOrganizationResponseSchema = createApiResponseSchema(
+  colonelUserDefaultOrganizationRecordSchema,
+  colonelUserDefaultOrganizationDetailsSchema
+);
 export const colonelCheckoutLinkResponseSchema = createApiResponseSchema(
   colonelCheckoutLinkRecordSchema,
   colonelCheckoutLinkDetailsSchema
@@ -1068,6 +1097,9 @@ export type SystemSettingsResponse = z.infer<typeof systemSettingsResponseSchema
 export type ColonelUserDetailResponse = z.infer<typeof colonelUserDetailResponseSchema>;
 export type ColonelUserMutationResponse = z.infer<typeof colonelUserMutationResponseSchema>;
 export type ColonelUserPurgeResponse = z.infer<typeof colonelUserPurgeResponseSchema>;
+export type ColonelUserDefaultOrganizationResponse = z.infer<
+  typeof colonelUserDefaultOrganizationResponseSchema
+>;
 export type ColonelUserPurgeLifecycleResult = z.infer<typeof colonelUserPurgeLifecycleResultSchema>;
 export type ColonelUserPurgeLifecycleItem = z.infer<typeof colonelUserPurgeLifecycleItemSchema>;
 export type ColonelCheckoutLinkRecord = z.infer<typeof colonelCheckoutLinkRecordSchema>;

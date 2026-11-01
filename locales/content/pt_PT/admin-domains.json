@@ -215,10 +215,6 @@
     "text": "Organização:",
     "source_hash": "5300e286"
   },
-  "web.admin.domains.actions.remove.reassertsSurvivor": {
-    "text": "Outro registo reivindica o mesmo nome de domínio e assumirá o índice de pesquisa.",
-    "source_hash": "902838f4"
-  },
   "web.admin.domains.actions.remove.confirmTitle": {
     "text": "Remover domínio?",
     "source_hash": "716dfac9"

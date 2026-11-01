@@ -296,6 +296,7 @@ module Onetime::CustomDomain::ConfigRegistry
         autoverify: config.autoverify?,
         validation_strategy: config.validation_strategy,
         allowed_signup_domains: config.allowed_signup_domains,
+        allow_base_domain: config.allow_base_domain?,
         created: epoch_or_nil(config.created),
         updated: epoch_or_nil(config.updated),
       }
@@ -309,6 +310,8 @@ module Onetime::CustomDomain::ConfigRegistry
         enabled: config.enabled?,
         secrets_mode: config.secrets_mode_value,
         disabled_homepage_variant: config.disabled_homepage_variant_value,
+        allowed_cidrs: config.allowed_cidrs,
+        denied_cidrs: config.denied_cidrs,
         created: epoch_or_nil(config.created),
         updated: epoch_or_nil(config.updated),
       }

@@ -7,9 +7,11 @@
 #
 # Usage:
 #   bin/ots org entitlement show  ORG
-#   bin/ots org entitlement grant ORG ENTITLEMENT --yes
-#   bin/ots org entitlement revoke ORG ENTITLEMENT --yes
-#   bin/ots org entitlement clear ORG --yes
+#   bin/ots org entitlement grant ORG ENTITLEMENT --apply
+#   bin/ots org entitlement revoke ORG ENTITLEMENT --apply
+#   bin/ots org entitlement clear ORG --apply
+#
+# grant, revoke and clear are dry runs unless --apply (-y/--yes/-f) is given.
 #
 # The mutation + the admin audit event are performed by the shared
 # Onetime::Operations::Org::EntitlementOverride op (the single implementation;
@@ -28,26 +30,19 @@ module Onetime
   module CLI
     module Org
       # Behaviour common to `org entitlement grant|revoke|clear`. Kept in one
-      # place so the three verbs cannot drift on confirmation, advisories,
-      # rendering or exit codes — they differ ONLY in their arguments and their
-      # prompt wording.
+      # place so the three verbs cannot drift on advisories, rendering or exit
+      # codes — they differ ONLY in their arguments (and each calls the write
+      # gate first in its own `call`).
       module EntitlementSupport
         # Run the shared op and render it. May `exit`.
         #
         # @param organization [Onetime::Organization] already resolved
         # @param action [String] 'grant' | 'revoke' | 'clear'
         # @param entitlement [String, nil] nil for clear
-        def execute_override(organization, action:, entitlement: nil, yes: false, dry_run: false, json: false)
+        # @param dry_run [Boolean] the gate's answer: each verb calls
+        #   WriteGate#dry_run_unless_applied first in `call`, before resolving
+        def execute_override(organization, action:, dry_run:, entitlement: nil, json: false)
           warn_advisories(organization, action: action, entitlement: entitlement)
-
-          return unless confirm_override!(
-            organization,
-            action: action,
-            entitlement: entitlement,
-            yes: yes,
-            dry_run: dry_run,
-            json: json,
-          )
 
           result = Onetime::Operations::Org::EntitlementOverride.new(
             org: organization,
@@ -66,9 +61,8 @@ module Onetime
         end
 
         # Advisories go to STDERR, never stdout: `--json` must stay a pure,
-        # parseable channel, and a terminal shows both. They are printed BEFORE
-        # the confirmation prompt so an operator sees them while they can still
-        # answer 'n'.
+        # parseable channel, and a terminal shows both. The default dry run
+        # prints them too, so an operator reads them before choosing --apply.
         def warn_advisories(organization, action:, entitlement:)
           warn_standalone(organization)
           return if action == 'clear'
@@ -111,35 +105,6 @@ module Onetime
           warn "WARNING: #{message}"
         end
 
-        # @return [Boolean] true to proceed
-        def confirm_override!(organization, action:, entitlement:, yes:, dry_run:, json:)
-          return true if dry_run || yes
-
-          # Never mutate production entitlement state from a scripted invocation
-          # that did not say so.
-          if json
-            error_exit(
-              "Refusing to #{action} entitlement overrides without --yes in --json mode",
-              json: true,
-            )
-          end
-
-          print "#{confirm_prompt(organization, action, entitlement)} [y/N] "
-          response = $stdin.gets&.strip&.downcase
-          return true if response == 'y'
-
-          puts 'Aborted.'
-          false
-        end
-
-        def confirm_prompt(organization, action, entitlement)
-          case action
-          when 'grant'  then "Grant '#{entitlement}' to #{org_label(organization)}?"
-          when 'revoke' then "Revoke '#{entitlement}' from #{org_label(organization)}?"
-          else "Clear ALL entitlement overrides (every grant AND revoke) on #{org_label(organization)}?"
-          end
-        end
-
         def override_text(result)
           case result.status
           when :invalid_action
@@ -148,7 +113,7 @@ module Onetime
             error_exit('Entitlement is required for grant/revoke', json: false)
           end
 
-          puts 'DRY RUN — nothing was written' if result.dry_run
+          dry_run_header if result.dry_run
           puts "Organization: #{result.org_id}"
           puts "Action:       #{result.action}"
           puts "Entitlement:  #{result.entitlement || '(all overrides)'}"
@@ -158,6 +123,7 @@ module Onetime
           print_set('Revokes', result.revokes)
           print_set(result.dry_run ? 'Effective (projected)' : 'Effective', result.effective)
           print_cascade(result)
+          dry_run_footer(result.action) if result.status == :planned
 
           exit 1 unless override_ok?(result)
         end
@@ -174,12 +140,12 @@ module Onetime
           if m[:cascade_error]
             puts "Members rematerialized: NONE — the cascade raised (#{m[:cascade_error]})"
             puts '  Every member is still on their previous entitlements.'
-            puts "  Retry the cascade with: bin/ots org reconcile #{result.org_id} --yes"
+            puts "  Retry the cascade with: bin/ots organizations reconcile #{result.org_id} --apply"
           else
             puts "Members rematerialized: #{m[:success]}/#{m[:total]} (failed: #{m[:failed]})"
             if m[:failed].to_i.positive?
               puts "  FAILED (still on their previous entitlements): #{Array(m[:failed_ids]).join(', ')}"
-              puts "  Retry the cascade with: bin/ots org reconcile #{result.org_id} --yes"
+              puts "  Retry the cascade with: bin/ots organizations reconcile #{result.org_id} --apply"
             end
           end
           puts
@@ -231,15 +197,19 @@ module Onetime
       # One line per verb. `show` first: it is the read that makes the writes
       # legible, and an operator reaching this usage list is usually looking.
       USAGE_LINES = [
-        '  bin/ots org entitlement show ORG            # Plan / grants / revokes / drift',
-        '  bin/ots org entitlement grant ORG ENT       # Add an override grant',
-        '  bin/ots org entitlement revoke ORG ENT      # Add an override revoke',
-        '  bin/ots org entitlement clear ORG           # Wipe ALL overrides on the org',
+        '  bin/ots organizations entitlement show ORG            # Plan / grants / revokes / drift',
+        '  bin/ots organizations entitlement grant ORG ENT       # Add an override grant',
+        '  bin/ots organizations entitlement revoke ORG ENT      # Add an override revoke',
+        '  bin/ots organizations entitlement clear ORG           # Wipe ALL overrides on the org',
       ].freeze
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         puts 'Usage:'
         USAGE_LINES.each { |line| puts line }
+        puts
+        puts 'grant, revoke and clear are dry runs unless --apply (-y/--yes) is given.'
         puts
         puts 'Overrides survive plan changes and reconciles:'
         puts '  effective = plan_entitlements + grants - revokes'
@@ -248,6 +218,6 @@ module Onetime
       end
     end
 
-    register 'org entitlement', OrgEntitlementCommand
+    register 'organizations entitlement', OrgEntitlementCommand
   end
 end

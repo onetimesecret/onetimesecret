@@ -15,7 +15,7 @@ module Onetime
       # the unarchive verb, and the repair tool for #4717.
       #
       # Adapters:
-      #   - `bin/ots org unarchive ORG [--run]`
+      #   - `bin/ots org unarchive ORG [--apply]`
       #
       # ## Why this exists
       #

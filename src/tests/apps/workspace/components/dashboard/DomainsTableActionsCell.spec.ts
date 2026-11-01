@@ -211,7 +211,7 @@ describe('DomainsTableActionsCell', () => {
       expect(texts).toContain('Configure SSO');
     });
 
-    it('links "Configure SSO" to DomainSignin route with correct params', () => {
+    it('links "Configure SSO" to the DomainSigninSso route with correct params', () => {
       const wrapper = mountComponent({ canManageSso: true });
 
       const links = wrapper.findAll('a[data-to]');
@@ -220,9 +220,8 @@ describe('DomainsTableActionsCell', () => {
       expect(ssoLink).toBeDefined();
       const to = JSON.parse(ssoLink!.attributes('data-to')!);
       expect(to).toEqual({
-        name: 'DomainSignin',
+        name: 'DomainSigninSso',
         params: { orgid: 'org_ext_123', extid: 'dm-test-extid' },
-        query: { modal: 'sso' },
       });
     });
   });

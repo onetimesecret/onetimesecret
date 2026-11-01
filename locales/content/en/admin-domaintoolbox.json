@@ -4,8 +4,8 @@
     "content_hash": "5a9333db"
   },
   "web.admin.domaintoolbox.description": {
-    "text": "Diagnose and repair custom-domain relationships: scan orphans, probe DNS/SSL, repair ownership, and transfer between organizations.",
-    "content_hash": "778537aa"
+    "text": "Troubleshoot domain setup and resolve ownership issues.",
+    "content_hash": "70d61afb"
   },
   "web.admin.domaintoolbox.retry": {
     "text": "Retry",

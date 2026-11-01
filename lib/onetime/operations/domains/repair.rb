@@ -194,7 +194,7 @@ module Onetime
               # The same adoption as create!(adopt_orphan: true): one claim
               # writes org_id, the organization's domains collection, the
               # `owners` index (which Organization#unlisted_owned_domains
-              # reads as the org-deletion drift guard) and the canonical-name
+              # reads as the org-deletion drift guard) and the ASCII-name
               # entry, and resets the earlier owner's verification.
               Onetime::CustomDomain.claim_orphaned_domain(@domain, org.org_id)
               @adoption = AdoptionReport.for(@domain).tap { |report| report.log('Domains::Repair') }

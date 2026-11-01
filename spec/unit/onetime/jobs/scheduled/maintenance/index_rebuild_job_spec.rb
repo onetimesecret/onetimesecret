@@ -103,7 +103,7 @@ RSpec.describe Onetime::Jobs::Scheduled::Maintenance::IndexRebuildJob do
     end
     # destroy! releases the domain's other claim; this covers a failed destroy.
     touched_fields['domain_display'].each do |name|
-      Onetime::CustomDomain.canonical_display_domain_index.remove_field(Onetime::CustomDomain.canonical_display_domain(name))
+      Onetime::CustomDomain.ascii_display_domain_index.remove_field(Onetime::CustomDomain.ascii_display_domain(name))
     end
   end
 

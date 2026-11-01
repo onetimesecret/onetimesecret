@@ -31,12 +31,12 @@ module Onetime::CustomDomain::Features
       nil
     end
 
-    # display_domain in A-label form (CustomDomain.canonical_display_domain):
+    # display_domain in A-label form (CustomDomain.ascii_display_domain):
     # the name the address record (CNAME, A or ALIAS) is created under in
     # DNS. display_domain keeps the spelling the customer typed. nil when
     # the name has no A-label form, so a dump never raises over it.
     def self.display_domain_ascii(obj)
-      Onetime::CustomDomain.canonical_display_domain(obj.display_domain)
+      Onetime::CustomDomain.ascii_display_domain(obj.display_domain)
     rescue Onetime::DomainValidation::AsciiHostname::ConversionError
       nil
     end
@@ -167,6 +167,10 @@ module Onetime::CustomDomain::Features
             secrets_mode: config.secrets_mode_value,
             signup_enabled: config.signup_enabled?,
             signin_enabled: config.signin_enabled?,
+            # Stored network rules, so the workspace editor renders the
+            # operator's current lists (empty = no restriction).
+            allowed_cidrs: config.allowed_cidrs,
+            denied_cidrs: config.denied_cidrs,
             created_at: config.created&.to_i,
             updated_at: config.updated&.to_i,
           }

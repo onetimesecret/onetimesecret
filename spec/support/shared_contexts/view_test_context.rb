@@ -112,6 +112,7 @@ RSpec.shared_context 'view_test_context' do
 
     request = instance_double('Rack::Request')
     allow(request).to receive(:env).and_return(env)
+    allow(request).to receive(:path).and_return('/')
     allow(request).to receive(:nil?).and_return(false)
     allow(request).to receive(:session).and_return(session)
     request
@@ -147,5 +148,9 @@ RSpec.shared_context 'view_test_context' do
     allow(I18n).to receive(:default_locale).and_return(:en)
     allow(I18n).to receive(:t).with('web.COMMON.description', anything).and_return('Test Description')
     allow(I18n).to receive(:t).with('web.COMMON.keywords', anything).and_return('test,keywords')
+    allow(I18n).to receive(:t).with('web.COMMON.secret_og_title', anything).and_return('Test OG Title')
+    allow(I18n).to receive(:t).with('web.COMMON.secret_og_description', anything).and_return('Test OG Description')
+    allow(I18n).to receive(:t).with('web.COMMON.receipt_og_title', anything).and_return('Test Receipt OG Title')
+    allow(I18n).to receive(:t).with('web.COMMON.receipt_og_description', anything).and_return('Test Receipt OG Description')
   end
 end

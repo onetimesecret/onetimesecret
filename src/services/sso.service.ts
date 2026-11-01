@@ -9,15 +9,18 @@
 
 import { createApi } from '@/api';
 import type {
+  FetchIdpMetadataRequest,
   PatchSsoConfigRequest,
   PutSsoConfigRequest,
 } from '@/schemas/api/domains/requests/sso-config';
 import {
   deleteSsoConfigResponseSchema,
+  fetchIdpMetadataResponseSchema,
   getSsoConfigResponseSchema,
   patchSsoConfigResponseSchema,
   putSsoConfigResponseSchema,
   type DeleteSsoConfigResponse,
+  type FetchIdpMetadataResponse,
 } from '@/schemas/api/domains/responses/sso-config';
 import type {
   CustomDomainSsoConfig,
@@ -410,6 +413,31 @@ export const SsoService = {
   ): Promise<TestSsoConnectionResponse> {
     const response = await $api.post(`/api/domains/${domainExtId}/sso/test`, payload);
     return response.data;
+  },
+
+  /**
+   * Fetch and parse a SAML IdP metadata document for a domain
+   *
+   * The API fetches `metadata_url` and reports what it found: EntityID,
+   * HTTP-Redirect SSO URL, signing certificates, advertised NameID formats
+   * and record-level problems. Nothing is stored; the result is a preview the
+   * admin applies to the form and saves through the normal PUT/PATCH path.
+   * A fetch or parse failure is a 200 with `success: false`; guard failures
+   * (ownership, SAML off, blank URL, rate limit) reject like any API error.
+   *
+   * @param domainExtId - Domain external ID
+   * @param request - The metadata URL to fetch
+   * @returns The parsed preview or the failure envelope
+   * @throws ZodError if the response matches neither shape
+   */
+  async fetchIdpMetadataForDomain(
+    domainExtId: string,
+    request: FetchIdpMetadataRequest
+  ): Promise<FetchIdpMetadataResponse> {
+    const response = await $api.post(`/api/domains/${domainExtId}/sso/metadata`, {
+      metadata_url: request.metadata_url,
+    });
+    return strictParse(fetchIdpMetadataResponseSchema, response.data);
   },
 
   /**

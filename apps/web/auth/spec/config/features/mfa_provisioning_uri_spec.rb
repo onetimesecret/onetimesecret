@@ -60,7 +60,7 @@ RSpec.describe 'MFA otp-setup provisioning_uri (issue #3431)' do
     Class.new(Roda) do
       plugin :sessions, secret: SecureRandom.hex(64)
       plugin :json
-      plugin :json_parser
+      plugin :json_parser, content_type_regexp: %r{\Aapplication/json\b}i
       plugin :halt
 
       plugin :rodauth do

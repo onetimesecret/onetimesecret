@@ -23,12 +23,14 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useDomain } from '@/shared/composables/useDomain';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useSignupConfig } from '@/shared/composables/useSignupConfig';
+import { useUnsavedRouteGuard } from '@/shared/composables/useUnsavedRouteGuard';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
+import { isOrgsBaseDomainSignupEnabled } from '@/utils/features';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter, onBeforeRouteLeave, RouterLink } from 'vue-router';
+import { useRouter, RouterLink } from 'vue-router';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -60,6 +62,10 @@ const organization = computed(() =>
 );
 const { can } = useEntitlements(organization);
 const canCustomSignup = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNUP_VALIDATION));
+// allow_base_domain: offered when the install enables it, usable with the
+// entitlement (the server applies both again on save and at sign-up).
+const baseDomainSignupEnabled = isOrgsBaseDomainSignupEnabled();
+const canBaseDomainSignup = computed(() => can(ENTITLEMENTS.BASE_DOMAIN_SIGNUP));
 const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
 
 // ---------------------------------------------------------------------------
@@ -102,15 +108,7 @@ const handleBack = () => {
 };
 
 // Unsaved changes guard
-onBeforeRouteLeave((_to, _from, next) => {
-  if (hasUnsavedChanges.value) {
-    const answer = window.confirm(t('web.branding.you_have_unsaved_changes_are_you_sure'));
-    if (answer) next();
-    else next(false);
-  } else {
-    next();
-  }
-});
+useUnsavedRouteGuard(hasUnsavedChanges);
 
 // ---------------------------------------------------------------------------
 // Lifecycle
@@ -226,6 +224,9 @@ watch(canCustomSignup, async (entitled) => {
 
           <DomainSignupConfigForm
             :domain-ext-id="props.extid"
+            :base-domain="customDomainRecord?.base_domain ?? null"
+            :base-domain-signup-enabled="baseDomainSignupEnabled"
+            :can-base-domain-signup="canBaseDomainSignup"
             v-model:form-state="formState"
             :signup-config="signupConfig"
             :is-loading="signupLoading"

@@ -74,8 +74,8 @@
     ssoConfigured: boolean;
     /**
      * A saved SSO record exists but is still off (SsoConfig.enabled false):
-     * created off, it turns on only when the dialog's saved-configuration
-     * check passes, so the dialog's remaining step is that check. Like
+     * created off, it turns on only when the page's saved-configuration
+     * check passes, so the page's remaining step is that check. Like
      * ssoConfigured, a label convenience for the Configure button ("Finish
      * setup"), never an availability source — the status line below renders
      * the server's verdict. Absent ⇒ false ⇒ no claim.
@@ -281,14 +281,14 @@
    * Both gates the backend enforces on every tenant-SSO write
    * (DomainsAPI::Logic::SsoConfig::Base — `manage_sso` entitlement AND the
    * `features.organizations.sso_enabled` flag). Offering "Configure" without
-   * both would open a modal whose save is rejected. Mode B gets this for free
+   * both would open a page whose save is rejected. Mode B gets this for free
    * (the SSO row is omitted when unavailable); Mode A's static row needs it.
    */
   const ssoConfigurable = computed(() => ssoAvailable.value && props.canManageSso);
 
   /**
-   * Label of the button that opens the SSO dialog, in both modes. A saved
-   * record that is still off has not passed its check yet, so the dialog's
+   * Label of the button that opens the SSO page, in both modes. A saved
+   * record that is still off has not passed its check yet, so the page's
    * remaining step is the check: "Finish setup" rather than "Edit
    * credentials".
    */
@@ -316,7 +316,7 @@
       hint: 'web.domains.sso.status_not_configured_hint',
     },
     // A saved record that is still off: created off, it turns on only when
-    // the dialog's saved-configuration check passes ("Finish setup").
+    // the page's saved-configuration check passes ("Finish setup").
     sso_config_disabled: {
       badge: 'web.domains.sso.connection_disabled_badge',
       hint: 'web.domains.sso.connection_disabled_hint',

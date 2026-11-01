@@ -186,9 +186,11 @@ module Onetime
       # never a dev/prod datastore. This lives here — not only in the
       # configure_familia initializer — because tryouts that boot with
       # connect_to_db=false SKIP that initializer (see the skip-list below),
-      # which also leaves Familia.uri at its 127.0.0.1:6379 default (= dev). A
-      # bare `Familia.dbclient.flushdb` in such a tryout would then truncate the
-      # dev database with no guard ever running.
+      # which also leaves Familia.uri as boot found it: the 127.0.0.1:6379
+      # default (= dev) unless a test helper set it first
+      # (try/support/test_helpers.rb does). A bare `Familia.dbclient.flushdb`
+      # in such a tryout would then truncate the dev database with no guard
+      # ever running.
       #
       # Keyed on OT.mode (set from the boot! arg above) so it fires for every
       # `OT.boot!(:test, ...)` even when RACK_ENV isn't 'test' — e.g. running a

@@ -1,21 +1,24 @@
 # .github/workflows/e2e.yml
 ---
 # ==============================================================================
-# Container E2E — the production OCI image, one blocking lane per auth mode
+# Container E2E — the production OCI image, one blocking lane per suite
 # ==============================================================================
 # Builds the production image (docker/bake.hcl target `main`), boots it with
 # RACK_ENV=production next to a Valkey container, and runs Playwright against
 # it. Each lane is a matrix job with its own runner, image build, Valkey
 # container and (full lane) SQLite authdb, so nothing one lane writes can leak
-# into the other.
+# into another.
 #
 #   lane    AUTHENTICATION_MODE   suite       what it covers
 #   simple  simple (the default)  e2e/all/    credential-free, curated journeys
 #   full    full                  e2e/full/   the signed-in workspace, set up by
 #                                             e2e/global.setup.ts (signup +
 #                                             signin of an ephemeral account)
+#   i18n    simple                e2e/i18n/   locale loading, with
+#                                             I18N_ENABLED=true (off in the
+#                                             other lanes, as it is by default)
 #
-# Both lanes are blocking and both run the flaky gate. e2e/full/ runs in full
+# Every lane is blocking and runs the flaky gate. e2e/full/ runs in full
 # auth mode because that is the mode it asserts: e.g. the Security settings
 # section (src/apps/workspace/config/settings-navigation.ts) is visible only
 # when isFullAuthMode, so e2e/full/settings-layout.spec.ts cannot pass against
@@ -39,8 +42,7 @@
 # on any other branch): when the lanes ran, it fails unless every lane passed
 # (a cancelled run included), and it fails whenever change detection itself
 # did not succeed. Its name does not change when a lane is added (the matrix
-# check names, "container-e2e-tests (simple)" and "container-e2e-tests
-# (full)", do).
+# check names, "container-e2e-tests (<lane>)" for simple, full and i18n, do).
 # ==============================================================================
 name: Container E2E Tests
 
@@ -178,14 +180,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # `lane` doubles as the AUTHENTICATION_MODE value.
+          # `lane` names the check and the artifacts; `auth_mode` is the
+          # server's AUTHENTICATION_MODE.
           - lane: simple
+            auth_mode: simple
             suite: e2e/all/
           - lane: full
+            auth_mode: full
             suite: e2e/full/
+          - lane: i18n
+            auth_mode: simple
+            suite: e2e/i18n/
 
     env:
       LANE: ${{ matrix.lane }}
+      AUTH_MODE: ${{ matrix.auth_mode }}
       SUITE: ${{ matrix.suite }}
       OCI_IMAGE_NAME: onetimesecret-e2e-test
       CONTAINER_NAME: onetimesecret-e2e
@@ -255,9 +264,9 @@ jobs:
           # shellcheck disable=SC2016
           timeout 60 bash -c 'until docker exec "$REDIS_CONTAINER_NAME" redis-cli ping; do sleep 2; done'
 
-      - name: Start OneTime Secret application (${{ matrix.lane }} auth mode)
+      - name: Start OneTime Secret application (${{ matrix.lane }} lane, ${{ matrix.auth_mode }} auth mode)
         run: |
-          echo "🚀 Starting OneTime Secret application in $LANE auth mode..."
+          echo "🚀 Starting OneTime Secret application for the $LANE lane in $AUTH_MODE auth mode..."
 
           # Ephemeral secrets live only for this container. They are passed as
           # bare `-e NAME` (value read from this shell's environment) so they
@@ -266,7 +275,7 @@ jobs:
           echo "::add-mask::$SECRET"
           export SECRET
 
-          # Settings shared by both lanes:
+          # Settings shared by every lane:
           #
           # BRAND_PRIMARY_COLOR pins a deterministic brand color so the
           # container is "branded" and head-base.rue renders the
@@ -301,9 +310,9 @@ jobs:
           # no SMTP/Mailpit sidecar here and the suite never reads real emails
           # (invite tokens come from the API), so logging delivery is correct.
           #
-          # AUTHENTICATION_MODE is stated for both lanes, although 'simple' is
-          # the default (etc/defaults/auth.defaults.yaml), so the simple lane
-          # keeps testing simple mode even if that default changes.
+          # AUTHENTICATION_MODE is stated for every lane, although 'simple' is
+          # the default (etc/defaults/auth.defaults.yaml), so the simple-mode
+          # lanes keep testing simple mode even if that default changes.
           docker_env=(
             -e REDIS_URL=redis://redis:6379/0
             -e SECRET
@@ -314,7 +323,7 @@ jobs:
             -e BRAND_PRIMARY_COLOR='#3B82F6'
             -e AUTH_AUTOVERIFY=true
             -e EMAILER_MODE=logger
-            -e AUTHENTICATION_MODE="$LANE"
+            -e AUTHENTICATION_MODE="$AUTH_MODE"
           )
 
           if [ "$LANE" = "full" ]; then
@@ -378,6 +387,16 @@ jobs:
               -e CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false
               -e ENABLE_ORGS=true
             )
+          fi
+
+          # I18N_ENABLED=true turns on internationalization.enabled, which is
+          # off by default (etc/defaults/config.defaults.yaml). With it off the
+          # server offers only 'en' (lib/onetime/initializers/load_locales.rb)
+          # and the footer hides the language toggle, so e2e/i18n/ would have
+          # no other locale to load. Only this lane sets it: the simple lane
+          # keeps testing the default.
+          if [ "$LANE" = "i18n" ]; then
+            docker_env+=(-e I18N_ENABLED=true)
           fi
 
           docker run -d \
@@ -452,7 +471,7 @@ jobs:
           PLAYWRIGHT_BASE_URL: ${{ env.TEST_BASE_URL }}
           CI: 'true'
         run: |
-          echo "🎭 Running Playwright $SUITE against the $LANE-mode container..."
+          echo "🎭 Running Playwright $SUITE against the $LANE lane's container ($AUTH_MODE auth mode)..."
 
           # Reporters come from e2e/playwright.config.ts (CI branch: list,
           # github, html, json, blob). Do NOT pass --reporter here - a CLI
@@ -464,8 +483,8 @@ jobs:
           # registers this account via the app's own /signup flow (the full
           # lane's AUTH_VERIFY_ACCOUNT_ENABLED=false makes it immediately
           # sign-in-able), signs in and saves the session for storageState.
-          # The simple lane's projects do not use them. Never hardcode these;
-          # they live only for this container's life.
+          # The simple and i18n lanes' projects do not use them. Never
+          # hardcode these; they live only for this container's life.
           TEST_USER_EMAIL="e2e-$(openssl rand -hex 8)@example.com"
           TEST_USER_PASSWORD="$(openssl rand -base64 24)"
           echo "::add-mask::$TEST_USER_PASSWORD"
@@ -606,7 +625,7 @@ jobs:
 
           if [ "$E2E_CHANGED" = "true" ]; then
             if [ "$LANES_RESULT" = "success" ]; then
-              echo "✅ E2E integration tests passed in every lane (simple, full)!"
+              echo "✅ E2E integration tests passed in every lane!"
               echo "The production OCI image successfully serves the application and passes E2E tests."
               exit 0
             fi

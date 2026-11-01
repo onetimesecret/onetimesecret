@@ -21,7 +21,9 @@ module ColonelAPI
       # and they remain managed in workspace domain settings. Unknown kinds
       # are 404. Writable fields and their coercions live in
       # {Onetime::CustomDomain::ConfigRegistry} — unknown fields are silently
-      # ignored, invalid enum/boolean values are 422 form errors.
+      # ignored, invalid enum/boolean values are 422 form errors, and so is a
+      # write that would leave the record with a validation error it did not
+      # already have.
       #
       # Thin adapter over {Onetime::Operations::Domains::UpsertDomainConfig} —
       # the audited single implementation (CONTRACT 4: exactly one
@@ -94,17 +96,23 @@ module ColonelAPI
             error_type: :conflict,
           )
         rescue Onetime::CustomDomain::SigninConfig::RelatedOriginError,
-               Onetime::CustomDomain::SignupConfig::InvalidAllowedSignupDomain => ex
+               Onetime::CustomDomain::SignupConfig::InvalidAllowedSignupDomain,
+               Onetime::CustomDomain::HomepageConfig::InvalidCidr,
+               Onetime::CustomDomain::HomepageConfig::TooManyCidrs => ex
           # Typed setter refusals (related_origins: malformed entry, or #4421
           # another organization's domain; allowed_signup_domains: not a
-          # registrable domain) name the entries an operator must fix. Tagged
+          # registrable domain; allowed_cidrs / denied_cidrs: not an IP
+          # range, or too many) name the entries an operator must fix. Tagged
           # with their field and a locale key so the console shows them
           # against that field, in the operator's language.
           raise_form_error(ex.message, error_key: ex.error_key, args: ex.args, field: ex.field.to_sym)
         rescue Onetime::Problem => ex
           # Any other model-level refusal from the op → untagged 422 form
-          # error. Every setter refusal the four kinds have today is typed
-          # above; a new one should be typed the same way, not matched here.
+          # error. That includes the op's InvalidConfig (a write that would
+          # add a validation error), which concerns the whole record rather
+          # than one field. Every setter refusal the four kinds have today is
+          # typed above; a new one should be typed the same way, not matched
+          # here.
           raise_form_error(ex.message)
         end
 

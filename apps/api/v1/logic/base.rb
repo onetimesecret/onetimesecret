@@ -21,6 +21,14 @@ module V1
 
       attr_accessor :domain_strategy, :display_domain
 
+      # The request's env['otto.ip_match'] verdict closure, set by the
+      # controller's apply_domain_context. The V1 counterpart of
+      # Onetime::Logic::Base#ip_match: the share-domain gate passes it to
+      # CustomDomain#allow_public_secret_creation?(ip_match:) so homepage
+      # network rules judge the caller. nil when unset; domains without
+      # rules ignore it, domains with rules then fail closed.
+      attr_accessor :ip_match
+
       def initialize(
         sess,
         cust,

@@ -346,6 +346,54 @@
     "text": "Reset to {0}",
     "content_hash": "c0cfa9b2"
   },
+  "web.layout.locale_load_failed.title": {
+    "text": "There was a problem loading {requested}",
+    "content_hash": "96c3410c"
+  },
+  "web.layout.locale_load_failed.body": {
+    "text": "You can keep using the site in {shown}. If this keeps happening, please {feedback}.",
+    "content_hash": "08974954"
+  },
+  "web.layout.locale_load_failed.feedback_link": {
+    "text": "let us know through the feedback form",
+    "content_hash": "a9717f06"
+  },
+  "web.layout.locale_load_failed.dismiss": {
+    "text": "Dismiss language notice",
+    "content_hash": "ff705dea"
+  },
+  "web.layout.locale_save_failed.title": {
+    "text": "Your language preference could not be saved",
+    "content_hash": "dc9bfbd0"
+  },
+  "web.layout.locale_save_failed.body": {
+    "text": "Your current language remains active for this page. Retry to remember your language preference.",
+    "content_hash": "eb6d6077"
+  },
+  "web.layout.locale_save_failed.retry": {
+    "text": "Retry",
+    "content_hash": "942087cc"
+  },
+  "web.layout.locale_save_failed.dismiss": {
+    "text": "Dismiss language preference notice",
+    "content_hash": "5149b547"
+  },
+  "web.layout.route_load_failed.title": {
+    "text": "This page could not be opened",
+    "content_hash": "465b233a"
+  },
+  "web.layout.route_load_failed.body": {
+    "text": "Part of the site did not load, so the page you asked for could not open. Copy anything you still need from this page, then reload it.",
+    "content_hash": "69236004"
+  },
+  "web.layout.route_load_failed.reload": {
+    "text": "Reload page",
+    "content_hash": "437d0d63"
+  },
+  "web.layout.route_load_failed.dismiss": {
+    "text": "Dismiss page notice",
+    "content_hash": "bfcc2503"
+  },
   "web.layout.switch_to_blank_mode": {
     "text": "Switch to {0} mode",
     "content_hash": "c8b909e0"
@@ -361,6 +409,18 @@
   "web.layout.workspace_context": {
     "text": "Workspace context",
     "content_hash": "dc6fa4f5"
+  },
+  "web.layout.console_warning_heading": {
+    "text": "Welcome to the Real Danger Zone ™",
+    "content_hash": "076fef59"
+  },
+  "web.layout.console_warning_body": {
+    "text": "This panel can run code in your browser. Scammers may ask you to paste something here to fix a problem or unlock a feature. That code could steal your secrets or give someone access to your account.",
+    "content_hash": "0f9d8053"
+  },
+  "web.layout.console_warning_closing": {
+    "text": "Do not paste anything here.",
+    "content_hash": "583d171a"
   },
   "web.help.default_content": {
     "text": "Please contact support for assistance",

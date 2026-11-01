@@ -12,7 +12,9 @@ module Onetime
 
       desc 'Inspect organization billing state'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         puts <<~HELP
           Organization Billing Commands:
 

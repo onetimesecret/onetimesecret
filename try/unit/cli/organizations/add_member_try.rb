@@ -2,14 +2,15 @@
 #
 # frozen_string_literal: true
 
-# Tests for CLI command: bin/ots organizations add-member
+# Model-level behaviour behind adding a customer to an organization: org
+# lookup by extid or custom-domain hostname, add_members_instance with a role,
+# idempotent re-adds, and case-insensitive email lookup.
 #
-# Command options:
-#   --org       Organization extid or domain hostname
-#   --email     Customer email
-#   --role      member or admin (default: member)
-#   --default   Set org as customer's default organization
-#   --dry-run   Preview mode
+# This file drives the models through the local add_member_cli helper below,
+# NOT through a CLI command. The operator verb is
+# `bin/ots memberships add ORG CUSTOMER [--role R] [--default] --apply`
+# (adapter spec: spec/cli/memberships_add_command_spec.rb; op spec:
+# spec/unit/onetime/operations/memberships/add_spec.rb).
 #
 # Run: bundle exec try try/unit/cli/organizations/add_member_try.rb
 
@@ -43,8 +44,7 @@ OT.info "Cleaned Redis for fresh test run"
 @org.add_domain(@domain)
 
 # -------------------------------------------------------------------
-# Helper method to simulate CLI add-member command behavior
-# This mirrors what the actual command will do
+# Helper that exercises the model calls an add-member flow makes.
 # -------------------------------------------------------------------
 
 def resolve_organization(org_identifier)

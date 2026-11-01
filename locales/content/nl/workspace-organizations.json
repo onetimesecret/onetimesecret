@@ -219,10 +219,6 @@
     "text": "Abonnement",
     "source_hash": "4999c6c6"
   },
-  "web.organizations.danger_zone": {
-    "text": "Gevarenzone",
-    "source_hash": "3c1c01b4"
-  },
   "web.organizations.delete_organization": {
     "text": "Organisatie verwijderen",
     "source_hash": "54b2edc7"

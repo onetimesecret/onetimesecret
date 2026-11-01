@@ -87,7 +87,7 @@ module Onetime
     SOURCES = %w[standard incoming].freeze
 
     # Source-dependent behaviour, keyed by :source. The single source of truth
-    # for what each provenance permits; read via #shows_share_link?. Mirrors
+    # for what each provenance permits; read via .shows_share_link_for?. Mirrors
     # CustomDomain::SignupConfig::STRATEGY_METADATA. Unmapped (non-empty)
     # values fall through to WITHHELD_CAPABILITIES — fail closed.
     SOURCE_CAPABILITIES = {
@@ -97,8 +97,30 @@ module Onetime
 
     # Fallback for any :source value not in SOURCE_CAPABILITIES (a typo or an
     # unshipped future source): withhold the link. A nil/empty source (legacy
-    # pre-field receipt) is handled separately in #shows_share_link?.
+    # pre-field receipt) is handled separately in .shows_share_link_for?.
     WITHHELD_CAPABILITIES = { shows_share_link: false }.freeze
+
+    # States in which the secret no longer exists (the receipt's is_destroyed).
+    # Every transition into one clears secret_identifier; 'received' is the
+    # legacy name for 'revealed'. Shared by safe_dump and the V1 serializer so
+    # the API versions agree on when a receipt may still carry a secret key.
+    TERMINAL_STATES = %w[revealed received burned expired orphaned].freeze
+
+    # States in which the receipt no longer offers its secret (#offers_secret?):
+    # every terminal state, plus 'previewed' and its legacy name 'viewed'.
+    SECRET_WITHDRAWN_STATES = (TERMINAL_STATES + %w[previewed viewed]).freeze
+
+    # Provenance gate on the share link, by :source value. See
+    # #shows_share_link?; class-level so a serializer working from a raw field
+    # hash (V1 receipt_hsh) applies the same rule.
+    #
+    # @param source [String, nil]
+    # @return [Boolean]
+    def self.shows_share_link_for?(source)
+      return true if source.to_s.empty?
+
+      SOURCE_CAPABILITIES.fetch(source.to_s, WITHHELD_CAPABILITIES)[:shows_share_link]
+    end
 
     # Class-level collections for expiration warning feature
     # Sorted set: score = expiration timestamp, member = receipt identifier
@@ -122,9 +144,34 @@ module Onetime
     #
     # @return [Boolean]
     def shows_share_link?
-      return true if source.to_s.empty?
+      self.class.shows_share_link_for?(source)
+    end
 
-      SOURCE_CAPABILITIES.fetch(source.to_s, WITHHELD_CAPABILITIES)[:shows_share_link]
+    # Whether a receipt payload should carry a share link at all: the
+    # provenance permits it (#shows_share_link?) and there is still a secret
+    # to link to. Every terminal transition (revealed!, burned!, expired!,
+    # orphaned!) clears secret_identifier, so a consumed receipt would
+    # otherwise emit a dangling "secret/" path. Shared by ShowReceipt and
+    # BurnSecret so a burn response and a later fetch agree (#4835).
+    #
+    # @return [Boolean]
+    def share_link_available?
+      shows_share_link? && !secret_identifier.to_s.empty?
+    end
+
+    # Whether the receipt still offers its secret (ShowReceipt's show_secret):
+    # the secret exists, has no passphrase, and the receipt has not been
+    # previewed or consumed. A response includes secret_identifier as its own
+    # field only when this and #share_link_available? are both true. Shared
+    # by ShowReceipt and BurnSecret so a burn that does not commit
+    # (continue=false) and a later fetch agree on it (#4835).
+    #
+    # @param secret [Onetime::Secret, nil] this receipt's loaded secret
+    # @return [Boolean]
+    def offers_secret?(secret)
+      return false if secret.nil? || secret.has_passphrase?
+
+      !SECRET_WITHDRAWN_STATES.include?(state.to_s)
     end
 
     # Clean up class-level collections before destroying the object.

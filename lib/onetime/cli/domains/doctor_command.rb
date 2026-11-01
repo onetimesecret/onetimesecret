@@ -15,9 +15,9 @@
 #   8. domain has no org_id at all — ORPHANED (HIGH, report-only)
 #   9. org_id points to an ARCHIVED organization (HIGH, report-only)
 #  10. CustomDomain.owners agrees with the domain's org_id (MEDIUM)
-#  11. canonical_display_domain_index agrees with the records (report-only):
+#  11. ascii_display_domain_index agrees with the records (report-only):
 #      missing entries, collisions, conflicts and unreadable records (HIGH),
-#      stale entries (MEDIUM). From Operations::Domains::CanonicalIndexAudit.
+#      stale entries (MEDIUM). From Operations::Domains::AsciiIndexAudit.
 #
 # Additional checks (opt-in):
 #   --familia-audit   Run Familia's generic CustomDomain.health_check, which
@@ -35,8 +35,8 @@
 #     Broad multi-check scanner including index integrity. Never assigns an org.
 #
 # Check #11 never repairs. Its writes belong to
-# `bin/ots domains backfill-canonical-index --apply`, which runs with the
-# application stopped (docs/runbooks/custom-domain-canonical-index-backfill.md);
+# `bin/ots domains backfill-ascii-index --apply`, which runs with the
+# application stopped (docs/runbooks/custom-domain-ascii-index-backfill.md);
 # doctor --repair runs against a live deployment.
 #
 # Check #10 is the org-deletion unblocker: Organization#unlisted_owned_domains
@@ -70,7 +70,7 @@
 
 require 'json'
 require 'onetime/operations/domains/repair'
-require 'onetime/operations/domains/canonical_index_audit'
+require 'onetime/operations/domains/ascii_index_audit'
 
 require_relative '../customers/shared'
 
@@ -112,30 +112,30 @@ module Onetime
 
       SEVERITY_ORDER = { critical: 0, high: 1, medium: 2, warning: 3, low: 4 }.freeze
 
-      # Check #11 (see check_canonical_index_integrity).
-      CANONICAL_INDEX_RUNBOOK = 'docs/runbooks/custom-domain-canonical-index-backfill.md'
+      # Check #11 (see check_ascii_index_integrity).
+      ASCII_INDEX_RUNBOOK = 'docs/runbooks/custom-domain-ascii-index-backfill.md'
 
-      CANONICAL_INDEX_FINDINGS = {
+      ASCII_INDEX_FINDINGS = {
         missing: {
           severity: :high,
-          message: 'records missing from canonical_display_domain_index',
-          repair_action: 'Stop the application, then run bin/ots domains backfill-canonical-index --apply',
+          message: 'records missing from ascii_display_domain_index',
+          repair_action: 'Stop the application, then run bin/ots domains backfill-ascii-index --apply',
         },
         collision: {
           severity: :high,
           message: 'records share an A-label with another record (collision)',
           repair_action: 'Keep the record whose organization has proven DNS ownership, remove the others ' \
-                         'with bin/ots domains remove <extid>, then run the backfill',
+                         'with bin/ots domains remove <extid> --apply, then run the backfill',
         },
         conflict: {
           severity: :high,
-          message: 'records or canonical_display_domain_index entries name a different live record',
+          message: 'records or ascii_display_domain_index entries name a different live record',
           repair_action: 'Manual decision required: compare the records the entry and the name point at',
         },
         stale: {
           severity: :medium,
-          message: 'canonical_display_domain_index entries name a record that no longer exists',
-          repair_action: 'Stop the application, then run bin/ots domains backfill-canonical-index --apply',
+          message: 'ascii_display_domain_index entries name a record that no longer exists',
+          repair_action: 'Stop the application, then run bin/ots domains backfill-ascii-index --apply',
         },
       }.freeze
 
@@ -208,12 +208,12 @@ module Onetime
             8. domain has no org_id - ORPHANED (HIGH, report-only)
             9. org_id points to an ARCHIVED organization (HIGH, report-only)
            10. CustomDomain.owners matches the domain's org_id (MEDIUM)
-           11. canonical name index agrees with the records (report-only;
-               fixed by bin/ots domains backfill-canonical-index)
+           11. ASCII name index agrees with the records (report-only;
+               fixed by bin/ots domains backfill-ascii-index)
             +. Familia.health_check (opt-in via --familia-audit)
 
           Doctor never assigns an organization. To adopt an orphaned domain:
-            bin/ots domains repair DOMAIN --org-id ORG
+            bin/ots domains repair DOMAIN --org-id ORG --apply
         USAGE
       end
 
@@ -305,7 +305,7 @@ module Onetime
 
         check_display_domain_index_integrity(issues, report, repair: repair)
         check_owners_index_integrity(issues, report, repair: repair, scope_org: scope_org)
-        check_canonical_index_integrity(issues)
+        check_ascii_index_integrity(issues)
 
         if scope_org
           check_stale_org_domains(scope_org, report, repair: repair)
@@ -383,30 +383,30 @@ module Onetime
         }
       end
 
-      # CHECK #11: canonical_display_domain_index agrees with the records
+      # CHECK #11: ascii_display_domain_index agrees with the records
       #
       # The index holds one entry per DNS name (its A-label) and is claimed for
       # new records by create! and IdentityGuard. Records registered before it
       # existed have no entry until the backfill enters them. REPORT-ONLY: the
-      # writes belong to `bin/ots domains backfill-canonical-index --apply`,
+      # writes belong to `bin/ots domains backfill-ascii-index --apply`,
       # which runs with the application stopped, and collisions and conflicts
       # need an operator's decision. Global, like check #3, in --org mode too.
-      def check_canonical_index_integrity(issues)
-        audit = Onetime::Operations::Domains::CanonicalIndexAudit.new.call
+      def check_ascii_index_integrity(issues)
+        audit = Onetime::Operations::Domains::AsciiIndexAudit.new.call
 
-        CANONICAL_INDEX_FINDINGS.each do |category, finding|
-          examples = audit.rows_in(category).map { |row| canonical_row_example(row) } +
-                     audit.entries_in(category).map { |entry| entry.to_h.slice(:canonical, :holder_id, :detail) }
+        ASCII_INDEX_FINDINGS.each do |category, finding|
+          examples = audit.rows_in(category).map { |row| ascii_row_example(row) } +
+                     audit.entries_in(category).map { |entry| entry.to_h.slice(:ascii_name, :holder_id, :detail) }
           next if examples.empty?
 
           issues << {
-            check: :"canonical_index_#{category}",
+            check: :"ascii_index_#{category}",
             severity: finding[:severity],
             message: "#{examples.size} #{finding[:message]}",
             examples: examples.first(10),
             total: examples.size,
             repairable: false,
-            repair_action: "#{finding[:repair_action]} (see #{CANONICAL_INDEX_RUNBOOK})",
+            repair_action: "#{finding[:repair_action]} (see #{ASCII_INDEX_RUNBOOK})",
           }
         end
 
@@ -415,30 +415,30 @@ module Onetime
             { domain_objid: error.domain_id, message: error.message }
           end
           issues << {
-            check: :canonical_index_unreadable,
+            check: :ascii_index_unreadable,
             severity: :high,
-            message: "#{audit.errors.size} domain records could not be loaded by the canonical index audit " \
-                     '(backfill-canonical-index --apply writes nothing while they remain): ' \
+            message: "#{audit.errors.size} domain records could not be loaded by the ASCII index audit " \
+                     '(backfill-ascii-index --apply writes nothing while they remain): ' \
                      "#{examples.map { |example| "#{example[:domain_objid]}: #{example[:message]}" }.join('; ')}",
             examples: examples,
             total: audit.errors.size,
             repairable: false,
             repair_action: 'Inspect each with Onetime::CustomDomain.storage_inspect(<domain_id>) from ' \
-                           "bin/ots console and correct it (see #{CANONICAL_INDEX_RUNBOOK})",
+                           "bin/ots console and correct it (see #{ASCII_INDEX_RUNBOOK})",
           }
         end
       rescue StandardError => ex
         issues << {
-          check: :canonical_index_audit_unavailable,
+          check: :ascii_index_audit_unavailable,
           severity: :warning,
-          message: "canonical index audit unavailable: #{ex.class}: #{ex.message}",
+          message: "ASCII index audit unavailable: #{ex.class}: #{ex.message}",
           repairable: false,
         }
       end
 
-      def canonical_row_example(row)
+      def ascii_row_example(row)
         {
-          canonical: row.canonical,
+          ascii_name: row.ascii_name,
           domain_extid: row.extid,
           domain_objid: row.domain_id,
           display_domain: row.display_domain,
@@ -583,7 +583,7 @@ module Onetime
           message: "org_id '#{domain.org_id}' points to an archived organization",
           repairable: false,
           repair_action: 'Manual decision required: unarchive the organization, ' \
-                         "or move the domain (bin/ots domains transfer #{domain.display_domain} --to-org <ORG>)",
+                         "or move the domain (bin/ots domains transfer #{domain.display_domain} --to-org <ORG> --apply)",
         }
       end
 
@@ -603,7 +603,7 @@ module Onetime
           severity: :high,
           message: 'domain has no org_id (orphaned)',
           repairable: false,
-          repair_action: "Assign an organization: bin/ots domains repair #{domain.display_domain} --org-id <ORG>",
+          repair_action: "Assign an organization: bin/ots domains repair #{domain.display_domain} --org-id <ORG> --apply",
         }
       end
 
@@ -723,7 +723,7 @@ module Onetime
                     "CustomDomain.owners says #{recorded} but org_id is #{actual}"
                   end
 
-        adopt  = "bin/ots domains repair #{domain.display_domain} --org-id <ORG>"
+        adopt  = "bin/ots domains repair #{domain.display_domain} --org-id <ORG> --apply"
         action = if actual.empty?
                    "Drop the stale CustomDomain.owners entry, then adopt the domain with: #{adopt}"
                  else
@@ -1123,7 +1123,7 @@ module Onetime
 
         if repair
           # An unrelated successful repair cannot make an incomplete audit healthy.
-          exit 2 if all_issues.any? { |i| i[:check] == :canonical_index_unreadable }
+          exit 2 if all_issues.any? { |i| i[:check] == :ascii_index_unreadable }
 
           if report[:repaired].empty?
             if has_repairable

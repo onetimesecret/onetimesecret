@@ -62,7 +62,7 @@ ARG VERSION
 ARG RUBY_IMAGE_TAG=3.4-slim-trixie@sha256:d8fd978ffc10f0eddee04aa03eb82e5d247079471392ae655de5ae04bdaad914
 
 ##
-# DEPENDENCIES: Install application dependencies
+# DEPENDENCIES: Install Ruby dependencies
 #
 # The "base" context is provided by docker/bake.hcl via:
 #   contexts = { base = "target:base" }
@@ -70,14 +70,16 @@ ARG RUBY_IMAGE_TAG=3.4-slim-trixie@sha256:d8fd978ffc10f0eddee04aa03eb82e5d247079
 # It contains: Ruby 3.4, Node 26, build toolchain, yq, pnpm, appuser.
 # See docker/base.dockerfile for details.
 #
+# Built for the TARGET platform: native gem extensions must match the
+# architecture of the final image.
+#
 FROM base AS dependencies
 ARG APP_DIR
 
 WORKDIR ${APP_DIR}
-ENV NODE_PATH=${APP_DIR}/node_modules
 
 # Copy dependency manifests
-COPY .ruby-version Gemfile Gemfile.lock package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY .ruby-version Gemfile Gemfile.lock ./
 
 # Install Ruby dependencies
 # BUNDLE_WITHOUT excludes dev/test/optional gems from production image
@@ -88,14 +90,41 @@ RUN set -eux && \
     bundle binstubs puma --force && \
     bundle clean --force
 
-# Install Node.js dependencies (separate layer for better caching)
+##
+# FRONTEND-DEPENDENCIES: Install Node.js dependencies
+#
+# Built for the BUILD platform ($BUILDPLATFORM), not the target platform.
+# Nothing from node_modules reaches a final image; only the compiled assets
+# do (public/, generated/, package.json), and those are architecture-
+# independent. Building them once, natively, and copying them into every
+# architecture's image keeps Node out of QEMU emulation in multi-arch builds.
+# Under emulation the arm64 Vite build ran about 6x slower than native, and
+# on 2026-10-15 its second pass stalled for nearly two hours.
+#
+# With bake's multi-platform `target:base` context, this stage uses the base
+# variant matching the builder (linux/amd64 on GitHub-hosted runners). When
+# base has no such variant (an arm64-only build), BuildKit uses the variant
+# it has and this stage runs under emulation, as it did before. In a
+# single-platform build BUILDPLATFORM is the target platform, so nothing
+# changes.
+#
+FROM --platform=$BUILDPLATFORM base AS frontend-dependencies
+ARG APP_DIR
+
+WORKDIR ${APP_DIR}
+ENV NODE_PATH=${APP_DIR}/node_modules
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
 RUN set -eux && \
     pnpm install --frozen-lockfile --prod=false
 
 ##
 # BUILD: Compile and prepare application assets
 #
-FROM dependencies AS build
+# Inherits the build platform from frontend-dependencies; see above.
+#
+FROM frontend-dependencies AS build
 ARG APP_DIR
 ARG VERSION
 ARG COMMIT_HASH

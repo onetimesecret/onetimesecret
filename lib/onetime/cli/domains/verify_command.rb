@@ -290,8 +290,8 @@ module Onetime
           org = domain.primary_organization
           if org
             puts '  Status:           OK'
-            puts "  Org ID:           #{org.org_id}"
-            puts "  Display Name:     #{org.display_name || org.org_id}"
+            puts "  Org:              #{org.extid} (#{org.objid})"
+            puts "  Display Name:     #{org.display_name || org.extid}"
           else
             puts '  Status:           ORG_NOT_FOUND'
             puts "  Org ID:           #{domain.org_id} (MISSING)"

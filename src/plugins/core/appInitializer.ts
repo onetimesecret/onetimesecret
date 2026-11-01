@@ -1,10 +1,10 @@
 // src/plugins/core/appInitializer.ts
 
 import { createApi } from '@/api';
-import i18n from '@/i18n';
+import i18n, { globalComposer } from '@/i18n';
 import { setupRouterGuards } from '@/router/guards.routes';
 import { consumeBootstrapData, getBootstrapValue } from '@/services/bootstrap.service';
-import { loggingService } from '@/services/logging.service';
+import { loggingService, type ConsoleWarning } from '@/services/logging.service';
 import { setAllowedCheckoutHost } from '@/utils/redirect';
 import { AxiosInstance } from 'axios';
 import { createPinia } from 'pinia';
@@ -15,12 +15,12 @@ import { createDiagnostics } from './enableDiagnostics';
 import { createErrorBoundary } from './globalErrorBoundary';
 import { autoInitPlugin } from '../pinia/autoInitPlugin';
 
-interface AppInitializerOptions {
+export interface AppInitializerOptions {
   /**
    * The router to install. Injected by the caller (main.ts / admin.ts) so this
    * initializer does NOT import `@/router` itself — that keeps the customer
-   * route graph out of the admin bundle (and vice versa) under the single-chunk
-   * build. Each entry supplies its own router.
+   * route graph out of the admin bundle's chunks (and vice versa). Each entry
+   * supplies its own router.
    */
   router: Router;
   api?: AxiosInstance;
@@ -43,7 +43,10 @@ export const AppInitializer: Plugin<AppInitializerOptions> = {
  *    - Store initialization
  * 2. Global error boundary
  * 3. Internationalization
- * 4. Routing
+ * 4. Routing. Installing the router starts the initial navigation, whose
+ *    guards activate the visitor's locale. Nothing here waits for it: the
+ *    entry awaits router.isReady() before mounting (see startApp.ts), and
+ *    work that needs translations, such as the console warning, runs after.
  *
  * We separate this from the main plugin to interface for testing purposes.
  */
@@ -116,7 +119,23 @@ function initializeApp(app: App, options: AppInitializerOptions) {
   setupRouterGuards(router);
 
   app.use(router);
+}
 
-  // Display startup banner
-  loggingService.banner();
+/**
+ * Prints the self-XSS warning to the console in the visitor's language. Call
+ * it after the initial navigation has activated the locale; startApp does,
+ * right after mount.
+ */
+export function showConsoleWarning(): void {
+  loggingService.banner(consoleWarning());
+}
+
+/** The self-XSS warning, in the active locale. */
+function consoleWarning(): ConsoleWarning {
+  const { t } = globalComposer;
+  return {
+    heading: t('web.layout.console_warning_heading'),
+    body: t('web.layout.console_warning_body'),
+    closing: t('web.layout.console_warning_closing'),
+  };
 }

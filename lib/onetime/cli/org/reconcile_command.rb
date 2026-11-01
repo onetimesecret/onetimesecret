@@ -5,12 +5,14 @@
 # Reconcile an organization's billing + entitlement state.
 #
 # Usage:
-#   bin/ots org reconcile ORG --dry-run          # Which mode would run, no writes
-#   bin/ots org reconcile ORG                    # Confirm, then apply
-#   bin/ots org reconcile ORG --yes              # Apply, no prompt
-#   bin/ots org reconcile ORG --yes --json       # Apply, machine-readable
+#   bin/ots org reconcile ORG                    # Dry run (the default): which mode would run
+#   bin/ots org reconcile ORG --apply            # Apply
+#   bin/ots org reconcile ORG --apply --json     # Apply, machine-readable
 #
 # ORG is an org extid or objid (see Onetime::CLI::Org::Shared#resolve_org).
+#
+# DRY RUN IS THE DEFAULT. Nothing is written without --apply (-y/--yes/-f are
+# aliases). There is no confirmation prompt; --dry-run only says so explicitly.
 #
 # The mutation + the admin audit event are performed by the shared
 # Onetime::Operations::Org::Reconcile op (the single implementation; the colonel
@@ -27,10 +29,16 @@ require 'onetime/operations/org/reconcile'
 require_relative 'shared'
 require_relative '../customers/shared'
 
+require_relative '../write_gate'
+
 module Onetime
   module CLI
     class OrgReconcileCommand < Command
       include Org::Shared
+      include WriteGate
+
+      # The dry-run statuses that an --apply run would act on.
+      PLANNED_STATUSES = [:planned, :would_materialize].freeze
 
       desc 'Reconcile an organization\'s billing + entitlement state'
 
@@ -39,30 +47,17 @@ module Onetime
         required: true,
         desc: 'Organization extid or objid'
 
-      option :yes,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '-f'],
-        desc: 'Skip confirmation prompt (required to apply)'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Report the mode that would run; write nothing'
+      write_gate_options 'Reconcile'
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
-      # --yes and --dry-run are ORTHOGONAL on purpose. --dry-run writes nothing
-      # so it needs no confirmation; an applied run always needs --yes (or an
-      # interactive 'y'). Deriving one from the other would make --yes do double
-      # duty and make a scripted --json call ambiguous.
-      def call(org:, yes: false, dry_run: false, json: false, **)
+      def call(org:, apply: false, dry_run: false, json: false, **)
         boot_application!
 
+        dry_run      = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
         organization = resolve_org(org, json: json)
-
-        return unless confirm!(organization, yes: yes, dry_run: dry_run, json: json)
 
         result = Onetime::Operations::Org::Reconcile.new(
           org: organization,
@@ -80,28 +75,12 @@ module Onetime
 
       private
 
-      # @return [Boolean] true to proceed
-      def confirm!(organization, yes:, dry_run:, json:)
-        return true if dry_run || yes
-
-        # Never mutate production org state from a scripted invocation that did
-        # not say so.
-        error_exit('Refusing to reconcile without --yes in --json mode', json: true) if json
-
-        print "Reconcile #{org_label(organization)}? [y/N] "
-        response = $stdin.gets&.strip&.downcase
-        return true if response == 'y'
-
-        puts 'Aborted.'
-        false
-      end
-
       def output_text(result)
         if result.status == :stripe_error
           error_exit("Stripe error: #{result.reason}", json: false)
         end
 
-        puts 'DRY RUN — nothing was written' if result.dry_run
+        dry_run_header if result.dry_run
         puts "Organization: #{result.org_id}"
         puts "Mode:         #{result.mode}"
         puts "Status:       #{result.status}"
@@ -109,6 +88,10 @@ module Onetime
         puts
         print_diff(result)
         print_cascade(result)
+        if PLANNED_STATUSES.include?(result.status)
+          puts
+          dry_run_footer('reconcile')
+        end
 
         exit 1 unless ok?(result)
       end
@@ -167,6 +150,6 @@ module Onetime
       end
     end
 
-    register 'org reconcile', OrgReconcileCommand
+    register 'organizations reconcile', OrgReconcileCommand
   end
 end

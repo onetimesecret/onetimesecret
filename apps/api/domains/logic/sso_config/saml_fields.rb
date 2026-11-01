@@ -3,6 +3,8 @@
 # frozen_string_literal: true
 
 require 'onetime/sso_provider/saml'
+require 'onetime/sso_provider/idp_metadata'
+require_relative 'ssrf_protection'
 
 module DomainsAPI
   module Logic
@@ -68,8 +70,26 @@ module DomainsAPI
       #     always be repaired or switched off, and a live one is never
       #     stranded mid-edit.
       #
+      # idp_metadata_url, the optional SAML IdP metadata URL the trio was
+      # imported from (docs/specs/sso/saml-idp-metadata-consumption.md), is
+      # read here too but is NOT a trio field and NOT a login input:
+      #
+      #   - PUT, or a PATCH switching to saml: a nonblank value is stored,
+      #     blank or absent clears it. A PATCH on a saml record: key absent
+      #     keeps it, key present and blank ("" or null) clears it.
+      #     Every other provider type clears it (#provider_attributes).
+      #   - Validated like a URL the server FETCHES, unlike the SSO URL: the
+      #     structural rule (IdpMetadata.metadata_url_problem, i.e.
+      #     Saml.sso_url_problem in metadata-URL words) plus the SSRF host
+      #     check (SsrfProtection#valid_issuer_host?, which resolves DNS).
+      #     Only a nonblank value that DIFFERS from the stored one is
+      #     checked, so an unrelated edit never resolves a stored URL
+      #     (#validate_idp_metadata_url!).
+      #
       # Includers must respond to `params` and `raise_form_error`.
       module SamlFields
+        include SsrfProtection
+
         # Never accepted, in any spelling ruby-saml understands. A
         # fingerprint-only configuration trusts whatever certificate the
         # RESPONSE embeds (SHA1 by default), and idp_cert_multi would widen
@@ -98,6 +118,7 @@ module DomainsAPI
           @idp_entity_id       = params['idp_entity_id'].to_s.strip
           @idp_cert            = Onetime::SsoProvider::Saml
             .normalize_pem(params['idp_cert'].to_s).gsub("\r\n", "\n").strip
+          @idp_metadata_url    = params['idp_metadata_url'].to_s.strip
         end
 
         def reject_forbidden_saml_params!
@@ -165,6 +186,27 @@ module DomainsAPI
           end
         end
 
+        # See the header. A blank value needs no check (it clears, or on a
+        # PATCH with the key absent, keeps the stored value untouched). A
+        # value equal to the readable stored one is accepted as-is; an
+        # unreadable stored value matches nothing, so its replacement is
+        # checked.
+        #
+        # @param stored [Onetime::CustomDomain::SsoConfig, nil] the record
+        #   whose stored value counts as unchanged: the existing saml record,
+        #   or nil when there is none to compare against
+        # @raise [Onetime::FormError] on idp_metadata_url, error_type invalid
+        def validate_idp_metadata_url!(stored: nil)
+          value = @idp_metadata_url.to_s
+          return if value.empty?
+          return if value == stored_idp_metadata_url(stored)
+
+          idp_metadata = Onetime::SsoProvider::IdpMetadata
+          problem      = idp_metadata.metadata_url_problem(value)
+          problem    ||= idp_metadata::METADATA_URL_HOST_PROBLEM unless valid_issuer_host?(value)
+          raise_form_error(problem, field: :idp_metadata_url, error_type: :invalid) if problem
+        end
+
         def validate_saml_policy!(stored: nil)
           saml = Onetime::SsoProvider::Saml
           {
@@ -196,13 +238,15 @@ module DomainsAPI
             values                    = saml_submitted.reject { |_key, value| partial && value.empty? }
             values[:name_id_format]   = @name_id_format unless partial && !params.key?('name_id_format')
             values[:callback_origins] = @callback_origins unless partial && !params.key?('callback_origins')
+            values[:idp_metadata_url] = @idp_metadata_url unless partial && !params.key?('idp_metadata_url')
             oauth.to_h { |key| [key, ''] }.merge(values).merge(token_endpoint_auth_method: '')
           else
             values = partial ? {} : oauth.to_h { |key| [key, instance_variable_get(:"@#{key}")] }
             unless partial
               values[:token_endpoint_auth_method] = @provider_type == 'oidc' ? @token_endpoint_auth_method : ''
             end
-            values.merge(saml_fields.to_h { |key| [key, ''] }).merge(name_id_format: '', callback_origins: [])
+            values.merge(saml_fields.to_h { |key| [key, ''] })
+              .merge(name_id_format: '', callback_origins: [], idp_metadata_url: '')
           end
         end
 
@@ -311,6 +355,19 @@ module DomainsAPI
           return nil if stored.nil?
 
           value = stored.reveal_saml_field(field).strip
+          value.empty? ? nil : value
+        rescue StandardError
+          nil
+        end
+
+        # The stored record's readable, non-blank metadata URL, stripped; nil
+        # when there is no record, it is blank, or it cannot be revealed.
+        #
+        # @return [String, nil]
+        def stored_idp_metadata_url(stored)
+          return nil if stored.nil?
+
+          value = stored.reveal_idp_metadata_url.strip
           value.empty? ? nil : value
         rescue StandardError
           nil
