@@ -202,6 +202,20 @@ describe('transform fidelity with io:"input"', () => {
     return z.toJSONSchema(schema, { io: 'input', unrepresentable: 'any' });
   }
 
+  /**
+   * The JSON types a schema admits, read from `type` (string or array) or
+   * from the `type` of each `anyOf` branch. Zod 4.5 and later write a simple
+   * union such as number | null as `type: ["number", "null"]`; earlier
+   * versions wrote `anyOf`. Both shapes mean the same thing.
+   */
+  function admittedTypes(js: Record<string, unknown>): string[] {
+    const own = js.type === undefined ? [] : ([] as unknown[]).concat(js.type);
+    const branches = Array.isArray(js.anyOf)
+      ? js.anyOf.flatMap((b) => admittedTypes(b as Record<string, unknown>))
+      : [];
+    return [...own, ...branches].map(String).sort();
+  }
+
   describe('fromNumber.toDate', () => {
     it('serializes as { type: "number" }', () => {
       const js = toInputSchema(transforms.fromNumber.toDate);
@@ -212,12 +226,7 @@ describe('transform fidelity with io:"input"', () => {
   describe('fromNumber.toDateNullable', () => {
     it('serializes as number | null', () => {
       const js = toInputSchema(transforms.fromNumber.toDateNullable);
-      expect(js.anyOf).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ type: 'number' }),
-          expect.objectContaining({ type: 'null' }),
-        ])
-      );
+      expect(admittedTypes(js)).toEqual(['null', 'number']);
     });
   });
 
@@ -231,12 +240,7 @@ describe('transform fidelity with io:"input"', () => {
   describe('fromNumber.toDateNullish', () => {
     it('serializes as number | null', () => {
       const js = toInputSchema(transforms.fromNumber.toDateNullish);
-      expect(js.anyOf).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ type: 'number' }),
-          expect.objectContaining({ type: 'null' }),
-        ])
-      );
+      expect(admittedTypes(js)).toEqual(['null', 'number']);
     });
   });
 
@@ -255,10 +259,8 @@ describe('transform fidelity with io:"input"', () => {
       const js = z.toJSONSchema(transforms.fromNumber.toDateNullable, {
         unrepresentable: 'any',
       });
-      // Without io:"input", the anyOf degrades — no number branch
-      const hasNumberBranch =
-        Array.isArray(js.anyOf) && js.anyOf.some((b: unknown) => (b as Record<string, unknown>).type === 'number');
-      expect(hasNumberBranch).toBe(false);
+      // Without io:"input", the number type is lost in either shape
+      expect(admittedTypes(js)).not.toContain('number');
     });
   });
 });
