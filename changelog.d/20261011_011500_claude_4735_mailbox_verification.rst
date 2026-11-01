@@ -34,10 +34,20 @@ Security
   compare-and-set, so a recovery link requested while a verification resend
   or a welcome-link reveal is in flight still redeems. A federated workspace
   records when its subscription state was last applied in full
-  (``subscription_synced_at``); a verification retry discards a pending
-  federated record older than that marker instead of replaying it over a
-  later cancellation, and re-applies a record whose first claim failed before
-  the entitlements were written. (#4735)
+  (``subscription_synced_at``) and its place in a sync order shared with
+  pending records (``subscription_sync_version``); a verification retry
+  discards a pending federated record that predates it instead of replaying
+  it over a later cancellation, applies one stored after it even within the
+  same second, and re-applies a record whose first claim failed before the
+  entitlements were written. The claim and the federated subscription
+  webhooks take one lock per email hash and the claim reads the workspace
+  and the pending record inside it, so a cancellation that arrives during a
+  claim is applied after it instead of being overwritten. A federated
+  subscription webhook no longer applies a plan to a workspace whose
+  SSO-provisioned owner lacks mailbox proof; it updates the pending record
+  for the claim that follows verification. A workspace that already has an
+  active federated plan keeps receiving updates, and cancellations and
+  pauses still apply to every workspace. (#4735)
 
   **Upgrade note:** a colonel, admin or staff account whose ``verified_by`` is
   ``sso``, ``stripe_payment``, ``autoverify``, ``legacy`` or empty loses the
