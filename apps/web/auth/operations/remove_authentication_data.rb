@@ -43,6 +43,11 @@
 #   - account_sms_codes (SMS MFA)
 #   - account_previous_password_hashes (password history)
 #   - account_identities (SSO identities)
+#   - oauth_grants (OAuth grants the account holds; before applications,
+#     which they reference)
+#   - oauth_applications (OAuth clients the account registered; deleting one
+#     also deletes other accounts' grants to it, as the foreign key's
+#     ON DELETE CASCADE would)
 #   - accounts (main account record; see the two modes below)
 #
 # Two modes (#4819):
@@ -108,6 +113,8 @@ module Auth
         :account_sms_codes,
         :account_previous_password_hashes,
         :account_identities,
+        :oauth_grants,
+        :oauth_applications,
       ].freeze
 
       # Tables whose foreign key to accounts.id is the :account_id column.
@@ -119,6 +126,8 @@ module Auth
         :account_previous_password_hashes,
         :account_authentication_audit_logs,
         :account_identities,
+        :oauth_grants,
+        :oauth_applications,
       ].freeze
 
       # @param table [Symbol] a DEPENDENT_TABLES entry
