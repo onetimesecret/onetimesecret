@@ -126,29 +126,30 @@ module HostProxyMatrix
       origin: CANONICAL_ORIGIN, tenant_host: nil, webauthn_host: nil },
 
     # --- Doubled Host (#4517) ------------------------------------------------
-    # Rack cannot parse the authority: host is nil and base_url repeats the
-    # header verbatim. DetectHost keeps the first element.
+    # Rack cannot parse the authority: host is nil, and since rack 3.2.8
+    # (GHSA-2j8w-xcrc-x985) base_url falls back to SERVER_NAME instead of
+    # repeating the header. DetectHost keeps the first element.
     { id: 'D01', case: 'doubled canonical Host',
       headers: { 'Host' => '{canonical}, {canonical}' },
-      **CANONICAL, rack_host: nil, rack_base_url: 'https://{canonical}, {canonical}',
+      **CANONICAL, rack_host: nil,
       rewritten: { rack_host: '{canonical}', rack_base_url: CANONICAL_ORIGIN } },
     { id: 'D02', case: 'doubled verified custom domain Host',
       headers: { 'Host' => '{tenant}, {tenant}' },
-      rack_host: nil, rack_base_url: 'https://{tenant}, {tenant}', **TENANT,
+      rack_host: nil, **TENANT,
       rewritten: { rack_host: '{tenant}', rack_base_url: TENANT_ORIGIN } },
     # The port is in the unparseable authority and nowhere in configuration,
     # so the origin comes out without it. The rewrite writes the hostname
     # alone and takes no port from a Host Rack could not parse.
     { id: 'D03', case: 'doubled canonical Host on a non-default port that is not configured',
       headers: { 'Host' => '{canonical}:8443, {canonical}:8443' },
-      **CANONICAL, rack_host: nil, rack_base_url: 'https://{canonical}:8443, {canonical}:8443',
+      **CANONICAL, rack_host: nil,
       rewritten: { rack_host: '{canonical}', rack_base_url: CANONICAL_ORIGIN } },
     # No hostname survives anywhere: rack_host and webauthn_host are both
     # nil, so the WebAuthn rp_id fallback has nothing to return. DetectHost
     # accepted no host, so there is nothing to rewrite to.
     { id: 'D04', case: 'doubled IP-literal site.host',
       headers: { 'Host' => "#{SITE_HOST}, #{SITE_HOST}" }, proto: nil,
-      rack_host: nil, rack_base_url: "http://#{SITE_HOST}, #{SITE_HOST}",
+      rack_host: nil,
       detected: nil, display: '{canonical}', strategy: :invalid,
       origin: 'http://{canonical}', tenant_host: nil, webauthn_host: nil },
 
@@ -280,14 +281,14 @@ module HostProxyMatrix
     { id: 'X04', case: 'read failure, doubled verified custom domain Host',
       record: :read_fails, headers: { 'Host' => '{tenant}, {tenant}' },
       changes_with: '#4220',
-      rack_host: nil, rack_base_url: 'https://{tenant}, {tenant}',
+      rack_host: nil,
       detected: '{tenant}', display: '{tenant}', strategy: :invalid,
       origin: SITE_HOST_ORIGIN, tenant_host: nil, webauthn_host: nil },
     # The canonical host classifies without the read, so its doubled Host is
     # rewritten as in D01.
     { id: 'X05', case: 'read failure, doubled canonical Host',
       record: :read_fails, headers: { 'Host' => '{canonical}, {canonical}' },
-      **CANONICAL, rack_host: nil, rack_base_url: 'https://{canonical}, {canonical}',
+      **CANONICAL, rack_host: nil,
       rewritten: { rack_host: '{canonical}', rack_base_url: CANONICAL_ORIGIN } },
     { id: 'X06', case: 'read failure, tenant and a public port in X-Forwarded-Host',
       record: :read_fails, headers: { 'Host' => '{canonical}:3000', 'X-Forwarded-Host' => '{tenant}:8443' },
@@ -384,7 +385,7 @@ module HostProxyMatrix
     # The configured port is kept although the authority cannot be parsed.
     { id: 'N02', case: 'doubled IP-literal site.host',
       headers: { 'Host' => "#{SITE_HOST}, #{SITE_HOST}" }, proto: nil,
-      rack_host: nil, rack_base_url: "http://#{SITE_HOST}, #{SITE_HOST}", **OFF },
+      rack_host: nil, **OFF },
     { id: 'N03', case: 'unregistered host in Host',
       headers: { 'Host' => UNREGISTERED },
       rack_host: UNREGISTERED, **OFF, detected: UNREGISTERED, origin: SITE_HOST_ORIGIN },
