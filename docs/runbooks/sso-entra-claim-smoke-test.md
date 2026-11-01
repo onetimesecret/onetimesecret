@@ -109,6 +109,18 @@ this format.
   [conditional Connect path](../authentication/per-install-sso.md#existing-account-with-a-missing-email-claim).
 - `email` present but refused: check `invalid_email` (shape) against
   `domain_not_allowed` (policy) before touching the IdP.
-- `xms_edov` is domain-owner verification, not mailbox control. Its
-  presence does not change the outcome today; see
-  [RISK-2026-10-10-02](../security/active-risk-register.md).
+- `xms_edov` is domain-owner verification, not mailbox control. `true`
+  or an absent claim changes nothing. An explicit `false` does change the
+  outcome (#4735):
+  - On a tenant surface with an email-domain allowlist, it refuses the
+    sign-in even when the address matches the allowlist. The browser shows
+    `domain_not_allowed`; the `omniauth_tenant_domain_rejected` log line
+    has `reason: domain_unverified`. Read that `reason` before changing the
+    allowlist: `domain_unverified` points at the tenant's domain
+    verification in Entra, not at OTS policy.
+  - A first-time account that SSO provisions is created unverified with
+    `verification_hold: domain_unverified` (logged as
+    `omniauth_verification_held`, reported by `bin/ots customers doctor`).
+
+  See [Entra email claims and mailbox verification](../authentication/per-install-sso.md#entra-email-claims-and-mailbox-verification)
+  and [RISK-2026-10-10-02](../security/active-risk-register.md).
