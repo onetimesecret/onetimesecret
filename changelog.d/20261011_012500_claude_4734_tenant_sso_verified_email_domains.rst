@@ -23,17 +23,17 @@ Security
   complete its TXT check before new people can sign in; the domain does not
   have to point at Onetime Secret. The allowed-domains list in the SSO
   settings is shown again and marks entries outside a proven domain, since
-  such an entry admits no one. For Microsoft Entra ID tenants, a successful
-  connection test now lists the two app registration settings to confirm by
-  hand, ``removeUnverifiedEmailClaim`` and the ``xms_edov`` optional claim,
-  and the documentation explains both. Operators can list, and on request
+  sign-in creates no new accounts for such an entry. For Microsoft Entra ID
+  tenants, a successful connection test now lists the two app registration
+  settings to confirm by hand, ``removeUnverifiedEmailClaim`` and the
+  ``xms_edov`` optional claim, and the documentation explains both. Operators can list, and on request
   unlink, tenant identities bound before this change to accounts outside
   the proven domains with ``bin/ots sso audit-email-domains``. (#4734)
 
 - **Action required (passthrough installs with tenant SSO)**: under the
   ``passthrough`` validation strategy, the default, the verify call marks
   any registered domain verified without a DNS lookup, so a verified domain
-  no longer proves an email domain there. Only a Colonel override does.
+  does not prove an email domain there. Only a Colonel override does.
   After upgrading, until a Colonel overrides a tenant domain's verification,
   tenant SSO on that domain creates no new accounts (new people are refused
   with ``domain_not_allowed``, including addresses at the tenant's own

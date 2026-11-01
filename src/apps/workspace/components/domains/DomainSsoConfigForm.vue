@@ -1731,7 +1731,7 @@ aria-hidden="true">*</span>
             :data-domain="domain"
             class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 dark:bg-gray-600 dark:text-gray-200">
             {{ domain }}
-            <!-- #4734: an entry outside every proven domain admits no one. -->
+            <!-- #4734: an entry outside every proven domain creates no new accounts. -->
             <span
               v-if="entryState(domain) === 'unverified'"
               class="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"

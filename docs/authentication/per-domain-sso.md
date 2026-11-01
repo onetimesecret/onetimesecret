@@ -340,10 +340,12 @@ obscured address, the asserted domain and a `reason`:
 `email_domain_unverified`, or `no_custom_domain` / `no_organization` when
 the tenant record could not be loaded mid-flow.
 
-The allowlist therefore selects among proven domains. A listed domain the
-organization has not proven admits no one; an empty list admits every
-proven domain. Entra app assignment still decides who may authenticate at the
-IdP; it is not evidence about the domain of the `email` claim. Entra tenants
+The allowlist therefore selects among proven domains. For a listed domain
+the organization has not proven, sign-in creates no new accounts, though
+people already bound to an account keep signing in; an empty list admits
+every proven domain. Entra app assignment still decides who may
+authenticate at the IdP; it is not evidence about the domain of the `email`
+claim. Entra tenants
 also confirm the two
 [app registration settings](#entra-app-registration-settings) that keep an
 unverified address out of the claim.

@@ -1236,8 +1236,8 @@
     "content_hash": "41848e96"
   },
   "web.organizations.sso.allowed_domain_unverified_label": {
-    "text": "{domain} is outside the domains your organization has proven it owns. It admits no one until that domain is proven.",
-    "content_hash": "4c0d7532"
+    "text": "{domain} is outside the domains your organization has proven it owns. Sign-in creates no new accounts for it until that domain is proven.",
+    "content_hash": "f2ad2ae0"
   },
   "web.organizations.sso.allowed_domain_unknown": {
     "text": "Checked on save",

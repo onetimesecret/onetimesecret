@@ -4,8 +4,8 @@
 //
 // Tenant SSO creates an account only for an address inside a custom domain
 // whose ownership the organization has proven, so an allowlist entry outside
-// every proven domain admits no one. The API is authoritative: a saved record
-// carries `verified_email_domains` (the proven set) and
+// every proven domain creates no new accounts. The API is authoritative: a
+// saved record carries `verified_email_domains` (the proven set) and
 // `unverified_allowed_domains` (the saved entries outside it, judged by the
 // same A-label, label-boundary comparison the sign-in gate uses). An entry
 // added in the form but not yet saved is judged here the same way, after both
