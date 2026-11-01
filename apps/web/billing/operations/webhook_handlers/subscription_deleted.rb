@@ -82,13 +82,18 @@ module Billing
         # later verification retry cannot replay a paid snapshot over it
         # (#4735 review, F8).
         #
+        # Not gated on the owner's mailbox proof: it only removes access, and
+        # it retires the pending record even when a workspace for the hash is
+        # deferred, since the subscription it would claim has ended (#4754
+        # review, F3).
+        #
         # @param org [Onetime::Organization] Organization to update
         # @param subscription [Stripe::Subscription] Stripe subscription (for logging)
         def clear_federated_org(org, _subscription)
           Billing::Operations::ApplySubscriptionToOrg.apply_free_tier(org, owner: false, save: false)
           mark_federated_sync!(org)
           org.save
-          discard_superseded_pending(org)
+          discard_superseded_pending(org, keep_for_deferred: false)
         end
       end
     end

@@ -406,21 +406,12 @@ module Auth
       #
       # @return [Boolean]
       def claim_deferred?
-        return false if @customer&.mailbox_verified?
-
-        @require_verification || sso_provisioned?
-      end
-
-      # An account the IdP vouched for and nobody else did: JIT-provisioned
-      # (provisioning_origin, never rewritten, so a held record counts too) or
-      # carrying the 'sso' stamp (the doctor's :sso_customer_unverified repair
-      # writes it onto records that predate provisioning_origin).
-      #
-      # @return [Boolean]
-      def sso_provisioned?
         return false unless @customer
+        return false if @customer.mailbox_verified?
 
-        @customer.provisioning_origin.to_s == 'sso_jit' || @customer.verified_by.to_s == 'sso'
+        # The record-based half (Customer#federation_claim_deferred?) is the
+        # rule the federated webhook path applies too.
+        @require_verification || @customer.federation_claim_deferred?
       end
 
       # Check for and apply pending federated subscription

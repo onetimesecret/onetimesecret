@@ -143,6 +143,24 @@ module Onetime::Customer::Features
         verified? && Onetime::Customer::MAILBOX_VERIFIED_BY.include?(verified_by.to_s)
       end
 
+      # Must a federated subscription wait for this customer's mailbox proof
+      # whatever the caller? True for an account the IdP vouched for and
+      # nobody else did: JIT-provisioned (provisioning_origin is never
+      # rewritten, so a held record counts too) or carrying the 'sso' stamp
+      # (the doctor's :sso_customer_unverified repair writes it onto records
+      # that predate provisioning_origin). No verify_account step will ever
+      # prove such an address.
+      #
+      # This is the record-based half of
+      # Auth::Operations::EnsureDefaultWorkspace#claim_deferred?. The webhook
+      # path reads it too, so a workspace whose claim was deferred cannot
+      # receive the same subscription through a direct sync (#4735).
+      def federation_claim_deferred?
+        return false if mailbox_verified?
+
+        provisioning_origin.to_s == 'sso_jit' || verified_by.to_s == 'sso'
+      end
+
       # Does revealing this verification secret prove control of THIS
       # customer's current mailbox? The account-verification and password-
       # reset links are delivered to the customer's address, so yes. The

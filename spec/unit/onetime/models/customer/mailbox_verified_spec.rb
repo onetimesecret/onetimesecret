@@ -52,6 +52,36 @@ RSpec.describe Onetime::Customer do
     end
   end
 
+  # The record-based deferral rule shared by the federation claim and the
+  # federated webhook sync (#4754 review, F3).
+  describe '#federation_claim_deferred?' do
+    def sso_record(verified_by:, provisioning_origin: nil, verified: true)
+      cust                     = customer(verified: verified, verified_by: verified_by)
+      cust.provisioning_origin = provisioning_origin
+      cust
+    end
+
+    it 'is true for an SSO JIT record without mailbox proof' do
+      expect(sso_record(verified_by: 'sso', provisioning_origin: 'sso_jit').federation_claim_deferred?).to be(true)
+      expect(sso_record(verified_by: nil, provisioning_origin: 'sso_jit', verified: false).federation_claim_deferred?).to be(true)
+    end
+
+    it "is true for an 'sso' stamp that predates provisioning_origin" do
+      expect(sso_record(verified_by: 'sso').federation_claim_deferred?).to be(true)
+    end
+
+    it 'is false once an SSO record has mailbox proof' do
+      expect(sso_record(verified_by: 'cli_provision', provisioning_origin: 'sso_jit').federation_claim_deferred?).to be(false)
+    end
+
+    it 'is false for a non-SSO record whatever its provenance' do
+      %w[autoverify stripe_payment legacy email].each do |provenance|
+        expect(sso_record(verified_by: provenance, provisioning_origin: 'canonical_signup').federation_claim_deferred?).to be(false)
+      end
+      expect(sso_record(verified_by: nil, verified: false).federation_claim_deferred?).to be(false)
+    end
+  end
+
   describe 'VERIFICATION_HOLDS' do
     it 'registers the Entra domain-owner hold' do
       expect(described_class::VERIFICATION_HOLDS).to include('domain_unverified')

@@ -75,9 +75,15 @@ module Billing
 
         # Pause federated organization subscription
         #
+        # Not gated on the owner's mailbox proof: it only removes access. For
+        # a deferred workspace the pending record is refreshed as well, so
+        # the claim that runs after verification does not apply an earlier
+        # active snapshot (#4754 review, F3).
+        #
         # @param org [Onetime::Organization] Organization to update
-        # @param subscription [Stripe::Subscription] Stripe subscription (for logging)
-        def pause_federated_org(org, _subscription)
+        # @param subscription [Stripe::Subscription] Stripe subscription
+        def pause_federated_org(org, subscription)
+          defer_federated_update(org, subscription) if federation_deferred_for?(org)
           org.subscription_status = 'paused'
           org.save
         end
