@@ -1005,7 +1005,8 @@ end
 # - Skip 100% pending specs (they waste time loading but never execute)
 # - Vitest runs a curated subset (src/tests/smoke-files.ts), not the full
 #   suite, which the T2 TypeScript Unit Tests job already runs
-# - Ruby part takes about 9 minutes on CI; the vitest subset about 1
+# - On CI about 9.5 minutes pass before vitest starts (runner setup about 1,
+#   Ruby about 8.6); the vitest subset takes about 1
 namespace :smoke do
   desc 'Run smoke test for RSpec (unit + representative apps + simple integration)'
   task :rspec do

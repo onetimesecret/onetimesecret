@@ -2,8 +2,9 @@
 # Cleans the TEST valkey (2163), runs smoke:ruby, then the vitest smoke
 # subset (pnpm test:smoke:vitest; list in src/tests/smoke-files.ts).
 # CI: run by the T3 smoke-test job in .github/workflows/ci.yml when a
-# change touches both Ruby and TypeScript, with timeout-minutes 15. The
-# Ruby part takes about 9 minutes of that.
+# change touches both Ruby and TypeScript, with timeout-minutes 15. About
+# 9.5 minutes pass before vitest starts (runner setup about 1, Ruby about
+# 8.6).
 AUTHENTICATION_MODE=simple
 
 # Generated prerequisites, produced by tests/lanes/run before the tasks

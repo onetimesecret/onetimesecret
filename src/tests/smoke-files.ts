@@ -7,9 +7,9 @@
  *
  * Selection rules. A file is listed only if it is:
  * - high value: it guards a flow whose breakage would hurt users or
- *   security most (create, reveal and burn a secret; sign-in, MFA, CSRF,
- *   redirect safety; scrubbing secrets from error reports; the frontend
- *   and backend contracts);
+ *   security most (create, reveal and burn a secret; sign-up, account
+ *   verification, sign-in, MFA, CSRF, redirect safety; scrubbing secrets
+ *   from error reports; the frontend and backend contracts);
  * - cheap on CI: well under a second of test time. Each dom file costs
  *   about 1s of wall time in jsdom setup and imports; node files cost
  *   almost nothing;
@@ -20,8 +20,9 @@
  * To change the list, add or remove a path under the project that runs it
  * ('dom' for jsdom, 'node' for the NODE_GLOBS directories in
  * vitest.config.ts), with a one-line reason. Keep the vitest part of the
- * smoke job around a minute: the job is cancelled at 15 minutes and the
- * Ruby part takes about 9.5 of them.
+ * smoke job around a minute: the job is cancelled at 15 minutes, and on CI
+ * about 9.5 minutes pass before vitest starts (runner setup about 1, Ruby
+ * about 8.6).
  *
  * Every entry is checked by findSmokeListProblems below, at config load in
  * the smoke job and by src/tests/build/smoke-files.spec.ts in T2 on every
@@ -68,6 +69,10 @@ export const SMOKE_FILES = {
     'src/tests/stores/authStore.rejection.spec.ts',
     // Logout flow and state reset.
     'src/tests/composables/useAuth.logout.spec.ts',
+    // Sign-up: create-account POST body, routing, email kept out of the URL.
+    'src/tests/composables/useAuth.signup.spec.ts',
+    // Account verification: server redirect re-checked, flag kept out of URL.
+    'src/tests/composables/useAuth.verifyAccount.spec.ts',
     // MFA setup, enable, verifyOtp at login, disable.
     'src/tests/composables/useMfa.spec.ts',
     // Login view: auth errors, query-param cleanup, per-domain sign-in off.

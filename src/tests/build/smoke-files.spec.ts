@@ -66,6 +66,12 @@ describe('smoke vitest list', () => {
 
   it('reports a project missing from the config', () => {
     const domOnly = projects.filter((p) => p.test.name === 'dom');
-    expect(findSmokeListProblems(ROOT, domOnly)).toEqual(["no 'node' project in vitest.config.ts"]);
+    // A fixed list, so a stale entry in the real list fails only the first
+    // case above, not this one too.
+    const problems = findSmokeListProblems(ROOT, domOnly, {
+      dom: [SMOKE_FILES.dom[0]],
+      node: [SMOKE_FILES.node[0]],
+    });
+    expect(problems).toEqual(["no 'node' project in vitest.config.ts"]);
   });
 });
