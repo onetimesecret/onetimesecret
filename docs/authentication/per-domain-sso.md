@@ -165,7 +165,9 @@ SSO settings form, described below.
 The refusal described next applies where such a host is served: under
 `passthrough`, where registration is the basis for serving but SSO still
 needs a verify call to mark the domain verified, and under any strategy while
-the operator sets `features.domains.serve_unverified`.
+the operator sets `features.domains.serve_unverified`. Under `passthrough` a
+verified domain still creates no accounts until a Colonel overrides its
+verification (see [Verified email domains](#verified-email-domains)).
 
 When a domain's SSO configuration is enabled and permitted but the domain's
 ownership is not verified yet, the hook refuses SSO at step 5: it logs
@@ -253,14 +255,58 @@ tenant IdP could mint a verified account for any address that has no OTS
 account yet, and the address owner's later password reset or magic link on
 the canonical host would share that account with the tenant identity.
 
-The proven set is the organization's custom domains whose ownership axis is
-accepted ([ADR-016](../adr/adr-016-domain-validation-state-model.md): a passing
-TXT check, or a Colonel override). The TXT challenge is placed under the name
-as entered, so a verified `secrets.acme.example` proves that name and the
-names below it. It does not prove `acme.example`. An organization whose people
-have `@acme.example` addresses adds `acme.example` as a custom domain and
-completes its TXT check. The serving axis plays no part: the name never has to
-point at this service, and the domain can stay unused for links.
+The proven set is the organization's custom domains whose ownership rests on
+evidence (`CustomDomain#ownership_proven?`). A domain counts when either is true
+on the ownership axis
+([ADR-016](../adr/adr-016-domain-validation-state-model.md)):
+
+- a Colonel has overridden its verification to true (`verified_by_override`),
+  under any validation strategy; or
+- its ownership is verified (`ownership_verified`) and the install's
+  validation strategy checks the TXT record (`approximated`,
+  `caddy_on_demand`), so the flag is the result of a passing TXT check.
+
+The TXT challenge is placed under the name as entered, so a verified
+`secrets.acme.example` proves that name and the names below it. It does not
+prove `acme.example`. An organization whose people have `@acme.example`
+addresses adds `acme.example` as a custom domain and completes its TXT check.
+The serving axis plays no part: the name never has to point at this service,
+and the domain can stay unused for links.
+
+#### Passthrough installs
+
+Under the `passthrough` validation strategy (the default) the verify call sets
+`ownership_verified` for any name the organization registers, with no DNS
+lookup. [ADR-049](../adr/adr-049-operator-managed-domain-authorization.md)
+calls that operator policy "an authorization basis, not evidence that the
+customer owns the hostname". Counting it would let any organization register
+`victim.example`, press verify, and have its tenant IdP create accounts for
+`@victim.example` addresses. So under passthrough a domain counts only after a
+Colonel overrides its verification. Serving does not change: passthrough
+still serves every registered domain (`CustomDomain#serving_authorized?`), and
+tenant SSO on the domain still needs only the verified flag to be offered.
+
+What a passthrough operator does for each organization that uses tenant SSO:
+
+1. Confirm, outside this service, that the organization owns each name its
+   people's addresses use: the tenant's custom domain itself and any other
+   custom domain added only to prove an email namespace.
+2. Override that domain's verification to true as a Colonel: the domain's
+   page in the admin area, or `POST /api/colonel/domains/:extid/override` with
+   `verified: true`. A later passthrough verify call leaves the override in
+   place. A passing TXT check (after a move to a strategy that checks TXT)
+   clears it and keeps the domain verified; overriding back to false
+   withdraws it.
+3. Run `bin/ots sso audit-email-domains DOMAIN` for the tenant domain. Its
+   header line `Proven by:` reads `Colonel override only` on passthrough, and
+   rows reported `outside` are identities whose address no overridden domain
+   covers.
+
+Until step 2, a new person signing in through the tenant IdP is refused with
+`domain_not_allowed` (no account is created), even at the tenant's own custom
+domain. People whose identity is already bound to an account keep signing in;
+each such sign-in logs `omniauth_tenant_email_domain_unverified` with
+`outcome: signed_in`.
 
 The gate runs in `before_omniauth_create_account`, so it applies exactly when
 an account is about to be created. An identity already bound to an account
@@ -293,7 +339,7 @@ obscured address, the asserted domain and a `reason`:
 the tenant record could not be loaded mid-flow.
 
 The allowlist therefore selects among proven domains. A listed domain the
-organization has not verified admits no one; an empty list admits every
+organization has not proven admits no one; an empty list admits every
 proven domain. Entra app assignment still decides who may authenticate at the
 IdP; it is not evidence about the domain of the `email` claim. Entra tenants
 also confirm the two
@@ -1042,7 +1088,7 @@ allowlist is enforced on every tenant SSO callback; an empty list allows every
 email domain that the IdP authenticates. This differs from `entra_id`, where
 app assignment is treated as the access-control boundary for who may sign in.
 On either provider type, an account is created only for an address inside a
-domain the organization has verified; see
+domain the organization has proven; see
 [Verified email domains](#verified-email-domains). App assignment says nothing
 about the domain of the `email` claim.
 

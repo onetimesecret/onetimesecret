@@ -5,8 +5,13 @@ Use this runbook after upgrading to a release that includes #4734
 `omniauth_tenant_email_domain_unverified` with `outcome: signed_in`.
 
 Since #4734, tenant SSO creates an account only for an address inside a
-custom domain the tenant organization has proven by its TXT ownership check
+custom domain the tenant organization has proven
 ([per-domain SSO: verified email domains](../authentication/per-domain-sso.md#verified-email-domains)).
+A domain is proven by a Colonel override of its verification, or by its
+verified flag under a validation strategy that checks the TXT record
+(`approximated`, `caddy_on_demand`). Under `passthrough` (the default) the
+verify call sets the flag without a DNS lookup, so there only a Colonel
+override counts.
 The gate runs when an account is about to be created. An identity bound to an
 account before the gate existed keeps signing in; the sign-in hook records it
 with `outcome: signed_in` so the operator can review it. That event lists only
@@ -17,13 +22,18 @@ identity rows themselves, so dormant bindings are found too.
 
 - `omniauth_tenant_email_domain_unverified` with `outcome: signed_in` in the
   auth log, naming a `domain_id`, `org_id`, an obscured address and an
-  `asserted_domain` the organization has not verified.
+  `asserted_domain` the organization has not proven.
 - A tenant reports that a colleague can still sign in through SSO with an
   address at a domain the organization never added, while a new colleague
   with the same kind of address is refused with `domain_not_allowed`.
 - After the upgrade, the operator wants an inventory of accounts a tenant IdP
   minted for addresses the tenant has not proven (the audit's scenarios S1,
   S2 and S8).
+- On a `passthrough` install after the upgrade: new tenant SSO users are
+  refused with `domain_not_allowed`, even at the tenant's own custom domain,
+  and every returning tenant user logs `outcome: signed_in`, because no
+  domain has a Colonel override yet. See
+  [Passthrough installs](#passthrough-installs).
 
 ## What the command does
 
@@ -40,9 +50,16 @@ For the tenant domain given (display domain or CustomDomain extid) it
 2. reads every `account_identities` row under that provider and issuer;
 3. compares each account's address with the proven set exactly as the login
    gate does (`Organization#owns_email_domain_through?`: the tenant domain
-   itself plus every other custom domain of the organization whose ownership
-   is accepted, matched on a label boundary by A-label);
+   itself plus every other custom domain of the organization, each counted
+   only while `CustomDomain#ownership_proven?`, matched on a label boundary
+   by A-label);
 4. prints one line per row and a tally. Nothing is written.
+
+The header line `Proven by:` (JSON `proof_basis`) names the basis this
+install accepts: `TXT ownership check or Colonel override`
+(`txt_or_override`) under a strategy that checks TXT, or `Colonel override
+only` (`override_only`) under one that does not. Read the `outside` rows
+against it.
 
 Statuses:
 
@@ -65,15 +82,34 @@ apart:
 
 - a legitimate member whose organization has not (yet) proven that email
   domain. The organization adds the domain under Domains and completes the
-  TXT check. The row then reports `inside` on the next run. The domain never
-  has to be pointed at this service;
+  TXT check; on a `passthrough` install a Colonel overrides the domain's
+  verification instead, after confirming the organization owns it. The row
+  then reports `inside` on the next run. The domain never has to be pointed
+  at this service;
 - an account the tenant IdP minted for an address its organization does not
   control. This is the squatting the risk register describes: when the
   address owner later uses a canonical-host password reset or magic link,
   both parties sign into the same account.
 
-Ask the tenant which it is before unlinking. When in doubt, verify first;
-unlinking is reversible only by the user linking the identity again.
+Ask the tenant which it is before unlinking. When in doubt, prove the domain
+first; unlinking is reversible only by the user linking the identity again.
+
+## Passthrough installs
+
+Under `passthrough`, every domain an organization registers and verifies
+reads as verified, but none is proven until a Colonel overrides its
+verification. Right after the upgrade, therefore, the audit reports every
+identity under a tenant domain as `outside`, including addresses at the
+tenant's own custom domain. Do not unlink on that basis.
+
+1. For each tenant domain with SSO enabled, confirm outside this service that
+   the organization owns the names its people's addresses use.
+2. Override each such domain's verification to true as a Colonel (the
+   domain's page in the admin area, or
+   `POST /api/colonel/domains/:extid/override` with `verified: true`). A
+   later passthrough verify call keeps the override.
+3. Run the audit again. Rows at an overridden domain now report `inside`;
+   decide the remaining `outside` rows as above.
 
 ## Unlinking
 
@@ -114,8 +150,9 @@ domain id, so the gate is a formality there, but it is applied uniformly.
 
 ### Re-admitting a legitimate user after an unlink
 
-1. The organization verifies the user's email domain under Domains (TXT
-   check).
+1. The organization proves the user's email domain: it adds the domain
+   under Domains and passes the TXT check, or, on a `passthrough` install, a
+   Colonel overrides the domain's verification.
 2. The user signs in on the canonical host. An account minted by SSO has no
    password: they use the password reset first.
 3. The user links the tenant identity again from Connected Identities (the
@@ -133,6 +170,7 @@ $ bin/ots sso audit-email-domains secrets.example.com --unlink --json
   "provider": "oidc",
   "issuer": "https://idp.example.com/",
   "sso_enabled": true,
+  "proof_basis": "txt_or_override",
   "dry_run": true,
   "unlink": true,
   "statistics": {

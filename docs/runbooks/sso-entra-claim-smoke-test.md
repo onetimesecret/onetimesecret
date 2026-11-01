@@ -56,7 +56,7 @@ for a particular account type. That needs the live test below.
    `omniauth_missing_email` (`provider: entra`) or
    `omniauth_invalid_email`; a tenant allowlist refusal logs
    `omniauth_tenant_domain_rejected` with `reason`; a tenant creation for an
-   address outside the organization's verified domains logs
+   address outside the organization's proven domains logs
    `omniauth_tenant_email_domain_unverified`. Returning identities do
    not need the claim on the platform surface; see
    [the error code table](../authentication/per-install-sso.md#email-claim-and-domain-errors).
