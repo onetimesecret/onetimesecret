@@ -291,8 +291,10 @@ What a passthrough operator does for each organization that uses tenant SSO:
 1. Confirm, outside this service, that the organization owns each name its
    people's addresses use: the tenant's custom domain itself and any other
    custom domain added only to prove an email namespace.
-2. Override that domain's verification to true as a Colonel: the domain's
-   page in the admin area, or `POST /api/colonel/domains/:extid/override` with
+2. Override that domain's verification to true as a Colonel: on the
+   domain's page in the admin area, choose Override Status and tick "Accept
+   ownership by override" (shown while the domain is verified but not by
+   override), or call `POST /api/colonel/domains/:extid/override` with
    `verified: true`. A later passthrough verify call leaves the override in
    place. A passing TXT check (after a move to a strategy that checks TXT)
    clears it and keeps the domain verified; overriding back to false

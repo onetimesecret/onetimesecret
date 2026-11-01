@@ -43,7 +43,9 @@ Security
   ``omniauth_tenant_email_domain_unverified``. Serving custom domains does
   not change. For each organization that uses tenant SSO, confirm it owns
   the domains its people's addresses use, override each one's verification
-  to true from the admin domain page (or
-  ``POST /api/colonel/domains/:extid/override`` with ``verified: true``),
-  then run the audit. See ``docs/authentication/per-domain-sso.md``,
+  to true (on the admin domain page, Override Status, then "Accept ownership
+  by override"; or ``POST /api/colonel/domains/:extid/override`` with
+  ``verified: true``), then run the audit. The admin domain pages now offer
+  that control for a domain that is verified but not by override, since
+  ticking "Ownership verified" there found nothing to change. See ``docs/authentication/per-domain-sso.md``,
   "Passthrough installs". (#4734)

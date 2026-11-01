@@ -107,10 +107,10 @@ tenant's own custom domain. Do not unlink on that basis.
 
 1. For each tenant domain with SSO enabled, confirm outside this service that
    the organization owns the names its people's addresses use.
-2. Override each such domain's verification to true as a Colonel (the
-   domain's page in the admin area, or
-   `POST /api/colonel/domains/:extid/override` with `verified: true`). A
-   later passthrough verify call keeps the override.
+2. Override each such domain's verification to true as a Colonel (on the
+   domain's page in the admin area, Override Status, then "Accept ownership
+   by override"; or `POST /api/colonel/domains/:extid/override` with
+   `verified: true`). A later passthrough verify call keeps the override.
 3. Run the audit again. Rows at an overridden domain now report `inside`;
    decide the remaining `outside` rows as above.
 

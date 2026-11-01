@@ -334,6 +334,8 @@ export const colonelCustomDomainSchema = z.object({
   subdomain: z.string(),
   status: z.string().nullable(),
   verified: z.boolean(),
+  /** True when a Colonel override set `verified` (#4734). Optional for rolling deploys. */
+  verified_by_override: z.boolean().optional(),
   resolving: z.boolean(),
   verification_state: z.string(),
   ready: z.boolean(),
