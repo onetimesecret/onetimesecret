@@ -24,10 +24,20 @@ module Onetime
       # Which domains count as proven on this install
       # (CustomDomain#ownership_proven?). Under passthrough every registered
       # domain reads as verified, so the operator needs to see that only
-      # overrides count before reading "outside" rows.
+      # overrides count before reading "outside" rows. A strategy that cannot
+      # be built (an unknown name under strict_strategy) also leaves only
+      # overrides, and is named so the operator fixes the setting.
       PROOF_BASIS_LABELS = {
         'txt_or_override' => 'TXT ownership check or Colonel override',
         'override_only' => 'Colonel override only (validation strategy makes no TXT check)',
+        'override_only_strategy_error' =>
+          'Colonel override only (validation strategy cannot be built; check features.domains.validation_strategy)',
+      }.freeze
+
+      PROOF_BASIS_BY_STRATEGY_STATE = {
+        proves: 'txt_or_override',
+        no_proof: 'override_only',
+        unbuildable: 'override_only_strategy_error',
       }.freeze
 
       argument :domain,
@@ -123,9 +133,9 @@ module Onetime
       # Which basis makes a domain proven on this install
       # (CustomDomain#ownership_proven?), as JSON proof_basis and as text.
       #
-      # @return [String] 'txt_or_override' or 'override_only'
+      # @return [String] a key of PROOF_BASIS_LABELS
       def proof_basis
-        Onetime::CustomDomain.ownership_proof_required? ? 'txt_or_override' : 'override_only'
+        PROOF_BASIS_BY_STRATEGY_STATE.fetch(Onetime::CustomDomain.validation_strategy_state)
       end
 
       def proof_basis_label

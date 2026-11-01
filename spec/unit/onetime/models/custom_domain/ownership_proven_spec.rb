@@ -7,6 +7,8 @@
 # namespace (#4734, RISK-2026-10-10-01). A Colonel override counts under any
 # validation strategy; ownership_verified alone counts only under a strategy
 # that checks the TXT record. Serving (#serving_authorized?) is not affected.
+# When the strategy cannot be built, both fail closed: serving requires
+# ownership_verified and proof requires an override.
 #
 # Unsaved records and a per-example copy of OT.conf: no datastore or DNS I/O.
 
@@ -39,6 +41,7 @@ RSpec.describe Onetime::CustomDomain, '#ownership_proven?' do
 
       it "#{checks_txt ? 'checks' : 'does not check'} the TXT record" do
         expect(described_class.ownership_proof_required?).to be(checks_txt)
+        expect(described_class.ownership_proof_checked?).to be(checks_txt)
       end
 
       it "#{checks_txt ? 'counts' : 'does not count'} ownership_verified without an override" do
@@ -57,6 +60,36 @@ RSpec.describe Onetime::CustomDomain, '#ownership_proven?' do
         expect(domain(verified: false, override: false).ownership_proven?).to be(false)
         expect(domain(verified: nil, override: nil).ownership_proven?).to be(false)
       end
+    end
+  end
+
+  # Strategy.for_config raises for an unknown name under strict_strategy.
+  # Serving then fails closed (ownership_verified required) and proof fails
+  # closed too (only an override counts), even though both read the same
+  # failed decision.
+  context 'under a strategy that cannot be built' do
+    before do
+      allow(OT).to receive(:le)
+      configure_domains(validation_strategy: 'bogus', strict_strategy: true)
+    end
+
+    it 'reports the strategy as unbuildable' do
+      expect(described_class.validation_strategy_state).to eq(:unbuildable)
+      expect(described_class.ownership_proof_checked?).to be(false)
+    end
+
+    it 'still requires ownership_verified for serving' do
+      expect(described_class.ownership_proof_required?).to be(true)
+      expect(domain(verified: false, override: false).serving_authorized?).to be(false)
+      expect(domain(verified: true, override: false).serving_authorized?).to be(true)
+    end
+
+    it 'does not count ownership_verified without an override' do
+      expect(domain(verified: true, override: false).ownership_proven?).to be(false)
+    end
+
+    it 'counts ownership_verified with a Colonel override' do
+      expect(domain(verified: true, override: true).ownership_proven?).to be(true)
     end
   end
 

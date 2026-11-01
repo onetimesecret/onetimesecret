@@ -57,7 +57,7 @@ module Onetime
       # - A Colonel override (verified_by_override) counts under any
       #   strategy: an operator asserted ownership for this one name.
       # - Otherwise ownership_verified counts only under a validation
-      #   strategy that checks the TXT record (ownership_proof_required?).
+      #   strategy that checks the TXT record (ownership_proof_checked?).
       #   Under passthrough the verify call sets ownership_verified for any
       #   name the organization registers, without a DNS lookup, and ADR-049
       #   calls that operator policy "an authorization basis, not evidence
@@ -65,7 +65,9 @@ module Onetime
       #
       # Stricter than #serving_authorized?, which accepts registration alone
       # under passthrough. Serving a name is not the same as owning the
-      # mailboxes under it.
+      # mailboxes under it. The two also fail in opposite directions when the
+      # strategy cannot be built: serving then requires ownership_verified,
+      # and proof then requires an override.
       #
       # Reads loaded fields and configuration only: no datastore or DNS I/O.
       #
@@ -74,7 +76,7 @@ module Onetime
         return false unless ownership_verified == true
         return true if verified_by_override == true
 
-        self.class.ownership_proof_required?
+        self.class.ownership_proof_checked?
       end
 
       # #serving_authorized?, or any record with an organization while the
@@ -102,28 +104,51 @@ module Onetime
         SERVE_UNVERIFIED_WARNING = Mutex.new
         private_constant :SERVE_UNVERIFIED_WARNING
 
-        # Whether the install's validation strategy proves ownership
+        # Whether serving requires ownership_verified, that is, whether the
+        # install's validation strategy proves ownership
         # (Onetime::DomainValidation::BaseStrategy#proves_ownership?):
         # true for approximated and caddy_on_demand, false for passthrough.
-        #
-        # Decided from the same configuration Strategy.for_config reads, and
-        # kept for as long as that configuration is unchanged. A different
-        # validation_strategy or strict_strategy value (a spec that swaps
-        # OT.conf) is decided again on the next call; nothing has to be reset.
         #
         # A strategy that cannot be built (an unknown name under
         # strict_strategy) answers true, so serving fails closed.
         #
         # @return [Boolean]
         def ownership_proof_required?
+          validation_strategy_state != :no_proof
+        end
+
+        # Whether ownership_verified on its own is evidence of ownership for
+        # #ownership_proven?: true only when the strategy is known to check
+        # the TXT record (approximated, caddy_on_demand).
+        #
+        # A strategy that cannot be built answers false, so proof fails
+        # closed and only a Colonel override counts.
+        #
+        # @return [Boolean]
+        def ownership_proof_checked?
+          validation_strategy_state == :proves
+        end
+
+        # What the configured validation strategy does about ownership:
+        # :proves (it checks the TXT record), :no_proof (passthrough), or
+        # :unbuildable (Strategy.for_config raised, for example an unknown
+        # name under strict_strategy).
+        #
+        # Decided from the same configuration Strategy.for_config reads, and
+        # kept for as long as that configuration is unchanged. A different
+        # validation_strategy or strict_strategy value (a spec that swaps
+        # OT.conf) is decided again on the next call; nothing has to be reset.
+        #
+        # @return [Symbol]
+        def validation_strategy_state
           domains = configured_domains_section
           key     = [domains['validation_strategy'], domains['strict_strategy'] == true]
-          decided = @ownership_proof_required
+          decided = @validation_strategy_state
           return decided.last if decided && decided.first == key
 
-          answer                    = strategy_proves_ownership?(domains)
-          @ownership_proof_required = [key, answer].freeze
-          answer
+          state                      = decide_validation_strategy_state(domains)
+          @validation_strategy_state = [key, state].freeze
+          state
         end
 
         # features.domains.serve_unverified, read as a strict boolean. When
@@ -162,8 +187,8 @@ module Onetime
         # @return [void]
         def reset_serving_policy!
           SERVE_UNVERIFIED_WARNING.synchronize do
-            @ownership_proof_required = nil
-            @serve_unverified_warned  = false
+            @validation_strategy_state = nil
+            @serve_unverified_warned   = false
           end
         end
 
@@ -175,15 +200,15 @@ module Onetime
           domains.is_a?(Hash) ? domains : {}
         end
 
-        def strategy_proves_ownership?(domains)
+        def decide_validation_strategy_state(domains)
           require_relative '../../domain_validation/strategy'
 
           config = { 'features' => { 'domains' => domains } }
-          Onetime::DomainValidation::Strategy.for_config(config).proves_ownership? == true
+          Onetime::DomainValidation::Strategy.for_config(config).proves_ownership? == true ? :proves : :no_proof
         rescue StandardError => ex
-          OT.le "[CustomDomain.ownership_proof_required?] #{ex.class}: #{ex.message}; " \
-                'treating ownership proof as required'
-          true
+          OT.le "[CustomDomain.validation_strategy_state] #{ex.class}: #{ex.message}; " \
+                'serving requires verified ownership and email domain proof requires a Colonel override'
+          :unbuildable
         end
       end
     end

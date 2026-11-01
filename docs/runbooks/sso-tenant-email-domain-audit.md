@@ -58,8 +58,11 @@ For the tenant domain given (display domain or CustomDomain extid) it
 The header line `Proven by:` (JSON `proof_basis`) names the basis this
 install accepts: `TXT ownership check or Colonel override`
 (`txt_or_override`) under a strategy that checks TXT, or `Colonel override
-only` (`override_only`) under one that does not. Read the `outside` rows
-against it.
+only` (`override_only`) under one that does not. When the configured
+strategy cannot be built (an unknown `validation_strategy` with
+`strict_strategy: true`), only overrides count and the basis reads
+`override_only_strategy_error`; fix the setting before reading the rows.
+Read the `outside` rows against it.
 
 Statuses:
 
