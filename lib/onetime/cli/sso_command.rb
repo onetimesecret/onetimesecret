@@ -51,7 +51,8 @@ module Onetime
         puts
         puts 'What audit-email-domains does (#4734):'
         puts '  Tenant SSO now creates accounts only for addresses inside a custom domain the'
-        puts '  organization has proven by TXT check. This lists the identities bound to this'
+        puts '  organization has proven (TXT check, or Colonel override; under passthrough only'
+        puts '  an override counts). This lists the identities bound to this'
         puts '  domain\'s IdP before that gate whose account address is outside the proven set,'
         puts '  and with --unlink --confirm deletes those identity rows (accounts stay). Rows'
         puts '  whose signup_domain_id does not name this domain are reported, never unlinked.'

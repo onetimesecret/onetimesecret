@@ -21,6 +21,15 @@ module Onetime
     class SsoAuditEmailDomainsCommand < Command
       desc 'List tenant SSO identities outside the organization\'s proven email domains'
 
+      # Which domains count as proven on this install
+      # (CustomDomain#ownership_proven?). Under passthrough every registered
+      # domain reads as verified, so the operator needs to see that only
+      # overrides count before reading "outside" rows.
+      PROOF_BASIS_LABELS = {
+        'txt_or_override' => 'TXT ownership check or Colonel override',
+        'override_only' => 'Colonel override only (validation strategy makes no TXT check)',
+      }.freeze
+
       argument :domain,
         type: :string,
         required: true,
@@ -107,7 +116,20 @@ module Onetime
         puts "  Provider:     #{op.provider}"
         puts "  Issuer:       #{op.issuer}"
         puts "  Mode:         #{dry_run ? 'DRY RUN' : 'LIVE'}#{op.unlink ? ' (unlink)' : ' (report)'}"
+        puts "  Proven by:    #{proof_basis_label}"
         puts '  WARNING:      SSO config for this domain is DISABLED' unless op.sso_enabled?
+      end
+
+      # Which basis makes a domain proven on this install
+      # (CustomDomain#ownership_proven?), as JSON proof_basis and as text.
+      #
+      # @return [String] 'txt_or_override' or 'override_only'
+      def proof_basis
+        Onetime::CustomDomain.ownership_proof_required? ? 'txt_or_override' : 'override_only'
+      end
+
+      def proof_basis_label
+        PROOF_BASIS_LABELS.fetch(proof_basis)
       end
 
       def print_results(results, dry_run, unlink)
@@ -157,9 +179,10 @@ module Onetime
           puts <<~MESSAGE
 
             #{stats[:outside]} identity row(s) bind this tenant's IdP to an account whose address the
-            organization has not proven. Review them, then either have the organization verify
-            the email domain under Domains (the rows then report "inside"), or remove the
-            bindings:
+            organization has not proven. Review them, then either prove the email domain (the
+            organization adds it under Domains and passes the TXT check, or, where the validation
+            strategy makes no TXT check, a Colonel overrides its verification; the rows then
+            report "inside"), or remove the bindings:
               bin/ots sso audit-email-domains #{domain} --unlink --confirm
           MESSAGE
         elsif unlink && dry_run && stats[:unlink].positive?
@@ -172,7 +195,8 @@ module Onetime
           puts <<~MESSAGE
 
             Each unlinked account keeps its address and credentials. To re-admit a legitimate
-            user: the organization verifies that email domain under Domains, the user signs in
+            user: the organization proves that email domain (TXT check, or a Colonel override
+            where the validation strategy makes no TXT check), the user signs in
             on the canonical host (password reset if the account has no password) and links the
             identity again from Connected Identities.
           MESSAGE
@@ -196,6 +220,7 @@ module Onetime
           provider: op.provider,
           issuer: op.issuer,
           sso_enabled: op.sso_enabled?,
+          proof_basis: proof_basis,
           dry_run: dry_run,
           unlink: op.unlink,
           statistics: {
@@ -249,7 +274,9 @@ module Onetime
 
           Description:
             Since #4734 tenant SSO creates an account only for an address inside a
-            custom domain the organization has proven by TXT ownership check. An
+            custom domain the organization has proven: by TXT ownership check, or by
+            a Colonel override (the only basis where the validation strategy makes no
+            TXT check, such as passthrough). An
             identity bound to an account before that gate existed keeps signing in
             (hooks/login.rb records it as omniauth_tenant_email_domain_unverified,
             outcome signed_in). That event lists only the accounts that sign in
