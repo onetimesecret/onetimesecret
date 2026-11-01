@@ -266,8 +266,10 @@ RSpec.shared_context 'host proxy rows' do
     # The redirect_uri and the emailed link read one chain.
     expect(actual[:email_origin]).to eq(actual[:origin])
     expect(actual[:rack_base_url]).to eq(fill(expects[:rack_base_url])) if expects.key?(:rack_base_url)
-    # Whatever the row sent, no auth URL carries a comma.
+    # Whatever the row sent, no auth URL carries a comma, and neither does
+    # Rack's own base_url (rack >= 3.2.8 no longer echoes an invalid Host).
     expect(actual[:origin]).not_to include(',')
+    expect(actual[:rack_base_url]).not_to include(',')
   end
 
   # scheme://host, with the port only when it is not the scheme default.
