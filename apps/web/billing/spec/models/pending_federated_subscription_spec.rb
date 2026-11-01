@@ -165,6 +165,49 @@ RSpec.describe Billing::PendingFederatedSubscription, type: :billing do
         expect(described_class.find_by_email_hash(email_hash).source_stripe_event_id).to eq('evt_new')
       end
     end
+
+    describe '#retire_for!' do
+      let(:synced_org) { instance_double(Onetime::Organization, objid: 'org_synced') }
+      let(:waiting_org) { instance_double(Onetime::Organization, objid: 'org_waiting') }
+
+      before do
+        allow(Onetime::Organization).to receive(:find_federated_by_email_hash)
+          .with(email_hash).and_return([synced_org, waiting_org])
+        allow(described_class).to receive(:awaiting_mailbox_proof?).with(synced_org).and_return(false)
+      end
+
+      it 'destroys the record when no other workspace for the hash is waiting on it' do
+        allow(described_class).to receive(:awaiting_mailbox_proof?).with(waiting_org).and_return(false)
+        loaded = store('evt_retire')
+
+        expect(loaded.retire_for!(synced_org)).to be(true)
+        expect(described_class.find_by_email_hash(email_hash)).to be_nil
+      end
+
+      it 'keeps the record while another workspace for the hash waits for mailbox proof' do
+        allow(described_class).to receive(:awaiting_mailbox_proof?).with(waiting_org).and_return(true)
+        loaded = store('evt_keep')
+
+        expect(loaded.retire_for!(synced_org)).to be(false)
+        expect(described_class.find_by_email_hash(email_hash).source_stripe_event_id).to eq('evt_keep')
+      end
+
+      it 'does not count the workspace it retires for as waiting' do
+        allow(described_class).to receive(:awaiting_mailbox_proof?).with(synced_org).and_return(true)
+        allow(described_class).to receive(:awaiting_mailbox_proof?).with(waiting_org).and_return(false)
+        loaded = store('evt_self')
+
+        expect(loaded.retire_for!(synced_org)).to be(true)
+      end
+
+      it 'destroys the record regardless when keep_for_deferred is false' do
+        allow(described_class).to receive(:awaiting_mailbox_proof?).with(waiting_org).and_return(true)
+        loaded = store('evt_cancel')
+
+        expect(loaded.retire_for!(synced_org, keep_for_deferred: false)).to be(true)
+        expect(described_class.find_by_email_hash(email_hash)).to be_nil
+      end
+    end
   end
 
   describe '.with_federation_lock' do

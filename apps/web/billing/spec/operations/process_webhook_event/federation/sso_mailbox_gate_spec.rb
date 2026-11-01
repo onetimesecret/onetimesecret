@@ -300,4 +300,84 @@ RSpec.describe 'ProcessWebhookEvent: federated sync honours the mailbox gate', :
     expect(pending_record).not_to be_nil
     expect(pending_record.source_stripe_event_id).to eq(second.id)
   end
+
+  # A sibling workspace for the same hash that the sibling's owner owns as a
+  # default workspace, so a mailbox-verified call for that owner re-claims it
+  # (EnsureDefaultWorkspace.claim_pending_federation_for). The owner's own
+  # address hashes differently; the billing email differs from the deferred
+  # workspace's only in case.
+  def provision_sibling_default_workspace(verified_by:)
+    owner = Onetime::Customer.create!(
+      email: "sibling-owner-#{SecureRandom.hex(6)}@example.com",
+      role: 'customer',
+      verified: !verified_by.nil?,
+      verified_by: verified_by,
+    )
+    extra_customers << owner
+    org = Auth::Operations::EnsureDefaultWorkspace.new(
+      customer: owner, require_verification: verified_by.nil?,
+    ).call[:organization]
+    extra_organizations << org
+    backfill_hash(org, billing_email: email.upcase)
+    [owner, org]
+  end
+
+  def operator_verify(customer, verified_by)
+    Auth::Operations::SetCustomerVerification.new(
+      customer: customer, verified: true, verified_by: verified_by,
+    ).call
+  end
+
+  it "keeps the deferred workspace's pending record when a sibling's re-claim finds it superseded" do
+    store_initial_pending
+    provision_sso_workspace
+    backfill_hash
+    sibling_owner, sibling_org = provision_sibling_default_workspace(verified_by: 'email')
+
+    # The webhook syncs the sibling directly and keeps the record for the
+    # deferred workspace (the sibling rule in discard_superseded_pending).
+    second = subscription_updated_event
+    expect(dispatch(second)).to eq(:federated_only)
+    sibling_org.refresh!
+    expect(sibling_org.planid).to eq('identity_plus_v1')
+    expect(pending_record.superseded_by?(sibling_org)).to be(true)
+
+    # A repeat verification of the sibling's owner re-claims on :no_change.
+    # The record is superseded for the sibling, but the deferred workspace
+    # still needs it.
+    expect(operator_verify(sibling_owner, 'email')).to eq(:no_change)
+    expect(pending_record).not_to be_nil
+    expect(pending_record.source_stripe_event_id).to eq(second.id)
+
+    # The deferred workspace's claim applies it once its owner proves the
+    # mailbox, and that claim consumes it.
+    expect(operator_verify(@customer, 'cli_provision')).to eq(:success)
+    @organization.refresh!
+    expect(@organization.planid).to eq('identity_plus_v1')
+    expect(@organization.can?('custom_branding')).to be(true)
+    expect(pending_record).to be_nil
+  end
+
+  it "keeps the deferred workspace's pending record when a sibling's claim applies it" do
+    store_initial_pending
+    provision_sso_workspace
+    backfill_hash
+    sibling_owner, sibling_org = provision_sibling_default_workspace(verified_by: nil)
+
+    # The sibling's owner verifies the mailbox; its claim applies the record.
+    expect(operator_verify(sibling_owner, 'email')).to eq(:success)
+    sibling_org.refresh!
+    expect(sibling_org.planid).to eq('identity_plus_v1')
+    expect(pending_record).not_to be_nil
+    expect(pending_record.superseded_by?(sibling_org)).to be(true)
+
+    # A repeat verification does not apply it to the sibling again.
+    expect(operator_verify(sibling_owner, 'email')).to eq(:no_change)
+    expect(pending_record).not_to be_nil
+
+    expect(operator_verify(@customer, 'cli_provision')).to eq(:success)
+    @organization.refresh!
+    expect(@organization.planid).to eq('identity_plus_v1')
+    expect(pending_record).to be_nil
+  end
 end

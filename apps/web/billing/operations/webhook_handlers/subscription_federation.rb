@@ -40,10 +40,6 @@ module Billing
         # and the billing worker retries the event with backoff.
         FEDERATION_LOCK_WAIT = 5.0
 
-        # Subscription statuses that still deliver the plan; the same set as
-        # Billing::PendingFederatedSubscription#active?.
-        BENEFIT_STATUSES = %w[active trialing past_due].freeze
-
         private
 
         # Path 1: Find owner organization by direct stripe_customer_id link
@@ -184,39 +180,17 @@ module Billing
         end
 
         # Must this workspace wait for its owner's mailbox proof before it
-        # receives a federated subscription?
-        #
-        # The same record-based rule as the deferred claim
-        # (Onetime::Customer#federation_claim_deferred?, read by
-        # Auth::Operations::EnsureDefaultWorkspace#claim_deferred?): the owner
-        # was SSO-provisioned and has no mailbox proof. Without this check a
-        # workspace whose claim was deferred received the same subscription
-        # here as soon as it had an email_hash, from the backfill command or
-        # from creation on an earlier release (#4754 review, F3).
-        #
-        # A workspace that already has an active federated plan (granted before
-        # the deferral existed) keeps receiving its updates, so a downgrade
-        # or a lapse still reaches it; only a grant to a workspace without
-        # one waits. A workspace whose owner record is missing is not
-        # deferred, as on the claim path.
+        # receives a federated subscription? Without this check a workspace
+        # whose claim was deferred received the same subscription here as
+        # soon as it had an email_hash, from the backfill command or from
+        # creation on an earlier release (#4754 review, F3). The rule is
+        # Billing::PendingFederatedSubscription.awaiting_mailbox_proof?,
+        # which the claim's retire step reads too.
         #
         # @param org [Onetime::Organization]
         # @return [Boolean]
         def federation_deferred_for?(org)
-          return false if federated_benefit_active?(org)
-
-          owner = org.owner
-          !owner.nil? && owner.federation_claim_deferred?
-        end
-
-        # @param org [Onetime::Organization]
-        # @return [Boolean] true when org has a federated plan that still
-        #   delivers benefits
-        def federated_benefit_active?(org)
-          org.subscription_federated? &&
-            !org.planid.to_s.empty? &&
-            org.planid.to_s != Billing::Metadata::FREE_PLAN_ID &&
-            BENEFIT_STATUSES.include?(org.subscription_status.to_s)
+          Billing::PendingFederatedSubscription.awaiting_mailbox_proof?(org)
         end
 
         # Keep the subscription for a deferred workspace as the pending record
@@ -235,17 +209,6 @@ module Billing
             status: subscription.status
         end
 
-        # Is another workspace for this hash waiting on its owner's mailbox
-        # proof? Its pending record is the only copy of the subscription it
-        # will claim, so a sync to a sibling workspace must not retire it.
-        #
-        # @param email_hash [String]
-        # @param except [Onetime::Organization] the workspace just synced
-        # @return [Boolean]
-        def deferred_federated_sibling?(email_hash, except:)
-          find_federated_orgs(email_hash, exclude_org: except).any? { |other| federation_deferred_for?(other) }
-        end
-
         # Best-effort: the org update is the record of truth and has already
         # been saved; a failure here is logged, never raised.
         #
@@ -255,15 +218,15 @@ module Billing
         #
         # @param org [Onetime::Organization] Federated organization just synced
         # @param keep_for_deferred [Boolean] leave the record when another
-        #   workspace for the hash is deferred (see #deferred_federated_sibling?).
-        #   A cancellation passes false: it ends the subscription for every
-        #   workspace, deferred or not.
+        #   workspace for the hash is deferred (see
+        #   Billing::PendingFederatedSubscription#retire_for!). A cancellation
+        #   passes false: it ends the subscription for every workspace,
+        #   deferred or not.
         def discard_superseded_pending(org, keep_for_deferred: true)
           pending = Billing::PendingFederatedSubscription.find_by_email_hash(org.email_hash)
           return unless pending
           return unless pending.superseded_by?(org)
-          return if keep_for_deferred && deferred_federated_sibling?(org.email_hash, except: org)
-          return unless pending.destroy_if_unchanged!
+          return unless pending.retire_for!(org, keep_for_deferred: keep_for_deferred)
 
           billing_logger.info '[SubscriptionFederation] Retired pending record superseded by direct sync',
             org: org.extid,

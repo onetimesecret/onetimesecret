@@ -569,7 +569,9 @@ module Auth
         # and its entitlements. Consume the leftover record instead of
         # applying it (#4735 review, F8). Sync versions order the two, so a
         # record stored after the last sync is applied even when it was
-        # stored in the same second (#4754 review, F2).
+        # stored in the same second (#4754 review, F2). Another workspace for
+        # the hash that is still waiting on its owner's mailbox proof keeps
+        # the record for its own claim (#retire_for!).
         if pending.superseded_by?(org)
           auth_logger.info '[create-default-workspace] Pending federated subscription predates the last applied state; discarding the replayed snapshot',
             {
@@ -580,7 +582,7 @@ module Auth
               pending_version: pending.sync_version,
               synced_version: org.subscription_sync_version,
             }
-          pending.destroy_if_unchanged!
+          pending.retire_for!(org)
           return false
         end
 
@@ -664,8 +666,11 @@ module Auth
           }
 
         # Consume the pending record (it's been used). Only the snapshot this
-        # claim applied: never a newer one stored for the hash since.
-        pending.destroy_if_unchanged!
+        # claim applied: never a newer one stored for the hash since. A record
+        # another workspace for the hash is still waiting on stays for that
+        # workspace's claim; this org's sync version now marks it superseded
+        # here, so a re-claim does not apply it twice.
+        pending.retire_for!(org)
 
         true
       end

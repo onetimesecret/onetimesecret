@@ -124,6 +124,9 @@ module Billing
     # past the caller's wait.
     class FederationLockTimeout < StandardError; end
 
+    # Subscription statuses that still deliver the plan (#active?).
+    BENEFIT_STATUSES = %w[active trialing past_due].freeze
+
     # Find pending subscription by email hash
     #
     # @param email_hash [String] HMAC hash of normalized email
@@ -227,6 +230,54 @@ module Billing
         hash_prefix: email_hash.to_s[0..7]
     end
     private_class_method :release_federation_lock
+
+    # Must this workspace wait for its owner's mailbox proof before it
+    # receives a federated subscription?
+    #
+    # The record-based rule of the deferred claim
+    # (Onetime::Customer#federation_claim_deferred?, read by
+    # Auth::Operations::EnsureDefaultWorkspace#claim_deferred?): the owner
+    # was SSO-provisioned and has no mailbox proof. A workspace that already
+    # has an active federated plan (granted before the deferral existed)
+    # keeps receiving its updates, so a downgrade or a lapse still reaches
+    # it; only a grant to a workspace without one waits. A workspace whose
+    # owner record is missing is not deferred, as on the claim path
+    # (#4754 review, F3).
+    #
+    # @param org [Onetime::Organization]
+    # @return [Boolean]
+    def self.awaiting_mailbox_proof?(org)
+      return false if federated_benefit_active?(org)
+
+      owner = org.owner
+      !owner.nil? && owner.federation_claim_deferred?
+    end
+
+    # @param org [Onetime::Organization]
+    # @return [Boolean] true when org has a federated plan that still
+    #   delivers benefits
+    def self.federated_benefit_active?(org)
+      org.subscription_federated? &&
+        !org.planid.to_s.empty? &&
+        org.planid.to_s != Billing::Metadata::FREE_PLAN_ID &&
+        BENEFIT_STATUSES.include?(org.subscription_status.to_s)
+    end
+
+    # Is a workspace for this hash, other than except, waiting on its owner's
+    # mailbox proof? The pending record is the only copy of the subscription
+    # that workspace will claim.
+    #
+    # @param email_hash [String]
+    # @param except [Onetime::Organization] the workspace just synced or claimed
+    # @return [Boolean]
+    def self.deferred_workspace_for?(email_hash, except:)
+      return false if email_hash.to_s.empty?
+
+      orgs = Onetime::Organization.find_federated_by_email_hash(email_hash)
+      return false unless orgs.is_a?(Array)
+
+      orgs.any? { |other| other.objid != except.objid && awaiting_mailbox_proof?(other) }
+    end
 
     # Append this record to the admin read index and trim to cap.
     #
@@ -347,6 +398,25 @@ module Billing
       true
     end
 
+    # Retire this record once org has its state (a claim applied it, a
+    # direct sync superseded it, or the org already had it). The webhook
+    # path (SubscriptionFederation#discard_superseded_pending) and the claim
+    # (Auth::Operations::EnsureDefaultWorkspace) both retire through here,
+    # so they apply the same rule: a record that another workspace for the
+    # hash is waiting on (.deferred_workspace_for?) is kept for that
+    # workspace's claim (#4754 review). Only the copy that was read is
+    # destroyed (#destroy_if_unchanged!). Callers take .with_federation_lock.
+    #
+    # @param org [Onetime::Organization] the workspace that has the state
+    # @param keep_for_deferred [Boolean] false for a cancellation, which
+    #   ends the subscription for every workspace, deferred or not
+    # @return [Boolean] true if the record was destroyed
+    def retire_for!(org, keep_for_deferred: true)
+      return false if keep_for_deferred && self.class.deferred_workspace_for?(email_hash, except: org)
+
+      destroy_if_unchanged!
+    end
+
     # @return [Array<String>] what distinguishes one stored snapshot from
     #   another for the same hash
     def snapshot_identity
@@ -357,7 +427,7 @@ module Billing
     #
     # @return [Boolean]
     def active?
-      %w[active trialing past_due].include?(subscription_status)
+      BENEFIT_STATUSES.include?(subscription_status)
     end
 
     # Check if subscription period has ended
