@@ -1224,32 +1224,32 @@
     "content_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
-    "text": "Only users with email addresses from these domains can sign in. Leave empty to allow any domain. New accounts are created only for addresses in domains your organization has verified.",
-    "content_hash": "915a2917"
+    "text": "Only users with email addresses from these domains can sign in. Leave empty to allow any domain. New accounts are created only for addresses in domains your organization has proven it owns.",
+    "content_hash": "fcf7c6d9"
   },
   "web.organizations.sso.allowed_domain_verified": {
-    "text": "Verified",
-    "content_hash": "4f783840"
+    "text": "Proven",
+    "content_hash": "d3578345"
   },
   "web.organizations.sso.allowed_domain_unverified": {
-    "text": "Not verified",
-    "content_hash": "15133907"
+    "text": "Not proven",
+    "content_hash": "41848e96"
   },
   "web.organizations.sso.allowed_domain_unverified_label": {
-    "text": "{domain} is outside your verified domains. It admits no one until your organization verifies that domain.",
-    "content_hash": "6abaa390"
+    "text": "{domain} is outside the domains your organization has proven it owns. It admits no one until that domain is proven.",
+    "content_hash": "4c0d7532"
   },
   "web.organizations.sso.allowed_domain_unknown": {
     "text": "Checked on save",
     "content_hash": "fdc1409c"
   },
   "web.organizations.sso.verified_email_domains": {
-    "text": "Verified domains: {domains}",
-    "content_hash": "186c5815"
+    "text": "Proven domains: {domains}",
+    "content_hash": "60732fca"
   },
   "web.organizations.sso.verified_email_domains_none": {
-    "text": "No domain is verified yet, so signing in through this connection creates no accounts. Verify ownership of a domain under Domains first.",
-    "content_hash": "14868c67"
+    "text": "No domain ownership is proven yet, so signing in through this connection creates no accounts. Add the domain under Domains and complete its TXT ownership check, or contact support.",
+    "content_hash": "567596fa"
   },
   "web.organizations.sso.manual_checks_title": {
     "text": "Confirm in the Entra app registration (this test cannot read these settings):",

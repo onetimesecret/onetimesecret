@@ -72,7 +72,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
   let(:identities) { db[:account_identities] }
   let(:run_id) { SecureRandom.hex(6) }
 
-  # A tenant: organization + TXT-verified custom domain + saml SsoConfig
+  # A tenant: organization + verified custom domain + saml SsoConfig
   # pointing at its OWN IdP (own keypair, own EntityID, own origin).
   def build_tenant(label)
     host  = "secrets-#{label}-#{run_id}.saml-tenant.example.com"
@@ -81,9 +81,13 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
     org = Onetime::Organization.create!("SAML Org #{label} #{run_id}", owner, "contact-#{label}-#{run_id}@saml-tenant.example.com")
 
     domain          = Onetime::CustomDomain.new(display_domain: host, org_id: org.org_id)
-    # TXT-verified: Auth::PublicHost only roots auth URLs (and so the SAML
-    # ACS / SP EntityID) on a domain whose ownership is proven.
-    domain.verified = true
+    # Verified: Auth::PublicHost only roots auth URLs (and so the SAML
+    # ACS / SP EntityID) on a domain whose ownership is accepted. By Colonel
+    # override, so the host also proves its email namespace for tenant JIT
+    # under the test install's passthrough strategy (#4734,
+    # CustomDomain#ownership_proven?).
+    domain.verified             = true
+    domain.verified_by_override = true
     domain.save
     Onetime::CustomDomain.display_domain_index.put(host, domain.domainid)
 
@@ -321,7 +325,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
 
   describe 'callback with a signed response from the tenant IdP' do
     let(:name_id) { "nameid-#{run_id}" }
-    # Each at its tenant's own verified domain: tenant SSO creates accounts
+    # Each at its tenant's own proven domain: tenant SSO creates accounts
     # only for addresses inside one (#4734).
     let(:email_a) { "user-a-#{run_id}@#{tenant_a.host}" }
     let(:email_b) { "user-b-#{run_id}@#{tenant_b.host}" }

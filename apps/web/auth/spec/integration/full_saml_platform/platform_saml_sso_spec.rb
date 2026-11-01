@@ -564,13 +564,17 @@ RSpec.shared_examples 'platform SAML SSO' do
 
     # A verified custom domain with an ACTIVE tenant SAML config (own IdP
     # keypair, EntityID and origin) while the platform registration is live.
+    # Its ownership is accepted by Colonel override, so the host also proves
+    # an email namespace for tenant JIT under the test install's passthrough
+    # strategy (#4734, CustomDomain#ownership_proven?).
     def with_override_tenant
       tenant_host = "override-#{run_id}.saml-platform.example.com"
       owner        = Onetime::Customer.new(email: "override-owner-#{run_id}@saml-platform.example.com")
       owner.save
       org          = Onetime::Organization.create!("Override Org #{run_id}", owner, "override-contact-#{run_id}@saml-platform.example.com")
       domain       = Onetime::CustomDomain.new(display_domain: tenant_host, org_id: org.org_id)
-      domain.verified = true
+      domain.verified             = true
+      domain.verified_by_override = true
       domain.save
       Onetime::CustomDomain.display_domain_index.put(tenant_host, domain.domainid)
       tenant_idp = SamlSpec::TestIdp.new(entity_id: "https://override-idp.test/#{run_id}", key: OpenSSL::PKey::RSA.new(2048))
@@ -648,7 +652,8 @@ RSpec.shared_examples 'platform SAML SSO' do
         expect(last_request.env['rack.session'].to_h['omniauth_tenant_domain_id']).to eq(tenant.domain.identifier)
 
         # A tenant JIT creation is minted only inside a domain the tenant
-        # organization has proven (#4734): the override host itself.
+        # organization has proven (#4734): the override host itself, whose
+        # ownership is accepted by Colonel override (with_override_tenant).
         tenant_email = "override-user-#{run_id}@#{tenant.host}"
         created_emails << tenant_email
         post_callback(answer(request, signer: tenant.idp, address: tenant_email), request.acs_url, origin: tenant.origin)

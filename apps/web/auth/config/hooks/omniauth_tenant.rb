@@ -28,8 +28,9 @@
 #   - Tenant SSO waiting only on domain verification is refused on every
 #     phase (sso_domain_unverified), with no platform fallback (#4579)
 #   - Tenant SSO creates an account only for an address inside a custom
-#     domain the organization has proven by TXT ownership check; the tenant
-#     allowlist selects among those domains (#4734)
+#     domain the organization has proven, by TXT ownership check or Colonel
+#     override (CustomDomain#ownership_proven?); the tenant allowlist selects
+#     among those domains (#4734)
 #
 # See: docs/authentication/omniauth-sso.md (full configuration guide)
 # See: lib/onetime/models/custom_domain/sso_config.rb (per-domain SSO config)
@@ -836,8 +837,9 @@ module Auth::Config::Hooks
     # is the tenant's own choice and judges a claim the tenant's IdP asserts,
     # so both sides of that comparison belong to one party; an empty list
     # even reads as allow-all. This rung is the platform's: the address must
-    # fall inside a custom domain the organization has completed a TXT
-    # ownership check for (Organization#owns_email_domain?). The allowlist
+    # fall inside a custom domain whose ownership rests on evidence, a
+    # passing TXT check or a Colonel override (CustomDomain#ownership_proven?;
+    # under passthrough only an override counts). The allowlist
     # therefore selects among proven domains, and allow-all means "any proven
     # domain".
     #
@@ -929,7 +931,7 @@ module Auth::Config::Hooks
 
     # Whether `email_domain` lies inside a domain the tenant organization has
     # proven (Organization#owns_email_domain_through?: the flow's own domain
-    # is always consulted, while its ownership is accepted).
+    # is always consulted, while its ownership is proven).
     #
     # @param custom_domain [Onetime::CustomDomain] the flow's domain
     # @param organization [Onetime::Organization] its owner

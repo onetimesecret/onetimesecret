@@ -751,10 +751,24 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
   # RISK-2026-10-10-01 (#4734): the allowlist above is the tenant's own choice
   # and judges a claim the tenant's IdP asserts. Account creation is further
   # gated by the platform: the address must lie inside a custom domain the
-  # organization has proven by TXT ownership check. The TXT challenge sits
-  # under the name as entered, so a verified secrets-<x>.acme-corp.example.com
-  # proves that name and the names below it, not acme-corp.example.com.
+  # organization has proven, by TXT ownership check or Colonel override
+  # (CustomDomain#ownership_proven?). The TXT challenge sits under the name
+  # as entered, so a verified secrets-<x>.acme-corp.example.com proves that
+  # name and the names below it, not acme-corp.example.com.
+  #
+  # The test install runs passthrough, where only an override counts, so the
+  # fixtures' ownership is accepted by override unless an example says
+  # otherwise.
   # ==========================================================================
+
+  # Accept a fixture domain's ownership by Colonel override, the basis that
+  # counts under every validation strategy.
+  def accept_by_override(domain)
+    domain.verified             = true
+    domain.verified_by_override = true
+    domain.save
+    domain
+  end
 
   describe '.enforce_tenant_verified_email_domain!' do
     include_context 'tenant fixtures'
@@ -764,6 +778,7 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
     before do
       allow(rodauth).to receive(:redirect)
       allow(Auth::Logging).to receive(:log_auth_event)
+      accept_by_override(test_custom_domain)
       @extra_domains = []
     end
 
@@ -777,9 +792,10 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
 
     # A second custom domain of the tenant organization, listed in its
     # domains set, with the ownership axis in the given state.
-    def add_org_domain(display_domain, verified:)
-      domain                    = Onetime::CustomDomain.parse(display_domain, test_organization.objid)
-      domain.ownership_verified = verified
+    def add_org_domain(display_domain, verified:, override: verified)
+      domain                      = Onetime::CustomDomain.parse(display_domain, test_organization.objid)
+      domain.ownership_verified   = verified
+      domain.verified_by_override = override
       domain.save
       test_organization.add_domain(domain)
       @extra_domains << domain
@@ -867,6 +883,31 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
       expect_refused(:email_domain_unverified)
     end
 
+    # Passthrough sets ownership_verified for any name the organization
+    # registers, without a DNS lookup (ADR-049: not evidence of ownership).
+    context 'when ownership_verified is set without an override under passthrough' do
+      it 'runs under the configuration it names' do
+        expect(Onetime::CustomDomain.ownership_proof_required?).to be(false)
+      end
+
+      it 'refuses an address at the tenant custom domain itself' do
+        test_custom_domain.verified_by_override = false
+        test_custom_domain.save
+
+        enforce("user@#{tenant_domain}")
+
+        expect_refused(:email_domain_unverified)
+      end
+
+      it 'refuses an address in another custom domain the organization registered' do
+        squatted = add_org_domain("victim-#{test_run_id}.example.net", verified: true, override: false)
+
+        enforce("user@#{squatted.display_domain}")
+
+        expect_refused(:email_domain_unverified)
+      end
+    end
+
     it 'refuses when the custom domain cannot be loaded mid-flow' do
       enforce("user@#{tenant_domain}", domain_id: "gone-#{test_run_id}")
 
@@ -901,7 +942,10 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
   describe '.log_unverified_tenant_email_domain' do
     include_context 'tenant fixtures'
 
-    before { allow(Auth::Logging).to receive(:log_auth_event) }
+    before do
+      allow(Auth::Logging).to receive(:log_auth_event)
+      accept_by_override(test_custom_domain)
+    end
 
     it 'records a returning identity whose address is outside the proven domains' do
       helpers.log_unverified_tenant_email_domain(

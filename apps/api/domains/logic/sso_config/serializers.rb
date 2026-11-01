@@ -95,7 +95,8 @@ module DomainsAPI
         # domain whose ownership the organization has proven, so an allowlist
         # entry outside that set admits no one. The proven set is the one the
         # create-path gate uses (Organization#proven_email_domains_through:
-        # the config's own domain plus the organization's verified domains).
+        # the config's own domain plus the organization's verified domains,
+        # each counted only while CustomDomain#ownership_proven?).
         # Entries are judged by Organization#owns_email_domain? (A-label,
         # label boundary), so IDN spellings agree with the gate; the entry is
         # reported as stored.

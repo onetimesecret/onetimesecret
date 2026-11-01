@@ -20,6 +20,11 @@
 # host; "inside" addresses sit at that host, "outside" ones at a domain no
 # organization has added.
 #
+# A domain proves its email namespace only when its ownership rests on
+# evidence (CustomDomain#ownership_proven?). The test install runs
+# passthrough, where only a Colonel override counts, so the fixtures accept
+# ownership by override unless an example says otherwise.
+#
 # Run with full-sqlite or full-pg-agnostic.
 # =============================================================================
 
@@ -71,7 +76,8 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
 
     host   = "secrets-#{run}.audit-tenant-test.example.com"
     domain = Onetime::CustomDomain.parse(host, org.objid)
-    domain.ownership_verified = true
+    domain.ownership_verified   = true
+    domain.verified_by_override = true
     domain.save
     org.add_domain(domain)
     Onetime::CustomDomain.display_domain_index.put(host, domain.domainid)
@@ -99,10 +105,12 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
   end
 
   # A second custom domain of the same organization, verified or not, so the
-  # proven set can extend beyond the tenant host.
-  def add_org_domain(tenant, display_domain, verified:)
-    domain                    = Onetime::CustomDomain.parse(display_domain, tenant.org.objid)
-    domain.ownership_verified = verified
+  # proven set can extend beyond the tenant host. A verified one is accepted
+  # by Colonel override unless `override: false` is passed.
+  def add_org_domain(tenant, display_domain, verified:, override: verified)
+    domain                      = Onetime::CustomDomain.parse(display_domain, tenant.org.objid)
+    domain.ownership_verified   = verified
+    domain.verified_by_override = override
     domain.save
     tenant.org.add_domain(domain)
     fixtures << domain
@@ -170,6 +178,34 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
       expect(statuses[apex[:account_id]]).to eq(:inside)
       expect(statuses[below[:account_id]]).to eq(:inside)
       expect(statuses[pend[:account_id]]).to eq(:outside)
+    end
+
+    # Passthrough sets ownership_verified for any name the organization
+    # registers, without a DNS lookup (ADR-049: not evidence of ownership).
+    it 'reports an address in a domain verified only by passthrough as outside' do
+      expect(Onetime::CustomDomain.ownership_proof_required?).to be(false)
+
+      tenant = build_tenant
+      run    = SecureRandom.hex(4)
+      add_org_domain(tenant, "squat-#{run}.example.com", verified: true, override: false)
+      squat = seed_identity(tenant, "a@squat-#{run}.example.com")
+
+      statuses = new_operation(tenant).call.to_h { |r| [r.account_id, r.status] }
+
+      expect(statuses[squat[:account_id]]).to eq(:outside)
+    end
+
+    it 'reports an address at the tenant host as outside when only passthrough verified it' do
+      expect(Onetime::CustomDomain.ownership_proof_required?).to be(false)
+
+      tenant = build_tenant
+      tenant.domain.verified_by_override = false
+      tenant.domain.save
+      member = seed_identity(tenant, "member-#{SecureRandom.hex(4)}@#{tenant.host}")
+
+      statuses = new_operation(tenant).call.to_h { |r| [r.account_id, r.status] }
+
+      expect(statuses[member[:account_id]]).to eq(:outside)
     end
 
     it 'ignores rows under another issuer or provider' do
@@ -297,6 +333,7 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
       expect(payload['dry_run']).to be true
       expect(payload['unlink']).to be true
       expect(payload['issuer']).to eq(tenant_issuer)
+      expect(payload['proof_basis']).to eq('override_only')
       expect(payload['statistics']['unlink']).to eq(1)
       expect(payload['results'].first['status']).to eq('would_unlink')
       expect(payload['results'].first['asserted_domain']).to eq('unrelated.example.org')
@@ -325,6 +362,7 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
         domain: tenant.domain.display_domain, unlink: false, confirm: false, json: false)
 
       expect(output).to include('Tenant SSO Email Domain Audit')
+      expect(output).to include('Proven by:    Colonel override only (validation strategy makes no TXT check)')
       expect(output).to include('outside')
       expect(output).to include("bin/ots sso audit-email-domains #{tenant.domain.display_domain} --unlink --confirm")
     end

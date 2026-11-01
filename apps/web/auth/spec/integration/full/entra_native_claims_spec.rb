@@ -49,7 +49,7 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
   let(:token_url) { "https://login.microsoftonline.com/#{tenant_id}/oauth2/v2.0/token" }
   let(:oid) { SecureRandom.uuid }
   # The members' address domain, a second custom domain the organization has
-  # verified (tenant SSO creates accounts only inside one, #4734). Unique per
+  # proven (tenant SSO creates accounts only inside one, #4734). Unique per
   # example: a display_domain belongs to one record install-wide.
   let(:member_domain) { "contoso-#{run_id}.example.com" }
   let(:allowed_domains) { [member_domain] }
@@ -65,9 +65,12 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
     domain.save
     Onetime::CustomDomain.display_domain_index.put(tenant_host, domain.domainid)
     # The organization has proven the member address domain: tenant SSO
-    # creates accounts only inside a verified custom domain (#4734).
-    email_domain                    = Onetime::CustomDomain.parse(member_domain, org.objid)
-    email_domain.ownership_verified = true
+    # creates accounts only inside a proven custom domain (#4734). Accepted
+    # by Colonel override, the basis that counts under the test install's
+    # passthrough strategy (CustomDomain#ownership_proven?).
+    email_domain                      = Onetime::CustomDomain.parse(member_domain, org.objid)
+    email_domain.ownership_verified   = true
+    email_domain.verified_by_override = true
     email_domain.save
     org.add_domain(email_domain)
     Onetime::CustomDomain::SsoConfig.create!(

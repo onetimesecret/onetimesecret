@@ -356,15 +356,17 @@ module Onetime
       domains.size
     end
 
-    # The custom domains this organization has proven it owns: those whose
-    # ownership axis (ADR-016) is accepted, by a passing TXT check or by a
-    # Colonel override. The serving axis (DNS pointed at us, certificate)
-    # plays no part, so a domain added only to prove an email namespace
-    # counts once its TXT record resolves.
+    # The custom domains this organization has proven it owns
+    # (CustomDomain#ownership_proven?): accepted by a Colonel override, or
+    # verified under a validation strategy that checks the TXT record. Under
+    # passthrough the verify call sets ownership_verified without a DNS
+    # lookup, so there only an override counts (#4734). The serving axis
+    # (DNS pointed at us, certificate) plays no part, so a domain added only
+    # to prove an email namespace counts once its TXT record resolves.
     #
     # @return [Array<Onetime::CustomDomain>]
     def verified_domains
-      list_domains.select(&:ownership_verified)
+      list_domains.select(&:ownership_proven?)
     end
 
     # Whether an email domain lies inside a namespace this organization has
@@ -398,9 +400,10 @@ module Onetime
     # #owns_email_domain? as a tenant SSO flow on `custom_domain` asks it: the
     # flow's own domain is always consulted, so the answer does not depend on
     # this organization's domain index being complete, but it counts only
-    # while its own ownership is accepted. Shared by the login-time gate
-    # (hooks/omniauth_tenant.rb) and the operator audit of identities bound
-    # before the gate existed (Auth::Operations::AuditTenantEmailDomains).
+    # while its own ownership is proven (CustomDomain#ownership_proven?).
+    # Shared by the login-time gate (hooks/omniauth_tenant.rb) and the
+    # operator audit of identities bound before the gate existed
+    # (Auth::Operations::AuditTenantEmailDomains).
     #
     # @param custom_domain [Onetime::CustomDomain] the flow's domain
     # @param email_domain [String] the part of an address after its `@`
@@ -410,15 +413,15 @@ module Onetime
     end
 
     # The proven set as a tenant SSO flow on `custom_domain` sees it: that
-    # domain plus #verified_domains, those whose ownership is accepted,
-    # deduplicated. The SSO settings API serves it so the allowlist can say
-    # which entries lie inside it.
+    # domain plus #verified_domains, those whose ownership is proven
+    # (CustomDomain#ownership_proven?), deduplicated. The SSO settings API
+    # serves it so the allowlist can say which entries lie inside it.
     #
     # @param custom_domain [Onetime::CustomDomain] the flow's domain
     # @return [Array<Onetime::CustomDomain>]
     def proven_email_domains_through(custom_domain)
       ([custom_domain] + verified_domains)
-        .select(&:ownership_verified)
+        .select(&:ownership_proven?)
         .uniq(&:identifier)
     end
 

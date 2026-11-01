@@ -9,8 +9,16 @@
 # passing check proves that name and the names below it, not the registrable
 # domain above it. An organization proves an email namespace by adding it as a
 # custom domain and completing the TXT check; the serving axis is irrelevant.
+#
+# A domain counts only when its ownership rests on evidence
+# (CustomDomain#ownership_proven?): a Colonel override, or ownership_verified
+# under a validation strategy that checks the TXT record. The test install
+# runs passthrough, whose verify call sets ownership_verified without a DNS
+# lookup, so the matching examples run under caddy_on_demand, set in OT.conf.
 
 require 'spec_helper'
+require 'onetime/operations/verify_domain'
+require 'onetime/domain_validation/passthrough_strategy'
 
 RSpec.describe 'Onetime::Organization#owns_email_domain?', :datastore do
   let(:suffix) { "#{Familia.now.to_i}-#{SecureRandom.hex(4)}" }
@@ -20,6 +28,16 @@ RSpec.describe 'Onetime::Organization#owns_email_domain?', :datastore do
     @domains = []
     @org     = Onetime::Organization.new(display_name: "Email Domains #{suffix}")
     @org.save
+  end
+
+  # features.domains settings for this example only, on a copy of OT.conf.
+  # CustomDomain.ownership_proof_required? decides again whenever the
+  # strategy setting differs, so nothing has to be reset.
+  def configure_domains(**overrides)
+    conf    = YAML.load(YAML.dump(OT.conf))
+    domains = ((conf['features'] ||= {})['domains'] ||= {})
+    overrides.each { |key, value| domains[key.to_s] = value }
+    allow(OT).to receive(:conf).and_return(conf)
   end
 
   after do
@@ -43,94 +61,175 @@ RSpec.describe 'Onetime::Organization#owns_email_domain?', :datastore do
     domain
   end
 
-  describe '#verified_domains' do
-    it 'lists the custom domains whose ownership is accepted and no other' do
-      proven   = add_domain(secrets_host)
-      pending  = add_domain("pending-#{suffix}.acme-corp.example.com", verified: false)
-      override = add_domain("override-#{suffix}.acme-corp.example.com", override: true)
+  context 'under a validation strategy that checks the TXT record (caddy_on_demand)' do
+    before { configure_domains(validation_strategy: 'caddy_on_demand') }
 
-      expect(@org.verified_domains.map(&:identifier))
-        .to contain_exactly(proven.identifier, override.identifier)
-      expect(@org.verified_domains.map(&:identifier)).not_to include(pending.identifier)
+    it 'is the configuration the examples below assume' do
+      expect(Onetime::CustomDomain.ownership_proof_required?).to be(true)
     end
 
-    it 'is empty for an organization without custom domains' do
-      expect(@org.verified_domains).to eq([])
+    describe '#verified_domains' do
+      it 'lists the custom domains whose ownership is accepted and no other' do
+        proven   = add_domain(secrets_host)
+        pending  = add_domain("pending-#{suffix}.acme-corp.example.com", verified: false)
+        override = add_domain("override-#{suffix}.acme-corp.example.com", override: true)
+
+        expect(@org.verified_domains.map(&:identifier))
+          .to contain_exactly(proven.identifier, override.identifier)
+        expect(@org.verified_domains.map(&:identifier)).not_to include(pending.identifier)
+      end
+
+      it 'is empty for an organization without custom domains' do
+        expect(@org.verified_domains).to eq([])
+      end
+    end
+
+    describe '#owns_email_domain?' do
+      before { add_domain(secrets_host) }
+
+      it 'accepts the verified custom domain itself' do
+        expect(@org.owns_email_domain?(secrets_host)).to be(true)
+      end
+
+      it 'accepts a name below the verified custom domain' do
+        expect(@org.owns_email_domain?("mail.#{secrets_host}")).to be(true)
+      end
+
+      it 'compares case-insensitively' do
+        expect(@org.owns_email_domain?(secrets_host.upcase)).to be(true)
+      end
+
+      it 'does not extend the proof upward to the registrable domain' do
+        # The TXT record for secrets-<x>.acme-corp.example.com proves control of
+        # that name; it says nothing about who answers mail at acme-corp.example.com.
+        expect(@org.owns_email_domain?('acme-corp.example.com')).to be(false)
+        expect(@org.owns_email_domain?('example.com')).to be(false)
+      end
+
+      it 'does not accept a sibling that merely ends in the same characters' do
+        expect(@org.owns_email_domain?("not#{secrets_host}")).to be(false)
+        expect(@org.owns_email_domain?("other-#{suffix}.acme-corp.example.com")).to be(false)
+      end
+
+      it 'does not accept a domain outside the organization' do
+        expect(@org.owns_email_domain?('unrelated.example.org')).to be(false)
+      end
+
+      it 'does not count a custom domain whose ownership is not yet accepted' do
+        pending = add_domain("pending-#{suffix}.acme-corp.example.com", verified: false)
+
+        expect(@org.owns_email_domain?(pending.display_domain)).to be(false)
+      end
+
+      it 'counts a custom domain accepted by Colonel override' do
+        forced = add_domain("override-#{suffix}.acme-corp.example.com", override: true)
+
+        expect(@org.owns_email_domain?(forced.display_domain)).to be(true)
+      end
+
+      it 'stops counting a domain once its ownership is withdrawn' do
+        domain                    = @domains.first
+        domain.ownership_verified = false
+        domain.save
+
+        expect(@org.owns_email_domain?(secrets_host)).to be(false)
+      end
+
+      it 'treats the Unicode and A-label spellings of a verified domain as one name' do
+        unicode = add_domain("bücher-#{suffix}.acme-corp.example.com")
+        a_label = Onetime::DomainValidation::AsciiHostname.call(unicode.display_domain)
+
+        expect(a_label).to start_with('xn--')
+        expect(@org.owns_email_domain?(a_label)).to be(true)
+        expect(@org.owns_email_domain?(unicode.display_domain)).to be(true)
+      end
+
+      it 'is false for a blank or absent domain' do
+        expect(@org.owns_email_domain?('')).to be(false)
+        expect(@org.owns_email_domain?(nil)).to be(false)
+        expect(@org.owns_email_domain?('   ')).to be(false)
+      end
+
+      it 'judges against a caller-supplied set instead of loading one' do
+        stranger = Onetime::CustomDomain.parse("stranger-#{suffix}.example.net", @org.objid)
+        stranger.ownership_verified = true
+
+        expect(@org.owns_email_domain?(stranger.display_domain, domains: [stranger])).to be(true)
+        expect(@org.owns_email_domain?(secrets_host, domains: [stranger])).to be(false)
+      end
     end
   end
 
-  describe '#owns_email_domain?' do
-    before { add_domain(secrets_host) }
+  context 'under a validation strategy that makes no TXT check (passthrough)' do
+    let(:passthrough) { Onetime::DomainValidation::PassthroughStrategy.new({}) }
 
-    it 'accepts the verified custom domain itself' do
-      expect(@org.owns_email_domain?(secrets_host)).to be(true)
+    before do
+      configure_domains(validation_strategy: 'passthrough')
+      # The unit lane boots without the pool VerifyDomain pins its writes
+      # to; hand it a plain client (see verify_domain_orphan_spec).
+      allow(Onetime).to receive(:with_pinned_dbclient) { |&block| block.call(Familia.dbclient) }
     end
 
-    it 'accepts a name below the verified custom domain' do
-      expect(@org.owns_email_domain?("mail.#{secrets_host}")).to be(true)
+    def verify_with_passthrough(domain)
+      result = Onetime::Operations::VerifyDomain.new(domain: domain, strategy: passthrough).call
+      expect(result.persisted).to be(true)
+      Onetime::CustomDomain.find_by_identifier(domain.identifier)
     end
 
-    it 'compares case-insensitively' do
-      expect(@org.owns_email_domain?(secrets_host.upcase)).to be(true)
+    it 'is the configuration the examples below assume' do
+      expect(Onetime::CustomDomain.ownership_proof_required?).to be(false)
     end
 
-    it 'does not extend the proof upward to the registrable domain' do
-      # The TXT record for secrets-<x>.acme-corp.example.com proves control of
-      # that name; it says nothing about who answers mail at acme-corp.example.com.
-      expect(@org.owns_email_domain?('acme-corp.example.com')).to be(false)
-      expect(@org.owns_email_domain?('example.com')).to be(false)
+    # The organization registers any name and the verify call passes it
+    # without a lookup (RISK-2026-10-10-01 on a passthrough install).
+    it 'does not count a domain the verify call passed without looking at DNS' do
+      victim = verify_with_passthrough(add_domain("victim-#{suffix}.example.com", verified: false))
+
+      expect(victim.ownership_verified).to be(true)
+      expect(victim.verified_by_override).not_to be(true)
+      expect(victim.ownership_proven?).to be(false)
+      expect(@org.verified_domains).to eq([])
+      expect(@org.owns_email_domain?(victim.display_domain)).to be(false)
+      expect(@org.owns_email_domain_through?(victim, "mail.#{victim.display_domain}")).to be(false)
+      expect(@org.proven_email_domains_through(victim)).to eq([])
     end
 
-    it 'does not accept a sibling that merely ends in the same characters' do
-      expect(@org.owns_email_domain?("not#{secrets_host}")).to be(false)
-      expect(@org.owns_email_domain?("other-#{suffix}.acme-corp.example.com")).to be(false)
+    it 'does not count ownership_verified alone, however it was set' do
+      verified = add_domain(secrets_host)
+
+      expect(@org.verified_domains).to eq([])
+      expect(@org.owns_email_domain?(secrets_host)).to be(false)
+      expect(@org.owns_email_domain_through?(verified, secrets_host)).to be(false)
     end
 
-    it 'does not accept a domain outside the organization' do
-      expect(@org.owns_email_domain?('unrelated.example.org')).to be(false)
-    end
-
-    it 'does not count a custom domain whose ownership is not yet accepted' do
-      pending = add_domain("pending-#{suffix}.acme-corp.example.com", verified: false)
-
-      expect(@org.owns_email_domain?(pending.display_domain)).to be(false)
-    end
-
-    it 'counts a custom domain accepted by Colonel override' do
+    it 'counts a domain accepted by Colonel override' do
       forced = add_domain("override-#{suffix}.acme-corp.example.com", override: true)
 
+      expect(forced.ownership_proven?).to be(true)
+      expect(@org.verified_domains.map(&:identifier)).to eq([forced.identifier])
       expect(@org.owns_email_domain?(forced.display_domain)).to be(true)
+      expect(@org.owns_email_domain?("mail.#{forced.display_domain}")).to be(true)
+      expect(@org.owns_email_domain_through?(forced, forced.display_domain)).to be(true)
+      expect(@org.proven_email_domains_through(forced).map(&:identifier)).to eq([forced.identifier])
     end
 
-    it 'stops counting a domain once its ownership is withdrawn' do
-      domain                    = @domains.first
-      domain.ownership_verified = false
-      domain.save
+    it 'does not count an override whose ownership was withdrawn' do
+      forced = add_domain("override-#{suffix}.acme-corp.example.com", verified: false, override: true)
 
-      expect(@org.owns_email_domain?(secrets_host)).to be(false)
+      expect(forced.ownership_proven?).to be(false)
+      expect(@org.verified_domains).to eq([])
+      expect(@org.owns_email_domain_through?(forced, forced.display_domain)).to be(false)
     end
 
-    it 'treats the Unicode and A-label spellings of a verified domain as one name' do
-      unicode = add_domain("bücher-#{suffix}.acme-corp.example.com")
-      a_label = Onetime::DomainValidation::AsciiHostname.call(unicode.display_domain)
+    it 'keeps an overridden domain proven through a passthrough verify call' do
+      forced = verify_with_passthrough(add_domain("override-#{suffix}.acme-corp.example.com", override: true))
 
-      expect(a_label).to start_with('xn--')
-      expect(@org.owns_email_domain?(a_label)).to be(true)
-      expect(@org.owns_email_domain?(unicode.display_domain)).to be(true)
-    end
-
-    it 'is false for a blank or absent domain' do
-      expect(@org.owns_email_domain?('')).to be(false)
-      expect(@org.owns_email_domain?(nil)).to be(false)
-      expect(@org.owns_email_domain?('   ')).to be(false)
-    end
-
-    it 'judges against a caller-supplied set instead of loading one' do
-      stranger = Onetime::CustomDomain.parse("stranger-#{suffix}.example.net", @org.objid)
-      stranger.ownership_verified = true
-
-      expect(@org.owns_email_domain?(stranger.display_domain, domains: [stranger])).to be(true)
-      expect(@org.owns_email_domain?(secrets_host, domains: [stranger])).to be(false)
+      expect(forced.ownership_verified).to be(true)
+      expect(forced.verified_by_override).to be(true)
+      expect(forced.verified_confirmed_at).to be_nil
+      expect(@org.verified_domains.map(&:identifier)).to eq([forced.identifier])
+      expect(@org.owns_email_domain?(forced.display_domain)).to be(true)
+      expect(@org.owns_email_domain_through?(forced, forced.display_domain)).to be(true)
     end
   end
 end

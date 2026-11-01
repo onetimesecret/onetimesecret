@@ -19,7 +19,9 @@ module Onetime
     #
     # Auth-link hosts (Auth::PublicHost), tenant SSO, the tenant CSP extras and
     # the ACME ask keep their own, stricter checks on the verified flag (and,
-    # for the ask, on resolving).
+    # for the ask, on resolving). Whether a domain proves an email namespace
+    # for tenant SSO is #ownership_proven?, defined here beside the serving
+    # answer so the two read together.
     #
     # Every read here uses loaded fields and configuration only: no datastore
     # or DNS I/O.
@@ -44,6 +46,35 @@ module Onetime
         return true unless self.class.ownership_proof_required?
 
         ownership_verified == true
+      end
+
+      # Whether this domain's accepted ownership rests on evidence that its
+      # organization owns the name, so tenant SSO may treat the name and the
+      # names below it as the organization's email namespace (#4734,
+      # RISK-2026-10-10-01). Organization#verified_domains and every tenant
+      # SSO email domain check read it.
+      #
+      # - A Colonel override (verified_by_override) counts under any
+      #   strategy: an operator asserted ownership for this one name.
+      # - Otherwise ownership_verified counts only under a validation
+      #   strategy that checks the TXT record (ownership_proof_required?).
+      #   Under passthrough the verify call sets ownership_verified for any
+      #   name the organization registers, without a DNS lookup, and ADR-049
+      #   calls that operator policy "an authorization basis, not evidence
+      #   that the customer owns the hostname".
+      #
+      # Stricter than #serving_authorized?, which accepts registration alone
+      # under passthrough. Serving a name is not the same as owning the
+      # mailboxes under it.
+      #
+      # Reads loaded fields and configuration only: no datastore or DNS I/O.
+      #
+      # @return [Boolean]
+      def ownership_proven?
+        return false unless ownership_verified == true
+        return true if verified_by_override == true
+
+        self.class.ownership_proof_required?
       end
 
       # #serving_authorized?, or any record with an organization while the

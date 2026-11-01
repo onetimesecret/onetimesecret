@@ -4,9 +4,17 @@
 # verified canonical-pool account for any address with no OTS account yet.
 # The tenant allowlist did not help (it is the tenant's own choice, and an
 # empty list is allow-all). Tenant SSO now creates an account only for an
-# address inside a custom domain the organization has proven by TXT
-# ownership check; the allowlist selects among those domains. An identity
-# already bound to an account keeps signing in and is recorded.
+# address inside a custom domain the organization has proven; the allowlist
+# selects among those domains. An identity already bound to an account keeps
+# signing in and is recorded.
+#
+# Proven means ownership that rests on evidence
+# (CustomDomain#ownership_proven?): a Colonel override, or ownership_verified
+# under a validation strategy that checks the TXT record. The test install
+# runs passthrough, whose verify call sets ownership_verified for any name
+# the organization registers without a DNS lookup, so there only an override
+# counts. The fixtures accept ownership by override unless an example says
+# otherwise.
 #
 # Derived from the probe in docs/security/audits/security-audit-2026-10-10.md
 # (P1), which passed against baseline 3a30ad2eeb and must fail now.
@@ -28,7 +36,7 @@ RSpec.describe 'Tenant SSO verified email domains (#4734)', type: :integration d
   let!(:tenant) { setup_oauth_test_domain(host) }
   # An address in a namespace the tenant has not proven and that has no account.
   let(:outside_email) { "victim-#{run_id}@unrelated.example.org" }
-  # An address at the tenant's own, TXT-verified custom domain.
+  # An address at the tenant's own custom domain, proven by override.
   let(:inside_email) { "member-#{run_id}@#{host}" }
 
   before do
@@ -58,10 +66,12 @@ RSpec.describe 'Tenant SSO verified email domains (#4734)', type: :integration d
 
   # A second custom domain of the tenant organization, listed in its domains
   # set, with the ownership axis in the given state. Nothing on the serving
-  # axis: proving an email namespace never requires pointing it at us.
-  def add_org_domain(display_domain, verified:)
-    domain                    = Onetime::CustomDomain.parse(display_domain, tenant[:org].objid)
-    domain.ownership_verified = verified
+  # axis: proving an email namespace never requires pointing it at us. A
+  # verified one is accepted by Colonel override unless `override: false`.
+  def add_org_domain(display_domain, verified:, override: verified)
+    domain                      = Onetime::CustomDomain.parse(display_domain, tenant[:org].objid)
+    domain.ownership_verified   = verified
+    domain.verified_by_override = override
     domain.save
     tenant[:org].add_domain(domain)
     @extra_domains << domain
@@ -83,6 +93,20 @@ RSpec.describe 'Tenant SSO verified email domains (#4734)', type: :integration d
         },
       },
     )
+  end
+
+  # features.domains settings for one example. The 'domains enabled'
+  # context rewrites the section before every example, so nothing leaks.
+  def configure_domains(**settings)
+    settings.each { |key, value| OT.conf['features']['domains'][key.to_s] = value }
+  end
+
+  # ownership_verified set and no override: what a passthrough verify call
+  # leaves, or a passing TXT check under a strategy that makes one.
+  def verified_without_override!(domain)
+    domain.ownership_verified   = true
+    domain.verified_by_override = false
+    domain.save
   end
 
   def tenant_callback(email)
@@ -202,6 +226,97 @@ RSpec.describe 'Tenant SSO verified email domains (#4734)', type: :integration d
       expect(auth_db[:accounts].where(email: email).count).to eq(0)
       expect(Auth::Logging).to have_received(:log_auth_event)
         .with(:omniauth_tenant_domain_rejected, hash_including(reason: :domain_not_allowed))
+    end
+  end
+
+  # ADR-049: under passthrough, registration is the basis for serving, not
+  # evidence that the organization owns the name. The verify call sets
+  # ownership_verified without a DNS lookup, so on a default install an
+  # organization could register victim.example and verify it.
+  describe 'under passthrough (the test install strategy)' do
+    it 'is the configuration the examples below assume' do
+      expect(Onetime::CustomDomain.ownership_proof_required?).to be(false)
+    end
+
+    it 'refuses an address at the tenant custom domain verified without an override' do
+      verified_without_override!(tenant[:domain])
+
+      tenant_callback(inside_email)
+
+      expect_nothing_minted(inside_email)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_tenant_email_domain_unverified, hash_including(
+          outcome: :refused,
+          reason: :email_domain_unverified,
+          asserted_domain: host,
+        ))
+    end
+
+    it 'refuses an address in a second custom domain the organization verified without an override' do
+      squatted = add_org_domain("victim-#{run_id}.example.net", verified: true, override: false)
+      email    = "user-#{run_id}@#{squatted.display_domain}"
+      tenant[:sso_config].allowed_domains = [squatted.display_domain]
+      tenant[:sso_config].save
+
+      tenant_callback(email)
+
+      expect_nothing_minted(email)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_tenant_email_domain_unverified, hash_including(
+          outcome: :refused,
+          reason: :email_domain_unverified,
+          asserted_domain: squatted.display_domain,
+        ))
+    end
+
+    it 'mints an address in a second custom domain once a Colonel overrides its verification' do
+      forced = add_org_domain("forced-#{run_id}.example.net", verified: true, override: true)
+      email  = "user-#{run_id}@#{forced.display_domain}"
+
+      tenant_callback(email)
+
+      expect_minted_verified_account(email)
+    end
+  end
+
+  # Under a strategy that checks the TXT record, ownership_verified is the
+  # result of a passing check, so it counts without an override.
+  describe 'under a validation strategy that checks the TXT record (approximated)' do
+    before do
+      Onetime::CustomDomain.reset_serving_policy!
+      configure_domains(validation_strategy: 'approximated', serve_unverified: false)
+    end
+
+    after { Onetime::CustomDomain.reset_serving_policy! }
+
+    it 'is the configuration the examples below assume' do
+      expect(Onetime::CustomDomain.ownership_proof_required?).to be(true)
+    end
+
+    it 'mints an address at the tenant custom domain verified without an override' do
+      verified_without_override!(tenant[:domain])
+
+      tenant_callback(inside_email)
+
+      expect_minted_verified_account(inside_email)
+    end
+
+    it 'mints an address in a second custom domain verified without an override' do
+      mail  = add_org_domain("mail-#{run_id}.example.net", verified: true, override: false)
+      email = "user-#{run_id}@#{mail.display_domain}"
+
+      tenant_callback(email)
+
+      expect_minted_verified_account(email)
+    end
+
+    it 'still refuses a second custom domain whose TXT check has not passed' do
+      pending_domain = add_org_domain("mail-#{run_id}.example.net", verified: false)
+      email          = "user-#{run_id}@#{pending_domain.display_domain}"
+
+      tenant_callback(email)
+
+      expect_nothing_minted(email)
     end
   end
 
