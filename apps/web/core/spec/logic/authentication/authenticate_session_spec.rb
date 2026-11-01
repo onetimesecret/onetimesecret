@@ -1123,7 +1123,9 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
     end
 
     before do
-      allow(customer).to receive(:reset_secret=)
+      # send_verification_email records the pointer through the race-safe
+      # writer, not reset_secret= (#4735).
+      allow(customer).to receive(:record_verification_pointer!).and_return(true)
       allow(Onetime::Receipt).to receive(:spawn_pair).and_return([double('Receipt'), secret])
       allow(Onetime::Mail::Mailer).to receive(:deliver)
     end
