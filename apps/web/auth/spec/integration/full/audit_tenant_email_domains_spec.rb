@@ -57,7 +57,10 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
     end
   end
 
-  Tenant = Struct.new(:host, :domain, :org, :sso, :provider, :issuer, keyword_init: true)
+  # A constant assigned in a describe block is top-level, and other specs
+  # in this directory assign their own Tenant struct with other members;
+  # whichever file loads last in a process wins. Named for this file.
+  AuditTenant = Struct.new(:host, :domain, :org, :sso, :provider, :issuer, keyword_init: true)
 
   def build_tenant(provider_type: 'oidc', idp_entity_id: nil)
     run   = SecureRandom.hex(6)
@@ -92,7 +95,7 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
     fixtures << sso
 
     issuer = provider_type == 'saml' ? Onetime::SsoProvider::Saml.tenant_issuer(domain.identifier, attrs[:idp_entity_id]) : tenant_issuer
-    Tenant.new(host: host, domain: domain, org: org, sso: sso, provider: sso.platform_route_name, issuer: issuer)
+    AuditTenant.new(host: host, domain: domain, org: org, sso: sso, provider: sso.platform_route_name, issuer: issuer)
   end
 
   # A second custom domain of the same organization, verified or not, so the
