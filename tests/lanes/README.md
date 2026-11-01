@@ -537,7 +537,7 @@ duration exceeds its wall clock.
 | `disabled`           | valkey, rabbitmq           | `spec:integration:disabled`                                   | 1       | ruby-integration-disabled (T3)                   |
 | `strategies`         | valkey, rabbitmq           | `spec:integration:strategies`                                 | 1       | ruby-integration-strategies (T3)                 |
 | `api`                | valkey, rabbitmq           | `spec:api`                                                    | 4       | blocking step, T3 simple job                     |
-| `smoke`              | valkey, rabbitmq           | `pnpm test:smoke`                                             | 1 (refused above) | local-only                             |
+| `smoke`              | valkey, rabbitmq           | `pnpm test:smoke`                                             | 1 (refused above) | smoke-test (T3)                        |
 | `migrations-sqlite`  | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                          | 1       | migration-tests.yml — SQLite job                 |
 | `migrations-pg`      | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check    | 1 (PG)  | migration-tests.yml — PostgreSQL job             |
 | `harness`            | valkey, rabbitmq           | `spec:lanes` (`spec/unit/lanes`, the runner's own specs)      | 1       | ruby-unit (T2), second step, path-gated          |
@@ -747,9 +747,9 @@ four rspec processes per lane and claim as many valkey indexes. A serial
 
 `--parallel` requires test services to already be running and is rejected when
 `CI` is set. It also rejects a duplicate lane: two copies derive the same
-isolation key and would share a datastore. The `smoke` lane is local-only and
-cannot be used with `--parallel`, because its task regenerates locales itself
-and can race with other lanes. Run it alone (normally
+isolation key and would share a datastore. The `smoke` lane cannot be used
+with `--parallel`, because its task regenerates locales itself and can race
+with other lanes. Run it alone (normally
 `tests/lanes/run smoke`).
 
 ### Only the lanes a change touches: `--changed`

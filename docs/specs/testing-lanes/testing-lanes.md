@@ -54,7 +54,7 @@ specs.
 | `full-pg-agnostic` | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg` | ruby-integration-auth — PG agnostic row |
 | `disabled` | valkey, rabbitmq | `spec:integration:disabled` | ruby-integration-disabled (T3) |
 | `api` | valkey, rabbitmq | `spec:api` | blocking step, T3 simple job |
-| `smoke` | valkey, rabbitmq | `pnpm test:smoke` | local-only |
+| `smoke` | valkey, rabbitmq | `pnpm test:smoke` | smoke-test (T3) |
 | `migrations-sqlite` | valkey, rabbitmq | `spec:integration:migrations:sqlite` | migration-tests.yml — SQLite job |
 | `migrations-pg` | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check | migration-tests.yml — PostgreSQL job |
 | `selftest` | none | boundary fixture | none — driven by `spec/unit/lanes/` |
