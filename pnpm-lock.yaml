@@ -53,8 +53,8 @@ importers:
         specifier: 1.7.23
         version: 1.7.23(vue@3.5.43(typescript@5.9.3))
       '@intlify/core':
-        specifier: 11.3.0
-        version: 11.3.0
+        specifier: 11.4.14
+        version: 11.4.14
       '@sentry/browser':
         specifier: 10.43.0
         version: 10.43.0
@@ -889,9 +889,9 @@ packages:
     resolution: {integrity: sha512-w/vItlylrAmhebkIbVl5YY8XMCtj8Mb2g70ttxktMYuf5AuRahgEHL2iLgLIsZBIbTSgs4hkUo7ucCL0uTJvOg==}
     engines: {node: '>= 22'}
 
-  '@intlify/core@11.3.0':
-    resolution: {integrity: sha512-vFnw1TgM1J3T/hUm13NLBgciKzqePICs+C0VEcSTuew/7ZJs3NGxyLCEjF4W2Rv09MwZQj9H1Dr4m+e+kNDLcw==}
-    engines: {node: '>= 16'}
+  '@intlify/core@11.4.14':
+    resolution: {integrity: sha512-Zsnu9Xe5QliQK/JmKUJkt+mVt5CySBM6J3vmBOdyLJpHS2mKIVim3eVkly+HXUdpaJ0qa/T0Y8xBxbZsfCpJbQ==}
+    engines: {node: '>= 22'}
 
   '@intlify/devtools-types@11.3.0':
     resolution: {integrity: sha512-G9CNL4WpANWVdUjubOIIS7/D2j/0j+1KJmhBJxHilWNKr9mmt3IjFV3Hq4JoBP23uOoC5ynxz/FHZ42M+YxfGw==}
@@ -5375,10 +5375,10 @@ snapshots:
       '@intlify/message-compiler': 11.4.4
       '@intlify/shared': 11.4.4
 
-  '@intlify/core@11.3.0':
+  '@intlify/core@11.4.14':
     dependencies:
-      '@intlify/core-base': 11.3.0
-      '@intlify/shared': 11.3.0
+      '@intlify/core-base': 11.4.14
+      '@intlify/shared': 11.4.14
 
   '@intlify/devtools-types@11.3.0':
     dependencies:
