@@ -68,17 +68,6 @@ module DomainsAPI
 
         VALID_PROVIDER_TYPES = Onetime::CustomDomain::SsoConfig::PROVIDER_TYPES.freeze
 
-        # Entra app registration settings the operator confirms by hand
-        # (#4734 R2): authenticationBehaviors.removeUnverifiedEmailClaim and
-        # the xms_edov optional claim. Neither is in the discovery document
-        # and this test holds no Graph permission, so an Entra success names
-        # them in details.manual_checks (ids are a UI contract; docs:
-        # per-domain-sso.md "Entra app registration settings").
-        ENTRA_MANUAL_CHECKS = {
-          manual_checks: %w[remove_unverified_email_claim xms_edov_optional_claim].freeze,
-          note: 'The test read the discovery document only. Confirm the app registration settings listed below in Entra.',
-        }.freeze
-
         # details.error_code for a SAML field that fails local validation. An
         # expired certificate reports 'certificate_expired' instead.
         SAML_ERROR_CODES = {
@@ -237,22 +226,8 @@ module DomainsAPI
         # ──────────────────────────────────────────────────────────────────────────
         #
         # test_oidc_connection and test_entra_id_connection come from
-        # DiscoveryCheck.
-
-        # DiscoveryCheck#test_entra_id_connection, plus the Entra app
-        # registration settings the admin confirms by hand on a success
-        # (ENTRA_MANUAL_CHECKS, #4734 R2). Added here rather than in
-        # DiscoveryCheck so the discovery check RunDiagnostics runs on the
-        # saved record is unchanged. A note DiscoveryCheck already set is
-        # kept ahead of ours.
-        def test_entra_id_connection
-          result = super
-          return result unless result[:success]
-
-          details = result[:details] || {}
-          note    = [details[:note], ENTRA_MANUAL_CHECKS[:note]].compact.join(' ')
-          result.merge(details: details.merge(ENTRA_MANUAL_CHECKS).merge(note: note))
-        end
+        # DiscoveryCheck. An Entra success names the app registration
+        # settings the admin confirms by hand (ENTRA_MANUAL_CHECKS, #4734 R2).
 
         # Local validation only — see the class comment. No network request is
         # made (the SSRF host check resolves the SSO URL's hostname, nothing

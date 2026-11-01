@@ -2005,6 +2005,42 @@ describe('DomainSsoConfigForm', () => {
       );
     });
 
+    // #4734: "Save and check" is the primary check, so an Entra discovery
+    // pass lists the app registration settings to confirm by hand, outside
+    // any disclosure, as the provider check does.
+    it('lists the manual checks an Entra discovery pass reports, outside any disclosure', async () => {
+      wrapper = await savedMount({
+        diagnosticsResult: diagnostics('passed', [
+          check('discovery', 'passed', {
+            note: 'This check read the discovery document only.',
+            manual_checks: [
+              'remove_unverified_email_claim',
+              'xms_edov_optional_claim',
+              'future_check',
+            ],
+          }),
+          check('credential', 'passed'),
+        ]),
+      });
+
+      const discovery = wrapper.get('[data-testid="sso-diagnostics-check-discovery"]');
+      const block = discovery.get('[data-testid="sso-diagnostics-manual-checks"]');
+      expect(block.element.closest('details')).toBeNull();
+      expect(block.text()).toContain('manual_checks_title');
+      const items = block.findAll('li');
+      expect(items.map((li) => li.attributes('data-check-id'))).toEqual([
+        'remove_unverified_email_claim',
+        'xms_edov_optional_claim',
+        'future_check',
+      ]);
+      expect(items[0].text()).toContain('manual_check_remove_unverified_email_claim');
+      expect(items[1].text()).toContain('manual_check_xms_edov_optional_claim');
+      expect(items[2].text()).toBe('future_check');
+
+      const credential = wrapper.get('[data-testid="sso-diagnostics-check-credential"]');
+      expect(credential.find('[data-testid="sso-diagnostics-manual-checks"]').exists()).toBe(false);
+    });
+
     it('shows both issuers on an issuer mismatch, exactly as returned', async () => {
       wrapper = await savedMount({
         diagnosticsResult: diagnostics('failed', [

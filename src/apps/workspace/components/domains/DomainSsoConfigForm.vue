@@ -496,8 +496,9 @@ const ENTRY_STATE_LABELS: Record<AllowlistEntryState, string> = {
 };
 
 /**
- * Entra app registration settings the connection test cannot read (#4734):
- * the API names them by id and the admin confirms them by hand.
+ * Entra app registration settings the connection test and the saved-
+ * configuration check cannot read (#4734): the API names them by id and the
+ * admin confirms them by hand.
  */
 const MANUAL_CHECK_LABELS: Record<string, string> = {
   remove_unverified_email_claim: 'web.organizations.sso.manual_check_remove_unverified_email_claim',
@@ -1933,6 +1934,24 @@ aria-hidden="true">*</span>
                       class="mt-1 text-gray-700 dark:text-gray-300">
                       {{ check.details.note }}
                     </p>
+                    <!-- #4734: Entra app registration settings the check
+                         cannot read; the admin confirms them by hand. -->
+                    <div
+                      v-if="check.details?.manual_checks?.length"
+                      data-testid="sso-diagnostics-manual-checks"
+                      class="mt-1 text-gray-700 dark:text-gray-300">
+                      <p class="font-medium">
+                        {{ t('web.organizations.sso.manual_checks_title') }}
+                      </p>
+                      <ul class="mt-1 list-disc space-y-1 pl-5">
+                        <li
+                          v-for="id in check.details.manual_checks"
+                          :key="id"
+                          :data-check-id="id">
+                          {{ manualCheckLabel(id) }}
+                        </li>
+                      </ul>
+                    </div>
                     <details
                       v-if="hasDiagnosticTechnicalDetails(check)"
                       data-testid="sso-diagnostics-technical-details"

@@ -218,6 +218,12 @@ export interface SsoDiagnosticCheck {
     secret_shape?: string;
     /** Caveats about what the check does and does not prove. */
     note?: string;
+    /**
+     * discovery (entra_id, passed; #4734): app registration settings the
+     * check cannot read and the admin confirms by hand. Same ids as
+     * TestSsoConnectionResponse.details.manual_checks.
+     */
+    manual_checks?: string[];
   };
 }
 

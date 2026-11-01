@@ -27,7 +27,10 @@ module DomainsAPI
       #                         every later check is "skipped".
       #   discovery             oidc, entra_id; the same discovery fetch Test
       #                         Connection does, from the STORED issuer /
-      #                         tenant_id (DiscoveryCheck).
+      #                         tenant_id (DiscoveryCheck). An entra_id pass
+      #                         names the app registration settings to
+      #                         confirm by hand in details.manual_checks
+      #                         (DiscoveryCheck::ENTRA_MANUAL_CHECKS, #4734).
       #   certificate           saml; local validity window of the stored
       #                         IdP certificate.
       #   credential            entra_id: one client-credentials token request

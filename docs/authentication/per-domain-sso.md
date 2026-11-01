@@ -305,10 +305,12 @@ unverified address out of the claim.
 Two settings on the tenant's Entra app registration keep an address nobody
 vouches for out of the `email` claim before it reaches the allowlist and the
 verified-domain gate (RISK-2026-10-10-01, remediation R2). Neither is visible
-in the discovery document and Test Connection holds no Graph permission on
-the app registration, so a successful Entra test lists them under "Confirm in
-the Entra app registration" instead of claiming to have checked them. The
-tenant's Entra administrator confirms both.
+in the discovery document and neither Test Connection nor the saved-
+configuration check (the form's primary button: **Save and check**, **Check
+and turn on** or **Check saved configuration**) holds a Graph permission on
+the app registration, so a passing Entra discovery check, in either one,
+lists them under "Confirm in the Entra app registration" instead of claiming
+to have checked them. The tenant's Entra administrator confirms both.
 
 **`removeUnverifiedEmailClaim`.** Microsoft Graph's
 [authenticationBehaviors](https://learn.microsoft.com/en-us/graph/api/resources/authenticationbehaviors)
