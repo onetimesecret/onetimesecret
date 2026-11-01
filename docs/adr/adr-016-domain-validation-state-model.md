@@ -222,6 +222,22 @@ The probe blob reuses Approximated's `status` values (`ACTIVE_SSL`,
 `DNS_INCORRECT`) plus `PENDING_SSL`, so the single badge has correct data to
 render wherever it is shown.
 
+### Virtual host provisioning under `approximated` (2026-10-14)
+
+The Approximated virtual host (and with it the certificate) is created by
+verification, once ownership is verified, and no longer when the domain is
+added. `Operations::VerifyDomain#check_status` creates a missing virtual
+host only when the TXT check passed in that run, an operator override holds,
+or the stored verified state stands after an indeterminate check (and the
+confirmation window has not run out). Until then the provider's "not found"
+answer is reported as `vhost_absent`: a known state, so `persist_changes`
+stores no blob and does not set `vhost_fetch_failed_at`. The customer
+workspace reads a domain with no blob and `verified: false` as the ownership
+check outstanding ("Pending verification"), not as a failed check.
+`AddDomain`, `Operations::Domains::Create` and `bin/ots domains create` no
+longer request a certificate. Virtual hosts created before this change are
+left in place.
+
 ### Customer workspace under `caddy_on_demand` (2026-09-18)
 
 Until this note the customer workspace hid the badge and the verification
