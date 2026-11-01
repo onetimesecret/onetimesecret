@@ -980,6 +980,202 @@
     "text": "-----BEGIN CERTIFICATE-----",
     "content_hash": "ddddb6cb"
   },
+  "web.organizations.sso.metadata_url": {
+    "text": "IdP metadata URL",
+    "content_hash": "63e8aae5"
+  },
+  "web.organizations.sso.metadata_url_hint": {
+    "text": "Optional. Your identity provider's SAML metadata address. For Microsoft Entra ID, use the App Federation Metadata Url from the application's SAML page. Fetching only shows what the metadata contains; nothing changes until you apply it and save.",
+    "content_hash": "e0daf338"
+  },
+  "web.organizations.sso.metadata_url_placeholder": {
+    "text": "https://idp.example.com/saml/metadata",
+    "content_hash": "569daaba"
+  },
+  "web.organizations.sso.metadata_fetch_button": {
+    "text": "Fetch from metadata",
+    "content_hash": "39800511"
+  },
+  "web.organizations.sso.metadata_fetching": {
+    "text": "Fetching metadata…",
+    "content_hash": "ef6d4ef5"
+  },
+  "web.organizations.sso.metadata_source": {
+    "text": "Imported from",
+    "content_hash": "512505c5"
+  },
+  "web.organizations.sso.metadata_source_hint": {
+    "text": "The IdP fields below were imported from this metadata URL. It is saved with the connection; nothing is fetched from it automatically.",
+    "content_hash": "2ef68093"
+  },
+  "web.organizations.sso.metadata_source_clear": {
+    "text": "Clear",
+    "content_hash": "83b12c22"
+  },
+  "web.organizations.sso.metadata_source_clear_label": {
+    "text": "Clear the metadata URL these values were imported from",
+    "content_hash": "bea3f113"
+  },
+  "web.organizations.sso.metadata_source_unreadable": {
+    "text": "The stored metadata URL could not be read. Fetch and apply the metadata again, or save to clear it.",
+    "content_hash": "42aa6899"
+  },
+  "web.organizations.sso.metadata_preview_title": {
+    "text": "Metadata preview",
+    "content_hash": "25c4a9e5"
+  },
+  "web.organizations.sso.metadata_preview_hint": {
+    "text": "Review these values. Apply metadata copies them into the IdP fields below; Save keeps them.",
+    "content_hash": "cb1c6030"
+  },
+  "web.organizations.sso.metadata_value_missing": {
+    "text": "Not found in the metadata",
+    "content_hash": "846c55d2"
+  },
+  "web.organizations.sso.metadata_blocking_title": {
+    "text": "This metadata cannot be imported",
+    "content_hash": "fca0a231"
+  },
+  "web.organizations.sso.metadata_problem_invalid_entity_id": {
+    "text": "The Entity ID in this metadata cannot be used ({reason}).",
+    "content_hash": "e17774b9"
+  },
+  "web.organizations.sso.metadata_problem_invalid_sso_url": {
+    "text": "The HTTP-Redirect SSO URL in this metadata cannot be used ({reason}).",
+    "content_hash": "c15d8750"
+  },
+  "web.organizations.sso.metadata_problem_no_sso_url": {
+    "text": "The metadata does not publish an HTTP-Redirect SSO URL.",
+    "content_hash": "0d009fb9"
+  },
+  "web.organizations.sso.metadata_problem_unsupported_sso_binding": {
+    "text": "The metadata offers single sign-on only through bindings this service does not use. An HTTP-Redirect SSO endpoint is required.",
+    "content_hash": "fec55f65"
+  },
+  "web.organizations.sso.metadata_problem_no_signing_certificates": {
+    "text": "The metadata does not include a signing certificate.",
+    "content_hash": "102b59c7"
+  },
+  "web.organizations.sso.metadata_problem_no_usable_signing_certificates": {
+    "text": "None of the signing certificates in this metadata can be used. Each one could not be read, has expired, is not valid yet, or does not use an RSA key.",
+    "content_hash": "86549c52"
+  },
+  "web.organizations.sso.metadata_problem_unreadable_signing_certificates": {
+    "text": "Some signing certificates in this metadata could not be read and are not listed. If the certificate you need is missing, copy it from your identity provider.",
+    "content_hash": "e75e7b39"
+  },
+  "web.organizations.sso.metadata_problem_tenant_level_entra_metadata": {
+    "text": "This is Microsoft Entra ID's tenant-wide metadata, which can list the tenant's keys instead of this application's signing certificate. Use the App Federation Metadata Url from the application's SAML page in Entra.",
+    "content_hash": "7fbe36a1"
+  },
+  "web.organizations.sso.metadata_certificates": {
+    "text": "Signing certificates",
+    "content_hash": "a963371f"
+  },
+  "web.organizations.sso.metadata_certificates_choose_hint": {
+    "text": "Choose the certificate your identity provider signs with now. In Microsoft Entra ID, match the SHA-1 thumbprint of the certificate marked Active.",
+    "content_hash": "bfa63e8e"
+  },
+  "web.organizations.sso.metadata_cert_newest": {
+    "text": "Newest",
+    "content_hash": "d15efa17"
+  },
+  "web.organizations.sso.metadata_cert_validity": {
+    "text": "Valid from {from} until {until}",
+    "content_hash": "3d38ba01"
+  },
+  "web.organizations.sso.metadata_cert_fingerprint_sha256": {
+    "text": "SHA-256 fingerprint",
+    "content_hash": "684889f0"
+  },
+  "web.organizations.sso.metadata_cert_thumbprint_sha1": {
+    "text": "SHA-1 thumbprint (Entra portal)",
+    "content_hash": "88b59dad"
+  },
+  "web.organizations.sso.metadata_name_id_formats": {
+    "text": "Advertised NameID formats",
+    "content_hash": "9a17fb08"
+  },
+  "web.organizations.sso.metadata_name_id_formats_hint": {
+    "text": "For reference only. Importing metadata does not change this connection's NameID policy.",
+    "content_hash": "2eeb5584"
+  },
+  "web.organizations.sso.metadata_name_id_formats_none": {
+    "text": "The metadata does not advertise a NameID format.",
+    "content_hash": "aeeb93e0"
+  },
+  "web.organizations.sso.metadata_apply": {
+    "text": "Apply metadata",
+    "content_hash": "60e9c751"
+  },
+  "web.organizations.sso.metadata_select_certificate": {
+    "text": "Choose a signing certificate to apply this metadata.",
+    "content_hash": "da2e3d33"
+  },
+  "web.organizations.sso.metadata_applied": {
+    "text": "Applied to the IdP fields below.",
+    "content_hash": "82a00220"
+  },
+  "web.organizations.sso.metadata_error_invalid_metadata_url": {
+    "text": "The metadata URL is not valid. Use an https:// address on a public host.",
+    "content_hash": "c9a86aa5"
+  },
+  "web.organizations.sso.metadata_error_blocked_target": {
+    "text": "This service cannot connect to that address.",
+    "content_hash": "0ad98503"
+  },
+  "web.organizations.sso.metadata_error_timeout": {
+    "text": "The metadata server did not respond in time.",
+    "content_hash": "59e56242"
+  },
+  "web.organizations.sso.metadata_error_ssl_error": {
+    "text": "A secure connection to the metadata server could not be established.",
+    "content_hash": "46fad3dd"
+  },
+  "web.organizations.sso.metadata_error_connection_failed": {
+    "text": "Could not connect to the metadata server.",
+    "content_hash": "fede40d7"
+  },
+  "web.organizations.sso.metadata_error_http_error": {
+    "text": "The metadata server returned an error response.",
+    "content_hash": "b1cbd1db"
+  },
+  "web.organizations.sso.metadata_error_metadata_not_found": {
+    "text": "No metadata was found at that URL.",
+    "content_hash": "91046e48"
+  },
+  "web.organizations.sso.metadata_error_metadata_too_large": {
+    "text": "The metadata document is larger than this service accepts.",
+    "content_hash": "5dfe5bf8"
+  },
+  "web.organizations.sso.metadata_error_invalid_metadata": {
+    "text": "The document is not valid SAML identity provider metadata.",
+    "content_hash": "6d2fcd78"
+  },
+  "web.organizations.sso.metadata_error_aggregate_metadata": {
+    "text": "The document describes more than one identity provider. Use the metadata URL for your identity provider alone.",
+    "content_hash": "a383d38a"
+  },
+  "web.organizations.sso.metadata_error_unreadable_certificate": {
+    "text": "The certificate in this metadata could not be read. Copy the signing certificate from your identity provider instead.",
+    "content_hash": "52515669"
+  },
+  "web.organizations.sso.metadata_error_unexpected_error": {
+    "text": "The metadata could not be read.",
+    "content_hash": "e5f3a5bf"
+  },
+  "web.organizations.sso.metadata_fetch_error": {
+    "text": "Could not fetch the metadata.",
+    "content_hash": "caab3084"
+  },
+  "web.organizations.sso.metadata_rate_limited": {
+    "text": "Metadata has been fetched too many times recently. Try again later.",
+    "content_hash": "e32cb743"
+  },
+  "web.organizations.sso.metadata_rate_limited_retry": {
+    "text": "Metadata has been fetched too many times recently. Try again in about {minutes} minutes.",
+    "content_hash": "6d8366fd"
+  },
   "web.organizations.sso.sp_details": {
     "text": "Service provider details",
     "content_hash": "4b6617d2"

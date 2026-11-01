@@ -64,11 +64,13 @@ module Core::Logic
         # and skipped the failure funnel, so the attempt against X was never
         # counted or audited. Full mode has no such fallback: Rodauth resolves
         # the account from the submitted `login` and verifies the password
-        # against that account alone (its default already_logged_in is a no-op
-        # and this app never configures it). So @cust is unconditionally
-        # overwritten here — the attempted account when its passphrase matches,
-        # nil otherwise — which makes raise_concerns the single failure funnel
-        # for EVERY rejected credential, carried session or not.
+        # against that account alone, and its already_logged_in (configured in
+        # apps/web/auth/config/base.rb) refuses a session the app has marked
+        # authenticated before the password is checked. So @cust is
+        # unconditionally overwritten here — the attempted account when its
+        # passphrase matches, nil otherwise — which makes raise_concerns the
+        # single failure funnel for EVERY rejected credential, carried session
+        # or not.
         passwd_matches = potential ? potential.passphrase?(@passwd) : false
         @cust          = passwd_matches ? potential : nil
         @objid         = @cust.objid if @cust

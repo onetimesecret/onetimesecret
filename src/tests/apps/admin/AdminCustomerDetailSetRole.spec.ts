@@ -1,7 +1,7 @@
 // src/tests/apps/admin/AdminCustomerDetailSetRole.spec.ts
 
-import { AxiosError } from 'axios';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
+import { AxiosError } from 'axios';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
@@ -75,8 +75,13 @@ vi.mock('@headlessui/vue', () => ({
   TransitionChild: { name: 'TransitionChild', template: '<div><slot /></div>', props: ['as'] },
 }));
 
+import {
+  __resetColonelElevationState,
+  useColonelElevation,
+} from '@/apps/admin/composables/useColonelElevation';
 import AdminCustomerDetail from '@/apps/admin/views/AdminCustomerDetail.vue';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { startElevated } from '@tests/apps/admin/support/elevation';
 import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
@@ -131,7 +136,10 @@ function mutationAck() {
 const mountView = () =>
   mount(AdminCustomerDetail, {
     props: { id: PUBLIC_ID },
-    global: { plugins: [i18n], stubs: { AdminCustomerSessionsSection: true } },
+    global: {
+      plugins: [i18n],
+      stubs: { AdminCustomerSessionsSection: true, AdminAccountDiagnosticsSection: true },
+    },
   });
 
 const dialogInput = (w: VueWrapper) => w.find('#admin-confirm-input');
@@ -151,7 +159,12 @@ function actAs(extid: string | null): void {
 describe('AdminCustomerDetail — role change gate (#4326)', () => {
   let wrapper: VueWrapper;
 
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // A live step-up window: these examples are about the dialogs, which a
+    // tier-1 opener only shows once elevated (see support/elevation.ts).
+    startElevated();
+  });
   afterEach(() => wrapper?.unmount());
 
   async function mountLoaded(record: Record<string, unknown> = {}): Promise<void> {
@@ -248,7 +261,8 @@ describe('AdminCustomerDetail — role change gate (#4326)', () => {
     await mountLoaded();
     mockApi.post.mockRejectedValue(
       axiosError(403, {
-        error: 'Confirmation required: re-send this request with the X-OTS-Confirm header set to the target account\'s email address.',
+        error:
+          "Confirmation required: re-send this request with the X-OTS-Confirm header set to the target account's email address.",
         error_type: 'ConfirmationRequired',
         error_code: 'confirmation_required',
       })
@@ -263,6 +277,105 @@ describe('AdminCustomerDetail — role change gate (#4326)', () => {
       'Confirmation required'
     );
     expect(showMock).not.toHaveBeenCalled();
+  });
+
+  // ---- Step-up first (#4327) ------------------------------------------------
+  //
+  // SetUserRole is tier 1: the prompt comes BEFORE the dialog, so the typed
+  // token and the reason are entered once, after the credential.
+  describe('unelevated', () => {
+    beforeEach(() => __resetColonelElevationState({ statusRead: true }));
+
+    it('prompts before the role dialog, then opens it and sends the reason typed there', async () => {
+      await mountLoaded();
+      mockApi.post.mockResolvedValue({ data: mutationAck() });
+
+      await requestRole('colonel');
+
+      const elevation = useColonelElevation();
+      expect(elevation.promptOpen.value).toBe(true);
+      expect(dialogInput(wrapper).exists()).toBe(false);
+
+      elevation.resolvePrompt(true);
+      await flushPromises();
+      expect(dialogInput(wrapper).exists()).toBe(true);
+
+      await dialogInput(wrapper).setValue(EMAIL);
+      await wrapper.find('[data-testid="admin-confirm-reason"]').setValue('Ticket 1234');
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(mockApi.post).toHaveBeenCalledTimes(1);
+      expect(mockApi.post).toHaveBeenCalledWith(
+        `/api/colonel/users/${PUBLIC_ID}/role`,
+        { role: 'colonel', reason: 'Ticket 1234' },
+        { headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) } }
+      );
+    });
+
+    it.each([false, true])(
+      'drops the role opener after a resource switch (return: %s)',
+      async (returnToOriginal) => {
+        await mountLoaded();
+        await requestRole('colonel');
+        expect(useColonelElevation().promptOpen.value).toBe(true);
+
+        await wrapper.setProps({ id: 'ur_bob' });
+        if (returnToOriginal) await wrapper.setProps({ id: PUBLIC_ID });
+        await flushPromises();
+        await wrapper.find('[data-testid="role-select"]').setValue('colonel');
+        useColonelElevation().resolvePrompt(true);
+        await flushPromises();
+
+        expect(wrapper.find('[data-testid="admin-confirm-dialog"]').exists()).toBe(false);
+        expect(mockApi.post).not.toHaveBeenCalled();
+      }
+    );
+
+    it('keeps the first opener while elevating and does not rewrite its open dialog', async () => {
+      await mountLoaded();
+      await requestRole('colonel');
+      const purge = wrapper.find('[data-testid="purge-button"]');
+      expect(purge.attributes('disabled')).toBeDefined();
+      purge.element.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await flushPromises();
+
+      useColonelElevation().resolvePrompt(true);
+      await flushPromises();
+      const dialog = wrapper.find('[data-testid="admin-confirm-dialog"]');
+      expect(dialog.text()).toContain('web.admin.customers.actions.role.confirmTitle');
+
+      await wrapper.find('[data-testid="admin-confirm-reason"]').setValue('Keep this reason');
+      purge.element.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await flushPromises();
+      expect(dialog.text()).toContain('web.admin.customers.actions.role.confirmTitle');
+      expect(
+        (wrapper.find('[data-testid="admin-confirm-reason"]').element as HTMLTextAreaElement).value
+      ).toBe('Keep this reason');
+      expect(useColonelElevation().promptOpen.value).toBe(false);
+    });
+
+    it('rechecks role eligibility after elevation', async () => {
+      await mountLoaded();
+      await requestRole('colonel');
+      await wrapper.find('[data-testid="role-select"]').setValue('customer');
+      useColonelElevation().resolvePrompt(true);
+      await flushPromises();
+
+      expect(dialogInput(wrapper).exists()).toBe(false);
+      expect(mockApi.post).not.toHaveBeenCalled();
+    });
+
+    it('opens no dialog and POSTs nothing when the prompt is cancelled', async () => {
+      await mountLoaded();
+
+      await requestRole('colonel');
+      useColonelElevation().resolvePrompt(false);
+      await flushPromises();
+
+      expect(dialogInput(wrapper).exists()).toBe(false);
+      expect(mockApi.post).not.toHaveBeenCalled();
+    });
   });
 
   // ---- Self-target interlocks (#4328) ---------------------------------------
@@ -317,14 +430,16 @@ describe('AdminCustomerDetail — role change gate (#4326)', () => {
       expect(dialogInput(wrapper).exists()).toBe(false);
     });
 
-    it('leaves SOMEONE ELSE\'S account fully actionable, with a last-colonel warning', async () => {
+    it("leaves SOMEONE ELSE'S account fully actionable, with a last-colonel warning", async () => {
       actAs('ur_someone_else');
       await mountLoaded({ role: 'colonel', verified: true });
       await wrapper.find('[data-testid="role-select"]').setValue('customer');
       await flushPromises();
 
       expect(wrapper.find('[data-testid="role-apply"]').attributes('disabled')).toBeUndefined();
-      expect(wrapper.find('[data-testid="unverify-button"]').attributes('disabled')).toBeUndefined();
+      expect(
+        wrapper.find('[data-testid="unverify-button"]').attributes('disabled')
+      ).toBeUndefined();
       // Advisory, not a gate: the console cannot know the roster (exposing it
       // would be the oracle #4328 closes), so it warns rather than blocks.
       expect(wrapper.find('[data-testid="last-colonel-warning"]').text()).toBe(

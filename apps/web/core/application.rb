@@ -6,6 +6,7 @@ require 'onetime/application'
 require 'onetime/application/otto_hooks'
 require 'onetime/middleware'
 require 'onetime/middleware/tenant_csp_extras'
+require 'onetime/middleware/signin_return_path'
 require 'onetime/logger_methods'
 
 require_relative 'middleware/request_setup'
@@ -52,6 +53,12 @@ module Core
     # Simplified error handling for Vue SPA - serves entry points
     # Must come after security but before router to catch all downstream errors
     use Core::Middleware::ErrorHandling
+
+    # A signed-out GET of a session page (GET /recent and the other
+    # auth=sessionauth routes) gets Otto's 302 to a bare /signin; this adds
+    # the requested page as ?redirect= so the sign-in flow returns there.
+    # Core-only: the API apps answer the same refusal with a JSON 401.
+    use Onetime::Middleware::SigninReturnPath
 
     Onetime.development? do
       # Enable development-specific middleware when in development mode

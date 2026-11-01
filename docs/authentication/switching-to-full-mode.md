@@ -124,6 +124,9 @@ AUTHENTICATION_MODE=full bin/ots customers sync-auth-accounts --run -v
 - Links accounts via `external_id` field (maps to customer `extid`)
 - Sets verification status based on customer state
 - Skips anonymous customers automatically
+- Skips customers whose account closure was interrupted (`Skipped (closing)`):
+  their auth account was deleted on purpose and is never re-created. Finish
+  each with `bin/ots customers purge ID`
 - Idempotent: safe to run multiple times
 
 **Expected output:**
@@ -146,6 +149,7 @@ Statistics:
   Total customers:     1234
   Skipped (anonymous): 2
   Skipped (existing):  0
+  Skipped (closing):   0
   Linked:              0
   Created:             1232
 ```

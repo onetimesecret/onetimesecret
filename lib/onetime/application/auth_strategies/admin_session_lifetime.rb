@@ -56,14 +56,58 @@ module Onetime
       # a tenant route keeps the admin idle window open. The absolute bound is
       # unaffected. Per-surface activity needs the separate admin session this
       # design deliberately defers.
+      #
+      # ## The one exempt request: password re-authentication
+      #
+      # REAUTH_EXEMPT names exactly one method and path,
+      # `POST /api/colonel/reauthenticate`
+      # (ColonelAPI::Logic::Colonel::ReauthenticateSession). It is how an
+      # operator whose window lapsed gets it back by re-entering their
+      # password instead of signing out and in. A bound that refused it would
+      # leave sign-out as the only recovery, so neither bound refuses it.
+      #
+      # This does not weaken the bound for any other request:
+      #
+      #   - Only the bound is skipped. The request still passes every other
+      #     session check in base_session_auth_strategy.rb and the shared
+      #     evaluator: authenticated, identity, surface, suspension, the
+      #     credential watermark (stale_credentials) and the active-session
+      #     row; and the router still requires role=colonel.
+      #   - The handler does nothing without the account password (the same
+      #     dual-mode check as step-up), throttled by the colonel elevation
+      #     limiter bucket.
+      #   - A wrong password changes nothing: authenticated_at is not
+      #     re-stamped, and the request is still NOT activity. When a bound
+      #     had tripped, #admin_session_expiry_reason stamps EXPIRED_ENV_KEY
+      #     for this request too, so TrackMetadata leaves last_activity_at
+      #     where it was. Without that, any POST here, right password or not,
+      #     would slide the idle window forward and reopen the whole surface.
+      #   - A right password re-stamps authenticated_at (the absolute bound)
+      #     and renews the session id, which ends the old id's SessionMetadata
+      #     record. The handler then writes the new id's record through
+      #     TrackMetadata itself (the idle bound), because the commit skips
+      #     it for the reason above.
+      #
+      # Method and path are matched exactly (a trailing slash aside, as
+      # #admin_api_request? normalizes it): `GET /api/colonel/reauthenticate`
+      # and `POST /api/colonel/reauthenticate-x` are bounded like any other
+      # admin request.
       module AdminSessionLifetime
         DEFAULT_IDLE_TIMEOUT     = 3_600    # 1 hour
         DEFAULT_ABSOLUTE_TIMEOUT = 43_200   # 12 hours
 
         ADMIN_API_PREFIX = '/api/colonel'
 
-        # Rack env flag set by the auth strategy when it refuses an admin request
-        # on either bound. Read by Onetime::Operations::Sessions::TrackMetadata.
+        # [method, full path] pairs neither bound refuses. One entry, on
+        # purpose; see "The one exempt request" above before adding another.
+        REAUTH_EXEMPT = [['POST', "#{ADMIN_API_PREFIX}/reauthenticate"].freeze].freeze
+
+        # Rack env flag marking a request that arrived on an expired admin
+        # session: set by the auth strategy when it refuses an admin request on
+        # either bound, and by #admin_session_expiry_reason when it admits the
+        # REAUTH_EXEMPT request past a tripped bound. Either way the request is
+        # not activity. Read by Onetime::SessionActivity.refused?
+        # (TrackMetadata and the session blob TTL).
         EXPIRED_ENV_KEY = 'onetime.admin_session_expired'
 
         # @param session [Hash, Rack::Session::Abstract::SessionHash] the raw session
@@ -71,6 +115,21 @@ module Onetime
         # @param env [Hash] the Rack environment
         # @return [Symbol, nil] :absolute, :idle, or nil when the session may proceed
         def admin_session_expiry_reason(session, cust, env)
+          reason = admin_session_bound_reason(session, cust, env)
+          return reason unless reason && admin_reauth_exempt?(env)
+
+          # Admitted, but not activity (see "The one exempt request").
+          env[EXPIRED_ENV_KEY] = reason.to_s
+          nil
+        end
+
+        private
+
+        # Which bound, if any, this request's session is past. Ignores
+        # REAUTH_EXEMPT; #admin_session_expiry_reason applies it.
+        #
+        # @return [Symbol, nil] :absolute, :idle, or nil
+        def admin_session_bound_reason(session, cust, env)
           return nil unless admin_api_request?(env)
           return nil unless cust.role.to_s == 'colonel'
           return nil unless admin_session_lifetime_enabled?
@@ -93,11 +152,22 @@ module Onetime
           nil
         end
 
-        private
-
         def admin_api_request?(env)
           path = "#{env['SCRIPT_NAME']}#{env['PATH_INFO']}"
           path == ADMIN_API_PREFIX || path.start_with?("#{ADMIN_API_PREFIX}/")
+        rescue StandardError
+          false
+        end
+
+        # Exact method, exact full path (SCRIPT_NAME + PATH_INFO, the same
+        # mount-relative join #admin_api_request? uses), one trailing slash
+        # tolerated. Anything unreadable is not exempt.
+        def admin_reauth_exempt?(env)
+          method = env['REQUEST_METHOD'].to_s.upcase
+          path   = "#{env['SCRIPT_NAME']}#{env['PATH_INFO']}"
+          path   = path.chomp('/') unless path == '/'
+
+          REAUTH_EXEMPT.include?([method, path])
         rescue StandardError
           false
         end

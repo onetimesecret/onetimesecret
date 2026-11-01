@@ -145,6 +145,17 @@
         </p>
       </div>
 
+      <!-- Without a passphrase field the error still needs a place: a failed
+           reveal (e.g. a refused verification, #4831) otherwise drops back to
+           the same button with no explanation. -->
+      <p
+        v-else-if="error"
+        class="text-sm text-red-600 dark:text-red-400"
+        role="alert"
+        data-testid="secret-reveal-error">
+        {{ String(error) }}
+      </p>
+
       <!-- Submission Button -->
       <button
         type="submit"

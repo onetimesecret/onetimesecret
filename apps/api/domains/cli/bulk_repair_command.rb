@@ -26,7 +26,7 @@
 # tally that was bulk-repair's only unique output.
 #
 # Orphaned domains still require a per-domain human decision:
-#   bin/ots domains repair DOMAIN --org-id ORG
+#   bin/ots domains repair DOMAIN --org-id ORG --apply
 
 module Onetime
   module CLI
@@ -58,7 +58,7 @@ module Onetime
         warn 'and mutated without an audit trail.'
         warn ''
         warn 'Orphaned domains still need a per-domain decision:'
-        warn '  bin/ots domains repair DOMAIN --org-id ORG'
+        warn '  bin/ots domains repair DOMAIN --org-id ORG --apply'
         warn '  bin/ots domains orphaned            # list them'
         exit 1
       end

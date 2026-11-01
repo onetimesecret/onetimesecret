@@ -39,7 +39,7 @@ RSpec.describe Auth::Config::Overrides::AccountEnumeration, 'duplicate sign-up a
       create_account_error_flash 'Unable to create account'
       attempt_to_create_unverified_account_error_flash 'Unable to create account'
       Auth::Config::Overrides::AccountEnumeration.configure(self) if with_override
-    end.tap { |klass| klass.plugin :json_parser } # the helper app has no body parser
+    end.tap { |klass| klass.plugin :json_parser, content_type_regexp: %r{\Aapplication/json\b}i } # no body parser otherwise
   end
 
   let(:app) { build_app(with_override: true) }
@@ -74,6 +74,19 @@ RSpec.describe Auth::Config::Overrides::AccountEnumeration, 'duplicate sign-up a
   it 'still creates an account for a new login' do
     answer = sign_up('fresh@example.com')
     expect(answer).to include(status: 200), answer.inspect
+    expect(db[:accounts].where(email: 'fresh@example.com').count).to eq(1)
+  end
+
+  # rodauth 2.47 warns on stderr when one route loads the account by login
+  # twice. The retired DuplicateSignup override loaded it once before
+  # verify_account's new_account loaded it again. The override here skips
+  # verify_account's new_account on this route, so the row is never loaded
+  # by login; this guards against a future change bringing a second load back.
+  it 'loads the account by login without a rodauth reload warning', :aggregate_failures do
+    seed('verified@example.com', 2)
+
+    expect { sign_up('verified@example.com') }.not_to output(/retrieved multiple times/).to_stderr
+    expect { sign_up('fresh@example.com') }.not_to output(/retrieved multiple times/).to_stderr
     expect(db[:accounts].where(email: 'fresh@example.com').count).to eq(1)
   end
 

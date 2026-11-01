@@ -8,6 +8,12 @@
 # password) and the multi-host parser's own format check. Both reach rake
 # output and boot error logs.
 #
+# Also the timestamp readers (.utc_timestamp, .timestamp): the connection
+# does not pin a database timezone, so a naive column comes back as the
+# stored wall clock labelled with the host's zone, and the zone it was
+# written in depends on the database and the writer (the module comment in
+# database_connection.rb has the rules).
+#
 # RUN (always via the lane runner — see AGENTS.md):
 #   tests/lanes/run unit --only apps/web/auth/spec/unit/database_connection_spec.rb
 
@@ -15,6 +21,62 @@ require_relative '../spec_helper'
 require_relative '../../database_connection'
 
 RSpec.describe Auth::DatabaseConnection do
+  describe 'reading timestamp columns' do
+    let(:epoch) { 1_700_000_000 }
+    # What Sequel returns for a UTC wall clock on a UTC-7 host with no
+    # database timezone pinned: the components as stored, the host's offset.
+    let(:utc_wall_clock_read_on_a_utc_minus_7_host) { Time.new(2023, 11, 14, 22, 13, 20, '-07:00') }
+
+    describe '.utc_timestamp' do
+      it 'reads the wall clock as UTC, whatever zone it is labelled with' do
+        expect(described_class.utc_timestamp(utc_wall_clock_read_on_a_utc_minus_7_host)).to eq(Time.at(epoch).utc)
+      end
+
+      it 'is the identity on a value a pinned connection already returned in UTC' do
+        expect(described_class.utc_timestamp(Time.at(epoch).utc)).to eq(Time.at(epoch).utc)
+      end
+
+      it 'keeps fractional seconds' do
+        expect(described_class.utc_timestamp(Time.new(2023, 11, 14, 22, 13, 20.25r, '-07:00')).to_r).to eq(epoch + 0.25r)
+      end
+
+      it 'accepts a DateTime' do
+        expect(described_class.utc_timestamp(DateTime.new(2023, 11, 14, 22, 13, 20, '-07:00')).to_i).to eq(epoch)
+      end
+
+      it 'is nil for nil' do
+        expect(described_class.utc_timestamp(nil)).to be_nil
+      end
+    end
+
+    describe '.timestamp' do
+      it 'reads a PostgreSQL value as UTC' do
+        db = double('postgres', database_type: :postgres)
+
+        expect(described_class.timestamp(db, utc_wall_clock_read_on_a_utc_minus_7_host).to_i).to eq(epoch)
+      end
+
+      # Sequel wrote datetime(CURRENT_TIMESTAMP, 'localtime') and reads the
+      # value back in the same zone, so its own Time is the instant.
+      it 'reads a SQLite value as the local wall clock while current_timestamp_utc is unset' do
+        db            = double('sqlite', database_type: :sqlite, current_timestamp_utc: false)
+        local_instant = Time.new(2023, 11, 14, 15, 13, 20, '-07:00')
+
+        expect(described_class.timestamp(db, local_instant).to_i).to eq(epoch)
+      end
+
+      it 'reads a SQLite value as UTC once current_timestamp_utc is set' do
+        db = double('sqlite', database_type: :sqlite, current_timestamp_utc: true)
+
+        expect(described_class.timestamp(db, utc_wall_clock_read_on_a_utc_minus_7_host).to_i).to eq(epoch)
+      end
+
+      it 'is nil for nil' do
+        expect(described_class.timestamp(double('postgres', database_type: :postgres), nil)).to be_nil
+      end
+    end
+  end
+
   describe '.redact_url' do
     {
       'postgresql://u:s3cret@db:5432/auth' => 'postgresql://***@db:5432/auth',

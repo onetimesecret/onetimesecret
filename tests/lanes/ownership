@@ -51,6 +51,7 @@ declare -A LANES_OWNER_TASKS=(
   [full-mfa]='spec:integration:full:mfa'
   [full-saml-platform]='spec:integration:full:saml_platform'
   [strategies]='spec:integration:strategies'
+  [full-webauthn-verify]='spec:integration:full:webauthn_verify'
   [migrations-sqlite]='spec:integration:migrations:sqlite'
   [migrations-pg]='spec:integration:migrations:postgres spec:integration:migrations:verify_dual_url'
   [api]='spec:api'
@@ -193,6 +194,9 @@ lanes_for_path() {  # <path>
       echo full-mfa ;;
     ${app}/spec/integration/full_saml_platform|${app}/spec/integration/full_saml_platform/*)
       echo full-saml-platform ;;
+    ${app}/spec/integration/full_webauthn_verify|${app}/spec/integration/full_webauthn_verify/*|\
+    ${app}/spec/integration/full_webauthn_verify_mfa|${app}/spec/integration/full_webauthn_verify_mfa/*)
+      echo full-webauthn-verify ;;
     # spec:integration:oauth is full-sqlite's second task (its own rspec
     # process); spec:integration:strategies is the strategies lane.
     ${app}/spec/integration/oauth|${app}/spec/integration/oauth/*)

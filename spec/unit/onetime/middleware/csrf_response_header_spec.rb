@@ -95,6 +95,29 @@ RSpec.describe Onetime::Middleware::CsrfResponseHeader do
       expect(session[:csrf]).to eq(existing)
     end
 
+    # Revealing an emailed verification link clears the session (RevealSecret,
+    # #4831). The token is minted after the app runs, so the same response
+    # carries one backed by the new session, and the page's old one is dead.
+    context 'when the app clears the session' do
+      let(:downstream_side_effect) { ->(env) { env['rack.session'].clear } }
+
+      def accepted?(token)
+        env = env_for(method: 'POST', session: session)
+          .merge('HTTP_X_CSRF_TOKEN' => token, 'rack.input' => StringIO.new)
+        Rack::Protection::AuthenticityToken.new(nil).accepts?(env)
+      end
+
+      it 'exposes a token that validates against the new session' do
+        session[:csrf] = Rack::Protection::AuthenticityToken.random_token
+        stale          = Rack::Protection::AuthenticityToken.token(session)
+
+        _status, headers, = middleware.call(env_for(method: 'POST', session: session))
+
+        expect(accepted?(headers['X-CSRF-Token'])).to be true
+        expect(accepted?(stale)).to be_falsey
+      end
+    end
+
     it 'passes the downstream status and body through unchanged' do
       status, _headers, body = middleware.call(env_for(session: session))
 

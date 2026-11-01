@@ -68,6 +68,10 @@ module Onetime
       def call(identifier:, reason: nil, yes: false, json: false, **)
         boot_application!
 
+        # Before anything is resolved: see Customers::Shared#auth_mode_refusal.
+        refusal = auth_mode_refusal
+        error_exit(refusal, json: json) if refusal
+
         if identifier.to_s.strip.empty?
           error_exit('Identifier is required', json: json)
         end

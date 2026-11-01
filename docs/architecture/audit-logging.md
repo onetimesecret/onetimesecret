@@ -237,9 +237,11 @@ Current state:
   subject-less org events — never "everything about this human" across orgs,
   and never detection internals in the individual view. Failed logins appear
   in **both** views.
-- Retention is TTL-based; ADR-021 flags that a 90-day TTL undersells SOC 2
-  expectations (≥12 months) if this stream is marketed as the compliance
-  artifact — unresolved (ADR-021 open question 1).
+- Retention: rows are deleted with the account when it is closed or purged
+  (#4819). Nothing prunes the rows of live accounts by age yet (#3063).
+  ADR-021 flags that a 90-day TTL would undersell SOC 2 expectations
+  (≥12 months) if this stream is marketed as the compliance artifact;
+  unresolved (ADR-021 open question 1).
 
 ## Operator audit log (colonel)
 

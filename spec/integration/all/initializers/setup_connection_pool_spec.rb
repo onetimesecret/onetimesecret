@@ -129,12 +129,12 @@ RSpec.describe 'SetupConnectionPool (integration)', type: :integration do
     around do |example|
       snapshot = snapshot_familia_pool_config
       original_timeout = ENV['FAMILIA_POOL_TIMEOUT']
-      # FAMILIA_POOL_TIMEOUT caps the wall-clock budget. When connect()
-      # returns ECONNREFUSED against a closed localhost port, it returns
-      # immediately — the reconnect backoff ladder
-      # (setup_connection_pool.rb:52-57) only activates after a successful
-      # connection that later drops, so the 1s ceiling here is a defensive
-      # floor, not a load-bearing deadline.
+      # FAMILIA_POOL_TIMEOUT caps the wall-clock budget of a checkout. The
+      # reconnect ladder (Onetime::DATABASE_RECONNECT_ATTEMPTS,
+      # lib/onetime/connection_pinning.rb) retries a refused connect as well
+      # as a dropped one, sleeping 3.25s in all before the error surfaces.
+      # The boot.rb guard aborts before any connection is attempted, so
+      # neither bound is reached today; the 1s ceiling is defensive.
       ENV['FAMILIA_POOL_TIMEOUT'] = '1'
       begin
         example.run

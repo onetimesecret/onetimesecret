@@ -25,10 +25,18 @@ import { homepageSecretsModeSchema } from '@/schemas/contracts/custom-domain/hom
  * experience the homepage presents ('create' | 'incoming'). Setting
  * 'incoming' is rejected server-side unless the domain's incoming config is
  * ready (enabled with at least one recipient) and the org is entitled.
+ *
+ * `allowed_cidrs` / `denied_cidrs` are the homepage network rules. Omitted
+ * leaves the stored list unchanged; `[]` clears it. Entries are IPv4/IPv6
+ * addresses or CIDR ranges; the server normalizes them to "address/prefix"
+ * and rejects anything unparseable (422 tagged with the field) or more than
+ * its per-list cap.
  */
 export const putHomepageConfigRequestSchema = z.object({
   enabled: z.boolean(),
   secrets_mode: homepageSecretsModeSchema.optional(),
+  allowed_cidrs: z.array(z.string()).optional(),
+  denied_cidrs: z.array(z.string()).optional(),
 });
 
 export type PutHomepageConfigRequest = z.infer<typeof putHomepageConfigRequestSchema>;

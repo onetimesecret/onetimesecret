@@ -169,8 +169,8 @@ bin/ots billing plans materialize --all --include-memberships
 bin/ots billing plans materialize --all --include-memberships --run
 
 # Single org — re-apply billing + entitlements:
-bin/ots org reconcile <ORG> --dry-run
-bin/ots org reconcile <ORG> --yes
+bin/ots org reconcile <ORG>          # dry run (the default)
+bin/ots org reconcile <ORG> --apply
 
 # Catalog management (config vs Stripe vs Redis cache):
 bin/ots billing catalog drift     # inspect config-vs-live drift

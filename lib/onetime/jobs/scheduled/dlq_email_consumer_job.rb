@@ -15,9 +15,13 @@ module Onetime
       #
       # Non-auth emails (secret_link, expiration_warning, etc.) are discarded
       # because they are time-sensitive and stale by the time they reach the
-      # DLQ. Auth emails (password reset, verification, email change) are
-      # replayed if the underlying token hasn't expired, because the user
-      # is actively waiting for that email.
+      # DLQ: a non-auth template arrives here only after EmailWorker's
+      # retries on email.message.send failed. (Until #4844, expiration
+      # warnings also arrived unsent, by TTL from email.message.schedule, a
+      # queue nothing consumed; that queue is retired.) Auth emails
+      # (password reset, verification, email change) are replayed if the
+      # underlying token hasn't expired, because the user is actively
+      # waiting for that email.
       #
       # Raw emails (Rodauth's password reset, verify account, email auth)
       # are always replayed since they are auth-critical by definition and

@@ -91,6 +91,10 @@ export const colonelSigninConfigSchema = z.object({
  * fail gracefulParse and blank the whole configs panel. The server does NOT
  * coerce (the admin view shows honest raw state); the edit modal falls back
  * to 'passthrough' when prefilling.
+ *
+ * `allow_base_domain` (the domain's own registrable domain joins the
+ * allowlist) defaults to false when absent so a panel talking to an older
+ * API during a deploy still renders; the server serializes a real boolean.
  */
 export const colonelSignupConfigSchema = z.object({
   domain_id: z.string(),
@@ -99,6 +103,7 @@ export const colonelSignupConfigSchema = z.object({
   autoverify: z.boolean(),
   validation_strategy: z.string().nullable(),
   allowed_signup_domains: z.array(z.string()),
+  allow_base_domain: z.boolean().default(false),
   ...configTimestamps,
 });
 
@@ -112,6 +117,9 @@ export const colonelHomepageConfigSchema = z.object({
   enabled: z.boolean(),
   secrets_mode: z.string(),
   disabled_homepage_variant: z.string().nullable(),
+  /** Homepage network rules, normalized "address/prefix" entries (empty = open). */
+  allowed_cidrs: z.array(z.string()).default([]),
+  denied_cidrs: z.array(z.string()).default([]),
   ...configTimestamps,
 });
 

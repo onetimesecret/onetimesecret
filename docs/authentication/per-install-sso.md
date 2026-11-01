@@ -26,7 +26,7 @@ Multiple providers can be active simultaneously. Each provider that has its requ
 - `AUTHENTICATION_MODE=full`
 - A runtime SQL database connection (`AUTH_DATABASE_URL`) with migrations applied
 - At least one provider's credentials configured
-- For first-time account creation, a nonblank, structurally valid string in OmniAuth `info.email`, permitted by the applicable signup-domain policy. Email-less account creation is **not implemented**; see the [proposed Phase 2 plan](../planning/2026-1009-sso-email-less-accounts.md).
+- For first-time account creation, a nonblank, structurally valid string in OmniAuth `info.email`, permitted by the applicable signup-domain policy. Email-less account creation is **not implemented**; see the [proposed Phase 2 plan](../specs/sso/email-less-accounts-proposal.md).
 - Before rollout, test first-time and returning users from each intended IdP account type (including Entra guests). Confirm claim availability and the operator's trust assumptions; requesting an email scope is not proof of mailbox control.
 
 An already-linked identity can sign in on the platform without a callback email. Authenticated Connect can also link without email, subject to its [reauthentication, surface, account, and ownership gates](#connected-identities-authenticated-linking-from-account-settings). Tenant SSO with nonempty `SsoConfig.allowed_domains` still requires a usable, allowed callback email on **every** sign-in or Connect, including returning identities. These are separate paths, not support for creating email-less accounts.
@@ -615,7 +615,7 @@ The same reference recommends requesting an addressable email from the user, usi
 - Microsoft's [UserInfo endpoint](https://learn.microsoft.com/en-us/entra/identity-platform/userinfo#consider-using-an-id-token-instead) documentation says the ID token is a superset of UserInfo, and describes email as available only "when available and consented to." UserInfo is not a guaranteed missing-email remedy.
 - The [native strategy source for 3.1.1](https://github.com/pond/omniauth-entra-id/blob/7a45b1f4aadefd2d19781c80acc5fd17251e21db/lib/omniauth/strategies/entra_id.rb#L124-L204) maps `raw_info['email']` into `info.email` and builds `raw_info` from token payloads; it does not fetch a directory `mail` attribute. OTS adds no Microsoft Graph enrichment. The `raw_info.mail` fallback in [#3965](https://github.com/onetimesecret/onetimesecret/pull/3965) targets `develop`, is absent from this main-derived branch, and cannot produce `mail` absent from native tokens. Even where a provider supplies `mail`, its presence alone is not proof of mailbox control.
 
-Do not substitute `upn` or `preferred_username`, fabricate an email, enable trusted linking, or remove a tenant allowlist to work around a missing claim. For an existing account, the [conditional Connect workaround](#existing-account-with-a-missing-email-claim) may apply. Email-less first-time provisioning requires the [proposed Phase 2 work](../planning/2026-1009-sso-email-less-accounts.md), not an operator setting.
+Do not substitute `upn` or `preferred_username`, fabricate an email, enable trusted linking, or remove a tenant allowlist to work around a missing claim. For an existing account, the [conditional Connect workaround](#existing-account-with-a-missing-email-claim) may apply. Email-less first-time provisioning requires the [proposed Phase 2 work](../specs/sso/email-less-accounts-proposal.md), not an operator setting.
 
 ### Google
 

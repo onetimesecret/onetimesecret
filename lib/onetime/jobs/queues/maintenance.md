@@ -40,3 +40,15 @@ Deletes and recreates all queues from `QueueConfig::QUEUES` definitions. **Destr
 ```bash
 bin/ots queue reset --force
 ```
+
+## 4. Retired queues
+
+Removing a queue from `QueueConfig::QUEUES` stops the declarator from declaring it. The broker keeps the durable queue and whatever is in it; `bin/ots queue reset --force` deletes only the queues still in `QUEUES`. Delete a retired queue by hand once no running process publishes to it:
+
+```bash
+rabbitmqctl delete_queue email.message.schedule
+```
+
+| Queue | Retired | Why |
+| --- | --- | --- |
+| `email.message.schedule` | #4844 | No consumer ever read it. Messages expired (per-message TTL or the 24h queue TTL) into `dlq.email.message`, where `DlqEmailConsumerJob` discards non-auth templates, so the delayed expiration warnings published to it were never sent. `ExpirationWarningJob` now publishes to `email.message.send` at scan time. |

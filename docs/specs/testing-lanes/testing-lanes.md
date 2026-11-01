@@ -352,7 +352,8 @@ Ruby test suites enter through lanes and `compose.test.yml`:
   rows are lane and overlay combinations. The `ruby-auth-browser` job runs the
   `browser` lane through the same composite, separately from the `unit` lane;
   CI never runs `--only` — a suite CI needs is a lane. The `browser`,
-  `full-mfa`, `full-saml-platform` and `full-pg-agnostic` lanes run on a pull
+  `full-mfa`, `full-saml-platform`, `full-webauthn-verify` and
+  `full-pg-agnostic` lanes run on a pull
   request only when auth is selected. The `billing` lane (`ruby-billing`),
   the `billing-integration` lane (`ruby-billing-integration`) and the billing
   overlay rows (`ruby-integration-billing`) run nightly only, never on a pull

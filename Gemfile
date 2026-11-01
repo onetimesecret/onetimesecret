@@ -44,7 +44,17 @@ source 'https://rubygems.org/'
 gem 'otto', '~> 2.12'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
-gem 'rodauth', '~> 2.0'
+# rodauth comes from the onetimesecret fork, pinned to a commit: upstream
+# 2.48.0 plus two fixes not yet in a rodauth release
+# (onetimesecret/rodauth#3). The verify route deletes the verify account key
+# again instead of rotating it (rotation since 2.46). Recovery codes added
+# while a passkey verifies an account go to that account instead of a nil
+# session id, which failed the verification with AUTH_MFA_ENABLED and
+# AUTH_WEBAUTHN_VERIFY_ACCOUNT both on. The fork's version is still 2.48.0;
+# the GIT section in Gemfile.lock is what distinguishes it from the release.
+gem 'rodauth',
+  git: 'https://github.com/onetimesecret/rodauth.git',
+  ref: '8abe3ebdb89739fc4b3c040105873d7cc281d216'
 # Forked to add `oauth_mount_prefix`, which fixes the Rack::URLMap mount-prefix
 # mismatch (discovery URLs, issuer, and per-endpoint CSRF exemptions losing the
 # `/auth` mount point) at the gem level — see onetimesecret/onetimesecret#3465
@@ -154,7 +164,7 @@ gem 'ruby-saml', '= 1.18.1'
 
 # Web server and middleware
 gem 'puma', '>= 6.0', '< 8.0'
-gem 'rack', '>= 3.2.6', '< 4.0'
+gem 'rack', '>= 3.2.8', '< 4.0'
 gem 'rack-contrib', '~> 2.5.0'
 # Mounted directly in MiddlewareStack (JSON/form body parsing); was transitive via otto < 2.10.
 gem 'rack-parser', '~> 0.7'
@@ -178,7 +188,7 @@ gem 'fastimage', '~> 2.4'
 gem 'i18n', '~> 1.14'
 gem 'mail'
 gem 'public_suffix', '~> 7.0'
-gem 'sanitize', '~> 7.0'
+gem 'sanitize', '~> 7.0', '>= 7.0.1'
 gem 'semantic_logger', '~> 4.17'
 gem 'simpleidn', '~> 0.2'
 gem 'tilt'

@@ -11,7 +11,8 @@ Usage: bin/testsuite <command> [arguments]
 
 Commands:
   run [filter]                 Offline shell suites (default); filter by filename
-  logtide [pytest arguments]   LogTide shipper tests in the locked uv environment
+  logship [pytest arguments]   Log shipper tests in its locked package environment
+  logtide [pytest arguments]   Compatibility alias for logship
   caddy [unittest arguments]  Real-Caddy log redaction check (requires Caddy)
   verify-sentry-build [--quick]
                               Build/source-map checks; --quick uses existing output
@@ -30,13 +31,13 @@ case "$command" in
   run)
     exec "${BASH:-bash}" "$TOOL_DIR/run.sh" "$@"
     ;;
-  logtide | caddy)
+  logship | logtide | caddy)
     command -v uv > /dev/null 2>&1 || {
       printf 'bin/testsuite %s needs uv: https://docs.astral.sh/uv/getting-started/installation/\n' "$command" >&2
       exit 69
     }
-    if [ "$command" = logtide ]; then
-      exec uv run --locked --directory "$TOOL_DIR" python -m pytest "$TOOL_DIR/test_logtide_ship.py" "$@"
+    if [ "$command" != caddy ]; then
+      exec uv run --locked --project "$TOOL_DIR/../logship" --extra test python -m pytest "$TOOL_DIR/../logship/tests" "$@"
     fi
     exec uv run --locked --directory "$TOOL_DIR" python "$TOOL_DIR/test_caddy_log_redaction.py" "$@"
     ;;

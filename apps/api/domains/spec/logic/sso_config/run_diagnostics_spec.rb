@@ -62,6 +62,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
       updated: '1760000000',
       enabled?: false,
       credential_fingerprint: 'fingerprint-checked',
+      idp_metadata_url_errors: [],
     )
   end
 
@@ -1143,6 +1144,22 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
 
       it 'fails with invalid_certificate' do
         expect(check(run, 'certificate')[:details]).to eq(error_code: 'invalid_certificate')
+      end
+    end
+
+    # Where the trio was imported from, not a login input: the record's own
+    # validation reports it, the check that gates activation does not.
+    context 'when the stored idp_metadata_url cannot be read' do
+      let(:url_error) { 'idp_metadata_url cannot be read (re-enter or clear the value)' }
+      let(:validation_errors) { [url_error] }
+
+      before { allow(sso_config).to receive(:idp_metadata_url_errors).and_return([url_error]) }
+
+      it 'passes stored_configuration and the run' do
+        result = run
+
+        expect(check(result, 'stored_configuration')[:status]).to eq('passed')
+        expect(result[:overall]).to eq('passed')
       end
     end
   end

@@ -123,12 +123,20 @@
     isConfigured: ssoIsConfigured,
     hasUnsavedChanges: ssoHasUnsavedChanges,
     clientSecretMasked,
+    metadataFetchUrl,
+    metadataPreview,
+    isFetchingMetadata,
+    metadataFetchFailure,
+    canApplyMetadata,
     initialize: initializeSsoConfig,
     saveConfig: saveSsoConfig,
     deleteConfig: deleteSsoConfig,
     testConnection,
     saveAndRunDiagnostics,
     refreshLastSignIn,
+    fetchMetadata,
+    selectMetadataCertificate,
+    applyMetadata,
     discardChanges: discardSsoChanges,
   } = useSsoConfig(props.extid);
 
@@ -405,6 +413,14 @@
               :is-refreshing-last-sign-in="isRefreshingLastSignIn"
               :tenant-sso="tenantSso"
               :saml-enabled="isSamlEnabled()"
+              v-model:metadata-fetch-url="metadataFetchUrl"
+              :metadata-preview="metadataPreview"
+              :is-fetching-metadata="isFetchingMetadata"
+              :metadata-fetch-failure="metadataFetchFailure"
+              :can-apply-metadata="canApplyMetadata"
+              @fetch-metadata="fetchMetadata"
+              @select-metadata-certificate="selectMetadataCertificate"
+              @apply-metadata="applyMetadata"
               @save="handleSsoSave"
               @test="testConnection"
               @diagnostics="handleSsoDiagnostics"
