@@ -878,6 +878,24 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
 
       expect_permitted
     end
+
+    # The refusal is recorded for the domain's settings page (last_sign_in)
+    # like the other JIT create refusals, with the code the visitor sees.
+    context 'when the Rodauth instance records tenant sign-in outcomes' do
+      before { allow(rodauth).to receive(:record_tenant_sso_failure) }
+
+      it 'records a refusal at the account stage as domain_not_allowed' do
+        enforce('victim@unrelated.example.org')
+
+        expect(rodauth).to have_received(:record_tenant_sso_failure).with('account', 'domain_not_allowed')
+      end
+
+      it 'records nothing for a permitted address' do
+        enforce("user@#{tenant_domain}")
+
+        expect(rodauth).not_to have_received(:record_tenant_sso_failure)
+      end
+    end
   end
 
   describe '.log_unverified_tenant_email_domain' do

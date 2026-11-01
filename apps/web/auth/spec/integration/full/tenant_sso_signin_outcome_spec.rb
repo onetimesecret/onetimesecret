@@ -11,7 +11,8 @@
 # Covered stages:
 #   provider  the strategy fails the callback (mock_auth = :invalid_credentials)
 #   callback  the callback lands on a different tenant (tenant_mismatch)
-#   account   the identity has no usable email (missing_email)
+#   account   the identity has no usable email (missing_email), or its
+#             address is outside the verified domains (domain_not_allowed)
 #   success   a JIT-created tenant sign-in completes
 #
 # RUN (always via the lane runner — see AGENTS.md):
@@ -129,6 +130,15 @@ RSpec.describe 'Tenant SSO sign-in outcome (last_sign_in)', type: :integration, 
     expect(last_response.location.to_s).to include('auth_error=missing_email')
 
     expect(outcome.to_api_h).to include(result: 'failed', failure_stage: 'account', failure_code: 'missing_email')
+  end
+
+  it 'records an address outside the verified domains as failed at the account stage (#4734)' do
+    mock_identity(email: "outside-#{run_id}@unrelated.example.org")
+    initiate(domain_host)
+    callback(domain_host)
+    expect(last_response.location.to_s).to include('auth_error=domain_not_allowed')
+
+    expect(outcome.to_api_h).to include(result: 'failed', failure_stage: 'account', failure_code: 'domain_not_allowed')
   end
 
   it 'records a callback on another tenant as failed at the callback stage, against the domain that started it' do

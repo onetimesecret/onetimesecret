@@ -887,6 +887,13 @@ module Auth::Config::Hooks
         reason: reason,
       )
 
+      # A JIT create refusal, recorded for the domain's settings page
+      # (CustomDomain::SsoSigninOutcome) with the code the visitor sees, as
+      # the other refusals in before_omniauth_create_account do.
+      if rodauth.respond_to?(:record_tenant_sso_failure)
+        rodauth.record_tenant_sso_failure('account', 'domain_not_allowed')
+      end
+
       rodauth.send(:redirect, '/signin?auth_error=domain_not_allowed')
     end
 
