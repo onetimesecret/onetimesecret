@@ -68,6 +68,26 @@
     "text": "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time.",
     "content_hash": "4c895f85"
   },
+  "web.COMMON.secret_og_title": {
+    "text": "A secret link was shared with you",
+    "note": "og:title on /secret pages (the recipient's page); shown by chat and social unfurlers, so it must not name the page or the sender",
+    "content_hash": "cc3d83ce"
+  },
+  "web.COMMON.secret_og_description": {
+    "text": "This secure link works one time. Open it when you are ready to view the content.",
+    "note": "og:description on /secret pages",
+    "content_hash": "781e497c"
+  },
+  "web.COMMON.receipt_og_title": {
+    "text": "Receipt for a secret you sent",
+    "note": "og:title on /receipt and /incoming/:receiptKey pages (the sender's page); shown by unfurlers, so it must not name the page or the recipient",
+    "content_hash": "6e81c2bb"
+  },
+  "web.COMMON.receipt_og_description": {
+    "text": "This page shows the status of a secret you sent. Only the recipient can view the content.",
+    "note": "og:description on /receipt and /incoming/:receiptKey pages",
+    "content_hash": "0eca018e"
+  },
   "web.COMMON.incorrect_passphrase": {
     "text": "Incorrect passphrase",
     "content_hash": "a55f9636"
@@ -404,10 +424,6 @@
     "text": "Are you sure?",
     "content_hash": "f0762c4f"
   },
-  "web.COMMON.danger_zone": {
-    "text": "Danger Zone",
-    "content_hash": "3c1c01b4"
-  },
   "web.COMMON.caution_zone": {
     "text": "Careful Consideration Zone",
     "content_hash": "fe27a3a8"
@@ -429,8 +445,8 @@
     "content_hash": "47d2a515"
   },
   "web.COMMON.save_changes": {
-    "text": "Save Changes",
-    "content_hash": "35322b5b"
+    "text": "Save changes",
+    "content_hash": "dd0ae7a5"
   },
   "web.COMMON.saving": {
     "text": "Saving...",
@@ -467,6 +483,10 @@
   "web.COMMON.remove": {
     "text": "Remove",
     "content_hash": "c3812fc4"
+  },
+  "web.COMMON.delete": {
+    "text": "Delete",
+    "content_hash": "e2d0a549"
   },
   "web.COMMON.add": {
     "text": "Add",
@@ -1363,9 +1383,9 @@
     "text": "Sign-In Configuration",
     "content_hash": "2da38c03"
   },
-  "web.TITLES.domain_sso": {
-    "text": "Domain SSO",
-    "content_hash": "13161464"
+  "web.TITLES.domain_signin_sso": {
+    "text": "Single Sign-On Configuration",
+    "content_hash": "4bbf1a2f"
   },
   "web.TITLES.domain_signup": {
     "text": "Domain Signup Validation",

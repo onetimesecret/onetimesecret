@@ -147,14 +147,24 @@ RSpec.shared_examples 'platform SAML SSO' do
   let(:platform_acs) { "#{platform_base}/auth/sso/saml/callback" }
   let(:platform_entity_id) { Onetime::SsoProvider::Saml.platform_sp_entity_id('saml') }
 
+  # Teardown in foreign-key order (#4539). A completed sign-in writes
+  # active-session, audit-log and activity rows that reference the account
+  # and do not cascade (migrations/001_initial.rb), so a bare `accounts`
+  # delete raises on SQLite. AuthAccountFactory#cleanup_account walks
+  # RODAUTH_TABLES in dependency order; it swallows per-table errors, so the
+  # row count is checked afterwards. A cleanup error is a real problem and is
+  # allowed to surface rather than leave stray rows in the shared in-memory
+  # DB and a Customer in the shared test Valkey.
   after do
     created_emails.each do |address|
-      account_ids = db[:accounts].where(email: address).select_map(:id)
-      identities.where(account_id: account_ids).delete
-      db[:accounts].where(id: account_ids).delete
+      db[:accounts].where(email: address).select_map(:id).each do |account_id|
+        identities.where(account_id: account_id).delete
+        cleanup_account(db: db, account_id: account_id)
+      end
+      remaining = db[:accounts].where(email: address).count
+      raise "[platform_saml_sso_spec] cleanup left #{remaining} accounts row(s) for #{OT::Utils.obscure_email(address)}" if remaining.positive?
+
       Onetime::Customer.find_by_email(address)&.destroy!
-    rescue StandardError => ex
-      OT.le "[platform_saml_sso_spec] cleanup error for #{OT::Utils.obscure_email(address)}: #{ex.class}"
     end
     identities.where(uid: name_id).delete
   end
@@ -311,10 +321,13 @@ RSpec.shared_examples 'platform SAML SSO' do
   # feature on the IP site.host drops out of the parsed canonical set.
   #
   # The test config's site.host is an IP literal, which CustomDomain#init
-  # refuses (PublicSuffix), so the record carries a parseable display_domain
-  # and only the display_domain_index entry — the seam the hook's
-  # resolve_custom_domain -> load_by_display_domain reads — is keyed on the
-  # platform host. The hook consumes nothing but the record's identifier.
+  # refuses (PublicSuffix), so the record is saved with a parseable
+  # display_domain and then re-pointed at the platform host with a raw write
+  # (loading a record does not run init). The lookup the hook reads
+  # (resolve_custom_domain -> load_by_display_domain) returns a record only
+  # when it is stored under the name looked up, so both the record's stored
+  # display_domain and its display_domain_index entry carry the platform
+  # host. The hook consumes nothing but the record's identifier.
   describe 'on the platform host with a stale CustomDomain record' do
     let(:platform_host) { URI.parse(platform_base).host }
 
@@ -326,6 +339,7 @@ RSpec.shared_examples 'platform SAML SSO' do
       domain      = Onetime::CustomDomain.new(display_domain: record_host, org_id: org.org_id)
       domain.verified = true
       domain.save
+      Onetime::CustomDomain.dbclient.hset(domain.dbkey, 'display_domain', Familia::JsonSerializer.dump(platform_host))
       Onetime::CustomDomain.display_domain_index.put(platform_host, domain.domainid)
       allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
       allow(Auth::Config::Hooks::OmniAuthTenant).to receive(:handle_missing_tenant_config).and_call_original

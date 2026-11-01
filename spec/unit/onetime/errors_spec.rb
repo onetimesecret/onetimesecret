@@ -48,6 +48,24 @@ RSpec.describe Onetime::AccountProvisioningUnavailable do
   end
 end
 
+RSpec.describe Onetime::TemporarilyUnavailable do
+  it 'is a Problem with a default message, a bounded reason and retry_after' do
+    error = described_class.new(reason: 'concurrent_write')
+
+    expect([error.is_a?(Onetime::Problem), error.to_h]).to eq(
+      [
+        true,
+        {
+          error: described_class::DEFAULT_MESSAGE,
+          error_type: 'TemporarilyUnavailable',
+          reason: :concurrent_write,
+          retry_after: described_class::RETRY_AFTER,
+        },
+      ],
+    )
+  end
+end
+
 RSpec.describe Onetime::LimitExceeded do
   describe '#initialize' do
     it 'defaults to legacy message when none provided' do

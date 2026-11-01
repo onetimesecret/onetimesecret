@@ -219,10 +219,6 @@
     "text": "الاشتراك",
     "source_hash": "4999c6c6"
   },
-  "web.organizations.danger_zone": {
-    "text": "منطقة الخطر",
-    "source_hash": "3c1c01b4"
-  },
   "web.organizations.delete_organization": {
     "text": "حذف المؤسسة",
     "source_hash": "54b2edc7"
@@ -907,10 +903,6 @@
     "text": "سيُمنح الأعضاء الجدد الذين ينضمون عبر تسجيل الدخول الموحّد (SSO) لهذا النطاق وصولاً إلى جميع نطاقات المؤسسة. لا يتأثر الأعضاء الحاليون. عند التعطيل (الافتراضي)، يمكن للأعضاء الجدد الوصول إلى هذا النطاق فقط.",
     "source_hash": "2ac9f345"
   },
-  "web.organizations.sso.save_config": {
-    "text": "حفظ إعداد تسجيل الدخول الموحّد (SSO)",
-    "source_hash": "70853769"
-  },
   "web.organizations.sso.delete_config": {
     "text": "حذف الإعداد",
     "source_hash": "9ac1ac7b"
@@ -1207,33 +1199,9 @@
     "text": "تتعارض إعدادات تسجيل الدخول لهذا الموقع مع التقييد المطبّق على مستوى الموقع ({method})، لذا لا ينطبق أيٌّ منهما ولا توجد طريقة لتسجيل الدخول في الوقت الحالي.",
     "source_hash": "54cdfd61"
   },
-  "web.organizations.sso.connection_enabled": {
-    "text": "الاتصال نشط",
-    "source_hash": "b6334b2b"
-  },
-  "web.organizations.sso.connection_enabled_hint": {
-    "text": "عندما يكون نشطاً، يمكن للأعضاء تسجيل الدخول عبر موفّر تسجيل الدخول الموحّد (SSO) هذا. كما يجب تفعيل تسجيل الدخول الموحّد كطريقة لتسجيل الدخول ضمن إعداد تسجيل الدخول الخاص بالنطاق.",
-    "source_hash": "871db2f1"
-  },
-  "web.organizations.sso.enable_untested_warning": {
-    "text": "لم يجتز هذا الاتصال أي اختبار هنا بعد. شغّل اختبار الاتصال قبل تفعيله، حتى لا يصل إعداد معطّل إلى صفحة تسجيل الدخول لديك.",
-    "source_hash": "c1fbdeca"
-  },
   "web.organizations.delete_organization_cancel_subscription_first": {
     "text": "ألغِ اشتراك هذه المؤسسة قبل حذفها.",
     "source_hash": "f0c54eca"
-  },
-  "web.organizations.sso.disable_action": {
-    "text": "تعطيل تسجيل الدخول الموحّد (SSO)",
-    "source_hash": "2f072272"
-  },
-  "web.organizations.sso.disable_confirm": {
-    "text": "هل تريد تعطيل اتصال تسجيل الدخول الموحّد (SSO) هذا؟ لن تُحفظ تعديلات النموذج غير المحفوظة. سيتم الاحتفاظ ببيانات الاعتماد المخزّنة.",
-    "source_hash": "608b142a"
-  },
-  "web.organizations.sso.disable_enforcement_warning": {
-    "text": "سيتم أيضاً إيقاف فرض تسجيل الدخول الموحّد (SSO) فقط، مما يسمح بطرق تسجيل الدخول الأخرى المُعدّة.",
-    "source_hash": "58abd552"
   },
   "web.organizations.sso.idp_sso_service_url": {
     "text": "رابط خدمة SSO لدى IdP",
@@ -1342,5 +1310,105 @@
   "web.organizations.sso.certificate_valid_from": {
     "text": "الشهادة صالحة اعتباراً من",
     "source_hash": "b13d3f30"
+  },
+  "web.organizations.sso.client_secret_looks_like_secret_id": {
+    "text": "يبدو أن هذا هو معرّف السر \"Secret ID\". يحتاج Entra إلى قيمة السر \"Value\"، التي تُعرض مرة واحدة فقط عند إنشاء السر.",
+    "source_hash": "168681cf"
+  },
+  "web.organizations.sso.diagnostics_title": {
+    "text": "فحص الإعداد المحفوظ",
+    "source_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_hint": {
+    "text": "يفحص ما هو مخزّن لهذا النطاق — بما في ذلك سر العميل المحفوظ في حالة Microsoft Entra ID — ويُبلغ عن كل طبقة على حدة. ولا يختبر عملية تسجيل دخول كاملة.",
+    "source_hash": "42505faa"
+  },
+  "web.organizations.sso.last_sign_in_none": {
+    "text": "لم يُسجَّل أي تسجيل دخول عبر هذا النطاق بعد.",
+    "source_hash": "7f9d0f23"
+  },
+  "web.organizations.sso.last_sign_in_succeeded": {
+    "text": "اكتمل آخر تسجيل دخول عبر هذا النطاق في {when}.",
+    "source_hash": "9a125080"
+  },
+  "web.organizations.sso.last_sign_in_failed": {
+    "text": "فشل آخر تسجيل دخول عبر هذا النطاق في {when}، {stage} ({code}).",
+    "source_hash": "be81f392"
+  },
+  "web.organizations.sso.last_sign_in_last_success": {
+    "text": "كان آخر تسجيل دخول مكتمل في {when}.",
+    "source_hash": "34e63e57"
+  },
+  "web.organizations.sso.last_sign_in_stage_setup": {
+    "text": "قبل الاتصال بموفّر الهوية",
+    "source_hash": "5a1b6839"
+  },
+  "web.organizations.sso.last_sign_in_stage_provider": {
+    "text": "لدى موفّر الهوية",
+    "source_hash": "40394567"
+  },
+  "web.organizations.sso.last_sign_in_stage_callback": {
+    "text": "عند إعادة موفّر الهوية للمستخدم",
+    "source_hash": "2ab78fc4"
+  },
+  "web.organizations.sso.last_sign_in_stage_account": {
+    "text": "عند مطابقة المستخدم بحساب",
+    "source_hash": "1ebbb776"
+  },
+  "web.organizations.sso.diagnostics_button": {
+    "text": "فحص الإعداد المحفوظ",
+    "source_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_running": {
+    "text": "جارٍ الفحص...",
+    "source_hash": "2e5f79bb"
+  },
+  "web.organizations.sso.diagnostics_checked_at": {
+    "text": "تم الفحص",
+    "source_hash": "0efd92a3"
+  },
+  "web.organizations.sso.diagnostics_check_stored_configuration": {
+    "text": "الإعداد المخزّن",
+    "source_hash": "a988b06a"
+  },
+  "web.organizations.sso.diagnostics_check_discovery": {
+    "text": "اكتشاف موفّر الهوية",
+    "source_hash": "b5f90082"
+  },
+  "web.organizations.sso.diagnostics_check_certificate": {
+    "text": "شهادة التوقيع",
+    "source_hash": "cc00e050"
+  },
+  "web.organizations.sso.diagnostics_check_credential": {
+    "text": "سر العميل",
+    "source_hash": "4aded5fa"
+  },
+  "web.organizations.sso.diagnostics_status_passed": {
+    "text": "ناجح",
+    "source_hash": "436fe71b"
+  },
+  "web.organizations.sso.diagnostics_status_failed": {
+    "text": "فشل",
+    "source_hash": "031a8f0f"
+  },
+  "web.organizations.sso.diagnostics_status_inconclusive": {
+    "text": "غير حاسم",
+    "source_hash": "9141583b"
+  },
+  "web.organizations.sso.diagnostics_status_unsupported": {
+    "text": "غير متاح",
+    "source_hash": "67a926f7"
+  },
+  "web.organizations.sso.diagnostics_status_skipped": {
+    "text": "تم التخطي",
+    "source_hash": "12698ce1"
+  },
+  "web.organizations.sso.diagnostics_aadsts_code": {
+    "text": "رمز خطأ Microsoft",
+    "source_hash": "dc8f7060"
+  },
+  "web.organizations.sso.diagnostics_errors": {
+    "text": "المشكلات",
+    "source_hash": "a7b182f8"
   }
 }

@@ -42,6 +42,7 @@ module AuthAccountFactory
     account_jwt_refresh_keys
     account_password_reset_keys
     account_authentication_audit_logs
+    account_previous_password_hashes
     account_password_hashes
     accounts
   ].freeze

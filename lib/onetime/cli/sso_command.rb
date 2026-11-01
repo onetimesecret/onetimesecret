@@ -18,7 +18,9 @@ module Onetime
     class SsoCommand < Command
       desc 'Maintain SSO identity records (issuer backfill, email-domain audit)'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         boot_application!
 
         legacy_count = count_legacy_identities

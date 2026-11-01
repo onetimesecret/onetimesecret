@@ -28,7 +28,7 @@ module Onetime
     #   result. Degraded mode, better than leaving nil.
     # - The check ran but was inconclusive (verified: nil — rotated API key,
     #   provider API error, transport failure): leave provider_verified
-    #   UNTOUCHED and keep it out of save_fields. An error must never demote;
+    #   UNTOUCHED (it is not assigned). An error must never demote;
     #   a blip would otherwise flip a verified domain to failed on the next
     #   scheduled check. Only an authoritative provider "no" may demote.
     #
@@ -47,7 +47,8 @@ module Onetime
         @logger           = logger
       end
 
-      # @return [void]
+      # @return [Onetime::CustomDomain::MailerConfig, nil] the record as
+      #   written, nil when it was deleted or now sends from another address
       def call
         lifecycle             = Onetime::Jobs::Workers::JobLifecycle
         provider_result       = nil
@@ -79,53 +80,66 @@ module Onetime
           end
         end
 
-        # Persist the provider's current domain status into provider_dns_data
-        # so the UI can surface it (e.g. 'verified', 'pending_verification').
-        #
-        # provider_dns_data is a jsonkey (its own Redis key), so this writes
-        # immediately. It must happen BEFORE the scalar assignments below:
-        # Familia 2.12 warns when a related key is written while the parent
-        # holds unsaved scalar fields. Same ordering as DnsRecordCheckWorker.
-        if provider_result
-          current_provider_data                  = @mailer_config.provider_dns_data.value || {}
-          provider_records                       = provider_result.dig(:details, :dns_records) || []
-          @mailer_config.provider_dns_data.value = current_provider_data.merge(
+        provider_check_inconclusive = provider_result && provider_api_verified.nil?
+
+        # Written through record_job_result!: the outcome lands on the record
+        # as stored now (other fields keep their values) and is dropped once
+        # the record is gone or sends from another address than the one
+        # checked. When the DNS check has already finished, the same write
+        # derives verification_status, so the job that completes second
+        # sees the other's outcome.
+        stored, = Onetime::CustomDomain::MailerConfig.record_job_result!(
+          @mailer_config.domain_id, @mailer_config.from_address
+        ) do |config|
+          if provider_result.nil?
+            config.provider_verified = @dns_all_verified
+          elsif !provider_check_inconclusive
+            config.provider_verified = provider_api_verified
+          end
+
+          # Record provider status when verification fails (or was
+          # inconclusive) so the UI can explain why; cleared on verified: true.
+          config.last_error = if provider_check_inconclusive
+                                "Provider check inconclusive: #{provider_result[:message]}"
+                              elsif provider_api_verified == false && provider_result
+                                "Provider status: #{provider_result[:status]}"
+                              end
+
+          config.provider_check_status       = lifecycle::COMPLETED
+          config.provider_check_completed_at = Familia.now.to_i
+          config.updated                     = Familia.now.to_i
+          config.derive_verification_status
+        end
+
+        # The provider's current domain status, so the UI can surface it
+        # (e.g. 'verified', 'pending_verification'). provider_dns_data is a
+        # jsonkey (its own Redis key) and writes on assignment, so it follows
+        # the guarded write, on the record that write returned.
+        if stored && provider_result
+          current_provider_data          = stored.provider_dns_data.value || {}
+          provider_records               = provider_result.dig(:details, :dns_records) || []
+          stored.provider_dns_data.value = current_provider_data.merge(
             'status' => provider_result[:status],
             'dns_records' => provider_records,
             'raw_provider_response' => provider_result[:details],
           )
         end
 
-        provider_check_inconclusive = provider_result && provider_api_verified.nil?
-        if provider_result.nil?
-          @mailer_config.provider_verified = @dns_all_verified
-        elsif !provider_check_inconclusive
-          @mailer_config.provider_verified = provider_api_verified
-        end
-
-        # Record provider status when verification fails (or was inconclusive)
-        # so the UI can explain why; cleared on verified: true.
-        @mailer_config.last_error = if provider_check_inconclusive
-                                      "Provider check inconclusive: #{provider_result[:message]}"
-                                    elsif provider_api_verified == false && provider_result
-                                      "Provider status: #{provider_result[:status]}"
-                                    end
-
-        @mailer_config.provider_check_status       = lifecycle::COMPLETED
-        @mailer_config.provider_check_completed_at = Familia.now.to_i
-        @mailer_config.updated                     = Familia.now.to_i
-        save_list                                  = [:provider_check_status, :provider_check_completed_at, :last_error, :updated]
-        save_list.unshift(:provider_verified) unless provider_check_inconclusive
-        @mailer_config.save_fields(*save_list)
+        stored
       rescue StandardError => ex
         # The check failing must not fail the caller. Complete the job (the
         # caller itself did not crash) without setting provider_verified,
         # since it could not be determined.
         @logger.error "Provider verification check failed for #{@domain_id}", ex
-        @mailer_config.provider_check_status       = lifecycle::COMPLETED
-        @mailer_config.provider_check_completed_at = Familia.now.to_i
-        @mailer_config.updated                     = Familia.now.to_i
-        @mailer_config.save_fields(:provider_check_status, :provider_check_completed_at, :updated)
+        stored, = Onetime::CustomDomain::MailerConfig.record_job_result!(
+          @mailer_config.domain_id, @mailer_config.from_address
+        ) do |config|
+          config.provider_check_status       = lifecycle::COMPLETED
+          config.provider_check_completed_at = Familia.now.to_i
+          config.updated                     = Familia.now.to_i
+          config.derive_verification_status
+        end
+        stored
       end
     end
   end

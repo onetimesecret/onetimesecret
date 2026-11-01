@@ -21,13 +21,13 @@ import {
   type EmailConfigFormState,
 } from '@/shared/composables/useEmailConfig';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
+import { useUnsavedRouteGuard } from '@/shared/composables/useUnsavedRouteGuard';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { onBeforeRouteLeave } from 'vue-router';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -125,15 +125,7 @@ const handleBack = () => {
 };
 
 // Unsaved changes guard
-onBeforeRouteLeave((_to, _from, next) => {
-  if (hasUnsavedChanges.value) {
-    const answer = window.confirm(t('web.branding.you_have_unsaved_changes_are_you_sure'));
-    if (answer) next();
-    else next(false);
-  } else {
-    next();
-  }
-});
+useUnsavedRouteGuard(hasUnsavedChanges);
 
 // ---------------------------------------------------------------------------
 // Lifecycle

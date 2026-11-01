@@ -11,7 +11,7 @@
 #
 # The contract is now tri-state: strategies return verified: nil when the
 # answer could not be determined, and the worker must leave the stored
-# provider_verified untouched in that case (excluded from save_fields),
+# provider_verified untouched in that case (not assigned),
 # mirroring what its outer rescue path already did. DNS fallback applies
 # ONLY when the check never ran at all (no credentials / smtp provider) —
 # distinguished by provider_result being nil, not by the verified value.
@@ -19,7 +19,9 @@
 # Seams: same pattern as dns_record_check_worker_spec — the worker is
 # instantiated for real, trace context yields straight through, the
 # idempotency claim is granted, MailerConfig lookup / operation / strategy
-# return doubles, and the logger is a null object.
+# return doubles, and the logger is a null object. Writes go through
+# MailerConfig.record_job_result!, stubbed to yield a double for the stored
+# record.
 
 require 'spec_helper'
 require 'onetime/jobs/workers/domain_validation_worker'
@@ -36,9 +38,11 @@ RSpec.describe Onetime::Jobs::Workers::DomainValidationWorker do
 
   let(:provider_dns_data_key) { double('provider_dns_data', value: {}, :value= => nil) }
   let(:mailer_config) do
+    double('MailerConfig', domain_id: 'domain-abc', from_address: 'sender@example.com', effective_provider: 'smtp2go')
+  end
+  let(:stored) do
     double(
-      'MailerConfig',
-      effective_provider: 'smtp2go',
+      'stored MailerConfig',
       provider_dns_data: provider_dns_data_key,
       provider_verified: 'true', # previously verified (stored value)
       :provider_verified= => nil,
@@ -46,8 +50,7 @@ RSpec.describe Onetime::Jobs::Workers::DomainValidationWorker do
       :provider_check_completed_at= => nil,
       :last_error= => nil,
       :updated= => nil,
-      save_fields: true,
-      refresh!: true,
+      derive_verification_status: nil,
       jobs_completed?: false,
       dns_check_status: 'processing',
     )
@@ -81,6 +84,8 @@ RSpec.describe Onetime::Jobs::Workers::DomainValidationWorker do
       .with('smtp2go').and_return(strategy)
     allow(Onetime::Mail::Mailer).to receive(:provider_credentials)
       .with('smtp2go').and_return(credentials)
+    allow(Onetime::CustomDomain::MailerConfig).to receive(:record_job_result!)
+      .with('domain-abc', 'sender@example.com') { |*_args, &block| [stored, block.call(stored)] }
   end
 
   def work
@@ -97,22 +102,22 @@ RSpec.describe Onetime::Jobs::Workers::DomainValidationWorker do
 
       it 'never touches provider_verified — a rotated key must not demote a verified domain' do
         expect(work).to eq(:ack)
-        expect(mailer_config).not_to have_received(:provider_verified=)
+        expect(stored).not_to have_received(:provider_verified=)
       end
 
-      it 'excludes provider_verified from save_fields' do
+      it 'completes the provider check on the stored record' do
         work
-        expect(mailer_config).to have_received(:save_fields)
-          .with(:provider_check_status, :provider_check_completed_at, :last_error, :updated)
+        expect(stored).to have_received(:provider_check_status=)
+          .with(Onetime::Jobs::Workers::JobLifecycle::COMPLETED)
       end
 
       it 'records an inconclusive last_error and still completes the job' do
         work
-        expect(mailer_config).to have_received(:last_error=)
+        expect(stored).to have_received(:last_error=)
           .with('Provider check inconclusive: Verification check failed: HTTP 401')
-        expect(mailer_config).to have_received(:provider_check_status=)
+        expect(stored).to have_received(:provider_check_status=)
           .with(Onetime::Jobs::Workers::JobLifecycle::COMPLETED)
-        expect(mailer_config).to have_received(:provider_check_completed_at=)
+        expect(stored).to have_received(:provider_check_completed_at=)
       end
     end
 
@@ -125,10 +130,8 @@ RSpec.describe Onetime::Jobs::Workers::DomainValidationWorker do
 
       it 'persists provider_verified = false with the provider status in last_error' do
         expect(work).to eq(:ack)
-        expect(mailer_config).to have_received(:provider_verified=).with(false)
-        expect(mailer_config).to have_received(:last_error=).with('Provider status: not_found')
-        expect(mailer_config).to have_received(:save_fields)
-          .with(:provider_verified, :provider_check_status, :provider_check_completed_at, :last_error, :updated)
+        expect(stored).to have_received(:provider_verified=).with(false)
+        expect(stored).to have_received(:last_error=).with('Provider status: not_found')
       end
     end
 
@@ -141,8 +144,8 @@ RSpec.describe Onetime::Jobs::Workers::DomainValidationWorker do
 
       it 'persists provider_verified = true and clears last_error' do
         expect(work).to eq(:ack)
-        expect(mailer_config).to have_received(:provider_verified=).with(true)
-        expect(mailer_config).to have_received(:last_error=).with(nil)
+        expect(stored).to have_received(:provider_verified=).with(true)
+        expect(stored).to have_received(:last_error=).with(nil)
       end
     end
 
@@ -156,10 +159,8 @@ RSpec.describe Onetime::Jobs::Workers::DomainValidationWorker do
       it 'falls back to the DNS result (degraded mode) rather than preserving' do
         expect(work).to eq(:ack)
         expect(strategy).not_to have_received(:check_provider_verification_status)
-        expect(mailer_config).to have_received(:provider_verified=).with(true) # dns_result.all_verified
-        expect(mailer_config).to have_received(:last_error=).with(nil)
-        expect(mailer_config).to have_received(:save_fields)
-          .with(:provider_verified, :provider_check_status, :provider_check_completed_at, :last_error, :updated)
+        expect(stored).to have_received(:provider_verified=).with(true) # dns_result.all_verified
+        expect(stored).to have_received(:last_error=).with(nil)
       end
     end
 
@@ -191,10 +192,21 @@ RSpec.describe Onetime::Jobs::Workers::DomainValidationWorker do
 
       it 'behaves as check-never-ran: DNS fallback, same as the empty-hash case' do
         work
-        expect(mailer_config).to have_received(:provider_verified=).with(true) # dns_result.all_verified
-        expect(mailer_config).to have_received(:save_fields)
-          .with(:provider_verified, :provider_check_status, :provider_check_completed_at, :last_error, :updated)
+        expect(stored).to have_received(:provider_verified=).with(true) # dns_result.all_verified
       end
+    end
+  end
+
+  describe 'a record deleted, or moved to another address, while the job runs' do
+    before do
+      allow(Onetime::CustomDomain::MailerConfig).to receive(:record_job_result!).and_return(nil)
+      allow(strategy).to receive(:check_provider_verification_status)
+    end
+
+    it 'acks without validating or writing' do
+      expect(work).to eq(:ack)
+      expect(Onetime::Operations::ValidateSenderDomain).not_to have_received(:new)
+      expect(provider_dns_data_key).not_to have_received(:value=)
     end
   end
 

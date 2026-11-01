@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
+
 # tools/host-seam/seed-tenant.rb
 #
 # Seeds the ONE fixture the host-seam matrix needs: a custom domain owned by an
@@ -48,9 +50,9 @@ else
   owner.save
   org   = Onetime::Organization.create!('Host Seam Matrix Org', owner, owner_email)
 
-  domain = Onetime::CustomDomain.new(display_domain: domain_name, org_id: org.org_id)
-  domain.save
-  Onetime::CustomDomain.display_domain_index.put(domain_name, domain.domainid)
+  # create! is the one write path that registers a domain: it claims the
+  # name, writes the indexes and adds the domain to the organization.
+  domain = Onetime::CustomDomain.create!(domain_name, org.objid)
   warn "created CustomDomain #{domain_name} (#{domain.identifier}) for org #{org.org_id}"
 end
 

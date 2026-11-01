@@ -11,7 +11,8 @@
 // - Contract layer declares nullability to match wire format
 // - Shape layer transforms null → safe defaults for frontend consumption
 // - Required form fields (client_id, display_name) → empty string
-// - Optional form fields (tenant_id, issuer, SAML trio, SP identifiers) → null
+// - Optional form fields (tenant_id, issuer, SAML trio, idp_metadata_url,
+//   SP identifiers) → null
 //   (form uses undefined / empty string)
 // - unreadable_fields → [] when absent (older API), so a missing key never
 //   reads as "every field is fine" by accident — but a listed field's null
@@ -19,7 +20,9 @@
 
 import {
   customDomainSsoConfigCanonical,
+  ssoLastSignInSchema,
   ssoProviderTypeSchema,
+  tokenEndpointAuthMethodSchema,
 } from '@/schemas/contracts/custom-domain/sso-config';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
@@ -89,12 +92,22 @@ export const customDomainSsoConfigSchema = customDomainSsoConfigCanonical
     tenant_id: z.string().nullish().transform((v) => v ?? null),
     issuer: z.string().nullish().transform((v) => v ?? null),
 
+    // OIDC token endpoint auth method (#4764): null = gem default; nullish-
+    // tolerant for a record served by an API that predates the key. The
+    // form maps null → '' (the "Automatic" option).
+    token_endpoint_auth_method: tokenEndpointAuthMethodSchema.nullish().transform((v) => v ?? null),
+
     // SAML (#4450): nullish-tolerant so a record served by an API that
     // predates these keys (rolling deploy) still parses. A null here is
     // "unset" ONLY when unreadable_fields does not name the field.
     idp_sso_service_url: z.string().nullish().transform((v) => v ?? null),
     idp_entity_id: z.string().nullish().transform((v) => v ?? null),
     idp_cert: z.string().nullish().transform((v) => v ?? null),
+    // SAML metadata source (the URL the trio was imported from): nullish-
+    // tolerant so a record served by an API that predates the key (rolling
+    // deploy) still parses. A null here is "unset" ONLY when
+    // unreadable_fields does not name the field.
+    idp_metadata_url: z.string().nullish().transform((v) => v ?? null),
     sp_entity_id: z.string().nullish().transform((v) => v ?? null),
     acs_url: z.string().nullish().transform((v) => v ?? null),
     unreadable_fields: z.array(z.string()).nullish().transform((v) => v ?? []),
@@ -108,6 +121,10 @@ export const customDomainSsoConfigSchema = customDomainSsoConfigCanonical
     // Boolean with default for resilience during rolling deploys
     enforce_sso_only: z.boolean().default(false),
     grant_org_scope: z.boolean().default(false),
+
+    // Last sign-in outcome: nullish-tolerant so a record served by an API
+    // that predates the key reads as "none recorded", never as an error.
+    last_sign_in: ssoLastSignInSchema.nullish().transform((v) => v ?? null),
   });
 
 export type CustomDomainSsoConfig = z.infer<typeof customDomainSsoConfigSchema>;

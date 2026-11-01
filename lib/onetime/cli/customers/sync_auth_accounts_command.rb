@@ -22,6 +22,13 @@
 # The command uses Customer.instances (a sorted set index) to enumerate all
 # customers. This index is only populated in Familia v2 when customers are
 # saved with the :object_identifier feature enabled.
+#
+# A customer record whose account closure started and did not finish
+# (Customer#closing?) is skipped: its auth account was deleted on purpose,
+# and a closure deletes the accounts row outright (#4819), so nothing in
+# the auth database says so any more. Re-creating the row would reopen the
+# account through a password reset. Finish such closures with
+# `bin/ots customers finish-closures` instead.
 
 module Onetime
   module CLI
@@ -131,6 +138,7 @@ module Onetime
           skipped_anonymous: 0,
           skipped_system: 0,
           skipped_existing: 0,
+          skipped_closing: 0,
           created: 0,
           linked: 0,
           errors: [],
@@ -158,8 +166,18 @@ module Onetime
         puts "  Skipped (anonymous): #{stats[:skipped_anonymous]}"
         puts "  Skipped (system):    #{stats[:skipped_system]}"
         puts "  Skipped (existing):  #{stats[:skipped_existing]}"
+        puts "  Skipped (closing):   #{stats[:skipped_closing]}"
         puts "  Linked:              #{stats[:linked]}"
         puts "  Created:             #{stats[:created]}"
+
+        if stats[:skipped_closing].positive?
+          puts <<~MESSAGE
+
+            #{stats[:skipped_closing]} customer record(s) belong to an account closure that did
+            not finish. Their auth accounts were deleted on purpose and are not
+            re-created here. Finish them with: bin/ots customers finish-closures
+          MESSAGE
+        end
 
         if stats[:errors].any?
           puts "\n  Errors:              #{stats[:errors].size}"
@@ -235,6 +253,16 @@ module Onetime
             if existing_extids.include?(customer.extid)
               stats[:skipped_existing] += 1
               puts "  [#{global_idx+1}/#{total}] Already synced: #{obscure_email(customer.email)}" if verbose_level > 1
+              next
+            end
+
+            # Skip an interrupted closure: the auth account was deleted on
+            # purpose and must not come back (see the header comment).
+            if customer.closing?
+              stats[:skipped_closing] += 1
+              if verbose_level > 0
+                puts "  [#{global_idx+1}/#{total}] Skipping interrupted closure: #{obscure_email(customer.email)}"
+              end
               next
             end
 
@@ -348,6 +376,9 @@ module Onetime
           Notes:
             - Command is idempotent (safe to run multiple times)
             - Skips anonymous customers automatically
+            - Skips customers whose account closure was interrupted; a deleted
+              auth account is never re-created (finish those closures with
+              bin/ots customers purge ID)
             - Links existing accounts via external_id if found
             - Creates new accounts with appropriate status (verified/unverified)
             - Requires full auth mode to be enabled

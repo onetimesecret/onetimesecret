@@ -68,6 +68,7 @@ describe('SsoService domain methods', () => {
       allowed_domains: ['example.com'],
       requires_domain_filter: false,
       idp_controls_access: true,
+      last_sign_in: null,
       created_at: 1234567890,
       updated_at: 1234567890,
     },
@@ -326,6 +327,7 @@ describe('SsoService domain methods', () => {
             allowed_domains: [],
             requires_domain_filter: false,
             idp_controls_access: true,
+            last_sign_in: null,
             created_at: 1234567890,
             updated_at: 1234567890,
           },
@@ -345,6 +347,7 @@ describe('SsoService domain methods', () => {
             allowed_domains: [],
             requires_domain_filter: false,
             idp_controls_access: true,
+            last_sign_in: null,
             created_at: 1234567890,
             updated_at: 1234567890,
           },
@@ -461,6 +464,233 @@ describe('SsoService domain methods', () => {
   });
 
   // ==========================================================================
+  // fetchIdpMetadataForDomain Tests (SAML metadata import, Phase 1)
+  // ==========================================================================
+
+  describe('fetchIdpMetadataForDomain', () => {
+    const metadataUrl =
+      'https://login.microsoftonline.com/tenant-guid/federationmetadata/2007-06/federationmetadata.xml?appid=app-guid';
+
+    const certificate = {
+      pem: '-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----',
+      subject: 'CN=Microsoft Azure Federated SSO Certificate',
+      not_before: '2026-01-10T00:00:00Z',
+      not_after: '2029-01-10T00:00:00Z',
+      fingerprint_sha256: 'AB:CD:EF',
+      thumbprint_sha1: '12:34:56',
+      problem: null,
+    };
+
+    const previewResponse = {
+      success: true,
+      metadata_url: metadataUrl,
+      idp_entity_id: 'https://sts.windows.net/tenant-guid/',
+      idp_sso_service_url: 'https://login.microsoftonline.com/tenant-guid/saml2',
+      signing_certificates: [certificate],
+      name_id_formats: ['urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress'],
+      problems: [],
+    };
+
+    it('POSTs the metadata URL to /sso/metadata and returns the parsed preview', async () => {
+      // TestConnection's success_data adds user_id; the schema tolerates it.
+      mockPost.mockResolvedValueOnce({ data: { ...previewResponse, user_id: 'user_123' } });
+
+      const result = await SsoService.fetchIdpMetadataForDomain(domainExtId, {
+        metadata_url: metadataUrl,
+      });
+
+      expect(mockPost).toHaveBeenCalledWith(`${baseUrl}/metadata`, { metadata_url: metadataUrl });
+      expect(result).toEqual(previewResponse);
+    });
+
+    it('normalizes absent nullable fields to null and an absent format list to []', async () => {
+      const { name_id_formats: _formats, ...withoutFormats } = previewResponse;
+      const { problem: _problem, ...certificateWithoutProblem } = certificate;
+      mockPost.mockResolvedValueOnce({
+        data: {
+          ...withoutFormats,
+          idp_sso_service_url: undefined,
+          idp_entity_id: null,
+          signing_certificates: [certificateWithoutProblem],
+          problems: [
+            { code: 'unsupported_sso_binding', severity: 'blocking', message: 'POST only' },
+          ],
+        },
+      });
+
+      const result = await SsoService.fetchIdpMetadataForDomain(domainExtId, {
+        metadata_url: metadataUrl,
+      });
+
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.idp_sso_service_url).toBeNull();
+      expect(result.idp_entity_id).toBeNull();
+      expect(result.signing_certificates[0].problem).toBeNull();
+      expect(result.name_id_formats).toEqual([]);
+    });
+
+    it('reads a problem severity it does not know as blocking', async () => {
+      mockPost.mockResolvedValueOnce({
+        data: {
+          ...previewResponse,
+          problems: [
+            { code: 'future_problem', severity: 'critical', message: 'Something new' },
+            { code: 'missing_severity', message: 'No severity' },
+          ],
+        },
+      });
+
+      const result = await SsoService.fetchIdpMetadataForDomain(domainExtId, {
+        metadata_url: metadataUrl,
+      });
+
+      expect(result.success && result.problems.map((problem) => problem.severity)).toEqual([
+        'blocking',
+        'blocking',
+      ]);
+    });
+
+    it('returns the failure envelope for a fetch or parse failure (HTTP 200, success: false)', async () => {
+      const failure = {
+        success: false,
+        metadata_url: metadataUrl,
+        message: 'The identity provider returned HTTP 404.',
+        details: { error_code: 'http_error', description: 'Not found', http_status: 404 },
+      };
+      mockPost.mockResolvedValueOnce({ data: failure });
+
+      const result = await SsoService.fetchIdpMetadataForDomain(domainExtId, {
+        metadata_url: metadataUrl,
+      });
+
+      expect(result).toEqual(failure);
+    });
+
+    it('throws a ZodError for a success response without its problem list', async () => {
+      const { problems: _problems, ...withoutProblems } = previewResponse;
+      mockPost.mockResolvedValueOnce({ data: withoutProblems });
+
+      await expect(
+        SsoService.fetchIdpMetadataForDomain(domainExtId, { metadata_url: metadataUrl })
+      ).rejects.toBeInstanceOf(ZodError);
+    });
+
+    it('propagates API errors (guard refusals and the rate limit)', async () => {
+      const axiosError = { response: { status: 429 }, isAxiosError: true, message: 'Limit' };
+      mockPost.mockRejectedValueOnce(axiosError);
+
+      await expect(
+        SsoService.fetchIdpMetadataForDomain(domainExtId, { metadata_url: metadataUrl })
+      ).rejects.toEqual(axiosError);
+    });
+  });
+
+  // ==========================================================================
+  // runDiagnosticsForDomain Tests
+  // ==========================================================================
+
+  describe('runDiagnosticsForDomain', () => {
+    const passedResponse = {
+      user_id: 'user_123',
+      provider_type: 'entra_id',
+      checked_at: '2026-10-12T10:00:00Z',
+      configuration_revision: '1760263200',
+      overall: 'passed',
+      checks: [
+        {
+          check: 'stored_configuration',
+          status: 'passed',
+          message: 'The stored configuration is complete.',
+          details: {},
+        },
+        {
+          check: 'discovery',
+          status: 'passed',
+          message: 'Discovery document fetched.',
+          details: {
+            issuer: 'https://login.microsoftonline.com/test-tenant-id/v2.0',
+            token_endpoint: 'https://login.microsoftonline.com/test-tenant-id/oauth2/v2.0/token',
+          },
+        },
+        {
+          check: 'credential',
+          status: 'passed',
+          message: 'The identity provider accepted the saved client secret.',
+          details: { note: 'This does not test a full sign-in.' },
+        },
+      ],
+    };
+
+    it('POSTs to /sso/diagnostics with no body and returns the response', async () => {
+      mockPost.mockResolvedValueOnce({ data: passedResponse });
+
+      const result = await SsoService.runDiagnosticsForDomain(domainExtId);
+
+      expect(mockPost).toHaveBeenCalledWith(`${baseUrl}/diagnostics`);
+      expect(result.overall).toBe('passed');
+      expect(result.checks.map((check) => check.check)).toEqual([
+        'stored_configuration',
+        'discovery',
+        'credential',
+      ]);
+    });
+
+    it('returns a failed overall with the credential error_code', async () => {
+      mockPost.mockResolvedValueOnce({
+        data: {
+          ...passedResponse,
+          overall: 'failed',
+          checks: [
+            passedResponse.checks[0],
+            passedResponse.checks[1],
+            {
+              check: 'credential',
+              status: 'failed',
+              message: 'The identity provider rejected the saved client secret.',
+              details: { error_code: 'invalid_client_secret', http_status: 401 },
+            },
+          ],
+        },
+      });
+
+      const result = await SsoService.runDiagnosticsForDomain(domainExtId);
+
+      expect(result.overall).toBe('failed');
+      expect(result.checks[2].status).toBe('failed');
+      expect(result.checks[2].details.error_code).toBe('invalid_client_secret');
+    });
+
+    it('propagates API errors', async () => {
+      mockPost.mockRejectedValueOnce(new Error('Too many requests'));
+
+      await expect(SsoService.runDiagnosticsForDomain(domainExtId)).rejects.toThrow(
+        'Too many requests'
+      );
+    });
+
+    it('sends activate: true only when activation is requested, and returns the outcome', async () => {
+      mockPost.mockResolvedValueOnce({
+        data: { ...passedResponse, enabled: true, activation: 'activated' },
+      });
+
+      const result = await SsoService.runDiagnosticsForDomain(domainExtId, { activate: true });
+
+      expect(mockPost).toHaveBeenCalledWith(`${baseUrl}/diagnostics`, { activate: true });
+      expect(result.enabled).toBe(true);
+      expect(result.activation).toBe('activated');
+    });
+
+    it('sends no body for activate: false (the old behaviour)', async () => {
+      mockPost.mockResolvedValueOnce({ data: passedResponse });
+
+      await SsoService.runDiagnosticsForDomain(domainExtId, { activate: false });
+
+      expect(mockPost).toHaveBeenCalledWith(`${baseUrl}/diagnostics`);
+    });
+  });
+
+  // ==========================================================================
   // URL Construction Tests
   // ==========================================================================
 
@@ -480,6 +710,14 @@ describe('SsoService domain methods', () => {
       await SsoService.getConfigForDomain(specialDomainId);
 
       expect(mockGet).toHaveBeenCalledWith(`/api/domains/${specialDomainId}/sso`);
+    });
+
+    it('marks a read no person asked for as passive (not session activity)', async () => {
+      mockGet.mockResolvedValueOnce({ data: mockSsoConfig });
+
+      await SsoService.getConfigForDomain(domainExtId, { passive: true });
+
+      expect(mockGet).toHaveBeenCalledWith(`/api/domains/${domainExtId}/sso`, { passive: true });
     });
   });
 
@@ -521,6 +759,7 @@ describe('SsoService domain methods', () => {
             allowed_domains: ['example.com'],
             requires_domain_filter: false,
             idp_controls_access: true,
+            last_sign_in: null,
             created_at: 1234567890,
             updated_at: 1234567890,
           },
@@ -586,6 +825,33 @@ describe('SsoService domain methods', () => {
         // Schema should strip unknown fields or pass them through (based on config)
         expect(result.record?.domain_id).toBe(domainExtId);
       });
+
+      it.each([
+        [
+          'a saved source',
+          'https://idp.example.com/saml/metadata',
+          'https://idp.example.com/saml/metadata',
+        ],
+        ['null (unset, or unreadable when listed)', null, null],
+        ['an absent key (an API that predates it)', undefined, null],
+      ])('reads idp_metadata_url as %s', async (_label, wire, parsed) => {
+        mockGet.mockResolvedValueOnce({
+          data: {
+            record: {
+              ...mockSsoConfig.record,
+              provider_type: 'saml',
+              ...(wire === undefined ? {} : { idp_metadata_url: wire }),
+              unreadable_fields: wire === null ? ['idp_metadata_url'] : [],
+            },
+          },
+        });
+
+        const result = await SsoService.getConfigForDomain(domainExtId);
+
+        expect(result.record).not.toBeNull();
+        expect(result.record?.idp_metadata_url).toBe(parsed);
+        expect(consoleErrorSpy).not.toHaveBeenCalled();
+      });
     });
 
     describe('putConfigForDomain', () => {
@@ -614,6 +880,7 @@ describe('SsoService domain methods', () => {
             allowed_domains: ['newdomain.com'],
             requires_domain_filter: false,
             idp_controls_access: true,
+            last_sign_in: null,
             created_at: 1234567890,
             updated_at: 1234567890,
           },
@@ -805,6 +1072,7 @@ describe('SsoService domain methods', () => {
             allowed_domains: null, // Nullish, should normalize to []
             requires_domain_filter: false,
             idp_controls_access: true,
+            last_sign_in: null,
             created_at: 1234567890,
             updated_at: 1234567890,
           },
@@ -836,6 +1104,7 @@ describe('SsoService domain methods', () => {
             allowed_domains: [],
             requires_domain_filter: false,
             idp_controls_access: true,
+            last_sign_in: null,
             created_at: 1234567890,
             updated_at: 1234567890,
           },
@@ -862,6 +1131,7 @@ describe('SsoService domain methods', () => {
             enforce_sso_only: false,
             requires_domain_filter: false,
             idp_controls_access: true,
+            last_sign_in: null,
             created_at: 1234567890,
             updated_at: 1234567890,
             // tenant_id, issuer, allowed_domains all undefined (nullish)

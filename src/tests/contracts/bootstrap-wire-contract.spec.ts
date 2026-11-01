@@ -11,7 +11,7 @@
 //
 // The fixtures in src/tests/fixtures/wire/ are bodies captured from a running
 // server (full auth mode, the e2e-full-auth lane env) with only the CSRF
-// token, nonce, Sentry DSN and email address replaced. Re-record them when a
+// token, Sentry DSN and email address replaced. Re-record them when a
 // serializer changes shape; do not hand-edit them into agreement.
 //
 //   anonymous      hydration of GET / with no session

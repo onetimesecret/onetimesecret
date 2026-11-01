@@ -244,13 +244,31 @@ receipt.expired!
 receipt.state
 #=> 'expired'
 
-## expired! clears secret_identifier and secret_key
+## expired! clears secret_identifier
 receipt, secret = Onetime::Receipt.spawn_pair 'anon', 1, 'test secret'
 receipt.created = (Familia.now.to_i - 3600)
 receipt.save
 receipt.expired!
-[receipt.secret_identifier, receipt.secret_key]
-#=> ['', '']
+receipt.secret_identifier
+#=> ''
+
+## The pre-v0.24 secret_key field is no longer declared on Receipt or Secret
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 1, 'test secret'
+[receipt.respond_to?(:secret_key), secret.respond_to?(:secret_key),
+ Onetime::Receipt.fields.include?(:secret_key), Onetime::Secret.fields.include?(:secret_key)]
+#=> [false, false, false, false]
+
+## A stale secret_key field in a stored receipt hash is ignored on load
+# A receipt written before the rename to secret_identifier can still carry
+# the old hash field. Familia assigns declared fields only, so the value
+# never reaches the model or to_h, and save leaves the stale field in place.
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+Onetime::Receipt.dbclient.hset(receipt.dbkey, 'secret_key', 'stale-legacy-key')
+loaded = Onetime::Receipt.load(receipt.identifier)
+loaded.save
+[loaded.secret_identifier == secret.identifier, loaded.to_h.key?('secret_key'),
+ Onetime::Receipt.dbclient.hget(receipt.dbkey, 'secret_key')]
+#=> [true, false, 'stale-legacy-key']
 
 ## expired! sets updated timestamp
 receipt, secret = Onetime::Receipt.spawn_pair 'anon', 1, 'test secret'

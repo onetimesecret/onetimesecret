@@ -51,7 +51,20 @@ module Core
         end
 
         output['shrimp'] = view_vars['shrimp']
-        output['nonce']  = view_vars['nonce']
+
+        # The CSP nonce is deliberately NOT emitted (RISK-2026-08-14-M08). It
+        # is a server-side value for the <script>/<link> tags the shell
+        # renders (Core::Views::Base#render passes view_vars['nonce'] to
+        # vite_assets and to the hydration script tag). Publishing it inside
+        # the JSON bootstrap payload turned the nonce-only script-src policy
+        # into a nonce-plus-whatever-can-read-the-DOM policy: an HTML
+        # injection primitive (no script execution needed) can exfiltrate a
+        # JSON blob with dangling-markup techniques, whereas browsers hide the
+        # nonce attribute itself from such reads. The frontend's one consumer
+        # (useDnsWidget.resolveCspNonce) reads the nonce IDL property of an
+        # already-nonced script element instead, which only same-document
+        # script can do. 'nonce' is not in output_template either, so the
+        # registry strips it if a view var ever reintroduces it.
 
         serialize_snapshot_ordering(output, view_vars['snapshot_ordering'])
         output
@@ -101,7 +114,6 @@ module Core
             'ot_version_long' => nil,
             'ruby_version' => nil,
             'shrimp' => nil,
-            'nonce' => nil,
             # ADR-046. Declared so SerializerRegistry passes them through;
             # .serialize deletes them again when the session is not ordered.
             'snapshot_epoch' => nil,

@@ -396,10 +396,6 @@
     "text": "Bist du sicher?",
     "source_hash": "f0762c4f"
   },
-  "web.COMMON.danger_zone": {
-    "text": "Gefahrenzone",
-    "source_hash": "3c1c01b4"
-  },
   "web.COMMON.caution_zone": {
     "text": "Vorsichtszone",
     "source_hash": "fe27a3a8"
@@ -1507,10 +1503,6 @@
   "web.TITLES.domain_signin": {
     "text": "Anmeldekonfiguration",
     "source_hash": "2da38c03"
-  },
-  "web.TITLES.domain_sso": {
-    "text": "Domain-SSO",
-    "source_hash": "13161464"
   },
   "web.TITLES.domain_signup": {
     "text": "Domain-Registrierungsvalidierung",

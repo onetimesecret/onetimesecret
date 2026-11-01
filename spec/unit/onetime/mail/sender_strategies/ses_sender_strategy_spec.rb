@@ -513,10 +513,16 @@ RSpec.describe Onetime::Mail::SenderStrategies::SESSenderStrategy do
       end
 
       it 'returns deleted true' do
+        expect(mock_client).not_to receive(:get_email_identity)
+
         result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
 
-        expect(result[:deleted]).to be true
-        expect(result[:message]).to include('Deleted sender identity')
+        expect(result).to eq(
+          outcome: :deleted,
+          deleted: true,
+          message: 'Deleted sender identity example.com',
+          error: nil,
+        )
       end
     end
 
@@ -526,11 +532,15 @@ RSpec.describe Onetime::Mail::SenderStrategies::SESSenderStrategy do
           .and_raise(Aws::SESV2::Errors::NotFoundException.new(nil, 'not found'))
       end
 
-      it 'returns deleted true (idempotent)' do
+      it 'reports absence without claiming a deletion' do
         result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
 
-        expect(result[:deleted]).to be true
-        expect(result[:message]).to include('already deleted')
+        expect(result).to eq(
+          outcome: :absent,
+          deleted: false,
+          message: 'Identity example.com was already deleted or never existed',
+          error: nil,
+        )
       end
     end
 
@@ -543,7 +553,9 @@ RSpec.describe Onetime::Mail::SenderStrategies::SESSenderStrategy do
       it 'returns deleted false with error' do
         result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
 
+        expect(result[:outcome]).to eq(:failed)
         expect(result[:deleted]).to be false
+        expect(result[:error]).to eq('API error')
         expect(result[:message]).to include('deletion failed')
       end
     end
@@ -554,20 +566,45 @@ RSpec.describe Onetime::Mail::SenderStrategies::SESSenderStrategy do
           .and_raise(StandardError.new('boom'))
       end
 
-      it 'returns deleted false' do
+      it 'returns a failed result with an error' do
         result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
 
+        expect(result[:outcome]).to eq(:failed)
         expect(result[:deleted]).to be false
+        expect(result[:error]).to eq('boom')
+      end
+    end
+
+    [StandardError, Aws::SESV2::Errors::ServiceError].each do |error_class|
+      ['', " \n\t"].each do |message|
+        it "supplies an error for #{error_class} with blank message #{message.inspect}" do
+          exception = error_class == StandardError ? error_class.new(message) : error_class.new(nil, message)
+          allow(mock_client).to receive(:delete_email_identity).and_raise(exception)
+
+          result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
+
+          expect(result[:outcome]).to eq(:failed)
+          expect(result[:deleted]).to be false
+          expect(result[:error]).to eq(error_class.name)
+          expect(result[:message]).to include(error_class.name)
+        end
       end
     end
 
     context 'with invalid from_address' do
       let(:mailer_config) { double('MailerConfig', from_address: '') }
 
-      it 'returns deleted false' do
+      it 'returns a failed result without calling SES' do
+        expect(strategy).not_to receive(:build_ses_client)
+
         result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
 
-        expect(result[:deleted]).to be false
+        expect(result).to eq(
+          outcome: :failed,
+          deleted: false,
+          message: 'Invalid from_address: cannot extract domain',
+          error: 'invalid_from_address',
+        )
       end
     end
   end

@@ -233,6 +233,48 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
       it 'enables PKCE' do
         expect(config.to_omniauth_options[:pkce]).to be true
       end
+
+      it 'matches the expected structure' do
+        expect(config.to_omniauth_options).to match(expected_domain_omniauth_options(:oidc))
+      end
+
+      # #4764: tenant options are merged over the platform strategy key by
+      # key, so the key must be present even when nothing is selected.
+      describe 'client_auth_method (token_endpoint_auth_method)' do
+        it 'is present and nil when the field is unset' do
+          options = config.to_omniauth_options
+
+          expect(options).to have_key(:client_auth_method)
+          expect(options[:client_auth_method]).to be_nil
+        end
+
+        it 'is nil for a blank or whitespace-only value' do
+          ['', '  '].each do |value|
+            config.token_endpoint_auth_method = value
+
+            expect(config.to_omniauth_options[:client_auth_method]).to be_nil
+          end
+        end
+
+        it 'maps client_secret_basic to :basic' do
+          config.token_endpoint_auth_method = 'client_secret_basic'
+
+          expect(config.to_omniauth_options[:client_auth_method]).to eq(:basic)
+        end
+
+        it 'maps client_secret_post to :client_secret_post' do
+          config.token_endpoint_auth_method = 'client_secret_post'
+
+          expect(config.to_omniauth_options[:client_auth_method]).to eq(:client_secret_post)
+        end
+
+        it 'raises Onetime::Problem for a stored value outside the accepted list' do
+          config.token_endpoint_auth_method = 'private_key_jwt'
+
+          expect { config.to_omniauth_options }
+            .to raise_error(Onetime::Problem, /token endpoint auth method must be one of/)
+        end
+      end
     end
 
     describe 'for Entra ID provider' do
@@ -244,6 +286,12 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
       it 'includes tenant_id' do
         expect(config.to_omniauth_options[:tenant_id]).to eq('contoso-tenant-uuid-1234')
+      end
+
+      # #4764: the secret travels in the token request body, not a Basic
+      # header, on the tenant surface exactly as on the platform one.
+      it 'sends the client credentials in the token request body' do
+        expect(config.to_omniauth_options[:client_options]).to eq(auth_scheme: :request_body)
       end
     end
 
@@ -309,6 +357,30 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
         expect { config.to_omniauth_options }
           .to raise_error(Onetime::Problem, /unreadable \(Familia::EncryptionError\)\z/)
+      end
+
+      # The metadata URL (where the trio was imported from) is not a login
+      # input: the builder never reveals it, so neither a value nor a
+      # failure to decrypt one changes what the strategy runs on.
+      describe 'with an idp_metadata_url' do
+        let(:metadata_url) { 'https://idp.example.com/saml/metadata.xml' }
+
+        it 'builds exactly the trio options, without the URL' do
+          config = build_domain_sso_config(:saml, idp_metadata_url: metadata_url)
+
+          expect(config.to_omniauth_options).to eq(expected_domain_omniauth_options(:saml))
+          expect(config.to_omniauth_options.inspect).not_to include('metadata.xml')
+        end
+
+        it 'still builds when the URL cannot be decrypted' do
+          config    = build_domain_sso_config(:saml, idp_metadata_url: metadata_url)
+          concealed = double('ConcealedString')
+          allow(concealed).to receive(:reveal).and_raise(Familia::EncryptionError, 'tag mismatch')
+          allow(config).to receive(:idp_metadata_url).and_return(concealed)
+
+          expect(config.to_omniauth_options).to eq(expected_domain_omniauth_options(:saml))
+          expect(concealed).not_to have_received(:reveal)
+        end
       end
     end
 
@@ -1133,6 +1205,21 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
       end
     end
 
+    # Same reasoning: a templated EntityID saved before the placeholder rule
+    # existed must stay editable. The rule applies where an EntityID is
+    # accepted (API, metadata preview) and used (to_omniauth_options).
+    context 'when a stored SAML EntityID is a template' do
+      let(:config) { build_domain_sso_config(:saml, idp_entity_id: 'https://sts.windows.net/{tenantid}/') }
+
+      it 'stays valid at the model level' do
+        expect(config.validation_errors).to eq([])
+      end
+
+      it 'is refused where the options are built' do
+        expect { config.to_omniauth_options }.to raise_error(Onetime::Problem, /unusable: IdP EntityID contains a template placeholder/)
+      end
+    end
+
     context 'when a SAML trio field cannot be decrypted' do
       it 'reports it as unreadable rather than missing' do
         config = build_domain_sso_config(:saml)
@@ -1140,6 +1227,105 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
         allow(config).to receive(:reveal_saml_field).with(:idp_cert).and_raise(Familia::EncryptionError, 'tag')
 
         expect(config.validation_errors).to eq(['idp_cert cannot be read (re-enter the value)'])
+      end
+    end
+
+    # Optional, and checked structurally only when present: no DNS here (the
+    # API write path adds the SSRF host check for a new value).
+    context 'with an idp_metadata_url' do
+      let(:metadata_url) { 'https://login.microsoftonline.com/common/federationmetadata/2007-06/federationmetadata.xml?appid=x' }
+
+      it 'accepts a valid https URL with a query, without resolving it' do
+        allow(Resolv).to receive(:getaddresses)
+        config = build_domain_sso_config(:saml, idp_metadata_url: metadata_url)
+
+        expect(config.validation_errors).to eq([])
+        expect(Resolv).not_to have_received(:getaddresses)
+      end
+
+      it 'accepts its absence' do
+        expect(build_domain_sso_config(:saml, idp_metadata_url: '').validation_errors).to eq([])
+      end
+
+      it 'refuses a structurally invalid value in metadata-URL words' do
+        %w[http://idp.example.com/metadata https://idp.example.com/metadata#frag].each do |url|
+          errors = build_domain_sso_config(:saml, idp_metadata_url: url).validation_errors
+
+          expect(errors).to eq([Onetime::SsoProvider::IdpMetadata::METADATA_URL_SHAPE_PROBLEM]), url
+          expect(errors.join).not_to include('SSO service URL')
+        end
+      end
+
+      it 'reports a value that cannot be decrypted, like a trio field' do
+        config    = build_domain_sso_config(:saml, idp_metadata_url: metadata_url)
+        concealed = double('ConcealedString')
+        allow(concealed).to receive(:reveal).and_raise(Familia::EncryptionError, 'tag')
+        allow(config).to receive(:idp_metadata_url).and_return(concealed)
+
+        expect(config.validation_errors).to eq(['idp_metadata_url cannot be read (re-enter or clear the value)'])
+      end
+
+      it 'is not a trio field, nor part of the credential fingerprint' do
+        config = build_domain_sso_config(:saml)
+        before = config.credential_fingerprint
+
+        config.idp_metadata_url = metadata_url
+
+        expect(described_class::SAML_FIELDS).not_to include(:idp_metadata_url)
+        expect(config.saml_trio.keys).to eq(described_class::SAML_FIELDS)
+        expect(config.credential_fingerprint).to eq(before)
+      end
+
+      it 'is an encrypted field bound to the domain' do
+        config = build_domain_sso_config(:saml, idp_metadata_url: metadata_url)
+
+        expect(config.idp_metadata_url.encrypted_value).not_to include('login.microsoftonline.com')
+        expect(config.reveal_idp_metadata_url).to eq(metadata_url)
+      end
+    end
+
+    # #4764
+    describe 'token_endpoint_auth_method' do
+      let(:message) do
+        'token_endpoint_auth_method must be one of: client_secret_basic, client_secret_post'
+      end
+
+      it 'accepts each listed value on an OIDC config' do
+        Onetime::CustomDomain::SsoConfig::TOKEN_ENDPOINT_AUTH_METHODS.each do |value|
+          config = build_domain_sso_config(:oidc, token_endpoint_auth_method: value)
+
+          expect(config.validation_errors).to eq([])
+        end
+      end
+
+      it 'accepts blank (the gem default)' do
+        config = build_domain_sso_config(:oidc, token_endpoint_auth_method: '')
+
+        expect(config.validation_errors).to eq([])
+      end
+
+      it 'rejects a value outside the list' do
+        config = build_domain_sso_config(:oidc, token_endpoint_auth_method: 'private_key_jwt')
+
+        expect(config.validation_errors).to eq([message])
+      end
+
+      it 'rejects the RFC-flavoured spelling of the strategy symbol' do
+        config = build_domain_sso_config(:oidc, token_endpoint_auth_method: 'basic')
+
+        expect(config.validation_errors).to eq([message])
+      end
+
+      it 'rejects a value set on an Entra ID config' do
+        config = build_domain_sso_config(:entra_id, token_endpoint_auth_method: 'client_secret_post')
+
+        expect(config.validation_errors).to eq(['token_endpoint_auth_method is only supported for OIDC provider'])
+      end
+
+      it 'rejects a value set on a SAML config' do
+        config = build_domain_sso_config(:saml, token_endpoint_auth_method: 'client_secret_basic')
+
+        expect(config.validation_errors).to eq(['token_endpoint_auth_method is only supported for OIDC provider'])
       end
     end
 

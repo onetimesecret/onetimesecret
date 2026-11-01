@@ -5,8 +5,9 @@
 #
 # Run it from the repository root with the SAME environment as the armed
 # server process (RACK_ENV=test, AUTHENTICATION_MODE=full, AUTH_DATABASE_URL,
-# REDIS_URL, DOMAINS_ENABLED=true, ORGS_SSO_ENABLED=true and the secrets), so
-# both sides write and read one datastore and one authdb:
+# REDIS_URL, DOMAINS_ENABLED=true, DOMAINS_VALIDATION_STRATEGY=caddy_on_demand,
+# ORGS_SSO_ENABLED=true and the secrets), so both sides write and read one
+# datastore and one authdb:
 #
 #   bundle exec ruby e2e/system/tenant_connect_seed.rb
 #
@@ -20,9 +21,9 @@
 #   - a second custom domain (the E2E_TENANT_CONNECT_UNVERIFIED_ORIGIN host)
 #     in the same organization with the identical SsoConfig + SigninConfig,
 #     differing ONLY in that its ownership is NOT verified. It is the
-#     target of the refusal check (tenant-sso-unverified-domain.spec.ts)
-#     and carries no accounts or memberships: SSO is refused there before
-#     anyone signs in;
+#     target of tenant-sso-unverified-domain.spec.ts and carries no accounts
+#     or memberships: under a strategy that checks ownership the host is not
+#     served at all;
 #   - two open (Verified) accounts with an Argon2 password hash, paired
 #     Customers, and active exact-domain memberships in the organization;
 #   - NO identity on either account, and NO identity anywhere for the
@@ -86,6 +87,10 @@ Onetime.boot! :cli
 
 abort 'tenant Connect E2E seed: AUTHENTICATION_MODE=full is required' unless Onetime.auth_config.full_enabled?
 abort 'tenant Connect E2E seed: DOMAINS_ENABLED=true is required' unless OT.conf.dig('features', 'domains', 'enabled')
+unless Onetime::CustomDomain.ownership_proof_required?
+  abort 'tenant Connect E2E seed: DOMAINS_VALIDATION_STRATEGY must check ownership (caddy_on_demand); ' \
+        'under passthrough the unverified host is served'
+end
 abort 'tenant Connect E2E seed: ORGS_SSO_ENABLED=true is required' unless OT.conf.dig('features', 'organizations', 'sso_enabled')
 
 Auth::Migrator.run_if_needed
@@ -158,11 +163,12 @@ end
 # tenant_test_fixtures seed.
 domain = seed_tenant_domain(TENANT_HOST, org, verified: true)
 
-# NOT verified, every run: the tenant OmniAuth hook refuses SSO on this host
-# with auth_error=sso_domain_unverified before injecting any credentials,
-# and never falls back to platform credentials (#4579). A separate host
-# rather than a toggle on the journey's own, so neither check can leave the
-# other a domain in the wrong state.
+# NOT verified, every run: under DOMAINS_VALIDATION_STRATEGY=caddy_on_demand
+# DomainStrategy answers every request to this host with a 404, so no SSO
+# request is started and no credentials are injected
+# (CustomDomain#served_as_tenant?). A separate host rather than a toggle on
+# the journey's own, so neither check can leave the other a domain in the
+# wrong state.
 unverified_domain = seed_tenant_domain(UNVERIFIED_HOST, org, verified: false)
 
 # --- Accounts ----------------------------------------------------------------

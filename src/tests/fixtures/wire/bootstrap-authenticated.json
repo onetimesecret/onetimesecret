@@ -4,17 +4,17 @@
   "awaiting_mfa": false,
   "has_password": true,
   "password_auth_permitted": true,
-  "custid": "01a0eb57-2afa-7939-bf32-683d2797d053",
+  "custid": "01a12e81-10cd-709a-a5d8-e893ab286920",
   "cust": {
-    "objid": "01a0eb57-2afa-7939-bf32-683d2797d053",
-    "extid": "ur9od2c8ddaqdo11swq0yjco76h",
+    "objid": "01a12e81-10cd-709a-a5d8-e893ab286920",
+    "extid": "ur9va9ypeg9h5u8wt20hbjld2nt",
     "email": "recorded-user@test.onetimesecret.com",
     "role": "customer",
     "verified": true,
-    "last_login": 1790654753.78378,
+    "last_login": 1791781572.99786,
     "locale": "",
-    "updated": 1790654753.60383,
-    "created": 1790654753.53079,
+    "updated": 1791781572.90454,
+    "created": 1791781572.8132901,
     "secrets_created": "0",
     "secrets_burned": "0",
     "secrets_shared": "0",
@@ -23,7 +23,7 @@
     "notify_on_reveal": false
   },
   "email": "recorded-user@test.onetimesecret.com",
-  "customer_since": "Sep 29, 2026",
+  "customer_since": "Oct 12, 2026",
   "entitlement_preview_planid": null,
   "entitlement_preview_plan_name": null,
   "impersonation": null,
@@ -53,6 +53,13 @@
       "window": 3600,
       "lockout": 3600
     },
+    "email_login_request_rate_limit": {
+      "enabled": true,
+      "max_per_ip": 30,
+      "max_per_email": 90,
+      "window": 3600,
+      "lockout": 3600
+    },
     "create_account_rate_limit": {
       "enabled": false,
       "max_per_ip": 10,
@@ -74,8 +81,7 @@
   "brand_favicon_url": null,
   "d9s_enabled": true,
   "development": {
-    "enabled": false,
-    "domain_context_enabled": false
+    "enabled": false
   },
   "diagnostics": {
     "sentry": {
@@ -85,7 +91,7 @@
       "maxBreadcrumbs": 5,
       "logErrors": true,
       "environment": "production",
-      "release": "4ea626b"
+      "release": "c241298"
     }
   },
   "docs_host": "https://docs.onetimesecret.com/",
@@ -478,10 +484,11 @@
   "global_banner": null,
   "global_banner_scope": null,
   "organization": {
-    "objid": "01a0eb57-2b04-7803-b037-cd88d36ccc02",
-    "extid": "onbf8t86hsqh8667xgtk4dz5qa5",
+    "objid": "01a12e81-10d4-7e35-9ace-8b7fb85a6d77",
+    "extid": "on9obtyctssb3k6cp4viokgl6da",
     "display_name": "Default Workspace",
     "is_default": true,
+    "is_current_user_default": true,
     "planid": "free_v1",
     "current_user_role": "owner",
     "entitlements": [
@@ -516,11 +523,10 @@
     }
   },
   "ot_version": "0.0.0-rc0",
-  "ot_version_long": "0.0.0-rc0 (4ea626b)",
+  "ot_version_long": "0.0.0-rc0 (c241298)",
   "ruby_version": "3.4.10",
   "shrimp": "recorded-csrf-token-removed",
-  "nonce": "cmVjb3JkZWQtbm9uY2U=",
-  "snapshot_epoch": "958008831f2a0d2435bbc30e9334cb87",
-  "snapshot_version": "1790654753806359",
-  "snapshot_generated_at": "2026-09-29T04:05:53.806621Z"
+  "snapshot_epoch": "24cdd11614e43fef194b56b1158ff2cf",
+  "snapshot_version": "1791781573012724",
+  "snapshot_generated_at": "2026-10-12T05:06:13.014246Z"
 }

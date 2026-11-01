@@ -62,11 +62,21 @@ module Auth::Config::Overrides
         # default the thrown error gets. The unverified flash reader is still
         # called for its `create_account_blocked` log line.
         def new_account(login)
-          if features.include?(:verify_account) && account_from_login(login) && allow_resending_verify_account_email?
-            attempt_to_create_unverified_account_error_flash
-            set_error_flash(create_account_error_flash)
-            request.env['rodauth.error_flash'] = create_account_error_flash
-            return_response create_account_view
+          if features.include?(:verify_account)
+            # Loaded WITHOUT set_account (the private lookup behind
+            # account_from_login): verify_account's new_account, reached
+            # through super, loads the same login itself, and since rodauth
+            # 2.47 a second load of one retrieval type within a route warns
+            # on every request ("account retrieved multiple times ... login";
+            # a different type raises). allow_resending_verify_account_email?
+            # reads `account`, so the row is still assigned.
+            @account = _account_from_login(login)
+            if account && allow_resending_verify_account_email?
+              attempt_to_create_unverified_account_error_flash
+              set_error_flash(create_account_error_flash)
+              request.env['rodauth.error_flash'] = create_account_error_flash
+              return_response create_account_view
+            end
           end
           super
         end

@@ -18,7 +18,12 @@ module DomainsAPI
       #
       # Request body:
       # - validation_strategy: Required. One of: passthrough, domain_allowlist, mx, smtp
-      # - allowed_signup_domains: Required for domain_allowlist. Array or comma-separated string
+      # - allowed_signup_domains: Required for domain_allowlist unless allow_base_domain
+      #   is true. Array or comma-separated string
+      # - allow_base_domain: Optional. Boolean; under domain_allowlist also admits
+      #   the custom domain's own registrable domain (default: false). Turning
+      #   it on needs features.organizations.base_domain_signup_enabled and the
+      #   base_domain_signup entitlement
       # - enabled: Optional. Boolean to enable/disable (default: false)
       #
       class PutSignupConfig < Base
@@ -32,6 +37,7 @@ module DomainsAPI
           @domain_id              = sanitize_identifier(params['extid'])
           @validation_strategy    = sanitize_plain_text(params['validation_strategy'])
           @allowed_signup_domains = parse_allowed_domains(params['allowed_signup_domains'])
+          @allow_base_domain      = params.key?('allow_base_domain') ? parse_boolean(params['allow_base_domain']) : false
           @enabled                = parse_boolean(params['enabled'])
           @signup_enabled         = params.key?('signup_enabled') ? parse_boolean(params['signup_enabled']) : false
           @autoverify             = params.key?('autoverify') ? parse_boolean(params['autoverify']) : false
@@ -61,8 +67,20 @@ module DomainsAPI
 
           validate_strategy_type(@validation_strategy)
 
-          # Validate domain_allowlist has at least one domain
-          validate_allowlist_has_domains(@validation_strategy, @allowed_signup_domains)
+          verify_allow_base_domain_permitted!(
+            requested: @allow_base_domain,
+            stored: @existing_config&.allow_base_domain? || false,
+          )
+
+          # Validate domain_allowlist has at least one domain (listed, or the
+          # domain's own base domain via allow_base_domain). PUT replaces the
+          # stored list, so an unreadable one is never kept.
+          validate_allowlist_requirement(
+            @validation_strategy,
+            @allowed_signup_domains,
+            corrupt: false,
+            allow_base_domain: @allow_base_domain,
+          )
 
           # Validate domain formats before the model setter (which raises Problem -> 500)
           validate_domain_formats(@allowed_signup_domains)
@@ -71,10 +89,10 @@ module DomainsAPI
         def process
           OT.ld "[PutSignupConfig] Replacing signup config for domain #{@domain_id} by user #{cust.extid}"
 
-          was_enabled = @existing_config&.enabled?
-
           if @existing_config
-            replace_existing_config
+            # From the record this write replaced, not the one raise_concerns
+            # loaded (see replace_existing_config)
+            was_enabled = replace_existing_config
             log_signup_change_event(
               event: :domain_signup_config_replaced,
               domain: @custom_domain,
@@ -83,7 +101,8 @@ module DomainsAPI
               validation_strategy: @validation_strategy,
             )
           else
-            create_new_config
+            was_enabled = nil
+            guarded_config_write { create_new_config }
             log_signup_change_event(
               event: :domain_signup_config_created,
               domain: @custom_domain,
@@ -111,6 +130,7 @@ module DomainsAPI
             domain_id: @domain_id,
             validation_strategy: @validation_strategy,
             allowed_signup_domains: @allowed_signup_domains,
+            allow_base_domain: @allow_base_domain,
             enabled: @enabled,
           }
         end
@@ -122,24 +142,34 @@ module DomainsAPI
             domain_id: @custom_domain.identifier,
             validation_strategy: @validation_strategy,
             allowed_signup_domains: @allowed_signup_domains,
+            allow_base_domain: @allow_base_domain,
             enabled: @enabled,
             signup_enabled: @signup_enabled,
             autoverify: @autoverify,
           )
         end
 
-        # Replaces existing config with PUT semantics (full replacement).
+        # Replaces existing config with PUT semantics (full replacement), on
+        # the record update_for_domain! re-reads under WATCH
+        # (GuardedConfigWrites), so the enabled event compares against the
+        # state this write replaced.
+        #
+        # @return [Boolean] whether the replaced record was enabled
         def replace_existing_config
-          @signup_config = @existing_config
-
-          @signup_config.validation_strategy    = @validation_strategy
-          @signup_config.allowed_signup_domains = @allowed_signup_domains
-          @signup_config.enabled                = @enabled.to_s
-          @signup_config.signup_enabled         = @signup_enabled
-          @signup_config.autoverify             = @autoverify
-          @signup_config.updated                = Familia.now.to_i
-
-          @signup_config.commit_fields
+          @signup_config, was_enabled = guarded_config_write do
+            Onetime::CustomDomain::SignupConfig.update_for_domain!(@custom_domain.identifier) do |config|
+              previously_enabled            = config.enabled?
+              config.validation_strategy    = @validation_strategy
+              config.allowed_signup_domains = @allowed_signup_domains
+              config.allow_base_domain      = @allow_base_domain
+              config.enabled                = @enabled.to_s
+              config.signup_enabled         = @signup_enabled
+              config.autoverify             = @autoverify
+              config.updated                = Familia.now.to_i
+              previously_enabled
+            end
+          end
+          was_enabled
         end
 
         def serialize_signup_config(config)
@@ -147,10 +177,15 @@ module DomainsAPI
             domain_id: @custom_domain.extid,
             validation_strategy: config.validation_strategy,
             allowed_signup_domains: config.allowed_signup_domains,
+            allow_base_domain: config.allow_base_domain?,
             enabled: config.enabled?,
             signup_enabled: config.signup_enabled?,
             autoverify: config.autoverify?,
-            requires_allowlist: config.requires_allowlist?,
+            uses_allowlist: config.uses_allowlist?,
+            # Former name of uses_allowlist, still sent so a client built
+            # before the rename parses the response during a deploy.
+            # Deprecated; remove in a later release.
+            requires_allowlist: config.uses_allowlist?,
             network_validation: config.network_validation?,
             created_at: config.created.to_i,
             updated_at: config.updated.to_i,

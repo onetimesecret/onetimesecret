@@ -9,6 +9,11 @@ happens, and the steps to resolve or verify.
 - [brand-pack-region-divergence.md](./brand-pack-region-divergence.md) —
   Diagnosing branding that renders wrong in one region but correct in others,
   using `bin/ots config brand` / Colonel Brand Diagnostics.
+- [custom-domain-ascii-index-backfill.md](./custom-domain-ascii-index-backfill.md) —
+  Auditing custom domain records against the ASCII name index and adding
+  the missing entries with `bin/ots domains backfill-ascii-index`, with the
+  application stopped; resolving names held by more than one record with
+  `bin/ots domains resolve-collisions`.
 - [dns-validation-failures.md](./dns-validation-failures.md) — Diagnosing custom
   domain DNS validation failures.
 - [favicon-fetch-worker.md](./favicon-fetch-worker.md) — Manually triggering the
@@ -35,6 +40,17 @@ happens, and the steps to resolve or verify.
   with operator approval, which claims an Entra tenant's ID tokens carry per
   account type; what the synthetic-token spec already proves; recording
   sanitized claim presence and type, never tokens or values.
+- [sso-entra-invalid-client-secret.md](./sso-entra-invalid-client-secret.md) —
+  Diagnosing a tenant Entra sign-in that fails at token exchange with
+  AADSTS7000215; how Onetime Secret sends the client secret, the error codes
+  that rule causes in or out, and a two-request isolation test for the customer.
+- [sso-credential-health.md](./sso-credential-health.md) — Keeping tenant SSO
+  credentials healthy: the layered checks (stored config, discovery, expiry,
+  Test Connection, real sign-ins), what Onetime Secret covers today, why a
+  client-credentials token request is not an SSO test, and proposed monitoring.
+- [sso-provider-switch.md](./sso-provider-switch.md) — Existing SSO users
+  refused with `tenant_sso_link_unavailable` after an org changes its tenant
+  SSO provider; triage cohorts, purge vs. password-then-Connect routes.
 - [sso-accounts-unverified.md](./sso-accounts-unverified.md) — Repairing
   SSO-provisioned customers left unverified before v0.26.5, so their colonel /
   admin / staff role takes effect (`bin/ots customers doctor --all --repair`);

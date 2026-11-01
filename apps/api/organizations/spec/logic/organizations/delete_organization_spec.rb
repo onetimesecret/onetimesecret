@@ -173,6 +173,24 @@ RSpec.describe OrganizationAPI::Logic::Organizations::DeleteOrganization do
       expect(op_args.last[:force_subscription]).to be_nil
     end
 
+    # An owner can create and delete workspaces in a loop, so the op's audit
+    # write must go to the security trail, never the operator trail.
+    it 'runs the op as a self-service delete' do
+      run_logic
+
+      expect(op_args.last).to include(self_service: true)
+    end
+
+    # A colonel passes the manage_org check on any org (require_entitlement_in!),
+    # and that delete is operator activity: operator trail, fail-closed.
+    it 'does not run a colonel delete as self-service' do
+      allow(customer).to receive(:role).and_return('colonel')
+
+      run_logic
+
+      expect(op_args.last).to include(self_service: false)
+    end
+
     it 'never audits from the adapter (the op owns the single event)' do
       run_logic
 

@@ -10,7 +10,7 @@
 # POST /auth/reset-password-request. Stock Rodauth distinguishes "account
 # exists" from "no account" on that path (no_matching_login / unverified /
 # recently-sent), which is an account-existence oracle (CWE-204). The override
-# in config/overrides/reset_password_enumeration.rb collapses all three branches
+# in config/overrides/login_request_enumeration.rb collapses all three branches
 # to the same generic "email sent" response.
 #
 # These tests assert the exposed request path is enumeration-safe: an existing
@@ -36,7 +36,7 @@ RSpec.describe 'Reset-password-request enumeration safety (issue #3857)', type: 
 
   before(:all) do
     # Boot the full app so the REAL Auth::Config (with the enumeration override
-    # wired in via config/overrides/reset_password_enumeration.rb) is loaded and
+    # wired in via config/overrides/login_request_enumeration.rb) is loaded and
     # mounted at /auth. See pending_plan_intent_flow_spec.rb for why we must not
     # reopen Auth::Config as a plain module here.
     boot_onetime_app
@@ -91,8 +91,9 @@ RSpec.describe 'Reset-password-request enumeration safety (issue #3857)', type: 
   # app's name for the CSRF authenticity token (the Rack authenticity_param is
   # literally 'shrimp'; see lib/onetime/middleware/security.rb).
   #
+  # @param extra [Hash] more JSON body params (e.g. locale:)
   # @return [Rack::MockResponse] the last response
-  def request_password_reset(login)
+  def request_password_reset(login, **extra)
     clear_cookies
 
     header 'Content-Type', nil
@@ -104,13 +105,28 @@ RSpec.describe 'Reset-password-request enumeration safety (issue #3857)', type: 
     header 'Content-Type', 'application/json'
     header 'Accept', 'application/json'
     header 'X-CSRF-Token', token if token
-    post '/auth/reset-password-request', JSON.generate(login: login, shrimp: token)
+    post '/auth/reset-password-request', JSON.generate(extra.merge(login: login, shrimp: token))
     last_response
   end
 
+  # SEC-B01/SEC-B08: a JSON body sent raw, so it can carry a byte that is not
+  # valid UTF-8, declared ISO-8859-1 so Rack::UTF8Sanitizer leaves it alone.
+  # Auth::ParamEncoding answers it with one 400 before any account lookup.
+  def invalid_encoding_probe(path, login, field)
+    clear_cookies
+    csrf = fetch_csrf_token
+    clear_body_headers
+    header 'Content-Type', 'application/json; charset=iso-8859-1'
+    header 'Accept', 'application/json'
+    header 'X-CSRF-Token', csrf if csrf
+    body = %({"login":#{JSON.generate(login)},"shrimp":#{JSON.generate(csrf.to_s)},"#{field}":"\xFF"})
+    post path, body.b
+    [last_response.status, last_response.body]
+  end
+
   # Capture (status, parsed-body) for a probe so two probes can be compared.
-  def probe(login)
-    response = request_password_reset(login)
+  def probe(login, **extra)
+    response = request_password_reset(login, **extra)
     [response.status, JSON.parse(response.body)]
   end
 
@@ -205,6 +221,39 @@ RSpec.describe 'Reset-password-request enumeration safety (issue #3857)', type: 
       expect(throttled_body).to eq(missing_body)
       expect(throttled_body).not_to have_key('field-error')
       # ...and the throttle held: no additional reset email was dispatched.
+      expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email_raw)
+    end
+  end
+
+  # SEC-B01: the reset email's template translates with the requested locale,
+  # and I18n raises I18n::InvalidLocale for one the app has not loaded. Only an
+  # existing account builds that email, so an unsupported `locale` answered 500
+  # for an account and 200 for a missing login. The email helper now falls back
+  # to an available locale (config/email/helpers.rb).
+  describe 'unsupported locale param' do
+    it 'answers an existing and a non-existent login identically', :aggregate_failures do
+      existing = unique_test_email('locale-exists')
+      create_account(email: existing)
+
+      existing_status, existing_body = probe(existing, locale: 'zz')
+      missing_status,  missing_body  = probe(unique_test_email('locale-missing'), locale: 'zz')
+
+      expect(existing_status).to eq(200)
+      expect([existing_status, existing_body]).to eq([missing_status, missing_body])
+      expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email_raw)
+        .with(hash_including(to: contain_exactly(existing)), any_args).once
+    end
+  end
+
+  describe 'invalid-encoding param (SEC-B01)' do
+    it 'answers an existing and a non-existent login with the same 400', :aggregate_failures do
+      existing = unique_test_email('encoding-exists')
+      create_account(email: existing)
+
+      answer = invalid_encoding_probe('/auth/reset-password-request', existing, 'locale')
+
+      expect(answer.first).to eq(400)
+      expect(answer).to eq(invalid_encoding_probe('/auth/reset-password-request', unique_test_email('encoding-missing'), 'locale'))
       expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email_raw)
     end
   end

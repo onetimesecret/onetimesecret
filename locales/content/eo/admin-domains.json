@@ -215,10 +215,6 @@
     "text": "Organizo:",
     "source_hash": "5300e286"
   },
-  "web.admin.domains.actions.remove.reassertsSurvivor": {
-    "text": "Alia registro postulas la saman domajnonomojn kaj transprenos la serĉindekson.",
-    "source_hash": "902838f4"
-  },
   "web.admin.domains.actions.remove.confirmTitle": {
     "text": "Forigi domajnon?",
     "source_hash": "716dfac9"

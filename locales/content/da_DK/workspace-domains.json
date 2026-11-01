@@ -735,6 +735,14 @@
     "text": "Kunne ikke sende test-e-mail",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Der er sendt for mange test-e-mails for nylig. Prøv igen senere.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Der er sendt for mange test-e-mails for nylig. Prøv igen om cirka {minutes} minutter.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Sendt til {email}",
     "source_hash": "8ceb9588"
@@ -1658,5 +1666,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "Vi fandt ikke den forventede TXT-post. Kontrollér, at den findes, og at dens værdi stemmer nøjagtigt overens. Nye DNS-poster kan tage et par minutter om at blive synlige.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Kontrol af den gemte konfiguration bestået",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "Kontrol af den gemte konfiguration fandt et problem",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "Kontrol af den gemte konfiguration kunne ikke nå frem til et resultat",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Kunne ikke kontrollere den gemte konfiguration",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "Denne konfiguration er blevet kontrolleret for mange gange for nylig. Prøv igen senere.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "Denne konfiguration er blevet kontrolleret for mange gange for nylig. Prøv igen om cirka {minutes} minutter.",
+    "source_hash": "fdbdeaf6"
   }
 }

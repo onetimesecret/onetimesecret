@@ -279,21 +279,58 @@ describe('useDomainsManager', () => {
           newDomainData.display_domain, true,
         );
         expect(mockDomainContext.setContext).toHaveBeenCalledTimes(1);
+        // The snapshot is re-read before the selection: setContext only
+        // accepts a domain the snapshot offers.
+        expect(mockDomainContext.refreshDomains).toHaveBeenCalledTimes(1);
+        expect(mockDomainContext.refreshDomains.mock.invocationCallOrder[0]).toBeLessThan(
+          mockDomainContext.setContext.mock.invocationCallOrder[0]
+        );
       });
 
-      it('falls back to display_domain when domain_context not in response', async () => {
-        // Store's addDomain returns { record, details } without domain_context
+      it('waits for the snapshot to land before selecting and navigating', async () => {
+        let land!: (value: boolean) => void;
+        mockDomainContext.refreshDomains.mockReturnValueOnce(
+          new Promise<boolean>((resolve) => { land = resolve; })
+        );
         mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({
           record: newDomainData,
-          details: {},
+          details: { domain_context: newDomainData.display_domain },
         });
 
         const { handleAddDomain } = mountComposable(() => useDomainsManager());
-        await handleAddDomain(newDomainData.domainid);
+        const pending = handleAddDomain(newDomainData.domainid);
+        await Promise.resolve();
+        await Promise.resolve();
 
-        // Verify setContext was called with display_domain and without skipBackendSync
-        expect(mockDomainContext.setContext).toHaveBeenCalledWith(newDomainData.display_domain);
-        expect(mockDomainContext.setContext).toHaveBeenCalledTimes(1);
+        expect(mockDomainContext.refreshDomains).toHaveBeenCalledTimes(1);
+        expect(mockDomainContext.setContext).not.toHaveBeenCalled();
+        expect(mockDependencies.router.push).not.toHaveBeenCalled();
+
+        land(true);
+        await pending;
+
+        expect(mockDomainContext.setContext).toHaveBeenCalledWith(newDomainData.display_domain, true);
+        expect(mockDependencies.router.push).toHaveBeenCalledTimes(1);
+      });
+
+      // The server sets no context for a new domain that is not served yet
+      // (pending ownership verification): it would become the share_domain
+      // of the next secret, which secret creation refuses.
+      it('leaves the domain context alone when the server set none', async () => {
+        for (const details of [{}, { domain_context: null }]) {
+          mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({
+            record: newDomainData,
+            details,
+          });
+
+          const { handleAddDomain } = mountComposable(() => useDomainsManager());
+          await handleAddDomain(newDomainData.domainid);
+        }
+
+        expect(mockDomainContext.setContext).not.toHaveBeenCalled();
+        // The new record still has to reach the snapshot: the verification
+        // route resolves it by extid from there.
+        expect(mockDomainContext.refreshDomains).toHaveBeenCalledTimes(2);
       });
 
       it('does not switch domain context when domain addition fails', async () => {
@@ -394,6 +431,34 @@ describe('useDomainsManager', () => {
       }
     );
 
+    // `served` can change in either direction on a completed check, and the
+    // picker reads it from a snapshot. See useDomainContext.refreshDomains.
+    it.each([
+      ['validated', false],
+      ['failed', false],
+      ['indeterminate', true],
+    ])('%s: re-reads the domain context snapshot after the check', async (dns_outcome, dns_indeterminate) => {
+      await toastFor({ dns_outcome, dns_indeterminate });
+
+      expect(mockDomainContext.refreshDomains).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not re-read the snapshot when the check itself failed', async () => {
+      mockDependencies.domainsStore.verifyDomain.mockRejectedValueOnce(new Error('503'));
+      mockDependencies.errorHandler.wrap.mockImplementationOnce(async (fn) => {
+        try {
+          return await fn();
+        } catch {
+          return undefined;
+        }
+      });
+      const { verifyDomain } = mountComposable(() => useDomainsManager());
+
+      await verifyDomain('dm-test-extid');
+
+      expect(mockDomainContext.refreshDomains).not.toHaveBeenCalled();
+    });
+
     it('failed: the record was not found', async () => {
       const { show } = await toastFor({ dns_outcome: 'failed', dns_indeterminate: false });
 
@@ -430,6 +495,8 @@ describe('useDomainsManager', () => {
           'success',
           'top'
         );
+        // The picker drops the removed domain, and the selection if it was it.
+        expect(mockDomainContext.refreshDomains).toHaveBeenCalledTimes(1);
       });
 
       it.skip('aborts deletion when confirmation is cancelled', async () => {

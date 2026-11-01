@@ -13,7 +13,11 @@
    * shows (identity + secrets already redacted server-side — only `has_*`
    * presence flags ever reach the client), which render monospace, and how raw
    * values format (booleans → yes/no, epoch seconds → local datetime,
-   * recipient objects → email list, empty → the shared "none").
+   * recipient objects → email list, empty → the shared "none"). One field has
+   * its own vocabulary: a blank `token_endpoint_auth_method` on an oidc record
+   * is the gem default, so it reads "Automatic" (the same word the workspace
+   * form uses), and the row is dropped for any other provider type, where the
+   * field does not apply (the model refuses a value there).
    *
    * Presentational only; the parent decides WHEN to render it (record present
    * AND the row expanded).
@@ -45,10 +49,19 @@
       'autoverify',
       'validation_strategy',
       'allowed_signup_domains',
+      'allow_base_domain',
       'created',
       'updated',
     ],
-    homepage: ['enabled', 'secrets_mode', 'disabled_homepage_variant', 'created', 'updated'],
+    homepage: [
+      'enabled',
+      'secrets_mode',
+      'disabled_homepage_variant',
+      'allowed_cidrs',
+      'denied_cidrs',
+      'created',
+      'updated',
+    ],
     api: ['enabled', 'created', 'updated'],
     incoming: ['enabled', 'ready', 'recipients', 'created', 'updated'],
     sso: [
@@ -56,6 +69,7 @@
       'provider_type',
       'display_name',
       'issuer',
+      'token_endpoint_auth_method',
       'tenant_id',
       'has_client_id',
       'has_client_secret',
@@ -89,9 +103,12 @@
     'related_origins',
     'secrets_mode',
     'disabled_homepage_variant',
+    'allowed_cidrs',
+    'denied_cidrs',
     'recipients',
     'provider_type',
     'issuer',
+    'token_endpoint_auth_method',
     'tenant_id',
     'allowed_domains',
     'provider',
@@ -108,9 +125,21 @@
     mono: boolean;
   }
 
+  /**
+   * Whether a kind's field applies to this particular record. Only the OIDC
+   * token endpoint auth method is conditional: it is meaningless on an
+   * entra_id or saml record.
+   */
+  function fieldApplies(name: string): boolean {
+    if (name !== 'token_endpoint_auth_method') return true;
+    return props.config.provider_type === 'oidc';
+  }
+
   function formatFieldValue(name: string, value: unknown): string {
     if (value === null || value === undefined || value === '') {
-      return t('web.admin.domains.detail.none');
+      return name === 'token_endpoint_auth_method'
+        ? t('web.admin.domains.configs.values.token_endpoint_auth_method_automatic')
+        : t('web.admin.domains.detail.none');
     }
     if (typeof value === 'boolean') {
       return value ? t('web.admin.domains.detail.yes') : t('web.admin.domains.detail.no');
@@ -131,7 +160,7 @@
   }
 
   const fields = computed<FieldRow[]>(() =>
-    DISPLAY_FIELDS[props.kind].map((name) => ({
+    DISPLAY_FIELDS[props.kind].filter(fieldApplies).map((name) => ({
       key: name,
       label: t(`web.admin.domains.configs.fields.${name}`),
       value: formatFieldValue(name, props.config[name]),

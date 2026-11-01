@@ -372,6 +372,35 @@ describe('UserMenu', () => {
       expect(html).toContain('logout');
     });
 
+    // The admin console is a separate bundle on the same origin: a full-page
+    // navigation in place, not a new tab.
+    it('opens the admin console in the same window', async () => {
+      wrapper = mountComponent({ colonel: true });
+
+      await wrapper.find('button[aria-haspopup="true"]').trigger('click');
+      await nextTick();
+
+      const link = wrapper.find('[data-testid="user-menu-link-colonel"]');
+      expect(link.exists()).toBe(true);
+      expect(link.element.tagName).toBe('A');
+      expect(link.attributes('href')).toBe('/colonel');
+      expect(link.attributes('target')).toBeUndefined();
+      expect(link.attributes('rel')).toBeUndefined();
+      expect(link.find('[name="arrow-top-right-on-square"]').exists()).toBe(false);
+    });
+
+    it('keeps the help docs link opening in a new tab', async () => {
+      wrapper = mountComponent({ colonel: true });
+
+      await wrapper.find('button[aria-haspopup="true"]').trigger('click');
+      await nextTick();
+
+      const link = wrapper.find('[data-testid="user-menu-link-help"]');
+      expect(link.exists()).toBe(true);
+      expect(link.attributes('target')).toBe('_blank');
+      expect(link.attributes('rel')).toBe('noopener noreferrer');
+    });
+
     it('shows billing item when billing is enabled (owner)', async () => {
       mockCurrentOrganizationRef.value = { current_user_role: 'owner' };
       wrapper = mountComponent({ colonel: true }, { billing_enabled: true });

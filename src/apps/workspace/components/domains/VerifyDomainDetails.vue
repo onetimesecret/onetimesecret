@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import { loggingService } from '@/services/logging.service';
 import { useDomainDnsRecord } from '@/shared/composables/useDomainDnsRecord';
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import { domainVerifyNotice, type DomainVerifyNotice } from '@/shared/utils/domainVerifyNotice';
@@ -12,6 +13,7 @@ import { computed, ref } from 'vue';
 
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import DetailField from '@/shared/components/ui/DetailField.vue';
+import { txtRecordName } from '@/shared/utils/txtRecordName';
 
 interface Props {
   domain: CustomDomain;
@@ -36,10 +38,15 @@ const { t } = useI18n();
 // Step 2: the address record. The TXT record in step 1 is the same under every
 // strategy that checks ownership; where the domain points is not (Approximated's
 // proxy, or this install's own host). See useDomainDnsRecord.
-const { kind, recordType, recordHost, recordHostAppendix, recordTarget } = useDomainDnsRecord(
-  () => props.domain,
-  () => props.cluster
-);
+const { kind, recordType, recordHost, recordHostAppendix, recordDisplayName, recordTarget } =
+  useDomainDnsRecord(
+    () => props.domain,
+    () => props.cluster
+  );
+
+// Step 1: the TXT record name in A-label form, the name the server queries,
+// as a host relative to the zone. See txtRecordName.
+const txtRecord = computed(() => txtRecordName(props.domain));
 
 const addressRecordHeading = computed(() => {
   if (kind.value === 'a') return t('web.domains.2_create_the_a_record');
@@ -62,7 +69,7 @@ const isButtonDisabled = computed(() => isLoading.value || buttonDisabledDelay.v
 const buttonText = computed(() => isLoading.value ? t('web.COMMON.processing') : t('web.domains.verify_domain'));
 
 const verify = async () => {
-  console.info('Refreshing DNS verification details...');
+  loggingService.info('Refreshing DNS verification details...');
 
   try {
     const result = await verifyDomain(props.domain.extid);
@@ -154,12 +161,30 @@ const verify = async () => {
             value="TXT" />
           <DetailField
             :label="t('web.COMMON.host')"
-            :value="domain.txt_validation_host"
-            :appendix="`.${domain.base_domain}`" />
+            :value="txtRecord.host"
+            :appendix="txtRecord.zone" />
           <DetailField
             :label="t('web.COMMON.value')"
             :value="domain.txt_validation_value" />
         </div>
+        <!-- An internationalised name: the spelling some DNS providers list it under. -->
+        <p
+          v-if="txtRecord.displayName"
+          data-testid="txt-record-display-name"
+          class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+          {{ t('web.domains.dns.display_name_hint') }}
+          <span
+            class="block font-mono break-all text-gray-800 dark:text-gray-100"
+            translate="no">
+            {{ txtRecord.displayName }}
+          </span>
+        </p>
+        <!-- A later check that does not find the record stops serving the domain. -->
+        <p
+          data-testid="txt-record-keep"
+          class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+          {{ t('web.domains.dns.keep_txt_record') }}
+        </p>
       </li>
       <li
         data-testid="verify-address-record"
@@ -180,6 +205,18 @@ const verify = async () => {
             :label="t('web.COMMON.value')"
             :value="recordTarget" />
         </div>
+        <!-- An internationalised name: the spelling some DNS providers list it under. -->
+        <p
+          v-if="recordDisplayName"
+          data-testid="address-record-display-name"
+          class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+          {{ t('web.domains.dns.display_name_hint') }}
+          <span
+            class="block font-mono break-all text-gray-800 dark:text-gray-100"
+            translate="no">
+            {{ recordDisplayName }}
+          </span>
+        </p>
 
         <!-- Apex domains cannot use a CNAME at the zone root. -->
         <p

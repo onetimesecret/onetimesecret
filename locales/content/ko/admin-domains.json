@@ -215,10 +215,6 @@
     "text": "조직:",
     "source_hash": "5300e286"
   },
-  "web.admin.domains.actions.remove.reassertsSurvivor": {
-    "text": "다른 레코드가 동일한 도메인 이름을 주장하며 조회 인덱스를 대신합니다.",
-    "source_hash": "902838f4"
-  },
   "web.admin.domains.actions.remove.confirmTitle": {
     "text": "도메인을 제거하시겠습니까?",
     "source_hash": "716dfac9"

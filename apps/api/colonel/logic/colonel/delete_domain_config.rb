@@ -69,6 +69,14 @@ module ColonelAPI
           OT.info "[DeleteDomainConfig] #{custom_domain.display_domain} kind=#{kind} deleted"
 
           success_data
+        rescue Familia::OptimisticLockError
+          # The record kept changing under the delete (GuardedConfigWrites);
+          # nothing was deleted.
+          raise_form_error(
+            'The configuration was changed while it was being deleted. Reload it and try again.',
+            field: :kind,
+            error_type: :conflict,
+          )
         end
 
         def success_data

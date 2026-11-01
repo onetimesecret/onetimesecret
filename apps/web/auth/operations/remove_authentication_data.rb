@@ -43,11 +43,21 @@
 #   - account_sms_codes (SMS MFA)
 #   - account_previous_password_hashes (password history)
 #   - account_identities (SSO identities)
-#   - accounts (main account record, unless retained closed)
+#   - accounts (main account record; see the two modes below)
 #
-# Note: account_authentication_audit_logs are deleted along with the account
-# since they have a foreign key constraint. For compliance requirements,
-# consider exporting audit logs before account deletion.
+# Two modes (#4819):
+#   - retain_account: false (administrative purge, the simple-mode delete
+#     endpoint, orphan sweeps): every dependent row, the audit log included,
+#     and the accounts row itself are deleted here.
+#   - retain_account: true (Rodauth's after_close_account hook only): the
+#     audit log and the accounts row are left in place and the row is set to
+#     CLOSED, because Rodauth's audit_logging feature inserts the "Account
+#     closed" row after the hook returns. Rodauth's delete_account, overridden
+#     in config/hooks/account.rb, then removes the audit log and the row as
+#     the last statements of the same transaction (delete_dependent_rows).
+#
+# Nothing of the account survives either path, the audit history included.
+# Export audit logs before deletion if a compliance requirement needs them.
 #
 # Additionally, this operation deletes all Redis sessions associated with
 # the customer's external ID to ensure complete session cleanup.
@@ -71,6 +81,10 @@ module Auth
     class RemoveAuthenticationData
       # Tables with foreign keys referencing accounts.id
       # Order matters: delete from dependent tables first
+      #
+      # spec/integration/full/remove_authentication_data_dependent_tables_spec.rb
+      # derives the same list from the migrated schema, so a new table with a
+      # foreign key to accounts fails there until it is added here.
       DEPENDENT_TABLES = [
         :account_authentication_audit_logs,
         :account_password_hashes,
@@ -96,6 +110,67 @@ module Auth
         :account_identities,
       ].freeze
 
+      # Tables whose foreign key to accounts.id is the :account_id column.
+      # Every other table in DEPENDENT_TABLES keys on its own :id.
+      ACCOUNT_ID_KEYED_TABLES = [
+        :account_jwt_refresh_keys,
+        :account_active_session_keys,
+        :account_webauthn_keys,
+        :account_previous_password_hashes,
+        :account_authentication_audit_logs,
+        :account_identities,
+      ].freeze
+
+      # @param table [Symbol] a DEPENDENT_TABLES entry
+      # @return [Symbol] the column that references accounts.id
+      def self.fk_column_for(table)
+        ACCOUNT_ID_KEYED_TABLES.include?(table) ? :account_id : :id
+      end
+
+      # Deletes every row that references one account, in foreign-key order.
+      # Shared by #call and by Rodauth's delete_account override
+      # (config/hooks/account.rb), which runs it last in the close_account
+      # transaction. Runs on the caller's connection and transaction, which
+      # the caller must have opened: the lock below lives exactly as long as
+      # that transaction.
+      #
+      # The accounts row is locked first (SELECT ... FOR UPDATE; SQLite
+      # ignores the clause, its writers serialize anyway). On PostgreSQL an
+      # insert into a referencing table takes a KEY SHARE lock on the parent
+      # row, which the status update close_account made earlier does not
+      # block, so a request still in flight for the account (a login writing
+      # its audit row) could otherwise commit a child row between these
+      # deletes and the deletion of the row itself and fail that deletion's
+      # foreign-key check, rolling the closure back after the Redis customer
+      # is already gone. Held to the commit, the lock makes such an insert
+      # wait and then fail on the missing parent instead.
+      #
+      # @param db [Sequel::Database]
+      # @param account_id [Integer]
+      # @param except [Array<Symbol>] DEPENDENT_TABLES entries to leave alone
+      # @return [Hash{Symbol=>Integer}] rows deleted per table (non-zero only)
+      def self.delete_dependent_rows(db, account_id, except: [])
+        db[:accounts].where(id: account_id).for_update.get(:id)
+
+        existing_dependent_tables(db, except: except).each_with_object({}) do |table, deleted|
+          count          = db[table].where(fk_column_for(table) => account_id).delete
+          deleted[table] = count if count.positive?
+        end
+      end
+
+      # The DEPENDENT_TABLES present in this database, from one catalog read.
+      # (Sequel's table_exists? probes one table per call, each inside a
+      # savepoint when a transaction is open; 22 of those per closure was the
+      # cost of checking table by table.)
+      #
+      # @param db [Sequel::Database]
+      # @param except [Array<Symbol>] DEPENDENT_TABLES entries to leave out
+      # @return [Array<Symbol>] in DEPENDENT_TABLES order
+      def self.existing_dependent_tables(db, except: [])
+        present = db.tables
+        (DEPENDENT_TABLES - except).select { |table| present.include?(table) }
+      end
+
       # @param extid [String] The customer's external ID
       # @param db [Sequel::Database] Optional database connection (for testing)
       # @param allow_missing [Boolean] Treat an already-absent account as success.
@@ -104,10 +179,12 @@ module Auth
       # @param revoke_sessions [Boolean] Run the legacy standalone session sweep.
       #   Unified account deletion supplies false because its session operation
       #   has already completed.
-      # @param retain_account [Boolean] Retain the Rodauth identity as a closed
-      #   status-3 row and preserve its authentication audit history while removing
-      #   credentials and related auth data. Unified deletion uses this mode so it
-      #   can run safely from Rodauth's after_close_account transaction.
+      # @param retain_account [Boolean] Leave the accounts row (set to CLOSED)
+      #   and its authentication audit log in place while removing credentials
+      #   and related auth data. For Rodauth's after_close_account hook only:
+      #   Rodauth still inserts the "Account closed" audit row after the hook,
+      #   then its delete_account override removes the audit log and the row
+      #   (#4819). Every other caller deletes the row and its audit log here.
       def initialize(extid:, db: nil, allow_missing: false, revoke_sessions: true,
                      retain_account: false)
         @extid           = extid
@@ -171,23 +248,12 @@ module Auth
       # @param account_id [Integer] The account's primary key
       def delete_account_data(account_id)
         @db.transaction do
-          # Closed rows retain their authentication audit history. Hard deletion
-          # must remove it first to satisfy its foreign key.
-          tables = if @retain_account
-                     DEPENDENT_TABLES - [:account_authentication_audit_logs]
-                   else
-                     DEPENDENT_TABLES
-                   end
-          tables.each do |table|
-            next unless @db.table_exists?(table)
-
-            # Most tables use :id as FK, but some use :account_id
-            fk_column = table_uses_account_id?(table) ? :account_id : :id
-
-            deleted = @db[table].where(fk_column => account_id).delete
-            if deleted > 0
-              OT.ld "[close-account] Deleted #{deleted} row(s) from #{table}"
-            end
+          # In retain mode the audit log stays for Rodauth's delete_account to
+          # remove together with the row; see the class comment.
+          except  = @retain_account ? [:account_authentication_audit_logs] : []
+          deleted = self.class.delete_dependent_rows(@db, account_id, except: except)
+          deleted.each do |table, count|
+            OT.ld "[close-account] Deleted #{count} row(s) from #{table}"
           end
 
           if @retain_account
@@ -197,20 +263,6 @@ module Auth
             @db[:accounts].where(id: account_id).delete
           end
         end
-      end
-
-      # Some tables use :account_id instead of :id as the foreign key
-      # @param table [Symbol] The table name
-      # @return [Boolean] true if table uses :account_id
-      def table_uses_account_id?(table)
-        [
-          :account_jwt_refresh_keys,
-          :account_active_session_keys,
-          :account_webauthn_keys,
-          :account_previous_password_hashes,
-          :account_authentication_audit_logs,
-          :account_identities,
-        ].include?(table)
       end
 
       # Deletes all Redis sessions associated with the given external_id, and

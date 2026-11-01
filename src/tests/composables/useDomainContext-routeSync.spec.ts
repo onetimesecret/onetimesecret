@@ -68,6 +68,7 @@ function buildPermissionsResponse(
         domains: domains.map((d) => ({
           display_domain: d,
           extid: `cd_${d.replace(/\./g, '_')}`,
+          served: true,
           permissions: {
             can_view: true,
             can_edit: true,

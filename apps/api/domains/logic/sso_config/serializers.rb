@@ -29,6 +29,11 @@ module DomainsAPI
         # it is [] for a healthy record. It covers client_id / client_secret
         # too, which previously failed to null with only a log line.
         #
+        # idp_metadata_url (the SAML IdP metadata URL the trio was imported
+        # from) is served the same way: plaintext, an encrypted_field for
+        # integrity, named in `unreadable_fields` when it will not decrypt.
+        # null when unset (always, for a non-saml record).
+        #
         # sp_entity_id / acs_url are read-only values for the admin to paste
         # into their IdP; null for non-saml records. See #saml_sp_identifiers.
         #
@@ -60,9 +65,11 @@ module DomainsAPI
             client_secret_masked: mask_secret(config.client_secret, unreadable),
             tenant_id: config.tenant_id,
             issuer: config.issuer,
+            token_endpoint_auth_method: token_endpoint_auth_method_or_nil(config),
             idp_sso_service_url: reveal.call(:idp_sso_service_url),
             idp_entity_id: reveal.call(:idp_entity_id),
             idp_cert: reveal.call(:idp_cert),
+            idp_metadata_url: reveal.call(:idp_metadata_url).then { it.to_s.empty? ? nil : it },
             name_id_format: serialize_saml_policy(config, :name_id_format, unreadable) { config.saml_name_id_format },
             callback_origins: serialize_saml_policy(config, :callback_origins, unreadable) { config.callback_origins },
             sp_entity_id: sp[:sp_entity_id],
@@ -75,6 +82,7 @@ module DomainsAPI
             unverified_allowed_domains: proof[:unverified_allowed_domains],
             requires_domain_filter: config.requires_domain_filter?,
             idp_controls_access: config.idp_controls_access?,
+            last_sign_in: serialize_last_sign_in(config),
             created_at: config.created.to_i,
             updated_at: config.updated.to_i,
           }
@@ -115,6 +123,26 @@ module DomainsAPI
           OT.lw '[SsoConfig::Serializers] Could not derive email domain proof for domain ' \
                 "#{config.domain_id}: #{ex.class.name}"
           { verified_email_domains: [], unverified_allowed_domains: [] }
+        end
+
+        # The last tenant sign-in outcome recorded for the domain
+        # (CustomDomain::SsoSigninOutcome#to_api_h): result, when, and for a
+        # failure the stage and bounded code. nil when none is recorded or
+        # the record cannot be read. Runtime state the hooks write, never part
+        # of the configuration, so a save never changes it and a read never
+        # writes it.
+        def serialize_last_sign_in(config)
+          Onetime::CustomDomain::SsoSigninOutcome.find_by_domain_id(config.domain_id, config: config)&.to_api_h
+        rescue StandardError => ex
+          OT.le "[SsoConfig::Serializers] last_sign_in unreadable for domain #{config.domain_id.to_s[0, 12]}: #{ex.class.name}"
+          nil
+        end
+
+        # nil when unset or blank: the frontend contract is "nil = gem
+        # default", never ''.
+        def token_endpoint_auth_method_or_nil(config)
+          value = config.token_endpoint_auth_method.to_s.strip
+          value.empty? ? nil : value
         end
 
         def serialize_saml_policy(config, field, unreadable)

@@ -198,7 +198,9 @@ module Onetime
   # SignupConfig.resolve_lookup_failure, which carves out positively-classified
   # operator hosts via the same SigninConfig.operator_host? predicate the
   # sign-in path uses, so the two gates cannot disagree about which hosts
-  # survive a datastore blip.
+  # survive a datastore blip. The one other raiser,
+  # SignupConfig#validate_domain_allowlist, has no host to carve out: it runs
+  # only after the host's own config was read.
   class SignupPolicyUnavailable < AuthPolicyUnavailable
     DEFAULT_MESSAGE = 'Sign-up is temporarily unavailable. Please try again shortly.'
   end
@@ -305,6 +307,37 @@ module Onetime
       {
         error: message,
         error_type: 'AccountProvisioningUnavailable',
+        reason: reason,
+        retry_after: RETRY_AFTER,
+      }
+    end
+  end
+
+  # A write that could not complete this request for a reason the caller
+  # did not cause and that a retry can clear: the datastore could not be
+  # reached, or a concurrent write won an optimistic lock. Not bad input,
+  # so not a 422, and not a server fault to page on, so not a 500: a 503
+  # with Retry-After. Registered in lib/onetime/application/otto_hooks.rb
+  # (Problem itself has no handler); the body's retry_after becomes the
+  # Retry-After header (Middleware::RetryAfterHeader).
+  #
+  # `reason` is a bounded code for logs and alerting (:datastore,
+  # :concurrent_write).
+  class TemporarilyUnavailable < Problem
+    DEFAULT_MESSAGE = 'This could not be completed right now. Please try again shortly.'
+    RETRY_AFTER     = 5
+
+    attr_reader :reason
+
+    def initialize(message = DEFAULT_MESSAGE, reason:)
+      super(message)
+      @reason = reason.to_sym
+    end
+
+    def to_h
+      {
+        error: message,
+        error_type: 'TemporarilyUnavailable',
         reason: reason,
         retry_after: RETRY_AFTER,
       }
@@ -583,6 +616,57 @@ module Onetime
         error_type: 'ElevationFailed',
         error_code: ERROR_CODE,
         factor: factor,
+        error_key: error_key,
+      }.compact
+    end
+  end
+
+  # Raised when the colonel's password re-authentication for a lapsed admin
+  # session window fails (POST /api/colonel/reauthenticate, see
+  # ColonelAPI::Logic::Colonel::ReauthenticateSession): a wrong password, or
+  # a verified password whose session id could not be renewed. The sibling of
+  # {ElevationFailed}; a separate code because the console answers it
+  # differently (the expired-session banner, not the step-up prompt).
+  class ReauthenticationFailed < Forbidden
+    ERROR_CODE = 'reauthentication_failed'
+
+    def initialize(message = 'Password verification failed.', error_key: nil, args: {})
+      super
+    end
+
+    def to_h
+      {
+        error: message,
+        error_type: 'ReauthenticationFailed',
+        error_code: ERROR_CODE,
+        error_key: error_key,
+      }.compact
+    end
+  end
+
+  # Raised when password re-authentication for a lapsed admin session window
+  # is not offered to this account: in full auth mode, an account with a
+  # second factor enrolled, or one whose second-factor state could not be
+  # read (see ColonelAPI::Logic::Colonel::ReauthenticateSession). The
+  # password alone does not restore the window; the operator signs in again,
+  # which asks for the second factor. Separate from {ReauthenticationFailed}
+  # because re-entering the password cannot change the answer.
+  class ReauthenticationUnavailable < Forbidden
+    ERROR_CODE = 'reauthentication_unavailable'
+
+    def initialize(
+      message = 'This account uses two-factor authentication. Sign in again to restore admin access.',
+      error_key: nil,
+      args: {}
+    )
+      super
+    end
+
+    def to_h
+      {
+        error: message,
+        error_type: 'ReauthenticationUnavailable',
+        error_code: ERROR_CODE,
         error_key: error_key,
       }.compact
     end

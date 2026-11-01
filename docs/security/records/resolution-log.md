@@ -151,3 +151,113 @@ the original evidence; each entry here identifies the fix and the baseline used 
 - **Verification:** lockfile inspection only, on `main` and `develop`. The installed gem was not
   loaded and no test lane was run; the change is a version pin.
 - **Closure baseline:** `7d324f41d` (`main`) on 2026-10-07; first release `v0.26.14`.
+
+## 2026-10-11
+
+### RISK-2026-08-14-M02 — Resolved
+
+- **Finding:** Magic links kept the Rodauth 24-hour column-default deadline on PostgreSQL and
+  SQLite instead of the configured 15 minutes, because Rodauth writes key deadlines only when
+  `set_deadline_values?` is true (MySQL by default).
+- **Source:** [2026-08-14 historical risk register](../risk-registers/risk-register-2026-08-14.md), M-2.
+  Tracking: #4689.
+- **Resolution:** #4703 (`d69d7c80` on `main`). `email_auth_key_insert_hash`
+  (`apps/web/auth/config/features/email_auth.rb`) writes the deadline as
+  `Sequel.date_add(CURRENT_TIMESTAMP, minutes: 15)`; `set_deadline_values?` stays off, so reset
+  and lockout keys are unchanged. A resend inside the window reuses the existing key and does not
+  extend its deadline.
+- **Verification:** CI on the PR head `ef7f16ca` passed, including `T2 · Ruby Unit Tests`, which
+  runs the SQLite examples (`apps/web/auth/spec/config/features/email_auth_deadline_spec.rb`), and
+  `T3 · Ruby Auth Configuration (PG agnostic, billing: off)`, the lane named in the run line of the
+  PostgreSQL copy (`apps/web/auth/spec/integration/full/email_auth_deadline_on_postgres_spec.rb`,
+  shared examples in `apps/web/auth/spec/support/shared_examples/email_auth_deadline_examples.rb`).
+  The examples pin issue time + 15 minutes, refusal after 15 minutes, and a resend that keeps the
+  original key and deadline. The override and both specs are present at the closure baseline. No
+  lane was re-run for this entry.
+- **Closure baseline:** `c27d903e` (`main`) on 2026-10-11.
+
+### RISK-2026-10-10-03 — Resolved
+
+- **Finding:** Tenant SSO allowlist entries and asserted addresses were compared byte for byte, so
+  the Unicode and A-label forms of one IDN domain denied each other (fail-closed: lost sign-ins).
+- **Source:** [2026-10-10 G3 review](../audits/security-audit-2026-10-10.md) S7, probe P5.
+  Tracking: #4736.
+- **Resolution:** #4751 (`2fe5207f` on `main`), action R4. `SsoConfig#matching_allowed_domain`
+  (`lib/onetime/models/custom_domain/sso_config.rb`) tries an exact match first, then compares by
+  `AsciiHostname.comparison_key` (`lib/onetime/domain_validation/ascii_hostname.rb`), which
+  accepts a Unicode name's A-label only when it decodes back to the name's own NFC lower-case
+  spelling. A sign-in admitted only because the forms differed logs
+  `omniauth_tenant_domain_idn_match` with `reason: :idn_form_differed`. Entries stay stored as
+  typed.
+- **Verification:** CI on the PR head `9d6c819c` passed, including `T2 · Ruby Unit Tests` and
+  `T3 · Ruby Integration (Full, SQLite, billing: off)`, which carry
+  `spec/unit/onetime/domain_validation/ascii_hostname_spec.rb`,
+  `apps/web/auth/spec/unit/domain_sso_config_spec.rb` and
+  `apps/web/auth/spec/integration/full/callback_validation_spec.rb`. No lane was re-run for this
+  entry.
+- **Residual:** `SignupConfig#allowed_signup_domains` and the global `allowed_signup_domains`
+  still compare byte for byte on the account-creation path; #4751 left them out of scope.
+- **Closure baseline:** `c27d903e` (`main`) on 2026-10-11.
+
+## 2026-10-30
+
+The two entries below use code baseline `f42fdedc54afcb5973460358c65e3aef363dd5cd`
+on `main` and [CI run 41167690970](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970).
+The run reports `success` for `ci-verdict` and each validation lane linked below.
+No test lane was re-run locally for these documentation changes.
+
+### RISK-2026-08-14-COOKIE-TOSSING — Resolved
+
+- **Finding:** Duplicate session cookies were not refused, and simple-mode password sign-in
+  reused the session ID presented before authentication.
+- **Source:** [2026-08-14 historical risk register](../risk-registers/risk-register-2026-08-14.md).
+- **Resolution:** `d5e80277cc` mounts `Onetime::Middleware::CookieTossing` before
+  `Onetime::Session`, so a duplicate-cookie refusal loads no session and returns only cookie
+  clears. The middleware checks the configured cookie name, clears host and parent-domain
+  copies, and keeps its refusal state per request.
+  `59a40e1e08` changes simple-mode password sign-in: `AuthenticateSession#start_new_session!`
+  clears the session, calls `Onetime::SessionRotation.rotate!` before writing identity, and
+  refuses sign-in when rotation does not complete. Both changes are present at the baseline.
+- **Verification:** The [unit job](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970/job/124439029352)
+  includes `spec/unit/onetime/middleware/cookie_tossing_spec.rb` and the middleware manifest
+  assertions. The [simple-mode job](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970/job/124439029421)
+  includes `spec/integration/simple/login_session_rotation_spec.rb`: verified and pending
+  accounts get a new ID, the old cookie is refused, prior session state is removed, and an
+  incomplete rotation grants no authenticated session. The [full SQLite job](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970/job/124439029430)
+  includes `spec/integration/full/customer_session_continuation_baseline_spec.rb`, which checks
+  duplicate cookies in both orders and a refusal containing clears only.
+- **Deployment conditions:** `site.middleware.cookie_tossing` defaults on, but an operator can
+  disable the middleware. Cookie-clear recovery uses the public host resolved by
+  `Rack::DetectHost`; `clear_host` falls back to Rack's host only when no host was detected.
+  If detection supplies no public host and a proxy rewrites `Host` to its origin target,
+  the clears target that origin instead of the browser's cookies, so the duplicate remains.
+- **Closure baseline:** `f42fdedc54afcb5973460358c65e3aef363dd5cd` (`main`) on 2026-10-30.
+
+### RISK-2026-09-19-02 — Resolved
+
+- **Finding:** MFA completion kept the ID issued at the password step; the wider review also
+  identified re-authentication proof and first second-factor setup without renewal, and missing
+  rotation assertions for other sign-in paths.
+- **Source:** [2026-09-19 session-consistency review](../audits/security-audit-2026-09-19.md), finding 2.
+- **Resolution:** `64b2c23f23` adds MFA-completion rotation; `0e812e2279` refuses completion when
+  the old ID cannot be ended. `01fccc49dc`, `645e149610` and `54e32e56c3` add rotation before
+  colonel elevation, re-authentication proof and first second-factor setup respectively.
+  `4b406aac63` and `ce47edc1a9` add assertions for the remaining sign-in paths.
+  The implementation and per-path inventory in `lib/onetime/session/rotation.rb` are present
+  at the baseline. Impersonation start/stop intentionally keep the same ID; `61f4e7f639` adds
+  the corresponding real-route assertions. Organization switching changes the active
+  organization rather than the authenticated identity.
+- **Verification:** The [MFA job](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970/job/124439029406)
+  includes MFA completion, factor setup, re-authentication, magic-link and passkey rotation
+  specs. The full SQLite job linked above includes OIDC callbacks, verification and invite
+  autologin, SSO linking/Connect, impersonation and full-mode elevation/password-change specs;
+  the simple-mode job includes simple-mode elevation/password-change specs.
+  The [platform-SAML job](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970/job/124439029355)
+  includes platform callback rotation assertions. The [full PostgreSQL job](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970/job/124439029414)
+  also passed at this baseline. All five jobs report `success`.
+- **Separate open follow-ups:** [#4706](https://github.com/onetimesecret/onetimesecret/issues/4706)
+  tracks existing sessions receiving a role grant without a new sign-in;
+  [#4707](https://github.com/onetimesecret/onetimesecret/issues/4707) tracks user-menu sign-out
+  being refused during impersonation. Both issues remain open. This closure neither resolves
+  those behaviors nor records an acceptance decision for them.
+- **Closure baseline:** `f42fdedc54afcb5973460358c65e3aef363dd5cd` (`main`) on 2026-10-30.

@@ -40,7 +40,7 @@ Consequences in the field:
   account. Both states are only repairable by hand.
 
 The design that resolves this is written up in
-`docs/specs/sso-email-less-accounts/account-model-design.md`. This record
+`docs/specs/sso/email-less-accounts-account-model.md`. This record
 captures the decision it depends on.
 
 ## Decision
@@ -106,8 +106,8 @@ reservation part of the INSERT is what turns cross-store provisioning from
 
 ## Related
 
-- `docs/specs/sso-email-less-accounts/account-model-design.md` (design, checklist, acceptance evidence)
-- `docs/planning/2026-1009-sso-email-less-accounts.md` (Phase 2 proposal)
+- `docs/specs/sso/email-less-accounts-account-model.md` (design, checklist, acceptance evidence)
+- `docs/specs/sso/email-less-accounts-proposal.md` (Phase 2 proposal)
 - `docs/security/audits/security-audit-2026-10-10.md`; tracking issues #4734, #4735, #4736
 - ADR-016 (domain ownership axis), ADR-048 (evidence basis for security decisions)
 - Rodauth alternative-login guide: https://rodauth.jeremyevans.net/rdoc/files/doc/guides/alternative_login_rdoc.html

@@ -92,6 +92,7 @@ import {
   type DiagnosticsRefBlock,
 } from '@/schemas/contracts/bootstrap';
 import { getBootstrapValue } from '@/services/bootstrap.service';
+import { loggingService } from '@/services/logging.service';
 import type { Scope } from '@sentry/browser';
 
 /**
@@ -142,7 +143,7 @@ export function parseDiagnosticsRefBlock(raw: unknown): DiagnosticsRefBlock | nu
     // Intentionally does not log the offending value: the whole reason this
     // path exists is that the value may contain something we must not
     // propagate, and console output is itself captured as a breadcrumb.
-    console.debug('[actorContext] diagnostics_ref block rejected by strict contract');
+    loggingService.debug('[actorContext] diagnostics_ref block rejected by strict contract');
     return null;
   }
   return result.data;

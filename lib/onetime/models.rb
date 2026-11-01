@@ -31,6 +31,7 @@ require_relative 'models/custom_domain/mailer_config'
 require_relative 'models/custom_domain/signin_config'
 require_relative 'models/custom_domain/signup_config'
 require_relative 'models/custom_domain/sso_config'
+require_relative 'models/custom_domain/sso_signin_outcome'
 
 # Catalog of the seven per-domain config kinds (colonel config endpoints).
 # Requires the config models above, so it loads after them.

@@ -13,9 +13,17 @@ module Auth::Config::Features
 
       configure_create_account_response(auth)
 
-      # Only configure verify_account if the feature is enabled
-      # (disabled in test mode via YAML config: RACK_ENV != 'test')
-      if Onetime.auth_config.verify_account_enabled?
+      # Enabled whenever this deployment verifies new accounts
+      # (Onetime.auth_config.verify_account_loaded?): by the verify_account
+      # flag, or because webauthn_verify_account depends on it. That
+      # sub-feature is enabled later, in features/webauthn.rb, so enabling
+      # verify_account here as well, in the module that owns the account
+      # lifecycle, means the feature exists before the verification email
+      # template (config/email.rb) and the after_verify_account hook
+      # (config/hooks/account.rb) are configured, and the settings below
+      # apply to the passkey signup ceremony too. Off under RACK_ENV=test via
+      # the YAML config unless a lane turns it on.
+      if Onetime.auth_config.verify_account_loaded?
         auth.enable :verify_account
 
         # Password is set during account creation, not during verification
@@ -64,7 +72,7 @@ module Auth::Config::Features
           # Use Rodauth's `param` rather than `request.params['invite_token']` so
           # this works under internal_request too (internal_request only populates
           # rodauth.params, not the Rack request body).
-          invite_token = param_or_nil('invite_token').to_s.strip
+          invite_token = Auth::Config::Features::AccountManagement.invite_token_param(param_or_nil('invite_token'))
           if invite_token.empty?
             super()
           else
@@ -187,8 +195,8 @@ module Auth::Config::Features
     # any existing account.
     #
     # With verify_account loaded, a new account starts unverified and needs
-    # the emailed link. That includes webauthn_verify_account, which loads
-    # verify_account even when verify_account_enabled? is false. An invite
+    # the emailed link. That includes webauthn_verify_account, which depends
+    # on verify_account (verify_account_loaded?, the enable above). An invite
     # signup is the exception: after_create_account opens the account and no
     # email is sent, so it answers sign_in.
     #
@@ -215,6 +223,23 @@ module Auth::Config::Features
         json_response[:next_action] = open_account? ? 'sign_in' : 'verify_email' if json_request?
         super()
       end
+    end
+
+    # The invite_token param as send_verify_account_email reads it: stripped,
+    # or '' when absent, not a String, or not valid in its encoding. `strip`
+    # raises on an invalid-encoding String, and on verify-account-resend this
+    # read runs only for an unverified account with a key row, so the 500
+    # told that account apart from a missing login (SEC-B08). Treating such a
+    # token as absent sends the ordinary verification email; a token that
+    # cannot be valid UTF-8 can never name an invitation anyway.
+    # Auth::ParamEncoding refuses such a request before it gets here.
+    #
+    # @param value [Object] param_or_nil('invite_token')
+    # @return [String]
+    def self.invite_token_param(value)
+      return '' unless value.is_a?(String) && value.valid_encoding?
+
+      value.strip
     end
   end
 end

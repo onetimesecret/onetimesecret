@@ -43,7 +43,10 @@ OT.instance_variable_set(
 # Newest-first id list, as revrangeraw would return it.
 IDS = %w[d5 d4 d3 d2 d1].freeze
 
-FakeDomain = Struct.new(:identifier, :verified, :resolving)
+# org_id defaults to an organization; nil makes a record with none.
+FakeDomain = Struct.new(:identifier, :verified, :resolving, :org_id) do
+  def initialize(identifier, verified, resolving, org_id = 'org-1') = super
+end
 
 # All fake domains are unverified/unresolving by default so the warm-up cohort
 # picks up whichever ids fall inside the score window.
@@ -250,6 +253,23 @@ with_warmup_ids(%w[ok1 d3 ok2 d4]) do
   RefreshJob.send(:warmup_domains, BASE, [], limit: 2).map(&:identifier)
 end
 #=> %w[d3 d4]
+
+## The page leaves out a domain with no organization
+FAKE_DOMAINS['d4'] = FakeDomain.new('d4', false, false, nil)
+FakeVerify.seen.clear
+with_config('dns_propagation_window' => '0') { run_refresh(BASE) }
+FAKE_DOMAINS['d4'] = FakeDomain.new('d4', false, false)
+FakeVerify.seen.last
+#=> %w[d5]
+
+## Warm-up leaves out a domain with no organization
+FAKE_DOMAINS['d3'] = FakeDomain.new('d3', false, false, '')
+@orphan_warmup     = with_warmup_ids(%w[d3 d4]) do
+  RefreshJob.send(:warmup_domains, BASE, [], limit: 2).map(&:identifier)
+end
+FAKE_DOMAINS['d3'] = FakeDomain.new('d3', false, false)
+@orphan_warmup
+#=> %w[d4]
 
 ## dns_propagation_window: '0' disables the warm-up entirely
 FakeVerify.seen.clear

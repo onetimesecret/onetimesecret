@@ -38,6 +38,7 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
       provisioning_failure_code: nil,
       provisioning_failure_classification: nil,
       provisioning_failed_at: nil,
+      closure_started_at: nil,
     )
   end
 
@@ -290,6 +291,59 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
       expect(codes(result)).to include(:missing_auth_account)
     end
 
+    # #4830: the sync advice of :missing_auth_account would hand the closed
+    # account a live auth account again.
+    it 'names a closing customer with no auth account row as an interrupted closure' do
+      allow(customer).to receive(:closure_started_at).and_return(1_700_000_000)
+
+      result = diagnose(customer: customer)
+
+      expect(codes(result)).to include(:closure_interrupted)
+      expect(codes(result)).not_to include(:missing_auth_account)
+      expect(finding(result, :closure_interrupted)[:message])
+        .to include('bin/ots customers purge ur_target').and include('finish-closures')
+      expect(result.sections[:customer][:closure_started_at]).to eq(1_700_000_000.0)
+    end
+
+    it 'names a closing customer with an open auth account as a rolled-back closure' do
+      allow(customer).to receive(:closure_started_at).and_return(1_700_000_000)
+      insert_account
+
+      result = diagnose(customer: customer)
+
+      expect(codes(result)).to include(:closure_rolled_back)
+      expect(codes(result)).not_to include(:closure_interrupted)
+      expect(finding(result, :closure_rolled_back)[:severity]).to eq(:warning)
+    end
+
+    # The email fallback in find_account can reach a live row that belongs
+    # to another record (a later sign-up with the address).
+    it "does not read another record's open auth account as a rolled-back closure" do
+      allow(customer).to receive(:closure_started_at).and_return(1_700_000_000)
+      insert_account(external_id: 'ur_newer_signup')
+
+      result = diagnose(customer: customer)
+
+      expect(codes(result)).to include(:closure_interrupted)
+      expect(codes(result)).not_to include(:closure_rolled_back)
+    end
+
+    it 'reports a closure that started minutes ago as in progress, not interrupted' do
+      allow(customer).to receive(:closure_started_at).and_return(Familia.now.to_i - 60)
+
+      result = diagnose(customer: customer)
+
+      expect(codes(result)).to include(:closure_in_progress)
+      expect(codes(result)).not_to include(:closure_interrupted, :closure_rolled_back, :missing_auth_account)
+    end
+
+    it 'names a closing customer with a closed auth account as an interrupted closure' do
+      allow(customer).to receive(:closure_started_at).and_return(1_700_000_000)
+      insert_account(status_id: 3)
+
+      expect(codes(diagnose(customer: customer))).to include(:closure_interrupted)
+    end
+
     # An orphaned account is only reachable by email if the operator HAS the
     # email. Support is usually handed an extid or the numeric account id from
     # a log line, and neither resolves to a Customer for an orphan.
@@ -359,6 +413,16 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
 
       expect(codes(result)).to include(:authdb_unavailable)
       expect(codes(result)).not_to include(:missing_auth_account)
+    end
+
+    it 'does not guess the state of a closing customer it cannot check' do
+      allow(Auth::Database).to receive(:connection).and_return(failing_db)
+      allow(customer).to receive(:closure_started_at).and_return(1_700_000_000)
+
+      result = diagnose(customer: customer)
+
+      expect(codes(result)).to include(:authdb_unavailable)
+      expect(codes(result)).not_to include(:closure_interrupted, :closure_rolled_back)
     end
 
     # A sidecar query can fail AFTER the accounts row was read, degrading the
@@ -568,6 +632,31 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
       expect(result.sections[:auth_account][:reason_code]).to eq(:simple_mode)
     end
 
+    it 'names a closing customer as an interrupted closure' do
+      allow(Auth::Database).to receive(:connection).and_return(nil)
+      allow(Onetime.auth_config).to receive(:simple_by_default?).and_return(false)
+      allow(customer).to receive(:closure_started_at).and_return(1_700_000_000)
+
+      result = diagnose(customer: customer)
+
+      expect(codes(result)).to include(:closure_interrupted)
+      expect(finding(result, :closure_interrupted)[:message]).to start_with('Customer record is marked as closing')
+    end
+
+    # bin/ots resolves simple mode whenever AUTHENTICATION_MODE is not
+    # exported into its shell, full-mode install or not: the finding then
+    # leads with what it stands on, before the purge it names.
+    it 'leads the interrupted closure with the unchecked account when the mode was only the fallback' do
+      allow(Auth::Database).to receive(:connection).and_return(nil)
+      allow(Onetime.auth_config).to receive(:simple_by_default?).and_return(true)
+      allow(customer).to receive(:closure_started_at).and_return(1_700_000_000)
+
+      message = finding(diagnose(customer: customer), :closure_interrupted)[:message]
+
+      expect(message).to start_with('No auth account was checked (AUTHENTICATION_MODE is not set')
+      expect(message).to include('bin/ots customers purge')
+    end
+
     # The mirror of the authdb_unavailable case: with no authdb BY DESIGN the
     # Redis customer record is the whole truth, so :not_found is the correct
     # verdict here and must not be swallowed by the unknowable-existence guard.
@@ -711,6 +800,55 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
 
   # =========================================================================
   describe 'credential shape' do
+    # Liveness comes from AccountStatuses.live?, as in doctor and
+    # finish-closures: a status id outside the known set is not live, so a
+    # closing record whose row carries one reads as interrupted, not as a
+    # rolled-back closure with a live account.
+    it 'does not read an unknown account status as a live account' do
+      allow(customer).to receive(:closure_started_at).and_return(1_700_000_000)
+      db[:accounts].insert(id: 42, status_id: 99, email: email, external_id: 'ur_target', created_at: Time.now)
+      db[:account_password_hashes].insert(id: 42)
+
+      result = diagnose(customer: customer)
+
+      expect(result.sections[:auth_account]).to include(status: 'unknown (99)', status_id: 99)
+      expect(codes(result)).to include(:closure_interrupted)
+      expect(codes(result)).not_to include(:closure_rolled_back)
+    end
+
+    # Stored as PostgreSQL stores it, a naive UTC wall clock, and read on a
+    # connection with no database timezone pinned (this spec's SQLite) by a
+    # process in a UTC-8 zone, as the lanes' TZ=UTC never is: Sequel labels
+    # the wall clock with that zone, and Time#to_f on it would be eight
+    # hours ahead of the instant. 22:13:20 UTC that day is 1_700_000_000.
+    it 'reads the accounts row timestamps in the zone the database wrote them' do
+      allow(db).to receive(:database_type).and_return(:postgres)
+      in_time_zone('America/Los_Angeles') { insert_utc_row }
+
+      result = in_time_zone('America/Los_Angeles') { diagnose(customer: customer) }
+
+      expect(result.sections[:auth_account][:created_at]).to eq(1_700_000_000.0)
+    end
+
+    def in_time_zone(zone)
+      previous   = ENV.fetch('TZ', nil)
+      ENV['TZ'] = zone
+      yield
+    ensure
+      previous.nil? ? ENV.delete('TZ') : ENV['TZ'] = previous
+    end
+
+    def insert_utc_row
+      db[:accounts].insert(
+        id: 42,
+        status_id: 2,
+        email: email,
+        external_id: 'ur_target',
+        created_at: '2023-11-14 22:13:20',
+      )
+      db[:account_password_hashes].insert(id: 42)
+    end
+
     it 'flags email drift between the customer and the accounts row' do
       db[:accounts].insert(
         id: 42,

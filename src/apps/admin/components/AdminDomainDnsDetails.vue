@@ -8,6 +8,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import DetailField from '@/shared/components/ui/DetailField.vue';
   import { useDomainDnsRecord } from '@/shared/composables/useDomainDnsRecord';
+  import { txtRecordName } from '@/shared/utils/txtRecordName';
   import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
 
@@ -29,6 +30,11 @@
    * fields stay configured after a move off `approximated` and must not be
    * read here directly.
    *
+   * Both record names are shown in A-label form, the form they are created
+   * under in DNS, and copied the same way as on the customer page: the TXT
+   * name from `txt_validation_record` (`txtRecordName`), the address record
+   * name from `display_domain_ascii` (`useDomainDnsRecord`).
+   *
    * Fields the dump omits render as "—" (DetailField shows an empty value)
    * rather than crashing; unverified / self-hosted domains legitimately lack
    * some of them.
@@ -40,13 +46,20 @@
 
   const { t } = useI18n();
 
-  const baseDomain = computed(() => props.record.base_domain ?? '');
+  const txtRecord = computed(() => txtRecordName(props.record));
 
-  const { kind, recordType, recordHost, recordHostAppendix, recordTarget, usesApproximatedProxy } =
-    useDomainDnsRecord(
-      () => props.record,
-      () => props.cluster
-    );
+  const {
+    kind,
+    recordType,
+    recordHost,
+    recordHostAppendix,
+    recordDisplayName,
+    recordTarget,
+    usesApproximatedProxy,
+  } = useDomainDnsRecord(
+    () => props.record,
+    () => props.cluster
+  );
 
   // Heading by record kind and by where the record points. "the proxy" is
   // only said when the target is the Approximated proxy.
@@ -79,12 +92,23 @@
             value="TXT" />
           <DetailField
             :label="t('web.COMMON.host')"
-            :value="record.txt_validation_host ?? ''"
-            :appendix="baseDomain ? `.${baseDomain}` : undefined" />
+            :value="txtRecord.host"
+            :appendix="txtRecord.zone" />
           <DetailField
             :label="t('web.COMMON.value')"
             :value="record.txt_validation_value ?? ''" />
         </div>
+        <p
+          v-if="txtRecord.displayName"
+          class="mt-1.5 text-xs text-gray-500 dark:text-gray-400"
+          data-testid="dns-txt-display-name">
+          {{ t('web.admin.domains.dns.displayNameHint') }}
+          <span
+            class="block font-mono break-all text-gray-700 dark:text-gray-300"
+            translate="no">
+            {{ txtRecord.displayName }}
+          </span>
+        </p>
       </div>
 
       <!-- Step 2: the address record. A / CNAME at the Approximated proxy, or
@@ -107,6 +131,17 @@
             :label="t('web.COMMON.value')"
             :value="recordTarget" />
         </div>
+        <p
+          v-if="recordDisplayName"
+          class="mt-1.5 text-xs text-gray-500 dark:text-gray-400"
+          data-testid="dns-address-display-name">
+          {{ t('web.admin.domains.dns.displayNameHint') }}
+          <span
+            class="block font-mono break-all text-gray-700 dark:text-gray-300"
+            translate="no">
+            {{ recordDisplayName }}
+          </span>
+        </p>
         <p
           v-if="kind === 'alias'"
           class="mt-1.5 text-xs text-gray-500 dark:text-gray-400"

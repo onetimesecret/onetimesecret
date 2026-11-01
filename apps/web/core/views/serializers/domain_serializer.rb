@@ -84,7 +84,7 @@ module Core
           output['domain_id']       = custom_domain&.domainid
           output['domain_branding'] = build_branding_hash(custom_domain)
 
-          apply_homepage_config(output, custom_domain) if custom_domain
+          apply_homepage_config(output, custom_domain, view_vars['ip_match']) if custom_domain
 
           output['domain_locale'] = output['domain_branding'].fetch('locale', nil)
           output['domain_logo']   = build_domain_logo_url(custom_domain)
@@ -109,9 +109,11 @@ module Core
         end
 
         # Loads homepage config from the dedicated model (authoritative source).
-        def apply_homepage_config(output, custom_domain)
+        # view_vars['ip_match'] is the request's otto.ip_match closure (nil
+        # outside the full stack), consumed by the network rules below.
+        def apply_homepage_config(output, custom_domain, ip_match = nil)
           homepage_config           = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(custom_domain.identifier)
-          output['homepage_config'] = serialize_homepage_config(homepage_config, custom_domain)
+          output['homepage_config'] = serialize_homepage_config(homepage_config, custom_domain, ip_match)
 
           app_logger.debug '[DomainSerializer] homepage_config loaded',
             {
@@ -121,7 +123,7 @@ module Core
             }
         end
 
-        def serialize_homepage_config(homepage_config, custom_domain)
+        def serialize_homepage_config(homepage_config, custom_domain, ip_match = nil)
           return nil unless homepage_config
 
           domain_id    = homepage_config.domain_id
@@ -136,9 +138,24 @@ module Core
           # never let anonymous visitors see upgrade/misconfiguration copy
           # on the branded front door. The stored secrets_mode is preserved
           # so re-readying incoming restores the operator's intent.
-          # HomepageConfig#effectively_enabled? is the single source of
+          # HomepageConfig#effectively_enabled_for? is the single source of
           # truth, shared with the homepage-config API responses.
-          effective_enabled = homepage_config.effectively_enabled?(custom_domain: custom_domain)
+          #
+          # Network rules narrow that further, per visitor: a homepage with
+          # allowed/denied ranges is interactive only for clients inside
+          # them, judged through the request's otto.ip_match closure
+          # (HomepageConfig#network_allowed?). Visitors outside get the same
+          # private landing page as a disabled homepage — the rule is not
+          # advertised — and the anonymous create API refuses them through
+          # the same predicate (CustomDomain#allow_public_secret_creation?),
+          # so in create mode the form shown and the gate behind it always
+          # agree. In incoming mode the rules decide only whether the
+          # homepage shows the form: the /incoming page and the incoming API
+          # are governed by IncomingConfig, never by HomepageConfig (the same
+          # holds for enabled: false), and the editor copy says so. Only
+          # consulted when the homepage is otherwise interactive, so a
+          # domain without rules never logs a network decision.
+          effective_enabled = homepage_config.effectively_enabled_for?(ip_match, custom_domain: custom_domain)
 
           # signup_enabled / signin_enabled drive the branded homepage
           # masthead auth links. They carry the effective_* value — custom
@@ -233,12 +250,18 @@ module Core
           output['custom_domains'] = cust.custom_domains_list.filter_map { |obj| serialize_domain_entry(obj) }.sort
         end
 
-        # Returns the display_domain for a custom domain entry, logging unverified ones.
+        # Returns the display_domain for a custom domain entry, or nil to leave
+        # it out of the domain-context picker.
+        #
+        # A domain that is not served as a tenant domain
+        # (CustomDomain#served_as_tenant?) is left out: its links would open
+        # to a 404, and secret creation refuses it as a share_domain. It stays
+        # listed on the domain settings pages, which do not read this list.
         def serialize_domain_entry(obj)
-          # For now just log until we can reliably re-attempt verification and
-          # have some visibility which customers this will affect. We've made
-          # the verification more stringent so currently many existing domains
-          # would return obj.ready? == false.
+          return nil unless obj.served_as_tenant?
+
+          # A served domain can still be short of ready? (under passthrough,
+          # or while not resolving). Logged for visibility only.
           unless obj.ready?
             app_logger.warn 'Serializing unverified custom domain',
               {

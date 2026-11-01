@@ -71,8 +71,8 @@ RSpec.describe 'customers change-email', type: :cli do
 
       expect(Auth::Operations::Customers::ChangeEmail).to have_received(:new)
         .with(hash_including(dry_run: true))
-      expect(output[:stdout]).to include('PREVIEW')
-      expect(output[:stdout]).to include('--apply')
+      expect(output[:stdout]).to include('DRY RUN — nothing was written')
+      expect(output[:stdout]).to include('Re-run with --apply to execute.')
       expect(last_exit_code).to eq(0)
     end
 
@@ -98,6 +98,20 @@ RSpec.describe 'customers change-email', type: :cli do
       expect(Auth::Operations::Customers::ChangeEmail).to have_received(:new)
         .with(hash_including(new_email: 'new@example.com'))
     end
+
+    # Before the gate, --yes/-y/-f only skipped the prompt that --apply also
+    # needed, so a bare --yes previewed. It must not become a write.
+    ['--yes', '-y', '-f'].each do |flag|
+      it "stays a preview with a bare #{flag}" do
+        output = run_cli_command_quietly('customers', 'change-email',
+          'old@example.com', 'new@example.com', flag)
+
+        expect(Auth::Operations::Customers::ChangeEmail).to have_received(:new)
+          .with(hash_including(dry_run: true))
+        expect(output[:stdout]).to include('DRY RUN — nothing was written')
+        expect(last_exit_code).to eq(0)
+      end
+    end
   end
 
   describe '--apply' do
@@ -105,7 +119,20 @@ RSpec.describe 'customers change-email', type: :cli do
       allow(op).to receive(:call).and_return(build_result(status: :success))
     end
 
-    it 'calls the op with dry_run: false and exits 0 with --yes' do
+    it 'calls the op with dry_run: false and exits 0, never prompting' do
+      allow($stdin).to receive(:gets).and_return("n\n")
+
+      output = run_cli_command_quietly('customers', 'change-email',
+        'old@example.com', 'new@example.com', '--apply')
+
+      expect(Auth::Operations::Customers::ChangeEmail).to have_received(:new)
+        .with(hash_including(dry_run: false))
+      expect($stdin).not_to have_received(:gets)
+      expect(output[:stdout]).to include('Changed ur_target')
+      expect(last_exit_code).to eq(0)
+    end
+
+    it 'still executes with the former --apply --yes spelling (--yes is a no-op)' do
       output = run_cli_command_quietly('customers', 'change-email',
         'old@example.com', 'new@example.com', '--apply', '--yes')
 
@@ -115,35 +142,13 @@ RSpec.describe 'customers change-email', type: :cli do
       expect(last_exit_code).to eq(0)
     end
 
-    it 'proceeds when the operator answers y at the prompt' do
-      allow($stdin).to receive(:gets).and_return("y\n")
-
-      output = run_cli_command_quietly('customers', 'change-email',
-        'old@example.com', 'new@example.com', '--apply')
-
-      expect(op).to have_received(:call)
-      expect(output[:stdout]).to include('Changed ur_target')
-      expect(last_exit_code).to eq(0)
-    end
-
-    it 'aborts cleanly at EOF without calling the op' do
-      allow($stdin).to receive(:gets).and_return(nil)
-
-      output = run_cli_command_quietly('customers', 'change-email',
-        'old@example.com', 'new@example.com', '--apply')
-
-      expect(op).not_to have_received(:call)
-      expect(output[:stdout]).to include('Aborted.')
-      expect(last_exit_code).to eq(0)
-    end
-
-    it 'refuses --json --apply without --yes' do
+    it 'executes under --apply --json without any further flag' do
       output = run_cli_command_quietly('customers', 'change-email',
         'old@example.com', 'new@example.com', '--apply', '--json')
 
-      expect(op).not_to have_received(:call)
-      expect(JSON.parse(output[:stdout])['error']).to include('--yes')
-      expect(last_exit_code).to eq(1)
+      expect(op).to have_received(:call)
+      expect(JSON.parse(output[:stdout])['status']).to eq('success')
+      expect(last_exit_code).to eq(0)
     end
 
     it 'rejects --apply combined with --dry-run' do

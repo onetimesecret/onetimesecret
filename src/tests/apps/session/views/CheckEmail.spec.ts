@@ -18,11 +18,15 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, afterEach, vi } from 'vitest';
+import { useRealRouter } from '@/tests/utils/routerSetup';
 import { createRouter, createMemoryHistory, Router, RouterLink } from 'vue-router';
 import { defineComponent } from 'vue';
 import CheckEmail from '@/apps/session/views/CheckEmail.vue';
 import { CHECK_EMAIL_STATE_KEY } from '@/shared/constants/checkEmail';
 import { createTestI18n } from '@tests/setup';
+
+// Mounts with a real router; see useRealRouter.
+useRealRouter();
 
 // Render AuthView's named slots inline so slot content is testable.
 vi.mock('@/apps/session/components/AuthView.vue', () => ({

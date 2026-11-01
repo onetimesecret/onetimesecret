@@ -84,6 +84,10 @@ module AccountAPI::Logic
           require_verification: false, # D34 — the token already proved ownership
           revoke_sessions: true,
           notify: true,
+          # Audit to the security trail, never the operator trail: this route
+          # is unauthenticated and a refused redemption leaves the link live,
+          # so it can be replayed at will.
+          self_service: true,
         ).call
 
         # ADAPTER-OWNED, by construction: the operation deletes every STORED

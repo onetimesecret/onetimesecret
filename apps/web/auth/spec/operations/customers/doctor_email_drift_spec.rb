@@ -42,6 +42,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       obscure_email: 'li***@e***.com',
       organization_instances: [],
       provisioning_failed?: false,
+      closing?: false,
     )
   end
 
@@ -272,6 +273,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
         run
 
         expect(issues.first[:repair_action]).to include('bin/ots customers change-email ur_c')
+        expect(issues.first[:repair_action]).to include('<lowercase address> --apply')
         expect(issues.first[:repair_action]).not_to start_with('Run `bin/ots customers normalize-emails')
       end
 
@@ -531,7 +533,8 @@ RSpec.describe Auth::Operations::Customers::Doctor do
   describe 'failure auditing (gated on the repair path)' do
     before do
       allow(Onetime::ColonelAuditEvent).to receive(:record)
-      # Blow up in the FIRST check so the raise is deterministic regardless of
+      # Blow up in the first data check (the closure-marker check before it
+      # only reads closing?) so the raise is deterministic regardless of
       # which checks the customer double happens to satisfy.
       allow(customer).to receive(:default_org_id).and_raise(Onetime::Problem, 'redis down')
     end

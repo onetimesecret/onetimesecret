@@ -54,8 +54,13 @@ RSpec.describe Onetime::Mail::SenderStrategies::SMTPSenderStrategy do
     it 'returns not applicable' do
       result = strategy.delete_sender_identity(mailer_config)
 
-      expect(result[:deleted]).to be false
-      expect(result[:message]).to include('do not have sender identities')
+      expect(result).to eq(
+        outcome: :skipped,
+        deleted: false,
+        message: 'SMTP providers do not have sender identities to delete.',
+        error: nil,
+      )
+      expect(a_request(:any, /.*/)).not_to have_been_made
     end
   end
 

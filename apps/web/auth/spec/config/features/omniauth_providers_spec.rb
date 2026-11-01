@@ -104,6 +104,24 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
         end
       end
 
+      # #4764: the platform registration sends the secret in the token
+      # request body, not the Basic header oauth2 builds without form-encoding.
+      it 'sends the client credentials in the token request body' do
+        expect(auth).to receive(:omniauth_provider).with(
+          :entra_id,
+          hash_including(client_options: hash_including(auth_scheme: :request_body))
+        )
+
+        ClimateControl.modify(
+          ENTRA_TENANT_ID: 'test-tenant',
+          ENTRA_CLIENT_ID: 'test-entra-client',
+          ENTRA_CLIENT_SECRET: 'test-entra-secret',
+          ENTRA_REDIRECT_URI: 'http://localhost:3000/auth/sso/entra/callback',
+        ) do
+          Auth::Config::Features::OmniAuth.configure_entra_id_provider(auth)
+        end
+      end
+
       it 'uses custom route name when ENTRA_ROUTE_NAME is set' do
         expect(auth).to receive(:omniauth_provider).with(
           :entra_id,

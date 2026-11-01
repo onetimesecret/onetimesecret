@@ -12,11 +12,15 @@
 
 import { mount } from '@vue/test-utils';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { useRealRouter } from '@/tests/utils/routerSetup';
 import { createTestI18n } from '@tests/setup';
 import { createTestingPinia } from '@pinia/testing';
 import { createRouter, createMemoryHistory } from 'vue-router';
 import SecretReceiptTableItem from '@/apps/secret/components/SecretReceiptTableItem.vue';
 import type { ReceiptList } from '@/schemas/shapes/v3/receipt';
+
+// Mounts with a real router; see useRealRouter.
+useRealRouter();
 
 // Minimal i18n setup (pass-through: keys render as-is per ADR-014)
 const i18n = createTestI18n();

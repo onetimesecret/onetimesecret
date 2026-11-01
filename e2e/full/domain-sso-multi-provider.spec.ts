@@ -6,9 +6,9 @@
  * Tests the core differentiating feature of domain-level SSO: organizations
  * can configure different identity providers for different custom domains.
  *
- * Scenario (modal-based, updated for #3383):
+ * Scenario (page-based; the SSO settings left their dialog for a route):
  * - Organization has multiple custom domains (e.g., corp.example.com, partner.example.com)
- * - User navigates to each domain's signin page and opens the SSO credentials modal
+ * - User opens each domain's SSO settings page (/signin/sso)
  * - Domain A uses Microsoft Entra ID
  * - Domain B uses a Generic OIDC provider
  * - Both configurations coexist within the same organization
@@ -130,8 +130,8 @@ async function getDomainsFromSsoTab(page: Page): Promise<DomainInfo[]> {
     const domainText = await row.locator('.font-medium').first().textContent();
     if (!domainText) continue;
 
-    // Extract domain extid from configure link. The hub now links to the
-    // domain signin page with the SSO modal deep-link (`/signin?modal=sso`).
+    // Extract domain extid from configure link. The hub links to the
+    // domain's SSO settings page (`/signin/sso`).
     const configureLink = row.locator('a[href*="/signin"]');
     const href = await configureLink.getAttribute('href').catch(() => null);
     const match = href?.match(/\/domains\/([^/]+)\/signin/);
@@ -159,36 +159,24 @@ async function getDomainsFromSsoTab(page: Page): Promise<DomainInfo[]> {
 }
 
 /**
- * Navigate to domain signin page and open the SSO credentials modal.
- * Returns a locator scoped to the modal dialog.
+ * Navigate to the domain's SSO settings page and wait for its form.
+ * Returns a locator scoped to the page's content region.
  */
-async function openDomainSsoModal(
+async function openDomainSsoPage(
   page: Page,
   orgExtid: string,
   domainExtid: string
 ): Promise<Locator> {
-  await page.goto(`/org/${orgExtid}/domains/${domainExtid}/signin`);
+  await page.goto(`/org/${orgExtid}/domains/${domainExtid}/signin/sso`);
   await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-  // Wait for the signin config page to load. The page no longer renders a
-  // <form> element (the config is a series of fieldsets), so anchor on the
-  // page heading instead.
-  await page
-    .getByRole('heading', { name: /sign-in configuration/i })
-    .waitFor({ state: 'visible', timeout: 10000 });
+  const ssoPage = page.locator('[data-testid="domain-signin-sso-page"]');
+  await expect(ssoPage).toBeVisible({ timeout: 10000 });
 
-  // Click the "Configure" or "Edit credentials" button to open the SSO modal
-  const ssoButton = page.getByRole('button', { name: /configure|edit credentials/i });
-  await ssoButton.click();
+  // Wait for the SSO form to be ready
+  await ssoPage.locator('form').waitFor({ state: 'visible', timeout: 10000 });
 
-  // Wait for modal dialog to appear
-  const modal = page.getByRole('dialog');
-  await expect(modal).toBeVisible({ timeout: 5000 });
-
-  // Wait for the SSO form inside the modal to be ready
-  await modal.locator('form').waitFor({ state: 'visible', timeout: 10000 });
-
-  return modal;
+  return ssoPage;
 }
 
 /**
@@ -207,11 +195,15 @@ async function selectProvider(container: Locator, providerType: ProviderType): P
 
 /**
  * Fill SSO configuration form with provided data.
- * Provider selection is scoped to the modal; ID-based fields are globally unique.
+ * Provider selection is scoped to the page region; ID-based fields are globally unique.
  */
-async function fillSsoConfigForm(page: Page, modal: Locator, config: SsoConfigData): Promise<void> {
-  // Select provider type (scoped to modal to avoid ambiguity)
-  await selectProvider(modal, config.providerType);
+async function fillSsoConfigForm(
+  page: Page,
+  ssoPage: Locator,
+  config: SsoConfigData
+): Promise<void> {
+  // Select provider type (scoped to the page region to avoid ambiguity)
+  await selectProvider(ssoPage, config.providerType);
 
   // Fill common fields (IDs are globally unique, no scoping needed)
   await page.locator('#domain-sso-display-name').fill(config.displayName);
@@ -235,13 +227,24 @@ async function fillSsoConfigForm(page: Page, modal: Locator, config: SsoConfigDa
 }
 
 /**
- * Submit the SSO configuration form (scoped to modal)
+ * Submit the SSO configuration form (scoped to the page region).
+ *
+ * A record that exists has "Save changes" (sso-save), enabled only once a
+ * field has been edited, so callers fill the form before submitting. A new
+ * record has no Save button: the primary action "Save and check"
+ * (sso-diagnostics-run) saves it and then runs the saved-configuration check.
+ * openDomainSsoPage returns once the form (and so its footer) is rendered, so
+ * the Save button's presence tells the two apart.
  */
-async function submitSsoForm(modal: Locator): Promise<void> {
-  const saveButton = modal.locator('button[type="submit"]');
+async function submitSsoForm(ssoPage: Locator): Promise<void> {
+  const saveChanges = ssoPage.locator('[data-testid="sso-save"]');
+  const saveButton =
+    (await saveChanges.count()) > 0
+      ? saveChanges
+      : ssoPage.locator('[data-testid="sso-diagnostics-run"]');
   await expect(saveButton).toBeEnabled({ timeout: 5000 });
   // Anchor on the save round-trip (tests mock these routes via page.route)
-  const saveResponse = modal
+  const saveResponse = ssoPage
     .page()
     .waitForResponse((r) => r.url().includes('/sso') && r.request().method() !== 'GET');
   await saveButton.click();
@@ -358,17 +361,17 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     await setupDomainSsoMock(page, domainA.extid, { onSave: entraConfig, existingConfig: null });
     await setupDomainSsoMock(page, domainB.extid, { onSave: oidcConfig, existingConfig: null });
 
-    // Step 1: Open SSO modal for domain A and configure Entra ID
-    const modalA = await openDomainSsoModal(page, org.extid, domainA.extid);
+    // Step 1: Open the SSO page for domain A and configure Entra ID
+    const ssoPageA = await openDomainSsoPage(page, org.extid, domainA.extid);
 
-    await fillSsoConfigForm(page, modalA, entraConfig);
-    await submitSsoForm(modalA);
+    await fillSsoConfigForm(page, ssoPageA, entraConfig);
+    await submitSsoForm(ssoPageA);
 
-    // Step 2: Open SSO modal for domain B and configure Generic OIDC
-    const modalB = await openDomainSsoModal(page, org.extid, domainB.extid);
+    // Step 2: Open the SSO page for domain B and configure Generic OIDC
+    const ssoPageB = await openDomainSsoPage(page, org.extid, domainB.extid);
 
-    await fillSsoConfigForm(page, modalB, oidcConfig);
-    await submitSsoForm(modalB);
+    await fillSsoConfigForm(page, ssoPageB, oidcConfig);
+    await submitSsoForm(ssoPageB);
 
     // Step 3: Verify both domains appear in org SSO hub
     await navigateToOrgSsoTab(page, org.extid);
@@ -429,7 +432,7 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     }
   });
 
-  test('TC-MPROV-003: each domain SSO modal shows correct provider after configuration', async ({
+  test('TC-MPROV-003: each domain SSO page shows correct provider after configuration', async ({
     page,
   }) => {
     const org = await getFirstOrganization(page);
@@ -468,19 +471,19 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
 
     // #3902: issuerless providers must not exist anywhere on the tenant
     // surface — neither as a selectable radio nor as the locked provider
-    // display for an existing config. Assert on each domain's modal while
-    // it is the open one.
-    const modalA = await openDomainSsoModal(page, org.extid, domainA.extid);
-    await expect(modalA.locator('input[type="radio"][value="google"]')).toHaveCount(0);
-    await expect(modalA.locator('input[type="radio"][value="github"]')).toHaveCount(0);
-    await expect(modalA.getByText('Google Workspace')).toHaveCount(0);
-    await expect(modalA.getByText('GitHub', { exact: true })).toHaveCount(0);
+    // display for an existing config. Assert on each domain's SSO page in
+    // turn.
+    const ssoPageA = await openDomainSsoPage(page, org.extid, domainA.extid);
+    await expect(ssoPageA.locator('input[type="radio"][value="google"]')).toHaveCount(0);
+    await expect(ssoPageA.locator('input[type="radio"][value="github"]')).toHaveCount(0);
+    await expect(ssoPageA.getByText('Google Workspace')).toHaveCount(0);
+    await expect(ssoPageA.getByText('GitHub', { exact: true })).toHaveCount(0);
 
-    const modalB = await openDomainSsoModal(page, org.extid, domainB.extid);
-    await expect(modalB.locator('input[type="radio"][value="google"]')).toHaveCount(0);
-    await expect(modalB.locator('input[type="radio"][value="github"]')).toHaveCount(0);
-    await expect(modalB.getByText('Google Workspace')).toHaveCount(0);
-    await expect(modalB.getByText('GitHub', { exact: true })).toHaveCount(0);
+    const ssoPageB = await openDomainSsoPage(page, org.extid, domainB.extid);
+    await expect(ssoPageB.locator('input[type="radio"][value="google"]')).toHaveCount(0);
+    await expect(ssoPageB.locator('input[type="radio"][value="github"]')).toHaveCount(0);
+    await expect(ssoPageB.getByText('Google Workspace')).toHaveCount(0);
+    await expect(ssoPageB.getByText('GitHub', { exact: true })).toHaveCount(0);
   });
 
   test('TC-MPROV-004: updating credentials on one domain does not affect other domain', async ({
@@ -559,18 +562,18 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
       });
     });
 
-    // Open SSO modal for domain A and update its credentials in place.
+    // Open the SSO page for domain A and update its credentials in place.
     // (Provider type is locked while editing an existing config, and the
     // issuerless providers that the old provider-swap flow relied on are
     // gone from the tenant surface — #3902.)
-    const modal = await openDomainSsoModal(page, org.extid, domainA.extid);
+    const ssoPage = await openDomainSsoPage(page, org.extid, domainA.extid);
 
     await page.locator('#domain-sso-display-name').fill('Domain A Entra Updated');
     await page.locator('#domain-sso-client-id').fill('new-client-a');
     await page.locator('#domain-sso-client-secret').fill('new-secret-a');
 
     // Save the change
-    await submitSsoForm(modal);
+    await submitSsoForm(ssoPage);
 
     // Reset API call tracking
     const saveCalls = apiCalls.filter(
@@ -628,7 +631,7 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
     expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
     // Verify the configure link is present in the hub for the first domain.
-    // The hub now links to the domain signin page with the SSO modal deep-link.
+    // The hub links to the domain's SSO settings page.
     const configureLink = page.locator(`a[href*="/domains/${domains[0].extid}/signin"]`);
     await expect(configureLink).toBeVisible();
 
@@ -668,7 +671,7 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
 });
 
 // -----------------------------------------------------------------------------
-// Test Suite: Provider-Specific Configuration (inside modal)
+// Test Suite: Provider-Specific Configuration
 // -----------------------------------------------------------------------------
 
 test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
@@ -685,10 +688,10 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
     const domains = await getDomainsFromSsoTab(page);
     expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
-    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
+    const ssoPage = await openDomainSsoPage(page, org.extid, domains[0].extid);
 
     // Select Entra ID
-    await selectProvider(modal, 'entra_id');
+    await selectProvider(ssoPage, 'entra_id');
 
     // Tenant ID field should be visible
     const tenantIdInput = page.locator('#domain-sso-tenant-id');
@@ -708,15 +711,15 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
     const domains = await getDomainsFromSsoTab(page);
     expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
-    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
+    const ssoPage = await openDomainSsoPage(page, org.extid, domains[0].extid);
 
     // Start on Entra ID: tenant_id visible, issuer hidden
-    await selectProvider(modal, 'entra_id');
+    await selectProvider(ssoPage, 'entra_id');
     await expect(page.locator('#domain-sso-tenant-id')).toBeVisible();
     await expect(page.locator('#domain-sso-issuer')).not.toBeVisible();
 
     // Switch to Generic OIDC: issuer visible, tenant_id hidden
-    await selectProvider(modal, 'oidc');
+    await selectProvider(ssoPage, 'oidc');
     await expect(page.locator('#domain-sso-issuer')).toBeVisible();
     await expect(page.locator('#domain-sso-tenant-id')).not.toBeVisible();
   });
@@ -730,10 +733,10 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
     const domains = await getDomainsFromSsoTab(page);
     expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
-    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
+    const ssoPage = await openDomainSsoPage(page, org.extid, domains[0].extid);
 
     // Select Generic OIDC
-    await selectProvider(modal, 'oidc');
+    await selectProvider(ssoPage, 'oidc');
 
     // Issuer field should be visible for OIDC
     const issuerInput = page.locator('#domain-sso-issuer');
@@ -759,24 +762,24 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
     // type is locked while editing an existing config).
     await setupDomainSsoMock(page, domains[0].extid, { existingConfig: null });
 
-    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
+    const ssoPage = await openDomainSsoPage(page, org.extid, domains[0].extid);
 
     // #3902: tenant SSO is OIDC/Entra-only — exactly two provider radios.
-    const providerRadios = modal.locator('input[type="radio"][name="provider_type"]');
+    const providerRadios = ssoPage.locator('input[type="radio"][name="provider_type"]');
     await expect(providerRadios).toHaveCount(2);
-    await expect(modal.locator('input[type="radio"][value="entra_id"]')).toHaveCount(1);
-    await expect(modal.locator('input[type="radio"][value="oidc"]')).toHaveCount(1);
+    await expect(ssoPage.locator('input[type="radio"][value="entra_id"]')).toHaveCount(1);
+    await expect(ssoPage.locator('input[type="radio"][value="oidc"]')).toHaveCount(1);
 
     // Issuerless providers must not be offered on the tenant surface.
-    await expect(modal.locator('input[type="radio"][value="google"]')).toHaveCount(0);
-    await expect(modal.locator('input[type="radio"][value="github"]')).toHaveCount(0);
-    await expect(modal.getByText('Google Workspace')).toHaveCount(0);
-    await expect(modal.getByText('GitHub', { exact: true })).toHaveCount(0);
+    await expect(ssoPage.locator('input[type="radio"][value="google"]')).toHaveCount(0);
+    await expect(ssoPage.locator('input[type="radio"][value="github"]')).toHaveCount(0);
+    await expect(ssoPage.getByText('Google Workspace')).toHaveCount(0);
+    await expect(ssoPage.getByText('GitHub', { exact: true })).toHaveCount(0);
   });
 });
 
 // -----------------------------------------------------------------------------
-// Test Suite: Cross-Domain Isolation (inside modal)
+// Test Suite: Cross-Domain Isolation (inside ssoPage)
 // -----------------------------------------------------------------------------
 
 test.describe('Multi-Domain SSO - Configuration Isolation', () => {
@@ -784,7 +787,7 @@ test.describe('Multi-Domain SSO - Configuration Isolation', () => {
     page.setDefaultTimeout(15000);
   });
 
-  test('TC-MPROV-012: domain A config is not visible on domain B modal', async ({ page }) => {
+  test('TC-MPROV-012: domain A config is not visible on domain B ssoPage', async ({ page }) => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
@@ -820,15 +823,15 @@ test.describe('Multi-Domain SSO - Configuration Isolation', () => {
       },
     });
 
-    // Open SSO modal for domain B
-    const modal = await openDomainSsoModal(page, org.extid, domainB.extid);
+    // Open SSO ssoPage for domain B
+    const ssoPage = await openDomainSsoPage(page, org.extid, domainB.extid);
 
-    // Domain A's unique identifier should NOT appear in the modal
-    const domainAUniqueText = modal.getByText('UNIQUE_DOMAIN_A_NAME_12345');
+    // Domain A's unique identifier should NOT appear in the ssoPage
+    const domainAUniqueText = ssoPage.getByText('UNIQUE_DOMAIN_A_NAME_12345');
     await expect(domainAUniqueText).not.toBeVisible();
 
     // Domain A's client ID should NOT appear
-    const domainAClientId = modal.getByText('unique-client-a-xyz');
+    const domainAClientId = ssoPage.getByText('unique-client-a-xyz');
     await expect(domainAClientId).not.toBeVisible();
   });
 

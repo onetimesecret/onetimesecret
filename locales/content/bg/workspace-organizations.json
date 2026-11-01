@@ -219,10 +219,6 @@
     "text": "Абонамент",
     "source_hash": "4999c6c6"
   },
-  "web.organizations.danger_zone": {
-    "text": "Опасна зона",
-    "source_hash": "3c1c01b4"
-  },
   "web.organizations.delete_organization": {
     "text": "Изтрий организацията",
     "source_hash": "54b2edc7"
@@ -907,10 +903,6 @@
     "text": "На новите членове, които се присъединяват чрез SSO на този домейн, ще бъде предоставен достъп до всички домейни на организацията. Съществуващите членове не са засегнати. Когато е деактивирано (по подразбиране), новите членове могат да достъпват само този домейн.",
     "source_hash": "2ac9f345"
   },
-  "web.organizations.sso.save_config": {
-    "text": "Запазване на SSO конфигурацията",
-    "source_hash": "70853769"
-  },
   "web.organizations.sso.delete_config": {
     "text": "Изтриване на конфигурацията",
     "source_hash": "9ac1ac7b"
@@ -1207,33 +1199,9 @@
     "text": "Настройките за влизане на този сайт са в конфликт с ограничението за целия сайт ({method}), затова нито едно от двете не се прилага и в момента няма начин за влизане.",
     "source_hash": "54cdfd61"
   },
-  "web.organizations.sso.connection_enabled": {
-    "text": "Връзката е активна",
-    "source_hash": "b6334b2b"
-  },
-  "web.organizations.sso.connection_enabled_hint": {
-    "text": "Когато е активна, членовете могат да влизат с този SSO доставчик. SSO трябва да е активирано и като метод за влизане в „Конфигурация на влизането“ на домейна.",
-    "source_hash": "871db2f1"
-  },
-  "web.organizations.sso.enable_untested_warning": {
-    "text": "Тази връзка все още не е преминала тест тук. Изпълнете „Тест на връзката“, преди да я включите, за да не достигне неработеща конфигурация до вашата страница за влизане.",
-    "source_hash": "c1fbdeca"
-  },
   "web.organizations.delete_organization_cancel_subscription_first": {
     "text": "Анулирайте абонамента на тази организация, преди да я изтриете.",
     "source_hash": "f0c54eca"
-  },
-  "web.organizations.sso.disable_action": {
-    "text": "Деактивиране на SSO",
-    "source_hash": "2f072272"
-  },
-  "web.organizations.sso.disable_confirm": {
-    "text": "Да се деактивира ли тази SSO връзка? Незапазените промени във формуляра няма да бъдат запазени. Съхранените идентификационни данни ще бъдат запазени.",
-    "source_hash": "608b142a"
-  },
-  "web.organizations.sso.disable_enforcement_warning": {
-    "text": "Налагането само на SSO също ще бъде изключено, което ще позволи другите конфигурирани методи за влизане.",
-    "source_hash": "58abd552"
   },
   "web.organizations.sso.idp_sso_service_url": {
     "text": "URL адрес на SSO услугата на IdP",
@@ -1342,5 +1310,105 @@
   "web.organizations.sso.certificate_valid_from": {
     "text": "Сертификатът е валиден от",
     "source_hash": "b13d3f30"
+  },
+  "web.organizations.sso.client_secret_looks_like_secret_id": {
+    "text": "Това изглежда като „Secret ID“. Entra изисква стойността на тайната („Value“), която се показва само веднъж при създаването ѝ.",
+    "source_hash": "168681cf"
+  },
+  "web.organizations.sso.diagnostics_title": {
+    "text": "Проверка на запазената конфигурация",
+    "source_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_hint": {
+    "text": "Проверява какво е запазено за този домейн — за Microsoft Entra ID включително запазения client secret — и докладва за всеки слой поотделно. Не тества пълно влизане.",
+    "source_hash": "42505faa"
+  },
+  "web.organizations.sso.last_sign_in_none": {
+    "text": "Все още няма регистрирано влизане през този домейн.",
+    "source_hash": "7f9d0f23"
+  },
+  "web.organizations.sso.last_sign_in_succeeded": {
+    "text": "Последното влизане през този домейн завърши успешно на {when}.",
+    "source_hash": "9a125080"
+  },
+  "web.organizations.sso.last_sign_in_failed": {
+    "text": "Последното влизане през този домейн беше неуспешно на {when} — {stage} ({code}).",
+    "source_hash": "be81f392"
+  },
+  "web.organizations.sso.last_sign_in_last_success": {
+    "text": "Последното успешно влизане беше на {when}.",
+    "source_hash": "34e63e57"
+  },
+  "web.organizations.sso.last_sign_in_stage_setup": {
+    "text": "преди да бъде осъществена връзка с доставчика на идентичност",
+    "source_hash": "5a1b6839"
+  },
+  "web.organizations.sso.last_sign_in_stage_provider": {
+    "text": "при доставчика на идентичност",
+    "source_hash": "40394567"
+  },
+  "web.organizations.sso.last_sign_in_stage_callback": {
+    "text": "когато доставчикът на идентичност върна потребителя",
+    "source_hash": "2ab78fc4"
+  },
+  "web.organizations.sso.last_sign_in_stage_account": {
+    "text": "при съпоставянето на потребителя с акаунт",
+    "source_hash": "1ebbb776"
+  },
+  "web.organizations.sso.diagnostics_button": {
+    "text": "Проверка на запазената конфигурация",
+    "source_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_running": {
+    "text": "Проверяване...",
+    "source_hash": "2e5f79bb"
+  },
+  "web.organizations.sso.diagnostics_checked_at": {
+    "text": "Проверено",
+    "source_hash": "0efd92a3"
+  },
+  "web.organizations.sso.diagnostics_check_stored_configuration": {
+    "text": "Запазена конфигурация",
+    "source_hash": "a988b06a"
+  },
+  "web.organizations.sso.diagnostics_check_discovery": {
+    "text": "Откриване на доставчика на идентичност",
+    "source_hash": "b5f90082"
+  },
+  "web.organizations.sso.diagnostics_check_certificate": {
+    "text": "Сертификат за подписване",
+    "source_hash": "cc00e050"
+  },
+  "web.organizations.sso.diagnostics_check_credential": {
+    "text": "Client Secret",
+    "source_hash": "4aded5fa"
+  },
+  "web.organizations.sso.diagnostics_status_passed": {
+    "text": "Успешно",
+    "source_hash": "436fe71b"
+  },
+  "web.organizations.sso.diagnostics_status_failed": {
+    "text": "Неуспешно",
+    "source_hash": "031a8f0f"
+  },
+  "web.organizations.sso.diagnostics_status_inconclusive": {
+    "text": "Неопределено",
+    "source_hash": "9141583b"
+  },
+  "web.organizations.sso.diagnostics_status_unsupported": {
+    "text": "Не е налично",
+    "source_hash": "67a926f7"
+  },
+  "web.organizations.sso.diagnostics_status_skipped": {
+    "text": "Пропуснато",
+    "source_hash": "12698ce1"
+  },
+  "web.organizations.sso.diagnostics_aadsts_code": {
+    "text": "Код на грешка на Microsoft",
+    "source_hash": "dc8f7060"
+  },
+  "web.organizations.sso.diagnostics_errors": {
+    "text": "Проблеми",
+    "source_hash": "a7b182f8"
   }
 }

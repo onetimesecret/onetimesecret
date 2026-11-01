@@ -33,6 +33,10 @@ module DomainsAPI
       # - idp_sso_service_url, idp_entity_id, idp_cert: Required for saml
       #   (#4450; see SamlFields), cleared for others. idp_cert_fingerprint
       #   (and its ruby-saml siblings) is refused for every provider type.
+      # - idp_metadata_url: Optional, saml only: the SAML IdP metadata URL
+      #   the trio came from. Blank or omitted clears it; cleared for other
+      #   provider types. A new value must be a public https URL (see
+      #   SamlFields#validate_idp_metadata_url!).
       # - display_name: Optional. Human-readable name (defaults to empty)
       # - allowed_domains: Optional. Array of allowed email domains (defaults to empty)
       # - enabled: Optional. Boolean to enable/disable SSO (default: false)
@@ -62,6 +66,9 @@ module DomainsAPI
           @enabled          = parse_boolean(params['enabled'])
           @enforce_sso_only = parse_boolean(params['enforce_sso_only'])
           @grant_org_scope  = parse_boolean(params['grant_org_scope'])
+
+          # oidc only (#4764); '' = gem default. Stored for oidc, cleared otherwise.
+          @token_endpoint_auth_method = normalize_token_endpoint_auth_method(params['token_endpoint_auth_method'])
         end
 
         def raise_concerns
@@ -102,24 +109,23 @@ module DomainsAPI
         def process
           OT.ld "[PutSsoConfig] Replacing SSO config for domain #{@domain_id} by user #{cust.extid}"
 
-          # Track enabled state change for audit
-          was_enabled             = @existing_config&.enabled?
-          # Read BEFORE the replacement; a PUT that omits name_id_format
-          # restores persistent, which re-keys a record that had another.
-          previous_name_id_format = stored_name_id_format(@existing_config)
-
           if @existing_config
-            replace_existing_config
-            log_name_id_format_change_if_rekeyed(previous_name_id_format, was_enabled)
+            # Audit from the state this write replaced, not from the config
+            # raise_concerns loaded (see replace_existing_config)
+            replaced    = replace_existing_config
+            was_enabled = replaced[:was_enabled]
+            log_name_id_format_change_if_rekeyed(replaced[:name_id_format], was_enabled)
             log_sso_change_event(
               event: :domain_sso_config_replaced,
               domain: @custom_domain,
               org: @organization,
               actor: cust,
               provider_type: @provider_type,
+              changes: replaced[:changes],
             )
           else
-            create_new_config
+            was_enabled = nil
+            guarded_config_write { create_new_config }
             log_sso_change_event(
               event: :domain_sso_config_created,
               domain: @custom_domain,
@@ -149,8 +155,10 @@ module DomainsAPI
             display_name: @display_name,
             tenant_id: @tenant_id,
             issuer: @issuer,
+            token_endpoint_auth_method: @token_endpoint_auth_method,
             idp_sso_service_url: @idp_sso_service_url,
             idp_entity_id: @idp_entity_id,
+            idp_metadata_url: @idp_metadata_url,
             allowed_domains: @allowed_domains,
             enabled: @enabled,
             enforce_sso_only: @enforce_sso_only,
@@ -199,12 +207,17 @@ module DomainsAPI
                 error_type: :invalid,
               )
             end
+
+            validate_token_endpoint_auth_method!(@token_endpoint_auth_method)
           when 'entra_id'
             if @tenant_id.to_s.empty?
               raise_form_error('Tenant ID is required for Entra ID provider', field: :tenant_id, error_type: :missing)
             end
           when 'saml'
             validate_saml_fields!
+            # An unchanged metadata URL on the record being replaced is not
+            # re-resolved (SamlFields#validate_idp_metadata_url!).
+            validate_idp_metadata_url!(stored: @existing_config&.provider_type == 'saml' ? @existing_config : nil)
           end
         end
 
@@ -221,6 +234,21 @@ module DomainsAPI
           provider_attributes
         end
 
+        # PUT writes every safe field, including omitted defaults and provider
+        # clears. Diff the persisted shape, not the raw request; the model's
+        # allowed_domains setter performs additional normalization.
+        def replacement_change_params
+          values = replacement_attributes.merge(
+            provider_type: @provider_type,
+            display_name: @display_name,
+            allowed_domains: Onetime::CustomDomain::SsoConfig.normalize_allowed_domains(@allowed_domains),
+            enabled: @enabled,
+            enforce_sso_only: @enforce_sso_only,
+            grant_org_scope: @grant_org_scope,
+          )
+          SAFE_FIELDS.to_h { |field| [field, values.fetch(field.to_sym)] }
+        end
+
         def create_new_config
           @sso_config = Onetime::CustomDomain::SsoConfig.create!(
             domain_id: @custom_domain.identifier,
@@ -234,37 +262,56 @@ module DomainsAPI
           )
         end
 
-        # Replaces existing SSO config with PUT semantics.
+        # Replaces the stored config with PUT semantics and returns the state it
+        # replaced, for the audit events in #process.
         #
-        # Uses transaction with commit_fields to prevent race condition where
-        # config could be deleted between existence check and update.
+        # The record raise_concerns loaded can be stale by now: a concurrent PUT
+        # or PATCH may have committed since. update_for_domain! re-reads it under
+        # WATCH and retries when it changes before the commit
+        # (GuardedConfigWrites), so each event describes the state its own write
+        # replaced.
         #
+        # @return [Hash] :changes, :was_enabled and :name_id_format of the
+        #   replaced record
         def replace_existing_config
-          @sso_config = @existing_config
+          @sso_config, replaced = guarded_config_write do
+            Onetime::CustomDomain::SsoConfig.update_for_domain!(@custom_domain.identifier) do |stored|
+              state = {
+                changes: compute_sso_changes(stored, replacement_change_params),
+                was_enabled: stored.enabled?,
+                # A PUT that omits name_id_format restores persistent, which
+                # re-keys a record that had another.
+                name_id_format: stored_name_id_format(stored),
+              }
+              assign_replacement_fields(stored)
+              state
+            end
+          end
+          replaced
+        end
 
+        # @param config [Onetime::CustomDomain::SsoConfig] the stored record
+        def assign_replacement_fields(config)
           # PUT semantics: full replacement - set ALL fields from request
-          @sso_config.provider_type    = @provider_type
-          @sso_config.display_name     = @display_name    # Empty string clears the field
+          config.provider_type    = @provider_type
+          config.display_name     = @display_name    # Empty string clears the field
           # Provider-scoped fields: '' clears. client_secret is empty only for
           # OIDC public clients and SAML (validate_client_credentials requires
           # it otherwise).
-          replacement_attributes.each { |name, value| @sso_config.public_send(:"#{name}=", value) }
-          @sso_config.allowed_domains  = @allowed_domains # Empty array clears the field
-          @sso_config.enabled          = @enabled.to_s
-          @sso_config.enforce_sso_only = @enforce_sso_only.to_s
-          @sso_config.grant_org_scope  = @grant_org_scope.to_s
+          replacement_attributes.each { |name, value| config.public_send(:"#{name}=", value) }
+          config.allowed_domains  = @allowed_domains # Empty array clears the field
+          config.enabled          = @enabled.to_s
+          config.enforce_sso_only = @enforce_sso_only.to_s
+          config.grant_org_scope  = @grant_org_scope.to_s
 
           # Update timestamp for replacement
-          @sso_config.updated = Familia.now.to_i
+          config.updated = Familia.now.to_i
 
           # Fail closed if the request validators above missed a field
           # combination: the model owns the invariants (SsoConfig#validation_errors)
           # and nothing invalid may be committed.
-          errors = @sso_config.validation_errors
+          errors = config.validation_errors
           raise_form_error(errors.join('; '), error_type: :invalid) if errors.any?
-
-          # commit_fields runs its own transaction internally for atomicity
-          @sso_config.commit_fields
         end
 
         # Log enabled/disabled state change if it occurred.

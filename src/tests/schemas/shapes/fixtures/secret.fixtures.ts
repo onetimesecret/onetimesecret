@@ -53,6 +53,7 @@ export function createCanonicalSecretBase(
     state: 'new' as SecretState,
     has_passphrase: false,
     verification: false,
+    display_type: 'text',
     secret_value: undefined,
 
     // State boolean fields
