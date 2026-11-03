@@ -39,8 +39,8 @@ module Onetime::Customer::Features
       base.field :joined
       base.boolean_field :verified
       # Provenance tag for how the account became verified; nil when
-      # unverified. See Auth::Operations::Customers::Doctor::VALID_VERIFIED_BY
-      # for the full list of in-use values and where each is written.
+      # unverified. See Onetime::Customer::VERIFIED_BY_VALUES for the full
+      # list of in-use values and where each is written.
       base.field :verified_by
 
       # Why an sso_jit customer was left unverified at JIT provisioning; one
@@ -91,6 +91,25 @@ module Onetime::Customer::Features
         raise ArgumentError,
           "Unknown verification_hold #{value.inspect}; " \
           "expected one of: #{Onetime::Customer::VERIFICATION_HOLDS.keys.join(', ')}"
+      end
+
+      # Refuse an unknown verified_by provenance tag before anything is
+      # written. nil / blank is NOT rejected here: it is the stored form of
+      # "no provenance" (unverified, or a pre-tag record the doctor's
+      # verified_by repair backfills as 'legacy'), and callers that clear
+      # verification pass it deliberately.
+      #
+      # @param value [String, Symbol, nil] candidate verified_by tag
+      # @raise [ArgumentError] when value is present and not one of
+      #   Onetime::Customer::VERIFIED_BY_VALUES
+      # @return [void]
+      def assert_known_verified_by!(value)
+        return if value.nil? || value.to_s.empty?
+        return if Onetime::Customer::VERIFIED_BY_VALUES.include?(value.to_s)
+
+        raise ArgumentError,
+          "Unknown verified_by provenance #{value.inspect}; " \
+          "expected one of: #{Onetime::Customer::VERIFIED_BY_VALUES.join(', ')}"
       end
 
       # Where a closure stands: the one rule every reader of the closure

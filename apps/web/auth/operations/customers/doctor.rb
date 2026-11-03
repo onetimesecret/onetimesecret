@@ -92,10 +92,9 @@ module Auth
         #                    colonel/set_user_verification.rb)
         #   legacy         - backfilled by this doctor's verified_by repair
         # Keep this list in sync when adding a new provenance writer.
-        VALID_VERIFIED_BY = %w[
-          email stripe_payment autoverify sso
-          invite_token cli_provision colonel_admin legacy
-        ].freeze
+        # Canonical list lives on the model (single source, enforced at the
+        # write sites); kept here as an alias for existing callers and specs.
+        VALID_VERIFIED_BY = Onetime::Customer::VERIFIED_BY_VALUES
 
         # Counter fields to check
         COUNTER_FIELDS = [:secrets_created, :secrets_burned, :secrets_shared, :emails_sent].freeze
