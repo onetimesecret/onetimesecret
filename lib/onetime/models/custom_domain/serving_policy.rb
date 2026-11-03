@@ -56,12 +56,29 @@ module Onetime
       #
       # - A Colonel override (verified_by_override) counts under any
       #   strategy: an operator asserted ownership for this one name.
-      # - Otherwise ownership_verified counts only under a validation
-      #   strategy that checks the TXT record (ownership_proof_checked?).
-      #   Under passthrough the verify call sets ownership_verified for any
-      #   name the organization registers, without a DNS lookup, and ADR-049
-      #   calls that operator policy "an authorization basis, not evidence
-      #   that the customer owns the hostname".
+      # - Otherwise two things must both be true: the install's validation
+      #   strategy checks the TXT record (ownership_proof_checked?), and a
+      #   passing check is on record for this domain (#txt_pass_recorded?,
+      #   from verified_confirmed_at). VerifyDomain writes that epoch only
+      #   for a pass from a strategy that proves ownership
+      #   (Operations::VerifyDomain::ConfirmationWindow#record_settled).
+      #
+      # ownership_verified alone is not evidence, even under a TXT strategy.
+      # A passthrough pass sets it for any name the organization registers,
+      # without a DNS lookup, and records no confirmation
+      # (ConfirmationWindow#record_skipped); ADR-049 calls that operator
+      # policy "an authorization basis, not evidence that the customer owns
+      # the hostname". A domain verified before v0.26.14, when the
+      # confirmation field did not exist, and not checked since has the flag
+      # and no record either. ADR-016 treats such a domain as never confirmed
+      # once the install moves to caddy_on_demand, and ADR-049 says a switch
+      # to either TXT strategy stops operator-policy authorization from
+      # qualifying at once, before any refresh, and that a persisted verified
+      # flag may not satisfy the check by itself. So the switch must not
+      # promote a flag no check ever backed: the domain counts once bin/ots
+      # domains verify or the scheduled refresh records a pass. A later
+      # failing check withdraws ownership_verified, which is read first, so a
+      # stale record of an earlier pass never counts on its own.
       #
       # Stricter than #serving_authorized?, which accepts registration alone
       # under passthrough. Serving a name is not the same as owning the
@@ -76,7 +93,18 @@ module Onetime
         return false unless ownership_verified == true
         return true if verified_by_override == true
 
-        self.class.ownership_proof_checked?
+        self.class.ownership_proof_checked? && txt_pass_recorded?
+      end
+
+      # Whether a passing TXT check is on record for this domain:
+      # verified_confirmed_at (an integer_field, read back as Integer or
+      # nil) is an epoch after zero. nil, an empty string and 0 all mean no
+      # pass. Says nothing about which strategy is configured now; that is
+      # #ownership_proven?.
+      #
+      # @return [Boolean]
+      def txt_pass_recorded?
+        verified_confirmed_at.to_i.positive?
       end
 
       # #serving_authorized?, or any record with an organization while the
@@ -117,9 +145,9 @@ module Onetime
           validation_strategy_state != :no_proof
         end
 
-        # Whether ownership_verified on its own is evidence of ownership for
-        # #ownership_proven?: true only when the strategy is known to check
-        # the TXT record (approximated, caddy_on_demand).
+        # Whether the install's strategy is known to check the TXT record
+        # (approximated, caddy_on_demand), so that a recorded pass counts as
+        # evidence of ownership for #ownership_proven?.
         #
         # A strategy that cannot be built answers false, so proof fails
         # closed and only a Colonel override counts.

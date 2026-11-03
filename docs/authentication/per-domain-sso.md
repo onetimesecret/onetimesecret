@@ -262,9 +262,26 @@ on the ownership axis
 
 - a Colonel has overridden its verification to true (`verified_by_override`),
   under any validation strategy; or
-- its ownership is verified (`ownership_verified`) and the install's
-  validation strategy checks the TXT record (`approximated`,
-  `caddy_on_demand`), so the flag is the result of a passing TXT check.
+- its ownership is verified (`ownership_verified`), the install's validation
+  strategy checks the TXT record (`approximated`, `caddy_on_demand`), and a
+  TXT check has passed since it was verified (`verified_confirmed_at`, the
+  epoch of the last passing check, written only for a pass from such a
+  strategy).
+
+The verified flag alone is not evidence. A domain verified under
+`passthrough`, or before v0.26.14 (when no pass was recorded), and not
+checked since has the flag and no recorded pass. ADR-016 treats such a
+domain as never confirmed after a move to `caddy_on_demand`, and
+[ADR-049](../adr/adr-049-operator-managed-domain-authorization.md) says a
+switch to either TXT strategy stops operator-policy authorization from
+qualifying at once, before any refresh, and that the persisted flag may not
+satisfy the check by itself. Such a domain counts only after
+`bin/ots domains verify --all` or the scheduled refresh (`DomainRefreshJob`)
+records a pass. Until then new
+people at that domain are refused with `domain_not_allowed`; people whose
+identity is already bound to an account keep signing in.
+`bin/ots sso audit-email-domains DOMAIN` lists the organization's verified
+domains that have no recorded pass under `No TXT pass:`.
 
 The TXT challenge is placed under the name as entered, so a verified
 `secrets.acme.example` proves that name and the names below it. It does not
@@ -297,8 +314,8 @@ What a passthrough operator does for each organization that uses tenant SSO:
    override), or call `POST /api/colonel/domains/:extid/override` with
    `verified: true`. A later passthrough verify call leaves the override in
    place. A passing TXT check (after a move to a strategy that checks TXT)
-   clears it and keeps the domain verified; overriding back to false
-   withdraws it.
+   clears it, records the pass and keeps the domain verified; overriding
+   back to false withdraws it.
 3. Run `bin/ots sso audit-email-domains DOMAIN` for the tenant domain. Its
    header line `Proven by:` reads `Colonel override only` on passthrough, and
    rows reported `outside` are identities whose address no overridden domain

@@ -106,11 +106,13 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
 
   # A second custom domain of the same organization, verified or not, so the
   # proven set can extend beyond the tenant host. A verified one is accepted
-  # by Colonel override unless `override: false` is passed.
-  def add_org_domain(tenant, display_domain, verified:, override: verified)
-    domain                      = Onetime::CustomDomain.parse(display_domain, tenant.org.objid)
-    domain.ownership_verified   = verified
-    domain.verified_by_override = override
+  # by Colonel override unless `override: false` is passed; `confirmed: true`
+  # records a passing TXT check (verified_confirmed_at).
+  def add_org_domain(tenant, display_domain, verified:, override: verified, confirmed: false)
+    domain                       = Onetime::CustomDomain.parse(display_domain, tenant.org.objid)
+    domain.ownership_verified    = verified
+    domain.verified_by_override  = override
+    domain.verified_confirmed_at = Time.now.to_i - 3600 if confirmed
     domain.save
     tenant.org.add_domain(domain)
     fixtures << domain
@@ -334,14 +336,19 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
       expect(payload['unlink']).to be true
       expect(payload['issuer']).to eq(tenant_issuer)
       expect(payload['proof_basis']).to eq('override_only')
+      # Under passthrough the basis line already says why the flag alone
+      # does not count; the missing-pass list is for TXT strategies.
+      expect(payload['verified_without_txt_pass']).to eq([])
       expect(payload['statistics']['unlink']).to eq(1)
       expect(payload['results'].first['status']).to eq('would_unlink')
       expect(payload['results'].first['asserted_domain']).to eq('unrelated.example.org')
       expect(identity_exists?(outside[:identity_id])).to be true
     end
 
-    # Under a strategy that checks the TXT record, ownership_verified is the
-    # result of a passing check, so a domain counts without an override.
+    # Under a strategy that checks the TXT record, a domain counts without an
+    # override once a passing check is on record. A domain verified with no
+    # record (under passthrough before the switch, or before v0.26.14) does
+    # not, and the command names it so the operator knows to re-verify.
     context 'under a validation strategy that checks the TXT record (approximated)' do
       before do
         @saved_domains_section         = OT.conf['features']['domains']
@@ -350,13 +357,15 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
 
       after { OT.conf['features']['domains'] = @saved_domains_section }
 
-      it 'names the TXT basis and reports a domain verified without an override as inside (JSON)' do
+      it 'names the TXT basis, counts a recorded pass and names a verified domain without one (JSON)' do
         expect(Onetime::CustomDomain.ownership_proof_checked?).to be(true)
 
         tenant = build_tenant
         run    = SecureRandom.hex(4)
-        add_org_domain(tenant, "txt-#{run}.example.com", verified: true, override: false)
+        add_org_domain(tenant, "txt-#{run}.example.com", verified: true, override: false, confirmed: true)
+        legacy  = add_org_domain(tenant, "legacy-#{run}.example.com", verified: true, override: false)
         txt_row = seed_identity(tenant, "a@txt-#{run}.example.com")
+        old_row = seed_identity(tenant, "b@legacy-#{run}.example.com")
         outside = seed_identity(tenant, "victim-#{SecureRandom.hex(4)}@unrelated.example.org")
 
         output  = run_command(Onetime::CLI::SsoAuditEmailDomainsCommand.new,
@@ -364,9 +373,24 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
         payload = JSON.parse(output)
 
         expect(payload['proof_basis']).to eq('txt_or_override')
+        expect(payload['verified_without_txt_pass']).to eq([legacy.display_domain])
         statuses = payload['results'].to_h { |r| [r['account_id'], r['status']] }
         expect(statuses[txt_row[:account_id]]).to eq('inside')
+        expect(statuses[old_row[:account_id]]).to eq('outside')
         expect(statuses[outside[:account_id]]).to eq('outside')
+      end
+
+      it 'prints the verified domains that have no TXT pass on record in text mode' do
+        tenant = build_tenant
+        run    = SecureRandom.hex(4)
+        legacy = add_org_domain(tenant, "legacy-#{run}.example.com", verified: true, override: false)
+
+        output = run_command(Onetime::CLI::SsoAuditEmailDomainsCommand.new,
+          domain: tenant.domain.display_domain, unlink: false, confirm: false, json: false)
+
+        expect(output).to include('Proven by:    TXT ownership check or Colonel override')
+        expect(output).to include("No TXT pass:  #{legacy.display_domain}")
+        expect(output).to include('bin/ots domains verify --all')
       end
     end
 

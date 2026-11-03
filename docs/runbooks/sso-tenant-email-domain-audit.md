@@ -7,11 +7,19 @@ Use this runbook after upgrading to a release that includes #4734
 Since #4734, tenant SSO creates an account only for an address inside a
 custom domain the tenant organization has proven
 ([per-domain SSO: verified email domains](../authentication/per-domain-sso.md#verified-email-domains)).
-A domain is proven by a Colonel override of its verification, or by its
-verified flag under a validation strategy that checks the TXT record
-(`approximated`, `caddy_on_demand`). Under `passthrough` (the default) the
-verify call sets the flag without a DNS lookup, so there only a Colonel
-override counts.
+A domain is proven by a Colonel override of its verification, or, under a
+validation strategy that checks the TXT record (`approximated`,
+`caddy_on_demand`), by its verified flag together with a passing TXT check
+on record (`verified_confirmed_at`, written since v0.26.14 for a pass from
+such a strategy). The flag alone does not count: a domain verified under
+`passthrough`, or before v0.26.14, and not checked since has it with no
+recorded pass; ADR-016 treats such a domain as never confirmed after a move
+to `caddy_on_demand`, and ADR-049 says a switch to either TXT strategy must
+not let the flag qualify by itself. Such a domain
+counts once `bin/ots domains verify --all` or the scheduled refresh records
+a pass. Under `passthrough` (the default) the verify call sets the flag
+without a DNS lookup and records no pass, so there only a Colonel override
+counts.
 The gate runs when an account is about to be created. An identity bound to an
 account before the gate existed keeps signing in; the sign-in hook records it
 with `outcome: signed_in` so the operator can review it. That event lists only
@@ -34,6 +42,11 @@ identity rows themselves, so dormant bindings are found too.
   and every returning tenant user logs `outcome: signed_in`, because no
   domain has a Colonel override yet. See
   [Passthrough installs](#passthrough-installs).
+- On an `approximated` or `caddy_on_demand` install after the upgrade, the
+  same symptoms for a domain that was verified before v0.26.14, or under
+  `passthrough` before the strategy changed, and has not been checked since:
+  it has no recorded TXT pass. See
+  [Verified domains without a recorded TXT pass](#verified-domains-without-a-recorded-txt-pass).
 
 ## What the command does
 
@@ -64,6 +77,12 @@ strategy cannot be built (an unknown `validation_strategy` with
 `override_only_strategy_error`; fix the setting before reading the rows.
 Read the `outside` rows against it.
 
+Under a TXT strategy the header also lists, as `No TXT pass:` (JSON
+`verified_without_txt_pass`), the organization's domains that are verified
+without an override and have no passing TXT check on record. Those domains
+do not count, so addresses at them report `outside` until a verify run
+records a pass.
+
 Statuses:
 
 | Status | Meaning |
@@ -89,6 +108,11 @@ apart:
   verification instead, after confirming the organization owns it. The row
   then reports `inside` on the next run. The domain never has to be pointed
   at this service;
+- a legitimate member at a domain the header lists under `No TXT pass:`.
+  The domain is verified, but no passing TXT check is on record. Run
+  `bin/ots domains verify --all` (or wait for the scheduled refresh); when
+  the check passes, the row reports `inside` on the next run. Do not unlink
+  on this basis;
 - an account the tenant IdP minted for an address its organization does not
   control. This is the squatting the risk register describes: when the
   address owner later uses a canonical-host password reset or magic link,
@@ -113,6 +137,31 @@ tenant's own custom domain. Do not unlink on that basis.
    `verified: true`). A later passthrough verify call keeps the override.
 3. Run the audit again. Rows at an overridden domain now report `inside`;
    decide the remaining `outside` rows as above.
+
+## Verified domains without a recorded TXT pass
+
+Under `approximated` or `caddy_on_demand`, a domain counts only when a TXT
+check has passed since it was verified. `verified_confirmed_at` records that
+pass and first shipped in v0.26.14, so a domain verified before that release
+and not checked since has none; neither does a domain verified under
+`passthrough` before the install moved to a TXT strategy and not checked
+since. ADR-016 treats such a domain as never confirmed after a move to
+`caddy_on_demand`, and ADR-049 says a switch to either TXT strategy must not
+let the flag qualify by itself. The header's `No TXT pass:` line names these
+domains.
+
+1. Run `bin/ots domains verify --all` after upgrading, or enable the
+   scheduled refresh (`DomainRefreshJob`). A domain whose record is in place
+   passes and counts from then on; one whose record is missing is demoted,
+   which is the state ADR-016 describes for it.
+2. Run the audit again. Rows at a domain that passed now report `inside`.
+3. A domain that cannot pass (a private network, a record the organization
+   will not add) can be accepted by Colonel override instead, after the
+   operator confirms the organization owns it.
+
+Until the pass is recorded, new people at that domain are refused with
+`domain_not_allowed`; people whose identity is already bound to an account
+keep signing in and log `outcome: signed_in`.
 
 ## Unlinking
 
@@ -154,7 +203,8 @@ domain id, so the gate is a formality there, but it is applied uniformly.
 ### Re-admitting a legitimate user after an unlink
 
 1. The organization proves the user's email domain: it adds the domain
-   under Domains and passes the TXT check, or, on a `passthrough` install, a
+   under Domains and passes the TXT check (a domain already verified with no
+   recorded pass needs a verify run), or, on a `passthrough` install, a
    Colonel overrides the domain's verification.
 2. The user signs in on the canonical host. An account minted by SSO has no
    password: they use the password reset first.
@@ -174,6 +224,7 @@ $ bin/ots sso audit-email-domains secrets.example.com --unlink --json
   "issuer": "https://idp.example.com/",
   "sso_enabled": true,
   "proof_basis": "txt_or_override",
+  "verified_without_txt_pass": [],
   "dry_run": true,
   "unlink": true,
   "statistics": {

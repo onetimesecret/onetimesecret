@@ -9,12 +9,13 @@
 # signing in and is recorded.
 #
 # Proven means ownership that rests on evidence
-# (CustomDomain#ownership_proven?): a Colonel override, or ownership_verified
-# under a validation strategy that checks the TXT record. The test install
-# runs passthrough, whose verify call sets ownership_verified for any name
-# the organization registers without a DNS lookup, so there only an override
-# counts. The fixtures accept ownership by override unless an example says
-# otherwise.
+# (CustomDomain#ownership_proven?): a Colonel override, or, under a
+# validation strategy that checks the TXT record, ownership_verified with a
+# passing check on record (verified_confirmed_at). The test install runs
+# passthrough, whose verify call sets ownership_verified for any name the
+# organization registers without a DNS lookup and records no pass, so there
+# only an override counts. The fixtures accept ownership by override unless
+# an example says otherwise.
 #
 # Derived from the probe in docs/security/audits/security-audit-2026-10-10.md
 # (P1), which passed against baseline 3a30ad2eeb and must fail now.
@@ -67,11 +68,13 @@ RSpec.describe 'Tenant SSO verified email domains (#4734)', type: :integration d
   # A second custom domain of the tenant organization, listed in its domains
   # set, with the ownership axis in the given state. Nothing on the serving
   # axis: proving an email namespace never requires pointing it at us. A
-  # verified one is accepted by Colonel override unless `override: false`.
-  def add_org_domain(display_domain, verified:, override: verified)
-    domain                      = Onetime::CustomDomain.parse(display_domain, tenant[:org].objid)
-    domain.ownership_verified   = verified
-    domain.verified_by_override = override
+  # verified one is accepted by Colonel override unless `override: false`;
+  # `confirmed: true` records a passing TXT check (verified_confirmed_at).
+  def add_org_domain(display_domain, verified:, override: verified, confirmed: false)
+    domain                       = Onetime::CustomDomain.parse(display_domain, tenant[:org].objid)
+    domain.ownership_verified    = verified
+    domain.verified_by_override  = override
+    domain.verified_confirmed_at = Time.now.to_i - 3600 if confirmed
     domain.save
     tenant[:org].add_domain(domain)
     @extra_domains << domain
@@ -101,11 +104,14 @@ RSpec.describe 'Tenant SSO verified email domains (#4734)', type: :integration d
     settings.each { |key, value| OT.conf['features']['domains'][key.to_s] = value }
   end
 
-  # ownership_verified set and no override: what a passthrough verify call
-  # leaves, or a passing TXT check under a strategy that makes one.
-  def verified_without_override!(domain)
-    domain.ownership_verified   = true
-    domain.verified_by_override = false
+  # ownership_verified set and no override. With `confirmed: false`, what a
+  # passthrough verify call leaves (no TXT pass on record); with
+  # `confirmed: true`, what a passing TXT check under a strategy that makes
+  # one leaves (verified_confirmed_at set).
+  def verified_without_override!(domain, confirmed:)
+    domain.ownership_verified    = true
+    domain.verified_by_override  = false
+    domain.verified_confirmed_at = confirmed ? Time.now.to_i - 3600 : nil
     domain.save
   end
 
@@ -239,7 +245,7 @@ RSpec.describe 'Tenant SSO verified email domains (#4734)', type: :integration d
     end
 
     it 'refuses an address at the tenant custom domain verified without an override' do
-      verified_without_override!(tenant[:domain])
+      verified_without_override!(tenant[:domain], confirmed: false)
 
       tenant_callback(inside_email)
 
@@ -279,8 +285,10 @@ RSpec.describe 'Tenant SSO verified email domains (#4734)', type: :integration d
     end
   end
 
-  # Under a strategy that checks the TXT record, ownership_verified is the
-  # result of a passing check, so it counts without an override.
+  # Under a strategy that checks the TXT record, a domain counts without an
+  # override once a passing check is on record. The flag alone does not: a
+  # domain verified under passthrough before the switch, or before v0.26.14,
+  # has it with no record (ADR-016, ADR-049).
   describe 'under a validation strategy that checks the TXT record (approximated)' do
     before do
       Onetime::CustomDomain.reset_serving_policy!
@@ -293,21 +301,46 @@ RSpec.describe 'Tenant SSO verified email domains (#4734)', type: :integration d
       expect(Onetime::CustomDomain.ownership_proof_required?).to be(true)
     end
 
-    it 'mints an address at the tenant custom domain verified without an override' do
-      verified_without_override!(tenant[:domain])
+    it 'mints an address at the tenant custom domain verified by a recorded TXT pass' do
+      verified_without_override!(tenant[:domain], confirmed: true)
 
       tenant_callback(inside_email)
 
       expect_minted_verified_account(inside_email)
     end
 
-    it 'mints an address in a second custom domain verified without an override' do
-      mail  = add_org_domain("mail-#{run_id}.example.net", verified: true, override: false)
+    it 'mints an address in a second custom domain verified by a recorded TXT pass' do
+      mail  = add_org_domain("mail-#{run_id}.example.net", verified: true, override: false, confirmed: true)
       email = "user-#{run_id}@#{mail.display_domain}"
 
       tenant_callback(email)
 
       expect_minted_verified_account(email)
+    end
+
+    it 'refuses an address at the tenant custom domain verified with no TXT pass on record' do
+      # Verified under passthrough before the strategy was switched: the
+      # flag survived the switch, the record of a pass does not exist.
+      verified_without_override!(tenant[:domain], confirmed: false)
+
+      tenant_callback(inside_email)
+
+      expect_nothing_minted(inside_email)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_tenant_email_domain_unverified, hash_including(
+          outcome: :refused,
+          reason: :email_domain_unverified,
+          asserted_domain: host,
+        ))
+    end
+
+    it 'refuses an address in a second custom domain verified with no TXT pass on record' do
+      legacy = add_org_domain("legacy-#{run_id}.example.net", verified: true, override: false)
+      email  = "user-#{run_id}@#{legacy.display_domain}"
+
+      tenant_callback(email)
+
+      expect_nothing_minted(email)
     end
 
     it 'still refuses a second custom domain whose TXT check has not passed' do

@@ -26,7 +26,9 @@ module Onetime
       # domain reads as verified, so the operator needs to see that only
       # overrides count before reading "outside" rows. A strategy that cannot
       # be built (an unknown name under strict_strategy) also leaves only
-      # overrides, and is named so the operator fixes the setting.
+      # overrides, and is named so the operator fixes the setting. Under a
+      # TXT strategy a verified domain counts only with a passing check on
+      # record; the ones without are listed (see #verified_without_txt_pass).
       PROOF_BASIS_LABELS = {
         'txt_or_override' => 'TXT ownership check or Colonel override',
         'override_only' => 'Colonel override only (validation strategy makes no TXT check)',
@@ -127,7 +129,34 @@ module Onetime
         puts "  Issuer:       #{op.issuer}"
         puts "  Mode:         #{dry_run ? 'DRY RUN' : 'LIVE'}#{op.unlink ? ' (unlink)' : ' (report)'}"
         puts "  Proven by:    #{proof_basis_label}"
+        missing = verified_without_txt_pass(custom_domain, op)
+        unless missing.empty?
+          puts "  No TXT pass:  #{missing.join(', ')}"
+          puts '                (verified, no passing TXT check on record, so not proven; ' \
+               'run bin/ots domains verify --all or wait for the scheduled refresh)'
+        end
         puts '  WARNING:      SSO config for this domain is DISABLED' unless op.sso_enabled?
+      end
+
+      # Why a verified domain of the organization is outside the proven set
+      # under a TXT strategy: no passing TXT check is on record for it
+      # (CustomDomain#txt_pass_recorded?) and no Colonel override. That is a
+      # domain verified under passthrough before the strategy changed, or
+      # before v0.26.14, when no pass was recorded (ADR-016). A verify run
+      # records the pass and the domain counts from then on. Empty under any
+      # other strategy state, where the Proven by: line already says why the
+      # flag alone does not count. The tenant domain is included, so the
+      # list is right even when the organization's domain index misses it.
+      #
+      # @return [Array<String>] display domains, sorted
+      def verified_without_txt_pass(custom_domain, op)
+        return [] unless Onetime::CustomDomain.validation_strategy_state == :proves
+
+        ([custom_domain] + op.organization.list_domains)
+          .uniq(&:identifier)
+          .select { |domain| domain.ownership_verified == true && !domain.ownership_proven? }
+          .map { |domain| domain.display_domain.to_s }
+          .sort
       end
 
       # Which basis makes a domain proven on this install
@@ -190,9 +219,10 @@ module Onetime
 
             #{stats[:outside]} identity row(s) bind this tenant's IdP to an account whose address the
             organization has not proven. Review them, then either prove the email domain (the
-            organization adds it under Domains and passes the TXT check, or, where the validation
-            strategy makes no TXT check, a Colonel overrides its verification; the rows then
-            report "inside"), or remove the bindings:
+            organization adds it under Domains and passes the TXT check; a domain already verified
+            with no TXT pass on record needs a verify run, see "No TXT pass" above; or, where the
+            validation strategy makes no TXT check, a Colonel overrides its verification; the rows
+            then report "inside"), or remove the bindings:
               bin/ots sso audit-email-domains #{domain} --unlink --confirm
           MESSAGE
         elsif unlink && dry_run && stats[:unlink].positive?
@@ -231,6 +261,7 @@ module Onetime
           issuer: op.issuer,
           sso_enabled: op.sso_enabled?,
           proof_basis: proof_basis,
+          verified_without_txt_pass: verified_without_txt_pass(custom_domain, op),
           dry_run: dry_run,
           unlink: op.unlink,
           statistics: {
@@ -284,9 +315,11 @@ module Onetime
 
           Description:
             Since #4734 tenant SSO creates an account only for an address inside a
-            custom domain the organization has proven: by TXT ownership check, or by
-            a Colonel override (the only basis where the validation strategy makes no
-            TXT check, such as passthrough). An
+            custom domain the organization has proven: by a passing TXT ownership
+            check on record (the verified flag alone does not count, so a domain
+            verified under passthrough or before v0.26.14, and not checked since,
+            needs a verify run first), or by a Colonel override (the only basis
+            where the validation strategy makes no TXT check, such as passthrough). An
             identity bound to an account before that gate existed keeps signing in
             (hooks/login.rb records it as omniauth_tenant_email_domain_unverified,
             outcome signed_in). That event lists only the accounts that sign in

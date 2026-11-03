@@ -11,10 +11,12 @@
 # custom domain and completing the TXT check; the serving axis is irrelevant.
 #
 # A domain counts only when its ownership rests on evidence
-# (CustomDomain#ownership_proven?): a Colonel override, or ownership_verified
-# under a validation strategy that checks the TXT record. The test install
-# runs passthrough, whose verify call sets ownership_verified without a DNS
-# lookup, so the matching examples run under caddy_on_demand, set in OT.conf.
+# (CustomDomain#ownership_proven?): a Colonel override, or, under a
+# validation strategy that checks the TXT record, ownership_verified with a
+# passing check on record (verified_confirmed_at). The test install runs
+# passthrough, whose verify call sets ownership_verified without a DNS lookup
+# and records no pass, so the matching examples run under caddy_on_demand,
+# set in OT.conf.
 
 require 'spec_helper'
 require 'onetime/operations/verify_domain'
@@ -51,10 +53,14 @@ RSpec.describe 'Onetime::Organization#owns_email_domain?', :datastore do
 
   # A persisted custom domain listed in the org's domains set, with its
   # ownership axis in the given state. No serving-axis fields are touched.
-  def add_domain(display_domain, verified: true, override: false)
-    domain                      = Onetime::CustomDomain.parse(display_domain, @org.objid)
-    domain.ownership_verified   = verified
-    domain.verified_by_override = override
+  # A verified domain without an override has a TXT pass on record (what a
+  # passing check under a TXT strategy leaves) unless `confirmed: false`
+  # (what a passthrough verify call leaves).
+  def add_domain(display_domain, verified: true, override: false, confirmed: verified && !override)
+    domain                       = Onetime::CustomDomain.parse(display_domain, @org.objid)
+    domain.ownership_verified    = verified
+    domain.verified_by_override  = override
+    domain.verified_confirmed_at = Familia.now.to_i - 3600 if confirmed
     domain.save
     @org.add_domain(domain)
     @domains << domain
@@ -69,14 +75,17 @@ RSpec.describe 'Onetime::Organization#owns_email_domain?', :datastore do
     end
 
     describe '#verified_domains' do
-      it 'lists the custom domains whose ownership is accepted and no other' do
+      it 'lists the custom domains whose ownership is proven and no other' do
         proven   = add_domain(secrets_host)
         pending  = add_domain("pending-#{suffix}.acme-corp.example.com", verified: false)
         override = add_domain("override-#{suffix}.acme-corp.example.com", override: true)
+        # Verified with no TXT pass on record: verified under passthrough
+        # before the strategy changed, or before v0.26.14.
+        legacy   = add_domain("legacy-#{suffix}.acme-corp.example.com", confirmed: false)
 
         expect(@org.verified_domains.map(&:identifier))
           .to contain_exactly(proven.identifier, override.identifier)
-        expect(@org.verified_domains.map(&:identifier)).not_to include(pending.identifier)
+        expect(@org.verified_domains.map(&:identifier)).not_to include(pending.identifier, legacy.identifier)
       end
 
       it 'is empty for an organization without custom domains' do
@@ -121,6 +130,14 @@ RSpec.describe 'Onetime::Organization#owns_email_domain?', :datastore do
         expect(@org.owns_email_domain?(pending.display_domain)).to be(false)
       end
 
+      it 'does not count a verified custom domain with no TXT pass on record' do
+        legacy = add_domain("legacy-#{suffix}.acme-corp.example.com", confirmed: false)
+
+        expect(legacy.ownership_verified).to be(true)
+        expect(legacy.verified_confirmed_at).to be_nil
+        expect(@org.owns_email_domain?(legacy.display_domain)).to be(false)
+      end
+
       it 'counts a custom domain accepted by Colonel override' do
         forced = add_domain("override-#{suffix}.acme-corp.example.com", override: true)
 
@@ -152,7 +169,8 @@ RSpec.describe 'Onetime::Organization#owns_email_domain?', :datastore do
 
       it 'judges against a caller-supplied set instead of loading one' do
         stranger = Onetime::CustomDomain.parse("stranger-#{suffix}.example.net", @org.objid)
-        stranger.ownership_verified = true
+        stranger.ownership_verified    = true
+        stranger.verified_confirmed_at = Familia.now.to_i
 
         expect(@org.owns_email_domain?(stranger.display_domain, domains: [stranger])).to be(true)
         expect(@org.owns_email_domain?(secrets_host, domains: [stranger])).to be(false)
@@ -195,10 +213,13 @@ RSpec.describe 'Onetime::Organization#owns_email_domain?', :datastore do
     end
 
     it 'does not count ownership_verified alone, however it was set' do
-      verified = add_domain(secrets_host)
+      verified = add_domain(secrets_host, confirmed: false)
+      # A TXT pass recorded under an earlier strategy does not count here either.
+      earlier  = add_domain("earlier-#{suffix}.acme-corp.example.com", confirmed: true)
 
       expect(@org.verified_domains).to eq([])
       expect(@org.owns_email_domain?(secrets_host)).to be(false)
+      expect(@org.owns_email_domain?(earlier.display_domain)).to be(false)
       expect(@org.owns_email_domain_through?(verified, secrets_host)).to be(false)
     end
 

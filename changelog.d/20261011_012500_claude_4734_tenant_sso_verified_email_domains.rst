@@ -7,8 +7,9 @@ Security
   address whose domain the organization has proven it owns: the custom
   domain itself, a name below it, or another custom domain of the
   organization. A domain counts when a Colonel has overridden its
-  verification, or when it is verified under a validation strategy that
-  checks the TXT record (``approximated``, ``caddy_on_demand``). Before this,
+  verification, or when, under a validation strategy that checks the TXT
+  record (``approximated``, ``caddy_on_demand``), it is verified and a TXT
+  check has passed since (the verified flag alone does not count). Before this,
   a tenant's identity provider could create a verified account for any
   address that had no account yet, and the address owner's later password
   reset or magic link would then share that account with the tenant
@@ -49,3 +50,19 @@ Security
   that control for a domain that is verified but not by override, since
   ticking "Ownership verified" there found nothing to change. See ``docs/authentication/per-domain-sso.md``,
   "Passthrough installs". (#4734)
+
+- **Action required (approximated and caddy_on_demand installs with tenant
+  SSO)**: a verified domain proves an email domain only when a passing TXT
+  check is on record for it (``verified_confirmed_at``, recorded since
+  v0.26.14). A domain verified before that release and not checked since, or
+  verified under ``passthrough`` before the install moved to a TXT strategy
+  and not checked since, has the flag and no recorded pass, and does not
+  count until a check records one (ADR-016, ADR-049). After upgrading, run
+  ``bin/ots domains verify --all``, or enable the scheduled domain refresh
+  job; otherwise tenant SSO creates no new accounts for addresses at such a
+  domain (new people are refused with ``domain_not_allowed``). People whose
+  identity is already bound to an account keep signing in.
+  ``bin/ots sso audit-email-domains DOMAIN`` lists the organization's
+  verified domains that have no recorded pass under ``No TXT pass:`` (JSON
+  ``verified_without_txt_pass``), so it shows which domains count. Serving
+  custom domains does not change. (#4734)

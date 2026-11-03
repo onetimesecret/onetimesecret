@@ -136,17 +136,19 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Serializers do
   # CustomDomain#ownership_proven? (all real), over unsaved domain records
   # whose organization lookup is stubbed.
   #
-  # A domain is proven by a Colonel override, or by ownership_verified under
-  # a validation strategy that checks the TXT record. The fixtures below use
-  # an override, which counts under any strategy; the strategy contexts at
-  # the end cover ownership_verified alone.
+  # A domain is proven by a Colonel override, or, under a validation strategy
+  # that checks the TXT record, by ownership_verified with a passing check on
+  # record (verified_confirmed_at). The fixtures below use an override, which
+  # counts under any strategy; the strategy contexts at the end cover
+  # ownership_verified with and without a recorded pass.
   describe '#serialize_sso_config email domain proof' do
     let(:organization) { Onetime::Organization.allocate }
 
-    def domain_double(id, name, verified:, override: false)
-      domain                      = Onetime::CustomDomain.new(display_domain: name, org_id: 'org-serializer')
-      domain.ownership_verified   = verified
-      domain.verified_by_override = override
+    def domain_double(id, name, verified:, override: false, confirmed: false)
+      domain                       = Onetime::CustomDomain.new(display_domain: name, org_id: 'org-serializer')
+      domain.ownership_verified    = verified
+      domain.verified_by_override  = override
+      domain.verified_confirmed_at = Time.now.to_i - 3600 if confirmed
       allow(domain).to receive_messages(identifier: id, primary_organization: organization)
       domain
     end
@@ -210,34 +212,39 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Serializers do
 
     context 'under a validation strategy that makes no TXT check (passthrough)' do
       # The verify call set ownership_verified on beispiel.org without a DNS
-      # lookup; only the override on secrets.acme.com is evidence.
-      let(:apex_domain) { domain_double('dom-apex', 'beispiel.org', verified: true) }
-      let(:org_domains) { [own_domain, apex_domain] }
-      let(:allowed)     { %w[secrets.acme.com beispiel.org] }
+      # lookup, and a pass recorded under an earlier strategy on earlier.org
+      # does not count here; only the override on secrets.acme.com is evidence.
+      let(:apex_domain)    { domain_double('dom-apex', 'beispiel.org', verified: true) }
+      let(:earlier_domain) { domain_double('dom-earlier', 'earlier.org', verified: true, confirmed: true) }
+      let(:org_domains)    { [own_domain, apex_domain, earlier_domain] }
+      let(:allowed)        { %w[secrets.acme.com beispiel.org earlier.org] }
 
       before { configure_domains(validation_strategy: 'passthrough') }
 
       it 'counts only the domains accepted by Colonel override' do
         expect(payload).to include(
           verified_email_domains: ['secrets.acme.com'],
-          unverified_allowed_domains: ['beispiel.org'],
+          unverified_allowed_domains: %w[beispiel.org earlier.org],
         )
       end
     end
 
     context 'under a validation strategy that checks the TXT record (caddy_on_demand)' do
-      # ownership_verified there is the result of a passing TXT check.
-      let(:own_domain)  { domain_double('dom-own', 'secrets.acme.com', verified: true) }
-      let(:apex_domain) { domain_double('dom-apex', 'beispiel.org', verified: true) }
-      let(:org_domains) { [own_domain, apex_domain, unproven] }
-      let(:allowed)     { %w[secrets.acme.com beispiel.org pending.org] }
+      # secrets.acme.com and beispiel.org have a passing TXT check on record.
+      # legacy.org is verified with none: a passthrough pass before the
+      # strategy changed, or a verification from before v0.26.14.
+      let(:own_domain)    { domain_double('dom-own', 'secrets.acme.com', verified: true, confirmed: true) }
+      let(:apex_domain)   { domain_double('dom-apex', 'beispiel.org', verified: true, confirmed: true) }
+      let(:legacy_domain) { domain_double('dom-legacy', 'legacy.org', verified: true) }
+      let(:org_domains)   { [own_domain, apex_domain, legacy_domain, unproven] }
+      let(:allowed)       { %w[secrets.acme.com beispiel.org legacy.org pending.org] }
 
       before { configure_domains(validation_strategy: 'caddy_on_demand') }
 
-      it 'counts ownership_verified without an override' do
+      it 'counts ownership_verified with a recorded TXT pass and no other' do
         expect(payload).to include(
           verified_email_domains: %w[beispiel.org secrets.acme.com],
-          unverified_allowed_domains: ['pending.org'],
+          unverified_allowed_domains: %w[legacy.org pending.org],
         )
       end
     end
