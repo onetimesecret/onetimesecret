@@ -1,0 +1,24 @@
+.. A new scriv changelog fragment.
+
+Fixed
+-----
+
+- SMTP delivery now honors ``SMTP_AUTH`` (``emailer.auth`` in
+  ``config.yaml``). Previously every authenticated SMTP session used
+  ``AUTH PLAIN`` and the setting was ignored, so servers that accept only
+  ``AUTH LOGIN``, such as Azure Communication Services, rejected delivery
+  with ``504 5.7.4 Unrecognized authentication type``. Accepted values are
+  ``plain``, ``login`` and ``cram_md5`` (``cram-md5`` also works, case
+  ignored). Unset or blank keeps the ``plain`` default. (#4889)
+
+Changed
+-------
+
+- Deployments that already set ``SMTP_AUTH`` now authenticate with that
+  mechanism. ``.env.reference`` shipped ``SMTP_AUTH=login``, so an
+  installation copied from it switches from ``AUTH PLAIN`` to
+  ``AUTH LOGIN`` on upgrade. If your server offers only ``PLAIN``, set
+  ``SMTP_AUTH=plain`` or unset it. An unrecognized ``SMTP_AUTH`` value
+  with SMTP credentials configured now fails delivery with an error naming
+  the accepted values instead of silently using ``PLAIN``.
+  ``.env.reference`` now shows ``SMTP_AUTH=plain``. (#4889)

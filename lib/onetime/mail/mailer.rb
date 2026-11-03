@@ -375,6 +375,7 @@ module Onetime
             'port' => present(conf['port']) || present(ENV.fetch('SMTP_PORT', nil)),
             'username' => present(conf['user']) || present(ENV.fetch('SMTP_USERNAME', nil)),
             'password' => present(conf['pass']) || present(ENV.fetch('SMTP_PASSWORD', nil)),
+            'auth' => present(conf['auth']) || present(ENV.fetch('SMTP_AUTH', nil)),
             'domain' => present(conf['domain']) || present(ENV.fetch('SMTP_DOMAIN', nil)),
             'tls' => conf['tls'],
             'ssl' => conf['ssl'],
