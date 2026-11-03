@@ -156,7 +156,10 @@ reasons, each logged as `omniauth_identity_connect_refused`:
 | `tenant_connect_prerequisites_incomplete` (kill switch closed, checked before the membership gate) | `identity_connect_wrong_domain` |
 | `tenant_membership_refused` (preceded by `tenant_connect_membership_refused`) | `identity_connect_wrong_domain` |
 | `tenant_issuerless` | `identity_connect_wrong_domain` |
-| `session_account_missing`, `session_customer_missing`, `identity_owned_elsewhere`, `lookup_error` | `identity_connect_conflict` |
+| `session_account_missing`, `session_customer_missing`, `session_customer_suspended` (backstop; the auth router normally ends a suspended session before the hook runs) | `identity_connect_conflict` |
+| `identity_owned_elsewhere` (exact tuple owned by another account) | `identity_connect_conflict` |
+| `identity_ownership_unconfirmed` (the post-write ownership re-read did not find the tuple owned by the session account, for example after a concurrent disconnect or rebind) | `identity_connect_conflict` |
+| `lookup_error` (a gate raised before the bind) | `identity_connect_conflict` |
 
 The complete table, including platform-only rows, is in
 [per-install-sso.md](./per-install-sso.md#refusals).
@@ -227,7 +230,9 @@ identity cannot bypass the gates.
    the complete `(provider, issuer, uid)` tuple. An unclaimed tuple is bound to
    the session account. A tuple already owned by that account is accepted
    without a duplicate row. A tuple owned by another account is refused
-   without switching sessions. The returned email is never used to select the
+   without switching sessions. After the write, the hook re-reads the tuple
+   and refuses with `identity_ownership_unconfirmed` unless the row is owned
+   by the session account. The returned email is never used to select the
    account. The successful connection is logged, and the re-authentication
    proof is cleared so a second bind needs a fresh ceremony.
 
@@ -296,9 +301,13 @@ provenance, the migration cannot tell whether the old row came from the tenant
 IdP or the platform IdP.
 
 A fresh tenant Connect binds a newly returned, issuer-specific identity to a
-session-authenticated account under Controls 1 and 2. The issue tracker
-records that the `signup_domain_id` provenance rule "remains specific to
-ambiguous legacy rows and does not apply to new tenant connections."
+session-authenticated account under Controls 1 and 2. The specification
+records, under
+[Why issuer backfill has an additional provenance gate](./per-domain-sso.md#why-issuer-backfill-has-an-additional-provenance-gate):
+"**Decision (2026-09-12):** `signup_domain_id` is not a requirement for new
+tenant connections." It adds: "The provenance check stays specific to the
+backfill operation and cannot replace either of the two required controls
+above."
 
 ## The panel
 
