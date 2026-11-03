@@ -1441,7 +1441,7 @@ emailer:
   #  :port: 1025                     # Mailpit default SMTP port
   #  :user: ~                        # No auth needed for Mailpit
   #  :pass: ~                        # No auth needed for Mailpit
-  #  :auth: false                    # Disable SMTP auth for Mailpit
+  #  :auth: ~                        # Ignored when user/pass are blank
   #  :tls: false                     # Disable TLS for local testing
 
   # Production Settings (for reference)
