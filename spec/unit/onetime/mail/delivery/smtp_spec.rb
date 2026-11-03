@@ -378,6 +378,18 @@ RSpec.describe Onetime::Mail::Delivery::SMTP do
       it 'ignores the auth setting when no credentials are configured' do
         expect { described_class.new(config.merge('auth' => 'ntlm')) }.not_to raise_error
       end
+
+      it 'names the rejected mechanism when the server refuses AUTH' do
+        backend = described_class.new(config.merge(credentials).merge('auth' => 'cram_md5'))
+        allow(backend).to receive(:deliver_with_settings)
+          .and_raise(Net::SMTPAuthenticationError, '504 5.7.4 Unrecognized authentication type')
+        allow(backend).to receive(:log_delivery)
+        allow(backend).to receive(:log_error)
+        allow(OT).to receive(:info)
+
+        expect { backend.deliver(email) }.to raise_error(Onetime::Mail::DeliveryError)
+        expect(OT).to have_received(:info).with(/Server rejected AUTH CRAM-MD5 \(SMTP_AUTH\): 504 5\.7\.4/)
+      end
     end
   end
 

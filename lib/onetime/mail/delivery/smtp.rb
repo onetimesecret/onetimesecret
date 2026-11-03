@@ -66,6 +66,12 @@ module Onetime
           begin
             deliver_with_settings(mail_message, settings)
           rescue Net::SMTPAuthenticationError => ex
+            # Name the mechanism: a bare 504 does not say which AUTH the
+            # server refused, and SMTP_AUTH is what the operator changes.
+            if settings[:authentication]
+              mechanism = settings[:authentication].to_s.upcase.tr('_', '-')
+              OT.info "[smtp] Server rejected AUTH #{mechanism} (SMTP_AUTH): #{ex.message.strip}"
+            end
             raise unless config['allow_unauthenticated_fallback']
 
             handle_auth_failure(mail_message, settings, ex)
@@ -185,8 +191,10 @@ module Onetime
 
         # Maps the `auth` setting (config, then ENV SMTP_AUTH) to a Net::SMTP
         # authtype. Unset or blank selects PLAIN. An unrecognized value
-        # raises instead of falling back to PLAIN: a fallback would send the
-        # password with a mechanism the operator did not choose.
+        # raises instead of falling back to PLAIN: a setting that silently
+        # does something other than what it names is the defect fixed in
+        # #4889. A fallback would also send the password with a mechanism
+        # the operator did not choose.
         #
         # @return [Symbol] :plain, :login or :cram_md5
         # @raise [ArgumentError] when the value names no supported mechanism
@@ -200,7 +208,7 @@ module Onetime
           AUTH_METHODS.fetch(value) do
             raise ArgumentError,
               "Unsupported SMTP auth method #{raw.to_s.inspect} (SMTP_AUTH); " \
-              'expected one of: plain, login, cram_md5'
+              'expected one of: plain, login, cram_md5. Unset it to use plain.'
           end
         end
 
