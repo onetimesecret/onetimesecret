@@ -12,9 +12,9 @@ Security
 - Updated ``sqlite3``, used by the SQLite authentication database, from
   2.9.6 to 2.10.2 for GHSA-4fqr-96q8-xrfx (Medium). (#4886)
 
-- Updated ``nokogiri`` from 1.19.4 to 1.19.7 for GHSA-4p39-36wj-23h4 and
-  GHSA-3w22-6jfg-527w (no severity published) and for GHSA-v995-44v6-5fqm
-  (Low), and ``loofah`` from 2.25.2 to 2.25.3 for GHSA-345x-3rq2-jfrm,
+- Updated ``nokogiri`` from 1.19.4 to 1.19.7 for GHSA-4p39-36wj-23h4 (Low),
+  GHSA-v995-44v6-5fqm (Low) and GHSA-3w22-6jfg-527w (no severity published),
+  and ``loofah`` from 2.25.2 to 2.25.3 for GHSA-345x-3rq2-jfrm,
   GHSA-h6v6-rg66-fqj4, GHSA-m3x9-938q-5767 and GHSA-mf2j-8f84-cc9q (all
   Medium) and for GHSA-jcff-cj73-4w4f and GHSA-p9wj-w8xq-vjx6 (no severity
   published). (#4895)
