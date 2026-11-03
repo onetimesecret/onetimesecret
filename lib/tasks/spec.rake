@@ -996,13 +996,17 @@ end
 
 # Smoke test tasks
 # Quick validation that the system works without running the full test suite.
-# Designed for CI's "comprehensive" job to catch obvious breakages efficiently.
+# Run by the smoke lane (tests/lanes/smoke), which the T3 smoke-test job in
+# .github/workflows/ci.yml runs with a 15-minute timeout.
 #
 # Philosophy:
 # - Run representative tests, not exhaustive coverage
 # - One integration mode (simple) is sufficient for smoke testing
 # - Skip 100% pending specs (they waste time loading but never execute)
-# - Complete in under 2 minutes
+# - Vitest runs a curated subset (src/tests/smoke-files.ts), not the full
+#   suite, which the T2 TypeScript Unit Tests job already runs
+# - On CI about 9.5 minutes pass before vitest starts (runner setup about 1,
+#   Ruby about 8.6); the vitest subset takes about 1
 namespace :smoke do
   desc 'Run smoke test for RSpec (unit + representative apps + simple integration)'
   task :rspec do
@@ -1029,11 +1033,12 @@ namespace :smoke do
   desc 'Run complete smoke test suite (Ruby + Tryouts)'
   task ruby: [:rspec, :tryouts]
 
-  desc 'Run smoke test with Vitest (full smoke)'
+  desc 'Run smoke test with the Vitest smoke subset (full smoke)'
   task :all do
     Rake::Task['smoke:ruby'].invoke
-    # Vitest is run via pnpm, not rake
-    sh 'pnpm test' if system('command -v pnpm > /dev/null 2>&1')
+    # Vitest is run via pnpm, not rake. The subset list and its selection
+    # rules are in src/tests/smoke-files.ts.
+    sh 'pnpm test:smoke:vitest' if system('command -v pnpm > /dev/null 2>&1')
   end
 end
 

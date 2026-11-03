@@ -196,6 +196,7 @@ jobs:
               - 'tsconfig.*.json'
               - 'vite.config.ts'
               - 'vitest.config.ts'
+              - 'vitest.smoke.config.ts'
               - 'eslint.config.ts'
               - '.eslintrc*'
               - '.nvmrc'
