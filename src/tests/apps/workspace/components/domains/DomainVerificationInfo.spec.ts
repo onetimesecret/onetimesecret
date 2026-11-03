@@ -197,12 +197,12 @@ describe('DomainVerificationInfo', () => {
       expect(result.tooltip).toBe('web.domains.status_tooltip_dns_incorrect');
     });
 
-    it('no status yet', () => {
+    it('unverified domain with no status yet awaits ownership verification', () => {
       const result = icon(createDomain({ verified: false, vhost: {} }));
 
-      expect(result.name).toBe('close-circle');
+      expect(result.name).toBe('alert-circle');
       expect(result.tooltip).toBe('web.domains.status_tooltip_not_verified');
-      expect(result.classes).toContain('text-rose-600');
+      expect(result.classes).toContain('text-amber-500');
     });
   });
 });

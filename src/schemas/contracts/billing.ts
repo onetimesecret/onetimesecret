@@ -9,7 +9,7 @@
  * (timestamp → Date) remain in shapes/account/billing.ts.
  */
 
-import { isAllowedCheckoutUrl } from '@/utils/redirect';
+import { isAllowedBillingPortalUrl, isAllowedCheckoutUrl } from '@/utils/redirect';
 import { z } from 'zod';
 
 import { BillingTierSchema, CanonicalPlanIdSchema } from './config/billing';
@@ -153,6 +153,21 @@ export const checkoutSessionResponseSchema = z.object({
 });
 
 export type CheckoutSessionResponse = z.infer<typeof checkoutSessionResponseSchema>;
+
+/**
+ * Customer portal session response (POST /billing/api/org/:extid/portal)
+ *
+ * `portal_url` is host-allowlisted for the same reason as `checkout_url`
+ * (M-9): it is navigated to via `window.location`. The load-bearing check is
+ * the assignment-site guard in BillingOverview.vue (isAllowedBillingPortalUrl).
+ */
+export const portalSessionResponseSchema = z.object({
+  portal_url: z.url().refine((value) => isAllowedBillingPortalUrl(value), {
+    message: 'portal_url host is not allowlisted',
+  }),
+});
+
+export type PortalSessionResponse = z.infer<typeof portalSessionResponseSchema>;
 
 /**
  * Currency migration schemas
