@@ -248,7 +248,7 @@
     "ts-morph": "27.0.2",
     "ts-node": "10.9.2",
     "tsx": "4.21.0",
-    "typedoc": "0.28.17",
+    "typedoc": "0.28.20",
     "typedoc-plugin-mdn-links": "5.1.1",
     "typedoc-plugin-zod": "1.4.3",
     "typescript": "5.9.3",
