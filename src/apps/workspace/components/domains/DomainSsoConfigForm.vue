@@ -19,6 +19,7 @@ import CopyToClipboardButton from '@/shared/components/ui/CopyToClipboardButton.
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import DomainSsoMetadataImport from '@/apps/workspace/components/domains/DomainSsoMetadataImport.vue';
 import { useClipboard } from '@/shared/composables/useClipboard';
+import { isDomainOwnershipChecked } from '@/utils/features';
 import type { TenantSsoVerdict } from '@/schemas/api/domains/responses/signin-config';
 import {
   SSO_PROVIDER_ROUTE_NAMES,
@@ -479,6 +480,20 @@ const showDomainFilter = computed(() => true);
  */
 const verifiedEmailDomains = computed(() => props.ssoConfig?.verified_email_domains ?? []);
 const verifiedEmailDomainsText = computed(() => verifiedEmailDomains.value.join(', '));
+
+/**
+ * Empty-state wording for the proven set (#4734), by validation strategy.
+ * Under approximated and caddy_on_demand the admin can add the domain and
+ * complete its TXT ownership check. Under passthrough (and any strategy the
+ * frontend does not know) there is no TXT check to complete: only a Colonel
+ * override proves ownership, so the text sends the admin to the operator
+ * instead of to a check that does not exist.
+ */
+const verifiedEmailDomainsNoneKey = computed(() =>
+  isDomainOwnershipChecked()
+    ? 'web.organizations.sso.verified_email_domains_none'
+    : 'web.organizations.sso.verified_email_domains_none_unchecked'
+);
 
 const allowlistContext = computed(() => ({
   savedAllowedDomains: props.ssoConfig?.allowed_domains ?? [],
@@ -1714,7 +1729,7 @@ aria-hidden="true">*</span>
           v-else-if="ssoConfig"
           data-testid="sso-verified-email-domains-none"
           class="mt-1 text-sm text-amber-700 dark:text-amber-300">
-          {{ t('web.organizations.sso.verified_email_domains_none') }}
+          {{ t(verifiedEmailDomainsNoneKey) }}
         </p>
 
         <!-- Domain chips -->

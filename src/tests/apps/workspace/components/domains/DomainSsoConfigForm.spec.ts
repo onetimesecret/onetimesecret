@@ -41,6 +41,10 @@ import type {
 } from '../../../../../schemas/api/domains/responses/sso-config';
 import type { TenantSsoVerdict } from '../../../../../schemas/api/domains/responses/signin-config';
 import { createRealI18n, createTestI18n } from '../../../../setup';
+import {
+  OWNERSHIP_CHECKING_STRATEGIES,
+  setDomainValidationStrategy,
+} from '@tests/support/domainValidationStrategy';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mocks
@@ -94,6 +98,16 @@ const mockSsoService = vi.hoisted(() => ({
 }));
 
 vi.mock('@/services/sso.service', () => ({ SsoService: mockSsoService }));
+
+// The install's custom-domain validation strategy decides the wording of the
+// allowlist empty state (#4734). Only the snapshot-reading wrappers are
+// swapped; the real capability table is evaluated against the strategy the
+// spec picks. Default to approximated (the beforeEach below); the dedicated
+// examples cover the others.
+vi.mock('@/utils/features', async (importOriginal) => {
+  const { featuresForStrategy } = await import('@tests/support/domainValidationStrategy');
+  return featuresForStrategy(await importOriginal<typeof import('@/utils/features')>());
+});
 
 // The component reads SSO_PROVIDER_ROUTE_NAMES and
 // ssoProviderUsesClientCredentials from the real shapes module (which the
@@ -260,6 +274,7 @@ describe('DomainSsoConfigForm', () => {
       stubActions: false,
     });
     vi.clearAllMocks();
+    setDomainValidationStrategy('approximated');
   });
 
   afterEach(() => {
@@ -973,6 +988,56 @@ describe('DomainSsoConfigForm', () => {
 
       expect(wrapper.find('[data-testid="sso-verified-email-domains-none"]').exists()).toBe(true);
       expect(wrapper.find('[data-testid="sso-verified-email-domains"]').exists()).toBe(false);
+    });
+
+    // The empty state is worded per validation strategy. Where the install
+    // checks the TXT record the admin can complete that check; under
+    // passthrough there is none, and only a Colonel override proves
+    // ownership (docs/authentication/per-domain-sso.md, Passthrough installs).
+    describe('empty-state wording by validation strategy', () => {
+      const mountWithNoneProven = () =>
+        mountComponent({
+          formState: mockExistingFormState,
+          ssoConfig: { ...mockExistingConfig, verified_email_domains: [] },
+          isConfigured: true,
+        });
+
+      it.each(OWNERSHIP_CHECKING_STRATEGIES)(
+        'under %s tells the admin to complete the TXT ownership check',
+        async (strategy) => {
+          setDomainValidationStrategy(strategy);
+          wrapper = await mountWithNoneProven();
+
+          const line = wrapper.get('[data-testid="sso-verified-email-domains-none"]');
+          expect(line.text()).toBe('web.organizations.sso.verified_email_domains_none');
+        }
+      );
+
+      it('under passthrough sends the admin to the operator, since there is no TXT check', async () => {
+        setDomainValidationStrategy('passthrough');
+        wrapper = await mountWithNoneProven();
+
+        const line = wrapper.get('[data-testid="sso-verified-email-domains-none"]');
+        expect(line.text()).toBe('web.organizations.sso.verified_email_domains_none_unchecked');
+      });
+
+      it('ships both wordings, and only the TXT one names the check', () => {
+        const realI18n = createRealI18n({
+          en: JSON.parse(
+            readFileSync(resolve(process.cwd(), 'generated/locales/en.json'), 'utf-8')
+          ),
+        });
+        const checked = realI18n.global.t('web.organizations.sso.verified_email_domains_none');
+        const unchecked = realI18n.global.t(
+          'web.organizations.sso.verified_email_domains_none_unchecked'
+        );
+
+        expect(checked).toContain('TXT');
+        expect(unchecked).not.toContain('TXT');
+        expect(unchecked).toContain('administrator');
+        // Both open with the same sentence: the consequence comes first.
+        expect(unchecked.split('. ')[0]).toBe(checked.split('. ')[0]);
+      });
     });
 
     it('shows neither line before a record exists', async () => {
