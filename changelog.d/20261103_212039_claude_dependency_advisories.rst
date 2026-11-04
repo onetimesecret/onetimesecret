@@ -25,6 +25,13 @@ Security
   bypass). ``resolv`` is a default gem, so the app ran the 0.7.1 bundled
   with Ruby 3.4.10, which bundler-audit does not check. (#4910)
 
+- Updated ``activesupport`` and ``activemodel`` from 8.1.3 to 8.1.4.1 for
+  GHSA-8474-xrp6-wh69 (High, CVSS 7.5: denial of service in
+  ``safe_constantize``) and GHSA-2w9f-fxwj-w2qf (Medium, CVSS 4.7: XSS in the
+  MessagePack serializer). Both gems come in through
+  ``omniauth_openid_connect``; application code does not call Active Support.
+  (#4915)
+
 - Updated ``zod`` from 4.3.6 to 4.6.6 for GHSA-mrhx-c7xc-m3w5 (High).
   (#4854, #4887)
 
