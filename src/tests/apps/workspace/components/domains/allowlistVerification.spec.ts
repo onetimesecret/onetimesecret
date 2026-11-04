@@ -2,7 +2,8 @@
 //
 // Verified state of a tenant SSO allowlist entry (#4734): a saved entry
 // takes the API's verdict; an unsaved one is judged client-side by A-label
-// on a label boundary against the proven set.
+// on a label boundary against the proven set. With no verdict on the record
+// (hasProofVerdict) every entry is unknown, saved or not.
 
 import { describe, expect, it } from 'vitest';
 import {
@@ -125,5 +126,40 @@ describe('allowlistEntryState', () => {
 
   it('is unknown for an unsaved entry it cannot convert', () => {
     expect(allowlistEntryState('a b.example', context)).toBe('unknown');
+  });
+
+  it('is unknown for an unsaved entry too when the API served no proof at all', () => {
+    // The empty proven set is then not a judgment: judged against it, the
+    // entry would read "Not proven" under a headline that says ownership
+    // could not be checked. The save reports on it.
+    const noProof = {
+      savedAllowedDomains: ['saved.example'],
+      unverifiedAllowedDomains: [],
+      verifiedEmailDomains: [],
+    };
+    expect(allowlistEntryState('acme.example', noProof)).toBe('unknown');
+    expect(allowlistEntryState('a b.example', noProof)).toBe('unknown');
+  });
+
+  it('judges an unsaved entry as not proven when nothing is saved and nothing is proven', () => {
+    // With no saved entry "nothing proven" and "no verdict" are not
+    // separable; the record counts as judged and the empty proven set holds.
+    const nothingSaved = {
+      savedAllowedDomains: [],
+      unverifiedAllowedDomains: [],
+      verifiedEmailDomains: [],
+    };
+    expect(allowlistEntryState('acme.example', nothingSaved)).toBe('unverified');
+  });
+
+  it('judges an unsaved entry as not proven when the API named a saved entry unverified with nothing proven', () => {
+    // An unproven organization: the verdict exists, the proven set is empty.
+    const unprovenOrg = {
+      savedAllowedDomains: ['saved.example'],
+      unverifiedAllowedDomains: ['saved.example'],
+      verifiedEmailDomains: [],
+    };
+    expect(allowlistEntryState('acme.example', unprovenOrg)).toBe('unverified');
+    expect(allowlistEntryState('saved.example', unprovenOrg)).toBe('unverified');
   });
 });

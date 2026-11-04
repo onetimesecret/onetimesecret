@@ -505,9 +505,10 @@ const allowlistContext = computed(() => ({
 /**
  * Whether the API gave a verdict on domain ownership for the saved record
  * (#4734). verified_email_domains is also empty when the serializer's rescue
- * path, or an API that predates the fields, answered the GET; the saved chips
- * then show "Checked on save", and the headline above them must agree instead
- * of claiming nothing is proven. Judged from the same context as the chips.
+ * path, or an API that predates the fields, answered the GET; every chip,
+ * saved or not, then shows "Checked on save", and the headline above them
+ * must agree instead of claiming nothing is proven. Judged from the same
+ * context as the chips.
  */
 const emailDomainProofKnown = computed(() => hasProofVerdict(allowlistContext.value));
 

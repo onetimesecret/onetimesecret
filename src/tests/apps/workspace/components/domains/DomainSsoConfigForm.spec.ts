@@ -1020,6 +1020,37 @@ describe('DomainSsoConfigForm', () => {
       expect(wrapper.find('[data-testid="sso-allowed-domain-unverified"]').exists()).toBe(false);
     });
 
+    // An unsaved entry on that record is not judged against the empty proven
+    // set either: it would read "Not proven" under a headline that says
+    // ownership could not be checked. The save reports on it.
+    it('marks an unsaved entry unknown too when the API gave no verdict', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, allowed_domains: ['example.com', 'acme.example'] },
+        ssoConfig: {
+          ...mockExistingConfig,
+          allowed_domains: ['example.com'],
+          verified_email_domains: [],
+          unverified_allowed_domains: [],
+        },
+        isConfigured: true,
+      });
+
+      expect(wrapper.find('[data-testid="sso-verified-email-domains-unknown"]').exists()).toBe(true);
+      const unknownChips = wrapper.findAll('[data-testid="sso-allowed-domain-unknown"]');
+      expect(unknownChips.map((c) => c.attributes('data-domain'))).toEqual([
+        'example.com',
+        'acme.example',
+      ]);
+      expect(wrapper.find('[data-testid="sso-allowed-domain-unverified"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-allowed-domain-verified"]').exists()).toBe(false);
+      const unsaved = unknownChips[1];
+      expect(unsaved.text()).toContain('allowed_domain_unknown');
+      expect(unsaved.text()).not.toContain('allowed_domain_unverified');
+      // The first [aria-label] on an unknown chip is the remove button, so
+      // look for the amber badge by its label key rather than by position.
+      expect(unsaved.find('[aria-label*="allowed_domain_unverified_label"]').exists()).toBe(false);
+    });
+
     // Documented limitation: with no saved entry the API lists nothing as
     // unverified whether or not it derived the proof, so "nothing proven" and
     // "no verdict" cannot be told apart and the amber notice stays.
@@ -1040,6 +1071,28 @@ describe('DomainSsoConfigForm', () => {
         false
       );
       expect(wrapper.find('[data-testid="sso-verified-email-domains"]').exists()).toBe(false);
+    });
+
+    // Same limitation at chip level: with no saved entry the record counts as
+    // judged, so an unsaved entry is still judged against the empty proven
+    // set and reads "Not proven" under the amber notice.
+    it('still judges an unsaved entry as not proven when the saved allowlist is empty', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, allowed_domains: ['acme.example'] },
+        ssoConfig: {
+          ...mockExistingConfig,
+          allowed_domains: [],
+          verified_email_domains: [],
+          unverified_allowed_domains: [],
+        },
+        isConfigured: true,
+      });
+
+      expect(wrapper.find('[data-testid="sso-verified-email-domains-none"]').exists()).toBe(true);
+      const chip = wrapper.get('[data-testid="sso-allowed-domain-unverified"]');
+      expect(chip.attributes('data-domain')).toBe('acme.example');
+      expect(chip.text()).toContain('allowed_domain_unverified');
+      expect(wrapper.find('[data-testid="sso-allowed-domain-unknown"]').exists()).toBe(false);
     });
 
     // The empty state is worded per validation strategy. Where the install

@@ -10,7 +10,12 @@
 // same A-label, label-boundary comparison the sign-in gate uses). An entry
 // added in the form but not yet saved is judged here the same way, after both
 // names are converted to their A-label form through the URL parser; a name
-// the parser rejects stays `unknown` until the save reports on it.
+// the parser rejects stays `unknown` until the save reports on it. When the
+// record carries no verdict at all (hasProofVerdict: saved entries exist but
+// the API listed none as proven or unverified), every entry is `unknown`,
+// saved or not: the empty proven set is then not a judgment, and judging an
+// unsaved entry against it would call it not proven under a headline that
+// says ownership could not be checked.
 
 export type AllowlistEntryState = 'verified' | 'unverified' | 'unknown';
 
@@ -77,16 +82,19 @@ export function hasProofVerdict(context: AllowlistVerificationContext): boolean 
 }
 
 /**
- * Verified state of one allowlist entry. A saved entry takes the API's
- * verdict; an unsaved one is judged client-side against the proven set.
+ * Verified state of one allowlist entry. With no verdict on the record every
+ * entry is `unknown`, saved or not: the empty proven set is then not a
+ * judgment, and the save reports on it. Otherwise a saved entry takes the
+ * API's verdict; an unsaved one is judged client-side against the proven set.
  */
 export function allowlistEntryState(
   entry: string,
   context: AllowlistVerificationContext
 ): AllowlistEntryState {
+  if (!hasProofVerdict(context)) return 'unknown';
+
   if (context.savedAllowedDomains.includes(entry)) {
     if (context.unverifiedAllowedDomains.includes(entry)) return 'unverified';
-    if (!hasProofVerdict(context)) return 'unknown';
     // Listed in neither array while a proven set is served: inside it. With
     // no proven set either the record is inconsistent and no verdict exists.
     return context.verifiedEmailDomains.length > 0 ? 'verified' : 'unknown';
