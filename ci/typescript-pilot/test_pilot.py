@@ -31,6 +31,35 @@ class RunnerTests(unittest.TestCase):
             [c.args[0] for c in phase.call_args_list], ["locales", "tests", "typecheck"]
         )
 
+    def test_heap_override_is_scoped_to_typecheck_and_recorded(self):
+        original = {"NODE_OPTIONS": "--trace-warnings", "KEEP": "value"}
+        run = pilot.Run(original.copy())
+        with patch.object(run, "phase", side_effect=[0, 1, 0]) as phase:
+            self.assertEqual(run.workload(), 1)
+        self.assertNotIn("env", phase.call_args_list[1].kwargs)
+        child_env = phase.call_args_list[2].kwargs["env"]
+        self.assertEqual(child_env["NODE_OPTIONS"], "--max-old-space-size=3072")
+        self.assertEqual(child_env["KEEP"], "value")
+        self.assertEqual(run.env, original)
+        self.assertEqual(run.metrics["typecheck_heap_mib"], 3072)
+
+    def test_phase_passes_the_overridden_environment_to_child(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "child-env.json"
+            run = pilot.Run(dict(os.environ))
+            code = "import os,json,sys; open(sys.argv[1], 'w').write(json.dumps(os.environ.get('NODE_OPTIONS')))"
+            self.assertEqual(
+                run.phase(
+                    "probe",
+                    [sys.executable, "-c", code, str(output)],
+                    env=dict(os.environ, NODE_OPTIONS="--max-old-space-size=3072"),
+                ),
+                0,
+            )
+            self.assertEqual(
+                json.loads(output.read_text()), "--max-old-space-size=3072"
+            )
+
     def test_typecheck_failure_fails_job(self):
         run = pilot.Run({})
         with patch.object(run, "phase", side_effect=[0, 0, 2]):
@@ -91,6 +120,7 @@ class ComparisonTests(unittest.TestCase):
             expected_node="26.4.0",
             expected_pnpm="11.10.0",
             workers=2,
+            typecheck_heap_mib=3072,
             cache_mode="cold",
             working_tree_dirty=False,
             test_inventory_sha256="tests",
@@ -124,6 +154,12 @@ class ComparisonTests(unittest.TestCase):
         rows = self.records()
         rows[1]["node"] = "27.0.0"
         with self.assertRaisesRegex(ValueError, "node"):
+            comparison.compare(rows)
+
+    def test_mismatched_typecheck_heap_is_rejected(self):
+        rows = self.records()
+        rows[1]["typecheck_heap_mib"] = 2048
+        with self.assertRaisesRegex(ValueError, "typecheck_heap_mib"):
             comparison.compare(rows)
 
     def test_failure_counts_are_retained_outside_timing_summary(self):

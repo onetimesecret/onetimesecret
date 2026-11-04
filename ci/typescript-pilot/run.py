@@ -74,9 +74,14 @@ class Run:
     def __init__(self, env):
         self.env = env
         self.started = time.monotonic()
-        self.metrics = {"schema_version": 1, "started_at": now(), "phases": []}
+        self.metrics = {
+            "schema_version": 1,
+            "started_at": now(),
+            "phases": [],
+            "typecheck_heap_mib": PINS["typecheck_heap_mib"],
+        }
 
-    def phase(self, name, command):
+    def phase(self, name, command, *, env=None):
         start = time.monotonic()
         print(f"\n--- {name} ---", flush=True)
         code = 1
@@ -86,7 +91,10 @@ class Run:
                 code = 124
                 return code
             with subprocess.Popen(
-                command, cwd=ROOT, env=self.env, start_new_session=True
+                command,
+                cwd=ROOT,
+                env=self.env if env is None else env,
+                start_new_session=True,
             ) as process:
                 try:
                     code = process.wait(timeout=remaining)
@@ -129,7 +137,11 @@ class Run:
             ],
         )
         # Match Actions: failed tests must not suppress test type checking.
-        types = self.phase("typecheck", ["pnpm", "type-check:tests"])
+        typecheck_env = dict(
+            self.env,
+            NODE_OPTIONS=f"--max-old-space-size={PINS['typecheck_heap_mib']}",
+        )
+        types = self.phase("typecheck", ["pnpm", "type-check:tests"], env=typecheck_env)
         return int(bool(tests or types))
 
     def finish(self, code):

@@ -13,6 +13,7 @@ MATCH_FIELDS = (
     "expected_pnpm",
     "python",
     "workers",
+    "typecheck_heap_mib",
     "cache_mode",
 )
 
