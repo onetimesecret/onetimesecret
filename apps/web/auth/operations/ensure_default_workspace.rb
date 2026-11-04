@@ -76,10 +76,18 @@ module Auth
       #   (SetCustomerVerification re-invokes it). Mailbox-proven callers
       #   (invite-token, post-payment billing, authenticated lazy creation of a
       #   verified password account) leave it at the default (false) and claim
-      #   immediately — EXCEPT that an SSO-provisioned record without mailbox
-      #   proof is deferred on every path regardless of the flag
-      #   ({#claim_deferred?}), so a lazy or billing-driven creation cannot
-      #   claim what the JIT path deferred.
+      #   immediately.
+      #
+      #   The flag is the caller's half of the gate only. The record's own
+      #   half, Customer#federation_claim_deferred?, defers on EVERY path
+      #   regardless of the flag ({#claim_deferred?}): an SSO-provisioned
+      #   record without mailbox proof, and an unverified record on a
+      #   deployment whose verify_account step will still prove it (#4754
+      #   review, F1). So the customers doctor's repair, OrganizationContext's
+      #   lazy creation and the billing self-heal, which all pass the default,
+      #   cannot claim what the signup or JIT path deferred. For the signup
+      #   and JIT callers the flag is now redundant with the record rule; it
+      #   stays as the explicit statement of intent at those call sites.
       #
       #   RESIDUAL (verify_account disabled): the standard-signup caller derives
       #   this flag from `Onetime.auth_config.verify_account_loaded?`, so when a
@@ -371,12 +379,17 @@ module Auth
       end
 
       # Detect the verify-disabled federation residual: a federated benefit is
-      # about to be claimed for a customer whose email was never verified, in a
-      # deployment that has no email-verification step at all. Reaching the claim
-      # while unverified means the require_verification gate did not defer us
-      # (the gate would have returned early for an unverified customer), so the
-      # caller ran with the gate disabled — the standard-signup path does exactly
-      # that when verify_account is disabled. See #initialize and
+      # about to be claimed for a customer without mailbox proof, in a
+      # deployment that has no email-verification step at all. A customer
+      # without mailbox proof reaches the claim in exactly two cases: the
+      # deployment's verify_account step is not loaded, so neither the
+      # caller's flag nor Customer#federation_claim_deferred? deferred an
+      # unverified record (this residual); or the record is verified? with a
+      # non-mailbox provenance ('autoverify', 'stripe_payment', 'legacy'),
+      # which the predicate deliberately does not defer and which this
+      # method does not report (see Customer#federation_claim_deferred?). On
+      # a verify-enabled deployment an unverified record never gets here,
+      # whatever the caller passed. See #initialize and
       # #apply_pending_federation! for the full rationale.
       #
       # Never lets audit bookkeeping interfere with the claim itself: any error
@@ -394,23 +407,27 @@ module Auth
       # Should the federation claim wait for mailbox proof?
       #
       # Never for a mailbox-verified customer. Otherwise when the caller asked
-      # for it (`require_verification: true`), and ALWAYS for an SSO-provisioned
-      # record (#4735): the IdP asserted the address, no verify_account step
-      # will ever prove it, and the record may reach this operation again
-      # through callers that pass the default flag — OrganizationContext's lazy
-      # creation on the first authenticated request, the billing surfaces, the
-      # customers doctor. Keying on the record rather than the caller means
-      # none of those can deliver the benefit the JIT path deferred. The
-      # re-claim runs from SetCustomerVerification once an operator stamps a
-      # mailbox-proof provenance.
+      # for it (`require_verification: true`), and ALWAYS when the record
+      # itself says so (Customer#federation_claim_deferred?): an SSO-
+      # provisioned record (#4735), whose address no verify_account step will
+      # ever prove, and an unverified record on a deployment whose
+      # verify_account step will still prove it (#4754 review, F1). Either
+      # record may reach this operation again through callers that pass the
+      # default flag — OrganizationContext's lazy creation on the first
+      # authenticated request, the billing surfaces, the customers doctor's
+      # repairs. Keying on the record rather than the caller means none of
+      # those can deliver the benefit the signup or JIT path deferred. The
+      # re-claim runs from SetCustomerVerification once a mailbox-proof
+      # provenance is stamped: by after_verify_account for the signup, by an
+      # operator for the SSO account.
       #
       # @return [Boolean]
       def claim_deferred?
         return false unless @customer
         return false if @customer.mailbox_verified?
 
-        # The record-based half (Customer#federation_claim_deferred?) is the
-        # rule the federated webhook path applies too.
+        # The record-based rule (Customer#federation_claim_deferred?) is the
+        # one the federated webhook path applies too.
         @require_verification || @customer.federation_claim_deferred?
       end
 
@@ -424,26 +441,32 @@ module Auth
       # standard email/password signup, this method runs from
       # `after_create_account`, before the verification email is even sent. To
       # prevent an attacker from claiming a victim's pending subscription by
-      # merely registering the victim's email here, the claim is gated on
-      # verification when the caller sets `require_verification: true` (see
-      # #initialize). Callers on that path receive the benefit once the user
-      # verifies, via `after_verify_account` → {.claim_pending_federation_for}.
-      # Mailbox-proven callers (invite, post-payment billing, authenticated
-      # lazy creation) run this immediately with the gate disabled. An
-      # SSO-provisioned record without mailbox proof is deferred on every path
-      # ({#claim_deferred?}) and re-claimed from SetCustomerVerification once an
-      # operator verifies the address (#4735).
+      # merely registering the victim's email here, the claim is deferred for
+      # a record without mailbox proof that the deployment will still verify,
+      # and for an SSO-provisioned record ({#claim_deferred?}, which also
+      # honours the caller's `require_verification: true`, see #initialize).
+      # The deferral holds on every path, so a later creation with the
+      # default flag (the customers doctor's repair, lazy creation, the
+      # billing self-heal) cannot claim what signup deferred (#4754 review,
+      # F1). The benefit arrives once a mailbox-proof provenance is stamped:
+      # `after_verify_account` → SetCustomerVerification →
+      # {.claim_pending_federation_for} for the signup, an operator
+      # verification for the SSO account (#4735). Mailbox-proven callers
+      # (invite, post-payment billing, authenticated lazy creation of a
+      # verified password account) claim immediately.
       #
       # RESIDUAL (verify_account disabled): when the deployment has no email
       # verification step, the standard-signup caller passes
-      # `require_verification: false` and this method claims immediately for a
-      # customer whose email ownership was never proven — the benefit-theft
-      # surface cannot be closed by deferral there (no verified state ever
-      # becomes true, no after_verify_account to re-claim from). We do NOT block
-      # the claim (that would disable federation for legitimate verify-disabled
-      # deployments); instead {#unverified_immediate_claim?} detects the risky
-      # combination and we emit a loud security-audit log so operators can spot
-      # abuse. See #initialize.
+      # `require_verification: false`, Customer#federation_claim_deferred? is
+      # false for its unverified record, and this method claims immediately
+      # for a customer whose email ownership was never proven — the
+      # benefit-theft surface cannot be closed by deferral there (no verified
+      # state ever becomes true, no after_verify_account to re-claim from).
+      # We do NOT block the claim (that would disable federation for
+      # legitimate verify-disabled deployments); instead
+      # {#unverified_immediate_claim?} detects the risky combination and we
+      # emit a loud security-audit log so operators can spot abuse. See
+      # #initialize.
       #
       # @param org [Onetime::Organization] Newly created organization
       # @return [Boolean] True if pending subscription was applied
@@ -481,7 +504,9 @@ module Auth
         # IdP-asserted but never mailbox-proven. Defer the claim (leaving the
         # PendingFederatedSubscription intact) until mailbox control is proven;
         # after_verify_account and SetCustomerVerification re-invoke the claim
-        # once a qualifying provenance is stamped (#4735).
+        # once a qualifying provenance is stamped (#4735). The rule is the
+        # record's, so the same workspace reached later through a caller with
+        # the default flag is deferred here again (#4754 review, F1).
         if claim_deferred?
           auth_logger.info '[create-default-workspace] Deferring federated subscription claim until the mailbox is verified',
             { org: org.extid }
@@ -613,9 +638,10 @@ module Auth
         # distinguish the real subscriber from an attacker who merely registered
         # the subscriber's email. Do not block (that would silently disable
         # federation for legitimate verify-disabled deployments); emit a loud,
-        # structured audit event instead. Verified customers and verify-enabled
-        # deployments (where the claim is deferred to after_verify_account) never
-        # trip this branch.
+        # structured audit event instead. Mailbox-verified customers never trip
+        # this branch, and on a verify-enabled deployment an unverified record
+        # never reaches it: Customer#federation_claim_deferred? defers it
+        # whatever the caller passed (#4754 review, F1).
         if unverified_immediate_claim?
           auth_logger.warn '[create-default-workspace] SECURITY: federated subscription claimed WITHOUT email verification',
             {

@@ -9,9 +9,15 @@ Security
   system roles, the last-colonel guard, impersonation, verification-secret
   display, the duplicate-signup resend and the deferred federated
   subscription claim (a standard signup with email verification enabled, and
-  every SSO JIT account). A deployment that has disabled email verification
-  still claims at standard signup without mailbox proof, as before, with the
-  existing security-audit log line. SSO JIT accounts defer the claim until an
+  every SSO JIT account). The deferral is a property of the customer record,
+  not of the code path that creates the workspace: an unverified account on
+  a deployment with email verification enabled, like an SSO JIT account
+  without mailbox proof, is deferred on every path, so a workspace repair
+  by ``bin/ots customers doctor --repair``, a lazy workspace creation or the
+  billing self-heal cannot claim a pending subscription that signup
+  deferred. A deployment that has disabled email verification still claims
+  at standard signup without mailbox proof, as before, with the existing
+  security-audit log line. SSO JIT accounts defer the claim until an
   operator verifies the address; ``bin/ots customers verify`` and the colonel
   admin can re-verify an already-verified account to record mailbox proof,
   which applies the deferred subscription, and re-running either on an
@@ -43,8 +49,9 @@ Security
   webhooks take one lock per email hash and the claim reads the workspace
   and the pending record inside it, so a cancellation that arrives during a
   claim is applied after it instead of being overwritten. A federated
-  subscription webhook no longer applies a plan to a workspace whose
-  SSO-provisioned owner lacks mailbox proof; it updates the pending record
+  subscription webhook no longer applies a plan to a workspace whose owner
+  lacks mailbox proof and is either SSO-provisioned or still unverified on a
+  deployment with email verification enabled; it updates the pending record
   for the claim that follows verification. A workspace that already has an
   active federated plan keeps receiving updates, and cancellations and
   pauses still apply to every workspace. (#4735)

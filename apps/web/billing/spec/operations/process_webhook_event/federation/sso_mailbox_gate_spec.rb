@@ -14,9 +14,16 @@
 # existed), a subscription webhook finds the org by hash and must not deliver
 # the plan to it, nor destroy the pending record the deferral is keeping.
 #
+# #4754 review, F1: the rule is the customer record's
+# (Customer#federation_claim_deferred?), and it also defers an UNVERIFIED
+# standard signup while the deployment has a verification step. The billing
+# lane boots in standalone mode, where verify_account_loaded? is false, so
+# those examples stub the config predicate.
+#
 # The other examples pin the paths the gate leaves alone: a mailbox-verified
-# owner, a workspace that already has a federated plan, a cancellation,
-# a pause, and a sibling workspace for the same hash.
+# owner, a verified owner with a non-mailbox provenance, a workspace that
+# already has a federated plan, a cancellation, a pause, and a sibling
+# workspace for the same hash.
 #
 # Lookups and writes are native. Only Stripe I/O and billing enablement are
 # stubbed.
@@ -205,13 +212,126 @@ RSpec.describe 'ProcessWebhookEvent: federated sync honours the mailbox gate', :
     expect(pending_record).to be_nil
   end
 
-  it 'still syncs a non-SSO owner without mailbox proof, as the claim path does' do
-    # 'autoverify' is not mailbox proof, and the claim is not deferred for it
-    # on the default path either (claim_deferred? is record-based for SSO only).
+  it 'still syncs a verified non-SSO owner with a non-mailbox provenance, as the claim path does' do
+    # 'autoverify' is not mailbox proof, but the record is verified?, so the
+    # deployment's verification step will never run for it again. The
+    # predicate deliberately does not defer such a record, even with a
+    # verification step enabled (see Customer#federation_claim_deferred?).
+    allow(Onetime.auth_config).to receive(:verify_account_loaded?).and_return(true)
     @customer = Onetime::Customer.create!(email: email, role: 'customer', verified: true, verified_by: 'autoverify')
     expect(@customer.mailbox_verified?).to be(false)
     expect(@customer.federation_claim_deferred?).to be(false)
     @organization = Auth::Operations::EnsureDefaultWorkspace.new(customer: @customer).call[:organization]
+    backfill_hash
+
+    expect(dispatch(subscription_updated_event)).to eq(:federated_only)
+    @organization.refresh!
+    expect(@organization.subscription_federated?).to be(true)
+    expect(@organization.planid).to eq('identity_plus_v1')
+    expect(pending_record).to be_nil
+  end
+
+  # Standard signup on a deployment with a verification step: the customer is
+  # unverified, the signup hook defers the claim, and the webhook gate must
+  # read the same rule off the record (#4754 review, F1).
+  def provision_unverified_signup_workspace
+    @customer = Onetime::Customer.create!(email: email, role: 'customer', provisioning_origin: 'canonical_signup')
+    expect(@customer.verified?).to be(false)
+    expect(@customer.federation_claim_deferred?).to be(true)
+
+    @organization = Auth::Operations::EnsureDefaultWorkspace.new(
+      customer: @customer, require_verification: true,
+    ).call[:organization]
+    expect(@organization.subscription_federated?).to be(false)
+    expect(@organization.email_hash.to_s).to be_empty
+  end
+
+  describe 'an unverified standard signup on a deployment with a verification step' do
+    before { allow(Onetime.auth_config).to receive(:verify_account_loaded?).and_return(true) }
+
+    it 'does not apply the plan to the workspace or destroy its deferred pending record' do
+      store_initial_pending
+      provision_unverified_signup_workspace
+      expect(pending_record).not_to be_nil
+      backfill_hash
+
+      second = subscription_updated_event
+      expect(dispatch(second)).to eq(:federated_only)
+
+      @organization.refresh!
+      aggregate_failures 'mailbox gate on the direct sync' do
+        expect(@organization.subscription_federated?).to be(false)
+        expect(@organization.planid.to_s).not_to eq('identity_plus_v1')
+        expect(@organization.can?('custom_branding')).to be(false)
+        expect(pending_record).not_to be_nil
+        expect(pending_record.source_stripe_event_id).to eq(second.id)
+      end
+    end
+
+    it 'applies the refreshed pending record once the verification step stamps mailbox proof' do
+      store_initial_pending
+      provision_unverified_signup_workspace
+      backfill_hash
+      dispatch(subscription_updated_event)
+      expect(pending_record).not_to be_nil
+
+      # after_verify_account: Rodauth has committed the Verified row and the
+      # hook stamps 'email'.
+      verification = Auth::Operations::SetCustomerVerification.new(
+        customer: @customer, verified: true, verified_by: 'email', rodauth_already_synced: true,
+      )
+      expect(verification.call).to eq(:success)
+      expect(verification.federation_claimed?).to be(true)
+
+      @organization.refresh!
+      expect(@organization.subscription_federated?).to be(true)
+      expect(@organization.planid).to eq('identity_plus_v1')
+      expect(@organization.can?('custom_branding')).to be(true)
+      expect(pending_record).to be_nil
+
+      expect(dispatch(subscription_event(plan: 'free_v1'))).to eq(:federated_only)
+      @organization.refresh!
+      expect(@organization.planid).to eq('free_v1')
+    end
+
+    it 'keeps updating an unverified workspace that already has an active federated plan' do
+      # The carve-out (federated_benefit_active?) is independent of the owner
+      # rule: a plan granted on an earlier release keeps receiving downgrades
+      # and lapses; only a new grant waits for proof.
+      provision_unverified_signup_workspace
+      backfill_hash
+      Billing::Operations::ApplySubscriptionToOrg.call(
+        @organization, subscription_updated_event.data.object, owner: false, save: false
+      )
+      @organization.mark_subscription_federated!
+      @organization.save
+      @organization.refresh!
+      expect(@organization.planid).to eq('identity_plus_v1')
+      expect(Billing::PendingFederatedSubscription.awaiting_mailbox_proof?(@organization)).to be(false)
+
+      expect(dispatch(subscription_event(plan: 'free_v1'))).to eq(:federated_only)
+      @organization.refresh!
+      expect(@organization.planid).to eq('free_v1')
+      expect(@organization.can?('custom_branding')).to be(false)
+      expect(pending_record).to be_nil
+
+      # Without a paid plan the next grant waits for the mailbox proof.
+      expect(Billing::PendingFederatedSubscription.awaiting_mailbox_proof?(@organization)).to be(true)
+      dispatch(subscription_updated_event)
+      @organization.refresh!
+      expect(@organization.planid).to eq('free_v1')
+      expect(pending_record).not_to be_nil
+    end
+  end
+
+  it 'syncs an unverified standard signup directly when the deployment has no verification step' do
+    # The documented residual: with verify_account off, nothing will ever
+    # prove the address, so the claim path claims at signup and the webhook
+    # gate does not defer either.
+    allow(Onetime.auth_config).to receive(:verify_account_loaded?).and_return(false)
+    @customer = Onetime::Customer.create!(email: email, role: 'customer', provisioning_origin: 'canonical_signup')
+    expect(@customer.federation_claim_deferred?).to be(false)
+    @organization = Auth::Operations::EnsureDefaultWorkspace.new(customer: @customer, require_verification: true).call[:organization]
     backfill_hash
 
     expect(dispatch(subscription_updated_event)).to eq(:federated_only)

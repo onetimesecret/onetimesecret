@@ -333,7 +333,12 @@ module Auth::Config::Hooks
             # claiming any PendingFederatedSubscription until the user verifies,
             # so an attacker cannot register a paying subscriber's email in this
             # region and steal their federated subscription at signup time. The
-            # deferred claim runs from after_verify_account below.
+            # deferred claim runs from after_verify_account below. The flag
+            # states the intent at this call site; the record itself carries
+            # the same rule (Customer#federation_claim_deferred? is true for an
+            # unverified account while verify_account is loaded), so a later
+            # creation for this customer with the default flag defers too
+            # (#4754 review, F1).
             #
             # When the verify_account feature is not loaded (neither the
             # verify_account flag nor webauthn_verify_account, which depends on

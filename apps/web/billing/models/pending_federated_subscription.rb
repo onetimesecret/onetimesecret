@@ -237,12 +237,15 @@ module Billing
     # The record-based rule of the deferred claim
     # (Onetime::Customer#federation_claim_deferred?, read by
     # Auth::Operations::EnsureDefaultWorkspace#claim_deferred?): the owner
-    # was SSO-provisioned and has no mailbox proof. A workspace that already
-    # has an active federated plan (granted before the deferral existed)
-    # keeps receiving its updates, so a downgrade or a lapse still reaches
-    # it; only a grant to a workspace without one waits. A workspace whose
-    # owner record is missing is not deferred, as on the claim path
-    # (#4754 review, F3).
+    # has no mailbox proof and either was SSO-provisioned (no verify_account
+    # step will ever prove the address) or is unverified on a deployment
+    # whose verify_account step will still prove it (#4754 review, F1).
+    # A verified owner with a non-mailbox provenance is not deferred; see
+    # the predicate. A workspace that already has an active federated plan
+    # (granted before the deferral existed) keeps receiving its updates, so
+    # a downgrade or a lapse still reaches it; only a grant to a workspace
+    # without one waits. A workspace whose owner record is missing is not
+    # deferred, as on the claim path (#4754 review, F3).
     #
     # @param org [Onetime::Organization]
     # @return [Boolean]

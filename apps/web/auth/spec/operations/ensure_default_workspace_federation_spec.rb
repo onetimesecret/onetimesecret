@@ -36,6 +36,13 @@
 # the benefit the JIT path withheld. Only Customer#mailbox_verified? (an
 # 'email'/'invite_token'/'cli_provision'/'colonel_admin' stamp) lets it through.
 #
+# #4754 review, F1: the same record-based deferral covers an UNVERIFIED
+# standard signup while the deployment has a verification step
+# (Customer#federation_claim_deferred?). The callers that pass the default flag
+# (the customers doctor's repair, lazy creation, the billing self-heal) used to
+# fall through to an immediate claim for such a record. verify_account is off
+# under RACK_ENV=test, so those examples stub the config predicate.
+#
 # REQUIREMENTS:
 # - Valkey running on port 2163: pnpm run test:database:start
 # - AUTHENTICATION_MODE=full
@@ -174,6 +181,139 @@ RSpec.describe 'EnsureDefaultWorkspace: federated subscription claim gate', type
 
       # Pending record consumed exactly once.
       expect(pending_exists?(email)).to be(false)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Default-flag callers cannot claim for an unverified signup (#4754, F1)
+  # ---------------------------------------------------------------------------
+  describe 'an unverified standard signup reached with the default flag (the doctor repair path)' do
+    # Capture the audit warning EnsureDefaultWorkspace emits for the
+    # verify-disabled residual, without suppressing real logging.
+    let(:auth_warnings) { [] }
+    let(:audit_message) { /SECURITY: federated subscription claimed WITHOUT email verification/ }
+
+    before do
+      logger = Onetime.get_logger('Auth')
+      allow(logger).to receive(:warn).and_wrap_original do |orig, *args|
+        auth_warnings << args.first.to_s
+        orig.call(*args)
+      end
+    end
+
+    def unverified_signup(email)
+      create_customer(email: email, verified: false, provisioning_origin: 'canonical_signup')
+    end
+
+    context 'when the deployment has a verification step' do
+      before { allow(Onetime.auth_config).to receive(:verify_account_loaded?).and_return(true) }
+
+      # bin/ots customers doctor --repair converges a missing or collided
+      # default workspace through EnsureDefaultWorkspace.new(customer:).call,
+      # with no require_verification flag. The record's own rule must defer
+      # the claim for it, exactly as the signup hook's flag did.
+      it 'creates the workspace, leaves the pending record unclaimed and logs no audit warning' do
+        email = unique_email('doctor-unverified')
+        create_pending_for(email)
+        customer = unverified_signup(email)
+        expect(customer.federation_claim_deferred?).to be(true)
+
+        result = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call
+        org = result[:organization]
+        created_organizations << org
+
+        expect(org).to be_a(Onetime::Organization)
+        expect(org.is_default).to be true
+        expect(org.subscription_federated?).to be(false)
+        expect(org.subscription_status.to_s).to eq('')
+        expect(pending_exists?(email)).to be(true)
+        expect(auth_warnings).not_to include(a_string_matching(audit_message))
+      end
+
+      it 'does not claim through the re-claim entry point either while unverified' do
+        email = unique_email('doctor-reclaim-unverified')
+        create_pending_for(email)
+        customer = unverified_signup(email)
+        created_organizations << Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call[:organization]
+
+        expect(Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(customer)).to be(false)
+        expect(pending_exists?(email)).to be(true)
+      end
+
+      it 'claims once the verification step stamps mailbox proof (after_verify_account)' do
+        email = unique_email('doctor-then-verified')
+        create_pending_for(email, status: 'active', planid: 'pro_monthly')
+        customer = unverified_signup(email)
+        org = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call[:organization]
+        created_organizations << org
+        expect(pending_exists?(email)).to be(true)
+
+        # after_verify_account: Rodauth has committed the Verified row; the
+        # hook stamps 'email' and re-invokes the claim through this op.
+        outcome = Auth::Operations::SetCustomerVerification.new(
+          customer: customer, verified: true, verified_by: 'email', rodauth_already_synced: true,
+        ).call
+        expect(outcome).to eq(:success)
+        expect(customer.federation_claim_deferred?).to be(false)
+
+        org.refresh!
+        expect(org.subscription_federated?).to be(true)
+        expect(org.planid.to_s).to eq('pro_monthly')
+        expect(pending_exists?(email)).to be(false)
+      end
+
+      # The predicate deliberately leaves these alone: Rodauth never
+      # re-verifies a Verified row, so deferring would strand the plan until
+      # an operator stamped it, with no attacker path to the stamp.
+      it 'still claims for a verified record with a non-mailbox provenance (autoverify)' do
+        email = unique_email('autoverify-immediate')
+        create_pending_for(email)
+        customer = create_customer(email: email, verified: true, verified_by: 'autoverify')
+        expect(customer.mailbox_verified?).to be(false)
+        expect(customer.federation_claim_deferred?).to be(false)
+
+        org = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call[:organization]
+        created_organizations << org
+
+        expect(org.subscription_federated?).to be(true)
+        expect(pending_exists?(email)).to be(false)
+      end
+    end
+
+    context 'when the deployment has no verification step (the documented residual)' do
+      before { allow(Onetime.auth_config).to receive(:verify_account_loaded?).and_return(false) }
+
+      it 'claims immediately and emits the security-audit warning' do
+        email = unique_email('residual-unverified')
+        create_pending_for(email)
+        customer = unverified_signup(email)
+        expect(customer.federation_claim_deferred?).to be(false)
+
+        org = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call[:organization]
+        created_organizations << org
+
+        expect(org.subscription_federated?).to be(true)
+        expect(org.subscription_status.to_s).to eq('active')
+        expect(pending_exists?(email)).to be(false)
+        expect(auth_warnings).to include(a_string_matching(audit_message))
+      end
+    end
+
+    context 'when the auth config cannot be read' do
+      before { allow(Onetime.auth_config).to receive(:verify_account_loaded?).and_raise(RuntimeError, 'config unreadable') }
+
+      it 'fails closed: creates the workspace and leaves the pending record' do
+        email = unique_email('config-unreadable')
+        create_pending_for(email)
+        customer = unverified_signup(email)
+
+        org = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call[:organization]
+        created_organizations << org
+
+        expect(org).to be_a(Onetime::Organization)
+        expect(org.subscription_federated?).to be(false)
+        expect(pending_exists?(email)).to be(true)
+      end
     end
   end
 

@@ -144,21 +144,61 @@ module Onetime::Customer::Features
       end
 
       # Must a federated subscription wait for this customer's mailbox proof
-      # whatever the caller? True for an account the IdP vouched for and
-      # nobody else did: JIT-provisioned (provisioning_origin is never
-      # rewritten, so a held record counts too) or carrying the 'sso' stamp
-      # (the doctor's :sso_customer_unverified repair writes it onto records
-      # that predate provisioning_origin). No verify_account step will ever
-      # prove such an address.
+      # whatever the caller? Never once the record carries mailbox proof.
+      # Otherwise true for two kinds of record:
       #
-      # This is the record-based half of
-      # Auth::Operations::EnsureDefaultWorkspace#claim_deferred?. The webhook
-      # path reads it too, so a workspace whose claim was deferred cannot
-      # receive the same subscription through a direct sync (#4735).
+      #   - an account the IdP vouched for and nobody else did: JIT-
+      #     provisioned (provisioning_origin is never rewritten, so a held
+      #     record counts too) or carrying the 'sso' stamp (the doctor's
+      #     :sso_customer_unverified repair writes it onto records that
+      #     predate provisioning_origin). No verify_account step will ever
+      #     prove such an address; an operator verification is the re-claim.
+      #   - an unverified account on a deployment whose verify_account step
+      #     will still prove it (#4754 review, F1). Before this rule the
+      #     deferral of a standard signup lived only in the caller's flag, so
+      #     the callers that pass the default (the customers doctor repair,
+      #     lazy creation, the billing self-heal) could claim a pending record
+      #     for an address nobody had proven. The re-claim runs from
+      #     after_verify_account through SetCustomerVerification.
+      #
+      # Deliberately NOT deferred: a verified? record with a non-mailbox
+      # provenance ('autoverify', 'stripe_payment', 'legacy', blank). Rodauth
+      # never re-verifies a Verified row, so such an account has no self-
+      # service way to produce mailbox proof; deferring it would leave a new
+      # cross-region plan pending until an operator stamped it, and none of
+      # those stamps is reachable by an attacker on a verify-enabled
+      # deployment. The verify-disabled deployment keeps its documented
+      # residual: the predicate is false for its unverified signups, and
+      # EnsureDefaultWorkspace logs each such immediate claim.
+      #
+      # This is the record-based rule that both
+      # Auth::Operations::EnsureDefaultWorkspace#claim_deferred? and the
+      # federated webhook path
+      # (Billing::PendingFederatedSubscription.awaiting_mailbox_proof?) read,
+      # so a workspace whose claim was deferred cannot receive the same
+      # subscription through a direct sync (#4735).
       def federation_claim_deferred?
         return false if mailbox_verified?
+        return true if provisioning_origin.to_s == 'sso_jit' || verified_by.to_s == 'sso'
 
-        provisioning_origin.to_s == 'sso_jit' || verified_by.to_s == 'sso'
+        !verified? && verification_step_pending?
+      end
+
+      # Does this deployment have an email-verification step that an
+      # unverified account still goes through? Reads
+      # Onetime.auth_config.verify_account_loaded? (false outside full auth
+      # mode). Fails CLOSED: a config that cannot be read defers the claim,
+      # since the alternative hands a benefit to an address nobody proved.
+      # The federation webhook calls this under its per-hash lock, so the
+      # read must not raise out of it either.
+      #
+      # @return [Boolean]
+      def verification_step_pending?
+        Onetime.auth_config.verify_account_loaded?
+      rescue StandardError => ex
+        auth_logger.warn '[customer] Could not read the verify_account config; deferring the federation claim',
+          { customer: custid, error: ex.message, exception: ex.class.name }
+        true
       end
 
       # Does revealing this verification secret prove control of THIS
