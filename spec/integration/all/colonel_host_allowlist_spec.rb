@@ -149,6 +149,7 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
     cust          = Onetime::Customer.create!(email: "#{role}-#{SecureRandom.hex(4)}@example.com")
     cust.role     = role
     cust.verified = 'true'
+    cust.verified_by = 'email'
     cust.save
     cust
   end

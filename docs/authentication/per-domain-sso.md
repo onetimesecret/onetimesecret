@@ -236,7 +236,10 @@ A mismatch returns `403 tenant_mismatch`. Missing or unreadable tenant
 configuration and malformed or disallowed asserted email addresses also fail
 closed. An empty SSO email-domain allowlist is the configured allow-all case,
 which admits any address the IdP authenticates inside a
-[verified email domain](#verified-email-domains).
+[verified email domain](#verified-email-domains). With an allowlist
+configured, an Entra ID token that carries `xms_edov: false` (Microsoft has
+not verified that the tenant owns the email's domain) is refused as
+`domain_not_allowed` even when the domain is listed (#4735).
 
 This validation proves that the SSO transaction was initiated and completed for
 the same custom domain. It does **not** prove that an existing authenticated
@@ -1112,6 +1115,11 @@ On either provider type, an account is created only for an address inside a
 domain the organization has proven; see
 [Verified email domains](#verified-email-domains). App assignment says nothing
 about the domain of the `email` claim.
+
+Passing the allowlist does not make the asserted address mailbox-verified. A
+JIT-provisioned member is stamped `verified_by: 'sso'`, which opens the account
+but is not mailbox proof; see
+[SSO verification is not mailbox proof](per-install-sso.md#sso-verification-is-not-mailbox-proof).
 
 An internationalised domain can be entered in either form. Entries are stored
 as typed and compared by A-label, so `bücher.de` matches an IdP that asserts

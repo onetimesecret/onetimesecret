@@ -35,6 +35,11 @@ module Billing
         include Onetime::LoggerMethods
         include FederationSupport
 
+        # How long a webhook waits for the per-hash federation lock while a
+        # claim or another webhook has it. On timeout the handler raises,
+        # and the billing worker retries the event with backoff.
+        FEDERATION_LOCK_WAIT = 5.0
+
         private
 
         # Path 1: Find owner organization by direct stripe_customer_id link
@@ -117,11 +122,21 @@ module Billing
         # Also records an internal note on the Stripe Customer for visibility
         # into cross-region federation events.
         #
+        # A workspace whose owner must prove mailbox control first
+        # (#federation_deferred_for?) receives nothing: the subscription is
+        # stored as the pending record instead, for the claim that runs once
+        # the owner is verified (#4754 review, F3).
+        #
         # @param org [Onetime::Organization] Organization to update
         # @param subscription [Stripe::Subscription] Stripe subscription
         # @return [Boolean] True if this was the first federation (for notification)
         #
         def update_federated_org(org, subscription)
+          if federation_deferred_for?(org)
+            defer_federated_update(org, subscription)
+            return false
+          end
+
           first_federation = !org.subscription_federated?
 
           # Delegate field-setting to shared operation (federated path:
@@ -134,12 +149,104 @@ module Billing
           # Mark as federated if first time
           org.mark_subscription_federated! if first_federation
 
+          # This event's state is now applied in full (the call above
+          # materialized the entitlements). The marker lets a later re-claim
+          # recognise a pending record stored before this sync as stale
+          # even when retiring it below fails (#4735 review, F8).
+          mark_federated_sync!(org)
+
           org.save
 
+          # The org now carries this event's state directly, so a pending
+          # record for the same hash is a stale snapshot (left when a claim
+          # saved the org but failed to destroy it, or written by a webhook
+          # that looked the org up before it existed). Retire it here rather
+          # than let a later re-claim replay it over this update (#4735).
+          discard_superseded_pending(org)
+
           # Record federation event on Stripe Customer for visibility
-          record_federation_note(subscription, org, first_federation)
+          queue_federation_note(subscription, org, first_federation)
 
           first_federation
+        end
+
+        # Record the direct sync just applied to org: the time, and a fresh
+        # position in the federation sync order, so every pending record
+        # stored before it reads as superseded.
+        #
+        # @param org [Onetime::Organization]
+        def mark_federated_sync!(org)
+          org.mark_subscription_synced!(version: Billing::PendingFederatedSubscription.next_sync_version)
+        end
+
+        # Must this workspace wait for its owner's mailbox proof before it
+        # receives a federated subscription? Without this check a workspace
+        # whose claim was deferred received the same subscription here as
+        # soon as it had an email_hash, from the backfill command or from
+        # creation on an earlier release (#4754 review, F3). The rule is
+        # Billing::PendingFederatedSubscription.awaiting_mailbox_proof?,
+        # which the claim's retire step reads too.
+        #
+        # @param org [Onetime::Organization]
+        # @return [Boolean]
+        def federation_deferred_for?(org)
+          Billing::PendingFederatedSubscription.awaiting_mailbox_proof?(org)
+        end
+
+        # Keep the subscription for a deferred workspace as the pending record
+        # (newest state wins) instead of applying it. The org is not written.
+        #
+        # @param org [Onetime::Organization] the deferred workspace
+        # @param subscription [Stripe::Subscription]
+        def defer_federated_update(org, subscription)
+          email_hash = @federation_email_hash.to_s
+          email_hash = org.email_hash.to_s if email_hash.empty?
+          store_pending_federation(email_hash, subscription, @federation_stripe_customer)
+
+          billing_logger.info '[SubscriptionFederation] Federated subscription deferred until the workspace owner proves mailbox control',
+            org: org.extid,
+            subscription_id: subscription.id,
+            status: subscription.status
+        end
+
+        # Best-effort: the org update is the record of truth and has already
+        # been saved; a failure here is logged, never raised.
+        #
+        # Retires only a record the org now supersedes (stored before this
+        # sync) and only the copy that was read. Runs under the federation
+        # lock, as every pending writer does.
+        #
+        # @param org [Onetime::Organization] Federated organization just synced
+        # @param keep_for_deferred [Boolean] leave the record when another
+        #   workspace for the hash is deferred (see
+        #   Billing::PendingFederatedSubscription#retire_for!). A cancellation
+        #   passes false: it ends the subscription for every workspace,
+        #   deferred or not.
+        def discard_superseded_pending(org, keep_for_deferred: true)
+          pending = Billing::PendingFederatedSubscription.find_by_email_hash(org.email_hash)
+          return unless pending
+          return unless pending.superseded_by?(org)
+          return unless pending.retire_for!(org, keep_for_deferred: keep_for_deferred)
+
+          billing_logger.info '[SubscriptionFederation] Retired pending record superseded by direct sync',
+            org: org.extid,
+            email_hash: org.email_hash
+        rescue StandardError => ex
+          billing_logger.warn '[SubscriptionFederation] Failed to retire superseded pending record',
+            org: org.extid,
+            error: ex.message
+        end
+
+        # Send the federation note after the federation lock is released
+        # when called from #process_with_federation (it is a Stripe API call,
+        # and the lock should be held for local writes only); right away
+        # otherwise.
+        def queue_federation_note(subscription, org, first_federation)
+          if @queued_federation_notes
+            @queued_federation_notes << [subscription, org, first_federation]
+          else
+            record_federation_note(subscription, org, first_federation)
+          end
         end
 
         # Record federation event on Stripe Customer via metadata
@@ -211,7 +318,7 @@ module Billing
         # @yieldparam is_owner [Boolean] True if this is the owner org
         # @return [Symbol] :success, :owner_only, :federated_only, or :not_found
         #
-        def process_with_federation(subscription)
+        def process_with_federation(subscription, &)
           stripe_customer_id = subscription.customer
           stripe_customer    = retrieve_stripe_customer(stripe_customer_id)
           return :stripe_error unless stripe_customer
@@ -229,6 +336,27 @@ module Billing
             yield owner_org, true if block_given?
           end
 
+          # Path 2 runs under the per-hash federation lock that the deferred
+          # claim also takes (#4754 review, F1/F2). The lookup, the writes
+          # and the no-match store happen together: a claim cannot complete
+          # between this webhook finding no workspace and storing its
+          # snapshot, and cannot write over an org this webhook just synced.
+          @federation_stripe_customer = stripe_customer
+          @federation_email_hash      = email_hash
+          @queued_federation_notes    = []
+
+          outcome = with_federation_lock(email_hash) do
+            process_federated_orgs(subscription, stripe_customer, email_hash, owner_org, found_any, &)
+          end
+
+          flush_federation_notes
+          outcome
+        ensure
+          @queued_federation_notes = nil
+        end
+
+        # Path 2 of #process_with_federation, holding the federation lock.
+        def process_federated_orgs(subscription, stripe_customer, email_hash, owner_org, found_any)
           # Path 2: Federated orgs (matching hash, no direct link)
           federated = find_federated_orgs(email_hash, exclude_org: owner_org)
           federated.each do |org|
@@ -258,6 +386,24 @@ module Billing
           return :federated_only if owner_org.nil? && federated.any?
 
           :success
+        end
+
+        # Hold the federation lock for email_hash around the block. Without a
+        # hash there is nothing to match or store, so no lock is needed.
+        #
+        # @raise [Billing::PendingFederatedSubscription::FederationLockTimeout]
+        #   when a claim or another webhook keeps the lock past
+        #   FEDERATION_LOCK_WAIT; the billing worker retries the event
+        def with_federation_lock(email_hash, &)
+          return yield if email_hash.to_s.empty?
+
+          Billing::PendingFederatedSubscription.with_federation_lock(email_hash, wait: FEDERATION_LOCK_WAIT, &)
+        end
+
+        def flush_federation_notes
+          notes                    = @queued_federation_notes || []
+          @queued_federation_notes = nil
+          notes.each { |subscription, org, first| record_federation_note(subscription, org, first) }
         end
 
         # Retrieve Stripe customer with error handling
