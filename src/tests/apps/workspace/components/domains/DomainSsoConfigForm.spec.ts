@@ -1163,10 +1163,10 @@ describe('DomainSsoConfigForm', () => {
     });
 
     // Before a record exists there is no proven set to judge against: it
-    // comes with the saved record, and the GET that serves it has not
-    // happened. Judging a typed entry against [] would read "Not proven" and
-    // say sign-in creates no accounts for it. The save response carries the
-    // verdict and the chips take it from there.
+    // comes with the saved record, and the GET for a never-saved
+    // configuration answers with no record. Judging a typed entry against []
+    // would read "Not proven" and say sign-in creates no accounts for it. The
+    // save response carries the verdict and the chips take it from there.
     it('judges no typed entry before a record exists', async () => {
       wrapper = await mountComponent({
         formState: { ...createDefaultFormState(), allowed_domains: ['acme.example'] },
