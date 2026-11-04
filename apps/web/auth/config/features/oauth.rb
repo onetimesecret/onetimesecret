@@ -217,6 +217,28 @@ module Auth::Config::Features
         end
       end
 
+      # ─── claims request parameter: never take a value from it ─────────
+      # FIX (#4735): the OIDC `claims` request parameter (OIDC Core 1.0
+      # section 5.5) comes from the browser at /authorize, and the gem
+      # stores it on the grant as given (oidc_grant_params, oidc.rb:773).
+      # Its proxy_get_param (oidc.rb:661) then used a requested `value` in
+      # place of get_oidc_param, and dropped a claim whose real value was in
+      # a requested `values` list. So the person who signs in could set
+      # email_verified: true, remove it, or pick their own name and
+      # preferred_username, in both the ID token and /userinfo. In section
+      # 5.5.1 `value` and `values` only say which value the client would
+      # like; the OP still reports the real one.
+      #
+      # We pass no per-claim request info to the gem, so every claim value
+      # comes from get_oidc_param (hooks/oauth.rb). Asking for a claim by
+      # name in the ID token or /userinfo still works.
+      auth.auth_class_eval do
+        define_method(:proxy_get_param) do |get_param_func, claims, claims_locales, _additional_claims_info|
+          super(get_param_func, claims, claims_locales, {})
+        end
+        private :proxy_get_param
+      end
+
       # ─── Grant types ───────────────────────────────────────────────────
       # No client_credentials, device_code, password, or assertion grants in v1.
       auth.oauth_grant_types_supported %w[authorization_code refresh_token]

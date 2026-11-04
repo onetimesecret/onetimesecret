@@ -17,3 +17,10 @@ Security
   token to the inviter as well, so the signup does not prove that the invitee
   controls the mailbox. The identity provider is off by default
   (``AUTH_OAUTH_ENABLED``). (#4735)
+
+- The identity provider no longer takes claim values from the OpenID Connect
+  ``claims`` request parameter. A requested ``value`` used to replace the
+  value the server sends, and a requested ``values`` list could remove the
+  claim, so the person signing in could set ``email_verified: true``, remove
+  it, or choose their own ``name`` and ``preferred_username`` in the ID token
+  and ``/userinfo``. Asking for a claim by name still works. (#4735)

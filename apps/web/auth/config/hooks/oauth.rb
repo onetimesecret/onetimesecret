@@ -130,7 +130,9 @@ module Auth::Config::Hooks
           # nil would make the gem drop the claim (proxy_get_param,
           # oidc.rb:668), and a missing claim is not a refusal: our own SSO
           # callback reads an absent email_verified as "no hold" and marks
-          # the customer verified (hooks/omniauth.rb).
+          # the customer verified (hooks/omniauth.rb). features/oauth.rb
+          # overrides proxy_get_param so that a `claims` request parameter
+          # cannot replace or remove this value either.
           oidc_email_verified?(account)
         when :name, :preferred_username
           # OTS Customer is the user-facing profile record (Familia/Redis).

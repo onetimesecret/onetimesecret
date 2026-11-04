@@ -147,7 +147,7 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', :sqlite_database, type: :integr
   # S256 PKCE and a fixed nonce.
   def seed_authorization_code(account_id:, scopes: 'openid email profile',
                               challenge: code_challenge, method: 'S256',
-                              nonce: nil, expires_at: Time.now + 300)
+                              nonce: nil, expires_at: Time.now + 300, claims: nil)
     app_id = auth_db[:oauth_applications].where(client_id: client_id).get(:id)
     code   = SecureRandom.urlsafe_base64(32)
 
@@ -163,6 +163,7 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', :sqlite_database, type: :integr
       code_challenge_method: method,
       access_type: 'online',
       nonce: nonce,
+      claims: claims, # the raw `claims` request parameter, as oidc_grant_params stores it
     )
     created_grant_ids << grant_id
     { id: grant_id, code: code }
@@ -568,10 +569,11 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', :sqlite_database, type: :integr
     # reads both the ID token and /userinfo; the gem fills both through
     # fill_with_account_claims.
 
-    # Redeems a fresh `openid email profile` grant for the account and
-    # returns [id_token_payload, userinfo_body].
-    def claims_for(account)
-      grant = seed_authorization_code(account_id: account[:id])
+    # Redeems a fresh grant for the account and returns
+    # [id_token_payload, userinfo_body]. `claims` is the raw OIDC `claims`
+    # request parameter (JSON) that /authorize would store on the grant.
+    def claims_for(account, scopes: 'openid email profile', claims: nil)
+      grant = seed_authorization_code(account_id: account[:id], scopes: scopes, claims: claims)
       body  = post_token_for_code(grant[:code])
       expect(last_response.status).to eq(200), "Token body: #{last_response.body}"
 
@@ -671,6 +673,75 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', :sqlite_database, type: :integr
 
       expect(id_payload).to include('email_verified' => false)
       expect(userinfo).to include('email_verified' => false)
+    end
+
+    # The `claims` request parameter (OIDC Core 1.0 section 5.5) comes from
+    # the browser at /authorize and is stored on the grant as given. Its
+    # `value` and `values` members say which value the client would like;
+    # they must not set or remove the value we send. features/oauth.rb
+    # overrides the gem's proxy_get_param so they are ignored.
+    describe 'with a claims request parameter' do
+      def claims_param(target_claims, targets: %w[id_token userinfo])
+        JSON.generate(targets.to_h { |target| [target, target_claims] })
+      end
+
+      it 'ignores a requested value: true for an SSO-verified Customer' do
+        account = create_verified_account
+        link_customer(account, verified_by: 'sso')
+
+        id_payload, userinfo = claims_for(
+          account,
+          claims: claims_param({ 'email_verified' => { 'value' => true } }),
+        )
+
+        expect(id_payload).to include('email_verified' => false)
+        expect(userinfo).to include('email_verified' => false)
+      end
+
+      it 'ignores a requested value: true for an Unverified row with scope openid only' do
+        account = create_account(status_id: 1) # Unverified, no Customer
+
+        id_payload, userinfo = claims_for(
+          account,
+          scopes: 'openid',
+          claims: claims_param({ 'email_verified' => { 'value' => true } }),
+        )
+
+        expect(id_payload).to include('email_verified' => false)
+        expect(userinfo).to include('email_verified' => false)
+      end
+
+      it 'keeps email_verified when values lists the real value' do
+        account = create_verified_account
+        link_customer(account, verified_by: 'sso')
+
+        id_payload, userinfo = claims_for(
+          account,
+          claims: claims_param({ 'email_verified' => { 'values' => [false] } }),
+        )
+
+        expect(id_payload).to include('email_verified' => false)
+        expect(userinfo).to include('email_verified' => false)
+      end
+
+      it 'ignores requested values for preferred_username and name' do
+        account  = create_verified_account
+        customer = link_customer(account, verified_by: 'email')
+
+        id_payload, userinfo = claims_for(
+          account,
+          claims: claims_param(
+            {
+              'preferred_username' => { 'value' => 'admin' },
+              'name' => { 'value' => 'Admin' },
+            },
+          ),
+        )
+
+        expected = { 'preferred_username' => customer.custid, 'name' => customer.custid }
+        expect(id_payload).to include(expected)
+        expect(userinfo).to include(expected)
+      end
     end
   end
 
