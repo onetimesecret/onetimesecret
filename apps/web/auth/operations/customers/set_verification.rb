@@ -130,10 +130,11 @@ module Auth
           # would VERIFY it, handing the account the colonel eligibility it never
           # had (#4735 review).
           #
-          # The provenance to restore is read here too. SetCustomerVerification
-          # #update_customer! assigns verified_by UNCONDITIONALLY, and the unverify
-          # arm passes nil (SetUserVerification#verified_by_tag returns nil when
-          # clearing), so the write blanks it in memory. The rollback must restore
+          # The provenance to restore is read here too. On its write path
+          # SetCustomerVerification#update_customer! assigns verified_by whatever
+          # was passed, and the unverify arm passes nil (SetUserVerification
+          # #verified_by_tag returns nil when clearing), so the write blanks it
+          # in memory. The rollback must restore
           # this ORIGINAL tag, not the nil this op was called with — otherwise a
           # concurrent double-unverify re-verifies the surviving colonel with
           # verified_by wiped, destroying the 'colonel_admin'/'email' provenance

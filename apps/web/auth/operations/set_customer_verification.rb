@@ -38,8 +38,11 @@
 #       Auth state (the important one) is correct; display of
 #       Customer#verified? will be wrong until next save.
 #       Detectable and fixable via `bin/ots customers sync-auth-accounts`,
-#       and the next call through this op (any change, including a
-#       provenance-only one) reconciles the SQL row again.
+#       and the next call through this op that writes (a state change, or
+#       a provenance change that alters whether the account has mailbox
+#       proof) reconciles the SQL row again. A repeat of mailbox proof
+#       under another mailbox-proof tag writes nothing, like a same-stamp
+#       repeat (see #mailbox_proof_reaffirmed?).
 #
 
 require 'auth/account_statuses'
@@ -57,7 +60,9 @@ module Auth
       #                    non-anonymous)
       # @param verified    [Boolean] target state
       # @param verified_by [String, nil] provenance tag ('cli_provision',
-      #                    'colonel_admin', 'email', etc.); nil when clearing
+      #                    'colonel_admin', 'email', etc.); nil when clearing.
+      #                    Not written over a stored mailbox-proof stamp when
+      #                    it is mailbox proof too (#mailbox_proof_reaffirmed?)
       # @param rodauth_already_synced [Boolean] when true, skip the SQL
       #                    update — caller guarantees Rodauth-side
       #                    status is already correct (e.g., we're
@@ -95,27 +100,35 @@ module Auth
       #   (not raised when rodauth_already_synced: true)
       def call
         state_changes      = @customer.verified? != @verified
-        provenance_changes = @customer.verified_by.to_s != @verified_by.to_s
+        provenance_changes = @customer.verified_by.to_s != @verified_by.to_s && !mailbox_proof_reaffirmed?
 
         unless state_changes || provenance_changes
           # Nothing to write. A repeat verification of an account that already
           # carries mailbox proof is still the operator's retry for a deferred
           # federation claim that failed after the proof was saved (see
           # #claim_pending_federation!); it is idempotent, so run it.
+          if @customer.verified_by.to_s != @verified_by.to_s
+            auth_logger.debug "[set-customer-verification] #{@customer.extid} keeps " \
+                              "verified_by=#{@customer.verified_by.inspect}; " \
+                              "#{@verified_by.inspect} records no new fact"
+          end
           claim_pending_federation! if mailbox_proven?
           return :no_change
         end
 
-        # A provenance-only change (verified stays true, verified_by moves from
-        # 'sso' to 'cli_provision', say) is how an already-Verified account
-        # acquires MAILBOX proof (#4735): Rodauth's verify_account never runs
-        # for a Verified row, so this is the only path. The SQL row is still
+        # A provenance-only change that ALTERS whether the account has mailbox
+        # proof (verified stays true, verified_by moves from 'sso' to
+        # 'cli_provision', say) is how an already-Verified account acquires
+        # MAILBOX proof (#4735): Rodauth's verify_account never runs for a
+        # Verified row, so this is the only path. The SQL row is still
         # reconciled to the target state rather than assumed correct: an
         # earlier call can have committed SQL and then failed the Redis save
         # (failure modes above), leaving Redis reading verified while the
         # accounts row is Unverified. Only `rodauth_already_synced:` — the
         # caller's explicit guarantee — skips it. The UPDATE is idempotent on a
-        # row already in the target state.
+        # row already in the target state. A provenance move between two
+        # mailbox-proof tags never gets here (#mailbox_proof_reaffirmed?), so
+        # it reconciles nothing, exactly like a same-stamp repeat.
         update_rodauth_account! if full_auth_mode? && !@rodauth_already_synced
         update_customer!
 
@@ -135,6 +148,32 @@ module Auth
       # reflects the stamp just written.
       def mailbox_proven?
         @verified && @customer.mailbox_verified?
+      end
+
+      # Does this call re-stamp mailbox proof onto an account that already has
+      # it? `bin/ots customers verify` ('cli_provision') and the colonel admin
+      # ('colonel_admin') are the documented retry for a stranded federation
+      # claim, and either one run on an account the Rodauth hook stamped
+      # 'email' used to rewrite that provenance to the operator's tag (#4754
+      # review, F2). Both tags say the same thing, that the mailbox was
+      # proven, and the stored one says how it was proven, which nothing
+      # records anywhere else and Rodauth never stamps again (verify_account
+      # never runs for a Verified row). So the move is treated as no change:
+      # the stored stamp is kept and the claim retry still runs.
+      #
+      # Reads Customer#mailbox_verified? for the stored side, which includes
+      # verified?, so a stale mailbox tag on an UNVERIFIED record (the
+      # pre-#4735 `customers create --no-verified` stamped 'cli_provision'
+      # regardless) is not mistaken for proof; that call is a state change
+      # and writes as before. A move from a mailbox-proof tag to a
+      # non-mailbox one with verified: true is not refused here (no caller
+      # does it; the doctor passes an existing stamp only for an unverified
+      # record) and would still write.
+      #
+      # @return [Boolean]
+      def mailbox_proof_reaffirmed?
+        @verified && @customer.mailbox_verified? &&
+          Onetime::Customer::MAILBOX_VERIFIED_BY.include?(@verified_by.to_s)
       end
 
       def full_auth_mode?

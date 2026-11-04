@@ -269,6 +269,91 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
   end
 
+  # #4754 review, F2: `bin/ots customers verify` ('cli_provision') and the
+  # colonel admin ('colonel_admin') are the documented retry for a stranded
+  # federation claim. Run on an account the Rodauth hook stamped 'email', they
+  # used to rewrite that provenance to the operator's tag, with no record of
+  # the original anywhere. Both tags are mailbox proof, so the move records no
+  # new fact: the stored stamp is kept, and only the claim retry runs.
+  describe 'a verification retry on an account that already has mailbox proof' do
+    before do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'email', mailbox_verified?: true)
+    end
+
+    %w[cli_provision colonel_admin].each do |operator_tag|
+      it "keeps the 'email' stamp when the operator re-verifies with #{operator_tag}" do
+        op = described_class.new(customer: customer, verified: true, verified_by: operator_tag, db: db)
+
+        expect(op.call).to eq(:no_change)
+        expect(customer).not_to have_received(:verified_by=)
+        expect(customer).not_to have_received(:verified=)
+        expect(customer).not_to have_received(:save)
+      end
+
+      it "still runs the claim retry when re-verified with #{operator_tag}" do
+        op = described_class.new(customer: customer, verified: true, verified_by: operator_tag, db: db)
+
+        op.call
+
+        expect(workspace_op).to have_received(:claim_pending_federation_for).with(customer)
+        expect(op.federation_claimed?).to be(true)
+      end
+    end
+
+    it 'does not touch the SQL row in full mode, like a same-stamp repeat' do
+      allow(auth_config).to receive(:mode).and_return('full')
+
+      op = described_class.new(customer: customer, verified: true, verified_by: 'cli_provision', db: db)
+
+      expect(op.call).to eq(:no_change)
+      expect(db).not_to have_received(:transaction)
+    end
+
+    it 'keeps an operator stamp when the Rodauth hook would stamp email' do
+      allow(customer).to receive_messages(verified_by: 'cli_provision')
+
+      op = described_class.new(
+        customer: customer, verified: true, verified_by: 'email', rodauth_already_synced: true,
+      )
+
+      expect(op.call).to eq(:no_change)
+      expect(customer).not_to have_received(:verified_by=)
+    end
+
+    # The stored tag is mailbox proof only together with verified? true
+    # (Customer#mailbox_verified?). An unverified record carrying a stale
+    # 'cli_provision' (the pre-#4735 CLI stamped it regardless) is a state
+    # change and writes as before.
+    it 'still writes when the record is unverified despite a stale mailbox tag' do
+      allow(customer).to receive_messages(verified?: false, verified_by: 'cli_provision', mailbox_verified?: false)
+
+      op = described_class.new(customer: customer, verified: true, verified_by: 'cli_provision', db: db)
+
+      expect(op.call).to eq(:success)
+      expect(customer).to have_received(:verified=).with(true)
+      expect(customer).to have_received(:save)
+    end
+
+    it 'still upgrades an IdP-asserted stamp (sso -> cli_provision)' do
+      allow(customer).to receive_messages(verified_by: 'sso', mailbox_verified?: false)
+
+      op = described_class.new(customer: customer, verified: true, verified_by: 'cli_provision', db: db)
+
+      expect(op.call).to eq(:success)
+      expect(customer).to have_received(:verified_by=).with('cli_provision')
+      expect(customer).to have_received(:save)
+    end
+
+    it 'still unverifies, clearing the provenance' do
+      op = described_class.new(customer: customer, verified: false, verified_by: nil, db: db)
+
+      expect(op.call).to eq(:success)
+      expect(customer).to have_received(:verified=).with(false)
+      expect(customer).to have_received(:verified_by=).with(nil)
+      expect(customer).to have_received(:save)
+    end
+  end
+
   describe 'deferred federation re-claim' do
     it 'claims once the stamp gains mailbox proof (unverified -> email)' do
       # mailbox_verified? is read after the write, so it answers for the new stamp.

@@ -17,6 +17,10 @@
 # any deferred federated subscription. Confirm the address with its owner
 # first — this command is the operator vouching for it.
 #
+# On an account that already carries mailbox proof ('email' from the Rodauth
+# hook, say) the stored provenance is kept: the run reports "already verified"
+# and only retries a deferred federated claim that failed (#4754 review, F2).
+#
 # Usage:
 #   bin/ots customers verify user@example.com      # Lookup by email
 #   bin/ots customers verify ur1234567890abcdef    # Lookup by extid

@@ -21,7 +21,9 @@ Security
   operator verifies the address; ``bin/ots customers verify`` and the colonel
   admin can re-verify an already-verified account to record mailbox proof,
   which applies the deferred subscription, and re-running either on an
-  already mailbox-verified account retries a claim that failed.
+  already mailbox-verified account retries a claim that failed without
+  changing the stored mailbox-proof provenance (an ``email`` stamp is not
+  rewritten to ``cli_provision`` or ``colonel_admin``).
   ``bin/ots customers doctor`` reports every system-role holder (colonel,
   admin, staff) without mailbox proof. Microsoft Entra's optional
   ``xms_edov: false`` claim now withholds the verified stamp
