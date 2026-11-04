@@ -65,6 +65,14 @@ module Auth
 
       IDENTITIES_TABLE = :account_identities
 
+      # provider_type values whose live tenant callback resolves a tenant-scoped
+      # issuer, and therefore the only ones this operation reads rows for. Any
+      # other value (a pre-#3902 github/google record) resolves to the ''
+      # sentinel at callback time and is refused on tenant surfaces
+      # (refuse_issuerless_on_tenant?), so there is nothing to audit — with or
+      # without an issuer override. One branch of resolve_issuer per entry.
+      AUDITABLE_PROVIDER_TYPES = %w[oidc entra_id saml].freeze
+
       # Statuses an unlink run may leave a row in, for callers that tally.
       STATUSES = [
         :inside, :outside, :would_unlink, :unlinked, :skipped_ambiguous_origin, :skipped_no_account, :error
@@ -98,7 +106,8 @@ module Auth
       #   what WOULD happen
       # @param issuer_override [String, nil] operator override for the issuer
       #   half of the identity key. When present and non-blank it is used in
-      #   place of the derived value, for every provider type, so the rows
+      #   place of the derived value, for every auditable provider type
+      #   (AUDITABLE_PROVIDER_TYPES; any other is refused either way), so the rows
       #   that BackfillTenantIssuer stamped through its own override can be
       #   read; pass the value given there. It selects which rows are read
       #   and relabels nothing.
@@ -254,16 +263,23 @@ end
       #   oidc     -> sso_config.issuer, byte-exact
       #   entra_id -> https://login.microsoftonline.com/{tenant_id}/v2.0
       #   saml     -> "<domain_id>|<IdP EntityID>" (Saml.tenant_issuer)
+      # Any other provider_type is refused first, override or not (as the
+      # issuer backfill refuses saml): the live callback resolves no
+      # tenant-scoped issuer for it, so no row under this domain's key exists.
       # A non-blank override wins over all three, stripped and otherwise
       # byte-exact, so the rows BackfillTenantIssuer stamped through --issuer
       # can be read under the same value. SAML is eligible here, unlike the
       # issuer backfill: nothing is relabelled, the rows under the tenant's
       # own key are read and, at most, deleted.
       def resolve_issuer(sso_config, override = nil)
+        provider_type = sso_config.provider_type.to_s
+        unless AUDITABLE_PROVIDER_TYPES.include?(provider_type)
+          raise Onetime::Problem,
+            "provider_type '#{provider_type}' has no tenant-scoped issuer; nothing to audit"
+        end
+
         override = override.to_s.strip
         return override unless override.empty?
-
-        provider_type = sso_config.provider_type.to_s
 
         resolved =
           case provider_type
@@ -279,9 +295,6 @@ end
             raise Onetime::Problem, "SAML SSO config for #{domain.display_domain} has no IdP EntityID" if entity_id.empty?
 
             Onetime::SsoProvider::Saml.tenant_issuer(domain.identifier, entity_id)
-          else
-            raise Onetime::Problem,
-              "provider_type '#{provider_type}' has no tenant-scoped issuer; nothing to audit"
           end
 
         if resolved.to_s.strip.empty?

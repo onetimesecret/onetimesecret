@@ -361,7 +361,9 @@ module Onetime
             with no derivation applied: for SAML the stored form is
             "<domain_id>|<IdP EntityID>", not the EntityID alone. A run that
             scans 0 rows is not evidence of a clean install until the issuer
-            matches what the rows were stamped with.
+            matches what the rows were stamped with. Only oidc, entra_id and
+            saml domains are audited; a pre-#3902 github or google record is
+            refused, with or without --issuer.
 
             With --unlink --confirm the failing rows are deleted. Nothing else
             changes: the account and its Customer stay, the address owner can still

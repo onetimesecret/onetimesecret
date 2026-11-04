@@ -114,7 +114,10 @@ $ bin/ots sso audit-email-domains secrets.example.com \
 The header then reads `Issuer: ... (from --issuer)` and the JSON report has
 `"issuer_override": true`. The option selects which rows are read and changes
 nothing else: the provenance gate and the delete apply to those rows as to
-any other, under that same issuer, and no row is relabelled.
+any other, under that same issuer, and no row is relabelled. Only `oidc`,
+`entra_id` and `saml` domains are audited; a pre-#3902 `github` or `google`
+record resolves no tenant-scoped issuer and is refused (`Cannot audit: ...`,
+exit 1) with or without `--issuer`.
 
 `Scanned 0 identity row(s) under this issuer` is not evidence of a clean
 install until the issuer matches what the rows were stamped with. The command

@@ -17,7 +17,8 @@
 # (the live gate) and backfill_tenant_issuer_spec.rb (the sibling operation).
 # The scan is issuer-exact; the issuer override (--issuer) reads the rows the
 # sibling stamped with a value other than the derived one, and a zero-row scan
-# says so.
+# says so. Only oidc, entra_id and saml configs are audited: a pre-#3902
+# github/google record is refused before the override is read.
 #
 # A display_domain is unique install-wide, so every tenant here gets its own
 # host; "inside" addresses sit at that host, "outside" ones at a domain no
@@ -108,6 +109,40 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
 
     issuer = provider_type == 'saml' ? Onetime::SsoProvider::Saml.tenant_issuer(domain.identifier, attrs[:idp_entity_id]) : tenant_issuer
     AuditTenant.new(host: host, domain: domain, org: org, sso: sso, provider: sso.platform_route_name, issuer: issuer)
+  end
+
+  # A pre-#3902 record (github/google) that SsoConfig.create! rejects today,
+  # written the way it was originally written: direct assignment + save (as
+  # backfill_tenant_issuer_spec.rb's build_domain_on does). Its route name is
+  # the provider_type itself, and it has no derivable issuer.
+  def build_legacy_tenant(provider_type:)
+    run   = SecureRandom.hex(6)
+    owner = Onetime::Customer.new(email: "owner-#{run}@audit-tenant-test.example.com")
+    owner.save
+    org = Onetime::Organization.create!("Audit Org #{run}", owner, "contact-#{run}@audit-tenant-test.example.com")
+    fixtures.push(owner, org)
+
+    host   = "legacy-#{run}.audit-tenant-test.example.com"
+    domain = Onetime::CustomDomain.parse(host, org.objid)
+    domain.ownership_verified   = true
+    domain.verified_by_override = true
+    domain.save
+    org.add_domain(domain)
+    Onetime::CustomDomain.display_domain_index.put(host, domain.domainid)
+    fixtures << domain
+
+    sso               = Onetime::CustomDomain::SsoConfig.new(domain_id: domain.identifier)
+    sso.provider_type = provider_type
+    sso.display_name  = "Legacy SSO #{run}"
+    sso.client_id     = "client-#{run}"
+    sso.client_secret = "secret-#{run}"
+    sso.enabled       = 'true'
+    sso.created       = Familia.now.to_i
+    sso.updated       = sso.created
+    sso.save
+    fixtures << sso
+
+    AuditTenant.new(host: host, domain: domain, org: org, sso: sso, provider: sso.platform_route_name, issuer: nil)
   end
 
   # A second custom domain of the same organization, verified or not, so the
@@ -375,6 +410,26 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
       expect { Auth::Operations::AuditTenantEmailDomains.new(domain: domain) }
         .to raise_error(Onetime::Problem, /no SSO config/)
     end
+
+    # The live callback resolves the '' sentinel for github/google and refuses
+    # them on tenant surfaces, so no row under this domain's key exists. The
+    # override must not turn that refusal into a scan under (route, override):
+    # a row stamped there by an earlier backfill --issuer misuse is dead on
+    # every surface, and --unlink must not reach it through this tool.
+    it 'refuses a pre-#3902 issuerless config with or without --issuer, reading no rows' do
+      %w[github google].each do |ptype|
+        tenant = build_legacy_tenant(provider_type: ptype)
+        expect(tenant.provider).to eq(ptype)
+        row = seed_identity(tenant, "victim-#{SecureRandom.hex(4)}@unrelated.example.org", issuer: stamped_issuer)
+
+        expect { new_operation(tenant) }
+          .to raise_error(Onetime::Problem, /provider_type '#{ptype}' has no tenant-scoped issuer/)
+        expect { new_operation(tenant, unlink: true, dry_run: false, issuer_override: stamped_issuer) }
+          .to raise_error(Onetime::Problem, /provider_type '#{ptype}' has no tenant-scoped issuer/)
+        expect(identity_exists?(row[:identity_id])).to be true
+      end
+      expect(Auth::Logging).not_to have_received(:log_auth_event).with(:omniauth_tenant_identity_unlinked, anything)
+    end
   end
 
   describe 'CLI: bin/ots sso audit-email-domains', :cli do
@@ -561,6 +616,18 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
       expect(payload['statistics']['skipped_ambiguous_origin']).to eq(1)
       expect(payload['results'].first['status']).to eq('skipped_ambiguous_origin')
       expect(identity_exists?(other[:identity_id])).to be true
+      expect(Auth::Logging).not_to have_received(:log_auth_event).with(:omniauth_tenant_identity_unlinked, anything)
+    end
+
+    it 'with --unlink --confirm --issuer exits 1 on a pre-#3902 github config and deletes nothing' do
+      tenant = build_legacy_tenant(provider_type: 'github')
+      row    = seed_identity(tenant, "victim-#{SecureRandom.hex(4)}@unrelated.example.org", issuer: stamped_issuer)
+
+      expect do
+        run_command(Onetime::CLI::SsoAuditEmailDomainsCommand.new,
+          domain: tenant.domain.display_domain, issuer: stamped_issuer, unlink: true, confirm: true, json: true)
+      end.to raise_error(SystemExit) { |ex| expect(ex.status).to eq(1) }
+      expect(identity_exists?(row[:identity_id])).to be true
       expect(Auth::Logging).not_to have_received(:log_auth_event).with(:omniauth_tenant_identity_unlinked, anything)
     end
 
