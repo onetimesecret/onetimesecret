@@ -34,6 +34,7 @@
 require_relative '../../spec_helper'
 require_relative '../../../../../../spec/support/saml/test_idp'
 require 'stringio'
+require 'shellwords'
 
 RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
   before(:all) do
@@ -506,7 +507,7 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
       expect(report).to include(follow_up)
       expect(preview).to include('Preview only.')
       expect(preview).to include(follow_up)
-      expect(quoted).to include("--unlink --confirm --issuer #{piped.sub('|', '\\|')}")
+      expect(quoted).to include("--unlink --confirm --issuer #{Shellwords.escape(piped)}")
     end
 
     it 'says a zero-row scan may miss rows stamped with another issuer (text)' do
