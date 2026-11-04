@@ -87,6 +87,24 @@ module Billing
         # deferred, since the subscription it would claim has ended (#4754
         # review, F3).
         #
+        # Scope of that retirement: the pending record is one slot per
+        # email_hash (PendingFederatedSubscription uses the hash as its
+        # identifier and store_from_webhook overwrites), and neither the
+        # record nor a federated workspace names the Stripe subscription its
+        # state came from. So this cancellation takes the one subscription
+        # the hash maps to as the one that just ended and drops whatever the
+        # slot holds. That matches the product today: an organization owns
+        # one subscription (stripe_subscription_id carries a unique index),
+        # and a second active one is the anomaly checkout_completed logs for
+        # reconciliation (#2605). Were several live subscriptions per address
+        # a supported shape, the slot could hold the snapshot of the one that
+        # continues, this would drop it, and a deferred workspace would wait
+        # for that subscription's next webhook to store it again. Supporting
+        # that shape means a record per subscription (or an agreement id on
+        # the record and the workspace), a sync order per subscription rather
+        # than per hash, and a cancellation that retires only the snapshot of
+        # the subscription that ended (#4754 review).
+        #
         # @param org [Onetime::Organization] Organization to update
         # @param subscription [Stripe::Subscription] Stripe subscription (for logging)
         def clear_federated_org(org, _subscription)

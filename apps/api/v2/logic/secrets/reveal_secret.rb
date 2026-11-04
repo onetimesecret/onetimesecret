@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/security/passphrase_rate_limiter'
+require 'auth/operations/set_customer_verification'
 
 module V2::Logic
   module Secrets
@@ -182,16 +183,32 @@ module V2::Logic
               # proves nothing about the current one, so it is shown without
               # a stamp (Customer#mailbox_proof_secret?).
               if owner.mailbox_proof_secret?(secret)
-                secret_logger.info 'Owner verification successful',
-                  {
-                    secret_identifier: secret.shortid,
-                    owner_id: owner.objid,
-                    action: 'verification',
-                    result: :verified,
-                  }
-                owner.verified    = true
-                owner.verified_by = 'email'  # Track email verification method
-                owner.save
+                # Stamped through the verification operation so the deferred
+                # federated subscription claim runs here too, for a link sent
+                # to the owner's current address and held to that address; a
+                # link minted in simple mode and redeemed in full mode skips
+                # the stamp and still reveals
+                # (SetCustomerVerification.record_mailbox_proof). The outcome
+                # is logged after the stamp, so the success line is never
+                # written for a reveal that recorded nothing.
+                case Auth::Operations::SetCustomerVerification.record_mailbox_proof(owner, secret)
+                when :success, :no_change
+                  secret_logger.info 'Owner verification successful',
+                    {
+                      secret_identifier: secret.shortid,
+                      owner_id: owner.objid,
+                      action: 'verification',
+                      result: :verified,
+                    }
+                when nil
+                  secret_logger.info 'Verification link redeemed in full auth mode; revealing without stamping',
+                    {
+                      secret_identifier: secret.shortid,
+                      owner_id: owner.objid,
+                      action: 'verification',
+                      result: :not_stamped_full_auth_mode,
+                    }
+                end
                 # The pointer is shared with password recovery, and a newer
                 # recovery link may have moved it on since this welcome link
                 # was minted — or may move it between a comparison and the
