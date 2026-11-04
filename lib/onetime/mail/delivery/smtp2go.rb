@@ -135,7 +135,7 @@ module Onetime
         protected
 
         def validate_config!
-          raise ArgumentError, 'SMTP2GO API key must be configured' if api_key.nil? || api_key.empty?
+          config_error! 'SMTP2GO API key must be configured' if api_key.nil? || api_key.empty?
         end
 
         private

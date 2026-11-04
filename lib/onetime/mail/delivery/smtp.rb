@@ -70,7 +70,7 @@ module Onetime
 
         def validate_config!
           host = config['host'] || ENV.fetch('SMTP_HOST', nil)
-          raise ArgumentError, 'SMTP host must be configured' if host.nil? || host.empty?
+          config_error! 'SMTP host must be configured' if host.nil? || host.empty?
         end
 
         private

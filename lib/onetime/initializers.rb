@@ -37,6 +37,7 @@ require_relative 'initializers/configure_domains'      # depends_on: [:familia_c
 require_relative 'initializers/check_global_banner'    # depends_on: [:database]
 require_relative 'initializers/check_unique_index_format' # depends_on: [:database]
 require_relative 'initializers/check_tenant_sso_trust' # depends_on: [:database]
+require_relative 'initializers/check_emailer_config'   # depends_on: [:logging]
 require_relative 'initializers/print_log_banner'       # depends_on: [:logging]
 
 # Convention-based plugin discovery and initialization.

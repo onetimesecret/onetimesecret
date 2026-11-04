@@ -32,6 +32,9 @@ module Onetime
   #   | failed  | permanent         | non-transient delivery error             |
   #   | failed  | retries_exhausted | still failing after in-process retries   |
   #   | failed  | error             | any other error                          |
+  #   | failed  | misconfigured     | mail backend misconfigured and the claim |
+  #   |         |                   | could not be released (otherwise the     |
+  #   |         |                   | message is requeued and records nothing) |
   #
   # This is not provider deliverability data. Bounces, complaints,
   # suppressions and provider message history stay with

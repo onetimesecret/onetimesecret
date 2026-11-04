@@ -137,6 +137,98 @@ RSpec.describe Onetime::Mail::Mailer do
     end
   end
 
+  # Building the backend reads only install configuration, so whatever
+  # config-shaped error it raises reaches callers as ConfigurationError,
+  # never as the ArgumentError EmailWorker reads as a malformed message.
+  describe '.delivery_backend with a configuration it cannot be built from' do
+    let(:emailer) { { 'mode' => 'smtp', 'host' => nil } }
+
+    before do
+      allow(described_class).to receive(:emailer_config) { emailer }
+      allow(described_class).to receive(:provider_config).and_return({})
+      allow(described_class).to receive(:log_info)
+      allow(described_class).to receive(:log_error)
+      allow(ENV).to receive(:fetch).and_call_original
+      allow(ENV).to receive(:fetch).with('SMTP_HOST', nil).and_return(nil)
+      described_class.reset!
+    end
+
+    it 'raises ConfigurationError naming the provider when the SMTP host is missing' do
+      expect { described_class.delivery_backend }
+        .to raise_error(Onetime::Mail::ConfigurationError, 'SMTP host must be configured') do |err|
+          expect(err.provider).to eq('smtp')
+        end
+    end
+
+    it 'does not log that the backend is in use' do
+      expect { described_class.delivery_backend }.to raise_error(Onetime::Mail::ConfigurationError)
+
+      expect(described_class).not_to have_received(:log_info).with(/Using smtp delivery backend/)
+    end
+
+    it 'builds the backend once the configuration works' do
+      expect { described_class.delivery_backend }.to raise_error(Onetime::Mail::ConfigurationError)
+
+      emailer['host'] = 'smtp.example.com'
+
+      expect(described_class.delivery_backend).to be_a(Onetime::Mail::Delivery::SMTP)
+    end
+
+    # e.g. a backend check that still raises ArgumentError (an unsupported
+    # SMTP_AUTH, onetimesecret/onetimesecret#4890)
+    it 'reports an ArgumentError from the backend constructor as ConfigurationError' do
+      emailer['host'] = 'smtp.example.com'
+      allow(Onetime::Mail::Delivery::SMTP).to receive(:new)
+        .and_raise(ArgumentError, 'Unsupported SMTP auth method "ntlm" (SMTP_AUTH)')
+
+      expect { described_class.delivery_backend }
+        .to raise_error(Onetime::Mail::ConfigurationError, /Unsupported SMTP auth method "ntlm"/) do |err|
+          expect(err.provider).to eq('smtp')
+          expect(err.cause).to be_a(ArgumentError)
+        end
+    end
+
+    it 'reports an Onetime::ConfigError from building the provider config as ConfigurationError' do
+      emailer.replace('mode' => 'smtp2go', 'smtp2go_api_key' => 'api-test-key')
+      allow(described_class).to receive(:provider_config).with('smtp2go').and_return('fastaccept' => 'sometimes')
+
+      expect { described_class.delivery_backend }
+        .to raise_error(Onetime::Mail::ConfigurationError, /fastaccept/) do |err|
+          expect(err.provider).to eq('smtp2go')
+          expect(err.cause).to be_a(Onetime::ConfigError)
+        end
+    end
+
+    it 'leaves an error that is not config-shaped as it is' do
+      emailer['host'] = 'smtp.example.com'
+      allow(Onetime::Mail::Delivery::SMTP).to receive(:new).and_raise(NoMethodError, 'bug')
+
+      expect { described_class.delivery_backend }.to raise_error(NoMethodError, 'bug')
+    end
+  end
+
+  describe '.validate_delivery_config!' do
+    before do
+      allow(described_class).to receive(:log_info)
+      allow(ENV).to receive(:fetch).and_call_original
+      allow(ENV).to receive(:fetch).with('SMTP_HOST', nil).and_return(nil)
+      described_class.reset!
+    end
+
+    it 'returns the provider and does not keep the backend' do
+      allow(described_class).to receive(:emailer_config).and_return('mode' => 'smtp', 'host' => 'smtp.example.com')
+
+      expect(described_class.validate_delivery_config!).to eq('smtp')
+      expect(described_class.instance_variable_get(:@delivery_backend)).to be_nil
+    end
+
+    it 'raises ConfigurationError when the backend cannot be built' do
+      allow(described_class).to receive(:emailer_config).and_return('mode' => 'smtp')
+
+      expect { described_class.validate_delivery_config! }.to raise_error(Onetime::Mail::ConfigurationError)
+    end
+  end
+
   describe 'sender_config support' do
     let(:global_from) { 'global@example.com' }
     let(:global_reply_to) { nil }
