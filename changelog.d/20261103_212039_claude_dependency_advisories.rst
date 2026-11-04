@@ -30,7 +30,7 @@ Security
   ``safe_constantize``) and GHSA-2w9f-fxwj-w2qf (Medium, CVSS 4.7: XSS in the
   MessagePack serializer). Both gems come in through
   ``omniauth_openid_connect``; application code does not call Active Support.
-  (#PRNUM)
+  (#4915)
 
 - Updated ``zod`` from 4.3.6 to 4.6.6 for GHSA-mrhx-c7xc-m3w5 (High).
   (#4854, #4887)
