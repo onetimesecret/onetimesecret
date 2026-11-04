@@ -1,0 +1,8 @@
+{
+  "image": "python:3.14.7-bookworm@sha256:bfb689a7986adc6d5f16722e06c78e755efe4062e56276715fef450cbad09436",
+  "python": "3.14.7",
+  "node": "26.4.0",
+  "node_linux_x64_sha256": "5c4286dcd5bbd5acb1ccc7eb0e088bd5eb1e3affad671ee9364004f8f6a4a431",
+  "workers": 2,
+  "deadline_seconds": 900
+}
