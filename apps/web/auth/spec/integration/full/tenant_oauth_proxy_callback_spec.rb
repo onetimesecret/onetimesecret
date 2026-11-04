@@ -32,7 +32,11 @@ RSpec.describe 'Tenant OAuth callbacks behind a Host-rewriting proxy', :shared_d
     owner.save
     org             = Onetime::Organization.create!("OAuth #{label} #{run_id}", owner, owner.email)
     domain          = Onetime::CustomDomain.new(display_domain: host, org_id: org.org_id)
-    domain.verified = true
+    # Accepted by Colonel override, so the host also proves its email
+    # namespace for tenant JIT under the test install's passthrough strategy
+    # (#4734, CustomDomain#ownership_proven?).
+    domain.verified             = true
+    domain.verified_by_override = true
     domain.save
     Onetime::CustomDomain.display_domain_index.put(host, domain.domainid)
 
@@ -44,7 +48,9 @@ RSpec.describe 'Tenant OAuth callbacks behind a Host-rewriting proxy', :shared_d
       issuer: "https://idp-#{label}-#{run_id}.example.com",
       client_id: "client-#{label}-#{run_id}",
       client_secret: "secret-#{label}-#{run_id}",
-      email: "user-#{label}-#{run_id}@tenant-example.com",
+      # At the tenant's own proven domain: tenant SSO creates accounts only
+      # for addresses inside one (#4734).
+      email: "user-#{label}-#{run_id}@#{host}",
     }
     tenants << tenant
     Onetime::CustomDomain::SsoConfig.create!(
@@ -54,7 +60,7 @@ RSpec.describe 'Tenant OAuth callbacks behind a Host-rewriting proxy', :shared_d
       client_id: tenant[:client_id],
       client_secret: tenant[:client_secret],
       enabled: true,
-      allowed_domains: ['tenant-example.com'],
+      allowed_domains: [host],
     )
     tenant
   end

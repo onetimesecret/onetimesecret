@@ -1224,8 +1224,52 @@
     "content_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
-    "text": "Only users with email addresses from these domains can sign in. Leave empty to allow all domains.",
-    "content_hash": "1775e874"
+    "text": "Only users with email addresses from these domains can sign in. Leave empty to allow any domain. New accounts are created only for addresses in domains your organization has proven it owns.",
+    "content_hash": "fcf7c6d9"
+  },
+  "web.organizations.sso.allowed_domain_verified": {
+    "text": "Proven",
+    "content_hash": "d3578345"
+  },
+  "web.organizations.sso.allowed_domain_unverified": {
+    "text": "Not proven",
+    "content_hash": "41848e96"
+  },
+  "web.organizations.sso.allowed_domain_unverified_label": {
+    "text": "{domain} is outside the domains your organization has proven it owns. Sign-in creates no new accounts for it until that domain is proven.",
+    "content_hash": "f2ad2ae0"
+  },
+  "web.organizations.sso.allowed_domain_unknown": {
+    "text": "Checked on save",
+    "content_hash": "fdc1409c"
+  },
+  "web.organizations.sso.verified_email_domains": {
+    "text": "Proven domains: {domains}",
+    "content_hash": "60732fca"
+  },
+  "web.organizations.sso.verified_email_domains_none": {
+    "text": "No domain ownership is proven yet, so signing in through this connection creates no accounts. Add the domain under Domains and complete its TXT ownership check, or contact support.",
+    "content_hash": "567596fa"
+  },
+  "web.organizations.sso.verified_email_domains_none_unchecked": {
+    "text": "No domain ownership is proven yet, so signing in through this connection creates no accounts. This install does not check domain ownership itself. Ask your administrator to confirm ownership of the domain, or contact support.",
+    "content_hash": "0720f102"
+  },
+  "web.organizations.sso.verified_email_domains_unknown": {
+    "text": "Domain ownership could not be checked for this record. Reload the page to try again, or contact support if this keeps happening.",
+    "content_hash": "48b30094"
+  },
+  "web.organizations.sso.manual_checks_title": {
+    "text": "Confirm in the Entra app registration (this test cannot read these settings):",
+    "content_hash": "df0619c9"
+  },
+  "web.organizations.sso.manual_check_remove_unverified_email_claim": {
+    "text": "removeUnverifiedEmailClaim is true on the app registration, so a token for an address in an unverified domain carries no email claim",
+    "content_hash": "64f39c1a"
+  },
+  "web.organizations.sso.manual_check_xms_edov_optional_claim": {
+    "text": "The xms_edov optional claim is added to the ID token",
+    "content_hash": "20cd7567"
   },
   "web.organizations.sso.domain_placeholder": {
     "text": "e.g. acme.com",

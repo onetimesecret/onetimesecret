@@ -41,6 +41,10 @@ import type {
 } from '../../../../../schemas/api/domains/responses/sso-config';
 import type { TenantSsoVerdict } from '../../../../../schemas/api/domains/responses/signin-config';
 import { createRealI18n, createTestI18n } from '../../../../setup';
+import {
+  OWNERSHIP_CHECKING_STRATEGIES,
+  setDomainValidationStrategy,
+} from '@tests/support/domainValidationStrategy';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mocks
@@ -95,6 +99,16 @@ const mockSsoService = vi.hoisted(() => ({
 
 vi.mock('@/services/sso.service', () => ({ SsoService: mockSsoService }));
 
+// The install's custom-domain validation strategy decides the wording of the
+// allowlist empty state (#4734). Only the snapshot-reading wrappers are
+// swapped; the real capability table is evaluated against the strategy the
+// spec picks. Default to approximated (the beforeEach below); the dedicated
+// examples cover the others.
+vi.mock('@/utils/features', async (importOriginal) => {
+  const { featuresForStrategy } = await import('@tests/support/domainValidationStrategy');
+  return featuresForStrategy(await importOriginal<typeof import('@/utils/features')>());
+});
+
 // The component reads SSO_PROVIDER_ROUTE_NAMES and
 // ssoProviderUsesClientCredentials from the real shapes module (which the
 // contract spec pins to the Ruby source) — deliberately NOT mocked.
@@ -146,6 +160,8 @@ const mockExistingConfig: CustomDomainSsoConfig = {
   acs_url: null,
   unreadable_fields: [],
   allowed_domains: ['example.com'],
+  verified_email_domains: ['secrets.example.com'],
+  unverified_allowed_domains: ['example.com'],
   requires_domain_filter: false,
   idp_controls_access: true,
   last_sign_in: null,
@@ -258,6 +274,7 @@ describe('DomainSsoConfigForm', () => {
       stubActions: false,
     });
     vi.clearAllMocks();
+    setDomainValidationStrategy('approximated');
   });
 
   afterEach(() => {
@@ -873,13 +890,297 @@ describe('DomainSsoConfigForm', () => {
       expect(issuerInput.exists()).toBe(false);
     });
 
-    it('does not show domain filter field (feature not yet enabled)', async () => {
+    // #4734: the allowlist is shown for every provider; tenant SSO creates an
+    // account only inside a proven domain and the chips say which entries
+    // lie inside that set.
+    it('shows the domain allowlist field for every provider', async () => {
+      for (const provider_type of ['oidc', 'entra_id', 'saml'] as const) {
+        wrapper = await mountComponent({
+          formState: { ...createDefaultFormState(), provider_type },
+        });
+        expect(wrapper.find('#domain-sso-domain-input').exists()).toBe(true);
+        wrapper.unmount();
+      }
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Allowlist verified state (#4734)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('Allowlist verified state (#4734)', () => {
+    it('marks a saved entry the API judged unverified, with an accessible label', async () => {
       wrapper = await mountComponent({
-        formState: { ...createDefaultFormState(), provider_type: 'oidc' },
+        formState: mockExistingFormState,
+        ssoConfig: mockExistingConfig,
+        isConfigured: true,
       });
 
-      const domainInput = wrapper.find('#domain-sso-domain-input');
-      expect(domainInput.exists()).toBe(false);
+      const chip = wrapper.find('[data-testid="sso-allowed-domain-unverified"]');
+      expect(chip.exists()).toBe(true);
+      expect(chip.attributes('data-domain')).toBe('example.com');
+      expect(chip.text()).toContain('allowed_domain_unverified');
+      const badge = chip.find('[aria-label]');
+      expect(badge.attributes('aria-label')).toContain('allowed_domain_unverified_label');
+      expect(wrapper.find('[data-testid="sso-allowed-domain-verified"]').exists()).toBe(false);
+    });
+
+    it('marks a saved entry inside the proven set as verified', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, allowed_domains: ['secrets.example.com'] },
+        ssoConfig: {
+          ...mockExistingConfig,
+          allowed_domains: ['secrets.example.com'],
+          unverified_allowed_domains: [],
+        },
+        isConfigured: true,
+      });
+
+      const chip = wrapper.find('[data-testid="sso-allowed-domain-verified"]');
+      expect(chip.exists()).toBe(true);
+      expect(chip.attributes('data-domain')).toBe('secrets.example.com');
+      expect(chip.text()).toContain('allowed_domain_verified');
+    });
+
+    it('judges an unsaved entry against the verified domains on a label boundary', async () => {
+      wrapper = await mountComponent({
+        formState: {
+          ...mockExistingFormState,
+          allowed_domains: ['team.secrets.example.com', 'example.com', 'notsecrets.example.com'],
+        },
+        ssoConfig: { ...mockExistingConfig, allowed_domains: [], unverified_allowed_domains: [] },
+        isConfigured: true,
+      });
+
+      const verified = wrapper.findAll('[data-testid="sso-allowed-domain-verified"]');
+      const unverified = wrapper.findAll('[data-testid="sso-allowed-domain-unverified"]');
+      expect(verified.map((c) => c.attributes('data-domain'))).toEqual([
+        'team.secrets.example.com',
+      ]);
+      expect(unverified.map((c) => c.attributes('data-domain'))).toEqual([
+        'example.com',
+        'notsecrets.example.com',
+      ]);
+    });
+
+    it('lists the verified domains under the hint', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: {
+          ...mockExistingConfig,
+          verified_email_domains: ['a.example.com', 'b.example.com'],
+        },
+        isConfigured: true,
+      });
+
+      const line = wrapper.find('[data-testid="sso-verified-email-domains"]');
+      expect(line.exists()).toBe(true);
+      expect(line.text()).toContain('verified_email_domains');
+      expect(wrapper.find('[data-testid="sso-verified-email-domains-none"]').exists()).toBe(false);
+    });
+
+    it('says when no domain is verified on a saved record', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: { ...mockExistingConfig, verified_email_domains: [] },
+        isConfigured: true,
+      });
+
+      expect(wrapper.find('[data-testid="sso-verified-email-domains-none"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="sso-verified-email-domains"]').exists()).toBe(false);
+    });
+
+    // verified_email_domains is empty in three states: the organization has
+    // no proven domain; the serializer's rescue path served both arrays
+    // empty; or an API that predates the fields answered the GET and the
+    // shape filled them in as []. Only the first is a verdict. Every chip,
+    // saved or not, already says "Checked on save" for the other two (no
+    // saved entry is listed as proven or unverified), and the headline
+    // agrees with them instead of claiming nothing is proven.
+    it('says the proof could not be checked when the API gave no verdict on saved entries', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: {
+          ...mockExistingConfig,
+          allowed_domains: ['example.com'],
+          verified_email_domains: [],
+          unverified_allowed_domains: [],
+        },
+        isConfigured: true,
+      });
+
+      const line = wrapper.get('[data-testid="sso-verified-email-domains-unknown"]');
+      expect(line.text()).toBe('web.organizations.sso.verified_email_domains_unknown');
+      expect(wrapper.find('[data-testid="sso-verified-email-domains-none"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-verified-email-domains"]').exists()).toBe(false);
+
+      const unknownChips = wrapper.findAll('[data-testid="sso-allowed-domain-unknown"]');
+      expect(unknownChips.map((c) => c.attributes('data-domain'))).toEqual(['example.com']);
+      expect(wrapper.find('[data-testid="sso-allowed-domain-verified"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-allowed-domain-unverified"]').exists()).toBe(false);
+    });
+
+    // An unsaved entry on that record is not judged against the empty proven
+    // set either: it would read "Not proven" under a headline that says
+    // ownership could not be checked. The save reports on it.
+    it('marks an unsaved entry unknown too when the API gave no verdict', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, allowed_domains: ['example.com', 'acme.example'] },
+        ssoConfig: {
+          ...mockExistingConfig,
+          allowed_domains: ['example.com'],
+          verified_email_domains: [],
+          unverified_allowed_domains: [],
+        },
+        isConfigured: true,
+      });
+
+      expect(wrapper.find('[data-testid="sso-verified-email-domains-unknown"]').exists()).toBe(true);
+      const unknownChips = wrapper.findAll('[data-testid="sso-allowed-domain-unknown"]');
+      expect(unknownChips.map((c) => c.attributes('data-domain'))).toEqual([
+        'example.com',
+        'acme.example',
+      ]);
+      expect(wrapper.find('[data-testid="sso-allowed-domain-unverified"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-allowed-domain-verified"]').exists()).toBe(false);
+      const unsaved = unknownChips[1];
+      expect(unsaved.text()).toContain('allowed_domain_unknown');
+      expect(unsaved.text()).not.toContain('allowed_domain_unverified');
+      // The first [aria-label] on an unknown chip is the remove button, so
+      // look for the amber badge by its label key rather than by position.
+      expect(unsaved.find('[aria-label*="allowed_domain_unverified_label"]').exists()).toBe(false);
+    });
+
+    // Documented limitation: with no saved entry the API lists nothing as
+    // unverified whether or not it derived the proof, so "nothing proven" and
+    // "no verdict" cannot be told apart and the amber notice stays.
+    it('still says nothing is proven when the saved allowlist is empty as well', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, allowed_domains: [] },
+        ssoConfig: {
+          ...mockExistingConfig,
+          allowed_domains: [],
+          verified_email_domains: [],
+          unverified_allowed_domains: [],
+        },
+        isConfigured: true,
+      });
+
+      expect(wrapper.find('[data-testid="sso-verified-email-domains-none"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="sso-verified-email-domains-unknown"]').exists()).toBe(
+        false
+      );
+      expect(wrapper.find('[data-testid="sso-verified-email-domains"]').exists()).toBe(false);
+    });
+
+    // Same limitation at chip level: with no saved entry the record counts as
+    // judged, so an unsaved entry is still judged against the empty proven
+    // set and reads "Not proven" under the amber notice.
+    it('still judges an unsaved entry as not proven when the saved allowlist is empty', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, allowed_domains: ['acme.example'] },
+        ssoConfig: {
+          ...mockExistingConfig,
+          allowed_domains: [],
+          verified_email_domains: [],
+          unverified_allowed_domains: [],
+        },
+        isConfigured: true,
+      });
+
+      expect(wrapper.find('[data-testid="sso-verified-email-domains-none"]').exists()).toBe(true);
+      const chip = wrapper.get('[data-testid="sso-allowed-domain-unverified"]');
+      expect(chip.attributes('data-domain')).toBe('acme.example');
+      expect(chip.text()).toContain('allowed_domain_unverified');
+      expect(wrapper.find('[data-testid="sso-allowed-domain-unknown"]').exists()).toBe(false);
+    });
+
+    // The empty state is worded per validation strategy. Where the install
+    // checks the TXT record the admin can complete that check; under
+    // passthrough there is none, and only a Colonel override proves
+    // ownership (docs/authentication/per-domain-sso.md, Passthrough installs).
+    describe('empty-state wording by validation strategy', () => {
+      const mountWithNoneProven = () =>
+        mountComponent({
+          formState: mockExistingFormState,
+          ssoConfig: { ...mockExistingConfig, verified_email_domains: [] },
+          isConfigured: true,
+        });
+
+      it.each(OWNERSHIP_CHECKING_STRATEGIES)(
+        'under %s tells the admin to complete the TXT ownership check',
+        async (strategy) => {
+          setDomainValidationStrategy(strategy);
+          wrapper = await mountWithNoneProven();
+
+          const line = wrapper.get('[data-testid="sso-verified-email-domains-none"]');
+          expect(line.text()).toBe('web.organizations.sso.verified_email_domains_none');
+        }
+      );
+
+      it('under passthrough sends the admin to the operator, since there is no TXT check', async () => {
+        setDomainValidationStrategy('passthrough');
+        wrapper = await mountWithNoneProven();
+
+        const line = wrapper.get('[data-testid="sso-verified-email-domains-none"]');
+        expect(line.text()).toBe('web.organizations.sso.verified_email_domains_none_unchecked');
+      });
+
+      it('ships both wordings, and only the TXT one names the check', () => {
+        const realI18n = createRealI18n({
+          en: JSON.parse(
+            readFileSync(resolve(process.cwd(), 'generated/locales/en.json'), 'utf-8')
+          ),
+        });
+        const checked = realI18n.global.t('web.organizations.sso.verified_email_domains_none');
+        const unchecked = realI18n.global.t(
+          'web.organizations.sso.verified_email_domains_none_unchecked'
+        );
+        const unknown = realI18n.global.t('web.organizations.sso.verified_email_domains_unknown');
+
+        expect(checked).toContain('TXT');
+        expect(unchecked).not.toContain('TXT');
+        expect(unchecked).toContain('administrator');
+        // Both open with the same sentence: the consequence comes first.
+        expect(unchecked.split('. ')[0]).toBe(checked.split('. ')[0]);
+        // The no-verdict line names no check to complete and makes no claim
+        // about accounts, since the API did not say whether any is proven.
+        expect(unknown).not.toContain('TXT');
+        expect(unknown).not.toContain('creates no accounts');
+        expect(unknown).toContain('could not be checked');
+        expect(unknown).toContain('Reload');
+      });
+    });
+
+    it('shows neither line before a record exists', async () => {
+      wrapper = await mountComponent({ ssoConfig: null });
+
+      expect(wrapper.find('[data-testid="sso-verified-email-domains"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-verified-email-domains-none"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-verified-email-domains-unknown"]').exists()).toBe(
+        false
+      );
+    });
+
+    // Before a record exists there is no proven set to judge against: it
+    // comes with the saved record, and the GET for a never-saved
+    // configuration answers with no record. Judging a typed entry against []
+    // would read "Not proven" and say sign-in creates no accounts for it. The
+    // save response carries the verdict and the chips take it from there.
+    it('judges no typed entry before a record exists', async () => {
+      wrapper = await mountComponent({
+        formState: { ...createDefaultFormState(), allowed_domains: ['acme.example'] },
+        ssoConfig: null,
+      });
+
+      const chip = wrapper.find(
+        '[data-testid="sso-allowed-domain-unknown"][data-domain="acme.example"]'
+      );
+      expect(chip.exists()).toBe(true);
+      expect(chip.text()).toContain('allowed_domain_unknown');
+      expect(chip.find('[aria-label*="allowed_domain_unverified_label"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-allowed-domain-unverified"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-allowed-domain-verified"]').exists()).toBe(false);
     });
   });
 
@@ -1152,6 +1453,57 @@ describe('DomainSsoConfigForm', () => {
       expect(next.text()).toBe('web.organizations.sso.provider_check_next');
       expect(next.isVisible()).toBe(true);
       expectShownInProviderCheck(wrapper, next.element);
+    });
+
+    // #4734: an Entra success names the app registration settings the test
+    // cannot read; the admin confirms them by hand.
+    it('lists the manual checks an Entra success reports', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        testResult: {
+          user_id: 'cust_456',
+          success: true,
+          message: 'Connection successful',
+          provider_type: 'entra_id',
+          details: {
+            issuer: 'https://login.microsoftonline.com/tenant/v2.0',
+            manual_checks: [
+              'remove_unverified_email_claim',
+              'xms_edov_optional_claim',
+              'future_check',
+            ],
+          },
+        },
+      });
+
+      const block = wrapper.find('[data-testid="sso-test-manual-checks"]');
+      expect(block.exists()).toBe(true);
+      expect(block.text()).toContain('manual_checks_title');
+      const items = block.findAll('li');
+      expect(items.map((li) => li.attributes('data-check-id'))).toEqual([
+        'remove_unverified_email_claim',
+        'xms_edov_optional_claim',
+        'future_check',
+      ]);
+      expect(items[0].text()).toContain('manual_check_remove_unverified_email_claim');
+      expect(items[1].text()).toContain('manual_check_xms_edov_optional_claim');
+      // An id without a label renders as itself rather than a missing key.
+      expect(items[2].text()).toBe('future_check');
+    });
+
+    it('renders no manual checks block when the result carries none', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        testResult: {
+          user_id: 'cust_456',
+          success: true,
+          message: 'Connection successful',
+          provider_type: 'oidc',
+          details: { issuer: 'https://idp.example.com' },
+        },
+      });
+
+      expect(wrapper.find('[data-testid="sso-test-manual-checks"]').exists()).toBe(false);
     });
 
     it('shows error result when testResult.success is false', async () => {
@@ -1852,6 +2204,42 @@ describe('DomainSsoConfigForm', () => {
       expect(credential.find('[data-testid="sso-diagnostics-note"]').text()).toBe(
         'Sign in once on the custom domain to confirm.'
       );
+    });
+
+    // #4734: "Save and check" is the primary check, so an Entra discovery
+    // pass lists the app registration settings to confirm by hand, outside
+    // any disclosure, as the provider check does.
+    it('lists the manual checks an Entra discovery pass reports, outside any disclosure', async () => {
+      wrapper = await savedMount({
+        diagnosticsResult: diagnostics('passed', [
+          check('discovery', 'passed', {
+            note: 'This check read the discovery document only.',
+            manual_checks: [
+              'remove_unverified_email_claim',
+              'xms_edov_optional_claim',
+              'future_check',
+            ],
+          }),
+          check('credential', 'passed'),
+        ]),
+      });
+
+      const discovery = wrapper.get('[data-testid="sso-diagnostics-check-discovery"]');
+      const block = discovery.get('[data-testid="sso-diagnostics-manual-checks"]');
+      expect(block.element.closest('details')).toBeNull();
+      expect(block.text()).toContain('manual_checks_title');
+      const items = block.findAll('li');
+      expect(items.map((li) => li.attributes('data-check-id'))).toEqual([
+        'remove_unverified_email_claim',
+        'xms_edov_optional_claim',
+        'future_check',
+      ]);
+      expect(items[0].text()).toContain('manual_check_remove_unverified_email_claim');
+      expect(items[1].text()).toContain('manual_check_xms_edov_optional_claim');
+      expect(items[2].text()).toBe('future_check');
+
+      const credential = wrapper.get('[data-testid="sso-diagnostics-check-credential"]');
+      expect(credential.find('[data-testid="sso-diagnostics-manual-checks"]').exists()).toBe(false);
     });
 
     it('shows both issuers on an issuer mismatch, exactly as returned', async () => {

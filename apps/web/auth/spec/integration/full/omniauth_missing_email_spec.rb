@@ -280,7 +280,9 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
 
     let(:host) { "email-#{SecureRandom.hex(6)}.tenant.example.com" }
     let(:uid) { "tenant-#{SecureRandom.uuid}" }
-    let(:email) { unique_test_email('tenant-email') }
+    # At the tenant's own verified domain: tenant SSO creates accounts only
+    # for addresses inside one (#4734).
+    let(:email) { "tenant-email-#{SecureRandom.hex(4)}@#{host}" }
     let(:tenant) { setup_oauth_test_domain(host) }
 
     before do
@@ -317,7 +319,7 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
           ['not-an-email', 'invalid_email'],
           ['attacker@evil.com@example.com', 'invalid_email'],
           [['user@example.com'], 'invalid_email'],
-          # Listed domain (unique_test_email's); 'straße' folds to 'strasse'.
+          # 'straße' folds to 'strasse'; refused before any domain is judged.
           ['straße@integration-test.example.com', 'invalid_email'],
           ['user@disallowed.example.com', 'domain_not_allowed'],
         ].each do |claim, error|
