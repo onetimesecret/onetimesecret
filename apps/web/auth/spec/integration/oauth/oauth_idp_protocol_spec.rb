@@ -140,6 +140,19 @@ RSpec.describe 'OAuth/OIDC IdP protocol', :sqlite_database, type: :integration d
     { id: id, email: email }
   end
 
+  # Creates a Customer with mailbox proof (verified_by 'email') for the
+  # account and links it through accounts.external_id, as signup does.
+  # hooks/oauth.rb asserts email_verified: true only for such an account.
+  # The per-example Valkey flush in spec_helper removes the Customer.
+  def link_mailbox_verified_customer(account)
+    customer             = Onetime::Customer.create!(email: account[:email], role: 'customer')
+    customer.verified    = true
+    customer.verified_by = 'email'
+    customer.save
+    auth_db[:accounts].where(id: account[:id]).update(external_id: customer.extid)
+    customer
+  end
+
   # Inserts an oauth_grant row simulating a successful /authorize response.
   # /token will look up by (oauth_application_id, code) and check the
   # code_challenge against the supplied verifier.
@@ -327,6 +340,7 @@ RSpec.describe 'OAuth/OIDC IdP protocol', :sqlite_database, type: :integration d
     end
 
     it 'includes email claim when scope=email is granted' do
+      link_mailbox_verified_customer(account)
       grant = seed_authorization_code(account_id: account[:id])
       post_token(code: grant[:code])
 
@@ -334,6 +348,8 @@ RSpec.describe 'OAuth/OIDC IdP protocol', :sqlite_database, type: :integration d
       payload, _h = JWT.decode(id_token, nil, false)
 
       # `email_verified` and `email` come from get_oidc_param in hooks/oauth.rb.
+      # email_verified is true because the linked Customer has mailbox proof;
+      # oauth_idp_lifecycle_spec.rb covers the cases where it is false.
       expect(payload['email']).to eq(account[:email])
       expect(payload['email_verified']).to be(true)
     end

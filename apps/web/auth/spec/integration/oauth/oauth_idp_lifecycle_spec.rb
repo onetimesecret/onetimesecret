@@ -19,6 +19,7 @@
 #   - ID-token claim completeness (iss/aud/sub/iat/exp/nonce/auth_time)
 #   - ID-token signature kid matches a JWKS key
 #   - /userinfo claim parity with id_token for the same grant
+#   - email_verified is true only with mailbox proof (#4735)
 #   - Scope downscoping: id_token + /userinfo respect grant scopes
 #   - PKCE method=plain: gate is at /authorize (NOT /token) — finding
 #
@@ -112,10 +113,15 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', :sqlite_database, type: :integr
   #     runnable; the cost is small duplication).
 
   def create_verified_account
+    create_account(status_id: 2) # Verified
+  end
+
+  # status_id 1 is Unverified, 2 is Verified (migrations/001_initial.rb).
+  def create_account(status_id:)
     email = "oauth-lc-#{SecureRandom.hex(6)}@example.com"
     id    = auth_db[:accounts].insert(
       email: email,
-      status_id: 2, # Verified
+      status_id: status_id,
       created_at: Time.now,
       updated_at: Time.now,
     )
@@ -123,12 +129,25 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', :sqlite_database, type: :integr
     { id: id, email: email }
   end
 
+  # Creates a verified Customer for an account row and links the two through
+  # accounts.external_id, as signup does. verified_by is the provenance
+  # Customer#mailbox_verified? reads: 'email' is mailbox proof, 'sso' is not.
+  # The per-example Valkey flush in spec_helper removes the Customer.
+  def link_customer(account, verified_by:)
+    customer             = Onetime::Customer.create!(email: account[:email], role: 'customer')
+    customer.verified    = true
+    customer.verified_by = verified_by
+    customer.save
+    auth_db[:accounts].where(id: account[:id]).update(external_id: customer.extid)
+    customer
+  end
+
   # Seeds an oauth_grant row simulating a completed /authorize. The defaults
   # match what the gem would write for an `openid email profile` request with
   # S256 PKCE and a fixed nonce.
   def seed_authorization_code(account_id:, scopes: 'openid email profile',
                               challenge: code_challenge, method: 'S256',
-                              nonce: nil, expires_at: Time.now + 300)
+                              nonce: nil, expires_at: Time.now + 300, claims: nil)
     app_id = auth_db[:oauth_applications].where(client_id: client_id).get(:id)
     code   = SecureRandom.urlsafe_base64(32)
 
@@ -144,6 +163,7 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', :sqlite_database, type: :integr
       code_challenge_method: method,
       access_type: 'online',
       nonce: nonce,
+      claims: claims, # the raw `claims` request parameter, as oidc_grant_params stores it
     )
     created_grant_ids << grant_id
     { id: grant_id, code: code }
@@ -199,9 +219,10 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', :sqlite_database, type: :integr
   # config), the gem ONLY issues a refresh_token when `offline_access` is in
   # the granted scopes — see oidc.rb:769-773. Default left off so callers
   # only opt-in when they actually need it.
-  def redeem_fresh_grant(scopes: 'openid email profile', nonce: nil, with_refresh: false)
+  def redeem_fresh_grant(scopes: 'openid email profile', nonce: nil, with_refresh: false, link_verified_by: nil)
     scopes  = "#{scopes} offline_access" if with_refresh && !scopes.split.include?('offline_access')
     account = create_verified_account
+    link_customer(account, verified_by: link_verified_by) if link_verified_by
     grant   = seed_authorization_code(account_id: account[:id], scopes: scopes, nonce: nonce)
     body    = post_token_for_code(grant[:code])
     raise "redeem_fresh_grant failed: #{last_response.status} #{last_response.body}" unless last_response.status == 200
@@ -513,9 +534,11 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', :sqlite_database, type: :integr
   describe '/userinfo claim parity with id_token' do
     it 'returns the same sub/email/email_verified as the id_token for the same grant' do
       # oidc.rb /userinfo (line 159) calls fill_with_account_claims, the
-      # same helper that id_token claim-filling uses (oidc.rb:543). So for
+      # same helper that id_token claim-filling uses (oidc.rb:553). So for
       # the same scopes the user-facing claims should match the id_token.
-      result         = redeem_fresh_grant
+      # The account's Customer has mailbox proof, so email_verified is true
+      # (see 'email_verified claim' below).
+      result         = redeem_fresh_grant(link_verified_by: 'email')
       id_payload, _h = JWT.decode(
         result.fetch('id_token'),
         rsa_public,
@@ -532,6 +555,193 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', :sqlite_database, type: :integr
       expect(userinfo['sub']).to eq(id_payload['sub'])
       expect(userinfo['email']).to eq(id_payload['email']).and(eq(result['account'][:email]))
       expect(userinfo['email_verified']).to eq(id_payload['email_verified']).and(be(true))
+    end
+  end
+
+  # ─── email_verified needs mailbox proof (#4735) ─────────────────────────
+  describe 'email_verified claim' do
+    # hooks/oauth.rb asserts email_verified: true only when the accounts row
+    # is Verified AND the linked Customer has mailbox proof
+    # (Customer#mailbox_verified?) from a provenance in
+    # OIDC_EMAIL_VERIFIED_BY, which leaves out 'invite_token'. An SSO-created
+    # account opens Verified on the IdP's word alone, which is not mailbox
+    # proof. Every other case is false, never a missing claim. Each example
+    # reads both the ID token and /userinfo; the gem fills both through
+    # fill_with_account_claims.
+
+    # Redeems a fresh grant for the account and returns
+    # [id_token_payload, userinfo_body]. `claims` is the raw OIDC `claims`
+    # request parameter (JSON) that /authorize would store on the grant.
+    def claims_for(account, scopes: 'openid email profile', claims: nil)
+      grant = seed_authorization_code(account_id: account[:id], scopes: scopes, claims: claims)
+      body  = post_token_for_code(grant[:code])
+      expect(last_response.status).to eq(200), "Token body: #{last_response.body}"
+
+      id_payload, _h = JWT.decode(
+        body.fetch('id_token'),
+        rsa_public,
+        true,
+        algorithm: 'RS256',
+        verify_iat: false,
+      )
+
+      get_userinfo(body.fetch('access_token'))
+      expect(last_response.status).to eq(200), "Userinfo body: #{last_response.body}"
+
+      [id_payload, JSON.parse(last_response.body)]
+    end
+
+    it 'is true for a Verified row whose Customer has mailbox proof (verified_by email)' do
+      account = create_verified_account
+      link_customer(account, verified_by: 'email')
+
+      id_payload, userinfo = claims_for(account)
+
+      expect(id_payload).to include('email' => account[:email], 'email_verified' => true)
+      expect(userinfo).to include('email' => account[:email], 'email_verified' => true)
+    end
+
+    it 'is false for a Verified row whose Customer was verified by SSO' do
+      account  = create_verified_account
+      customer = link_customer(account, verified_by: 'sso')
+      expect(customer.verified?).to be(true)
+      expect(customer.mailbox_verified?).to be(false)
+
+      id_payload, userinfo = claims_for(account)
+
+      expect(id_payload).to include('email' => account[:email], 'email_verified' => false)
+      expect(userinfo).to include('email' => account[:email], 'email_verified' => false)
+    end
+
+    it 'is false for a Customer verified by an invite signup (verified_by invite_token)' do
+      # mailbox_verified? counts 'invite_token', but the invitation API also
+      # returns the signup token to the inviter, so the inviter can sign up
+      # as the invited address without access to its mailbox.
+      account  = create_verified_account
+      customer = link_customer(account, verified_by: 'invite_token')
+      expect(customer.mailbox_verified?).to be(true)
+
+      id_payload, userinfo = claims_for(account)
+
+      expect(id_payload).to include('email' => account[:email], 'email_verified' => false)
+      expect(userinfo).to include('email' => account[:email], 'email_verified' => false)
+    end
+
+    %w[colonel_admin cli_provision].each do |verified_by|
+      it "is true for a Customer an operator verified (verified_by #{verified_by})" do
+        account = create_verified_account
+        link_customer(account, verified_by: verified_by)
+
+        id_payload, userinfo = claims_for(account)
+
+        expect(id_payload).to include('email' => account[:email], 'email_verified' => true)
+        expect(userinfo).to include('email' => account[:email], 'email_verified' => true)
+      end
+    end
+
+    it 'is false for a Verified row with no linked Customer' do
+      account = create_verified_account
+      expect(Onetime::Customer.find_by_email(account[:email])).to be_nil
+
+      id_payload, userinfo = claims_for(account)
+
+      expect(id_payload).to include('email_verified' => false)
+      expect(userinfo).to include('email_verified' => false)
+    end
+
+    it 'is false for an Unverified row even when the Customer has mailbox proof' do
+      account = create_account(status_id: 1) # Unverified
+      link_customer(account, verified_by: 'email')
+
+      id_payload, userinfo = claims_for(account)
+
+      expect(id_payload).to include('email_verified' => false)
+      expect(userinfo).to include('email_verified' => false)
+    end
+
+    it 'is false when reading the mailbox proof raises' do
+      account = create_verified_account
+      link_customer(account, verified_by: 'email')
+      # The lookup returns the real Customer; only its mailbox proof fails.
+      allow(Onetime::Customer).to receive(:find_by_extid).and_wrap_original do |original, *args|
+        found = original.call(*args)
+        allow(found).to receive(:mailbox_verified?).and_raise(StandardError, 'datastore down') if found
+        found
+      end
+
+      id_payload, userinfo = claims_for(account)
+
+      expect(id_payload).to include('email_verified' => false)
+      expect(userinfo).to include('email_verified' => false)
+    end
+
+    # The `claims` request parameter (OIDC Core 1.0 section 5.5) comes from
+    # the browser at /authorize and is stored on the grant as given. Its
+    # `value` and `values` members say which value the client would like;
+    # they must not set or remove the value we send. features/oauth.rb
+    # overrides the gem's proxy_get_param so they are ignored.
+    describe 'with a claims request parameter' do
+      def claims_param(target_claims, targets: %w[id_token userinfo])
+        JSON.generate(targets.to_h { |target| [target, target_claims] })
+      end
+
+      it 'ignores a requested value: true for an SSO-verified Customer' do
+        account = create_verified_account
+        link_customer(account, verified_by: 'sso')
+
+        id_payload, userinfo = claims_for(
+          account,
+          claims: claims_param({ 'email_verified' => { 'value' => true } }),
+        )
+
+        expect(id_payload).to include('email_verified' => false)
+        expect(userinfo).to include('email_verified' => false)
+      end
+
+      it 'ignores a requested value: true for an Unverified row with scope openid only' do
+        account = create_account(status_id: 1) # Unverified, no Customer
+
+        id_payload, userinfo = claims_for(
+          account,
+          scopes: 'openid',
+          claims: claims_param({ 'email_verified' => { 'value' => true } }),
+        )
+
+        expect(id_payload).to include('email_verified' => false)
+        expect(userinfo).to include('email_verified' => false)
+      end
+
+      it 'keeps email_verified when values lists the real value' do
+        account = create_verified_account
+        link_customer(account, verified_by: 'sso')
+
+        id_payload, userinfo = claims_for(
+          account,
+          claims: claims_param({ 'email_verified' => { 'values' => [false] } }),
+        )
+
+        expect(id_payload).to include('email_verified' => false)
+        expect(userinfo).to include('email_verified' => false)
+      end
+
+      it 'ignores requested values for preferred_username and name' do
+        account  = create_verified_account
+        customer = link_customer(account, verified_by: 'email')
+
+        id_payload, userinfo = claims_for(
+          account,
+          claims: claims_param(
+            {
+              'preferred_username' => { 'value' => 'admin' },
+              'name' => { 'value' => 'Admin' },
+            },
+          ),
+        )
+
+        expected = { 'preferred_username' => customer.custid, 'name' => customer.custid }
+        expect(id_payload).to include(expected)
+        expect(userinfo).to include(expected)
+      end
     end
   end
 

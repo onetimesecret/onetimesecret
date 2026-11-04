@@ -45,6 +45,14 @@ module Auth::Config::Hooks
       /revoke
     ].freeze
 
+    # verified_by values for which the identity provider asserts
+    # email_verified: true. A subset of Onetime::Customer::MAILBOX_VERIFIED_BY;
+    # oidc_email_verified? checks both lists. It leaves out 'invite_token':
+    # the invitation API also returns the signup token to the inviter
+    # (OrganizationMembership safe_dump :token), so an invite signup does not
+    # prove that the invitee controls the mailbox.
+    OIDC_EMAIL_VERIFIED_BY = %w[email colonel_admin cli_provision].freeze
+
     def self.configure(auth)
       # ========================================================================
       # JSON Mode Override for OAuth/OIDC Endpoints — now centralized
@@ -66,26 +74,31 @@ module Auth::Config::Hooks
       #   - /userinfo      — Bearer-only GET/POST; clients omit JSON CT
 
       # ========================================================================
-      # HOOK: get_oidc_param  (rodauth-oauth oidc.rb:583, proxied at oidc.rb:620)
+      # HOOK: get_oidc_param  (rodauth-oauth oidc.rb:593, proxied at oidc.rb:630)
       # ========================================================================
       #
-      # Maps a single OIDC standard claim to a value for one `account` row.
-      # Called once per claim per scope. The gem warns at runtime if any
-      # advertised OIDC scope (profile / email / address / phone) is requested
-      # without this being defined — see oidc.rb:634.
+      # Line numbers in this block are for the pinned fork, 1.6.6.ots1.
       #
-      # Block arity matters: `proxy_get_param` (oidc.rb:651) inspects the
+      # Maps a single OIDC standard claim to a value for one `account` row.
+      # Called once per claim per scope (oidc.rb:640). Both /userinfo
+      # (oidc.rb:159) and the ID token (generate_id_token, oidc.rb:553) fill
+      # their claims through fill_with_account_claims, so one answer here
+      # reaches both. The gem warns at runtime if any advertised OIDC scope
+      # (profile / email / address / phone) is requested without this being
+      # defined (oidc.rb:644).
+      #
+      # Block arity matters: `proxy_get_param` (oidc.rb:661) inspects the
       # method's arity and calls either (account, param) or (account, param, locale).
       # We use a 2-arg signature since we don't localize claims.
       #
       # The OIDC standard claims we handle below come from OIDC_SCOPES_MAP
-      # (oidc.rb:9):
+      # (oidc.rb:8):
       #   email   scope → :email, :email_verified
       #   profile scope → :name, :preferred_username, :updated_at
       #     (plus :family_name, :given_name, :middle_name, :nickname, :profile,
       #      :picture, :website, :gender, :birthdate, :zoneinfo, :locale — we
       #      do not source these; returning nil drops the claim per the proxy's
-      #      `unless value.nil?` guard, oidc.rb:660)
+      #      `unless value.nil?` guard, oidc.rb:668)
       #
       # The `sub` claim is set by the gem from the account_id (oidc.rb jwt_subject)
       # and does not pass through this hook.
@@ -95,12 +108,32 @@ module Auth::Config::Hooks
         when :email
           account[:email]
         when :email_verified
-          # An OTS account is considered verified once its status flips from
-          # "Unverified" (status_id=1) to "Verified" (status_id=2). The rodauth
-          # base feature exposes these as account_open_status_value (2) and
-          # account_unverified_status_value (1) — see migration 001_initial.rb
-          # which seeds the account_statuses table with the same ids.
-          account[:status_id].to_i == account_open_status_value
+          # True only when both hold:
+          #   1. the Rodauth row is Verified (status_id 2, which the base
+          #      feature exposes as account_open_status_value; migration
+          #      001_initial.rb seeds account_statuses with these ids), and
+          #   2. the linked Customer has mailbox proof
+          #      (Customer#mailbox_verified?) and its verified_by is in
+          #      OIDC_EMAIL_VERIFIED_BY, which leaves out 'invite_token'
+          #      (see the constant).
+          #
+          # The row status alone is not enough. Every SSO-created account
+          # opens Verified (omniauth_verify_account? true) because the
+          # upstream IdP vouched for the address, and #4754 holds some of
+          # those Customers unverified on purpose. An IdP assertion is not
+          # proof that the person controls the mailbox (#4735), so we must
+          # not pass it on to our relying parties as email_verified: true.
+          #
+          # The answer is false, never nil, when proof is missing or cannot
+          # be read. OIDC Core 1.0 section 5.1 defines the claim as a
+          # boolean: true if the address has been verified, otherwise false.
+          # nil would make the gem drop the claim (proxy_get_param,
+          # oidc.rb:668), and a missing claim is not a refusal: our own SSO
+          # callback reads an absent email_verified as "no hold" and marks
+          # the customer verified (hooks/omniauth.rb). features/oauth.rb
+          # overrides proxy_get_param so that a `claims` request parameter
+          # cannot replace or remove this value either.
+          oidc_email_verified?(account)
         when :name, :preferred_username
           # OTS Customer is the user-facing profile record (Familia/Redis).
           # The account row's external_id links to Customer via
@@ -189,6 +222,30 @@ module Auth # rubocop:disable Style/OneClassPerFile
         message: ex.message,
       )
       nil
+    end
+
+    # Value of the OIDC email_verified claim for a rodauth account row. See
+    # the :email_verified branch of get_oidc_param for the rule and why.
+    # Fails closed: an unverified row, no linked Customer, a provenance
+    # outside OIDC_EMAIL_VERIFIED_BY, or any error resolving one gives false.
+    #
+    # @param account [Hash] Sequel row from the accounts table
+    # @return [Boolean] never nil
+    def oidc_email_verified?(account)
+      return false unless account[:status_id].to_i == account_open_status_value
+
+      customer = customer_for_account(account)
+      return false unless customer&.mailbox_verified? == true
+
+      Hooks::OAuth::OIDC_EMAIL_VERIFIED_BY.include?(customer.verified_by.to_s)
+    rescue StandardError => ex
+      Onetime.auth_logger&.warn(
+        'OAuth email_verified check failed',
+        account_id: account[:id],
+        error: ex.class.name,
+        message: ex.message,
+      )
+      false
     end
   end
 end
