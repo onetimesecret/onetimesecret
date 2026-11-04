@@ -109,6 +109,7 @@ RSpec.describe 'Colonel API rate limiting (#4329)', type: :integration do
     cust          = Onetime::Customer.create!(email: "#{role}-#{SecureRandom.hex(6)}@example.com")
     cust.role     = role
     cust.verified = 'true'
+    cust.verified_by = 'email'
     cust.save
     cust
   end

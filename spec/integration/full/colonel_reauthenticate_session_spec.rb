@@ -55,8 +55,9 @@ RSpec.describe 'Full-mode colonel password re-authentication (#4331)', type: :in
     expect(last_response.status).to eq(200), last_response.body
 
     colonel          = Onetime::Customer.find_by_extid(session_blob.fetch('external_id'))
-    colonel.role     = 'colonel'
-    colonel.verified = 'true'
+    colonel.role        = 'colonel'
+    colonel.verified    = 'true'
+    colonel.verified_by = 'email' # system roles need mailbox proof (#4735)
     colonel.save
     colonel
   end

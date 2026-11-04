@@ -33,6 +33,8 @@ module Auth
         :subscription_status,
         :subscription_period_end,
         :subscription_federated_at,
+        :subscription_synced_at,
+        :subscription_sync_version,
         :federation_notification_dismissed_at,
         :complimentary,
         :pending_currency_migration,

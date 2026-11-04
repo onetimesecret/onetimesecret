@@ -20,13 +20,13 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetElevationStatus do
   let(:colonel) do
     instance_double(Onetime::Customer,
       objid: 'cust_colonel', extid: 'ur_colonel', email: 'colonel@example.com',
-      role: 'colonel', verified?: true, anonymous?: false, has_passphrase?: true)
+      role: 'colonel', verified?: true, mailbox_verified?: true, anonymous?: false, has_passphrase?: true)
   end
 
   let(:customer) do
     instance_double(Onetime::Customer,
       objid: 'cust_plain', extid: 'ur_plain', email: 'plain@example.com',
-      role: 'customer', verified?: true, anonymous?: false, has_passphrase?: true)
+      role: 'customer', verified?: true, mailbox_verified?: true, anonymous?: false, has_passphrase?: true)
   end
 
   def logic_for(user = colonel, session = {})

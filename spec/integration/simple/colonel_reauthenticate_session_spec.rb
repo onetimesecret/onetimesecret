@@ -34,8 +34,9 @@ RSpec.describe 'Simple-mode colonel password re-authentication (#4331)', type: :
   let(:colonel) do
     customer = Onetime::Customer.new(email: "reauth-simple-#{SecureRandom.hex(8)}@example.com")
     customer.update_passphrase(password)
-    customer.role     = 'colonel'
-    customer.verified = 'true'
+    customer.role        = 'colonel'
+    customer.verified    = 'true'
+    customer.verified_by = 'email' # system roles need mailbox proof (#4735)
     customer.save
     customer
   end

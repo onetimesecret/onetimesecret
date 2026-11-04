@@ -83,7 +83,7 @@ RSpec.describe 'Customers Command', type: :cli do
       objid: 'cust_target',
       extid: 'cust_ext_target',
       role: 'customer',
-      verified?: true,
+      verified?: true, mailbox_verified?: true,
       anonymous?: false,
     )
   end
@@ -93,6 +93,7 @@ RSpec.describe 'Customers Command', type: :cli do
   before do
     allow(OT::Utils).to receive(:normalize_email).and_call_original
     allow(OT::Utils).to receive(:obscure_email).and_return('t***@example.com')
+    allow(verification_op).to receive(:federation_claimed?).and_return(false)
   end
 
   describe 'verify subcommand' do
@@ -118,6 +119,24 @@ RSpec.describe 'Customers Command', type: :cli do
 
       output = run_cli_command_quietly('customers', 'verify', 'target@example.com')
       expect(output[:stdout]).to include('already verified')
+      expect(output[:stdout]).not_to include('federated subscription')
+      expect(last_exit_code).to eq(0)
+    end
+
+    # A :no_change verify is the retry for a stranded federated subscription
+    # claim (#4735). When the retry lands, "already verified" alone would tell
+    # the operator nothing happened.
+    it 'reports the federated subscription a :no_change verify applied' do
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email)
+        .and_return(target_customer)
+      allow(Auth::Operations::SetCustomerVerification).to receive(:new)
+        .and_return(verification_op)
+      allow(verification_op).to receive(:call).and_return(:no_change)
+      allow(verification_op).to receive(:federation_claimed?).and_return(true)
+
+      output = run_cli_command_quietly('customers', 'verify', 'target@example.com')
+      expect(output[:stdout]).to include('already verified')
+      expect(output[:stdout]).to include('Applied the pending federated subscription')
       expect(last_exit_code).to eq(0)
     end
 
@@ -183,6 +202,37 @@ RSpec.describe 'Customers Command', type: :cli do
       expect(output[:stdout]).to include('Rodauth account is closed')
       expect(output[:stdout]).not_to include('sync-auth-accounts')
       expect(last_exit_code).to eq(1)
+    end
+  end
+
+  # #4735 review F2: an unverified record must carry no provenance. A stale
+  # 'cli_provision' on an unverified colonel used to turn a later `unverify`
+  # into a provenance-only clear whose last-colonel rollback VERIFIED it.
+  describe 'create subcommand' do
+    let(:created) { double('Customer', extid: 'cust_ext_new', update_passphrase: nil, save: true) }
+
+    before do
+      allow(Onetime).to receive(:auth_config).and_return(double('AuthConfig', mode: 'simple'))
+      allow(Onetime::Customer).to receive_messages(email_exists?: false, create!: created)
+      allow(OT).to receive(:info)
+    end
+
+    it 'stamps cli_provision on a verified record' do
+      run_cli_command_quietly('customers', 'create', 'new@example.com')
+
+      expect(Onetime::Customer).to have_received(:create!).with(
+        hash_including(verified: 'true', verified_by: 'cli_provision'),
+      )
+      expect(last_exit_code).to eq(0)
+    end
+
+    it 'leaves verified_by empty on an unverified record' do
+      run_cli_command_quietly('customers', 'create', 'new@example.com', '--no-verified')
+
+      expect(Onetime::Customer).to have_received(:create!).with(
+        hash_including(verified: 'false', verified_by: nil),
+      )
+      expect(last_exit_code).to eq(0)
     end
   end
 
