@@ -196,8 +196,11 @@ module Onetime::Customer::Features
       def verification_step_pending?
         Onetime.auth_config.verify_account_loaded?
       rescue StandardError => ex
+        # The exception object, not its class name: SemanticLogger formats
+        # :exception itself and replaces any non-Exception value with an
+        # ArgumentError that hides the cause.
         auth_logger.warn '[customer] Could not read the verify_account config; deferring the federation claim',
-          { customer: custid, error: ex.message, exception: ex.class.name }
+          { customer: custid, exception: ex }
         true
       end
 

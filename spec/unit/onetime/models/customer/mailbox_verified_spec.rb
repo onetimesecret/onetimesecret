@@ -157,13 +157,16 @@ RSpec.describe Onetime::Customer do
         cust
       end
 
-      it 'defers an unverified record and logs a warning' do
+      it 'defers an unverified record and logs the exception itself' do
         allow(Onetime.auth_config).to receive(:verify_account_loaded?).and_raise(RuntimeError, 'config exploded')
 
         expect(unverified_record_with_logger.federation_claim_deferred?).to be(true)
+        # The exception OBJECT under :exception. SemanticLogger formats that
+        # key itself and replaces a class-name string with an ArgumentError
+        # ("Invalid value for logger exception"), which would hide the cause.
         expect(logger).to have_received(:warn).with(
           a_string_matching(/verify_account config/),
-          a_hash_including(error: 'config exploded', exception: 'RuntimeError'),
+          a_hash_including(exception: an_instance_of(RuntimeError).and(having_attributes(message: 'config exploded'))),
         )
       end
 

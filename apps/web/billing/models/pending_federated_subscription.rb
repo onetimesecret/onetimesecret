@@ -225,8 +225,10 @@ module Billing
     def self.release_federation_lock(lock, token, email_hash)
       lock.release(token)
     rescue StandardError => ex
+      # The exception object: SemanticLogger formats :exception itself and
+      # replaces a class-name string with an ArgumentError that hides the cause.
       Onetime.billing_logger.warn '[PendingFederatedSubscription] federation lock release failed',
-        exception: ex.class.name,
+        exception: ex,
         hash_prefix: email_hash.to_s[0..7]
     end
     private_class_method :release_federation_lock
