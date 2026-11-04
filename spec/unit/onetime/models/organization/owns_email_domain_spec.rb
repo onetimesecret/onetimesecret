@@ -2,8 +2,9 @@
 #
 # frozen_string_literal: true
 #
-# Organization#verified_domains and #owns_email_domain?: the namespaces a
-# tenant SSO flow may create accounts in (RISK-2026-10-10-01, #4734).
+# Organization#verified_domains, #owns_email_domain? and
+# #owns_email_domain_through?: the namespaces a tenant SSO flow may create
+# accounts in (RISK-2026-10-10-01, #4734).
 #
 # The TXT challenge for a custom domain sits under the name as entered, so a
 # passing check proves that name and the names below it, not the registrable
@@ -174,6 +175,77 @@ RSpec.describe 'Onetime::Organization#owns_email_domain?', :datastore do
 
         expect(@org.owns_email_domain?(stranger.display_domain, domains: [stranger])).to be(true)
         expect(@org.owns_email_domain?(secrets_host, domains: [stranger])).to be(false)
+      end
+    end
+
+    # The flow's own domain is judged from the record the caller already has;
+    # the organization's other domain records (list_domains, behind
+    # verified_domains) are loaded only when that domain does not settle the
+    # question. The answer is the one any? over proven_email_domains_through
+    # gives, whichever path is taken.
+    describe '#owns_email_domain_through?' do
+      let(:own_host) { "sso-#{suffix}.acme-corp.example.com" }
+
+      it "accepts an address at the flow's own proven domain without loading the domain list" do
+        own = add_domain(own_host)
+        expect(@org).not_to receive(:list_domains)
+
+        expect(@org.owns_email_domain_through?(own, own_host)).to be(true)
+      end
+
+      it "accepts an address below the flow's own proven domain without loading the domain list" do
+        own = add_domain(own_host)
+        expect(@org).not_to receive(:list_domains)
+
+        expect(@org.owns_email_domain_through?(own, "mail.#{own_host}")).to be(true)
+      end
+
+      it 'is false for a blank or absent address without loading anything' do
+        own = add_domain(own_host)
+        expect(@org).not_to receive(:list_domains)
+
+        expect(@org.owns_email_domain_through?(own, '')).to be(false)
+        expect(@org.owns_email_domain_through?(own, nil)).to be(false)
+        expect(@org.owns_email_domain_through?(own, '   ')).to be(false)
+      end
+
+      context "when the flow's own domain is not proven" do
+        it 'falls through to the verified domains, which cover an address at it when a proven domain lies above' do
+          add_domain(secrets_host)
+          below = add_domain("sso-#{suffix}.#{secrets_host}", verified: false)
+          expect(@org).to receive(:list_domains).once.and_call_original
+
+          expect(below.ownership_proven?).to be(false)
+          expect(@org.owns_email_domain_through?(below, below.display_domain)).to be(true)
+        end
+
+        it 'falls through to the verified domains, which do not cover an address at it otherwise' do
+          add_domain(secrets_host)
+          pending = add_domain("pending-#{suffix}.acme-corp.example.com", verified: false)
+          expect(@org).to receive(:list_domains).once.and_call_original
+
+          expect(pending.ownership_proven?).to be(false)
+          expect(@org.owns_email_domain_through?(pending, pending.display_domain)).to be(false)
+        end
+      end
+
+      context "for an address outside the flow's own domain" do
+        it 'falls through to the verified domains and accepts an address another proven domain covers' do
+          own   = add_domain(own_host)
+          other = add_domain(secrets_host)
+          expect(@org).to receive(:list_domains).once.and_call_original
+
+          expect(@org.owns_email_domain_through?(own, "mail.#{other.display_domain}")).to be(true)
+        end
+
+        it 'falls through to the verified domains and refuses an address no proven domain covers' do
+          own = add_domain(own_host)
+          add_domain("pending-#{suffix}.acme-corp.example.com", verified: false)
+          expect(@org).to receive(:list_domains).twice.and_call_original
+
+          expect(@org.owns_email_domain_through?(own, 'unrelated.example.org')).to be(false)
+          expect(@org.owns_email_domain_through?(own, "pending-#{suffix}.acme-corp.example.com")).to be(false)
+        end
       end
     end
   end

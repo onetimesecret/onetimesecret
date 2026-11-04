@@ -405,11 +405,25 @@ module Onetime
     # operator audit of identities bound before the gate existed
     # (Auth::Operations::AuditTenantEmailDomains).
     #
+    # The flow's own domain is judged first, from the record the caller
+    # already has, and the rest of the proven set (#verified_domains, one
+    # load of every domain record of the organization) is read only when
+    # that domain does not settle the question. The answer equals any? over
+    # #proven_email_domains_through(custom_domain) for every input: that set
+    # is the union of the flow's domain, when proven, with verified_domains,
+    # and any? over a union is the or of any? over each part, which is what
+    # the body spells out (the uniq in that set drops repeats of one record,
+    # which changes no any? answer). A blank address is false under both
+    # readings.
+    #
     # @param custom_domain [Onetime::CustomDomain] the flow's domain
     # @param email_domain [String] the part of an address after its `@`
     # @return [Boolean]
     def owns_email_domain_through?(custom_domain, email_domain)
-      owns_email_domain?(email_domain, domains: proven_email_domains_through(custom_domain))
+      return false if email_domain.to_s.strip.empty?
+
+      own = custom_domain.ownership_proven? ? [custom_domain] : []
+      owns_email_domain?(email_domain, domains: own) || owns_email_domain?(email_domain, domains: verified_domains)
     end
 
     # The proven set as a tenant SSO flow on `custom_domain` sees it: that
