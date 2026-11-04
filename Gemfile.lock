@@ -28,9 +28,9 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
-    activemodel (8.1.3)
-      activesupport (= 8.1.3)
-    activesupport (8.1.3)
+    activemodel (8.1.4.1)
+      activesupport (= 8.1.4.1)
+    activesupport (8.1.4.1)
       base64
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.3.1)
@@ -401,6 +401,7 @@ GEM
       io-console (~> 0.5)
     rerun (0.14.0)
       listen (~> 3.0)
+    resolv (0.7.2)
     reverse_markdown (3.0.2)
       nokogiri
     rexml (3.4.4)
@@ -692,6 +693,7 @@ DEPENDENCIES
   redis (~> 5.4.0)
   reline
   rerun (~> 0.14)
+  resolv (~> 0.7.2)
   rhales (~> 0.7.1)
   roda (~> 3.0)
   rodauth!
