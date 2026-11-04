@@ -70,7 +70,8 @@ module Auth
       #   email in another region and, at account-creation time, claim and
       #   destroy the victim's PendingFederatedSubscription. Callers on the
       #   standard signup path pass `require_verification: true` so the claim is
-      #   deferred to `after_verify_account`. The SSO JIT caller passes it too
+      #   deferred to `after_verify_account` (in simple auth mode, to the
+      #   redeemed verification link). The SSO JIT caller passes it too
       #   (#4735): the IdP asserted the address but nobody proved mailbox
       #   control, so the claim waits for an operator verification
       #   (SetCustomerVerification re-invokes it). Mailbox-proven callers
@@ -128,12 +129,30 @@ module Auth
       #   record survives for the surface that can resolve it properly: the
       #   next federated subscription webhook, which reads the plan from
       #   subscription metadata.
+      # @param own_address_only [Boolean] When true, claim a pending federated
+      #   subscription only when the address the claim hashes (the workspace's
+      #   billing email, else its contact email) is the customer's own.
+      #
+      #   Only the redeemed verification link sets it, through
+      #   SetCustomerVerification.record_mailbox_proof (#4754 review, round
+      #   3), which runs the claim at all only for a link sent to the
+      #   customer's current address. The link proves the mailbox of that
+      #   address and no other, while the owner can set the billing email to
+      #   any address through PUT /api/organizations/:extid without proving
+      #   it, so without the check a caller who proved only their own mailbox
+      #   could point the workspace at another address and collect that
+      #   address's pending subscription. A workspace whose billing email
+      #   names another address keeps the pending record. The other re-claim
+      #   triggers leave the default: the Rodauth hook runs before an
+      #   unverified account can sign in and change the billing email, and an
+      #   operator verification is the operator vouching for the account.
       def initialize(customer:, require_verification: false, stripe_customer_id: nil,
-                     claim_pending_federation: true)
+                     claim_pending_federation: true, own_address_only: false)
         @customer                 = customer
         @require_verification     = require_verification
         @stripe_customer_id       = stripe_customer_id
         @claim_pending_federation = claim_pending_federation
+        @own_address_only         = own_address_only
       end
 
       # Executes the workspace creation operation
@@ -159,7 +178,10 @@ module Auth
       # Invoked from `after_verify_account` once a standard email/password
       # signup proves email ownership. The default workspace was created at
       # signup (with the federation claim deferred); here we locate that
-      # workspace and apply any pending federated subscription to it.
+      # workspace and apply any pending federated subscription to it. In
+      # simple auth mode the redeemed verification link invokes it too,
+      # through SetCustomerVerification.record_mailbox_proof, for a link sent
+      # to the customer's current address and with own_address_only: true.
       #
       # Idempotent and safe to call unconditionally:
       #   - no-op if the customer is missing/unverified,
@@ -170,9 +192,11 @@ module Auth
       #     destroyed on first successful claim.
       #
       # @param customer [Onetime::Customer] verified customer
+      # @param own_address_only [Boolean] claim only for the customer's own
+      #   address (see #initialize)
       # @return [Boolean] True if a pending subscription was applied
-      def self.claim_pending_federation_for(customer)
-        new(customer: customer).claim_pending_federation
+      def self.claim_pending_federation_for(customer, own_address_only: false)
+        new(customer: customer, own_address_only: own_address_only).claim_pending_federation
       end
 
       # Instance form of {.claim_pending_federation_for}.
@@ -182,10 +206,11 @@ module Auth
         return false unless @customer
 
         # Only claim once MAILBOX control is proven. This is the whole point of
-        # the deferral: the caller (after_verify_account, or
-        # SetCustomerVerification on an operator verification) has just stamped
-        # a mailbox-proof provenance before calling here. An IdP-asserted
-        # 'sso' stamp does not qualify (#4735).
+        # the deferral: the caller (SetCustomerVerification, run from
+        # after_verify_account, from an operator verification, or from the
+        # verification link redeemed in simple auth mode) has just stamped a
+        # mailbox-proof provenance before calling here. An IdP-asserted 'sso'
+        # stamp does not qualify (#4735).
         unless @customer.mailbox_verified?
           auth_logger.debug '[create-default-workspace] claim_pending_federation: customer not mailbox-verified, skipping'
           return false
@@ -424,8 +449,9 @@ module Auth
       # repairs. Keying on the record rather than the caller means none of
       # those can deliver the benefit the signup or JIT path deferred. The
       # re-claim runs from SetCustomerVerification once a mailbox-proof
-      # provenance is stamped: by after_verify_account for the signup, by an
-      # operator for the SSO account.
+      # provenance is stamped: by after_verify_account for the signup (by the
+      # redeemed verification link in simple auth mode), by an operator for
+      # the SSO account.
       #
       # The record rule reads the deployment's verify_account step through
       # the process's resolved auth mode and fails closed, deferring, both
@@ -447,6 +473,16 @@ module Auth
         @require_verification || @customer.federation_claim_deferred?
       end
 
+      # Is email_hash the hash of the customer's own address? EmailHash
+      # normalizes before hashing, so the same address in another case
+      # matches, and an address that hashes to nothing matches nothing.
+      #
+      # @param email_hash [String] the hash the claim would look up
+      # @return [Boolean]
+      def own_address_hash?(email_hash)
+        Onetime::Utils::EmailHash.compute(@customer.email).to_s == email_hash
+      end
+
       # Check for and apply pending federated subscription
       #
       # When a Stripe webhook fired before this account existed, the subscription
@@ -466,7 +502,10 @@ module Auth
       # billing self-heal) cannot claim what signup deferred (#4754 review,
       # F1). The benefit arrives once a mailbox-proof provenance is stamped:
       # `after_verify_account` → SetCustomerVerification →
-      # {.claim_pending_federation_for} for the signup, an operator
+      # {.claim_pending_federation_for} for the signup (the redeemed
+      # verification link takes the same route in simple auth mode,
+      # SetCustomerVerification.record_mailbox_proof, when it was sent to the
+      # customer's current address, and is held to that address), an operator
       # verification for the SSO account (#4735). Mailbox-proven callers
       # (invite, post-payment billing, authenticated lazy creation of a
       # verified password account) claim immediately.
@@ -521,8 +560,10 @@ module Auth
         # verified at account-creation time, and on the SSO JIT path it is
         # IdP-asserted but never mailbox-proven. Defer the claim (leaving the
         # PendingFederatedSubscription intact) until mailbox control is proven;
-        # after_verify_account and SetCustomerVerification re-invoke the claim
-        # once a qualifying provenance is stamped (#4735). The rule is the
+        # SetCustomerVerification re-invokes the claim once a qualifying
+        # provenance is stamped, from after_verify_account, an operator
+        # verification or the verification link redeemed in simple auth mode
+        # (#4735). The rule is the
         # record's, so the same workspace reached later through a caller with
         # the default flag is deferred here again (#4754 review, F1).
         if claim_deferred?
@@ -546,6 +587,22 @@ module Auth
 
         email_hash = org.email_hash.to_s
         return false if email_hash.empty?
+
+        # Address gate (the redeemed verification link, #4754 review, round
+        # 3): that link proved the mailbox of the customer's own address, so
+        # the claim it runs may look up only that address's pending record,
+        # not the one for whatever billing email the owner set without proof
+        # (see #initialize). Checked once, here: #claim_under_federation_lock
+        # re-reads the workspace under the lock and gives up unless it still
+        # hashes to this value, so a billing email change that lands after
+        # the check cannot get through either. The pending record is left
+        # intact.
+        if @own_address_only && !own_address_hash?(email_hash)
+          auth_logger.info '[create-default-workspace] Federated subscription claim refused: ' \
+                           'the workspace bills an address the verification did not prove',
+            { org: org.extid, customer: @customer.extid }
+          return false
+        end
 
         # Lazy load billing model (auth can operate without billing plugin)
         begin

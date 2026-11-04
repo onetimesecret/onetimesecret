@@ -546,7 +546,8 @@ module Auth::Config::Hooks
           # deferred at signup (federated benefit theft via unverified signup)
           # is claimed by SetCustomerVerification above, the moment the 'email'
           # provenance is stamped — the same trigger an operator verification
-          # of an SSO account uses (#4735). Nothing to do here.
+          # of an SSO account uses, and the one the redeemed verification link
+          # uses in simple auth mode (#4735). Nothing to do here.
 
           # Surface pending plan intent for checkout redirect (issue #3126)
           # If the user had selected a plan before signup, redirect them to checkout

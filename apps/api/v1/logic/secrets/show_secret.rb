@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/security/passphrase_rate_limiter'
+require 'auth/operations/set_customer_verification'
 
 module V1::Logic
   module Secrets
@@ -80,11 +81,15 @@ module V1::Logic
             if owner.nil?
               raise_form_error "Unable to verify account"
             elsif cust.nil? || cust.anonymous? || (cust.custid == owner.custid && !owner.mailbox_verified?)
-              # Not for the email-change confirmation secret (#4735).
+              # Not for the email-change confirmation secret (#4735). Stamped
+              # through the verification operation so the deferred federated
+              # subscription claim runs here too, for a link sent to the
+              # owner's current address and held to that address; a link
+              # minted in simple mode and redeemed in full mode skips the
+              # stamp and still reveals
+              # (SetCustomerVerification.record_mailbox_proof).
               if owner.mailbox_proof_secret?(secret)
-                owner.verified    = true
-                owner.verified_by = 'email'
-                owner.save
+                Auth::Operations::SetCustomerVerification.record_mailbox_proof(owner, secret)
               end
               # Skip for stateless auth. The v1 controllers pass no session at
               # all (V1::ControllerBase#authorized), so sess is nil here.
