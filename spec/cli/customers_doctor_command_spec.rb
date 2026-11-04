@@ -98,4 +98,48 @@ RSpec.describe 'customers doctor', type: :cli do
     end
     expect(op).to have_received(:call).twice
   end
+
+  # bin/ots resolves simple auth mode whenever AUTHENTICATION_MODE is not
+  # exported into its shell. The workspace repairs re-run
+  # EnsureDefaultWorkspace with the default flag, and in that state
+  # Customer#federation_claim_deferred? reads no verification step, so on a
+  # full-mode install a repair would claim a pending federated subscription
+  # for an account nobody has verified (#4754 review, F1). The audit is not
+  # gated. The unit lane exports AUTHENTICATION_MODE=simple, so the examples
+  # above run with the mode settled.
+  describe 'when simple auth mode was resolved by default' do
+    before { allow(Onetime.auth_config).to receive(:simple_by_default?).and_return(true) }
+
+    it 'refuses --repair before resolving the customer' do
+      output = run_cli_command_quietly('customers', 'doctor', 'user@example.com', '--repair')
+
+      expect(Onetime::Customer).not_to have_received(:load_by_extid_or_email)
+      expect(Auth::Operations::Customers::Doctor).not_to have_received(:new)
+      expect(output[:stdout]).to include('Error: AUTHENTICATION_MODE is not set')
+      expect(output[:stdout]).to include('Export AUTHENTICATION_MODE=full')
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'refuses a --repair sweep the same way, as JSON' do
+      output = run_cli_command_quietly('customers', 'doctor', '--all', '--repair', '--json')
+
+      expect(Auth::Operations::Customers::Doctor).not_to have_received(:new)
+      expect(JSON.parse(output[:stdout])['error']).to include('AUTHENTICATION_MODE is not set')
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'still audits without --repair' do
+      allow(op).to receive(:call).and_return(
+        Auth::Operations::Customers::Doctor::Report.new(issues: [], repaired: []),
+      )
+
+      output = run_cli_command_quietly('customers', 'doctor', 'user@example.com')
+
+      expect(Auth::Operations::Customers::Doctor).to have_received(:new).with(
+        customer: customer, repair: false, actor: nil,
+      )
+      expect(output[:stdout]).to include('Healthy: 1')
+      expect(last_exit_code).to eq(0)
+    end
+  end
 end

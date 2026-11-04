@@ -187,10 +187,19 @@ module Onetime::Customer::Features
       # Does this deployment have an email-verification step that an
       # unverified account still goes through? Reads
       # Onetime.auth_config.verify_account_loaded? (false outside full auth
-      # mode). Fails CLOSED: a config that cannot be read defers the claim,
-      # since the alternative hands a benefit to an address nobody proved.
-      # The federation webhook calls this under its per-hash lock, so the
-      # read must not raise out of it either.
+      # mode). Fails CLOSED on a read that raises: an unreadable config
+      # defers the claim, since the alternative hands a benefit to an address
+      # nobody proved. The federation webhook calls this under its per-hash
+      # lock, so the read must not raise out of it either.
+      #
+      # The answer is only as good as the process's resolved auth mode. A
+      # process whose shell did not export AUTHENTICATION_MODE resolves
+      # simple mode by default (Onetime::AuthConfig#simple_by_default?) and
+      # reads here as verify-disabled: nothing raises, nothing is logged
+      # here, and on a full-mode install such a process would claim at once.
+      # The server's environment is the install's; a bin/ots shell on the
+      # host may not be, which is why `customers doctor --repair` refuses in
+      # that state (Onetime::CLI::CustomersDoctorCommand).
       #
       # @return [Boolean]
       def verification_step_pending?

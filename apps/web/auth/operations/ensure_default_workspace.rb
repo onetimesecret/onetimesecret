@@ -389,8 +389,13 @@ module Auth
       # which the predicate deliberately does not defer and which this
       # method does not report (see Customer#federation_claim_deferred?). On
       # a verify-enabled deployment an unverified record never gets here,
-      # whatever the caller passed. See #initialize and
-      # #apply_pending_federation! for the full rationale.
+      # whatever the caller passed, provided the process resolved the
+      # install's auth mode: a bin/ots shell without AUTHENTICATION_MODE
+      # resolves simple mode by default and reads the step as absent, so
+      # the claim such a process makes is logged here as the residual, and
+      # `customers doctor --repair` refuses in that state rather than rely
+      # on the log (Customer#verification_step_pending?). See #initialize
+      # and #apply_pending_federation! for the full rationale.
       #
       # Never lets audit bookkeeping interfere with the claim itself: any error
       # reading the config is swallowed and treated as "not the residual".
@@ -420,6 +425,14 @@ module Auth
       # re-claim runs from SetCustomerVerification once a mailbox-proof
       # provenance is stamped: by after_verify_account for the signup, by an
       # operator for the SSO account.
+      #
+      # The record rule reads the deployment's verify_account step through
+      # the process's resolved auth mode and fails closed only when that read
+      # raises. A process that resolved simple mode by default (a bin/ots
+      # shell without AUTHENTICATION_MODE) reads the step as absent and does
+      # not defer; the CLI's repairing caller refuses in that state
+      # (Onetime::CLI::CustomersDoctorCommand). See
+      # Customer#verification_step_pending?.
       #
       # @return [Boolean]
       def claim_deferred?
