@@ -1162,6 +1162,23 @@ module Auth
           existing_provenance = @customer.verified_by.to_s
           provenance          = existing_provenance.empty? ? 'sso' : existing_provenance
 
+          # SetCustomerVerification refuses a tag outside VERIFIED_BY_VALUES,
+          # so a stored unknown tag cannot be preserved by the repair. Say so
+          # instead of reporting a repair that --repair would never make.
+          unless Onetime::Customer::VERIFIED_BY_VALUES.include?(provenance)
+            issues << {
+              check: :sso_customer_unverified,
+              severity: :medium,
+              message: 'SSO-provisioned customer is unverified while its auth account is Verified, ' \
+                       "and carries an unrecognised verified_by '#{provenance}' (not auto-repaired)",
+              reason: :unknown_verified_by,
+              repairable: false,
+              repair_action: 'Manual decision required: confirm the address, then verify ' \
+                             'via colonel admin or `bin/ots customers verify EMAIL`',
+            }
+            return
+          end
+
           issues << {
             check: :sso_customer_unverified,
             severity: :high,

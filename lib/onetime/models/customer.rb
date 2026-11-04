@@ -102,7 +102,6 @@ module Onetime
     #   stripe_payment - payment-initiated signup (apps/web/billing/logic/welcome.rb)
     #   autoverify     - autoverify-mode account creation
     #                    (apps/api/account/logic/account/create_account.rb)
-    #                    and the login-recovery path when verify_account is off
     #   sso            - OmniAuth JIT provisioning (apps/web/auth/config/hooks/
     #                    omniauth.rb), the doctor's :sso_customer_unverified
     #                    repair, and the login-recovery path for accounts
