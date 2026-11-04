@@ -108,6 +108,75 @@ class RunnerTests(unittest.TestCase):
             self.assertEqual(run.finish(0), 1)
 
 
+class InventoryTests(unittest.TestCase):
+    def report(self, root):
+        return {
+            "testResults": [
+                {
+                    "name": str(root / "src/tests/admin-isolation.spec.ts"),
+                    "assertionResults": [
+                        {
+                            "fullName": f"admin import isolation {root}/src/apps/admin/Example.vue has ZERO import edge"
+                        },
+                        {"fullName": "preserves /external/path and relative/path"},
+                    ],
+                }
+            ]
+        }
+
+    def test_finish_normalizes_checkout_paths_in_parameterized_titles(self):
+        hashes = []
+        for root in (
+            Path("/builds/onetimesecret/onetimesecret"),
+            Path("/root/project"),
+        ):
+            with (
+                self.subTest(root=root),
+                tempfile.TemporaryDirectory() as directory,
+                patch.object(pilot, "ROOT", root),
+                patch.object(pilot, "RESULTS", Path(directory)),
+            ):
+                (Path(directory) / "unit.json").write_text(
+                    json.dumps(self.report(root))
+                )
+                self.assertEqual(pilot.Run({}).finish(0), 0)
+                metrics = json.loads((Path(directory) / "metrics.json").read_text())
+                self.assertEqual(metrics["status"], "passed")
+                hashes.append(metrics["test_inventory_sha256"])
+        self.assertEqual(hashes[0], hashes[1])
+
+    def test_real_inventory_changes_remain_distinct(self):
+        root = Path("/root/project")
+        expected = pilot.inventory_sha256(self.report(root), root)
+        for change in ("file", "title", "duplicate"):
+            with self.subTest(change=change):
+                report = self.report(root)
+                suite = report["testResults"][0]
+                if change == "file":
+                    suite["name"] = str(root / "src/tests/other.spec.ts")
+                elif change == "title":
+                    suite["assertionResults"][0]["fullName"] += " changed"
+                else:
+                    suite["assertionResults"].append(suite["assertionResults"][0])
+                self.assertNotEqual(pilot.inventory_sha256(report, root), expected)
+
+    def test_checkout_prefix_requires_a_directory_boundary(self):
+        hashes = []
+        for root in (Path("/builds/app"), Path("/root/project")):
+            report = self.report(root)
+            report["testResults"][0]["assertionResults"][0]["fullName"] = (
+                f"outside checkout {root}-sibling/src/Example.vue"
+            )
+            hashes.append(pilot.inventory_sha256(report, root))
+        self.assertNotEqual(hashes[0], hashes[1])
+
+    def test_suite_outside_checkout_is_rejected(self):
+        with self.assertRaises(ValueError):
+            pilot.inventory_sha256(
+                self.report(Path("/elsewhere")), Path("/root/project")
+            )
+
+
 class ComparisonTests(unittest.TestCase):
     def records(self):
         base = dict(

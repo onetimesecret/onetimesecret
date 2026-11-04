@@ -70,6 +70,18 @@ def identity(env, local):
     }
 
 
+def inventory_sha256(payload, root):
+    """Hash test identities independently of the provider's checkout directory."""
+    prefix = str(root) + "/"
+    inventory = []
+    for suite in payload.get("testResults", []):
+        file = str(Path(suite["name"]).relative_to(root))
+        for test in suite.get("assertionResults", []):
+            title = test["fullName"].replace(prefix, "<checkout>/")
+            inventory.append([file, title])
+    return hashlib.sha256(json.dumps(sorted(inventory)).encode()).hexdigest()
+
+
 class Run:
     def __init__(self, env):
         self.env = env
@@ -167,14 +179,7 @@ class Run:
                         "numTodoTests",
                     )
                 }
-                inventory = []
-                for suite in payload.get("testResults", []):
-                    file = str(Path(suite["name"]).relative_to(ROOT))
-                    for test in suite.get("assertionResults", []):
-                        inventory.append([file, test["fullName"]])
-                self.metrics["test_inventory_sha256"] = hashlib.sha256(
-                    json.dumps(sorted(inventory)).encode()
-                ).hexdigest()
+                self.metrics["test_inventory_sha256"] = inventory_sha256(payload, ROOT)
         except (OSError, ValueError, KeyError, TypeError) as error:
             self.metrics["report_error"] = str(error)
             code = 1
