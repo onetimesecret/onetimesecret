@@ -77,7 +77,7 @@ module OrganizationAPI::Logic
 
         # Audit log for member removal
         OT.info "[AUDIT] action=member_removed actor=#{cust.extid} target=#{target_extid} " \
-                "colonel_override=#{cust.role?(:colonel)} org=#{@organization.extid} " \
+                "colonel_override=#{has_system_role?('colonel')} org=#{@organization.extid} " \
                 "default_org_cleanup=#{default_org_cleanup} timestamp=#{Time.now.utc.iso8601}"
 
         # The removal stands and the response does not report this: the
@@ -131,8 +131,10 @@ module OrganizationAPI::Logic
           cust.objid,
         )
 
-        # Colonels bypass membership requirement
-        if cust.role?(:colonel) && membership.nil?
+        # Colonels bypass membership requirement. has_system_role? also
+        # requires mailbox proof (#4735): a colonel-role account without it
+        # needs a membership like anyone else.
+        if has_system_role?('colonel') && membership.nil?
           OT.info "[AUDIT] action=colonel_membership_bypass actor=#{cust.extid} " \
                   "org=#{organization.extid} timestamp=#{Time.now.utc.iso8601}"
           return nil
@@ -190,12 +192,13 @@ module OrganizationAPI::Logic
           )
         end
 
-        # Colonels can remove anyone (except owner, already checked)
-        return if cust.role?(:colonel)
+        # Colonels can remove anyone (except owner, already checked). Same
+        # mailbox-proof gate as load_actor_membership (#4735).
+        return if has_system_role?('colonel')
 
         # Check actor's role permissions
         # Note: @actor_membership is guaranteed non-nil here because:
-        # 1. Colonels already returned at line 130
+        # 1. Colonels already returned above
         # 2. Non-colonels without membership would have raised in load_actor_membership
         actor_role  = @actor_membership.role
         target_role = @target_membership.role

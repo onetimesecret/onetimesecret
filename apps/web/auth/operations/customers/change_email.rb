@@ -941,9 +941,12 @@ module Auth
             ).call
             return :reset if result == :success
 
-            # :no_change. The wrapper decides on the REDIS mirror alone and
-            # returns before touching SQL (set_customer_verification.rb:76), so
-            # this only means "already unverified" when the two stores agree.
+            # :no_change. SetCustomerVerification returns it only when the
+            # REDIS mirror already reads unverified with a blank provenance,
+            # and it returns before touching SQL (set_customer_verification.rb:100).
+            # Any call that changes the state or the provenance reconciles the
+            # SQL row. So :no_change only means "already unverified" when the
+            # two stores agree.
             # When they do not, the authoritative login gate (accounts.status_id)
             # is STILL Verified and nothing was reset — the quietest version of
             # exactly the state this reset exists to prevent.

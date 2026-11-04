@@ -68,6 +68,12 @@ RUN set -eux && \
 # digests; a mismatch fails loudly rather than silently installing whatever
 # the download returned. Only amd64 and arm64 are built, so any other
 # architecture is refused instead of falling back to an unverified binary.
+#
+# --retry alone covers timeouts and HTTP 408/429/500/502/503/504 only; a
+# connection reset during the TLS handshake (curl exit 35) needs
+# --retry-all-errors. That is safe here: the download writes with -o, curl
+# discards a partial download before it retries, and the digest check runs
+# afterwards.
 ARG YQ_VERSION=v4.52.4
 ARG YQ_SHA256_AMD64=0c4d965ea944b64b8fddaf7f27779ee3034e5693263786506ccd1c120f184e8c
 ARG YQ_SHA256_ARM64=4c2cc022a129be5cc1187959bb4b09bebc7fb543c5837b93001c68f97ce39a5d
@@ -78,7 +84,7 @@ RUN set -eux && \
         arm64) YQ_ARCH="arm64"; YQ_SHA256="${YQ_SHA256_ARM64}" ;; \
         *) echo "Unsupported architecture for yq: ${ARCH}" >&2; exit 1 ;; \
     esac && \
-    curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${YQ_ARCH}" \
+    curl -fsSL --retry 5 --retry-all-errors "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${YQ_ARCH}" \
         -o /tmp/yq && \
     echo "${YQ_SHA256}  /tmp/yq" | sha256sum -c - && \
     install -m 0755 /tmp/yq /usr/local/bin/yq && \

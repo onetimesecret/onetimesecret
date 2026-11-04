@@ -111,26 +111,42 @@ module AccountAPI::Logic
       end
 
       def perform_update
+        # Supersede any earlier pending confirmation. Only the secret recorded
+        # on pending_email_change is recognised as the email-change link; a
+        # second request would otherwise leave the first secret live but
+        # unrecorded, and revealing THAT one would read as proof of the
+        # current mailbox (Customer#mailbox_proof_secret?, #4735). One pending
+        # email-change secret per customer, always the recorded one.
+        previous_identifier = cust.pending_email_change.value.to_s
+        unless previous_identifier.empty?
+          superseded = Onetime::Secret.find_by_identifier(previous_identifier)
+          superseded.destroy! if superseded&.exists?
+        end
+
         # Create a verification secret with 24h TTL following ResetPasswordRequest pattern
         secret                    = Onetime::Secret.create!(owner_id: cust.objid)
         secret.default_expiration = 24.hours
         secret.verification       = 'true'
+        secret.kind               = 'email_change' # never mailbox proof for the CURRENT address (#4735)
         secret.custid             = cust.objid
         secret.ciphertext         = @new_email
         secret.save
 
-        # Count the request only once durable state (the pending-change secret)
-        # exists. Failed validations never reach this method, and a Redis write
-        # error during secret creation/save raises above — so flaky saves can't
-        # burn the MAX_REQUESTS quota with no pending change ever created
-        # (PR #3915 review). Increment BEFORE the email enqueues below: those
-        # are best-effort (each is rescued), and a failure after the secret is
-        # saved must not skip the count.
-        increment_request_count
-
-        # Track the pending change on the customer (standalone dbkey, writes immediately)
+        # Track the pending change on the customer (standalone dbkey, writes immediately).
+        # Kept next to secret.save: the superseded secret is already destroyed
+        # above, so nothing may fail between the save and this pointer write
+        # without leaving the customer with no usable pending change.
         cust.pending_email_change          = secret.identifier
         cust.pending_email_delivery_status = 'queued'
+
+        # Count the request only once durable state exists: the pending-change
+        # secret and its pointer on the customer. Failed validations never reach
+        # this method, and a Redis write error during secret creation/save
+        # raises above — so flaky saves can't burn the MAX_REQUESTS quota with
+        # no pending change ever created (PR #3915 review). Increment BEFORE the
+        # email enqueues below: those are best-effort (each is rescued), and a
+        # failure after the pending change is recorded must not skip the count.
+        increment_request_count
 
         OT.info "[request-email-change] Email change requested cid/#{cust.objid} new_email/#{OT::Utils.obscure_email(@new_email)}"
 

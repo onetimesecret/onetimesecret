@@ -46,6 +46,9 @@ RSpec.describe 'Colonel ChangeUserEmail adapter contract', type: :integration do
     cust          = Onetime::Customer.create!(email: email)
     cust.role     = role
     cust.verified = verified
+    # A system role needs mailbox proof (#4754): has_system_role? reads
+    # verified_by, not just verified.
+    cust.verified_by = 'email' if verified.to_s == 'true'
     cust.save
     cust
   end

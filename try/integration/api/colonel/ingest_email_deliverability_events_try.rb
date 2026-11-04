@@ -50,6 +50,7 @@ def last_response; @test.last_response; end
 @colonel = Onetime::Customer.create!(email: "colonel_iede_#{@timestamp}@example.com")
 @colonel.role = 'colonel'
 @colonel.verified = 'true'
+@colonel.verified_by = 'email' # a system role needs mailbox proof (#4754)
 @colonel.save
 
 @regular = Onetime::Customer.create!(email: "regular_iede_#{@timestamp}@example.com")

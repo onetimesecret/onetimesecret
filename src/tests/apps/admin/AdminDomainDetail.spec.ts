@@ -529,6 +529,64 @@ describe('AdminDomainDetail', () => {
 
       expect(mockApi.post).not.toHaveBeenCalled();
     });
+
+    // #4734: under passthrough a verified domain proves no email domain until
+    // a Colonel override. Ticking "Ownership verified" on a domain that is
+    // already verified finds nothing to change, so the form offers a separate
+    // control that sends verified: true.
+    it('sends verified when accepting ownership of a domain verified but not by override', async () => {
+      mockApi.get.mockResolvedValue({
+        data: detailPayload({
+          verification_state: 'verified',
+          verified: true,
+          verified_by_override: false,
+          resolving: true,
+        }),
+      });
+      mockApi.post.mockResolvedValue({ data: overrideAck(true, true) });
+      wrapper = mountView();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="override-button"]').trigger('click');
+      const accept = wrapper.find('[data-testid="override-accept-ownership"]');
+      expect(accept.exists()).toBe(true);
+      await accept.find('input[type="checkbox"]').setValue(true);
+      await wrapper.find('[data-testid="override-apply"]').trigger('click');
+      await flushPromises();
+
+      expect(mockApi.post).toHaveBeenCalledWith(
+        `${DETAIL_URL}/override`,
+        { verified: true },
+        CONFIRM_HEADERS
+      );
+    });
+
+    it('does not offer the accept control once the domain is verified by override', async () => {
+      mockApi.get.mockResolvedValue({
+        data: detailPayload({
+          verification_state: 'verified',
+          verified: true,
+          verified_by_override: true,
+          resolving: true,
+        }),
+      });
+      wrapper = mountView();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="override-button"]').trigger('click');
+
+      expect(wrapper.find('[data-testid="override-accept-ownership"]').exists()).toBe(false);
+    });
+
+    it('does not offer the accept control for an unverified domain', async () => {
+      mockApi.get.mockResolvedValue({ data: detailPayload() });
+      wrapper = mountView();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="override-button"]').trigger('click');
+
+      expect(wrapper.find('[data-testid="override-accept-ownership"]').exists()).toBe(false);
+    });
   });
 
   describe('probe', () => {

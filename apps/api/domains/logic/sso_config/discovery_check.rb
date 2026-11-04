@@ -58,6 +58,19 @@ module DomainsAPI
         # which is not evidence about the configuration.
         UNREACHABLE_ERROR_CODES = %w[timeout connection_failed ssl_error].freeze
 
+        # Entra app registration settings the admin confirms by hand
+        # (#4734 R2): authenticationBehaviors.removeUnverifiedEmailClaim and
+        # the xms_edov optional claim. Neither is in the discovery document
+        # and neither caller holds a Graph permission, so a passing Entra
+        # discovery check names them in details.manual_checks, in Test
+        # Connection and in RunDiagnostics ("Save and check", the form's
+        # primary check). The ids are a UI contract; docs: per-domain-sso.md
+        # "Entra app registration settings".
+        ENTRA_MANUAL_CHECKS = {
+          manual_checks: %w[remove_unverified_email_claim xms_edov_optional_claim].freeze,
+          note: 'This check read the discovery document only. Confirm the app registration settings listed below in Entra.',
+        }.freeze
+
         # The one rule for echoing a TLS / socket error from a fetch through
         # DiscoveryFetcher, shared with FetchIdpMetadata (which does not
         # include this mixin).
@@ -89,9 +102,16 @@ module DomainsAPI
           fetch_and_validate_discovery(discovery_url, 'OIDC')
         end
 
+        # On a success, details also carry ENTRA_MANUAL_CHECKS. A note the
+        # discovery report already set is kept ahead of ours.
         def test_entra_id_connection
           discovery_url = "https://login.microsoftonline.com/#{@tenant_id}/v2.0/.well-known/openid-configuration"
-          fetch_and_validate_discovery(discovery_url, 'Entra ID')
+          result        = fetch_and_validate_discovery(discovery_url, 'Entra ID')
+          return result unless result[:success]
+
+          details = result[:details] || {}
+          note    = [details[:note], ENTRA_MANUAL_CHECKS[:note]].compact.join(' ')
+          result.merge(details: details.merge(ENTRA_MANUAL_CHECKS).merge(note: note))
         end
 
         def build_discovery_url(issuer)
