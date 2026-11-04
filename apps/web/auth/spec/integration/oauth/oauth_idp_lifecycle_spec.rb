@@ -561,10 +561,12 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', :sqlite_database, type: :integr
   describe 'email_verified claim' do
     # hooks/oauth.rb asserts email_verified: true only when the accounts row
     # is Verified AND the linked Customer has mailbox proof
-    # (Customer#mailbox_verified?). An SSO-created account opens Verified on
-    # the IdP's word alone, which is not mailbox proof. Every other case is
-    # false, never a missing claim. Each example reads both the ID token and
-    # /userinfo; the gem fills both through fill_with_account_claims.
+    # (Customer#mailbox_verified?) from a provenance in
+    # OIDC_EMAIL_VERIFIED_BY, which leaves out 'invite_token'. An SSO-created
+    # account opens Verified on the IdP's word alone, which is not mailbox
+    # proof. Every other case is false, never a missing claim. Each example
+    # reads both the ID token and /userinfo; the gem fills both through
+    # fill_with_account_claims.
 
     # Redeems a fresh `openid email profile` grant for the account and
     # returns [id_token_payload, userinfo_body].
@@ -607,6 +609,32 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', :sqlite_database, type: :integr
 
       expect(id_payload).to include('email' => account[:email], 'email_verified' => false)
       expect(userinfo).to include('email' => account[:email], 'email_verified' => false)
+    end
+
+    it 'is false for a Customer verified by an invite signup (verified_by invite_token)' do
+      # mailbox_verified? counts 'invite_token', but the invitation API also
+      # returns the signup token to the inviter, so the inviter can sign up
+      # as the invited address without access to its mailbox.
+      account  = create_verified_account
+      customer = link_customer(account, verified_by: 'invite_token')
+      expect(customer.mailbox_verified?).to be(true)
+
+      id_payload, userinfo = claims_for(account)
+
+      expect(id_payload).to include('email' => account[:email], 'email_verified' => false)
+      expect(userinfo).to include('email' => account[:email], 'email_verified' => false)
+    end
+
+    %w[colonel_admin cli_provision].each do |verified_by|
+      it "is true for a Customer an operator verified (verified_by #{verified_by})" do
+        account = create_verified_account
+        link_customer(account, verified_by: verified_by)
+
+        id_payload, userinfo = claims_for(account)
+
+        expect(id_payload).to include('email' => account[:email], 'email_verified' => true)
+        expect(userinfo).to include('email' => account[:email], 'email_verified' => true)
+      end
     end
 
     it 'is false for a Verified row with no linked Customer' do

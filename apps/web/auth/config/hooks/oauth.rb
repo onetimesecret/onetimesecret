@@ -45,6 +45,14 @@ module Auth::Config::Hooks
       /revoke
     ].freeze
 
+    # verified_by values for which the identity provider asserts
+    # email_verified: true. A subset of Onetime::Customer::MAILBOX_VERIFIED_BY;
+    # oidc_email_verified? checks both lists. It leaves out 'invite_token':
+    # the invitation API also returns the signup token to the inviter
+    # (OrganizationMembership safe_dump :token), so an invite signup does not
+    # prove that the invitee controls the mailbox.
+    OIDC_EMAIL_VERIFIED_BY = %w[email colonel_admin cli_provision].freeze
+
     def self.configure(auth)
       # ========================================================================
       # JSON Mode Override for OAuth/OIDC Endpoints — now centralized
@@ -105,8 +113,9 @@ module Auth::Config::Hooks
           #      feature exposes as account_open_status_value; migration
           #      001_initial.rb seeds account_statuses with these ids), and
           #   2. the linked Customer has mailbox proof
-          #      (Customer#mailbox_verified?, verified_by in
-          #      Onetime::Customer::MAILBOX_VERIFIED_BY).
+          #      (Customer#mailbox_verified?) and its verified_by is in
+          #      OIDC_EMAIL_VERIFIED_BY, which leaves out 'invite_token'
+          #      (see the constant).
           #
           # The row status alone is not enough. Every SSO-created account
           # opens Verified (omniauth_verify_account? true) because the
@@ -215,15 +224,18 @@ module Auth # rubocop:disable Style/OneClassPerFile
 
     # Value of the OIDC email_verified claim for a rodauth account row. See
     # the :email_verified branch of get_oidc_param for the rule and why.
-    # Fails closed: an unverified row, no linked Customer, or any error
-    # resolving one gives false.
+    # Fails closed: an unverified row, no linked Customer, a provenance
+    # outside OIDC_EMAIL_VERIFIED_BY, or any error resolving one gives false.
     #
     # @param account [Hash] Sequel row from the accounts table
     # @return [Boolean] never nil
     def oidc_email_verified?(account)
       return false unless account[:status_id].to_i == account_open_status_value
 
-      customer_for_account(account)&.mailbox_verified? == true
+      customer = customer_for_account(account)
+      return false unless customer&.mailbox_verified? == true
+
+      Hooks::OAuth::OIDC_EMAIL_VERIFIED_BY.include?(customer.verified_by.to_s)
     rescue StandardError => ex
       Onetime.auth_logger&.warn(
         'OAuth email_verified check failed',
