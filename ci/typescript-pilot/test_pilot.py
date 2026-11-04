@@ -76,6 +76,71 @@ class RunnerTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "SHA"):
                 pilot.identity({"GITLAB_CI": "true", "CI_COMMIT_SHA": "merged"}, False)
 
+    def test_hosted_identity_uses_each_providers_native_commit_and_job(self):
+        cases = [
+            (
+                "gitlab",
+                {
+                    "GITLAB_CI": "true",
+                    "CI_COMMIT_SHA": "source",
+                    "CI_JOB_ID": "gl-job",
+                    "CI_JOB_URL": "https://gitlab.com/job",
+                },
+                "gl-job",
+                "https://gitlab.com/job",
+            ),
+            (
+                "circleci",
+                {
+                    "CIRCLE_SHA1": "source",
+                    "CIRCLE_WORKFLOW_JOB_ID": "cc-job",
+                    "CIRCLE_BUILD_URL": "https://app.circleci.com/job",
+                },
+                "cc-job",
+                "https://app.circleci.com/job",
+            ),
+            (
+                "github",
+                {
+                    "GITHUB_ACTIONS": "true",
+                    "GITHUB_SHA": "source",
+                    "GITHUB_JOB": "ts-job",
+                    "GITHUB_REPOSITORY": "org/repo",
+                    "GITHUB_RUN_ID": "123",
+                    "GITHUB_RUN_ATTEMPT": "2",
+                },
+                "ts-job",
+                "https://github.com/org/repo/actions/runs/123",
+            ),
+        ]
+        for provider, env, job_id, url in cases:
+            with (
+                self.subTest(provider=provider),
+                patch.object(pilot, "capture", side_effect=["source", ""]),
+            ):
+                result = pilot.identity(
+                    dict(env, PILOT_RESOURCE_CLASS="large", PILOT_EXECUTOR="machine"),
+                    False,
+                )
+            self.assertEqual(result["provider"], provider)
+            self.assertEqual(result["commit_sha"], "source")
+            self.assertEqual(result["job_id"], job_id)
+            self.assertEqual(result["job_url"], url)
+            self.assertEqual(result["resource_class"], "large")
+            self.assertEqual(result["executor"], "machine")
+            self.assertEqual(
+                result["run_attempt"], "2" if provider == "github" else None
+            )
+
+    def test_github_rejects_wrong_source_sha_and_dirty_checkout(self):
+        env = {"GITHUB_ACTIONS": "true", "GITHUB_SHA": "source"}
+        with patch.object(pilot, "capture", return_value="different"):
+            with self.assertRaisesRegex(ValueError, "SHA"):
+                pilot.identity(env, False)
+        with patch.object(pilot, "capture", side_effect=["source", " M tracked"]):
+            with self.assertRaisesRegex(ValueError, "unmodified"):
+                pilot.identity(env, False)
+
     def test_deadline_terminates_command_and_records_timeout(self):
         run = pilot.Run(dict(os.environ))
         with patch.dict(pilot.PINS, deadline_seconds=0.05):

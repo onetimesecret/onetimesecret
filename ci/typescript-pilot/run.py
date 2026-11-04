@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the same cold-cache TypeScript workload on GitLab.com and CircleCI."""
+"""Run the same cold-cache TypeScript workload across hosted CI providers."""
 
 import argparse
 import hashlib
@@ -33,15 +33,24 @@ def capture(command, env):
 
 
 def identity(env, local):
-    provider = (
-        "local" if local else "gitlab" if env.get("GITLAB_CI") == "true" else "circleci"
-    )
+    if local:
+        provider = "local"
+    elif env.get("GITLAB_CI") == "true":
+        provider = "gitlab"
+    elif env.get("GITHUB_ACTIONS") == "true":
+        provider = "github"
+    else:
+        provider = "circleci"
     sha = capture(["git", "rev-parse", "HEAD"], env)
-    expected = (
-        env.get("CI_COMMIT_SHA") if provider == "gitlab" else env.get("CIRCLE_SHA1")
+    expected = env.get(
+        {"gitlab": "CI_COMMIT_SHA", "github": "GITHUB_SHA"}.get(provider, "CIRCLE_SHA1")
     )
     if not local and (not expected or sha != expected):
         raise ValueError("Checkout SHA must match the provider's source commit SHA")
+    github_url = (
+        f"{env.get('GITHUB_SERVER_URL', 'https://github.com')}/"
+        f"{env.get('GITHUB_REPOSITORY')}/actions/runs/{env.get('GITHUB_RUN_ID')}"
+    )
     dirty = bool(capture(["git", "status", "--porcelain", "--untracked-files=no"], env))
     if not local and dirty:
         raise ValueError("Hosted benchmark requires an unmodified source checkout")
@@ -49,16 +58,24 @@ def identity(env, local):
         "provider": provider,
         "commit_sha": sha,
         "working_tree_dirty": dirty,
-        "job_id": env.get("CI_JOB_ID")
+        "job_id": env.get(
+            {"gitlab": "CI_JOB_ID", "github": "GITHUB_JOB"}.get(
+                provider, "CIRCLE_WORKFLOW_JOB_ID"
+            )
+        ),
+        "job_url": github_url
+        if provider == "github"
+        else env.get("CI_JOB_URL" if provider == "gitlab" else "CIRCLE_BUILD_URL"),
+        "pipeline_id": env.get("CI_PIPELINE_ID")
         if provider == "gitlab"
-        else env.get("CIRCLE_WORKFLOW_JOB_ID"),
-        "job_url": env.get("CI_JOB_URL")
-        if provider == "gitlab"
-        else env.get("CIRCLE_BUILD_URL"),
-        "pipeline_id": env.get("CI_PIPELINE_ID") if provider == "gitlab" else None,
+        else env.get("GITHUB_RUN_ID")
+        if provider == "github"
+        else None,
         "workflow_id": env.get("CIRCLE_WORKFLOW_ID")
         if provider == "circleci"
         else None,
+        "run_attempt": env.get("GITHUB_RUN_ATTEMPT") if provider == "github" else None,
+        "executor": env.get("PILOT_EXECUTOR", "local" if local else "docker"),
         "platform": platform.platform(),
         "architecture": platform.machine(),
         "visible_cpus": os.cpu_count(),

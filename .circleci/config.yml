@@ -4,9 +4,10 @@ jobs:
   typescript-pilot:
     docker:
       - image: python:3.14.7-bookworm@sha256:bfb689a7986adc6d5f16722e06c78e755efe4062e56276715fef450cbad09436
-    resource_class: medium
+    resource_class: large.gen2
     environment:
-      PILOT_RESOURCE_CLASS: medium
+      PILOT_RESOURCE_CLASS: large.gen2
+      PILOT_EXECUTOR: docker
     steps:
       - checkout
       - run:
@@ -19,8 +20,34 @@ jobs:
           path: tmp/typescript-pilot/results
           destination: typescript-pilot
 
+  typescript-pilot-vm:
+    machine:
+      image: ubuntu-2604:current
+    resource_class: large.gen2
+    environment:
+      PILOT_RESOURCE_CLASS: large.gen2
+      PILOT_EXECUTOR: machine
+    steps:
+      - checkout
+      - run:
+          name: TypeScript pilot (same pinned container on Linux VM)
+          command: |
+            image=$(python3 -c 'import json; print(json.load(open("ci/typescript-pilot/toolchain.json"))["image"])')
+            docker run --rm \
+              -v "$PWD:/workspace" -w /workspace \
+              -e CIRCLE_SHA1 -e CIRCLE_WORKFLOW_JOB_ID -e CIRCLE_BUILD_URL \
+              -e CIRCLE_WORKFLOW_ID -e PILOT_RESOURCE_CLASS -e PILOT_EXECUTOR \
+              "$image" sh -c 'git config --global --add safe.directory /workspace && exec python3 ci/typescript-pilot/run.py'
+          no_output_timeout: 20m
+      - store_test_results:
+          path: tmp/typescript-pilot/results
+      - store_artifacts:
+          path: tmp/typescript-pilot/results
+          destination: typescript-pilot
+
 workflows:
   typescript-pilot:
     when: pipeline.git.branch starts-with "ci-pilot/"
     jobs:
       - typescript-pilot
+      - typescript-pilot-vm

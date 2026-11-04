@@ -2,11 +2,12 @@
 typescript-pilot:
   stage: test
   image: python:3.14.7-bookworm@sha256:bfb689a7986adc6d5f16722e06c78e755efe4062e56276715fef450cbad09436
-  tags: [saas-linux-small-amd64]
+  tags: [saas-linux-medium-amd64]
   timeout: 20m
   retry: 0
   variables:
-    PILOT_RESOURCE_CLASS: saas-linux-small-amd64
+    PILOT_RESOURCE_CLASS: saas-linux-medium-amd64
+    PILOT_EXECUTOR: docker
     GIT_STRATEGY: clone
     GIT_DEPTH: '1'
   rules:

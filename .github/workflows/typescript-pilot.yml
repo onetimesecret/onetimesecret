@@ -1,0 +1,39 @@
+name: TypeScript runner pilot
+
+on:
+  push:
+    branches: ['ci-pilot/*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  typescript-pilot:
+    name: TypeScript pilot (${{ matrix.runner }})
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-latest-8-cores]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    container:
+      image: python:3.14.7-bookworm@sha256:bfb689a7986adc6d5f16722e06c78e755efe4062e56276715fef450cbad09436
+    env:
+      PILOT_RESOURCE_CLASS: ${{ matrix.runner }}
+      PILOT_EXECUTOR: docker
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: TypeScript pilot (shared runner, 15 minute deadline)
+        run: python3 ci/typescript-pilot/run.py
+      - name: Upload pilot reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: typescript-pilot-${{ matrix.runner }}
+          path: tmp/typescript-pilot/results/
+          retention-days: 30
+          if-no-files-found: error
