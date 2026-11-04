@@ -38,6 +38,7 @@ module Onetime
         puts '  bin/ots sso backfill-issuer DOMAIN --json          # JSON output'
         puts '  bin/ots sso audit-email-domains DOMAIN             # Report (dry run)'
         puts '  bin/ots sso audit-email-domains DOMAIN --unlink --confirm  # Unlink failing rows'
+        puts '  bin/ots sso audit-email-domains DOMAIN --issuer URL  # Rows stamped with URL'
         puts '  bin/ots sso audit-email-domains DOMAIN --json      # JSON output'
         puts
         puts 'DOMAIN = custom domain display name (e.g. secrets.example.com) or CustomDomain extid.'
