@@ -342,7 +342,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
 
         op.call
 
-        expect(workspace_op).to have_received(:claim_pending_federation_for).with(customer)
+        expect(workspace_op).to have_received(:claim_pending_federation_for).with(customer, own_address_only: false)
         expect(op.federation_claimed?).to be(true)
       end
     end
@@ -401,6 +401,9 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
   end
 
+  # Built without claim_own_address_only, as the Rodauth hook and the operator
+  # verifications build it, the op asks for a claim that is not held to the
+  # customer's own address; only .record_mailbox_proof (below) sets it.
   describe 'deferred federation re-claim' do
     it 'claims once the stamp gains mailbox proof (unverified -> email)' do
       # mailbox_verified? is read after the write, so it answers for the new stamp.
@@ -408,7 +411,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
 
       described_class.new(customer: customer, verified: true, verified_by: 'email', db: db).call
 
-      expect(workspace_op).to have_received(:claim_pending_federation_for).with(customer)
+      expect(workspace_op).to have_received(:claim_pending_federation_for).with(customer, own_address_only: false)
     end
 
     it 'claims when an operator upgrades an IdP-asserted stamp (sso -> cli_provision)' do
@@ -417,7 +420,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
 
       described_class.new(customer: customer, verified: true, verified_by: 'cli_provision', db: db).call
 
-      expect(workspace_op).to have_received(:claim_pending_federation_for).with(customer)
+      expect(workspace_op).to have_received(:claim_pending_federation_for).with(customer, own_address_only: false)
     end
 
     it 'does not claim when the new provenance carries no mailbox proof (sso)' do
@@ -433,7 +436,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
 
       described_class.new(customer: customer, verified: true, verified_by: 'cli_provision', db: db).call
 
-      expect(workspace_op).to have_received(:claim_pending_federation_for).with(customer)
+      expect(workspace_op).to have_received(:claim_pending_federation_for).with(customer, own_address_only: false)
     end
 
     it 'retries the claim on a :no_change verification that already carries mailbox proof' do
@@ -447,7 +450,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
 
       expect(op.call).to eq(:no_change)
       expect(customer).not_to have_received(:save)
-      expect(workspace_op).to have_received(:claim_pending_federation_for).with(customer)
+      expect(workspace_op).to have_received(:claim_pending_federation_for).with(customer, own_address_only: false)
     end
 
     # The symbol says :no_change because the verification state did not move;
@@ -509,6 +512,188 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
       expect(op.call).to eq(:success)
       expect(customer).to have_received(:save)
       expect(op.federation_claimed?).to be(false)
+    end
+
+    # Only .record_mailbox_proof declines it, for a link not on record as
+    # sent to the customer's current address (#4754 review, round 3). The
+    # stamp is written as before; the claim is not run on either path.
+    context 'when the caller declines the claim (claim_pending_federation: false)' do
+      it 'writes the stamp and runs no claim' do
+        allow(customer).to receive(:mailbox_verified?).and_return(true)
+
+        op = described_class.new(customer: customer, verified: true, verified_by: 'email', db: db,
+          claim_pending_federation: false)
+
+        expect(op.call).to eq(:success)
+        expect(customer).to have_received(:verified_by=).with('email')
+        expect(customer).to have_received(:save)
+        expect(workspace_op).not_to have_received(:claim_pending_federation_for)
+        expect(op.federation_claimed?).to be(false)
+      end
+
+      it 'runs no claim on a :no_change repeat either' do
+        allow(customer).to receive_messages(verified?: true, verified_by: 'email', mailbox_verified?: true)
+
+        op = described_class.new(customer: customer, verified: true, verified_by: 'email', db: db,
+          claim_pending_federation: false)
+
+        expect(op.call).to eq(:no_change)
+        expect(workspace_op).not_to have_received(:claim_pending_federation_for)
+      end
+    end
+  end
+
+  # #4754 review, round 3: the simple-mode mailbox proof. The v1 and v2 secret
+  # reveal logic redeem the emailed verification secret through this entry
+  # point instead of stamping the Customer directly, so the deferred federation
+  # claim runs for them too. The verification secret is minted only by
+  # simple-mode flows but redeemed through routes that serve every mode, so a
+  # link minted before a switch to full mode can still be followed; Rodauth
+  # owns verification there, and the link records nothing. Nothing is rescued.
+  # The claim runs only for a link on record as sent to the customer's current
+  # address (Secret#delivered_to?), and is held to that address
+  # (own_address_only: true); both checks run against real records in
+  # ensure_default_workspace_federation_spec.rb.
+  describe '.record_mailbox_proof' do
+    let(:auth_logger) { double('AuthLogger', info: nil) }
+
+    # The welcome link, sent to the customer's current address.
+    let(:link) { double('Secret', delivered_to?: true, delivery_digest: 'digest-of-current-address') }
+
+    before do
+      allow(described_class).to receive(:auth_logger).and_return(auth_logger)
+      allow(described_class).to receive(:new).and_call_original
+      # A spy, never consulted in simple mode (no SQL there).
+      allow(Auth::Database).to receive(:connection).and_return(db)
+    end
+
+    it 'stamps verified with the email provenance and runs the own-address claim, touching no SQL' do
+      allow(customer).to receive(:mailbox_verified?).and_return(true)
+
+      expect(described_class.record_mailbox_proof(customer, link)).to eq(:success)
+      expect(link).to have_received(:delivered_to?).with('user@example.com')
+      expect(described_class).to have_received(:new).with(
+        customer: customer, verified: true, verified_by: 'email',
+        claim_pending_federation: true, claim_own_address_only: true
+      )
+      expect(customer).to have_received(:verified=).with(true)
+      expect(customer).to have_received(:verified_by=).with('email')
+      expect(customer).to have_received(:save)
+      expect(workspace_op).to have_received(:claim_pending_federation_for).with(customer, own_address_only: true)
+      expect(Auth::Database).not_to have_received(:connection)
+      expect(db).not_to have_received(:transaction)
+      expect(auth_logger).not_to have_received(:info)
+    end
+
+    it 'keeps a stored mailbox-proof stamp on a repeat and still retries the claim' do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'colonel_admin', mailbox_verified?: true)
+
+      expect(described_class.record_mailbox_proof(customer, link)).to eq(:no_change)
+      expect(customer).not_to have_received(:verified_by=)
+      expect(customer).not_to have_received(:save)
+      expect(workspace_op).to have_received(:claim_pending_federation_for).with(customer, own_address_only: true)
+    end
+
+    it 'upgrades a stamp that is not mailbox proof' do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'stripe_payment', mailbox_verified?: false)
+
+      expect(described_class.record_mailbox_proof(customer, link)).to eq(:success)
+      expect(customer).to have_received(:verified_by=).with('email')
+      expect(customer).to have_received(:save)
+    end
+
+    # Simple mode has nothing for it to rescue, so an error that escapes #call
+    # reaches the reveal, as one from the direct stamp did.
+    it 'propagates an unexpected error from #call' do
+      allow(customer).to receive(:save).and_raise(Redis::CannotConnectError, 'valkey unavailable')
+
+      expect { described_class.record_mailbox_proof(customer, link) }
+        .to raise_error(Redis::CannotConnectError, 'valkey unavailable')
+      expect(workspace_op).not_to have_received(:claim_pending_federation_for)
+      expect(auth_logger).not_to have_received(:info)
+    end
+
+    # A link is tied to the account, not to an address. After an operator
+    # email change it still reveals, but it proves only the mailbox it was
+    # sent to, while the change pointed the default workspace at the new
+    # address. It stamps as the direct stamp did and runs no claim, so the
+    # new address's pending record stays where it was.
+    context 'when the link is not on record as sent to the current address' do
+      let(:link) { double('Secret', delivered_to?: false, delivery_digest: 'digest-of-earlier-address') }
+
+      it 'stamps as before and runs no claim' do
+        allow(customer).to receive(:mailbox_verified?).and_return(true)
+
+        expect(described_class.record_mailbox_proof(customer, link)).to eq(:success)
+        expect(described_class).to have_received(:new).with(
+          customer: customer, verified: true, verified_by: 'email',
+          claim_pending_federation: false, claim_own_address_only: true
+        )
+        expect(customer).to have_received(:verified_by=).with('email')
+        expect(customer).to have_received(:save)
+        expect(workspace_op).not_to have_received(:claim_pending_federation_for)
+      end
+
+      it 'runs no claim on the repeat an owner with mailbox proof reaches either' do
+        allow(customer).to receive_messages(verified?: true, verified_by: 'email', mailbox_verified?: true)
+
+        expect(described_class.record_mailbox_proof(customer, link)).to eq(:no_change)
+        expect(workspace_op).not_to have_received(:claim_pending_federation_for)
+      end
+
+      it 'logs at info that the claim was withheld, and that a delivery address was recorded' do
+        described_class.record_mailbox_proof(customer, link)
+
+        expect(auth_logger).to have_received(:info).with(
+          /not on record as sent to the account's current address; stamping without the federation claim/,
+          { customer: 'ur_test_123', delivery_recorded: true },
+        )
+      end
+
+      # Minted before the delivery address was recorded: nothing says which
+      # mailbox it proves, so it is treated the same way.
+      it 'treats a link that recorded no delivery address the same way' do
+        unrecorded = double('Secret', delivered_to?: false, delivery_digest: nil)
+        allow(customer).to receive(:mailbox_verified?).and_return(true)
+
+        expect(described_class.record_mailbox_proof(customer, unrecorded)).to eq(:success)
+        expect(workspace_op).not_to have_received(:claim_pending_federation_for)
+        expect(auth_logger).to have_received(:info).with(
+          /not on record as sent to the account's current address/,
+          { customer: 'ur_test_123', delivery_recorded: false },
+        )
+      end
+    end
+
+    # The link was minted in simple mode and followed after the install
+    # switched to full mode. Reconciling the accounts row from a reveal would
+    # let an Unverified account that Rodauth blocks sign in; the old direct
+    # stamp wrote Redis alone and left the row Unverified. So nothing at all.
+    context 'when the install runs full auth mode' do
+      # Any message to it fails the example: nothing may reach the database.
+      let(:db) { double('db') }
+
+      before { allow(auth_config).to receive(:mode).and_return('full') }
+
+      it 'records nothing, builds no operation and touches no SQL' do
+        expect(described_class.record_mailbox_proof(customer, link)).to be_nil
+
+        expect(described_class).not_to have_received(:new)
+        expect(Auth::Database).not_to have_received(:connection)
+        expect(customer).not_to have_received(:verified=)
+        expect(customer).not_to have_received(:verified_by=)
+        expect(customer).not_to have_received(:save)
+        expect(workspace_op).not_to have_received(:claim_pending_federation_for)
+      end
+
+      it 'logs at info that Rodauth owns verification there' do
+        described_class.record_mailbox_proof(customer, link)
+
+        expect(auth_logger).to have_received(:info).with(
+          /redeemed in full auth mode; Rodauth owns account verification there/,
+          { customer: 'ur_test_123' },
+        )
+      end
     end
   end
 end

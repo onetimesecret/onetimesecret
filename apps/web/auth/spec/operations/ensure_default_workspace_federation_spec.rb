@@ -43,6 +43,16 @@
 # fall through to an immediate claim for such a record. verify_account is off
 # under RACK_ENV=test, so those examples stub the config predicate.
 #
+# #4754 review, round 3: in simple auth mode the redeemed verification link is
+# a re-claim trigger too (SetCustomerVerification.record_mailbox_proof). The
+# link proves only the mailbox it was sent to, while the claim hashes the
+# workspace's billing address, which the owner can change without proving it,
+# and an operator email change points the default workspace at the new
+# address while links sent to the earlier one stay live. So the claim the link
+# runs needs a link on record as sent to the account's current address
+# (Secret#delivered_to?) and applies only a pending record for that address
+# (own_address_only).
+#
 # REQUIREMENTS:
 # - Valkey running on port 2163: pnpm run test:database:start
 # - AUTHENTICATION_MODE=full
@@ -61,6 +71,7 @@ RSpec.describe 'EnsureDefaultWorkspace: federated subscription claim gate', type
     require 'onetime' unless defined?(Onetime)
     Onetime.boot! :test unless Onetime.ready?
     require 'auth/operations/ensure_default_workspace'
+    require 'auth/operations/customers/change_email'
     require 'billing/models/pending_federated_subscription'
   end
 
@@ -77,11 +88,13 @@ RSpec.describe 'EnsureDefaultWorkspace: federated subscription claim gate', type
   let(:created_customers) { [] }
   let(:created_organizations) { [] }
   let(:created_pending_records) { [] }
+  let(:created_links) { [] }
 
   after do
     created_organizations.each { |org| org.delete! if org&.exists? rescue nil }
     created_customers.each { |cust| cust.delete! if cust&.exists? rescue nil }
     created_pending_records.each { |rec| rec.destroy! rescue nil }
+    created_links.each { |obj| obj.destroy! rescue nil }
   end
 
   def unique_email(prefix = 'fed')
@@ -181,6 +194,231 @@ RSpec.describe 'EnsureDefaultWorkspace: federated subscription claim gate', type
 
       # Pending record consumed exactly once.
       expect(pending_exists?(email)).to be(false)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # The redeemed verification link claims only for the address it proved
+  # ---------------------------------------------------------------------------
+  # In simple auth mode the v1 and v2 secret reveal logic stamp 'email'
+  # through SetCustomerVerification.record_mailbox_proof, whose #call runs this
+  # claim (#4754 review, round 3). Following the link proves the mailbox it
+  # was sent to. The claim hashes the workspace's billing email (else its
+  # contact email), which the owner sets through PUT /api/organizations/:extid
+  # without proving it, so a workspace pointed at another address must not
+  # collect that address's pending subscription. And a link is tied to the
+  # account, not to an address, so one sent before an operator changed the
+  # address must not collect the new address's either.
+  describe 'the claim run by a redeemed verification link' do
+    let(:auth_infos) { [] }
+    let(:refusal_message) { /claim refused: the workspace bills an address the verification did not prove/ }
+
+    before do
+      allow(Onetime.auth_config).to receive(:mode).and_return('simple')
+      logger = Onetime.get_logger('Auth')
+      allow(logger).to receive(:info).and_wrap_original do |orig, *args|
+        auth_infos << args.first.to_s
+        orig.call(*args)
+      end
+    end
+
+    def deferred_signup_workspace(customer)
+      org = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer, require_verification: true).call[:organization]
+      created_organizations << org
+      org
+    end
+
+    # What UpdateOrganization#process writes for a new billing email.
+    def change_billing_email(org, address)
+      org.billing_email = address
+      org.contact_email = address
+      org.save
+    end
+
+    # A welcome link as send_verification_email mints it: receipt-backed,
+    # kind account_verification, and the digest of the address it is emailed
+    # to. address: nil gives a link minted before the digest was recorded.
+    def welcome_link_for(customer, address: customer.email)
+      receipt, secret        = Onetime::Receipt.spawn_pair(customer.objid, 24 * 24 * 60 * 60, 'fortune')
+      secret.verification    = true
+      secret.kind            = 'account_verification'
+      secret.custid          = customer.custid
+      secret.delivery_digest = Onetime::Secret.delivery_digest_for(address)
+      secret.save
+      created_links << receipt << secret
+      secret
+    end
+
+    # What `bin/ots customers change-email` does without --keep-verified:
+    # the address moves, verification is reset and the default workspace's
+    # contact email follows the new address.
+    def operator_change_email(customer, address)
+      result = Auth::Operations::Customers::ChangeEmail.new(
+        customer: customer, new_email: address, actor: 'cli', dry_run: false,
+        require_verification: true, revoke_sessions: false, notify: false
+      ).call
+      expect(result.status).to eq(:success)
+      Onetime::Customer.load(customer.objid)
+    end
+
+    # What the reveal sites call once the link is mailbox proof.
+    def redeem(customer, link = welcome_link_for(customer))
+      Auth::Operations::SetCustomerVerification.record_mailbox_proof(customer, link)
+    end
+
+    it "applies a pending subscription for the account's own address" do
+      email = unique_email('link-own')
+      create_pending_for(email, planid: 'pro_monthly')
+      customer = create_customer(email: email, verified: false)
+      org = deferred_signup_workspace(customer)
+      expect(pending_exists?(email)).to be(true)
+
+      expect(redeem(customer)).to eq(:success)
+
+      org.refresh!
+      expect(org.subscription_federated?).to be(true)
+      expect(org.planid.to_s).to eq('pro_monthly')
+      expect(pending_exists?(email)).to be(false)
+      expect(auth_infos).not_to include(a_string_matching(refusal_message))
+    end
+
+    it 'applies it when the billing email is the same address in another case' do
+      email = unique_email('link-own-case')
+      create_pending_for(email, planid: 'pro_monthly')
+      customer = create_customer(email: email, verified: false)
+      org = deferred_signup_workspace(customer)
+      change_billing_email(org, email.upcase)
+
+      redeem(customer)
+
+      org.refresh!
+      expect(org.subscription_federated?).to be(true)
+      expect(pending_exists?(email)).to be(false)
+    end
+
+    it 'leaves the pending record of a billing email the link did not prove' do
+      email  = unique_email('link-attacker')
+      victim = unique_email('link-victim')
+      create_pending_for(victim, planid: 'pro_monthly')
+      customer = create_customer(email: email, verified: false)
+      org = deferred_signup_workspace(customer)
+      change_billing_email(org, victim)
+
+      # The stamp is still recorded; only the claim is withheld.
+      expect(redeem(customer)).to eq(:success)
+      expect(Onetime::Customer.load(customer.objid).verified_by).to eq('email')
+
+      org.refresh!
+      expect(org.subscription_federated?).to be(false)
+      expect(org.planid.to_s).not_to eq('pro_monthly')
+      expect(pending_exists?(victim)).to be(true)
+      expect(auth_infos).to include(a_string_matching(refusal_message))
+    end
+
+    # A welcome link still live after the owner gained mailbox proof, revealed
+    # through ShowSecret's anonymous branch, reaches the stamp again, and the
+    # :no_change repeat retries the claim with whatever billing email the
+    # workspace holds by then.
+    it 'leaves it on the repeat an already verified owner can trigger' do
+      email  = unique_email('link-repeat')
+      victim = unique_email('link-repeat-victim')
+      customer = create_customer(email: email, verified: true, verified_by: 'email')
+      org = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call[:organization]
+      created_organizations << org
+      change_billing_email(org, victim)
+      create_pending_for(victim)
+
+      expect(redeem(customer)).to eq(:no_change)
+
+      org.refresh!
+      expect(org.subscription_federated?).to be(false)
+      expect(pending_exists?(victim)).to be(true)
+    end
+
+    # The address is checked once, before the federation lock. A billing
+    # email change that lands after the check is caught under the lock, where
+    # the claim re-reads the workspace and gives up when the hash it would
+    # claim is no longer the one it checked.
+    it 'leaves it when the billing email moves to another address after the check' do
+      email  = unique_email('link-race')
+      victim = unique_email('link-race-victim')
+      create_pending_for(victim)
+      customer = create_customer(email: email, verified: false)
+      org = deferred_signup_workspace(customer)
+      allow(Billing::PendingFederatedSubscription).to receive(:with_federation_lock)
+        .and_wrap_original do |original, *args, **kwargs, &block|
+          change_billing_email(Onetime::Organization.load(org.objid), victim)
+          original.call(*args, **kwargs, &block)
+        end
+
+      redeem(customer)
+
+      expect(Billing::PendingFederatedSubscription).to have_received(:with_federation_lock)
+      org.refresh!
+      expect(org.subscription_federated?).to be(false)
+      expect(pending_exists?(victim)).to be(true)
+    end
+
+    # The operator change rewrites the workspace's contact email, which the
+    # claim hashes, to the new address, and leaves the link sent to the
+    # earlier address live. The link proved the earlier mailbox only: it
+    # stamps as the direct stamp did, and the new address's record stays.
+    it 'leaves the new address record when an operator changed the address after the link was sent' do
+      earlier  = unique_email('link-moved-from')
+      current  = unique_email('link-moved-to')
+      create_pending_for(current, planid: 'pro_monthly')
+      customer = create_customer(email: earlier, verified: false)
+      org      = deferred_signup_workspace(customer)
+      link     = welcome_link_for(customer)
+      moved    = operator_change_email(customer, current)
+      expect(moved.verified?).to be(false)
+
+      expect(redeem(moved, link)).to eq(:success)
+      expect(Onetime::Customer.load(customer.objid).verified_by).to eq('email')
+
+      org.refresh!
+      expect(org.contact_email).to eq(current)
+      expect(org.subscription_federated?).to be(false)
+      expect(org.planid.to_s).not_to eq('pro_monthly')
+      expect(pending_exists?(current)).to be(true)
+      expect(auth_infos).to include(a_string_matching(/not on record as sent to the account's current address/))
+    end
+
+    # The control for the example above: a link sent to the new address
+    # proves it, so the same state applies the record.
+    it 'applies the new address record for a link sent to the new address' do
+      earlier  = unique_email('link-resent-from')
+      current  = unique_email('link-resent-to')
+      create_pending_for(current, planid: 'pro_monthly')
+      customer = create_customer(email: earlier, verified: false)
+      org      = deferred_signup_workspace(customer)
+      moved    = operator_change_email(customer, current)
+
+      expect(redeem(moved)).to eq(:success)
+
+      org.refresh!
+      expect(org.subscription_federated?).to be(true)
+      expect(org.planid.to_s).to eq('pro_monthly')
+      expect(pending_exists?(current)).to be(false)
+    end
+
+    # Minted before the delivery address was recorded: nothing says which
+    # mailbox it proves, so it stamps and claims nothing, even for the
+    # account's own address. The old direct stamp never claimed either.
+    it 'leaves the record for a link that recorded no delivery address' do
+      email = unique_email('link-unrecorded')
+      create_pending_for(email, planid: 'pro_monthly')
+      customer = create_customer(email: email, verified: false)
+      org = deferred_signup_workspace(customer)
+      link = welcome_link_for(customer, address: nil)
+      expect(link.delivery_digest).to be_nil
+
+      expect(redeem(customer, link)).to eq(:success)
+      expect(Onetime::Customer.load(customer.objid).verified_by).to eq('email')
+
+      org.refresh!
+      expect(org.subscription_federated?).to be(false)
+      expect(pending_exists?(email)).to be(true)
     end
   end
 

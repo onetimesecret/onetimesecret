@@ -91,6 +91,15 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
     secret.save_fields(:verification)
   end
 
+  # Record the address the link was emailed to, as send_verification_email
+  # does (Secret#delivered_to?). Without it the secret is a link minted before
+  # the digest was written. Same partial-write convention and ordering as
+  # flag_as_verification!.
+  def record_delivery!(secret, address)
+    secret.delivery_digest = Onetime::Secret.delivery_digest_for(address)
+    secret.save_fields(:delivery_digest)
+  end
+
   let!(:pair)   { Onetime::Receipt.spawn_pair(nil, 3600, 'a secret value') }
   let(:receipt) { pair.first }
   let(:secret)  { pair.last }
@@ -245,7 +254,14 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
     end
     let!(:pair) { Onetime::Receipt.spawn_pair(owner.objid, 3600, 'a secret value') }
 
-    before { flag_as_verification!(secret) }
+    before do
+      flag_as_verification!(secret)
+      # The stamp runs through SetCustomerVerification, whose #call ends in
+      # the deferred federation claim (#4754 review, round 3). Observed as a
+      # seam, like webauthn_verify_account_hook_spec.rb does: the real claim
+      # finds no owned workspace for a bare test customer and returns false.
+      allow(Auth::Operations::EnsureDefaultWorkspace).to receive(:claim_pending_federation_for).and_call_original
+    end
 
     # The emailed link is opened on an auth=noauth route, so the caller has no
     # customer at all (build_logic's default). #4831 was this case.
@@ -267,6 +283,61 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
         # after delete! on familia 2.10.1 (Integer 0 from EXISTS is truthy).
         expect(reloaded.reset_secret.value).to be_nil
         expect(Onetime::Secret.load(secret.identifier)).to be_nil # consumed
+      end
+
+      # In a simple-mode install run without AUTHENTICATION_MODE a standard
+      # signup defers the federated subscription claim, and following this link
+      # is the only self-service mailbox proof, so it must be the re-claim
+      # trigger (#4754 review, round 3). The link proves the mailbox it was
+      # sent to and no other, so the claim runs for a link sent to the owner's
+      # current address and is held to that address.
+      it "runs the deferred federation claim for the owner's own address" do
+        record_delivery!(secret, owner.email)
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.secret_value).to eq('a secret value')
+        expect(Auth::Operations::EnsureDefaultWorkspace).to have_received(:claim_pending_federation_for)
+          .with(an_object_having_attributes(extid: owner.extid), own_address_only: true)
+      end
+
+      # A link sent to another address proves that mailbox, not the owner's
+      # current one, and a link minted before the delivery address was
+      # recorded proves nothing about which. Both still verify the owner, as
+      # the direct stamp did; neither runs the claim.
+      it 'verifies the owner without the claim for a link sent to another address' do
+        record_delivery!(secret, "reveal-elsewhere-#{SecureRandom.hex(6)}@example.com")
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.secret_value).to eq('a secret value')
+        expect(Onetime::Customer.load(owner.objid).verified_by).to eq('email')
+        expect(Auth::Operations::EnsureDefaultWorkspace).not_to have_received(:claim_pending_federation_for)
+      end
+
+      it 'verifies the owner without the claim for a link that recorded no delivery address' do
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.secret_value).to eq('a secret value')
+        expect(Onetime::Customer.load(owner.objid).verified_by).to eq('email')
+        expect(Auth::Operations::EnsureDefaultWorkspace).not_to have_received(:claim_pending_federation_for)
+      end
+
+      # The success line is written after the stamp, from its outcome, so it
+      # is never logged for a reveal that recorded nothing (the full-mode
+      # context below).
+      it 'logs the success line once the stamp is recorded' do
+        logic    = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        captured = capture_secret_logs(logic)
+        logic.process_params
+        logic.process
+
+        expect(payload_for(captured, 'Owner verification successful')[:result]).to eq(:verified)
+        expect(Onetime::Customer.load(owner.objid).verified_by).to eq('email')
       end
 
       # The browser that opens the link has a guest session (its CSRF token at
@@ -378,6 +449,19 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
         expect(reloaded.mailbox_verified?).to be false
       end
 
+      # No stamp, no claim: the confirmation link proves nothing about the
+      # current address, so it must not deliver the benefit deferred on it.
+      it 'does not run the federation claim' do
+        owner.pending_email_change = secret.identifier
+
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        expect(Auth::Operations::EnsureDefaultWorkspace).not_to have_received(:claim_pending_federation_for)
+      end
+
       it 'is recognised by the secret kind alone, without the pending pointer' do
         owner.verified    = true
         owner.verified_by = 'autoverify'
@@ -485,6 +569,175 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
 
         expect(logic.show_secret).to be true
         expect(Onetime::Customer.load(owner.objid).reset_secret.value).to eq('a-newer-recovery-token')
+      end
+    end
+
+    # An operator email change (`bin/ots customers change-email` or the
+    # colonel endpoint, without --keep-verified) resets verification and
+    # rewrites the default workspace's contact email, which the claim hashes,
+    # to the new address, but leaves the links already sent to the earlier
+    # address live. Following one still verifies the owner, as the direct
+    # stamp did, but it proved the earlier mailbox only, so it must not apply
+    # the new address's pending federated subscription (#4754 review, round
+    # 3). Real records end to end: the workspace, the pending record, the
+    # change and the claim.
+    context 'when an operator changed the address after the link was sent' do
+      let(:new_address) { "reveal-moved-#{SecureRandom.hex(6)}@example.com" }
+      let(:cleanup) { [] }
+
+      around do |example|
+        original_secret          = ENV['FEDERATION_SECRET']
+        ENV['FEDERATION_SECRET'] = 'test_federation_secret_32chars!'
+        example.run
+      ensure
+        ENV['FEDERATION_SECRET'] = original_secret
+      end
+
+      before do
+        require 'auth/operations/customers/change_email'
+        require 'billing/models/pending_federated_subscription'
+      end
+
+      after do
+        cleanup.each do |obj|
+          obj.is_a?(Onetime::Organization) ? obj.delete! : obj.destroy!
+        rescue StandardError
+          nil
+        end
+      end
+
+      def store_pending_for(address)
+        hash    = Onetime::Utils::EmailHash.compute(address)
+        pending = Billing::PendingFederatedSubscription.new(hash)
+        pending.subscription_status     = 'active'
+        pending.planid                  = 'pro_monthly'
+        pending.subscription_period_end = (Time.now.to_i + (30 * 24 * 3600)).to_s
+        pending.region                  = 'US'
+        pending.received_at             = Time.now.to_i.to_s
+        pending.save
+        cleanup << pending
+        hash
+      end
+
+      # The workspace with the claim deferred, as lazy creation leaves it in a
+      # process without AUTHENTICATION_MODE (the record rule,
+      # Customer#federation_claim_deferred?). The lane exports the variable,
+      # so the caller flag stands in for that rule. Then the operator change.
+      def move_owner_to(address)
+        org = Auth::Operations::EnsureDefaultWorkspace.new(customer: owner, require_verification: true).call[:organization]
+        cleanup << org
+        result = Auth::Operations::Customers::ChangeEmail.new(
+          customer: owner, new_email: address, actor: 'cli', dry_run: false,
+          require_verification: true, revoke_sessions: false, notify: false
+        ).call
+        expect(result.status).to eq(:success)
+        org
+      end
+
+      it 'verifies the owner but leaves the pending subscription of the new address' do
+        record_delivery!(secret, owner.email) # sent before the change
+        hash = store_pending_for(new_address)
+        org  = move_owner_to(new_address)
+
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.secret_value).to eq('a secret value')
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.email).to eq(new_address)
+        expect(reloaded.verified_by).to eq('email')
+        org.refresh!
+        expect(org.contact_email).to eq(new_address)
+        expect(org.subscription_federated?).to be(false)
+        expect(Billing::PendingFederatedSubscription.find_by_email_hash(hash)).not_to be_nil
+      end
+
+      # The control: a link sent to the new address after the change proves
+      # it, so the same state applies the record.
+      it 'applies it for a link sent to the new address' do
+        hash = store_pending_for(new_address)
+        org  = move_owner_to(new_address)
+        _receipt, resent = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'a secret value')
+        flag_as_verification!(resent)
+        record_delivery!(resent, new_address)
+
+        logic = build_logic({ 'identifier' => resent.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.secret_value).to eq('a secret value')
+        org.refresh!
+        expect(org.subscription_federated?).to be(true)
+        expect(org.planid.to_s).to eq('pro_monthly')
+        expect(Billing::PendingFederatedSubscription.find_by_email_hash(hash)).to be_nil
+      end
+    end
+
+    # The verification secret is minted only by simple-mode flows (Core's
+    # /auth/* routes, which the Auth app shadows in full auth mode), but the
+    # reveal routes serve every mode, so a link minted before a switch to full
+    # auth mode can still be followed. Rodauth owns verification there, so the
+    # shared stamp (SetCustomerVerification.record_mailbox_proof) records
+    # nothing: it builds no operation, so no SQL is reached, and the reveal
+    # proceeds. Reconciling the accounts row from here would let an account
+    # Rodauth blocks sign in; the old direct stamp wrote Redis alone and left
+    # the row Unverified (#4754 review, round 3).
+    context 'when the link is followed after a switch to full auth mode' do
+      let(:auth_logger) { double('AuthLogger', info: nil) }
+
+      before do
+        allow(Onetime.auth_config).to receive(:mode).and_return('full')
+        allow(Auth::Operations::SetCustomerVerification).to receive(:new).and_call_original
+        allow(Auth::Operations::SetCustomerVerification).to receive(:auth_logger).and_return(auth_logger)
+      end
+
+      it 'reveals the plaintext and leaves the owner unverified' do
+        owner.reset_secret = secret.identifier
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        expect(logic.secret_value).to eq('a secret value')
+        expect(Onetime::Secret.load(secret.identifier)).to be_nil
+
+        expect(Auth::Operations::SetCustomerVerification).not_to have_received(:new)
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified?).to be false
+        expect(reloaded.verified_by.to_s).to eq('')
+        # The order is unchanged: the pointer release follows the (skipped) stamp.
+        expect(reloaded.reset_secret.value).to be_nil
+        expect(Auth::Operations::EnsureDefaultWorkspace).not_to have_received(:claim_pending_federation_for)
+      end
+
+      it 'leaves a stamp without mailbox proof as it was' do
+        owner.verified    = true
+        owner.verified_by = 'stripe_payment'
+        owner.save
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.secret_value).to eq('a secret value')
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified_by).to eq('stripe_payment')
+        expect(reloaded.mailbox_verified?).to be false
+      end
+
+      it 'logs the skip at info, and no success line' do
+        logic    = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        captured = capture_secret_logs(logic)
+        logic.process_params
+        logic.process
+
+        expect(auth_logger).to have_received(:info).with(
+          /redeemed in full auth mode; Rodauth owns account verification there/,
+          { customer: owner.extid },
+        )
+        payload = payload_for(captured, 'Verification link redeemed in full auth mode; revealing without stamping')
+        expect(payload[:result]).to eq(:not_stamped_full_auth_mode)
+        expect(captured.map(&:first)).not_to include('Owner verification successful')
       end
     end
 
