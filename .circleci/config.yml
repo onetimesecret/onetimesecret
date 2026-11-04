@@ -1,0 +1,26 @@
+version: 2.1
+
+jobs:
+  typescript-pilot:
+    docker:
+      - image: python:3.14.7-bookworm@sha256:bfb689a7986adc6d5f16722e06c78e755efe4062e56276715fef450cbad09436
+    resource_class: medium
+    environment:
+      PILOT_RESOURCE_CLASS: medium
+    steps:
+      - checkout
+      - run:
+          name: TypeScript pilot (shared runner, 15 minute deadline)
+          command: python3 ci/typescript-pilot/run.py
+          no_output_timeout: 20m
+      - store_test_results:
+          path: tmp/typescript-pilot/results
+      - store_artifacts:
+          path: tmp/typescript-pilot/results
+          destination: typescript-pilot
+
+workflows:
+  typescript-pilot:
+    when: pipeline.git.branch starts-with "ci-pilot/"
+    jobs:
+      - typescript-pilot

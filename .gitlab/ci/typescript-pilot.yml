@@ -1,0 +1,24 @@
+# Pilot lane only; merge this include into the full GitLab migration config.
+typescript-pilot:
+  stage: test
+  image: python:3.14.7-bookworm@sha256:bfb689a7986adc6d5f16722e06c78e755efe4062e56276715fef450cbad09436
+  tags: [saas-linux-small-amd64]
+  timeout: 20m
+  retry: 0
+  variables:
+    PILOT_RESOURCE_CLASS: saas-linux-small-amd64
+    GIT_STRATEGY: clone
+    GIT_DEPTH: '1'
+  rules:
+    # Source branch pushes only: exclude MR merge commits, schedules and tags.
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^ci-pilot\//'
+    - when: never
+  script:
+    - python3 ci/typescript-pilot/run.py
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - tmp/typescript-pilot/results/
+    reports:
+      junit: tmp/typescript-pilot/results/unit.xml
