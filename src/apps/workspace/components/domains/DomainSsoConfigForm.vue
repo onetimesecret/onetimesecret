@@ -46,6 +46,7 @@ import type {
 } from '@/services/sso.service';
 import {
   allowlistEntryState,
+  hasProofVerdict,
   type AllowlistEntryState,
 } from '@/apps/workspace/components/domains/allowlistVerification';
 
@@ -500,6 +501,15 @@ const allowlistContext = computed(() => ({
   unverifiedAllowedDomains: props.ssoConfig?.unverified_allowed_domains ?? [],
   verifiedEmailDomains: verifiedEmailDomains.value,
 }));
+
+/**
+ * Whether the API gave a verdict on domain ownership for the saved record
+ * (#4734). verified_email_domains is also empty when the serializer's rescue
+ * path, or an API that predates the fields, answered the GET; the saved chips
+ * then show "Checked on save", and the headline above them must agree instead
+ * of claiming nothing is proven. Judged from the same context as the chips.
+ */
+const emailDomainProofKnown = computed(() => hasProofVerdict(allowlistContext.value));
 
 const entryState = (domain: string): AllowlistEntryState =>
   allowlistEntryState(domain, allowlistContext.value);
@@ -1726,10 +1736,17 @@ aria-hidden="true">*</span>
           {{ t('web.organizations.sso.verified_email_domains', { domains: verifiedEmailDomainsText }) }}
         </p>
         <p
-          v-else-if="ssoConfig"
+          v-else-if="ssoConfig && emailDomainProofKnown"
           data-testid="sso-verified-email-domains-none"
           class="mt-1 text-sm text-amber-700 dark:text-amber-300">
           {{ t(verifiedEmailDomainsNoneKey) }}
+        </p>
+        <!-- #4734: no verdict (the API could not derive the proof); with an empty saved allowlist this is not separable from "nothing proven", so the amber notice stays then. -->
+        <p
+          v-else-if="ssoConfig"
+          data-testid="sso-verified-email-domains-unknown"
+          class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.organizations.sso.verified_email_domains_unknown') }}
         </p>
 
         <!-- Domain chips -->

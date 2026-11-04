@@ -1255,6 +1255,10 @@
     "text": "No domain ownership is proven yet, so signing in through this connection creates no accounts. This install does not check domain ownership itself. Ask your administrator to confirm ownership of the domain, or contact support.",
     "content_hash": "0720f102"
   },
+  "web.organizations.sso.verified_email_domains_unknown": {
+    "text": "Domain ownership could not be checked for this record. Reload the page to try again, or contact support if this keeps happening.",
+    "content_hash": "48b30094"
+  },
   "web.organizations.sso.manual_checks_title": {
     "text": "Confirm in the Entra app registration (this test cannot read these settings):",
     "content_hash": "df0619c9"

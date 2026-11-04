@@ -59,6 +59,24 @@ export function withinVerifiedDomains(
 }
 
 /**
+ * Whether the API gave a verdict on domain ownership for the saved record.
+ * A proven org always serves its proven set, and an unproven org lists every
+ * saved entry as unverified; so saved entries with both arrays empty mean the
+ * API could not derive the proof (the serializer's rescue path, or a GET
+ * answered by an API that predates the fields during a rolling deploy) and no
+ * verdict exists. With no saved entry the two states are not separable, and
+ * the record counts as judged. The headline above the chips and the chips
+ * themselves share this one definition.
+ */
+export function hasProofVerdict(context: AllowlistVerificationContext): boolean {
+  return !(
+    context.savedAllowedDomains.length > 0 &&
+    context.verifiedEmailDomains.length === 0 &&
+    context.unverifiedAllowedDomains.length === 0
+  );
+}
+
+/**
  * Verified state of one allowlist entry. A saved entry takes the API's
  * verdict; an unsaved one is judged client-side against the proven set.
  */
@@ -68,9 +86,9 @@ export function allowlistEntryState(
 ): AllowlistEntryState {
   if (context.savedAllowedDomains.includes(entry)) {
     if (context.unverifiedAllowedDomains.includes(entry)) return 'unverified';
-    // A proven org always serves its proven set, and an unproven org lists
-    // every saved entry as unverified; both arrays empty means the API could
-    // not derive the proof (its rescue path), so no verdict exists.
+    if (!hasProofVerdict(context)) return 'unknown';
+    // Listed in neither array while a proven set is served: inside it. With
+    // no proven set either the record is inconsistent and no verdict exists.
     return context.verifiedEmailDomains.length > 0 ? 'verified' : 'unknown';
   }
 

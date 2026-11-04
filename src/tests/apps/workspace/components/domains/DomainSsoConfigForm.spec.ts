@@ -990,6 +990,58 @@ describe('DomainSsoConfigForm', () => {
       expect(wrapper.find('[data-testid="sso-verified-email-domains"]').exists()).toBe(false);
     });
 
+    // verified_email_domains is empty in three states: the organization has
+    // no proven domain; the serializer's rescue path served both arrays
+    // empty; or an API that predates the fields answered the GET and the
+    // shape filled them in as []. Only the first is a verdict. The saved
+    // chips already say "Checked on save" for the other two (a saved entry
+    // listed as neither proven nor unverified), and the headline agrees with
+    // them instead of claiming nothing is proven.
+    it('says the proof could not be checked when the API gave no verdict on saved entries', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: {
+          ...mockExistingConfig,
+          allowed_domains: ['example.com'],
+          verified_email_domains: [],
+          unverified_allowed_domains: [],
+        },
+        isConfigured: true,
+      });
+
+      const line = wrapper.get('[data-testid="sso-verified-email-domains-unknown"]');
+      expect(line.text()).toBe('web.organizations.sso.verified_email_domains_unknown');
+      expect(wrapper.find('[data-testid="sso-verified-email-domains-none"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-verified-email-domains"]').exists()).toBe(false);
+
+      const unknownChips = wrapper.findAll('[data-testid="sso-allowed-domain-unknown"]');
+      expect(unknownChips.map((c) => c.attributes('data-domain'))).toEqual(['example.com']);
+      expect(wrapper.find('[data-testid="sso-allowed-domain-verified"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-allowed-domain-unverified"]').exists()).toBe(false);
+    });
+
+    // Documented limitation: with no saved entry the API lists nothing as
+    // unverified whether or not it derived the proof, so "nothing proven" and
+    // "no verdict" cannot be told apart and the amber notice stays.
+    it('still says nothing is proven when the saved allowlist is empty as well', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, allowed_domains: [] },
+        ssoConfig: {
+          ...mockExistingConfig,
+          allowed_domains: [],
+          verified_email_domains: [],
+          unverified_allowed_domains: [],
+        },
+        isConfigured: true,
+      });
+
+      expect(wrapper.find('[data-testid="sso-verified-email-domains-none"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="sso-verified-email-domains-unknown"]').exists()).toBe(
+        false
+      );
+      expect(wrapper.find('[data-testid="sso-verified-email-domains"]').exists()).toBe(false);
+    });
+
     // The empty state is worded per validation strategy. Where the install
     // checks the TXT record the admin can complete that check; under
     // passthrough there is none, and only a Colonel override proves
@@ -1031,12 +1083,19 @@ describe('DomainSsoConfigForm', () => {
         const unchecked = realI18n.global.t(
           'web.organizations.sso.verified_email_domains_none_unchecked'
         );
+        const unknown = realI18n.global.t('web.organizations.sso.verified_email_domains_unknown');
 
         expect(checked).toContain('TXT');
         expect(unchecked).not.toContain('TXT');
         expect(unchecked).toContain('administrator');
         // Both open with the same sentence: the consequence comes first.
         expect(unchecked.split('. ')[0]).toBe(checked.split('. ')[0]);
+        // The no-verdict line names no check to complete and makes no claim
+        // about accounts, since the API did not say whether any is proven.
+        expect(unknown).not.toContain('TXT');
+        expect(unknown).not.toContain('creates no accounts');
+        expect(unknown).toContain('could not be checked');
+        expect(unknown).toContain('Reload');
       });
     });
 
@@ -1045,6 +1104,9 @@ describe('DomainSsoConfigForm', () => {
 
       expect(wrapper.find('[data-testid="sso-verified-email-domains"]').exists()).toBe(false);
       expect(wrapper.find('[data-testid="sso-verified-email-domains-none"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-verified-email-domains-unknown"]').exists()).toBe(
+        false
+      );
     });
   });
 

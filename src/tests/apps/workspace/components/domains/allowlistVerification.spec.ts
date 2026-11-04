@@ -7,6 +7,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   allowlistEntryState,
+  hasProofVerdict,
   toALabel,
   withinVerifiedDomains,
 } from '../../../../../apps/workspace/components/domains/allowlistVerification';
@@ -50,6 +51,47 @@ describe('withinVerifiedDomains', () => {
   it('returns null for a name it cannot convert, false against an empty set', () => {
     expect(withinVerifiedDomains('a b.example', proven)).toBeNull();
     expect(withinVerifiedDomains('secrets.acme.example', [])).toBe(false);
+  });
+});
+
+describe('hasProofVerdict', () => {
+  it('is false when saved entries exist but the API listed none as proven or unverified', () => {
+    // The serializer's rescue path, or an API that predates the fields,
+    // serves both arrays empty; the saved entries then have no verdict.
+    expect(
+      hasProofVerdict({
+        savedAllowedDomains: ['saved.example'],
+        unverifiedAllowedDomains: [],
+        verifiedEmailDomains: [],
+      })
+    ).toBe(false);
+  });
+
+  it('is true when the API served a proven set or named an unverified entry', () => {
+    expect(
+      hasProofVerdict({
+        savedAllowedDomains: ['saved.example'],
+        unverifiedAllowedDomains: [],
+        verifiedEmailDomains: ['saved.example'],
+      })
+    ).toBe(true);
+    expect(
+      hasProofVerdict({
+        savedAllowedDomains: ['saved.example'],
+        unverifiedAllowedDomains: ['saved.example'],
+        verifiedEmailDomains: [],
+      })
+    ).toBe(true);
+  });
+
+  it('is true with no saved entry, where nothing proven and no verdict look alike', () => {
+    expect(
+      hasProofVerdict({
+        savedAllowedDomains: [],
+        unverifiedAllowedDomains: [],
+        verifiedEmailDomains: [],
+      })
+    ).toBe(true);
   });
 });
 
