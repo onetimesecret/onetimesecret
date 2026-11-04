@@ -392,6 +392,7 @@ GEM
       io-console (~> 0.5)
     rerun (0.14.0)
       listen (~> 3.0)
+    resolv (0.7.2)
     reverse_markdown (3.0.2)
       nokogiri
     rexml (3.4.4)
@@ -683,6 +684,7 @@ DEPENDENCIES
   redis (~> 5.4.0)
   reline
   rerun (~> 0.14)
+  resolv (~> 0.7.2)
   rhales (~> 0.7.1)
   roda (~> 3.0)
   rodauth!
