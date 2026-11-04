@@ -132,18 +132,21 @@ module AccountAPI::Logic
         secret.ciphertext         = @new_email
         secret.save
 
-        # Count the request only once durable state (the pending-change secret)
-        # exists. Failed validations never reach this method, and a Redis write
-        # error during secret creation/save raises above — so flaky saves can't
-        # burn the MAX_REQUESTS quota with no pending change ever created
-        # (PR #3915 review). Increment BEFORE the email enqueues below: those
-        # are best-effort (each is rescued), and a failure after the secret is
-        # saved must not skip the count.
-        increment_request_count
-
-        # Track the pending change on the customer (standalone dbkey, writes immediately)
+        # Track the pending change on the customer (standalone dbkey, writes immediately).
+        # Kept next to secret.save: the superseded secret is already destroyed
+        # above, so nothing may fail between the save and this pointer write
+        # without leaving the customer with no usable pending change.
         cust.pending_email_change          = secret.identifier
         cust.pending_email_delivery_status = 'queued'
+
+        # Count the request only once durable state exists: the pending-change
+        # secret and its pointer on the customer. Failed validations never reach
+        # this method, and a Redis write error during secret creation/save
+        # raises above — so flaky saves can't burn the MAX_REQUESTS quota with
+        # no pending change ever created (PR #3915 review). Increment BEFORE the
+        # email enqueues below: those are best-effort (each is rescued), and a
+        # failure after the pending change is recorded must not skip the count.
+        increment_request_count
 
         OT.info "[request-email-change] Email change requested cid/#{cust.objid} new_email/#{OT::Utils.obscure_email(@new_email)}"
 
