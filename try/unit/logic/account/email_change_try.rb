@@ -247,6 +247,18 @@ result = obj.process
 @cust.pending_email_delivery_status.to_s
 #=> 'queued'
 
+## A second request destroys the superseded confirmation secret (#4735)
+first_identifier = @cust.pending_email_change.value.to_s
+params = { 'password' => @password, 'new_email' => generate_unique_test_email('emailchange-again') }
+obj = AccountAPI::Logic::Account::RequestEmailChange.new @strategy_result, params
+obj.raise_concerns
+obj.process
+second_identifier = @cust.pending_email_change.value.to_s
+stale = Onetime::Secret.find_by_identifier(first_identifier)
+[first_identifier.empty?, second_identifier == first_identifier, stale.nil? || !stale.exists?,
+ Onetime::Secret.find_by_identifier(second_identifier)&.exists?]
+#=> [false, false, true, true]
+
 ## success_data returns the expected shape
 params = { 'password' => @password, 'new_email' => generate_unique_test_email('emailchange-shape') }
 obj = AccountAPI::Logic::Account::RequestEmailChange.new @strategy_result, params

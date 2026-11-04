@@ -351,7 +351,9 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
           token_endpoint_auth_methods_supported: %w[client_secret_post private_key_jwt client_secret_basic],
           token_endpoint_auth_method_supported: nil,
         )
-        expect(result[:details]).not_to have_key(:note)
+        # No token endpoint auth method note: the only note on an Entra
+        # success is the one naming the manual checks (#4734 R2).
+        expect(result[:details][:note]).to eq(described_class::ENTRA_MANUAL_CHECKS[:note])
       end
     end
   end
@@ -581,6 +583,44 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
       expect(result[:details][:issuer]).to eq('https://login.microsoftonline.com/x/v2.0')
       expect(Net::HTTP).to have_received(:new).with('login.microsoftonline.com', 443, nil)
       expect(http_instance).to have_received(:ipaddr=).with('203.0.113.20')
+    end
+
+    # #4734 R2: the two app registration settings that keep an unverified
+    # address out of the email claim are not in the discovery document and
+    # the test holds no Graph permission to read them, so a success names
+    # them for the operator rather than claiming to have checked them.
+    it 'names the app registration settings the operator must confirm by hand' do
+      stub_issuer_resolution(['203.0.113.20'])
+      body = {
+        issuer: 'https://login.microsoftonline.com/x/v2.0',
+        authorization_endpoint: 'https://login.microsoftonline.com/x/authorize',
+        token_endpoint: 'https://login.microsoftonline.com/x/token',
+        jwks_uri: 'https://login.microsoftonline.com/x/jwks',
+      }.to_json
+      respond_with(success_response(body))
+
+      result = logic.send(:test_entra_id_connection)
+
+      expect(result[:details][:manual_checks]).to eq(%w[remove_unverified_email_claim xms_edov_optional_claim])
+      expect(result[:details][:note]).to include('discovery document only')
+    end
+  end
+
+  describe 'manual checks on a generic OIDC success' do
+    it 'are not reported: the settings are Entra app registration properties' do
+      stub_issuer_resolution(['203.0.113.10'])
+      body = {
+        issuer: issuer,
+        authorization_endpoint: "#{issuer}/authorize",
+        token_endpoint: "#{issuer}/token",
+        jwks_uri: "#{issuer}/jwks",
+      }.to_json
+      respond_with(success_response(body))
+
+      result = logic.send(:test_oidc_connection)
+
+      expect(result[:success]).to be true
+      expect(result[:details]).not_to have_key(:manual_checks)
     end
   end
 

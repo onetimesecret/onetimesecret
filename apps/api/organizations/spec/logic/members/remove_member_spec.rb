@@ -16,7 +16,8 @@ RSpec.describe OrganizationAPI::Logic::Members::RemoveMember do
       extid: 'ext-cust-owner',
       email: 'owner@example.com',
       anonymous?: false,
-      'role?': false,
+      role: 'customer',
+      mailbox_verified?: true,
     )
   end
 
@@ -82,5 +83,82 @@ RSpec.describe OrganizationAPI::Logic::Members::RemoveMember do
     expect(OT).to have_received(:info).with(a_string_including('default_org_cleanup=failed'))
     expect(OT).to have_received(:lw).with(a_string_including('target=ext-cust-target', 'org=ext-org-123'))
     expect(data).to eq(deleted: true, member_extid: 'ext-cust-target')
+  end
+
+  # The colonel override goes through has_system_role?, which requires
+  # mailbox proof (#4735). A colonel-role account stamped only by an IdP
+  # ('sso') gets no override and is treated like any other caller.
+  describe 'colonel override' do
+    let(:mailbox_verified) { true }
+
+    let(:owner) do
+      instance_double(
+        Onetime::Customer,
+        objid: 'cust-colonel-789',
+        extid: 'ext-cust-colonel',
+        email: 'colonel@example.com',
+        anonymous?: false,
+        role: 'colonel',
+        mailbox_verified?: mailbox_verified,
+      )
+    end
+
+    let(:target_membership) do
+      instance_double(
+        Onetime::OrganizationMembership,
+        owner?: false,
+        role: 'member',
+        destroy_with_index_cleanup!: true,
+        default_org_cleanup: :cleared,
+      )
+    end
+
+    context 'with mailbox proof' do
+      it 'needs no membership in the organization' do
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer).and_return(nil)
+
+        expect(logic.send(:load_actor_membership, organization)).to be_nil
+        expect(OT).to have_received(:info).with(a_string_including('action=colonel_membership_bypass'))
+      end
+
+      it 'may remove a member without an organization role' do
+        expect { logic.send(:validate_removal!) }.not_to raise_error
+      end
+
+      it 'records colonel_override=true in the audit line' do
+        logic.process
+
+        expect(OT).to have_received(:info).with(a_string_including('action=member_removed', 'colonel_override=true'))
+      end
+    end
+
+    context "without mailbox proof (verified_by: 'sso')" do
+      let(:mailbox_verified) { false }
+
+      it 'must be a member of the organization' do
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer).and_return(nil)
+
+        expect { logic.send(:load_actor_membership, organization) }.to raise_error(OT::FormError) { |ex|
+          expect(ex.error_key).to eq('api.organizations.members.errors.must_be_member')
+        }
+        expect(OT).not_to have_received(:info).with(a_string_including('colonel_membership_bypass'))
+      end
+
+      it 'is limited to what its organization role allows' do
+        logic.instance_variable_set(
+          :@actor_membership, instance_double(Onetime::OrganizationMembership, role: 'member')
+        )
+
+        expect { logic.send(:validate_removal!) }.to raise_error(OT::FormError) { |ex|
+          expect(ex.error_key).to eq('api.organizations.members.errors.no_permission_to_remove')
+        }
+      end
+
+      it 'records colonel_override=false in the audit line' do
+        logic.process
+
+        expect(OT).to have_received(:info).with(a_string_including('action=member_removed', 'colonel_override=false'))
+      end
+    end
   end
 end

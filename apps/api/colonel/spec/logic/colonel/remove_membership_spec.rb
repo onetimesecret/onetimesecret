@@ -20,6 +20,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::RemoveMembership do
       extid: 'ur_colonel',
       role: 'colonel',
       verified?: true,
+      mailbox_verified?: true,
       anonymous?: false,
     )
   end

@@ -22,7 +22,7 @@ Colonel is a privileged role and is granted **only** from the command line, on
 the host. The console never grants roles to itself — there is no "make me an
 admin" button, by design, so a compromised session cannot escalate.
 
-Promote an existing, **verified** account:
+Promote an existing account with **mailbox proof** (see the notes below):
 
 ```bash
 bin/ots customers role promote user@example.com
@@ -39,9 +39,16 @@ bin/ots customers role list --role admin                       # list a specific
 
 Notes:
 
-- The account must **exist** and be **verified** first — a system role requires
-  `cust.verified?`. Create/verify the account through normal sign-up before
-  promoting.
+- The account must **exist** and have **mailbox proof** — a system role requires
+  `cust.mailbox_verified?` (`has_system_role?`, #4735). Mailbox proof means the
+  account is verified and its `verified_by` is one of `email`, `invite_token`,
+  `cli_provision` or `colonel_admin` (`Onetime::Customer::MAILBOX_VERIFIED_BY`).
+  A verified account stamped `sso`, `autoverify`, `stripe_payment`, `legacy`,
+  or with no provenance, does **not** qualify: the promotion succeeds, but every
+  colonel action is refused. Confirm the address with its owner, then run
+  `bin/ots customers verify user@example.com` (rewrites the provenance to
+  `cli_provision`) or verify it from the colonel admin. `bin/ots customers
+  doctor` reports such an account as `system_role_without_mailbox_proof`.
 - The mutation runs through the shared `Auth::Operations::Customers::SetRole`
   operation (the same implementation the admin API uses), so it records an
   `ColonelAuditEvent` (actor / verb / target / result) just like a UI action.
@@ -56,7 +63,7 @@ The console refuses four things outright, with a 422 naming the remediation:
 |---|---|
 | Demoting **your own** colonel account | Nobody else could undo it from the console. |
 | Demoting the **last remaining** colonel | The install would have no administrator. |
-| **Unverifying** your own account | A system role requires `cust.verified?`, so unverifying is a demotion by another name. |
+| **Unverifying** your own account | A system role requires mailbox proof (`cust.mailbox_verified?`), so unverifying is a demotion by another name. |
 | Unverifying the **last remaining** colonel | Same, applied to the whole install. |
 
 The last two matter more than they look: unverifying used to be an un-gated

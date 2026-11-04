@@ -966,7 +966,9 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
 
     let(:e2e_run_id) { "join-e2e-#{SecureRandom.hex(4)}" }
     let(:e2e_domain_host) { "secrets-#{e2e_run_id}.tenant.example.com" }
-    let(:e2e_user_email) { "new-user-#{e2e_run_id}@tenant.example.com" }
+    # At the tenant's own verified domain: tenant SSO creates accounts only
+    # for addresses inside one (#4734).
+    let(:e2e_user_email) { "new-user-#{e2e_run_id}@#{e2e_domain_host}" }
 
     before do
       @e2e_fixtures = setup_oauth_test_domain(e2e_domain_host)

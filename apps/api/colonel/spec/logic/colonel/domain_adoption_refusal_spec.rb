@@ -19,7 +19,7 @@ RSpec.shared_examples 'a colonel adapter that answers a bare Onetime::Problem wi
   let(:colonel) do
     instance_double(Onetime::Customer,
       objid: 'cust_colonel', extid: 'ur_colonel', role: 'colonel',
-      verified?: true, anonymous?: false)
+      verified?: true, mailbox_verified?: true, anonymous?: false)
   end
   let(:strategy_result) do
     double('StrategyResult', session: {}, user: colonel, auth_method: 'sessionauth', metadata: {})
