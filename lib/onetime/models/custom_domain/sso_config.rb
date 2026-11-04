@@ -86,6 +86,13 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   #   which users can access the app. When false, anyone with valid IdP
   #   credentials could potentially authenticate.
   #
+  # Neither flag says anything about the domain of the asserted `email`
+  # claim. On every provider type, tenant SSO creates an account only for
+  # an address inside a custom domain the organization has proven, by TXT
+  # check or Colonel override (Organization#owns_email_domain?,
+  # CustomDomain#ownership_proven?, #4734); the allowlist selects among
+  # those domains and an empty list admits all of them.
+  #
   PROVIDER_METADATA = {
     'oidc' => {
       requires_domain_filter: true,
@@ -95,7 +102,7 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
     'entra_id' => {
       requires_domain_filter: false,
       idp_controls_access: true,
-      description: 'Microsoft Entra ID - access controlled via Azure app assignment',
+      description: 'Microsoft Entra ID - app assignment controls who may sign in; accounts are created only for addresses in domains your organization has proven',
     },
     # Treated like generic OIDC, not like Entra: "SAML" names a protocol,
     # not an IdP, so nothing here can promise that the IdP restricts who

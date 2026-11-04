@@ -381,6 +381,23 @@ export const customDomainSsoConfigCanonical = z.object({
   allowed_domains: z.array(z.string()),
 
   /**
+   * The organization's proven email namespaces (#4734): display_domain of
+   * every custom domain whose ownership is proven (TXT check, or Colonel
+   * override; under passthrough only an override counts), sorted. Tenant SSO
+   * creates an account only for an address inside one of them. Read-only;
+   * optional for rolling deploys.
+   */
+  verified_email_domains: z.array(z.string()).optional(),
+
+  /**
+   * Saved allowlist entries that lie outside every proven domain, as stored
+   * (#4734). Sign-in creates no new accounts for such an entry until the
+   * domain is proven.
+   * Read-only; optional for rolling deploys.
+   */
+  unverified_allowed_domains: z.array(z.string()).optional(),
+
+  /**
    * Whether app-side domain filtering is recommended for this provider.
    * True for providers without IdP-side user assignment (e.g., generic OIDC).
    * Read-only, computed from provider_type.

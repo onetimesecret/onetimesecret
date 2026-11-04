@@ -226,7 +226,8 @@ module DomainsAPI
         # ──────────────────────────────────────────────────────────────────────────
         #
         # test_oidc_connection and test_entra_id_connection come from
-        # DiscoveryCheck.
+        # DiscoveryCheck. An Entra success names the app registration
+        # settings the admin confirms by hand (ENTRA_MANUAL_CHECKS, #4734 R2).
 
         # Local validation only — see the class comment. No network request is
         # made (the SSRF host check resolves the SSO URL's hostname, nothing
