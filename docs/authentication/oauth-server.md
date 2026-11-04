@@ -148,13 +148,15 @@ Claims emitted in ID tokens and from `/userinfo` (see `apps/web/auth/config/hook
 |----------------------|---------------------------------------------------------------------|
 | `sub`                | `accounts.id` (gem default)                                         |
 | `email`              | `accounts.email`                                                    |
-| `email_verified`     | `accounts.status_id == account_open_status_value` (boolean)         |
+| `email_verified`     | `true` only with mailbox proof; otherwise `false` (see below)       |
 | `preferred_username` | `Customer#custid` via `external_id` lookup; falls back to email     |
 | `name`               | Same as `preferred_username`                                        |
 | `updated_at`         | `accounts.updated_at` as NumericDate (seconds since epoch)          |
 | `iss`                | `authorization_server_url` (resolved per the issuer rules above)    |
 | `aud`, `iat`, `exp`, `nonce`, `acr`, `at_hash`, `c_hash` | Gem defaults              |
 | `auth_time`          | **Omitted** when the account has no active session — see below      |
+
+**`email_verified` requires mailbox proof.** The claim is `true` only when the account row is Verified (`accounts.status_id == account_open_status_value`) and the linked Customer has mailbox proof (`Customer#mailbox_verified?`: `verified_by` is one of `Onetime::Customer::MAILBOX_VERIFIED_BY`). Anything else is `false`, including an account with no linked Customer or an error while looking it up. An account created through SSO opens Verified because the upstream IdP vouched for the address. That is not proof the person controls the mailbox, and some of those accounts are held unverified on purpose ([#4735](https://github.com/onetimesecret/onetimesecret/issues/4735), [#4754](https://github.com/onetimesecret/onetimesecret/pull/4754)). Such an account gets `email_verified: false` until an operator verifies the address (`bin/ots customers verify` or the colonel admin).
 
 **`auth_time` omission (sessionless accounts).** The gem's `id_token_claims` unconditionally writes `auth_time = get_oidc_account_last_login_at(account_id).to_i`. When the account has no row in `active_sessions`, the helper returns `nil` and `nil.to_i == 0`, which the gem then emits as `auth_time: 0` (interpreted as 1970-01-01T00:00:00Z by RP clients). OIDC Core 1.0 §2 requires `auth_time` to be the actual authentication moment, so the v1 override drops the claim when it would serialize to 0 (`apps/web/auth/config/features/oauth.rb:227-233`, fix in commit `9e83377f2`).
 
