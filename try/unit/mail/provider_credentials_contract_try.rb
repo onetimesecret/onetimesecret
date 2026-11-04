@@ -45,6 +45,7 @@ class Onetime::Mail::Mailer
         'port' => 587,
         'user' => 'smtp_user',
         'pass' => 'smtp_pass',
+        'auth' => 'login',
         'domain' => 'example.com',
         'tls' => true,
         'allow_unauthenticated_fallback' => true,
@@ -103,6 +104,10 @@ end
 ## SMTP config forwards 'allow_unauthenticated_fallback' from emailer config
 @smtp_config.key?('allow_unauthenticated_fallback') && @smtp_config['allow_unauthenticated_fallback'] == true
 #=> true
+
+## SMTP config forwards 'auth' from emailer config (#4889)
+@smtp_config['auth']
+#=> 'login'
 
 ## SMTP config contains NO symbol keys
 @smtp_config.keys.none? { |k| k.is_a?(Symbol) }

@@ -1441,7 +1441,7 @@ emailer:
   #  :port: 1025                     # Mailpit default SMTP port
   #  :user: ~                        # No auth needed for Mailpit
   #  :pass: ~                        # No auth needed for Mailpit
-  #  :auth: false                    # Disable SMTP auth for Mailpit
+  #  :auth: ~                        # Ignored when user/pass are blank
   #  :tls: false                     # Disable TLS for local testing
 
   # Production Settings (for reference)
@@ -1461,6 +1461,9 @@ emailer:
   user: <%= ENV['SMTP_USERNAME'] %>
   # The double quotes are important b/c credentials can have characters that break YAML parsing.
   pass: "<%= ENV['SMTP_PASSWORD'] %>"
+  # SMTP AUTH mechanism used with user/pass: plain, login or cram_md5.
+  # Default: plain. Some servers accept only one, e.g. Azure Communication
+  # Services requires login. An unrecognized value is an error.
   auth: <%= ENV['SMTP_AUTH'] || nil %>
   tls: <%= ENV['SMTP_TLS'] %>
   ssl: <%= ENV['SMTP_SSL'] %>  # Since v0.26.15
