@@ -330,15 +330,21 @@ module Auth
       end
 
       # Derives [verified, verified_by] for a recreated Customer from state
-      # the auth database still has, mirroring how the record would have
-      # been created in the first place:
+      # the auth database still has, asserting no more than that state shows:
       #
       #   - status_id != VERIFIED            -> unverified, no provenance
-      #   - an account_identities row exists -> 'sso'   (JIT provisioning)
-      #   - verify_account is enabled        -> 'email' (the emailed link was
-      #                                         followed: nothing else moves a
-      #                                         password account to VERIFIED)
+      #   - an account_identities row exists -> 'sso'    (JIT provisioning)
+      #   - verify_account is enabled        -> 'legacy' (verified, unknown how)
       #   - otherwise                        -> 'autoverify'
+      #
+      # Never a mailbox-proof tag (Onetime::Customer::MAILBOX_VERIFIED_BY). A
+      # Verified row does not show HOW it became Verified: the emailed link,
+      # an invite, an operator, or `bin/ots customers sync-auth-accounts`,
+      # which opens a row at Verified for any verified Redis customer whatever
+      # its provenance. Stamping 'email' would hand a recovered record the
+      # mailbox proof that has_system_role? requires (#4735). An operator
+      # who has confirmed the address re-stamps it
+      # (colonel admin, or `bin/ots customers verify`).
       #
       # Known limit: a verification_hold (the IdP vetoed the stamp at JIT
       # time) lives only on the lost Customer record, never in SQL, so it
@@ -357,7 +363,7 @@ module Auth
           if sso_identity_present?
             'sso'
           elsif Onetime.auth_config.verify_account_enabled?
-            'email'
+            'legacy'
           else
             'autoverify'
           end

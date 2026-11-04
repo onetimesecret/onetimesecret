@@ -375,6 +375,10 @@ module Onetime
             'port' => present(conf['port']) || present(ENV.fetch('SMTP_PORT', nil)),
             'username' => present(conf['user']) || present(ENV.fetch('SMTP_USERNAME', nil)),
             'password' => present(conf['pass']) || present(ENV.fetch('SMTP_PASSWORD', nil)),
+            # Not `present(...) || ENV`: `||` would drop an explicit
+            # `auth: false` and select PLAIN, where Delivery::SMTP rejects
+            # it. A blank value still falls through to SMTP_AUTH.
+            'auth' => present(conf['auth']).nil? ? present(ENV.fetch('SMTP_AUTH', nil)) : conf['auth'],
             'domain' => present(conf['domain']) || present(ENV.fetch('SMTP_DOMAIN', nil)),
             'tls' => conf['tls'],
             'ssl' => conf['ssl'],

@@ -9,7 +9,7 @@ require_relative File.join(Onetime::HOME, 'spec', 'support', 'model_test_helper.
 RSpec.describe V1::Logic::Secrets::BurnSecret do
   let(:session) { double('Session') }
   let(:customer) { double('Onetime::Customer', anonymous?: false, custid: 'cust123', objid: 'cust_obj123', increment_field: nil) }
-  let(:owner) { double('Owner', custid: 'owner123', verified?: false, anonymous?: false, increment_field: nil) }
+  let(:owner) { double('Owner', custid: 'owner123', verified?: false, mailbox_verified?: false, anonymous?: false, increment_field: nil) }
 
   let(:secret) do
     double('Onetime::Secret',

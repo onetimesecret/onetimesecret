@@ -172,10 +172,17 @@ module V2::Logic
       end
 
       def verify_owner(owner)
-        if anonymous_user? || (cust.custid == owner.custid && !owner.verified?)
-          owner.verified    = true
-          owner.verified_by = 'email'
-          owner.save
+        # Gated on mailbox_verified?, not verified?: following the emailed link
+        # is mailbox proof, so an owner stamped by payment/autoverify/legacy
+        # provenance acquires it here (#4735) — unless the secret is the
+        # email-change confirmation, which went to the PROPOSED address and
+        # proves nothing about the current one (Customer#mailbox_proof_secret?).
+        if anonymous_user? || (cust.custid == owner.custid && !owner.mailbox_verified?)
+          if owner.mailbox_proof_secret?(secret)
+            owner.verified    = true
+            owner.verified_by = 'email'
+            owner.save
+          end
           # sess.clear wipes session data for this request. sess.destroy! does
           # not exist here — OT::Session wraps Rack::Session::Abstract::PersistedSecure,
           # which exposes no public destroy method. clear is the correct call.

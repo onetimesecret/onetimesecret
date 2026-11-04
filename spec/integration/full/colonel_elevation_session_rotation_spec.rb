@@ -43,6 +43,7 @@ RSpec.describe 'Colonel step-up starts a new session id (#4466)', type: :integra
     colonel          = Onetime::Customer.find_by_extid(session_blob.fetch('external_id'))
     colonel.role     = 'colonel'
     colonel.verified = 'true'
+    colonel.verified_by = 'email'
     colonel.save
     colonel
   end

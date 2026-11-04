@@ -15,7 +15,7 @@
 #
 #   status_id != VERIFIED          -> unverified, verified_by nil
 #   account_identities row exists  -> 'sso'
-#   verify_account enabled         -> 'email'
+#   verify_account enabled         -> 'legacy' (never mailbox proof, #4735)
 #   otherwise                      -> 'autoverify'
 #   any lookup raises              -> unverified (fail closed) + error log
 #
@@ -122,8 +122,11 @@ RSpec.describe Auth::Operations::SyncSession, 'recreating a missing Customer at 
     context 'when verify_account is enabled' do
       let(:verify_account) { true }
 
-      it "stamps 'email' for a password account" do
-        expect(provisioning_kwargs).to include(verified: true, verified_by: 'email')
+      # A Verified row does not show how it got there (sync-auth-accounts
+      # opens one for any verified Redis customer), so recovery must not
+      # mint the mailbox proof that has_system_role? requires (#4735).
+      it "stamps 'legacy', not 'email', for a password account" do
+        expect(provisioning_kwargs).to include(verified: true, verified_by: 'legacy')
       end
     end
 
@@ -181,7 +184,11 @@ RSpec.describe Auth::Operations::SyncSession, 'recreating a missing Customer at 
     end
 
     it 'only ever derives verified_by tags from the enforced vocabulary' do
-      expect(Onetime::Customer::VERIFIED_BY_VALUES).to include('sso', 'email', 'autoverify')
+      expect(Onetime::Customer::VERIFIED_BY_VALUES).to include('sso', 'legacy', 'autoverify')
+    end
+
+    it 'never derives a mailbox-proof tag, on any branch' do
+      expect(Onetime::Customer::MAILBOX_VERIFIED_BY & %w[sso legacy autoverify]).to be_empty
     end
 
     it 'hands the account, its id and the connection to EnsureCustomerForAccount' do
