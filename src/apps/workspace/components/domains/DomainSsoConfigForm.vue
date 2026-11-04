@@ -512,8 +512,14 @@ const allowlistContext = computed(() => ({
  */
 const emailDomainProofKnown = computed(() => hasProofVerdict(allowlistContext.value));
 
+/**
+ * Verified state of one chip (#4734). Before a record exists nothing is
+ * judged: the proven set comes with the saved record, and the GET that
+ * serves it has not happened, so judging a typed entry against an empty set
+ * would call it not proven. The save response carries the verdict.
+ */
 const entryState = (domain: string): AllowlistEntryState =>
-  allowlistEntryState(domain, allowlistContext.value);
+  props.ssoConfig ? allowlistEntryState(domain, allowlistContext.value) : 'unknown';
 
 const ENTRY_STATE_LABELS: Record<AllowlistEntryState, string> = {
   verified: 'web.organizations.sso.allowed_domain_verified',

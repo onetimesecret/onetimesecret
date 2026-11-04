@@ -1161,6 +1161,27 @@ describe('DomainSsoConfigForm', () => {
         false
       );
     });
+
+    // Before a record exists there is no proven set to judge against: it
+    // comes with the saved record, and the GET that serves it has not
+    // happened. Judging a typed entry against [] would read "Not proven" and
+    // say sign-in creates no accounts for it. The save response carries the
+    // verdict and the chips take it from there.
+    it('judges no typed entry before a record exists', async () => {
+      wrapper = await mountComponent({
+        formState: { ...createDefaultFormState(), allowed_domains: ['acme.example'] },
+        ssoConfig: null,
+      });
+
+      const chip = wrapper.find(
+        '[data-testid="sso-allowed-domain-unknown"][data-domain="acme.example"]'
+      );
+      expect(chip.exists()).toBe(true);
+      expect(chip.text()).toContain('allowed_domain_unknown');
+      expect(chip.find('[aria-label*="allowed_domain_unverified_label"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-allowed-domain-unverified"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-allowed-domain-verified"]').exists()).toBe(false);
+    });
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
