@@ -56,7 +56,10 @@ Security
   deployment with email verification enabled; it updates the pending record
   for the claim that follows verification. A workspace that already has an
   active federated plan keeps receiving updates, and cancellations and
-  pauses still apply to every workspace. (#4735)
+  pauses still apply to every workspace; a pause that reaches a workspace
+  whose owner has mailbox proof records the sync order and retires a pending
+  record stored before it, so a later verification retry cannot restore an
+  active plan over the pause. (#4735)
 
   **Upgrade note:** a colonel, admin or staff account whose ``verified_by`` is
   ``sso``, ``stripe_payment``, ``autoverify``, ``legacy`` or empty loses the

@@ -382,16 +382,92 @@ RSpec.describe 'ProcessWebhookEvent: federated sync honours the mailbox gate', :
     expect(pending_record).to be_nil
   end
 
-  it 'refreshes the pending record when a deferred workspace is paused' do
+  it 'refreshes the pending record when a deferred workspace is paused, without marking it synced' do
     store_initial_pending
     provision_sso_workspace
     backfill_hash
 
-    dispatch(subscription_event(type: 'customer.subscription.paused', status: 'paused'))
+    paused = subscription_event(type: 'customer.subscription.paused', status: 'paused')
+    dispatch(paused)
     @organization.refresh!
     expect(@organization.subscription_status).to eq('paused')
+    # The deferred workspace received nothing, so it records no sync, and the
+    # refreshed record survives for the claim that follows verification.
+    expect(@organization.subscription_sync_version.to_s).to be_empty
+    expect(pending_record).not_to be_nil
     expect(pending_record.subscription_status).to eq('paused')
+    expect(pending_record.source_stripe_event_id).to eq(paused.id)
     expect(pending_record.active?).to be(false)
+  end
+
+  # #4754 review (NB): for a workspace that is not deferred the pause is a
+  # direct sync, so it must record the sync order and retire a stale active
+  # record as update_federated_org and clear_federated_org do. Without that,
+  # a record stored before the workspace had its email hash survived the
+  # pause, and the next claim retry (a repeat verification of the owner)
+  # replayed its active snapshot over the pause.
+  describe 'a pause reaching a workspace whose owner has mailbox proof' do
+    def provision_mailbox_verified_workspace
+      @customer = Onetime::Customer.create!(email: email, role: 'customer', verified: true, verified_by: 'email')
+      org       = Auth::Operations::EnsureDefaultWorkspace.new(customer: @customer).call[:organization]
+      # Nothing was pending at creation, so the claim computed the hash in
+      # memory and never saved it. Reload rather than refresh!, which keeps
+      # in-memory fields that Redis lacks.
+      @organization = Onetime::Organization.load(org.objid)
+      expect(@organization.email_hash.to_s).to be_empty
+    end
+
+    it 'records the sync order and retires the stale active record, so a claim retry cannot replay it' do
+      provision_mailbox_verified_workspace
+      store_initial_pending
+      stored_version = pending_record.sync_version
+      backfill_hash
+
+      expect(dispatch(subscription_event(type: 'customer.subscription.paused', status: 'paused'))).to eq(:federated_only)
+      @organization.refresh!
+      aggregate_failures 'pause as a direct sync' do
+        expect(@organization.subscription_status).to eq('paused')
+        expect(@organization.subscription_sync_version.to_i).to be > stored_version.to_i
+        expect(@organization.subscription_synced_at.to_s).not_to be_empty
+        expect(pending_record).to be_nil
+      end
+
+      # The documented retry: a repeat verification with the same proof.
+      verification = Auth::Operations::SetCustomerVerification.new(customer: @customer, verified: true, verified_by: 'email')
+      expect(verification.call).to eq(:no_change)
+      expect(verification.federation_claimed?).to be(false)
+      @organization.refresh!
+      expect(@organization.subscription_status).to eq('paused')
+      expect(@organization.planid.to_s).not_to eq('identity_plus_v1')
+    end
+
+    it "keeps a deferred sibling's refreshed record when the same pause also reaches a synced workspace" do
+      store_initial_pending
+      provision_sso_workspace
+      backfill_hash
+      team_owner = Onetime::Customer.create!(
+        email: "team-owner-#{SecureRandom.hex(6)}@example.com", role: 'customer', verified: true, verified_by: 'email',
+      )
+      extra_customers << team_owner
+      team_org = Onetime::Organization.create!('Team', team_owner, team_owner.email)
+      extra_organizations << team_org
+      backfill_hash(team_org, billing_email: email.upcase)
+
+      paused = subscription_event(type: 'customer.subscription.paused', status: 'paused')
+      expect(dispatch(paused)).to eq(:federated_only)
+
+      team_org.refresh!
+      @organization.refresh!
+      aggregate_failures 'synced sibling and deferred workspace' do
+        expect(team_org.subscription_status).to eq('paused')
+        expect(team_org.subscription_sync_version.to_s).not_to be_empty
+        expect(@organization.subscription_status).to eq('paused')
+        expect(@organization.subscription_sync_version.to_s).to be_empty
+        expect(pending_record).not_to be_nil
+        expect(pending_record.subscription_status).to eq('paused')
+        expect(pending_record.source_stripe_event_id).to eq(paused.id)
+      end
+    end
   end
 
   it 'does not retire the pending record of a deferred workspace when a sibling workspace syncs' do
