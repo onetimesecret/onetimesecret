@@ -993,10 +993,10 @@ describe('DomainSsoConfigForm', () => {
     // verified_email_domains is empty in three states: the organization has
     // no proven domain; the serializer's rescue path served both arrays
     // empty; or an API that predates the fields answered the GET and the
-    // shape filled them in as []. Only the first is a verdict. The saved
-    // chips already say "Checked on save" for the other two (a saved entry
-    // listed as neither proven nor unverified), and the headline agrees with
-    // them instead of claiming nothing is proven.
+    // shape filled them in as []. Only the first is a verdict. Every chip,
+    // saved or not, already says "Checked on save" for the other two (no
+    // saved entry is listed as proven or unverified), and the headline
+    // agrees with them instead of claiming nothing is proven.
     it('says the proof could not be checked when the API gave no verdict on saved entries', async () => {
       wrapper = await mountComponent({
         formState: mockExistingFormState,

@@ -96,7 +96,9 @@ export function allowlistEntryState(
   if (context.savedAllowedDomains.includes(entry)) {
     if (context.unverifiedAllowedDomains.includes(entry)) return 'unverified';
     // Listed in neither array while a proven set is served: inside it. With
-    // no proven set either the record is inconsistent and no verdict exists.
+    // no proven set either, this branch is reached only when other saved
+    // entries are listed as unverified: the record has its verdict, and the
+    // API left this one saved entry unclassified; the save reports on it.
     return context.verifiedEmailDomains.length > 0 ? 'verified' : 'unknown';
   }
 

@@ -60,8 +60,10 @@ For the tenant domain given (display domain or CustomDomain extid) it
 1. resolves the organization, the SSO configuration, the provider route and
    the identity issuer the live callback writes: the configured issuer for
    OIDC, `https://login.microsoftonline.com/<tenant_id>/v2.0` for Entra ID,
-   `<domain_id>|<IdP EntityID>` for SAML; `--issuer ISSUER` replaces that
-   derived value (see [Issuer-exact scan](#issuer-exact-scan));
+   `<domain_id>|<IdP EntityID>` for SAML, and refuses a `provider_type`
+   outside `oidc`, `entra_id` and `saml` before deriving or accepting any
+   issuer; `--issuer ISSUER` replaces that derived value (see
+   [Issuer-exact scan](#issuer-exact-scan));
 2. reads every `account_identities` row under that provider and issuer;
 3. compares each account's address with the proven set exactly as the login
    gate does (`Organization#owns_email_domain_through?`: the tenant domain
