@@ -169,7 +169,9 @@ module Onetime::Customer::Features
       # those stamps is reachable by an attacker on a verify-enabled
       # deployment. The verify-disabled deployment keeps its documented
       # residual: the predicate is false for its unverified signups, and
-      # EnsureDefaultWorkspace logs each such immediate claim.
+      # EnsureDefaultWorkspace logs each such immediate claim. The residual
+      # needs the process's auth mode settled; one that resolved simple mode
+      # by default defers instead (#verification_step_pending?).
       #
       # This is the record-based rule that both
       # Auth::Operations::EnsureDefaultWorkspace#claim_deferred? and the
@@ -187,23 +189,42 @@ module Onetime::Customer::Features
       # Does this deployment have an email-verification step that an
       # unverified account still goes through? Reads
       # Onetime.auth_config.verify_account_loaded? (false outside full auth
-      # mode). Fails CLOSED on a read that raises: an unreadable config
-      # defers the claim, since the alternative hands a benefit to an address
-      # nobody proved. The federation webhook calls this under its per-hash
-      # lock, so the read must not raise out of it either.
+      # mode). Fails CLOSED, deferring the claim, in the two states where the
+      # answer is not known, since the alternative hands a benefit to an
+      # address nobody proved:
       #
-      # The answer is only as good as the process's resolved auth mode. A
-      # process whose shell did not export AUTHENTICATION_MODE resolves
-      # simple mode by default (Onetime::AuthConfig#simple_by_default?) and
-      # reads here as verify-disabled: nothing raises, nothing is logged
-      # here, and on a full-mode install such a process would claim at once.
-      # The server's environment is the install's; a bin/ots shell on the
-      # host may not be, which is why `customers doctor --repair` refuses in
-      # that state (Onetime::CLI::CustomersDoctorCommand).
+      #   - the config cannot be read (the read raises). The federation
+      #     webhook calls this under its per-hash lock, so the error must
+      #     not raise out of it either.
+      #   - the process resolved simple mode by default
+      #     (Onetime::AuthConfig#simple_by_default?). The config renders the
+      #     mode from AUTHENTICATION_MODE with a simple fallback, so a
+      #     process whose environment lacks the variable resolves simple
+      #     mode whatever the install runs and reads verify_account_loaded?
+      #     as false, raising nothing. Such a process cannot tell a
+      #     simple-mode install from a full-mode one whose verification step
+      #     will still prove the address, and on the latter it would claim
+      #     at once: before this rule a bin/ots shell on the host (customers
+      #     doctor --repair, billing webhooks replay) or a worker started
+      #     without the variable did exactly that, with no audit line (#4754
+      #     review, F1 follow-up). The deferral costs a simple-mode install
+      #     that runs without the variable its immediate claim for an
+      #     unverified signup; the warning names the remedy, and exporting
+      #     the variable with either value settles the mode. The shipped
+      #     compose files export it on every service.
       #
       # @return [Boolean]
       def verification_step_pending?
-        Onetime.auth_config.verify_account_loaded?
+        config = Onetime.auth_config
+        if config.simple_by_default?
+          auth_logger.warn '[customer] AUTHENTICATION_MODE is not set, so simple auth mode was resolved by default; ' \
+                           'deferring the federation claim. Export AUTHENTICATION_MODE=full, or =simple if that is ' \
+                           'what this install runs',
+            { customer: custid }
+          return true
+        end
+
+        config.verify_account_loaded?
       rescue StandardError => ex
         # The exception object, not its class name: SemanticLogger formats
         # :exception itself and replaces any non-Exception value with an

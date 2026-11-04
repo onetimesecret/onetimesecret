@@ -389,13 +389,14 @@ module Auth
       # which the predicate deliberately does not defer and which this
       # method does not report (see Customer#federation_claim_deferred?). On
       # a verify-enabled deployment an unverified record never gets here,
-      # whatever the caller passed, provided the process resolved the
-      # install's auth mode: a bin/ots shell without AUTHENTICATION_MODE
-      # resolves simple mode by default and reads the step as absent, so
-      # the claim such a process makes is logged here as the residual, and
-      # `customers doctor --repair` refuses in that state rather than rely
-      # on the log (Customer#verification_step_pending?). See #initialize
-      # and #apply_pending_federation! for the full rationale.
+      # whatever the caller passed, and neither does one in a process that
+      # resolved simple mode by default (a bin/ots shell or a worker without
+      # AUTHENTICATION_MODE): the record rule defers on the unsettled mode
+      # rather than read the step as absent
+      # (Customer#verification_step_pending?), so the residual detected here
+      # belongs to a deployment that settled a mode with no verification
+      # step. See #initialize and #apply_pending_federation! for the full
+      # rationale.
       #
       # Never lets audit bookkeeping interfere with the claim itself: any error
       # reading the config is swallowed and treated as "not the residual".
@@ -427,10 +428,12 @@ module Auth
       # operator for the SSO account.
       #
       # The record rule reads the deployment's verify_account step through
-      # the process's resolved auth mode and fails closed only when that read
-      # raises. A process that resolved simple mode by default (a bin/ots
-      # shell without AUTHENTICATION_MODE) reads the step as absent and does
-      # not defer; the CLI's repairing caller refuses in that state
+      # the process's resolved auth mode and fails closed, deferring, both
+      # when that read raises and when the process resolved simple mode by
+      # default (a bin/ots shell or a worker without AUTHENTICATION_MODE),
+      # since such a process cannot tell whether the install has a
+      # verification step. The CLI's repairing caller refuses in that state
+      # as well, so the operator learns why nothing would be claimed
       # (Onetime::CLI::CustomersDoctorCommand). See
       # Customer#verification_step_pending?.
       #
@@ -469,9 +472,11 @@ module Auth
       # verified password account) claim immediately.
       #
       # RESIDUAL (verify_account disabled): when the deployment has no email
-      # verification step, the standard-signup caller passes
-      # `require_verification: false`, Customer#federation_claim_deferred? is
-      # false for its unverified record, and this method claims immediately
+      # verification step and the process's auth mode is settled
+      # (Customer#verification_step_pending?), the standard-signup caller
+      # passes `require_verification: false`,
+      # Customer#federation_claim_deferred? is false for its unverified
+      # record, and this method claims immediately
       # for a customer whose email ownership was never proven — the
       # benefit-theft surface cannot be closed by deferral there (no verified
       # state ever becomes true, no after_verify_account to re-claim from).

@@ -128,8 +128,10 @@ module Onetime
     # container in both modes); a bin/ots shell on the host may not be. A
     # destructive command that depends on the auth account refuses on this
     # state, because it cannot tell a simple-mode install from a full-mode
-    # one it would leave half closed (Onetime::CLI::Customers::Shared).
-    # Exporting the variable, with either value, settles it.
+    # one it would leave half closed (Onetime::CLI::Customers::Shared), and
+    # the federated subscription claim defers on it for the same reason
+    # (Onetime::Customer#verification_step_pending?). Exporting the
+    # variable, with either value, settles it.
     def simple_by_default?
       simple_enabled? && ENV['AUTHENTICATION_MODE'].to_s.strip.empty?
     end

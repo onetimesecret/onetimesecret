@@ -102,11 +102,13 @@ RSpec.describe 'customers doctor', type: :cli do
   # bin/ots resolves simple auth mode whenever AUTHENTICATION_MODE is not
   # exported into its shell. The workspace repairs re-run
   # EnsureDefaultWorkspace with the default flag, and in that state
-  # Customer#federation_claim_deferred? reads no verification step, so on a
-  # full-mode install a repair would claim a pending federated subscription
-  # for an account nobody has verified (#4754 review, F1). The audit is not
-  # gated. The unit lane exports AUTHENTICATION_MODE=simple, so the examples
-  # above run with the mode settled.
+  # Customer#federation_claim_deferred? fails closed and defers every claim
+  # (it used to read no verification step and claim on a full-mode install
+  # for an account nobody had verified, #4754 review, F1), so a repair would
+  # quietly leave every pending record unclaimed; the command refuses
+  # instead. The audit is not gated. The unit lane exports
+  # AUTHENTICATION_MODE=simple, so the examples above run with the mode
+  # settled.
   describe 'when simple auth mode was resolved by default' do
     before { allow(Onetime.auth_config).to receive(:simple_by_default?).and_return(true) }
 

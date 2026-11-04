@@ -315,6 +315,32 @@ RSpec.describe 'EnsureDefaultWorkspace: federated subscription claim gate', type
         expect(pending_exists?(email)).to be(true)
       end
     end
+
+    context 'when the process resolved simple mode by default' do
+      # A bin/ots shell (customers doctor --repair, billing webhooks replay)
+      # or a worker container without AUTHENTICATION_MODE resolves simple
+      # mode on a full-mode install and reads verify_account_loaded? as
+      # false with nothing raised. The record rule fails closed on the
+      # unsettled mode instead of reading the verification step as absent
+      # and claiming (#4754 review, F1 follow-up).
+      before { allow(Onetime.auth_config).to receive_messages(simple_by_default?: true, verify_account_loaded?: false) }
+
+      it 'fails closed: creates the workspace, leaves the pending record and warns instead of claiming' do
+        email = unique_email('mode-unsettled')
+        create_pending_for(email)
+        customer = unverified_signup(email)
+        expect(customer.federation_claim_deferred?).to be(true)
+
+        org = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call[:organization]
+        created_organizations << org
+
+        expect(org).to be_a(Onetime::Organization)
+        expect(org.subscription_federated?).to be(false)
+        expect(pending_exists?(email)).to be(true)
+        expect(auth_warnings).to include(a_string_matching(/AUTHENTICATION_MODE/))
+        expect(auth_warnings).not_to include(a_string_matching(audit_message))
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------

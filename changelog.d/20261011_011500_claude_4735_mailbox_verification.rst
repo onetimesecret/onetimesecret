@@ -15,12 +15,18 @@ Security
   without mailbox proof, is deferred on every path, so a workspace repair
   by ``bin/ots customers doctor --repair``, a lazy workspace creation or the
   billing self-heal cannot claim a pending subscription that signup
-  deferred; ``bin/ots customers doctor --repair`` refuses in a shell that has
-  not exported ``AUTHENTICATION_MODE``, as the destructive customer commands
-  do, since such a shell resolves simple auth mode by default and would read
-  the verification step as absent (the audit runs in any mode). A deployment
-  that has disabled email verification still claims
-  at standard signup without mailbox proof, as before, with the existing
+  deferred. The rule fails closed in a process that has not exported
+  ``AUTHENTICATION_MODE``: such a process resolves simple auth mode by
+  default and now defers the claim, with a warning, rather than read the
+  verification step as absent, so a ``bin/ots billing webhooks replay`` from
+  that shell or a billing worker started without the variable stores the
+  subscription as pending instead of applying it;
+  ``bin/ots customers doctor --repair`` refuses in that state, as the
+  destructive customer commands do (the audit runs in any mode), and the
+  full-stack compose file now exports the variable on the ``worker-email``
+  and ``scheduler`` services as it did on ``app``. A deployment that has
+  disabled email verification, with its auth mode settled, still claims at
+  standard signup without mailbox proof, as before, with the existing
   security-audit log line. SSO JIT accounts defer the claim until an
   operator verifies the address; ``bin/ots customers verify`` and the colonel
   admin can re-verify an already-verified account to record mailbox proof,

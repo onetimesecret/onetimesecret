@@ -341,6 +341,35 @@ RSpec.describe 'ProcessWebhookEvent: federated sync honours the mailbox gate', :
     expect(pending_record).to be_nil
   end
 
+  it 'stores the subscription as pending for an unverified standard signup when the process resolved simple mode by default' do
+    # bin/ots billing webhooks replay from a host shell, or a billing worker
+    # started without AUTHENTICATION_MODE, resolves simple mode on a full-mode
+    # install and reads verify_account_loaded? as false with nothing raised.
+    # The record rule fails closed on the unsettled mode, so the direct sync
+    # defers like the claim instead of applying the plan to a workspace whose
+    # owner the install has yet to verify (#4754 review, F1 follow-up).
+    allow(Onetime.auth_config).to receive_messages(simple_by_default?: true, verify_account_loaded?: false)
+    store_initial_pending
+    @customer = Onetime::Customer.create!(email: email, role: 'customer', provisioning_origin: 'canonical_signup')
+    expect(@customer.federation_claim_deferred?).to be(true)
+    @organization = Auth::Operations::EnsureDefaultWorkspace.new(customer: @customer).call[:organization]
+    expect(@organization.subscription_federated?).to be(false)
+    expect(pending_record).not_to be_nil
+    backfill_hash
+
+    second = subscription_updated_event
+    expect(dispatch(second)).to eq(:federated_only)
+
+    @organization.refresh!
+    aggregate_failures 'mailbox gate on an unsettled auth mode' do
+      expect(@organization.subscription_federated?).to be(false)
+      expect(@organization.planid.to_s).not_to eq('identity_plus_v1')
+      expect(@organization.can?('custom_branding')).to be(false)
+      expect(pending_record).not_to be_nil
+      expect(pending_record.source_stripe_event_id).to eq(second.id)
+    end
+  end
+
   it 'keeps updating an SSO workspace that already has an active federated plan' do
     # The state an SSO default workspace created before the deferral existed
     # can be in: hashed and federated at creation.

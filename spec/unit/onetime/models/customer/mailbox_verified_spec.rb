@@ -182,6 +182,61 @@ RSpec.describe Onetime::Customer do
         expect(record(verified_by: 'email').federation_claim_deferred?).to be(false)
       end
     end
+
+    describe 'when the process resolved simple mode by default' do
+      # A bin/ots shell, or a worker or scheduler container, that did not
+      # export AUTHENTICATION_MODE resolves simple mode whatever the install
+      # runs (Onetime::AuthConfig#simple_by_default?) and reads
+      # verify_account_loaded? as false with nothing raised, so the rescue
+      # above never ran and on a full-mode install such a process read the
+      # verification step as absent and claimed at once (#4754 review, F1
+      # follow-up). Fail closed on the unsettled mode as on an unreadable
+      # config: the process cannot tell a simple-mode install from a
+      # full-mode one whose verification step will still prove the address.
+      let(:logger) { instance_double(SemanticLogger::Logger, warn: nil) }
+
+      before do
+        allow(Onetime.auth_config).to receive_messages(simple_by_default?: true, verify_account_loaded?: false)
+      end
+
+      def with_logger(cust)
+        allow(cust).to receive(:auth_logger).and_return(logger)
+        cust
+      end
+
+      it 'defers an unverified record and warns, naming the variable to export' do
+        cust = with_logger(record(verified_by: nil, verified: false, provisioning_origin: 'canonical_signup'))
+
+        expect(cust.federation_claim_deferred?).to be(true)
+        expect(logger).to have_received(:warn).with(
+          a_string_matching(/AUTHENTICATION_MODE/),
+          a_hash_including(customer: cust.custid),
+        )
+      end
+
+      it 'does not consult the verification step at all' do
+        allow(Onetime.auth_config).to receive(:verify_account_loaded?).and_raise('must not be read')
+
+        expect(with_logger(record(verified_by: nil, verified: false)).federation_claim_deferred?).to be(true)
+        # The unsettled-mode warning, not the unreadable-config one.
+        expect(logger).to have_received(:warn).with(a_string_matching(/AUTHENTICATION_MODE/), anything)
+      end
+
+      it 'leaves a decided record alone' do
+        expect(record(verified_by: 'email').federation_claim_deferred?).to be(false)
+        expect(record(verified_by: 'autoverify').federation_claim_deferred?).to be(false)
+        expect(record(verified_by: 'sso', provisioning_origin: 'sso_jit').federation_claim_deferred?).to be(true)
+        expect(logger).not_to have_received(:warn)
+      end
+
+      it 'keeps the documented residual once the shell settles simple mode' do
+        allow(Onetime.auth_config).to receive(:simple_by_default?).and_return(false)
+        cust = with_logger(record(verified_by: nil, verified: false))
+
+        expect(cust.federation_claim_deferred?).to be(false)
+        expect(logger).not_to have_received(:warn)
+      end
+    end
   end
 
   describe 'VERIFICATION_HOLDS' do

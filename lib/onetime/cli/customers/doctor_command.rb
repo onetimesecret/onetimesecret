@@ -40,20 +40,24 @@ module Onetime
       # bin/ots resolves simple auth mode whenever AUTHENTICATION_MODE is not
       # exported into its shell (Onetime::AuthConfig#simple_by_default?). The
       # workspace repairs re-run Auth::Operations::EnsureDefaultWorkspace with
-      # the default flag, and its federation claim defers for an unverified
-      # account only while the deployment's verify_account step is loaded
-      # (Customer#federation_claim_deferred?), which such a shell reads as
-      # not loaded, raising nothing. On a full-mode install with email
-      # verification a repair would then apply a pending federated
-      # subscription to a workspace whose owner never proved the address
-      # (#4754 review, F1). So, as the destructive customer commands do
+      # the default flag, and its federation claim reads the deployment's
+      # verify_account step through the process's auth mode
+      # (Customer#federation_claim_deferred?). Such a shell reads the step as
+      # not loaded, raising nothing; the rule now fails closed on that state
+      # and defers every claim (Customer#verification_step_pending?), where
+      # it used to apply a pending federated subscription to a workspace
+      # whose owner never proved the address on a full-mode install with
+      # email verification (#4754 review, F1). A repair that quietly leaves
+      # every pending record unclaimed is not what the operator asked for
+      # either, so, as the destructive customer commands do
       # (Customers::Shared#auth_mode_refusal), --repair refuses until the
       # shell says which mode the install runs; the audit runs in any mode.
-      # Inside the shipped containers the variable is always exported.
+      # The shipped compose files export the variable on every service (app,
+      # worker-email, scheduler), so this reaches host shells.
       REPAIR_AUTH_MODE_MESSAGE =
         'AUTHENTICATION_MODE is not set in this shell, so simple auth mode was resolved by default. ' \
-        'On a full-mode install a workspace repair would claim a pending federated subscription ' \
-        'for an account the install has yet to verify. Export AUTHENTICATION_MODE=full, or =simple ' \
+        'In this state a workspace repair defers every pending federated subscription claim rather than ' \
+        'apply one to an account the install has yet to verify. Export AUTHENTICATION_MODE=full, or =simple ' \
         'if that is what this install runs, and re-run; the audit without --repair runs in any mode.'
 
       desc 'Check customer data integrity'
