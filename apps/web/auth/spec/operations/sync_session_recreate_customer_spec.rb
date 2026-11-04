@@ -11,12 +11,12 @@
 # bare status_id mirror: with verify_account disabled every password account
 # sits at VERIFIED in SQL, so status alone proves nothing about how the
 # address was established (the reason the first attempt at #3973 was
-# rejected). The derivation order is:
+# rejected). Only recorded state decides the tag, never today's config.
+# The derivation order is:
 #
 #   status_id != VERIFIED          -> unverified, verified_by nil
 #   account_identities row exists  -> 'sso'
-#   verify_account enabled         -> 'legacy' (never mailbox proof, #4735)
-#   otherwise                      -> 'autoverify'
+#   otherwise                      -> 'legacy' (never mailbox proof, #4735)
 #   any lookup raises              -> unverified (fail closed) + error log
 #
 # The identity lookup runs against a REAL migrated SQLite schema so the query
@@ -119,19 +119,25 @@ RSpec.describe Auth::Operations::SyncSession, 'recreating a missing Customer at 
       expect(provisioning_kwargs).to include(verified: true, verified_by: 'sso')
     end
 
-    context 'when verify_account is enabled' do
-      let(:verify_account) { true }
-
-      # A Verified row does not show how it got there (sync-auth-accounts
-      # opens one for any verified Redis customer), so recovery must not
-      # mint the mailbox proof that has_system_role? requires (#4735).
-      it "stamps 'legacy', not 'email', for a password account" do
-        expect(provisioning_kwargs).to include(verified: true, verified_by: 'legacy')
-      end
+    # A Verified row does not show how it got there (sync-auth-accounts
+    # opens one for any verified Redis customer), so recovery must not
+    # mint the mailbox proof that has_system_role? requires (#4735).
+    it "stamps 'legacy', not 'email', for a password account" do
+      expect(provisioning_kwargs).to include(verified: true, verified_by: 'legacy')
     end
 
-    it "stamps 'autoverify' for a password account when verify_account is disabled" do
-      expect(provisioning_kwargs).to include(verified: true, verified_by: 'autoverify')
+    # Today's verify_account setting says nothing about how an existing row
+    # became Verified (it may have been off then, or loaded only through
+    # webauthn_verify_account), so the tag must not change with it.
+    [true, false].each do |enabled|
+      context "when verify_account_enabled? is #{enabled}" do
+        let(:verify_account) { enabled }
+
+        it "stamps 'legacy' without consulting the config", :aggregate_failures do
+          expect(provisioning_kwargs).to include(verified: true, verified_by: 'legacy')
+          expect(auth_config).not_to have_received(:verify_account_enabled?)
+        end
+      end
     end
 
     context 'when the accounts row is Unverified' do
@@ -154,12 +160,6 @@ RSpec.describe Auth::Operations::SyncSession, 'recreating a missing Customer at 
       expect(Auth::Logging).to have_received(:log_error)
         .with(:customer_recreate_provenance_failed, hash_including(fallback: 'unverified'))
     end
-
-    it 'recreates the customer UNVERIFIED when the auth config lookup raises' do
-      allow(auth_config).to receive(:verify_account_enabled?).and_raise(RuntimeError, 'config')
-
-      expect(provisioning_kwargs).to include(verified: false, verified_by: nil)
-    end
   end
 
   describe 'observability' do
@@ -171,7 +171,7 @@ RSpec.describe Auth::Operations::SyncSession, 'recreating a missing Customer at 
         hash_including(
           level: :warn,
           verified: true,
-          verified_by: 'autoverify',
+          verified_by: 'legacy',
           provisioning_origin: 'login_recovery',
           customer_id: 'cust_new',
         ),
@@ -184,11 +184,11 @@ RSpec.describe Auth::Operations::SyncSession, 'recreating a missing Customer at 
     end
 
     it 'only ever derives verified_by tags from the enforced vocabulary' do
-      expect(Onetime::Customer::VERIFIED_BY_VALUES).to include('sso', 'legacy', 'autoverify')
+      expect(Onetime::Customer::VERIFIED_BY_VALUES).to include('sso', 'legacy')
     end
 
     it 'never derives a mailbox-proof tag, on any branch' do
-      expect(Onetime::Customer::MAILBOX_VERIFIED_BY & %w[sso legacy autoverify]).to be_empty
+      expect(Onetime::Customer::MAILBOX_VERIFIED_BY & %w[sso legacy]).to be_empty
     end
 
     it 'hands the account, its id and the connection to EnsureCustomerForAccount' do

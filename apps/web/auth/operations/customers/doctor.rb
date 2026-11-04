@@ -170,6 +170,7 @@ module Auth
           check_role_validity(issues)
           check_verified_consistency(issues, repaired)
           check_sso_customer_unverified(issues, repaired)
+          check_recovered_customer_unverified(issues)
           check_system_role_mailbox_proof(issues)
           check_counter_sanity(issues, repaired)
           check_field_serialization(issues, repaired)
@@ -1191,6 +1192,41 @@ module Auth
           # Same rule as the other cross-store check: never abort a sweep over
           # one unreachable DB or one bad record.
           OT.le "[customers doctor] sso_customer_unverified check failed for #{@customer.extid}: " \
+                "#{ex.class} #{ex.message}"
+        end
+
+        # CHECK: a customer recreated at login and left unverified while its
+        # auth account is Verified.
+        #
+        # SyncSession#recreate_customer fails CLOSED: when it cannot read the
+        # auth state it needs to pick a verified_by, it creates the record
+        # unverified (provisioning_origin 'login_recovery') and logs a WARN.
+        # The accounts row stays Verified, so Rodauth never sends the user
+        # through verify_account again, and the 'sso_jit' check above skips
+        # the record. Without this check the WARN line is the only trace.
+        #
+        # Reported, never repaired: verifying the record would widen access on
+        # the strength of a lookup that just failed. An operator who has
+        # confirmed the address verifies it by hand.
+        def check_recovered_customer_unverified(issues)
+          return if @customer.verified?
+          return unless @customer.provisioning_origin.to_s == 'login_recovery'
+
+          account = auth_account
+          return if account.nil?
+          return unless account[:status_id] == Auth::AccountStatuses::VERIFIED
+
+          issues << {
+            check: :recovered_customer_unverified,
+            severity: :medium,
+            message: 'Customer recreated at login is unverified while its auth account is Verified ' \
+                     '(provenance lookup failed at recovery; not auto-repaired)',
+            repairable: false,
+            repair_action: 'Manual decision required: confirm the address, then verify ' \
+                           'via colonel admin or `bin/ots customers verify EMAIL`',
+          }
+        rescue StandardError => ex
+          OT.le "[customers doctor] recovered_customer_unverified check failed for #{@customer.extid}: " \
                 "#{ex.class} #{ex.message}"
         end
 

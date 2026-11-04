@@ -6,13 +6,15 @@ Fixed
 - A customer record recreated at login (a Rodauth account with no matching
   Customer in Redis) is now provisioned through the same operation the SSO
   JIT hook uses, with a ``verified_by`` derived from persisted auth state
-  (``sso`` for accounts with an SSO identity, ``legacy`` when account
-  verification is enabled, otherwise ``autoverify``), a ``login_recovery``
+  only (``sso`` for accounts with an SSO identity, otherwise ``legacy``,
+  meaning verified by an unknown route), a ``login_recovery``
   provisioning origin, and a WARN log line. If that derivation fails the
   record is created unverified. Previously it was verified from a bare
   status check with no provenance. Follow-up to #3973.
-  None of these counts as mailbox proof, so a recovered customer cannot
-  use a system role until an operator verifies the address.
+  Neither counts as mailbox proof, so a recovered customer cannot
+  use a system role until an operator verifies the address. The doctor
+  reports a recovered customer left unverified while its auth account is
+  Verified (MEDIUM, never auto-repaired).
 
 Security
 --------

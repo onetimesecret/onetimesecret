@@ -113,7 +113,7 @@ module Onetime
     #   colonel_admin  - colonel admin verification (apps/api/colonel/logic/
     #                    colonel/set_user_verification.rb)
     #   legacy         - backfilled by the doctor's verified_by repair, and
-    #                    the login-recovery path when verify_account is on
+    #                    the login-recovery path for non-SSO accounts
     #                    (a Verified row there does not show how it got so)
     # Keep this list in sync when adding a new provenance writer.
     VERIFIED_BY_VALUES = %w[

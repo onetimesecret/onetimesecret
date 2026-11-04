@@ -334,8 +334,14 @@ module Auth
       #
       #   - status_id != VERIFIED            -> unverified, no provenance
       #   - an account_identities row exists -> 'sso'    (JIT provisioning)
-      #   - verify_account is enabled        -> 'legacy' (verified, unknown how)
-      #   - otherwise                        -> 'autoverify'
+      #   - otherwise                        -> 'legacy' (verified, unknown how)
+      #
+      # Only recorded state decides the tag, never today's config: the
+      # verify_account setting now says nothing about how an existing row
+      # became Verified (verification may have been off then, or loaded only
+      # through webauthn_verify_account). 'sso' is the stricter of the two
+      # tags (federation_claim_deferred? defers it), so an identity row that
+      # was linked after an email verification errs toward less access.
       #
       # Never a mailbox-proof tag (Onetime::Customer::MAILBOX_VERIFIED_BY). A
       # Verified row does not show HOW it became Verified: the emailed link,
@@ -359,15 +365,7 @@ module Auth
       def derive_verification_provenance
         return [false, nil] unless @account[:status_id] == Auth::AccountStatuses::VERIFIED
 
-        verified_by =
-          if sso_identity_present?
-            'sso'
-          elsif Onetime.auth_config.verify_account_enabled?
-            'legacy'
-          else
-            'autoverify'
-          end
-        [true, verified_by]
+        [true, sso_identity_present? ? 'sso' : 'legacy']
       rescue StandardError => ex
         Auth::Logging.log_error(
           :customer_recreate_provenance_failed,
