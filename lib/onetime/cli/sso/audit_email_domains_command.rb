@@ -10,11 +10,13 @@
 #   bin/ots sso audit-email-domains secrets.example.com                   # Report
 #   bin/ots sso audit-email-domains secrets.example.com --unlink          # Preview unlinks
 #   bin/ots sso audit-email-domains secrets.example.com --unlink --confirm # Unlink
+#   bin/ots sso audit-email-domains secrets.example.com --issuer URL      # Rows stamped with URL
 #   bin/ots sso audit-email-domains secrets.example.com --json            # JSON output
 #
 # Runbook: docs/runbooks/sso-tenant-email-domain-audit.md
 
 require 'json'
+require 'shellwords'
 
 module Onetime
   module CLI
@@ -47,6 +49,13 @@ module Onetime
         required: true,
         desc: 'Custom domain display name (secrets.example.com) or CustomDomain extid'
 
+      option :issuer,
+        type: :string,
+        default: nil,
+        desc: 'Scan the rows whose issuer column equals this value exactly (the complete ' \
+              'stamped value, no derivation applied) instead of the derived issuer; ' \
+              'for rows backfill-issuer stamped, the value given to its --issuer'
+
       option :unlink,
         type: :boolean,
         default: false,
@@ -68,7 +77,7 @@ module Onetime
         aliases: ['h'],
         desc: 'Show help message'
 
-      def call(domain:, unlink: false, confirm: false, json: false, help: false, **)
+      def call(domain:, issuer: nil, unlink: false, confirm: false, json: false, help: false, **)
         return show_usage_help if help
 
         boot_application!
@@ -80,18 +89,19 @@ module Onetime
           exit 1
         end
 
-        dry_run = !confirm
-        op      = build_operation(custom_domain, unlink, dry_run, json)
+        dry_run         = !confirm
+        issuer_override = issuer_override_from(issuer)
+        op              = build_operation(custom_domain, unlink, dry_run, json, issuer_override)
         return unless op
 
         results = op.call
 
         if json
-          output_json(custom_domain, op, results, dry_run)
+          output_json(custom_domain, op, results, dry_run, issuer_override)
         else
-          print_header(custom_domain, op, dry_run)
+          print_header(custom_domain, op, dry_run, issuer_override)
           print_results(results, dry_run, unlink)
-          print_next_steps(domain, dry_run, unlink, results)
+          print_next_steps(domain, dry_run, unlink, results, issuer_override)
         end
 
         exit 1 if results.any? { |r| r.status == :error }
@@ -105,11 +115,19 @@ module Onetime
           Onetime::CustomDomain.find_by_extid(id)
       end
 
-      def build_operation(custom_domain, unlink, dry_run, json)
+      # The --issuer value as the operation reads it: stripped, nil when blank.
+      # Nil means the operation derives the issuer from the SSO config.
+      def issuer_override_from(issuer)
+        value = issuer.to_s.strip
+        value.empty? ? nil : value
+      end
+
+      def build_operation(custom_domain, unlink, dry_run, json, issuer_override)
         Auth::Operations::AuditTenantEmailDomains.new(
           domain: custom_domain,
           unlink: unlink,
           dry_run: dry_run,
+          issuer_override: issuer_override,
         )
       rescue Onetime::Problem => ex
         if json
@@ -120,13 +138,13 @@ module Onetime
         exit 1
       end
 
-      def print_header(custom_domain, op, dry_run)
+      def print_header(custom_domain, op, dry_run, issuer_override)
         puts "\nTenant SSO Email Domain Audit"
         puts '=' * 60
         puts "  Domain:       #{custom_domain.display_domain}"
         puts "  Organization: #{op.organization.display_name} (#{op.organization.extid})"
         puts "  Provider:     #{op.provider}"
-        puts "  Issuer:       #{op.issuer}"
+        puts "  Issuer:       #{op.issuer}#{' (from --issuer)' if issuer_override}"
         puts "  Mode:         #{dry_run ? 'DRY RUN' : 'LIVE'}#{op.unlink ? ' (unlink)' : ' (report)'}"
         puts "  Proven by:    #{proof_basis_label}"
         missing = verified_without_txt_pass(custom_domain, op)
@@ -175,6 +193,10 @@ module Onetime
         stats = tally(results)
 
         puts "\nScanned #{results.size} identity row(s) under this issuer"
+        if results.empty?
+          puts '  Rows that backfill-issuer --issuer stamped with a different value are outside this scan; ' \
+               're-run with --issuer set to the value given there before reading this as a clean install.'
+        end
 
         if results.any?
           puts
@@ -211,8 +233,12 @@ module Onetime
         end
       end
 
-      def print_next_steps(domain, dry_run, unlink, results)
-        stats = tally(results)
+      def print_next_steps(domain, dry_run, unlink, results, issuer_override)
+        stats       = tally(results)
+        # A re-run must read the same rows, so a given --issuer stays on the
+        # command, quoted for the shell (a SAML value contains "|").
+        issuer_flag = issuer_override ? " --issuer #{Shellwords.escape(issuer_override)}" : ''
+        follow_up   = "bin/ots sso audit-email-domains #{domain} --unlink --confirm#{issuer_flag}"
 
         if !unlink && stats[:outside].positive?
           puts <<~MESSAGE
@@ -223,13 +249,13 @@ module Onetime
             with no TXT pass on record needs a verify run, see "No TXT pass" above; or, where the
             validation strategy makes no TXT check, a Colonel overrides its verification; the rows
             then report "inside"), or remove the bindings:
-              bin/ots sso audit-email-domains #{domain} --unlink --confirm
+              #{follow_up}
           MESSAGE
         elsif unlink && dry_run && stats[:unlink].positive?
           puts <<~MESSAGE
 
             Preview only. To delete the #{stats[:unlink]} identity row(s) above:
-              bin/ots sso audit-email-domains #{domain} --unlink --confirm
+              #{follow_up}
           MESSAGE
         elsif unlink && !dry_run && stats[:unlink].positive?
           puts <<~MESSAGE
@@ -252,13 +278,14 @@ module Onetime
         MESSAGE
       end
 
-      def output_json(custom_domain, op, results, dry_run)
+      def output_json(custom_domain, op, results, dry_run, issuer_override)
         stats = tally(results)
         puts JSON.pretty_generate(
           domain: custom_domain.display_domain,
           organization: op.organization.extid,
           provider: op.provider,
           issuer: op.issuer,
+          issuer_override: !issuer_override.nil?,
           sso_enabled: op.sso_enabled?,
           proof_basis: proof_basis,
           verified_without_txt_pass: verified_without_txt_pass(custom_domain, op),
@@ -327,6 +354,15 @@ module Onetime
             provider route and issuer and reports every one whose account address
             lies outside the proven set.
 
+            The scan is issuer-exact. Rows that backfill-issuer stamped through
+            its --issuer option are found only when the same value is passed as
+            --issuer here; it replaces the derived issuer and nothing else. The
+            value is used as the complete issuer column value, byte for byte,
+            with no derivation applied: for SAML the stored form is
+            "<domain_id>|<IdP EntityID>", not the EntityID alone. A run that
+            scans 0 rows is not evidence of a clean install until the issuer
+            matches what the rows were stamped with.
+
             With --unlink --confirm the failing rows are deleted. Nothing else
             changes: the account and its Customer stay, the address owner can still
             claim the account through a canonical-host password reset, and the
@@ -343,6 +379,10 @@ module Onetime
             DOMAIN                  Display name (secrets.example.com) or CustomDomain extid
 
           Options:
+            --issuer ISSUER         Scan the rows whose issuer column equals ISSUER exactly
+                                    (the complete stamped value, no derivation applied)
+                                    instead of the derived issuer; for rows backfill-issuer
+                                    stamped, the value given to its --issuer
             --unlink                Delete the failing identity rows (preview unless --confirm)
             --confirm               Execute changes (default is dry-run)
             --json                  JSON output (for scripting)
@@ -357,6 +397,10 @@ module Onetime
 
             # Delete the failing rows
             bin/ots sso audit-email-domains secrets.example.com --unlink --confirm
+
+            # Rows that backfill-issuer stamped with an explicit issuer
+            bin/ots sso audit-email-domains secrets.example.com \\
+              --issuer https://login.microsoftonline.com/TENANT_ID/v2.0
 
           Safety:
             - Default mode is dry-run (no changes) even without --confirm

@@ -26,9 +26,15 @@ module Auth
     # -------------
     # The account_identities rows keyed by THIS domain's provider route and the
     # issuer the live callback writes for it (the same derivation as
-    # BackfillTenantIssuer, plus SAML: "<domain_id>|<EntityID>"). For each row
-    # the account's address is compared with the proven set exactly as the
-    # login gate compares it (Organization#owns_email_domain_through?).
+    # BackfillTenantIssuer, plus SAML: "<domain_id>|<EntityID>"). The scan is
+    # issuer-exact: rows that BackfillTenantIssuer stamped through its issuer
+    # override are read only when the same value is given as issuer_override,
+    # which replaces the derived issuer and nothing else. For each row the
+    # account's address is compared with the proven set exactly as the login
+    # gate compares it (Organization#owns_email_domain_through?). The proven
+    # set is read once per run (#proven_email_domains), so every row of a run
+    # is judged against the same set and the organization's domain records
+    # are loaded once rather than once per row.
     #
     # WHAT UNLINK CHANGES, AND WHAT IT DOES NOT
     # -----------------------------------------
@@ -90,7 +96,13 @@ module Auth
       #   gate are deleted (subject to dry_run)
       # @param dry_run [Boolean] when true (default), writes nothing and reports
       #   what WOULD happen
-      def initialize(domain:, unlink: false, dry_run: true)
+      # @param issuer_override [String, nil] operator override for the issuer
+      #   half of the identity key. When present and non-blank it is used in
+      #   place of the derived value, for every provider type, so the rows
+      #   that BackfillTenantIssuer stamped through its own override can be
+      #   read; pass the value given there. It selects which rows are read
+      #   and relabels nothing.
+      def initialize(domain:, unlink: false, dry_run: true, issuer_override: nil)
         @domain  = domain
         @unlink  = unlink
         @dry_run = dry_run
@@ -104,7 +116,7 @@ module Auth
         raise Onetime::Problem, "Domain #{domain.display_domain} has no SSO config" unless sso_config
 
         @provider    = resolve_provider(sso_config)
-        @issuer      = resolve_issuer(sso_config)
+        @issuer      = resolve_issuer(sso_config, issuer_override)
         @sso_enabled = sso_config.enabled?
       end
 
@@ -117,6 +129,19 @@ module Auth
           .where(provider: provider, issuer: issuer)
           .order(:id)
           .all
+      end
+
+      # The proven set the login gate on this domain consults
+      # (Organization#proven_email_domains_through: the audited domain, while
+      # its own ownership is proven, plus the organization's verified
+      # domains), read on first use and kept for the run. An address is
+      # judged with Organization#owns_email_domain? over this set, which is
+      # the answer #owns_email_domain_through? gives, without reloading the
+      # organization's domain records for every row.
+      #
+      # @return [Array<Onetime::CustomDomain>]
+      def proven_email_domains
+        @proven_email_domains ||= organization.proven_email_domains_through(domain)
       end
 
       # Classify one row and, when asked and allowed, unlink it.
@@ -150,7 +175,7 @@ module Auth
         customer        = resolve_customer(account_id)
         obscured        = OT::Utils.obscure_email(email)
 
-        if organization.owns_email_domain_through?(domain, asserted_domain)
+        if organization.owns_email_domain?(asserted_domain, domains: proven_email_domains)
           return result(
             :inside,
             account_id,
@@ -229,9 +254,15 @@ end
       #   oidc     -> sso_config.issuer, byte-exact
       #   entra_id -> https://login.microsoftonline.com/{tenant_id}/v2.0
       #   saml     -> "<domain_id>|<IdP EntityID>" (Saml.tenant_issuer)
-      # SAML is eligible here, unlike the issuer backfill: nothing is relabelled,
-      # the rows under the tenant's own key are read and, at most, deleted.
-      def resolve_issuer(sso_config)
+      # A non-blank override wins over all three, stripped and otherwise
+      # byte-exact, so the rows BackfillTenantIssuer stamped through --issuer
+      # can be read under the same value. SAML is eligible here, unlike the
+      # issuer backfill: nothing is relabelled, the rows under the tenant's
+      # own key are read and, at most, deleted.
+      def resolve_issuer(sso_config, override = nil)
+        override = override.to_s.strip
+        return override unless override.empty?
+
         provider_type = sso_config.provider_type.to_s
 
         resolved =

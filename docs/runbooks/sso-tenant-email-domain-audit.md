@@ -52,6 +52,7 @@ identity rows themselves, so dormant bindings are found too.
 
 ```console
 $ bin/ots sso audit-email-domains secrets.example.com
+$ bin/ots sso audit-email-domains secrets.example.com --issuer ISSUER   # rows stamped with ISSUER
 ```
 
 For the tenant domain given (display domain or CustomDomain extid) it
@@ -59,7 +60,8 @@ For the tenant domain given (display domain or CustomDomain extid) it
 1. resolves the organization, the SSO configuration, the provider route and
    the identity issuer the live callback writes: the configured issuer for
    OIDC, `https://login.microsoftonline.com/<tenant_id>/v2.0` for Entra ID,
-   `<domain_id>|<IdP EntityID>` for SAML;
+   `<domain_id>|<IdP EntityID>` for SAML; `--issuer ISSUER` replaces that
+   derived value (see [Issuer-exact scan](#issuer-exact-scan));
 2. reads every `account_identities` row under that provider and issuer;
 3. compares each account's address with the proven set exactly as the login
    gate does (`Organization#owns_email_domain_through?`: the tenant domain
@@ -96,6 +98,32 @@ Statuses:
 
 The default run is a dry run even with `--unlink`; `--confirm` executes.
 `--json` prints the same report for scripting.
+
+### Issuer-exact scan
+
+The scan reads only the rows whose `issuer` column equals the one resolved
+above, byte for byte. `bin/ots sso backfill-issuer --issuer` stamps legacy
+rows with whatever value the operator gave it, so rows stamped with a value
+other than the derived one are found only by passing the same value here:
+
+```console
+$ bin/ots sso audit-email-domains secrets.example.com \
+    --issuer https://login.microsoftonline.com/TENANT_ID/v2.0
+```
+
+The header then reads `Issuer: ... (from --issuer)` and the JSON report has
+`"issuer_override": true`. The option selects which rows are read and changes
+nothing else: the provenance gate and the delete apply to those rows as to
+any other, under that same issuer, and no row is relabelled.
+
+`Scanned 0 identity row(s) under this issuer` is not evidence of a clean
+install until the issuer matches what the rows were stamped with. The command
+prints a reminder under that line. Before reading a zero-row result as clean,
+find the issuer the backfill stamped: the `Issuer:` header line of the
+backfill run that was confirmed, or `issuer` in its `--json` report. A backfill
+dry run made now reads only rows still at issuer `''` and shows the issuer it
+would stamp today, not what an earlier run wrote. Re-run the audit with that
+value.
 
 ## Deciding what to do with an `outside` row
 
@@ -170,6 +198,10 @@ $ bin/ots sso audit-email-domains secrets.example.com --unlink           # previ
 $ bin/ots sso audit-email-domains secrets.example.com --unlink --confirm # execute
 ```
 
+Add `--issuer ISSUER` to both when the rows were stamped with that value
+(see [Issuer-exact scan](#issuer-exact-scan)); the delete then runs under
+that issuer.
+
 What changes: the `account_identities` row is deleted and the auth log
 records `omniauth_tenant_identity_unlinked` (warn) with the domain,
 organization, account id, provider, obscured address, asserted domain and
@@ -222,6 +254,7 @@ $ bin/ots sso audit-email-domains secrets.example.com --unlink --json
   "organization": "on8q30gih2uxu2cw77jzh7caq07",
   "provider": "oidc",
   "issuer": "https://idp.example.com/",
+  "issuer_override": false,
   "sso_enabled": true,
   "proof_basis": "txt_or_override",
   "verified_without_txt_pass": [],

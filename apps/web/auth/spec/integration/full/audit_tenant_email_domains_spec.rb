@@ -15,6 +15,9 @@
 # Valkey Customer / Organization / CustomDomain / SsoConfig fixtures, then the
 # CLI command in-process. Companion to tenant_sso_verified_email_domain_spec.rb
 # (the live gate) and backfill_tenant_issuer_spec.rb (the sibling operation).
+# The scan is issuer-exact; the issuer override (--issuer) reads the rows the
+# sibling stamped with a value other than the derived one, and a zero-row scan
+# says so.
 #
 # A display_domain is unique install-wide, so every tenant here gets its own
 # host; "inside" addresses sit at that host, "outside" ones at a domain no
@@ -43,6 +46,8 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
   let(:db) { Auth::Database.connection }
   let(:ds) { db[:account_identities] }
   let(:tenant_issuer) { 'https://tenant-idp.example.com/' }
+  # What backfill-issuer --issuer stamped onto the rows: not the derived value.
+  let(:stamped_issuer) { 'https://login.microsoftonline.com/contoso-tenant/v2.0' }
 
   let(:created_account_ids) { [] }
   let(:created_identity_ids) { [] }
@@ -141,8 +146,10 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
     { customer: cust, account_id: account_id, identity_id: identity_id, uid: uid }
   end
 
-  def new_operation(tenant, unlink: false, dry_run: true)
-    Auth::Operations::AuditTenantEmailDomains.new(domain: tenant.domain, unlink: unlink, dry_run: dry_run)
+  def new_operation(tenant, unlink: false, dry_run: true, issuer_override: nil)
+    Auth::Operations::AuditTenantEmailDomains.new(
+      domain: tenant.domain, unlink: unlink, dry_run: dry_run, issuer_override: issuer_override,
+    )
   end
 
   def identity_exists?(id)
@@ -217,6 +224,20 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
 
       expect(new_operation(tenant).call).to be_empty
     end
+
+    # Follow-up (1) on the audit side: the proven set, and with it the
+    # organization's domain records, is read once per run, not once per row.
+    it 'reads the proven set once per run, not once per row' do
+      tenant = build_tenant
+      seed_identity(tenant, "member-#{SecureRandom.hex(4)}@#{tenant.host}")
+      seed_identity(tenant, "victim-#{SecureRandom.hex(4)}@unrelated.example.org")
+
+      op = new_operation(tenant)
+      expect(op.organization).to receive(:proven_email_domains_through).once.and_call_original
+      expect(op.organization).to receive(:list_domains).once.and_call_original
+
+      expect(op.call.map(&:status)).to contain_exactly(:inside, :outside)
+    end
   end
 
   describe 'classification (saml)' do
@@ -233,6 +254,51 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
       statuses = results.to_h { |r| [r.account_id, r.status] }
       expect(statuses[inside[:account_id]]).to eq(:inside)
       expect(statuses[outside[:account_id]]).to eq(:outside)
+    end
+  end
+
+  describe 'issuer override' do
+    it 'uses the stripped override in place of the derived issuer, for oidc and saml alike' do
+      oidc = build_tenant
+      saml = build_tenant(provider_type: 'saml')
+
+      expect(new_operation(oidc, issuer_override: "  #{stamped_issuer}  ").issuer).to eq(stamped_issuer)
+      expect(new_operation(saml, issuer_override: stamped_issuer).issuer).to eq(stamped_issuer)
+      expect(new_operation(oidc, issuer_override: '   ').issuer).to eq(tenant_issuer)
+      expect(new_operation(oidc).issuer).to eq(tenant_issuer)
+    end
+
+    it 'scans a row stamped with another issuer only when that issuer is given' do
+      tenant  = build_tenant
+      inside  = seed_identity(tenant, "member-#{SecureRandom.hex(4)}@#{tenant.host}", issuer: stamped_issuer)
+      outside = seed_identity(tenant, "victim-#{SecureRandom.hex(4)}@unrelated.example.org", issuer: stamped_issuer)
+
+      expect(new_operation(tenant).call).to be_empty
+
+      results    = new_operation(tenant, issuer_override: stamped_issuer).call
+      by_account = results.to_h { |r| [r.account_id, r] }
+      expect(by_account[inside[:account_id]].status).to eq(:inside)
+      expect(by_account[outside[:account_id]].status).to eq(:outside)
+      expect(results.map(&:issuer).uniq).to eq([stamped_issuer])
+    end
+
+    it 'unlinks under the override only a row whose signup_domain_id names this domain, and reads no other issuer' do
+      tenant  = build_tenant
+      other   = seed_identity(tenant, "q@unrelated.example.org", signup: 'cd_somewhere_else', issuer: stamped_issuer)
+      minted  = seed_identity(tenant, "victim-#{SecureRandom.hex(4)}@unrelated.example.org", issuer: stamped_issuer)
+      derived = seed_identity(tenant, "victim-#{SecureRandom.hex(4)}@unrelated.example.org")
+
+      results = new_operation(tenant, unlink: true, dry_run: false, issuer_override: stamped_issuer).call
+
+      statuses = results.to_h { |r| [r.account_id, r.status] }
+      expect(statuses).to eq(other[:account_id] => :skipped_ambiguous_origin, minted[:account_id] => :unlinked)
+      expect(identity_exists?(other[:identity_id])).to be true
+      expect(identity_exists?(minted[:identity_id])).to be false
+      expect(identity_exists?(derived[:identity_id])).to be true
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :omniauth_tenant_identity_unlinked,
+        hash_including(account_id: minted[:account_id], domain_id: tenant.domain.identifier),
+      ).once
     end
   end
 
@@ -335,6 +401,7 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
       expect(payload['dry_run']).to be true
       expect(payload['unlink']).to be true
       expect(payload['issuer']).to eq(tenant_issuer)
+      expect(payload['issuer_override']).to be false
       expect(payload['proof_basis']).to eq('override_only')
       # Under passthrough the basis line already says why the flag alone
       # does not count; the missing-pass list is for TXT strategies.
@@ -419,6 +486,81 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
       expect(output).to include('Proven by:    Colonel override only (validation strategy makes no TXT check)')
       expect(output).to include('outside')
       expect(output).to include("bin/ots sso audit-email-domains #{tenant.domain.display_domain} --unlink --confirm")
+    end
+
+    it 'keeps --issuer, shell-quoted, on the follow-up commands it prints (text)' do
+      tenant = build_tenant
+      host   = tenant.domain.display_domain
+      piped  = "#{tenant.domain.identifier}|https://audit-idp.test/#{SecureRandom.hex(4)}"
+      seed_identity(tenant, "victim-#{SecureRandom.hex(4)}@unrelated.example.org", issuer: stamped_issuer)
+      seed_identity(tenant, "victim-#{SecureRandom.hex(4)}@unrelated.example.org", issuer: piped)
+
+      report  = run_command(Onetime::CLI::SsoAuditEmailDomainsCommand.new,
+        domain: host, issuer: stamped_issuer, unlink: false, confirm: false, json: false)
+      preview = run_command(Onetime::CLI::SsoAuditEmailDomainsCommand.new,
+        domain: host, issuer: stamped_issuer, unlink: true, confirm: false, json: false)
+      quoted  = run_command(Onetime::CLI::SsoAuditEmailDomainsCommand.new,
+        domain: host, issuer: piped, unlink: false, confirm: false, json: false)
+
+      follow_up = "bin/ots sso audit-email-domains #{host} --unlink --confirm --issuer #{stamped_issuer}"
+      expect(report).to include(follow_up)
+      expect(preview).to include('Preview only.')
+      expect(preview).to include(follow_up)
+      expect(quoted).to include("--unlink --confirm --issuer #{piped.sub('|', '\\|')}")
+    end
+
+    it 'says a zero-row scan may miss rows stamped with another issuer (text)' do
+      tenant = build_tenant
+      seed_identity(tenant, "victim-#{SecureRandom.hex(4)}@unrelated.example.org", issuer: stamped_issuer)
+
+      output = run_command(Onetime::CLI::SsoAuditEmailDomainsCommand.new,
+        domain: tenant.domain.display_domain, unlink: false, confirm: false, json: false)
+
+      expect(output).to include("Issuer:       #{tenant_issuer}\n")
+      expect(output).not_to include('(from --issuer)')
+      expect(output).to include('Scanned 0 identity row(s) under this issuer')
+      expect(output).to include('Rows that backfill-issuer --issuer stamped with a different value are outside this scan')
+      expect(output).to include('re-run with --issuer')
+    end
+
+    it 'scans the rows stamped with the --issuer value and marks the override (text and JSON)' do
+      tenant  = build_tenant
+      outside = seed_identity(tenant, "victim-#{SecureRandom.hex(4)}@unrelated.example.org", issuer: stamped_issuer)
+
+      text = run_command(Onetime::CLI::SsoAuditEmailDomainsCommand.new,
+        domain: tenant.domain.display_domain, issuer: stamped_issuer, unlink: false, confirm: false, json: false)
+
+      expect(text).to include("Issuer:       #{stamped_issuer} (from --issuer)")
+      expect(text).to include('Scanned 1 identity row(s) under this issuer')
+      expect(text).not_to include('outside this scan')
+
+      payload = JSON.parse(run_command(Onetime::CLI::SsoAuditEmailDomainsCommand.new,
+        domain: tenant.domain.display_domain, issuer: stamped_issuer, unlink: false, confirm: false, json: true))
+
+      expect(payload['issuer']).to eq(stamped_issuer)
+      expect(payload['issuer_override']).to be true
+      expect(payload['statistics']['scanned']).to eq(1)
+      expect(payload['results'].first['account_id']).to eq(outside[:account_id])
+      expect(payload['results'].first['status']).to eq('outside')
+      expect(payload['results'].first['issuer']).to eq(stamped_issuer)
+      expect(identity_exists?(outside[:identity_id])).to be true
+    end
+
+    it 'with --unlink --confirm --issuer still refuses a row whose signup_domain_id names another domain (JSON)' do
+      tenant = build_tenant
+      other  = seed_identity(tenant, "q@unrelated.example.org", signup: 'cd_somewhere_else', issuer: stamped_issuer)
+
+      payload = JSON.parse(run_command(Onetime::CLI::SsoAuditEmailDomainsCommand.new,
+        domain: tenant.domain.display_domain, issuer: stamped_issuer, unlink: true, confirm: true, json: true))
+
+      expect(payload['dry_run']).to be false
+      expect(payload['issuer_override']).to be true
+      expect(payload['statistics']['scanned']).to eq(1)
+      expect(payload['statistics']['unlink']).to eq(0)
+      expect(payload['statistics']['skipped_ambiguous_origin']).to eq(1)
+      expect(payload['results'].first['status']).to eq('skipped_ambiguous_origin')
+      expect(identity_exists?(other[:identity_id])).to be true
+      expect(Auth::Logging).not_to have_received(:log_auth_event).with(:omniauth_tenant_identity_unlinked, anything)
     end
 
     it 'is listed by the group root' do

@@ -29,7 +29,11 @@ Security
   settings to confirm by hand, ``removeUnverifiedEmailClaim`` and the
   ``xms_edov`` optional claim, and the documentation explains both. Operators can list, and on request
   unlink, tenant identities bound before this change to accounts outside
-  the proven domains with ``bin/ots sso audit-email-domains``. (#4734)
+  the proven domains with ``bin/ots sso audit-email-domains``; its
+  ``--issuer`` option reads the rows that
+  ``bin/ots sso backfill-issuer --issuer`` stamped with an issuer other
+  than the derived one, which the default scan does not reach, and the
+  text report of a scan that finds no rows says so. (#4734)
 
 - **Action required (passthrough installs with tenant SSO)**: under the
   ``passthrough`` validation strategy, the default, the verify call marks
