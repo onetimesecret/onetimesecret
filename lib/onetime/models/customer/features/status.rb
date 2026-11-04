@@ -211,7 +211,9 @@ module Onetime::Customer::Features
       #     that runs without the variable its immediate claim for an
       #     unverified signup; the warning names the remedy, and exporting
       #     the variable with either value settles the mode. The shipped
-      #     compose files export it on every service.
+      #     compose files export it on every service; the image sets no
+      #     default, so a container started with a plain docker run without
+      #     it is in the same state as a host shell.
       #
       # @return [Boolean]
       def verification_step_pending?

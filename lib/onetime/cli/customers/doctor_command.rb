@@ -53,7 +53,9 @@ module Onetime
       # (Customers::Shared#auth_mode_refusal), --repair refuses until the
       # shell says which mode the install runs; the audit runs in any mode.
       # The shipped compose files export the variable on every service (app,
-      # worker-email, scheduler), so this reaches host shells.
+      # worker-email, scheduler); the image sets no default, so a container
+      # started with a plain docker run and no -e AUTHENTICATION_MODE (the
+      # README quick start) is in the same state as a host shell.
       REPAIR_AUTH_MODE_MESSAGE =
         'AUTHENTICATION_MODE is not set in this shell, so simple auth mode was resolved by default. ' \
         'In this state a workspace repair defers every pending federated subscription claim rather than ' \

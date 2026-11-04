@@ -16,7 +16,8 @@ Security
   by ``bin/ots customers doctor --repair``, a lazy workspace creation or the
   billing self-heal cannot claim a pending subscription that signup
   deferred. The rule fails closed in a process that has not exported
-  ``AUTHENTICATION_MODE``: such a process resolves simple auth mode by
+  ``AUTHENTICATION_MODE`` (a host shell, or a container started with a plain
+  ``docker run`` and no ``-e AUTHENTICATION_MODE``): such a process resolves simple auth mode by
   default and now defers the claim, with a warning, rather than read the
   verification step as absent, so a ``bin/ots billing webhooks replay`` from
   that shell or a billing worker started without the variable stores the
