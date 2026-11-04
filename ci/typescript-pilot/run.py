@@ -89,12 +89,13 @@ def identity(env, local):
 
 def inventory_sha256(payload, root):
     """Hash test identities independently of the provider's checkout directory."""
-    prefix = str(root) + "/"
+    # A checkout prefix embedded in another path is not an absolute checkout path.
+    prefix = re.compile(r"(?<![\w./-])" + re.escape(str(root) + "/"))
     inventory = []
     for suite in payload.get("testResults", []):
         file = str(Path(suite["name"]).relative_to(root))
         for test in suite.get("assertionResults", []):
-            title = test["fullName"].replace(prefix, "<checkout>/")
+            title = prefix.sub("<checkout>/", test["fullName"])
             inventory.append([file, title])
     return hashlib.sha256(json.dumps(sorted(inventory)).encode()).hexdigest()
 

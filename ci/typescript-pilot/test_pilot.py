@@ -210,6 +210,24 @@ class InventoryTests(unittest.TestCase):
                 hashes.append(metrics["test_inventory_sha256"])
         self.assertEqual(hashes[0], hashes[1])
 
+    def test_workspace_checkout_preserves_relative_and_other_absolute_paths(self):
+        hashes = []
+        for root in (Path("/root/project"), Path("/workspace"), Path("/app[ci].v1+")):
+            with self.subTest(root=root):
+                report = self.report(root)
+                report["testResults"][0]["assertionResults"].extend(
+                    {"fullName": title}
+                    for title in (
+                        "readers src/apps/workspace/account/RecoveryCodes.vue calls useUnrecoverableContent",
+                        "preserves /other/workspace/file.ts and relative/workspace/file.ts",
+                        f"{root}/src/Example.vue",
+                        f'quoted "{root}/src/Example.vue"',
+                        f"parenthesized ({root}/src/Example.vue)",
+                    )
+                )
+                hashes.append(pilot.inventory_sha256(report, root))
+        self.assertEqual(len(set(hashes)), 1)
+
     def test_real_inventory_changes_remain_distinct(self):
         root = Path("/root/project")
         expected = pilot.inventory_sha256(self.report(root), root)
