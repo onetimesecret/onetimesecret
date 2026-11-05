@@ -266,6 +266,24 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     end
   end
 
+  describe 'when the record carries an unrecognised verified_by' do
+    let(:verified_by) { 'mystery' }
+
+    it 'reports a medium, non-repairable issue instead of a repair that would be refused', :aggregate_failures do
+      run(repair: true)
+
+      expect(issues.size).to eq(1)
+      expect(issues.first).to include(
+        check: :sso_customer_unverified,
+        severity: :medium,
+        reason: :unknown_verified_by,
+        repairable: false,
+      )
+      expect(verification_calls).to be_empty
+      expect(repaired).to be_empty
+    end
+  end
+
   describe 'registered provenance' do
     it "lists 'sso' as a valid verified_by value" do
       expect(described_class::VALID_VERIFIED_BY).to include('sso')
