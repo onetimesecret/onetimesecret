@@ -4,8 +4,8 @@
     "content_hash": "f9643d5a"
   },
   "web.admin.emailtools.description": {
-    "text": "Preview email templates, send a delivery test, and monitor deliverability — the diagnostics that previously required SSH.",
-    "content_hash": "be85c9e9"
+    "text": "Preview email templates, test delivery, and investigate delivery issues.",
+    "content_hash": "8c88d5ba"
   },
   "web.admin.emailtools.config.title": {
     "text": "Mailer configuration",

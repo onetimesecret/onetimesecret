@@ -101,6 +101,7 @@ module AccountAPI::Logic
         secret                    = Onetime::Secret.create!(owner_id: cust.objid)
         secret.default_expiration = 24.hours
         secret.verification       = 'true'
+        secret.kind               = 'password_reset' # mailbox proof for the owner's current address (#4735)
         secret.save
 
         cust.reset_secret = secret.identifier  # as a standalone dbkey, writes immediately

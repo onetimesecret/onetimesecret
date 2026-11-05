@@ -64,16 +64,13 @@ module Onetime
           new.enqueue_email(template, data, fallback: fallback, domain_id: domain_id)
         end
 
-        # Schedule an email for delayed delivery
-        # @param template [Symbol] Email template name
-        # @param data [Hash] Template data
-        # @param delay_seconds [Integer] Delay in seconds
-        # @param fallback [Symbol] Fallback strategy if RabbitMQ unavailable
-        # @param domain_id [String, nil] Domain identifier for per-domain sender config
-        # @return [Boolean] true if published to queue, false if fallback used
-        def schedule_email(template, data, delay_seconds:, fallback: DEFAULT_FALLBACK, domain_id: nil)
-          new.schedule_email(template, data, delay_seconds: delay_seconds, fallback: fallback, domain_id: domain_id)
-        end
+        # There is no delayed-delivery method. schedule_email published to
+        # email.message.schedule with a per-message TTL, and nothing consumed
+        # that queue: every message expired into dlq.email.message, where
+        # DlqEmailConsumerJob discards non-auth templates. A caller that
+        # wants mail at a later time keeps its own schedule and calls
+        # enqueue_email when the time comes (ExpirationWarningJob scans a
+        # timeline on an interval).
 
         # Enqueue a raw email (non-templated) for immediate delivery
         # Used for Rodauth integration where emails are pre-formatted
@@ -181,30 +178,6 @@ module Onetime
         end
       end
 
-      # Schedule email for delayed delivery
-      def schedule_email(template, data, delay_seconds:, fallback: DEFAULT_FALLBACK, domain_id: nil)
-        validate_fallback!(fallback)
-        @pending_template  = template
-        @pending_data      = data
-        @pending_domain_id = domain_id
-
-        # Gracefully fallback if jobs are disabled (no pool initialized)
-        unless jobs_enabled?
-          logger.info 'Jobs disabled, using fallback', template: template, fallback: fallback
-          return execute_fallback(fallback, :templated)
-        end
-
-        with_fallback(fallback, :templated) do
-          message_id = publish(
-            'email.message.schedule',
-            { template: template, data: data, domain_id: domain_id },
-            expiration: (delay_seconds * 1000).to_s, # Convert to milliseconds
-          )
-          logger.info 'Scheduled email', template: template, message_id: message_id, delay_seconds: delay_seconds
-          true
-        end
-      end
-
       # Enqueue raw email (non-templated) for immediate delivery
       # Used for Rodauth integration where emails are pre-formatted
       def enqueue_email_raw(email, fallback: DEFAULT_FALLBACK, domain_id: nil)
@@ -281,10 +254,10 @@ module Onetime
           if mailer_config
             # Same steps as DomainValidationWorker, inline. persist: false for
             # the same reason the worker passes it: verification_status is
-            # derived by update_verification_status! once BOTH checks are
-            # terminal, never written from DNS alone ahead of the provider
-            # check. (This fallback used to persist 'verified' from DNS and
-            # then close the provider check with provider_verified unknown.)
+            # derived once BOTH checks are terminal, never written from DNS
+            # alone ahead of the provider check. (This fallback used to
+            # persist 'verified' from DNS and then close the provider check
+            # with provider_verified unknown.)
             result = Onetime::Operations::ValidateSenderDomain.new(
               mailer_config: mailer_config,
               persist: false,
@@ -295,11 +268,12 @@ module Onetime
               # The worker retries, then fails the job to the DLQ. Inline there
               # is nothing to retry into: close the job as failed so the status
               # can settle instead of staying 'pending' forever.
-              mailer_config.provider_check_status       = Onetime::Jobs::Workers::JobLifecycle::FAILED
-              mailer_config.provider_check_completed_at = Familia.now.to_i
-              mailer_config.last_error                  = result.error.to_s
-              mailer_config.updated                     = Familia.now.to_i
-              mailer_config.save_fields(:provider_check_status, :provider_check_completed_at, :last_error, :updated)
+              Onetime::CustomDomain::MailerConfig.record_job_result!(domain_id, mailer_config.from_address) do |stored|
+                stored.provider_check_status       = Onetime::Jobs::Workers::JobLifecycle::FAILED
+                stored.provider_check_completed_at = Familia.now.to_i
+                stored.last_error                  = result.error.to_s
+                stored.updated                     = Familia.now.to_i
+              end
             else
               Onetime::Operations::CheckProviderVerification.new(
                 mailer_config: mailer_config,
@@ -352,18 +326,23 @@ module Onetime
             strategy = Onetime::Mail::SenderStrategies.for_provider(mailer_config.effective_provider)
             result   = strategy.check_dns_records(mailer_config, credentials: {})
 
-            mailer_config.dns_check_results.value = result[:records]
-
             # Same rule as DnsRecordCheckWorker: verified only when at least
             # one record was checked AND every one matched. [].all? is true,
             # which marked an unprovisioned domain (no records yet) verified.
-            records                              = result[:records] || []
-            all_matched                          = records.all? { |r| r['value_matches'] == true || r[:value_matches] == true }
-            mailer_config.dns_verified           = records.any? && all_matched
-            mailer_config.dns_check_status       = 'completed'
-            mailer_config.dns_check_completed_at = Familia.now.to_i
-            mailer_config.updated                = Familia.now.to_i
-            mailer_config.save_fields(:dns_check_status, :dns_verified, :dns_check_completed_at, :updated)
+            records      = result[:records] || []
+            all_matched  = records.all? { |r| r['value_matches'] == true || r[:value_matches] == true }
+            dns_verified = records.any? && all_matched
+
+            # Same write as DnsRecordCheckWorker (see record_job_result!)
+            stored, = Onetime::CustomDomain::MailerConfig.record_job_result!(domain_id, mailer_config.from_address) do |config|
+              config.dns_verified           = dns_verified
+              config.dns_check_status       = 'completed'
+              config.dns_check_completed_at = Familia.now.to_i
+              config.updated                = Familia.now.to_i
+              config.derive_verification_status
+            end
+
+            stored&.dns_check_results&.value = result[:records]
           end
 
           return true
@@ -565,20 +544,29 @@ module Onetime
       # left 'pending' for good. A bare synchronous call leaving 'pending' is
       # the regression try/unit/jobs/domain_validation_*_try.rb pin.
       #
-      # @return [String] the verification_status written
+      # Decided on the record as stored now, through record_job_result!.
+      #
+      # @return [String, nil] the verification_status written; nil when the
+      #   record was deleted or now sends from another address
       def settle_inline_verification_status(mailer_config, result)
-        mailer_config.refresh!
-        return mailer_config.update_verification_status! if mailer_config.jobs_completed?
+        _, status = Onetime::CustomDomain::MailerConfig.record_job_result!(
+          mailer_config.domain_id, mailer_config.from_address
+        ) do |stored|
+          now = Familia.now.to_i
 
-        provider_ok = mailer_config.parse_boolean_field(mailer_config.provider_verified)
-        verified    = result.error.nil? && result.all_verified && provider_ok != false
-        now         = Familia.now.to_i
+          if stored.jobs_completed?
+            stored.verification_status = stored.computed_verification_status
+          else
+            provider_ok = stored.parse_boolean_field(stored.provider_verified)
+            verified    = result.error.nil? && result.all_verified && provider_ok != false
 
-        mailer_config.verification_status = verified ? 'verified' : 'failed'
-        mailer_config.verified_at         = verified ? now.to_s : nil
-        mailer_config.updated             = now
-        mailer_config.save_fields(:verification_status, :verified_at, :updated)
-        mailer_config.verification_status
+            stored.verification_status = verified ? 'verified' : 'failed'
+            stored.verified_at         = verified ? now.to_s : nil
+          end
+          stored.updated = now
+          stored.verification_status
+        end
+        status
       end
 
       def process_billing_event_synchronously(event, _payload)

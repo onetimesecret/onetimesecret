@@ -81,6 +81,13 @@ module Auth::Config::Features
         configure_provider(auth, defn)
       end
 
+      # Not a registry entry: the local IdP is the development-only provider
+      # backed by this app's own OAuth2 IdP (see seed_dev_oauth_client), gated
+      # on oauth_enabled? and OAUTH_SP_DEV_CLIENT_SECRET. It has neither
+      # platform credentials nor a tenant-SSO placeholder to describe, so it
+      # stays a bespoke registration rather than a Registry::Definition.
+      configure_local_idp_provider(auth)
+
       # Issuer-scoped identity lookup (#3840 Phase 0 / #3838 item 5).
       configure_issuer_scoped_identities(auth)
     end
@@ -788,6 +795,61 @@ module Auth::Config::Features
 
     def self.configure_github_provider(auth)
       configure_provider(auth, Onetime::SsoProvider::Registry.fetch(:github))
+    end
+
+    # Local IdP provider — points this SP back at our own OAuth2/OIDC
+    # Identity Provider (rodauth-oauth, see config/features/oauth.rb).
+    # Primary use: developer-loop testing so OTS can act as both SP and IdP
+    # without an external IdP (Zitadel, Entra, Google, etc.).
+    #
+    # Gates:
+    #   1. Onetime.auth_config.oauth_enabled? — IdP must be on, otherwise
+    #      this provider has nowhere to talk to.
+    #   2. OAUTH_SP_DEV_CLIENT_SECRET must be set — same secret as the
+    #      seeded `onetimesecret-sp-dev` row in oauth_applications.
+    #
+    # Default issuer matches the IdP's oauth_jwt_issuer fallback so a
+    # vanilla dev boot just works. Override via OAUTH_SP_DEV_ISSUER or
+    # the shared OAUTH_ISSUER if those are explicitly set.
+    #
+    # See: apps/web/auth/config/features/oauth.rb (IdP side)
+    # See: apps/web/auth/initializers/seed_dev_oauth_client.rb (client row)
+    def self.configure_local_idp_provider(auth)
+      return unless Onetime.auth_config.oauth_enabled?
+
+      client_secret = ENV.fetch('OAUTH_SP_DEV_CLIENT_SECRET', nil)
+      if client_secret.nil? || client_secret.empty?
+        OT.ld '[OmniAuth] OAUTH_SP_DEV_CLIENT_SECRET not set — skipping local IdP provider'
+        return
+      end
+
+      client_id     = ENV.fetch('OAUTH_SP_DEV_CLIENT_ID', 'onetimesecret-sp-dev')
+      provider_name = ENV.fetch('OAUTH_SP_DEV_ROUTE_NAME', 'local').to_sym
+      issuer        = ENV.fetch('OAUTH_SP_DEV_ISSUER') do
+        ENV.fetch('OAUTH_ISSUER', 'http://localhost:3000/auth')
+      end
+      redirect_uri  = ENV.fetch(
+        'OAUTH_SP_DEV_REDIRECT_URI',
+        "http://localhost:3000/auth/sso/#{provider_name}/callback",
+      )
+
+      OT.li "[OmniAuth] Configuring local IdP provider '#{provider_name}' (issuer: #{issuer}, client_id: #{client_id})"
+
+      auth.omniauth_provider(
+        :openid_connect,
+        name: provider_name,
+        # offline_access is required by rodauth-oauth (oidc.rb:769-773) for refresh-token issuance; do not remove.
+        scope: [:openid, :email, :profile, :offline_access],
+        response_type: :code,
+        issuer: issuer,
+        client_options: {
+          identifier: client_id,
+          secret: client_secret,
+          redirect_uri: redirect_uri,
+        },
+        discovery: true,
+        pkce: true,
+      )
     end
 
     def self.configure_google_provider(auth)

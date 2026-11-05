@@ -18,7 +18,9 @@ module Onetime
         default: true,
         desc: 'Show only active prices'
 
-      def call(product: nil, active_only: true, **)
+      def call(args: [], product: nil, active_only: true, **)
+        reject_unknown_subcommand(args)
+
         boot_application!
 
         return unless stripe_configured?

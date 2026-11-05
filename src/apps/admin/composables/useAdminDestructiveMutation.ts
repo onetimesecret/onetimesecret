@@ -1,9 +1,10 @@
 // src/apps/admin/composables/useAdminDestructiveMutation.ts
 
+import { getCurrentScope, onScopeDispose, ref, watch, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { useAdminMutation, type UseAdminMutation } from './useAdminMutation';
-import { useColonelElevation } from './useColonelElevation';
+import { useColonelElevation, type ElevationCaller } from './useColonelElevation';
 
 /**
  * A TIER 1 (destructive) admin mutation — the same surface as
@@ -15,9 +16,32 @@ import { useColonelElevation } from './useColonelElevation';
  * The sudo prompt is mounted ONCE in AdminLayout and driven through the shared
  * elevation state, so no view has to render or own it.
  *
- * ## The loop
+ * ## Elevate first: `useElevateThenOpen` in the opener
+ *
+ * A TIER 1 opener (the backend's `ColonelAPI::DestructiveActions::TIER1`) uses
+ * `useElevateThenOpen(openerFn, options)`. It captures the target,
+ * proves the credential, and re-checks the target and eligibility before opening
+ * the confirmation dialog. Concurrent clicks share an opening lock; a target
+ * that changes during the prompt invalidates that opener, even if restored.
+ * The dialog collects the
+ * typed token and the operator's reason; it must collect them ONCE, after the
+ * credential. Prompting only on the 403 meant the dialog closed under the
+ * operator, the reason was lost, and they could not tell whether the action
+ * had run. A cancelled prompt opens nothing and reports nothing.
+ *
+ * It is returned from here rather than imported per view so the guard sits
+ * next to the mutation it protects. One mutation can serve several verbs of
+ * different tiers (AdminCustomerDetail's role/verify/suspend/purge switch), so
+ * `requiresElevation` decides per verb; TIER 2 verbs (suspend, unverify, replay,
+ * run chore, impersonate, ...) open without prompting.
+ *
+ * ## The fallback loop
  *
  *   attempt → 403 elevation_required → prompt → operator acts → retry ONCE
+ *
+ * The opener's guard leaves this for a window that lapses while the dialog is
+ * open. The 403 overrules any countdown still showing locally (see
+ * `noteElevationRequired`), so the prompt opens rather than a blind retry.
  *
  * The retry happens only AFTER the operator completes the prompt. It is never
  * silent: an automatic elevate-and-retry would put the whole flow back where the
@@ -28,6 +52,12 @@ import { useColonelElevation } from './useColonelElevation';
  * Only ONE retry, and only when the retry itself is not another
  * elevation_required — otherwise a server that keeps refusing would loop the
  * operator through the prompt indefinitely.
+ *
+ * The loop lives no longer than the view that started it. A 403 that arrives
+ * after the view unmounted (browser back; a failed refresh emptying its
+ * subtree) opens no prompt, and a prompt completed after the unmount retries
+ * nothing: the request is bound to the component scope through an
+ * `ElevationCaller`, and every step after an await checks it is still live.
  *
  * ## Rate limiting (#4329)
  *
@@ -113,11 +143,64 @@ function isOtsLimiterRejection(error: unknown): boolean {
   return responseOf(error)?.data?.error_type === 'LimitExceeded';
 }
 
+export interface ElevateThenOpenOptions<TArgs extends unknown[]> {
+  /** Stable resource identity, or null when its drawer/target is no longer available. */
+  target?: (...args: TArgs) => unknown;
+  /** Eligibility and dialog-state guards, checked both before and after elevation. */
+  canOpen?: (...args: TArgs) => boolean;
+  /** Mixed-tier dialogs can bypass elevation for their lower-tier actions. */
+  requiresElevation?: (...args: TArgs) => boolean;
+  /** Share with other openers that must not open competing dialogs. */
+  opening?: Ref<boolean>;
+}
+
+export interface ElevateThenOpen<TArgs extends unknown[]> {
+  opening: Ref<boolean>;
+  open: (...args: TArgs) => Promise<void>;
+}
+
+export interface UseAdminDestructiveMutation<
+  TArgs extends unknown[],
+> extends UseAdminMutation<TArgs> {
+  /**
+   * Resolve true once a step-up window is live (or step-up is disabled),
+   * prompting first. Lower-level seam for flows with custom async preparation;
+   * ordinary dialog openers should use `useElevateThenOpen`.
+   */
+  ensureElevated: () => Promise<boolean>;
+  useElevateThenOpen: <TOpenArgs extends unknown[]>(
+    openerFn: (...args: TOpenArgs) => void,
+    options?: ElevateThenOpenOptions<TOpenArgs>
+  ) => ElevateThenOpen<TOpenArgs>;
+}
+
+/**
+ * The calling component's lifetime, for the elevation seam. Bound to the
+ * current effect scope; without one (a bare call in a spec) it is always live.
+ */
+function scopeCaller(): ElevationCaller {
+  if (!getCurrentScope()) return { live: () => true, onDispose: () => {} };
+  let disposed = false;
+  const callbacks: Array<() => void> = [];
+  onScopeDispose(() => {
+    disposed = true;
+    for (const cb of callbacks.splice(0)) cb();
+  });
+  return {
+    live: () => !disposed,
+    onDispose: (cb) => {
+      if (disposed) cb();
+      else callbacks.push(cb);
+    },
+  };
+}
+
 export function useAdminDestructiveMutation<TArgs extends unknown[]>(
   perform: (...args: TArgs) => Promise<unknown>
-): UseAdminMutation<TArgs> {
+): UseAdminDestructiveMutation<TArgs> {
   const mutation = useAdminMutation(perform);
   const elevation = useColonelElevation();
+  const caller = scopeCaller();
   const { t } = useI18n();
 
   /** Append the wait and the recovery path to the server's own message. */
@@ -141,9 +224,20 @@ export function useAdminDestructiveMutation<TArgs extends unknown[]>(
     }
     if (code !== 'needs_elevation') return false;
 
+    // The server just said no window is live; a countdown still running here
+    // must not short-circuit the prompt into a blind retry. That is true of
+    // the shared window whoever learned it, so it is noted before the
+    // liveness check below.
+    elevation.noteElevationRequired();
+
+    // The view unmounted while the request was in flight: no prompt on
+    // whatever replaced it, and no retry from here.
+    if (!caller.live()) return false;
+
     // The server refreshes what the console knows about this account's factors
     // on the same fetch that opens the prompt.
-    if (!(await elevation.requestElevation())) return false;
+    if (!(await elevation.requestElevation(caller))) return false;
+    if (!caller.live()) return false;
 
     // Exactly one retry, after the operator's gesture.
     if (await mutation.run(...args)) return true;
@@ -151,5 +245,51 @@ export function useAdminDestructiveMutation<TArgs extends unknown[]>(
     return false;
   }
 
-  return { ...mutation, run };
+  return {
+    ...mutation,
+    run,
+    ensureElevated: () => elevation.ensureElevated(caller),
+    useElevateThenOpen: (openerFn, options) =>
+      createElevateThenOpen(caller, () => elevation.ensureElevated(caller), openerFn, options),
+  };
+}
+
+function createElevateThenOpen<TArgs extends unknown[]>(
+  caller: ElevationCaller,
+  ensureElevated: () => Promise<boolean>,
+  openerFn: (...args: TArgs) => void,
+  options: ElevateThenOpenOptions<TArgs> = {}
+): ElevateThenOpen<TArgs> {
+  const opening = options.opening ?? ref(false);
+  const readTarget = options.target ?? (() => undefined);
+  const requiresElevation = options.requiresElevation ?? (() => true);
+  const canOpen = (...args: TArgs): boolean =>
+    caller.live() && options.canOpen?.(...args) !== false;
+
+  async function open(...args: TArgs): Promise<void> {
+    if (opening.value || !canOpen(...args)) return;
+    opening.value = true;
+    let stop: (() => void) | undefined;
+    try {
+      const target = readTarget(...args);
+      let targetChanged = false;
+      // Observe synchronously so closing and reopening the same drawer cannot
+      // revive an opener that belonged to its previous contents.
+      stop = watch(
+        () => readTarget(...args),
+        () => {
+          targetChanged = true;
+        },
+        { flush: 'sync' }
+      );
+      if (requiresElevation(...args) && !(await ensureElevated())) return;
+      if (targetChanged || !Object.is(target, readTarget(...args)) || !canOpen(...args)) return;
+      openerFn(...args);
+    } finally {
+      stop?.();
+      opening.value = false;
+    }
+  }
+
+  return { opening, open };
 }

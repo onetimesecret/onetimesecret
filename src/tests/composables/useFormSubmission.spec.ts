@@ -195,4 +195,81 @@ describe('useFormSubmission', () => {
       expect(csrfStore.shrimp).toBe('body-token');
     });
   });
+
+  describe('redirect validation [L-7]', () => {
+    let warnSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.mocked(global.fetch).mockResolvedValue(createMockResponse({ message: 'ok' }));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('schedules navigation for a valid internal path', async () => {
+      const { submitForm, success } = createSubmission({
+        redirectUrl: '/dashboard',
+        redirectDelay: 100,
+      });
+      await submitForm();
+
+      expect(success.value).toBe('Done');
+      // Navigation timer is scheduled for the internal path
+      expect(vi.getTimerCount()).toBe(1);
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      'https://evil.example.com/phish',
+      'http://evil.example.com',
+      '//evil.example.com',
+      'javascript:alert(1)',
+      '/valid/../but%20has/a://protocol',
+    ])('refuses to navigate to %s', async (redirectUrl) => {
+      const { submitForm } = createSubmission({ redirectUrl, redirectDelay: 100 });
+      await submitForm();
+
+      // No navigation timer scheduled, and a warning is logged
+      expect(vi.getTimerCount()).toBe(0);
+      expect(warnSpy).toHaveBeenCalledWith(
+        '[useFormSubmission] Ignoring non-internal redirect URL:',
+        redirectUrl
+      );
+    });
+
+    it('rejects an invalid redirect even when onSuccess throws', async () => {
+      const redirectUrl = 'https://evil.example.com/phish';
+      const { submitForm, error } = createSubmission({
+        redirectUrl,
+        redirectDelay: 100,
+        onSuccess: () => {
+          throw new Error('onSuccess blew up');
+        },
+      });
+      await submitForm();
+
+      // Validation ran eagerly (before the fetch/onSuccess), so the warning
+      // is logged despite the throw, and no navigation timer was scheduled.
+      expect(warnSpy).toHaveBeenCalledWith(
+        '[useFormSubmission] Ignoring non-internal redirect URL:',
+        redirectUrl
+      );
+      expect(vi.getTimerCount()).toBe(0);
+      expect(error.value).toBe('onSuccess blew up');
+    });
+
+    it('still reports success when the redirect is refused', async () => {
+      const { submitForm, success, error } = createSubmission({
+        redirectUrl: '//evil.example.com',
+      });
+      await submitForm();
+
+      expect(success.value).toBe('Done');
+      expect(error.value).toBe('');
+      expect(vi.getTimerCount()).toBe(0);
+    });
+  });
 });

@@ -4,6 +4,12 @@ import vue from '@vitejs/plugin-vue';
 import { resolve } from 'path';
 import { defineConfig } from 'vitest/config';
 
+// direnv exports .env.test into the shell, which can leak NODE_ENV=production
+// into vitest. Production mode changes Vite's externalization of Node builtins
+// (malformed bare "node:" specifiers) and flips NODE_ENV-conditional code under
+// test. Tests must always run in test mode regardless of the caller's shell.
+process.env.NODE_ENV = 'test';
+
 // use mock service workers lib to mock API requests (any fetch or axios requests).
 
 // test.environment is set per project (see `projects` below). Can also use
@@ -79,15 +85,25 @@ const commonTestOptions = {
   },
   // Reduce concurrency to prevent test runner crashes
   pool: 'forks' as const,
-  // Handle unhandled promise rejections
-  onConsoleLog: () => false, // Suppress console logs that crash the reporter
 };
+
+// Fails a test that writes to console.warn/console.error it did not expect.
+// First, so its beforeEach starts recording before the other setup files'
+// hooks run. Exemptions: console-guard.exempt.ts.
+const CONSOLE_GUARD = 'src/tests/setup-console-guard.ts';
 
 export default defineConfig({
   test: {
     // Stays at the root: one locales:sync for the whole run, not one per
     // project. Two projects racing on generated/locales/ is a write race.
     globalSetup: ['src/tests/globalSetup.ts'],
+    // In CI, print a test's console output only when that test fails. The
+    // passing tests' Vue warnings and --printConsoleTrace frames made the
+    // job log ~16 MB, more than GitHub's log viewer will show. Root only:
+    // the reporter reads this (and onConsoleLog) from the root config, never
+    // a project's. Locally every log still prints, except under a coding
+    // agent, where vitest's agent reporter already behaves this way.
+    silent: process.env.CI ? 'passed-only' : false,
     coverage: {
       provider: 'v8',
       // `text` prints a summary; cobertura writes coverage/cobertura-coverage.xml
@@ -130,6 +146,7 @@ export default defineConfig({
           // projects.
           exclude: [...BASE_EXCLUDE, ...NODE_GLOBS],
           setupFiles: [
+            CONSOLE_GUARD,
             'src/tests/setup-env.ts',
             'src/tests/setup-stores.ts',
             'src/tests/setup-components.ts',
@@ -147,10 +164,11 @@ export default defineConfig({
           environment: 'node',
           include: NODE_GLOBS,
           exclude: BASE_EXCLUDE,
-          // All five setup files are window-dependent. Dropping them also
-          // drops setup-env.ts's process-level unhandledRejection handler;
-          // vitest's default handling applies here instead.
-          setupFiles: [],
+          // The dom project's other five setup files are window-dependent.
+          // Dropping them also drops setup-env.ts's process-level
+          // unhandledRejection handler; vitest's default handling applies
+          // here instead.
+          setupFiles: [CONSOLE_GUARD],
         },
       },
     ],

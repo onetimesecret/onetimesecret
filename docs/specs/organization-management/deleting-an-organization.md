@@ -110,7 +110,7 @@ repair ownership metadata, memberships, indexes, and entitlements together.
 - Remove a non-owner membership with `bin/ots memberships remove`.
 - Diagnose global organization drift with `bin/ots org doctor --all --json`.
 - Purge one account through the coordinated lifecycle with
-  `bin/ots customers purge-one IDENTIFIER` or Colonel customer details.
+  `bin/ots customers purge IDENTIFIER` or Colonel customer details.
 
 Do not use direct model destruction or raw index deletion as the primary repair
 path. See

@@ -16,6 +16,7 @@ import {
   unavailableBootstrap,
 } from '@/tests/fixtures/bootstrap.fixture';
 import { toWire } from '@/tests/fixtures/bootstrap-wire';
+import { captureAppLogs, type AppLogs } from '@/tests/utils/appLogs';
 import { attemptForcedPageLoad } from '@/utils/forcedPageLoad';
 import type { AxiosInstance } from 'axios';
 import type AxiosMockAdapter from 'axios-mock-adapter';
@@ -36,6 +37,8 @@ describe('authStore: rejection vs verification-unavailable (#4460)', () => {
   let interceptorId: number | null = null;
   let store: ReturnType<typeof useAuthStore>;
   let bootstrapStore: ReturnType<typeof useBootstrapStore>;
+  // Every test here drives failed verifications, which the store logs.
+  let logs: AppLogs;
 
   async function mountWith(hydration: BootstrapPayload) {
     _resetForTesting();
@@ -59,6 +62,7 @@ describe('authStore: rejection vs verification-unavailable (#4460)', () => {
   beforeEach(() => {
     vi.spyOn(Math, 'random').mockReturnValue(0.5);
     vi.mocked(attemptForcedPageLoad).mockClear();
+    logs = captureAppLogs();
   });
 
   afterEach(() => {
@@ -108,6 +112,11 @@ describe('authStore: rejection vs verification-unavailable (#4460)', () => {
       expect(store.staleSession).toBe(false);
       // Client-side storage was not cleared as a logout would.
       expect(store.isAuthenticated).toBe(false);
+      // Each failure was reported once: as an error, or as an unusable snapshot.
+      const notUsable = logs.warn.mock.calls.filter(
+        ([m]) => m === '[AuthStore.refresh] Snapshot not usable'
+      );
+      expect(logs.error.mock.calls.length + notUsable.length).toBe(100);
     });
 
     it('keeps retrying at a capped interval while unavailable', async () => {
@@ -165,6 +174,12 @@ describe('authStore: rejection vs verification-unavailable (#4460)', () => {
       expect(bootstrapStore.cust).not.toBeNull();
       expect(attemptForcedPageLoad).not.toHaveBeenCalled();
       expect(store.staleSession).toBe(false);
+      // Reported as an ordering event, never as a failed verification.
+      expect(logs.warn).toHaveBeenCalledWith(
+        '[AuthStore.ordering] allocation-failure',
+        expect.objectContaining({ event: 'allocation-failure' })
+      );
+      expect(logs.error).not.toHaveBeenCalled();
     });
 
     it('schedules a bounded retry driven by Retry-After', async () => {

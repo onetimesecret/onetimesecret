@@ -34,7 +34,16 @@ require 'onetime/middleware/http_origin_options'
 
 module DomainStrategyContract
   # Every value env['onetime.domain_strategy'] can carry at a consumer.
-  CLASSIFICATIONS = [:canonical, :subdomain, :custom, :invalid, nil].freeze
+  #
+  # :unverified (a registered host that is not served) never reaches a
+  # consumer on a served request: DomainStrategy#call answers it with a 404
+  # and writes no env key. It is driven through every row anyway, so a
+  # consumer reached some other way (off the middleware path, a future
+  # mount) cannot treat it as a tenant or an operator host.
+  CLASSIFICATIONS = [:canonical, :subdomain, :custom, :unverified, :invalid, nil].freeze
+
+  # Classifications that are neither a tenant nor an operator host.
+  NEITHER = [:unverified, :invalid, nil].freeze
 
   # The two classifications a datastore failure can never MANUFACTURE. That
   # one-directional property — not read-freeness, which only :canonical has —
@@ -279,14 +288,14 @@ RSpec.describe 'DomainStrategy classification contract' do
       Core::Views::ConfigSerializer.operator_domain?('domain_strategy' => :canonical)
     end
 
-    it 'is never simultaneously true with tenant_domain?, and both are false for :invalid/nil' do
+    it 'is never simultaneously true with tenant_domain?, and both are false for :unverified/:invalid/nil' do
       DomainStrategyContract::CLASSIFICATIONS.each do |strategy|
         vars   = { 'domain_strategy' => strategy }
         tenant = Core::Views::ConfigSerializer.tenant_domain?(vars)
         opera  = Core::Views::ConfigSerializer.operator_domain?(vars)
 
         expect(tenant && opera).to be(false)
-        expect([tenant, opera]).to eq([false, false]) if [:invalid, nil].include?(strategy)
+        expect([tenant, opera]).to eq([false, false]) if DomainStrategyContract::NEITHER.include?(strategy)
       end
     end
   end
@@ -455,6 +464,13 @@ RSpec.describe 'DomainStrategy classification contract' do
         expect(scope_domains(env_for(strategy))).to eq([])
       end
     end
+
+    # The middleware publishes nothing for :unverified, and the classification
+    # adds no record: only :custom does.
+    it 'adds no record for :unverified, even with one in env' do
+      env = env_for(:unverified).merge('onetime.custom_domain' => record)
+      expect(scope_domains(env)).to eq([])
+    end
   end
 
   # -------------------------------------------------------- session surface
@@ -484,7 +500,7 @@ RSpec.describe 'DomainStrategy classification contract' do
       before do
         allow(index).to receive(:get).with('tenant.example.com').and_return('domain-1')
         allow(Onetime::CustomDomain).to receive(:find_by_identifier).with('domain-1')
-          .and_return(instance_double(Onetime::CustomDomain, identifier: 'domain-1'))
+          .and_return(instance_double(Onetime::CustomDomain, identifier: 'domain-1', display_domain: 'tenant.example.com', served_as_tenant?: true))
       end
 
       it 'answers for_env exactly as a healthy :custom request would' do
@@ -518,6 +534,32 @@ RSpec.describe 'DomainStrategy classification contract' do
       end
     end
 
+    # The record is found but not served: classify! answers :unverified, as
+    # the middleware would, and that is no surface.
+    context 'when the datastore answers with a record that is not served' do
+      before do
+        allow(index).to receive(:get).with('tenant.example.com').and_return('domain-1')
+        allow(Onetime::CustomDomain).to receive(:find_by_identifier).with('domain-1')
+          .and_return(instance_double(Onetime::CustomDomain, identifier: 'domain-1', display_domain: 'tenant.example.com', served_as_tenant?: false))
+      end
+
+      it 'answers nil to the descriptor consumers' do
+        expect(Onetime::SessionSurface.for_env(env_for(:invalid))).to be_nil
+      end
+
+      it 'answers :mismatch, not :unavailable, to the session evaluators' do
+        expect(Onetime::SessionSurface.match_status(tenant, env_for(:invalid))).to eq(:mismatch)
+      end
+    end
+
+    it 'maps :unverified to no surface, without reading the datastore' do
+      allow(index).to receive(:get)
+
+      expect(Onetime::SessionSurface.for_env(env_for(:unverified))).to be_nil
+      expect(Onetime::SessionSurface.match_status(tenant, env_for(:unverified))).to eq(:mismatch)
+      expect(index).not_to have_received(:get)
+    end
+
     # nil never passed through DomainStrategy, so there is nothing to
     # classify again; it stays fail-closed.
     it 'answers :mismatch for nil without reading the datastore' do
@@ -538,18 +580,20 @@ RSpec.describe 'DomainStrategy classification contract' do
   # this finder.
   describe 'CustomDomain.from_display_domain host normalization' do
     let(:index) { instance_double(Familia::HashKey) }
+    # Stored under the indexed name, as record_for_display_domain requires.
+    let(:the_record) { instance_double(Onetime::CustomDomain, display_domain: 'tenant.example.com') }
 
     before do
       allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(index)
       allow(index).to receive(:get).and_return(nil)
       allow(index).to receive(:get).with('tenant.example.com').and_return('domain-1')
       allow(Onetime::CustomDomain).to receive(:find_by_identifier)
-        .with('domain-1').and_return(:the_record)
+        .with('domain-1').and_return(the_record)
     end
 
     ['tenant.example.com', 'Tenant.Example.com', 'TENANT.EXAMPLE.COM'].each do |host|
       it "resolves #{host.inspect} to the indexed record" do
-        expect(Onetime::CustomDomain.from_display_domain(host)).to be(:the_record)
+        expect(Onetime::CustomDomain.from_display_domain(host)).to be(the_record)
       end
     end
 

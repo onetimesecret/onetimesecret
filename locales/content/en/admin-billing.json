@@ -4,8 +4,8 @@
     "content_hash": "bfde7e68"
   },
   "web.admin.billing.description": {
-    "text": "Read-only view of configured plans and their entitlements, and any drift from the live Stripe-synced catalog.",
-    "content_hash": "05d5b332"
+    "text": "Review subscription plans, included features, and billing configuration.",
+    "content_hash": "48c33c55"
   },
   "web.admin.billing.retry": {
     "text": "Retry",

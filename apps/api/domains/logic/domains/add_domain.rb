@@ -5,7 +5,6 @@
 require 'public_suffix'
 
 require 'onetime/domain_validation/features'
-require 'onetime/domain_validation/strategy'
 require_relative '../base'
 
 module DomainsAPI::Logic
@@ -13,9 +12,14 @@ module DomainsAPI::Logic
     # Add Custom Domain
     #
     # @api Registers a new custom domain for an organization. Validates
-    #   the domain via PublicSuffix, checks for duplicates, and initiates
-    #   SSL certificate provisioning. Returns the created domain record
-    #   and sets it as the active domain context in the session.
+    #   the domain via PublicSuffix and checks for duplicates. Returns the
+    #   created domain record. When the new domain is served right away, it
+    #   also becomes the active domain context in the session.
+    #
+    # No certificate is requested here. Under a strategy that manages
+    # certificates (approximated) the virtual host is created by
+    # verification once ownership is verified (Operations::VerifyDomain),
+    # so a name whose owner never proves it gets no certificate.
     #
     # Supports two modes:
     # 1. Default: Uses organization from session context
@@ -65,8 +69,10 @@ module DomainsAPI::Logic
         # Custom domains are now available to all plans (free included)
         # Entitlement check removed - this feature is universally available
 
-        # Only store a valid, parsed input value to @domain
-        @parsed_domain  = Onetime::CustomDomain.parse(@domain_input, target_organization.objid)
+        # Only store a valid, parsed input value to @domain. parse refuses
+        # some names valid? accepts (too deep, TXT challenge name too long)
+        # with a message meant for the customer.
+        @parsed_domain  = refuse_on_problem { Onetime::CustomDomain.parse(@domain_input, target_organization.objid) }
         @display_domain = @parsed_domain.display_domain
 
         logger.debug '[AddDomain] Domain parsed', display_domain: @display_domain, identifier: @parsed_domain.identifier
@@ -88,32 +94,25 @@ module DomainsAPI::Logic
           raise_form_error 'Domain is registered to another organization'
         end
 
-        # Scenario 3: Orphaned domain (no org_id) - will be claimed in process
-        OT.info "[AddDomain] Found orphaned domain, will claim: #{@display_domain}"
-        # Don't raise an error - let the process method claim it
+        # Scenario 3: Orphaned domain (no org_id). Only an operator adopts
+        # an orphan; this answers like Scenario 2 and logs the refusal, before
+        # anything is written.
+        refuse_on_problem { Onetime::CustomDomain.refuse_orphan_claim!(existing, target_organization.objid) }
       end
 
       def process
         @greenlighted  = true
         logger.debug '[AddDomain] Processing domain', display_domain: @display_domain, org_id: target_organization.objid
 
-        @custom_domain = Onetime::CustomDomain.create!(@display_domain, target_organization.objid)
+        @custom_domain = refuse_on_problem { Onetime::CustomDomain.create!(@display_domain, target_organization.objid) }
 
-        # After creating the domain, make it the active context in the session.
-        # Route is sessionauth-only, so sess is always a real Rack session here.
-        sess['domain_context'] = @display_domain
-
-        begin
-          # Request certificate using the configured strategy
-          # This delegates to the appropriate backend (Approximated, Caddy, passthrough, etc.)
-          request_certificate
-        rescue HTTParty::ResponseError => ex
-          logger.error '[AddDomain.request_certificate error]', extid: @cust.extid, display_domain: @display_domain, exception: ex
-          # Continue processing despite certificate request error
-        rescue StandardError => ex
-          logger.error '[AddDomain] Unexpected error', exception: ex
-          # Continue processing despite error
-        end
+        # Make the new domain the active context in the session, but only
+        # when it is served (CustomDomain#served_as_tenant?). Under a strategy
+        # that checks ownership it is not served until verified, and the
+        # context is the share_domain of the next secret, which secret
+        # creation refuses for an unserved domain. Route is sessionauth-only,
+        # so sess is always a real Rack session here.
+        sess['domain_context'] = domain_context if domain_context
 
         # Auto-fetch the domain's favicon on add (#3780). Flag-gated and isolated:
         # the Publisher's jobs-disabled branch runs FetchDomainFavicon inline and can
@@ -129,38 +128,39 @@ module DomainsAPI::Logic
         success_data
       end
 
-      def request_certificate
-        strategy = Onetime::DomainValidation::Strategy.for_config(OT.conf)
-        result   = strategy.request_certificate(@custom_domain)
+      # The model refuses a domain with a bare Onetime::Problem whose message
+      # is written for the customer. No handler is registered for the bare
+      # class, so it would surface as a 500; it becomes a form error (422)
+      # instead. Subclasses keep their own handlers.
+      def refuse_on_problem
+        yield
+      rescue Onetime::Problem => ex
+        raise unless ex.instance_of?(Onetime::Problem)
 
-        OT.info "[AddDomain.request_certificate] #{@display_domain} -> #{result[:status]}"
-
-        # Store the result data if available (for strategies like Approximated)
-        if result[:data]
-          @custom_domain.vhost   = result[:data].to_json
-          @custom_domain.updated = OT.now.to_i
-          @custom_domain.save
-        end
-
-        result
+        raise_form_error ex.message
       end
 
-      # Legacy method for backward compatibility
-      # @deprecated Use request_certificate instead
-      def create_vhost
-        request_certificate
-      end
-
+      # domain_context is the context #process set in the session, nil when
+      # it set none. It is in details too, where the client reads it
+      # (customDomainDetailsSchema).
       def success_data
         {
           user_id: @cust.objid,
           organization: target_organization.safe_dump,
           record: @custom_domain.safe_dump,
-          domain_context: @display_domain,
+          domain_context: domain_context,
           details: {
             cluster: Onetime::DomainValidation::Features.safe_dump,
+            domain_context: domain_context,
           },
         }
+      end
+
+      # The new domain's name when it is served
+      # (CustomDomain#served_as_tenant?), else nil. #process sets it as the
+      # session's domain context.
+      def domain_context
+        @display_domain if @custom_domain&.served_as_tenant?
       end
     end
   end

@@ -30,8 +30,8 @@
       class="mt-1.5 flex items-center gap-2 rounded-lg border border-gray-300
         px-3 py-2 dark:border-gray-600">
       <OIcon
-        collection="mdi"
-        name="web"
+        collection="heroicons"
+        name="globe-alt"
         class="size-4 text-gray-400" />
       <span class="font-mono text-sm text-gray-900 dark:text-gray-200">https://example.com</span>
       <span class="ml-auto text-xs font-medium text-brand-600">Read again</span>

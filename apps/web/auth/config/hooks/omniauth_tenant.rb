@@ -27,6 +27,10 @@
 #     `allow_platform_fallback_for_tenants`; platform SAML stays on its pinned host
 #   - Tenant SSO waiting only on domain verification is refused on every
 #     phase (sso_domain_unverified), with no platform fallback (#4579)
+#   - Tenant SSO creates an account only for an address inside a custom
+#     domain the organization has proven, by TXT ownership check or Colonel
+#     override (CustomDomain#ownership_proven?); the tenant allowlist selects
+#     among those domains (#4734)
 #
 # See: docs/authentication/omniauth-sso.md (full configuration guide)
 # See: lib/onetime/models/custom_domain/sso_config.rb (per-domain SSO config)
@@ -34,6 +38,7 @@
 #
 
 require 'onetime/models/custom_domain/signin_config'
+require 'onetime/models/custom_domain/sso_signin_outcome'
 require 'onetime/sso_provider/flow_session_keys'
 
 require_relative '../../restrict_to'
@@ -90,6 +95,54 @@ module Auth::Config::Hooks
           carried                       = @validated_omniauth_domain_id
           @validated_omniauth_domain_id = nil
           from_session || carried
+        end
+
+        # The CustomDomain identifier a tenant flow belongs to, or nil on a
+        # platform flow. Reads the VALIDATED id first (the callback hook has
+        # run) and the PENDING id otherwise (the IdP or the strategy failed
+        # the callback before that hook consumed it). Never consumes either,
+        # so the consumers above are unaffected. Read by the failure hook for
+        # its log line and by record_tenant_sso_failure below.
+        #
+        # @return [String, nil]
+        def tenant_sso_domain_id
+          domain_id = session[:validated_omniauth_domain_id] || session['validated_omniauth_domain_id'] ||
+                      @validated_omniauth_domain_id ||
+                      session[:omniauth_tenant_domain_id] || session['omniauth_tenant_domain_id']
+          domain_id.to_s.empty? ? nil : domain_id.to_s
+        end
+
+        # Record a tenant sign-in that stopped at `stage` with `code` against
+        # the domain the flow belongs to (CustomDomain::SsoSigninOutcome, read
+        # by the domain's SSO settings as `last_sign_in`). A platform flow,
+        # which has no tenant domain id, records nothing. Best-effort by
+        # construction: the model rescues its own writes.
+        #
+        # @param stage [String] one of SsoSigninOutcome::STAGES
+        # @param code [String, Symbol, nil] sanitized by the model
+        # @return [void]
+        def record_tenant_sso_failure(stage, code)
+          domain_id = tenant_sso_domain_id
+          return if domain_id.nil?
+
+          config        = request.env['onetime.tenant_sso_config']
+          provider_type = config.provider_type if config&.domain_id == domain_id.to_s
+          # A provider failure can land on another host or precede injection.
+          # Use only the initiating incarnation, never fetch today's config.
+          unless config&.domain_id == domain_id.to_s
+            config = Onetime::CustomDomain::SsoConfig.new(
+              domain_id: domain_id.to_s,
+              outcome_generation: session['omniauth_tenant_outcome_generation'],
+            )
+          end
+          Onetime::CustomDomain::SsoSigninOutcome.record_failure!(
+            domain_id,
+            config: config,
+            stage: stage,
+            code: code,
+            provider_type: provider_type,
+          )
+          nil
         end
       end
       # rubocop:enable Lint/NestedMethodDefinition
@@ -310,9 +363,10 @@ module Auth::Config::Hooks
         # for the new start time to keep usable.
         if is_request_phase && !is_callback_phase
           HELPERS.clear_pending_tenant_context(session)
-          session[:omniauth_tenant_domain_id]  = custom_domain.identifier
-          session[:omniauth_tenant_host]       = host
-          session[:omniauth_tenant_started_at] = Time.now.to_i
+          session[:omniauth_tenant_domain_id]           = custom_domain.identifier
+          session[:omniauth_tenant_host]                = host
+          session[:omniauth_tenant_started_at]          = Time.now.to_i
+          session['omniauth_tenant_outcome_generation'] = sso_config.signin_outcome_generation
         end
       end
 
@@ -353,8 +407,9 @@ module Auth::Config::Hooks
           ip: request.ip,
         )
 
-        expected_domain_id = session.delete(:omniauth_tenant_domain_id)
-        expected_host      = session.delete(:omniauth_tenant_host)
+        expected_domain_id  = session.delete(:omniauth_tenant_domain_id)
+        expected_host       = session.delete(:omniauth_tenant_host)
+        expected_generation = session.delete('omniauth_tenant_outcome_generation')
         session.delete(:omniauth_tenant_started_at)
 
         # Tenant options were injected by HOST on this very callback
@@ -384,6 +439,13 @@ module Auth::Config::Hooks
             domain_id: injected_config.domain_id,
             ip: request.ip,
             session_id_hash: Digest::SHA256.hexdigest(session.id.to_s)[0, 16],
+          )
+          Onetime::CustomDomain::SsoSigninOutcome.record_failure!(
+            injected_config.domain_id,
+            config: injected_config,
+            stage: 'callback',
+            code: 'tenant_context_missing',
+            provider_type: injected_config.provider_type,
           )
 
           response.status          = 403
@@ -425,6 +487,16 @@ module Auth::Config::Hooks
             actual_domain_id: current_domain&.identifier,
             ip: request.ip,
             session_id_hash: Digest::SHA256.hexdigest(session.id.to_s)[0, 16],
+          )
+          # Against the domain that STARTED the flow: that is the tenant whose
+          # sign-in did not complete, whatever host the callback landed on.
+          Onetime::CustomDomain::SsoSigninOutcome.record_failure!(
+            expected_domain_id,
+            stage: 'callback',
+            code: 'tenant_mismatch',
+            config: Onetime::CustomDomain::SsoConfig.new(
+              domain_id: expected_domain_id, outcome_generation: expected_generation,
+            ),
           )
 
           # Return 403 directly rather than throw_error_status, which throws
@@ -647,10 +719,19 @@ module Auth::Config::Hooks
     #                       proves nothing here — it resolves to evil.com and the
     #                       allowlist rejects it unaided. Any regression test for
     #                       this rung must use the FORMER ordering.
-    #   domain not listed - the ordinary rejection.
+    #   domain not listed - the ordinary rejection. Listed and asserted
+    #                       domains are compared by A-label as well as byte
+    #                       for byte (SsoConfig#matching_allowed_domain), so
+    #                       "bücher.de" and "xn--bcher-kva.de" match each
+    #                       other. A sign-in permitted only because the forms
+    #                       differed logs :omniauth_tenant_domain_idn_match.
     #
     # An empty allowlist is NOT a rung — valid_email_domain? returns true and
-    # the callback proceeds. That is the documented allow-all state.
+    # the callback proceeds. That is the documented allow-all state. Allow-all
+    # does not mean any address: account creation is further gated by
+    # enforce_tenant_verified_email_domain! (before_omniauth_create_account),
+    # which admits only addresses inside a domain the organization has
+    # proven it owns (#4734). The allowlist selects among those.
     #
     # Missing and malformed claims use missing_email and invalid_email;
     # policy/configuration denials use domain_not_allowed without disclosing
@@ -681,6 +762,7 @@ module Auth::Config::Hooks
       # an IdP that pads the claim would fail the structural check below and be
       # denied for the wrong reason.
       candidate = email.to_s.strip.downcase
+      listed    = nil
 
       reason = if sso_config.nil?
                  :no_sso_config
@@ -694,11 +776,21 @@ module Auth::Config::Hooks
                      !Onetime::SignupValidation.structurally_valid_email?(candidate) ||
                      !OT::Utils.fold_stable_email?(candidate)
                  :invalid_email
-               elsif !sso_config.valid_email_domain?(candidate)
+               elsif (listed = sso_config.matching_allowed_domain(candidate)).nil?
                  :domain_not_allowed
+               elsif domain_owner_unverified?(rodauth)
+                 # The allowlist matched, but the IdP itself says the tenant does
+                 # not own the email's domain (Entra `xms_edov: false`, #4735).
+                 # An allowlist entry is the org's statement about which domains
+                 # its IdP vouches for; a domain the IdP disowns is not vouched
+                 # for, whatever the list says.
+                 :domain_unverified
                end
 
-      return unless reason
+      unless reason
+        log_tenant_domain_idn_match(domain_id, email, candidate, listed) if listed
+        return
+      end
 
       Auth::Logging.log_auth_event(
         :omniauth_tenant_domain_rejected,
@@ -709,7 +801,173 @@ module Auth::Config::Hooks
       )
 
       error = [:missing_email, :invalid_email].include?(reason) ? reason : :domain_not_allowed
+      Onetime::CustomDomain::SsoSigninOutcome.record_failure!(
+        domain_id, stage: 'callback', code: error, config: sso_config, provider_type: sso_config&.provider_type
+      )
       rodauth.send(:redirect, "/signin?auth_error=#{error}")
+    end
+
+    # Did the IdP explicitly assert that the email's domain owner is NOT
+    # verified? Only Entra ID emits such a claim (`xms_edov`, in the decoded
+    # id_token that omniauth-entra-id exposes as extra.raw_info); every other
+    # provider yields nil here. Absence is not a refusal — the claim is opt-in
+    # per app registration — and an unreadable auth hash is not one either:
+    # this rung narrows an allowlist match, it does not replace the ladder's
+    # fail-closed rungs above it.
+    #
+    # @param rodauth [Rodauth] the callback's Rodauth instance
+    # @return [Boolean]
+    def self.domain_owner_unverified?(rodauth)
+      return false unless rodauth.respond_to?(:omniauth_extra, true)
+
+      extra    = rodauth.send(:omniauth_extra)
+      raw_info = Auth::Config::Hooks::OmniAuth.fetch_claim(extra, 'raw_info')
+      Auth::Config::Hooks::OmniAuth.explicit_false?(
+        Auth::Config::Hooks::OmniAuth.fetch_claim(raw_info, 'xms_edov'),
+      )
+    rescue StandardError
+      false
+    end
+
+    # Log a tenant allowlist match that only the IDN comparison made: the
+    # entry and the asserted domain are the same name in different forms
+    # (Unicode vs A-label, or composed vs decomposed). These sign-ins were
+    # denied before #4736, so the line lets an operator see them, and see
+    # which form their IdP sends. Silent for a byte-for-byte match.
+    #
+    # @param domain_id [String] validated CustomDomain identifier for this flow
+    # @param email [String] IdP-asserted email address
+    # @param candidate [String] the address as the allowlist judged it
+    # @param listed [String] the allowlist entry it matched, as stored
+    # @return [void]
+    def self.log_tenant_domain_idn_match(domain_id, email, candidate, listed)
+      asserted_domain = candidate.split('@').last
+      return if listed == asserted_domain
+
+      Auth::Logging.log_auth_event(
+        :omniauth_tenant_domain_idn_match,
+        level: :info,
+        domain_id: domain_id,
+        email: OT::Utils.obscure_email(email.to_s),
+        reason: :idn_form_differed,
+        allowed_domain: listed,
+        asserted_domain: asserted_domain,
+      )
+    end
+
+    # Refuse to create an account for a tenant SSO address outside every
+    # domain the tenant organization has proven it owns
+    # (RISK-2026-10-10-01, #4734).
+    #
+    # Called from before_omniauth_create_account (hooks/omniauth.rb) on the
+    # tenant surface, after the structural email checks and before the
+    # install-wide signup-domain gate, so it runs exactly when an account is
+    # about to be minted. The allowlist above it (enforce_tenant_email_domain!)
+    # is the tenant's own choice and judges a claim the tenant's IdP asserts,
+    # so both sides of that comparison belong to one party; an empty list
+    # even reads as allow-all. This rung is the platform's: the address must
+    # fall inside a custom domain whose ownership rests on evidence, a
+    # passing TXT check or a Colonel override (CustomDomain#ownership_proven?;
+    # under passthrough only an override counts). The allowlist
+    # therefore selects among proven domains, and allow-all means "any proven
+    # domain".
+    #
+    # Only account creation is gated. An identity row already bound to an
+    # account keeps signing in (log_unverified_tenant_email_domain records
+    # it), and authenticated linking binds an identity to the session's own
+    # account, which the asserted address plays no part in choosing.
+    #
+    # Fails closed when the custom domain or its organization cannot be
+    # loaded mid-flow: there is no proven set to consult. The visitor sees
+    # the same domain_not_allowed as an allowlist refusal (the ladder's rule:
+    # configuration denials do not disclose the configured domains); the
+    # audit event names the real reason.
+    #
+    # @param domain_id [String, nil] validated CustomDomain identifier for this
+    #   flow; nil on the platform surface, where this rung does not apply
+    # @param email [String] IdP-asserted email address, already normalized
+    #   (stripped, downcased) and structurally valid
+    # @param rodauth [Rodauth] Rodauth instance (for redirect)
+    # @param provider [String, nil] omniauth provider, for the audit event
+    # @return [void] returns normally only when the address may be minted
+    def self.enforce_tenant_verified_email_domain!(domain_id, email, rodauth, provider: nil)
+      return if domain_id.to_s.empty?
+
+      asserted_domain = email.to_s.split('@').last.to_s
+      custom_domain   = Onetime::CustomDomain.find_by_identifier(domain_id)
+      organization    = custom_domain&.primary_organization
+
+      reason = if custom_domain.nil?
+                 :no_custom_domain
+               elsif organization.nil?
+                 :no_organization
+               elsif !tenant_owns_email_domain?(custom_domain, organization, asserted_domain)
+                 :email_domain_unverified
+               end
+      return unless reason
+
+      Auth::Logging.log_auth_event(
+        :omniauth_tenant_email_domain_unverified,
+        level: :warn,
+        outcome: :refused,
+        domain_id: domain_id,
+        org_id: organization&.objid,
+        email: OT::Utils.obscure_email(email.to_s),
+        asserted_domain: asserted_domain,
+        provider: provider,
+        reason: reason,
+      )
+
+      # A JIT create refusal, recorded for the domain's settings page
+      # (CustomDomain::SsoSigninOutcome) with the code the visitor sees, as
+      # the other refusals in before_omniauth_create_account do.
+      if rodauth.respond_to?(:record_tenant_sso_failure)
+        rodauth.record_tenant_sso_failure('account', 'domain_not_allowed')
+      end
+
+      rodauth.send(:redirect, '/signin?auth_error=domain_not_allowed')
+    end
+
+    # Record a tenant SSO sign-in by an identity already bound to an account
+    # whose address lies outside every domain the organization has proven
+    # (#4734). The sign-in is not refused: the binding predates the rule, or
+    # the proof lapsed since. The line gives the operator the list of
+    # accounts to review. Best effort: a datastore error here is logged by
+    # the caller's safe_execute and never blocks the sign-in.
+    #
+    # @param domain_id [String] validated CustomDomain identifier for this flow
+    # @param email [String] the account's address
+    # @param provider [String, nil] omniauth provider, for the audit event
+    # @return [void]
+    def self.log_unverified_tenant_email_domain(domain_id, email, provider: nil)
+      asserted_domain = email.to_s.strip.downcase.split('@').last.to_s
+      custom_domain   = Onetime::CustomDomain.find_by_identifier(domain_id)
+      organization    = custom_domain&.primary_organization
+      return if custom_domain && organization && tenant_owns_email_domain?(custom_domain, organization, asserted_domain)
+
+      Auth::Logging.log_auth_event(
+        :omniauth_tenant_email_domain_unverified,
+        level: :warn,
+        outcome: :signed_in,
+        domain_id: domain_id,
+        org_id: organization&.objid,
+        email: OT::Utils.obscure_email(email.to_s),
+        asserted_domain: asserted_domain,
+        provider: provider,
+        reason: :email_domain_unverified,
+      )
+    end
+
+    # Whether `email_domain` lies inside a domain the tenant organization has
+    # proven (Organization#owns_email_domain_through?: the flow's own domain
+    # is always consulted, while its ownership is proven).
+    #
+    # @param custom_domain [Onetime::CustomDomain] the flow's domain
+    # @param organization [Onetime::Organization] its owner
+    # @param email_domain [String]
+    # @return [Boolean]
+    def self.tenant_owns_email_domain?(custom_domain, organization, email_domain)
+      organization.owns_email_domain_through?(custom_domain, email_domain)
     end
 
     # Where a platform-path request lands when the install-wide OIDC issuer
@@ -982,6 +1240,7 @@ module Auth::Config::Hooks
       session.delete(:omniauth_tenant_domain_id)
       session.delete(:omniauth_tenant_host)
       session.delete(:omniauth_tenant_started_at)
+      session.delete('omniauth_tenant_outcome_generation')
       Onetime::SsoProvider::FlowSessionKeys::ALL.each { |key| session.delete(key) }
     end
 
@@ -1189,6 +1448,13 @@ module Auth::Config::Hooks
       )
 
       clear_pending_tenant_context(rodauth.session)
+      Onetime::CustomDomain::SsoSigninOutcome.record_failure!(
+        sso_config.domain_id,
+        stage: 'setup',
+        code: 'sso_config_unusable',
+        config: sso_config,
+        provider_type: sso_config.provider_type,
+      )
 
       rodauth.send(:redirect, '/signin?auth_error=sso_config_unusable')
     end

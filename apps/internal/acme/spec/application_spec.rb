@@ -30,13 +30,13 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
     let(:verified_domain) do
       double('CustomDomain',
              display_domain: 'verified.example.com',
-             ready?: true)
+             ready?: true, serving_authorized?: true)
     end
 
     let(:unverified_domain) do
       double('CustomDomain',
              display_domain: 'unverified.example.com',
-             ready?: false)
+             ready?: false, serving_authorized?: true)
     end
 
     # Rack::Test defaults REMOTE_ADDR to 127.0.0.1, so LocalhostOnly
@@ -115,6 +115,31 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
       end
     end
 
+    # ready? alone does not answer for a record with no organization, which
+    # is never served (CustomDomain#serving_authorized?).
+    context 'with a ready domain that has no organization' do
+      let(:orphan) do
+        Onetime::CustomDomain.new(display_domain: 'orphan.example.com').tap do |record|
+          record.txt_validation_value = 'challenge-value'
+          record.ownership_verified   = true
+          record.resolving            = true
+        end
+      end
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+          .with('orphan.example.com')
+          .and_return(orphan)
+      end
+
+      it 'returns 403 Forbidden' do
+        expect([orphan.ready?, orphan.serving_authorized?]).to eq([true, false])
+
+        get '/ask', domain: 'orphan.example.com'
+        expect(last_response.status).to eq(403)
+      end
+    end
+
     context 'with non-existent domain' do
       before do
         allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
@@ -166,7 +191,9 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
     # indexed the name in Unicode, as typed. The lookup tries both forms
     # (CustomDomain.display_domain_id_for); only the index is stubbed here.
     context 'with an internationalised domain' do
-      let(:idn_domain) { double('CustomDomain', display_domain: 'bücher.example', ready?: true) }
+      let(:idn_domain) do
+        double('CustomDomain', display_domain: 'bücher.example', ready?: true, serving_authorized?: true)
+      end
       let(:index) { double('display_domain_index') }
 
       before do
@@ -237,7 +264,9 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
     end
 
     context 'with a domain indexed in A-label form' do
-      let(:idn_domain) { double('CustomDomain', display_domain: 'xn--bcher-kva.example', ready?: true) }
+      let(:idn_domain) do
+        double('CustomDomain', display_domain: 'xn--bcher-kva.example', ready?: true, serving_authorized?: true)
+      end
       let(:index) { double('display_domain_index') }
 
       before do
@@ -289,7 +318,7 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
 
   describe 'LocalhostOnly middleware' do
     let(:verified_domain) do
-      double('CustomDomain', display_domain: 'example.com', ready?: true)
+      double('CustomDomain', display_domain: 'example.com', ready?: true, serving_authorized?: true)
     end
 
     before do
@@ -398,7 +427,7 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
     end
 
     context 'with domain that is not ready' do
-      let(:domain) { double('CustomDomain', ready?: false) }
+      let(:domain) { double('CustomDomain', ready?: false, serving_authorized?: true) }
 
       before do
         allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
@@ -422,7 +451,7 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
     end
 
     context 'with domain that is ready' do
-      let(:domain) { double('CustomDomain', ready?: true) }
+      let(:domain) { double('CustomDomain', ready?: true, serving_authorized?: true) }
 
       before do
         allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
@@ -456,7 +485,7 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
     context 'valid endpoint' do
       before do
         allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
-          .and_return(double(ready?: true))
+          .and_return(double(ready?: true, serving_authorized?: true))
       end
 
       it 'routes GET /ask' do

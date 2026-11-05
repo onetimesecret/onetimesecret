@@ -822,6 +822,25 @@ export function getSecretActivityMaxEvents(): number {
 }
 
 /**
+ * Checks if organizations can admit their custom domain's own base domain to
+ * its sign-up allowlist automatically (allow_base_domain).
+ * When true, organizations with the base_domain_signup entitlement can turn
+ * it on in a domain's sign-up settings.
+ * Default is OFF - requires explicit opt-in via ORGS_BASE_DOMAIN_SIGNUP_ENABLED=true.
+ */
+export function isOrgsBaseDomainSignupEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  const result = features?.organizations?.base_domain_signup_enabled === true;
+  debugLog.features('features.isOrgsBaseDomainSignupEnabled', {
+    base_domain_signup_enabled: features?.organizations?.base_domain_signup_enabled,
+    result,
+  });
+  return result;
+}
+
+/**
  * Checks if organization-level incoming secrets configuration is enabled.
  * When true, organizations with incoming_secrets entitlement can configure
  * incoming secret receiving for their domains.
@@ -834,6 +853,25 @@ export function isOrgsIncomingSecretsEnabled(): boolean {
   const result = features?.organizations?.incoming_secrets_enabled === true;
   debugLog.features('features.isOrgsIncomingSecretsEnabled', {
     incoming_secrets_enabled: features?.organizations?.incoming_secrets_enabled,
+    result,
+  });
+  return result;
+}
+
+/**
+ * Checks if organizations may edit their custom domains' homepage network
+ * rules (allowed/denied CIDRs). Pairs with the homepage_network_rules
+ * entitlement. Default is OFF - requires explicit opt-in via
+ * ORGS_HOMEPAGE_NETWORK_RULES_UI_ENABLED=true. Off stops edits only: rules
+ * already stored stay enforced, so the editor still shows them read-only.
+ */
+export function isOrgsHomepageNetworkRulesUiEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  const result = features?.organizations?.homepage_network_rules_ui_enabled === true;
+  debugLog.features('features.isOrgsHomepageNetworkRulesUiEnabled', {
+    homepage_network_rules_ui_enabled: features?.organizations?.homepage_network_rules_ui_enabled,
     result,
   });
   return result;

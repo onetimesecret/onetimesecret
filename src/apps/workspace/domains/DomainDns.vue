@@ -32,7 +32,7 @@
 
   // Record type, host and target. Shared with the DomainVerify screen; see
   // useDomainDnsRecord for where the record points under each strategy.
-  const { isApex, recordType, recordHost, recordHostAppendix, recordTarget } =
+  const { isApex, recordType, recordHost, recordHostAppendix, recordDisplayName, recordTarget } =
     useDomainDnsRecord(domain);
 
   // An apex (zone-root) domain can't use a CNAME; keep the heading consistent
@@ -105,6 +105,18 @@
             :label="t('web.COMMON.value')"
             :value="recordTarget" />
         </div>
+        <!-- An internationalised name: the spelling some DNS providers list it under. -->
+        <p
+          v-if="recordDisplayName"
+          data-testid="address-record-display-name"
+          class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+          {{ t('web.domains.dns.display_name_hint') }}
+          <span
+            class="block font-mono break-all text-gray-800 dark:text-gray-100"
+            translate="no">
+            {{ recordDisplayName }}
+          </span>
+        </p>
 
         <!-- Apex domains cannot use a CNAME at the zone root. -->
         <p

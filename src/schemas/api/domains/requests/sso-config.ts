@@ -8,6 +8,7 @@
 // - PATCH /api/domains/:domain_extid/sso (partial update)
 // - DELETE /api/domains/:domain_extid/sso
 // - POST /api/domains/:domain_extid/sso/test
+// - POST /api/domains/:domain_extid/sso/metadata
 //
 // Response schemas are in ../responses/sso-config.ts
 
@@ -23,11 +24,13 @@ export {
   putSsoConfigResponseSchema,
   patchSsoConfigResponseSchema,
   deleteSsoConfigResponseSchema,
+  fetchIdpMetadataResponseSchema,
   ssoConfigDetailsSchema,
   type GetSsoConfigResponse,
   type PutSsoConfigResponse,
   type PatchSsoConfigResponse,
   type DeleteSsoConfigResponse,
+  type FetchIdpMetadataResponse,
   type SsoConfigDetails,
 } from '../responses/sso-config';
 
@@ -112,3 +115,21 @@ export const deleteSsoConfigRequestSchema = z.object({
 });
 
 export type DeleteSsoConfigRequest = z.infer<typeof deleteSsoConfigRequestSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/domains/:domain_extid/sso/metadata
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Request body for fetching and parsing a SAML IdP metadata document.
+ *
+ * The API fetches the URL (https only, SSRF-guarded, size-capped) and
+ * returns a preview; it never writes the record. The preview reaches the
+ * record only through the form and a normal PUT/PATCH save. A blank URL is
+ * refused with a `missing` error on field metadata_url.
+ */
+export const fetchIdpMetadataRequestSchema = z.object({
+  metadata_url: z.string().min(1, 'Metadata URL is required'),
+});
+
+export type FetchIdpMetadataRequest = z.infer<typeof fetchIdpMetadataRequestSchema>;

@@ -37,6 +37,8 @@ export const customDomainSchema = z.object({
 
   // Domain parts
   display_domain: z.string(),
+  // display_domain in A-label form; null when it has no A-label form.
+  display_domain_ascii: z.string().nullable().optional(),
   base_domain: z.string(),
   subdomain: z.string().nullable(),
   trd: z.string().nullable(),
@@ -50,6 +52,10 @@ export const customDomainSchema = z.object({
   // Validation fields
   txt_validation_host: z.string(),
   txt_validation_value: z.string(),
+  // Full TXT record name in A-label form, and the same name spelled like
+  // display_domain. Null before a challenge exists.
+  txt_validation_record: z.string().nullable().optional(),
+  txt_validation_record_display: z.string().nullable().optional(),
 
   // Optional nested objects that can be:
   // 1. undefined

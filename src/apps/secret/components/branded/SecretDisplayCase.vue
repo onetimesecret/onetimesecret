@@ -2,6 +2,8 @@
 
 <script setup lang="ts">
   import BaseSecretDisplay from '@/apps/secret/components/branded/BaseSecretDisplay.vue';
+  import SecretMarkdownContent from '@/apps/secret/components/SecretMarkdownContent.vue';
+  import { SecretDisplayType } from '@/schemas/contracts/secret';
   import { brandSettingsSchema } from '@/schemas/shapes/v3/custom-domain';
   import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
   import { useClipboard } from '@/shared/composables/useClipboard';
@@ -27,6 +29,10 @@
   const { t } = i18n;
 
   const isRevealed = computed(() => !!props.record?.secret_value && props.record.secret_value !== '');
+
+  // display_type is the creator's presentation hint (plain text unless they
+  // chose otherwise). The copy button copies the raw value in every mode.
+  const isMarkdown = computed(() => props.record?.display_type === SecretDisplayType.MARKDOWN);
 
   const productIdentity = useProductIdentity();
 
@@ -120,7 +126,15 @@
 
     <template #content>
       <div class="relative size-full p-0">
-        <div :class="[cornerClass, 'size-full overflow-hidden border border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800']">
+        <SecretMarkdownContent
+          v-if="isMarkdown && record?.secret_value"
+          :content="record.secret_value"
+          :content-id="'secret-content-' + record?.identifier"
+          :rows="details?.display_lines ?? 4"
+          :corner-class="cornerClass" />
+        <div
+          v-else
+          :class="[cornerClass, 'size-full overflow-hidden border border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800']">
           <label
             :for="'secret-content-' + record?.identifier"
             class="sr-only">

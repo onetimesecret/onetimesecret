@@ -22,6 +22,7 @@ import {
   unavailableBootstrap,
 } from '@/tests/fixtures/bootstrap.fixture';
 import { toWire } from '@/tests/fixtures/bootstrap-wire';
+import { captureAppLogs, type AppLogs } from '@/tests/utils/appLogs';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { getActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -65,6 +66,8 @@ describe('authStore refresh coordinator (#4459)', () => {
   let axiosMock: AxiosMockAdapter;
   let store: ReturnType<typeof useAuthStore>;
   let bootstrapStore: ReturnType<typeof useBootstrapStore>;
+  // Most tests here drive failed verifications, which the store logs.
+  let logs: AppLogs;
 
   async function mountWith(hydration: BootstrapPayload | null) {
     _resetForTesting();
@@ -85,6 +88,7 @@ describe('authStore refresh coordinator (#4459)', () => {
 
   beforeEach(() => {
     vi.spyOn(Math, 'random').mockReturnValue(0.5);
+    logs = captureAppLogs();
   });
 
   afterEach(() => {
@@ -320,6 +324,11 @@ describe('authStore refresh coordinator (#4459)', () => {
       expect(JSON.stringify(bootstrapStore.$state)).toBe(before);
       expect(store.authStatus).toBe('authenticated');
       expect(store.failureCount).toBe(1);
+      // Reported once: as an error, or as an unusable snapshot.
+      const notUsable = logs.warn.mock.calls.filter(
+        ([m]) => m === '[AuthStore.refresh] Snapshot not usable'
+      );
+      expect(logs.error.mock.calls.length + notUsable.length).toBe(1);
     });
 
     it('repeated failures become `unavailable`, never a sign-out', async () => {

@@ -1,7 +1,10 @@
-# Lane: smoke — representative cross-stack check (target: under 2 min).
-# Cleans the TEST valkey (2163), runs smoke:ruby, then vitest.
-# Local-only: no CI job runs this lane (every suite it covers is already run
-# by the unit, typescript-unit and simple lanes).
+# Lane: smoke — representative cross-stack check (about 10.5 min on CI).
+# Cleans the TEST valkey (2163), runs smoke:ruby, then the vitest smoke
+# subset (pnpm test:smoke:vitest; list in src/tests/smoke-files.ts).
+# CI: run by the T3 smoke-test job in .github/workflows/ci.yml when a
+# change touches both Ruby and TypeScript, with timeout-minutes 15. About
+# 9.5 minutes pass before vitest starts (runner setup about 1, Ruby about
+# 8.6).
 AUTHENTICATION_MODE=simple
 
 # Generated prerequisites, produced by tests/lanes/run before the tasks
@@ -9,8 +12,9 @@ AUTHENTICATION_MODE=simple
 # spec:apps:web_billing, which reads the gitignored generated billing
 # schema; spec/spec_helper.rb needs the compiled locales.
 #
-# NOT skip-safe: `pnpm test:smoke` shells into `pnpm test`, which starts
-# with its own `pnpm run locales:sync` (package.json). --skip-codegen
-# silences the phase below but not that one, so this lane must stay out of
-# any parallel set that relies on the flag to keep generated/ still.
+# NOT skip-safe: `pnpm test:smoke` shells into `pnpm test:smoke:vitest`,
+# which starts with its own `pnpm run locales:sync` (package.json).
+# --skip-codegen silences the phase below but not that one, so this lane
+# must stay out of any parallel set that relies on the flag to keep
+# generated/ still.
 LANES_CODEGEN='locales schemas'

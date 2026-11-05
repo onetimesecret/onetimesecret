@@ -128,6 +128,50 @@ describe('DomainDns', () => {
     expect(value?.attributes('data-value')).toBe('secrets.example.com');
   });
 
+  // The record is created under the A-label form of the name
+  // (display_domain_ascii); the typed spelling is a hint below the record.
+  describe('A-label record name', () => {
+    const hint = '[data-testid="address-record-display-name"]';
+
+    it('Unicode subdomain: the A-label host, with the typed spelling as a hint', async () => {
+      mockDomain.value = createMockDomain({
+        display_domain: 'bücher.example.com',
+        display_domain_ascii: 'xn--bcher-kva.example.com',
+        trd: 'bücher',
+      });
+      const wrapper = await mountComponent();
+
+      const host = findFieldByLabel(wrapper, t('web.COMMON.host'));
+      expect(host?.attributes('data-value')).toBe('xn--bcher-kva');
+      expect(host?.attributes('data-appendix')).toBe('.example.com');
+      expect(wrapper.find(`${hint} span`).text()).toBe('bücher.example.com');
+    });
+
+    it('ASCII name: no hint', async () => {
+      mockDomain.value = createMockDomain({ display_domain_ascii: 'test.example.com' });
+      const wrapper = await mountComponent();
+
+      expect(findFieldByLabel(wrapper, t('web.COMMON.host'))?.attributes('data-value')).toBe(
+        'test'
+      );
+      expect(wrapper.find(hint).exists()).toBe(false);
+    });
+
+    it('no display_domain_ascii: the typed trd, no hint', async () => {
+      mockDomain.value = createMockDomain({
+        display_domain: 'bücher.example.com',
+        display_domain_ascii: null,
+        trd: 'bücher',
+      });
+      const wrapper = await mountComponent();
+
+      expect(findFieldByLabel(wrapper, t('web.COMMON.host'))?.attributes('data-value')).toBe(
+        'bücher'
+      );
+      expect(wrapper.find(hint).exists()).toBe(false);
+    });
+  });
+
   it('falls back to site_host when canonical_domain is empty', async () => {
     mockCanonicalDomain.value = '';
     mockSiteHost.value = 'fallback.example.com';

@@ -185,8 +185,9 @@ module V3
       # Burn a secret
       #
       # @api Permanently destroy a secret before it has been revealed.
-      #   Requires a passphrase if one was set during creation. Returns
-      #   the updated receipt confirming the secret has been burned.
+      #   Requires continue set to true to confirm the burn, and a passphrase
+      #   if one was set during creation. Returns the updated receipt
+      #   confirming the secret has been burned.
       class BurnSecret < V2::Logic::Secrets::BurnSecret
         prepend ::V3::Logic::ReceiptShape
         include Onetime::Logic::GuestRouteGating

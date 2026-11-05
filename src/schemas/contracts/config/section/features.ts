@@ -85,12 +85,21 @@ const featuresDomainsSchema = z.object({
 });
 
 /**
+ * Markdown secrets (display_type) feature configuration. Opt-in: the
+ * bootstrap exposes it as the boolean `features.markdown`.
+ */
+const featuresMarkdownSchema = z.object({
+  enabled: z.boolean().optional(),
+});
+
+/**
  * Complete features schema
  */
 const featuresSchema = z.object({
   regions: featuresRegionsSchema.optional(),
   incoming: featuresIncomingSchema.optional(),
   domains: featuresDomainsSchema.optional(),
+  markdown: featuresMarkdownSchema.optional(),
 });
 
 export {
@@ -98,4 +107,5 @@ export {
   featuresRegionsSchema,
   featuresIncomingSchema,
   featuresDomainsSchema,
+  featuresMarkdownSchema,
 };

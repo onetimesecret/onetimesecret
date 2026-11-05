@@ -215,10 +215,6 @@
     "text": "Οργανισμός:",
     "source_hash": "5300e286"
   },
-  "web.admin.domains.actions.remove.reassertsSurvivor": {
-    "text": "Μια άλλη εγγραφή διεκδικεί το ίδιο όνομα τομέα και θα αναλάβει το ευρετήριο αναζήτησης.",
-    "source_hash": "902838f4"
-  },
   "web.admin.domains.actions.remove.confirmTitle": {
     "text": "Αφαίρεση τομέα;",
     "source_hash": "716dfac9"

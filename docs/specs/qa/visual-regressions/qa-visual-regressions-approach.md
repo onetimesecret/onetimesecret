@@ -38,8 +38,9 @@ The failure surface is `pages × brand configurations`, so pick representative f
 | `/secret/:id`               | `secret--passphrase` (confirmation w/ passphrase input) | canonical + branded-full | desktop only |
 | `/receipt/:id`              | `receipt--viewed`, `receipt--burned`                 | canonical + branded-full   | desktop only |
 | `/incoming`, `/incoming/:receiptId` | `incoming--form`, `incoming--success`        | canonical only             | both         |
+| `/`, `/secret/:id`          | `home--markdown` (create form in Markdown mode), `secret--markdown` (revealed, rendered) | canonical only | both |
 
-The core rows run all 3 fixtures × both viewports (desktop 1280px, mobile 375px). The extended-state cells (passphrase, viewed, burned) are layout-stable across viewports, so desktop-only on two fixtures suffices. Incoming is canonical-only because custom-domain incoming is gated on both the `incoming_secrets` entitlement and a per-domain `IncomingConfig` — a real but deferred surface. Total: **52 baselines per platform**. Full run should stay under a couple of minutes. Resist expanding this; the value is in the branded-domain coverage, not breadth.
+The core rows run all 3 fixtures × both viewports (desktop 1280px, mobile 375px). The extended-state cells (passphrase, viewed, burned) are layout-stable across viewports, so desktop-only on two fixtures suffices. Incoming is canonical-only because custom-domain incoming is gated on both the `incoming_secrets` entitlement and a per-domain `IncomingConfig` — a real but deferred surface. The Markdown cells are canonical-only because both host types render the same Markdown component; they type and seed one shared sample (`e2e/visual/fixtures/markdown-secret.md`) so the editor preview and the reveal show the same content. Total: **56 baselines per platform**. Full run should stay under a couple of minutes. Resist expanding this; the value is in the branded-domain coverage, not breadth.
 
 ## 2. Simulating custom domains locally
 

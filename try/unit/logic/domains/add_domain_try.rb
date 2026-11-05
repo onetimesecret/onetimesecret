@@ -7,7 +7,7 @@
 # Validates three scenarios:
 # 1. Domain already in customer's organization (same org_id)
 # 2. Domain in another organization (different org_id)
-# 3. Orphaned domain (no org_id) - should be auto-claimed
+# 3. Orphaned domain (no org_id) - refused like scenario 2; only operator tools adopt it
 
 require_relative '../../../support/test_logic'
 require 'securerandom'
@@ -101,7 +101,7 @@ end
 #=> 0
 
 ## SCENARIO 3: Orphaned domain handling tested in model tests
-## Skipping manual orphan creation here - integration tests cover this scenario
+## Covered by apps/api/domains/spec/integration/simple/add_domain_refusals_spec.rb
 true
 #=> true
 

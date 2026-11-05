@@ -22,18 +22,18 @@ RSpec.describe ColonelAPI::Logic::Colonel::UnverifyUser do
   let(:colonel) do
     instance_double(Onetime::Customer,
       objid: 'cust_colonel', extid: 'ur_colonel',
-      role: 'colonel', verified?: true, anonymous?: false)
+      role: 'colonel', verified?: true, mailbox_verified?: true, anonymous?: false)
   end
 
   let(:target) do
     instance_double(Onetime::Customer,
       objid: 'cust_target', extid: 'ur_target', email: 'target@example.com',
-      obscure_email: 't****@example.com', role: 'customer', verified?: false,
+      obscure_email: 't****@example.com', role: 'customer', verified?: false, mailbox_verified?: false,
       updated: 1_700_000_000, exists?: true, anonymous?: false)
   end
 
   let(:op) do
-    instance_double(Auth::Operations::Customers::SetVerification, call: :success)
+    instance_double(Auth::Operations::Customers::SetVerification, call: :success, federation_claimed?: false)
   end
 
   # `confirm_token` is where the colonel session auth strategy puts the
@@ -101,13 +101,13 @@ RSpec.describe ColonelAPI::Logic::Colonel::UnverifyUser do
     let(:colonel_target) do
       instance_double(Onetime::Customer,
         objid: 'cust_target', extid: 'ur_target', email: 'target@example.com',
-        obscure_email: 't****@example.com', role: 'colonel', verified?: true,
+        obscure_email: 't****@example.com', role: 'colonel', verified?: true, mailbox_verified?: true,
         updated: 1_700_000_000, exists?: true, anonymous?: false)
     end
 
     let(:second_colonel) do
       instance_double(Onetime::Customer,
-        objid: 'cust_other', role: 'colonel', verified?: true, exists?: true)
+        objid: 'cust_other', role: 'colonel', verified?: true, mailbox_verified?: true, exists?: true)
     end
 
     def stub_roster(*colonels)

@@ -145,14 +145,14 @@ jobs:
 
       - name: Upload rendered set
         if: success()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: visual-render-${{ github.event.pull_request.head.sha || github.sha }}
           path: e2e/visual/.artifacts/render/
           retention-days: 30
 
       - name: Upload Playwright report
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
           name: visual-playwright-report
@@ -162,7 +162,7 @@ jobs:
       # The diff triptychs (expected/actual/diff PNGs) live here — this is
       # the artifact you actually open when the lane goes red.
       - name: Upload visual diffs
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
           name: visual-test-results

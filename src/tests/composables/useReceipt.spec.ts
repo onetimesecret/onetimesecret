@@ -17,6 +17,7 @@ import {
   mockReceiptDetails,
   mockReceiptRecord,
 } from '../fixtures/receipt.fixture';
+import { captureAppLogs } from '@/tests/utils/appLogs';
 
 // Mock vue-i18n for useAsyncHandler dependency
 vi.mock('vue-i18n', () => ({
@@ -240,6 +241,7 @@ describe('useReceipt', () => {
       // Setup
       const networkError = new Error('Network error');
       store.fetch.mockRejectedValueOnce(networkError);
+      const logs = captureAppLogs();
       const notifications: Partial<ReturnType<typeof useNotificationsStore>> = { show: vi.fn() };
       vi.mocked(useNotificationsStore).mockReturnValue(
         notifications as ReturnType<typeof useNotificationsStore>
@@ -251,6 +253,9 @@ describe('useReceipt', () => {
 
       // Verify
       expect(store.fetch).toHaveBeenCalledWith('test-key');
+      expect(logs.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Network error' })
+      );
       expect(isLoading.value).toBe(false);
       expect(notifications.show).toHaveBeenCalledWith('web.COMMON.unexpected_error', 'error', 'top');
       expect(error.value).toBeDefined();

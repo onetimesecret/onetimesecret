@@ -13,6 +13,7 @@
   import TimelineDisplay from '@/apps/secret/components/receipt/TimelineDisplay.vue';
   import { useReceipt } from '@/shared/composables/useReceipt';
   import { useSecretExpiration, EXPIRATION_EVENTS } from '@/shared/composables/useSecretExpiration';
+  import { useUnrecoverableContent } from '@/shared/composables/useUnrecoverableContent';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { storeToRefs } from 'pinia';
   import { onMounted, onUnmounted, watch, computed, ref } from 'vue';
@@ -32,6 +33,15 @@
   const warningMessage = ref<HTMLElement | null>(null);
 
   const { record, details, isLoading, fetch, reset } = useReceipt(props.receiptIdentifier);
+
+  // A generated value is shown here once: the receipt fetch itself consumes
+  // that one-time display server-side, so from the request going out until the
+  // value leaves the screen an automatic page reload (a lazy chunk that failed
+  // to load, an ended session; see src/utils/forcedPageLoad.ts) must stand
+  // down. isLoading covers the fetch in flight.
+  useUnrecoverableContent(
+    () => isLoading.value || !!(details.value?.show_secret && details.value?.secret_value)
+  );
 
   const { onExpirationEvent } = useSecretExpiration(
     record.value?.created ?? new Date(),
@@ -145,8 +155,8 @@
               v-if="details.show_recipients"
               class="flex items-center text-lg font-semibold text-gray-900 dark:text-white">
               <OIcon
-                collection="material-symbols"
-                name="mail-outline"
+                collection="mdi"
+                name="email-outline"
                 class="mr-2 size-5 text-brand-500 dark:text-brand-400" />
               <span class="mr-2 text-gray-500 dark:text-gray-400">{{ t('web.COMMON.sent_to') }}</span>
               <span class="break-words">{{ record.recipient_name || record.recipients }}</span>
@@ -161,8 +171,8 @@
               ]">
               <OIcon
                 v-if="!details.show_recipients"
-                collection="material-symbols"
-                name="notes"
+                collection="mdi"
+                name="text-box-outline"
                 class="mr-2 mt-0.5 size-4 shrink-0 text-gray-400 dark:text-gray-500" />
               <span class="mr-1 text-gray-500 dark:text-gray-400">{{ t('incoming.memo_label') }}:</span>
               <span class="break-words">{{ record.memo }}</span>
@@ -221,8 +231,8 @@
                   <span class="select-none blur-sm">•••••••••••••••••••••••••••••••••••••••</span>
                 </span>
                 <OIcon
-                  collection="material-symbols"
-                  name="lock-outline"
+                  collection="heroicons"
+                  name="lock-closed"
                   class="ml-2 size-4 shrink-0 text-gray-400" />
               </div>
               <!-- prettier-ignore-attribute class -->

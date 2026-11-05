@@ -138,10 +138,12 @@ module Onetime
         #   guaranteed tracked kill (a) and the Rodauth row purge (d) still run.
         # @param self_service [Boolean] the account itself asked for this via
         #   Customers::Purge on /auth/close-account (or the simple-mode
-        #   endpoint). Routes the audit write to the security trail via
-        #   {Onetime::ColonelAuditEvent.record_security} (fail-open) instead of
-        #   the count-capped operator trail: a user who can retry a deletion at
-        #   will must not be able to evict operator history from it.
+        #   endpoint), or by redeeming its own email-change link
+        #   (Customers::ChangeEmail). Routes the audit write to the security
+        #   trail via {Onetime::ColonelAuditEvent.record_security} (fail-open)
+        #   instead of the count-capped operator trail: a user who can repeat
+        #   the action at will must not be able to evict operator history
+        #   from it.
         def initialize(actor:, custid: nil, customer: nil, reason: nil, dbclient: nil,
                        bulk_audit_context: nil, sweep_untracked: true, self_service: false)
           # Same shape as Operations::VerifyDomain's domain:/domains: guard.
@@ -205,10 +207,11 @@ module Onetime
           # of an offboarding/takeover action. An unwritable event raises
           # Onetime::AuditWriteFailure instead of returning a clean Result.
           #
-          # Self-service (Customers::Purge on user-triggered close-account)
-          # routes to the security trail (fail-open) instead — the operator
-          # trail is capped and trimmed oldest-first, so a user who can retry
-          # deletion must not be able to write to it.
+          # Self-service (Customers::Purge on user-triggered close-account, or
+          # Customers::ChangeEmail on a redeemed email-change link) routes to
+          # the security trail (fail-open) instead — the operator trail is
+          # capped and trimmed oldest-first, so a user who can repeat the
+          # action must not be able to write to it.
           if audit_enabled?
             counts = audit_counts(
               blobs_deleted: blobs_deleted,

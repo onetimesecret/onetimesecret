@@ -32,7 +32,11 @@ RSpec.describe 'Tenant OAuth callbacks behind a Host-rewriting proxy', :shared_d
     owner.save
     org             = Onetime::Organization.create!("OAuth #{label} #{run_id}", owner, owner.email)
     domain          = Onetime::CustomDomain.new(display_domain: host, org_id: org.org_id)
-    domain.verified = true
+    # Accepted by Colonel override, so the host also proves its email
+    # namespace for tenant JIT under the test install's passthrough strategy
+    # (#4734, CustomDomain#ownership_proven?).
+    domain.verified             = true
+    domain.verified_by_override = true
     domain.save
     Onetime::CustomDomain.display_domain_index.put(host, domain.domainid)
 
@@ -44,7 +48,9 @@ RSpec.describe 'Tenant OAuth callbacks behind a Host-rewriting proxy', :shared_d
       issuer: "https://idp-#{label}-#{run_id}.example.com",
       client_id: "client-#{label}-#{run_id}",
       client_secret: "secret-#{label}-#{run_id}",
-      email: "user-#{label}-#{run_id}@tenant-example.com",
+      # At the tenant's own proven domain: tenant SSO creates accounts only
+      # for addresses inside one (#4734).
+      email: "user-#{label}-#{run_id}@#{host}",
     }
     tenants << tenant
     Onetime::CustomDomain::SsoConfig.create!(
@@ -54,7 +60,7 @@ RSpec.describe 'Tenant OAuth callbacks behind a Host-rewriting proxy', :shared_d
       client_id: tenant[:client_id],
       client_secret: tenant[:client_secret],
       enabled: true,
-      allowed_domains: ['tenant-example.com'],
+      allowed_domains: [host],
     )
     tenant
   end
@@ -392,6 +398,44 @@ RSpec.describe 'Tenant OAuth callbacks behind a Host-rewriting proxy', :shared_d
           it_behaves_like 'mounted tenant OAuth callback'
         end
       end
+    end
+  end
+
+  # #4764: the stored selection reaches the strategy as a top-level
+  # client_auth_method and changes the wire shape of the code exchange —
+  # credentials in the body, no Authorization header (the default flow above
+  # pins the Basic header in expect_exchange).
+  context 'with a tenant that selected client_secret_post' do
+    let(:rewrite_on) { true }
+    let(:public_port) { 443 }
+    let(:origin_port) { 443 }
+    let(:port_carrier) { :host }
+
+    include_context 'public host rewrite setting'
+
+    before do
+      config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(tenant_a[:domain].identifier)
+      config.token_endpoint_auth_method = 'client_secret_post'
+      config.save
+    end
+
+    it 'sends the client credentials in the token request body and signs the user in' do
+      flow = start_login(tenant_a)
+      stub_tokens(tenant_a, flow)
+      callback(tenant_a, flow)
+
+      request = token_requests.last
+      expect(request).not_to be_nil
+      expect(request.headers['Authorization']).to be_nil
+      params  = URI.decode_www_form(request.body).to_h
+      expect(params).to include(
+        'grant_type' => 'authorization_code',
+        'code' => "code-#{run_id}",
+        'redirect_uri' => flow.fetch('redirect_uri'),
+        'client_id' => tenant_a[:client_id],
+        'client_secret' => tenant_a[:client_secret],
+      )
+      expect_tenant_login(tenant_a)
     end
   end
 

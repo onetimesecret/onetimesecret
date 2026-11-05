@@ -161,8 +161,11 @@ module Onetime
         # @param mailer_config [CustomDomain::MailerConfig] The mailer configuration
         # @param credentials [Hash] Provider credentials
         # @return [Hash] Deletion result:
-        #   - :deleted [Boolean] Whether deletion was performed
-        #   - :message [String] Human-readable result
+        #   - :outcome [Symbol] :deleted, :absent, :skipped, or :failed
+        #   - :deleted [Boolean] True only for :deleted
+        #   - :message [String] Nonempty human-readable result
+        #   - :error [String, nil] Nonempty for :failed, nil otherwise
+        # All four keys are required, including :error when nil.
         #
         def delete_sender_identity(mailer_config, credentials:)
           raise NotImplementedError, "#{self.class} must implement #delete_sender_identity"
@@ -187,6 +190,25 @@ module Onetime
         end
 
         protected
+
+        def deletion_result(outcome:, message:, error: nil)
+          unless [:deleted, :absent, :skipped, :failed].include?(outcome)
+            raise ArgumentError, 'Invalid deletion outcome'
+          end
+          unless message.is_a?(String) && !message.strip.empty?
+            raise ArgumentError, 'Deletion message must be a nonempty string'
+          end
+
+          valid_error = outcome == :failed ? error.is_a?(String) && !error.strip.empty? : error.nil?
+          raise ArgumentError, 'Deletion error contradicts outcome' unless valid_error
+
+          { outcome: outcome, deleted: outcome == :deleted, message: message, error: error }
+        end
+
+        def deletion_error_message(exception)
+          message = exception.message.to_s
+          message.strip.empty? ? exception.class.to_s : message
+        end
 
         # Override in subclasses for provider-specific validation.
         #

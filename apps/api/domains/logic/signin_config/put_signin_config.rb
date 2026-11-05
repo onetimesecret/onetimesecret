@@ -55,10 +55,10 @@ module DomainsAPI
         def process
           OT.ld "[PutSigninConfig] Replacing signin config for domain #{@domain_id} by user #{cust.extid}"
 
-          was_enabled = @existing_config&.enabled?
-
           if @existing_config
-            replace_existing_config
+            # From the record this write replaced, not the one raise_concerns
+            # loaded (see replace_existing_config)
+            was_enabled = replace_existing_config
             log_signin_change_event(
               event: :domain_signin_config_replaced,
               domain: @custom_domain,
@@ -66,7 +66,8 @@ module DomainsAPI
               actor: cust,
             )
           else
-            create_new_config
+            was_enabled = nil
+            guarded_config_write { create_new_config }
             log_signin_change_event(
               event: :domain_signin_config_created,
               domain: @custom_domain,
@@ -141,18 +142,30 @@ module DomainsAPI
           )
         end
 
-        # Replaces existing config with PUT semantics (full replacement).
+        # Replaces existing config with PUT semantics (full replacement), on
+        # the record update_for_domain! re-reads under WATCH
+        # (GuardedConfigWrites). The webauthn carry-over exemption is checked
+        # again against that record: the value it exempts must be the one
+        # this write replaces.
+        #
+        # @return [Boolean] whether the replaced record was enabled
         def replace_existing_config
-          @signin_config = @existing_config
+          @signin_config, was_enabled = guarded_config_write do
+            Onetime::CustomDomain::SigninConfig.update_for_domain!(@custom_domain.identifier) do |config|
+              @existing_config = config
+              validate_webauthn_restriction!
 
-          @signin_config.enabled            = @enabled
-          @signin_config.signin_enabled     = @signin_enabled
-          @signin_config.restrict_to        = @restrict_to
-          @signin_config.email_auth_enabled = @email_auth_enabled
-          @signin_config.sso_enabled        = @sso_enabled
-          @signin_config.updated            = Familia.now.to_i
-
-          @signin_config.commit_fields
+              previously_enabled        = config.enabled?
+              config.enabled            = @enabled
+              config.signin_enabled     = @signin_enabled
+              config.restrict_to        = @restrict_to
+              config.email_auth_enabled = @email_auth_enabled
+              config.sso_enabled        = @sso_enabled
+              config.updated            = Familia.now.to_i
+              previously_enabled
+            end
+          end
+          was_enabled
         end
 
         def serialize_signin_config(config)

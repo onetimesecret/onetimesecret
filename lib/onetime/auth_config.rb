@@ -119,6 +119,25 @@ module Onetime
       mode == 'simple'
     end
 
+    # Whether simple mode is in force only because nothing chose a mode.
+    #
+    # The config file renders `mode` from AUTHENTICATION_MODE with a simple
+    # fallback, so a process whose environment lacks the variable resolves
+    # simple mode whatever the install runs. The server's environment is the
+    # install's when the shipped compose files start it (they export the
+    # variable on every service in both modes); a bin/ots shell on the host,
+    # or a container started with a plain docker run and no
+    # -e AUTHENTICATION_MODE, may not be. A
+    # destructive command that depends on the auth account refuses on this
+    # state, because it cannot tell a simple-mode install from a full-mode
+    # one it would leave half closed (Onetime::CLI::Customers::Shared), and
+    # the federated subscription claim defers on it for the same reason
+    # (Onetime::Customer#verification_step_pending?). Exporting the
+    # variable, with either value, settles it.
+    def simple_by_default?
+      simple_enabled? && ENV['AUTHENTICATION_MODE'].to_s.strip.empty?
+    end
+
     # Feature flags hash from full mode config
     def features
       full['features'] || {}
@@ -162,6 +181,34 @@ module Onetime
     # Default: true (when full mode is enabled), but false in test environment
     def verify_account_enabled?
       feature_enabled?('verify_account', default: true)
+    end
+
+    # Whether the Rodauth verify_account feature is part of this deployment's
+    # auth config (apps/web/auth/config.rb), whichever flag brings it in: its
+    # own (#verify_account_enabled?), or webauthn_verify_account, which depends
+    # on it and is enabled only together with webauthn
+    # (config/features/webauthn.rb). With the feature loaded every new account
+    # starts unverified and is verified through the emailed key, with a
+    # password set at signup or a passkey set at verification. The code that
+    # follows the feature rather than the flag reads this: the enable call and
+    # settings in config/features/account_management.rb, the verification
+    # email template (config/email.rb), the after_verify_account hook and the
+    # deferral of the federated-subscription claim to it
+    # (config/hooks/account.rb, Auth::Operations::EnsureDefaultWorkspace).
+    #
+    # This restates config.rb's conditional enables, because its callers run
+    # before the Rodauth class has a feature list to ask (request-time code,
+    # such as config/hooks/restrict_to.rb, asks rodauth.features instead).
+    # The two agree only while every enable that pulls in :verify_account is
+    # spelled here: a new one (a feature that `depends :verify_account`, such
+    # as verify_account_grace_period) must be added to this expression in the
+    # same change. config.rb refuses to boot when they disagree.
+    #
+    # A Boolean: the flags are YAML values the enables read by truthiness (a
+    # quoted "true" loads the feature), and config.rb compares this answer
+    # with auth.features.include?.
+    def verify_account_loaded?
+      !!(verify_account_enabled? || (webauthn_enabled? && webauthn_verify_account_enabled?))
     end
 
     # Whether MFA is enabled (TOTP, recovery codes)
@@ -214,6 +261,19 @@ module Onetime
     # DEPRECATED: Use sso_enabled? — retained for Rodauth integration files
     # that reference omniauth_enabled? (apps/web/auth/).
     alias omniauth_enabled? sso_enabled?
+
+    # Whether this instance acts as an OAuth2/OIDC Identity Provider.
+    # Default: false
+    #
+    # When true, rodauth-oauth features are enabled and the standard OAuth
+    # endpoints (/authorize, /token, /jwks, /userinfo, /revoke) are mounted.
+    # External clients can authenticate end-users against this instance.
+    #
+    # See: apps/web/auth/config/features/oauth.rb
+    # See: https://github.com/onetimesecret/onetimesecret/issues/3104
+    def oauth_enabled?
+      feature_enabled?('oauth', default: false)
+    end
 
     # Whether organization-level SSO (per-domain SSO) is enabled.
     # Default: false
@@ -379,7 +439,9 @@ module Onetime
       defn = provider_definition_for_route(route_name)
 
       # 1. Explicit per-provider override wins when the var is present.
-      if defn && ENV.key?(defn[:trust_var])
+      # trust_var is optional: providers outside the email-linking escape
+      # hatch (the local dev IdP) omit it, so guard before ENV.key?.
+      if defn && defn[:trust_var] && ENV.key?(defn[:trust_var])
         return ENV[defn[:trust_var]] == 'true'
       end
 
@@ -401,9 +463,15 @@ module Onetime
     # (*_TRUST_EMAIL_FOR_LINKING=false) returns false — no provider is actually
     # trusted, so the guard stays silent rather than warning on a dead flag.
     #
+    # Only definitions that declare a trust_var participate: the local dev IdP
+    # has no email-linking trust semantics, so it must not keep the guard alive
+    # (via the deprecated global fallback) after every real provider opts out.
+    #
     # @return [Boolean]
     def trust_email_for_linking_enabled?
       provider_definitions.any? do |defn|
+        next false unless defn[:trust_var]
+
         route_name = ENV.fetch(defn[:route_var], defn[:route_default])
         trust_email_for_linking?(route_name)
       end
@@ -458,6 +526,11 @@ module Onetime
       providers = provider_definitions.filter_map do |defn|
         next unless provider_active?(defn)
         next if withheld_by_issuer_verdict?(defn)
+
+        # Optional gate beyond env-var presence (e.g., the local IdP needs
+        # AUTH_OAUTH_ENABLED=true on top of OAUTH_SP_DEV_CLIENT_SECRET).
+        condition = defn[:condition]
+        next if condition && !condition.call(self)
 
         display = ENV.fetch(defn[:display_var], nil) || defn[:display_default]
         {
@@ -565,12 +638,34 @@ module Onetime
     # Public: the auth app's boot registration reads it (via
     # display_default_for) so its logs share the serializer's view.
     def provider_definitions
-      SsoProvider::Registry::DEFINITIONS.map do |defn|
+      registry = SsoProvider::Registry::DEFINITIONS.map do |defn|
         next defn unless defn[:key] == :oidc
 
         legacy_display = sso_display_name
         legacy_display ? defn.merge(display_default: legacy_display) : defn
       end
+
+      registry + [
+        # Local IdP — see configure_local_idp_provider in features/omniauth.rb.
+        # Deliberately NOT a Registry::Definition: it is the development-only
+        # provider backed by this app's own OAuth2 IdP, so it has neither
+        # platform credentials nor a tenant-SSO placeholder to describe, and no
+        # idp_origin (its issuer is this app, already 'self' in form-action).
+        #
+        # Two-part gate: OAUTH_SP_DEV_CLIENT_SECRET must be set (env-var
+        # presence) AND AUTH_OAUTH_ENABLED=true (so the IdP it talks to is
+        # actually running). Without the second check, the frontend would
+        # render a "Local IdP" button that posts to a non-existent route.
+        {
+          key: :local_idp,
+          required_vars: %w[OAUTH_SP_DEV_CLIENT_SECRET],
+          condition: ->(cfg) { cfg.oauth_enabled? },
+          route_var: 'OAUTH_SP_DEV_ROUTE_NAME',
+          route_default: 'local',
+          display_var: 'OAUTH_SP_DEV_DISPLAY_NAME',
+          display_default: 'Local IdP',
+        },
+      ]
     end
 
     # The CSP form-action origin for a TENANT's IdP (#4173) — the per-request
@@ -1088,6 +1183,9 @@ module Onetime
 
       env_config = load_yaml_from(@path)
 
+      # User file wins on conflict; missing keys inherit from defaults.
+      # preserve_nils: false → explicit nil in user file overrides the
+      # default; absent keys still inherit. Mirrors Onetime::Config#load.
       @config = if base_config.empty?
         env_config
       else

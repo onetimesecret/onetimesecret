@@ -39,7 +39,7 @@ This coupling has three consequences:
   `email` claim cannot provision a new account
   ([#3478](https://github.com/onetimesecret/onetimesecret/issues/3478),
   [#3499](https://github.com/onetimesecret/onetimesecret/issues/3499)). The
-  [Phase 2 proposal](../planning/2026-1009-sso-email-less-accounts.md) excludes
+  [Phase 2 proposal](../specs/sso/email-less-accounts-proposal.md) excludes
   `upn`, `preferred_username`, fabricated addresses, and relaxed tenant
   allowlists as substitutes.
 - Mailbox control, account status, and identity ownership are different
@@ -51,12 +51,12 @@ This coupling has three consequences:
 - SQL and Redis do not share a transaction. Redis provisioning runs inside
   Rodauth's SQL transaction, which can commit on a redirect or roll back on
   an exception without undoing Redis writes. As described in the
-  [provisioning design](../specs/sso-email-less-accounts/account-model-design.md),
+  [provisioning design](../specs/sso/email-less-accounts-account-model.md),
   this can leave an account without a Customer, or a Customer holding an
   email-index entry without an account. The current protocol has no durable,
   email-independent checkpoint for recovery.
 
-The [account-model design](../specs/sso-email-less-accounts/account-model-design.md)
+The [account-model design](../specs/sso/email-less-accounts-account-model.md)
 contains the implementation details, migration sequence, and acceptance
 requirements. This ADR records the proposed architectural decision.
 
@@ -156,8 +156,8 @@ resume after a crash, rather than using an email address to infer ownership.
 
 ## Related
 
-- [Account-model design](../specs/sso-email-less-accounts/account-model-design.md): implementation details, migration sequence, and acceptance requirements.
-- [Phase 2 proposal](../planning/2026-1009-sso-email-less-accounts.md): scope and review/release gates.
+- [Account-model design](../specs/sso/email-less-accounts-account-model.md): implementation details, migration sequence, and acceptance requirements.
+- [Phase 2 proposal](../specs/sso/email-less-accounts-proposal.md): scope and review/release gates.
 - [G3 security review](../security/audits/security-audit-2026-10-10.md) and [active risk register](../security/active-risk-register.md): evidence and current risk disposition; tracking issues [#4734](https://github.com/onetimesecret/onetimesecret/issues/4734), [#4735](https://github.com/onetimesecret/onetimesecret/issues/4735), and [#4736](https://github.com/onetimesecret/onetimesecret/issues/4736).
 - [ADR-016: Domain Validation State Model](adr-016-domain-validation-state-model.md): domain ownership axis.
 - [ADR-048: Evidence Basis for Security Decisions](adr-048-evidence-basis-for-security-decisions.md): evidence requirements.

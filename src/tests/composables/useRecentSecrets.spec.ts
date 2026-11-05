@@ -65,7 +65,11 @@ vi.mock('@/shared/stores/receiptListStore', () => ({
 }));
 
 // Import the composable after mocks are set up
-import { useRecentSecrets, type RecentSecretRecord } from '@/shared/composables/useRecentSecrets';
+import {
+  shareLinkFor,
+  useRecentSecrets,
+  type RecentSecretRecord,
+} from '@/shared/composables/useRecentSecrets';
 import { useAuthStore } from '@/shared/stores/authStore';
 
 /**
@@ -214,6 +218,38 @@ describe('useRecentSecrets', () => {
 
       // Use toStrictEqual since the object is deeply copied via computed
       expect(records.value[0].originalRecord).toStrictEqual(localMessage);
+    });
+
+    // RISK-2026-08-14-M10: sessionStorage keeps no secret identifier.
+    it('leaves secretExtid undefined for a record restored from sessionStorage', async () => {
+      const { secretExtid: _dropped, ...restored } = createMockLocalReceipt({ id: 'restored' });
+      mockConcealedMessages.value = [restored];
+      mockHasMessages.value = true;
+
+      const { records } = useRecentSecrets();
+      await nextTick();
+
+      expect(records.value[0].extid).toBe('receipt-restored');
+      expect(records.value[0].secretExtid).toBeUndefined();
+    });
+  });
+
+  describe('shareLinkFor (M10)', () => {
+    it('builds the share link on the share domain', () => {
+      expect(
+        shareLinkFor({ secretExtid: 'abc123', shareDomain: 'secrets.example.com' }, 'site.example')
+      ).toBe('https://secrets.example.com/secret/abc123');
+    });
+
+    it('falls back to the site host without a share domain', () => {
+      expect(shareLinkFor({ secretExtid: 'abc123', shareDomain: undefined }, 'site.example')).toBe(
+        'https://site.example/secret/abc123'
+      );
+    });
+
+    it('returns null without a secret identifier', () => {
+      expect(shareLinkFor({ secretExtid: undefined, shareDomain: 'x.example' }, 'site.example')).toBeNull();
+      expect(shareLinkFor({ secretExtid: '', shareDomain: undefined }, 'site.example')).toBeNull();
     });
   });
 

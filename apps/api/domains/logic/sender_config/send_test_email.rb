@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/models/custom_domain/mailer_config'
+require 'onetime/security/sender_test_email_rate_limiter'
 require_relative 'base'
 require_relative 'change_logger'
 
@@ -25,12 +26,18 @@ module DomainsAPI
       #     deliver_raw without a sender_config. The global backend handles
       #     delivery; we just override the sender identity in the email hash.
       #   - Full authorization (domain ownership + entitlement) is enforced.
+      #   - Rate limited per CUSTOMER (Onetime::Security::
+      #     SenderTestEmailRateLimiter, kind `sender_test_email`, 10 sends
+      #     per hour by default), charged on the last line of raise_concerns
+      #     so a refused request costs nothing. Over the cap the API answers
+      #     429 with retry_after and a Retry-After header, and nothing is sent.
       #
       # Response mirrors the SSO TestConnection pattern:
       #   { success: true/false, message: "...", details: { ... } }
       #
       class SendTestEmail < Base
         include ChangeLogger
+        include Onetime::Security::SenderTestEmailRateLimiter
 
         attr_reader :mailer_config
 
@@ -50,6 +57,9 @@ module DomainsAPI
           if @mailer_config.from_address.to_s.empty?
             raise_form_error('Sender configuration must have a from_address before sending a test email', field: :from_address, error_type: :missing)
           end
+
+          # Last, so only a send that will actually happen is charged.
+          enforce_sender_test_email_rate_limit!(cust.extid)
         end
 
         def process
@@ -338,19 +348,35 @@ module DomainsAPI
             }.compact,
           )
 
-          # Persist to audit trail for admin visibility
-          Onetime::ColonelAuditEvent.record(
+          # Persist to the audit trail for admin visibility. The recipient is
+          # always the actor, whom the extid already identifies, so the
+          # address is stored obscured.
+          record_test_email_audit(
             actor: cust,
             verb: 'domain_sender.test_email_sent',
             target: @custom_domain.identifier,
             result: result[:success] ? :success : :failure,
             detail: {
-              recipient: cust.email,
+              recipient: OT::Utils.obscure_email(cust.email),
               from_address: @mailer_config.from_address,
               provider: @mailer_config.effective_provider,
               error_code: result.dig(:details, :error_code),
             }.compact,
           )
+        end
+
+        # A domain owner's test send is a self-service action and goes to the
+        # SECURITY trail: owners can send at will, and ColonelAuditEvent's
+        # write-frequency invariant keeps the operator trail's count-capped,
+        # no-TTL budget for operator activity. A colonel passes the
+        # entitlement check on any domain (require_entitlement_in!), and that
+        # send is operator activity, so it stays on the operator trail.
+        def record_test_email_audit(**event)
+          if has_system_role?('colonel')
+            Onetime::ColonelAuditEvent.record(**event)
+          else
+            Onetime::ColonelAuditEvent.record_security(**event)
+          end
         end
       end
     end

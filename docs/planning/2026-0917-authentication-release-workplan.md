@@ -1,5 +1,13 @@
 # Release Workplan - Authentication consistency: v0.26.13, v0.27.0, and backlog
 
+**Status (2026-10-22):** the v0.26.13 section shipped (tags v0.26.13 onward; release gate #4463
+closed 2026-09-23). Its behaviour is specified in
+[session-consistency-rollout](../authentication/session-consistency-rollout.md),
+[customer-session-failure-matrix](../authentication/customer-session-failure-matrix.md) and
+ADR-046, so this document is not the spec. Epic #4451 and several v0.26.13 sub-issues are still
+open on GitHub although their work merged. Of the v0.27.0 table, #4468 and #4469 are closed;
+#4466, #4467 and #4470 are open. Delete this document once those three close.
+
 Decision model: [ADR-045 — Prioritizing Work](../adr/adr-045-prioritizing-work.md). Snapshot ordering: [ADR-046 — Bootstrap State Ordering Contract](https://github.com/onetimesecret/onetimesecret/pull/4449).
 
 Tracking: [Epic #4451 — Consistent authentication across routing, bootstrap, Vue navigation, and protected APIs](https://github.com/onetimesecret/onetimesecret/issues/4451). Issue numbers below are its sub-issues.
@@ -69,8 +77,8 @@ These items have meaningful impact but introduce separate lifecycle, compatibili
 | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | #4466 — Session rotation and cookie-tossing protection across login, account switching, and privilege transitions | High impact and high tension; requires end-to-end coverage of all session establishment paths. Earlier item 14.        |
 | #4467 — Revocation cascade across remember-me and other supported continuation mechanisms | Requires inventory and coordinated invalidation beyond bootstrap and Vue state.                                        |
-| #4468 — Remove deprecated `had_valid_session` and obsolete client-state compatibility paths | Completes the v0.26.13 contract after rollout evidence. Earlier items 8–9.                                             |
-| #4469 — Extend structured authentication codes and explicit route coverage throughout remaining auth/account routes | Builds on the proven contract without expanding the patch into every authentication endpoint. Earlier items 12–13, 17. |
+| #4468 (closed) — Remove deprecated `had_valid_session` and obsolete client-state compatibility paths | Completes the v0.26.13 contract after rollout evidence. Earlier items 8–9.                                             |
+| #4469 (closed) — Extend structured authentication codes and explicit route coverage throughout remaining auth/account routes | Builds on the proven contract without expanding the patch into every authentication endpoint. Earlier items 12–13, 17. |
 | #4470 — Complete credential/PII redaction and personalized-response cache coverage across remaining sinks and endpoints | Broader inventory and verification than the current authentication path. Earlier items 15–16.                          |
 
 A reproducible session-fixation, authorization-bypass, or credential-disclosure issue discovered during v0.26.13 assessment is promoted into the current release. Version placement must change when the evidence changes.

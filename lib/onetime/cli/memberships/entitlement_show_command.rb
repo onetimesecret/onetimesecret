@@ -23,7 +23,7 @@
 # `baseline_stale` is the membership analog of the org report's `plan_stale`:
 # has the role baseline (org ∩ role template) drifted from the stored plan set
 # since the last materialization? Both kinds of drift are repaired by
-# `bin/ots org reconcile ORG --yes`, which cascades
+# `bin/ots org reconcile ORG --apply`, which cascades
 # rematerialize_all_memberships! — overrides survive it by construction.
 require 'json'
 require 'time'
@@ -178,7 +178,7 @@ module Onetime
         drift[:extra].each   { |e| puts "  + #{e}  (materialized but not expected — orphan)" }
         drift[:missing].each { |e| puts "  - #{e}  (expected but not materialized)" }
         puts
-        puts "Repair with: bin/ots org reconcile #{org_extid} --yes  (re-materializes all memberships; overrides survive)"
+        puts "Repair with: bin/ots organizations reconcile #{org_extid} --apply  (re-materializes all memberships; overrides survive)"
       end
 
       # Membership scope softens the org-level dead-letter warning: the sets

@@ -13,7 +13,9 @@ RSpec.describe 'Auth::Migrator SQLite Integration', :sqlite_database do
   let(:migrations_dir) { File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations') }
   # Derive the latest schema version from the migration files so this spec does
   # not need editing each time a migration lands (the gap that left it at 6).
-  let(:latest_version) { Dir.glob(File.join(migrations_dir, '[0-9]*_*.rb')).count }
+  # Use the highest migration number (matches Sequel's schema_info.version),
+  # not the file count, so non-contiguous numbering still resolves correctly.
+  let(:latest_version) { Dir.glob(File.join(migrations_dir, '[0-9]*_*.rb')).map { |f| File.basename(f).to_i }.max }
   let(:test_db_file) { File.join(Dir.tmpdir, "test_auth_#{SecureRandom.hex(4)}.db") }
   let(:test_db) { Sequel.connect("sqlite://#{test_db_file}") }
 

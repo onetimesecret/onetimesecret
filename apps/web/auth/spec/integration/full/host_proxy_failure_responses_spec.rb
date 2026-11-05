@@ -4,6 +4,7 @@
 
 require_relative '../../spec_helper'
 require_relative '../../support/tenant_test_fixtures'
+require_relative '../../support/external_https_browser'
 
 # Baseline characterization: the same legitimate tenant request before and
 # during an identity lookup failure. Only the lookup is stubbed; classification,
@@ -17,6 +18,8 @@ RSpec.describe 'Tenant host lookup failure responses', :shared_db_state, type: :
   include Rack::Test::Methods
   include_context 'tenant fixtures'
   include_context 'domains enabled'
+  # Requests carry X-Forwarded-Proto: https from a browser on https.
+  include_context 'external HTTPS browser'
 
   before(:all) { boot_onetime_app }
 

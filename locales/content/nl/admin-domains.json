@@ -215,10 +215,6 @@
     "text": "Organisatie:",
     "source_hash": "5300e286"
   },
-  "web.admin.domains.actions.remove.reassertsSurvivor": {
-    "text": "Een ander record claimt dezelfde domeinnaam en neemt de opzoekindex over.",
-    "source_hash": "902838f4"
-  },
   "web.admin.domains.actions.remove.confirmTitle": {
     "text": "Domein verwijderen?",
     "source_hash": "716dfac9"

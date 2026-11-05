@@ -1,17 +1,79 @@
 // src/shared/stores/languageStore.ts
 
-import { setGlobalLocale } from '@/i18n';
-import { getBootstrapValue } from '@/services/bootstrap.service';
+import { hasLocaleMessages, setGlobalLocale } from '@/i18n';
 import type { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { localeCodeSchema } from '@/schemas/i18n/locale';
+import { getBootstrapValue } from '@/services/bootstrap.service';
+import { loggingService } from '@/services/logging.service';
+import { useApi } from '@/shared/composables/useApi';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { localeCodes } from '@/sources/languages';
-import { useApi } from '@/shared/composables/useApi';
+import {
+  clearPendingLocaleUpdate,
+  storePendingLocaleUpdate,
+  takePendingLocaleUpdate,
+} from '@/utils/pendingLocaleUpdate';
+import { reloadingFor } from '@/utils/preloadError';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, ref, watch } from 'vue';
 
 export const SESSION_STORAGE_KEY = 'selected.locale';
 export const DEFAULT_LOCALE = 'en';
+/**
+ * A preference save still unanswered after this long fails like any other
+ * failed save. Each save waits for the one before it, so an unanswered
+ * request must not hold the later ones indefinitely.
+ */
+export const PREFERENCE_SAVE_TIMEOUT_MS = 10_000;
+
+/**
+ * Thrown (as a rejection) by setCurrentLocale() and updateLanguage() for a
+ * locale that matches no supported locale. A URL or stored value naming an
+ * unknown language is ordinary input, so callers can tell this apart from a
+ * failed message load.
+ */
+export class UnsupportedLocaleError extends Error {
+  readonly locale: string;
+
+  constructor(locale: string) {
+    super(`Unsupported locale: ${locale}`);
+    this.name = 'UnsupportedLocaleError';
+    this.locale = locale;
+  }
+}
+
+/**
+ * A locale whose messages did not load, and the locale the visitor sees
+ * instead. LocaleLoadNotice shows it until it is dismissed or a later
+ * activation succeeds.
+ */
+export interface LocaleLoadFailure {
+  requested: string;
+  shown: string;
+}
+
+export interface LocaleSaveFailure {
+  locale: string;
+  accountExtid: string | null;
+}
+
+export interface SetCurrentLocaleOptions {
+  /**
+   * Store the locale as this session's selection, which preferredLocale()
+   * ranks above the domain and device locales. True (the default) for a
+   * locale the visitor or the account chose: a URL locale, the account
+   * locale, a language picked in the toggle. False for one the app picked
+   * for them (the preferred locale, a fallback), which must not outrank a
+   * domain locale that changes later in the session.
+   *
+   * A remembered locale is stored once it is active, and also when its chunk
+   * fails to load and the page reloads for it (see activateLocale): the
+   * reloaded page then retries the choice instead of opening in the language
+   * shown before.
+   */
+  remember?: boolean;
+}
 
 interface StoreOptions extends PiniaPluginOptions {
   deviceLocale?: string;
@@ -27,15 +89,60 @@ export const useLanguageStore = defineStore('language', () => {
 
   // State
   const deviceLocale = ref<string | null>(null);
+  // The locale active in the global i18n composer. Null until the first
+  // setCurrentLocale() succeeds; from then on its messages are always loaded.
   const currentLocale = ref<string | null>(null);
+  // The target of the latest setCurrentLocale() call while its messages
+  // load; null once it settles. A newer call replaces it.
+  const pendingLocale = ref<string | null>(null);
+  const localeLoadFailure = ref<LocaleLoadFailure | null>(null);
+  const localeSaveFailure = ref<LocaleSaveFailure | null>(null);
+  // The locale of the latest preference save while it waits or is in flight;
+  // null once it settles. The bootstrap snapshot changes only when a save
+  // succeeds, so until then protected navigation reads the account's locale
+  // from here (fetchCustomerPreferences in src/router/guards.routes.ts).
+  const savingLocale = ref<string | null>(null);
   const storageKey = ref<string | null>(null);
   const supportedLocales = ref<string[]>([]);
-  const storedLocale = ref<string | null>(null);
   const _initialized = ref(false);
+
+  // Incremented by every setCurrentLocale() call, so only the latest one
+  // clears pendingLocale.
+  let latestSwitch = 0;
+  let latestUpdate = 0;
+  // A newer failed activation does not supersede the save for the language
+  // still shown. Only a switch that reaches persistence replaces this owner.
+  let activePreferenceRequest = 0;
+  // The tail of the save queue (see saveLanguagePreference). Never rejects.
+  let preferenceWrites: Promise<void> = Promise.resolve();
+
+  // A retry belongs to the account and language that failed to save, not to
+  // a later sign-in or a language chosen by a subsequent navigation.
+  watch(
+    [() => bootstrapCust.value?.extid ?? null, currentLocale],
+    ([account], [previousAccount]) => {
+      if (account !== previousAccount) {
+        ++latestUpdate;
+        activePreferenceRequest = 0;
+        savingLocale.value = null;
+      }
+      const failure = localeSaveFailure.value;
+      if (
+        failure &&
+        (!sameAccount(failure.accountExtid) || failure.locale !== currentLocale.value)
+      ) {
+        localeSaveFailure.value = null;
+      }
+    },
+    { flush: 'sync' }
+  );
 
   // Getters
   const getDeviceLocale = computed(() => deviceLocale.value);
-  const getCurrentLocale = computed(() => currentLocale.value ?? DEFAULT_LOCALE);
+  // Before the first activation this reports the locale about to be chosen,
+  // not 'en': the axios interceptor sends it as Accept-Language on requests
+  // made during the initial navigation.
+  const getCurrentLocale = computed(() => currentLocale.value ?? preferredLocale());
   const getStorageKey = computed(() => storageKey.value ?? SESSION_STORAGE_KEY);
   const getSupportedLocales = computed(() => supportedLocales.value);
 
@@ -61,105 +168,229 @@ export const useLanguageStore = defineStore('language', () => {
   });
 
   // Actions
-  function init(options?: StoreOptions) {
-    if (_initialized.value) return getCurrentLocale.value;
+  /**
+   * Records the store's options (storage key, device locale) and the
+   * supported locales. Synchronous and idempotent: later calls change
+   * nothing. Activates no locale; the router does that with
+   * setCurrentLocale() during navigation.
+   *
+   * @returns The preferred locale (see preferredLocale)
+   */
+  function init(options?: StoreOptions): string {
+    if (!_initialized.value) {
+      _initialized.value = true;
 
-    if (options?.storageKey) {
-      storageKey.value = options.storageKey;
-    }
-
-    // Load supported locales BEFORE normalizing deviceLocale so that
-    // validateAndNormalizeLocale can match against the actual list
-    // (e.g. normalizing browser's "it-IT" to our "it_IT").
-    loadSupportedLocales();
-
-    if (options?.deviceLocale) {
-      try {
-        deviceLocale.value = validateAndNormalizeLocale(options.deviceLocale);
-      } catch (error) {
-        console.warn(`Invalid device locale: ${options.deviceLocale}`, error);
-        deviceLocale.value = null;
+      if (options?.storageKey) {
+        storageKey.value = options.storageKey;
       }
-    }
 
-    watch(
-      () => currentLocale.value,
-      async (newLocale) => {
-        if (newLocale) {
-          await setGlobalLocale(newLocale);
-        }
-      }
-    );
-
-    return initializeLocale();
-  }
-
-  function initializeLocale() {
-    try {
-      // Idempotent: init() loads these before calling us, but
-      // initializeLocale() may also be called independently (e.g.
-      // from LanguageToggle.onMounted), so we load here too.
+      // Load supported locales BEFORE normalizing deviceLocale so that
+      // validateAndNormalizeLocale can match against the actual list
+      // (e.g. normalizing browser's "it-IT" to our "it_IT").
       loadSupportedLocales();
 
-      // Check for user preference first
-      const userLocale = bootstrapCust.value?.locale;
-      if (userLocale && supportedLocales.value.includes(userLocale)) {
-        currentLocale.value = userLocale;
-        return getCurrentLocale.value;
+      if (options?.deviceLocale) {
+        try {
+          deviceLocale.value = validateAndNormalizeLocale(options.deviceLocale);
+        } catch (error) {
+          console.warn(`Invalid device locale: ${options.deviceLocale}`, error);
+          deviceLocale.value = null;
+        }
       }
-      // An explicit in-session selection (recipient picking a language on the
-      // page) wins over the domain default.
-      storedLocale.value = loadStoredLocale();
-      if (storedLocale.value && supportedLocales.value.includes(storedLocale.value)) {
-        currentLocale.value = storedLocale.value;
-        _initialized.value = true;
-        return getCurrentLocale.value;
-      }
+    }
 
-      // Custom-domain recipient pages default to the domain's brand locale,
-      // ahead of the visitor's browser language. Without this, the saved
-      // Delivery language is overwritten by navigator.language / 'en'.
-      const domainLocale = getBootstrapValue('domain_branding')?.locale;
-      if (domainLocale && supportedLocales.value.includes(domainLocale)) {
-        currentLocale.value = domainLocale;
-        _initialized.value = true;
-        return getCurrentLocale.value;
-      }
+    return preferredLocale();
+  }
 
-      // Fall back to device locale, then default
-      if (deviceLocale.value && supportedLocales.value.includes(deviceLocale.value)) {
-        // deviceLocale was already normalized by validateAndNormalizeLocale
-        // in init(), so it matches the server's format (e.g. "it_IT")
-        currentLocale.value = deviceLocale.value;
-      } else {
-        currentLocale.value = DEFAULT_LOCALE;
-      }
+  /**
+   * The locale this visitor should see when the URL does not name one.
+   * Recomputed from the current bootstrap snapshot on every call, so it
+   * follows a customer swapped in by an auth refresh.
+   *
+   * Order: account preference > in-session selection > custom-domain brand
+   * locale > device locale > the installation's default_locale > DEFAULT_LOCALE,
+   * each taken only when it is among the supported locales (the operator's
+   * list less the locales this build has no messages for, see
+   * loadSupportedLocales). DEFAULT_LOCALE ends the list even when the
+   * operator's locale list omits it (see resolveSupportedLocale), so a config
+   * gap never leaves the visitor without a locale to start in.
+   */
+  function preferredLocale(): string {
+    try {
+      const isSupported = (locale: string | null | undefined): locale is string =>
+        !!locale && supportedLocales.value.includes(locale);
 
-      _initialized.value = true;
-      return getCurrentLocale.value;
+      const candidates = [
+        // Check for user preference first
+        bootstrapCust.value?.locale,
+        // An explicit in-session selection (recipient picking a language on the
+        // page) wins over the domain default.
+        loadStoredLocale(),
+        // Custom-domain recipient pages default to the domain's brand locale,
+        // ahead of the visitor's browser language. Without this, the saved
+        // Delivery language is overwritten by navigator.language / 'en'.
+        getBootstrapValue('domain_branding')?.locale,
+        // Fall back to device locale, then default. deviceLocale was already
+        // normalized by validateAndNormalizeLocale in init(), so it matches the
+        // server's format (e.g. "it_IT").
+        deviceLocale.value,
+        getBootstrapValue('default_locale'),
+      ];
+      return candidates.find(isSupported) ?? DEFAULT_LOCALE;
     } catch (error) {
-      console.error('[initializeLocale] Error:', error);
-      currentLocale.value = DEFAULT_LOCALE;
+      console.error('[preferredLocale] Error:', error);
       return DEFAULT_LOCALE;
     }
   }
 
-  function setCurrentLocale(locale: string) {
-    try {
-      const normalizedLocale = validateAndNormalizeLocale(locale);
-      if (supportedLocales.value.includes(normalizedLocale)) {
-        currentLocale.value = normalizedLocale;
-        try {
-          sessionStorage.setItem(getStorageKey.value, normalizedLocale);
-        } catch (error) {
-          console.error('Failed to save locale to session storage:', error);
-        }
-      } else {
-        console.warn(`Unsupported locale: ${locale}`);
-      }
-    } catch {
-      console.warn(`Invalid locale format: ${locale}`);
+  /**
+   * The supported locale `locale` normalizes to (it-IT -> it_IT, de-CH -> de),
+   * or null when none matches. A listed locale this build has no messages for
+   * is not a supported locale here (see loadSupportedLocales), so it resolves
+   * to null like an unknown one. Loads and activates nothing.
+   *
+   * DEFAULT_LOCALE itself is always accepted, listed or not: its messages are
+   * bundled, and it is preferredLocale()'s last resort, so an operator's
+   * locale list without it (or an empty list) cannot fail startup.
+   */
+  function resolveSupportedLocale(locale: string): string | null {
+    const normalizedLocale = validateAndNormalizeLocale(locale);
+    if (supportedLocales.value.includes(normalizedLocale)) return normalizedLocale;
+    return normalizedLocale.toLowerCase() === DEFAULT_LOCALE ? DEFAULT_LOCALE : null;
+  }
+
+  /** @throws UnsupportedLocaleError when `locale` matches no supported locale */
+  function requireSupportedLocale(locale: string): string {
+    const supportedLocale = resolveSupportedLocale(locale);
+    if (supportedLocale === null) {
+      throw new UnsupportedLocaleError(validateAndNormalizeLocale(locale));
     }
+    return supportedLocale;
+  }
+
+  /**
+   * Activates a locale in the global i18n instance and, unless told not to,
+   * remembers it for this browser session (see SetCurrentLocaleOptions). The
+   * locale changes only once its messages (and its fallbacks) are loaded and
+   * registered; pendingLocale names it meanwhile. A successful activation
+   * clears localeLoadFailure: the notice would name a language no longer
+   * shown.
+   *
+   * Does not touch the account preference; updateLanguage() does that.
+   *
+   * @returns The active locale: `locale` normalized, or, when a newer call
+   *   superseded this one before it finished, whatever is active now
+   *   (unchanged by this call; 'en' before any activation).
+   * @throws UnsupportedLocaleError when `locale` matches no supported locale,
+   *   or the load error when its messages fail to load. Either way the active
+   *   locale is unchanged, and so is session storage unless the page is
+   *   reloading for the failed chunk (see SetCurrentLocaleOptions.remember).
+   */
+  async function setCurrentLocale(
+    locale: string,
+    { remember = true }: SetCurrentLocaleOptions = {}
+  ): Promise<string> {
+    return activateLocale(requireSupportedLocale(locale), { remember, fallbacks: true });
+  }
+
+  /**
+   * The activation behind setCurrentLocale, for a locale already known to be
+   * supported. `fallbacks` false loads the locale alone, without its
+   * configured fallback chain. Only the last resort of
+   * recoverFromLocaleLoadFailure passes it: English is bundled, and a locale
+   * configured behind it (fallback_locale.default) whose chunk fails must not
+   * keep the page from opening in English. Not a public option, so no caller
+   * can switch a visitor to a language with its fallbacks missing.
+   */
+  async function activateLocale(
+    normalizedLocale: string,
+    { remember, fallbacks }: { remember: boolean; fallbacks: boolean }
+  ): Promise<string> {
+    const request = ++latestSwitch;
+    pendingLocale.value = normalizedLocale;
+    // A chunk that fails to load may reload the page: the deployment-skew
+    // recovery of src/utils/preloadError.ts, bounded by ADR-046. The load
+    // rejects either way. When the page is reloading, a locale the visitor
+    // chose is stored first: nothing else would carry the choice across the
+    // reload, and the reloaded page would open in the language it showed
+    // before, with no notice, as if the switch had never happened. Stored, it
+    // is the reloaded page's preferred locale (see preferredLocale); a chunk
+    // that fails there too is refused a second reload by the bound, and that
+    // page opens in its fallback with the notice. When the reload is refused
+    // here, nothing is stored and the caller keeps the locale it shows
+    // (recoverFromLocaleLoadFailure).
+    let activated: boolean;
+    try {
+      activated = await setGlobalLocale(normalizedLocale, { fallbacks });
+    } catch (error) {
+      if (remember && request === latestSwitch && reloadingFor(error))
+        storeSelection(normalizedLocale);
+      throw error;
+    } finally {
+      if (request === latestSwitch) pendingLocale.value = null;
+    }
+    if (!activated) return currentLocale.value ?? DEFAULT_LOCALE;
+
+    currentLocale.value = normalizedLocale;
+    localeLoadFailure.value = null;
+    if (remember) storeSelection(normalizedLocale);
+    return normalizedLocale;
+  }
+
+  /** Records `locale` as this session's selection (see preferredLocale). */
+  function storeSelection(locale: string): void {
+    try {
+      sessionStorage.setItem(getStorageKey.value, locale);
+    } catch (error) {
+      console.error('Failed to save locale to session storage:', error);
+    }
+  }
+
+  /**
+   * Settles which locale the visitor sees after `requested` failed to load,
+   * and records the failure for LocaleLoadNotice. A failed language never
+   * blocks the visitor:
+   *  - with a locale already active, it stays;
+   *  - before the first activation, the installation's default_locale is
+   *    activated when it is supported, is not `requested`, and loads;
+   *    otherwise DEFAULT_LOCALE, whose messages are bundled, without its
+   *    fallbacks: a chunk configured behind English that fails (it may be
+   *    the one `requested` needed) must not keep English from showing.
+   * Neither is remembered as the session's selection. Logs nothing about
+   * `requested` itself; the caller owns that error.
+   *
+   * @returns The locale shown
+   * @throws Only when DEFAULT_LOCALE cannot be activated either
+   */
+  async function recoverFromLocaleLoadFailure(requested: string): Promise<string> {
+    const failed = resolveSupportedLocale(requested) ?? requested;
+    const shown = currentLocale.value ?? (await activateFallbackLocale(failed));
+    localeLoadFailure.value = { requested: failed, shown };
+    return shown;
+  }
+
+  async function activateFallbackLocale(failed: string): Promise<string> {
+    const configured = getBootstrapValue('default_locale');
+    if (
+      configured &&
+      configured !== failed &&
+      configured !== DEFAULT_LOCALE &&
+      supportedLocales.value.includes(configured)
+    ) {
+      try {
+        return await setCurrentLocale(configured, { remember: false });
+      } catch (error) {
+        loggingService.error(
+          error instanceof Error ? error : new Error(`[languageStore] ${String(error)}`)
+        );
+      }
+    }
+    return activateLocale(DEFAULT_LOCALE, { remember: false, fallbacks: false });
+  }
+
+  /** Hides LocaleLoadNotice; the active locale stays. */
+  function dismissLocaleLoadFailure(): void {
+    localeLoadFailure.value = null;
   }
 
   function getBrowserAcceptLanguage(selectedLocale: string): Array<string> {
@@ -167,44 +398,206 @@ export const useLanguageStore = defineStore('language', () => {
     return [...new Set([selectedLocale, navigator.language])];
   }
 
-  async function updateLanguage(newLocale: string) {
-    let validatedLocale: string;
+  /**
+   * Switches and saves the preference only once its messages are active.
+   * Record the operation before importing: Vite can initiate a reload before
+   * the import rejects. Only a reload-triggering failure retains the record.
+   */
+  async function updateLanguage(newLocale: string): Promise<string> {
+    const locale = requireSupportedLocale(newLocale);
+    const accountExtid = bootstrapCust.value?.extid ?? null;
+    const request = ++latestUpdate;
+    const selectionKey = getStorageKey.value;
+    const token = storePendingLocaleUpdate(selectionKey, locale, accountExtid);
     try {
-      validatedLocale = validateAndNormalizeLocale(newLocale);
-    } catch {
-      throw new Error(`Invalid locale format: ${newLocale}`);
+      const { active, saved } = await switchLanguage(locale, accountExtid, request);
+      await saved;
+      clearPendingLocaleUpdate(selectionKey, token);
+      return active;
+    } catch (error) {
+      if (!reloadingFor(error) || request !== latestUpdate) {
+        clearPendingLocaleUpdate(selectionKey, token);
+      }
+      throw error;
     }
-
-    if (!supportedLocales.value.includes(validatedLocale)) {
-      throw new Error(`Unsupported locale: ${validatedLocale}`);
-    }
-
-    await setGlobalLocale(validatedLocale); // via i18n
-    setCurrentLocale(validatedLocale); // save to session storage
-
-    // Remember who asked. An auth refresh can swap the bootstrap customer
-    // while the request is in flight; the snapshot patch below belongs to the
-    // account that made the request, not to whoever is signed in afterwards.
-    const requester = bootstrapCust.value;
-    await $api.post('/api/account/update-locale', { locale: validatedLocale });
-
-    // The server now holds the new preference, so the local bootstrap snapshot
-    // must say the same. The auth route guard re-applies
-    // bootstrapStore.cust.locale on every protected navigation and nothing
-    // refreshes that snapshot on navigation, so a stale value there reverted
-    // the user's choice (and overwrote the stored locale) on the next page.
-    const current = bootstrapCust.value;
-    if (requester && current && current.extid === requester.extid) {
-      bootstrapStore.update({ cust: { ...current, locale: validatedLocale } });
-    }
-    return validatedLocale;
   }
 
-  function determineLocale(preferredLocale?: string): string {
-    if (!preferredLocale) return getCurrentLocale.value;
+  function sameAccount(accountExtid: string | null): boolean {
+    return (bootstrapCust.value?.extid ?? null) === accountExtid;
+  }
+
+  /**
+   * Activates `locale` and, when it is still the latest update for the same
+   * account once active, queues its save. Resolves once the locale is active;
+   * `saved` is the queued save, null when none was queued.
+   */
+  async function switchLanguage(
+    locale: string,
+    accountExtid: string | null,
+    request: number,
+    resuming = false
+  ): Promise<{ active: string; saved: Promise<void> | null }> {
+    const switchRequest = latestSwitch + 1;
+    let active: string;
+    try {
+      active = await setCurrentLocale(locale);
+    } catch (error) {
+      if (request === latestUpdate) await recoverFromLocaleLoadFailure(locale);
+      throw error;
+    }
+    if (
+      active !== locale ||
+      switchRequest !== latestSwitch ||
+      request !== latestUpdate ||
+      !sameAccount(accountExtid) ||
+      (resuming && !verifiedAccount(accountExtid))
+    ) {
+      return { active, saved: null };
+    }
+    activePreferenceRequest = request;
+    localeSaveFailure.value = null;
+    return { active: locale, saved: saveLanguagePreference(locale, accountExtid, request) };
+  }
+
+  /**
+   * Saves run one at a time, in the order they were made: two POSTs in
+   * flight can reach the server in either order, and the older choice would
+   * then be the saved one. A save that a newer save or an account change
+   * superseded while it waited is never sent, and resolves.
+   */
+  function saveLanguagePreference(
+    locale: string,
+    accountExtid: string | null,
+    request: number
+  ): Promise<void> {
+    savingLocale.value = locale;
+    const save = preferenceWrites.then(() => sendLanguagePreference(locale, accountExtid, request));
+    preferenceWrites = save.catch(() => undefined);
+    return save;
+  }
+
+  async function sendLanguagePreference(
+    locale: string,
+    accountExtid: string | null,
+    request: number
+  ): Promise<void> {
+    if (request !== activePreferenceRequest || !sameAccount(accountExtid)) return;
+    try {
+      await $api.post(
+        '/api/account/update-locale',
+        { locale },
+        { timeout: PREFERENCE_SAVE_TIMEOUT_MS }
+      );
+    } catch (error) {
+      if (
+        request === activePreferenceRequest &&
+        sameAccount(accountExtid) &&
+        currentLocale.value === locale
+      ) {
+        localeSaveFailure.value = { locale, accountExtid };
+      }
+      throw error;
+    } finally {
+      if (request === activePreferenceRequest) savingLocale.value = null;
+    }
+
+    // Keep the snapshot used by protected navigation in step with the POST.
+    // Neither an old response nor an account swap may patch a newer choice.
+    if (request !== activePreferenceRequest || !sameAccount(accountExtid)) return;
+    const current = bootstrapCust.value;
+    if (current) bootstrapStore.update({ cust: { ...current, locale } });
+    localeSaveFailure.value = null;
+  }
+
+  /**
+   * Called once during initial navigation, after auth settles. A pending
+   * explicit switch temporarily outranks the old account locale; ordinary
+   * session selections retain their existing precedence. A valid URL locale
+   * has already been attempted by the guard and must not be loaded twice.
+   * Returns whether recovery decided this navigation's locale, even on failure.
+   *
+   * Only the activation is awaited. The save runs behind the navigation, so a
+   * slow request never holds startup: until it settles, savingLocale stands in
+   * for the account locale, and a failed save offers the retry notice.
+   */
+  async function resumeLanguageUpdate(queryLocale?: string): Promise<boolean> {
+    const operation = takePendingLocaleUpdate(getStorageKey.value);
+    if (!operation) return false;
+    const { locale, accountExtid } = operation;
+    if (!verifiedAccount(accountExtid)) return false;
+    if (resolveSupportedLocale(locale) !== locale) return false;
+    if (queryLocale !== undefined && queryLocale !== locale) return false;
+
+    const request = ++latestUpdate;
+    try {
+      const saved =
+        queryLocale === undefined
+          ? (await switchLanguage(locale, accountExtid, request, true)).saved
+          : saveShownLocale(locale, accountExtid, request);
+      if (saved) logFailedSave(saved);
+    } catch (error) {
+      // If even bundled English failed, preserve the initial-navigation
+      // failure contract rather than mounting without an active locale.
+      if (currentLocale.value === null) throw error;
+      loggingService.error(error instanceof Error ? error : new Error(String(error)));
+    }
+    return true;
+  }
+
+  /** Queues the save of `locale` when the guard's URL activation shows it. */
+  function saveShownLocale(
+    locale: string,
+    accountExtid: string | null,
+    request: number
+  ): Promise<void> | null {
+    if (currentLocale.value !== locale || localeLoadFailure.value?.requested === locale) {
+      return null;
+    }
+    activePreferenceRequest = request;
+    return saveLanguagePreference(locale, accountExtid, request);
+  }
+
+  function logFailedSave(save: Promise<void>): void {
+    save.catch((error: unknown) =>
+      loggingService.error(error instanceof Error ? error : new Error(String(error)))
+    );
+  }
+
+  function verifiedAccount(accountExtid: string | null): boolean {
+    const status = useAuthStore().authStatus;
+    return (
+      sameAccount(accountExtid) &&
+      status === (accountExtid === null ? 'anonymous' : 'authenticated')
+    );
+  }
+
+  /** Retries persistence only; never reloads chunks or requeues recovery. */
+  async function retryLanguageSave(): Promise<void> {
+    const failure = localeSaveFailure.value;
+    if (!failure || pendingLocale.value !== null) return;
+    if (!sameAccount(failure.accountExtid) || currentLocale.value !== failure.locale) {
+      localeSaveFailure.value = null;
+      return;
+    }
+    if (!verifiedAccount(failure.accountExtid)) return;
+    const request = ++latestUpdate;
+    activePreferenceRequest = request;
+    try {
+      await saveLanguagePreference(failure.locale, failure.accountExtid, request);
+    } catch (error) {
+      loggingService.error(error instanceof Error ? error : new Error(String(error)));
+    }
+  }
+
+  function dismissLocaleSaveFailure(): void {
+    localeSaveFailure.value = null;
+  }
+
+  function determineLocale(candidate?: string): string {
+    if (!candidate) return getCurrentLocale.value;
 
     try {
-      const normalizedLocale = validateAndNormalizeLocale(preferredLocale);
+      const normalizedLocale = validateAndNormalizeLocale(candidate);
       return supportedLocales.value.includes(normalizedLocale)
         ? normalizedLocale
         : getCurrentLocale.value;
@@ -272,9 +665,25 @@ export const useLanguageStore = defineStore('language', () => {
     return primaryMatch || validatedLocale;
   };
 
+  /**
+   * The operator's locale list, less any locale this build has no messages
+   * for. The two can disagree: the server keeps a configured locale in
+   * supported_locales when its file is missing (load_all_locales_from_source
+   * in lib/onetime/initializers/load_locales.rb logs "Missing locale file"
+   * and goes on to the next), and a frontend build may have been given a
+   * different set of files. Dropping such a locale here keeps every reader of
+   * the list consistent: the preference hierarchy and resolveSupportedLocale
+   * pass over it as they pass over an unsupported one, so the visitor is
+   * never shown the fallback and LocaleLoadNotice for a locale that cannot
+   * load (see recoverFromLocaleLoadFailure), and the language pickers do not
+   * offer a language that cannot be shown. DEFAULT_LOCALE is bundled with the
+   * entry and is never dropped.
+   */
   const loadSupportedLocales = () => {
     const locales = bootstrapSupportedLocales.value;
-    supportedLocales.value = Array.isArray(locales) ? locales : [];
+    supportedLocales.value = (Array.isArray(locales) ? locales : []).filter(
+      (locale) => locale === DEFAULT_LOCALE || hasLocaleMessages(locale)
+    );
   };
 
   const loadStoredLocale = () => {
@@ -287,11 +696,17 @@ export const useLanguageStore = defineStore('language', () => {
   };
 
   function $reset() {
+    ++latestUpdate;
+    activePreferenceRequest = 0;
+    savingLocale.value = null;
+    clearPendingLocaleUpdate(getStorageKey.value);
+    localeSaveFailure.value = null;
     deviceLocale.value = null;
     currentLocale.value = null;
+    pendingLocale.value = null;
+    localeLoadFailure.value = null;
     storageKey.value = null;
     supportedLocales.value = [];
-    storedLocale.value = null;
     _initialized.value = false;
   }
 
@@ -303,8 +718,11 @@ export const useLanguageStore = defineStore('language', () => {
     storageKey,
     supportedLocales,
     supportedLocalesWithNames,
-    storedLocale,
     currentLocale,
+    pendingLocale,
+    localeLoadFailure,
+    localeSaveFailure,
+    savingLocale,
 
     // Getters
     getDeviceLocale,
@@ -314,10 +732,16 @@ export const useLanguageStore = defineStore('language', () => {
 
     // Actions
     init,
-    initializeLocale,
+    preferredLocale,
+    resolveSupportedLocale,
     determineLocale,
     updateLanguage,
+    resumeLanguageUpdate,
+    retryLanguageSave,
+    dismissLocaleSaveFailure,
     setCurrentLocale,
+    recoverFromLocaleLoadFailure,
+    dismissLocaleLoadFailure,
     acceptLanguages,
     acceptLanguageHeader,
 

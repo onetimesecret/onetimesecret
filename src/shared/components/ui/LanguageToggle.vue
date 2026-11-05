@@ -27,8 +27,13 @@
   }>();
 
   const { t } = useI18n();
-  const { currentLocale, supportedLocalesWithNames, updateLanguage, initializeLanguage } =
-    useLanguage();
+  const {
+    currentLocale,
+    pendingLocale,
+    supportedLocalesWithNames,
+    updateLanguage,
+    initializeLanguage,
+  } = useLanguage();
 
   const isMenuOpen = ref(false);
   const menuItems = ref<HTMLElement[]>([]);
@@ -45,11 +50,20 @@
       supportedLocalesWithNames.value?.[currentLocale.value] || currentLocale.value
   );
 
+  // The visitor's latest choice: the locale still loading, if any, else the
+  // active one. While a switch loads, currentLocale still names the old
+  // language, and picking that one again must supersede the pending switch.
+  const selectedLocale = computed(() => pendingLocale.value ?? currentLocale.value);
+
+  const selectedLocaleName = computed(
+    () => supportedLocalesWithNames.value?.[selectedLocale.value] || selectedLocale.value
+  );
+
   const defaultLocaleName = computed(
     () => supportedLocalesWithNames.value?.[DEFAULT_LOCALE] || DEFAULT_LOCALE
   );
 
-  const canResetToDefault = computed(() => currentLocale.value !== DEFAULT_LOCALE);
+  const canResetToDefault = computed(() => selectedLocale.value !== DEFAULT_LOCALE);
 
   const resetToDefault = async () => {
     if (!canResetToDefault.value) return;
@@ -94,10 +108,19 @@
   };
 
   const changeLocale = async (newLocale: string) => {
-    if (newLocale === currentLocale.value) return;
+    // Picking the active language while another one loads is a new choice:
+    // the pending switch then neither activates nor saves its locale.
+    if (newLocale === selectedLocale.value) return;
 
     try {
       await updateLanguage(newLocale);
+      // The UI stays in the old language until the new one is active.
+      // updateLanguage resolves either way. LocaleLoadNotice reports a failed
+      // load; useAsyncHandler logs it and passes its message to useLanguage's
+      // state, which this component does not render, so no toast repeats the
+      // notice. Announce only a locale that actually became active: a failed
+      // load or a newer selection leaves currentLocale elsewhere.
+      if (currentLocale.value !== newLocale) return;
       emit('localeChanged', newLocale);
       announceLanguageChange(newLocale);
     } catch (err) {
@@ -224,7 +247,7 @@
             @click="resetToDefault"
             class="flex w-full items-center justify-between rounded-md py-1 text-gray-700 transition-colors hover:text-brand-600 dark:text-gray-100 dark:hover:text-brand-400"
             :title="t('web.layout.reset_to_default_language', [defaultLocaleName])">
-            <span class="font-bold">{{ currentLocaleName }}</span>
+            <span class="font-bold">{{ selectedLocaleName }}</span>
             <OIcon
               collection="heroicons"
               name="x-mark"
@@ -234,7 +257,7 @@
           <div
             v-else
             class="flex items-center justify-between py-1 font-bold text-gray-700 dark:text-gray-100">
-            {{ currentLocaleName }}
+            {{ selectedLocaleName }}
             <OIcon
               collection="heroicons"
               name="check-20-solid"

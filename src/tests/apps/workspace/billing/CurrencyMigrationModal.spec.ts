@@ -481,6 +481,9 @@ describe('CurrencyMigrationModal', () => {
       const realI18n = createI18n({
         legacy: false,
         locale: 'en',
+        // Only the description is under test; the other keys render as their path.
+        missingWarn: false,
+        fallbackWarn: false,
         messages: {
           en: {
             'web.billing.currency_migration.description': 'Switch from {from} to {to}',

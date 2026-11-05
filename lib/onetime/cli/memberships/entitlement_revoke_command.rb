@@ -5,10 +5,9 @@
 # Add an operator override REVOKE to an organization membership.
 #
 # Usage:
-#   bin/ots memberships entitlement revoke ORG CUSTOMER ENTITLEMENT --dry-run  # Project, write nothing
-#   bin/ots memberships entitlement revoke ORG CUSTOMER ENTITLEMENT            # Confirm, then apply
-#   bin/ots memberships entitlement revoke ORG CUSTOMER ENTITLEMENT --yes      # Apply, no prompt
-#   bin/ots memberships entitlement revoke ORG CUSTOMER ENTITLEMENT --yes --json
+#   bin/ots memberships entitlement revoke ORG CUSTOMER ENTITLEMENT            # Dry run (the default): project, write nothing
+#   bin/ots memberships entitlement revoke ORG CUSTOMER ENTITLEMENT --apply    # Apply
+#   bin/ots memberships entitlement revoke ORG CUSTOMER ENTITLEMENT --apply --json
 #
 # ORG is an org extid (see Onetime::CLI::Memberships::Shared#resolve_org);
 # CUSTOMER is an email, extid, or Rodauth account id.
@@ -18,12 +17,15 @@
 # (the membership read path has no billing short-circuit).
 require_relative 'entitlement_command'
 
+require_relative '../write_gate'
+
 module Onetime
   module CLI
     class MembershipsEntitlementRevokeCommand < Command
       include Customers::Shared
       include Memberships::Shared
       include Memberships::EntitlementSupport
+      include WriteGate
 
       desc 'Revoke an entitlement from an org member (operator override)'
 
@@ -40,23 +42,16 @@ module Onetime
         required: true,
         desc: 'Entitlement name'
 
-      option :yes,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '-f'],
-        desc: 'Skip confirmation prompt (required to apply)'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Project the resulting override sets; write nothing'
+      write_gate_options 'Write the override'
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
-      def call(org:, customer:, entitlement:, yes: false, dry_run: false, json: false, **)
+      def call(org:, customer:, entitlement:, apply: false, dry_run: false, json: false, **)
         boot_application!
 
+        dry_run      = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
         organization = resolve_org(org, json: json)
         member       = resolve_member(customer, action: 'revoke entitlement from', json: json)
 
@@ -65,7 +60,6 @@ module Onetime
           member,
           action: 'revoke',
           entitlement: entitlement,
-          yes: yes,
           dry_run: dry_run,
           json: json,
         )

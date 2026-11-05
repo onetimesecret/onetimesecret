@@ -121,6 +121,48 @@ require_relative 'support/public_host_rewrite_context'
 require_relative '../database'
 
 # =============================================================================
+# PRE-LOAD AUTH APPLICATION (#3234)
+# =============================================================================
+# Force-load Auth::Application so the full constant chain
+# (Onetime::Boot::Initializer, Auth::Config, Auth::Config::Features::*,
+# Auth::Config::Hooks::*, the initializer subclasses) is defined before any
+# example runs.
+#
+# Without this, unit specs that mock Onetime/Auth::Database in isolation pass
+# fine on their own but fail when paired with an integration spec that boots
+# the real app: the integration spec's `Onetime.boot!` is memoized
+# process-wide, and the unit spec's stub of `Onetime.auth_config` leaks across
+# example boundaries unless the namespace is stable up front.
+#
+# Safe to load eagerly here because Auth::Config's OAuth feature block only
+# runs when `Onetime.auth_config.oauth_enabled?` returns true (config.rb:149),
+# which requires AUTH_OAUTH_ENABLED=true in the environment. Integration specs
+# that need OAuth set the env var BEFORE `require_relative '../spec_helper'`;
+# unit specs leave it unset and the RSA-key requirement (features/oauth.rb:234)
+# stays dormant.
+#
+# Reload Onetime.auth_config before requiring the application. The
+# AuthConfig singleton was first instantiated during `require 'onetime'`
+# (lib/onetime/initializers.rb:75, called from the root spec_helper) — at
+# which point AUTHENTICATION_MODE was unset, so mode cached as 'simple'.
+# Without a reload here, Auth::Database.connection returns nil (full-mode
+# guard at database.rb:111), and rodauth's post_configure (base.rb:443)
+# crashes calling db.database_type on nil. Mirrors the reload performed
+# by ProductionConfigHelper#boot_onetime_app for integration specs.
+Onetime.auth_config.reload! if Onetime.respond_to?(:auth_config) && Onetime.auth_config.respond_to?(:reload!)
+
+# Only eagerly load the full auth application in full mode. The reload above has
+# now picked up AUTHENTICATION_MODE from the environment; in simple mode (the
+# unit/apps RSpec leg that also runs these config specs) full_enabled? is false
+# and Auth::Database.connection is nil (database.rb:111), so configuring Rodauth
+# via application.rb -> router.rb would crash post_configure on db.database_type
+# (base.rb:443). Self-contained config specs that build their own in-memory app
+# (e.g. mfa_provisioning_uri_spec.rb via create_test_database) don't need the
+# real application booted. Integration specs always run in full mode, where this
+# pre-load still happens and #3234's namespace-stability guarantee holds.
+require_relative '../application' if Onetime.respond_to?(:auth_config) && Onetime.auth_config.full_enabled?
+
+# =============================================================================
 # TENANT VERIFYING MOCK REGISTRATION
 # =============================================================================
 #
@@ -472,6 +514,19 @@ module ProductionConfigHelper
     # Only install once
     return if defined?(@@tenant_mock_hook_installed) && @@tenant_mock_hook_installed
 
+    # features.rb uses the shorthand `module Auth::Config::Features`, which
+    # requires Auth::Config to already be defined. In normal full-suite runs
+    # an earlier spec (e.g. env_feature_loading_spec.rb) has populated the
+    # namespace before this point. When this hook runs in isolation (a
+    # single-file rspec invocation of an integration spec), Auth::Config is
+    # still undefined — and the original `require_relative '../config/features'`
+    # blew up with NameError. The TenantVerifyingMock is only used by tenant-SSO
+    # specs; if the auth namespace isn't ready, skip cleanly so unrelated
+    # integration specs can boot.
+    unless defined?(Auth::Config)
+      return
+    end
+
     # Load the Auth features module structure
     require_relative '../config/features'
 
@@ -593,6 +648,23 @@ module ProductionConfigHelper
   # Get the auth database connection for assertions
   def auth_db
     Auth::Database.connection
+  end
+
+  # Re-seed the dev SP client row (oauth_applications) when it is missing.
+  #
+  # Call from a per-example `before`, not `before(:all)`. On SQLite the row
+  # survives cleanup (PRESERVED_TABLES is honoured row-for-row), so this is a
+  # single indexed SELECT per example. On PostgreSQL it is not: clear_auth_database
+  # issues TRUNCATE ... CASCADE, and oauth_applications carries an FK to accounts
+  # (migration 012), so it gets cascade-truncated even though it is excluded from
+  # the table list — a before(:all) seed would survive exactly one example. The
+  # bcrypt cost is only paid on the examples that actually lost the row.
+  def ensure_dev_oauth_client!
+    require 'auth/initializers/seed_dev_oauth_client'
+    dev_client_id = Auth::Initializers::SeedDevOAuthClient::DEV_CLIENT_ID
+    return if auth_db[:oauth_applications].where(client_id: dev_client_id).any?
+
+    Auth::Initializers::SeedDevOAuthClient.new.execute(nil)
   end
 end
 

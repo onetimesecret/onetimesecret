@@ -30,10 +30,15 @@ export type MembershipDetails = z.infer<typeof membershipDetailsSchema>;
 
 /**
  * Domain with permissions (nested in bulk response)
+ *
+ * `served`: whether the domain is served as a tenant domain
+ * (CustomDomain#served_as_tenant?). A domain pending ownership verification
+ * is listed with served: false; the domain-context picker leaves it out.
  */
 export const domainPermissionsSchema = z.object({
   extid: z.string(),
   display_domain: z.string(),
+  served: z.boolean(),
   permissions: resourcePermissionsSchema,
 });
 

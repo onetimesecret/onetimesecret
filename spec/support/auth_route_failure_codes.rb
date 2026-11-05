@@ -184,15 +184,15 @@ module AuthRouteFailureCodes
     login: { requirement: :anonymous, credential: true, also: %i[account_locked account_unverified] },
     webauthn_login: { requirement: :anonymous, credential: true },
     webauthn_autofill_js: { requirement: :anonymous, credential: false },
-    # A login that matches no account is a rejected credential (401,
-    # `no_matching_login`); a rejected link key is not (uncoded).
-    email_auth_request: { requirement: :anonymous, credential: true },
+    # The enumeration override (config/overrides/login_request_enumeration.rb)
+    # answers every outcome of the three login-request routes alike
+    # (RISK-2026-08-14-M03 for the email-auth request and the resend), so
+    # none refuses a login. A rejected link key is not a credential (uncoded).
+    email_auth_request: { requirement: :anonymous, credential: false },
     email_auth: { requirement: :anonymous, credential: false },
     create_account: { requirement: :anonymous, credential: false },
     verify_account: { requirement: :anonymous, credential: false },
-    verify_account_resend: { requirement: :anonymous, credential: true },
-    # The enumeration override (config/overrides/reset_password_enumeration.rb)
-    # answers every request-phase outcome alike, so nothing is refused.
+    verify_account_resend: { requirement: :anonymous, credential: false },
     reset_password_request: { requirement: :anonymous, credential: false },
     reset_password: { requirement: :anonymous, credential: false },
     unlock_account_request: { requirement: :anonymous, credential: true },
@@ -200,6 +200,16 @@ module AuthRouteFailureCodes
     # Answered by the router for a refused session, otherwise never refused.
     logout: { requirement: :anonymous, credential: false },
     verify_login_change: { requirement: :anonymous, credential: false },
+
+    # --- OAuth/OIDC IdP machine endpoints (rodauth-oauth) ----------------
+    # Mounted only with the OAuth feature on. They authenticate by client
+    # credentials or bearer token (jwks: none), never by the Rack session
+    # (Auth::Router::ANONYMOUS_RODAUTH_ROUTES), and refuse in the OAuth
+    # error format, not with this vocabulary's codes.
+    token: { requirement: :anonymous, credential: false },
+    revoke: { requirement: :anonymous, credential: false },
+    userinfo: { requirement: :anonymous, credential: false },
+    jwks: { requirement: :anonymous, credential: false },
 
     # --- account routes, login required ----------------------------------
     remember: { requirement: :login_required, credential: false },
@@ -218,6 +228,9 @@ module AuthRouteFailureCodes
     webauthn_setup: { requirement: :login_required, credential: true },
     webauthn_setup_js: { requirement: :login_required, credential: false },
     webauthn_remove: { requirement: :login_required, credential: true },
+    # OAuth/OIDC IdP consent step: browser-driven, behind the session like
+    # every other login-required route.
+    authorize: { requirement: :login_required, credential: false },
 
     # --- second-factor ceremony ------------------------------------------
     otp_auth: { requirement: :mfa_pending, credential: true },

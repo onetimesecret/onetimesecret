@@ -1,0 +1,420 @@
+# lib/onetime/cli/sso/audit_email_domains_command.rb
+#
+# frozen_string_literal: true
+
+# Audit, and on request unlink, a tenant domain's SSO identities whose account
+# address lies outside every email domain the organization has proven
+# (RISK-2026-10-10-01, #4734).
+#
+# Usage:
+#   bin/ots sso audit-email-domains secrets.example.com                   # Report
+#   bin/ots sso audit-email-domains secrets.example.com --unlink          # Preview unlinks
+#   bin/ots sso audit-email-domains secrets.example.com --unlink --confirm # Unlink
+#   bin/ots sso audit-email-domains secrets.example.com --issuer URL      # Rows stamped with URL
+#   bin/ots sso audit-email-domains secrets.example.com --json            # JSON output
+#
+# Runbook: docs/runbooks/sso-tenant-email-domain-audit.md
+
+require 'json'
+require 'shellwords'
+
+module Onetime
+  module CLI
+    class SsoAuditEmailDomainsCommand < Command
+      desc 'List tenant SSO identities outside the organization\'s proven email domains'
+
+      # Which domains count as proven on this install
+      # (CustomDomain#ownership_proven?). Under passthrough every registered
+      # domain reads as verified, so the operator needs to see that only
+      # overrides count before reading "outside" rows. A strategy that cannot
+      # be built (an unknown name under strict_strategy) also leaves only
+      # overrides, and is named so the operator fixes the setting. Under a
+      # TXT strategy a verified domain counts only with a passing check on
+      # record; the ones without are listed (see #verified_without_txt_pass).
+      PROOF_BASIS_LABELS = {
+        'txt_or_override' => 'TXT ownership check or Colonel override',
+        'override_only' => 'Colonel override only (validation strategy makes no TXT check)',
+        'override_only_strategy_error' =>
+          'Colonel override only (validation strategy cannot be built; check features.domains.validation_strategy)',
+      }.freeze
+
+      PROOF_BASIS_BY_STRATEGY_STATE = {
+        proves: 'txt_or_override',
+        no_proof: 'override_only',
+        unbuildable: 'override_only_strategy_error',
+      }.freeze
+
+      argument :domain,
+        type: :string,
+        required: true,
+        desc: 'Custom domain display name (secrets.example.com) or CustomDomain extid'
+
+      option :issuer,
+        type: :string,
+        default: nil,
+        desc: 'Scan the rows whose issuer column equals this value exactly (the complete ' \
+              'stamped value, no derivation applied) instead of the derived issuer; ' \
+              'for rows backfill-issuer stamped, the value given to its --issuer'
+
+      option :unlink,
+        type: :boolean,
+        default: false,
+        desc: 'Delete the identity rows that fail the check (preview unless --confirm)'
+
+      option :confirm,
+        type: :boolean,
+        default: false,
+        desc: 'Execute changes (WITHOUT this flag the run is forced dry-run)'
+
+      option :json,
+        type: :boolean,
+        default: false,
+        desc: 'JSON output'
+
+      option :help,
+        type: :boolean,
+        default: false,
+        aliases: ['h'],
+        desc: 'Show help message'
+
+      def call(domain:, issuer: nil, unlink: false, confirm: false, json: false, help: false, **)
+        return show_usage_help if help
+
+        boot_application!
+        require_relative '../../../../apps/web/auth/operations/audit_tenant_email_domains'
+
+        custom_domain = resolve_domain(domain)
+        unless custom_domain
+          warn "Domain not found: #{domain}"
+          exit 1
+        end
+
+        dry_run         = !confirm
+        issuer_override = issuer_override_from(issuer)
+        op              = build_operation(custom_domain, unlink, dry_run, json, issuer_override)
+        return unless op
+
+        results = op.call
+
+        if json
+          output_json(custom_domain, op, results, dry_run, issuer_override)
+        else
+          print_header(custom_domain, op, dry_run, issuer_override)
+          print_results(results, dry_run, unlink)
+          print_next_steps(domain, dry_run, unlink, results, issuer_override)
+        end
+
+        exit 1 if results.any? { |r| r.status == :error }
+      end
+
+      private
+
+      def resolve_domain(identifier)
+        id = identifier.to_s.strip
+        Onetime::CustomDomain.load_by_display_domain(id) ||
+          Onetime::CustomDomain.find_by_extid(id)
+      end
+
+      # The --issuer value as the operation reads it: stripped, nil when blank.
+      # Nil means the operation derives the issuer from the SSO config.
+      def issuer_override_from(issuer)
+        value = issuer.to_s.strip
+        value.empty? ? nil : value
+      end
+
+      def build_operation(custom_domain, unlink, dry_run, json, issuer_override)
+        Auth::Operations::AuditTenantEmailDomains.new(
+          domain: custom_domain,
+          unlink: unlink,
+          dry_run: dry_run,
+          issuer_override: issuer_override,
+        )
+      rescue Onetime::Problem => ex
+        if json
+          puts JSON.generate(error: ex.message)
+        else
+          warn "Cannot audit: #{ex.message}"
+        end
+        exit 1
+      end
+
+      def print_header(custom_domain, op, dry_run, issuer_override)
+        puts "\nTenant SSO Email Domain Audit"
+        puts '=' * 60
+        puts "  Domain:       #{custom_domain.display_domain}"
+        puts "  Organization: #{op.organization.display_name} (#{op.organization.extid})"
+        puts "  Provider:     #{op.provider}"
+        puts "  Issuer:       #{op.issuer}#{' (from --issuer)' if issuer_override}"
+        puts "  Mode:         #{dry_run ? 'DRY RUN' : 'LIVE'}#{op.unlink ? ' (unlink)' : ' (report)'}"
+        puts "  Proven by:    #{proof_basis_label}"
+        missing = verified_without_txt_pass(custom_domain, op)
+        unless missing.empty?
+          puts "  No TXT pass:  #{missing.join(', ')}"
+          puts '                (verified, no passing TXT check on record, so not proven; ' \
+               'run bin/ots domains verify --all or wait for the scheduled refresh)'
+        end
+        puts '  WARNING:      SSO config for this domain is DISABLED' unless op.sso_enabled?
+      end
+
+      # Why a verified domain of the organization is outside the proven set
+      # under a TXT strategy: no passing TXT check is on record for it
+      # (CustomDomain#txt_pass_recorded?) and no Colonel override. That is a
+      # domain verified under passthrough before the strategy changed, or
+      # before v0.26.14, when no pass was recorded (ADR-016). A verify run
+      # records the pass and the domain counts from then on. Empty under any
+      # other strategy state, where the Proven by: line already says why the
+      # flag alone does not count. The tenant domain is included, so the
+      # list is right even when the organization's domain index misses it.
+      #
+      # @return [Array<String>] display domains, sorted
+      def verified_without_txt_pass(custom_domain, op)
+        return [] unless Onetime::CustomDomain.validation_strategy_state == :proves
+
+        ([custom_domain] + op.organization.list_domains)
+          .uniq(&:identifier)
+          .select { |domain| domain.ownership_verified == true && !domain.ownership_proven? }
+          .map { |domain| domain.display_domain.to_s }
+          .sort
+      end
+
+      # Which basis makes a domain proven on this install
+      # (CustomDomain#ownership_proven?), as JSON proof_basis and as text.
+      #
+      # @return [String] a key of PROOF_BASIS_LABELS
+      def proof_basis
+        PROOF_BASIS_BY_STRATEGY_STATE.fetch(Onetime::CustomDomain.validation_strategy_state)
+      end
+
+      def proof_basis_label
+        PROOF_BASIS_LABELS.fetch(proof_basis)
+      end
+
+      def print_results(results, dry_run, unlink)
+        stats = tally(results)
+
+        puts "\nScanned #{results.size} identity row(s) under this issuer"
+        if results.empty?
+          puts '  Rows that backfill-issuer --issuer stamped with a different value are outside this scan; ' \
+               're-run with --issuer set to the value given there before reading this as a clean install.'
+        end
+
+        if results.any?
+          puts
+          puts format('  %-26s %-10s %-14s %-28s %s', 'STATUS', 'ACCOUNT', 'CUSTOMER', 'DOMAIN', 'EMAIL')
+          puts '  ' + ('-' * 96)
+          results.each do |r|
+            puts format(
+              '  %-26s %-10s %-14s %-28s %s',
+              r.status,
+              r.account_id,
+              r.customer_extid || '-',
+              r.asserted_domain || '-',
+              r.email_obscured || '-',
+            )
+          end
+        end
+
+        puts "\n" + ('=' * 60)
+        puts "Audit #{dry_run ? 'Preview' : 'Complete'}"
+        puts '=' * 60
+        puts format('  %-30s %d', 'Inside proven domains:', stats[:inside])
+        puts format('  %-30s %d', 'Outside (bound before #4734):', stats[:outside])
+        if unlink
+          puts format('  %-30s %d', dry_run ? 'Would unlink:' : 'Unlinked:', stats[:unlink])
+        end
+        puts format('  %-30s %d', 'Skipped (ambiguous origin):', stats[:ambiguous_origin])
+        puts format('  %-30s %d', 'Skipped (no account):', stats[:no_account])
+
+        return if stats[:error].zero?
+
+        puts format('  %-30s %d', 'Errors:', stats[:error])
+        results.select { |r| r.status == :error }.each do |r|
+          puts "    - account #{r.account_id}: #{r.message}"
+        end
+      end
+
+      def print_next_steps(domain, dry_run, unlink, results, issuer_override)
+        stats       = tally(results)
+        # A re-run must read the same rows, so a given --issuer stays on the
+        # command, quoted for the shell (a SAML value contains "|").
+        issuer_flag = issuer_override ? " --issuer #{Shellwords.escape(issuer_override)}" : ''
+        follow_up   = "bin/ots sso audit-email-domains #{domain} --unlink --confirm#{issuer_flag}"
+
+        if !unlink && stats[:outside].positive?
+          puts <<~MESSAGE
+
+            #{stats[:outside]} identity row(s) bind this tenant's IdP to an account whose address the
+            organization has not proven. Review them, then either prove the email domain (the
+            organization adds it under Domains and passes the TXT check; a domain already verified
+            with no TXT pass on record needs a verify run, see "No TXT pass" above; or, where the
+            validation strategy makes no TXT check, a Colonel overrides its verification; the rows
+            then report "inside"), or remove the bindings:
+              #{follow_up}
+          MESSAGE
+        elsif unlink && dry_run && stats[:unlink].positive?
+          puts <<~MESSAGE
+
+            Preview only. To delete the #{stats[:unlink]} identity row(s) above:
+              #{follow_up}
+          MESSAGE
+        elsif unlink && !dry_run && stats[:unlink].positive?
+          puts <<~MESSAGE
+
+            Each unlinked account keeps its address and credentials. To re-admit a legitimate
+            user: the organization proves that email domain (TXT check, or a Colonel override
+            where the validation strategy makes no TXT check), the user signs in
+            on the canonical host (password reset if the account has no password) and links the
+            identity again from Connected Identities.
+          MESSAGE
+        end
+
+        return if stats[:ambiguous_origin].zero?
+
+        puts <<~MESSAGE
+
+          #{stats[:ambiguous_origin]} outside row(s) were left untouched: the account's signup_domain_id does
+          not name this domain, so the identity may have been bound by the platform or by
+          another tenant that names the same issuer. Review each by hand.
+        MESSAGE
+      end
+
+      def output_json(custom_domain, op, results, dry_run, issuer_override)
+        stats = tally(results)
+        puts JSON.pretty_generate(
+          domain: custom_domain.display_domain,
+          organization: op.organization.extid,
+          provider: op.provider,
+          issuer: op.issuer,
+          issuer_override: !issuer_override.nil?,
+          sso_enabled: op.sso_enabled?,
+          proof_basis: proof_basis,
+          verified_without_txt_pass: verified_without_txt_pass(custom_domain, op),
+          dry_run: dry_run,
+          unlink: op.unlink,
+          statistics: {
+            scanned: results.size,
+            inside: stats[:inside],
+            outside: stats[:outside],
+            unlink: stats[:unlink],
+            skipped_ambiguous_origin: stats[:ambiguous_origin],
+            skipped_no_account: stats[:no_account],
+            errors: stats[:error],
+          },
+          results: results.map do |r|
+            {
+              status: r.status,
+              account_id: r.account_id,
+              uid: r.uid,
+              customer: r.customer_extid,
+              email: r.email_obscured,
+              asserted_domain: r.asserted_domain,
+              provider: r.provider,
+              issuer: r.issuer,
+              organization: r.organization_extid,
+              message: r.message,
+            }
+          end,
+        )
+      end
+
+      def tally(results)
+        stats = { inside: 0, outside: 0, unlink: 0, ambiguous_origin: 0, no_account: 0, error: 0 }
+        results.each do |r|
+          case r.status
+          when :inside                    then stats[:inside]           += 1
+          when :outside                   then stats[:outside]          += 1
+          when :would_unlink, :unlinked   then stats[:unlink]           += 1
+          when :skipped_ambiguous_origin  then stats[:ambiguous_origin] += 1
+          when :skipped_no_account        then stats[:no_account]       += 1
+          when :error                     then stats[:error]            += 1
+          end
+        end
+        stats
+      end
+
+      def show_usage_help
+        puts <<~USAGE
+
+          Tenant SSO Email Domain Audit
+
+          Usage:
+            bin/ots sso audit-email-domains DOMAIN [options]
+
+          Description:
+            Since #4734 tenant SSO creates an account only for an address inside a
+            custom domain the organization has proven: by a passing TXT ownership
+            check on record (the verified flag alone does not count, so a domain
+            verified under passthrough or before v0.26.14, and not checked since,
+            needs a verify run first), or by a Colonel override (the only basis
+            where the validation strategy makes no TXT check, such as passthrough). An
+            identity bound to an account before that gate existed keeps signing in
+            (hooks/login.rb records it as omniauth_tenant_email_domain_unverified,
+            outcome signed_in). That event lists only the accounts that sign in
+            again; this command walks the identity rows under the domain's own
+            provider route and issuer and reports every one whose account address
+            lies outside the proven set.
+
+            The scan is issuer-exact. Rows that backfill-issuer stamped through
+            its --issuer option are found only when the same value is passed as
+            --issuer here; it replaces the derived issuer and nothing else. The
+            value is used as the complete issuer column value, byte for byte,
+            with no derivation applied: for SAML the stored form is
+            "<domain_id>|<IdP EntityID>", not the EntityID alone. A run that
+            scans 0 rows is not evidence of a clean install until the issuer
+            matches what the rows were stamped with. Only oidc, entra_id and
+            saml domains are audited; a pre-#3902 github or google record is
+            refused, with or without --issuer.
+
+            With --unlink --confirm the failing rows are deleted. Nothing else
+            changes: the account and its Customer stay, the address owner can still
+            claim the account through a canonical-host password reset, and the
+            tenant identity can no longer sign in to it (a new tenant sign-in for
+            that address is refused because the account already exists).
+
+            A row is unlinked ONLY when the account's signup_domain_id names this
+            domain. For oidc and entra_id the identity key is shared by every tenant
+            and platform configuration that names the same IdP, so any other
+            outside row is reported as "skipped (ambiguous origin)" and left for
+            manual review.
+
+          Arguments:
+            DOMAIN                  Display name (secrets.example.com) or CustomDomain extid
+
+          Options:
+            --issuer ISSUER         Scan the rows whose issuer column equals ISSUER exactly
+                                    (the complete stamped value, no derivation applied)
+                                    instead of the derived issuer; for rows backfill-issuer
+                                    stamped, the value given to its --issuer
+            --unlink                Delete the failing identity rows (preview unless --confirm)
+            --confirm               Execute changes (default is dry-run)
+            --json                  JSON output (for scripting)
+            --help, -h              Show this help message
+
+          Examples:
+            # Report
+            bin/ots sso audit-email-domains secrets.example.com
+
+            # Preview what --unlink would delete
+            bin/ots sso audit-email-domains secrets.example.com --unlink
+
+            # Delete the failing rows
+            bin/ots sso audit-email-domains secrets.example.com --unlink --confirm
+
+            # Rows that backfill-issuer stamped with an explicit issuer
+            bin/ots sso audit-email-domains secrets.example.com \\
+              --issuer https://login.microsoftonline.com/TENANT_ID/v2.0
+
+          Safety:
+            - Default mode is dry-run (no changes) even without --confirm
+            - Idempotent: safe to run multiple times
+            - Deletes identity rows only; never an account, Customer or membership
+            - Exits 1 when any row reports an error
+
+        USAGE
+        true
+      end
+    end
+
+    register 'sso audit-email-domains', SsoAuditEmailDomainsCommand
+  end
+end

@@ -196,6 +196,7 @@ jobs:
               - 'tsconfig.*.json'
               - 'vite.config.ts'
               - 'vitest.config.ts'
+              - 'vitest.smoke.config.ts'
               - 'eslint.config.ts'
               - '.eslintrc*'
               - '.nvmrc'
@@ -317,7 +318,7 @@ jobs:
 
       - name: Upload proxy wire evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: host-proxy-wire-evidence
           path: |
@@ -356,7 +357,7 @@ jobs:
 
       - name: Upload Rubocop results
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: rubocop-results
           path: tmp/rubocop_results.json
@@ -364,7 +365,9 @@ jobs:
 
   typescript-lint:
     name: T1 · TypeScript Lint
-    timeout-minutes: 5
+    # Same headroom as the other setup-node-env jobs: pnpm/action-setup's
+    # self-install alone has taken ~5 minutes on hosted runners.
+    timeout-minutes: 10
     runs-on: *runs-on
     needs: [changes]
     if: needs.changes.outputs.typescript == 'true'
@@ -499,7 +502,7 @@ jobs:
         run: pnpm run build
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: frontend-build
           path: public/web/dist/
@@ -703,6 +706,41 @@ jobs:
   # TIER 3: INTEGRATION TESTS (~4-6 min each, run in parallel)
   # ============================================================================
 
+  smoke-test:
+    name: T3 · Smoke Test
+    timeout-minutes: 15
+    runs-on: *runs-on
+    needs: [changes, build-assets, ruby-unit, typescript-unit]
+    if: |
+      always() &&
+      needs.changes.outputs.ruby == 'true' &&
+      needs.changes.outputs.typescript == 'true' &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
+    steps:
+      - *checkout-step
+
+      # valkey + rabbitmq, not valkey alone: base.env carries RABBITMQ_URL
+      # for every lane and the lane runner's preflight requires every
+      # endpoint in the lane's env to be reachable.
+      - *start-core-services
+
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
+
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+
+      - name: Run smoke lane
+        uses: ./.github/actions/run-test-lane
+        with:
+          lane: smoke
+
   ruby-integration-simple:
     name: T3 · Ruby Integration (Simple Mode)
     timeout-minutes: 10
@@ -860,7 +898,7 @@ jobs:
 
   # Selected by auth (a path in .github/auth-paths.yml, the ci:auth label, or
   # any non-PR event), not by every Ruby change: the database-agnostic
-  # full-mode suite run a second time against PostgreSQL, and the two
+  # full-mode suite run a second time against PostgreSQL, and the three
   # feature-specific boots. The PG agnostic row is the slowest in the
   # matrix and runs the same specs as the SQLite row above on a second
   # engine, so a PR that touches no auth path leaves it to the main,
@@ -890,6 +928,11 @@ jobs:
             overlay: ''
             services: 'valkey rabbitmq'
             results-file: 'rspec_full_saml_platform_results.json'
+          - name: 'SQLite, passkey signup'
+            lane: full-webauthn-verify
+            overlay: ''
+            services: 'valkey rabbitmq'
+            results-file: 'rspec_full_webauthn_verify_results.json'
     steps: *full-integration-steps
 
   # Nightly and release-tag only, on the gate ruby-billing defines: the
@@ -996,6 +1039,44 @@ jobs:
         with:
           lane: disabled
           results-file: 'rspec_disabled_results.json'
+
+  ruby-integration-strategies:
+    name: T3 · Ruby Integration (Strategies, isolated)
+    timeout-minutes: 10
+    runs-on: *runs-on
+    needs: [changes, ruby-lint, build-assets]
+    if: *if-ruby-integration
+
+    steps:
+      - *checkout-step
+
+      - *start-core-services
+
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+
+      - name: Setup Node.js for locale sync
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: '.node-version'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      # Redis-only auth strategy specs, isolated from the spec:integration:full
+      # process whose spec/integration/all RabbitMQ/fork specs corrupt the
+      # shared Familia/Redis connection (see #3468). Full mode + in-memory
+      # SQLite mirrors their verified-green environment; they issue no SQL.
+      - name: Run strategies lane
+        uses: ./.github/actions/run-test-lane
+        with:
+          lane: strategies
+          results-file: 'rspec_strategies_results.json'
 
   # ============================================================================
   # TIER 4: CONTAINER VALIDATION (~3 min, after Tier 3)
@@ -1109,6 +1190,7 @@ jobs:
       - ruby-integration-api
       - ruby-integration-full
       - ruby-integration-disabled
+      - ruby-integration-strategies
       - typescript-unit
     if: always()
 
@@ -1125,7 +1207,7 @@ jobs:
       # .summary.example_count, which jq folded in as a zero-example suite.
       # Only run-test-lane publishes artifacts under the rspec- prefix.
       - name: Download all test result artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: 'rspec-*-results'
           path: test-results/
@@ -1152,7 +1234,7 @@ jobs:
 
       - name: Upload unified test report
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: unified-test-report
           path: test-results/unified-report.json
@@ -1195,10 +1277,12 @@ jobs:
       - ruby-integration-billing
       - ruby-billing-integration
       - typescript-unit
+      - smoke-test
       - ruby-integration-simple
       - ruby-integration-api
       - ruby-integration-full
       - ruby-integration-disabled
+      - ruby-integration-strategies
       - check-oci-image
     if: always()
     steps:
@@ -1232,10 +1316,12 @@ jobs:
           RESULT_RUBY_INTEGRATION_BILLING: ${{ needs.ruby-integration-billing.result }}
           RESULT_RUBY_BILLING_INTEGRATION: ${{ needs.ruby-billing-integration.result }}
           RESULT_TYPESCRIPT_UNIT: ${{ needs.typescript-unit.result }}
+          RESULT_SMOKE_TEST: ${{ needs.smoke-test.result }}
           RESULT_RUBY_INTEGRATION_SIMPLE: ${{ needs.ruby-integration-simple.result }}
           RESULT_RUBY_INTEGRATION_API: ${{ needs.ruby-integration-api.result }}
           RESULT_RUBY_INTEGRATION_FULL: ${{ needs.ruby-integration-full.result }}
           RESULT_RUBY_INTEGRATION_DISABLED: ${{ needs.ruby-integration-disabled.result }}
+          RESULT_RUBY_INTEGRATION_STRATEGIES: ${{ needs.ruby-integration-strategies.result }}
           RESULT_CHECK_OCI_IMAGE: ${{ needs.check-oci-image.result }}
         run: ./.github/scripts/ci-verdict.sh
 
@@ -1261,6 +1347,8 @@ jobs:
       - ruby-integration-api
       - ruby-integration-full
       - ruby-integration-disabled
+      - ruby-integration-strategies
+      - smoke-test
       - check-oci-image
       - aggregate-test-results
     # always() ensures this runs even if some jobs failed/skipped
@@ -1304,6 +1392,7 @@ jobs:
             echo "| Ruby Integration (API Contract) | ${{ needs.ruby-integration-api.result }} |"
             echo "| Ruby Integration (Full matrix) | ${{ needs.ruby-integration-full.result }} |"
             echo "| Ruby Integration (Disabled) | ${{ needs.ruby-integration-disabled.result }} |"
+            echo "| Ruby Integration (Strategies) | ${{ needs.ruby-integration-strategies.result }} |"
             echo "| Container Validation | ${{ needs.check-oci-image.result }} |"
           } >> "$GITHUB_STEP_SUMMARY"
 

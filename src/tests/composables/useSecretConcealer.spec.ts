@@ -1,10 +1,12 @@
 // src/tests/composables/useSecretConcealer.spec.ts
 
 import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useSecretStore, type ApiMode } from '@/shared/stores/secretStore';
 import { Router, useRouter } from 'vue-router';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { nextTick } from 'vue';
 
 // Mock vue-i18n for useAsyncHandler dependency
 vi.mock('vue-i18n', () => ({
@@ -146,6 +148,76 @@ describe('useSecretConcealer', () => {
       await submit('conceal');
 
       expect(vi.mocked(useSecretStore)).toHaveBeenCalled();
+    });
+
+    it('sends the form display_type with a conceal payload', async () => {
+      const store: Partial<ReturnType<typeof useSecretStore>> = {
+        conceal: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
+        generate: vi.fn(),
+        setApiMode: vi.fn(),
+      };
+      vi.mocked(useSecretStore).mockReturnValue(store as ReturnType<typeof useSecretStore>);
+
+      const { operations, submit } = useSecretConcealer();
+      operations.updateField('secret', '# hello');
+      operations.updateField('display_type', 'markdown');
+
+      await submit('conceal');
+
+      expect(store.conceal).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: 'conceal', secret: '# hello', display_type: 'markdown' })
+      );
+    });
+
+    it('defaults display_type to text on conceal', async () => {
+      const store: Partial<ReturnType<typeof useSecretStore>> = {
+        conceal: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
+        generate: vi.fn(),
+        setApiMode: vi.fn(),
+      };
+      vi.mocked(useSecretStore).mockReturnValue(store as ReturnType<typeof useSecretStore>);
+
+      const { form, operations, submit } = useSecretConcealer();
+      expect(form.display_type).toBe('text');
+      operations.updateField('secret', 'hello');
+
+      await submit('conceal');
+
+      expect(store.conceal).toHaveBeenCalledWith(expect.objectContaining({ display_type: 'text' }));
+    });
+
+    it('does not send display_type with a generate payload', async () => {
+      const store: Partial<ReturnType<typeof useSecretStore>> = {
+        conceal: vi.fn(),
+        generate: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
+        setApiMode: vi.fn(),
+      };
+      vi.mocked(useSecretStore).mockReturnValue(store as ReturnType<typeof useSecretStore>);
+
+      const { operations, submit } = useSecretConcealer();
+      operations.updateField('display_type', 'markdown');
+
+      await submit('generate');
+
+      expect(store.generate).toHaveBeenCalledTimes(1);
+      const payload = vi.mocked(store.generate!).mock.calls[0][0] as Record<string, unknown>;
+      expect(payload.kind).toBe('generate');
+      expect('display_type' in payload).toBe(false);
+    });
+
+    it('puts display_type back to text when a refresh turns Markdown off', async () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({ features: { markdown: true } });
+
+      const { form, operations } = useSecretConcealer();
+      operations.updateField('display_type', 'markdown');
+      await nextTick();
+      expect(form.display_type).toBe('markdown');
+
+      bootstrapStore.$patch({ features: { markdown: false } });
+      await nextTick();
+
+      expect(form.display_type).toBe('text');
     });
 
     it('rejects generate submission with a malformed recipient email', async () => {

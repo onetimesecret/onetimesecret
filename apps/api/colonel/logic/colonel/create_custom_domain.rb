@@ -14,10 +14,10 @@ module ColonelAPI
       # @api Registers a new custom domain and attaches it to ANY organization,
       #   resolved by public extid (or objid). Validates + normalises the domain
       #   the same way the user-facing DomainsAPI::Logic::Domains::AddDomain does
-      #   (PublicSuffix via CustomDomain.valid? / .parse), creates it via the
-      #   single audited-elsewhere create path (CustomDomain.create!) and kicks
-      #   off SSL certificate provisioning through the configured strategy.
-      #   Requires the colonel role.
+      #   (PublicSuffix via CustomDomain.valid? / .parse) and creates it via the
+      #   single audited-elsewhere create path (CustomDomain.create!). No
+      #   certificate is requested: the virtual host is created by verification
+      #   once ownership is verified. Requires the colonel role.
       #
       # Unlike AddDomain, there is NO org.member? / entitlement gate — the colonel
       # attaches a domain to an org the operator is (by definition) not a member
@@ -54,17 +54,17 @@ module ColonelAPI
 
           # Refuse a bad request BEFORE #process. The rules (and their exact
           # operator-facing messages) live in the op so the CLI cannot drift.
-          check = operation.validate
+          check = refuse_on_problem { operation.validate }
           raise_form_error(check.message, field: :domain) unless check.status == :ok
 
           @display_domain = check.display_domain
           return unless check.claims_orphan
 
-          OT.info "[CreateCustomDomain] Found orphaned domain, will claim: #{@display_domain}"
+          OT.info "[CreateCustomDomain] Found orphaned domain, will adopt: #{@display_domain}"
         end
 
         def process
-          @result = operation.call
+          @result = refuse_on_problem { operation.call }
 
           # raise_concerns already validated; a rejection here means the state
           # changed underneath us (a concurrent create claimed the name).
@@ -81,6 +81,20 @@ module ColonelAPI
         end
 
         private
+
+        # CustomDomain.parse and create! refuse some names (too deep, TXT
+        # challenge name too long, already registered) with a bare
+        # Onetime::Problem whose message is written for the operator. No
+        # handler is registered for the bare class, so it would surface as a
+        # 500; it becomes a form error (422) instead. Subclasses keep their
+        # own handlers. The op has already audited a raise from #call.
+        def refuse_on_problem
+          yield
+        rescue Onetime::Problem => ex
+          raise unless ex.instance_of?(Onetime::Problem)
+
+          raise_form_error(ex.message, field: :domain)
+        end
 
         # Memoized so raise_concerns and process share one instance (and one
         # set of resolved inputs).
@@ -118,8 +132,14 @@ module ColonelAPI
           )
         end
 
+        # `adoption` is present only when an orphaned record was adopted: its
+        # verification was reset and it lists the per-domain state the record
+        # kept (Onetime::Operations::Domains::AdoptionReport#to_payload).
         def domain_details
-          { cluster: Onetime::DomainValidation::Features.safe_dump }
+          details = { cluster: Onetime::DomainValidation::Features.safe_dump }
+          return details unless result&.adoption
+
+          details.merge(adoption: result.adoption.to_payload)
         end
       end
     end

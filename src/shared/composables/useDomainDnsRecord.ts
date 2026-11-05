@@ -1,6 +1,7 @@
 // src/shared/composables/useDomainDnsRecord.ts
 
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { spellingDiffers, splitALabelName } from '@/shared/utils/aLabelName';
 import {
   isApproximatedDomainValidation,
   isApproximatedDomainValidationOf,
@@ -21,6 +22,8 @@ export interface DomainDnsRecordSource {
   is_apex?: boolean | null;
   trd?: string | null;
   base_domain?: string | null;
+  display_domain?: string | null;
+  display_domain_ascii?: string | null;
 }
 
 export interface DomainDnsClusterSource {
@@ -50,6 +53,15 @@ export interface DomainDnsClusterSource {
  * The strategy is taken from the domains API `cluster` when the caller has
  * one (it describes the response being rendered), otherwise from the
  * bootstrap snapshot.
+ *
+ * The record is created under the DNS form of the name, so the host and zone
+ * come from `display_domain_ascii` (A-label form, converted by the server),
+ * split at the zone by the label counts of `trd` and `base_domain` (see
+ * splitALabelName). When the two do not line up, the host is the full A-label
+ * name. `recordDisplayName` is the typed spelling (`display_domain`) when it
+ * differs, for a hint beside the record. Without `display_domain_ascii`
+ * (older servers, or a name with no A-label form) the host and zone are the
+ * typed `trd` and `base_domain`.
  */
 export function useDomainDnsRecord(
   domain: MaybeRefOrGetter<DomainDnsRecordSource | null | undefined>,
@@ -74,17 +86,44 @@ export function useDomainDnsRecord(
     return kind.value === 'alias' ? 'ALIAS / ANAME' : 'CNAME';
   });
 
+  // Host and appendix from the A-label name, or null without one. A host at
+  // the zone root reads '@' with the zone undotted, as for an apex domain; a
+  // name that does not split against trd and base_domain is shown whole.
+  const aLabelHost = computed<{ host: string; appendix: string } | null>(() => {
+    const d = toValue(domain);
+    const ascii = d?.display_domain_ascii;
+    if (!ascii) return null;
+
+    const typedHost = isApex.value ? '' : (d?.trd ?? '');
+    const split = splitALabelName(ascii, typedHost, d?.base_domain ?? '');
+    if (!split) return { host: ascii, appendix: '' };
+    return split.host
+      ? { host: split.host, appendix: `.${split.zone}` }
+      : { host: '@', appendix: split.zone };
+  });
+
   // '@' at the zone root for apex domains, otherwise the subdomain label.
   // A non-apex record with a blank trd also reads '@', as it did before this
   // composable existed.
-  const recordHost = computed(() => (isApex.value ? '@' : toValue(domain)?.trd || '@'));
+  const recordHost = computed(
+    () => aLabelHost.value?.host ?? (isApex.value ? '@' : toValue(domain)?.trd || '@')
+  );
 
   // The base domain for context. Apex has no leading dot ('@' + example.com);
   // a subdomain gets the dotted form (test + .example.com).
   const recordHostAppendix = computed(() => {
+    if (aLabelHost.value) return aLabelHost.value.appendix;
     const base = toValue(domain)?.base_domain;
     if (!base) return '';
     return isApex.value ? base : `.${base}`;
+  });
+
+  // The typed spelling, when it differs from the A-label name shown above.
+  const recordDisplayName = computed(() => {
+    const d = toValue(domain);
+    return spellingDiffers(d?.display_domain, d?.display_domain_ascii)
+      ? (d?.display_domain ?? null)
+      : null;
   });
 
   const recordTarget = computed(() => {
@@ -102,6 +141,7 @@ export function useDomainDnsRecord(
     recordType,
     recordHost,
     recordHostAppendix,
+    recordDisplayName,
     recordTarget,
   };
 }

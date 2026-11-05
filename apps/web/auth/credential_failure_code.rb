@@ -57,9 +57,10 @@ module Auth
     # Rodauth reasons that are a rejected credential, and the code each one
     # is answered with.
     CREDENTIAL_REASONS = {
-      # POST /auth/login, and every other route that takes the login field
-      # (email-auth request, unlock request, verification resend): the login
-      # matched no open account.
+      # POST /auth/login, and the unlock request: the login matched no open
+      # account. The email-auth request and the verification resend raise it
+      # only for internal requests; over HTTP they answer a miss like a send
+      # (config/overrides/login_request_enumeration.rb).
       no_matching_login: :invalid_credentials,
       # The password: on login, on unlock, and on every password confirmation
       # an account route asks for (change password, change login, close

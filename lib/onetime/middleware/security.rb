@@ -42,6 +42,8 @@ module Onetime
         AuthenticityToken
         HttpOrigin
         XSSHeader
+        ReferrerPolicy
+        PermissionsPolicy
         FrameOptions
         PathTraversal
         IPSpoofing

@@ -124,6 +124,34 @@ RSpec.describe Onetime::Application::OttoHooks do
       end
     end
 
+    describe 'Onetime::ReauthenticationFailed (admin session password recovery)' do
+      it 'answers 403 with the reauthentication_failed code' do
+        entry = registered[Onetime::ReauthenticationFailed]
+
+        body = entry[:handler].call(Onetime::ReauthenticationFailed.new, nil)
+
+        expect(entry[:status]).to eq(403)
+        expect(body).to include(
+          error: 'Password verification failed.',
+          error_type: 'ReauthenticationFailed',
+          error_code: 'reauthentication_failed',
+        )
+      end
+
+      it 'answers 403 with the reauthentication_unavailable code for a second-factor account' do
+        entry = registered[Onetime::ReauthenticationUnavailable]
+
+        body = entry[:handler].call(Onetime::ReauthenticationUnavailable.new, nil)
+
+        expect(entry[:status]).to eq(403)
+        expect(body).to include(
+          error: 'This account uses two-factor authentication. Sign in again to restore admin access.',
+          error_type: 'ReauthenticationUnavailable',
+          error_code: 'reauthentication_unavailable',
+        )
+      end
+    end
+
     describe 'Onetime::AccountProvisioningUnavailable (retryable provisioning)' do
       let(:entry) { registered[Onetime::AccountProvisioningUnavailable] }
 
@@ -143,6 +171,25 @@ RSpec.describe Onetime::Application::OttoHooks do
           error_type: 'AccountProvisioningUnavailable',
           reason: :provisioning_in_progress,
           retry_after: Onetime::AccountProvisioningUnavailable::RETRY_AFTER,
+        )
+      end
+    end
+
+    describe 'Onetime::TemporarilyUnavailable (a write a retry can clear)' do
+      let(:entry) { registered[Onetime::TemporarilyUnavailable] }
+
+      it 'maps to 503 at log_level :warn' do
+        expect([entry&.fetch(:status), entry&.fetch(:log_level)]).to eq([503, :warn])
+      end
+
+      it 'returns the error shape with retry_after so the middleware can set Retry-After' do
+        error = Onetime::TemporarilyUnavailable.new('Try again shortly.', reason: :datastore)
+
+        expect(entry[:handler].call(error, nil)).to include(
+          error: 'Try again shortly.',
+          error_type: 'TemporarilyUnavailable',
+          reason: :datastore,
+          retry_after: Onetime::TemporarilyUnavailable::RETRY_AFTER,
         )
       end
     end

@@ -38,7 +38,9 @@ module Onetime
     class CustomersPlanCommand < Command
       desc "Manage a customer's plan"
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         puts 'Usage:'
         puts '  bin/ots customers plan set IDENTIFIER PLANID   # Set plan (validated against catalog)'
       end

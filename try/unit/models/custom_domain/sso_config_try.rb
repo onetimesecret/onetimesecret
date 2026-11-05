@@ -233,6 +233,33 @@ Familia.dbclient.hget(@created.dbkey, 'enabled')
 [@found.enabled?, Familia.dbclient.hget(@found.dbkey, 'enabled')]
 #=> [true, '"true"']
 
+# --- credential_fingerprint ---
+
+## The fingerprint is a hex SHA-256 and stable across reloads
+@fp = @found.credential_fingerprint
+[@fp.match?(/\A\h{64}\z/), Onetime::CustomDomain::SsoConfig.find_by_domain_id(@domain.identifier).credential_fingerprint == @fp]
+#=> [true, true]
+
+## Fields outside the credentials leave it unchanged
+@found.update_stored!(display_name: 'Renamed', enabled: 'false')
+@found.credential_fingerprint == @fp
+#=> true
+
+## A changed issuer changes it
+@found.update_stored!(issuer: 'https://other.example.com')
+@fp_issuer = @found.credential_fingerprint
+@fp_issuer == @fp
+#=> false
+
+## Re-saving the same secret changes it (fresh ciphertext, never a false "same")
+@found.update_stored!(client_secret: "secret-#{@entropy}")
+@found.credential_fingerprint == @fp_issuer
+#=> false
+
+## The fingerprint never contains a revealed credential
+@found.credential_fingerprint.include?("secret-#{@entropy}")
+#=> false
+
 # Teardown
 Familia.dbclient.flushdb
 

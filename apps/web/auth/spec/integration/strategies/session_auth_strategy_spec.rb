@@ -1,0 +1,323 @@
+# apps/web/auth/spec/integration/strategies/session_auth_strategy_spec.rb
+#
+# frozen_string_literal: true
+
+# Unit tests for SessionAuthStrategy — requires authenticated Rack session.
+#
+# Requires Valkey on port 2163 (pnpm run test:database:start).
+#
+# Run:
+#   pnpm run test:rspec apps/web/auth/spec/integration/strategies/session_auth_strategy_spec.rb
+
+require_relative '../../spec_helper'
+require_relative '../../support/strategy_test_context'
+require_relative '../../support/shared_examples/session_contract_examples'
+
+RSpec.describe Onetime::Application::AuthStrategies::SessionAuthStrategy, type: :integration do
+  include_context 'strategy test'
+
+  describe '#authenticate' do
+    # -----------------------------------------------------------------
+    # Valid authenticated session
+    # -----------------------------------------------------------------
+    context 'with valid authenticated session' do
+      let(:result) { session_auth_strategy.authenticate(env_session_authenticated, nil) }
+
+      it 'returns a StrategyResult' do
+        expect(result).to be_a(Otto::Security::Authentication::StrategyResult)
+      end
+
+      it 'is authenticated' do
+        expect(result.authenticated?).to be true
+      end
+
+      it 'sets user to the matching Customer' do
+        expect(result.user).to be_a(Onetime::Customer)
+        expect(result.user.custid).to eq(test_customer.custid)
+      end
+
+      it 'sets auth_method to sessionauth' do
+        expect(result.auth_method).to eq('sessionauth')
+      end
+
+      # Session contract — session must not be nil, must support bracket access
+      include_examples 'a valid session contract'
+
+      it 'session is the env rack.session (same object reference)' do
+        expect(result.session).to be(env_session_authenticated['rack.session'])
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Missing session (no rack.session key)
+    # -----------------------------------------------------------------
+    context 'with missing session (no rack.session key)' do
+      let(:env_no_session) do
+        {
+          'REMOTE_ADDR' => '127.0.0.1',
+          'onetime.domain_strategy' => :canonical,
+          'HTTP_USER_AGENT' => 'Test/1.0',
+        }
+      end
+
+      let(:result) { session_auth_strategy.authenticate(env_no_session, nil) }
+
+      it 'returns an AuthFailure' do
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Missing session (rack.session is empty hash — no authenticated flag)
+    # -----------------------------------------------------------------
+    context 'with empty session hash' do
+      let(:result) { session_auth_strategy.authenticate(env_anonymous, nil) }
+
+      it 'returns an AuthFailure' do
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Unauthenticated session (session exists but authenticated is not true)
+    # -----------------------------------------------------------------
+    context 'with unauthenticated session' do
+      let(:env_unauthenticated_session) do
+        {
+          'rack.session' => {
+            'authenticated' => false,
+            'external_id' => test_customer.extid,
+            'email' => test_customer.email,
+          },
+          'REMOTE_ADDR' => '127.0.0.1',
+          'onetime.domain_strategy' => :canonical,
+          'HTTP_USER_AGENT' => 'Test/1.0',
+        }
+      end
+
+      let(:result) { session_auth_strategy.authenticate(env_unauthenticated_session, nil) }
+
+      it 'returns an AuthFailure' do
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+      end
+
+      it 'fails NON-terminally (ambient credentials keep anonymous fallthrough)' do
+        # Session cookies are ambient, not explicitly-presented credentials.
+        # A session failure must be non-terminal so Otto's RouteAuthWrapper
+        # still lets the chain fall through to noauth (docs/security/audits/
+        # 2026-07-29-api.md item 1) — otherwise every logged-out browser
+        # request on a noauth-capable chain would 401 instead of rendering
+        # anonymously.
+        expect(result.terminal?).to be false
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Session awaiting MFA (M-11) — must never authenticate a request
+    # -----------------------------------------------------------------
+    # Defense-in-depth: even if authenticated=true is present, an unresolved
+    # awaiting_mfa flag must fail closed. Uses the STRING key 'awaiting_mfa'
+    # that PrepareMfaSession writes and SyncSession deletes on completion.
+    context 'with session awaiting MFA and authenticated=true' do
+      let(:env_awaiting_mfa_authenticated) do
+        {
+          'rack.session' => {
+            'authenticated' => true,
+            # #4409: hand-seeded sessions need the surface marker the login hooks record.
+            Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+            'awaiting_mfa' => true,
+            'external_id' => test_customer.extid,
+            'email' => test_customer.email,
+          },
+          'REMOTE_ADDR' => '127.0.0.1',
+          'onetime.domain_strategy' => :canonical,
+          'HTTP_USER_AGENT' => 'Test/1.0',
+        }
+      end
+
+      let(:result) { session_auth_strategy.authenticate(env_awaiting_mfa_authenticated, nil) }
+
+      it 'returns an AuthFailure (MFA not completed)' do
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+      end
+    end
+
+    context 'with session awaiting MFA (no authenticated flag)' do
+      let(:env_awaiting_mfa_only) do
+        {
+          'rack.session' => {
+            'awaiting_mfa' => true,
+            'external_id' => test_customer.extid,
+            'email' => test_customer.email,
+          },
+          'REMOTE_ADDR' => '127.0.0.1',
+          'onetime.domain_strategy' => :canonical,
+          'HTTP_USER_AGENT' => 'Test/1.0',
+        }
+      end
+
+      let(:result) { session_auth_strategy.authenticate(env_awaiting_mfa_only, nil) }
+
+      it 'returns an AuthFailure' do
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Session without external_id
+    # -----------------------------------------------------------------
+    context 'with session missing external_id' do
+      let(:env_no_external_id) do
+        {
+          'rack.session' => {
+            'authenticated' => true,
+            Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+          },
+          'REMOTE_ADDR' => '127.0.0.1',
+          'onetime.domain_strategy' => :canonical,
+          'HTTP_USER_AGENT' => 'Test/1.0',
+        }
+      end
+
+      let(:result) { session_auth_strategy.authenticate(env_no_external_id, nil) }
+
+      it 'returns an AuthFailure' do
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Nonexistent customer (external_id doesn't match any Customer)
+    # -----------------------------------------------------------------
+    context 'with nonexistent customer' do
+      let(:env_nonexistent_customer) do
+        {
+          'rack.session' => {
+            'authenticated' => true,
+            Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+            'external_id' => "nonexistent_#{SecureRandom.uuid}",
+            'email' => 'nobody@example.com',
+          },
+          'REMOTE_ADDR' => '127.0.0.1',
+          'onetime.domain_strategy' => :canonical,
+          'HTTP_USER_AGENT' => 'Test/1.0',
+        }
+      end
+
+      let(:result) { session_auth_strategy.authenticate(env_nonexistent_customer, nil) }
+
+      it 'returns an AuthFailure' do
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Credential watermark (#3810) — a session authenticated before the
+    # customer's last password change/reset must be rejected. This
+    # validation (not the enumerative blob deletion in the password hooks)
+    # is the authoritative revocation boundary. Strict integer epoch-second
+    # comparison against Customer#last_password_update.
+    # -----------------------------------------------------------------
+    context 'credential watermark (#3810)' do
+      let(:watermark) { Familia.now.to_i }
+
+      # Session env with a controllable authenticated_at; nil omits the key
+      # entirely (a pre-watermark-era or hand-rolled blob).
+      def env_with_authenticated_at(value)
+        session = {
+          'authenticated' => true,
+          Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+          'external_id' => test_customer.extid,
+          'email' => test_customer.email,
+        }
+        session['authenticated_at'] = value unless value.nil?
+        {
+          'rack.session' => session,
+          'REMOTE_ADDR' => '127.0.0.1',
+          'onetime.domain_strategy' => :canonical,
+          'HTTP_USER_AGENT' => 'Test/1.0',
+        }
+      end
+
+      context 'with a session authenticated before the watermark' do
+        before { test_customer.last_password_update!(watermark) }
+
+        let(:result) do
+          session_auth_strategy.authenticate(env_with_authenticated_at(watermark - 100), nil)
+        end
+
+        it 'returns an AuthFailure (stale credentials)' do
+          expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+        end
+      end
+
+      context 'with a session authenticated exactly at the watermark' do
+        before { test_customer.last_password_update!(watermark) }
+
+        let(:result) do
+          session_auth_strategy.authenticate(env_with_authenticated_at(watermark), nil)
+        end
+
+        it 'returns an AuthFailure (== watermark is pre-change under <=; a same-second session is rejected)' do
+          expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+        end
+      end
+
+      context 'with a session authenticated strictly after the watermark' do
+        before { test_customer.last_password_update!(watermark) }
+
+        let(:result) do
+          session_auth_strategy.authenticate(env_with_authenticated_at(watermark + 1), nil)
+        end
+
+        it 'authenticates (after_change_password re-stamps the kept session to > watermark)' do
+          expect(result).to be_a(Otto::Security::Authentication::StrategyResult)
+          expect(result.authenticated?).to be true
+        end
+      end
+
+      context 'with no watermark on the customer' do
+        let(:result) do
+          session_auth_strategy.authenticate(env_with_authenticated_at(nil), nil)
+        end
+
+        it 'authenticates (absent watermark never rejects — deploy cannot mass-logout)' do
+          expect(result).to be_a(Otto::Security::Authentication::StrategyResult)
+          expect(result.authenticated?).to be true
+        end
+      end
+
+      context 'with a watermark set but no authenticated_at in the session' do
+        before { test_customer.last_password_update!(watermark) }
+
+        let(:result) do
+          session_auth_strategy.authenticate(env_with_authenticated_at(nil), nil)
+        end
+
+        it 'returns an AuthFailure (missing authenticated_at fails secure)' do
+          expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+        end
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Metadata on successful auth
+    # -----------------------------------------------------------------
+    context 'metadata on successful auth' do
+      let(:result) { session_auth_strategy.authenticate(env_session_authenticated, nil) }
+
+      it 'includes ip in metadata' do
+        expect(result.metadata[:ip]).to eq('127.0.0.1')
+      end
+
+      it 'includes user_agent in metadata' do
+        expect(result.metadata[:user_agent]).to eq('Test/1.0')
+      end
+
+      it 'includes user_roles as an array' do
+        expect(result.metadata[:user_roles]).to be_an(Array)
+        expect(result.metadata[:user_roles]).not_to be_empty
+      end
+    end
+  end
+end
