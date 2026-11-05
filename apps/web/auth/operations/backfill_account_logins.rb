@@ -118,6 +118,10 @@ module Auth
       # Keyset page size for the accounts scan.
       BATCH_SIZE = 1000
 
+      # Backtrace lines logged for a row that raised. A backtrace holds code
+      # locations only, never the values the exception message can carry.
+      LOGGED_BACKTRACE_LINES = 5
+
       # @!attribute dry_run [r]
       #   @return [Boolean]
       # @!attribute stats [r]
@@ -233,13 +237,19 @@ module Auth
 
       # -------------------------------------------------------------- row
 
+      # The exception object is never logged: its message can carry the
+      # statement's values (a Sequel error names the duplicate key), which
+      # is the raw address or the login. The log and the report get the
+      # scrubbed message, and the log a short backtrace.
       def process_row_safely(row)
         process_row(row)
       rescue StandardError => ex
+        detail = "#{ex.class}: #{scrub(ex.message, row)}"
         auth_logger.error '[backfill_account_logins] row failed',
           account_id: row[:id],
-          exception: ex
-        report(row, :error, nil, "#{ex.class}: #{scrub(ex.message, row)}")
+          error: detail,
+          backtrace: Array(ex.backtrace).first(LOGGED_BACKTRACE_LINES)
+        report(row, :error, nil, detail)
       end
 
       def process_row(row)
@@ -501,11 +511,17 @@ module Auth
       end
 
       # Exception messages (Sequel includes the statement) can carry the raw
-      # address and the login value; the report must carry neither.
+      # address and the login value; the report and the log must carry
+      # neither. The address is masked as stored and as normalized, since a
+      # lookup by the normalized form can raise with that form in the text.
       def scrub(message, row)
         text  = message.to_s
         email = row[:email].to_s
-        text  = text.gsub(email, OT::Utils.obscure_email(email)) unless email.empty?
+        unless email.empty?
+          [email, OT::Utils.normalize_email(email)].uniq.each do |form|
+            text = text.gsub(form, OT::Utils.obscure_email(form))
+          end
+        end
         text.gsub(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/i, '<login>')
       end
 

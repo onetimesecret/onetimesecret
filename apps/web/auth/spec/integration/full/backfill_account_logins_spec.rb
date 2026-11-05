@@ -359,6 +359,35 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
   # 5. The login value never leaves the database
   # ==========================================================================
 
+  describe 'a row that raises' do
+    # A database exception message carries the statement's values (PG's
+    # DETAIL line names the duplicate key). Neither the report nor any log
+    # line may carry the raw address or the login.
+    it 'logs and reports only the scrubbed message, never the exception' do
+      customer   = create_customer(email, verified: true, verified_by: 'email')
+      account_id = insert_account(email, external_id: customer.extid)
+      message    = "PG::UniqueViolation: Key (email, login)=(#{email}, #{customer.objid}) already exists"
+      allow(Onetime::Customer).to receive(:find_by_extid).and_raise(Sequel::DatabaseError, message)
+
+      logged = []
+      op     = new_operation(dry_run: false)
+      logger = double('auth_logger')
+      allow(logger).to receive(:error) { |*args| logged << args }
+      allow(op).to receive(:auth_logger).and_return(logger)
+      allow(Auth::Logging).to receive(:log_operation) { |*args, **kwargs| logged << [args, kwargs] }
+
+      result = op.call
+
+      report = row_for(result, account_id)
+      expect(report[:outcome]).to eq(:error)
+      expect(report[:detail]).to include('Sequel::DatabaseError', OT::Utils.obscure_email(email), '<login>')
+      expect(logged).not_to be_empty
+      expect(logged.inspect).not_to include(email)
+      expect(logged.inspect).not_to include(customer.objid)
+      expect(logger).to have_received(:error).with(anything, hash_including(account_id: account_id))
+    end
+  end
+
   describe 'reports' do
     it 'carry the obscured email and never the login value' do
       customer   = create_customer(email, verified: true, verified_by: 'email')
