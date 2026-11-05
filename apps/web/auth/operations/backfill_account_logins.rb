@@ -39,6 +39,9 @@ module Auth
     #                                     extid(login) (:backfilled, :minted); the
     #                                     N+1 binary creates the Customer under it
     #                                     on the account's next sign-in
+    #   the chosen Customer holds a different address than the row
+    #   (compared case-insensitively, as `customers doctor` does)
+    #                                  -> :skipped_email_mismatch
     #   another row already holds the chosen login
     #                                  -> :skipped_customer_linked_elsewhere
     #   anything raised                -> :error
@@ -87,6 +90,7 @@ module Auth
         :skipped_dangling_external_id,
         :skipped_ambiguous_customer,
         :skipped_customer_linked_elsewhere,
+        :skipped_email_mismatch,
         :skipped_no_customer,
         :error,
       ].freeze
@@ -300,12 +304,17 @@ module Auth
         Onetime::Customer.new(objid: login).extid.to_s
       end
 
-      # The gates that depend on the chosen login, then the write.
+      # The gates that depend on the chosen Customer and login, then the
+      # write.
       #
       # @param customer [Onetime::Customer, nil] nil only on the :minted branch
       # @param new_external_id [String, nil] nil keeps the row's existing value
       def apply(row, branch, customer, login, new_external_id)
         raise Onetime::Problem, 'empty login' if login.empty?
+
+        if customer && !same_address?(row, customer)
+          return report(row, :skipped_email_mismatch, branch, email_mismatch_detail(branch, customer))
+        end
 
         holder = accounts.where(login: login).exclude(id: row[:id]).select(:id, :status_id).first
         if holder
@@ -383,6 +392,30 @@ module Auth
         end
 
         values
+      end
+
+      # Whether the row and the Customer name one address. The Customer's
+      # verification is proof for the Customer's address, so it is copied
+      # only when the row holds that address too. Case-insensitive, the rule
+      # `customers doctor` applies (:auth_email_drift): accounts.email is
+      # citext on PostgreSQL, and a case-only difference is the same mailbox.
+      # Not case-FOLDED: folding maps `ß` to `ss`, which names another
+      # mailbox.
+      def same_address?(row, customer)
+        row[:email].to_s.downcase == customer.email.to_s.downcase
+      end
+
+      def email_mismatch_detail(branch, customer)
+        if branch == :by_external_id
+          "Customer #{customer.extid} holds a different address than this row (`bin/ots customers doctor " \
+            "#{customer.extid}` reports it as auth_email_drift); its verification is not this address's. " \
+            'Settle the address first (`customers doctor --repair` writes the Customer address into the row), ' \
+            'then re-run'
+        else
+          "the only Customer found for this row's address, #{customer.extid}, holds an address that is not " \
+            "the row's (they match only when case-folded); not linked. Decide by hand which Customer owns " \
+            'the account, then re-run'
+        end
       end
 
       # ---------------------------------------------------------- lookups

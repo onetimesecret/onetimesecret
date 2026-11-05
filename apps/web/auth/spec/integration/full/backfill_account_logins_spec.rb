@@ -135,6 +135,37 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
       expect(row[:email_verified_at]).to be_nil
     end
 
+    # The Customer's verification is proof for the Customer's address. When
+    # the row names another address (doctor's :auth_email_drift), copying
+    # it would mark a mailbox nobody proved, so the row waits until the
+    # stores agree.
+    it 'skips the row when the Customer holds a different address, and writes nothing' do
+      customer   = create_customer(email, verified: true, verified_by: 'email')
+      account_id = insert_account("elsewhere-#{run}@example.com", external_id: customer.extid)
+      before     = account_row(account_id)
+
+      result = new_operation(dry_run: false).call
+
+      expect(account_row(account_id)).to eq(before)
+      report = row_for(result, account_id)
+      expect(report[:outcome]).to eq(:skipped_email_mismatch)
+      expect(report[:branch]).to eq(:by_external_id)
+      expect(report[:detail]).to include(customer.extid, 'auth_email_drift')
+      expect(report.to_s).not_to include(email)
+      expect(result.stats[:skipped_email_mismatch]).to eq(1)
+    end
+
+    it 'treats an address that differs only by case as the same address' do
+      customer   = create_customer(email, verified: true, verified_by: 'email')
+      account_id = insert_account(email.upcase, external_id: customer.extid)
+
+      new_operation(dry_run: false).call
+
+      row = account_row(account_id)
+      expect(row[:login]).to eq(customer.objid)
+      expect(row[:email_verified_by]).to eq('email')
+    end
+
     it 'reports exactly the documented stats keys with Integer values' do
       customer = create_customer(email)
       insert_account(email, external_id: customer.extid)

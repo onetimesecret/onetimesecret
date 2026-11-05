@@ -163,6 +163,7 @@ module Onetime
         puts format('  %-40s %d', 'Skipped (dangling external_id):', stats[:skipped_dangling_external_id])
         puts format('  %-40s %d', 'Skipped (ambiguous customer):', stats[:skipped_ambiguous_customer])
         puts format('  %-40s %d', 'Skipped (customer linked elsewhere):', stats[:skipped_customer_linked_elsewhere])
+        puts format('  %-40s %d', 'Skipped (address mismatch):', stats[:skipped_email_mismatch])
         puts format('  %-40s %d', 'Skipped (no customer):', stats[:skipped_no_customer])
         puts format('  %-40s %d', 'Errors:', stats[:error])
       end
@@ -183,7 +184,7 @@ module Onetime
         end
 
         if (stats[:skipped_dangling_external_id] + stats[:skipped_ambiguous_customer] +
-            stats[:skipped_customer_linked_elsewhere]).positive?
+            stats[:skipped_customer_linked_elsewhere] + stats[:skipped_email_mismatch]).positive?
           lines << 'Skipped rows are never resolved automatically. Run `bin/ots customers doctor`'
           lines << 'and `bin/ots customers normalize-emails` on them, decide which account keeps'
           lines << 'the Customer, then re-run.'
@@ -241,6 +242,7 @@ module Onetime
               external_id names a missing Customer          -> skipped_dangling_external_id
               two Customers hold the address                -> skipped_ambiguous_customer
               another row already links that Customer       -> skipped_customer_linked_elsewhere
+              that Customer holds a different address       -> skipped_email_mismatch
               no Customer at all                            -> skipped_no_customer
                                                                (--mint-missing: fresh login)
             Verification columns copy the Customer mirror: verified -> email_verified_at
