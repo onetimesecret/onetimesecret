@@ -187,9 +187,9 @@ module Onetime
         if (stats[:skipped_dangling_external_id] + stats[:skipped_ambiguous_customer] +
             stats[:skipped_customer_linked_elsewhere] + stats[:skipped_email_mismatch] +
             stats[:skipped_unknown_verified_by]).positive?
-          lines << 'Skipped rows are never resolved automatically. Run `bin/ots customers doctor`'
-          lines << 'and `bin/ots customers normalize-emails` on them, decide which account keeps'
-          lines << 'the Customer, then re-run.'
+          lines << 'Skipped rows are never resolved automatically. The detail under each one says'
+          lines << 'what to settle first (a dangling external_id, for one, is settled from the'
+          lines << 'accounts row, not by `customers doctor`). Re-run once it is settled.'
         end
 
         if stats[:error].positive?
@@ -242,6 +242,8 @@ module Onetime
               the address and no other row links it         -> login = that Customer,
                                                                external_id = its extid
               external_id names a missing Customer          -> skipped_dangling_external_id
+                                                               (the row detail says what
+                                                               settles it)
               two Customers hold the address                -> skipped_ambiguous_customer
               another row already links that Customer       -> skipped_customer_linked_elsewhere
               that Customer holds a different address       -> skipped_email_mismatch

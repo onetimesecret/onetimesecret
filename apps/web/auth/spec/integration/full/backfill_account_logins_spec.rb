@@ -256,6 +256,47 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
       expect(account_row(account_id)).to eq(before)
       expect(row_for(result, account_id)[:outcome]).to eq(:skipped_dangling_external_id)
     end
+
+    # `customers doctor` and `sync-auth-accounts` both start from Customer
+    # records, so naming them for a row whose Customer is gone sent the
+    # operator nowhere. The detail says which case the row is in.
+    it 'names the Customer holding the address, and what re-links the row to it' do
+      customer   = create_customer(email)
+      account_id = insert_account(email, external_id: 'urdoesnotexist0000000000001')
+
+      detail = row_for(new_operation.call, account_id)[:detail]
+
+      expect(detail).to include(customer.extid, 'next sign-in re-links', 'sync-auth-accounts')
+      expect(detail).not_to include('customers doctor')
+    end
+
+    it 'says when no Customer holds the address either' do
+      account_id = insert_account(email, external_id: 'urdoesnotexist0000000000002')
+
+      detail = row_for(new_operation.call, account_id)[:detail]
+
+      expect(detail).to include('No Customer holds', 'recreates')
+      expect(detail).not_to include('customers doctor', 'sync-auth-accounts')
+    end
+
+    it 'says when the Customer holding the address is linked by another row' do
+      customer = create_customer(email)
+      other_id = insert_account("other-#{run}@example.com", external_id: customer.extid)
+      account_id = insert_account(email, external_id: 'urdoesnotexist0000000000003')
+
+      detail = row_for(new_operation.call, account_id)[:detail]
+
+      expect(detail).to include(customer.extid, "accounts row #{other_id}", 'decide which account keeps')
+    end
+
+    it 'points a closed row at prune-closed-accounts' do
+      account_id = insert_account(email, external_id: 'urdoesnotexist0000000000004', status_id: 3)
+
+      detail = row_for(new_operation.call, account_id)[:detail]
+
+      expect(detail).to include('closed', 'prune-closed-accounts')
+      expect(detail).not_to include('customers doctor')
+    end
   end
 
   describe 'no Customer at all' do

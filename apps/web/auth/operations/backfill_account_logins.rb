@@ -51,7 +51,9 @@ module Auth
     #
     # Two accounts rows are never merged onto one Customer, and an existing
     # `external_id` is never rewritten: a row whose link names a Customer that
-    # no longer exists is reported for the operator (`bin/ots customers doctor`).
+    # no longer exists is reported for the operator, with what settles it
+    # (#dangling_detail). `customers doctor` and `customers sync-auth-accounts`
+    # start from Customer records, so neither reaches such a row by its link.
     #
     # `mint_missing` is off by default because the CURRENT binary, on the next
     # sign-in of such an account, would create a Customer by email and
@@ -259,15 +261,7 @@ module Auth
           resolve_by_email(row)
         else
           customer = Onetime::Customer.find_by_extid(extid)
-          if customer.nil?
-            return report(
-              row,
-              :skipped_dangling_external_id,
-              nil,
-              'accounts.external_id names a Customer that does not exist; the link is not rewritten ' \
-              'here. Run `bin/ots customers doctor` and `bin/ots customers sync-auth-accounts`',
-            )
-          end
+          return report(row, :skipped_dangling_external_id, nil, dangling_detail(row)) if customer.nil?
 
           apply(row, :by_external_id, customer, customer.objid.to_s, nil)
         end
@@ -303,6 +297,56 @@ module Auth
         end
 
         apply(row, :by_email, customer, customer.objid.to_s, customer.extid.to_s)
+      end
+
+      # What settles a row whose external_id names no Customer. Read-only:
+      # it looks up who holds the row's address, which decides the case.
+      #
+      #   closed row                  prune-closed-accounts deletes it
+      #   one Customer holds the      the account's next sign-in re-links the
+      #   address, no row links it    row to it (SyncSession), as does
+      #                               sync-auth-accounts, which links a live
+      #                               row by address (exact match; citext on
+      #                               PostgreSQL)
+      #   ...but another row links it a manual decision; never merged
+      #   no Customer holds it        the next sign-in recreates the Customer
+      #                               and re-links the row
+      #   several Customers hold it   normalize-emails first
+      def dangling_detail(row)
+        lead = 'accounts.external_id names a Customer that does not exist, and this command never ' \
+               'rewrites it. '
+        unless AccountStatuses.live?(row[:status_id])
+          return lead + 'The row is closed: `bin/ots customers prune-closed-accounts` deletes closed ' \
+                        'rows (dry run first)'
+        end
+
+        holders = email_candidates(row[:email].to_s)
+        return lead + dangling_without_holder if holders.empty?
+
+        if holders.size > 1
+          return lead + "#{holders.size} Customers hold this row's address under different casings " \
+                        "(#{holders.map(&:extid).join(', ')}): run `bin/ots customers normalize-emails` " \
+                        'first, then re-run'
+        end
+
+        holder = holders.first
+        other  = accounts.where(external_id: holder.extid.to_s).exclude(id: row[:id]).select(:id, :status_id).first
+        if other
+          return lead + "Customer #{holder.extid} holds this row's address, but accounts row " \
+                        "#{describe_holder(other)} links it: decide which account keeps the Customer " \
+                        '(never merged), then re-run'
+        end
+
+        lead + "Customer #{holder.extid} holds this row's address and no row links it. The account's " \
+               'next sign-in re-links the row to it. To do it now, `bin/ots customers sync-auth-accounts` ' \
+               "links a live row to the Customer whose address it holds (exactly; any case on PostgreSQL), " \
+               'and also creates rows for Customers that have none: read its dry run, then pass --run. ' \
+               'Then re-run'
+      end
+
+      def dangling_without_holder
+        "No Customer holds this row's address either. The account's next sign-in recreates its " \
+          'Customer and re-links the row; until then there is no Customer to take a login from. Then re-run'
       end
 
       # The stored bytes first (migration 007 left mixed-case index entries in

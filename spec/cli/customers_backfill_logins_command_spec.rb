@@ -119,6 +119,21 @@ RSpec.describe 'customers backfill-logins', type: :cli do
     end
   end
 
+  describe 'skipped row guidance' do
+    # `customers doctor` starts from a Customer, so it cannot reach a row
+    # whose external_id names none; the per-row detail carries the remedy.
+    it 'points at each row detail instead of sending a dangling row to customers doctor' do
+      allow(op).to receive(:call).and_return(
+        build_result(dry_run: true, stats: stats.merge(skipped_dangling_external_id: 1)),
+      )
+
+      output = run_cli_command_quietly('customers', 'backfill-logins')
+
+      expect(output[:stdout]).to include('The detail under each one says')
+      expect(output[:stdout]).not_to include('Run `bin/ots customers doctor`')
+    end
+  end
+
   describe 'skipped_no_customer guidance' do
     it 'tells the operator when --mint-missing becomes safe' do
       output = run_cli_command_quietly('customers', 'backfill-logins')
