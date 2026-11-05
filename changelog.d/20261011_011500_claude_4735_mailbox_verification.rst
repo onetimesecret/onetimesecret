@@ -7,7 +7,7 @@ Security
   A new ``Customer#mailbox_verified?`` predicate (``verified_by`` one of
   ``email``, ``invite_token``, ``cli_provision``, ``colonel_admin``) now gates
   system roles, the last-colonel guard, impersonation, verification-secret
-  display, the duplicate-signup resend and the deferred federated
+  display, the simple-mode duplicate-signup resend and the deferred federated
   subscription claim (a standard signup with email verification enabled, and
   every SSO JIT account). The deferral is a property of the customer record,
   not of the code path that creates the workspace: an unverified account on
