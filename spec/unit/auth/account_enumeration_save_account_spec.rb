@@ -62,7 +62,7 @@ RSpec.describe 'AccountEnumeration::RouteScopedGuards#save_account' do
     # create_account_response's request.halt, i.e. a `throw`, which a rescue
     # cannot swallow — without standing up the full Rodauth response stack.
     klass.prepend(Module.new do
-      def duplicate_signup_success_response(_existing_account: nil)
+      def duplicate_signup_success_response
         throw :halt, :generic_duplicate_success
       end
     end)

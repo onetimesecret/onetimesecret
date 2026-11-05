@@ -188,10 +188,9 @@ module Auth::Config::Features
     # The answer is the status of the account hash this request built. A
     # login that already has an account gets this same response block
     # (duplicate_signup_success_response, overrides/account_enumeration.rb),
-    # read from the request's own new-account hash, or from the existing row
-    # only when that row is unverified, which is the status a new account
-    # starts with. So without an invite token a duplicate answers as a new
-    # signup does.
+    # read from the request's own new-account hash, never from the existing
+    # row. So without an invite token a duplicate answers as a new signup
+    # does.
     #
     # An invite token is the one input that changes the answer, and
     # before_create_account refuses a token that is not pending for that

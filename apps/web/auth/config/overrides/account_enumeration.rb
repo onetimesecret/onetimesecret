@@ -55,10 +55,11 @@ require 'argon2'
 #   hooks/account.rb (before_create_account) + the `save_account` race
 #   fallback below respond with duplicate_signup_success_response — the exact
 #   response a FRESH signup returns (create_account_response), including the
-#   billing-redirect JSON parity keys. For unverified duplicates the
-#   verification email is re-sent (throttled by Rodauth's
-#   verify_account_skip_resend_email_within), so the "email has been sent"
-#   success is also true.
+#   billing-redirect JSON parity keys. A duplicate sends no email, verified
+#   or not, and leaves an unverified account's verification key alone: a
+#   signup attempt should not mail the verification link of an account whose
+#   password the requester did not set. The address owner can use Resend
+#   (verify-account-resend, or the resend view the login refusal offers).
 #
 # L-6 (unlock-account-request): stock Rodauth answers 200 "email sent" for a
 #   locked account and 401 "No matching login" for a non-existent OR
@@ -324,6 +325,12 @@ module Auth::Config::Overrides
       # save_account race fallback above. HALTS via create_account_response
       # (require_response enforces the halt).
       #
+      # Sends no email and writes nothing, whatever the existing account's
+      # status: a signup attempt should not mail the verification link of an
+      # account whose password the requester did not set. The address owner
+      # can use Resend. The response is built from this request's own
+      # new-account hash, never from the existing row.
+      #
       # SECURITY: the generic-success treatment applies ONLY to the HTTP
       # create-account route. Under internal_request (current_route is nil —
       # e.g. the invite flow's Auth::Config.create_account), a duplicate MUST
@@ -332,17 +339,12 @@ module Auth::Config::Overrides
       # generic success would let the invite flow treat "account already
       # exists" as a fresh signup and establish a session on the EXISTING
       # account without ever verifying its password — an account takeover.
-      #
-      # @param existing_account [Hash, nil] the existing accounts row, when
-      #   the caller has it (enables the unverified-resend courtesy below).
-      def duplicate_signup_success_response(existing_account: nil)
+      def duplicate_signup_success_response
         unless current_route == :create_account
           set_error_flash(create_account_error_flash)
           request.env['rodauth.error_flash'] = create_account_error_flash
           throw_rodauth_error
         end
-
-        resend_verification_for_unverified_duplicate(existing_account) if existing_account
 
         # Billing parity: the fresh-signup path adds billing_redirect JSON keys
         # in after_create_account when plan params were captured. Mirror that
@@ -353,38 +355,6 @@ module Auth::Config::Overrides
         end
 
         create_account_response
-      end
-
-      # M-2 courtesy + honesty: when the duplicate is an UNVERIFIED account,
-      # re-send its verification email (best-effort, throttled by Rodauth's
-      # verify_account_skip_resend_email_within) so the generic "email has
-      # been sent" success is literally true and a legitimate user who lost
-      # the first email gets unstuck. Guarded on verify_account being enabled
-      # (disabled in test mode). Failure never alters the response —
-      # enumeration safety does not depend on the email.
-      def resend_verification_for_unverified_duplicate(existing_account)
-        return unless respond_to?(:verify_account_email_resend)
-        return unless existing_account[account_status_column] == account_unverified_status_value
-
-        Onetime::ErrorHandler.safe_execute(
-          'resend_verify_email_duplicate_signup',
-          account_id: existing_account[account_id_column],
-        ) do
-          # Point the Rodauth account context at the EXISTING row (we halt
-          # immediately after, so the in-flight new-account hash is dead).
-          @account = existing_account
-
-          if allow_resending_verify_account_email? && !verify_account_email_recently_sent?
-            verify_account_email_resend
-
-            Auth::Logging.log_auth_event(
-              :verify_email_resent_duplicate_signup,
-              level: :info,
-              account_id: account_id,
-              email: OT::Utils.obscure_email(existing_account[login_column]),
-            )
-          end
-        end
       end
     end
   end

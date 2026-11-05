@@ -94,9 +94,10 @@ module Auth::Config::Hooks
         # oracle. duplicate_signup_success_response (defined in
         # config/overrides/account_enumeration.rb) answers with the SAME
         # generic success a fresh signup returns and HALTS; no account row is
-        # written. For an unverified duplicate it also re-sends the
-        # verification email (throttled), so the success message stays true.
-        # Under internal_request (e.g. the invite flow's
+        # written and no email is sent, whether or not the existing account
+        # is verified: a signup attempt should not mail the verification link
+        # of an account whose password the requester did not set. The address
+        # owner can use Resend. Under internal_request (e.g. the invite flow's
         # Auth::Config.create_account) the helper fails CLOSED: it raises
         # Rodauth::InternalRequestError exactly as the old error-throw here
         # did, so internal callers can never mistake a duplicate for a fresh
@@ -151,7 +152,7 @@ module Auth::Config::Hooks
             )
           end
 
-          duplicate_signup_success_response(existing_account: existing_account)
+          duplicate_signup_success_response
         end
 
         # A record a closure left behind when it stopped part-way (#4830) does

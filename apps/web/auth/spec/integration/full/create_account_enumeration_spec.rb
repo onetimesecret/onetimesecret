@@ -14,12 +14,13 @@
 # no account row.
 #
 # NOTE on coverage limits in this lane: verify_account is disabled when
-# RACK_ENV=test (Onetime.auth_config.verify_account_enabled?), so two
-# production behaviors are dormant here and guarded by respond_to? in the
-# override: (a) the unverified-duplicate verification-email RESEND, and
-# (b) verify_account's stock new_account short-circuit that the override
-# bypasses. The response-parity property asserted below is identical in both
-# configs because both paths converge on create_account_response.
+# RACK_ENV=test (Onetime.auth_config.verify_account_enabled?), so
+# verify_account's stock new_account short-circuit that the override bypasses
+# is dormant here. The response-parity property asserted below is identical in
+# both configs because both paths converge on create_account_response. With
+# verify_account on, a duplicate for an UNVERIFIED account sends no email and
+# leaves its verification key alone:
+# apps/web/auth/spec/integration/full_mfa/create_account_unverified_duplicate_spec.rb.
 #
 # REQUIREMENTS:
 # - Valkey running on port 2121: pnpm run test:database:start
