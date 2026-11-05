@@ -52,16 +52,19 @@ def last_response;  @test.last_response;  end
 @colonel = Onetime::Customer.create!(email: "colonel_eo_#{@timestamp}@example.com")
 @colonel.role = 'colonel'
 @colonel.verified = 'true'
+@colonel.verified_by = 'email'
 @colonel.save
 
 # Regular (non-colonel) customer
 @regular = Onetime::Customer.create!(email: "regular_eo_#{@timestamp}@example.com")
 @regular.verified = 'true'
+@regular.verified_by = 'email'
 @regular.save
 
 # Target organization with materialized entitlements
 @org_owner = Onetime::Customer.create!(email: "org_owner_eo_#{@timestamp}@example.com")
 @org_owner.verified = 'true'
+@org_owner.verified_by = 'email'
 @org_owner.save
 
 @org = Onetime::Organization.create!("Entitlement Override Test Org #{@timestamp}", @org_owner, @org_owner.email)

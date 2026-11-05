@@ -46,6 +46,13 @@ module Onetime
     # (Customer.participates_in :Organization, :members) and the archive
     # toggles; prepended so `super` reaches the generated methods. Archiving
     # affects every member's view, so it drops every snapshot in the request.
+    #
+    # Removal also clears the removed customer's default_org_id when it
+    # names this organization (#4860). The removal paths all reach this
+    # writer: Memberships::Remove, the organization members API (which
+    # calls destroy_with_index_cleanup! directly), the CustomDomain.destroy!
+    # cascade, Organization#destroy!, `memberships doctor` and the
+    # participation GC job.
     module MembershipSnapshotHooks
       def add_members_instance(customer, ...)
         super
@@ -54,7 +61,9 @@ module Onetime
       end
 
       def remove_members_instance(customer, ...)
-        super
+        result                    = super
+        @last_default_org_cleanup = clear_default_org_pointer(customer)
+        result
       ensure
         Onetime::MembershipSnapshot.forget(customer)
       end
@@ -190,6 +199,81 @@ module Onetime
       Customer.load_multi(members.to_a).compact
     end
 
+    # KEYS[1] the customer's object key, ARGV[1] this org's objid as Familia
+    # stores a String field (JSON-encoded), ARGV[2] the bare objid a legacy
+    # row may hold. Returns HDEL's count.
+    CLEAR_DEFAULT_ORG_SCRIPT = <<~LUA
+      local current = redis.call('HGET', KEYS[1], 'default_org_id')
+      if current == ARGV[1] or current == ARGV[2] then
+        return redis.call('HDEL', KEYS[1], 'default_org_id')
+      end
+      return 0
+    LUA
+
+    # Clear the customer's default_org_id when it names this organization.
+    # Called once the customer is no longer a member: the loader already
+    # skips such a pointer, but it outlives the membership, and a later
+    # re-add would make it the default again (#4860).
+    #
+    # Compare-and-delete in one script, not `default_org_id = nil; save`:
+    # a pointer repointed since the customer was loaded survives, and a
+    # customer hash already deleted (mid-purge) is never written back.
+    # Clear, never repoint: OrganizationLoader picks a default on the next
+    # request, as after Org::Delete and `customers doctor --repair`.
+    #
+    # The removal has committed by the time this runs, so a failure is
+    # logged and returned, not raised. `customers doctor` repairs the
+    # pointer later (check orphan_default_org).
+    #
+    # The outcome describes the removal, not only this call: a removal runs
+    # it twice (the teardown, through the membership's own copy of the
+    # customer, then the caller on its copy), and the second call usually
+    # finds the stored field already gone. The caller passes the teardown's
+    # outcome as `prior` (OrganizationMembership#default_org_cleanup), so a
+    # second call that cannot check does not report a pointer the teardown
+    # already settled as possibly surviving.
+    #
+    # @param customer [Onetime::Customer]
+    # @param prior [Symbol, nil] the outcome of an earlier clear in the same
+    #   removal; used only when this call cannot check
+    # @return [Symbol] :cleared when the pointer named this org: this call
+    #   deleted the stored field, or the caller's copy still named the org
+    #   after an earlier clear deleted it; :unchanged when it named another
+    #   org or none; when this call could not check (not a Customer, or the
+    #   script raised), a :cleared or :unchanged prior, otherwise :failed,
+    #   meaning it may still name this org
+    def clear_default_org_pointer(customer, prior: nil)
+      return unchecked_default_org_cleanup(prior) unless customer.is_a?(Onetime::Customer)
+
+      # Keep the caller's copy in step, so a later read or save of this
+      # object does not bring the pointer back. Done before the script, so
+      # a script that raises still leaves the copy cleared.
+      org_objid               = objid.to_s
+      named                   = customer.default_org_id.to_s == org_objid
+      customer.default_org_id = nil if named
+
+      deleted = customer.dbclient.eval(
+        CLEAR_DEFAULT_ORG_SCRIPT,
+        keys: [customer.dbkey],
+        argv: [Familia::JsonSerializer.dump(org_objid), org_objid],
+      ).to_i.positive?
+      deleted || named ? :cleared : :unchanged
+    rescue StandardError => ex
+      OT.le "[Organization#clear_default_org_pointer] #{extid} for #{customer.extid}: #{ex.class}: #{ex.message}"
+      unchecked_default_org_cleanup(prior)
+    end
+
+    # A prior check stands; without one the pointer may have survived.
+    def unchecked_default_org_cleanup(prior)
+      [:cleared, :unchanged].include?(prior) ? prior : :failed
+    end
+    private :unchecked_default_org_cleanup
+
+    # The outcome of the last clear_default_org_pointer run by the removal
+    # hook on this object (nil before any removal). The teardown reads it
+    # into OrganizationMembership#default_org_cleanup.
+    attr_reader :last_default_org_cleanup
+
     # Invitation management
     # pending_invitations is auto-generated by Customer.participates_in staged: :pending_invitations
     # It stores OrganizationMembership objids (UUID-keyed staged models)
@@ -270,6 +354,89 @@ module Onetime
     def domain_count
       # domains is auto-generated sorted_set
       domains.size
+    end
+
+    # The custom domains this organization has proven it owns
+    # (CustomDomain#ownership_proven?): accepted by a Colonel override, or
+    # verified under a validation strategy that checks the TXT record. Under
+    # passthrough the verify call sets ownership_verified without a DNS
+    # lookup, so there only an override counts (#4734). The serving axis
+    # (DNS pointed at us, certificate) plays no part, so a domain added only
+    # to prove an email namespace counts once its TXT record resolves.
+    #
+    # @return [Array<Onetime::CustomDomain>]
+    def verified_domains
+      list_domains.select(&:ownership_proven?)
+    end
+
+    # Whether an email domain lies inside a namespace this organization has
+    # proven it owns: it equals, or is below, one of `domains`
+    # (verified_domains by default).
+    #
+    # The TXT challenge for a custom domain is placed under the name as
+    # entered (`_onetime-challenge-<id>.<trd>` beneath the registrable
+    # domain), so a passing check proves control of `secrets.acme.example`
+    # and the names below it, not of `acme.example`. An organization whose
+    # people have `@acme.example` addresses proves that namespace by adding
+    # `acme.example` as a custom domain and completing its TXT check; it
+    # never has to point the name at this service. Spellings are compared
+    # by A-label (AsciiHostname.within?).
+    #
+    # Used by tenant SSO, which creates an account only for an address in a
+    # proven namespace (RISK-2026-10-10-01, #4734).
+    #
+    # @param email_domain [String] the part of an address after its `@`
+    # @param domains [Array<Onetime::CustomDomain>] the proven set, when the
+    #   caller has already loaded it
+    # @return [Boolean]
+    def owns_email_domain?(email_domain, domains: verified_domains)
+      return false if email_domain.to_s.strip.empty?
+
+      domains.any? do |domain|
+        Onetime::DomainValidation::AsciiHostname.within?(email_domain.to_s, domain.display_domain.to_s)
+      end
+    end
+
+    # #owns_email_domain? as a tenant SSO flow on `custom_domain` asks it: the
+    # flow's own domain is always consulted, so the answer does not depend on
+    # this organization's domain index being complete, but it counts only
+    # while its own ownership is proven (CustomDomain#ownership_proven?).
+    # Shared by the login-time gate (hooks/omniauth_tenant.rb) and the
+    # operator audit of identities bound before the gate existed
+    # (Auth::Operations::AuditTenantEmailDomains).
+    #
+    # The flow's own domain is judged first, from the record the caller
+    # already has, and the rest of the proven set (#verified_domains, one
+    # load of every domain record of the organization) is read only when
+    # that domain does not settle the question. The answer equals any? over
+    # #proven_email_domains_through(custom_domain) for every input: that set
+    # is the union of the flow's domain, when proven, with verified_domains,
+    # and any? over a union is the or of any? over each part, which is what
+    # the body spells out (the uniq in that set drops repeats of one record,
+    # which changes no any? answer). A blank address is false under both
+    # readings.
+    #
+    # @param custom_domain [Onetime::CustomDomain] the flow's domain
+    # @param email_domain [String] the part of an address after its `@`
+    # @return [Boolean]
+    def owns_email_domain_through?(custom_domain, email_domain)
+      return false if email_domain.to_s.strip.empty?
+
+      own = custom_domain.ownership_proven? ? [custom_domain] : []
+      owns_email_domain?(email_domain, domains: own) || owns_email_domain?(email_domain, domains: verified_domains)
+    end
+
+    # The proven set as a tenant SSO flow on `custom_domain` sees it: that
+    # domain plus #verified_domains, those whose ownership is proven
+    # (CustomDomain#ownership_proven?), deduplicated. The SSO settings API
+    # serves it so the allowlist can say which entries lie inside it.
+    #
+    # @param custom_domain [Onetime::CustomDomain] the flow's domain
+    # @return [Array<Onetime::CustomDomain>]
+    def proven_email_domains_through(custom_domain)
+      ([custom_domain] + verified_domains)
+        .select(&:ownership_proven?)
+        .uniq(&:identifier)
     end
 
     def domain?(domain_or_objid)

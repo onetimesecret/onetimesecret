@@ -44,11 +44,13 @@ AE = Onetime::ColonelAuditEvent
 @colonel = Onetime::Customer.create!(email: "colonel_ca_#{@ts}@example.com")
 @colonel.role     = 'colonel'
 @colonel.verified = 'true'
+@colonel.verified_by = 'email'
 @colonel.save
 
 # Non-colonel customer
 @regular = Onetime::Customer.create!(email: "regular_ca_#{@ts}@example.com")
 @regular.verified = 'true'
+@regular.verified_by = 'email'
 @regular.save
 
 # Mutation targets

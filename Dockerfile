@@ -268,6 +268,8 @@ RUN set -eux && \
 # and verify with `sha256sum -c` BEFORE extraction so the build fails loudly on
 # any mismatch. Tarballs are kept under their published names so the filename
 # recorded inside each .sha256 file matches the file being checked.
+# Each download retries on any error (see docker/base.dockerfile for why
+# --retry-all-errors and why it is safe with -o).
 RUN set -eux && \
     ARCH=$(dpkg --print-architecture) && \
     case "$ARCH" in \
@@ -278,10 +280,10 @@ RUN set -eux && \
     esac && \
     cd /tmp && \
     S6_BASE_URL="https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}" && \
-    curl -fsSL "${S6_BASE_URL}/s6-overlay-noarch.tar.xz" -o s6-overlay-noarch.tar.xz && \
-    curl -fsSL "${S6_BASE_URL}/s6-overlay-noarch.tar.xz.sha256" -o s6-overlay-noarch.tar.xz.sha256 && \
-    curl -fsSL "${S6_BASE_URL}/s6-overlay-${S6_ARCH}.tar.xz" -o "s6-overlay-${S6_ARCH}.tar.xz" && \
-    curl -fsSL "${S6_BASE_URL}/s6-overlay-${S6_ARCH}.tar.xz.sha256" -o "s6-overlay-${S6_ARCH}.tar.xz.sha256" && \
+    curl -fsSL --retry 5 --retry-all-errors "${S6_BASE_URL}/s6-overlay-noarch.tar.xz" -o s6-overlay-noarch.tar.xz && \
+    curl -fsSL --retry 5 --retry-all-errors "${S6_BASE_URL}/s6-overlay-noarch.tar.xz.sha256" -o s6-overlay-noarch.tar.xz.sha256 && \
+    curl -fsSL --retry 5 --retry-all-errors "${S6_BASE_URL}/s6-overlay-${S6_ARCH}.tar.xz" -o "s6-overlay-${S6_ARCH}.tar.xz" && \
+    curl -fsSL --retry 5 --retry-all-errors "${S6_BASE_URL}/s6-overlay-${S6_ARCH}.tar.xz.sha256" -o "s6-overlay-${S6_ARCH}.tar.xz.sha256" && \
     sha256sum -c s6-overlay-noarch.tar.xz.sha256 && \
     sha256sum -c "s6-overlay-${S6_ARCH}.tar.xz.sha256" && \
     tar -C / -Jxpf s6-overlay-noarch.tar.xz && \

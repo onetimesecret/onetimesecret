@@ -41,7 +41,7 @@ RSpec.describe V1::Controllers::Index, '#show_receipt_recent' do
       custid: 'test@example.com',
       anonymous?: false,
       active?: true,
-      verified?: true,
+      verified?: true, mailbox_verified?: true,
       role: 'customer',
       increment_field: nil,
       email: 'test@example.com')

@@ -949,5 +949,13 @@
   "web.admin.domains.override.noChange": {
     "text": "No changes to apply.",
     "content_hash": "07632d50"
+  },
+  "web.admin.domains.override.acceptOwnership": {
+    "text": "Accept ownership by override",
+    "content_hash": "d1d758ef"
+  },
+  "web.admin.domains.override.acceptOwnershipHint": {
+    "text": "This domain is verified, but not by override. Under passthrough, tenant SSO treats a domain as a proven email domain only after an override. Confirm the organization owns the domain first.",
+    "content_hash": "b482df28"
   }
 }

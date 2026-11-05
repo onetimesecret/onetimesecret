@@ -43,17 +43,22 @@ module Onetime
       # - colonel: Site administrators with full access
       # - admin: Future system admin role
       #
-      # Defense in depth: System roles require email verification.
+      # Defense in depth: System roles require MAILBOX verification.
       # This prevents privilege escalation attacks where an attacker
       # registers an admin email before the legitimate owner verifies.
+      # An IdP-asserted address (verified_by: 'sso') is not mailbox proof
+      # (#4735): the operator confirms the address by hand (colonel admin
+      # or `bin/ots customers verify`) before the role takes effect.
+      # Onetime::Operations::Customers::RoleSupport#active_colonels applies
+      # the same predicate so the last-colonel guard counts the same roster.
       #
       # @param role [String, Symbol] Role name to check
-      # @return [Boolean] true if user has the role AND is verified
+      # @return [Boolean] true if user has the role AND is mailbox-verified
       def has_system_role?(role)
         return false if anonymous_user?
 
-        # Defense in depth: elevated roles require verified email
-        return false unless cust.verified?
+        # Defense in depth: elevated roles require a mailbox-verified email
+        return false unless cust.mailbox_verified?
 
         case role.to_s
         when 'colonel'

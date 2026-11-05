@@ -31,13 +31,13 @@ RSpec.describe ColonelAPI::Logic::Base do
   let(:colonel) do
     instance_double(Onetime::Customer,
       objid: 'cust_colonel', extid: 'ur_colonel', email: 'colonel@example.com',
-      role: 'colonel', verified?: true, anonymous?: false)
+      role: 'colonel', verified?: true, mailbox_verified?: true, anonymous?: false)
   end
 
   let(:customer) do
     instance_double(Onetime::Customer,
       objid: 'cust_plain', extid: 'ur_plain',
-      role: 'customer', verified?: true, anonymous?: false)
+      role: 'customer', verified?: true, mailbox_verified?: true, anonymous?: false)
   end
 
   # Every subject the hook passed to the limiter, in call order.
@@ -122,7 +122,7 @@ RSpec.describe ColonelAPI::Logic::Base do
     # (defence in depth, authorization_policies.rb).
     it 'charges nothing for an unverified colonel' do
       unverified = instance_double(Onetime::Customer,
-        objid: 'cust_x', extid: 'ur_x', role: 'colonel', verified?: false, anonymous?: false)
+        objid: 'cust_x', extid: 'ur_x', role: 'colonel', verified?: false, mailbox_verified?: false, anonymous?: false)
 
       build(user: unverified)
       expect(charged).to be_empty

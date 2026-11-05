@@ -1116,13 +1116,17 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
     let(:secret) do
       double('Secret', identifier: 'sec_abc123').tap do |s|
         allow(s).to receive(:verification=)
+        allow(s).to receive(:kind=) # 'account_verification' (#4735)
         allow(s).to receive(:custid=)
+        allow(s).to receive(:delivery_digest=) # the address it is emailed to (#4754 review, round 3)
         allow(s).to receive(:save)
       end
     end
 
     before do
-      allow(customer).to receive(:reset_secret=)
+      # send_verification_email records the pointer through the race-safe
+      # writer, not reset_secret= (#4735).
+      allow(customer).to receive(:record_verification_pointer!).and_return(true)
       allow(Onetime::Receipt).to receive(:spawn_pair).and_return([double('Receipt'), secret])
       allow(Onetime::Mail::Mailer).to receive(:deliver)
     end
@@ -1139,6 +1143,38 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         hash_including(email_address: test_email),
         locale: OT.default_locale,
       )
+    end
+  end
+
+  # The welcome link records which address it was emailed to, so the
+  # federation claim its reveal runs can tell whether it still proves the
+  # account's current address after an operator changed it
+  # (Secret#delivered_to?, #4754 review, round 3).
+  describe '#send_verification_email delivery address' do
+    let(:secret) do
+      double('Secret', identifier: 'sec_abc123').tap do |s|
+        allow(s).to receive(:verification=)
+        allow(s).to receive(:kind=)
+        allow(s).to receive(:custid=)
+        allow(s).to receive(:delivery_digest=)
+        allow(s).to receive(:save)
+      end
+    end
+
+    before do
+      allow(customer).to receive(:record_verification_pointer!).and_return(true)
+      allow(Onetime::Receipt).to receive(:spawn_pair).and_return([double('Receipt'), secret])
+      allow(Onetime::Mail::Mailer).to receive(:deliver)
+    end
+
+    it 'records the digest of the address the email goes to before saving the secret' do
+      logic.send(:send_verification_email, nil, customer: customer)
+
+      expect(secret).to have_received(:delivery_digest=)
+        .with(Onetime::Secret.delivery_digest_for(test_email)).ordered
+      expect(secret).to have_received(:save).ordered
+      expect(Onetime::Mail::Mailer).to have_received(:deliver)
+        .with(:welcome, hash_including(email_address: test_email), locale: anything)
     end
   end
 end

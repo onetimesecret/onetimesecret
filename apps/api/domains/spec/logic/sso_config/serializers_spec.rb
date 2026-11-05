@@ -129,6 +129,159 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Serializers do
     end
   end
 
+  # #4734 (RISK-2026-10-10-01): tenant SSO creates an account only for an
+  # address inside a domain the organization has proven, so the record names
+  # the proven set and the allowlist entries that admit no one. Judged by
+  # Organization#verified_domains, #owns_email_domain? and
+  # CustomDomain#ownership_proven? (all real), over unsaved domain records
+  # whose organization lookup is stubbed.
+  #
+  # A domain is proven by a Colonel override, or, under a validation strategy
+  # that checks the TXT record, by ownership_verified with a passing check on
+  # record (verified_confirmed_at). The fixtures below use an override, which
+  # counts under any strategy; the strategy contexts at the end cover
+  # ownership_verified with and without a recorded pass.
+  describe '#serialize_sso_config email domain proof' do
+    let(:organization) { Onetime::Organization.allocate }
+
+    def domain_double(id, name, verified:, override: false, confirmed: false)
+      domain                       = Onetime::CustomDomain.new(display_domain: name, org_id: 'org-serializer')
+      domain.ownership_verified    = verified
+      domain.verified_by_override  = override
+      domain.verified_confirmed_at = Time.now.to_i - 3600 if confirmed
+      allow(domain).to receive_messages(identifier: id, primary_organization: organization)
+      domain
+    end
+
+    # features.domains settings for this example only, on a copy of OT.conf.
+    def configure_domains(**overrides)
+      conf    = YAML.load(YAML.dump(OT.conf))
+      domains = ((conf['features'] ||= {})['domains'] ||= {})
+      overrides.each { |key, value| domains[key.to_s] = value }
+      allow(OT).to receive(:conf).and_return(conf)
+    end
+
+    let(:own_domain)   { domain_double('dom-own', 'secrets.acme.com', verified: true, override: true) }
+    let(:apex_domain)  { domain_double('dom-apex', 'beispiel.org', verified: true, override: true) }
+    let(:idn_domain)   { domain_double('dom-idn', 'xn--bcher-kva.org', verified: true, override: true) }
+    let(:unproven)     { domain_double('dom-unproven', 'pending.org', verified: false) }
+    let(:org_domains)  { [own_domain, apex_domain, idn_domain, unproven] }
+    let(:allowed)      { [] }
+    let(:config)       { build_domain_sso_config(:oidc, allowed_domains: allowed) }
+    let(:payload)      { serializer.serialize_sso_config(config) }
+
+    before do
+      allow(config).to receive(:custom_domain).and_return(own_domain)
+      allow(organization).to receive(:list_domains).and_return(org_domains)
+    end
+
+    it 'lists the proven domains sorted, the config domain included once' do
+      expect(payload[:verified_email_domains]).to eq(
+        %w[beispiel.org secrets.acme.com xn--bcher-kva.org],
+      )
+    end
+
+    context 'with allowlist entries of every kind' do
+      let(:allowed) do
+        [
+          'secrets.acme.com',       # equals a verified domain
+          'team.secrets.acme.com',  # below a verified domain
+          'acme.com',                   # above: only the subdomain is proven
+          'pending.org',            # equals a custom domain whose ownership is not proven
+          'bücher.org',             # Unicode spelling of a verified A-label domain
+          'notacme.com',            # shares a suffix, not a label boundary
+        ]
+      end
+
+      it 'names only the entries outside every proven domain, as stored' do
+        expect(payload[:unverified_allowed_domains]).to eq(
+          %w[acme.com pending.org notacme.com],
+        )
+      end
+    end
+
+    context 'when the config domain itself is not proven and the index is empty' do
+      let(:own_domain)  { domain_double('dom-own', 'secrets.acme.com', verified: false) }
+      let(:org_domains) { [own_domain] }
+      let(:allowed)     { ['secrets.acme.com'] }
+
+      it 'reports no proven domain and the entry as unverified' do
+        expect(payload).to include(verified_email_domains: [], unverified_allowed_domains: ['secrets.acme.com'])
+      end
+    end
+
+    context 'under a validation strategy that makes no TXT check (passthrough)' do
+      # The verify call set ownership_verified on beispiel.org without a DNS
+      # lookup, and a pass recorded under an earlier strategy on earlier.org
+      # does not count here; only the override on secrets.acme.com is evidence.
+      let(:apex_domain)    { domain_double('dom-apex', 'beispiel.org', verified: true) }
+      let(:earlier_domain) { domain_double('dom-earlier', 'earlier.org', verified: true, confirmed: true) }
+      let(:org_domains)    { [own_domain, apex_domain, earlier_domain] }
+      let(:allowed)        { %w[secrets.acme.com beispiel.org earlier.org] }
+
+      before { configure_domains(validation_strategy: 'passthrough') }
+
+      it 'counts only the domains accepted by Colonel override' do
+        expect(payload).to include(
+          verified_email_domains: ['secrets.acme.com'],
+          unverified_allowed_domains: %w[beispiel.org earlier.org],
+        )
+      end
+    end
+
+    context 'under a validation strategy that checks the TXT record (caddy_on_demand)' do
+      # secrets.acme.com and beispiel.org have a passing TXT check on record.
+      # legacy.org is verified with none: a passthrough pass before the
+      # strategy changed, or a verification from before v0.26.14.
+      let(:own_domain)    { domain_double('dom-own', 'secrets.acme.com', verified: true, confirmed: true) }
+      let(:apex_domain)   { domain_double('dom-apex', 'beispiel.org', verified: true, confirmed: true) }
+      let(:legacy_domain) { domain_double('dom-legacy', 'legacy.org', verified: true) }
+      let(:org_domains)   { [own_domain, apex_domain, legacy_domain, unproven] }
+      let(:allowed)       { %w[secrets.acme.com beispiel.org legacy.org pending.org] }
+
+      before { configure_domains(validation_strategy: 'caddy_on_demand') }
+
+      it 'counts ownership_verified with a recorded TXT pass and no other' do
+        expect(payload).to include(
+          verified_email_domains: %w[beispiel.org secrets.acme.com],
+          unverified_allowed_domains: %w[legacy.org pending.org],
+        )
+      end
+    end
+
+    context 'when the domain has no organization' do
+      let(:allowed) { ['secrets.acme.com'] }
+
+      before do
+        allow(config).to receive(:custom_domain).and_return(
+          instance_double(Onetime::CustomDomain, primary_organization: nil),
+        )
+      end
+
+      it 'treats every entry as unverified' do
+        expect(payload).to include(verified_email_domains: [], unverified_allowed_domains: ['secrets.acme.com'])
+      end
+    end
+
+    context 'when the domain cannot be loaded' do
+      before { allow(config).to receive(:custom_domain).and_return(nil) }
+
+      it 'serves empty arrays rather than raising' do
+        expect(payload).to include(verified_email_domains: [], unverified_allowed_domains: [])
+      end
+    end
+
+    context 'when the lookup raises' do
+      before { allow(config).to receive(:custom_domain).and_raise(Redis::CannotConnectError, 'down') }
+
+      it 'serves empty arrays and keeps the rest of the record' do
+        allow(OT).to receive(:lw)
+        expect(payload).to include(verified_email_domains: [], unverified_allowed_domains: [])
+        expect(payload[:domain_id]).to eq(config.domain_id)
+      end
+    end
+  end
+
   describe '#serialize_sso_config last_sign_in' do
     let(:config) do
       Onetime::CustomDomain::SsoConfig.create!(
@@ -233,6 +386,45 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Serializers do
       it 'serves null / false' do
         expect(payload).to include(cert_expires_at: nil, cert_expired: false)
       end
+    end
+  end
+
+  # The SAML IdP metadata URL the trio was imported from: plaintext like the
+  # trio, AAD-bound like the trio, and a reveal failure is an error state
+  # named in unreadable_fields, never a quiet null.
+  describe '#serialize_sso_config idp_metadata_url' do
+    let(:url) { 'https://login.microsoftonline.com/contoso.onmicrosoft.com/federationmetadata/2007-06/federationmetadata.xml?appid=abc' }
+
+    it 'serves a stored value in plaintext' do
+      payload = serializer.serialize_sso_config(build_domain_sso_config(:saml, idp_metadata_url: url))
+
+      expect(payload).to include(idp_metadata_url: url, unreadable_fields: [])
+    end
+
+    it 'serves null when unset or cleared' do
+      expect(serializer.serialize_sso_config(build_domain_sso_config(:saml))[:idp_metadata_url]).to be_nil
+
+      cleared = build_domain_sso_config(:saml, idp_metadata_url: url)
+      cleared.idp_metadata_url = ''
+      expect(serializer.serialize_sso_config(cleared)[:idp_metadata_url]).to be_nil
+    end
+
+    it 'serves null for a non-saml record' do
+      expect(serializer.serialize_sso_config(build_domain_sso_config(:oidc))[:idp_metadata_url]).to be_nil
+    end
+
+    it 'names a value that will not decrypt in unreadable_fields and serves null' do
+      config    = build_domain_sso_config(:saml, idp_metadata_url: url)
+      concealed = double('ConcealedString')
+      allow(concealed).to receive(:reveal).and_raise(Familia::EncryptionError, 'tag mismatch')
+      allow(config).to receive(:idp_metadata_url).and_return(concealed)
+      allow(OT).to receive(:lw)
+
+      payload = serializer.serialize_sso_config(config)
+
+      expect(payload).to include(idp_metadata_url: nil, unreadable_fields: ['idp_metadata_url'])
+      expect(payload[:idp_cert]).to eq(DomainSsoTestFixtures.saml_cert_pem)
+      expect(OT).to have_received(:lw).with(/Failed to reveal encrypted field idp_metadata_url/)
     end
   end
 end

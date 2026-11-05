@@ -14,7 +14,9 @@ module Onetime
 
       desc 'Manage support-issued Stripe Checkout links'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         puts 'Usage: bin/ots billing checkout-links create <email-or-extid> --plan <plan_id> [options]'
         puts
         puts "Run 'bin/ots billing checkout-links create --help' for options."

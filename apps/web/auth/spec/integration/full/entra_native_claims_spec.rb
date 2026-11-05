@@ -48,8 +48,12 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
   let(:issuer) { "https://login.microsoftonline.com/#{tenant_id}/v2.0" }
   let(:token_url) { "https://login.microsoftonline.com/#{tenant_id}/oauth2/v2.0/token" }
   let(:oid) { SecureRandom.uuid }
-  let(:allowed_domains) { ['contoso.example.com'] }
-  let(:member_email) { "member-#{run_id}@contoso.example.com" }
+  # The members' address domain, a second custom domain the organization has
+  # proven (tenant SSO creates accounts only inside one, #4734). Unique per
+  # example: a display_domain belongs to one record install-wide.
+  let(:member_domain) { "contoso-#{run_id}.example.com" }
+  let(:allowed_domains) { [member_domain] }
+  let(:member_email) { "member-#{run_id}@#{member_domain}" }
   let(:token_requests) { [] }
 
   let!(:tenant) do
@@ -60,6 +64,15 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
     domain.verified = true
     domain.save
     Onetime::CustomDomain.display_domain_index.put(tenant_host, domain.domainid)
+    # The organization has proven the member address domain: tenant SSO
+    # creates accounts only inside a proven custom domain (#4734). Accepted
+    # by Colonel override, the basis that counts under the test install's
+    # passthrough strategy (CustomDomain#ownership_proven?).
+    email_domain                      = Onetime::CustomDomain.parse(member_domain, org.objid)
+    email_domain.ownership_verified   = true
+    email_domain.verified_by_override = true
+    email_domain.save
+    org.add_domain(email_domain)
     Onetime::CustomDomain::SsoConfig.create!(
       domain_id: domain.identifier,
       provider_type: 'entra_id',
@@ -69,7 +82,7 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
       enabled: true,
       allowed_domains: allowed_domains,
     )
-    { owner: owner, org: org, domain: domain }
+    { owner: owner, org: org, domain: domain, email_domain: email_domain }
   end
 
   def app
@@ -106,6 +119,7 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
     Onetime::CustomDomain::SsoConfig.delete_for_domain!(tenant[:domain].identifier)
     Onetime::CustomDomain.display_domain_index.remove(tenant_host)
     tenant[:domain].destroy!
+    tenant[:email_domain].destroy!
     tenant[:org].destroy!
     tenant[:owner].destroy!
     clear_auth_database
@@ -351,6 +365,54 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
         expect(Auth::Logging).to have_received(:log_auth_event)
           .with(:omniauth_missing_email, hash_including(provider: :entra))
         expect_no_account
+      end
+    end
+  end
+
+  # #4735 (RISK-2026-10-10-02 R2b): Microsoft's optional `xms_edov` claim is
+  # "whether the user's email domain owner has been verified". It arrives in
+  # the id_token, so it reaches OTS as extra.raw_info through the real strategy.
+  describe 'the xms_edov optional claim' do
+    it 'refuses an explicit false at the tenant allowlist, as domain_not_allowed, and creates nothing' do
+      flow = complete_flow(email: member_email, xms_edov: false)
+      expect_code_exchange(flow)
+
+      expect(auth_hash['extra']['raw_info']['xms_edov']).to be(false)
+      expect(last_response.status).to eq(302), last_response.body
+      expect(last_response.location).to eq('/signin?auth_error=domain_not_allowed')
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_tenant_domain_rejected, hash_including(reason: :domain_unverified))
+      expect_no_account
+    end
+
+    it 'treats true as domain-owner verification only: the account is provisioned, stamped sso, not mailbox-verified' do
+      complete_flow(email: member_email, xms_edov: true)
+
+      expect(last_response.status).to eq(302), last_response.body
+      expect(last_response.location).not_to include('auth_error=')
+      expect(auth_db[:accounts].where(email: member_email).count).to eq(1)
+
+      customer = Onetime::Customer.find_by_email(member_email)
+      expect(customer).not_to be_nil
+      expect(customer.verified?).to be(true)
+      expect(customer.verified_by).to eq('sso')
+      expect(customer.mailbox_verified?).to be(false)
+      expect(customer.verification_held?).to be(false)
+    end
+
+    context 'when the tenant has no email-domain allowlist' do
+      let(:allowed_domains) { [] }
+
+      it 'still provisions on an explicit false, but holds the verified stamp as domain_unverified' do
+        complete_flow(email: member_email, xms_edov: false)
+
+        expect(last_response.status).to eq(302), last_response.body
+        expect(last_response.location).not_to include('auth_error=')
+
+        customer = Onetime::Customer.find_by_email(member_email)
+        expect(customer).not_to be_nil
+        expect(customer.verified?).to be(false)
+        expect(customer.verification_hold).to eq('domain_unverified')
       end
     end
   end

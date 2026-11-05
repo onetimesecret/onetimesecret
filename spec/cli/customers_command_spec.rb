@@ -83,7 +83,7 @@ RSpec.describe 'Customers Command', type: :cli do
       objid: 'cust_target',
       extid: 'cust_ext_target',
       role: 'customer',
-      verified?: true,
+      verified?: true, mailbox_verified?: true,
       anonymous?: false,
     )
   end
@@ -93,6 +93,7 @@ RSpec.describe 'Customers Command', type: :cli do
   before do
     allow(OT::Utils).to receive(:normalize_email).and_call_original
     allow(OT::Utils).to receive(:obscure_email).and_return('t***@example.com')
+    allow(verification_op).to receive(:federation_claimed?).and_return(false)
   end
 
   describe 'verify subcommand' do
@@ -118,6 +119,24 @@ RSpec.describe 'Customers Command', type: :cli do
 
       output = run_cli_command_quietly('customers', 'verify', 'target@example.com')
       expect(output[:stdout]).to include('already verified')
+      expect(output[:stdout]).not_to include('federated subscription')
+      expect(last_exit_code).to eq(0)
+    end
+
+    # A :no_change verify is the retry for a stranded federated subscription
+    # claim (#4735). When the retry lands, "already verified" alone would tell
+    # the operator nothing happened.
+    it 'reports the federated subscription a :no_change verify applied' do
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email)
+        .and_return(target_customer)
+      allow(Auth::Operations::SetCustomerVerification).to receive(:new)
+        .and_return(verification_op)
+      allow(verification_op).to receive(:call).and_return(:no_change)
+      allow(verification_op).to receive(:federation_claimed?).and_return(true)
+
+      output = run_cli_command_quietly('customers', 'verify', 'target@example.com')
+      expect(output[:stdout]).to include('already verified')
+      expect(output[:stdout]).to include('Applied the pending federated subscription')
       expect(last_exit_code).to eq(0)
     end
 
@@ -183,6 +202,37 @@ RSpec.describe 'Customers Command', type: :cli do
       expect(output[:stdout]).to include('Rodauth account is closed')
       expect(output[:stdout]).not_to include('sync-auth-accounts')
       expect(last_exit_code).to eq(1)
+    end
+  end
+
+  # #4735 review F2: an unverified record must carry no provenance. A stale
+  # 'cli_provision' on an unverified colonel used to turn a later `unverify`
+  # into a provenance-only clear whose last-colonel rollback VERIFIED it.
+  describe 'create subcommand' do
+    let(:created) { double('Customer', extid: 'cust_ext_new', update_passphrase: nil, save: true) }
+
+    before do
+      allow(Onetime).to receive(:auth_config).and_return(double('AuthConfig', mode: 'simple'))
+      allow(Onetime::Customer).to receive_messages(email_exists?: false, create!: created)
+      allow(OT).to receive(:info)
+    end
+
+    it 'stamps cli_provision on a verified record' do
+      run_cli_command_quietly('customers', 'create', 'new@example.com')
+
+      expect(Onetime::Customer).to have_received(:create!).with(
+        hash_including(verified: 'true', verified_by: 'cli_provision'),
+      )
+      expect(last_exit_code).to eq(0)
+    end
+
+    it 'leaves verified_by empty on an unverified record' do
+      run_cli_command_quietly('customers', 'create', 'new@example.com', '--no-verified')
+
+      expect(Onetime::Customer).to have_received(:create!).with(
+        hash_including(verified: 'false', verified_by: nil),
+      )
+      expect(last_exit_code).to eq(0)
     end
   end
 
@@ -264,6 +314,54 @@ RSpec.describe 'Customers Command', type: :cli do
       output = run_cli_command_quietly('customers', 'verify', '99999')
       expect(output[:stdout]).to include('Customer not found')
       expect(last_exit_code).to eq(1)
+    end
+  end
+
+  # Customers::Shared#resolve_customer dispatches on the identifier's shape.
+  # A UUID-shaped argument is an objid and loads directly; extids and emails
+  # can never take that shape, so they keep the extid/email path.
+  describe 'objid identifier' do
+    let(:objid) { '0199d3c4-5b6a-7c8d-9e0f-a1b2c3d4e5f6' }
+    let(:resolver) { Class.new { include Onetime::CLI::Customers::Shared }.new }
+
+    before do
+      allow(Onetime::Customer).to receive(:load).and_return(nil)
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(nil)
+    end
+
+    it 'verifies a customer addressed by objid' do
+      allow(Onetime::Customer).to receive(:load).with(objid).and_return(target_customer)
+      allow(Auth::Operations::SetCustomerVerification).to receive(:new)
+        .with(customer: target_customer, verified: true, verified_by: 'cli_provision', db: nil)
+        .and_return(verification_op)
+      allow(verification_op).to receive(:call).and_return(:success)
+
+      output = run_cli_command_quietly('customers', 'verify', objid)
+
+      expect(output[:stdout]).to include('Verified:')
+      expect(last_exit_code).to eq(0)
+      expect(Onetime::Customer).not_to have_received(:load_by_extid_or_email)
+    end
+
+    it 'loads by objid, case-insensitively, without touching the extid/email lookup' do
+      allow(Onetime::Customer).to receive(:load).with(objid).and_return(target_customer)
+
+      expect(resolver.resolve_customer(" #{objid.upcase} ")).to eq(target_customer)
+      expect(Onetime::Customer).not_to have_received(:load_by_extid_or_email)
+    end
+
+    it 'returns nil for an objid no record carries' do
+      expect(resolver.resolve_customer(objid)).to be_nil
+      expect(Onetime::Customer).to have_received(:load).with(objid)
+    end
+
+    it 'never routes an extid or an email to Customer.load' do
+      resolver.resolve_customer('urasakn4f2nl2ew0pq275ky8j3v')
+      resolver.resolve_customer('Target@Example.com')
+
+      expect(Onetime::Customer).not_to have_received(:load)
+      expect(Onetime::Customer).to have_received(:load_by_extid_or_email).with('urasakn4f2nl2ew0pq275ky8j3v')
+      expect(Onetime::Customer).to have_received(:load_by_extid_or_email).with('target@example.com')
     end
   end
 end

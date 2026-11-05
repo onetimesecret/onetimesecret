@@ -66,10 +66,26 @@ module OrganizationAPI::Logic
         # customer.participations), OTS app indexes, and the membership hash.
         @target_membership.destroy_with_index_cleanup!
 
+        # The teardown cleared a default_org_id naming this org through the
+        # membership's own copy of the member (#4860). Repeat it on this
+        # copy, as Memberships::Remove does, so this request's audit line
+        # records whether the pointer named this org and whether it may have
+        # survived. The teardown's outcome stands if this call cannot check.
+        default_org_cleanup = @organization.clear_default_org_pointer(
+          @target_member, prior: @target_membership.default_org_cleanup
+        )
+
         # Audit log for member removal
         OT.info "[AUDIT] action=member_removed actor=#{cust.extid} target=#{target_extid} " \
-                "colonel_override=#{cust.role?(:colonel)} org=#{@organization.extid} " \
-                "timestamp=#{Time.now.utc.iso8601}"
+                "colonel_override=#{has_system_role?('colonel')} org=#{@organization.extid} " \
+                "default_org_cleanup=#{default_org_cleanup} timestamp=#{Time.now.utc.iso8601}"
+
+        # The removal stands and the response does not report this: the
+        # pointer belongs to the removed member, and only an operator can
+        # repair it (`customers doctor MEMBER --repair`).
+        if default_org_cleanup == :failed
+          OT.lw "[RemoveMember] default_org_id may still name the org target=#{target_extid} org=#{@organization.extid}"
+        end
 
         notify_member_removed
 
@@ -115,8 +131,10 @@ module OrganizationAPI::Logic
           cust.objid,
         )
 
-        # Colonels bypass membership requirement
-        if cust.role?(:colonel) && membership.nil?
+        # Colonels bypass membership requirement. has_system_role? also
+        # requires mailbox proof (#4735): a colonel-role account without it
+        # needs a membership like anyone else.
+        if has_system_role?('colonel') && membership.nil?
           OT.info "[AUDIT] action=colonel_membership_bypass actor=#{cust.extid} " \
                   "org=#{organization.extid} timestamp=#{Time.now.utc.iso8601}"
           return nil
@@ -174,12 +192,13 @@ module OrganizationAPI::Logic
           )
         end
 
-        # Colonels can remove anyone (except owner, already checked)
-        return if cust.role?(:colonel)
+        # Colonels can remove anyone (except owner, already checked). Same
+        # mailbox-proof gate as load_actor_membership (#4735).
+        return if has_system_role?('colonel')
 
         # Check actor's role permissions
         # Note: @actor_membership is guaranteed non-nil here because:
-        # 1. Colonels already returned at line 130
+        # 1. Colonels already returned above
         # 2. Non-colonels without membership would have raised in load_actor_membership
         actor_role  = @actor_membership.role
         target_role = @target_membership.role

@@ -521,6 +521,8 @@ module Onetime
     #     entitlements_revokes (Redis SETs from MembershipMaterializedEntitlements)
     #   - token_lookup
     #   - pending_invitations staging set (prevents stale quota counts)
+    #   - the customer's default_org_id when it names the org (#4860; the
+    #     outcome is kept in #default_org_cleanup)
     #
     def destroy_with_index_cleanup!
       org  = organization
@@ -542,11 +544,19 @@ module Onetime
       #   2. SREM org collection key from customer.participations reverse index
       #   3. Destroy the through model (this object's Redis hash)
       if org && cust
-        org.remove_members_instance(cust)
+        result               = org.remove_members_instance(cust)
+        @default_org_cleanup = org.last_default_org_cleanup
+        result
       else
         destroy!
       end
     end
+
+    # Organization#clear_default_org_pointer's outcome from the last
+    # destroy_with_index_cleanup! on this object; nil when it has not run or
+    # took the destroy!-only path. A caller that repeats the clear on its own
+    # copy of the customer passes this as `prior:`.
+    attr_reader :default_org_cleanup
 
     # Generate a secure invitation token
     # 256-bit entropy (32 bytes) for security

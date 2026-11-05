@@ -354,6 +354,9 @@ module Onetime
               subdomain: domain.subdomain,
               status: domain.status,
               verified: domain.verified.to_s == 'true',
+              # The admin override form offers "Accept ownership by override"
+              # only for a verified domain that is not overridden (#4734).
+              verified_by_override: domain.verified_by_override == true,
               resolving: domain.resolving.to_s == 'true',
               verification_state: domain.verification_state.to_s,
               ready: domain.ready?,

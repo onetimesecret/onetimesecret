@@ -93,6 +93,7 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
   let(:customer) { nil } # Anonymous users have nil customer
   let(:locale) { 'en' }
   let(:nonce) { SecureRandom.base64(32) }
+  let(:request_path) { '/' }
 
   # Mock Otto StrategyResult
   let(:strategy_result) do
@@ -114,6 +115,7 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
 
     double('Request',
       env: env_hash,
+      path: request_path,
       locale: locale,
       user: customer,
       session: session,
@@ -227,6 +229,49 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
       end
     end
 
+    context 'when rendering a secret page (head-secret-share partial)' do
+      let(:request_path) { '/secret/abc123def456' }
+
+      it 'tells search engines not to index or follow' do
+        expect(doc.css('meta[name="robots"]').first['content']).to eq('noindex, nofollow')
+      end
+
+      it 'unfurls with neutral Open Graph text and the page URL', :aggregate_failures do
+        canonical = doc.css('link[rel="canonical"]').first['href']
+
+        expect(canonical).to end_with('/secret/abc123def456')
+        expect(doc.css('meta[property="og:url"]').first['content']).to eq(canonical)
+        expect(doc.css('meta[property="og:title"]').first['content']).to eq('A secret link was shared with you')
+        expect(doc.css('meta[property="og:description"]').first['content']).to include('works one time')
+        expect(doc.css('meta[name="twitter:title"]').first['content']).to eq('A secret link was shared with you')
+      end
+
+      it 'never carries a preview image', :aggregate_failures do
+        expect(doc.css('meta[property="og:image"], meta[name="twitter:image"]')).to be_empty
+        expect(doc.css('meta[name="twitter:card"]').first['content']).to eq('summary')
+      end
+
+      it 'still renders the base head once', :aggregate_failures do
+        expect(doc.css('meta[charset="UTF-8"]').length).to eq(1)
+        expect(doc.css('link[rel="canonical"]').length).to eq(1)
+      end
+    end
+
+    context 'when rendering a receipt page (head-secret-share partial, sender copy)' do
+      let(:request_path) { '/receipt/abc123def456' }
+
+      it 'tells search engines not to index or follow' do
+        expect(doc.css('meta[name="robots"]').first['content']).to eq('noindex, nofollow')
+      end
+
+      it 'unfurls with text that addresses the sender', :aggregate_failures do
+        expect(doc.css('meta[property="og:title"]').first['content']).to eq('Receipt for a secret you sent')
+        expect(doc.css('meta[property="og:description"]').first['content']).to include('a secret you sent')
+        expect(doc.css('meta[name="twitter:title"]').first['content']).to eq('Receipt for a secret you sent')
+        expect(doc.css('meta[property="og:image"], meta[name="twitter:image"]')).to be_empty
+      end
+    end
+
     context 'Partial Rendering' do
       it 'renders head partial' do
         expect(doc.css('meta[charset="UTF-8"]')).not_to be_empty
@@ -237,6 +282,18 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
         expect(doc.css('meta[name="referrer"]')).not_to be_empty
         expect(doc.css('meta[property="og:url"]')).not_to be_empty
         expect(doc.css('meta[name="twitter:card"]')).not_to be_empty
+      end
+
+      it 'gives og:url and twitter:url the canonical page URL' do
+        canonical = doc.css('link[rel="canonical"]').first['href']
+
+        expect(canonical).to match(%r{\Ahttps?://[^/]+/\z})
+        expect(doc.css('meta[property="og:url"]').first['content']).to eq(canonical)
+        expect(doc.css('meta[property="twitter:url"]').first['content']).to eq(canonical)
+      end
+
+      it 'lets search engines index an ordinary page' do
+        expect(doc.css('meta[name="robots"]')).to be_empty
       end
 
       it 'renders page title from props' do
@@ -447,6 +504,7 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
 
         it 'omits the support reference when the request carries no id' do
           expect(doc.css('.loader-stalled-ref')).to be_empty
+          expect(doc.css('meta[name="request-id"]')).to be_empty
         end
 
         it 'is present in the admin shell too' do
@@ -467,6 +525,14 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
           it 'keeps the id out of window.__BOOTSTRAP_ME__' do
             expect(view.serialized_data.to_json).not_to include('trace-4596-abc')
           end
+
+          it 'exposes the document request id outside the Vue mount point on both shells' do
+            [doc, Nokogiri::HTML(Core::Views::AdminPoint.new(request).render)].each do |shell|
+              expect(shell.css('head meta[name="request-id"]').map { |meta| meta['content'] })
+                .to eq(['trace-4596-abc'])
+              expect(shell.css('#app meta[name="request-id"]')).to be_empty
+            end
+          end
         end
 
         it 'escapes a client-supplied request id' do
@@ -475,6 +541,15 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
           request.env['HTTP_X_REQUEST_ID'] = '<img src=x onerror=alert(1)>'
           expect(rendered_html).not_to include('<img src=x')
           expect(doc.css('.loader-stalled-ref').first.text).to eq('<img src=x onerror=alert(1)>')
+        end
+
+        it 'escapes attribute delimiters in the request-id meta tag on both shells' do
+          request.env['HTTP_X_REQUEST_ID'] = 'request" content="injected" onload="alert(1)'
+          [doc, Nokogiri::HTML(Core::Views::AdminPoint.new(request).render)].each do |shell|
+            meta = shell.css('head meta[name="request-id"]').first
+            expect(meta['content']).to eq(request.env['HTTP_X_REQUEST_ID'])
+            expect(meta.attribute_nodes.map(&:name)).to contain_exactly('name', 'content')
+          end
         end
       end
 

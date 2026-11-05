@@ -7,9 +7,11 @@
 #
 # Usage:
 #   bin/ots memberships entitlement show  ORG CUSTOMER
-#   bin/ots memberships entitlement grant ORG CUSTOMER ENTITLEMENT --yes
-#   bin/ots memberships entitlement revoke ORG CUSTOMER ENTITLEMENT --yes
-#   bin/ots memberships entitlement clear ORG CUSTOMER --yes
+#   bin/ots memberships entitlement grant ORG CUSTOMER ENTITLEMENT --apply
+#   bin/ots memberships entitlement revoke ORG CUSTOMER ENTITLEMENT --apply
+#   bin/ots memberships entitlement clear ORG CUSTOMER --apply
+#
+# grant, revoke and clear are dry runs unless --apply (-y/--yes/-f) is given.
 #
 # The mutation + the admin audit event are performed by the shared
 # Onetime::Operations::Memberships::EntitlementOverride op (the single
@@ -28,9 +30,9 @@ module Onetime
   module CLI
     module Memberships
       # Behaviour common to `memberships entitlement grant|revoke|clear`. Kept
-      # in one place so the three verbs cannot drift on confirmation,
-      # advisories, rendering or exit codes — they differ ONLY in their
-      # arguments and their prompt wording. Deliberate sibling of
+      # in one place so the three verbs cannot drift on advisories,
+      # rendering or exit codes — they differ ONLY in their arguments (and
+      # each calls the write gate first in its own `call`). Deliberate sibling of
       # Org::EntitlementSupport; the advisories differ because membership
       # scope has DIFFERENT hazards (see warn_grant_scope / warn_standalone).
       module EntitlementSupport
@@ -40,18 +42,10 @@ module Onetime
         # @param member [Onetime::Customer] already resolved
         # @param action [String] 'grant' | 'revoke' | 'clear'
         # @param entitlement [String, nil] nil for clear
-        def execute_override(organization, member, action:, entitlement: nil, yes: false, dry_run: false, json: false)
+        # @param dry_run [Boolean] the gate's answer: each verb calls
+        #   WriteGate#dry_run_unless_applied first in `call`, before resolving
+        def execute_override(organization, member, action:, dry_run:, entitlement: nil, json: false)
           warn_advisories(organization, action: action, entitlement: entitlement)
-
-          return unless confirm_override!(
-            organization,
-            member,
-            action: action,
-            entitlement: entitlement,
-            yes: yes,
-            dry_run: dry_run,
-            json: json,
-          )
 
           result = Onetime::Operations::Memberships::EntitlementOverride.new(
             org: organization,
@@ -72,9 +66,8 @@ module Onetime
         end
 
         # Advisories go to STDERR, never stdout: `--json` must stay a pure,
-        # parseable channel, and a terminal shows both. They are printed BEFORE
-        # the confirmation prompt so an operator sees them while they can still
-        # answer 'n'.
+        # parseable channel, and a terminal shows both. The default dry run
+        # prints them too, so an operator reads them before choosing --apply.
         def warn_advisories(organization, action:, entitlement:)
           warn_standalone(organization)
           return if action == 'clear'
@@ -120,36 +113,6 @@ module Onetime
           warn "WARNING: #{message}"
         end
 
-        # @return [Boolean] true to proceed
-        def confirm_override!(organization, member, action:, entitlement:, yes:, dry_run:, json:)
-          return true if dry_run || yes
-
-          # Never mutate production entitlement state from a scripted invocation
-          # that did not say so.
-          if json
-            error_exit(
-              "Refusing to #{action} entitlement overrides without --yes in --json mode",
-              json: true,
-            )
-          end
-
-          print "#{confirm_prompt(organization, member, action, entitlement)} [y/N] "
-          response = $stdin.gets&.strip&.downcase
-          return true if response == 'y'
-
-          puts 'Aborted.'
-          false
-        end
-
-        def confirm_prompt(organization, member, action, entitlement)
-          who = "#{member.obscure_email} in #{organization.extid}"
-          case action
-          when 'grant'  then "Grant '#{entitlement}' to #{who}?"
-          when 'revoke' then "Revoke '#{entitlement}' from #{who}?"
-          else "Clear ALL entitlement overrides (every grant AND revoke) on #{who}?"
-          end
-        end
-
         def override_text(result, member)
           case result.status
           when :invalid_action
@@ -160,7 +123,7 @@ module Onetime
             error_exit("#{member.obscure_email} is not an active member of #{result.org_id}", json: false)
           end
 
-          puts 'DRY RUN — nothing was written' if result.dry_run
+          dry_run_header if result.dry_run
           puts "Organization: #{result.org_id}"
           puts "Member:       #{result.member_id}"
           puts "Action:       #{result.action}"
@@ -170,6 +133,7 @@ module Onetime
           print_set('Grants', result.grants)
           print_set('Revokes', result.revokes)
           print_set(result.dry_run ? 'Effective (projected)' : 'Effective', result.effective)
+          dry_run_footer(result.action) if result.status == :planned
 
           exit 1 unless override_ok?(result)
         end
@@ -225,11 +189,14 @@ module Onetime
         '  bin/ots memberships entitlement clear ORG CUSTOMER           # Wipe ALL overrides on the membership',
       ].freeze
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         puts 'Usage:'
         USAGE_LINES.each { |line| puts line }
         puts
         puts 'ORG = organization extid; CUSTOMER = email, extid, or Rodauth account id.'
+        puts 'grant, revoke and clear are dry runs unless --apply (-y/--yes) is given.'
         puts
         puts 'Overrides survive role changes, org plan changes and re-materialization:'
         puts '  effective = (org ∩ role template) + grants - revokes'

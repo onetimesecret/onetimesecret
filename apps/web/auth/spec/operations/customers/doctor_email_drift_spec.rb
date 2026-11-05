@@ -273,6 +273,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
         run
 
         expect(issues.first[:repair_action]).to include('bin/ots customers change-email ur_c')
+        expect(issues.first[:repair_action]).to include('<lowercase address> --apply')
         expect(issues.first[:repair_action]).not_to start_with('Run `bin/ots customers normalize-emails')
       end
 

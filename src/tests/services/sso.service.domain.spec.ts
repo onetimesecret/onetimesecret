@@ -464,6 +464,129 @@ describe('SsoService domain methods', () => {
   });
 
   // ==========================================================================
+  // fetchIdpMetadataForDomain Tests (SAML metadata import, Phase 1)
+  // ==========================================================================
+
+  describe('fetchIdpMetadataForDomain', () => {
+    const metadataUrl =
+      'https://login.microsoftonline.com/tenant-guid/federationmetadata/2007-06/federationmetadata.xml?appid=app-guid';
+
+    const certificate = {
+      pem: '-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----',
+      subject: 'CN=Microsoft Azure Federated SSO Certificate',
+      not_before: '2026-01-10T00:00:00Z',
+      not_after: '2029-01-10T00:00:00Z',
+      fingerprint_sha256: 'AB:CD:EF',
+      thumbprint_sha1: '12:34:56',
+      problem: null,
+    };
+
+    const previewResponse = {
+      success: true,
+      metadata_url: metadataUrl,
+      idp_entity_id: 'https://sts.windows.net/tenant-guid/',
+      idp_sso_service_url: 'https://login.microsoftonline.com/tenant-guid/saml2',
+      signing_certificates: [certificate],
+      name_id_formats: ['urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress'],
+      problems: [],
+    };
+
+    it('POSTs the metadata URL to /sso/metadata and returns the parsed preview', async () => {
+      // TestConnection's success_data adds user_id; the schema tolerates it.
+      mockPost.mockResolvedValueOnce({ data: { ...previewResponse, user_id: 'user_123' } });
+
+      const result = await SsoService.fetchIdpMetadataForDomain(domainExtId, {
+        metadata_url: metadataUrl,
+      });
+
+      expect(mockPost).toHaveBeenCalledWith(`${baseUrl}/metadata`, { metadata_url: metadataUrl });
+      expect(result).toEqual(previewResponse);
+    });
+
+    it('normalizes absent nullable fields to null and an absent format list to []', async () => {
+      const { name_id_formats: _formats, ...withoutFormats } = previewResponse;
+      const { problem: _problem, ...certificateWithoutProblem } = certificate;
+      mockPost.mockResolvedValueOnce({
+        data: {
+          ...withoutFormats,
+          idp_sso_service_url: undefined,
+          idp_entity_id: null,
+          signing_certificates: [certificateWithoutProblem],
+          problems: [
+            { code: 'unsupported_sso_binding', severity: 'blocking', message: 'POST only' },
+          ],
+        },
+      });
+
+      const result = await SsoService.fetchIdpMetadataForDomain(domainExtId, {
+        metadata_url: metadataUrl,
+      });
+
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.idp_sso_service_url).toBeNull();
+      expect(result.idp_entity_id).toBeNull();
+      expect(result.signing_certificates[0].problem).toBeNull();
+      expect(result.name_id_formats).toEqual([]);
+    });
+
+    it('reads a problem severity it does not know as blocking', async () => {
+      mockPost.mockResolvedValueOnce({
+        data: {
+          ...previewResponse,
+          problems: [
+            { code: 'future_problem', severity: 'critical', message: 'Something new' },
+            { code: 'missing_severity', message: 'No severity' },
+          ],
+        },
+      });
+
+      const result = await SsoService.fetchIdpMetadataForDomain(domainExtId, {
+        metadata_url: metadataUrl,
+      });
+
+      expect(result.success && result.problems.map((problem) => problem.severity)).toEqual([
+        'blocking',
+        'blocking',
+      ]);
+    });
+
+    it('returns the failure envelope for a fetch or parse failure (HTTP 200, success: false)', async () => {
+      const failure = {
+        success: false,
+        metadata_url: metadataUrl,
+        message: 'The identity provider returned HTTP 404.',
+        details: { error_code: 'http_error', description: 'Not found', http_status: 404 },
+      };
+      mockPost.mockResolvedValueOnce({ data: failure });
+
+      const result = await SsoService.fetchIdpMetadataForDomain(domainExtId, {
+        metadata_url: metadataUrl,
+      });
+
+      expect(result).toEqual(failure);
+    });
+
+    it('throws a ZodError for a success response without its problem list', async () => {
+      const { problems: _problems, ...withoutProblems } = previewResponse;
+      mockPost.mockResolvedValueOnce({ data: withoutProblems });
+
+      await expect(
+        SsoService.fetchIdpMetadataForDomain(domainExtId, { metadata_url: metadataUrl })
+      ).rejects.toBeInstanceOf(ZodError);
+    });
+
+    it('propagates API errors (guard refusals and the rate limit)', async () => {
+      const axiosError = { response: { status: 429 }, isAxiosError: true, message: 'Limit' };
+      mockPost.mockRejectedValueOnce(axiosError);
+
+      await expect(
+        SsoService.fetchIdpMetadataForDomain(domainExtId, { metadata_url: metadataUrl })
+      ).rejects.toEqual(axiosError);
+    });
+  });
+
+  // ==========================================================================
   // runDiagnosticsForDomain Tests
   // ==========================================================================
 
@@ -701,6 +824,33 @@ describe('SsoService domain methods', () => {
 
         // Schema should strip unknown fields or pass them through (based on config)
         expect(result.record?.domain_id).toBe(domainExtId);
+      });
+
+      it.each([
+        [
+          'a saved source',
+          'https://idp.example.com/saml/metadata',
+          'https://idp.example.com/saml/metadata',
+        ],
+        ['null (unset, or unreadable when listed)', null, null],
+        ['an absent key (an API that predates it)', undefined, null],
+      ])('reads idp_metadata_url as %s', async (_label, wire, parsed) => {
+        mockGet.mockResolvedValueOnce({
+          data: {
+            record: {
+              ...mockSsoConfig.record,
+              provider_type: 'saml',
+              ...(wire === undefined ? {} : { idp_metadata_url: wire }),
+              unreadable_fields: wire === null ? ['idp_metadata_url'] : [],
+            },
+          },
+        });
+
+        const result = await SsoService.getConfigForDomain(domainExtId);
+
+        expect(result.record).not.toBeNull();
+        expect(result.record?.idp_metadata_url).toBe(parsed);
+        expect(consoleErrorSpy).not.toHaveBeenCalled();
       });
     });
 

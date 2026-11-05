@@ -98,7 +98,7 @@ module Onetime
           email: email,
           role: role,
           verified: verified.to_s,
-          verified_by: 'cli_provision',
+          verified_by: verified ? 'cli_provision' : nil, # provenance only for a verified record
         )
 
         customer.update_passphrase(password, algorithm: :argon2)
@@ -122,7 +122,7 @@ module Onetime
           email: email,
           role: role,
           verified: verified.to_s,
-          verified_by: 'cli_provision',
+          verified_by: verified ? 'cli_provision' : nil, # provenance only for a verified record
         )
         customer.update_passphrase(password, algorithm: :argon2)
         customer.save

@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminSecrets.vue -->
 
 <script setup lang="ts">
-
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import { AdminConfirmDialog, JsonViewer } from '@/apps/admin/components/kit';
   import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
@@ -55,8 +54,7 @@
 
   const keyReady = computed(() => secretKey.value.trim() !== '');
 
-  const receiptUrl = (): string =>
-    `/api/colonel/secrets/${encodeURIComponent(lookedUpKey.value)}`;
+  const receiptUrl = (): string => `/api/colonel/secrets/${encodeURIComponent(lookedUpKey.value)}`;
 
   const {
     data: receiptData,
@@ -133,16 +131,12 @@
       {
         key: 'updated',
         label: t('web.admin.secrets.fields.updated'),
-        value: r.updated
-          ? formatDisplayDateTime(r.updated)
-          : t('web.admin.secrets.detail.none'),
+        value: r.updated ? formatDisplayDateTime(r.updated) : t('web.admin.secrets.detail.none'),
       },
       {
         key: 'expiration',
         label: t('web.admin.secrets.fields.expiration'),
-        value: r.expiration
-          ? formatDisplayDateTime(r.expiration)
-          : t('web.admin.secrets.never'),
+        value: r.expiration ? formatDisplayDateTime(r.expiration) : t('web.admin.secrets.never'),
       },
       {
         key: 'age',
@@ -185,7 +179,11 @@
       ? m.recipients.join(', ')
       : (m.recipients ?? t('web.admin.secrets.detail.none'));
     return [
-      { key: 'receiptId', label: t('web.admin.secrets.receiptFields.receiptId'), value: m.receipt_id },
+      {
+        key: 'receiptId',
+        label: t('web.admin.secrets.receiptFields.receiptId'),
+        value: m.receipt_id,
+      },
       { key: 'shortId', label: t('web.admin.secrets.receiptFields.shortId'), value: m.shortid },
       { key: 'state', label: t('web.admin.secrets.receiptFields.state'), value: m.state },
       {
@@ -252,6 +250,7 @@
     error: deleteError,
     run: runDelete,
     reset: resetDelete,
+    useElevateThenOpen,
   } = useAdminDestructiveMutation(async (reason?: string) => {
     const secretId = receiptRecord.value?.secret_id;
     if (!secretId) throw new Error('No secret loaded');
@@ -263,17 +262,13 @@
     // DELETE -> the operator's reason rides the query string beside it (see
     // operatorReason.ts); a blank one adds nothing.
     const [reasonConfig] = reasonQueryArgs(reason);
-    const response = await $api.delete(
-      `/api/colonel/secrets/${encodeURIComponent(secretId)}`,
-      { headers: confirmHeaders(deleteToken.value), ...reasonConfig }
-    );
+    const response = await $api.delete(`/api/colonel/secrets/${encodeURIComponent(secretId)}`, {
+      headers: confirmHeaders(deleteToken.value),
+      ...reasonConfig,
+    });
     // A 2xx means the secret was deleted server-side regardless of ack shape; the
     // parse keeps the contract a live tripwire without failing the action.
-    gracefulParse(
-      colonelSecretDeleteResponseSchema,
-      response.data,
-      'ColonelSecretDeleteResponse'
-    );
+    gracefulParse(colonelSecretDeleteResponseSchema, response.data, 'ColonelSecretDeleteResponse');
   });
 
   /**
@@ -286,10 +281,21 @@
    */
   const deleteToken = computed(() => receiptDetails.value?.metadata?.shortid ?? '');
 
-  function requestDelete(): void {
-    resetDelete();
-    deleteDialogOpen.value = true;
-  }
+  const { open: requestDelete, opening } = useElevateThenOpen(
+    () => {
+      resetDelete();
+      deleteDialogOpen.value = true;
+    },
+    {
+      target: () => (receiptLoading.value ? null : receiptData.value),
+      canOpen: () =>
+        !!receiptRecord.value?.secret_id &&
+        !!deleteToken.value &&
+        !receiptLoading.value &&
+        !deleteLoading.value &&
+        !deleteDialogOpen.value,
+    }
+  );
 
   async function onDeleteConfirm(reason?: string): Promise<void> {
     const ok = await runDelete(reason);
@@ -482,7 +488,8 @@
 
       <!-- Secret record -->
       <section>
-        <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+        <h4
+          class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
           {{ t('web.admin.secrets.sections.secret') }}
         </h4>
         <dl class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
@@ -502,7 +509,8 @@
 
       <!-- Receipt metadata -->
       <section data-testid="secret-result-receipt">
-        <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+        <h4
+          class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
           {{ t('web.admin.secrets.sections.receipt') }}
         </h4>
         <dl
@@ -529,7 +537,8 @@
 
       <!-- Owner -->
       <section data-testid="secret-result-owner">
-        <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+        <h4
+          class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
           {{ t('web.admin.secrets.sections.owner') }}
         </h4>
         <dl
@@ -559,7 +568,8 @@
 
       <!-- Raw inspector -->
       <section>
-        <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+        <h4
+          class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
           {{ t('web.admin.secrets.sections.raw') }}
         </h4>
         <JsonViewer
@@ -573,6 +583,7 @@
         <button
           type="button"
           data-testid="secret-delete-button"
+          :disabled="opening || deleteLoading || deleteDialogOpen || !deleteToken"
           class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
           @click="requestDelete">
           <OIcon
@@ -588,7 +599,9 @@
     <AdminConfirmDialog
       v-model:open="deleteDialogOpen"
       :title="t('web.admin.secrets.actions.delete.confirmTitle')"
-      :description="t('web.admin.secrets.actions.delete.confirmDescription', { shortid: deleteToken })"
+      :description="
+        t('web.admin.secrets.actions.delete.confirmDescription', { shortid: deleteToken })
+      "
       :confirm-token="deleteToken"
       variant="danger"
       :confirm-text="t('web.admin.secrets.actions.delete.button')"

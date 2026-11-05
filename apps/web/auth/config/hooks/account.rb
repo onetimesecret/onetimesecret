@@ -333,7 +333,12 @@ module Auth::Config::Hooks
             # claiming any PendingFederatedSubscription until the user verifies,
             # so an attacker cannot register a paying subscriber's email in this
             # region and steal their federated subscription at signup time. The
-            # deferred claim runs from after_verify_account below.
+            # deferred claim runs from after_verify_account below. The flag
+            # states the intent at this call site; the record itself carries
+            # the same rule (Customer#federation_claim_deferred? is true for an
+            # unverified account while verify_account is loaded), so a later
+            # creation for this customer with the default flag defers too
+            # (#4754 review, F1).
             #
             # When the verify_account feature is not loaded (neither the
             # verify_account flag nor webauthn_verify_account, which depends on
@@ -518,20 +523,12 @@ module Auth::Config::Hooks
             ).call
           end
 
-          # Claim any pending federated subscription now that the email is
-          # verified (issue: federated benefit theft via unverified signup).
-          # EnsureDefaultWorkspace defers this claim on the standard signup path;
-          # here we apply it to the workspace created at signup. Idempotent and a
-          # safe no-op when nothing is pending or it was already claimed. Re-fetch
-          # the customer so verified? reflects the state just persisted above.
-          Onetime::ErrorHandler.safe_execute('claim_pending_federation', external_id: account[:external_id]) do
-            next unless account[:external_id]
-
-            verified_customer = Onetime::Customer.find_by_extid(account[:external_id])
-            next unless verified_customer
-
-            Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(verified_customer)
-          end
+          # The pending federated subscription that EnsureDefaultWorkspace
+          # deferred at signup (federated benefit theft via unverified signup)
+          # is claimed by SetCustomerVerification above, the moment the 'email'
+          # provenance is stamped — the same trigger an operator verification
+          # of an SSO account uses, and the one the redeemed verification link
+          # uses in simple auth mode (#4735). Nothing to do here.
 
           # Surface pending plan intent for checkout redirect (issue #3126)
           # If the user had selected a plan before signup, redirect them to checkout

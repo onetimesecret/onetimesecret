@@ -22,7 +22,7 @@ Colonel is a privileged role and is granted **only** from the command line, on
 the host. The console never grants roles to itself — there is no "make me an
 admin" button, by design, so a compromised session cannot escalate.
 
-Promote an existing, **verified** account:
+Promote an existing account with **mailbox proof** (see the notes below):
 
 ```bash
 bin/ots customers role promote user@example.com
@@ -39,9 +39,16 @@ bin/ots customers role list --role admin                       # list a specific
 
 Notes:
 
-- The account must **exist** and be **verified** first — a system role requires
-  `cust.verified?`. Create/verify the account through normal sign-up before
-  promoting.
+- The account must **exist** and have **mailbox proof** — a system role requires
+  `cust.mailbox_verified?` (`has_system_role?`, #4735). Mailbox proof means the
+  account is verified and its `verified_by` is one of `email`, `invite_token`,
+  `cli_provision` or `colonel_admin` (`Onetime::Customer::MAILBOX_VERIFIED_BY`).
+  A verified account stamped `sso`, `autoverify`, `stripe_payment`, `legacy`,
+  or with no provenance, does **not** qualify: the promotion succeeds, but every
+  colonel action is refused. Confirm the address with its owner, then run
+  `bin/ots customers verify user@example.com` (rewrites the provenance to
+  `cli_provision`) or verify it from the colonel admin. `bin/ots customers
+  doctor` reports such an account as `system_role_without_mailbox_proof`.
 - The mutation runs through the shared `Auth::Operations::Customers::SetRole`
   operation (the same implementation the admin API uses), so it records an
   `ColonelAuditEvent` (actor / verb / target / result) just like a UI action.
@@ -56,7 +63,7 @@ The console refuses four things outright, with a 422 naming the remediation:
 |---|---|
 | Demoting **your own** colonel account | Nobody else could undo it from the console. |
 | Demoting the **last remaining** colonel | The install would have no administrator. |
-| **Unverifying** your own account | A system role requires `cust.verified?`, so unverifying is a demotion by another name. |
+| **Unverifying** your own account | A system role requires mailbox proof (`cust.mailbox_verified?`), so unverifying is a demotion by another name. |
 | Unverifying the **last remaining** colonel | Same, applied to the whole install. |
 
 The last two matter more than they look: unverifying used to be an un-gated
@@ -319,7 +326,7 @@ one.
 | `colonel_mutation` | 120 / 5 min, 5 min lockout | every mutating colonel verb (POST/PUT/PATCH/DELETE), charged once per request |
 | `colonel_destructive` | 10 / 5 min, **15 min** lockout | the fifteen tier-1 verbs, charged **only when the request is about to execute** |
 | `colonel_handle_resolve` | 60 / 5 min, 5 min lockout | `GET`/`DELETE /sessions/:session_handle`, the two reads that may fall back to a bounded 10 000-key scan |
-| `colonel_elevation` | 5 / 15 min, 15 min lockout | `POST /elevation` (above) |
+| `colonel_elevation` | 5 / 15 min, 15 min lockout | `POST /elevation` (above) and `POST /reauthenticate` (below), one shared budget |
 
 Over a cap the API answers **429** with the usual body — `error`, `error_type:
 "LimitExceeded"`, `retry_after`, `max_attempts` — plus a `Retry-After` header.
@@ -395,9 +402,63 @@ also does not gate the `/colonel` SPA shell: the shell loads on a stale session,
 its first API call 401s, and the console renders an expired banner with a
 sign-in link rather than a bare JSON error on an HTML navigation.
 
-**Recovery is sign-in.** There is no refresh endpoint — signing in replaces the
-session, which also drops any step-up window. Nothing else in the console
-changes.
+**Recovery: re-enter your password, or sign in again.** Either restarts both
+bounds and drops any step-up window. Nothing else in the console changes.
+
+#### Password re-authentication — `POST /api/colonel/reauthenticate`
+
+The expired banner asks for the account password and sends it to
+`POST /api/colonel/reauthenticate` (body `{ "password": "..." }`). A correct
+password:
+
+- renews the session id (a copy of the old cookie does not get the window back),
+- re-stamps `authenticated_at`, which restarts the absolute bound,
+- writes a fresh `last_activity_at`, which restarts the idle bound,
+- drops any step-up window. Re-authentication does **not** elevate; tier-1
+  verbs still need `POST /api/colonel/elevation`.
+
+It answers `200` with `{ record: { reauthenticated: true, authenticated_at },
+details: { session_rotated } }`. A wrong password answers **403**
+`reauthentication_failed` and changes nothing.
+
+**Accounts with two-factor authentication (full auth mode).** The endpoint takes
+a password only, and a sign-in for such an account also asks for the second
+factor. So in full mode an account with any second factor enrolled (TOTP,
+recovery codes or a passkey/security key) gets **403**
+`reauthentication_unavailable` whatever password it sends, and signs in again
+to restore admin access. The same answer is returned when the second-factor
+state cannot be read (no auth account matches the customer, or the auth
+database is unavailable). Nothing is re-stamped or rotated. Simple mode has no
+second factor and is unaffected.
+
+If the password verifies but the session id cannot be renewed, the request
+answers **403** `reauthentication_failed` and nothing is re-stamped. When the
+session nevertheless moved to a new id, that id keeps the old idle-activity
+timestamp, so the idle bound stays lapsed.
+
+This is the one admin API request the lifetime bounds do not refuse: exactly
+`POST` on exactly that path (`AdminSessionLifetime::REAUTH_EXEMPT`). The
+exemption does not open the rest of the surface:
+
+- every other session check still applies (signed in, surface, suspension,
+  credential change since sign-in, revoked active session), and the route still
+  requires the colonel role;
+- the endpoint does nothing without the password, verified the same way as
+  step-up, and attempts share the `colonel_elevation` rate-limit bucket with
+  step-up (see the rate-limit table above);
+- an attempt on an expired session is not counted as activity, so a wrong
+  password neither re-stamps the sign-in time nor slides the idle window.
+
+Audit: success is `colonel.reauthenticate` on the operator trail; a failure is
+`colonel.reauthenticate` with `result: failure` in the security trail
+(`reason: session_not_rotated` when the password verified but the session id
+could not be renewed; `reason: mfa_required` for a full-mode account refused
+for its second factor).
+
+**Limits.** An account with no password (SSO-only), or in full mode an account
+with a second factor, cannot use this endpoint and signs in again. Re-stamping `authenticated_at` also restarts the site-wide
+30-day absolute session lifetime in simple mode; in full mode the active-session
+row still counts that lifetime from the original sign-in.
 
 **Two caveats worth understanding before you rely on the idle bound.** The
 sidecar it reads is best-effort: a session that predates the feature or whose

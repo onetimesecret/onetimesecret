@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Bounded real-Caddy test; no Ruby, datastore, external upstream or TLS issuance.
+"""Real-Caddy log redaction and request-ID correlation over bounded loopback HTTP.
 
 Run: bin/testsuite caddy
 Requires the example's Caddy build (including transform-encoder).
+No Ruby, datastore, external upstream or TLS issuance.
 """
 
 import http.client
+import io
 import json
 import os
 import re
@@ -16,6 +18,7 @@ import tempfile
 import threading
 import time
 import unittest
+import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -34,7 +37,41 @@ def snippet(text, name):
     return match[0]
 
 
+def response_request_id(headers):
+    """Construct a canonical UUID header without returning incoming text."""
+    try:
+        number = int(uuid.UUID(headers.get("X-Request-ID", "")))
+    except (AttributeError, TypeError, ValueError):
+        return "upstream-generated"
+    return str(uuid.UUID(int=number))
+
+
 class CaddyLogRedactionTest(unittest.TestCase):
+    def test_upstream_request_id_header_rejects_folding_and_controls(self):
+        valid = str(uuid.uuid4())
+        cases = [
+            (f"X-Request-ID: {valid}\r\n\r\n", valid),
+            (f"X-Request-ID: {valid.upper()}\r\n\r\n", valid),
+            ("\r\n", "upstream-generated"),
+            ("X-Request-ID: \r\n\r\n", "upstream-generated"),
+            ("X-Request-ID: Request-ABC\r\n\r\n", "upstream-generated"),
+            ("X-Request-ID: first\r\n continued\r\n\r\n", "upstream-generated"),
+            ("X-Request-ID: first\n continued\r\n\r\n", "upstream-generated"),
+            ("X-Request-ID: invalid\x00id\r\n\r\n", "upstream-generated"),
+            ("X-Request-ID: invalid\x7fid\r\n\r\n", "upstream-generated"),
+            ("X-Request-ID: " + "a" * 201 + "\r\n\r\n", "upstream-generated"),
+        ]
+        for raw_headers, expected in cases:
+            with self.subTest(raw_headers=repr(raw_headers)):
+                headers = http.client.parse_headers(io.BytesIO(raw_headers.encode("ascii")))
+                handler = object.__new__(BaseHTTPRequestHandler)
+                handler.request_version = "HTTP/1.1"
+                handler.send_header("X-Request-ID", response_request_id(headers))
+                self.assertEqual(
+                    b"".join(handler._headers_buffer),
+                    f"X-Request-ID: {expected}\r\n".encode("ascii"),
+                )
+
     def test_example_and_live_logs(self):
         caddy = shutil.which("caddy")
         self.assertIsNotNone(
@@ -42,23 +79,32 @@ class CaddyLogRedactionTest(unittest.TestCase):
         )
         source = EXAMPLE.read_text()
         observed = []
+        responses = []
         marker = "private-saml-log-marker"
         location = f"/auth/sso/saml/callback?saml_handle={marker}"
 
         class Upstream(BaseHTTPRequestHandler):
             def do_GET(self):
-                observed.append((self.path, self.headers.get("Referer"), ""))
+                observed.append((
+                    self.path, self.headers.get("Referer"), "",
+                    self.headers.get("X-Request-ID"),
+                ))
                 self.send_response(303)
                 self.send_header("Location", location)
+                self.send_header("X-Request-ID", response_request_id(self.headers))
                 self.end_headers()
 
             def do_POST(self):
                 body = self.rfile.read(
                     int(self.headers.get("Content-Length", 0))
                 ).decode()
-                observed.append((self.path, self.headers.get("Referer"), body))
+                observed.append((
+                    self.path, self.headers.get("Referer"), body,
+                    self.headers.get("X-Request-ID"),
+                ))
                 self.send_response(303)
                 self.send_header("Location", location)
+                self.send_header("X-Request-ID", response_request_id(self.headers))
                 self.end_headers()
 
             def log_message(self, *args):
@@ -70,12 +116,17 @@ class CaddyLogRedactionTest(unittest.TestCase):
         try:
             with tempfile.TemporaryDirectory(prefix="caddy-log-test-") as temp:
                 directory = Path(temp)
+                static = directory / "public" / "dist"
+                static.mkdir(parents=True)
+                (static / "asset.js").write_text("/* static fixture */")
                 env = {
                     "PATH": os.environ.get("PATH", ""),
                     "HOME": temp,
                     "XDG_DATA_HOME": temp,
                     "XDG_CONFIG_HOME": temp,
                     "DOMAIN": "localhost",
+                    "UPSTREAM_HOST": "127.0.0.1",
+                    "UPSTREAM_PORT": str(upstream.server_port),
                 }
                 # Validate the complete example, not merely a hand-copied filter.
                 validation = subprocess.run(
@@ -120,8 +171,13 @@ class CaddyLogRedactionTest(unittest.TestCase):
                     + "\n}\n"
                     + snippet(source, "onetime-logging")
                     + "\n"
+                    + snippet(source, "onetime-headers")
+                    + "\n"
+                    + snippet(source, "onetime-proxy")
+                    + "\n"
                     + f"http://127.0.0.1:{port} {{\n import onetime-logging\n"
-                    + f" reverse_proxy 127.0.0.1:{upstream.server_port}\n}}\n"
+                    + f' root * "{directory / "public"}"\n'
+                    + " import onetime-headers test\n import onetime-proxy\n}\n"
                 )
                 log_path = directory / "logs"
                 with log_path.open("w") as logs:
@@ -168,10 +224,15 @@ class CaddyLogRedactionTest(unittest.TestCase):
                                     headers={
                                         "Referer": location,
                                         "Content-Type": "application/x-www-form-urlencoded",
+                                        "X-Request-ID": "client-supplied-request-id",
                                     },
                                 )
                                 response = connection.getresponse()
                                 response.read()
+                                responses.append((
+                                    response.getheader("X-Request-ID"),
+                                    response.getheader("O-Request-ID"),
+                                ))
                                 return response.status, response.getheader(
                                     "Location"
                                 )
@@ -183,6 +244,7 @@ class CaddyLogRedactionTest(unittest.TestCase):
                             f"/auth/sso/renamed/callback?%73aml_handle={marker}&saml_handle={marker}",
                             f"/ordinary?bad=%ZZ&unknown={marker}",
                             f"/api/v3/secret?SAMLResponse={marker}",
+                            "/favicon.ico",
                         ]
                         for path in paths:
                             self.assertEqual(request(path), (303, location))
@@ -197,11 +259,30 @@ class CaddyLogRedactionTest(unittest.TestCase):
                             all(item[1] == location for item in observed)
                         )
                         self.assertEqual(observed[-1][2], body)
+                        for request_id, edge_id in responses:
+                            self.assertEqual(request_id, edge_id)
+                            self.assertEqual(str(uuid.UUID(request_id)), request_id)
+                            self.assertNotEqual(request_id, "client-supplied-request-id")
+                        self.assertEqual(
+                            [item[3] for item in observed],
+                            [item[0] for item in responses],
+                        )
+                        self.assertEqual(request("/dist/asset.js"), (200, None))
+                        self.assertEqual(responses[-1][0], responses[-1][1])
+                        self.assertEqual(
+                            str(uuid.UUID(responses[-1][0])), responses[-1][0]
+                        )
+                        # The static request bypassed the application upstream.
+                        self.assertEqual(len(observed), len(paths) + 1)
                         # An unavailable upstream exercises the runtime error logger,
                         # not just successful access-log serialization.
                         upstream.shutdown()
                         upstream.server_close()
                         self.assertEqual(request(paths[0])[0], 502)
+                        self.assertEqual(responses[-1][0], responses[-1][1])
+                        self.assertEqual(
+                            str(uuid.UUID(responses[-1][0])), responses[-1][0]
+                        )
                     finally:
                         process.terminate()
                         try:
@@ -227,6 +308,9 @@ class CaddyLogRedactionTest(unittest.TestCase):
                     if record.get("logger", "").startswith("http.log.error")
                 ]
                 self.assertGreaterEqual(len(access), 6, output)
+                logged_ids = {record["request_id"] for record in access}
+                self.assertEqual(logged_ids, {item[0] for item in responses})
+                self.assertEqual(len(logged_ids), len(responses))
                 self.assertTrue(errors, output)
                 for record in access + errors:
                     self.assertNotIn("?", record["request"]["uri"])
