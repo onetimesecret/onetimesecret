@@ -129,7 +129,7 @@ every request:
   That push is bounded by the verifier's clock-skew allowance (60 seconds):
   when the watermark is 60 seconds or more ahead of the minting node's
   clock (stamped by a node whose clock leads by that much, so the push
-  would land past the allowance), `POST /api/v3/token` answers `503` with
+  would exceed the allowance), `POST /api/v3/token` answers `503` with
   `error_type: TemporarilyUnavailable`, `reason: credential_watermark_ahead`
   and a `Retry-After` header instead of issuing a token every verifier would
   refuse, and logs a warning naming the lead (a clock-skew signal for the
