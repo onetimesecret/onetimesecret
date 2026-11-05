@@ -291,6 +291,21 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
         expect(reloaded.verified_by.to_s).to eq('')
       end
 
+      # verified_by is an enforced vocabulary (Onetime::Customer::VERIFIED_BY_VALUES).
+      # An unknown tag is refused in the initializer, before the email index
+      # is consulted or anything is written, so no half-provenanced record
+      # can be created through this operation.
+      it 'refuses an unknown verified_by tag before creating anything', :aggregate_failures do
+        email   = unique_test_email('verified-by-unknown')
+        account = create_test_account(email: email, status_id: AuthTestConstants::STATUS_VERIFIED)
+        kwargs  = { account_id: account[:id], account: account, verified: true, verified_by: 'made_up' }
+
+        expect { Auth::Operations::EnsureCustomerForAccount.new(**kwargs) }.to raise_error(ArgumentError, /made_up/)
+
+        expect(Onetime::Customer.email_exists?(email)).to be false
+        expect(Auth::Database.connection[:accounts].where(id: account[:id]).get(:external_id)).to be_nil
+      end
+
       # verified_by is provenance. Recording one without the verified flag it
       # describes would produce a record no check in the doctor can reason
       # about, so the operation drops it.

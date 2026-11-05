@@ -66,8 +66,22 @@ record with none is stamped `sso`. One `ColonelAuditEvent` per repaired customer
   Once the address is confirmed, verify via the colonel admin page or
   `bin/ots customers verify <email>`. The hold stays on the record as history.
 
+- **A customer recreated at login without provenance.** When login finds an
+  auth account but no Customer, it recreates one (`provisioning_origin:
+  login_recovery`). If it cannot read the auth state it needs, it creates the
+  record unverified and logs `customer_recreate_provenance_failed`. The auth
+  account stays Verified, so the user is never asked to verify again. The
+  doctor reports this as `recovered_customer_unverified` at MEDIUM and never
+  repairs it. Confirm the address, then verify by hand as above.
+
 ## What the doctor will not catch
 
+- **The IdP withheld verification at sign-in.** When the identity provider
+  asserted `email_verified: false` (or the claim could not be read), the JIT
+  hook leaves the customer unverified on purpose and records the reason in
+  `verification_hold`. The doctor reports such a record at MEDIUM but never
+  auto-repairs it, even with `--repair`. Confirm the address with the IdP, then
+  verify by hand via the colonel admin page or `bin/ots customers verify`.
 - **Simple auth mode, or auth database unreachable.** The check is skipped
   silently and the customer reports healthy. If a full-mode sweep is quieter
   than expected, confirm the auth DB is up (`diagnose` reports
