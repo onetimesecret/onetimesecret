@@ -97,11 +97,16 @@ module Onetime::Customer::Features
       # the bearer tokens minted from the old one (an unstamped rotation
       # would leave a leaked key's tokens alive until they expire).
       #
+      # The write is the two fields and nothing else: no TTL refresh on the
+      # record or its relations (the former fast writer was a bare HSET, and
+      # #destroy_requested sets a 365-day default_expiration right before
+      # calling this without meaning to apply it here).
+      #
       # @return [String] the new key
       def regenerate_apitoken
         self.apitoken             = Familia.generate_id
         self.last_apitoken_update = Familia.now.to_i
-        save_fields(:apitoken, :last_apitoken_update)
+        save_fields(:apitoken, :last_apitoken_update, update_expiration: false)
         apitoken
       end
 
