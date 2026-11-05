@@ -4,19 +4,35 @@
 # Using direct Logic class routing with authentication strategies
 #
 # V3 API returns native JSON types (numbers, booleans, null) instead of
-# string-serialized values. Normal secret routes require a session. Explicit
-# guest routes and status metadata remain public; /version accepts session or Basic auth.
+# string-serialized values. Normal secret routes require a session, or a
+# PASETO v4.public bearer token once auth.paseto.enabled is set (#2427).
+# Explicit guest routes and status metadata remain public; /version accepts
+# session, bearer or Basic auth.
 
 # head=reject refuses one-time HEAD reads after GET authentication; GET is unchanged.
-# Secrets - Authenticated (require session)
-GET    /receipt/recent                            V3::Logic::Secrets::ListReceipts response=json auth=sessionauth
-GET    /receipt/:identifier                       V3::Logic::Secrets::ShowReceipt response=json auth=sessionauth sensitive=true head=reject
-PATCH  /receipt/:identifier                       V3::Logic::Secrets::UpdateReceipt response=json auth=sessionauth sensitive=true
-POST   /receipt/:identifier/burn                  V3::Logic::Secrets::BurnSecret response=json auth=sessionauth sensitive=true
-POST   /secret/conceal                            V3::Logic::Secrets::ConcealSecret response=json auth=sessionauth
-POST   /secret/generate                           V3::Logic::Secrets::GenerateSecret response=json auth=sessionauth
-GET    /secret/:identifier                        V3::Logic::Secrets::ShowSecret response=json auth=sessionauth sensitive=true head=reject
-POST   /secret/:identifier/reveal                 V3::Logic::Secrets::RevealSecret response=json auth=sessionauth sensitive=true
+# Secrets - Authenticated (session; or a bearer token from POST /token when enabled)
+#
+# sessionauth is listed first so a browser session answers before any
+# Authorization header is read (the same order every sessionauth,basicauth
+# chain uses). pasetoauth only claims `Bearer` credentials: with no header,
+# another scheme, or auth.paseto.enabled off it fails non-terminally and the
+# chain answers exactly as it did without it. A presented bearer token that
+# is rejected fails the chain closed (401, Bearer challenge).
+GET    /receipt/recent                            V3::Logic::Secrets::ListReceipts response=json auth=sessionauth,pasetoauth
+GET    /receipt/:identifier                       V3::Logic::Secrets::ShowReceipt response=json auth=sessionauth,pasetoauth sensitive=true head=reject
+PATCH  /receipt/:identifier                       V3::Logic::Secrets::UpdateReceipt response=json auth=sessionauth,pasetoauth sensitive=true
+POST   /receipt/:identifier/burn                  V3::Logic::Secrets::BurnSecret response=json auth=sessionauth,pasetoauth sensitive=true
+POST   /secret/conceal                            V3::Logic::Secrets::ConcealSecret response=json auth=sessionauth,pasetoauth
+POST   /secret/generate                           V3::Logic::Secrets::GenerateSecret response=json auth=sessionauth,pasetoauth
+GET    /secret/:identifier                        V3::Logic::Secrets::ShowSecret response=json auth=sessionauth,pasetoauth sensitive=true head=reject
+POST   /secret/:identifier/reveal                 V3::Logic::Secrets::RevealSecret response=json auth=sessionauth,pasetoauth sensitive=true
+
+# Bearer token exchange (#2427). A session (with its CSRF token) or Basic
+# auth API key is exchanged for a short-lived PASETO v4.public token; a
+# bearer token is deliberately NOT accepted here, so a leaked token cannot
+# renew itself. Answers 403 BEARER_TOKENS_DISABLED until auth.paseto.enabled
+# is set.
+POST   /token                                     V3::Logic::Auth::GenerateToken response=json auth=sessionauth,basicauth
 
 # Meta/Public endpoints (static information, no auth required)
 GET    /secret/:identifier/status                 V3::Logic::Secrets::ShowSecretStatus response=json auth=noauth sensitive=true
@@ -43,7 +59,7 @@ POST   /guest/receipts                            V3::Logic::Secrets::ShowMultip
 # neither discloses build information.
 GET    /supported-locales                         V3::Logic::Meta.get_supported_locales response=json
 GET    /status                                    V3::Logic::Meta.system_status response=json
-GET    /version                                   V3::Logic::Meta.system_version response=json auth=sessionauth,basicauth
+GET    /version                                   V3::Logic::Meta.system_version response=json auth=sessionauth,pasetoauth,basicauth
 POST   /feedback                                  V3::Logic::ReceiveFeedback response=json auth=noauth
 
 # NOTE: Incoming secrets have a dedicated API (apps/api/incoming/)

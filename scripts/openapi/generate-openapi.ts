@@ -323,6 +323,13 @@ function createDocument(target: SpecTarget): OpenAPIDocument {
           description:
             'HTTP Basic authentication with username (extid or email) and API token. The user extid can be found on the API Settings page.',
         },
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'PASETO v4.public',
+          description:
+            'Short-lived PASETO v4.public bearer token from POST /api/v3/token. Accepted only on deployments where the operator has enabled bearer tokens (PASETO_ENABLED); refused with 401 and a `Bearer` challenge once expired.',
+        },
       },
       schemas: {},
     },
@@ -381,6 +388,8 @@ function buildSecurity(route: OttoRoute): Array<Record<string, string[]>> | unde
       security.push({ sessionAuth: [] });
     } else if (scheme === 'basicauth') {
       security.push({ basicAuth: [] });
+    } else if (scheme === 'pasetoauth') {
+      security.push({ bearerAuth: [] });
     }
     // 'noauth' in a mixed scheme list (e.g., basicauth,noauth) means
     // the endpoint also accepts unauthenticated requests. In OpenAPI 3.1,

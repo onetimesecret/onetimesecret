@@ -187,3 +187,24 @@ full:
   # passwords remain protected unless this secret is also leaked.
   # Leave unset (nil) to use argon2id without a pepper.
   argon2_secret: <%= ENV["ARGON2_SECRET"] || nil %>  # Since v0.24.0
+
+# API bearer tokens: PASETO v4.public for the v3 API (issue #2427)
+#
+# Off by default. V3's stable surface accepts browser sessions and the
+# explicit guest routes only. Enabling this adds short-lived signed bearer
+# tokens as a third credential on the authenticated v3 secret routes
+# (`Authorization: Bearer v4.public...`) and activates POST /api/v3/token,
+# which exchanges a session or Basic auth API key for a token.
+#
+# No key material to manage: the Ed25519 signing key is derived from SECRET
+# with HKDF (purpose paseto-signing). Every SECRET_PREVIOUS entry derives a
+# verification-only key, so tokens signed before a SECRET rotation keep
+# verifying until they expire. Tokens are refused once the account is
+# suspended or its password changes (the same watermark that ends sessions).
+#
+# Independent of `mode`: works in simple and full mode alike.
+paseto:
+  enabled: <%= ENV['PASETO_ENABLED'] == 'true' %>  # Since unreleased
+  # Lifetime of each issued token in seconds. Clamped to 60..86400
+  # (one minute to one day); the default is one hour.
+  token_ttl: <%= ENV['PASETO_TOKEN_TTL'] || 3600 %>  # Since unreleased
