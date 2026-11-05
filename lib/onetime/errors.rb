@@ -359,16 +359,18 @@ module Onetime
     end
   end
 
-  # A write that could not complete this request for a reason the caller
-  # did not cause and that a retry can clear: the datastore could not be
-  # reached, or a concurrent write won an optimistic lock. Not bad input,
+  # A request that could not complete for a reason the caller did not
+  # cause and that a retry can clear: the datastore could not be reached, a
+  # concurrent write won an optimistic lock, or (the v3 token mint) the
+  # account's credential watermark is further ahead of this node's clock
+  # than the token verifier tolerates. Not bad input,
   # so not a 422, and not a server fault to page on, so not a 500: a 503
   # with Retry-After. Registered in lib/onetime/application/otto_hooks.rb
   # (Problem itself has no handler); the body's retry_after becomes the
   # Retry-After header (Middleware::RetryAfterHeader).
   #
   # `reason` is a bounded code for logs and alerting (:datastore,
-  # :concurrent_write).
+  # :concurrent_write, :credential_watermark_ahead).
   class TemporarilyUnavailable < Problem
     DEFAULT_MESSAGE = 'This could not be completed right now. Please try again shortly.'
     RETRY_AFTER     = 5

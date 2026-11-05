@@ -200,7 +200,8 @@ full:
 # with HKDF (purpose paseto-signing). Every SECRET_PREVIOUS entry derives a
 # verification-only key, so tokens signed before a SECRET rotation keep
 # verifying until they expire. Tokens are refused once the account is
-# suspended or its password changes (the same watermark that ends sessions).
+# suspended, its password changes (the same watermark that ends sessions)
+# or its API key is rotated.
 #
 # Independent of `mode`: works in simple and full mode alike.
 paseto:

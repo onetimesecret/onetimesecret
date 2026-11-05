@@ -24,4 +24,4 @@ Stable V3 supports existing session authentication, explicitly permitted guest o
 
 ## Exclusions and unresolved implementation details
 
-External-token authentication, client recovery endpoints, automatic creation retries and a generic recovery framework are excluded. The persistence primitive and inventory of security-required registrations versus optional effects require implementation inspection. Lost results follow [creation failure handling](02-creation-failures.md); stable release evidence follows [release validation](05-release-validation.md).
+External-token authentication other than the operator-gated PASETO bearer token (see the scope statement above), client recovery endpoints, automatic creation retries and a generic recovery framework are excluded. The persistence primitive and inventory of security-required registrations versus optional effects require implementation inspection. Lost results follow [creation failure handling](02-creation-failures.md); stable release evidence follows [release validation](05-release-validation.md).

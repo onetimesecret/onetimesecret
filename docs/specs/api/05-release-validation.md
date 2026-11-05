@@ -8,7 +8,7 @@ Release evidence covers [creation commit](01-creation-commit.md), [creation fail
 
 ## Requirements
 
-- Stable V3 supports existing sessions and explicitly permitted guests; the one external token is the operator-gated PASETO bearer token (`auth.paseto.enabled`, off by default), issued by `POST /api/v3/token` to a session or API key and accepted on the authenticated secret routes. Other external tokens are excluded.
+- Stable V3 supports existing sessions and explicitly permitted guests; the one external token is the operator-gated PASETO bearer token (`auth.paseto.enabled`, off by default), issued by `POST /api/v3/token` to a session or API key and accepted on the authenticated secret routes and `GET /api/v3/version`. Other external tokens are excluded.
 - Accepted inputs, aliases and defaults remain unchanged except for the explicitly approved method redesign. Destructive GETs are removed from the stable V3 and first-party frontend surfaces before stability; migration impact includes creator one-time display and affected callers. Concrete replacement routes require inspection and are not selected here.
 - Error-envelope consolidation covers V3 and first-party frontend APIs, including account, organization and domain surfaces, with the security and protocol constraints in [runtime validation](04-runtime-validation.md). V2 and Incoming remain unchanged absent an explicit separate decision.
 - General API CORS is excluded. Only explicitly configured SSO endpoints receive CORS when their protocol requires it. Apple and SAML are examples for investigation, not automatic exceptions; redirects and form POSTs alone do not require CORS.

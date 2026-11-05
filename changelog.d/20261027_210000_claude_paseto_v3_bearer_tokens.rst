@@ -13,7 +13,11 @@ Added
   and ``/api/v3/version``. Tokens cannot mint further tokens, and are refused
   once the account is suspended, its password changes or its API key is
   rotated (``POST /api/account/apitoken``), the last without signing the
-  browser session out. The signing key is
+  browser session out. When the account's credential watermark is further
+  ahead of the issuing node's clock than the verifier's 60-second allowance,
+  ``POST /api/v3/token`` answers ``503`` with ``Retry-After``
+  (``reason: credential_watermark_ahead``) instead of issuing a token no
+  verifier would accept. The signing key is
   derived from ``SECRET``; ``SECRET_PREVIOUS`` entries keep verifying tokens
   signed before a rotation. See ``docs/authentication/api-bearer-tokens.md``.
 - Two credential refusal codes, ``api_token_invalid`` and

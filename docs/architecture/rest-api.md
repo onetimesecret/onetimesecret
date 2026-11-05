@@ -33,7 +33,7 @@ curl -u 'user@example.com:APITOKEN' -X POST https://us.onetimesecret.com/api/v3/
 curl -H 'Authorization: Bearer v4.public…' https://us.onetimesecret.com/api/v3/receipt/recent
 ```
 
-Tokens expire after one hour by default, cannot mint further tokens, and are refused once the account is suspended or its password changes. Where the operator has not enabled them, `POST /api/v3/token` answers `403` with `code: BEARER_TOKENS_DISABLED` and a `Bearer` header is ignored. Details, refusal codes and rotation: [authentication/api-bearer-tokens.md](../authentication/api-bearer-tokens.md).
+Tokens expire after one hour by default, cannot mint further tokens, and are refused once the account is suspended, its password changes or its API key is rotated. Where the operator has not enabled them, `POST /api/v3/token` answers `403` with `code: BEARER_TOKENS_DISABLED` and a `Bearer` header is ignored. Details, refusal codes and rotation: [authentication/api-bearer-tokens.md](../authentication/api-bearer-tokens.md).
 
 ## Response Field Notes
 

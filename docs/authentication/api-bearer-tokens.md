@@ -108,6 +108,11 @@ server's debug log with the token's `kid` and `jti`, never the token itself.
 A request with no `Authorization` header, or with another scheme, is not a
 bearer refusal: the rest of the route's chain answers it.
 
+`POST /api/v3/token` has two refusals of its own: `403` with
+`code: BEARER_TOKENS_DISABLED` while the feature is off, and `503` with
+`reason: credential_watermark_ahead` in the clock-skew case described under
+[Revocation and rotation](#revocation-and-rotation).
+
 ## Revocation and rotation
 
 Tokens are stateless, so revocation works through what the verifier checks on
@@ -119,6 +124,13 @@ every request:
   change. Changing the password revokes every outstanding token. A token
   requested in the same second as the change is issued one second past the
   watermark, so it works at once instead of being refused for its whole life.
+  That push is bounded by the verifier's clock-skew allowance (60 seconds):
+  when the watermark was stamped by a node whose clock leads the minting
+  node by more than that, `POST /api/v3/token` answers `503` with
+  `error_type: TemporarilyUnavailable`, `reason: credential_watermark_ahead`
+  and a `Retry-After` header instead of issuing a token every verifier would
+  refuse, and logs a warning naming the lead (a clock-skew signal for the
+  operator).
 - **API key rotation.** `Customer#regenerate_apitoken` (POST
   `/api/account/apitoken`, `bin/ots apitoken`, account deletion) writes
   `Customer#last_apitoken_update` in the same write as the new key, and a
