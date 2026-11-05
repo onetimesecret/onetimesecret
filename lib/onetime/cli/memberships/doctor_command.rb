@@ -15,15 +15,24 @@
 # Usage:
 #   bin/ots memberships doctor --all                    # Scan all memberships
 #   bin/ots memberships doctor --org on8q...            # Scan memberships for one org
+#                                                       # (any Org::Shared#resolve_org form)
 #   bin/ots memberships doctor --all --repair           # Auto-repair issues
 #   bin/ots memberships doctor --all --json             # JSON output
 
 require 'json'
+# Org::Shared must exist before `include Org::Shared` below. Required here (not
+# only from the lib/onetime/cli.rb manifest) so this file cannot be loaded in a
+# broken order.
+require_relative '../org/shared'
 
 module Onetime
   module CLI
-    # rubocop:disable Metrics/ClassLength
+    # rubocop:disable-next Metrics/ClassLength
     class MembershipsDoctorCommand < Command
+      # resolve_org + error_exit: --org accepts the same ORG forms as every
+      # other organizations/memberships verb.
+      include Org::Shared
+
       desc 'Check organization membership data integrity'
 
       option :all,
@@ -34,7 +43,7 @@ module Onetime
       option :org,
         type: :string,
         default: nil,
-        desc: 'Organization extid to check memberships for'
+        desc: 'Organization (extid, objid, cus_/sub_ Stripe id or hostname) to check memberships for'
 
       option :repair,
         type: :boolean,
@@ -59,7 +68,7 @@ module Onetime
         report = { checked: 0, healthy: 0, issues: [], repaired: [] }
 
         if org
-          organization = load_org(org)
+          organization = resolve_org(org, json: json)
           check_org_memberships(organization, report, repair: repair)
         else
           # Scan all: check indexes first, then per-org memberships
@@ -81,7 +90,8 @@ module Onetime
 
           Options:
             --all                   Scan all memberships
-            --org EXTID             Check memberships for a specific organization
+            --org ORG               Check memberships for one organization
+                                    (extid, objid, cus_/sub_ Stripe id or hostname)
             --repair                Auto-repair issues (default: audit only)
             --json                  JSON output
 
@@ -98,15 +108,6 @@ module Onetime
             5. pending_invitations count matches actual (WARNING)
             6. domain_scope_id points to existing domain (WARNING)
         USAGE
-      end
-
-      def load_org(extid)
-        organization = Onetime::Organization.find_by_extid(extid)
-        unless organization
-          puts "Organization not found: #{extid}"
-          exit 1
-        end
-        organization
       end
 
       def scan_all_orgs(report, repair:)
@@ -546,7 +547,6 @@ module Onetime
         end
       end
     end
-    # rubocop:enable Metrics/ClassLength
 
     register 'memberships doctor', MembershipsDoctorCommand
   end

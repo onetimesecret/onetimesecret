@@ -7,6 +7,9 @@
 # signup -> verification -> organization policy -> administrative purge ->
 # same-email recreation -> login -> entitlement-gated API request.
 #
+# Also covers the purge of a tenant member who joined through SSO on a custom
+# domain, whose default_org_id names the tenant organization (#4860).
+#
 # Run:
 #   tests/lanes/run full-pg --only \
 #     apps/web/auth/spec/integration/full/purge_same_email_recreation_spec.rb
@@ -19,7 +22,9 @@ RSpec.describe 'Customer purge and same-email recreation (#4440)',
   before(:all) do
     boot_onetime_app
     require 'auth/operations/customers/purge'
+    require 'auth/operations/join_domain_organization'
     require 'auth/operations/set_customer_verification'
+    require 'onetime/operations/memberships/remove'
   end
 
   let(:password) { AuthTestConstants::TEST_PASSWORD }
@@ -85,6 +90,37 @@ RSpec.describe 'Customer purge and same-email recreation (#4440)',
     Onetime::CustomDomain.display_domain_index.put(display, domain.domainid)
     org.add_domain(domain)
     domain
+  end
+
+  # A tenant organization with a custom domain, and an SSO sign-in on that
+  # domain: JoinDomainOrganization adds the customer as a member and points
+  # their default_org_id at the tenant organization.
+  def join_tenant_via_sso(customer)
+    owner  = Onetime::Customer.create!(email: unique_test_email('tenant-owner'), verified: true)
+    tenant = Onetime::Organization.create!(
+      "Tenant purge fixture #{SecureRandom.hex(4)}",
+      owner,
+      owner.email,
+      is_default: true,
+    )
+    domain = attach_custom_domain(tenant)
+    join   = Auth::Operations::JoinDomainOrganization.new(customer: customer, domain_id: domain.identifier).call
+    raise "SSO join failed: #{join.inspect}" unless join[:joined]
+    raise 'SSO join did not adopt the tenant organization' unless join.dig(:adoption, :adopted)
+
+    [owner, tenant]
+  end
+
+  def expect_purged_with_tenant_intact(result, customer_objid:, account:, workspace:, owner:, tenant:)
+    expect(Onetime::Customer.load(customer_objid)).to be_nil
+    expect(Onetime::Organization.load(workspace.objid)).to be_nil
+    expect(Onetime::OrganizationMembership.find_by_org_customer(tenant.objid, customer_objid)).to be_nil
+    expect(tenant.member?(customer_objid)).to be(false)
+    expect(Onetime::Organization.load(tenant.objid)).not_to be_nil
+    expect(Onetime::OrganizationMembership.find_by_org_customer(tenant.objid, owner.objid)).to be_owner
+    expect(auth_db[:accounts].where(id: account[:id]).first).to be_nil
+    expect(auth_db[:account_authentication_audit_logs].where(account_id: account[:id]).count).to eq(0)
+    result
   end
 
   def expect_valid_default_workspace(customer)
@@ -304,5 +340,69 @@ RSpec.describe 'Customer purge and same-email recreation (#4440)',
     expect(preserved_org.member?(preserved_customer)).to be(true)
     expect(preserved_customer.organization_instances.to_a.map(&:objid)).to include(workspace_objid)
     expect(Onetime::CustomDomain.load(domain.objid)&.org_id).to eq(workspace_objid)
+  end
+
+  describe 'tenant member who joined via SSO (#4860)' do
+    it 'purges a member still in the tenant organization' do
+      customer, account, workspace, = create_and_verify(unique_test_email('purge-sso-member'))
+      owner, tenant  = join_tenant_via_sso(customer)
+      customer_objid = customer.objid
+
+      expect(Onetime::Customer.load(customer_objid).default_org_id).to eq(tenant.objid)
+
+      result = purge(Onetime::Customer.load(customer_objid))
+
+      expect(result.status).to eq(:success), result.blockers.inspect
+      expect(result.actions.map { |action| [action[:type], action[:org_id]] })
+        .to contain_exactly([:delete_organization, workspace.extid], [:remove_membership, tenant.extid])
+      expect_purged_with_tenant_intact(
+        result, customer_objid: customer_objid, account: account, workspace: workspace, owner: owner, tenant: tenant
+      )
+    end
+
+    it 'clears the pointer on removal, then purges the former member' do
+      customer, account, workspace, = create_and_verify(unique_test_email('purge-sso-removed'))
+      owner, tenant  = join_tenant_via_sso(customer)
+      customer_objid = customer.objid
+      customer       = Onetime::Customer.load(customer_objid)
+
+      removal = Onetime::Operations::Memberships::Remove.new(org: tenant, customer: customer, actor: actor).call
+
+      expect(removal.status).to eq(:success)
+      expect(customer.default_org_id).to be_nil
+      expect(Onetime::Customer.load(customer_objid).default_org_id).to be_nil
+
+      result = purge(Onetime::Customer.load(customer_objid))
+
+      expect(result.status).to eq(:success), result.blockers.inspect
+      expect(result.actions.map { |action| [action[:type], action[:org_id]] })
+        .to eq([[:delete_organization, workspace.extid]])
+      expect_purged_with_tenant_intact(
+        result, customer_objid: customer_objid, account: account, workspace: workspace, owner: owner, tenant: tenant
+      )
+    end
+
+    # A member removed before removal cleared the pointer still carries it.
+    it 'purges a former member whose pointer still names the tenant organization' do
+      customer, account, workspace, = create_and_verify(unique_test_email('purge-sso-stale'))
+      owner, tenant  = join_tenant_via_sso(customer)
+      customer_objid = customer.objid
+      Onetime::OrganizationMembership.find_by_org_customer(tenant.objid, customer_objid).destroy_with_index_cleanup!
+      Onetime::Customer.dbclient.hset(
+        customer.dbkey, 'default_org_id', Familia::JsonSerializer.dump(tenant.objid)
+      )
+
+      expect(Onetime::Customer.load(customer_objid).default_org_id).to eq(tenant.objid)
+      expect(tenant.member?(customer_objid)).to be(false)
+
+      result = purge(Onetime::Customer.load(customer_objid))
+
+      expect(result.status).to eq(:success), result.blockers.inspect
+      expect(result.actions.map { |action| [action[:type], action[:org_id]] })
+        .to eq([[:delete_organization, workspace.extid]])
+      expect_purged_with_tenant_intact(
+        result, customer_objid: customer_objid, account: account, workspace: workspace, owner: owner, tenant: tenant
+      )
+    end
   end
 end

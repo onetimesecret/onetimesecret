@@ -33,7 +33,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ElevateSession, 'the recent_auth fact
   def colonel_with(passphrase:)
     instance_double(Onetime::Customer,
       objid: 'cust_colonel', extid: 'ur_colonel', email: 'colonel@example.com',
-      role: 'colonel', verified?: true, anonymous?: false,
+      role: 'colonel', verified?: true, mailbox_verified?: true, anonymous?: false,
       has_passphrase?: passphrase)
   end
 

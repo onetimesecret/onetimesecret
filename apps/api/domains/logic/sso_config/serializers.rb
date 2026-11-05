@@ -29,6 +29,11 @@ module DomainsAPI
         # it is [] for a healthy record. It covers client_id / client_secret
         # too, which previously failed to null with only a log line.
         #
+        # idp_metadata_url (the SAML IdP metadata URL the trio was imported
+        # from) is served the same way: plaintext, an encrypted_field for
+        # integrity, named in `unreadable_fields` when it will not decrypt.
+        # null when unset (always, for a non-saml record).
+        #
         # sp_entity_id / acs_url are read-only values for the admin to paste
         # into their IdP; null for non-saml records. See #saml_sp_identifiers.
         #
@@ -47,6 +52,7 @@ module DomainsAPI
           reveal     = ->(name) { reveal_field(config, name, unreadable) }
           sp         = saml_sp_identifiers(config)
           not_after  = config.idp_cert_not_after
+          proof      = email_domain_proof(config)
 
           {
             domain_id: config.domain_id,
@@ -63,6 +69,7 @@ module DomainsAPI
             idp_sso_service_url: reveal.call(:idp_sso_service_url),
             idp_entity_id: reveal.call(:idp_entity_id),
             idp_cert: reveal.call(:idp_cert),
+            idp_metadata_url: reveal.call(:idp_metadata_url).then { it.to_s.empty? ? nil : it },
             name_id_format: serialize_saml_policy(config, :name_id_format, unreadable) { config.saml_name_id_format },
             callback_origins: serialize_saml_policy(config, :callback_origins, unreadable) { config.callback_origins },
             sp_entity_id: sp[:sp_entity_id],
@@ -71,12 +78,53 @@ module DomainsAPI
             cert_expired: !not_after.nil? && not_after <= Time.now,
             unreadable_fields: unreadable,
             allowed_domains: config.allowed_domains,
+            verified_email_domains: proof[:verified_email_domains],
+            unverified_allowed_domains: proof[:unverified_allowed_domains],
             requires_domain_filter: config.requires_domain_filter?,
             idp_controls_access: config.idp_controls_access?,
             last_sign_in: serialize_last_sign_in(config),
             created_at: config.created.to_i,
             updated_at: config.updated.to_i,
           }
+        end
+
+        # The organization's proven email namespaces and the allowlist entries
+        # that lie outside every one of them (#4734, RISK-2026-10-10-01).
+        #
+        # Tenant SSO creates an account only for an address inside a custom
+        # domain whose ownership the organization has proven, so an allowlist
+        # entry outside that set creates no new accounts. The proven set is
+        # the one the create-path gate uses
+        # (Organization#proven_email_domains_through: the config's own domain
+        # plus the organization's verified domains, each counted only while
+        # CustomDomain#ownership_proven?).
+        # Entries are judged by Organization#owns_email_domain? (A-label,
+        # label boundary), so IDN spellings agree with the gate; the entry is
+        # reported as stored.
+        #
+        # Read-only and advisory: both arrays are empty when the domain or its
+        # organization cannot be loaded, except that without an organization
+        # every allowlist entry is unverified. Never raises.
+        #
+        # @param config [Onetime::CustomDomain::SsoConfig]
+        # @return [Hash{Symbol => Array<String>}] :verified_email_domains sorted,
+        #   :unverified_allowed_domains in allowlist order
+        def email_domain_proof(config)
+          allowed      = Array(config.allowed_domains)
+          domain       = config.custom_domain
+          organization = domain&.primary_organization
+          return { verified_email_domains: [], unverified_allowed_domains: allowed } if organization.nil?
+
+          proven = organization.proven_email_domains_through(domain)
+
+          {
+            verified_email_domains: proven.map { |d| d.display_domain.to_s }.reject(&:empty?).sort,
+            unverified_allowed_domains: allowed.reject { |entry| organization.owns_email_domain?(entry, domains: proven) },
+          }
+        rescue StandardError => ex
+          OT.lw '[SsoConfig::Serializers] Could not derive email domain proof for domain ' \
+                "#{config.domain_id}: #{ex.class.name}"
+          { verified_email_domains: [], unverified_allowed_domains: [] }
         end
 
         # The last tenant sign-in outcome recorded for the domain

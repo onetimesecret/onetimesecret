@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Provider switch, build order</title>
+<style>
+  :root { --bg:#ffffff; --fg:#1b1f24; --muted:#5b6470; --accent:#2f6fdd; --held:#8a929c; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#14171b; --fg:#e6e9ee; --muted:#9aa3ad; --accent:#6a9cff; --held:#7b848e; }
+  }
+  body { margin:0; padding:24px 16px; background:var(--bg); color:var(--fg);
+         font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  main { max-width:960px; margin:0 auto; }
+  h1 { font-size:20px; margin:0 0 6px; }
+  p.lead { color:var(--muted); margin:0 0 22px; }
+  figure { margin:0 0 36px; }
+  svg { max-width:100%; height:auto; display:block; }
+  figcaption { color:var(--muted); font-size:13.5px; margin-top:8px; max-width:900px; }
+  text { font-family: system-ui,-apple-system,Segoe UI,Roboto,sans-serif; fill:currentColor; }
+  .box { fill:none; stroke:currentColor; stroke-width:1.2; }
+  .build { fill:none; stroke:var(--accent); stroke-width:2; }
+  .held { fill:none; stroke:var(--held); stroke-width:1.4; stroke-dasharray:6 4; }
+  .heldtext { fill:var(--held); }
+  .arrow { stroke:currentColor; stroke-width:1.4; fill:none; }
+  .arrowheld { stroke:var(--held); stroke-width:1.4; fill:none; stroke-dasharray:5 4; }
+  .badge { fill:var(--accent); }
+  .badgetext { fill:#fff; font-weight:700; font-size:13px; }
+  .t { font-size:13px; }
+  .tb { font-size:13.5px; font-weight:600; }
+  .src { font-size:11.5px; fill:var(--muted); font-style:italic; }
+  .lane { font-size:12.5px; fill:var(--muted); font-weight:600; letter-spacing:.02em; }
+</style>
+</head>
+<body>
+<main>
+<h1>Provider switch: what I'd build, in what order</h1>
+<p class="lead">The recommendation takes three small pieces out of the two documents, ships them in the order below, and holds the migration window.</p>
+
+<figure>
+<svg viewBox="0 0 940 690" role="img" aria-label="The owner's provider-switch path from top to bottom, with three numbered build items inserted where they intercept it, the held migration window shown dashed to the side, and the three recovery routes at the bottom.">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+    <marker id="ahh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--held)"/>
+    </marker>
+  </defs>
+
+  <!-- S1 -->
+  <rect class="box" x="60" y="24" width="420" height="52" rx="4"/>
+  <text class="tb" x="76" y="46">Owner opens the SSO tab</text>
+  <text class="t"  x="76" y="66">Members are passwordless JIT accounts from the current IdP</text>
+  <line class="arrow" x1="270" y1="76" x2="270" y2="104" marker-end="url(#ah)"/>
+
+  <!-- B1 -->
+  <rect class="build" x="60" y="106" width="420" height="64" rx="4"/>
+  <circle class="badge" cx="40" cy="138" r="12"/><text class="badgetext" x="40" y="142.5" text-anchor="middle">1</text>
+  <text class="tb" x="76" y="128">Credential notice</text>
+  <text class="t"  x="76" y="146">"N members have no password or passkey. Have them add one first."</text>
+  <text class="src" x="76" y="163">operator route, part 3</text>
+  <line class="arrow" x1="480" y1="138" x2="556" y2="138" marker-end="url(#ah)"/>
+  <rect class="box" x="560" y="112" width="350" height="52" rx="4"/>
+  <text class="tb" x="576" y="134">Members who add one become cohort B</text>
+  <text class="t"  x="576" y="152">Self-service Connect after the switch. Nobody needed.</text>
+  <line class="arrow" x1="270" y1="170" x2="270" y2="196" marker-end="url(#ah)"/>
+
+  <!-- S2 -->
+  <rect class="box" x="60" y="198" width="420" height="36" rx="4"/>
+  <text class="tb" x="76" y="222">Owner saves the new provider</text>
+  <line class="arrow" x1="270" y1="234" x2="270" y2="260" marker-end="url(#ah)"/>
+
+  <!-- B2 -->
+  <rect class="build" x="60" y="262" width="420" height="64" rx="4"/>
+  <circle class="badge" cx="40" cy="294" r="12"/><text class="badgetext" x="40" y="298.5" text-anchor="middle">1</text>
+  <text class="tb" x="76" y="284">rekeys_identities?  →  409 with cohort counts</text>
+  <text class="t"  x="76" y="302">Save proceeds only with acknowledge_migration: true</text>
+  <text class="src" x="76" y="319">decision doc §1, §2. No migration record, no key change.</text>
+  <line class="arrow" x1="270" y1="326" x2="270" y2="352" marker-end="url(#ah)"/>
+
+  <!-- S3 -->
+  <rect class="box" x="60" y="354" width="420" height="52" rx="4"/>
+  <text class="tb" x="76" y="376">Saved. Remaining passwordless accounts are locked out</text>
+  <text class="t"  x="76" y="396">tenant_sso_link_unavailable, by design (H-3)</text>
+  <!-- held window -->
+  <rect class="held" x="560" y="344" width="350" height="74" rx="4"/>
+  <text class="tb heldtext" x="576" y="366">Migration window (decision doc §2–4)</text>
+  <text class="t heldtext"  x="576" y="384">Held. Would plug in here: generation key, outcomes</text>
+  <text class="t heldtext"  x="576" y="401">record, mailbox-proof offer, owner UI.</text>
+  <line class="arrowheld" x1="556" y1="380" x2="484" y2="380" marker-end="url(#ahh)"/>
+  <line class="arrow" x1="270" y1="406" x2="270" y2="432" marker-end="url(#ah)"/>
+
+  <!-- B3 -->
+  <rect class="build" x="60" y="434" width="420" height="64" rx="4"/>
+  <circle class="badge" cx="40" cy="466" r="12"/><text class="badgetext" x="40" y="470.5" text-anchor="middle">2</text>
+  <text class="tb" x="76" y="456">Operator: classifier + dry run</text>
+  <text class="t"  x="76" y="474">Each member → A captive / B credentialed / C global, reason, route</text>
+  <text class="src" x="76" y="491">operator route, parts 1–2. The output is the support reply.</text>
+
+  <!-- fan-out -->
+  <line class="arrow" x1="270" y1="498" x2="270" y2="516"/>
+  <line class="arrow" x1="185" y1="516" x2="745" y2="516"/>
+  <line class="arrow" x1="185" y1="516" x2="185" y2="538" marker-end="url(#ah)"/>
+  <line class="arrow" x1="465" y1="516" x2="465" y2="538" marker-end="url(#ah)"/>
+  <line class="arrow" x1="745" y1="516" x2="745" y2="538" marker-end="url(#ah)"/>
+
+  <!-- A -->
+  <rect class="build" x="60" y="540" width="250" height="70" rx="4"/>
+  <circle class="badge" cx="40" cy="575" r="12"/><text class="badgetext" x="40" y="579.5" text-anchor="middle">3</text>
+  <text class="tb" x="76" y="562">A: purge, or operator rebind</text>
+  <text class="t"  x="76" y="580">Purge: fresh JIT account, data gone.</text>
+  <text class="t"  x="76" y="597">Rebind: see Figure 2, lane 3.</text>
+  <!-- B -->
+  <rect class="box" x="340" y="540" width="250" height="70" rx="4"/>
+  <text class="tb" x="356" y="562">B: Connect</text>
+  <text class="t"  x="356" y="580">Password login → Connected</text>
+  <text class="t"  x="356" y="597">identities → Connect. Self-service.</text>
+  <!-- C -->
+  <rect class="box" x="620" y="540" width="250" height="70" rx="4"/>
+  <text class="tb" x="636" y="562">C: verify, then B</text>
+  <text class="t"  x="636" y="580">ots customers verify → reset →</text>
+  <text class="t"  x="636" y="597">Connect. Operator for step one.</text>
+
+  <!-- legend -->
+  <circle class="badge" cx="72" cy="652" r="10"/><text class="badgetext" x="72" y="656" text-anchor="middle" style="font-size:11px">1</text>
+  <text class="t" x="90" y="656">ship first (days of work)</text>
+  <circle class="badge" cx="270" cy="652" r="10"/><text class="badgetext" x="270" y="656" text-anchor="middle" style="font-size:11px">2</text>
+  <text class="t" x="288" y="656">next</text>
+  <circle class="badge" cx="360" cy="652" r="10"/><text class="badgetext" x="360" y="656" text-anchor="middle" style="font-size:11px">3</text>
+  <text class="t" x="378" y="656">after, plus the generation key once the R2 VULN is confirmed</text>
+  <rect class="held" x="60" y="670" width="22" height="12"/>
+  <text class="t heldtext" x="90" y="680">held until a second customer asks for a switch</text>
+</svg>
+<figcaption>Figure 1. Phase 1 is prevention only: it changes nothing about keys or binding, it makes the owner see the count before they strand anyone and pushes members into cohort B, where they recover themselves. Phase 2 makes the support reply mechanical. Phase 3 is the destructive step and the one piece needing the new PurgePreflight blocker. The migration window is the only path that preserves the same account for locked-out users, and it is held for the reasons in the doc's own Proportionality section.</figcaption>
+</figure>
+
+<figure>
+<svg viewBox="0 0 940 320" role="img" aria-label="Three lanes showing the owner's path to a captive account: before the switch through the old Entra tenant, in the decision doc through the M365 mailbox in the same tenant, and in the cheaper variant through the new IdP. In all three the middle component is owner-administered.">
+  <defs>
+    <marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+
+  <!-- lane 1 -->
+  <text class="lane" x="20" y="34">STATUS QUO, BEFORE THE SWITCH</text>
+  <rect class="box" x="20" y="46" width="120" height="44" rx="4"/>
+  <text class="tb" x="80" y="73" text-anchor="middle">Org owner</text>
+  <line class="arrow" x1="140" y1="68" x2="236" y2="68" marker-end="url(#ah2)"/>
+  <text class="t" x="188" y="60" text-anchor="middle">is admin of</text>
+  <rect class="build" x="240" y="46" width="260" height="44" rx="4"/>
+  <text class="tb" x="370" y="66" text-anchor="middle">Old IdP: the org's Entra tenant</text>
+  <text class="src" x="370" y="82" text-anchor="middle">can sign in as any user in the directory</text>
+  <line class="arrow" x1="500" y1="68" x2="696" y2="68" marker-end="url(#ah2)"/>
+  <text class="t" x="598" y="60" text-anchor="middle">asserts the user's oid</text>
+  <rect class="box" x="700" y="46" width="220" height="44" rx="4"/>
+  <text class="tb" x="810" y="66" text-anchor="middle">Captive JIT account</text>
+  <text class="src" x="810" y="82" text-anchor="middle">no password, no passkey, only this identity</text>
+
+  <!-- lane 2 -->
+  <text class="lane" x="20" y="138">DECISION DOC, AFTER THE SWITCH (mailbox proof)</text>
+  <rect class="box" x="20" y="150" width="120" height="44" rx="4"/>
+  <text class="tb" x="80" y="177" text-anchor="middle">Org owner</text>
+  <line class="arrow" x1="140" y1="172" x2="236" y2="172" marker-end="url(#ah2)"/>
+  <text class="t" x="188" y="164" text-anchor="middle">is admin of</text>
+  <rect class="build" x="240" y="150" width="260" height="44" rx="4"/>
+  <text class="tb" x="370" y="170" text-anchor="middle">User's M365 mailbox</text>
+  <text class="src" x="370" y="186" text-anchor="middle">same Entra tenant; OTS sends the proof link here</text>
+  <line class="arrow" x1="500" y1="172" x2="696" y2="172" marker-end="url(#ah2)"/>
+  <text class="t" x="598" y="164" text-anchor="middle">opens proof link → bind</text>
+  <rect class="box" x="700" y="150" width="220" height="44" rx="4"/>
+  <text class="tb" x="810" y="177" text-anchor="middle">Captive JIT account</text>
+
+  <!-- lane 3 -->
+  <text class="lane" x="20" y="242">CHEAPER VARIANT: your operator rebind (R16 rejected the owner-authorized form)</text>
+  <rect class="box" x="20" y="254" width="120" height="44" rx="4"/>
+  <text class="tb" x="80" y="281" text-anchor="middle">Org owner</text>
+  <line class="arrow" x1="140" y1="276" x2="236" y2="276" marker-end="url(#ah2)"/>
+  <text class="t" x="188" y="268" text-anchor="middle">is admin of</text>
+  <rect class="build" x="240" y="254" width="260" height="44" rx="4"/>
+  <text class="tb" x="370" y="274" text-anchor="middle">New IdP</text>
+  <text class="src" x="370" y="290" text-anchor="middle">asserts any email the owner likes</text>
+  <line class="arrow" x1="500" y1="276" x2="696" y2="276" marker-end="url(#ah2)"/>
+  <text class="t" x="598" y="268" text-anchor="middle">email match + gates 5–9 → bind</text>
+  <rect class="box" x="700" y="254" width="220" height="44" rx="4"/>
+  <text class="tb" x="810" y="281" text-anchor="middle">Captive JIT account</text>
+</svg>
+<figcaption>Figure 2. Why I said R16 is rejected for the wrong reason. The blue component in each lane is something the owner administers, so the owner reaches the captive account in all three. The decision doc's lane costs most of §3 (tokens, cooldowns, confirm revalidation, deferred-bind payload) and buys evidence in the M365 audit log rather than the OTS one. The case where lane 2 is real protection is when the old issuer in lane 1 was public (Google, Entra with ignore_tid): the owner never administered it, so lane 1 never existed. Whether tenant configs use public issuers often enough to matter is the fact that decides between lane 2 and lane 3.</figcaption>
+</figure>
+</main>
+</body>
+</html>

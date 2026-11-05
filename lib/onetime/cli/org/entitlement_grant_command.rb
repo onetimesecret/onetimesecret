@@ -5,10 +5,9 @@
 # Add an operator override GRANT to an organization.
 #
 # Usage:
-#   bin/ots org entitlement grant ORG ENTITLEMENT --dry-run   # Project, write nothing
-#   bin/ots org entitlement grant ORG ENTITLEMENT             # Confirm, then apply
-#   bin/ots org entitlement grant ORG ENTITLEMENT --yes       # Apply, no prompt
-#   bin/ots org entitlement grant ORG ENTITLEMENT --yes --json
+#   bin/ots org entitlement grant ORG ENTITLEMENT             # Dry run (the default): project, write nothing
+#   bin/ots org entitlement grant ORG ENTITLEMENT --apply     # Apply
+#   bin/ots org entitlement grant ORG ENTITLEMENT --apply --json
 #
 # ORG is an org extid or objid (see Onetime::CLI::Org::Shared#resolve_org).
 #
@@ -16,11 +15,14 @@
 # entitlement that is not in the billing catalog WARNS but is not blocked.
 require_relative 'entitlement_command'
 
+require_relative '../write_gate'
+
 module Onetime
   module CLI
     class OrgEntitlementGrantCommand < Command
       include Org::Shared
       include Org::EntitlementSupport
+      include WriteGate
 
       desc 'Grant an entitlement to an organization (operator override)'
 
@@ -33,39 +35,28 @@ module Onetime
         required: true,
         desc: 'Entitlement name (warns, does not block, when not in the catalog)'
 
-      option :yes,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '-f'],
-        desc: 'Skip confirmation prompt (required to apply)'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Project the resulting override sets; write nothing'
+      write_gate_options 'Write the override'
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
-      # --yes and --dry-run are ORTHOGONAL, matching `org reconcile`: --dry-run
-      # writes nothing so it needs no confirmation; an applied run always needs
-      # --yes (or an interactive 'y').
-      def call(org:, entitlement:, yes: false, dry_run: false, json: false, **)
+      def call(org:, entitlement:, apply: false, dry_run: false, json: false, **)
         boot_application!
 
+        dry_run      = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
         organization = resolve_org(org, json: json)
 
         execute_override(
           organization,
           action: 'grant',
           entitlement: entitlement,
-          yes: yes,
           dry_run: dry_run,
           json: json,
         )
       end
     end
 
-    register 'org entitlement grant', OrgEntitlementGrantCommand
+    register 'organizations entitlement grant', OrgEntitlementGrantCommand
   end
 end

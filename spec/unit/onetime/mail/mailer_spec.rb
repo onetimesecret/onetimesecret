@@ -455,6 +455,62 @@ RSpec.describe Onetime::Mail::Mailer do
       end
     end
 
+    # #4889: the auth setting reaches Delivery::SMTP, which validates it.
+    context 'with the SMTP auth setting' do
+      let(:smtp_auth_env) { nil }
+      let(:auth_config) { {} }
+      let(:config) { { 'mode' => 'smtp', 'host' => 'smtp.example.com' }.merge(auth_config) }
+
+      before do
+        allow(ENV).to receive(:fetch).and_call_original
+        allow(ENV).to receive(:fetch).with('SMTP_AUTH', nil).and_return(smtp_auth_env)
+      end
+
+      def forwarded_auth
+        described_class.provider_credentials('smtp')['auth']
+      end
+
+      context 'when the config names a mechanism' do
+        let(:auth_config) { { 'auth' => 'login' } }
+        let(:smtp_auth_env) { 'cram_md5' }
+
+        it 'forwards the config value over SMTP_AUTH' do
+          expect(forwarded_auth).to eq('login')
+        end
+      end
+
+      context 'when the config value is blank' do
+        let(:auth_config) { { 'auth' => '' } }
+        let(:smtp_auth_env) { 'login' }
+
+        # Same rule as host, user, pass and domain: first non-blank wins.
+        it 'falls through to SMTP_AUTH' do
+          expect(forwarded_auth).to eq('login')
+        end
+      end
+
+      context 'when the config value is false' do
+        let(:auth_config) { { 'auth' => false } }
+
+        it 'forwards false so the backend rejects it instead of selecting PLAIN' do
+          expect(forwarded_auth).to be(false)
+        end
+
+        it 'makes the SMTP backend refuse it when credentials are configured' do
+          creds = described_class.provider_credentials('smtp').merge('username' => 'u', 'password' => 'p')
+
+          expect { Onetime::Mail::Delivery::SMTP.new(creds) }
+            .to raise_error(ArgumentError, /Unsupported SMTP auth method "false"/)
+        end
+      end
+
+      context 'when neither config nor SMTP_AUTH is set' do
+        it 'forwards nil, which the backend treats as PLAIN' do
+          expect(forwarded_auth).to be_nil
+        end
+      end
+    end
+
     # fastaccept controls whether SMTP2GO returns per-recipient accounting,
     # so it has to survive the trip from config/ENV into the hash that
     # constructs Delivery::Smtp2go — including the .compact at the end of

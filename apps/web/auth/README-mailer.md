@@ -28,7 +28,7 @@ SMTP_USERNAME=user@example.com
 SMTP_PASSWORD=password123
 SMTP_TLS=true    # Use STARTTLS (default: true)
 SMTP_SSL=false   # Use implicit TLS/SMTPS, typically on port 465 (default: false)
-SMTP_AUTH=plain  # Authentication method (default: plain)
+SMTP_AUTH=plain  # AUTH mechanism: plain, login or cram_md5 (default: plain)
 ```
 
 Set `SMTP_SSL=true` for implicit TLS from the start of the connection. When enabled, it takes precedence over `SMTP_TLS` and STARTTLS is disabled. Do not enable both TLS modes on the same connection.

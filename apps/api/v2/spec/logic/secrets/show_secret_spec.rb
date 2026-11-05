@@ -73,6 +73,15 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
     secret.save_fields(:verification)
   end
 
+  # Record the address the link was emailed to, as send_verification_email
+  # does (Secret#delivered_to?). Without it the secret is a link minted before
+  # the digest was written. Same partial write and ordering as
+  # flag_as_verification!.
+  def record_delivery!(secret, address)
+    secret.delivery_digest = Onetime::Secret.delivery_digest_for(address)
+    secret.save_fields(:delivery_digest)
+  end
+
   let!(:pair)   { Onetime::Receipt.spawn_pair(nil, 3600, 'a secret value') }
   let(:receipt) { pair.first }
   let(:secret)  { pair.last }
@@ -367,7 +376,14 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
     end
     let!(:pair) { Onetime::Receipt.spawn_pair(owner.objid, 3600, 'a secret value') }
 
-    before { flag_as_verification!(secret) }
+    before do
+      flag_as_verification!(secret)
+      # The stamp runs through SetCustomerVerification, whose #call ends in
+      # the deferred federation claim (#4754 review, round 3). Observed as a
+      # seam, as in reveal_secret_spec.rb: the real claim finds no owned
+      # workspace for a bare test customer and returns false.
+      allow(Auth::Operations::EnsureDefaultWorkspace).to receive(:claim_pending_federation_for).and_call_original
+    end
 
     context 'when an anonymous caller verifies the unverified owner' do
       it 'verifies the owner and reveals the plaintext' do
@@ -388,6 +404,48 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
         # telemetry only appends to the receipt timeline and cannot
         # resurrect the secret.
         expect(Onetime::Secret.load(secret.identifier)).to be_nil
+      end
+
+      # The only self-service mailbox proof in a simple-mode install run
+      # without AUTHENTICATION_MODE, where a standard signup defers the
+      # federated subscription claim (#4754 review, round 3). The link proves
+      # the mailbox it was sent to and no other, so the claim runs for a link
+      # sent to the owner's current address and is held to that address.
+      it "runs the deferred federation claim for the owner's own address" do
+        record_delivery!(secret, owner.email)
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.secret_value).to eq('a secret value')
+        expect(Auth::Operations::EnsureDefaultWorkspace).to have_received(:claim_pending_federation_for)
+          .with(an_object_having_attributes(extid: owner.extid), own_address_only: true)
+      end
+
+      # A link sent to an earlier address, before an operator changed it,
+      # proves that mailbox only; one minted before the delivery address was
+      # recorded says nothing about which. Both verify the owner, as the
+      # direct stamp did, and run no claim (RevealSecret is pinned the same
+      # way, end to end, in reveal_secret_spec.rb).
+      it 'verifies the owner without the claim for a link sent to another address' do
+        record_delivery!(secret, "show-elsewhere-#{SecureRandom.hex(6)}@example.com")
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.secret_value).to eq('a secret value')
+        expect(Onetime::Customer.load(owner.objid).verified_by).to eq('email')
+        expect(Auth::Operations::EnsureDefaultWorkspace).not_to have_received(:claim_pending_federation_for)
+      end
+
+      it 'verifies the owner without the claim for a link that recorded no delivery address' do
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.secret_value).to eq('a secret value')
+        expect(Onetime::Customer.load(owner.objid).verified_by).to eq('email')
+        expect(Auth::Operations::EnsureDefaultWorkspace).not_to have_received(:claim_pending_federation_for)
       end
 
       # The browser that opens the link has a guest session (its CSRF token at
@@ -433,13 +491,14 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
     context 'when the owner is already verified' do
       # DIVERGENCE PIN -- current behavior, candidate for alignment:
       # verify_owner has no already-verified guard (its condition passes on
-      # anonymous_user? alone), so an anonymous caller RE-verifies a verified
-      # owner and overwrites verified_by provenance with 'email'. RevealSecret
-      # treats the same input as an anomaly and leaves the owner untouched
-      # (reveal_secret_spec.rb pins 'stripe_payment' preserved there). If
-      # either controller changes, one of the two pins fails and forces a
-      # conscious decision instead of a silent behavior shift.
-      it 'reveals the plaintext and (unlike RevealSecret) overwrites verified_by' do
+      # anonymous_user? alone), so an anonymous caller re-stamps a verified
+      # owner. RevealSecret gates the same input on mailbox_verified?, so for
+      # a stamp WITHOUT mailbox proof ('stripe_payment') both controllers
+      # upgrade it to 'email' (reveal_secret_spec.rb pins that too); the
+      # divergence is confined to a stamp that already IS mailbox proof,
+      # pinned in the next example. If either controller changes, one of the
+      # pins fails and forces a conscious decision instead of a silent shift.
+      it 'reveals the plaintext and upgrades a stamp that is not mailbox proof to email' do
         owner.verified    = true
         owner.verified_by = 'stripe_payment'
         owner.save
@@ -452,8 +511,86 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
 
         reloaded = Onetime::Customer.load(owner.objid)
         expect(reloaded.verified?).to be true
-        expect(reloaded.verified_by).to eq('email') # provenance rewritten
+        expect(reloaded.verified_by).to eq('email') # provenance upgraded
         expect(Onetime::Secret.load(secret.identifier)).to be_nil
+      end
+
+      # #4754 review, round 3: the stamp goes through SetCustomerVerification,
+      # which keeps a stored mailbox-proof stamp on a repeat
+      # (#mailbox_proof_reaffirmed?) and still retries the claim, under the
+      # same two limits as the first one. Before, this branch rewrote
+      # 'colonel_admin' to 'email' (RevealSecret never did: its
+      # mailbox_verified? gate skips the stamp entirely).
+      it 'keeps an existing mailbox-proof stamp and still retries the own-address claim' do
+        record_delivery!(secret, owner.email)
+        owner.verified    = true
+        owner.verified_by = 'colonel_admin'
+        owner.save
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        expect(logic.secret_value).to eq('a secret value')
+        expect(Onetime::Secret.load(secret.identifier)).to be_nil
+
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified?).to be true
+        expect(reloaded.verified_by).to eq('colonel_admin') # NOT rewritten to 'email'
+        expect(Auth::Operations::EnsureDefaultWorkspace).to have_received(:claim_pending_federation_for)
+          .with(an_object_having_attributes(extid: owner.extid), own_address_only: true)
+      end
+    end
+
+    # Same shape as reveal_secret_spec.rb: a link minted in simple mode and
+    # followed after a switch to full auth mode. Rodauth owns verification
+    # there, so the shared stamp records nothing (it builds no operation, so
+    # no SQL is reached) and the reveal proceeds (#4754 review, round 3).
+    context 'when the link is followed after a switch to full auth mode' do
+      let(:auth_logger) { double('AuthLogger', info: nil) }
+
+      before do
+        allow(Onetime.auth_config).to receive(:mode).and_return('full')
+        allow(Auth::Operations::SetCustomerVerification).to receive(:new).and_call_original
+        allow(Auth::Operations::SetCustomerVerification).to receive(:auth_logger).and_return(auth_logger)
+      end
+
+      it 'reveals the plaintext, leaves the owner unverified and logs the skip' do
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        expect(logic.secret_value).to eq('a secret value')
+        expect(Onetime::Secret.load(secret.identifier)).to be_nil
+
+        expect(Auth::Operations::SetCustomerVerification).not_to have_received(:new)
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified?).to be false
+        expect(reloaded.verified_by.to_s).to eq('')
+
+        expect(auth_logger).to have_received(:info).with(
+          /redeemed in full auth mode; Rodauth owns account verification there/,
+          { customer: owner.extid },
+        )
+        expect(Auth::Operations::EnsureDefaultWorkspace).not_to have_received(:claim_pending_federation_for)
+      end
+
+      # verify_owner's anonymous half has no already-verified guard, so in
+      # simple mode this input upgrades the stamp to 'email' (pinned above).
+      # In full mode nothing is recorded, so the stamp stays as it was.
+      it 'leaves a stamp without mailbox proof as it was' do
+        owner.verified    = true
+        owner.verified_by = 'stripe_payment'
+        owner.save
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.secret_value).to eq('a secret value')
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified_by).to eq('stripe_payment')
+        expect(reloaded.mailbox_verified?).to be false
       end
     end
 

@@ -194,6 +194,11 @@ features:
     # lib/onetime/security/sso_diagnostics_rate_limiter.rb.
     sso_diagnostics_rate_limit:
       enabled: false
+    # Disabled under test for the same reason (the metadata-fetch specs run
+    # many fetches as one owner); the endpoint spec enables it in-process.
+    # See lib/onetime/security/sso_metadata_fetch_rate_limiter.rb.
+    sso_metadata_fetch_rate_limit:
+      enabled: false
     # Disabled under test for the same reason (the sender specs run many
     # sends as one owner); the limiter tryout enables it in-process. See
     # lib/onetime/security/sender_test_email_rate_limiter.rb.

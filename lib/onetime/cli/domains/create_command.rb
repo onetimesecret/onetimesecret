@@ -6,15 +6,15 @@
 #
 # This is the CLI peer of `POST /api/colonel/domains`. Both adapters call the
 # same op (Onetime::Operations::Domains::Create), which owns validation,
-# creation, certificate provisioning and the single `domain.create`
-# ColonelAuditEvent. Every other colonel domain verb (verify / probe / repair /
-# transfer / remove) already had a CLI peer; create was the gap.
+# creation and the single `domain.create` ColonelAuditEvent. No certificate is
+# requested here: the virtual host is created by `bin/ots domains verify` once
+# ownership is verified. Every other colonel domain verb (verify / probe /
+# repair / transfer / remove) already had a CLI peer; create was the gap.
 #
 # Usage:
 #   bin/ots domains create example.com --org on123abc            # confirm, then create
 #   bin/ots domains create example.com --org on123abc --yes
 #   bin/ots domains create example.com --org on123abc --yes --json
-#   bin/ots domains create example.com --org on123abc --yes --no-cert
 #
 # ORG accepts the organization extid (preferred — what every admin surface
 # routes by) or the internal objid.
@@ -48,16 +48,12 @@ module Onetime
         default: false,
         aliases: ['-y', '-f'],
         desc: 'Skip confirmation prompt'
-      option :cert,
-        type: :boolean,
-        default: true,
-        desc: 'Request an SSL certificate after creating (--no-cert to skip)'
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
-      def call(domain:, org: nil, yes: false, cert: true, json: false, **)
+      def call(domain:, org: nil, yes: false, json: false, **)
         boot_application!
 
         error_exit('--org is required', json: json) if org.to_s.strip.empty?
@@ -69,7 +65,6 @@ module Onetime
           domain: domain,
           org: organization,
           actor: CLI_ACTOR,
-          request_certificate: cert,
         )
 
         # Validate BEFORE prompting so an obviously bad input fails fast, and so
@@ -83,7 +78,6 @@ module Onetime
           puts "Domain:       #{check.display_domain}"
           puts "Organization: #{organization.display_name || organization.extid} (#{organization.extid})"
           puts '  (adopts an existing ORPHANED record; its ownership verification is reset)' if check.claims_orphan
-          puts "Certificate:  #{cert ? 'request after create' : 'skipped (--no-cert)'}"
           puts
           print 'Create this domain? [y/N] '
           response = $stdin.gets&.strip&.downcase
@@ -107,12 +101,10 @@ module Onetime
             org_id: organization.extid,
             claimed_orphan: result.claims_orphan,
             adoption: result.adoption&.to_payload,
-            cert_status: result.cert_status,
           )
         else
           puts "Created #{result.display_domain} (#{result.extid}) for #{organization.extid}"
           print_adoption(result.adoption) if result.adoption
-          puts "  Certificate request: #{result.cert_status}" if result.cert_status
           puts
           puts "Next: bin/ots domains verify #{result.display_domain}"
         end

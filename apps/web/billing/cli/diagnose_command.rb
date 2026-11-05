@@ -198,6 +198,7 @@ module Onetime
         end
 
         puts "  Org ID:       #{org.objid}"
+        puts "  ExtID:        #{org.extid}"
         puts "  Display Name: #{org.display_name}" if org.respond_to?(:display_name)
         puts "  Is Default:   #{org.is_default}"
         puts "  Org Count:    #{org_ids.size}"

@@ -62,6 +62,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
       updated: '1760000000',
       enabled?: false,
       credential_fingerprint: 'fingerprint-checked',
+      idp_metadata_url_errors: [],
     )
   end
 
@@ -894,6 +895,28 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
       )
     end
 
+    # #4734 R2: "Save and check" is the primary check, so a pass names the
+    # Entra app registration settings the admin confirms by hand, as Test
+    # Connection does.
+    it 'names the app registration settings to confirm by hand when it passes' do
+      stub_discovery_ok
+
+      discovery = check(run, 'discovery')
+
+      expect(discovery[:status]).to eq('passed')
+      expect(discovery[:details][:manual_checks]).to eq(%w[remove_unverified_email_claim xms_edov_optional_claim])
+      expect(discovery[:details][:note]).to eq(described_class::ENTRA_MANUAL_CHECKS[:note])
+    end
+
+    it 'keeps the manual checks out of the audit event' do
+      stub_discovery_ok
+
+      run
+
+      expect(audited.first.inspect).not_to include('manual_checks')
+      expect(audited.first.inspect).not_to include('remove_unverified_email_claim')
+    end
+
     it 'fails on a missing document' do
       stub_discovery(discovery_result(:not_found, http_status: 404))
 
@@ -901,6 +924,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
 
       expect(check(result, 'discovery')).to include(status: 'failed')
       expect(check(result, 'discovery')[:details]).to include(error_code: 'discovery_not_found', http_status: 404)
+      expect(check(result, 'discovery')[:details]).not_to have_key(:manual_checks)
       expect(result[:overall]).to eq('failed')
     end
 
@@ -1068,6 +1092,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
       expect(result[:checks].map { it[:check] }).to eq(%w[stored_configuration discovery credential])
       expect(discovery_fetcher).to have_received(:fetch).with('https://idp.example.com/.well-known/openid-configuration')
       expect(check(result, 'discovery')[:status]).to eq('passed')
+      expect(check(result, 'discovery')[:details]).not_to have_key(:manual_checks)
       expect(check(result, 'credential')).to include(
         status: 'unsupported',
         message: 'There is no safe credential probe for a generic OIDC provider. ' \
@@ -1143,6 +1168,22 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
 
       it 'fails with invalid_certificate' do
         expect(check(run, 'certificate')[:details]).to eq(error_code: 'invalid_certificate')
+      end
+    end
+
+    # Where the trio was imported from, not a login input: the record's own
+    # validation reports it, the check that gates activation does not.
+    context 'when the stored idp_metadata_url cannot be read' do
+      let(:url_error) { 'idp_metadata_url cannot be read (re-enter or clear the value)' }
+      let(:validation_errors) { [url_error] }
+
+      before { allow(sso_config).to receive(:idp_metadata_url_errors).and_return([url_error]) }
+
+      it 'passes stored_configuration and the run' do
+        result = run
+
+        expect(check(result, 'stored_configuration')[:status]).to eq('passed')
+        expect(result[:overall]).to eq('passed')
       end
     end
   end

@@ -12,7 +12,9 @@ module Onetime
 
       desc 'Stripe Sigma analytics commands'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         puts <<~HELP
           Stripe Sigma Analytics:
 

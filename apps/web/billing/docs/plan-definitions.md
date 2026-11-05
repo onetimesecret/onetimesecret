@@ -28,7 +28,7 @@ Loaded from `etc/billing.yaml`.
 - **`manage_sso`**: Single sign-on configuration and management
 - **`custom_signin_config`**: Per-domain sign-in configuration (allowed methods, SSO provider settings)
 - **`custom_signup_validation`**: Per-domain signup validation strategy (passthrough, allowlist, MX, SMTP)
-- **`base_domain_signup`**: Admit the custom domain's own base domain to its signup allowlist automatically. No plan grants it by default, and it takes effect only while `ORGS_BASE_DOMAIN_SIGNUP_ENABLED` is on
+- **`base_domain_signup`**: Admit the custom domain's own base domain to its signup allowlist automatically
 
 ### Branding
 

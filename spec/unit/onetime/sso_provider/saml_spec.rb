@@ -14,7 +14,7 @@
 #                            (site.host); custom-domain fallback never rebinds it
 #   .cert_problem            the STRUCTURAL half of the IdP certificate rule:
 #                            exactly one PEM CERTIFICATE block and nothing
-#                            else (the validity-window half, allow_expired
+#                            else (the validity-window half, stored: true
 #                            and the builder are covered in registry_spec)
 #
 # RUN (always via the lane runner — see AGENTS.md):
@@ -153,6 +153,41 @@ RSpec.describe Onetime::SsoProvider::Saml do
       allow(Onetime::AuthConfig).to receive(:origin_from_url).and_raise(RuntimeError, 'boom')
 
       expect(described_class.sso_url_problem('https://idp.example.com/sso')).to eq(described_class::SSO_URL_ORIGIN_PROBLEM)
+    end
+  end
+
+  describe '.entity_id_problem' do
+    let(:placeholder) { described_class::ENTITY_ID_PLACEHOLDER_PROBLEM }
+
+    it 'accepts URL and URN EntityIDs, including the issuer Entra actually sends' do
+      [
+        'https://idp.example.com/saml/metadata',
+        'urn:example:idp',
+        'https://sts.windows.net/00000000-1111-2222-3333-444444444444/',
+      ].each { expect(described_class.entity_id_problem(it)).to be_nil, it }
+    end
+
+    it 'refuses a brace-delimited template placeholder' do
+      [
+        'https://sts.windows.net/{tenantid}/',
+        'https://idp.example.com/{{tenant}}/metadata',
+        'https://idp.example.com/${id}',
+        'urn:idp:{}',
+      ].each { expect(described_class.entity_id_problem(it)).to eq(placeholder), it }
+    end
+
+    it 'does not echo the value in the problem' do
+      expect(described_class.entity_id_problem('https://idp.example.com/{secret-detail}/')).not_to include('secret-detail')
+    end
+
+    it 'leaves a lone brace to the other rules' do
+      expect(described_class.entity_id_problem('https://idp.example.com/{tenant')).to be_nil
+    end
+
+    it 'skips only the placeholder rule with stored: true' do
+      expect(described_class.entity_id_problem('https://sts.windows.net/{tenantid}/', stored: true)).to be_nil
+      expect(described_class.entity_id_problem(' {tenantid}', stored: true))
+        .to eq('IdP EntityID has leading or trailing whitespace')
     end
   end
 
@@ -303,6 +338,11 @@ RSpec.describe Onetime::SsoProvider::Saml do
       expect { described_class.strategy_options_for(**trio, name_id_format: 'invalid') }.to raise_error(ArgumentError, /NameID/)
     end
 
+    it 'refuses to build options for a templated EntityID' do
+      expect { described_class.strategy_options_for(**trio, idp_entity_id: 'https://sts.windows.net/{tenantid}/') }
+        .to raise_error(ArgumentError, described_class::ENTITY_ID_PLACEHOLDER_PROBLEM)
+    end
+
     # A transient NameID is a fresh value per login; without a uid attribute
     # to key on, every sign-in would be refused (:saml_transient_name_id), so
     # the POLICY is refused where it is configured. The tenant surface never
@@ -345,7 +385,7 @@ RSpec.describe Onetime::SsoProvider::Saml do
       cert.public_key = key
       cert.sign(OpenSSL::PKey::RSA.new(2048), OpenSSL::Digest.new('SHA256'))
       expect(described_class.cert_problem(cert.to_pem)).to include('RSA public key')
-      expect(described_class.cert_problem(cert.to_pem, allow_expired: true, allow_unsupported_key: true)).to be_nil
+      expect(described_class.cert_problem(cert.to_pem, stored: true)).to be_nil
     end
 
     it 'caches parsing but rechecks both validity bounds on every call' do

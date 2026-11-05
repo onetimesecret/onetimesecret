@@ -140,7 +140,7 @@ gem 'ruby-saml', '= 1.18.1'
 
 # Web server and middleware
 gem 'puma', '>= 6.0', '< 8.0'
-gem 'rack', '>= 3.2.6', '< 4.0'
+gem 'rack', '>= 3.2.8', '< 4.0'
 gem 'rack-contrib', '~> 2.5.0'
 # Mounted directly in MiddlewareStack (JSON/form body parsing); was transitive via otto < 2.10.
 gem 'rack-parser', '~> 0.7'
@@ -154,6 +154,15 @@ gem 'rack-utf8_sanitizer', '~> 1.11'
 
 # HTTP client
 gem 'httparty'
+
+# DNS resolution. resolv is a default gem, so without this line the app runs
+# the copy bundled with Ruby: 0.7.1 in Ruby 3.4.10, which is affected by
+# CVE-2026-80212 (memory exhaustion from malicious DNS responses) and
+# CVE-2026-80213 (hostname validation bypass). Both are fixed in 0.7.2. The
+# SSO issuer SSRF check and the egress guard resolve tenant-supplied hosts.
+# Kept on the 0.7 line, which Ruby 3.4.11 and later bundle; drop this line
+# once .ruby-version is a Ruby that bundles resolv >= 0.7.2.
+gem 'resolv', '~> 0.7.2'
 
 # JSON and data validation
 gem 'json_schemer'

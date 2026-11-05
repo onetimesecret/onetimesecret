@@ -106,8 +106,11 @@ RSpec.describe 'after_verify_account with verify_account loaded by webauthn_veri
     verified = customer
     expect(verified.verified?).to be(true)
     expect(verified.verified_by).to eq('email')
+    # Not held to the customer's own address: only the verification link
+    # redeemed in simple auth mode asks for that
+    # (SetCustomerVerification.record_mailbox_proof).
     expect(Auth::Operations::EnsureDefaultWorkspace).to have_received(:claim_pending_federation_for)
-      .with(an_object_having_attributes(extid: verified.extid))
+      .with(an_object_having_attributes(extid: verified.extid), own_address_only: false)
 
     # What the operator tooling reads: no pending verification for the account.
     diagnosis = Auth::Operations::Customers::Diagnose.new(customer: verified).call

@@ -50,15 +50,18 @@ def last_response; @test.last_response; end
 @colonel = Onetime::Customer.create!(email: "colonel_lcs_#{@timestamp}@example.com")
 @colonel.role = 'colonel'
 @colonel.verified = 'true'
+@colonel.verified_by = 'email'
 @colonel.save
 
 @regular = Onetime::Customer.create!(email: "regular_lcs_#{@timestamp}@example.com")
 @regular.verified = 'true'
+@regular.verified_by = 'email'
 @regular.save
 
 # The customer whose sessions the colonel lists.
 @target = Onetime::Customer.create!(email: "target_lcs_#{@timestamp}@example.com")
 @target.verified = 'true'
+@target.verified_by = 'email'
 @target.save
 @extid = @target.extid
 

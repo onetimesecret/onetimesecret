@@ -41,6 +41,13 @@
  *    decrypt is served as null AND named there, and the UI must render an
  *    error state demanding re-entry — never treat that null as "unset".
  *
+ * 6. SAML metadata source: idp_metadata_url is the IdP metadata URL the
+ *    trio was imported from (docs/specs/sso/saml-idp-metadata-consumption.md,
+ *    Phase 1). Plaintext and encrypted at rest like the trio (so it can be
+ *    named in `unreadable_fields`), but NOT one of the trio: not in
+ *    SSO_SAML_FIELDS, not a login input, and never part of a connection
+ *    test or of credential-check evidence.
+ *
  * @module contracts/custom-domain/sso-config
  * @category Contracts
  * @see {@link "shapes/domains/sso-config"} - Shapes with transforms
@@ -312,6 +319,16 @@ export const customDomainSsoConfigCanonical = z.object({
    * `unreadable_fields`.
    */
   idp_cert: z.string().nullable(),
+
+  /**
+   * The SAML IdP metadata URL the stored trio was imported from, or null
+   * when none was recorded. Plaintext; 'saml' only, null otherwise. Not a
+   * login input: sign-in reads the trio alone, and nothing fetches this URL
+   * on its own. A null that is also named in `unreadable_fields` means
+   * UNREADABLE, not unset. Nullish so a record served by an API that
+   * predates the key still parses (rolling deploy).
+   */
+  idp_metadata_url: z.string().nullish(),
   name_id_format: z.string().nullish(),
   callback_origins: z.array(z.string()).nullish(),
 
@@ -348,8 +365,9 @@ export const customDomainSsoConfigCanonical = z.object({
 
   /**
    * Names of encrypted fields whose reveal FAILED (any of client_id,
-   * client_secret, idp_sso_service_url, idp_entity_id, idp_cert). Empty for
-   * a healthy record. A listed field is served as null; the UI must render
+   * client_secret, idp_sso_service_url, idp_entity_id, idp_cert,
+   * idp_metadata_url). Empty for a healthy record. A listed field is
+   * served as null; the UI must render
    * an error state and demand re-entry, because a trust anchor that will not
    * decrypt is exactly what the domain-bound AAD exists to catch.
    */
@@ -361,6 +379,23 @@ export const customDomainSsoConfigCanonical = z.object({
    * Empty array means no domain restriction.
    */
   allowed_domains: z.array(z.string()),
+
+  /**
+   * The organization's proven email namespaces (#4734): display_domain of
+   * every custom domain whose ownership is proven (TXT check, or Colonel
+   * override; under passthrough only an override counts), sorted. Tenant SSO
+   * creates an account only for an address inside one of them. Read-only;
+   * optional for rolling deploys.
+   */
+  verified_email_domains: z.array(z.string()).optional(),
+
+  /**
+   * Saved allowlist entries that lie outside every proven domain, as stored
+   * (#4734). Sign-in creates no new accounts for such an entry until the
+   * domain is proven.
+   * Read-only; optional for rolling deploys.
+   */
+  unverified_allowed_domains: z.array(z.string()).optional(),
 
   /**
    * Whether app-side domain filtering is recommended for this provider.
@@ -478,6 +513,23 @@ const samlPayloadFields = {
     .optional(),
 };
 
+/**
+ * Request-side SAML metadata source (idp_metadata_url): the IdP metadata URL
+ * the submitted trio was imported from. Optional and saml only (the API
+ * clears it for every other provider type). It is not one of the trio, so
+ * the strict PUT schema does not require it. A nonblank value must be an
+ * https:// URL; the API also refuses credentials, fragments and hosts its
+ * SSRF check rejects, which the client cannot mirror. An unchanged stored
+ * value is accepted as it is.
+ */
+const idpMetadataUrlRequestSchema = z.union([
+  z
+    .string()
+    .url('Metadata URL must be a valid URL')
+    .startsWith('https://', 'Metadata URL must be an https:// URL'),
+  z.literal(''),
+]);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // PATCH payload schema (partial update - all fields optional)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -533,6 +585,13 @@ export const patchSsoConfigPayloadSchema = z.object({
    * preserves the stored value; switching TO saml needs all three.
    */
   ...samlPayloadFields,
+
+  /**
+   * SAML metadata source. Key presence is the signal: an absent key keeps
+   * the stored URL, a present '' or null clears it, and a nonblank value
+   * replaces it.
+   */
+  idp_metadata_url: idpMetadataUrlRequestSchema.nullable().optional(),
 
   /** Email domain allowlist. Empty array means no restriction. */
   allowed_domains: z.array(z.string()).optional(),
@@ -599,6 +658,9 @@ export const putSsoConfigPayloadSchema = z.object({
 
   /** SAML trio (#4450). Required for saml — enforced by the strict schema. */
   ...samlPayloadFields,
+
+  /** SAML metadata source. Optional; blank or absent clears it (PUT replaces). */
+  idp_metadata_url: idpMetadataUrlRequestSchema.optional(),
 
   /** Email domain allowlist. Empty array means no restriction. */
   allowed_domains: z.array(z.string()).optional(),

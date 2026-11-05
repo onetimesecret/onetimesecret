@@ -17,6 +17,10 @@ Background on the two modes and how strategies resolve lives in
   the shared SSO provider registry.
 - [per-domain-sso.md](./per-domain-sso.md) — Configuring SSO scoped to a custom
   domain, including the organization-join flow.
+- [tenant-connect-authorization.md](./tenant-connect-authorization.md) —
+  Why a tenant SSO callback alone cannot attach an identity to an existing
+  account, and the membership and surface-scoped session controls the
+  Connect pipeline requires before it binds one.
 - [saml-policy.md](./saml-policy.md) — NameID policies, tenant callback-origin
   exceptions, and certificate compatibility and recovery.
 - [webauthn-credential-types.md](./webauthn-credential-types.md) — Supported

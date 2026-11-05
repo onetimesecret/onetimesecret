@@ -7,11 +7,12 @@
 # the Approximated-era vhost state stored on the CustomDomain record.
 #
 # Background:
-#   Under the `approximated` strategy every custom domain gets a vhost on
-#   Approximated's cluster (VerifyDomain / Domains::Create store the API's
-#   `data` object verbatim in the `vhost` field). After a cutover the remote
-#   vhost keeps existing (billable, and still able to terminate TLS for the
-#   hostname if DNS points there). CaddyOnDemandStrategy replaces stale UI
+#   Under the `approximated` strategy a custom domain gets a vhost on
+#   Approximated's cluster once it is verified (VerifyDomain stores the API's
+#   `data` object verbatim in the `vhost` field; records added before vhost
+#   creation moved to verification got one when added). After a cutover the
+#   remote vhost keeps existing (billable, and still able to terminate TLS for
+#   the hostname if DNS points there). CaddyOnDemandStrategy replaces stale UI
 #   fields with its current probe data and marks that blob as still requiring
 #   Approximated cleanup. An ordinary `source: tls_probe` blob is not vhost
 #   state; one carrying the cleanup marker is.

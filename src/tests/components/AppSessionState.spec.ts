@@ -2,7 +2,8 @@
 //
 // #4460 / #4465 / #4461 at the root component: protected content is withheld
 // while the session cannot be verified, the stale-session notice is
-// persistent, and one session transition produces exactly one message.
+// persistent, and one session transition produces exactly one message. Also
+// the layout root's `lang`, which follows the active locale.
 
 import App from '@/App.vue';
 import { useAuthStore } from '@/shared/stores/authStore';
@@ -12,7 +13,7 @@ import { SESSION_TRANSITION_KEY } from '@/utils/sessionTransition';
 import { createTestingPinia } from '@pinia/testing';
 import { mount } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { defineComponent, h, markRaw, nextTick, reactive } from 'vue';
+import { defineComponent, h, markRaw, nextTick, reactive, ref } from 'vue';
 
 const route = reactive<{ meta: Record<string, unknown>; name: string; fullPath: string }>({
   meta: {},
@@ -25,9 +26,12 @@ vi.mock('vue-router', async (importOriginal) => ({
   useRoute: () => route,
 }));
 
+// The active locale App.vue reads; a ref, as useI18n() returns it.
+const activeLocale = ref('en');
+
 vi.mock('vue-i18n', async (importOriginal) => ({
   ...(await importOriginal<typeof import('vue-i18n')>()),
-  useI18n: () => ({ t: (key: string) => key, locale: { value: 'en' } }),
+  useI18n: () => ({ t: (key: string) => key, locale: activeLocale }),
 }));
 
 vi.mock('@/shared/composables/useBrandTheme', () => ({ useBrandTheme: vi.fn() }));
@@ -71,7 +75,23 @@ function mountApp(status: 'authenticated' | 'unavailable' | 'checking' | 'anonym
 }
 
 describe('App: session state at the root', () => {
-  beforeEach(() => sessionStorage.clear());
+  beforeEach(() => {
+    sessionStorage.clear();
+    activeLocale.value = 'en';
+  });
+
+  describe('layout lang', () => {
+    it('carries the active locale as a BCP 47 tag and follows a switch', async () => {
+      activeLocale.value = 'pt_BR';
+      const { wrapper } = mountApp('anonymous', false);
+
+      expect(wrapper.find('main').attributes('lang')).toBe('pt-BR');
+
+      activeLocale.value = 'bg';
+      await nextTick();
+      expect(wrapper.find('main').attributes('lang')).toBe('bg');
+    });
+  });
 
   describe('protected content while verification is unavailable (#4460)', () => {
     it('renders the protected page when authenticated', () => {
@@ -144,6 +164,9 @@ describe('App: session state at the root', () => {
     });
   });
 
+  // The notice is queued, not shown over whatever is up: the app mounts after
+  // the initial navigation, whose guards may already have raised a notice
+  // (an org-role refusal), and that one must not be replaced.
   describe('one transition, one message (#4461)', () => {
     it.each(['ended', 'replaced'] as const)('announces a parked `%s` once and removes it', (kind) => {
       sessionStorage.setItem(SESSION_TRANSITION_KEY, kind);
@@ -151,8 +174,14 @@ describe('App: session state at the root', () => {
       mountApp('anonymous', false);
       const notifications = useNotificationsStore();
 
-      expect(notifications.show).toHaveBeenCalledTimes(1);
-      expect(notifications.show).toHaveBeenCalledWith(`web.auth.session.${kind}`, 'info', 'top', 10000);
+      expect(notifications.enqueue).toHaveBeenCalledTimes(1);
+      expect(notifications.enqueue).toHaveBeenCalledWith(
+        `web.auth.session.${kind}`,
+        'info',
+        'top',
+        10000
+      );
+      expect(notifications.show).not.toHaveBeenCalled();
       expect(sessionStorage.getItem(SESSION_TRANSITION_KEY)).toBeNull();
     });
 
@@ -162,12 +191,14 @@ describe('App: session state at the root', () => {
 
       mountApp('anonymous', false);
 
+      expect(useNotificationsStore().enqueue).not.toHaveBeenCalled();
       expect(useNotificationsStore().show).not.toHaveBeenCalled();
     });
 
     it('says nothing on an ordinary page load', () => {
       mountApp('authenticated', true);
 
+      expect(useNotificationsStore().enqueue).not.toHaveBeenCalled();
       expect(useNotificationsStore().show).not.toHaveBeenCalled();
     });
   });
