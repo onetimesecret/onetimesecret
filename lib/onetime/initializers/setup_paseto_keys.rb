@@ -18,8 +18,17 @@ module Onetime
     # keeping it unconditional lets the operator flag change at runtime (and
     # lets tests flip it per example) without a second boot.
     #
+    # Without a secret there is nothing to derive from, and the boot goes on
+    # without a keyring rather than stopping here: Onetime::Config.after_load
+    # admits an empty site.secret under development.allow_nil_global_secret
+    # (with its warning), and bearer tokens are an optional feature that must
+    # not take that boot down. The gap is closed at request time, not open:
+    # Onetime::Paseto.keyring raises KeyringUnavailable, which
+    # PasetoAuthStrategy answers with a terminal refusal of every presented
+    # token and POST /api/v3/token with a 500, never a token.
+    #
     # Runtime state set:
-    # - Onetime::Runtime.security.paseto_keyring
+    # - Onetime::Runtime.security.paseto_keyring (nil when no secret is set)
     #
     class SetupPasetoKeys < Onetime::Boot::Initializer
       @depends_on = [:logging, :secrets]
@@ -27,7 +36,12 @@ module Onetime
 
       def execute(_context)
         secret = OT.conf.dig('site', 'secret')
-        raise Onetime::Problem, 'site.secret not set or empty' if secret.to_s.empty?
+        if secret.to_s.empty?
+          Onetime::Runtime.update_security(paseto_keyring: nil)
+          OT.boot_logger.warn 'PASETO keyring not derived: site.secret is empty; ' \
+                              'bearer tokens cannot be issued or verified until SECRET is set'
+          return
+        end
 
         keyring = Onetime::Paseto::Keyring.derive(secret, ENV.fetch('SECRET_PREVIOUS', nil))
         Onetime::Runtime.update_security(paseto_keyring: keyring)

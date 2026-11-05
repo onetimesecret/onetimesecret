@@ -56,9 +56,29 @@ RSpec.describe Onetime::Initializers::SetupPasetoKeys do
     expect(kids).to include(Onetime::Paseto::Keyring.derive('feedface' * 8).signing_key.kid)
   end
 
-  it 'refuses to run without a secret, like ConfigureFamilia' do
-    allow(OT).to receive(:conf).and_return({ 'site' => { 'secret' => '' } })
-    expect { initializer.execute(nil) }.to raise_error(Onetime::Problem, /site.secret/)
+  it 'derives nothing without a secret and lets the boot continue, failing closed at request time' do
+    # development.allow_nil_global_secret admits an empty site.secret
+    # (Onetime::Config.after_load); an optional feature's initializer must
+    # not turn that boot into a failure. The strategy answers every
+    # presented token with a terminal refusal while the keyring is missing.
+    Onetime::Runtime.update_security(paseto_keyring: Onetime::Paseto::Keyring.derive('stale' * 13))
+    boot_logger = instance_double(SemanticLogger::Logger, warn: nil, debug: nil)
+    allow(OT).to receive_messages(conf: { 'site' => { 'secret' => '' } }, boot_logger: boot_logger)
+
+    expect { initializer.execute(nil) }.not_to raise_error
+    expect(boot_logger).to have_received(:warn).with(/site.secret is empty/)
+    expect(Onetime::Runtime.security.paseto_keyring).to be_nil
+    expect { Onetime::Paseto.keyring }.to raise_error(Onetime::Paseto::KeyringUnavailable)
+  end
+
+  it 'treats a nil site.secret the same as an empty one' do
+    allow(OT).to receive_messages(
+      conf: { 'site' => {} },
+      boot_logger: instance_double(SemanticLogger::Logger, warn: nil, debug: nil),
+    )
+
+    expect { initializer.execute(nil) }.not_to raise_error
+    expect(Onetime::Runtime.security.paseto_keyring).to be_nil
   end
 
   it 'Onetime::Paseto.keyring names the missing initializer when nothing was derived' do

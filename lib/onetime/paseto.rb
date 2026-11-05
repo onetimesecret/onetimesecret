@@ -34,7 +34,10 @@ module Onetime
     # a client acts on it differently (mint a new token, no alarm).
     class TokenExpired < InvalidClaims; end
 
-    # The boot did not derive a keyring (SetupPasetoKeys has not run).
+    # The boot did not derive a keyring: SetupPasetoKeys has not run, or it
+    # ran with an empty site.secret (development.allow_nil_global_secret)
+    # and derived nothing. PasetoAuthStrategy refuses every presented token
+    # on it, so the gap is closed, not open.
     class KeyringUnavailable < Error; end
 
     # The audience the v3 API issues and accepts. A token minted here is
@@ -46,7 +49,7 @@ module Onetime
       # @raise [KeyringUnavailable]
       def keyring
         Onetime::Runtime.security.paseto_keyring ||
-          raise(KeyringUnavailable, 'PASETO keyring not derived; SetupPasetoKeys has not run')
+          raise(KeyringUnavailable, 'PASETO keyring not derived: SetupPasetoKeys has not run, or site.secret was empty')
       end
 
       # The `iss` claim: the deployment's canonical host. Each region (and
