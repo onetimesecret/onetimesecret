@@ -365,14 +365,29 @@ RSpec.describe Onetime::Mail::Delivery::SMTP do
         expect(settings).not_to include(:user_name, :password, :authentication)
       end
 
+      # A ConfigurationError, not an ArgumentError: EmailWorker reads
+      # ArgumentError as a malformed message and dead-letters it, and an
+      # unsupported SMTP_AUTH fails every message until it is fixed.
       it 'rejects an unsupported auth method when the backend is built' do
         expect { described_class.new(config.merge(credentials).merge('auth' => 'ntlm')) }
-          .to raise_error(ArgumentError, /Unsupported SMTP auth method "ntlm".*plain, login, cram_md5/)
+          .to raise_error(
+            Onetime::Mail::ConfigurationError, /Unsupported SMTP auth method "ntlm".*plain, login, cram_md5/
+          ) do |err|
+            expect(err.provider).to eq('smtp')
+            expect(err).not_to be_a(ArgumentError)
+          end
       end
 
       it 'does not fall back to PLAIN for an unsupported auth method' do
         expect { described_class.new(config.merge(credentials).merge('auth' => false)) }
-          .to raise_error(ArgumentError, /Unsupported SMTP auth method "false"/)
+          .to raise_error(Onetime::Mail::ConfigurationError, /Unsupported SMTP auth method "false"/)
+      end
+
+      it 'rejects an unsupported SMTP_AUTH from the environment when the backend is built' do
+        allow(ENV).to receive(:fetch).with('SMTP_AUTH', nil).and_return('ntlm')
+
+        expect { described_class.new(config.merge(credentials)) }
+          .to raise_error(Onetime::Mail::ConfigurationError, /Unsupported SMTP auth method "ntlm"/)
       end
 
       it 'ignores the auth setting when no credentials are configured' do

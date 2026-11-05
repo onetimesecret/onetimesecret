@@ -196,8 +196,13 @@ module Onetime
         # #4889. A fallback would also send the password with a mechanism
         # the operator did not choose.
         #
+        # The value is install configuration, not part of the message, so it
+        # raises ConfigurationError and EmailWorker holds the message until
+        # the setting is fixed (EmailWorker#hold_misconfigured).
+        #
         # @return [Symbol] :plain, :login or :cram_md5
-        # @raise [ArgumentError] when the value names no supported mechanism
+        # @raise [Onetime::Mail::ConfigurationError] when the value names no
+        #   supported mechanism
         def resolve_authentication
           raw = config['auth']
           raw = ENV.fetch('SMTP_AUTH', nil) if raw.nil?
@@ -206,9 +211,8 @@ module Onetime
           return DEFAULT_AUTH_METHOD if value.empty?
 
           AUTH_METHODS.fetch(value) do
-            raise ArgumentError,
-              "Unsupported SMTP auth method #{raw.to_s.inspect} (SMTP_AUTH); " \
-              'expected one of: plain, login, cram_md5. Unset it to use plain.'
+            config_error! "Unsupported SMTP auth method #{raw.to_s.inspect} (SMTP_AUTH); " \
+                          'expected one of: plain, login, cram_md5. Unset it to use plain.'
           end
         end
 

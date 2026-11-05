@@ -5,13 +5,15 @@
 # Tests for Onetime::Mail::ConfigurationError, raised when the install's
 # delivery backend cannot be built from its configuration.
 #
-# A missing SMTP host or missing provider credentials describes the install,
-# not the message. EmailWorker reads ArgumentError as a malformed message and
-# dead-letters it, so the backends must not raise ArgumentError for this.
+# A missing SMTP host, missing provider credentials or an unsupported
+# SMTP_AUTH describes the install, not the message. EmailWorker reads
+# ArgumentError as a malformed message and dead-letters it, so the backends
+# must not raise ArgumentError for this.
 #
 # Covers:
 # - ConfigurationError is neither an ArgumentError nor a DeliveryError
-# - every backend's validate_config! raises it with the provider name
+# - every backend's validate_config! raises it with the provider name,
+#   including SMTP's check of an unsupported SMTP_AUTH
 # - Mailer.validate_delivery_config! raises it for a missing SMTP host and
 #   does not memoize a backend
 
@@ -41,8 +43,9 @@ end
 
 # Build a backend and return the ConfigurationError it raises, or nil.
 @config_error_from = ->(klass, config) do
-  saved = %w[SMTP_HOST AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY SENDGRID_API_KEY
-             LETTERMINT_API_TOKEN SMTP2GO_API_KEY].to_h { |key| [key, ENV.delete(key)] }
+  saved = %w[SMTP_HOST SMTP_USERNAME SMTP_PASSWORD SMTP_AUTH AWS_ACCESS_KEY_ID
+             AWS_SECRET_ACCESS_KEY SENDGRID_API_KEY LETTERMINT_API_TOKEN
+             SMTP2GO_API_KEY].to_h { |key| [key, ENV.delete(key)] }
   klass.new(config)
   nil
 rescue Onetime::Mail::ConfigurationError => ex
@@ -98,6 +101,12 @@ ex = @config_error_from.call(Onetime::Mail::Delivery::Smtp2go, {})
 ## SMTP with a host builds
 @config_error_from.call(Onetime::Mail::Delivery::SMTP, { 'host' => 'smtp.example.com' })
 #=> nil
+
+## SMTP with credentials and an unsupported auth method raises ConfigurationError naming smtp
+smtp_config = { 'host' => 'smtp.example.com', 'username' => 'u', 'password' => 'p', 'auth' => 'ntlm' }
+ex          = @config_error_from.call(Onetime::Mail::Delivery::SMTP, smtp_config)
+[ex.class, ex.provider, ex.message.start_with?('Unsupported SMTP auth method "ntlm"')]
+#=> [Onetime::Mail::ConfigurationError, 'smtp', true]
 
 ## Mailer.validate_delivery_config! raises ConfigurationError for mode smtp with a blank host
 result = nil

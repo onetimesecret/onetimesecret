@@ -4,9 +4,10 @@ Fixed
 -----
 
 - A mail delivery backend that cannot be built from its configuration (no
-  SMTP host, missing SES, SendGrid, Lettermint or SMTP2GO credentials) no
-  longer reports each queued email as ``Invalid message format`` and sends
-  it to the dead-letter queue. The email worker logs
+  SMTP host, an unsupported ``SMTP_AUTH`` with SMTP credentials set, missing
+  SES, SendGrid, Lettermint or SMTP2GO credentials) no longer reports each
+  queued email as ``Invalid message format`` and sends it to the
+  dead-letter queue. The email worker logs
   ``Mail configuration error (provider: smtp): SMTP host must be configured``
   instead, keeps the message on ``email.message.send`` and tries it again
   every 15 seconds, so the emails go out once a worker starts with a

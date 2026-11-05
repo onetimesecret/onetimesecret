@@ -174,17 +174,28 @@ RSpec.describe Onetime::Mail::Mailer do
       expect(described_class.delivery_backend).to be_a(Onetime::Mail::Delivery::SMTP)
     end
 
-    # e.g. a backend check that still raises ArgumentError (an unsupported
-    # SMTP_AUTH, onetimesecret/onetimesecret#4890)
+    # e.g. a backend check that raises ArgumentError instead of calling
+    # config_error!
     it 'reports an ArgumentError from the backend constructor as ConfigurationError' do
       emailer['host'] = 'smtp.example.com'
       allow(Onetime::Mail::Delivery::SMTP).to receive(:new)
-        .and_raise(ArgumentError, 'Unsupported SMTP auth method "ntlm" (SMTP_AUTH)')
+        .and_raise(ArgumentError, 'SMTP port must be a number')
+
+      expect { described_class.delivery_backend }
+        .to raise_error(Onetime::Mail::ConfigurationError, 'SMTP port must be a number') do |err|
+          expect(err.provider).to eq('smtp')
+          expect(err.cause).to be_a(ArgumentError)
+        end
+    end
+
+    # Through the real SMTP backend (onetimesecret/onetimesecret#4890).
+    it 'raises ConfigurationError naming smtp for an unsupported auth method' do
+      emailer.merge!('host' => 'smtp.example.com', 'user' => 'smtp-user', 'pass' => 'smtp-pass', 'auth' => 'ntlm')
 
       expect { described_class.delivery_backend }
         .to raise_error(Onetime::Mail::ConfigurationError, /Unsupported SMTP auth method "ntlm"/) do |err|
           expect(err.provider).to eq('smtp')
-          expect(err.cause).to be_a(ArgumentError)
+          expect(err.cause).to be_nil
         end
     end
 
@@ -592,7 +603,7 @@ RSpec.describe Onetime::Mail::Mailer do
           creds = described_class.provider_credentials('smtp').merge('username' => 'u', 'password' => 'p')
 
           expect { Onetime::Mail::Delivery::SMTP.new(creds) }
-            .to raise_error(ArgumentError, /Unsupported SMTP auth method "false"/)
+            .to raise_error(Onetime::Mail::ConfigurationError, /Unsupported SMTP auth method "false"/)
         end
       end
 

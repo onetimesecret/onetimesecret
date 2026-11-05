@@ -590,6 +590,42 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
           expect(worker).not_to have_received(:log_error).with(/Invalid message format/, any_args)
         end
       end
+
+      # Through the real mailer: SMTP credentials are set and the auth
+      # setting names no supported mechanism (onetimesecret/onetimesecret#4890).
+      context 'when SMTP_AUTH is unsupported' do
+        let(:message) do
+          JSON.generate(
+            raw: true,
+            email: { to: 'test@example.com', from: 'sender@example.com', subject: 'Hello', body: 'Body' },
+          )
+        end
+        let(:config_log_line) do
+          'Mail configuration error (provider: smtp): Unsupported SMTP auth method "ntlm" (SMTP_AUTH); ' \
+            'expected one of: plain, login, cram_md5. Unset it to use plain.'
+        end
+
+        before do
+          allow(Onetime::Mail).to receive(:deliver_raw).and_call_original
+          allow(Onetime::Mail::Mailer).to receive(:emailer_config).and_return(
+            'mode' => 'smtp', 'host' => 'smtp.example.com', 'user' => 'smtp-user', 'pass' => 'smtp-pass', 'auth' => 'ntlm',
+          )
+          Onetime::Mail::Mailer.reset!
+        end
+
+        after { Onetime::Mail::Mailer.reset! }
+
+        it 'requeues the message instead of rejecting it, and logs a mail configuration error' do
+          settled = worker.work_with_params(message, delivery_info, metadata)
+
+          expect(settled).to eq(:requeue)
+          expect(worker.rejected?).to be false
+          expect(worker).to have_received(:pause_misconfigured).once
+          expect(worker).to have_received(:log_error).with(config_log_line, message_id: message_id)
+          expect(worker).not_to have_received(:log_error).with(/Invalid message format/, any_args)
+          expect(recorded).to be_empty
+        end
+      end
     end
 
     context 'with missing template' do
