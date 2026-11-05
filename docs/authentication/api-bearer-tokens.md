@@ -108,10 +108,12 @@ server's debug log with the token's `kid` and `jti`, never the token itself.
 A request with no `Authorization` header, or with another scheme, is not a
 bearer refusal: the rest of the route's chain answers it.
 
-`POST /api/v3/token` has two refusals of its own: `403` with
-`code: BEARER_TOKENS_DISABLED` while the feature is off, and `503` with
-`reason: credential_watermark_ahead` in the clock-skew case described under
-[Revocation and rotation](#revocation-and-rotation).
+`POST /api/v3/token` has refusals of its own. It answers `403` while the
+feature is off (`code: BEARER_TOKENS_DISABLED`), when the caller is a bearer
+token rather than a session or API key, when a colonel is impersonating the
+customer, and when the account lacks the `api_access` entitlement. It
+answers `503` with `reason: credential_watermark_ahead` in the clock-skew
+case described under [Revocation and rotation](#revocation-and-rotation).
 
 ## Revocation and rotation
 
@@ -125,8 +127,9 @@ every request:
   requested in the same second as the change is issued one second past the
   watermark, so it works at once instead of being refused for its whole life.
   That push is bounded by the verifier's clock-skew allowance (60 seconds):
-  when the watermark was stamped by a node whose clock leads the minting
-  node by more than that, `POST /api/v3/token` answers `503` with
+  when the watermark is 60 seconds or more ahead of the minting node's
+  clock (stamped by a node whose clock leads by that much, so the push
+  would land past the allowance), `POST /api/v3/token` answers `503` with
   `error_type: TemporarilyUnavailable`, `reason: credential_watermark_ahead`
   and a `Retry-After` header instead of issuing a token every verifier would
   refuse, and logs a warning naming the lead (a clock-skew signal for the

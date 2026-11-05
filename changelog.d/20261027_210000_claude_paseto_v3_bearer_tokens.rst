@@ -13,8 +13,9 @@ Added
   and ``/api/v3/version``. Tokens cannot mint further tokens, and are refused
   once the account is suspended, its password changes or its API key is
   rotated (``POST /api/account/apitoken``), the last without signing the
-  browser session out. When the account's credential watermark is further
-  ahead of the issuing node's clock than the verifier's 60-second allowance,
+  browser session out. When the account's credential watermark is 60 seconds
+  or more ahead of the issuing node's clock (the verifier's allowance, which
+  the one-second push past the watermark would then exceed),
   ``POST /api/v3/token`` answers ``503`` with ``Retry-After``
   (``reason: credential_watermark_ahead``) instead of issuing a token no
   verifier would accept. The signing key is

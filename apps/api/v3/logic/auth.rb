@@ -115,9 +115,10 @@ module V3
         #
         # The push forward is bounded by the verifier's clock-skew allowance
         # (AccessToken::CLOCK_SKEW): a verifier refuses an `iat` further ahead
-        # of its own clock than that, so a watermark stamped by a node whose
-        # clock leads this one by more than the allowance cannot be issued
-        # past. Clamping would not help (`iat <= watermark` is refused as
+        # of its own clock than that, so a watermark that is the allowance or
+        # more ahead of this node's clock (stamped by a node whose clock leads
+        # by that much) cannot be issued past. Clamping would not help
+        # (`iat <= watermark` is refused as
         # retired), so the mint refuses instead of returning a token that
         # every verifier rejects: 503 with Retry-After, and a warning naming
         # the lead, which is a clock-skew signal for the operator.
