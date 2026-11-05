@@ -56,10 +56,9 @@ require 'argon2'
 #   fallback below respond with duplicate_signup_success_response — the exact
 #   response a FRESH signup returns (create_account_response), including the
 #   billing-redirect JSON parity keys. A duplicate sends no email, verified
-#   or not, and leaves an unverified account's verification key alone: a
-#   signup attempt should not mail the verification link of an account whose
-#   password the requester did not set. The address owner can use Resend
-#   (verify-account-resend, or the resend view the login refusal offers).
+#   or not, and leaves an unverified account's verification key alone. The
+#   address owner can use Resend (verify-account-resend, or the resend view
+#   the login refusal offers).
 #
 # L-6 (unlock-account-request): stock Rodauth answers 200 "email sent" for a
 #   locked account and 401 "No matching login" for a non-existent OR
@@ -326,10 +325,8 @@ module Auth::Config::Overrides
       # (require_response enforces the halt).
       #
       # Sends no email and writes nothing, whatever the existing account's
-      # status: a signup attempt should not mail the verification link of an
-      # account whose password the requester did not set. The address owner
-      # can use Resend. The response is built from this request's own
-      # new-account hash, never from the existing row.
+      # status. The address owner can use Resend. The response is built from
+      # this request's own new-account hash, never from the existing row.
       #
       # SECURITY: the generic-success treatment applies ONLY to the HTTP
       # create-account route. Under internal_request (current_route is nil —

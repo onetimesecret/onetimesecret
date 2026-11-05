@@ -95,9 +95,8 @@ module Auth::Config::Hooks
         # config/overrides/account_enumeration.rb) answers with the SAME
         # generic success a fresh signup returns and HALTS; no account row is
         # written and no email is sent, whether or not the existing account
-        # is verified: a signup attempt should not mail the verification link
-        # of an account whose password the requester did not set. The address
-        # owner can use Resend. Under internal_request (e.g. the invite flow's
+        # is verified. The address owner can use Resend. Under
+        # internal_request (e.g. the invite flow's
         # Auth::Config.create_account) the helper fails CLOSED: it raises
         # Rodauth::InternalRequestError exactly as the old error-throw here
         # did, so internal callers can never mistake a duplicate for a fresh

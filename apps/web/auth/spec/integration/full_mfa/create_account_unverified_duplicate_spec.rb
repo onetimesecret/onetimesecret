@@ -11,10 +11,8 @@
 # the response a fresh sign-up gets (audit 2026-08-02 M-2,
 # config/overrides/account_enumeration.rb and the before_create_account
 # duplicate branch in config/hooks/account.rb). For an unverified account it
-# sends nothing and leaves the verification key alone: a sign-up attempt
-# should not mail the verification link of an account whose password the
-# requester did not set. The address owner can use Resend
-# (POST /auth/verify-account-resend), which still mails.
+# sends nothing and leaves the verification key alone. The address owner can
+# use Resend (POST /auth/verify-account-resend), which still mails.
 #
 # FEATURE GATE: verify_account is one-shot per process and on only in the
 # full-mfa lane (tests/lanes/full-mfa/env, AUTH_VERIFY_ACCOUNT_ENABLED=true).
