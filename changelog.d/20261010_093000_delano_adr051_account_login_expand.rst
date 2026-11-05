@@ -22,4 +22,4 @@ Added
   start in full mode against a database that has applied it, so rolling
   back past this release needs the auth schema migrated down first, with
   this release's migration files. The down migration drops only the four
-  new columns and the login index.
+  new columns and the login index. (#4744)

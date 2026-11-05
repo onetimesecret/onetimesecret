@@ -18,7 +18,8 @@
 #                           until M016/M017 and the N+1 binary ship.
 #   email_verified_at       when mailbox control was established for the
 #   email_verified_by       CURRENT email value, by which path (one of
-#                           Auth::Operations::Customers::Doctor::VALID_VERIFIED_BY),
+#                           Onetime::Customer::MAILBOX_VERIFIED_BY: the backfill
+#                           records mailbox proof only, see §3.1),
 #   email_verification_hold or why an IdP-asserted address was deliberately
 #                           left unverified (Onetime::Customer::VERIFICATION_HOLDS).
 #                           Mutually exclusive with email_verified_at.
