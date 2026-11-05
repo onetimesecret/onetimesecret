@@ -8,7 +8,7 @@ Release evidence covers [creation commit](01-creation-commit.md), [creation fail
 
 ## Requirements
 
-- Stable V3 supports existing sessions and explicitly permitted guests only; external tokens are excluded.
+- Stable V3 supports existing sessions and explicitly permitted guests; the one external token is the operator-gated PASETO bearer token (`auth.paseto.enabled`, off by default), issued by `POST /api/v3/token` to a session or API key and accepted on the authenticated secret routes. Other external tokens are excluded.
 - Accepted inputs, aliases and defaults remain unchanged except for the explicitly approved method redesign. Destructive GETs are removed from the stable V3 and first-party frontend surfaces before stability; migration impact includes creator one-time display and affected callers. Concrete replacement routes require inspection and are not selected here.
 - Error-envelope consolidation covers V3 and first-party frontend APIs, including account, organization and domain surfaces, with the security and protocol constraints in [runtime validation](04-runtime-validation.md). V2 and Incoming remain unchanged absent an explicit separate decision.
 - General API CORS is excluded. Only explicitly configured SSO endpoints receive CORS when their protocol requires it. Apple and SAML are examples for investigation, not automatic exceptions; redirects and form POSTs alone do not require CORS.
@@ -26,6 +26,6 @@ Validation records identify the tested revision, environment, outcomes and omiss
 
 ## Exclusions and unresolved implementation details
 
-External tokens (including PASETO), wider access, general API CORS, automatic mutation retries, a recovery service and a new complex cleanup framework are excluded. [AGENTS.md](../../../AGENTS.md) states: “Changes that widen access, including on error paths, require explicit operator approval.”
+External tokens other than the operator-gated PASETO bearer token ([api-bearer-tokens](../../authentication/api-bearer-tokens.md), off by default), wider access, general API CORS, automatic mutation retries, a recovery service and a new complex cleanup framework are excluded. [AGENTS.md](../../../AGENTS.md) states: “Changes that widen access, including on error paths, require explicit operator approval.”
 
 Implementation inspection resolves required registrations and persistence evidence, cleanup discovery/settings, exact envelope field mappings, replacement methods/routes and migration impact, operation schemas and non-revealing refresh, and any protocol-specific SSO CORS need. These details do not reopen the approved direction or authorize unrelated input/default changes.

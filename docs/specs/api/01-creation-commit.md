@@ -4,7 +4,7 @@ Status: Direction approved by the user in conversation; not evidence of implemen
 
 ## Purpose and scope
 
-Stable V3 supports existing session authentication and explicitly permitted guest operations only; external tokens are excluded. Secret creation has one commit boundary: a complete encrypted secret/receipt pair with trusted ownership, provenance, domain metadata and expiration.
+Stable V3 supports existing session authentication, explicitly permitted guest operations, and the operator-gated PASETO bearer token (`auth.paseto.enabled`, off by default; see [api-bearer-tokens](../../authentication/api-bearer-tokens.md)); other external tokens are excluded. Secret creation has one commit boundary: a complete encrypted secret/receipt pair with trusted ownership, provenance, domain metadata and expiration.
 
 ## Requirements
 
