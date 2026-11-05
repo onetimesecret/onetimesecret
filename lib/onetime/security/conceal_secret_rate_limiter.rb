@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/models/colonel_audit_event'
+require 'onetime/security/no_client_ip'
 
 module Onetime
   module Security
@@ -153,7 +154,9 @@ module Onetime
       # @return [void]
       def enforce_conceal_secret_rate_limit!(client_ip)
         return unless conceal_secret_rate_limit_enabled?
-        return unless (keys = conceal_secret_ip_keys(client_ip))
+
+        subject = Onetime::Security::NoClientIp.subject_for(client_ip)
+        keys    = conceal_secret_ip_keys(subject)
 
         allowed, detail = conceal_secret_redis.eval(
           CHECK_AND_RECORD_SCRIPT,
@@ -173,14 +176,19 @@ module Onetime
         if count >= conceal_secret_max_per_ip
           # This cap-reaching request was itself ALLOWED (the Lua script locks
           # after incrementing); the lockout applies to subsequent requests.
-          obscured = obscured_conceal_secret_ip(client_ip)
+          obscured = obscured_conceal_secret_ip(subject)
+          hint     = if Onetime::Security::NoClientIp.bucket?(subject)
+                       Onetime::Security::NoClientIp.bucket_hint
+                     else
+                       collapsed_conceal_secret_ip_hint
+                     end
           OT.le "[ConcealSecretRateLimiter] ip #{obscured} " \
                 "hit cap (#{count}/#{conceal_secret_max_per_ip}); " \
                 "locked for #{conceal_secret_lockout}s" \
-                "#{collapsed_conceal_secret_ip_hint}"
+                "#{hint}"
           record_conceal_secret_throttle_audit(obscured, count)
         elsif count >= conceal_secret_max_per_ip - 1
-          OT.li "[ConcealSecretRateLimiter] ip #{obscured_conceal_secret_ip(client_ip)} " \
+          OT.li "[ConcealSecretRateLimiter] ip #{obscured_conceal_secret_ip(subject)} " \
                 "at #{count}/#{conceal_secret_max_per_ip} creations"
         end
       end
@@ -219,19 +227,17 @@ module Onetime
         OT.le('[ConcealSecretRateLimiter] audit record failed', exception: ex)
       end
 
-      # Composite per-IP keys, or nil when no IP is available.
-      #
-      # Skipping is correct rather than fail-closed here: a blank suffix would
-      # build ONE key shared by every IP-less caller, so the first few would lock
-      # the bucket and every later one would be denied — a global creation outage
-      # driven by whatever made the IP unresolvable. Same rationale as
-      # CreateAccountRateLimiter#create_account_ip_keys.
+      # Composite per-IP keys. A blank IP keys the shared {NoClientIp::BUCKET},
+      # for the reason given on CreateAccountRateLimiter#create_account_ip_keys:
+      # since otto 2.13 a client-written non-address X-Forwarded-For entry
+      # leaves the request with no client IP, and skipping would switch this
+      # single-tier cap off from the request it caps.
       def conceal_secret_ip_keys(client_ip)
-        return nil if client_ip.to_s.empty?
+        subject = Onetime::Security::NoClientIp.subject_for(client_ip)
 
         {
-          attempts: "create_secret:attempts:ip:#{client_ip}",
-          lockout: "create_secret:locked:ip:#{client_ip}",
+          attempts: "create_secret:attempts:ip:#{subject}",
+          lockout: "create_secret:locked:ip:#{subject}",
         }
       end
 
@@ -272,6 +278,8 @@ module Onetime
       # prefix. The resolved value never reaches logs.
       def obscured_conceal_secret_ip(client_ip)
         value = client_ip.to_s
+        return value if Onetime::Security::NoClientIp.bucket?(value)
+
         parts = value.split('.')
         return "#{parts[0]}.#{parts[1]}.x.x" if parts.length == 4
 

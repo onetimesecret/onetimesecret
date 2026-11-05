@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/no_client_ip'
+
 module Onetime
   module Security
     # FeedbackRateLimiter - Prevents feedback endpoint abuse
@@ -10,9 +12,16 @@ module Onetime
     # After MAX_SUBMISSIONS within RATE_WINDOW, further submissions
     # are rejected for LOCKOUT_DURATION.
     #
+    # Single tier, IP only. A submission with no client IP (otto 2.13 leaves a
+    # request without one when the trusted X-Forwarded-For chain ends in a
+    # non-address entry the client wrote) is charged to the shared
+    # {NoClientIp::BUCKET}; skipping it would switch the only cap on this
+    # public endpoint off from the request it caps.
+    #
     # Redis keys:
     #   - feedback:submissions:{ip} - Counter (expires with RATE_WINDOW)
     #   - feedback:locked:{ip}      - Lockout flag (expires with LOCKOUT_DURATION)
+    #   {ip} is the masked client IP, or `no-client-ip` for the shared bucket.
     #
     # Usage:
     #   include Onetime::Security::FeedbackRateLimiter
@@ -58,11 +67,12 @@ module Onetime
       # Check if feedback submissions are rate limited for an IP.
       # Raises LimitExceeded if the IP is locked out due to too many submissions.
       #
-      # @param ip_address [String] The submitter's IP address
+      # @param ip_address [String, nil] The submitter's IP address, or nil when
+      #   the request has none (charged to the shared bucket)
       # @raise [Onetime::LimitExceeded] If rate limit is exceeded
       # @return [void]
       def check_feedback_rate_limit!(ip_address)
-        return if ip_address.to_s.empty?
+        ip_address = Onetime::Security::NoClientIp.subject_for(ip_address)
 
         lockout_key     = feedback_lockout_key(ip_address)
         submissions_key = feedback_submissions_key(ip_address)
@@ -95,10 +105,11 @@ module Onetime
       # Record a feedback submission for an IP.
       # After MAX_SUBMISSIONS, creates a lockout that blocks further submissions.
       #
-      # @param ip_address [String] The submitter's IP address
+      # @param ip_address [String, nil] The submitter's IP address, or nil when
+      #   the request has none (charged to the shared bucket)
       # @return [Integer] Current submission count after increment
       def record_feedback_submission!(ip_address)
-        return 0 if ip_address.to_s.empty?
+        ip_address = Onetime::Security::NoClientIp.subject_for(ip_address)
 
         submissions_key = feedback_submissions_key(ip_address)
         lockout_key     = feedback_lockout_key(ip_address)
@@ -119,10 +130,11 @@ module Onetime
 
       # Clear rate limit state for an IP (admin / colonel reset path)
       #
-      # @param ip_address [String] The submitter's IP address
+      # @param ip_address [String, nil] The submitter's IP address; blank clears
+      #   the shared no-client-IP bucket
       # @return [void]
       def clear_feedback_rate_limit!(ip_address)
-        return if ip_address.to_s.empty?
+        ip_address = Onetime::Security::NoClientIp.subject_for(ip_address)
 
         feedback_redis.del(
           feedback_submissions_key(ip_address),
@@ -144,6 +156,8 @@ module Onetime
       # in operational output. IPv4 keeps the /16; IPv6 keeps the first
       # nine characters (roughly the routed prefix).
       def obscured_ip(ip_address)
+        return ip_address.to_s if Onetime::Security::NoClientIp.bucket?(ip_address)
+
         parts = ip_address.to_s.split('.')
         if parts.length == 4
           "#{parts[0]}.#{parts[1]}.x.x"
