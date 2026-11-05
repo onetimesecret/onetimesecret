@@ -13,7 +13,7 @@ require_relative File.join(Onetime::HOME, 'spec', 'support', 'model_test_helper.
 RSpec.describe V1::Logic::Secrets::ShowSecret do
   let(:session) { double('Session') }
   let(:customer) { double('Onetime::Customer', anonymous?: false, custid: 'cust123', objid: 'cust_obj123', increment_field: nil ) }
-  let(:owner) { double('Owner', custid: 'owner123', verified?: false, anonymous?: false, increment_field: nil ) }
+  let(:owner) { double('Owner', custid: 'owner123', verified?: false, mailbox_verified?: false, anonymous?: false, increment_field: nil ) }
 
   let(:secret) do
     double('Onetime::Secret',
@@ -91,6 +91,114 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
         expect(secret).to have_received(:revealed!).with(
           actor_context: { 'actor' => 'anonymous' },
         )
+      end
+    end
+
+    # The verification branch (#4735, #4754 review round 3). v1 is doubles
+    # only, so the shared stamp is observed at its seam: the operation must be
+    # built with the owner, verified: true, the 'email' provenance, the claim
+    # run only for a link sent to the owner's current address and held to
+    # that address, and called. Its own behaviour (the claim, the full-mode
+    # skip) is covered in
+    # apps/web/auth/spec/operations/set_customer_verification_spec.rb and the
+    # v2 integration specs, both address checks in
+    # apps/web/auth/spec/operations/ensure_default_workspace_federation_spec.rb.
+    context 'when the secret is a verification secret' do
+      let(:verification_op) { instance_double(Auth::Operations::SetCustomerVerification, call: :success) }
+
+      before do
+        allow(secret).to receive(:viewable?).and_return(true)
+        allow(secret).to receive(:has_passphrase?).and_return(false)
+        allow(secret).to receive(:can_decrypt?).and_return(true)
+        allow(secret).to receive(:decrypted_secret_value).and_return('decoded_secret')
+        allow(secret).to receive(:truncated?).and_return(false)
+        allow(secret).to receive(:original_size).and_return(100)
+        allow(secret).to receive(:revealed!).and_return(true)
+        allow(secret).to receive(:verification).and_return('true')
+        allow(secret).to receive(:owner?).with(customer).and_return(false)
+        # The emailed link is opened by an anonymous caller; the v1 controllers
+        # pass no session (sess is nil in the logic).
+        allow(customer).to receive(:anonymous?).and_return(true)
+        allow(owner).to receive(:mailbox_proof_secret?).with(secret).and_return(true)
+        allow(owner).to receive(:extid).and_return('ur_owner123')
+        allow(owner).to receive(:email).and_return('owner@example.com')
+        # The welcome link was sent to the owner's current address.
+        allow(secret).to receive(:delivered_to?).with('owner@example.com').and_return(true)
+        allow(secret).to receive(:delivery_digest).and_return('digest-of-current-address')
+        allow(Auth::Operations::SetCustomerVerification).to receive(:new).and_return(verification_op)
+      end
+
+      subject { described_class.new(nil, customer, base_params) }
+
+      it 'stamps the owner through the verification operation, then reveals' do
+        subject.process
+
+        expect(Auth::Operations::SetCustomerVerification).to have_received(:new).with(
+          customer: owner, verified: true, verified_by: 'email',
+          claim_pending_federation: true, claim_own_address_only: true
+        ).ordered
+        expect(verification_op).to have_received(:call).ordered
+        expect(secret).to have_received(:revealed!).ordered
+        expect(subject.show_secret).to be true
+        expect(subject.secret_value).to eq('decoded_secret')
+      end
+
+      # A link sent to another address (before an operator changed the
+      # owner's) proves only that mailbox: the stamp is written as before,
+      # without the claim.
+      it 'builds the operation without the claim for a link sent to another address' do
+        allow(secret).to receive(:delivered_to?).with('owner@example.com').and_return(false)
+        allow(Auth::Operations::SetCustomerVerification).to receive(:auth_logger)
+          .and_return(double('AuthLogger', info: nil))
+
+        subject.process
+
+        expect(Auth::Operations::SetCustomerVerification).to have_received(:new).with(
+          customer: owner, verified: true, verified_by: 'email',
+          claim_pending_federation: false, claim_own_address_only: true
+        )
+        expect(verification_op).to have_received(:call)
+        expect(secret).to have_received(:revealed!)
+      end
+
+      it 'does not build the operation for a secret that is not mailbox proof' do
+        allow(owner).to receive(:mailbox_proof_secret?).with(secret).and_return(false)
+
+        subject.process
+
+        expect(Auth::Operations::SetCustomerVerification).not_to have_received(:new)
+        expect(secret).to have_received(:revealed!)
+        expect(subject.show_secret).to be true
+      end
+
+      # A link minted in simple mode and followed after a switch to full auth
+      # mode: Rodauth owns verification there, so the shared stamp builds no
+      # operation (no SQL is reached) and the reveal still proceeds. The owner
+      # double answers no writer, so a stamp written anyway would raise.
+      it 'reveals without building the operation in full auth mode' do
+        allow(Onetime.auth_config).to receive(:mode).and_return('full')
+        auth_logger = double('AuthLogger', info: nil)
+        allow(Auth::Operations::SetCustomerVerification).to receive(:auth_logger).and_return(auth_logger)
+
+        subject.process
+
+        expect(Auth::Operations::SetCustomerVerification).not_to have_received(:new)
+        expect(verification_op).not_to have_received(:call)
+        expect(secret).to have_received(:revealed!)
+        expect(subject.show_secret).to be true
+        expect(subject.secret_value).to eq('decoded_secret')
+        expect(auth_logger).to have_received(:info).with(
+          /redeemed in full auth mode; Rodauth owns account verification there/,
+          { customer: 'ur_owner123' },
+        )
+      end
+
+      it 'raises when the caller is logged in as a different user' do
+        allow(customer).to receive(:anonymous?).and_return(false)
+
+        expect { subject.process }.to raise_error(Onetime::FormError, /already logged in/)
+        expect(Auth::Operations::SetCustomerVerification).not_to have_received(:new)
+        expect(secret).not_to have_received(:revealed!)
       end
     end
 

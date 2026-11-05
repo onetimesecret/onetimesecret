@@ -98,6 +98,12 @@ export interface TestSsoConnectionResponse {
      */
     token_endpoint_auth_method_supported?: boolean | null;
     note?: string;
+    /**
+     * Entra ID (#4734): app registration settings this test cannot read and
+     * the admin confirms by hand. Ids: `remove_unverified_email_claim`,
+     * `xms_edov_optional_claim`.
+     */
+    manual_checks?: string[];
     // Success details (SAML, #4450). The test is LOCAL — the IdP is not
     // contacted — so what it reports is what it parsed: the trio as
     // submitted and the certificate's subject / expiry.
@@ -212,6 +218,12 @@ export interface SsoDiagnosticCheck {
     secret_shape?: string;
     /** Caveats about what the check does and does not prove. */
     note?: string;
+    /**
+     * discovery (entra_id, passed; #4734): app registration settings the
+     * check cannot read and the admin confirms by hand. Same ids as
+     * TestSsoConnectionResponse.details.manual_checks.
+     */
+    manual_checks?: string[];
   };
 }
 

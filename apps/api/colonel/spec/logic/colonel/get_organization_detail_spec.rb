@@ -27,7 +27,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetOrganizationDetail do
   let(:colonel) do
     instance_double(Onetime::Customer,
       objid: 'cust_colonel', extid: 'ur_colonel', email: 'colonel@example.com',
-      role: 'colonel', verified?: true, anonymous?: false)
+      role: 'colonel', verified?: true, mailbox_verified?: true, anonymous?: false)
   end
 
   let(:org) do

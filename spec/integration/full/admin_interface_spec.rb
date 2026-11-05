@@ -42,7 +42,7 @@ RSpec.describe 'Admin Interface', type: :integration do
     Onetime::Customer.create!(
       email: "colonel@example.com",
       role: 'colonel',
-      verified: 'true'
+      verified: 'true', verified_by: 'email'
     )
   end
 
@@ -50,7 +50,7 @@ RSpec.describe 'Admin Interface', type: :integration do
     Onetime::Customer.create!(
       email: "user@example.com",
       role: 'customer',
-      verified: 'true'
+      verified: 'true', verified_by: 'email'
     )
   end
 
@@ -286,7 +286,7 @@ RSpec.describe 'Admin Interface', type: :integration do
           Onetime::Customer.create!(
             email: "user#{i}@example.com",
             role: 'customer',
-            verified: 'true'
+            verified: 'true', verified_by: 'email'
           )
         end
       end
@@ -315,7 +315,7 @@ RSpec.describe 'Admin Interface', type: :integration do
         Onetime::Customer.create!(
           email: "admin@example.com",
           role: 'admin',
-          verified: 'true'
+          verified: 'true', verified_by: 'email'
         )
 
         get '/api/colonel/users?role=admin'
@@ -521,7 +521,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       test_user = Onetime::Customer.create!(
         email: 'plantest@example.com',
         role: 'customer',
-        verified: 'true'
+        verified: 'true', verified_by: 'email'
       )
 
       # Change plan through admin panel

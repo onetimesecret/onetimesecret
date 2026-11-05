@@ -24,7 +24,7 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::PutSenderConfig do
       objid: 'owner123',
       extid: 'ext-owner123',
       anonymous?: false,
-      verified?: true,
+      verified?: true, mailbox_verified?: true,
     )
   end
 

@@ -73,7 +73,7 @@ RSpec.describe V2::Logic::Secrets::ListReceipts do
       email: 'caller@example.com',
       # has_system_role?('colonel') — reached by require_entitlement_in! —
       # short-circuits on the unverified check before touching #role.
-      verified?: false,
+      verified?: false, mailbox_verified?: false,
     )
   end
 

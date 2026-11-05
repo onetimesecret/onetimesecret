@@ -25,7 +25,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListSecretActivity do
       extid: 'ext-cust-123',
       email: 'admin@example.com',
       anonymous?: false,
-      verified?: true,
+      verified?: true, mailbox_verified?: true,
       role: 'customer',
       'role?': false
     )

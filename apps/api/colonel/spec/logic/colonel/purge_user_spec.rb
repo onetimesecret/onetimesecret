@@ -23,13 +23,13 @@ RSpec.describe ColonelAPI::Logic::Colonel::PurgeUser do
   let(:colonel) do
     instance_double(Onetime::Customer,
       objid: 'cust_colonel', extid: 'ur_colonel', email: 'colonel@example.com',
-      role: 'colonel', verified?: true, anonymous?: false)
+      role: 'colonel', verified?: true, mailbox_verified?: true, anonymous?: false)
   end
 
   let(:customer) do
     instance_double(Onetime::Customer,
       objid: 'cust_plain', extid: 'ur_plain',
-      role: 'customer', verified?: true, anonymous?: false)
+      role: 'customer', verified?: true, mailbox_verified?: true, anonymous?: false)
   end
 
   let(:target) do
@@ -162,7 +162,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::PurgeUser do
     let(:colonel_victim) do
       instance_double(Onetime::Customer,
         objid: 'cust_last', extid: 'ur_last', email: 'boss@example.com',
-        role: 'colonel', verified?: true, exists?: true, anonymous?: false)
+        role: 'colonel', verified?: true, mailbox_verified?: true, exists?: true, anonymous?: false)
     end
 
     def purge_colonel_logic(victim = colonel_victim, confirm = 'boss@example.com')
@@ -181,7 +181,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::PurgeUser do
 
     it 'allows purging a colonel when a second verified colonel exists' do
       second = instance_double(Onetime::Customer,
-        objid: 'cust_second', role: 'colonel', verified?: true, exists?: true)
+        objid: 'cust_second', role: 'colonel', verified?: true, mailbox_verified?: true, exists?: true)
       allow(Onetime::Customer).to receive(:find_all_by_role).with('colonel')
         .and_return([colonel_victim, second])
 
@@ -191,7 +191,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::PurgeUser do
     it 'allows purging an UNVERIFIED colonel-role account (not an active colonel)' do
       unverified = instance_double(Onetime::Customer,
         objid: 'cust_unver', extid: 'ur_unver', email: 'stale@example.com',
-        role: 'colonel', verified?: false, exists?: true, anonymous?: false)
+        role: 'colonel', verified?: false, mailbox_verified?: false, exists?: true, anonymous?: false)
 
       # verified? == false short-circuits before any roster read.
       expect { purge_colonel_logic(unverified, 'stale@example.com').raise_concerns }.not_to raise_error

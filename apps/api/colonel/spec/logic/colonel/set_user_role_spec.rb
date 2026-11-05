@@ -19,13 +19,13 @@ RSpec.describe ColonelAPI::Logic::Colonel::SetUserRole do
   let(:colonel) do
     instance_double(Onetime::Customer,
       objid: 'cust_colonel', extid: 'ur_colonel',
-      role: 'colonel', verified?: true, anonymous?: false)
+      role: 'colonel', verified?: true, mailbox_verified?: true, anonymous?: false)
   end
 
   let(:customer) do
     instance_double(Onetime::Customer,
       objid: 'cust_plain', extid: 'ur_plain',
-      role: 'customer', verified?: true, anonymous?: false)
+      role: 'customer', verified?: true, mailbox_verified?: true, anonymous?: false)
   end
 
   let(:target) do
@@ -115,13 +115,13 @@ RSpec.describe ColonelAPI::Logic::Colonel::SetUserRole do
     let(:colonel_target) do
       instance_double(Onetime::Customer,
         objid: 'cust_target', extid: 'ur_target', email: 'target@example.com',
-        obscure_email: 't****@example.com', role: 'colonel', verified?: true,
+        obscure_email: 't****@example.com', role: 'colonel', verified?: true, mailbox_verified?: true,
         updated: 1_700_000_000, exists?: true, anonymous?: false)
     end
 
     let(:second_colonel) do
       instance_double(Onetime::Customer,
-        objid: 'cust_other', role: 'colonel', verified?: true, exists?: true)
+        objid: 'cust_other', role: 'colonel', verified?: true, mailbox_verified?: true, exists?: true)
     end
 
     def stub_roster(*colonels)

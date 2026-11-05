@@ -24,8 +24,10 @@ module Onetime
         # A purge in that state on a full-mode install deletes the record and
         # leaves the auth account open: the next sign-in provisions a blank
         # record. The destructive customer commands refuse until the shell
-        # says which mode the install runs; inside the shipped containers the
-        # variable is always exported, so this reaches host shells only.
+        # says which mode the install runs. The shipped compose files export
+        # the variable on every service; the image sets no default, so this
+        # reaches host shells and containers started with a plain docker run
+        # and no -e AUTHENTICATION_MODE (the README quick start).
         AUTH_MODE_DEFAULTED_MESSAGE =
           'AUTHENTICATION_MODE is not set in this shell, so simple auth mode was resolved by default. ' \
           'On a full-mode install this command would delete the customer record and leave the auth ' \
