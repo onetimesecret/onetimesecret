@@ -52,10 +52,20 @@ describe('actual OpenAPI generator, without generated output writes', () => {
       const reveal = request(version, `/api/${version}/secret/{identifier}/reveal`);
       const burn = request(version, `/api/${version}/receipt/{identifier}/burn`);
       for (const schema of [reveal, burn]) {
-        expect(schema.properties.continue.anyOf.map((entry: any) => entry.type).sort()).toEqual([
-          'boolean',
-          'string',
-        ]);
+        // zod 4.6 emits a union of primitives as a type list; earlier
+        // releases emitted anyOf. Accept either shape, then check what the
+        // emitted schema admits.
+        const continueSchema = schema.properties.continue;
+        const continueTypes = continueSchema.anyOf
+          ? continueSchema.anyOf.map((entry: any) => entry.type)
+          : [continueSchema.type].flat();
+        expect(continueTypes.sort()).toEqual(['boolean', 'string']);
+        for (const value of [true, false, 'true', 'false']) {
+          expect(validatePayload(continueSchema, value)).toBe(true);
+        }
+        for (const value of [1, null, {}, []]) {
+          expect(validatePayload(continueSchema, value)).toBe(false);
+        }
         expect(schema.properties.passphrase.type).toBe('string');
       }
       expect(
