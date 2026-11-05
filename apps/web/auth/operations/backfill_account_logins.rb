@@ -579,15 +579,22 @@ module Auth
       # address and the login value; the report and the log must carry
       # neither. The address is masked as stored and as normalized, since a
       # lookup by the normalized form can raise with that form in the text.
+      #
+      # This runs on the error path, so it never raises: invalid UTF-8 is
+      # replaced first (String#gsub and #unicode_normalize both raise on it,
+      # and SQLite stores whatever bytes it is given), and anything else
+      # withholds the message rather than let the run stop at this row.
       def scrub(message, row)
-        text  = message.to_s
-        email = row[:email].to_s
+        text  = message.to_s.scrub
+        email = row[:email].to_s.scrub
         unless email.empty?
           [email, OT::Utils.normalize_email(email)].uniq.each do |form|
             text = text.gsub(form, OT::Utils.obscure_email(form))
           end
         end
         text.gsub(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/i, '<login>')
+      rescue StandardError
+        '(message withheld: it could not be scrubbed)'
       end
 
       def log_row(report)

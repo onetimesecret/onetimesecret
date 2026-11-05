@@ -484,6 +484,20 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
       expect(logged.inspect).not_to include(customer.objid)
       expect(logger).to have_received(:error).with(anything, hash_including(account_id: account_id))
     end
+
+    # The scrub runs on the error path, so it must not raise itself: an
+    # address with invalid UTF-8 (SQLite stores whatever bytes it is given)
+    # made String#gsub raise RegexpError, which escaped the rescue and
+    # stopped the run at that row.
+    it 'scrubs without raising when the address is not valid UTF-8' do
+      bad      = "inv\xFFalid-#{run}@example.com".force_encoding(Encoding::UTF_8)
+      message  = "PG::UniqueViolation: Key (email)=(#{bad}) already exists"
+      scrubbed = nil
+
+      expect { scrubbed = new_operation.send(:scrub, message, { email: bad }) }.not_to raise_error
+      expect(scrubbed).to be_a(String)
+      expect(scrubbed).not_to include("alid-#{run}@example.com")
+    end
   end
 
   describe 'reports' do
