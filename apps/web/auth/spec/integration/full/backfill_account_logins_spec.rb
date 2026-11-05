@@ -280,8 +280,8 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
     end
 
     it 'says when the Customer holding the address is linked by another row' do
-      customer = create_customer(email)
-      other_id = insert_account("other-#{run}@example.com", external_id: customer.extid)
+      customer   = create_customer(email)
+      other_id   = insert_account("other-#{run}@example.com", external_id: customer.extid)
       account_id = insert_account(email, external_id: 'urdoesnotexist0000000000003')
 
       detail = row_for(new_operation.call, account_id)[:detail]
@@ -404,6 +404,7 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
       expect(row[:login]).to be_nil
       expect(row[:external_id]).to eq(other.extid)
       expect(row[:email_verified_at]).to be_nil
+
       report = row_for(result, account_id)
       expect(report[:outcome]).to eq(:error)
       expect(report[:detail]).to include('changed between scan and write')
@@ -468,7 +469,7 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
 
       logged = []
       op     = new_operation(dry_run: false)
-      logger = double('auth_logger')
+      logger = instance_double(SemanticLogger::Logger)
       allow(logger).to receive(:error) { |*args| logged << args }
       allow(op).to receive(:auth_logger).and_return(logger)
       allow(Auth::Logging).to receive(:log_operation) { |*args, **kwargs| logged << [args, kwargs] }

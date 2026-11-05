@@ -341,7 +341,7 @@ module Auth
 
         lead + "Customer #{holder.extid} holds this row's address and no row links it. The account's " \
                'next sign-in re-links the row to it. To do it now, `bin/ots customers sync-auth-accounts` ' \
-               "links a live row to the Customer whose address it holds (exactly; any case on PostgreSQL), " \
+               'links a live row to the Customer whose address it holds (exactly; any case on PostgreSQL), ' \
                'and also creates rows for Customers that have none: read its dry run, then pass --run. ' \
                'Then re-run'
       end
@@ -393,7 +393,7 @@ module Auth
             :skipped_unknown_verified_by,
             branch,
             "Customer #{customer.extid} is verified with verified_by #{unknown.inspect}, which is not one of " \
-            "Onetime::Customer::VERIFIED_BY_VALUES; not copied. Confirm the address and re-stamp it " \
+            'Onetime::Customer::VERIFIED_BY_VALUES; not copied. Confirm the address and re-stamp it ' \
             "(`bin/ots customers verify #{customer.extid}`), then re-run",
           )
         end
@@ -453,12 +453,6 @@ module Auth
         report(row, :backfilled, branch, written_detail(new_external_id, values))
       end
 
-      # A row with no Customer (the :minted branch) gets all three NULL.
-      # Rodauth status 2 alone is not mailbox evidence (ADR-051 decision 1):
-      # rodauth-omniauth opens every SSO account Verified whatever the IdP
-      # said about the address, and the hold that records an unverified
-      # claim lives only on the Customer this row does not have.
-      #
       # The write's compare-and-set: the row as scanned. Every decision
       # above was made from these four values, so a row on which any moved
       # is written nothing. A sign-in (SyncSession) or `sync-auth-accounts`
@@ -477,6 +471,12 @@ module Auth
         )
       end
 
+      # A row with no Customer (the :minted branch) gets all three NULL.
+      # Rodauth status 2 alone is not mailbox evidence (ADR-051 decision 1):
+      # rodauth-omniauth opens every SSO account Verified whatever the IdP
+      # said about the address, and the hold that records an unverified
+      # claim lives only on the Customer this row does not have.
+      #
       # @return [Hash] the three verification columns
       def verification_values(row, customer)
         values = { email_verified_at: nil, email_verified_by: nil, email_verification_hold: nil }
@@ -527,9 +527,10 @@ module Auth
             'Settle the address first (`customers doctor --repair` writes the Customer address into the row), ' \
             'then re-run'
         else
-          "the only Customer found for this row's address, #{customer.extid}, holds an address that is not " \
-            "the row's (they match only when case-folded); not linked. Decide by hand which Customer owns " \
-            'the account, then re-run'
+          "the Customer the email index returns for this row's address, #{customer.extid}, holds a " \
+            'different address (the two match only case-folded, or the index entry is stale, which ' \
+            '`bin/ots customers doctor --all` reports as email_index_mismatch); not linked. Decide by hand ' \
+            'which Customer owns the account, then re-run'
         end
       end
 

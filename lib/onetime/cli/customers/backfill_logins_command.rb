@@ -202,7 +202,7 @@ module Onetime
 
         if limit && result.last_account_id
           resume = command_line(
-            limit: limit, after_id: result.last_account_id, mint_missing: mint_missing, confirm: !result.dry_run
+            limit: limit, after_id: result.last_account_id, mint_missing: mint_missing, confirm: !result.dry_run,
           )
           lines << 'Resume with:'
           lines << "  #{resume}"
