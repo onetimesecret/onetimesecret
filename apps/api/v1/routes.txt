@@ -5,6 +5,11 @@
 # so Otto's RouteAuthWrapper doesn't try to enforce unregistered strategies.
 # The OpenAPI parser reads openapi_auth= for schema generation.
 #
+# head=reject answers HEAD with 405 and an Allow header instead of running
+# the GET handler (BaseJSONAPI::HTTPMethods::HandlerFactory, as in V2/V3).
+# The receipt GETs need it: they spend the creator's one-time display of a
+# generated value and record the one-time receipt view.
+#
 # Other attributes (content=, response=, deprecated=) are declarative
 # metadata for the otto-route-parser used in OpenAPI schema generation.
 # V1 uses response=default so Otto skips its JSONHandler pipeline (V1
@@ -27,16 +32,16 @@ POST   /secret/:key                          V1::Controllers::Index#show_secret 
 # Otto's first-match-wins dynamic routing resolves them correctly.
 GET    /receipt/recent                       V1::Controllers::Index#show_receipt_recent openapi_auth=basic response=default
 POST   /receipt/:key/burn                    V1::Controllers::Index#burn_secret  openapi_auth=basic,anonymous content=form response=default sensitive=true
-GET    /receipt/:key                         V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous response=default sensitive=true
+GET    /receipt/:key                         V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous response=default sensitive=true head=reject
 POST   /receipt/:key                         V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous content=form response=default sensitive=true
 
 # Legacy aliases — use /receipt/ paths instead
 GET    /private/recent                       V1::Controllers::Index#show_receipt_recent openapi_auth=basic response=default deprecated=true
 POST   /private/:key/burn                    V1::Controllers::Index#burn_secret  openapi_auth=basic,anonymous content=form response=default deprecated=true sensitive=true
-GET    /private/:key                         V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous response=default deprecated=true sensitive=true
+GET    /private/:key                         V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous response=default deprecated=true sensitive=true head=reject
 POST   /private/:key                         V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous content=form response=default deprecated=true sensitive=true
 
 GET    /metadata/recent                      V1::Controllers::Index#show_receipt_recent openapi_auth=basic response=default deprecated=true
 POST   /metadata/:key/burn                   V1::Controllers::Index#burn_secret  openapi_auth=basic,anonymous content=form response=default deprecated=true sensitive=true
-GET    /metadata/:key                        V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous response=default deprecated=true sensitive=true
+GET    /metadata/:key                        V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous response=default deprecated=true sensitive=true head=reject
 POST   /metadata/:key                        V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous content=form response=default deprecated=true sensitive=true
