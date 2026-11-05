@@ -341,11 +341,13 @@
 			header_up X-Geo-Country {http.request.header.X-Geo-Country}
 
 			# IP Forwarding & TRUSTED_PROXY_ENABLED security:
-			# To safely use TRUSTED_PROXY_ENABLED=true (default 'filter' mode), we must
-			# explicitly overwrite X-Forwarded-For and X-Real-IP with Caddy's resolved
-			# client IP. If we do not overwrite X-Forwarded-For, Caddy's default behavior
-			# of appending the client IP allows clients to inject/spoof arbitrary leftmost
-			# IPs into the forwarded header.
+			# Overwrite X-Forwarded-For and X-Real-IP with Caddy's resolved client IP
+			# so the application receives exactly one attested entry. Filter mode
+			# (otto 2.13+) walks X-Forwarded-For from the right and skips trusted
+			# hops, so a client-supplied leftmost entry is never selected even when
+			# Caddy appends; the overwrite keeps the chain to the one address Caddy
+			# vouches for and keeps a client-supplied `unknown` or empty entry out
+			# of it (such an entry would leave the request with no client IP).
 			#
 			# {client_ip} honours Caddy's own `trusted_proxies` setting: with none
 			# configured it equals the direct peer ({remote_host}); with a CDN's ranges

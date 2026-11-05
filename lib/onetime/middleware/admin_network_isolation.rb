@@ -830,9 +830,18 @@ module Onetime
 
       # Resolve the client IP from the trusted-proxy-aware canonical value, with
       # the same fallback the auth strategies use. Never trusts a raw header.
+      #
+      # nil when IPPrivacyMiddleware ran and found no client IP (otto 2.13,
+      # delano/otto#292: a trusted chain that reaches a non-address entry).
+      # That pass leaves otto.client_ip absent but writes otto.ip_match and
+      # otto.peer_relayed, and deletes the forwarded address headers, so
+      # re-resolving would hand back REMOTE_ADDR — the proxy — as the client.
+      # #network_allowed? normally never gets here on that path (the closure
+      # is present and denies); this keeps the fallback honest if it does.
       def resolve_client_ip(env)
         canonical = env['otto.client_ip']
         return canonical if canonical && !canonical.empty?
+        return nil if env.key?('otto.ip_match') && env.key?('otto.peer_relayed')
 
         Otto::Utils.resolve_client_ip(env, env['otto.security_config'])
       rescue StandardError => ex

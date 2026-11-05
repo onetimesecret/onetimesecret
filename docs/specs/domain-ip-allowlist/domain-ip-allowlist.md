@@ -127,7 +127,11 @@ resolution behind proxies — but no filtering primitive.
    (`via_trusted_proxy=true`, forwarded proto honored), otto#228 makes the
    key tri-state, and the depth `+1` remap off-by-one was dropped
    (PR #4028, for #4024), so depth resolves the documented client and
-   resists XFF padding.*
+   resists XFF padding. otto 2.13 (otto#292) then rewrote the filter walk
+   itself: it reads X-Forwarded-For from the right, skips trusted hops and
+   stops at the first untrusted entry, so a client-supplied leftmost entry
+   is never selected in either mode; the remaining operator duty is to list
+   every public hop in `cidrs`.*
 4. **Geo headers are trusted unconditionally** in the released 2.6.0
    (`otto-2.6.0/lib/otto/privacy/geo_resolver.rb:164-197`): `CF-IPCountry`
    et al. are honored with no trusted-proxy gate, and the built-in range

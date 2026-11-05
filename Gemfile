@@ -41,7 +41,17 @@ source 'https://rubygems.org/'
 # Onetime::Middleware::Registry::REFERRER_POLICY (#4542). JSON bodies no
 # longer override path captures in Logic classes, and a Logic class can take
 # the router's captures as `route_params:` (delano/otto#285).
-gem 'otto', '~> 2.12'
+# 2.13 floor: filter-mode client IP resolution walks X-Forwarded-For from the
+# right and skips trusted hops (delano/otto#292), so a client-supplied leftmost
+# entry is never selected; every proxy hop must be in the trusted set, and a
+# non-address entry leaves the request with no client IP (otto.client_ip
+# absent, otto.ip_match fail-closed) — AuthStrategies::Helpers#client_ip and
+# AdminNetworkIsolation#resolve_client_ip honor that marker. RouteAuthWrapper
+# no longer replaces a middleware-installed env['rack.session']
+# (delano/otto#298); HEAD requests get the GET route's headers with an empty
+# body (delano/otto#294); secrets held by Otto objects print as [REDACTED]
+# (delano/otto#300).
+gem 'otto', '~> 2.13'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
 # rodauth comes from the onetimesecret fork, pinned to a commit: upstream

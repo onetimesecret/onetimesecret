@@ -45,6 +45,44 @@ that decision consistently.
   where client-supplied metadata is discarded and which hop supplies the
   values the application consumes. Recheck trust ranges when topology changes.
 
+## Client IP resolution
+
+With `site.network.trusted_proxy` enabled in `filter` mode, the client IP is
+read from `X-Forwarded-For` from the right: the hop nearest the application
+first, skipping every entry that is a trusted proxy, stopping at the first
+that is not. Entries to the left of that one were supplied by the client and
+are never selected. The private, loopback and link-local ranges are always
+trusted; a hop with a public address (a CDN edge, a cloud load balancer) is
+trusted only when it is listed in `trusted_proxy.cidrs`.
+
+- **List every hop.** A proxy between the client and the application that is
+  not in the trusted set is the client IP for every request through it.
+  Per-IP rate limits and bans collapse onto that address, and the admin
+  network gate judges it. Include CDN egress ranges and load balancer
+  addresses, and recheck the list when the topology changes.
+- **Have each proxy append.** Each hop should append the address it received
+  the request from to `X-Forwarded-For` (nginx:
+  `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`), or replace
+  a client-supplied value. An edge that
+  overwrites the header with the single address it resolved is also correct.
+  A proxy that sets only `X-Real-IP` must also write `X-Forwarded-For`:
+  `X-Real-IP` and `X-Client-IP` are read only when `X-Forwarded-For` is absent
+  or blank.
+- **A non-address entry means no client IP.** When the walk reaches an entry
+  that is not an IP address (`unknown`, an empty field, a trailing comma, a
+  range written with a prefix), the request has no client IP: the per-IP rate
+  limiters skip it, the admin network CIDR gate denies it, and sessions and
+  audit records carry no address. The application does not fall back to the
+  proxy's own address. Configure the proxy that writes such an entry to append
+  the real peer address instead.
+- **Vendor headers are not a source.** `CF-Connecting-IP`, `True-Client-IP`
+  and similar headers are never read for the client IP, and with IP privacy on
+  they are rewritten to the masked client IP before application code runs.
+
+`depth` mode counts hops from the right instead of matching addresses and is
+unchanged by the above, except that an invalid selected entry likewise leaves
+the request with no client IP rather than resolving to the peer.
+
 ## Set public metadata at the proxy
 
 Prefer preserving the public `Host` when the proxy permits it. If the proxy

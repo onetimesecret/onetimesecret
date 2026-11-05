@@ -4,6 +4,7 @@
 
 require 'spec_helper'
 require 'otto'
+require 'onetime/application/auth_strategies/helpers'
 
 # Parity regression for onetimesecret#3436.
 #
@@ -65,6 +66,106 @@ RSpec.describe 'IP privacy / trusted-proxy parity (#3436)' do
       build_mount.call(env)
 
       expect(captured[:env]['otto.client_ip']).to eq('10.0.0.0')
+    end
+
+    # otto 2.13 (delano/otto#292): the filter walk reads X-Forwarded-For from
+    # the RIGHT, skipping trusted hops, and stops at the first entry that is
+    # not one. Entries left of it are client-supplied. otto 2.12 took the
+    # LEFTMOST untrusted entry, which the client controls when the proxy
+    # appends — the shape .env.reference used to require operators to defeat
+    # by overwriting X-Forwarded-For at the edge.
+    it 'never selects a forged leftmost XFF entry when the private proxy appends' do
+      # Client sends X-Forwarded-For: 9.9.9.9; the ingress appends the real
+      # peer. chain = [9.9.9.9, 203.0.113.42], REMOTE_ADDR = trusted hop.
+      env = {
+        'REMOTE_ADDR' => '10.244.10.5',
+        'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 203.0.113.42',
+      }
+
+      build_mount.call(env)
+
+      expect(captured[:env]['otto.client_ip']).to eq('203.0.113.0')
+    end
+
+    it 'treats an unlisted public hop as the client (every hop must be trusted)' do
+      # CDN edge 198.51.100.7 appended itself after the visitor but is not in
+      # site.network.trusted_proxy.cidrs: the walk stops at it. Under 2.12 the
+      # leftmost entry won and the missing hop went unnoticed.
+      env = {
+        'REMOTE_ADDR' => '10.244.10.5',
+        'HTTP_X_FORWARDED_FOR' => '203.0.113.42, 198.51.100.7',
+      }
+
+      build_mount.call(env)
+
+      expect(captured[:env]['otto.client_ip']).to eq('198.51.100.0')
+    end
+
+    it 'resolves the visitor once the public hop is listed in cidrs' do
+      stub_trusted_proxy('enabled' => true, 'mode' => 'filter', 'cidrs' => ['198.51.100.0/24'])
+      env = {
+        'REMOTE_ADDR' => '10.244.10.5',
+        'HTTP_X_FORWARDED_FOR' => '203.0.113.42, 198.51.100.7',
+      }
+
+      build_mount.call(env)
+
+      expect(captured[:env]['otto.client_ip']).to eq('203.0.113.0')
+    end
+
+    it 'reads X-Real-IP only when X-Forwarded-For is absent', :aggregate_failures do
+      # 2.12 concatenated X-Real-IP onto the X-Forwarded-For chain; 2.13 reads
+      # the first non-blank header of the family and ignores the rest.
+      env = {
+        'REMOTE_ADDR' => '10.244.10.5',
+        'HTTP_X_FORWARDED_FOR' => '203.0.113.42',
+        'HTTP_X_REAL_IP' => '9.9.9.9',
+      }
+
+      build_mount.call(env)
+
+      expect(captured[:env]['otto.client_ip']).to eq('203.0.113.0')
+      # Rewritten to the masked address, so nothing downstream reads 9.9.9.9.
+      expect(captured[:env]['HTTP_X_REAL_IP']).to eq('203.0.113.0')
+    end
+
+    # A trusted proxy that writes a non-address where the client belongs
+    # (`unknown`, an empty field) ends the walk with NO client IP. 2.12 fell
+    # back to REMOTE_ADDR and made the private proxy the client — exempt
+    # from masking, and the address otto.ip_match then tested.
+    context 'when the trusted chain reaches a non-address entry' do
+      let(:env) do
+        {
+          'REMOTE_ADDR' => '10.244.10.5',
+          'HTTP_X_FORWARDED_FOR' => 'unknown',
+          'HTTP_X_REAL_IP' => '203.0.113.42',
+        }
+      end
+
+      before { build_mount.call(env) }
+
+      it "leaves env['otto.client_ip'] absent and REMOTE_ADDR as received", :aggregate_failures do
+        expect(captured[:env]).not_to have_key('otto.client_ip')
+        expect(captured[:env]['REMOTE_ADDR']).to eq('10.244.10.5')
+      end
+
+      it 'installs a fail-closed otto.ip_match and records the pass in otto.peer_relayed', :aggregate_failures do
+        expect(captured[:env]['otto.ip_match'].call(['0.0.0.0/0'])).to be(false)
+        expect(captured[:env]).to have_key('otto.peer_relayed')
+      end
+
+      it 'deletes the forwarded address headers', :aggregate_failures do
+        expect(captured[:env]).not_to have_key('HTTP_X_FORWARDED_FOR')
+        expect(captured[:env]).not_to have_key('HTTP_X_REAL_IP')
+      end
+
+      # The app-side fallbacks (AuthStrategies::Helpers#client_ip, mirrored by
+      # AdminNetworkIsolation#resolve_client_ip) recognise that pass and return
+      # nil instead of re-resolving the proxy as the client.
+      it 'resolves to no client IP in AuthStrategies::Helpers#client_ip' do
+        helpers = Class.new { include Onetime::Application::AuthStrategies::Helpers }.new
+        expect(helpers.send(:client_ip, captured[:env])).to be_nil
+      end
     end
   end
 

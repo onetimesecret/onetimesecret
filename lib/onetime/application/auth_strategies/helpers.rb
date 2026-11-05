@@ -151,20 +151,44 @@ module Onetime
         # contract holds even without the full stack. Bare Rack::Request#ip is the
         # last resort.
         #
+        # Returns nil when the middleware ran and resolved no client IP. Since
+        # otto 2.13 (delano/otto#292) that happens when the trusted forwarded
+        # chain reaches an entry that is not an address (`unknown`, an empty
+        # field, a CIDR); the middleware then leaves otto.client_ip absent,
+        # deletes the forwarded address headers and installs a fail-closed
+        # otto.ip_match. Re-resolving here would see only REMOTE_ADDR and
+        # report the proxy, unmasked, as the client, so the fallback is
+        # skipped on that path — the same guard Otto::Request#client_ipaddress
+        # applies. Every pass writes otto.peer_relayed before resolving, so
+        # ip_match together with peer_relayed is the marker of a prior pass;
+        # ip_match alone may be a stub.
+        #
         # @param env [Hash] Rack environment
         # @return [String, nil] resolved client IP
         def client_ip(env)
           canonical = env['otto.client_ip']
           return canonical if canonical && !canonical.empty?
+          return nil if ip_privacy_resolved_no_client_ip?(env)
 
           Otto::Utils.resolve_client_ip(env, env['otto.security_config'])
         rescue StandardError => ex
           # Unreachable in production (the middleware always sets
-          # otto.client_ip); if it ever fires, the bare Rack fallback has no
-          # trusted-proxy awareness and may return the ingress hop, so make the
-          # failure visible rather than silently mis-attributing the IP.
+          # otto.client_ip or the no-client-IP marker); if it ever fires, the
+          # bare Rack fallback has no trusted-proxy awareness and may return
+          # the ingress hop, so make the failure visible rather than silently
+          # mis-attributing the IP.
           OT.le "[client_ip] resolve_client_ip failed, falling back to Rack::Request#ip: #{ex.message}"
           Rack::Request.new(env).ip
+        end
+
+        # True when IPPrivacyMiddleware ran on this env and found no client IP:
+        # otto.ip_match is present without otto.client_ip, and otto.peer_relayed
+        # proves the pair came from the middleware (see #client_ip).
+        #
+        # @param env [Hash] Rack environment
+        # @return [Boolean]
+        def ip_privacy_resolved_no_client_ip?(env)
+          env.key?('otto.ip_match') && env.key?('otto.peer_relayed')
         end
       end
     end
