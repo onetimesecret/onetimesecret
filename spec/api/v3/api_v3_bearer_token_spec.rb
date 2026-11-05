@@ -206,9 +206,10 @@ RSpec.describe 'API v3 PASETO bearer tokens', type: :integration do
 
     it 'issues a token for a watermark as far ahead as the verifier tolerates' do
       # The push past the watermark is bounded by AccessToken::CLOCK_SKEW: a
-      # watermark that far ahead still yields a token a correctly clocked
-      # verifier accepts.
-      watermark = Time.now.to_i + Onetime::Paseto::AccessToken::CLOCK_SKEW - 2
+      # watermark that far ahead (iat lands exactly at the allowance when the
+      # mint is in the same second, below it otherwise) still yields a token a
+      # correctly clocked verifier accepts.
+      watermark = Time.now.to_i + Onetime::Paseto::AccessToken::CLOCK_SKEW - 1
       customer.last_password_update!(watermark)
 
       record = mint_with_basic
