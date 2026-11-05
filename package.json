@@ -191,7 +191,7 @@
   "devDependencies": {
     "@apidevtools/swagger-parser": "12.1.0",
     "@axe-core/playwright": "4.13.0",
-    "@eslint/js": "9.39.4",
+    "@eslint/js": "9.39.5",
     "@eslint/plugin-kit": "0.7.3",
     "@intlify/devtools-types": "11.3.0",
     "@intlify/eslint-plugin-vue-i18n": "4.3.0",
@@ -219,7 +219,7 @@
     "@vue/test-utils": "2.5.1",
     "axios-mock-adapter": "2.1.0",
     "esbuild": "0.28.2",
-    "eslint": "9.39.4",
+    "eslint": "9.39.5",
     "eslint-config-prettier": "10.1.8",
     "eslint-import-resolver-typescript": "4.4.5",
     "eslint-plugin-import": "2.32.0",
