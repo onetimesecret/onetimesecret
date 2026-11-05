@@ -25,11 +25,14 @@ RSpec.describe 'Incoming provenance at first receipt persistence', type: :integr
     logic
   end
 
-  def observe_receipt_saves
+  # Snapshot the stored receipt right after each creation commit, before any
+  # post-commit follow-up can write to it.
+  def observe_receipt_commits
     snapshots = []
-    allow_any_instance_of(Onetime::Receipt).to receive(:save).and_wrap_original do |original, *args, **kwargs|
-      result = original.call(*args, **kwargs)
-      snapshots << Onetime::Receipt.load(original.receiver.identifier)
+    allow(Familia).to receive(:atomic_write).and_wrap_original do |original, *instances, **kwargs, &block|
+      result = original.call(*instances, **kwargs, &block)
+      receipt = instances.find { |instance| instance.is_a?(Onetime::Receipt) }
+      snapshots << Onetime::Receipt.load(receipt.identifier)
       result
     end
     snapshots
@@ -49,9 +52,9 @@ RSpec.describe 'Incoming provenance at first receipt persistence', type: :integr
 
   [nil, 'incoming.example.com'].each do |domain|
     describe(domain || 'canonical domain') do
-      it 'persists all selected metadata and withholds the share key at the first receipt save' do
+      it 'persists all selected metadata and withholds the share key in the creation commit' do
         logic = incoming_logic(domain: domain)
-        snapshots = observe_receipt_saves
+        snapshots = observe_receipt_commits
 
         logic.send(:create_and_encrypt_secret)
 
@@ -61,14 +64,13 @@ RSpec.describe 'Incoming provenance at first receipt persistence', type: :integr
         expect(logic.secret.share_domain).to eq(domain)
       end
 
-      it 'keeps canonical Incoming metadata when a post-save spawn_pair step raises' do
+      it 'keeps the committed Incoming pair when a post-commit spawn_pair follow-up raises' do
         logic = incoming_logic(domain: domain)
-        snapshots = observe_receipt_saves
+        snapshots = observe_receipt_commits
         allow_any_instance_of(Onetime::Receipt).to receive(:register_for_expiration_notifications)
-          .and_raise(IOError, 'injected post-save registration failure')
+          .and_raise(IOError, 'injected post-commit registration failure')
 
-        expect { logic.send(:create_and_encrypt_secret) }
-          .to raise_error(IOError, 'injected post-save registration failure')
+        expect { logic.send(:create_and_encrypt_secret) }.not_to raise_error
 
         expect(snapshots.length).to eq(1)
         stored = Onetime::Receipt.load(snapshots.first.identifier)
@@ -84,7 +86,7 @@ RSpec.describe 'Incoming provenance at first receipt persistence', type: :integr
       'recipient_name' => 'Unconfigured recipient', 'domain_id' => 'client-domain-id',
       'share_domain' => 'attacker.example.com', 'owner_id' => 'client-owner',
     })
-    snapshots = observe_receipt_saves
+    snapshots = observe_receipt_commits
 
     logic.send(:create_and_encrypt_secret)
 
@@ -93,33 +95,29 @@ RSpec.describe 'Incoming provenance at first receipt persistence', type: :integr
     expect(snapshots.first.owner_id).to eq('anon')
   end
 
-  it 'does not require a second receipt save for Incoming creation' do
+  it 'does not save the receipt again after the Incoming creation commit' do
     logic = incoming_logic
-    saves = 0
-    allow_any_instance_of(Onetime::Receipt).to receive(:save).and_wrap_original do |original, *args, **kwargs|
-      saves += 1
-      raise IOError, 'unexpected second receipt save' if saves > 1
+    # Mock expectation errors are not StandardErrors, so a follow-up's rescue
+    # cannot swallow a violation.
+    expect_any_instance_of(Onetime::Receipt).not_to receive(:save)
+    expect_any_instance_of(Onetime::Receipt).not_to receive(:save_fields)
 
-      original.call(*args, **kwargs)
-    end
-
-    expect { logic.send(:create_and_encrypt_secret) }.not_to raise_error
-    expect(saves).to eq(1)
+    expect { logic.process }.not_to raise_error
     expect_incoming_metadata(Onetime::Receipt.load(logic.receipt.identifier))
   end
 
-  it 'retains selected metadata when a later Incoming process step raises' do
+  it 'reports success with selected metadata when a post-commit stats follow-up raises' do
     logic = incoming_logic
-    allow(logic).to receive(:update_customer_stats).and_raise(IOError, 'injected stats failure')
+    allow(Onetime::Customer).to receive(:secrets_created).and_raise(IOError, 'injected stats failure')
 
-    expect { logic.process }.to raise_error(IOError, 'injected stats failure')
+    expect(logic.process).to include(success: true)
 
     expect_incoming_metadata(Onetime::Receipt.load(logic.receipt.identifier))
     expect(Onetime::Secret.load(logic.secret.identifier)).not_to be_nil
   end
 
   it 'preserves ordinary spawn_pair defaults and its existing share-key projection' do
-    snapshots = observe_receipt_saves
+    snapshots = observe_receipt_commits
     receipt, secret = Onetime::Receipt.spawn_pair(nil, 3600, 'ordinary pair fixture',
       domain: 'ordinary.example.com', kind: 'conceal')
     stored = Onetime::Receipt.load(receipt.identifier)
