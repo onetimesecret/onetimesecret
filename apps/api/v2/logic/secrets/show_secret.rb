@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/security/passphrase_rate_limiter'
+require 'auth/operations/set_customer_verification'
 
 module V2::Logic
   module Secrets
@@ -178,11 +179,20 @@ module V2::Logic
         # email-change confirmation, which went to the PROPOSED address and
         # proves nothing about the current one (Customer#mailbox_proof_secret?).
         if anonymous_user? || (cust.custid == owner.custid && !owner.mailbox_verified?)
-          if owner.mailbox_proof_secret?(secret)
-            owner.verified    = true
-            owner.verified_by = 'email'
-            owner.save
-          end
+          # Stamped through the verification operation so the deferred
+          # federated subscription claim runs here too, for a link sent to
+          # the owner's current address and held to that address; a link
+          # minted in simple mode and redeemed in full mode skips the stamp
+          # and still reveals (SetCustomerVerification.record_mailbox_proof).
+          #
+          # The anonymous half of the gate has no already-verified guard, so
+          # an anonymous caller used to rewrite the provenance of an owner who
+          # already had mailbox proof ('colonel_admin', say) to 'email'. The
+          # operation keeps the stored mailbox-proof stamp on that repeat
+          # (SetCustomerVerification#mailbox_proof_reaffirmed?) and still
+          # retries the claim; a stamp that is not mailbox proof
+          # ('stripe_payment', 'autoverify') is still upgraded to 'email'.
+          Auth::Operations::SetCustomerVerification.record_mailbox_proof(owner, secret) if owner.mailbox_proof_secret?(secret)
           # sess.clear wipes session data for this request. sess.destroy! does
           # not exist here — OT::Session wraps Rack::Session::Abstract::PersistedSecure,
           # which exposes no public destroy method. clear is the correct call.

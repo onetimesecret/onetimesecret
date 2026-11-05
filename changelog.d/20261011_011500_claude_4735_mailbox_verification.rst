@@ -25,7 +25,22 @@ Security
   ``bin/ots customers doctor --repair`` refuses in that state, as the
   destructive customer commands do (the audit runs in any mode), and the
   full-stack compose file now exports the variable on the ``worker-email``
-  and ``scheduler`` services as it did on ``app``. A deployment that has
+  and ``scheduler`` services as it did on ``app``. In simple auth mode the
+  emailed verification link, once followed, now also applies a federated
+  subscription that was deferred this way, through the same verification
+  operation every other mailbox-proof stamp uses. The link applies only a
+  subscription for the account's own address, and only when it was sent to
+  that address, since it proves only the mailbox it was sent to: a workspace
+  whose billing email names another address keeps the pending record, and so
+  does an account whose address an operator changed after the link was sent
+  (``bin/ots customers change-email`` without ``--keep-verified``). Such a
+  link, like one sent before this release, verifies the account as before
+  and applies nothing. A verification link minted
+  in simple auth mode and followed after a switch to full auth mode no
+  longer records verification. An account whose Rodauth row is still
+  Unverified verifies through the normal email verification instead; one
+  that Rodauth already counts as verified, without mailbox proof in its
+  record, needs ``bin/ots customers verify``. A deployment that has
   disabled email verification, with its auth mode settled, still claims at
   standard signup without mailbox proof, as before, with the existing
   security-audit log line. SSO JIT accounts defer the claim until an

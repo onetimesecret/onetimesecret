@@ -120,6 +120,17 @@ RSpec.describe 'Verify a simple-mode account from the emailed link without a cus
     post path, JSON.generate(body)
   end
 
+  # The link records the address it was emailed to, so the federation claim
+  # its reveal runs can tell whether it proves the account's current address
+  # (Secret#delivered_to?, #4754 review, round 3).
+  it 'records the address the welcome link was emailed to' do
+    cust, secret_id = sign_up
+    link            = Onetime::Secret.load(secret_id)
+
+    expect(link.delivered_to?(cust.email)).to be(true)
+    expect(link.delivered_to?("other-#{cust.email}")).to be(false)
+  end
+
   {
     'POST /api/v3/guest/secret/:id/reveal' => ->(id, token) {
       json_post("/api/v3/guest/secret/#{id}/reveal", token, continue: true)
