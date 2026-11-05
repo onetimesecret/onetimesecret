@@ -182,10 +182,11 @@ module Auth
       # @param customer    [Onetime::Customer] target (caller ensures non-nil,
       #                    non-anonymous)
       # @param verified    [Boolean] target state
-      # @param verified_by [String, nil] provenance tag ('cli_provision',
-      #                    'colonel_admin', 'email', etc.); nil when clearing.
-      #                    Not written over a stored mailbox-proof stamp when
-      #                    it is mailbox proof too (#mailbox_proof_reaffirmed?)
+      # @param verified_by [String, nil] provenance tag, one of
+      #                    Onetime::Customer::VERIFIED_BY_VALUES; nil when
+      #                    clearing. Not written over a stored mailbox-proof
+      #                    stamp when it is mailbox proof too
+      #                    (#mailbox_proof_reaffirmed?)
       # @param rodauth_already_synced [Boolean] when true, skip the SQL
       #                    update — caller guarantees Rodauth-side
       #                    status is already correct (e.g., we're
@@ -204,8 +205,13 @@ module Auth
       #                    for the customer's own address
       #                    (EnsureDefaultWorkspace's own_address_only). Set
       #                    by .record_mailbox_proof alone
+      # @raise [ArgumentError] verified: true with a verified_by tag outside
+      #   Onetime::Customer::VERIFIED_BY_VALUES — refused before any write,
+      #   so an unknown tag can never reach either store
       def initialize(customer:, verified:, verified_by:, rodauth_already_synced: false, db: nil,
                      claim_pending_federation: true, claim_own_address_only: false)
+        Onetime::Customer.assert_known_verified_by!(verified_by) if verified
+
         @customer                 = customer
         @verified                 = verified
         @verified_by              = verified_by

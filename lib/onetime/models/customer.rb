@@ -66,7 +66,12 @@ module Onetime
     # - domain_signup:    Self-signup on a custom domain (CustomDomain context)
     # - invite:           Accepted an organization invitation
     # - sso_jit:          Just-in-time provisioning via OmniAuth/SSO
-    PROVISIONING_ORIGINS = %w[canonical_signup domain_signup invite sso_jit].freeze
+    # - login_recovery:   Recreated at login by Auth::Operations::SyncSession
+    #                     because a Rodauth account existed with no Customer
+    #                     record (the original record was lost or never
+    #                     written). Verification provenance on such a record
+    #                     is DERIVED from persisted auth state, not observed.
+    PROVISIONING_ORIGINS = %w[canonical_signup domain_signup invite sso_jit login_recovery].freeze
 
     # Reasons and operator-facing wording for the verification_hold field: WHY
     # an sso_jit customer was deliberately left unverified at JIT provisioning,
@@ -85,6 +90,36 @@ module Onetime
       'claim_unreadable' => "the IdP's email_verified claim could not be read at sign-in",
     }.freeze
 
+    # Every verified_by provenance tag the codebase writes. verified_by is
+    # nil/empty when unverified. Enforced by Auth::Operations::SetCustomerVerification
+    # and Auth::Operations::EnsureCustomerForAccount (ArgumentError on an
+    # unknown tag) and audited by Auth::Operations::Customers::Doctor. Which
+    # of these count as mailbox proof is decided by MAILBOX_VERIFIED_BY below.
+    #
+    #   email          - secret reveal by owner (apps/api/v2/logic/secrets/
+    #                    {show,reveal}_secret.rb) and Rodauth verify_account
+    #                    (apps/web/auth/config/hooks/account.rb)
+    #   stripe_payment - payment-initiated signup (apps/web/billing/logic/welcome.rb)
+    #   autoverify     - autoverify-mode account creation
+    #                    (apps/api/account/logic/account/create_account.rb)
+    #   sso            - OmniAuth JIT provisioning (apps/web/auth/config/hooks/
+    #                    omniauth.rb), the doctor's :sso_customer_unverified
+    #                    repair, and the login-recovery path for accounts
+    #                    with an account_identities row
+    #   invite_token   - invite signup auto-verification (apps/web/auth/
+    #                    config/hooks/account.rb after_create_account)
+    #   cli_provision  - CLI customer/apitoken commands (lib/onetime/cli/)
+    #   colonel_admin  - colonel admin verification (apps/api/colonel/logic/
+    #                    colonel/set_user_verification.rb)
+    #   legacy         - backfilled by the doctor's verified_by repair, and
+    #                    the login-recovery path for non-SSO accounts
+    #                    (a Verified row there does not show how it got so)
+    # Keep this list in sync when adding a new provenance writer.
+    VERIFIED_BY_VALUES = %w[
+      email stripe_payment autoverify sso
+      invite_token cli_provision colonel_admin legacy
+    ].freeze
+
     # verified_by values that record proof of MAILBOX control: someone followed
     # a link delivered to the address, or an operator confirmed it by hand.
     # Every other provenance records a weaker fact about the account:
@@ -101,8 +136,8 @@ module Onetime
     # verification-secret display, pending-federation claims, signup resend
     # suppression) call Customer#mailbox_verified?, which reads this list.
     # Consumers that only mean "the account is open" keep calling verified?.
-    # Auth::Operations::Customers::Doctor::VALID_VERIFIED_BY enumerates every
-    # provenance writer; keep the two lists in step when adding one.
+    # VERIFIED_BY_VALUES above enumerates every provenance writer; keep the
+    # two lists in step when adding one.
     MAILBOX_VERIFIED_BY = %w[email invite_token colonel_admin cli_provision].freeze
 
     require_relative 'customer/features'
