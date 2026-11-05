@@ -96,13 +96,16 @@ lanes_path_normalize() {  # <path>
 # that pattern means app SOURCE: a spec or tryout is owned by the lane(s)
 # whose task loads it, or by nobody, never by everybody. The support files
 # inside those trees (loaded by every process that runs the tree) come
-# first, so the carve-out does not take them with it. Exact-name rows are
-# files, not prefixes.
+# first, so the carve-out does not take them with it. spec/fixtures is test
+# data (the PASETO test vectors, for one) that any lane's spec may read,
+# like spec/support: no task names it, so a change there has to fan out to
+# every lane rather than to none. Exact-name rows are files, not prefixes.
 # shellcheck disable=SC2254  # ${app} is a glob, expanded unquoted on purpose
 lanes_path_shared() {  # <normalized path>
   local app='apps/[!/]*/[!/]*'
   case "$1" in
-    spec/support|spec/support/*|spec/spec_helper.rb|spec/integration/integration_spec_helper.rb|spec/*.yaml|\
+    spec/support|spec/support/*|spec/fixtures|spec/fixtures/*|spec/spec_helper.rb|\
+    spec/integration/integration_spec_helper.rb|spec/*.yaml|\
     ${app}/spec/support|${app}/spec/support/*|${app}/spec/spec_helper.rb|try/support|try/support/*)
       return 0
       ;;
