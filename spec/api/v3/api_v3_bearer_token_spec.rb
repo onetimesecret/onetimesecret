@@ -352,6 +352,46 @@ RSpec.describe 'API v3 PASETO bearer tokens', type: :integration do
       expect_bearer_refusal('suspended_credentials')
     end
 
+    it 'is retired when the API key it was minted from is rotated, and the browser session is not' do
+      # A leaked key mints tokens that would outlive its rotation unless the
+      # rotation moves a watermark the verifier checks. It stamps
+      # Customer#last_apitoken_update, not last_password_update, so the
+      # owner's session survives the rotation that retires the tokens.
+      leaked = token
+      request(:get, '/api/v3/receipt/recent', authorization: "Bearer #{leaked}")
+      expect(last_response.status).to eq(200), last_response.body
+
+      csrf    = sign_in!
+      request(:post, '/api/account/apitoken', body: {}, csrf: csrf)
+      expect(last_response.status).to eq(200), last_response.body
+      rotated = json_response.dig('record', 'apitoken')
+      expect(rotated).to be_a(String).and(satisfy { |key| key != customer.apitoken })
+
+      # The session that rotated the key keeps working.
+      request(:get, '/api/v3/receipt/recent')
+      expect(last_response.status).to eq(200), last_response.body
+      expect(last_request.env.fetch('otto.strategy_result').auth_method).to eq('sessionauth')
+
+      # Without a session to outrank it, the pre-rotation token is refused...
+      clear_cookies
+      request(:get, '/api/v3/receipt/recent', authorization: "Bearer #{leaked}")
+      expect_bearer_refusal('api_token_invalid')
+
+      # ...and the rotated key mints a token that works at once, even in the
+      # same second as the rotation.
+      record     = request(
+        :post,
+        '/api/v3/token',
+        body: {},
+        authorization: "Basic #{Base64.strict_encode64("#{customer.email}:#{rotated}")}",
+      ).then { json_response.fetch('record') }
+      rotated_at = Onetime::Customer.load(customer.identifier).last_apitoken_update.to_i
+      expect(rotated_at).to be_positive
+      expect(record.fetch('issued_at')).to be > rotated_at
+      request(:get, '/api/v3/receipt/recent', authorization: "Bearer #{record.fetch('token')}")
+      expect(last_response.status).to eq(200), last_response.body
+    end
+
     it 'yields to a valid browser session on the same request, with CSRF still enforced' do
       csrf           = sign_in!
       other          = Onetime::Customer.new(email: "bearer-other-#{SecureRandom.hex(8)}@example.com")

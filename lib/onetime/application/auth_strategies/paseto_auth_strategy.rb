@@ -35,9 +35,11 @@
 #    is the v3 API, `iss` is this deployment, `scope` is `["*"]`.
 # 4. `sub` is a well-formed customer extid that loads.
 # 5. The account is not suspended, and the token was issued after the
-#    account's last credential change (Customer#last_password_update, the
-#    same watermark that retires sessions): changing a password revokes
-#    every outstanding token.
+#    account's last credential change (Customer#bearer_token_watermark: the
+#    later of last_password_update, the watermark that retires sessions too,
+#    and last_apitoken_update, stamped by an API key rotation): changing the
+#    password or rotating the API key retires every outstanding token, and
+#    only the former signs the browser out.
 #
 # Verification is a signature check and two hash lookups (kid, extid);
 # nothing compares a caller-supplied value against a stored secret, so there
@@ -170,11 +172,14 @@ module Onetime
           Onetime::Customer.find_by_extid(extid)
         end
 
-        # A token minted before the account's last password change is retired
-        # the way a session authenticated before it is
-        # (Onetime::CustomerSessionEvaluator#predates_credential_change?).
+        # A token minted at or before the account's last credential change
+        # (password change or API key rotation, Customer#bearer_token_watermark)
+        # is retired the way a session authenticated before a password change
+        # is (Onetime::CustomerSessionEvaluator#predates_credential_change?).
+        # The mint issues strictly after the same watermark
+        # (V3::Logic::Auth::GenerateToken#issuance_time).
         def predates_credential_change?(cust, claims)
-          watermark = cust.last_password_update.to_i
+          watermark = cust.bearer_token_watermark
           return false unless watermark.positive?
 
           claims.issued_at.to_i <= watermark

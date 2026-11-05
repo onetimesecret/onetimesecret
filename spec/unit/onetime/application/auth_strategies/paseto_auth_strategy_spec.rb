@@ -48,7 +48,7 @@ RSpec.describe Onetime::Application::AuthStrategies::PasetoAuthStrategy do
       objid: 'cust_1',
       anonymous?: false,
       suspended?: false,
-      last_password_update: nil,
+      bearer_token_watermark: 0,
     )
   end
 
@@ -197,12 +197,15 @@ RSpec.describe Onetime::Application::AuthStrategies::PasetoAuthStrategy do
     end
 
     it 'rejects a token issued at or before the credential watermark' do
+      # Customer#bearer_token_watermark is the later of a password change
+      # and an API key rotation; which one moved it is the model's business
+      # (try/unit/models/customer/apitoken_try.rb).
       issued      = Time.now - 120
-      allow(cust).to receive(:last_password_update).and_return(issued.to_i)
+      allow(cust).to receive(:bearer_token_watermark).and_return(issued.to_i)
       result, env = authenticate("Bearer #{mint(now: issued)}")
       expect_terminal(result, env, reason: 'TOKEN_INVALID', code: :api_token_invalid)
 
-      allow(cust).to receive(:last_password_update).and_return(issued.to_i - 1)
+      allow(cust).to receive(:bearer_token_watermark).and_return(issued.to_i - 1)
       expect(authenticate("Bearer #{mint(now: issued)}").first).to be_authenticated
     end
 

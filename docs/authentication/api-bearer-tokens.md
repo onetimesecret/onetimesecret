@@ -98,7 +98,7 @@ and an RFC 6750 `WWW-Authenticate: Bearer` challenge:
 | `code` | Why | Challenge |
 | --- | --- | --- |
 | `api_token_expired` | signature valid, `exp` has passed | `Bearer realm="onetimesecret", error="invalid_token", error_description="The access token expired"` |
-| `api_token_invalid` | anything else: not a v4.public token, unknown `kid`, bad signature, wrong `aud`/`iss`, unsupported `scope`, unknown subject, or a token issued before the account's last password change | `Bearer realm="onetimesecret", error="invalid_token"` |
+| `api_token_invalid` | anything else: not a v4.public token, unknown `kid`, bad signature, wrong `aud`/`iss`, unsupported `scope`, unknown subject, or a token issued at or before the account's last password change or API key rotation | `Bearer realm="onetimesecret", error="invalid_token"` |
 | `suspended_credentials` | valid token, suspended account | `Bearer realm="onetimesecret", error="invalid_token"` |
 
 One code covers the whole non-expiry family on purpose: the message tells a
@@ -119,6 +119,15 @@ every request:
   change. Changing the password revokes every outstanding token. A token
   requested in the same second as the change is issued one second past the
   watermark, so it works at once instead of being refused for its whole life.
+- **API key rotation.** `Customer#regenerate_apitoken` (POST
+  `/api/account/apitoken`, `bin/ots apitoken`, account deletion) writes
+  `Customer#last_apitoken_update` in the same write as the new key, and a
+  token issued at or before it is refused. Rotating a leaked key therefore
+  retires every outstanding token, whether the key or a browser session
+  minted it, while the browser session that rotated the key keeps working:
+  sessions compare only against the password watermark. The verifier and
+  the mint both read `Customer#bearer_token_watermark`, the later of the
+  two, so the same-second rule above applies to a rotation as well.
 - **Suspension.** A suspended account's tokens are refused on the next request.
 - **Account deletion.** The subject no longer resolves.
 

@@ -28,7 +28,8 @@ GET    /secret/:identifier                        V3::Logic::Secrets::ShowSecret
 POST   /secret/:identifier/reveal                 V3::Logic::Secrets::RevealSecret response=json auth=sessionauth,pasetoauth sensitive=true
 
 # Bearer token exchange (#2427). A session (with its CSRF token) or Basic
-# auth API key is exchanged for a short-lived PASETO v4.public token; a
+# auth API key is exchanged for a short-lived PASETO v4.public token that
+# rotating the key (POST /api/account/apitoken) retires at once; a
 # bearer token is deliberately NOT accepted here, so a leaked token cannot
 # renew itself. Answers 403 BEARER_TOKENS_DISABLED until auth.paseto.enabled
 # is set.

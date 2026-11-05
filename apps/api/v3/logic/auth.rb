@@ -22,8 +22,11 @@ module V3
       # client obtains a token, and it widens nothing. The API key already
       # authenticates every v2 request; the token it buys is time-boxed,
       # scoped to the v3 API and revoked by the same account events (suspension,
-      # password change). Unlike POST /api/account/apitoken it replaces no
-      # credential, so a leaked key cannot use it to lock the owner out.
+      # password change) and by rotating the key itself
+      # (Customer#regenerate_apitoken stamps the watermark the verifier
+      # checks, so a leaked key's tokens die with it). Unlike
+      # POST /api/account/apitoken it replaces no credential, so a leaked key
+      # cannot use it to lock the owner out.
       #
       # Why a bearer token may NOT mint: the route chain excludes pasetoauth,
       # and this class refuses it again, so a leaked token expires on schedule
@@ -103,15 +106,16 @@ module V3
 
         # The moment the token is issued: now, or one second past the account's
         # credential watermark when that is later. PasetoAuthStrategy refuses
-        # `iat <= Customer#last_password_update` (fail-closed, the rule that
-        # retires pre-change sessions), so a token minted in the same second as
-        # a password change, or by a node whose clock trails the one that
-        # stamped the change, would otherwise be refused on every request for
-        # its whole life. One second past the watermark is well inside the
-        # verifier's clock-skew allowance for `iat`/`nbf`, so the token works
-        # at once, and nothing issued at or before the watermark is spared.
+        # `iat <= Customer#bearer_token_watermark` (fail-closed: the later of
+        # the password change that retires sessions and the API key rotation
+        # that does not), so a token minted in the same second as either
+        # change, or by a node whose clock trails the one that stamped it,
+        # would otherwise be refused on every request for its whole life. One
+        # second past the watermark is well inside the verifier's clock-skew
+        # allowance for `iat`/`nbf`, so the token works at once, and nothing
+        # issued at or before the watermark is spared.
         def issuance_time(now = Time.now)
-          watermark = cust.last_password_update.to_i
+          watermark = cust.bearer_token_watermark
           return now if now.to_i > watermark
 
           Time.at(watermark + 1).utc

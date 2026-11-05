@@ -11,7 +11,9 @@ Added
   one hour, at most one day) and is presented as
   ``Authorization: Bearer v4.public...`` on the authenticated v3 secret routes
   and ``/api/v3/version``. Tokens cannot mint further tokens, and are refused
-  once the account is suspended or its password changes. The signing key is
+  once the account is suspended, its password changes or its API key is
+  rotated (``POST /api/account/apitoken``), the last without signing the
+  browser session out. The signing key is
   derived from ``SECRET``; ``SECRET_PREVIOUS`` entries keep verifying tokens
   signed before a rotation. See ``docs/authentication/api-bearer-tokens.md``.
 - Two credential refusal codes, ``api_token_invalid`` and
