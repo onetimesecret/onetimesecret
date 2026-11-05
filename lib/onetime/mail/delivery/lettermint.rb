@@ -92,7 +92,7 @@ module Onetime
         protected
 
         def validate_config!
-          raise ArgumentError, 'Lettermint API token must be configured' if api_token.nil? || api_token.empty?
+          config_error! 'Lettermint API token must be configured' if api_token.nil? || api_token.empty?
         end
 
         private

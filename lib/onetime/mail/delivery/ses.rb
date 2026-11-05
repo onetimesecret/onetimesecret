@@ -63,7 +63,7 @@ module Onetime
           secret_key = config['secret_access_key'] || ENV.fetch('AWS_SECRET_ACCESS_KEY', nil)
 
           if access_key.nil? || access_key.empty? || secret_key.nil? || secret_key.empty?
-            raise ArgumentError, 'AWS credentials must be configured for SES'
+            config_error! 'AWS credentials must be configured for SES'
           end
         end
 

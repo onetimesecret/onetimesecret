@@ -55,6 +55,8 @@ outcome.
 | reject  | `failed`  | `permanent`         | non-transient `DeliveryError`                                                           |
 | reject  | `failed`  | `retries_exhausted` | still failing after the in-process retries                                              |
 | reject  | `failed`  | `error`             | any other error, including one raised before delivery started                           |
+| requeue | (none)    |                     | the mail backend cannot be built from its configuration; the message is held            |
+| reject  | `failed`  | `misconfigured`     | the mail backend is misconfigured and the idempotency claim could not be released       |
 
 `sent` means a mail provider accepted the message. Each delivery backend
 declares whether it transmits (`Delivery::Base#transmits?`); the logger
@@ -67,10 +69,20 @@ or `none` is an install with delivery turned off; with any other provider
 it is a suppressed recipient.
 
 Every message the worker rejects writes exactly one `failed` event, whether
-or not a delivery was attempted. Three paths write nothing: a duplicate
-dropped by the idempotency claim (acked), a ping message (acked), and a
-process-level exception such as a shutdown signal, which is re-raised
+or not a delivery was attempted. Four paths write nothing: a duplicate
+dropped by the idempotency claim (acked), a ping message (acked), a message
+held because the mail backend is misconfigured (requeued, not settled), and
+a process-level exception such as a shutdown signal, which is re-raised
 without settling the message.
+
+A misconfigured mail backend (`Onetime::Mail::ConfigurationError`: no SMTP
+host, missing provider credentials, an unsupported setting) says nothing
+about the message. The worker logs `Mail configuration error (provider:
+<name>): <reason>`, releases the idempotency claim, pauses the thread for
+`EmailWorker::MISCONFIGURED_HOLD_SECONDS` and requeues the message, so it
+stays on `email.message.send` until a worker starts with a working
+configuration. While the configuration is broken the same few messages
+cycle through the worker threads and the rest of the queue waits.
 
 ## Record shape
 
@@ -101,7 +113,7 @@ allowlist pattern; a value that does not fit is dropped.
 Reason codes in use: `no_recipient`, `no_target`, `publish_failed`,
 `http_status`, `blocked_target`, `timeout`, `invalid_url`, `error`,
 `not_dispatched`, `log_only`, `permanent`, `retries_exhausted`,
-`invalid_message`.
+`invalid_message`, `misconfigured`.
 
 ## Correlation
 
@@ -144,7 +156,10 @@ with `attempt_count`. There is no per-attempt event.
   transient retries record `failed` / `retries_exhausted`; a non-transient
   `DeliveryError` records `failed` / `permanent` with `attempt_count` 1.
   An `ArgumentError` from the mailer (for example an unknown template) is
-  not retried and records `failed` / `invalid_message`.
+  not retried and records `failed` / `invalid_message`. A
+  `ConfigurationError` is not retried in-process and records nothing: the
+  message is requeued (see above). Only when the idempotency claim cannot
+  be released is it rejected, with `failed` / `misconfigured`.
 - Messages that are not JSON, are not a JSON object (`null`, an array, a
   string, a number, a boolean), or carry an unknown schema version record
   `failed` / `invalid_message` using the queue message id for both

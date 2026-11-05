@@ -4,6 +4,7 @@
 
 require 'openssl'
 require 'mail'
+require_relative '../errors'
 
 module Onetime
   module Mail
@@ -247,9 +248,18 @@ module Onetime
           nil
         end
 
-        # Override in subclasses for provider-specific validation
+        # Override in subclasses for provider-specific validation. Report a
+        # problem with config_error!, not ArgumentError: the worker treats
+        # ArgumentError as a malformed message.
         def validate_config!
           # Base implementation does nothing
+        end
+
+        # Raise Onetime::Mail::ConfigurationError for this backend.
+        # @param message [String] what is wrong with the configuration
+        # @raise [Onetime::Mail::ConfigurationError]
+        def config_error!(message)
+          raise Onetime::Mail::ConfigurationError.new(message, provider: provider_name.downcase)
         end
 
         def log_delivery(email, status = 'sent')
