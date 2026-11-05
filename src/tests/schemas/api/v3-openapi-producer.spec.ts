@@ -35,6 +35,22 @@ function validatePayload(schema: object, value: unknown): boolean {
   return ajv.compile(schema)(value) as boolean;
 }
 
+/**
+ * The JSON types a schema admits, read from `type` (string or array) or
+ * from the `type` of each `anyOf` branch. Zod 4.5 and later write a union
+ * of bare primitives such as boolean | string as `type: ["boolean",
+ * "string"]`; earlier versions wrote `anyOf`. Both are valid OpenAPI 3.1
+ * and mean the same thing, so the contract is the set of wire types, not
+ * the encoding (same helper as src/tests/schemas/generation).
+ */
+function admittedTypes(js: Record<string, unknown>): string[] {
+  const own = js.type === undefined ? [] : ([] as unknown[]).concat(js.type);
+  const branches = Array.isArray(js.anyOf)
+    ? js.anyOf.flatMap((b) => admittedTypes(b as Record<string, unknown>))
+    : [];
+  return [...own, ...branches].map(String).sort();
+}
+
 describe('actual OpenAPI generator, without generated output writes', () => {
   for (const version of ['v2', 'v3'] as const) {
     it(`${version}: generated document is structurally valid`, async () => {
@@ -52,10 +68,7 @@ describe('actual OpenAPI generator, without generated output writes', () => {
       const reveal = request(version, `/api/${version}/secret/{identifier}/reveal`);
       const burn = request(version, `/api/${version}/receipt/{identifier}/burn`);
       for (const schema of [reveal, burn]) {
-        expect(schema.properties.continue.anyOf.map((entry: any) => entry.type).sort()).toEqual([
-          'boolean',
-          'string',
-        ]);
+        expect(admittedTypes(schema.properties.continue)).toEqual(['boolean', 'string']);
         expect(schema.properties.passphrase.type).toBe('string');
       }
       expect(
