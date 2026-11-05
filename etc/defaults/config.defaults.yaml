@@ -659,8 +659,8 @@ site:
       # 'filter' (default): CIDR-walk. Otto::Utils.resolve_client_ip walks the
       #   forwarded chain from the RIGHT (the hop nearest the app first), skips
       #   every entry in the trusted-proxy set and returns the first that is
-      #   not; entries left of it were supplied by the client and are never
-      #   selected. The trusted set is the RFC1918/loopback/link-local private
+      #   not; entries left of it are never selected. The trusted set is the
+      #   RFC1918/loopback/link-local private
       #   ranges (always trusted in this mode) plus every range in `cidrs`
       #   below. Works for most k8s/cloud deployments where the proxy tier has
       #   enumerable internal addresses. Note: filter mode reads
@@ -676,9 +676,19 @@ site:
       #   resolved:
       #     nginx:  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
       #     Caddy:  header_up X-Forwarded-For {client_ip}
+      #   PRIVATE CLIENTS NEED THE OVERWRITE: appending keeps a client-supplied
+      #   entry out only because the client's own appended address is untrusted
+      #   and stops the walk. A client at 192.168.1.50 sending
+      #   X-Forwarded-For: 203.0.113.99 through an appending proxy yields
+      #   `203.0.113.99, 192.168.1.50`; the client's address is skipped as a
+      #   trusted hop and the forged entry is selected. On a LAN, a VPN or a
+      #   corporate network the edge must overwrite the header (Caddy line
+      #   above; nginx: $remote_addr), or use depth mode.
       #   A proxy that writes a non-address (`unknown`, an empty field) where
-      #   the client belongs leaves the request with NO client IP: per-IP rate
-      #   limiters skip it and the admin network gate denies it.
+      #   the client belongs leaves the request with NO client IP: the
+      #   single-tier per-IP limiters (signup, anonymous secret creation,
+      #   feedback) charge it to one shared `no-client-ip` bucket, the other
+      #   limiters skip their IP tier, and the admin network gate denies it.
       #
       # 'depth': Position-based counting. Skip exactly N rightmost hops.
       #   Use when:
@@ -690,9 +700,11 @@ site:
       # When filter and depth differ:
       #   - CDN with public IP: filter returns CDN IP (add to cidrs or use depth)
       #   - Variable hop count: filter handles automatically; depth fails if wrong
-      #   - Forged leftmost entry: neither selects it. Filter stops at the first
-      #     untrusted entry from the right; depth reads only the position
-      #     N-from-the-right
+      #   - Forged leftmost entry: filter stops at the first untrusted entry
+      #     from the right, so it skips the forgery when the client's own
+      #     appended address is public and SELECTS it when that address is in
+      #     a trusted range (private clients: overwrite at the edge); depth
+      #     reads only the position N-from-the-right
       #
       # Matched case-insensitively and canonicalized (like `header` below). The
       # set is closed: any other value falls back to filter — the safer mode —

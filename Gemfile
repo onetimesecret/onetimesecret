@@ -43,7 +43,9 @@ source 'https://rubygems.org/'
 # the router's captures as `route_params:` (delano/otto#285).
 # 2.13 floor: filter-mode client IP resolution walks X-Forwarded-For from the
 # right and skips trusted hops (delano/otto#292), so a client-supplied leftmost
-# entry is never selected; every proxy hop must be in the trusted set, and a
+# entry is skipped whenever the client's own appended address is untrusted
+# (private clients still need the edge to overwrite the header); every proxy
+# hop must be in the trusted set, and a
 # non-address entry leaves the request with no client IP (otto.client_ip
 # absent, otto.ip_match fail-closed) — AuthStrategies::Helpers#client_ip and
 # AdminNetworkIsolation#resolve_client_ip honor that marker. RouteAuthWrapper

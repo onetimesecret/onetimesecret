@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/security/create_account_rate_limiter'
+require 'onetime/utils/client_ip'
 
 #
 # Account-Creation Rate Limiting (issue #3948, audit 2026-07-30 finding #4)
@@ -118,8 +119,15 @@ module Auth::Config::Hooks
         next if respond_to?(:internal_request?, true) && internal_request?
 
         if request.post?
+          # Same subject as the simple-mode call site (AuthStrategies::Helpers
+          # #client_ip): the canonical masked IP; nil, not request.ip, when the
+          # IP privacy middleware ran and found no client IP (otto 2.13,
+          # delano/otto#292), since request.ip is then the proxy, unmasked, and
+          # the limiter charges a nil subject to its shared no-client-IP bucket.
           client_ip = request.env['otto.client_ip']
-          client_ip = request.ip if client_ip.to_s.empty?
+          if client_ip.to_s.empty? && !Onetime::Utils::ClientIp.no_client_ip_marker?(request.env)
+            client_ip = request.ip
+          end
 
           enforce_create_account_rate_limit!(client_ip)
         end

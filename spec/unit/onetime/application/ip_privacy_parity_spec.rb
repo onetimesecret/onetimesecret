@@ -74,9 +74,10 @@ RSpec.describe 'IP privacy / trusted-proxy parity (#3436)' do
     # LEFTMOST untrusted entry, which the client controls when the proxy
     # appends — the shape .env.reference used to require operators to defeat
     # by overwriting X-Forwarded-For at the edge.
-    it 'never selects a forged leftmost XFF entry when the private proxy appends' do
+    it 'skips a forged leftmost XFF entry when the appending proxy adds a public client' do
       # Client sends X-Forwarded-For: 9.9.9.9; the ingress appends the real
-      # peer. chain = [9.9.9.9, 203.0.113.42], REMOTE_ADDR = trusted hop.
+      # peer. chain = [9.9.9.9, 203.0.113.42], REMOTE_ADDR = trusted hop. The
+      # walk stops at the peer because its address is untrusted (public).
       env = {
         'REMOTE_ADDR' => '10.244.10.5',
         'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 203.0.113.42',
@@ -85,6 +86,36 @@ RSpec.describe 'IP privacy / trusted-proxy parity (#3436)' do
       build_mount.call(env)
 
       expect(captured[:env]['otto.client_ip']).to eq('203.0.113.0')
+    end
+
+    it 'selects a forged entry when the client itself has a private address (the edge must overwrite)' do
+      # LAN client 192.168.1.50 sends X-Forwarded-For: 203.0.113.99; the
+      # appending proxy adds the client's own address. That address is in a
+      # range that is always trusted, so the walk skips it as a hop and the
+      # forged entry is the first untrusted one from the right. Documented in
+      # docs/deployment/trusted-proxies.md ("Private clients need the
+      # overwrite"): on such a network the edge must overwrite the header.
+      env = {
+        'REMOTE_ADDR' => '192.168.1.10',
+        'HTTP_X_FORWARDED_FOR' => '203.0.113.99, 192.168.1.50',
+      }
+
+      build_mount.call(env)
+
+      expect(captured[:env]['otto.client_ip']).to eq('203.0.113.0')
+    end
+
+    it 'resolves an all-private chain to the proxy nearest the app, not to no client IP' do
+      # The same LAN client with no forged entry: every entry is a trusted
+      # hop, so the walk runs out and otto falls back to REMOTE_ADDR (masked).
+      env = {
+        'REMOTE_ADDR' => '192.168.1.10',
+        'HTTP_X_FORWARDED_FOR' => '192.168.1.50',
+      }
+
+      build_mount.call(env)
+
+      expect(captured[:env]['otto.client_ip']).to eq('192.168.1.0')
     end
 
     it 'treats an unlisted public hop as the client (every hop must be trusted)' do

@@ -344,10 +344,14 @@
 			# Overwrite X-Forwarded-For and X-Real-IP with Caddy's resolved client IP
 			# so the application receives exactly one attested entry. Filter mode
 			# (otto 2.13+) walks X-Forwarded-For from the right and skips trusted
-			# hops, so a client-supplied leftmost entry is never selected even when
-			# Caddy appends; the overwrite keeps the chain to the one address Caddy
-			# vouches for and keeps a client-supplied `unknown` or empty entry out
-			# of it (such an entry would leave the request with no client IP).
+			# hops, so with public clients a client-supplied leftmost entry is never
+			# selected even when Caddy appends. With private clients (a LAN, a VPN)
+			# the client's own appended address is itself a trusted hop, the walk
+			# skips it and a forged entry to its left IS selected, so there the
+			# overwrite is required. Either way it keeps the chain to the one
+			# address Caddy vouches for and keeps a client-supplied `unknown` or
+			# empty entry out of it (such an entry would leave the request with no
+			# client IP).
 			#
 			# {client_ip} honours Caddy's own `trusted_proxies` setting: with none
 			# configured it equals the direct peer ({remote_host}); with a CDN's ranges

@@ -209,7 +209,9 @@ module Onetime
         #     CIDR containment via add_trusted_proxy). Otto::Utils.resolve_client_ip
         #     walks the forwarded chain from the right (nearest proxy first),
         #     skips trusted hops and returns the first non-proxy entry; entries
-        #     left of it are client-supplied and never selected (otto 2.13,
+        #     left of it are never selected. A client whose own address is in a
+        #     trusted range is skipped as a hop too, so for private clients the
+        #     edge must overwrite X-Forwarded-For rather than append (otto 2.13,
         #     delano/otto#292). An entry that is not an address (`unknown`, an
         #     empty field) ends the walk with NO client IP: otto.client_ip stays
         #     absent and otto.ip_match denies every range.

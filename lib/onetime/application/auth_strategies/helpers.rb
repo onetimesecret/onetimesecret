@@ -7,6 +7,7 @@ require 'otto'
 
 require_relative '../../session/customer_session_evaluator'
 require_relative '../../session/failure_code'
+require_relative '../../utils/client_ip'
 
 #
 # Shared helper methods for authentication strategies.
@@ -168,7 +169,7 @@ module Onetime
         def client_ip(env)
           canonical = env['otto.client_ip']
           return canonical if canonical && !canonical.empty?
-          return nil if ip_privacy_resolved_no_client_ip?(env)
+          return nil if Onetime::Utils::ClientIp.no_client_ip_marker?(env)
 
           Otto::Utils.resolve_client_ip(env, env['otto.security_config'])
         rescue StandardError => ex
@@ -179,16 +180,6 @@ module Onetime
           # mis-attributing the IP.
           OT.le "[client_ip] resolve_client_ip failed, falling back to Rack::Request#ip: #{ex.message}"
           Rack::Request.new(env).ip
-        end
-
-        # True when IPPrivacyMiddleware ran on this env and found no client IP:
-        # otto.ip_match is present without otto.client_ip, and otto.peer_relayed
-        # proves the pair came from the middleware (see #client_ip).
-        #
-        # @param env [Hash] Rack environment
-        # @return [Boolean]
-        def ip_privacy_resolved_no_client_ip?(env)
-          env.key?('otto.ip_match') && env.key?('otto.peer_relayed')
         end
       end
     end

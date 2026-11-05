@@ -130,8 +130,11 @@ resolution behind proxies — but no filtering primitive.
    resists XFF padding. otto 2.13 (otto#292) then rewrote the filter walk
    itself: it reads X-Forwarded-For from the right, skips trusted hops and
    stops at the first untrusted entry, so a client-supplied leftmost entry
-   is never selected in either mode; the remaining operator duty is to list
-   every public hop in `cidrs`.*
+   is skipped whenever the client's own appended address is untrusted. The
+   remaining operator duties are to list every public hop in `cidrs` and,
+   where clients themselves have private addresses, to have the edge
+   overwrite the header, since a private client is skipped as a hop and the
+   entry left of it is selected (docs/deployment/trusted-proxies.md).*
 4. **Geo headers are trusted unconditionally** in the released 2.6.0
    (`otto-2.6.0/lib/otto/privacy/geo_resolver.rb:164-197`): `CF-IPCountry`
    et al. are honored with no trusted-proxy gate, and the built-in range

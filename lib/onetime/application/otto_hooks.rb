@@ -287,10 +287,11 @@ module Onetime
 
           # Extract auth context if available. Nothing sets env['otto.user']
           # (otto 2.13 documents this, delano/otto#298); the authenticated user
-          # is strategy_result.user — an Onetime::Customer, identified by objid.
+          # is strategy_result.user — an Onetime::Customer, logged by its
+          # external id like the other request-facing log lines.
           strategy_result = req.env['otto.strategy_result']
           user            = strategy_result&.user
-          user_id         = user.objid if user.respond_to?(:objid)
+          user_id         = user.extid if user.respond_to?(:extid)
           auth_strategy   = strategy_result&.strategy_name
 
           logger.trace 'Request completed',

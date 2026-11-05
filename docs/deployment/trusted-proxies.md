@@ -50,10 +50,12 @@ that decision consistently.
 With `site.network.trusted_proxy` enabled in `filter` mode, the client IP is
 read from `X-Forwarded-For` from the right: the hop nearest the application
 first, skipping every entry that is a trusted proxy, stopping at the first
-that is not. Entries to the left of that one were supplied by the client and
-are never selected. The private, loopback and link-local ranges are always
-trusted; a hop with a public address (a CDN edge, a cloud load balancer) is
-trusted only when it is listed in `trusted_proxy.cidrs`.
+that is not. Entries to the left of that one are never selected. The private,
+loopback and link-local ranges are always trusted; a hop with a public address
+(a CDN edge, a cloud load balancer) is trusted only when it is listed in
+`trusted_proxy.cidrs`. The walk cannot tell a trusted-range address that
+belongs to a proxy from one that belongs to the client, which is what the
+"private clients" item below is about.
 
 - **List every hop.** A proxy between the client and the application that is
   not in the trusted set is the client IP for every request through it.
@@ -64,17 +66,33 @@ trusted only when it is listed in `trusted_proxy.cidrs`.
   the request from to `X-Forwarded-For` (nginx:
   `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`), or replace
   a client-supplied value. An edge that
-  overwrites the header with the single address it resolved is also correct.
-  A proxy that sets only `X-Real-IP` must also write `X-Forwarded-For`:
-  `X-Real-IP` and `X-Client-IP` are read only when `X-Forwarded-For` is absent
-  or blank.
+  overwrites the header with the single address it resolved is also correct,
+  and with private clients it is required (next item). A proxy that sets only
+  `X-Real-IP` must also write `X-Forwarded-For`: `X-Real-IP` and `X-Client-IP`
+  are read only when `X-Forwarded-For` is absent or blank.
+- **Private clients need the overwrite.** Appending keeps a client-supplied
+  entry out only because the client's own appended address is untrusted and
+  stops the walk. A client whose address is in a trusted range is skipped as
+  a hop instead: a client at `192.168.1.50` that sends
+  `X-Forwarded-For: 203.0.113.99` through an appending proxy produces
+  `203.0.113.99, 192.168.1.50`, and the walk selects `203.0.113.99`, a value
+  the client chose, which then steers every per-IP rate limit, IP bans and
+  the audit trail. Where clients have RFC1918, loopback or link-local
+  addresses (a LAN, a VPN, a corporate network) the edge must overwrite
+  `X-Forwarded-For` with the one address it resolved (Caddy:
+  `header_up X-Forwarded-For {client_ip}`; nginx:
+  `proxy_set_header X-Forwarded-For $remote_addr;`), or run depth mode with
+  the matching `trusted_proxy.depth`.
 - **A non-address entry means no client IP.** When the walk reaches an entry
   that is not an IP address (`unknown`, an empty field, a trailing comma, a
-  range written with a prefix), the request has no client IP: the per-IP rate
-  limiters skip it, the admin network CIDR gate denies it, and sessions and
-  audit records carry no address. The application does not fall back to the
-  proxy's own address. Configure the proxy that writes such an entry to append
-  the real peer address instead.
+  range written with a prefix), the request has no client IP: the single-tier
+  per-IP limiters (account creation, anonymous secret creation, feedback)
+  charge it to one shared `no-client-ip` bucket, limiters with another tier
+  (login and reset by email, incoming by recipient) skip their IP tier, the
+  admin network CIDR gate denies it, and sessions and audit records carry no
+  address. The application does not fall back to the proxy's own address. A
+  cap hit on the shared bucket is logged with that bucket's name. Configure
+  the proxy that writes such an entry to append the real peer address instead.
 - **Vendor headers are not a source.** `CF-Connecting-IP`, `True-Client-IP`
   and similar headers are never read for the client IP, and with IP privacy on
   they are rewritten to the masked client IP before application code runs.

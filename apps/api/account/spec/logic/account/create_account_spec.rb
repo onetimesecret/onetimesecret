@@ -47,6 +47,11 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
         'authentication' => {
           'autoverify' => 'false',
           'allowed_signup_domains' => nil,
+          # Off, as in spec/config.test.yaml: these strategy results carry no
+          # :ip, and since otto 2.13 the limiter charges an IP-less request
+          # to its shared no-client-ip bucket instead of skipping it, so an
+          # enabled limiter would lock every example after the cap.
+          'create_account_rate_limit' => { 'enabled' => false },
         },
       },
       'features' => {},
