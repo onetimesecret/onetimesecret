@@ -67,8 +67,9 @@ module Auth
     #
     # `email_verified_at` is the backfill time, not the original verification
     # time, which no store recorded; the provenance column carries what is
-    # known. A minted row has no Customer to consult, so status VERIFIED alone
-    # sets `email_verified_by = 'legacy'`.
+    # known. A minted row has no Customer to consult, so all three stay NULL:
+    # status VERIFIED is not mailbox evidence (an SSO account opens Verified
+    # even when its IdP reported the address unverified).
     #
     # ## Idempotence and resumability
     #
@@ -361,18 +362,18 @@ module Auth
         report(row, :backfilled, branch, written_detail(new_external_id, values))
       end
 
+      # A row with no Customer (the :minted branch) gets all three NULL.
+      # Rodauth status 2 alone is not mailbox evidence (ADR-051 decision 1):
+      # rodauth-omniauth opens every SSO account Verified whatever the IdP
+      # said about the address, and the hold that records an unverified
+      # claim lives only on the Customer this row does not have.
+      #
       # @return [Hash] the three verification columns
       def verification_values(row, customer)
-        values          = { email_verified_at: nil, email_verified_by: nil, email_verification_hold: nil }
-        status_verified = row[:status_id] == AccountStatuses::VERIFIED
+        values = { email_verified_at: nil, email_verified_by: nil, email_verification_hold: nil }
+        return values if customer.nil?
 
-        if customer.nil?
-          values[:email_verified_at] = Sequel::CURRENT_TIMESTAMP if status_verified
-          values[:email_verified_by] = LEGACY_PROVENANCE if status_verified
-          return values
-        end
-
-        if status_verified && customer.verified?
+        if row[:status_id] == AccountStatuses::VERIFIED && customer.verified?
           provenance                 = customer.verified_by.to_s
           values[:email_verified_at] = Sequel::CURRENT_TIMESTAMP
           values[:email_verified_by] = provenance.empty? ? LEGACY_PROVENANCE : provenance

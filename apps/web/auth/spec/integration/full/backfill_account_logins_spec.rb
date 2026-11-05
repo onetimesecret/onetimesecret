@@ -210,7 +210,11 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
       expect(result.stats[:skipped_no_customer]).to eq(1)
     end
 
-    it 'mints a fresh login and its extid with mint_missing' do
+    # Rodauth status 2 is not mailbox evidence (ADR-051 decision 1): every
+    # SSO account opens Verified whatever the IdP said, and a hold lives
+    # only on the Customer this row does not have. So a minted row gets no
+    # verification columns, whatever its status.
+    it 'mints a fresh login and its extid with mint_missing, and leaves a Verified row unverified' do
       account_id = insert_account(email, external_id: nil, status_id: 2)
 
       result = new_operation(dry_run: false, mint_missing: true).call
@@ -219,9 +223,11 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
       expect(row[:login]).to match(UUID_RE)
       expect(row[:external_id]).to eq(Onetime::Customer.new(objid: row[:login]).extid)
       expect(Onetime::Customer.extid?(row[:external_id])).to be(true)
-      expect(row[:email_verified_at]).not_to be_nil
-      expect(row[:email_verified_by]).to eq('legacy')
+      expect(row[:email_verified_at]).to be_nil
+      expect(row[:email_verified_by]).to be_nil
+      expect(row[:email_verification_hold]).to be_nil
       expect(row_for(result, account_id)[:branch]).to eq(:minted)
+      expect(row_for(result, account_id)[:detail]).to include('email unverified')
       # Nothing was written to Valkey: the Customer is created by K2 later.
       expect(Onetime::Customer.find_by_extid(row[:external_id])).to be_nil
     end

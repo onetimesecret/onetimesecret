@@ -245,7 +245,8 @@ module Onetime
                                                                (--mint-missing: fresh login)
             Verification columns copy the Customer mirror: verified -> email_verified_at
             (now) and email_verified_by (the Customer's provenance, or 'legacy');
-            a verification hold is copied as email_verification_hold.
+            a verification hold is copied as email_verification_hold. A minted row
+            has no Customer and gets none of them.
 
           Options:
             --confirm               Execute changes (default is dry-run)
