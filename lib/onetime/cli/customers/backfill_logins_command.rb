@@ -164,6 +164,7 @@ module Onetime
         puts format('  %-40s %d', 'Skipped (ambiguous customer):', stats[:skipped_ambiguous_customer])
         puts format('  %-40s %d', 'Skipped (customer linked elsewhere):', stats[:skipped_customer_linked_elsewhere])
         puts format('  %-40s %d', 'Skipped (address mismatch):', stats[:skipped_email_mismatch])
+        puts format('  %-40s %d', 'Skipped (unknown verified_by):', stats[:skipped_unknown_verified_by])
         puts format('  %-40s %d', 'Skipped (no customer):', stats[:skipped_no_customer])
         puts format('  %-40s %d', 'Errors:', stats[:error])
       end
@@ -184,7 +185,8 @@ module Onetime
         end
 
         if (stats[:skipped_dangling_external_id] + stats[:skipped_ambiguous_customer] +
-            stats[:skipped_customer_linked_elsewhere] + stats[:skipped_email_mismatch]).positive?
+            stats[:skipped_customer_linked_elsewhere] + stats[:skipped_email_mismatch] +
+            stats[:skipped_unknown_verified_by]).positive?
           lines << 'Skipped rows are never resolved automatically. Run `bin/ots customers doctor`'
           lines << 'and `bin/ots customers normalize-emails` on them, decide which account keeps'
           lines << 'the Customer, then re-run.'
@@ -243,12 +245,15 @@ module Onetime
               two Customers hold the address                -> skipped_ambiguous_customer
               another row already links that Customer       -> skipped_customer_linked_elsewhere
               that Customer holds a different address       -> skipped_email_mismatch
+              its verified_by is not a known provenance     -> skipped_unknown_verified_by
               no Customer at all                            -> skipped_no_customer
                                                                (--mint-missing: fresh login)
             Verification columns copy the Customer mirror: verified -> email_verified_at
             (now) and email_verified_by (the Customer's provenance, or 'legacy');
             a verification hold is copied as email_verification_hold. A minted row
-            has no Customer and gets none of them.
+            has no Customer and gets none of them. Whether a copied provenance is
+            mailbox proof is Onetime::Customer::MAILBOX_VERIFIED_BY's call, as it is
+            for the Customer.
 
           Options:
             --confirm               Execute changes (default is dry-run)

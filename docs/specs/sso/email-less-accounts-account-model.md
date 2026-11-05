@@ -54,8 +54,8 @@ select a different account.
 |---|---|---|---|
 | `login` | String | NOT NULL, UNIQUE (after backfill, §7) | Opaque internal login. Value = Customer `objid` (UUIDv7 string). Generated server-side before the INSERT. |
 | `email` | citext (PG) / String (SQLite) | NULL allowed; CHECK `valid_email` (PG, kept); CHECK `email <> ''` (both); partial unique index on `(email) WHERE status_id IN (1,2)` (kept) | Optional contact email, normalized by `OT::Utils.normalize_email`. |
-| `email_verified_at` | DateTime | NULL | When mailbox control was established for the **current** `email` value. Cleared on any email change. |
-| `email_verified_by` | String | NULL | Provenance; one of `Auth::Operations::Customers::Doctor::VALID_VERIFIED_BY` ([doctor.rb:95](../../../apps/web/auth/operations/customers/doctor.rb#L95)). |
+| `email_verified_at` | DateTime | NULL | When the **current** `email` value was verified (agrees with Customer `verified?`). Cleared on any email change. |
+| `email_verified_by` | String | NULL | Provenance; one of `Onetime::Customer::VERIFIED_BY_VALUES` ([customer.rb](../../../lib/onetime/models/customer.rb), enforced since #4892). Mailbox proof only when also in `Onetime::Customer::MAILBOX_VERIFIED_BY` (#4754), the list Customer `mailbox_verified?` reads; any reader of this column that means "controls the mailbox" applies the same list. |
 | `email_verification_hold` | String | NULL | One of `Onetime::Customer::VERIFICATION_HOLDS` ([customer.rb:80](../../../lib/onetime/models/customer.rb#L80)); why an SSO-asserted address was deliberately left unverified. Mutually exclusive with `email_verified_at`. |
 | `external_id` | String | existing: NULL, UNIQUE; target: NOT NULL after backfill (§7 M017) | `extid` derived from `login` (Familia 2.12.0 `external_identifier` feature, `derive_external_identifier`: a deterministic HMAC-SHA-256 or SHA-256 of the objid). |
 | `status_id` | existing | unchanged | Account open/closed. UNVERIFIED remains the password-signup gate; SSO JIT accounts open at VERIFIED as today. |
@@ -254,11 +254,14 @@ Unchanged by this design:
   design ships the capability behind a flag scoped to the platform / per-install
   route.
 - Trusted-email linking, Connect gates and the `email_verified` hold logic are
-  untouched. `email_verified_by = 'sso'` is recorded as provenance; whether
-  that provenance satisfies the mailbox gate in §5 is RISK-2026-10-10-02
-  ([#4735](https://github.com/onetimesecret/onetimesecret/issues/4735)), an
-  operator decision. Default in this design: preserve current behaviour (it
-  counts), flip tracked under #4735.
+  untouched. `email_verified_by = 'sso'` is recorded as provenance. Whether
+  it is mailbox proof was RISK-2026-10-10-02
+  ([#4735](https://github.com/onetimesecret/onetimesecret/issues/4735)); #4754
+  decided it is not: only the tags in `Onetime::Customer::MAILBOX_VERIFIED_BY`
+  (`email`, `invite_token`, `colonel_admin`, `cli_provision`) count, for the
+  consumers that mean mailbox control (system roles and federation claims,
+  for example). A reader of `email_verified_by` applies the same list. Which mailbox flows in §5 need mailbox proof rather than
+  `email_verified_at` alone is for the N+1 design to settle against #4754.
 
 ## 7. Migration, cutover, mixed versions, rollback (proposal item 9)
 
@@ -273,7 +276,7 @@ the next free numbers when they are written.
 |---|---|---|---|---|
 | S0 | current | N | D0: all rows have email | baseline |
 | M015 expand | add `login` NULL **with its UNIQUE index**, `email_verified_at`, `email_verified_by`, `email_verification_hold`; leave `email NOT NULL` | N | D0 | old binary ignores new columns; its inserts leave `login` NULL. The unique index is created here rather than at M016 because both engines treat NULLs as distinct, so it costs the old binary nothing and stops two concurrent backfills from putting one objid on two rows. **Shipped** ([015_account_login_and_contact_verification.rb](../../../apps/web/auth/migrations/015_account_login_and_contact_verification.rb)). |
-| Backfill op | — | N or N+1 | D0 | `Auth::Operations::BackfillAccountLogins` / `bin/ots customers backfill-logins` (dry-run default, `--limit`, `--after-id`, idempotent, compare-and-set on `login IS NULL`; precedent [normalize_account_emails.rb](../../../apps/web/auth/operations/customers/normalize_account_emails.rb)). Per row: Customer by `external_id` → `login = objid`; else by the stored or normalized email when exactly one Customer matches and no other row links that Customer → `login = objid`, `external_id = extid`; else `skipped_no_customer`, or with `--mint-missing` a fresh UUIDv7 as `login` with `external_id = extid(login)` (the next K2 creates the Customer under it). Minting is opt-in because binary N re-links such a row by email on its next sign-in and overwrites the minted `external_id`; use it only once N+1 is the only binary. An `external_id` naming a missing Customer is reported (`skipped_dangling_external_id`), never rewritten. A Customer that holds a different address than the row (case-insensitive, as the doctor's `auth_email_drift` compares) is not linked or copied (`skipped_email_mismatch`) until the stores agree: its verification is proof for its own address. Verification: `status_id = VERIFIED` **and** Customer `verified` → `email_verified_at = now`, `email_verified_by = verified_by \|\| 'legacy'`; a Customer `verification_hold` is copied; otherwise NULL. A minted row has no Customer, so its verification columns stay NULL whatever its status (status is not mailbox evidence). The login value is never printed or logged. **Shipped** ([backfill_account_logins.rb](../../../apps/web/auth/operations/backfill_account_logins.rb)). |
+| Backfill op | — | N or N+1 | D0 | `Auth::Operations::BackfillAccountLogins` / `bin/ots customers backfill-logins` (dry-run default, `--limit`, `--after-id`, idempotent, compare-and-set on `login IS NULL`; precedent [normalize_account_emails.rb](../../../apps/web/auth/operations/customers/normalize_account_emails.rb)). Per row: Customer by `external_id` → `login = objid`; else by the stored or normalized email when exactly one Customer matches and no other row links that Customer → `login = objid`, `external_id = extid`; else `skipped_no_customer`, or with `--mint-missing` a fresh UUIDv7 as `login` with `external_id = extid(login)` (the next K2 creates the Customer under it). Minting is opt-in because binary N re-links such a row by email on its next sign-in and overwrites the minted `external_id`; use it only once N+1 is the only binary. An `external_id` naming a missing Customer is reported (`skipped_dangling_external_id`), never rewritten. A Customer that holds a different address than the row (case-insensitive, as the doctor's `auth_email_drift` compares) is not linked or copied (`skipped_email_mismatch`) until the stores agree: its verification is proof for its own address. Verification: `status_id = VERIFIED` **and** Customer `verified` → `email_verified_at = now`, `email_verified_by = verified_by \|\| 'legacy'`; a Customer `verification_hold` is copied; otherwise NULL. A Customer whose `verified_by` is outside `Onetime::Customer::VERIFIED_BY_VALUES` is skipped (`skipped_unknown_verified_by`) for an operator to re-stamp, so every tag written is in the list. A minted row has no Customer, so its verification columns stay NULL whatever its status (status is not mailbox evidence). The login value is never printed or logged. **Shipped** ([backfill_account_logins.rb](../../../apps/web/auth/operations/backfill_account_logins.rb)). |
 | Deploy N+1 | M015 | N+1 | D0 | N+1 writes `login`/`external_id` on every INSERT, reads by `external_id`, keeps email fallbacks read-only for rows still lacking `login`; email-less writes **disabled** (flag default off) |
 | M016 enforce | `login NOT NULL` (the UNIQUE index exists since M015) | N+1 only | D0 | refuses to run while any row has NULL `login` (rows inserted by N during the window are swept by re-running the backfill first). **Boot constraint:** `Auth::Migrator.run_if_needed` applies every migration file present at process start, so a refusing M016 is a boot failure. M016 therefore ships in a release deployed only after the operator has confirmed `backfill-logins` reports zero candidates (and `customers doctor` zero `auth_login_missing`), and its refusal message names that command. |
 | M017 enable | `email` nullable, CHECK `email <> ''`, `external_id NOT NULL` | N+1 | D0 → D1 once the flag is on | flag `SSO_EMAILLESS_ACCOUNTS` (default off) gates null-email INSERTs on the platform route only |
@@ -295,7 +298,7 @@ migration deletes or rewrites those rows.
 Operational checks added to `bin/ots customers doctor`: `login` ↔ Customer
 objid (`auth_login_missing`, `auth_login_mismatch`; shipped), `""` key in the
 global email index (`email_index_blank_key`, repairable; shipped),
-`email_verified_at` ↔ Customer `verified` drift (`auth_email_verification_drift`,
+`email_verified_at` ↔ Customer `verified`, and `email_verified_by` mailbox proof ↔ Customer `mailbox_verified?`, drift (`auth_email_verification_drift`,
 report-only until the N+1 binary makes SQL the writer; shipped), the
 org-scoped index `""` key, rows with `login` but no Customer (K2 pending), and
 accounts without `email` on a tenant domain (must be zero) (the last three
@@ -354,7 +357,8 @@ run through `tests/lanes/run`; lane in brackets.
 4. Platform-route-only flag for email-less creation; tenant stays refused
    pending the R1 decision (§6).
 5. `email_verified_by = 'sso'` keeps satisfying mailbox flows until #4735 is
-   decided (§6).
+   decided (§6). Superseded: #4754 decided that `sso` is not mailbox proof
+   (`Onetime::Customer::MAILBOX_VERIFIED_BY`).
 6. Familia P1 (empty string treated as absent in unique indexes) as a
    prerequisite release, versus app-side guards only.
 

@@ -16,9 +16,10 @@
 #   email                   the optional contact address. UNCHANGED here: it
 #                           stays NOT NULL and stays the Rodauth login column
 #                           until M016/M017 and the N+1 binary ship.
-#   email_verified_at       when mailbox control was established for the
-#   email_verified_by       CURRENT email value, by which path (one of
-#                           Auth::Operations::Customers::Doctor::VALID_VERIFIED_BY),
+#   email_verified_at       when the CURRENT email value was verified, by
+#   email_verified_by       which path (one of Onetime::Customer::VERIFIED_BY_VALUES;
+#                           only a tag in Onetime::Customer::MAILBOX_VERIFIED_BY
+#                           is mailbox proof, #4754),
 #   email_verification_hold or why an IdP-asserted address was deliberately
 #                           left unverified (Onetime::Customer::VERIFICATION_HOLDS).
 #                           Mutually exclusive with email_verified_at.

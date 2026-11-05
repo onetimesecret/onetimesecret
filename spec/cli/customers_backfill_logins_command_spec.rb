@@ -20,7 +20,8 @@ RSpec.describe 'customers backfill-logins', type: :cli do
     {
       scanned: 3, backfilled: 2, by_external_id: 1, by_email: 1, minted: 0,
       skipped_dangling_external_id: 0, skipped_ambiguous_customer: 0,
-      skipped_customer_linked_elsewhere: 0, skipped_email_mismatch: 0, skipped_no_customer: 1, error: 0,
+      skipped_customer_linked_elsewhere: 0, skipped_email_mismatch: 0,
+      skipped_unknown_verified_by: 0, skipped_no_customer: 1, error: 0,
     }
   end
 

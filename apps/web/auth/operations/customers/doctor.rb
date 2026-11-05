@@ -1145,9 +1145,14 @@ module Auth
         #                         (the backfill refuses exactly this, so it is
         #                         a hand-made row or a re-linked external_id)
         #   :auth_email_verification_drift
-        #                         one store says the mailbox is verified and
-        #                         the other does not; high. Until the N+1
-        #                         binary makes SQL the single writer, the
+        #                         the stores disagree on either of two facts;
+        #                         high. Whether the address is verified
+        #                         (email_verified_at set vs Customer
+        #                         verified?), and whether that verification is
+        #                         mailbox proof (email_verified_by in
+        #                         Onetime::Customer::MAILBOX_VERIFIED_BY vs
+        #                         Customer mailbox_verified?, #4754). Until the
+        #                         N+1 binary makes SQL the single writer, the
         #                         Customer mirror is what every reader uses,
         #                         so this is reported, not repaired.
         def check_auth_login_link(issues)
@@ -1181,13 +1186,25 @@ module Auth
 
           sql_verified      = !account[:email_verified_at].nil?
           customer_verified = @customer.verified?
-          return if sql_verified == customer_verified
+          sql_mailbox       = sql_verified &&
+                              Onetime::Customer::MAILBOX_VERIFIED_BY.include?(account[:email_verified_by].to_s)
+          customer_mailbox  = @customer.mailbox_verified?
+          return if sql_verified == customer_verified && sql_mailbox == customer_mailbox
+
+          message = if sql_verified == customer_verified
+                      "auth account email_verified_by=#{account[:email_verified_by].inspect} " \
+                        "#{sql_mailbox ? 'is' : 'is not'} mailbox proof while Customer " \
+                        "verified_by=#{@customer.verified_by.to_s.inspect} #{customer_mailbox ? 'is' : 'is not'} " \
+                        '(cross-store verification drift)'
+                    else
+                      "auth account email_verified_at #{sql_verified ? 'set' : 'NULL'} while Customer " \
+                        "verified=#{customer_verified} (cross-store verification drift)"
+                    end
 
           issues << {
             check: :auth_email_verification_drift,
             severity: :high,
-            message: "auth account email_verified_at #{sql_verified ? 'set' : 'NULL'} while Customer " \
-                     "verified=#{customer_verified} (cross-store verification drift)",
+            message: message,
             auth_email_verified_by: account[:email_verified_by],
             auth_email_verification_hold: account[:email_verification_hold],
             repairable: false,

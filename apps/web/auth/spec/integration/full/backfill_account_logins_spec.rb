@@ -111,6 +111,34 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
       expect(account_row(account_id)[:email_verified_by]).to eq('legacy')
     end
 
+    # email_verified_by takes only Onetime::Customer::VERIFIED_BY_VALUES
+    # (#4892). A stored tag outside it is a manual decision (the doctor
+    # says so too), so the row waits rather than carry the tag into SQL.
+    it 'skips a verified Customer whose verified_by is not a known provenance, and writes nothing' do
+      customer   = create_customer(email, verified: true, verified_by: 'magic_link_v0')
+      account_id = insert_account(email, external_id: customer.extid)
+      before     = account_row(account_id)
+
+      result = new_operation(dry_run: false).call
+
+      expect(account_row(account_id)).to eq(before)
+      report = row_for(result, account_id)
+      expect(report[:outcome]).to eq(:skipped_unknown_verified_by)
+      expect(report[:detail]).to include('magic_link_v0', 'customers verify')
+      expect(result.stats[:skipped_unknown_verified_by]).to eq(1)
+    end
+
+    it 'copies every known provenance unchanged' do
+      Onetime::Customer::VERIFIED_BY_VALUES.each do |tag|
+        customer   = create_customer("#{tag}-#{email}", verified: true, verified_by: tag)
+        account_id = insert_account(customer.email, external_id: customer.extid)
+
+        new_operation(dry_run: false).call
+
+        expect(account_row(account_id)[:email_verified_by]).to eq(tag)
+      end
+    end
+
     it 'copies a verification hold and leaves email_verified_at NULL' do
       customer   = create_customer(email, verified: false, verification_hold: 'idp_unverified')
       account_id = insert_account(email, external_id: customer.extid)

@@ -107,7 +107,10 @@ requirements. This ADR records the proposed architectural decision.
    and must retain a usable non-email authenticator. Adding verification
    columns does not itself establish that an IdP assertion proves mailbox
    control; that policy is tracked separately under
-   [#4735](https://github.com/onetimesecret/onetimesecret/issues/4735).
+   [#4735](https://github.com/onetimesecret/onetimesecret/issues/4735). #4754
+   settled it for the Customer record: only the provenances in
+   `Onetime::Customer::MAILBOX_VERIFIED_BY` are mailbox proof, and an IdP
+   assertion (`sso`) is not.
 7. **Do not widen access policy.**
    This change does not relax tenant allowlists, trusted-email linking,
    authenticated identity-linking (Connect) gates, or the recipient-email

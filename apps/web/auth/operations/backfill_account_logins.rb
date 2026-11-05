@@ -42,6 +42,9 @@ module Auth
     #   the chosen Customer holds a different address than the row
     #   (compared case-insensitively, as `customers doctor` does)
     #                                  -> :skipped_email_mismatch
+    #   the row is Verified and the Customer verified with a verified_by
+    #   outside Onetime::Customer::VERIFIED_BY_VALUES
+    #                                  -> :skipped_unknown_verified_by
     #   another row already holds the chosen login
     #                                  -> :skipped_customer_linked_elsewhere
     #   anything raised                -> :error
@@ -68,6 +71,16 @@ module Auth
     #   customer.verification_hold present      -> email_verification_hold = that hold
     #   otherwise                               -> all three NULL
     #
+    # `email_verified_at` therefore agrees with `customer.verified?`, and
+    # `email_verified_by` carries the provenance unchanged. Whether that
+    # provenance is mailbox proof is decided where the Customer decides it,
+    # Onetime::Customer::MAILBOX_VERIFIED_BY (#4754): an 'sso', 'legacy' or
+    # 'stripe_payment' row is verified but has no mailbox proof, exactly as
+    # its Customer is. A tag written here is always one of
+    # Onetime::Customer::VERIFIED_BY_VALUES (#4892); a Customer carrying any
+    # other is skipped (:skipped_unknown_verified_by) for an operator to
+    # re-stamp.
+    #
     # `email_verified_at` is the backfill time, not the original verification
     # time, which no store recorded; the provenance column carries what is
     # known. A minted row has no Customer to consult, so all three stay NULL:
@@ -91,6 +104,7 @@ module Auth
         :skipped_ambiguous_customer,
         :skipped_customer_linked_elsewhere,
         :skipped_email_mismatch,
+        :skipped_unknown_verified_by,
         :skipped_no_customer,
         :error,
       ].freeze
@@ -316,6 +330,18 @@ module Auth
           return report(row, :skipped_email_mismatch, branch, email_mismatch_detail(branch, customer))
         end
 
+        unknown = unknown_provenance(row, customer)
+        if unknown
+          return report(
+            row,
+            :skipped_unknown_verified_by,
+            branch,
+            "Customer #{customer.extid} is verified with verified_by #{unknown.inspect}, which is not one of " \
+            "Onetime::Customer::VERIFIED_BY_VALUES; not copied. Confirm the address and re-stamp it " \
+            "(`bin/ots customers verify #{customer.extid}`), then re-run",
+          )
+        end
+
         holder = accounts.where(login: login).exclude(id: row[:id]).select(:id, :status_id).first
         if holder
           return report(
@@ -392,6 +418,21 @@ module Auth
         end
 
         values
+      end
+
+      # The verified_by this row would copy when it is not a known
+      # provenance tag, else nil. Only a tag that would be written counts:
+      # an Unverified row, or an unverified Customer, copies none.
+      #
+      # @return [String, nil]
+      def unknown_provenance(row, customer)
+        return if customer.nil?
+        return unless row[:status_id] == AccountStatuses::VERIFIED && customer.verified?
+
+        provenance = customer.verified_by.to_s
+        return if provenance.empty? || Onetime::Customer::VERIFIED_BY_VALUES.include?(provenance)
+
+        provenance
       end
 
       # Whether the row and the Customer name one address. The Customer's
