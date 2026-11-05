@@ -9,9 +9,3 @@ Security
   the ``GET`` handler, so a link preview or scanner could use up the
   creator's one-time view of a generated secret. ``GET`` is unchanged. The
   v2 and v3 receipt and secret routes refuse ``HEAD`` the same way. (#4871)
-
-AI Assistance
--------------
-
-- The v1 ``HEAD`` fix and its integration spec were written with AI
-  assistance.
