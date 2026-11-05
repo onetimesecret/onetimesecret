@@ -54,6 +54,8 @@ module Onetime
         puts '  bin/ots customers sync-auth-accounts       # Sync to auth DB'
         puts '  bin/ots customers normalize-emails         # Dry-run: mixed-case auth emails (#4726)'
         puts '  bin/ots customers normalize-emails --confirm  # Canonicalize them'
+        puts '  bin/ots customers backfill-logins          # Dry-run: accounts.login backfill (ADR-051)'
+        puts '  bin/ots customers backfill-logins --confirm  # Apply it'
         puts
         puts 'ID = customer email, extid, objid, or Rodauth account id.'
         puts
