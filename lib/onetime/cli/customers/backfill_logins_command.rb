@@ -78,7 +78,7 @@ module Onetime
         else
           print_header(dry_run, limit, after_id, mint_missing)
           print_results(result)
-          print_next_steps(result, limit, mint_missing)
+          print_next_steps(result, limit, after_id, mint_missing)
         end
 
         exit 1 if result.stats[:error].positive?
@@ -169,13 +169,16 @@ module Onetime
         puts format('  %-40s %d', 'Errors:', stats[:error])
       end
 
-      def print_next_steps(result, limit, mint_missing)
+      def print_next_steps(result, limit, after_id, mint_missing)
         stats = result.stats
         lines = []
 
+        # The apply suggestion keeps the preview's --limit and --after-id, so
+        # it selects the rows just reviewed rather than every candidate from
+        # the lowest id.
         if result.dry_run && stats[:backfilled].positive?
-          lines << 'Review the rows above, then run:'
-          lines << "  bin/ots customers backfill-logins --confirm#{' --mint-missing' if mint_missing}"
+          lines << 'Review the rows above, then apply the same selection:'
+          lines << "  #{command_line(limit: limit, after_id: after_id, mint_missing: mint_missing, confirm: true)}"
         end
 
         if stats[:skipped_no_customer].positive?
@@ -198,9 +201,9 @@ module Onetime
         end
 
         if limit && result.last_account_id
-          resume  = "bin/ots customers backfill-logins --limit #{limit} --after-id #{result.last_account_id}"
-          resume += ' --mint-missing' if mint_missing
-          resume += ' --confirm' unless result.dry_run
+          resume = command_line(
+            limit: limit, after_id: result.last_account_id, mint_missing: mint_missing, confirm: !result.dry_run
+          )
           lines << 'Resume with:'
           lines << "  #{resume}"
         end
@@ -209,6 +212,17 @@ module Onetime
 
         puts
         lines.each { |line| puts line }
+      end
+
+      # A backfill-logins invocation over one selection, flags in a fixed
+      # order.
+      def command_line(limit:, after_id:, mint_missing:, confirm:)
+        parts  = ['bin/ots customers backfill-logins']
+        parts << "--limit #{limit}" if limit
+        parts << "--after-id #{after_id}" if after_id
+        parts << '--mint-missing' if mint_missing
+        parts << '--confirm' if confirm
+        parts.join(' ')
       end
 
       def output_json(result)

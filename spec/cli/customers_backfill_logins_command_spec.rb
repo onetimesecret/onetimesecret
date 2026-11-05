@@ -108,6 +108,22 @@ RSpec.describe 'customers backfill-logins', type: :cli do
       expect(output[:stderr]).to include('--after-id must be a non-negative integer')
     end
 
+    # The apply command a preview suggests must cover the rows previewed,
+    # not every candidate from the lowest id.
+    it 'keeps --limit and --after-id on the suggested --confirm command' do
+      output = run_cli_command_quietly('customers', 'backfill-logins', '--limit', '2', '--after-id', '5')
+
+      expect(output[:stdout]).to include('bin/ots customers backfill-logins --limit 2 --after-id 5 --confirm')
+    end
+
+    it 'keeps --mint-missing too, and suggests a bare --confirm after an unfiltered preview' do
+      output = run_cli_command_quietly('customers', 'backfill-logins', '--after-id', '5', '--mint-missing')
+      expect(output[:stdout]).to include('bin/ots customers backfill-logins --after-id 5 --mint-missing --confirm')
+
+      output = run_cli_command_quietly('customers', 'backfill-logins')
+      expect(output[:stdout]).to include("bin/ots customers backfill-logins --confirm\n")
+    end
+
     it 'prints the resume hint, with --confirm only on a live run' do
       output = run_cli_command_quietly('customers', 'backfill-logins', '--limit', '2')
       expect(output[:stdout]).to include('bin/ots customers backfill-logins --limit 2 --after-id 9')
