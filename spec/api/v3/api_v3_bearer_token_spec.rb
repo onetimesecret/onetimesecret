@@ -204,6 +204,39 @@ RSpec.describe 'API v3 PASETO bearer tokens', type: :integration do
       customer.last_password_update!(0)
     end
 
+    it 'issues a token for a watermark as far ahead as the verifier tolerates' do
+      # The push past the watermark is bounded by AccessToken::CLOCK_SKEW: a
+      # watermark that far ahead still yields a token a correctly clocked
+      # verifier accepts.
+      watermark = Time.now.to_i + Onetime::Paseto::AccessToken::CLOCK_SKEW - 2
+      customer.last_password_update!(watermark)
+
+      record = mint_with_basic
+      expect(record.fetch('issued_at')).to eq(watermark + 1)
+
+      request(:get, '/api/v3/receipt/recent', authorization: "Bearer #{record.fetch('token')}")
+      expect(last_response.status).to eq(200), last_response.body
+    ensure
+      customer.last_password_update!(0)
+    end
+
+    it 'refuses to mint when the watermark is further ahead than any verifier would accept' do
+      # A watermark stamped by a node whose clock leads this one by more than
+      # the allowance would put iat where every correctly clocked verifier
+      # refuses it ("token issued in the future") for the token's whole life.
+      # The mint refuses with 503 and Retry-After instead of returning a token
+      # that cannot work.
+      watermark = Time.now.to_i + Onetime::Paseto::AccessToken::CLOCK_SKEW + 30
+      customer.last_password_update!(watermark)
+
+      request(:post, '/api/v3/token', authorization: basic_header)
+      expect(last_response.status).to eq(503), last_response.body
+      expect(json_response).to include('error_type' => 'TemporarilyUnavailable', 'reason' => 'credential_watermark_ahead')
+      expect(last_response.headers['Retry-After']).to eq('5')
+    ensure
+      customer.last_password_update!(0)
+    end
+
     it 'refuses to mint from a bearer token: a leaked token cannot renew itself' do
       token = mint_with_basic.fetch('token')
       request(:post, '/api/v3/token', body: {}, authorization: "Bearer #{token}")

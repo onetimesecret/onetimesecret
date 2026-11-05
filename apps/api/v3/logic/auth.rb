@@ -110,15 +110,33 @@ module V3
         # the password change that retires sessions and the API key rotation
         # that does not), so a token minted in the same second as either
         # change, or by a node whose clock trails the one that stamped it,
-        # would otherwise be refused on every request for its whole life. One
-        # second past the watermark is well inside the verifier's clock-skew
-        # allowance for `iat`/`nbf`, so the token works at once, and nothing
-        # issued at or before the watermark is spared.
+        # would otherwise be refused on every request for its whole life.
+        # Nothing issued at or before the watermark is spared.
+        #
+        # The push forward is bounded by the verifier's clock-skew allowance
+        # (AccessToken::CLOCK_SKEW): a verifier refuses an `iat` further ahead
+        # of its own clock than that, so a watermark stamped by a node whose
+        # clock leads this one by more than the allowance cannot be issued
+        # past. Clamping would not help (`iat <= watermark` is refused as
+        # retired), so the mint refuses instead of returning a token that
+        # every verifier rejects: 503 with Retry-After, and a warning naming
+        # the lead, which is a clock-skew signal for the operator.
         def issuance_time(now = Time.now)
           watermark = cust.bearer_token_watermark
           return now if now.to_i > watermark
 
-          Time.at(watermark + 1).utc
+          issued_at = Time.at(watermark + 1).utc
+          lead      = issued_at.to_i - now.to_i
+          return issued_at if lead <= Onetime::Paseto::AccessToken::CLOCK_SKEW
+
+          Onetime.auth_logger.warn 'Refused to issue API bearer token: credential watermark ahead of this node',
+            customer: cust.extid,
+            watermark_lead_seconds: lead,
+            clock_skew_allowance: Onetime::Paseto::AccessToken::CLOCK_SKEW
+          raise Onetime::TemporarilyUnavailable.new(
+            'The account changed a credential too recently for a token to be issued. Please try again shortly.',
+            reason: :credential_watermark_ahead,
+          )
         end
 
         def impersonating?
