@@ -1132,41 +1132,6 @@ module Auth
           @auth_account            = nil
         end
 
-        # CHECK: an SSO-provisioned Customer left unverified (#3973)
-        #
-        # The JIT SSO path used to hard-code `verified: false` on the Customer
-        # while Rodauth opened the accounts row at VERIFIED, and nothing ever
-        # reconciled the two — after_verify_account only fires in the email
-        # verify flow, which an SSO user never traverses. The visible symptom is
-        # an SSO-provisioned colonel who cannot exercise their role, because
-        # has_system_role? tests verified? BEFORE it reads the role.
-        #
-        # The forward fix (config/hooks/omniauth.rb) stops new records drifting.
-        # This check is the ONLY thing that heals records created before it, and
-        # it is deliberately narrow on BOTH sides of the split:
-        #
-        #   * Redis side — provisioning_origin must literally be 'sso_jit'. This
-        #     is set once at creation and never rewritten, so it is real
-        #     provenance, not an inference from current state.
-        #   * SQL side — the accounts row must already be at
-        #     AccountStatuses::VERIFIED. The repair therefore only copies a fact
-        #     the auth store already holds; it never decides that anyone is
-        #     verified, and never touches SQL (rodauth_already_synced: true).
-        #
-        # An existing verified_by is PRESERVED — a customer who was
-        # email-verified or stripe-verified keeps that provenance, and only a
-        # record with no provenance at all is stamped 'sso'.
-        #
-        # A VERIFICATION HOLD IS HONOURED. The JIT hook leaves the Customer
-        # unverified on purpose when the IdP asserted email_verified: false,
-        # or when that claim could not be read, and stamps verification_hold
-        # with the reason so the decision survives without the auth hash this
-        # doctor never sees. Such a record is NOT drift: the accounts row is
-        # Verified only because rodauth-omniauth opens every SSO account that
-        # way. It is reported (so it does not silently linger) but never
-        # auto-repaired, even under --repair; an operator who has confirmed
-        # the address verifies it by hand (colonel admin, or
-        # `bin/ots customers verify`).
         # ADR-051 (SSO email-less accounts Phase 2): the accounts row's internal
         # `login` IS the Customer objid, and `email_verified_at` is meant to
         # agree with the Customer `verified` mirror. Report-only, three shapes:
@@ -1234,6 +1199,41 @@ module Auth
                 "#{ex.class} #{ex.message}"
         end
 
+        # CHECK: an SSO-provisioned Customer left unverified (#3973)
+        #
+        # The JIT SSO path used to hard-code `verified: false` on the Customer
+        # while Rodauth opened the accounts row at VERIFIED, and nothing ever
+        # reconciled the two — after_verify_account only fires in the email
+        # verify flow, which an SSO user never traverses. The visible symptom is
+        # an SSO-provisioned colonel who cannot exercise their role, because
+        # has_system_role? tests verified? BEFORE it reads the role.
+        #
+        # The forward fix (config/hooks/omniauth.rb) stops new records drifting.
+        # This check is the ONLY thing that heals records created before it, and
+        # it is deliberately narrow on BOTH sides of the split:
+        #
+        #   * Redis side — provisioning_origin must literally be 'sso_jit'. This
+        #     is set once at creation and never rewritten, so it is real
+        #     provenance, not an inference from current state.
+        #   * SQL side — the accounts row must already be at
+        #     AccountStatuses::VERIFIED. The repair therefore only copies a fact
+        #     the auth store already holds; it never decides that anyone is
+        #     verified, and never touches SQL (rodauth_already_synced: true).
+        #
+        # An existing verified_by is PRESERVED — a customer who was
+        # email-verified or stripe-verified keeps that provenance, and only a
+        # record with no provenance at all is stamped 'sso'.
+        #
+        # A VERIFICATION HOLD IS HONOURED. The JIT hook leaves the Customer
+        # unverified on purpose when the IdP asserted email_verified: false,
+        # or when that claim could not be read, and stamps verification_hold
+        # with the reason so the decision survives without the auth hash this
+        # doctor never sees. Such a record is NOT drift: the accounts row is
+        # Verified only because rodauth-omniauth opens every SSO account that
+        # way. It is reported (so it does not silently linger) but never
+        # auto-repaired, even under --repair; an operator who has confirmed
+        # the address verifies it by hand (colonel admin, or
+        # `bin/ots customers verify`).
         def check_sso_customer_unverified(issues, repaired)
           return if @customer.verified?
           return unless @customer.provisioning_origin.to_s == 'sso_jit'
