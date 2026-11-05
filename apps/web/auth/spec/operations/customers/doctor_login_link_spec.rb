@@ -8,7 +8,8 @@
 #   :auth_login_mismatch           `login` names a Customer other than the one
 #                                  external_id names
 #   :auth_email_verification_drift SQL email_verified_at disagrees with the
-#                                  Customer `verified` mirror
+#                                  Customer's mailbox proof (mailbox_verified?,
+#                                  Onetime::Customer::MAILBOX_VERIFIED_BY)
 #   :email_index_blank_key         class-level sweep finds an empty-string key
 #
 # All report-only except the blank key, which --repair removes. The checks are
@@ -32,6 +33,8 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       extid: 'ur_c',
       obscure_email: 'li***@e***.com',
       verified?: true,
+      verified_by: 'email',
+      mailbox_verified?: true,
     )
   end
 
@@ -59,8 +62,13 @@ RSpec.describe Auth::Operations::Customers::Doctor do
 
     def base_row(**overrides)
       {
-        id: 42, email: 'live@example.com', status_id: 2, login: 'obj_c',
-        email_verified_at: Time.now, email_verified_by: 'email', email_verification_hold: nil,
+        id: 42,
+        email: 'live@example.com',
+        status_id: 2,
+        login: 'obj_c',
+        email_verified_at: Time.now,
+        email_verified_by: 'email',
+        email_verification_hold: nil,
       }.merge(overrides)
     end
 
@@ -110,7 +118,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     end
 
     it 'reports :auth_email_verification_drift when SQL is verified and the Customer is not' do
-      allow(customer).to receive(:verified?).and_return(false)
+      allow(customer).to receive_messages(verified?: false, verified_by: '', mailbox_verified?: false)
       stub_row(base_row)
 
       doctor.send(:check_auth_login_link, issues)
@@ -119,8 +127,44 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       expect(issues.first).to include(auth_email_verified_by: 'email')
     end
 
+    it "does not report drift for a Customer verified by an IdP claim ('sso' is not mailbox proof) and a NULL column" do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'sso', mailbox_verified?: false)
+      stub_row(base_row(email_verified_at: nil, email_verified_by: nil))
+
+      doctor.send(:check_auth_login_link, issues)
+
+      expect(issues).to be_empty
+    end
+
+    it 'reports drift when the column is set but the Customer provenance is not mailbox proof' do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'sso', mailbox_verified?: false)
+      stub_row(base_row(email_verified_by: 'sso'))
+
+      doctor.send(:check_auth_login_link, issues)
+
+      expect(issues.map { |i| i[:check] }).to eq([:auth_email_verification_drift])
+      expect(issues.first[:message]).to include('mailbox_verified=false')
+      expect(issues.first[:message]).to include('"sso"')
+    end
+
+    it 'skips the verification comparison when the row holds another address (auth_email_drift owns that)' do
+      stub_row(base_row(email: 'other@example.com', email_verified_at: nil, email_verified_by: nil))
+
+      doctor.send(:check_auth_login_link, issues)
+
+      expect(issues).to be_empty
+    end
+
+    it 'compares the addresses case-insensitively, as check_auth_email_drift does' do
+      stub_row(base_row(email: 'Live@Example.com', email_verified_at: nil, email_verified_by: nil))
+
+      doctor.send(:check_auth_login_link, issues)
+
+      expect(issues.map { |i| i[:check] }).to eq([:auth_email_verification_drift])
+    end
+
     it 'treats a held, unverified row as consistent with an unverified Customer' do
-      allow(customer).to receive(:verified?).and_return(false)
+      allow(customer).to receive_messages(verified?: false, verified_by: '', mailbox_verified?: false)
       stub_row(base_row(email_verified_at: nil, email_verified_by: nil, email_verification_hold: 'idp_unverified'))
 
       doctor.send(:check_auth_login_link, issues)

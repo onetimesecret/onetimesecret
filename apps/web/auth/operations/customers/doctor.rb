@@ -1133,8 +1133,13 @@ module Auth
         end
 
         # ADR-051 (SSO email-less accounts Phase 2): the accounts row's internal
-        # `login` IS the Customer objid, and `email_verified_at` is meant to
-        # agree with the Customer `verified` mirror. Report-only, three shapes:
+        # `login` IS the Customer objid, and `email_verified_at` records
+        # mailbox proof for the row's address, so it is meant to agree with
+        # Customer#mailbox_verified? (verified with a provenance in
+        # Onetime::Customer::MAILBOX_VERIFIED_BY), not with `verified?` alone:
+        # a Customer verified by an IdP claim ('sso'), a payment, autoverify
+        # or a 'legacy' stamp beside a NULL column is in step, which is what
+        # the backfill writes for it. Report-only, three shapes:
         #
         #   :auth_login_missing   the row predates migration 015 and has not
         #                         been backfilled (`bin/ots customers
@@ -1145,11 +1150,15 @@ module Auth
         #                         (the backfill refuses exactly this, so it is
         #                         a hand-made row or a re-linked external_id)
         #   :auth_email_verification_drift
-        #                         one store says the mailbox is verified and
-        #                         the other does not; high. Until the N+1
-        #                         binary makes SQL the single writer, the
-        #                         Customer mirror is what every reader uses,
-        #                         so this is reported, not repaired.
+        #                         one store carries mailbox proof for the
+        #                         address and the other does not; high.
+        #                         Skipped while the two stores name different
+        #                         addresses: that is check_auth_email_drift's
+        #                         finding, and the backfill leaves such a row
+        #                         unverified on purpose. Until the N+1 binary
+        #                         makes SQL the single writer, the Customer
+        #                         mirror is what every reader uses, so this is
+        #                         reported, not repaired.
         def check_auth_login_link(issues)
           account = auth_account
           return if account.nil?
@@ -1179,15 +1188,19 @@ module Auth
             return
           end
 
+          # Same case-insensitive comparison as check_auth_email_drift.
+          return unless account[:email].to_s.downcase == @customer.email.to_s.downcase
+
           sql_verified      = !account[:email_verified_at].nil?
-          customer_verified = @customer.verified?
+          customer_verified = @customer.mailbox_verified?
           return if sql_verified == customer_verified
 
           issues << {
             check: :auth_email_verification_drift,
             severity: :high,
             message: "auth account email_verified_at #{sql_verified ? 'set' : 'NULL'} while Customer " \
-                     "verified=#{customer_verified} (cross-store verification drift)",
+                     "mailbox_verified=#{customer_verified} (verified_by=#{@customer.verified_by.inspect}; " \
+                     'cross-store verification drift)',
             auth_email_verified_by: account[:email_verified_by],
             auth_email_verification_hold: account[:email_verification_hold],
             repairable: false,

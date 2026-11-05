@@ -26,7 +26,10 @@ module Auth
     #
     #   external_id present
     #     Customer by external_id      -> login = customer.objid       (:backfilled, branch :by_external_id)
-    #     no such Customer             -> :skipped_dangling_external_id (never overwritten here)
+    #     no such Customer             -> :skipped_dangling_external_id (never overwritten here;
+    #                                     the report says whether a Customer holds the
+    #                                     row's address, which decides the repair, see
+    #                                     #dangling_detail)
     #   external_id blank
     #     exactly one Customer under the stored or the normalized address,
     #     and no OTHER accounts row already links that Customer
@@ -41,11 +44,14 @@ module Auth
     #                                     on the account's next sign-in
     #   another row already holds the chosen login
     #                                  -> :skipped_customer_linked_elsewhere
+    #   the row changed between scan and write
+    #                                  -> :skipped_row_changed (re-read on the next run)
     #   anything raised                -> :error
     #
     # Two accounts rows are never merged onto one Customer, and an existing
     # `external_id` is never rewritten: a row whose link names a Customer that
-    # no longer exists is reported for the operator (`bin/ots customers doctor`).
+    # no longer exists is reported for the operator with the repair that fits
+    # what the report found.
     #
     # `mint_missing` is off by default because the CURRENT binary, on the next
     # sign-in of such an account, would create a Customer by email and
@@ -56,28 +62,47 @@ module Auth
     #
     # ## Verification columns
     #
-    # Mailbox verification today lives on the Customer mirror (`verified`,
-    # `verified_by`, `verification_hold`) with Rodauth `status_id` as the gate.
-    # The copy preserves the current answer, whatever its provenance:
+    # `email_verified_at` records that mailbox control was established for the
+    # row's CURRENT `email` (migration 015). The only record of that today is
+    # the Customer mirror (`verified`, `verified_by`, `verification_hold`),
+    # and not every `verified` stamp there is mailbox proof:
+    # `Onetime::Customer::MAILBOX_VERIFIED_BY` lists the provenances that are
+    # (a followed link, an invite token, an operator), and
+    # `Customer#mailbox_verified?` reads it. The copy is conservative:
     #
-    #   status VERIFIED and customer.verified?  -> email_verified_at = now,
-    #                                              email_verified_by = customer.verified_by || 'legacy'
+    #   Rodauth status VERIFIED, Customer#mailbox_verified?, and the Customer's
+    #   address is the row's address (#same_address?)
+    #                                           -> email_verified_at = now,
+    #                                              email_verified_by = customer.verified_by
+    #   same address, not mailbox-verified, and
     #   customer.verification_hold present      -> email_verification_hold = that hold
     #   otherwise                               -> all three NULL
     #
+    # "Otherwise" covers an unverified Customer; one verified by an IdP claim
+    # ('sso'), a payment, autoverify or a pre-provenance 'legacy' stamp, none
+    # of which proves the mailbox (ADR-051 keeps mailbox proof apart from an
+    # IdP assertion); a Customer that holds a different address, whose proof
+    # says nothing about this row's; and a row with no Customer at all (the
+    # :minted branch), where Rodauth status alone is not evidence. A row left
+    # NULL here loses nothing: the Customer mirror keeps its own answer and is
+    # what every reader uses until the N+1 binary makes SQL the writer, and
+    # mailbox proof recorded later writes the columns then.
+    #
     # `email_verified_at` is the backfill time, not the original verification
     # time, which no store recorded; the provenance column carries what is
-    # known. A minted row has no Customer to consult, so status VERIFIED alone
-    # sets `email_verified_by = 'legacy'`.
+    # known.
     #
     # ## Idempotence and resumability
     #
     # Only rows with `login IS NULL` are candidates, so a second run re-does
     # none of them; refused and errored rows stay candidates and are
     # re-reported on every run until an operator resolves them (`after_id:`
-    # skips past them on a limited run). The write is a compare-and-set on
-    # `login IS NULL`: a row another process filled between scan and write is
-    # reported, not clobbered. Dry run (the default) writes nothing.
+    # skips past them on a limited run). The write is a compare-and-set on the
+    # row AS SCANNED: `login IS NULL` plus the scanned external_id, email and
+    # status_id (#unchanged_scope). A row another process changed in between
+    # (sync-auth-accounts re-linking its external_id, an email change, a
+    # closure) is reported as :skipped_row_changed, not clobbered, and is
+    # re-read on the next run. Dry run (the default) writes nothing.
     class BackfillAccountLogins
       include Onetime::LoggerMethods
 
@@ -87,14 +112,11 @@ module Auth
         :skipped_ambiguous_customer,
         :skipped_customer_linked_elsewhere,
         :skipped_no_customer,
+        :skipped_row_changed,
         :error,
       ].freeze
 
       BRANCHES = [:by_external_id, :by_email, :minted].freeze
-
-      # Provenance recorded when the Customer mirror says verified but carries
-      # no verified_by (records that predate the field).
-      LEGACY_PROVENANCE = 'legacy'
 
       # Keyset page size for the accounts scan.
       BATCH_SIZE = 1000
@@ -214,13 +236,15 @@ module Auth
 
       # -------------------------------------------------------------- row
 
+      # The exception object itself never reaches a logger: a database error
+      # carries the statement, and the statement carries the address and the
+      # login value. Only the scrubbed detail is logged and reported.
       def process_row_safely(row)
         process_row(row)
       rescue StandardError => ex
-        auth_logger.error '[backfill_account_logins] row failed',
-          account_id: row[:id],
-          exception: ex
-        report(row, :error, nil, "#{ex.class}: #{scrub(ex.message, row)}")
+        detail = "#{ex.class}: #{scrub(ex.message, row)}"
+        auth_logger.error '[backfill_account_logins] row failed', account_id: row[:id], error: detail
+        report(row, :error, nil, detail)
       end
 
       def process_row(row)
@@ -230,17 +254,35 @@ module Auth
           resolve_by_email(row)
         else
           customer = Onetime::Customer.find_by_extid(extid)
-          if customer.nil?
-            return report(
-              row,
-              :skipped_dangling_external_id,
-              nil,
-              'accounts.external_id names a Customer that does not exist; the link is not rewritten ' \
-              'here. Run `bin/ots customers doctor` and `bin/ots customers sync-auth-accounts`',
-            )
-          end
+          return report(row, :skipped_dangling_external_id, nil, dangling_detail(row)) if customer.nil?
 
           apply(row, :by_external_id, customer, customer.objid.to_s, nil)
+        end
+      end
+
+      # The repair for a dangling link depends on a fact `bin/ots customers
+      # doctor` cannot see (it walks Customers, and this row's is gone):
+      # whether some Customer holds the row's address. With one, the current
+      # binary re-links the row to it on the account's next sign-in
+      # (SyncSession link-on-login) and `sync-auth-accounts` does the same for
+      # a live row now. With none the row is orphaned; `customers diagnose`
+      # resolves a numeric account id without a Customer and names it so, and
+      # the next sign-in recreates a Customer under the address
+      # (SyncSession#recreate_customer). Either way the row stays a candidate
+      # and the re-run links it.
+      def dangling_detail(row)
+        holders = email_candidates(row[:email].to_s)
+        base    = 'accounts.external_id names a Customer that does not exist; the link is not rewritten here. '
+
+        if holders.empty?
+          base +
+            "No Customer holds this address either, so the row is orphaned: `bin/ots customers diagnose #{row[:id]}` " \
+            'reports it as orphaned_auth_account. The account\'s next sign-in recreates a Customer under the address ' \
+            'and re-links the row; otherwise decide by hand whether the account stays. Re-run afterwards'
+        else
+          base +
+            "Customer #{holders.map(&:extid).join(', ')} holds this address: `bin/ots customers sync-auth-accounts " \
+            '--run` re-links a live row to it (so does the account\'s next sign-in). Re-run afterwards'
         end
       end
 
@@ -282,6 +324,7 @@ module Auth
       #
       # @return [Array<Onetime::Customer>]
       def email_candidates(stored)
+        stored = sql_text(stored)
         return [] if stored.empty?
 
         found = [stored, OT::Utils.normalize_email(stored)].uniq.filter_map do |candidate|
@@ -337,7 +380,7 @@ module Auth
         update[:external_id] = new_external_id if new_external_id && !new_external_id.empty?
 
         begin
-          rows_updated = accounts.where(id: row[:id], login: nil).update(update)
+          rows_updated = unchanged_scope(row).update(update)
         rescue Sequel::UniqueConstraintViolation => ex
           return report(
             row,
@@ -351,31 +394,44 @@ module Auth
         if rows_updated.zero?
           return report(
             row,
-            :error,
+            :skipped_row_changed,
             branch,
-            "accounts row #{row[:id]} was gone or already had a login when the write ran (nothing written); " \
-            'it changed between scan and apply, re-run',
+            'the row changed between scan and write (its login, external_id, email or status is not what the ' \
+            'scan read); nothing written; it is re-read on the next run',
           )
         end
 
         report(row, :backfilled, branch, written_detail(new_external_id, values))
       end
 
-      # @return [Hash] the three verification columns
+      # The compare-and-set predicate: the row exactly as the scan read it.
+      # `login IS NULL` alone is not enough. The login chosen above was
+      # derived from the scanned external_id (or from the scanned address),
+      # so a row whose external_id was re-linked in between (sync-auth-accounts,
+      # link-on-login) would otherwise end up with a login naming one
+      # Customer and an external_id naming another. Sequel renders a nil
+      # value as `IS NULL`, so an unlinked row compares too. On PostgreSQL
+      # accounts.email is citext, so a case-only rewrite still matches; it
+      # names the same address.
+      def unchanged_scope(row)
+        accounts.where(
+          id: row[:id],
+          login: nil,
+          external_id: row[:external_id],
+          email: row[:email],
+          status_id: row[:status_id],
+        )
+      end
+
+      # @return [Hash] the three verification columns (see the class comment)
       def verification_values(row, customer)
-        values          = { email_verified_at: nil, email_verified_by: nil, email_verification_hold: nil }
-        status_verified = row[:status_id] == AccountStatuses::VERIFIED
+        values = { email_verified_at: nil, email_verified_by: nil, email_verification_hold: nil }
+        return values if customer.nil?
+        return values unless same_address?(row, customer)
 
-        if customer.nil?
-          values[:email_verified_at] = Sequel::CURRENT_TIMESTAMP if status_verified
-          values[:email_verified_by] = LEGACY_PROVENANCE if status_verified
-          return values
-        end
-
-        if status_verified && customer.verified?
-          provenance                 = customer.verified_by.to_s
+        if row[:status_id] == AccountStatuses::VERIFIED && customer.mailbox_verified?
           values[:email_verified_at] = Sequel::CURRENT_TIMESTAMP
-          values[:email_verified_by] = provenance.empty? ? LEGACY_PROVENANCE : provenance
+          values[:email_verified_by] = customer.verified_by.to_s
         else
           hold                             = customer.verification_hold.to_s
           values[:email_verification_hold] = hold unless hold.empty?
@@ -384,10 +440,31 @@ module Auth
         values
       end
 
+      # Does the Customer hold the row's address? Both sides go through the
+      # normalization Customer.create! keys the email index with
+      # (OT::Utils.normalize_email: trimmed, NFC, case-folded), which is also
+      # how #email_candidates finds a Customer for a row. Proof the Customer
+      # carries for another mailbox says nothing about this row's.
+      def same_address?(row, customer)
+        sql_email      = OT::Utils.normalize_email(sql_text(row[:email]))
+        customer_email = OT::Utils.normalize_email(customer.email)
+        !sql_email.empty? && sql_email == customer_email
+      end
+
       # ---------------------------------------------------------- lookups
 
       def accounts
         @db[:accounts]
+      end
+
+      # A string column read through a connection whose client_encoding is
+      # not UTF8 (a SQL_ASCII cluster) arrives tagged BINARY, and Unicode
+      # normalization and UTF-8 pattern matching both raise on that tag.
+      # Re-tag before either (OT::Utils.utf8_safe, the project's helper for
+      # "whatever the datastore held"); the compare-and-set and the report
+      # keep using the bytes as read.
+      def sql_text(value)
+        OT::Utils.utf8_safe(value.to_s)
       end
 
       def describe_holder(holder)
@@ -428,8 +505,8 @@ module Auth
       # Exception messages (Sequel includes the statement) can carry the raw
       # address and the login value; the report must carry neither.
       def scrub(message, row)
-        text  = message.to_s
-        email = row[:email].to_s
+        text  = OT::Utils.utf8_safe(message.to_s)
+        email = sql_text(row[:email])
         text  = text.gsub(email, OT::Utils.obscure_email(email)) unless email.empty?
         text.gsub(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/i, '<login>')
       end

@@ -78,7 +78,7 @@ module Onetime
         else
           print_header(dry_run, limit, after_id, mint_missing)
           print_results(result)
-          print_next_steps(result, limit, mint_missing)
+          print_next_steps(result, limit, after_id, mint_missing)
         end
 
         exit 1 if result.stats[:error].positive?
@@ -164,16 +164,29 @@ module Onetime
         puts format('  %-40s %d', 'Skipped (ambiguous customer):', stats[:skipped_ambiguous_customer])
         puts format('  %-40s %d', 'Skipped (customer linked elsewhere):', stats[:skipped_customer_linked_elsewhere])
         puts format('  %-40s %d', 'Skipped (no customer):', stats[:skipped_no_customer])
+        puts format('  %-40s %d', 'Skipped (row changed):', stats[:skipped_row_changed])
         puts format('  %-40s %d', 'Errors:', stats[:error])
       end
 
-      def print_next_steps(result, limit, mint_missing)
+      # The command line that reproduces this run's selection. The --confirm
+      # hint keeps --limit and --after-id, so the operator applies exactly the
+      # rows the dry run showed; the resume hint swaps in the last id.
+      def command_line(limit:, after_id:, mint_missing:, confirm:)
+        parts = ['bin/ots customers backfill-logins']
+        parts << "--limit #{limit}" if limit
+        parts << "--after-id #{after_id}" if after_id
+        parts << '--mint-missing' if mint_missing
+        parts << '--confirm' if confirm
+        parts.join(' ')
+      end
+
+      def print_next_steps(result, limit, after_id, mint_missing)
         stats = result.stats
         lines = []
 
         if result.dry_run && stats[:backfilled].positive?
           lines << 'Review the rows above, then run:'
-          lines << "  bin/ots customers backfill-logins --confirm#{' --mint-missing' if mint_missing}"
+          lines << "  #{command_line(limit: limit, after_id: after_id, mint_missing: mint_missing, confirm: true)}"
         end
 
         if stats[:skipped_no_customer].positive?
@@ -189,15 +202,23 @@ module Onetime
           lines << 'the Customer, then re-run.'
         end
 
+        if stats[:skipped_row_changed].positive?
+          lines << 'Rows that changed between scan and write wrote nothing and are re-read on the'
+          lines << 'next run.'
+        end
+
         if stats[:error].positive?
           lines << 'Error rows wrote nothing and are selected again on the next run once the'
           lines << 'cause is fixed.'
         end
 
         if limit && result.last_account_id
-          resume  = "bin/ots customers backfill-logins --limit #{limit} --after-id #{result.last_account_id}"
-          resume += ' --mint-missing' if mint_missing
-          resume += ' --confirm' unless result.dry_run
+          resume = command_line(
+            limit: limit,
+            after_id: result.last_account_id,
+            mint_missing: mint_missing,
+            confirm: !result.dry_run,
+          )
           lines << 'Resume with:'
           lines << "  #{resume}"
         end
@@ -243,9 +264,16 @@ module Onetime
               another row already links that Customer       -> skipped_customer_linked_elsewhere
               no Customer at all                            -> skipped_no_customer
                                                                (--mint-missing: fresh login)
-            Verification columns copy the Customer mirror: verified -> email_verified_at
-            (now) and email_verified_by (the Customer's provenance, or 'legacy');
-            a verification hold is copied as email_verification_hold.
+              the row changed between scan and write        -> skipped_row_changed
+                                                               (re-read on the next run)
+            Verification columns record mailbox proof only: the row is Verified,
+            the Customer is verified with a provenance in
+            Onetime::Customer::MAILBOX_VERIFIED_BY, and the Customer holds the
+            row's address -> email_verified_at (now) and email_verified_by (that
+            provenance). A Customer verification hold is copied as
+            email_verification_hold. Anything else stays NULL: an IdP, payment,
+            autoverify or legacy stamp, a Customer under another address, or a
+            minted row with no Customer. The Customer mirror keeps its own answer.
 
           Options:
             --confirm               Execute changes (default is dry-run)
@@ -269,8 +297,10 @@ module Onetime
             - Backfilled rows are not selected again. Skipped and errored rows are
               reported on every run until fixed, so a --limit run without
               --after-id keeps returning the same low-id rows.
-            - The SQL write is compare-and-set on `login IS NULL`, so a row filled
-              by another process in between is reported and left alone
+            - The SQL write is compare-and-set on the row as scanned (login still
+              NULL, same external_id, email and status), so a row another process
+              filled or re-linked in between is reported (skipped_row_changed) and
+              left alone
             - The login value itself is never printed or logged
 
         USAGE

@@ -18,9 +18,17 @@ RSpec.describe 'customers backfill-logins', type: :cli do
 
   let(:stats) do
     {
-      scanned: 3, backfilled: 2, by_external_id: 1, by_email: 1, minted: 0,
-      skipped_dangling_external_id: 0, skipped_ambiguous_customer: 0,
-      skipped_customer_linked_elsewhere: 0, skipped_no_customer: 1, error: 0,
+      scanned: 3,
+      backfilled: 2,
+      by_external_id: 1,
+      by_email: 1,
+      minted: 0,
+      skipped_dangling_external_id: 0,
+      skipped_ambiguous_customer: 0,
+      skipped_customer_linked_elsewhere: 0,
+      skipped_no_customer: 1,
+      skipped_row_changed: 0,
+      error: 0,
     }
   end
 
@@ -107,6 +115,36 @@ RSpec.describe 'customers backfill-logins', type: :cli do
       expect(output[:stderr]).to include('--after-id must be a non-negative integer')
     end
 
+    it 'keeps --limit and --after-id on the --confirm hint, so the apply run selects the rows the dry run showed' do
+      output = run_cli_command_quietly('customers', 'backfill-logins', '--limit', '2', '--after-id', '100')
+
+      expect(output[:stdout]).to include('Review the rows above, then run:')
+      expect(output[:stdout]).to include('bin/ots customers backfill-logins --limit 2 --after-id 100 --confirm')
+      expect(output[:stdout]).not_to match(/backfill-logins --confirm$/)
+    end
+
+    it 'reports every outcome, skipped_row_changed included, with its re-run guidance' do
+      allow(op).to receive(:call).and_return(
+        build_result(
+          dry_run: false,
+          stats: stats.merge(skipped_row_changed: 1, scanned: 4),
+          rows: rows + [{
+            account_id: 10,
+            outcome: :skipped_row_changed,
+            branch: :by_external_id,
+            email: 'ch***@***.com',
+            detail: 'the row changed between scan and write',
+          }],
+        ),
+      )
+
+      output = run_cli_command_quietly('customers', 'backfill-logins', '--confirm')
+
+      expect(output[:stdout]).to include('Skipped (row changed):')
+      expect(output[:stdout]).to include('re-read on the')
+      expect(last_exit_code).to eq(0)
+    end
+
     it 'prints the resume hint, with --confirm only on a live run' do
       output = run_cli_command_quietly('customers', 'backfill-logins', '--limit', '2')
       expect(output[:stdout]).to include('bin/ots customers backfill-logins --limit 2 --after-id 9')
@@ -143,8 +181,11 @@ RSpec.describe 'customers backfill-logins', type: :cli do
   describe 'exit code' do
     it 'is 1 when any row errored, after printing the report' do
       allow(op).to receive(:call).and_return(
-        build_result(dry_run: false, stats: stats.merge(error: 1, scanned: 4),
-                     rows: rows + [{ account_id: 11, outcome: :error, branch: :by_email, email: 'er***@***.com', detail: 'boom' }]),
+        build_result(
+          dry_run: false,
+          stats: stats.merge(error: 1, scanned: 4),
+          rows: rows + [{ account_id: 11, outcome: :error, branch: :by_email, email: 'er***@***.com', detail: 'boom' }],
+        ),
       )
 
       output = run_cli_command_quietly('customers', 'backfill-logins', '--confirm')
