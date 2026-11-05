@@ -188,6 +188,21 @@ RSpec.describe Onetime::Mail::Mailer do
         end
     end
 
+    # The same case without the stub: Delivery::SMTP#validate_config! rejects
+    # the SMTP_AUTH value with ArgumentError (#4890), and
+    # create_delivery_backend reports it as ConfigurationError, so the worker
+    # pauses and requeues the message instead of dead-lettering it.
+    it 'reports an unsupported SMTP_AUTH from the SMTP backend as ConfigurationError' do
+      emailer.replace('mode' => 'smtp', 'host' => 'smtp.example.com', 'user' => 'smtp-user', 'pass' => 'smtp-pass')
+      allow(ENV).to receive(:fetch).with('SMTP_AUTH', nil).and_return('ntlm')
+
+      expect { described_class.delivery_backend }
+        .to raise_error(Onetime::Mail::ConfigurationError, /Unsupported SMTP auth method "ntlm" \(SMTP_AUTH\)/) do |err|
+          expect(err.provider).to eq('smtp')
+          expect(err.cause).to be_a(ArgumentError)
+        end
+    end
+
     it 'reports an Onetime::ConfigError from building the provider config as ConfigurationError' do
       emailer.replace('mode' => 'smtp2go', 'smtp2go_api_key' => 'api-test-key')
       allow(described_class).to receive(:provider_config).with('smtp2go').and_return('fastaccept' => 'sometimes')
