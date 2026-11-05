@@ -260,7 +260,8 @@ Unchanged by this design:
   decided it is not: only the tags in `Onetime::Customer::MAILBOX_VERIFIED_BY`
   (`email`, `invite_token`, `colonel_admin`, `cli_provision`) count, for the
   consumers that mean mailbox control (system roles and federation claims,
-  for example). A reader of `email_verified_by` applies the same list. Which mailbox flows in §5 need mailbox proof rather than
+  for example). A reader of `email_verified_by` applies the same list.
+  Which mailbox flows in §5 need mailbox proof rather than
   `email_verified_at` alone is for the N+1 design to settle against #4754.
 
 ## 7. Migration, cutover, mixed versions, rollback (proposal item 9)
@@ -298,7 +299,8 @@ migration deletes or rewrites those rows.
 Operational checks added to `bin/ots customers doctor`: `login` ↔ Customer
 objid (`auth_login_missing`, `auth_login_mismatch`; shipped), `""` key in the
 global email index (`email_index_blank_key`, repairable; shipped),
-`email_verified_at` ↔ Customer `verified`, and `email_verified_by` mailbox proof ↔ Customer `mailbox_verified?`, drift (`auth_email_verification_drift`,
+`email_verified_at` ↔ Customer `verified` and `email_verified_by` mailbox
+proof ↔ Customer `mailbox_verified?` drift (`auth_email_verification_drift`,
 report-only until the N+1 binary makes SQL the writer; shipped), the
 org-scoped index `""` key, rows with `login` but no Customer (K2 pending), and
 accounts without `email` on a tenant domain (must be zero) (the last three
