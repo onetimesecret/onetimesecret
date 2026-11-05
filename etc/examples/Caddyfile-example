@@ -196,14 +196,11 @@
 }
 
 (onetime-headers) {
-	# Add a unique ID for every request for enhanced debugging and logging.
-	# Excludes favicon requests for efficiency.
-	@always {
-		not path /favicon.ico
-	}
-	# Adds the O-Request-ID header to all requests (excluding
-	# favicon.ico) using a UUID.
-	header @always O-Request-ID "{http.request.uuid}"
+	# Use the same edge-generated ID for responses, upstream requests and
+	# access logs, including static responses and upstream failures.
+	# Keep O-Request-ID for existing diagnostic consumers.
+	header O-Request-ID "{http.request.uuid}"
+	header X-Request-ID "{http.request.uuid}"
 
 	# Serve build output from disk. ALLOWLIST, not a file-existence test: an
 	# `@exists file` matcher lets any stale file under $PUBLIC_DIR silently
@@ -228,7 +225,11 @@
 		X-Content-Type-Options "nosniff"
 		X-Frame-Options "DENY"
 		X-XSS-Protection "1; mode=block"
-		Referrer-Policy "no-referrer"
+		# Referrer-Policy: keep equal to the application value
+		# (Onetime::Middleware::Registry::REFERRER_POLICY; see
+		# docs/adr/adr-049-referrer-policy-strict-origin.md for why
+		# strict-origin and not no-referrer, #4542).
+		Referrer-Policy "strict-origin"
 		Permissions-Policy ""
 
 		# Prevent caching of sensitive content
@@ -295,6 +296,9 @@
 
 		# Forward all other requests to backend
 		reverse_proxy {
+			# Rack::RequestId preserves this ID and returns it as x-request-id.
+			# Replace any caller-supplied ID with this request's Caddy UUID.
+			header_up X-Request-ID {http.request.uuid}
 			# Pass relevant headers to backend
 			# Preserves the Host this Caddy received. If a layer in FRONT of Caddy
 			# rewrote it, Rack's request.host is the origin target for the whole
@@ -369,6 +373,9 @@
 
 			# Filter request headers to prevent header smuggling
 			header_down -Server
+			# The response already has Caddy's canonical ID. Remove the app's
+			# echo before proxying response headers to avoid duplicate values.
+			header_down -X-Request-ID
 
 			# Ruby application container. Needs to match the docker name.
 			# Explicit http:// scheme to prevent h2c negotiation
@@ -443,6 +450,8 @@
 }
 
 (onetime-logging) {
+	log_append request_id {http.request.uuid}
+
 	# Site-wide logging configuration
 	# https://github.com/caddyserver/transform-encoder
 	log {

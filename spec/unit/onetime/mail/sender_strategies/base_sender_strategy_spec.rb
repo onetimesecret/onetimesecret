@@ -2,7 +2,8 @@
 #
 # frozen_string_literal: true
 
-# Unit tests for BaseSenderStrategy DNS fact-finding (issue #4047).
+# Unit tests for BaseSenderStrategy DNS fact-finding (issue #4047) and the
+# deletion result contract shared by every strategy.
 #
 # check_single_dns_record used to normalize with a global downcase and a
 # strict-equality + digest gate, which false-negatived on semantically
@@ -24,7 +25,8 @@ RSpec.describe Onetime::Mail::SenderStrategies::BaseSenderStrategy do
   # spec/unit/onetime/domain_validation/sender_strategies/base_strategy_spec.rb
   let(:test_strategy_class) do
     Class.new(described_class) do
-      public :check_single_dns_record, :lookup_dns_record
+      public :check_single_dns_record, :lookup_dns_record,
+        :deletion_result, :deletion_error_message
     end
   end
 
@@ -366,6 +368,62 @@ RSpec.describe Onetime::Mail::SenderStrategies::BaseSenderStrategy do
       )
 
       expect(mock_resolver).to have_received(:close)
+    end
+  end
+
+  # Every strategy builds its delete_sender_identity result here, so an
+  # illegal combination raises at the source instead of reaching
+  # DeleteSenderDomain's own validation.
+  describe '#deletion_result' do
+    it 'derives deleted from the outcome and keeps all four keys' do
+      expect(strategy.deletion_result(outcome: :deleted, message: 'gone'))
+        .to eq(outcome: :deleted, deleted: true, message: 'gone', error: nil)
+      %i[absent skipped].each do |outcome|
+        expect(strategy.deletion_result(outcome: outcome, message: 'no-op'))
+          .to eq(outcome: outcome, deleted: false, message: 'no-op', error: nil)
+      end
+      expect(strategy.deletion_result(outcome: :failed, message: 'failed', error: 'denied'))
+        .to eq(outcome: :failed, deleted: false, message: 'failed', error: 'denied')
+    end
+
+    [:unknown, 'deleted', nil].each do |outcome|
+      it "rejects outcome #{outcome.inspect}" do
+        expect { strategy.deletion_result(outcome: outcome, message: 'x') }
+          .to raise_error(ArgumentError, 'Invalid deletion outcome')
+      end
+    end
+
+    [nil, '', " \n\t", :done].each do |message|
+      it "rejects message #{message.inspect}" do
+        expect { strategy.deletion_result(outcome: :deleted, message: message) }
+          .to raise_error(ArgumentError, 'Deletion message must be a nonempty string')
+      end
+    end
+
+    [nil, '', '   ', :denied].each do |error|
+      it "rejects a failed outcome with error #{error.inspect}" do
+        expect { strategy.deletion_result(outcome: :failed, message: 'failed', error: error) }
+          .to raise_error(ArgumentError, 'Deletion error contradicts outcome')
+      end
+    end
+
+    %i[deleted absent skipped].each do |outcome|
+      it "rejects an error on outcome #{outcome}" do
+        expect { strategy.deletion_result(outcome: outcome, message: 'x', error: 'denied') }
+          .to raise_error(ArgumentError, 'Deletion error contradicts outcome')
+      end
+    end
+  end
+
+  describe '#deletion_error_message' do
+    it 'uses the exception message' do
+      expect(strategy.deletion_error_message(StandardError.new('denied'))).to eq('denied')
+    end
+
+    ['', " \n\t"].each do |message|
+      it "falls back to the exception class for message #{message.inspect}" do
+        expect(strategy.deletion_error_message(IOError.new(message))).to eq('IOError')
+      end
     end
   end
 end

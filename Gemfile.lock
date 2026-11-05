@@ -7,12 +7,30 @@ GIT
       omniauth (~> 2.0)
       omniauth-oauth2 (~> 1.8)
 
+GIT
+  remote: https://github.com/onetimesecret/rodauth-oauth.git
+  revision: b0e7ceb0c26eb43226faa089bfd0a05bdddb8b1d
+  ref: b0e7ceb0c26eb43226faa089bfd0a05bdddb8b1d
+  specs:
+    rodauth-oauth (1.6.6.ots1)
+      base64
+      rodauth (~> 2.28)
+
+GIT
+  remote: https://github.com/onetimesecret/rodauth.git
+  revision: 8abe3ebdb89739fc4b3c040105873d7cc281d216
+  ref: 8abe3ebdb89739fc4b3c040105873d7cc281d216
+  specs:
+    rodauth (2.48.0)
+      roda (>= 2.6.0)
+      sequel (>= 4)
+
 GEM
   remote: https://rubygems.org/
   specs:
-    activemodel (8.1.3)
-      activesupport (= 8.1.3)
-    activesupport (8.1.3)
+    activemodel (8.1.4.1)
+      activesupport (= 8.1.4.1)
+    activesupport (8.1.4.1)
       base64
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.3.1)
@@ -25,10 +43,10 @@ GEM
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
       uri (>= 0.13.1)
-    addressable (2.9.0)
+    addressable (2.9.1)
       public_suffix (>= 2.0.2, < 8.0)
     aes_key_wrap (1.1.0)
-    amq-protocol (2.8.0)
+    amq-protocol (2.10.0)
     android_key_attestation (0.3.0)
     anonymous_loader (0.1.3)
       version_gem (~> 1.1, >= 1.1.14)
@@ -79,8 +97,8 @@ GEM
     crack (1.0.1)
       bigdecimal
       rexml
-    crass (1.0.7)
-    csv (3.3.5)
+    crass (1.0.8)
+    csv (3.3.6)
     database_cleaner-core (2.0.1)
     database_cleaner-sequel (2.0.2)
       database_cleaner-core (~> 2.0.0)
@@ -137,7 +155,7 @@ GEM
       logger
     highline (3.0.1)
     htmlbeautifier (1.4.3)
-    httparty (0.24.2)
+    httparty (0.24.3)
       csv
       mini_mime (>= 1.0.0)
       multi_xml (>= 0.5.2)
@@ -179,7 +197,7 @@ GEM
     kramdown-parser-gfm (1.1.0)
       kramdown (~> 2.0)
     language_server-protocol (3.17.0.6)
-    lettermint (0.2.0)
+    lettermint (0.2.1)
       faraday (~> 2.0)
     lint_roller (1.1.0)
     listen (3.10.0)
@@ -187,9 +205,9 @@ GEM
       rb-fsevent (~> 0.10, >= 0.10.3)
       rb-inotify (~> 0.9, >= 0.9.10)
     logger (1.7.0)
-    loofah (2.25.2)
+    loofah (2.25.3)
       crass (~> 1.0.2)
-      nokogiri (>= 1.12.0)
+      nokogiri (>= 1.19.5)
     mail (2.9.1)
       logger
       mini_mime (>= 0.1.1)
@@ -213,24 +231,24 @@ GEM
     net-smtp (0.5.1)
       net-protocol
     nio4r (2.7.5)
-    nokogiri (1.19.4)
+    nokogiri (1.19.7)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
-    nokogiri (1.19.4-aarch64-linux-gnu)
+    nokogiri (1.19.7-aarch64-linux-gnu)
       racc (~> 1.4)
-    nokogiri (1.19.4-aarch64-linux-musl)
+    nokogiri (1.19.7-aarch64-linux-musl)
       racc (~> 1.4)
-    nokogiri (1.19.4-arm-linux-gnu)
+    nokogiri (1.19.7-arm-linux-gnu)
       racc (~> 1.4)
-    nokogiri (1.19.4-arm-linux-musl)
+    nokogiri (1.19.7-arm-linux-musl)
       racc (~> 1.4)
-    nokogiri (1.19.4-arm64-darwin)
+    nokogiri (1.19.7-arm64-darwin)
       racc (~> 1.4)
-    nokogiri (1.19.4-x86_64-darwin)
+    nokogiri (1.19.7-x86_64-darwin)
       racc (~> 1.4)
-    nokogiri (1.19.4-x86_64-linux-gnu)
+    nokogiri (1.19.7-x86_64-linux-gnu)
       racc (~> 1.4)
-    nokogiri (1.19.4-x86_64-linux-musl)
+    nokogiri (1.19.7-x86_64-linux-musl)
       racc (~> 1.4)
     oauth2 (2.0.25)
       anonymous_loader (~> 0.1, >= 0.1.3)
@@ -291,7 +309,7 @@ GEM
     openssl-signature_algorithm (1.3.0)
       openssl (> 2.0)
     ostruct (0.6.3)
-    otto (2.11.0)
+    otto (2.12.0)
       concurrent-ruby (~> 1.3, < 2.0)
       logger (~> 1, < 2.0)
       loofah (~> 2.20)
@@ -331,7 +349,7 @@ GEM
       nio4r (~> 2.0)
     raabro (1.4.0)
     racc (1.8.1)
-    rack (3.2.7)
+    rack (3.2.8)
     rack-contrib (2.5.0)
       rack (< 4)
     rack-oauth2 (2.3.0)
@@ -383,6 +401,7 @@ GEM
       io-console (~> 0.5)
     rerun (0.14.0)
       listen (~> 3.0)
+    resolv (0.7.2)
     reverse_markdown (3.0.2)
       nokogiri
     rexml (3.4.4)
@@ -390,11 +409,8 @@ GEM
       json_schemer (~> 2)
       logger
       tilt (~> 2)
-    roda (3.106.0)
+    roda (3.108.0)
       rack
-    rodauth (2.45.0)
-      roda (>= 2.6.0)
-      sequel (>= 4)
     rodauth-omniauth (0.6.2)
       omniauth (~> 2.0)
       rodauth (~> 2.36)
@@ -462,19 +478,19 @@ GEM
       fugit (~> 1.1, >= 1.11.1)
     safety_net_attestation (0.5.0)
       jwt (>= 2.0, < 4.0)
-    sanitize (7.0.0)
-      crass (~> 1.0.2)
+    sanitize (7.0.1)
+      crass (~> 1.0.8)
       nokogiri (>= 1.16.8)
     securerandom (0.4.1)
     semantic_logger (4.18.0)
       concurrent-ruby (~> 1.0)
     sendgrid-ruby (6.7.0)
       ruby_http_client (~> 3.4)
-    sentry-ruby (6.6.2)
+    sentry-ruby (6.7.0)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
       logger
-    sequel (5.106.0)
+    sequel (5.109.0)
       bigdecimal
     serverengine (2.4.0)
       base64 (~> 0.1)
@@ -529,16 +545,16 @@ GEM
       yard
     sorted_set (1.1.0)
       rbtree
-    sqlite3 (2.9.6)
+    sqlite3 (2.10.2)
       mini_portile2 (~> 2.8.0)
-    sqlite3 (2.9.6-aarch64-linux-gnu)
-    sqlite3 (2.9.6-aarch64-linux-musl)
-    sqlite3 (2.9.6-arm-linux-gnu)
-    sqlite3 (2.9.6-arm-linux-musl)
-    sqlite3 (2.9.6-arm64-darwin)
-    sqlite3 (2.9.6-x86_64-darwin)
-    sqlite3 (2.9.6-x86_64-linux-gnu)
-    sqlite3 (2.9.6-x86_64-linux-musl)
+    sqlite3 (2.10.2-aarch64-linux-gnu)
+    sqlite3 (2.10.2-aarch64-linux-musl)
+    sqlite3 (2.10.2-arm-linux-gnu)
+    sqlite3 (2.10.2-arm-linux-musl)
+    sqlite3 (2.10.2-arm64-darwin)
+    sqlite3 (2.10.2-x86_64-darwin)
+    sqlite3 (2.10.2-x86_64-linux-gnu)
+    sqlite3 (2.10.2-x86_64-linux-musl)
     stackprof (0.2.28)
     stringio (3.1.9)
     stripe (18.4.2)
@@ -645,7 +661,7 @@ DEPENDENCIES
   jwt (~> 3.2)
   kanayago (~> 0.7)
   kicks (~> 3.0)
-  lettermint (~> 0.2.0)
+  lettermint (~> 0.2.1)
   logger
   mail
   omniauth-apple (~> 1.4)
@@ -656,14 +672,14 @@ DEPENDENCIES
   omniauth-oauth2 (~> 1.9)
   omniauth-saml (~> 2.2)
   omniauth_openid_connect (~> 0.8)
-  otto (~> 2.11)
+  otto (~> 2.12)
   parallel_tests (~> 5.0)
   passforge (~> 1.1)
   pg (~> 1.6)
   psych (~> 5.2.3)
   public_suffix (~> 7.0)
   puma (>= 6.0, < 8.0)
-  rack (>= 3.2.6, < 4.0)
+  rack (>= 3.2.8, < 4.0)
   rack-contrib (~> 2.5.0)
   rack-parser (~> 0.7)
   rack-protection (~> 4.1)
@@ -677,9 +693,11 @@ DEPENDENCIES
   redis (~> 5.4.0)
   reline
   rerun (~> 0.14)
+  resolv (~> 0.7.2)
   rhales (~> 0.7.1)
   roda (~> 3.0)
-  rodauth (~> 2.0)
+  rodauth!
+  rodauth-oauth (~> 1.6)!
   rodauth-omniauth (~> 0.4)
   rodauth-tools (~> 0.4.0)
   rotp (~> 6.2)
@@ -697,7 +715,7 @@ DEPENDENCIES
   ruby-lsp (~> 0.26.9)
   ruby-saml (= 1.18.1)
   rufus-scheduler (~> 3.9)
-  sanitize (~> 7.0)
+  sanitize (~> 7.0, >= 7.0.1)
   semantic_logger (~> 4.17)
   sendgrid-ruby
   sentry-ruby

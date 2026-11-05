@@ -181,6 +181,10 @@ jobs:
     name: Build OCI Images
     runs-on: ubuntu-24.04
     if: github.repository == 'onetimesecret/onetimesecret'
+    # Without a limit a stalled build step runs to GitHub's 6-hour default.
+    # On 2026-10-15 a Vite build inside bake produced no output for nearly
+    # two hours before it was cancelled by hand.
+    timeout-minutes: 30
 
     # dist is a JOIN KEY: Sentry resolves an artifact bundle for an event only
     # when release AND dist BOTH match. Defined once at job scope because the

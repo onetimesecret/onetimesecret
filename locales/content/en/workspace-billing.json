@@ -243,6 +243,10 @@
     "text": "Custom Signup Validation",
     "content_hash": "0ff55bfa"
   },
+  "web.billing.overview.entitlements.base_domain_signup": {
+    "text": "Automatic Base Domain Signup",
+    "content_hash": "4cc30024"
+  },
   "web.billing.overview.entitlements.sso": {
     "text": "Single Sign-On (SSO)",
     "content_hash": "5db5c812"
@@ -715,6 +719,10 @@
   "web.billing.portal.redirecting": {
     "text": "Redirecting to billing portal...",
     "content_hash": "b6f47df3"
+  },
+  "web.billing.portal.open_error": {
+    "text": "Could not open the billing portal. Please try again.",
+    "content_hash": "3d5331c0"
   },
   "web.billing.start_today": {
     "text": "Start today",

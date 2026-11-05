@@ -14,7 +14,7 @@ RSpec.describe Onetime::CustomDomain, '.create!' do
 
   # The preflight lookups are stubbed to miss (stub_creation_dependencies), so
   # the second create never sees the first record: the deterministic stand-in
-  # for two requests racing past the preflight. Only the canonical claim can
+  # for two requests racing past the preflight. Only the ASCII claim can
   # then refuse the duplicate; a check-then-write regression would admit both.
   it 'admits only one Unicode/A-label request after simulated concurrent preflight misses' do
     results = attempt_both_creates
@@ -51,7 +51,7 @@ RSpec.describe Onetime::CustomDomain, '.create!' do
     before do
       allow(described_class).to receive(:display_domain_index).and_return(display_index)
       allow(display_index).to receive(:get).and_return(nil)
-      allow(harness.fetch(:canonical_index)).to receive(:get) do |key|
+      allow(harness.fetch(:ascii_index)).to receive(:get) do |key|
         harness.fetch(:claims)[key]
       end
     end
@@ -69,8 +69,8 @@ RSpec.describe Onetime::CustomDomain, '.create!' do
       expect(described_class.display_domain_id_for('xn--bucher-xyd.example.com')).to be_nil
     end
 
-    it 'does not swallow canonical index failures' do
-      allow(harness.fetch(:canonical_index)).to receive(:get).and_raise(Redis::BaseError)
+    it 'does not swallow ASCII index failures' do
+      allow(harness.fetch(:ascii_index)).to receive(:get).and_raise(Redis::BaseError)
 
       expect { described_class.display_domain_id_for(ascii_name) }.to raise_error(Redis::BaseError)
     end
@@ -79,7 +79,7 @@ RSpec.describe Onetime::CustomDomain, '.create!' do
   def build_harness
     save_ids = []
     {
-      canonical_index: instance_double(Familia::HashKey, release_field: 1),
+      ascii_index: instance_double(Familia::HashKey, release_field: 1),
       instances: instance_double(Familia::SortedSet, add: true),
       claims: {},
       claim_fields: [],
@@ -107,7 +107,7 @@ RSpec.describe Onetime::CustomDomain, '.create!' do
   end
 
   def stub_creation_dependencies
-    stub_canonical_claim
+    stub_ascii_claim
     allow(described_class).to receive(:parse) do |input, _org_id|
       input == unicode_name ? harness.fetch(:unicode_domain) : harness.fetch(:ascii_domain)
     end
@@ -115,7 +115,7 @@ RSpec.describe Onetime::CustomDomain, '.create!' do
       overlaps_canonical_domain?: false,
       load_by_display_domain: nil,
       find_by_identifier: nil,
-      canonical_display_domain_index: harness.fetch(:canonical_index),
+      ascii_display_domain_index: harness.fetch(:ascii_index),
       instances: harness.fetch(:instances),
       record_owner: nil,
       bootstrap_per_domain_configs: nil,
@@ -123,8 +123,8 @@ RSpec.describe Onetime::CustomDomain, '.create!' do
     allow(Onetime::Organization).to receive(:load).and_return(nil)
   end
 
-  def stub_canonical_claim
-    allow(harness.fetch(:canonical_index)).to receive(:claim_field) do |field, identifier|
+  def stub_ascii_claim
+    allow(harness.fetch(:ascii_index)).to receive(:claim_field) do |field, identifier|
       harness.fetch(:claim_fields) << field
       claims = harness.fetch(:claims)
       next claims.fetch(field) if claims.key?(field)

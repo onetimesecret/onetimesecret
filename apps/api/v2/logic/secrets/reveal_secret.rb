@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/security/passphrase_rate_limiter'
+require 'auth/operations/set_customer_verification'
 
 module V2::Logic
   module Secrets
@@ -53,7 +54,7 @@ module V2::Logic
         :secret_identifier
 
       def process_params
-        @identifier = sanitize_identifier(params['identifier'])
+        @identifier = sanitize_identifier(route_param('identifier'))
         @secret     = Onetime::Secret.load identifier
         @passphrase = params['passphrase'].to_s
         @continue   = params['continue'].to_s == 'true'
@@ -153,7 +154,7 @@ module V2::Logic
               # even get here? It means a verification secret for authentication_mode=basic
               # has a nil or invalid object identifier for the owner.
               raise_form_error I18n.t('web.COMMON.verification_not_valid', locale: @locale, default: 'Verification not valid')
-            elsif owner.verified?
+            elsif owner.mailbox_verified?
               secret_logger.error 'Invalid verification attempt - owner already verified',
                 {
                   secret_identifier: secret.shortid,
@@ -170,18 +171,59 @@ module V2::Logic
               # plaintext only if this caller won the one-shot claim.
               @secret_value = secret.reveal!(passphrase_input: @passphrase, actor_context: actor_context)
 
-            elsif owner && (cust&.anonymous? || (cust&.custid == owner.custid && !owner.verified?))
-              secret_logger.info 'Owner verification successful',
-                {
-                  secret_identifier: secret.shortid,
-                  owner_id: owner.objid,
-                  action: 'verification',
-                  result: :verified,
-                }
-              owner.verified    = true
-              owner.verified_by = 'email'  # Track email verification method
-              owner.save
-              owner.reset_secret.delete!
+            # anonymous_user? treats a missing customer as anonymous: on
+            # auth=noauth routes the emailed link arrives with no customer at
+            # all (#4831). Past it, cust is present.
+            elsif owner && (anonymous_user? || (cust.custid == owner.custid && !owner.mailbox_verified?))
+              # Following a link delivered to the address IS mailbox proof, so
+              # this also upgrades an owner whose stamp carried none (payment,
+              # autoverify, legacy) — the gate above is mailbox_verified?, not
+              # verified? (#4735). EXCEPT the email-change confirmation secret,
+              # which was delivered to the PROPOSED address: revealing it here
+              # proves nothing about the current one, so it is shown without
+              # a stamp (Customer#mailbox_proof_secret?).
+              if owner.mailbox_proof_secret?(secret)
+                # Stamped through the verification operation so the deferred
+                # federated subscription claim runs here too, for a link sent
+                # to the owner's current address and held to that address; a
+                # link minted in simple mode and redeemed in full mode skips
+                # the stamp and still reveals
+                # (SetCustomerVerification.record_mailbox_proof). The outcome
+                # is logged after the stamp, so the success line is never
+                # written for a reveal that recorded nothing.
+                case Auth::Operations::SetCustomerVerification.record_mailbox_proof(owner, secret)
+                when :success, :no_change
+                  secret_logger.info 'Owner verification successful',
+                    {
+                      secret_identifier: secret.shortid,
+                      owner_id: owner.objid,
+                      action: 'verification',
+                      result: :verified,
+                    }
+                when nil
+                  secret_logger.info 'Verification link redeemed in full auth mode; revealing without stamping',
+                    {
+                      secret_identifier: secret.shortid,
+                      owner_id: owner.objid,
+                      action: 'verification',
+                      result: :not_stamped_full_auth_mode,
+                    }
+                end
+                # The pointer is shared with password recovery, and a newer
+                # recovery link may have moved it on since this welcome link
+                # was minted — or may move it between a comparison and the
+                # delete. Clear it only while it still names this secret, in
+                # one server-side step.
+                owner.release_reset_pointer(secret)
+              else
+                secret_logger.info 'Verification secret is not mailbox proof for the owner; revealing without stamping',
+                  {
+                    secret_identifier: secret.shortid,
+                    owner_id: owner.objid,
+                    action: 'verification',
+                    result: :not_mailbox_proof,
+                  }
+              end
               # Skip for stateless auth (BasicAuth provides empty session)
               sess.clear unless sess.empty?
               @secret_value     = secret.reveal!(passphrase_input: @passphrase, actor_context: actor_context)

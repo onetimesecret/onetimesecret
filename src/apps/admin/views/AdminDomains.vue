@@ -205,6 +205,19 @@
       : undefined
   );
 
+  /**
+   * Shared props for the verify gate. The dialog is rendered twice (inside the
+   * drawer and as a page-level sibling, see the template) so the one binding
+   * lives here.
+   */
+  const verifyDialogProps = computed(() => ({
+    title: t('web.admin.domains.verify.confirmTitle'),
+    description: dialogDescription.value,
+    confirmText: t('web.admin.domains.verify.button'),
+    loading: verifyLoading.value,
+    error: verifyError.value,
+  }));
+
   function requestVerify(domain: ColonelCustomDomain): void {
     activeDomain.value = domain;
     resetVerify();
@@ -259,6 +272,15 @@
   const overrideOpen = ref(false);
   const overrideVerified = ref<boolean | null>(null);
   const overrideResolving = ref<boolean | null>(null);
+  // Record an override on a domain that is already verified but not by
+  // override. Under passthrough the verify call sets verified without a DNS
+  // lookup, so tenant SSO counts the domain as a proven email domain only
+  // after an override (#4734). The verified checkbox alone cannot send this:
+  // it is already checked, so it finds nothing to change.
+  const overrideAcceptOwnership = ref(false);
+  const canAcceptOwnership = computed(
+    () => selectedDomain.value?.verified === true && selectedDomain.value?.verified_by_override !== true
+  );
 
   const {
     loading: overrideLoading,
@@ -272,6 +294,9 @@
     const options: { verified?: boolean; resolving?: boolean } = {};
     if (overrideVerified.value !== null && overrideVerified.value !== domain.verified) {
       options.verified = overrideVerified.value;
+    }
+    if (overrideAcceptOwnership.value && overrideVerified.value === true && canAcceptOwnership.value) {
+      options.verified = true;
     }
     if (overrideResolving.value !== null && overrideResolving.value !== domain.resolving) {
       options.resolving = overrideResolving.value;
@@ -291,6 +316,7 @@
     if (!selectedDomain.value) return;
     overrideVerified.value = selectedDomain.value.verified;
     overrideResolving.value = selectedDomain.value.resolving;
+    overrideAcceptOwnership.value = false;
     resetOverride();
     overrideOpen.value = true;
   }
@@ -299,6 +325,7 @@
     overrideOpen.value = false;
     overrideVerified.value = null;
     overrideResolving.value = null;
+    overrideAcceptOwnership.value = false;
   }
 
   async function applyOverride(): Promise<void> {
@@ -1036,6 +1063,21 @@
                 {{ t('web.admin.domains.override.resolving') }}
               </label>
             </div>
+            <div
+              v-if="canAcceptOwnership && overrideVerified === true"
+              class="mt-3"
+              data-testid="override-accept-ownership">
+              <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <input
+                  v-model="overrideAcceptOwnership"
+                  type="checkbox"
+                  class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800" />
+                {{ t('web.admin.domains.override.acceptOwnership') }}
+              </label>
+              <p class="mt-1 ml-6 text-xs text-amber-700 dark:text-amber-300">
+                {{ t('web.admin.domains.override.acceptOwnershipHint') }}
+              </p>
+            </div>
             <p
               v-if="overrideError"
               class="mt-2 text-sm text-red-700 dark:text-red-300"
@@ -1128,16 +1170,24 @@
           </button>
         </section>
       </div>
+
+      <!-- Verify gate, NESTED IN THE DRAWER ON PURPOSE (#4732). headlessui only
+           treats a dialog as a child when it is rendered inside the parent
+           dialog's component subtree; a sibling is "outside" the drawer, so
+           the drawer would close on the first click into it. -->
+      <AdminConfirmDialog
+        v-model:open="dialogOpen"
+        v-bind="verifyDialogProps"
+        @confirm="onConfirm"
+        @cancel="onCancel" />
     </DetailDrawer>
 
-    <!-- Shared guarded-action dialog (one-click confirm for the low-risk verb). -->
+    <!-- The same verify gate for the table-row button while no drawer is open.
+         Exactly one of the two instances exists at a time. -->
     <AdminConfirmDialog
+      v-if="!drawerOpen"
       v-model:open="dialogOpen"
-      :title="t('web.admin.domains.verify.confirmTitle')"
-      :description="dialogDescription"
-      :confirm-text="t('web.admin.domains.verify.button')"
-      :loading="verifyLoading"
-      :error="verifyError"
+      v-bind="verifyDialogProps"
       @confirm="onConfirm"
       @cancel="onCancel" />
 

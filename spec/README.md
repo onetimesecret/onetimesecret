@@ -59,7 +59,7 @@ frozen index object, or a library class to observe a call belongs in RSpec,
 where stubs are per example and restored on every exit path. Stub the
 app-level accessor to return a delegator over the real object rather than
 patching the object itself; see
-`spec/unit/onetime/models/custom_domain/destroy_canonical_release_spec.rb`.
+`spec/unit/onetime/models/custom_domain/destroy_ascii_release_spec.rb`.
 A linear scenario over real records with no stubs stays a tryout. The full
 rule is in `try/README.md`.
 

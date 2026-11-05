@@ -7,7 +7,7 @@
 // beforeBreadcrumb from the captured BrowserClient constructor options.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Breadcrumb } from '@sentry/core';
+import type { Breadcrumb, BreadcrumbHint } from '@sentry/core';
 import type { Router } from 'vue-router';
 
 // ---------------------------------------------------------------------------
@@ -138,10 +138,13 @@ function createMockRouter(): Router {
 /**
  * Extracts the beforeBreadcrumb handler from captured BrowserClient options.
  */
-function getBeforeBreadcrumb(): (breadcrumb: Breadcrumb) => Breadcrumb | null {
+function getBeforeBreadcrumb(): (breadcrumb: Breadcrumb, hint?: BreadcrumbHint) => Breadcrumb | null {
   const options = getCapturedClientOptions();
   if (!options) throw new Error('BrowserClient constructor was never called');
-  return options.beforeBreadcrumb as (breadcrumb: Breadcrumb) => Breadcrumb | null;
+  return options.beforeBreadcrumb as (
+    breadcrumb: Breadcrumb,
+    hint?: BreadcrumbHint
+  ) => Breadcrumb | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -366,6 +369,63 @@ describe('beforeBreadcrumb handler', () => {
   });
 
   describe('HTTP breadcrumbs (xhr/fetch)', () => {
+    it.each(['xhr', 'fetch'])('enriches the existing %s breadcrumb and still scrubs its URL', (category) => {
+      const readHeader = vi.fn().mockReturnValue('Request-ABC');
+      const hint = category === 'xhr'
+        ? { xhr: { getResponseHeader: readHeader }, input: 'private-body' }
+        : { response: { headers: { get: readHeader } }, input: ['private-body'] };
+      const breadcrumb: Breadcrumb = {
+        category,
+        data: { url: '/api/v3/secret/private-key?email=user@example.com', status_code: 200 },
+      };
+
+      const result = getBeforeBreadcrumb()(breadcrumb, hint);
+
+      expect(result).toBe(breadcrumb);
+      expect(result?.category).toBe(category);
+      expect(result?.data).toEqual({
+        url: '/api/v3/secret/[REDACTED]?email=[EMAIL_REDACTED]',
+        status_code: 200,
+        request_id: 'Request-ABC',
+      });
+      expect(readHeader).toHaveBeenCalledExactlyOnceWith('X-Request-ID');
+      expect(JSON.stringify(result)).not.toContain('private-');
+    });
+
+    it.each([
+      null,
+      '',
+      'bad id',
+      'first, second',
+      'request\r\ninjected',
+      ['first', 'second'],
+    ])('omits malformed HTTP response request IDs %j', (value) => {
+      for (const category of ['xhr', 'fetch']) {
+        const readHeader = vi.fn().mockReturnValue(value);
+        const hint = category === 'xhr'
+          ? { xhr: { getResponseHeader: readHeader } }
+          : { response: { headers: { get: readHeader } } };
+        const breadcrumb: Breadcrumb = { category, data: { url: '/api/v3/config' } };
+
+        const result = getBeforeBreadcrumb()(breadcrumb, hint);
+
+        expect(result?.data).not.toHaveProperty('request_id');
+      }
+    });
+
+    it.each(['xhr', 'fetch'])('keeps URL scrubbing when %s response headers cannot be read', (category) => {
+      const readHeader = vi.fn(() => { throw new Error('headers unavailable'); });
+      const hint = category === 'xhr'
+        ? { xhr: { getResponseHeader: readHeader } }
+        : { response: { headers: { get: readHeader } } };
+      const breadcrumb: Breadcrumb = { category, data: { url: '/api/v3/secret/private-key' } };
+
+      const result = getBeforeBreadcrumb()(breadcrumb, hint);
+
+      expect(result?.data?.url).toBe('/api/v3/secret/[REDACTED]');
+      expect(result?.data).not.toHaveProperty('request_id');
+    });
+
     it('scrubs xhr breadcrumb URL using regex patterns', () => {
       const handler = getBeforeBreadcrumb();
       const breadcrumb: Breadcrumb = {

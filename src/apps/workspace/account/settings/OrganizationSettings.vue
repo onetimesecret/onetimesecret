@@ -2102,7 +2102,7 @@
                     </span>
                     <!-- Configure SSO link -->
                     <router-link
-                      :to="`/org/${orgId}/domains/${domain.extid}/signin?modal=sso`"
+                      :to="`/org/${orgId}/domains/${domain.extid}/signin/sso`"
                       class="inline-flex items-center gap-1 rounded-md bg-white px-2.5 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-200 dark:ring-gray-500 dark:hover:bg-gray-500">
                       <OIcon
                         collection="heroicons"

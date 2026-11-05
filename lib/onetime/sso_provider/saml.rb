@@ -66,6 +66,20 @@
 # no platform route, and :vars_valid keeps the login button from being
 # advertised.
 #
+# A SAVED RECORD IS CHECKED FOR STRUCTURE ONLY (stored: true). .entity_id_problem
+# and .cert_problem take one keyword, stored:, and exactly one caller passes
+# it: the tenant record's own validity check
+# (CustomDomain::SsoConfig#saml_validation_errors). The API re-validates the
+# whole record on every PATCH, including the one that disables SSO, so a rule
+# a saved value can come to fail without anyone writing to it (a
+# certificate's validity window), or a rule added after records were saved
+# (a non-RSA key, an EntityID template placeholder), would leave that record
+# impossible to edit or disable. Each check skips those rules under stored:
+# and applies them everywhere a value is ACCEPTED or USED: the API write
+# path, test_connection, the metadata preview (IdpMetadata.parse) and
+# .strategy_options_for, none of which pass it. A new rule of either kind
+# goes under stored: inside the check; the caller does not change.
+#
 # OPERATOR PREREQUISITE — a Secure session cookie with SameSite=None or Lax.
 # SamlCallbackTransport stages the cross-site POST without a session cookie,
 # then redirects to a GET that recovers the initiating session. Strict is not
@@ -382,12 +396,28 @@ module Onetime
       end
       private_class_method :csp_origin_for
 
+      # A brace-delimited template token: {tenantid}, {{tenant}}, ${id}.
+      # Entra's tenant-neutral metadata publishes its EntityID as
+      # "https://sts.windows.net/{tenantid}/" while every response Issuer
+      # carries the tenant's GUID in that place, so a stored template is
+      # compared byte-for-byte with an Issuer it can never equal and every
+      # sign-in is refused. An EntityID is a URI (SAML 2.0 Core 8.3.6), and
+      # a URI has no unescaped braces, so no conforming value is refused.
+      ENTITY_ID_PLACEHOLDER = /\{[^{}]*\}/
+
+      ENTITY_ID_PLACEHOLDER_PROBLEM = 'IdP EntityID contains a template placeholder such as {tenantid}; ' \
+                                      'enter the EntityID the IdP issues for your tenant'
+
+      # @param stored [Boolean] the value is on a saved record: skip
+      #   ENTITY_ID_PLACEHOLDER, a rule newer than some saved records (A SAVED
+      #   RECORD IS CHECKED FOR STRUCTURE ONLY, in the file header)
       # @return [String, nil] problem description, or nil when usable
-      def self.entity_id_problem(entity_id)
+      def self.entity_id_problem(entity_id, stored: false)
         str = entity_id.to_s
         return 'IdP EntityID is blank' if str.strip.empty?
         return 'IdP EntityID has leading or trailing whitespace' unless str == str.strip
         return 'IdP EntityID contains control characters' if str.match?(/[\x00-\x1f\x7f]/)
+        return ENTITY_ID_PLACEHOLDER_PROBLEM if !stored && str.match?(ENTITY_ID_PLACEHOLDER)
 
         nil
       end
@@ -409,31 +439,24 @@ module Onetime
       # refused. Better a skipped provider and a named variable than a button
       # that always fails. RE-VERIFY on a ruby-saml bump.
       #
-      # allow_expired: exists for ONE caller — the tenant record's own
-      # validity check (CustomDomain::SsoConfig#saml_validation_errors). It
-      # skips the WHOLE validity-window check (expired AND not yet valid),
-      # not only expiry, despite its name: the keyword predates the
-      # not_before check and its caller lives in the model, so the name is
-      # kept and the contract widened. A stored record whose certificate has
-      # since expired must stay EDITABLE (a PATCH that disables SSO
-      # re-validates the whole record), so the window is not a model
-      # invariant there — and a not-yet-valid certificate could only be
-      # stored before this check existed, so it needs the same escape for
-      # the same reason. The window is still refused everywhere a
-      # certificate is ACCEPTED or USED: the API write path, test_connection,
-      # and .strategy_options_for — all of which leave this false.
+      # stored: skips everything after the structure: the public-key type
+      # and the WHOLE validity window (expired AND not yet valid). A
+      # certificate expires without anyone writing to the record, and a
+      # non-RSA or not-yet-valid certificate could only be saved before those
+      # checks existed (A SAVED RECORD IS CHECKED FOR STRUCTURE ONLY, in the
+      # file header).
       #
       # @param pem [String, nil]
-      # @param allow_expired [Boolean] structure-only check: skip the whole
-      #   validity window (see above)
+      # @param stored [Boolean] the value is on a saved record: structure only
       # @return [String, nil] problem description, or nil when usable
-      def self.cert_problem(pem, allow_expired: false, allow_unsupported_key: false)
+      def self.cert_problem(pem, stored: false)
         cert = cached_certificate(pem)
         return cert if cert.is_a?(String)
-        unless allow_unsupported_key || cert.public_key.is_a?(OpenSSL::PKey::RSA)
+        return nil if stored
+
+        unless cert.public_key.is_a?(OpenSSL::PKey::RSA)
           return 'IdP certificate must contain an RSA public key; other public-key types are not supported'
         end
-        return nil if allow_expired
 
         now = Time.now
         return "IdP certificate expired on #{cert.not_after.utc.strftime('%Y-%m-%d')}" if cert.not_after < now

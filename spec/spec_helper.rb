@@ -219,6 +219,16 @@ rescue StandardError => ex
   warn 'Tests requiring OT.conf will fail'
 end
 
+# A bounded connection pool for this process. Unit specs never boot, so
+# without this every Familia.dbclient lookup opened a connection of its own
+# (familia 2.12 fallback, delano/familia#456) and one datastore-heavy spec
+# file exhausted the ephemeral ports on macOS. Installs the provider a full
+# boot installs, over a pool created here; connections are made lazily,
+# all against the Familia.uri set above. A spec that boots gets the boot's
+# pool.
+require_relative '../tests/lanes/support/datastore_pool'
+Lanes::DatastorePool.install!(uri: Familia.uri)
+
 # Test helpers module
 module SpecHelpers
   # Add shared test helpers here
@@ -306,6 +316,9 @@ RSpec.configure do |config|
     @__original_runtime_i18n  = Onetime::Runtime.internationalization
     # Save boot state - tests that manipulate boot state need this restored
     @__original_boot_state    = Onetime.boot_state
+    # ...and whether that boot was full, which decides whether a later
+    # boot!(:test) reuses it or upgrades a partial one (boot_guard!)
+    @__original_boot_db       = Onetime.boot_connected_to_db?
 
     # Ensure I18n is usable for code paths calling I18n.t — without this,
     # enforce_available_locales! raises InvalidLocale before default: falls back.
@@ -401,10 +414,11 @@ RSpec.configure do |config|
     # Tests that manipulate boot state (e.g., boot! tests, error handling tests) will have
     # their changes restored, while tests that depend on persistent boot state (e.g., routes
     # tests using before(:all)) won't have their state unexpectedly reset.
-    if Onetime.boot_state != @__original_boot_state
+    if Onetime.boot_state != @__original_boot_state ||
+       Onetime.boot_connected_to_db? != @__original_boot_db
       case @__original_boot_state
       when Onetime::Initializers::BOOT_STARTED
-        Onetime.started!
+        Onetime.started!(connected_to_db: @__original_boot_db)
       when Onetime::Initializers::BOOT_FAILED
         Onetime.failed!(StandardError.new('Restored from test'))
       else

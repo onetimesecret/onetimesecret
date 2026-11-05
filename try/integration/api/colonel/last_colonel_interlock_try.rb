@@ -60,10 +60,12 @@ def body; JSON.parse(last_response.body); end
 @colonel = Onetime::Customer.create!(email: "colonel_lci_#{@timestamp}@example.com")
 @colonel.role     = 'colonel'
 @colonel.verified = 'true'
+@colonel.verified_by = 'email'
 @colonel.save
 
 @second = Onetime::Customer.create!(email: "second_lci_#{@timestamp}@example.com")
 @second.verified = 'true'
+@second.verified_by = 'email'
 @second.save
 
 @colonel_session = {

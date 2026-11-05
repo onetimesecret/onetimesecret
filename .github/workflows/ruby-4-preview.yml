@@ -78,7 +78,7 @@ jobs:
         run: pnpm run build
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: frontend-build
           path: public/web/dist/
@@ -132,7 +132,7 @@ jobs:
 
       - name: Upload Rubocop results
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ruby4-rubocop-results
           path: tmp/rubocop_results.json
@@ -297,6 +297,8 @@ jobs:
     # Same lane + overlay pairing as ci.yml's SQLite matrix rows; the
     # billing rows are the full-sqlite lane with the billing overlay, and
     # the MFA row is the only process that boots with AUTH_MFA_ENABLED.
+    # The passkey signup row boots verify_account through
+    # webauthn_verify_account alone.
     strategy:
       fail-fast: false
       matrix:
@@ -312,6 +314,9 @@ jobs:
             overlay: ''
           - name: 'SQLite, platform SAML'
             lane: full-saml-platform
+            overlay: ''
+          - name: 'SQLite, passkey signup'
+            lane: full-webauthn-verify
             overlay: ''
 
     steps:

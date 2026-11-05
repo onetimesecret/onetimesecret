@@ -2,13 +2,14 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/domain_validation/strategy'
-require 'onetime/operations/delete_sender_domain'
+require 'onetime/operations/domains/teardown'
 require_relative '../base'
 
 module DomainsAPI::Logic
   module Domains
     class RemoveDomain < DomainsAPI::Logic::Base
+      include Onetime::LoggerMethods
+
       attr_reader :greenlighted, :extid, :display_domain
 
       def process_params
@@ -52,21 +53,12 @@ module DomainsAPI::Logic
       end
 
       def process
-        OT.ld "[RemoveDomain] Processing #{@extid} (#{@custom_domain.display_domain})"
+        app_logger.debug '[RemoveDomain] Processing', domain_extid: @extid, domain_display: @custom_domain.display_domain
         @greenlighted   = true
         @display_domain = @custom_domain.display_domain
 
-        # Delete from external SSL provider via strategy
-        delete_vhost
-
-        # Delete from external mail provider before destroy! wipes mailer_config
-        delete_sender_domain
-
-        # Destroy method operates inside a multi block that deletes the domain
-        # record, removes it from customer's domain list, and global list so
-        # it's all or nothing. It does not delete the external approximated
-        # vhost record.
-        @custom_domain.destroy!
+        teardown    = Onetime::Operations::Domains::Teardown.new(domain: @custom_domain).call
+        lease_error = teardown.lease_error
 
         # Clear the session's domain context if it matches the removed domain.
         # Route is sessionauth-only, so sess is always a real Rack session.
@@ -74,27 +66,37 @@ module DomainsAPI::Logic
           sess['domain_context'] = nil
         end
 
+        # sender_cleanup is the remote sender identity outcome
+        # (Teardown::Result#sender_cleanup). It is logged, not returned: the
+        # response shape is unchanged, and a failed cleanup does not undo the
+        # removal. A failed cleanup logs at warn; DeleteSenderDomain has
+        # already logged the provider error.
+        removal_log = {
+          event: 'domain_removed',
+          domain_extid: @extid,
+          domain_display: @display_domain,
+          actor_extid: cust.extid,
+          sender_cleanup: teardown.sender_cleanup.to_s,
+        }
+        level       = teardown.sender_cleanup == :failed ? :warn : :info
+
+        if lease_error
+          details = { removal_committed: true, lease_lost: true }
+          app_logger.public_send(level, '[RemoveDomain] Domain removal committed with lease loss', **details, **removal_log)
+          raise_form_error(
+            "Domain #{@display_domain} was removed, but #{lease_error.message}",
+            field: :extid,
+            error_type: :conflict,
+            details: details,
+          )
+        end
+
+        app_logger.public_send(level, '[RemoveDomain] Domain removed', **removal_log)
         success_data
-      end
-
-      # Deletes vhost from external provider using the configured strategy.
-      # For Approximated strategy, this calls the API. For other strategies,
-      # this is a no-op.
-      #
-      def delete_vhost
-        strategy = Onetime::DomainValidation::Strategy.for_config(OT.conf)
-        result   = strategy.delete_vhost(@custom_domain)
-
-        OT.info "[RemoveDomain.delete_vhost] #{@display_domain} -> #{result[:message]}"
-      rescue HTTParty::ResponseError, Timeout::Error, Errno::ECONNREFUSED => ex
-        OT.le "[RemoveDomain.delete_vhost error] #{@cust.extid} #{@display_domain} #{ex}"
-        # Continue with domain removal even if vhost deletion fails
-      end
-
-      def delete_sender_domain
-        Onetime::Operations::DeleteSenderDomain.new(
-          mailer_config: @custom_domain.mailer_config,
-        ).call
+      rescue Onetime::Operations::Domains::Teardown::Busy
+        raise_form_error("Another change to this domain's sender configuration is in progress. Please try again.", field: :extid, error_type: :conflict)
+      rescue Onetime::Operations::SenderIdentityLease::Lost => ex
+        raise_form_error(ex.message, field: :extid, error_type: :conflict)
       end
 
       def success_data

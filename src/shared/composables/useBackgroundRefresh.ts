@@ -1,5 +1,6 @@
 // src/shared/composables/useBackgroundRefresh.ts
 
+import { loggingService } from '@/services/logging.service';
 import { onBeforeUnmount } from 'vue';
 
 /** How often a visible tab refreshes on its own. */
@@ -66,7 +67,7 @@ export function useBackgroundRefresh(
     try {
       await refresh();
     } catch (error) {
-      console.debug('[useBackgroundRefresh] refresh failed:', error);
+      loggingService.debug('[useBackgroundRefresh] refresh failed', { error });
     } finally {
       inFlight = false;
     }

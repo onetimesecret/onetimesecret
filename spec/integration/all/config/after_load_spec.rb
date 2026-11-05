@@ -317,7 +317,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
 
       # Domains config moved from site.domains to features.domains
       expect(processed_config['features']['domains']).to eq(
-        { 'enabled' => false, 'require_verified' => false }
+        { 'enabled' => false, 'require_verified' => false, 'serve_unverified' => false }
       )
     end
 

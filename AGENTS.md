@@ -50,6 +50,26 @@ When context gets large: write current state to tasks/mission.md. Include: what'
 
 NEVER AMEND, RESTORE or REBASE unless asked.
 
+Before committing, coordinate with all writers in the same worktree: pause
+other agents, autosave, formatters, and generators; wait for in-flight writes
+to finish; and keep them paused until the entire commit command returns.
+Do not commit while delegated edits are still running, even on different
+files. If writers cannot be paused, defer the commit or use separate Git
+worktrees for independently editing and committing agents.
+
+Two clarifications to “stashes unstaged files on every commit”:
+
+- Pre-commit saves a patch when unstaged tracked changes exist, not an entry
+  in `git stash list`. Ordinary untracked files are not included.
+- The patch and temporary checkout cover unstaged tracked changes across
+  the worktree, not just files staged for commit or selected for linting.
+  Assigning different files to agents does not isolate them from this operation.
+
+Partial staging is supported; concurrent writes during hooks are not safe.
+Review auto-fixes and selectively re-stage only intended changes.
+For restoration failures and bypass limitations, follow
+[Committing with unstaged work](CONTRIBUTING.md#committing-with-unstaged-work).
+
 Use `--no-pager` to avoid hanging on paging. Pipe to head or tail if you suspect a large output. For example:
 
 ```bash
@@ -121,6 +141,8 @@ Use `--only <path>` (repeatable) while iterating: it runs just that file
 in the lane's environment — seconds instead of minutes — with the same
 env scrub. `*_try.rb` routes to tryouts, everything else to rspec. It
 skips the lane's other tasks, so run the whole lane before pushing.
+`path:LINE` works for both: rspec takes a list (`:12:34`) and a describe
+line runs its whole group; tryouts takes a line or a range (`:19-45`).
 On a CI failure the first command is `tests/lanes/run --only <path>:<LINE>`
 with the path and line from the CI log (the lane is inferred;
 `tests/lanes/run --which <path>` prints it), and the full lane runs once
@@ -139,7 +161,18 @@ shellcheck/actionlint. Both also run in the `Static analysis` workflow.
 
 **Dev-environment worktrees**: The `.test-mode` sentinel file marks a
 repo checkout that has loaded the test environment. Do not run tests
-unless `.test-mode` already exists.
+unless `.test-mode` already exists. When the required Ruby version
+(`.ruby-version`) is already available, run `bin/setup --test` to enable
+proper test mode. `bin/setup --test` creates `.test-mode` with or
+without direnv; with direnv installed it also wires `.envrc` so every
+shell in the checkout runs with the test environment.
+
+## Terms and phrases to avoid
+
+Do not use any of the following terms or phrases or sentence structures:
+
+- holds, claims, lands
+- "A isn't only B, but also C"
 
 ## Replying to review comments
 

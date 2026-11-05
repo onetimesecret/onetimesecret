@@ -215,10 +215,6 @@
     "text": "Організація:",
     "source_hash": "5300e286"
   },
-  "web.admin.domains.actions.remove.reassertsSurvivor": {
-    "text": "Інший запис претендує на те саме доменне ім'я та займе індекс пошуку.",
-    "source_hash": "902838f4"
-  },
   "web.admin.domains.actions.remove.confirmTitle": {
     "text": "Видалити домен?",
     "source_hash": "716dfac9"

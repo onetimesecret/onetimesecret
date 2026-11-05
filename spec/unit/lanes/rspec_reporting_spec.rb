@@ -126,11 +126,13 @@ module LaneReportingProbe
     'full-pg' => [''],
     'full-pg-agnostic' => [''],
     'full-saml-platform' => ['_saml_platform'],
-    'full-sqlite' => [''],
+    'full-webauthn-verify' => %w[_webauthn_verify _webauthn_verify_mfa],
+    'full-sqlite' => ['', '_oauth'],
     'harness' => [''],
     'migrations-pg' => [''],
     'migrations-sqlite' => [''],
     'simple' => [''],
+    'strategies' => [''],
     'unit' => %w[_root_fast _apps_fast _apps_config_ru],
   }.freeze
 
@@ -138,8 +140,9 @@ module LaneReportingProbe
   # files their four workers write: the task still passes the one
   # `--out <stem>.json`, and tests/lanes/support/worker-env gives worker k
   # `<stem>_w<k>.json`, which the same tmp/<stem>*.json glob collects.
-  # Every other lane keeps its serial file name(s) whatever LANES_WORKERS
-  # says, because its task does not split.
+  # Every other lane, and every other task of these lanes (full-sqlite's
+  # spec:integration:oauth), keeps its serial file name(s) whatever
+  # LANES_WORKERS says, because its task does not split.
   WORKER_RESULTS = {
     'api' => %w[_w1 _w2 _w3 _w4],
     'full-sqlite' => %w[_w1 _w2 _w3 _w4],
@@ -333,13 +336,18 @@ RSpec.describe 'lane rspec reporting' do
       let(:lanes) { probe.invocations(workers: 4).fetch('lanes') }
 
       LaneReportingProbe::WORKER_RESULTS.each do |lane, suffixes|
-        it "runs the #{lane} lane as one parallel_rspec invocation whose workers write <stem>_w<k>.json" do
+        it "runs the #{lane} lane's split task as one parallel_rspec invocation whose workers write <stem>_w<k>.json" do
           invocations = lanes.fetch(lane)
+          split       = invocations.select { |invocation| invocation.fetch('workers') }
 
-          expect(invocations.length).to eq(1)
-          expect(invocations.first.fetch('workers')).to eq(4)
-          expect(outs(invocations)).to eq(["#{stem}.json"])
-          expect(probe.worker_outs(invocations.first)).to eq(suffixes.map { |suffix| "#{stem}#{suffix}.json" })
+          expect(split.length).to eq(1)
+          expect(split.first.fetch('workers')).to eq(4)
+          expect(outs(split)).to eq(["#{stem}.json"])
+          expect(probe.worker_outs(split.first)).to eq(suffixes.map { |suffix| "#{stem}#{suffix}.json" })
+
+          # The lane's other tasks do not split: same invocations as the serial run.
+          serial = probe.invocations.fetch('lanes').fetch(lane)
+          expect(invocations - split).to eq(serial.reject { |invocation| invocation.fetch('out') == "#{stem}.json" })
         end
       end
 
@@ -364,7 +372,8 @@ RSpec.describe 'lane rspec reporting' do
       through_rake = lanes.reject { |_, invocations| invocations.empty? }.keys.sort
 
       expect(through_rake).to eq(%w[api billing billing-integration disabled full-mfa full-pg full-pg-agnostic
-                                    full-saml-platform full-sqlite harness migrations-pg migrations-sqlite simple unit])
+                                    full-saml-platform full-sqlite full-webauthn-verify harness migrations-pg
+                                    migrations-sqlite simple strategies unit])
     end
 
     it 'never gives two invocations of one lane the same file' do
@@ -378,7 +387,8 @@ RSpec.describe 'lane rspec reporting' do
     # the run would report only its last invocation.
     it 'suffixes the tasks an aggregate runs together, by their own names' do
       expect(outs(together.fetch('spec:integration:all')))
-        .to eq(%w[integration_simple integration_full integration_disabled mfa saml_platform]
+        .to eq(%w[integration_simple integration_full integration_disabled mfa saml_platform webauthn_verify
+                  webauthn_verify_mfa oauth integration_strategies]
                  .map { |suffix| "#{stem}_#{suffix}.json" })
     end
 

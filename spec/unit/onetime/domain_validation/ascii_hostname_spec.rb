@@ -31,6 +31,40 @@ RSpec.describe Onetime::DomainValidation::AsciiHostname do
     expect(described_class.call('münchen.de'.b)).to eq('xn--mnchen-3ya.de')
   end
 
+  describe '.comparison_key' do
+    it 'lower-cases an ASCII name and changes nothing else' do
+      expect(described_class.comparison_key('Example.COM')).to eq('example.com')
+      expect(described_class.comparison_key('example.com.')).to eq('example.com.')
+      expect(described_class.comparison_key('xn--bucher-xyd.de')).to eq('xn--bucher-xyd.de')
+    end
+
+    it 'gives a Unicode name, upper case or decomposed, its A-label' do
+      expect(described_class.comparison_key('bücher.de')).to eq('xn--bcher-kva.de')
+      expect(described_class.comparison_key('BÜCHER.de')).to eq('xn--bcher-kva.de')
+      expect(described_class.comparison_key("bu\u0308cher.de")).to eq('xn--bcher-kva.de')
+      expect(described_class.comparison_key('bücher.de'.b)).to eq('xn--bcher-kva.de')
+    end
+
+    it 'judges each label on its own, so a name mixing the forms keys as its encoded form' do
+      expect(described_class.comparison_key('xn--bcher-kva.bücher.de')).to eq('xn--bcher-kva.xn--bcher-kva.de')
+      expect(described_class.comparison_key('bücher.xn--bcher-kva.de')).to eq('xn--bcher-kva.xn--bcher-kva.de')
+      expect(described_class.comparison_key('mail.bücher.de')).to eq('mail.xn--bcher-kva.de')
+    end
+
+    {
+      'fullwidth letters' => 'ｅｘａｍｐｌｅ.com',
+      'an ideographic full stop as a separator' => "sub.example\u3002com",
+      'a soft hyphen' => "b\u00fc\u00adcher.de",
+      'a trailing dot' => 'bücher.de.',
+      'an empty label' => 'bücher..de',
+      'bytes that are not valid UTF-8' => "b\xFFcher.example",
+    }.each do |description, hostname|
+      it "returns nil for a name with #{description}" do
+        expect(described_class.comparison_key(hostname)).to be_nil
+      end
+    end
+  end
+
   {
     'a blank name' => ' ',
     'an empty label' => 'a..example.com',
@@ -42,6 +76,36 @@ RSpec.describe Onetime::DomainValidation::AsciiHostname do
     it "raises ConversionError (an ArgumentError) for #{description}" do
       expect { described_class.call(hostname) }.to raise_error(described_class::ConversionError)
       expect(described_class::ConversionError).to be < ArgumentError
+    end
+  end
+
+  describe '.within?' do
+    it 'is true for the name itself and for names below it' do
+      expect(described_class.within?('acme.example', 'acme.example')).to be(true)
+      expect(described_class.within?('mail.acme.example', 'acme.example')).to be(true)
+      expect(described_class.within?('a.b.acme.example', 'acme.example')).to be(true)
+    end
+
+    it 'compares case-insensitively' do
+      expect(described_class.within?('Mail.ACME.example', 'acme.Example')).to be(true)
+    end
+
+    it 'is false for the parent, for a sibling and for a name that only ends in the same characters' do
+      expect(described_class.within?('acme.example', 'mail.acme.example')).to be(false)
+      expect(described_class.within?('other.example', 'acme.example')).to be(false)
+      expect(described_class.within?('notacme.example', 'acme.example')).to be(false)
+    end
+
+    it 'treats the Unicode and A-label spellings of one name as the same' do
+      expect(described_class.within?('xn--bcher-kva.de', 'bücher.de')).to be(true)
+      expect(described_class.within?('mail.bücher.de', 'xn--bcher-kva.de')).to be(true)
+    end
+
+    it 'is false when either side has no comparison key' do
+      expect(described_class.within?('ｅｘａｍｐｌｅ.com', 'example.com')).to be(false)
+      expect(described_class.within?('mail.example.com', 'ｅｘａｍｐｌｅ.com')).to be(false)
+      expect(described_class.within?('', 'example.com')).to be(false)
+      expect(described_class.within?('example.com', '')).to be(false)
     end
   end
 end

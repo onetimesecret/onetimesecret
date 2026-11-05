@@ -20,7 +20,7 @@ DigitalOcean blocks 25/587/465 by default; 2587/2465 are SES's escape hatches. T
 
 5. SMTP_AUTH is a lie — honor it or delete it
 
-smtp.rb:144 hardcodes authentication: :plain and ignores the SMTP_AUTH=login env var entirely. It happens to work because SES accepts both, but a config var that silently does nothing is false confidence during exactly the kind of debugging you just did. Either read ENV['SMTP_AUTH'] or remove the var from docs/config generation.
+Resolved in #4889: SMTP delivery now uses the mechanism named by SMTP_AUTH (plain, login or cram_md5; default plain) and rejects unrecognized values.
 
 Lower priority
 

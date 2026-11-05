@@ -12,7 +12,7 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import type { RecentSecretRecord } from '@/shared/composables/useRecentSecrets';
+  import { shareLinkFor, type RecentSecretRecord } from '@/shared/composables/useRecentSecrets';
   import { formatTTL } from '@/utils/formatters';
   import { formatDistanceToNow } from 'date-fns';
   import { storeToRefs } from 'pinia';
@@ -73,14 +73,13 @@
   const bootstrapStore = useBootstrapStore();
   const { site_host } = storeToRefs(bootstrapStore);
 
-  // Create shareable link with proper domain
-  const shareLink = computed(() => {
-    const shareDomain = props.record.shareDomain ?? site_host.value;
-    return `https://${shareDomain}/secret/${props.record.secretExtid}`;
-  });
+  // Create shareable link with proper domain. Null for a guest record restored
+  // from sessionStorage, which keeps no secret identifier (M10); the receipt
+  // page shows the link then.
+  const shareLink = computed(() => shareLinkFor(props.record, site_host.value));
 
   const handleCopy = async () => {
-    if (!isActive.value) return;
+    if (!isActive.value || !shareLink.value) return;
     try {
       await navigator.clipboard.writeText(shareLink.value);
       isCopied.value = true;
@@ -332,9 +331,10 @@
         </template>
       </div>
 
-      <!-- Line 3: Actions (only for active/previewed states) -->
+      <!-- Line 3: Actions (only for active/previewed states with a share link
+           in memory; after a reload the timestamp links to the receipt) -->
       <div
-        v-if="isActive"
+        v-if="isActive && shareLink"
         class="mt-2 flex items-center gap-1">
         <!-- Open link -->
         <a

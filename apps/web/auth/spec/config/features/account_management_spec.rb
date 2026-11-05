@@ -15,8 +15,9 @@
 
 require_relative '../../spec_helper'
 
-# Namespace shim (the pattern of spec/config/overrides/duplicate_signup_spec.rb):
-# the feature file reopens Auth::Config without booting the app.
+# Namespace shim (the pattern of
+# spec/config/overrides/account_enumeration_duplicate_signup_spec.rb): the
+# feature file reopens Auth::Config without booting the app.
 module Auth; end
 Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
 
@@ -51,7 +52,7 @@ RSpec.describe Auth::Config::Features::AccountManagement, '.configure_create_acc
 
       Auth::Config::Features::AccountManagement.configure_create_account_response(self)
     end
-    app.plugin :json_parser # the helper app has no body parser
+    app.plugin :json_parser, content_type_regexp: %r{\Aapplication/json\b}i # the helper app has no body parser
     app
   end
 
@@ -100,5 +101,23 @@ RSpec.describe Auth::Config::Features::AccountManagement, '.configure_create_acc
       expect(status).to eq(200), body.inspect
       expect(body).to include('success' => created_notice, 'next_action' => 'sign_in')
     end
+  end
+end
+
+# SEC-B08: send_verify_account_email reads invite_token through this helper.
+# `strip` raises on a String with invalid encoding, and on verify-account-resend
+# that read runs only for an unverified account with a key row, so the 500 told
+# that account apart from a missing login. Such a token reads as absent.
+RSpec.describe Auth::Config::Features::AccountManagement, '.invite_token_param' do
+  it 'strips a valid token' do
+    expect(described_class.invite_token_param("  tok_123\n")).to eq('tok_123')
+  end
+
+  it 'reads an absent, non-String or invalid-encoding token as empty, without raising', :aggregate_failures do
+    invalid = (+"\xFF").force_encoding(Encoding::UTF_8)
+
+    expect(described_class.invite_token_param(nil)).to eq('')
+    expect(described_class.invite_token_param(%w[a b])).to eq('')
+    expect(described_class.invite_token_param(invalid)).to eq('')
   end
 end

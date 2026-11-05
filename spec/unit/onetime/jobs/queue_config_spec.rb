@@ -17,8 +17,10 @@ RSpec.describe Onetime::Jobs::QueueConfig do
       expect(queues).to have_key('email.message.send')
     end
 
-    it 'defines email.message.schedule queue' do
-      expect(queues).to have_key('email.message.schedule')
+    # Retired in #4844: nothing consumed it, so everything published to it
+    # expired into the DLQ. Keeping it out of QUEUES keeps it undeclared.
+    it 'no longer defines email.message.schedule' do
+      expect(queues).not_to have_key('email.message.schedule')
     end
 
     it 'defines notifications.alert.push queue' do
@@ -49,8 +51,8 @@ RSpec.describe Onetime::Jobs::QueueConfig do
       expect(queues).to have_key('session.revoke.sweep')
     end
 
-    it 'has 11 queues total' do
-      expect(queues.size).to eq(11)
+    it 'has 10 queues total' do
+      expect(queues.size).to eq(10)
     end
   end
 
@@ -59,22 +61,6 @@ RSpec.describe Onetime::Jobs::QueueConfig do
 
     it 'is durable' do
       expect(queue[:durable]).to be true
-    end
-
-    it 'has dead letter exchange configured' do
-      expect(queue[:arguments]['x-dead-letter-exchange']).to eq('dlx.email.message')
-    end
-  end
-
-  describe 'email.message.schedule queue' do
-    subject(:queue) { described_class::QUEUES['email.message.schedule'] }
-
-    it 'is durable' do
-      expect(queue[:durable]).to be true
-    end
-
-    it 'has message TTL configured' do
-      expect(queue[:arguments]).to have_key('x-message-ttl')
     end
 
     it 'has dead letter exchange configured' do

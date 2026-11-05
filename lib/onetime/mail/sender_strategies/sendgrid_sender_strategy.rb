@@ -215,61 +215,31 @@ module Onetime
         # @param mailer_config [CustomDomain::MailerConfig] Mailer configuration
         # @param credentials [Hash] Must include 'api_key'; optionally 'domain_id'
         # @return [Hash] Deletion result:
-        #   - :deleted [Boolean]
+        #   - :outcome [Symbol] :deleted, :absent, or :failed
+        #   - :deleted [Boolean] True only for an actual deletion
         #   - :message [String]
+        #   - :error [String, nil] Nonempty on failure, nil otherwise
         #
         def delete_sender_identity(mailer_config, credentials:)
           domain = extract_domain(mailer_config.from_address)
-
-          unless domain
-            return {
-              deleted: false,
-              message: 'Invalid from_address: cannot extract domain',
-            }
-          end
+          return deletion_failure('Invalid from_address: cannot extract domain') unless domain
 
           api_key = credentials['api_key']
-          unless api_key && !api_key.empty?
-            return {
-              deleted: false,
-              message: 'SendGrid API key is required',
-            }
-          end
+          return deletion_failure('SendGrid API key is required') if api_key.to_s.strip.empty?
 
           log_info "[sendgrid-sender] Deleting sender authentication for #{domain}"
-
-          # Find the domain ID if not provided
           domain_id = credentials['domain_id'] || find_domain_id(domain, api_key: api_key)
+          return deletion_result(outcome: :absent, message: "Domain authentication not found for #{domain}") unless domain_id
 
-          unless domain_id
-            return {
-              deleted: false,
-              message: "Domain authentication not found for #{domain}",
-            }
-          end
-
-          response = delete_request(
-            "/whitelabel/domains/#{domain_id}",
-            api_key: api_key,
-          )
-
-          if response[:success]
-            {
-              deleted: true,
-              message: "Domain authentication deleted for #{domain}",
-            }
+          response = delete_request("/whitelabel/domains/#{domain_id}", api_key: api_key)
+          if response[:success] == true
+            deletion_result(outcome: :deleted, message: "Domain authentication deleted for #{domain}")
           else
-            {
-              deleted: false,
-              message: response[:error] || 'Delete failed',
-            }
+            deletion_failure(response[:error])
           end
         rescue StandardError => ex
           log_error "[sendgrid-sender] Delete failed: #{ex.message}"
-          {
-            deleted: false,
-            message: "Delete failed: #{ex.message}",
-          }
+          deletion_failure("Delete failed: #{deletion_error_message(ex)}")
         end
 
         protected
@@ -279,6 +249,11 @@ module Onetime
         end
 
         private
+
+        def deletion_failure(message)
+          message = 'Delete failed' if !message.is_a?(String) || message.strip.empty?
+          deletion_result(outcome: :failed, message: message, error: message)
+        end
 
         # Converts SendGrid DNS response to standardized format.
         #
@@ -328,36 +303,112 @@ module Onetime
         # Finds domain authentication ID by domain name.
         #
         # Paginates through SendGrid's domain authentication list using
-        # limit/offset, since the default response is capped at ~50 domains.
+        # limit/offset (see #each_domain_authentication_page) and stops at the
+        # first page holding the domain.
         #
         # @param domain [String] Domain to search for
         # @param api_key [String] SendGrid API key
         # @return [Integer, nil] Domain ID or nil if not found
+        # @raise [APIError] if a page could not be read
         #
         def find_domain_id(domain, api_key:)
+          each_domain_authentication_page(api_key: api_key) do |domains|
+            id = domain_authentication_id(domains, domain)
+            return id if id
+          end
+          nil
+        end
+
+        # Every domain authentication on the account, for callers that resolve
+        # many domains at once: one paginated walk instead of one per domain.
+        # Match entries with {#domain_authentication_id}, the same comparison
+        # {#find_domain_id} makes.
+        #
+        # @param api_key [String] SendGrid API key
+        # @return [Array<Hash>] all validated entries
+        # @raise [APIError] if any page is incomplete or invalid
+        #
+        def domain_authentications(api_key:)
+          domains = []
+          each_domain_authentication_page(api_key: api_key) { |page| domains.concat(page) }
+          domains
+        end
+
+        # Domain names compare case-insensitively over the full name, as
+        # SMTP2GO's lookup does; the returned ID is the provider's, unchanged.
+        #
+        # @param domains [Array<Hash>] domain authentication entries
+        # @param domain [String] Domain to search for
+        # @return [Integer, nil] the entry's ID, or nil when no entry matches
+        #
+        def domain_authentication_id(domains, domain)
+          validate_domain_authentications!(domains)
+          match = domains.find { |d| d['domain'].casecmp?(domain) }
+          match && match['id']
+        end
+
+        def validate_domain_authentications!(domains)
+          unless domains.is_a?(Array)
+            raise APIError.new('Invalid domain authentication list: expected an array', status_code: nil)
+          end
+
+          domains.each do |entry|
+            next if entry.is_a?(Hash) && entry['domain'].is_a?(String) &&
+                    !entry['domain'].strip.empty? && entry['domain'].match?(/\A\S+\z/) &&
+                    entry['id'].is_a?(Integer) && entry['id'].positive?
+
+            raise APIError.new('Invalid domain authentication entry: domain and valid id required', status_code: nil)
+          end
+        end
+
+        # Yields each page of the domain authentication list.
+        #
+        # The list reference documents limit/offset but no default or maximum
+        # page size, so a short page does not prove the list is exhausted:
+        # the offset advances by the entries actually returned and only an
+        # empty page ends the walk. A page larger than the requested limit,
+        # or one repeating an ID from an earlier page, means the offset did
+        # not advance as requested and fails the walk instead of looping.
+        # https://www.twilio.com/docs/sendgrid/api-reference/domain-authentication/list-all-authenticated-domains
+        #
+        # @return [Boolean] true when every page was read
+        # @raise [APIError] if a request failed or returned something other than a list
+        #
+        def each_domain_authentication_page(api_key:)
           limit  = DOMAIN_LIST_PAGE_SIZE
           offset = 0
+          seen   = Set.new
 
           loop do
             response = get_request(
               "/whitelabel/domains?limit=#{limit}&offset=#{offset}",
               api_key: api_key,
             )
-            return nil unless response[:success]
+            unless response[:success] == true
+              raise APIError.new(
+                response[:error] || 'Domain authentication lookup failed',
+                status_code: response[:status_code],
+              )
+            end
 
             domains = response[:data]
-            return nil unless domains.is_a?(Array)
+            validate_domain_authentications!(domains)
+            return true if domains.empty?
 
-            match = domains.find { |d| d['domain'] == domain }
-            return match['id'] if match
+            if domains.size > limit
+              raise APIError.new('Invalid domain authentication list: page exceeds the requested limit', status_code: nil)
+            end
 
-            # Stop when fewer results than the limit — we've seen all pages
-            break if domains.size < limit
+            ids = domains.map { |entry| entry['id'] }
+            if ids.any? { |id| seen.include?(id) }
+              raise APIError.new('Invalid domain authentication list: page repeats an earlier entry', status_code: nil)
+            end
 
-            offset += limit
+            seen.merge(ids)
+            yield domains
+
+            offset += domains.size
           end
-
-          nil
         end
 
         # Makes a GET request to SendGrid API.
@@ -444,7 +495,7 @@ module Onetime
             { success: true, data: data }
           else
             error_message = extract_error_message(data) || "HTTP #{code}"
-            { success: false, data: data, error: error_message }
+            { success: false, data: data, error: error_message, status_code: code }
           end
         rescue JSON::ParserError
           { success: false, data: {}, error: "Invalid JSON response: #{body[0, 200]}" }

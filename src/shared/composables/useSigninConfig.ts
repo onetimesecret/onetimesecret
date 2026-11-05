@@ -196,6 +196,17 @@ export function useSigninConfig(domainExtId: string) {
 
   const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
 
+  // A third for refreshDetails, a follow-up read after a change made
+  // elsewhere on the page: a failure keeps the details shown — no toast, no
+  // page-level error, no NotFound redirect.
+  const { wrap: wrapRefresh } = useAsyncHandler({ notify: false });
+
+  /**
+   * Advanced at each refresh start and whenever load/save/delete writes
+   * `details`, so older refresh responses cannot overwrite newer state.
+   */
+  let detailsWrites = 0;
+
   // A second handler for save/delete actions that should NOT toggle isLoading.
   const { wrap: wrapAction } = useAsyncHandler({
     ...defaultAsyncHandlerOptions,
@@ -280,6 +291,7 @@ export function useSigninConfig(domainExtId: string) {
 
       signinConfig.value = response.record;
       details.value = response.details;
+      detailsWrites += 1;
 
       if (response.record) {
         formState.value = configToFormState(response.record);
@@ -289,6 +301,35 @@ export function useSigninConfig(domainExtId: string) {
       savedFormState.value = { ...formState.value };
       isInitialized.value = true;
     });
+
+  /**
+   * Re-read the resolution details after a change made elsewhere on the
+   * page — the domain's SSO configuration saved, turned on by a passing
+   * check, or deleted — so the tenant-SSO verdict (#4111) and the resolved
+   * restriction describe the records as they now are.
+   *
+   * Unlike initialize this leaves isLoading alone (the page would swap the
+   * form for its skeleton) and keeps the sign-in record and form state: an
+   * SSO change does not touch the SigninConfig record, and an autosave may
+   * be in flight. The one exception is an unconfigured domain, whose form is
+   * a seed of the inherited state and is re-seeded so the next autosave
+   * materializes what actually runs (ADR-024) — but not while a save is in
+   * flight, whose own response re-seeds or replaces it.
+   *
+   * A response is dropped when a newer refresh started or load/save/delete
+   * wrote details after it was requested.
+   */
+  const refreshDetails = async () => {
+    if (!isInitialized.value) return;
+    const writes = ++detailsWrites;
+    const response = await wrapRefresh(() => SigninConfigService.getConfigForDomain(domainExtId));
+    if (!response?.details || writes !== detailsWrites) return;
+    details.value = response.details;
+    if (!signinConfig.value && !response.record && !isSaving.value && !isDeleting.value) {
+      seedFormState();
+      savedFormState.value = { ...formState.value };
+    }
+  };
 
   /**
    * Save the current form state (PUT — full replacement).
@@ -314,7 +355,10 @@ export function useSigninConfig(domainExtId: string) {
 
       if (result?.record) {
         signinConfig.value = result.record;
-        if (result.details) details.value = result.details;
+        if (result.details) {
+          details.value = result.details;
+          detailsWrites += 1;
+        }
         formState.value = configToFormState(result.record);
         savedFormState.value = { ...formState.value };
         notifications.show(t('web.domains.signin.update_success'), 'success', 'top');
@@ -423,7 +467,10 @@ export function useSigninConfig(domainExtId: string) {
       await wrapAction(async () => {
         const result = await SigninConfigService.deleteConfigForDomain(domainExtId);
         signinConfig.value = null;
-        if (result.details) details.value = result.details;
+        if (result.details) {
+          details.value = result.details;
+          detailsWrites += 1;
+        }
         seedFormState();
         savedFormState.value = { ...formState.value };
         notifications.show(t('web.domains.signin.reset_success'), 'success', 'top');
@@ -473,6 +520,7 @@ export function useSigninConfig(domainExtId: string) {
 
     // Actions
     initialize,
+    refreshDetails,
     saveConfig,
     autoSaveField,
     autoSaveFields,

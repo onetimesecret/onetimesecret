@@ -215,10 +215,6 @@
     "text": "Organisation:",
     "source_hash": "5300e286"
   },
-  "web.admin.domains.actions.remove.reassertsSurvivor": {
-    "text": "En annan post gör anspråk på samma domännamn och kommer att ta över uppslagsindexet.",
-    "source_hash": "902838f4"
-  },
   "web.admin.domains.actions.remove.confirmTitle": {
     "text": "Ta bort domän?",
     "source_hash": "716dfac9"

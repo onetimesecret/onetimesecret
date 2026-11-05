@@ -39,6 +39,7 @@ module Onetime
         :params,
         :locale,
         :processed_params,
+        :route_params,
         :site,
         :features,
         :authentication,
@@ -52,9 +53,45 @@ module Onetime
       # host, or the domains feature off). See Onetime::CustomDomain::Lookup.
       attr_reader :custom_domain_lookup
 
-      def initialize(strategy_result, params, locale = nil)
+      # The request's env['otto.ip_match'] verdict closure, lifted from the
+      # strategy metadata (auth_strategies/helpers.rb build_metadata). Judges
+      # CIDR membership of the resolved, unmasked client IP without exposing
+      # it; nil when the stack never ran IPPrivacyMiddleware. Consumed by the
+      # per-domain homepage network rules through
+      # CustomDomain#allow_public_secret_creation?(ip_match:) and
+      # HomepageConfig#effectively_enabled_for? (the homepage-config API's
+      # effective_enabled).
+      attr_reader :ip_match
+
+      # The value the router captured from the request path for +name+.
+      #
+      # +params+ is a shared namespace: path captures, query string, form
+      # fields and JSON body all land in it, and a Logic class reading
+      # params['identifier'] cannot tell which one it got. When Otto routed
+      # the request, +route_params+ holds the path captures alone, so this
+      # returns the path value by name whatever else the caller sent. A Logic
+      # class built without the router (specs, scripts) has no captures and
+      # falls back to +params+.
+      #
+      # @param name [String, Symbol] the route placeholder name (":identifier")
+      # @return [String, nil]
+      def route_param(name)
+        key = name.to_s
+        return route_params[key] if route_params.key?(key)
+        return route_params[key.to_sym] if route_params.key?(key.to_sym)
+
+        params && params[key]
+      end
+
+      # @param route_params [Hash] the router's path captures, keyed by the
+      #   route's placeholder names. Otto (>= 2.12, delano/otto#285) passes
+      #   them separately from +params+ for any Logic class whose initialize
+      #   declares the keyword, which this one does on behalf of every
+      #   subclass. Callers that build a Logic class by hand may leave it out.
+      def initialize(strategy_result, params, locale = nil, route_params: {})
         @strategy_result = strategy_result
         @params          = params
+        @route_params    = route_params || {}
 
         # Extract session and user from StrategyResult
         @sess   = strategy_result.session
@@ -424,6 +461,7 @@ module Onetime
         @display_domain       = strategy_result.metadata[:display_domain]
         @custom_domain_id     = strategy_result.metadata[:custom_domain_id]
         @custom_domain_lookup = strategy_result.metadata[:custom_domain_lookup]
+        @ip_match             = strategy_result.metadata[:ip_match]
       end
 
       # Request rotation of the live Rack session. Logic paths that cross an
@@ -483,13 +521,27 @@ module Onetime
 
         _receipt, secret = Onetime::Receipt.spawn_pair(customer&.objid, 24.days, msg)
 
-        secret.verification = true
-        secret.custid       = customer.custid
+        secret.verification    = true
+        secret.kind            = 'account_verification' # mailbox proof for the owner's current address (#4735)
+        secret.custid          = customer.custid
+        # The address the welcome email below goes to. Following the link
+        # proves that mailbox, which stays the account's own only until the
+        # account's address changes (Secret#delivered_to?, #4754 review,
+        # round 3).
+        secret.delivery_digest = Onetime::Secret.delivery_digest_for(customer.email)
         secret.save
 
         # The reset_secret field is a related standalone dbkey, writes
         # immediately. e.g. customer:abcd1234:reset_secret
-        customer.reset_secret = secret.identifier
+        #
+        # The pointer is shared with password recovery. A duplicate signup or
+        # an unverified sign-in can resend verification while the holder has a
+        # live recovery link out; overwriting the pointer here would fail that
+        # link at redemption (ResetPassword checks the pointer). Leave an
+        # outstanding recovery pointer alone, and write only while the pointer
+        # still holds what was checked: the new link is mailbox proof by its
+        # kind and needs no pointer (Customer#mailbox_proof_secret?).
+        customer.record_verification_pointer!(secret)
 
         # @locale can arrive blank ("") from params (see #initialize) — an empty
         # string is truthy, so it slips past a bare `||` into an invalid I18n

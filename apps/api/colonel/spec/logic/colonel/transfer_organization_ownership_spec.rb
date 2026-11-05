@@ -19,7 +19,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::TransferOrganizationOwnership do
   let(:colonel) do
     instance_double(Onetime::Customer,
       objid: 'cust_colonel', extid: 'ur_colonel',
-      role: 'colonel', verified?: true, anonymous?: false)
+      role: 'colonel', verified?: true, mailbox_verified?: true, anonymous?: false)
   end
 
   let(:org) do

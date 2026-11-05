@@ -32,7 +32,9 @@ module AuthModeHelpers
       # Off in tests unless the full-mfa lane exports AUTH_VERIFY_ACCOUNT_ENABLED,
       # for the same one-shot reason as email_auth and webauthn below.
       @verify_account_enabled = options.fetch(:verify_account_enabled) { ENV['AUTH_VERIFY_ACCOUNT_ENABLED'] == 'true' }
-      @mfa_enabled = options.fetch(:mfa_enabled, true)
+      # On unless a lane exports AUTH_MFA_ENABLED=false: full-webauthn-verify
+      # boots production's MFA default (off). Every other lane leaves it unset.
+      @mfa_enabled = options.fetch(:mfa_enabled) { ENV['AUTH_MFA_ENABLED'] != 'false' }
       # Magic links and passkeys default OFF, but honor env the same way the
       # SSO flags below do: this mock is what config.rb reads at the one-shot
       # boot of a :full_auth_mode process, so the full-mfa lane (which exports
@@ -43,11 +45,19 @@ module AuthModeHelpers
       # match etc/defaults/auth.defaults.yaml.
       @email_auth_enabled = options.fetch(:email_auth_enabled) { ENV['AUTH_EMAIL_AUTH_ENABLED'] == 'true' }
       @webauthn_enabled = options.fetch(:webauthn_enabled) { ENV['AUTH_WEBAUTHN_ENABLED'] == 'true' }
+      # Passkey signup (Rodauth webauthn_verify_account), read the same way:
+      # the full-webauthn-verify lane exports AUTH_WEBAUTHN_VERIFY_ACCOUNT=true
+      # with webauthn on and verify_account off, the one process that loads
+      # verify_account through the sub-feature alone.
+      @webauthn_verify_account_enabled = options.fetch(:webauthn_verify_account_enabled) do
+        ENV['AUTH_WEBAUTHN_VERIFY_ACCOUNT'] == 'true'
+      end
       # SSO flags default OFF in tests, but honor env so the per-mode rake
       # batches (which run integration/full/ with provider env set) can exercise
       # the real omniauth route registration. Unset env preserves the old false.
       @sso_enabled = options.fetch(:sso_enabled) { ENV['AUTH_SSO_ENABLED'] == 'true' }
       @orgs_sso_enabled = options.fetch(:orgs_sso_enabled) { ENV['ORGS_SSO_ENABLED'] == 'true' }
+      @oauth_enabled = options.fetch(:oauth_enabled, false)  # OAuth IdP disabled by default in tests
       @restrict_to = options.fetch(:restrict_to, nil)  # nil = show all enabled methods
       @omniauth_provider_name = options.fetch(:omniauth_provider_name, nil)
     end
@@ -58,6 +68,12 @@ module AuthModeHelpers
 
     def simple_enabled?
       @mode == 'simple'
+    end
+
+    # Mirrors Onetime::AuthConfig#simple_by_default?: true only when simple
+    # mode is in force and nothing in the environment chose it.
+    def simple_by_default?
+      simple_enabled? && ENV['AUTHENTICATION_MODE'].to_s.strip.empty?
     end
 
     def configured?
@@ -93,6 +109,14 @@ module AuthModeHelpers
       @verify_account_enabled
     end
 
+    # Mirrors Onetime::AuthConfig#verify_account_loaded?. Calls the three
+    # predicates rather than reading the ivars, so a spec that stubs one of
+    # them on this mock (allow(Onetime.auth_config).to receive(...)) is seen
+    # here as well.
+    def verify_account_loaded?
+      !!(verify_account_enabled? || (webauthn_enabled? && webauthn_verify_account_enabled?))
+    end
+
     def mfa_enabled?
       @mfa_enabled
     end
@@ -107,9 +131,10 @@ module AuthModeHelpers
 
     # The two WebAuthn sub-features config/features/webauthn.rb consults at
     # configure time. Both are separate opt-ins in production
-    # (AUTH_WEBAUTHN_VERIFY_ACCOUNT / AUTH_WEBAUTHN_AUTOFILL); off here.
+    # (AUTH_WEBAUTHN_VERIFY_ACCOUNT / AUTH_WEBAUTHN_AUTOFILL). Autofill is off
+    # here; passkey signup follows the env (initialize, above).
     def webauthn_verify_account_enabled?
-      false
+      @webauthn_verify_account_enabled
     end
 
     def webauthn_autofill_enabled?
@@ -125,6 +150,12 @@ module AuthModeHelpers
     # with credentials injected at runtime by OmniAuthTenant hook.
     def orgs_sso_enabled?
       @orgs_sso_enabled
+    end
+
+    # OAuth IdP mode (AUTH_OAUTH_ENABLED)
+    # When true, OTS acts as an OAuth 2.0 Authorization Server.
+    def oauth_enabled?
+      @oauth_enabled
     end
 
     # DEPRECATED: Alias for sso_enabled? — retained for Rodauth integration

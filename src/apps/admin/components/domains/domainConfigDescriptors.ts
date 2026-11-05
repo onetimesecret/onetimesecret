@@ -65,6 +65,7 @@ export const DOMAIN_CONFIG_EDIT_FIELDS: Record<
       defaultValue: 'passthrough',
     },
     { name: 'allowed_signup_domains', type: 'domains', defaultValue: [] },
+    { name: 'allow_base_domain', type: 'boolean', defaultValue: false },
   ],
   homepage: [
     { name: 'enabled', type: 'boolean', defaultValue: false },
@@ -80,6 +81,19 @@ export const DOMAIN_CONFIG_EDIT_FIELDS: Record<
       options: ['v1', 'minimal', 'closed'],
       allowUnset: true,
       defaultValue: null,
+    },
+    // Network rules: entries are IP addresses / CIDR ranges, not domains.
+    {
+      name: 'allowed_cidrs',
+      type: 'domains',
+      hintKey: 'web.admin.domains.configs.edit.cidrsHint',
+      defaultValue: [],
+    },
+    {
+      name: 'denied_cidrs',
+      type: 'domains',
+      hintKey: 'web.admin.domains.configs.edit.cidrsHint',
+      defaultValue: [],
     },
   ],
   api: [{ name: 'enabled', type: 'boolean', defaultValue: false }],

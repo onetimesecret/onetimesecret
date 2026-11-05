@@ -75,11 +75,36 @@ module Billing
 
         # Pause federated organization subscription
         #
+        # Not gated on the owner's mailbox proof: it only removes access. For
+        # a deferred workspace the pending record is refreshed as well, so
+        # the claim that runs after verification does not apply an earlier
+        # active snapshot (#4754 review, F3).
+        #
+        # For every other workspace the pause is a direct sync like any other
+        # federated update: it records the sync marker before the save and
+        # retires a pending record the workspace now supersedes after it, as
+        # update_federated_org and clear_federated_org do. Without that, an
+        # active record stored before the workspace had its email hash
+        # survived the pause, and the next claim retry (a repeat verification
+        # of the owner) replayed its snapshot over the pause (#4754 review).
+        # Never on the deferred branch: a sync marker drawn after
+        # defer_federated_update would mark the record it just refreshed as
+        # superseded, and retire_for! does not count the workspace it retires
+        # for as waiting, so the record would be destroyed.
+        #
         # @param org [Onetime::Organization] Organization to update
-        # @param subscription [Stripe::Subscription] Stripe subscription (for logging)
-        def pause_federated_org(org, _subscription)
+        # @param subscription [Stripe::Subscription] Stripe subscription
+        def pause_federated_org(org, subscription)
+          deferred = federation_deferred_for?(org)
+          if deferred
+            defer_federated_update(org, subscription)
+          else
+            mark_federated_sync!(org)
+          end
+
           org.subscription_status = 'paused'
           org.save
+          discard_superseded_pending(org) unless deferred
         end
       end
     end

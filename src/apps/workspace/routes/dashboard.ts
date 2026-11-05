@@ -203,6 +203,30 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
+    // The per-domain SSO configuration: a settings page under the sign-in
+    // settings (the old `?modal=sso` deep link on DomainSignin redirects here).
+    path: '/org/:orgid/domains/:extid/signin/sso',
+    name: 'DomainSigninSso',
+    component: () => import('@/apps/workspace/domains/DomainSigninSso.vue'),
+    meta: {
+      title: 'web.TITLES.domain_signin_sso',
+      requiresAuth: true,
+      requiresOrgRole: 'admin',
+      layout: WorkspaceLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+      scopesAvailable: {
+        organization: 'show',
+        domain: 'show',
+        onOrgSwitch: '/dashboard',
+        onDomainSwitch: 'same',
+      },
+      sentryScrubParams: false,
+    },
+    props: true,
+  },
+  {
     path: '/org/:orgid/domains/:extid/signup',
     name: 'DomainSignup',
     component: () => import('@/apps/workspace/domains/DomainSignup.vue'),

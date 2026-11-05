@@ -78,13 +78,15 @@ module ColonelAPI
         end
 
         def process
-          @result = Onetime::Operations::Domains::Transfer.new(
-            domain: custom_domain,
-            to_org: to_org,
-            from_org: from_org,
-            actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
-            dry_run: dry_run,
-          ).call
+          @result = refuse_on_problem do
+            Onetime::Operations::Domains::Transfer.new(
+              domain: custom_domain,
+              to_org: to_org,
+              from_org: from_org,
+              actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
+              dry_run: dry_run,
+            ).call
+          end
 
           # An explicit source org that doesn't match the current owner is a
           # 4xx form error (the CLI's "does not match --from-org" guard), never a
@@ -116,11 +118,32 @@ module ColonelAPI
               from_org_name: result.from_org_name,
               to_org_id: result.to_org_id.to_s,
               to_org_name: result.to_org_name,
-            },
+            }.merge(adoption_details),
           }
         end
 
         private
+
+        # Present only for an applied transfer from orphaned: the domain's
+        # verification was reset and the report lists the per-domain state it
+        # kept (Onetime::Operations::Domains::AdoptionReport#to_payload).
+        def adoption_details
+          result.adoption ? { adoption: result.adoption.to_payload } : {}
+        end
+
+        # A transfer from orphaned can be refused with a bare Onetime::Problem
+        # whose message is written for the operator (another record holds the
+        # name, another organization adopted it first). No handler is
+        # registered for the bare class, so it would surface as a 500; it
+        # becomes a form error (422) instead. Subclasses keep their own
+        # handlers. The op has already audited the failure.
+        def refuse_on_problem
+          yield
+        rescue Onetime::Problem => ex
+          raise unless ex.instance_of?(Onetime::Problem)
+
+          raise_form_error(ex.message, field: :extid)
+        end
 
         def resolve_org(identifier)
           Onetime::Organization.load(identifier) ||

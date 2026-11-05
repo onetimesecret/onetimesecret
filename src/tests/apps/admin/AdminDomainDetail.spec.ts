@@ -1,8 +1,8 @@
 // src/tests/apps/admin/AdminDomainDetail.spec.ts
 
+import { flushPromises, mount, RouterLinkStub, VueWrapper } from '@vue/test-utils';
 import { AxiosError } from 'axios';
 import { createPinia, setActivePinia } from 'pinia';
-import { flushPromises, mount, RouterLinkStub, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /** Build a real AxiosError so the shared classifier extracts `data.error`. */
@@ -64,8 +64,13 @@ vi.mock('@headlessui/vue', () => ({
   TransitionChild: { name: 'TransitionChild', template: '<div><slot /></div>', props: ['as'] },
 }));
 
-import AdminDomainDetail from '@/apps/admin/views/AdminDomainDetail.vue';
+import {
+  __resetColonelElevationState,
+  useColonelElevation,
+} from '@/apps/admin/composables/useColonelElevation';
 import { useAdminDomains } from '@/apps/admin/stores/useAdminDomains';
+import AdminDomainDetail from '@/apps/admin/views/AdminDomainDetail.vue';
+import { startElevated } from '@tests/apps/admin/support/elevation';
 import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
@@ -175,7 +180,7 @@ function probeAck() {
   };
 }
 
-function removeAck(dry_run: boolean) {
+function removeAck(dry_run: boolean, sender_cleanup: string | null = dry_run ? null : 'deleted') {
   return {
     shrimp: '',
     record: {
@@ -189,7 +194,7 @@ function removeAck(dry_run: boolean) {
       dry_run,
       org_id: 'org1',
       org_name: 'Acme',
-      reasserts_survivor: false,
+      sender_cleanup,
     },
   };
 }
@@ -245,9 +250,86 @@ describe('AdminDomainDetail', () => {
     pinia = createPinia();
     setActivePinia(pinia);
     vi.clearAllMocks();
+    // A live step-up window: these examples are about the dialogs, which a
+    // tier-1 opener only shows once elevated (see support/elevation.ts).
+    startElevated();
     mockApi.get.mockResolvedValue({ data: detailPayload() });
   });
   afterEach(() => wrapper?.unmount());
+
+  describe('opener lifetime and concurrency', () => {
+    beforeEach(() => __resetColonelElevationState({ statusRead: true }));
+
+    async function requestRemove(): Promise<void> {
+      wrapper = mountView();
+      await flushPromises();
+      mockApi.delete.mockResolvedValue({ data: removeAck(true) });
+      await wrapper.find('[data-testid="remove-preview"]').trigger('click');
+      await flushPromises();
+      await wrapper.find('[data-testid="remove-button"]').trigger('click');
+      await flushPromises();
+      expect(useColonelElevation().promptOpen.value).toBe(true);
+      mockApi.delete.mockClear();
+    }
+
+    it.each([false, true])(
+      'drops the remove opener after a resource switch (return: %s)',
+      async (returnToOriginal) => {
+        await requestRemove();
+        await wrapper.setProps({ id: 'cd_other' });
+        if (returnToOriginal) await wrapper.setProps({ id: EXTID });
+        await flushPromises();
+        useColonelElevation().resolvePrompt(true);
+        await flushPromises();
+
+        expect(dialogInput(wrapper).exists()).toBe(false);
+        expect(mockApi.delete).not.toHaveBeenCalled();
+      }
+    );
+
+    it('rejects competing actions during elevation and while the dialog is open', async () => {
+      await requestRemove();
+      const verify = wrapper.find('[data-testid="verify-button"]');
+      expect(verify.attributes('disabled')).toBeDefined();
+      verify.element.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await flushPromises();
+      expect(dialogSubmit(wrapper).exists()).toBe(false);
+
+      useColonelElevation().resolvePrompt(true);
+      await flushPromises();
+      await dialogInput(wrapper).setValue(EXTID);
+      verify.element.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await flushPromises();
+      expect(dialogInput(wrapper).exists()).toBe(true);
+      expect((dialogInput(wrapper).element as HTMLInputElement).value).toBe(EXTID);
+      expect(mockApi.post).not.toHaveBeenCalled();
+    });
+
+    it('rechecks the remove preview after elevation', async () => {
+      await requestRemove();
+      const noPlan = removeAck(true);
+      noPlan.details.status = 'removed';
+      mockApi.delete.mockResolvedValue({ data: noPlan });
+      await wrapper.find('[data-testid="remove-preview"]').trigger('click');
+      await flushPromises();
+      useColonelElevation().resolvePrompt(true);
+      await flushPromises();
+
+      expect(dialogInput(wrapper).exists()).toBe(false);
+    });
+
+    it('opens a tier-2 repair without prompting', async () => {
+      wrapper = mountView();
+      await flushPromises();
+      mockApi.post.mockResolvedValue({ data: repairAck(true) });
+      await wrapper.find('[data-testid="repair-preview"]').trigger('click');
+      await flushPromises();
+      await wrapper.find('[data-testid="repair-apply"]').trigger('click');
+
+      expect(useColonelElevation().promptOpen.value).toBe(false);
+      expect(dialogInput(wrapper).exists()).toBe(true);
+    });
+  });
 
   describe('load states', () => {
     it('fetches the domain by public id and renders the read-out', async () => {
@@ -447,6 +529,64 @@ describe('AdminDomainDetail', () => {
 
       expect(mockApi.post).not.toHaveBeenCalled();
     });
+
+    // #4734: under passthrough a verified domain proves no email domain until
+    // a Colonel override. Ticking "Ownership verified" on a domain that is
+    // already verified finds nothing to change, so the form offers a separate
+    // control that sends verified: true.
+    it('sends verified when accepting ownership of a domain verified but not by override', async () => {
+      mockApi.get.mockResolvedValue({
+        data: detailPayload({
+          verification_state: 'verified',
+          verified: true,
+          verified_by_override: false,
+          resolving: true,
+        }),
+      });
+      mockApi.post.mockResolvedValue({ data: overrideAck(true, true) });
+      wrapper = mountView();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="override-button"]').trigger('click');
+      const accept = wrapper.find('[data-testid="override-accept-ownership"]');
+      expect(accept.exists()).toBe(true);
+      await accept.find('input[type="checkbox"]').setValue(true);
+      await wrapper.find('[data-testid="override-apply"]').trigger('click');
+      await flushPromises();
+
+      expect(mockApi.post).toHaveBeenCalledWith(
+        `${DETAIL_URL}/override`,
+        { verified: true },
+        CONFIRM_HEADERS
+      );
+    });
+
+    it('does not offer the accept control once the domain is verified by override', async () => {
+      mockApi.get.mockResolvedValue({
+        data: detailPayload({
+          verification_state: 'verified',
+          verified: true,
+          verified_by_override: true,
+          resolving: true,
+        }),
+      });
+      wrapper = mountView();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="override-button"]').trigger('click');
+
+      expect(wrapper.find('[data-testid="override-accept-ownership"]').exists()).toBe(false);
+    });
+
+    it('does not offer the accept control for an unverified domain', async () => {
+      mockApi.get.mockResolvedValue({ data: detailPayload() });
+      wrapper = mountView();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="override-button"]').trigger('click');
+
+      expect(wrapper.find('[data-testid="override-accept-ownership"]').exists()).toBe(false);
+    });
   });
 
   describe('probe', () => {
@@ -533,11 +673,37 @@ describe('AdminDomainDetail', () => {
       await flushPromises();
 
       // The apply MUST say dry_run=false — the endpoint defaults it to true.
-      expect(mockApi.delete).toHaveBeenCalledWith(
-        `${DETAIL_URL}?dry_run=false`,
-        CONFIRM_HEADERS
-      );
+      expect(mockApi.delete).toHaveBeenCalledWith(`${DETAIL_URL}?dry_run=false`, CONFIRM_HEADERS);
       expect(showMock).toHaveBeenCalledWith('web.admin.domains.actions.remove.success', 'success');
+      expect(pushMock).toHaveBeenCalledWith({ name: 'AdminDomains' });
+    });
+
+    // The record is gone, so the view still returns to the list, but it must
+    // not toast a clean removal while the provider sender identity may remain.
+    it('warns instead of reporting success when the sender cleanup failed', async () => {
+      mockApi.delete.mockImplementation((url: string) => {
+        const dryRun = url.includes('dry_run=true');
+        return Promise.resolve({ data: removeAck(dryRun, dryRun ? null : 'failed') });
+      });
+      wrapper = mountView();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="remove-preview"]').trigger('click');
+      await flushPromises();
+      await wrapper.find('[data-testid="remove-button"]').trigger('click');
+      await flushPromises();
+      await dialogInput(wrapper).setValue(EXTID);
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(showMock).toHaveBeenCalledWith(
+        'web.admin.domains.actions.remove.senderCleanupFailed',
+        'warning'
+      );
+      expect(showMock).not.toHaveBeenCalledWith(
+        'web.admin.domains.actions.remove.success',
+        'success'
+      );
       expect(pushMock).toHaveBeenCalledWith({ name: 'AdminDomains' });
     });
   });

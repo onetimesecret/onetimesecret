@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # Phase 2 of SSO email-less accounts, step M015 "expand" (ADR-051,
-# docs/specs/sso-email-less-accounts/account-model-design.md §3.1, §7).
+# docs/specs/sso/email-less-accounts-account-model.md §3.1, §7).
 #
 # Separates three facts the `accounts` table has so far represented with one
 # column and one status value:

@@ -83,6 +83,17 @@ Right-hand slide-over for record detail. Props: `open` (`v-model:open`), `title?
 `subtitle?`, `widthClass?`. Emits `update:open` + `close`. Slots: default (body),
 `header`, `footer`. Escape / backdrop / close-button all dismiss.
 
+A confirm dialog opened from a drawer **must be rendered inside the drawer's
+default slot**, not as a sibling (#4732). headlessui only treats a dialog as
+nested when it is in the parent dialog's component subtree; a sibling counts as
+an outside click, so the drawer closes on the first click into the confirm
+dialog and runs its close handler before the action is confirmed. When the same
+dialog is also opened from outside the drawer (a table-row button), render it
+twice: once in the slot and once as a sibling guarded with `v-if="!drawerOpen"`,
+binding the shared props from one computed. See `AdminSessions.vue` and
+`JobsDlqSection.vue`. (The global `ElevationPrompt` in `AdminLayout` has the
+same sibling relationship and is a separate follow-up.)
+
 ### `JsonViewer`
 Pretty, collapsible, syntax-coloured JSON inspector for raw record inspection.
 Props: `data`, `expandDepth?` (default 1), `showToolbar?`. Toolbar offers

@@ -34,16 +34,54 @@ source 'https://rubygems.org/'
 # unconditionally in MiddlewareStack.ip_privacy_security_config so Rack never
 # reads RFC 7239 Forwarded for host/port/proto. rack-parser stopped being an
 # otto runtime dependency in 2.10; it is declared below.
-# 2.11 floor: static not_found / server_error triples are copied per request
-# (Otto::Static.copy_response, delano/otto#272), so session-cookie writes can
-# no longer accumulate on the shared fallback headers. Replaces the former
-# Onetime::Middleware::IsolateResponseHeaders; regression guard is
-# spec/integration/all/router_fallback_response_headers_spec.rb. 2.11 also
-# rejects fallback triples whose body does not respond to #each or #call.
-gem 'otto', '~> 2.11'
+# 2.11 floor: router fallback triples are copied per request (delano/otto#272),
+# which retired Onetime::Middleware::IsolateResponseHeaders (#4401).
+# 2.12 floor: referrer_policy is a validated Otto setting applied to every
+# Otto response (delano/otto#281); Onetime::Application::Base sets it from
+# Onetime::Middleware::Registry::REFERRER_POLICY (#4542). JSON bodies no
+# longer override path captures in Logic classes, and a Logic class can take
+# the router's captures as `route_params:` (delano/otto#285).
+gem 'otto', '~> 2.12'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
-gem 'rodauth', '~> 2.0'
+# rodauth comes from the onetimesecret fork, pinned to a commit: upstream
+# 2.48.0 plus two fixes not yet in a rodauth release
+# (onetimesecret/rodauth#3). The verify route deletes the verify account key
+# again instead of rotating it (rotation since 2.46). Recovery codes added
+# while a passkey verifies an account go to that account instead of a nil
+# session id, which failed the verification with AUTH_MFA_ENABLED and
+# AUTH_WEBAUTHN_VERIFY_ACCOUNT both on. The fork's version is still 2.48.0;
+# the GIT section in Gemfile.lock is what distinguishes it from the release.
+gem 'rodauth',
+  git: 'https://github.com/onetimesecret/rodauth.git',
+  ref: '8abe3ebdb89739fc4b3c040105873d7cc281d216'
+# Forked to add `oauth_mount_prefix`, which fixes the Rack::URLMap mount-prefix
+# mismatch (discovery URLs, issuer, and per-endpoint CSRF exemptions losing the
+# `/auth` mount point) at the gem level — see onetimesecret/onetimesecret#3465
+# and apps/web/auth/docs/rodauth-prefix-mismatch.md. Pinned to an immutable SHA
+# (not a mutable branch) so `bundle update` can't silently drift this
+# security-critical gem. Bump the ref when the fork advances; drop the fork once
+# the change is upstreamed to os85/rodauth-oauth.
+#
+# The fork is at 1.6.6.ots1: upstream 1.6.6 merged on top of the mount-prefix
+# change (onetimesecret/rodauth-oauth#16). Two upstream decisions the app has
+# to account for, see doc/release_notes/1_6_6_ots1.md in the fork:
+#   - `oauth_pkce_allow_plain_method` defaults to true upstream (the fork used
+#     to default it to false); features/oauth.rb sets it to false explicitly.
+#   - the plain OAuth `POST /register` no longer returns
+#     `registration_client_uri`; only the OIDC variant does. Neither dynamic
+#     client registration feature is enabled here.
+#   - the json-jwt branch's post-decode claim validation (oauth_jwt_base.rb)
+#     was rewritten from an AND-chain of failure conditions to PASS
+#     conditions, so /userinfo now rejects an expired JWT before the DB-row
+#     lookup (see apps/web/auth/config/features/oauth.rb, issue #3231).
+# The version constraint stays `~> 1.6`: Gem::Version treats the `.ots1`
+# suffix as a prerelease of 1.6.6, which `~> 1.6` admits but `~> 1.6.6` would
+# not.
+gem 'rodauth-oauth',
+  '~> 1.6',
+  git: 'https://github.com/onetimesecret/rodauth-oauth.git',
+  ref: 'b0e7ceb0c26eb43226faa089bfd0a05bdddb8b1d'
 gem 'rodauth-omniauth', '~> 0.4'
 gem 'rodauth-tools', '~> 0.4.0'
 
@@ -126,7 +164,7 @@ gem 'ruby-saml', '= 1.18.1'
 
 # Web server and middleware
 gem 'puma', '>= 6.0', '< 8.0'
-gem 'rack', '>= 3.2.6', '< 4.0'
+gem 'rack', '>= 3.2.8', '< 4.0'
 gem 'rack-contrib', '~> 2.5.0'
 # Mounted directly in MiddlewareStack (JSON/form body parsing); was transitive via otto < 2.10.
 gem 'rack-parser', '~> 0.7'
@@ -141,6 +179,15 @@ gem 'rack-utf8_sanitizer', '~> 1.11'
 # HTTP client
 gem 'httparty'
 
+# DNS resolution. resolv is a default gem, so without this line the app runs
+# the copy bundled with Ruby: 0.7.1 in Ruby 3.4.10, which is affected by
+# CVE-2026-80212 (memory exhaustion from malicious DNS responses) and
+# CVE-2026-80213 (hostname validation bypass). Both are fixed in 0.7.2. The
+# SSO issuer SSRF check and the egress guard resolve tenant-supplied hosts.
+# Kept on the 0.7 line, which Ruby 3.4.11 and later bundle; drop this line
+# once .ruby-version is a Ruby that bundles resolv >= 0.7.2.
+gem 'resolv', '~> 0.7.2'
+
 # JSON and data validation
 gem 'json_schemer'
 
@@ -150,7 +197,7 @@ gem 'fastimage', '~> 2.4'
 gem 'i18n', '~> 1.14'
 gem 'mail'
 gem 'public_suffix', '~> 7.0'
-gem 'sanitize', '~> 7.0'
+gem 'sanitize', '~> 7.0', '>= 7.0.1'
 gem 'semantic_logger', '~> 4.17'
 gem 'simpleidn', '~> 0.2'
 gem 'tilt'
@@ -239,7 +286,7 @@ gem 'rufus-scheduler', '~> 3.9'  # Cron-style job scheduling
 # ====================================
 
 gem 'aws-sdk-sesv2', '~> 1.74', require: false
-gem 'lettermint', '~> 0.2.0', require: false
+gem 'lettermint', '~> 0.2.1', require: false
 gem 'sendgrid-ruby', require: false
 gem 'sentry-ruby', require: false
 gem 'stackprof', require: false

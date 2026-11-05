@@ -16,7 +16,7 @@
 #   9. contact-email index collisions are classified independently (HIGH)
 #
 # Usage:
-#   bin/ots customers doctor trytoremember@me.not  # Check by email or extid
+#   bin/ots customers doctor trytoremember@me.not  # Check one (email, extid, objid, Rodauth id)
 #   bin/ots customers doctor --all                 # Scan all customers
 #   bin/ots customers doctor --all --repair        # Auto-repair issues
 #   bin/ots customers doctor --all --json          # JSON output
@@ -32,14 +32,42 @@ require 'onetime/cli/customers/shared'
 
 module Onetime
   module CLI
-    # rubocop:disable Metrics/ClassLength
+    # rubocop:disable-next Metrics/ClassLength
     class CustomersDoctorCommand < Command
+      # resolve_customer: the one CUSTOMER grammar every customer verb accepts.
+      include Customers::Shared
+
+      # bin/ots resolves simple auth mode whenever AUTHENTICATION_MODE is not
+      # exported into its shell (Onetime::AuthConfig#simple_by_default?). The
+      # workspace repairs re-run Auth::Operations::EnsureDefaultWorkspace with
+      # the default flag, and its federation claim reads the deployment's
+      # verify_account step through the process's auth mode
+      # (Customer#federation_claim_deferred?). Such a shell reads the step as
+      # not loaded, raising nothing; the rule now fails closed on that state
+      # and defers every claim (Customer#verification_step_pending?), where
+      # it used to apply a pending federated subscription to a workspace
+      # whose owner never proved the address on a full-mode install with
+      # email verification (#4754 review, F1). A repair that quietly leaves
+      # every pending record unclaimed is not what the operator asked for
+      # either, so, as the destructive customer commands do
+      # (Customers::Shared#auth_mode_refusal), --repair refuses until the
+      # shell says which mode the install runs; the audit runs in any mode.
+      # The shipped compose files export the variable on every service (app,
+      # worker-email, scheduler); the image sets no default, so a container
+      # started with a plain docker run and no -e AUTHENTICATION_MODE (the
+      # README quick start) is in the same state as a host shell.
+      REPAIR_AUTH_MODE_MESSAGE =
+        'AUTHENTICATION_MODE is not set in this shell, so simple auth mode was resolved by default. ' \
+        'In this state a workspace repair defers every pending federated subscription claim rather than ' \
+        'apply one to an account the install has yet to verify. Export AUTHENTICATION_MODE=full, or =simple ' \
+        'if that is what this install runs, and re-run; the audit without --repair runs in any mode.'
+
       desc 'Check customer data integrity'
 
       argument :identifier,
         type: :string,
         required: false,
-        desc: 'Customer email or extid'
+        desc: 'Customer email, extid, objid, or Rodauth account ID'
 
       option :all,
         type: :boolean,
@@ -68,6 +96,9 @@ module Onetime
           return
         end
 
+        # Before anything is resolved: see REPAIR_AUTH_MODE_MESSAGE.
+        error_exit(REPAIR_AUTH_MODE_MESSAGE, json: json) if repair && Onetime.auth_config.simple_by_default?
+
         report = { checked: 0, healthy: 0, issues: [], repaired: [] }
 
         if identifier
@@ -91,7 +122,7 @@ module Onetime
           Check customer data integrity and optionally repair issues.
 
           Arguments:
-            IDENTIFIER              Customer email or extid
+            IDENTIFIER              Customer email, extid, objid, or Rodauth account ID
 
           Options:
             --all                   Scan all customers
@@ -118,15 +149,18 @@ module Onetime
       end
 
       def load_customer(identifier)
-        # Try email first, then extid
-        customer   = Onetime::Customer.find_by_email(identifier)
-        customer ||= Onetime::Customer.find_by_extid(identifier)
+        customer = resolve_customer(identifier)
 
         unless customer
           puts "Customer not found: #{identifier}"
           exit 1
         end
         customer
+      end
+
+      def error_exit(message, json:)
+        puts(json ? JSON.generate({ error: message }) : "Error: #{message}")
+        exit 1
       end
 
       def scan_all_customers(report, repair:)
@@ -193,7 +227,7 @@ module Onetime
         puts JSON.pretty_generate(report)
       end
 
-      # rubocop:disable Metrics/PerceivedComplexity
+      # rubocop:disable-next Metrics/PerceivedComplexity
       def output_text(report, repair:)
         puts 'Customer Health Check'
         puts '=' * 40
@@ -272,7 +306,6 @@ module Onetime
           puts 'All issues require manual intervention.'
         end
       end
-      # rubocop:enable Metrics/PerceivedComplexity
 
       def severity_tag(severity)
         case severity
@@ -309,7 +342,6 @@ module Onetime
         end
       end
     end
-    # rubocop:enable Metrics/ClassLength
 
     register 'customers doctor', CustomersDoctorCommand
   end

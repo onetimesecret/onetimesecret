@@ -316,6 +316,12 @@ const organizationFeaturesInner = z.object({
   saml_enabled: z.boolean().default(false),
   custom_mail_enabled: z.boolean().default(false),
   incoming_secrets_enabled: z.boolean().default(false),
+  // ORGS_HOMEPAGE_NETWORK_RULES_UI_ENABLED. Off stops edits to homepage
+  // network rules; rules already stored stay enforced.
+  homepage_network_rules_ui_enabled: z.boolean().default(false),
+  // ORGS_BASE_DOMAIN_SIGNUP_ENABLED: whether the per-domain sign-up form
+  // offers allow_base_domain (pairs with the base_domain_signup entitlement).
+  base_domain_signup_enabled: z.boolean().default(false),
   // Default-ON (unlike siblings): only an explicit false — set via
   // ORGS_AUDIT_LOGS_ENABLED=false — hides the org Secret Activity tab.
   // Absent (older backends without the flag) keeps the feature enabled.
@@ -353,6 +359,9 @@ export const effectiveRestrictToSchema = z.object({
 });
 
 export const featuresSchema = z.object({
+  // Markdown secrets (features.markdown.enabled, MARKDOWN_ENABLED). Opt-in:
+  // when false the create forms show no Markdown control. The API and the
+  // secret record enforce the same flag; this only gates the display.
   markdown: z.boolean().default(false),
   // Sign-in availability for the current domain context (AND of global
   // AUTH_SIGNIN and the domain SigninConfig). Only an explicit false
@@ -1043,7 +1052,10 @@ export const bootstrapSchema = z.object({
   ot_version_long: z.string().default(''),
   ruby_version: z.string().default(''),
   shrimp: z.string().default(''),
-  nonce: z.string().nullable().default(null),
+  // No `nonce` field: the CSP nonce is server-side only (RISK-2026-08-14-M08).
+  // A backend that still emits it is tolerated (unknown keys are stripped),
+  // but nothing in the client may read it from here; see
+  // useDnsWidget.resolveCspNonce for the DOM-based lookup.
 
   // Snapshot ordering (ADR-046). Present only on a complete snapshot of an
   // ORDERED session (authenticated or MFA-pending). ABSENT — never null —

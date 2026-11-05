@@ -10,6 +10,12 @@ Custom domain SSL and DNS validation strategies.
 | `caddy_on_demand` | TXT record, via our own lookup                                       | Auto      | No         | Caddy on-demand TLS      |
 | `passthrough`     | None                                                                 | External  | No         | Manual/external certs    |
 
+## Serving
+
+Under `approximated` and `caddy_on_demand`, a registered domain is served (classified `:custom` by `DomainStrategy`) only while its ownership is verified, by a passing TXT check or a Colonel override (`CustomDomain#served_as_tenant?`). Until then, and after a demotion, its host answers 404 for every path, the domain-context picker does not offer it (`GET /api/account/permissions` lists it with `served: false`), adding it does not make it the session's domain context, and secret creation refuses it as a `share_domain`. A certificate Caddy or Approximated already holds for the name does not change this: TLS completes, and the application answers 404. Under `passthrough`, registration by the owning organization is the basis. A record with no organization is never served. `features.domains.serve_unverified: true` serves every registered domain that has an organization and logs a warning at boot.
+
+Serving follows each domain's stored ownership state, and only a check updates it. After switching `validation_strategy`, run `bin/ots domains verify --all` before the deployment takes traffic. Under `approximated` and `caddy_on_demand`, a domain whose TXT record a later check no longer finds loses its verified state (unless a Colonel override holds it) and stops being served; the verification page tells the customer to keep the record in place. `bin/ots domains orphaned` lists the records with no organization, which are not served.
+
 ## Ownership check
 
 `validate_ownership` has three outcomes (see `base_strategy.rb`):
@@ -26,7 +32,9 @@ A reply only counts as definitive when it is an answer about the name (`DnsStubR
 
 Internationalised hostnames are queried, and probed, in their A-label form (`AsciiHostname`). `CustomDomain` stores the hostname as typed; sent as typed it would come back NXDOMAIN, which is our encoding speaking and not the customer's DNS.
 
-The reverse direction is handled in the `CustomDomain` lookup. Names that arrive over the wire are A-labels: the SNI name Caddy passes to the ACME ask endpoint, and the Host header. `CustomDomain.display_domain_id_for` (behind `load_by_display_domain`, `from_display_domain` and `resolve_domain_id`) tries the name as given, then its A-label form, then its Unicode (NFC) form when that form encodes back to the same A-label, so a domain stored as `bücher.example` is found when asked for as `xn--bcher-kva.example` and the other way round. Stored data is not rewritten, a plain ASCII name still costs one index read, and a name that cannot be converted is a miss (403 from the ask endpoint), not an error. An A-label that is not the encoding of an NFC name (for example the punycode of a decomposed spelling) is looked up by its exact string only: it is a different DNS name from the one its decoded characters normalise to. The same lookup keeps the second form of an already registered name from being registered as a separate domain, on creation and on rename (`update_display_domain`).
+The TXT challenge record name (`CustomDomain#validation_record`) is built from A-labels for the same reason, so `bücher.example.com` gets its challenge at `_onetime-challenge-<id>.xn--bcher-kva.example.com` while `display_domain`, `trd` and `base_domain` keep the spelling the customer typed. The name is converted when it is read, which also covers a challenge host stored with a Unicode label by an earlier version. A domain whose challenge name would not fit the DNS name limits (it is 27 bytes longer than the domain) is refused at creation. The domain API returns the name as `txt_validation_record`, and in the display spelling as `txt_validation_record_display`.
+
+The reverse direction is handled in the `CustomDomain` lookup. Names that arrive over the wire are A-labels: the SNI name Caddy passes to the ACME ask endpoint, and the Host header. `CustomDomain.display_domain_id_for` (behind `load_by_display_domain`, `from_display_domain` and `resolve_domain_id`) tries the name as given, then its A-label form, then its Unicode (NFC) form when that form encodes back to the same A-label, so a domain stored as `bücher.example` is found when asked for as `xn--bcher-kva.example` and the other way round. Stored data is not rewritten, a plain ASCII name still costs one index read, and a name that cannot be converted is a miss (403 from the ask endpoint), not an error. An A-label that is not the encoding of an NFC name (for example the punycode of a decomposed spelling) is looked up by its exact string only: it is a different DNS name from the one its decoded characters normalise to. The same lookup keeps the second form of an already registered name from being registered as a separate domain.
 
 Under `caddy_on_demand` the TXT check is the ownership proof. Caddy completing an ACME challenge shows that the name resolves to this deployment; it does not show which account, if any, controls the domain. The internal ACME endpoint (`apps/internal/acme`) only authorises a certificate for a domain that is `ready?`, which requires `verified`.
 
@@ -38,9 +46,17 @@ Three kinds of domain are verified with no `verified_confirmed_at`:
 - Verified by `passthrough`, which passes every domain without a lookup. `VerifyDomain` records a confirmation only for a strategy whose `proves_ownership?` is true (`approximated`, `caddy_on_demand`), so a passthrough pass never writes the field. No proof exists.
 - Verified by `approximated` on a version that did not have the field yet. The proof was real and is simply not on record. The field is written by the first passing check on this version.
 
-The third kind matters for a cutover from `approximated` to `caddy_on_demand`. Cutover is also the first time the app needs its own working resolver for every check; with no nameserver in `resolv.conf` or DNS egress blocked, every lookup is indeterminate. Before switching strategy, upgrade while still on `approximated`, run a full `bin/ots domains verify --all` pass (or let `DomainRefreshJob` walk every page) so that `verified_confirmed_at` is recorded for each proven domain, and confirm the app host can resolve names. Otherwise an unanswered first lookup under `caddy_on_demand` withdraws `verified` from a domain Approximated had proven, until the next passing check or a Colonel override.
+The third kind matters for a cutover from `approximated` to `caddy_on_demand`. Cutover is also the first time the app needs its own working resolver for every check; with no nameserver in `resolv.conf` or DNS egress blocked, every lookup is indeterminate. Before switching strategy:
 
-Existing domains are only re-checked when something runs the check. Installs that do not run the scheduler with `jobs.domain_refresh` enabled (both are off by default) must run `bin/ots domains verify --all` once after upgrading for the TXT check to take effect on existing domains, and periodically after that.
+1. Upgrade while still on `approximated`.
+2. Still on `approximated`, run `bin/ots domains verify --all` to completion, **without `--dry-run`**: a dry run records no confirmation timestamps. Alternatively, let [domain refresh](#domain-refresh) walk every page. Every passing TXT check records `verified_confirmed_at` for that domain; an unsuccessful check does not.
+3. Confirm the application host has configured nameservers and outbound DNS access, and can resolve names. Check the [network requirements](#network-requirements) before switching.
+
+Otherwise an unanswered first lookup under `caddy_on_demand` withdraws `verified` from a domain Approximated had proven, until the next passing check or a Colonel override.
+
+Existing domains are only re-checked when something runs the check. Installs without a running scheduler or with `jobs.domain_refresh.enabled: false` must run `bin/ots domains verify --all` once after upgrading for the TXT check to take effect on existing domains, and periodically after that (for example, from cron) to detect removed records. See [domain refresh](#domain-refresh) for scheduler setup and defaults.
+
+A domain record with no organization is not checked: `VerifyDomain` reports it as skipped and writes nothing, and `DomainRefreshJob` leaves it out of its page. Such a record is never served, so its verification decides nothing, and an operator who adopts it resets its verification (`CustomDomain.claim_orphaned_domain`).
 
 Under `approximated` the API's answer is used when it has one. When it has none, the application falls back to `TxtVerifier`. "None" covers a 200 whose own DNS lookup failed (`actual_values: false`) and every case where the checker could not be asked: no API key configured, a non-200 response, a client exception. None of those is evidence about the customer's DNS, so none is reported as a failed check by itself.
 
@@ -62,6 +78,23 @@ The window runs from the first indeterminate check, not from the last passing on
 - Unverified domains are not affected.
 - A demoted domain becomes verified again on its next passing check.
 
+## Domain refresh
+
+Domain refresh requires a running `bin/ots scheduler` process and `jobs.domain_refresh.enabled: true` (the job setting defaults to true). Neither `JOBS_ENABLED` nor `JOBS_SCHEDULER_ENABLED` gates this job: the scheduler registers it from its own setting, and runs it without RabbitMQ.
+
+- The [full Compose stack](../../../docker/compose/docker-compose.full.yml) starts a scheduler service.
+- The [S6 image](../../../docker/s6/README.md) starts a scheduler in its default all-services mode; its web-only mode does not.
+- The [simple Compose stack](../../../docker/compose/docker-compose.simple.yml) and a plain `docker run` of the standard, non-S6 image start only the web application, not a scheduler.
+- For a source install using [Procfile.example](../../../Procfile.example), uncomment its `scheduler` line, or supervise `bin/ots scheduler` separately.
+
+Run **one scheduler per datastore**. There is no cross-process coordination: another scheduler repeats the scheduled work, including outbound DNS, TLS and Approximated API calls. Replicating the all-services S6 container also replicates its scheduler; use web-only mode for additional web replicas. See the [scheduler guide](../jobs/README.md#scheduler).
+
+Each run checks one page of up to `jobs.domain_refresh.batch_size` domains (default 200), at `jobs.domain_refresh.check_interval` (default `30m`). The page comes from the clock and interval; no cursor is stored. For a stable domain set, a full walk takes `ceil(domain_count / batch_size)` intervals if no ticks are skipped. Runs do not overlap within one scheduler process: a tick during an unfinished run is skipped, not queued, so its page waits until the next walk.
+
+Under `caddy_on_demand`, the TXT lookup and DNS/TLS status probe have a combined ceiling of 13 seconds per domain, or about 43 minutes for a 200-domain page. A resolver outage uses up to 8 seconds per domain without reaching TLS, or about 27 minutes per page. Lower `batch_size` if runs routinely exceed `check_interval`; allow extra time for skipped ticks when waiting for a complete cutover verification pass.
+
+`jobs.domain_refresh.dns_propagation_window` defaults to `24h`; set it to `'0'` to disable extra propagation checks. Domains added, edited or checked within this window that remain unverified or unresolved can fill spare capacity after the regular page, without exceeding `batch_size` or checking the same domain twice in one run. Eligibility uses the instances timeline's last-modified score, not creation time alone; saving a verification result refreshes that score. The regular page takes priority, so a full page leaves no room for extra checks.
+
 ## Bulk pacing
 
 `bulk_rate_limit` is the pause, in seconds, a bulk run takes between domains. `approximated` declares 0.5 for its API rate cap; the other strategies declare none. `VerifyDomain` uses it for bulk runs unless the caller passes `rate_limit:` (the `jobs.domain_refresh.rate_limit` setting, or `bin/ots domains verify --all --rate-limit N`), which overrides the strategy, including with 0.
@@ -74,6 +107,17 @@ The window runs from the first indeterminate check, not from the last passing on
 | -------------- | --------------------------------- | ---------------------------------------------------------- | --------------------- | ------------------------------ |
 | `is_resolving` | `CustomDomain#resolving`          | Approximated's claim (`nil` while its status is `UNKNOWN`) | Our own A/AAAA lookup | Always `true`                  |
 | `has_ssl`      | inside the `vhost` blob (`:data`) | Approximated's claim                                       | Our own TLS handshake | Always `true` (nothing stored) |
+
+### Network requirements
+
+Under `caddy_on_demand`, the application host needs a working system resolver (including nameservers in `resolv.conf`), outbound DNS access, and outbound TCP 443 access to the custom domains it serves. Apply these requirements to every process that runs verification, including the scheduler and one-off CLI checks.
+
+- If DNS produces no answer (SERVFAIL, REFUSED or timeout), the status probe preserves stored resolving and SSL state and records a failed status check. TXT verification follows the separate [ownership](#ownership-check) and [confirmation-window](#confirmation-window) rules; a DNS outage can still withdraw verification from a never-confirmed Caddy domain or after the window expires.
+- If DNS resolves but TCP 443 times out or has no route, resolving status is updated while SSL remains inconclusive. A previous certificate observation from this strategy is retained only until its recorded expiry; Approximated-era SSL data is not carried forward.
+- A refused or dropped connection, a TLS error, or an untrusted or mismatched certificate reports no SSL, not an inconclusive result. A private CA certificate, including Caddy's `tls internal`, is untrusted unless its CA is in the system trust store.
+- If any A/AAAA address is non-public, the probe connects to none of them: resolving is true and SSL is inconclusive. This does not bypass TXT verification.
+
+### Probe and stored status
 
 Caddy has no per-domain status API, so `caddy_on_demand` uses `TlsProbe`:
 
@@ -98,10 +142,10 @@ A certificate from a private CA (for example Caddy's `tls internal`) fails verif
 
 The workspace decides what to show from two predicates in `src/utils/features.ts`. They read one capability table, which is the only place the frontend interprets a strategy name; a new strategy needs a row there.
 
-| | `approximated` | `caddy_on_demand` | `passthrough` |
-|---|---|---|---|
-| `isDomainOwnershipChecked()` (mirrors `proves_ownership?`): status badge, TXT record, verify button, `DomainVerify` page | Yes | Yes | No, plain `DomainDns` page |
-| `isApproximatedDomainValidation()`: address record points at `proxy_ip` / `proxy_host`, DNS widget | Yes | No | No |
+|                                                                                                                          | `approximated` | `caddy_on_demand` | `passthrough`              |
+| ------------------------------------------------------------------------------------------------------------------------ | -------------- | ----------------- | -------------------------- |
+| `isDomainOwnershipChecked()` (mirrors `proves_ownership?`): status badge, TXT record, verify button, `DomainVerify` page | Yes            | Yes               | No, plain `DomainDns` page |
+| `isApproximatedDomainValidation()`: address record points at `proxy_ip` / `proxy_host`, DNS widget                       | Yes            | No                | No                         |
 
 Without the Approximated proxy the address record points at this install by name: a CNAME, or ALIAS/ANAME for an apex domain, to the canonical domain, falling back to the site host (`useDomainDnsRecord`). `proxy_ip` / `proxy_host` are never shown under `caddy_on_demand`, including when they stay configured for the cleanup chore below. The Colonel domain DNS panel (`AdminDomainDnsDetails`) takes its address record from the same composable, reading the strategy from the `cluster` in the Colonel response, so an operator sees the record the customer sees.
 
@@ -141,7 +185,9 @@ bin/ots housekeeping run Onetime::CustomDomain remove_orphaned_approximated_vhos
 APPROXIMATED_VHOST_CLEANUP=apply bin/ots housekeeping run Onetime::CustomDomain remove_orphaned_approximated_vhosts
 ```
 
-A vhost is deleted only when the domain resolves, from this host, to addresses outside the Approximated cluster, and Approximated itself reports the vhost as not resolving and not receiving traffic. A domain that still points at the cluster, has no DNS answer, or is served through another proxy (`ACTIVE_SSL_PROXIED`) is skipped and picked up again on the next run. The nightly HousekeepingJob runs the chore as a dry run unless the variable is set in its environment. `verified`, `resolving` and the TXT fields are never changed.
+A vhost is deleted only when the domain resolves, from this host, to addresses outside the Approximated cluster, and Approximated itself reports the vhost as not resolving and not receiving traffic. A domain that still points at the cluster, has no DNS answer, or is served through another proxy (`ACTIVE_SSL_PROXIED`) is skipped and picked up again on the next run. `verified`, `resolving` and the TXT fields are never changed.
+
+For nightly cleanup, run the scheduler and enable **both** `jobs.maintenance.enabled` and `jobs.maintenance.housekeeping.enabled`; both default to false. Housekeeping defaults to 2 AM (`jobs.maintenance.housekeeping.cron: '0 2 * * *'`). If a housekeeping model allowlist is configured, include `Onetime::CustomDomain`. The chore remains a dry run unless the scheduler's environment contains `APPROXIMATED_VHOST_CLEANUP=apply`. Only the literal value `apply` enables deletion; setting it for a one-off CLI command does not change the environment of an already-running scheduler. The one-off commands above do not require the scheduling switches.
 
 Under `caddy_on_demand`, a known status probe replaces old Approximated UI data immediately and retains `approximated_vhost_pending_cleanup: true`. The chore processes probe blobs with that marker and ignores ordinary probe blobs that only have `source: tls_probe`.
 

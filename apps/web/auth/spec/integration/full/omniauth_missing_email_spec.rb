@@ -17,6 +17,16 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
 
   after { teardown_mock_auth }
 
+  # Builds an OmniAuth mock shaped like a Microsoft Entra ID v2.0 id_token.
+  #
+  # `email:` is what the IdP surfaced as info.email. `raw_info:` adds claims
+  # that ARE present on a v2.0 token, in two distinct roles since #3965:
+  #   - `mail:` is a nonstandard provider field and IS used as a fallback. The
+  #     native Entra strategy never produces it (raw_info is the decoded token;
+  #     there is no Graph lookup), so setting it here tests the fallback
+  #     plumbing, not Entra behaviour.
+  #   - preferred_username / upn / oid are mutable identifiers and are NOT
+  #     consulted; the email source contract below pins that refusal.
   def setup_entra_mock_auth(email:, provider: :oidc, uid: nil, raw_info: {})
     enable_omniauth_test_mode
     oid = uid || "oid-#{SecureRandom.uuid}"
@@ -137,6 +147,59 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
         post_sso_callback
         expect_auth_error_redirect('missing_email')
       end
+    end
+  end
+
+  # Some nonstandard OIDC providers omit info.email but supply a `mail` field
+  # in raw_info (#3965). This is NOT a fix for a native Entra token without an
+  # email claim (#3478): omniauth-entra-id builds raw_info from the token
+  # payloads and never fetches a directory `mail` attribute.
+  describe 'nonstandard mail field fallback' do
+    it 'falls back to extra.raw_info["mail"] when info.email is absent' do
+      email = "has-mail-#{SecureRandom.hex(6)}@fabrikam.onmicrosoft.com"
+      uid = "mail-#{SecureRandom.uuid}"
+      setup_entra_mock_auth(email: nil, uid: uid, raw_info: { mail: email })
+      expect { post_sso_callback }.to change { auth_db[:accounts].count }.by(1)
+      expect_created_account(email: email, uid: uid)
+    end
+
+    it 'prefers info.email over raw_info["mail"] when both are present' do
+      primary = "primary-#{SecureRandom.hex(6)}@fabrikam.onmicrosoft.com"
+      secondary = "secondary-#{SecureRandom.hex(6)}@fabrikam.onmicrosoft.com"
+      uid = "both-#{SecureRandom.uuid}"
+      setup_entra_mock_auth(email: primary, uid: uid, raw_info: { mail: secondary })
+      post_sso_callback
+      expect_created_account(email: primary, uid: uid)
+      expect(Onetime::Customer.email_exists?(secondary)).to be(false)
+    end
+
+    it 'trims and canonicalizes the mail fallback before persistence' do
+      email = "padded-mail-#{SecureRandom.hex(6)}@contoso.com"
+      uid = "padded-mail-#{SecureRandom.uuid}"
+      setup_entra_mock_auth(email: nil, uid: uid, raw_info: { mail: "  #{email.upcase}\n" })
+      expect { post_sso_callback }.to change { auth_db[:accounts].count }.by(1)
+      expect_created_account(email: email, uid: uid)
+    end
+
+    it 'redirects to missing_email when mail is blank too' do
+      setup_entra_mock_auth(email: nil, raw_info: { mail: '   ' })
+      expect { post_sso_callback }.not_to change { auth_db[:accounts].count }
+      expect_auth_error_redirect('missing_email')
+    end
+
+    it 'does not fall back to mail when info.email is a non-String claim' do
+      setup_entra_mock_auth(
+        email: ['noemail@fabrikam.onmicrosoft.com'],
+        raw_info: { mail: "mail-#{SecureRandom.hex(6)}@fabrikam.onmicrosoft.com" },
+      )
+      expect { post_sso_callback }.not_to change { auth_db[:accounts].count }
+      expect_auth_error_redirect('invalid_email')
+    end
+
+    it 'redirects to invalid_email for a non-String mail claim' do
+      setup_entra_mock_auth(email: nil, raw_info: { mail: ['noemail@fabrikam.onmicrosoft.com'] })
+      expect { post_sso_callback }.not_to change { auth_db[:accounts].count }
+      expect_auth_error_redirect('invalid_email')
     end
   end
 
@@ -280,7 +343,9 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
 
     let(:host) { "email-#{SecureRandom.hex(6)}.tenant.example.com" }
     let(:uid) { "tenant-#{SecureRandom.uuid}" }
-    let(:email) { unique_test_email('tenant-email') }
+    # At the tenant's own verified domain: tenant SSO creates accounts only
+    # for addresses inside one (#4734).
+    let(:email) { "tenant-email-#{SecureRandom.hex(4)}@#{host}" }
     let(:tenant) { setup_oauth_test_domain(host) }
 
     before do
@@ -317,7 +382,7 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
           ['not-an-email', 'invalid_email'],
           ['attacker@evil.com@example.com', 'invalid_email'],
           [['user@example.com'], 'invalid_email'],
-          # Listed domain (unique_test_email's); 'straße' folds to 'strasse'.
+          # 'straße' folds to 'strasse'; refused before any domain is judged.
           ['straße@integration-test.example.com', 'invalid_email'],
           ['user@disallowed.example.com', 'domain_not_allowed'],
         ].each do |claim, error|

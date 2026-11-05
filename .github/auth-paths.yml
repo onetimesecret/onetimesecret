@@ -3,9 +3,9 @@
 # the full-auth and tenant-connect E2E workflows. docs/development/auth-ci.md
 # has the whole picture.
 #
-# Narrow on purpose. List the code that implements sign-in, sessions, SSO,
-# MFA, invitations and tenant identity, and the tests and configuration that
-# only those jobs run. Do not list shared code: every Ruby change already runs
+# Narrow on purpose. List the code that implements sign-up and account
+# verification, sign-in, sessions, SSO, MFA, invitations and tenant identity,
+# and the tests and configuration that only those jobs run. Do not list shared code: every Ruby change already runs
 # the unit, simple, disabled, API and full-mode SQLite lanes; main and
 # merge-queue runs execute everything but the billing jobs; the nightly and a
 # release tag execute everything. A change outside this list that wants the
@@ -35,10 +35,21 @@ auth:
   - 'src/apps/workspace/components/account/**'
   - 'src/**/*[Bb]ootstrap*'
 
+  # Account verification the names miss. Simple-mode signup and password
+  # reset; the welcome email, which carries the verification link in both
+  # modes; and the reveal that verifies a simple-mode account when the link is
+  # opened (#4831). e2e-full-auth.yml drives all of these.
+  - 'apps/web/core/controllers/registration.rb'
+  - 'lib/onetime/mail/views/welcome.rb'
+  - 'lib/onetime/mail/templates/welcome.*'
+  - 'apps/api/v2/logic/secrets/reveal_secret.rb'
+
   # The request-host seam: the middleware that decides which host a request
   # is for, and so which tenant the sign-in, SSO, WebAuthn and session code
-  # above sees; the shared custom-domain read it publishes; and the loader
-  # that applies the tenant's organization scope. The live WebAuthn ceremony
+  # above sees; the shared custom-domain read it publishes; the policy that
+  # decides whether a registered domain is served, and the model whose
+  # fields and adoption it reads; and the loader that applies the tenant's
+  # organization scope. The live WebAuthn ceremony
   # rows (full_mfa) and the platform SAML rows (full_saml_platform) assert on
   # these, and nothing in their names selects them (#4223).
   - 'lib/middleware/detect_host.rb'
@@ -46,7 +57,9 @@ auth:
   - 'lib/onetime/middleware/strip_forwarded_host.rb'
   - 'lib/onetime/middleware/public_host_rewrite.rb'
   - 'lib/onetime/middleware/http_origin_options.rb'
+  - 'lib/onetime/models/custom_domain.rb'
   - 'lib/onetime/models/custom_domain/lookup.rb'
+  - 'lib/onetime/models/custom_domain/serving_policy.rb'
   - 'lib/onetime/application/organization_loader.rb'
 
   # English sign-in copy: the E2E journeys assert on some of it. Translations
@@ -67,9 +80,11 @@ auth:
   - '**/spec/integration/full/**'
   - '**/spec/integration/full_mfa/**'
   - '**/spec/integration/full_saml_platform/**'
+  - '**/spec/integration/full_webauthn_verify/**'
+  - '**/spec/integration/full_webauthn_verify_mfa/**'
   - 'tests/browser/**'
   - 'tests/lanes/browser/**'
-  - 'tests/lanes/{full-pg-agnostic,full-mfa,full-saml-platform}/**'
+  - 'tests/lanes/{full-pg-agnostic,full-mfa,full-saml-platform,full-webauthn-verify}/**'
   - 'e2e/auth/**'
   - 'e2e/system/**'
   - 'e2e/all/auth-hydration*'

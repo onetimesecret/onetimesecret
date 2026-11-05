@@ -73,6 +73,15 @@
     workspaceDefault: boolean;
     ssoConfigured: boolean;
     /**
+     * A saved SSO record exists but is still off (SsoConfig.enabled false):
+     * created off, it turns on only when the page's saved-configuration
+     * check passes, so the page's remaining step is that check. Like
+     * ssoConfigured, a label convenience for the Configure button ("Finish
+     * setup"), never an availability source — the status line below renders
+     * the server's verdict. Absent ⇒ false ⇒ no claim.
+     */
+    ssoSetupPending?: boolean;
+    /**
      * The runtime ladder's tenant-SSO verdict, serialized by the server
      * (#4111, `details.tenant_sso`). ONE authoritative field: the status line
      * below renders `available` / `unavailable_reason` verbatim and the client
@@ -272,10 +281,22 @@
    * Both gates the backend enforces on every tenant-SSO write
    * (DomainsAPI::Logic::SsoConfig::Base — `manage_sso` entitlement AND the
    * `features.organizations.sso_enabled` flag). Offering "Configure" without
-   * both would open a modal whose save is rejected. Mode B gets this for free
+   * both would open a page whose save is rejected. Mode B gets this for free
    * (the SSO row is omitted when unavailable); Mode A's static row needs it.
    */
   const ssoConfigurable = computed(() => ssoAvailable.value && props.canManageSso);
+
+  /**
+   * Label of the button that opens the SSO page, in both modes. A saved
+   * record that is still off has not passed its check yet, so the page's
+   * remaining step is the check: "Finish setup" rather than "Edit
+   * credentials".
+   */
+  const ssoConfigureLabel = computed(() => {
+    if (!props.ssoConfigured) return t('web.domains.sso.configure_button');
+    if (props.ssoSetupPending) return t('web.domains.sso.finish_setup_button');
+    return t('web.domains.sso.edit_credentials');
+  });
 
   /**
    * Tenant-SSO status line (#4111). The server answers "why isn't SSO being
@@ -285,16 +306,17 @@
    * to the generic unavailable copy rather than rendering nothing.
    *
    * Gated on ssoConfigurable: the remedial copy points at controls
-   * ("Edit credentials", the toggle above) that only render with both write
-   * gates, and without them the row already names the real blocker (upgrade
-   * lock / "Unavailable site-wide").
+   * ("Edit credentials" / "Finish setup", the toggle above) that only render
+   * with both write gates, and without them the row already names the real
+   * blocker (upgrade lock / "Unavailable site-wide").
    */
   const UNAVAILABLE_REASON_COPY: Record<string, { badge: string; hint: string }> = {
     no_sso_config: {
       badge: 'web.domains.sso.status_not_configured_badge',
       hint: 'web.domains.sso.status_not_configured_hint',
     },
-    // Carried over from #4107 — same rung, same copy, authoritative source.
+    // A saved record that is still off: created off, it turns on only when
+    // the page's saved-configuration check passes ("Finish setup").
     sso_config_disabled: {
       badge: 'web.domains.sso.connection_disabled_badge',
       hint: 'web.domains.sso.connection_disabled_hint',
@@ -821,6 +843,7 @@
               <button
                 v-if="ssoConfigurable"
                 type="button"
+                data-testid="sso-configure-button"
                 @click="emit('configure-sso')"
                 class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
                 <OIcon
@@ -828,11 +851,7 @@
                   name="cog-6-tooth"
                   class="size-4"
                   aria-hidden="true" />
-                {{
-                  ssoConfigured
-                    ? t('web.domains.sso.edit_credentials')
-                    : t('web.domains.sso.configure_button')
-                }}
+                {{ ssoConfigureLabel }}
               </button>
               <!-- Upgrade lock is for the ENTITLEMENT only. When the blocker is
                  the install flag instead, neither control renders here — the
@@ -1034,6 +1053,7 @@
               <button
                 v-if="ssoConfigurable"
                 type="button"
+                data-testid="sso-configure-button-compact"
                 @click.prevent="emit('configure-sso')"
                 class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
                 <OIcon
@@ -1041,11 +1061,7 @@
                   name="cog-6-tooth"
                   class="size-4"
                   aria-hidden="true" />
-                {{
-                  ssoConfigured
-                    ? t('web.domains.sso.edit_credentials')
-                    : t('web.domains.sso.configure_button')
-                }}
+                {{ ssoConfigureLabel }}
               </button>
               <span
                 v-else-if="!canManageSso"

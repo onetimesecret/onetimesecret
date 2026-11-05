@@ -22,9 +22,11 @@ module Auth::Config::Email
     Helpers.configure(auth)
 
     # 2. Email templates (use helper methods)
-    # Only configure verify_account email if the feature is enabled
-    # (verify_account is disabled in test mode via YAML config)
-    if Onetime.auth_config.verify_account_enabled?
+    # The verify_account template needs the feature, which
+    # Features::AccountManagement enables under the same predicate (by the
+    # verify_account flag, or for webauthn_verify_account). Off under
+    # RACK_ENV=test via the YAML config unless a lane turns it on.
+    if Onetime.auth_config.verify_account_loaded?
       VerifyAccount.configure(auth)
     end
     ResetPassword.configure(auth)

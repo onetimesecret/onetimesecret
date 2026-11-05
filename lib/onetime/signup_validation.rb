@@ -50,13 +50,17 @@ module Onetime
     # @param custom_domain_lookup [CustomDomain::Lookup, nil] The request's resolved domain
     # @param domain_strategy [Symbol, String, nil] The request's host classification
     # @return [Boolean] true if email is allowed for signup
+    # @raise [Onetime::SignupPolicyUnavailable] on an unreadable non-operator
+    #   policy, including a failed read behind allow_base_domain
     def valid_signup_email?(email, display_domain: nil, custom_domain_lookup: nil, domain_strategy: nil)
-      signup_config = resolve_signup_config(
+      signup_config, custom_domain = resolve_signup_policy(
         display_domain,
         custom_domain_lookup: custom_domain_lookup,
         domain_strategy: domain_strategy,
       )
-      return signup_config.valid_signup_email?(email) if signup_config
+      # The record that found the config also serves allow_base_domain,
+      # so the model does not read it again.
+      return signup_config.valid_signup_email?(email, domain: custom_domain) if signup_config
 
       # Fall back to global config
       global_allowed_domains?(email)
@@ -99,7 +103,22 @@ module Onetime
     # @return [CustomDomain::SignupConfig, nil] The enabled config or nil
     # @raise [Onetime::SignupPolicyUnavailable] on an unreadable non-operator policy
     def resolve_signup_config(display_domain, custom_domain_lookup: nil, domain_strategy: nil)
-      return nil if display_domain.nil?
+      resolve_signup_policy(
+        display_domain,
+        custom_domain_lookup: custom_domain_lookup,
+        domain_strategy: domain_strategy,
+      ).first
+    end
+
+    private
+
+    # resolve_signup_config, plus the CustomDomain record the config was
+    # found by.
+    #
+    # @return [Array(CustomDomain::SignupConfig, CustomDomain), Array(nil, nil)]
+    # @raise [Onetime::SignupPolicyUnavailable] on an unreadable non-operator policy
+    def resolve_signup_policy(display_domain, custom_domain_lookup: nil, domain_strategy: nil)
+      return [nil, nil] if display_domain.nil?
 
       lookup        = custom_domain_lookup
       unless lookup.is_a?(CustomDomain::Lookup) && lookup.host.to_s.casecmp?(display_domain.to_s)
@@ -107,15 +126,15 @@ module Onetime
       end
       # Absence permits global fallback; a failed policy read does not.
       custom_domain = lookup.record!
-      return nil unless custom_domain
+      return [nil, nil] unless custom_domain
 
       signup_config = CustomDomain::SignupConfig.find_by_domain_id(custom_domain.identifier)
-      return nil unless signup_config&.enabled?
+      return [nil, nil] unless signup_config&.enabled?
 
-      signup_config
+      [signup_config, custom_domain]
     rescue Redis::BaseError => ex
       OT.le "[signup] Sign-up validation policy lookup failed host=#{display_domain} #{ex.class}"
-      CustomDomain::SignupConfig.resolve_lookup_failure(domain_strategy: domain_strategy)
+      [CustomDomain::SignupConfig.resolve_lookup_failure(domain_strategy: domain_strategy), nil]
     end
   end
 end

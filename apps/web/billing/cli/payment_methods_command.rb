@@ -12,7 +12,9 @@ module Onetime
 
       desc 'Manage customer payment methods'
 
-      def call(**)
+      def call(args: [], **)
+        reject_unknown_subcommand(args)
+
         puts <<~HELP
           Payment Methods Management
 

@@ -9,6 +9,7 @@
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/domain_validation/strategy'
+require 'onetime/operations/domains/adoption_report'
 
 module Onetime
   module Operations
@@ -41,10 +42,9 @@ module Onetime
       # mutates nothing but records one `result: :failure` event — a refused
       # attempt to attach a domain to an org is exactly what an operator
       # reviewing the trail needs to see, and `duplicate_other_org` in
-      # particular is a takeover-shaped signal. Certificate provisioning failures
-      # are logged but do NOT roll back or suppress the audit event — the domain
-      # record exists and cert issuance is retryable via
-      # `POST /api/colonel/domains/:extid/verify`.
+      # particular is a takeover-shaped signal. No certificate is requested here:
+      # the virtual host is created by verification once ownership is verified
+      # (`POST /api/colonel/domains/:extid/verify`, Operations::VerifyDomain).
       #
       # ## Deliberate omission
       #
@@ -108,8 +108,9 @@ module Onetime
         #
         # @!attribute status [r] Symbol — :created, or a rejection key.
         # @!attribute domain [r] Onetime::CustomDomain, nil
-        # @!attribute cert_status [r] String, nil — strategy result, 'error', or
-        #   nil when no certificate request was attempted.
+        # @!attribute adoption [r] AdoptionReport, nil — set when an orphaned
+        #   record was adopted: its verification was reset, and it lists the
+        #   per-domain state the record kept.
         Result = Data.define(
           :status,
           :domain,
@@ -118,20 +119,17 @@ module Onetime
           :display_domain,
           :message,
           :claims_orphan,
-          :cert_status,
+          :adoption,
         )
 
         # @param domain [String] raw operator input (adapter pre-sanitises HTML).
         # @param org [Onetime::Organization] target org (adapter resolves; required).
         # @param actor [String, #extid, #email] acting admin's PUBLIC identity
         #   (colonel extid, or the CLI sentinel). Never an internal objid.
-        # @param request_certificate [Boolean] kick off SSL provisioning through
-        #   the configured strategy after a successful create (default true).
-        def initialize(domain:, org:, actor:, request_certificate: true)
-          @domain_input        = domain.to_s.strip
-          @org                 = org
-          @actor               = actor
-          @request_certificate = request_certificate
+        def initialize(domain:, org:, actor:)
+          @domain_input = domain.to_s.strip
+          @org          = org
+          @actor        = actor
         end
 
         # Pure validation + normalisation. No writes, no audit.
@@ -152,7 +150,7 @@ module Onetime
           return reject(:duplicate_in_org, display_domain) if existing.org_id.to_s == @org.objid.to_s
           return reject(:duplicate_other_org, display_domain) unless existing.org_id.to_s.empty?
 
-          # Orphaned record (no org_id): create! claims it atomically.
+          # Orphaned record (no org_id): #call has create! adopt it.
           Check.new(status: :ok, display_domain: display_domain, message: nil, claims_orphan: true)
         end
 
@@ -165,19 +163,32 @@ module Onetime
           @display_domain = check.display_domain
           return rejected_result(check) unless check.status == :ok
 
-          domain = Onetime::CustomDomain.create!(check.display_domain, @org.objid)
-          cert   = @request_certificate ? provision_certificate(domain) : nil
+          # Atomicity: the #validate duplicate/orphan pre-checks run in a
+          # separate step and can race a concurrent request — they are advisory
+          # (for precise field errors), NOT for correctness. create! is the sole
+          # atomic gate: a new domain claims its ASCII (A-label) name
+          # (claim_ascii_display_domain), and claim_orphaned_domain uses a
+          # pinned-connection WATCH/MULTI to claim an orphan. The concurrent
+          # request that loses the gate gets an error raised here, so no
+          # double-registration occurs.
+          #
+          # Adopt only the orphan validate found (and showed the operator).
+          # A name that turned into an orphan after validate is refused.
+          domain   = Onetime::CustomDomain.create!(check.display_domain, @org.objid, adopt_orphan: check.claims_orphan)
+          adoption = adoption_report(domain) if check.claims_orphan
 
           # Exactly one audit event per successful create. Public ids only.
+          detail = { org_id: @org.extid, display_domain: domain.display_domain }
+          if adoption
+            detail[:adopted_orphan]     = true
+            detail[:verification_reset] = true
+          end
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: domain.extid,
             result: :success,
-            detail: {
-              org_id: @org.extid,
-              display_domain: domain.display_domain,
-            },
+            detail: detail,
           )
 
           OT.info "[Domains::Create] #{domain.display_domain} -> org=#{@org.extid} extid=#{domain.extid}"
@@ -190,7 +201,7 @@ module Onetime
             display_domain: domain.display_domain,
             message: nil,
             claims_orphan: check.claims_orphan,
-            cert_status: cert,
+            adoption: adoption,
           )
         end
 
@@ -224,28 +235,12 @@ module Onetime
           OT.le "[Domains::Create] refusal audit failed: #{ex.class}: #{ex.message}"
         end
 
-        # Certificate provisioning is best-effort: the domain record already
-        # exists and issuance is retryable, so a failure is logged and reported
-        # in the Result rather than raised (unchanged from the incumbent colonel
-        # behaviour).
+        # The adopted orphan's verification was reset by the claim; report
+        # what it kept from the earlier owner (configs, brand, receipts).
         #
-        # @return [String, nil] strategy status, or 'error' when it blew up.
-        def provision_certificate(domain)
-          strategy = Onetime::DomainValidation::Strategy.for_config(OT.conf)
-          result   = strategy.request_certificate(domain)
-
-          OT.info "[Domains::Create.request_certificate] #{domain.display_domain} -> #{result[:status]}"
-
-          if result[:data]
-            domain.vhost   = result[:data].to_json
-            domain.updated = OT.now.to_i
-            domain.save
-          end
-
-          result[:status].to_s
-        rescue StandardError => ex
-          OT.le "[Domains::Create] certificate request failed for #{domain.display_domain}: #{ex.message}"
-          'error'
+        # @return [AdoptionReport]
+        def adoption_report(domain)
+          AdoptionReport.for(domain).tap { |report| report.log('Domains::Create') }
         end
 
         def reject(status, display_domain = nil)
@@ -270,7 +265,7 @@ module Onetime
             display_domain: check.display_domain,
             message: check.message,
             claims_orphan: false,
-            cert_status: nil,
+            adoption: nil,
           )
         end
       end

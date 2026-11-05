@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
 require_relative '../../spec_helper'
+require_relative '../../support/external_https_browser'
 require 'jwt'
+require 'stringio'
+require_relative '../../../../../../scripts/diagnostics/entra_token_exchange'
 
 # These stateful integration examples span several layers, not one class.
 # Boot is shared; records and mutable configuration are isolated per example.
@@ -30,6 +33,9 @@ require 'jwt'
 # Run: tests/lanes/run full-sqlite --only apps/web/auth/spec/integration/full/entra_native_claims_spec.rb
 RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :shared_db_state, type: :integration do
   include_context 'domains enabled'
+  # The browser is on https; the proxy says so with X-Forwarded-Proto, so the
+  # session cookie is Secure and must come back on the callback.
+  include_context 'external HTTPS browser'
 
   before(:all) { boot_onetime_app }
 
@@ -37,14 +43,21 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
   let(:tenant_host) { "entra-#{run_id}.tenant-example.com" }
   let(:tenant_id) { "tenant-#{run_id}" }
   let(:client_id) { "client-#{run_id}" }
-  let(:client_secret) { "secret-#{run_id}" }
+  # Contains `+` and `%` on purpose (#4764): a Basic header built from the
+  # raw `id:secret` string would carry these bytes altered, the form body
+  # carries them percent-encoded and Entra decodes them back.
+  let(:client_secret) { "se+cret%#{run_id}" }
   # The strategy verifies `iss` against its configured tenant and `aud`
   # against its client id (omniauth-entra-id 3.1.1, raw_info).
   let(:issuer) { "https://login.microsoftonline.com/#{tenant_id}/v2.0" }
   let(:token_url) { "https://login.microsoftonline.com/#{tenant_id}/oauth2/v2.0/token" }
   let(:oid) { SecureRandom.uuid }
-  let(:allowed_domains) { ['contoso.example.com'] }
-  let(:member_email) { "member-#{run_id}@contoso.example.com" }
+  # The members' address domain, a second custom domain the organization has
+  # proven (tenant SSO creates accounts only inside one, #4734). Unique per
+  # example: a display_domain belongs to one record install-wide.
+  let(:member_domain) { "contoso-#{run_id}.example.com" }
+  let(:allowed_domains) { [member_domain] }
+  let(:member_email) { "member-#{run_id}@#{member_domain}" }
   let(:token_requests) { [] }
 
   let!(:tenant) do
@@ -55,6 +68,15 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
     domain.verified = true
     domain.save
     Onetime::CustomDomain.display_domain_index.put(tenant_host, domain.domainid)
+    # The organization has proven the member address domain: tenant SSO
+    # creates accounts only inside a proven custom domain (#4734). Accepted
+    # by Colonel override, the basis that counts under the test install's
+    # passthrough strategy (CustomDomain#ownership_proven?).
+    email_domain                      = Onetime::CustomDomain.parse(member_domain, org.objid)
+    email_domain.ownership_verified   = true
+    email_domain.verified_by_override = true
+    email_domain.save
+    org.add_domain(email_domain)
     Onetime::CustomDomain::SsoConfig.create!(
       domain_id: domain.identifier,
       provider_type: 'entra_id',
@@ -64,7 +86,7 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
       enabled: true,
       allowed_domains: allowed_domains,
     )
-    { owner: owner, org: org, domain: domain }
+    { owner: owner, org: org, domain: domain, email_domain: email_domain }
   end
 
   def app
@@ -101,6 +123,7 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
     Onetime::CustomDomain::SsoConfig.delete_for_domain!(tenant[:domain].identifier)
     Onetime::CustomDomain.display_domain_index.remove(tenant_host)
     tenant[:domain].destroy!
+    tenant[:email_domain].destroy!
     tenant[:org].destroy!
     tenant[:owner].destroy!
     clear_auth_database
@@ -192,11 +215,22 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
       'code' => "code-#{run_id}",
       'redirect_uri' => flow.fetch('redirect_uri'),
     )
+    expect_body_client_authentication(request)
     expect(a_request(:post, token_url)).to have_been_made.once
     # The only egress is the token endpoint: no Microsoft Graph or UserInfo
     # enrichment supplies claims the token did not carry.
     expect(a_request(:any, %r{\Ahttps://graph\.microsoft\.com/})).not_to have_been_made
     expect(a_request(:get, %r{\Ahttps://login\.microsoftonline\.com/})).not_to have_been_made
+  end
+
+  # #4764: the client authenticates in the form body, never in a Basic
+  # header. The stored secret must arrive byte for byte: decoded it equals
+  # the record, on the wire it is percent-encoded (+ -> %2B, % -> %25).
+  def expect_body_client_authentication(request)
+    params = URI.decode_www_form(request.body).to_h
+    expect(params).to include('client_id' => client_id, 'client_secret' => client_secret)
+    expect(request.body).to include("client_secret=#{URI.encode_www_form_component(client_secret)}")
+    expect(request.headers.keys.map(&:downcase)).not_to include('authorization')
   end
 
   def auth_hash
@@ -211,6 +245,49 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
     expect(session['account_id']).to be_nil
     expect(auth_db[:account_identities].where(provider: 'entra', uid: "#{tenant_id}#{oid}").count).to eq(0)
     expect(auth_db[:accounts].where(Sequel.like(:email, "%#{run_id}%")).count).to eq(0)
+  end
+
+  describe 'opt-in token exchange diagnostics' do
+    after { EntraTokenExchangeDiagnostic.stop! }
+
+    it 'uses persisted credentials and real tenant injection for the console probe' do
+      output = StringIO.new
+      stub_token_endpoint(synthetic_id_token(email: member_email))
+
+      expect(EntraTokenExchangeDiagnostic.probe(domain: tenant[:domain], output: output)).to be_nil
+      records = output.string.lines.map { |line| JSON.parse(line) }
+      expect(records.first).to include('mode' => 'console_client_credentials',
+        'authorization_scheme' => 'none', 'raw_basic_matches_stored' => false,
+        'body_client_id_matches_stored' => true, 'body_secret_matches_stored' => true,
+        'token_endpoint_matches_stored' => true, 'client_credentials_grant' => true)
+      expect(records.last).to include('http_status' => 200, 'access_token_present' => true)
+      expect(token_requests.length).to eq(1)
+      expect_body_client_authentication(token_requests.first)
+      expect(auth_db[:accounts].where(Sequel.like(:email, "%#{run_id}%")).count).to eq(0)
+      expect(output.string).not_to include(client_secret, client_id, tenant_id, "opaque-access-#{run_id}")
+    end
+
+    it 'observes the same failed token response as the mounted browser callback' do
+      output = StringIO.new
+      EntraTokenExchangeDiagnostic.observe!(domain_id: tenant[:domain].identifier, host: tenant_host, output: output)
+      flow = start_login
+      stub_request(:post, token_url).to_return(status: 400,
+        headers: { 'Content-Type' => 'application/json' },
+        body: JSON.generate(error: 'invalid_client', error_description: 'AADSTS7000215: Invalid client secret provided'))
+
+      callback(flow)
+
+      records = output.string.lines.map { |line| JSON.parse(line) }
+      expect(records.first).to include('mode' => 'browser_authorization_code',
+        'tenant_config_in_request' => true, 'authorization_code_grant' => true,
+        'authorization_scheme' => 'none', 'raw_basic_matches_stored' => false,
+        'body_client_id_matches_stored' => true, 'body_secret_matches_stored' => true,
+        'token_endpoint_matches_stored' => true, 'redirect_uri_matches_expected' => true)
+      expect(records.last).to include('http_status' => 400, 'aadsts_code' => 'AADSTS7000215')
+      expect(a_request(:post, token_url)).to have_been_made.once
+      expect_no_account
+      expect(output.string).not_to include(client_secret, client_id, tenant_id, "code-#{run_id}")
+    end
   end
 
   describe 'a managed member whose token carries the email claim' do
@@ -292,6 +369,54 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
         expect(Auth::Logging).to have_received(:log_auth_event)
           .with(:omniauth_missing_email, hash_including(provider: :entra))
         expect_no_account
+      end
+    end
+  end
+
+  # #4735 (RISK-2026-10-10-02 R2b): Microsoft's optional `xms_edov` claim is
+  # "whether the user's email domain owner has been verified". It arrives in
+  # the id_token, so it reaches OTS as extra.raw_info through the real strategy.
+  describe 'the xms_edov optional claim' do
+    it 'refuses an explicit false at the tenant allowlist, as domain_not_allowed, and creates nothing' do
+      flow = complete_flow(email: member_email, xms_edov: false)
+      expect_code_exchange(flow)
+
+      expect(auth_hash['extra']['raw_info']['xms_edov']).to be(false)
+      expect(last_response.status).to eq(302), last_response.body
+      expect(last_response.location).to eq('/signin?auth_error=domain_not_allowed')
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_tenant_domain_rejected, hash_including(reason: :domain_unverified))
+      expect_no_account
+    end
+
+    it 'treats true as domain-owner verification only: the account is provisioned, stamped sso, not mailbox-verified' do
+      complete_flow(email: member_email, xms_edov: true)
+
+      expect(last_response.status).to eq(302), last_response.body
+      expect(last_response.location).not_to include('auth_error=')
+      expect(auth_db[:accounts].where(email: member_email).count).to eq(1)
+
+      customer = Onetime::Customer.find_by_email(member_email)
+      expect(customer).not_to be_nil
+      expect(customer.verified?).to be(true)
+      expect(customer.verified_by).to eq('sso')
+      expect(customer.mailbox_verified?).to be(false)
+      expect(customer.verification_held?).to be(false)
+    end
+
+    context 'when the tenant has no email-domain allowlist' do
+      let(:allowed_domains) { [] }
+
+      it 'still provisions on an explicit false, but holds the verified stamp as domain_unverified' do
+        complete_flow(email: member_email, xms_edov: false)
+
+        expect(last_response.status).to eq(302), last_response.body
+        expect(last_response.location).not_to include('auth_error=')
+
+        customer = Onetime::Customer.find_by_email(member_email)
+        expect(customer).not_to be_nil
+        expect(customer.verified?).to be(false)
+        expect(customer.verification_hold).to eq('domain_unverified')
       end
     end
   end

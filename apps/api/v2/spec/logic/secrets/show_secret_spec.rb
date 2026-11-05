@@ -24,24 +24,27 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
     Onetime.boot! :test
   end
 
-  def mock_session
-    store = {}
+  def mock_session(entries = {})
+    store = entries.dup
     session = double('Session')
     allow(session).to receive(:[]) { |k| store[k] }
     allow(session).to receive(:[]=) { |k, v| store[k] = v }
-    allow(session).to receive(:empty?).and_return(true)
+    allow(session).to receive(:empty?) { store.empty? }
+    allow(session).to receive(:clear) { store.clear }
     session
   end
 
-  # customer: overrides the default anonymous caller for the verification
-  # branches that depend on who is logged in. Pass params as a braced hash --
-  # the customer: kwarg would otherwise swallow a bare trailing hash.
+  # Without customer: the caller is anonymous and the user is nil, which is
+  # what NoAuthStrategy returns on the auth=noauth guest routes (#2733). The
+  # same anonymous Customer double in reveal_secret_spec.rb hid #4831.
+  # customer: sets who is logged in for the branches that depend on it. Pass
+  # params as a braced hash -- the customer: kwarg would otherwise swallow a
+  # bare trailing hash.
   # ip:/user_agent: model the request context the auth strategy resolves into
   # StrategyResult metadata (already edge-masked by Otto in production); nil by
   # default so pre-existing examples run the no-network-context path unchanged.
-  def build_logic(params, customer: nil, ip: nil, user_agent: nil)
-    customer ||= double('Customer', custid: 'anon', anonymous?: true, objid: nil)
-    org      = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
+  def build_logic(params, customer: nil, ip: nil, user_agent: nil, session: mock_session)
+    org = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
     allow(org).to receive(:can?).and_return(true)
 
     metadata = { organization: org }
@@ -49,10 +52,10 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
     metadata[:user_agent] = user_agent if user_agent
 
     strategy_result = double('StrategyResult',
-      session: mock_session,
+      session: session,
       user: customer,
       metadata: metadata,
-      auth_method: 'basicauth')
+      auth_method: customer ? 'basicauth' : 'noauth')
 
     described_class.new(strategy_result, params)
   end
@@ -68,6 +71,15 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
   def flag_as_verification!(secret)
     secret.verification = 'true'
     secret.save_fields(:verification)
+  end
+
+  # Record the address the link was emailed to, as send_verification_email
+  # does (Secret#delivered_to?). Without it the secret is a link minted before
+  # the digest was written. Same partial write and ordering as
+  # flag_as_verification!.
+  def record_delivery!(secret, address)
+    secret.delivery_digest = Onetime::Secret.delivery_digest_for(address)
+    secret.save_fields(:delivery_digest)
   end
 
   let!(:pair)   { Onetime::Receipt.spawn_pair(nil, 3600, 'a secret value') }
@@ -364,7 +376,14 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
     end
     let!(:pair) { Onetime::Receipt.spawn_pair(owner.objid, 3600, 'a secret value') }
 
-    before { flag_as_verification!(secret) }
+    before do
+      flag_as_verification!(secret)
+      # The stamp runs through SetCustomerVerification, whose #call ends in
+      # the deferred federation claim (#4754 review, round 3). Observed as a
+      # seam, as in reveal_secret_spec.rb: the real claim finds no owned
+      # workspace for a bare test customer and returns false.
+      allow(Auth::Operations::EnsureDefaultWorkspace).to receive(:claim_pending_federation_for).and_call_original
+    end
 
     context 'when an anonymous caller verifies the unverified owner' do
       it 'verifies the owner and reveals the plaintext' do
@@ -386,6 +405,60 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
         # resurrect the secret.
         expect(Onetime::Secret.load(secret.identifier)).to be_nil
       end
+
+      # The only self-service mailbox proof in a simple-mode install run
+      # without AUTHENTICATION_MODE, where a standard signup defers the
+      # federated subscription claim (#4754 review, round 3). The link proves
+      # the mailbox it was sent to and no other, so the claim runs for a link
+      # sent to the owner's current address and is held to that address.
+      it "runs the deferred federation claim for the owner's own address" do
+        record_delivery!(secret, owner.email)
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.secret_value).to eq('a secret value')
+        expect(Auth::Operations::EnsureDefaultWorkspace).to have_received(:claim_pending_federation_for)
+          .with(an_object_having_attributes(extid: owner.extid), own_address_only: true)
+      end
+
+      # A link sent to an earlier address, before an operator changed it,
+      # proves that mailbox only; one minted before the delivery address was
+      # recorded says nothing about which. Both verify the owner, as the
+      # direct stamp did, and run no claim (RevealSecret is pinned the same
+      # way, end to end, in reveal_secret_spec.rb).
+      it 'verifies the owner without the claim for a link sent to another address' do
+        record_delivery!(secret, "show-elsewhere-#{SecureRandom.hex(6)}@example.com")
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.secret_value).to eq('a secret value')
+        expect(Onetime::Customer.load(owner.objid).verified_by).to eq('email')
+        expect(Auth::Operations::EnsureDefaultWorkspace).not_to have_received(:claim_pending_federation_for)
+      end
+
+      it 'verifies the owner without the claim for a link that recorded no delivery address' do
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.secret_value).to eq('a secret value')
+        expect(Onetime::Customer.load(owner.objid).verified_by).to eq('email')
+        expect(Auth::Operations::EnsureDefaultWorkspace).not_to have_received(:claim_pending_federation_for)
+      end
+
+      # The browser that opens the link has a guest session (its CSRF token at
+      # least). Verifying clears it, as RevealSecret does.
+      it "clears the visitor's guest session" do
+        session = mock_session('csrf' => 'guest-token')
+        logic   = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' }, session: session)
+        logic.process_params
+        logic.process
+
+        expect(logic.secret_value).to eq('a secret value')
+        expect(session).to be_empty
+      end
     end
 
     context 'when logged in as the unverified owner' do
@@ -395,12 +468,18 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       # copy would otherwise be exercised nowhere.
       it 'verifies the owner and reveals the plaintext' do
         as_owner = double('Customer', custid: owner.custid, anonymous?: false, objid: owner.objid)
-        logic    = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' }, customer: as_owner)
+        session  = mock_session('csrf' => 'owner-token', 'external_id' => owner.extid)
+        logic    = build_logic(
+          { 'identifier' => secret.identifier, 'continue' => 'true' },
+          customer: as_owner,
+          session: session,
+        )
         logic.process_params
         logic.process
 
         expect(logic.show_secret).to be true
         expect(logic.success_data[:record][:secret_value]).to eq('a secret value')
+        expect(session).to be_empty # signed out; the owner signs in again
 
         reloaded = Onetime::Customer.load(owner.objid)
         expect(reloaded.verified?).to be true
@@ -412,13 +491,14 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
     context 'when the owner is already verified' do
       # DIVERGENCE PIN -- current behavior, candidate for alignment:
       # verify_owner has no already-verified guard (its condition passes on
-      # anonymous_user? alone), so an anonymous caller RE-verifies a verified
-      # owner and overwrites verified_by provenance with 'email'. RevealSecret
-      # treats the same input as an anomaly and leaves the owner untouched
-      # (reveal_secret_spec.rb pins 'stripe_payment' preserved there). If
-      # either controller changes, one of the two pins fails and forces a
-      # conscious decision instead of a silent behavior shift.
-      it 'reveals the plaintext and (unlike RevealSecret) overwrites verified_by' do
+      # anonymous_user? alone), so an anonymous caller re-stamps a verified
+      # owner. RevealSecret gates the same input on mailbox_verified?, so for
+      # a stamp WITHOUT mailbox proof ('stripe_payment') both controllers
+      # upgrade it to 'email' (reveal_secret_spec.rb pins that too); the
+      # divergence is confined to a stamp that already IS mailbox proof,
+      # pinned in the next example. If either controller changes, one of the
+      # pins fails and forces a conscious decision instead of a silent shift.
+      it 'reveals the plaintext and upgrades a stamp that is not mailbox proof to email' do
         owner.verified    = true
         owner.verified_by = 'stripe_payment'
         owner.save
@@ -431,15 +511,98 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
 
         reloaded = Onetime::Customer.load(owner.objid)
         expect(reloaded.verified?).to be true
-        expect(reloaded.verified_by).to eq('email') # provenance rewritten
+        expect(reloaded.verified_by).to eq('email') # provenance upgraded
         expect(Onetime::Secret.load(secret.identifier)).to be_nil
+      end
+
+      # #4754 review, round 3: the stamp goes through SetCustomerVerification,
+      # which keeps a stored mailbox-proof stamp on a repeat
+      # (#mailbox_proof_reaffirmed?) and still retries the claim, under the
+      # same two limits as the first one. Before, this branch rewrote
+      # 'colonel_admin' to 'email' (RevealSecret never did: its
+      # mailbox_verified? gate skips the stamp entirely).
+      it 'keeps an existing mailbox-proof stamp and still retries the own-address claim' do
+        record_delivery!(secret, owner.email)
+        owner.verified    = true
+        owner.verified_by = 'colonel_admin'
+        owner.save
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        expect(logic.secret_value).to eq('a secret value')
+        expect(Onetime::Secret.load(secret.identifier)).to be_nil
+
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified?).to be true
+        expect(reloaded.verified_by).to eq('colonel_admin') # NOT rewritten to 'email'
+        expect(Auth::Operations::EnsureDefaultWorkspace).to have_received(:claim_pending_federation_for)
+          .with(an_object_having_attributes(extid: owner.extid), own_address_only: true)
+      end
+    end
+
+    # Same shape as reveal_secret_spec.rb: a link minted in simple mode and
+    # followed after a switch to full auth mode. Rodauth owns verification
+    # there, so the shared stamp records nothing (it builds no operation, so
+    # no SQL is reached) and the reveal proceeds (#4754 review, round 3).
+    context 'when the link is followed after a switch to full auth mode' do
+      let(:auth_logger) { double('AuthLogger', info: nil) }
+
+      before do
+        allow(Onetime.auth_config).to receive(:mode).and_return('full')
+        allow(Auth::Operations::SetCustomerVerification).to receive(:new).and_call_original
+        allow(Auth::Operations::SetCustomerVerification).to receive(:auth_logger).and_return(auth_logger)
+      end
+
+      it 'reveals the plaintext, leaves the owner unverified and logs the skip' do
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        expect(logic.secret_value).to eq('a secret value')
+        expect(Onetime::Secret.load(secret.identifier)).to be_nil
+
+        expect(Auth::Operations::SetCustomerVerification).not_to have_received(:new)
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified?).to be false
+        expect(reloaded.verified_by.to_s).to eq('')
+
+        expect(auth_logger).to have_received(:info).with(
+          /redeemed in full auth mode; Rodauth owns account verification there/,
+          { customer: owner.extid },
+        )
+        expect(Auth::Operations::EnsureDefaultWorkspace).not_to have_received(:claim_pending_federation_for)
+      end
+
+      # verify_owner's anonymous half has no already-verified guard, so in
+      # simple mode this input upgrades the stamp to 'email' (pinned above).
+      # In full mode nothing is recorded, so the stamp stays as it was.
+      it 'leaves a stamp without mailbox proof as it was' do
+        owner.verified    = true
+        owner.verified_by = 'stripe_payment'
+        owner.save
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.secret_value).to eq('a secret value')
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified_by).to eq('stripe_payment')
+        expect(reloaded.mailbox_verified?).to be false
       end
     end
 
     context 'when already logged in as a different user' do
       it 'raises a form error and neither consumes nor previews the secret' do
-        other = double('Customer', custid: 'cust_other', anonymous?: false, objid: 'objid_other')
-        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' }, customer: other)
+        other   = double('Customer', custid: 'cust_other', anonymous?: false, objid: 'objid_other')
+        session = mock_session('csrf' => 'other-token', 'external_id' => 'ext_other')
+        logic   = build_logic(
+          { 'identifier' => secret.identifier, 'continue' => 'true' },
+          customer: other,
+          session: session,
+        )
         logic.process_params
 
         # Hardcoded message (not i18n) -- safe to match.
@@ -451,6 +614,7 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
         expect(reloaded.state).to eq('new')
         expect(reloaded.viewable?).to be true
         expect(Onetime::Customer.load(owner.objid).verified?).to be false
+        expect(session).not_to be_empty # the refusal does not sign them out
       end
     end
 

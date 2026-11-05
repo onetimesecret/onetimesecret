@@ -44,6 +44,7 @@
 # =============================================================================
 
 require_relative '../../spec_helper'
+require_relative '../../support/external_https_browser'
 require_relative '../../../../../../spec/support/saml/test_idp'
 
 require 'base64'
@@ -72,7 +73,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
   let(:identities) { db[:account_identities] }
   let(:run_id) { SecureRandom.hex(6) }
 
-  # A tenant: organization + TXT-verified custom domain + saml SsoConfig
+  # A tenant: organization + verified custom domain + saml SsoConfig
   # pointing at its OWN IdP (own keypair, own EntityID, own origin).
   def build_tenant(label)
     host  = "secrets-#{label}-#{run_id}.saml-tenant.example.com"
@@ -81,9 +82,13 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
     org = Onetime::Organization.create!("SAML Org #{label} #{run_id}", owner, "contact-#{label}-#{run_id}@saml-tenant.example.com")
 
     domain          = Onetime::CustomDomain.new(display_domain: host, org_id: org.org_id)
-    # TXT-verified: Auth::PublicHost only roots auth URLs (and so the SAML
-    # ACS / SP EntityID) on a domain whose ownership is proven.
-    domain.verified = true
+    # Verified: Auth::PublicHost only roots auth URLs (and so the SAML
+    # ACS / SP EntityID) on a domain whose ownership is accepted. By Colonel
+    # override, so the host also proves its email namespace for tenant JIT
+    # under the test install's passthrough strategy (#4734,
+    # CustomDomain#ownership_proven?).
+    domain.verified             = true
+    domain.verified_by_override = true
     domain.save
     Onetime::CustomDomain.display_domain_index.put(host, domain.domainid)
 
@@ -117,14 +122,24 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
     end
   end
 
+  # Teardown in foreign-key order (#4539). A completed sign-in writes
+  # active-session, audit-log and activity rows that reference the account
+  # and do not cascade (migrations/001_initial.rb), so a bare `accounts`
+  # delete raises on SQLite. AuthAccountFactory#cleanup_account walks
+  # RODAUTH_TABLES in dependency order; it swallows per-table errors, so the
+  # row count is checked afterwards. A cleanup error is a real problem and is
+  # allowed to surface rather than leave stray rows in the shared in-memory
+  # DB and a Customer in the shared test Valkey.
   after do
     created_emails.each do |email|
-      account_ids = db[:accounts].where(email: email).select_map(:id)
-      identities.where(account_id: account_ids).delete
-      db[:accounts].where(id: account_ids).delete
+      db[:accounts].where(email: email).select_map(:id).each do |account_id|
+        identities.where(account_id: account_id).delete
+        cleanup_account(db: db, account_id: account_id)
+      end
+      remaining = db[:accounts].where(email: email).count
+      raise "[tenant_saml_sso_spec] cleanup left #{remaining} accounts row(s) for #{OT::Utils.obscure_email(email)}" if remaining.positive?
+
       Onetime::Customer.find_by_email(email)&.destroy!
-    rescue StandardError => ex
-      OT.le "[tenant_saml_sso_spec] cleanup error for #{OT::Utils.obscure_email(email)}: #{ex.class}"
     end
 
     [tenant_a, tenant_b].each do |tenant|
@@ -311,8 +326,10 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
 
   describe 'callback with a signed response from the tenant IdP' do
     let(:name_id) { "nameid-#{run_id}" }
-    let(:email_a) { "user-a-#{run_id}@saml-tenant.example.com" }
-    let(:email_b) { "user-b-#{run_id}@saml-tenant.example.com" }
+    # Each at its tenant's own proven domain: tenant SSO creates accounts
+    # only for addresses inside one (#4734).
+    let(:email_a) { "user-a-#{run_id}@#{tenant_a.host}" }
+    let(:email_b) { "user-b-#{run_id}@#{tenant_b.host}" }
 
     [nil, 'true'].each do |flag|
       it "handles a real native-tenant null-origin callback with operator flag #{flag.inspect}" do
@@ -423,7 +440,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
 
   describe 'a response signed by tenant A IdP, presented on tenant B' do
     let(:name_id) { "victim-#{run_id}" }
-    let(:email)   { "victim-#{run_id}@saml-tenant.example.com" }
+    let(:email)   { "victim-#{run_id}@#{tenant_a.host}" }
 
     def expect_refused
       expect(last_response.status).to eq(302)
@@ -464,7 +481,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       impostor = SamlSpec::TestIdp.new(entity_id: tenant_a.idp.entity_id, key: tenant_b.idp.key, cert: tenant_b.idp.cert)
 
       clear_cookies
-      attacker_email = "attacker-#{run_id}@saml-tenant.example.com"
+      attacker_email = "attacker-#{run_id}@#{tenant_b.host}"
       sign_in(tenant_b, name_id: name_id, email: attacker_email, idp: impostor)
 
       expect(last_response.status).to eq(302)
@@ -570,7 +587,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
   # pending context, binding included, so the response has nothing to answer.
   describe 'a response answering a request the record was refused on' do
     let(:name_id) { "refused-#{run_id}" }
-    let(:email)   { "refused-#{run_id}@saml-tenant.example.com" }
+    let(:email)   { "refused-#{run_id}@#{tenant_a.host}" }
 
     it 'is refused after the record is repaired, and nothing is created, validated or signed in' do
       created_emails << email
@@ -620,7 +637,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
   # markers is a tenant flow whose config is gone: dropped and refused.
   describe 'a response to a tenant flow whose record was disabled mid-flow, with platform fallback allowed' do
     let(:name_id) { "gone-#{run_id}" }
-    let(:email)   { "gone-#{run_id}@saml-tenant.example.com" }
+    let(:email)   { "gone-#{run_id}@#{tenant_a.host}" }
 
     it 'drops the whole pending context and refuses as sso_not_configured' do
       allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
@@ -682,7 +699,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
   # (tenant_sso_proxy_host_spec).
   describe 'a tenant whose domain is awaiting verification' do
     let(:name_id) { "unverified-#{run_id}" }
-    let(:email)   { "unverified-#{run_id}@saml-tenant.example.com" }
+    let(:email)   { "unverified-#{run_id}@#{tenant_a.host}" }
 
     def await_verification(tenant)
       tenant.domain.verified = false
@@ -822,7 +839,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
   # no pending request.
   describe 'a response POSTed after domain verification lapsed' do
     let(:name_id) { "lapsed-#{run_id}" }
-    let(:email)   { "lapsed-#{run_id}@saml-tenant.example.com" }
+    let(:email)   { "lapsed-#{run_id}@#{tenant_a.host}" }
     let(:hook)    { Auth::Config::Hooks::OmniAuthTenant }
 
     def response_for(request)
@@ -1172,7 +1189,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
   # the tenant host.
   describe 'sign-in behind a Host-rewriting proxy' do
     let(:name_id) { "nameid-proxy-#{run_id}" }
-    let(:email) { "user-proxy-#{run_id}@saml-tenant.example.com" }
+    let(:email) { "user-proxy-#{run_id}@#{tenant_a.host}" }
 
     # The callback has to come from a peer DetectHost takes forwarded
     # headers from. With no trusted-proxy configuration that is a private
@@ -1272,7 +1289,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
           config.idp_entity_id = tenant_a.idp.entity_id
           config.commit_fields
           impostor = SamlSpec::TestIdp.new(entity_id: tenant_a.idp.entity_id, key: tenant_b.idp.key, cert: tenant_b.idp.cert)
-          attacker_email = "attacker-proxy-#{run_id}@saml-tenant.example.com"
+          attacker_email = "attacker-proxy-#{run_id}@#{tenant_b.host}"
           clear_cookies
           sign_in(tenant_b, name_id: name_id, email: attacker_email, idp: impostor)
 
@@ -1418,6 +1435,9 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
         end
 
         context 'with HTTPS and public port 8443' do
+          # The browser is on https; the session cookie it gets back is Secure.
+          include_context 'external HTTPS browser'
+
           before do
             header 'X-Forwarded-Proto', 'https'
             header 'X-Forwarded-Port', '8443'

@@ -14,6 +14,7 @@ import {
   useRoute,
 } from 'vue-router';
 import RouteErrorBoundary from '@/shared/components/errors/RouteErrorBoundary.vue';
+import { dropRouterMockProvides } from '@/tests/utils/routerSetup';
 
 // Mirror production: the app installs `app.config.errorHandler`
 // (src/plugins/core/globalErrorBoundary.ts) which absorbs the error the
@@ -110,6 +111,7 @@ describe('RouteErrorBoundary', () => {
   // stuck boundary would surface here. Guards the T-Rex-reported recovery bug.
   it('recovers through a real router-view when navigating off a broken route', async () => {
     const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    dropRouterMockProvides();
 
     const router = createRouter({
       history: createMemoryHistory(),

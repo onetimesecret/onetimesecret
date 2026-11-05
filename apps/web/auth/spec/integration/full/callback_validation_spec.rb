@@ -629,6 +629,40 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
       end
     end
 
+    # RISK-2026-10-10-03 (#4736).
+    context 'with an internationalised allowlist entry' do
+      let(:sso_config) { build_domain_sso_config(:oidc, allowed_domains: ['bücher.de']) }
+
+      it 'permits the A-label form and logs that only the forms differed' do
+        enforce('user@xn--bcher-kva.de', sso_config)
+
+        expect_permitted
+        expect(Auth::Logging).to have_received(:log_auth_event).with(
+          :omniauth_tenant_domain_idn_match,
+          hash_including(
+            level: :info,
+            domain_id: domain_id,
+            reason: :idn_form_differed,
+            allowed_domain: 'bücher.de',
+            asserted_domain: 'xn--bcher-kva.de',
+          ),
+        )
+      end
+
+      it 'logs nothing for a byte-for-byte match' do
+        enforce('user@bücher.de', sso_config)
+
+        expect_permitted
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+      end
+
+      it 'rejects a different name that IDNA mapping would encode alike' do
+        enforce("user@b\u00fc\u00adcher.de", sso_config)
+
+        expect_rejected
+      end
+    end
+
     context 'without an allowlist configured' do
       let(:sso_config) { build_domain_sso_config(:oidc, allowed_domains: []) }
 
@@ -710,6 +744,230 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
 
         expect_rejected
       end
+    end
+  end
+
+  # ==========================================================================
+  # RISK-2026-10-10-01 (#4734): the allowlist above is the tenant's own choice
+  # and judges a claim the tenant's IdP asserts. Account creation is further
+  # gated by the platform: the address must lie inside a custom domain the
+  # organization has proven, by TXT ownership check or Colonel override
+  # (CustomDomain#ownership_proven?). The TXT challenge sits under the name
+  # as entered, so a verified secrets-<x>.acme-corp.example.com proves that
+  # name and the names below it, not acme-corp.example.com.
+  #
+  # The test install runs passthrough, where only an override counts, so the
+  # fixtures' ownership is accepted by override unless an example says
+  # otherwise.
+  # ==========================================================================
+
+  # Accept a fixture domain's ownership by Colonel override, the basis that
+  # counts under every validation strategy.
+  def accept_by_override(domain)
+    domain.verified             = true
+    domain.verified_by_override = true
+    domain.save
+    domain
+  end
+
+  describe '.enforce_tenant_verified_email_domain!' do
+    include_context 'tenant fixtures'
+
+    let(:rodauth) { double('Rodauth') }
+
+    before do
+      allow(rodauth).to receive(:redirect)
+      allow(Auth::Logging).to receive(:log_auth_event)
+      accept_by_override(test_custom_domain)
+      @extra_domains = []
+    end
+
+    after do
+      @extra_domains.each do |domain|
+        domain.destroy! if domain.exists?
+      rescue StandardError => ex
+        warn "[verified email domain spec] domain cleanup failed: #{ex.class}: #{ex.message}"
+      end
+    end
+
+    # A second custom domain of the tenant organization, listed in its
+    # domains set, with the ownership axis in the given state.
+    def add_org_domain(display_domain, verified:, override: verified)
+      domain                      = Onetime::CustomDomain.parse(display_domain, test_organization.objid)
+      domain.ownership_verified   = verified
+      domain.verified_by_override = override
+      domain.save
+      test_organization.add_domain(domain)
+      @extra_domains << domain
+      domain
+    end
+
+    def enforce(email, domain_id: test_custom_domain.identifier)
+      helpers.enforce_tenant_verified_email_domain!(domain_id, email, rodauth, provider: 'oidc')
+    end
+
+    def expect_refused(reason)
+      expect(rodauth).to have_received(:redirect).with('/signin?auth_error=domain_not_allowed')
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_tenant_email_domain_unverified, hash_including(outcome: :refused, reason: reason))
+    end
+
+    def expect_permitted
+      expect(rodauth).not_to have_received(:redirect)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_tenant_email_domain_unverified, anything)
+    end
+
+    it 'permits an address at the tenant custom domain' do
+      enforce("user@#{tenant_domain}")
+
+      expect_permitted
+    end
+
+    it 'permits an address below the tenant custom domain' do
+      enforce("user@mail.#{tenant_domain}")
+
+      expect_permitted
+    end
+
+    it 'refuses an address at the registrable domain above the tenant custom domain' do
+      enforce('user@acme-corp.example.com')
+
+      expect_refused(:email_domain_unverified)
+    end
+
+    it 'refuses an address outside every domain of the organization' do
+      enforce('victim@unrelated.example.org')
+
+      expect_refused(:email_domain_unverified)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_tenant_email_domain_unverified, hash_including(
+          domain_id: test_custom_domain.identifier,
+          org_id: test_organization.objid,
+          asserted_domain: 'unrelated.example.org',
+          provider: 'oidc',
+        ))
+    end
+
+    it 'permits an address in another custom domain the organization has verified' do
+      mail = add_org_domain("mail-#{test_run_id}.example.net", verified: true)
+
+      enforce("user@#{mail.display_domain}")
+
+      expect_permitted
+    end
+
+    it 'refuses an address in a custom domain the organization has not verified yet' do
+      pending = add_org_domain("pending-#{test_run_id}.example.net", verified: false)
+
+      enforce("user@#{pending.display_domain}")
+
+      expect_refused(:email_domain_unverified)
+    end
+
+    it 'permits the A-label spelling of a verified Unicode domain' do
+      unicode = add_org_domain("bücher-#{test_run_id}.example.net", verified: true)
+      a_label = Onetime::DomainValidation::AsciiHostname.call(unicode.display_domain)
+
+      enforce("user@#{a_label}")
+
+      expect_permitted
+    end
+
+    it 'stops counting the tenant domain once its own ownership is withdrawn' do
+      test_custom_domain.verified = false
+      test_custom_domain.save
+
+      enforce("user@#{tenant_domain}")
+
+      expect_refused(:email_domain_unverified)
+    end
+
+    # Passthrough sets ownership_verified for any name the organization
+    # registers, without a DNS lookup (ADR-049: not evidence of ownership).
+    context 'when ownership_verified is set without an override under passthrough' do
+      it 'runs under the configuration it names' do
+        expect(Onetime::CustomDomain.ownership_proof_required?).to be(false)
+      end
+
+      it 'refuses an address at the tenant custom domain itself' do
+        test_custom_domain.verified_by_override = false
+        test_custom_domain.save
+
+        enforce("user@#{tenant_domain}")
+
+        expect_refused(:email_domain_unverified)
+      end
+
+      it 'refuses an address in another custom domain the organization registered' do
+        squatted = add_org_domain("victim-#{test_run_id}.example.net", verified: true, override: false)
+
+        enforce("user@#{squatted.display_domain}")
+
+        expect_refused(:email_domain_unverified)
+      end
+    end
+
+    it 'refuses when the custom domain cannot be loaded mid-flow' do
+      enforce("user@#{tenant_domain}", domain_id: "gone-#{test_run_id}")
+
+      expect_refused(:no_custom_domain)
+    end
+
+    it 'does not apply on the platform surface' do
+      enforce('anyone@anywhere.example', domain_id: nil)
+
+      expect_permitted
+    end
+
+    # The refusal is recorded for the domain's settings page (last_sign_in)
+    # like the other JIT create refusals, with the code the visitor sees.
+    context 'when the Rodauth instance records tenant sign-in outcomes' do
+      before { allow(rodauth).to receive(:record_tenant_sso_failure) }
+
+      it 'records a refusal at the account stage as domain_not_allowed' do
+        enforce('victim@unrelated.example.org')
+
+        expect(rodauth).to have_received(:record_tenant_sso_failure).with('account', 'domain_not_allowed')
+      end
+
+      it 'records nothing for a permitted address' do
+        enforce("user@#{tenant_domain}")
+
+        expect(rodauth).not_to have_received(:record_tenant_sso_failure)
+      end
+    end
+  end
+
+  describe '.log_unverified_tenant_email_domain' do
+    include_context 'tenant fixtures'
+
+    before do
+      allow(Auth::Logging).to receive(:log_auth_event)
+      accept_by_override(test_custom_domain)
+    end
+
+    it 'records a returning identity whose address is outside the proven domains' do
+      helpers.log_unverified_tenant_email_domain(
+        test_custom_domain.identifier, 'squatter@unrelated.example.org', provider: 'oidc'
+      )
+
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_tenant_email_domain_unverified, hash_including(
+          outcome: :signed_in,
+          reason: :email_domain_unverified,
+          domain_id: test_custom_domain.identifier,
+          org_id: test_organization.objid,
+          asserted_domain: 'unrelated.example.org',
+        ))
+    end
+
+    it 'is silent for an address inside the proven domains' do
+      helpers.log_unverified_tenant_email_domain(
+        test_custom_domain.identifier, "User@#{tenant_domain}", provider: 'oidc'
+      )
+
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
     end
   end
 end

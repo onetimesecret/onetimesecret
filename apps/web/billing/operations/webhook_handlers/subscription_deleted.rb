@@ -76,10 +76,42 @@ module Billing
         # Similar to clear_billing_fields but for federated orgs.
         # Federated orgs don't have stripe_customer_id or stripe_subscription_id to clear.
         #
+        # The cancellation is a direct sync like any other federated update:
+        # it records the sync marker once the free-tier entitlements are
+        # materialized and retires a stale pending record for the hash, so a
+        # later verification retry cannot replay a paid snapshot over it
+        # (#4735 review, F8).
+        #
+        # Not gated on the owner's mailbox proof: it only removes access, and
+        # it retires the pending record even when a workspace for the hash is
+        # deferred, since the subscription it would claim has ended (#4754
+        # review, F3).
+        #
+        # Scope of that retirement: the pending record is one slot per
+        # email_hash (PendingFederatedSubscription uses the hash as its
+        # identifier and store_from_webhook overwrites), and neither the
+        # record nor a federated workspace names the Stripe subscription its
+        # state came from. So this cancellation takes the one subscription
+        # the hash maps to as the one that just ended and drops whatever the
+        # slot holds. That matches the product today: an organization owns
+        # one subscription (stripe_subscription_id carries a unique index),
+        # and a second active one is the anomaly checkout_completed logs for
+        # reconciliation (#2605). Were several live subscriptions per address
+        # a supported shape, the slot could hold the snapshot of the one that
+        # continues, this would drop it, and a deferred workspace would wait
+        # for that subscription's next webhook to store it again. Supporting
+        # that shape means a record per subscription (or an agreement id on
+        # the record and the workspace), a sync order per subscription rather
+        # than per hash, and a cancellation that retires only the snapshot of
+        # the subscription that ended (#4754 review).
+        #
         # @param org [Onetime::Organization] Organization to update
         # @param subscription [Stripe::Subscription] Stripe subscription (for logging)
         def clear_federated_org(org, _subscription)
-          Billing::Operations::ApplySubscriptionToOrg.apply_free_tier(org, owner: false)
+          Billing::Operations::ApplySubscriptionToOrg.apply_free_tier(org, owner: false, save: false)
+          mark_federated_sync!(org)
+          org.save
+          discard_superseded_pending(org, keep_for_deferred: false)
         end
       end
     end

@@ -27,7 +27,7 @@ projections** of each entity, and the trouble comes from conflating them:
 
 - **S — storage**: what Familia writes to and reads from Valkey.
   Field set: the model's `field` declarations, including storage-only fields
-  the wire never sees (`org_id`, `receipt_viewed_at`, `secret_key`, `v1_*`).
+  the wire never sees (`org_id`, `receipt_viewed_at`, `v1_*`).
 - **W — wire**: what an endpoint emits, per API version. Field set:
   `safe_dump` output *plus* logic-class merges — computed fields (`is_*`,
   `shortid`, URLs) that are never stored.
@@ -303,7 +303,7 @@ section stands as the rationale and evidence record.
   from TS contracts by retyping timestamps: the field sets differ in both
   directions. For Receipt: storage-only fields the contract has never heard
   of (`org_id`, `domain_id`, `receipt_viewed_at`, `secret_value_shown_at`,
-  `truncate`, `secret_key`, `v1_key`, `v1_custid`); wire-only fields that
+  `truncate`, `v1_key`, `v1_custid`); wire-only fields that
   are never stored (`shortid`, `receipt_ttl`, `metadata_ttl`, all seven
   `is_*`, `show_recipients`, and the ten merged endpoint fields). A
   storage schema generated from `receiptCanonical` would either require

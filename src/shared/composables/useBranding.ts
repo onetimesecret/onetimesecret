@@ -3,6 +3,7 @@
 import { createI18nInstance } from '@/i18n';
 import { ApplicationError } from '@/schemas';
 import { type BrandSettings, type ImageProps } from '@/schemas/shapes/v3';
+import { loggingService } from '@/services/logging.service';
 import { DEFAULT_BUTTON_TEXT_LIGHT } from '@/shared/constants/brand';
 import { useNotificationsStore } from '@/shared/stores';
 import { useBrandStore } from '@/shared/stores/brandStore';
@@ -42,6 +43,22 @@ export function useBranding(domainId?: string) {
   const error = ref<ApplicationError | null>(null);
 
   const { composer, setLocale } = createI18nInstance();
+
+  /**
+   * Switches the preview instance's language. Its messages load into the
+   * preview's own composer. A locale that fails to load leaves the preview in
+   * its previous language and must not fail loading the brand settings.
+   */
+  const setPreviewLocale = async (locale: string) => {
+    try {
+      await setLocale(locale);
+    } catch (err) {
+      loggingService.warn('[useBranding] Preview locale did not load', {
+        locale,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  };
   const brandSettings = ref<BrandSettings>(store.getSettings(domainId || ''));
   const originalSettings = ref<BrandSettings | null>(null);
   const logoImage = ref<ImageProps | null>(null);
@@ -114,8 +131,8 @@ export function useBranding(domainId?: string) {
 
       // Set locale immediately after getting settings
       if (settings.locale) {
-        console.debug('[useBranding] Setting locale:', settings.locale, settings);
-        await setLocale(settings.locale);
+        loggingService.debug('[useBranding] Setting locale', { locale: settings.locale, settings });
+        await setPreviewLocale(settings.locale);
       }
 
       // Quietly handle 404/403 errors for logo fetch
@@ -176,7 +193,7 @@ export function useBranding(domainId?: string) {
     () => brandSettings.value?.locale,
     async (newLocale) => {
       if (!newLocale) return;
-      await setLocale(newLocale); // This updates the preview i18n instance
+      await setPreviewLocale(newLocale); // This updates the preview i18n instance
     },
     { immediate: true } // Add immediate to handle initial locale
   );

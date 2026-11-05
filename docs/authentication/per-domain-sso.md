@@ -155,6 +155,20 @@ still stamp the callback as validated for the domain.
 
 #### Unverified domains
 
+Under a validation strategy that checks ownership (`approximated`,
+`caddy_on_demand`), a custom domain whose ownership is not verified is not
+served at all: every request to its host, including the sign-in page, the SSO
+routes and the SAML ACS URL, answers 404 before any sign-in code runs
+(`CustomDomain#served_as_tenant?`). The tenant sees the domain's state on the
+SSO settings form, described below.
+
+The refusal described next applies where such a host is served: under
+`passthrough`, where registration is the basis for serving but SSO still
+needs a verify call to mark the domain verified, and under any strategy while
+the operator sets `features.domains.serve_unverified`. Under `passthrough` a
+verified domain still creates no accounts until a Colonel overrides its
+verification (see [Verified email domains](#verified-email-domains)).
+
 When a domain's SSO configuration is enabled and permitted but the domain's
 ownership is not verified yet, the hook refuses SSO at step 5: it logs
 `omniauth_tenant_domain_unverified` at warn level, clears any pending tenant
@@ -220,12 +234,203 @@ and public host in the session. At the start of the callback, the tenant hook:
 
 A mismatch returns `403 tenant_mismatch`. Missing or unreadable tenant
 configuration and malformed or disallowed asserted email addresses also fail
-closed. An empty SSO email-domain allowlist is the configured allow-all case.
+closed. An empty SSO email-domain allowlist is the configured allow-all case,
+which admits any address the IdP authenticates inside a
+[verified email domain](#verified-email-domains). With an allowlist
+configured, an Entra ID token that carries `xms_edov: false` (Microsoft has
+not verified that the tenant owns the email's domain) is refused as
+`domain_not_allowed` even when the domain is listed (#4735).
 
 This validation proves that the SSO transaction was initiated and completed for
 the same custom domain. It does **not** prove that an existing authenticated
 account session was established for, or is authorized to act on, that tenant
 surface.
+
+### Verified email domains
+
+Tenant SSO creates an account only for an address whose domain the
+organization has proven it owns (#4734, RISK-2026-10-10-01). The allowlist
+alone cannot carry that decision: the tenant sets it, the tenant's IdP asserts
+the `email` claim it is compared with, and no supported tenant provider
+vouches that the claim's domain belongs to the tenant. Microsoft's claims
+guidance says never to use `email` for authorization. Without this rule a
+tenant IdP could mint a verified account for any address that has no OTS
+account yet, and the address owner's later password reset or magic link on
+the canonical host would share that account with the tenant identity.
+
+The proven set is the organization's custom domains whose ownership rests on
+evidence (`CustomDomain#ownership_proven?`). A domain counts when either is true
+on the ownership axis
+([ADR-016](../adr/adr-016-domain-validation-state-model.md)):
+
+- a Colonel has overridden its verification to true (`verified_by_override`),
+  under any validation strategy; or
+- its ownership is verified (`ownership_verified`), the install's validation
+  strategy checks the TXT record (`approximated`, `caddy_on_demand`), and a
+  TXT check has passed since it was verified (`verified_confirmed_at`, the
+  epoch of the last passing check, written only for a pass from such a
+  strategy).
+
+The verified flag alone is not evidence. A domain verified under
+`passthrough`, or before v0.26.14 (when no pass was recorded), and not
+checked since has the flag and no recorded pass. ADR-016 treats such a
+domain as never confirmed after a move to `caddy_on_demand`, and
+[ADR-049](../adr/adr-049-operator-managed-domain-authorization.md) says a
+switch to either TXT strategy stops operator-policy authorization from
+qualifying at once, before any refresh, and that the persisted flag may not
+satisfy the check by itself. Such a domain counts only after
+`bin/ots domains verify --all` or the scheduled refresh (`DomainRefreshJob`)
+records a pass. Until then new
+people at that domain are refused with `domain_not_allowed`; people whose
+identity is already bound to an account keep signing in.
+`bin/ots sso audit-email-domains DOMAIN` lists the organization's verified
+domains that have no recorded pass under `No TXT pass:`.
+
+The TXT challenge is placed under the name as entered, so a verified
+`secrets.acme.example` proves that name and the names below it. It does not
+prove `acme.example`. An organization whose people have `@acme.example`
+addresses adds `acme.example` as a custom domain and completes its TXT check.
+The serving axis plays no part: the name never has to point at this service,
+and the domain can stay unused for links.
+
+#### Passthrough installs
+
+Under the `passthrough` validation strategy (the default) the verify call sets
+`ownership_verified` for any name the organization registers, with no DNS
+lookup. [ADR-049](../adr/adr-049-operator-managed-domain-authorization.md)
+calls that operator policy "an authorization basis, not evidence that the
+customer owns the hostname". Counting it would let any organization register
+`victim.example`, press verify, and have its tenant IdP create accounts for
+`@victim.example` addresses. So under passthrough a domain counts only after a
+Colonel overrides its verification. Serving does not change: passthrough
+still serves every registered domain (`CustomDomain#serving_authorized?`), and
+tenant SSO on the domain still needs only the verified flag to be offered.
+
+What a passthrough operator does for each organization that uses tenant SSO:
+
+1. Confirm, outside this service, that the organization owns each name its
+   people's addresses use: the tenant's custom domain itself and any other
+   custom domain added only to prove an email namespace.
+2. Override that domain's verification to true as a Colonel: on the
+   domain's page in the admin area, choose Override Status and tick "Accept
+   ownership by override" (shown while the domain is verified but not by
+   override), or call `POST /api/colonel/domains/:extid/override` with
+   `verified: true`. A later passthrough verify call leaves the override in
+   place. A passing TXT check (after a move to a strategy that checks TXT)
+   clears it, records the pass and keeps the domain verified; overriding
+   back to false withdraws it.
+3. Run `bin/ots sso audit-email-domains DOMAIN` for the tenant domain. Its
+   header line `Proven by:` reads `Colonel override only` on passthrough, and
+   rows reported `outside` are identities whose address no overridden domain
+   covers.
+
+Until step 2, a new person signing in through the tenant IdP is refused with
+`domain_not_allowed` (no account is created), even at the tenant's own custom
+domain. People whose identity is already bound to an account keep signing in;
+each such sign-in logs `omniauth_tenant_email_domain_unverified` with
+`outcome: signed_in`.
+
+The gate runs in `before_omniauth_create_account`, so it applies exactly when
+an account is about to be created. An identity already bound to an account
+keeps signing in; `hooks/login.rb` logs
+`omniauth_tenant_email_domain_unverified` with `outcome: signed_in` for one
+whose account address lies outside the proven set, so an operator can list
+the accounts to review. Authenticated linking is not gated: it binds an
+identity to the session's own account, which the asserted address plays no
+part in choosing.
+
+Identities bound before this rule existed can be listed with
+`bin/ots sso audit-email-domains DOMAIN`, which reads every identity row
+under the domain's own provider route and issuer and reports each whose
+account address lies outside the proven set, including accounts that have
+not signed in since. With `--unlink --confirm` it deletes those identity rows
+and nothing else: the account, its credentials and its Customer record stay,
+the address owner can still claim the account through a canonical-host
+password reset, and the tenant identity can no longer sign in to it. A row is
+unlinked only when the account's `signup_domain_id` names this domain,
+because OIDC and Entra identity keys are shared by every configuration naming
+the same IdP; other rows are reported for manual review. See the
+[audit runbook](../runbooks/sso-tenant-email-domain-audit.md).
+
+A refused creation redirects to `/signin?auth_error=domain_not_allowed`, the
+same code as an allowlist refusal (configuration denials do not disclose the
+configured domains), and logs `omniauth_tenant_email_domain_unverified` at
+warn level with `outcome: refused`, the custom domain and organization, the
+obscured address, the asserted domain and a `reason`:
+`email_domain_unverified`, or `no_custom_domain` / `no_organization` when
+the tenant record could not be loaded mid-flow.
+
+The allowlist therefore selects among proven domains. For a listed domain
+the organization has not proven, sign-in creates no new accounts, though
+people already bound to an account keep signing in; an empty list admits
+every proven domain. Entra app assignment still decides who may
+authenticate at the IdP; it is not evidence about the domain of the `email`
+claim. Entra tenants
+also confirm the two
+[app registration settings](#entra-app-registration-settings) that keep an
+unverified address out of the claim.
+
+### Entra app registration settings
+
+Two settings on the tenant's Entra app registration keep an address nobody
+vouches for out of the `email` claim before it reaches the allowlist and the
+verified-domain gate (RISK-2026-10-10-01, remediation R2). Neither is visible
+in the discovery document and neither Test Connection nor the saved-
+configuration check (the form's primary button: **Save and check**, **Check
+and turn on** or **Check saved configuration**) holds a Graph permission on
+the app registration, so a passing Entra discovery check, in either one,
+lists them under "Confirm in the Entra app registration" instead of claiming
+to have checked them. The tenant's Entra administrator confirms both.
+
+**`removeUnverifiedEmailClaim`.** Microsoft Graph's
+[authenticationBehaviors](https://learn.microsoft.com/en-us/graph/api/resources/authenticationbehaviors)
+resource describes it as: "If `true`, removes the `email` claim from tokens
+sent to an application when the email address's domain can't be verified."
+Microsoft's [guide to the setting](https://learn.microsoft.com/en-us/graph/applications-authenticationbehaviors#prevent-the-issuance-of-email-claims-with-unverified-domain-owners)
+says: "Today, the default behavior is to remove email addresses with
+unverified domain owners in claims, except for single-tenant apps and for
+multitenant apps with previous sign-in activity with unverified emails." A
+single-tenant registration, the usual shape for a per-domain tenant, is
+therefore not covered by the default and must opt in:
+
+```http
+PATCH https://graph.microsoft.com/v1.0/applications/{object-id}/authenticationBehaviors
+Content-Type: application/json
+
+{
+    "removeUnverifiedEmailClaim": true
+}
+```
+
+Read it back with `GET /v1.0/applications/{object-id}/authenticationBehaviors`.
+With the setting on, a token for an address in a domain Microsoft has not
+verified for the tenant carries no `email` claim, and the sign-in ends at
+`/signin?auth_error=missing_email` (the
+[Entra claim smoke test](../runbooks/sso-entra-claim-smoke-test.md) covers
+that path). Without it, such a token reaches the allowlist with an address
+only the tenant's directory vouches for; the verified-domain gate still
+refuses account creation outside the proven set, but existing identities
+sign in and the IdP-side signal is lost.
+
+**`xms_edov` optional claim.** Microsoft's
+[optional claims reference](https://learn.microsoft.com/en-us/entra/identity-platform/optional-claims-reference#v10-and-v20-optional-claims-set)
+describes it as a "Boolean value indicating whether the user's email domain
+owner has been verified", with the notes: "An email is considered to be
+domain verified if it belongs to the tenant where the user account resides
+and the tenant admin has done verification of the domain. Also, the email
+must be from a Microsoft account (MSA), a Google account, or used for
+authentication using the one-time passcode (OTP) flow. Facebook and SAML/WS-Fed
+accounts **do not** have verified domains. For this claim to be returned in
+the token, the presence of the `email` claim is required." Add it to the ID
+token under Token configuration (or `optionalClaims.idToken` in the
+manifest) so the claim is present. Reading an explicit `xms_edov: false` as
+a verification hold is tracked separately (RISK-2026-10-10-02, #4735); until
+that lands the claim is requested but not consulted.
+
+Both settings concern the `email` claim's provenance at Microsoft. Neither
+replaces the verified-domain gate above, which is what proves the address's
+domain belongs to this organization, and neither is evidence of mailbox
+control.
 
 ### Identity linking and surface isolation
 
@@ -769,6 +974,28 @@ refuses SAML creation or re-enablement while it is incompatible (422 on
 `provider_type`). Existing records retain disable, repair, replacement, and
 delete recovery paths.
 
+### Import IdP metadata
+
+In the domain's SAML settings, fetch the IdP's public HTTPS metadata URL.
+For Microsoft Entra, use the **App Federation Metadata Url**. Review the
+returned SSO URL and EntityID, select a signing certificate, apply the values
+to the form, and save. Fetching alone changes no saved configuration. This is
+a manual import, not automatic metadata or certificate refresh; plan
+certificate rotation separately.
+
+The preview endpoint is `POST /api/domains/:extid/sso/metadata`, with
+`metadata_url` in the request body. It permits 30 requests per customer per
+hour by default; configure the `SSO_METADATA_FETCH_RATE_LIMIT_*` settings in
+[`etc/config.yaml`](../../etc/config.yaml). See the
+[metadata fetch implementation](../../apps/api/domains/logic/sso_config/fetch_idp_metadata.rb)
+for request validation and response details.
+
+Use the actual tenant EntityID, not a template such as
+`https://sts.windows.net/{tenantid}/`. Unresolved brace placeholders are
+rejected when saving, testing or re-enabling domain SAML; an existing
+configuration can still be disabled. The same validation prevents platform
+SAML from being enabled with a placeholder in `SAML_IDP_ENTITY_ID`.
+
 ### Validation, test and expiry
 
 - **Test connection** for `saml` is local. The URL, EntityID and certificate
@@ -813,6 +1040,43 @@ callback are both derived from the record's `idp_sso_service_url` origin
 domain's host. There is no per-domain override; an IdP whose login page posts
 back from a different origin than its SSO service URL cannot be used.
 
+## Generic OIDC for a Custom Domain
+
+Provider type `oidc`. The record holds the issuer, client ID and client
+secret. The issuer must serve OIDC discovery; Test Connection fetches the
+discovery document and compares its `issuer` value exactly (see
+[Common Issues](#common-issues)). The sovereign Entra section below uses this
+provider type.
+
+### Token endpoint authentication
+
+By default the client secret is sent to the IdP's token endpoint in an
+`Authorization: Basic` header (`client_secret_basic`). An IdP may accept only
+that form, or only the request-body form (`client_secret_post`). The
+**Advanced** section of the domain's SSO form has a **Token endpoint
+authentication** select with three choices:
+
+| Choice | Stored value | What is sent |
+|--------|--------------|--------------|
+| Automatic (default) | empty | `client_secret_basic`. A platform `OIDC_CLIENT_AUTH_METHOD` value never applies to a custom domain |
+| Authorization header (`client_secret_basic`) | `client_secret_basic` | The client ID and secret in an `Authorization: Basic` header |
+| Request body (`client_secret_post`) | `client_secret_post` | `client_id` and `client_secret` as form fields in the token request body |
+
+Leave it on Automatic unless the IdP requires one method. Test Connection
+reports the methods the IdP advertises in its discovery document
+(`token_endpoint_auth_methods_supported`). When the selected method is not in
+that list, the test still passes and shows a warning that names the
+advertised methods; sign-in may still work, but if the token exchange fails,
+choose an advertised method. A document that omits the list is treated as
+advertising `client_secret_basic` only, the default that OpenID Connect
+Discovery 1.0 section 3 gives for that field.
+
+Saving the form with Automatic selected clears a stored choice. Existing
+records have no stored choice and keep the default. The domain SSO change log
+records changes to this field (never the secret). The setting applies to
+`oidc` only: it is cleared for `entra_id` and `saml`, which have no option.
+Entra always sends the secret in the request body (#4764).
+
 ## OIDC for sovereign Microsoft Entra tenants
 
 Per-domain `entra_id` uses the commercial Microsoft authority and cannot be
@@ -846,7 +1110,23 @@ Generic OIDC is not assumed to enforce Entra application assignments. Set
 `allowed_domains` to the email domains that may use the custom domain. The
 allowlist is enforced on every tenant SSO callback; an empty list allows every
 email domain that the IdP authenticates. This differs from `entra_id`, where
-app assignment is treated as the access-control boundary.
+app assignment is treated as the access-control boundary for who may sign in.
+On either provider type, an account is created only for an address inside a
+domain the organization has proven; see
+[Verified email domains](#verified-email-domains). App assignment says nothing
+about the domain of the `email` claim.
+
+Passing the allowlist does not make the asserted address mailbox-verified. A
+JIT-provisioned member is stamped `verified_by: 'sso'`, which opens the account
+but is not mailbox proof; see
+[SSO verification is not mailbox proof](per-install-sso.md#sso-verification-is-not-mailbox-proof).
+
+An internationalised domain can be entered in either form. Entries are stored
+as typed and compared by A-label, so `bücher.de` matches an IdP that asserts
+`xn--bcher-kva.de`, and the reverse. A sign-in that matched only because the
+forms differed logs `omniauth_tenant_domain_idn_match` with the stored entry
+and the asserted domain. A Unicode entry with no exact A-label form (fullwidth
+letters, an ideographic full stop, a soft hyphen) is rejected when saved.
 
 ### Switching an existing Entra configuration
 
@@ -898,6 +1178,7 @@ previously configured tenant that was pointed at the wrong cloud.
 | SSO configured but login fails | No custom domain with SSO config | Add custom domain and configure SSO |
 | Test Connection fails with `issuer_mismatch` (OIDC only) | The configured issuer is not exactly the discovery document's `issuer`. The comparison is exact, including any trailing slash (Auth0 uses one) | Set the Issuer URL to the **Discovered Issuer** value shown in the result, character for character, and test again |
 | Test Connection fails with `discovery_too_large` | The discovery document is larger than the 256 KiB limit | Check that the issuer URL points at the IdP, not at a page that returns a large document |
+| Generic OIDC sign-in fails at the token exchange with `invalid_client` from the IdP | The IdP refuses the way the client secret was sent (the default is the `Authorization: Basic` header), or the secret is wrong | Run Test Connection and read the advertised methods. Under **Advanced**, set **Token endpoint authentication** to a method the IdP lists, save, and sign in again. See [Token endpoint authentication](#token-endpoint-authentication). If every method fails, check the secret itself |
 | Platform SSO used instead of domain SSO | The custom domain has no active tenant SSO configuration and `SSO_ALLOW_PLATFORM_FALLBACK=true` | Configure and enable tenant SSO for the domain, or disable platform fallback. Platform SAML is excluded from this fallback, and so is a domain whose tenant SSO waits only on verification |
 | SSO sign-in lands on `sso_domain_unverified` | The domain's SSO configuration is enabled and permitted, but the domain's ownership is not verified (never verified, or verification lapsed) | Complete domain verification, or have the operator set a verification override. Check the `omniauth_tenant_domain_unverified` log event for the host and domain |
 | SAML sign-in lands on `sso_config_unusable` | The domain's SAML record is unusable: expired certificate, or a field that no longer decrypts | Check the `omniauth_tenant_config_unusable` log event; save a current certificate or re-enter the flagged fields |

@@ -17,10 +17,12 @@
 # NOT exercise is the account.rb wiring:
 #
 #   - after_create_account derives `require_verification` from
-#     `Onetime.auth_config.verify_account_enabled?` (account.rb) and passes it
-#     into EnsureDefaultWorkspace, and
-#   - after_verify_account (registered ONLY when verify_account is enabled)
-#     re-invokes EnsureDefaultWorkspace.claim_pending_federation_for.
+#     `Onetime.auth_config.verify_account_loaded?` (account.rb; true by the
+#     verify_account flag or for webauthn_verify_account) and passes it into
+#     EnsureDefaultWorkspace, and
+#   - after_verify_account (registered ONLY when that predicate is true, so
+#     the Rodauth feature is loaded) re-invokes
+#     EnsureDefaultWorkspace.claim_pending_federation_for.
 #
 # The default test config DISABLES verify_account, so the after_verify_account
 # hook block is not even registered under a normal boot. These tests drive the
@@ -41,10 +43,14 @@
 #     and it cannot be reconfigured in-process (see
 #     apps/web/auth/docs/auth-config-one-shot.md). Rather than poison the shared
 #     boot for every other spec by force-enabling the feature process-wide, the
-#     "after verification" example replays the exact two operations account.rb's
-#     after_verify_account performs, in order:
-#         SetCustomerVerification(verified: true, rodauth_already_synced: true)
-#         EnsureDefaultWorkspace.claim_pending_federation_for(verified_customer)
+#     "after verification" example replays the one operation account.rb's
+#     after_verify_account performs:
+#         SetCustomerVerification(verified: true, verified_by: 'email',
+#                                 rodauth_already_synced: true)
+#     which stamps mailbox proof and claims the deferred federation itself
+#     (#4735). The example then asserts that an explicit
+#     EnsureDefaultWorkspace.claim_pending_federation_for is a no-op: the first
+#     claim consumed the pending record.
 #     A guard example asserts the wiring contract: the after_verify_account hook
 #     is only registered when verify_account is enabled.
 #
@@ -158,8 +164,9 @@ RSpec.describe 'Federated subscription claim through the real signup/verify hook
 
   describe 'verify_account ENABLED: standard signup defers the federated claim' do
     it 'creates the workspace but does NOT claim, then claims once verified' do
-      # account.rb computes require_verification from this predicate; force it on
-      # so the real signup hook takes the verify-enabled (deferred) branch.
+      # account.rb computes require_verification from verify_account_loaded?,
+      # which reads this flag; force it on so the real signup hook takes the
+      # verify-enabled (deferred) branch.
       allow(Onetime.auth_config).to receive(:verify_account_enabled?).and_return(true)
 
       @signup_email = unique_email('verify-enabled')
@@ -186,7 +193,8 @@ RSpec.describe 'Federated subscription claim through the real signup/verify hook
       expect(auth_warnings).not_to include(a_string_matching(AUDIT_MESSAGE))
 
       # Now replay exactly what account.rb's after_verify_account hook does once
-      # the user proves email ownership: mark verified, then re-run the claim.
+      # the user proves email ownership: stamp the 'email' provenance. The op
+      # claims the deferred federation itself (#4735); the hook runs nothing else.
       Auth::Operations::SetCustomerVerification.new(
         customer: customer,
         verified: true,
@@ -194,15 +202,19 @@ RSpec.describe 'Federated subscription claim through the real signup/verify hook
         rodauth_already_synced: true,
       ).call
 
-      verified_customer = Onetime::Customer.find_by_extid(customer.extid)
-      applied = Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(verified_customer)
-      expect(applied).to be(true)
-
       org.refresh!
       expect(org.subscription_federated?).to be(true)
       expect(org.subscription_status.to_s).to eq('active')
       expect(org.planid.to_s).to eq('pro_monthly')
       expect(pending_exists?(@signup_email)).to be(false)
+
+      # The first claim consumed the pending record, so the explicit re-claim an
+      # operator verification would drive is a no-op, not a second grant.
+      verified_customer = Onetime::Customer.find_by_extid(customer.extid)
+      applied = Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(verified_customer)
+      expect(applied).to be(false)
+      org.refresh!
+      expect(org.planid.to_s).to eq('pro_monthly')
     end
   end
 

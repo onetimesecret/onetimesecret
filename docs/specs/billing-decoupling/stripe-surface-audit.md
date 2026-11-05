@@ -166,7 +166,7 @@ Each item lists the code it touches; audit B's coexistence framing is folded int
 
 ### M8. Indirect organization and account behaviour
 - disposition: rebuild (small edits after M1)
-- files: `lib/onetime/operations/org/delete.rb` (guard L316, refusal L398); `apps/web/auth/operations/customers/purge_preflight.rb` (`BILLING_IDENTIFIER_FIELDS` L14-21, `BILLING_STATUS_FIELDS` L23-32, `billing_state?` L569-576); `lib/onetime/cli/customers/purge_command.rb` (`stripe_billing?` L687; raw HMGET L615-627); `apps/web/auth/operations/workspace_collision.rb` (`BILLING_FIELDS` L26-41); `lib/onetime/cli/org/doctor_command.rb` (`UNIQUE_INDEXES` L97-103); `safe_dump_fields.rb` (`active_subscription` L46); colonel `list_organizations.rb` filters; `apps/api/organizations/cli/list_command.rb` (`--customer cus_`, `--subscription sub_`)
+- files: `lib/onetime/operations/org/delete.rb` (guard L316, refusal L398); `apps/web/auth/operations/customers/purge_preflight.rb` (`BILLING_IDENTIFIER_FIELDS` L14-21, `BILLING_STATUS_FIELDS` L23-32, `billing_state?` L569-576); `lib/onetime/cli/customers/purge_inactive_command.rb` (`stripe_billing?` L687; raw HMGET L615-627); `apps/web/auth/operations/workspace_collision.rb` (`BILLING_FIELDS` L26-41); `lib/onetime/cli/org/doctor_command.rb` (`UNIQUE_INDEXES` L97-103); `safe_dump_fields.rb` (`active_subscription` L46); colonel `list_organizations.rb` filters; `apps/api/organizations/cli/list_command.rb` (`--customer cus_`, `--subscription sub_`)
 - required: liveness predicates, deletion checks, purge discovery, collision checks and billing claims understand both providers; otherwise the new integration is invisible to shared maintenance paths
 
 ### M9. Configuration, routing and external redirects
@@ -463,7 +463,7 @@ Category codes: M = MANDATORY, R = RECOMMENDED, S = SUGGESTED, N = NOT_NECESSARY
 | `utils/email_hash.rb`, `utils/diagnostics_ref.rb` | comments | N | keep |
 | `cli/billing/{orgs_stripe,catalog_drift}_command.rb` | index pager; drift | R | extend with provider |
 | `cli/migrations/*` | backfills | N | keep; historical |
-| `cli/customers/purge_command.rb`, `cli/customers/plan_set_command.rb` | Stripe protection; unguarded `BillingService` | N (purge: M8) | provider-aware protection |
+| `cli/customers/purge_inactive_command.rb`, `cli/customers/plan_set_command.rb` | Stripe protection; unguarded `BillingService` | N (purge: M8) | provider-aware protection |
 | `cli/org/{doctor,delete,reconcile}_command.rb`, entitlement CLIs, `cli/worker_command.rb`, `cli.rb` | field lists; flags; worker load | N (doctor indexes: M8) | small edits |
 | `lib/tasks/spec.rake`, `spec_selection.rake` | VCR tasks; exclusions | N | keep |
 

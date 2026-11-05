@@ -207,10 +207,11 @@ module Onetime
           domain = extract_domain(mailer_config.from_address)
 
           unless domain
-            return {
-              deleted: false,
+            return deletion_result(
+              outcome: :failed,
               message: 'Invalid from_address: cannot extract domain',
-            }
+              error: 'invalid_from_address',
+            )
           end
 
           log_info "[ses-sender] Deleting sender identity for #{domain}"
@@ -218,27 +219,14 @@ module Onetime
           client = build_ses_client(credentials)
           client.delete_email_identity(email_identity: domain)
 
-          {
-            deleted: true,
-            message: "Deleted sender identity #{domain}",
-          }
+          # The SDK returns an empty response on HTTP 200 and raises on errors.
+          deletion_result(outcome: :deleted, message: "Deleted sender identity #{domain}")
         rescue Aws::SESV2::Errors::NotFoundException
-          {
-            deleted: true,
-            message: "Identity #{domain} was already deleted or never existed",
-          }
-        rescue Aws::SESV2::Errors::ServiceError => ex
-          log_error "[ses-sender] SES API error: #{ex.message}"
-          {
-            deleted: false,
-            message: "SES deletion failed: #{ex.message}",
-          }
+          deletion_result(outcome: :absent, message: "Identity #{domain} was already deleted or never existed")
         rescue StandardError => ex
-          log_error "[ses-sender] Deletion failed: #{ex.message}"
-          {
-            deleted: false,
-            message: "SES deletion failed: #{ex.message}",
-          }
+          error = deletion_error_message(ex)
+          log_error "[ses-sender] Deletion failed: #{error}"
+          deletion_result(outcome: :failed, message: "SES deletion failed: #{error}", error: error)
         end
 
         protected

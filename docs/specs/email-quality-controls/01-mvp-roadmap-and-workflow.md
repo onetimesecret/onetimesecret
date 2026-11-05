@@ -34,7 +34,7 @@ design): [`../notifications/pareto-brief.md`](../notifications/pareto-brief.md).
 | 50 one-click unsubscribe | NOT STARTED | No unsubscribe route in any `routes.txt`; no `List-Unsubscribe` anywhere. |
 | 51 opt-back-in | NOT STARTED | No `resubscribe` references; no `Suppression::Release`. |
 | 60 observability | PARTIAL, thin | Only `EmailSuppression.sends_skipped` and `Customer.emails_sent`; no `EmailHealthJob`/`HealthReport`/`/email/health`. |
-| 61 hardening/cutover | NOT STARTED | `schedule_email` still in `lib/onetime/jobs/publisher.rb`, `email.message.schedule` still declared, still used by `expiration_warning_job.rb` — decision C not executed. **Live bug**: delayed expiration warnings dead-letter into `dlq.email.message` where `DlqEmailConsumerJob` discards non-auth templates. |
+| 61 hardening/cutover | PARTIAL | Decision C executed in #4844: `schedule_email` and the `email.message.schedule` queue are removed, `expiration_warning_job.rb` publishes to `email.message.send` at scan time, and the jobs-enabled path is covered in `spec/integration/all/jobs/rabbitmq_publishing_spec.rb`. The rest of the slice (default-on flip, backfill import, DLQ PII leak) NOT STARTED. |
 
 Grounding caveat for implementers: the shipped deliverability feature predates
 the epic specs. Where they conflict, the specs win; slice PRs migrate the

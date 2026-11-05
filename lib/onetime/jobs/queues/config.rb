@@ -36,14 +36,10 @@ module Onetime
           auto_delete: false,
           arguments: { 'x-dead-letter-exchange' => 'dlx.email.message' },
         },
-        'email.message.schedule' => {
-          durable: true,
-          auto_delete: false,
-          arguments: {
-            'x-dead-letter-exchange' => 'dlx.email.message',
-            'x-message-ttl' => 86_400_000, # 24 hours in milliseconds
-          },
-        },
+        # email.message.schedule (same DLX, x-message-ttl 24h) is retired. No
+        # worker ever consumed it, so every message published to it expired
+        # into dlq.email.message. A broker that declared it keeps the durable
+        # queue until an operator deletes it: maintenance.md, "Retired queues".
         'notifications.alert.push' => {
           durable: true,
           auto_delete: false,

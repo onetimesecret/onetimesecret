@@ -6,9 +6,10 @@
 // (`src/main.ts`). It mirrors main.ts's bootstrap shape but mounts an
 // admin-only Vue app whose router (`createAdminRouter`) carries ONLY admin
 // routes — it must never import `@/router` or `@/App`'s customer route
-// graph, or the customer views would leak back into this chunk (and vice
-// versa). The single-chunk CSP-nonce invariant holds because vite.config
-// keeps `codeSplitting: false` for every entry.
+// graph, or the customer views would leak back into this entry's chunks (and
+// vice versa). Both entries are built in one pass and share chunks for the
+// code they have in common; see the CSP note in vite.config.ts for why the
+// shared and lazy chunks need no nonce of their own.
 
 // Put Zod in jitless mode before any schema module loads. Zod v4's object
 // parser probes for `new Function` support (its JIT fast path); under our CSP
@@ -16,51 +17,21 @@
 // first so the config is applied before any z.object() is constructed.
 import './plugins/core/configureZod';
 
-import { createApp } from 'vue';
-
 import 'vite/modulepreload-polyfill';
 import App from './App.vue';
 import './assets/style.css';
 import { createAdminRouter } from './apps/admin/router';
-import { AppInitializer } from './plugins/core/appInitializer';
-import { loggingService } from './services/logging.service';
+import { startApp } from './plugins/core/startApp';
+import { installPreloadErrorHandler } from './utils/preloadError';
 
-// Handle Vite chunk loading failures that occur when cached HTML references
-// stale chunk hashes after a deployment. Without this, users see a blank page.
-window.addEventListener('vite:preloadError', (event) => {
-  event.preventDefault();
-  window.location.reload();
-});
+// A lazy chunk that fails to load reloads the page once, through the ADR-046
+// forced page load bound (see src/main.ts and src/utils/preloadError.ts).
+installPreloadErrorHandler();
 
 /**
  * Initialize and mount the admin Vue application. Shares the customer app's
- * root component and initializer, but is handed an admin-only router so the
- * chunk stays free of customer route code.
+ * root component and startup sequence (startApp: mount after the initial
+ * navigation, the app-ready and startup-failure flags), but is handed an
+ * admin-only router so the chunk stays free of customer route code.
  */
-const app = createApp(App);
-try {
-  app.use(AppInitializer, { router: createAdminRouter(), debug: false });
-  app.mount('#app');
-} catch (error) {
-  // Startup threw before the app took over #app, so loading cannot complete.
-  // Flag the server-rendered shell: its stalled-load notice (#4596) then
-  // switches from the timeout copy to a detected failure and stops the orb.
-  // Rethrow so the error still reaches the console and global handlers.
-  document.documentElement.dataset.appFailed = 'true';
-  throw error;
-}
-
-// Deterministic app-readiness signal for E2E tests (see src/main.ts for the
-// rationale). Gated on router.isReady() so the initial admin route resolves.
-app.config.globalProperties.$router
-  .isReady()
-  .then(() => {
-    document.documentElement.dataset.appReady = 'true';
-  })
-  .catch((error: unknown) => {
-    loggingService.error(
-      error instanceof Error
-        ? error
-        : new Error(`[admin] Initial navigation failed; app-ready flag not set: ${String(error)}`)
-    );
-  });
+void startApp({ root: App, createRouter: createAdminRouter, debug: false });

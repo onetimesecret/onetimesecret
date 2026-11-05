@@ -236,13 +236,15 @@ RSpec.describe 'signup validation request lookup wiring (F1)' do
     }
   end
   let(:ctx) do
-    double('Rodauth context', request: Struct.new(:env).new(env),
+    # session: a platform callback never stamps validated_omniauth_domain_id,
+    # so the tenant verified-email-domain rung (#4734) is a no-op here.
+    double('Rodauth context', request: Struct.new(:env).new(env), session: {},
       login_param: 'email', omniauth_email: email, omniauth_provider: 'oidc',
       create_account_error_flash: 'Unable to create account')
   end
 
   before do
-    allow(Onetime).to receive(:auth_config).and_return(double(verify_account_enabled?: false))
+    allow(Onetime).to receive(:auth_config).and_return(double(verify_account_loaded?: false))
     allow(Auth::Logging).to receive(:log_auth_event)
     allow(OT).to receive(:le)
     allow(OT).to receive(:conf).and_return(
@@ -285,7 +287,7 @@ RSpec.describe 'signup validation request lookup wiring (F1)' do
         expect(Onetime::CustomDomain).not_to receive(:from_display_domain)
 
         expect { ctx.instance_exec(&hook) }.to raise_error(FakeRodauthContext::RodauthError)
-        expect(config).to have_received(:valid_signup_email?).with(email)
+        expect(config).to have_received(:valid_signup_email?).with(email, domain: domain)
       end
 
       it 'fails closed on the request lookup failure without rereading it' do

@@ -66,7 +66,12 @@ module Onetime
     # - domain_signup:    Self-signup on a custom domain (CustomDomain context)
     # - invite:           Accepted an organization invitation
     # - sso_jit:          Just-in-time provisioning via OmniAuth/SSO
-    PROVISIONING_ORIGINS = %w[canonical_signup domain_signup invite sso_jit].freeze
+    # - login_recovery:   Recreated at login by Auth::Operations::SyncSession
+    #                     because a Rodauth account existed with no Customer
+    #                     record (the original record was lost or never
+    #                     written). Verification provenance on such a record
+    #                     is DERIVED from persisted auth state, not observed.
+    PROVISIONING_ORIGINS = %w[canonical_signup domain_signup invite sso_jit login_recovery].freeze
 
     # Reasons and operator-facing wording for the verification_hold field: WHY
     # an sso_jit customer was deliberately left unverified at JIT provisioning,
@@ -80,8 +85,60 @@ module Onetime
     VERIFICATION_HOLDS = {
       'idp_unverified' => 'the IdP reported the email as unverified at sign-in ' \
                           '(email_verified: false, or no GitLab confirmed_at)',
+      'domain_unverified' => "the IdP reported the email's domain owner as unverified at sign-in " \
+                             '(Entra xms_edov: false)',
       'claim_unreadable' => "the IdP's email_verified claim could not be read at sign-in",
     }.freeze
+
+    # Every verified_by provenance tag the codebase writes. verified_by is
+    # nil/empty when unverified. Enforced by Auth::Operations::SetCustomerVerification
+    # and Auth::Operations::EnsureCustomerForAccount (ArgumentError on an
+    # unknown tag) and audited by Auth::Operations::Customers::Doctor. Which
+    # of these count as mailbox proof is decided by MAILBOX_VERIFIED_BY below.
+    #
+    #   email          - secret reveal by owner (apps/api/v2/logic/secrets/
+    #                    {show,reveal}_secret.rb) and Rodauth verify_account
+    #                    (apps/web/auth/config/hooks/account.rb)
+    #   stripe_payment - payment-initiated signup (apps/web/billing/logic/welcome.rb)
+    #   autoverify     - autoverify-mode account creation
+    #                    (apps/api/account/logic/account/create_account.rb)
+    #   sso            - OmniAuth JIT provisioning (apps/web/auth/config/hooks/
+    #                    omniauth.rb), the doctor's :sso_customer_unverified
+    #                    repair, and the login-recovery path for accounts
+    #                    with an account_identities row
+    #   invite_token   - invite signup auto-verification (apps/web/auth/
+    #                    config/hooks/account.rb after_create_account)
+    #   cli_provision  - CLI customer/apitoken commands (lib/onetime/cli/)
+    #   colonel_admin  - colonel admin verification (apps/api/colonel/logic/
+    #                    colonel/set_user_verification.rb)
+    #   legacy         - backfilled by the doctor's verified_by repair, and
+    #                    the login-recovery path for non-SSO accounts
+    #                    (a Verified row there does not show how it got so)
+    # Keep this list in sync when adding a new provenance writer.
+    VERIFIED_BY_VALUES = %w[
+      email stripe_payment autoverify sso
+      invite_token cli_provision colonel_admin legacy
+    ].freeze
+
+    # verified_by values that record proof of MAILBOX control: someone followed
+    # a link delivered to the address, or an operator confirmed it by hand.
+    # Every other provenance records a weaker fact about the account:
+    #
+    #   sso            - the IdP asserted the address. Entra and SAML never
+    #                    assert mailbox control (#4735); OIDC email_verified
+    #                    only says the IdP believes it, and an explicit false
+    #                    withholds the stamp altogether (VERIFICATION_HOLDS).
+    #   stripe_payment - a card was charged; the billing address was typed.
+    #   autoverify     - the deployment skips verification entirely.
+    #   legacy         - verified before provenance was recorded; unknown how.
+    #
+    # Consumers that mean "this person controls the mailbox" (system roles,
+    # verification-secret display, pending-federation claims, signup resend
+    # suppression) call Customer#mailbox_verified?, which reads this list.
+    # Consumers that only mean "the account is open" keep calling verified?.
+    # VERIFIED_BY_VALUES above enumerates every provenance writer; keep the
+    # two lists in step when adding one.
+    MAILBOX_VERIFIED_BY = %w[email invite_token colonel_admin cli_provision].freeze
 
     require_relative 'customer/features'
 
@@ -143,6 +200,11 @@ module Onetime
     # instead of a global SCAN+decrypt. Written best-effort by
     # Onetime::Operations::Sessions::TrackMetadata; see SessionMetadata.
     sorted_set :active_sessions
+
+    # Written before purge removes a stale participation. Keep its organization
+    # reachable for dependency checks across retries until customer destruction.
+    set :purge_pending_organization_checks
+
     hashkey :feature_flags # Per-customer feature toggles
 
     # Used to track the current and most recently created password reset secret.
@@ -194,6 +256,20 @@ module Onetime
     # Organization: org.members gives O(1) access to all members
     # Through model auto-creates OrganizationMembership with role, status, etc.
     participates_in :Organization, :members, score: :joined, through: Onetime::OrganizationMembership, staged: :pending_invitations
+
+    # Familia reads both legacy raw and JSON-encoded participation keys, but
+    # 2.12 removes only the JSON form. Remove both in one command so membership
+    # and organization deletion cannot leave a legacy reverse-index reference.
+    def untrack_participation_in(collection_key)
+      index   = participations
+      index.warn_if_dirty!
+      removed = index.dbclient.srem(
+        index.dbkey,
+        *[index.serialize_value(collection_key), collection_key.to_s].uniq,
+      )
+      index.update_expiration
+      removed
+    end
 
     field_group :core_fields do
       field :custid

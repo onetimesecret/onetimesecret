@@ -55,7 +55,11 @@ module Auth
     include Auth::Routes::LinkSso
     include Auth::Routes::SsoLinkConfirm
 
-    plugin :json, parser: true  # Parse incoming JSON request bodies
+    # Serializes Hash/Array route results as JSON. Request bodies are not
+    # parsed here: the plugin takes no :parser option, and Rack::Parser in the
+    # universal middleware stack (Onetime::Application::MiddlewareStack) has
+    # already parsed them before this app runs.
+    plugin :json
     plugin :halt
     plugin :status_handler
     plugin :flash  # Required for Rodauth flash messages on browser redirects (e.g., OmniAuth)
@@ -144,6 +148,15 @@ module Auth
     # `<name>_route` reader and is skipped. The OmniAuth routes are matched
     # on their prefix because their provider segment is per-install (and,
     # for tenant SSO, per-request).
+    #
+    # The four OAuth IdP machine routes (config/features/oauth.rb) are here
+    # for a different reason: they authenticate by client credentials or
+    # bearer token (jwks: none), never by the Rack session, so a stale cookie
+    # a relying party's server happens to send must not become a 401. Their
+    # `<name>_route` readers exist only with the OAuth feature on, so the
+    # entries are inert otherwise. `authorize` is NOT here: it is
+    # browser-driven and login-required, and a 401 on a revoked cookie there
+    # matches every other login-required route.
     ANONYMOUS_RODAUTH_ROUTES = [
       :login,
       :webauthn_login,
@@ -157,6 +170,10 @@ module Auth
       :reset_password_request,
       :unlock_account,
       :unlock_account_request,
+      :token,
+      :revoke,
+      :userinfo,
+      :jwks,
     ].freeze
 
     MFA_PENDING_RODAUTH_ROUTES = [
@@ -322,6 +339,30 @@ module Auth
 
         response.status = 404
         next Auth::ErrorTranslator::NOT_FOUND_BODY
+      end
+
+      # OAuth/OIDC discovery routes (not auto-mounted by rodauth-oauth).
+      # Must be invoked from the routing block; the helpers register their
+      # own `request.on('.well-known/...')` matchers internally.
+      #
+      # JWKS at /jwks is auto-mounted by :oauth_jwt_jwks (pulled in by :oidc)
+      # — do not mount it here.
+      #
+      # See: apps/web/auth/config/features/oauth.rb
+      # See: rodauth-oauth-1.6.4/lib/rodauth/features/oidc.rb:188
+      # See: rodauth-oauth-1.6.4/lib/rodauth/features/oauth_base.rb:150
+      #
+      # Gated on the features Auth::Config was built with, not on live
+      # config: Auth::Config configures once per process, so a later
+      # auth_config.reload! that turns OAuth on (a spec boot, an operator
+      # reload) must not call route methods this Rodauth class never got.
+      if rodauth.features.include?(:oidc)
+        rodauth.load_openid_configuration_route
+        # Called without an issuer arg: the optional positional is a path
+        # suffix appended to base_url (oauth_base.rb:746–748), not a full
+        # issuer URI. Passing rodauth.oauth_jwt_issuer fails because that
+        # method is private at the routing-instance level.
+        rodauth.load_oauth_server_metadata_route
       end
 
       # Root path - Auth app info

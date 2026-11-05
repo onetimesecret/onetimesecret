@@ -2,10 +2,20 @@
 #
 # frozen_string_literal: true
 
+require 'digest'
 require_relative '../features/boolean_encoding'
+require_relative '../features/guarded_config_writes'
+require_relative '../../domain_validation/ascii_hostname'
 # Configuration-only and gem-free (it never loads omniauth-saml/ruby-saml):
 # the shared SAML validators and the single hardened-options builder (#4450).
 require_relative '../../sso_provider/saml'
+# The metadata-URL rule (#saml_validation_errors). Gem-free at load: it
+# requires ruby-saml only when a document is parsed, which the model never
+# does.
+require_relative '../../sso_provider/idp_metadata'
+# The token endpoint client-authentication mapping shared with the platform
+# OIDC definition (#4764).
+require_relative '../../sso_provider/oidc'
 
 #
 # CustomDomain::SsoConfig - Per-domain SSO credential storage
@@ -60,6 +70,12 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # three are required for provider_type 'saml'.
   SAML_FIELDS = [:idp_sso_service_url, :idp_entity_id, :idp_cert].freeze
 
+  # Accepted values of token_endpoint_auth_method (oidc only, #4764). Blank
+  # means "gem default". The symbol each one maps to lives with the
+  # platform definition, which reads the same names from
+  # OIDC_CLIENT_AUTH_METHOD.
+  TOKEN_ENDPOINT_AUTH_METHODS = Onetime::SsoProvider::Oidc::CLIENT_AUTH_METHODS.keys.freeze
+
   # Provider metadata for UI filtering logic
   #
   # :requires_domain_filter - When true, UI should show domain filter config
@@ -70,6 +86,13 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   #   which users can access the app. When false, anyone with valid IdP
   #   credentials could potentially authenticate.
   #
+  # Neither flag says anything about the domain of the asserted `email`
+  # claim. On every provider type, tenant SSO creates an account only for
+  # an address inside a custom domain the organization has proven, by TXT
+  # check or Colonel override (Organization#owns_email_domain?,
+  # CustomDomain#ownership_proven?, #4734); the allowlist selects among
+  # those domains and an empty list admits all of them.
+  #
   PROVIDER_METADATA = {
     'oidc' => {
       requires_domain_filter: true,
@@ -79,7 +102,7 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
     'entra_id' => {
       requires_domain_filter: false,
       idp_controls_access: true,
-      description: 'Microsoft Entra ID - access controlled via Azure app assignment',
+      description: 'Microsoft Entra ID - app assignment controls who may sign in; accounts are created only for addresses in domains your organization has proven',
     },
     # Treated like generic OIDC, not like Entra: "SAML" names a protocol,
     # not an IdP, so nothing here can promise that the IdP restricts who
@@ -139,6 +162,10 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   #
   field :tenant_id       # Entra ID: Azure AD tenant ID (required for entra_id only)
   field :issuer          # OIDC: Issuer URL for discovery (required for oidc only)
+  # OIDC: how the client secret reaches the token endpoint — one of
+  # TOKEN_ENDPOINT_AUTH_METHODS, or blank for the gem default (#4764).
+  # Optional, oidc only; the API clears it for the other provider types.
+  field :token_endpoint_auth_method
 
   # Encrypted credential storage with domain-bound AAD
   encrypted_field :client_id, aad_fields: [:domain_id]
@@ -163,6 +190,23 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   encrypted_field :idp_cert, aad_fields: [:domain_id]
   encrypted_field :name_id_format, aad_fields: [:domain_id]
   encrypted_field :callback_origins_json, aad_fields: [:domain_id]
+
+  # Where the admin last imported the trio from: the SAML IdP metadata URL
+  # (docs/specs/sso/saml-idp-metadata-consumption.md, Phase 1). Optional,
+  # saml only (the API clears it for every other provider type). Like the
+  # trio it is not a SECRET, and the serializer returns it in plaintext; it
+  # is an encrypted_field for the same INTEGRITY reason, bound to domain_id
+  # through AAD: once a scheduled refresh reads it (Phase 2), it is the
+  # source the trust anchor is updated from, and a value swapped in from
+  # another domain's record must fail to decrypt rather than quietly point
+  # this domain's refresh at another IdP. Declared this way now so that
+  # change needs no field migration.
+  #
+  # It is NOT a login input and NOT a trio field: it is outside SAML_FIELDS,
+  # #saml_trio, #credential_fingerprint and #build_saml_options, which never
+  # reveal it, so an unreadable or malformed value cannot stop a sign-in. It
+  # is checked structurally, only when present (#saml_validation_errors).
+  encrypted_field :idp_metadata_url, aad_fields: [:domain_id]
 
   def saml_name_id_format
     value = name_id_format&.reveal { it }.to_s
@@ -192,6 +236,17 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   field :created
   field :updated
 
+  # Stable across edits, fresh on delete/recreate (including within one second).
+  field :outcome_generation
+
+  def signin_outcome_generation
+    return outcome_generation unless outcome_generation.to_s.empty?
+
+    # Pre-existing configs have no generation. Their creation stamp is stable;
+    # every replacement created by this version gets a random generation.
+    "legacy:#{created}" unless created.to_s.empty?
+  end
+
   # Enforcement settings
   field :enforce_sso_only  # Boolean string ('true'/'false')
   field :grant_org_scope   # Boolean string ('true'/'false')
@@ -210,6 +265,7 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # FIELD_SPECS above (#3951). Must come after both the field
   # declarations and the constant.
   feature :boolean_encoding
+  feature :guarded_config_writes
 
   def init
     self.enabled          ||= 'false'
@@ -259,15 +315,35 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # Enable SSO for this domain.
   # @return [void]
   def enable!
-    self.enabled = 'true'
-    save
+    update_stored!(enabled: 'true')
   end
 
   # Disable SSO for this domain.
   # @return [void]
   def disable!
-    self.enabled = 'false'
-    save
+    update_stored!(enabled: 'false')
+  end
+
+  # Fields that decide whether a sign-in through this record can work.
+  # display_name, allowed domains, the enforcement flags and timestamps
+  # are left out: editing them does not change what a check proved.
+  CREDENTIAL_PLAIN_FIELDS     = [:provider_type, :tenant_id, :issuer, :token_endpoint_auth_method].freeze
+  CREDENTIAL_ENCRYPTED_FIELDS = [:client_id, :client_secret, *SAML_FIELDS, :name_id_format, :callback_origins_json].freeze
+
+  # Digest of the stored credential fields, to tell whether a record is
+  # still the one a check ran against.
+  #
+  # Encrypted fields contribute their stored ciphertext, never a revealed
+  # value. Each write encrypts with a fresh nonce, so re-saving the same
+  # secret changes the digest: a false "changed", never a false "same".
+  # `updated` cannot serve here; it has one-second resolution, and a save
+  # and a check can fall in the same second.
+  #
+  # @return [String] hex SHA-256
+  def credential_fingerprint
+    values  = CREDENTIAL_PLAIN_FIELDS.map { public_send(it).to_s }
+    values += CREDENTIAL_ENCRYPTED_FIELDS.map { public_send(it)&.encrypted_value.to_s }
+    Digest::SHA256.hexdigest(JSON.generate(values))
   end
 
   # Get the list of allowed email domains.
@@ -284,22 +360,46 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # Set the list of allowed email domains.
   #
   # Validates each domain using PublicSuffix to ensure it has a valid TLD.
-  # Supports internationalized domain names (IDN).
+  # Supports internationalized domain names (IDN): an entry is stored as
+  # typed (so the UI shows "bücher.de", not its A-label) and compared by its
+  # A-label (see matching_allowed_domain). Entries that name the same domain
+  # in different forms ("bücher.de", "xn--bcher-kva.de") collapse to the
+  # first one given. A Unicode entry with no exact A-label form is rejected
+  # (AsciiHostname.comparison_key), since it could never match an address.
   #
   # @param domains [Array<String>] Domain names to allow
   # @return [void]
   # @raise [Onetime::Problem] if any domain is invalid
   def allowed_domains=(domains)
+    normalized                = self.class.normalize_allowed_domains(domains)
+    self.allowed_domains_json = normalized.empty? ? nil : JSON.generate(normalized)
+  end
+
+  # The list allowed_domains= stores for the given input: stripped,
+  # downcased, blanks dropped, duplicates (including two forms of one IDN)
+  # collapsed to the first given. Exposed so a caller that needs to know
+  # what a write will persist (the PATCH audit log) reads the same answer
+  # as the setter.
+  #
+  # @param domains [Array<String>, nil]
+  # @return [Array<String>]
+  # @raise [Onetime::Problem] if any domain is invalid
+  def self.normalize_allowed_domains(domains)
     normalized = Array(domains).map { it.to_s.strip.downcase }.uniq.reject(&:empty?)
 
     # Validate each domain using PublicSuffix (handles IDN, validates TLD)
-    normalized.each do |domain|
+    keys = normalized.to_h do |domain|
       Onetime::Utils::DomainParser.cached_parse(domain)
+      key = Onetime::DomainValidation::AsciiHostname.comparison_key(domain)
+      raise Onetime::Problem, "Invalid domain: #{domain} (no exact IDNA A-label form)" unless key
+
+      [domain, key]
     rescue PublicSuffix::Error => ex
       raise Onetime::Problem, "Invalid domain: #{domain} (#{ex.message})"
     end
 
-    self.allowed_domains_json = normalized.empty? ? nil : JSON.generate(normalized)
+    # Two forms of one name keep the first given.
+    normalized.uniq { keys[it] }
   end
 
   # Whether allowed_domains_json holds something we cannot read as a
@@ -347,12 +447,34 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # @return [Boolean] true if email domain is allowed
   def valid_email_domain?(email)
     domains = allowed_domains
-    return true if domains.empty?
+    domains.empty? || !matching_allowed_domain(email, domains: domains).nil?
+  end
 
+  # The allowlist entry an address's domain matches, as stored, or nil.
+  #
+  # An exact match wins, so every address that matched byte for byte still
+  # does. Otherwise the two are compared by A-label
+  # (AsciiHostname.comparison_key): an entry typed as "bücher.de" matches an
+  # IdP asserting "xn--bcher-kva.de" and the reverse (RISK-2026-10-10-03,
+  # #4736). The result differs from the address's domain exactly when only
+  # the forms differed, which the tenant callback logs.
+  #
+  # Does not treat an empty list as allow-all; valid_email_domain? does.
+  #
+  # @param email [String] Email address to match
+  # @param domains [Array<String>] the list, when the caller has already
+  #   read it (saves a second parse of allowed_domains_json)
+  # @return [String, nil] the matching entry
+  def matching_allowed_domain(email, domains: allowed_domains)
     email_domain = email.to_s.split('@').last&.downcase
-    return false if email_domain.nil? || email_domain.empty?
+    return nil if email_domain.nil? || email_domain.empty?
 
-    domains.include?(email_domain)
+    return email_domain if domains.include?(email_domain)
+
+    key = Onetime::DomainValidation::AsciiHostname.comparison_key(email_domain)
+    return nil unless key
+
+    domains.find { Onetime::DomainValidation::AsciiHostname.comparison_key(it) == key }
   end
 
   # Generate OmniAuth strategy options for runtime injection.
@@ -437,13 +559,29 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
     case provider_type
     when 'oidc'
       errors << 'issuer is required for OIDC provider' if issuer.to_s.empty?
+      errors.concat(token_endpoint_auth_method_errors)
     when 'entra_id'
       errors << 'tenant_id is required for Entra ID provider' if tenant_id.to_s.empty?
     when 'saml'
       errors.concat(saml_validation_errors)
     end
 
+    # Only oidc reads token_endpoint_auth_method (build_oidc_options); on any
+    # other type a stored value is a defect the API's clearing should have
+    # prevented, not a setting waiting for a provider switch.
+    if provider_type != 'oidc' && !token_endpoint_auth_method.to_s.strip.empty?
+      errors << 'token_endpoint_auth_method is only supported for OIDC provider'
+    end
+
     errors
+  end
+
+  # @return [Array<String>] empty when blank or one of TOKEN_ENDPOINT_AUTH_METHODS
+  def token_endpoint_auth_method_errors
+    value = token_endpoint_auth_method.to_s.strip
+    return [] if value.empty? || TOKEN_ENDPOINT_AUTH_METHODS.include?(value)
+
+    ["token_endpoint_auth_method must be one of: #{TOKEN_ENDPOINT_AUTH_METHODS.join(', ')}"]
   end
 
   # Plaintext of one SAML trio field ('' when unset).
@@ -467,6 +605,38 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
     return '' if concealed.nil?
 
     concealed.reveal { it }.to_s
+  end
+
+  # Plaintext of the stored metadata URL ('' when unset). RAISES on a
+  # reveal failure, for the reason #reveal_saml_field does: "cannot
+  # decrypt" is corruption or a swapped value, never "unset".
+  #
+  # @return [String]
+  # @raise [StandardError] whatever Familia raises when reveal fails
+  def reveal_idp_metadata_url
+    concealed = idp_metadata_url
+    return '' if concealed.nil?
+
+    concealed.reveal { it }.to_s
+  end
+
+  # The metadata URL's share of #saml_validation_errors: structural, and only
+  # when a value is stored. Public because RunDiagnostics subtracts it from
+  # the stored_configuration check: the URL is not a login input, so an
+  # unreadable or malformed value is the form's to report and repair and
+  # must not refuse activation.
+  #
+  # @return [Array<String>] empty, or one problem description
+  def idp_metadata_url_errors
+    value = begin
+      reveal_idp_metadata_url
+    rescue StandardError
+      nil
+    end
+    return ['idp_metadata_url cannot be read (re-enter or clear the value)'] if value.nil?
+    return [] if value.strip.empty?
+
+    [Onetime::SsoProvider::IdpMetadata.metadata_url_problem(value)].compact
   end
 
   # The revealed trio, keyed the way
@@ -727,15 +897,20 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
     # @raise [Onetime::Problem] if config already exists or validation fails
     def create!(domain_id:, **attrs)
       raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
-      raise Onetime::Problem, 'SSO config already exists for this domain' if exists_for_domain?(domain_id)
 
-      config = new(domain_id: domain_id)
+      exists_message = 'SSO config already exists for this domain'
+      refuse_existing_config!(domain_id, exists_message)
+
+      config = new(domain_id: domain_id, outcome_generation: SecureRandom.uuid)
 
       # Set simple fields
       config.provider_type    = attrs[:provider_type] if attrs.key?(:provider_type)
       config.display_name     = attrs[:display_name] if attrs.key?(:display_name)
       config.tenant_id        = attrs[:tenant_id] if attrs.key?(:tenant_id)
       config.issuer           = attrs[:issuer] if attrs.key?(:issuer)
+      if attrs.key?(:token_endpoint_auth_method)
+        config.token_endpoint_auth_method = attrs[:token_endpoint_auth_method]
+      end
       config.enabled          = attrs[:enabled].to_s if attrs.key?(:enabled)
       config.enforce_sso_only = attrs[:enforce_sso_only].to_s if attrs.key?(:enforce_sso_only)
       config.grant_org_scope  = attrs[:grant_org_scope].to_s if attrs.key?(:grant_org_scope)
@@ -758,6 +933,7 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
 
       config.name_id_format   = attrs[:name_id_format] if attrs.key?(:name_id_format)
       config.callback_origins = attrs[:callback_origins] if attrs.key?(:callback_origins)
+      config.idp_metadata_url = attrs[:idp_metadata_url] if attrs.key?(:idp_metadata_url)
 
       # Set allowed domains
       config.allowed_domains = attrs[:allowed_domains] if attrs.key?(:allowed_domains)
@@ -772,25 +948,9 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
       end
 
       # Save using Horreum's built-in method
-      config.save
+      save_new_config!(config, exists_message)
 
       config
-    end
-
-    # Delete SSO config for a domain.
-    #
-    # @param domain_id [String] CustomDomain identifier
-    # @return [Boolean] true if deleted, false if not found
-    def delete_for_domain!(domain_id)
-      return false if domain_id.to_s.empty?
-
-      config = find_by_domain_id(domain_id)
-      return false unless config
-
-      # Use Horreum's destroy! which handles main key + instances zset
-      config.destroy!
-
-      true
     end
 
     # List all domain SSO configs.
@@ -817,6 +977,13 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
     domain.extid
   end
 
+  # client_auth_method is ALWAYS present, nil included (same reason as
+  # uid_attribute in build_saml_options): tenant options are merged over
+  # the platform-registered strategy key by key
+  # (OmniAuthTenant.merge_strategy_options), so an omitted key would let a
+  # platform OIDC_CLIENT_AUTH_METHOD decide how THIS tenant's secret is
+  # sent. nil is the gem default (:basic). Pinned in
+  # omniauth_tenant_helpers_spec.
   def build_oidc_options
     {
       strategy: :openid_connect,
@@ -830,9 +997,27 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
         identifier: client_id&.reveal { it },
         secret: client_secret&.reveal { it },
       },
+      client_auth_method: oidc_client_auth_method,
     }
   end
 
+  # The strategy option for the stored token_endpoint_auth_method (nil when
+  # blank or whitespace). Raises on a value outside
+  # TOKEN_ENDPOINT_AUTH_METHODS — validation_errors refuses those at save
+  # time, so this only fires for a record written around the model.
+  #
+  # @return [Symbol, nil]
+  def oidc_client_auth_method
+    Onetime::SsoProvider::Oidc.client_auth_method_for(token_endpoint_auth_method)
+  rescue ArgumentError => ex
+    raise Onetime::Problem, "SSO config for domain #{domain_id}: #{ex.message}"
+  end
+
+  # Same transport as the platform registration (Onetime::SsoProvider::Entra,
+  # #4764): the secret goes in the token request body, never in a Basic
+  # header that oauth2 encodes without form-escaping. The tenant hook
+  # merges client_options key by key (OmniAuthTenant.merge_strategy_options),
+  # so this key reaches the strategy alongside the Entra URLs it sets itself.
   def build_entra_id_options
     {
       strategy: :entra_id,
@@ -841,6 +1026,7 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
       client_secret: client_secret&.reveal { it },
       tenant_id: tenant_id,
       scope: 'openid profile email',
+      client_options: { auth_scheme: :request_body },
     }
   end
 
@@ -901,17 +1087,25 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # definition's own (Onetime::SsoProvider::Saml), so the two surfaces
   # cannot disagree about what a usable trio looks like.
   #
-  # Certificate EXPIRY is not an invariant here (allow_expired: true): a
-  # certificate expires without anyone writing to the record, and the API
-  # re-validates the whole record on every PATCH, so an expiry check here
-  # would make an expired config impossible to disable or edit. Expiry is
-  # enforced where a certificate is accepted (API write path) and where
-  # it is used (#build_saml_options, and ruby-saml's
-  # check_idp_cert_expiration at login).
+  # The trio checks run with stored: true (Saml's "A SAVED RECORD IS CHECKED
+  # FOR STRUCTURE ONLY"): a certificate's validity window and key type, and
+  # an EntityID template placeholder, are not invariants here. A
+  # certificate expires without anyone writing to the record, the other two
+  # rules are newer than some saved records, and the API re-validates the
+  # whole record on every PATCH, so any of them here would make such a
+  # config impossible to disable or edit. They are enforced where a value is
+  # accepted (API write path, metadata preview) and where it is used
+  # (#build_saml_options, and ruby-saml's check_idp_cert_expiration at
+  # login).
   #
   # The SSO URL gets no SSRF host check anywhere (the server never fetches
   # it; see DomainsAPI::Logic::SsoConfig::SamlFields); this method does no
   # I/O.
+  #
+  # The optional idp_metadata_url is checked the same way, structurally and
+  # only when present: the server DOES fetch it, so the API write path adds
+  # the SSRF host check, but that resolves DNS and does not belong in a
+  # model invariant. An unreadable value is reported like a trio field.
   def saml_validation_errors
     saml = Onetime::SsoProvider::Saml
 
@@ -921,7 +1115,7 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
       ['SAML policy cannot be read (re-enter the value)']
     end
 
-    policy_errors + SAML_FIELDS.filter_map do |name|
+    trio_errors = SAML_FIELDS.filter_map do |name|
       value = begin
         reveal_saml_field(name)
       rescue StandardError
@@ -931,9 +1125,11 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
 
       case name
       when :idp_sso_service_url then saml.sso_url_problem(value)
-      when :idp_entity_id       then saml.entity_id_problem(value)
-      when :idp_cert            then saml.cert_problem(value, allow_expired: true, allow_unsupported_key: true)
+      when :idp_entity_id       then saml.entity_id_problem(value, stored: true)
+      when :idp_cert            then saml.cert_problem(value, stored: true)
       end
     end
+
+    policy_errors + trio_errors + idp_metadata_url_errors
   end
 end

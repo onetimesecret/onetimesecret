@@ -39,6 +39,7 @@ RSpec.describe 'Colonel membership entitlement overrides', type: :integration do
     cust          = Onetime::Customer.create!(email: email)
     cust.role     = role
     cust.verified = verified
+    cust.verified_by = 'email' if verified.to_s == 'true'
     cust.save
     cust
   end
