@@ -1,0 +1,24 @@
+{
+  "name": "auth-recent-scope-domain",
+  "method": "GET",
+  "path": "/api/v3/receipt/recent?scope=domain",
+  "request": null,
+  "response_schema": "receiptList",
+  "request_schema": null,
+  "status": 422,
+  "headers": {
+    "content-type": "application/json",
+    "content-length": "79",
+    "x-content-type-options": "nosniff",
+    "x-xss-protection": "1; mode=block",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "cache-control": "private, no-store",
+    "o-domain-strategy": "canonical",
+    "o-display-domain": "127.0.0.1:3000",
+    "x-request-id": "0ulvyw572spt9"
+  },
+  "body": {
+    "error": "Domain extid required for domain scope",
+    "request_id": "0ulvyw572spt9"
+  }
+}

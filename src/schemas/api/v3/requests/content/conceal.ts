@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { baseSecretPayloadSchema } from './base';
 
 export const concealPayloadSchema = baseSecretPayloadSchema.extend({
-  kind: z.literal('conceal'),
+  kind: z.literal('conceal').optional(),
   secret: z.string().min(1),
 });
 

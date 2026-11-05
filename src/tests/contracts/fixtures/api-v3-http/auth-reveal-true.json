@@ -1,0 +1,49 @@
+{
+  "name": "auth-reveal-true",
+  "method": "POST",
+  "path": "/api/v3/secret/oqkhvan6r20aawginhy6zkosjzv37il1bgxytoqp24n8a0yml8uim7qtgq4u31/reveal",
+  "request": {
+    "continue": true
+  },
+  "response_schema": "secret",
+  "request_schema": "revealSecret",
+  "status": 200,
+  "headers": {
+    "x-content-type-options": "nosniff",
+    "x-xss-protection": "1; mode=block",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "o-domain-strategy": "canonical",
+    "o-display-domain": "127.0.0.1:3000",
+    "x-request-id": "0slupdgcim7yf",
+    "content-length": "587"
+  },
+  "body": {
+    "record": {
+      "identifier": "oqkhvan6r20aawginhy6zkosjzv37il1bgxytoqp24n8a0yml8uim7qtgq4u31",
+      "key": "oqkhvan6r20aawginhy6zkosjzv37il1bgxytoqp24n8a0yml8uim7qtgq4u31",
+      "shortid": "oqkhvan6",
+      "state": "revealed",
+      "lifespan": 3600,
+      "secret_ttl": 3600,
+      "has_passphrase": false,
+      "verification": false,
+      "display_type": "text",
+      "created": 1792807619.25386,
+      "updated": 1792807619.25386,
+      "is_previewed": false,
+      "is_revealed": true,
+      "is_viewed": false,
+      "is_received": true,
+      "secret_value": "schema audit dummy auth-conceal-minimal"
+    },
+    "details": {
+      "continue": true,
+      "is_owner": true,
+      "show_secret": true,
+      "display_lines": 4,
+      "one_liner": true
+    }
+  }
+}

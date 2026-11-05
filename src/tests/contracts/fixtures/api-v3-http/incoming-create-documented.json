@@ -1,0 +1,28 @@
+{
+  "name": "incoming-create-documented",
+  "method": "POST",
+  "path": "/api/incoming/secret",
+  "request": {
+    "secret": "schema incoming dummy",
+    "recipient": "caca2676ac56de1c558560efe92c506625a7953893af45fb2559a550ba09be9b",
+    "memo": "schema memo"
+  },
+  "response_schema": "incomingSecret",
+  "request_schema": "createIncomingSecret",
+  "status": 422,
+  "headers": {
+    "content-type": "application/json",
+    "content-length": "65",
+    "x-content-type-options": "nosniff",
+    "x-xss-protection": "1; mode=block",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "cache-control": "private, no-store",
+    "o-domain-strategy": "canonical",
+    "o-display-domain": "127.0.0.1:3000",
+    "x-request-id": "1vjcn0eg7f2zm"
+  },
+  "body": {
+    "error": "Incorrect payload format",
+    "request_id": "1vjcn0eg7f2zm"
+  }
+}
