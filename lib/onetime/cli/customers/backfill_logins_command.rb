@@ -5,7 +5,7 @@
 # Give every Rodauth `accounts` row its internal `login` and the contact-email
 # verification columns migration 015 added (ADR-051, SSO email-less accounts
 # Phase 2, step "Backfill op" in
-# docs/specs/sso-email-less-accounts/account-model-design.md §7).
+# docs/specs/sso/email-less-accounts-account-model.md §7).
 #
 # Usage:
 #   bin/ots customers backfill-logins                 # Dry run (default)
