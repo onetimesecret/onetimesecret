@@ -279,8 +279,10 @@ module Onetime
             - Backfilled rows are not selected again. Skipped and errored rows are
               reported on every run until fixed, so a --limit run without
               --after-id keeps returning the same low-id rows.
-            - The SQL write is compare-and-set on `login IS NULL`, so a row filled
-              by another process in between is reported and left alone
+            - The SQL write is compare-and-set on the row as scanned (`login IS NULL`
+              and its external_id, email and status_id), so a row another process
+              filled, re-linked, moved or closed in between is reported (as an error,
+              so the run exits 1) and left alone; re-run to pick it up
             - The login value itself is never printed or logged
 
         USAGE

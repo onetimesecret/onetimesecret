@@ -378,6 +378,62 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
     end
   end
 
+  # The decision is made from the scanned row. A sign-in (SyncSession) or
+  # `sync-auth-accounts` can re-link the row, a closure can close it, and a
+  # change-email can move it, between the scan and the write. Writing
+  # anyway would name two Customers on one row (login from the old link,
+  # external_id from the new) or copy verification for another address.
+  describe 'a row changed between scan and write' do
+    def change_row_during_lookup(account_id, **changes)
+      allow(Onetime::Customer).to receive(:find_by_extid).and_wrap_original do |original, *args|
+        found = original.call(*args)
+        accounts.where(id: account_id).update(**changes)
+        found
+      end
+    end
+
+    it 'writes nothing when external_id was re-linked to another Customer' do
+      customer   = create_customer(email, verified: true, verified_by: 'email')
+      other      = create_customer("other-#{run}@example.com")
+      account_id = insert_account(email, external_id: customer.extid)
+      change_row_during_lookup(account_id, external_id: other.extid)
+
+      result = new_operation(dry_run: false).call
+
+      row = account_row(account_id)
+      expect(row[:login]).to be_nil
+      expect(row[:external_id]).to eq(other.extid)
+      expect(row[:email_verified_at]).to be_nil
+      report = row_for(result, account_id)
+      expect(report[:outcome]).to eq(:error)
+      expect(report[:detail]).to include('changed between scan and write')
+    end
+
+    it 'writes nothing when the address changed' do
+      customer   = create_customer(email, verified: true, verified_by: 'email')
+      account_id = insert_account(email, external_id: customer.extid)
+      change_row_during_lookup(account_id, email: "moved-#{run}@example.com")
+
+      new_operation(dry_run: false).call
+
+      row = account_row(account_id)
+      expect(row[:login]).to be_nil
+      expect(row[:email_verified_at]).to be_nil
+    end
+
+    it 'writes nothing when the status changed' do
+      customer   = create_customer(email, verified: true, verified_by: 'email')
+      account_id = insert_account(email, external_id: customer.extid)
+      change_row_during_lookup(account_id, status_id: 3)
+
+      new_operation(dry_run: false).call
+
+      row = account_row(account_id)
+      expect(row[:login]).to be_nil
+      expect(row[:email_verified_at]).to be_nil
+    end
+  end
+
   describe 'limit and after_id' do
     it 'processes the lowest ids first and resumes past last_account_id' do
       c1  = create_customer("one-#{run}@example.com")

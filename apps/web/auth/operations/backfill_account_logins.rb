@@ -95,8 +95,10 @@ module Auth
     # none of them; refused and errored rows stay candidates and are
     # re-reported on every run until an operator resolves them (`after_id:`
     # skips past them on a limited run). The write is a compare-and-set on
-    # `login IS NULL`: a row another process filled between scan and write is
-    # reported, not clobbered. Dry run (the default) writes nothing.
+    # the row as scanned (`login IS NULL` and the external_id, email and
+    # status_id the decision was made from): a row another process filled,
+    # re-linked, moved or closed between scan and write is reported, not
+    # clobbered. Dry run (the default) writes nothing.
     class BackfillAccountLogins
       include Onetime::LoggerMethods
 
@@ -427,7 +429,7 @@ module Auth
         update[:external_id] = new_external_id if new_external_id && !new_external_id.empty?
 
         begin
-          rows_updated = accounts.where(id: row[:id], login: nil).update(update)
+          rows_updated = unchanged_since_scan(row).update(update)
         rescue Sequel::UniqueConstraintViolation => ex
           return report(
             row,
@@ -443,8 +445,8 @@ module Auth
             row,
             :error,
             branch,
-            "accounts row #{row[:id]} was gone or already had a login when the write ran (nothing written); " \
-            'it changed between scan and apply, re-run',
+            "accounts row #{row[:id]} changed between scan and write (gone, or its login, external_id, " \
+            'email or status_id moved); nothing written, re-run',
           )
         end
 
@@ -457,6 +459,24 @@ module Auth
       # said about the address, and the hold that records an unverified
       # claim lives only on the Customer this row does not have.
       #
+      # The write's compare-and-set: the row as scanned. Every decision
+      # above was made from these four values, so a row on which any moved
+      # is written nothing. A sign-in (SyncSession) or `sync-auth-accounts`
+      # re-linking external_id would otherwise leave login naming the old
+      # Customer and external_id the new one; a moved address or status
+      # would carry verification the row no longer has. `external_id: nil`
+      # is IS NULL. On PostgreSQL email is citext, so a case-only change
+      # still matches, which is the same address.
+      def unchanged_since_scan(row)
+        accounts.where(
+          id: row[:id],
+          login: nil,
+          external_id: row[:external_id],
+          email: row[:email],
+          status_id: row[:status_id],
+        )
+      end
+
       # @return [Hash] the three verification columns
       def verification_values(row, customer)
         values = { email_verified_at: nil, email_verified_by: nil, email_verification_hold: nil }
