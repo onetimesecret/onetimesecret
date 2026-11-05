@@ -46,11 +46,13 @@ def last_response; @test.last_response; end
 @colonel = Onetime::Customer.create!(email: "colonel_billing_#{@timestamp}@example.com")
 @colonel.role = 'colonel'
 @colonel.verified = 'true'
+@colonel.verified_by = 'email'
 @colonel.save
 
 # Regular (non-colonel) customer
 @regular = Onetime::Customer.create!(email: "regular_billing_#{@timestamp}@example.com")
 @regular.verified = 'true'
+@regular.verified_by = 'email'
 @regular.save
 
 @colonel_session = {

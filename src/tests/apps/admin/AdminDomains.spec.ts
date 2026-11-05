@@ -542,6 +542,93 @@ describe('AdminDomains — attach domain to organization', () => {
     expect(showMock).toHaveBeenCalled();
   });
 
+  // ---- Override: accept ownership (#4734) -----------------------------------
+  // Under passthrough a verified domain proves no email domain until a Colonel
+  // override. The verified checkbox is already ticked for such a domain, so
+  // the drawer's form offers a separate control that sends verified: true.
+  describe('override: accept ownership by override (#4734)', () => {
+    async function openDrawerOverride(row: Record<string, unknown>) {
+      mockApi.get.mockResolvedValue({ data: domainsPayload(row) });
+      wrapper = mountView();
+      await flushPromises();
+      await wrapper.find('[data-testid="domains-table"] tbody tr').trigger('click');
+      await flushPromises();
+      await wrapper.find('[data-testid="domain-drawer-override"]').trigger('click');
+      await flushPromises();
+    }
+
+    it('sends verified for a domain verified but not by override', async () => {
+      await openDrawerOverride({
+        verification_state: 'verified',
+        verified: true,
+        verified_by_override: false,
+        resolving: true,
+      });
+      mockApi.post.mockResolvedValue({
+        data: {
+          shrimp: '',
+          record: {
+            domain_id: 'cd1',
+            extid: 'cd_abc123',
+            display_domain: 'secrets.example.com',
+            verification_state: 'verified',
+            verified: true,
+            verified_by_override: true,
+            resolving: true,
+            ready: true,
+            updated: 1700009999,
+          },
+          details: {
+            previous_verified: true,
+            previous_resolving: true,
+            current_verified: true,
+            current_resolving: true,
+            verified_changed: false,
+            resolving_changed: false,
+            message: 'Domain verification flags overridden',
+          },
+        },
+      });
+
+      const accept = wrapper.find('[data-testid="override-accept-ownership"]');
+      expect(accept.exists()).toBe(true);
+      await accept.find('input[type="checkbox"]').setValue(true);
+      await wrapper.find('[data-testid="override-apply"]').trigger('click');
+      await flushPromises();
+
+      expect(mockApi.post).toHaveBeenCalledWith(
+        '/api/colonel/domains/cd_abc123/override',
+        { verified: true },
+        { headers: { 'X-OTS-Confirm': encodeURIComponent('secrets.example.com') } }
+      );
+    });
+
+    it('sends nothing when the accept control is left unticked', async () => {
+      await openDrawerOverride({
+        verification_state: 'verified',
+        verified: true,
+        verified_by_override: false,
+        resolving: true,
+      });
+
+      await wrapper.find('[data-testid="override-apply"]').trigger('click');
+      await flushPromises();
+
+      expect(mockApi.post).not.toHaveBeenCalled();
+    });
+
+    it('does not offer the accept control once the domain is verified by override', async () => {
+      await openDrawerOverride({
+        verification_state: 'verified',
+        verified: true,
+        verified_by_override: true,
+        resolving: true,
+      });
+
+      expect(wrapper.find('[data-testid="override-accept-ownership"]').exists()).toBe(false);
+    });
+  });
+
   // ---- Dialog placement (#4732) ---------------------------------------------
   // headlessui only treats a dialog as nested when it is rendered inside the
   // parent dialog's component subtree. The verify gate is opened from BOTH the

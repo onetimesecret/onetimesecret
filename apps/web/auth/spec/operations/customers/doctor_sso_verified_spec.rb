@@ -50,7 +50,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       extid: 'ur_c',
       obscure_email: 'ss***@e***.com',
       organization_instances: [],
-      verified?: verified,
+      verified?: verified, mailbox_verified?: verified,
       verified_by: verified_by,
       verification_hold: verification_hold,
       provisioning_origin: provisioning_origin,
@@ -263,6 +263,24 @@ RSpec.describe Auth::Operations::Customers::Doctor do
 
       expect(verification_calls.size).to eq(1)
       expect(repaired.size).to eq(1)
+    end
+  end
+
+  describe 'when the record carries an unrecognised verified_by' do
+    let(:verified_by) { 'mystery' }
+
+    it 'reports a medium, non-repairable issue instead of a repair that would be refused', :aggregate_failures do
+      run(repair: true)
+
+      expect(issues.size).to eq(1)
+      expect(issues.first).to include(
+        check: :sso_customer_unverified,
+        severity: :medium,
+        reason: :unknown_verified_by,
+        repairable: false,
+      )
+      expect(verification_calls).to be_empty
+      expect(repaired).to be_empty
     end
   end
 

@@ -53,19 +53,23 @@ DB    = Familia.dbclient
 @colonel = Onetime::Customer.create!(email: "colonel_racs_#{@timestamp}@example.com")
 @colonel.role = 'colonel'
 @colonel.verified = 'true'
+@colonel.verified_by = 'email'
 @colonel.save
 
 @regular = Onetime::Customer.create!(email: "regular_racs_#{@timestamp}@example.com")
 @regular.verified = 'true'
+@regular.verified_by = 'email'
 @regular.save
 
 @target = Onetime::Customer.create!(email: "target_racs_#{@timestamp}@example.com")
 @target.verified = 'true'
+@target.verified_by = 'email'
 @target.save
 @extid = @target.extid
 
 @other = Onetime::Customer.create!(email: "other_racs_#{@timestamp}@example.com")
 @other.verified = 'true'
+@other.verified_by = 'email'
 @other.save
 
 @colonel_session = {

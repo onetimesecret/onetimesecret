@@ -43,6 +43,7 @@ RSpec.describe 'Simple-mode colonel step-up starts a new session id (#4466)', ty
     customer.update_passphrase(password)
     customer.role     = 'colonel'
     customer.verified = 'true'
+    customer.verified_by = 'email'
     customer.save
     customer
   end

@@ -25,7 +25,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::InvestigateOrganization do
     double(
       'Customer',
       extid: 'ur_colonel_public', role: 'colonel', objid: 'cust-obj-1',
-      anonymous?: false, verified?: true,
+      anonymous?: false, verified?: true, mailbox_verified?: true,
     )
   end
 
@@ -142,7 +142,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::InvestigateOrganization do
     staff = double(
       'Customer',
       extid: 'ur_staff_public', role: 'staff', objid: 'cust-obj-2',
-      anonymous?: false, verified?: true,
+      anonymous?: false, verified?: true, mailbox_verified?: true,
     )
     logic = described_class.new(
       double(

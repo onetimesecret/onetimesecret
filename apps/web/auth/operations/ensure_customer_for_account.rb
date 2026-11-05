@@ -130,8 +130,9 @@ module Auth
       #   same "don't rewrite history" rule as provisioning_origin, and it keeps
       #   this operation from silently upgrading an existing unverified record.
       # @param verified_by [String, nil] Provenance tag stored alongside
-      #   `verified` (see Auth::Operations::Customers::Doctor::VALID_VERIFIED_BY).
-      #   Only meaningful when verified: true.
+      #   `verified`, one of Onetime::Customer::VERIFIED_BY_VALUES. Only
+      #   meaningful when verified: true. An unknown tag with verified: true
+      #   raises ArgumentError here, before any lookup or write.
       # @param verification_hold [String, nil] One of
       #   Onetime::Customer::VERIFICATION_HOLDS. The SSO/JIT caller passes it
       #   when it deliberately left the Customer unverified — the IdP asserted
@@ -145,6 +146,7 @@ module Auth
       def initialize(account_id:, account:, db: nil, provisioning_origin: nil, signup_domain_id: nil,
                      verified: false, verified_by: nil, verification_hold: nil)
         Onetime::Customer.assert_known_verification_hold!(verification_hold)
+        Onetime::Customer.assert_known_verified_by!(verified_by) if verified
         if verified && !verification_hold.to_s.empty?
           raise ArgumentError,
             "verification_hold #{verification_hold.inspect} contradicts verified: true"

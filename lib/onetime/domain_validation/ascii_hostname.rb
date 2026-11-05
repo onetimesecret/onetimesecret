@@ -78,6 +78,26 @@ module Onetime
           nil
         end
 
+        # Whether `name` is `parent` or a name below it (an email domain
+        # against a custom domain an organization has proven, #4734).
+        #
+        # Both sides go through comparison_key, so the Unicode and A-label
+        # spellings of one name agree and a label the UTS #46 mapping would
+        # rewrite matches nothing. The boundary is a label boundary: a name
+        # is below "acme.example" only when it ends in ".acme.example", so
+        # "notacme.example" is not. A side without a key is within nothing.
+        #
+        # @param name [String] the hostname being judged
+        # @param parent [String] the hostname it must equal or lie below
+        # @return [Boolean]
+        def within?(name, parent)
+          name_key   = comparison_key(name)
+          parent_key = comparison_key(parent)
+          return false if name_key.to_s.empty? || parent_key.to_s.empty?
+
+          name_key == parent_key || name_key.end_with?(".#{parent_key}")
+        end
+
         private
 
         # Checked first: String#strip itself raises on invalid bytes.

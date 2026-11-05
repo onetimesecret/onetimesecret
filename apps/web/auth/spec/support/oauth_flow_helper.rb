@@ -124,6 +124,13 @@ module OAuthFlowHelper
   #
   # @param display_domain [String] The domain hostname
   # @return [Hash] Created fixtures
+  #
+  # Tenant SSO creates accounts only for addresses at or below a custom
+  # domain the organization has proven (#4734), so a spec that signs a
+  # new user in through this tenant gives them an address at display_domain.
+  # The domain's ownership is accepted by Colonel override, the basis that
+  # counts under every validation strategy, including the test install's
+  # passthrough (CustomDomain#ownership_proven?).
   def setup_oauth_test_domain(display_domain)
     # Generate unique IDs for this test - use timestamp + random to ensure uniqueness
     test_id = "#{Time.now.to_i}#{SecureRandom.hex(4)}"
@@ -142,8 +149,11 @@ module OAuthFlowHelper
       display_domain: display_domain,
       org_id: org.org_id
     )
-    # TXT-verified: tenant SSO is unavailable (:domain_unverified) on an unproven domain (#4517).
-    domain.verified = true
+    # Ownership accepted: tenant SSO is unavailable (:domain_unverified) on an
+    # unproven domain (#4517). By Colonel override, so the domain also proves
+    # its email namespace for tenant JIT under passthrough (#4734).
+    domain.verified             = true
+    domain.verified_by_override = true
     domain.save
     Onetime::CustomDomain.display_domain_index.put(display_domain, domain.domainid)
 

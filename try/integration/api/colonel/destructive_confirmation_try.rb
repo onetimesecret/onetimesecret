@@ -52,14 +52,17 @@ AE = Onetime::ColonelAuditEvent
 @colonel = Onetime::Customer.create!(email: "colonel_dconf_#{@timestamp}@example.com")
 @colonel.role     = 'colonel'
 @colonel.verified = 'true'
+@colonel.verified_by = 'email'
 @colonel.save
 
 @target = Onetime::Customer.create!(email: "target_dconf_#{@timestamp}@example.com")
 @target.verified = 'true'
+@target.verified_by = 'email'
 @target.save
 
 @unverify_target = Onetime::Customer.create!(email: "unver_dconf_#{@timestamp}@example.com")
 @unverify_target.verified = 'true'
+@unverify_target.verified_by = 'email'
 @unverify_target.save
 
 @colonel_session = {

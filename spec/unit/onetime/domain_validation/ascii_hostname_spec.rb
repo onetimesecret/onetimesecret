@@ -78,4 +78,34 @@ RSpec.describe Onetime::DomainValidation::AsciiHostname do
       expect(described_class::ConversionError).to be < ArgumentError
     end
   end
+
+  describe '.within?' do
+    it 'is true for the name itself and for names below it' do
+      expect(described_class.within?('acme.example', 'acme.example')).to be(true)
+      expect(described_class.within?('mail.acme.example', 'acme.example')).to be(true)
+      expect(described_class.within?('a.b.acme.example', 'acme.example')).to be(true)
+    end
+
+    it 'compares case-insensitively' do
+      expect(described_class.within?('Mail.ACME.example', 'acme.Example')).to be(true)
+    end
+
+    it 'is false for the parent, for a sibling and for a name that only ends in the same characters' do
+      expect(described_class.within?('acme.example', 'mail.acme.example')).to be(false)
+      expect(described_class.within?('other.example', 'acme.example')).to be(false)
+      expect(described_class.within?('notacme.example', 'acme.example')).to be(false)
+    end
+
+    it 'treats the Unicode and A-label spellings of one name as the same' do
+      expect(described_class.within?('xn--bcher-kva.de', 'bücher.de')).to be(true)
+      expect(described_class.within?('mail.bücher.de', 'xn--bcher-kva.de')).to be(true)
+    end
+
+    it 'is false when either side has no comparison key' do
+      expect(described_class.within?('ｅｘａｍｐｌｅ.com', 'example.com')).to be(false)
+      expect(described_class.within?('mail.example.com', 'ｅｘａｍｐｌｅ.com')).to be(false)
+      expect(described_class.within?('', 'example.com')).to be(false)
+      expect(described_class.within?('example.com', '')).to be(false)
+    end
+  end
 end

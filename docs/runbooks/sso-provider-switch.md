@@ -79,7 +79,13 @@ schedule."
 
 Preconditions: SsoConfig already points at the new provider (otherwise users
 re-mint under the old key between steps); `allowed_domains` covers every email
-domain in play or is empty; owner not in the list; `restrict_to` not blocking.
+domain in play or is empty; every email domain in play is, or is below, a
+custom domain of this organization whose ownership is proven (a passing TXT
+check, or a Colonel override; under `passthrough` only an override counts),
+since tenant SSO creates no account outside those domains (#4734; the SSO
+settings page lists them as proven domains); owner not in the list;
+`restrict_to` not blocking. A purged user whose address fails that check
+cannot be re-created by sign-in.
 
 ```bash
 bin/ots customers purge <email> --reason "SSO provider switch, ticket #NNN"   # one per account, confirm each

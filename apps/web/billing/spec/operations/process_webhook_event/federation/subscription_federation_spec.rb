@@ -206,6 +206,33 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
         federated_org.refresh!
         expect(federated_org.subscription_federated_at).not_to be_nil
       end
+
+      # A pending record for this hash can outlive its claim when the claim
+      # saved the org but failed to destroy the record. Once this event has
+      # synced the org directly, the record is a stale snapshot that a later
+      # re-claim would replay; the sync retires it (#4735 review, F8).
+      it 'retires a leftover pending record for the same email_hash' do
+        # The org fixture has no billing_email, so compute_email_hash! leaves
+        # the hash blank; the lookup is stubbed and never needs it. This
+        # example does: the pending record is keyed by the org's hash.
+        hash = Onetime::Utils::EmailHash.compute(federated_email)
+        federated_org.email_hash = hash
+        federated_org.save
+
+        pending = Billing::PendingFederatedSubscription.new(hash)
+        pending.subscription_status = 'active'
+        pending.planid              = 'identity_monthly'
+        pending.received_at         = (Time.now.to_i - 60).to_s
+        pending.save
+        expect(Billing::PendingFederatedSubscription.find_by_email_hash(hash)).not_to be_nil
+
+        operation.call
+
+        expect(Billing::PendingFederatedSubscription.find_by_email_hash(hash)).to be_nil
+      ensure
+        # Only a failing run leaves the record behind.
+        Billing::PendingFederatedSubscription.find_by_email_hash(hash)&.destroy!
+      end
     end
   end
 
