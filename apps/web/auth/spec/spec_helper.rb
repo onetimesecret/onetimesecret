@@ -36,11 +36,17 @@ require 'simplecov' if ENV['COVERAGE'] == 'true'
 # the moment the trees share one, where the first tree to load this file
 # decides the authentication mode for all of them.
 #
-# The lanes and CI both pin the mode (tests/lanes/unit/env sets
-# AUTHENTICATION_MODE=simple, .github/workflows/ci.yml does the same for the
-# ruby-unit job), so this default is inert there. A bare local
-# `bundle exec rake spec:fast` is the divergence: nothing pins the mode, so
-# this line flips the process to full mode.
+# The lanes and ci.yml's ruby-unit job pin the mode (tests/lanes/unit/env
+# sets AUTHENTICATION_MODE=simple), so this default is inert there. The
+# divergence is any rspec process started without the lane env: a bare local
+# `bundle exec rake spec:fast`, and the installer.yml and devcontainer-ci.yml
+# workflows, which run `pnpm run test:rspec:fast` on the environment
+# `bin/setup --test` just built. There this line fills the gap with 'full'.
+#
+# Whether the environment pinned the mode is remembered so the reload in
+# PRE-LOAD AUTH APPLICATION below can tell a pinned process from one this
+# default filled in: only the former may be switched into full mode.
+AUTH_MODE_PINNED_BY_ENV = ENV.key?('AUTHENTICATION_MODE')
 ENV['AUTHENTICATION_MODE'] ||= 'full'
 
 PLACEHOLDER_OIDC_ISSUER = 'https://placeholder.invalid'
@@ -141,15 +147,30 @@ require_relative '../database'
 # unit specs leave it unset and the RSA-key requirement (features/oauth.rb:234)
 # stays dormant.
 #
-# Reload Onetime.auth_config before requiring the application. The
-# AuthConfig singleton was first instantiated during `require 'onetime'`
-# (lib/onetime/initializers.rb:75, called from the root spec_helper) — at
-# which point AUTHENTICATION_MODE was unset, so mode cached as 'simple'.
-# Without a reload here, Auth::Database.connection returns nil (full-mode
-# guard at database.rb:111), and rodauth's post_configure (base.rb:443)
-# crashes calling db.database_type on nil. Mirrors the reload performed
-# by ProductionConfigHelper#boot_onetime_app for integration specs.
-Onetime.auth_config.reload! if Onetime.respond_to?(:auth_config) && Onetime.auth_config.respond_to?(:reload!)
+# Reload Onetime.auth_config before requiring the application, but ONLY when
+# the environment pinned the mode (AUTH_MODE_PINNED_BY_ENV, top of file).
+# The AuthConfig singleton was instantiated during `require 'onetime'`
+# (lib/onetime/initializers.rb, from the root spec_helper) and caches the
+# mode it saw then; a pinned process re-reads the same value, so the reload
+# is a no-op there. It mirrors the reload ProductionConfigHelper
+# #boot_onetime_app performs for integration specs.
+#
+# It must NOT run when the `||= 'full'` default at the top of this file
+# filled the gap. That default belongs to the whole rspec process, and a
+# reload on it switches a process that booted in simple mode into full mode
+# for every spec tree it hosts: spec:apps_fast run without the lane env (the
+# installer.yml and devcontainer-ci.yml workflows do exactly that) then runs
+# the apps/api verification-secret specs in full mode, where the
+# verification-link stamp is a no-op (Rodauth owns verification) and
+# ChangeEmail reaches an unmigrated in-memory auth DB ("no such table:
+# accounts"), and 21 of them fail. An unpinned process keeps the mode it
+# booted with. The application pre-load below is then skipped
+# (full_enabled? is false), so nothing reaches rodauth's post_configure and
+# the db.database_type-on-nil crash (base.rb) the reload once guarded
+# against cannot occur.
+if AUTH_MODE_PINNED_BY_ENV && Onetime.respond_to?(:auth_config) && Onetime.auth_config.respond_to?(:reload!)
+  Onetime.auth_config.reload!
+end
 
 # Only eagerly load the full auth application in full mode. The reload above has
 # now picked up AUTHENTICATION_MODE from the environment; in simple mode (the
