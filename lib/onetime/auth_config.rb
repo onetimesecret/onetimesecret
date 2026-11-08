@@ -551,11 +551,6 @@ module Onetime
         next unless provider_active?(defn)
         next if withheld_by_issuer_verdict?(defn)
 
-        # Optional gate beyond env-var presence (e.g., the local IdP needs
-        # AUTH_OAUTH_ENABLED=true on top of OAUTH_SP_DEV_CLIENT_SECRET).
-        condition = defn[:condition]
-        next if condition && !condition.call(self)
-
         display = ENV.fetch(defn[:display_var], nil) || defn[:display_default]
         {
           'route_name' => ENV.fetch(defn[:route_var], defn[:route_default]),
@@ -678,8 +673,10 @@ module Onetime
         #
         # Two-part gate: OAUTH_SP_DEV_CLIENT_SECRET must be set (env-var
         # presence) AND AUTH_OAUTH_ENABLED=true (so the IdP it talks to is
-        # actually running). Without the second check, the frontend would
-        # render a "Local IdP" button that posts to a non-existent route.
+        # actually running). #provider_active? applies both, so the button
+        # list, the HttpOrigin origins and the restrict_to 'sso' prerequisite
+        # agree; without the second check the frontend would render a
+        # "Local IdP" button that posts to a non-existent route.
         {
           key: :local_idp,
           required_vars: %w[OAUTH_SP_DEV_CLIENT_SECRET],
@@ -914,7 +911,8 @@ module Onetime
         # verdict (#4513), which must not decide whether the restriction holds.
         if provider_definitions.none? { |defn| provider_active?(defn) }
           return 'SSO is enabled but no provider is configured (no provider has its ' \
-                 'required env vars set, e.g. OIDC_ISSUER + OIDC_CLIENT_ID)'
+                 'required env vars set and its prerequisites met, e.g. OIDC_ISSUER + ' \
+                 'OIDC_CLIENT_ID, or OAUTH_SP_DEV_CLIENT_SECRET with AUTH_OAUTH_ENABLED=true)'
         end
       when 'email_auth'
         return 'email auth is disabled (full.features.email_auth / AUTH_EMAIL_AUTH_ENABLED)' unless email_auth_enabled?
@@ -1059,11 +1057,19 @@ module Onetime
     # switched-off provider whatever its vars say, so nothing may be
     # advertised or admitted for it either.
     #
+    # A definition's :condition (the local IdP's AUTH_OAUTH_ENABLED) is part
+    # of the same predicate. configure_local_idp_provider registers no route
+    # while it is false, so a provider that passes presence alone must not
+    # count as configured either: #restrict_to_unmet_prerequisite reads this
+    # predicate, and counting it let restrict_to 'sso' boot with no provider
+    # that could sign anyone in (ADR-034#degradation-is-fail-closed).
+    #
     # @param defn [Hash] a provider definition from the registry
     # @return [Boolean]
     def provider_active?(defn)
       return false if defn[:enabled] && !provider_switch_on?(defn)
       return false unless defn[:required_vars].all? { |var| env_present?(var) }
+      return false if defn[:condition] && !defn[:condition].call(self)
       return true unless defn[:vars_valid]
 
       begin

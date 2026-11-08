@@ -36,6 +36,7 @@ RSpec.describe Onetime::AuthConfig do
           webauthn_verify_account: <%= ENV['AUTH_WEBAUTHN_VERIFY_ACCOUNT'] == 'true' %>
           webauthn_autofill: <%= ENV['AUTH_WEBAUTHN_AUTOFILL'] == 'true' %>
           sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>
+          oauth: <%= ENV['AUTH_OAUTH_ENABLED'] == 'true' %>
         <%
           only_flags = [
             ENV['AUTH_PASSWORD_ONLY'] == 'true' ? 'password' : nil,
@@ -79,6 +80,8 @@ RSpec.describe Onetime::AuthConfig do
       GOOGLE_TRUST_EMAIL_FOR_LINKING GITHUB_TRUST_EMAIL_FOR_LINKING
       GITLAB_TRUST_EMAIL_FOR_LINKING APPLE_TRUST_EMAIL_FOR_LINKING
       SAML_TRUST_EMAIL_FOR_LINKING
+      AUTH_OAUTH_ENABLED OAUTH_SP_DEV_CLIENT_SECRET
+      OAUTH_SP_DEV_ROUTE_NAME OAUTH_SP_DEV_DISPLAY_NAME
     ]
   end
 
@@ -480,6 +483,18 @@ RSpec.describe Onetime::AuthConfig do
         )
         expect(config.validate_restrict_to!).to eq('sso')
       end
+
+      it "returns 'sso' when the only provider is the local IdP and the IdP is on" do
+        config = fresh_config(
+          'AUTH_SSO_ONLY' => 'true',
+          'AUTH_SSO_ENABLED' => 'true',
+          'AUTH_OAUTH_ENABLED' => 'true',
+          'OAUTH_SP_DEV_CLIENT_SECRET' => 'dev-secret',
+        )
+        expect(config.sso_providers.map { |p| p['route_name'] }).to eq(['local'])
+        expect(config.validate_restrict_to!).to eq('sso')
+        expect(config.restrict_to_available?).to be(true)
+      end
     end
 
     context 'with prerequisites unmet' do
@@ -491,6 +506,21 @@ RSpec.describe Onetime::AuthConfig do
 
       it 'raises when restrict_to=sso but no provider is configured' do
         config = fresh_config('AUTH_SSO_ONLY' => 'true', 'AUTH_SSO_ENABLED' => 'true')
+        expect { config.validate_restrict_to! }
+          .to raise_error(Onetime::ConfigError, /no provider is configured/)
+      end
+
+      # The local IdP's secret alone is not a provider: with AUTH_OAUTH_ENABLED
+      # off no route is registered, so this boot must be refused like any
+      # other SSO restriction with nothing to sign in with.
+      it 'raises when the only provider is the local IdP and the IdP is off' do
+        config = fresh_config(
+          'AUTH_SSO_ONLY' => 'true',
+          'AUTH_SSO_ENABLED' => 'true',
+          'OAUTH_SP_DEV_CLIENT_SECRET' => 'dev-secret',
+        )
+        expect(config.sso_providers).to eq([])
+        expect(config.restrict_to_available?).to be(false)
         expect { config.validate_restrict_to! }
           .to raise_error(Onetime::ConfigError, /no provider is configured/)
       end
