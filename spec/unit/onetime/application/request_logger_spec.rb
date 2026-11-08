@@ -71,6 +71,33 @@ RSpec.describe Onetime::Application::RequestLogger do
     end
   end
 
+  # otto 2.13 (delano/otto#292): when the trusted X-Forwarded-For walk finds
+  # no client IP, IPPrivacyMiddleware leaves REMOTE_ADDR raw and sets the
+  # otto.ip_match + otto.peer_relayed marker pair. request.ip is then the
+  # unmasked peer; the log line must carry no address instead.
+  context 'client IP in :standard capture' do
+    def call_env(extra)
+      env = Rack::MockRequest.env_for('/api/v3/status', extra)
+      middleware.call(env)
+      captured.last.last
+    end
+
+    it 'logs the canonical masked otto.client_ip' do
+      payload = call_env('otto.client_ip' => '203.0.113.0', 'REMOTE_ADDR' => '10.0.0.5')
+      expect(payload['ip']).to eq('203.0.113.0')
+    end
+
+    it 'logs no address on the no-client-IP path, not the raw REMOTE_ADDR' do
+      payload = call_env(
+        'otto.ip_match' => ->(*) { false },
+        'otto.peer_relayed' => true,
+        'REMOTE_ADDR' => '10.0.0.5',
+      )
+      expect(payload['ip']).to be_nil
+      expect(payload.to_s).not_to include('10.0.0.5')
+    end
+  end
+
   # :minimal capture (the YAML default) normally omits request_id. Error lines
   # must still carry it so the id the client received is greppable here.
   context 'in :minimal capture mode' do

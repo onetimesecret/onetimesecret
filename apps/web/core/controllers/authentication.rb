@@ -6,6 +6,7 @@ require 'onetime/session/impersonation'
 require 'onetime/session/surface'
 require 'onetime/session/remember_me'
 require 'onetime/session/rotation'
+require 'onetime/utils/client_ip'
 
 require_relative 'base'
 
@@ -62,7 +63,7 @@ module Core
           {
             customer_id: customer_id,
             session_handle: session_handle,
-            ip: req.ip,
+            ip: Onetime::Utils::ClientIp.from_request(req),
           }
 
         # Close any impersonation FIRST, so it is stopped and AUDITED rather
@@ -92,7 +93,7 @@ module Core
           {
             customer_id: customer_id,
             session_handle: session_handle,
-            ip: req.ip,
+            ip: Onetime::Utils::ClientIp.from_request(req),
           }
 
         if json_requested?
@@ -178,7 +179,7 @@ module Core
               external_id: cust_after.extid,
               role: cust_after.role,
               session_handle: Onetime::SessionMetadata.handle_for(session.id&.public_id),
-              ip: req.ip,
+              ip: Onetime::Utils::ClientIp.from_request(req),
             }
 
           # Override redirect for colonel role
