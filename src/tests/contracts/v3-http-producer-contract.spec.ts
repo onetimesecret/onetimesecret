@@ -5,7 +5,13 @@ import * as requests from '@/schemas/api/v3/requests';
 import { responseSchemas } from '@/schemas/api/v3/responses/registry';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { captures, type HttpCapture } from './fixtures/v3-http-captures';
+import {
+  archiveOnlyCaptureNames,
+  archivedCaptures,
+  captures,
+  freshCaptureRun,
+  type HttpCapture,
+} from './fixtures/v3-http-captures';
 
 const responses: Record<string, z.ZodType> = { ...responseSchemas, ...incomingResponses };
 const requestSchemas: Record<string, z.ZodType> = {
@@ -32,10 +38,26 @@ function responseKey(capture: HttpCapture): string {
 
 describe('mounted Ruby HTTP captures → producer contracts', () => {
   it('keeps all 41 audited captures, the bearer token grant, and the four previously failing successes', () => {
-    if (!process.env.API_V3_SCHEMA_CAPTURE_DIR) expect(captures).toHaveLength(42);
+    if (!freshCaptureRun) expect(captures).toHaveLength(42);
     for (const name of ['status-found', 'status-missing', 'auth-update-memo', 'feedback-actual']) {
       expect(captures.find((capture) => capture.name === name)?.status).toBe(200);
     }
+  });
+
+  // A producer run that silently stops emitting a capture must not pass the
+  // blocking gate: the fresh set is the archived set minus archive-only evidence.
+  // A new producer capture needs its archived copy committed alongside it.
+  it.runIf(freshCaptureRun)('a fresh producer run emits exactly the archived capture set', () => {
+    const expected = archivedCaptures
+      .map((capture) => capture.name)
+      .filter((name) => !archiveOnlyCaptureNames.includes(name))
+      .sort();
+    expect(captures.map((capture) => capture.name).sort()).toEqual(expected);
+  });
+
+  it('every archive-only capture name is in the archive', () => {
+    const archived = archivedCaptures.map((capture) => capture.name);
+    for (const name of archiveOnlyCaptureNames) expect(archived).toContain(name);
   });
 
   for (const capture of captures.filter((capture) => capture.status === 200)) {

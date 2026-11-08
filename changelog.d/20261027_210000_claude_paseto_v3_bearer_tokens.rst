@@ -16,9 +16,9 @@ Added
   browser session out. When the account's credential watermark is 60 seconds
   or more ahead of the issuing node's clock (the verifier's allowance, which
   the one-second push past the watermark would then exceed),
-  ``POST /api/v3/token`` answers ``503`` with ``Retry-After``
-  (``reason: credential_watermark_ahead``) instead of issuing a token no
-  verifier would accept. The signing key is
+  ``POST /api/v3/token`` answers ``503`` with ``Retry-After`` set to the
+  seconds until a token can be issued (``reason: credential_watermark_ahead``)
+  instead of issuing a token no verifier would accept. The signing key is
   derived from ``SECRET``; ``SECRET_PREVIOUS`` entries keep verifying tokens
   signed before a rotation. See ``docs/authentication/api-bearer-tokens.md``.
 - Two credential refusal codes, ``api_token_invalid`` and

@@ -120,8 +120,10 @@ module V3
         # by that much) cannot be issued past. Clamping would not help
         # (`iat <= watermark` is refused as
         # retired), so the mint refuses instead of returning a token that
-        # every verifier rejects: 503 with Retry-After, and a warning naming
-        # the lead, which is a clock-skew signal for the operator.
+        # every verifier rejects: 503 with Retry-After set to the seconds
+        # until the lead is back within the allowance (when a mint succeeds),
+        # and a warning naming the lead, which is a clock-skew signal for the
+        # operator.
         def issuance_time(now = Time.now)
           watermark = cust.bearer_token_watermark
           return now if now.to_i > watermark
@@ -137,6 +139,7 @@ module V3
           raise Onetime::TemporarilyUnavailable.new(
             'The account changed a credential too recently for a token to be issued. Please try again shortly.',
             reason: :credential_watermark_ahead,
+            retry_after: lead - Onetime::Paseto::AccessToken::CLOCK_SKEW,
           )
         end
 
