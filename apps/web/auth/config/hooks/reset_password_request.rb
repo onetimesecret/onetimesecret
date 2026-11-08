@@ -42,11 +42,11 @@ require_relative '../../lib/public_host'
 # trusted-proxy resolver (Otto::Utils.resolve_client_ip) and rewrites
 # REMOTE_ADDR to the same masked value — so neither source is spoofable via
 # forwarded headers from an untrusted hop. We prefer the canonical env key and
-# fall back to request.ip (the rewritten REMOTE_ADDR) when it is absent (e.g. a
-# bare-Roda unit spec). An empty resolution skips the IP tier rather than
-# pooling unknown callers into one shared bucket an attacker could poison —
-# the per-login backstop still applies (same reasoning as the
-# sso_link_confirm throttle subject and LoginRateLimiter's RL-3 note).
+# fall back to request.ip (the rewritten REMOTE_ADDR) only when the middleware
+# did not run (e.g. a bare-Roda unit spec). When it ran and found no client IP
+# (otto 2.13), the IP tier keys the shared no-client-ip bucket rather than
+# skipping: the per-login backstop does not cap one source probing many
+# logins. See Onetime::Security::NoClientIp.
 #
 # ENUMERATION SAFETY: the limiter keys only on request-observable inputs (IP,
 # submitted login string), never on account existence, so the 429 introduces

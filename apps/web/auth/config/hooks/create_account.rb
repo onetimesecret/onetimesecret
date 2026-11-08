@@ -73,11 +73,11 @@ require 'onetime/utils/client_ip'
 # throttled by Onetime::Security::InviteTokenRateLimiter and is not the
 # unauthenticated-flood primitive this finding targets, so it must not consume
 # signup budget. We skip on internal_request? rather than leaning on the fact
-# that the synthesized env carries neither otto.client_ip nor REMOTE_ADDR (the
-# limiter would no-op via create_account_ip_keys returning nil): that no-op is
-# an accident of the synthesized env, not a contract, and it would degrade
-# SILENTLY — a future change that seeds an IP into internal requests would
-# start charging invite signups against a random bucket with nothing to catch
+# that the synthesized env carries neither otto.client_ip nor REMOTE_ADDR:
+# the limiter would then charge every invite signup to the shared
+# no-client-ip bucket, so an invite burst would exhaust the signup budget of
+# every IP-less visitor, and a future change that seeds an IP into internal
+# requests would move that charge to a random bucket with nothing to catch
 # it.
 #
 # respond_to? takes the include_all argument because internal_request? is a

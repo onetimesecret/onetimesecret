@@ -32,9 +32,9 @@ require_relative '../../lib/public_host'
 #
 # CLIENT IP: same resolution as hooks/reset_password_request.rb — prefer the
 # canonical env['otto.client_ip'] (IPPrivacyMiddleware, trusted-proxy aware,
-# privacy-masked), fall back to request.ip. An empty resolution skips the IP
-# tier rather than pooling unknown callers into one bucket; the per-login
-# backstop still applies.
+# privacy-masked), fall back to request.ip only when the middleware did not
+# run. A request with no client IP (otto 2.13) keys the shared no-client-ip
+# bucket rather than skipping the IP tier (Onetime::Security::NoClientIp).
 #
 # ENUMERATION SAFETY: the limiter keys only on request-observable inputs (IP,
 # submitted login string), never on account existence, and it runs before the
