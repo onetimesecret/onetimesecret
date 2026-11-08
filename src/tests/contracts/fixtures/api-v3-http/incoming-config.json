@@ -1,0 +1,34 @@
+{
+  "name": "incoming-config",
+  "method": "GET",
+  "path": "/api/incoming/config",
+  "request": null,
+  "response_schema": "incomingConfig",
+  "request_schema": null,
+  "status": 200,
+  "headers": {
+    "x-content-type-options": "nosniff",
+    "x-xss-protection": "1; mode=block",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "o-domain-strategy": "canonical",
+    "o-display-domain": "127.0.0.1:3000",
+    "x-request-id": "1scv037jj776m",
+    "content-length": "221"
+  },
+  "body": {
+    "config": {
+      "enabled": true,
+      "memo_max_length": 50,
+      "secret_max_length": 10000,
+      "default_ttl": 604800,
+      "recipients": [
+        {
+          "digest": "caca2676ac56de1c558560efe92c506625a7953893af45fb2559a550ba09be9b",
+          "display_name": "schema-incoming"
+        }
+      ]
+    }
+  }
+}

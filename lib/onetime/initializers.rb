@@ -18,6 +18,7 @@ require_relative 'initializers/load_locales'
 require_relative 'initializers/setup_i18n'        # requires: [:i18n]
 require_relative 'initializers/setup_loggers'
 require_relative 'initializers/set_secrets'
+require_relative 'initializers/setup_paseto_keys'   # depends_on: [:logging, :secrets]
 require_relative 'initializers/configure_secret_activity'
 require_relative 'initializers/configure_truemail'
 require_relative 'initializers/configure_rhales'

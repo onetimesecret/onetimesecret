@@ -6,7 +6,7 @@
 # recipients. This is a deployment-specific feature that operates independently
 # of the versioned secrets API (V2/V3).
 #
-# Mounted at: /incoming
+# Mounted at: /api/incoming
 #
 # Note: These routes use Incoming::Logic classes, the dedicated logic module
 # for this API application.

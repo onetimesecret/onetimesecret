@@ -1,0 +1,26 @@
+{
+  "name": "incoming-validate-0",
+  "method": "POST",
+  "path": "/api/incoming/validate",
+  "request": {
+    "recipient": "caca2676ac56de1c558560efe92c506625a7953893af45fb2559a550ba09be9b"
+  },
+  "response_schema": "validateRecipient",
+  "request_schema": "validateRecipient",
+  "status": 200,
+  "headers": {
+    "x-content-type-options": "nosniff",
+    "x-xss-protection": "1; mode=block",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "o-domain-strategy": "canonical",
+    "o-display-domain": "127.0.0.1:3000",
+    "x-request-id": "2b4wkn0hvbk9b",
+    "content-length": "93"
+  },
+  "body": {
+    "recipient": "caca2676ac56de1c558560efe92c506625a7953893af45fb2559a550ba09be9b",
+    "valid": true
+  }
+}
