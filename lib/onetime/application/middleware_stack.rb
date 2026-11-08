@@ -71,11 +71,14 @@ module Onetime
       # IPv4: RFC1918 (10/8, 172.16/12, 192.168/16), loopback (127/8) and
       # link-local (169.254/16). IPv6: loopback (::1), ULA (fc00::/7, the
       # f[cd] branch) and link-local (fe80::/10, the fe[89ab] branch). Otto's
-      # IPPrivacyMiddleware walks X-Forwarded-For and returns the first
-      # address that does NOT match a trusted proxy, so trusting these private
-      # ranges is what lets the real public visitor IP surface in deployments
-      # where every proxy hop has an internal address (Kubernetes ingress,
-      # cloud load balancers).
+      # IPPrivacyMiddleware walks X-Forwarded-For from the RIGHT (otto 2.13,
+      # delano/otto#292), skips every entry that matches a trusted proxy and
+      # returns the first that does not, so trusting these private ranges is
+      # what lets the real public visitor IP surface in deployments where
+      # every proxy hop has an internal address (Kubernetes ingress, cloud
+      # load balancers). A hop with a PUBLIC address (CDN edge, cloud load
+      # balancer) must be listed in site.network.trusted_proxy.cidrs, or that
+      # hop is the client for every request through it.
       #
       # Consumed only by ip_privacy_security_config below, which feeds it to
       # Otto::Security::Config#add_trusted_proxy as the default trusted-proxy
@@ -204,7 +207,14 @@ module Onetime
         #   - filter (default): CIDR-walk. Trusts the RFC1918/loopback/link-local
         #     PRIVATE_PROXY_RANGES regex PLUS every entry in `cidrs` (real IPAddr
         #     CIDR containment via add_trusted_proxy). Otto::Utils.resolve_client_ip
-        #     walks the forwarded chain and returns the first non-proxy hop.
+        #     walks the forwarded chain from the right (nearest proxy first),
+        #     skips trusted hops and returns the first non-proxy entry; entries
+        #     left of it are never selected. A client whose own address is in a
+        #     trusted range is skipped as a hop too, so for private clients the
+        #     edge must overwrite X-Forwarded-For rather than append (otto 2.13,
+        #     delano/otto#292). An entry that is not an address (`unknown`, an
+        #     empty field) ends the walk with NO client IP: otto.client_ip stays
+        #     absent and otto.ip_match denies every range.
         #   - depth: count-based. Trusts the last N hops, counting the
         #     connecting peer as hop 1: Onetime depth N maps DIRECTLY to otto
         #     trusted_proxy_depth = N (otto's chain[-(N+1)] index already

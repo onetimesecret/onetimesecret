@@ -9,6 +9,7 @@
 # don't interrupt the parent operation.
 #
 require_relative 'utils/diagnostics_ref'
+require_relative 'utils/client_ip'
 
 module Onetime
   module ErrorHandler
@@ -140,7 +141,7 @@ module Onetime
       context = {
         path: (req.path if req.respond_to?(:path)),
         method: (req.request_method if req.respond_to?(:request_method)),
-        ip: (req.ip if req.respond_to?(:ip)),
+        ip: safe_request_ip(req),
       }.compact
 
       allowed = allowed_error_fields
@@ -156,6 +157,16 @@ module Onetime
     rescue StandardError
       {}
     end
+
+    # Canonical masked IP; nil on the otto 2.13 no-client-IP path, where
+    # req.ip is the raw peer address. A request object without an env (a
+    # test double) reports its own #ip.
+    def self.safe_request_ip(req)
+      return Onetime::Utils::ClientIp.from_request(req) if req.respond_to?(:env) && req.respond_to?(:ip)
+
+      req.ip if req.respond_to?(:ip)
+    end
+    private_class_method :safe_request_ip
 
     # Shape of a customer extid, as minted by Familia's external_identifier
     # feature under Onetime::Customer's `format: 'ur%{id}'`: the literal `ur`

@@ -68,7 +68,7 @@ RSpec.describe Auth::Operations::SyncSession, 'recreating a missing Customer at 
   let(:email) { "recover-#{SecureRandom.hex(4)}@example.com" }
   let(:account_id) { db[:accounts].insert(email: email, status_id: status_id) }
   let(:account) { db[:accounts].where(id: account_id).first }
-  let(:request) { double('Request', ip: '203.0.113.7', user_agent: 'rspec') }
+  let(:request) { double('Request', env: {}, ip: '203.0.113.7', user_agent: 'rspec') }
   let(:auth_config) { double('AuthConfig', verify_account_enabled?: verify_account) }
   let(:created) { double('Customer', custid: 'cust_new', extid: 'ur_new') }
   let(:ensure_op) { instance_double(Auth::Operations::EnsureCustomerForAccount, call: created) }

@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/no_client_ip'
+
 module Onetime
   module Security
     # LoginRateLimiter - Throttles simple-mode credential submissions
@@ -29,6 +31,9 @@ module Onetime
     # handful of guesses — a targeted-account DoS. With no IP we skip the tight
     # tier entirely; the global backstop still bounds the attacker, but only at
     # the much higher (and much harder to weaponize) GLOBAL_MAX_ATTEMPTS.
+    # Request-bound call sites pass Onetime::Security::NoClientIp.subject_for(ip),
+    # so a request with no client IP (otto 2.13) keys the shared no-client-ip
+    # tight tier rather than reaching this fallback; see NoClientIp for why.
     #
     # check() locks if EITHER tier is locked; record() increments BOTH
     # applicable tiers; clear() clears BOTH.
@@ -246,6 +251,8 @@ module Onetime
       # Obscure the IP for logs. IPv4 keeps the /16; IPv6 keeps the first
       # nine characters (roughly the routed prefix).
       def obscured_ip(ip_address)
+        return ip_address.to_s if Onetime::Security::NoClientIp.bucket?(ip_address)
+
         parts = ip_address.to_s.split('.')
         if parts.length == 4
           "#{parts[0]}.#{parts[1]}.x.x"

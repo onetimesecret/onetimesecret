@@ -66,6 +66,20 @@ RSpec.describe Auth::Config::Hooks::EmailLoginRequest, :aggregate_failures do
       expect(auth).to have_received(:enforce_email_login_request_rate_limit!).with('198.51.100.0', 'target@example.org')
     end
 
+    # otto 2.13: the middleware ran and found no client IP. request.ip is then
+    # the proxy, unmasked; the IP tier keys the shared no-client-ip bucket,
+    # the same subject simple mode uses.
+    it 'charges the shared no-client-ip bucket when the middleware found no client IP' do
+      allow(request).to receive_messages(
+        env: { 'otto.ip_match' => ->(*) { false }, 'otto.peer_relayed' => true },
+        ip: '10.0.0.5',
+      )
+
+      auth.send(:before_email_auth_request_route)
+
+      expect(auth).to have_received(:enforce_email_login_request_rate_limit!).with('no-client-ip', 'target@example.org')
+    end
+
     it 'still resolves the origin when the limiter is disabled' do
       allow(auth).to receive(:enforce_email_login_request_rate_limit!).and_call_original
       allow(auth).to receive(:reset_request_rate_limit_enabled?).and_return(false)
@@ -130,6 +144,17 @@ RSpec.describe Auth::Config::Hooks::EmailLoginRequest, :aggregate_failures do
       described_class.charge_login_dispatch!(auth)
 
       expect(auth).to have_received(:enforce_email_login_request_rate_limit!).with('198.51.100.0', 'target@example.org')
+    end
+
+    it 'charges the shared no-client-ip bucket when the middleware found no client IP' do
+      allow(request).to receive_messages(
+        env: { 'otto.ip_match' => ->(*) { false }, 'otto.peer_relayed' => true },
+        ip: '10.0.0.5',
+      )
+
+      described_class.charge_login_dispatch!(auth)
+
+      expect(auth).to have_received(:enforce_email_login_request_rate_limit!).with('no-client-ip', 'target@example.org')
     end
 
     it 'propagates the refusal, so no key is created and no mail is sent' do

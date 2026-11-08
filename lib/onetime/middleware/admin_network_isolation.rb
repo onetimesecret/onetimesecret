@@ -7,6 +7,7 @@ require 'otto/utils'
 require_relative '../../middleware/detect_host'
 require_relative '../utils/admin_host_allowlist'
 require_relative '../utils/canonical_hosts'
+require_relative '../utils/client_ip'
 
 module Onetime
   module Middleware
@@ -830,9 +831,17 @@ module Onetime
 
       # Resolve the client IP from the trusted-proxy-aware canonical value, with
       # the same fallback the auth strategies use. Never trusts a raw header.
+      #
+      # nil when IPPrivacyMiddleware ran and found no client IP (otto 2.13,
+      # delano/otto#292; see Onetime::Utils::ClientIp.no_client_ip_marker?):
+      # re-resolving on that path would hand back REMOTE_ADDR — the proxy — as
+      # the client. #network_allowed? normally never gets here on that path
+      # (the closure is present and denies); this keeps the fallback honest if
+      # it does.
       def resolve_client_ip(env)
         canonical = env['otto.client_ip']
         return canonical if canonical && !canonical.empty?
+        return nil if Onetime::Utils::ClientIp.no_client_ip_marker?(env)
 
         Otto::Utils.resolve_client_ip(env, env['otto.security_config'])
       rescue StandardError => ex

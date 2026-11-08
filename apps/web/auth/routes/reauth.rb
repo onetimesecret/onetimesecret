@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/security/login_rate_limiter'
+require 'onetime/security/no_client_ip'
 require 'onetime/session/failure_code'
 
 require_relative 'json_body'
@@ -100,8 +101,12 @@ module Auth
             offer   = build_reauth_offer(account_id)
             account = rodauth.account_from_session
 
+            # The IP tier keys the shared no-client-ip bucket when the IP
+            # privacy middleware found no client IP (otto 2.13); see
+            # Onetime::Security::NoClientIp.
+            limiter_ip = Onetime::Security::NoClientIp.request_subject(request)
             if params['method'].to_s == 'password' && account
-              check_login_rate_limit!(account[:email], request.ip)
+              check_login_rate_limit!(account[:email], limiter_ip)
             end
 
             result = Auth::Operations::Reauthenticate.new(
@@ -118,9 +123,9 @@ module Auth
               # password failure), but it is a failed attempt and must not
               # reset the limiter either.
               if result.password_verified && result.status == 200
-                clear_login_rate_limit!(account[:email], request.ip)
+                clear_login_rate_limit!(account[:email], limiter_ip)
               elsif result.body['error_code'] == 'invalid_password'
-                record_failed_login_attempt!(account[:email], request.ip)
+                record_failed_login_attempt!(account[:email], limiter_ip)
               end
             end
 

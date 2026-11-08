@@ -380,10 +380,9 @@ RSpec.describe 'Account-creation rate limiting — full mode (#3948 finding #4)'
     # handle_internal_request runs the SAME route block with a synthesized env
     # whose REQUEST_METHOD is 'POST', so a bare request.post? guard would charge
     # invite signups against a signup bucket. The env here deliberately carries
-    # a resolvable client IP: without one the limiter would no-op via
-    # create_account_ip_keys returning nil, and this example would pass on an
-    # accident of the synthesized env rather than on the internal_request? guard
-    # actually being there.
+    # a resolvable client IP, so the example checks that IP's bucket and passes
+    # only because the internal_request? guard is there (without an IP the
+    # charge would land on the shared no-client-ip bucket instead).
     it 'does not charge budget for Auth::Config.create_account, even with a client IP in env' do
       enable_limiter(max_per_ip: 1)
       expect(invitation.pending?).to be(true)

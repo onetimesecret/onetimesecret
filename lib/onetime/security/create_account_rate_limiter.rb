@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/models/colonel_audit_event'
+require 'onetime/security/no_client_ip'
 
 module Onetime
   module Security
@@ -192,15 +193,18 @@ module Onetime
       # Enforce the account-creation rate limit and record this request. Raises
       # LimitExceeded when the IP is locked; a locked tier is never incremented
       # (the Lua script denies before INCR). No-op when the limiter is disabled
-      # by config, and no-op when no client IP is available — see
-      # create_account_ip_keys for why that skips rather than shares a bucket.
+      # by config. A request with no client IP is charged to the shared
+      # {NoClientIp::BUCKET} — see create_account_ip_keys.
       #
-      # @param client_ip [String, nil] The caller's edge-masked client IP.
+      # @param client_ip [String, nil] The caller's edge-masked client IP, or
+      #   nil when the request has none.
       # @raise [Onetime::LimitExceeded] If the limit is exceeded.
       # @return [void]
       def enforce_create_account_rate_limit!(client_ip)
         return unless create_account_rate_limit_enabled?
-        return unless (keys = create_account_ip_keys(client_ip))
+
+        subject = Onetime::Security::NoClientIp.subject_for(client_ip)
+        keys    = create_account_ip_keys(subject)
 
         allowed, detail = create_account_redis.eval(
           CHECK_AND_RECORD_SCRIPT,
@@ -220,14 +224,19 @@ module Onetime
         if count >= create_account_max_per_ip
           # This cap-reaching request was itself ALLOWED (the Lua script locks
           # after incrementing); the lockout applies to subsequent requests.
-          obscured = obscured_create_account_ip(client_ip)
+          obscured = obscured_create_account_ip(subject)
+          hint     = if Onetime::Security::NoClientIp.bucket?(subject)
+                       Onetime::Security::NoClientIp.bucket_hint
+                     else
+                       collapsed_create_account_ip_hint
+                     end
           OT.le "[CreateAccountRateLimiter] ip #{obscured} " \
                 "hit cap (#{count}/#{create_account_max_per_ip}); " \
                 "locked for #{create_account_lockout}s" \
-                "#{collapsed_create_account_ip_hint}"
+                "#{hint}"
           record_create_account_throttle_audit(obscured, count)
         elsif count >= create_account_max_per_ip - 1
-          OT.li "[CreateAccountRateLimiter] ip #{obscured_create_account_ip(client_ip)} " \
+          OT.li "[CreateAccountRateLimiter] ip #{obscured_create_account_ip(subject)} " \
                 "at #{count}/#{create_account_max_per_ip} signups"
         end
       end
@@ -283,22 +292,24 @@ module Onetime
         OT.le('[CreateAccountRateLimiter] audit record failed', exception: ex)
       end
 
-      # Composite per-IP keys, or nil when no IP is available.
+      # Composite per-IP keys. A blank IP keys the shared {NoClientIp::BUCKET}.
       #
-      # Skipping is correct rather than fail-closed here: a blank suffix would
-      # build ONE key shared by every IP-less caller, so the first few would lock
-      # the bucket and every later one would be denied — a global signup outage
-      # driven by whatever made the IP unresolvable. Same rationale as
-      # LoginRateLimiter#login_ip_keys and ResetRequestRateLimiter's ip tier.
-      # Unlike the reset limiter there is no second tier to fall back on, so this
-      # is a genuine (small) hole: it needs the resolved client IP to be empty,
-      # which in the mounted stack means IPPrivacyMiddleware did not run.
+      # This tier used to skip a blank IP, on the reasoning that one bucket
+      # shared by every IP-less caller is a global signup outage lever, and
+      # that the IP is blank only when IPPrivacyMiddleware did not run. Since
+      # otto 2.13 (delano/otto#292) the middleware itself leaves a request with
+      # no client IP when the trusted X-Forwarded-For chain ends in a
+      # non-address entry, and the client writes that entry — so skipping
+      # would switch the only cap on this route off from the request it caps.
+      # Sharing one bucket keeps the cap; see {NoClientIp} for why that is the
+      # pre-2.13 ceiling rather than a new outage. The two-tier limiters'
+      # request-bound call sites key their IP tier on the same bucket.
       def create_account_ip_keys(client_ip)
-        return nil if client_ip.to_s.empty?
+        subject = Onetime::Security::NoClientIp.subject_for(client_ip)
 
         {
-          attempts: "create_account:attempts:ip:#{client_ip}",
-          lockout: "create_account:locked:ip:#{client_ip}",
+          attempts: "create_account:attempts:ip:#{subject}",
+          lockout: "create_account:locked:ip:#{subject}",
         }
       end
 
@@ -339,6 +350,8 @@ module Onetime
       # prefix. The resolved value never reaches logs.
       def obscured_create_account_ip(client_ip)
         value = client_ip.to_s
+        return value if Onetime::Security::NoClientIp.bucket?(value)
+
         parts = value.split('.')
         return "#{parts[0]}.#{parts[1]}.x.x" if parts.length == 4
 

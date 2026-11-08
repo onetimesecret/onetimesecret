@@ -22,11 +22,11 @@ class TestHomepageController
   public :extract_client_ip_for_homepage
 end
 
-# extract_client_ip_for_homepage delegates to req.ip. In production req is an
-# Otto::Request, whose #ip reads the canonical env['otto.client_ip'] resolved
-# once by the universal IPPrivacyMiddleware mount (configured from
+# extract_client_ip_for_homepage reads Onetime::Utils::ClientIp.from_request,
+# which returns the canonical env['otto.client_ip'] resolved once by the
+# universal IPPrivacyMiddleware mount (configured from
 # site.network.trusted_proxy via MiddlewareStack.ip_privacy_security_config).
-# This tryout uses a plain Rack::Request to exercise the delegation itself; the
+# These envs carry no otto keys, so it falls back to Rack::Request#ip; the
 # cases below are ones where Rack's native #ip and the canonical resolution
 # agree. Homepage mode does no proxy resolution of its own.
 

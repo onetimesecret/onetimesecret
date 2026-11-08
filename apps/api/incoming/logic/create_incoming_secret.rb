@@ -4,6 +4,7 @@
 
 require 'onetime/jobs/publisher'
 require 'onetime/incoming/recipient_resolver'
+require 'onetime/security/no_client_ip'
 require 'onetime/security/incoming_rate_limiter'
 
 require_relative 'base'
@@ -150,11 +151,12 @@ module Incoming
       private
 
       # Edge-masked client IP from the same StrategyResult metadata the login
-      # limiter reads (authenticate_session.rb#login_rate_limit_ip). nil when
-      # unavailable, in which case the rate limiter falls back to the
-      # per-recipient tier only.
+      # limiter reads (authenticate_session.rb#login_rate_limit_ip). A request
+      # with no client IP (otto 2.13) keys the shared no-client-ip bucket rather
+      # than falling back to the per-recipient tier alone
+      # (Onetime::Security::NoClientIp).
       def incoming_client_ip
-        strategy_result&.metadata&.[](:ip)
+        Onetime::Security::NoClientIp.subject_for(strategy_result&.metadata&.[](:ip))
       end
 
       def resolver

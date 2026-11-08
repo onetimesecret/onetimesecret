@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/utils/client_ip'
+
 module Auth::Config::Hooks
   # Owner of the two_factor_base completion hook.
   #
@@ -53,7 +55,7 @@ module Auth::Config::Hooks
           log_metric: true,
           account_id: account_id,
           email: account[:email],
-          ip: request.ip,
+          ip: Onetime::Utils::ClientIp.from_request(request),
           duration_ms: duration_ms,
           correlation_id: correlation_id,
         )

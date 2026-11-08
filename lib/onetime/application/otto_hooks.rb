@@ -10,6 +10,7 @@
 # other routers (Auth/Roda) do not need these hooks.
 
 require_relative '../logger_methods'
+require_relative '../utils/client_ip'
 require_relative 'request_helpers'
 require_relative 'error_resolver'
 require_relative 'error_correlation'
@@ -293,9 +294,13 @@ module Onetime
           # Use HTTP logger for request lifecycle events
           logger = Onetime.get_logger('HTTP')
 
-          # Extract auth context if available
-          user_id         = req.env['otto.user']&.[](:id)
+          # Extract auth context if available. Nothing sets env['otto.user']
+          # (otto 2.13 documents this, delano/otto#298); the authenticated user
+          # is strategy_result.user — an Onetime::Customer, logged by its
+          # external id like the other request-facing log lines.
           strategy_result = req.env['otto.strategy_result']
+          user            = strategy_result&.user
+          user_id         = user.extid if user.respond_to?(:extid)
           auth_strategy   = strategy_result&.strategy_name
 
           logger.trace 'Request completed',
@@ -306,7 +311,7 @@ module Onetime
               duration: duration / 1_000_000.0,  # Convert microseconds to seconds for SemanticLogger
               user_id: user_id,
               auth_strategy: auth_strategy,
-              ip: req.ip,
+              ip: Onetime::Utils::ClientIp.from_request(req),
               user_agent: req.user_agent&.slice(0, 100),
             }
         end

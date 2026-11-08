@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/utils/client_ip'
+
 # The shared emit-if-colonel guard behind the colonel.signin_failed security
 # event (#4339), used by after_login_failure below. Required explicitly
 # (mirroring account.rb) so the constant is loaded when the hook fires rather
@@ -63,7 +65,7 @@ module Auth::Config::Hooks
           :login_attempt,
           level: :info,
           email: OT::Utils.obscure_email(email),
-          ip: request.ip,
+          ip: Onetime::Utils::ClientIp.from_request(request),
           correlation_id: correlation_id,
         )
       end
@@ -524,7 +526,7 @@ module Auth::Config::Hooks
             :login_failure_empty_database,
             level: :error,
             email: OT::Utils.obscure_email(email),
-            ip: request.ip,
+            ip: Onetime::Utils::ClientIp.from_request(request),
             correlation_id: correlation_id,
             diagnostic_hint: diagnostic_hint,
           )
@@ -533,7 +535,7 @@ module Auth::Config::Hooks
             :login_failure,
             level: :warn,
             email: OT::Utils.obscure_email(email),
-            ip: request.ip,
+            ip: Onetime::Utils::ClientIp.from_request(request),
             correlation_id: correlation_id,
           )
         end

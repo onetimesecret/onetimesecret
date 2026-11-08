@@ -167,6 +167,54 @@ RSpec.describe Onetime::Application::AuthStrategies::Helpers do
     end
 
     # -----------------------------------------------------------------
+    # 4c) The middleware ran and resolved NO client IP (otto 2.13,
+    #     delano/otto#292: a trusted chain that reaches a non-address
+    #     entry). It leaves otto.client_ip absent, writes otto.ip_match and
+    #     otto.peer_relayed, and deletes the forwarded headers. The fallback
+    #     must not run: it would see only REMOTE_ADDR — the proxy — and
+    #     attribute the request to it, unmasked.
+    # -----------------------------------------------------------------
+    context 'when IPPrivacyMiddleware ran and resolved no client IP' do
+      let(:env) do
+        {
+          'REMOTE_ADDR' => '10.0.0.5', # the proxy, left as received
+          'HTTP_USER_AGENT' => 'curl/8.4.0',
+          'otto.ip_match' => ->(_cidrs) { false }, # fail-closed closure
+          'otto.peer_relayed' => true,
+          'otto.security_config' => trusted_proxy_config('10.0.0.0/8'),
+        }
+      end
+
+      it 'sets metadata[:ip] to nil rather than the proxy address' do
+        expect(host.build_metadata(env)[:ip]).to be_nil
+      end
+
+      it 'does not re-resolve from REMOTE_ADDR' do
+        allow(Otto::Utils).to receive(:resolve_client_ip).and_call_original
+        host.build_metadata(env)
+        expect(Otto::Utils).not_to have_received(:resolve_client_ip)
+      end
+    end
+
+    # otto.ip_match alone is not that marker: a spec or app may have stubbed
+    # it without running the middleware (otto 2.13 replaces such a stub with a
+    # warning). Only the pair with otto.peer_relayed skips the fallback.
+    context 'when only otto.ip_match is present (no middleware pass)' do
+      let(:env) do
+        {
+          'REMOTE_ADDR' => '198.51.100.7',
+          'HTTP_USER_AGENT' => 'curl/8.4.0',
+          'otto.ip_match' => ->(_cidrs) { false },
+          'otto.security_config' => trusted_proxy_config('10.0.0.0/8'),
+        }
+      end
+
+      it 'still falls back to the resolver' do
+        expect(host.build_metadata(env)[:ip]).to eq('198.51.100.7')
+      end
+    end
+
+    # -----------------------------------------------------------------
     # 5) `additional` overrides built-in keys (preserves merge contract).
     # -----------------------------------------------------------------
     context 'when additional metadata overrides built-in keys' do

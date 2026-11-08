@@ -24,6 +24,9 @@ module Onetime
     # "...:" composite key, which would collapse every anonymous caller into one
     # shared bucket and re-create the DoS). check() locks if EITHER tier is locked;
     # record() increments BOTH tiers; clear() clears BOTH.
+    # Request-bound call sites pass Onetime::Security::NoClientIp.subject_for(ip),
+    # so a request with no client IP (otto 2.13) keys the shared no-client-ip
+    # tight tier rather than reaching this fallback; see NoClientIp for why.
     #
     # Note: in production metadata[:ip] is already /24-masked upstream, so the
     # per-IP tier is /24-granular. That coarseness is acceptable precisely because

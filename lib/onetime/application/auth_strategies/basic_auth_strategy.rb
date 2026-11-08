@@ -90,8 +90,9 @@ module Onetime
             success(
               session: session,  # nil when no Rack session middleware (stateless),
               # SecureSessionHash when session middleware is present.
-              # Otto's RouteAuthWrapper skips env['rack.session'] overwrite
-              # when result.session is nil/falsy, preserving the original.
+              # Otto's RouteAuthWrapper never replaces a session a middleware
+              # installed (otto 2.13, delano/otto#298) and installs
+              # result.session only when env has none; nil leaves env alone.
               # Don't fabricate a fallback {} here - rack-session's
               # commit_session calls .options on the session object.
               user: cust,

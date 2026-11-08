@@ -657,22 +657,37 @@ site:
       # How to resolve client IP behind proxies:
       #
       # 'filter' (default): CIDR-walk. Otto::Utils.resolve_client_ip walks the
-      #   forwarded chain LEFT-TO-RIGHT and returns the first entry that is not
-      #   in the trusted-proxy set — i.e. the LEFTMOST non-proxy entry becomes
-      #   the client IP. The trusted set is the RFC1918/loopback/link-local
-      #   private ranges (always trusted in this mode) plus every range in
-      #   `cidrs` below. Works for most k8s/cloud deployments where the proxy
-      #   tier has enumerable internal addresses. Note: filter mode reads the
-      #   X-Forwarded-For family only (X-Forwarded-For, X-Real-IP, X-Client-IP)
-      #   and REJECTS any other `header` value below at boot.
+      #   forwarded chain from the RIGHT (the hop nearest the app first), skips
+      #   every entry in the trusted-proxy set and returns the first that is
+      #   not; entries left of it are never selected. The trusted set is the
+      #   RFC1918/loopback/link-local private
+      #   ranges (always trusted in this mode) plus every range in `cidrs`
+      #   below. Works for most k8s/cloud deployments where the proxy tier has
+      #   enumerable internal addresses. Note: filter mode reads
+      #   X-Forwarded-For (X-Real-IP / X-Client-IP only when it is absent) and
+      #   REJECTS any other `header` value below at boot.
       #
-      #   SECURITY — read before enabling: the edge proxy MUST OVERWRITE
-      #   X-Forwarded-For with the real peer address so the resolved client IP
-      #   is always proxy-attested:
-      #     nginx:  proxy_set_header X-Forwarded-For $remote_addr;
-      #     Caddy:  header_up X-Forwarded-For {remote_host}
-      #   Use 'depth' instead when you cannot make the edge overwrite: it counts
-      #   positions from the right, so a forged leftmost entry is never reached.
+      #   SECURITY — read before enabling: EVERY hop between the client and the
+      #   app must be in the trusted set. A public-address hop (CDN edge, cloud
+      #   load balancer) missing from `cidrs` becomes the client IP for every
+      #   request through it. Each proxy must append the address it received
+      #   the request from to X-Forwarded-For, or replace a client-supplied
+      #   value; the edge may also overwrite the header with the one address it
+      #   resolved:
+      #     nginx:  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      #     Caddy:  header_up X-Forwarded-For {client_ip}
+      #   PRIVATE CLIENTS NEED THE OVERWRITE: appending keeps a client-supplied
+      #   entry out only because the client's own appended address is untrusted
+      #   and stops the walk. A client at 192.168.1.50 sending
+      #   X-Forwarded-For: 203.0.113.99 through an appending proxy yields
+      #   `203.0.113.99, 192.168.1.50`; the client's address is skipped as a
+      #   trusted hop and the forged entry is selected. On a LAN, a VPN or a
+      #   corporate network the edge must overwrite the header (Caddy line
+      #   above; nginx: $remote_addr), or use depth mode.
+      #   A proxy that writes a non-address (`unknown`, an empty field) where
+      #   the client belongs leaves the request with NO client IP: every
+      #   per-IP rate limit charges it to one shared `no-client-ip` bucket,
+      #   and the admin network gate denies it.
       #
       # 'depth': Position-based counting. Skip exactly N rightmost hops.
       #   Use when:
@@ -684,8 +699,11 @@ site:
       # When filter and depth differ:
       #   - CDN with public IP: filter returns CDN IP (add to cidrs or use depth)
       #   - Variable hop count: filter handles automatically; depth fails if wrong
-      #   - Forged leftmost entry: filter returns it (see SECURITY above); depth
-      #     ignores it, since only the position N-from-the-right is read
+      #   - Forged leftmost entry: filter stops at the first untrusted entry
+      #     from the right, so it skips the forgery when the client's own
+      #     appended address is public and SELECTS it when that address is in
+      #     a trusted range (private clients: overwrite at the edge); depth
+      #     reads only the position N-from-the-right
       #
       # Matched case-insensitively and canonicalized (like `header` below). The
       # set is closed: any other value falls back to filter — the safer mode —

@@ -45,7 +45,7 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
   # coverage (#3639). Positional (not a kwarg) so the existing bare-hash
   # `build_logic('identifier' => ...)` call sites keep working — a trailing
   # kwarg would otherwise swallow the bare params hash as keywords.
-  def build_logic(params, customer = nil)
+  def build_logic(params, customer = nil, ip = '203.0.113.7')
     customer ||= double('Customer', custid: 'anon', anonymous?: true, objid: nil, extid: nil)
     org        = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
     allow(org).to receive(:can?).and_return(true)
@@ -53,7 +53,7 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
     strategy_result = double('StrategyResult',
       session: mock_session,
       user: customer,
-      metadata: { organization: org, ip: '203.0.113.7' },
+      metadata: { organization: org, ip: ip },
       auth_method: 'basicauth')
 
     # process derives cust from strategy_result.user and never calls org, so no
@@ -556,6 +556,40 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       # process, so the secret is still there afterwards.
       expect { locked.raise_concerns }.to raise_error(Onetime::LimitExceeded)
       expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
+    end
+
+    # otto 2.13 no-client-IP path: metadata[:ip] is nil. The tight per-IP tier
+    # must still apply (keyed on the shared no-client-ip bucket); skipping it
+    # left only the 20-attempt per-secret backstop, which one IP-less caller
+    # could drive alone to lock the recipient out (M-8).
+    context 'when the request has no client IP' do
+      def attempt_burn_from(ip, guess)
+        logic = build_logic(
+          { 'identifier' => receipt.identifier, 'continue' => 'true', 'passphrase' => guess },
+          nil,
+          ip,
+        )
+        logic.process_params
+        logic.raise_concerns
+        logic.process
+        logic
+      end
+
+      it 'locks IP-less callers out after MAX_ATTEMPTS, on the shared bucket' do
+        max = Onetime::Security::PassphraseRateLimiter::MAX_ATTEMPTS
+        max.times { expect { attempt_burn_from(nil, 'wrong') }.to raise_error(OT::FormError) }
+
+        expect { attempt_burn_from(nil, 'correct horse battery') }.to raise_error(Onetime::LimitExceeded)
+        expect(Onetime::Secret.dbclient.exists?("passphrase:locked:#{secret.identifier}:no-client-ip")).to be true
+      end
+
+      it 'does not lock out a caller that has an IP' do
+        max = Onetime::Security::PassphraseRateLimiter::MAX_ATTEMPTS
+        max.times { expect { attempt_burn_from(nil, 'wrong') }.to raise_error(OT::FormError) }
+
+        logic = attempt_burn_from('203.0.113.7', 'correct horse battery')
+        expect(logic.greenlighted).to be true
+      end
     end
 
     it 'clears rate limit state and burns on the correct passphrase' do

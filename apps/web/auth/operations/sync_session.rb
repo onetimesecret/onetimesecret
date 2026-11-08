@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/utils/client_ip'
+
 #
 # Syncs the Rodauth session with the application's session format after
 # successful authentication. This operation handles:
@@ -178,7 +180,7 @@ module Auth
           result: :success,
           detail: {
             auth_method: @session['auth_method'],
-            ip: (@request.ip if @request.respond_to?(:ip)),
+            ip: (Onetime::Utils::ClientIp.from_request(@request) if @request.respond_to?(:env)),
           },
         )
       rescue StandardError => ex
@@ -455,7 +457,9 @@ module Auth
 
       # Tracks request metadata in the session
       def track_request_metadata
-        @session['ip_address'] = @request.ip
+        # The canonical masked IP; nil, not the proxy's raw address, when the
+        # IP privacy middleware found no client IP (otto 2.13).
+        @session['ip_address'] = Onetime::Utils::ClientIp.from_request(@request)
         @session['user_agent'] = @request.user_agent
       end
 
