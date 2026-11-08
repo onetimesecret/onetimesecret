@@ -57,11 +57,11 @@ require 'onetime/utils/client_ip'
 # trusted-proxy resolver (Otto::Utils.resolve_client_ip) and rewrites
 # REMOTE_ADDR to the same masked value — so neither source is spoofable via
 # forwarded headers from an untrusted hop. We prefer the canonical env key and
-# fall back to request.ip (the rewritten REMOTE_ADDR) when it is absent (e.g. a
-# bare-Roda unit spec). An empty resolution skips the tier rather than pooling
-# unknown callers into one shared bucket an attacker could poison; unlike the
-# reset limiter there is no second tier to fall back on, so that is a genuine
-# (small) hole — see CreateAccountRateLimiter#create_account_ip_keys.
+# fall back to request.ip (the rewritten REMOTE_ADDR) when the middleware did
+# not run (e.g. a bare-Roda unit spec), never when it ran and found no client
+# IP (Onetime::Utils::ClientIp.from_request). A blank IP is charged to the
+# limiter's shared no-client-ip bucket — see
+# CreateAccountRateLimiter#create_account_ip_keys.
 #
 # INTERNAL REQUESTS ARE EXCLUDED, EXPLICITLY. :internal_request is enabled
 # (config/base.rb), and handle_internal_request runs this same route block with
@@ -124,10 +124,7 @@ module Auth::Config::Hooks
           # IP privacy middleware ran and found no client IP (otto 2.13,
           # delano/otto#292), since request.ip is then the proxy, unmasked, and
           # the limiter charges a nil subject to its shared no-client-IP bucket.
-          client_ip = request.env['otto.client_ip']
-          if client_ip.to_s.empty? && !Onetime::Utils::ClientIp.no_client_ip_marker?(request.env)
-            client_ip = request.ip
-          end
+          client_ip = Onetime::Utils::ClientIp.from_request(request)
 
           enforce_create_account_rate_limit!(client_ip)
         end

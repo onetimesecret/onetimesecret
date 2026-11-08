@@ -302,9 +302,8 @@ module Onetime
       # non-address entry, and the client writes that entry — so skipping
       # would switch the only cap on this route off from the request it caps.
       # Sharing one bucket keeps the cap; see {NoClientIp} for why that is the
-      # pre-2.13 ceiling rather than a new outage. LoginRateLimiter and
-      # ResetRequestRateLimiter still skip their IP tier because a per-email
-      # tier remains.
+      # pre-2.13 ceiling rather than a new outage. The two-tier limiters'
+      # request-bound call sites key their IP tier on the same bucket.
       def create_account_ip_keys(client_ip)
         subject = Onetime::Security::NoClientIp.subject_for(client_ip)
 

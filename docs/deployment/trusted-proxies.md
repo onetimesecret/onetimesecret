@@ -85,15 +85,17 @@ belongs to a proxy from one that belongs to the client, which is what the
   the matching `trusted_proxy.depth`.
 - **A non-address entry means no client IP.** When the walk reaches an entry
   that is not an IP address (`unknown`, an empty field, a trailing comma, a
-  range written with a prefix), the request has no client IP: the single-tier
-  per-IP limiters (account creation, anonymous secret creation, feedback, and
-  the legacy V1 API's create and show limits) charge it to one shared
-  `no-client-ip` bucket, limiters with another tier
-  (login and reset by email, incoming by recipient) skip their IP tier, the
-  admin network CIDR gate denies it, and sessions and audit records carry no
-  address. The application does not fall back to the proxy's own address. A
-  cap hit on the shared bucket is logged with that bucket's name. Configure
-  the proxy that writes such an entry to append the real peer address instead.
+  range written with a prefix), the request has no client IP: every per-IP
+  rate limit (account creation, anonymous secret creation, feedback, the
+  legacy V1 API limits, and the per-IP tiers of the passphrase, login,
+  password-reset, email-login and incoming limiters) charges it to one shared
+  `no-client-ip` bucket, the admin network CIDR gate denies it, and sessions
+  and the rate-limit audit events carry no address. Rate limits and sessions
+  do not fall back to the proxy's own address; the full-mode Rodauth audit
+  log lines (login, MFA, SSO) still record the peer address there, which is
+  the proxy. A cap hit on the shared bucket is logged with that bucket's name.
+  Configure the proxy that writes such an entry to append the real peer
+  address instead.
 - **Vendor headers are not a source.** `CF-Connecting-IP`, `True-Client-IP`
   and similar headers are never read for the client IP, and with IP privacy on
   they are rewritten to the masked client IP before application code runs.

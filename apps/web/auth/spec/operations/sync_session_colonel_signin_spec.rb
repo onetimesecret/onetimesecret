@@ -24,7 +24,7 @@ require 'auth/operations/sync_session'
 RSpec.describe Auth::Operations::SyncSession do
   let(:account) { { email: 'colonel@example.com', external_id: 'ur_colonel', status_id: 2 } }
   let(:session) { { 'auth_method' => 'password' } }
-  let(:request) { double('Request', ip: '203.0.113.7', user_agent: 'rspec') }
+  let(:request) { double('Request', env: {}, ip: '203.0.113.7', user_agent: 'rspec') }
   let(:db) { double('Sequel::Database') }
 
   let(:colonel) do

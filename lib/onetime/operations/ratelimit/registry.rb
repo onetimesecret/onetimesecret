@@ -66,8 +66,11 @@ module Onetime
           # IP is the privacy-masked value the middleware resolved (/24 IPv4, /48
           # IPv6), not the raw address; the email is normalized (strip + NFC +
           # case-fold). A raw address or mixed-case login reads back `not_set`.
+          # Requests that reached the app with no client IP (otto 2.13) share
+          # the subject `no-client-ip` (Onetime::Security::NoClientIp), here and
+          # in the create_account_ip and create_secret rows below.
           'reset_request_ip' => {
-            subject: 'masked client IP (/24 IPv4, /48 IPv6)',
+            subject: 'masked client IP (/24 IPv4, /48 IPv6), or no-client-ip',
             keys: ['reset_request:attempts:ip:%s', 'reset_request:locked:ip:%s'],
             dbclient: -> { Onetime::Customer.dbclient },
           },
@@ -81,7 +84,7 @@ module Onetime
           # the same stored forms and the same Customer shard as the two rows
           # above, under its own key prefix (ResetRequestRateLimiter::SCOPES).
           'email_login_request_ip' => {
-            subject: 'masked client IP (/24 IPv4, /48 IPv6)',
+            subject: 'masked client IP (/24 IPv4, /48 IPv6), or no-client-ip',
             keys: ['email_login_request:attempts:ip:%s', 'email_login_request:locked:ip:%s'],
             dbclient: -> { Onetime::Customer.dbclient },
           },
@@ -95,7 +98,7 @@ module Onetime
           # the raw address and not the /16-obscured form the lockout log line
           # prints. A raw address reads back `not_set`.
           'create_account_ip' => {
-            subject: 'masked client IP (/24 IPv4, /48 IPv6)',
+            subject: 'masked client IP (/24 IPv4, /48 IPv6), or no-client-ip',
             keys: ['create_account:attempts:ip:%s', 'create_account:locked:ip:%s'],
             dbclient: -> { Onetime::Customer.dbclient },
           },
@@ -149,7 +152,7 @@ module Onetime
           # log line prints. Lives on the Secret shard, matching the limiter's
           # own `redis` accessor. A raw address reads back `not_set`.
           'create_secret' => {
-            subject: 'masked client IP (/24 IPv4, /48 IPv6)',
+            subject: 'masked client IP (/24 IPv4, /48 IPv6), or no-client-ip',
             keys: ['create_secret:attempts:ip:%s', 'create_secret:locked:ip:%s'],
             dbclient: -> { Onetime::Secret.dbclient },
           },

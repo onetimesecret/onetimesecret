@@ -685,11 +685,9 @@ site:
       #   corporate network the edge must overwrite the header (Caddy line
       #   above; nginx: $remote_addr), or use depth mode.
       #   A proxy that writes a non-address (`unknown`, an empty field) where
-      #   the client belongs leaves the request with NO client IP: the
-      #   single-tier per-IP limiters (signup, anonymous secret creation,
-      #   feedback, the legacy V1 API limits) charge it to one shared
-      #   `no-client-ip` bucket, the other
-      #   limiters skip their IP tier, and the admin network gate denies it.
+      #   the client belongs leaves the request with NO client IP: every
+      #   per-IP rate limit charges it to one shared `no-client-ip` bucket,
+      #   and the admin network gate denies it.
       #
       # 'depth': Position-based counting. Skip exactly N rightmost hops.
       #   Use when:

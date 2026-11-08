@@ -30,6 +30,24 @@ module Onetime
       def self.no_client_ip_marker?(env)
         env.key?('otto.ip_match') && env.key?('otto.peer_relayed')
       end
+
+      # The client IP for a call site that holds the Rack request (Rodauth
+      # hooks and routes): the canonical env['otto.client_ip']; nil when the
+      # middleware ran and found no client IP; request.ip only when the
+      # middleware did not run. Same reading as
+      # AuthStrategies::Helpers#client_ip, so full-mode and simple-mode call
+      # sites key a request on the same value.
+      #
+      # @param request [Rack::Request]
+      # @return [String, nil]
+      def self.from_request(request)
+        env       = request.env
+        canonical = env['otto.client_ip']
+        return canonical unless canonical.to_s.empty?
+        return nil if no_client_ip_marker?(env)
+
+        request.ip
+      end
     end
   end
 end

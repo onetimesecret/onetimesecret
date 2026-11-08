@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/no_client_ip'
 require 'onetime/security/reset_request_rate_limiter'
 require_relative '../../lib/public_host'
 
@@ -81,8 +82,11 @@ module Auth::Config::Hooks
 
       auth.before_reset_password_request_route do
         if request.post?
-          client_ip = request.env['otto.client_ip']
-          client_ip = request.ip if client_ip.to_s.empty?
+          # Same subject as the simple-mode call site: the canonical masked
+          # IP, or the shared no-client-ip bucket when the IP privacy
+          # middleware found none (otto 2.13), never request.ip, which is then
+          # the proxy, unmasked. See Onetime::Security::NoClientIp.
+          client_ip = Onetime::Security::NoClientIp.request_subject(request)
 
           enforce_reset_request_rate_limit!(client_ip, param_or_nil(login_param))
           # Account-independent host preflight. Recipient membership is checked

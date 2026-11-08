@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/no_client_ip'
 require 'onetime/security/passphrase_rate_limiter'
 require 'auth/operations/set_customer_verification'
 
@@ -351,14 +352,17 @@ module V2::Logic
 
       # Client IP for the per-secret+IP passphrase rate-limit tier (M-8). Sourced
       # from strategy_result metadata (set for both anonymous and authenticated
-      # callers). nil when unavailable, in which case the limiter falls back to
-      # the global per-secret backstop rather than collapsing every caller into
-      # one shared IP bucket. Do NOT use session['ip_address'] here -- it is
-      # absent for the anonymous recipients who are the primary threat model.
+      # callers). A request with no client IP (otto 2.13: the trusted
+      # X-Forwarded-For chain ended in a value the client can write) keys the
+      # shared no-client-ip bucket: skipping the tier would leave only the
+      # per-secret backstop, which one IP-less caller could then drive alone to
+      # lock the recipient out. That bucket cannot lock a caller with an IP
+      # (Onetime::Security::NoClientIp). Do NOT use session['ip_address'] here --
+      # it is absent for the anonymous recipients who are the primary threat model.
       def passphrase_client_ip
         return unless respond_to?(:strategy_result)
 
-        strategy_result&.metadata&.[](:ip)
+        Onetime::Security::NoClientIp.subject_for(strategy_result&.metadata&.[](:ip))
       end
     end
   end

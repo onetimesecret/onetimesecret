@@ -4,6 +4,7 @@
 
 require_relative '../base'
 require_relative '../../../../../lib/onetime/jobs/publisher'
+require 'onetime/security/no_client_ip'
 require 'onetime/security/reset_request_rate_limiter'
 
 module AccountAPI::Logic
@@ -162,10 +163,12 @@ module AccountAPI::Logic
       # Edge-masked client IP from the same StrategyResult metadata the other
       # logic-layer limiters read (CreateIncomingSecret#incoming_client_ip).
       # AuthStrategies::Helpers#client_ip sources it from env['otto.client_ip'],
-      # so the key is trusted-proxy-resolved and not header-spoofable. nil skips
-      # the IP tier; the per-login backstop still applies.
+      # so the key is trusted-proxy-resolved and not header-spoofable. A request
+      # with no client IP (otto 2.13) keys the shared no-client-ip bucket, since
+      # the per-login backstop does not cap one source probing many logins
+      # (Onetime::Security::NoClientIp).
       def reset_request_client_ip
-        strategy_result&.metadata&.[](:ip)
+        Onetime::Security::NoClientIp.subject_for(strategy_result&.metadata&.[](:ip))
       end
     end
   end

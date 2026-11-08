@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/no_client_ip'
 require 'onetime/security/reset_request_rate_limiter'
 require_relative '../../lib/public_host'
 
@@ -109,8 +110,10 @@ module Auth::Config::Hooks
     # One charge per client IP, then per submitted login (header: CLIENT IP).
     def self.charge!(rodauth)
       request   = rodauth.request
-      client_ip = request.env['otto.client_ip']
-      client_ip = request.ip if client_ip.to_s.empty?
+      # The canonical masked IP, or the shared no-client-ip bucket when the IP
+      # privacy middleware found none (otto 2.13). See
+      # Onetime::Security::NoClientIp.
+      client_ip = Onetime::Security::NoClientIp.request_subject(request)
 
       rodauth.enforce_email_login_request_rate_limit!(client_ip, rodauth.param_or_nil(rodauth.login_param))
     end

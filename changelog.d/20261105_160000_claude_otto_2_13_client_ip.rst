@@ -26,21 +26,25 @@ Security
   ``X-Forwarded-For`` is absent. See ``docs/deployment/trusted-proxies.md``,
   "Client IP resolution". (delano/otto#292)
 
-- The account-creation, anonymous secret-creation and feedback rate limiters,
-  and the legacy V1 API's per-IP create and show limits, charge a request that
-  has no client IP to one shared ``no-client-ip`` bucket
-  instead of skipping it. Each is the only cap on its route, and with otto
-  2.13 the no-client-IP state is produced by a header value the client writes,
-  so skipping would have switched the cap off from the request it caps. The
-  shared bucket is the pre-2.13 ceiling for those requests, which used to be
-  keyed on the proxy's address together. Limiters with a second tier (login,
-  password reset, incoming) still skip their IP tier. The cap-hit log line and
-  audit event name the bucket.
+- Every per-IP rate limit charges a request that has no client IP to one
+  shared ``no-client-ip`` bucket instead of skipping it: account creation,
+  anonymous secret creation, feedback, the legacy V1 API's create and show
+  limits, and the per-IP tiers of the passphrase, login (simple mode, reauth,
+  SSO link), password-reset, email-login, SSO link confirm and incoming
+  limiters. With otto 2.13 the no-client-IP state is produced by a header
+  value the client writes, so skipping would have switched a cap off from the
+  request it caps; for the two-tier limiters it would also have let one caller
+  drive the per-secret or per-email lockout alone, locking out the legitimate
+  recipient or account holder. The shared bucket can lock out only other
+  requests without a client IP, and it is the pre-2.13 ceiling for those
+  requests, which used to be keyed on the proxy's address together. Log lines
+  and audit events name the bucket.
 
-- The auth-strategy, admin-gate and full-mode signup client IP fallbacks no
-  longer re-resolve from ``REMOTE_ADDR`` when the IP privacy middleware ran
-  and found no client IP, which would have attributed the request to the
-  proxy, unmasked.
+- The auth-strategy, admin-gate and full-mode Rodauth client IP fallbacks
+  (signup, password reset, email login, reauth, SSO link and confirm, and the
+  session's recorded ``ip_address``) no longer re-resolve from
+  ``REMOTE_ADDR`` when the IP privacy middleware ran and found no client IP,
+  which would have attributed the request to the proxy, unmasked.
 
 Fixed
 -----
