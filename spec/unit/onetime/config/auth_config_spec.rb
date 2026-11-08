@@ -525,6 +525,22 @@ RSpec.describe Onetime::AuthConfig do
           .to raise_error(Onetime::ConfigError, /no provider is configured/)
       end
 
+      # A :condition that raises counts as unmet, so the restriction it would
+      # have satisfied is refused at boot rather than admitted.
+      it 'raises when the only provider is the local IdP and its condition raises' do
+        config = fresh_config(
+          'AUTH_SSO_ONLY' => 'true',
+          'AUTH_SSO_ENABLED' => 'true',
+          'AUTH_OAUTH_ENABLED' => 'true',
+          'OAUTH_SP_DEV_CLIENT_SECRET' => 'dev-secret',
+        )
+        allow(OT).to receive(:lw)
+        allow(config).to receive(:oauth_enabled?).and_raise(Onetime::ConfigError, 'oauth flag unreadable')
+        expect { config.validate_restrict_to! }
+          .to raise_error(Onetime::ConfigError, /no provider is configured/)
+        expect(OT).to have_received(:lw).with(/local_idp condition raised.*oauth flag unreadable/)
+      end
+
       it 'raises when restrict_to=email_auth but email auth is disabled' do
         config = fresh_config('AUTH_EMAIL_AUTH_ONLY' => 'true', 'AUTH_EMAIL_AUTH_ENABLED' => 'false')
         expect { config.validate_restrict_to! }
@@ -899,6 +915,14 @@ RSpec.describe Onetime::AuthConfig do
       it 'omits a provider whose predicate raises, without raising' do
         defn = base.merge(vars_valid: -> { raise ArgumentError, 'bad value' })
         expect(advertised_with(defn, **env)).to be_empty
+      end
+
+      # The same guard covers a :condition (the local IdP's AUTH_OAUTH_ENABLED).
+      it 'omits a provider whose :condition raises, without raising' do
+        allow(OT).to receive(:lw)
+        defn = base.merge(condition: ->(_cfg) { raise ArgumentError, 'condition failed' })
+        expect(advertised_with(defn, **env)).to be_empty
+        expect(OT).to have_received(:lw).with(/condition raised.*condition failed/)
       end
     end
 

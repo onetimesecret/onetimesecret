@@ -183,11 +183,12 @@ module Auth::Config::Hooks
           diagnostic_hint = <<~HINT.strip
             Sign-up answered as a new one and nothing was created: a customer
             record exists for this address but no open auth account does, so
-            the person cannot register until the record is resolved. With
-            AUTHENTICATION_MODE=full exported (bin/ots otherwise resolves
-            simple mode and reports no finding), run
-            `bin/ots customers diagnose <external_id>` with the external_id on
-            this line. missing_auth_account: no accounts row exists for the
+            the person cannot register until the record is resolved. Run
+            every command below with AUTHENTICATION_MODE=full exported:
+            without it bin/ots resolves simple mode, diagnose reports no
+            finding and the repair commands refuse. Start with
+            `bin/ots customers diagnose <external_id>`, using the external_id
+            on this line. missing_auth_account: no accounts row exists for the
             record; after a move from simple to full mode,
             `bin/ots customers sync-auth-accounts --run` creates it.
             account_closed: a closure from before #4819 stopped part way; run

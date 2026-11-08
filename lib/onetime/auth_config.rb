@@ -1049,8 +1049,8 @@ module Onetime
     # button (#withheld_by_issuer_verdict?).
     #
     # Fails closed. This runs per request (the serializer) and inside the
-    # HttpOrigin middleware via #sso_idp_origins, so a :vars_valid that raises
-    # drops the provider rather than the response.
+    # HttpOrigin middleware via #sso_idp_origins, so a :vars_valid or a
+    # :condition that raises drops the provider rather than the response.
     #
     # An install-wide :enabled switch (SAML_ENABLED, #4604) is checked first,
     # before presence: configure_provider registers no route for a
@@ -1069,7 +1069,7 @@ module Onetime
     def provider_active?(defn)
       return false if defn[:enabled] && !provider_switch_on?(defn)
       return false unless defn[:required_vars].all? { |var| env_present?(var) }
-      return false if defn[:condition] && !defn[:condition].call(self)
+      return false unless provider_condition_met?(defn)
       return true unless defn[:vars_valid]
 
       begin
@@ -1079,6 +1079,23 @@ module Onetime
               "treating provider as inactive: #{ex.class}: #{ex.message}"
         false
       end
+    end
+
+    # The definition's :condition, failing closed like the :enabled switch:
+    # a condition that raises counts as unmet, so the provider is dropped
+    # rather than the response, and #restrict_to_unmet_prerequisite refuses a
+    # restriction that depends on it.
+    #
+    # @param defn [Hash] a provider definition from the registry
+    # @return [Boolean] true when the definition declares no :condition
+    def provider_condition_met?(defn)
+      return true unless defn[:condition]
+
+      defn[:condition].call(self) ? true : false
+    rescue StandardError => ex
+      OT.lw "[auth_config] #{defn[:label] || defn[:key]} condition raised, " \
+            "treating provider as inactive: #{ex.class}: #{ex.message}"
+      false
     end
 
     # The definition's :enabled switch, failing closed: an unrecognized token

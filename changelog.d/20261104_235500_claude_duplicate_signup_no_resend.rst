@@ -15,8 +15,10 @@ Security
   the record. The server logs it as ``registration_duplicate_customer_record``
   at error level, with the record's ``external_id``. 0.26.x logged the case
   as ``registration_blocked_redis_conflict``, so update alerts and log
-  searches that match the old name. With ``AUTHENTICATION_MODE=full``
-  exported, ``bin/ots customers diagnose EXTERNAL_ID`` names the cause.
+  searches that match the old name. Run each command below with
+  ``AUTHENTICATION_MODE=full`` exported: without it ``bin/ots`` resolves
+  simple mode, ``diagnose`` reports no finding and the repair commands refuse.
+  ``bin/ots customers diagnose EXTERNAL_ID`` names the cause.
   ``missing_auth_account`` follows a move from simple to full mode, and
   ``bin/ots customers sync-auth-accounts --run`` creates the missing accounts.
   ``account_closed`` follows a closure from before 0.26.19 that stopped part
