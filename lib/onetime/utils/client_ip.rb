@@ -34,9 +34,13 @@ module Onetime
       # The client IP for a call site that holds the Rack request (Rodauth
       # hooks and routes): the canonical env['otto.client_ip']; nil when the
       # middleware ran and found no client IP; request.ip only when the
-      # middleware did not run. Same reading as
-      # AuthStrategies::Helpers#client_ip, so full-mode and simple-mode call
-      # sites key a request on the same value.
+      # middleware did not run. Agrees with AuthStrategies::Helpers#client_ip
+      # whenever the middleware ran, so full-mode and simple-mode call sites
+      # key a request on the same value. The last-resort branches differ:
+      # Helpers#client_ip re-resolves with Otto::Utils.resolve_client_ip and
+      # the otto security config, while this returns Rack::Request#ip, which
+      # applies Rack's own trusted-proxy rule to X-Forwarded-For. Both are
+      # reachable only without IPPrivacyMiddleware.
       #
       # @param request [Rack::Request]
       # @return [String, nil]
