@@ -59,12 +59,13 @@ module Onetime::Organization::Features
     # Apply the configured retention cap (features.secret_activity.max_events)
     # to the trail. Clamps to MIN_MAX_EVENTS.
     #
-    # BOOT-TIME ONLY (see ConfigureSecretActivity): per-org DataType instances
-    # materialize lazily — Familia's initialize_relatives re-reads the stored
-    # RelatedFieldDefinition's opts on an instance's first accessor call, so
-    # mutating those opts here flows into every org materialized afterwards.
-    # Any org whose accessor already ran has memoized a DataType with the old
-    # cap and will NOT pick this up.
+    # BOOT-TIME ONLY (see ConfigureSecretActivity): Familia freezes a related
+    # field's definition when the first Organization instance materializes
+    # (Horreum#initialize_relatives), so the cap has to be applied before
+    # then. Afterwards configure_related_field raises
+    # Familia::RelatedFieldFrozenError rather than leave some orgs on the old
+    # cap and some on the new one. Re-applying the cap already in force is a
+    # no-op, so a repeat boot in the same process is safe.
     #
     # Deliberately unrescued: a malformed cap is a configuration error, and
     # the caller — not this method — owns the fallback policy (the boot
@@ -75,13 +76,19 @@ module Onetime::Organization::Features
     # @param max_events [Integer] desired cap (newest events retained).
     # @return [Integer] the applied (clamped) cap.
     # @raise [ArgumentError, TypeError] when max_events is not Integer-able.
+    # @raise [Familia::RelatedFieldFrozenError] when a different cap is
+    #   requested after an Organization instance has materialized.
     def self.configure!(max_events)
-      max = [Integer(max_events), MIN_MAX_EVENTS].max
+      requested_cap = [Integer(max_events), MIN_MAX_EVENTS].max
+      current_cap   = Onetime::Organization.related_fields[:secret_activity_events].opts[:max_length]
 
-      definition                   = Onetime::Organization.related_fields[:secret_activity_events]
-      definition.opts[:max_length] = max
+      # Familia refuses to reconfigure a frozen definition even when nothing
+      # would change, so only ask it to when the cap actually differs. That
+      # keeps a repeat boot with the same cap from raising.
+      cap_changed = requested_cap != current_cap
+      Onetime::Organization.configure_related_field(:secret_activity_events, max_length: requested_cap) if cap_changed
 
-      max
+      requested_cap
     end
 
     module InstanceMethods

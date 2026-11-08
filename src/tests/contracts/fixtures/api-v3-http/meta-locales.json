@@ -1,0 +1,21 @@
+{
+  "name": "meta-locales",
+  "method": "GET",
+  "path": "/api/v3/supported-locales",
+  "request": null,
+  "response_schema": "supportedLocales",
+  "request_schema": null,
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "x-request-id": "1ag4df3dfkuww"
+  },
+  "body": {
+    "locales": [
+      "en"
+    ],
+    "default_locale": "en",
+    "locale": "en"
+  }
+}

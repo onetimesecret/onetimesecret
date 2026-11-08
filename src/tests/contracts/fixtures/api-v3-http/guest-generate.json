@@ -1,0 +1,83 @@
+{
+  "name": "guest-generate",
+  "method": "POST",
+  "path": "/api/v3/guest/secret/generate",
+  "request": {
+    "secret": {
+      "ttl": 3600
+    }
+  },
+  "response_schema": "concealData",
+  "request_schema": "generateSecret",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "x-request-id": "00r5an6tgek3c"
+  },
+  "body": {
+    "success": true,
+    "record": {
+      "receipt": {
+        "identifier": "1u6n89pg02txb77z5k3i2d1d7yl7cbohfjopdcqf7atq3zhhpudrj31xcz10aa",
+        "key": "1u6n89pg02txb77z5k3i2d1d7yl7cbohfjopdcqf7atq3zhhpudrj31xcz10aa",
+        "owner_id": null,
+        "state": "new",
+        "secret_shortid": "ia5f2ls7",
+        "secret_identifier": "ia5f2ls7rgo3grhseqv0lgca67yps9a7kcm0zz4rsw799a8u9d1ga170zs9iaz",
+        "secret_ttl": 3600,
+        "metadata_ttl": 3600,
+        "receipt_ttl": 3600,
+        "lifespan": 3600,
+        "share_domain": null,
+        "created": 1794111215.7976089,
+        "updated": 1794111215.797613,
+        "shared": null,
+        "recipients": null,
+        "recipient_name": null,
+        "memo": null,
+        "shortid": "1u6n89pg",
+        "show_recipients": false,
+        "previewed": null,
+        "revealed": null,
+        "is_previewed": false,
+        "viewed": null,
+        "received": null,
+        "burned": null,
+        "is_viewed": false,
+        "is_received": false,
+        "is_revealed": false,
+        "is_burned": false,
+        "is_expired": false,
+        "is_orphaned": false,
+        "is_destroyed": false,
+        "has_passphrase": false,
+        "kind": "generate",
+        "source": "standard"
+      },
+      "secret": {
+        "identifier": "ia5f2ls7rgo3grhseqv0lgca67yps9a7kcm0zz4rsw799a8u9d1ga170zs9iaz",
+        "key": "ia5f2ls7rgo3grhseqv0lgca67yps9a7kcm0zz4rsw799a8u9d1ga170zs9iaz",
+        "shortid": "ia5f2ls7",
+        "state": "new",
+        "lifespan": 3600,
+        "secret_ttl": 3600,
+        "has_passphrase": false,
+        "verification": false,
+        "display_type": "text",
+        "created": 1794111215.7975874,
+        "updated": 1794111215.7975934,
+        "is_previewed": false,
+        "is_revealed": false,
+        "is_viewed": false,
+        "is_received": false
+      },
+      "share_domain": null
+    },
+    "details": {
+      "kind": "generate",
+      "recipient": [],
+      "recipient_safe": []
+    }
+  }
+}

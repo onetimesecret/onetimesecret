@@ -110,13 +110,11 @@ module Incoming
       end
 
       def process
-        # Create and encrypt secret
+        # Create and encrypt secret. spawn_pair returns only a pair whose
+        # commit EXEC confirmed and raises Onetime::SecretCreationFailed
+        # otherwise, so no stats or notification follow an uncommitted pair.
         create_and_encrypt_secret
-
-        # Validate that spawn_pair produced valid objects before recording
-        # stats or enqueuing notifications for a potentially invalid secret.
-        @greenlighted = receipt.valid? && secret.valid?
-        raise_form_error 'Failed to create secret' unless @greenlighted
+        @greenlighted = true
 
         # Update stats
         update_customer_stats
@@ -210,29 +208,20 @@ module Incoming
           secret_value,
           passphrase: passphrase,
           domain: share_domain,
-        )
-
-        # Store incoming-specific fields. Persist the raw email so the
-        # underlying record stays accurate; obscuring for display happens
-        # at the serializer (Receipt::Features::SafeDumpFields). For the
-        # frontend, prefer the recipient's display name when available.
-        receipt.memo           = memo
-        receipt.recipients     = recipient_email
-        receipt.recipient_name = lookup_recipient_display_name(@recipient_hash)
-
-        # Provenance: guest submission through an Incoming form. This is the one
-        # authoritative signal for withholding the share link from the creator
-        # (see Receipt#shows_share_link?). spawn_pair already defaulted 'standard';
-        # override it here before the save below.
-        receipt.source = 'incoming'
-
-        # Set domain_id for custom domain requests (#2864). Resolved from the
-        # same share_domain that spawn_pair persisted, keeping domain_id and
-        # share_domain consistent on the receipt. resolved_domain_id memoizes the
-        # datastore lookup so the notification step below reuses it.
-        receipt.domain_id = resolved_domain_id if share_domain
-
-        receipt.save
+          # Select provenance here, not from client fields, before the first
+          # receipt save or any post-save work can expose a standard projection.
+          source: 'incoming',
+          memo: memo,
+          # Keep the resolved raw email at rest; safe_dump obscures it.
+          recipients: recipient_email,
+          recipient_name: lookup_recipient_display_name(@recipient_hash),
+          domain_id: share_domain ? resolved_domain_id : nil,
+        ) do |pending_receipt|
+          # Required registration, queued inside the commit: the owner's
+          # receipt list. Incoming routes are anonymous, so this is normally
+          # skipped.
+          cust.add_receipt pending_receipt unless anonymous_user?
+        end
       end
 
       # The custom domain a secret submitted via /incoming should be bound to,
@@ -269,15 +258,20 @@ module Incoming
         @resolved_domain_id = Onetime::CustomDomain.resolve_domain_id(share_domain)
       end
 
+      # Optional follow-ups run after the commit. Each failure is logged by
+      # creation_followup and never fails a creation that already committed.
       def update_customer_stats
         # Update customer stats if not anonymous
         unless anonymous_user?
-          cust.add_receipt receipt
-          cust.increment_field :secrets_created
+          Onetime::Receipt.creation_followup(:customer_stats, receipt) do
+            cust.increment_field :secrets_created
+          end
         end
 
         # Update global stats
-        Onetime::Customer.secrets_created.increment
+        Onetime::Receipt.creation_followup(:global_stats, receipt) do
+          Onetime::Customer.secrets_created.increment
+        end
       end
 
       def send_recipient_notification

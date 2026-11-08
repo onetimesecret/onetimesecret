@@ -187,6 +187,41 @@ RSpec.describe Onetime::Middleware::SessionFailureCode do
       expect(challenge_for(:suspended_credentials)).to eq('Session realm="onetimesecret"')
     end
 
+    # What PasetoAuthStrategy leaves behind on its terminal failure (#2427):
+    # the reason and the Bearer scheme it examined.
+    def bearer_challenge_for(reason, env_extra = {})
+      env = refused_env(reason, env_extra)
+      Onetime::SessionFailureCode.stash_scheme(env, Onetime::SessionFailureCode::SCHEME_BEARER)
+      _s, headers, _b = call(otto_response, env)
+      headers['www-authenticate']
+    end
+
+    it 'is an RFC 6750 Bearer invalid_token challenge for a rejected bearer token' do
+      expect(bearer_challenge_for(:api_token_invalid, 'HTTP_AUTHORIZATION' => 'Bearer v4.public.abc')).to eq(
+        'Bearer realm="onetimesecret", error="invalid_token"',
+      )
+      expect(bearer_challenge_for(:suspended_credentials, 'HTTP_AUTHORIZATION' => 'Bearer v4.public.abc')).to eq(
+        'Bearer realm="onetimesecret", error="invalid_token"',
+      )
+    end
+
+    it 'names expiry in the Bearer challenge so a client mints a new token without alarm' do
+      expect(bearer_challenge_for(:api_token_expired, 'HTTP_AUTHORIZATION' => 'Bearer v4.public.abc')).to eq(
+        'Bearer realm="onetimesecret", error="invalid_token", error_description="The access token expired"',
+      )
+    end
+
+    it 'codes a rejected bearer token in the credential scope' do
+      _s, _h, body = call(otto_response, refused_env(:api_token_expired))
+      expect(JSON.parse(body.join)).to include('code' => 'api_token_expired', 'code_scope' => 'credential')
+    end
+
+    it 'never challenges with Bearer because a request merely carried a Bearer header' do
+      expect(challenge_for(:session_missing, { 'HTTP_AUTHORIZATION' => 'Bearer v4.public.abc' })).to eq(
+        'Session realm="onetimesecret"',
+      )
+    end
+
     it 'is Session for a rejected login, second factor or password confirmation' do
       body = { error: 'There was an error logging in', 'field-error' => ['password', 'invalid password'] }.to_json
       _s, headers, _b = call(otto_response(body: body), { env_key => :invalid_credentials })

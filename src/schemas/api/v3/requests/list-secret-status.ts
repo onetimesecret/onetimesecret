@@ -4,13 +4,13 @@
 // POST /secret/status
 //
 //
-// POST with array of identifiers to batch-check status.
+// POST with CSV or an array of identifiers to batch-check status.
 
 import { z } from 'zod';
 
 export const listSecretStatusRequestSchema = z.object({
-  /** Array of secret identifiers to check */
-  identifiers: z.array(z.string()),
+  /** Secret identifiers as an array or comma-separated string. */
+  identifiers: z.union([z.array(z.string()), z.string()]),
 });
 
 export type ListSecretStatusRequest = z.infer<typeof listSecretStatusRequestSchema>;

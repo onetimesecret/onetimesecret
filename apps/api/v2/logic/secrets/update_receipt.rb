@@ -31,10 +31,15 @@ module V2::Logic
       end
 
       def process
-        # Only allow updating memo field for now
+        # V3 inherits this operation; the model owns the conditional write,
+        # while success_data retains the safe_dump boundary and wire shape.
         if memo
-          receipt.memo = memo
-          receipt.save
+          raise OT::MissingSecret, "identifier: #{identifier}" unless receipt.update_memo!(memo)
+
+          # Refresh the response projection, not the write precondition. The
+          # atomic model operation already protected lifecycle fields and TTL.
+          @receipt = Onetime::Receipt.load(identifier)
+          raise OT::MissingSecret, "identifier: #{identifier}" if receipt.nil?
         end
 
         success_data

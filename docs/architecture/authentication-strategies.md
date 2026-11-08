@@ -59,6 +59,45 @@ actions are mounted accordingly: `POST /n` (`GenerateAPIToken`) is declared
 (`apps/web/auth/spec/integration/full/basicauth/`), so the empty-session case
 cannot silently authorize.
 
+## Bearer tokens: `PasetoAuthStrategy` (`auth=pasetoauth`)
+
+The v3 secret routes chain `sessionauth,pasetoauth`; `/version` chains
+`sessionauth,pasetoauth,basicauth`. `PasetoAuthStrategy`
+(`lib/onetime/application/auth_strategies/paseto_auth_strategy.rb`) accepts a
+PASETO v4.public token minted by `POST /api/v3/token`
+(`V3::Logic::Auth::GenerateToken`) and resolves its `sub` through
+`Customer.find_by_extid`. Operator guide and claims:
+[authentication/api-bearer-tokens.md](../authentication/api-bearer-tokens.md).
+
+The strategy claims exactly one kind of credential, and the chain rules above
+decide the rest:
+
+- No `Authorization` header, another scheme (`Basic`), or
+  `auth.paseto.enabled` off: a **non-terminal** failure. The request is not
+  the strategy's; the chain answers as it did before the strategy existed. A
+  disabled deployment is therefore byte-for-byte unchanged, which is why the
+  strategy is always registered (Otto 401s a route naming an unregistered
+  strategy) and reads the flag per request.
+- A presented `Bearer` token that is rejected: a **terminal** failure through
+  `Helpers#credentialed_failure`, so it fails closed (401) and can never
+  degrade to anonymous. It stashes `api_token_invalid` or `api_token_expired`
+  (or `suspended_credentials`) with the `Bearer` scheme, which the
+  `SessionFailureCode` middleware renders as the RFC 6750 challenge. The
+  session carve-out is the shared one: a valid session on the same request
+  outranks the rejected header.
+
+`sessionauth` is listed first for the same reason every `sessionauth,basicauth`
+chain lists it first: a browser session answers before any header is read, so
+the CSRF discriminator (an authenticated session cookie) is unaffected by the
+new scheme.
+
+Like `BasicAuthStrategy`, the strategy passes `env['rack.session']` through
+(nil on a stateless call) and never marks the session authenticated, so a
+bearer client keeping a cookie jar still bypasses CSRF. Session-only logic
+must keep requiring its session state explicitly: `GenerateToken` accepts
+`sessionauth` and `basic_auth` results and refuses a `pasetoauth` one, so a
+token cannot renew itself even if a route chain were edited to allow it.
+
 ## Test surfaces
 
 - Strategy-level (unit): each strategy returns the correct `StrategyResult` /

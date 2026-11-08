@@ -1,0 +1,28 @@
+{
+  "name": "incoming-config",
+  "method": "GET",
+  "path": "/api/incoming/config",
+  "request": null,
+  "response_schema": "incomingConfig",
+  "request_schema": null,
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "x-request-id": "19bz2eex9b9ek"
+  },
+  "body": {
+    "config": {
+      "enabled": true,
+      "memo_max_length": 50,
+      "secret_max_length": 10000,
+      "default_ttl": 604800,
+      "recipients": [
+        {
+          "digest": "caca2676ac56de1c558560efe92c506625a7953893af45fb2559a550ba09be9b",
+          "display_name": "schema-incoming"
+        }
+      ]
+    }
+  }
+}

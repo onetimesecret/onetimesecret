@@ -147,7 +147,7 @@ RSpec.describe 'Interrupted account closures (#4830)', type: :integration do
       )
       expect(Auth::Logging).to have_received(:log_auth_event)
         .with(:registration_blocked_interrupted_closure, hash_including(external_id: leftover.extid))
-      expect(Auth::Logging).not_to have_received(:log_auth_event).with(:registration_blocked_redis_conflict, anything)
+      expect(Auth::Logging).not_to have_received(:log_auth_event).with(:registration_duplicate_customer_record, anything)
       expect(leftover.exists?).to be(true)
       expect(auth_db[:accounts].where(email: OT::Utils.normalize_email(email)).count).to eq(0)
     end

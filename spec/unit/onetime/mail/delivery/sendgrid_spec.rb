@@ -150,4 +150,18 @@ RSpec.describe Onetime::Mail::Delivery::SendGrid do
       expect(error.message).to eq('test error')
     end
   end
+
+  describe '#validate_config!' do
+    before do
+      allow(ENV).to receive(:fetch).and_call_original
+      allow(ENV).to receive(:fetch).with('SENDGRID_API_KEY', nil).and_return(nil)
+    end
+
+    it 'raises ConfigurationError naming sendgrid when the API key is missing' do
+      expect { described_class.new({}) }
+        .to raise_error(Onetime::Mail::ConfigurationError, 'SendGrid API key must be configured') do |err|
+          expect(err.provider).to eq('sendgrid')
+        end
+    end
+  end
 end

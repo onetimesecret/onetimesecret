@@ -12,6 +12,8 @@ require_relative 'utils/config_resolver'
 require_relative 'utils/enumerables'
 require_relative 'sso_provider/registry'
 require_relative 'sso_provider/issuer_validation'
+# Onetime::Paseto::AccessToken clamps the configured bearer-token lifetime.
+require_relative 'paseto'
 
 # The origin validator otto applies to the request-scoped CSP extras channel;
 # #origin_from_url funnels through it so the two cannot drift (see there).
@@ -136,6 +138,28 @@ module Onetime
     # variable, with either value, settles it.
     def simple_by_default?
       simple_enabled? && ENV['AUTHENTICATION_MODE'].to_s.strip.empty?
+    end
+
+    # Whether the v3 API issues and accepts PASETO v4.public bearer tokens
+    # (#2427). A top-level `paseto` section, independent of the auth mode:
+    # bearer tokens are an API credential, not a Rodauth feature, so simple
+    # (Redis-only) installs can use them too. Read per request by
+    # PasetoAuthStrategy and V3::Logic::Auth::GenerateToken, so the flag
+    # takes effect on the next request after a config reload.
+    #
+    # Default: false. V3's stable surface accepts browser sessions and the
+    # explicit guest routes only; enabling this is the operator's decision
+    # to add a third credential to the authenticated v3 secret routes.
+    def paseto_enabled?
+      paseto_config['enabled'] == true
+    end
+
+    # Lifetime of each issued bearer token in seconds, clamped into the
+    # range Onetime::Paseto::AccessToken accepts (60s..24h). Default 3600.
+    def paseto_token_ttl
+      Onetime::Paseto::AccessToken.clamp_ttl(
+        paseto_config.fetch('token_ttl', Onetime::Paseto::AccessToken::DEFAULT_TTL),
+      )
     end
 
     # Feature flags hash from full mode config
@@ -527,11 +551,6 @@ module Onetime
         next unless provider_active?(defn)
         next if withheld_by_issuer_verdict?(defn)
 
-        # Optional gate beyond env-var presence (e.g., the local IdP needs
-        # AUTH_OAUTH_ENABLED=true on top of OAUTH_SP_DEV_CLIENT_SECRET).
-        condition = defn[:condition]
-        next if condition && !condition.call(self)
-
         display = ENV.fetch(defn[:display_var], nil) || defn[:display_default]
         {
           'route_name' => ENV.fetch(defn[:route_var], defn[:route_default]),
@@ -654,8 +673,10 @@ module Onetime
         #
         # Two-part gate: OAUTH_SP_DEV_CLIENT_SECRET must be set (env-var
         # presence) AND AUTH_OAUTH_ENABLED=true (so the IdP it talks to is
-        # actually running). Without the second check, the frontend would
-        # render a "Local IdP" button that posts to a non-existent route.
+        # actually running). #provider_active? applies both, so the button
+        # list, the HttpOrigin origins and the restrict_to 'sso' prerequisite
+        # agree; without the second check the frontend would render a
+        # "Local IdP" button that posts to a non-existent route.
         {
           key: :local_idp,
           required_vars: %w[OAUTH_SP_DEV_CLIENT_SECRET],
@@ -890,7 +911,8 @@ module Onetime
         # verdict (#4513), which must not decide whether the restriction holds.
         if provider_definitions.none? { |defn| provider_active?(defn) }
           return 'SSO is enabled but no provider is configured (no provider has its ' \
-                 'required env vars set, e.g. OIDC_ISSUER + OIDC_CLIENT_ID)'
+                 'required env vars set and its prerequisites met, e.g. OIDC_ISSUER + ' \
+                 'OIDC_CLIENT_ID, or OAUTH_SP_DEV_CLIENT_SECRET with AUTH_OAUTH_ENABLED=true)'
         end
       when 'email_auth'
         return 'email auth is disabled (full.features.email_auth / AUTH_EMAIL_AUTH_ENABLED)' unless email_auth_enabled?
@@ -1027,19 +1049,27 @@ module Onetime
     # button (#withheld_by_issuer_verdict?).
     #
     # Fails closed. This runs per request (the serializer) and inside the
-    # HttpOrigin middleware via #sso_idp_origins, so a :vars_valid that raises
-    # drops the provider rather than the response.
+    # HttpOrigin middleware via #sso_idp_origins, so a :vars_valid or a
+    # :condition that raises drops the provider rather than the response.
     #
     # An install-wide :enabled switch (SAML_ENABLED, #4604) is checked first,
     # before presence: configure_provider registers no route for a
     # switched-off provider whatever its vars say, so nothing may be
     # advertised or admitted for it either.
     #
+    # A definition's :condition (the local IdP's AUTH_OAUTH_ENABLED) is part
+    # of the same predicate. configure_local_idp_provider registers no route
+    # while it is false, so a provider that passes presence alone must not
+    # count as configured either: #restrict_to_unmet_prerequisite reads this
+    # predicate, and counting it let restrict_to 'sso' boot with no provider
+    # that could sign anyone in (ADR-034#degradation-is-fail-closed).
+    #
     # @param defn [Hash] a provider definition from the registry
     # @return [Boolean]
     def provider_active?(defn)
       return false if defn[:enabled] && !provider_switch_on?(defn)
       return false unless defn[:required_vars].all? { |var| env_present?(var) }
+      return false unless provider_condition_met?(defn)
       return true unless defn[:vars_valid]
 
       begin
@@ -1049,6 +1079,23 @@ module Onetime
               "treating provider as inactive: #{ex.class}: #{ex.message}"
         false
       end
+    end
+
+    # The definition's :condition, failing closed like the :enabled switch:
+    # a condition that raises counts as unmet, so the provider is dropped
+    # rather than the response, and #restrict_to_unmet_prerequisite refuses a
+    # restriction that depends on it.
+    #
+    # @param defn [Hash] a provider definition from the registry
+    # @return [Boolean] true when the definition declares no :condition
+    def provider_condition_met?(defn)
+      return true unless defn[:condition]
+
+      defn[:condition].call(self) ? true : false
+    rescue StandardError => ex
+      OT.lw "[auth_config] #{defn[:label] || defn[:key]} condition raised, " \
+            "treating provider as inactive: #{ex.class}: #{ex.message}"
+      false
     end
 
     # The definition's :enabled switch, failing closed: an unrecognized token
@@ -1227,6 +1274,14 @@ module Onetime
 
     def auth_config
       @config
+    end
+
+    # The `paseto` section, or an empty Hash when the file has none (an
+    # operator config written before the section existed, or a config that
+    # failed to load): both read as disabled.
+    def paseto_config
+      section = @config.is_a?(Hash) ? @config['paseto'] : nil
+      section.is_a?(Hash) ? section : {}
     end
   end
 

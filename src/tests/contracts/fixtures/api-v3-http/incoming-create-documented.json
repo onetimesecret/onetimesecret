@@ -1,0 +1,22 @@
+{
+  "name": "incoming-create-documented",
+  "method": "POST",
+  "path": "/api/incoming/secret",
+  "request": {
+    "secret": "schema incoming dummy",
+    "recipient": "caca2676ac56de1c558560efe92c506625a7953893af45fb2559a550ba09be9b",
+    "memo": "schema memo"
+  },
+  "response_schema": "incomingSecret",
+  "request_schema": "createIncomingSecret",
+  "status": 422,
+  "headers": {
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "x-request-id": "2ija8432fb65g"
+  },
+  "body": {
+    "error": "Incorrect payload format",
+    "request_id": "2ija8432fb65g"
+  }
+}

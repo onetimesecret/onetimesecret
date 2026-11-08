@@ -158,5 +158,58 @@ RSpec.describe 'Create-account enumeration safety (audit 2026-08-02 M-2)', type:
       expect(dup_body).to eq(fresh_body)
       expect(accounts_count(redis_only)).to eq(0)
     end
+
+    # The answer gives the person nothing to act on, so the operator log line
+    # is the only signal: it is an error, names the record by external_id
+    # (the email in it is masked), and names the commands that inspect and
+    # resolve the record.
+    it 'logs the dead end at error level with the record and the commands that inspect and resolve it' do
+      redis_only = signup_email('m2-redis-log')
+      customer   = Onetime::Customer.create!(email: redis_only)
+
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+      probe(redis_only)
+
+      expect(accounts_count(redis_only)).to eq(0)
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :registration_duplicate_customer_record,
+        hash_including(
+          level: :error,
+          external_id: customer.extid,
+          response_mode: 'generic_success',
+          diagnostic_hint: a_string_including(
+            'AUTHENTICATION_MODE=full', 'bin/ots customers diagnose <external_id>', 'sync-auth-accounts --run'
+          ),
+        ),
+      )
+    ensure
+      customer&.destroy!
+    end
+
+    # An index entry left by a deleted customer reaches the same branch but
+    # resolves to no record, so the line has no external_id to hand to
+    # diagnose; it says so and names the repair that removes the entry.
+    it 'logs an orphaned email index entry as an unresolved record with the doctor repair' do
+      orphaned = signup_email('m2-redis-orphan')
+      Onetime::Customer.email_index[orphaned] = "orphan-#{SecureRandom.hex(8)}"
+
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+      probe(orphaned)
+
+      expect(accounts_count(orphaned)).to eq(0)
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :registration_duplicate_customer_record,
+        hash_including(
+          level: :error,
+          external_id: nil,
+          customer_record_found: false,
+          diagnostic_hint: a_string_including('customers doctor --all --repair'),
+        ),
+      )
+    ensure
+      Onetime::Customer.email_index.remove_field(orphaned) if orphaned
+    end
   end
 end
