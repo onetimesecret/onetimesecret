@@ -175,8 +175,11 @@ module Auth::Config::Hooks
         # ran (docs/authentication/switching-to-full-mode.md); a closure from
         # before #4819 that closed the accounts row and stopped before deleting
         # the record (docs/development/data-migrations.md); a half-completed
-        # email change. In development, instances sharing one Redis.
+        # email change; an email index entry left by a deleted customer, which
+        # resolves to no record (customer_record_found: false). In
+        # development, instances sharing one Redis.
         if leftover.nil? && Onetime::Customer.email_exists?(email)
+          customer = Onetime::Customer.find_by_email(email)
           diagnostic_hint = <<~HINT.strip
             Sign-up answered as a new one and nothing was created: a customer
             record exists for this address but no open auth account does, so
@@ -190,15 +193,19 @@ module Auth::Config::Hooks
             account_closed: a closure from before #4819 stopped part way; run
             `bin/ots customers prune-closed-accounts --confirm`, then
             `bin/ots customers finish-closures --confirm`. email_drift: a
-            half-completed email change. In development this usually means
-            several instances share one Redis.
+            half-completed email change. With no external_id on this line
+            (customer_record_found: false), the email index points at a
+            deleted customer; `bin/ots customers doctor --all --repair`
+            removes the entry. In development this usually means several
+            instances share one Redis.
           HINT
 
           Auth::Logging.log_auth_event(
             :registration_duplicate_customer_record,
             level: :error,
             email: OT::Utils.obscure_email(email),
-            external_id: Onetime::Customer.find_by_email(email)&.extid,
+            external_id: customer&.extid,
+            customer_record_found: !customer.nil?,
             diagnostic_hint: diagnostic_hint,
             response_mode: 'generic_success',
           )

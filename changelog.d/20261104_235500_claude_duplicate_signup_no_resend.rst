@@ -21,4 +21,7 @@ Security
   ``bin/ots customers sync-auth-accounts --run`` creates the missing accounts.
   ``account_closed`` follows a closure from before 0.26.19 that stopped part
   way, and ``bin/ots customers prune-closed-accounts --confirm`` followed by
-  ``bin/ots customers finish-closures --confirm`` removes the record.
+  ``bin/ots customers finish-closures --confirm`` removes the record. A line
+  with no ``external_id`` (``customer_record_found: false``) means the email
+  index still points at a deleted customer, and
+  ``bin/ots customers doctor --all --repair`` removes the entry.

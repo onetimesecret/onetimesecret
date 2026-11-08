@@ -186,5 +186,30 @@ RSpec.describe 'Create-account enumeration safety (audit 2026-08-02 M-2)', type:
     ensure
       customer&.destroy!
     end
+
+    # An index entry left by a deleted customer reaches the same branch but
+    # resolves to no record, so the line has no external_id to hand to
+    # diagnose; it says so and names the repair that removes the entry.
+    it 'logs an orphaned email index entry as an unresolved record with the doctor repair' do
+      orphaned = signup_email('m2-redis-orphan')
+      Onetime::Customer.email_index[orphaned] = "orphan-#{SecureRandom.hex(8)}"
+
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+      probe(orphaned)
+
+      expect(accounts_count(orphaned)).to eq(0)
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :registration_duplicate_customer_record,
+        hash_including(
+          level: :error,
+          external_id: nil,
+          customer_record_found: false,
+          diagnostic_hint: a_string_including('customers doctor --all --repair'),
+        ),
+      )
+    ensure
+      Onetime::Customer.email_index.remove_field(orphaned) if orphaned
+    end
   end
 end
