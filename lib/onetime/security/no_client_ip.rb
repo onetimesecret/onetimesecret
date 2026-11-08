@@ -17,7 +17,8 @@ module Onetime
     # to the proxy's own address and shared that proxy's bucket.
     #
     # The per-IP-only limiters (account creation, anonymous secret creation,
-    # feedback) therefore charge every IP-less request to this one shared
+    # feedback, V1::ControllerBase#check_rate_limit!) therefore charge every
+    # IP-less request to this one shared
     # bucket. It preserves a cap without naming the proxy as the client, and
     # it is the pre-2.13 ceiling for a proxy that writes `unknown` for every
     # visitor: those requests all shared one bucket then too, keyed on the

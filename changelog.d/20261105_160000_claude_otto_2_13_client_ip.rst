@@ -26,8 +26,9 @@ Security
   ``X-Forwarded-For`` is absent. See ``docs/deployment/trusted-proxies.md``,
   "Client IP resolution". (delano/otto#292)
 
-- The account-creation, anonymous secret-creation and feedback rate limiters
-  charge a request that has no client IP to one shared ``no-client-ip`` bucket
+- The account-creation, anonymous secret-creation and feedback rate limiters,
+  and the legacy V1 API's per-IP create and show limits, charge a request that
+  has no client IP to one shared ``no-client-ip`` bucket
   instead of skipping it. Each is the only cap on its route, and with otto
   2.13 the no-client-IP state is produced by a header value the client writes,
   so skipping would have switched the cap off from the request it caps. The

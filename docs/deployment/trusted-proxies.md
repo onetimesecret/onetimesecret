@@ -86,8 +86,9 @@ belongs to a proxy from one that belongs to the client, which is what the
 - **A non-address entry means no client IP.** When the walk reaches an entry
   that is not an IP address (`unknown`, an empty field, a trailing comma, a
   range written with a prefix), the request has no client IP: the single-tier
-  per-IP limiters (account creation, anonymous secret creation, feedback)
-  charge it to one shared `no-client-ip` bucket, limiters with another tier
+  per-IP limiters (account creation, anonymous secret creation, feedback, and
+  the legacy V1 API's create and show limits) charge it to one shared
+  `no-client-ip` bucket, limiters with another tier
   (login and reset by email, incoming by recipient) skip their IP tier, the
   admin network CIDR gate denies it, and sessions and audit records carry no
   address. The application does not fall back to the proxy's own address. A
