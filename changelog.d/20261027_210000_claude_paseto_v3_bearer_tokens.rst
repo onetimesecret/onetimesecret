@@ -28,8 +28,8 @@ Added
 Changed
 -------
 
-- ``otto`` floor raised to 2.12 and ``familia`` to 2.13 (the latest
-  releases). ``Organization::Features::SecretActivity.configure!`` now applies
+- ``familia`` floor raised to 2.13 (otto 2.12 has its own entry in this
+  release). ``Organization::Features::SecretActivity.configure!`` now applies
   its retention cap through Familia's ``configure_related_field`` and refuses
   a different cap once an organization has materialized.
 
