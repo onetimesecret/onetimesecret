@@ -107,7 +107,7 @@ derives each lane's selection from the rake tasks themselves (invoked with
 `sh` captured, resolved through rspec's own configuration) and checks
 `--which` against it, so the table cannot drift from `lib/tasks/spec.rake`
 unnoticed. Support files (`spec/support`, an app's `spec/support`, `spec/spec_helper.rb`,
-`try/support`) and application code (`lib/`, `apps/*` outside test trees,
+`try/support`), test data (`spec/fixtures`) and application code (`lib/`, `apps/*` outside test trees,
 `config/`, `etc/`, `locales/`, `Gemfile.lock`, `tests/lanes/`) are _shared_:
 every lane but `smoke` runs them. The same spec checks the table against
 every lane's tasks file and every `spec/` and `try/` directory on disk, so

@@ -447,6 +447,151 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
       end
     end
 
+    # The mail backend cannot be built from the install's configuration. The
+    # message is fine, so the worker keeps it on the queue (requeue after a
+    # pause) instead of dead-lettering it as a malformed message
+    # (EmailWorker#hold_misconfigured).
+    context 'when the mail backend is misconfigured' do
+      let(:message) do
+        JSON.generate(
+          template: 'secret_link',
+          data: { secret_key: 'abc123', recipient: 'test@example.com', sender_email: 'sender@example.com' }
+        )
+      end
+      let(:config_error) do
+        Onetime::Mail::ConfigurationError.new('SMTP host must be configured', provider: 'smtp')
+      end
+      let(:config_log_line) { 'Mail configuration error (provider: smtp): SMTP host must be configured' }
+
+      def recorded
+        Onetime::DeliveryEvent.recent(20)
+      end
+
+      before do
+        allow(worker).to receive(:pause_misconfigured)
+        allow(worker).to receive(:log_error).and_call_original
+        Onetime::DeliveryEvent.events.clear
+      end
+
+      after { Onetime::DeliveryEvent.events.clear }
+
+      context 'when the mailer raises ConfigurationError' do
+        before { allow(Onetime::Mail).to receive(:deliver).and_raise(config_error) }
+
+        it 'requeues the message after a pause instead of rejecting it' do
+          settled = worker.work_with_params(message, delivery_info, metadata)
+
+          expect(settled).to eq(:requeue)
+          expect(worker.rejected?).to be false
+          expect(worker.acked?).to be false
+          expect(worker).to have_received(:pause_misconfigured).once
+        end
+
+        it 'does not retry in-process' do
+          worker.work_with_params(message, delivery_info, metadata)
+
+          expect(Onetime::Mail).to have_received(:deliver).once
+          expect(retry_delays).to be_empty
+        end
+
+        it 'logs a mail configuration error naming the provider, not a message format error' do
+          worker.work_with_params(message, delivery_info, metadata)
+
+          expect(worker).to have_received(:log_error).with(config_log_line, message_id: message_id)
+          expect(worker).not_to have_received(:log_error).with(/Invalid message format/, any_args)
+        end
+
+        it 'releases the idempotency claim before the pause' do
+          claim_during_pause = nil
+          allow(worker).to receive(:pause_misconfigured) do
+            claim_during_pause = Familia.dbclient.exists?("job:processed:#{message_id}")
+          end
+
+          worker.work_with_params(message, delivery_info, metadata)
+
+          expect(claim_during_pause).to be_falsey
+          expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_falsey
+        end
+
+        it 'writes no delivery event, because the message is not settled' do
+          worker.work_with_params(message, delivery_info, metadata)
+
+          expect(recorded).to be_empty
+        end
+      end
+
+      it 'delivers the held message once the configuration works' do
+        calls = 0
+        allow(Onetime::Mail).to receive(:deliver) do
+          calls += 1
+          raise config_error if calls == 1
+
+          double('response')
+        end
+
+        expect(worker.work_with_params(message, delivery_info, metadata)).to eq(:requeue)
+        expect(worker.work_with_params(message, delivery_info, metadata)).to eq(:ack)
+        expect(calls).to eq(2)
+      end
+
+      it 'sends the message to the DLQ with a misconfigured event when the claim cannot be released' do
+        allow(Onetime::Mail).to receive(:deliver).and_raise(config_error)
+        allow(worker).to receive(:release_processing_claim).and_raise(RedisClient::CannotConnectError, 'down')
+
+        settled = worker.work_with_params(message, delivery_info, metadata)
+
+        expect(settled).to eq(:reject)
+        expect(worker).not_to have_received(:pause_misconfigured)
+        expect(worker).to have_received(:log_error).with(config_log_line, message_id: message_id)
+        expect(recorded.size).to eq(1)
+        expect(recorded.first).to include(
+          'outcome' => 'failed',
+          'reason' => 'misconfigured',
+          'error_class' => 'Onetime::Mail::ConfigurationError',
+          'attempt_count' => 1,
+        )
+      end
+
+      it 'still rejects a message the mailer refuses as malformed' do
+        allow(Onetime::Mail).to receive(:deliver).and_raise(ArgumentError, 'Unknown template: secret_viewed')
+
+        settled = worker.work_with_params(message, delivery_info, metadata)
+
+        expect(settled).to eq(:reject)
+        expect(worker).not_to have_received(:pause_misconfigured)
+        expect(worker).to have_received(:log_error).with('Invalid message format: Unknown template: secret_viewed')
+        expect(recorded.first).to include('outcome' => 'failed', 'reason' => 'invalid_message')
+      end
+
+      # Through the real mailer: the SMTP backend's own check raises.
+      context 'when the SMTP host is missing' do
+        let(:message) do
+          JSON.generate(
+            raw: true,
+            email: { to: 'test@example.com', from: 'sender@example.com', subject: 'Hello', body: 'Body' }
+          )
+        end
+
+        before do
+          allow(Onetime::Mail).to receive(:deliver_raw).and_call_original
+          allow(Onetime::Mail::Mailer).to receive(:emailer_config).and_return('mode' => 'smtp', 'host' => '')
+          allow(ENV).to receive(:fetch).and_call_original
+          allow(ENV).to receive(:fetch).with('SMTP_HOST', nil).and_return(nil)
+          Onetime::Mail::Mailer.reset!
+        end
+
+        after { Onetime::Mail::Mailer.reset! }
+
+        it 'requeues the message and logs a mail configuration error' do
+          settled = worker.work_with_params(message, delivery_info, metadata)
+
+          expect(settled).to eq(:requeue)
+          expect(worker).to have_received(:log_error).with(config_log_line, message_id: message_id)
+          expect(worker).not_to have_received(:log_error).with(/Invalid message format/, any_args)
+        end
+      end
+    end
+
     context 'with missing template' do
       let(:message) do
         JSON.generate(

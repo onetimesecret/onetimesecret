@@ -407,4 +407,31 @@ RSpec.describe Onetime::Mail::Delivery::SMTP do
       expect(described_class::AUTH_METHODS.values).to include(described_class::DEFAULT_AUTH_METHOD)
     end
   end
+
+  # A missing host is a property of the install, not of the message, so it
+  # must not be an ArgumentError: EmailWorker reads ArgumentError as a
+  # malformed message and dead-letters it.
+  describe '#validate_config!' do
+    before do
+      allow(ENV).to receive(:fetch).and_call_original
+      allow(ENV).to receive(:fetch).with('SMTP_HOST', nil).and_return(nil)
+    end
+
+    [nil, ''].each do |host|
+      it "raises ConfigurationError naming smtp when the host is #{host.inspect}" do
+        expect { described_class.new('host' => host) }
+          .to raise_error(Onetime::Mail::ConfigurationError, 'SMTP host must be configured') do |err|
+            expect(err.provider).to eq('smtp')
+            expect(err).not_to be_a(ArgumentError)
+            expect(err).not_to be_a(Onetime::Mail::DeliveryError)
+          end
+      end
+    end
+
+    it 'accepts the host from SMTP_HOST' do
+      allow(ENV).to receive(:fetch).with('SMTP_HOST', nil).and_return('smtp.example.com')
+
+      expect { described_class.new({}) }.not_to raise_error
+    end
+  end
 end

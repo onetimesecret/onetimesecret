@@ -131,6 +131,52 @@ module Onetime
     end
   end
 
+  # Secret creation did not reach a confirmed commit of its secret/receipt
+  # pair (Onetime::Receipt.spawn_pair; docs/specs/api/01-creation-commit.md).
+  # The caller gets an error, never partial success. `persistence` is internal
+  # evidence for diagnostics and cleanup, not a user-facing state:
+  #
+  # - :none        preparation failed before the commit was attempted, so no
+  #                write was issued
+  # - :incomplete  the datastore rejected a command in the commit, so the
+  #                commit is confirmed not complete. Valkey keeps the writes
+  #                that succeeded: the secret and receipt hashes may both exist
+  #                with their TTLs while a required registration is missing.
+  #                The caller received no handle for them.
+  # - :unconfirmed the commit raised without a datastore verdict (lost
+  #                connection, timeout, an error raised while queuing); the
+  #                writes may or may not have been applied, possibly as a
+  #                complete pair
+  #
+  # Classification errs conservative: a failure inside the commit is never
+  # :none, even where nothing was in fact sent. An error does not prove
+  # rollback, so nothing may delete a pair on :unconfirmed evidence alone.
+  #
+  # No `register_error_handler` entry: like AuditWriteFailure this is a
+  # backend failure on the generic 500 path, with `cause` set to the
+  # underlying exception. The message names shortids only, because the full
+  # secret and receipt identifiers are capability handles. The cause keeps
+  # the datastore's own message, which reaches the generic error handler and
+  # error reporting like any other datastore error.
+  class SecretCreationFailed < Problem
+    PERSISTENCE = [:none, :incomplete, :unconfirmed].freeze
+
+    attr_reader :stage, :persistence, :receipt_shortid, :secret_shortid
+
+    def initialize(stage:, persistence:, receipt_shortid: nil, secret_shortid: nil)
+      @stage           = stage.to_sym
+      @persistence     = persistence.to_sym
+      @receipt_shortid = receipt_shortid
+      @secret_shortid  = secret_shortid
+      raise ArgumentError, "unknown persistence evidence: #{@persistence}" unless PERSISTENCE.include?(@persistence)
+
+      super(
+        "Secret creation failed at #{@stage} (persistence: #{@persistence}, " \
+        "receipt: #{receipt_shortid || '-'}, secret: #{secret_shortid || '-'})",
+      )
+    end
+  end
+
   # An authentication gate could not READ the policy for the request host
   # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference /
   # #degradation-is-fail-closed,
@@ -313,16 +359,18 @@ module Onetime
     end
   end
 
-  # A write that could not complete this request for a reason the caller
-  # did not cause and that a retry can clear: the datastore could not be
-  # reached, or a concurrent write won an optimistic lock. Not bad input,
+  # A request that could not complete for a reason the caller did not
+  # cause and that a retry can clear: the datastore could not be reached, a
+  # concurrent write won an optimistic lock, or (the v3 token mint) the
+  # account's credential watermark is further ahead of this node's clock
+  # than the token verifier tolerates. Not bad input,
   # so not a 422, and not a server fault to page on, so not a 500: a 503
   # with Retry-After. Registered in lib/onetime/application/otto_hooks.rb
   # (Problem itself has no handler); the body's retry_after becomes the
   # Retry-After header (Middleware::RetryAfterHeader).
   #
   # `reason` is a bounded code for logs and alerting (:datastore,
-  # :concurrent_write).
+  # :concurrent_write, :credential_watermark_ahead).
   class TemporarilyUnavailable < Problem
     DEFAULT_MESSAGE = 'This could not be completed right now. Please try again shortly.'
     RETRY_AFTER     = 5
@@ -518,6 +566,29 @@ module Onetime
   # i18n shape: error_key + args inherited from Forbidden are resolved at
   # the HTTP edge by Onetime::Application::ErrorResolver, so logic code
   # passes the dotted i18n key and never touches I18n directly.
+  # Raised by POST /api/v3/token while auth.paseto.enabled is off (#2427).
+  # Carries a code so the client can tell the operator flag from any other
+  # 403; the route stays documented and routable so enabling the flag needs
+  # no deploy.
+  class BearerTokensDisabled < Forbidden
+    attr_reader :code
+
+    def initialize(message = 'API bearer tokens are not enabled on this instance',
+                   code: 'BEARER_TOKENS_DISABLED', error_key: nil, args: {})
+      super(message, error_key: error_key, args: args)
+      @code = code
+    end
+
+    def to_h
+      {
+        error: message,
+        error_type: 'BearerTokensDisabled',
+        code: code,
+        error_key: error_key,
+      }.compact
+    end
+  end
+
   class LimitExceeded < Forbidden
     attr_reader :retry_after, :attempts, :max_attempts
 

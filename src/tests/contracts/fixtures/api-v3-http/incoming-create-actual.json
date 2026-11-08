@@ -1,0 +1,90 @@
+{
+  "name": "incoming-create-actual",
+  "method": "POST",
+  "path": "/api/incoming/secret",
+  "request": {
+    "secret": {
+      "secret": "schema incoming dummy",
+      "recipient": "caca2676ac56de1c558560efe92c506625a7953893af45fb2559a550ba09be9b",
+      "memo": "schema memo"
+    }
+  },
+  "response_schema": "incomingSecret",
+  "request_schema": "createIncomingSecret",
+  "status": 200,
+  "headers": {
+    "x-content-type-options": "nosniff",
+    "x-xss-protection": "1; mode=block",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "o-domain-strategy": "canonical",
+    "o-display-domain": "127.0.0.1:3000",
+    "x-request-id": "3ayl1qv55gu5q",
+    "content-length": "1423"
+  },
+  "body": {
+    "success": true,
+    "record": {
+      "receipt": {
+        "identifier": "ff5o7tf7zpio2dvu7ic9b96n73h9abrw2mn3a7of07194r22anf79b2p9m195l",
+        "key": "ff5o7tf7zpio2dvu7ic9b96n73h9abrw2mn3a7of07194r22anf79b2p9m195l",
+        "custid": null,
+        "owner_id": null,
+        "state": "new",
+        "secret_shortid": "8epqnu9l",
+        "secret_identifier": null,
+        "secret_ttl": 604800,
+        "metadata_ttl": 604800,
+        "receipt_ttl": 604800,
+        "lifespan": 604800,
+        "share_domain": null,
+        "created": 1792807620.329013,
+        "updated": 1792807620.3310442,
+        "shared": null,
+        "recipients": "sc***@e***.com",
+        "recipient_name": "schema-incoming",
+        "memo": "schema memo",
+        "shortid": "ff5o7tf7",
+        "show_recipients": true,
+        "previewed": null,
+        "revealed": null,
+        "is_previewed": false,
+        "viewed": null,
+        "received": null,
+        "burned": null,
+        "is_viewed": false,
+        "is_received": false,
+        "is_revealed": false,
+        "is_burned": false,
+        "is_expired": false,
+        "is_orphaned": false,
+        "is_destroyed": false,
+        "has_passphrase": false,
+        "kind": null,
+        "source": "incoming"
+      },
+      "secret": {
+        "identifier": "8epqnu9lwlsf3irdgfs4g8cpexlxpxbss1l9fosvge5ekmas7qbnxn6ccbigne",
+        "key": "8epqnu9lwlsf3irdgfs4g8cpexlxpxbss1l9fosvge5ekmas7qbnxn6ccbigne",
+        "shortid": "8epqnu9l",
+        "state": "new",
+        "lifespan": 604800,
+        "secret_ttl": 604800,
+        "has_passphrase": false,
+        "verification": false,
+        "display_type": "text",
+        "created": 1792807620.327903,
+        "updated": 1792807620.3279061,
+        "is_previewed": false,
+        "is_revealed": false,
+        "is_viewed": false,
+        "is_received": false
+      }
+    },
+    "details": {
+      "memo": "schema memo",
+      "recipient": "caca2676ac56de1c558560efe92c506625a7953893af45fb2559a550ba09be9b"
+    }
+  }
+}

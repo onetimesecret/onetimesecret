@@ -7,10 +7,10 @@
 import { z } from 'zod';
 
 export const receiveFeedbackRequestSchema = z.object({
-  /** Feedback message content */
-  message: z.string(),
-  /** Contact email (optional) */
-  email: z.string().optional(),
+  /** Feedback text; the server sanitizes, truncates, and rejects empty content. */
+  msg: z.string().min(1),
+  /** Optional timezone metadata, sanitized and truncated by the server. */
+  tz: z.string().optional(),
 });
 
 export type ReceiveFeedbackRequest = z.infer<typeof receiveFeedbackRequestSchema>;

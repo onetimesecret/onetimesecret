@@ -1,0 +1,22 @@
+{
+  "name": "auth-burn-false",
+  "method": "POST",
+  "path": "/api/v3/receipt/2xebups63r6exn4stj1qamar65tfgd7bhyg0teyru4608tqsausmljwcvgkkak/burn",
+  "request": {
+    "continue": false
+  },
+  "response_schema": "receipt",
+  "request_schema": "burnSecret",
+  "status": 422,
+  "headers": {
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "x-request-id": "0sb4nypg1h1ll"
+  },
+  "body": {
+    "error": "Set continue to true to burn this secret",
+    "error_type": "missing",
+    "field": "continue",
+    "request_id": "0sb4nypg1h1ll"
+  }
+}
