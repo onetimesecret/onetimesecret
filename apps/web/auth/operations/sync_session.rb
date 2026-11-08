@@ -180,7 +180,7 @@ module Auth
           result: :success,
           detail: {
             auth_method: @session['auth_method'],
-            ip: (@request.ip if @request.respond_to?(:ip)),
+            ip: (Onetime::Utils::ClientIp.from_request(@request) if @request.respond_to?(:env)),
           },
         )
       rescue StandardError => ex

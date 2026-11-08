@@ -77,9 +77,11 @@ module Onetime
       def self.bucket_hint
         '. NOTE: these requests reached the application with NO client IP: the ' \
           'X-Forwarded-For chain relayed by the trusted proxies ended in a ' \
-          'non-address entry (`unknown`, an empty field), so they share this one ' \
-          'bucket. Configure the proxy that writes that entry to append the real ' \
-          'peer address instead (docs/deployment/trusted-proxies.md, "Client IP resolution")'
+          'non-address entry (`unknown`, an empty field), written by a proxy or by ' \
+          'the client itself, so they share this one bucket. Have the edge proxy ' \
+          'overwrite X-Forwarded-For with the real peer address (appending is ' \
+          'enough only when clients have public addresses), or use depth mode ' \
+          '(docs/deployment/trusted-proxies.md, "Client IP resolution")'
       end
     end
   end

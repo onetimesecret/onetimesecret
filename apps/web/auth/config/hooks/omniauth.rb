@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/utils/client_ip'
+
 #
 # OmniAuth callback hooks for SSO authentication.
 # All hooks are provider-agnostic — they use omniauth_provider/omniauth_email
@@ -1187,7 +1189,7 @@ module Auth::Config::Hooks
             error_message: error_msg,
             domain_id: domain_id,
             path: request.path,
-            ip: request.ip,
+            ip: Onetime::Utils::ClientIp.from_request(request),
           }.compact,
         )
 

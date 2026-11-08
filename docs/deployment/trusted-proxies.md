@@ -90,12 +90,14 @@ belongs to a proxy from one that belongs to the client, which is what the
   legacy V1 API limits, and the per-IP tiers of the passphrase, login,
   password-reset, email-login and incoming limiters) charges it to one shared
   `no-client-ip` bucket, the admin network CIDR gate denies it, and sessions
-  and the rate-limit audit events carry no address. Rate limits and sessions
-  do not fall back to the proxy's own address; the full-mode Rodauth audit
-  log lines (login, MFA, SSO) still record the peer address there, which is
-  the proxy. A cap hit on the shared bucket is logged with that bucket's name.
-  Configure the proxy that writes such an entry to append the real peer
-  address instead.
+  and audit records carry no address; the application does not fall back to
+  the proxy's own address. A cap hit on the shared bucket is logged with that
+  bucket's name. The entry can be written by a proxy or by the client itself:
+  where clients have private addresses (a LAN, a VPN), an edge that appends
+  the client address does not help, because that address is skipped as a
+  trusted hop and the client's `unknown` to its left is reached. Have the edge
+  overwrite `X-Forwarded-For` with the real peer address (appending is enough
+  only when clients have public addresses), or use depth mode.
 - **Vendor headers are not a source.** `CF-Connecting-IP`, `True-Client-IP`
   and similar headers are never read for the client IP, and with IP privacy on
   they are rewritten to the masked client IP before application code runs.

@@ -41,8 +41,9 @@ Security
   and audit events name the bucket.
 
 - The auth-strategy, admin-gate and full-mode Rodauth client IP fallbacks
-  (signup, password reset, email login, reauth, SSO link and confirm, and the
-  session's recorded ``ip_address``) no longer re-resolve from
+  (signup, password reset, email login, reauth, SSO link and confirm, the
+  session's recorded ``ip_address`` and the login, MFA and SSO audit log
+  metadata) no longer re-resolve from
   ``REMOTE_ADDR`` when the IP privacy middleware ran and found no client IP,
   which would have attributed the request to the proxy, unmasked.
 

@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/utils/client_ip'
+
 #
 # Runtime SSO credential injection for multi-tenant configurations.
 #
@@ -251,7 +253,7 @@ module Auth::Config::Hooks
           level: :debug,
           host: host,
           path: request.path,
-          ip: request.ip,
+          ip: Onetime::Utils::ClientIp.from_request(request),
           is_callback_phase: is_callback_phase,
         )
 
@@ -404,7 +406,7 @@ module Auth::Config::Hooks
           provider: omniauth_provider,
           uid: omniauth_uid,
           email: OT::Utils.obscure_email(omniauth_email.to_s),
-          ip: request.ip,
+          ip: Onetime::Utils::ClientIp.from_request(request),
         )
 
         expected_domain_id  = session.delete(:omniauth_tenant_domain_id)
@@ -437,7 +439,7 @@ module Auth::Config::Hooks
             level: :warn,
             host: HELPERS.public_host(request),
             domain_id: injected_config.domain_id,
-            ip: request.ip,
+            ip: Onetime::Utils::ClientIp.from_request(request),
             session_id_hash: Digest::SHA256.hexdigest(session.id.to_s)[0, 16],
           )
           Onetime::CustomDomain::SsoSigninOutcome.record_failure!(
@@ -485,7 +487,7 @@ module Auth::Config::Hooks
             expected_host: expected_host,
             actual_host: HELPERS.public_host(request),
             actual_domain_id: current_domain&.identifier,
-            ip: request.ip,
+            ip: Onetime::Utils::ClientIp.from_request(request),
             session_id_hash: Digest::SHA256.hexdigest(session.id.to_s)[0, 16],
           )
           # Against the domain that STARTED the flow: that is the tenant whose
