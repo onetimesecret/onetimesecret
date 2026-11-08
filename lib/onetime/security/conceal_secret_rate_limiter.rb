@@ -143,8 +143,8 @@ module Onetime
       # Enforce the secret-creation rate limit and record this request. Raises
       # LimitExceeded when the IP is locked; a locked tier is never incremented
       # (the Lua script denies before INCR). No-op when the limiter is disabled by
-      # config, and no-op when no client IP is available — see
-      # conceal_secret_ip_keys for why that skips rather than shares a bucket.
+      # config. A request with no client IP is charged to the shared
+      # {NoClientIp::BUCKET} — see conceal_secret_ip_keys.
       #
       # The caller decides WHO is charged (the call sites gate on anonymous?);
       # this method is subject-agnostic so the same code path serves every entry.
