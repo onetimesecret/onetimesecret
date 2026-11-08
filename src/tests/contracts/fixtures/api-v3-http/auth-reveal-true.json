@@ -1,0 +1,43 @@
+{
+  "name": "auth-reveal-true",
+  "method": "POST",
+  "path": "/api/v3/secret/2x17t8h9wos8tkyrxjhb47cai88indnur0l5i1wes44b9wgoz74md6iolpc841/reveal",
+  "request": {
+    "continue": true
+  },
+  "response_schema": "secret",
+  "request_schema": "revealSecret",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "x-request-id": "1kmx2ixofque2"
+  },
+  "body": {
+    "record": {
+      "identifier": "2x17t8h9wos8tkyrxjhb47cai88indnur0l5i1wes44b9wgoz74md6iolpc841",
+      "key": "2x17t8h9wos8tkyrxjhb47cai88indnur0l5i1wes44b9wgoz74md6iolpc841",
+      "shortid": "2x17t8h9",
+      "state": "revealed",
+      "lifespan": 3600,
+      "secret_ttl": 3600,
+      "has_passphrase": false,
+      "verification": false,
+      "display_type": "text",
+      "created": 1794111215.08262,
+      "updated": 1794111215.08263,
+      "is_previewed": false,
+      "is_revealed": true,
+      "is_viewed": false,
+      "is_received": true,
+      "secret_value": "schema audit dummy auth-conceal-minimal"
+    },
+    "details": {
+      "continue": true,
+      "is_owner": true,
+      "show_secret": true,
+      "display_lines": 4,
+      "one_liner": true
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "name": "guest-generate-documented",
+  "method": "POST",
+  "path": "/api/v3/guest/secret/generate",
+  "request": {
+    "secret": {
+      "ttl": 3600,
+      "kind": "generate",
+      "share_domain": "",
+      "length": 12,
+      "character_sets": {
+        "uppercase": true,
+        "lowercase": true,
+        "numbers": true,
+        "symbols": false
+      }
+    }
+  },
+  "response_schema": "concealData",
+  "request_schema": "generateSecret",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "x-request-id": "2tju0johi1lpn"
+  },
+  "body": {
+    "success": true,
+    "record": {
+      "receipt": {
+        "identifier": "fmikzczjvz8syzblytnrpmv5mq8kudwbkqphrqe78nl1bq56btfo9vhr0oimvb",
+        "key": "fmikzczjvz8syzblytnrpmv5mq8kudwbkqphrqe78nl1bq56btfo9vhr0oimvb",
+        "owner_id": null,
+        "state": "new",
+        "secret_shortid": "e485vya2",
+        "secret_identifier": "e485vya2q4ejsvv8ytl019lp4cxrttl7qr8zk1176a7szg8ccwmn0nwgyi7jn8",
+        "secret_ttl": 3600,
+        "metadata_ttl": 3600,
+        "receipt_ttl": 3600,
+        "lifespan": 3600,
+        "share_domain": null,
+        "created": 1794111215.9253473,
+        "updated": 1794111215.9253523,
+        "shared": null,
+        "recipients": null,
+        "recipient_name": null,
+        "memo": null,
+        "shortid": "fmikzczj",
+        "show_recipients": false,
+        "previewed": null,
+        "revealed": null,
+        "is_previewed": false,
+        "viewed": null,
+        "received": null,
+        "burned": null,
+        "is_viewed": false,
+        "is_received": false,
+        "is_revealed": false,
+        "is_burned": false,
+        "is_expired": false,
+        "is_orphaned": false,
+        "is_destroyed": false,
+        "has_passphrase": false,
+        "kind": "generate",
+        "source": "standard"
+      },
+      "secret": {
+        "identifier": "e485vya2q4ejsvv8ytl019lp4cxrttl7qr8zk1176a7szg8ccwmn0nwgyi7jn8",
+        "key": "e485vya2q4ejsvv8ytl019lp4cxrttl7qr8zk1176a7szg8ccwmn0nwgyi7jn8",
+        "shortid": "e485vya2",
+        "state": "new",
+        "lifespan": 3600,
+        "secret_ttl": 3600,
+        "has_passphrase": false,
+        "verification": false,
+        "display_type": "text",
+        "created": 1794111215.9253132,
+        "updated": 1794111215.92532,
+        "is_previewed": false,
+        "is_revealed": false,
+        "is_viewed": false,
+        "is_received": false
+      },
+      "share_domain": null
+    },
+    "details": {
+      "kind": "generate",
+      "recipient": [],
+      "recipient_safe": []
+    }
+  }
+}

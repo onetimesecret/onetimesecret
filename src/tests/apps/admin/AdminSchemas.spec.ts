@@ -3,10 +3,10 @@
 import AdminSchemas from '@/apps/admin/views/AdminSchemas.vue';
 import * as checker from '@/schemas/check';
 import * as diagnostics from '@/services/diagnostics.service';
-import sourceCopy from '../../../../locales/content/en/admin-schemas.json';
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createI18n } from 'vue-i18n';
+import sourceCopy from '../../../../locales/content/en/admin-schemas.json';
 
 const messages = Object.fromEntries(
   Object.entries(sourceCopy).map(([key, entry]) => [key, entry.text])
@@ -59,6 +59,8 @@ describe('AdminSchemas', () => {
         'v1.v1SecretReveal',
         'v2.receipt',
         'v3.secret',
+        'v3.secretStatus',
+        'v3.updateReceipt',
         'internal.colonelSecrets',
         'incoming.validateRecipient',
         'shapes/secret',
@@ -74,6 +76,7 @@ describe('AdminSchemas', () => {
     expect(wrapper.findAll('[data-schema]').map((b) => b.text())).toEqual([
       'v3.secret',
       'v3.secretList',
+      'v3.secretStatus',
     ]);
     await wrapper.get('#schema-search').setValue('no-such-schema');
     expect(wrapper.findAll('[data-schema]')).toHaveLength(0);

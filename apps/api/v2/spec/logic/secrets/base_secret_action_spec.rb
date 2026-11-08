@@ -2049,14 +2049,14 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
   end
 
   # ============================================================================
-  # index_receipt_to_organization — actor attribution on 'created' (#3637)
+  # record_created_activity — actor attribution on 'created' (#3637)
   #
-  # The creation path is always authenticated (guarded by auth_org and the
-  # anonymous_user? check in update_stats), so the 'created' event records
-  # actor=creator with the FULL customer objid, untruncated -- the trail must
-  # bind the event to a uniquely resolvable individual (AU-3 / PCI 10.2.2).
+  # The creation path is always authenticated (receipt_organization is nil for
+  # guests), so the 'created' event records actor=creator with the FULL
+  # customer objid, untruncated -- the trail must bind the event to a uniquely
+  # resolvable individual (AU-3 / PCI 10.2.2).
   # ============================================================================
-  describe '#index_receipt_to_organization actor attribution (#3637)' do
+  describe '#record_created_activity actor attribution (#3637)' do
     it "records 'created' with actor=creator and the full customer objid" do
       org  = Onetime::Organization.new(
         display_name: 'Created Actor Org',
@@ -2068,7 +2068,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       action.instance_variable_set(:@receipt, pair.first)
       allow(action).to receive(:auth_org).and_return(org)
 
-      expect(action.send(:index_receipt_to_organization)).to be true
+      action.send(:record_created_activity)
 
       event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('created')

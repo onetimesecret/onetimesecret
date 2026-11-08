@@ -1,0 +1,21 @@
+{
+  "name": "meta-version-anonymous",
+  "method": "GET",
+  "path": "/api/v3/version",
+  "request": null,
+  "response_schema": "systemVersion",
+  "request_schema": null,
+  "status": 401,
+  "headers": {
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "x-request-id": "05pqsg2oj4rpq"
+  },
+  "body": {
+    "error": "Authentication Required",
+    "message": "[AUTH_HEADER_MISSING] No authorization header",
+    "timestamp": 1794111216,
+    "code": "not_authenticated",
+    "code_scope": "customer_session"
+  }
+}
