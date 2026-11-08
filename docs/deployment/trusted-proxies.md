@@ -92,7 +92,9 @@ belongs to a proxy from one that belongs to the client, which is what the
   `no-client-ip` bucket, the admin network CIDR gate and the `/health`
   network check deny it, and sessions, audit records, request log lines and
   error-tracking context carry no address; the application does not fall back
-  to the proxy's own address. A cap hit on the shared bucket is logged with that
+  to the proxy's own address. (One exception: the SAML callback staging quota
+  keys on a hash of the peer address, so there these requests share the
+  proxy's bucket, as they did before 2.13.) A cap hit on the shared bucket is logged with that
   bucket's name. The entry can be written by a proxy or by the client itself:
   where clients have private addresses (a LAN, a VPN), an edge that appends
   the client address does not help, because that address is skipped as a

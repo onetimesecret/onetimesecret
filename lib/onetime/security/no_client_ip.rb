@@ -19,7 +19,8 @@ module Onetime
     # to the proxy's own address and shared that proxy's bucket.
     #
     # Every per-IP limiter tier therefore charges an IP-less request to this
-    # one shared bucket. It preserves a cap without naming the proxy as the
+    # one shared bucket. (InviteTokenRateLimiter predates it: its callers
+    # substitute '0.0.0.0', which is likewise one shared bucket.) It preserves a cap without naming the proxy as the
     # client, and it is the pre-2.13 ceiling for a proxy that writes `unknown`
     # for every visitor: those requests all shared one bucket then too, keyed
     # on the proxy.

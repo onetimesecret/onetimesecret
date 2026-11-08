@@ -39,7 +39,7 @@ module Onetime
       module Registry
         LIMITERS = {
           'feedback' => {
-            subject: 'IP address',
+            subject: 'IP address, or no-client-ip',
             keys: ['feedback:submissions:%s', 'feedback:locked:%s'],
             dbclient: -> { Onetime::Feedback.dbclient },
           },
