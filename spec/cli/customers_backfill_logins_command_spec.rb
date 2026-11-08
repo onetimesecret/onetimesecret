@@ -27,6 +27,8 @@ RSpec.describe 'customers backfill-logins', type: :cli do
       skipped_ambiguous_customer: 0,
       skipped_customer_linked_elsewhere: 0,
       skipped_no_customer: 1,
+      skipped_closed_row: 0,
+      skipped_fold_unstable: 0,
       skipped_row_changed: 0,
       error: 0,
     }
@@ -143,6 +145,25 @@ RSpec.describe 'customers backfill-logins', type: :cli do
       expect(output[:stdout]).to include('Skipped (row changed):')
       expect(output[:stdout]).to include('re-read on the')
       expect(last_exit_code).to eq(0)
+    end
+
+    it 'reports closed and fold-unstable rows, with the mint-missing guidance for closed rows' do
+      allow(op).to receive(:call).and_return(
+        build_result(
+          dry_run: true,
+          stats: stats.merge(skipped_closed_row: 1, skipped_fold_unstable: 1, scanned: 5),
+          rows: rows + [
+            { account_id: 11, outcome: :skipped_closed_row, branch: nil, email: 'cl***@***.com', detail: 'closed row' },
+            { account_id: 12, outcome: :skipped_fold_unstable, branch: nil, email: 'st***@***.com', detail: 'folding' },
+          ],
+        ),
+      )
+
+      output = run_cli_command_quietly('customers', 'backfill-logins')
+
+      expect(output[:stdout]).to include('Skipped (closed row):', 'Skipped (fold-unstable address):')
+      expect(output[:stdout]).to include('re-run with --mint-missing to')
+      expect(output[:stdout]).to include('Skipped rows are never resolved automatically.')
     end
 
     it 'prints the resume hint, with --confirm only on a live run' do
