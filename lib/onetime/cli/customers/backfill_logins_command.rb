@@ -205,7 +205,7 @@ module Onetime
         end
 
         if stats[:skipped_index_mismatch].positive?
-          lines << 'The email index names a Customer that holds another address for some rows.'
+          lines << 'For some rows the email index names a Customer at another address.'
           lines << 'Run `bin/ots customers doctor --all --repair` to fix the index'
           lines << '(email_index_mismatch), then re-run.'
         end
@@ -278,7 +278,7 @@ module Onetime
                                                                (--mint-missing: fresh login)
               case folding would rewrite the address
               (for example ß -> ss)                         -> skipped_fold_unstable
-              the email index names a Customer that holds
+              the email index names a Customer at
               another address                               -> skipped_index_mismatch
               external_id names a missing Customer          -> skipped_dangling_external_id
               two Customers hold the address                -> skipped_ambiguous_customer

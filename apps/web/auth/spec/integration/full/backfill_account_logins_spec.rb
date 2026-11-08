@@ -361,7 +361,7 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
       expect(result.stats[:skipped_index_mismatch]).to eq(1)
     end
 
-    it 'links the Customer that holds the address when a stale entry names another casing of it' do
+    it 'links the Customer at that address when a stale entry names another casing of it' do
       holder = create_customer(email)
       mover  = create_customer(moved)
       stored = email.sub('backfill-', 'Backfill-')

@@ -60,7 +60,7 @@
 # leaves on the Customer, through Auth::AccountEmailVerification, so the two
 # stores move together from the moment the columns exist and the backfill's
 # copy stays current after it runs. Proof is written only for mailbox-proof
-# provenances and only when the row holds the Customer's address. Under
+# provenances and only when the row's address is the Customer's. Under
 # `rodauth_already_synced:` the caller has written them too (the
 # after_verify_account hook, in Rodauth's transaction).
 #
@@ -380,7 +380,7 @@ module Auth
       end
 
       # The migration 015 columns for the state this call leaves, read for
-      # the live row's own address: proof the Customer holds for another
+      # the live row's own address: proof the Customer has for another
       # mailbox (the stores disagree on the address, which
       # `customers doctor` reports as auth_email_drift) clears them. Empty on
       # a database without the columns.

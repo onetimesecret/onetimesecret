@@ -36,10 +36,10 @@ module Auth
     #                                     then minted as below. Never linked by
     #                                     address (#closed_row)
     #     the address is fold-unstable -> :skipped_fold_unstable (#fold_unstable_row)
-    #     the email index names only Customers that hold another address
+    #     the email index names only Customers at another address
     #                                  -> :skipped_index_mismatch (#index_mismatch_row)
     #     exactly one Customer under the stored or the normalized address
-    #     that holds the row's address, and no OTHER accounts row already
+    #     whose own address is the row's, and no OTHER accounts row already
     #     links that Customer
     #                                  -> login = objid, external_id = extid (:backfilled, :by_email)
     #     two Customers                -> :skipped_ambiguous_customer
@@ -374,7 +374,7 @@ module Auth
       end
 
       # The email index names a Customer under this address, but that
-      # Customer holds another one: the index entry is stale
+      # Customer's own address is another one: the index entry is stale
       # (`customers doctor --all` reports it as email_index_mismatch and
       # `--repair` re-points it). Linking by the entry would give this row an
       # unrelated Customer's login for good, since a linked row is never a
@@ -386,8 +386,8 @@ module Auth
           row,
           :skipped_index_mismatch,
           nil,
-          "the email index maps this address to Customer #{indexed.map(&:extid).join(', ')}, which holds " \
-          'another address; not linked. Run `bin/ots customers doctor --all --repair` (email_index_mismatch), ' \
+          "the email index maps this address to Customer #{indexed.map(&:extid).join(', ')}, whose address " \
+          'is another one; not linked. Run `bin/ots customers doctor --all --repair` (email_index_mismatch), ' \
           'then re-run',
         )
       end
