@@ -196,6 +196,27 @@ RSpec.describe 'Migration 015 verification columns follow every writer (ADR-051)
       expect(account_row(id)[:email_verified_by]).to eq('email')
     end
 
+    # Codex review on 3566f95d1: a self-service change before the login
+    # backfill must not lose its proof to the backfill's copy from the
+    # mirror. The stamp is in the mirror too, and the backfill leaves
+    # columns the mirror agrees with as recorded.
+    it 'keeps that proof, with its time, through a later login backfill' do
+      require 'auth/operations/backfill_account_logins'
+      customer = create_customer(email, verified: true, verified_by: 'sso')
+      id       = insert_account(email, customer: customer, status_id: Auth::AccountStatuses::VERIFIED)
+      expect(redeem(customer).status).to eq(:success)
+      # Backdated, so that a rewrite by the backfill would show.
+      recorded_at = Time.utc(2026, 11, 1, 12, 0, 0)
+      accounts.where(id: id).update(email_verified_at: recorded_at)
+
+      Auth::Operations::BackfillAccountLogins.new(dry_run: false).call
+
+      row = account_row(id)
+      expect(row[:login]).to eq(customer.objid)
+      expect(row[:email_verified_by]).to eq('email')
+      expect(row[:email_verified_at].to_i).to eq(recorded_at.to_i)
+    end
+
     it 'leaves an unverified account unverified, with the columns cleared' do
       customer = create_customer(email)
       id       = insert_account(email, customer: customer, status_id: Auth::AccountStatuses::UNVERIFIED)

@@ -287,4 +287,16 @@ OT::Utils.same_mailbox?('a@example.com', 'b@example.com')
 [OT::Utils.same_mailbox?('', ''), OT::Utils.same_mailbox?(nil, 'a@example.com')]
 #=> [false, false]
 
+## same_mailbox? reads an address a SQL_ASCII connection returns BINARY-tagged
+OT::Utils.same_mailbox?('alice@example.com'.b, 'Alice@example.com')
+#=> true
+
+## same_mailbox? reads UTF-8 bytes tagged BINARY as the address they spell
+OT::Utils.same_mailbox?('u@straße.example.com'.b, 'U@STRAßE.example.com')
+#=> true
+
+## same_mailbox? is false for bytes that are not UTF-8 (no address to compare, nothing scrubbed into a match)
+[OT::Utils.same_mailbox?("a\xFF@example.com".b, 'a@example.com'), OT::Utils.same_mailbox?('a@example.com', "a@example.com\xFF".b)]
+#=> [false, false]
+
 Onetime::Utils.instance_variable_set(:@fortunes, @original_fortunes)

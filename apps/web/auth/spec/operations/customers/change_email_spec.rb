@@ -1679,6 +1679,22 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       expect(trace.last).to eq([:mailbox_proof_stamped])
     end
 
+    # The forced clear is the reset's fallback. Proof in the columns beside a
+    # row it moves to Unverified would contradict the mirror it also clears.
+    it 'clears them with the status when the reset falls back to the forced clear' do
+      allow(verifier).to receive(:call).and_raise(StandardError, 'no auth db')
+      forced = []
+      allow(by_id_verified).to receive(:update) do |attrs|
+        forced << attrs
+        1
+      end
+
+      expect(op.call.warnings).to include(:verification_force_cleared)
+
+      expect(forced.first).to include(status_id: Auth::AccountStatuses::UNVERIFIED, email_verified_at: nil,
+        email_verified_by: nil, email_verification_hold: nil)
+    end
+
     it 'puts the old proof back with the old address when the swap is compensated' do
       allow(customer).to receive(:save).and_raise(StandardError, 'redis down')
 

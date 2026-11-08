@@ -100,9 +100,15 @@ module Auth
     # (Auth::AccountEmailVerification), so this copy stays current after the
     # run.
     #
-    # `email_verified_at` is the backfill time, not the original verification
-    # time, which no store recorded; the provenance column carries what is
-    # known.
+    # Those writers also run before the backfill reaches a row (migration 015
+    # is applied first), so a row may already have the columns the mapping
+    # gives. Such a row keeps them as recorded (AccountEmailVerification.in_step?),
+    # with the writer's proof time. Columns the mirror does not agree with
+    # are replaced: until the N+1 binary the mirror is what every reader
+    # uses, and `customers doctor` reports the disagreement as
+    # auth_email_verification_drift. Otherwise `email_verified_at` is the
+    # backfill time, not the original verification time, which no store
+    # recorded; the provenance column records what is known.
     #
     # ## Idempotence and resumability
     #
@@ -225,7 +231,7 @@ module Auth
 
         loop do
           batch = accounts
-            .select(:id, :email, :external_id, :status_id)
+            .select(:id, :email, :external_id, :status_id, *Auth::AccountEmailVerification::COLUMNS)
             .where(login: nil)
             .where { id > last_id }
             .order(:id)
@@ -457,9 +463,10 @@ module Auth
         end
 
         values = verification_values(row, customer)
-        return report(row, :backfilled, branch, dry_run_detail(new_external_id, values)) if @dry_run
+        kept   = Auth::AccountEmailVerification.in_step?(row, values)
+        return report(row, :backfilled, branch, dry_run_detail(new_external_id, values, kept)) if @dry_run
 
-        update               = values.merge(login: login, updated_at: Sequel::CURRENT_TIMESTAMP)
+        update               = (kept ? {} : values).merge(login: login, updated_at: Sequel::CURRENT_TIMESTAMP)
         update[:external_id] = new_external_id if new_external_id && !new_external_id.empty?
 
         begin
@@ -479,12 +486,12 @@ module Auth
             row,
             :skipped_row_changed,
             branch,
-            'the row changed between scan and write (its login, external_id, email or status is not what the ' \
-            'scan read); nothing written; it is re-read on the next run',
+            'the row changed between scan and write (its login, external_id, email, status or verification ' \
+            'columns are not what the scan read); nothing written; it is re-read on the next run',
           )
         end
 
-        report(row, :backfilled, branch, written_detail(new_external_id, values))
+        report(row, :backfilled, branch, written_detail(new_external_id, values, kept))
       end
 
       # The compare-and-set predicate: the row exactly as the scan read it.
@@ -496,14 +503,23 @@ module Auth
       # value as `IS NULL`, so an unlinked row compares too. On PostgreSQL
       # accounts.email is citext, so a case-only rewrite still matches; it
       # names the same address.
+      #
+      # The verification columns are pinned too: a verification writer that
+      # ran in between wrote them from a newer mirror than the one this run
+      # mapped from, and the write would replace its proof (or its clear).
+      # The proof time is pinned as present or absent; its stored precision
+      # differs between databases.
       def unchanged_scope(row)
-        accounts.where(
+        scope = accounts.where(
           id: row[:id],
           login: nil,
           external_id: row[:external_id],
           email: row[:email],
           status_id: row[:status_id],
+          email_verified_by: row[:email_verified_by],
+          email_verification_hold: row[:email_verification_hold],
         )
+        row[:email_verified_at].nil? ? scope.where(email_verified_at: nil) : scope.exclude(email_verified_at: nil)
       end
 
       # The mapping every writer shares (Auth::AccountEmailVerification),
@@ -556,22 +572,24 @@ module Auth
 
       # ---------------------------------------------------------- reports
 
-      def dry_run_detail(new_external_id, values)
-        "would set login#{' and external_id' if new_external_id}, #{describe_verification(values)}"
+      def dry_run_detail(new_external_id, values, kept)
+        "would set login#{' and external_id' if new_external_id}, #{describe_verification(values, kept)}"
       end
 
-      def written_detail(new_external_id, values)
-        "set login#{' and external_id' if new_external_id}, #{describe_verification(values)}"
+      def written_detail(new_external_id, values, kept)
+        "set login#{' and external_id' if new_external_id}, #{describe_verification(values, kept)}"
       end
 
-      def describe_verification(values)
-        if values[:email_verified_at]
-          "email_verified_by=#{values[:email_verified_by]}"
-        elsif values[:email_verification_hold]
-          "email_verification_hold=#{values[:email_verification_hold]}"
-        else
-          'email unverified'
-        end
+      # `kept`: the row already had these columns, and they are left as recorded.
+      def describe_verification(values, kept)
+        described = if values[:email_verified_at]
+                      "email_verified_by=#{values[:email_verified_by]}"
+                    elsif values[:email_verification_hold]
+                      "email_verification_hold=#{values[:email_verification_hold]}"
+                    else
+                      'email unverified'
+                    end
+        kept ? "#{described} (as recorded)" : described
       end
 
       def report(row, outcome, branch, detail = nil)

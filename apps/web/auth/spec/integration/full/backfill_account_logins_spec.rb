@@ -64,8 +64,8 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
     cust
   end
 
-  def insert_account(email, external_id: nil, status_id: 2)
-    id = accounts.insert(email: email, status_id: status_id, external_id: external_id)
+  def insert_account(email, external_id: nil, status_id: 2, **columns)
+    id = accounts.insert(email: email, status_id: status_id, external_id: external_id, **columns)
     created_account_ids << id
     id
   end
@@ -175,6 +175,46 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
       expect(row[:email_verified_at]).to be_nil
       expect(row[:email_verified_by]).to be_nil
       expect(row[:email_verification_hold]).to eq('idp_unverified')
+    end
+
+    # A writer that ran after migration 015 (SetCustomerVerification, the
+    # verify hook, a self-service email change) wrote the columns with the
+    # mirror. The backfill leaves columns the mirror agrees with as they are,
+    # so the proof time stays the writer's.
+    it 'keeps the proof a writer already recorded for the address, with its time' do
+      recorded_at = Time.utc(2026, 11, 1, 12, 0, 0)
+      customer    = create_customer(email, verified: true, verified_by: 'email')
+      account_id  = insert_account(
+        email,
+        external_id: customer.extid,
+        email_verified_at: recorded_at,
+        email_verified_by: 'email',
+      )
+
+      result = new_operation(dry_run: false).call
+
+      row = account_row(account_id)
+      expect(row[:login]).to eq(customer.objid)
+      expect(row[:email_verified_by]).to eq('email')
+      expect(row[:email_verified_at].to_i).to eq(recorded_at.to_i)
+      expect(row_for(result, account_id)[:detail]).to include('email_verified_by=email (as recorded)')
+    end
+
+    it 'replaces columns the Customer mirror does not support: the mirror is what every reader uses' do
+      customer   = create_customer(email, verified: true, verified_by: 'sso')
+      account_id = insert_account(
+        email,
+        external_id: customer.extid,
+        email_verified_at: Time.utc(2026, 11, 1),
+        email_verified_by: 'email',
+      )
+
+      new_operation(dry_run: false).call
+
+      row = account_row(account_id)
+      expect(row[:login]).to eq(customer.objid)
+      expect(row[:email_verified_at]).to be_nil
+      expect(row[:email_verified_by]).to be_nil
     end
 
     it 'does not mark the mailbox verified when the accounts row is Unverified, whatever the mirror says' do
@@ -487,6 +527,26 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
 
       expect(row_for(second, account_id)[:outcome]).to eq(:backfilled)
       expect(account_row(account_id)[:login]).to eq(new_customer.objid)
+    end
+
+    it 'skips a row whose verification columns a writer changed between scan and write' do
+      customer   = create_customer(email, verified: true, verified_by: 'sso')
+      account_id = insert_account(email, external_id: customer.extid)
+
+      # A verification writer records proof after the scan read the row and
+      # before the write runs. The mirror this run maps from says 'sso' (no
+      # proof), so a write would clear what the writer just recorded.
+      allow(Onetime::Customer).to receive(:find_by_extid).and_wrap_original do |original, extid|
+        accounts.where(id: account_id).update(email_verified_at: Time.now.utc, email_verified_by: 'email')
+        original.call(extid)
+      end
+
+      result = new_operation(dry_run: false).call
+
+      expect(row_for(result, account_id)[:outcome]).to eq(:skipped_row_changed)
+      row = account_row(account_id)
+      expect(row[:login]).to be_nil
+      expect(row[:email_verified_by]).to eq('email')
     end
 
     it 'skips a row whose status changed between scan and write (the verification decision is stale)' do

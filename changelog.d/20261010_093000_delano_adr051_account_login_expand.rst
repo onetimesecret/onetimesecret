@@ -14,7 +14,9 @@ Added
   (a Customer verified with a provenance in
   ``Onetime::Customer::MAILBOX_VERIFIED_BY`` under the row's own address) and
   leave an IdP-, payment- or legacy-verified account unverified in SQL, where
-  the Customer record keeps its own answer. The backfill never links a closed account
+  the Customer record keeps its own answer. A row a verification change has
+  already written keeps those columns, and their time, through the backfill.
+  The backfill never links a closed account
   row, or an address that case folding would rewrite (``ß`` to ``ss``), to a
   Customer by address, nor a row to a Customer that a stale email-index entry
   names under another address (``customers doctor --all --repair`` fixes the

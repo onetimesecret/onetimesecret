@@ -212,16 +212,34 @@ module Onetime
       # form and are different addresses. When either side is fold-unstable
       # the two must agree under case mapping alone (canonical_email).
       #
+      # Either side may come straight off a SQL connection: a SQL_ASCII
+      # PostgreSQL cluster returns text tagged BINARY, which
+      # unicode_normalize refuses whatever the bytes. Each side is read as
+      # UTF-8 text first (as utf8_safe does), and bytes that are not UTF-8
+      # match nothing: scrubbing them could make two different stored
+      # addresses compare equal.
+      #
       # @param left [String, nil]
       # @param right [String, nil]
-      # @return [Boolean] false when either side is blank
+      # @return [Boolean] false when either side is blank or not UTF-8
       def same_mailbox?(left, right)
+        left  = mailbox_text(left)
+        right = mailbox_text(right)
+        return false if left.nil? || right.nil?
+
         left  = canonical_email(left)
         right = canonical_email(right)
         return false if left.empty? || right.empty?
         return left == right unless fold_stable_email?(left) && fold_stable_email?(right)
 
         normalize_email(left) == normalize_email(right)
+      end
+
+      # @return [String, nil] value as UTF-8 text, nil when its bytes are not UTF-8
+      def mailbox_text(value)
+        text = value.to_s
+        text = text.dup.force_encoding(Encoding::UTF_8) unless text.encoding == Encoding::UTF_8
+        text.valid_encoding? ? text : nil
       end
 
       # Build a Redis glob (SCAN/HSCAN/SSCAN MATCH) that matches `term` as a

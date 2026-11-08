@@ -1109,6 +1109,13 @@ module Auth
           :reset
         end
 
+        # Moves the row to Unverified and, where migration 015 is applied,
+        # clears its verification columns in the same UPDATE: proof beside an
+        # Unverified row would contradict the mirror clear_customer_verification!
+        # resets. (A change to another mailbox cleared them in the swap; one
+        # that keeps the row's mailbox, such as a Customer moved to the
+        # address its row already has, kept them there.)
+        #
         # @return [Symbol] :unchanged | :cleared | :failed
         def clear_auth_row_verification!
           db = connection
@@ -1117,10 +1124,13 @@ module Auth
           account_id = auth_account_id(db)
           return :unchanged unless account_id
 
+          cleared = { status_id: AccountStatuses::UNVERIFIED, updated_at: Sequel::CURRENT_TIMESTAMP }
+          cleared.merge!(Auth::AccountEmailVerification::CLEARED) if auth_verification_columns?(db)
+
           rows = db.transaction do
             db[:accounts]
               .where(id: account_id, status_id: AccountStatuses::VERIFIED)
-              .update(status_id: AccountStatuses::UNVERIFIED, updated_at: Sequel::CURRENT_TIMESTAMP)
+              .update(cleared)
           end
           rows.to_i.positive? ? :cleared : :unchanged
         rescue StandardError => ex

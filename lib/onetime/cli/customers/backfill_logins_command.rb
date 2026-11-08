@@ -320,9 +320,11 @@ module Onetime
               reported on every run until fixed, so a --limit run without
               --after-id keeps returning the same low-id rows.
             - The SQL write is compare-and-set on the row as scanned (login still
-              NULL, same external_id, email and status), so a row another process
-              filled or re-linked in between is reported (skipped_row_changed) and
-              left alone
+              NULL, same external_id, email, status and verification columns), so a
+              row another process filled, re-linked or verified in between is
+              reported (skipped_row_changed) and left alone
+            - A row whose verification columns already agree with the Customer
+              (a verification change wrote them) keeps them, with their time
             - The login value itself is never printed or logged
 
         USAGE
