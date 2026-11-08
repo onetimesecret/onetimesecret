@@ -180,6 +180,38 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
   end
 
+  # The self-service email change: the account holder redeemed a link sent to
+  # their new address, so the stored stamp described the old one.
+  describe 'new_address: true' do
+    it 'replaces a stored mailbox-proof stamp instead of keeping it' do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'colonel_admin', mailbox_verified?: true)
+
+      op = described_class.new(customer: customer, verified: true, verified_by: 'email', new_address: true)
+
+      expect(op.call).to eq(:success)
+      expect(customer).to have_received(:verified_by=).with('email')
+      expect(customer).to have_received(:save)
+    end
+
+    it 'writes even when the stored stamp is already email: it proved the old address' do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'email', mailbox_verified?: true)
+
+      op = described_class.new(customer: customer, verified: true, verified_by: 'email', new_address: true)
+
+      expect(op.call).to eq(:success)
+      expect(customer).to have_received(:save)
+    end
+
+    it 'without it, the same call keeps the stored stamp and writes nothing' do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'colonel_admin', mailbox_verified?: true)
+
+      op = described_class.new(customer: customer, verified: true, verified_by: 'email')
+
+      expect(op.call).to eq(:no_change)
+      expect(customer).not_to have_received(:save)
+    end
+  end
+
   describe 'full auth mode' do
     before { allow(auth_config).to receive(:mode).and_return('full') }
 

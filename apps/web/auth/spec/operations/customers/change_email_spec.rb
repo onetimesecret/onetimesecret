@@ -82,7 +82,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
   # --- SQL doubles ---------------------------------------------------------
   # db[:accounts].where(...)  is called with three different filters; each gets
   # its own leaf double so the examples can drive them independently.
-  let(:my_account_row)  { { id: 42, email: old_email } }
+  let(:my_account_row)  { { id: 42, email: old_email, status_id: 2 } }
   let(:collision_rows)  { [] }
 
   let(:by_external_id) { double('by_external_id') }
@@ -99,6 +99,8 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
   # --- delegated ops -------------------------------------------------------
   let(:revoker)  { instance_double(Onetime::Operations::Sessions::RevokeAllForCustomer, call: nil) }
   let(:verifier) { instance_double(Auth::Operations::Customers::SetVerification, call: :success) }
+  # The self-service redemption's mailbox-proof stamp (#record_self_service_proof).
+  let(:proof_stamp) { instance_double(Auth::Operations::SetCustomerVerification) }
 
   before do
     allow(Onetime::ColonelAuditEvent).to receive(:record)
@@ -119,6 +121,12 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
 
     allow(Onetime::Operations::Sessions::RevokeAllForCustomer).to receive(:new).and_return(revoker)
     allow(Auth::Operations::Customers::SetVerification).to receive(:new).and_return(verifier)
+    allow(Auth::Operations::SetCustomerVerification).to receive(:new).and_return(proof_stamp)
+    allow(Auth::Operations::SetCustomerVerification).to receive(:full_auth_mode?).and_return(true)
+    allow(proof_stamp).to receive(:call) do
+      trace << [:mailbox_proof_stamped]
+      :success
+    end
 
     # SQL wiring. The schema has no migration 015 verification columns by
     # default, so the swap writes the email alone; the 'verification columns'
@@ -1550,6 +1558,84 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
   end
 
   # =========================================================================
+  # The followed link proved the new mailbox (it was sent there and nowhere
+  # else), so a self-service redemption records that proof in both stores
+  # once the swap has landed: 'email', replacing a stamp that proved the old
+  # address, and only for an account that is already verified.
+  describe 'mailbox proof on a self-service redemption' do
+    def self_service_op(**overrides)
+      op(actor: 'ur_c', require_verification: false, self_service: true, **overrides)
+    end
+
+    let(:security_events) { [] }
+
+    before do
+      allow(Onetime::ColonelAuditEvent).to receive(:record_security) { |**event| security_events << event }
+    end
+
+    def audit_detail
+      security_events.find { |event| event[:verb] == 'customer.change_email' }&.fetch(:detail)
+    end
+
+    it "stamps 'email' for the new address through SetCustomerVerification after the swap" do
+      expect(self_service_op.call.status).to eq(:success)
+
+      expect(Auth::Operations::SetCustomerVerification).to have_received(:new).with(
+        customer: customer,
+        verified: true,
+        verified_by: 'email',
+        db: db,
+        new_address: true,
+        claim_own_address_only: true,
+      )
+      expect(trace.index([:mailbox_proof_stamped])).to be > trace.index([:customer_save])
+      expect(audit_detail).to include(mailbox_proof: :recorded)
+    end
+
+    it 'does not stamp a Customer that is not verified: verify_account stays its way in' do
+      allow(customer).to receive(:verified?).and_return(false)
+
+      expect(self_service_op.call.status).to eq(:success)
+
+      expect(Auth::Operations::SetCustomerVerification).not_to have_received(:new)
+      expect(audit_detail).to include(mailbox_proof: :skipped)
+    end
+
+    it 'does not stamp when the accounts row was not Verified: the stamp never opens a login gate' do
+      my_account_row[:status_id] = 1
+
+      expect(self_service_op.call.status).to eq(:success)
+
+      expect(Auth::Operations::SetCustomerVerification).not_to have_received(:new)
+    end
+
+    it 'stamps on the Customer alone in simple auth mode, where there is no accounts row to read' do
+      allow(Auth::Operations::SetCustomerVerification).to receive(:full_auth_mode?).and_return(false)
+      my_account_row[:status_id] = nil
+
+      expect(self_service_op.call.status).to eq(:success)
+
+      expect(Auth::Operations::SetCustomerVerification).to have_received(:new)
+    end
+
+    it 'never stamps an operator change' do
+      expect(op(require_verification: false).call.status).to eq(:success)
+
+      expect(Auth::Operations::SetCustomerVerification).not_to have_received(:new)
+    end
+
+    it 'keeps the success status and warns when the stamp fails: the swap has landed' do
+      allow(proof_stamp).to receive(:call).and_raise(StandardError, 'redis down')
+
+      result = self_service_op.call
+
+      expect(result.status).to eq(:success)
+      expect(result.warnings).to include(:mailbox_proof_not_recorded)
+      expect(audit_detail).to include(mailbox_proof: :failed)
+    end
+  end
+
+  # =========================================================================
   # Migration 015 (ADR-051): email_verified_at, email_verified_by and
   # email_verification_hold qualify the row's CURRENT address, so they move
   # with it.
@@ -1585,15 +1671,12 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       expect(writes.first).to include(email_verified_at: nil, email_verified_by: nil)
     end
 
-    it "records 'email' proof on a self-service redemption: the followed link proved the new mailbox" do
+    it 'clears them in the swap on a self-service redemption too; the proof is stamped after it' do
       expect(op(actor: 'ur_c', require_verification: false, self_service: true).call.status).to eq(:success)
 
-      expect(writes.first).to include(
-        email: new_email,
-        email_verified_at: Sequel::CURRENT_TIMESTAMP,
-        email_verified_by: 'email',
-        email_verification_hold: nil,
-      )
+      expect(writes.first).to include(email: new_email, email_verified_at: nil, email_verified_by: nil,
+        email_verification_hold: nil)
+      expect(trace.last).to eq([:mailbox_proof_stamped])
     end
 
     it 'puts the old proof back with the old address when the swap is compensated' do

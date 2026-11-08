@@ -6,6 +6,7 @@
 # dependency is required explicitly.
 require 'securerandom'
 require 'auth/account_statuses'
+require 'auth/account_email_verification'
 require 'auth/database'
 require 'auth/lib/logging'
 
@@ -35,8 +36,11 @@ module Auth
     #                                     then minted as below. Never linked by
     #                                     address (#closed_row)
     #     the address is fold-unstable -> :skipped_fold_unstable (#fold_unstable_row)
-    #     exactly one Customer under the stored or the normalized address,
-    #     and no OTHER accounts row already links that Customer
+    #     the email index names only Customers that hold another address
+    #                                  -> :skipped_index_mismatch (#index_mismatch_row)
+    #     exactly one Customer under the stored or the normalized address
+    #     that holds the row's address, and no OTHER accounts row already
+    #     links that Customer
     #                                  -> login = objid, external_id = extid (:backfilled, :by_email)
     #     two Customers                -> :skipped_ambiguous_customer
     #     that Customer is linked by another row
@@ -89,8 +93,12 @@ module Auth
     # says nothing about this row's; and a row with no Customer at all (the
     # :minted branch), where Rodauth status alone is not evidence. A row left
     # NULL here loses nothing: the Customer mirror keeps its own answer and is
-    # what every reader uses until the N+1 binary makes SQL the writer, and
-    # mailbox proof recorded later writes the columns then.
+    # what every reader uses until the N+1 binary makes SQL the writer.
+    # Every later verification change writes the columns too
+    # (SetCustomerVerification, the after_verify_account hook, the invite
+    # signup, ChangeEmail), through the same mapping
+    # (Auth::AccountEmailVerification), so this copy stays current after the
+    # run.
     #
     # `email_verified_at` is the backfill time, not the original verification
     # time, which no store recorded; the provenance column carries what is
@@ -118,6 +126,7 @@ module Auth
         :skipped_no_customer,
         :skipped_closed_row,
         :skipped_fold_unstable,
+        :skipped_index_mismatch,
         :skipped_row_changed,
         :error,
       ].freeze
@@ -296,7 +305,9 @@ module Auth
         return closed_row(row) unless AccountStatuses.live?(row[:status_id])
         return fold_unstable_row(row) unless fold_stable_address?(row[:email])
 
-        customers = email_candidates(row[:email].to_s)
+        indexed   = email_candidates(row[:email].to_s)
+        customers = indexed.select { |customer| same_address?(row, customer) }
+        return index_mismatch_row(row, indexed) if customers.empty? && indexed.any?
 
         if customers.size > 1
           return report(
@@ -359,6 +370,25 @@ module Auth
           nil,
           'case folding would rewrite the address (for example ß -> ss), so it cannot be matched to a ' \
           'Customer by its folded form; left for the operator',
+        )
+      end
+
+      # The email index names a Customer under this address, but that
+      # Customer holds another one: the index entry is stale
+      # (`customers doctor --all` reports it as email_index_mismatch and
+      # `--repair` re-points it). Linking by the entry would give this row an
+      # unrelated Customer's login for good, since a linked row is never a
+      # candidate again. Not minted either: once the index is repaired the
+      # address may resolve to its real holder. NormalizeAccountEmails refuses
+      # the same case.
+      def index_mismatch_row(row, indexed)
+        report(
+          row,
+          :skipped_index_mismatch,
+          nil,
+          "the email index maps this address to Customer #{indexed.map(&:extid).join(', ')}, which holds " \
+          'another address; not linked. Run `bin/ots customers doctor --all --repair` (email_index_mismatch), ' \
+          'then re-run',
         )
       end
 
@@ -476,21 +506,20 @@ module Auth
         )
       end
 
+      # The mapping every writer shares (Auth::AccountEmailVerification),
+      # with the row's Rodauth status as one more condition for proof.
+      #
       # @return [Hash] the three verification columns (see the class comment)
       def verification_values(row, customer)
-        values = { email_verified_at: nil, email_verified_by: nil, email_verification_hold: nil }
-        return values if customer.nil?
-        return values unless same_address?(row, customer)
+        return Auth::AccountEmailVerification::CLEARED if customer.nil?
 
-        if row[:status_id] == AccountStatuses::VERIFIED && customer.mailbox_verified?
-          values[:email_verified_at] = Sequel::CURRENT_TIMESTAMP
-          values[:email_verified_by] = customer.verified_by.to_s
-        else
-          hold                             = customer.verification_hold.to_s
-          values[:email_verification_hold] = hold unless hold.empty?
-        end
-
-        values
+        Auth::AccountEmailVerification.values_for_row(
+          sql_text(row[:email]),
+          customer.email,
+          verified: row[:status_id] == AccountStatuses::VERIFIED && customer.verified?,
+          verified_by: customer.verified_by,
+          hold: customer.verification_hold,
+        )
       end
 
       # Does the Customer hold the row's address? Both sides go through the

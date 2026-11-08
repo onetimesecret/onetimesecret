@@ -19,6 +19,8 @@
 #     Customer#mailbox_verified? (Onetime::Customer::MAILBOX_VERIFIED_BY) and
 #     the Customer holding the row's address; a hold is copied; anything
 #     else, a minted row included, stays NULL
+#   * an email-index entry naming a Customer at another address links
+#     nothing (skipped_index_mismatch)
 #   * the write is a compare-and-set on the row as the scan read it
 #   * dry run writes nothing; a live run is idempotent and resumable
 #   * reports and log lines never carry the login value or the raw address
@@ -323,6 +325,55 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
       detail = row_for(result, account_id)[:detail]
       expect(detail).not_to include(customer.extid)
       expect(detail).to include('orphaned')
+    end
+  end
+
+  # An email index entry still naming a Customer that has since moved to
+  # another address (`customers doctor --all` reports it as
+  # email_index_mismatch). The row must not take that Customer's login: a
+  # linked row is never a candidate again.
+  describe 'stale email index entry' do
+    let(:moved) { "moved-#{run}@example.com" }
+    let(:stale_keys) { [] }
+
+    after do
+      stale_keys.each { |key| Onetime::Customer.email_index.remove_field(key) }
+    end
+
+    def point_index_at(address, customer)
+      Onetime::Customer.email_index[address] = customer.objid
+      stale_keys << address
+    end
+
+    it 'never links the row to the Customer the stale entry names, mint_missing or not' do
+      customer = create_customer(moved)
+      point_index_at(email, customer)
+      account_id = insert_account(email, external_id: nil)
+
+      result = new_operation(dry_run: false, mint_missing: true).call
+
+      row = account_row(account_id)
+      expect(row[:login]).to be_nil
+      expect(row[:external_id]).to be_nil
+      report = row_for(result, account_id)
+      expect(report[:outcome]).to eq(:skipped_index_mismatch)
+      expect(report[:detail]).to include(customer.extid, 'bin/ots customers doctor --all --repair')
+      expect(result.stats[:skipped_index_mismatch]).to eq(1)
+    end
+
+    it 'links the Customer that holds the address when a stale entry names another casing of it' do
+      holder = create_customer(email)
+      mover  = create_customer(moved)
+      stored = email.sub('backfill-', 'Backfill-')
+      point_index_at(stored, mover)
+      account_id = insert_account(stored, external_id: nil)
+
+      result = new_operation(dry_run: false).call
+
+      row = account_row(account_id)
+      expect(row[:login]).to eq(holder.objid)
+      expect(row[:external_id]).to eq(holder.extid)
+      expect(row_for(result, account_id)).to include(outcome: :backfilled, branch: :by_email)
     end
   end
 

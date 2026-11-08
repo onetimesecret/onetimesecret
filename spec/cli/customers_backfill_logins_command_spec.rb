@@ -29,6 +29,7 @@ RSpec.describe 'customers backfill-logins', type: :cli do
       skipped_no_customer: 1,
       skipped_closed_row: 0,
       skipped_fold_unstable: 0,
+      skipped_index_mismatch: 0,
       skipped_row_changed: 0,
       error: 0,
     }
@@ -164,6 +165,23 @@ RSpec.describe 'customers backfill-logins', type: :cli do
       expect(output[:stdout]).to include('Skipped (closed row):', 'Skipped (fold-unstable address):')
       expect(output[:stdout]).to include('re-run with --mint-missing to')
       expect(output[:stdout]).to include('Skipped rows are never resolved automatically.')
+    end
+
+    it 'reports email index mismatches with the doctor repair to run first' do
+      allow(op).to receive(:call).and_return(
+        build_result(
+          dry_run: true,
+          stats: stats.merge(skipped_index_mismatch: 1, scanned: 4),
+          rows: rows + [
+            { account_id: 13, outcome: :skipped_index_mismatch, branch: nil, email: 'ix***@***.com', detail: 'stale' },
+          ],
+        ),
+      )
+
+      output = run_cli_command_quietly('customers', 'backfill-logins')
+
+      expect(output[:stdout]).to include('Skipped (email index mismatch):')
+      expect(output[:stdout]).to include('bin/ots customers doctor --all --repair')
     end
 
     it 'prints the resume hint, with --confirm only on a live run' do

@@ -155,12 +155,42 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       expect(issues).to be_empty
     end
 
-    it 'compares the addresses case-insensitively, as check_auth_email_drift does' do
+    it 'compares the addresses case-insensitively' do
       stub_row(base_row(email: 'Live@Example.com', email_verified_at: nil, email_verified_by: nil))
 
       doctor.send(:check_auth_login_link, issues)
 
       expect(issues.map { |i| i[:check] }).to eq([:auth_email_verification_drift])
+    end
+
+    # The address test every verification writer uses (OT::Utils.same_mailbox?):
+    # a decomposed accent is the same mailbox, so the row is judged.
+    it 'judges a row whose address differs only by Unicode normalization' do
+      allow(customer).to receive(:email).and_return("liv\u00E9@example.com")
+      stub_row(base_row(email: "live\u0301@example.com", email_verified_at: nil, email_verified_by: nil))
+
+      doctor.send(:check_auth_login_link, issues)
+
+      expect(issues.map { |i| i[:check] }).to eq([:auth_email_verification_drift])
+    end
+
+    # And two addresses only case folding makes equal are not the same
+    # mailbox, so the row is left to auth_email_drift.
+    it 'skips a row whose address differs only by folding (ß and ss)' do
+      allow(customer).to receive(:email).and_return('live@strasse.example')
+      stub_row(base_row(email: 'live@straße.example', email_verified_at: nil, email_verified_by: nil))
+
+      doctor.send(:check_auth_login_link, issues)
+
+      expect(issues).to be_empty
+    end
+
+    it 'names the re-stamp procedure in the repair action' do
+      stub_row(base_row(email_verified_at: nil, email_verified_by: nil))
+
+      doctor.send(:check_auth_login_link, issues)
+
+      expect(issues.first[:repair_action]).to include('unverify, then verify')
     end
 
     it 'treats a held, unverified row as consistent with an unverified Customer' do

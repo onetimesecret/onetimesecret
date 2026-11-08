@@ -29,7 +29,10 @@
 # exactly as before; its rows simply carry NULL `login`. The values are
 # supplied afterwards by `bin/ots customers backfill-logins`
 # (Auth::Operations::BackfillAccountLogins), which is resumable and
-# idempotent, and by the N+1 binary on every INSERT. `login NOT NULL` is a
+# idempotent, and by the N+1 binary on every INSERT. The verification
+# columns are also written by every verification change in the release
+# that ships this migration (Auth::AccountEmailVerification), so the
+# backfill's copy stays current once it has run. `login NOT NULL` is a
 # later migration (M016) that refuses to run while any row still lacks one.
 #
 # The UNIQUE index on `login` is created now rather than at M016 on purpose:

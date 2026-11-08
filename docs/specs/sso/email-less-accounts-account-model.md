@@ -137,10 +137,17 @@ each email-keyed send becomes "send only if `email` present and verified
 - Lookups: `find_by_email`, `email_exists?`, `load_by_extid_or_email` return
   `nil`/`false` for blank input. `load_by_extid_or_email` and the email
   fallback in `resolve_custid` are removed once backfill is complete (M017).
-- Mirror fields: Customer `verified`, `verified_by`, `verification_hold` are
-  derived from SQL `email_verified_at`, `email_verified_by`,
-  `email_verification_hold` by `SetCustomerVerification`, which is already
-  the single writer that updates both stores. Doctor gains the drift check.
+- Mirror fields: `SetCustomerVerification` writes the Customer's `verified`,
+  `verified_by` and `verification_hold` and, in the UPDATE that sets
+  `status_id`, the SQL `email_verified_at`, `email_verified_by` and
+  `email_verification_hold`, which record the mailbox-proof part of that
+  state (`Auth::AccountEmailVerification`, one mapping for every writer:
+  the backfill, `SetCustomerVerification`, the `after_verify_account` and
+  invite-signup hooks, `ChangeEmail`, the doctor's drift repair; shipped).
+  Once the N+1 binary makes SQL the writer, the Customer's mailbox proof is
+  derived from these columns. The weaker provenances (`sso`,
+  `stripe_payment`, `autoverify`, `legacy`) are facts about the account,
+  not the mailbox, and stay on the Customer. Doctor gains the drift check.
 
 ### 3.4 Account–Customer association
 
@@ -254,11 +261,13 @@ Unchanged by this design:
   design ships the capability behind a flag scoped to the platform / per-install
   route.
 - Trusted-email linking, Connect gates and the `email_verified` hold logic are
-  untouched. `email_verified_by = 'sso'` is recorded as provenance; whether
-  that provenance satisfies the mailbox gate in §5 is RISK-2026-10-10-02
-  ([#4735](https://github.com/onetimesecret/onetimesecret/issues/4735)), an
-  operator decision. Default in this design: preserve current behaviour (it
-  counts), flip tracked under #4735.
+  untouched. RISK-2026-10-10-02
+  ([#4735](https://github.com/onetimesecret/onetimesecret/issues/4735)) was
+  closed on 2026-11-04 by #4754: an IdP assertion is not mailbox proof, so
+  `sso` is never written to `email_verified_by` and stays the Customer's
+  `verified_by` (§3.1). Should the N+1 binary let an IdP-asserted address use
+  a mailbox flow in §5, that is a read-side rule over the identity row and
+  `email_verification_hold`, not a value in these columns.
 
 ## 7. Migration, cutover, mixed versions, rollback (proposal item 9)
 
@@ -273,7 +282,7 @@ the next free numbers when they are written.
 |---|---|---|---|---|
 | S0 | current | N | D0: all rows have email | baseline |
 | M015 expand | add `login` NULL **with its UNIQUE index**, `email_verified_at`, `email_verified_by`, `email_verification_hold`; leave `email NOT NULL` | N | D0 | old binary ignores new columns; its inserts leave `login` NULL. The unique index is created here rather than at M016 because both engines treat NULLs as distinct, so it costs the old binary nothing and stops two concurrent backfills from putting one objid on two rows. **Shipped** ([015_account_login_and_contact_verification.rb](../../../apps/web/auth/migrations/015_account_login_and_contact_verification.rb)). |
-| Backfill op | — | N or N+1 | D0 | `Auth::Operations::BackfillAccountLogins` / `bin/ots customers backfill-logins` (dry-run default, `--limit`, `--after-id`, idempotent, compare-and-set on the row as scanned: `login IS NULL` plus the scanned `external_id`, `email` and `status_id`, so a row re-linked or changed in between is `skipped_row_changed` and re-read on the next run; precedent [normalize_account_emails.rb](../../../apps/web/auth/operations/customers/normalize_account_emails.rb)). Per row: Customer by `external_id` → `login = objid`; else, for a live row whose address case folding leaves unchanged, by the stored or normalized email when exactly one Customer matches and no other row links that Customer → `login = objid`, `external_id = extid` (a closed row is `skipped_closed_row` and never linked by address, since the partial unique index lets it share a live row's address; a fold-unstable address such as `straße` is `skipped_fold_unstable`, since its folded form names another address); else `skipped_no_customer`, or with `--mint-missing` a fresh UUIDv7 as `login` with `external_id = extid(login)` (the next K2 creates the Customer under it). Minting is opt-in because binary N re-links such a row by email on its next sign-in and overwrites the minted `external_id`; use it only once N+1 is the only binary. An `external_id` naming a missing Customer is reported (`skipped_dangling_external_id`), never rewritten; the report says whether a Customer holds the row's address (`sync-auth-accounts --run` or the next sign-in re-links it) or none does (an orphaned row, `customers diagnose <account id>`). Verification: `status_id = VERIFIED` **and** `Customer#mailbox_verified?` (`verified_by` in `Onetime::Customer::MAILBOX_VERIFIED_BY`, #4754) **and** the Customer holds the row's address (`OT::Utils.same_mailbox?`: `normalize_email` on both sides, case mapping alone when either side is fold-unstable) → `email_verified_at = now`, `email_verified_by = verified_by`; same address and a Customer `verification_hold` → copied; otherwise all three NULL. NULL covers an IdP (`sso`), payment, autoverify or `legacy` stamp (not mailbox proof; the mirror keeps its own answer and remains what readers use until the N+1 binary writes SQL), a Customer under another address, and a minted row, which has no Customer to consult. No `legacy` provenance is minted by the backfill. The login value is never printed or logged, and an error path logs only the scrubbed message, never the exception object. **Shipped** ([backfill_account_logins.rb](../../../apps/web/auth/operations/backfill_account_logins.rb)). |
+| Backfill op | — | N or N+1 | D0 | `Auth::Operations::BackfillAccountLogins` / `bin/ots customers backfill-logins` (dry-run default, `--limit`, `--after-id`, idempotent, compare-and-set on the row as scanned: `login IS NULL` plus the scanned `external_id`, `email` and `status_id`, so a row re-linked or changed in between is `skipped_row_changed` and re-read on the next run; precedent [normalize_account_emails.rb](../../../apps/web/auth/operations/customers/normalize_account_emails.rb)). Per row: Customer by `external_id` → `login = objid`; else, for a live row whose address case folding leaves unchanged, by the stored or normalized email when exactly one Customer matches and no other row links that Customer → `login = objid`, `external_id = extid` (a closed row is `skipped_closed_row` and never linked by address, since the partial unique index lets it share a live row's address; a fold-unstable address such as `straße` is `skipped_fold_unstable`, since its folded form names another address; an email-index entry whose Customer holds another address is `skipped_index_mismatch`, repaired by `customers doctor --all --repair`); else `skipped_no_customer`, or with `--mint-missing` a fresh UUIDv7 as `login` with `external_id = extid(login)` (the next K2 creates the Customer under it). Minting is opt-in because binary N re-links such a row by email on its next sign-in and overwrites the minted `external_id`; use it only once N+1 is the only binary. An `external_id` naming a missing Customer is reported (`skipped_dangling_external_id`), never rewritten; the report says whether a Customer holds the row's address (`sync-auth-accounts --run` or the next sign-in re-links it) or none does (an orphaned row, `customers diagnose <account id>`). Verification: `status_id = VERIFIED` **and** `Customer#mailbox_verified?` (`verified_by` in `Onetime::Customer::MAILBOX_VERIFIED_BY`, #4754) **and** the Customer holds the row's address (`OT::Utils.same_mailbox?`: `normalize_email` on both sides, case mapping alone when either side is fold-unstable) → `email_verified_at = now`, `email_verified_by = verified_by`; same address and a Customer `verification_hold` → copied; otherwise all three NULL. NULL covers an IdP (`sso`), payment, autoverify or `legacy` stamp (not mailbox proof; the mirror keeps its own answer and remains what readers use until the N+1 binary writes SQL), a Customer under another address, and a minted row, which has no Customer to consult. No `legacy` provenance is minted by the backfill. The login value is never printed or logged, and an error path logs only the scrubbed message, never the exception object. **Shipped** ([backfill_account_logins.rb](../../../apps/web/auth/operations/backfill_account_logins.rb)). |
 | Deploy N+1 | M015 | N+1 | D0 | N+1 writes `login`/`external_id` on every INSERT, reads by `external_id`, keeps email fallbacks read-only for rows still lacking `login`; email-less writes **disabled** (flag default off) |
 | M016 enforce | `login NOT NULL` (the UNIQUE index exists since M015) | N+1 only | D0 | refuses to run while any row has NULL `login` (rows inserted by N during the window are swept by re-running the backfill first). **Boot constraint:** `Auth::Migrator.run_if_needed` applies every migration file present at process start, so a refusing M016 is a boot failure. M016 therefore ships in a release deployed only after the operator has confirmed `backfill-logins` reports zero candidates (and `customers doctor` zero `auth_login_missing`), and its refusal message names that command. |
 | M017 enable | `email` nullable, CHECK `email <> ''`, `external_id NOT NULL` | N+1 | D0 → D1 once the flag is on | flag `SSO_EMAILLESS_ACCOUNTS` (default off) gates null-email INSERTs on the platform route only |
@@ -297,7 +306,9 @@ objid (`auth_login_missing`, `auth_login_mismatch`; shipped), `""` key in the
 global email index (`email_index_blank_key`, repairable; shipped),
 `email_verified_at` ↔ Customer mailbox proof (`mailbox_verified?`) drift
 (`auth_email_verification_drift`, skipped while the stores name different
-addresses, report-only until the N+1 binary makes SQL the writer; shipped), the
+addresses; every verification writer writes both stores, so a finding is a
+write that failed between them; report-only until the N+1 binary makes SQL the
+writer; shipped), the
 org-scoped index `""` key, rows with `login` but no Customer (K2 pending), and
 accounts without `email` on a tenant domain (must be zero) (the last three
 with the N+1 binary).
@@ -354,8 +365,8 @@ run through `tests/lanes/run`; lane in brackets.
    compensation.
 4. Platform-route-only flag for email-less creation; tenant stays refused
    pending the R1 decision (§6).
-5. `email_verified_by = 'sso'` keeps satisfying mailbox flows until #4735 is
-   decided (§6).
+5. Decided: #4735 closed on 2026-11-04 (#4754). `sso` is not mailbox proof
+   and is not written to `email_verified_by` (§3.1, §6).
 6. Familia P1 (empty string treated as absent in unique indexes) as a
    prerequisite release, versus app-side guards only.
 

@@ -5,6 +5,7 @@
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'auth/account_statuses'
+require 'auth/account_email_verification'
 require 'auth/operations/set_customer_verification'
 require 'auth/operations/workspace_collision'
 require 'auth/operations/ensure_default_workspace'
@@ -710,7 +711,7 @@ module Auth
           # checks after this one judge the repaired row.
           written = { email: @customer.email }
           if account.key?(:email_verified_at) && !OT::Utils.same_mailbox?(sql_email, @customer.email)
-            written.merge!(email_verified_at: nil, email_verified_by: nil, email_verification_hold: nil)
+            written.merge!(Auth::AccountEmailVerification::CLEARED)
           end
 
           db.transaction do
@@ -1164,10 +1165,14 @@ module Auth
         #                         Skipped while the two stores name different
         #                         addresses: that is check_auth_email_drift's
         #                         finding, and the backfill leaves such a row
-        #                         unverified on purpose. Until the N+1 binary
-        #                         makes SQL the single writer, the Customer
-        #                         mirror is what every reader uses, so this is
-        #                         reported, not repaired.
+        #                         unverified on purpose. Every verification
+        #                         writer writes both stores through
+        #                         Auth::AccountEmailVerification, so a finding
+        #                         here is a write that failed between them.
+        #                         Until the N+1 binary makes SQL the single
+        #                         writer, the Customer mirror is what every
+        #                         reader uses, so this is reported, not
+        #                         repaired.
         def check_auth_login_link(issues)
           account = auth_account
           return if account.nil?
@@ -1197,8 +1202,10 @@ module Auth
             return
           end
 
-          # Same case-insensitive comparison as check_auth_email_drift.
-          return unless account[:email].to_s.downcase == @customer.email.to_s.downcase
+          # The address test every verification writer uses
+          # (OT::Utils.same_mailbox?), so this check skips exactly the rows
+          # those writers leave unverified for naming another mailbox.
+          return unless OT::Utils.same_mailbox?(account[:email].to_s, @customer.email.to_s)
 
           sql_verified      = !account[:email_verified_at].nil?
           customer_verified = @customer.mailbox_verified?
@@ -1213,8 +1220,11 @@ module Auth
             auth_email_verified_by: account[:email_verified_by],
             auth_email_verification_hold: account[:email_verification_hold],
             repairable: false,
-            repair_action: 'Verify or unverify through `bin/ots customers verify|unverify` once it ' \
-                           'writes both stores; the Customer mirror is authoritative until then',
+            repair_action: 'A verification write failed between the stores. Re-run the change that ' \
+                           'failed (`bin/ots customers verify|unverify`); a repeat that changes nothing ' \
+                           'writes nothing, so re-stamp a Customer that already reads mailbox-verified ' \
+                           'with unverify, then verify. The Customer mirror is authoritative until the ' \
+                           'N+1 binary',
           }
         rescue StandardError => ex
           OT.le "[customers doctor] auth_login_link check failed for #{@customer.extid}: " \
