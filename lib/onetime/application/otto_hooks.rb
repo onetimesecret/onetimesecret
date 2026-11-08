@@ -138,10 +138,11 @@ module Onetime
           with_error_correlation(error.to_h, req, error)
         end
 
-        # A write that a retry can clear (datastore unreachable, an optimistic
-        # lock lost to a concurrent write). 503, like the entry above, so the
-        # client retries rather than treating it as bad input; the body's
-        # retry_after becomes the Retry-After header.
+        # A request that a retry can clear (datastore unreachable, an
+        # optimistic lock lost to a concurrent write, a v3 token mint whose
+        # credential watermark is ahead of this node's clock). 503, like the
+        # entry above, so the client retries rather than treating it as bad
+        # input; the body's retry_after becomes the Retry-After header.
         router.register_error_handler(Onetime::TemporarilyUnavailable, status: 503, log_level: :warn) do |error, req|
           with_error_correlation(error.to_h, req, error)
         end
@@ -160,6 +161,13 @@ module Onetime
 
         # Guest routes disabled errors return 403 with error code
         router.register_error_handler(Onetime::GuestRoutesDisabled, status: 403, log_level: :info) do |error, req|
+          Onetime::Application::ErrorResolver.resolve!(error, req)
+          with_error_correlation(error.to_h, req, error)
+        end
+
+        # POST /api/v3/token while auth.paseto.enabled is off (#2427): an
+        # operator setting, not a caller mistake, so :info like the guest gate.
+        router.register_error_handler(Onetime::BearerTokensDisabled, status: 403, log_level: :info) do |error, req|
           Onetime::Application::ErrorResolver.resolve!(error, req)
           with_error_correlation(error.to_h, req, error)
         end

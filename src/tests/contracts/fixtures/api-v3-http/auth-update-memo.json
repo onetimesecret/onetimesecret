@@ -1,0 +1,55 @@
+{
+  "name": "auth-update-memo",
+  "method": "PATCH",
+  "path": "/api/v3/receipt/j9jb4w8944e0la8i2jsms99sycwlxlm2w9wdn8wmegc53842hj3py3dpyn6zvd",
+  "request": {
+    "memo": "schema memo"
+  },
+  "response_schema": "updateReceipt",
+  "request_schema": "updateReceipt",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "x-request-id": "1mvjtqo1hct8n"
+  },
+  "body": {
+    "record": {
+      "identifier": "j9jb4w8944e0la8i2jsms99sycwlxlm2w9wdn8wmegc53842hj3py3dpyn6zvd",
+      "key": "j9jb4w8944e0la8i2jsms99sycwlxlm2w9wdn8wmegc53842hj3py3dpyn6zvd",
+      "owner_id": "01a1b95c-94fc-7bcc-bba0-bb3194103df9",
+      "state": "new",
+      "secret_shortid": "2x17t8h9",
+      "secret_identifier": "2x17t8h9wos8tkyrxjhb47cai88indnur0l5i1wes44b9wgoz74md6iolpc841",
+      "secret_ttl": 3600,
+      "metadata_ttl": 3600,
+      "receipt_ttl": 3600,
+      "lifespan": 3600,
+      "share_domain": null,
+      "created": 1794111215.08265,
+      "updated": 1794111215.41162,
+      "shared": null,
+      "recipients": null,
+      "recipient_name": null,
+      "memo": "schema memo",
+      "shortid": "j9jb4w89",
+      "show_recipients": false,
+      "previewed": 1794111215,
+      "revealed": null,
+      "is_previewed": true,
+      "viewed": 1794111215,
+      "received": null,
+      "burned": null,
+      "is_viewed": true,
+      "is_received": false,
+      "is_revealed": false,
+      "is_burned": false,
+      "is_expired": false,
+      "is_orphaned": false,
+      "is_destroyed": false,
+      "has_passphrase": false,
+      "kind": "conceal",
+      "source": "standard"
+    }
+  }
+}

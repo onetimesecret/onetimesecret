@@ -6,19 +6,11 @@ require 'spec_helper'
 
 # Unit tests for Receipt.spawn_pair
 #
-# These tests verify that spawn_pair creates a properly linked
-# receipt+secret pair with all fields populated from a single
-# persistence operation on the receipt.
-#
-# BUG: The current implementation calls receipt.save TWICE -- once
-# before receipt-level fields (secret_ttl, kind, lifespan, share_domain)
-# are set, and again after. This means:
-#   1. There is a race window where a crash between saves leaves
-#      a receipt in Redis missing those fields.
-#   2. The first save is wasted work (writes incomplete data).
-#
-# These tests are written TDD-style: they SHOULD FAIL against the
-# current (buggy) code, and pass once the fix is applied.
+# spawn_pair populates every field of the linked pair before it commits them,
+# with the caller's required registrations, in one Familia.atomic_write
+# (docs/specs/api/01-creation-commit.md). These examples stub that write to
+# observe what it receives and how each failure is classified;
+# spec/api/v3/api_v3_creation_commit_spec.rb exercises it against Valkey.
 #
 RSpec.describe Onetime::Receipt do
   describe '.spawn_pair' do
@@ -27,13 +19,18 @@ RSpec.describe Onetime::Receipt do
     let(:content)    { 'super secret content' }
     let(:domain)     { 'secrets.example.com' }
     let(:kind)       { 'share' }
+    let(:commits)    { [] }
 
     # Stubs for Redis-backed operations that spawn_pair touches.
     # We allow real Ruby field assignment but intercept persistence.
     before do
-      # Stub save on any Receipt or Secret instance so nothing hits Redis.
-      allow_any_instance_of(Onetime::Receipt).to receive(:save).and_return(true)
-      allow_any_instance_of(Onetime::Secret).to receive(:save).and_return(true)
+      # Record each commit's instances and run its registrations block, as
+      # Familia.atomic_write does inside the MULTI, without touching Redis.
+      allow(Familia).to receive(:atomic_write) do |*instances, &registrations|
+        commits << instances
+        registrations&.call
+        true
+      end
 
       # The ciphertext= setter is an encrypted_field that triggers Familia's
       # encryption pipeline, requiring key version config. Stub it to no-op
@@ -44,40 +41,39 @@ RSpec.describe Onetime::Receipt do
       # but still allow the receipt's has_passphrase to be set by spawn_pair.
       allow_any_instance_of(Onetime::Secret).to receive(:update_passphrase).and_return(true)
 
-      # register_for_expiration_notifications touches class-level sorted sets
+      # Post-commit follow-ups touch class-level sorted sets and counters.
       allow_any_instance_of(Onetime::Receipt).to receive(:register_for_expiration_notifications).and_return(false)
+      allow(Onetime::Customer).to receive(:increment_secrets_active)
+      allow(Onetime::DailyMetric).to receive(:increment)
     end
 
     # -----------------------------------------------------------
-    # 1. Single save: receipt.save should be called exactly once
+    # 1. One commit for the pair
     # -----------------------------------------------------------
-    # This is the core TDD test for the bug. The current code calls
-    # save twice on the receipt; the fix should reduce it to one.
-    context 'receipt persistence' do
-      it 'calls save on the receipt exactly once' do
-        receipt_double = instance_double(Onetime::Receipt).as_null_object
-        allow(receipt_double).to receive(:save).and_return(true)
-        allow(receipt_double).to receive(:register_for_expiration_notifications).and_return(false)
-        allow(Onetime::Receipt).to receive(:new).and_return(receipt_double)
+    context 'commit' do
+      it 'writes the secret and receipt in exactly one atomic write' do
+        receipt, secret = Onetime::Receipt.spawn_pair(owner_id, lifespan, content, domain: domain, kind: kind)
 
-        secret_double = instance_double(Onetime::Secret).as_null_object
-        allow(secret_double).to receive(:save).and_return(true)
-        allow(secret_double).to receive(:objid).and_return('secret-objid-abc123')
-        allow(secret_double).to receive(:shortid).and_return('secret-o')
+        expect(commits).to eq([[secret, receipt]])
+      end
 
-        # spawn_pair passes `secret.created` as the owner-index score, and
-        # Customer.index_secret calls `.to_f` on it. An unstubbed null object
-        # answers `created` (a real Secret instance method) with ITSELF, and the
-        # verifying double then rejects `to_f` -- which Secret does not define --
-        # with a MockExpectationError. That error subclasses Exception, so
-        # increment_secrets_active's `rescue StandardError` does not swallow it
-        # and it escapes spawn_pair. Return a real numeric instead.
-        allow(secret_double).to receive(:created).and_return(Familia.now)
-        allow(Onetime::Secret).to receive(:new).and_return(secret_double)
+      it 'never saves either record outside that write' do
+        allow_any_instance_of(Onetime::Receipt).to receive(:save).and_raise('unexpected receipt save')
+        allow_any_instance_of(Onetime::Secret).to receive(:save).and_raise('unexpected secret save')
 
-        Onetime::Receipt.spawn_pair(owner_id, lifespan, content, domain: domain, kind: kind)
+        expect { Onetime::Receipt.spawn_pair(owner_id, lifespan, content) }.not_to raise_error
+      end
 
-        expect(receipt_double).to have_received(:save).once
+      it 'runs the caller registrations inside the commit with the pending pair' do
+        registered = nil
+        committing = nil
+        receipt, secret = Onetime::Receipt.spawn_pair(owner_id, lifespan, content) do |pending_receipt, pending_secret|
+          registered = [pending_receipt, pending_secret]
+          committing = commits.size
+        end
+
+        expect(registered).to eq([receipt, secret])
+        expect(committing).to eq(1)
       end
     end
 
@@ -117,6 +113,13 @@ RSpec.describe Onetime::Receipt do
 
       it 'sets kind to the kind argument' do
         expect(receipt.kind).to eq(kind)
+      end
+
+      it 'sets the scope identifiers given as keywords' do
+        receipt, = Onetime::Receipt.spawn_pair(owner_id, lifespan, content, org_id: 'org-objid', domain_id: 'domain-objid')
+
+        expect(receipt.org_id).to eq('org-objid')
+        expect(receipt.domain_id).to eq('domain-objid')
       end
     end
 
@@ -193,86 +196,151 @@ RSpec.describe Onetime::Receipt do
     end
 
     # -----------------------------------------------------------
-    # 5. All receipt fields set BEFORE save is called
+    # 5. All fields set BEFORE the commit
     # -----------------------------------------------------------
-    # This test captures the essence of the bug: the receipt should
-    # have all its fields populated at the time save is called, not
-    # after a prior incomplete save. We capture the FIRST save's
-    # state -- with the bug, the first save has nil for all
-    # receipt-level fields.
-    context 'field completeness at save time' do
-      it 'has all fields populated on the first save call' do
-        first_save_fields = nil
+    # The commit is the only write, so every receipt-level field must already
+    # be populated when it runs; nothing is filled in by a later save.
+    context 'field completeness at commit time' do
+      it 'has all fields populated when the commit runs' do
+        committed_fields = nil
 
-        allow_any_instance_of(Onetime::Receipt).to receive(:save) do |receipt_instance|
-          # Only capture the FIRST save invocation's state.
-          # With the bug, this will have nil for secret_ttl, kind, etc.
-          first_save_fields ||= {
-            secret_ttl: receipt_instance.instance_variable_get(:@secret_ttl),
-            lifespan: receipt_instance.instance_variable_get(:@lifespan),
-            share_domain: receipt_instance.instance_variable_get(:@share_domain),
-            kind: receipt_instance.instance_variable_get(:@kind),
-            secret_shortid: receipt_instance.instance_variable_get(:@secret_shortid),
-            secret_identifier: receipt_instance.instance_variable_get(:@secret_identifier),
+        allow(Familia).to receive(:atomic_write) do |_secret, receipt_instance, &_registrations|
+          committed_fields = {
+            secret_ttl: receipt_instance.secret_ttl,
+            lifespan: receipt_instance.lifespan,
+            share_domain: receipt_instance.share_domain,
+            kind: receipt_instance.kind,
+            secret_shortid: receipt_instance.secret_shortid,
+            secret_identifier: receipt_instance.secret_identifier,
+            default_expiration: receipt_instance.default_expiration,
           }
           true
         end
 
-        # Secret save is also stubbed (ciphertext= is handled by global before)
-        allow_any_instance_of(Onetime::Secret).to receive(:save).and_return(true)
-        allow_any_instance_of(Onetime::Secret).to receive(:update_passphrase).and_return(true)
-        allow_any_instance_of(Onetime::Receipt).to receive(:register_for_expiration_notifications).and_return(false)
-
         Onetime::Receipt.spawn_pair(owner_id, lifespan, content, domain: domain, kind: kind)
 
-        # The first (and ideally only) save should have all fields populated.
-        expect(first_save_fields[:secret_ttl]).to eq(lifespan)
-        expect(first_save_fields[:lifespan]).to eq(lifespan)
-        expect(first_save_fields[:share_domain]).to eq(domain)
-        expect(first_save_fields[:kind]).to eq(kind)
-        expect(first_save_fields[:secret_shortid]).not_to be_nil
-        expect(first_save_fields[:secret_identifier]).not_to be_nil
+        expect(committed_fields[:secret_ttl]).to eq(lifespan)
+        expect(committed_fields[:lifespan]).to eq(lifespan)
+        expect(committed_fields[:share_domain]).to eq(domain)
+        expect(committed_fields[:kind]).to eq(kind)
+        expect(committed_fields[:secret_shortid]).not_to be_nil
+        expect(committed_fields[:secret_identifier]).not_to be_nil
+        expect(committed_fields[:default_expiration]).to eq(lifespan * 2)
       end
     end
 
     # -----------------------------------------------------------
-    # 6. First save should not persist incomplete receipt
+    # 6. Failure evidence
     # -----------------------------------------------------------
-    # Directly tests that the FIRST call to save already has all
-    # receipt-level fields set. With the bug, the first save has
-    # nil for secret_ttl, kind, lifespan, share_domain.
-    context 'no incomplete save' do
-      it 'does not persist a receipt with nil secret_ttl' do
-        save_call_fields = []
+    # An error never proves rollback: only a datastore verdict makes a failed
+    # commit :incomplete, and anything else stays :unconfirmed.
+    context 'when the creation does not commit' do
+      let(:logger) { instance_spy(SemanticLogger::Logger) }
 
-        allow_any_instance_of(Onetime::Receipt).to receive(:save) do |receipt_instance|
-          save_call_fields << {
-            secret_ttl: receipt_instance.instance_variable_get(:@secret_ttl),
-            kind: receipt_instance.instance_variable_get(:@kind),
-            lifespan: receipt_instance.instance_variable_get(:@lifespan),
-            share_domain: receipt_instance.instance_variable_get(:@share_domain),
-          }
-          true
+      before { allow(Onetime).to receive(:secret_logger).and_return(logger) }
+
+      def expect_creation_failure(stage, persistence, cause_class = nil, &block)
+        expect(&block).to raise_error(Onetime::SecretCreationFailed) do |error|
+          expect(error.stage).to eq(stage)
+          expect(error.persistence).to eq(persistence)
+          cause_class ? expect(error.cause).to(be_a(cause_class)) : expect(error.cause).to(be_nil)
+        end
+      end
+
+      it 'classifies a rejected command as incomplete' do
+        allow(Familia).to receive(:atomic_write).and_raise(Redis::WrongTypeError, 'WRONGTYPE injected')
+
+        expect_creation_failure(:commit, :incomplete, Redis::WrongTypeError) do
+          Onetime::Receipt.spawn_pair(owner_id, lifespan, content)
+        end
+      end
+
+      it 'classifies a commit reporting failed commands as incomplete' do
+        allow(Familia).to receive(:atomic_write).and_return(false)
+
+        expect_creation_failure(:commit, :incomplete) do
+          Onetime::Receipt.spawn_pair(owner_id, lifespan, content)
+        end
+      end
+
+      [Redis::TimeoutError, Redis::ConnectionError, IOError].each do |error_class|
+        it "classifies #{error_class} as unconfirmed" do
+          allow(Familia).to receive(:atomic_write).and_raise(error_class, 'injected')
+
+          expect_creation_failure(:commit, :unconfirmed, error_class) do
+            Onetime::Receipt.spawn_pair(owner_id, lifespan, content)
+          end
+        end
+      end
+
+      it 'classifies a preparation failure as no write, without committing' do
+        allow_any_instance_of(Onetime::Secret).to receive(:update_passphrase).and_raise(ArgumentError, 'injected')
+
+        expect_creation_failure(:prepare, :none, ArgumentError) do
+          Onetime::Receipt.spawn_pair(owner_id, lifespan, content, passphrase: 'hunter2')
+        end
+        expect(Familia).not_to have_received(:atomic_write)
+      end
+
+      it 'skips every optional follow-up' do
+        allow(Familia).to receive(:atomic_write).and_raise(Redis::TimeoutError, 'injected')
+
+        expect { Onetime::Receipt.spawn_pair(owner_id, lifespan, content) }
+          .to raise_error(Onetime::SecretCreationFailed)
+        expect(Onetime::Customer).not_to have_received(:increment_secrets_active)
+        expect(Onetime::DailyMetric).not_to have_received(:increment)
+      end
+
+      it 'logs the stage and evidence with shortids only' do
+        receipt = nil
+        allow(Familia).to receive(:atomic_write) do |_secret, pending_receipt|
+          receipt = pending_receipt
+          raise Redis::TimeoutError, 'injected'
         end
 
-        allow_any_instance_of(Onetime::Secret).to receive(:save).and_return(true)
-        allow_any_instance_of(Onetime::Secret).to receive(:update_passphrase).and_return(true)
-        allow_any_instance_of(Onetime::Receipt).to receive(:register_for_expiration_notifications).and_return(false)
+        expect { Onetime::Receipt.spawn_pair(owner_id, lifespan, content) }
+          .to raise_error(Onetime::SecretCreationFailed)
+        expect(logger).to have_received(:error).with(
+          'Secret creation failed',
+          {
+            stage: 'commit',
+            persistence: 'unconfirmed',
+            receipt: receipt.shortid,
+            secret: receipt.secret_shortid,
+            error: 'Redis::TimeoutError',
+          },
+        )
+      end
+    end
 
-        Onetime::Receipt.spawn_pair(owner_id, lifespan, content, domain: domain, kind: kind)
+    # -----------------------------------------------------------
+    # 7. Optional follow-ups
+    # -----------------------------------------------------------
+    context 'when an optional follow-up fails after the commit' do
+      let(:logger) { instance_spy(SemanticLogger::Logger) }
 
-        # Every save call should have secret_ttl populated.
-        # With the bug, save_call_fields[0][:secret_ttl] is nil.
-        save_call_fields.each_with_index do |fields, idx|
-          expect(fields[:secret_ttl]).to eq(lifespan),
-            "save call ##{idx + 1}: expected secret_ttl=#{lifespan}, got #{fields[:secret_ttl].inspect}"
-          expect(fields[:kind]).to eq(kind),
-            "save call ##{idx + 1}: expected kind=#{kind.inspect}, got #{fields[:kind].inspect}"
-          expect(fields[:lifespan]).to eq(lifespan),
-            "save call ##{idx + 1}: expected lifespan=#{lifespan}, got #{fields[:lifespan].inspect}"
-          expect(fields[:share_domain]).to eq(domain),
-            "save call ##{idx + 1}: expected share_domain=#{domain.inspect}, got #{fields[:share_domain].inspect}"
-        end
+      before do
+        allow(Onetime).to receive(:secret_logger).and_return(logger)
+        allow_any_instance_of(Onetime::Receipt).to receive(:register_for_expiration_notifications)
+          .and_raise(IOError, 'injected follow-up failure')
+      end
+
+      it 'returns the committed pair and logs the failure' do
+        receipt, secret = Onetime::Receipt.spawn_pair(owner_id, lifespan, content)
+
+        expect(commits).to eq([[secret, receipt]])
+        expect(Onetime::Customer).to have_received(:increment_secrets_active)
+        expect(Onetime::DailyMetric).to have_received(:increment).with(:secrets_created)
+        expect(logger).to have_received(:error).with(
+          'Secret creation follow-up failed',
+          {
+            followup: 'expiration_notifications',
+            stage: 'followup',
+            persistence: 'committed',
+            receipt: receipt.shortid,
+            error: 'IOError',
+          },
+        )
       end
     end
   end

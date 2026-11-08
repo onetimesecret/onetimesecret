@@ -1,0 +1,44 @@
+{
+  "name": "guest-reveal-String-true",
+  "method": "POST",
+  "path": "/api/v3/guest/secret/btttl08v8xy1tpqyneqvcn9v49hyb5989tq6pnz8g98lshrjrfoba8bcawj9kb/reveal",
+  "request": {
+    "passphrase": "schema audit pass",
+    "continue": "true"
+  },
+  "response_schema": "secret",
+  "request_schema": "revealSecret",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "x-request-id": "1ayutlpzc50rt"
+  },
+  "body": {
+    "record": {
+      "identifier": "btttl08v8xy1tpqyneqvcn9v49hyb5989tq6pnz8g98lshrjrfoba8bcawj9kb",
+      "key": "btttl08v8xy1tpqyneqvcn9v49hyb5989tq6pnz8g98lshrjrfoba8bcawj9kb",
+      "shortid": "btttl08v",
+      "state": "revealed",
+      "lifespan": 3600,
+      "secret_ttl": 3600,
+      "has_passphrase": true,
+      "verification": false,
+      "display_type": "text",
+      "created": 1794111215.83784,
+      "updated": 1794111215.83785,
+      "is_previewed": false,
+      "is_revealed": true,
+      "is_viewed": false,
+      "is_received": true,
+      "secret_value": "schema audit dummy guest-conceal-string-confirm"
+    },
+    "details": {
+      "continue": true,
+      "is_owner": false,
+      "show_secret": true,
+      "display_lines": 4,
+      "one_liner": true
+    }
+  }
+}

@@ -34,13 +34,20 @@ source 'https://rubygems.org/'
 # unconditionally in MiddlewareStack.ip_privacy_security_config so Rack never
 # reads RFC 7239 Forwarded for host/port/proto. rack-parser stopped being an
 # otto runtime dependency in 2.10; it is declared below.
-# 2.11 floor: router fallback triples are copied per request (delano/otto#272),
-# which retired Onetime::Middleware::IsolateResponseHeaders (#4401).
+# 2.11 floor: static not_found / server_error triples are copied per request
+# (Otto::Static.copy_response, delano/otto#272), so session-cookie writes can
+# no longer accumulate on the shared fallback headers. Replaces the former
+# Onetime::Middleware::IsolateResponseHeaders (#4401); regression guard is
+# spec/integration/all/router_fallback_response_headers_spec.rb. 2.11 also
+# rejects fallback triples whose body does not respond to #each or #call.
 # 2.12 floor: referrer_policy is a validated Otto setting applied to every
 # Otto response (delano/otto#281); Onetime::Application::Base sets it from
-# Onetime::Middleware::Registry::REFERRER_POLICY (#4542). JSON bodies no
-# longer override path captures in Logic classes, and a Logic class can take
-# the router's captures as `route_params:` (delano/otto#285).
+# Onetime::Middleware::Registry::REFERRER_POLICY (#4542). JSON request bodies
+# merge BELOW path captures, query and form parameters in Logic classes and
+# are not parsed for GET/HEAD (delano/otto#285); a Logic class can take the
+# router's captures as `route_params:`. `require 'otto/testing'`
+# (Otto::Testing.reset!, .env_for) for specs; path matching survives
+# malformed percent-escapes (delano/otto#288).
 # 2.13 floor: filter-mode client IP resolution walks X-Forwarded-For from the
 # right and skips trusted hops (delano/otto#292), so a client-supplied leftmost
 # entry is skipped whenever the client's own appended address is untrusted
@@ -237,7 +244,11 @@ gem 'truemail', '~> 3.3'
 # (2.11.2 remains the behavior floor for blank VERIFIABLE_ID_HMAC_SECRET
 # rejection, delano/familia#335, and for nil declared fields persisting as HDEL
 # instead of the JSON string "null".)
-gem 'familia', '~> 2.12'
+# 2.13 floor: configure_related_field (delano/familia#428), which
+# SecretActivity.configure! uses to apply the retention cap at boot; index
+# rebuilds fail closed and hold a rebuild lock (delano/familia#421, #424);
+# external identifier formats are validated (delano/familia#422).
+gem 'familia', '~> 2.13'
 gem 'pg', '~> 1.6'
 gem 'sequel', '~> 5.0'
 gem 'sqlite3', '~> 2.0'

@@ -1,0 +1,22 @@
+{
+  "name": "meta-version-authenticated",
+  "method": "GET",
+  "path": "/api/v3/version",
+  "request": null,
+  "response_schema": "systemVersion",
+  "request_schema": null,
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "x-request-id": "2r60zpy14x6nz"
+  },
+  "body": {
+    "version": [
+      "0",
+      "0",
+      "0"
+    ],
+    "locale": "en"
+  }
+}

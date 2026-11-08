@@ -9,8 +9,8 @@ import { z } from 'zod';
 export const revealSecretRequestSchema = z.object({
   /** Passphrase if the secret is protected */
   passphrase: z.string().optional(),
-  /** Set to "true" to proceed */
-  continue: z.string().optional(),
+  /** Only boolean true or the string "true" proceeds with reveal. */
+  continue: z.union([z.boolean(), z.string()]).optional(),
 });
 
 export type RevealSecretRequest = z.infer<typeof revealSecretRequestSchema>;

@@ -193,6 +193,7 @@ module LaneOwnershipProbe
     %w[unit                                         spec/cli],
     %w[unit                                         spec/lib],
     %w[unit                                         spec/unit],
+    %w[shared                                       spec/fixtures],
     %w[shared                                       spec/support],
     %w[simple,disabled,full-sqlite,full-pg-agnostic spec/integration/all],
     %w[disabled                                     spec/integration/disabled],
