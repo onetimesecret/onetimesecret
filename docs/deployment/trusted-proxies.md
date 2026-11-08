@@ -88,7 +88,8 @@ belongs to a proxy from one that belongs to the client, which is what the
   range written with a prefix), the request has no client IP: every per-IP
   rate limit (account creation, anonymous secret creation, feedback, the
   legacy V1 API limits, and the per-IP tiers of the passphrase, login,
-  password-reset, email-login and incoming limiters) charges it to one shared
+  password-reset, email-login, SSO link confirm and incoming limiters)
+  charges it to one shared
   `no-client-ip` bucket, the admin network CIDR gate and the `/health`
   network check deny it, and sessions, audit records, request log lines and
   error-tracking context carry no address; the application does not fall back
