@@ -205,6 +205,25 @@ module Onetime
         email.downcase(:fold) == email
       end
 
+      # Do two stored addresses name the same mailbox? They do when their
+      # normalize_email forms agree (case, NFC, surrounding whitespace), the
+      # normalization the Customer email index and Rodauth logins use, unless
+      # folding is what made them agree: `straße` and `strasse` fold to one
+      # form and are different addresses. When either side is fold-unstable
+      # the two must agree under case mapping alone (canonical_email).
+      #
+      # @param left [String, nil]
+      # @param right [String, nil]
+      # @return [Boolean] false when either side is blank
+      def same_mailbox?(left, right)
+        left  = canonical_email(left)
+        right = canonical_email(right)
+        return false if left.empty? || right.empty?
+        return left == right unless fold_stable_email?(left) && fold_stable_email?(right)
+
+        normalize_email(left) == normalize_email(right)
+      end
+
       # Build a Redis glob (SCAN/HSCAN/SSCAN MATCH) that matches `term` as a
       # literal substring regardless of ASCII letter case.
       #

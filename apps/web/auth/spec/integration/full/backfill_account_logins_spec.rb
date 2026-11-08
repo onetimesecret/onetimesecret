@@ -216,7 +216,7 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
       expect(row_for(result, account_id)[:branch]).to eq(:by_email)
     end
 
-    it 'refuses when another accounts row already links that Customer (never merges)' do
+    it 'never links a closed row beside the linked live row to that Customer (never merges)' do
       customer  = create_customer(email)
       linked_id = insert_account(email, external_id: customer.extid)
       # A CLOSED second row holding the same address exists on both backends.
@@ -228,9 +228,101 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
       other  = account_row(other_id)
       expect(other[:login]).to be_nil
       expect(other[:external_id]).to be_nil
-      report = row_for(result, other_id)
-      expect(report[:outcome]).to eq(:skipped_customer_linked_elsewhere)
-      expect(report[:detail]).to include(linked_id.to_s)
+      expect(row_for(result, other_id)[:outcome]).to eq(:skipped_closed_row)
+    end
+  end
+
+  # A closed row can share a live row's address (the unique index on
+  # accounts.email covers LIVE rows only), and it normally has the lower id,
+  # so the scan reaches it first.
+  describe 'closed unlinked row' do
+    it 'does not take the Customer when it precedes the live unlinked row at the same address' do
+      customer  = create_customer(email, verified: true, verified_by: 'email')
+      closed_id = insert_account(email, external_id: nil, status_id: 3)
+      live_id   = insert_account(email, external_id: nil, status_id: 2)
+      expect(closed_id).to be < live_id
+
+      result = new_operation(dry_run: false).call
+
+      closed = account_row(closed_id)
+      expect(closed[:login]).to be_nil
+      expect(closed[:external_id]).to be_nil
+      expect(row_for(result, closed_id)[:outcome]).to eq(:skipped_closed_row)
+
+      live = account_row(live_id)
+      expect(live[:login]).to eq(customer.objid)
+      expect(live[:external_id]).to eq(customer.extid)
+      expect(live[:email_verified_by]).to eq('email')
+      expect(row_for(result, live_id)).to include(outcome: :backfilled, branch: :by_email)
+    end
+
+    it 'does not take the Customer when no live row holds the address either' do
+      create_customer(email)
+      closed_id = insert_account(email, external_id: nil, status_id: 3)
+
+      result = new_operation(dry_run: false).call
+
+      expect(account_row(closed_id)[:login]).to be_nil
+      expect(row_for(result, closed_id)[:outcome]).to eq(:skipped_closed_row)
+      expect(result.stats[:skipped_closed_row]).to eq(1)
+    end
+
+    it 'gets a fresh login, not the Customer, with mint_missing' do
+      customer  = create_customer(email, verified: true, verified_by: 'email')
+      closed_id = insert_account(email, external_id: nil, status_id: 3)
+
+      result = new_operation(dry_run: false, mint_missing: true).call
+
+      row = account_row(closed_id)
+      expect(row[:login]).to match(uuid_re)
+      expect(row[:login]).not_to eq(customer.objid)
+      expect(row[:external_id]).to eq(Onetime::Customer.new(objid: row[:login]).extid)
+      expect(row[:email_verified_at]).to be_nil
+      expect(row_for(result, closed_id)).to include(outcome: :backfilled, branch: :minted)
+    end
+  end
+
+  # normalize_email case-FOLDS, and folding rewrites `ß` to `ss`, so
+  # `straße` and `strasse` are different addresses with one folded form.
+  describe 'fold-unstable address' do
+    let(:unstable) { "u-#{run}@straße.example.com" }
+    let(:folded) { "u-#{run}@strasse.example.com" }
+
+    it 'is never linked by email to the Customer under the folded address' do
+      customer = create_customer(folded)
+      expect(customer.email).to eq(folded)
+      account_id = insert_account(unstable, external_id: nil)
+
+      result = new_operation(dry_run: false, mint_missing: true).call
+
+      row = account_row(account_id)
+      expect(row[:login]).to be_nil
+      expect(row[:external_id]).to be_nil
+      expect(row_for(result, account_id)[:outcome]).to eq(:skipped_fold_unstable)
+      expect(result.stats[:skipped_fold_unstable]).to eq(1)
+    end
+
+    it 'does not copy proof from a linked Customer whose address differs only by folding' do
+      customer   = create_customer(folded, verified: true, verified_by: 'email')
+      account_id = insert_account(unstable, external_id: customer.extid)
+
+      new_operation(dry_run: false).call
+
+      row = account_row(account_id)
+      expect(row[:login]).to eq(customer.objid)
+      expect(row[:email_verified_at]).to be_nil
+      expect(row[:email_verified_by]).to be_nil
+    end
+
+    it 'does not name the Customer under the folded address in a dangling-link report' do
+      customer   = create_customer(folded)
+      account_id = insert_account(unstable, external_id: 'urdoesnotexist0000000000000')
+
+      result = new_operation(dry_run: false).call
+
+      detail = row_for(result, account_id)[:detail]
+      expect(detail).not_to include(customer.extid)
+      expect(detail).to include('orphaned')
     end
   end
 

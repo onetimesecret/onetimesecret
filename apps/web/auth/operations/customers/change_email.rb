@@ -193,6 +193,10 @@ module Auth
         # `record_audit` already writes them as their own result strings (D38).
         REFUSAL_STATUSES = [:not_found, :invalid_email, :email_taken, :stale].freeze
 
+        # Migration 015 (ADR-051): the accounts columns that qualify the row's
+        # current address. See #auth_verification_update.
+        AUTH_VERIFICATION_COLUMNS = [:email_verified_at, :email_verified_by, :email_verification_hold].freeze
+
         # This is the highest-value account-takeover primitive an operator has.
         # A non-unique-violation SQL failure re-raises from the middle of the
         # swap (call:267), BEFORE record_audit, so an attempted takeover that
@@ -664,9 +668,63 @@ module Auth
           target   = target.where(email: baseline) if @allow_canonicalization && baseline
 
           rows = db.transaction do
-            target.update(email: @new_email, updated_at: Sequel::CURRENT_TIMESTAMP)
+            @prior_auth_verification = auth_verification_snapshot(db, target)
+            target.update(
+              email: @new_email,
+              updated_at: Sequel::CURRENT_TIMESTAMP,
+              **auth_verification_update(db, baseline),
+            )
           end
           rows.to_i.positive?
+        end
+
+        # Migration 015 (ADR-051): `email_verified_at`, `email_verified_by`
+        # and `email_verification_hold` qualify the row's CURRENT address, so
+        # they move with it. Three cases:
+        #
+        #   same mailbox (a canonicalization, OT::Utils.same_mailbox?)
+        #       -> untouched: the proof still names this mailbox
+        #   self-service redemption (the link was sent to the new address and
+        #   followed, so it proved that mailbox)
+        #       -> email_verified_at = now, email_verified_by = 'email', no hold
+        #   any other change (an operator change: nobody has proven the new
+        #   address, whether or not `require_verification` resets the mirror)
+        #       -> all three NULL
+        #
+        # Nothing reads the columns in this release; the Customer mirror is
+        # authoritative until the N+1 binary makes SQL the writer. A database
+        # without the columns (migration 015 not applied) gets the email write
+        # alone.
+        #
+        # @return [Hash] the verification columns to write, possibly empty
+        def auth_verification_update(db, baseline)
+          return {} unless auth_verification_columns?(db)
+          return {} if OT::Utils.same_mailbox?(baseline, @new_email)
+
+          if @self_service
+            { email_verified_at: Sequel::CURRENT_TIMESTAMP, email_verified_by: 'email', email_verification_hold: nil }
+          else
+            AUTH_VERIFICATION_COLUMNS.to_h { |column| [column, nil] }
+          end
+        end
+
+        # The row's verification columns before the swap, so that
+        # compensate_auth_row! puts back the proof that belongs to the old
+        # address along with the address.
+        #
+        # @return [Hash, nil] nil when the columns do not exist or the row is gone
+        def auth_verification_snapshot(db, target)
+          return nil unless auth_verification_columns?(db)
+
+          target.select(*AUTH_VERIFICATION_COLUMNS).first
+        end
+
+        def auth_verification_columns?(db)
+          return @auth_verification_columns if defined?(@auth_verification_columns)
+
+          @auth_verification_columns = db.schema(:accounts).any? { |name, _| name == :email_verified_at }
+        rescue Sequel::Error
+          @auth_verification_columns = false
         end
 
         # Best-effort restore of the previous address. Used ONLY when the Customer
@@ -679,10 +737,13 @@ module Auth
           account_id = auth_account_id(db)
           return false unless account_id
 
+          restore = { email: old_email, updated_at: Sequel::CURRENT_TIMESTAMP }
+          restore.merge!(@prior_auth_verification) if @prior_auth_verification
+
           db.transaction do
             db[:accounts]
               .where(id: account_id)
-              .update(email: old_email, updated_at: Sequel::CURRENT_TIMESTAMP)
+              .update(restore)
           end
           true
         rescue StandardError => ex

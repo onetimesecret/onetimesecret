@@ -131,6 +131,53 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       expect(repaired).to be_empty
     end
 
+    # Migration 015 (ADR-051): the verification columns qualify the row's
+    # address, so proof recorded for the SQL address does not carry over to
+    # the Customer's.
+    context 'with the migration 015 verification columns' do
+      let(:row) do
+        {
+          id: 42, email: 'stale@example.com', status_id: 2, login: 'obj_c',
+          email_verified_at: Time.utc(2026, 1, 2), email_verified_by: 'email', email_verification_hold: nil
+        }
+      end
+
+      before do
+        allow(by_external_id).to receive(:first).and_return(row)
+        allow(customer).to receive_messages(mailbox_verified?: true, verified_by: 'email')
+      end
+
+      it 'clears them when the repair moves the row to another mailbox' do
+        run(repair: true)
+
+        expect(by_id).to have_received(:update).with(
+          hash_including(email: email, email_verified_at: nil, email_verified_by: nil, email_verification_hold: nil),
+        )
+      end
+
+      it 'leaves them alone when the two addresses name one mailbox' do
+        row[:email] = " #{email}"
+
+        run(repair: true)
+
+        expect(by_id).to have_received(:update) do |attrs|
+          expect(attrs.keys).to contain_exactly(:email, :updated_at)
+        end
+      end
+
+      # The later checks read the shared memo; they must judge the repaired
+      # row, not the address the repair replaced.
+      it 'lets :auth_email_verification_drift judge the repaired row on the same run' do
+        instance = doctor(repair: true)
+
+        instance.send(:check_auth_email_drift, issues, repaired)
+        instance.send(:check_auth_login_link, issues)
+
+        expect(by_external_id).to have_received(:first).once
+        expect(issues.map { |i| i[:check] }).to eq([:auth_email_drift, :auth_email_verification_drift])
+      end
+    end
+
     # A missing row is a provisioning gap owned by `customers sync-auth-accounts`,
     # not drift.
     it 'stays silent when there is no accounts row at all' do

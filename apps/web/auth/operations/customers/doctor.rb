@@ -703,11 +703,22 @@ module Auth
 
           return unless repairing?
 
+          # The migration 015 verification columns qualify the row's address
+          # (ADR-051): proof recorded for the SQL address says nothing about
+          # the Customer's, so a repair that moves the row to another mailbox
+          # clears them. The memo is updated to what was written, so the
+          # checks after this one judge the repaired row.
+          written = { email: @customer.email }
+          if account.key?(:email_verified_at) && !OT::Utils.same_mailbox?(sql_email, @customer.email)
+            written.merge!(email_verified_at: nil, email_verified_by: nil, email_verification_hold: nil)
+          end
+
           db.transaction do
             db[:accounts].where(id: account[:id]).update(
-              email: @customer.email, updated_at: Sequel::CURRENT_TIMESTAMP,
+              **written, updated_at: Sequel::CURRENT_TIMESTAMP,
             )
           end
+          @auth_account = account.merge(written)
           OT.info "[customers doctor] Repaired auth email drift for #{@customer.extid}"
           repaired << {
             customer: @customer.extid,
@@ -1104,18 +1115,16 @@ module Auth
         end
 
         # The customer's Rodauth accounts row, or nil (simple mode, unreachable
-        # DB, no extid, no row). Memoized because THREE cross-store checks read
-        # it — :auth_email_drift, :auth_email_not_canonical and
-        # :sso_customer_unverified — and the class docs call the one SQL round
-        # trip per customer the dominant cost of an `--all` sweep. One shared
-        # read keeps that cost unchanged.
+        # DB, no extid, no row). Memoized because several cross-store checks
+        # read it (:auth_email_drift, :auth_email_not_canonical,
+        # :auth_login_*, :sso_customer_unverified) and the class docs call the
+        # one SQL round trip per customer the dominant cost of an `--all`
+        # sweep. One shared read keeps that cost unchanged.
         #
-        # A repair inside check_auth_email_drift rewrites the row's email; the
-        # memo is deliberately not invalidated. check_auth_email_canonical
-        # skips a memoized address that differs from the Customer's beyond
-        # case, which is exactly the row that repair rewrote, and
-        # check_sso_customer_unverified wants :status_id, which no repair
-        # here touches.
+        # A repair inside check_auth_email_drift rewrites the row's email (and
+        # clears the verification columns when the mailbox changes); it
+        # updates the memo with exactly what it wrote, so every later check
+        # judges the repaired row rather than the address the repair replaced.
         def auth_account
           return @auth_account if defined?(@auth_account)
 

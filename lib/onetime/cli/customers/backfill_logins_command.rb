@@ -164,6 +164,8 @@ module Onetime
         puts format('  %-40s %d', 'Skipped (ambiguous customer):', stats[:skipped_ambiguous_customer])
         puts format('  %-40s %d', 'Skipped (customer linked elsewhere):', stats[:skipped_customer_linked_elsewhere])
         puts format('  %-40s %d', 'Skipped (no customer):', stats[:skipped_no_customer])
+        puts format('  %-40s %d', 'Skipped (closed row):', stats[:skipped_closed_row])
+        puts format('  %-40s %d', 'Skipped (fold-unstable address):', stats[:skipped_fold_unstable])
         puts format('  %-40s %d', 'Skipped (row changed):', stats[:skipped_row_changed])
         puts format('  %-40s %d', 'Errors:', stats[:error])
       end
@@ -195,8 +197,14 @@ module Onetime
           lines << '--mint-missing to give them one.'
         end
 
+        if stats[:skipped_closed_row].positive?
+          lines << 'Closed rows with no external_id are never linked to a Customer by address (a'
+          lines << 'live row may hold it). They cannot sign in, so re-run with --mint-missing to'
+          lines << 'give them a fresh login.'
+        end
+
         if (stats[:skipped_dangling_external_id] + stats[:skipped_ambiguous_customer] +
-            stats[:skipped_customer_linked_elsewhere]).positive?
+            stats[:skipped_customer_linked_elsewhere] + stats[:skipped_fold_unstable]).positive?
           lines << 'Skipped rows are never resolved automatically. Run `bin/ots customers doctor`'
           lines << 'and `bin/ots customers normalize-emails` on them, decide which account keeps'
           lines << 'the Customer, then re-run.'
@@ -259,6 +267,10 @@ module Onetime
               external_id blank, exactly one Customer holds
               the address and no other row links it         -> login = that Customer,
                                                                external_id = its extid
+              external_id blank and the row is closed       -> skipped_closed_row
+                                                               (--mint-missing: fresh login)
+              case folding would rewrite the address
+              (for example ß -> ss)                         -> skipped_fold_unstable
               external_id names a missing Customer          -> skipped_dangling_external_id
               two Customers hold the address                -> skipped_ambiguous_customer
               another row already links that Customer       -> skipped_customer_linked_elsewhere

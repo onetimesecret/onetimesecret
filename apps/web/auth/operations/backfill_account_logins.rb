@@ -31,6 +31,10 @@ module Auth
     #                                     row's address, which decides the repair, see
     #                                     #dangling_detail)
     #   external_id blank
+    #     the row is CLOSED            -> :skipped_closed_row, unless mint_missing:
+    #                                     then minted as below. Never linked by
+    #                                     address (#closed_row)
+    #     the address is fold-unstable -> :skipped_fold_unstable (#fold_unstable_row)
     #     exactly one Customer under the stored or the normalized address,
     #     and no OTHER accounts row already links that Customer
     #                                  -> login = objid, external_id = extid (:backfilled, :by_email)
@@ -112,6 +116,8 @@ module Auth
         :skipped_ambiguous_customer,
         :skipped_customer_linked_elsewhere,
         :skipped_no_customer,
+        :skipped_closed_row,
+        :skipped_fold_unstable,
         :skipped_row_changed,
         :error,
       ].freeze
@@ -287,6 +293,9 @@ module Auth
       end
 
       def resolve_by_email(row)
+        return closed_row(row) unless AccountStatuses.live?(row[:status_id])
+        return fold_unstable_row(row) unless fold_stable_address?(row[:email])
+
         customers = email_candidates(row[:email].to_s)
 
         if customers.size > 1
@@ -318,16 +327,60 @@ module Auth
         apply(row, :by_email, customer, customer.objid.to_s, customer.extid.to_s)
       end
 
+      # A closed row has no claim on the Customer at its address. The unique
+      # index on accounts.email is partial (LIVE rows only, AccountStatuses),
+      # so a closed row can share a live row's address, and it normally has
+      # the lower id: linked by address, it would take the live account's
+      # Customer and leave the live row refused as linked elsewhere. A closed
+      # row cannot sign in, so a fresh login (mint_missing) is all it needs.
+      def closed_row(row)
+        if @mint_missing
+          login = SecureRandom.uuid_v7
+          return apply(row, :minted, nil, login, derive_extid(login))
+        end
+
+        report(
+          row,
+          :skipped_closed_row,
+          nil,
+          'closed row with no external_id: never linked to a Customer by address (a live row may hold it); ' \
+          're-run with mint_missing to give it a fresh login',
+        )
+      end
+
+      # Case folding rewrites a few non-ASCII addresses into different ones
+      # (ß -> ss), so the folded form of such an address is an address nobody
+      # asserted, and the Customer under it may be someone else.
+      # NormalizeAccountEmails refuses the same rows (OT::Utils.fold_stable_email?).
+      def fold_unstable_row(row)
+        report(
+          row,
+          :skipped_fold_unstable,
+          nil,
+          'case folding would rewrite the address (for example ß -> ss), so it cannot be matched to a ' \
+          'Customer by its folded form; left for the operator',
+        )
+      end
+
+      # @param value [String, nil] an address as read from SQL or Redis
+      def fold_stable_address?(value)
+        OT::Utils.fold_stable_email?(OT::Utils.canonical_email(sql_text(value)))
+      end
+
       # The stored bytes first (migration 007 left mixed-case index entries in
       # place where the lowercase key belonged to another Customer), then the
-      # normalized form. Distinct Customers only.
+      # normalized form, unless folding would rewrite the address into a
+      # different one (#fold_unstable_row). Distinct Customers only.
       #
       # @return [Array<Onetime::Customer>]
       def email_candidates(stored)
         stored = sql_text(stored)
         return [] if stored.empty?
 
-        found = [stored, OT::Utils.normalize_email(stored)].uniq.filter_map do |candidate|
+        forms = [stored]
+        forms << OT::Utils.normalize_email(stored) if fold_stable_address?(stored)
+
+        found = forms.uniq.filter_map do |candidate|
           customer = Onetime::Customer.find_by_email(candidate)
           customer if customer && !(customer.respond_to?(:anonymous?) && customer.anonymous?)
         end
@@ -443,12 +496,12 @@ module Auth
       # Does the Customer hold the row's address? Both sides go through the
       # normalization Customer.create! keys the email index with
       # (OT::Utils.normalize_email: trimmed, NFC, case-folded), which is also
-      # how #email_candidates finds a Customer for a row. Proof the Customer
-      # carries for another mailbox says nothing about this row's.
+      # how #email_candidates finds a Customer for a row, except that two
+      # addresses only folding makes equal (`straße`, `strasse`) are not the
+      # same (OT::Utils.same_mailbox?). Proof the Customer carries for another
+      # mailbox says nothing about this row's.
       def same_address?(row, customer)
-        sql_email      = OT::Utils.normalize_email(sql_text(row[:email]))
-        customer_email = OT::Utils.normalize_email(customer.email)
-        !sql_email.empty? && sql_email == customer_email
+        OT::Utils.same_mailbox?(sql_text(row[:email]), customer.email)
       end
 
       # ---------------------------------------------------------- lookups

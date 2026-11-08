@@ -13,8 +13,12 @@ Added
   (a Customer verified with a provenance in
   ``Onetime::Customer::MAILBOX_VERIFIED_BY`` under the row's own address) and
   leaves an IdP-, payment- or legacy-verified account unverified in SQL, where
-  the Customer record keeps its own answer. ``bin/ots customers doctor``
-  reports rows that still lack a login, whose login disagrees with their
+  the Customer record keeps its own answer. It never links a closed account
+  row, or an address that case folding would rewrite (``ß`` to ``ss``), to a
+  Customer by address. An operator email change and the doctor's drift
+  repair clear the three verification columns when the mailbox changes; a
+  confirmed self-service email change records mailbox proof for the new
+  address. ``bin/ots customers doctor`` reports rows that still lack a login, whose login disagrees with their
   Customer, or whose SQL verification disagrees with the Customer's mailbox
   proof. This is the first, expand-only step of the account-model
   change in ADR-051 (SSO email-less accounts); later steps are gated on the

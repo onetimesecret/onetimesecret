@@ -267,4 +267,24 @@ OT::Utils.normalize_email(nil)
 OT::Utils.normalize_email('')
 #=> ''
 
+## same_mailbox? ignores case and surrounding whitespace
+OT::Utils.same_mailbox?(' Alice@EXAMPLE.com', 'alice@example.com')
+#=> true
+
+## same_mailbox? does not equate two addresses that only folding makes equal
+OT::Utils.same_mailbox?('u@straße.example.com', 'u@strasse.example.com')
+#=> false
+
+## same_mailbox? matches a fold-unstable address against itself in another case
+OT::Utils.same_mailbox?('U@STRAßE.example.com', 'u@straße.example.com')
+#=> true
+
+## same_mailbox? is false for different addresses
+OT::Utils.same_mailbox?('a@example.com', 'b@example.com')
+#=> false
+
+## same_mailbox? is false when either side is blank
+[OT::Utils.same_mailbox?('', ''), OT::Utils.same_mailbox?(nil, 'a@example.com')]
+#=> [false, false]
+
 Onetime::Utils.instance_variable_set(:@fortunes, @original_fortunes)
