@@ -51,16 +51,21 @@ module Onetime
       #   | reject  | `failed`  | `retries_exhausted` | still failing after the retries   |
       #   | reject  | `failed`  | `error`             | any other error, including one    |
       #   |         |           |                     | raised before delivery started    |
+      #   | requeue | (none)    |                     | the mail backend is misconfigured |
+      #   |         |           |                     | (held, see hold_misconfigured)    |
+      #   | reject  | `failed`  | `misconfigured`     | misconfigured, and the claim      |
+      #   |         |           |                     | could not be released             |
       #
       # Every message the worker rejects writes exactly one `failed` event,
       # whether or not delivery was attempted. A message rejected before its
       # delivery finished releases its idempotency claim (see release_claim);
       # the DLQ replays release it again before they republish, so a replay
-      # of the same message id is delivered. Three paths write nothing: a
+      # of the same message id is delivered. Four paths write nothing: a
       # duplicate dropped by the idempotency claim (ack), a ping message
-      # (ack), and a non-StandardError such as a shutdown signal, which is
-      # re-raised without settling the message. Recording is best-effort and
-      # does not change ack/reject behavior.
+      # (ack), a message held because the mail backend is misconfigured
+      # (requeue, not settled), and a non-StandardError such as a shutdown
+      # signal, which is re-raised without settling the message. Recording is
+      # best-effort and does not change ack/reject behavior.
       #
       # Configuration:
       #   - threads: Number of concurrent workers (4 recommended)
@@ -78,6 +83,14 @@ module Onetime
         # the DLQ without a delivery attempt. The text is fixed wording and
         # never echoes payload content.
         class InvalidMessage < ArgumentError; end
+
+        # Seconds a thread keeps a message it cannot send because the mail
+        # backend is misconfigured, before requeueing it (hold_misconfigured).
+        # Bounds the redelivery loop to one attempt per thread per interval.
+        # It also bounds how long such a thread delays worker shutdown; a
+        # message whose worker is killed during the pause is unacked and
+        # returns to the queue.
+        MISCONFIGURED_HOLD_SECONDS = 15
 
         # What one work_with_params call knows about its message: the frozen
         # envelope, and two flags that change as the call proceeds. `recorded`
@@ -150,13 +163,7 @@ module Onetime
 
             log_debug "Processing email: #{data[:template]} (metadata: #{envelope.summary})"
 
-            # Transient DeliveryErrors and plain StandardErrors are retried.
-            # Non-transient DeliveryErrors (auth failure, permanent rejection)
-            # and ArgumentErrors (the mailer refused the input, e.g. an
-            # unknown template) are not: a retry cannot change the result.
-            retriable = ->(ex) { ex.is_a?(Onetime::Mail::DeliveryError) ? ex.transient? : !ex.is_a?(ArgumentError) }
-
-            result                = with_retry(max_retries: 3, base_delay: 2.0, retriable: retriable) do
+            result                = with_retry(max_retries: 3, base_delay: 2.0, retriable: method(:retriable_error?)) do
               attempts += 1
               deliver_email(data)
             end
@@ -219,6 +226,8 @@ module Onetime
           )
           flush_logs
           reject! # Send to DLQ
+        rescue Onetime::Mail::ConfigurationError => ex
+          hold_misconfigured(ex, data, invocation: invocation, attempts: attempts, started_at: started_at)
         rescue StandardError => ex
           log_error 'Unexpected error delivering email', ex
           release_claim(invocation)
@@ -246,6 +255,18 @@ module Onetime
         TRACKABLE_TEMPLATES = [:email_change_confirmation].freeze
 
         private
+
+        # Whether with_retry tries the delivery again after this error.
+        # Transient DeliveryErrors and plain StandardErrors are retried.
+        # Non-transient DeliveryErrors (auth failure, permanent rejection),
+        # ArgumentErrors (the mailer refused the input, e.g. an unknown
+        # template) and ConfigurationErrors (the mail backend cannot be built)
+        # are not: a retry cannot change the result.
+        def retriable_error?(ex)
+          return ex.transient? if ex.is_a?(Onetime::Mail::DeliveryError)
+
+          !ex.is_a?(ArgumentError) && !ex.is_a?(Onetime::Mail::ConfigurationError)
+        end
 
         # Check if this is a ping test message. The payload is a Hash
         # (decode_message) whose template and data passed validate_shape!.
@@ -314,8 +335,73 @@ module Onetime
         rescue ArgumentError => ex
           # The mailer refused the input (e.g. unknown template). Not
           # retried; re-raise to exit work_with_params and trigger reject!
+          # A misconfigured backend raises ConfigurationError, which is not
+          # an ArgumentError and passes through to hold_misconfigured.
           log_error "Invalid message format: #{ex.message}"
           raise
+        end
+
+        # Hold a message the install cannot send: the mail backend could not
+        # be built from its configuration (Onetime::Mail::ConfigurationError,
+        # e.g. no SMTP host, or an unsupported SMTP_AUTH). The message itself
+        # is fine, and every attempt fails the same way until the
+        # configuration is fixed and the worker restarts. Dead-lettering it
+        # would label a valid message as failed, and DlqEmailConsumerJob
+        # discards non-auth templates from the DLQ, so the email would be
+        # lost to an operator error.
+        #
+        # So the message stays on email.message.send: the claim is released
+        # first (a worker killed during the pause must not leave a claim that
+        # acks the redelivery as a duplicate), the thread pauses for
+        # MISCONFIGURED_HOLD_SECONDS, and the message is requeued. A worker
+        # started with a working configuration delivers it.
+        #
+        # Costs, accepted: while the configuration is broken the same few
+        # messages cycle through the worker threads and the queue behind
+        # them, a ping included, waits; the queue has no TTL, so it grows
+        # with the send rate until the configuration is fixed. Each cycle
+        # logs one error line naming the provider. No delivery event is
+        # written, because the message is not settled.
+        #
+        # If the claim cannot be released, a requeued copy would be acked as
+        # a duplicate and never sent, so the message goes to the DLQ instead
+        # with a `failed`/`misconfigured` event; a DLQ replay releases the
+        # claim before it republishes.
+        #
+        # @return [Symbol] :requeue, or :reject when the claim is still held
+        def hold_misconfigured(ex, data, invocation:, attempts:, started_at:)
+          provider = ex.provider || mail_provider_name
+          log_error "Mail configuration error (provider: #{provider}): #{ex.message}",
+            message_id: invocation.message_id
+
+          unless release_claim(invocation)
+            log_error 'Idempotency claim still held, sending misconfigured-mail message to DLQ',
+              message_id: invocation.message_id
+            update_delivery_status(data, 'failed')
+            record_delivery_event(
+              data,
+              invocation: invocation,
+              outcome: 'failed',
+              reason: 'misconfigured',
+              error: ex,
+              attempts: attempts,
+              started_at: started_at,
+            )
+            flush_logs
+            return reject!
+          end
+
+          log_info "Holding message #{MISCONFIGURED_HOLD_SECONDS}s, then requeueing (mail not configured)",
+            message_id: invocation.message_id
+          flush_logs
+          pause_misconfigured
+          requeue!
+        end
+
+        # The pause before a misconfigured-mail requeue. Separate so specs
+        # can stub it.
+        def pause_misconfigured
+          sleep MISCONFIGURED_HOLD_SECONDS
         end
 
         # Deliver templated email. The payload passed validate_deliverable!,
@@ -417,8 +503,12 @@ module Onetime
         # a read timeout after the provider accepted it, or an error raised
         # inside Delivery::Base#deliver after the send, lands here too. The
         # message goes to the DLQ, and a replay sends the email a second time.
+        #
+        # @return [Boolean] true when this invocation has no claim any more
+        #   (released now, or never taken); false when the datastore failed
+        #   and the claim may still be held
         def release_claim(invocation)
-          return unless invocation.claim_held
+          return true unless invocation.claim_held
 
           invocation.claim_held = false
           release_processing_claim_safely(invocation.message_id)

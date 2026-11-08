@@ -165,23 +165,49 @@ module Auth::Config::Hooks
         leftover = Auth::Operations::EnsureCustomerForAccount.closing_customer(email)
 
         # Check Redis (customer database)
-        # Note: In shared Redis dev setups, a customer may exist without an
-        # auth account. Same M-2 generic-success treatment: a Redis-only
-        # duplicate is still a registration-state oracle if it errors. The
-        # diagnostic hint is preserved for the worktree/multi-instance dev
-        # scenario where this state is usually unintentional.
+        # A customer record without an open auth account gets the same M-2
+        # generic-success treatment: an error here would tell a caller the
+        # address has a customer record. The sign-up creates nothing, so the
+        # person cannot register until an operator resolves the record; this
+        # log line is the only signal, at error level like the mirror case
+        # above (registration_blocked_auth_db_conflict), and it names the
+        # record by external_id because the email in it is masked. Causes in
+        # production: a move from simple to full mode before sync-auth-accounts
+        # ran (docs/authentication/switching-to-full-mode.md); a closure from
+        # before #4819 that closed the accounts row and stopped before deleting
+        # the record (docs/development/data-migrations.md); a half-completed
+        # email change; an email index entry left by a deleted customer, which
+        # resolves to no record (customer_record_found: false). In
+        # development, instances sharing one Redis.
         if leftover.nil? && Onetime::Customer.email_exists?(email)
+          customer = Onetime::Customer.find_by_email(email)
           diagnostic_hint = <<~HINT.strip
-            Customer record exists in Redis but no auth account found. This
-            typically occurs in worktree/multi-instance dev setups with shared
-            Redis. Consider: (1) using isolated Redis per instance, (2) clearing
-            Redis data, or (3) logging in with existing account if it exists elsewhere.
+            Sign-up answered as a new one and nothing was created: a customer
+            record exists for this address but no open auth account does, so
+            the person cannot register until the record is resolved. Run
+            every command below with AUTHENTICATION_MODE=full exported:
+            without it bin/ots resolves simple mode, diagnose reports no
+            finding and the repair commands refuse. Start with
+            `bin/ots customers diagnose <external_id>`, using the external_id
+            on this line. missing_auth_account: no accounts row exists for the
+            record; after a move from simple to full mode,
+            `bin/ots customers sync-auth-accounts --run` creates it.
+            account_closed: a closure from before #4819 stopped part way; run
+            `bin/ots customers prune-closed-accounts --confirm`, then
+            `bin/ots customers finish-closures --confirm`. email_drift: a
+            half-completed email change. With no external_id on this line
+            (customer_record_found: false), the email index points at a
+            deleted customer; `bin/ots customers doctor --all --repair`
+            removes the entry. In development this usually means several
+            instances share one Redis.
           HINT
 
           Auth::Logging.log_auth_event(
             :registration_duplicate_customer_record,
-            level: :warn,
+            level: :error,
             email: OT::Utils.obscure_email(email),
+            external_id: customer&.extid,
+            customer_record_found: !customer.nil?,
             diagnostic_hint: diagnostic_hint,
             response_mode: 'generic_success',
           )

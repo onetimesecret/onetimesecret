@@ -20,7 +20,8 @@ module Onetime
   #       ├── session        ← HKDF(SECRET, info="session",       len=64)  → SESSION_SECRET
   #       ├── verifiable-id  ← HKDF(SECRET, info="verifiable-id", len=32)  → IDENTIFIER_SECRET
   #       ├── familia-enc    ← HKDF(SECRET, info="familia-enc",   len=32)  [runtime only]
-  #       └── key-verifier   ← HKDF(SECRET, info="key-verifier",  len=32)  [runtime only]
+  #       ├── key-verifier   ← HKDF(SECRET, info="key-verifier",  len=32)  [runtime only]
+  #       └── paseto-signing ← HKDF(SECRET, info="paseto-v4-public-signing", len=32) [runtime only]
   #
   module KeyDerivation
     SALT = 'onetimesecret-v1'
@@ -44,6 +45,11 @@ module Onetime
       # oracle, which is irrelevant for the 64-random-byte SECRETs that
       # `rake ots:secrets` generates.
       key_verifier: { info: 'key-verifier', length: 32 },
+      # Ed25519 seed for the v3 API bearer tokens (PASETO v4.public, #2427).
+      # Runtime only: the key pair and its `kid` are derived from the seed at
+      # boot (Onetime::Paseto::Keyring), nothing is written to .env or the
+      # datastore. Rotation rides SECRET_PREVIOUS like the Familia keys do.
+      paseto_signing: { info: 'paseto-v4-public-signing', length: 32 },
     }.freeze
 
     # Derive raw bytes for a given purpose.

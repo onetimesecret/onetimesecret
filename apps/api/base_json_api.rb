@@ -4,10 +4,11 @@
 
 require 'onetime/application'
 require 'onetime/application/otto_hooks'
+require 'rack/head'
 
 # BaseJSONAPI
 #
-# Shared base class for JSON API applications (v3 and Account API).
+# Shared base class for JSON API applications (v3, Incoming and Account APIs).
 # Provides common middleware stack, router configuration, and error handling.
 #
 # ## Purpose
@@ -15,7 +16,7 @@ require 'onetime/application/otto_hooks'
 # Centralizes the common setup for modern JSON APIs that:
 # - Serve native JSON types (leveraging Familia v2)
 # - Use Otto router for authentication and routing
-# - Follow REST conventions with proper error responses
+# - Use version-specific routes and response envelopes
 #
 # ## Usage
 #
@@ -35,6 +36,51 @@ require 'onetime/application/otto_hooks'
 class BaseJSONAPI < Onetime::Application::Base
   include Onetime::Application::OttoHooks
 
+  # Shared method boundary. Do not register HEAD routes: Otto 2.11 mutates
+  # their stored containers during dispatch, which fails after config freezes.
+  class HTTPMethods
+    # Otto freezes the configured factory itself. Keep it separate from the
+    # route target, which Otto decorates with per-request helpers.
+    class HandlerFactory
+      def self.create_handler(route, router)
+        factory = Otto::RouteHandlers::HandlerFactory
+        return factory.create_handler(route, router) unless route.option(:head) == 'reject'
+
+        refusal = Otto::RouteDefinition.new(
+          route.verb,
+          route.path,
+          route.definition.sub(/\A\S+/, "#{HTTPMethods.name}.reject_head"),
+          pattern: route.pattern,
+          keys: route.keys,
+        )
+        # Only replace the target, not Otto's auth/CSRF/registered wrapper chain.
+        # The refusal executes after the matched GET route's authentication.
+        ->(env, params = {}) do
+          target = env['REQUEST_METHOD'] == 'HEAD' ? refusal : route
+          factory.create_handler(target, router).call(env, params)
+        end
+      end
+    end
+
+    # Acknowledges the method without granting CORS or running creation logic.
+    def self.options(_req, res)
+      res.status = 204
+      res.body   = []
+      nil
+    end
+
+    def self.reject_head(req, res)
+      path                 = Otto::Utils.normalize_path(req.path_info)
+      allowed              = otto.routes.filter_map do |verb, routes|
+        verb.to_s if routes.any? { |route| route.pattern.match?(path) }
+      end
+      res.status           = 405
+      res.headers['allow'] = allowed.join(', ')
+      res.body             = []
+      nil
+    end
+  end
+
   # Mark as abstract - should not be mounted directly
   @abstract = true
 
@@ -53,6 +99,13 @@ class BaseJSONAPI < Onetime::Application::Base
 
   protected
 
+  # Wrap the entire application, including early parser/security refusals.
+  # Body suppression alone is insufficient for one-time reads; V2/V3 routes
+  # use the method boundary before those handlers can consume a value.
+  def build_rack_app
+    Rack::Head.new(super)
+  end
+
   # Build and configure Otto router instance
   #
   # Router-specific configuration happens here, after the router instance
@@ -66,7 +119,7 @@ class BaseJSONAPI < Onetime::Application::Base
   # @return [Otto] Configured router instance
   def build_router
     routes_path = File.join(self.class.root_path, 'routes.txt')
-    router      = Otto.new(routes_path)
+    router      = Otto.new(routes_path, route_handler_factory: HTTPMethods::HandlerFactory)
 
     # Configure Otto request lifecycle hooks (from OttoHooks module)
     # Instance-level hook logging for operational metrics and audit trail
@@ -81,7 +134,8 @@ class BaseJSONAPI < Onetime::Application::Base
     # Register authentication strategies
     self.class.auth_strategy_module.register_essential(router)
 
-    # Default error responses per ADR-013 (4xx/5xx wire format).
+    # Router fallback responses only. Auth, parser, CSRF and typed logic
+    # errors use their own boundaries; ADR-013 is still proposed.
     # Schema: { error: string, error_type: string }
     # - `error` is the user-facing message displayed by the frontend
     # - `error_type` is the discriminator the frontend branches on (Ruby class name)

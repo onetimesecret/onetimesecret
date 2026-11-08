@@ -1,0 +1,19 @@
+{
+  "name": "status-missing",
+  "method": "GET",
+  "path": "/api/v3/secret/absent-schema-capture/status",
+  "request": null,
+  "response_schema": "secretStatus",
+  "request_schema": null,
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "x-request-id": "31ccf5lv3d189"
+  },
+  "body": {
+    "record": {
+      "state": "unknown"
+    }
+  }
+}

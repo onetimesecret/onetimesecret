@@ -91,7 +91,7 @@ module Onetime
 
         def validate_config!
           host = config['host'] || ENV.fetch('SMTP_HOST', nil)
-          raise ArgumentError, 'SMTP host must be configured' if host.nil? || host.empty?
+          config_error! 'SMTP host must be configured' if host.nil? || host.empty?
 
           # Surface a bad auth setting when the backend is built rather than
           # on the first send. Without credentials no AUTH is attempted, so

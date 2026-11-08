@@ -58,6 +58,10 @@ module AuthRouteFailureCodes
     'sessionauth' => SESSION_CODES,
     # BasicAuthStrategy, on a terminal credentialed failure.
     'basicauth' => %i[api_key_invalid suspended_credentials].freeze,
+    # PasetoAuthStrategy (#2427), on a terminal credentialed failure: a
+    # presented `Bearer` token that was rejected. It never refuses a request
+    # without a Bearer header, or while auth.paseto.enabled is off.
+    'pasetoauth' => %i[api_token_invalid api_token_expired suspended_credentials].freeze,
     # Never refuses. A rejected Authorization header on a `basicauth,noauth`
     # chain is the Basic strategy's terminal failure, coded above.
     'noauth' => [].freeze,

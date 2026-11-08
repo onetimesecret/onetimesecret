@@ -15,6 +15,8 @@ export const burnSecretRequestSchema = z.object({
    * on this field and the secret is left in place (#4878).
    */
   continue: z.union([z.literal(true), z.literal('true')]),
+  /** Passphrase if the secret is protected. */
+  passphrase: z.string().optional(),
 });
 
 export type BurnSecretRequest = z.infer<typeof burnSecretRequestSchema>;
