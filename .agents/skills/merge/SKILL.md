@@ -118,6 +118,11 @@ Read the merge request state:
 `has_conflicts`, `detailed_merge_status`, `head_pipeline`, `state`, and
 `target_branch`.
 
+For the paginated API requests below, wait for successful completion and process
+all returned pages before evaluating the gate. If retrieval or parsing fails,
+or the results are incomplete or unverifiable, stop with "not merged"; never
+treat partial output as a complete result or an error as an empty list.
+
 1. **Conflicts (pause).** If `has_conflicts` is true or
    `detailed_merge_status` reports conflicts, stop. Report "not merged", list
    the conflicting files (e.g. from a trial `git merge --no-commit --no-ff
@@ -126,7 +131,7 @@ Read the merge request state:
    it, merge the target in (`GIT_EDITOR=true git merge gitlab/<target>`), never
    rebase; if that merge conflicts, `git merge --abort` and pause as above.
 2. **Discussions and review.** List discussions with
-   `glab api projects/onetimesecret%2Fonetimesecret/merge_requests/<iid>/discussions`.
+   `glab api projects/onetimesecret%2Fonetimesecret/merge_requests/<iid>/discussions --paginate`.
    Every resolvable discussion must be resolved, and every P1 needs a
    disposition: fixed (cite the commit), refuted (one short reply citing the
    relevant invariant), or ticketed (`AGENTS.md`, "Replying to review
@@ -135,14 +140,14 @@ Read the merge request state:
    "Security-posture decisions"); stop if that approval is absent. Do not
    resolve someone else's discussion without addressing it.
 3. **Live settings.** Re-read target protection and merge settings:
-   `glab api projects/onetimesecret%2Fonetimesecret/protected_branches` and
+   `glab api projects/onetimesecret%2Fonetimesecret/protected_branches --paginate` and
    `glab api projects/onetimesecret%2Fonetimesecret --jq '{merge_method,only_allow_merge_if_pipeline_succeeds,only_allow_merge_if_all_discussions_are_resolved,approvals_before_merge}'`.
    Satisfy anything they require (e.g. approvals). If `merge_method` is no
    longer `merge`, stop and report it rather than guessing.
 4. **Pipeline (required).** A GitLab pipeline must exist for the merge
    request's current head `sha` and have status `success`. Check `head_pipeline`
    (its `sha` must equal the MR `sha`) or
-   `glab api projects/onetimesecret%2Fonetimesecret/merge_requests/<iid>/pipelines`.
+   `glab api projects/onetimesecret%2Fonetimesecret/merge_requests/<iid>/pipelines --paginate`.
    While a pipeline is `created`/`pending`/`running`, wait for it
    (`glab ci status -R onetimesecret/onetimesecret --branch <branch> --wait`)
    and re-check. Pending, failed, canceled, skipped, missing, or unverifiable
