@@ -1043,6 +1043,8 @@ module Auth
         # Does not raise: the swap has landed. A failure leaves the columns
         # NULL beside a Customer that may still read mailbox-verified, which
         # `customers doctor` reports as auth_email_verification_drift.
+        # A refused or failed stamp adds a warning without changing the swap's
+        # success status; an ineligible account's :skipped stamp does not.
         #
         # @return [Symbol] :skipped | :recorded | :not_verified | :stale | :failed
         def record_self_service_proof
@@ -1058,7 +1060,12 @@ module Auth
             claim_own_address_only: true,
             stamp_only: true,
           ).call
-          [:not_verified, :stale].include?(result) ? result : :recorded
+          if [:not_verified, :stale].include?(result)
+            @warnings << :mailbox_proof_not_recorded
+            return result
+          end
+
+          :recorded
         rescue StandardError => ex
           auth_logger.error '[customer.change_email] mailbox proof for the new address not recorded',
             extid: @customer.extid,
