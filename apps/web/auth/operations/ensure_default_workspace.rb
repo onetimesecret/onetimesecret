@@ -146,13 +146,21 @@ module Auth
       #   triggers leave the default: the Rodauth hook runs before an
       #   unverified account can sign in and change the billing email, and an
       #   operator verification is the operator vouching for the account.
+      # @param confirmed_email [String, nil] immutable mailbox proved by a
+      #   self-service confirmation; restricts the claim independently of any
+      #   later change to the Customer instance or stored address.
+      # @param claim_guard [#call, nil] rechecks the confirming account's
+      #   eligibility after acquiring the federation lock, before any benefit
+      #   or pending-record mutation. Used by SetCustomerVerification.
       def initialize(customer:, require_verification: false, stripe_customer_id: nil,
-                     claim_pending_federation: true, own_address_only: false)
+                     claim_pending_federation: true, own_address_only: false, confirmed_email: nil, claim_guard: nil)
         @customer                 = customer
         @require_verification     = require_verification
         @stripe_customer_id       = stripe_customer_id
         @claim_pending_federation = claim_pending_federation
         @own_address_only         = own_address_only
+        @confirmed_email          = confirmed_email&.dup&.freeze
+        @claim_guard              = claim_guard
       end
 
       # Executes the workspace creation operation
@@ -194,9 +202,16 @@ module Auth
       # @param customer [Onetime::Customer] verified customer
       # @param own_address_only [Boolean] claim only for the customer's own
       #   address (see #initialize)
+      # @param confirmed_email [String, nil] see #initialize
+      # @param claim_guard [#call, nil] see #initialize
       # @return [Boolean] True if a pending subscription was applied
-      def self.claim_pending_federation_for(customer, own_address_only: false)
-        new(customer: customer, own_address_only: own_address_only).claim_pending_federation
+      def self.claim_pending_federation_for(customer, own_address_only: false, confirmed_email: nil, claim_guard: nil)
+        new(
+          customer: customer,
+          own_address_only: own_address_only,
+          confirmed_email: confirmed_email,
+          claim_guard: claim_guard,
+        ).claim_pending_federation
       end
 
       # Instance form of {.claim_pending_federation_for}.
@@ -480,7 +495,7 @@ module Auth
       # @param email_hash [String] the hash the claim would look up
       # @return [Boolean]
       def own_address_hash?(email_hash)
-        Onetime::Utils::EmailHash.compute(@customer.email).to_s == email_hash
+        Onetime::Utils::EmailHash.compute(@confirmed_email || @customer.email).to_s == email_hash
       end
 
       # Check for and apply pending federated subscription
@@ -597,7 +612,7 @@ module Auth
         # hashes to this value, so a billing email change that lands after
         # the check cannot get through either. The pending record is left
         # intact.
-        if @own_address_only && !own_address_hash?(email_hash)
+        if (@own_address_only || @confirmed_email) && !own_address_hash?(email_hash)
           auth_logger.info '[create-default-workspace] Federated subscription claim refused: ' \
                            'the workspace bills an address the verification did not prove',
             { org: org.extid, customer: @customer.extid }
@@ -657,6 +672,9 @@ module Auth
 
         # A local subscription linked since the first ownership check.
         return false if org.subscription_owner? || !org.stripe_subscription_id.to_s.empty?
+        # Self-service proof may have been invalidated while waiting for this
+        # lock. Check before either applying or consuming a pending record.
+        return false if @claim_guard && !@claim_guard.call
 
         # Check for pending subscription
         pending = Billing::PendingFederatedSubscription.find_by_email_hash(email_hash)

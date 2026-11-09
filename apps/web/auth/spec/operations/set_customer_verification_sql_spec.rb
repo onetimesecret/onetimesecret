@@ -138,7 +138,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification, 'with a real (migrated
     def stamp!(customer)
       described_class.new(
         customer: customer, verified: true, verified_by: 'email', db: db,
-        new_address: true, stamp_only: true
+        new_address: true, stamp_only: true, confirmed_email: customer.email
       ).call
     end
 
@@ -146,7 +146,9 @@ RSpec.describe Auth::Operations::SetCustomerVerification, 'with a real (migrated
     # (it is not under test here).
     def verified_customer(extid:, email:)
       build_customer(extid: extid, email: email, verified: true).tap do |customer|
-        allow(customer).to receive_messages(stored_verified?: true, verified_by: 'sso', mailbox_verified?: false)
+        allow(customer).to receive_messages(verified_by: 'sso', mailbox_verified?: false,
+          dbclient: double('Redis', eval: 1), dbkey: 'customer:stamp:object')
+        allow(customer).to receive(:serialize_value) { |value| JSON.generate(value) }
       end
     end
 
@@ -156,7 +158,18 @@ RSpec.describe Auth::Operations::SetCustomerVerification, 'with a real (migrated
 
       expect(stamp!(customer)).to eq(:success)
       expect(db[:accounts].where(id: id).get(:status_id)).to eq(Auth::AccountStatuses::VERIFIED)
-      expect(customer).to have_received(:save)
+      expect(customer).not_to have_received(:save)
+      expect(customer).to have_received(:verified_by=).with('email')
+    end
+
+    it 'returns :stale for a Verified row whose address differs from the confirmed address' do
+      id = insert_account(email: 'other@example.com', status_id: Auth::AccountStatuses::VERIFIED, external_id: 'ur_stale')
+      customer = verified_customer(extid: 'ur_stale', email: 'confirmed@example.com')
+
+      expect(stamp!(customer)).to eq(:stale)
+      expect(db[:accounts].where(id: id).get(:email)).to eq('other@example.com')
+      expect(customer.dbclient).not_to have_received(:eval)
+      expect(customer).not_to have_received(:save)
     end
 
     it 'returns :not_verified and leaves an Unverified row and the Customer as they are' do

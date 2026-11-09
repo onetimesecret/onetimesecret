@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'fileutils'
+require 'tmpdir'
 require 'spec_helper'
 require 'support/helpers/migration_test_helpers'
 
@@ -232,6 +234,34 @@ RSpec.describe 'Auth::Migrator SQLite Integration', :sqlite_database do
       expect do
         test_db[:accounts].where(id: b).update(login: 'objid-a')
       end.to raise_error(Sequel::UniqueConstraintViolation)
+    end
+
+    it 'requires the newer migration files to downgrade before an older release can boot' do
+      Sequel::Migrator.run(test_db, migrations_dir, target: 15)
+      id = test_db[:accounts].insert(
+        email: 'rollback-015@example.com', status_id: 2, external_id: SecureRandom.uuid,
+      )
+      original = test_db[:accounts].where(id: id).first
+
+      Dir.mktmpdir('auth-schema-014-') do |older_migrations|
+        Dir.glob(File.join(migrations_dir, '[0-9]*_*.rb')).each do |path|
+          FileUtils.cp(path, older_migrations) if File.basename(path).to_i <= 14
+        end
+
+        expect do
+          Sequel::Migrator.run(test_db, older_migrations, use_transactions: true)
+        end.to raise_error(Sequel::Migrator::Error, /Missing migration version\(s\) needed to migrate down/)
+        expect(get_schema_version(db: test_db)).to eq(15)
+
+        Sequel::Migrator.run(test_db, migrations_dir, target: 14, use_transactions: true)
+        expect(get_schema_version(db: test_db)).to eq(14)
+        expect do
+          Sequel::Migrator.run(test_db, older_migrations, use_transactions: true)
+        end.not_to raise_error
+        expect(test_db[:accounts].where(id: id).first).to eq(
+          original.reject { |key, _| [:login, :email_verified_at, :email_verified_by, :email_verification_hold].include?(key) },
+        )
+      end
     end
 
     it 'rolls back without touching pre-existing columns or rows' do

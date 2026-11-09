@@ -695,6 +695,104 @@ RSpec.describe 'EnsureDefaultWorkspace: federated subscription claim gate', type
     end
   end
 
+  describe 'a self-service stamp bound to its confirmed address' do
+    let(:confirmed_email) { unique_email('confirmed') }
+    let(:customer) do
+      create_customer(email: confirmed_email, verified: true, verified_by: 'sso', provisioning_origin: 'sso_jit')
+    end
+    let!(:org) do
+      Auth::Operations::EnsureDefaultWorkspace.new(customer: customer, require_verification: true).call[:organization].tap do |workspace|
+        created_organizations << workspace
+      end
+    end
+
+    before do
+      allow(Auth::Operations::SetCustomerVerification).to receive(:full_auth_mode?).and_return(false)
+      create_pending_for(confirmed_email)
+    end
+
+    def stamp_confirmed_address
+      Auth::Operations::SetCustomerVerification.new(
+        customer: customer, verified: true, verified_by: 'email',
+        stamp_only: true, new_address: true, confirmed_email: confirmed_email,
+        claim_own_address_only: true,
+      )
+    end
+
+    it 'claims the confirmed address after the atomic stamp succeeds' do
+      stamp = stamp_confirmed_address
+      expect(stamp.call).to eq(:success)
+      expect(stamp.federation_claimed?).to be(true)
+      org.refresh!
+      expect(org.subscription_federated?).to be(true)
+      expect(pending_exists?(confirmed_email)).to be(false)
+    end
+
+    it 'does not follow a changed customer and workspace address after the stamp' do
+      other_email = unique_email('unproven')
+      create_pending_for(other_email)
+      stamp = stamp_confirmed_address
+      allow(stamp).to receive(:claim_pending_federation!).and_wrap_original do |original|
+        changed = Onetime::Customer.load(customer.objid)
+        changed.email = other_email
+        changed.save
+        org.billing_email = other_email
+        org.contact_email = other_email
+        org.save
+        original.call
+      end
+
+      expect(stamp.call).to eq(:success)
+      expect(stamp.federation_claimed?).to be(false)
+      org.refresh!
+      expect(org.subscription_federated?).to be(false)
+      expect(pending_exists?(other_email)).to be(true)
+      expect(pending_exists?(confirmed_email)).to be(true)
+    end
+
+    it 'uses the explicit confirmed address even if the customer instance now names another address' do
+      other_email = unique_email('unproven-instance')
+      create_pending_for(other_email)
+      customer.verified_by = 'email'
+      customer.save
+      customer.email = other_email
+      org.billing_email = other_email
+      org.save
+
+      claimed = Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(
+        customer, confirmed_email: confirmed_email, own_address_only: true,
+      )
+
+      expect(claimed).to be(false)
+      org.refresh!
+      expect(org.subscription_federated?).to be(false)
+      expect(pending_exists?(other_email)).to be(true)
+    end
+
+    [:address, :verification].each do |change|
+      it "rechecks #{change} after waiting for the federation lock" do
+        stamp = stamp_confirmed_address
+        allow(Billing::PendingFederatedSubscription).to receive(:with_federation_lock)
+          .and_wrap_original do |original, *args, **kwargs, &block|
+            changed = Onetime::Customer.load(customer.objid)
+            if change == :address
+              changed.email = unique_email('changed-under-lock')
+            else
+              changed.verified = false
+            end
+            changed.save
+            original.call(*args, **kwargs, &block)
+          end
+
+        expect(stamp.call).to eq(:success)
+        expect(stamp.federation_claimed?).to be(false)
+        org.refresh!
+        expect(org.subscription_federated?).to be(false)
+        expect(pending_exists?(confirmed_email)).to be(true)
+      end
+    end
+  end
+
   # ---------------------------------------------------------------------------
   # A workspace that owns a local subscription is never a federation target
   # ---------------------------------------------------------------------------
