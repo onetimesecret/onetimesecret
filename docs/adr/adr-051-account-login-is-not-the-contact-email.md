@@ -145,11 +145,15 @@ resume after a crash, rather than using an email address to infer ownership.
   from the committed SQL row. The schema supports separating IdP assertions
   from mailbox evidence; it does not resolve the G3 risks by itself.
 - **Migration risk:** expand, backfill, deploy compatible readers/writers,
-  enforce constraints, then enable email-less creation. Older binaries are
-  compatible only during the expand step. Once a null-email account exists,
-  rollback means turning the flag off while retaining a compatible binary,
-  not reverting to an email-required binary or schema. The design contains
-  the compatibility matrix and rollback limits.
+  enforce constraints, then enable email-less creation. An already-running
+  older process can read and insert rows at M015, but a release without
+  migration 015 cannot restart against schema version 15: boot runs the
+  migrator and fails on the missing migration file. Rolling back to a release
+  whose migrations end at 014 requires downgrading the schema to 14 with the
+  newer release's migration files before starting the older release. Once a
+  null-email account exists, rollback means turning the flag off while retaining
+  a compatible binary, not reverting to an email-required binary or schema.
+  See the design's [compatibility and rollback procedure](../specs/sso/email-less-accounts-account-model.md#7-migration-cutover-mixed-versions-rollback-proposal-item-9).
 - **Index risk:** a Familia fix is needed to prevent empty strings from
   becoming shared email-index keys. Until it is available, application-level
   blank-email guards and index checks are required for correctness.
