@@ -212,6 +212,39 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
   end
 
+  # The self-service email change's stamp: an account an operator unverified
+  # after the caller's read stays unverified. The SQL predicate is pinned in
+  # set_customer_verification_sql_spec.rb; this is the Customer re-read.
+  describe 'stamp_only: true' do
+    def stamp
+      described_class.new(customer: customer, verified: true, verified_by: 'email',
+        new_address: true, stamp_only: true)
+    end
+
+    before { allow(customer).to receive_messages(verified?: true, verified_by: 'sso', refresh!: true) }
+
+    it 'stamps a Customer that still reads verified when re-read' do
+      expect(stamp.call).to eq(:success)
+      expect(customer).to have_received(:refresh!).ordered
+      expect(customer).to have_received(:save).ordered
+    end
+
+    it 'returns :not_verified and writes nothing when the re-read Customer is unverified' do
+      allow(customer).to receive(:refresh!) { allow(customer).to receive(:verified?).and_return(false) }
+
+      expect(stamp.call).to eq(:not_verified)
+      expect(customer).not_to have_received(:verified=)
+      expect(customer).not_to have_received(:save)
+      expect(workspace_op).not_to have_received(:claim_pending_federation_for)
+    end
+
+    it 'refuses verified: false' do
+      expect do
+        described_class.new(customer: customer, verified: false, verified_by: nil, stamp_only: true)
+      end.to raise_error(ArgumentError, /stamp_only/)
+    end
+  end
+
   describe 'full auth mode' do
     before { allow(auth_config).to receive(:mode).and_return('full') }
 

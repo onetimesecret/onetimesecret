@@ -131,6 +131,52 @@ RSpec.describe Auth::Operations::SetCustomerVerification, 'with a real (migrated
     end
   end
 
+  # The self-service email change's stamp (ChangeEmail, stamp_only: true):
+  # the UPDATE's own predicate is Verified, so a row an operator unverified
+  # after the caller read it is never promoted.
+  describe 'stamp_only: true' do
+    def stamp!(customer)
+      described_class.new(
+        customer: customer, verified: true, verified_by: 'email', db: db,
+        new_address: true, stamp_only: true
+      ).call
+    end
+
+    # Verified by an IdP claim, so no federation claim follows the stamp
+    # (it is not under test here).
+    def verified_customer(extid:, email:)
+      build_customer(extid: extid, email: email, verified: true).tap do |customer|
+        allow(customer).to receive_messages(refresh!: true, verified_by: 'sso', mailbox_verified?: false)
+      end
+    end
+
+    it 'stamps a row that is still Verified' do
+      id       = insert_account(email: 'still@example.com', status_id: Auth::AccountStatuses::VERIFIED, external_id: 'ur_still')
+      customer = verified_customer(extid: 'ur_still', email: 'still@example.com')
+
+      expect(stamp!(customer)).to eq(:success)
+      expect(db[:accounts].where(id: id).get(:status_id)).to eq(Auth::AccountStatuses::VERIFIED)
+      expect(customer).to have_received(:save)
+    end
+
+    it 'returns :not_verified and leaves an Unverified row and the Customer as they are' do
+      id       = insert_account(email: 'gone@example.com', status_id: Auth::AccountStatuses::UNVERIFIED, external_id: 'ur_gone')
+      customer = verified_customer(extid: 'ur_gone', email: 'gone@example.com')
+
+      expect(stamp!(customer)).to eq(:not_verified)
+      expect(db[:accounts].where(id: id).get(:status_id)).to eq(Auth::AccountStatuses::UNVERIFIED)
+      expect(customer).not_to have_received(:save)
+    end
+
+    it 'still raises AccountClosed for a Closed row' do
+      insert_account(email: 'shut@example.com', status_id: Auth::AccountStatuses::CLOSED, external_id: 'ur_shut')
+      customer = verified_customer(extid: 'ur_shut', email: 'shut@example.com')
+
+      expect { stamp!(customer) }.to raise_error(described_class::AccountClosed)
+      expect(customer).not_to have_received(:save)
+    end
+  end
+
   describe 'one-row case: Closed account, no live sibling' do
     it 'refuses to resurrect: raises AccountClosed and leaves status_id=3' do
       id       = insert_account(email: 'gone@example.com', status_id: Auth::AccountStatuses::CLOSED, external_id: 'ur_gone')

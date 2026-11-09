@@ -35,6 +35,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       verified?: true,
       verified_by: 'email',
       mailbox_verified?: true,
+      provisioning_origin: 'canonical_signup',
     )
   end
 
@@ -191,6 +192,51 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       doctor.send(:check_auth_login_link, issues)
 
       expect(issues.first[:repair_action]).to include('unverify, then verify')
+    end
+
+    # Claude review on 9284e1c12: when the accounts row is the store with
+    # the proof, re-stamping from the report gives the Customer the mailbox
+    # proof has_system_role? requires (#4735), so the report never
+    # prescribes it.
+    it 'does not prescribe unverify, then verify when the accounts row has the proof' do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'sso', mailbox_verified?: false)
+      stub_row(base_row)
+
+      doctor.send(:check_auth_login_link, issues)
+
+      expect(issues.map { |i| i[:check] }).to eq([:auth_email_verification_drift])
+      expect(issues.first).to include(severity: :high, repairable: false)
+      expect(issues.first[:repair_action]).not_to include('unverify')
+      expect(issues.first[:repair_action]).to include('confirm the address')
+    end
+
+    # SyncSession#derive_verification_provenance never stamps mailbox proof
+    # on a Customer recreated at login, so the row's proof outlives the
+    # record it was written for. Expected, not a failed write.
+    it 'reports a Customer recreated at login beside a row with proof as medium, with a manual decision' do
+      allow(customer).to receive_messages(
+        verified?: true, verified_by: 'legacy', mailbox_verified?: false, provisioning_origin: 'login_recovery',
+      )
+      stub_row(base_row)
+
+      doctor.send(:check_auth_login_link, issues)
+
+      expect(issues.map { |i| i[:check] }).to eq([:auth_email_verification_drift])
+      expect(issues.first).to include(severity: :medium, repairable: false, auth_email_verified_by: 'email')
+      expect(issues.first[:message]).to include('recreated at login')
+      expect(issues.first[:repair_action]).to include('confirm the address')
+      expect(issues.first[:repair_action]).not_to include('unverify')
+    end
+
+    it 'leaves an unverified Customer recreated at login to :recovered_customer_unverified' do
+      allow(customer).to receive_messages(
+        verified?: false, verified_by: '', mailbox_verified?: false, provisioning_origin: 'login_recovery',
+      )
+      stub_row(base_row)
+
+      doctor.send(:check_auth_login_link, issues)
+
+      expect(issues).to be_empty
     end
 
     it 'treats a held, unverified row as consistent with an unverified Customer' do

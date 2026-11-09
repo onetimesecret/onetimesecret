@@ -1160,7 +1160,7 @@ module Auth
         #                         (the backfill refuses exactly this, so it is
         #                         a hand-made row or a re-linked external_id)
         #   :auth_email_verification_drift
-        #                         one store carries mailbox proof for the
+        #                         one store has mailbox proof for the
         #                         address and the other does not; high.
         #                         Skipped while the two stores name different
         #                         addresses: that is check_auth_email_drift's
@@ -1168,11 +1168,14 @@ module Auth
         #                         unverified on purpose. Every verification
         #                         writer writes both stores through
         #                         Auth::AccountEmailVerification, so a finding
-        #                         here is a write that failed between them.
-        #                         Until the N+1 binary makes SQL the single
-        #                         writer, the Customer mirror is what every
-        #                         reader uses, so this is reported, not
-        #                         repaired.
+        #                         here is a write that failed between them,
+        #                         with one exception (#verification_drift_issue):
+        #                         a Customer recreated at login, which never
+        #                         gets mailbox proof, beside a row that kept
+        #                         its proof. Until the N+1 binary makes SQL
+        #                         the single writer, the Customer mirror is
+        #                         what every reader uses, so this is
+        #                         reported, not repaired.
         def check_auth_login_link(issues)
           account = auth_account
           return if account.nil?
@@ -1210,25 +1213,75 @@ module Auth
           sql_verified      = !account[:email_verified_at].nil?
           customer_verified = @customer.mailbox_verified?
           return if sql_verified == customer_verified
+          # An unverified recovered Customer beside a row with the proof:
+          # check_recovered_customer_unverified reports that record, with the
+          # same manual remedy.
+          return if sql_verified && recovered_customer_unverified?(account)
 
-          issues << {
-            check: :auth_email_verification_drift,
-            severity: :high,
-            message: "auth account email_verified_at #{sql_verified ? 'set' : 'NULL'} while Customer " \
-                     "mailbox_verified=#{customer_verified} (verified_by=#{@customer.verified_by.inspect}; " \
-                     'cross-store verification drift)',
-            auth_email_verified_by: account[:email_verified_by],
-            auth_email_verification_hold: account[:email_verification_hold],
-            repairable: false,
-            repair_action: 'A verification write failed between the stores. Re-run the change that ' \
-                           'failed (`bin/ots customers verify|unverify`); a repeat that changes nothing ' \
-                           'writes nothing, so re-stamp a Customer that already reads mailbox-verified ' \
-                           'with unverify, then verify. The Customer mirror is authoritative until the ' \
-                           'N+1 binary',
-          }
+          issues << verification_drift_issue(account, sql_verified)
         rescue StandardError => ex
           OT.le "[customers doctor] auth_login_link check failed for #{@customer.extid}: " \
                 "#{ex.class} #{ex.message}"
+        end
+
+        # The :auth_email_verification_drift finding. Its repair depends on
+        # which store has the proof.
+        #
+        # The Customer (the columns are NULL): the column write of a stamp
+        # failed. Re-running the change writes both stores, and since a
+        # repeat that changes nothing writes nothing, unverify, then verify
+        # re-stamps. Nothing is widened: the Customer already reads
+        # mailbox-verified.
+        #
+        # The accounts row: the Customer write of a verification failed
+        # after its SQL write, or the Customer lost the proof since. The
+        # report never prescribes a re-stamp here, since a verify gives the
+        # Customer the mailbox proof has_system_role? requires (#4735). A
+        # Customer recreated at login (provisioning_origin 'login_recovery')
+        # is the expected case, not a failed write:
+        # SyncSession#derive_verification_provenance never stamps mailbox
+        # proof on a recovered record, so the row's proof outlives the record
+        # it was written for. That one is medium.
+        def verification_drift_issue(account, sql_verified)
+          state = "auth account email_verified_at #{sql_verified ? 'set' : 'NULL'} while Customer " \
+                  "mailbox_verified=#{!sql_verified} (verified_by=#{@customer.verified_by.inspect}"
+          issue = {
+            check: :auth_email_verification_drift,
+            severity: :high,
+            message: "#{state}; cross-store verification drift)",
+            auth_email_verified_by: account[:email_verified_by],
+            auth_email_verification_hold: account[:email_verification_hold],
+            repairable: false,
+          }
+
+          unless sql_verified
+            return issue.merge(
+              repair_action: 'A verification write failed between the stores. Re-run the change that ' \
+                             'failed (`bin/ots customers verify|unverify`); a repeat that changes nothing ' \
+                             'writes nothing, so re-stamp a Customer that already reads mailbox-verified ' \
+                             'with unverify, then verify. The Customer mirror is authoritative until the ' \
+                             'N+1 binary',
+            )
+          end
+
+          if @customer.provisioning_origin.to_s == 'login_recovery'
+            return issue.merge(
+              severity: :medium,
+              message: "#{state}; Customer recreated at login, which never stamps mailbox proof)",
+              repair_action: 'Not a failed write: the row kept the proof the lost record had. Manual ' \
+                             'decision required: confirm the address with its owner, then verify via ' \
+                             'colonel admin or `bin/ots customers verify EMAIL`. The Customer mirror is ' \
+                             'authoritative until the N+1 binary',
+            )
+          end
+
+          issue.merge(
+            repair_action: 'The accounts row has mailbox proof the Customer lacks: a verification whose ' \
+                           'Customer write failed, or a Customer that lost the proof since. Do not ' \
+                           'restore it from this report alone: confirm the address with its owner, then ' \
+                           'verify via colonel admin or `bin/ots customers verify EMAIL`. The Customer ' \
+                           'mirror is authoritative until the N+1 binary',
+          )
         end
 
         # CHECK: an SSO-provisioned Customer left unverified (#3973)
@@ -1361,7 +1414,7 @@ module Auth
 
           account = auth_account
           return if account.nil?
-          return unless account[:status_id] == Auth::AccountStatuses::VERIFIED
+          return unless recovered_customer_unverified?(account)
 
           issues << {
             check: :recovered_customer_unverified,
@@ -1375,6 +1428,14 @@ module Auth
         rescue StandardError => ex
           OT.le "[customers doctor] recovered_customer_unverified check failed for #{@customer.extid}: " \
                 "#{ex.class} #{ex.message}"
+        end
+
+        # A Customer recreated at login unverified beside a Verified accounts
+        # row: check_recovered_customer_unverified's finding.
+        def recovered_customer_unverified?(account)
+          !@customer.verified? &&
+            @customer.provisioning_origin.to_s == 'login_recovery' &&
+            account[:status_id] == Auth::AccountStatuses::VERIFIED
         end
 
         # CHECK: a system role whose holder has no MAILBOX proof (#4735).

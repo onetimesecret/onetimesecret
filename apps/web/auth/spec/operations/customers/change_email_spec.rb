@@ -1587,9 +1587,23 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
         db: db,
         new_address: true,
         claim_own_address_only: true,
+        stamp_only: true,
       )
       expect(trace.index([:mailbox_proof_stamped])).to be > trace.index([:customer_save])
       expect(audit_detail).to include(mailbox_proof: :recorded)
+    end
+
+    # The stamp found the account unverified at the write (an operator
+    # unverified it after the eligibility read): nothing recorded, and the
+    # trail says so.
+    it 'records :not_verified, with no warning, when the stamp finds the account unverified' do
+      allow(proof_stamp).to receive(:call).and_return(:not_verified)
+
+      result = self_service_op.call
+
+      expect(result.status).to eq(:success)
+      expect(result.warnings).not_to include(:mailbox_proof_not_recorded)
+      expect(audit_detail).to include(mailbox_proof: :not_verified)
     end
 
     it 'does not stamp a Customer that is not verified: verify_account stays its way in' do

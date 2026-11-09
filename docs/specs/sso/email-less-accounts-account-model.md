@@ -307,8 +307,10 @@ global email index (`email_index_blank_key`, repairable; shipped),
 `email_verified_at` ↔ Customer mailbox proof (`mailbox_verified?`) drift
 (`auth_email_verification_drift`, skipped while the stores name different
 addresses; every verification writer writes both stores, so a finding is a
-write that failed between them; report-only until the N+1 binary makes SQL the
-writer; shipped), the
+write that failed between them, except a Customer recreated at login, which
+never gets mailbox proof, beside a row that kept its proof; the report never
+prescribes a re-stamp when the row is the store with the proof; report-only
+until the N+1 binary makes SQL the writer; shipped), the
 org-scoped index `""` key, rows with `login` but no Customer (K2 pending), and
 accounts without `email` on a tenant domain (must be zero) (the last three
 with the N+1 binary).

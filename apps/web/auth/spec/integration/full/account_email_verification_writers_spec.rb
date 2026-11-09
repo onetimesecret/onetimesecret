@@ -18,7 +18,8 @@
 #     otherwise
 #   * a self-service email change clears them in the swap, then records the
 #     followed link as 'email' proof in both stores, for an account that was
-#     already verified; an unverified account stays unverified
+#     already verified and still is at the write; an unverified account
+#     stays unverified
 #   * an operator email change leaves them cleared
 #
 # The after_verify_account hook is pinned in
@@ -215,6 +216,30 @@ RSpec.describe 'Migration 015 verification columns follow every writer (ADR-051)
       expect(row[:login]).to eq(customer.objid)
       expect(row[:email_verified_by]).to eq('email')
       expect(row[:email_verified_at].to_i).to eq(recorded_at.to_i)
+    end
+
+    # Codex review on 9284e1c12: the eligibility check reads the status
+    # captured before the swap, so an operator who unverifies the account
+    # after that read must not see the stamp verify it again.
+    it 'leaves an account unverified when an operator unverifies it after the eligibility read' do
+      customer = create_customer(email, verified: true, verified_by: 'stripe_payment')
+      id       = insert_account(email, customer: customer, status_id: Auth::AccountStatuses::VERIFIED)
+      allow_any_instance_of(Auth::Operations::Customers::ChangeEmail)
+        .to receive(:record_self_service_proof).and_wrap_original do |original|
+          Auth::Operations::SetCustomerVerification.new(
+            customer: Onetime::Customer.load(customer.objid), verified: false, verified_by: nil,
+          ).call
+          original.call
+        end
+
+      expect(redeem(customer).status).to eq(:success)
+
+      reloaded = Onetime::Customer.load(customer.objid)
+      expect(reloaded.verified?).to be(false)
+      expect(reloaded.verified_by.to_s).to be_empty
+      row      = account_row(id)
+      expect(row[:status_id]).to eq(Auth::AccountStatuses::UNVERIFIED)
+      expect(row.values_at(:email_verified_at, :email_verified_by, :email_verification_hold)).to all(be_nil)
     end
 
     it 'leaves an unverified account unverified, with the columns cleared' do

@@ -26,7 +26,8 @@ Added
   the new address in both stores (``verified_by`` ``email``), for an account
   that was already verified: one verified by an IdP, a payment, autoverify or
   a legacy stamp gains mailbox proof, which system roles and the deferred
-  federated subscription claim require. ``bin/ots customers doctor`` reports rows that still lack a login, whose login disagrees with their
+  federated subscription claim require. An account an operator unverifies
+  while the change completes stays unverified. ``bin/ots customers doctor`` reports rows that still lack a login, whose login disagrees with their
   Customer, or whose SQL verification disagrees with the Customer's mailbox
   proof. This is the first, expand-only step of the account-model
   change in ADR-051 (SSO email-less accounts); later steps are gated on the
