@@ -1326,6 +1326,37 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
 
         expect(result.warnings).to include(:verification_reset_failed, :verification_force_cleared)
       end
+
+      context 'when the persisted flag cannot be read' do
+        before do
+          allow(customer).to receive(:stored_verified?).and_raise(StandardError, 'read unavailable')
+        end
+
+        it 'still attempts and persists the forced clear' do
+          result = op(db: nil).call
+
+          expect(result.verification_reset).to be true
+          expect(result.warnings).to include(:verification_force_cleared)
+          expect(customer).to have_received(:verified=).with(false)
+          expect(customer).to have_received(:save).twice
+        end
+
+        it 'reports verification_not_reset if the fallback save also fails' do
+          saves = 0
+          allow(customer).to receive(:save) do
+            saves += 1
+            raise StandardError, 'write unavailable' if saves > 1
+
+            true
+          end
+
+          result = op(db: nil).call
+
+          expect(result.status).to eq(:verification_not_reset)
+          expect(result.verification_reset).to be false
+          expect(result.warnings).to include(:verification_still_set)
+        end
+      end
     end
 
     # Winning the HSETNX claim is a MUTATION (the old pre-write check was a pure
