@@ -1588,6 +1588,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
         verified_by: 'email',
         db: db,
         new_address: true,
+        confirmed_email: new_email,
         claim_own_address_only: true,
         stamp_only: true,
       )
@@ -1606,6 +1607,13 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       expect(result.status).to eq(:success)
       expect(result.warnings).not_to include(:mailbox_proof_not_recorded)
       expect(audit_detail).to include(mailbox_proof: :not_verified)
+    end
+
+    it 'records :stale rather than reporting proof for a concurrent address change' do
+      allow(proof_stamp).to receive(:call).and_return(:stale)
+
+      expect(self_service_op.call.status).to eq(:success)
+      expect(audit_detail).to include(mailbox_proof: :stale)
     end
 
     it 'does not stamp a Customer that is not verified: verify_account stays its way in' do

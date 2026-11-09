@@ -574,11 +574,11 @@ module Auth
       # A string column read through a connection whose client_encoding is
       # not UTF8 (a SQL_ASCII cluster) arrives tagged BINARY, and Unicode
       # normalization and UTF-8 pattern matching both raise on that tag.
-      # Re-tag before either (OT::Utils.utf8_safe, the project's helper for
-      # "whatever the datastore held"); the compare-and-set and the report
-      # keep using the bytes as read.
+      # Re-tag without changing bytes. Invalid UTF-8 is a row error, never
+      # scrubbed into another address for lookup or mailbox proof. The
+      # compare-and-set and the report keep using the bytes as read.
       def sql_text(value)
-        OT::Utils.utf8_safe(value.to_s)
+        OT::Utils.mailbox_text(value) || raise(ArgumentError, 'invalid UTF-8 in accounts.email')
       end
 
       def describe_holder(holder)
@@ -622,7 +622,9 @@ module Auth
       # address and the login value; the report must carry neither.
       def scrub(message, row)
         text  = OT::Utils.utf8_safe(message.to_s)
-        email = sql_text(row[:email])
+        # Presentation only: redact the same scrubbed form as the message,
+        # including when invalid address bytes caused the row error.
+        email = OT::Utils.utf8_safe(row[:email].to_s)
         text  = text.gsub(email, OT::Utils.obscure_email(email)) unless email.empty?
         text.gsub(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/i, '<login>')
       end

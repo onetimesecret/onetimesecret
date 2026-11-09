@@ -214,29 +214,52 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
 
   # The self-service email change's stamp: an account an operator unverified
   # after the caller's read stays unverified. The SQL predicate is pinned in
-  # set_customer_verification_sql_spec.rb; this is the Customer's stored
-  # flag, read without changing the caller's object.
+  # set_customer_verification_sql_spec.rb; this is the Customer CAS outcome.
   describe 'stamp_only: true' do
     def stamp
       described_class.new(customer: customer, verified: true, verified_by: 'email',
-        new_address: true, stamp_only: true)
+        new_address: true, stamp_only: true, confirmed_email: 'user@example.com')
     end
 
-    before { allow(customer).to receive_messages(verified?: true, verified_by: 'sso', stored_verified?: true) }
+    let(:redis) { double('Redis', eval: 1) }
 
-    it 'stamps a Customer whose stored record still reads verified' do
+    before do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'sso', dbclient: redis, dbkey: 'customer:123:object')
+      allow(customer).to receive(:serialize_value) { |value| JSON.generate(value) }
+    end
+
+    it 'stamps only provenance with serialized address and verified predicates' do
       expect(stamp.call).to eq(:success)
-      expect(customer).to have_received(:stored_verified?).ordered
-      expect(customer).to have_received(:save).ordered
+      expect(redis).to have_received(:eval).with(
+        described_class::STAMP_CONFIRMED_EMAIL,
+        keys: ['customer:123:object'],
+        argv: ['"user@example.com"', '"true"', '"email"'],
+      )
+      expect(customer).not_to have_received(:save)
     end
 
-    it 'returns :not_verified and writes nothing when the stored record reads unverified' do
-      allow(customer).to receive(:stored_verified?).and_return(false)
+    it 'returns :not_verified when the atomic predicate finds an unverified Customer' do
+      allow(redis).to receive(:eval).and_return(0)
 
       expect(stamp.call).to eq(:not_verified)
       expect(customer).not_to have_received(:verified=)
       expect(customer).not_to have_received(:save)
       expect(workspace_op).not_to have_received(:claim_pending_federation_for)
+    end
+
+    it 'returns :stale when the atomic predicate finds a different address or a missing Customer' do
+      allow(redis).to receive(:eval).and_return(-1)
+
+      expect(stamp.call).to eq(:stale)
+      expect(customer).not_to have_received(:verified_by=)
+      expect(customer).not_to have_received(:save)
+      expect(workspace_op).not_to have_received(:claim_pending_federation_for)
+    end
+
+    it 'requires the address proved by the link, not merely the mutable Customer' do
+      expect do
+        described_class.new(customer: customer, verified: true, verified_by: 'email', stamp_only: true)
+      end.to raise_error(ArgumentError, /confirmed_email/)
     end
 
     it 'refuses verified: false' do
@@ -262,7 +285,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
 
       def stamp_record
         described_class.new(customer: @record, verified: true, verified_by: 'email',
-          new_address: true, stamp_only: true).call
+          new_address: true, stamp_only: true, confirmed_email: @record.email).call
       end
 
       it "keeps the caller's unsaved assignments" do

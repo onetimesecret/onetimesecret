@@ -22,6 +22,12 @@ optional contact email. Here, *login* means the value Rodauth uses internally,
 not the email a user types to sign in. Existing email-based sign-in remains
 available for accounts with an address.
 
+An omitted IdP email does not establish that the person has no mailbox.
+Collecting and verifying a contact address during onboarding is a narrower
+alternative if the product requires every account to have one. This proposal
+instead targets accounts that can operate without a contact address on the
+platform/per-install route; it does not enable email-less tenant accounts.
+
 Rodauth currently uses `accounts.email` as its login column
 ([configuration](../../apps/web/auth/config/base.rb)). The column is `NOT NULL`
 and has a unique index for active accounts where partial indexes are supported
@@ -132,6 +138,11 @@ subject to each flow's verification requirements. Reserving the Customer
 identity in the account INSERT gives later provisioning steps a stable key to
 resume after a crash, rather than using an email address to infer ownership.
 
+Using that reserved `objid` as Rodauth's `login_column` is a proposed integration
+choice, not an OIDC requirement. Approval of identity/contact separation does
+not by itself approve this choice or the lifecycle and provisioning decisions
+in the account-model design.
+
 ## Trade-offs
 
 - **Cost:** email can no longer serve as a shortcut for account identity.
@@ -145,11 +156,15 @@ resume after a crash, rather than using an email address to infer ownership.
   from the committed SQL row. The schema supports separating IdP assertions
   from mailbox evidence; it does not resolve the G3 risks by itself.
 - **Migration risk:** expand, backfill, deploy compatible readers/writers,
-  enforce constraints, then enable email-less creation. Older binaries are
-  compatible only during the expand step. Once a null-email account exists,
-  rollback means turning the flag off while retaining a compatible binary,
-  not reverting to an email-required binary or schema. The design contains
-  the compatibility matrix and rollback limits.
+  enforce constraints, then enable email-less creation. An already-running
+  older process can read and insert rows at M015, but a release without
+  migration 015 cannot restart against schema version 15: boot runs the
+  migrator and fails on the missing migration file. Rolling back to a release
+  whose migrations end at 014 requires downgrading the schema to 14 with the
+  newer release's migration files before starting the older release. Once a
+  null-email account exists, rollback means turning the flag off while retaining
+  a compatible binary, not reverting to an email-required binary or schema.
+  See the design's [compatibility and rollback procedure](../specs/sso/email-less-accounts-account-model.md#7-migration-cutover-mixed-versions-rollback-proposal-item-9).
 - **Index risk:** a Familia fix is needed to prevent empty strings from
   becoming shared email-index keys. Until it is available, application-level
   blank-email guards and index checks are required for correctness.

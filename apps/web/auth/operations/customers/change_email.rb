@@ -1035,15 +1035,15 @@ module Auth
         # unverified account keeps Rodauth's verify_account as its way in:
         # this stamp never moves a Customer or an accounts row from
         # unverified to verified. The eligibility read is the status
-        # captured before the swap, so `stamp_only:` checks again at the
-        # write: an operator who unverified the account in between gets
-        # :not_verified, and the account stays as they left it.
+        # captured before the swap, so `stamp_only:` checks status and the
+        # explicit confirmed address atomically at each write. A concurrent
+        # unverify returns :not_verified; a different address returns :stale.
         #
         # Does not raise: the swap has landed. A failure leaves the columns
         # NULL beside a Customer that may still read mailbox-verified, which
         # `customers doctor` reports as auth_email_verification_drift.
         #
-        # @return [Symbol] :skipped | :recorded | :not_verified | :failed
+        # @return [Symbol] :skipped | :recorded | :not_verified | :stale | :failed
         def record_self_service_proof
           return :skipped unless @self_service && self_service_proof_eligible?
 
@@ -1053,10 +1053,11 @@ module Auth
             verified_by: 'email',
             db: @db,
             new_address: true,
+            confirmed_email: @new_email,
             claim_own_address_only: true,
             stamp_only: true,
           ).call
-          result == :not_verified ? :not_verified : :recorded
+          [:not_verified, :stale].include?(result) ? result : :recorded
         rescue StandardError => ex
           auth_logger.error '[customer.change_email] mailbox proof for the new address not recorded',
             extid: @customer.extid,

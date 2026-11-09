@@ -434,6 +434,112 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
     end
   end
 
+  describe 'SQL text encoding' do
+    # SQL_ASCII can return arbitrary bytes tagged BINARY. Re-tag scanned
+    # values here so both lanes exercise that driver behavior without
+    # changing their connection encoding.
+    def binary_scan(operation)
+      allow(operation).to receive(:each_candidate).and_wrap_original do |original, &block|
+        original.call { |row| block.call(row.merge(email: row[:email].b)) }
+      end
+    end
+
+    # SQLite's driver rejects invalid/binary UTF-8 when quoting a String,
+    # unlike SQL_ASCII. A blob cast to text compares the same stored bytes
+    # without transcoding; keep the real compare-and-set and update.
+    def byte_preserving_sql(operation)
+      return unless db.database_type == :sqlite
+
+      allow(operation).to receive(:unchanged_scope).and_wrap_original do |original, row|
+        original.call(row.merge(email: Sequel.cast(Sequel.blob(row[:email].b), :text)))
+      end
+    end
+
+    [false, true].each do |linked|
+      it "preserves valid binary-tagged UTF-8 for #{linked ? 'external_id' : 'email'} resolution" do
+        address    = "éclair-#{run}@example.com"
+        customer   = create_customer(address, verified: true, verified_by: 'email')
+        account_id = insert_account(address, external_id: linked ? customer.extid : nil)
+        before     = account_row(account_id)
+        operation  = new_operation
+        binary_scan(operation)
+
+        result = operation.call
+
+        expect(account_row(account_id)).to eq(before)
+        expect(row_for(result, account_id)).to include(
+          outcome: :backfilled, branch: linked ? :by_external_id : :by_email,
+        )
+        expect(row_for(result, account_id)[:detail]).to include('email_verified_by=email')
+      end
+    end
+
+    context 'with invalid UTF-8 bytes stored in SQL' do
+      # SQLite accepts these bytes as text, as a PostgreSQL SQL_ASCII
+      # database does. A UTF8 PostgreSQL database rejects the fixture itself.
+      before do
+        skip 'requires a database accepting invalid UTF-8 text' unless db.database_type == :sqlite
+      end
+
+      let(:corrupted) { email.sub('@', "\xFF@") }
+
+      [false, true].each do |binary|
+        it "refuses an unlinked #{binary ? 'BINARY' : 'UTF-8'} row rather than taking the clean Customer" do
+          customer   = create_customer(email, verified: true, verified_by: 'email')
+          account_id = insert_account(corrupted)
+          before     = account_row(account_id)
+          operation  = new_operation(dry_run: false, mint_missing: true)
+          binary_scan(operation) if binary
+          byte_preserving_sql(operation)
+          expect(accounts.where(external_id: customer.extid).count).to eq(0)
+
+          result = operation.call
+
+          expect(account_row(account_id)).to eq(before)
+          report = row_for(result, account_id)
+          expect(report[:outcome]).to eq(:error)
+          expect(report[:detail]).to include('invalid UTF-8')
+          expect(report.to_s).not_to include(email, customer.objid)
+        end
+      end
+
+      [
+        { verified: true, verified_by: 'email' },
+        { verified: false, verification_hold: 'idp_unverified' },
+      ].each do |state|
+        it "refuses to transfer #{state[:verified] ? 'proof' : 'a hold'} through external_id for a corrupted address" do
+          customer   = create_customer(email, **state)
+          account_id = insert_account(corrupted, external_id: customer.extid)
+          before     = account_row(account_id)
+          operation  = new_operation(dry_run: false)
+          binary_scan(operation)
+          byte_preserving_sql(operation)
+
+          result = operation.call
+
+          expect(account_row(account_id)).to eq(before)
+          expect(row_for(result, account_id)).to include(outcome: :error)
+          expect(row_for(result, account_id)[:detail]).to include('invalid UTF-8')
+        end
+      end
+
+      it 'redacts malformed addresses in exception messages without decoding them as identities' do
+        customer   = create_customer(email)
+        account_id = insert_account(corrupted, external_id: customer.extid)
+        statement  = "UPDATE accounts SET login = '#{customer.objid}' WHERE email = '#{corrupted}'".b
+        allow(Onetime::Customer).to receive(:find_by_extid).and_raise(Sequel::DatabaseError, statement)
+
+        result = new_operation(dry_run: false).call
+
+        report = row_for(result, account_id)
+        expect(report[:outcome]).to eq(:error)
+        expect(report[:detail]).to include('Sequel::DatabaseError', '<login>', OT::Utils.obscure_email(email))
+        expect(report.to_s).not_to include(email, customer.objid)
+        expect(account_row(account_id)[:login]).to be_nil
+      end
+    end
+  end
+
   # ==========================================================================
   # 3. Refusals
   # ==========================================================================

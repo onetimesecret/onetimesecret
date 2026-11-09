@@ -278,28 +278,59 @@ Step labels are auth migration file numbers. 012 to 014 are the OAuth tables
 of v0.27.0, so this sequence starts at 015. M016 and M017 are planned and take
 the next free numbers when they are written.
 
+**Runtime compatibility is not restart compatibility.** N and N+1 below
+describe application behavior; a release's migration files also constrain
+which schema it can boot against. An already-running N process can read and
+insert at M015, but a release containing only migrations 001–014 cannot
+restart against schema version 15. At full-auth boot,
+[`Auth::Migrator`](../../../apps/web/auth/migrator.rb) runs Sequel's migrator
+and re-raises migration errors. With files ending at 014, Sequel attempts to
+reach version 14 and raises
+`Missing migration version(s) needed to migrate down to target version`
+because migration 015 is unavailable. The rollback sequence below applies
+even when every account still has an email.
+
 | Step | Schema | Binary | Data | Notes |
 |---|---|---|---|---|
 | S0 | current | N | D0: all rows have email | baseline |
-| M015 expand | add `login` NULL **with its UNIQUE index**, `email_verified_at`, `email_verified_by`, `email_verification_hold`; leave `email NOT NULL` | N | D0 | old binary ignores new columns; its inserts leave `login` NULL. The unique index is created here rather than at M016 because both engines treat NULLs as distinct, so it costs the old binary nothing and stops two concurrent backfills from putting one objid on two rows. **Shipped** ([015_account_login_and_contact_verification.rb](../../../apps/web/auth/migrations/015_account_login_and_contact_verification.rb)). |
+| M015 expand | add `login` NULL **with its UNIQUE index**, `email_verified_at`, `email_verified_by`, `email_verification_hold`; leave `email NOT NULL` | N | D0 | An already-running old process ignores new columns; its inserts leave `login` NULL. Restart requires a release containing migration 015 (see above). The unique index is created here rather than at M016 because both engines treat NULLs as distinct, so it accepts the old process's inserts and stops two concurrent backfills from putting one objid on two rows. **Shipped** ([015_account_login_and_contact_verification.rb](../../../apps/web/auth/migrations/015_account_login_and_contact_verification.rb)). |
 | Backfill op | — | N or N+1 | D0 | `Auth::Operations::BackfillAccountLogins` / `bin/ots customers backfill-logins` (dry-run default, `--limit`, `--after-id`, idempotent, compare-and-set on the row as scanned: `login IS NULL` plus the scanned `external_id`, `email`, `status_id` and verification columns, so a row re-linked, changed or verified in between is `skipped_row_changed` and re-read on the next run; precedent [normalize_account_emails.rb](../../../apps/web/auth/operations/customers/normalize_account_emails.rb)). Per row: Customer by `external_id` → `login = objid`; else, for a live row whose address case folding leaves unchanged, by the stored or normalized email when exactly one Customer matches and no other row links that Customer → `login = objid`, `external_id = extid` (a closed row is `skipped_closed_row` and never linked by address, since the partial unique index lets it share a live row's address; a fold-unstable address such as `straße` is `skipped_fold_unstable`, since its folded form names another address; an email-index entry whose Customer has another address is `skipped_index_mismatch`, repaired by `customers doctor --all --repair`); else `skipped_no_customer`, or with `--mint-missing` a fresh UUIDv7 as `login` with `external_id = extid(login)` (the next K2 creates the Customer under it). Minting is opt-in because binary N re-links such a row by email on its next sign-in and overwrites the minted `external_id`; use it only once N+1 is the only binary. An `external_id` naming a missing Customer is reported (`skipped_dangling_external_id`), never rewritten; the report says whether a Customer has the row's address (`sync-auth-accounts --run` or the next sign-in re-links it) or none does (an orphaned row, `customers diagnose <account id>`). Verification: `status_id = VERIFIED` **and** `Customer#mailbox_verified?` (`verified_by` in `Onetime::Customer::MAILBOX_VERIFIED_BY`, #4754) **and** the Customer has the row's address (`OT::Utils.same_mailbox?`: `normalize_email` on both sides, case mapping alone when either side is fold-unstable) → `email_verified_at = now`, `email_verified_by = verified_by`; same address and a Customer `verification_hold` → copied; otherwise all three NULL. A row whose columns already say what this mapping gives (a verification writer ran after migration 015) keeps them as recorded, with the writer's `email_verified_at`; columns the mapping disagrees with are replaced, since the mirror is what readers use and the doctor reports the disagreement. NULL covers an IdP (`sso`), payment, autoverify or `legacy` stamp (not mailbox proof; the mirror keeps its own answer and remains what readers use until the N+1 binary writes SQL), a Customer under another address, and a minted row, which has no Customer to consult. No `legacy` provenance is minted by the backfill. The login value is never printed or logged, and an error path logs only the scrubbed message, never the exception object. **Shipped** ([backfill_account_logins.rb](../../../apps/web/auth/operations/backfill_account_logins.rb)). |
 | Deploy N+1 | M015 | N+1 | D0 | N+1 writes `login`/`external_id` on every INSERT, reads by `external_id`, keeps email fallbacks read-only for rows still lacking `login`; email-less writes **disabled** (flag default off) |
 | M016 enforce | `login NOT NULL` (the UNIQUE index exists since M015) | N+1 only | D0 | refuses to run while any row has NULL `login` (rows inserted by N during the window are swept by re-running the backfill first). **Boot constraint:** `Auth::Migrator.run_if_needed` applies every migration file present at process start, so a refusing M016 is a boot failure. M016 therefore ships in a release deployed only after the operator has confirmed `backfill-logins` reports zero candidates (and `customers doctor` zero `auth_login_missing`), and its refusal message names that command. |
 | M017 enable | `email` nullable, CHECK `email <> ''`, `external_id NOT NULL` | N+1 | D0 → D1 once the flag is on | flag `SSO_EMAILLESS_ACCOUNTS` (default off) gates null-email INSERTs on the platform route only |
 
-Compatibility matrix (binary × data):
+Runtime compatibility matrix (binary behavior × data; the migration-file
+requirement above applies to every restart):
 
 | | D0 (no null-email rows) | D1 (null-email rows exist) |
 |---|---|---|
-| N | works at M015 (ignores new columns); **not supported** at M016/M017 (its inserts violate `login NOT NULL`) | broken for those accounts: `normalize_email(nil)` yields `""`, `Customer.create!` raises; **not a supported rollback target** |
-| N+1 | works at every schema step | works |
+| N | Already-running processes can read and insert at M015; releases without migration 015 cannot restart there. **Not supported** at M016/M017 (inserts violate `login NOT NULL`). | broken for those accounts: `normalize_email(nil)` yields `""`, `Customer.create!` raises; **not a supported rollback target** |
+| N+1 | Requires at least M015; supports M015–M017 with the release's migration files. | Requires M017 and a compatible release. |
 
-Rollback boundary: **the first null-email row.** Before it, rolling the binary
-back to N is safe at M015, and M016/M017 have non-destructive `down`
-migrations (drop constraints/columns; `login` data loss is acceptable because
-it is re-derivable). After it, rollback means "turn the flag off and stay on
-N+1"; the `down` of M017 refuses while null-email rows exist, and no
-migration deletes or rewrites those rows.
+**Rollback from M015 to a release whose migrations end at 014:**
+
+1. Stop application processes using the auth database, including workers,
+   and prevent automatic restarts or CLI boots during the downgrade.
+2. Retain the newer release's migration files and explicitly migrate the auth
+   schema down to version 14 with them. Do this before switching releases;
+   the older release has no migration 015 `down` implementation.
+3. Confirm the schema version is 14, then start the older release. Do not
+   restart the newer release in between: its boot migrator would apply 015
+   again.
+
+Migration 015's `down` removes the four added columns and the login index,
+including any backfilled values; it leaves pre-existing columns and account
+rows intact. The [SQLite migration regression](../../../apps/web/auth/spec/integration/full/migrations/migrations_sqlite_spec.rb)
+checks the missing-file failure, downgrade with the newer files, and subsequent
+migration check with the older files.
+
+**Data rollback boundary: the first null-email row.** M016 and M017 are
+planned, not implemented downgrade paths. Before enabling email-less creation,
+their `down` migrations must support reverting the constraints while preserving
+accounts, and the release-specific downgrade sequence must be tested. After a
+null-email row exists, rollback means "turn the flag off and stay on N+1";
+M017's planned `down` must refuse while null-email rows exist. No rollback
+should delete accounts or fabricate addresses to satisfy the older schema.
 
 Operational checks added to `bin/ots customers doctor`: `login` ↔ Customer
 objid (`auth_login_missing`, `auth_login_mismatch`; shipped), `""` key in the
