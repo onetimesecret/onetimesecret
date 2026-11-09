@@ -146,7 +146,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification, 'with a real (migrated
     # (it is not under test here).
     def verified_customer(extid:, email:)
       build_customer(extid: extid, email: email, verified: true).tap do |customer|
-        allow(customer).to receive_messages(refresh!: true, verified_by: 'sso', mailbox_verified?: false)
+        allow(customer).to receive_messages(stored_verified?: true, verified_by: 'sso', mailbox_verified?: false)
       end
     end
 

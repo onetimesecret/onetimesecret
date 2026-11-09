@@ -264,11 +264,13 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       expect(issues).to be_empty
     end
 
-    it 'never aborts the sweep: a raising read is logged, not raised' do
+    # Reported rather than read as "no row" (doctor_auth_account_unreadable_spec.rb).
+    it 'never aborts the sweep: a raising read is reported, not raised' do
       allow(Auth::Database).to receive(:connection).and_raise(StandardError, 'db down')
 
       expect { doctor.send(:check_auth_login_link, issues) }.not_to raise_error
-      expect(issues).to be_empty
+      expect(issues.map { |issue| issue[:check] }).to eq([:auth_account_unreadable])
+      expect(issues.first[:checks_not_run]).to eq([:auth_login_link])
     end
   end
 

@@ -214,23 +214,24 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
 
   # The self-service email change's stamp: an account an operator unverified
   # after the caller's read stays unverified. The SQL predicate is pinned in
-  # set_customer_verification_sql_spec.rb; this is the Customer re-read.
+  # set_customer_verification_sql_spec.rb; this is the Customer's stored
+  # flag, read without changing the caller's object.
   describe 'stamp_only: true' do
     def stamp
       described_class.new(customer: customer, verified: true, verified_by: 'email',
         new_address: true, stamp_only: true)
     end
 
-    before { allow(customer).to receive_messages(verified?: true, verified_by: 'sso', refresh!: true) }
+    before { allow(customer).to receive_messages(verified?: true, verified_by: 'sso', stored_verified?: true) }
 
-    it 'stamps a Customer that still reads verified when re-read' do
+    it 'stamps a Customer whose stored record still reads verified' do
       expect(stamp.call).to eq(:success)
-      expect(customer).to have_received(:refresh!).ordered
+      expect(customer).to have_received(:stored_verified?).ordered
       expect(customer).to have_received(:save).ordered
     end
 
-    it 'returns :not_verified and writes nothing when the re-read Customer is unverified' do
-      allow(customer).to receive(:refresh!) { allow(customer).to receive(:verified?).and_return(false) }
+    it 'returns :not_verified and writes nothing when the stored record reads unverified' do
+      allow(customer).to receive(:stored_verified?).and_return(false)
 
       expect(stamp.call).to eq(:not_verified)
       expect(customer).not_to have_received(:verified=)
@@ -242,6 +243,45 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
       expect do
         described_class.new(customer: customer, verified: false, verified_by: nil, stamp_only: true)
       end.to raise_error(ArgumentError, /stamp_only/)
+    end
+
+    # The double above cannot show what the stamp does to the caller's
+    # object, or read the bytes Familia stores: a real record can.
+    context 'with a stored Customer', :datastore do
+      let(:suffix) { "#{Familia.now.to_i}_#{SecureRandom.hex(4)}" }
+
+      before do
+        allow(Onetime).to receive(:get_logger).and_call_original
+        @record             = Onetime::Customer.create!(email: "stamp_only_#{suffix}@onetimesecret.com")
+        @record.verified    = true
+        @record.verified_by = 'sso'
+        @record.save
+      end
+
+      after { @record&.destroy! }
+
+      def stamp_record
+        described_class.new(customer: @record, verified: true, verified_by: 'email',
+          new_address: true, stamp_only: true).call
+      end
+
+      it "keeps the caller's unsaved assignments" do
+        @record.locale = 'fr'
+
+        expect(stamp_record).to eq(:success)
+        expect(@record.locale).to eq('fr')
+        expect(Onetime::Customer.load(@record.identifier).verified_by).to eq('email')
+      end
+
+      it 'returns :not_verified for a record unverified after the caller loaded it' do
+        other             = Onetime::Customer.load(@record.identifier)
+        other.verified    = false
+        other.verified_by = nil
+        other.save
+
+        expect(stamp_record).to eq(:not_verified)
+        expect(Onetime::Customer.load(@record.identifier).verified?).to be(false)
+      end
     end
   end
 
