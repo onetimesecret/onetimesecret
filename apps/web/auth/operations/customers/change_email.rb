@@ -997,16 +997,17 @@ module Auth
             ).call
             return :reset if result == :success
 
-            # :no_change. SetCustomerVerification returns it only when the
-            # REDIS mirror already reads unverified with a blank provenance,
-            # and it returns before touching SQL (set_customer_verification.rb:100).
-            # Any call that changes the state or the provenance reconciles the
-            # SQL row. So :no_change only means "already unverified" when the
-            # two stores agree.
-            # When they do not, the authoritative login gate (accounts.status_id)
-            # is STILL Verified and nothing was reset — the quietest version of
-            # exactly the state this reset exists to prevent.
-            return :reset unless auth_row_verified?
+            # :no_change. SetCustomerVerification decides it on this Customer
+            # object's in-memory fields: it returns :no_change when the object
+            # reads unverified with a blank provenance, and it writes neither
+            # store. Memory is not proof of what the stores say. If either
+            # store still says Verified, nothing was reset, which is the
+            # quietest version of exactly the state this reset exists to
+            # prevent. The forced clear below reads both stores again, the same
+            # way, rather than reusing these answers: a fresh read is the one
+            # to act on, and a read that failed here (and so counted as
+            # verified) must not force a write the store no longer needs.
+            return :reset unless verification_still_stored?
 
             @warnings << :verification_mirror_drift
           rescue StandardError => ex
@@ -1101,9 +1102,12 @@ module Auth
           return :reset if sql == :unchanged && redis == :unchanged
 
           @warnings << :verification_force_cleared
-          # The wrapper never got far enough to record its own verb, and a
-          # verification state change with no event is a hole in the trail. Same
-          # verb and shape the wrapper would have emitted (epic #20 CONTRACT 4).
+          # A verification state change with no event is a hole in the trail.
+          # After a raise, or on the sibling-row shortcut, the wrapper recorded
+          # nothing. After :no_change it recorded one event with
+          # `outcome: 'no_change'`, which says only that the wrapper wrote
+          # nothing; this event records the clear that did happen. Same verb
+          # and shape the wrapper would have emitted (epic #20 CONTRACT 4).
           record_event(
             actor: @actor,
             verb: 'customer.set_verification',
@@ -1187,9 +1191,19 @@ module Auth
           true
         end
 
-        # Does the AUTHORITATIVE login gate still say Verified? Consulted only on
-        # the wrapper's :no_change path. Fails CLOSED: an unanswerable probe is
-        # treated as "may still be verified" so the forced clear runs.
+        # Does either store still say Verified after the wrapper's :no_change?
+        # The accounts row is the login gate in full mode. The stored Customer
+        # flag is the gate in simple mode, where there is no row, and a mirror
+        # to reconcile in full mode. Both reads fail closed.
+        def verification_still_stored?
+          auth_row_verified? || stored_verified_or_unreadable?
+        end
+
+        # Does the accounts row still say Verified? Consulted only on the
+        # wrapper's :no_change path. No connection or no row means SQL is not
+        # the login gate here; verification_still_stored? reads the stored
+        # Customer flag next. Fails CLOSED: an unanswerable probe is treated
+        # as "may still be verified" so the forced clear runs.
         def auth_row_verified?
           db = connection
           return false unless db

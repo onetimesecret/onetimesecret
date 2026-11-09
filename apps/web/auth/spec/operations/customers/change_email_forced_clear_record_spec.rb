@@ -76,4 +76,23 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail, 'forced clear on a stor
     expect(op.send(:clear_customer_verification!)).to eq(:cleared)
     expect(stored.verified?).to be(false)
   end
+
+  # SetCustomerVerification decides :no_change on this object's in-memory
+  # fields and writes neither store. In simple mode there is no accounts row
+  # to probe, so the stored Customer flag is the only place left that can
+  # still say Verified, and it is the login gate.
+  it 'clears the stored flag when the wrapper answers :no_change from memory (simple mode)' do
+    @record.verified    = false
+    @record.verified_by = nil
+    expect(@record.verified?).to be(false)
+    expect(@record.stored_verified?).to be(true)
+
+    change = op
+    warnings = change.instance_variable_get(:@warnings)
+
+    expect(change.send(:reset_verification)).to eq(:reset)
+    expect(warnings).not_to include(:verification_reset_failed)
+    expect(warnings).to include(:verification_mirror_drift, :verification_force_cleared)
+    expect(stored.verified?).to be(false)
+  end
 end

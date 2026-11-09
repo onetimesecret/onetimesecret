@@ -1174,14 +1174,16 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       end
     end
 
-    # SetVerification returns :no_change WITHOUT raising when the Redis mirror
-    # already reads unverified — and it returns before touching SQL. If the
-    # authoritative accounts row still says Verified, nothing was reset.
+    # SetVerification returns :no_change WITHOUT raising when the Customer
+    # object reads unverified in memory, and it writes neither store. If the
+    # accounts row or the stored Customer flag still says Verified, nothing
+    # was reset.
     context 'when the wrapper returns :no_change (no exception at all)' do
       before { allow(verifier).to receive(:call).and_return(:no_change) }
 
-      it 'is a clean no-op when the accounts row already agrees' do
+      it 'is a clean no-op when the accounts row and the stored flag both read unverified' do
         account_status.replace(status_id: 1)
+        allow(customer).to receive(:stored_verified?).and_return(false)
 
         result = op.call
 
@@ -1199,6 +1201,18 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
         expect(result.status).to eq(:success)
         expect(result.warnings).to include(:verification_mirror_drift, :verification_force_cleared)
         expect(trace).to include([:sql_status_update, 1])
+      end
+
+      it 'force-clears a stored Customer flag that memory read as unverified' do
+        account_status.replace(status_id: 1)
+        allow(by_id_verified).to receive(:update).and_return(0)
+
+        result = op.call
+
+        expect(result.status).to eq(:success)
+        expect(result.warnings).to include(:verification_mirror_drift, :verification_force_cleared)
+        expect(trace).to include([:customer_verified_assigned, false])
+        expect(trace).not_to include([:sql_status_update, 1])
       end
 
       it 'fails CLOSED when the status probe itself cannot answer' do
