@@ -12,6 +12,7 @@ require 'onetime/jobs/publisher'
 require 'onetime/operations/sessions/revoke_all_for_customer'
 require 'onetime/signup_validation'
 require 'auth/account_statuses'
+require 'auth/account_email_verification'
 require 'auth/operations/customers/set_verification'
 
 module Auth
@@ -192,6 +193,10 @@ module Auth
         # and `:verification_not_reset` are not here either: the swap LANDED and
         # `record_audit` already writes them as their own result strings (D38).
         REFUSAL_STATUSES = [:not_found, :invalid_email, :email_taken, :stale].freeze
+
+        # Migration 015 (ADR-051): the accounts columns that qualify the row's
+        # current address. See #auth_verification_update.
+        AUTH_VERIFICATION_COLUMNS = Auth::AccountEmailVerification::COLUMNS
 
         # This is the highest-value account-takeover primitive an operator has.
         # A non-unique-violation SQL failure re-raises from the middle of the
@@ -466,6 +471,7 @@ module Auth
           # verification reset is allowed to downgrade the STATUS. ---
           sessions_revoked   = revoke_sessions
           verification_state = reset_verification
+          @mailbox_proof     = record_self_service_proof
           send_notifications(old_email)
 
           # The swap landed either way — that is why this is a status and not a
@@ -635,6 +641,7 @@ module Auth
             end
 
           @auth_row_email  = row && row[:email]
+          @auth_row_status = row && row[:status_id]
           @auth_account_id = row && row[:id]
         end
 
@@ -664,9 +671,55 @@ module Auth
           target   = target.where(email: baseline) if @allow_canonicalization && baseline
 
           rows = db.transaction do
-            target.update(email: @new_email, updated_at: Sequel::CURRENT_TIMESTAMP)
+            @prior_auth_verification = auth_verification_snapshot(db, target)
+            target.update(
+              email: @new_email,
+              updated_at: Sequel::CURRENT_TIMESTAMP,
+              **auth_verification_update(db, baseline),
+            )
           end
           rows.to_i.positive?
+        end
+
+        # Migration 015 (ADR-051): `email_verified_at`, `email_verified_by`
+        # and `email_verification_hold` qualify the row's CURRENT address, so
+        # an email change clears them in the swap itself (ADR-051: "Email
+        # changes clear that state."), whoever made it:
+        #
+        #   same mailbox (a canonicalization, OT::Utils.same_mailbox?)
+        #       -> untouched: the proof still names this mailbox
+        #   any other change -> all three NULL
+        #
+        # A self-service redemption then records the proof its link gave for
+        # the new address, in both stores (#record_self_service_proof). An
+        # operator change leaves them NULL: nobody has proven the new address,
+        # whether or not `require_verification` resets the mirror. A database
+        # without the columns (migration 015 not applied) gets the email
+        # write alone.
+        #
+        # @return [Hash] the verification columns to write, possibly empty
+        def auth_verification_update(db, baseline)
+          return {} unless auth_verification_columns?(db)
+          return {} if OT::Utils.same_mailbox?(baseline, @new_email)
+
+          Auth::AccountEmailVerification::CLEARED
+        end
+
+        # The row's verification columns before the swap, so that
+        # compensate_auth_row! puts back the proof that belongs to the old
+        # address along with the address.
+        #
+        # @return [Hash, nil] nil when the columns do not exist or the row is gone
+        def auth_verification_snapshot(db, target)
+          return nil unless auth_verification_columns?(db)
+
+          target.select(*AUTH_VERIFICATION_COLUMNS).first
+        end
+
+        def auth_verification_columns?(db)
+          return @auth_verification_columns if defined?(@auth_verification_columns)
+
+          @auth_verification_columns = Auth::AccountEmailVerification.columns?(db)
         end
 
         # Best-effort restore of the previous address. Used ONLY when the Customer
@@ -679,10 +732,13 @@ module Auth
           account_id = auth_account_id(db)
           return false unless account_id
 
+          restore = { email: old_email, updated_at: Sequel::CURRENT_TIMESTAMP }
+          restore.merge!(@prior_auth_verification) if @prior_auth_verification
+
           db.transaction do
             db[:accounts]
               .where(id: account_id)
-              .update(email: old_email, updated_at: Sequel::CURRENT_TIMESTAMP)
+              .update(restore)
           end
           true
         rescue StandardError => ex
@@ -963,6 +1019,61 @@ module Auth
           force_clear_verification!
         end
 
+        # A self-service redemption proved the new mailbox: the link was sent
+        # to the new address only (request_email_change.rb) and the account
+        # holder followed it. The swap cleared the accounts row's
+        # verification columns like any change (#auth_verification_update);
+        # this records the proof in both stores through
+        # SetCustomerVerification, with `new_address:` so that a stamp which
+        # proved the OLD address ('colonel_admin', say) is replaced by
+        # 'email', and a Customer verified without mailbox proof ('sso',
+        # 'stripe_payment', 'autoverify', 'legacy') gains it. Gaining it runs
+        # the deferred federation claim, held to the customer's own address
+        # (claim_own_address_only), as the Rodauth verify hook's stamp does.
+        #
+        # Only for an account already verified in both stores. An
+        # unverified account keeps Rodauth's verify_account as its way in:
+        # this stamp never moves a Customer or an accounts row from
+        # unverified to verified. The eligibility read is the status
+        # captured before the swap, so `stamp_only:` checks again at the
+        # write: an operator who unverified the account in between gets
+        # :not_verified, and the account stays as they left it.
+        #
+        # Does not raise: the swap has landed. A failure leaves the columns
+        # NULL beside a Customer that may still read mailbox-verified, which
+        # `customers doctor` reports as auth_email_verification_drift.
+        #
+        # @return [Symbol] :skipped | :recorded | :not_verified | :failed
+        def record_self_service_proof
+          return :skipped unless @self_service && self_service_proof_eligible?
+
+          result = Auth::Operations::SetCustomerVerification.new(
+            customer: @customer,
+            verified: true,
+            verified_by: 'email',
+            db: @db,
+            new_address: true,
+            claim_own_address_only: true,
+            stamp_only: true,
+          ).call
+          result == :not_verified ? :not_verified : :recorded
+        rescue StandardError => ex
+          auth_logger.error '[customer.change_email] mailbox proof for the new address not recorded',
+            extid: @customer.extid,
+            exception: ex
+          @warnings << :mailbox_proof_not_recorded
+          :failed
+        end
+
+        # The Customer reads verified and, in full auth mode, the accounts
+        # row read before the swap was Verified.
+        def self_service_proof_eligible?
+          return false unless @customer.verified?
+          return true unless Auth::Operations::SetCustomerVerification.full_auth_mode?
+
+          @auth_row_status == AccountStatuses::VERIFIED
+        end
+
         # True when a second `accounts` row could share the new address. The
         # wrapper's external_id-keyed write can no longer touch such a row
         # (#3916); this predicate now routes those paths straight to the
@@ -1002,6 +1113,13 @@ module Auth
           :reset
         end
 
+        # Moves the row to Unverified and, where migration 015 is applied,
+        # clears its verification columns in the same UPDATE: proof beside an
+        # Unverified row would contradict the mirror clear_customer_verification!
+        # resets. (A change to another mailbox cleared them in the swap; one
+        # that keeps the row's mailbox, such as a Customer moved to the
+        # address its row already has, kept them there.)
+        #
         # @return [Symbol] :unchanged | :cleared | :failed
         def clear_auth_row_verification!
           db = connection
@@ -1010,10 +1128,13 @@ module Auth
           account_id = auth_account_id(db)
           return :unchanged unless account_id
 
+          cleared = { status_id: AccountStatuses::UNVERIFIED, updated_at: Sequel::CURRENT_TIMESTAMP }
+          cleared.merge!(Auth::AccountEmailVerification::CLEARED) if auth_verification_columns?(db)
+
           rows = db.transaction do
             db[:accounts]
               .where(id: account_id, status_id: AccountStatuses::VERIFIED)
-              .update(status_id: AccountStatuses::UNVERIFIED, updated_at: Sequel::CURRENT_TIMESTAMP)
+              .update(cleared)
           end
           rows.to_i.positive? ? :cleared : :unchanged
         rescue StandardError => ex
@@ -1404,6 +1525,7 @@ module Auth
             require_verification: @require_verification,
             warnings: @warnings.uniq,
           }
+          detail[:mailbox_proof] = @mailbox_proof if @self_service
           # D41: optional operator provenance — this is the highest-value
           # account-takeover primitive an operator has, and without these the
           # trail records only actor='cli'.

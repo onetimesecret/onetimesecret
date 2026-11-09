@@ -8,6 +8,7 @@
 # these hooks fire, rather than relying on ambient load order.
 require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
 require 'auth/account_statuses'
+require 'auth/account_email_verification'
 require 'auth/operations/customers/purge'
 require 'auth/operations/customers/purge_preflight'
 require 'auth/operations/remove_authentication_data'
@@ -350,7 +351,14 @@ module Auth::Config::Hooks
               customer.verified_by = 'invite_token'
               customer.save
 
-              update_account(account_status_column => account_open_status_value)
+              # The migration 015 columns move with the status: the invite
+              # link is mailbox proof for this address
+              # (Auth::AccountEmailVerification).
+              opened = { account_status_column => account_open_status_value }
+              if Auth::AccountEmailVerification.columns?(db)
+                opened.merge!(Auth::AccountEmailVerification.values(verified: true, verified_by: 'invite_token'))
+              end
+              update_account(opened)
 
               had_verify_key = respond_to?(:remove_verify_account_key)
               remove_verify_account_key if had_verify_key
@@ -545,6 +553,17 @@ module Auth::Config::Hooks
           # but released 2.46 through 2.48 rotate it in place instead. The
           # delete is idempotent and runs inside the verify transaction.
           remove_verify_account_key
+
+          # Migration 015 (ADR-051): the link just redeemed was sent to this
+          # row's address, so it is mailbox proof for it. Written here, in
+          # Rodauth's verify transaction beside status_id, so the accounts
+          # row is complete before the Customer mirror is stamped below with
+          # rodauth_already_synced (Auth::AccountEmailVerification). Outside
+          # safe_execute on purpose: a failed write fails the verification
+          # with it, as a failed status write would.
+          if Auth::AccountEmailVerification.columns?(db)
+            update_account(Auth::AccountEmailVerification.values(verified: true, verified_by: 'email'))
+          end
 
           Auth::Logging.log_auth_event(
             :account_verified,

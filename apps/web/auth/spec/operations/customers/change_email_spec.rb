@@ -82,7 +82,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
   # --- SQL doubles ---------------------------------------------------------
   # db[:accounts].where(...)  is called with three different filters; each gets
   # its own leaf double so the examples can drive them independently.
-  let(:my_account_row)  { { id: 42, email: old_email } }
+  let(:my_account_row)  { { id: 42, email: old_email, status_id: 2 } }
   let(:collision_rows)  { [] }
 
   let(:by_external_id) { double('by_external_id') }
@@ -99,6 +99,8 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
   # --- delegated ops -------------------------------------------------------
   let(:revoker)  { instance_double(Onetime::Operations::Sessions::RevokeAllForCustomer, call: nil) }
   let(:verifier) { instance_double(Auth::Operations::Customers::SetVerification, call: :success) }
+  # The self-service redemption's mailbox-proof stamp (#record_self_service_proof).
+  let(:proof_stamp) { instance_double(Auth::Operations::SetCustomerVerification) }
 
   before do
     allow(Onetime::ColonelAuditEvent).to receive(:record)
@@ -119,8 +121,17 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
 
     allow(Onetime::Operations::Sessions::RevokeAllForCustomer).to receive(:new).and_return(revoker)
     allow(Auth::Operations::Customers::SetVerification).to receive(:new).and_return(verifier)
+    allow(Auth::Operations::SetCustomerVerification).to receive(:new).and_return(proof_stamp)
+    allow(Auth::Operations::SetCustomerVerification).to receive(:full_auth_mode?).and_return(true)
+    allow(proof_stamp).to receive(:call) do
+      trace << [:mailbox_proof_stamped]
+      :success
+    end
 
-    # SQL wiring
+    # SQL wiring. The schema has no migration 015 verification columns by
+    # default, so the swap writes the email alone; the 'verification columns'
+    # group adds them.
+    allow(db).to receive(:schema).with(:accounts).and_return([[:id, {}], [:email, {}]])
     allow(db).to receive(:[]).with(:accounts).and_return(accounts)
     allow(db).to receive(:transaction) { |&blk| blk.call }
     allow(accounts).to receive(:where).with(external_id: 'ur_c').and_return(by_external_id)
@@ -813,6 +824,22 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
 
     it 'refuses account_id: without the flag' do
       expect { op(account_id: 42) }.to raise_error(ArgumentError)
+    end
+
+    it 'leaves the migration 015 verification columns alone: the mailbox is the same' do
+      allow(db).to receive(:schema).with(:accounts).and_return(
+        [[:id, {}], [:email, {}], [:email_verified_at, {}], [:email_verified_by, {}], [:email_verification_hold, {}]],
+      )
+      allow(by_id_cas).to receive(:select).and_return(by_id_cas)
+      allow(by_id_cas).to receive(:first).and_return({ email_verified_at: Time.now, email_verified_by: 'email' })
+      written = nil
+      allow(by_id_cas).to receive(:update) do |attrs|
+        written = attrs
+        1
+      end
+
+      expect(op(allow_canonicalization: true).call.status).to eq(:success)
+      expect(written.keys).to contain_exactly(:email, :updated_at)
     end
 
     # The caller-named row path (`account_id:` + `expected_auth_email:`), as
@@ -1527,6 +1554,177 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
 
       expect { self_service_op.call }.to raise_error(StandardError, 'connection reset')
       expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+    end
+  end
+
+  # =========================================================================
+  # The followed link proved the new mailbox (it was sent there and nowhere
+  # else), so a self-service redemption records that proof in both stores
+  # once the swap has landed: 'email', replacing a stamp that proved the old
+  # address, and only for an account that is already verified.
+  describe 'mailbox proof on a self-service redemption' do
+    def self_service_op(**overrides)
+      op(actor: 'ur_c', require_verification: false, self_service: true, **overrides)
+    end
+
+    let(:security_events) { [] }
+
+    before do
+      allow(Onetime::ColonelAuditEvent).to receive(:record_security) { |**event| security_events << event }
+    end
+
+    def audit_detail
+      security_events.find { |event| event[:verb] == 'customer.change_email' }&.fetch(:detail)
+    end
+
+    it "stamps 'email' for the new address through SetCustomerVerification after the swap" do
+      expect(self_service_op.call.status).to eq(:success)
+
+      expect(Auth::Operations::SetCustomerVerification).to have_received(:new).with(
+        customer: customer,
+        verified: true,
+        verified_by: 'email',
+        db: db,
+        new_address: true,
+        claim_own_address_only: true,
+        stamp_only: true,
+      )
+      expect(trace.index([:mailbox_proof_stamped])).to be > trace.index([:customer_save])
+      expect(audit_detail).to include(mailbox_proof: :recorded)
+    end
+
+    # The stamp found the account unverified at the write (an operator
+    # unverified it after the eligibility read): nothing recorded, and the
+    # trail says so.
+    it 'records :not_verified, with no warning, when the stamp finds the account unverified' do
+      allow(proof_stamp).to receive(:call).and_return(:not_verified)
+
+      result = self_service_op.call
+
+      expect(result.status).to eq(:success)
+      expect(result.warnings).not_to include(:mailbox_proof_not_recorded)
+      expect(audit_detail).to include(mailbox_proof: :not_verified)
+    end
+
+    it 'does not stamp a Customer that is not verified: verify_account stays its way in' do
+      allow(customer).to receive(:verified?).and_return(false)
+
+      expect(self_service_op.call.status).to eq(:success)
+
+      expect(Auth::Operations::SetCustomerVerification).not_to have_received(:new)
+      expect(audit_detail).to include(mailbox_proof: :skipped)
+    end
+
+    it 'does not stamp when the accounts row was not Verified: the stamp never opens a login gate' do
+      my_account_row[:status_id] = 1
+
+      expect(self_service_op.call.status).to eq(:success)
+
+      expect(Auth::Operations::SetCustomerVerification).not_to have_received(:new)
+    end
+
+    it 'stamps on the Customer alone in simple auth mode, where there is no accounts row to read' do
+      allow(Auth::Operations::SetCustomerVerification).to receive(:full_auth_mode?).and_return(false)
+      my_account_row[:status_id] = nil
+
+      expect(self_service_op.call.status).to eq(:success)
+
+      expect(Auth::Operations::SetCustomerVerification).to have_received(:new)
+    end
+
+    it 'never stamps an operator change' do
+      expect(op(require_verification: false).call.status).to eq(:success)
+
+      expect(Auth::Operations::SetCustomerVerification).not_to have_received(:new)
+    end
+
+    it 'keeps the success status and warns when the stamp fails: the swap has landed' do
+      allow(proof_stamp).to receive(:call).and_raise(StandardError, 'redis down')
+
+      result = self_service_op.call
+
+      expect(result.status).to eq(:success)
+      expect(result.warnings).to include(:mailbox_proof_not_recorded)
+      expect(audit_detail).to include(mailbox_proof: :failed)
+    end
+  end
+
+  # =========================================================================
+  # Migration 015 (ADR-051): email_verified_at, email_verified_by and
+  # email_verification_hold qualify the row's CURRENT address, so they move
+  # with it.
+  describe 'verification columns' do
+    let(:columns) { [:email_verified_at, :email_verified_by, :email_verification_hold] }
+    let(:prior) { { email_verified_at: Time.utc(2026, 1, 2), email_verified_by: 'email', email_verification_hold: nil } }
+    let(:snapshot) { double('verification snapshot') }
+    let(:writes) { [] }
+
+    before do
+      allow(db).to receive(:schema).with(:accounts).and_return(
+        [[:id, {}], [:email, {}]] + columns.map { |column| [column, {}] },
+      )
+      allow(by_id).to receive(:select).with(*columns).and_return(snapshot)
+      allow(snapshot).to receive(:first).and_return(prior)
+      allow(by_id).to receive(:update) do |attrs|
+        writes << attrs
+        trace << [:sql_update, attrs[:email]]
+        1
+      end
+    end
+
+    it 'clears all three on an operator change: nobody has proven the new address' do
+      expect(op.call.status).to eq(:success)
+
+      expect(writes.first).to include(email: new_email, email_verified_at: nil, email_verified_by: nil,
+        email_verification_hold: nil)
+    end
+
+    it 'clears them on an operator change that keeps the mirror verified (require_verification: false)' do
+      expect(op(require_verification: false).call.status).to eq(:success)
+
+      expect(writes.first).to include(email_verified_at: nil, email_verified_by: nil)
+    end
+
+    it 'clears them in the swap on a self-service redemption too; the proof is stamped after it' do
+      expect(op(actor: 'ur_c', require_verification: false, self_service: true).call.status).to eq(:success)
+
+      expect(writes.first).to include(email: new_email, email_verified_at: nil, email_verified_by: nil,
+        email_verification_hold: nil)
+      expect(trace.last).to eq([:mailbox_proof_stamped])
+    end
+
+    # The forced clear is the reset's fallback. Proof in the columns beside a
+    # row it moves to Unverified would contradict the mirror it also clears.
+    it 'clears them with the status when the reset falls back to the forced clear' do
+      allow(verifier).to receive(:call).and_raise(StandardError, 'no auth db')
+      forced = []
+      allow(by_id_verified).to receive(:update) do |attrs|
+        forced << attrs
+        1
+      end
+
+      expect(op.call.warnings).to include(:verification_force_cleared)
+
+      expect(forced.first).to include(status_id: Auth::AccountStatuses::UNVERIFIED, email_verified_at: nil,
+        email_verified_by: nil, email_verification_hold: nil)
+    end
+
+    it 'puts the old proof back with the old address when the swap is compensated' do
+      allow(customer).to receive(:save).and_raise(StandardError, 'redis down')
+
+      expect(op.call.status).to eq(:partial)
+
+      expect(writes.map { |attrs| attrs[:email] }).to eq([new_email, old_email])
+      expect(writes.last).to include(prior)
+    end
+
+    it 'writes the email alone when the columns do not exist (migration 015 not applied)' do
+      allow(db).to receive(:schema).with(:accounts).and_return([[:id, {}], [:email, {}]])
+
+      expect(op.call.status).to eq(:success)
+
+      expect(writes.first.keys).to contain_exactly(:email, :updated_at)
+      expect(by_id).not_to have_received(:select).with(*columns)
     end
   end
 end

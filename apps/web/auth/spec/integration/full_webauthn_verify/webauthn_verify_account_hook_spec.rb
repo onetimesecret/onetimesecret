@@ -100,6 +100,12 @@ RSpec.describe 'after_verify_account with verify_account loaded by webauthn_veri
     verify_with_passkey!(emailed_verify_key)
 
     expect(auth_db[:accounts].where(id: account[:id]).get(:status_id)).to eq(AuthTestConstants::STATUS_VERIFIED)
+    # Migration 015 (ADR-051): the hook records the link as mailbox proof for
+    # the row's address in Rodauth's transaction, beside status_id.
+    verified_row = auth_db[:accounts].where(id: account[:id]).first
+    expect(verified_row[:email_verified_at]).not_to be_nil
+    expect(verified_row[:email_verified_by]).to eq('email')
+    expect(verified_row[:email_verification_hold]).to be_nil
     expect(auth_db[:account_webauthn_keys].where(account_id: account[:id]).count).to eq(1)
     expect(verification_key_rows(account[:id])).to eq(0)
 
