@@ -96,6 +96,12 @@ module Auth
       # Same scalar serialization and Lua CAS idiom as Models::Features::StateCas.
       # Only provenance is written: a stale instance must not save its email,
       # status, indexes or unrelated fields over a concurrent operator change.
+      # The verified comparison requires serialize_value('true'), unlike
+      # Customer#stored_verified?, which also decodes legacy bare values.
+      # The sole production stamp_only caller, ChangeEmail, saves the hash in
+      # rekey_customer! before stamping, normalizing that encoding. A new caller
+      # that does not save first must account for legacy values here; otherwise
+      # a legacy-encoded verified record returns :not_verified.
       STAMP_CONFIRMED_EMAIL = <<~LUA
         if redis.call('HGET', KEYS[1], 'email') ~= ARGV[1] then return -1 end
         if redis.call('HGET', KEYS[1], 'verified') ~= ARGV[2] then return 0 end
