@@ -234,14 +234,13 @@ module Auth
       #                    verified when the write runs; never verify one.
       #                    The accounts row is updated only while it is
       #                    Verified, in the UPDATE's own predicate, and the
-      #                    Customer is re-read (#refresh!) after that write
-      #                    and before its own. Either store reading
-      #                    unverified ends the call with :not_verified and
-      #                    the Customer unwritten. Requires verified: true,
-      #                    and a Customer with no unsaved changes, since the
-      #                    re-read replaces them. Set by the self-service
-      #                    email change, whose eligibility read precedes the
-      #                    swap
+      #                    Customer's stored verified flag is read
+      #                    (Customer#stored_verified?) after that write and
+      #                    before its own. Either store reading unverified
+      #                    ends the call with :not_verified and the Customer
+      #                    unwritten. Requires verified: true. Set by the
+      #                    self-service email change, whose eligibility read
+      #                    precedes the swap
       # @raise [ArgumentError] verified: true with a verified_by tag outside
       #   Onetime::Customer::VERIFIED_BY_VALUES — refused before any write,
       #   so an unknown tag can never reach either store; and stamp_only:
@@ -392,7 +391,8 @@ module Auth
 
           live   = scope.where(status_id: AccountStatuses::LIVE)
           target = @stamp_only ? scope.where(status_id: AccountStatuses::VERIFIED) : live
-          count  = target.update(status_id: @verified ? AccountStatuses::VERIFIED : AccountStatuses::UNVERIFIED,
+          count  = target.update(
+            status_id: @verified ? AccountStatuses::VERIFIED : AccountStatuses::UNVERIFIED,
             updated_at: Sequel::CURRENT_TIMESTAMP,
             **email_verification_values(db, target),
           )
@@ -459,12 +459,12 @@ module Auth
         legacy.empty? ? nil : legacy
       end
 
-      # stamp_only: the Customer as stored now, after the SQL write. An
-      # unverify that finished between the caller's read and here shows as
-      # verified? false, and the stamp leaves it alone.
+      # stamp_only: the Customer's verified flag as stored now, after the
+      # SQL write. An unverify that finished between the caller's read and
+      # here reads false, and the stamp leaves it alone. Only that field is
+      # read, so the caller's object keeps its fields as they were.
       def customer_still_verified?
-        @customer.refresh!
-        @customer.verified?
+        @customer.stored_verified?
       end
 
       def not_verified
