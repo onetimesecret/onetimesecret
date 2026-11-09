@@ -242,6 +242,120 @@ RSpec.describe 'Migration 015 verification columns follow every writer (ADR-051)
       expect(row.values_at(:email_verified_at, :email_verified_by, :email_verification_hold)).to all(be_nil)
     end
 
+    it 'does not stamp a concurrent operator address after writing SQL proof for the confirmed address' do
+      customer = create_customer(email, verified: true, verified_by: 'sso')
+      id       = insert_account(email, customer: customer, status_id: Auth::AccountStatuses::VERIFIED)
+      operator_email = "operator-#{run}@example.com"
+      allow(Auth::Operations::EnsureDefaultWorkspace).to receive(:claim_pending_federation_for)
+      allow_any_instance_of(Auth::Operations::SetCustomerVerification)
+        .to receive(:update_rodauth_account!).and_wrap_original do |original|
+          result = original.call
+          expect(account_row(id)[:email_verified_by]).to eq('email')
+          changed = Auth::Operations::Customers::ChangeEmail.new(
+            customer: Onetime::Customer.load(customer.objid),
+            new_email: operator_email, actor: 'cli', dry_run: false,
+            require_verification: false, revoke_sessions: false, notify: false,
+          ).call
+          expect(changed.status).to eq(:success)
+          result
+        end
+
+      expect(redeem(customer).status).to eq(:success)
+
+      reloaded = Onetime::Customer.load(customer.objid)
+      expect(reloaded.email).to eq(operator_email)
+      expect(reloaded.verified?).to be(true)
+      expect(reloaded.verified_by).to eq('sso')
+      expect(reloaded.mailbox_verified?).to be(false)
+      expect(account_row(id)).to include(email: operator_email, email_verified_at: nil, email_verified_by: nil)
+      expect(Auth::Operations::EnsureDefaultWorkspace).not_to have_received(:claim_pending_federation_for)
+    end
+
+    it 'binds the SQL UPDATE itself to the confirmed address, not an earlier address read' do
+      customer = create_customer(email, verified: true, verified_by: 'sso')
+      id = insert_account(email, customer: customer, status_id: Auth::AccountStatuses::VERIFIED)
+      operator_email = "sql-race-#{run}@example.com"
+      allow_any_instance_of(Auth::Operations::SetCustomerVerification)
+        .to receive(:email_verification_values).and_wrap_original do |original, *args|
+          values = original.call(*args)
+          accounts.where(id: id).update(email: operator_email, **proof_columns('colonel_admin'))
+          values
+        end
+
+      expect(redeem(customer).status).to eq(:success)
+
+      expect(account_row(id)).to include(email: operator_email, email_verified_by: 'colonel_admin')
+      expect(Onetime::Customer.load(customer.objid).verified_by).to eq('sso')
+    end
+
+    it 'does not overwrite an unverify immediately before the Redis write' do
+      customer = create_customer(email, verified: true, verified_by: 'sso')
+      insert_account(email, customer: customer, status_id: Auth::AccountStatuses::VERIFIED)
+      allow(customer.dbclient).to receive(:eval).and_wrap_original do |original, script, **options|
+        if script == Auth::Operations::SetCustomerVerification::STAMP_CONFIRMED_EMAIL
+          current = Onetime::Customer.load(customer.objid)
+          current.verified = false
+          current.verified_by = nil
+          current.save
+        end
+        original.call(script, **options)
+      end
+
+      expect(redeem(customer).status).to eq(:success)
+
+      current = Onetime::Customer.load(customer.objid)
+      expect(current.verified?).to be(false)
+      expect(current.verified_by).to be_nil
+    end
+
+    it 'does not save stale unrelated fields when the Redis stamp succeeds' do
+      customer = create_customer(email, verified: true, verified_by: 'sso')
+      insert_account(email, customer: customer, status_id: Auth::AccountStatuses::VERIFIED)
+      allow(customer.dbclient).to receive(:eval).and_wrap_original do |original, script, **options|
+        if script == Auth::Operations::SetCustomerVerification::STAMP_CONFIRMED_EMAIL
+          current = Onetime::Customer.load(customer.objid)
+          current.suspended = true
+          current.save
+        end
+        original.call(script, **options)
+      end
+
+      expect(redeem(customer).status).to eq(:success)
+
+      current = Onetime::Customer.load(customer.objid)
+      expect(current.verified_by).to eq('email')
+      expect(current.suspended?).to be(true)
+    end
+
+    it 'never recreates a Customer deleted immediately before the Redis stamp' do
+      customer = create_customer(email, verified: true, verified_by: 'sso')
+      insert_account(email, customer: customer, status_id: Auth::AccountStatuses::VERIFIED)
+      allow(customer.dbclient).to receive(:eval).and_wrap_original do |original, script, **options|
+        customer.dbclient.del(customer.dbkey) if script == Auth::Operations::SetCustomerVerification::STAMP_CONFIRMED_EMAIL
+        original.call(script, **options)
+      end
+
+      expect(redeem(customer).status).to eq(:success)
+      expect(customer.exists?).to be(false)
+    end
+
+    [Auth::AccountStatuses::UNVERIFIED, Auth::AccountStatuses::CLOSED].each do |status|
+      it "does not claim federation if SQL becomes status #{status} after the Redis stamp" do
+        customer = create_customer(email, verified: true, verified_by: 'sso')
+        id = insert_account(email, customer: customer, status_id: Auth::AccountStatuses::VERIFIED)
+        allow(Auth::Operations::EnsureDefaultWorkspace).to receive(:claim_pending_federation_for)
+        allow_any_instance_of(Auth::Operations::SetCustomerVerification)
+          .to receive(:claim_pending_federation!).and_wrap_original do |original|
+            accounts.where(id: id).update(status_id: status)
+            original.call
+          end
+
+        expect(redeem(customer).status).to eq(:success)
+        expect(Auth::Operations::EnsureDefaultWorkspace).not_to have_received(:claim_pending_federation_for)
+        expect(account_row(id)[:status_id]).to eq(status)
+      end
+    end
+
     it 'leaves an unverified account unverified, with the columns cleared' do
       customer = create_customer(email)
       id       = insert_account(email, customer: customer, status_id: Auth::AccountStatuses::UNVERIFIED)
