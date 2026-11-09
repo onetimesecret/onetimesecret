@@ -53,13 +53,15 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
     allow(cust).to receive(:update_in_class_email_index) { |old| trace << [:class_index_rekey, old] }
     allow(cust).to receive(:update_in_organization_email_index) { |org, old| trace << [:org_index_rekey, org, old] }
     allow(cust).to receive(:save) { trace << [:customer_save] }
-    # Verification state, only consulted on the forced-clear fallback. `hget` is
-    # the PERSISTED field and is what the fallback reads; `verified?` is the
-    # in-memory predicate. They are deliberately separate doubles because the
-    # wrapper assigns the attribute before saving, so the two disagree exactly
-    # when the fallback matters.
+    # Verification state, only consulted on the forced-clear fallback.
+    # `stored_verified?` is the PERSISTED field and is what the fallback reads;
+    # `verified?` is the in-memory predicate. They are deliberately separate
+    # doubles because the wrapper assigns the attribute before saving, so the
+    # two disagree exactly when the fallback matters. The stored bytes
+    # themselves are covered on a real record in
+    # change_email_forced_clear_record_spec.rb.
     allow(cust).to receive(:verified?).and_return(true)
-    allow(cust).to receive(:hget).with('verified').and_return('true')
+    allow(cust).to receive(:stored_verified?).and_return(true)
     allow(cust).to receive(:verified=) { |value| trace << [:customer_verified_assigned, value] }
     allow(cust).to receive(:verified_by=)
     cust
@@ -1157,7 +1159,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       # nothing to force and no spurious forced-clear audit should be emitted.
       context 'and the datastore agrees the flag is already down' do
         before do
-          allow(customer).to receive(:hget).with('verified').and_return('false')
+          allow(customer).to receive(:stored_verified?).and_return(false)
           # ...and the accounts row is already Unverified, so the row-scoped,
           # status-conditional update matches nothing. Both stores agree.
           allow(by_id_verified).to receive(:update).and_return(0)
@@ -1310,7 +1312,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       before do
         allow(verifier).to receive(:call).and_raise(StandardError, 'redis blip')
         allow(customer).to receive(:verified?).and_return(false)
-        allow(customer).to receive(:hget).with('verified').and_return('true')
+        allow(customer).to receive(:stored_verified?).and_return(true)
       end
 
       it 'clears the persisted flag even though memory already reads unverified' do
