@@ -401,6 +401,23 @@ RSpec.describe 'Account login backfill (ADR-051)', type: :integration do
       expect(result.stats[:skipped_index_mismatch]).to eq(1)
     end
 
+    # A dangling external_id is reported with a repair chosen by who has
+    # the row's address. A stale entry names a Customer at another address:
+    # sync-auth-accounts matches rows by that Customer's own address and
+    # cannot reach this row, so the report names the index repair.
+    it 'gives a dangling row the index repair, not sync-auth-accounts, when only a stale entry names the address' do
+      customer = create_customer(moved)
+      point_index_at(email, customer)
+      account_id = insert_account(email, external_id: 'urdoesnotexist0000000000000')
+
+      result = new_operation(dry_run: false).call
+
+      report = row_for(result, account_id)
+      expect(report[:outcome]).to eq(:skipped_dangling_external_id)
+      expect(report[:detail]).to include(customer.extid, 'bin/ots customers doctor --all --repair')
+      expect(report[:detail]).not_to include('sync-auth-accounts')
+    end
+
     it 'links the Customer at that address when a stale entry names another casing of it' do
       holder = create_customer(email)
       mover  = create_customer(moved)

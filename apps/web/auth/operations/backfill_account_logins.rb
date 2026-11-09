@@ -291,18 +291,30 @@ module Auth
       # the next sign-in recreates a Customer under the address
       # (SyncSession#recreate_customer). Either way the row stays a candidate
       # and the re-run links it.
+      #
+      # A holder must have the row's address (#same_address?), as on the link
+      # path. When the email index names only Customers at another address
+      # (a stale entry, `email_index_mismatch`), sync-auth-accounts cannot
+      # reach the row (it matches rows by each Customer's own address), so
+      # the report names the index repair first.
       def dangling_detail(row)
-        holders = email_candidates(row[:email].to_s)
+        indexed = email_candidates(row[:email].to_s)
+        holders = indexed.select { |customer| same_address?(row, customer) }
         base    = 'accounts.external_id names a Customer that does not exist; the link is not rewritten here. '
 
-        if holders.empty?
+        if holders.empty? && indexed.any?
+          base +
+            "The email index maps this address to Customer #{indexed.map(&:extid).join(', ')}, whose address is " \
+            'another one. Run `bin/ots customers doctor --all --repair` (email_index_mismatch), then re-run: ' \
+            'the report then names the repair for this row'
+        elsif holders.empty?
           base +
             "No Customer holds this address either, so the row is orphaned: `bin/ots customers diagnose #{row[:id]}` " \
             'reports it as orphaned_auth_account. The account\'s next sign-in recreates a Customer under the address ' \
             'and re-links the row; otherwise decide by hand whether the account stays. Re-run afterwards'
         else
           base +
-            "Customer #{holders.map(&:extid).join(', ')} holds this address: `bin/ots customers sync-auth-accounts " \
+            "Customer #{holders.map(&:extid).join(', ')} has this address: `bin/ots customers sync-auth-accounts " \
             '--run` re-links a live row to it (so does the account\'s next sign-in). Re-run afterwards'
         end
       end
@@ -350,6 +362,9 @@ module Auth
       # the lower id: linked by address, it would take the live account's
       # Customer and leave the live row refused as linked elsewhere. A closed
       # row cannot sign in, so a fresh login (mint_missing) is all it needs.
+      # mint_missing is one switch for both kinds of row, so a closed row
+      # waits for the precondition of a live one (see the class comment);
+      # nothing reads `login` before then.
       def closed_row(row)
         if @mint_missing
           login = SecureRandom.uuid_v7
@@ -360,8 +375,9 @@ module Auth
           row,
           :skipped_closed_row,
           nil,
-          'closed row with no external_id: never linked to a Customer by address (a live row may hold it); ' \
-          're-run with mint_missing to give it a fresh login',
+          'closed row with no external_id: never linked to a Customer by address (a live row may have it); ' \
+          'mint_missing gives it a fresh login, and also mints live rows with no Customer, so use it only once ' \
+          'every process materialises Customers from `login`',
         )
       end
 

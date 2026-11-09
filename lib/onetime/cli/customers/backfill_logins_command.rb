@@ -12,7 +12,7 @@
 #   bin/ots customers backfill-logins --confirm       # Execute
 #   bin/ots customers backfill-logins --limit 500     # First 500 rows without a login
 #   bin/ots customers backfill-logins --after-id 900  # Rows with account id > 900
-#   bin/ots customers backfill-logins --mint-missing  # Also mint logins for rows with no Customer
+#   bin/ots customers backfill-logins --mint-missing  # Also mint logins for rows with no Customer and closed rows
 #   bin/ots customers backfill-logins --json          # Machine-readable
 #
 # The per-row rules live in Auth::Operations::BackfillAccountLogins. This
@@ -200,8 +200,10 @@ module Onetime
 
         if stats[:skipped_closed_row].positive?
           lines << 'Closed rows with no external_id are never linked to a Customer by address (a'
-          lines << 'live row may hold it). They cannot sign in, so re-run with --mint-missing to'
-          lines << 'give them a fresh login.'
+          lines << 'live row may have it). They cannot sign in and need only a fresh login, which'
+          lines << '--mint-missing gives. The flag also mints logins for live rows with no'
+          lines << 'Customer, so use it only once every process reads the Customer by external_id'
+          lines << 'and creates a missing one from `login`.'
         end
 
         if stats[:skipped_index_mismatch].positive?
@@ -301,10 +303,11 @@ module Onetime
             --confirm               Execute changes (default is dry-run)
             --limit N               Process at most N rows without a login
             --after-id N            Only process accounts rows with id > N
-            --mint-missing          Mint a fresh login for rows with no Customer. Safe only
-                                    once every process materialises a missing Customer from
-                                    `login` (the current binary would re-link such a row by
-                                    email on its next sign-in)
+            --mint-missing          Mint a fresh login for rows with no Customer and for
+                                    closed rows with no external_id. Safe only once every
+                                    process materialises a missing Customer from `login`
+                                    (the current binary would re-link a live row by email on
+                                    its next sign-in)
             --json                  JSON output: {dry_run, stats, rows, last_account_id}
             --help, -h              Show this help message
 

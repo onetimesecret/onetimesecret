@@ -148,7 +148,10 @@ RSpec.describe 'customers backfill-logins', type: :cli do
       expect(last_exit_code).to eq(0)
     end
 
-    it 'reports closed and fold-unstable rows, with the mint-missing guidance for closed rows' do
+    # --mint-missing is one run-wide flag: it mints closed rows and live rows
+    # with no Customer alike. The closed-row hint must carry the live rows'
+    # precondition, or following it mints logins the current binary breaks.
+    it 'reports closed and fold-unstable rows, with the mint-missing guidance and its precondition' do
       allow(op).to receive(:call).and_return(
         build_result(
           dry_run: true,
@@ -163,7 +166,8 @@ RSpec.describe 'customers backfill-logins', type: :cli do
       output = run_cli_command_quietly('customers', 'backfill-logins')
 
       expect(output[:stdout]).to include('Skipped (closed row):', 'Skipped (fold-unstable address):')
-      expect(output[:stdout]).to include('re-run with --mint-missing to')
+      expect(output[:stdout]).to include('--mint-missing gives. The flag also mints logins for live rows with no')
+      expect(output[:stdout]).to include('Customer, so use it only once every process reads the Customer by external_id')
       expect(output[:stdout]).to include('Skipped rows are never resolved automatically.')
     end
 
