@@ -233,7 +233,10 @@ RSpec.describe 'API v3 PASETO bearer tokens', type: :integration do
       request(:post, '/api/v3/token', authorization: basic_header)
       expect(last_response.status).to eq(503), last_response.body
       expect(json_response).to include('error_type' => 'TemporarilyUnavailable', 'reason' => 'credential_watermark_ahead')
-      expect(last_response.headers['Retry-After']).to eq('5')
+      # Retry-After is the wait until the lead is back within the allowance:
+      # 31 seconds, or 30 when the mint ran a second after the watermark was set.
+      expect(last_response.headers['Retry-After'].to_i).to be_between(30, 31)
+      expect(json_response['retry_after']).to eq(last_response.headers['Retry-After'].to_i)
     ensure
       customer.last_password_update!(0)
     end

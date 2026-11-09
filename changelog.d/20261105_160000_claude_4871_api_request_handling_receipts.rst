@@ -9,7 +9,10 @@ Fixed
   receives a handle to a partial pair (#4873, #4867).
 - Receipt updates after a reveal or burn are written conditionally and
   atomically, and cleanup of the consumed secret is attempted after
-  consumption instead of being left to the next read (#4867).
+  consumption instead of being left to the next read (#4867). When that
+  cleanup itself fails, the secret's ciphertext is still removed from the
+  stored record before the error is returned, instead of remaining until the
+  record expires.
 - Incoming secrets (``/api/incoming``) persist their trusted metadata on the
   receipt's first save (#4869).
 - Malformed request input, such as unparseable parameters or a form ``POST``
