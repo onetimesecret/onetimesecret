@@ -67,4 +67,13 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail, 'forced clear on a stor
 
     expect(op.send(:clear_customer_verification!)).to eq(:unchanged)
   end
+
+  # Without the op's own rescue the error reaches the outer rescue in
+  # clear_customer_verification! and the result is :failed.
+  it 'runs the clear when the stored read raises (fails closed)' do
+    allow(@record).to receive(:stored_verified?).and_raise(StandardError, 'read failed')
+
+    expect(op.send(:clear_customer_verification!)).to eq(:cleared)
+    expect(stored.verified?).to be(false)
+  end
 end
