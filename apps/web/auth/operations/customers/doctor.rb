@@ -52,6 +52,10 @@ module Auth
       # which that command's scan never revisits) by `bin/ots customers
       # change-email`.
       #
+      # When the shared `auth_account` read raises, the cross-store checks
+      # that needed it report one `:auth_account_unreadable` issue naming
+      # them (#report_auth_account_unreadable) instead of passing.
+      #
       # NOTE: `VALID_ROLES` here is intentionally the doctor's own narrower set
       # ([customer, anonymous, colonel]) — the historical data-shape checker — and
       # is deliberately NOT the assignable-role list in SetRole::VALID_ROLES. They
@@ -108,8 +112,11 @@ module Auth
 
         # The one accounts-row read every cross-store check shares (memoized
         # `auth_account`). `login` and the `email_verified_*` columns arrive
-        # with migration 015 (ADR-051); the auth DB is migrated at boot, so a
-        # doctor that can reach it always sees them.
+        # with migration 015 (ADR-051). The auth DB is migrated at boot, but
+        # Auth::Migrator.run_if_needed lets a process boot without them while
+        # another one holds the migration lock, and there this SELECT raises.
+        # The checks then report :auth_account_unreadable
+        # (#report_auth_account_unreadable) rather than read "no row".
         AUTH_ACCOUNT_COLUMNS = [
           :id, :email, :status_id, :login,
           :email_verified_at, :email_verified_by, :email_verification_hold
@@ -681,14 +688,13 @@ module Auth
         # authdb this is the dominant cost of the doctor run. Skipped entirely in
         # simple mode (no auth database).
         def check_auth_email_drift(issues, repaired)
-          db = auth_db
-          return if db.nil?
-
           return if @customer.email.to_s.empty?
 
           account = auth_account
+          return report_auth_account_unreadable(issues, :auth_email_drift) if @auth_account_unreadable
           return if account.nil?
 
+          db        = auth_db
           sql_email = account[:email].to_s
           return if sql_email.downcase == @customer.email.to_s.downcase
 
@@ -766,6 +772,7 @@ module Auth
         # (normalized) Customer address into the row, which settles both.
         def check_auth_email_canonical(issues)
           account = auth_account
+          return report_auth_account_unreadable(issues, :auth_email_not_canonical) if @auth_account_unreadable
           return if account.nil?
 
           sql_email      = account[:email].to_s
@@ -1126,6 +1133,9 @@ module Auth
         # clears the verification columns when the mailbox changes); it
         # updates the memo with exactly what it wrote, so every later check
         # judges the repaired row rather than the address the repair replaced.
+        #
+        # A read that raises is nil too, flagged unreadable (see
+        # #report_auth_account_unreadable).
         def auth_account
           return @auth_account if defined?(@auth_account)
 
@@ -1137,9 +1147,52 @@ module Auth
                           else
                             db[:accounts].where(external_id: extid).select(*AUTH_ACCOUNT_COLUMNS).first
                           end
-        rescue StandardError
+        rescue StandardError => ex
+          auth_account_unreadable!(ex, 'auth accounts row read')
+          @auth_account = nil
+        end
+
+        # Records why the accounts row could not be read, for the
+        # :auth_account_unreadable issue, and logs the exception once per
+        # customer. The issue carries the class only: a connection error's
+        # message can name hosts and users.
+        def auth_account_unreadable!(ex, what)
           @auth_account_unreadable = true
-          @auth_account            = nil
+          @auth_account_error      = ex.class.name
+          OT.le "[customers doctor] #{what} failed for #{@customer.extid}: #{ex.class} #{ex.message}"
+        end
+
+        # A cross-store check whose accounts row could not be read (the
+        # SELECT raised, or the connection could not be built) decides
+        # nothing, but returning quietly would print a clean report for a
+        # customer it never examined: a doctor run against a schema-014
+        # database, where AUTH_ACCOUNT_COLUMNS raises, would hide a critical
+        # :auth_email_drift. Every such check names itself on ONE issue per
+        # customer instead, so a `--all` sweep lists the customer once.
+        # Report-only. Not for simple mode or a missing row: those are nil
+        # without the flag, and stay silent.
+        #
+        # @return [nil]
+        def report_auth_account_unreadable(issues, check)
+          issue = issues.find { |i| i[:check] == :auth_account_unreadable }
+          unless issue
+            issue = {
+              check: :auth_account_unreadable,
+              severity: :critical,
+              error: @auth_account_error,
+              checks_not_run: [],
+              repairable: false,
+              repair_action: 'Check that the auth database is reachable and migrated to 015 or later ' \
+                             '(a process can boot while another one holds the migration lock), then ' \
+                             're-run the doctor',
+            }
+            issues << issue
+          end
+
+          issue[:checks_not_run] |= [check]
+          issue[:message]         = "auth accounts row could not be read (#{@auth_account_error}); " \
+                                    "not checked: #{issue[:checks_not_run].join(', ')}"
+          nil
         end
 
         # ADR-051 (SSO email-less accounts Phase 2): the accounts row's internal
@@ -1178,6 +1231,7 @@ module Auth
         #                         reported, not repaired.
         def check_auth_login_link(issues)
           account = auth_account
+          return report_auth_account_unreadable(issues, :auth_login_link) if @auth_account_unreadable
           return if account.nil?
           return unless account.key?(:login)
 
@@ -1324,6 +1378,7 @@ module Auth
           return unless @customer.provisioning_origin.to_s == 'sso_jit'
 
           account = auth_account
+          return report_auth_account_unreadable(issues, :sso_customer_unverified) if @auth_account_unreadable
           return if account.nil?
           return unless account[:status_id] == Auth::AccountStatuses::VERIFIED
 
@@ -1413,6 +1468,7 @@ module Auth
           return unless @customer.provisioning_origin.to_s == 'login_recovery'
 
           account = auth_account
+          return report_auth_account_unreadable(issues, :recovered_customer_unverified) if @auth_account_unreadable
           return if account.nil?
           return unless recovered_customer_unverified?(account)
 
@@ -1549,9 +1605,9 @@ module Auth
           return @auth_db if defined?(@auth_db)
 
           @auth_db = defined?(Auth::Database) ? Auth::Database.connection : nil
-        rescue StandardError
-          @auth_account_unreadable = true
-          @auth_db                 = nil
+        rescue StandardError => ex
+          auth_account_unreadable!(ex, 'auth database connection')
+          @auth_db = nil
         end
 
         # In simple mode no auth account exists, so a stale marker is an
