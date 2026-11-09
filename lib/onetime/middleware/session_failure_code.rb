@@ -53,10 +53,16 @@ module Onetime
     #   from that strategy). Basic is the applicable scheme for that resource
     #   (RFC 7617), and the client already chose it by sending the header;
     #   the browser client never does.
+    # - `Bearer` (BEARER_CHALLENGE, RFC 6750 §3) only when PasetoAuthStrategy
+    #   rejected a `Bearer` token (`api_token_invalid`, `api_token_expired`,
+    #   or `suspended_credentials` from that strategy). An expired token's
+    #   challenge carries `error_description` so the client can tell routine
+    #   expiry from a token it should not retry.
     #
     # The scheme is read from the stash, not from the request: the Basic
-    # strategies record `Onetime::SessionFailureCode::SCHEME_BASIC` beside the
-    # reason (SCHEME_ENV_KEY), and nothing else does. A refusal stashed by a
+    # strategies record `Onetime::SessionFailureCode::SCHEME_BASIC` and
+    # PasetoAuthStrategy records SCHEME_BEARER beside the reason
+    # (SCHEME_ENV_KEY), and nothing else does. A refusal stashed by a
     # form login, a re-authentication or the simple-mode sign-in is
     # challenged with `Session` even when that request also carried an
     # `Authorization` header, because no strategy examined it and a `Basic`
@@ -144,6 +150,12 @@ module Onetime
       SESSION_CHALLENGE = %(Session realm="#{REALM}")
       BASIC_CHALLENGE   = %(Basic realm="#{REALM}")
 
+      # RFC 6750 §3: a rejected bearer token is `invalid_token`, expiry
+      # included; the description tells an expired token apart so a client
+      # can mint a new one without treating it as tampering.
+      BEARER_CHALLENGE         = %(Bearer realm="#{REALM}", error="invalid_token")
+      BEARER_EXPIRED_CHALLENGE = %(#{BEARER_CHALLENGE}, error_description="The access token expired")
+
       # The status a `verification_unavailable` refusal answers, and its
       # Retry-After in seconds.
       UNAVAILABLE_STATUS      = 503
@@ -217,10 +229,14 @@ module Onetime
       end
 
       # See "The challenge" above: Basic only on the Basic strategies' own
-      # stash, Session for every other refusal.
+      # stash, Bearer only on PasetoAuthStrategy's, Session for every other
+      # refusal.
       def challenge(env)
-        if Onetime::SessionFailureCode.scheme(env) == Onetime::SessionFailureCode::SCHEME_BASIC
+        case Onetime::SessionFailureCode.scheme(env)
+        when Onetime::SessionFailureCode::SCHEME_BASIC
           BASIC_CHALLENGE
+        when Onetime::SessionFailureCode::SCHEME_BEARER
+          env[ENV_KEY] == :api_token_expired ? BEARER_EXPIRED_CHALLENGE : BEARER_CHALLENGE
         else
           SESSION_CHALLENGE
         end

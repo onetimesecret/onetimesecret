@@ -37,12 +37,18 @@ import {
   systemVersionResponseSchema,
 } from './meta';
 // Organization schemas moved to internal registry (see @/schemas/api/internal/responses)
-import { receiptListResponseSchema, receiptResponseSchema } from './receipts';
+import {
+  receiptListResponseSchema,
+  receiptResponseSchema,
+  updateReceiptResponseSchema,
+} from './receipts';
 import {
   concealDataResponseSchema,
   secretListResponseSchema,
   secretResponseSchema,
+  secretStatusResponseSchema,
 } from './secrets';
+import { bearerTokenResponseSchema } from './tokens';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Response schema registry
@@ -60,6 +66,7 @@ export const responseSchemas = {
   // Secrets
   concealData: concealDataResponseSchema,
   secret: secretResponseSchema,
+  secretStatus: secretStatusResponseSchema,
   secretList: secretListResponseSchema,
 
   // Domains / brand
@@ -71,6 +78,7 @@ export const responseSchemas = {
 
   // Receipts
   receipt: receiptResponseSchema,
+  updateReceipt: updateReceiptResponseSchema,
   receiptList: receiptListResponseSchema,
 
   // Meta
@@ -80,6 +88,9 @@ export const responseSchemas = {
 
   // Feedback
   feedback: feedbackResponseSchema,
+
+  // Bearer tokens (POST /api/v3/token)
+  bearerToken: bearerTokenResponseSchema,
 
   // Authentication (Rodauth-compatible)
   // NOTE: These auth schemas are not referenced by any API routes (auth routes
@@ -91,6 +102,14 @@ export const responseSchemas = {
   resetPasswordRequest: resetPasswordRequestResponseSchema,
   resetPassword: resetPasswordResponseSchema,
 } as const;
+
+// Operation-specific producer selections while Ruby still declares the broader
+// model-reader keys. These affect documentation/conformance, not HTTP access or
+// post-commit runtime parsing.
+export const operationResponseSchemas: Record<string, z.ZodType> = {
+  ShowSecretStatus: secretStatusResponseSchema,
+  UpdateReceipt: updateReceiptResponseSchema,
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mapped types

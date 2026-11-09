@@ -382,15 +382,19 @@ RSpec.describe Onetime::Mail::Delivery::Smtp2go do
   end
 
   describe '#validate_config!' do
-    it 'raises ArgumentError when api_key is missing' do
+    it 'raises ConfigurationError when api_key is missing' do
       allow(ENV).to receive(:fetch).with('SMTP2GO_API_KEY', nil).and_return(nil)
       expect { described_class.new({}) }
-        .to raise_error(ArgumentError, /SMTP2GO API key must be configured/)
+        .to raise_error(Onetime::Mail::ConfigurationError, /SMTP2GO API key must be configured/) do |err|
+          expect(err.provider).to eq('smtp2go')
+        end
     end
 
-    it 'raises ArgumentError when api_key is empty' do
+    it 'raises ConfigurationError when api_key is empty' do
       expect { described_class.new({ 'api_key' => '' }) }
-        .to raise_error(ArgumentError, /SMTP2GO API key must be configured/)
+        .to raise_error(Onetime::Mail::ConfigurationError, /SMTP2GO API key must be configured/) do |err|
+          expect(err.provider).to eq('smtp2go')
+        end
     end
 
     it 'accepts key from ENV' do

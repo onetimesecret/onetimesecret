@@ -38,6 +38,13 @@ module Onetime::Customer::Features
       base.field_group :deprecated_fields do
         base.field :sessid
         base.field :apitoken # TODO: use sorted set?
+        # Epoch second of the last API key rotation (#regenerate_apitoken),
+        # written in the same HSET as the new key. The watermark that retires
+        # the v3 bearer tokens minted while the previous key was live
+        # (#bearer_token_watermark); deliberately NOT last_password_update,
+        # which also retires sessions: rotating a leaked key must not sign
+        # the owner out of the browser they rotated it from.
+        base.field :last_apitoken_update
         base.field :contributor
 
         # These were used for the old counter fields implementation. We can
@@ -85,9 +92,37 @@ module Onetime::Customer::Features
         apitoken.to_s == guess.to_s
       end
 
+      # Replace the API key and stamp #last_apitoken_update in one write, so
+      # no process can see the new key without the watermark that retires
+      # the bearer tokens minted from the old one (an unstamped rotation
+      # would leave a leaked key's tokens alive until they expire).
+      #
+      # The write is the two fields and nothing else: no TTL refresh on the
+      # record or its relations (the former fast writer was a bare HSET, and
+      # #destroy_requested sets a 365-day default_expiration right before
+      # calling this without meaning to apply it here).
+      #
+      # @return [String] the new key
       def regenerate_apitoken
-        apitoken! Familia.generate_id
-        apitoken # the fast writer bang methods don't return the value
+        self.apitoken             = Familia.generate_id
+        self.last_apitoken_update = Familia.now.to_i
+        save_fields(:apitoken, :last_apitoken_update, update_expiration: false)
+        apitoken
+      end
+
+      # The instant a v3 bearer token must be issued strictly after, and is
+      # refused at or before: the later of the two credential changes that
+      # retire tokens, a password change (#last_password_update, the
+      # watermark that retires sessions too) and an API key rotation
+      # (#last_apitoken_update, which retires tokens only). One reader for
+      # both the verifier (PasetoAuthStrategy#predates_credential_change?)
+      # and the mint (V3::Logic::Auth::GenerateToken#issuance_time), so
+      # the two cannot disagree about where the line is. 0 when neither
+      # has been stamped.
+      #
+      # @return [Integer] epoch seconds
+      def bearer_token_watermark
+        [last_password_update.to_i, last_apitoken_update.to_i].max
       end
 
       def external_identifier

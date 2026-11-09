@@ -1,0 +1,32 @@
+{
+  "name": "auth-token",
+  "method": "POST",
+  "path": "/api/v3/token",
+  "request": {},
+  "response_schema": "bearerToken",
+  "request_schema": null,
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "x-request-id": "2zxostpm1glx6"
+  },
+  "body": {
+    "record": {
+      "token": "v4.public.eyJzdWIiOiJ1cjN5dTdyanQ4cmF1eGM4Z2Nvc3BudTRrdXQiLCJhdWQiOiJvbmV0aW1lc2VjcmV0OmFwaTp2MyIsImlzcyI6IjEyNy4wLjAuMTozMDAwIiwiaWF0IjoiMjAyNi0xMC0yN1QyMTowOTo1OVoiLCJuYmYiOiIyMDI2LTEwLTI3VDIxOjA5OjU5WiIsImV4cCI6IjIwMjYtMTAtMjdUMjI6MDk6NTlaIiwianRpIjoicmVpTnpjTjVZRWhycGpsVW14cU9YZyIsInNjb3BlIjpbIioiXX3Xc0wZyfiB1GSL_GJi6_oiSRvHzf_-lXjQLjrYMOvGuNwdn6nLb3VX9G9hGNrMwc1aC5gQXRZWjZziD8AlclwJ.eyJraWQiOiI1ODI1MGViNDAzZDBiMWNjIn0",
+      "token_type": "Bearer",
+      "expires_in": 3600,
+      "expires_at": 1793138999,
+      "issued_at": 1793135399,
+      "kid": "58250eb403d0b1cc",
+      "scope": [
+        "*"
+      ]
+    },
+    "details": {
+      "subject": "ur3yu7rjt8rauxc8gcospnu4kut",
+      "audience": "onetimesecret:api:v3",
+      "issuer": "127.0.0.1:3000"
+    }
+  }
+}

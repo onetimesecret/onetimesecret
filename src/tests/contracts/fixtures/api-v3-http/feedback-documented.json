@@ -1,0 +1,27 @@
+{
+  "name": "feedback-documented",
+  "method": "POST",
+  "path": "/api/v3/feedback",
+  "request": {
+    "message": "schema audit documented message",
+    "email": "schema@example.com"
+  },
+  "response_schema": "feedback",
+  "request_schema": "receiveFeedback",
+  "status": 422,
+  "headers": {
+    "content-type": "application/json",
+    "content-length": "76",
+    "x-content-type-options": "nosniff",
+    "x-xss-protection": "1; mode=block",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "cache-control": "private, no-store",
+    "o-domain-strategy": "canonical",
+    "o-display-domain": "127.0.0.1:3000",
+    "x-request-id": "33lgqbaqfgurp"
+  },
+  "body": {
+    "error": "You can be more original than that!",
+    "request_id": "33lgqbaqfgurp"
+  }
+}

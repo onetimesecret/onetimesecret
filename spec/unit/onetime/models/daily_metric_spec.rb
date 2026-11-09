@@ -112,8 +112,7 @@ RSpec.describe Onetime::DailyMetric do
       ENV['VERIFIABLE_ID_HMAC_SECRET'] ||= SecureRandom.hex(32)
       # Intercept persistence/encryption like receipt_spec.rb — the chokepoint
       # under test is the DailyMetric tick, not the Redis write pipeline.
-      allow_any_instance_of(Onetime::Receipt).to receive(:save).and_return(true)
-      allow_any_instance_of(Onetime::Secret).to receive(:save).and_return(true)
+      allow(Familia).to receive(:atomic_write).and_return(true)
       allow_any_instance_of(Onetime::Secret).to receive(:ciphertext=)
       allow_any_instance_of(Onetime::Receipt)
         .to receive(:register_for_expiration_notifications).and_return(true)

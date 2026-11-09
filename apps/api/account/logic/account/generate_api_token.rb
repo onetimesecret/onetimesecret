@@ -8,7 +8,10 @@ module AccountAPI::Logic
     #
     # @api Regenerates the authenticated user's API token and returns
     #   the new token value. Requires an active session; anonymous
-    #   users are rejected.
+    #   users are rejected. Every v3 bearer token issued before the
+    #   rotation is refused from then on (Customer#regenerate_apitoken
+    #   stamps the watermark PasetoAuthStrategy checks); the session that
+    #   made the request is unaffected.
     class GenerateAPIToken < AccountAPI::Logic::Base
       SCHEMAS = { response: 'apiToken' }.freeze
 
