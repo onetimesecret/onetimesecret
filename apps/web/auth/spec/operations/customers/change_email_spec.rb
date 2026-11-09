@@ -1578,7 +1578,10 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
     end
 
     it "stamps 'email' for the new address through SetCustomerVerification after the swap" do
-      expect(self_service_op.call.status).to eq(:success)
+      result = self_service_op.call
+
+      expect(result.status).to eq(:success)
+      expect(result.warnings).not_to include(:mailbox_proof_not_recorded)
 
       expect(Auth::Operations::SetCustomerVerification).to have_received(:new).with(
         customer: customer,
@@ -1596,28 +1599,38 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
 
     # The stamp found the account unverified at the write (an operator
     # unverified it after the eligibility read): nothing recorded, and the
-    # trail says so.
-    it 'records :not_verified, with no warning, when the stamp finds the account unverified' do
+    # result and trail both warn.
+    it 'warns when the stamp finds the account unverified' do
       allow(proof_stamp).to receive(:call).and_return(:not_verified)
 
       result = self_service_op.call
 
       expect(result.status).to eq(:success)
-      expect(result.warnings).not_to include(:mailbox_proof_not_recorded)
-      expect(audit_detail).to include(mailbox_proof: :not_verified)
+      expect(result.warnings).to include(:mailbox_proof_not_recorded)
+      expect(audit_detail).to include(
+        mailbox_proof: :not_verified, warnings: include(:mailbox_proof_not_recorded),
+      )
     end
 
-    it 'records :stale rather than reporting proof for a concurrent address change' do
+    it 'warns and records :stale for a concurrent address change' do
       allow(proof_stamp).to receive(:call).and_return(:stale)
 
-      expect(self_service_op.call.status).to eq(:success)
-      expect(audit_detail).to include(mailbox_proof: :stale)
+      result = self_service_op.call
+
+      expect(result.status).to eq(:success)
+      expect(result.warnings).to include(:mailbox_proof_not_recorded)
+      expect(audit_detail).to include(
+        mailbox_proof: :stale, warnings: include(:mailbox_proof_not_recorded),
+      )
     end
 
     it 'does not stamp a Customer that is not verified: verify_account stays its way in' do
       allow(customer).to receive(:verified?).and_return(false)
 
-      expect(self_service_op.call.status).to eq(:success)
+      result = self_service_op.call
+
+      expect(result.status).to eq(:success)
+      expect(result.warnings).not_to include(:mailbox_proof_not_recorded)
 
       expect(Auth::Operations::SetCustomerVerification).not_to have_received(:new)
       expect(audit_detail).to include(mailbox_proof: :skipped)
@@ -1626,9 +1639,13 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
     it 'does not stamp when the accounts row was not Verified: the stamp never opens a login gate' do
       my_account_row[:status_id] = 1
 
-      expect(self_service_op.call.status).to eq(:success)
+      result = self_service_op.call
+
+      expect(result.status).to eq(:success)
+      expect(result.warnings).not_to include(:mailbox_proof_not_recorded)
 
       expect(Auth::Operations::SetCustomerVerification).not_to have_received(:new)
+      expect(audit_detail).to include(mailbox_proof: :skipped)
     end
 
     it 'stamps on the Customer alone in simple auth mode, where there is no accounts row to read' do

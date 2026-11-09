@@ -232,7 +232,10 @@ RSpec.describe 'Migration 015 verification columns follow every writer (ADR-051)
           original.call
         end
 
-      expect(redeem(customer).status).to eq(:success)
+      result = redeem(customer)
+
+      expect(result.status).to eq(:success)
+      expect(result.warnings).to include(:mailbox_proof_not_recorded)
 
       reloaded = Onetime::Customer.load(customer.objid)
       expect(reloaded.verified?).to be(false)
@@ -260,7 +263,10 @@ RSpec.describe 'Migration 015 verification columns follow every writer (ADR-051)
           result
         end
 
-      expect(redeem(customer).status).to eq(:success)
+      result = redeem(customer)
+
+      expect(result.status).to eq(:success)
+      expect(result.warnings).to include(:mailbox_proof_not_recorded)
 
       reloaded = Onetime::Customer.load(customer.objid)
       expect(reloaded.email).to eq(operator_email)
