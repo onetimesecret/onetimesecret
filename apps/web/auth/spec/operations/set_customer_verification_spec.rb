@@ -267,6 +267,45 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
         described_class.new(customer: customer, verified: false, verified_by: nil, stamp_only: true)
       end.to raise_error(ArgumentError, /stamp_only/)
     end
+
+    # The double above cannot show what the stamp does to the caller's
+    # object, or read the bytes Familia stores: a real record can.
+    context 'with a stored Customer', :datastore do
+      let(:suffix) { "#{Familia.now.to_i}_#{SecureRandom.hex(4)}" }
+
+      before do
+        allow(Onetime).to receive(:get_logger).and_call_original
+        @record             = Onetime::Customer.create!(email: "stamp_only_#{suffix}@onetimesecret.com")
+        @record.verified    = true
+        @record.verified_by = 'sso'
+        @record.save
+      end
+
+      after { @record&.destroy! }
+
+      def stamp_record
+        described_class.new(customer: @record, verified: true, verified_by: 'email',
+          new_address: true, stamp_only: true, confirmed_email: @record.email).call
+      end
+
+      it "keeps the caller's unsaved assignments" do
+        @record.locale = 'fr'
+
+        expect(stamp_record).to eq(:success)
+        expect(@record.locale).to eq('fr')
+        expect(Onetime::Customer.load(@record.identifier).verified_by).to eq('email')
+      end
+
+      it 'returns :not_verified for a record unverified after the caller loaded it' do
+        other             = Onetime::Customer.load(@record.identifier)
+        other.verified    = false
+        other.verified_by = nil
+        other.save
+
+        expect(stamp_record).to eq(:not_verified)
+        expect(Onetime::Customer.load(@record.identifier).verified?).to be(false)
+      end
+    end
   end
 
   describe 'full auth mode' do
