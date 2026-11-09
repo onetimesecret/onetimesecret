@@ -557,9 +557,11 @@ module Auth
         # record as sent to the customer's current address. The pending
         # record is left intact.
         return unless @claim_pending_federation
-        return if @stamp_only && !confirmed_proof_current?
 
         claimed             = Onetime::ErrorHandler.safe_execute('claim_pending_federation', external_id: @customer.extid) do
+          # A failed recheck skips federation, not the proof already recorded.
+          next false if @stamp_only && !confirmed_proof_current?
+
           options = { own_address_only: @claim_own_address_only }
           if @stamp_only
             options[:confirmed_email] = @confirmed_email

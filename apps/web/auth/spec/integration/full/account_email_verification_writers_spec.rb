@@ -182,6 +182,54 @@ RSpec.describe 'Migration 015 verification columns follow every writer (ADR-051)
       expect(verification_drift?(reloaded)).to be(false)
     end
 
+    [:sql, :redis].each do |store|
+      it "reports recorded proof when the federation recheck cannot read #{store}", :aggregate_failures do
+        customer = create_customer(email, verified: true, verified_by: 'sso')
+        id = insert_account(email, customer: customer, status_id: Auth::AccountStatuses::VERIFIED)
+        events = []
+        stamp = nil
+        fail_next_read = false
+        allow(Onetime::ColonelAuditEvent).to receive(:record_security) { |**event| events << event }
+        allow(Auth::Operations::EnsureDefaultWorkspace).to receive(:claim_pending_federation_for)
+        allow(Auth::Operations::SetCustomerVerification).to receive(:new).and_wrap_original do |original, **kwargs|
+          stamp = original.call(**kwargs)
+          allow(stamp).to receive(:confirmed_proof_current?).and_wrap_original do |recheck|
+            # Arm the read failure only after both real stamp writes succeeded.
+            expect(account_row(id)[:email_verified_by]).to eq('email')
+            expect(Onetime::Customer.load(customer.objid).verified_by).to eq('email')
+            fail_next_read = true
+            recheck.call
+          end
+          stamp
+        end
+
+        reader, method, error = if store == :sql
+          [db, :[], Sequel::DatabaseConnectionError]
+        else
+          [Onetime::Customer, :load, Redis::CannotConnectError]
+        end
+        allow(reader).to receive(method).and_wrap_original do |original, *args|
+          if fail_next_read
+            fail_next_read = false
+            raise error, "#{store} unavailable during federation recheck"
+          end
+          original.call(*args)
+        end
+
+        result = redeem(customer)
+
+        expect(fail_next_read).to be(false)
+        expect(result.status).to eq(:success)
+        expect(result.warnings).not_to include(:mailbox_proof_not_recorded)
+        audit = events.find { |event| event[:verb] == 'customer.change_email' }
+        expect(audit[:detail]).to include(mailbox_proof: :recorded)
+        expect(stamp.federation_claimed?).to be(false)
+        expect(Auth::Operations::EnsureDefaultWorkspace).not_to have_received(:claim_pending_federation_for)
+        expect(account_row(id)).to include(email: new_email, email_verified_by: 'email')
+        expect(Onetime::Customer.load(customer.objid).mailbox_verified?).to be(true)
+      end
+    end
+
     it 'replaces a stamp that proved the old address' do
       customer = create_customer(email, verified: true, verified_by: 'colonel_admin')
       id       = insert_account(
