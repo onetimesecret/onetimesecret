@@ -1,0 +1,31 @@
+# Initial GitLab coverage: TypeScript unit tests and test type checking only.
+# Reuses the runner from ci-pilot/typescript; GitHub remains the full CI suite.
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH'
+    - when: never
+
+typescript-pilot:
+  stage: test
+  image: python:3.14.7-bookworm@sha256:bfb689a7986adc6d5f16722e06c78e755efe4062e56276715fef450cbad09436
+  tags: [saas-linux-medium-amd64]
+  timeout: 20m
+  retry: 0
+  variables:
+    PILOT_RESOURCE_CLASS: saas-linux-medium-amd64
+    PILOT_EXECUTOR: docker
+    GIT_STRATEGY: clone
+    GIT_DEPTH: '1'
+  script:
+    - python3 -m unittest discover -s ci/typescript-pilot -p 'test_*.py' -v
+    - python3 ci/typescript-pilot/run.py
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - tmp/typescript-pilot/results/
+    reports:
+      junit: tmp/typescript-pilot/results/unit.xml
