@@ -1167,13 +1167,14 @@ module Auth
         end
 
         # The verified flag as the datastore holds it, independent of any
-        # in-memory assignment. Matches the model's own authority
-        # (Customer#verified? is `verified == 'true'`, status.rb:46), so an
-        # unset field reads as NOT verified and no needless clear is recorded.
-        # A RAISED read fails closed — treated as still set so the clear runs.
+        # in-memory assignment (Customer#stored_verified?, which decodes the
+        # JSON-encoded bytes the way a load does; the raw field of a record
+        # saved verified is "\"true\"", never 'true'). An unset field reads as
+        # NOT verified and no needless clear is recorded. A RAISED read fails
+        # closed — treated as still set so the clear runs.
         # @return [Boolean]
         def stored_verified?
-          @customer.hget('verified').to_s == 'true'
+          @customer.stored_verified?
         rescue StandardError => ex
           auth_logger.error '[customer.change_email] stored verification read failed',
             extid: @customer.extid,
@@ -1517,7 +1518,7 @@ module Auth
         # EXACTLY ONE event, from the op, obscured addresses only. `:partial` is
         # recorded as a result, not raised past (D38).
         def record_audit(result, old_email, auth_row_updated)
-          detail          = {
+          detail                 = {
             from: OT::Utils.obscure_email(old_email),
             to: OT::Utils.obscure_email(@new_email),
             auth_row_updated: auth_row_updated,
@@ -1529,7 +1530,7 @@ module Auth
           # D41: optional operator provenance — this is the highest-value
           # account-takeover primitive an operator has, and without these the
           # trail records only actor='cli'.
-          detail          = with_provenance(detail)
+          detail                 = with_provenance(detail)
 
           record_event(
             actor: @actor,
