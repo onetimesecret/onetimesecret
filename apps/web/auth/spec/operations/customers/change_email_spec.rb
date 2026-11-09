@@ -53,13 +53,13 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
     allow(cust).to receive(:update_in_class_email_index) { |old| trace << [:class_index_rekey, old] }
     allow(cust).to receive(:update_in_organization_email_index) { |org, old| trace << [:org_index_rekey, org, old] }
     allow(cust).to receive(:save) { trace << [:customer_save] }
-    # Verification state, only consulted on the forced-clear fallback. `hget` is
-    # the PERSISTED field and is what the fallback reads; `verified?` is the
+    # Verification state, only consulted on the forced-clear fallback.
+    # `stored_verified?` reads persistence; `verified?` is the
     # in-memory predicate. They are deliberately separate doubles because the
     # wrapper assigns the attribute before saving, so the two disagree exactly
     # when the fallback matters.
     allow(cust).to receive(:verified?).and_return(true)
-    allow(cust).to receive(:hget).with('verified').and_return('true')
+    allow(cust).to receive(:stored_verified?).and_return(true)
     allow(cust).to receive(:verified=) { |value| trace << [:customer_verified_assigned, value] }
     allow(cust).to receive(:verified_by=)
     cust
@@ -1130,7 +1130,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       # nothing to force and no spurious forced-clear audit should be emitted.
       context 'and the datastore agrees the flag is already down' do
         before do
-          allow(customer).to receive(:hget).with('verified').and_return('false')
+          allow(customer).to receive(:stored_verified?).and_return(false)
           # ...and the accounts row is already Unverified, so the row-scoped,
           # status-conditional update matches nothing. Both stores agree.
           allow(by_id_verified).to receive(:update).and_return(0)
@@ -1283,7 +1283,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       before do
         allow(verifier).to receive(:call).and_raise(StandardError, 'redis blip')
         allow(customer).to receive(:verified?).and_return(false)
-        allow(customer).to receive(:hget).with('verified').and_return('true')
+        allow(customer).to receive(:stored_verified?).and_return(true)
       end
 
       it 'clears the persisted flag even though memory already reads unverified' do
@@ -1296,6 +1296,60 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
         result = op(db: nil).call
 
         expect(result.warnings).to include(:verification_reset_failed, :verification_force_cleared)
+      end
+
+      context 'with a JSON-encoded persisted flag' do
+        let(:persisted_customer) { Onetime::Customer.new }
+
+        before do
+          # Exercise the real model decoder, not a predicate stub that could
+          # conceal a mismatch between Familia storage and the fallback.
+          allow(persisted_customer).to receive(:anonymous?).and_return(false)
+          allow(persisted_customer).to receive(:hget).with('verified').and_return('"true"')
+          allow(customer).to receive(:hget).with('verified').and_return('"true"')
+          allow(customer).to receive(:stored_verified?) { persisted_customer.stored_verified? }
+        end
+
+        it 'persists the forced clear and removes verification provenance' do
+          result = op(db: nil).call
+
+          expect(result.verification_reset).to be true
+          expect(result.warnings).to include(:verification_force_cleared)
+          expect(customer).to have_received(:verified=).with(false)
+          expect(customer).to have_received(:verified_by=).with(nil)
+          expect(customer).to have_received(:save).twice
+        end
+      end
+
+      context 'when the persisted flag cannot be read' do
+        before do
+          allow(customer).to receive(:stored_verified?).and_raise(StandardError, 'read unavailable')
+        end
+
+        it 'still attempts and persists the forced clear' do
+          result = op(db: nil).call
+
+          expect(result.verification_reset).to be true
+          expect(result.warnings).to include(:verification_force_cleared)
+          expect(customer).to have_received(:verified=).with(false)
+          expect(customer).to have_received(:save).twice
+        end
+
+        it 'reports verification_not_reset if the fallback save also fails' do
+          saves = 0
+          allow(customer).to receive(:save) do
+            saves += 1
+            raise StandardError, 'write unavailable' if saves > 1
+
+            true
+          end
+
+          result = op(db: nil).call
+
+          expect(result.status).to eq(:verification_not_reset)
+          expect(result.verification_reset).to be false
+          expect(result.warnings).to include(:verification_still_set)
+        end
       end
     end
 

@@ -1045,14 +1045,13 @@ module Auth
           :failed
         end
 
-        # The verified flag as the datastore holds it, independent of any
-        # in-memory assignment. Matches the model's own authority
-        # (Customer#verified? is `verified == 'true'`, status.rb:46), so an
-        # unset field reads as NOT verified and no needless clear is recorded.
+        # The model owns persisted-field decoding, independent of any unsaved
+        # assignment. Keep failure policy here: this operation must attempt a
+        # clear when it cannot determine whether verification is still set.
         # A RAISED read fails closed — treated as still set so the clear runs.
         # @return [Boolean]
         def stored_verified?
-          @customer.hget('verified').to_s == 'true'
+          @customer.stored_verified?
         rescue StandardError => ex
           auth_logger.error '[customer.change_email] stored verification read failed',
             extid: @customer.extid,
