@@ -3,6 +3,8 @@
 import importlib.util
 import json
 import os
+import signal
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -151,6 +153,50 @@ class RunnerTests(unittest.TestCase):
                 124,
             )
         self.assertEqual(run.metrics["phases"][0]["exit_code"], 124)
+
+    def test_timeout_kills_group_even_when_parent_exits_on_term(self):
+        run = pilot.Run({})
+        with (
+            patch.object(pilot.subprocess, "Popen") as popen,
+            patch.object(pilot.os, "killpg") as killpg,
+        ):
+            process = popen.return_value.__enter__.return_value
+            process.pid = 123
+            process.wait.side_effect = [
+                subprocess.TimeoutExpired("pnpm", 1),
+                -signal.SIGTERM,
+                -signal.SIGTERM,
+            ]
+            self.assertEqual(run.phase("tests", ["pnpm", "test"]), 124)
+        self.assertEqual(
+            [call.args for call in killpg.call_args_list],
+            [(123, signal.SIGTERM), (123, signal.SIGKILL)],
+        )
+
+    def test_timeout_tolerates_group_exiting_before_cleanup(self):
+        run = pilot.Run({})
+        with (
+            patch.object(pilot.subprocess, "Popen") as popen,
+            patch.object(pilot.os, "killpg", side_effect=ProcessLookupError),
+        ):
+            process = popen.return_value.__enter__.return_value
+            process.wait.side_effect = [
+                subprocess.TimeoutExpired("pnpm", 1), 0, 0
+            ]
+            self.assertEqual(run.phase("tests", ["pnpm", "test"]), 124)
+
+    def test_exhausted_budget_records_skipped_without_spawning(self):
+        run = pilot.Run({})
+        with (
+            patch.dict(pilot.PINS, deadline_seconds=0),
+            patch.object(pilot.subprocess, "Popen") as popen,
+        ):
+            self.assertEqual(run.phase("typecheck", ["pnpm", "type-check:tests"]), 124)
+        popen.assert_not_called()
+        phase = run.metrics["phases"][0]
+        self.assertEqual(phase["status"], "skipped")
+        self.assertIsNone(phase["exit_code"])
+        self.assertEqual(phase["reason"], "shared_deadline_exhausted")
 
     def test_bad_report_keeps_failure_metrics(self):
         with (

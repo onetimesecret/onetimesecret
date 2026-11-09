@@ -20,6 +20,7 @@ typescript-pilot:
     GIT_STRATEGY: clone
     GIT_DEPTH: '1'
   script:
+    - python3 -m unittest discover -s ci/typescript-pilot -p 'test_*.py' -v
     - python3 ci/typescript-pilot/run.py
   artifacts:
     when: always

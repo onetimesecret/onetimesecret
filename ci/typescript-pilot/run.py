@@ -13,6 +13,7 @@ import sys
 import tarfile
 import time
 import urllib.request
+from contextlib import suppress
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -115,9 +116,12 @@ class Run:
         start = time.monotonic()
         print(f"\n--- {name} ---", flush=True)
         code = 1
+        status = "failed"
         try:
             remaining = PINS["deadline_seconds"] - (start - self.started)
             if remaining <= 0:
+                print(f"Skipping {name}: shared deadline exhausted", file=sys.stderr)
+                status = "skipped"
                 code = 124
                 return code
             with subprocess.Popen(
@@ -128,21 +132,29 @@ class Run:
             ) as process:
                 try:
                     code = process.wait(timeout=remaining)
+                    status = "passed" if code == 0 else "failed"
                 except subprocess.TimeoutExpired:
                     print("Pilot's shared 15 minute deadline exceeded", file=sys.stderr)
-                    os.killpg(process.pid, signal.SIGTERM)
+                    with suppress(ProcessLookupError):
+                        os.killpg(process.pid, signal.SIGTERM)
                     try:
                         process.wait(timeout=5)
                     except subprocess.TimeoutExpired:
+                        pass
+                    # The parent exiting does not mean its workers have exited.
+                    with suppress(ProcessLookupError):
                         os.killpg(process.pid, signal.SIGKILL)
-                        process.wait()
+                    process.wait()
+                    status = "timed_out"
                     code = 124
         finally:
             self.metrics["phases"].append(
                 {
                     "name": name,
                     "seconds": round(time.monotonic() - start, 6),
-                    "exit_code": code,
+                    "status": status,
+                    "exit_code": None if status == "skipped" else code,
+                    **({"reason": "shared_deadline_exhausted"} if status == "skipped" else {}),
                 }
             )
         return code
@@ -166,7 +178,8 @@ class Run:
                 f"--outputFile.json={RESULTS / 'unit.json'}",
             ],
         )
-        # Match Actions: failed tests must not suppress test type checking.
+        # Ordinary test failures do not suppress type checking; the shared
+        # deadline still bounds the entire run.
         typecheck_env = dict(
             self.env,
             NODE_OPTIONS=f"--max-old-space-size={PINS['typecheck_heap_mib']}",

@@ -6,16 +6,22 @@ run Ruby tests, browser tests, builds, deployments, or publishing.
 
 ## Reused pilot
 
-`run.py` and `toolchain.json` are copied unchanged from commit
-`79124636a3` on `ci-pilot/typescript`. The runner and inventory tests are
-retained; the cross-provider comparison tool and its tests, CircleCI
-configuration, and experimental GitHub workflow are not included.
+`run.py` and `toolchain.json` originate from commit `79124636a3` on
+`ci-pilot/typescript`. The toolchain pins are unchanged; the runner adds
+process-group cleanup after timeouts and explicit skipped-phase metrics.
+The runner and inventory tests run before the workload in the GitLab job.
+The cross-provider comparison tool and its tests, CircleCI configuration,
+and experimental GitHub workflow are not included.
 
 The runner installs checksum-verified Node and the pnpm version from
 `package.json`, installs frozen dependencies, generates locales, runs all
 Vitest projects with two workers, then runs `pnpm type-check:tests`.
 Ordinary test failures do not suppress type checking, and either failure
-fails the job. Locale-generation failures stop the workload.
+fails the job. Locale-generation failures stop the workload. If the shared
+budget is exhausted, remaining phases do not start: metrics record
+`status=skipped`, `reason=shared_deadline_exhausted`, and `exit_code=null`.
+This differs from `status=timed_out` for a command that started and exceeded
+its budget. Either condition fails the run.
 
 The hosted job uses a fresh checkout without a dependency cache on
 `saas-linux-medium-amd64`. It has a 20-minute job timeout; the runner gives
