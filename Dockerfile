@@ -268,8 +268,8 @@ RUN set -eux && \
 # and verify with `sha256sum -c` BEFORE extraction so the build fails loudly on
 # any mismatch. Tarballs are kept under their published names so the filename
 # recorded inside each .sha256 file matches the file being checked.
-# Each download retries on any error (see docker/base.dockerfile for why
-# --retry-all-errors and why it is safe with -o).
+# Retry transport errors as well as transient HTTP failures. With -o, curl
+# discards a partial download before retrying; checksums are verified afterwards.
 RUN set -eux && \
     ARCH=$(dpkg --print-architecture) && \
     case "$ARCH" in \
