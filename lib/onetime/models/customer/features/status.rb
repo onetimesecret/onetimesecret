@@ -155,7 +155,8 @@ module Onetime::Customer::Features
       # reads the field: Familia JSON-encodes the stored 'true' as
       # "\"true\"", so the raw bytes never equal 'true', and a legacy bare
       # value still counts. Never true for the anonymous customer, as with
-      # #verified?.
+      # #verified?; that guard reads this object's in-memory `role`, not the
+      # stored one.
       #
       # @return [Boolean]
       def stored_verified?
