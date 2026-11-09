@@ -22,6 +22,12 @@ optional contact email. Here, *login* means the value Rodauth uses internally,
 not the email a user types to sign in. Existing email-based sign-in remains
 available for accounts with an address.
 
+An omitted IdP email does not establish that the person has no mailbox.
+Collecting and verifying a contact address during onboarding is a narrower
+alternative if the product requires every account to have one. This proposal
+instead targets accounts that can operate without a contact address on the
+platform/per-install route; it does not enable email-less tenant accounts.
+
 Rodauth currently uses `accounts.email` as its login column
 ([configuration](../../apps/web/auth/config/base.rb)). The column is `NOT NULL`
 and has a unique index for active accounts where partial indexes are supported
@@ -131,6 +137,11 @@ Email remains the user-facing lookup value for local sign-in and mailbox flows,
 subject to each flow's verification requirements. Reserving the Customer
 identity in the account INSERT gives later provisioning steps a stable key to
 resume after a crash, rather than using an email address to infer ownership.
+
+Using that reserved `objid` as Rodauth's `login_column` is a proposed integration
+choice, not an OIDC requirement. Approval of identity/contact separation does
+not by itself approve this choice or the lifecycle and provisioning decisions
+in the account-model design.
 
 ## Trade-offs
 
