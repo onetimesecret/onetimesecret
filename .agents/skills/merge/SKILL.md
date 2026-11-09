@@ -27,8 +27,10 @@ pipeline is not success.
 ## Fixed facts
 
 - Forge: GitLab, project `onetimesecret/onetimesecret`. Git remote: `gitlab`.
-  Pass `-R onetimesecret/onetimesecret` to every `glab` command. Do not push to
-  or open pull requests on `origin` (GitHub) or other remotes.
+  Pass `-R onetimesecret/onetimesecret` to `glab mr` and `glab ci` commands.
+  For `glab api`, use the explicit URL-encoded project path shown below;
+  it does not accept `-R` or `--jq`. Do not push to or open pull requests on
+  `origin` (GitHub) or other remotes.
 - Merge method: merge commit (project `merge_method: merge`). Never pass
   `--squash` or `--rebase`.
 - Protected/never-commit branches: `main` (GitLab protected), and `develop`,
@@ -51,9 +53,9 @@ pipeline is not success.
    - the target branch of an existing open merge request for the current branch
      (`glab mr list -R onetimesecret/onetimesecret --source-branch <branch> -F json`);
    - a branch the user named;
-   - otherwise GitLab's default branch
-     (`glab api projects/onetimesecret%2Fonetimesecret --jq .default_branch`,
-     currently `main`).
+   - otherwise read `default_branch` from the JSON returned by
+     `glab api projects/onetimesecret%2Fonetimesecret` (currently `main`).
+     Stop if the request fails or the field is missing or blank; do not guess.
 
 ## 2. Prepare the branch and commits
 
@@ -141,7 +143,11 @@ treat partial output as a complete result or an error as an empty list.
    resolve someone else's discussion without addressing it.
 3. **Live settings.** Re-read target protection and merge settings:
    `glab api projects/onetimesecret%2Fonetimesecret/protected_branches --paginate` and
-   `glab api projects/onetimesecret%2Fonetimesecret --jq '{merge_method,only_allow_merge_if_pipeline_succeeds,only_allow_merge_if_all_discussions_are_resolved,approvals_before_merge}'`.
+   `glab api projects/onetimesecret%2Fonetimesecret`. Read `merge_method`,
+   `only_allow_merge_if_pipeline_succeeds`,
+   `only_allow_merge_if_all_discussions_are_resolved`, and
+   `approvals_before_merge` from the returned JSON. Stop if the request fails
+   or any required setting cannot be verified.
    Satisfy anything they require (e.g. approvals). If `merge_method` is no
    longer `merge`, stop and report it rather than guessing.
 4. **Pipeline (required).** A GitLab pipeline must exist for the merge
