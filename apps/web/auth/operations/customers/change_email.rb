@@ -1003,7 +1003,10 @@ module Auth
             # store. Memory is not proof of what the stores say. If either
             # store still says Verified, nothing was reset, which is the
             # quietest version of exactly the state this reset exists to
-            # prevent. The same stored read decides the forced clear below.
+            # prevent. The forced clear below reads both stores again, the same
+            # way, rather than reusing these answers: a fresh read is the one
+            # to act on, and a read that failed here (and so counted as
+            # verified) must not force a write the store no longer needs.
             return :reset unless verification_still_stored?
 
             @warnings << :verification_mirror_drift
@@ -1098,9 +1101,12 @@ module Auth
           return :reset if sql == :unchanged && redis == :unchanged
 
           @warnings << :verification_force_cleared
-          # The wrapper never got far enough to record its own verb, and a
-          # verification state change with no event is a hole in the trail. Same
-          # verb and shape the wrapper would have emitted (epic #20 CONTRACT 4).
+          # A verification state change with no event is a hole in the trail.
+          # After a raise, or on the sibling-row shortcut, the wrapper recorded
+          # nothing. After :no_change it recorded one event with
+          # `outcome: 'no_change'`, which says only that the wrapper wrote
+          # nothing; this event records the clear that did happen. Same verb
+          # and shape the wrapper would have emitted (epic #20 CONTRACT 4).
           record_event(
             actor: @actor,
             verb: 'customer.set_verification',
