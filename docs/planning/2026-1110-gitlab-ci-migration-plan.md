@@ -1,6 +1,9 @@
 # GitLab CI/CD migration plan
 
 **Status (2026-11-10):** proposal. Nothing in this document is implemented.
+Three decisions were made by the maintainer on 2026-11-10 and are recorded in
+§8: runners are both hosted and self-hosted, GitHub is archived with a link
+to GitLab, and v0.26.20 is the last release cut from GitHub.
 
 **Evidence base:** `develop` at b8a13618 (2026-11-09) for the GitHub side,
 `main` at 82cd4348 for the GitLab pilot, GitHub Actions run history read on
@@ -51,13 +54,16 @@ Delete this document once Phase 6 is complete.
    stage is shared between architectures (§4.6).
 7. **Compute is the main cost question.** GitHub Actions is free for this
    public repository. GitLab hosted runners are metered, and the current run
-   volume is above the Premium quota on main CI alone (§4.12).
+   volume is above the Premium quota on main CI alone. With heavy jobs on
+   self-hosted runners, the metered share is the light jobs (§4.12).
 8. **What is lost or changes:** job summaries, tmate debug sessions, the path
    labeler, picking up a `ci:auth` label by re-running an existing run, the
    time-to-first-test history, and, until it is ported, the CI metrics
    comment. macOS jobs need a decision.
-9. **Seven phases.** GitHub stays the gate until Phase 5 and can be restored
-   until Phase 6.
+9. **Seven phases, release path first.** Every release after v0.26.20 comes
+   from GitLab, so the build and publish path is the first thing built there
+   (Phase 2). A merge gate is needed as well before merges move (Phase 3).
+   GitHub can be restored as the gate until it is archived.
 
 ## 2. Where things stand
 
@@ -299,7 +305,7 @@ Alternatives considered:
   daemon's host network. Untested. It would not serve `bin/visual`, which
   starts the server itself on loopback and bind-mounts the checkout.
 - A self-hosted runner with the `instance` executor needs neither, because
-  jobs run on the VM as they do on GitHub (D1).
+  jobs run on the VM as they do on GitHub (§4.12, S7).
 
 **Container jobs.** Container validation and container e2e run the app image
 next to a Valkey container on a Docker network inside the job's daemon. They
@@ -338,7 +344,7 @@ pipeline is cancelled by a later push; its source code indicates it is unless
 the pipeline opts out.
 
 **Runner tags** come from variables, so the fleet can change without editing
-jobs (D1).
+jobs (§4.12).
 
 ### 4.4 Selection
 
@@ -475,7 +481,9 @@ published; document it in the release notes of the first signed release.
 release on a tag. No workflow creates a release today. The scriv section for
 a version exists only after someone runs `scriv collect` and commits it
 before tagging, and it is reStructuredText. The job fails if `CHANGELOG.rst`
-has no section for the tag, and the release description links to it.
+has no section for the tag, and the release description links to it. The
+product's footers link each version to a GitHub release page; they must point
+at GitLab before the first release from GitLab.
 
 **Visual archive.** Its trigger today is a published GitHub release. It
 becomes a job in the tag pipeline after the release job. Its registry is part
@@ -542,6 +550,8 @@ gate after their baseline is triaged (Phase 6).
   can see them.
 - Dependabot security pull requests stop when GitHub stops being the source.
   The OSV alerts above cover that.
+- Renovate has to be running on GitLab at cutover; the hosted GitHub app
+  cannot open pull requests on an archived repository.
 - Every Renovate merge request is a pipeline. The current settings
   (`prCreation: immediate`, 10 concurrent, 10 an hour) are a cost on metered
   runners; a schedule window and grouping reduce it.
@@ -553,7 +563,7 @@ gate after their baseline is triaged (Phase 6).
   template becomes `.gitlab/merge_request_templates/Default.md`.
 - **Stale and lock.** `gitlab-triage` policies on the triage schedule, with
   the current thresholds, the `Stale Boetticher` label and the exemption
-  labels. Depends on where issues live (D12).
+  labels. Issues live on GitLab after the archive (§8).
 - **Path labels.** Drop them (D6). No automation reads them: the labels that
   automation depends on (`ci:auth`, `claude-review`, `security`,
   `auto-update`, `dependencies`, the stale and issue-template labels) are set
@@ -566,7 +576,7 @@ gate after their baseline is triaged (Phase 6).
   bot authors, forks and locale-only changes; D8 decides which of that is
   kept. `@claude` mentions need a webhook listener or Duo external agents
   (Premium, enabled per customer). Codex and Copilot review are tied to
-  GitHub.
+  GitHub and end with the archive.
 - **Review rules.** `.github/copilot-instructions.md` contains review rules
   that AGENTS.md does not (what not to comment on, a cap per review). The
   Claude review prompt and `.greptile/rules.md` repeat parts of them. Put them
@@ -612,13 +622,22 @@ Changes that widen access and need operator approval (C7):
 | P1 | A stored token to push to GHCR | today the push uses the run's own short-lived token |
 | P2 | Privileged job containers | on hosted runners each job has its own VM; on a self-hosted fleet this is root on the runner host |
 | P3 | A bot token with API write for Renovate, triage and merge request notes | new long-lived credential |
-| P4 | Push mirror to GitHub, if kept | needs a GitHub token with write access |
+| P4 | An automated push of `main` and tags to GitHub until the archive, if one is set up | needs a GitHub token with write access |
 | P5 | "Run pipelines in the parent project" for fork merge requests | runs fork code with the parent's runners and variables; recommend disabling it |
 
 Additive, not widening: the ID token for keyless signing.
 
 ### 4.12 Runners and compute
 
+- **Fleet (decided: both).** Proposed split: self-hosted runners on ephemeral
+  VMs take the heavy jobs (lanes, e2e, image builds, install lanes). Jobs
+  there can run on the VM as they do on GitHub, and they are not metered.
+  Hosted runners take the light jobs (lint, guards, Vitest, scanners). Publish
+  jobs run on a protected runner, which accepts jobs from protected refs
+  only. `bin/ci docker up` does nothing where a daemon is already reachable,
+  so one job definition serves both fleets. Spike S7 picks the executor.
+- Self-hosted runners do not run fork code: fork pipelines run in the fork,
+  and P5 stays disabled.
 - GitHub's standard runner for public repositories has 4 vCPU (from memory,
   not re-checked). The matching GitLab hosted runner is
   `saas-linux-medium-amd64` (4 vCPU, 16 GB), cost factor 2. Small runners
@@ -628,7 +647,8 @@ Additive, not widening: the ID token for keyless signing.
   runners is on the order of 40,000 compute minutes a month for `ci.yml`
   alone. This is an upper-leaning estimate, because dependency-update PRs
   select fewer jobs and some runs are cancelled early. The other workflows add
-  to it. Spike S6 replaces this estimate with a measurement.
+  to it. The estimate assumes every job on hosted runners; with the split
+  above, only the light jobs are metered. Spike S6 measures both.
 - The GitLab for Open Source program grants Ultimate and lists a cost factor
   of 0.5 for public projects (the page does not say how that combines with
   runner size). Its terms say an organization "can't seek to make a profit by
@@ -639,7 +659,8 @@ Additive, not widening: the ID token for keyless signing.
   dependencies, and fewer Renovate pipelines.
 - **macOS.** Two jobs need it (`installer.yml` `macos`, `drift-guards.yml`
   `envref-macos`). GitLab's hosted macOS runners are Premium and Ultimate
-  only, in beta, with cost factor 6 or 12 (D4).
+  only, in beta, with cost factor 6 or 12. A self-hosted macOS runner is the
+  other option now that GitHub will be archived (D4).
 - **Forks.** A fork's merge request pipeline runs in the fork, on the
   contributor's minutes, with the fork's variables. The toolchain image must
   be publicly readable for that to work.
@@ -749,7 +770,7 @@ this migration (D15). Two of them need work regardless:
 | `validate-register.yml`, `resolved-derive-gate.yml` | two jobs with a shared template (§4.10). |
 | `bump-api-docs.yml` | `release.yml`: generate, diff on merge requests, deploy on `main`. Fix: each `bump diff` failure, including an auth or network error, is reported as "breaking changes" today. |
 | `generate-translation-request.yml` | retire (D9). Its paths `src/locales` and `src/scripts/locales` do not exist in the tree. |
-| `housekeeping-github-issues.yml`, `housekeeping-lock-threads.yml` | `gitlab-triage` (§4.10, D12). |
+| `housekeeping-github-issues.yml`, `housekeeping-lock-threads.yml` | `gitlab-triage` (§4.10). |
 | `pr-labeler.yml` | drop (D6). |
 | `secret-rotation.yml` | `smoke.yml`. |
 | `claude.yml`, `claude-code-review.yml` | D8. |
@@ -801,7 +822,7 @@ this migration (D15). Two of them need work regardless:
 | `.github/release-drafter.yml` | delete after the ADR-009 amendment (D7) |
 | `.github/dependabot.yml.disabled` | delete in Phase 1 |
 | `.github/copilot-instructions.md` | delete at Phase 6, after its rules have one home (§4.10) |
-| `.github/FUNDING.yml`, `pr-assets/` | keep while GitHub is a mirror (D2) |
+| `.github/FUNDING.yml`, `pr-assets/` | delete with the rest of `.github/` at Phase 6; the archived repository keeps its copy |
 | `docker/bake.hcl` | gains a staging mode, cache and attestation settings (§4.6) |
 | `scripts/ci-secrets-ignore.txt` | replaced with the guard's redesign (§5) |
 
@@ -823,35 +844,49 @@ this migration (D15). Two of them need work regardless:
 Implementation changes target `develop`. The pilot on `main` reaches
 `develop` through the next `main` to `develop` sync; do that first.
 
+v0.26.20 is the last release cut from GitHub (decided 2026-11-10; its release
+prep is #4943). Every later release, starting with the v0.27.0 promotion
+(#4927), is built and published from GitLab. Two things have to exist on
+GitLab before that release: the build and publish path (Phase 2) and a merge
+gate (Phase 3). The build workflows alone are not enough, because merges that
+go through GitLab need tests in front of them. The order below puts the
+release path first. Phases 1 to 3 overlap. Phase 4 can finish after cutover.
+
+Do not change `build-and-publish-oci-images.yml` or the scripts it calls
+until v0.26.20 is tagged and published.
+
 ### Phase 0: decisions and spikes
 
 No change to CI behavior. Spikes run on a throwaway branch on GitLab.
 
 | Spike | Question | Changes the plan if |
 |---|---|---|
-| S1 | Does a Docker daemon inside the job work on hosted runners? Cover: the `unit` and `full-pg` lanes; a native e2e boot with Chromium; `bin/visual` (host network, `/dev/shm`, bind mount); `host.docker.internal` to a sibling container; ports 80 and 443; `network_mode: service`; image builds; a non-root user with sudo; file ownership in the devcontainer job; MTU. Compare job times with GitHub. | it fails: use self-hosted runners, or the `docker:dind` fallback for the jobs it can serve |
+| S1 | Does a Docker daemon inside the job work on hosted runners? Cover: the `unit` and `full-pg` lanes; a native e2e boot with Chromium; `bin/visual` (host network, `/dev/shm`, bind mount); `host.docker.internal` to a sibling container; ports 80 and 443; `network_mode: service`; image builds; a non-root user with sudo; file ownership in the devcontainer job; MTU. Compare job times with GitHub. | it fails: hosted runners take only the light jobs, and the self-hosted fleet has no overflow |
 | S2 | What does a fork merge request pipeline do under the project's settings? | forks cannot pull the toolchain image or run privileged jobs |
 | S3 | Can a rule evaluator resolve the job list for fixture scenarios offline, including `rules:changes`, labels and workflow variables? Do the brace and class patterns in the auth list match under `File.fnmatch`? | no: selection moves to a tested script that generates a child pipeline. The signing job would then stay in the parent pipeline. |
 | S4 | Can the frontend stage be built once and passed to per-architecture builds? Registry cache hit rate. | no: keep the single multi-platform build |
-| S5 | macOS runner availability and cost on the tier | feeds D4 |
-| S6 | Compute minutes for one full merge request pipeline and one nightly | feeds D1 |
+| S5 | macOS: hosted runner availability and cost on the tier, or a self-hosted macOS runner | feeds D4 |
+| S6 | Compute minutes for one full merge request pipeline and one nightly, in total and for the light jobs alone | feeds the tier decision |
+| S7 | Which executor for the self-hosted fleet: `instance` on ephemeral VMs, or Docker with privileged containers? Do `compose.test.yml`, the native e2e boot and `bin/visual` run unchanged on it? | with `instance`, heavy jobs need no in-job daemon, and S1 only decides whether hosted runners can take overflow |
 
-Exit: the decisions in §8 are recorded, with an ADR for the ones that are
-expensive to reverse (runner model and loopback approach, publishing
+Exit: the open decisions in §8 are recorded, with an ADR for the ones that
+are expensive to reverse (runner model and loopback approach, publishing
 destinations and signing identity, gate model). Spike results are appended
 here.
 
 ### Phase 1: provider-neutral tooling, on GitHub
 
-1. Remove dead code: the uncalled composite action, `debug-oci.yml`,
+1. After v0.26.20 is published: `tools/oci/`, then `tools/sentry/`, with the
+   publish workflow switched to the commands. A manual run to the custom
+   registry checks that behavior is preserved.
+2. Remove dead code: the uncalled composite action, `debug-oci.yml`,
    `dependabot.yml.disabled`, the unread `environment` input of `e2e.yml`,
    the stale merge driver in `.gitattributes`, the reference to a
    nonexistent `bin/adr-lint`.
-2. `tools/ci/` with the reporter, then `docker`, `services`, `prepare`,
+3. `tools/ci/` with the reporter, then `docker`, `services`, `prepare`,
    `lane`, `results`, `secrets`, `wait-http`, `pin-ruby`,
    `api-v3-fresh-schemas`, `e2e`. Update the GitHub path filters and the
    shell-lint strict list in each change.
-3. `tools/oci/`, then `tools/sentry/`.
 4. Fixes that belong to the code being moved, each verified first:
    - `pnpm lint` runs ESLint with `--fix` (`package.json:57`), so fixable
      problems pass CI.
@@ -865,20 +900,38 @@ command and is exercised by the GitHub workflows; every file left in
 `.github/scripts/` is on the delete list or waits for the metrics port;
 `bin/testsuite run` and GitHub CI are green on `main`.
 
-### Phase 2: GitLab foundation
+### Phase 2: GitLab foundation and the release path
 
-Toolchain image and its guard; the root file with inputs, workflow rules,
-stages and defaults; `lint.yml` and `frontend.yml`; project settings,
-variables and environments; the redesigned credential guard; the Renovate
-runner project; retire the pilot job and `ci/typescript-pilot/`.
+- The toolchain image and its guard; the root file with inputs, workflow
+  rules, stages and defaults; project settings, variables and environments; a
+  protected runner for publish jobs; the redesigned credential guard.
+- `images.yml` and `release.yml`: build, container validation, publish,
+  Sentry, release creation, visual archive. Multi-arch stays one
+  multi-platform build unless S4 has passed. Signing and attestation can
+  follow the first release.
+- Release prerequisites outside CI: the product's footer links point at
+  GitLab release pages; the envref release remote points at GitLab; Sentry's
+  repository integration, which `set-commits` relies on, points at GitLab;
+  Renovate runs on GitLab.
+- `lint.yml` and `frontend.yml`; retire the pilot job and
+  `ci/typescript-pilot/`.
 
-Exit: 20 consecutive merge request pipelines green with results equal to the
-matching GitHub jobs.
+Exit:
 
-### Phase 3: test parity
+- A manual pipeline with `publish: custom` pushes all three variants to the
+  custom registry. Its `main` image is compared with the v0.26.20 image that
+  GitHub built: labels, version, platforms and file list.
+- One release candidate tag is published from GitLab.
+- 20 consecutive merge request pipelines are green for lint and frontend,
+  with results equal to the matching GitHub jobs.
 
-`ruby.yml` with all lanes, selection rules and their tests, reports,
-`images.yml`, `e2e.yml`.
+### Phase 3: the merge gate
+
+`ruby.yml` with all lanes (billing on tags and the nightly), selection rules
+and their tests, reports, migrations, and `e2e.yml` with container e2e,
+full-auth and tenant-connect. `docs/development/auth-ci.md` asks for CI,
+full-auth e2e and tenant-connect e2e to be green on a commit before it is
+tagged.
 
 Exit, measured on the same commits on both hosts:
 
@@ -886,39 +939,47 @@ Exit, measured on the same commits on both hosts:
   which each workflow runs today;
 - per lane, RSpec example counts are equal (the pilot's inventory comparison,
   applied per lane);
-- per Playwright suite, tests run and skipped are equal, the flaky gate gives
-  the same result, and the visual run passes against the committed baselines;
+- per Playwright suite, tests run and skipped are equal and the flaky gate
+  gives the same result;
 - no failure appears on one host only without an explanation;
 - median wall time for a merge request pipeline is recorded against GitHub's.
 
-### Phase 4: nightly, weekly, release
+If the next release cannot wait for this phase: keep pushing `main` and tags
+to GitHub so that its workflows still test them. That is a weaker gate than
+today's, because nothing beyond the GitLab jobs that already exist runs
+before a merge, and GitHub cannot be archived while it is in use.
 
-Schedules; Ruby preview; billing lanes; `smoke.yml`; `release.yml` with
-publish, signing, Sentry, release creation, visual archive and API docs.
+### Phase 4: the remaining jobs
 
-Exit: one manual pipeline with `publish: custom` pushes all three variants to
-the custom registry as a rehearsal; then one release candidate tag is
-published from GitLab with the GitHub publish workflow disabled for that tag.
+The nightly schedule with the Ruby preview; the weekly schedule with
+`smoke.yml`; visual regression; API docs; triage; review jobs; templates.
+
+This phase can finish after cutover. Until it does, these are not covered:
+the install and boot paths, visual regressions, Ruby preview, and the API
+docs deploy.
 
 ### Phase 5: cutover
 
-Prerequisites: the product's footer links point at a release page that will
-exist (they link each version to a GitHub release today); the envref release
-remote points at the host with the tags.
+Prerequisites: Phases 2 and 3 have exited; issues, pull requests and releases
+are imported, because an archived repository is read-only.
 
-Enable "Pipelines must succeed" and, on Premium, merge trains. Activate the
-schedules. Disable Actions in the GitHub repository settings and leave the
-files in place. Switch Renovate. Add the templates and triage. Update
-`.agents/skills/merge/SKILL.md` and AGENTS.md ("Running tests" names
-`.github/scripts/` and the `Static analysis` workflow).
+1. Enable "Pipelines must succeed" and, on Premium, merge trains. Activate
+   the schedules. Stop merging on GitHub. Update
+   `.agents/skills/merge/SKILL.md` and AGENTS.md ("Running tests" names
+   `.github/scripts/` and the `Static analysis` workflow).
+2. Ship one release from GitLab.
+3. Archive GitHub: a last commit puts a notice with the GitLab link at the
+   top of the README, the repository description gets the same link, Actions
+   is disabled, and the repository is archived.
 
-Exit: one release shipped from GitLab. Until Phase 6, rollback is re-enabling
-Actions.
+Until step 3, rollback is to resume merging and releasing on GitHub. After
+it, there is none.
+
+Exit: one release shipped from GitLab and the GitHub repository archived.
 
 ### Phase 6: decommission and hardening
 
-- Delete `.github/workflows/`, `.github/actions/`, the delete-list scripts
-  and their suites.
+- Delete `.github/` and the suites of the deleted scripts.
 - Rewrite the documents that describe the GitHub setup:
   `docs/development/auth-ci.md`, `docs/development/README.md`, the "CI
   integration" section of the lane spec, `tests/lanes/README.md`,
@@ -932,40 +993,57 @@ Actions.
   literal search (`scripts/README.md`, `tools/testsuite/README.md`,
   `tools/logship/README.md`, `docs/development/frontend-diagnostics.md`);
   read them, do not grep them.
-- Port CI metrics. Turn the scanners into gates.
+- Port CI metrics. Turn the scanners into gates. Add signing if it did not
+  ship in Phase 2.
 
-## 8. Decisions needed
+## 8. Decisions
+
+### Decided on 2026-11-10 (maintainer)
+
+- **Runner fleet:** both hosted and self-hosted. §4.12 proposes the split.
+- **GitHub after cutover:** archived, with a link to GitLab. Consequences:
+  no rollback to GitHub Actions after the archive (Phase 5); issues, pull
+  requests and releases must be imported first; Dependabot, Codex and Copilot
+  review end; the macOS jobs cannot stay on GitHub; GHCR becomes the one
+  place that would keep GitHub as a live dependency (D3).
+- **Release cutover:** v0.26.20 is the last release from GitHub. Every later
+  release is built and published from GitLab (§7).
+
+### Open
 
 | ID | Decision | Recommendation | What it changes |
 |---|---|---|---|
-| D1 | GitLab tier and runner fleet: hosted, self-hosted, or both | Start on hosted runners through Phase 3 to get real numbers from S6, then decide before Phase 5. Keep runner tags in variables. | cost; whether S1's daemon is needed; P2 |
-| D2 | GitHub after cutover: read-only push mirror, or archive | Mirror | GHCR access, Dependabot, Codex, `FUNDING.yml`, existing links, the envref release remote |
-| D3 | Where images and visual baselines are published | Keep Docker Hub and GHCR for images and for the visual baselines, whose consumer commands name GHCR. Use the GitLab registry for CI images and the toolchain image, not as an announced pull location. | P1; the `org.opencontainers.image.source` label; user docs |
-| D4 | macOS coverage | GitLab hosted macOS if the tier allows it, since the two jobs run weekly and on a few paths. Otherwise keep them on the GitHub mirror for now. | D1, D2 |
+| D1 | GitLab tier | Decide after S6, together with D4 and D5, which both need Premium. | merge trains, macOS runners, quota for the light jobs |
+| D3 | Where images and visual baselines are published | Docker Hub stays the documented location; the quick start and compose files already use it. Push to GHCR through the 0.27 series with a deprecation note, then stop. Move the visual baselines to the GitLab registry and update the three places that name `ghcr.io`. Use the GitLab registry for CI images and the toolchain image. | P1 for as long as GHCR is pushed; the `org.opencontainers.image.source` label; `.oci-build.json`; user docs |
+| D4 | macOS coverage | A self-hosted macOS runner or GitLab's hosted one, whichever S5 favors. The two jobs run weekly and on a few paths. If neither, the bash 3.2 parse gate is what remains. | D1 |
 | D5 | Merge trains | Yes, if Premium. The setting is per project. | replaces the merge queue |
 | D6 | Path-based labels | Drop, with the ADR-009 amendment | removes the labeler with no replacement |
 | D7 | Release notes inventory (ADR-009) | Amend the ADR: scriv stays the narrative; the release job lists the milestone's merged merge requests | unblocks deleting `release-drafter.yml` |
-| D8 | Which AI reviewers continue, and with which triggers | Greptile through its GitLab integration; Claude review as a CI job on merge request open and on the `claude-review` label, with the current skips; defer `@claude` mentions | Codex and Copilot review end with GitHub |
+| D8 | Which AI reviewers continue, and with which triggers | Greptile through its GitLab integration; Claude review as a CI job on merge request open and on the `claude-review` label, with the current skips; defer `@claude` mentions | |
 | D9 | Translation request workflow | Retire. Re-specify on `locales/scripts` if it is still wanted. | with its default input it resolves no locales (inferred), because its paths are gone |
-| D10 | CI metrics port before or after cutover | After | between Phase 5 and the port there is no per-job regression flag on merge requests. The tier budget check is advisory today (`fail-on-violation` is false). |
+| D10 | CI metrics port before or after cutover | After | between cutover and the port there is no per-job regression flag on merge requests. The tier budget check is advisory today (`fail-on-violation` is false). |
 | D11 | Renovate hosting | Self-hosted runner project | works on any tier and serves every repository |
-| D12 | Where issues live | Outside this plan; needed before triage is configured | §4.10 |
 | D13 | GitLab for Open Source application | Check the profit clause first | cost factor and tier |
 | D14 | Register full scans that are expected to fail | Verify the claim first. If true, mark the full-scan job `allow_failure` until the findings are fixed. | whether `main` and weekly pipelines are red from day one |
 | D15 | Guard scripts in `scripts/` | Leave them (§5) | scope of the ADR-042 consolidation |
 
-Two questions I could not answer from the repository:
+D2 (GitHub's role) and D12 (where issues live) are settled by the archive
+decision: issues live on GitLab.
 
-- **Q1. Which host merges today?** The merge skill on `main` merges through
-  GitLab and says mirroring is outside its workflow. The promotion PR (#4927)
-  and Renovate run on GitHub. Phases 2 to 4 need the same commits on both
-  hosts; the mechanism depends on the answer.
+One question I could not answer from the repository:
+
 - **Q2. What is the branch model?** CONTRIBUTING.md says "Target the `main`
   branch." The pre-commit config names `develop` and `rel/.*` as branches not
   to commit to, scriv lists `main, develop`, and workflow filters name
   `feature/*`, `fix/*`, `wip/*` and `rel/*`. `workflow:rules` and branch
   protection need one statement of which branches are protected and which get
   pipelines.
+
+Q1 asked whether changes merge through GitHub pull requests or GitLab merge
+requests, because the merge skill on `main` uses GitLab while the promotion
+PR and Renovate are on GitHub. The release cutover answers it: GitHub until
+v0.26.20, GitLab after. Until GitHub is archived, commits still need to reach
+both hosts for the parity checks in Phases 2 and 3.
 
 ## 9. Risks
 
@@ -981,16 +1059,19 @@ Two questions I could not answer from the repository:
 | R8 | A daemon in the job may need the MTU setting that GitLab documents for `docker:dind` on arm64, and a larger `/dev/shm` for Chromium. | S1 |
 | R9 | The dependency caches were disabled "to rule out stale cache"; the incident is not recorded. | Phase 2 |
 | R10 | Credential variables for the Bump.sh diff and Claude review are readable by any merge request pipeline in the project. This is the same as today. | §4.11 |
+| R11 | After the GitHub repository is archived there is no rollback to GitHub Actions. | archive only after a release has shipped from GitLab (Phase 5) |
+| R12 | The next release depends on the release path. If Phase 2 slips, the release waits. | start Phase 2 as soon as v0.26.20 is published |
 
 ## 10. Adjacent work, not in this plan
 
 These are outside CI but several choices above depend on them:
 
 - Import of issues, pull requests and releases. GitLab's importer does not
-  import required status checks or outside collaborators.
+  import required status checks or outside collaborators. This is a
+  prerequisite for archiving GitHub (Phase 5).
 - Product links to GitHub: three footers and the admin layout link each
   version to `github.com/.../releases/tag/v<version>`, and Vitest specs assert
-  those URLs. This one is a Phase 5 prerequisite.
+  those URLs. This one is a Phase 2 prerequisite.
 - 204 lines in 102 tracked files outside `.github/` reference
   `github.com/onetimesecret`, mostly issue and pull request links in comments
   and docs.
