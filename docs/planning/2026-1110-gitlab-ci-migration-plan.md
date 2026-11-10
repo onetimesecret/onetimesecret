@@ -13,10 +13,12 @@ scripts they call, and the repository automation configured under `.github/`.
 Moving issues, pull request history and product links is adjacent work (§10).
 
 **How statements are marked:** text in double quotes is exact wording from the
-named file. "Proposal" marks a design choice made here. "Inferred" marks a
-finding that was reasoned from the files and not observed; verify it on the
-current baseline before applying a fix (AGENTS.md, "Security-posture
-decisions").
+named file or page. "Proposal" marks a design choice made here. "Inferred"
+marks a finding that was reasoned from the files and not observed; verify it
+on the current baseline before applying a fix (AGENTS.md, "Security-posture
+decisions"). The first draft was checked against the files by the same five
+research passes that produced the inventory; this revision includes their
+corrections.
 
 Delete this document once Phase 6 is complete.
 
@@ -24,34 +26,36 @@ Delete this document once Phase 6 is complete.
 
 1. **One pipeline replaces 29 workflows.** A single GitLab pipeline definition,
    split across about ten include files, with pipeline types chosen by
-   `workflow:rules` (merge request, merge train, `main`, tag, nightly, weekly,
-   manual).
+   `workflow:rules`.
 2. **Consolidate first, migrate second.** The CI logic in `.github/scripts/`
-   and the shell embedded in composite actions moves into tool packages under
-   `tools/` behind `bin/` entry points (ADR-042) while GitHub Actions is still
-   the gate. The GitLab YAML then calls only `bin/` commands and
+   and the shell embedded in workflows and composite actions moves into tool
+   packages under `tools/` behind `bin/` entry points (ADR-042) while GitHub
+   Actions is still the gate. The GitLab YAML then calls `bin/` commands and
    `tests/lanes/run`.
 3. **Lanes do not change.** The lane spec requires loopback test endpoints, so
-   GitLab's `services:` hostnames cannot serve them. Each job that needs
-   services runs a Docker daemon inside the job and uses `compose.test.yml`
-   as it is.
+   GitLab's `services:` hostnames cannot serve them. Jobs that need services
+   run a Docker daemon inside the job and use `compose.test.yml` as it is.
+   GitLab does not document that arrangement; it is the first spike.
 4. **The pipeline status is the gate.** GitLab decides mergeability per
    pipeline, and a job excluded by `rules` does not exist. The four verdict
-   jobs, the four change-detection jobs and seven of the eighteen
+   jobs, the four change-detection jobs and six of the eighteen
    `.github/scripts/` files are deleted and not ported.
-5. **Build once per pipeline.** The frontend and the OCI image are each built
-   once and reused. Today the `main` image is built from scratch in five
-   places, and publishing does not wait for any boot test. The publish job
-   promotes the digest that was tested.
-6. **New capabilities worth adopting:** native arm64 builds, merge trains,
-   keyless image signing with SBOM and provenance, GitLab's SAST, secret
-   detection and container scanning, and test reports in the merge request.
+5. **Less repeated work.** The runner-side frontend build happens once per
+   pipeline and the `main` image once, where a pull request can build that
+   image three times today. Publishing waits for the boot and e2e checks of
+   the image it publishes; today it waits for nothing.
+6. **New capabilities worth adopting:** merge trains, keyless image signing
+   with SBOM and provenance, GitLab's SAST, secret detection and container
+   scanning, test reports in the merge request, and a warning state for
+   best-effort jobs. Native arm64 builds are possible only if the frontend
+   stage is shared between architectures (§4.6).
 7. **Compute is the main cost question.** GitHub Actions is free for this
    public repository. GitLab hosted runners are metered, and the current run
    volume is above the Premium quota on main CI alone (§4.12).
-8. **Some things are lost:** job summaries, tmate debug sessions, the path
-   labeler, and, until it is ported, the CI metrics comment. macOS jobs need a
-   decision.
+8. **What is lost or changes:** job summaries, tmate debug sessions, the path
+   labeler, picking up a `ci:auth` label by re-running an existing run, the
+   time-to-first-test history, and, until it is ported, the CI metrics
+   comment. macOS jobs need a decision.
 9. **Seven phases.** GitHub stays the gate until Phase 5 and can be restored
    until Phase 6.
 
@@ -68,23 +72,30 @@ Delete this document once Phase 6 is complete.
 | Repository secrets referenced | 20 (Docker Hub 2, custom registry 3, Sentry 5, Bump.sh 8, Claude 1, translation webhook 1) |
 | Repository variables referenced | 4 |
 | Scheduled triggers | 6 nightly, 8 weekly, 1 daily housekeeping |
+| Lines that write to `$GITHUB_STEP_SUMMARY` under `.github/` | 94 |
 
 Facts that shape the design:
 
-- No test job needs a secret. `ci.yml`, the e2e, visual, migration and Ruby
-  preview workflows use only the run's own token; application secrets are
-  generated in the job.
-- Ruby tests enter through `tests/lanes/run`, and services come from
-  `compose.test.yml` on `127.0.0.1` ports. The three e2e workflows and
-  `bin/visual` boot the app natively on the runner and also assume loopback.
+- No test job needs a stored secret. Lane jobs use the committed dummy values
+  in `tests/lanes/base.env`; the e2e and container jobs generate random
+  values in the job. Two pull request jobs do read stored credentials: the
+  Bump.sh diff and the Claude review.
+- Ruby tests enter through `tests/lanes/run`, with services from
+  `compose.test.yml` on `127.0.0.1` ports. The exceptions are the devcontainer
+  and macOS install jobs, which run the fast suite directly.
+- `e2e-full-auth.yml`, `e2e-tenant-connect.yml` and `bin/visual` boot the app
+  natively on the runner. `e2e.yml` runs the built image with `docker run`.
+  All of them address the app and its services on loopback.
 - The image workflow builds three variants (`main`, `-s6`, `-lite`) for
-  `linux/amd64` and `linux/arm64` with QEMU on one runner, and pushes to GHCR
-  and Docker Hub, or to one custom registry. There is no layer cache, signing,
-  SBOM or image scan.
+  `linux/amd64` and `linux/arm64` with QEMU on one runner and pushes to GHCR
+  and Docker Hub, or to one custom registry. Names and tags come from
+  `tags()` in `docker/bake.hcl`. There is no layer cache, signing, SBOM or
+  image scan, and only `main` is ever booted by a test.
 - Reviewers on pull requests: Renovate, Dependabot security updates, Greptile,
   Codex and Claude.
-- `tools/testsuite/` tests the CI scripts offline. 14 of its 15 suites read
-  files under `.github/` as text.
+- `tools/testsuite/` tests the CI scripts offline. 14 of its 15 suites depend
+  on paths under `.github/`: most read workflow or action text, and about five
+  only execute a script by path.
 
 ### 2.2 GitLab today
 
@@ -150,16 +161,25 @@ maintenance."
 
 **C5. Release notes.** ADR-009 (accepted): "Scriv owns the narrative; Release
 Drafter owns the inventory." No workflow runs Release Drafter today, and it
-is a GitHub Action. The ADR needs an amendment before its config is removed
-(D7).
+is a GitHub Action. The same ADR says: "Domain labels (`frontend`, `backend`)
+remain useful for PR filtering but no longer drive release note sections."
+Both sentences need an amendment before the config and the labeler are
+removed (D6, D7).
 
 **C6. Selection policy.** `docs/development/auth-ci.md` describes which jobs
 run on which event. It is a development guide, not an ADR. This plan keeps
-the behavior it describes and rewrites the guide at cutover.
+the behavior it describes, with the changes named in §4.4, and rewrites the
+guide at cutover.
 
 **C7. Access changes need approval.** AGENTS.md: "Changes that widen access,
 including on error paths, require explicit operator approval." §4.11 lists
 the changes in this plan that fall under that rule.
+
+**C8. Install lanes test the path from zero.** The fresh-clone, baremetal,
+installer and devcontainer workflows exist to prove the documented setup
+works on a machine that has nothing prepared. Their headers say so (for
+example, fresh-clone asserts the fast suite is green with no frontend build
+ever run). They cannot share the job template the other jobs use (§4.3).
 
 ## 4. Target design
 
@@ -167,26 +187,38 @@ Everything in this section is a proposal.
 
 ### 4.1 Pipeline types
 
-| Type | Selected by | Replaces | Runs |
-|---|---|---|---|
-| Merge request | `$CI_PIPELINE_SOURCE == "merge_request_event"` | `pull_request` in 21 workflows | always-on checks, plus jobs selected by path or label |
-| Merge train | `$CI_MERGE_REQUEST_EVENT_TYPE == "merge_train"` | `merge_group` | everything except billing |
-| `main` | push to `main` | `push: main` | everything except billing; API docs deploy |
-| Tag | `$CI_COMMIT_TAG` matching `v*` | tag triggers in 4 workflows | everything including billing; build, validate, publish, release |
-| Nightly | schedule with `SCHEDULE=nightly` | 6 crons between 03:00 and 04:43 UTC | everything including billing, Ruby preview, migrations, nightly image |
-| Weekly | schedule with `SCHEDULE=weekly` | 7 Monday crons | install and boot lanes, published-image smoke, full register scan |
-| Manual | web or API, with `spec:inputs` | `workflow_dispatch` in 27 workflows | inputs `run_all`, `publish`, `platforms`, `version_tag` |
-| Triage | schedule with `SCHEDULE=triage` | stale and lock crons | `gitlab-triage` |
+| Type | Selected by | Runs |
+|---|---|---|
+| Merge request | `$CI_PIPELINE_SOURCE == "merge_request_event"` | always-on checks, plus jobs selected by path or label (§4.4) |
+| Merge train | `$CI_MERGE_REQUEST_EVENT_TYPE == "merge_train"` | what `merge_group` runs today: all main CI jobs except billing, full-auth and tenant-connect e2e |
+| `main` | push to `main` | the merge train set, static analysis, API docs deploy, register gates on locale changes |
+| `develop` | push to `develop` | register gates on locale changes, as today |
+| Tag | `$CI_COMMIT_TAG` matching `v*` | the `main` set, billing, image build for release, publish, release |
+| Nightly | schedule input `schedule: nightly` | the `main` set, billing, migrations, Ruby preview, nightly image |
+| Weekly | schedule input `schedule: weekly` | install and boot lanes, published-image smoke, full register scan |
+| Triage | schedule input `schedule: triage` | `gitlab-triage` |
+| Manual | web or API with inputs | selected by inputs |
 
-`workflow:rules` sets `RUN_ALL` and `NIGHTLY` per type, so jobs test one
-variable and not the event. The duplicate-pipeline guard from the pilot
-(`$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS` with `when: never`) stays.
-Pipeline inputs must each have a default, because merge request pipelines
-cannot set them.
+Notes:
 
-A nightly schedule on `develop` is worth adding. Today `develop` is tested
-only through pull requests that target it, and a change to shared code can
-break an auth-only job that was not selected on its PR.
+- Schedules select the type through a pipeline input, not a variable.
+  Schedule variables are pipeline variables, and GitLab.com's default for new
+  projects is to allow none; schedules accept inputs.
+- Inputs live in the root file (`spec:inputs`, at most 20) and each needs a
+  default, because merge request pipelines cannot set them. Proposed inputs:
+  `schedule`, `run_all`, `publish` (`none`, `custom`, `public`),
+  `platforms`, `version_tag`, `ruby_preview`, `rules_ref`, `debug`. A manual
+  publish today defaults to the custom registry; `publish` keeps that choice
+  explicit.
+- `workflow:rules` sets `RUN_ALL` and `NIGHTLY` per type so jobs test one
+  variable. Using workflow variables in job rules is part of spike S3.
+- The duplicate-pipeline guard from the pilot
+  (`$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS` with `when: never`) stays.
+- Container e2e, visual and migration tests do not run on `main`, tag or
+  merge-queue events today. Two additions are proposed: container e2e in the
+  tag pipeline, because publishing should wait for it (§4.6), and a nightly
+  schedule on `develop`, because a change to shared code can break an
+  auth-only job that its pull request did not select.
 
 ### 4.2 File layout
 
@@ -195,10 +227,10 @@ break an auth-only job that was not selected on its PR.
                         and the signing job (id_tokens)
 .gitlab/ci/
   rules.yml             path lists and rule fragments
-  base.yml              job templates: toolchain image, caches, services, lane
+  base.yml              job templates: images, caches, prepare, lane
   lint.yml              linters, hygiene, guards, audits, tooling tests
   frontend.yml          build, Vitest, type checks, i18n
-  ruby.yml              lanes, migrations, Ruby preview
+  ruby.yml              lanes, host proxy wire, migrations, Ruby preview
   images.yml            toolchain image, OCI build, container validation
   e2e.yml               container e2e, full-auth, tenant-connect, visual
   smoke.yml             install and boot lanes
@@ -209,9 +241,11 @@ docker/ci/toolchain.dockerfile
 tools/<domain>/ and bin/<domain>      (§5)
 ```
 
-One rule for the YAML: a `script:` entry is one command that calls a `bin/`
-entry point, `tests/lanes/run`, or a package manager. Shell written inside
-YAML cannot be checked by shellcheck or tested by `bin/testsuite`.
+A `script:` entry is a single command. Anything with a branch, a loop or a
+wait lives in a `bin/` command. During the dual run that keeps one
+implementation under both hosts, and it keeps the logic under shellcheck and
+`bin/testsuite`. Today actionlint runs shellcheck over workflow `run:` blocks
+and two suites execute them; neither reads GitLab YAML.
 
 Stages follow the existing tiers (lint and build, test, image, e2e, publish,
 report) and jobs use `needs` so that tests start when lint and build finish,
@@ -219,51 +253,89 @@ as they do now.
 
 ### 4.3 Execution environment
 
-**Toolchain image.** One image built from `docker/ci/toolchain.dockerfile`
-replaces `setup-ruby`, `setup-node`, `pnpm/action-setup`, `setup-python` and
-the per-job `apt` and `pip` installs. Contents: Ruby from `.ruby-version`,
-Node from `.node-version`, pnpm from `package.json`, Python, uv, bash 5, jq,
-the Docker engine and CLI with compose and buildx, a PostgreSQL client,
-shellcheck and pre-commit. Two variants: one adds the Playwright browsers
-(tag tied to `@playwright/test`), one swaps in the Ruby preview version.
-The image is stored in the project registry and referenced by digest from one
-variable in `base.yml`. A guard job compares the pin files with the image and
-fails on drift, which extends what `scripts/check-version-pins.sh` does now.
+**Toolchain image.** One Dockerfile, three stages, stored in the project
+registry and referenced by digest as a literal in `base.yml`. GitLab advises
+against image references built from variables: "When possible, avoid using
+variables in container references as they can be modified to point to
+malicious images."
 
-**Services on loopback.** `bin/ci services up <names>` starts a Docker daemon
-inside the job container when none is reachable, then runs
-`docker compose -f compose.test.yml up --wait -d <names>`. Published ports
-are then on the job's own `127.0.0.1`, bind mounts resolve in the job's own
-filesystem, and `LANES_NO_AUTOSTART=1` works as it does today. GitLab's hosted
-Linux runners support this: "Runners with any of the
-saas-linux-<size>-<architecture> tags are configured to run in privileged mode
-to support Docker-in-Docker." The same command serves the native e2e jobs,
-`bin/visual`, the compose smoke jobs and the devcontainer job.
+| Stage | Contents | Used by |
+|---|---|---|
+| `runtime` | Ruby from `.ruby-version`, Node from `.node-version`, pnpm from `package.json`, Python, bash 5, git, curl, sudo, the Docker engine with compose and buildx | install lanes (C8) |
+| `ci` | `runtime` plus uv, jq, a PostgreSQL client, shellcheck, actionlint (until Phase 6), pre-commit, `glab`, cosign, oras, and the small tools the scripts call (`lsof`, `shasum`, `openssl`, `bc`) | most jobs |
+| `browsers` | `ci` plus the Playwright browsers, tied to `@playwright/test` | browser lane, native e2e |
+
+- `runtime` replaces what `setup-ruby`, `setup-node`, `pnpm/action-setup` and
+  `setup-python` provide. It has no project dependencies, caches or browsers.
+- A guard job compares the pin files with the image and fails on drift. This
+  extends `scripts/check-version-pins.sh`.
+- The Ruby preview uses the same Dockerfile with another Ruby version. One
+  YAML value supplies both the image tag and the argument to the pin step, and
+  the guard exempts that variant.
+- The logship tests run on two Python versions today; uv supplies the second.
+- Lanes that need a Redis or Valkey binary on the host (baremetal boot, secret
+  rotation) keep their own `apt` install step.
+
+**Docker inside the job.** `bin/ci docker up` starts a Docker daemon inside
+the job container when none is reachable. `bin/ci services up` then runs
+`docker compose` with `compose.test.yml`, and with `compose.e2e.yml` for
+Mailpit. Published ports are on the job's own `127.0.0.1`, bind mounts resolve
+in the job's own filesystem, and `LANES_NO_AUTOSTART=1` works as it does
+today. GitLab's docs confirm hosted Linux runners "are configured to run in
+privileged mode to support Docker-in-Docker", but describe only the
+`docker:dind` service, not a daemon in the job container. Spike S1 decides
+this.
+
+Jobs that need the daemon but not the test services call only
+`bin/ci docker up`: fresh-clone (which must show that `bin/setup --test`
+starts the services itself), the compose smoke jobs, the clean-room matrix,
+the bash 3.2 gate, the devcontainer job and `bin/visual`.
 
 Alternatives considered:
 
 - `services:` with hostnames. Rejected: it breaks C1 and moves image tags and
   service configuration out of `compose.test.yml`, which breaks C2.
 - A `docker:dind` service with the test process in a second container on the
-  daemon's host network. Works, but adds a container hop and a shared-volume
-  dependency. It is the fallback if the in-job daemon fails spike S1.
+  daemon's host network. Untested. It would not serve `bin/visual`, which
+  starts the server itself on loopback and bind-mounts the checkout.
 - A self-hosted runner with the `instance` executor needs neither, because
   jobs run on the VM as they do on GitHub (D1).
 
-**Caches and artifacts.** Bundler cache keyed on `Gemfile.lock`, pnpm store
-keyed on `pnpm-lock.yaml`, pre-commit environments, and a registry layer cache
-for image builds. Consumers use `policy: pull`. The frontend build, lane logs,
-RSpec results and reports stay artifacts with the retention they have now.
-Both caches are disabled today with `DEBUG` comments
-(`.github/actions/setup-node-env/action.yml:75`, `ci.yml:354`); find out why
-before turning them on.
+**Container jobs.** Container validation and container e2e run the app image
+next to a Valkey container on a Docker network inside the job's daemon. They
+cannot use `compose.test.yml`, which publishes on loopback only; its own
+comment says so. `bin/oci smoke` owns that Valkey reference, which leaves two
+pins (compose and container jobs) where there are five copies today.
+
+**Job preparation.** `bin/ci prepare` does what the `setup-ruby-test-env`
+action does beyond installing Ruby: seed `etc/` from `etc/defaults`, check
+that the frontend artifact is present where a lane needs it, and run a frozen
+`bundle install`. The native e2e and visual jobs use it in place of
+`bin/setup`, because `bin/setup` runs `pnpm run clean`, which deletes the
+frontend build they would receive as an artifact. `bin/setup` stays covered by
+the install lanes.
+
+**Caches and artifacts.**
+
+- Bundler cache keyed on `Gemfile.lock` and the Ruby version, so the preview
+  toolchain does not share gems with the default one. pnpm store keyed on
+  `pnpm-lock.yaml`. Pre-commit environments. Consumers use `policy: pull`.
+- Today the Bundler cache is on for lane jobs and off in the lint jobs; the
+  pnpm store cache is off everywhere. Both carry the comment "disabled to rule
+  out stale cache". The incident behind that is not recorded (R9).
+- The frontend build, lane logs, RSpec results and reports stay artifacts with
+  their current retention.
+- Install lanes get no cache and no artifact, and nothing may be written into
+  their checkout: fresh-clone ends by requiring a clean `git status`.
 
 **Cancellation.** `interruptible: true` by default with
 `workflow:auto_cancel:on_new_commit: interruptible` replaces the concurrency
-groups. Schedule, tag and publish pipelines set `auto_cancel` to `none`. This
-removes a current defect (inferred): a push to `main` cancels the nightly run
-in the same concurrency group, and the nightly is the only scheduled run with
-billing coverage.
+groups. Schedule, tag and publish pipelines set `auto_cancel` to `none`
+through `workflow:rules`. Today a push to `main` cancels a running nightly in
+the same concurrency group (inferred), and the nightly is the only scheduled
+run with billing coverage. GitLab's docs do not say whether a schedule
+pipeline is cancelled by a later push; its source code indicates it is unless
+the pipeline opts out.
 
 **Runner tags** come from variables, so the fleet can change without editing
 jobs (D1).
@@ -273,19 +345,29 @@ jobs (D1).
 | Today | GitLab |
 |---|---|
 | `changes` job with `dorny/paths-filter` (`ruby`, `typescript`, `frontend`, `oci`, `harness`) | `rules:changes` fragments in `rules.yml`, shared with `!reference` |
-| `.github/auth-paths.yml` (47 patterns) and the `ci:auth` label read through the API | `rules:changes` plus `$CI_MERGE_REQUEST_LABELS =~ /ci:auth/` |
-| `run_all` on push, schedule, merge queue and dispatch | `RUN_ALL` from `workflow:rules:variables` |
+| `.github/auth-paths.yml` (47 lines) and the `ci:auth` label read through the API | `rules:changes` plus `$CI_MERGE_REQUEST_LABELS =~ /ci:auth/` |
+| `paths:` filters in `e2e.yml` (25 patterns), `visual.yml` (10), `migration-tests.yml` (9, plus a base-branch filter) and the install, docs and locale workflows | one `rules:changes` fragment each |
+| `run_all` on push, schedule and merge queue, and on dispatch when its input is set | `RUN_ALL` from `workflow:rules:variables` and the `run_all` input |
 | `billing_nightly` | `NIGHTLY`, set for schedule, tag and manual `run_all` |
 | `[ci-all]` commit flag | label `ci:all` |
-| `[ci-skip]` commit flag, which must not produce a passing verdict | GitLab's own skip, with "Skipped pipelines are considered successful" off |
+| `[ci-skip]` commit flag, which must not produce a passing verdict | GitLab's skip: `[skip ci]` in a commit message for push pipelines, in the merge request title for merge request pipelines. A skipped pipeline does not satisfy the gate (§4.5). |
 | A change under `.github/workflows/**` or `.github/actions/**` forces everything | A change to `.gitlab-ci.yml`, `.gitlab/ci/**`, `docker/ci/**` or `tools/ci/**` forces everything |
 
 - In a merge request pipeline `rules:changes` compares against the target
   branch, which matches the documented policy that the detector evaluates the
-  whole diff. `compare_to` is avoided; GitLab's docs call it unreliable with
-  merged results pipelines and in forks.
-- Labels are read when the pipeline is created, as now: adding `ci:auth`
-  needs a new pipeline.
+  whole diff. In tag, schedule and manual pipelines it is always true, which
+  matches run-everything on those events. `compare_to` is avoided; the docs
+  call it unreliable with merged results pipelines and in forks.
+- Limits: "A maximum of 50 patterns or file paths can be defined per
+  rules:changes section." The auth list is 47 lines, three of which use brace
+  alternation or character classes, so it is split across rules. GitLab
+  matches with Ruby's `File.fnmatch` and the extended-glob flag; the brace and
+  class patterns are tested with that function in S3.
+- **Behavior change.** Today the label is read live, so re-running an
+  existing run picks up a `ci:auth` label added later. On GitLab labels are
+  read when the pipeline is created. Adding the label and choosing "Run
+  pipeline" on the merge request creates a new pipeline that sees it; retrying
+  jobs does not.
 - The commit flags are replaced by labels because they appear not to work on
   pull requests today (inferred: the detector reads the message of the
   synthetic merge commit).
@@ -296,68 +378,109 @@ jobs (D1).
 
 Testing: the selection scripts have offline suites today. Selection written as
 `rules` needs tests that assert the resolved job list for fixture scenarios
-(docs-only change, auth path, label, tag, schedule). GitLab's own lint
-simulation only models a push to the default branch, so this needs a
-third-party evaluator (spike S3). Until S3 passes, selection has less test
-coverage than it has now (R2).
+(docs-only change, auth path, label, tag, schedule). GitLab's lint simulation
+accepts a branch or tag but has no merge request, label or schedule context,
+so this needs a third-party evaluator (S3). Until S3 passes, selection has
+less test coverage than it has now (R2).
 
 ### 4.5 Gate
 
 - Project settings: "Pipelines must succeed" on, "Skipped pipelines are
   considered successful" off.
-- Every merge request pipeline has always-on jobs (lint, guards), because the
-  setting "requires the existence of a successful pipeline, not the absence of
-  failed pipelines."
+- Every merge request pipeline has always-on jobs (lint, guards). GitLab:
+  "A merge request with no pipelines at all is not considered to have a
+  successful pipeline, and cannot merge."
 - A job that depends on a job that may be absent uses `needs: optional: true`.
-- `allow_failure` is used only for the Ruby preview jobs and for scanners
-  during their baseline period.
-- With Premium: merged results pipelines and merge trains on `main` and
-  `develop` replace the merge queue (D5).
-- Deleted: `ci-verdict` and `ci-verdict.sh` with its suite, the three e2e
-  verdict jobs, the `always() && (success || skipped)` conditions on every
-  downstream job, and the sparse checkouts in tail jobs. They exist because,
-  in the words of `ci-verdict.sh`, "A required status check sees only one
-  job's conclusion, and GitHub counts a skipped job as passing."
+  This replaces the `always() && (success || skipped)` conditions that every
+  downstream job has today.
+- `allow_failure` is limited to three cases: the Ruby preview, with
+  `allow_failure:exit_codes` so that a test or install failure under the
+  preview Ruby is a warning while a failed pin step still fails the pipeline;
+  Sentry delivery (§4.6); and scanners during their baseline period.
+- With Premium: merged results pipelines and merge trains replace the merge
+  queue. GitLab enables merge trains per project, not per branch (D5).
+- Deleted: `ci-verdict` and `ci-verdict.sh` with its suite, and the three e2e
+  verdict jobs. The script states why it exists: "A required status check sees
+  only one job's conclusion, and GitHub counts a skipped job as passing."
 
-### 4.6 Build once: frontend, images, release
+### 4.6 Frontend, images, release
 
-**Frontend.** One `frontend:build` job per pipeline. Lanes, native e2e, visual
-and smoke jobs take its artifact. Today the frontend is built separately in
-`ci.yml`, three e2e workflows, two visual workflows and the Ruby preview.
+**Frontend.** One `frontend:build` job per pipeline. Lanes, native e2e and
+visual jobs take its artifact; today each of those workflows builds its own.
+Two things do not take it: the install lanes (C8), and the image, which keeps
+its own frontend stage so that it stays self-contained.
 
-**Image.** One `image:build` job runs the bake group with a registry cache and
-pushes to `$CI_REGISTRY_IMAGE/build:<sha>`. Container validation, the three
-container e2e lanes and the full-stack compose smoke pull that image. Merge
-request pipelines build `linux/amd64` only. The Dockerfile keeps its own
-frontend build stage; the image stays self-contained.
+**Image build.**
 
-**Multi-arch.** Tag, nightly and manual pipelines build each architecture on a
-native runner and merge the manifests. QEMU goes away. GitLab's docs: "Running
-jobs on their respective architectures avoids performance issues from CPU
-instruction translation."
+- Merge request pipelines build the bake target `main` once, for
+  `linux/amd64`, with the development version arguments the workflows use
+  today (`ALLOW_DEV_VERSION=true`, `VERSION=ci-test`), and push it to the
+  project registry. Container validation, the three container e2e lanes and
+  the full-stack compose smoke pull it. The compose smoke re-tags it to the
+  name its compose file expects.
+- Tag, nightly and manual pipelines build the bake group `ci` (`main`, `s6`,
+  `lite`) in one bake call, because `lite` is built from `main` and all three
+  need the `base` target.
+- The version is compiled into the image, so one digest has one version. The
+  image that gets published is built in the tag pipeline; an image built for
+  the same commit in another pipeline cannot be promoted.
+- `docker/bake.hcl` keeps ownership of image names and tags. `tags()` has two
+  modes today; staging in the project registry needs a third mode or
+  per-target overrides, and the file needs cache and attestation settings.
+  `bin/oci plan` computes only the version and tag values, which is what
+  `build-and-publish-oci-images.yml:254-332` does inline. Three edge cases to
+  check while porting (inferred): a prerelease tag without `-rc` gets
+  `latest`; `next` has two meanings; a dispatch with `source_branch` can label
+  one commit and build another. The unreachable branch-push rule in that
+  range is dropped.
+- A registry layer cache helps less than it might: the version rewrite
+  changes `package.json` before `pnpm install`, and `COMMIT_HASH` is written
+  before the frontend build. The Dockerfile has a build-argument path that
+  leaves `package.json` alone; prefer it.
 
-**Publish.** `image:publish` needs container validation and e2e in the same
-pipeline, then copies the tested digests to the public registries with the
-tags from `bin/oci plan`. Today the publish workflow and CI start
-independently on a tag, so `latest` can be pushed while CI is failing.
-`bin/oci plan` is the tag logic from `build-and-publish-oci-images.yml:254-332`
-as tested code. Three edge cases to check while porting (inferred): a
-prerelease tag without `-rc` gets `latest`; `next` has two meanings; a
-dispatch with `source_branch` can label one commit and build another.
+**Multi-arch.** Today one job builds both architectures under QEMU, and one
+frontend build serves both because the frontend stages run on the build
+platform. Native per-architecture jobs would compile the frontend once per
+architecture. The Sentry step extracts the bundle from the amd64 image on the
+premise that both images serve the same files, so two builds would leave
+arm64 without matching sourcemaps (inferred). Proposal: move to native arm64
+runners only if S4 shows the frontend stage can be built once and passed to
+both architecture builds as a named context. Otherwise keep the single
+multi-platform build and add the registry cache.
+
+**Publish.** `image:publish` needs container validation and container e2e
+from the same tag pipeline, then pushes to the registries selected by
+`publish`. Today the publish workflow and CI start independently on a tag, so
+`latest` can be pushed while CI is failing. Two smaller fixes belong here:
+`s6` and `lite` are published without ever being booted (add `bin/oci smoke`
+for each on tag pipelines), and the post-push audit prints the expected and
+actual versions without comparing them.
 
 **Signing and attestation.** New. The publish job signs with cosign using a
 GitLab ID token (available on GitLab.com on every tier) and attaches the
 buildx SBOM and provenance. The signing identity is public interface once
 published; document it in the release notes of the first signed release.
 
-**Sentry.** Same steps and the same best-effort behavior, called through
-`bin/sentry`.
+**Sentry.** Same steps, through `bin/sentry`. Three differences:
+
+- The image digest is handed from the build job to the Sentry job as an
+  artifact; today both run in one job.
+- `set-commits --auto` needs full history (`GIT_DEPTH: 0`).
+- The job exits non-zero when delivery is FAILED or BLOCKED and is marked
+  `allow_failure`, so the pipeline shows a warning. The workflow header says
+  of today's arrangement that the annotations and the summary table "are the
+  signal, and the green check is not".
 
 **Release.** A `release:` job (GitLab's `glab`-based keyword) creates the
-release on a tag with the scriv section for that version. No workflow creates
-a release today.
+release on a tag. No workflow creates a release today. The scriv section for
+a version exists only after someone runs `scriv collect` and commits it
+before tagging, and it is reStructuredText. The job fails if `CHANGELOG.rst`
+has no section for the tag, and the release description links to it.
 
-**Visual archive.** Same `oras push`, to the registry chosen in D3.
+**Visual archive.** Its trigger today is a published GitHub release. It
+becomes a job in the tag pipeline after the release job. Its registry is part
+of D3: the consumer commands in `bin/visual`, `e2e/visual/README.md` and the
+workflow header name `ghcr.io`.
 
 **Not touched:** the Gitolite and podman build path described by
 `.oci-build.json`. It remains a second image build path.
@@ -366,15 +489,23 @@ a release today.
 
 | Today | GitLab | Note |
 |---|---|---|
-| Job summaries (45 uses of `$GITHUB_STEP_SUMMARY`) | collapsible log sections and the reports below | no equivalent exists |
+| Job summaries | collapsible log sections and the reports below | I found no equivalent in GitLab's docs |
 | RSpec JSON, aggregated into a unified report | JSON kept; `bin/ci results junit` converts it for `artifacts:reports:junit` | the lane runner refuses `SPEC_OPTS` formatters, so conversion happens in CI (C3) |
+| Aggregate job with a hand-kept `needs` list and an artifact name pattern that excludes rubocop | a report job in the last stage, which receives earlier jobs' artifacts without a list | RSpec results go in their own directory; the aggregate script would otherwise count `rubocop_results.json` as a suite |
 | Vitest | JUnit reporter | the pilot does this |
 | Playwright `github` reporter | JUnit, and the HTML report through `artifacts:expose_as` | reporter chosen by an environment variable, not by provider |
-| Visual regression PR comment | `expose_as` link to the diff report | |
-| Migration results PR comment | JUnit | |
-| CI metrics PR comment (tier budgets, per-job change against `main`) | ported in Phase 6 as `bin/ci metrics` reading GitLab's jobs API | a gap until then (D10) |
-| Ruby 4 outcome table | `allow_failure` jobs show as warnings | script deleted |
-| tmate debug session | none on hosted runners | lost; lane log artifacts remain |
+| Visual regression PR comment | pass or fail, with an `expose_as` link to the diff report | `bin/visual` does not pass `CI` into its container, so there is no JUnit |
+| Migration results PR comment | JUnit for the two lane jobs | the concurrent-boot job writes to the job log only |
+| CI metrics PR comment | ported in Phase 6 (D10) | a gap until then |
+| Ruby 4 outcome table | warning state per job, with the failing step named in the log | script deleted |
+| Notices in summaries (compose smoke skipped a bring-up, fresh-clone duration) | job log, or a warning exit code where it matters | |
+| tmate debug session | none | GitLab: "Instance runners on GitLab.com do not provide an interactive web terminal." Lane log artifacts remain. |
+
+The metrics port should take lane timings from the lane runner's own phase
+timing line, which is provider-neutral, and job durations from GitLab's jobs
+API. Today's version selects tiers and steps by display name and reads
+per-step records that GitLab does not have. The comment logic in
+`post-pr-metrics.cjs` is rewritten against GitLab's notes API.
 
 Coverage is not reported today. `coverage_report` with Cobertura output would
 add diff annotations; it is optional and not part of parity.
@@ -383,21 +514,20 @@ add diff annotations; it is optional and not part of parity.
 
 | Area | Today | Proposal |
 |---|---|---|
-| Ruby dependencies | bundler-audit on every PR | keep |
-| JavaScript dependencies | no audit in CI | add `osv-scanner` over both lockfiles |
+| Ruby dependencies | bundler-audit on every PR, with no ignore list by policy | keep as is |
+| JavaScript dependencies | no audit in CI | add `osv-scanner` on `pnpm-lock.yaml`; re-record the advisories accepted in `pnpm-workspace.yaml` |
 | SAST | none | GitLab SAST |
 | Secrets | `detect-private-key` hook only | GitLab pipeline secret detection |
-| Container image | none | GitLab container scanning on the `image:build` output |
+| Container image | none | GitLab container scanning on the built image |
 | CI config lint | actionlint with a baseline | pipeline creation validates the config; `glab ci lint` locally |
 | Signing, SBOM, provenance | none | §4.6 |
-| Pinning | actions by SHA, images by digest | images by digest, components and includes by SHA |
+| Pinning | actions by SHA, most images by digest | images by digest, components and includes by SHA |
 
 The scanners are available on every tier, but on Free and Premium their
 results are JSON artifacts only; showing findings in the merge request needs
 Ultimate. Without Ultimate, add a ratchet in the style of the existing
-shellcheck baseline: fail on findings that are not in a committed baseline.
-New scanners start non-blocking and gate after their baseline is triaged
-(Phase 6).
+shellcheck baseline for the new scanners only. They start non-blocking and
+gate after their baseline is triaged (Phase 6).
 
 ### 4.9 Dependency updates
 
@@ -408,7 +538,8 @@ New scanners start non-blocking and gate after their baseline is triaged
   `vulnerabilityAlerts`, which depends on GitHub's alerts, with
   `osvVulnerabilityAlerts`; point the custom regex manager at the new YAML.
 - Tool versions that no manager tracks today (shellcheck, actionlint, uv,
-  bump-cli) move into the toolchain Dockerfile where Renovate can see them.
+  bump-cli, bundler-audit) move into the toolchain Dockerfile where Renovate
+  can see them.
 - Dependabot security pull requests stop when GitHub stops being the source.
   The OSV alerts above cover that.
 - Every Renovate merge request is a pipeline. The current settings
@@ -418,31 +549,61 @@ New scanners start non-blocking and gate after their baseline is triaged
 ### 4.10 Repository automation and review
 
 - **Templates.** Issue forms become Markdown templates in
-  `.gitlab/issue_templates/`; GitLab has no YAML forms. The PR template
-  becomes `.gitlab/merge_request_templates/Default.md`.
+  `.gitlab/issue_templates/` (I found no YAML forms in GitLab's docs). The PR
+  template becomes `.gitlab/merge_request_templates/Default.md`.
 - **Stale and lock.** `gitlab-triage` policies on the triage schedule, with
-  the current thresholds. Depends on where issues live (D12).
-- **Path labels.** Drop them (D6). Nothing consumes them: Release Drafter is
-  not running, and the labels that automation depends on (`ci:auth`,
-  `security`, `auto-update`, `dependencies`) are set by other means.
+  the current thresholds, the `Stale Boetticher` label and the exemption
+  labels. Depends on where issues live (D12).
+- **Path labels.** Drop them (D6). No automation reads them: the labels that
+  automation depends on (`ci:auth`, `claude-review`, `security`,
+  `auto-update`, `dependencies`, the stale and issue-template labels) are set
+  by other means. ADR-009 calls them useful for filtering, so the decision
+  goes with the ADR amendment.
 - **AI review.** Greptile has a GitLab integration and its settings in
-  `.greptile/` do not name a host. Claude review on merge request open can run
-  as a CI job through the documented GitLab integration (beta, maintained by
-  GitLab). `@claude` mentions need a webhook listener or Duo external agents
+  `.greptile/` do not name a host. Claude review can run as a CI job through
+  the documented GitLab integration (beta, maintained by GitLab). Today's
+  workflow also re-reviews when the `claude-review` label is added and skips
+  bot authors, forks and locale-only changes; D8 decides which of that is
+  kept. `@claude` mentions need a webhook listener or Duo external agents
   (Premium, enabled per customer). Codex and Copilot review are tied to
-  GitHub. See D8.
-- **Translation rules.** `validate-register` and `resolved-derive-gate` run
-  the same derive action from `onetimesecret/translation-rules` twice. They
-  become one job. The action becomes a CI/CD component in that project when
-  it moves; until then the job clones it at the pinned ref.
+  GitHub.
+- **Review rules.** `.github/copilot-instructions.md` contains review rules
+  that AGENTS.md does not (what not to comment on, a cap per review). The
+  Claude review prompt and `.greptile/rules.md` repeat parts of them. Put them
+  in one place before deleting the file.
+- **Register gates.** `validate-register` and `resolved-derive-gate` run the
+  same derive action from `onetimesecret/translation-rules`, one with the
+  authority lint off and one with it on. They stay two jobs with two verdicts
+  and share a template; their inline shell moves behind a command. Both
+  linters are called with `--format github` today; one has a text format, the
+  other lives in the translation-rules repository and needs one. The
+  action becomes a CI/CD component in that project when it moves; until then
+  the jobs clone it at the pinned ref. The workflow header says full scans
+  fail until existing findings in three locales are fixed (not verified). A
+  failing full scan would turn `main` and weekly pipelines red (D14).
 
 ### 4.11 Secrets and access
 
-All test jobs run without secrets, which is what allows pipelines from forks
-and unprotected branches. Credentials become protected, masked and hidden
-variables scoped to an environment, so only publish, Sentry and API docs jobs
-on protected refs can read them. Pipeline variables are restricted; manual
-runs use inputs.
+- Test jobs run without stored credentials, which is what allows pipelines
+  from forks and unprotected branches.
+- Publish, Sentry and API docs deploy credentials become protected, masked
+  and hidden variables scoped to an environment, readable only on protected
+  refs. Environment scope on project variables is available on every tier.
+- Two jobs read credentials in merge request pipelines today and would
+  continue to: the Bump.sh diff and the Claude review. Those variables cannot
+  be protected. They stay unavailable to fork pipelines, as now.
+- A job that can read a credential does not run a package install. The
+  publish workflow installs Node dependencies before any registry login for
+  this reason; its comment says "pnpm lifecycle scripts run arbitrary package
+  code". On GitLab the install happens in a job without credentials and its
+  output is passed on.
+- `SENTRY_PROJECTS` is a space-separated list. It is not a secret; store it
+  unmasked.
+- Pipeline variables are restricted; manual and scheduled runs use inputs.
+- The keyless signing job stays in this project's own configuration. GitLab:
+  "The id_tokens portion of the CI/CD configuration file must be located in
+  the project that is being built and signed. AutoDevOps, CI files included
+  from another repository, and child pipelines are not supported."
 
 Changes that widen access and need operator approval (C7):
 
@@ -459,20 +620,22 @@ Additive, not widening: the ID token for keyless signing.
 ### 4.12 Runners and compute
 
 - GitHub's standard runner for public repositories has 4 vCPU (from memory,
-  not re-checked). The matching GitLab hosted runner is `saas-linux-medium-amd64` (4 vCPU, 16 GB), cost
-  factor 2. Small runners (2 vCPU, factor 1) suit the lint and guard jobs.
+  not re-checked). The matching GitLab hosted runner is
+  `saas-linux-medium-amd64` (4 vCPU, 16 GB), cost factor 2. Small runners
+  (2 vCPU, factor 1) suit the lint and guard jobs.
 - Monthly quotas: 400 minutes on Free, 10,000 on Premium, 50,000 on Ultimate.
 - Estimate: 18 main CI runs a day at about 40 job-minutes each on medium
   runners is on the order of 40,000 compute minutes a month for `ci.yml`
   alone. This is an upper-leaning estimate, because dependency-update PRs
   select fewer jobs and some runs are cancelled early. The other workflows add
   to it. Spike S6 replaces this estimate with a measurement.
-- The GitLab for Open Source program halves the cost factor and grants
-  Ultimate, but its terms say an organization "can't seek to make a profit by
+- The GitLab for Open Source program grants Ultimate and lists a cost factor
+  of 0.5 for public projects (the page does not say how that combines with
+  runner size). Its terms say an organization "can't seek to make a profit by
   selling services, by charging for enhancements or add-ons, or by other
   means." Check eligibility before relying on it (D13).
-- This design lowers consumption before any purchase: one image build in place
-  of five, one frontend build, no repeated toolchain setup, cached
+- This design lowers consumption before any purchase: fewer image builds per
+  change, one runner-side frontend build, no repeated toolchain setup, cached
   dependencies, and fewer Renovate pipelines.
 - **macOS.** Two jobs need it (`installer.yml` `macos`, `drift-guards.yml`
   `envref-macos`). GitLab's hosted macOS runners are Premium and Ultimate
@@ -486,51 +649,91 @@ Additive, not widening: the ID token for keyless signing.
 The consolidation happens in Phase 1, on GitHub, one domain per change. Each
 change moves the code and its tests, adds the `bin/` shim, and switches the
 GitHub workflows to the `bin/` command. Green GitHub CI is the evidence that
-behavior is preserved. A file on the delete list in §6 is not moved; it stays
-in `.github/scripts/` until the workflows that call it are removed.
+behavior is preserved. A file on the delete list in §6.3 is not moved; it
+stays in `.github/scripts/` until the workflows that call it are removed.
 
-Package names below are proposals.
+Package names are proposals.
 
-| Package | Entry point | Absorbs | Used by |
-|---|---|---|---|
-| `tools/ci/` | `bin/ci` | `run-test-lane`, `generate-test-secrets`, `wait-for-http-service` actions; `aggregate-test-results.sh`, `generate-test-summary.sh`, `pin-ruby-version.sh`, `check-api-v3-fresh-schemas.sh`; the readiness loops and flaky gate copied across the e2e workflows; later `check-ci-metrics` and `ci-metrics-breakdown.sh` | every test job |
-| `tools/oci/` | `bin/oci` | `update-version.sh`, `extract-frontend-dist.sh`, the `test-docker-container` action, the tag logic inlined in the publish workflow | image, e2e and publish jobs |
-| `tools/sentry/` | `bin/sentry` | `sentry-sourcemap-preflight.sh`, `sentry-status.sh`, `sentry-verify-artifacts.sh`, the three inline copies of `log_cli_output` | publish jobs |
-| `tools/checks/` | `bin/check` | `scripts/check-version-pins.sh`, `check-ci-secrets.sh`, `check-shell-lint.sh` with its baselines, `adr-lint.rb`; `check-docs-commands.sh` from `tools/testsuite-installer/` | guard job, pre-commit |
-| `tools/envref/` (exists) | `bin/envref` | `scripts/check-env-reference.sh` | guard job |
-| `tools/testsuite/` (exists) | `bin/testsuite` | no new code; its suites move to each package's `tests/` directory, which `bin/testsuite run` already discovers | lint stage |
-| `tools/testsuite-installer/` (exists) | `bin/testsuite-installer` | unchanged; `seed-compose-env.sh` and `ttfhw-chart.sh` lose their GitHub variables | smoke jobs |
+| Package | Entry point | Absorbs |
+|---|---|---|
+| `tools/ci/` | `bin/ci` | the `run-test-lane`, `setup-ruby-test-env`, `generate-test-secrets` and `wait-for-http-service` actions; `aggregate-test-results.sh`, `generate-test-summary.sh`, `pin-ruby-version.sh`, `check-api-v3-fresh-schemas.sh`; the inline e2e steps (container and server boot, per-lane environment, worker start and log gate, seed, log assertions, flaky gate, failure forensics); the migration concurrent-boot script; later, CI metrics |
+| `tools/oci/` | `bin/oci` | `update-version.sh`, the `test-docker-container` action, the tag logic inlined in the publish workflow, the post-push audit |
+| `tools/sentry/` | `bin/sentry` | `extract-frontend-dist.sh`, `sentry-sourcemap-preflight.sh`, `sentry-status.sh`, `sentry-verify-artifacts.sh`, and the inline release, upload and deploy steps with their three copies of `log_cli_output` |
+| `tools/testsuite/` (exists) | `bin/testsuite` | its suites move to each package's `tests/` directory, which `bin/testsuite run` already discovers |
+| `tools/testsuite-installer/` (exists) | `bin/testsuite-installer` | stays as it is, including `check-docs-commands` |
+| `tools/host-seam/` (exists) | `bin/host-seam` | the Caddy fixture provisioning inlined in the `host-proxy-wire` job |
 
-Details:
+What each move has to handle:
 
 - **One output layer.** `tools/ci/` provides a small reporter (notice,
-  warning, error, group, summary, output) that writes GitHub workflow commands
-  under GitHub Actions, GitLab log sections under GitLab CI, and plain text
-  elsewhere. Scripts stop writing to `$GITHUB_OUTPUT`, `$GITHUB_ENV` and
-  `$GITHUB_STEP_SUMMARY` directly. Much of the Sentry scripts' bulk is this
-  layer written three times.
-- **`bin/ci lane`** is the `run-test-lane` action as a command: the capture
-  profile, the results path and the log paths. It calls `tests/lanes/run` and
-  changes nothing in it.
-- **`bin/ci e2e-env`** writes the server, worker, seed and Playwright settings
-  to one env file. Today `$GITHUB_ENV` is the mechanism that keeps those
-  processes on one configuration.
+  warning, error, group, summary, output, env export) that writes GitHub
+  workflow commands under GitHub Actions, GitLab log sections and env files
+  under GitLab CI, and plain text elsewhere. Scripts stop writing to
+  `$GITHUB_OUTPUT`, `$GITHUB_ENV` and `$GITHUB_STEP_SUMMARY` directly. In the
+  Sentry scripts this layer already exists once, in `sentry-status.sh`.
+- **Composite actions stay as wrappers until Phase 6.** `bin/ci lane` is the
+  logic of the `run-test-lane` action: the capture profile, the results path
+  and the log paths. The action's tmate and artifact upload steps are `uses:`
+  steps that a command cannot perform, so on GitHub the action remains a thin
+  wrapper around the command at its 19 call sites.
+- **GitHub's filters must move with the code.** Today a change under
+  `.github/actions/**` forces every job, and `run-test-lane` is in the
+  `harness` filter. No GitHub filter matches `tools/ci/**`. Without an update
+  in the same change, a pull request that edits only `tools/ci/` would select
+  no test job and pass. `ci.yml:189-190` and
+  `tools/testsuite/api-v3-fresh-schemas-test.sh` name script paths that also
+  change.
+- **`bin/ci e2e`** writes the server, worker, seed and Playwright settings to
+  one env file and runs the steps for a profile. Today `$GITHUB_ENV` is what
+  keeps those processes on one configuration. `bin/ci wait-http` replaces the
+  HTTP readiness loops; the Valkey wait, the worker-log gate and the loop
+  inside `bin/visual` are separate cases. The flaky gate must run after a
+  failed Playwright run, and logs must be collected after any failure; the
+  command does the first, and `after_script` with `artifacts: when: always`
+  does the second.
+- **Smaller inline steps in `ci.yml`** also need a home: the i18n audit with
+  its exit-status handling, the pre-commit hygiene run (which needs full
+  history and the merge request's base and head SHAs), and the metrics
+  outcome table.
+- **Suites that move need more than a new directory.** They compute the
+  repository root from their own depth, source `lib/assert.sh` by relative
+  path, and two read fixtures beside them. Suites that only execute a script
+  need a path change; suites that read workflow or action text are rewritten
+  against the command, or deleted with the logic they test.
+- **Shell lint.** `scripts/check-shell-lint.sh` names five `.github/scripts/`
+  paths and the `tools/testsuite/` globs in its strict tier, and skips a glob
+  with no match without a message. Update the list in the same commits as the
+  moves, or the moved files fall to the lower lint floor silently.
 - **`clean_databases.rb`** is called by `package.json` and the smoke lane, not
   by any workflow. Move it to `tests/lanes/support/`.
-- **Single-file guards.** ADR-042 lets small adapters stay in `scripts/`.
-  `tools/checks/` is proposed anyway because the guards share a baseline
-  format and a caller, and one `bin/check all` serves both pre-commit and CI.
-  If that grouping is not wanted, they stay where they are and the guard job
-  calls them there.
+- **`seed-compose-env.sh`** aborts without `GITHUB_ENV`; give it the env file
+  output. **`ttfhw-chart.sh`** reads its history from the GitHub Actions API
+  and exits 0 on every degraded path, so on GitLab it would stop charting
+  without failing. It needs a new data source, and its history starts over.
 - **`scripts/README.md`** describes a `scripts/ci/` directory that does not
   exist on `develop`. Correct it in the first Phase 1 change.
 - **`ci/typescript-pilot/`** (on `main`) sits outside the ADR-042 layout. Most
   of `run.py` installs and verifies Node, which the toolchain image makes
   unnecessary. Retire it when the `frontend.yml` jobs replace the pilot job.
-- **Tests that read `.github/` as text** are rewritten as each target moves:
-  tests of moved scripts follow them, tests of the `run-test-lane` action
-  become tests of `bin/ci lane`, and tests of deleted logic are deleted with
-  it.
+
+**The guard scripts stay in `scripts/`.** `check-version-pins.sh`,
+`check-env-reference.sh`, `check-ci-secrets.sh`, `check-shell-lint.sh` and
+`adr-lint.rb` do not meet ADR-042's test for a tool package today: they share
+no code, have no dependency metadata and no tests, and the ADR lets such
+scripts remain. Moving them also breaks callers outside CI: the `bin/setup`
+doctor checks for `scripts/check-version-pins.sh` and would drop the check
+without a message, and `.oss-scanner/Dockerfile`, `docker/README.md`, the
+pre-commit config and ADR-036 name these paths. If consolidating `scripts/`
+is wanted anyway, do it as its own change with those callers, not as part of
+this migration (D15). Two of them need work regardless:
+
+- `check-ci-secrets.sh` keys on the `secrets.NAME` syntax in workflow files.
+  GitLab has no such marker. It needs a new design in Phase 2; proposal: a
+  manifest of credential variables with their purpose and environment,
+  checked against what `tools/` reads.
+- The envref ratchet behind `bin/envref check` needs full history and reads
+  release tags from a remote hard-wired to the GitHub URL. At cutover that
+  remote must point at the host that has the tags.
 
 ## 6. Disposition of every existing file
 
@@ -538,26 +741,26 @@ Details:
 
 | Workflow | Disposition |
 |---|---|
-| `ci.yml` | `lint.yml`, `frontend.yml`, `ruby.yml`, `images.yml`. `changes` and `ci-verdict` deleted. Aggregate becomes a report job. `ci-metrics` ported in Phase 6. |
-| `static-analysis.yml` | `lint.yml`. actionlint dropped at Phase 6. |
-| `drift-guards.yml` | one guard job in `lint.yml`. The macOS job follows D4. |
-| `docs-command-drift.yml` | folded into the guard job. |
+| `ci.yml` | `lint.yml`, `frontend.yml`, `ruby.yml`, `images.yml`. `changes` and `ci-verdict` deleted. Aggregate becomes a report job. `host-proxy-wire` calls `bin/host-seam`, with Caddy pulled by digest. `ci-metrics` ported in Phase 6. The `i18n-validate` job keeps one report-only step and two blocking ones. |
+| `static-analysis.yml` | `lint.yml`. actionlint dropped at Phase 6, with an edit to the lint script, which requires both tools today. |
+| `drift-guards.yml` | one guard job in `lint.yml`, with full history. The macOS job follows D4. |
+| `docs-command-drift.yml` | folded into the guard job, still calling `bin/testsuite-installer check-docs-commands`. |
 | `validate-config.yml` | its three guards duplicate `drift-guards.yml`; its unique steps (schema generation, `bin/ots config validate`) become a job selected by path. It is dispatch-only today. |
-| `validate-register.yml`, `resolved-derive-gate.yml` | one job (§4.10). |
+| `validate-register.yml`, `resolved-derive-gate.yml` | two jobs with a shared template (§4.10). |
 | `bump-api-docs.yml` | `release.yml`: generate, diff on merge requests, deploy on `main`. Fix: each `bump diff` failure, including an auth or network error, is reported as "breaking changes" today. |
 | `generate-translation-request.yml` | retire (D9). Its paths `src/locales` and `src/scripts/locales` do not exist in the tree. |
 | `housekeeping-github-issues.yml`, `housekeeping-lock-threads.yml` | `gitlab-triage` (§4.10, D12). |
 | `pr-labeler.yml` | drop (D6). |
 | `secret-rotation.yml` | `smoke.yml`. |
 | `claude.yml`, `claude-code-review.yml` | D8. |
-| `build-and-publish-oci-images.yml` | `images.yml` and `release.yml`. Its `pull_request` trigger can never fire and is not ported. |
+| `build-and-publish-oci-images.yml` | `images.yml` and `release.yml`. Its `pull_request` trigger ignores every path, so it cannot fire (inferred); it is not ported. Its version-pin gate before the build is kept. |
 | `debug-oci.yml` | delete in Phase 1. Its header calls it temporary. |
-| `compose-smoke.yml`, `baremetal-boot.yml`, `fresh-clone.yml`, `installer.yml`, `devcontainer-ci.yml` | `smoke.yml`, on the weekly schedule and on the same path triggers. The devcontainer job uses the devcontainer CLI. The `macos` job follows D4. |
-| `e2e.yml`, `e2e-full-auth.yml`, `e2e-tenant-connect.yml` | `e2e.yml`, sharing one template for setup, readiness, flaky gate and artifacts. |
-| `visual.yml` | `e2e.yml`. |
-| `visual-archive.yml` | `release.yml`, on tags. |
+| `compose-smoke.yml`, `baremetal-boot.yml`, `fresh-clone.yml`, `installer.yml`, `devcontainer-ci.yml` | `smoke.yml`, on the weekly schedule and on the same path triggers, on the `runtime` image with no cache or artifact (C8). The devcontainer job uses the devcontainer CLI. The `macos` job follows D4. |
+| `e2e.yml`, `e2e-full-auth.yml`, `e2e-tenant-connect.yml` | `e2e.yml`, sharing one template. |
+| `visual.yml` | `e2e.yml`. Valkey comes from `compose.test.yml` on port 2163, not from a service on 6379. |
+| `visual-archive.yml` | `release.yml`, in the tag pipeline (§4.6). |
 | `migration-tests.yml` | `ruby.yml`. The concurrent-boot job stays CI orchestration, as the lane spec describes it. |
-| `ruby-4-preview.yml` | `ruby.yml`: the lane templates run again on the nightly with the preview toolchain and `allow_failure`. Job bodies are not copied. |
+| `ruby-4-preview.yml` | `ruby.yml`: its rubocop job and its ten SQLite lane runs use the same job templates as main CI with the preview image, on the nightly and through the `ruby_preview` input. Job bodies are not copied. |
 
 ### 6.2 Composite actions
 
@@ -568,8 +771,9 @@ Details:
 | `detect-auth-changes` | delete at Phase 6 (rules). |
 | `download-frontend-assets` | delete at Phase 6 (artifacts through `needs`). |
 | `generate-test-secrets` | `bin/ci secrets`; stop printing the values to the log. |
-| `run-test-lane` | `bin/ci lane`. |
-| `setup-node-env`, `setup-ruby-test-env` | delete at Phase 6 (toolchain image, caches). |
+| `run-test-lane` | logic to `bin/ci lane`; the action stays a wrapper until Phase 6. |
+| `setup-node-env` | delete at Phase 6 (toolchain image, cache). |
+| `setup-ruby-test-env` | `bin/ci prepare`; delete at Phase 6. |
 | `test-docker-container` | `bin/oci smoke`. |
 | `wait-for-http-service` | `bin/ci wait-http`. |
 
@@ -578,38 +782,40 @@ Details:
 | Script | Disposition |
 |---|---|
 | `aggregate-test-results.sh`, `generate-test-summary.sh`, `pin-ruby-version.sh`, `check-api-v3-fresh-schemas.sh` | move to `tools/ci/` |
-| `update-version.sh`, `extract-frontend-dist.sh` | move to `tools/oci/` |
-| `sentry-sourcemap-preflight.sh`, `sentry-status.sh`, `sentry-verify-artifacts.sh` | move to `tools/sentry/` |
+| `update-version.sh` | move to `tools/oci/` |
+| `extract-frontend-dist.sh`, `sentry-sourcemap-preflight.sh`, `sentry-status.sh`, `sentry-verify-artifacts.sh` | move to `tools/sentry/` |
 | `clean_databases.rb` | move to `tests/lanes/support/` |
-| `ci-metrics-breakdown.sh` | port in Phase 6; its input is GitHub's jobs listing |
-| `ci-verdict.sh`, `compute-auth-selection.sh`, `compute-path-filter-outputs.sh`, `detect-ci-flags.sh`, `read-pr-labels.sh`, `post-pr-metrics.cjs`, `ruby4-step-outcomes.sh` | delete at Phase 6 |
+| `ci-metrics-breakdown.sh`, `post-pr-metrics.cjs` | stay until Phase 6, then replaced by the metrics port |
+| `ci-verdict.sh`, `compute-auth-selection.sh`, `compute-path-filter-outputs.sh`, `detect-ci-flags.sh`, `read-pr-labels.sh`, `ruby4-step-outcomes.sh` | delete at Phase 6 |
 
-### 6.4 Other `.github/` files
+### 6.4 Other files
 
 | File | Disposition |
 |---|---|
-| `renovate.json5` | move and adapt (§4.9) |
-| `auth-paths.yml` | becomes a fragment in `.gitlab/ci/rules.yml` |
-| `ISSUE_TEMPLATE/`, `pull_request_template.md` | `.gitlab/` templates |
-| `lint-baseline/shellcheck.tsv` | moves with the shell lint check |
-| `lint-baseline/actionlint.tsv`, `actionlint.yaml` | delete at Phase 6 |
-| `labeler.yml` | delete (D6) |
-| `release-drafter.yml` | delete after the ADR-009 amendment (D7) |
-| `dependabot.yml.disabled` | delete in Phase 1 |
-| `copilot-instructions.md` | delete at Phase 6; AGENTS.md has the same rules |
-| `FUNDING.yml`, `pr-assets/` | keep while GitHub is a mirror (D2) |
+| `.github/renovate.json5` | move and adapt (§4.9) |
+| `.github/auth-paths.yml` | becomes a fragment in `.gitlab/ci/rules.yml` |
+| `.github/ISSUE_TEMPLATE/`, `pull_request_template.md` | `.gitlab/` templates |
+| `.github/lint-baseline/shellcheck.tsv` | stays with the shell lint script; new location chosen at Phase 6 |
+| `.github/lint-baseline/actionlint.tsv`, `actionlint.yaml` | delete at Phase 6 |
+| `.github/labeler.yml` | delete (D6) |
+| `.github/release-drafter.yml` | delete after the ADR-009 amendment (D7) |
+| `.github/dependabot.yml.disabled` | delete in Phase 1 |
+| `.github/copilot-instructions.md` | delete at Phase 6, after its rules have one home (§4.10) |
+| `.github/FUNDING.yml`, `pr-assets/` | keep while GitHub is a mirror (D2) |
+| `docker/bake.hcl` | gains a staging mode, cache and attestation settings (§4.6) |
+| `scripts/ci-secrets-ignore.txt` | replaced with the guard's redesign (§5) |
 
 ### 6.5 Dependencies
 
 - **Removed:** the 21 third-party actions, the cross-repository derive action
-  (as an action), actionlint.
+  (as an action), actionlint at Phase 6.
 - **Added:** the toolchain image; `glab`; cosign; `gitlab-triage`; the
   devcontainer CLI; `osv-scanner`; GitLab's SAST, secret detection and
   container scanning; a self-hosted Renovate runner; a rule evaluator for
   tests if S3 selects one.
-- **Changed:** Renovate config; Playwright reporters; `oras` moves from an
-  action to the toolchain image; `GITHUB_JOB` detection in
-  `lib/onetime/application/auth_strategies/dev_worker_identity.rb` and
+- **Changed:** Renovate config; Playwright reporters; `docker/bake.hcl`;
+  `oras` moves from an action to the toolchain image; `GITHUB_JOB` detection
+  in `lib/onetime/application/auth_strategies/dev_worker_identity.rb` and
   `GITHUB_BASE_REF` in `tools/envref/` gain provider-neutral equivalents.
 
 ## 7. Phases
@@ -623,10 +829,10 @@ No change to CI behavior. Spikes run on a throwaway branch on GitLab.
 
 | Spike | Question | Changes the plan if |
 |---|---|---|
-| S1 | Does a Docker daemon inside the job work on hosted runners for the `unit` and `full-pg` lanes, a native e2e boot and `bin/visual`? How long do jobs take against GitHub? | it fails: use the `docker:dind` fallback, or self-hosted runners |
+| S1 | Does a Docker daemon inside the job work on hosted runners? Cover: the `unit` and `full-pg` lanes; a native e2e boot with Chromium; `bin/visual` (host network, `/dev/shm`, bind mount); `host.docker.internal` to a sibling container; ports 80 and 443; `network_mode: service`; image builds; a non-root user with sudo; file ownership in the devcontainer job; MTU. Compare job times with GitHub. | it fails: use self-hosted runners, or the `docker:dind` fallback for the jobs it can serve |
 | S2 | What does a fork merge request pipeline do under the project's settings? | forks cannot pull the toolchain image or run privileged jobs |
-| S3 | Can a rule evaluator resolve the job list for fixture scenarios offline, including `rules:changes` and labels? | no: selection moves to a tested script that generates a child pipeline |
-| S4 | Native arm64 build, manifest merge, registry cache hit rate | arm64 hosted runners are too slow or unavailable on the tier |
+| S3 | Can a rule evaluator resolve the job list for fixture scenarios offline, including `rules:changes`, labels and workflow variables? Do the brace and class patterns in the auth list match under `File.fnmatch`? | no: selection moves to a tested script that generates a child pipeline. The signing job would then stay in the parent pipeline. |
+| S4 | Can the frontend stage be built once and passed to per-architecture builds? Registry cache hit rate. | no: keep the single multi-platform build |
 | S5 | macOS runner availability and cost on the tier | feeds D4 |
 | S6 | Compute minutes for one full merge request pipeline and one nightly | feeds D1 |
 
@@ -637,28 +843,34 @@ here.
 
 ### Phase 1: provider-neutral tooling, on GitHub
 
-1. Remove dead code: the unused composite action, `debug-oci.yml`,
-   `dependabot.yml.disabled`, unused workflow inputs.
-2. `tools/ci/` with the reporter, then `lane`, `results`, `secrets`,
-   `wait-http`, `pin-ruby`, `services`, `e2e-env`.
-3. `tools/oci/`, `tools/sentry/`, `tools/checks/`, in that order.
-4. Fixes that belong to the code being moved, each verified first: `pnpm lint`
-   runs ESLint with `--fix` (`package.json:57`), so fixable problems pass CI;
-   the aggregate report fills its `file` field from the RSpec seed; shellcheck
-   skips extensionless scripts such as `tests/lanes/run`; adr-lint runs in CI
-   only when a PR touches `docs/adr/`.
+1. Remove dead code: the uncalled composite action, `debug-oci.yml`,
+   `dependabot.yml.disabled`, the unread `environment` input of `e2e.yml`,
+   the stale merge driver in `.gitattributes`, the reference to a
+   nonexistent `bin/adr-lint`.
+2. `tools/ci/` with the reporter, then `docker`, `services`, `prepare`,
+   `lane`, `results`, `secrets`, `wait-http`, `pin-ruby`,
+   `api-v3-fresh-schemas`, `e2e`. Update the GitHub path filters and the
+   shell-lint strict list in each change.
+3. `tools/oci/`, then `tools/sentry/`.
+4. Fixes that belong to the code being moved, each verified first:
+   - `pnpm lint` runs ESLint with `--fix` (`package.json:57`), so fixable
+     problems pass CI.
+   - The aggregate report fills its `file` field from the RSpec seed.
+   - shellcheck skips extensionless scripts such as `tests/lanes/run`.
+   - adr-lint runs in CI only when a PR touches `docs/adr/`.
+   - `generate-test-secrets` prints the generated values.
 
 Exit: everything the GitLab pipeline will call exists behind a `bin/`
 command and is exercised by the GitHub workflows; every file left in
-`.github/scripts/` is on the delete list; `bin/testsuite run` and GitHub CI
-are green on `main`.
+`.github/scripts/` is on the delete list or waits for the metrics port;
+`bin/testsuite run` and GitHub CI are green on `main`.
 
 ### Phase 2: GitLab foundation
 
-Toolchain image and its guard; the root file with workflow rules, stages and
-defaults; `lint.yml` and `frontend.yml`; project settings, variables and
-environments; the Renovate runner project; retire the pilot job and
-`ci/typescript-pilot/`.
+Toolchain image and its guard; the root file with inputs, workflow rules,
+stages and defaults; `lint.yml` and `frontend.yml`; project settings,
+variables and environments; the redesigned credential guard; the Renovate
+runner project; retire the pilot job and `ci/typescript-pilot/`.
 
 Exit: 20 consecutive merge request pipelines green with results equal to the
 matching GitHub jobs.
@@ -670,9 +882,12 @@ matching GitHub jobs.
 
 Exit, measured on the same commits on both hosts:
 
-- the selected job set matches for each fixture scenario;
+- the selected job set matches for each fixture scenario, for the events on
+  which each workflow runs today;
 - per lane, RSpec example counts are equal (the pilot's inventory comparison,
   applied per lane);
+- per Playwright suite, tests run and skipped are equal, the flaky gate gives
+  the same result, and the visual run passes against the committed baselines;
 - no failure appears on one host only without an explanation;
 - median wall time for a merge request pipeline is recorded against GitHub's.
 
@@ -681,49 +896,63 @@ Exit, measured on the same commits on both hosts:
 Schedules; Ruby preview; billing lanes; `smoke.yml`; `release.yml` with
 publish, signing, Sentry, release creation, visual archive and API docs.
 
-Exit: one manual pipeline publishes all three variants to the custom registry
-only, as a rehearsal; then one release candidate tag is published from GitLab
-with the GitHub publish workflow disabled for that tag.
+Exit: one manual pipeline with `publish: custom` pushes all three variants to
+the custom registry as a rehearsal; then one release candidate tag is
+published from GitLab with the GitHub publish workflow disabled for that tag.
 
 ### Phase 5: cutover
+
+Prerequisites: the product's footer links point at a release page that will
+exist (they link each version to a GitHub release today); the envref release
+remote points at the host with the tags.
 
 Enable "Pipelines must succeed" and, on Premium, merge trains. Activate the
 schedules. Disable Actions in the GitHub repository settings and leave the
 files in place. Switch Renovate. Add the templates and triage. Update
-`.agents/skills/merge/SKILL.md` and the "Running tests" section of AGENTS.md,
-which both name `.github/` paths.
+`.agents/skills/merge/SKILL.md` and AGENTS.md ("Running tests" names
+`.github/scripts/` and the `Static analysis` workflow).
 
 Exit: one release shipped from GitLab. Until Phase 6, rollback is re-enabling
 Actions.
 
 ### Phase 6: decommission and hardening
 
-Delete `.github/workflows/`, `.github/actions/`, the delete-list scripts and
-their suites. Rewrite `docs/development/auth-ci.md`, the "CI integration"
-section of the lane spec, `tests/lanes/README.md`, CONTRIBUTING.md, the e2e
-READMEs, `scripts/README.md` and `tools/testsuite/README.md`. Four tracked
-documents contain invisible provenance markers that defeat literal search
-(`scripts/README.md`, `tools/testsuite/README.md`, `tools/logship/README.md`,
-`docs/development/frontend-diagnostics.md`); read them, do not grep them.
-Port CI metrics. Turn the scanners into gates.
+- Delete `.github/workflows/`, `.github/actions/`, the delete-list scripts
+  and their suites.
+- Rewrite the documents that describe the GitHub setup:
+  `docs/development/auth-ci.md`, `docs/development/README.md`, the "CI
+  integration" section of the lane spec, `tests/lanes/README.md`,
+  CONTRIBUTING.md, `e2e/README.md`, `e2e/system/README.md`,
+  `e2e/visual/README.md`, `docs/architecture/build-architecture.md`,
+  `docker/README.md`, `docker/s6/README.md`, `docker/variants/README.md`,
+  `scripts/README.md`, and the READMEs under `tools/testsuite/`,
+  `tools/testsuite-installer/` and `tools/envref/`. ADR-042's implementation
+  notes name `actions/setup-python` and two workflows; add a note there.
+- Four tracked documents contain invisible provenance markers that defeat
+  literal search (`scripts/README.md`, `tools/testsuite/README.md`,
+  `tools/logship/README.md`, `docs/development/frontend-diagnostics.md`);
+  read them, do not grep them.
+- Port CI metrics. Turn the scanners into gates.
 
 ## 8. Decisions needed
 
 | ID | Decision | Recommendation | What it changes |
 |---|---|---|---|
 | D1 | GitLab tier and runner fleet: hosted, self-hosted, or both | Start on hosted runners through Phase 3 to get real numbers from S6, then decide before Phase 5. Keep runner tags in variables. | cost; whether S1's daemon is needed; P2 |
-| D2 | GitHub after cutover: read-only push mirror, or archive | Mirror | GHCR access, Dependabot, Codex, `FUNDING.yml`, existing links |
-| D3 | Where images are published | Keep Docker Hub and GHCR. Use the GitLab registry for CI images, the toolchain image and visual baselines, not as an announced pull location. | P1; the `org.opencontainers.image.source` label; user docs |
+| D2 | GitHub after cutover: read-only push mirror, or archive | Mirror | GHCR access, Dependabot, Codex, `FUNDING.yml`, existing links, the envref release remote |
+| D3 | Where images and visual baselines are published | Keep Docker Hub and GHCR for images and for the visual baselines, whose consumer commands name GHCR. Use the GitLab registry for CI images and the toolchain image, not as an announced pull location. | P1; the `org.opencontainers.image.source` label; user docs |
 | D4 | macOS coverage | GitLab hosted macOS if the tier allows it, since the two jobs run weekly and on a few paths. Otherwise keep them on the GitHub mirror for now. | D1, D2 |
-| D5 | Merge trains on `main` and `develop` | Yes, if Premium | replaces the merge queue |
-| D6 | Path-based labels | Drop | removes the labeler with no replacement |
+| D5 | Merge trains | Yes, if Premium. The setting is per project. | replaces the merge queue |
+| D6 | Path-based labels | Drop, with the ADR-009 amendment | removes the labeler with no replacement |
 | D7 | Release notes inventory (ADR-009) | Amend the ADR: scriv stays the narrative; the release job lists the milestone's merged merge requests | unblocks deleting `release-drafter.yml` |
-| D8 | Which AI reviewers continue | Greptile through its GitLab integration; Claude review as a CI job on merge request open; defer `@claude` mentions | Codex and Copilot review end with GitHub |
-| D9 | Translation request workflow | Retire. Re-specify on `locales/scripts` if it is still wanted. | removes 812 lines that cannot run against the current tree |
+| D8 | Which AI reviewers continue, and with which triggers | Greptile through its GitLab integration; Claude review as a CI job on merge request open and on the `claude-review` label, with the current skips; defer `@claude` mentions | Codex and Copilot review end with GitHub |
+| D9 | Translation request workflow | Retire. Re-specify on `locales/scripts` if it is still wanted. | with its default input it resolves no locales (inferred), because its paths are gone |
 | D10 | CI metrics port before or after cutover | After | between Phase 5 and the port there is no per-job regression flag on merge requests. The tier budget check is advisory today (`fail-on-violation` is false). |
 | D11 | Renovate hosting | Self-hosted runner project | works on any tier and serves every repository |
 | D12 | Where issues live | Outside this plan; needed before triage is configured | §4.10 |
 | D13 | GitLab for Open Source application | Check the profit clause first | cost factor and tier |
+| D14 | Register full scans that are expected to fail | Verify the claim first. If true, mark the full-scan job `allow_failure` until the findings are fixed. | whether `main` and weekly pipelines are red from day one |
+| D15 | Guard scripts in `scripts/` | Leave them (§5) | scope of the ADR-042 consolidation |
 
 Two questions I could not answer from the repository:
 
@@ -732,24 +961,26 @@ Two questions I could not answer from the repository:
   and Renovate run on GitHub. Phases 2 to 4 need the same commits on both
   hosts; the mechanism depends on the answer.
 - **Q2. What is the branch model?** CONTRIBUTING.md says "Target the `main`
-  branch." The pre-commit hook blocks commits to `develop` and `rel/*`, scriv
-  lists `main, develop`, and workflow filters name `feature/*`, `fix/*`,
-  `wip/*` and `rel/*`. `workflow:rules` and branch protection need one
-  statement of which branches are protected and which get pipelines.
+  branch." The pre-commit config names `develop` and `rel/.*` as branches not
+  to commit to, scriv lists `main, develop`, and workflow filters name
+  `feature/*`, `fix/*`, `wip/*` and `rel/*`. `workflow:rules` and branch
+  protection need one statement of which branches are protected and which get
+  pipelines.
 
 ## 9. Risks
 
 | ID | Risk | Check |
 |---|---|---|
-| R1 | The in-job Docker daemon is unproven on hosted runners. Docs confirm privileged mode, not this use. | S1 |
+| R1 | The in-job Docker daemon is not documented by GitLab and is unproven on hosted runners. | S1 |
 | R2 | Selection as `rules` is less tested than today's scripts until a rule evaluator is in place. | S3 |
 | R3 | Compute cost exceeds the quota. | S6, D1 |
-| R4 | `rules:changes` limits. I recall a cap of 50 patterns per `changes` section but did not confirm it; the auth list has 47. | confirm in Phase 2 |
+| R4 | `rules:changes` allows 50 patterns per section and stops evaluating globs after 50,000 checks. | split lists; S3 |
 | R5 | Fork contributors pay for their own pipelines and need the toolchain image to be public. | S2 |
-| R6 | Docker Hub rate limits: PostgreSQL, RabbitMQ, Mailpit and Caddy images are pulled in every job that uses them. | Dependency Proxy, or copies in the project registry |
+| R6 | Docker Hub rate limits. Images pulled from Docker Hub in jobs include PostgreSQL, RabbitMQ, Mailpit, the Ruby and Node bases for every image build, and several in the install and smoke lanes. The Dependency Proxy is per group and I found nothing on its use from forks. | copies in the project registry for the frequent ones |
 | R7 | The translation-rules action lives in another repository on its own migration schedule. | clone at the pinned ref until it is a component |
-| R8 | Keyless signing must be defined in the project's own root file, per the docs. | reflected in §4.2 |
-| R9 | The dependency caches were disabled for a reason that is not recorded. | Phase 2 |
+| R8 | A daemon in the job may need the MTU setting that GitLab documents for `docker:dind` on arm64, and a larger `/dev/shm` for Chromium. | S1 |
+| R9 | The dependency caches were disabled "to rule out stale cache"; the incident is not recorded. | Phase 2 |
+| R10 | Credential variables for the Bump.sh diff and Claude review are readable by any merge request pipeline in the project. This is the same as today. | §4.11 |
 
 ## 10. Adjacent work, not in this plan
 
@@ -757,10 +988,12 @@ These are outside CI but several choices above depend on them:
 
 - Import of issues, pull requests and releases. GitLab's importer does not
   import required status checks or outside collaborators.
-- Product links to GitHub: four footer components link to
-  `github.com/.../releases/tag/v<version>` and Vitest specs assert those URLs.
-- 206 lines in 103 files reference `github.com/onetimesecret`, mostly issue
-  and pull request links in comments and docs.
+- Product links to GitHub: three footers and the admin layout link each
+  version to `github.com/.../releases/tag/v<version>`, and Vitest specs assert
+  those URLs. This one is a Phase 5 prerequisite.
+- 204 lines in 102 tracked files outside `.github/` reference
+  `github.com/onetimesecret`, mostly issue and pull request links in comments
+  and docs.
 - `gh` usage in `locales/scripts/pr-per-locale.sh` and
   `scripts/corporate-branch-report.*`.
 - The `add-msg-issue-prefix` commit hook assumes GitHub issue numbers.
@@ -777,8 +1010,8 @@ core CI, `B` build, release and install (the inventory's own `S` numbers, no
 `S11`), `C` e2e, visual, migrations and Ruby preview (`F` numbers), `D`
 hygiene and automation (`H` numbers, plus `D-A1` to `D-A6` for security
 gaps). The `A` numbers were assigned here, in the order that inventory listed
-its findings; the others are the inventories' own. Findings marked "inferred"
-in the inventories were not observed.
+its findings; the others are the inventories' own. Findings marked
+"inferred" in the inventories were not observed.
 
 Dispositions: **Design** means the target design removes it. **Phase 1**
 means fix while moving the code. **Kept** means the behavior is ported
@@ -787,91 +1020,117 @@ described.
 
 | IDs | Finding | Disposition |
 |---|---|---|
-| A1, A27, C-F9, D-H3, D-H4, D-H6 | Toolchain setup repeated per job, with version skew and padded timeouts | Design §4.3 |
-| A2 | Node installed in Ruby jobs only for locale codegen | Design §4.3; switching lanes to the Python codegen token is a lane change, Open |
-| A3 | Dependency caches disabled with `DEBUG` notes | Design §4.3, R9 |
+| A1, A27, D-H3, D-H4 | Toolchain setup repeated per job, with version skew and padded timeouts | Design §4.3 |
+| A2 | Node installed in Ruby jobs only for locale codegen | Design §4.3. That every job regenerates locales is lane behavior: Kept. |
+| A3, C-F9 | pnpm cache off everywhere, Bundler cache off in lint and native jobs, uncached installs | Design §4.3, R9 |
 | A4, C-F19 | `generate-test-secrets` runs where it has no effect and prints the values | Phase 1 |
 | A5 | Smoke test repeats unit and simple-integration work | Kept; lane content is lane policy (C3) |
-| A6, B-S4, B-S10, C-F7, C-F8 | Image and frontend built several times per change | Design §4.6 |
-| A7, A9, A13, A20 to A24, A33, C-F2, C-F22 to C-F25, D-H20 | Verdict jobs, change-detection jobs and the workarounds around them | Design §4.4, §4.5 |
-| A8, A10, A18, A28 to A31 | CI metrics: stale lists, name-based tiers, unpaginated comment lookup, never gates | Phase 6 port (D10) |
-| A11, B-S16, C-F21 | Stale docs and comments | Phase 6 docs |
+| A6, B-S4, C-F7, C-F8 | Image and frontend built several times per change | Design §4.6. The image still compiles its own frontend: Kept. |
+| B-S10 | Frontend built in the image, then pulled back out of the registry for Sentry | Kept |
+| A7 | Job list kept by hand in six places | Design §4.5 for the three verdict lists, §4.7 for the three reporting lists |
+| A9, A13, A20, A21, A22, A33, C-F2, C-F22, C-F23 | Verdict jobs, change-detection jobs, skip propagation, the live label read | Design §4.4, §4.5. The label read changes behavior (§4.4). |
+| A23 | Artifact names sanitized; aggregate relies on a name pattern | Design §4.7 |
+| A24 | Sparse checkouts in tail jobs (one verdict, two aggregate) | Design; a report job checks out normally |
+| A8, A10, A18, A28, A29, A30, A31 | CI metrics: stale lists, name-based tiers and steps, unpaginated comment lookup, never gates | Phase 6 port (§4.7, D10) |
+| A11, C-F21 | Stale docs and comments | Phase 6 docs |
+| B-S16 | Stale docs and comments in `docker/`; `docker/s6/build.sh` cannot build (inferred); an unused `redis-server` install in fresh-clone | Phase 6 docs. The script: Open. The install step: decide when the lane is ported. |
 | A12 | README says CI never runs `--only`; the API schema check does | Open; whether it becomes a lane is for the lane owners |
 | A14 | Hash-mismatch probe runs outside the lane runner, non-blocking | Not ported unless its owner asks |
-| A15, B-S12 | `download-frontend-assets` output wiring (inferred) | Design; action deleted |
-| A16 | No-op `continue-on-error`; report-only i18n audit step | Kept as a non-blocking job |
+| A15, B-S12 | `download-frontend-assets` reads an output from the wrong step | Design; action deleted |
+| A16 | A no-op `continue-on-error: false`; a report-only audit step in a blocking job | Kept as is; the no-op flag is dropped |
 | A17 | tmate wired for two lanes only | Design §4.7; lost |
 | A19 | Commit flags do not act on pull requests (inferred) | Design §4.4 |
-| A25, C-F29 | `services:` exception and host-published Valkey for container jobs | Design §4.3, §4.6 |
+| A25, C-F29, C-F4 | `services:` exception and host-published Valkey for container jobs; the Valkey pin copied five times | Design §4.3; two pins remain |
 | A26 | `sysctl vm.overcommit_memory=1` on the runner | Kept in `bin/ci services`; confirm in S1 |
 | A32 | `pnpm lint` autofixes in CI | Phase 1 |
-| A34 | Aggregate report `file` field filled from the seed | Phase 1 |
+| A34 | Aggregate report `file` field filled from the seed; summed duration exceeds wall clock | Phase 1 for the field; the duration: Open |
 | A35 | Compose services depend on files mounted from the checkout | Design §4.3; S1 |
-| A36, D-H16 | Suites that parse `.github/` text | §5 |
+| A36, D-H16 | Suites that depend on `.github/` paths | §5 |
 | A37, C-F30, B-S19 | Schedule collisions; nightly cancelled by a push (inferred) | Design §4.1, §4.3 |
-| A38, D-H5, B-S22 | Tools fetched unpinned or pinned in two places | Design §4.3, §4.9 |
-| B-S1, B-S3, D-H12 | Dead action, temporary workflow, dead config | Phase 1; `release-drafter.yml` waits for D7 |
-| B-S2, C-F16 | Triggers and inputs that cannot fire or are never read | Design; not ported |
-| B-S5 | Publish is not gated on a boot test | Design §4.6 |
-| B-S6 | arm64 built under QEMU | Design §4.6 |
-| B-S7, B-S8 | Tag logic edge cases; registry mode defaults repeated (inferred) | Phase 1, in `bin/oci plan` |
-| B-S9 | Sentry scripts larger than the build, much of it GitHub output handling | Phase 1 reporter |
+| A38, D-H5 | Tools fetched unpinned or pinned in two places | Design §4.3, §4.9; Caddy pulled by digest (§6.1) |
+| B-S22 | Version literals copied by hand (pnpm, the Valkey digest) | Open; the toolchain image adds one more copy, covered by the pin guard |
+| B-S1, B-S3 | Dead action, temporary workflow | Phase 1 |
+| D-H12 | Dead config: Release Drafter, disabled Dependabot, stale `.gitattributes` driver, a documented `bin/adr-lint` that does not exist | Phase 1; `release-drafter.yml` waits for D7 |
+| B-S2, C-F16 | Triggers and inputs that cannot fire or are never read; the unreachable branch-push tag rule | Design; not ported |
+| B-S5 | Publish is not gated on a boot test; the audit never compares | Design §4.6 |
+| B-S6 | arm64 built under QEMU | S4; Kept unless the frontend stage can be shared |
+| B-S7 | Tag logic edge cases (inferred) | Phase 1, in `bin/oci plan` |
+| B-S8 | Registry and platform defaults repeated; custom mode with an empty host (inferred) | Phase 1 for the defaults. The routing is in `bake.hcl`: fix with the staging mode (§4.6). |
+| B-S9 | Sentry plumbing larger than the build; inline helper copied three times | Phase 1 |
 | B-S13 | Action inputs interpolated into shell | Design; replaced by commands that take arguments |
-| B-S14 | "Verbatim" README smoke differs from the README | Phase 1: fix the label or the test |
+| B-S14 | "Verbatim" README smoke differs from the README; the image pin parsed by three separate greps | Phase 1 for the label; the greps: Open |
 | B-S15 | `seed-compose-env.sh` requires `GITHUB_ENV` | Phase 1 |
 | B-S17 | Nightly image pushed with no change detection | Kept |
-| B-S18 | Caddy compiled on every qualifying PR | Design; registry cache |
-| B-S20 | ADR-009 names a system nothing runs; scriv resolves `0.0.0-rc0` | D7; the release job passes the version |
+| B-S18 | Caddy compiled on every qualifying PR | Open; the registry cache on the bake build does not reach `docker compose build proxy` |
+| B-S20 | ADR-009 names a system nothing runs; scriv resolves `0.0.0-rc0` | D7. The scriv version: Open; `scriv collect` runs by hand before the tag. |
 | B-S21 | Two image build paths | Open |
-| C-F1, C-F3, C-F4, C-F5, C-F6 | Copied e2e skeleton, Ruby preview job bodies, repeated pins, two comment scripts, double uploads | Design §6.1, §4.7 |
+| C-F1, C-F3, C-F5 | Copied e2e skeleton, Ruby preview job bodies, two comment scripts | Design §6.1, §4.7 |
+| C-F6 | RSpec JSON uploaded twice | Design; artifacts are declared once in the lane template |
 | C-F10 | `bin/visual` runs twice in `visual.yml` | Open |
 | C-F11, C-F12, C-F14, C-F15 | Retries with a flaky gate, single worker, rate limiter off, shared `SECRET` | Kept |
-| C-F13 | Sleep-poll readiness loops copied four times | Phase 1, `bin/ci wait-http` |
-| C-F17, C-F18 | `e2e/full-billing` and dormant auth specs run nowhere; Firefox and WebKit projects commented out | Open; these are coverage gaps |
-| C-F20 | `bin/setup` dev-lane work in e2e jobs | Kept |
-| C-F26 | `ubuntu-26.04` chosen for podman | Design; the image defines the runtime |
-| C-F27, C-F28, D-H7, D-H19 | Fork comment failure (inferred), broad token permissions, missing timeouts | Design §4.7, §4.11, defaults |
-| D-H1, D-H2 | Two derive runs; `validate-config` repeats the guards | Design §6.1 |
+| C-F13 | Readiness loops copied at six sites | Phase 1 for the HTTP ones (`bin/ci wait-http`); the others move into `bin/ci e2e` unchanged |
+| C-F17 | `e2e/full-billing` and dormant auth specs run nowhere | Open; a coverage gap |
+| C-F18 | Firefox and WebKit projects commented out; blob reporter output never collected | Open |
+| C-F20 | `bin/setup` dev-lane work in e2e and visual jobs | Design §4.3 (`bin/ci prepare`) |
+| C-F24 | Ruby 4 reporting script exists because `continue-on-error` reports success | Design §4.5 |
+| C-F25 | `GITHUB_ENV` as the configuration bus | Phase 1, `bin/ci e2e` |
+| C-F26, D-H6 | Runner labels mixed; `ubuntu-26.04` chosen for podman | Design; the image defines the runtime |
+| C-F27, C-F28, D-H7 | Fork comment failure (inferred), broad token permissions, missing timeouts and concurrency | Design §4.7, §4.11, defaults |
+| D-H19 | A mislabelled `process-only` comment; no top-level permissions block in four workflows | Design; workflows replaced |
+| D-H1, D-H2 | Two derive runs; `validate-config` repeats the guards | D-H1: Kept as two jobs with a shared template (§4.10). D-H2: Design §6.1. |
 | D-H8 | Translation request workflow stale | D9 |
-| D-H9 | `bump diff` masks errors; secrets on fork PRs (inferred) | Design §6.1, §4.11 |
+| D-H9 | `bump diff` masks errors; credentials on pull requests | The masking: Design §6.1. The credentials: Kept, stated in §4.11 and R10. |
 | D-H10, D-H11 | Claude workflow trigger noise and constraints | D8 |
-| D-H13 | Checks in both hooks and CI; pre-commit unpinned in CI | Kept; pinned in the toolchain image |
+| D-H13 | Checks in both hooks and CI; pre-commit unpinned in CI; pre-push hygiene hooks with no CI equivalent | Kept; pinned in the toolchain image. The pre-push hooks: Open. |
 | D-H14, D-H15 | adr-lint has no full CI run; shellcheck skips extensionless scripts | Phase 1 |
-| D-H17 | `check-ci-secrets.sh` parses GitHub syntax | Rewritten for GitLab variables in Phase 2 |
+| D-H17 | `check-ci-secrets.sh` parses GitHub syntax | Redesign in Phase 2 (§5) |
 | D-H18 | No single statement of the branch model | Q2 |
-| D-A1 to D-A6 | No JavaScript audit, SAST, secret scanning, image scanning, license check or SBOM | §4.8; license checks Open |
+| D-H20 | Workarounds: full fetch and an extra remote for envref, `PIPESTATUS` handling, injection guards, reliance on preinstalled tools | Preinstalled tools: Design §4.3. The envref remote and history: §5. The rest move with their scripts. |
+| D-A1 to D-A6 | No JavaScript audit, SAST, secret scanning, image scanning, license check or SBOM | §4.8, §4.6; license checks Open |
 
 ## Appendix B. GitLab facts relied on
 
 Retrieved from docs.gitlab.com, about.gitlab.com, code.claude.com and the
-Renovate and Mend docs on 2026-11-10 by a delegated research pass. Quoted
-wording in this plan comes from that pass; re-read the source before acting
-on a tier, limit or maturity statement.
+Renovate and Mend docs on 2026-11-10 by a delegated research pass, and
+re-checked by the same pass against this document. Re-read the source before
+acting on a tier, limit or maturity statement.
 
 | Fact | Source |
 |---|---|
 | GitLab 19.5 is current | docs.gitlab.com/releases/19/ |
 | Hosted Linux runner sizes, tags and privileged mode | docs.gitlab.com/ci/runners/hosted_runners/linux/ |
-| Compute quotas and cost factors; 3 hour job limit | about.gitlab.com/pricing/, docs.gitlab.com/ci/pipelines/compute_minutes/ |
+| 3 hour job limit on hosted runners | docs.gitlab.com/ci/runners/hosted_runners/ |
+| Compute quotas and cost factors | about.gitlab.com/pricing/, docs.gitlab.com/ci/pipelines/compute_minutes/ |
 | Open Source program terms | about.gitlab.com/solutions/open-source/join/ |
-| Mergeability is per pipeline; skipped pipelines block | docs.gitlab.com/user/project/merge_requests/auto_merge/ |
-| Merged results and merge trains are Premium and Ultimate | docs.gitlab.com/ci/pipelines/merge_request_pipelines/ |
-| Fork merge request pipelines run in the fork | same |
-| Services use hostnames on the Docker executor; localhost only on Kubernetes | docs.gitlab.com/ci/services/ |
-| Pipeline inputs: up to 20, root file only, not settable on merge request pipelines | docs.gitlab.com/ci/inputs/ |
-| Lint simulation models a push to the default branch | docs.gitlab.com/ci/yaml/lint/ |
+| Mergeability is per pipeline; skipped or absent pipelines block | docs.gitlab.com/user/project/merge_requests/auto_merge/ |
+| Merged results and merge trains are Premium and Ultimate; merge trains are a project setting | docs.gitlab.com/ci/pipelines/merged_results_pipelines/, docs.gitlab.com/ci/pipelines/merge_trains/ |
+| Fork merge request pipelines run in the fork | docs.gitlab.com/ci/pipelines/merge_request_pipelines/ |
+| Services use hostnames on the Docker executor | docs.gitlab.com/ci/services/ |
+| Shared localhost is documented for the Kubernetes executor | docs.gitlab.com/runner/executors/kubernetes/ |
+| `rules:changes`: 50 patterns, 50,000 checks, `File.fnmatch`, comparison base per pipeline type | docs.gitlab.com/ci/yaml/#ruleschanges |
+| `$CI_MERGE_REQUEST_LABELS` is available before the pipeline is created | docs.gitlab.com/ci/variables/predefined_variables/ |
+| `workflow:rules:auto_cancel`; `needs:optional`; variables in `image` and `tags` | docs.gitlab.com/ci/yaml/ |
+| Pipeline inputs: up to 20, root file, not settable on merge request pipelines; schedules accept inputs | docs.gitlab.com/ci/inputs/, docs.gitlab.com/ci/pipelines/schedules/ |
+| Schedule variables are pipeline variables and can be disallowed | docs.gitlab.com/ci/variables/#restrict-pipeline-variables |
+| Skip in the merge request title for merge request pipelines | docs.gitlab.com/ci/pipelines/ |
+| Lint simulation accepts a branch or tag reference only | docs.gitlab.com/api/lint/, docs.gitlab.com/ci/yaml/lint/ |
 | Report types by tier; scanner results are JSON only below Ultimate | docs.gitlab.com/ci/yaml/artifacts_reports/, pricing page |
-| Keyless signing on GitLab.com, all tiers | docs.gitlab.com/ci/yaml/signing_examples/ |
+| Keyless signing on GitLab.com, all tiers; `id_tokens` placement | docs.gitlab.com/ci/yaml/signing_examples/ |
 | `release:` requires `glab` | docs.gitlab.com/ci/yaml/#release |
-| Push mirroring is Free; pull mirroring is Premium | docs.gitlab.com/user/project/repository/mirror/push/ |
-| macOS hosted runners: Premium and Ultimate, beta | docs.gitlab.com/ci/runners/hosted_runners/ |
+| Push mirroring is Free | docs.gitlab.com/user/project/repository/mirror/push/ |
+| Pull mirroring is Premium and Ultimate | docs.gitlab.com/user/project/repository/mirror/pull/ |
+| macOS hosted runners: Premium and Ultimate, beta | docs.gitlab.com/ci/runners/hosted_runners/macos/ |
+| No interactive web terminal on GitLab.com instance runners | docs.gitlab.com/ci/interactive_web_terminal/ |
 | Claude Code for GitLab CI/CD is beta, maintained by GitLab | code.claude.com/docs/en/gitlab-ci-cd |
-| No job summary equivalent, no YAML issue forms, no native path labeler | not found in doc searches |
-| GitHub Actions cannot run inside a GitLab job | docs.gitlab.com/ci/functions/ (experiment; the `action` step is no longer documented) |
+
+Absence findings, from doc searches that found nothing: a job summary
+equivalent, YAML issue forms, a native path labeler, a release-drafter
+equivalent, a daemon inside the job container on hosted runners, the
+Dependency Proxy from forks. Running GitHub Actions inside a GitLab job is not
+documented or supported in current docs.
 
 Not confirmed: whether the `cache:key:files` limit of 10 is live on
-GitLab.com (assume 2); the `rules:changes` pattern cap (R4); whether Mend's
-hosted Renovate app accepts Free or program namespaces; whether Duo external
-agents are enabled for program namespaces; that compose-published ports are
-reachable at the `docker` hostname under a `docker:dind` service (follows
-from the docs, not stated in them).
+GitLab.com (assume 2); whether Mend's hosted Renovate app accepts Free or
+program namespaces; whether Duo external agents are enabled for program
+namespaces; whether a masked variable can contain spaces; that a later push
+cancels a scheduled pipeline (read from GitLab's source, not its docs).
