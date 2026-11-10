@@ -129,8 +129,12 @@ Security
   colonel, admin and staff roles, impersonation and applying a deferred
   federated subscription. SSO JIT accounts, and unverified accounts where
   email verification is on, defer the subscription until the address is
-  verified; in simple mode the emailed verification link applies it.
-  Microsoft Entra's ``xms_edov: false`` withholds verification. **Before
+  verified; in simple mode the emailed verification link applies it, but
+  only a link sent after the upgrade. A link sent before it verifies the
+  account and applies nothing; such an account needs
+  ``bin/ots customers verify EMAIL``. Microsoft Entra's
+  ``xms_edov: false`` withholds verification, and ``xms_edov: true`` is
+  domain-owner verification only, never mailbox proof. **Before
   deploying,** run ``bin/ots customers doctor``: a colonel, admin or staff
   account without mailbox proof loses the role until
   ``bin/ots customers verify EMAIL`` or Colonel verifies it. Export
