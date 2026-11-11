@@ -24,7 +24,7 @@ linked release histories provide the underlying contribution records.
 
 .. _changelog-0.26.20:
 
-0.26.20 — 2026-11-10
+0.26.20 — 2026-11-11
 ====================
 
 Added
@@ -208,7 +208,7 @@ AI Assistance
   verification, login-recovery provenance and the dependency advisory
   updates. Claude also condensed these notes from the fragments.
 
-`Contribution records <https://github.com/onetimesecret/onetimesecret/compare/v0.26.19...82cd434841>`__.
+`Contribution records <https://github.com/onetimesecret/onetimesecret/compare/v0.26.19...v0.26.20>`__.
 
 .. _changelog-0.26.19:
 
@@ -376,7 +376,7 @@ AI Assistance
   verification and passkey recovery codes, domain rule validation,
   configuration controls and local frontend builds.
 
-`Contribution records <https://github.com/onetimesecret/onetimesecret/compare/v0.26.18...bd298b83e5>`__.
+`Contribution records <https://github.com/onetimesecret/onetimesecret/compare/v0.26.18...v0.26.19>`__.
 
 .. _changelog-0.26.18:
 
