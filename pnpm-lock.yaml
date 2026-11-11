@@ -134,11 +134,11 @@ importers:
         specifier: ^2.8.3
         version: 2.8.3
       zod:
-        specifier: 4.6.6
-        version: 4.6.6
+        specifier: 4.6.7
+        version: 4.6.7
       zod-validation-error:
         specifier: 5.0.0
-        version: 5.0.0(zod@4.6.6)
+        version: 5.0.0(zod@4.6.7)
     devDependencies:
       '@apidevtools/swagger-parser':
         specifier: 12.1.0
@@ -474,10 +474,6 @@ packages:
 
   '@babel/helpers@7.29.10':
     resolution: {integrity: sha512-EMCx3AGZ3WfAl6ht7AyQoPm2Lh+BGYEMdc4Q6Hf7uSCDOZFuLq44qNwL+iaim8VlyYhRAo4X43+weadK8ZB4Yg==}
-    engines: {node: '>=6.9.0'}
-
-  '@babel/helpers@7.29.7':
-    resolution: {integrity: sha512-1k2lAGRMfHTcwuNYcCNUmaUffmQv8KWMfh2iJUUeRlwlwH4FdNG7mfPI10NPfLHJFThE4Tyr4mv7kTNZOiPuBg==}
     engines: {node: '>=6.9.0'}
 
   '@babel/parser@7.29.9':
@@ -4793,8 +4789,8 @@ packages:
     peerDependencies:
       zod: ^3.25.0 || ^4.0.0
 
-  zod@4.6.6:
-    resolution: {integrity: sha512-4UmzQUF5fxvfcYHlbjBmejU+w+hbDnWFx4aS8kBx7nPBHcO2SqPbpAG8snbdg+Xse4pRefR98hgjFgIMCI/UhA==}
+  zod@4.6.7:
+    resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
 
 snapshots:
 
@@ -4851,7 +4847,7 @@ snapshots:
       '@babel/generator': 7.29.7
       '@babel/helper-compilation-targets': 7.29.7
       '@babel/helper-module-transforms': 7.29.7(@babel/core@7.29.7)
-      '@babel/helpers': 7.29.7
+      '@babel/helpers': 7.29.10
       '@babel/parser': 7.29.9
       '@babel/template': 7.29.7
       '@babel/traverse': 7.29.7
@@ -4952,11 +4948,6 @@ snapshots:
   '@babel/helper-validator-option@7.29.7': {}
 
   '@babel/helpers@7.29.10':
-    dependencies:
-      '@babel/template': 7.29.7
-      '@babel/types': 7.29.8
-
-  '@babel/helpers@7.29.7':
     dependencies:
       '@babel/template': 7.29.7
       '@babel/types': 7.29.8
@@ -9250,8 +9241,8 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zod-validation-error@5.0.0(zod@4.6.6):
+  zod-validation-error@5.0.0(zod@4.6.7):
     dependencies:
-      zod: 4.6.6
+      zod: 4.6.7
 
-  zod@4.6.6: {}
+  zod@4.6.7: {}
