@@ -197,15 +197,15 @@ Everything in this section is a proposal.
 
 | Type | Selected by | Runs |
 |---|---|---|
-| Merge request | `$CI_PIPELINE_SOURCE == "merge_request_event"` | always-on checks, plus jobs selected by path or label (§4.4); the full register scan when the source branch is `develop` |
+| Merge request | `$CI_PIPELINE_SOURCE == "merge_request_event"` | always-on checks, plus jobs selected by path or label (§4.4); the full register scan when the source branch is `develop` and locale content changed |
 | Merge train | `$CI_MERGE_REQUEST_EVENT_TYPE == "merge_train"` | what `merge_group` runs today: all main CI jobs except billing, full-auth and tenant-connect e2e |
 | `main` | push to `main` | the merge train set, static analysis, API docs deploy, register gates on locale changes |
 | `develop` | push to `develop`, unless `develop` is the source of an open merge request | register gates on locale changes, as today |
-| Tag | `$CI_COMMIT_TAG` matching `v*` | the `main` set, billing, image build for release, publish, release |
+| Tag | a pushed tag matching `v*` (`$CI_COMMIT_TAG`, source `push`) | the `main` set, billing, image build for release, publish, release |
 | Nightly | schedule input `schedule: nightly` | the `main` set, billing, migrations, Ruby preview; on `main` also the nightly image |
 | Weekly | schedule input `schedule: weekly` | install and boot lanes, published-image smoke, full register scan |
 | Triage | schedule input `schedule: triage` | `gitlab-triage` |
-| Manual | web or API with inputs | selected by inputs |
+| Manual | web or API with inputs, on a branch or a tag | selected by inputs |
 
 Notes:
 
@@ -240,10 +240,14 @@ Notes:
   GitLab defines `CI_OPEN_MERGE_REQUESTS` as the merge requests "that use the
   current branch and project as the merge request source."
 - The work of the dropped pipeline moves into the merge request pipeline.
-  When the source branch is `develop`, the merge request pipeline runs the
-  full register scan, which `validate-register.yml:23` runs "On push to
-  main/develop" today. The scan then gates the promotion; D14 decides
-  whether it is allowed to fail.
+  When the source branch is `develop` and the merge request changes locale
+  content or the gate's own files, the merge request pipeline runs the full
+  register scan. `validate-register.yml:23` runs it "On push to
+  main/develop" today, for pushes that touch those paths (`:60-64`). The
+  full scan then gates the promotion. Today it reports on the `develop`
+  commit, and the pull request runs the narrower scan of the locales it
+  changed. The workflow header expects full scans to fail (§4.10), so D14
+  has to be settled before the first promotion on GitLab.
 - `main` is exempt from the rule. Its push pipeline is the test after a
   merge and the API docs deploy, and dropping it would lose both. A merge
   request with `main` as its source would have two pipelines and the race
@@ -253,16 +257,31 @@ Notes:
   which matches GitHub today (`ci.yml` runs on pushes to `main` and tags, and
   on pull requests). The rule keeps its `"push"` condition, so it never
   drops a scheduled, manual or triggered pipeline.
-- Not confirmed: whether a scheduled pipeline on `develop` can also be read
-  by the merge check of an open promotion. Spike S8 checks it, because this
-  plan proposes a nightly on `develop`.
+- The rule does not drop a scheduled or manual pipeline on `develop`, and
+  this plan proposes a nightly there. GitLab's source (19.5) counts
+  scheduled and manual pipelines on the source branch among the pipelines
+  that the merge check of a merge request can pick, and for one commit it
+  picks a merge request pipeline ahead of any branch pipeline
+  (`pipelines_for_merge_request_finder.rb`, `find_diff_head_pipeline` in
+  `merge_request.rb`). So a nightly should not displace the promotion's own
+  pipeline. That is read from source, not run, and GitLab's page above says
+  the order is not enforced.
+- GitLab has a project setting for the same problem, in beta since 19.2:
+  "Skip branch pipelines for merge requests". With it on, "Mergeability
+  checks, like Pipelines must succeed, only consider merge request
+  pipelines. Branch pipelines do not affect merge readiness." The page
+  names no exception for `main`, and says "Only push-triggered pipelines
+  are affected." Spike S8 tests scheduled and manual pipelines with and
+  without the setting. The rule above stays in both cases: it is reviewed
+  with the code, and the setting is beta.
 - Container e2e, visual and migration tests do not run on `main`, tag or
   merge-queue events today. Two additions are proposed: container e2e in the
   tag pipeline, because publishing should wait for it (§4.6), and a nightly
   schedule on `develop`, because a change to shared code can break an
   auth-only job that its pull request did not select. The `develop` nightly
-  builds and publishes no image: the rules of the image and publish jobs
-  name `main` and tags.
+  builds the staging image that container validation needs (§4.6), as a
+  merge request pipeline does. It does not build the release group and it
+  publishes nothing: the rules of those jobs name `main` and tags.
 
 ### 4.2 File layout
 
@@ -492,16 +511,21 @@ less test coverage than it has now (R2).
 - Results are not inspected to decide the mapping. The preview jobs write
   no RSpec results, as today (`ruby-4-preview.yml:23`: "no RSpec JSON is
   written or uploaded"), so the report job does not count their suites with
-  the main ones. A load error under the preview Ruby would also report zero
-  examples (RSpec's behavior, not run here), and that is a failure the job
-  exists to show as a warning. None of the ten preview lanes runs only
+  the main ones. A load error under the preview Ruby also reports zero
+  examples and exits 1, and that is a failure the job exists to show as a
+  warning. This is read from the locked rspec-core 4.0.0.beta1, not run: a
+  load error sets `wants_to_quit`, and the runner then calls `exit_early`,
+  which the source describes as "Reports a run that exited early without
+  having run any examples." None of the ten preview lanes runs only
   tryouts: all run an RSpec leg, and four run tryouts as well.
 - Two cases have no twin. The first is a defect in the preview image other
-  than its Ruby version: the command runs `tests/lanes/run --list` before
-  the lane, so the runner's bootstrap guards fail outside the mapped step.
-  The second is a manual run with only `ruby_preview` set: its warnings have
-  to be read with the log. A failed install maps to the warning whatever
-  its cause, as today.
+  than its Ruby version. The command runs `tests/lanes/run --list` before
+  the lane, and that fails outside the mapped step when the image lacks the
+  bash version the runner requires; `--list` checks nothing else. Another
+  defect, such as a missing Node, fails inside the mapped step and shows as
+  a warning. The second case is a manual run with only `ruby_preview` set:
+  its warnings have to be read with the log. A failed install maps to the
+  warning whatever its cause, as today.
 - With Premium: merged results pipelines and merge trains replace the merge
   queue. GitLab enables merge trains per project, not per branch (D5).
 - Deleted: `ci-verdict` and `ci-verdict.sh` with its suite, and the three e2e
@@ -634,7 +658,7 @@ add diff annotations; it is optional and not part of parity.
 |---|---|---|
 | Ruby dependencies | bundler-audit on every PR, with no ignore list by policy | keep as is |
 | JavaScript dependencies | no audit in CI | add `osv-scanner` on `pnpm-lock.yaml`; re-record the advisories accepted in `pnpm-workspace.yaml` |
-| SAST | none | GitLab SAST |
+| SAST | CodeQL through GitHub's default setup, which has no workflow file: `Analyze` checks for Ruby, JavaScript and TypeScript, Python and Actions on pull requests | GitLab SAST. CodeQL ends with the archive; compare the two sets of findings before then |
 | Secrets | `detect-private-key` hook only | GitLab pipeline secret detection |
 | Container image | none | GitLab container scanning on the built image |
 | CI config lint | actionlint with a baseline | pipeline creation validates the config; `glab ci lint` locally |
@@ -709,7 +733,8 @@ gate after their baseline is triaged (Phase 6).
   action becomes a CI/CD component in that project when it moves; until then
   the jobs clone it at the pinned ref. The workflow header says full scans
   fail until existing findings in three locales are fixed (not verified). A
-  failing full scan would turn `main` and weekly pipelines red (D14).
+  failing full scan would turn `main` and weekly pipelines red, and block a
+  promotion that changes locale content (§4.1, D14).
 
 ### 4.11 Secrets and access
 
@@ -726,30 +751,38 @@ gate after their baseline is triaged (Phase 6).
   pipeline would wait for a runner that never takes it, or run without
   registry credentials. A manual publish has to start from a protected
   branch or tag for the same reason.
-- Two jobs read credentials in merge request pipelines today and would
-  continue to: the Bump.sh diff and the Claude review. Those variables cannot
-  be protected, because merge request pipelines get protected variables only
-  when the source and the target branch are both protected. They stay
+- Two jobs read credentials in merge request pipelines today: the Bump.sh
+  diff and the Claude review. On GitLab only the Claude review does. Its
+  variable cannot be protected, because merge request pipelines get
+  protected variables only when the source and the target branch are both
+  protected, and that setting is turned off here (Phase 2). It stays
   unavailable to fork pipelines, as now.
-- One Bump.sh token serves the deploy and the diff today:
-  `bump-api-docs.yml:21` describes `BUMP_TOKEN` as a "hub token with deploy
-  access", and both jobs read it. Protecting it would leave the diff job
-  without a token. Proposal: the deploy job reads a protected token, and the
-  diff job reads a separate token in its own environment scope. Whether
-  Bump.sh issues a token that cannot deploy is not confirmed. If it does
-  not, the token readable in merge request pipelines can deploy, which is
-  the case today (P6, R10).
-- Each of those two credentials gets an environment scope of its own, and
-  only the job that uses it declares that environment, with
-  `environment:action: access`. Without a scope they would be in every job
-  of every merge request pipeline, including the jobs that install packages
-  and run tests. GitLab: "By default, all CI/CD variables are available to
-  all jobs in a pipeline." and "you should limit the environment scope of
-  sensitive variables to only the jobs that require them." On GitHub each
-  secret is passed to the step that uses it (`bump-api-docs.yml:213-218`,
-  `claude-code-review.yml:71`). On `access` jobs GitLab says: "This gives
-  you access to environment-scoped variables, and can be used to protect
-  builds from unauthorized access." The action creates no deployment.
+- The Bump.sh diff runs without a token. Today the diff job reads two:
+  `BUMP_TOKEN`, which `bump-api-docs.yml:21` describes as a "hub token with
+  deploy access", and `BUMP_INTERNAL_TOKEN` for the internal hub (`:245`).
+  Each is also the token that its hub is deployed with (`:153`, `:184`).
+  Bump.sh's CLI page: "While some commands don’t need any API token
+  (preview or diff) you will need an access key if you want to interact
+  with your Bump.sh documentation." and "From any two API documents or
+  URLs, you can retrieve a comprehensive changelog of what has changed
+  between them." The diff job therefore compares two generated documents
+  per API, the one from the merge request and the one from its target
+  branch, and declares no environment. The comparison base changes from
+  the version deployed on Bump.sh to the target branch's source, at the
+  cost of a second generator run in a job without credentials. Both tokens
+  become protected and are read only by the deploy job. All four documents
+  are generated from this public repository, the internal one included.
+- The Claude credential gets an environment scope of its own, and only the
+  review job declares that environment, with `environment:action: access`.
+  Without a scope it would be in every job of every merge request pipeline,
+  including the jobs that install packages and run tests. GitLab: "By
+  default, all CI/CD variables are available to all jobs in a pipeline."
+  and "you should limit the environment scope of sensitive variables to
+  only the jobs that require them." On GitHub the secret is passed to the
+  step that uses it (`claude-code-review.yml:71`). On `access` jobs GitLab
+  says: "This gives you access to environment-scoped variables, and can be
+  used to protect builds from unauthorized access." The action creates no
+  deployment.
 - What the scope does not do: it decides which jobs receive the variable,
   not who can reach it. Anyone who can push a branch to the project can add
   that environment to a job in a merge request. GitLab: "Code pushed to the
@@ -758,19 +791,20 @@ gate after their baseline is triaged (Phase 6).
   defense against code that other jobs run, such as a compromised
   dependency.
 - A job that can read a credential does not run a package install, and this
-  includes the two merge request jobs. The publish workflow installs Node
+  includes the Claude review job. The publish workflow installs Node
   dependencies before any registry login for this reason; its comment says
   "pnpm lifecycle scripts run arbitrary package code". On GitLab the install
   happens in a job without credentials and its output is passed on. The
   Bump.sh CLI and the Claude CLI come from the toolchain image at pinned
-  versions; today the diff job installs `bump-cli` with npm before the step
-  that reads the token. The OpenAPI documents are generated in an earlier
-  job without credentials, as now.
+  versions; today the deploy and diff jobs install `bump-cli` with npm
+  before the step that reads the token. The OpenAPI documents are generated
+  in an earlier job without credentials, as now.
 - The same two rules (own environment scope, no install) apply to any
   credential added to merge request pipelines later, such as a token for
   posting the CI metrics note (P3, D10).
 - `SENTRY_PROJECTS` is a space-separated list. It is not a secret; store it
-  unmasked.
+  unmasked. GitLab requires a masked value to "Be a single line with no
+  spaces."
 - Pipeline variables are restricted; manual and scheduled runs use inputs.
 - The keyless signing job stays in this project's own configuration. GitLab:
   "The id_tokens portion of the CI/CD configuration file must be located in
@@ -786,9 +820,10 @@ Changes that widen access and need operator approval (C7):
 | P3 | A bot token with API write for Renovate, triage and merge request notes | new long-lived credential |
 | P4 | An automated push of `main` and tags to GitHub until the archive, if one is set up | needs a GitHub token with write access |
 | P5 | "Run pipelines in the parent project" for fork merge requests | runs fork code with the parent's runners and variables; recommend disabling it |
-| P6 | The Bump.sh and Claude credentials are visible to every command of their job in merge request pipelines. The Bump.sh token has deploy access unless a diff-only token exists. | today each is passed to one step; the environment scope limits it to one job, not to one step |
+| P6 | The Claude credential is visible to every command of its job in merge request pipelines. | today it is passed to one step; the environment scope limits it to one job, not to one step |
 
-Additive, not widening: the ID token for keyless signing.
+Additive, not widening: the ID token for keyless signing. Narrowing: the two
+Bump.sh tokens leave merge request pipelines.
 
 ### 4.12 Runners and compute
 
@@ -938,7 +973,7 @@ this migration (D15). Two of them need work regardless:
 | `docs-command-drift.yml` | folded into the guard job, still calling `bin/testsuite-installer check-docs-commands`. |
 | `validate-config.yml` | its three guards duplicate `drift-guards.yml`; its unique steps (schema generation, `bin/ots config validate`) become a job selected by path. It is dispatch-only today. |
 | `validate-register.yml`, `resolved-derive-gate.yml` | two jobs with a shared template (§4.10). |
-| `bump-api-docs.yml` | `release.yml`: generate, diff on merge requests, deploy on `main`. The deploy from `develop`, which only a manual dispatch reaches today (`bump-api-docs.yml:137`), is not ported. Fix: each `bump diff` failure, including an auth or network error, is reported as "breaking changes" today. |
+| `bump-api-docs.yml` | `release.yml`: generate, diff on merge requests, deploy on `main`. The deploy from `develop`, which only a manual dispatch reaches today (`bump-api-docs.yml:137`), is not ported. The diff compares two generated documents and reads no token (§4.11). Fix: each `bump diff` failure, including an auth or network error, is reported as "breaking changes" today. |
 | `generate-translation-request.yml` | retire (D9). Its paths `src/locales` and `src/scripts/locales` do not exist in the tree. |
 | `housekeeping-github-issues.yml`, `housekeeping-lock-threads.yml` | `gitlab-triage` (§4.10). |
 | `pr-labeler.yml` | drop (D6). |
@@ -951,7 +986,7 @@ this migration (D15). Two of them need work regardless:
 | `visual.yml` | `e2e.yml`. Valkey comes from `compose.test.yml` on port 2163, not from a service on 6379. |
 | `visual-archive.yml` | `release.yml`, in the tag pipeline (§4.6). |
 | `migration-tests.yml` | `ruby.yml`. The concurrent-boot job stays CI orchestration, as the lane spec describes it. |
-| `ruby-4-preview.yml` | `ruby.yml`: its rubocop job and its ten SQLite lane runs use the same job templates as main CI with the preview image, on the nightly and through the `ruby_preview` input. Job bodies are not copied. |
+| `ruby-4-preview.yml` | `ruby.yml`: its rubocop job and its ten SQLite lane runs use the same job templates as main CI with the preview image, except that they declare no results artifact (§4.5), on the nightly and through the `ruby_preview` input. Job bodies are not copied. |
 
 ### 6.2 Composite actions
 
@@ -1040,7 +1075,7 @@ No change to CI behavior. Spikes run on a throwaway branch on GitLab.
 | S5 | macOS: hosted runner availability and cost on the tier, or a self-hosted macOS runner | feeds D4 |
 | S6 | Compute minutes for one full merge request pipeline and one nightly, in total and for the light jobs alone | feeds the tier decision |
 | S7 | Which executor for the self-hosted fleet: `instance` on ephemeral VMs, or Docker with privileged containers? Do `compose.test.yml`, the native e2e boot and `bin/visual` run unchanged on it? | with `instance`, heavy jobs need no in-job daemon, and S1 only decides whether hosted runners can take overflow |
-| S8 | With a merge request open from `develop`, which pipeline does the merge check read after a scheduled pipeline runs on `develop`? | the branch pipeline can win: pause the `develop` nightly while a promotion is open, or promote from a branch cut from `develop` |
+| S8 | With a merge request open from `develop`, which pipeline does the merge check read after a scheduled or manual pipeline runs on `develop`? Does "Skip branch pipelines for merge requests" (beta) change the answer, and does it keep creating push pipelines on `develop` once earlier promotions are merged or closed? | the merge request pipeline wins without the setting: keep the rule alone. The branch pipeline can win: turn the setting on if it leaves `develop` its push pipelines; otherwise pause the `develop` nightly while a promotion is open, or promote from a branch cut from `develop` |
 
 Exit: the open decisions in §8 are recorded, with an ADR for the ones that
 are expensive to reverse (runner model and loopback approach, publishing
@@ -1078,20 +1113,29 @@ command and is exercised by the GitHub workflows; every file left in
 - The toolchain image and its guard; the root file with inputs, workflow
   rules, stages and defaults; project settings, variables and environments; a
   protected runner for publish jobs; the redesigned credential guard.
-- Protection settings that the publish path depends on (§4.11): `main` as a
-  protected branch; `v*` as a protected tag that only maintainers can
-  create; one environment per credential group, including one each for the
-  Bump.sh and Claude credentials. Nothing in this plan needs `develop` to be
-  protected: the nightly image stays on the `main` schedule, where it runs
-  today (GitHub runs scheduled workflows on the default branch, which is
-  `main`), and the `develop` nightly builds no image (§4.1).
-- If Q2 protects `develop` anyway: protection is one flag per branch, so
-  every pipeline on `develop` could then read protected variables and use
-  the protected runner. What limits the publish credentials in that case is
-  their environment scope and the rules of the publish jobs. A promotion
-  merge request would also have two protected branches, so the setting
-  "Allow merge request pipelines to access protected variables and runners"
-  is turned off. GitLab's page does not state its default.
+- Protection settings (§4.11): `main` and `develop` as protected branches
+  (who may push to them directly is part of Q2); `v*` as a protected tag
+  that only maintainers can create; one environment per credential group,
+  including one for the Claude credential alone.
+- `develop` is protected for the merge gate, not for publishing. GitHub
+  protects it today: its API lists `main` and `develop` as protected. The
+  rules behind that are settings, not files, and were not read for this
+  plan. "Pipelines must succeed" checks merge requests only, so a direct
+  push to an unprotected `develop` would pass no gate. The publish path
+  does not need the protection: the nightly image stays on the `main`
+  schedule, where it runs today (GitHub runs scheduled workflows on the
+  default branch, which is `main`), and the `develop` nightly publishes
+  nothing (§4.1).
+- What protecting `develop` costs: protection is one flag per branch, so
+  every pipeline on `develop` can read protected variables and use the
+  protected runner. Environment scope and job rules select the jobs that
+  get the publish credentials; the people who can reach them are all who
+  can push or merge to `develop`. A promotion merge request also has two
+  protected branches, so the setting "Allow merge request pipelines to
+  access protected variables and runners" is turned off. GitLab's page
+  does not state its default. GitLab's source turns it on for every newly
+  created project (`app/services/projects/create_service.rb`, 19.5), so
+  expect it on.
 - `images.yml` and `release.yml`: build, container validation, publish,
   Sentry, release creation, visual archive. Multi-arch stays one
   multi-platform build unless S4 has passed. Signing and attestation can
@@ -1108,10 +1152,9 @@ Exit:
 - A manual pipeline with `publish: custom` pushes all three variants to the
   custom registry. Its `main` image is compared with the v0.26.20 image that
   GitHub built: labels, version, platforms and file list. The run starts
-  from `main` or a `v*` tag, because the publish job needs a protected ref.
-  If the Phase 2 files are merged to `develop` first, this exit needs a
-  promotion to `main`, or a protected branch made for the purpose (Q2). The
-  pilot's files went to `main` directly.
+  from a protected branch, `develop` or `main`, because the publish job
+  needs a protected ref. It does not start from a `v*` tag: pushing one
+  starts the tag pipeline, which publishes a release.
 - One release candidate tag is published from GitLab.
 - 20 consecutive merge request pipelines are green for lint and frontend,
   with results equal to the matching GitHub jobs.
@@ -1155,7 +1198,10 @@ Prerequisites: Phases 2 and 3 have exited; issues, pull requests and releases
 are imported, because an archived repository is read-only.
 
 1. Enable "Pipelines must succeed" and, on Premium, merge trains. Activate
-   the schedules. Stop merging on GitHub. Update
+   the schedules, and disable the scheduled workflows on GitHub
+   (`gh workflow disable`): its nightly would otherwise keep publishing the
+   `nightly` image from a `main` that no longer moves. Stop merging on
+   GitHub. Update
    `.agents/skills/merge/SKILL.md` and AGENTS.md ("Running tests" names
    `.github/scripts/` and the `Static analysis` workflow).
 2. Ship one release from GitLab.
@@ -1164,9 +1210,12 @@ are imported, because an archived repository is read-only.
    is disabled, and the repository is archived. GitHub's archiving page: "We
    recommend that you close all issues and pull requests, as well as update
    the README file and description, before you archive a repository." Record
-   the names of the Actions secrets and variables first.
+   first what exists only as GitHub settings: the names of the Actions
+   secrets and variables, the branch rules of `main` and `develop`, and the
+   code scanning setup.
 
-Until step 3, rollback is to resume merging and releasing on GitHub.
+Until step 3, rollback is to resume merging and releasing on GitHub and to
+enable its scheduled workflows again.
 
 After step 3 rollback is still possible, at a cost that grows with every
 merge on GitLab. Archiving is reversible: the same GitHub page documents
@@ -1179,7 +1228,12 @@ the scheduled workflows. Its limits:
   GitHub.
 - Releases and images published from GitLab in the meantime stay published.
 - GitHub: "In a public repository, scheduled workflows are automatically
-  disabled when no repository activity has occurred in 60 days."
+  disabled when no repository activity has occurred in 60 days." An
+  archived repository takes no pushes, so expect GitHub to have disabled
+  every scheduled workflow by itself once the archive is older than that.
+  Each one is enabled again by hand: "Enable workflow" on its Actions page,
+  or `gh workflow enable`. GitHub's pages do not define "repository
+  activity".
 - GitHub's archiving page does not say what happens to Actions secrets and
   variables; check the settings page after an unarchive.
 - The Phase 2 changes that point at GitLab have to be reversed: the footer
@@ -1242,7 +1296,7 @@ Exit: one release shipped from GitLab and the GitHub repository archived.
 | D10 | CI metrics port before or after cutover | After | between cutover and the port there is no per-job regression flag on merge requests. The tier budget check is advisory today (`fail-on-violation` is false). |
 | D11 | Renovate hosting | Self-hosted runner project | works on any tier and serves every repository |
 | D13 | GitLab for Open Source application | Check the profit clause first | cost factor and tier |
-| D14 | Register full scans that are expected to fail | Verify the claim first. If true, mark the full-scan job `allow_failure` until the findings are fixed. | whether `main` and weekly pipelines are red from day one |
+| D14 | Register full scans that are expected to fail | Verify the claim first. If true, mark the full-scan job `allow_failure` until the findings are fixed. | whether `main` and weekly pipelines are red from day one, and whether a promotion that changes locale content can merge; needed before the first promotion on GitLab |
 | D15 | Guard scripts in `scripts/` | Leave them (§5) | scope of the ADR-042 consolidation |
 
 D2 (GitHub's role) and D12 (where issues live) are settled by the archive
@@ -1276,7 +1330,7 @@ both hosts for the parity checks in Phases 2 and 3.
 | R7 | The translation-rules action lives in another repository on its own migration schedule. | clone at the pinned ref until it is a component |
 | R8 | A daemon in the job may need the MTU setting that GitLab documents for `docker:dind` on arm64, and a larger `/dev/shm` for Chromium. | S1 |
 | R9 | The dependency caches were disabled "to rule out stale cache"; the incident is not recorded. | Phase 2 |
-| R10 | The Bump.sh and Claude credentials are readable in merge request pipelines by any job that declares their environment, and anyone who can push a branch can add that declaration. The people who can reach them are the same as today; inside the job the exposure is wider (P6). The Bump.sh token can deploy today. | environment scopes, no installs in those jobs, and a diff-only Bump.sh token if one exists (§4.11) |
+| R10 | The Claude credential is readable in merge request pipelines by any job that declares its environment, and anyone who can push a branch can add that declaration. The people who can reach it are the same as today; inside the job the exposure is wider (P6). | its own environment scope, no installs in that job, today's tool allowlist (§4.10, §4.11). The Bump.sh tokens leave merge request pipelines. |
 | R11 | Rolling back after the GitHub repository is archived means unarchiving it and resynchronizing commits and tags. Work tracked on GitLab since the import is not on GitHub. | archive only after a release has shipped from GitLab; record secret names before archiving (Phase 5) |
 | R12 | The next release depends on the release path. If Phase 2 slips, the release waits. | start Phase 2 as soon as v0.26.20 is published |
 
@@ -1378,14 +1432,14 @@ described.
 | D-H19 | A mislabelled `process-only` comment; no top-level permissions block in four workflows | Design; workflows replaced |
 | D-H1, D-H2 | Two derive runs; `validate-config` repeats the guards | D-H1: Kept as two jobs with a shared template (§4.10). D-H2: Design §6.1. |
 | D-H8 | Translation request workflow stale | D9 |
-| D-H9 | `bump diff` masks errors; credentials on pull requests | The masking: Design §6.1. The credentials: Kept, each with its own environment scope (§4.11, R10, P6). |
+| D-H9 | `bump diff` masks errors; credentials on pull requests | The masking: Design §6.1. The credentials: the Bump.sh tokens leave merge request pipelines, because the diff needs none; the Claude credential is kept with its own environment scope (§4.11, R10, P6). |
 | D-H10, D-H11 | Claude workflow trigger noise and constraints | D8 |
 | D-H13 | Checks in both hooks and CI; pre-commit unpinned in CI; pre-push hygiene hooks with no CI equivalent | Kept; pinned in the toolchain image. The pre-push hooks: Open. |
 | D-H14, D-H15 | adr-lint has no full CI run; shellcheck skips extensionless scripts | Phase 1 |
 | D-H17 | `check-ci-secrets.sh` parses GitHub syntax | Redesign in Phase 2 (§5) |
 | D-H18 | No single statement of the branch model | Q2 |
 | D-H20 | Workarounds: full fetch and an extra remote for envref, `PIPESTATUS` handling, injection guards, reliance on preinstalled tools | Preinstalled tools: Design §4.3. The envref remote and history: §5. The rest move with their scripts. |
-| D-A1 to D-A6 | No JavaScript audit, SAST, secret scanning, image scanning, license check or SBOM | §4.8, §4.6; license checks Open |
+| D-A1 to D-A6 | No JavaScript audit, SAST, secret scanning, image scanning, license check or SBOM | §4.8, §4.6; license checks Open. The SAST part of the finding is wrong: CodeQL runs today through GitHub's default setup (§4.8). |
 
 ## Appendix B. GitLab facts relied on
 
@@ -1432,15 +1486,39 @@ acting on a tier, limit or maturity statement.
 | With branch and merge request pipelines both present, the merge check reads the merge request pipelines; the page notes the check can race | docs.gitlab.com/ci/pipelines/mr_pipeline_troubleshooting/ |
 | Registry cleanup policies: per project, every tier, by tag regex and age | docs.gitlab.com/user/packages/container_registry/reduce_container_registry_storage/ |
 | The Claude Code example installs the CLI in the job that reads the key | code.claude.com/docs/en/gitlab-ci-cd |
+| "Skip branch pipelines for merge requests": beta since 19.2; merge checks then read only merge request pipelines; only push pipelines are affected | docs.gitlab.com/ci/pipelines/settings/ |
+| A masked value is a single line with no spaces | docs.gitlab.com/ci/variables/ |
+| `bump diff` needs no token and compares two documents or URLs | docs.bump.sh/help/continuous-integration/cli/ |
 
-The last eleven rows were added on 2026-11-11 in response to review of the
-pull request, and were read directly, not by the research pass. The GitHub
-statements in Phase 5 are from
+The last fourteen rows were added on 2026-11-11 in response to review of the
+pull request, and were read directly, not by the research pass. Five GitLab
+statements were also read in the `19-5-stable-ee` branch of GitLab's
+repository: the skip setting, the protected-resources section, the merge
+check race, the masked value rule and the `cache:key:files` limit. The
+GitHub statements in Phase 5 are from
 docs.github.com/en/repositories/archiving-a-github-repository/archiving-repositories,
 read the same day. The 60-day rule, and the fact that scheduled workflows
 run on the default branch, are from
 docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows,
-also read on 2026-11-11.
+also read on 2026-11-11. How to enable a disabled workflow is from
+docs.github.com/en/actions/how-tos/manage-workflow-runs/disable-and-enable-workflows.
+
+Read from source, not from documentation, and not run. GitLab at
+`19-5-stable-ee`: scheduled and manual pipelines are among the branch
+pipelines that a merge check can pick, and a merge request pipeline for the
+same commit is picked first
+(`app/finders/ci/pipelines_for_merge_request_finder.rb`,
+`app/models/merge_request.rb`, `app/models/ci/pipeline.rb`,
+`app/models/concerns/enums/ci/pipeline.rb`); a new project gets the
+protected-resources setting turned on
+(`app/services/projects/create_service.rb`). rspec-core 4.0.0.beta1 as
+installed: a load error ends the run with zero examples and the failure
+exit code (`lib/rspec/core/runner.rb`, `reporter.rb`, `configuration.rb`).
+
+GitHub settings that are not files were read through its API on 2026-11-11:
+the branch list marks `main` and `develop` as protected, and the checks on
+pull request 4944 include CodeQL's `Analyze` jobs. The branch rules
+themselves were not read.
 
 Absence findings, from doc searches that found nothing: a job summary
 equivalent, YAML issue forms, a native path labeler, a release-drafter
@@ -1449,8 +1527,10 @@ Dependency Proxy from forks. Running GitHub Actions inside a GitLab job is not
 documented or supported in current docs.
 
 Not confirmed: whether the `cache:key:files` limit of 10 is live on
-GitLab.com (assume 2); whether Mend's hosted Renovate app accepts Free or
-program namespaces; whether Duo external agents are enabled for program
-namespaces; whether a masked variable can contain spaces; whether Bump.sh
-issues a token without deploy access; that a later push cancels a scheduled
-pipeline (read from GitLab's source, not its docs).
+GitLab.com (assume 2: the 19.5 docs put it behind the feature flag
+`increase_ci_cache_key_files_limit`, "Disabled by default."); whether Mend's
+hosted Renovate app accepts Free or program namespaces; whether Duo external
+agents are enabled for program namespaces; whether Bump.sh's tokenless diff
+limits document size or request rate; how "Skip branch pipelines for merge
+requests" treats a long-lived source branch (S8); that a later push cancels
+a scheduled pipeline (read from GitLab's source, not its docs).
