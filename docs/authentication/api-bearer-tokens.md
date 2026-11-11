@@ -133,7 +133,8 @@ every request:
   `error_type: TemporarilyUnavailable`, `reason: credential_watermark_ahead`
   and a `Retry-After` header instead of issuing a token every verifier would
   refuse, and logs a warning naming the lead (a clock-skew signal for the
-  operator).
+  operator). `Retry-After` is the number of seconds until the watermark is
+  back within the allowance, when the same request succeeds.
 - **API key rotation.** `Customer#regenerate_apitoken` (POST
   `/api/account/apitoken`, `bin/ots apitoken`, account deletion) writes
   `Customer#last_apitoken_update` in the same write as the new key, and a

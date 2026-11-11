@@ -150,7 +150,7 @@ module Onetime::Secret::Features
           @state           = 'burned'
           @ciphertext      = nil
           @passphrase_temp = nil
-          destroy!
+          destroy_terminal_record!
         end
         true
       end
@@ -232,7 +232,32 @@ module Onetime::Secret::Features
         @state           = 'revealed'
         @ciphertext      = nil
         @passphrase_temp = nil
+        destroy_terminal_record!
+      end
+
+      # Destroys the record after a terminal claim. Clearing @ciphertext above
+      # only clears this instance; when destroy! raises, the stored hash would
+      # keep the payload until its TTL. So the payload fields are struck from
+      # the stored hash before the destroy! error propagates. The strike is
+      # best effort: an unreachable datastore fails it too, and the original
+      # error (with its cause) is what the caller sees either way.
+      #
+      # @return [void]
+      def destroy_terminal_record!
         destroy!
+      rescue StandardError => ex
+        strike_stored_payload!(ex)
+        raise
+      end
+
+      # HDEL of the encrypted payload (`ciphertext`) and the pre-Familia-v2
+      # `value` field. HDEL on a missing key or field is a no-op, so a destroy!
+      # that removed the hash before raising is harmless here. Does not raise.
+      def strike_stored_payload!(destroy_error)
+        dbclient.hdel(dbkey, 'ciphertext', 'value')
+      rescue StandardError => ex
+        OT.le "[secret-destroy] payload strike failed after #{destroy_error.class}: #{ex.class} (secret=#{shortid})"
+        nil
       end
     end
   end
