@@ -197,12 +197,12 @@ Everything in this section is a proposal.
 
 | Type | Selected by | Runs |
 |---|---|---|
-| Merge request | `$CI_PIPELINE_SOURCE == "merge_request_event"` | always-on checks, plus jobs selected by path or label (§4.4) |
+| Merge request | `$CI_PIPELINE_SOURCE == "merge_request_event"` | always-on checks, plus jobs selected by path or label (§4.4); the full register scan when the source branch is `develop` |
 | Merge train | `$CI_MERGE_REQUEST_EVENT_TYPE == "merge_train"` | what `merge_group` runs today: all main CI jobs except billing, full-auth and tenant-connect e2e |
 | `main` | push to `main` | the merge train set, static analysis, API docs deploy, register gates on locale changes |
-| `develop` | push to `develop` | register gates on locale changes, as today |
+| `develop` | push to `develop`, unless `develop` is the source of an open merge request | register gates on locale changes, as today |
 | Tag | `$CI_COMMIT_TAG` matching `v*` | the `main` set, billing, image build for release, publish, release |
-| Nightly | schedule input `schedule: nightly` | the `main` set, billing, migrations, Ruby preview, nightly image |
+| Nightly | schedule input `schedule: nightly` | the `main` set, billing, migrations, Ruby preview; on `main` also the nightly image |
 | Weekly | schedule input `schedule: weekly` | install and boot lanes, published-image smoke, full register scan |
 | Triage | schedule input `schedule: triage` | `gitlab-triage` |
 | Manual | web or API with inputs | selected by inputs |
@@ -221,35 +221,48 @@ Notes:
   literal in the job (§4.3).
 - `workflow:rules` sets `RUN_ALL` and `NIGHTLY` per type so jobs test one
   variable. Using workflow variables in job rules is part of spike S3.
-- The pilot's duplicate-pipeline guard is not kept. Its rule is:
+- One pipeline per push to `develop` while a promotion is open. A promotion
+  merge request has `develop` as its source and stays open for days. If a
+  push then created both a `develop` pipeline and a merge request pipeline,
+  the merge check could read either one. GitLab says that with both present
+  "the merge request pipelines are checked, not the branch pipelines.", and
+  then: "These conditions are not enforced." and "A race condition
+  determines which pipeline's result is used to either block or pass merge
+  requests." A green two-job `develop` pipeline could pass a promotion whose
+  own pipeline failed. The pilot's duplicate-pipeline rule is therefore
+  kept, narrowed to `develop`:
 
   ```yaml
-  - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+  - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "develop" && $CI_OPEN_MERGE_REQUESTS'
     when: never
   ```
 
   GitLab defines `CI_OPEN_MERGE_REQUESTS` as the merge requests "that use the
-  current branch and project as the merge request source." A promotion merge
-  request has `develop` as its source and stays open for days. Applied to
-  every branch, the rule would drop each `develop` push pipeline for that
-  time, and with it the full register scan that `validate-register.yml:23`
-  runs "On push to main/develop".
+  current branch and project as the merge request source."
+- The work of the dropped pipeline moves into the merge request pipeline.
+  When the source branch is `develop`, the merge request pipeline runs the
+  full register scan, which `validate-register.yml:23` runs "On push to
+  main/develop" today. The scan then gates the promotion; D14 decides
+  whether it is allowed to fail.
+- `main` is exempt from the rule. Its push pipeline is the test after a
+  merge and the API docs deploy, and dropping it would lose both. A merge
+  request with `main` as its source would have two pipelines and the race
+  above, so a back-merge comes from a branch cut from `main`.
 - Pushes create pipelines for `main`, `develop` and release tags only, as in
   the table. A topic branch gets its pipeline through its merge request,
   which matches GitHub today (`ci.yml` runs on pushes to `main` and tags, and
-  on pull requests). With no push pipeline for topic branches there is no
-  duplicate to suppress. A push to `develop` during a promotion creates two
-  pipelines of different types, the `develop` pipeline and the merge request
-  pipeline; that is intended, and GitLab's merge check reads the merge
-  request pipeline when both exist. If a push pipeline for topic branches is
-  added later (Q2), its guard must exempt `main` and `develop` and keep the
-  `"push"` condition, so that it never drops a scheduled, manual or
-  triggered pipeline.
+  on pull requests). The rule keeps its `"push"` condition, so it never
+  drops a scheduled, manual or triggered pipeline.
+- Not confirmed: whether a scheduled pipeline on `develop` can also be read
+  by the merge check of an open promotion. Spike S8 checks it, because this
+  plan proposes a nightly on `develop`.
 - Container e2e, visual and migration tests do not run on `main`, tag or
   merge-queue events today. Two additions are proposed: container e2e in the
   tag pipeline, because publishing should wait for it (§4.6), and a nightly
   schedule on `develop`, because a change to shared code can break an
-  auth-only job that its pull request did not select.
+  auth-only job that its pull request did not select. The `develop` nightly
+  builds and publishes no image: the rules of the image and publish jobs
+  name `main` and tags.
 
 ### 4.2 File layout
 
@@ -387,8 +400,8 @@ jobs (§4.12).
 | `billing_nightly` | `NIGHTLY`, set for schedule, tag and manual `run_all` |
 | `[ci-all]` commit flag | label `ci:all` |
 | `[ci-skip]` commit flag, which must not produce a passing verdict | GitLab's skip: `[skip ci]` in a commit message for push pipelines, in the merge request title for merge request pipelines. A skipped pipeline does not satisfy the gate (§4.5). |
-| A change under `.github/workflows/**` or `.github/actions/**` forces every path-selected job; billing stays nightly and tag only | A change to `.gitlab-ci.yml`, `.gitlab/ci/**`, `docker/ci/**`, `tools/ci/**` or `bin/ci` does the same |
-| The `oci` filter (`ci.yml:230-235`): `Dockerfile*`, `docker/**`, `scripts/entrypoint.sh`, `etc/**`, `config.ru` | the same list plus `tools/oci/**` and `bin/oci`; the container e2e fragment gets the same two entries |
+| A change under `.github/workflows/**` or `.github/actions/**` forces every path-selected job; billing stays on the nightly, tags and a manual `run_all` | A change to `.gitlab-ci.yml`, `.gitlab/ci/**`, `docker/ci/**`, `tools/ci/**` or `bin/ci` does the same |
+| The `oci` filter (`ci.yml:230-235`): `Dockerfile*`, `docker/**`, `scripts/entrypoint.sh`, `etc/**`, `config.ru` | the same list plus `tools/oci/**` and `bin/oci`; the container e2e fragment gets `tools/oci/**` (its list already has `bin/**`, `e2e.yml:126`) |
 
 - In a merge request pipeline `rules:changes` compares against the target
   branch, which matches the documented policy that the detector evaluates the
@@ -407,10 +420,10 @@ jobs (§4.12).
   `.github/actions/` or inside a workflow file today, so a change to them
   forces every path-selected `ci.yml` job. Once they are in `tools/oci/` (§5)
   no pattern matches them, and a merge request that edits only that package
-  would select no image job. `tools/oci/**` and `bin/oci` therefore join two
-  fragments: `oci` (image build, container validation) and the container e2e
-  fragment, which is ported from `e2e.yml`'s own list and boots the container
-  through `bin/oci`.
+  would select no image job. `tools/oci/**` and `bin/oci` therefore join the
+  `oci` fragment (image build, container validation). `tools/oci/**` also
+  joins the container e2e fragment, which is ported from `e2e.yml`'s own
+  list: those jobs take their Valkey reference from `bin/oci smoke` (§4.3).
 - **The image jobs do not check the tag computation.** They build with
   development version arguments, and the publish workflow's `pull_request`
   trigger ignores every path, so the tag logic is first exercised by a tag,
@@ -476,10 +489,13 @@ less test coverage than it has now (R2).
   same ten lane and overlay pairs under the default Ruby, where exit 1
   fails the pipeline. The fault then shows on the twin job, whatever the
   preview job reports.
-- Results are not inspected to decide the mapping. All ten preview lanes
-  run an RSpec leg and four of them also run tryouts, so a results file
-  exists to read. But a load error under the preview Ruby reports zero
-  examples, and that is a failure the job exists to show as a warning.
+- Results are not inspected to decide the mapping. The preview jobs write
+  no RSpec results, as today (`ruby-4-preview.yml:23`: "no RSpec JSON is
+  written or uploaded"), so the report job does not count their suites with
+  the main ones. A load error under the preview Ruby would also report zero
+  examples (RSpec's behavior, not run here), and that is a failure the job
+  exists to show as a warning. None of the ten preview lanes runs only
+  tryouts: all run an RSpec leg, and four run tryouts as well.
 - Two cases have no twin. The first is a defect in the preview image other
   than its Ruby version: the command runs `tests/lanes/run --list` before
   the lane, so the runner's bootstrap guards fail outside the mapped step.
@@ -517,9 +533,9 @@ its own frontend stage so that it stays self-contained.
   the pushed digest through a dotenv report. Every consumer pulls
   `name@digest` and fails when the variable is empty. A registry cleanup
   policy removes the staging tags.
-- Tag, nightly and manual pipelines build the bake group `ci` (`main`, `s6`,
-  `lite`) in one bake call, because `lite` is built from `main` and all three
-  need the `base` target.
+- Tag, `main` nightly and manual pipelines build the bake group `ci`
+  (`main`, `s6`, `lite`) in one bake call, because `lite` is built from
+  `main` and all three need the `base` target.
 - The version is compiled into the image, so one digest has one version. The
   image that gets published is built in the tag pipeline; an image built for
   the same commit in another pipeline cannot be promoted.
@@ -666,9 +682,15 @@ gate after their baseline is triaged (Phase 6).
 - **AI review.** Greptile has a GitLab integration and its settings in
   `.greptile/` do not name a host. Claude review can run as a CI job through
   the documented GitLab integration (beta, maintained by GitLab). The job
-  departs from that page's example in one way: the example installs the CLI
-  in `before_script` of the job that reads the key, and here the CLI comes
-  from the image (§4.11). Today's
+  is not a copy of that page's example. The example installs packages and
+  the CLI in `before_script` of the job that reads the key, and runs
+  `claude` with `--permission-mode acceptEdits` and with `Bash`, `Edit` and
+  `Write` allowed. Here the CLI comes from the image (§4.11), and the job
+  keeps today's review prompt and tool allowlist
+  (`claude-code-review.yml:94`: an inline comment tool and three `gh pr`
+  commands, which need GitLab equivalents). With unrestricted `Bash` the
+  job could install packages while the credential is in its environment.
+  Today's
   workflow also re-reviews when the `claude-review` label is added and skips
   bot authors, forks and locale-only changes; D8 decides which of that is
   kept. `@claude` mentions need a webhook listener or Duo external agents
@@ -839,7 +861,8 @@ What each move has to handle:
   steps that a command cannot perform, so on GitHub the action remains a thin
   wrapper around the command at its 19 call sites.
 - **GitHub's filters must move with the code.** Today a change under
-  `.github/actions/**` forces every job, and `run-test-lane` is in the
+  `.github/actions/**` forces every path-selected job, and `run-test-lane`
+  is in the
   `harness` filter. No GitHub filter matches `tools/ci/**`. Without an update
   in the same change, a pull request that edits only `tools/ci/` would select
   no test job and pass. `ci.yml:189-190` and
@@ -848,8 +871,9 @@ What each move has to handle:
   action and the tag logic leave paths that force every path-selected job
   for a path that
   the `oci` filter (`ci.yml:230-235`) does not list. Add `tools/oci/**` and
-  `bin/oci` to that filter and to `e2e.yml`'s path list in the change that
-  moves the code. The GitLab rules get the same entries (§4.4).
+  `bin/oci` to that filter, and `tools/oci/**` to `e2e.yml`'s path list, in
+  the change that moves the code. The GitLab rules get the same entries
+  (§4.4).
 - **`bin/ci e2e`** writes the server, worker, seed and Playwright settings to
   one env file and runs the steps for a profile. Today `$GITHUB_ENV` is what
   keeps those processes on one configuration. `bin/ci wait-http` replaces the
@@ -914,7 +938,7 @@ this migration (D15). Two of them need work regardless:
 | `docs-command-drift.yml` | folded into the guard job, still calling `bin/testsuite-installer check-docs-commands`. |
 | `validate-config.yml` | its three guards duplicate `drift-guards.yml`; its unique steps (schema generation, `bin/ots config validate`) become a job selected by path. It is dispatch-only today. |
 | `validate-register.yml`, `resolved-derive-gate.yml` | two jobs with a shared template (§4.10). |
-| `bump-api-docs.yml` | `release.yml`: generate, diff on merge requests, deploy on `main`. Fix: each `bump diff` failure, including an auth or network error, is reported as "breaking changes" today. |
+| `bump-api-docs.yml` | `release.yml`: generate, diff on merge requests, deploy on `main`. The deploy from `develop`, which only a manual dispatch reaches today (`bump-api-docs.yml:137`), is not ported. Fix: each `bump diff` failure, including an auth or network error, is reported as "breaking changes" today. |
 | `generate-translation-request.yml` | retire (D9). Its paths `src/locales` and `src/scripts/locales` do not exist in the tree. |
 | `housekeeping-github-issues.yml`, `housekeeping-lock-threads.yml` | `gitlab-triage` (§4.10). |
 | `pr-labeler.yml` | drop (D6). |
@@ -977,11 +1001,13 @@ this migration (D15). Two of them need work regardless:
 - **Removed:** the 21 third-party actions, the cross-repository derive action
   (as an action), actionlint at Phase 6.
 - **Added:** the toolchain image; `glab`; cosign; `gitlab-triage`; the
-  devcontainer CLI; `osv-scanner`; GitLab's SAST, secret detection and
+  devcontainer CLI; `osv-scanner`; the Claude CLI as a pinned install (the
+  action bundles it today); GitLab's SAST, secret detection and
   container scanning; a self-hosted Renovate runner; a rule evaluator for
   tests if S3 selects one.
 - **Changed:** Renovate config; Playwright reporters; `docker/bake.hcl`;
-  `oras` moves from an action to the toolchain image; `GITHUB_JOB` detection
+  `oras` moves from an action to the toolchain image, and `bump-cli` from an
+  install step; `GITHUB_JOB` detection
   in `lib/onetime/application/auth_strategies/dev_worker_identity.rb` and
   `GITHUB_BASE_REF` in `tools/envref/` gain provider-neutral equivalents.
 
@@ -1014,6 +1040,7 @@ No change to CI behavior. Spikes run on a throwaway branch on GitLab.
 | S5 | macOS: hosted runner availability and cost on the tier, or a self-hosted macOS runner | feeds D4 |
 | S6 | Compute minutes for one full merge request pipeline and one nightly, in total and for the light jobs alone | feeds the tier decision |
 | S7 | Which executor for the self-hosted fleet: `instance` on ephemeral VMs, or Docker with privileged containers? Do `compose.test.yml`, the native e2e boot and `bin/visual` run unchanged on it? | with `instance`, heavy jobs need no in-job daemon, and S1 only decides whether hosted runners can take overflow |
+| S8 | With a merge request open from `develop`, which pipeline does the merge check read after a scheduled pipeline runs on `develop`? | the branch pipeline can win: pause the `develop` nightly while a promotion is open, or promote from a branch cut from `develop` |
 
 Exit: the open decisions in §8 are recorded, with an ADR for the ones that
 are expensive to reverse (runner model and loopback approach, publishing
@@ -1054,13 +1081,17 @@ command and is exercised by the GitHub workflows; every file left in
 - Protection settings that the publish path depends on (§4.11): `main` as a
   protected branch; `v*` as a protected tag that only maintainers can
   create; one environment per credential group, including one each for the
-  Bump.sh and Claude credentials. `develop` is not protected for publishing:
-  the nightly image stays on the `main` schedule, where it runs today
-  (GitHub runs scheduled workflows on the default branch, which is `main`),
-  and the proposed `develop` nightly runs tests only. If Q2 makes `develop` a
-  protected branch for other reasons, a promotion merge request has two
-  protected branches, and the setting "Allow merge request pipelines to
-  access protected variables and runners" must stay off.
+  Bump.sh and Claude credentials. Nothing in this plan needs `develop` to be
+  protected: the nightly image stays on the `main` schedule, where it runs
+  today (GitHub runs scheduled workflows on the default branch, which is
+  `main`), and the `develop` nightly builds no image (§4.1).
+- If Q2 protects `develop` anyway: protection is one flag per branch, so
+  every pipeline on `develop` could then read protected variables and use
+  the protected runner. What limits the publish credentials in that case is
+  their environment scope and the rules of the publish jobs. A promotion
+  merge request would also have two protected branches, so the setting
+  "Allow merge request pipelines to access protected variables and runners"
+  is turned off. GitLab's page does not state its default.
 - `images.yml` and `release.yml`: build, container validation, publish,
   Sentry, release creation, visual archive. Multi-arch stays one
   multi-platform build unless S4 has passed. Signing and attestation can
@@ -1076,7 +1107,11 @@ Exit:
 
 - A manual pipeline with `publish: custom` pushes all three variants to the
   custom registry. Its `main` image is compared with the v0.26.20 image that
-  GitHub built: labels, version, platforms and file list.
+  GitHub built: labels, version, platforms and file list. The run starts
+  from `main` or a `v*` tag, because the publish job needs a protected ref.
+  If the Phase 2 files are merged to `develop` first, this exit needs a
+  promotion to `main`, or a protected branch made for the purpose (Q2). The
+  pilot's files went to `main` directly.
 - One release candidate tag is published from GitLab.
 - 20 consecutive merge request pipelines are green for lint and frontend,
   with results equal to the matching GitHub jobs.
