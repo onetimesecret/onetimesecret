@@ -468,13 +468,24 @@ less test coverage than it has now (R2).
   own errors (its 64 to 78 range, for example 69 for an unavailable service)
   keep their codes and fail the pipeline. The dedicated code is outside 1
   and that range.
-- What stays ambiguous: any exit 1 after a successful pin, including one
-  raised before an example runs, such as the lane runner's bootstrap guards
-  or a rake `abort` when a lane selects no files
-  (`lib/tasks/spec.rake:477`). For lanes that write RSpec results, the
-  command maps a failure only when the results file reports at least one
-  example; a lane that runs only tryouts keeps the ambiguity. A failed
-  install maps to the warning whatever its cause, as today.
+- A warning on the preview job cannot hide a harness fault in the nightly.
+  After a successful pin and version check, any exit 1 maps to the warning,
+  including one raised before an example runs, such as a rake `abort` when
+  a lane selects no files (`lib/tasks/spec.rake:477`). A cause of that kind
+  does not depend on the Ruby version, and the nightly pipeline runs the
+  same ten lane and overlay pairs under the default Ruby, where exit 1
+  fails the pipeline. The fault then shows on the twin job, whatever the
+  preview job reports.
+- Results are not inspected to decide the mapping. All ten preview lanes
+  run an RSpec leg and four of them also run tryouts, so a results file
+  exists to read. But a load error under the preview Ruby reports zero
+  examples, and that is a failure the job exists to show as a warning.
+- Two cases have no twin. The first is a defect in the preview image other
+  than its Ruby version: the command runs `tests/lanes/run --list` before
+  the lane, so the runner's bootstrap guards fail outside the mapped step.
+  The second is a manual run with only `ruby_preview` set: its warnings have
+  to be read with the log. A failed install maps to the warning whatever
+  its cause, as today.
 - With Premium: merged results pipelines and merge trains replace the merge
   queue. GitLab enables merge trains per project, not per branch (D5).
 - Deleted: `ci-verdict` and `ci-verdict.sh` with its suite, and the three e2e
@@ -1044,8 +1055,9 @@ command and is exercised by the GitHub workflows; every file left in
   protected branch; `v*` as a protected tag that only maintainers can
   create; one environment per credential group, including one each for the
   Bump.sh and Claude credentials. `develop` is not protected for publishing:
-  the nightly image stays on the `main` schedule, where it runs today, and
-  the proposed `develop` nightly runs tests only. If Q2 makes `develop` a
+  the nightly image stays on the `main` schedule, where it runs today
+  (GitHub runs scheduled workflows on the default branch, which is `main`),
+  and the proposed `develop` nightly runs tests only. If Q2 makes `develop` a
   protected branch for other reasons, a promotion merge request has two
   protected branches, and the setting "Allow merge request pipelines to
   access protected variables and runners" must stay off.
@@ -1131,8 +1143,8 @@ the scheduled workflows. Its limits:
 - Issues and merge requests created on GitLab after the import are not on
   GitHub.
 - Releases and images published from GitLab in the meantime stay published.
-- GitHub disables scheduled workflows in a public repository after 60 days
-  without repository activity (GitHub's docs on workflow triggers).
+- GitHub: "In a public repository, scheduled workflows are automatically
+  disabled when no repository activity has occurred in 60 days."
 - GitHub's archiving page does not say what happens to Actions secrets and
   variables; check the settings page after an unarchive.
 - The Phase 2 changes that point at GitLab have to be reversed: the footer
@@ -1390,9 +1402,10 @@ The last eleven rows were added on 2026-11-11 in response to review of the
 pull request, and were read directly, not by the research pass. The GitHub
 statements in Phase 5 are from
 docs.github.com/en/repositories/archiving-a-github-repository/archiving-repositories,
-read the same day. The 60-day rule for scheduled workflows is from GitHub's
-page on events that trigger workflows, as reported by a search result; that
-page was not opened.
+read the same day. The 60-day rule, and the fact that scheduled workflows
+run on the default branch, are from
+docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows,
+also read on 2026-11-11.
 
 Absence findings, from doc searches that found nothing: a job summary
 equivalent, YAML issue forms, a native path labeler, a release-drafter
@@ -1403,6 +1416,6 @@ documented or supported in current docs.
 Not confirmed: whether the `cache:key:files` limit of 10 is live on
 GitLab.com (assume 2); whether Mend's hosted Renovate app accepts Free or
 program namespaces; whether Duo external agents are enabled for program
-namespaces; whether a masked variable can contain spaces; whether Bump.sh issues a token
-without deploy access; that a later push
-cancels a scheduled pipeline (read from GitLab's source, not its docs).
+namespaces; whether a masked variable can contain spaces; whether Bump.sh
+issues a token without deploy access; that a later push cancels a scheduled
+pipeline (read from GitLab's source, not its docs).
