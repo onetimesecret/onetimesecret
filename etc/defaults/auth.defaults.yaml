@@ -205,7 +205,7 @@ full:
 #
 # Independent of `mode`: works in simple and full mode alike.
 paseto:
-  enabled: <%= ENV['PASETO_ENABLED'] == 'true' %>  # Since unreleased
+  enabled: <%= ENV['PASETO_ENABLED'] == 'true' %>  # Since v0.26.20
   # Lifetime of each issued token in seconds. Clamped to 60..86400
   # (one minute to one day); the default is one hour.
-  token_ttl: <%= ENV['PASETO_TOKEN_TTL'] || 3600 %>  # Since unreleased
+  token_ttl: <%= ENV['PASETO_TOKEN_TTL'] || 3600 %>  # Since v0.26.20
