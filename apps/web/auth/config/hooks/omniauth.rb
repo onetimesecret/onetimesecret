@@ -644,10 +644,12 @@ module Auth::Config::Hooks
         #
         # This hook runs during the SSO REQUEST phase (POST /auth/sso/:provider),
         # BEFORE the redirect to the IdP — verified in rodauth-omniauth 0.6.2 /
-        # omniauth 2.1.4 (strategy.rb request_call:240 and mock_request_call:325
-        # both call request_validation_phase, and it runs inside omniauth_run's
-        # set_omniauth_session so `session` is the Rodauth session). It has access
-        # to request.params and session.
+        # omniauth 2.2.0 (strategy.rb request_call:171 and strategy/test_mode.rb
+        # mock_request_call:24 both run request_validation_phase, and it runs
+        # inside omniauth_run's set_omniauth_session so `session` is the Rodauth
+        # session). Since 2.2.0 it runs before OmniAuth writes omniauth.params
+        # to the session, not after; this block does not read that key. It has
+        # access to request.params and session.
         #
         # The Connected Identities panel initiates the connect flow with the form
         # field connect=1; a plain sign-in does NOT send it. When a LOGGED-IN
