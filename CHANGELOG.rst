@@ -35,10 +35,15 @@ Added
   exchanges a browser session or an API key for a token valid for
   ``PASETO_TOKEN_TTL`` seconds (default one hour, at most one day). Tokens
   are refused after the account is suspended, its password changes or its
-  API key is rotated; rotation does not sign the browser session out. The
-  signing key derives from ``SECRET``, and ``SECRET_PREVIOUS`` keeps
-  verifying tokens signed before a rotation. See
-  ``docs/authentication/api-bearer-tokens.md``. (#2427, #4871, #4875)
+  API key is rotated; rotation does not sign the browser session out. A
+  rejected token gets a 401 with ``api_token_invalid`` or
+  ``api_token_expired`` and a ``WWW-Authenticate: Bearer`` challenge. When
+  the account's credential watermark is 60 seconds or more ahead of the
+  node's clock, ``POST /api/v3/token`` answers 503 with ``Retry-After``
+  (``reason: credential_watermark_ahead``). The signing key derives from
+  ``SECRET``, and ``SECRET_PREVIOUS`` keeps verifying tokens signed before a
+  rotation. See ``docs/authentication/api-bearer-tokens.md``. (#2427, #4871,
+  #4875)
 
 - Organization owners can open the Stripe Customer Portal from the billing
   overview when the organization has a Stripe customer. With a Stripe custom
@@ -86,9 +91,10 @@ Changed
   ``/secret/conceal`` answers 204 without running creation logic. (#4866,
   #4871)
 
-- JSON request bodies no longer override path, query or form values and are
-  not parsed on ``GET`` or ``HEAD`` (otto 2.12). This release requires
-  otto 2.12 and familia 2.13. (#4871, #4875)
+- A JSON request body no longer overrides a path identifier, such as the
+  secret or receipt key in the URL (otto 2.12). It still takes precedence
+  over query parameters. This release requires otto 2.12 and familia 2.13.
+  (#4871, #4875)
 
 - The v3 OpenAPI document matches what the API accepts: ``continue`` on
   reveal and burn is a boolean or a string, burn documents ``passphrase``,
@@ -115,8 +121,8 @@ Fixed
 - A customer record recreated at sign-in (an auth account with no
   Customer) gets ``verified_by`` ``sso`` or ``legacy`` from auth state, and
   a WARN log line, instead of being marked verified with no provenance.
-  Neither counts as mailbox proof. ``bin/ots customers doctor`` reports a
-  recovered customer left unverified while its auth account is verified.
+  Neither counts as mailbox proof. ``bin/ots customers doctor --all``
+  reports a recovered customer left unverified while its auth account is verified.
   (#4892)
 
 Security
@@ -135,8 +141,8 @@ Security
   ``bin/ots customers verify EMAIL``. Microsoft Entra's
   ``xms_edov: false`` withholds verification, and ``xms_edov: true`` is
   domain-owner verification only, never mailbox proof. **Before
-  deploying,** run ``bin/ots customers doctor``: a colonel, admin or staff
-  account without mailbox proof loses the role until
+  deploying,** run ``bin/ots customers doctor --all``: a colonel, admin or
+  staff account without mailbox proof loses the role until
   ``bin/ots customers verify EMAIL`` or Colonel verifies it. Export
   ``AUTHENTICATION_MODE`` in every process that runs billing or customer
   repair; without it a subscription stays pending and
@@ -152,7 +158,7 @@ Security
   unclaimed address. People already signed in through a tenant keep
   signing in; those outside proven domains are logged as
   ``omniauth_tenant_email_domain_unverified`` and listed by
-  ``bin/ots sso audit-email-domains``. **After upgrading:** on
+  ``bin/ots sso audit-email-domains DOMAIN``. **After upgrading:** on
   ``passthrough`` installs (the default) with tenant SSO, override each
   tenant domain's verification in Colonel; on TXT-strategy installs, run
   ``bin/ots domains verify --all``. Until then, new people are refused with
