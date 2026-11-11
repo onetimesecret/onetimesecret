@@ -201,8 +201,8 @@ Everything in this section is a proposal.
 | Merge train | `$CI_MERGE_REQUEST_EVENT_TYPE == "merge_train"` | what `merge_group` runs today: all main CI jobs except billing, full-auth and tenant-connect e2e |
 | `main` | push to `main` | the merge train set, static analysis, API docs deploy, register gates on locale changes |
 | `develop` | push to `develop`, unless `develop` is the source of an open merge request | register gates on locale changes, as today |
-| Tag | a pushed tag matching `v*` (`$CI_COMMIT_TAG`, source `push`) | the `main` set, billing, image build for release, publish, release |
-| Nightly | schedule input `schedule: nightly` | the `main` set, billing, migrations, Ruby preview; on `main` also the nightly image |
+| Tag | a pushed tag matching `v*` (`$CI_COMMIT_TAG`, source `push`) | the `main` set, billing, image build for release, container e2e, the `s6` and `lite` boot, publish, release |
+| Nightly | schedule input `schedule: nightly` | the `main` set, billing, migrations, Ruby preview; on `main` also the nightly image, published after container e2e and the `s6` and `lite` boot |
 | Weekly | schedule input `schedule: weekly` | install and boot lanes, published-image smoke, full register scan |
 | Triage | schedule input `schedule: triage` | `gitlab-triage` |
 | Manual | web or API with inputs, on a branch or a tag | selected by inputs |
@@ -282,7 +282,8 @@ Notes:
   auth-only job that its pull request did not select. The `develop` nightly
   builds the staging image that container validation needs (§4.6), as a
   merge request pipeline does. It does not build the release group and it
-  publishes nothing: the rules of those jobs name `main` and tags.
+  publishes nothing: those jobs run on a pushed tag, on the `main` nightly
+  and in a manual run with `publish` set, and it is none of the three.
 
 ### 4.2 File layout
 
@@ -483,10 +484,11 @@ less test coverage than it has now (R2).
 - A job that depends on a job that may be absent uses `needs: optional: true`.
   This replaces the `always() && (success || skipped)` conditions that every
   downstream job has today.
-- `allow_failure` is limited to three cases: the Ruby preview; Sentry
-  delivery (§4.6); and scanners during their baseline period. D14 can add
-  a fourth with an end date: the register full scan, if it is confirmed
-  that the scan fails today.
+- `allow_failure` is limited to four cases: the Ruby preview; Sentry
+  delivery (§4.6); scanners during their baseline period; and a dedicated
+  exit code for a notice that must not look green, such as a compose smoke
+  that skipped a bring-up (§4.7). D14 can add one more with an end date:
+  the register full scan, if it is confirmed that the scan fails today.
 - The Ruby preview job allows one dedicated exit code and no other. GitLab:
   "The job is `allow_failure: true` for any of the listed exit codes, and
   `allow_failure` false for any other exit code." Exit code 1 cannot be the
@@ -1213,10 +1215,11 @@ Prerequisites: Phases 2 and 3 have exited; issues, pull requests and releases
 are imported, because an archived repository is read-only.
 
 1. Enable "Pipelines must succeed" and, on Premium, merge trains. Activate
-   the schedules, and disable the scheduled workflows on GitHub
-   (`gh workflow disable`): its nightly would otherwise keep publishing the
-   `nightly` image from a `main` that no longer moves. Stop merging on
-   GitHub. Update
+   the schedules. On GitHub, disable each workflow that runs on a schedule,
+   publishes or deploys (`gh workflow disable`, which turns off every
+   trigger of the workflow): the nightly would otherwise keep publishing
+   the `nightly` image, and a `main` pushed there under P4 would deploy the
+   API docs a second time. Stop merging on GitHub. Update
    `.agents/skills/merge/SKILL.md` and AGENTS.md ("Running tests" names
    `.github/scripts/` and the `Static analysis` workflow).
 2. Ship one release from GitLab.
@@ -1230,7 +1233,7 @@ are imported, because an archived repository is read-only.
    code scanning setup.
 
 Until step 3, rollback is to resume merging and releasing on GitHub and to
-enable its scheduled workflows again.
+enable those workflows again.
 
 After step 3 rollback is still possible, at a cost that grows with every
 merge on GitLab. Archiving is reversible: the same GitHub page documents
