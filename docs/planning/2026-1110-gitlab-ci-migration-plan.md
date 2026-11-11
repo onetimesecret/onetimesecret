@@ -275,8 +275,9 @@ Notes:
   without the setting. The rule above stays in both cases: it is reviewed
   with the code, and the setting is beta.
 - Container e2e, visual and migration tests do not run on `main`, tag or
-  merge-queue events today. Two additions are proposed: container e2e in the
-  tag pipeline, because publishing should wait for it (§4.6), and a nightly
+  merge-queue events today. Two additions are proposed: container e2e in
+  every pipeline that publishes (tag, `main` nightly, manual publish),
+  because publishing should wait for it (§4.6), and a nightly
   schedule on `develop`, because a change to shared code can break an
   auth-only job that its pull request did not select. The `develop` nightly
   builds the staging image that container validation needs (§4.6), as a
@@ -483,7 +484,9 @@ less test coverage than it has now (R2).
   This replaces the `always() && (success || skipped)` conditions that every
   downstream job has today.
 - `allow_failure` is limited to three cases: the Ruby preview; Sentry
-  delivery (§4.6); and scanners during their baseline period.
+  delivery (§4.6); and scanners during their baseline period. D14 can add
+  a fourth with an end date: the register full scan, if it is confirmed
+  that the scan fails today.
 - The Ruby preview job allows one dedicated exit code and no other. GitLab:
   "The job is `allow_failure: true` for any of the listed exit codes, and
   `allow_failure` false for any other exit code." Exit code 1 cannot be the
@@ -561,8 +564,8 @@ its own frontend stage so that it stays self-contained.
   (`main`, `s6`, `lite`) in one bake call, because `lite` is built from
   `main` and all three need the `base` target.
 - The version is compiled into the image, so one digest has one version. The
-  image that gets published is built in the tag pipeline; an image built for
-  the same commit in another pipeline cannot be promoted.
+  image that gets published is built in the pipeline that publishes it; an
+  image built for the same commit in another pipeline cannot be promoted.
 - `docker/bake.hcl` keeps ownership of image names and tags. `tags()` has two
   modes today; staging in the project registry needs a third mode or
   per-target overrides that take the per-pipeline tag, and the file needs
@@ -588,12 +591,24 @@ runners only if S4 shows the frontend stage can be built once and passed to
 both architecture builds as a named context. Otherwise keep the single
 multi-platform build and add the registry cache.
 
-**Publish.** `image:publish` needs container validation and container e2e
-from the same tag pipeline, then pushes to the registries selected by
-`publish`. Today the publish workflow and CI start independently on a tag, so
-`latest` can be pushed while CI is failing. Two smaller fixes belong here:
-`s6` and `lite` are published without ever being booted (add `bin/oci smoke`
-for each on tag pipelines), and the post-push audit prints the expected and
+**Publish.** Three pipeline types publish, as today
+(`build-and-publish-oci-images.yml:125-139`, `:400`): a tag, the `main`
+nightly, and a manual run with `publish` set. The gate is the same in each.
+`image:publish` needs container validation and container e2e from its own
+pipeline, and a `bin/oci smoke` boot of `s6` and `lite`, which are published
+today without ever being booted. Container e2e therefore runs in all three
+(§4.1). Today the publish workflow and CI start independently, so `latest`
+or `nightly` can be pushed while CI is failing.
+
+The published image is the tested image. The build job pushes the group to
+the project registry under the per-pipeline tag, the test jobs pull those
+digests, and `image:publish` copies the same digests to the registries
+selected by `publish`, under the tags that `bake.hcl` computes (read with
+`bake --print`). It does not build again: a second build can resolve a
+dependency or a base image differently, and its digest would be one that no
+job booted. The Sentry job gets the same digest. To check in Phase 2: that
+the copy keeps the SBOM and provenance attached to the image index. One
+smaller fix belongs here: the post-push audit prints the expected and
 actual versions without comparing them.
 
 **Signing and attestation.** New. The publish job signs with cosign using a
@@ -1324,7 +1339,7 @@ both hosts for the parity checks in Phases 2 and 3.
 | R1 | The in-job Docker daemon is not documented by GitLab and is unproven on hosted runners. | S1 |
 | R2 | Selection as `rules` is less tested than today's scripts until a rule evaluator is in place. | S3 |
 | R3 | Compute cost exceeds the quota. | S6, D1 |
-| R4 | `rules:changes` allows 50 patterns per section and stops evaluating globs after 50,000 checks. | split lists; S3 |
+| R4 | `rules:changes` allows 50 patterns per section and stops evaluating globs after 50,000 checks. GitLab: "After the 50,000th check, rules with patterned globs always match." The fallback selects the job; it does not drop it. | split lists; S3 |
 | R5 | Fork contributors pay for their own pipelines and need the toolchain image to be public. | S2 |
 | R6 | Docker Hub rate limits. Images pulled from Docker Hub in jobs include PostgreSQL, RabbitMQ, Mailpit, the Ruby and Node bases for every image build, and several in the install and smoke lanes. The Dependency Proxy is per group and I found nothing on its use from forks. | copies in the project registry for the frequent ones |
 | R7 | The translation-rules action lives in another repository on its own migration schedule. | clone at the pinned ref until it is a component |
