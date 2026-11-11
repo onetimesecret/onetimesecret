@@ -1,0 +1,69 @@
+--- a/etc/examples/Caddyfile-example
++++ b/etc/examples/Caddyfile-example
+@@ -136,10 +136,15 @@
+ 	#   30r/s => 108,000
+ 	#   99r/s => 356,400
+ 	#
+-	# General traffic - applies to all non-matched paths
+-	rate_limit {
++	# General traffic - everything except static assets, which have their
++	# own zone below. One page load requests several dozen build chunks at
++	# once; counted here they exhaust this zone and the page never boots.
++	@not_static {
++		not path *.js *.css *.svg *.png *.jpg *.jpeg *.woff *.woff2 *.ico *.pdf *.manifest
++	}
++	rate_limit @not_static {
+ 		zone general {
+-			key {remote_ip}
++			key {client_ip}
+ 			events 20
+ 			window 1s
+ 		}
+@@ -151,7 +156,7 @@
+ 	}
+ 	rate_limit @api_paths {
+ 		zone api {
+-			key {remote_ip}
++			key {client_ip}
+ 			events 30
+ 			window 1s
+ 		}
+@@ -164,7 +169,7 @@
+ 	}
+ 	rate_limit @auth_mutations {
+ 		zone auth_mutations {
+-			key {remote_ip}
++			key {client_ip}
+ 			events 5
+ 			window 1m
+ 		}
+@@ -176,7 +181,7 @@
+ 	}
+ 	rate_limit @auth_reads {
+ 		zone auth_reads {
+-			key {remote_ip}
++			key {client_ip}
+ 			events 10
+ 			window 1s
+ 		}
+@@ -188,7 +193,7 @@
+ 	}
+ 	rate_limit @static {
+ 		zone static {
+-			key {remote_ip}
++			key {client_ip}
+ 			events 99
+ 			window 1s
+ 		}
+@@ -209,7 +214,10 @@
+ 	# app so they can vary per custom domain — a file on disk defeats that.
+ 	# /dist (Vite build output) is the only tree the app itself treats as
+ 	# never-overlaid (lib/onetime/middleware/static_files.rb).
+-	@dist path /dist/*
++	@dist {
++		path /dist/*
++		file
++	}
+ 	handle @dist {
+ 		file_server
+ 	}
