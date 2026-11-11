@@ -557,7 +557,7 @@ GEM
     sqlite3 (2.10.2-x86_64-linux-musl)
     stackprof (0.2.28)
     stringio (3.1.9)
-    stripe (18.4.2)
+    stripe (18.4.3)
     swd (2.0.3)
       activesupport (>= 3)
       attr_required (>= 0.0.5)
