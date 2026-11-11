@@ -182,6 +182,10 @@ Security
     3.4.10 bundles 0.7.1, which bundler-audit does not check. (#4910)
   - ``dompurify`` 3.4.17: GHSA-cg2g-xh64-v4q7 (Critical),
     GHSA-mrv2-3pqr-j5jr (High), GHSA-c6gr-qvv4-5v3f. (#4853)
+  - ``omniauth`` 2.2.0: GHSA-m27g-v28p-f9fx (CVE-2026-63183), forged
+    request hosts in callback URLs. The new ``allowed_hosts`` guard stays
+    inactive here because ``OmniAuth.config.full_host`` is already set.
+    (#4941)
   - ``zod`` 4.6.6: GHSA-mrhx-c7xc-m3w5 (High). (#4854, #4887)
   - ``vue-i18n`` and ``@intlify/core`` 11.4.14: GHSA-83rm-6c8r-g728 (High),
     GHSA-8rc2-428q-7ww3. (#4884, #4885)
