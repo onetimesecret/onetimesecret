@@ -227,15 +227,20 @@ RSpec.describe 'API v3 PASETO bearer tokens', type: :integration do
       # refuses it ("token issued in the future") for the token's whole life.
       # The mint refuses with 503 and Retry-After instead of returning a token
       # that cannot work.
-      watermark = Time.now.to_i + Onetime::Paseto::AccessToken::CLOCK_SKEW + 30
+      set_at    = Time.now.to_i
+      watermark = set_at + Onetime::Paseto::AccessToken::CLOCK_SKEW + 30
       customer.last_password_update!(watermark)
 
       request(:post, '/api/v3/token', authorization: basic_header)
+      elapsed = Time.now.to_i - set_at
       expect(last_response.status).to eq(503), last_response.body
       expect(json_response).to include('error_type' => 'TemporarilyUnavailable', 'reason' => 'credential_watermark_ahead')
       # Retry-After is the wait until the lead is back within the allowance:
-      # 31 seconds, or 30 when the mint ran a second after the watermark was set.
-      expect(last_response.headers['Retry-After'].to_i).to be_between(30, 31)
+      # 31 seconds, less the whole seconds between setting the watermark and
+      # the mint. The mint read its clock somewhere inside `elapsed`, so the
+      # lower bound follows the clock instead of assuming the request took
+      # under a second.
+      expect(last_response.headers['Retry-After'].to_i).to be_between(31 - elapsed, 31)
       expect(json_response['retry_after']).to eq(last_response.headers['Retry-After'].to_i)
     ensure
       customer.last_password_update!(0)

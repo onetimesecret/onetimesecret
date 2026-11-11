@@ -21,7 +21,7 @@
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/set_customer_verification_spec.rb
 
 require 'spec_helper'
-require 'auth/database'
+require 'auth/database' # defines Auth::Database so the connection stubs below resolve
 require 'auth/operations/set_customer_verification'
 
 RSpec.describe Auth::Operations::SetCustomerVerification do
@@ -177,6 +177,134 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
       expect(customer).to have_received(:verified=).with(false)
       expect(customer).to have_received(:verified_by=).with(nil)
       expect(db).not_to have_received(:transaction)
+    end
+  end
+
+  # The self-service email change: the account holder redeemed a link sent to
+  # their new address, so the stored stamp described the old one.
+  describe 'new_address: true' do
+    it 'replaces a stored mailbox-proof stamp instead of keeping it' do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'colonel_admin', mailbox_verified?: true)
+
+      op = described_class.new(customer: customer, verified: true, verified_by: 'email', new_address: true)
+
+      expect(op.call).to eq(:success)
+      expect(customer).to have_received(:verified_by=).with('email')
+      expect(customer).to have_received(:save)
+    end
+
+    it 'writes even when the stored stamp is already email: it proved the old address' do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'email', mailbox_verified?: true)
+
+      op = described_class.new(customer: customer, verified: true, verified_by: 'email', new_address: true)
+
+      expect(op.call).to eq(:success)
+      expect(customer).to have_received(:save)
+    end
+
+    it 'without it, the same call keeps the stored stamp and writes nothing' do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'colonel_admin', mailbox_verified?: true)
+
+      op = described_class.new(customer: customer, verified: true, verified_by: 'email')
+
+      expect(op.call).to eq(:no_change)
+      expect(customer).not_to have_received(:save)
+    end
+  end
+
+  # The self-service email change's stamp: an account an operator unverified
+  # after the caller's read stays unverified. The SQL predicate is pinned in
+  # set_customer_verification_sql_spec.rb; this is the Customer CAS outcome.
+  describe 'stamp_only: true' do
+    def stamp
+      described_class.new(customer: customer, verified: true, verified_by: 'email',
+        new_address: true, stamp_only: true, confirmed_email: 'user@example.com')
+    end
+
+    let(:redis) { double('Redis', eval: 1) }
+
+    before do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'sso', dbclient: redis, dbkey: 'customer:123:object')
+      allow(customer).to receive(:serialize_value) { |value| JSON.generate(value) }
+    end
+
+    it 'stamps only provenance with serialized address and verified predicates' do
+      expect(stamp.call).to eq(:success)
+      expect(redis).to have_received(:eval).with(
+        described_class::STAMP_CONFIRMED_EMAIL,
+        keys: ['customer:123:object'],
+        argv: ['"user@example.com"', '"true"', '"email"'],
+      )
+      expect(customer).not_to have_received(:save)
+    end
+
+    it 'returns :not_verified when the atomic predicate finds an unverified Customer' do
+      allow(redis).to receive(:eval).and_return(0)
+
+      expect(stamp.call).to eq(:not_verified)
+      expect(customer).not_to have_received(:verified=)
+      expect(customer).not_to have_received(:save)
+      expect(workspace_op).not_to have_received(:claim_pending_federation_for)
+    end
+
+    it 'returns :stale when the atomic predicate finds a different address or a missing Customer' do
+      allow(redis).to receive(:eval).and_return(-1)
+
+      expect(stamp.call).to eq(:stale)
+      expect(customer).not_to have_received(:verified_by=)
+      expect(customer).not_to have_received(:save)
+      expect(workspace_op).not_to have_received(:claim_pending_federation_for)
+    end
+
+    it 'requires the address proved by the link, not merely the mutable Customer' do
+      expect do
+        described_class.new(customer: customer, verified: true, verified_by: 'email', stamp_only: true)
+      end.to raise_error(ArgumentError, /confirmed_email/)
+    end
+
+    it 'refuses verified: false' do
+      expect do
+        described_class.new(customer: customer, verified: false, verified_by: nil, stamp_only: true)
+      end.to raise_error(ArgumentError, /stamp_only/)
+    end
+
+    # The double above cannot show what the stamp does to the caller's
+    # object, or read the bytes Familia stores: a real record can.
+    context 'with a stored Customer', :datastore do
+      let(:suffix) { "#{Familia.now.to_i}_#{SecureRandom.hex(4)}" }
+
+      before do
+        allow(Onetime).to receive(:get_logger).and_call_original
+        @record             = Onetime::Customer.create!(email: "stamp_only_#{suffix}@onetimesecret.com")
+        @record.verified    = true
+        @record.verified_by = 'sso'
+        @record.save
+      end
+
+      after { @record&.destroy! }
+
+      def stamp_record
+        described_class.new(customer: @record, verified: true, verified_by: 'email',
+          new_address: true, stamp_only: true, confirmed_email: @record.email).call
+      end
+
+      it "keeps the caller's unsaved assignments" do
+        @record.locale = 'fr'
+
+        expect(stamp_record).to eq(:success)
+        expect(@record.locale).to eq('fr')
+        expect(Onetime::Customer.load(@record.identifier).verified_by).to eq('email')
+      end
+
+      it 'returns :not_verified for a record unverified after the caller loaded it' do
+        other             = Onetime::Customer.load(@record.identifier)
+        other.verified    = false
+        other.verified_by = nil
+        other.save
+
+        expect(stamp_record).to eq(:not_verified)
+        expect(Onetime::Customer.load(@record.identifier).verified?).to be(false)
+      end
     end
   end
 

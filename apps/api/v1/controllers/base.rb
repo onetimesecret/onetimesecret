@@ -5,6 +5,7 @@
 require 'digest'
 
 require 'onetime/security/conceal_secret_rate_limiter'
+require 'onetime/security/no_client_ip'
 require_relative 'helpers'
 
 module V1
@@ -172,8 +173,13 @@ module V1
       # Paid-plan exemption: skip rate limiting for authenticated paid users
       return if cust && !cust.anonymous? && cust.planid.to_s != 'anonymous'
 
-      ip = req.client_ipaddress.to_s
-      return if ip.empty?
+      # A request with no client IP is charged to the shared no-client-ip
+      # bucket rather than skipped. Since otto 2.13 (delano/otto#292)
+      # client_ipaddress is nil when the trusted X-Forwarded-For chain ends in
+      # a non-address entry the client wrote, so a skip would be the client
+      # switching this cap off; under 2.12 the same request fell back to the
+      # proxy's address and shared its bucket (Onetime::Security::NoClientIp).
+      ip = Onetime::Security::NoClientIp.subject_for(req.client_ipaddress)
 
       key = "v1:ratelimit:#{event}:#{ip}"
       begin

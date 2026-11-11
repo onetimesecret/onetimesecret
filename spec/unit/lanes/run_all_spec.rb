@@ -84,9 +84,9 @@ RSpec.describe 'tests/lanes/run-all' do
   end
 
   it 'refuses to run the smoke lane in parallel' do
-    # pnpm test:smoke regenerates locales inside `pnpm test` no matter what
-    # --skip-codegen says, into the one repo-root generated/ directory the
-    # other lanes read from mid-run.
+    # pnpm test:smoke regenerates locales inside `pnpm test:smoke:vitest`
+    # no matter what --skip-codegen says, into the one repo-root generated/
+    # directory the other lanes read from mid-run.
     output, status = probe.run('--parallel', 'smoke', 'unit')
 
     expect(status.exitstatus).to eq(64)

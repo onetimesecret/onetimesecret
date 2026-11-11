@@ -49,12 +49,12 @@ specs.
 | `billing-integration` | valkey, rabbitmq | `try:integration:billing`, `spec:integration:billing` | ruby-billing-integration (T3, nightly only) |
 | `browser` | valkey, rabbitmq | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | ruby-auth-browser (T2) |
 | `simple` | valkey, rabbitmq | `try:integration:simple`, `spec:integration:simple` | ruby-integration-simple (T3) |
-| `full-sqlite` | valkey, rabbitmq | `spec:integration:full` | ruby-integration-full — SQLite row |
+| `full-sqlite` | valkey, rabbitmq | `spec:integration:full`, `spec:integration:oauth` | ruby-integration-full — SQLite row |
 | `full-pg` | valkey, rabbitmq, postgres | `spec:integration:full:postgres` | ruby-integration-full — PG row |
 | `full-pg-agnostic` | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg` | ruby-integration-auth — PG agnostic row |
 | `disabled` | valkey, rabbitmq | `spec:integration:disabled` | ruby-integration-disabled (T3) |
 | `api` | valkey, rabbitmq | `spec:api` | blocking step, T3 simple job |
-| `smoke` | valkey, rabbitmq | `pnpm test:smoke` | local-only |
+| `smoke` | valkey, rabbitmq | `pnpm test:smoke` | smoke-test (T3) |
 | `migrations-sqlite` | valkey, rabbitmq | `spec:integration:migrations:sqlite` | migration-tests.yml — SQLite job |
 | `migrations-pg` | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check | migration-tests.yml — PostgreSQL job |
 | `selftest` | none | boundary fixture | none — driven by `spec/unit/lanes/` |

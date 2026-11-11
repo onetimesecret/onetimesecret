@@ -16,7 +16,7 @@
 # overrides, kept at its original path to avoid churn).
 #
 module Auth::Config::Overrides
-  require_relative 'overrides/duplicate_signup'
+  require_relative 'overrides/account_enumeration'
   require_relative 'overrides/error_handling'
   require_relative 'overrides/failure_code'
   require_relative 'overrides/login_request_enumeration'

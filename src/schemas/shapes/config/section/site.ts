@@ -164,7 +164,11 @@ const middlewareTree: AugmentTree = {
   utf8_sanitizer: (b) => b.default(true),
   authenticity_token: (b) => b.default(true),
   http_origin: (b) => b.default(false),
-  xss_header: (b) => b.default(false),
+  // xss_header, referrer_policy and permissions_policy ship ON since the
+  // 2026-08-02 audit (M-3) — mirrors etc/defaults/config.defaults.yaml.
+  xss_header: (b) => b.default(true),
+  referrer_policy: (b) => b.default(true),
+  permissions_policy: (b) => b.default(true),
   frame_options: (b) => b.default(true),
   path_traversal: (b) => b.default(true),
   // Default on since v0.26.14 (etc/defaults/config.defaults.yaml, #4466).

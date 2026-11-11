@@ -440,7 +440,8 @@ module V2::Logic
       # because a direct/spec construction may build the logic without a
       # strategy_result; AuthStrategies::Helpers#client_ip sources it from
       # env['otto.client_ip'], so the key is trusted-proxy-resolved and not
-      # header-spoofable. nil skips the limiter (see conceal_secret_ip_keys).
+      # header-spoofable. nil (no client IP) is charged to the shared
+      # no-client-ip bucket (see conceal_secret_ip_keys).
       def conceal_secret_client_ip
         return unless respond_to?(:strategy_result)
 

@@ -149,6 +149,23 @@ module Onetime::Customer::Features
         !anonymous? && verified == 'true'
       end
 
+      # The verified flag as the datastore holds it now, read without
+      # changing this object's fields (a #refresh! would replace every
+      # unsaved assignment on it). Decoded and canonicalized the way a load
+      # reads the field: Familia JSON-encodes the stored 'true' as
+      # "\"true\"", so the raw bytes never equal 'true', and a legacy bare
+      # value still counts. Never true for the anonymous customer, as with
+      # #verified?; that guard reads this object's in-memory `role`, not the
+      # stored one.
+      #
+      # @return [Boolean]
+      def stored_verified?
+        return false if anonymous?
+
+        stored = deserialize_value(hget('verified'), field_name: :verified)
+        Onetime::Models::FieldTypes::BooleanFieldType.truthy?(stored)
+      end
+
       # Check if account was verified via email confirmation
       def email_verified?
         verified? && verified_by.to_s == 'email'

@@ -11,7 +11,9 @@
 # 2. Checking rate limits
 # 3. Lockout after max submissions
 # 4. Clearing rate limit
-# 5. Blank IP no-ops
+# 5. Blank IP is charged to the shared no-client-ip bucket (otto 2.13 leaves a
+#    request with no client IP when the client writes a non-address
+#    X-Forwarded-For entry; a no-op would switch the only cap off)
 
 require_relative '../../support/test_models'
 require 'onetime/security/feedback_rate_limiter'
@@ -89,22 +91,36 @@ rescue Onetime::LimitExceeded
 end
 #=> :no_error
 
-## Empty IP returns 0 without touching Redis
-@tester.record_feedback_submission!('')
-#=> 0
+## Empty and nil IPs are charged to the shared no-client-ip bucket, not dropped
+@bucket = Onetime::Security::NoClientIp::BUCKET
+@redis.del("feedback:submissions:#{@bucket}", "feedback:locked:#{@bucket}")
+[@tester.record_feedback_submission!(''), @tester.record_feedback_submission!(nil)]
+#=> [1, 2]
 
-## Nil IP returns 0 without touching Redis
-@tester.record_feedback_submission!(nil)
-#=> 0
+## The bucket is a real subject: under the cap a blank IP passes the check
+begin
+  @tester.check_feedback_rate_limit!(nil)
+  :no_error
+rescue Onetime::LimitExceeded
+  :limit_exceeded
+end
+#=> :no_error
 
-## Empty IP does not raise on check
+## ...and at MAX_SUBMISSIONS it locks like any IP, so the next blank-IP
+## submission is denied
+(Onetime::Security::FeedbackRateLimiter::MAX_SUBMISSIONS - 2).times { @tester.record_feedback_submission!(nil) }
 begin
   @tester.check_feedback_rate_limit!('')
   :no_error
-rescue StandardError
-  :error
+rescue Onetime::LimitExceeded
+  :limit_exceeded
 end
-#=> :no_error
+#=> :limit_exceeded
+
+## Clearing with a blank IP clears the shared bucket
+@tester.clear_feedback_rate_limit!(nil)
+[@redis.exists?("feedback:locked:#{@bucket}"), @redis.exists?("feedback:submissions:#{@bucket}")]
+#=> [false, false]
 
 ## Independent IPs have independent counters
 @other_ip = "198.51.100.#{rand(1..254)}"

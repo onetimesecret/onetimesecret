@@ -2,6 +2,7 @@
 
 require_relative '../../spec_helper'
 require_relative '../../support/oauth_flow_helper'
+require_relative '../../support/external_https_browser'
 require_relative '../../../../../../spec/support/saml/test_idp'
 require 'zlib'
 
@@ -9,6 +10,10 @@ RSpec.describe 'Staged tenant SAML Connect', :shared_db_state, type: :integratio
   include Rack::Test::Methods
   include OAuthFlowHelper
   include_context 'domains enabled'
+  # The browser is on https throughout; `public_origin` is what the proxy
+  # tells the app (X-Forwarded-Proto, or nothing). A GET the app sees as
+  # https marks the session cookie Secure, and the browser keeps sending it.
+  include_context 'external HTTPS browser'
 
   before(:all) { boot_onetime_app }
 

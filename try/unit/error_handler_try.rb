@@ -382,6 +382,19 @@ req = @fake_request_class.new('/api/v3/secret/conceal', 'GET', '203.0.113.7', {}
 Onetime::ErrorHandler.safe_request_context(req)[:path]
 #=> '/api/v3/secret/conceal'
 
+## safe_request_context reports no ip on the otto 2.13 no-client-IP path (REMOTE_ADDR left raw)
+require 'rack'
+env = Rack::MockRequest.env_for('/x', 'otto.ip_match' => ->(*) { false },
+  'otto.peer_relayed' => true, 'REMOTE_ADDR' => '10.0.0.5')
+Onetime::ErrorHandler.safe_request_context(Rack::Request.new(env)).key?(:ip)
+#=> false
+
+## safe_request_context reports the canonical masked otto.client_ip for a Rack request
+require 'rack'
+env = Rack::MockRequest.env_for('/x', 'otto.client_ip' => '203.0.113.0', 'REMOTE_ADDR' => '10.0.0.5')
+Onetime::ErrorHandler.safe_request_context(Rack::Request.new(env))[:ip]
+#=> '203.0.113.0'
+
 ## With a non-empty allowlist, only the named params are included -- never secret/passphrase
 Onetime.logging_conf['http']['allowed_error_fields'] = ['ttl']
 req = @fake_request_class.new('/api/v3/secret/conceal', 'POST', '203.0.113.7',

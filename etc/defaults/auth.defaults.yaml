@@ -111,6 +111,14 @@ full:
     #   SAML: SAML_IDP_SSO_SERVICE_URL, SAML_IDP_ENTITY_ID, SAML_IDP_CERT
     sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>  # Since v0.24.5
 
+    # OAuth2/OIDC Identity Provider (default: OFF) — issue #3104
+    # When true, this OTS instance acts as an IdP: its own SP and other
+    # registered clients can authenticate against it via the standard
+    # OAuth authorization-code + PKCE flow.
+    # See: apps/web/auth/config/features/oauth.rb for configuration.
+    # Override the issuer with OAUTH_ISSUER (defaults to https://<site.host>/auth).
+    oauth: <%= ENV['AUTH_OAUTH_ENABLED'] == 'true' %>  # Since unreleased
+
   # ──────────────────────────────────────────────────────────────────────
   # Restrict login page to a single authentication method
   #

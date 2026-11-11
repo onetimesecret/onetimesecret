@@ -102,7 +102,6 @@
 #
 # =============================================================================
 
-require_relative '../../spec_helper'
 require_relative '../../../../../../spec/support/saml/test_idp'
 
 require 'base64'
@@ -116,8 +115,11 @@ module PlatformSamlSsoSpec
   ENTITY_ID = ENV.fetch('SAML_IDP_ENTITY_ID', '').freeze
   SSO_URL   = ENV.fetch('SAML_IDP_SSO_SERVICE_URL', '').freeze
 
-  # The platform IdP for this process. Built at load time so its certificate
-  # is in ENV before any before(:all) boots the app.
+  # The platform IdP for this process. Built at load time, and BEFORE the
+  # spec_helper require below: in full mode the helper loads the auth
+  # application (#3234), which configures Rodauth, and configure_provider
+  # reads SAML_IDP_CERT at that moment. Set any later, the saml route
+  # registers as the tenant placeholder.
   IDP = SamlSpec::TestIdp.new(entity_id: ENTITY_ID, key: OpenSSL::PKey::RSA.new(2048))
 
   if defined?(Onetime) && Onetime.respond_to?(:ready?) && Onetime.ready?
@@ -127,6 +129,8 @@ module PlatformSamlSsoSpec
 
   ENV['SAML_IDP_CERT'] = IDP.cert_pem
 end
+
+require_relative '../../spec_helper'
 
 # The examples, as a shared group: the describe at the end of the file runs
 # them with site.network.public_host_rewrite off and on (#4223).

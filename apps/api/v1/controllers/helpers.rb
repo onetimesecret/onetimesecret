@@ -4,6 +4,7 @@
 
 require_relative '../../../../lib/onetime/helpers/session_helpers'
 require_relative '../../../../lib/onetime/application/request_logger'
+require_relative '../../../../lib/onetime/utils/client_ip'
 
 module V1
   unless defined?(V1::BADAGENTS)
@@ -200,7 +201,7 @@ module V1
       # mount+path through the same redactor the request logger uses rather
       # than the bare PATH_INFO.
       details = [
-        req.ip,
+        Onetime::Utils::ClientIp.from_request(req),
         "#{req.request_method} #{Onetime::Application::RequestLogger.redacted_path(req)}",
         "Proxy[#{header_details}]",
       ]

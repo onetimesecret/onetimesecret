@@ -11,10 +11,16 @@
 #   - CLI: `bin/ots customers verify/unverify EMAIL` — drives both
 #     stores.
 #   - Colonel admin API (apps/api/colonel/logic/): same shape as CLI.
-#   - Rodauth `after_verify_account` hook: Rodauth has already
-#     committed status_id=2 in its own transaction, so the caller
+#   - Rodauth `after_verify_account` hook: Rodauth has already set
+#     status_id=2 in its own transaction, and the hook writes the
+#     migration 015 verification columns there too, so the caller
 #     passes `rodauth_already_synced: true` and the op skips its own
 #     SQL update. Only the Redis mirror runs.
+#   - The self-service email change (ChangeEmail, self_service: true):
+#     the redeemed link proved the new address, so it stamps 'email'
+#     with `new_address: true` once the swap has landed, and
+#     `stamp_only: true`, so the stamp cannot verify an account that an
+#     operator unverified after ChangeEmail read its status.
 #   - The emailed verification link redeemed in simple auth mode (the
 #     v1 and v2 secret reveal logic): `.record_mailbox_proof`, which
 #     stamps 'email' through #call, runs the federation claim only for a
@@ -50,8 +56,19 @@
 #       under another mailbox-proof tag writes nothing, like a same-stamp
 #       repeat (see #mailbox_proof_reaffirmed?).
 #
+# Migration 015 (ADR-051): the same UPDATE that sets status_id writes the
+# accounts row's verification columns (`email_verified_at`,
+# `email_verified_by`, `email_verification_hold`) from the state this call
+# leaves on the Customer, through Auth::AccountEmailVerification, so the two
+# stores move together from the moment the columns exist and the backfill's
+# copy stays current after it runs. Proof is written only for mailbox-proof
+# provenances and only when the row's address is the Customer's. Under
+# `rodauth_already_synced:` the caller has written them too (the
+# after_verify_account hook, in Rodauth's transaction).
+#
 
 require 'auth/account_statuses'
+require 'auth/account_email_verification'
 # #claim_pending_federation! names EnsureDefaultWorkspace at call time, and
 # not every process that loads this file has loaded that one. The auth app
 # loads its operations through apps/web/auth/operations.rb, which requires
@@ -75,6 +92,22 @@ module Auth
       class NoAuthDatabase < StandardError; end
       class AccountNotFound < StandardError; end
       class AccountClosed < StandardError; end
+
+      # Same scalar serialization and Lua CAS idiom as Models::Features::StateCas.
+      # Only provenance is written: a stale instance must not save its email,
+      # status, indexes or unrelated fields over a concurrent operator change.
+      # The verified comparison requires serialize_value('true'), unlike
+      # Customer#stored_verified?, which also decodes legacy bare values.
+      # The sole production stamp_only caller, ChangeEmail, saves the hash in
+      # rekey_customer! before stamping, normalizing that encoding. A new caller
+      # that does not save first must account for legacy values here; otherwise
+      # a legacy-encoded verified record returns :not_verified.
+      STAMP_CONFIRMED_EMAIL = <<~LUA
+        if redis.call('HGET', KEYS[1], 'email') ~= ARGV[1] then return -1 end
+        if redis.call('HGET', KEYS[1], 'verified') ~= ARGV[2] then return 0 end
+        redis.call('HSET', KEYS[1], 'verified_by', ARGV[3])
+        return 1
+      LUA
 
       # Record that a verification link delivered to the customer's address
       # was followed: the simple-auth-mode mailbox proof.
@@ -188,9 +221,9 @@ module Auth
       #                    stamp when it is mailbox proof too
       #                    (#mailbox_proof_reaffirmed?)
       # @param rodauth_already_synced [Boolean] when true, skip the SQL
-      #                    update — caller guarantees Rodauth-side
-      #                    status is already correct (e.g., we're
-      #                    inside after_verify_account)
+      #                    update — caller guarantees the accounts row
+      #                    (status and verification columns) is already
+      #                    correct (e.g., we're inside after_verify_account)
       # @param db          [Sequel::Database, nil] injectable for tests and
       #                    callers with an existing connection; defaults to
       #                    Auth::Database.connection at call time
@@ -204,13 +237,34 @@ module Auth
       #                    claim this call runs applies only a pending record
       #                    for the customer's own address
       #                    (EnsureDefaultWorkspace's own_address_only). Set
-      #                    by .record_mailbox_proof alone
+      #                    by .record_mailbox_proof and the self-service email
+      #                    change
+      # @param new_address [Boolean] the proof is for an address the stored
+      #                    stamp does not describe: the account holder just
+      #                    redeemed a link sent to their new address
+      #                    (ChangeEmail, self_service). The call always writes,
+      #                    and a stored mailbox-proof stamp is replaced, not
+      #                    kept (#mailbox_proof_reaffirmed? describes the old
+      #                    address there)
+      # @param stamp_only  [Boolean] record provenance on an account that is
+      #                    verified when the write runs; never verify one.
+      #                    Both writes atomically require confirmed_email and
+      #                    a verified account. Only Redis provenance is written.
+      # @param confirmed_email [String] required with stamp_only: the address
+      #                    the redeemed link proved, never a refreshed address.
+      #                    A different current address returns :stale.
       # @raise [ArgumentError] verified: true with a verified_by tag outside
       #   Onetime::Customer::VERIFIED_BY_VALUES — refused before any write,
-      #   so an unknown tag can never reach either store
+      #   so an unknown tag can never reach either store; and stamp_only:
+      #   with verified: false
       def initialize(customer:, verified:, verified_by:, rodauth_already_synced: false, db: nil,
-                     claim_pending_federation: true, claim_own_address_only: false)
+                     claim_pending_federation: true, claim_own_address_only: false, new_address: false,
+                     stamp_only: false, confirmed_email: nil)
         Onetime::Customer.assert_known_verified_by!(verified_by) if verified
+        raise ArgumentError, 'stamp_only: requires verified: true' if stamp_only && !verified
+        if stamp_only && confirmed_email.to_s.empty?
+          raise ArgumentError, 'stamp_only: requires confirmed_email:'
+        end
 
         @customer                 = customer
         @verified                 = verified
@@ -219,6 +273,9 @@ module Auth
         @db                       = db
         @claim_pending_federation = claim_pending_federation
         @claim_own_address_only   = claim_own_address_only
+        @new_address              = new_address
+        @stamp_only               = stamp_only
+        @confirmed_email          = confirmed_email&.dup&.freeze
         @federation_claimed       = false
       end
 
@@ -233,7 +290,8 @@ module Auth
         @federation_claimed
       end
 
-      # @return [Symbol] :success or :no_change
+      # @return [Symbol] :success, :no_change, or (stamp_only: only)
+      #   :not_verified or :stale when a write's status/address predicate fails
       # @raise [NoAuthDatabase] full auth mode + DB unreachable
       #   (not raised when rodauth_already_synced: true)
       # @raise [AccountNotFound] full auth mode + no accounts row for the
@@ -245,7 +303,7 @@ module Auth
         state_changes      = @customer.verified? != @verified
         provenance_changes = @customer.verified_by.to_s != @verified_by.to_s && !mailbox_proof_reaffirmed?
 
-        unless state_changes || provenance_changes
+        unless state_changes || provenance_changes || @new_address || @stamp_only
           # Nothing to write. A repeat verification of an account that already
           # carries mailbox proof is still the operator's retry for a deferred
           # federation claim that failed after the proof was saved (see
@@ -272,8 +330,17 @@ module Auth
         # row already in the target state. A provenance move between two
         # mailbox-proof tags never gets here (#mailbox_proof_reaffirmed?), so
         # it reconciles nothing, exactly like a same-stamp repeat.
-        update_rodauth_account! if full_auth_mode? && !@rodauth_already_synced
-        update_customer!
+        if full_auth_mode? && !@rodauth_already_synced
+          result = update_rodauth_account!
+          return not_verified if result == :not_verified
+          return :stale if result == :stale
+        end
+        if @stamp_only
+          result = stamp_confirmed_email!
+          return result unless result == :success
+        else
+          update_customer!
+        end
 
         auth_logger.debug "[set-customer-verification] #{@customer.extid} " \
                           "verified=#{@verified} verified_by=#{@verified_by.inspect} " \
@@ -313,8 +380,12 @@ module Auth
       # does it; the doctor passes an existing stamp only for an unverified
       # record) and would still write.
       #
+      # Not under `new_address:`: the stored stamp proved the old address.
+      #
       # @return [Boolean]
       def mailbox_proof_reaffirmed?
+        return false if @new_address
+
         @verified && @customer.mailbox_verified? &&
           Onetime::Customer::MAILBOX_VERIFIED_BY.include?(@verified_by.to_s)
       end
@@ -323,6 +394,8 @@ module Auth
         self.class.full_auth_mode?
       end
 
+      # @return [Symbol, nil] :not_verified when stamp_only found the live
+      #   row Unverified; nil after a write
       def update_rodauth_account!
         db = @db || Auth::Database.connection
         raise NoAuthDatabase, 'Auth database unreachable' unless db
@@ -331,24 +404,53 @@ module Auth
         # sync_auth_accounts_command.rb and avoids any client-side TZ drift.
         # The status_id predicate makes the UPDATE a no-op on a Closed row,
         # atomically: no read-then-write window in which a concurrent close
-        # could slip through.
-        rows = db.transaction do
+        # could slip through. Under stamp_only it is Verified alone, the same
+        # guarantee against a concurrent unverify.
+        rows, refusal = db.transaction do
           scope = account_scope(db)
           raise AccountNotFound, "No Rodauth account for customer #{@customer.extid}" unless scope
 
-          scope
-            .where(status_id: AccountStatuses::LIVE)
-            .update(status_id: @verified ? AccountStatuses::VERIFIED : AccountStatuses::UNVERIFIED,
-              updated_at: Sequel::CURRENT_TIMESTAMP,
-            )
+          live   = scope.where(status_id: AccountStatuses::LIVE)
+          target = @stamp_only ? scope.where(status_id: AccountStatuses::VERIFIED) : live
+          target = target.where(email: @confirmed_email) if @stamp_only
+          count  = target.update(
+            status_id: @verified ? AccountStatuses::VERIFIED : AccountStatuses::UNVERIFIED,
+            updated_at: Sequel::CURRENT_TIMESTAMP,
+            **email_verification_values(db, target),
+          )
+
+          refusal = if count.zero? && !live.empty?
+            live.where(status_id: AccountStatuses::VERIFIED).empty? ? :not_verified : :stale
+          end
+          [count, refusal]
         end
         return if rows.positive?
+        return refusal if refusal
 
         # A row exists but none of it is live: the account is Closed. Refuse —
         # verification only ever moves between Unverified and Verified;
         # resurrecting a Closed account is a different, deliberate operation.
         raise AccountClosed,
           "Cannot change verification for customer #{@customer.extid}: Rodauth account is closed"
+      end
+
+      # The migration 015 columns for the state this call leaves, read for
+      # the live row's own address: proof the Customer has for another
+      # mailbox (the stores disagree on the address, which
+      # `customers doctor` reports as auth_email_drift) clears them. Empty on
+      # a database without the columns.
+      #
+      # @return [Hash]
+      def email_verification_values(db, live)
+        return {} unless AccountEmailVerification.columns?(db)
+
+        AccountEmailVerification.values_for_row(
+          live.get(:email),
+          @stamp_only ? @confirmed_email : @customer.email,
+          verified: @verified,
+          verified_by: @verified_by,
+          hold: @customer.verification_hold,
+        )
       end
 
       # Locate this customer's accounts row, keyed on external_id — never bare
@@ -381,6 +483,42 @@ module Auth
 
         legacy = db[:accounts].where(email: @customer.email, external_id: nil)
         legacy.empty? ? nil : legacy
+      end
+
+      def stamp_confirmed_email!
+        # Customer's BooleanFieldType uses the grandfathered :string encoding.
+        result = @customer.dbclient.eval(
+          STAMP_CONFIRMED_EMAIL,
+          keys: [@customer.dbkey],
+          argv: [@confirmed_email, 'true', @verified_by].map { |value| @customer.serialize_value(value) },
+        ).to_i
+        return :stale if result == -1
+        return not_verified if result.zero?
+
+        @customer.verified_by = @verified_by
+        :success
+      end
+
+      # Recheck after the stamp, including after waiting for the federation
+      # lock. The address restriction remains immutable even if a later
+      # operator mutation happens after this check: the claim can only use the
+      # confirmed mailbox's subscription, never the replacement address's.
+      def confirmed_proof_current?
+        if full_auth_mode?
+          db = @db || Auth::Database.connection
+          return false unless db
+
+          scope = account_scope(db)
+          return false unless scope&.where(email: @confirmed_email, status_id: AccountStatuses::VERIFIED)&.any?
+        end
+        current = Onetime::Customer.load(@customer.objid)
+        current && current.email == @confirmed_email && current.mailbox_verified?
+      end
+
+      def not_verified
+        auth_logger.info '[set-customer-verification] Account no longer verified; stamp not recorded',
+          { customer: @customer.extid, verified_by: @verified_by }
+        :not_verified
       end
 
       def update_customer!
@@ -421,8 +559,16 @@ module Auth
         return unless @claim_pending_federation
 
         claimed             = Onetime::ErrorHandler.safe_execute('claim_pending_federation', external_id: @customer.extid) do
+          # A failed recheck skips federation, not the proof already recorded.
+          next false if @stamp_only && !confirmed_proof_current?
+
+          options = { own_address_only: @claim_own_address_only }
+          if @stamp_only
+            options[:confirmed_email] = @confirmed_email
+            options[:claim_guard]     = method(:confirmed_proof_current?)
+          end
           Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(
-            @customer, own_address_only: @claim_own_address_only
+            @customer, **options
           )
         end
         @federation_claimed = claimed == true

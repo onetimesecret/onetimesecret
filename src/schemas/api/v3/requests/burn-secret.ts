@@ -9,8 +9,12 @@
 import { z } from 'zod';
 
 export const burnSecretRequestSchema = z.object({
-  /** Only boolean true or the string "true" confirms the burn. */
-  continue: z.union([z.boolean(), z.string()]).optional(),
+  /**
+   * Required confirmation. The burn runs only for `true` (JSON) or `"true"`
+   * (form-encoded); any other value, or leaving it out, is refused with a 422
+   * on this field and the secret is left in place (#4878).
+   */
+  continue: z.union([z.literal(true), z.literal('true')]),
   /** Passphrase if the secret is protected. */
   passphrase: z.string().optional(),
 });

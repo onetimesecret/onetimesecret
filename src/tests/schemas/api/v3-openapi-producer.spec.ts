@@ -71,6 +71,10 @@ describe('actual OpenAPI generator, without generated output writes', () => {
         expect(admittedTypes(schema.properties.continue)).toEqual(['boolean', 'string']);
         expect(schema.properties.passphrase.type).toBe('string');
       }
+      // A burn needs continue true / "true" (#4878); a reveal commits on the
+      // same values but may leave the field out.
+      expect(burn.required).toContain('continue');
+      expect(reveal.required ?? []).not.toContain('continue');
       expect(
         operation(version, `/api/${version}/receipt/{identifier}`, 'patch').requestBody.content[
           'application/json'

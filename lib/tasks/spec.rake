@@ -25,9 +25,10 @@
 #   └── all/        # Runs in ALL modes (infrastructure validation)
 #
 #   apps/web/auth/spec/integration/
-#   └── full/           # Full-mode specs (Rodauth, OmniAuth, SSO)
-#       ├── basicauth/  # BasicAuth contract tests
-#       └── migrations/ # DB migration tests
+#   ├── full/           # Full-mode specs (Rodauth, OmniAuth, SSO)
+#   │   ├── basicauth/  # BasicAuth contract tests
+#   │   └── migrations/ # DB migration tests
+#   └── strategies/     # Redis-only auth strategy specs (isolated process; see #3468)
 #
 # The "all/" specs run three times (once per mode). This is intentional: they
 # validate that infrastructure (Puma forking, RabbitMQ, routing) works correctly
@@ -621,6 +622,54 @@ namespace :spec do
       sh env, "bundle exec rspec #{patterns.join(' ')} --tag postgres_database #{rspec_task_format_options(task)}"
     end
 
+    # OAuth/OIDC IdP specs run under full mode but live in integration/oauth/
+    # (not integration/full/) on purpose: the path-keyed MockAuthConfig that
+    # spec/spec_helper.rb installs for /integration/full/ does not expose
+    # oauth_enabled?, which would turn the IdP feature off at boot. They also
+    # write AUTH_OAUTH_ENABLED process-wide, so they get an isolated invocation
+    # to avoid leaking the IdP feature into other full-mode specs.
+    #
+    # Runs in the full-sqlite lane as its second tasks line
+    # (tests/lanes/full-sqlite/tasks), after spec:integration:full. It is
+    # not in full-pg: the specs are tagged :sqlite_database and this task
+    # excludes postgres_database.
+    desc 'Run OAuth/OIDC IdP integration specs (full mode, isolated process)'
+    task :oauth do
+      env = {
+        'RACK_ENV' => 'test',
+        'AUTHENTICATION_MODE' => 'full',
+        'AUTH_OAUTH_ENABLED' => 'true',
+        'AUTH_DATABASE_URL' => ENV.fetch('AUTH_DATABASE_URL', 'sqlite::memory:'),
+      }
+      # Distinct results file: the full-sqlite lane runs this after
+      # spec:integration:full with the same RSPEC_OUTPUT_FILE, and an
+      # unsuffixed name would overwrite that task's JSON (same reason as
+      # full:mfa). CI's run-test-lane globs the suffixed files.
+      sh env, "bundle exec rspec apps/web/auth/spec/integration/oauth --tag ~postgres_database #{rspec_format_options('oauth')}"
+    end
+
+    # Redis-only auth strategy specs (NoAuth/BasicAuth/Session) resolve an
+    # Onetime::Customer from Redis/session and never issue SQL, so they don't
+    # belong in the full-mode DB matrix. They also cannot share the combined
+    # spec:integration:full process: a RabbitMQ/fork spec under
+    # spec/integration/all corrupts the process-wide Familia/Redis connection,
+    # after which Customer lookups return nil and every success-path strategy
+    # example fails with a spurious CREDENTIALS_INVALID (see #3468). Give them
+    # their own isolated process with just Redis. Full mode + in-memory SQLite
+    # mirrors the environment they were verified green under; DB/route-matrix
+    # variation is irrelevant since they touch no SQL.
+    desc 'Run Redis-only auth strategy specs (isolated process; see #3468)'
+    task :strategies do |task|
+      env = {
+        'RACK_ENV' => 'test',
+        'AUTHENTICATION_MODE' => 'full',
+        'AUTH_DATABASE_URL' => (ENV['AUTH_DATABASE_URL'].to_s.empty? ? 'sqlite::memory:' : ENV.fetch('AUTH_DATABASE_URL', nil)),
+        'ORGS_SSO_ENABLED' => 'true',
+      }
+      sh env, 'bundle exec rspec apps/web/auth/spec/integration/strategies --tag ~postgres_database ' \
+              "#{rspec_task_format_options(task)}"
+    end
+
     desc 'Run DB-agnostic full mode specs against PostgreSQL'
     task 'full:agnostic_on_pg' do |task|
       env = {
@@ -700,7 +749,7 @@ namespace :spec do
     end
 
     desc 'Run all integration tests (all modes, isolated processes)'
-    task all: INTEGRATION_MODES + ['full:mfa', 'full:saml_platform', 'full:webauthn_verify']
+    task all: INTEGRATION_MODES + %w[full:mfa full:saml_platform full:webauthn_verify oauth strategies]
 
     desc 'Run all integration tests including Postgres'
     task 'all:with_postgres': INTEGRATION_MODES + ['full:mfa', 'full:saml_platform', 'full:webauthn_verify', 'full:postgres']
@@ -947,13 +996,17 @@ end
 
 # Smoke test tasks
 # Quick validation that the system works without running the full test suite.
-# Designed for CI's "comprehensive" job to catch obvious breakages efficiently.
+# Run by the smoke lane (tests/lanes/smoke), which the T3 smoke-test job in
+# .github/workflows/ci.yml runs with a 15-minute timeout.
 #
 # Philosophy:
 # - Run representative tests, not exhaustive coverage
 # - One integration mode (simple) is sufficient for smoke testing
 # - Skip 100% pending specs (they waste time loading but never execute)
-# - Complete in under 2 minutes
+# - Vitest runs a curated subset (src/tests/smoke-files.ts), not the full
+#   suite, which the T2 TypeScript Unit Tests job already runs
+# - On CI about 9.5 minutes pass before vitest starts (runner setup about 1,
+#   Ruby about 8.6); the vitest subset takes about 1
 namespace :smoke do
   desc 'Run smoke test for RSpec (unit + representative apps + simple integration)'
   task :rspec do
@@ -980,11 +1033,12 @@ namespace :smoke do
   desc 'Run complete smoke test suite (Ruby + Tryouts)'
   task ruby: [:rspec, :tryouts]
 
-  desc 'Run smoke test with Vitest (full smoke)'
+  desc 'Run smoke test with the Vitest smoke subset (full smoke)'
   task :all do
     Rake::Task['smoke:ruby'].invoke
-    # Vitest is run via pnpm, not rake
-    sh 'pnpm test' if system('command -v pnpm > /dev/null 2>&1')
+    # Vitest is run via pnpm, not rake. The subset list and its selection
+    # rules are in src/tests/smoke-files.ts.
+    sh 'pnpm test:smoke:vitest' if system('command -v pnpm > /dev/null 2>&1')
   end
 end
 

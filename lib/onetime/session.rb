@@ -246,6 +246,8 @@ module Onetime
           }
       elsif stringkey = get_stringkey(sid_string)
         result = stringkey.del
+        # NOTE: no redis_key field — the dbkey embeds the full sid, which must
+        # never reach the logs (audit L-3). It is derivable: session:<sid>.
         session_logger.trace 'Session deleted from Redis',
           {
             session_handle: handle,
@@ -351,6 +353,30 @@ module Onetime
       matched = super
       warn_dropped_secure_cookie(request) if !matched && options[:secure] && !request.ssl?
       matched
+    end
+
+    # UPGRADE-ONLY Secure-flag fallback (2026-08-02 audit, L-1).
+    #
+    # The configured `secure` option comes from Onetime.session_config, which
+    # defaults to true only when site.ssl / the SSL env var is set or the app
+    # runs in production (boot.rb#ssl_enabled?). On a misconfigured deployment
+    # (e.g. RACK_ENV unset-to-development behind a TLS terminator, SSL flag
+    # forgotten) that leaves options[:secure] false and the session cookie
+    # would be minted WITHOUT the Secure attribute even though the client is
+    # on HTTPS.
+    #
+    # This override closes that gap per-request: when the request itself is
+    # HTTPS — Rack::Request#ssl? honors X-Forwarded-Proto natively, and the
+    # AssumeHttps middleware (#3837/#3843) upgrades the scheme for tunnels
+    # that don't forward it — the cookie gets Secure regardless of config.
+    #
+    # Same invariant as AssumeHttps: upgrade-only. A configured secure:true is
+    # never weakened (that path is governed by security_matches? above), and a
+    # plain-HTTP request is left untouched, so development over http://
+    # continues to receive its (non-Secure) cookie.
+    def set_cookie(request, response, cookie)
+      cookie[:secure] = true if !cookie[:secure] && request.ssl?
+      super
     end
 
     # Emit the dropped-secure-cookie warning at most once per
@@ -715,15 +741,15 @@ module Onetime
             }
         end
 
+        # Deliberately sparse (audit L-3/L-4): no account_id/external_id, no
+        # MFA/auth-state fields, no key names. A key count plus a single
+        # authenticated boolean is what session debugging actually needs; the
+        # full contents are one Redis GET away for someone with access.
         session_logger.trace 'Session loaded successfully',
           {
             session_handle: handle,
-            session_keys: session_data.keys,
-            account_id: session_data['account_id'],
-            external_id: session_data['external_id'],
-            authenticated_at: session_data['authenticated_at'],
-            awaiting_mfa: session_data['awaiting_mfa'],
-            two_factor_auth_setup: session_data['two_factor_auth_setup'],
+            key_count: session_data.size,
+            authenticated: session_data['authenticated'] == true,
             operation: 'read',
           }
 
@@ -795,7 +821,7 @@ module Onetime
       session_logger.trace 'Session write initiated',
         {
           session_handle: handle,
-          session_keys: session_data&.keys,
+          key_count: session_data&.size,
           session_data_class: session_data.class.name,
           operation: 'write',
         }
@@ -910,6 +936,8 @@ module Onetime
       # Value: eyJhY2NvdW50X2lkIjoxMjN9...--a3f5e8d9c2b1...
       stringkey.set(signed_data)
       blob_written = true
+      # NOTE: no redis_key field — the dbkey embeds the full sid, which must
+      # never reach the logs (audit L-3). It is derivable: session:<sid>.
       session_logger.trace 'Redis SET complete',
         {
           session_handle: handle,
@@ -992,16 +1020,15 @@ module Onetime
       ttl_value  = (write_ttl && write_ttl > 0 ? write_ttl : @expire_after).to_i
       expires_at = ttl_value > 0 ? Time.now + ttl_value : nil
 
-      # Structured trace logging with all critical session fields
+      # Deliberately sparse (audit L-3/L-4): the old entry logged account_id,
+      # external_id, authenticated_at, MFA state and every session key name —
+      # a full auth-state disclosure if trace ever ran in production. Size,
+      # TTL and a single authenticated boolean cover the debugging need.
       session_logger.trace 'Session saved successfully',
         {
           session_handle: handle,
-          session_keys: session_data&.keys,
-          account_id: session_data&.fetch('account_id', 'n/a'),
-          external_id: session_data&.fetch('external_id', 'n/a'),
-          authenticated_at: session_data&.fetch('authenticated_at', 'n/a'),
-          two_factor_auth_setup: session_data&.fetch('two_factor_auth_setup', 'n/a'),
-          awaiting_mfa: session_data&.fetch('awaiting_mfa', 'n/a'),
+          key_count: session_data&.size,
+          authenticated: session_data&.[]('authenticated') == true,
           ttl: ttl_value,
           data_size: data_size,
           expires_at: expires_at,
@@ -1017,7 +1044,7 @@ module Onetime
       session_logger.error 'Error writing session',
         {
           session_handle: handle,
-          session_keys: session_data&.keys,
+          key_count: session_data&.size,
           error: ex.message,
           error_class: ex.class.name,
           backtrace: ex.backtrace&.first(5),

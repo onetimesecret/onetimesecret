@@ -109,8 +109,11 @@ RSpec.describe 'V3 mounted producer schema captures', type: :integration do
     [false, true].each do |proceed|
       observe("auth-reveal-#{proceed}", :post, "/api/v3/secret/#{secret}/reveal", payload: { continue: proceed },
         response_schema: 'secret', request_schema: 'revealSecret', authenticated: true)
+      # A burn is refused without continue=true (#4878): 422 on the continue
+      # field and the secret stays. The false capture is a rejected example,
+      # like feedback-documented; only the true capture is a receipt.
       observe("auth-burn-#{proceed}", :post, "/api/v3/receipt/#{generated_receipt}/burn", payload: { continue: proceed },
-        response_schema: 'receipt', request_schema: 'burnSecret', authenticated: true)
+        response_schema: 'receipt', request_schema: 'burnSecret', status: proceed ? 200 : 422, authenticated: true)
     end
     expect(Onetime::Secret.load(secret)).to be_nil
     expect(Onetime::Secret.load(generated_secret)).to be_nil

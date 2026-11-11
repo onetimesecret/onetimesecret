@@ -47,7 +47,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     allow(Auth::Database).to receive(:connection).and_return(db)
     allow(db).to receive(:[]).with(:accounts).and_return(accounts)
     allow(accounts).to receive(:where).with(external_id: 'ur_r').and_return(by_external_id)
-    allow(by_external_id).to receive(:select).with(:id, :email, :status_id).and_return(by_external_id)
+    allow(by_external_id).to receive(:select).with(*described_class::AUTH_ACCOUNT_COLUMNS).and_return(by_external_id)
     allow(by_external_id).to receive(:first).and_return(account_row)
     allow(Auth::Operations::SetCustomerVerification).to receive(:new)
   end
@@ -110,10 +110,12 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     end
   end
 
-  it 'never aborts the sweep when the lookup raises', :aggregate_failures do
+  # Reported rather than read as "no row" (doctor_auth_account_unreadable_spec.rb).
+  it 'never aborts the sweep when the lookup raises, and says it did not check', :aggregate_failures do
     allow(by_external_id).to receive(:first).and_raise(Sequel::DatabaseError, 'down')
 
     expect { run }.not_to raise_error
-    expect(issues).to be_empty
+    expect(issues.map { |issue| issue[:check] }).to eq([:auth_account_unreadable])
+    expect(issues.first[:checks_not_run]).to eq([:recovered_customer_unverified])
   end
 end

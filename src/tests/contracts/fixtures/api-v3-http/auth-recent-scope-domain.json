@@ -8,17 +8,11 @@
   "status": 422,
   "headers": {
     "content-type": "application/json",
-    "content-length": "79",
-    "x-content-type-options": "nosniff",
-    "x-xss-protection": "1; mode=block",
-    "referrer-policy": "strict-origin-when-cross-origin",
     "cache-control": "private, no-store",
-    "o-domain-strategy": "canonical",
-    "o-display-domain": "127.0.0.1:3000",
-    "x-request-id": "0ulvyw572spt9"
+    "x-request-id": "3udqisdi7hhlf"
   },
   "body": {
     "error": "Domain extid required for domain scope",
-    "request_id": "0ulvyw572spt9"
+    "request_id": "3udqisdi7hhlf"
   }
 }

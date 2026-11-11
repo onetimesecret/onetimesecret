@@ -1,7 +1,7 @@
 {
   "name": "guest-reveal-String-true",
   "method": "POST",
-  "path": "/api/v3/guest/secret/c3pemnx8mia8z0iwdm9rexsq9nmm33mfpkq5a8hceiz1o8hhpfbozahl4vwz6p/reveal",
+  "path": "/api/v3/guest/secret/btttl08v8xy1tpqyneqvcn9v49hyb5989tq6pnz8g98lshrjrfoba8bcawj9kb/reveal",
   "request": {
     "passphrase": "schema audit pass",
     "continue": "true"
@@ -10,29 +10,23 @@
   "request_schema": "revealSecret",
   "status": 200,
   "headers": {
-    "x-content-type-options": "nosniff",
-    "x-xss-protection": "1; mode=block",
-    "referrer-policy": "strict-origin-when-cross-origin",
     "content-type": "application/json",
     "cache-control": "private, no-store",
-    "o-domain-strategy": "canonical",
-    "o-display-domain": "127.0.0.1:3000",
-    "x-request-id": "3q3tbzp6zudna",
-    "content-length": "595"
+    "x-request-id": "1ayutlpzc50rt"
   },
   "body": {
     "record": {
-      "identifier": "c3pemnx8mia8z0iwdm9rexsq9nmm33mfpkq5a8hceiz1o8hhpfbozahl4vwz6p",
-      "key": "c3pemnx8mia8z0iwdm9rexsq9nmm33mfpkq5a8hceiz1o8hhpfbozahl4vwz6p",
-      "shortid": "c3pemnx8",
+      "identifier": "btttl08v8xy1tpqyneqvcn9v49hyb5989tq6pnz8g98lshrjrfoba8bcawj9kb",
+      "key": "btttl08v8xy1tpqyneqvcn9v49hyb5989tq6pnz8g98lshrjrfoba8bcawj9kb",
+      "shortid": "btttl08v",
       "state": "revealed",
       "lifespan": 3600,
       "secret_ttl": 3600,
       "has_passphrase": true,
       "verification": false,
       "display_type": "text",
-      "created": 1792807620.11354,
-      "updated": 1792807620.11355,
+      "created": 1794111215.83784,
+      "updated": 1794111215.83785,
       "is_previewed": false,
       "is_revealed": true,
       "is_viewed": false,

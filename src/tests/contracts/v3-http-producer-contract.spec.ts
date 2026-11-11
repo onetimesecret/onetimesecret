@@ -89,7 +89,8 @@ describe('mounted Ruby HTTP captures → producer contracts', () => {
   });
 
   it('does not treat schema-valid rejected historical examples as successes', () => {
-    for (const name of ['feedback-documented', 'incoming-create-documented']) {
+    // auth-burn-false: a burn without continue=true is refused (#4878).
+    for (const name of ['feedback-documented', 'incoming-create-documented', 'auth-burn-false']) {
       const capture = captures.find((capture) => capture.name === name)!;
       expect(capture.status).toBe(422);
       expect(requestSchemas[capture.request_schema!]!.safeParse(capture.request).success).toBe(

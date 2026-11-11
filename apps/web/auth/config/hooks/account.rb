@@ -8,6 +8,7 @@
 # these hooks fire, rather than relying on ambient load order.
 require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
 require 'auth/account_statuses'
+require 'auth/account_email_verification'
 require 'auth/operations/customers/purge'
 require 'auth/operations/customers/purge_preflight'
 require 'auth/operations/remove_authentication_data'
@@ -87,6 +88,20 @@ module Auth::Config::Hooks
         # prune-closed-accounts` has not yet removed. Such rows never reserve
         # the address. The Redis check below still refuses reuse if customer
         # cleanup is incomplete.
+        #
+        # SECURITY (audit 2026-08-02 M-2): a duplicate email must NOT be
+        # distinguishable from a fresh signup in the HTTP response — the old
+        # "Unable to create account" error here was a registration-state
+        # oracle. duplicate_signup_success_response (defined in
+        # config/overrides/account_enumeration.rb) answers with the SAME
+        # generic success a fresh signup returns and HALTS; no account row is
+        # written and no email is sent, whether or not the existing account
+        # is verified. The address owner can use Resend. Under
+        # internal_request (e.g. the invite flow's
+        # Auth::Config.create_account) the helper fails CLOSED: it raises
+        # Rodauth::InternalRequestError exactly as the old error-throw here
+        # did, so internal callers can never mistake a duplicate for a fresh
+        # signup (see the SECURITY note on the helper).
         existing_account = db[:accounts].where(email: email)
           .exclude(status_id: Auth::AccountStatuses::CLOSED).first
 
@@ -94,8 +109,8 @@ module Auth::Config::Hooks
           # The SQL row alone decides the answer; Redis only picks the log
           # line. With its customer record this is an ordinary duplicate
           # (info); without one it is the two-database mismatch the hint
-          # describes. An unreachable Redis must not turn the refusal into a
-          # 500, so the lookup failure is logged and the refusal still runs.
+          # describes. An unreachable Redis must not turn the answer into a
+          # 500, so the lookup failure is logged and the answer still runs.
           customer_exists =
             begin
               Onetime::Customer.email_exists?(email)
@@ -106,6 +121,7 @@ module Auth::Config::Hooks
                 email: OT::Utils.obscure_email(email),
                 account_id: existing_account[:id],
                 customer_lookup_error: ex.class.name,
+                response_mode: 'generic_success',
               )
               nil
             end
@@ -116,6 +132,7 @@ module Auth::Config::Hooks
               level: :info,
               email: OT::Utils.obscure_email(email),
               account_id: existing_account[:id],
+              response_mode: 'generic_success',
             )
           elsif customer_exists == false
             diagnostic_hint = <<~HINT.strip
@@ -131,11 +148,11 @@ module Auth::Config::Hooks
               email: OT::Utils.obscure_email(email),
               account_id: existing_account[:id],
               diagnostic_hint: diagnostic_hint,
+              response_mode: 'generic_success',
             )
           end
 
-          # The shared answer (config/overrides/duplicate_signup.rb).
-          refuse_signup_for_existing_account(email)
+          duplicate_signup_success_response
         end
 
         # A record a closure left behind when it stopped part-way (#4830) does
@@ -148,25 +165,54 @@ module Auth::Config::Hooks
         leftover = Auth::Operations::EnsureCustomerForAccount.closing_customer(email)
 
         # Check Redis (customer database)
-        # Note: In shared Redis dev setups, a customer may exist without an auth account
+        # A customer record without an open auth account gets the same M-2
+        # generic-success treatment: an error here would tell a caller the
+        # address has a customer record. The sign-up creates nothing, so the
+        # person cannot register until an operator resolves the record; this
+        # log line is the only signal, at error level like the mirror case
+        # above (registration_blocked_auth_db_conflict), and it names the
+        # record by external_id because the email in it is masked. Causes in
+        # production: a move from simple to full mode before sync-auth-accounts
+        # ran (docs/authentication/switching-to-full-mode.md); a closure from
+        # before #4819 that closed the accounts row and stopped before deleting
+        # the record (docs/development/data-migrations.md); a half-completed
+        # email change; an email index entry left by a deleted customer, which
+        # resolves to no record (customer_record_found: false). In
+        # development, instances sharing one Redis.
         if leftover.nil? && Onetime::Customer.email_exists?(email)
+          customer = Onetime::Customer.find_by_email(email)
           diagnostic_hint = <<~HINT.strip
-            Registration blocked: Customer record exists in Redis but no auth account
-            found. This typically occurs in worktree/multi-instance dev setups with
-            shared Redis. Consider: (1) using isolated Redis per instance, (2) clearing
-            Redis data, or (3) logging in with existing account if it exists elsewhere.
+            Sign-up answered as a new one and nothing was created: a customer
+            record exists for this address but no open auth account does, so
+            the person cannot register until the record is resolved. Run
+            every command below with AUTHENTICATION_MODE=full exported:
+            without it bin/ots resolves simple mode, diagnose reports no
+            finding and the repair commands refuse. Start with
+            `bin/ots customers diagnose <external_id>`, using the external_id
+            on this line. missing_auth_account: no accounts row exists for the
+            record; after a move from simple to full mode,
+            `bin/ots customers sync-auth-accounts --run` creates it.
+            account_closed: a closure from before #4819 stopped part way; run
+            `bin/ots customers prune-closed-accounts --confirm`, then
+            `bin/ots customers finish-closures --confirm`. email_drift: a
+            half-completed email change. With no external_id on this line
+            (customer_record_found: false), the email index points at a
+            deleted customer; `bin/ots customers doctor --all --repair`
+            removes the entry. In development this usually means several
+            instances share one Redis.
           HINT
 
           Auth::Logging.log_auth_event(
-            :registration_blocked_redis_conflict,
+            :registration_duplicate_customer_record,
             level: :error,
             email: OT::Utils.obscure_email(email),
+            external_id: customer&.extid,
+            customer_record_found: !customer.nil?,
             diagnostic_hint: diagnostic_hint,
+            response_mode: 'generic_success',
           )
 
-          set_error_flash(create_account_error_flash)
-          request.env['rodauth.error_flash'] = create_account_error_flash
-          throw_rodauth_error
+          duplicate_signup_success_response
         end
 
         # When an invite_token is supplied, validate the invitation up front:
@@ -305,7 +351,14 @@ module Auth::Config::Hooks
               customer.verified_by = 'invite_token'
               customer.save
 
-              update_account(account_status_column => account_open_status_value)
+              # The migration 015 columns move with the status: the invite
+              # link is mailbox proof for this address
+              # (Auth::AccountEmailVerification).
+              opened = { account_status_column => account_open_status_value }
+              if Auth::AccountEmailVerification.columns?(db)
+                opened.merge!(Auth::AccountEmailVerification.values(verified: true, verified_by: 'invite_token'))
+              end
+              update_account(opened)
 
               had_verify_key = respond_to?(:remove_verify_account_key)
               remove_verify_account_key if had_verify_key
@@ -500,6 +553,17 @@ module Auth::Config::Hooks
           # but released 2.46 through 2.48 rotate it in place instead. The
           # delete is idempotent and runs inside the verify transaction.
           remove_verify_account_key
+
+          # Migration 015 (ADR-051): the link just redeemed was sent to this
+          # row's address, so it is mailbox proof for it. Written here, in
+          # Rodauth's verify transaction beside status_id, so the accounts
+          # row is complete before the Customer mirror is stamped below with
+          # rodauth_already_synced (Auth::AccountEmailVerification). Outside
+          # safe_execute on purpose: a failed write fails the verification
+          # with it, as a failed status write would.
+          if Auth::AccountEmailVerification.columns?(db)
+            update_account(Auth::AccountEmailVerification.values(verified: true, verified_by: 'email'))
+          end
 
           Auth::Logging.log_auth_event(
             :account_verified,

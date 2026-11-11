@@ -1888,5 +1888,9 @@
     "text": "Network restricted",
     "context": "Badge on the domain detail Homepage row when allowed or denied networks are configured",
     "content_hash": "02ce8253"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "To require SSO for all sign-ins on this domain, configure it in the domain's sign-in settings. SSO-only mode restricts the login page to the SSO provider configured here.",
+    "content_hash": "d26627a5"
   }
 }

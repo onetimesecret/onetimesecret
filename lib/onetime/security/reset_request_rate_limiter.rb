@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/no_client_ip'
 require 'onetime/models/colonel_audit_event'
 
 module Onetime
@@ -151,6 +152,9 @@ module Onetime
     # key with a blank suffix); the per-email backstop still applies. A missing
     # login skips the email tier. If neither is available the limiter is a
     # no-op — such a request fails Rodauth's own param validation anyway.
+    # Request-bound call sites pass Onetime::Security::NoClientIp.subject_for(ip),
+    # so a request with no client IP (otto 2.13) keys the shared no-client-ip
+    # IP tier rather than reaching this skip; see NoClientIp for why.
     #
     # Fail semantics mirror the other security limiters: Redis errors propagate
     # (a surfaced error rejects the request rather than silently permitting an
@@ -577,6 +581,8 @@ module Onetime
       def obscured_reset_request_subject(tier_label, subject)
         value = subject.to_s
         if tier_label == 'ip'
+          return value if Onetime::Security::NoClientIp.bucket?(value)
+
           parts = value.split('.')
           return "#{parts[0]}.#{parts[1]}.x.x" if parts.length == 4
 

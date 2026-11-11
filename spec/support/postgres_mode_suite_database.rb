@@ -51,8 +51,17 @@ require_relative 'factories/auth_account_factory'
 #
 module PostgresModeSuiteDatabase
   REQUIRED_TABLES = %i[accounts account_statuses account_password_hashes].freeze
-  # Migration 011 adds remember_until to account_active_session_keys.
-  EXPECTED_SCHEMA_VERSION = 11
+  # Latest schema version, derived from the migration files rather than
+  # hardcoded so this constant does not need hand-editing each time a migration
+  # lands (the gap that left it at 7 after the OAuth migrations). Uses the
+  # highest migration number — which is what Sequel's schema_info.version
+  # records — rather than the file count, so it stays correct even if the
+  # numbering is ever non-contiguous. Mirrors the sibling SQLite migration spec.
+  # Resolved relative to this file so it does not depend on Onetime::HOME being
+  # loaded when this support file is required.
+  EXPECTED_SCHEMA_VERSION = Dir.glob(
+    File.expand_path('../../apps/web/auth/migrations/[0-9]*_*.rb', __dir__),
+  ).map { |path| File.basename(path).to_i }.max
 
   class << self
     attr_reader :database, :migration_database

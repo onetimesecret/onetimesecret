@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/no_client_ip'
 require 'onetime/security/reset_request_rate_limiter'
 require_relative '../../lib/public_host'
 
@@ -41,11 +42,11 @@ require_relative '../../lib/public_host'
 # trusted-proxy resolver (Otto::Utils.resolve_client_ip) and rewrites
 # REMOTE_ADDR to the same masked value — so neither source is spoofable via
 # forwarded headers from an untrusted hop. We prefer the canonical env key and
-# fall back to request.ip (the rewritten REMOTE_ADDR) when it is absent (e.g. a
-# bare-Roda unit spec). An empty resolution skips the IP tier rather than
-# pooling unknown callers into one shared bucket an attacker could poison —
-# the per-login backstop still applies (same reasoning as the
-# sso_link_confirm throttle subject and LoginRateLimiter's RL-3 note).
+# fall back to request.ip (the rewritten REMOTE_ADDR) only when the middleware
+# did not run (e.g. a bare-Roda unit spec). When it ran and found no client IP
+# (otto 2.13), the IP tier keys the shared no-client-ip bucket rather than
+# skipping: the per-login backstop does not cap one source probing many
+# logins. See Onetime::Security::NoClientIp.
 #
 # ENUMERATION SAFETY: the limiter keys only on request-observable inputs (IP,
 # submitted login string), never on account existence, so the 429 introduces
@@ -81,8 +82,11 @@ module Auth::Config::Hooks
 
       auth.before_reset_password_request_route do
         if request.post?
-          client_ip = request.env['otto.client_ip']
-          client_ip = request.ip if client_ip.to_s.empty?
+          # Same subject as the simple-mode call site: the canonical masked
+          # IP, or the shared no-client-ip bucket when the IP privacy
+          # middleware found none (otto 2.13), never request.ip, which is then
+          # the proxy, unmasked. See Onetime::Security::NoClientIp.
+          client_ip = Onetime::Security::NoClientIp.request_subject(request)
 
           enforce_reset_request_rate_limit!(client_ip, param_or_nil(login_param))
           # Account-independent host preflight. Recipient membership is checked

@@ -7,15 +7,9 @@
   "request_schema": null,
   "status": 200,
   "headers": {
-    "x-content-type-options": "nosniff",
-    "x-xss-protection": "1; mode=block",
-    "referrer-policy": "strict-origin-when-cross-origin",
     "content-type": "application/json",
     "cache-control": "private, no-store",
-    "o-domain-strategy": "canonical",
-    "o-display-domain": "127.0.0.1:3000",
-    "x-request-id": "0mzkzp9nn3k22",
-    "content-length": "34"
+    "x-request-id": "3mq9phzqnsujd"
   },
   "body": {
     "status": "nominal",

@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/no_client_ip'
 require 'onetime/security/passphrase_rate_limiter'
 
 module V2::Logic
@@ -11,8 +12,9 @@ module V2::Logic
     # Burn Secret
     #
     # @api Permanently destroys a secret before its expiration time. Requires
-    #   the receipt identifier and a passphrase if one was set. Returns the
-    #   updated receipt record with burn confirmation and related URLs.
+    #   the receipt identifier, continue set to true to confirm the burn, and
+    #   a passphrase if one was set. Returns the updated receipt record with
+    #   burn confirmation and related URLs.
     #
     # SECURITY NOTE: Ownership Not Required
     # =====================================
@@ -38,7 +40,7 @@ module V2::Logic
       attr_reader :identifier, :passphrase, :continue, :receipt, :secret, :correct_passphrase, :greenlighted
 
       def process_params
-        @identifier = sanitize_identifier(params['identifier'])
+        @identifier = sanitize_identifier(route_param('identifier'))
         @receipt    = Onetime::Receipt.load identifier
         @passphrase = params['passphrase'].to_s
         @continue   = [true, 'true'].include?(params['continue'])
@@ -48,6 +50,18 @@ module V2::Logic
         require_guest_route_enabled!(:burn)
         require_entitlement!('api_access')
         raise OT::MissingSecret if receipt.nil?
+
+        # A burn is destructive, so it runs only on an explicit continue=true.
+        # Without one, this used to answer 200 with the secret untouched and a
+        # "Secret burned" title, and a client reading the status reported a
+        # burn that never happened (#4878). Refused here, ahead of the
+        # passphrase gate, so every uncommitted request gets the same answer
+        # whatever its guess and never touches rate-limit state.
+        unless continue
+          raise_form_error 'Set continue to true to burn this secret',
+            field: :continue,
+            error_type: :missing
+        end
 
         # Check passphrase rate limit before allowing passphrase attempts.
         # Burn is the same brute-force oracle as show/reveal: each wrong
@@ -64,7 +78,8 @@ module V2::Logic
         # Verify the passphrase ONLY on a committed burn (continue=true): a
         # request that is not going through with the burn must never learn
         # whether a guess was right, and never accrues or clears rate-limit
-        # state -- nothing was checked.
+        # state -- nothing was checked. raise_concerns already refuses such a
+        # request; the fold below keeps process safe on its own.
         #
         # `continue` is the parsed boolean (true / 'true' only), never the raw
         # param: the raw value treats any non-empty string as truthy, so a
@@ -251,14 +266,17 @@ module V2::Logic
 
       # Client IP for the per-secret+IP passphrase rate-limit tier (M-8). Sourced
       # from strategy_result metadata (set for both anonymous and authenticated
-      # callers). nil when unavailable, in which case the limiter falls back to
-      # the global per-secret backstop rather than collapsing every caller into
-      # one shared IP bucket. Do NOT use session['ip_address'] here -- it is
-      # absent for the anonymous recipients who are the primary threat model.
+      # callers). A request with no client IP (otto 2.13: the trusted
+      # X-Forwarded-For chain ended in a value the client can write) keys the
+      # shared no-client-ip bucket: skipping the tier would leave only the
+      # per-secret backstop, which one IP-less caller could then drive alone to
+      # lock the recipient out. That bucket cannot lock a caller with an IP
+      # (Onetime::Security::NoClientIp). Do NOT use session['ip_address'] here --
+      # it is absent for the anonymous recipients who are the primary threat model.
       def passphrase_client_ip
         return unless respond_to?(:strategy_result)
 
-        strategy_result&.metadata&.[](:ip)
+        Onetime::Security::NoClientIp.subject_for(strategy_result&.metadata&.[](:ip))
       end
     end
   end

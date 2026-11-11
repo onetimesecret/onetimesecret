@@ -105,7 +105,7 @@ RSpec.describe 'elevation is dropped on every identity change' do
         account: { email: 'bob@example.com', external_id: 'ur_bob', status_id: 2 },
         account_id: 42,
         session: session,
-        request: double('Request', ip: '203.0.113.7', user_agent: 'rspec'),
+        request: double('Request', env: {}, ip: '203.0.113.7', user_agent: 'rspec'),
         correlation_id: 'corr_1',
         db: double('Sequel::Database'),
       )

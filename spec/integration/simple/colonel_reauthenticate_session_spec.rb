@@ -132,6 +132,11 @@ RSpec.describe 'Simple-mode colonel password re-authentication (#4331)', type: :
   # reaches the handler AND the exemption, or neither. There is no
   # Rack::MethodOverride in the stack, so `_method` is inert.
   #
+  # Rack::Protection::PathTraversal (site.middleware.path_traversal, on in
+  # spec/config.test.yaml as in production) rewrites PATH_INFO before the
+  # strategy and Otto read it, dropping empty segments. A doubled slash is
+  # therefore the exempt path by the time either one looks.
+  #
   # The ABSOLUTE bound is lapsed here, not the idle one: any request that is
   # not refused (a 404 included) counts as session activity by design (see the
   # AdminSessionLifetime header), which would reopen an idle window and hide
@@ -191,15 +196,20 @@ RSpec.describe 'Simple-mode colonel password re-authentication (#4331)', type: :
       expect_reauthenticated(reauthenticate_at('/api/colonel/%72eauthenticate', password))
     end
 
-    it 'does not admit a doubled slash, and nothing reaches the handler', :aggregate_failures do
-      response = reauthenticate_at('/api/colonel//reauthenticate', password)
-      expect(response.status).to eq(404), response.body
-      expect_window_still_lapsed
+    # PathTraversal collapses the empty segment for the strategy and Otto
+    # alike, so these are the same request, not a bypass.
+    it 'treats a doubled slash as the same request' do
+      expect_reauthenticated(reauthenticate_at('/api/colonel//reauthenticate', password))
     end
 
-    it 'does not admit a second trailing slash', :aggregate_failures do
-      response = reauthenticate_at('/api/colonel/reauthenticate//', password)
-      expect(response.status).to eq(404), response.body
+    it 'treats a second trailing slash as the same request' do
+      expect_reauthenticated(reauthenticate_at('/api/colonel/reauthenticate//', password))
+    end
+
+    it 'still bounds a doubled slash with the wrong password', :aggregate_failures do
+      wrong = reauthenticate_at('/api/colonel//reauthenticate', 'not-the-password')
+      expect(wrong.status).to eq(403), wrong.body
+      expect(JSON.parse(wrong.body)).to include('error_code' => 'reauthentication_failed')
       expect_window_still_lapsed
     end
 

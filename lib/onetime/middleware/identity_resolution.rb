@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/utils/client_ip'
+
 require 'logger'
 require 'rack/request'
 
@@ -206,14 +208,14 @@ module Onetime
             email: session['email'],
             session_id: session.id&.private_id,
             expires_at: Onetime::Session.absolute_deadline(session),
-            ip_address: session['ip_address'] || request.ip,
+            ip_address: session['ip_address'] || Onetime::Utils::ClientIp.from_request(request),
           },
         }
       end
 
       def resolve_anonymous_identity(request, _env)
         logger.debug '[IdentityResolution] Resolved anonymous identity',
-          ip: request.ip,
+          ip: Onetime::Utils::ClientIp.from_request(request),
           path: request.path_info
 
         {
@@ -221,7 +223,7 @@ module Onetime
           source: 'anonymous',
           authenticated: false,
           metadata: {
-            ip_address: request.ip,
+            ip_address: Onetime::Utils::ClientIp.from_request(request),
             user_agent: request.user_agent,
           },
         }

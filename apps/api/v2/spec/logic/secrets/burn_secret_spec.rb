@@ -13,6 +13,10 @@ require_relative '../../support/actor_attribution_helpers'
 # string — every non-empty string is truthy in Ruby, so reading the raw param
 # would burn the secret even when the caller explicitly sent continue=false.
 #
+# raise_concerns refuses an uncommitted burn outright (#4878), so no request
+# reaches process without continue=true; the process-level examples below
+# keep that method safe on its own.
+#
 # Also covers the burn variant of the double-reveal race: Secret#burned!
 # performs an atomic compare-and-set claim and returns true only to the caller
 # that won it; process must gate counters/success on that boolean.
@@ -41,7 +45,7 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
   # coverage (#3639). Positional (not a kwarg) so the existing bare-hash
   # `build_logic('identifier' => ...)` call sites keep working — a trailing
   # kwarg would otherwise swallow the bare params hash as keywords.
-  def build_logic(params, customer = nil)
+  def build_logic(params, customer = nil, ip = '203.0.113.7')
     customer ||= double('Customer', custid: 'anon', anonymous?: true, objid: nil, extid: nil)
     org        = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
     allow(org).to receive(:can?).and_return(true)
@@ -49,7 +53,7 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
     strategy_result = double('StrategyResult',
       session: mock_session,
       user: customer,
-      metadata: { organization: org, ip: '203.0.113.7' },
+      metadata: { organization: org, ip: ip },
       auth_method: 'basicauth')
 
     # process derives cust from strategy_result.user and never calls org, so no
@@ -236,6 +240,33 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
 
       expect(record[:share_url]).to end_with("/secret/#{receipt.secret_identifier}")
       expect(record).not_to have_key(:secret_identifier)
+    end
+  end
+
+  # #4878: an uncommitted burn used to answer 200 with the secret untouched and
+  # a "Secret burned" title. raise_concerns runs before process in the
+  # controller, so refusing it there turns that into a 422 on `continue`.
+  context 'when raise_concerns sees no committed continue' do
+    [nil, false, 'false', '', 'yes'].each do |value|
+      it "refuses continue=#{value.inspect} and leaves the secret intact" do
+        params             = { 'identifier' => receipt.identifier }
+        params['continue'] = value unless value.nil?
+        logic              = build_logic(params)
+        logic.process_params
+
+        expect { logic.raise_concerns }.to raise_error(OT::FormError) { |error|
+          expect(error.field).to eq(:continue)
+          expect(error.error_type).to eq(:missing)
+        }
+        expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
+      end
+    end
+
+    it 'does not refuse continue=true' do
+      logic = build_logic('identifier' => receipt.identifier, 'continue' => true)
+      logic.process_params
+
+      expect { logic.raise_concerns }.not_to raise_error
     end
   end
 
@@ -527,6 +558,40 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
     end
 
+    # otto 2.13 no-client-IP path: metadata[:ip] is nil. The tight per-IP tier
+    # must still apply (keyed on the shared no-client-ip bucket); skipping it
+    # left only the 20-attempt per-secret backstop, which one IP-less caller
+    # could drive alone to lock the recipient out (M-8).
+    context 'when the request has no client IP' do
+      def attempt_burn_from(ip, guess)
+        logic = build_logic(
+          { 'identifier' => receipt.identifier, 'continue' => 'true', 'passphrase' => guess },
+          nil,
+          ip,
+        )
+        logic.process_params
+        logic.raise_concerns
+        logic.process
+        logic
+      end
+
+      it 'locks IP-less callers out after MAX_ATTEMPTS, on the shared bucket' do
+        max = Onetime::Security::PassphraseRateLimiter::MAX_ATTEMPTS
+        max.times { expect { attempt_burn_from(nil, 'wrong') }.to raise_error(OT::FormError) }
+
+        expect { attempt_burn_from(nil, 'correct horse battery') }.to raise_error(Onetime::LimitExceeded)
+        expect(Onetime::Secret.dbclient.exists?("passphrase:locked:#{secret.identifier}:no-client-ip")).to be true
+      end
+
+      it 'does not lock out a caller that has an IP' do
+        max = Onetime::Security::PassphraseRateLimiter::MAX_ATTEMPTS
+        max.times { expect { attempt_burn_from(nil, 'wrong') }.to raise_error(OT::FormError) }
+
+        logic = attempt_burn_from('203.0.113.7', 'correct horse battery')
+        expect(logic.greenlighted).to be true
+      end
+    end
+
     it 'clears rate limit state and burns on the correct passphrase' do
       expect { attempt_burn('wrong') }.to raise_error(OT::FormError)
 
@@ -575,6 +640,28 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
 
         expect(correct.success_data[:success]).to eq(wrong.success_data[:success])
         expect(correct.success_data[:details]).to eq(wrong.success_data[:details])
+        expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
+      end
+
+      # The request path: raise_concerns refuses the probe before the
+      # passphrase is read, with one error whatever the guess (#4878).
+      it 'is refused by raise_concerns identically for a right and a wrong guess' do
+        refusals = ['wrong', 'correct horse battery'].map do |guess|
+          logic = build_logic(
+            'identifier' => receipt.identifier,
+            'continue'   => 'false',
+            'passphrase' => guess,
+          )
+          logic.process_params
+          logic.raise_concerns
+          nil
+        rescue OT::FormError => ex
+          [ex.message, ex.field, ex.error_type]
+        end
+
+        expect(refusals.first).not_to be_nil
+        expect(refusals.last).to eq(refusals.first)
+        expect(Onetime::Secret.dbclient.get("passphrase:attempts:#{secret.identifier}")).to be_nil
         expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
       end
     end

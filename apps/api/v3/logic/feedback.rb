@@ -85,7 +85,8 @@ module V3
       # Logic classes don't receive the Rack request directly; auth
       # strategies populate metadata[:ip] via build_metadata (see
       # lib/onetime/application/auth_strategies/helpers.rb). Returns nil
-      # if absent — the rate limiter treats blank IPs as a no-op.
+      # if absent; the rate limiter charges a blank IP to its shared
+      # no-client-ip bucket (Onetime::Security::NoClientIp).
       def client_ip
         strategy_result&.metadata&.dig(:ip)
       end

@@ -528,15 +528,16 @@ duration exceeds its wall clock.
 | `billing-integration` | valkey, rabbitmq          | `try:integration:billing`, `spec:integration:billing`         | 1       | ruby-billing-integration (T3, nightly only)      |
 | `browser`            | valkey, rabbitmq           | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | 1       | ruby-auth-browser (T2)                           |
 | `simple`             | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`           | 4 (rspec)| ruby-integration-simple (T3)                    |
-| `full-sqlite`        | valkey, rabbitmq           | `spec:integration:full`                                       | 4       | ruby-integration-full — SQLite row               |
+| `full-sqlite`        | valkey, rabbitmq           | `spec:integration:full`, `spec:integration:oauth`             | 4 (full only) | ruby-integration-full — SQLite row         |
 | `full-mfa`           | valkey, rabbitmq           | `spec:integration:full:mfa`                                   | 1       | ruby-integration-auth — SQLite MFA row           |
 | `full-saml-platform` | valkey, rabbitmq           | `spec:integration:full:saml_platform`                         | 1       | ruby-integration-auth — SQLite platform SAML row |
 | `full-webauthn-verify` | valkey, rabbitmq         | `spec:integration:full:webauthn_verify`                       | 1       | ruby-integration-auth — SQLite passkey signup row |
 | `full-pg`            | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                              | 1 (PG)  | ruby-integration-full — PG row                   |
 | `full-pg-agnostic`   | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`                        | 1 (PG)  | ruby-integration-auth — PG agnostic row          |
 | `disabled`           | valkey, rabbitmq           | `spec:integration:disabled`                                   | 1       | ruby-integration-disabled (T3)                   |
+| `strategies`         | valkey, rabbitmq           | `spec:integration:strategies`                                 | 1       | ruby-integration-strategies (T3)                 |
 | `api`                | valkey, rabbitmq           | `spec:api`                                                    | 4       | blocking step, T3 simple job                     |
-| `smoke`              | valkey, rabbitmq           | `pnpm test:smoke`                                             | 1 (refused above) | local-only                             |
+| `smoke`              | valkey, rabbitmq           | `pnpm test:smoke`                                             | 1 (refused above) | smoke-test (T3)                        |
 | `migrations-sqlite`  | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                          | 1       | migration-tests.yml — SQLite job                 |
 | `migrations-pg`      | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check    | 1 (PG)  | migration-tests.yml — PostgreSQL job             |
 | `harness`            | valkey, rabbitmq           | `spec:lanes` (`spec/unit/lanes`, the runner's own specs)      | 1       | ruby-unit (T2), second step, path-gated          |
@@ -547,6 +548,13 @@ Start every service named for a lane. This includes RabbitMQ for `api`,
 `selftest` is the only service-free exception. The Workers column is the
 lane's `LANES_WORKERS` default (`--workers` overrides it; PG lanes and
 `smoke` refuse more than one).
+
+`strategies` shares `full-sqlite`'s environment but is its own lane
+because the isolation *is* the point: run in the `full-sqlite` process,
+the `spec/integration/all` RabbitMQ/fork specs corrupt the process-wide
+Familia/Redis connection and every strategy example fails spuriously
+(#3468). One lane = one process boundary, so a second lane is how that
+gets expressed.
 
 A lane with several legs (`unit`, `billing`, `billing-integration`, `simple`,
 `migrations-pg`) runs every leg even when an earlier one fails, then exits
@@ -739,9 +747,9 @@ four rspec processes per lane and claim as many valkey indexes. A serial
 
 `--parallel` requires test services to already be running and is rejected when
 `CI` is set. It also rejects a duplicate lane: two copies derive the same
-isolation key and would share a datastore. The `smoke` lane is local-only and
-cannot be used with `--parallel`, because its task regenerates locales itself
-and can race with other lanes. Run it alone (normally
+isolation key and would share a datastore. The `smoke` lane cannot be used
+with `--parallel`, because its task regenerates locales itself and can race
+with other lanes. Run it alone (normally
 `tests/lanes/run smoke`).
 
 ### Only the lanes a change touches: `--changed`

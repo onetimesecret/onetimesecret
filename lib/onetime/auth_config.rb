@@ -286,6 +286,19 @@ module Onetime
     # that reference omniauth_enabled? (apps/web/auth/).
     alias omniauth_enabled? sso_enabled?
 
+    # Whether this instance acts as an OAuth2/OIDC Identity Provider.
+    # Default: false
+    #
+    # When true, rodauth-oauth features are enabled and the standard OAuth
+    # endpoints (/authorize, /token, /jwks, /userinfo, /revoke) are mounted.
+    # External clients can authenticate end-users against this instance.
+    #
+    # See: apps/web/auth/config/features/oauth.rb
+    # See: https://github.com/onetimesecret/onetimesecret/issues/3104
+    def oauth_enabled?
+      feature_enabled?('oauth', default: false)
+    end
+
     # Whether organization-level SSO (per-domain SSO) is enabled.
     # Default: false
     #
@@ -450,7 +463,9 @@ module Onetime
       defn = provider_definition_for_route(route_name)
 
       # 1. Explicit per-provider override wins when the var is present.
-      if defn && ENV.key?(defn[:trust_var])
+      # trust_var is optional: providers outside the email-linking escape
+      # hatch (the local dev IdP) omit it, so guard before ENV.key?.
+      if defn && defn[:trust_var] && ENV.key?(defn[:trust_var])
         return ENV[defn[:trust_var]] == 'true'
       end
 
@@ -472,9 +487,15 @@ module Onetime
     # (*_TRUST_EMAIL_FOR_LINKING=false) returns false — no provider is actually
     # trusted, so the guard stays silent rather than warning on a dead flag.
     #
+    # Only definitions that declare a trust_var participate: the local dev IdP
+    # has no email-linking trust semantics, so it must not keep the guard alive
+    # (via the deprecated global fallback) after every real provider opts out.
+    #
     # @return [Boolean]
     def trust_email_for_linking_enabled?
       provider_definitions.any? do |defn|
+        next false unless defn[:trust_var]
+
         route_name = ENV.fetch(defn[:route_var], defn[:route_default])
         trust_email_for_linking?(route_name)
       end
@@ -636,12 +657,36 @@ module Onetime
     # Public: the auth app's boot registration reads it (via
     # display_default_for) so its logs share the serializer's view.
     def provider_definitions
-      SsoProvider::Registry::DEFINITIONS.map do |defn|
+      registry = SsoProvider::Registry::DEFINITIONS.map do |defn|
         next defn unless defn[:key] == :oidc
 
         legacy_display = sso_display_name
         legacy_display ? defn.merge(display_default: legacy_display) : defn
       end
+
+      registry + [
+        # Local IdP — see configure_local_idp_provider in features/omniauth.rb.
+        # Deliberately NOT a Registry::Definition: it is the development-only
+        # provider backed by this app's own OAuth2 IdP, so it has neither
+        # platform credentials nor a tenant-SSO placeholder to describe, and no
+        # idp_origin (its issuer is this app, already 'self' in form-action).
+        #
+        # Two-part gate: OAUTH_SP_DEV_CLIENT_SECRET must be set (env-var
+        # presence) AND AUTH_OAUTH_ENABLED=true (so the IdP it talks to is
+        # actually running). #provider_active? applies both, so the button
+        # list, the HttpOrigin origins and the restrict_to 'sso' prerequisite
+        # agree; without the second check the frontend would render a
+        # "Local IdP" button that posts to a non-existent route.
+        {
+          key: :local_idp,
+          required_vars: %w[OAUTH_SP_DEV_CLIENT_SECRET],
+          condition: ->(cfg) { cfg.oauth_enabled? },
+          route_var: 'OAUTH_SP_DEV_ROUTE_NAME',
+          route_default: 'local',
+          display_var: 'OAUTH_SP_DEV_DISPLAY_NAME',
+          display_default: 'Local IdP',
+        },
+      ]
     end
 
     # The CSP form-action origin for a TENANT's IdP (#4173) — the per-request
@@ -866,7 +911,8 @@ module Onetime
         # verdict (#4513), which must not decide whether the restriction holds.
         if provider_definitions.none? { |defn| provider_active?(defn) }
           return 'SSO is enabled but no provider is configured (no provider has its ' \
-                 'required env vars set, e.g. OIDC_ISSUER + OIDC_CLIENT_ID)'
+                 'required env vars set and its prerequisites met, e.g. OIDC_ISSUER + ' \
+                 'OIDC_CLIENT_ID, or OAUTH_SP_DEV_CLIENT_SECRET with AUTH_OAUTH_ENABLED=true)'
         end
       when 'email_auth'
         return 'email auth is disabled (full.features.email_auth / AUTH_EMAIL_AUTH_ENABLED)' unless email_auth_enabled?
@@ -1003,19 +1049,27 @@ module Onetime
     # button (#withheld_by_issuer_verdict?).
     #
     # Fails closed. This runs per request (the serializer) and inside the
-    # HttpOrigin middleware via #sso_idp_origins, so a :vars_valid that raises
-    # drops the provider rather than the response.
+    # HttpOrigin middleware via #sso_idp_origins, so a :vars_valid or a
+    # :condition that raises drops the provider rather than the response.
     #
     # An install-wide :enabled switch (SAML_ENABLED, #4604) is checked first,
     # before presence: configure_provider registers no route for a
     # switched-off provider whatever its vars say, so nothing may be
     # advertised or admitted for it either.
     #
+    # A definition's :condition (the local IdP's AUTH_OAUTH_ENABLED) is part
+    # of the same predicate. configure_local_idp_provider registers no route
+    # while it is false, so a provider that passes presence alone must not
+    # count as configured either: #restrict_to_unmet_prerequisite reads this
+    # predicate, and counting it let restrict_to 'sso' boot with no provider
+    # that could sign anyone in (ADR-034#degradation-is-fail-closed).
+    #
     # @param defn [Hash] a provider definition from the registry
     # @return [Boolean]
     def provider_active?(defn)
       return false if defn[:enabled] && !provider_switch_on?(defn)
       return false unless defn[:required_vars].all? { |var| env_present?(var) }
+      return false unless provider_condition_met?(defn)
       return true unless defn[:vars_valid]
 
       begin
@@ -1025,6 +1079,23 @@ module Onetime
               "treating provider as inactive: #{ex.class}: #{ex.message}"
         false
       end
+    end
+
+    # The definition's :condition, failing closed like the :enabled switch:
+    # a condition that raises counts as unmet, so the provider is dropped
+    # rather than the response, and #restrict_to_unmet_prerequisite refuses a
+    # restriction that depends on it.
+    #
+    # @param defn [Hash] a provider definition from the registry
+    # @return [Boolean] true when the definition declares no :condition
+    def provider_condition_met?(defn)
+      return true unless defn[:condition]
+
+      defn[:condition].call(self) ? true : false
+    rescue StandardError => ex
+      OT.lw "[auth_config] #{defn[:label] || defn[:key]} condition raised, " \
+            "treating provider as inactive: #{ex.class}: #{ex.message}"
+      false
     end
 
     # The definition's :enabled switch, failing closed: an unrecognized token
@@ -1159,6 +1230,9 @@ module Onetime
 
       env_config = load_yaml_from(@path)
 
+      # User file wins on conflict; missing keys inherit from defaults.
+      # preserve_nils: false → explicit nil in user file overrides the
+      # default; absent keys still inherit. Mirrors Onetime::Config#load.
       @config = if base_config.empty?
         env_config
       else

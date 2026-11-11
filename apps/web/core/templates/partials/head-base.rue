@@ -3,8 +3,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Security headers -->
-  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <!-- Security headers. X-Content-Type-Options and Permissions-Policy are
+       also HTTP response headers from Onetime::Middleware::Security; keep
+       these meta copies in sync with the middleware values (audit 2026-08-02
+       M-3). The referrer meta is the one that governs this document's
+       navigations, and it must equal Onetime::Middleware::Registry::
+       REFERRER_POLICY, the value Otto and the middleware put on the HTTP
+       header (rhales_migration_spec pins the two together).
+       strict-origin: secret URLs must never appear in a Referer header, on
+       same-origin navigations included, so only scheme://host[:port] may be
+       sent. Not no-referrer: under that policy a native form POST sends
+       `Origin: null`, which HttpOrigin refuses, and every SSO sign-in starts
+       with such a POST (#4542). -->
+  <meta name="referrer" content="strict-origin">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
   <!-- Note: X-Frame-Options is set via HTTP header in middleware, not meta tag -->

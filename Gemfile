@@ -37,14 +37,30 @@ source 'https://rubygems.org/'
 # 2.11 floor: static not_found / server_error triples are copied per request
 # (Otto::Static.copy_response, delano/otto#272), so session-cookie writes can
 # no longer accumulate on the shared fallback headers. Replaces the former
-# Onetime::Middleware::IsolateResponseHeaders; regression guard is
+# Onetime::Middleware::IsolateResponseHeaders (#4401); regression guard is
 # spec/integration/all/router_fallback_response_headers_spec.rb. 2.11 also
 # rejects fallback triples whose body does not respond to #each or #call.
-# 2.12 floor: JSON request bodies merge BELOW path captures, query and form
-# parameters in Logic classes and are not parsed for GET/HEAD (delano/otto#285);
-# `require 'otto/testing'` (Otto::Testing.reset!, .env_for) for specs; path
-# matching survives malformed percent-escapes (delano/otto#288).
-gem 'otto', '~> 2.12'
+# 2.12 floor: referrer_policy is a validated Otto setting applied to every
+# Otto response (delano/otto#281); Onetime::Application::Base sets it from
+# Onetime::Middleware::Registry::REFERRER_POLICY (#4542). JSON request bodies
+# merge BELOW path captures, query and form parameters in Logic classes and
+# are not parsed for GET/HEAD (delano/otto#285); a Logic class can take the
+# router's captures as `route_params:`. `require 'otto/testing'`
+# (Otto::Testing.reset!, .env_for) for specs; path matching survives
+# malformed percent-escapes (delano/otto#288).
+# 2.13 floor: filter-mode client IP resolution walks X-Forwarded-For from the
+# right and skips trusted hops (delano/otto#292), so a client-supplied leftmost
+# entry is skipped whenever the client's own appended address is untrusted
+# (private clients still need the edge to overwrite the header); every proxy
+# hop must be in the trusted set, and a
+# non-address entry leaves the request with no client IP (otto.client_ip
+# absent, otto.ip_match fail-closed) — AuthStrategies::Helpers#client_ip and
+# AdminNetworkIsolation#resolve_client_ip honor that marker. RouteAuthWrapper
+# no longer replaces a middleware-installed env['rack.session']
+# (delano/otto#298); HEAD requests get the GET route's headers with an empty
+# body (delano/otto#294); secrets held by Otto objects print as [REDACTED]
+# (delano/otto#300).
+gem 'otto', '~> 2.13'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
 # rodauth comes from the onetimesecret fork, pinned to a commit: upstream
@@ -58,6 +74,33 @@ gem 'roda', '~> 3.0'
 gem 'rodauth',
   git: 'https://github.com/onetimesecret/rodauth.git',
   ref: '8abe3ebdb89739fc4b3c040105873d7cc281d216'
+# Forked to add `oauth_mount_prefix`, which fixes the Rack::URLMap mount-prefix
+# mismatch (discovery URLs, issuer, and per-endpoint CSRF exemptions losing the
+# `/auth` mount point) at the gem level — see onetimesecret/onetimesecret#3465
+# and apps/web/auth/docs/rodauth-prefix-mismatch.md. Pinned to an immutable SHA
+# (not a mutable branch) so `bundle update` can't silently drift this
+# security-critical gem. Bump the ref when the fork advances; drop the fork once
+# the change is upstreamed to os85/rodauth-oauth.
+#
+# The fork is at 1.6.6.ots1: upstream 1.6.6 merged on top of the mount-prefix
+# change (onetimesecret/rodauth-oauth#16). Two upstream decisions the app has
+# to account for, see doc/release_notes/1_6_6_ots1.md in the fork:
+#   - `oauth_pkce_allow_plain_method` defaults to true upstream (the fork used
+#     to default it to false); features/oauth.rb sets it to false explicitly.
+#   - the plain OAuth `POST /register` no longer returns
+#     `registration_client_uri`; only the OIDC variant does. Neither dynamic
+#     client registration feature is enabled here.
+#   - the json-jwt branch's post-decode claim validation (oauth_jwt_base.rb)
+#     was rewritten from an AND-chain of failure conditions to PASS
+#     conditions, so /userinfo now rejects an expired JWT before the DB-row
+#     lookup (see apps/web/auth/config/features/oauth.rb, issue #3231).
+# The version constraint stays `~> 1.6`: Gem::Version treats the `.ots1`
+# suffix as a prerelease of 1.6.6, which `~> 1.6` admits but `~> 1.6.6` would
+# not.
+gem 'rodauth-oauth',
+  '~> 1.6',
+  git: 'https://github.com/onetimesecret/rodauth-oauth.git',
+  ref: 'b0e7ceb0c26eb43226faa089bfd0a05bdddb8b1d'
 gem 'rodauth-omniauth', '~> 0.4'
 gem 'rodauth-tools', '~> 0.4.0'
 

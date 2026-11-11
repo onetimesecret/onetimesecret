@@ -8,20 +8,13 @@
   "status": 401,
   "headers": {
     "content-type": "application/json",
-    "content-length": "175",
-    "x-content-type-options": "nosniff",
-    "x-xss-protection": "1; mode=block",
-    "referrer-policy": "strict-origin-when-cross-origin",
     "cache-control": "private, no-store",
-    "www-authenticate": "Session realm=\"onetimesecret\"",
-    "o-domain-strategy": "canonical",
-    "o-display-domain": "127.0.0.1:3000",
-    "x-request-id": "3rw29obhft7nb"
+    "x-request-id": "05pqsg2oj4rpq"
   },
   "body": {
     "error": "Authentication Required",
     "message": "[AUTH_HEADER_MISSING] No authorization header",
-    "timestamp": 1792807620,
+    "timestamp": 1794111216,
     "code": "not_authenticated",
     "code_scope": "customer_session"
   }

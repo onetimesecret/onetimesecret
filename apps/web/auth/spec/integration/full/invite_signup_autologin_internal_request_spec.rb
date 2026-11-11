@@ -105,6 +105,10 @@ RSpec.describe 'Invite signup via Rodauth internal_request (issue #3221)', type:
     account_row = Auth::Database.connection[:accounts].where(email: invited_email).first
     expect(account_row).not_to be_nil
     expect(account_row[:status_id]).to eq(2)
+    # Migration 015 (ADR-051): the invite link is mailbox proof for the
+    # address, recorded with the status.
+    expect(account_row[:email_verified_at]).not_to be_nil
+    expect(account_row[:email_verified_by]).to eq('invite_token')
 
     # create_account does not log the account in (create_account_autologin?
     # is false), so it leaves no active-session row. The row for the session

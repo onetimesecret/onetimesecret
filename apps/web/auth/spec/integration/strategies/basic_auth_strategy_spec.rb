@@ -1,0 +1,432 @@
+# apps/web/auth/spec/integration/strategies/basic_auth_strategy_spec.rb
+#
+# frozen_string_literal: true
+
+# Unit tests for BasicAuthStrategy — HTTP Basic Auth with API key validation.
+#
+# Requires Valkey on port 2163 (pnpm run test:database:start).
+#
+# Run:
+#   pnpm run test:rspec apps/web/auth/spec/integration/strategies/basic_auth_strategy_spec.rb
+
+require_relative '../../spec_helper'
+require_relative '../../support/strategy_test_context'
+require_relative '../../support/shared_examples/session_contract_examples'
+
+RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :integration do
+  include_context 'strategy test'
+
+  describe '#authenticate' do
+    # -----------------------------------------------------------------
+    # Valid credentials
+    # -----------------------------------------------------------------
+    context 'with valid credentials' do
+      let(:result) { basic_auth_strategy.authenticate(env_basic_auth_valid, nil) }
+
+      it 'returns a StrategyResult' do
+        expect(result).to be_a(Otto::Security::Authentication::StrategyResult)
+      end
+
+      it 'is authenticated' do
+        expect(result.authenticated?).to be true
+      end
+
+      it 'sets user to the matching Customer' do
+        expect(result.user).to be_a(Onetime::Customer)
+        expect(result.user.custid).to eq(test_customer.custid)
+      end
+
+      it 'sets auth_method to basic_auth' do
+        expect(result.auth_method).to eq('basic_auth')
+      end
+
+      # Session contract — session is non-nil when env['rack.session'] is present.
+      # Stateless calls (no rack.session in env) return nil; see context below.
+      include_examples 'a valid session contract'
+
+      it 'session contains no auth state and no organization state' do
+        expect(result.session.keys).to eq([])
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Suspended account — valid API key, but the account is on a trust &
+    # safety pause. Suspension must be enforced at the API-key gate, not
+    # only on session-authenticated routes (regression for PR #3688:
+    # BasicAuth bypassing suspension).
+    # -----------------------------------------------------------------
+    context 'with valid credentials for a suspended account' do
+      before do
+        test_customer.suspended = 'true'
+        test_customer.save
+      end
+
+      let(:result) { basic_auth_strategy.authenticate(env_basic_auth_valid, nil) }
+
+      it 'returns an AuthFailure (does not authenticate)' do
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+        expect(result.authenticated?).to be false
+      end
+
+      it 'reports the suspension as the failure reason' do
+        expect(result.failure_reason).to include('ACCOUNT_SUSPENDED')
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Stateless call — no Rack session middleware (env has no rack.session)
+    # Regression test: ensures result.session is nil, not a plain {},
+    # which would crash Rack's session middleware (.options on Hash).
+    # -----------------------------------------------------------------
+    context 'with valid credentials and no rack.session in env' do
+      let(:env_no_session) do
+        encoded = Base64.strict_encode64("#{test_customer.email}:#{test_apikey}")
+        {
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_USER_AGENT' => 'Test/1.0',
+          'HTTP_AUTHORIZATION' => "Basic #{encoded}",
+        }
+      end
+
+      let(:result) { basic_auth_strategy.authenticate(env_no_session, nil) }
+
+      it 'authenticates successfully' do
+        expect(result).to be_a(Otto::Security::Authentication::StrategyResult)
+        expect(result.authenticated?).to be true
+      end
+
+      it 'returns nil session (not an empty Hash)' do
+        expect(result.session).to be_nil
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Session identity — when a real Rack session exists, the strategy
+    # must return the SAME object, not a replacement.
+    # -----------------------------------------------------------------
+    context 'with valid credentials and a session-like object' do
+      let(:mock_session) do
+        # Use a test double that quacks like a SecureSessionHash —
+        # responds to [], []=, options, and id. This validates the strategy
+        # passes through the real session object, not a fabricated {}.
+        session = {}
+        session.define_singleton_method(:options) { {} }
+        session.define_singleton_method(:id) { 'test-session-id' }
+        session
+      end
+
+      let(:env_with_session) do
+        encoded = Base64.strict_encode64("#{test_customer.email}:#{test_apikey}")
+        {
+          'rack.session' => mock_session,
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_USER_AGENT' => 'Test/1.0',
+          'HTTP_AUTHORIZATION' => "Basic #{encoded}",
+        }
+      end
+
+      let(:result) { basic_auth_strategy.authenticate(env_with_session, nil) }
+
+      it 'returns the exact same session object (identity check)' do
+        expect(result.session).to equal(mock_session)
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Invalid API key (correct user, wrong key)
+    # -----------------------------------------------------------------
+    context 'with invalid API key' do
+      let(:result) { basic_auth_strategy.authenticate(env_basic_auth_invalid, nil) }
+
+      it 'returns an AuthFailure' do
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Nonexistent user
+    # -----------------------------------------------------------------
+    context 'with nonexistent user' do
+      let(:env_nonexistent_user) do
+        encoded = Base64.strict_encode64("nobody_#{SecureRandom.uuid}@example.com:#{test_apikey}")
+        {
+          'rack.session' => {},
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_USER_AGENT' => 'Test/1.0',
+          'HTTP_AUTHORIZATION' => "Basic #{encoded}",
+        }
+      end
+
+      let(:result) { basic_auth_strategy.authenticate(env_nonexistent_user, nil) }
+
+      it 'returns an AuthFailure' do
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+      end
+
+      it 'still calls apitoken? on the dummy customer for timing safety' do
+        # Both the real-customer and dummy-customer paths go through
+        # target_cust.apitoken?(apikey), ensuring constant-time comparison.
+        # We verify indirectly: the strategy must not raise, and must
+        # return a failure (not an exception), proving the dummy path ran.
+        expect { result }.not_to raise_error
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Missing Authorization header
+    # -----------------------------------------------------------------
+    context 'with missing Authorization header' do
+      let(:result) { basic_auth_strategy.authenticate(env_basic_auth_missing, nil) }
+
+      it 'returns an AuthFailure' do
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Malformed Authorization header (not "Basic ...")
+    # -----------------------------------------------------------------
+    context 'with malformed Authorization header' do
+      let(:env_malformed) do
+        {
+          'rack.session' => {},
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_USER_AGENT' => 'Test/1.0',
+          'HTTP_AUTHORIZATION' => 'Bearer some_token_here',
+        }
+      end
+
+      let(:result) { basic_auth_strategy.authenticate(env_malformed, nil) }
+
+      it 'returns an AuthFailure' do
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Terminal failure on presented credentials (fail-closed guard).
+    #
+    # Regression for the silent anonymous fallback (docs/security/audits/
+    # 2026-07-29-api.md item 1): on auth=basicauth,noauth chains, a request
+    # that PRESENTED credentials which failed must return a TERMINAL
+    # AuthFailure so Otto's RouteAuthWrapper halts the chain and fails closed
+    # (401) rather than letting NoAuthStrategy degrade it to anonymous. A
+    # request with NO Authorization header must fail NON-terminally — that is
+    # the legitimate anonymous use of those routes.
+    # -----------------------------------------------------------------
+    context 'terminal failure on presented credentials' do
+      it 'fails terminally on invalid API key (correct user, wrong key)' do
+        result = basic_auth_strategy.authenticate(env_basic_auth_invalid, nil)
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+        expect(result.terminal?).to be true
+        expect(result.failure_reason).to include('CREDENTIALS_INVALID')
+      end
+
+      it 'fails terminally on a nonexistent username (e.g. UUIDv7 owner_id used as Basic username)' do
+        # Real-world trigger: a customer used a UUIDv7 owner_id as the Basic
+        # username. Only customer extid / email resolve, so this fails — and
+        # previously fell through to a silent anonymous 200.
+        uuidv7  = '0190b6f0-7d1a-7c3e-8f4a-2b9c1d0e5a6b'
+        encoded = Base64.strict_encode64("#{uuidv7}:#{test_apikey}")
+        env     = {
+          'rack.session' => {},
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_USER_AGENT' => 'Test/1.0',
+          'HTTP_AUTHORIZATION' => "Basic #{encoded}",
+        }
+
+        result = basic_auth_strategy.authenticate(env, nil)
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+        expect(result.terminal?).to be true
+        expect(result.failure_reason).to include('CREDENTIALS_INVALID')
+      end
+
+      it 'fails terminally on an unrecognized Authorization scheme (Bearer)' do
+        env = {
+          'rack.session' => {},
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_USER_AGENT' => 'Test/1.0',
+          'HTTP_AUTHORIZATION' => 'Bearer some_token_here',
+        }
+
+        result = basic_auth_strategy.authenticate(env, nil)
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+        expect(result.terminal?).to be true
+        expect(result.failure_reason).to include('AUTH_TYPE_INVALID')
+      end
+
+      it 'fails terminally on malformed Basic payload (no colon separator)' do
+        env = {
+          'rack.session' => {},
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_USER_AGENT' => 'Test/1.0',
+          'HTTP_AUTHORIZATION' => "Basic #{Base64.strict_encode64('no-colon-here')}",
+        }
+
+        result = basic_auth_strategy.authenticate(env, nil)
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+        expect(result.terminal?).to be true
+        expect(result.failure_reason).to include('CREDENTIALS_FORMAT_INVALID')
+      end
+
+      it 'fails terminally when a suspended account presents valid credentials' do
+        test_customer.suspended = 'true'
+        test_customer.save
+
+        result = basic_auth_strategy.authenticate(env_basic_auth_valid, nil)
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+        expect(result.terminal?).to be true
+        expect(result.failure_reason).to include('ACCOUNT_SUSPENDED')
+      end
+
+      it 'fails NON-terminally when the Authorization header is missing (anonymous fallthrough preserved)' do
+        result = basic_auth_strategy.authenticate(env_basic_auth_missing, nil)
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+        expect(result.terminal?).to be false
+        expect(result.failure_reason).to include('AUTH_HEADER_MISSING')
+      end
+
+      # A valid session identity on the SAME request outranks a rejected
+      # Authorization header: the failure must be NON-terminal so Otto's chain
+      # continues to the session-resolving NoAuthStrategy instead of 401ing a
+      # logged-in browser that also carries a stale cached Basic credential or a
+      # reverse proxy's forwarded htpasswd header. This is the carve-out the old
+      # env-marker guard enforced (NoAuthStrategy refused only when cust.nil?);
+      # it must survive the move to terminal AuthFailures.
+      context 'when a valid session accompanies a rejected Authorization header' do
+        let(:env_session_plus_bad_basic) do
+          encoded = Base64.strict_encode64("#{test_customer.email}:wrong_key_entirely")
+          {
+            'rack.session' => {
+              'authenticated' => true,
+              'authenticated_at' => Familia.now.to_i,
+              'external_id' => test_customer.extid,
+              'email' => test_customer.email,
+              Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
+            },
+            'onetime.domain_strategy' => :canonical,
+            'REMOTE_ADDR' => '127.0.0.1',
+            'HTTP_USER_AGENT' => 'Test/1.0',
+            'HTTP_AUTHORIZATION' => "Basic #{encoded}",
+          }
+        end
+
+        it 'fails NON-terminally so the session outranks the rejected header' do
+          result = basic_auth_strategy.authenticate(env_session_plus_bad_basic, nil)
+          expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+          expect(result.terminal?).to be false
+          expect(result.failure_reason).to include('CREDENTIALS_INVALID')
+        end
+      end
+
+      it 'authenticates on valid credentials (no failure)' do
+        result = basic_auth_strategy.authenticate(env_basic_auth_valid, nil)
+        expect(result).not_to be_a(Otto::Security::Authentication::AuthFailure)
+        expect(result.authenticated?).to be true
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # The stable failure code (#4469). A terminal credential refusal stashes
+    # its reason in the env for Onetime::Middleware::SessionFailureCode to
+    # render onto the 401. One code for every rejected header, so the code
+    # says exactly what the message already does.
+    # -----------------------------------------------------------------
+    context 'stable failure code' do
+      let(:env_key) { Onetime::SessionFailureCode::ENV_KEY }
+
+      def stashed_reason_for(env)
+        basic_auth_strategy.authenticate(env, nil)
+        env[env_key]
+      end
+
+      it 'stashes api_key_invalid for a wrong key' do
+        expect(stashed_reason_for(env_basic_auth_invalid)).to eq(:api_key_invalid)
+      end
+
+      # The challenge follows this stash, not the request's headers
+      # (Onetime::Middleware::SessionFailureCode#challenge).
+      it 'stashes the Basic scheme beside the reason, so the 401 is challenged with Basic' do
+        env = env_basic_auth_invalid
+        stashed_reason_for(env)
+
+        expect(Onetime::SessionFailureCode.scheme(env)).to eq(Onetime::SessionFailureCode::SCHEME_BASIC)
+      end
+
+      it 'stashes api_key_invalid for an unknown account, the same as a wrong key' do
+        encoded = Base64.strict_encode64("nobody_#{SecureRandom.uuid}@example.com:#{test_apikey}")
+        env     = { 'rack.session' => {}, 'REMOTE_ADDR' => '127.0.0.1', 'HTTP_AUTHORIZATION' => "Basic #{encoded}" }
+
+        expect(stashed_reason_for(env)).to eq(:api_key_invalid)
+      end
+
+      it 'stashes api_key_invalid for a rejected scheme and a malformed payload' do
+        bearer    = { 'rack.session' => {}, 'REMOTE_ADDR' => '127.0.0.1', 'HTTP_AUTHORIZATION' => 'Bearer x' }
+        malformed = {
+          'rack.session' => {},
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_AUTHORIZATION' => "Basic #{Base64.strict_encode64('no-colon-here')}",
+        }
+
+        expect(stashed_reason_for(bearer)).to eq(:api_key_invalid)
+        expect(stashed_reason_for(malformed)).to eq(:api_key_invalid)
+      end
+
+      it 'stashes suspended_credentials for a valid key on a suspended account' do
+        test_customer.suspended = 'true'
+        test_customer.save
+
+        expect(stashed_reason_for(env_basic_auth_valid)).to eq(:suspended_credentials)
+      end
+
+      it 'stashes nothing when the header is missing (not a rejected credential)' do
+        env = env_basic_auth_missing
+        expect(stashed_reason_for(env)).to be_nil
+        expect(Onetime::SessionFailureCode.scheme(env)).to be_nil
+      end
+
+      it 'stashes nothing on valid credentials' do
+        expect(stashed_reason_for(env_basic_auth_valid)).to be_nil
+      end
+
+      # The non-terminal carve-out answers the request as the session's, so
+      # no credential refusal reaches the wire and none is stashed.
+      it 'stashes nothing when a valid session outranks the rejected header' do
+        encoded = Base64.strict_encode64("#{test_customer.email}:wrong_key_entirely")
+        env     = {
+          'rack.session' => {
+            'authenticated' => true,
+            'authenticated_at' => Familia.now.to_i,
+            'external_id' => test_customer.extid,
+            'email' => test_customer.email,
+            Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
+          },
+          'onetime.domain_strategy' => :canonical,
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_AUTHORIZATION' => "Basic #{encoded}",
+        }
+
+        expect(stashed_reason_for(env)).to be_nil
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Metadata
+    # -----------------------------------------------------------------
+    context 'metadata on successful auth' do
+      let(:result) { basic_auth_strategy.authenticate(env_basic_auth_valid, nil) }
+
+      it 'includes ip in metadata' do
+        expect(result.metadata[:ip]).to eq('127.0.0.1')
+      end
+
+      it 'includes user_agent in metadata' do
+        expect(result.metadata[:user_agent]).to eq('Test/1.0')
+      end
+
+      it 'includes auth_type: basic in metadata' do
+        expect(result.metadata[:auth_type]).to eq('basic')
+      end
+    end
+  end
+end

@@ -4,6 +4,12 @@ import vue from '@vitejs/plugin-vue';
 import { resolve } from 'path';
 import { defineConfig } from 'vitest/config';
 
+// direnv exports .env.test into the shell, which can leak NODE_ENV=production
+// into vitest. Production mode changes Vite's externalization of Node builtins
+// (malformed bare "node:" specifiers) and flips NODE_ENV-conditional code under
+// test. Tests must always run in test mode regardless of the caller's shell.
+process.env.NODE_ENV = 'test';
+
 // use mock service workers lib to mock API requests (any fetch or axios requests).
 
 // test.environment is set per project (see `projects` below). Can also use

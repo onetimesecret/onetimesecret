@@ -9,15 +9,9 @@
   "request_schema": "validateRecipient",
   "status": 200,
   "headers": {
-    "x-content-type-options": "nosniff",
-    "x-xss-protection": "1; mode=block",
-    "referrer-policy": "strict-origin-when-cross-origin",
     "content-type": "application/json",
     "cache-control": "private, no-store",
-    "o-domain-strategy": "canonical",
-    "o-display-domain": "127.0.0.1:3000",
-    "x-request-id": "28l90kt9jm5zg",
-    "content-length": "46"
+    "x-request-id": "1l59eet9eg8uq"
   },
   "body": {
     "recipient": "absent-recipient",

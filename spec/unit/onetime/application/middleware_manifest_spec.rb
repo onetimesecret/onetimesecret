@@ -20,6 +20,11 @@ require 'spec_helper'
 #      in the class body, read back via `.resolved_middleware`, which walks
 #      the ancestor chain), plus each class's declared middleware profile.
 #
+# Base#build_rack_app adds no mounts of its own beyond these two sources
+# (the per-request copy of Otto's static fallback triples moved into otto
+# 2.11, delano/otto#272; see
+# spec/integration/all/router_fallback_response_headers_spec.rb).
+#
 # ============================================================================
 # PROMINENT BLIND-SPOT WARNING
 # ============================================================================

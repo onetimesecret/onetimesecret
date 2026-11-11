@@ -70,7 +70,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       allow(accounts).to receive(:where).with(id: 42).and_return(by_id)
       # The doctor reads the accounts row ONCE (memoized `auth_account`) and
       # shares it with :sso_customer_unverified, hence :status_id in the select.
-      allow(by_external_id).to receive(:select).with(:id, :email, :status_id).and_return(by_external_id)
+      allow(by_external_id).to receive(:select).with(*described_class::AUTH_ACCOUNT_COLUMNS).and_return(by_external_id)
     end
 
     def run(repair: false)
@@ -131,6 +131,53 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       expect(repaired).to be_empty
     end
 
+    # Migration 015 (ADR-051): the verification columns qualify the row's
+    # address, so proof recorded for the SQL address does not carry over to
+    # the Customer's.
+    context 'with the migration 015 verification columns' do
+      let(:row) do
+        {
+          id: 42, email: 'stale@example.com', status_id: 2, login: 'obj_c',
+          email_verified_at: Time.utc(2026, 1, 2), email_verified_by: 'email', email_verification_hold: nil
+        }
+      end
+
+      before do
+        allow(by_external_id).to receive(:first).and_return(row)
+        allow(customer).to receive_messages(mailbox_verified?: true, verified_by: 'email')
+      end
+
+      it 'clears them when the repair moves the row to another mailbox' do
+        run(repair: true)
+
+        expect(by_id).to have_received(:update).with(
+          hash_including(email: email, email_verified_at: nil, email_verified_by: nil, email_verification_hold: nil),
+        )
+      end
+
+      it 'leaves them alone when the two addresses name one mailbox' do
+        row[:email] = " #{email}"
+
+        run(repair: true)
+
+        expect(by_id).to have_received(:update) do |attrs|
+          expect(attrs.keys).to contain_exactly(:email, :updated_at)
+        end
+      end
+
+      # The later checks read the shared memo; they must judge the repaired
+      # row, not the address the repair replaced.
+      it 'lets :auth_email_verification_drift judge the repaired row on the same run' do
+        instance = doctor(repair: true)
+
+        instance.send(:check_auth_email_drift, issues, repaired)
+        instance.send(:check_auth_login_link, issues)
+
+        expect(by_external_id).to have_received(:first).once
+        expect(issues.map { |i| i[:check] }).to eq([:auth_email_drift, :auth_email_verification_drift])
+      end
+    end
+
     # A missing row is a provisioning gap owned by `customers sync-auth-accounts`,
     # not drift.
     it 'stays silent when there is no accounts row at all' do
@@ -149,11 +196,13 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       expect(issues).to be_empty
     end
 
-    it 'never aborts the sweep when the auth database is unreachable' do
+    # Reported rather than read as "no row" (doctor_auth_account_unreadable_spec.rb).
+    it 'never aborts the sweep when the auth database is unreachable, and says it did not check' do
       allow(by_external_id).to receive(:first).and_raise(StandardError, 'db down')
 
       expect { run }.not_to raise_error
-      expect(issues).to be_empty
+      expect(issues.map { |issue| issue[:check] }).to eq([:auth_account_unreadable])
+      expect(issues.first[:checks_not_run]).to eq([:auth_email_drift])
     end
   end
 
@@ -175,7 +224,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       allow(db).to receive(:transaction) { |&blk| blk.call }
       allow(accounts).to receive(:where).with(external_id: 'ur_c').and_return(by_external_id)
       allow(accounts).to receive(:where).with(id: 42).and_return(by_id)
-      allow(by_external_id).to receive(:select).with(:id, :email, :status_id).and_return(by_external_id)
+      allow(by_external_id).to receive(:select).with(*described_class::AUTH_ACCOUNT_COLUMNS).and_return(by_external_id)
     end
 
     def run(repair: false)
@@ -337,11 +386,13 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       expect(issues).to be_empty
     end
 
-    it 'never aborts the sweep when the auth database is unreachable' do
+    # Reported rather than read as "no row" (doctor_auth_account_unreadable_spec.rb).
+    it 'never aborts the sweep when the auth database is unreachable, and says it did not check' do
       allow(by_external_id).to receive(:first).and_raise(StandardError, 'db down')
 
       expect { run }.not_to raise_error
-      expect(issues).to be_empty
+      expect(issues.map { |issue| issue[:check] }).to eq([:auth_account_unreadable])
+      expect(issues.first[:checks_not_run]).to eq([:auth_email_not_canonical])
     end
 
     it 'shares the one memoized accounts read with :auth_email_drift' do

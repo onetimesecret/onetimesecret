@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'ipaddr'
+require_relative '../utils/client_ip'
 
 module Onetime
   module Helpers
@@ -134,18 +135,21 @@ module Onetime
         cidr.prefix <= max_prefix           # Accept if prefix number is at or below threshold
       end
 
-      # Returns the client IP used for homepage CIDR matching.
+      # Returns the client IP used for homepage CIDR matching and logging.
       #
-      # Delegates to Otto::Request#ip, which reads the canonical
-      # env['otto.client_ip'] resolved once by the universal IPPrivacyMiddleware
-      # mount (configured from site.network.trusted_proxy via
-      # MiddlewareStack.ip_privacy_security_config). Homepage mode carries no
-      # proxy config of its own, so CIDR matching stays consistent with every
-      # other IP-based feature.
+      # Reads the canonical env['otto.client_ip'] resolved once by the
+      # universal IPPrivacyMiddleware mount (configured from
+      # site.network.trusted_proxy via
+      # MiddlewareStack.ip_privacy_security_config) through
+      # Onetime::Utils::ClientIp.from_request. On the no-client-IP path this
+      # is nil, so the debug log never carries the raw proxy address that
+      # Otto::Request#ip would fall back to. Homepage mode carries no proxy
+      # config of its own, so CIDR matching stays consistent with every other
+      # IP-based feature.
       #
       # @return [String, nil] Client IP address
       def extract_client_ip_for_homepage
-        req.ip
+        Onetime::Utils::ClientIp.from_request(req)
       end
 
       # Membership in the configured ranges at full precision when the
@@ -169,7 +173,7 @@ module Onetime
       # Any error is no match. The log carries the error class only: an
       # address-parse message can contain the address.
       #
-      # @param client_ip [String, nil] req.ip, used only by the fallback
+      # @param client_ip [String, nil] the resolved IP, used only by the fallback
       # @return [Boolean] True if the client is in configured ranges
       def homepage_cidrs_match?(client_ip)
         return false if @cidr_matchers.empty?

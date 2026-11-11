@@ -4,16 +4,41 @@ import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
 describe('V3 operation requests reflect producer parsing', () => {
-  for (const schema of [requests.revealSecretRequestSchema, requests.burnSecretRequestSchema]) {
-    it.each([true, false, 'true', 'false', 'anything'])(
-      'preserves confirmation %j (only true/"true" commits)',
-      (value) => {
-        expect(schema.parse({ continue: value, passphrase: 'synthetic test passphrase' })).toEqual({
+  it.each([true, false, 'true', 'false', 'anything'])(
+    'reveal preserves confirmation %j (only true/"true" commits)',
+    (value) => {
+      expect(
+        requests.revealSecretRequestSchema.parse({
           continue: value,
           passphrase: 'synthetic test passphrase',
-        });
-      }
-    );
+        })
+      ).toEqual({
+        continue: value,
+        passphrase: 'synthetic test passphrase',
+      });
+    }
+  );
+  // A burn runs only on continue true / "true"; anything else, or no value,
+  // is refused with 422 on the field (#4878), so the schema admits only the
+  // two committing values.
+  it.each([true, 'true'])('burn preserves committing confirmation %j', (value) => {
+    expect(
+      requests.burnSecretRequestSchema.parse({
+        continue: value,
+        passphrase: 'synthetic test passphrase',
+      })
+    ).toEqual({
+      continue: value,
+      passphrase: 'synthetic test passphrase',
+    });
+  });
+  it.each([false, 'false', 'anything', undefined])(
+    'burn does not document the refused confirmation %j',
+    (value) => {
+      expect(requests.burnSecretRequestSchema.safeParse({ continue: value }).success).toBe(false);
+    }
+  );
+  for (const schema of [requests.revealSecretRequestSchema, requests.burnSecretRequestSchema]) {
     it.each([1, null, [], {}])('does not document malformed confirmation %j', (value) => {
       expect(schema.safeParse({ continue: value }).success).toBe(false);
     });

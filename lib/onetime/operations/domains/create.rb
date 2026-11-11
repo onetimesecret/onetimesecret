@@ -163,6 +163,15 @@ module Onetime
           @display_domain = check.display_domain
           return rejected_result(check) unless check.status == :ok
 
+          # Atomicity: the #validate duplicate/orphan pre-checks run in a
+          # separate step and can race a concurrent request — they are advisory
+          # (for precise field errors), NOT for correctness. create! is the sole
+          # atomic gate: a new domain claims its ASCII (A-label) name
+          # (claim_ascii_display_domain), and claim_orphaned_domain uses a
+          # pinned-connection WATCH/MULTI to claim an orphan. The concurrent
+          # request that loses the gate gets an error raised here, so no
+          # double-registration occurs.
+          #
           # Adopt only the orphan validate found (and showed the operator).
           # A name that turned into an orphan after validate is refused.
           domain   = Onetime::CustomDomain.create!(check.display_domain, @org.objid, adopt_orphan: check.claims_orphan)

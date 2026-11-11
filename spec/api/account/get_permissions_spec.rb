@@ -20,6 +20,7 @@ RSpec.describe 'GET /api/account/permissions', type: :integration do
   include Rack::Test::Methods
 
   before(:all) do
+    @previous_authentication_mode = ENV['AUTHENTICATION_MODE']
     ENV['AUTHENTICATION_MODE'] = 'full'
 
     # Reset registries to clear state from previous test runs
@@ -39,7 +40,19 @@ RSpec.describe 'GET /api/account/permissions', type: :integration do
   end
 
   after(:all) do
-    ENV.delete('AUTHENTICATION_MODE')
+    # Put the process back the way the lane started it. The reload above
+    # switched the whole rspec process into full mode and the registry was
+    # prepared in that mode; a spec that runs later in the same process and
+    # signs in through /auth/login (api_v3_bearer_token_spec.rb) would reach
+    # Rodauth with no accounts table and fail, depending on the random order.
+    if @previous_authentication_mode.nil?
+      ENV.delete('AUTHENTICATION_MODE')
+    else
+      ENV['AUTHENTICATION_MODE'] = @previous_authentication_mode
+    end
+    Onetime.auth_config.reload!
+    Onetime::Application::Registry.reset!
+    Onetime::Application::Registry.prepare_application_registry
   end
 
   def app

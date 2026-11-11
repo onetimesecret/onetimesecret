@@ -11,6 +11,7 @@ module Auth::Config::Features
   require_relative 'features/lockout'
   require_relative 'features/password_requirements'
   require_relative 'features/mfa'
+  require_relative 'features/oauth'
   require_relative 'features/omniauth'
   require_relative 'features/remember_me'
   require_relative 'features/webauthn'
