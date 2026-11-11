@@ -375,11 +375,14 @@ module Onetime
     DEFAULT_MESSAGE = 'This could not be completed right now. Please try again shortly.'
     RETRY_AFTER     = 5
 
-    attr_reader :reason
+    attr_reader :reason, :retry_after
 
-    def initialize(message = DEFAULT_MESSAGE, reason:)
+    # @param retry_after [Integer] seconds the client should wait; a raiser
+    #   that knows when the condition clears passes it, others get RETRY_AFTER
+    def initialize(message = DEFAULT_MESSAGE, reason:, retry_after: RETRY_AFTER)
       super(message)
-      @reason = reason.to_sym
+      @reason      = reason.to_sym
+      @retry_after = retry_after
     end
 
     def to_h
@@ -387,7 +390,7 @@ module Onetime
         error: message,
         error_type: 'TemporarilyUnavailable',
         reason: reason,
-        retry_after: RETRY_AFTER,
+        retry_after: retry_after,
       }
     end
   end

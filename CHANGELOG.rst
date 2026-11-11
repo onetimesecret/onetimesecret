@@ -22,6 +22,198 @@ linked release histories provide the underlying contribution records.
 
    <!--scriv-insert-here-->
 
+.. _changelog-0.26.20:
+
+0.26.20 — 2026-11-11
+====================
+
+Added
+-----
+
+- The v3 API can issue short-lived PASETO v4.public bearer tokens. This is
+  off by default; with ``PASETO_ENABLED=true``, ``POST /api/v3/token``
+  exchanges a browser session or an API key for a token valid for
+  ``PASETO_TOKEN_TTL`` seconds (default one hour, at most one day). Tokens
+  are refused after the account is suspended, its password changes or its
+  API key is rotated; rotation does not sign the browser session out. A
+  rejected token gets a 401 with ``api_token_invalid`` or
+  ``api_token_expired`` and a ``WWW-Authenticate: Bearer`` challenge. When
+  the account's credential watermark is 60 seconds or more ahead of the
+  node's clock, ``POST /api/v3/token`` answers 503 with ``Retry-After``
+  (``reason: credential_watermark_ahead``). The signing key derives from
+  ``SECRET``, and ``SECRET_PREVIOUS`` keeps verifying tokens signed before a
+  rotation. See ``docs/authentication/api-bearer-tokens.md``. (#2427, #4871,
+  #4875)
+
+- Organization owners can open the Stripe Customer Portal from the billing
+  overview when the organization has a Stripe customer. With a Stripe custom
+  domain, set ``STRIPE_CHECKOUT_HOST``, as Checkout already requires; in
+  live mode, save the portal settings in the Stripe Dashboard first. (#4872)
+
+- ``bin/logship`` ships newline-delimited logs to LogTide, Papertrail,
+  Loki/Grafana Cloud or Datadog; ``scripts/logtide-ship.py`` now calls it.
+  Browser error reports carry the page's request ID and the
+  ``X-Request-ID`` of failed API calls, and the example Caddy configuration
+  generates and logs one per request. See ``tools/logship/README.md`` and
+  ``docs/development/frontend-diagnostics.md``. (#4874)
+
+Changed
+-------
+
+- **Check** ``SMTP_AUTH`` **before upgrading.** SMTP delivery now uses the
+  configured mechanism (``plain``, ``login`` or ``cram_md5``; unset means
+  ``plain``) instead of always ``AUTH PLAIN``. ``SMTP_AUTH=login``, which
+  earlier example files shipped, now authenticates with ``AUTH LOGIN``,
+  which a PLAIN-only server refuses; an unrecognized value with SMTP
+  credentials fails delivery. If authentication fails after upgrading, set
+  ``SMTP_AUTH=plain`` or unset it. (#4889, #4890)
+
+- A mail backend that cannot be built from its configuration (no SMTP host,
+  missing provider credentials) no longer sends queued email to the
+  dead-letter queue as ``Invalid message format``. Boot logs
+  ``Mail configuration error, email cannot be sent`` and continues; workers
+  log ``Mail configuration error (provider: …)``, keep the message on
+  ``email.message.send`` and retry every 15 seconds. Held email goes out
+  once a worker starts with a working configuration, late enough that its
+  links may have expired. No DLQ alert fires for this; watch that log line
+  or the queue depth. (#4908)
+
+- Under the ``approximated`` validation strategy, the provider's virtual
+  host is created when a domain is verified, not when it is added, so an
+  unproven domain gets no certificate. Existing virtual hosts stay.
+  ``bin/ots domains create`` no longer takes ``--cert`` or ``--no-cert``;
+  run ``bin/ots domains verify`` once the TXT record is in place. (#4780,
+  #4800)
+
+- ``HEAD`` on the one-time read routes (v2 and v3 ``secret`` and
+  ``receipt``, guest routes included) answers 405 instead of consuming the
+  secret. ``OPTIONS`` on v2 and v3 ``/secret/generate`` and
+  ``/secret/conceal`` answers 204 without running creation logic. (#4866,
+  #4871)
+
+- A JSON request body no longer overrides a path identifier, such as the
+  secret or receipt key in the URL (otto 2.12). It still takes precedence
+  over query parameters. This release requires otto 2.12 and familia 2.13.
+  (#4871, #4875)
+
+- The v3 OpenAPI document matches what the API accepts: ``continue`` on
+  reveal and burn is a boolean or a string, burn documents ``passphrase``,
+  ``PATCH /receipt/:identifier`` documents ``memo``, and
+  ``GET /receipt/recent`` takes ``scope`` and ``domain_extid`` as query
+  parameters. (#4868, #4870)
+
+Fixed
+-----
+
+- Secret creation commits the secret, its receipt and their registrations
+  in one datastore transaction; a failure returns an error, never a partial
+  pair. Receipt updates after a reveal or burn are conditional and atomic,
+  and the consumed secret is cleaned up immediately, with its ciphertext
+  removed even when that cleanup fails. Incoming secrets keep their
+  metadata from the first save. Malformed request input is answered as a
+  client error instead of a server error. (#4866, #4867, #4869, #4873,
+  #4931)
+
+- SMTP servers that accept only ``AUTH LOGIN``, such as Azure Communication
+  Services, deliver again with ``SMTP_AUTH=login``; since v0.24.0 the
+  setting was ignored. (#4889, #4890)
+
+- A customer record recreated at sign-in (an auth account with no
+  Customer) gets ``verified_by`` ``sso`` or ``legacy`` from auth state, and
+  a WARN log line, instead of being marked verified with no provenance.
+  Neither counts as mailbox proof. ``bin/ots customers doctor --all``
+  reports a recovered customer left unverified while its auth account is verified.
+  (#4892)
+
+Security
+--------
+
+- **System roles and federated subscriptions require mailbox proof.**
+  SSO-asserted, payment, autoverify and legacy verification no longer count
+  as proof of the mailbox; ``verified_by`` must be ``email``,
+  ``invite_token``, ``cli_provision`` or ``colonel_admin``. That gates
+  colonel, admin and staff roles, impersonation and applying a deferred
+  federated subscription. SSO JIT accounts, and unverified accounts where
+  email verification is on, defer the subscription until the address is
+  verified; in simple mode the emailed verification link applies it, but
+  only a link sent after the upgrade. A link sent before it verifies the
+  account and applies nothing; such an account needs
+  ``bin/ots customers verify EMAIL``. Microsoft Entra's
+  ``xms_edov: false`` withholds verification, and ``xms_edov: true`` is
+  domain-owner verification only, never mailbox proof. **Before
+  deploying,** run ``bin/ots customers doctor --all``: a colonel, admin or
+  staff account without mailbox proof loses the role until
+  ``bin/ots customers verify EMAIL`` or Colonel verifies it. Export
+  ``AUTHENTICATION_MODE`` in every process that runs billing or customer
+  repair; without it a subscription stays pending and
+  ``customers doctor --repair`` refuses. The full-stack compose file now
+  sets it for ``worker-email`` and ``scheduler``. (#4735, #4754, #4914)
+
+- **Tenant SSO creates accounts only in proven email domains.** A custom
+  domain's identity provider creates an account only for an address in a
+  domain the organization has proven: the custom domain, a name below it,
+  or another of its custom domains, verified by a Colonel override or,
+  under ``approximated`` and ``caddy_on_demand``, by a recorded TXT check.
+  Before, a tenant identity provider could create an account for any
+  unclaimed address. People already signed in through a tenant keep
+  signing in; those outside proven domains are logged as
+  ``omniauth_tenant_email_domain_unverified`` and listed by
+  ``bin/ots sso audit-email-domains DOMAIN``. **After upgrading:** on
+  ``passthrough`` installs (the default) with tenant SSO, override each
+  tenant domain's verification in Colonel; on TXT-strategy installs, run
+  ``bin/ots domains verify --all``. Until then, new people are refused with
+  ``domain_not_allowed``. Tenants whose people use another email domain add
+  it as a custom domain and prove it the same way. See
+  ``docs/authentication/per-domain-sso.md``, "Passthrough installs".
+  (#4734, #4755)
+
+- ``verified_by`` tags are validated against
+  ``Onetime::Customer::VERIFIED_BY_VALUES``; an unknown tag raises before
+  any write. (#4892)
+
+- Updated dependencies for published advisories:
+
+  - ``rack`` 3.2.8: GHSA-5v64-555j-wjxm (High), GHSA-2j8w-xcrc-x985,
+    GHSA-wvg4-6p58-3gh3, GHSA-p8x9-v4hv-2w4g. (#4883)
+  - ``activesupport`` and ``activemodel`` 8.1.4.1: GHSA-8474-xrp6-wh69
+    (High), GHSA-2w9f-fxwj-w2qf; both arrive through
+    ``omniauth_openid_connect``. (#4915)
+  - ``resolv`` 0.7.2: CVE-2026-80212 (CVSS 7.5), CVE-2026-80213. Ruby
+    3.4.10 bundles 0.7.1, which bundler-audit does not check. (#4910)
+  - ``dompurify`` 3.4.17: GHSA-cg2g-xh64-v4q7 (Critical),
+    GHSA-mrv2-3pqr-j5jr (High), GHSA-c6gr-qvv4-5v3f. (#4853)
+  - ``omniauth`` 2.2.0: GHSA-m27g-v28p-f9fx (CVE-2026-63183), forged
+    request hosts in callback URLs. The new ``allowed_hosts`` guard stays
+    inactive here because ``OmniAuth.config.full_host`` is already set.
+    (#4941)
+  - ``zod`` 4.6.6: GHSA-mrhx-c7xc-m3w5 (High). (#4854, #4887)
+  - ``vue-i18n`` and ``@intlify/core`` 11.4.14: GHSA-83rm-6c8r-g728 (High),
+    GHSA-8rc2-428q-7ww3. (#4884, #4885)
+  - ``sqlite3`` 2.10.2: GHSA-4fqr-96q8-xrfx. (#4886)
+  - ``nokogiri`` 1.19.7 and ``loofah`` 2.25.3: GHSA-4p39-36wj-23h4,
+    GHSA-v995-44v6-5fqm, GHSA-3w22-6jfg-527w, GHSA-345x-3rq2-jfrm,
+    GHSA-h6v6-rg66-fqj4, GHSA-m3x9-938q-5767, GHSA-mf2j-8f84-cc9q,
+    GHSA-jcff-cj73-4w4f, GHSA-p9wj-w8xq-vjx6. (#4895)
+  - ``sanitize`` 7.0.1: GHSA-wgw9-qhqg-8hv5. (#4874)
+
+Documentation
+-------------
+
+- The SSO-accounts-unverified runbook explains that records with a
+  ``verification_hold`` are reported by the customers doctor but never
+  auto-repaired. (#4892)
+
+AI Assistance
+-------------
+
+- Claude, per the commit trailers: API request handling and receipt
+  persistence, PASETO bearer tokens, mailbox-proof gating, tenant SSO email
+  domains, ``SMTP_AUTH``, mail configuration errors, virtual hosts on
+  verification, login-recovery provenance and the dependency advisory
+  updates. Claude also condensed these notes from the fragments.
+
+`Contribution records <https://github.com/onetimesecret/onetimesecret/compare/v0.26.19...v0.26.20>`__.
+
 .. _changelog-0.26.19:
 
 0.26.19 — 2026-10-24
@@ -164,6 +356,13 @@ Fixed
 - Secret, receipt and incoming-confirmation pages discourage search
   indexing and use neutral social previews. (#4859)
 
+- Purging or closing an account no longer refuses, with
+  ``default_workspace_mismatch``, a member who joined an organization through
+  SSO on its custom domain. Removing a member clears their default
+  organization when it names the organization they left; values left by
+  earlier removals are cleared by ``bin/ots customers doctor --all --repair``.
+  (#4860, #4862)
+
 Security
 --------
 
@@ -181,7 +380,7 @@ AI Assistance
   verification and passkey recovery codes, domain rule validation,
   configuration controls and local frontend builds.
 
-`Contribution records <https://github.com/onetimesecret/onetimesecret/compare/v0.26.18...bd298b83e5>`__.
+`Contribution records <https://github.com/onetimesecret/onetimesecret/compare/v0.26.18...v0.26.19>`__.
 
 .. _changelog-0.26.18:
 

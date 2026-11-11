@@ -16,12 +16,12 @@ Security
 Changed
 -------
 
-- Upgraded otto to 2.12. Otto's ``referrer_policy`` setting replaces its
-  hard-coded ``strict-origin-when-cross-origin``, which had overridden the
+- Otto's ``referrer_policy`` setting (otto 2.12) replaces its hard-coded
+  ``strict-origin-when-cross-origin``, which had overridden the
   application's configured policy on every page Otto served. The HTTP header
   and the ``<meta name="referrer">`` tag now agree.
 
-- A JSON request body can no longer override a path or query value in the
-  API's Logic classes, and JSON bodies are ignored on ``GET`` and ``HEAD``.
-  The secret and receipt endpoints read the identifier from the matched
-  route path directly.
+- The secret and receipt endpoints read the identifier from the matched
+  route path directly, so no query, form or JSON value can stand in for it.
+  0.26.20 already stopped a JSON body from overriding it. A JSON body still
+  takes precedence over query parameters. (delano/otto#285)

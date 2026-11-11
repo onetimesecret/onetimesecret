@@ -152,7 +152,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@babel/helpers": "7.29.7",
+    "@babel/helpers": "7.29.10",
     "@codemirror/lang-json": "6.0.2",
     "@codemirror/lang-yaml": "6.1.3",
     "@codemirror/state": "6.7.6",
@@ -192,16 +192,16 @@
   "devDependencies": {
     "@apidevtools/swagger-parser": "12.1.0",
     "@axe-core/playwright": "4.13.0",
-    "@eslint/js": "9.39.4",
+    "@eslint/js": "9.39.5",
     "@eslint/plugin-kit": "0.7.3",
     "@intlify/devtools-types": "11.3.0",
     "@intlify/eslint-plugin-vue-i18n": "4.3.0",
-    "@intlify/unplugin-vue-i18n": "11.2.5",
+    "@intlify/unplugin-vue-i18n": "11.2.8",
     "@pinia/testing": "1.0.3",
     "@playwright/test": "1.62.1",
     "@prettier/plugin-ruby": "4.0.4",
     "@ruby/prism": "1.9.0",
-    "@sentry/cli": "3.8.0",
+    "@sentry/cli": "3.8.2",
     "@sentry/vite-plugin": "4.9.1",
     "@tailwindcss/forms": "0.5.11",
     "@tailwindcss/typography": "0.5.20",
@@ -220,7 +220,7 @@
     "@vue/test-utils": "2.5.1",
     "axios-mock-adapter": "2.1.0",
     "esbuild": "0.28.2",
-    "eslint": "9.39.4",
+    "eslint": "9.39.5",
     "eslint-config-prettier": "10.1.8",
     "eslint-import-resolver-typescript": "4.4.5",
     "eslint-plugin-import": "2.32.0",
@@ -237,7 +237,7 @@
     "jsdom": "30.0.1",
     "lint-staged": "16.4.0",
     "playwright": "1.62.1",
-    "postcss": "8.5.29",
+    "postcss": "8.5.32",
     "prettier": "3.8.1",
     "prettier-plugin-tailwindcss": "0.8.1",
     "prettier-plugin-vue": "1.1.6",
@@ -263,7 +263,7 @@
     "vitest-axe": "0.1.0",
     "vue-eslint-parser": "10.4.1",
     "vue-router-mock": "2.0.2",
-    "vue-tsc": "3.3.2"
+    "vue-tsc": "3.3.13"
   },
   "signature": "4pSP4pST4pSz4pST4pSP4pST4pSP4pSz4pST4pSz4pSz4pSz4pST4pSP4pSTCuKUg+KUg+KUg+KUg+KUoyAg4pSDIOKUg+KUg+KUg+KUg+KUowrilJfilJvilJvilJfilJfilJsg4pS7IOKUu+KUmyDilJfilJfilJsKCg=="
 }
