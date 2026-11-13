@@ -45,8 +45,9 @@ end
 # SETUP: Mock OT.conf for testing
 # -------------------------------------------------------------------
 
-## Create a test config that we can modify
-@test_config = {
+## Create a test config that we can modify: the booted config with these
+## settings over it, so the request finds every key the middleware reads.
+@test_config = OT::Config.deep_merge(OT.conf, {
   'site' => {
     'host' => 'localhost',
     'ssl' => false,
@@ -67,7 +68,7 @@ end
       }
     }
   }
-}
+})
 
 ## Stub OT.conf to return our test config
 def OT.conf
