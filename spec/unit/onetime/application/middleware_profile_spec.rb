@@ -109,7 +109,7 @@ RSpec.describe Onetime::Application::MiddlewareProfile do
     # the shared site.middleware.<key> toggles.
     def stub_profile_config(settings, profile: 'authenticated_web')
       allow(Onetime).to receive(:conf).and_return(
-        'site' => { 'middleware' => { 'profiles' => { profile => settings } } },
+        Onetime::Config.wrap('site' => { 'middleware' => { 'profiles' => { profile => settings } } }),
       )
     end
 
@@ -119,7 +119,7 @@ RSpec.describe Onetime::Application::MiddlewareProfile do
     end
 
     it 'does not mount components when the profiles section is absent (fail-safe)' do
-      allow(Onetime).to receive(:conf).and_return('site' => { 'middleware' => {} })
+      allow(Onetime).to receive(:conf).and_return(Onetime::Config.wrap('site' => { 'middleware' => {} }))
       described_class.apply(:authenticated_web, recorder)
       expect(recorder.used).to be_empty
     end
@@ -133,7 +133,7 @@ RSpec.describe Onetime::Application::MiddlewareProfile do
     it 'ignores the shared site.middleware.<key> toggles entirely' do
       # Shared toggles all true, profile section absent: nothing mounts.
       allow(Onetime).to receive(:conf).and_return(
-        'site' => { 'middleware' => { 'frame_options' => true, 'http_origin' => true } },
+        Onetime::Config.wrap('site' => { 'middleware' => { 'frame_options' => true, 'http_origin' => true } }),
       )
       described_class.apply(:authenticated_web, recorder)
       expect(recorder.used).to be_empty

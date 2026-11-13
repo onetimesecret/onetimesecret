@@ -468,7 +468,7 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
 
     def stub_conf(value)
       conf = { 'site' => { 'secret_options' => { 'ttl_max_anonymous' => value } } }
-      allow(OT).to receive(:conf).and_return(conf)
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf))
     end
 
     it 'defaults to 7 days when the key is unset' do
@@ -535,7 +535,7 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
     it 'falls back to the default when the config read raises' do
       faulty = instance_double(Hash)
       allow(faulty).to receive(:dig).and_raise(StandardError, 'config unreadable')
-      allow(OT).to receive(:conf).and_return(faulty)
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap(faulty))
       allow(OT).to receive(:le)
 
       expect(described_module.configured_anonymous_max_ttl)

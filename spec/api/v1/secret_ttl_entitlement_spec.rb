@@ -79,14 +79,14 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
 
   def stub_secret_options
     allow(OT).to receive(:conf).and_return(
-      'site' => {
+      OT::Config.wrap('site' => {
         'secret_options' => {
           'default_ttl' => 7 * 24 * 60 * 60,
           'ttl_options' => [60, 3600, 86_400, 604_800, 2_592_000],
         },
         'domains' => { 'enabled' => false },
         'authentication' => {},
-      },
+      }),
     )
   end
 

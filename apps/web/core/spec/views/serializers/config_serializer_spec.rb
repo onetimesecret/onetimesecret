@@ -132,7 +132,7 @@ RSpec.describe Core::Views::ConfigSerializer do
     # SigninConfig.global_auth_enabled (AUTH_ENABLED) before the credential
     # checks, and these examples exercise the credential/permission gates.
     allow(OT).to receive(:conf).and_return(
-      { 'site' => { 'authentication' => { 'enabled' => true } } }
+      OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => true } } })
     )
   end
 
@@ -949,7 +949,7 @@ RSpec.describe Core::Views::ConfigSerializer do
           # shape before consulting env-var provider config
           # (build_platform_sso_config re-checks as defense in depth).
           allow(OT).to receive(:conf).and_return(
-            { 'site' => { 'authentication' => { 'enabled' => false } } }
+            OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => false } } })
           )
         end
 
@@ -1282,7 +1282,7 @@ RSpec.describe Core::Views::ConfigSerializer do
               { 'route_name' => 'google', 'display_name' => 'Google' },
             ])
             allow(OT).to receive(:conf).and_return(
-              { 'site' => { 'authentication' => { 'enabled' => false } } }
+              OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => false } } })
             )
           end
 
@@ -1417,7 +1417,7 @@ RSpec.describe Core::Views::ConfigSerializer do
     context 'when AUTH_ENABLED is off' do
       before do
         allow(OT).to receive(:conf).and_return(
-          { 'site' => { 'authentication' => { 'enabled' => false } } }
+          OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => false } } })
         )
       end
 
@@ -1469,7 +1469,7 @@ RSpec.describe Core::Views::ConfigSerializer do
     context 'when AUTH_ENABLED is off' do
       before do
         allow(OT).to receive(:conf).and_return(
-          { 'site' => { 'authentication' => { 'enabled' => false } } }
+          OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => false } } })
         )
       end
 
@@ -1522,7 +1522,7 @@ RSpec.describe Core::Views::ConfigSerializer do
     context 'when AUTH_ENABLED is off' do
       before do
         allow(OT).to receive(:conf).and_return(
-          { 'site' => { 'authentication' => { 'enabled' => false } } }
+          OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => false } } })
         )
       end
 
@@ -1550,7 +1550,7 @@ RSpec.describe Core::Views::ConfigSerializer do
       # what they are named for.
       before do
         allow(OT).to receive(:conf).and_return(
-          { 'site' => { 'authentication' => { 'enabled' => true, 'signin' => true } } }
+          OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => true, 'signin' => true } } })
         )
         allow(mock_auth_config).to receive(:email_auth_enabled?).and_return(true)
       end

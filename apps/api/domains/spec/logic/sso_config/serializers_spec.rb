@@ -78,7 +78,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Serializers do
 
     before do
       allow(config).to receive(:custom_domain).and_return(custom_domain)
-      allow(OT).to receive(:conf).and_return('site' => { 'ssl' => true })
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap('site' => { 'ssl' => true }))
     end
 
     let(:tenant_identifiers) do
@@ -158,7 +158,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Serializers do
       conf    = YAML.load(YAML.dump(OT.conf))
       domains = ((conf['features'] ||= {})['domains'] ||= {})
       overrides.each { |key, value| domains[key.to_s] = value }
-      allow(OT).to receive(:conf).and_return(conf)
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf))
     end
 
     let(:own_domain)   { domain_double('dom-own', 'secrets.acme.com', verified: true, override: true) }

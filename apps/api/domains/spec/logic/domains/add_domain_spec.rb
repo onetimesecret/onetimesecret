@@ -73,10 +73,10 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
     allow(OT).to receive(:le)
     allow(logic).to receive(:logger).and_return(app_logger_double)
     allow(OT).to receive(:now).and_return(Time.now.to_i)
-    allow(OT).to receive(:conf).and_return({
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({
       'site' => {},
       'features' => { 'domains' => { 'enabled' => true } },
-    })
+    }))
 
     allow(logic).to receive(:organization).and_return(organization)
     allow(logic).to receive(:target_organization).and_return(organization)
@@ -220,10 +220,10 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
     end
 
     before do
-      allow(OT).to receive(:conf).and_return({
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({
         'site' => {},
         'features' => { 'domains' => { 'enabled' => true, 'validation_strategy' => 'approximated' } },
-      })
+      }))
       allow(Onetime::CustomDomain).to receive(:create!).and_return(new_domain)
       allow(Onetime::DomainValidation::Strategy).to receive(:for_config).and_return(strategy)
       logic.instance_variable_set(:@display_domain, 'example.com')

@@ -39,8 +39,8 @@ RSpec.describe Onetime::Utils::CanonicalHosts do
     domains['link_domains'] = link_domains unless link_domains == :unset
 
     allow(OT).to receive(:conf).and_return(
-      'site' => { 'host' => site_host },
-      'features' => { 'domains' => domains },
+      OT::Config.wrap('site' => { 'host' => site_host },
+      'features' => { 'domains' => domains }),
     )
   end
 
@@ -384,7 +384,7 @@ RSpec.describe Onetime::Utils::CanonicalHosts do
   end
 
   describe 'with no hosts configured at all' do
-    before { allow(OT).to receive(:conf).and_return({}) }
+    before { allow(OT).to receive(:conf).and_return(OT::Config.wrap({})) }
 
     it 'returns empty sets rather than raising' do
       expect(described_class.hosts).to eq([])

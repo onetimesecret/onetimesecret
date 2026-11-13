@@ -87,7 +87,7 @@ RSpec.describe 'sign-in/sign-up default polarity by host classification' do
 
   before do
     allow(Onetime).to receive(:auth_config).and_return(mock_auth_config)
-    allow(OT).to receive(:conf).and_return({ 'site' => { 'authentication' => auth_settings } })
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'authentication' => auth_settings } }))
 
     # ONE identity read, stubbed once: the runtime gates
     # (Core::Controllers::Base#custom_domain_id,

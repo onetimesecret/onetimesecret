@@ -37,7 +37,7 @@ RSpec.describe Onetime::CustomDomain::HomepageConfig do
   end
 
   before do
-    allow(OT).to receive(:conf).and_return(conf)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf))
     allow(Onetime::CustomDomain::IncomingConfig).to receive(:find_by_domain_id)
       .with('domain123')
       .and_return(incoming_config)

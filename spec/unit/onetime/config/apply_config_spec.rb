@@ -84,7 +84,7 @@ RSpec.describe Onetime::Config do
 
     before do
       # Mock OT.conf to return our test configuration
-      allow(OT).to receive(:conf).and_return(original_config)
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap(original_config))
     end
 
     context 'with valid configurations' do

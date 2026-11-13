@@ -15,12 +15,12 @@ RSpec.describe Onetime::Application::MiddlewareStack do
 
     def stub_conf(trusted_proxy, geo = {})
       allow(OT).to receive(:conf).and_return(
-        'site' => { 'network' => { 'trusted_proxy' => trusted_proxy, 'geo' => geo } },
+        OT::Config.wrap('site' => { 'network' => { 'trusted_proxy' => trusted_proxy, 'geo' => geo } }),
       )
     end
 
     context 'when trusted_proxy is absent' do
-      before { allow(OT).to receive(:conf).and_return({}) }
+      before { allow(OT).to receive(:conf).and_return(OT::Config.wrap({})) }
 
       it 'still masks private/localhost IPs while trusting no proxy hop' do
         # The removed per-router enable_full_ip_privacy! calls ran
@@ -369,12 +369,12 @@ RSpec.describe Onetime::Application::MiddlewareStack do
     describe '.trusted_proxy_enabled?' do
       def stub_conf(trusted_proxy)
         allow(OT).to receive(:conf).and_return(
-          'site' => { 'network' => { 'trusted_proxy' => trusted_proxy } },
+          OT::Config.wrap('site' => { 'network' => { 'trusted_proxy' => trusted_proxy } }),
         )
       end
 
       it 'is false when the trusted_proxy section is absent' do
-        allow(OT).to receive(:conf).and_return({})
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({}))
         expect(described_class.trusted_proxy_enabled?).to be(false)
       end
 
@@ -401,7 +401,7 @@ RSpec.describe Onetime::Application::MiddlewareStack do
 
       def stub_mode(value)
         allow(OT).to receive(:conf).and_return(
-          'site' => { 'network' => { 'trusted_proxy' => { 'enabled' => true, 'mode' => value } } },
+          OT::Config.wrap('site' => { 'network' => { 'trusted_proxy' => { 'enabled' => true, 'mode' => value } } }),
         )
       end
 
@@ -423,7 +423,7 @@ RSpec.describe Onetime::Application::MiddlewareStack do
 
       context 'with nothing configured' do
         it 'defaults to filter when the trusted_proxy section is absent' do
-          allow(OT).to receive(:conf).and_return({})
+          allow(OT).to receive(:conf).and_return(OT::Config.wrap({}))
           aggregate_failures do
             expect(mode).to eq('filter')
             expect(OT).not_to have_received(:lw)
@@ -432,7 +432,7 @@ RSpec.describe Onetime::Application::MiddlewareStack do
 
         it 'defaults to filter when the key is absent from an enabled block' do
           allow(OT).to receive(:conf).and_return(
-            'site' => { 'network' => { 'trusted_proxy' => { 'enabled' => true } } },
+            OT::Config.wrap('site' => { 'network' => { 'trusted_proxy' => { 'enabled' => true } } }),
           )
           aggregate_failures do
             expect(mode).to eq('filter')

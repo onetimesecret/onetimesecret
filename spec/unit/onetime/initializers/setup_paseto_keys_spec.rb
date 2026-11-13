@@ -18,7 +18,7 @@ RSpec.describe Onetime::Initializers::SetupPasetoKeys do
   before do
     @previous_env = ENV.fetch('SECRET_PREVIOUS', nil)
     ENV.delete('SECRET_PREVIOUS')
-    allow(OT).to receive(:conf).and_return({ 'site' => { 'secret' => secret } })
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'secret' => secret } }))
     Onetime::Runtime.update_security(paseto_keyring: nil)
   end
 
@@ -63,7 +63,7 @@ RSpec.describe Onetime::Initializers::SetupPasetoKeys do
     # presented token with a terminal refusal while the keyring is missing.
     Onetime::Runtime.update_security(paseto_keyring: Onetime::Paseto::Keyring.derive('stale' * 13))
     boot_logger = instance_double(SemanticLogger::Logger, warn: nil, debug: nil)
-    allow(OT).to receive_messages(conf: { 'site' => { 'secret' => '' } }, boot_logger: boot_logger)
+    allow(OT).to receive_messages(conf: OT::Config.wrap({ 'site' => { 'secret' => '' } }), boot_logger: boot_logger)
 
     expect { initializer.execute(nil) }.not_to raise_error
     expect(boot_logger).to have_received(:warn).with(/site.secret is empty/)
@@ -73,7 +73,7 @@ RSpec.describe Onetime::Initializers::SetupPasetoKeys do
 
   it 'treats a nil site.secret the same as an empty one' do
     allow(OT).to receive_messages(
-      conf: { 'site' => {} },
+      conf: OT::Config.wrap({ 'site' => {} }),
       boot_logger: instance_double(SemanticLogger::Logger, warn: nil, debug: nil),
     )
 

@@ -13,7 +13,7 @@ RSpec.describe 'OmniAuth Domain Validation' do
       before do
         # Clear any existing config
         allow(OT).to receive(:conf).and_return(
-          { 'site' => { 'authentication' => { 'allowed_signup_domains' => [] } } }
+          OT::Config.wrap({ 'site' => { 'authentication' => { 'allowed_signup_domains' => [] } } })
         )
       end
 

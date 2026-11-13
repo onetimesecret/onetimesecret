@@ -248,7 +248,7 @@ RSpec.describe 'signup validation request lookup wiring (F1)' do
     allow(Auth::Logging).to receive(:log_auth_event)
     allow(OT).to receive(:le)
     allow(OT).to receive(:conf).and_return(
-      'site' => { 'authentication' => { 'allowed_signup_domains' => nil } },
+      OT::Config.wrap('site' => { 'authentication' => { 'allowed_signup_domains' => nil } }),
     )
     allow(Onetime::CustomDomain::SignupConfig).to receive(:find_by_domain_id)
       .with('domain-acme').and_return(config)

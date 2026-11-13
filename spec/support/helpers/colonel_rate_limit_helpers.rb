@@ -30,7 +30,7 @@ module ColonelRateLimitHelpers
     conf['site']['admin']['rate_limit'] = buckets
       .to_h { |section, settings| [section.to_s, stringify(settings)] }
       .merge('enabled' => enabled)
-    allow(OT).to receive(:conf).and_return(conf)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf))
     conf
   end
 

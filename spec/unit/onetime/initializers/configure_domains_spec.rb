@@ -18,7 +18,7 @@ RSpec.describe Onetime::Initializers::ConfigureDomains do
   def configure(domains)
     conf             = YAML.load(YAML.dump(OT.conf))
     conf['features'] = (conf['features'] || {}).merge('domains' => domains)
-    allow(OT).to receive(:conf).and_return(conf)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf))
   end
 
   let(:warnings) { [] }

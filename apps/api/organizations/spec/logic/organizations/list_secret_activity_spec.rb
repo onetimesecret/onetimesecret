@@ -185,7 +185,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListSecretActivity do
 
     it 'rejects with forbidden before loading the org when the flag is false' do
       allow(OT).to receive(:conf)
-        .and_return(conf_with_audit_logs_flag('audit_logs_enabled' => false))
+        .and_return(OT::Config.wrap(conf_with_audit_logs_flag('audit_logs_enabled' => false)))
 
       logic.process_params
       expect { logic.raise_concerns }.to raise_error(Onetime::FormError) { |ex|
@@ -201,7 +201,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListSecretActivity do
     # would still pass while leaving the alert unattributable.
     it 'logs the denial with a structured payload' do
       allow(OT).to receive(:conf)
-        .and_return(conf_with_audit_logs_flag('audit_logs_enabled' => false))
+        .and_return(OT::Config.wrap(conf_with_audit_logs_flag('audit_logs_enabled' => false)))
 
       logic.process_params
       expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
@@ -218,7 +218,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListSecretActivity do
     # while this endpoint kept serving the trail.
     it "rejects when the flag is the string 'false' (hand-edited config)" do
       allow(OT).to receive(:conf)
-        .and_return(conf_with_audit_logs_flag('audit_logs_enabled' => 'false'))
+        .and_return(OT::Config.wrap(conf_with_audit_logs_flag('audit_logs_enabled' => 'false')))
 
       logic.process_params
       expect { logic.raise_concerns }.to raise_error(Onetime::FormError) { |ex|
@@ -229,7 +229,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListSecretActivity do
 
     it "proceeds when the flag is the string 'true'" do
       allow(OT).to receive(:conf)
-        .and_return(conf_with_audit_logs_flag('audit_logs_enabled' => 'true'))
+        .and_return(OT::Config.wrap(conf_with_audit_logs_flag('audit_logs_enabled' => 'true')))
 
       logic.process_params
       expect { logic.raise_concerns }.not_to raise_error
@@ -237,7 +237,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListSecretActivity do
 
     it 'counts nil as enabled (default-true contract)' do
       allow(OT).to receive(:conf)
-        .and_return(conf_with_audit_logs_flag('audit_logs_enabled' => nil))
+        .and_return(OT::Config.wrap(conf_with_audit_logs_flag('audit_logs_enabled' => nil)))
 
       logic.process_params
       expect { logic.raise_concerns }.not_to raise_error
@@ -245,14 +245,14 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListSecretActivity do
 
     it 'proceeds when the flag is explicitly true' do
       allow(OT).to receive(:conf)
-        .and_return(conf_with_audit_logs_flag('audit_logs_enabled' => true))
+        .and_return(OT::Config.wrap(conf_with_audit_logs_flag('audit_logs_enabled' => true)))
 
       logic.process_params
       expect { logic.raise_concerns }.not_to raise_error
     end
 
     it 'counts an absent key as enabled (default-true contract)' do
-      allow(OT).to receive(:conf).and_return(conf_with_audit_logs_flag({}))
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf_with_audit_logs_flag({})))
 
       logic.process_params
       expect { logic.raise_concerns }.not_to raise_error

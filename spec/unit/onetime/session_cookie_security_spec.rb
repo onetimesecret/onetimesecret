@@ -231,7 +231,7 @@ end
 
 RSpec.describe 'Onetime.session_config secure default (L-1)' do
   def config_with(site)
-    allow(Onetime).to receive(:conf).and_return({ 'site' => site })
+    allow(Onetime).to receive(:conf).and_return(Onetime::Config.wrap({ 'site' => site }))
   end
 
   it 'defaults secure to true in production even when SSL/site.ssl is unset' do

@@ -87,14 +87,14 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
   describe '.schedule' do
     context 'when enabled' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'jobs' => {
             'expiration_warnings' => {
               'enabled' => true,
               'check_interval' => '1h'
             }
           }
-        })
+        }))
       end
 
       it 'registers an interval job with the scheduler' do
@@ -103,13 +103,13 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       end
 
       it 'uses default interval when not configured' do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'jobs' => {
             'expiration_warnings' => {
               'enabled' => true
             }
           }
-        })
+        }))
 
         expect(scheduler).to receive(:every).with('1h', first_in: '30s')
         described_class.schedule(scheduler)
@@ -118,13 +118,13 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
 
     context 'when disabled' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'jobs' => {
             'expiration_warnings' => {
               'enabled' => false
             }
           }
-        })
+        }))
       end
 
       it 'does not register any job' do
@@ -135,7 +135,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
 
     context 'when config is missing' do
       before do
-        allow(OT).to receive(:conf).and_return({})
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({}))
       end
 
       it 'does not register any job' do
@@ -151,14 +151,14 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
 
     before do
       # Set up config
-      allow(OT).to receive(:conf).and_return({
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({
         'jobs' => {
           'expiration_warnings' => {
             'enabled' => true,
             'warning_hours' => 24
           }
         }
-      })
+      }))
 
       # Mock Receipt class methods
       allow(Onetime::Receipt).to receive(:expiring_within).and_return([])
@@ -329,35 +329,35 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
 
   describe 'warning_hours configuration' do
     it 'returns configured value' do
-      allow(OT).to receive(:conf).and_return({
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({
         'jobs' => {
           'expiration_warnings' => {
             'warning_hours' => 48
           }
         }
-      })
+      }))
 
       expect(described_class.send(:warning_hours)).to eq(48)
     end
 
     it 'defaults to 24 when not configured' do
-      allow(OT).to receive(:conf).and_return({
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({
         'jobs' => {
           'expiration_warnings' => {}
         }
-      })
+      }))
 
       expect(described_class.send(:warning_hours)).to eq(24)
     end
 
     it 'defaults to 24 when configured as 0' do
-      allow(OT).to receive(:conf).and_return({
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({
         'jobs' => {
           'expiration_warnings' => {
             'warning_hours' => 0
           }
         }
-      })
+      }))
 
       expect(described_class.send(:warning_hours)).to eq(24)
     end
@@ -365,35 +365,35 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
 
   describe 'batch_size configuration' do
     it 'returns configured value' do
-      allow(OT).to receive(:conf).and_return({
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({
         'jobs' => {
           'expiration_warnings' => {
             'batch_size' => 200
           }
         }
-      })
+      }))
 
       expect(described_class.send(:batch_size)).to eq(200)
     end
 
     it 'defaults to DEFAULT_BATCH_SIZE when not configured' do
-      allow(OT).to receive(:conf).and_return({
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({
         'jobs' => {
           'expiration_warnings' => {}
         }
-      })
+      }))
 
       expect(described_class.send(:batch_size)).to eq(described_class::DEFAULT_BATCH_SIZE)
     end
 
     it 'defaults to DEFAULT_BATCH_SIZE when configured as 0' do
-      allow(OT).to receive(:conf).and_return({
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({
         'jobs' => {
           'expiration_warnings' => {
             'batch_size' => 0
           }
         }
-      })
+      }))
 
       expect(described_class.send(:batch_size)).to eq(described_class::DEFAULT_BATCH_SIZE)
     end
@@ -401,7 +401,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
 
   describe 'batch limiting (rate limiting)' do
     before do
-      allow(OT).to receive(:conf).and_return({
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({
         'jobs' => {
           'expiration_warnings' => {
             'enabled' => true,
@@ -409,7 +409,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
             'batch_size' => 2
           }
         }
-      })
+      }))
 
       allow(Onetime::Receipt).to receive(:warning_sent?).and_return(false)
       allow(Onetime::Receipt).to receive(:mark_warning_sent)

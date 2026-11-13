@@ -181,7 +181,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         'sso_enabled' => true
       ))
     )
-    allow(OT).to receive(:conf).and_return(real_conf)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(real_conf))
   end
 
   def disable_sso_feature_flag
@@ -191,7 +191,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         'sso_enabled' => false
       ))
     )
-    allow(OT).to receive(:conf).and_return(real_conf)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(real_conf))
   end
 
   def api_path(domain_extid)

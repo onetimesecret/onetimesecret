@@ -336,15 +336,15 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite do
     before { allow(described_class).to receive(:enabled?).and_call_original }
 
     it 'is true only for a literal true' do
-      allow(OT).to receive(:conf).and_return('site' => { 'network' => { 'public_host_rewrite' => true } })
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap('site' => { 'network' => { 'public_host_rewrite' => true } }))
       expect(described_class.enabled?).to be(true)
 
-      allow(OT).to receive(:conf).and_return('site' => { 'network' => { 'public_host_rewrite' => 'true' } })
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap('site' => { 'network' => { 'public_host_rewrite' => 'true' } }))
       expect(described_class.enabled?).to be(false)
     end
 
     it 'is false when the setting or the configuration is absent' do
-      allow(OT).to receive(:conf).and_return('site' => {})
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap('site' => {}))
       expect(described_class.enabled?).to be(false)
 
       allow(OT).to receive(:conf).and_return(nil)

@@ -9,11 +9,11 @@ RSpec.describe Onetime::Secret, 'reveal and decryption' do
   let(:secret_value) { 'This is the plaintext secret' }
 
   before do
-    allow(OT).to receive_messages(global_secret: 'global-test-secret', conf: {
+    allow(OT).to receive_messages(global_secret: 'global-test-secret', conf: OT::Config.wrap({
       'development' => {
         'allow_nil_global_secret' => false,
       },
-    })
+    }))
   end
 
   describe '#decrypted_secret_value' do

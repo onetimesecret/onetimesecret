@@ -111,7 +111,7 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
       'receipt' => receipt,
     }
 
-    allow(OT).to receive(:conf).and_return({
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({
       'site' => {
         'interface' => {
           'api' => {
@@ -119,12 +119,12 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
           },
         },
       },
-    })
+    }))
   end
 
   # Helper to stub empty/missing guest routes config
   def stub_empty_guest_routes_config
-    allow(OT).to receive(:conf).and_return({
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({
       'site' => {
         'interface' => {
           'api' => {
@@ -132,7 +132,7 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
           },
         },
       },
-    })
+    }))
   end
 
   before(:all) do

@@ -76,14 +76,14 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
     # Stub OT.conf
     allow(OT).to receive_messages(
-      conf: {
+      conf: OT::Config.wrap({
         'site' => {
           'authentication' => {
             'autoverify' => nil,
           },
         },
         'features' => {},
-      },
+      }),
       default_locale: 'en'
     )
 
@@ -244,13 +244,13 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
         context 'when autoverify is disabled' do
           before do
-            allow(OT).to receive(:conf).and_return({
+            allow(OT).to receive(:conf).and_return(OT::Config.wrap({
               'site' => {
                 'authentication' => {
                   'autoverify' => 'false',
                 },
               },
-            })
+            }))
           end
 
           it 'sends verification email' do
@@ -267,13 +267,13 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
         context 'when autoverify is enabled' do
           before do
-            allow(OT).to receive(:conf).and_return({
+            allow(OT).to receive(:conf).and_return(OT::Config.wrap({
               'site' => {
                 'authentication' => {
                   'autoverify' => 'true',
                 },
               },
-            })
+            }))
           end
 
           it 'does not send verification email' do

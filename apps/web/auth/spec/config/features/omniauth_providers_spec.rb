@@ -916,7 +916,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
       # (Saml.platform_acs_url); the registry stays loadable without a
       # booted config, so it is stubbed here.
       before do
-        allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => 'ots.example.com', 'ssl' => true } })
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'host' => 'ots.example.com', 'ssl' => true } }))
       end
 
       # The install-wide switch (#4604) is on for every example below except

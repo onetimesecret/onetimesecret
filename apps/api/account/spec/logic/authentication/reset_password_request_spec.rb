@@ -62,10 +62,10 @@ RSpec.describe AccountAPI::Logic::Authentication::ResetPasswordRequest do
     allow(OT).to receive(:li)
     allow(OT).to receive(:le)
     allow(OT).to receive(:default_locale).and_return('en')
-    allow(OT).to receive(:conf).and_return({
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({
       'site' => { 'authentication' => {} },
       'features' => {},
-    })
+    }))
 
     # Customer lookup: default to an existing, non-pending (normal reset) account
     allow(Onetime::Customer).to receive(:find_by_email).with(email).and_return(customer)

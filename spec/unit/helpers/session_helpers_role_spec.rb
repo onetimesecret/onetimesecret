@@ -45,7 +45,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
   end
 
   before do
-    allow(OT).to receive(:conf).and_return({ 'site' => { 'authentication' => { 'enabled' => true } } })
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => true } } }))
     allow(OT).to receive(:ld)
 
     # Principal is a colonel; target is a plain customer. `has_role?` MUST
@@ -92,7 +92,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
   end
 
   context 'when authentication is not configured' do
-    before { allow(OT).to receive(:conf).and_return({}) }
+    before { allow(OT).to receive(:conf).and_return(OT::Config.wrap({})) }
 
     it 'refuses role checks without touching the evaluator' do
       expect(Onetime::CustomerSessionEvaluator).not_to receive(:evaluate)

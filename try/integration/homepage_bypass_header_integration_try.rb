@@ -75,7 +75,7 @@ def OT.conf
 end
 
 def OT.conf=(config)
-  @test_config_override = config
+  @test_config_override = OT::Config.wrap(config)
 end
 
 OT.conf = @test_config

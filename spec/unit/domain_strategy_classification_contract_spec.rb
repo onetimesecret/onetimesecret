@@ -128,7 +128,7 @@ RSpec.describe 'DomainStrategy classification contract' do
     # predicates above — those stay `== :custom`.
     describe 'gate polarity' do
       before do
-        allow(OT).to receive(:conf).and_return({ 'site' => { 'authentication' => {} } })
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'authentication' => {} } }))
       end
 
       DomainStrategyContract::CLASSIFICATIONS.each do |strategy|
@@ -395,7 +395,7 @@ RSpec.describe 'DomainStrategy classification contract' do
     # plausible nil. signin_enabled? must not answer at all here.
     it 'does not let signin_enabled? answer from the operator global default on :invalid' do
       controller = controller_class.new(env_for(:invalid))
-      allow(OT).to receive(:conf).and_return({ 'site' => { 'authentication' => {} } })
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'authentication' => {} } }))
       allow(Onetime::CustomDomain::SigninConfig).to receive(:global_signin_enabled).and_return(true)
 
       expect { controller.send(:signin_enabled?) }

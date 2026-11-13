@@ -462,21 +462,21 @@ RSpec.describe Onetime::SsoProvider::Registry do
         end
 
         it 'defaults to the public site URL + request path + /metadata' do
-          allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => 'secrets.example.com', 'ssl' => true } })
+          allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'host' => 'secrets.example.com', 'ssl' => true } }))
 
           expect(saml_options(SAML_SP_ENTITY_ID: nil)[:sp_entity_id])
             .to eq('https://secrets.example.com/auth/sso/saml/metadata')
         end
 
         it 'follows SAML_ROUTE_NAME in the default' do
-          allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => 'secrets.example.com' } })
+          allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'host' => 'secrets.example.com' } }))
 
           expect(saml_options(SAML_SP_ENTITY_ID: nil, SAML_ROUTE_NAME: 'okta')[:sp_entity_id])
             .to eq('https://secrets.example.com/auth/sso/okta/metadata')
         end
 
         it 'refuses, and is not valid, when neither source yields a value' do
-          allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => '' } })
+          allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'host' => '' } }))
 
           expect { saml_options(SAML_SP_ENTITY_ID: nil) }.to raise_error(ArgumentError, /SAML_SP_ENTITY_ID/)
           expect(saml_valid?(SAML_SP_ENTITY_ID: nil)).to be false
@@ -489,7 +489,7 @@ RSpec.describe Onetime::SsoProvider::Registry do
       # the IdP had never been given.
       describe 'assertion_consumer_service_url (pinned to the platform base, never request-derived)' do
         before do
-          allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => 'secrets.example.com', 'ssl' => true } })
+          allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'host' => 'secrets.example.com', 'ssl' => true } }))
         end
 
         it 'is the platform base URL + callback path' do
@@ -503,7 +503,7 @@ RSpec.describe Onetime::SsoProvider::Registry do
         end
 
         it 'follows site.ssl' do
-          allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => 'localhost:7143', 'ssl' => false } })
+          allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'host' => 'localhost:7143', 'ssl' => false } }))
 
           expect(saml_options[:assertion_consumer_service_url]).to eq('http://localhost:7143/auth/sso/saml/callback')
         end
@@ -518,7 +518,7 @@ RSpec.describe Onetime::SsoProvider::Registry do
         end
 
         it 'refuses, and is not valid, when site.host is unset even with an explicit SP EntityID' do
-          allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => ' ' } })
+          allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'host' => ' ' } }))
 
           expect { saml_options(SAML_SP_ENTITY_ID: 'urn:example:ots-sp') }.to raise_error(ArgumentError, /site\.host/)
           expect(saml_valid?(SAML_SP_ENTITY_ID: 'urn:example:ots-sp')).to be false

@@ -83,7 +83,7 @@ RSpec.describe 'ListReceipts(scope: :org) / ListSecretActivity audit-gate parity
     organizations['audit_logs_enabled'] = value
     features['organizations']           = organizations
     conf['features']                    = features
-    allow(OT).to receive(:conf).and_return(conf)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf))
   end
 
   # :allowed, or :denied. Denial shape (FormError < Problem vs

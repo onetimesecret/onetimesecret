@@ -62,11 +62,11 @@ RSpec.describe Onetime::Jobs::Scheduled::PlanCacheRefreshJob, type: :billing do
   describe '.schedule' do
     context 'when enabled' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'jobs' => {
             'plan_cache_refresh' => { 'enabled' => true }
           }
-        })
+        }))
       end
 
       it 'registers an interval job with the scheduler' do
@@ -83,11 +83,11 @@ RSpec.describe Onetime::Jobs::Scheduled::PlanCacheRefreshJob, type: :billing do
 
     context 'when disabled' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'jobs' => {
             'plan_cache_refresh' => { 'enabled' => false }
           }
-        })
+        }))
       end
 
       it 'does not register any job' do
@@ -98,7 +98,7 @@ RSpec.describe Onetime::Jobs::Scheduled::PlanCacheRefreshJob, type: :billing do
 
     context 'when config is missing' do
       before do
-        allow(OT).to receive(:conf).and_return({})
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({}))
       end
 
       it 'does not register any job' do
@@ -311,37 +311,37 @@ RSpec.describe Onetime::Jobs::Scheduled::PlanCacheRefreshJob, type: :billing do
 
   describe '.enabled?' do
     it 'returns true when config is true' do
-      allow(OT).to receive(:conf).and_return({
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({
         'jobs' => {
           'plan_cache_refresh' => { 'enabled' => true }
         }
-      })
+      }))
 
       expect(described_class.send(:enabled?)).to be true
     end
 
     it 'returns false when config is false' do
-      allow(OT).to receive(:conf).and_return({
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({
         'jobs' => {
           'plan_cache_refresh' => { 'enabled' => false }
         }
-      })
+      }))
 
       expect(described_class.send(:enabled?)).to be false
     end
 
     it 'returns false when config is missing' do
-      allow(OT).to receive(:conf).and_return({})
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({}))
 
       expect(described_class.send(:enabled?)).to be false
     end
 
     it 'returns false when config is not exactly true' do
-      allow(OT).to receive(:conf).and_return({
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({
         'jobs' => {
           'plan_cache_refresh' => { 'enabled' => 'yes' }
         }
-      })
+      }))
 
       expect(described_class.send(:enabled?)).to be false
     end
