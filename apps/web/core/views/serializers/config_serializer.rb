@@ -109,16 +109,17 @@ module Core
         sentry                = diagnostics.fetch('sentry', {})
         output['d9s_enabled'] = Onetime.d9s_enabled
         Onetime.with_diagnostics do
-          defaults = sentry.fetch('defaults', {})
+          # Config.after_load merges diagnostics.sentry.defaults into each
+          # peer and drops the defaults section, so frontend carries them.
           frontend = sentry.fetch('frontend', {})
 
           output['diagnostics'] = {
             'sentry' => {
               'dsn' => frontend.fetch('dsn', ''),
               'trackComponents' => frontend.fetch('trackComponents', true),
-              'sampleRate' => defaults.fetch('sampleRate', 1.0).to_f,
-              'maxBreadcrumbs' => defaults.fetch('maxBreadcrumbs', 5).to_i,
-              'logErrors' => defaults.fetch('logErrors', true),
+              'sampleRate' => frontend.fetch('sampleRate', 1.0).to_f,
+              'maxBreadcrumbs' => frontend.fetch('maxBreadcrumbs', 5).to_i,
+              'logErrors' => frontend.fetch('logErrors', true),
               'environment' => OT.env,
               'release' => OT::VERSION.get_build_info,
             },

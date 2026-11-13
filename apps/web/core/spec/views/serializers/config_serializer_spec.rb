@@ -405,6 +405,43 @@ RSpec.describe Core::Views::ConfigSerializer do
       end
     end
 
+    # Config.after_load merges diagnostics.sentry.defaults into each peer and
+    # removes the defaults section; the serializer reads the frontend peer.
+    describe 'diagnostics.sentry' do
+      def sentry_output(sentry)
+        diagnostics = { 'sentry' => Onetime::Config.apply_defaults_to_peers(sentry) }
+        described_class.serialize(base_view_vars.merge('diagnostics' => diagnostics))['diagnostics']['sentry']
+      end
+
+      before { allow(Onetime).to receive(:d9s_enabled).and_return(true) }
+
+      it 'publishes the shared defaults the frontend peer inherits' do
+        output = sentry_output(
+          'defaults' => { 'dsn' => 'https://key@sentry.example.com/1', 'sampleRate' => 0.1, 'maxBreadcrumbs' => 7, 'logErrors' => false },
+          'frontend' => { 'dsn' => nil },
+        )
+
+        expect(output).to include(
+          'dsn' => 'https://key@sentry.example.com/1', 'sampleRate' => 0.1, 'maxBreadcrumbs' => 7, 'logErrors' => false,
+        )
+      end
+
+      it 'lets a frontend value override the shared default' do
+        output = sentry_output(
+          'defaults' => { 'sampleRate' => 0.1 },
+          'frontend' => { 'sampleRate' => 0.5 },
+        )
+
+        expect(output['sampleRate']).to eq(0.5)
+      end
+
+      it 'falls back to the SDK values when neither sets them' do
+        output = sentry_output('frontend' => { 'dsn' => 'https://key@sentry.example.com/1' })
+
+        expect(output).to include('sampleRate' => 1.0, 'maxBreadcrumbs' => 5, 'logErrors' => true)
+      end
+    end
+
     describe 'brand_* bootstrap exposure' do
       let(:brand_view_vars) do
         base_view_vars.merge(
