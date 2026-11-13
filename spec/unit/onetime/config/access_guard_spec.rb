@@ -51,6 +51,10 @@ module ConfigAccessGuard
 
   DIRECT_READS = %i[dig fetch key? []].freeze
 
+  # Reads into a get result (rule 2): the direct reads plus the other ways
+  # to look inside a Hash.
+  CHAINED_READS = (DIRECT_READS + %i[has_key? include? member? values_at fetch_values slice to_h then]).freeze
+
   # Literal paths read with a default that are not in the shipped config,
   # with the reason each can be absent.
   OPTIONAL_PATHS = {}.freeze
@@ -236,7 +240,8 @@ module ConfigAccessGuard
   end
 
   def symbol_path?(node)
-    node.is_a?(Prism::SymbolNode) || (node.is_a?(Prism::ArrayNode) && node.elements.any?(Prism::SymbolNode))
+    symbol = ->(element) { element.is_a?(Prism::SymbolNode) || element.is_a?(Prism::InterpolatedSymbolNode) }
+    symbol.call(node) || (node.is_a?(Prism::ArrayNode) && node.elements.any?(&symbol))
   end
 
   # Collects, for one file, every expression that is the config and every
@@ -278,7 +283,7 @@ module ConfigAccessGuard
       if config?(node.receiver) && node.name == :get
         @get_receivers << node.receiver.location.start_offset
         @gets << get_call(node)
-      elsif get_call?(node.receiver) && DIRECT_READS.include?(node.name)
+      elsif get_result?(node.receiver) && CHAINED_READS.include?(node.name)
         @chained_reads << node.location.start_line
       end
 
@@ -313,6 +318,20 @@ module ConfigAccessGuard
 
     def get_call?(node)
       node.is_a?(Prism::CallNode) && node.name == :get && config?(node.receiver)
+    end
+
+    # A get call, also inside parentheses or on the left of ||:
+    # (OT.conf.get('a', nil) || {})['b'].
+    def get_result?(node)
+      case node
+      when Prism::ParenthesesNode
+        body = node.body
+        body.is_a?(Prism::StatementsNode) && body.body.length == 1 && get_result?(body.body.first)
+      when Prism::OrNode
+        get_result?(node.left)
+      else
+        get_call?(node)
+      end
     end
 
     def get_call(node)
@@ -533,6 +552,9 @@ RSpec.describe 'OT.conf access guard' do
         o = OT.conf.get('site')['hots']
         p = OT.conf.get(:site, {})
         q = OT.conf.get('site.host', default: false)
+        r = (OT.conf.get('site.admin', nil) || {})['elevation']
+        s = OT.conf.get('site').include?('host')
+        t = OT.conf.get(:"site.#{kind}", nil)
       RUBY
     end
 
@@ -542,8 +564,8 @@ RSpec.describe 'OT.conf access guard' do
       expect(scanner.other_uses).to eq([1, 2, 3, 4, 5, 14, 15])
     end
 
-    it 'finds a read into the result of get' do
-      expect(scanner.chained_reads).to eq([16])
+    it 'finds a read into the result of get, also through parentheses and ||' do
+      expect(scanner.chained_reads).to eq([16, 19, 20])
     end
 
     it 'classifies get calls by path, default, Symbol path and keyword argument' do
@@ -555,6 +577,9 @@ RSpec.describe 'OT.conf access guard' do
         { line: 16, path: 'site', default: false, symbol: false, keyword: false },
         { line: 17, path: nil, default: true, symbol: true, keyword: false },
         { line: 18, path: 'site.host', default: false, symbol: false, keyword: true },
+        { line: 19, path: 'site.admin', default: true, symbol: false, keyword: false },
+        { line: 20, path: 'site', default: false, symbol: false, keyword: false },
+        { line: 21, path: nil, default: true, symbol: true, keyword: false },
       ])
     end
 
@@ -613,7 +638,7 @@ RSpec.describe 'OT.conf access guard' do
 
     it 'reports a read into the result of get' do
       expect(guard.chained_read_problems({ 'x.rb' => scanner })).to eq(
-        ['x.rb:16 reads into the result of OT.conf.get; put the whole path in get'],
+        [16, 19, 20].map { |line| "x.rb:#{line} reads into the result of OT.conf.get; put the whole path in get" },
       )
     end
 
