@@ -108,7 +108,7 @@ module Onetime
       # @return [Boolean] true if enabled via config or env var
       def dev_basic_auth_enabled?
         # Config takes precedence (supports ERB: <%= ENV['DEV_BASIC_AUTH'] == 'true' %>)
-        config_value = OT.conf&.get('development.devbasicauth')
+        config_value = OT.conf&.get('development.devbasicauth', nil)
         return config_value == true if [true, false].include?(config_value)
 
         # Fallback to env var directly
@@ -141,7 +141,7 @@ module Onetime
       # @return [Boolean] true if enabled via config or env var
       def dev_session_auth_enabled?
         # Config takes precedence (supports ERB: <%= ENV['DEV_SESSION_AUTH'] == 'true' %>)
-        config_value = OT.conf&.get('development.devsessionauth')
+        config_value = OT.conf&.get('development.devsessionauth', nil)
         return config_value if [true, false].include?(config_value)
 
         # Fallback to env var directly

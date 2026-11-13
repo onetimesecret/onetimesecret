@@ -377,7 +377,7 @@ module Onetime
           # @return [String] Hex color string
           def brand_color
             @brand_color ||= @data[:brand_color] ||
-                             OT.conf&.get('brand.primary_color') ||
+                             OT.conf&.get('brand.primary_color', nil) ||
                              Onetime::CustomDomain::BrandSettingsConstants::DEFAULTS[:primary_color]
           end
 
@@ -386,7 +386,7 @@ module Onetime
           # set BRAND_SUPPORT_EMAIL to populate.
           # @return [String, nil]
           def support_email
-            @support_email ||= OT.conf&.get('brand.support_email') ||
+            @support_email ||= OT.conf&.get('brand.support_email', nil) ||
                                Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:support_email]
           end
 
@@ -406,7 +406,7 @@ module Onetime
             return @signature_name if defined?(@signature_name)
 
             @signature_name = @data[:signature_name] ||
-                              OT.conf&.get('brand.signature_name')
+                              OT.conf&.get('brand.signature_name', nil)
           end
 
           # Logo alt text helper - operator-supplied brand.logo_alt
@@ -418,7 +418,7 @@ module Onetime
           # the frontend applies to installLogoAlt.
           # @return [String]
           def logo_alt
-            OT.conf&.get('brand.logo_alt') || site_product_name
+            OT.conf&.get('brand.logo_alt', nil) || site_product_name
           end
 
           # Logo URL helper - resolves from brand config; nil when no brand
@@ -437,7 +437,7 @@ module Onetime
           def logo_url
             return @logo_url if defined?(@logo_url)
 
-            candidate = OT.conf&.get('brand.logo_url') ||
+            candidate = OT.conf&.get('brand.logo_url', nil) ||
                         Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:logo_url]
             @logo_url = candidate.to_s.match?(%r{\Ahttps?://}i) ? candidate : nil
           end
@@ -447,7 +447,7 @@ module Onetime
           # terminal so layout copy never interpolates nil.
           def site_product_name
             @site_product_name ||=
-              OT.conf&.get('brand.product_name') ||
+              OT.conf&.get('brand.product_name', nil) ||
               Onetime::CustomDomain::BrandSettingsConstants::NEUTRAL_PRODUCT_NAME
           end
 

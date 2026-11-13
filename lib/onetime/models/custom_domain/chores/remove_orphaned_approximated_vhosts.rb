@@ -472,7 +472,7 @@ module Onetime
       def strategy_name
         return @config.dig('features', 'domains', 'validation_strategy') if @config
 
-        OT.conf&.get('features.domains.validation_strategy')
+        OT.conf&.get('features.domains.validation_strategy', nil)
       end
 
       def client

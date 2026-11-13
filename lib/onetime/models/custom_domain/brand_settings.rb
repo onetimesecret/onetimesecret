@@ -83,7 +83,7 @@ module Onetime
       # Returns defaults with primary_color resolved from brand config.
       # Falls back to DEFAULTS when OT.conf is not available.
       def self.defaults
-        color = OT.conf&.get('brand.primary_color')
+        color = OT.conf&.get('brand.primary_color', nil)
         DEFAULTS.merge(primary_color: color || DEFAULTS[:primary_color])
       end
 

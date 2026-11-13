@@ -36,7 +36,7 @@ module Onetime
     #
     # @return [String, nil]
     def base_url
-      raw = OT.conf&.get('site.admin.rodauth_admin_url').to_s.strip
+      raw = OT.conf&.get('site.admin.rodauth_admin_url', nil).to_s.strip
       return nil if raw.empty?
 
       normalized = raw.sub(%r{/+\z}, '')

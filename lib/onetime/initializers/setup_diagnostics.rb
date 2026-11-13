@@ -93,7 +93,7 @@ module Onetime
           # Onetime::Config#apply_defaults_to_peers; reading from `backend`
           # is correct for any execution mode because the same value lives
           # on every peer.
-          sentry_org_id                    = OT.conf.get('diagnostics.sentry.backend.org_id')
+          sentry_org_id                    = OT.conf.get('diagnostics.sentry.backend.org_id', nil)
           config.org_id                    = sentry_org_id
           config.strict_trace_continuation = !sentry_org_id.to_s.strip.empty?
 
@@ -163,7 +163,7 @@ module Onetime
         # (tags are case-sensitive, so US vs us would create separate filters).
         # Service tag enables filtering by entry point (web vs worker).
         # Note: config.tags was removed in sentry-ruby 4.0+; use Sentry.set_tags instead.
-        jurisdiction = OT.conf.get('features.regions.current_jurisdiction').to_s.downcase
+        jurisdiction = OT.conf.get('features.regions.current_jurisdiction', nil).to_s.downcase
         tags         = {
           site_host: site_host,
           service: execution_mode_to_service,

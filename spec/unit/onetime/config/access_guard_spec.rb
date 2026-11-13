@@ -30,6 +30,11 @@
 #   5. A get whose path is not a literal (an Array with a variable segment,
 #      an interpolated String, a variable) passes a default.
 #   6. A get has no Symbol path and no keyword argument; both raise.
+#   7. A get with a literal path and no default does not raise when an
+#      operator file sets a section on that path to nil. Config.load lets
+#      such a nil replace the defaults section (preserve_nils: false), and
+#      Config.after_load refills some sections from Config::DEFAULTS with
+#      fewer keys. dig read every such key as nil; pass nil as the default.
 #
 # Rules 3 to 5 check the path passed to get. A section read into a variable
 # (`section = OT.conf.get('a.b', {}); section['c']`) is not checked below the
@@ -405,6 +410,43 @@ module ConfigAccessGuard
       .map { |call| "#{call[:file]}:#{call[:line]} reads a computed path with no default; pass one" }
   end
 
+  # The YAML layer of the shipped config, before after_load.
+  def yaml_defaults
+    @yaml_defaults ||= Onetime::Config.load(File.join(ROOT, 'etc/defaults/config.defaults.yaml'))
+  end
+
+  # The config boot builds when an operator file sets +section+ to nil, or
+  # nil when after_load rejects it (boot fails on it already).
+  def config_with_nil_section(section, base = yaml_defaults)
+    operator = section[0..-2].reverse.reduce({ section.last => nil }) { |inner, key| { key => inner } }
+    merged   = Onetime::Utils::Enumerables.deep_merge(base, operator, preserve_nils: false)
+    d9s_enabled = Onetime.d9s_enabled
+    Onetime::Config.after_load(merged)
+  rescue Onetime::ConfigError
+    nil
+  ensure
+    Onetime.d9s_enabled = d9s_enabled
+  end
+
+  # Rule 7.
+  def nil_section_problems(calls, base = yaml_defaults)
+    required = calls.select { |call| call[:path] && !call[:default] }
+    sections = required.flat_map { |call| (1...segments(call[:path]).size).map { |n| segments(call[:path])[0, n] } }.uniq
+
+    sections.flat_map do |section|
+      conf = config_with_nil_section(section, base)
+      next [] unless conf
+
+      required.select { |call| segments(call[:path])[0, section.size] == section }.filter_map do |call|
+        conf.get(call[:path])
+        nil
+      rescue KeyError, TypeError => ex
+        "#{call[:file]}:#{call[:line]} reads #{label(call[:path])} with no default, which raises " \
+          "(#{ex.class.name.split('::').last}) when an operator file sets #{section.join('.')} to nil; pass nil as the default"
+      end
+    end
+  end
+
   # Rule 6.
   def invalid_call_problems(calls)
     calls.flat_map do |call|
@@ -448,6 +490,10 @@ RSpec.describe 'OT.conf access guard' do
     it 'passes a default whenever the path is not a literal' do
       problems = guard.computed_path_problems(guard.get_calls(guard.scan))
       expect(problems).to be_empty, problems.join("\n")
+    end
+
+    it 'reads no required path that a nil section in an operator file leaves unset' do
+      expect(guard.nil_section_problems(guard.get_calls(guard.scan))).to be_empty
     end
 
     it 'passes no Symbol path and no keyword argument to get' do
@@ -607,6 +653,23 @@ RSpec.describe 'OT.conf access guard' do
 
     it 'reports a computed path without a default' do
       expect(guard.computed_path_problems(calls)).to eq(['x.rb:7 reads a computed path with no default; pass one'])
+    end
+
+    # Config::DEFAULTS refills features.domains without a default key, so an
+    # operator file with an empty `domains:` leaves features.domains.default
+    # absent.
+    it 'reports a required read that a nil section leaves absent, and not one with a default' do
+      calls = [
+        { file: 'x.rb', line: 1, path: 'features.domains.default', default: false },
+        { file: 'y.rb', line: 2, path: 'features.domains.default', default: true },
+      ]
+
+      expect(guard.nil_section_problems(calls)).to contain_exactly(
+        'x.rb:1 reads features.domains.default with no default, which raises (MissingPathError) ' \
+        'when an operator file sets features to nil; pass nil as the default',
+        'x.rb:1 reads features.domains.default with no default, which raises (MissingPathError) ' \
+        'when an operator file sets features.domains to nil; pass nil as the default',
+      )
     end
 
     it 'reports a Symbol path and a keyword argument' do

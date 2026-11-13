@@ -139,11 +139,11 @@ module Onetime
         private
 
         def config_default_host
-          OT.conf&.get('features.domains.default')
+          OT.conf&.get('features.domains.default', nil)
         end
 
         def config_link_hosts
-          OT.conf&.get('features.domains.link_domains')
+          OT.conf&.get('features.domains.link_domains', nil)
         end
 
         def config_site_host
