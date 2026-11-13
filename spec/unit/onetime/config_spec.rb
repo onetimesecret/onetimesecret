@@ -322,6 +322,42 @@ RSpec.describe Onetime::Config do
         expect(result.dig('features', 'regions', 'jurisdictions', 0, 'identifier')).to eq('EU')
       end
 
+      # diagnostics is rebuilt from the config as given, before DEFAULTS are
+      # merged in, so it must be read from the String-keyed copy too.
+      context 'under diagnostics' do
+        let(:base) do
+          {
+            'site' => { 'secret' => 'test-secret', 'host' => 'example.com' },
+            'mail' => { 'truemail' => {} },
+            'compatibility' => { 'deprecated_config_mode' => 'silent' },
+          }
+        end
+
+        it 'returns String keys and keeps the values for Symbol-keyed input' do
+          result = described_class.after_load(
+            base.merge('diagnostics' => { 'sentry' => { 'backend' => { dsn: 'https://k@sentry.example/1' } } }),
+          )
+
+          expect(string_keys_only?(result)).to be(true)
+          expect(result.get('diagnostics.sentry.backend.dsn')).to eq('https://k@sentry.example/1')
+        end
+
+        it 'reads a diagnostics section given under a Symbol key' do
+          result = described_class.after_load(
+            base.merge(diagnostics: { 'sentry' => { 'frontend' => { 'dsn' => 'https://k@sentry.example/2' } } }),
+          )
+
+          expect(result.get('diagnostics.sentry.frontend.dsn')).to eq('https://k@sentry.example/2')
+        end
+
+        it 'treats an empty diagnostics section as unset' do
+          result = described_class.after_load(base.merge('diagnostics' => nil))
+
+          expect(result.get('diagnostics.enabled')).to be(false)
+          expect(result.get('diagnostics.sentry.backend')).to eq({})
+        end
+      end
+
       it 'returns String keys at every level for the suite config' do
         expect(string_keys_only?(OT.conf)).to be(true)
       end

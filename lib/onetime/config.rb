@@ -480,13 +480,12 @@ module Onetime
       # Create a deep copy of the configuration to prevent unintended mutations
       # This protects against side effects when multiple components access the same config
       # Without this, modifications to the config in one component could affect others.
-      conf = if loaded_config.nil?
-        {}
-      else
-        # String keys from here on, whatever produced loaded_config (an
-        # explicit-path load, a test, apply_config).
-        string_keys(deep_clone(loaded_config))
-      end
+      #
+      # String keys from here on, whatever produced loaded_config (an
+      # explicit-path load, a test, apply_config). Read `loaded`, never
+      # loaded_config, for the values as given before DEFAULTS are merged in.
+      loaded = loaded_config.nil? ? {} : string_keys(deep_clone(loaded_config))
+      conf   = loaded
 
       # SAFETY MEASURE: Validation and Default Security Settings
       # Ensure all critical security-related configurations exist
@@ -657,7 +656,7 @@ module Onetime
 
       # Apply the defaults to sentry backend and frontend configs
       # and set our local config with the merged values.
-      diagnostics                                = loaded_config.fetch('diagnostics', {})
+      diagnostics                                = loaded['diagnostics'] || {}
       conf['diagnostics']                        = {
         'enabled' => diagnostics_enabled?(diagnostics),
         'sentry' => apply_defaults_to_peers(diagnostics['sentry']),
