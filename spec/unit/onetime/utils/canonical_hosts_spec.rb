@@ -30,13 +30,11 @@ RSpec.describe Onetime::Utils::CanonicalHosts do
   # spec/unit/onetime/models/custom_domain/input_sanitization_spec.rb), so the
   # private config_* readers are exercised rather than bypassed by kwargs.
   #
-  # link_domains: :unset omits the key entirely, which is what an operator who
-  # never wrote LINK_DOMAINS gets. Pass nil to write an explicit null (the
-  # shape the ERB template renders); both must behave identically.
+  # link_domains: :unset and nil both write a null, which is what an operator
+  # who never set LINK_DOMAINS gets: etc/defaults/config.defaults.yaml always
+  # has the key, and OT.conf.get reads a missing key as a broken config.
   def stub_conf(site_host: nil, default_host: nil, link_domains: :unset)
-    domains                 = {}
-    domains['default']      = default_host unless default_host.nil?
-    domains['link_domains'] = link_domains unless link_domains == :unset
+    domains = { 'default' => default_host, 'link_domains' => (link_domains unless link_domains == :unset) }
 
     allow(OT).to receive(:conf).and_return(
       OT::Config.wrap('site' => { 'host' => site_host },
@@ -384,7 +382,7 @@ RSpec.describe Onetime::Utils::CanonicalHosts do
   end
 
   describe 'with no hosts configured at all' do
-    before { allow(OT).to receive(:conf).and_return(OT::Config.wrap({})) }
+    before { allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'features' => { 'domains' => { 'default' => nil, 'link_domains' => nil } }, 'site' => { 'host' => nil } })) }
 
     it 'returns empty sets rather than raising' do
       expect(described_class.hosts).to eq([])

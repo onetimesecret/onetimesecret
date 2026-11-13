@@ -27,9 +27,11 @@ RSpec.shared_context 'view_test_context' do
       'locales' => ['en'],
       'site' => {
         'host' => 'test.domain.com',
+        'ssl' => nil,
         'secret_options' => {
           'default_ttl' => 86_400,
-          'ttl_options' => [3600, 86_400]
+          'ttl_options' => [3600, 86_400],
+          'ttl_max_anonymous' => nil
         },
         'authentication' => {
           'enabled' => true,

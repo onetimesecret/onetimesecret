@@ -68,7 +68,7 @@ Onetime::SecretVerifier.adopt!
 @original_mode = OT.conf['site']['secret_verifier_mode']
 OT.conf['site']['secret_verifier_mode'] = 'bogus'
 mode_bogus = Onetime::SecretVerifier.mode
-OT.conf['site'].delete('secret_verifier_mode')
+OT.conf['site']['secret_verifier_mode'] = nil
 mode_unset = Onetime::SecretVerifier.mode
 OT.conf['site']['secret_verifier_mode'] = @original_mode
 [mode_bogus, mode_unset]

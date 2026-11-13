@@ -73,7 +73,7 @@ RSpec.describe Onetime::Initializers::SetupPasetoKeys do
 
   it 'treats a nil site.secret the same as an empty one' do
     allow(OT).to receive_messages(
-      conf: OT::Config.wrap({ 'site' => {} }),
+      conf: OT::Config.wrap({ 'site' => { 'secret' => nil } }),
       boot_logger: instance_double(SemanticLogger::Logger, warn: nil, debug: nil),
     )
 

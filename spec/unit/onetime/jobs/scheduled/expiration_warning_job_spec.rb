@@ -135,7 +135,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
 
     context 'when config is missing' do
       before do
-        allow(OT).to receive(:conf).and_return(OT::Config.wrap({}))
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'jobs' => { 'expiration_warnings' => { 'enabled' => nil } } }))
       end
 
       it 'does not register any job' do
@@ -155,7 +155,8 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
         'jobs' => {
           'expiration_warnings' => {
             'enabled' => true,
-            'warning_hours' => 24
+            'warning_hours' => 24,
+            'batch_size' => nil
           }
         }
       }))
@@ -343,7 +344,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
     it 'defaults to 24 when not configured' do
       allow(OT).to receive(:conf).and_return(OT::Config.wrap({
         'jobs' => {
-          'expiration_warnings' => {}
+          'expiration_warnings' => { 'warning_hours' => nil }
         }
       }))
 
@@ -379,7 +380,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
     it 'defaults to DEFAULT_BATCH_SIZE when not configured' do
       allow(OT).to receive(:conf).and_return(OT::Config.wrap({
         'jobs' => {
-          'expiration_warnings' => {}
+          'expiration_warnings' => { 'batch_size' => nil }
         }
       }))
 
