@@ -118,7 +118,15 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
             'guest_routes' => config,
           },
         },
+        # BaseSecretAction#process_ttl's fallback for a config without the
+        # section, plus the anonymous ceiling, unset.
+        'secret_options' => {
+          'default_ttl' => 604_800,
+          'ttl_options' => [60, 3600, 86_400, 604_800],
+          'ttl_max_anonymous' => nil,
+        },
       },
+      'jobs' => { 'expiration_warnings' => { 'min_ttl_hours' => nil } },
     }))
   end
 
@@ -131,7 +139,15 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
             # guest_routes key is missing entirely
           },
         },
+        # BaseSecretAction#process_ttl's fallback for a config without the
+        # section, plus the anonymous ceiling, unset.
+        'secret_options' => {
+          'default_ttl' => 604_800,
+          'ttl_options' => [60, 3600, 86_400, 604_800],
+          'ttl_max_anonymous' => nil,
+        },
       },
+      'jobs' => { 'expiration_warnings' => { 'min_ttl_hours' => nil } },
     }))
   end
 
