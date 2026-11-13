@@ -107,6 +107,43 @@ RSpec.describe Onetime::Operations::Config::Validate do
         expect(result.valid).to be(true)
       end
     end
+
+    # Keys are read as boot reads them (Onetime::Config.string_keys).
+    context 'with Symbol keys in the config' do
+      let(:schema_json) do
+        {
+          'type'       => 'object',
+          'properties' => {
+            'site' => {
+              'type'       => 'object',
+              'properties' => { 'host' => { 'type' => 'string' } },
+              'required'   => ['host'],
+            },
+          },
+          'required'   => ['site'],
+        }
+      end
+
+      context 'when each key is set once' do
+        let(:config_yaml) { "---\n:site:\n  :host: example.com\n" }
+
+        it 'validates them as their String form, as boot reads them' do
+          expect(result.success).to be(true)
+          expect(result.valid).to be(true)
+        end
+      end
+
+      context 'when a key is set both as a Symbol and as a String' do
+        let(:config_yaml) { "---\nsite:\n  :host: one.example.com\n  host: two.example.com\n" }
+
+        it 'fails with the error boot raises' do
+          expect(result.success).to be(false)
+          expect(result.errors).to eq(
+            ["Onetime::ConfigError: Config key 'site.host' is set twice, as :host and \"host\"; remove one"],
+          )
+        end
+      end
+    end
   end
 
   describe '.call (with missing files)' do
