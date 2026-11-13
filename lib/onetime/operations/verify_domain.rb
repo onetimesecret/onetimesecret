@@ -574,7 +574,7 @@ module Onetime
       #
       # @param domain [Onetime::CustomDomain]
       def enqueue_favicon_fetch(domain)
-        return unless OT.conf.dig('jobs', 'favicon_fetch', 'enabled') == true
+        return unless OT.conf.get('jobs.favicon_fetch.enabled') == true
 
         Onetime::Jobs::Publisher.enqueue_favicon_fetch(domain.identifier)
       rescue StandardError => ex

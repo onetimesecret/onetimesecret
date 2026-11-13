@@ -428,7 +428,7 @@ module Onetime
           # nil pool means a boot-time broker outage degraded this deployment
           # to inline request-thread sweeps — flag that at WARN so it is
           # distinguishable from a deliberately jobs-off configuration.
-          if OT.conf.dig('jobs', 'enabled')
+          if OT.conf.get('jobs.enabled')
             logger.warn 'Jobs configured but RabbitMQ pool unavailable; running session revocation sweep inline (degraded)',
               custid: custid
           else

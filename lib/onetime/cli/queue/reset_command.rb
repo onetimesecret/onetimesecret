@@ -82,7 +82,7 @@ module Onetime
         private
 
         def reset_queues(queue_names)
-          conn    = Bunny.new(OT.conf.dig('jobs', 'rabbitmq_url'))
+          conn    = Bunny.new(OT.conf.get('jobs.rabbitmq_url'))
           conn.start
           channel = conn.create_channel
 

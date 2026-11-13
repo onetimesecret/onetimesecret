@@ -42,7 +42,7 @@ module Onetime
           private
 
           def enabled?
-            OT.conf.dig('jobs', 'plan_cache_refresh', 'enabled') == true
+            OT.conf.get('jobs.plan_cache_refresh.enabled') == true
           end
 
           def refresh_plan_cache

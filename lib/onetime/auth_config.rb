@@ -310,7 +310,7 @@ module Onetime
     # Reads from ORGS_SSO_ENABLED env var via features.organizations.sso_enabled
     # in site config (etc/config.yaml).
     def orgs_sso_enabled?
-      OT.conf.dig('features', 'organizations', 'sso_enabled') == true
+      OT.conf.get('features.organizations.sso_enabled') == true
     end
 
     # The global sign-in restriction, if any. An access control over which

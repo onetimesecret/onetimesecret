@@ -40,11 +40,11 @@ module Onetime
           private
 
           def enabled?
-            OT.conf.dig('jobs', 'dlq_monitor_enabled') == true
+            OT.conf.get('jobs.dlq_monitor_enabled', nil) == true
           end
 
           def check_dlq_depths
-            url  = OT.conf.dig('jobs', 'rabbitmq_url')
+            url  = OT.conf.get('jobs.rabbitmq_url')
             conn = Bunny.new(url)
             conn.start
 

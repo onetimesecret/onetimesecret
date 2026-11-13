@@ -45,7 +45,7 @@ module Onetime
     def self.from_config
       cfg    = Onetime.respond_to?(:session_config) ? Onetime.session_config : nil
       secret = cfg && cfg['secret']
-      secret = Onetime.conf.dig('site', 'secret') if secret.to_s.empty? && Onetime.respond_to?(:conf)
+      secret = Onetime.conf.get('site.secret') if secret.to_s.empty? && Onetime.respond_to?(:conf)
       return nil if secret.to_s.empty?
 
       new(secret)

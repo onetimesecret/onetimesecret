@@ -410,7 +410,7 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
   # @param custom_domain [CustomDomain, nil] optional pre-loaded domain
   # @return [Boolean]
   def incoming_available?(custom_domain: nil)
-    return false if OT.conf.dig('site', 'secret').to_s.strip.empty?
+    return false if OT.conf.get('site.secret').to_s.strip.empty?
 
     incoming = Onetime::CustomDomain::IncomingConfig.find_by_domain_id(domain_id)
     return false unless incoming&.ready?

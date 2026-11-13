@@ -122,7 +122,7 @@ module Onetime
       # Require a secret for security - fall back to site secret if not set
       is_valid_string = options[:secret].is_a?(String) && !options[:secret].empty?
       unless is_valid_string
-        site_secret = OT.conf.dig('site', 'secret')
+        site_secret = OT.conf.get('site.secret')
         raise ArgumentError, 'SESSION_SECRET is not set and no site secret available' unless site_secret.is_a?(String) && !site_secret.empty?
 
         options[:secret] = site_secret

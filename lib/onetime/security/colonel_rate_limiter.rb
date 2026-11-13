@@ -274,7 +274,7 @@ module Onetime
       end
 
       def colonel_rate_limit_config
-        OT.conf.dig('site', 'admin', 'rate_limit') || {}
+        OT.conf.get('site.admin.rate_limit', {})
       end
 
       # Every bucket consults the PARENT flag as well as its own, so

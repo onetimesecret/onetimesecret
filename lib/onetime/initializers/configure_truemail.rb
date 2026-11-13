@@ -16,7 +16,7 @@ module Onetime
       @provides = [:email_validation]
 
       def execute(_context)
-        truemail_config = OT.conf['mail']['truemail']
+        truemail_config = OT.conf.get('mail.truemail')
 
         # Only configure if config exists
         if truemail_config.nil? || truemail_config.empty?

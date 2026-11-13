@@ -84,7 +84,7 @@ module Onetime
 
         # Top-level maintenance config hash
         def maintenance_config
-          OT.conf.dig('jobs', 'maintenance') || {}
+          OT.conf.get('jobs.maintenance', {})
         end
 
         # Per-job config hash (e.g., 'phantom_cleanup')

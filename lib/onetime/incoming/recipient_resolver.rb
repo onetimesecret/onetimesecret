@@ -181,7 +181,7 @@ module Onetime
       private
 
       def incoming_config
-        OT.conf.dig('features', 'incoming') || {}
+        OT.conf.get('features.incoming', {})
       end
 
       # Server-enforced secret-content ceiling, shared by the regular and
@@ -191,11 +191,11 @@ module Onetime
       def secret_max_length
         # to_i guards against a Float slipping through (unquoted YAML/ERB),
         # which would violate the frontend response's int() contract.
-        (OT.conf.dig('site', 'secret_options', 'content', 'maximum_length') || 10_000).to_i
+        OT.conf.get('site.secret_options.content.maximum_length', 10_000).to_i
       end
 
       def site_secret
-        OT.conf.dig('site', 'secret')
+        OT.conf.get('site.secret')
       end
 
       def custom_domain_record

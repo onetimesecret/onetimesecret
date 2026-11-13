@@ -51,7 +51,7 @@ module Onetime
       #
       # @return [Boolean] true only if authentication is explicitly enabled
       def account_creation_allowed?
-        settings = OT.conf&.dig('site', 'authentication')
+        settings = OT.conf&.get('site.authentication')
         return false unless settings
 
         settings['enabled'] == true
@@ -108,7 +108,7 @@ module Onetime
       # @return [Boolean] true if enabled via config or env var
       def dev_basic_auth_enabled?
         # Config takes precedence (supports ERB: <%= ENV['DEV_BASIC_AUTH'] == 'true' %>)
-        config_value = OT.conf&.dig('development', 'devbasicauth')
+        config_value = OT.conf&.get('development.devbasicauth')
         return config_value == true if [true, false].include?(config_value)
 
         # Fallback to env var directly
@@ -141,7 +141,7 @@ module Onetime
       # @return [Boolean] true if enabled via config or env var
       def dev_session_auth_enabled?
         # Config takes precedence (supports ERB: <%= ENV['DEV_SESSION_AUTH'] == 'true' %>)
-        config_value = OT.conf&.dig('development', 'devsessionauth')
+        config_value = OT.conf&.get('development.devsessionauth')
         return config_value if [true, false].include?(config_value)
 
         # Fallback to env var directly

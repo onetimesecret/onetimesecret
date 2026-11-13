@@ -176,7 +176,7 @@ module Onetime
           private
 
           def enabled?
-            OT.conf.dig('jobs', 'dlq_consumer', 'enabled') == true
+            OT.conf.get('jobs.dlq_consumer.enabled') == true
           end
 
           def consume_dlq_batch
@@ -251,7 +251,7 @@ module Onetime
           # @return [Array(Bunny::Session, Bunny::Channel, Boolean)]
           #   connection, channel, and whether we own the connection (must close it)
           def acquire_channel
-            url     = OT.conf.dig('jobs', 'rabbitmq_url')
+            url     = OT.conf.get('jobs.rabbitmq_url')
             options = {
               automatically_recover: false,
               recover_from_connection_close: false,
