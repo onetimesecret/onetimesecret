@@ -116,7 +116,9 @@ module Onetime
 
     # The loaded configuration, nil before boot. It answers #get (see
     # Onetime::Config::Reader): a Hash installed without the reader, as tests
-    # do with instance_variable_set(:@conf, ...), gets it on first read.
+    # do with instance_variable_set(:@conf, ...), gets it on first read and
+    # is stored back. A frozen Hash is replaced by its wrapped copy
+    # (Onetime::Config.wrap), so its identity changes once.
     def conf
       value = @conf
       return value if value.nil? || value.is_a?(Onetime::Config::Reader)

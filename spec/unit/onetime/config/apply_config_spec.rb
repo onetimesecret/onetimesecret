@@ -143,6 +143,18 @@ RSpec.describe Onetime::Config do
       end
     end
 
+    context 'with Symbol keys in the override' do
+      it 'converts them to Strings before merging' do
+        expect(OT).to receive(:replace_config!) do |merged|
+          expect(merged.keys).to all(be_a(String))
+          expect(merged['brand'].keys).to all(be_a(String))
+          expect(merged.dig('brand', 'product_name')).to eq('Custom Company')
+        end
+
+        described_class.apply_config(brand: { product_name: 'Custom Company' })
+      end
+    end
+
     context 'with edge cases' do
       it 'handles nil override config' do
         expect(OT).to receive(:replace_config!).with(original_config)

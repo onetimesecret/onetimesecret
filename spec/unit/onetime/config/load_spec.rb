@@ -131,6 +131,31 @@ RSpec.describe Onetime::Config do
         )
       end
 
+      it 'converts Integer and boolean keys to Strings' do
+        path = File.join(temp_dir, 'scalar_keys.yaml')
+        File.write(path, "---\nerrors:\n  404: missing\n  on: lit\n")
+
+        expect(described_class.load(path)).to eq('errors' => { '404' => 'missing', 'true' => 'lit' })
+      end
+
+      it 'lets a Symbol key in the operator file override the String key in the defaults file' do
+        operator = File.join(temp_dir, 'operator_symbol.yaml')
+        File.write(operator, "---\n:site:\n  :host: operator.example.com\n")
+        described_class.instance_variable_set(:@path, operator)
+
+        config = described_class.load
+
+        expect(config.dig('site', 'host')).to eq('operator.example.com')
+        expect(config['site']).not_to have_key(:host)
+      end
+
+      it 'raises ConfigError, not SystemStackError, for a self-referencing alias' do
+        path = File.join(temp_dir, 'recursive.yaml')
+        File.write(path, "---\nsite: &s\n  self: *s\n")
+
+        expect { described_class.load(path) }.to raise_error(OT::ConfigError, /nesting is deeper than 25 levels/)
+      end
+
       it 'raises ConfigError for such a key in the operator file of a layered load' do
         operator = File.join(temp_dir, 'operator.yaml')
         File.write(operator, "---\nsite:\n  :host: one.example.com\n  host: two.example.com\n")

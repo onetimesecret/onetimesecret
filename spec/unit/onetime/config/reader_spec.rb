@@ -53,6 +53,11 @@ RSpec.describe Onetime::Config::Reader do
         expect(config.get('site.product_name', nil)).to be_nil
       end
 
+      it 'returns a false or 0 default as given' do
+        expect(config.get('site.elevation', false)).to be(false)
+        expect(config.get('site.elevation', 0)).to eq(0)
+      end
+
       it 'raises MissingPathError without a default, naming the missing segment' do
         expect { config.get('site.elevation') }.to raise_error(
           Onetime::Config::MissingPathError,
@@ -66,6 +71,14 @@ RSpec.describe Onetime::Config::Reader do
         )
       end
 
+      it 'shows a path whose segment holds a dot as its segment list' do
+        expect { config.get(%w[mail truemail validation_type_for other.example]) }.to raise_error(
+          Onetime::Config::MissingPathError,
+          %q(Config path '["mail", "truemail", "validation_type_for", "other.example"]' is not set: ) +
+            %q('mail.truemail.validation_type_for' has no 'other.example'),
+        )
+      end
+
       it 'is an Onetime::ConfigError that carries the path' do
         expect { config.get('site.elevation') }.to raise_error(Onetime::ConfigError) { |error|
           expect(error.path).to eq(%w[site elevation])
@@ -76,6 +89,7 @@ RSpec.describe Onetime::Config::Reader do
     context 'when an intermediate section is nil' do
       it 'returns the default' do
         expect(config.get('site.admin.elevation', {})).to eq({})
+        expect(config.get('site.admin.elevation', false)).to be(false)
       end
 
       it 'raises MissingPathError without a default' do
@@ -89,6 +103,7 @@ RSpec.describe Onetime::Config::Reader do
     context 'when the value is nil' do
       it 'returns the default' do
         expect(config.get('site.unset', 'fallback')).to eq('fallback')
+        expect(config.get('site.unset', 0)).to eq(0)
       end
 
       it 'returns nil without a default' do
@@ -107,6 +122,18 @@ RSpec.describe Onetime::Config::Reader do
       it 'raises PathTypeError for an Array' do
         expect { config.get('site.colonels.first') }.to raise_error(Onetime::Config::PathTypeError)
       end
+
+      it 'raises PathTypeError for a false value, even with a default' do
+        expect { config.get('site.ssl.enabled', true) }.to raise_error(
+          Onetime::Config::PathTypeError, /'site.ssl' is FalseClass, not a section/
+        )
+      end
+
+      it 'carries the path' do
+        expect { config.get('site.host.name') }.to raise_error(Onetime::Config::PathTypeError) { |error|
+          expect(error.path).to eq(%w[site host name])
+        }
+      end
     end
 
     context 'with an invalid path' do
@@ -123,6 +150,12 @@ RSpec.describe Onetime::Config::Reader do
       it 'rejects a Symbol path or segment' do
         expect { config.get(:site) }.to raise_error(ArgumentError, /not Symbol/)
         expect { config.get(['site', :host]) }.to raise_error(ArgumentError, /segment :host/)
+      end
+
+      it 'rejects an Integer segment and a nil or Integer path' do
+        expect { config.get(['site', 0]) }.to raise_error(ArgumentError, /segment 0/)
+        expect { config.get(nil) }.to raise_error(ArgumentError, /not NilClass/)
+        expect { config.get(1) }.to raise_error(ArgumentError, /not Integer/)
       end
     end
 
@@ -162,6 +195,12 @@ RSpec.describe Onetime::Config::Reader do
       once = Onetime::Config.wrap({ 'a' => 1 })
 
       expect(Onetime::Config.wrap(once)).to equal(once)
+    end
+
+    it 'returns a frozen wrapped Hash unchanged, as production holds it' do
+      frozen = Onetime::Config.wrap({ 'a' => 1 }).freeze
+
+      expect(Onetime::Config.wrap(frozen)).to equal(frozen)
     end
 
     it 'copies a frozen Hash and freezes the copy' do
@@ -219,6 +258,7 @@ RSpec.describe Onetime::Config::Reader do
     it 'OT.replace_config! wraps the Hash it installs' do
       OT.replace_config!('site' => { 'host' => 'example.com' })
 
+      expect(OT.instance_variable_get(:@conf)).to be_a(described_class)
       expect(OT.conf.get('site.host')).to eq('example.com')
     end
 
@@ -227,6 +267,16 @@ RSpec.describe Onetime::Config::Reader do
 
       expect(OT.conf.get('site.host')).to eq('example.com')
       expect(OT.conf).to equal(OT.conf)
+    end
+
+    it 'the OT.conf reader stores the wrapped copy of a frozen Hash' do
+      OT.instance_variable_set(:@conf, { 'site' => { 'host' => 'example.com' } }.freeze)
+
+      first = OT.conf
+
+      expect(first).to be_a(described_class)
+      expect(OT.conf).to equal(first)
+      expect(OT.instance_variable_get(:@conf)).to equal(first)
     end
 
     it 'the OT.conf reader returns nil before a config is installed' do
