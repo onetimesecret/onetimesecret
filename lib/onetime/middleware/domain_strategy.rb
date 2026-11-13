@@ -254,7 +254,7 @@ module Onetime
         @app                 = app
         @application_context = application_context
 
-        domains_config      = OT.conf&.dig('features', 'domains') || {}
+        domains_config      = OT.conf&.get('features.domains') || {}
         self.class.initialize_from_config(domains_config)
 
         boot_logger.debug 'DomainStrategy initialized',
@@ -818,7 +818,7 @@ module Onetime
           @domains_enabled = domains_config.fetch('enabled', false)
 
           default_host = domains_enabled ? domains_config['default'] : nil
-          site_host    = OT.conf.dig('site', 'host') || nil
+          site_host    = OT.conf.get('site.host')
           # Gated exactly like default_host. CanonicalHosts.link_hosts:
           # DEFAULTS to reading features.domains.link_domains, so this call
           # site MUST pass the kwarg explicitly — omitting it would let the

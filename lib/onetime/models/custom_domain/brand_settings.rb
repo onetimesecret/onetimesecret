@@ -83,9 +83,7 @@ module Onetime
       # Returns defaults with primary_color resolved from brand config.
       # Falls back to DEFAULTS when OT.conf is not available.
       def self.defaults
-        color = if defined?(OT) && OT.respond_to?(:conf) && OT.conf
-                  OT.conf.dig('brand', 'primary_color')
-                end
+        color = OT.conf&.get('brand.primary_color')
         DEFAULTS.merge(primary_color: color || DEFAULTS[:primary_color])
       end
 
@@ -99,9 +97,9 @@ module Onetime
       #
       # @return [Hash<Symbol, Object>] Global brand settings with config overrides
       def self.global_defaults
-        return GLOBAL_DEFAULTS unless defined?(OT) && OT.respond_to?(:conf) && OT.conf
+        brand_conf = OT.conf&.get('brand', {})
+        return GLOBAL_DEFAULTS unless brand_conf
 
-        brand_conf = OT.conf['brand'] || {}
         {
           support_email: brand_conf['support_email'] || GLOBAL_DEFAULTS[:support_email],
           product_name: brand_conf['product_name'] || GLOBAL_DEFAULTS[:product_name],

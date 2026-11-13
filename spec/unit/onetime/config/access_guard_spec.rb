@@ -65,11 +65,17 @@ module ConfigAccessGuard
     'locales' => 'legacy top-level list, read when internationalization.locales is unset',
     'site.authentication.colonels' => 'operator-set list of colonel emails; the defaults file does not define it',
     'site.authentication.external' => 'opt-in external auth section; the defaults file does not define it',
+    'site.federation_secret' => 'FEDERATION_SECRET is read first; the defaults file does not define this key',
   }.freeze
 
   # Uses of OT.conf other than OT.conf.get that stay: file => [count, reason].
   ALLOWED_USES = {
+    'lib/onetime/application/registry.rb' => [2, 'warns on an app registered before boot (nil?); the config object is the rack_url_map cache token (object_id)'],
     'lib/onetime/config.rb' => [1, 'apply_config merges an override over the whole config'],
+    'lib/onetime/initializers/configure_domains.rb' => [1, 'DomainValidation::Features.load_from_config takes the whole config'],
+    'lib/onetime/operations/domains/collision_resolution.rb' => [1, 'Strategy.for_config takes the whole config'],
+    'lib/onetime/operations/domains/teardown.rb' => [1, 'Strategy.for_config takes the whole config'],
+    'lib/onetime/operations/verify_domain.rb' => [1, 'Strategy.for_config takes the whole config'],
   }.freeze
 
   # Uses of OT.conf other than OT.conf.get that are still to be converted
@@ -125,27 +131,7 @@ module ConfigAccessGuard
     'apps/web/core/middleware/request_setup.rb' => 2,
     'apps/web/core/middleware/vite_proxy.rb' => 1,
     'apps/web/core/views/helpers/initialize_view_vars.rb' => 5,
-    'lib/onetime/application/auth_strategies/admin_session_lifetime.rb' => 1,
-    'lib/onetime/application/middleware_profile.rb' => 1,
-    'lib/onetime/application/middleware_stack.rb' => 7,
-    'lib/onetime/application/registry.rb' => 2,
-    'lib/onetime/boot.rb' => 4,
-    'lib/onetime/domain_validation/sender_strategies/provider_config.rb' => 4,
-    'lib/onetime/initializers/configure_domains.rb' => 1,
     'lib/onetime/initializers/setup_loggers.rb' => 1,
-    'lib/onetime/mail/mailer.rb' => 6,
-    'lib/onetime/mail/views/base.rb' => 5,
-    'lib/onetime/middleware/domain_strategy.rb' => 2,
-    'lib/onetime/models/custom_domain/brand_settings.rb' => 4,
-    'lib/onetime/models/custom_domain/chores/remove_orphaned_approximated_vhosts.rb' => 1,
-    'lib/onetime/models/custom_domain/serving_policy.rb' => 1,
-    'lib/onetime/models/organization/features/secret_activity.rb' => 1,
-    'lib/onetime/operations/domains/collision_resolution.rb' => 1,
-    'lib/onetime/operations/domains/teardown.rb' => 1,
-    'lib/onetime/operations/verify_domain.rb' => 1,
-    'lib/onetime/sso_provider/saml.rb' => 1,
-    'lib/onetime/utils/email_hash.rb' => 2,
-    'lib/tasks/dev.rake' => 2,
   }.freeze
 
   module_function

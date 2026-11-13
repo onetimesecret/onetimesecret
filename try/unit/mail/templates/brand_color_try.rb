@@ -426,9 +426,9 @@ ctx = @ctx_class.new({}, 'en')
 ctx.brand_baseuri == ctx.site_baseuri
 #=> true
 
-## conf_dig (via send, since it's private) returns OT.conf values
+## site_host reads site.host from OT.conf
 ctx = @ctx_class.new({}, 'en')
-ctx.send(:conf_dig, 'site').is_a?(Hash)
+ctx.site_host == (OT.conf.get('site.host') || 'localhost')
 #=> true
 
 # ============================================================================

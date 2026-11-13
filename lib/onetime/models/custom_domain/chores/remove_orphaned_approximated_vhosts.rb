@@ -470,7 +470,9 @@ module Onetime
 
       # Same key Strategy.for_config reads, without its passthrough default.
       def strategy_name
-        (@config || OT.conf || {}).dig('features', 'domains', 'validation_strategy')
+        return @config.dig('features', 'domains', 'validation_strategy') if @config
+
+        OT.conf&.get('features.domains.validation_strategy')
       end
 
       def client
