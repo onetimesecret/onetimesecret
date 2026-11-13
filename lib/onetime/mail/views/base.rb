@@ -468,7 +468,7 @@ module Onetime
           # is the "do I trust images in mail clients" switch, logo_url is
           # the asset (nil when unset or not absolute http(s)).
           def show_logo?
-            OT.conf&.get('emailer.show_logo') == true
+            OT.conf&.get('emailer.show_logo', false) == true
           end
 
           private
