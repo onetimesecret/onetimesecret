@@ -426,10 +426,20 @@ ctx = @ctx_class.new({}, 'en')
 ctx.brand_baseuri == ctx.site_baseuri
 #=> true
 
-## site_host reads site.host from OT.conf
-ctx = @ctx_class.new({}, 'en')
-ctx.site_host == (OT.conf.get('site.host') || 'localhost')
-#=> true
+## site_host reads site.host from OT.conf, and falls back to localhost when it is unset
+saved = YAML.load(YAML.dump(OT.conf))
+begin
+  hosts = ['mail.example.test', nil].map do |host|
+    conf_copy = YAML.load(YAML.dump(saved))
+    conf_copy['site']['host'] = host
+    OT.send(:conf=, conf_copy)
+    @ctx_class.new({}, 'en').site_host
+  end
+  hosts
+ensure
+  OT.send(:conf=, saved)
+end
+#=> ['mail.example.test', 'localhost']
 
 # ============================================================================
 # Email-template regression guard

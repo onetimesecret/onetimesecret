@@ -133,7 +133,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       end
     end
 
-    context 'when config is missing' do
+    context 'when the settings are unset' do
       before do
         allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'jobs' => { 'expiration_warnings' => { 'enabled' => nil } } }))
       end

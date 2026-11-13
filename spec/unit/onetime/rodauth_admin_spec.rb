@@ -20,7 +20,7 @@ RSpec.describe Onetime::RodauthAdmin do
   end
 
   describe '.base_url' do
-    it 'is nil when the key is absent' do
+    it 'is nil when the setting is unset' do
       allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'admin' => { 'rodauth_admin_url' => nil } } }))
       expect(described_class.base_url).to be_nil
     end

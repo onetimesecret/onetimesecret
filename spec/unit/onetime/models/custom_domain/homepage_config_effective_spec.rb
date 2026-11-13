@@ -78,7 +78,7 @@ RSpec.describe Onetime::CustomDomain::HomepageConfig do
         expect(config.effectively_enabled?(custom_domain: custom_domain)).to be(true)
       end
 
-      it 'fails closed when site.secret is missing (hashes cannot be computed)' do
+      it 'fails closed when site.secret is unset (hashes cannot be computed)' do
         conf['site']['secret'] = nil
         expect(config.effectively_enabled?(custom_domain: custom_domain)).to be(false)
       end

@@ -96,7 +96,7 @@ RSpec.describe Onetime::Jobs::Scheduled::PlanCacheRefreshJob, type: :billing do
       end
     end
 
-    context 'when config is missing' do
+    context 'when the setting is unset' do
       before do
         allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'jobs' => { 'plan_cache_refresh' => { 'enabled' => nil } } }))
       end
@@ -330,7 +330,7 @@ RSpec.describe Onetime::Jobs::Scheduled::PlanCacheRefreshJob, type: :billing do
       expect(described_class.send(:enabled?)).to be false
     end
 
-    it 'returns false when config is missing' do
+    it 'returns false when the setting is unset' do
       allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'jobs' => { 'plan_cache_refresh' => { 'enabled' => nil } } }))
 
       expect(described_class.send(:enabled?)).to be false
