@@ -81,6 +81,9 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
           'authentication' => {
             'autoverify' => nil,
           },
+          'session' => nil,
+          'secret' => nil,
+          'ssl' => nil,
         },
         'features' => {},
       }),

@@ -132,7 +132,7 @@ RSpec.describe Core::Views::ConfigSerializer do
     # SigninConfig.global_auth_enabled (AUTH_ENABLED) before the credential
     # checks, and these examples exercise the credential/permission gates.
     allow(OT).to receive(:conf).and_return(
-      OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => true } } })
+      OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => true }, 'host' => nil, 'secret_options' => { 'ttl_max_anonymous' => nil } }, 'diagnostics' => nil })
     )
   end
 
