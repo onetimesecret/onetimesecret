@@ -1,6 +1,7 @@
 # GitLab CI/CD migration plan
 
-**Status (2026-11-10):** proposal. Nothing in this document is implemented.
+**Status (2026-11-12):** proposal. Nothing in this document is implemented.
+Spikes S1 and S3 have first-pass results (§7, "Spike results").
 Three decisions were made by the maintainer on 2026-11-10 and are recorded in
 §8: runners are both hosted and self-hosted, GitHub is archived with a link
 to GitLab, and v0.26.20 is the last release cut from GitHub.
@@ -352,8 +353,12 @@ Mailpit. Published ports are on the job's own `127.0.0.1`, bind mounts resolve
 in the job's own filesystem, and `LANES_NO_AUTOSTART=1` works as it does
 today. GitLab's docs confirm hosted Linux runners "are configured to run in
 privileged mode to support Docker-in-Docker", but describe only the
-`docker:dind` service, not a daemon in the job container. Spike S1 decides
-this.
+`docker:dind` service, not a daemon in the job container. Spike S1 ran it
+on `saas-linux-medium-amd64` for the `unit` and `full-pg` lanes (S1
+results, §7). It works when the daemon's data root is off the job
+container's root filesystem, and service logs have to be collected before
+`after_script`. The native e2e boot and `bin/visual` have not been run
+this way.
 
 Jobs that need the daemon but not the test services call only
 `bin/ci docker up`: fresh-clone (which must show that `bin/setup --test`
@@ -433,9 +438,13 @@ jobs (§4.12).
   rules:changes section." The auth list is 47 lines, four of which use brace
   alternation or character classes (`.github/auth-paths.yml:27`, `:28`, `:36`
   and `:87`), so it is split across rules. GitLab matches with Ruby's
-  `File.fnmatch` and the extended-glob flag; all four are tested with that
-  function in S3. The fourth selects the auth lanes when a lane definition
-  changes. If it stopped matching, nothing would fail.
+  `File.fnmatch` and the extended-glob flag; all four match under that
+  function (S3 results, §7). The fourth selects the auth lanes when a lane
+  definition changes. If it stopped matching, nothing would fail.
+- A pattern that ends in `/**` matches one directory level on GitLab, not
+  the whole tree (S3 results, §7). 20 of the 47 patterns in the auth list
+  end that way, `:28` and `:87` among them. Each becomes `/**/*` in the
+  fragment. The same applies to every other path list that is ported.
 - **Release tooling selects the image jobs.** The `test-docker-container`
   action, the tag logic and the post-push audit are under
   `.github/actions/` or inside a workflow file today, so a change to them
@@ -1099,6 +1108,121 @@ are expensive to reverse (runner model and loopback approach, publishing
 destinations and signing identity, gate model). Spike results are appended
 here.
 
+#### Spike results
+
+Evidence status per spike: "run" means observed in a GitLab.com pipeline,
+"local" means run on a workstation and not on GitLab. S2 and S4 to S8 have
+no result.
+
+**S1, first pass (2026-11-12, run). The in-job daemon works on
+`saas-linux-medium-amd64` for the `unit` and `full-pg` lanes when its data
+root is off the job container's root filesystem.**
+
+Runs: project 88480081 (`onetimesecret/onetimesecret-ci-pilot`), branch
+`spike/s1-docker-in-job` at 78121fcdbe, pipelines 3062442077, 3062481694
+and 3062500153. The branch changes `.gitlab-ci.yml` and adds
+`ci/spike-s1/`; `compose.test.yml`, `tests/lanes/` and application code
+are as on `main` at 82329178.
+
+- **Data root.** With `/var/lib/docker` on the job container's overlay
+  root filesystem the daemon is unusable, in two ways. The hosted runner
+  exports `DOCKER_DRIVER=overlay2`, and with it `dockerd` exits: "failed to
+  mount overlay: invalid argument" (job 17990498506). With the variable
+  unset the daemon starts and the first image pull fails: "failed to
+  convert whiteout file", "operation not permitted" (job 17990833961).
+  Three data roots work: a directory under `/builds` (ext4), a tmpfs, and
+  a volume declared by the job image, tried with `docker:29-dind` as the
+  job image.
+- **Services.** `docker compose -f compose.test.yml up --wait -d` starts
+  all three. Ports 2163, 2154, 2156 and 12156 answer on the job's
+  `127.0.0.1` and are bound to loopback only. Both bind mounts work: the
+  init SQL created `onetime_user` and `onetime_migrator`, and the RabbitMQ
+  management API answers (job 17990833958).
+- **Lanes.** `LANES_NO_AUTOSTART=1 tests/lanes/run unit`: 17,004 examples,
+  0 failures, in each of three runs. Lane time 198 s, 179 s and 182 s; job
+  375 s with a cold bundle, 277 s and 282 s with the bundle cached.
+  `full-pg`: 100 examples, 0 failures, lane 22 to 27 s, job 124 to 189 s.
+  On GitHub, for the same commit, the unit lane step took 156 s and 175 s
+  and the full-pg lane step 19 s (runs 43153452302 and 43124109841). The
+  unit lane is about 13% slower on the GitLab medium runner.
+- **After the script.** The job container is replaced between `script` and
+  `after_script`; the daemon and its containers are gone in every job.
+  With the data root under `/builds`, a daemon restarted in `after_script`
+  finds the three containers exited and their logs readable. With a tmpfs
+  data root it finds nothing.
+- **Network.** The job's interface has MTU 1360; the daemon's bridge and
+  the compose network default to 1500. Downloads of 4 to 34 MB inside
+  containers completed at 1500 in two runs, which does not show that every
+  path is safe. `--mtu 1360 --default-network-opt
+  bridge=com.docker.network.driver.mtu=1360` on `dockerd` gives 1360 on
+  the compose network with no change to `compose.test.yml`.
+- **Probes, one job each, all passed.** `host.docker.internal` through
+  `host-gateway`, from the default bridge and from a compose network;
+  publishing on `127.0.0.1` ports 80 and 443; `network_mode: service:`;
+  `docker buildx build` with the docker and docker-container drivers; the
+  compose bring-up as a non-root user with sudo.
+- **Other facts.** `sysctl -w vm.overcommit_memory=1` succeeds; the value
+  was already 1, so a change taking effect was not observed (A26).
+  `/dev/shm` is 64M in the job and in containers, and can be remounted to
+  2G in the job. The job runs as root with 4 vCPU and 16 GB, cgroup v2.
+- **Setup cost without a toolchain image, per job.** apt packages and the
+  Docker engine about 20 s, Node, pnpm, uv and Python about 6 s, a cold
+  `bundle install` 65 to 75 s (under 6 s from the cache), the test service
+  image pulls 18 to 25 s.
+- **What this changes.** Hosted runners can take the lane jobs, so they
+  can serve as overflow for the self-hosted fleet. `bin/ci docker up` puts
+  the data root off the root filesystem and does not depend on
+  `DOCKER_DRIVER`. Service logs are collected in `script`, or the daemon
+  is restarted in `after_script`. R8's MTU concern applies on amd64. Lane
+  time is budgeted above GitHub's, not below.
+- **Not covered.** The native e2e boot with Chromium, `bin/visual`, the
+  devcontainer job, arm64, self-hosted runners, lanes as a non-root user,
+  and Docker Hub pull limits under load. Read from the lane runner's
+  environment scrub and not reproduced: the official Ruby image sets
+  `GEM_HOME` and `BUNDLE_APP_CONFIG`, which `tests/lanes/run` clears; the
+  spike used the checkout's `.bundle/config` with `vendor/bundle`.
+
+**S3, first pass (2026-11-12). Evaluator: partly. Patterns: yes, with one
+rewrite.**
+
+- **Brace and class patterns (local, and run for two shapes).** Under
+  `File.fnmatch` with `FNM_PATHNAME | FNM_DOTMATCH | FNM_EXTGLOB`, against
+  the tracked files of `main` at 82329178, the four patterns match:
+  `.github/auth-paths.yml:27` 710 files, `:28` 210, `:36` 17, `:87` 10.
+  On GitLab.com, a push that changed only `lib/deep/dir/my_session_store.rb`
+  and `tests/lanes/full-mfa/env` created the jobs guarded by
+  `{apps,lib,etc,spec,src}/**/*{[Aa]uth,[Ss]ession,[Ss]so}*` and by
+  `tests/lanes/{full-pg-agnostic,full-mfa}/**/*` (pipeline 3062408171 in
+  project 88480081, branch `spike/s3-changes-glob`).
+- **A trailing `/**` is one level deep (local and run).** `File.fnmatch`
+  treats `**` as recursive only in the form `**/`. `apps/api/account/**`
+  matches 4 of the 36 files under that directory; `apps/api/account/**/*`
+  matches all 36. On GitLab.com, a push that changed only
+  `apps/api/account/logic/nested.rb` created the job guarded by
+  `apps/api/account/**/*` and not the one guarded by `apps/api/account/**`
+  (pipeline 3062406862, same branch). In the auth list, 20 of 47 patterns
+  end in `/**`; ported unchanged they would stop matching 925 file and
+  pattern pairs, and no job would fail. `:28` is one of them: 210 files as
+  written, 623 as `/**/*`. `:87` is another, with 10 files either way
+  because the four lane directories have no subdirectories today.
+- **Evaluator (local).** `glci show --json` resolved the job list for a
+  fixture pipeline in each scenario tried: a merge request with a path
+  change, a docs-only merge request, the same with
+  `CI_MERGE_REQUEST_LABELS` set through `--env`, a branch, a tag, a pipeline
+  input, and a variable set by `workflow:rules`. It needs no token.
+- **The evaluator does not match globs the way GitLab does.** In the
+  fixture, `glci` selected the job guarded by `apps/api/account/**` for a
+  change two levels down. GitLab did not. A selection suite built on `glci`
+  alone would pass a fragment that under-selects on GitLab.
+- **What this changes.** Selection can stay in `rules`; no generated child
+  pipeline is needed for the reasons S3 tests. The selection suite needs
+  two parts: the fixture scenarios through the evaluator, and a check that
+  runs every pattern in `rules.yml` through `File.fnmatch` with the flags
+  above against fixture paths, and rejects a pattern that ends in `/**`.
+- **Not covered.** The 50-pattern split, the 50,000-check limit (R4),
+  `$CI_MERGE_REQUEST_LABELS` in a real merge request pipeline, and
+  `rules:changes` in a merged results pipeline.
+
 ### Phase 1: provider-neutral tooling, on GitHub
 
 1. After v0.26.20 is published: `tools/oci/`, then `tools/sentry/`, with the
@@ -1339,14 +1463,14 @@ both hosts for the parity checks in Phases 2 and 3.
 
 | ID | Risk | Check |
 |---|---|---|
-| R1 | The in-job Docker daemon is not documented by GitLab and is unproven on hosted runners. | S1 |
-| R2 | Selection as `rules` is less tested than today's scripts until a rule evaluator is in place. | S3 |
+| R1 | The in-job Docker daemon is not documented by GitLab. On hosted amd64 runners it ran the `unit` and `full-pg` lanes; the native e2e boot and `bin/visual` are unproven there. | S1: first pass run, the rest open |
+| R2 | Selection as `rules` is less tested than today's scripts until a selection suite is in place. The evaluator is not enough by itself: it matches a trailing `/**` deeper than GitLab does. | S3: first pass done; the suite is open |
 | R3 | Compute cost exceeds the quota. | S6, D1 |
 | R4 | `rules:changes` allows 50 patterns per section and stops evaluating globs after 50,000 checks. GitLab: "After the 50,000th check, rules with patterned globs always match." The fallback selects the job; it does not drop it. | split lists; S3 |
 | R5 | Fork contributors pay for their own pipelines and need the toolchain image to be public. | S2 |
 | R6 | Docker Hub rate limits. Images pulled from Docker Hub in jobs include PostgreSQL, RabbitMQ, Mailpit, the Ruby and Node bases for every image build, and several in the install and smoke lanes. The Dependency Proxy is per group and I found nothing on its use from forks. | copies in the project registry for the frequent ones |
 | R7 | The translation-rules action lives in another repository on its own migration schedule. | clone at the pinned ref until it is a component |
-| R8 | A daemon in the job may need the MTU setting that GitLab documents for `docker:dind` on arm64, and a larger `/dev/shm` for Chromium. | S1 |
+| R8 | A daemon in the job may need the MTU setting that GitLab documents for `docker:dind` on arm64, and a larger `/dev/shm` for Chromium. On hosted amd64 the job interface has MTU 1360 against the bridge's default of 1500, and `/dev/shm` is 64M. | S1: measured; Chromium not run |
 | R9 | The dependency caches were disabled "to rule out stale cache"; the incident is not recorded. | Phase 2 |
 | R10 | The Claude credential is readable in merge request pipelines by any job that declares its environment, and anyone who can push a branch can add that declaration. The people who can reach it are the same as today; inside the job the exposure is wider (P6). | its own environment scope, no installs in that job, today's tool allowlist (§4.10, §4.11). The Bump.sh tokens leave merge request pipelines. |
 | R11 | Rolling back after the GitHub repository is archived means unarchiving it and resynchronizing commits and tags. Work tracked on GitLab since the import is not on GitHub. | archive only after a release has shipped from GitLab; record secret names before archiving (Phase 5) |
@@ -1412,10 +1536,10 @@ described.
 | A17 | tmate wired for two lanes only | Design §4.7; lost |
 | A19 | Commit flags do not act on pull requests (inferred) | Design §4.4 |
 | A25, C-F29, C-F4 | `services:` exception and host-published Valkey for container jobs; the Valkey pin copied five times | Design §4.3; two pins remain |
-| A26 | `sysctl vm.overcommit_memory=1` on the runner | Kept in `bin/ci services`; confirm in S1 |
+| A26 | `sysctl vm.overcommit_memory=1` on the runner | Kept in `bin/ci services`. S1: the write succeeds on hosted runners. |
 | A32 | `pnpm lint` autofixes in CI | Phase 1 |
 | A34 | Aggregate report `file` field filled from the seed; summed duration exceeds wall clock | Phase 1 for the field; the duration: Open |
-| A35 | Compose services depend on files mounted from the checkout | Design §4.3; S1 |
+| A35 | Compose services depend on files mounted from the checkout | Design §4.3. S1: both bind mounts work with the in-job daemon. |
 | A36, D-H16 | Suites that depend on `.github/` paths | §5 |
 | A37, C-F30, B-S19 | Schedule collisions; nightly cancelled by a push (inferred) | Design §4.1, §4.3 |
 | A38, D-H5 | Tools fetched unpinned or pinned in two places | Design §4.3, §4.9; Caddy pulled by digest (§6.1) |
