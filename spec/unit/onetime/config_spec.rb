@@ -299,6 +299,53 @@ RSpec.describe Onetime::Config do
   end
 
   describe '#after_load' do
+    context 'key types' do
+      def string_keys_only?(obj)
+        case obj
+        when Hash then obj.all? { |key, value| key.is_a?(String) && string_keys_only?(value) }
+        when Array then obj.all? { |item| string_keys_only?(item) }
+        else true
+        end
+      end
+
+      it 'returns String keys at every level for Symbol-keyed input' do
+        result = described_class.after_load(
+          site: { secret: 'test-secret', host: 'example.com', session: { key: 'x' } },
+          mail: { truemail: { default_validation_type: :regex } },
+          features: { regions: { jurisdictions: [{ identifier: 'EU', domain: 'eu.example.com' }] } },
+          compatibility: { deprecated_config_mode: 'silent' },
+        )
+
+        expect(string_keys_only?(result)).to be(true)
+        expect(result.dig('site', 'host')).to eq('example.com')
+        expect(result.dig('mail', 'truemail', 'default_validation_type')).to eq(:regex)
+        expect(result.dig('features', 'regions', 'jurisdictions', 0, 'identifier')).to eq('EU')
+      end
+
+      it 'returns String keys at every level for the suite config' do
+        expect(string_keys_only?(OT.conf)).to be(true)
+      end
+
+      it 'raises ConfigError when a key is set both as a Symbol and as a String' do
+        config = {
+          'site' => { 'secret' => 'test-secret', :host => 'one.example.com', 'host' => 'two.example.com' },
+        }
+
+        expect { described_class.after_load(config) }.to raise_error(OT::ConfigError, /'site.host' is set twice/)
+      end
+
+      it 'names the Array position in a collision inside a list' do
+        config = {
+          'site' => { 'secret' => 'test-secret' },
+          'features' => { 'regions' => { 'jurisdictions' => [{ :identifier => 'EU', 'identifier' => 'CA' }] } },
+        }
+
+        expect { described_class.after_load(config) }.to raise_error(
+          OT::ConfigError, /'features.regions.jurisdictions\[0\].identifier' is set twice/
+        )
+      end
+    end
+
     context 'jurisdiction parsing from JURISDICTIONS env var' do
       # Use 'silent' to bypass deprecation check - we're testing parsing, not deprecation
       def build_config(jurisdictions_value)

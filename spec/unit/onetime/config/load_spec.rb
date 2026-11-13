@@ -112,6 +112,34 @@ RSpec.describe Onetime::Config do
       end
     end
 
+    context 'with Symbol keys in the file' do
+      it 'converts them to Strings on an explicit-path load and keeps Symbol values' do
+        path = File.join(temp_dir, 'symbol_keys.yaml')
+        File.write(path, "---\n:site:\n  :host: example.com\n  ssl: true\nmail:\n  :mode: :regex\n")
+
+        config = described_class.load(path)
+
+        expect(config).to eq('site' => { 'host' => 'example.com', 'ssl' => true }, 'mail' => { 'mode' => :regex })
+      end
+
+      it 'raises ConfigError when a key is set both as a Symbol and as a String' do
+        path = File.join(temp_dir, 'duplicate_keys.yaml')
+        File.write(path, "---\nsite:\n  :host: one.example.com\n  host: two.example.com\n")
+
+        expect { described_class.load(path) }.to raise_error(
+          OT::ConfigError, "Config key 'site.host' is set twice, as :host and \"host\"; remove one"
+        )
+      end
+
+      it 'raises ConfigError for such a key in the operator file of a layered load' do
+        operator = File.join(temp_dir, 'operator.yaml')
+        File.write(operator, "---\nsite:\n  :host: one.example.com\n  host: two.example.com\n")
+        described_class.instance_variable_set(:@path, operator)
+
+        expect { described_class.load }.to raise_error(OT::ConfigError, /'site.host' is set twice/)
+      end
+    end
+
     context 'when a BRAND_* value contains YAML-significant characters' do
       # Regression: the brand block interpolates each BRAND_* var as a
       # JSON-quoted scalar (`&.to_json`), so an operator value like "& Co: *x"
