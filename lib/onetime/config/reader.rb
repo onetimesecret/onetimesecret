@@ -2,12 +2,15 @@
 #
 # frozen_string_literal: true
 
-require_relative '../errors'
-
 module Onetime
   module Config
     # Raised by OT.conf.get when the path is not set and no default was given.
-    class MissingPathError < Onetime::ConfigError
+    #
+    # A KeyError, as Hash#fetch raises, and not an Onetime::Problem: a
+    # `rescue Onetime::Problem` around a read did not catch a failed config
+    # read before get (dig returned nil, fetch raised KeyError) and does not
+    # catch one now.
+    class MissingPathError < KeyError
       # @return [Array<String>] the requested path
       attr_reader :path
 
@@ -25,14 +28,17 @@ module Onetime
         else
           "'#{Reader.label(path[0, index])}' has no '#{path[index]}'"
         end
-        super("Config path '#{label}' is not set: #{reason}")
+        super("Config path '#{label}' is not set: #{reason}", key: path[index])
       end
     end
 
     # Raised by OT.conf.get when the path runs through a value that is not a
     # section (Hash). Raised whether or not a default was given: the config
     # tree does not have the shape the caller expects.
-    class PathTypeError < Onetime::ConfigError
+    #
+    # A TypeError, as Hash#dig raises in the same case, and not an
+    # Onetime::Problem (see MissingPathError).
+    class PathTypeError < TypeError
       # @return [Array<String>] the requested path
       attr_reader :path
 
