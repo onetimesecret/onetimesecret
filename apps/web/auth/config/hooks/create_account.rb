@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/security/create_account_rate_limiter'
+require 'onetime/utils/client_ip'
 
 #
 # Account-Creation Rate Limiting (issue #3948, audit 2026-07-30 finding #4)
@@ -40,22 +41,27 @@ require 'onetime/security/create_account_rate_limiter'
 # ORDERING relative to the already-logged-in guard is inherited from Rodauth
 # and is the one we want: the route runs check_already_logged_in BEFORE
 # before_create_account_route, so an authenticated caller is turned away
-# without consuming budget. That matches the deliberate placement of the simple
-# mode call site after CreateAccount#raise_concerns' authenticated check —
-# a signed-in caller hitting this route is a UI mistake, not the abuse this
-# bounds, and charging them would let one user's stray form posts drain a
-# shared masked-IP bucket.
+# without consuming budget. The guard halts only because `already_logged_in`
+# is configured to (config/base.rb); Rodauth's own default is a no-op, under
+# which a signed-in caller reaches this limiter. The guard refuses only a
+# session the app has marked `authenticated`: a verify-account autologin
+# session, which Rodauth counts as logged in and the app does not, reaches
+# this limiter and is charged like any other caller. That matches the
+# deliberate placement of the simple mode call site after
+# CreateAccount#raise_concerns' authenticated check — a signed-in caller
+# hitting this route is a UI mistake, not the abuse this bounds, and charging
+# them would let one user's stray form posts drain a shared masked-IP bucket.
 #
 # CLIENT IP: the universal MiddlewareStack mounts Otto's IPPrivacyMiddleware
 # once, which resolves the canonical env['otto.client_ip'] via the
 # trusted-proxy resolver (Otto::Utils.resolve_client_ip) and rewrites
 # REMOTE_ADDR to the same masked value — so neither source is spoofable via
 # forwarded headers from an untrusted hop. We prefer the canonical env key and
-# fall back to request.ip (the rewritten REMOTE_ADDR) when it is absent (e.g. a
-# bare-Roda unit spec). An empty resolution skips the tier rather than pooling
-# unknown callers into one shared bucket an attacker could poison; unlike the
-# reset limiter there is no second tier to fall back on, so that is a genuine
-# (small) hole — see CreateAccountRateLimiter#create_account_ip_keys.
+# fall back to request.ip (the rewritten REMOTE_ADDR) when the middleware did
+# not run (e.g. a bare-Roda unit spec), never when it ran and found no client
+# IP (Onetime::Utils::ClientIp.from_request). A blank IP is charged to the
+# limiter's shared no-client-ip bucket — see
+# CreateAccountRateLimiter#create_account_ip_keys.
 #
 # INTERNAL REQUESTS ARE EXCLUDED, EXPLICITLY. :internal_request is enabled
 # (config/base.rb), and handle_internal_request runs this same route block with
@@ -67,11 +73,11 @@ require 'onetime/security/create_account_rate_limiter'
 # throttled by Onetime::Security::InviteTokenRateLimiter and is not the
 # unauthenticated-flood primitive this finding targets, so it must not consume
 # signup budget. We skip on internal_request? rather than leaning on the fact
-# that the synthesized env carries neither otto.client_ip nor REMOTE_ADDR (the
-# limiter would no-op via create_account_ip_keys returning nil): that no-op is
-# an accident of the synthesized env, not a contract, and it would degrade
-# SILENTLY — a future change that seeds an IP into internal requests would
-# start charging invite signups against a random bucket with nothing to catch
+# that the synthesized env carries neither otto.client_ip nor REMOTE_ADDR:
+# the limiter would then charge every invite signup to the shared
+# no-client-ip bucket, so an invite burst would exhaust the signup budget of
+# every IP-less visitor, and a future change that seeds an IP into internal
+# requests would move that charge to a random bucket with nothing to catch
 # it.
 #
 # respond_to? takes the include_all argument because internal_request? is a
@@ -113,8 +119,12 @@ module Auth::Config::Hooks
         next if respond_to?(:internal_request?, true) && internal_request?
 
         if request.post?
-          client_ip = request.env['otto.client_ip']
-          client_ip = request.ip if client_ip.to_s.empty?
+          # Same subject as the simple-mode call site (AuthStrategies::Helpers
+          # #client_ip): the canonical masked IP; nil, not request.ip, when the
+          # IP privacy middleware ran and found no client IP (otto 2.13,
+          # delano/otto#292), since request.ip is then the proxy, unmasked, and
+          # the limiter charges a nil subject to its shared no-client-IP bucket.
+          client_ip = Onetime::Utils::ClientIp.from_request(request)
 
           enforce_create_account_rate_limit!(client_ip)
         end

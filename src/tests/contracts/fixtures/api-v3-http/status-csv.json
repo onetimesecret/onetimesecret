@@ -1,0 +1,55 @@
+{
+  "name": "status-csv",
+  "method": "POST",
+  "path": "/api/v3/secret/status",
+  "request": {
+    "identifiers": "2x17t8h9wos8tkyrxjhb47cai88indnur0l5i1wes44b9wgoz74md6iolpc841,jwco8h4p5ak6g66b32xattheaeq98afmuatqn0zv8kbdwqr2oxyd9ml31nzwkz"
+  },
+  "response_schema": "secretList",
+  "request_schema": "listSecretStatus",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "x-request-id": "109rdie46tfuw"
+  },
+  "body": {
+    "records": [
+      {
+        "identifier": "2x17t8h9wos8tkyrxjhb47cai88indnur0l5i1wes44b9wgoz74md6iolpc841",
+        "key": "2x17t8h9wos8tkyrxjhb47cai88indnur0l5i1wes44b9wgoz74md6iolpc841",
+        "shortid": "2x17t8h9",
+        "state": "new",
+        "lifespan": 3600,
+        "secret_ttl": 3600,
+        "has_passphrase": false,
+        "verification": false,
+        "display_type": "text",
+        "created": 1794111215.08262,
+        "updated": 1794111215.08263,
+        "is_previewed": false,
+        "is_revealed": false,
+        "is_viewed": false,
+        "is_received": false
+      },
+      {
+        "identifier": "jwco8h4p5ak6g66b32xattheaeq98afmuatqn0zv8kbdwqr2oxyd9ml31nzwkz",
+        "key": "jwco8h4p5ak6g66b32xattheaeq98afmuatqn0zv8kbdwqr2oxyd9ml31nzwkz",
+        "shortid": "jwco8h4p",
+        "state": "new",
+        "lifespan": 3600,
+        "secret_ttl": 3600,
+        "has_passphrase": false,
+        "verification": false,
+        "display_type": "text",
+        "created": 1794111215.16048,
+        "updated": 1794111215.16048,
+        "is_previewed": false,
+        "is_revealed": false,
+        "is_viewed": false,
+        "is_received": false
+      }
+    ],
+    "count": 2
+  }
+}

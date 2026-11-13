@@ -51,9 +51,11 @@ def scalar(text, key, indent):
 
 checkout = "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803"
 concurrency_group = "${{ github.workflow }}-${{ github.ref }}"
+# A tuple of check names is a matrix job: one check per row, in row order.
 workflows = [
     ("e2e-full-auth.yml", "e2e-full-auth", "auth-e2e-verdict", "23 4 * * *",
-     "signup → verify email → signin (real SMTP)"),
+     ("signup → verify email → signin (real SMTP)",
+      "simple mode signup → verify email (real SMTP)")),
     ("e2e-tenant-connect.yml", "e2e-tenant-connect", "tenant-connect-verdict", "43 4 * * *",
      "custom host → /reauth → Connect callback (armed test process)"),
 ]
@@ -114,7 +116,13 @@ for filename, test_id, verdict_id, cron, test_name in workflows:
           f"{filename}: shared selector owns auth selection")
 
     tests = block(jobs, test_id, 2)
-    check(scalar(tests, "name", 4) == test_name, f"{filename}: test check name retained")
+    if isinstance(test_name, tuple):
+        check(scalar(tests, "name", 4) == "${{ matrix.name }}",
+              f"{filename}: test check names come from the matrix")
+        check(re.findall(r"^ {12}name: (.+)$", tests, re.M) == list(test_name),
+              f"{filename}: matrix check names retained")
+    else:
+        check(scalar(tests, "name", 4) == test_name, f"{filename}: test check name retained")
     check(scalar(tests, "needs", 4) == "changes", f"{filename}: tests need detection")
     check(scalar(tests, "if", 4) == "needs.changes.outputs.auth == 'true'",
           f"{filename}: only selected tests run")

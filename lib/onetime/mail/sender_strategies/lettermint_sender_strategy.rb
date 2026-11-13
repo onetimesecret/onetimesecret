@@ -60,6 +60,8 @@ module Onetime
         # or LETTERMINT_BASE_URL env var (loaded via ProviderConfig).
         DEFAULT_BASE_URL = 'https://api.lettermint.co/v1'
 
+        class LookupError < StandardError; end
+
         # Provisions sender DNS records through Lettermint's Domain API.
         #
         # Creates a new domain entry and returns the DNS records that must
@@ -153,7 +155,7 @@ module Onetime
             error: 'timeout',
           }
         rescue Lettermint::HttpRequestError => ex
-          error_detail = parse_error_response(ex.response_body) || ex.message
+          error_detail = api_error_detail(ex)
           log_error "[lettermint-sender] Provisioning failed for #{domain}: HTTP #{ex.status_code} - #{error_detail}"
           {
             success: false,
@@ -258,7 +260,7 @@ module Onetime
             },
           }
         rescue Lettermint::HttpRequestError => ex
-          error_detail = parse_error_response(ex.response_body) || ex.message
+          error_detail = api_error_detail(ex)
           log_error "[lettermint-sender] Verification check failed for #{domain}: HTTP #{ex.status_code} - #{error_detail}"
           {
             verified: nil,
@@ -278,70 +280,62 @@ module Onetime
         #
         # @param mailer_config [CustomDomain::MailerConfig] Mailer configuration
         # @param credentials [Hash] Must include 'team_token'
-        # @return [Hash] Deletion result:
-        #   - :deleted [Boolean]
-        #   - :message [String]
+        # @return [Hash] Validated outcome, derived deleted flag, message, and error
         #
         def delete_sender_identity(mailer_config, credentials:)
           domain = extract_domain(mailer_config.from_address)
-
           unless domain
-            return {
-              deleted: false,
+            return deletion_result(
+              outcome: :failed,
               message: 'Invalid from_address: cannot extract domain',
-            }
+              error: 'invalid_from_address',
+            )
           end
-
-          team_token = credentials['team_token']
-          unless team_token && !team_token.empty?
-            return {
-              deleted: false,
+          if credentials['team_token'].to_s.strip.empty?
+            return deletion_result(
+              outcome: :failed,
               message: 'Lettermint Team API token is required',
-            }
+              error: 'missing_team_token',
+            )
           end
 
           log_info "[lettermint-sender] Deleting sender domain for #{domain}"
-
           client = build_client(credentials)
-
-          # Find domain by name to get its ID
-          domain_entry = find_domain_by_name(client, domain)
-
-          unless domain_entry
-            # Domain doesn't exist - treat as successful deletion
-            return {
-              deleted: true,
+          entry  = find_domain_by_name(client, domain)
+          unless entry
+            return deletion_result(
+              outcome: :absent,
               message: "Domain #{domain} was already deleted or never existed",
-            }
+            )
           end
 
-          client.domains.delete(domain_entry['id'])
+          begin
+            response = client.domains.delete(entry['id'])
+          rescue Lettermint::NotFoundError => ex
+            # Only the documented target-specific error establishes absence.
+            # https://lettermint.co/docs/api-reference/team/0.0.1/lettermint-team-openapi.json
+            # DELETE /domains/{domainId}, 404: RESOURCE_NOT_FOUND. The SDK
+            # (lettermint >= 0.2.1) exposes that code as NotFoundError#code.
+            # A router or proxy 404 carries no code and stays a failure; the
+            # gem's spec/fixtures/errors/README.md records both live shapes.
+            raise unless ex.code == 'RESOURCE_NOT_FOUND'
 
-          {
-            deleted: true,
-            message: "Domain #{domain} removed from Lettermint",
-          }
-        rescue Lettermint::HttpRequestError => ex
-          if ex.status_code == 404
-            # Domain doesn't exist - treat as successful deletion
-            {
-              deleted: true,
+            return deletion_result(
+              outcome: :absent,
               message: "Domain #{domain} was already deleted or never existed",
-            }
-          else
-            error_detail = parse_error_response(ex.response_body) || ex.message
-            log_error "[lettermint-sender] Deletion failed for #{domain}: HTTP #{ex.status_code} - #{error_detail}"
-            {
-              deleted: false,
-              message: "Deletion failed: #{error_detail}",
-            }
+            )
           end
+
+          unless response.is_a?(Hash) && response['message'].is_a?(String) &&
+                 !response['message'].strip.empty? && !response['error']
+            raise LookupError, 'Invalid Lettermint domain deletion acknowledgement'
+          end
+
+          deletion_result(outcome: :deleted, message: "Domain #{domain} removed from Lettermint")
         rescue StandardError => ex
-          log_error "[lettermint-sender] Deletion failed: #{ex.message}"
-          {
-            deleted: false,
-            message: "Deletion failed: #{ex.message}",
-          }
+          error_detail = deletion_error_message(ex)
+          log_error "[lettermint-sender] Deletion failed: #{error_detail}"
+          deletion_result(outcome: :failed, message: "Deletion failed: #{error_detail}", error: error_detail)
         end
 
         protected
@@ -386,37 +380,81 @@ module Onetime
 
         # Find a domain by name using the Team API.
         #
-        # WARNING: This implementation does not handle pagination. If the account
-        # has many domains and the target domain is not in the first page of
-        # results, this lookup will fail to find it. For accounts with many
-        # domains, consider implementing cursor-based pagination.
+        # A valid match may stop early; absence requires exhausted pagination.
         #
         # @param client [Lettermint::TeamAPI] SDK client instance
         # @param domain [String] Domain name to find (e.g., "example.com")
         # @return [Hash, nil] Domain entry hash with 'id' key, or nil if not found
         #
         def find_domain_by_name(client, domain)
-          domain_entry(list_domains(client), domain)
+          each_domain_page(client) do |entries|
+            entry = domain_entry(entries, domain)
+            return entry if entry
+          end
+          nil
         end
 
         # The account's domain entries, for callers that resolve many domains
-        # at once: one list request instead of one per domain. Match entries
-        # with {#domain_entry}, the same comparison {#find_domain_by_name}
-        # makes. Same pagination caveat as {#find_domain_by_name}.
+        # at once: one complete walk instead of one per domain. Partial walks
+        # raise and are never exposed as usable inventories.
         #
         # @param client [Lettermint::TeamAPI] SDK client instance
-        # @return [Array<Hash>, nil] the entries, or nil when the response has none
+        # @return [Array<Hash>] all validated entries, including an empty list
+        # @raise [LookupError] if pagination or any entry is malformed
         #
         def list_domains(client)
-          client.domains.list['data']
+          entries = []
+          each_domain_page(client) { |page| entries.concat(page) }
+          entries
         end
 
-        # @param domains [Array<Hash>, nil] domain entries from {#list_domains}
+        # SDK 0.2.1 maps page_cursor to page[cursor]. The Team API schema uses
+        # a top-level next_cursor, with null marking exhaustion, not page size.
+        def each_domain_page(client)
+          cursor = nil
+          seen   = Set.new
+          loop do
+            response    = cursor.nil? ? client.domains.list : client.domains.list(page_cursor: cursor)
+            unless response.is_a?(Hash) && response['data'].is_a?(Array) && response.key?('next_cursor')
+              raise LookupError, 'Invalid Lettermint domain list: data and next_cursor required'
+            end
+
+            next_cursor = response['next_cursor']
+            unless next_cursor.nil? || (next_cursor.is_a?(String) && !next_cursor.strip.empty?)
+              raise LookupError, 'Invalid Lettermint pagination cursor'
+            end
+            if !next_cursor.nil? && !seen.add?(next_cursor)
+              raise LookupError, 'Repeated Lettermint pagination cursor'
+            end
+
+            validate_domain_entries!(response['data'])
+            yield response['data']
+            break if next_cursor.nil?
+
+            cursor = next_cursor
+          end
+        end
+
+        def validate_domain_entries!(entries)
+          unless entries.is_a?(Array) && entries.all? do |entry|
+            entry.is_a?(Hash) && entry['domain'].is_a?(String) &&
+            !entry['domain'].strip.empty? && entry['domain'].match?(/\A\S+\z/) &&
+            entry['id'].is_a?(String) && !entry['id'].strip.empty?
+          end
+            raise LookupError, 'Invalid Lettermint domain entry: domain and identity required'
+          end
+        end
+
+        # Domain names compare case-insensitively over the full name, as
+        # SMTP2GO's lookup does; the entry and its ID are returned unchanged.
+        #
+        # @param domains [Array<Hash>] domain entries from {#list_domains}
         # @param domain [String] Domain name to find
         # @return [Hash, nil] the entry, or nil when no entry matches
         #
         def domain_entry(domains, domain)
-          domains&.find { |d| d['domain'] == domain }
+          validate_domain_entries!(domains)
+          domains.find { |entry| entry['domain'].casecmp?(domain) }
         end
 
         # Creates a new domain or retrieves existing one on 409 conflict.
@@ -454,12 +492,12 @@ module Onetime
         # @param client [Lettermint::TeamAPI] SDK client instance
         # @param domain [String] Domain name (e.g., "example.com")
         # @return [Hash] Parsed API response with id, domain, status, dns_records
-        # @raise [Lettermint::HttpRequestError] if domain not found
+        # @raise [Lettermint::NotFoundError] if domain not found
         #
         def retrieve_existing_domain(client, domain)
           log_info "[lettermint-sender] Domain #{domain} already exists, retrieving..."
           existing = find_domain_by_name(client, domain)
-          raise Lettermint::HttpRequestError.new(message: "Domain #{domain} not found", status_code: 404) unless existing
+          raise Lettermint::NotFoundError.new(message: "Domain #{domain} not found") unless existing
 
           client.domains.find(existing['id'], include: 'dnsRecords')
         end
@@ -507,34 +545,15 @@ module Onetime
           end
         end
 
-        # Parse error response body to extract meaningful error message.
+        # Error detail for a Lettermint HTTP error: the API error code when
+        # the body carried one, then the message the SDK resolved from the
+        # body (error.message, then message, then "HTTP <status>").
         #
-        # Lettermint API typically returns JSON errors like:
-        #   { "error": "message" } or { "message": "..." } or { "errors": [...] }
+        # @param ex [Lettermint::HttpRequestError]
+        # @return [String]
         #
-        # @param response_body [String, Hash, nil] Raw response body
-        # @return [String, nil] Extracted error message or nil
-        #
-        def parse_error_response(response_body)
-          return nil if response_body.nil? || response_body.to_s.empty?
-
-          body = response_body.is_a?(String) ? JSON.parse(response_body) : response_body
-
-          # Lettermint returns { "code": "...", "message": "..." }
-          if body['code'] && body['message']
-            "#{body['code']}: #{body['message']}"
-          elsif body['error']
-            body['error']
-          elsif body['message']
-            body['message']
-          elsif body['errors']&.first
-            body['errors'].first
-          else
-            JSON.generate(body)
-          end
-        rescue JSON::ParserError
-          # Not JSON, return raw body (truncated for safety)
-          response_body.to_s[0, 200]
+        def api_error_detail(ex)
+          ex.code ? "#{ex.code}: #{ex.message}" : ex.message
         end
 
         # Maps verification state to human-readable message.

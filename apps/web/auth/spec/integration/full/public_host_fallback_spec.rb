@@ -8,6 +8,7 @@
 # Run: tests/lanes/run full-pg-agnostic --only apps/web/auth/spec/integration/full/public_host_fallback_spec.rb
 require_relative '../../spec_helper'
 require_relative '../../support/tenant_test_fixtures'
+require_relative '../../support/external_https_browser'
 require_relative '../../../lib/public_host'
 require 'stringio'
 
@@ -17,6 +18,8 @@ RSpec.describe Auth::PublicHost, :aggregate_failures, :shared_db_state, type: :i
 
   include_context 'domains enabled'
   include_context 'tenant fixtures'
+  # Requests carry X-Forwarded-Proto: https from a browser on https.
+  include_context 'external HTTPS browser'
 
   let(:site_host) { nil }
   let(:delivered) { [] }

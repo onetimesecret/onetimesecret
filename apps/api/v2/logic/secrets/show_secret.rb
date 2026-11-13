@@ -2,7 +2,9 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/no_client_ip'
 require 'onetime/security/passphrase_rate_limiter'
+require 'auth/operations/set_customer_verification'
 
 module V2::Logic
   module Secrets
@@ -40,7 +42,7 @@ module V2::Logic
         :share_domain
 
       def process_params
-        @identifier = sanitize_identifier(params['identifier'].to_s)
+        @identifier = sanitize_identifier(route_param('identifier').to_s)
         @secret     = Onetime::Secret.load identifier
         @passphrase = params['passphrase'].to_s
         @continue   = params['continue'].to_s == 'true'
@@ -161,21 +163,40 @@ module V2::Logic
 
       # Client IP for the per-secret+IP passphrase rate-limit tier (M-8). Sourced
       # from strategy_result metadata (set for both anonymous and authenticated
-      # callers). nil when unavailable, in which case the limiter falls back to
-      # the global per-secret backstop rather than collapsing every caller into
-      # one shared IP bucket. Do NOT use session['ip_address'] here -- it is
-      # absent for the anonymous recipients who are the primary threat model.
+      # callers). A request with no client IP (otto 2.13: the trusted
+      # X-Forwarded-For chain ended in a value the client can write) keys the
+      # shared no-client-ip bucket: skipping the tier would leave only the
+      # per-secret backstop, which one IP-less caller could then drive alone to
+      # lock the recipient out. That bucket cannot lock a caller with an IP
+      # (Onetime::Security::NoClientIp). Do NOT use session['ip_address'] here --
+      # it is absent for the anonymous recipients who are the primary threat model.
       def passphrase_client_ip
         return unless respond_to?(:strategy_result)
 
-        strategy_result&.metadata&.[](:ip)
+        Onetime::Security::NoClientIp.subject_for(strategy_result&.metadata&.[](:ip))
       end
 
       def verify_owner(owner)
-        if anonymous_user? || (cust.custid == owner.custid && !owner.verified?)
-          owner.verified    = true
-          owner.verified_by = 'email'
-          owner.save
+        # Gated on mailbox_verified?, not verified?: following the emailed link
+        # is mailbox proof, so an owner stamped by payment/autoverify/legacy
+        # provenance acquires it here (#4735) — unless the secret is the
+        # email-change confirmation, which went to the PROPOSED address and
+        # proves nothing about the current one (Customer#mailbox_proof_secret?).
+        if anonymous_user? || (cust.custid == owner.custid && !owner.mailbox_verified?)
+          # Stamped through the verification operation so the deferred
+          # federated subscription claim runs here too, for a link sent to
+          # the owner's current address and held to that address; a link
+          # minted in simple mode and redeemed in full mode skips the stamp
+          # and still reveals (SetCustomerVerification.record_mailbox_proof).
+          #
+          # The anonymous half of the gate has no already-verified guard, so
+          # an anonymous caller used to rewrite the provenance of an owner who
+          # already had mailbox proof ('colonel_admin', say) to 'email'. The
+          # operation keeps the stored mailbox-proof stamp on that repeat
+          # (SetCustomerVerification#mailbox_proof_reaffirmed?) and still
+          # retries the claim; a stamp that is not mailbox proof
+          # ('stripe_payment', 'autoverify') is still upgraded to 'email'.
+          Auth::Operations::SetCustomerVerification.record_mailbox_proof(owner, secret) if owner.mailbox_proof_secret?(secret)
           # sess.clear wipes session data for this request. sess.destroy! does
           # not exist here — OT::Session wraps Rack::Session::Abstract::PersistedSecure,
           # which exposes no public destroy method. clear is the correct call.

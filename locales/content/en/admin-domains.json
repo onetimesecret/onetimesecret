@@ -567,6 +567,10 @@
     "text": "The server previewed the removal instead of applying it — the domain was NOT removed. Retry, and report this if it persists.",
     "content_hash": "dc6d70ae"
   },
+  "web.admin.domains.actions.remove.senderCleanupFailed": {
+    "text": "{domain} was removed, but its sender identity could not be removed from the mail provider and may remain. A retry cannot clean it up from here; remove it at the provider.",
+    "content_hash": "7e684e95"
+  },
   "web.admin.domains.configs.title": {
     "text": "Domain configuration",
     "content_hash": "d46aa480"
@@ -703,6 +707,11 @@
     "text": "One origin per line, including the scheme, for example https://vault.example.com. An origin on another organization's domain is refused.",
     "content_hash": "4a4e1d33"
   },
+  "web.admin.domains.configs.edit.cidrsHint": {
+    "text": "One IPv4 or IPv6 address or CIDR range per line, for example 203.0.113.0/24. Leave empty for no network restriction.",
+    "context": "Help text under the allowed_cidrs / denied_cidrs textareas in the colonel homepage config edit modal",
+    "content_hash": "3cd4dfa9"
+  },
   "web.admin.domains.configs.delete.button": {
     "text": "Delete",
     "content_hash": "e2d0a549"
@@ -783,6 +792,10 @@
     "text": "Allowed signup domains",
     "content_hash": "9b5bb5b1"
   },
+  "web.admin.domains.configs.fields.allow_base_domain": {
+    "text": "Allow base domain automatically",
+    "content_hash": "b75e0b91"
+  },
   "web.admin.domains.configs.fields.related_origins": {
     "text": "Related passkey origins",
     "content_hash": "e6160714"
@@ -794,6 +807,16 @@
   "web.admin.domains.configs.fields.disabled_homepage_variant": {
     "text": "Disabled homepage variant",
     "content_hash": "4695633b"
+  },
+  "web.admin.domains.configs.fields.allowed_cidrs": {
+    "text": "Allowed networks (CIDR)",
+    "context": "Field label for HomepageConfig allowed_cidrs in the colonel domain configs grid and edit modal",
+    "content_hash": "a918daab"
+  },
+  "web.admin.domains.configs.fields.denied_cidrs": {
+    "text": "Denied networks (CIDR)",
+    "context": "Field label for HomepageConfig denied_cidrs in the colonel domain configs grid and edit modal",
+    "content_hash": "460d6857"
   },
   "web.admin.domains.configs.fields.ready": {
     "text": "Ready",
@@ -926,5 +949,13 @@
   "web.admin.domains.override.noChange": {
     "text": "No changes to apply.",
     "content_hash": "07632d50"
+  },
+  "web.admin.domains.override.acceptOwnership": {
+    "text": "Accept ownership by override",
+    "content_hash": "d1d758ef"
+  },
+  "web.admin.domains.override.acceptOwnershipHint": {
+    "text": "This domain is verified, but not by override. Under passthrough, tenant SSO treats a domain as a proven email domain only after an override. Confirm the organization owns the domain first.",
+    "content_hash": "b482df28"
   }
 }

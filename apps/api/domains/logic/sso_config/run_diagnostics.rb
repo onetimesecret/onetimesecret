@@ -27,7 +27,10 @@ module DomainsAPI
       #                         every later check is "skipped".
       #   discovery             oidc, entra_id; the same discovery fetch Test
       #                         Connection does, from the STORED issuer /
-      #                         tenant_id (DiscoveryCheck).
+      #                         tenant_id (DiscoveryCheck). An entra_id pass
+      #                         names the app registration settings to
+      #                         confirm by hand in details.manual_checks
+      #                         (DiscoveryCheck::ENTRA_MANUAL_CHECKS, #4734).
       #   certificate           saml; local validity window of the stored
       #                         IdP certificate.
       #   credential            entra_id: one client-credentials token request
@@ -421,9 +424,16 @@ module DomainsAPI
         # path, so it is checked here, before either runs, and a non-UUID
         # value fails this check and skips the rest rather than sending an
         # unvalidated path segment to discovery while the probe refuses it.
+        #
+        # A saml record's idp_metadata_url is left out: it is where the trio
+        # was imported from, not a login input
+        # (SsoConfig#idp_metadata_url_errors), so an unreadable or malformed
+        # value must not fail the check that gates activation. The form
+        # reports it through unreadable_fields and the next save repairs it.
         def stored_configuration_check
           unreadable = unreadable_client_credentials
           errors     = @sso_config.validation_errors.map(&:to_s) - unreadable.map { "#{it} is required" }
+          errors    -= @sso_config.idp_metadata_url_errors if @provider_type == 'saml'
           errors.concat(unreadable.map { "#{it} cannot be read (re-enter the value)" })
           errors << TENANT_ID_FORMAT_ERROR if @provider_type == 'entra_id' && !tenant_id_uuid?
           if errors.empty?

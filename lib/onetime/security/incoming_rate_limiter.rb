@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/no_client_ip'
+
 module Onetime
   module Security
     # IncomingRateLimiter - Throttles anonymous incoming-secret submissions
@@ -28,6 +30,9 @@ module Onetime
     # A missing recipient (malformed submission) skips the recipient tier. If
     # neither is available the limiter is a no-op — such a request fails the
     # presence checks in raise_concerns anyway.
+    # Request-bound call sites pass Onetime::Security::NoClientIp.subject_for(ip),
+    # so a request with no client IP (otto 2.13) keys the shared no-client-ip
+    # IP tier rather than reaching this fallback; see NoClientIp for why.
     #
     # Fail semantics mirror LoginRateLimiter: Redis errors propagate (the caller
     # runs this inside raise_concerns, where a surfaced error rejects the request
@@ -199,6 +204,8 @@ module Onetime
       def obscured_incoming_subject(tier_label, subject)
         value = subject.to_s
         if tier_label == 'ip'
+          return value if Onetime::Security::NoClientIp.bucket?(value)
+
           parts = value.split('.')
           return "#{parts[0]}.#{parts[1]}.x.x" if parts.length == 4
         end

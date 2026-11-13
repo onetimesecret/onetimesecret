@@ -60,7 +60,7 @@ module Onetime
 
       TIMESTAMP_KEYS = [
         :created, :created_at, :last_login, :last_login_at, :last_use, :suspended_at, :requested_at,
-        :email_last_sent, :deadline, :password_changed_at, :at
+        :email_last_sent, :deadline, :password_changed_at, :at, :closure_started_at
       ].freeze
 
       def call(identifier:, full: false, audit_limit: nil, json: false, **)

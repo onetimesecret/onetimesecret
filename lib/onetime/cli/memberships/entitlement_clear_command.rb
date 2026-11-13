@@ -5,10 +5,9 @@
 # Wipe ALL operator entitlement overrides on an organization membership.
 #
 # Usage:
-#   bin/ots memberships entitlement clear ORG CUSTOMER --dry-run  # Project the result, write nothing
-#   bin/ots memberships entitlement clear ORG CUSTOMER            # Confirm, then apply
-#   bin/ots memberships entitlement clear ORG CUSTOMER --yes      # Apply, no prompt
-#   bin/ots memberships entitlement clear ORG CUSTOMER --yes --json
+#   bin/ots memberships entitlement clear ORG CUSTOMER            # Dry run (the default): project the result
+#   bin/ots memberships entitlement clear ORG CUSTOMER --apply    # Apply
+#   bin/ots memberships entitlement clear ORG CUSTOMER --apply --json
 #
 # ORG is an org extid (see Onetime::CLI::Memberships::Shared#resolve_org);
 # CUSTOMER is an email, extid, or Rodauth account id.
@@ -25,12 +24,15 @@
 # membership has no overrides (D15).
 require_relative 'entitlement_command'
 
+require_relative '../write_gate'
+
 module Onetime
   module CLI
     class MembershipsEntitlementClearCommand < Command
       include Customers::Shared
       include Memberships::Shared
       include Memberships::EntitlementSupport
+      include WriteGate
 
       desc 'Clear ALL entitlement overrides on an org member (destructive)'
 
@@ -43,23 +45,16 @@ module Onetime
         required: true,
         desc: 'Member email, extid, or Rodauth account ID'
 
-      option :yes,
-        type: :boolean,
-        default: false,
-        aliases: ['-y', '-f'],
-        desc: 'Skip confirmation prompt (required to apply)'
-      option :dry_run,
-        type: :boolean,
-        default: false,
-        desc: 'Project the resulting override sets; write nothing'
+      write_gate_options 'Write the override'
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
-      def call(org:, customer:, yes: false, dry_run: false, json: false, **)
+      def call(org:, customer:, apply: false, dry_run: false, json: false, **)
         boot_application!
 
+        dry_run      = dry_run_unless_applied(apply: apply, dry_run: dry_run, json: json)
         organization = resolve_org(org, json: json)
         member       = resolve_member(customer, action: 'clear entitlement overrides on', json: json)
 
@@ -68,7 +63,6 @@ module Onetime
           member,
           action: 'clear',
           entitlement: nil,
-          yes: yes,
           dry_run: dry_run,
           json: json,
         )

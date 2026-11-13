@@ -102,6 +102,9 @@
 #   password.rb         intentionally EMPTY — password-lifecycle hooks live in
 #                       account.rb (M-2 consolidation; see its module comment)
 #   billing.rb          helper methods only (auth_class_eval), defines NO hooks
+#   oauth.rb            registers get_oidc_param (a keyed value method, not a
+#                       before/after hook); its only_json? exemption is owned
+#                       by config/json_mode.rb (#3104)
 #   omniauth_connect.rb registers NO hook. It holds the one approved WRAPPER
 #                       (see WRAPPERS above) around before_omniauth_callback_route,
 #                       installed by omniauth.rb: auth_class_eval { prepend ... }.
@@ -111,7 +114,8 @@
 # Method overrides (a different mechanism — they replace Rodauth methods, not
 # register hooks) live in config/overrides/: error_handling.rb defines the
 # around_rodauth wrapper, password_migration.rb overrides password_match?,
-# login_request_enumeration.rb owns account_from_login.
+# login_request_enumeration.rb defines account_from_login, and
+# account_enumeration.rb prepends route-scoped guards that reach it via super.
 # See config/overrides.rb.
 #
 # Log levels:
@@ -129,6 +133,7 @@ module Auth::Config::Hooks
   require_relative 'hooks/login'
   require_relative 'hooks/logout'
   require_relative 'hooks/mfa'
+  require_relative 'hooks/oauth'
   require_relative 'hooks/omniauth'
   require_relative 'hooks/omniauth_tenant'
   require_relative 'hooks/password'

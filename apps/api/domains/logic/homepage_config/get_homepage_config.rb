@@ -44,7 +44,9 @@ module DomainsAPI
                         domain_id: @homepage_config.domain_id,
                         enabled: @homepage_config.enabled?,
                         secrets_mode: @homepage_config.secrets_mode_value,
-                        effective_enabled: @homepage_config.effectively_enabled?(custom_domain: @custom_domain),
+                        # For the caller, network rules included; same
+                        # value as PutHomepageConfig's.
+                        effective_enabled: @homepage_config.effectively_enabled_for?(ip_match, custom_domain: @custom_domain),
                         # DEPRECATED echo (#3672): stored values only, kept so
                         # read-modify-write clients round-trip cleanly until the
                         # fields are removed. They carry no display authority —
@@ -55,6 +57,10 @@ module DomainsAPI
                         signup_enabled: @homepage_config.signup_enabled?,
                         signin_enabled: @homepage_config.signin_enabled?,
                         disabled_homepage_variant: @homepage_config.disabled_homepage_variant_value,
+                        # Network rules (normalized "address/prefix" entries);
+                        # both empty = no restriction.
+                        allowed_cidrs: @homepage_config.allowed_cidrs,
+                        denied_cidrs: @homepage_config.denied_cidrs,
                         created_at: @homepage_config.created.to_i,
                         updated_at: @homepage_config.updated.to_i,
                       }

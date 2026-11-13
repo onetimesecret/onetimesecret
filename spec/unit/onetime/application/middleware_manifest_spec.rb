@@ -20,6 +20,11 @@ require 'spec_helper'
 #      in the class body, read back via `.resolved_middleware`, which walks
 #      the ancestor chain), plus each class's declared middleware profile.
 #
+# Base#build_rack_app adds no mounts of its own beyond these two sources
+# (the per-request copy of Otto's static fallback triples moved into otto
+# 2.11, delano/otto#272; see
+# spec/integration/all/router_fallback_response_headers_spec.rb).
+#
 # ============================================================================
 # PROMINENT BLIND-SPOT WARNING
 # ============================================================================
@@ -254,6 +259,12 @@ RSpec.describe 'Middleware manifest (characterization)' do
         'Core::Middleware::RequestSetup',
         'Onetime::Middleware::TenantCspExtras',
         'Core::Middleware::ErrorHandling',
+        # Core-only: adds ?redirect= to Otto's 302 to /signin for a
+        # signed-out GET of a session page; the API apps answer with a JSON
+        # 401. Outside the router so it sees that 302 on the way out, inside
+        # ErrorHandling so an error raised here is rescued there. Asset
+        # requests pass through it and are left alone (no 302 to /signin).
+        'Onetime::Middleware::SigninReturnPath',
         'Onetime::Middleware::StaticFiles',
         # Innermost: ahead of the router (and so the auth strategy), behind
         # StaticFiles so asset requests allocate nothing (ADR-046).

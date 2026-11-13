@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'otto/utils'
+require_relative '../utils/client_ip'
 
 module Onetime
   module Middleware
@@ -47,7 +48,11 @@ module Onetime
 
         return @app.call(env) unless health_endpoint?(path)
 
-        client_ip = Rack::Request.new(env).ip
+        # Not Rack::Request#ip: on the otto 2.13 no-client-IP path
+        # (delano/otto#292) REMOTE_ADDR is left raw, so #ip would judge the
+        # trusted proxy's private address instead of the unknown client. nil
+        # there is denied.
+        client_ip = Onetime::Utils::ClientIp.from_request(Rack::Request.new(env))
 
         unless trusted_ip?(client_ip)
           @logger.warn 'Health endpoint access denied',

@@ -87,7 +87,7 @@ Onetime.boot! :cli
 
 abort 'tenant Connect E2E seed: AUTHENTICATION_MODE=full is required' unless Onetime.auth_config.full_enabled?
 abort 'tenant Connect E2E seed: DOMAINS_ENABLED=true is required' unless OT.conf.dig('features', 'domains', 'enabled')
-unless Onetime::CustomDomain.ownership_proof_required?
+unless Onetime::CustomDomain.ownership_proof_checked?
   abort 'tenant Connect E2E seed: DOMAINS_VALIDATION_STRATEGY must check ownership (caddy_on_demand); ' \
         'under passthrough the unverified host is served'
 end

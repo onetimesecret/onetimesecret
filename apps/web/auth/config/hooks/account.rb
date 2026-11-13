@@ -8,8 +8,10 @@
 # these hooks fire, rather than relying on ambient load order.
 require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
 require 'auth/account_statuses'
+require 'auth/account_email_verification'
 require 'auth/operations/customers/purge'
 require 'auth/operations/customers/purge_preflight'
+require 'auth/operations/remove_authentication_data'
 
 module Auth::Config::Hooks
   module Account
@@ -81,8 +83,25 @@ module Auth::Config::Hooks
           throw_rodauth_error
         end
 
-        # Closed rows retain audit history but no longer reserve the address.
-        # The Redis check below still refuses reuse if customer cleanup is incomplete.
+        # A closure deletes the accounts row (#4819), so a closed row here is
+        # one a closure left before that change and `bin/ots customers
+        # prune-closed-accounts` has not yet removed. Such rows never reserve
+        # the address. The Redis check below still refuses reuse if customer
+        # cleanup is incomplete.
+        #
+        # SECURITY (audit 2026-08-02 M-2): a duplicate email must NOT be
+        # distinguishable from a fresh signup in the HTTP response — the old
+        # "Unable to create account" error here was a registration-state
+        # oracle. duplicate_signup_success_response (defined in
+        # config/overrides/account_enumeration.rb) answers with the SAME
+        # generic success a fresh signup returns and HALTS; no account row is
+        # written and no email is sent, whether or not the existing account
+        # is verified. The address owner can use Resend. Under
+        # internal_request (e.g. the invite flow's
+        # Auth::Config.create_account) the helper fails CLOSED: it raises
+        # Rodauth::InternalRequestError exactly as the old error-throw here
+        # did, so internal callers can never mistake a duplicate for a fresh
+        # signup (see the SECURITY note on the helper).
         existing_account = db[:accounts].where(email: email)
           .exclude(status_id: Auth::AccountStatuses::CLOSED).first
 
@@ -90,8 +109,8 @@ module Auth::Config::Hooks
           # The SQL row alone decides the answer; Redis only picks the log
           # line. With its customer record this is an ordinary duplicate
           # (info); without one it is the two-database mismatch the hint
-          # describes. An unreachable Redis must not turn the refusal into a
-          # 500, so the lookup failure is logged and the refusal still runs.
+          # describes. An unreachable Redis must not turn the answer into a
+          # 500, so the lookup failure is logged and the answer still runs.
           customer_exists =
             begin
               Onetime::Customer.email_exists?(email)
@@ -102,6 +121,7 @@ module Auth::Config::Hooks
                 email: OT::Utils.obscure_email(email),
                 account_id: existing_account[:id],
                 customer_lookup_error: ex.class.name,
+                response_mode: 'generic_success',
               )
               nil
             end
@@ -112,6 +132,7 @@ module Auth::Config::Hooks
               level: :info,
               email: OT::Utils.obscure_email(email),
               account_id: existing_account[:id],
+              response_mode: 'generic_success',
             )
           elsif customer_exists == false
             diagnostic_hint = <<~HINT.strip
@@ -127,33 +148,71 @@ module Auth::Config::Hooks
               email: OT::Utils.obscure_email(email),
               account_id: existing_account[:id],
               diagnostic_hint: diagnostic_hint,
+              response_mode: 'generic_success',
             )
           end
 
-          # The shared answer (config/overrides/duplicate_signup.rb).
-          refuse_signup_for_existing_account(email)
+          duplicate_signup_success_response
         end
 
+        # A record a closure left behind when it stopped part-way (#4830) does
+        # not hold the address: its owner asked for it to be deleted. The check
+        # below lets it through, and it is finished at the end of this hook,
+        # after every precondition, so a sign-up that a precondition refuses
+        # changes nothing in Redis. A finish that stops part-way also refuses
+        # the sign-up, with part of the record already purged. A closure still
+        # running has its accounts row, refused above.
+        leftover = Auth::Operations::EnsureCustomerForAccount.closing_customer(email)
+
         # Check Redis (customer database)
-        # Note: In shared Redis dev setups, a customer may exist without an auth account
-        if Onetime::Customer.email_exists?(email)
+        # A customer record without an open auth account gets the same M-2
+        # generic-success treatment: an error here would tell a caller the
+        # address has a customer record. The sign-up creates nothing, so the
+        # person cannot register until an operator resolves the record; this
+        # log line is the only signal, at error level like the mirror case
+        # above (registration_blocked_auth_db_conflict), and it names the
+        # record by external_id because the email in it is masked. Causes in
+        # production: a move from simple to full mode before sync-auth-accounts
+        # ran (docs/authentication/switching-to-full-mode.md); a closure from
+        # before #4819 that closed the accounts row and stopped before deleting
+        # the record (docs/development/data-migrations.md); a half-completed
+        # email change; an email index entry left by a deleted customer, which
+        # resolves to no record (customer_record_found: false). In
+        # development, instances sharing one Redis.
+        if leftover.nil? && Onetime::Customer.email_exists?(email)
+          customer = Onetime::Customer.find_by_email(email)
           diagnostic_hint = <<~HINT.strip
-            Registration blocked: Customer record exists in Redis but no auth account
-            found. This typically occurs in worktree/multi-instance dev setups with
-            shared Redis. Consider: (1) using isolated Redis per instance, (2) clearing
-            Redis data, or (3) logging in with existing account if it exists elsewhere.
+            Sign-up answered as a new one and nothing was created: a customer
+            record exists for this address but no open auth account does, so
+            the person cannot register until the record is resolved. Run
+            every command below with AUTHENTICATION_MODE=full exported:
+            without it bin/ots resolves simple mode, diagnose reports no
+            finding and the repair commands refuse. Start with
+            `bin/ots customers diagnose <external_id>`, using the external_id
+            on this line. missing_auth_account: no accounts row exists for the
+            record; after a move from simple to full mode,
+            `bin/ots customers sync-auth-accounts --run` creates it.
+            account_closed: a closure from before #4819 stopped part way; run
+            `bin/ots customers prune-closed-accounts --confirm`, then
+            `bin/ots customers finish-closures --confirm`. email_drift: a
+            half-completed email change. With no external_id on this line
+            (customer_record_found: false), the email index points at a
+            deleted customer; `bin/ots customers doctor --all --repair`
+            removes the entry. In development this usually means several
+            instances share one Redis.
           HINT
 
           Auth::Logging.log_auth_event(
-            :registration_blocked_redis_conflict,
+            :registration_duplicate_customer_record,
             level: :error,
             email: OT::Utils.obscure_email(email),
+            external_id: customer&.extid,
+            customer_record_found: !customer.nil?,
             diagnostic_hint: diagnostic_hint,
+            response_mode: 'generic_success',
           )
 
-          set_error_flash(create_account_error_flash)
-          request.env['rodauth.error_flash'] = create_account_error_flash
-          throw_rodauth_error
+          duplicate_signup_success_response
         end
 
         # When an invite_token is supplied, validate the invitation up front:
@@ -190,6 +249,26 @@ module Auth::Config::Hooks
             request.env['rodauth.error_flash'] = create_account_error_flash
             throw_rodauth_error
           end
+        end
+
+        # Last: finish the leftover closure (see above). finish_leftover_closure
+        # reads the record again, so it acts on its state after these checks.
+        # When it cannot be finished (the purge refused or stopped, or the
+        # closure is too recent to tell from one still running; logged as
+        # interrupted_closure_not_finished), the sign-up is refused under its
+        # own event, since the shared-Redis hint above would point the wrong way.
+        unfinished = Auth::Operations::EnsureCustomerForAccount.finish_leftover_closure(email)
+        if unfinished
+          Auth::Logging.log_auth_event(
+            :registration_blocked_interrupted_closure,
+            level: :error,
+            email: OT::Utils.obscure_email(email),
+            external_id: unfinished.extid,
+          )
+
+          set_error_flash(create_account_error_flash)
+          request.env['rodauth.error_flash'] = create_account_error_flash
+          throw_rodauth_error
         end
       end
 
@@ -272,7 +351,14 @@ module Auth::Config::Hooks
               customer.verified_by = 'invite_token'
               customer.save
 
-              update_account(account_status_column => account_open_status_value)
+              # The migration 015 columns move with the status: the invite
+              # link is mailbox proof for this address
+              # (Auth::AccountEmailVerification).
+              opened = { account_status_column => account_open_status_value }
+              if Auth::AccountEmailVerification.columns?(db)
+                opened.merge!(Auth::AccountEmailVerification.values(verified: true, verified_by: 'invite_token'))
+              end
+              update_account(opened)
 
               had_verify_key = respond_to?(:remove_verify_account_key)
               remove_verify_account_key if had_verify_key
@@ -300,9 +386,16 @@ module Auth::Config::Hooks
             # claiming any PendingFederatedSubscription until the user verifies,
             # so an attacker cannot register a paying subscriber's email in this
             # region and steal their federated subscription at signup time. The
-            # deferred claim runs from after_verify_account below.
+            # deferred claim runs from after_verify_account below. The flag
+            # states the intent at this call site; the record itself carries
+            # the same rule (Customer#federation_claim_deferred? is true for an
+            # unverified account while verify_account is loaded), so a later
+            # creation for this customer with the default flag defers too
+            # (#4754 review, F1).
             #
-            # When verify_account is disabled for this deployment there is no
+            # When the verify_account feature is not loaded (neither the
+            # verify_account flag nor webauthn_verify_account, which depends on
+            # it: Onetime.auth_config.verify_account_loaded?) there is no
             # verification step to defer to, so we preserve the immediate-claim
             # behavior (require_verification: false) rather than never claiming.
             #
@@ -315,7 +408,7 @@ module Auth::Config::Hooks
             # EnsureDefaultWorkspace instead emits a loud security-audit log for
             # each such unverified immediate claim. See
             # EnsureDefaultWorkspace#apply_pending_federation! and #initialize.
-            require_verification = Onetime.auth_config.verify_account_enabled?
+            require_verification = Onetime.auth_config.verify_account_loaded?
 
             Onetime::ErrorHandler.safe_execute('ensure_default_workspace', external_id: customer.extid) do
               Auth::Operations::EnsureDefaultWorkspace.new(
@@ -432,17 +525,46 @@ module Auth::Config::Hooks
       #
       # Hook: After Account Verification
       #
-      # This hook is triggered when a user verifies their account (e.g., by
-      # clicking a link in an email). It updates the verification status of
-      # the associated Onetime::Customer record.
+      # This hook is triggered when a user verifies their account by following
+      # the emailed key, with or without the passkey ceremony of
+      # webauthn_verify_account. It updates the verification status of the
+      # associated Onetime::Customer record, runs the federated claim the
+      # signup hook above deferred, and surfaces the pending plan intent and
+      # return destination.
       #
-      # This hook is only registered when the verify_account feature is enabled.
-      # When disabled (e.g., in test environments via auth.yaml config), the
-      # Rodauth :verify_account feature isn't loaded, so the after_verify_account
-      # DSL method doesn't exist.
+      # Registered whenever the Rodauth :verify_account feature is loaded,
+      # which is what Onetime.auth_config.verify_account_loaded? answers: by
+      # the verify_account flag, or as the dependency of
+      # webauthn_verify_account (features/webauthn.rb, configured after these
+      # hooks). Features::AccountManagement enables the feature under the same
+      # predicate, so the after_verify_account DSL method exists here in both
+      # cases. Checked against the flag alone, a passkey-only deployment
+      # verified the account in SQL while the Customer stayed unverified and
+      # the deferred claim never ran. When neither flag is on (the test default
+      # via auth.yaml), the feature isn't loaded and the DSL method doesn't
+      # exist.
       #
-      if Onetime.auth_config.verify_account_enabled?
+      if Onetime.auth_config.verify_account_loaded?
         auth.after_verify_account do
+          # A verified account must not keep a verification key row: it reads
+          # as a pending verification (Operations::Customers::Diagnose).
+          # Rodauth's clear_tokens(:verify_account) deletes the row in the
+          # onetimesecret fork (onetimesecret/rodauth#3) and through 2.45,
+          # but released 2.46 through 2.48 rotate it in place instead. The
+          # delete is idempotent and runs inside the verify transaction.
+          remove_verify_account_key
+
+          # Migration 015 (ADR-051): the link just redeemed was sent to this
+          # row's address, so it is mailbox proof for it. Written here, in
+          # Rodauth's verify transaction beside status_id, so the accounts
+          # row is complete before the Customer mirror is stamped below with
+          # rodauth_already_synced (Auth::AccountEmailVerification). Outside
+          # safe_execute on purpose: a failed write fails the verification
+          # with it, as a failed status write would.
+          if Auth::AccountEmailVerification.columns?(db)
+            update_account(Auth::AccountEmailVerification.values(verified: true, verified_by: 'email'))
+          end
+
           Auth::Logging.log_auth_event(
             :account_verified,
             level: :info,
@@ -465,20 +587,12 @@ module Auth::Config::Hooks
             ).call
           end
 
-          # Claim any pending federated subscription now that the email is
-          # verified (issue: federated benefit theft via unverified signup).
-          # EnsureDefaultWorkspace defers this claim on the standard signup path;
-          # here we apply it to the workspace created at signup. Idempotent and a
-          # safe no-op when nothing is pending or it was already claimed. Re-fetch
-          # the customer so verified? reflects the state just persisted above.
-          Onetime::ErrorHandler.safe_execute('claim_pending_federation', external_id: account[:external_id]) do
-            next unless account[:external_id]
-
-            verified_customer = Onetime::Customer.find_by_extid(account[:external_id])
-            next unless verified_customer
-
-            Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(verified_customer)
-          end
+          # The pending federated subscription that EnsureDefaultWorkspace
+          # deferred at signup (federated benefit theft via unverified signup)
+          # is claimed by SetCustomerVerification above, the moment the 'email'
+          # provenance is stamped — the same trigger an operator verification
+          # of an SSO account uses, and the one the redeemed verification link
+          # uses in simple auth mode (#4735). Nothing to do here.
 
           # Surface pending plan intent for checkout redirect (issue #3126)
           # If the user had selected a plan before signup, redirect them to checkout
@@ -1150,7 +1264,8 @@ module Auth::Config::Hooks
       # after_close_account chain (omniauth identities, two-factor secrets,
       # active sessions, remember keys), reached via `super()`, and through
       # TeardownAccount's SQL removal, which covers every table whether or not
-      # its feature is loaded in this boot.
+      # its feature is loaded in this boot. The accounts row and its audit log
+      # are removed last, by the delete_account override below (#4819).
       #
       auth.before_close_account do
         customer = Auth::Config::Hooks::Account.resolve_customer(account)
@@ -1184,9 +1299,22 @@ module Auth::Config::Hooks
         # where implicit-argument super is not allowed.
         super()
 
+        # The closure marker (#4819, #4830) goes on before the purge's first
+        # mutation. From here on the closure either commits, and
+        # delete_account below deletes the accounts row, or it is refused
+        # with nothing changed. A failed write (Valkey unreachable) refuses
+        # it here. A refusal clears the marker again (the rescue below).
+        # Writing it any later fails one way or the other in an outage that
+        # starts mid-purge: after the purge it is skipped and the surviving
+        # record reads as a customer that never had an auth account; in
+        # delete_account it raises and rolls back a closure whose Redis half
+        # is already gone.
+        marker = @close_account_customer.mark_closure_started!
+
         purge  = Auth::Operations::Customers::Purge.new(
           customer: @close_account_customer,
           self_service: true,
+          retain_auth_account: true,
           expected_plan_signature: @close_account_plan_signature,
         )
         result = purge.call
@@ -1227,7 +1355,28 @@ module Auth::Config::Hooks
           cleanup_status: result.status,
         )
       rescue StandardError => ex
-        raise unless purge&.mutation_started?
+        unless purge&.mutation_started?
+          # Refused with nothing changed (the FormError above lands here too):
+          # the account stays open, so the marker goes, if this request wrote
+          # it. A marker already there is an earlier request's, such as the
+          # first of two submits that committed and left the record behind,
+          # and still describes that closure. Best effort: a marker left on a
+          # live account reads as a closure that rolled back, which
+          # `customers doctor --repair` clears.
+          if marker == :written
+            begin
+              @close_account_customer.clear_closure_marker!
+            rescue StandardError => clear_error
+              OT.le(
+                '[account_close] closure marker not cleared after a refusal',
+                exception: clear_error,
+                original_exception: ex,
+                external_id: account[:external_id],
+              )
+            end
+          end
+          raise ex
+        end
 
         context = purge.outcome_context
         begin
@@ -1254,6 +1403,53 @@ module Auth::Config::Hooks
           )
         end
         nil
+      end
+
+      #
+      # Account Row Deletion After Closure (#4819)
+      #
+      # Rodauth's close_account route runs, inside one transaction:
+      # before_close_account, close_account (status to closed, password hash
+      # dropped), after_close_account, clear_session, clear_tokens and, with
+      # delete_account_on_close? on, delete_account (rodauth 2.48.0
+      # close_account.rb). The audit_logging feature inserts its "Account
+      # closed" row from hook_action at the end of after_close_account, AFTER
+      # the block above returns, so the teardown there leaves the accounts row
+      # in place (retain_auth_account: true) and the row goes here, last.
+      #
+      # The override deletes every row still referencing the account first:
+      # the audit log, including the row Rodauth just inserted, and anything
+      # a feature wrote between the hook and this point. delete_dependent_rows
+      # also holds the accounts row FOR UPDATE (taken by the teardown above,
+      # re-taken here, released at commit), so on PostgreSQL a request still
+      # in flight for the account cannot slip a child row in between these
+      # deletes and super()'s DELETE and fail its foreign-key check; the
+      # insert waits for the commit and then fails on the missing parent.
+      # Nothing of the account survives the commit: no accounts row, no audit
+      # history. Administrative purges run outside Rodauth and delete the
+      # same rows in TeardownAccount.
+      #
+      # The lock is only held to super()'s DELETE while both run in one
+      # transaction. Rodauth runs delete_account inside close_account's,
+      # which db.transaction joins; should a later Rodauth call it outside,
+      # db.transaction opens one, so the boundary stays this override's.
+      #
+      # The row also goes when the cleanup stopped before TeardownAccount
+      # closed the auth account: a partial Purge, or one that raised after its
+      # first mutation, still commits (after_close_account above). Such a
+      # customer record is still in Redis; after_close_account marked it
+      # before the purge started, so it reads as an interrupted closure and
+      # not as a customer that never had an auth account. Nothing here
+      # touches Redis: a write failing at this point would roll back a
+      # closure whose Redis half is already gone.
+      #
+      auth.delete_account_on_close? true
+
+      auth.delete_account do
+        db.transaction do
+          Auth::Operations::RemoveAuthenticationData.delete_dependent_rows(db, account_id)
+          super()
+        end
       end
     end
     # rubocop:enable Metrics/PerceivedComplexity, Metrics/MethodLength

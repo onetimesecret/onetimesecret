@@ -1771,6 +1771,31 @@ RSpec.describe Core::Views::ConfigSerializer do
           expect(orgs['saml_enabled']).to be false
           expect(orgs['custom_mail_enabled']).to be false
           expect(orgs['incoming_secrets_enabled']).to be false
+          expect(orgs['homepage_network_rules_ui_enabled']).to be false
+          expect(orgs['base_domain_signup_enabled']).to be false
+        end
+      end
+
+      describe 'base_domain_signup_enabled' do
+        def flags_with(value)
+          view_vars = base_view_vars.merge(
+            'features' => base_view_vars['features'].merge(
+              'organizations' => { 'base_domain_signup_enabled' => value },
+            ),
+          )
+          described_class.build_feature_flags(view_vars)['organizations']
+        end
+
+        it 'is true when the install enables it' do
+          expect(flags_with(true)['base_domain_signup_enabled']).to be true
+        end
+
+        # Strict like SignupConfig.base_domain_signup_enabled?, so the form
+        # never offers what the server would refuse.
+        it 'is false for anything but a real true' do
+          [false, nil, 'true'].each do |value|
+            expect(flags_with(value)['base_domain_signup_enabled']).to be(false), value.inspect
+          end
         end
       end
 
@@ -1803,6 +1828,7 @@ RSpec.describe Core::Views::ConfigSerializer do
 
           expect(orgs['custom_mail_enabled']).to be false
           expect(orgs['incoming_secrets_enabled']).to be false
+          expect(orgs['homepage_network_rules_ui_enabled']).to be false
         end
       end
 
@@ -1884,6 +1910,7 @@ RSpec.describe Core::Views::ConfigSerializer do
                 'sso_enabled' => true,
                 'custom_mail_enabled' => true,
                 'incoming_secrets_enabled' => true,
+                'homepage_network_rules_ui_enabled' => true,
               }
             )
           )
@@ -1897,6 +1924,7 @@ RSpec.describe Core::Views::ConfigSerializer do
           expect(orgs['sso_enabled']).to be true
           expect(orgs['custom_mail_enabled']).to be true
           expect(orgs['incoming_secrets_enabled']).to be true
+          expect(orgs['homepage_network_rules_ui_enabled']).to be true
         end
       end
 

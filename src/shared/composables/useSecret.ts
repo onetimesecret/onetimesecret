@@ -3,7 +3,7 @@
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useSecretStore } from '@/shared/stores/secretStore';
 import { storeToRefs } from 'pinia';
-import { reactive } from 'vue';
+import { reactive, ref } from 'vue';
 
 import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
@@ -65,18 +65,37 @@ export function useSecret(secretIdentifier: string, options?: SecretOptions) {
 
   const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
 
+  // The store outlives the page: a visitor who opens a second secret link in
+  // the same tab mounts the secret view with the first secret's record still
+  // in it. Drop that record before the fetch, so the view shows its skeleton
+  // (or, on a 404, the unknown-secret view) rather than the previous secret
+  // under the new URL. A reveal keeps the record, so the confirmation form
+  // stays mounted while it is in flight.
   const load = () =>
     wrap(async () => {
       state.error = '';
       state.errorCode = null;
+      store.clear();
       await store.fetch(secretIdentifier);
     });
+
+  // True from the moment the reveal request is issued until it settles. The
+  // server destroys the secret when it receives that request, so from then on
+  // the response body is the only copy: the view marks the page as showing
+  // unrecoverable content for this whole window, not only once the value has
+  // arrived (src/utils/unrecoverableContent.ts).
+  const revealing = ref(false);
 
   const reveal = (passphrase: string) =>
     wrap(async () => {
       state.error = '';
       state.errorCode = null;
-      await store.reveal(secretIdentifier, passphrase);
+      revealing.value = true;
+      try {
+        await store.reveal(secretIdentifier, passphrase);
+      } finally {
+        revealing.value = false;
+      }
     });
 
   return {
@@ -84,6 +103,7 @@ export function useSecret(secretIdentifier: string, options?: SecretOptions) {
     state,
     record,
     details,
+    revealing,
 
     // Actions
     load,

@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/no_client_ip'
 require 'onetime/security/reset_request_rate_limiter'
 require_relative '../../lib/public_host'
 
@@ -31,9 +32,9 @@ require_relative '../../lib/public_host'
 #
 # CLIENT IP: same resolution as hooks/reset_password_request.rb — prefer the
 # canonical env['otto.client_ip'] (IPPrivacyMiddleware, trusted-proxy aware,
-# privacy-masked), fall back to request.ip. An empty resolution skips the IP
-# tier rather than pooling unknown callers into one bucket; the per-login
-# backstop still applies.
+# privacy-masked), fall back to request.ip only when the middleware did not
+# run. A request with no client IP (otto 2.13) keys the shared no-client-ip
+# bucket rather than skipping the IP tier (Onetime::Security::NoClientIp).
 #
 # ENUMERATION SAFETY: the limiter keys only on request-observable inputs (IP,
 # submitted login string), never on account existence, and it runs before the
@@ -109,8 +110,10 @@ module Auth::Config::Hooks
     # One charge per client IP, then per submitted login (header: CLIENT IP).
     def self.charge!(rodauth)
       request   = rodauth.request
-      client_ip = request.env['otto.client_ip']
-      client_ip = request.ip if client_ip.to_s.empty?
+      # The canonical masked IP, or the shared no-client-ip bucket when the IP
+      # privacy middleware found none (otto 2.13). See
+      # Onetime::Security::NoClientIp.
+      client_ip = Onetime::Security::NoClientIp.request_subject(request)
 
       rodauth.enforce_email_login_request_rate_limit!(client_ip, rodauth.param_or_nil(rodauth.login_param))
     end

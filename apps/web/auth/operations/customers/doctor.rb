@@ -5,6 +5,7 @@
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'auth/account_statuses'
+require 'auth/account_email_verification'
 require 'auth/operations/set_customer_verification'
 require 'auth/operations/workspace_collision'
 require 'auth/operations/ensure_default_workspace'
@@ -51,6 +52,10 @@ module Auth
       # which that command's scan never revisits) by `bin/ots customers
       # change-email`.
       #
+      # When the shared `auth_account` read raises, the cross-store checks
+      # that needed it report one `:auth_account_unreadable` issue naming
+      # them (#report_auth_account_unreadable) instead of passing.
+      #
       # NOTE: `VALID_ROLES` here is intentionally the doctor's own narrower set
       # ([customer, anonymous, colonel]) — the historical data-shape checker — and
       # is deliberately NOT the assignable-role list in SetRole::VALID_ROLES. They
@@ -75,8 +80,14 @@ module Auth
         # Valid customer roles (historical data-shape check — see NOTE above)
         VALID_ROLES = %w[customer anonymous colonel].freeze
 
+        # Roles has_system_role? recognises (authorization_policies.rb); each
+        # is refused to a holder without mailbox proof.
+        SYSTEM_ROLES = %w[colonel admin staff].freeze
+
         # Every verified_by provenance tag the codebase writes, with the
-        # writer for each:
+        # writer for each. Which of these count as MAILBOX proof is decided by
+        # Onetime::Customer::MAILBOX_VERIFIED_BY (email, invite_token,
+        # cli_provision, colonel_admin); the rest record a weaker fact.
         #   email          - secret reveal by owner (apps/api/v2/logic/secrets/
         #                    {show,reveal}_secret.rb) and Rodauth verify_account
         #                    (apps/web/auth/config/hooks/account.rb)
@@ -92,13 +103,24 @@ module Auth
         #                    colonel/set_user_verification.rb)
         #   legacy         - backfilled by this doctor's verified_by repair
         # Keep this list in sync when adding a new provenance writer.
-        VALID_VERIFIED_BY = %w[
-          email stripe_payment autoverify sso
-          invite_token cli_provision colonel_admin legacy
-        ].freeze
+        # Canonical list lives on the model (single source, enforced at the
+        # write sites); kept here as an alias for existing callers and specs.
+        VALID_VERIFIED_BY = Onetime::Customer::VERIFIED_BY_VALUES
 
         # Counter fields to check
         COUNTER_FIELDS = [:secrets_created, :secrets_burned, :secrets_shared, :emails_sent].freeze
+
+        # The one accounts-row read every cross-store check shares (memoized
+        # `auth_account`). `login` and the `email_verified_*` columns arrive
+        # with migration 015 (ADR-051). The auth DB is migrated at boot, but
+        # Auth::Migrator.run_if_needed lets a process boot without them while
+        # another one holds the migration lock, and there this SELECT raises.
+        # The checks then report :auth_account_unreadable
+        # (#report_auth_account_unreadable) rather than read "no row".
+        AUTH_ACCOUNT_COLUMNS = [
+          :id, :email, :status_id, :login,
+          :email_verified_at, :email_verified_by, :email_verification_hold
+        ].freeze
 
         # Per-customer result. `issues` is severity-sorted; `repaired` is the list
         # of repair-action hashes applied (empty unless repair: true).
@@ -109,9 +131,9 @@ module Auth
         # @param actor [String, #extid, #email, nil] acting admin's PUBLIC identity;
         #   when present and a repair is applied, one audit event is recorded
         def initialize(customer:, repair: false, actor: nil)
-          @customer = customer
-          @repair   = repair
-          @actor    = actor
+          @customer         = customer
+          @repair_requested = repair
+          @actor            = actor
         end
 
         # Run all per-customer checks. Returns a Report; the caller aggregates.
@@ -120,22 +142,17 @@ module Auth
           issues   = []
           repaired = []
 
-          check_workspace_collision(issues, repaired)
-          check_provisioning_failure(issues, repaired)
-          check_orphan_default_org(issues, repaired)
-          check_email_index_entry(issues, repaired)
-          check_auth_email_drift(issues, repaired)
-          check_auth_email_canonical(issues)
-          check_org_email_index(issues, repaired)
-          check_org_contact_email(issues, repaired)
-          check_org_membership_sync(issues, repaired)
-          check_role_validity(issues)
-          check_verified_consistency(issues, repaired)
-          check_sso_customer_unverified(issues, repaired)
-          check_counter_sanity(issues, repaired)
-          check_field_serialization(issues, repaired)
+          # First, so a closure that rolled back is cleared before anything
+          # else runs. A record still marked after it belongs to a closure
+          # that has not finished: its owner asked for it to be deleted, and
+          # finish-closures deletes it. Nothing repairs it into shape (a
+          # workspace provisioned, an index rebuilt), but a closure whose purge
+          # stays blocked still needs the read-out, so the data checks run for
+          # it and repair nothing (#repairing?).
+          check_closure_marker(issues, repaired)
+          check_customer_data(issues, repaired)
 
-          audit_repair_outcome(repaired) if @repair
+          audit_repair_outcome(repaired) if @repair_requested
 
           Report.new(issues: issues.sort_by { |i| SEVERITY_ORDER[i[:severity]] }, repaired: repaired)
         rescue StandardError => ex
@@ -152,9 +169,49 @@ module Auth
           # event: a REPAIR run with a known actor. A repair that blew up
           # partway is a mutation left in an unknown state, and that must be in
           # the trail. The record helper is shared, only the gate is bespoke.
-          audit_repair_failure(ex) if @repair && !@actor.nil?
+          audit_repair_failure(ex) if @repair_requested && !@actor.nil?
           raise
         end
+
+        # Every per-customer check but the closure marker (see #call).
+        def check_customer_data(issues, repaired)
+          check_workspace_collision(issues, repaired)
+          check_provisioning_failure(issues, repaired)
+          check_orphan_default_org(issues, repaired)
+          check_email_index_entry(issues, repaired)
+          check_auth_email_drift(issues, repaired)
+          check_auth_email_canonical(issues)
+          check_auth_login_link(issues)
+          check_org_email_index(issues, repaired)
+          check_org_contact_email(issues, repaired)
+          check_org_membership_sync(issues, repaired)
+          check_role_validity(issues)
+          check_verified_consistency(issues, repaired)
+          check_sso_customer_unverified(issues, repaired)
+          check_recovered_customer_unverified(issues)
+          check_system_role_mailbox_proof(issues)
+          check_counter_sanity(issues, repaired)
+          check_field_serialization(issues, repaired)
+        end
+        private :check_customer_data
+
+        # Whether the data checks may repair what they find: under
+        # repair: true, and only for a record that is not closing (see
+        # #call). Every check gates its repairs on this or on
+        # #repairing_closure_marker?, never on @repair_requested.
+        def repairing?
+          @repair_requested && !@customer.closing?
+        end
+        private :repairing?
+
+        # Whether #check_closure_marker may clear a rolled-back closure's
+        # marker: under repair: true. Unlike #repairing?, the record being
+        # closing does not stop it, since the record it clears is the one
+        # still marked.
+        def repairing_closure_marker?
+          @repair_requested
+        end
+        private :repairing_closure_marker?
 
         # Index-level check: email_index entries point to live customers with the
         # right email. Returns { issues:, repaired: }. Cross-customer, so it is a
@@ -169,6 +226,27 @@ module Auth
           mismatch_count = 0
 
           Onetime::Customer.email_index.hgetall.each do |email, objid|
+            # ADR-051: an absent contact email writes NO index entry. A key of
+            # '' means some writer indexed an empty address, and whichever
+            # Customer saves next with an empty email would silently take it
+            # over (Familia's index writers only skip nil). Never a legitimate
+            # entry, so it is removed rather than re-pointed.
+            if email.to_s.empty?
+              issues << {
+                check: :email_index_blank_key,
+                severity: :critical,
+                message: "email_index has an empty-string key -> #{objid} (shared key for absent emails)",
+                customer_objid: objid,
+                repairable: true,
+              }
+              if repair
+                Onetime::Customer.email_index.remove_field(email)
+                OT.info "[customers doctor] Removed empty-string email_index key -> #{objid}"
+                repaired << { action: :email_index_blank_key_removed, customer_objid: objid }
+              end
+              next
+            end
+
             customer = Onetime::Customer.load(objid)
 
             if customer.nil?
@@ -264,7 +342,7 @@ module Auth
           }
           issues << collision_issue
 
-          return unless @repair && repairable
+          return unless repairing? && repairable
           return unless WorkspaceCollision.compare_and_delete(collision)
 
           OT.info "[customers doctor] Removed stale contact-email claim for #{@customer.extid} (#{classification})"
@@ -370,7 +448,7 @@ module Auth
           }
           issues << issue
 
-          return unless @repair && release[:releasable]
+          return unless repairing? && release[:releasable]
 
           release_provisioning_latch(issue, issues, repaired, release)
         end
@@ -505,7 +583,7 @@ module Auth
               repair_action: 'Clear default_org_id field',
             }
 
-            if @repair
+            if repairing?
               @customer.default_org_id = nil
               @customer.save
               OT.info "[customers doctor] Cleared default_org_id for #{@customer.extid}"
@@ -529,7 +607,7 @@ module Auth
             repair_action: 'Clear default_org_id field',
           }
 
-          return unless @repair
+          return unless repairing?
 
           @customer.default_org_id = nil
           @customer.save
@@ -556,7 +634,7 @@ module Auth
               repair_action: 'Add email_index entry',
             }
 
-            if @repair
+            if repairing?
               Onetime::Customer.email_index[@customer.email] = @customer.objid
               OT.info "[customers doctor] Added email_index[#{@customer.email}] -> #{@customer.objid}"
               repaired << {
@@ -573,7 +651,7 @@ module Auth
               repair_action: 'Fix email_index entry',
             }
 
-            if @repair
+            if repairing?
               Onetime::Customer.email_index[@customer.email] = @customer.objid
               OT.info "[customers doctor] Fixed email_index[#{@customer.email}] -> #{@customer.objid}"
               repaired << {
@@ -610,14 +688,13 @@ module Auth
         # authdb this is the dominant cost of the doctor run. Skipped entirely in
         # simple mode (no auth database).
         def check_auth_email_drift(issues, repaired)
-          db = auth_db
-          return if db.nil?
-
           return if @customer.email.to_s.empty?
 
           account = auth_account
+          return report_auth_account_unreadable(issues, :auth_email_drift) if @auth_account_unreadable
           return if account.nil?
 
+          db        = auth_db
           sql_email = account[:email].to_s
           return if sql_email.downcase == @customer.email.to_s.downcase
 
@@ -631,13 +708,24 @@ module Auth
             repair_action: 'Write the Customer email into the Rodauth accounts row',
           }
 
-          return unless @repair
+          return unless repairing?
+
+          # The migration 015 verification columns qualify the row's address
+          # (ADR-051): proof recorded for the SQL address says nothing about
+          # the Customer's, so a repair that moves the row to another mailbox
+          # clears them. The memo is updated to what was written, so the
+          # checks after this one judge the repaired row.
+          written = { email: @customer.email }
+          if account.key?(:email_verified_at) && !OT::Utils.same_mailbox?(sql_email, @customer.email)
+            written.merge!(Auth::AccountEmailVerification::CLEARED)
+          end
 
           db.transaction do
             db[:accounts].where(id: account[:id]).update(
-              email: @customer.email, updated_at: Sequel::CURRENT_TIMESTAMP,
+              **written, updated_at: Sequel::CURRENT_TIMESTAMP,
             )
           end
+          @auth_account = account.merge(written)
           OT.info "[customers doctor] Repaired auth email drift for #{@customer.extid}"
           repaired << {
             customer: @customer.extid,
@@ -684,6 +772,7 @@ module Auth
         # (normalized) Customer address into the row, which settles both.
         def check_auth_email_canonical(issues)
           account = auth_account
+          return report_auth_account_unreadable(issues, :auth_email_not_canonical) if @auth_account_unreadable
           return if account.nil?
 
           sql_email      = account[:email].to_s
@@ -705,7 +794,7 @@ module Auth
             if sql_stale
               'Run `bin/ots customers normalize-emails` (dry run), then with --confirm'
             else
-              "Run `bin/ots customers change-email #{@customer.extid} <lowercase address>` " \
+              "Run `bin/ots customers change-email #{@customer.extid} <lowercase address> --apply` " \
                 '(the accounts row is already canonical; normalize-emails will not select it)'
             end
 
@@ -780,7 +869,7 @@ module Auth
               repair_action: 'Re-key the org-scoped email index',
             }
 
-            next unless @repair
+            next unless repairing?
 
             # Add the correct entry BEFORE removing the stale ones, so there is
             # no window in which the customer is unfindable within the org.
@@ -847,7 +936,7 @@ module Auth
             }
 
             next if conflicted
-            next unless @repair
+            next unless repairing?
 
             org.contact_email = email
             org.update_in_class_contact_email_index(contact)
@@ -882,7 +971,7 @@ module Auth
                 repair_action: 'Remove stale participation entry',
               }
 
-              if @repair
+              if repairing?
                 @customer.untrack_participation_in(collection_key)
                 if @customer.participations.to_a.include?(collection_key)
                   raise Onetime::Problem, "Stale participation cleanup failed: #{collection_key}"
@@ -905,7 +994,7 @@ module Auth
                 repair_action: 'Add customer to org.members',
               }
 
-              if @repair
+              if repairing?
                 organization.add_members_instance(@customer)
                 OT.info "[customers doctor] Added #{@customer.extid} to #{organization.extid}.members"
                 repaired << {
@@ -948,7 +1037,7 @@ module Auth
             repair_action: "Set verified_by to 'legacy'",
           }
 
-          return unless @repair
+          return unless repairing?
 
           @customer.verified_by = 'legacy'
           @customer.save
@@ -980,7 +1069,7 @@ module Auth
             repair_action: 'Reset negative counters to 0',
           }
 
-          return unless @repair
+          return unless repairing?
 
           negative_counters.each do |counter|
             @customer.send(:"#{counter[:field]}=", 0)
@@ -1018,7 +1107,7 @@ module Auth
             repair_action: 'Re-serialize fields with Familia::JsonSerializer.dump',
           }
 
-          return unless @repair
+          return unless repairing?
 
           updates = bad_fields.to_h do |entry|
             [entry[:field], Familia::JsonSerializer.dump(raw_hash[entry[:field]])]
@@ -1034,18 +1123,19 @@ module Auth
         end
 
         # The customer's Rodauth accounts row, or nil (simple mode, unreachable
-        # DB, no extid, no row). Memoized because THREE cross-store checks read
-        # it — :auth_email_drift, :auth_email_not_canonical and
-        # :sso_customer_unverified — and the class docs call the one SQL round
-        # trip per customer the dominant cost of an `--all` sweep. One shared
-        # read keeps that cost unchanged.
+        # DB, no extid, no row). Memoized because several cross-store checks
+        # read it (:auth_email_drift, :auth_email_not_canonical,
+        # :auth_login_*, :sso_customer_unverified) and the class docs call the
+        # one SQL round trip per customer the dominant cost of an `--all`
+        # sweep. One shared read keeps that cost unchanged.
         #
-        # A repair inside check_auth_email_drift rewrites the row's email; the
-        # memo is deliberately not invalidated. check_auth_email_canonical
-        # skips a memoized address that differs from the Customer's beyond
-        # case, which is exactly the row that repair rewrote, and
-        # check_sso_customer_unverified wants :status_id, which no repair
-        # here touches.
+        # A repair inside check_auth_email_drift rewrites the row's email (and
+        # clears the verification columns when the mailbox changes); it
+        # updates the memo with exactly what it wrote, so every later check
+        # judges the repaired row rather than the address the repair replaced.
+        #
+        # A read that raises is nil too, flagged unreadable (see
+        # #report_auth_account_unreadable).
         def auth_account
           return @auth_account if defined?(@auth_account)
 
@@ -1055,10 +1145,197 @@ module Auth
           @auth_account = if db.nil? || extid.empty?
                             nil
                           else
-                            db[:accounts].where(external_id: extid).select(:id, :email, :status_id).first
+                            db[:accounts].where(external_id: extid).select(*AUTH_ACCOUNT_COLUMNS).first
                           end
-        rescue StandardError
+        rescue StandardError => ex
+          auth_account_unreadable!(ex, 'auth accounts row read')
           @auth_account = nil
+        end
+
+        # Records why the accounts row could not be read, for the
+        # :auth_account_unreadable issue, and logs the exception once per
+        # customer. The issue carries the class only: a connection error's
+        # message can name hosts and users.
+        def auth_account_unreadable!(ex, what)
+          @auth_account_unreadable = true
+          @auth_account_error      = ex.class.name
+          OT.le "[customers doctor] #{what} failed for #{@customer.extid}: #{ex.class} #{ex.message}"
+        end
+
+        # A cross-store check whose accounts row could not be read (the
+        # SELECT raised, or the connection could not be built) decides
+        # nothing, but returning quietly would print a clean report for a
+        # customer it never examined: a doctor run against a schema-014
+        # database, where AUTH_ACCOUNT_COLUMNS raises, would hide a critical
+        # :auth_email_drift. Every such check names itself on ONE issue per
+        # customer instead, so a `--all` sweep lists the customer once.
+        # Report-only. Not for simple mode or a missing row: those are nil
+        # without the flag, and stay silent.
+        #
+        # @return [nil]
+        def report_auth_account_unreadable(issues, check)
+          issue = issues.find { |i| i[:check] == :auth_account_unreadable }
+          unless issue
+            issue = {
+              check: :auth_account_unreadable,
+              severity: :critical,
+              error: @auth_account_error,
+              checks_not_run: [],
+              repairable: false,
+              repair_action: 'Check that the auth database is reachable and migrated to 015 or later ' \
+                             '(a process can boot while another one holds the migration lock), then ' \
+                             're-run the doctor',
+            }
+            issues << issue
+          end
+
+          issue[:checks_not_run] |= [check]
+          issue[:message]         = "auth accounts row could not be read (#{@auth_account_error}); " \
+                                    "not checked: #{issue[:checks_not_run].join(', ')}"
+          nil
+        end
+
+        # ADR-051 (SSO email-less accounts Phase 2): the accounts row's internal
+        # `login` IS the Customer objid, and `email_verified_at` records
+        # mailbox proof for the row's address, so it is meant to agree with
+        # Customer#mailbox_verified? (verified with a provenance in
+        # Onetime::Customer::MAILBOX_VERIFIED_BY), not with `verified?` alone:
+        # a Customer verified by an IdP claim ('sso'), a payment, autoverify
+        # or a 'legacy' stamp beside a NULL column is in step, which is what
+        # the backfill writes for it. Report-only, three shapes:
+        #
+        #   :auth_login_missing   the row predates migration 015 and has not
+        #                         been backfilled (`bin/ots customers
+        #                         backfill-logins`); medium, expected during
+        #                         the cutover window and zero after it
+        #   :auth_login_mismatch  the row names a different Customer than its
+        #                         external_id does; critical, never auto-fixed
+        #                         (the backfill refuses exactly this, so it is
+        #                         a hand-made row or a re-linked external_id)
+        #   :auth_email_verification_drift
+        #                         one store has mailbox proof for the
+        #                         address and the other does not; high.
+        #                         Skipped while the two stores name different
+        #                         addresses: that is check_auth_email_drift's
+        #                         finding, and the backfill leaves such a row
+        #                         unverified on purpose. Every verification
+        #                         writer writes both stores through
+        #                         Auth::AccountEmailVerification, so a finding
+        #                         here is a write that failed between them,
+        #                         with one exception (#verification_drift_issue):
+        #                         a Customer recreated at login, which never
+        #                         gets mailbox proof, beside a row that kept
+        #                         its proof. Until the N+1 binary makes SQL
+        #                         the single writer, the Customer mirror is
+        #                         what every reader uses, so this is
+        #                         reported, not repaired.
+        def check_auth_login_link(issues)
+          account = auth_account
+          return report_auth_account_unreadable(issues, :auth_login_link) if @auth_account_unreadable
+          return if account.nil?
+          return unless account.key?(:login)
+
+          login = account[:login].to_s
+          if login.empty?
+            issues << {
+              check: :auth_login_missing,
+              severity: :medium,
+              message: 'auth account has no internal login yet (migration 015 added the column)',
+              repairable: false,
+              repair_action: 'Run `bin/ots customers backfill-logins` (dry run first)',
+            }
+            return
+          end
+
+          if login != @customer.objid.to_s
+            issues << {
+              check: :auth_login_mismatch,
+              severity: :critical,
+              message: 'auth account login names a different Customer than its external_id ' \
+                       '(cross-store split-brain)',
+              repairable: false,
+              repair_action: 'Decide which Customer owns the row; never merge. See ADR-051',
+            }
+            return
+          end
+
+          # The address test every verification writer uses
+          # (OT::Utils.same_mailbox?), so this check skips exactly the rows
+          # those writers leave unverified for naming another mailbox.
+          return unless OT::Utils.same_mailbox?(account[:email].to_s, @customer.email.to_s)
+
+          sql_verified      = !account[:email_verified_at].nil?
+          customer_verified = @customer.mailbox_verified?
+          return if sql_verified == customer_verified
+          # An unverified recovered Customer beside a row with the proof:
+          # check_recovered_customer_unverified reports that record, with the
+          # same manual remedy.
+          return if sql_verified && recovered_customer_unverified?(account)
+
+          issues << verification_drift_issue(account, sql_verified)
+        rescue StandardError => ex
+          OT.le "[customers doctor] auth_login_link check failed for #{@customer.extid}: " \
+                "#{ex.class} #{ex.message}"
+        end
+
+        # The :auth_email_verification_drift finding. Its repair depends on
+        # which store has the proof.
+        #
+        # The Customer (the columns are NULL): the column write of a stamp
+        # failed. Re-running the change writes both stores, and since a
+        # repeat that changes nothing writes nothing, unverify, then verify
+        # re-stamps. Nothing is widened: the Customer already reads
+        # mailbox-verified.
+        #
+        # The accounts row: the Customer write of a verification failed
+        # after its SQL write, or the Customer lost the proof since. The
+        # report never prescribes a re-stamp here, since a verify gives the
+        # Customer the mailbox proof has_system_role? requires (#4735). A
+        # Customer recreated at login (provisioning_origin 'login_recovery')
+        # is the expected case, not a failed write:
+        # SyncSession#derive_verification_provenance never stamps mailbox
+        # proof on a recovered record, so the row's proof outlives the record
+        # it was written for. That one is medium.
+        def verification_drift_issue(account, sql_verified)
+          state = "auth account email_verified_at #{sql_verified ? 'set' : 'NULL'} while Customer " \
+                  "mailbox_verified=#{!sql_verified} (verified_by=#{@customer.verified_by.inspect}"
+          issue = {
+            check: :auth_email_verification_drift,
+            severity: :high,
+            message: "#{state}; cross-store verification drift)",
+            auth_email_verified_by: account[:email_verified_by],
+            auth_email_verification_hold: account[:email_verification_hold],
+            repairable: false,
+          }
+
+          unless sql_verified
+            return issue.merge(
+              repair_action: 'A verification write failed between the stores. Re-run the change that ' \
+                             'failed (`bin/ots customers verify|unverify`); a repeat that changes nothing ' \
+                             'writes nothing, so re-stamp a Customer that already reads mailbox-verified ' \
+                             'with unverify, then verify. The Customer mirror is authoritative until the ' \
+                             'N+1 binary',
+            )
+          end
+
+          if @customer.provisioning_origin.to_s == 'login_recovery'
+            return issue.merge(
+              severity: :medium,
+              message: "#{state}; Customer recreated at login, which never stamps mailbox proof)",
+              repair_action: 'Not a failed write: the row kept the proof the lost record had. Manual ' \
+                             'decision required: confirm the address with its owner, then verify via ' \
+                             'colonel admin or `bin/ots customers verify EMAIL`. The Customer mirror is ' \
+                             'authoritative until the N+1 binary',
+            )
+          end
+
+          issue.merge(
+            repair_action: 'The accounts row has mailbox proof the Customer lacks: a verification whose ' \
+                           'Customer write failed, or a Customer that lost the proof since. Do not ' \
+                           'restore it from this report alone: confirm the address with its owner, then ' \
+                           'verify via colonel admin or `bin/ots customers verify EMAIL`. The Customer ' \
+                           'mirror is authoritative until the N+1 binary',
+          )
         end
 
         # CHECK: an SSO-provisioned Customer left unverified (#3973)
@@ -1101,6 +1378,7 @@ module Auth
           return unless @customer.provisioning_origin.to_s == 'sso_jit'
 
           account = auth_account
+          return report_auth_account_unreadable(issues, :sso_customer_unverified) if @auth_account_unreadable
           return if account.nil?
           return unless account[:status_id] == Auth::AccountStatuses::VERIFIED
 
@@ -1122,17 +1400,34 @@ module Auth
           existing_provenance = @customer.verified_by.to_s
           provenance          = existing_provenance.empty? ? 'sso' : existing_provenance
 
+          # SetCustomerVerification refuses a tag outside VERIFIED_BY_VALUES,
+          # so a stored unknown tag cannot be preserved by the repair. Say so
+          # instead of reporting a repair that --repair would never make.
+          unless Onetime::Customer::VERIFIED_BY_VALUES.include?(provenance)
+            issues << {
+              check: :sso_customer_unverified,
+              severity: :medium,
+              message: 'SSO-provisioned customer is unverified while its auth account is Verified, ' \
+                       "and carries an unrecognised verified_by '#{provenance}' (not auto-repaired)",
+              reason: :unknown_verified_by,
+              repairable: false,
+              repair_action: 'Manual decision required: confirm the address, then verify ' \
+                             'via colonel admin or `bin/ots customers verify EMAIL`',
+            }
+            return
+          end
+
           issues << {
             check: :sso_customer_unverified,
             severity: :high,
             message: 'SSO-provisioned customer is unverified while its auth account is Verified ' \
-                     '(system roles are gated on verified?)',
+                     "(the mirrored 'sso' stamp is IdP-asserted, not mailbox proof)",
             repairable: true,
             repair_action: "Mirror the auth account's verified state onto the Customer " \
                            "(verified_by: '#{provenance}')",
           }
 
-          return unless @repair
+          return unless repairing?
 
           Auth::Operations::SetCustomerVerification.new(
             customer: @customer,
@@ -1155,13 +1450,179 @@ module Auth
                 "#{ex.class} #{ex.message}"
         end
 
-        # Auth database handle, or nil in simple mode / when unreachable.
+        # CHECK: a customer recreated at login and left unverified while its
+        # auth account is Verified.
+        #
+        # SyncSession#recreate_customer fails CLOSED: when it cannot read the
+        # auth state it needs to pick a verified_by, it creates the record
+        # unverified (provisioning_origin 'login_recovery') and logs a WARN.
+        # The accounts row stays Verified, so Rodauth never sends the user
+        # through verify_account again, and the 'sso_jit' check above skips
+        # the record. Without this check the WARN line is the only trace.
+        #
+        # Reported, never repaired: verifying the record would widen access on
+        # the strength of a lookup that just failed. An operator who has
+        # confirmed the address verifies it by hand.
+        def check_recovered_customer_unverified(issues)
+          return if @customer.verified?
+          return unless @customer.provisioning_origin.to_s == 'login_recovery'
+
+          account = auth_account
+          return report_auth_account_unreadable(issues, :recovered_customer_unverified) if @auth_account_unreadable
+          return if account.nil?
+          return unless recovered_customer_unverified?(account)
+
+          issues << {
+            check: :recovered_customer_unverified,
+            severity: :medium,
+            message: 'Customer recreated at login is unverified while its auth account is Verified ' \
+                     '(provenance lookup failed at recovery; not auto-repaired)',
+            repairable: false,
+            repair_action: 'Manual decision required: confirm the address, then verify ' \
+                           'via colonel admin or `bin/ots customers verify EMAIL`',
+          }
+        rescue StandardError => ex
+          OT.le "[customers doctor] recovered_customer_unverified check failed for #{@customer.extid}: " \
+                "#{ex.class} #{ex.message}"
+        end
+
+        # A Customer recreated at login unverified beside a Verified accounts
+        # row: check_recovered_customer_unverified's finding.
+        def recovered_customer_unverified?(account)
+          !@customer.verified? &&
+            @customer.provisioning_origin.to_s == 'login_recovery' &&
+            account[:status_id] == Auth::AccountStatuses::VERIFIED
+        end
+
+        # CHECK: a system role whose holder has no MAILBOX proof (#4735).
+        #
+        # has_system_role? refuses colonel/admin/staff to an account that is not
+        # mailbox_verified?, so a role holder stamped by an IdP ('sso'), a card
+        # ('stripe_payment'), autoverify or a pre-provenance backfill ('legacy')
+        # — or with no provenance at all — holds a role that does nothing. Never
+        # auto-repaired: nobody but the operator can say the address is theirs.
+        # The remedy is the same operator verification that unlocks the role
+        # (and re-claims any deferred federation).
+        def check_system_role_mailbox_proof(issues)
+          role = @customer.role.to_s
+          return unless SYSTEM_ROLES.include?(role)
+          # 'admin' and 'staff' are outside this doctor's VALID_ROLES and so also
+          # draw :role_invalid. That issue says nothing about mailbox proof and
+          # names no remedy for it, while has_system_role? refuses these roles
+          # exactly as it refuses colonel, so the upgrade scan must list them
+          # here too — two issues on one record, each with its own fix.
+          return if @customer.mailbox_verified?
+
+          provenance = @customer.verified_by.to_s
+          state      = if !@customer.verified?
+                         'unverified'
+                       elsif provenance.empty?
+                         'verified with no provenance'
+                       else
+                         "verified_by: '#{provenance}'"
+                       end
+
+          issues << {
+            check: :system_role_without_mailbox_proof,
+            severity: :high,
+            message: "role '#{role}' holder has no mailbox proof (#{state}); " \
+                     'has_system_role? refuses the role until the address is verified',
+            repairable: false,
+            repair_action: 'Manual decision required: confirm the address with its owner, then verify ' \
+                           'via colonel admin or `bin/ots customers verify EMAIL`',
+          }
+        end
+
+        # CHECK: a closure marker on a record that still exists (#4830)
+        #
+        # Customer#mark_closure_started! runs just before a closure removes
+        # the sign-in, and a completed closure deletes the record with it. A
+        # record that still carries the marker is in one of two states, told
+        # apart by the auth account (the memoized read the cross-store checks
+        # share; in simple mode there is none):
+        #
+        #   no open auth account  The closure stopped before the record was
+        #                         deleted. Reported, never repaired here:
+        #                         finishing it deletes the account, which is
+        #                         `bin/ots customers finish-closures`.
+        #   open auth account     The closure's transaction rolled back and
+        #                         the account is live. --repair clears the
+        #                         marker, so the record stops reading as a
+        #                         closure and finish-closures leaves it alone.
+        #
+        # A marker younger than Customer::CLOSURE_STALE_AFTER can belong to a
+        # closure still running, whose uncommitted transaction reads here as
+        # an open account: it is reported as in progress and left alone. An
+        # unreadable auth database decides neither state, so nothing is
+        # reported. Customer.closure_state is the classification, shared with
+        # finish-closures, diagnose and the sign-up finish.
+        def check_closure_marker(issues, repaired)
+          return unless @customer.closing?
+
+          account = auth_account
+          live    = @auth_account_unreadable ? nil : AccountStatuses.live?(account && account[:status_id])
+          started = Time.at(@customer.closure_started_at.to_i).utc.strftime('%Y-%m-%d %H:%M UTC')
+
+          case @customer.closure_state(open_auth_account: live)
+          when :in_progress
+            issues << {
+              check: :closure_in_progress,
+              severity: :low,
+              message: "account closure started at #{started} and may still be running",
+              repairable: false,
+            }
+          when :interrupted
+            issues << {
+              check: :closure_interrupted,
+              severity: :high,
+              message: "#{auth_mode_caveat}account closure started at #{started} stopped before the record " \
+                       "was deleted; finish it with `bin/ots customers purge #{@customer.extid}` (or every " \
+                       'such closure with `bin/ots customers finish-closures --confirm`)',
+              repairable: false,
+            }
+          when :rolled_back
+            issues << {
+              check: :closure_rolled_back,
+              severity: :medium,
+              message: "account closure started at #{started} rolled back; the auth account is open " \
+                       'and the record still carries the closure marker',
+              repairable: true,
+              repair_action: 'Clear the closure marker',
+            }
+            return unless repairing_closure_marker?
+
+            @customer.clear_closure_marker!
+            OT.info "[customers doctor] Cleared the closure marker of #{@customer.extid} (closure rolled back)"
+            repaired << { customer: @customer.extid, action: :closure_marker_cleared }
+          end
+        end
+
+        # Auth database handle, or nil in simple mode. A connection that
+        # cannot be built is nil too, flagged unreadable, so the account
+        # checks decide nothing rather than read "no connection" as "no
+        # account" (check_closure_marker would otherwise advise a purge).
         def auth_db
           return @auth_db if defined?(@auth_db)
 
           @auth_db = defined?(Auth::Database) ? Auth::Database.connection : nil
-        rescue StandardError
+        rescue StandardError => ex
+          auth_account_unreadable!(ex, 'auth database connection')
           @auth_db = nil
+        end
+
+        # In simple mode no auth account exists, so a stale marker is an
+        # interrupted closure by definition. bin/ots resolves simple mode
+        # whenever AUTHENTICATION_MODE is not exported into its shell,
+        # full-mode install or not (Onetime::AuthConfig#simple_by_default?),
+        # and on a full-mode install the record may then belong to a
+        # rolled-back closure with a live account. The read-out leads with
+        # that before it names the purge, which refuses in the same state
+        # (Onetime::CLI::Customers::Shared#auth_mode_refusal).
+        def auth_mode_caveat
+          return '' unless Onetime.auth_config.simple_by_default?
+
+          'no auth account was checked (AUTHENTICATION_MODE is not set, so simple auth mode was resolved ' \
+            'by default; on a full-mode install re-run with it exported before acting): '
         end
 
         # Memoized once per Doctor instance — three checks iterate it.

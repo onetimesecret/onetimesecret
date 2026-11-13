@@ -375,20 +375,28 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
   end
 
   describe '#extract_client_ip_for_homepage' do
-    it 'delegates to Rack::Request#ip' do
-      mock_req = double('request')
-      allow(mock_req).to receive(:ip).and_return('203.0.113.42')
-      test_instance.req = mock_req
+    it 'returns the canonical otto.client_ip when present' do
+      test_instance.req = double('request', ip: '10.0.0.5',
+        env: { 'otto.client_ip' => '203.0.113.0', 'REMOTE_ADDR' => '10.0.0.5' })
 
-      expect(test_instance.send(:extract_client_ip_for_homepage)).to eq('203.0.113.42')
+      expect(test_instance.send(:extract_client_ip_for_homepage)).to eq('203.0.113.0')
     end
 
-    it 'returns whatever Rack::Request#ip resolves, including nil' do
-      mock_req = double('request')
-      allow(mock_req).to receive(:ip).and_return(nil)
-      test_instance.req = mock_req
+    it 'returns nil on the no-client-IP path instead of the raw peer address' do
+      test_instance.req = double('request', ip: '10.0.0.5',
+        env: {
+          'otto.ip_match' => ->(_ranges) { false },
+          'otto.peer_relayed' => true,
+          'REMOTE_ADDR' => '10.0.0.5',
+        })
 
       expect(test_instance.send(:extract_client_ip_for_homepage)).to be_nil
+    end
+
+    it 'falls back to Rack::Request#ip when the middleware did not run' do
+      test_instance.req = double('request', ip: '203.0.113.42', env: { 'REMOTE_ADDR' => '203.0.113.42' })
+
+      expect(test_instance.send(:extract_client_ip_for_homepage)).to eq('203.0.113.42')
     end
   end
 

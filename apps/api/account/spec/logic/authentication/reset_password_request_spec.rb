@@ -76,6 +76,7 @@ RSpec.describe AccountAPI::Logic::Authentication::ResetPasswordRequest do
     allow(Onetime::Secret).to receive(:create!).and_return(secret)
     allow(secret).to receive(:default_expiration=)
     allow(secret).to receive(:verification=)
+    allow(secret).to receive(:kind=) # 'password_reset': mailbox proof for the current address (#4735)
     allow(secret).to receive(:save)
 
     # Quiet the auth logger. any_instance, NOT `allow(logic)`: touching `logic`
@@ -161,13 +162,15 @@ RSpec.describe AccountAPI::Logic::Authentication::ResetPasswordRequest do
       end
     end
 
-    it 'still enforces the per-login backstop when no client IP is available' do
+    it 'charges the shared no-client-ip bucket and the per-login backstop when no client IP is available' do
       allow(strategy_result).to receive(:metadata).and_return({})
       allow(logic).to receive(:valid_email?).and_return(true)
 
-      # nil IP skips the IP tier inside the limiter rather than pooling unknown
-      # callers into one shared bucket; the login still reaches the backstop.
-      expect(logic).to receive(:enforce_reset_request_rate_limit!).with(nil, email)
+      # otto 2.13: a client-written X-Forwarded-For entry can leave the request
+      # with no client IP. Skipping the IP tier would leave one source probing
+      # many logins uncapped, so it keys the shared bucket
+      # (Onetime::Security::NoClientIp); the login still reaches the backstop.
+      expect(logic).to receive(:enforce_reset_request_rate_limit!).with('no-client-ip', email)
 
       logic.raise_concerns
     end

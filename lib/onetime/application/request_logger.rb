@@ -4,6 +4,7 @@
 
 require_relative 'error_correlation'
 require_relative '../error_handler'
+require_relative '../utils/client_ip'
 
 module Onetime
   module Application
@@ -143,7 +144,9 @@ module Onetime
         payload[:path]       = self.class.redacted_path(request) if capture?(:path)
         payload[:status]     = status if capture?(:status)
         payload[:request_id] = request.env['HTTP_X_REQUEST_ID'] if capture?(:request_id)
-        payload[:ip]         = request.ip if capture?(:ip)
+        # Not request.ip: on the otto 2.13 no-client-IP path REMOTE_ADDR is
+        # left raw and request.ip would log the unmasked peer address.
+        payload[:ip]         = Onetime::Utils::ClientIp.from_request(request) if capture?(:ip)
         payload[:params]     = allowlisted_params(request.params) if capture?(:params)
         # The session id IS the bearer cookie, so no capture mode logs it.
         # The handle (Onetime::SessionMetadata.handle_for) is a keyed,

@@ -233,6 +233,16 @@ RSpec.describe Onetime::Operations::Domains::CollisionSenderPreservation do
       expect(preservation).to eq('victim' => true)
     end
 
+    [' ', {}].each do |override|
+      it "refuses a platform ID override of #{override.inspect} instead of comparing it" do
+        credentials['domain_id'] = override
+        expect(strategy).not_to receive(:domain_authentications)
+        expect { preservation }.to raise_error(described_class::UnsafeIdentity,
+          'sender identity for victim: sendgrid gave no usable identity for the sender domain')
+        expect(identity_cache).not_to have_key('victim')
+      end
+    end
+
     it 'compares resolved IDs, not stored provisioning metadata' do
       allow(strategy).to receive(:domain_authentications).with(api_key: 'test-token').and_return(listing)
       expect(preservation).to eq('victim' => false)
@@ -275,6 +285,22 @@ RSpec.describe Onetime::Operations::Domains::CollisionSenderPreservation do
       expect(identity_cache).to include('keeper' => nil, 'victim' => %w[sendgrid 43])
     end
 
+    it '[L15] protects an identity whose sender domains differ from the listing only in case' do
+      listing.replace([{ 'domain' => 'unrelated.example', 'id' => 7 }, { 'domain' => 'Example.COM', 'id' => 42 }])
+      allow(victim_config).to receive(:from_address).and_return('remove@EXAMPLE.com')
+      allow(strategy).to receive(:domain_authentications).with(api_key: 'test-token').and_return(listing)
+      expect(preservation).to eq('victim' => true)
+      expect(identity_cache).to include('keeper' => %w[sendgrid 42], 'victim' => %w[sendgrid 42])
+    end
+
+    it '[L15] still separates unrelated names after case-insensitive matching' do
+      listing.replace([{ 'domain' => 'Example.COM', 'id' => 42 }, { 'domain' => 'MAIL.example.com', 'id' => 43 }])
+      allow(victim_config).to receive(:from_address).and_return('remove@mail.EXAMPLE.com')
+      allow(strategy).to receive(:domain_authentications).with(api_key: 'test-token').and_return(listing)
+      expect(preservation).to eq('victim' => false)
+      expect(identity_cache).to include('keeper' => %w[sendgrid 42], 'victim' => %w[sendgrid 43])
+    end
+
     it 'refuses a failed listing as a retryable provider failure and lists again next time' do
       allow(strategy).to receive(:domain_authentications).and_return(nil, listing)
       expect { preservation }.to raise_error(described_class::UnsafeIdentity) do |error|
@@ -284,6 +310,136 @@ RSpec.describe Onetime::Operations::Domains::CollisionSenderPreservation do
       expect(identity_cache).not_to have_key([:listing, 'sendgrid'])
       expect(preservation).to eq('victim' => false)
       expect(strategy).to have_received(:domain_authentications).twice
+    end
+  end
+
+  context 'Lettermint paginated deletion targets' do
+    let(:strategy) { Onetime::Mail::SenderStrategies.for_provider('lettermint') }
+    let(:domains_api) { double('Lettermint domains resource') }
+    let(:client) { double('Lettermint client', domains: domains_api) }
+    let(:target) { { 'domain' => 'example.com', 'id' => 'shared-remote-id' } }
+    let(:first_page) { domain_page([{ 'domain' => 'unrelated.example', 'id' => 'unrelated-id' }], 'page-2') }
+    let(:last_page) { domain_page([target]) }
+
+    before do
+      [keeper_config, victim_config].each do |config|
+        allow(config).to receive(:effective_provider).and_return('lettermint')
+      end
+      allow(Onetime::Mail::Mailer).to receive(:provider_credentials).with('lettermint')
+        .and_return('team_token' => 'test-token')
+      allow(Onetime::Mail::SenderStrategies).to receive(:for_provider).with('lettermint').and_return(strategy)
+      allow(strategy).to receive(:build_client).and_return(client)
+      allow(domains_api).to receive(:list).with(no_args).and_return(first_page)
+      allow(domains_api).to receive(:list).with(page_cursor: 'page-2').and_return(last_page)
+    end
+
+    def domain_page(entries, next_cursor = nil)
+      { 'data' => entries, 'next_cursor' => next_cursor }
+    end
+
+    def expect_retryable_listing_refusal
+      expect { preservation }.to raise_error(described_class::UnsafeIdentity) do |error|
+        expect(error.message).to eq('sender identity for victim: lettermint lookup failed; the provider did not answer or refused the request, retry may succeed')
+        expect(error.cause).to be_nil
+      end
+      expect(identity_cache).not_to have_key([:listing, 'lettermint'])
+      expect(identity_cache).not_to have_key('victim')
+    end
+
+    it '[C01] preserves a shared later-page target resolved by the real deletion lookup' do
+      expect(preservation).to eq('victim' => true)
+      expect(identity_cache).to include('keeper' => ['lettermint', target['id']], 'victim' => ['lettermint', target['id']])
+      expect(domains_api).to have_received(:list).with(no_args).once
+      expect(domains_api).to have_received(:list).with(page_cursor: 'page-2').once
+
+      expect(strategy.send(:find_domain_by_name, client, 'example.com')).to eq(target)
+      expect(domains_api).to have_received(:list).with(page_cursor: 'page-2').twice
+    end
+
+    it '[C02] accepts absence only after walking the complete listing, as deletion does' do
+      allow(victim_config).to receive(:from_address).and_return('remove@absent.example')
+
+      expect(preservation).to eq('victim' => false)
+      expect(identity_cache).to include('victim' => nil)
+      expect(identity_cache).not_to have_key('keeper')
+      expect(domains_api).to have_received(:list).with(page_cursor: 'page-2').once
+      expect(strategy.send(:find_domain_by_name, client, 'absent.example')).to be_nil
+    end
+
+    {
+      'missing data' => { 'next_cursor' => nil },
+      'non-array data' => { 'data' => {}, 'next_cursor' => nil },
+      'missing next_cursor' => { 'data' => [] },
+      'nested-only next_cursor' => { 'data' => [], 'meta' => { 'next_cursor' => nil } },
+      'invalid cursor' => { 'data' => [], 'next_cursor' => 42 },
+    }.each do |label, malformed|
+      it "[C03] refuses and does not cache a later page with #{label}" do
+        allow(domains_api).to receive(:list).with(page_cursor: 'page-2').and_return(malformed)
+        expect_retryable_listing_refusal
+
+        allow(domains_api).to receive(:list).with(page_cursor: 'page-2').and_return(last_page)
+        expect(preservation).to eq('victim' => true)
+        expect(domains_api).to have_received(:list).with(no_args).twice
+        expect(domains_api).to have_received(:list).with(page_cursor: 'page-2').twice
+      end
+    end
+
+    it '[C03/C14] refuses a later-page transport failure even when the target was on the first page' do
+      allow(domains_api).to receive(:list).with(no_args).and_return(domain_page([target], 'page-2'))
+      allow(domains_api).to receive(:list).with(page_cursor: 'page-2').and_raise(IOError, 'secret response test-token')
+      expect_retryable_listing_refusal
+    end
+
+    it '[C03] refuses a cursor cycle without issuing an unbounded list walk' do
+      allow(domains_api).to receive(:list).with(page_cursor: 'page-2').and_return(domain_page([target], 'page-3'))
+      allow(domains_api).to receive(:list).with(page_cursor: 'page-3').and_return(domain_page([], 'page-2'))
+      expect_retryable_listing_refusal
+      expect(domains_api).to have_received(:list).with(no_args).once
+      expect(domains_api).to have_received(:list).with(page_cursor: 'page-2').once
+      expect(domains_api).to have_received(:list).with(page_cursor: 'page-3').once
+    end
+
+    it '[C06] reuses one complete walk across 1000 records and multiple groups' do
+      allow(victim_config).to receive(:from_address).and_return('remove@other.example.com')
+      entries = [target, { 'domain' => 'other.example.com', 'id' => target['id'] }]
+      others = Array.new(998) do |i|
+        config = double("config #{i}", effective_provider: 'lettermint', from_address: "mail@tenant#{i}.example.net")
+        allow(Onetime::CustomDomain).to receive(:find_by_identifier).with("other#{i}")
+          .and_return(double("live #{i}", mailer_config: config))
+        entries << { 'domain' => "tenant#{i}.example.net", 'id' => "remote-#{i}" }
+        double("record #{i}", domain_id: "other#{i}")
+      end
+      records.concat(others)
+      allow(domains_api).to receive(:list).with(no_args).and_return(domain_page(entries.first(400), 'page-2'))
+      allow(domains_api).to receive(:list).with(page_cursor: 'page-2').and_return(domain_page(entries.slice(400, 400), 'page-3'))
+      allow(domains_api).to receive(:list).with(page_cursor: 'page-3').and_return(domain_page(entries.drop(800)))
+
+      expect(preservation).to eq('victim' => true)
+      second_group = double('second group', keep_record: others.first, records: others.first(2))
+      expect(described_class.new(group: second_group, records: records, identity_cache: identity_cache).call)
+        .to eq('other1' => false)
+      expect(identity_cache.keys.grep(String).size).to eq(1000)
+      expect(domains_api).to have_received(:list).with(no_args).once
+      ['page-2', 'page-3'].each do |cursor|
+        expect(domains_api).to have_received(:list).with(page_cursor: cursor).once
+      end
+      expect(strategy).to have_received(:build_client).once
+      records.each do |record|
+        expect(Onetime::CustomDomain).to have_received(:find_by_identifier).with(record.domain_id).once
+      end
+    end
+
+    it '[C07] retries a failed complete walk for the next group sharing the apply cache' do
+      allow(domains_api).to receive(:list).with(page_cursor: 'page-2').and_raise(IOError, 'temporary failure')
+      expect_retryable_listing_refusal
+      allow(domains_api).to receive(:list).with(page_cursor: 'page-2').and_return(last_page)
+      second_group = double('next group', keep_record: victim, records: [keeper, victim])
+
+      expect(described_class.new(group: second_group, records: records, identity_cache: identity_cache).call)
+        .to eq('keeper' => true)
+      expect(identity_cache).to include('keeper' => ['lettermint', target['id']], 'victim' => ['lettermint', target['id']])
+      expect(domains_api).to have_received(:list).with(no_args).twice
+      expect(domains_api).to have_received(:list).with(page_cursor: 'page-2').twice
     end
   end
 
@@ -313,6 +469,14 @@ RSpec.describe Onetime::Operations::Domains::CollisionSenderPreservation do
       expect(preservation).to eq('victim' => false)
     end
 
+    it '[L15] protects an identity whose sender domains differ from the listing only in case, keeping its ID' do
+      listing.replace([{ 'domain' => 'Other.Example.com', 'id' => 'remote-2' }, { 'domain' => 'EXAMPLE.com', 'id' => 'Remote-1' }])
+      allow(keeper_config).to receive(:from_address).and_return('keep@Example.Com')
+      allow(strategy).to receive(:list_domains).with(client).and_return(listing)
+      expect(preservation).to eq('victim' => true)
+      expect(identity_cache).to include('keeper' => %w[lettermint Remote-1], 'victim' => %w[lettermint Remote-1])
+    end
+
     it 'lists the account domains once per apply and builds one client' do
       allow(strategy).to receive(:list_domains).with(client).and_return(listing)
       2.times { expect(preservation).to eq('victim' => true) }
@@ -336,7 +500,10 @@ RSpec.describe Onetime::Operations::Domains::CollisionSenderPreservation do
 
     it 'treats a sender domain absent from the listing as no identity, as deletion does' do
       allow(victim_config).to receive(:from_address).and_return('remove@unlisted.example.com')
-      allow(strategy).to receive(:list_domains).with(client).and_return(listing)
+      domains_api = double('Lettermint domains resource')
+      allow(client).to receive(:domains).and_return(domains_api)
+      allow(domains_api).to receive(:list).with(no_args)
+        .and_return('data' => listing, 'next_cursor' => nil)
 
       expect(preservation).to eq('victim' => false)
       expect(identity_cache).to include('victim' => nil)
@@ -344,9 +511,19 @@ RSpec.describe Onetime::Operations::Domains::CollisionSenderPreservation do
       expect(strategy.send(:find_domain_by_name, client, 'unlisted.example.com')).to be_nil
     end
 
-    it 'refuses a listed sender domain without a provider ID' do
-      allow(strategy).to receive(:list_domains).and_return([{ 'domain' => 'example.com' }])
-      expect { preservation }.to raise_error(described_class::UnsafeIdentity, 'sender identity for victim: lettermint lists the sender domain without an identity')
+    it '[C03/C14] refuses a listed sender domain without a provider ID through the real inventory validation' do
+      domains_api = double('Lettermint domains resource')
+      allow(client).to receive(:domains).and_return(domains_api)
+      allow(domains_api).to receive(:list).with(no_args)
+        .and_return('data' => [{ 'domain' => 'example.com' }], 'next_cursor' => nil)
+
+      expect { preservation }.to raise_error(described_class::UnsafeIdentity) do |error|
+        expect(error.message).to eq('sender identity for victim: lettermint lookup failed; the provider did not answer or refused the request, retry may succeed')
+        expect(error.cause).to be_nil
+      end
+      expect(identity_cache).not_to have_key([:listing, 'lettermint'])
+      expect(identity_cache).not_to have_key('victim')
+      expect(domains_api).to have_received(:list).with(no_args).once
     end
 
     it 'reports unreadable installation credentials as a local failure, not a provider one' do

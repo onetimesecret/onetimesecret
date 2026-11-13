@@ -5,6 +5,7 @@
 require 'onetime/logic/base'
 require 'onetime/colonel_signin_failure'
 require 'onetime/models/colonel_audit_event'
+require 'onetime/security/no_client_ip'
 require 'onetime/security/login_rate_limiter'
 require 'onetime/session/impersonation'
 require 'onetime/session/rotation'
@@ -64,11 +65,13 @@ module Core::Logic
         # and skipped the failure funnel, so the attempt against X was never
         # counted or audited. Full mode has no such fallback: Rodauth resolves
         # the account from the submitted `login` and verifies the password
-        # against that account alone (its default already_logged_in is a no-op
-        # and this app never configures it). So @cust is unconditionally
-        # overwritten here — the attempted account when its passphrase matches,
-        # nil otherwise — which makes raise_concerns the single failure funnel
-        # for EVERY rejected credential, carried session or not.
+        # against that account alone, and its already_logged_in (configured in
+        # apps/web/auth/config/base.rb) refuses a session the app has marked
+        # authenticated before the password is checked. So @cust is
+        # unconditionally overwritten here — the attempted account when its
+        # passphrase matches, nil otherwise — which makes raise_concerns the
+        # single failure funnel for EVERY rejected credential, carried session
+        # or not.
         passwd_matches = potential ? potential.passphrase?(@passwd) : false
         @cust          = passwd_matches ? potential : nil
         @objid         = @cust.objid if @cust
@@ -453,13 +456,16 @@ module Core::Logic
       # LoginRateLimiter (email drives the global backstop; email+ip the tight
       # per-origin tier). See LoginRateLimiter for why neither half alone is a
       # sufficient key. IP comes from the same strategy metadata the log lines
-      # read; both are available after process_params.
+      # read; both are available after process_params. A request with no client
+      # IP (otto 2.13) keys the shared no-client-ip bucket: skipping the tight
+      # tier would let one IP-less caller drive the per-email backstop to a
+      # lockout alone (RL-3). See Onetime::Security::NoClientIp.
       def login_rate_limit_email
         @potential_email_address
       end
 
       def login_rate_limit_ip
-        @strategy_result&.metadata&.[](:ip)
+        Onetime::Security::NoClientIp.subject_for(@strategy_result&.metadata&.[](:ip))
       end
 
       def form_fields

@@ -15,8 +15,9 @@
 
 require_relative '../../spec_helper'
 
-# Namespace shim (the pattern of spec/config/overrides/duplicate_signup_spec.rb):
-# the feature file reopens Auth::Config without booting the app.
+# Namespace shim (the pattern of
+# spec/config/overrides/account_enumeration_duplicate_signup_spec.rb): the
+# feature file reopens Auth::Config without booting the app.
 module Auth; end
 Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
 
@@ -51,7 +52,7 @@ RSpec.describe Auth::Config::Features::AccountManagement, '.configure_create_acc
 
       Auth::Config::Features::AccountManagement.configure_create_account_response(self)
     end
-    app.plugin :json_parser # the helper app has no body parser
+    app.plugin :json_parser, content_type_regexp: %r{\Aapplication/json\b}i # the helper app has no body parser
     app
   end
 

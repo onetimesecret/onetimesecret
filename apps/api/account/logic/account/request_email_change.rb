@@ -95,7 +95,7 @@ module AccountAPI::Logic
           )
         end
 
-        unless verify_password(@password)
+        unless password_verified?
           raise_form_error 'Current password is incorrect', field: 'password', error_type: 'incorrect'
         end
 
@@ -107,26 +107,46 @@ module AccountAPI::Logic
       end
 
       def valid_update?
-        verify_password(@password) && valid_email?(@new_email) && @new_email != cust.email
+        password_verified? && valid_email?(@new_email) && @new_email != cust.email
       end
 
       def perform_update
-        # Increment the per-customer request counter before touching external APIs.
-        # Counter is checked in field_specific_concerns; incrementing here (inside
-        # the happy-path write path) means failed validations don't burn the quota.
-        increment_request_count
+        # Supersede any earlier pending confirmation. Only the secret recorded
+        # on pending_email_change is recognised as the email-change link; a
+        # second request would otherwise leave the first secret live but
+        # unrecorded, and revealing THAT one would read as proof of the
+        # current mailbox (Customer#mailbox_proof_secret?, #4735). One pending
+        # email-change secret per customer, always the recorded one.
+        previous_identifier = cust.pending_email_change.value.to_s
+        unless previous_identifier.empty?
+          superseded = Onetime::Secret.find_by_identifier(previous_identifier)
+          superseded.destroy! if superseded&.exists?
+        end
 
         # Create a verification secret with 24h TTL following ResetPasswordRequest pattern
         secret                    = Onetime::Secret.create!(owner_id: cust.objid)
         secret.default_expiration = 24.hours
         secret.verification       = 'true'
+        secret.kind               = 'email_change' # never mailbox proof for the CURRENT address (#4735)
         secret.custid             = cust.objid
         secret.ciphertext         = @new_email
         secret.save
 
-        # Track the pending change on the customer (standalone dbkey, writes immediately)
+        # Track the pending change on the customer (standalone dbkey, writes immediately).
+        # Kept next to secret.save: the superseded secret is already destroyed
+        # above, so nothing may fail between the save and this pointer write
+        # without leaving the customer with no usable pending change.
         cust.pending_email_change          = secret.identifier
         cust.pending_email_delivery_status = 'queued'
+
+        # Count the request only once durable state exists: the pending-change
+        # secret and its pointer on the customer. Failed validations never reach
+        # this method, and a Redis write error during secret creation/save
+        # raises above — so flaky saves can't burn the MAX_REQUESTS quota with
+        # no pending change ever created (PR #3915 review). Increment BEFORE the
+        # email enqueues below: those are best-effort (each is rescued), and a
+        # failure after the pending change is recorded must not skip the count.
+        increment_request_count
 
         OT.info "[request-email-change] Email change requested cid/#{cust.objid} new_email/#{OT::Utils.obscure_email(@new_email)}"
 
@@ -165,6 +185,20 @@ module AccountAPI::Logic
         rescue StandardError => ex
           auth_logger.error '[request-email-change] Failed to send notification email', exception: ex
         end
+      end
+
+      # Memoized wrapper around verify_password so field_specific_concerns and
+      # valid_update? share a single verification per request. In full auth
+      # mode each verify_password call is a Rodauth internal_request round-trip
+      # to the auth database; both call sites need the answer (PR #3915
+      # review). Safe to memoize: logic objects are instantiated fresh per API
+      # request (see AccountAPI::Logic::Base#initialize) and @password is fixed
+      # at process_params time, so the cached result cannot go stale within the
+      # object's lifetime.
+      def password_verified?
+        return @password_verified unless @password_verified.nil?
+
+        @password_verified = verify_password(@password)
       end
 
       # Verify password using the appropriate mechanism based on auth mode.

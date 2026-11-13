@@ -1,0 +1,83 @@
+{
+  "name": "auth-generate-minimal",
+  "method": "POST",
+  "path": "/api/v3/secret/generate",
+  "request": {
+    "secret": {
+      "ttl": 3600
+    }
+  },
+  "response_schema": "concealData",
+  "request_schema": "generateSecret",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "x-request-id": "0d8bvq5b67jhj"
+  },
+  "body": {
+    "success": true,
+    "record": {
+      "receipt": {
+        "identifier": "d8dey4zeweeyl7b37adliv6f7hhlxefslpinkzyea4disomi9rgatjvtna1tsm",
+        "key": "d8dey4zeweeyl7b37adliv6f7hhlxefslpinkzyea4disomi9rgatjvtna1tsm",
+        "owner_id": "01a1b95c-94fc-7bcc-bba0-bb3194103df9",
+        "state": "new",
+        "secret_shortid": "jwco8h4p",
+        "secret_identifier": "jwco8h4p5ak6g66b32xattheaeq98afmuatqn0zv8kbdwqr2oxyd9ml31nzwkz",
+        "secret_ttl": 3600,
+        "metadata_ttl": 3600,
+        "receipt_ttl": 3600,
+        "lifespan": 3600,
+        "share_domain": null,
+        "created": 1794111215.1604972,
+        "updated": 1794111215.1605012,
+        "shared": null,
+        "recipients": null,
+        "recipient_name": null,
+        "memo": null,
+        "shortid": "d8dey4ze",
+        "show_recipients": false,
+        "previewed": null,
+        "revealed": null,
+        "is_previewed": false,
+        "viewed": null,
+        "received": null,
+        "burned": null,
+        "is_viewed": false,
+        "is_received": false,
+        "is_revealed": false,
+        "is_burned": false,
+        "is_expired": false,
+        "is_orphaned": false,
+        "is_destroyed": false,
+        "has_passphrase": false,
+        "kind": "generate",
+        "source": "standard"
+      },
+      "secret": {
+        "identifier": "jwco8h4p5ak6g66b32xattheaeq98afmuatqn0zv8kbdwqr2oxyd9ml31nzwkz",
+        "key": "jwco8h4p5ak6g66b32xattheaeq98afmuatqn0zv8kbdwqr2oxyd9ml31nzwkz",
+        "shortid": "jwco8h4p",
+        "state": "new",
+        "lifespan": 3600,
+        "secret_ttl": 3600,
+        "has_passphrase": false,
+        "verification": false,
+        "display_type": "text",
+        "created": 1794111215.160478,
+        "updated": 1794111215.1604843,
+        "is_previewed": false,
+        "is_revealed": false,
+        "is_viewed": false,
+        "is_received": false
+      },
+      "share_domain": null
+    },
+    "details": {
+      "kind": "generate",
+      "recipient": [],
+      "recipient_safe": []
+    }
+  }
+}

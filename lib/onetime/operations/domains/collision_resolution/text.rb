@@ -164,8 +164,9 @@ module Onetime
             Array(context[:notes]).each { |note| lines << "  note: #{note}" }
             lines << '  removal outcomes: none' if outcome.removals.empty?
             outcome.removals.each do |removal|
-              detail = removal.detail ? " - #{removal.detail}" : ''
-              lines << format('  %-7s %s  %s%s', removal.status, removal.ref, spelled(removal.display_domain), detail)
+              detail  = removal.detail ? " - #{removal.detail}" : ''
+              cleanup = removal.sender_cleanup ? "  sender_cleanup=#{removal.sender_cleanup}" : ''
+              lines << format('  %-7s %s  %s%s%s', removal.status, removal.ref, spelled(removal.display_domain), cleanup, detail)
             end
             lines << "  exact index: #{outcome.index_claim || 'no result reported (not needed, skipped or dry run)'}"
             lines << "  kept record verified: #{outcome.verify_state || 'no result reported (see errors; may be not applicable)'}"

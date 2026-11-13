@@ -111,6 +111,14 @@ full:
     #   SAML: SAML_IDP_SSO_SERVICE_URL, SAML_IDP_ENTITY_ID, SAML_IDP_CERT
     sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>  # Since v0.24.5
 
+    # OAuth2/OIDC Identity Provider (default: OFF) — issue #3104
+    # When true, this OTS instance acts as an IdP: its own SP and other
+    # registered clients can authenticate against it via the standard
+    # OAuth authorization-code + PKCE flow.
+    # See: apps/web/auth/config/features/oauth.rb for configuration.
+    # Override the issuer with OAUTH_ISSUER (defaults to https://<site.host>/auth).
+    oauth: <%= ENV['AUTH_OAUTH_ENABLED'] == 'true' %>  # Since unreleased
+
   # ──────────────────────────────────────────────────────────────────────
   # Restrict login page to a single authentication method
   #
@@ -187,3 +195,25 @@ full:
   # passwords remain protected unless this secret is also leaked.
   # Leave unset (nil) to use argon2id without a pepper.
   argon2_secret: <%= ENV["ARGON2_SECRET"] || nil %>  # Since v0.24.0
+
+# API bearer tokens: PASETO v4.public for the v3 API (issue #2427)
+#
+# Off by default. V3's stable surface accepts browser sessions and the
+# explicit guest routes only. Enabling this adds short-lived signed bearer
+# tokens as a third credential on the authenticated v3 secret routes
+# (`Authorization: Bearer v4.public...`) and activates POST /api/v3/token,
+# which exchanges a session or Basic auth API key for a token.
+#
+# No key material to manage: the Ed25519 signing key is derived from SECRET
+# with HKDF (purpose paseto-signing). Every SECRET_PREVIOUS entry derives a
+# verification-only key, so tokens signed before a SECRET rotation keep
+# verifying until they expire. Tokens are refused once the account is
+# suspended, its password changes (the same watermark that ends sessions)
+# or its API key is rotated.
+#
+# Independent of `mode`: works in simple and full mode alike.
+paseto:
+  enabled: <%= ENV['PASETO_ENABLED'] == 'true' %>  # Since v0.26.20
+  # Lifetime of each issued token in seconds. Clamped to 60..86400
+  # (one minute to one day); the default is one hour.
+  token_ttl: <%= ENV['PASETO_TOKEN_TTL'] || 3600 %>  # Since v0.26.20

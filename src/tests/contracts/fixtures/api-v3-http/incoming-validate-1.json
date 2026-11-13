@@ -1,0 +1,20 @@
+{
+  "name": "incoming-validate-1",
+  "method": "POST",
+  "path": "/api/incoming/validate",
+  "request": {
+    "recipient": "absent-recipient"
+  },
+  "response_schema": "validateRecipient",
+  "request_schema": "validateRecipient",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "cache-control": "private, no-store",
+    "x-request-id": "1l59eet9eg8uq"
+  },
+  "body": {
+    "recipient": "absent-recipient",
+    "valid": false
+  }
+}

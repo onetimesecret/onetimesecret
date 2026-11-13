@@ -54,7 +54,13 @@ $ tests/lanes/run --only spec/api/v2/secret_ttl_entitlement_spec.rb:20          
   directories (any `try/` tree) are rejected because RSpec would otherwise
   report a false-green zero-example run. Pass individual `_try.rb` files or
   run the complete lane.
-- `path:LINE` selects an RSpec example.
+- `path:LINE` narrows a file. Both runners take it; the runner forwards the
+  argument untouched. RSpec: a list is allowed (`path:12:34`), and a line
+  inside a `describe`/`context` body selects every example nested in that
+  group, so one line per top-level group chunks a file. Tryouts: one line
+  or one range (`path:19`, `path:19-45`, `path:L19-L45`), matching every
+  test case whose span overlaps it. Repeating the same tryouts file with
+  different lines keeps only the last one; use a range instead.
 - `--only` preserves the lane's isolation and environment guarantees, but skips
   generated prerequisites and every other task. Run the complete lane before
   pushing; CI validates lanes, not individual files.
@@ -101,7 +107,7 @@ derives each lane's selection from the rake tasks themselves (invoked with
 `sh` captured, resolved through rspec's own configuration) and checks
 `--which` against it, so the table cannot drift from `lib/tasks/spec.rake`
 unnoticed. Support files (`spec/support`, an app's `spec/support`, `spec/spec_helper.rb`,
-`try/support`) and application code (`lib/`, `apps/*` outside test trees,
+`try/support`), test data (`spec/fixtures`) and application code (`lib/`, `apps/*` outside test trees,
 `config/`, `etc/`, `locales/`, `Gemfile.lock`, `tests/lanes/`) are _shared_:
 every lane but `smoke` runs them. The same spec checks the table against
 every lane's tasks file and every `spec/` and `try/` directory on disk, so
@@ -164,7 +170,9 @@ Each rspec invocation writes a results file of its own:
   `<stem>_apps_config_ru.json`.
 - A lane with a single invocation writes `<stem>.json` (`full-mfa` and
   `full-saml-platform` write `<stem>_mfa.json` and
-  `<stem>_saml_platform.json`).
+  `<stem>_saml_platform.json`). `full-webauthn-verify` runs rspec twice, MFA
+  off and on, and writes `<stem>_webauthn_verify.json` and
+  `<stem>_webauthn_verify_mfa.json`.
 - An `--only` run writes `<stem>_only.json`, a name no lane uses. Without
   `--quiet` or a results file it adds no formatter and `.rspec` decides, as
   for plain rspec.
@@ -466,7 +474,7 @@ generated locale is a logged line at boot, not a failure), leaves
 `last.log` untouched, and prints no timing line. It takes the lane name and
 overlays only; `--only`, `--quiet`, `--capture-logs`, `--log-console`,
 `--skip-codegen` and `--` exit 64 with it. Under `sqlite::memory:`
-(`full-sqlite`, `full-mfa`, `full-saml-platform`) the auth database is empty
+(`full-sqlite`, `full-mfa`, `full-saml-platform`, `full-webauthn-verify`) the auth database is empty
 and unmigrated in a fresh process, so the console logs
 `no such table: accounts` at boot; the PostgreSQL lanes address the
 per-worktree database the lane's runs use.
@@ -520,14 +528,16 @@ duration exceeds its wall clock.
 | `billing-integration` | valkey, rabbitmq          | `try:integration:billing`, `spec:integration:billing`         | 1       | ruby-billing-integration (T3, nightly only)      |
 | `browser`            | valkey, rabbitmq           | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | 1       | ruby-auth-browser (T2)                           |
 | `simple`             | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`           | 4 (rspec)| ruby-integration-simple (T3)                    |
-| `full-sqlite`        | valkey, rabbitmq           | `spec:integration:full`                                       | 4       | ruby-integration-full — SQLite row               |
+| `full-sqlite`        | valkey, rabbitmq           | `spec:integration:full`, `spec:integration:oauth`             | 4 (full only) | ruby-integration-full — SQLite row         |
 | `full-mfa`           | valkey, rabbitmq           | `spec:integration:full:mfa`                                   | 1       | ruby-integration-auth — SQLite MFA row           |
 | `full-saml-platform` | valkey, rabbitmq           | `spec:integration:full:saml_platform`                         | 1       | ruby-integration-auth — SQLite platform SAML row |
+| `full-webauthn-verify` | valkey, rabbitmq         | `spec:integration:full:webauthn_verify`                       | 1       | ruby-integration-auth — SQLite passkey signup row |
 | `full-pg`            | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                              | 1 (PG)  | ruby-integration-full — PG row                   |
 | `full-pg-agnostic`   | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`                        | 1 (PG)  | ruby-integration-auth — PG agnostic row          |
 | `disabled`           | valkey, rabbitmq           | `spec:integration:disabled`                                   | 1       | ruby-integration-disabled (T3)                   |
+| `strategies`         | valkey, rabbitmq           | `spec:integration:strategies`                                 | 1       | ruby-integration-strategies (T3)                 |
 | `api`                | valkey, rabbitmq           | `spec:api`                                                    | 4       | blocking step, T3 simple job                     |
-| `smoke`              | valkey, rabbitmq           | `pnpm test:smoke`                                             | 1 (refused above) | local-only                             |
+| `smoke`              | valkey, rabbitmq           | `pnpm test:smoke`                                             | 1 (refused above) | smoke-test (T3)                        |
 | `migrations-sqlite`  | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                          | 1       | migration-tests.yml — SQLite job                 |
 | `migrations-pg`      | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check    | 1 (PG)  | migration-tests.yml — PostgreSQL job             |
 | `harness`            | valkey, rabbitmq           | `spec:lanes` (`spec/unit/lanes`, the runner's own specs)      | 1       | ruby-unit (T2), second step, path-gated          |
@@ -538,6 +548,13 @@ Start every service named for a lane. This includes RabbitMQ for `api`,
 `selftest` is the only service-free exception. The Workers column is the
 lane's `LANES_WORKERS` default (`--workers` overrides it; PG lanes and
 `smoke` refuse more than one).
+
+`strategies` shares `full-sqlite`'s environment but is its own lane
+because the isolation *is* the point: run in the `full-sqlite` process,
+the `spec/integration/all` RabbitMQ/fork specs corrupt the process-wide
+Familia/Redis connection and every strategy example fails spuriously
+(#3468). One lane = one process boundary, so a second lane is how that
+gets expressed.
 
 A lane with several legs (`unit`, `billing`, `billing-integration`, `simple`,
 `migrations-pg`) runs every leg even when an earlier one fails, then exits
@@ -652,6 +669,28 @@ checkouts while sharing the local test service instances:
 
 The shared `onetime_auth_test` database does not match this query.
 
+## Datastore connections in a test process
+
+A process that runs the application's `SetupConnectionPool` initializer (an
+integration spec, a tryout that boots with the database) serves every
+`Familia.dbclient` lookup from the boot's connection pool. A process that
+does not (unit specs never boot; unit tryouts boot with `connect_to_db:
+false`) would fall through to Familia's fallback, which opens a fresh
+connection per lookup (familia 2.12, delano/familia#456). One datastore-heavy
+spec file made thousands of such connections, exhausted the ephemeral port
+range on macOS (`Errno::EADDRNOTAVAIL ... 127.0.0.1:2163`), and the runner
+reported the test services lost mid-run (exit 69) although valkey was fine.
+
+`spec/spec_helper.rb` and `try/support/test_helpers.rb` therefore install a
+bounded pool on load (`tests/lanes/support/datastore_pool.rb`), with the
+same provider a full boot installs: the pinned-connection stack first,
+otherwise a pool checkout. Each helper passes the test datastore URL, which
+becomes `Familia.uri` and the target of every pooled connection; connections
+are created lazily, with the initializer's reconnect attempts. A later full
+boot replaces the provider with its own pool. `FAMILIA_POOL_SIZE` and
+`FAMILIA_POOL_TIMEOUT` size it, as they do the initializer's pool, except
+that a value that is not an integer stops the test process at load.
+
 ## Hermetic environment boundary
 
 `tests/lanes/run` does not inherit development-shell configuration. It creates
@@ -708,9 +747,9 @@ four rspec processes per lane and claim as many valkey indexes. A serial
 
 `--parallel` requires test services to already be running and is rejected when
 `CI` is set. It also rejects a duplicate lane: two copies derive the same
-isolation key and would share a datastore. The `smoke` lane is local-only and
-cannot be used with `--parallel`, because its task regenerates locales itself
-and can race with other lanes. Run it alone (normally
+isolation key and would share a datastore. The `smoke` lane cannot be used
+with `--parallel`, because its task regenerates locales itself and can race
+with other lanes. Run it alone (normally
 `tests/lanes/run smoke`).
 
 ### Only the lanes a change touches: `--changed`

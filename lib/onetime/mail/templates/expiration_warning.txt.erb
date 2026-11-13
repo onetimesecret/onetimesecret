@@ -1,7 +1,9 @@
 <%= t('email.expiration_warning.expires_in', time_remaining: time_remaining) %>.
 
-<%= t('email.expiration_warning.view_before_gone') %>
-<%= secret_uri %>
+<%= t('email.expiration_warning.secret_id_label') %> <%= secret_shortid %>
+
+<%= t('email.expiration_warning.sign_in_to_manage') %>
+<%= recent_uri %>
 
 <%= t('email.expiration_warning.reminder_label') %> <%= t('email.expiration_warning.after_expiration') %>
 

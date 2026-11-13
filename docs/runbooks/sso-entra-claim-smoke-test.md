@@ -55,7 +55,9 @@ for a particular account type. That needs the live test below.
 2. **Read the OTS log line for each outcome.** A first-time refusal logs
    `omniauth_missing_email` (`provider: entra`) or
    `omniauth_invalid_email`; a tenant allowlist refusal logs
-   `omniauth_tenant_domain_rejected` with `reason`. Returning identities do
+   `omniauth_tenant_domain_rejected` with `reason`; a tenant creation for an
+   address outside the organization's proven domains logs
+   `omniauth_tenant_email_domain_unverified`. Returning identities do
    not need the claim on the platform surface; see
    [the error code table](../authentication/per-install-sso.md#email-claim-and-domain-errors).
 3. **Record claim presence and type** for each refused account type. The
@@ -104,11 +106,23 @@ this format.
 
 - `email` absent on a first sign-in: expected `missing_email`. First-time
   provisioning without a claim is the
-  [proposed Phase 2 work](../planning/2026-1009-sso-email-less-accounts.md);
+  [proposed Phase 2 work](../specs/sso/email-less-accounts-proposal.md);
   an existing account holder may use the
   [conditional Connect path](../authentication/per-install-sso.md#existing-account-with-a-missing-email-claim).
 - `email` present but refused: check `invalid_email` (shape) against
   `domain_not_allowed` (policy) before touching the IdP.
-- `xms_edov` is domain-owner verification, not mailbox control. Its
-  presence does not change the outcome today; see
-  [RISK-2026-10-10-02](../security/active-risk-register.md).
+- `xms_edov` is domain-owner verification, not mailbox control. `true`
+  or an absent claim changes nothing. An explicit `false` does change the
+  outcome (#4735):
+  - On a tenant surface with an email-domain allowlist, it refuses the
+    sign-in even when the address matches the allowlist. The browser shows
+    `domain_not_allowed`; the `omniauth_tenant_domain_rejected` log line
+    has `reason: domain_unverified`. Read that `reason` before changing the
+    allowlist: `domain_unverified` points at the tenant's domain
+    verification in Entra, not at OTS policy.
+  - A first-time account that SSO provisions is created unverified with
+    `verification_hold: domain_unverified` (logged as
+    `omniauth_verification_held`, reported by `bin/ots customers doctor`).
+
+  See [Entra email claims and mailbox verification](../authentication/per-install-sso.md#entra-email-claims-and-mailbox-verification)
+  and [RISK-2026-10-10-02](../security/active-risk-register.md).

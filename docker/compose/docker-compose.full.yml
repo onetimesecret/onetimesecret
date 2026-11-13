@@ -206,6 +206,10 @@ services:
       - AUTH_DATABASE_URL=sqlite://data/auth.db
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:?RABBITMQ_USER must be set}:${RABBITMQ_PASS:?RABBITMQ_PASS must be set}@rabbitmq:5672
       - JOBS_ENABLED=${JOBS_ENABLED:-false}
+      # Same value as the app service. The config falls back to simple mode
+      # when the variable is absent, and the workers evaluate rules that read
+      # the mode (the federated subscription gate defers on an unsettled one).
+      - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-full}
     # Top-level CLI command ('ots worker', not 'ots jobs worker'). --queues
     # filters on the exact Sneakers queue name (worker_command.rb
     # determine_workers), not a short alias — EmailWorker's is
@@ -249,6 +253,8 @@ services:
       - AUTH_DATABASE_URL=sqlite://data/auth.db
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:?RABBITMQ_USER must be set}:${RABBITMQ_PASS:?RABBITMQ_PASS must be set}@rabbitmq:5672
       - JOBS_ENABLED=${JOBS_ENABLED:-false}
+      # Same value as the app service; see worker-email.
+      - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-full}
     # Top-level CLI command ('ots scheduler', not 'ots jobs scheduler').
     # Scheduled jobs additionally require JOBS_SCHEDULER_ENABLED=true.
     command: ['./bin/ots', 'scheduler', '--environment', 'production']

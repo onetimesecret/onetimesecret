@@ -19,7 +19,9 @@ const mockEntitlementCapture: {
 } = { onError: null };
 
 // Mock Setup
-const mockDomainsArray = Object.values(mockDomains);
+// The fixtures are v3-shaped while MockDependencies (src/tests/types.d) still
+// types the store with the v2 CustomDomain shape; bridge the two here.
+const mockDomainsArray = Object.values(mockDomains) as unknown as import('@/schemas/shapes/v2').CustomDomain[];
 const mockDependencies: MockDependencies = {
   router: {
     back: vi.fn(),

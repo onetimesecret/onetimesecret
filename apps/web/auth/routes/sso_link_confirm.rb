@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/security/login_rate_limiter'
+require 'onetime/security/no_client_ip'
 require 'onetime/session/failure_code'
 
 require 'auth/lib/logging'
@@ -143,8 +144,8 @@ module Auth
             # token, keyed per client (see #sso_link_confirm_throttle_subject).
             # Raises Onetime::LimitExceeded when locked -> 429 (rescued below,
             # ahead of the generic StandardError rescue that would mask it as 500).
-            throttle_subject = sso_link_confirm_throttle_subject(request.ip)
-            check_login_rate_limit!(throttle_subject) if throttle_subject
+            throttle_subject = sso_link_confirm_throttle_subject(Onetime::Utils::ClientIp.from_request(request))
+            check_login_rate_limit!(throttle_subject)
 
             result = Auth::Operations::ConfirmSsoLink.call(
               db: rodauth.db,
@@ -160,7 +161,7 @@ module Auth
               # resolves to nothing IS the failed-guess signal — count it toward the
               # per-client throttle. (The other failure statuses required a REAL
               # token to reach, so they are not guesses and are not recorded.)
-              record_failed_login_attempt!(throttle_subject) if throttle_subject
+              record_failed_login_attempt!(throttle_subject)
               response.status = 401
               next {
                 error: 'This linking request has expired. Please sign in with SSO again.',
@@ -192,7 +193,7 @@ module Auth
             # clear the per-client throttle so a legitimate user who burned attempts
             # on stale emailed links is not left one failure from lockout. Mirrors
             # the interstitial's clear-on-verified-credential.
-            clear_login_rate_limit!(throttle_subject) if throttle_subject
+            clear_login_rate_limit!(throttle_subject)
 
             # result.status == :ok — the identity is bound (or deferred for MFA).
             # Establish the session through Rodauth's OWN login machinery so
@@ -288,7 +289,7 @@ module Auth
         nil
       end
 
-      # Throttle subject for the confirm POST, or nil when no client IP resolved.
+      # Throttle subject for the confirm POST.
       #
       # WHY PER-CLIENT-IP, NOT PER-EMAIL: on the interstitial (link_sso) the
       # guessable credential is the account PASSWORD, and the challenge — loaded
@@ -296,9 +297,9 @@ module Auth
       # credential IS the token (mailbox proof): a guessed token resolves to no
       # record, so there is no email to key on at exactly the moment throttling
       # matters. The only stable identifier a guess carries is the client IP —
-      # request.ip here is the privacy-MASKED address (Otto's IPPrivacyMiddleware
-      # rewrites REMOTE_ADDR upstream), the same value the interstitial's
-      # email+IP tier keys on, so the throttle granularity matches.
+      # the canonical privacy-MASKED address (Utils::ClientIp.from_request), the
+      # same value the interstitial's email+IP tier keys on, so the throttle
+      # granularity matches.
       #
       # The IP is embedded in the SUBJECT with a nil ip argument — the limiter's
       # documented "global tier only" path — giving one per-client key pair
@@ -307,15 +308,17 @@ module Auth
       # create a single global bucket shared by ALL clients: GLOBAL_MAX_ATTEMPTS
       # bogus POSTs from anyone would lock every user's mailbox confirm for
       # LOCKOUT_DURATION — a trivial DoS. Per-client keys cannot be poisoned
-      # across users. An EMPTY IP skips the throttle (nil) for the same reason:
-      # a shared fallback bucket would reopen that DoS. The token is 256-bit
+      # across users. A request with NO client IP (otto 2.13: the trusted
+      # X-Forwarded-For chain ended in `unknown` or an empty field, a value the
+      # client can write) keys the shared no-client-ip bucket rather than
+      # skipping the throttle, which would let one header switch it off. That
+      # bucket can lock out only other IP-less requests, never a client with an
+      # IP; before 2.13 those requests shared the proxy's bucket the same way
+      # (Onetime::Security::NoClientIp). The token is 256-bit
       # (SecureRandom.urlsafe_base64(32)), so this limiter is defence-in-depth
       # bounding probe volume, not the primary guard against guessing.
       def sso_link_confirm_throttle_subject(client_ip)
-        ip = client_ip.to_s
-        return nil if ip.empty?
-
-        "sso-link-confirm:#{ip}"
+        "sso-link-confirm:#{Onetime::Security::NoClientIp.subject_for(client_ip)}"
       end
     end
   end

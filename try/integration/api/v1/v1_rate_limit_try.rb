@@ -27,8 +27,9 @@ Onetime.started! unless Onetime.ready?
 mapped = Onetime::Application::Registry.generate_rack_url_map
 @mock_request = Rack::MockRequest.new(mapped)
 
-# Mock requests need REMOTE_ADDR for rate limiting to engage
-# (check_rate_limit! returns early if client IP is empty)
+# Mock requests carry a REMOTE_ADDR so the counter keys on a real address;
+# a request with no client IP is charged to the shared no-client-ip bucket
+# (TC-10/TC-11 below).
 @mock_env = { 'REMOTE_ADDR' => '198.51.100.1' }
 
 # Flush all keys to start clean
@@ -102,10 +103,33 @@ body['message'].include?('Rate limit')
 #=> true
 
 # -----------------------------------------------------------------------
+# TEST: No client IP is charged to the shared bucket, not skipped
+# -----------------------------------------------------------------------
+# Since otto 2.13 Otto::Request#client_ipaddress is nil when IPPrivacyMiddleware
+# found no client IP (a trusted X-Forwarded-For chain ending in `unknown` or an
+# empty field). The integration stack boots without a trusted proxy, so the
+# state is reproduced on the request object directly.
+
+## TC-10: An IP-less anonymous request increments the no-client-ip counter
+Familia.dbclient.flushdb
+@no_ip_req = Rack::Request.new(Rack::MockRequest.env_for('/api/v1/secret/x'))
+@no_ip_req.define_singleton_method(:client_ipaddress) { nil }
+@no_ip_res = Rack::Response.new
+@no_ip_ctrl = V1::Controllers::Index.new(@no_ip_req, @no_ip_res)
+result = @no_ip_ctrl.check_rate_limit!(:show_secret, V1::ControllerBase::V1_RATE_LIMIT_MAX_READS)
+[result, Familia.dbclient.get('v1:ratelimit:show_secret:no-client-ip').to_i]
+#=> [nil, 1]
+
+## TC-11: Past the cap the shared bucket refuses IP-less requests
+Familia.dbclient.set('v1:ratelimit:show_secret:no-client-ip', V1::ControllerBase::V1_RATE_LIMIT_MAX_READS)
+@no_ip_ctrl.check_rate_limit!(:show_secret, V1::ControllerBase::V1_RATE_LIMIT_MAX_READS)
+#=> :limited
+
+# -----------------------------------------------------------------------
 # TEST: Cleanup
 # -----------------------------------------------------------------------
 
-## TC-10: Clean up rate limit keys after tests
+## TC-12: Clean up rate limit keys after tests
 Familia.dbclient.flushdb
 Familia.dbclient.keys('v1:ratelimit:*').size
 #=> 0

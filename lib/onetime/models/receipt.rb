@@ -87,7 +87,7 @@ module Onetime
     SOURCES = %w[standard incoming].freeze
 
     # Source-dependent behaviour, keyed by :source. The single source of truth
-    # for what each provenance permits; read via #shows_share_link?. Mirrors
+    # for what each provenance permits; read via .shows_share_link_for?. Mirrors
     # CustomDomain::SignupConfig::STRATEGY_METADATA. Unmapped (non-empty)
     # values fall through to WITHHELD_CAPABILITIES — fail closed.
     SOURCE_CAPABILITIES = {
@@ -97,8 +97,30 @@ module Onetime
 
     # Fallback for any :source value not in SOURCE_CAPABILITIES (a typo or an
     # unshipped future source): withhold the link. A nil/empty source (legacy
-    # pre-field receipt) is handled separately in #shows_share_link?.
+    # pre-field receipt) is handled separately in .shows_share_link_for?.
     WITHHELD_CAPABILITIES = { shows_share_link: false }.freeze
+
+    # States in which the secret no longer exists (the receipt's is_destroyed).
+    # Every transition into one clears secret_identifier; 'received' is the
+    # legacy name for 'revealed'. Shared by safe_dump and the V1 serializer so
+    # the API versions agree on when a receipt may still carry a secret key.
+    TERMINAL_STATES = %w[revealed received burned expired orphaned].freeze
+
+    # States in which the receipt no longer offers its secret (#offers_secret?):
+    # every terminal state, plus 'previewed' and its legacy name 'viewed'.
+    SECRET_WITHDRAWN_STATES = (TERMINAL_STATES + %w[previewed viewed]).freeze
+
+    # Provenance gate on the share link, by :source value. See
+    # #shows_share_link?; class-level so a serializer working from a raw field
+    # hash (V1 receipt_hsh) applies the same rule.
+    #
+    # @param source [String, nil]
+    # @return [Boolean]
+    def self.shows_share_link_for?(source)
+      return true if source.to_s.empty?
+
+      SOURCE_CAPABILITIES.fetch(source.to_s, WITHHELD_CAPABILITIES)[:shows_share_link]
+    end
 
     # Class-level collections for expiration warning feature
     # Sorted set: score = expiration timestamp, member = receipt identifier
@@ -122,9 +144,34 @@ module Onetime
     #
     # @return [Boolean]
     def shows_share_link?
-      return true if source.to_s.empty?
+      self.class.shows_share_link_for?(source)
+    end
 
-      SOURCE_CAPABILITIES.fetch(source.to_s, WITHHELD_CAPABILITIES)[:shows_share_link]
+    # Whether a receipt payload should carry a share link at all: the
+    # provenance permits it (#shows_share_link?) and there is still a secret
+    # to link to. Every terminal transition (revealed!, burned!, expired!,
+    # orphaned!) clears secret_identifier, so a consumed receipt would
+    # otherwise emit a dangling "secret/" path. Shared by ShowReceipt and
+    # BurnSecret so a burn response and a later fetch agree (#4835).
+    #
+    # @return [Boolean]
+    def share_link_available?
+      shows_share_link? && !secret_identifier.to_s.empty?
+    end
+
+    # Whether the receipt still offers its secret (ShowReceipt's show_secret):
+    # the secret exists, has no passphrase, and the receipt has not been
+    # previewed or consumed. A response includes secret_identifier as its own
+    # field only when this and #share_link_available? are both true. Shared
+    # by ShowReceipt and BurnSecret so a burn that does not commit
+    # (continue=false) and a later fetch agree on it (#4835).
+    #
+    # @param secret [Onetime::Secret, nil] this receipt's loaded secret
+    # @return [Boolean]
+    def offers_secret?(secret)
+      return false if secret.nil? || secret.has_passphrase?
+
+      !SECRET_WITHDRAWN_STATES.include?(state.to_s)
     end
 
     # Clean up class-level collections before destroying the object.
@@ -153,6 +200,32 @@ module Onetime
 
       # Remove from warnings_sent tracking (set)
       self.class.warnings_sent.remove_element(identifier)
+    end
+
+    # A memo edit must not save the loaded receipt's other fields: a concurrent
+    # display claim or terminal transition may have made that projection stale.
+    # EXISTS and HSET share one atomic operation; HSET retains the live key's
+    # expiry and a deleted/expired receipt is never recreated.
+    UPDATE_MEMO_SCRIPT = <<~LUA
+      if redis.call('EXISTS', KEYS[1]) == 0 then return 0 end
+      redis.call('HSET', KEYS[1], 'memo', ARGV[1], 'updated', ARGV[2])
+      return 1
+    LUA
+    private_constant :UPDATE_MEMO_SCRIPT
+
+    # @return [Boolean] whether the receipt still existed and was updated.
+    def update_memo!(value)
+      now     = Familia.now
+      written = dbclient.eval(
+        UPDATE_MEMO_SCRIPT,
+        keys: [dbkey],
+        argv: [serialize_value(value), serialize_value(now)],
+      ).to_i == 1
+      if written
+        self.memo    = value
+        self.updated = now
+      end
+      written
     end
 
     def age
@@ -275,7 +348,38 @@ module Onetime
       #   unset, which reads as 'text'. It is not an encryption input and does
       #   not change what is stored.
       #
-      def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil, kind: nil, display_type: nil)
+      # - source/memo/recipients/recipient_name/domain_id/org_id: selected
+      #   creation metadata from the calling operation, never an unfiltered
+      #   request hash. A nil source retains Receipt#init's standard provenance
+      #   default.
+      #
+      # COMMIT BOUNDARY (docs/specs/api/01-creation-commit.md): the secret
+      # hash, the receipt hash, both expirations, both classes' `instances`
+      # entries and the caller's required registrations are written in ONE
+      # MULTI/EXEC (Familia.atomic_write). A failure before EXEC writes
+      # nothing, and process death cannot leave a secret without its receipt.
+      # The pair is returned only after EXEC confirms every command; otherwise
+      # Onetime::SecretCreationFailed carries the persistence evidence. Valkey
+      # does not roll back a MULTI, so a command rejected inside EXEC can leave
+      # some writes behind; that evidence is :incomplete, never success.
+      #
+      # Required registrations make the pair reachable through its owner,
+      # organization and custom domain. Callers queue them in the block, which
+      # runs inside the transaction before the pair is written: it may only
+      # issue writes (reads return futures there), so every scope record it
+      # touches is loaded beforehand. org_id and domain_id are keywords so the
+      # first receipt write already carries them.
+      #
+      # Optional follow-ups run after the commit and never fail it: each goes
+      # through {.creation_followup} or, like the counters below, logs and
+      # swallows its own failure.
+      #
+      # @yield [receipt, secret] queues the caller's required registrations
+      # @return [Array(Onetime::Receipt, Onetime::Secret)] the committed pair
+      # @raise [Onetime::SecretCreationFailed] unless EXEC confirms the commit
+      def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil, kind: nil, display_type: nil,
+                     source: nil, memo: nil, recipients: nil, recipient_name: nil, domain_id: nil, org_id: nil,
+                     &registrations)
         # Coerce at the single creation choke point so lifespan is always stored
         # as an Integer (#3299). Familia v2 storage is type-preserving, so a
         # String here ("604800" from unconverted ERB/params) would hydrate back
@@ -284,37 +388,47 @@ module Onetime
         # doubling. to_i is lossless for healthy integer-second values.
         lifespan = lifespan.to_i
 
-        secret  = Onetime::Secret.new(owner_id: owner_id)
-        receipt = Onetime::Receipt.new(owner_id: owner_id)
+        begin
+          secret  = Onetime::Secret.new(owner_id: owner_id)
+          receipt = Onetime::Receipt.new(owner_id: owner_id)
 
-        # Link the pair (objids exist at new-time, no save needed)
-        receipt.secret_identifier  = secret.objid
-        receipt.default_expiration = lifespan * 2
+          # Link the pair (objids exist at new-time, no save needed)
+          receipt.secret_identifier  = secret.objid
+          receipt.default_expiration = lifespan * 2
 
-        secret.default_expiration = lifespan
-        secret.lifespan           = lifespan
-        secret.receipt_identifier = receipt.objid
-        secret.ciphertext_domain  = domain
-        secret.share_domain       = domain
-        secret.ciphertext         = content
-        secret.display_type       = display_type.to_s unless display_type.to_s.empty?
+          secret.default_expiration = lifespan
+          secret.lifespan           = lifespan
+          secret.receipt_identifier = receipt.objid
+          secret.ciphertext_domain  = domain
+          secret.share_domain       = domain
+          secret.ciphertext         = content
+          secret.display_type       = display_type.to_s unless display_type.to_s.empty?
 
-        unless passphrase.to_s.empty?
-          secret.update_passphrase passphrase
-          receipt.has_passphrase = true
+          unless passphrase.to_s.empty?
+            secret.update_passphrase passphrase
+            receipt.has_passphrase = true
+          end
+
+          receipt.secret_shortid = secret.shortid
+          receipt.secret_ttl     = lifespan
+          receipt.lifespan       = lifespan
+          receipt.share_domain   = domain
+          receipt.kind           = kind
+          receipt.source         = source unless source.nil?
+          receipt.memo           = memo
+          receipt.recipients     = recipients
+          receipt.recipient_name = recipient_name
+          receipt.domain_id      = domain_id
+          receipt.org_id         = org_id
+        rescue StandardError => ex
+          creation_failed!(:prepare, :none, receipt, secret, ex)
         end
 
-        secret.save
+        commit_pair(receipt, secret, &registrations)
 
-        # Single save with all fields populated — no partial-state window
-        receipt.secret_shortid = secret.shortid
-        receipt.secret_ttl     = lifespan
-        receipt.lifespan       = lifespan
-        receipt.share_domain   = domain
-        receipt.kind           = kind
-        receipt.save
-
-        receipt.register_for_expiration_notifications
+        creation_followup(:expiration_notifications, receipt) do
+          receipt.register_for_expiration_notifications
+        end
 
         # Maintain the owner's live-secret counter at THE single secret-creation
         # chokepoint (#60). Every path that mints a secret — the API secret
@@ -344,6 +458,30 @@ module Onetime
         Onetime::DailyMetric.increment(:secrets_created)
 
         [receipt, secret]
+      end
+
+      # Runs one optional effect after a creation has committed (stats,
+      # notifications, audit fan-out, recipient email). The pair already
+      # exists and the caller will report success, so a failure here is
+      # logged and swallowed rather than turned into an error for a committed
+      # secret. Required registrations never go through here; they belong in
+      # the spawn_pair commit.
+      #
+      # @param name [Symbol] the follow-up, for the log line
+      # @param receipt [Onetime::Receipt] the committed receipt
+      # @return [Object, nil] the block's value, or nil when it raised
+      def creation_followup(name, receipt)
+        yield
+      rescue StandardError => ex
+        Onetime.secret_logger.error 'Secret creation follow-up failed',
+          {
+            followup: name.to_s,
+            stage: 'followup',
+            persistence: 'committed',
+            receipt: receipt&.shortid,
+            error: ex.class.name,
+          }
+        nil
       end
 
       # Minimum TTL (in seconds) for secrets to be eligible for expiration warnings
@@ -412,6 +550,49 @@ module Onetime
         end
 
         removed_count
+      end
+
+      private
+
+      # The single MULTI/EXEC behind spawn_pair. The block's registrations are
+      # queued first, then each record's hash, expiration and `instances`
+      # entry. Familia.atomic_write raises Redis::CommandError (or returns
+      # false) when the datastore rejected a queued command: a verdict that the
+      # commit is incomplete. Any other exception arrives without a verdict,
+      # e.g. a connection lost after EXEC was sent, so it stays unconfirmed.
+      def commit_pair(receipt, secret, &registrations)
+        committed = Familia.atomic_write(secret, receipt) do
+          registrations&.call(receipt, secret)
+        end
+      rescue Redis::CommandError => ex
+        creation_failed!(:commit, :incomplete, receipt, secret, ex)
+      rescue StandardError => ex
+        creation_failed!(:commit, :unconfirmed, receipt, secret, ex)
+      else
+        creation_failed!(:commit, :incomplete, receipt, secret) unless committed
+      end
+
+      # Logs the failure with its evidence and raises. Shortids only: the full
+      # identifiers are capability handles. This line logs the exception class
+      # without its message, which can carry datastore connection details; the
+      # full exception stays reachable as the raised error's cause, as it is
+      # for any datastore error that reaches the generic error handler.
+      def creation_failed!(stage, persistence, receipt, secret, cause = nil)
+        Onetime.secret_logger.error 'Secret creation failed',
+          {
+            stage: stage.to_s,
+            persistence: persistence.to_s,
+            receipt: receipt&.shortid,
+            secret: secret&.shortid,
+            error: cause&.class&.name,
+          }
+        error = Onetime::SecretCreationFailed.new(
+          stage: stage,
+          persistence: persistence,
+          receipt_shortid: receipt&.shortid,
+          secret_shortid: secret&.shortid,
+        )
+        raise error, cause: cause
       end
     end
   end

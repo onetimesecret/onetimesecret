@@ -47,6 +47,11 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
         'authentication' => {
           'autoverify' => 'false',
           'allowed_signup_domains' => nil,
+          # Off, as in spec/config.test.yaml: these strategy results carry no
+          # :ip, and since otto 2.13 the limiter charges an IP-less request
+          # to its shared no-client-ip bucket instead of skipping it, so an
+          # enabled limiter would lock every example after the cap.
+          'create_account_rate_limit' => { 'enabled' => false },
         },
       },
       'features' => {},
@@ -135,7 +140,7 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
           .and_raise(Redis::CannotConnectError, 'domain index unavailable')
 
         expect { logic.raise_concerns }.to raise_error(Onetime::FormError, /Is that a valid email address?/)
-        expect(signup_config).to have_received(:valid_signup_email?).with(email)
+        expect(signup_config).to have_received(:valid_signup_email?).with(email, domain: custom_domain)
         expect(Onetime::CustomDomain).not_to have_received(:display_domain_id_for)
       end
 
@@ -199,7 +204,7 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
         # BooleanFieldType canonicalizes to the STRING 'false', never a
         # real Ruby boolean — mirror the real model contract here.
         verified: 'false',
-        verified?: false,
+        verified?: false, mailbox_verified?: false,
         'verified=': nil,
         'verified_by=': nil,
         'role=': nil,
@@ -279,7 +284,7 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
           # Stored form is the canonical STRING 'true' (BooleanFieldType);
           # the predicate verified? is the correct read.
           verified: 'true',
-          verified?: true
+          verified?: true, mailbox_verified?: true
         )
       end
 
@@ -317,7 +322,7 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
             obscure_email: 'e***g@example.com',
             role: 'customer',
             verified: 'false',
-            verified?: false
+            verified?: false, mailbox_verified?: false
           )
         end
 

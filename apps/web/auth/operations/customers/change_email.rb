@@ -12,6 +12,7 @@ require 'onetime/jobs/publisher'
 require 'onetime/operations/sessions/revoke_all_for_customer'
 require 'onetime/signup_validation'
 require 'auth/account_statuses'
+require 'auth/account_email_verification'
 require 'auth/operations/customers/set_verification'
 
 module Auth
@@ -192,6 +193,10 @@ module Auth
         # and `:verification_not_reset` are not here either: the swap LANDED and
         # `record_audit` already writes them as their own result strings (D38).
         REFUSAL_STATUSES = [:not_found, :invalid_email, :email_taken, :stale].freeze
+
+        # Migration 015 (ADR-051): the accounts columns that qualify the row's
+        # current address. See #auth_verification_update.
+        AUTH_VERIFICATION_COLUMNS = Auth::AccountEmailVerification::COLUMNS
 
         # This is the highest-value account-takeover primitive an operator has.
         # A non-unique-violation SQL failure re-raises from the middle of the
@@ -466,6 +471,7 @@ module Auth
           # verification reset is allowed to downgrade the STATUS. ---
           sessions_revoked   = revoke_sessions
           verification_state = reset_verification
+          @mailbox_proof     = record_self_service_proof
           send_notifications(old_email)
 
           # The swap landed either way — that is why this is a status and not a
@@ -635,6 +641,7 @@ module Auth
             end
 
           @auth_row_email  = row && row[:email]
+          @auth_row_status = row && row[:status_id]
           @auth_account_id = row && row[:id]
         end
 
@@ -664,9 +671,55 @@ module Auth
           target   = target.where(email: baseline) if @allow_canonicalization && baseline
 
           rows = db.transaction do
-            target.update(email: @new_email, updated_at: Sequel::CURRENT_TIMESTAMP)
+            @prior_auth_verification = auth_verification_snapshot(db, target)
+            target.update(
+              email: @new_email,
+              updated_at: Sequel::CURRENT_TIMESTAMP,
+              **auth_verification_update(db, baseline),
+            )
           end
           rows.to_i.positive?
+        end
+
+        # Migration 015 (ADR-051): `email_verified_at`, `email_verified_by`
+        # and `email_verification_hold` qualify the row's CURRENT address, so
+        # an email change clears them in the swap itself (ADR-051: "Email
+        # changes clear that state."), whoever made it:
+        #
+        #   same mailbox (a canonicalization, OT::Utils.same_mailbox?)
+        #       -> untouched: the proof still names this mailbox
+        #   any other change -> all three NULL
+        #
+        # A self-service redemption then records the proof its link gave for
+        # the new address, in both stores (#record_self_service_proof). An
+        # operator change leaves them NULL: nobody has proven the new address,
+        # whether or not `require_verification` resets the mirror. A database
+        # without the columns (migration 015 not applied) gets the email
+        # write alone.
+        #
+        # @return [Hash] the verification columns to write, possibly empty
+        def auth_verification_update(db, baseline)
+          return {} unless auth_verification_columns?(db)
+          return {} if OT::Utils.same_mailbox?(baseline, @new_email)
+
+          Auth::AccountEmailVerification::CLEARED
+        end
+
+        # The row's verification columns before the swap, so that
+        # compensate_auth_row! puts back the proof that belongs to the old
+        # address along with the address.
+        #
+        # @return [Hash, nil] nil when the columns do not exist or the row is gone
+        def auth_verification_snapshot(db, target)
+          return nil unless auth_verification_columns?(db)
+
+          target.select(*AUTH_VERIFICATION_COLUMNS).first
+        end
+
+        def auth_verification_columns?(db)
+          return @auth_verification_columns if defined?(@auth_verification_columns)
+
+          @auth_verification_columns = Auth::AccountEmailVerification.columns?(db)
         end
 
         # Best-effort restore of the previous address. Used ONLY when the Customer
@@ -679,10 +732,13 @@ module Auth
           account_id = auth_account_id(db)
           return false unless account_id
 
+          restore = { email: old_email, updated_at: Sequel::CURRENT_TIMESTAMP }
+          restore.merge!(@prior_auth_verification) if @prior_auth_verification
+
           db.transaction do
             db[:accounts]
               .where(id: account_id)
-              .update(email: old_email, updated_at: Sequel::CURRENT_TIMESTAMP)
+              .update(restore)
           end
           true
         rescue StandardError => ex
@@ -941,13 +997,17 @@ module Auth
             ).call
             return :reset if result == :success
 
-            # :no_change. The wrapper decides on the REDIS mirror alone and
-            # returns before touching SQL (set_customer_verification.rb:76), so
-            # this only means "already unverified" when the two stores agree.
-            # When they do not, the authoritative login gate (accounts.status_id)
-            # is STILL Verified and nothing was reset — the quietest version of
-            # exactly the state this reset exists to prevent.
-            return :reset unless auth_row_verified?
+            # :no_change. SetCustomerVerification decides it on this Customer
+            # object's in-memory fields: it returns :no_change when the object
+            # reads unverified with a blank provenance, and it writes neither
+            # store. Memory is not proof of what the stores say. If either
+            # store still says Verified, nothing was reset, which is the
+            # quietest version of exactly the state this reset exists to
+            # prevent. The forced clear below reads both stores again, the same
+            # way, rather than reusing these answers: a fresh read is the one
+            # to act on, and a read that failed here (and so counted as
+            # verified) must not force a write the store no longer needs.
+            return :reset unless verification_still_stored?
 
             @warnings << :verification_mirror_drift
           rescue StandardError => ex
@@ -958,6 +1018,69 @@ module Auth
           end
 
           force_clear_verification!
+        end
+
+        # A self-service redemption proved the new mailbox: the link was sent
+        # to the new address only (request_email_change.rb) and the account
+        # holder followed it. The swap cleared the accounts row's
+        # verification columns like any change (#auth_verification_update);
+        # this records the proof in both stores through
+        # SetCustomerVerification, with `new_address:` so that a stamp which
+        # proved the OLD address ('colonel_admin', say) is replaced by
+        # 'email', and a Customer verified without mailbox proof ('sso',
+        # 'stripe_payment', 'autoverify', 'legacy') gains it. Gaining it runs
+        # the deferred federation claim, held to the customer's own address
+        # (claim_own_address_only), as the Rodauth verify hook's stamp does.
+        #
+        # Only for an account already verified in both stores. An
+        # unverified account keeps Rodauth's verify_account as its way in:
+        # this stamp never moves a Customer or an accounts row from
+        # unverified to verified. The eligibility read is the status
+        # captured before the swap, so `stamp_only:` checks status and the
+        # explicit confirmed address atomically at each write. A concurrent
+        # unverify returns :not_verified; a different address returns :stale.
+        #
+        # Does not raise: the swap has landed. A failure leaves the columns
+        # NULL beside a Customer that may still read mailbox-verified, which
+        # `customers doctor` reports as auth_email_verification_drift.
+        # A refused or failed stamp adds a warning without changing the swap's
+        # success status; an ineligible account's :skipped stamp does not.
+        #
+        # @return [Symbol] :skipped | :recorded | :not_verified | :stale | :failed
+        def record_self_service_proof
+          return :skipped unless @self_service && self_service_proof_eligible?
+
+          result = Auth::Operations::SetCustomerVerification.new(
+            customer: @customer,
+            verified: true,
+            verified_by: 'email',
+            db: @db,
+            new_address: true,
+            confirmed_email: @new_email,
+            claim_own_address_only: true,
+            stamp_only: true,
+          ).call
+          if [:not_verified, :stale].include?(result)
+            @warnings << :mailbox_proof_not_recorded
+            return result
+          end
+
+          :recorded
+        rescue StandardError => ex
+          auth_logger.error '[customer.change_email] mailbox proof for the new address not recorded',
+            extid: @customer.extid,
+            exception: ex
+          @warnings << :mailbox_proof_not_recorded
+          :failed
+        end
+
+        # The Customer reads verified and, in full auth mode, the accounts
+        # row read before the swap was Verified.
+        def self_service_proof_eligible?
+          return false unless @customer.verified?
+          return true unless Auth::Operations::SetCustomerVerification.full_auth_mode?
+
+          @auth_row_status == AccountStatuses::VERIFIED
         end
 
         # True when a second `accounts` row could share the new address. The
@@ -986,9 +1109,12 @@ module Auth
           return :reset if sql == :unchanged && redis == :unchanged
 
           @warnings << :verification_force_cleared
-          # The wrapper never got far enough to record its own verb, and a
-          # verification state change with no event is a hole in the trail. Same
-          # verb and shape the wrapper would have emitted (epic #20 CONTRACT 4).
+          # A verification state change with no event is a hole in the trail.
+          # After a raise, or on the sibling-row shortcut, the wrapper recorded
+          # nothing. After :no_change it recorded one event with
+          # `outcome: 'no_change'`, which says only that the wrapper wrote
+          # nothing; this event records the clear that did happen. Same verb
+          # and shape the wrapper would have emitted (epic #20 CONTRACT 4).
           record_event(
             actor: @actor,
             verb: 'customer.set_verification',
@@ -999,6 +1125,13 @@ module Auth
           :reset
         end
 
+        # Moves the row to Unverified and, where migration 015 is applied,
+        # clears its verification columns in the same UPDATE: proof beside an
+        # Unverified row would contradict the mirror clear_customer_verification!
+        # resets. (A change to another mailbox cleared them in the swap; one
+        # that keeps the row's mailbox, such as a Customer moved to the
+        # address its row already has, kept them there.)
+        #
         # @return [Symbol] :unchanged | :cleared | :failed
         def clear_auth_row_verification!
           db = connection
@@ -1007,10 +1140,13 @@ module Auth
           account_id = auth_account_id(db)
           return :unchanged unless account_id
 
+          cleared = { status_id: AccountStatuses::UNVERIFIED, updated_at: Sequel::CURRENT_TIMESTAMP }
+          cleared.merge!(Auth::AccountEmailVerification::CLEARED) if auth_verification_columns?(db)
+
           rows = db.transaction do
             db[:accounts]
               .where(id: account_id, status_id: AccountStatuses::VERIFIED)
-              .update(status_id: AccountStatuses::UNVERIFIED, updated_at: Sequel::CURRENT_TIMESTAMP)
+              .update(cleared)
           end
           rows.to_i.positive? ? :cleared : :unchanged
         rescue StandardError => ex
@@ -1029,7 +1165,7 @@ module Auth
           # 'true' — precisely the state this fallback exists to clear. Reading
           # memory here would turn the fallback into a no-op and report a reset
           # that never happened.
-          return :unchanged unless stored_verified?
+          return :unchanged unless stored_verified_or_unreadable?
 
           @customer.verified    = false
           @customer.verified_by = nil
@@ -1042,14 +1178,19 @@ module Auth
           :failed
         end
 
-        # The verified flag as the datastore holds it, independent of any
-        # in-memory assignment. Matches the model's own authority
-        # (Customer#verified? is `verified == 'true'`, status.rb:46), so an
-        # unset field reads as NOT verified and no needless clear is recorded.
-        # A RAISED read fails closed — treated as still set so the clear runs.
+        # True when the datastore holds the verified flag as set, or when the
+        # read raises. The flag comes from Customer#stored_verified?, which
+        # ignores in-memory assignments to `verified` and decodes the
+        # JSON-encoded bytes the way a load does (the raw field of a record
+        # saved verified is "\"true\"", never 'true'). Its anonymous guard
+        # reads the in-memory `role`; that is safe here because
+        # usable_customer? refuses the anonymous customer before any mutation
+        # and this op never writes `role`. An unset field reads as NOT
+        # verified and no needless clear is recorded. A RAISED read fails
+        # closed: treated as still set so the clear runs.
         # @return [Boolean]
-        def stored_verified?
-          @customer.hget('verified').to_s == 'true'
+        def stored_verified_or_unreadable?
+          @customer.stored_verified?
         rescue StandardError => ex
           auth_logger.error '[customer.change_email] stored verification read failed',
             extid: @customer.extid,
@@ -1057,9 +1198,19 @@ module Auth
           true
         end
 
-        # Does the AUTHORITATIVE login gate still say Verified? Consulted only on
-        # the wrapper's :no_change path. Fails CLOSED: an unanswerable probe is
-        # treated as "may still be verified" so the forced clear runs.
+        # Does either store still say Verified after the wrapper's :no_change?
+        # The accounts row is the login gate in full mode. The stored Customer
+        # flag is the gate in simple mode, where there is no row, and a mirror
+        # to reconcile in full mode. Both reads fail closed.
+        def verification_still_stored?
+          auth_row_verified? || stored_verified_or_unreadable?
+        end
+
+        # Does the accounts row still say Verified? Consulted only on the
+        # wrapper's :no_change path. No connection or no row means SQL is not
+        # the login gate here; verification_still_stored? reads the stored
+        # Customer flag next. Fails CLOSED: an unanswerable probe is treated
+        # as "may still be verified" so the forced clear runs.
         def auth_row_verified?
           db = connection
           return false unless db
@@ -1393,7 +1544,7 @@ module Auth
         # EXACTLY ONE event, from the op, obscured addresses only. `:partial` is
         # recorded as a result, not raised past (D38).
         def record_audit(result, old_email, auth_row_updated)
-          detail          = {
+          detail                 = {
             from: OT::Utils.obscure_email(old_email),
             to: OT::Utils.obscure_email(@new_email),
             auth_row_updated: auth_row_updated,
@@ -1401,10 +1552,11 @@ module Auth
             require_verification: @require_verification,
             warnings: @warnings.uniq,
           }
+          detail[:mailbox_proof] = @mailbox_proof if @self_service
           # D41: optional operator provenance — this is the highest-value
           # account-takeover primitive an operator has, and without these the
           # trail records only actor='cli'.
-          detail          = with_provenance(detail)
+          detail                 = with_provenance(detail)
 
           record_event(
             actor: @actor,

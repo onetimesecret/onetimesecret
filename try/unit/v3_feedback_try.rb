@@ -36,6 +36,7 @@ OT.boot! :test, false
 @authenticated_customer = Customer.new email: @email
 @authenticated_customer.role = 'customer'
 @authenticated_customer.verified = true
+@authenticated_customer.verified_by = 'email'
 
 @params = {
   'msg' => 'Test feedback message',

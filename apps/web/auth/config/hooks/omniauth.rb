@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/utils/client_ip'
+
 #
 # OmniAuth callback hooks for SSO authentication.
 # All hooks are provider-agnostic — they use omniauth_provider/omniauth_email
@@ -23,6 +25,29 @@ require_relative 'omniauth_connect'
 
 module Auth::Config::Hooks
   module OmniAuth
+    # Leading/trailing Unicode whitespace, for trimming IdP claims.
+    # String#strip is ASCII-only; [[:space:]] covers NBSP and friends.
+    SURROUNDING_SPACE = /\A[[:space:]]+|[[:space:]]+\z/
+
+    # Trim one raw IdP claim. Non-String input is returned unchanged (never
+    # coerced with to_s) so before_omniauth_create_account refuses it as
+    # invalid_email — see the omniauth_email doc for why a Hashie::Array claim
+    # must not become a String.
+    #
+    # @param value [Object] the raw claim as the IdP supplied it
+    # @return [String, Object] trimmed String claim, or value as given
+    def self.trimmed_claim(value)
+      return value unless value.is_a?(String)
+
+      value.gsub(SURROUNDING_SPACE, '')
+    end
+
+    # True when the IdP supplied no usable value for a claim: absent, or a
+    # String that is empty once trimmed. A non-String claim is NOT blank.
+    def self.blank_claim?(value)
+      value.nil? || (value.is_a?(String) && trimmed_claim(value).empty?)
+    end
+
     # Rodauth builds the account from omniauth_email BEFORE the creation guard
     # validates it, and rodauth-omniauth persists it without normalize_login.
     # Canonicalize at the accessor so the domain gates, the account lookup,
@@ -141,11 +166,116 @@ module Auth::Config::Hooks
     # inline disable on Hooks::Account.configure). Splitting it would scatter the
     # callback flow across methods and obscure the account_from_omniauth branch
     # order the security model depends on.
-    def self.configure(auth)
+    # One Rodauth configuration block per hook file; the hooks it defines
+    # are what make the method long.
+    def self.configure(auth) # rubocop:disable Metrics/MethodLength
       auth.auth_class_eval do
         prepend Auth::Config::Hooks::OmniAuth::EmailNormalization
         prepend Auth::Config::Hooks::OmniAuthConnect::Callback
       end
+
+      # ========================================================================
+      # Resolve the SSO email (#3499 / #3478) — one override, every consumer.
+      # ========================================================================
+      #
+      # Some nonstandard OIDC providers omit `info.email` but supply a `mail`
+      # field in extra.raw_info (#3965). Fall back to that field when
+      # `info.email` is absent. This is NOT an Entra remedy: Microsoft Entra ID
+      # can omit the `email` claim (#3478), and omniauth-entra-id builds
+      # raw_info from the token payloads without fetching a directory `mail`
+      # attribute, so a missing Entra email claim stays missing here. A
+      # missing claim does not establish that the user has no mailbox.
+      #
+      # SOURCES (see #3499): only these two fields are consulted, and neither
+      # is proof of mailbox control:
+      #   - info.email             (standard OIDC claim as the strategy maps it)
+      #   - extra.raw_info["mail"] (nonstandard provider field)
+      # Mutable identifiers (upn, preferred_username) are intentionally
+      # NOT used — Microsoft documents them as mutable and unsafe for identity
+      # or authorization, so linking on them is an account-takeover vector. The
+      # tripwire specs in spec/integration/full/omniauth_missing_email_spec.rb
+      # pin that refusal; they must keep passing.
+      #
+      # WHY OVERRIDE `omniauth_email` RATHER THAN THE INDIVIDUAL HOOKS:
+      # rodauth-omniauth registers :omniauth_new_account through
+      # auth_private_methods, which GENERATES a zero-arity
+      # `_omniauth_new_account` dispatcher that shadows the gem's own
+      # `_omniauth_new_account(login)` helper (features/omniauth.rb:173). So
+      # configuring `omniauth_new_account` and calling
+      # `_omniauth_new_account(resolved)` inside it raises ArgumentError
+      # (given 1, expected 0) on every SSO account creation. Overriding the
+      # single accessor instead feeds the resolved value to every consumer —
+      # account lookup, account creation, and `omniauth_verify_account?`
+      # (features/omniauth.rb:152), which the per-hook approach missed.
+      #
+      # Returns the resolved claim with SURROUNDING WHITESPACE TRIMMED, nil
+      # when the IdP supplied neither field, or a non-String claim unchanged.
+      #
+      # WHY TRIM HERE AND NOT DOWNSTREAM: this accessor is the value Rodauth
+      # INSERTS. omniauth_create_account -> omniauth_new_account ->
+      # _omniauth_new_account(omniauth_email) builds {login_column =>
+      # omniauth_email} and omniauth_save_account inserts it verbatim
+      # (rodauth-omniauth 0.6.2 features/omniauth.rb:117-124, 173-174). Our
+      # before_omniauth_create_account guard below validates its OWN stripped
+      # copy and never writes back, so a padded claim ("  alice@contoso.com  ")
+      # sailed past the guard and then violated the accounts.valid_email CHECK
+      # (migrations/001_initial.rb:27 — the pattern excludes spaces from BOTH
+      # the local part and the domain) => Sequel::CheckConstraintViolation => a
+      # 500 on the callback, exactly the frozen-screen failure #3478 exists to
+      # prevent. Padded-but-valid addresses do occur from OIDC IdPs, so trimming
+      # at the single accessor fixes every consumer at once — including
+      # omniauth_verify_account? (features/omniauth.rb:152), which compares the
+      # stored account[login_column] against this value and would otherwise
+      # never match for a padded claim.
+      #
+      # ONLY whitespace is removed here. EmailNormalization (prepended above,
+      # so its omniauth_email wraps this one through super) then lowercases
+      # and NFC-normalizes a String result (#4726) and passes nil through.
+      # Structural validation stays in before_omniauth_create_account, so the
+      # nil path keeps the existing #3478 error behaviour unchanged.
+      #
+      # NON-STRING CLAIMS FAIL CLOSED (no to_s). A multi-valued IdP attribute
+      # arrives as a Hashie::Array, and `.to_s` on it yields the *inspect* form
+      # '["user@contoso.com"]' — which satisfies both the structural guard below
+      # AND the valid_email CHECK, so it would be INSERTED as the account's
+      # login: a junk, unreachable account created silently on a 302. Only a
+      # String is an email claim; anything else is returned unchanged (and
+      # does not trigger the mail fallback), so the claim.is_a?(String) check
+      # in before_omniauth_create_account refuses it as invalid_email rather
+      # than the missing_email an absent claim gets.
+      #
+      # TRIM IS UNICODE-AWARE, deliberately not String#strip: strip removes only
+      # ASCII whitespace and NUL, so an NBSP-padded claim (" a@b.com") is
+      # NOT stripped, and NBSP is absent from the CHECK's excluded set — it would
+      # pass every guard and be stored verbatim as an undeliverable address whose
+      # Customer is keyed on the normalized form. [[:space:]] covers the Unicode
+      # class, so the trim matches what the comment claims.
+      #
+      # String keys are correct for both reads: omniauth_auth is an
+      # OmniAuth::AuthHash (a Hashie::Mash), which converts nested hashes on
+      # assignment and reads indifferently — a strategy that builds raw_info
+      # with symbol keys is still found by raw['mail']. Every writer of
+      # env['omniauth.auth'] goes through AuthHash (omniauth strategy.rb
+      # auth_hash/callback_phase, and the mock path), and rodauth-omniauth only
+      # ever reads it, so a plain symbol-keyed Hash cannot reach here. The
+      # invariant is pinned directly in the spec rather than through a callback
+      # example — AuthHash normalizes keys before this method ever sees them, so
+      # no request-level test can distinguish the two access styles.
+      # rubocop:disable Lint/NestedMethodDefinition -- Rodauth's auth_class_eval pattern
+      auth.auth_class_eval do
+        def omniauth_email
+          info  = omniauth_info || {}
+          claim = info['email']
+          if Auth::Config::Hooks::OmniAuth.blank_claim?(claim)
+            raw   = (omniauth_extra && omniauth_extra['raw_info']) || {}
+            claim = raw['mail']
+          end
+          return nil if Auth::Config::Hooks::OmniAuth.blank_claim?(claim)
+
+          Auth::Config::Hooks::OmniAuth.trimmed_claim(claim)
+        end
+      end
+      # rubocop:enable Lint/NestedMethodDefinition
 
       # Normalize email for case-insensitive account lookup.
       # Required because:
@@ -550,29 +680,14 @@ module Auth::Config::Hooks
       end
 
       # ========================================================================
-      # JSON Mode Override for OmniAuth
+      # JSON Mode Override for OmniAuth — now centralized
       # ========================================================================
       #
-      # Disable JSON-only mode for OmniAuth routes. OmniAuth flow uses browser
-      # redirects from the identity provider, not JSON API responses. When IdP
-      # redirects back to /auth/sso/oidc/callback, we need:
-      # - Real HTTP redirects (302) instead of JSON responses
-      # - Flash messages stored in session for Core app to display
-      #
-      # Without this override, Rodauth's JSON feature intercepts set_redirect_error_flash
-      # and stores the message in json_response[:error] which is lost on redirect.
-      #
-      # NOTE: request.path returns the full path (e.g., /auth/sso/oidc), but
-      # omniauth_prefix is relative to Rodauth routes (e.g., /sso). We must
-      # combine the Auth app's mount path with omniauth_prefix for comparison.
-      #
-      auth.only_json? do
-        full_sso_prefix = "#{Auth::Application.uri_prefix}#{omniauth_prefix}"
-        # Use trailing slash to avoid matching unrelated paths like /auth/sso-admin.
-        # Also handle exact match for /auth/sso (the SSO index/landing, if any).
-        is_sso_route    = request.path.start_with?("#{full_sso_prefix}/") || request.path == full_sso_prefix
-        !is_sso_route
-      end
+      # OmniAuth's `omniauth_prefix` paths are exempted from `only_json? true`
+      # by Auth::Config::JsonMode (apps/web/auth/config/json_mode.rb). It is
+      # the single owner of the only_json? setter because rodauth's
+      # def_auth_value_method REPLACES rather than chains, so any per-hook
+      # `only_json?` block here would silently clobber others (e.g., OAuth's).
 
       # ========================================================================
       # Post-Connect Return Path
@@ -642,10 +757,12 @@ module Auth::Config::Hooks
         #
         # This hook runs during the SSO REQUEST phase (POST /auth/sso/:provider),
         # BEFORE the redirect to the IdP — verified in rodauth-omniauth 0.6.2 /
-        # omniauth 2.1.4 (strategy.rb request_call:240 and mock_request_call:325
-        # both call request_validation_phase, and it runs inside omniauth_run's
-        # set_omniauth_session so `session` is the Rodauth session). It has access
-        # to request.params and session.
+        # omniauth 2.2.0 (strategy.rb request_call:171 and strategy/test_mode.rb
+        # mock_request_call:24 both run request_validation_phase, and it runs
+        # inside omniauth_run's set_omniauth_session so `session` is the Rodauth
+        # session). Since 2.2.0 it runs before OmniAuth writes omniauth.params
+        # to the session, not after; this block does not read that key. It has
+        # access to request.params and session.
         #
         # The Connected Identities panel initiates the connect flow with the form
         # field connect=1; a plain sign-in does NOT send it. When a LOGGED-IN
@@ -763,6 +880,25 @@ module Auth::Config::Hooks
           redirect '/signin?auth_error=invalid_email'
         end
 
+        # TENANT SURFACE: the address must lie inside a domain the tenant
+        # organization has proven it owns (RISK-2026-10-10-01, #4734). The
+        # tenant allowlist has already passed in before_omniauth_callback_route,
+        # but it is the tenant's own choice (empty is allow-all) and judges an
+        # `email` claim the tenant's IdP asserts, so without this rung a
+        # tenant IdP could mint a verified canonical-pool account for any
+        # unregistered address, and the address owner's later password reset
+        # or magic link would share that account with the tenant identity.
+        # Runs here, on the create path only: an identity already bound to an
+        # account keeps signing in (hooks/login.rb logs the ones outside the
+        # proven set), and authenticated linking binds to the session's own
+        # account. session[:validated_omniauth_domain_id] is set only on
+        # tenant callbacks, so the platform surface is excluded by construction.
+        if (tenant_domain_id = session[:validated_omniauth_domain_id])
+          Auth::Config::Hooks::OmniAuthTenant.enforce_tenant_verified_email_domain!(
+            tenant_domain_id, email, self, provider: omniauth_provider
+          )
+        end
+
         # Get display_domain from DomainStrategy middleware (already in env)
         display_domain = request.env['onetime.display_domain']
 
@@ -793,6 +929,27 @@ module Auth::Config::Hooks
           display_domain: display_domain,
           provider: omniauth_provider,
         )
+
+        # Last, after every policy check: a Customer record still marked as
+        # closing under this address (#4830) is finished here, before
+        # rodauth-omniauth inserts the accounts row, as before_create_account
+        # does for a password sign-up. Once the row exists, a closure that
+        # cannot be finished leaves it with no Customer and the SSO identity
+        # attached, which cannot sign in and blocks every later sign-up with
+        # the address. Refused here, the sign-in leaves nothing behind, and a
+        # retry once the marker is 15 minutes old finishes the closure.
+        unfinished = Auth::Operations::EnsureCustomerForAccount.finish_leftover_closure(email)
+        if unfinished
+          Auth::Logging.log_auth_event(
+            :omniauth_blocked_interrupted_closure,
+            level: :error,
+            email: OT::Utils.obscure_email(email),
+            external_id: unfinished.extid,
+            provider: omniauth_provider,
+          )
+          record_tenant_sso_failure('account', 'account_closing') if respond_to?(:record_tenant_sso_failure)
+          redirect '/signin?auth_error=account_closing'
+        end
       end
 
       # ========================================================================
@@ -948,12 +1105,21 @@ module Auth::Config::Hooks
               redirect '/signin?auth_error=org_join_failed'
             end
           else
-            # Canonical domain SSO → create default workspace
+            # Canonical domain SSO → create default workspace.
+            #
+            # require_verification: true (#4735): the IdP asserted this address
+            # but nobody proved mailbox control, so a matching pending federated
+            # subscription is NOT claimed here — the pending record stays intact
+            # until an operator verifies the address (colonel admin or
+            # `bin/ots customers verify`), when SetCustomerVerification
+            # re-invokes the claim. EnsureDefaultWorkspace also defers for an
+            # sso_jit record on every other path (lazy creation, billing), so
+            # this flag states the intent rather than carrying it alone.
             Onetime::ErrorHandler.safe_execute(
               'ensure_default_workspace_omniauth',
               external_id: customer.extid,
             ) do
-              Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call
+              Auth::Operations::EnsureDefaultWorkspace.new(customer: customer, require_verification: true).call
             # Only the collision is rescued. Onetime::AccountProvisioningUnavailable
             # deliberately is NOT (same reasoning as hooks/account.rb): it
             # persists nothing, and at JIT-create time no other request can hold
@@ -1025,7 +1191,7 @@ module Auth::Config::Hooks
             error_message: error_msg,
             domain_id: domain_id,
             path: request.path,
-            ip: request.ip,
+            ip: Onetime::Utils::ClientIp.from_request(request),
           }.compact,
         )
 
@@ -1104,24 +1270,25 @@ module Auth::Config::Hooks
         return confirmed_at.to_s.strip.empty? ? 'idp_unverified' : nil
       end
 
-      claim = fetch_claim(info, 'email_verified')
-      claim = fetch_claim(fetch_claim(extra, 'raw_info'), 'email_verified') if claim.nil?
-      return nil if claim.nil?
+      raw_info = fetch_claim(extra, 'raw_info')
 
-      # Some providers stringify the claim ("false"); false and "false" are the
-      # same assertion. Anything else (true, "true", 1, garbage) is not a hold.
-      #
-      # SAML (#4450): RequestBoundSAML hands raw_info over as a plain Hash of
-      # attribute name => Array<String>, so an IdP attribute named
-      # `email_verified` arrives as ["false"] — whose #to_s is '["false"]', not
-      # 'false'. Without the unwrap an explicit IdP veto would be silently
-      # ignored on exactly one protocol. ANY false among the values holds:
-      # this method only ever narrows the verified stamp. (SAML defines no
-      # such claim; with the attribute absent, a SAML JIT account is verified
-      # on IdP trust alone — never held as 'claim_unreadable', since a plain
-      # Hash read cannot raise.)
-      values = claim.is_a?(Array) ? claim : [claim]
-      values.any? { |value| value.to_s.strip.downcase == 'false' } ? 'idp_unverified' : nil
+      claim = fetch_claim(info, 'email_verified')
+      claim = fetch_claim(raw_info, 'email_verified') if claim.nil?
+      return 'idp_unverified' if explicit_false?(claim)
+
+      # Entra ID's optional `xms_edov` claim (#4735, RISK-2026-10-10-02 R2b):
+      # "Boolean value indicating whether the user's email domain owner has
+      # been verified." An explicit false means Microsoft has NOT verified
+      # that the tenant owns the email's domain, so the address is not even
+      # domain-anchored and the stamp is withheld. true is domain-OWNER
+      # verification, not mailbox control: it never upgrades the stamp beyond
+      # 'sso' and is not mailbox proof (Customer::MAILBOX_VERIFIED_BY).
+      # Absence is not a hold (the claim is opt-in per app registration; see
+      # docs/authentication/per-install-sso.md). Read AFTER email_verified so
+      # an IdP asserting both reports the stronger, user-level reason.
+      return 'domain_unverified' if explicit_false?(fetch_claim(raw_info, 'xms_edov'))
+
+      nil
     rescue StandardError => ex
       Auth::Logging.log_auth_event(
         :omniauth_email_verified_claim_unreadable,
@@ -1132,6 +1299,31 @@ module Auth::Config::Hooks
         extra_class: extra.class.name,
       )
       'claim_unreadable'
+    end
+
+    # Is a boolean-ish IdP claim an EXPLICIT false?
+    #
+    # nil (claim absent) is never false. Some providers stringify the claim
+    # ("false"); false and "false" are the same assertion. Anything else (true,
+    # "true", 1, garbage) is not.
+    #
+    # SAML (#4450): RequestBoundSAML hands raw_info over as a plain Hash of
+    # attribute name => Array<String>, so an IdP attribute named
+    # `email_verified` arrives as ["false"] — whose #to_s is '["false"]', not
+    # 'false'. Without the unwrap an explicit IdP veto would be silently
+    # ignored on exactly one protocol. ANY false among the values counts: the
+    # callers only ever narrow the verified stamp. (SAML defines no such
+    # claim; with the attribute absent, a SAML JIT account is verified on IdP
+    # trust alone — never held as 'claim_unreadable', since a plain Hash read
+    # cannot raise.)
+    #
+    # @param claim [Object, Array, nil] the raw claim value
+    # @return [Boolean]
+    def self.explicit_false?(claim)
+      return false if claim.nil?
+
+      values = claim.is_a?(Array) ? claim : [claim]
+      values.any? { |value| value.to_s.strip.downcase == 'false' }
     end
 
     # Key-shape-tolerant single-key read. Returns nil for a missing key or an

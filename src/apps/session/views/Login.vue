@@ -96,6 +96,7 @@ const authErrorMessages: Record<string, string> = {
   identity_connect_wrong_domain: 'web.login.errors.identity_connect_wrong_domain',
   link_sso_failed: 'web.login.errors.link_sso_failed',
   org_join_failed: 'web.login.errors.org_join_failed',
+  account_closing: 'web.login.errors.account_closing',
 };
 
 // Informational notices (not failures). Only known codes render — an unknown

@@ -176,4 +176,24 @@ RSpec.describe Onetime::Mail::Delivery::SES do
       expect(described_class::FATAL_ERROR_CODES).to be_frozen
     end
   end
+
+  describe '#validate_config!' do
+    before do
+      allow(ENV).to receive(:fetch).and_call_original
+      allow(ENV).to receive(:fetch).with('AWS_ACCESS_KEY_ID', nil).and_return(nil)
+      allow(ENV).to receive(:fetch).with('AWS_SECRET_ACCESS_KEY', nil).and_return(nil)
+    end
+
+    it 'raises ConfigurationError naming ses when the credentials are missing' do
+      expect { described_class.new('region' => 'us-east-1') }
+        .to raise_error(Onetime::Mail::ConfigurationError, 'AWS credentials must be configured for SES') do |err|
+          expect(err.provider).to eq('ses')
+        end
+    end
+
+    it 'raises ConfigurationError when only the secret key is missing' do
+      expect { described_class.new(config.merge('secret_access_key' => '')) }
+        .to raise_error(Onetime::Mail::ConfigurationError)
+    end
+  end
 end

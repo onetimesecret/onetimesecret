@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/utils/client_ip'
+
 #
 # Syncs the Rodauth session with the application's session format after
 # successful authentication. This operation handles:
@@ -20,12 +22,18 @@
 #
 
 require 'onetime/models/colonel_audit_event'
+require 'auth/account_statuses'
+require 'auth/operations/ensure_customer_for_account'
 
 module Auth
   module Operations
     class SyncSession
       # Idempotency key TTL in seconds (5 minutes)
       IDEMPOTENCY_TTL = 300
+
+      # provisioning_origin stamped on a Customer this op has to RECREATE
+      # (see #recreate_customer). One of Onetime::Customer::PROVISIONING_ORIGINS.
+      RECOVERY_PROVISIONING_ORIGIN = 'login_recovery'
 
       # @param account [Hash] The Rodauth account hash
       # @param account_id [Integer] The ID of the Rodauth account
@@ -172,7 +180,7 @@ module Auth
           result: :success,
           detail: {
             auth_method: @session['auth_method'],
-            ip: (@request.ip if @request.respond_to?(:ip)),
+            ip: (Onetime::Utils::ClientIp.from_request(@request) if @request.respond_to?(:env)),
           },
         )
       rescue StandardError => ex
@@ -197,25 +205,35 @@ module Auth
       # but the email index lookup misses it (Familia index timing).
       # @return [Onetime::Customer]
       def ensure_customer_exists
-        customer   = find_existing_customer
-        customer ||= begin
-          create_customer
-        rescue Familia::RecordExistsError
-          # Customer was just created (likely by OmniAuth callback) but index
-          # lookup missed it. Retry briefly since index should converge.
-          # NOTE: Polling because Redis has no "wait until hash field exists"
-          # primitive; index lag is sub-ms in practice, this is a safety net.
-          retried_customer = nil
-          3.times do
-            retried_customer = find_customer_by_email
-            break if retried_customer
-
-            sleep 0.05
+        customer = find_existing_customer
+        if customer.nil?
+          begin
+            # EnsureCustomerForAccount links the accounts row itself, so the
+            # recovered record needs no link-on-login pass below.
+            return recreate_customer
+          rescue Familia::RecordExistsError
+            customer = await_indexed_customer
           end
-          retried_customer || raise(OT::Problem, "Customer index sync failed for #{@account[:email]}")
         end
         link_customer_to_account(customer) unless customer_linked?(customer)
         customer
+      end
+
+      # Customer was just created (likely by OmniAuth callback) but index
+      # lookup missed it. Retry briefly since index should converge.
+      # NOTE: Polling because Redis has no "wait until hash field exists"
+      # primitive; index lag is sub-ms in practice, this is a safety net.
+      # @return [Onetime::Customer]
+      # @raise [OT::Problem] when the index never converged
+      def await_indexed_customer
+        retried_customer = nil
+        3.times do
+          retried_customer = find_customer_by_email
+          break if retried_customer
+
+          sleep 0.05
+        end
+        retried_customer || raise(OT::Problem, "Customer index sync failed for #{@account[:email]}")
       end
 
       # Finds existing customer by external_id or email
@@ -254,45 +272,118 @@ module Auth
         nil
       end
 
-      # Creates a new customer from Rodauth account data
+      # Recreates the Customer for a Rodauth account that has none.
+      #
+      # This is the rare branch: login found an accounts row but neither the
+      # external_id link nor the email index returned a Customer, so the
+      # Redis-side record was lost or never written. Every normal creation
+      # site (password signup, invite, SSO JIT) has already run by the time a
+      # login succeeds, so this op has to stand in for whichever of them
+      # originally applied, and it must not invent verification it cannot
+      # account for.
+      #
+      # With verify_account disabled every password account sits at
+      # AccountStatuses::VERIFIED in SQL, so the status alone says nothing
+      # about HOW the address was proven. The provenance is therefore derived
+      # from persisted state (see #derive_verification_provenance), stamped
+      # through the same EnsureCustomerForAccount call the JIT hook uses, and
+      # the recovery is logged at WARN so it never passes as routine.
+      #
+      # New accounts default to 'customer' role. Colonel promotion is handled
+      # exclusively via CLI: bin/ots customers role promote user@example.com
+      #
       # @return [Onetime::Customer]
-      def create_customer
-        # New accounts default to 'customer' role. Colonel promotion
-        # is handled exclusively via CLI: bin/ots customers role promote user@example.com
+      # @raise [Familia::RecordExistsError] when the email index was merely
+      #   lagging (caller retries the lookup)
+      def recreate_customer
+        verified, verified_by = derive_verification_provenance
+
         Auth::Logging.log_operation(
           :customer_create_start,
           level: :info,
+          account_id: @account_id,
           email: @account[:email],
           role: 'customer',
           correlation_id: @correlation_id,
         )
 
-        customer = Onetime::Customer.create!(
-          email: @account[:email],
-          role: 'customer',
-        )
-
-        # Persist verification state via Familia's single-field fast writer.
-        # The Customer model coerces this to canonical 'true'/'false' (see
-        # Customer::Features::Status) so the value matches what `verified?`
-        # checks against.
-        customer.verified!(rodauth_status_verified?)
+        customer = Auth::Operations::EnsureCustomerForAccount.new(
+          account_id: @account_id,
+          account: @account,
+          db: @db,
+          provisioning_origin: RECOVERY_PROVISIONING_ORIGIN,
+          verified: verified,
+          verified_by: verified_by,
+        ).call
 
         Auth::Logging.log_operation(
-          :customer_created,
-          level: :info,
+          :customer_recreated_at_login,
+          level: :warn,
+          account_id: @account_id,
           customer_id: customer.custid,
           external_id: customer.extid,
           role: 'customer',
+          provisioning_origin: RECOVERY_PROVISIONING_ORIGIN,
+          verified: verified,
+          verified_by: verified_by,
           correlation_id: @correlation_id,
         )
         customer
       end
 
-      # Checks if the Rodauth account status is verified (status_id == 2)
+      # Derives [verified, verified_by] for a recreated Customer from state
+      # the auth database still has, asserting no more than that state shows:
+      #
+      #   - status_id != VERIFIED            -> unverified, no provenance
+      #   - an account_identities row exists -> 'sso'    (JIT provisioning)
+      #   - otherwise                        -> 'legacy' (verified, unknown how)
+      #
+      # Only recorded state decides the tag, never today's config: the
+      # verify_account setting now says nothing about how an existing row
+      # became Verified (verification may have been off then, or loaded only
+      # through webauthn_verify_account). 'sso' is the stricter of the two
+      # tags (federation_claim_deferred? defers it), so an identity row that
+      # was linked after an email verification errs toward less access.
+      #
+      # Never a mailbox-proof tag (Onetime::Customer::MAILBOX_VERIFIED_BY). A
+      # Verified row does not show HOW it became Verified: the emailed link,
+      # an invite, an operator, or `bin/ots customers sync-auth-accounts`,
+      # which opens a row at Verified for any verified Redis customer whatever
+      # its provenance. Stamping 'email' would hand a recovered record the
+      # mailbox proof that has_system_role? requires (#4735). An operator
+      # who has confirmed the address re-stamps it
+      # (colonel admin, or `bin/ots customers verify`).
+      #
+      # Known limit: a verification_hold (the IdP vetoed the stamp at JIT
+      # time) lives only on the lost Customer record, never in SQL, so it
+      # cannot be recovered here.
+      #
+      # Fails CLOSED: if any lookup raises, the customer is recreated
+      # UNVERIFIED (verified_by nil) and the failure is logged. A missing
+      # verified flag is recoverable (colonel admin, `bin/ots customers
+      # verify`); a fabricated one is not.
+      #
+      # @return [Array(Boolean, String|nil)]
+      def derive_verification_provenance
+        return [false, nil] unless @account[:status_id] == Auth::AccountStatuses::VERIFIED
+
+        [true, sso_identity_present? ? 'sso' : 'legacy']
+      rescue StandardError => ex
+        Auth::Logging.log_error(
+          :customer_recreate_provenance_failed,
+          exception: ex,
+          account_id: @account_id,
+          fallback: 'unverified',
+          correlation_id: @correlation_id,
+        )
+        [false, nil]
+      end
+
+      # Whether the Rodauth account has at least one SSO identity
+      # (rodauth-omniauth's account_identities table, migration 006).
       # @return [Boolean]
-      def rodauth_status_verified?
-        @account[:status_id] == 2
+      def sso_identity_present?
+        !@db[:account_identities].where(account_id: @account_id).empty?
       end
 
       # Checks if customer is already linked to the Rodauth account
@@ -366,7 +457,9 @@ module Auth
 
       # Tracks request metadata in the session
       def track_request_metadata
-        @session['ip_address'] = @request.ip
+        # The canonical masked IP; nil, not the proxy's raw address, when the
+        # IP privacy middleware found no client IP (otto 2.13).
+        @session['ip_address'] = Onetime::Utils::ClientIp.from_request(@request)
         @session['user_agent'] = @request.user_agent
       end
 

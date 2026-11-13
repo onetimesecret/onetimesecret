@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/security/login_rate_limiter'
+require 'onetime/security/no_client_ip'
 require 'onetime/session/failure_code'
 
 require_relative 'json_body'
@@ -152,7 +153,10 @@ module Auth
             end
 
             login     = challenge.email
-            client_ip = request.ip
+            # The canonical masked IP, or the shared no-client-ip bucket when
+            # the IP privacy middleware found none (otto 2.13); see
+            # Onetime::Security::NoClientIp.
+            client_ip = Onetime::Security::NoClientIp.request_subject(request)
 
             # RATE LIMIT (#3840 Phase 3 review, Finding 2) — gate BEFORE consuming
             # the token or verifying the password. valid_login_and_password? is a

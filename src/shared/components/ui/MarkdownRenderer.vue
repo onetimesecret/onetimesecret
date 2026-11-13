@@ -7,7 +7,7 @@
    * Used for secrets with display_type 'markdown': the live preview on the
    * create forms and the recipient's reveal page. The parser, highlighter and
    * sanitizer live in src/shared/utils/markdown.ts, imported on first render
-   * (the single-chunk production build bundles them regardless). If rendering
+   * (their own chunk in the production build, fetched on first use). If rendering
    * fails for any reason the source is shown as plain text instead: a
    * recipient must never lose the value to a rendering bug.
    */
@@ -38,10 +38,25 @@
   let loading: Promise<RenderFn> | null = null;
 
   const loadRenderer = (): Promise<RenderFn> => {
-    loading ??= import('@/shared/utils/markdown').then((mod) => {
-      renderFn = mod.renderMarkdown;
-      return renderFn;
-    });
+    loading ??= import('@/shared/utils/markdown')
+      .then((mod) => {
+        // A failed chunk import can also resolve, with undefined: Vite's
+        // preload helper does that when a vite:preloadError handler calls
+        // preventDefault(). Ours does not (src/utils/preloadError.ts), but
+        // the guard costs nothing and keeps a non-function out of renderFn.
+        if (typeof mod?.renderMarkdown !== 'function') {
+          throw new Error('[markdown] the renderer chunk did not load');
+        }
+        renderFn = mod.renderMarkdown;
+        return renderFn;
+      })
+      .catch((error: unknown) => {
+        // Forget the failed load, however it failed, so the next render
+        // retries the fetch; the plain-text fallback stays up until one
+        // succeeds.
+        loading = null;
+        throw error;
+      });
     return loading;
   };
 

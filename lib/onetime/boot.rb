@@ -186,9 +186,11 @@ module Onetime
       # never a dev/prod datastore. This lives here — not only in the
       # configure_familia initializer — because tryouts that boot with
       # connect_to_db=false SKIP that initializer (see the skip-list below),
-      # which also leaves Familia.uri at its 127.0.0.1:6379 default (= dev). A
-      # bare `Familia.dbclient.flushdb` in such a tryout would then truncate the
-      # dev database with no guard ever running.
+      # which also leaves Familia.uri as boot found it: the 127.0.0.1:6379
+      # default (= dev) unless a test helper set it first
+      # (try/support/test_helpers.rb does). A bare `Familia.dbclient.flushdb`
+      # in such a tryout would then truncate the dev database with no guard
+      # ever running.
       #
       # Keyed on OT.mode (set from the boot! arg above) so it fires for every
       # `OT.boot!(:test, ...)` even when RACK_ENV isn't 'test' — e.g. running a
@@ -386,7 +388,11 @@ module Onetime
       # Fallback to site.secret if session secret is not set
       result['secret'] ||= conf&.dig('site', 'secret')
 
-      # Apply SSL fallback if secure not explicitly set
+      # Apply SSL fallback if secure not explicitly set: true when site.ssl is
+      # configured OR the app runs in production (see ssl_enabled?), so the
+      # Secure cookie flag fails safe in production even when the SSL env var
+      # is unset (2026-08-02 audit, L-1). Onetime::Session#set_cookie adds a
+      # per-request upgrade for TLS-terminating proxies on top of this.
       result['secure'] = ssl_enabled? if result['secure'].nil?
 
       result
@@ -431,6 +437,10 @@ module Onetime
       true
     end
 
+    # Whether generated cookies/links should assume HTTPS. True when site.ssl
+    # (SSL env var) is set, and ALSO whenever RACK_ENV resolves to production —
+    # production must fail safe to Secure cookies even if the operator forgot
+    # the SSL flag (2026-08-02 audit, L-1).
     def ssl_enabled?
       conf&.dig('site', 'ssl') || env == 'production'
     end

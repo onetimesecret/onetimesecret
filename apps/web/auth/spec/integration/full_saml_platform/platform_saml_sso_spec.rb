@@ -102,7 +102,6 @@
 #
 # =============================================================================
 
-require_relative '../../spec_helper'
 require_relative '../../../../../../spec/support/saml/test_idp'
 
 require 'base64'
@@ -116,8 +115,11 @@ module PlatformSamlSsoSpec
   ENTITY_ID = ENV.fetch('SAML_IDP_ENTITY_ID', '').freeze
   SSO_URL   = ENV.fetch('SAML_IDP_SSO_SERVICE_URL', '').freeze
 
-  # The platform IdP for this process. Built at load time so its certificate
-  # is in ENV before any before(:all) boots the app.
+  # The platform IdP for this process. Built at load time, and BEFORE the
+  # spec_helper require below: in full mode the helper loads the auth
+  # application (#3234), which configures Rodauth, and configure_provider
+  # reads SAML_IDP_CERT at that moment. Set any later, the saml route
+  # registers as the tenant placeholder.
   IDP = SamlSpec::TestIdp.new(entity_id: ENTITY_ID, key: OpenSSL::PKey::RSA.new(2048))
 
   if defined?(Onetime) && Onetime.respond_to?(:ready?) && Onetime.ready?
@@ -127,6 +129,8 @@ module PlatformSamlSsoSpec
 
   ENV['SAML_IDP_CERT'] = IDP.cert_pem
 end
+
+require_relative '../../spec_helper'
 
 # The examples, as a shared group: the describe at the end of the file runs
 # them with site.network.public_host_rewrite off and on (#4223).
@@ -147,14 +151,24 @@ RSpec.shared_examples 'platform SAML SSO' do
   let(:platform_acs) { "#{platform_base}/auth/sso/saml/callback" }
   let(:platform_entity_id) { Onetime::SsoProvider::Saml.platform_sp_entity_id('saml') }
 
+  # Teardown in foreign-key order (#4539). A completed sign-in writes
+  # active-session, audit-log and activity rows that reference the account
+  # and do not cascade (migrations/001_initial.rb), so a bare `accounts`
+  # delete raises on SQLite. AuthAccountFactory#cleanup_account walks
+  # RODAUTH_TABLES in dependency order; it swallows per-table errors, so the
+  # row count is checked afterwards. A cleanup error is a real problem and is
+  # allowed to surface rather than leave stray rows in the shared in-memory
+  # DB and a Customer in the shared test Valkey.
   after do
     created_emails.each do |address|
-      account_ids = db[:accounts].where(email: address).select_map(:id)
-      identities.where(account_id: account_ids).delete
-      db[:accounts].where(id: account_ids).delete
+      db[:accounts].where(email: address).select_map(:id).each do |account_id|
+        identities.where(account_id: account_id).delete
+        cleanup_account(db: db, account_id: account_id)
+      end
+      remaining = db[:accounts].where(email: address).count
+      raise "[platform_saml_sso_spec] cleanup left #{remaining} accounts row(s) for #{OT::Utils.obscure_email(address)}" if remaining.positive?
+
       Onetime::Customer.find_by_email(address)&.destroy!
-    rescue StandardError => ex
-      OT.le "[platform_saml_sso_spec] cleanup error for #{OT::Utils.obscure_email(address)}: #{ex.class}"
     end
     identities.where(uid: name_id).delete
   end
@@ -209,10 +223,10 @@ RSpec.shared_examples 'platform SAML SSO' do
     last_request.env['rack.session'].to_h[OmniAuth::Strategies::RequestBoundSAML::REQUEST_ID_KEY]
   end
 
-  def answer(request, signer: idp, **overrides)
+  def answer(request, signer: idp, address: email, **overrides)
     signer.response(
       in_response_to: request.id, acs_url: request.acs_url, audience: request.sp_entity_id,
-      name_id: name_id, attributes: { 'email' => [email] }, **overrides
+      name_id: name_id, attributes: { 'email' => [address] }, **overrides
     )
   end
 
@@ -554,13 +568,17 @@ RSpec.shared_examples 'platform SAML SSO' do
 
     # A verified custom domain with an ACTIVE tenant SAML config (own IdP
     # keypair, EntityID and origin) while the platform registration is live.
+    # Its ownership is accepted by Colonel override, so the host also proves
+    # an email namespace for tenant JIT under the test install's passthrough
+    # strategy (#4734, CustomDomain#ownership_proven?).
     def with_override_tenant
       tenant_host = "override-#{run_id}.saml-platform.example.com"
       owner        = Onetime::Customer.new(email: "override-owner-#{run_id}@saml-platform.example.com")
       owner.save
       org          = Onetime::Organization.create!("Override Org #{run_id}", owner, "override-contact-#{run_id}@saml-platform.example.com")
       domain       = Onetime::CustomDomain.new(display_domain: tenant_host, org_id: org.org_id)
-      domain.verified = true
+      domain.verified             = true
+      domain.verified_by_override = true
       domain.save
       Onetime::CustomDomain.display_domain_index.put(tenant_host, domain.domainid)
       tenant_idp = SamlSpec::TestIdp.new(entity_id: "https://override-idp.test/#{run_id}", key: OpenSSL::PKey::RSA.new(2048))
@@ -637,14 +655,18 @@ RSpec.shared_examples 'platform SAML SSO' do
         request = start_login(tenant.base, expected_sso_url: tenant.sso_url)
         expect(last_request.env['rack.session'].to_h['omniauth_tenant_domain_id']).to eq(tenant.domain.identifier)
 
-        created_emails << email
-        post_callback(answer(request, signer: tenant.idp), request.acs_url, origin: tenant.origin)
+        # A tenant JIT creation is minted only inside a domain the tenant
+        # organization has proven (#4734): the override host itself, whose
+        # ownership is accepted by Colonel override (with_override_tenant).
+        tenant_email = "override-user-#{run_id}@#{tenant.host}"
+        created_emails << tenant_email
+        post_callback(answer(request, signer: tenant.idp, address: tenant_email), request.acs_url, origin: tenant.origin)
 
         expect(last_response.status).to eq(302), last_response.body[0, 300]
         expect(last_response.headers['Location'].to_s).not_to include('auth_error')
         expect(identity_rows).to contain_exactly(include(provider: 'saml', issuer: tenant_issuer, uid: name_id))
         expect(Auth::Operations::JoinDomainOrganization).to have_received(:new)
-        customer = Onetime::Customer.find_by_email(email)
+        customer = Onetime::Customer.find_by_email(tenant_email)
         expect(customer).not_to be_nil
         expect(Onetime::OrganizationMembership.find_by_org_customer(tenant.org.objid, customer.objid)).not_to be_nil
       end

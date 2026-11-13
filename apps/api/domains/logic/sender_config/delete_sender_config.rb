@@ -63,6 +63,7 @@ module DomainsAPI
 
           deleted          = nil
           provider_cleanup = :not_attempted
+          provider_outcome = nil
           lease_error      = nil
           begin
             lease.protect do
@@ -78,6 +79,7 @@ module DomainsAPI
                 provider_cleanup  = :unknown
                 result            = delete_sender_domain(deleted)
                 provider_cleanup  = result.success? ? :completed : :failed
+                provider_outcome  = result.outcome
                 lease.check!
               end
             end
@@ -86,6 +88,9 @@ module DomainsAPI
           ensure
             # Record removal is committed even if ownership loss prevents the
             # provider call. Keep enough safe context to reconcile that identity.
+            # provider_cleanup keeps its completed/failed summary;
+            # provider_outcome tells a deletion from an absence or a skip, and
+            # stays out of the API response.
             if deleted
               log_sender_config_event(
                 event: :domain_sender_config_deleted,
@@ -97,6 +102,7 @@ module DomainsAPI
                   config_deleted: true,
                   from_address: deleted.from_address,
                   provider_cleanup: provider_cleanup,
+                  provider_outcome: provider_outcome,
                   lease_lost: !lease_error.nil?,
                 },
               )

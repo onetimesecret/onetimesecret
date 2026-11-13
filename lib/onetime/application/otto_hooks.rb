@@ -10,6 +10,7 @@
 # other routers (Auth/Roda) do not need these hooks.
 
 require_relative '../logger_methods'
+require_relative '../utils/client_ip'
 require_relative 'request_helpers'
 require_relative 'error_resolver'
 require_relative 'error_correlation'
@@ -99,6 +100,21 @@ module Onetime
           with_error_correlation(error.to_h, req, error)
         end
 
+        # Password re-authentication for a lapsed admin session window
+        # (POST /api/colonel/reauthenticate). Same 403 family, own
+        # registrations for the same exact-class reason: Failed is a refused
+        # attempt, Unavailable an account the endpoint does not serve (a
+        # second factor is enrolled in full mode).
+        router.register_error_handler(Onetime::ReauthenticationFailed, status: 403, log_level: :warn) do |error, req|
+          Onetime::Application::ErrorResolver.resolve!(error, req)
+          with_error_correlation(error.to_h, req, error)
+        end
+
+        router.register_error_handler(Onetime::ReauthenticationUnavailable, status: 403, log_level: :warn) do |error, req|
+          Onetime::Application::ErrorResolver.resolve!(error, req)
+          with_error_correlation(error.to_h, req, error)
+        end
+
         # Programming error in a destructive guard (#4326). Registered so it is a
         # deliberate 500 with correlation rather than an unhandled one.
         router.register_error_handler(Onetime::GuardMisconfigured, status: 500, log_level: :error) do |error, req|
@@ -123,10 +139,11 @@ module Onetime
           with_error_correlation(error.to_h, req, error)
         end
 
-        # A write that a retry can clear (datastore unreachable, an optimistic
-        # lock lost to a concurrent write). 503, like the entry above, so the
-        # client retries rather than treating it as bad input; the body's
-        # retry_after becomes the Retry-After header.
+        # A request that a retry can clear (datastore unreachable, an
+        # optimistic lock lost to a concurrent write, a v3 token mint whose
+        # credential watermark is ahead of this node's clock). 503, like the
+        # entry above, so the client retries rather than treating it as bad
+        # input; the body's retry_after becomes the Retry-After header.
         router.register_error_handler(Onetime::TemporarilyUnavailable, status: 503, log_level: :warn) do |error, req|
           with_error_correlation(error.to_h, req, error)
         end
@@ -145,6 +162,13 @@ module Onetime
 
         # Guest routes disabled errors return 403 with error code
         router.register_error_handler(Onetime::GuestRoutesDisabled, status: 403, log_level: :info) do |error, req|
+          Onetime::Application::ErrorResolver.resolve!(error, req)
+          with_error_correlation(error.to_h, req, error)
+        end
+
+        # POST /api/v3/token while auth.paseto.enabled is off (#2427): an
+        # operator setting, not a caller mistake, so :info like the guest gate.
+        router.register_error_handler(Onetime::BearerTokensDisabled, status: 403, log_level: :info) do |error, req|
           Onetime::Application::ErrorResolver.resolve!(error, req)
           with_error_correlation(error.to_h, req, error)
         end
@@ -270,9 +294,13 @@ module Onetime
           # Use HTTP logger for request lifecycle events
           logger = Onetime.get_logger('HTTP')
 
-          # Extract auth context if available
-          user_id         = req.env['otto.user']&.[](:id)
+          # Extract auth context if available. Nothing sets env['otto.user']
+          # (otto 2.13 documents this, delano/otto#298); the authenticated user
+          # is strategy_result.user — an Onetime::Customer, logged by its
+          # external id like the other request-facing log lines.
           strategy_result = req.env['otto.strategy_result']
+          user            = strategy_result&.user
+          user_id         = user.extid if user.respond_to?(:extid)
           auth_strategy   = strategy_result&.strategy_name
 
           logger.trace 'Request completed',
@@ -283,7 +311,7 @@ module Onetime
               duration: duration / 1_000_000.0,  # Convert microseconds to seconds for SemanticLogger
               user_id: user_id,
               auth_strategy: auth_strategy,
-              ip: req.ip,
+              ip: Onetime::Utils::ClientIp.from_request(req),
               user_agent: req.user_agent&.slice(0, 100),
             }
         end

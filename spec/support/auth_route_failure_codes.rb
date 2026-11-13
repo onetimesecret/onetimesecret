@@ -58,6 +58,10 @@ module AuthRouteFailureCodes
     'sessionauth' => SESSION_CODES,
     # BasicAuthStrategy, on a terminal credentialed failure.
     'basicauth' => %i[api_key_invalid suspended_credentials].freeze,
+    # PasetoAuthStrategy (#2427), on a terminal credentialed failure: a
+    # presented `Bearer` token that was rejected. It never refuses a request
+    # without a Bearer header, or while auth.paseto.enabled is off.
+    'pasetoauth' => %i[api_token_invalid api_token_expired suspended_credentials].freeze,
     # Never refuses. A rejected Authorization header on a `basicauth,noauth`
     # chain is the Basic strategy's terminal failure, coded above.
     'noauth' => [].freeze,
@@ -201,6 +205,16 @@ module AuthRouteFailureCodes
     logout: { requirement: :anonymous, credential: false },
     verify_login_change: { requirement: :anonymous, credential: false },
 
+    # --- OAuth/OIDC IdP machine endpoints (rodauth-oauth) ----------------
+    # Mounted only with the OAuth feature on. They authenticate by client
+    # credentials or bearer token (jwks: none), never by the Rack session
+    # (Auth::Router::ANONYMOUS_RODAUTH_ROUTES), and refuse in the OAuth
+    # error format, not with this vocabulary's codes.
+    token: { requirement: :anonymous, credential: false },
+    revoke: { requirement: :anonymous, credential: false },
+    userinfo: { requirement: :anonymous, credential: false },
+    jwks: { requirement: :anonymous, credential: false },
+
     # --- account routes, login required ----------------------------------
     remember: { requirement: :login_required, credential: false },
     close_account: { requirement: :login_required, credential: true },
@@ -218,6 +232,9 @@ module AuthRouteFailureCodes
     webauthn_setup: { requirement: :login_required, credential: true },
     webauthn_setup_js: { requirement: :login_required, credential: false },
     webauthn_remove: { requirement: :login_required, credential: true },
+    # OAuth/OIDC IdP consent step: browser-driven, behind the session like
+    # every other login-required route.
+    authorize: { requirement: :login_required, credential: false },
 
     # --- second-factor ceremony ------------------------------------------
     otp_auth: { requirement: :mfa_pending, credential: true },

@@ -298,5 +298,140 @@ RSpec.describe Onetime::Mail::Delivery::SMTP do
         end
       end
     end
+
+    # Regression: #4889. The auth setting (config 'auth', ENV SMTP_AUTH) was
+    # never read and every authenticated session used AUTH PLAIN, so servers
+    # that accept only AUTH LOGIN rejected delivery with 504 5.7.4.
+    describe 'authentication' do
+      let(:credentials) { { 'username' => 'smtp-user', 'password' => 'smtp-pass' } }
+      let(:smtp_auth_env) { nil }
+
+      before do
+        allow(ENV).to receive(:fetch).and_call_original
+        allow(ENV).to receive(:fetch).with('SMTP_AUTH', nil).and_return(smtp_auth_env)
+        allow(ENV).to receive(:fetch).with('SMTP_USERNAME', nil).and_return(nil)
+        allow(ENV).to receive(:fetch).with('SMTP_PASSWORD', nil).and_return(nil)
+      end
+
+      def settings_for(extra)
+        described_class.new(config.merge(extra)).send(:smtp_settings)
+      end
+
+      it 'defaults to PLAIN when no auth method is configured' do
+        expect(settings_for(credentials)).to include(
+          user_name: 'smtp-user', password: 'smtp-pass', authentication: :plain
+        )
+      end
+
+      it 'defaults to PLAIN when the auth setting is blank' do
+        expect(settings_for(credentials.merge('auth' => '  '))).to include(authentication: :plain)
+      end
+
+      {
+        'login' => :login,
+        'LOGIN' => :login,
+        ' login ' => :login,
+        :login => :login,
+        'plain' => :plain,
+        'cram_md5' => :cram_md5,
+        'CRAM-MD5' => :cram_md5,
+      }.each do |value, authtype|
+        it "uses #{authtype.inspect} for auth #{value.inspect}" do
+          expect(settings_for(credentials.merge('auth' => value))).to include(authentication: authtype)
+        end
+      end
+
+      context 'when SMTP_AUTH is set in the environment' do
+        let(:smtp_auth_env) { 'login' }
+
+        it 'uses it when the config has no auth value' do
+          expect(settings_for(credentials)).to include(authentication: :login)
+        end
+
+        it 'lets the config value win over the environment' do
+          expect(settings_for(credentials.merge('auth' => 'cram_md5'))).to include(authentication: :cram_md5)
+        end
+      end
+
+      it 'omits authentication when no credentials are configured' do
+        settings = settings_for('auth' => 'login')
+
+        expect(settings).not_to include(:user_name, :password, :authentication)
+      end
+
+      it 'omits authentication when the password is blank' do
+        settings = settings_for(credentials.merge('password' => ''))
+
+        expect(settings).not_to include(:user_name, :password, :authentication)
+      end
+
+      it 'rejects an unsupported auth method when the backend is built' do
+        expect { described_class.new(config.merge(credentials).merge('auth' => 'ntlm')) }
+          .to raise_error(ArgumentError, /Unsupported SMTP auth method "ntlm".*plain, login, cram_md5/)
+      end
+
+      it 'does not fall back to PLAIN for an unsupported auth method' do
+        expect { described_class.new(config.merge(credentials).merge('auth' => false)) }
+          .to raise_error(ArgumentError, /Unsupported SMTP auth method "false"/)
+      end
+
+      it 'ignores the auth setting when no credentials are configured' do
+        expect { described_class.new(config.merge('auth' => 'ntlm')) }.not_to raise_error
+      end
+
+      it 'names the rejected mechanism when the server refuses AUTH' do
+        backend = described_class.new(config.merge(credentials).merge('auth' => 'cram_md5'))
+        allow(backend).to receive(:deliver_with_settings)
+          .and_raise(Net::SMTPAuthenticationError, '504 5.7.4 Unrecognized authentication type')
+        allow(backend).to receive(:log_delivery)
+        allow(backend).to receive(:log_error)
+        allow(OT).to receive(:info)
+
+        expect { backend.deliver(email) }.to raise_error(Onetime::Mail::DeliveryError)
+        expect(OT).to have_received(:info).with(/Server rejected AUTH CRAM-MD5 \(SMTP_AUTH\): 504 5\.7\.4/)
+      end
+    end
+  end
+
+  # The mail gem hands settings[:authentication] to Net::SMTP#start. Every
+  # authtype resolve_authentication can return must name an authenticator
+  # Net::SMTP implements, or delivery fails before AUTH is sent.
+  describe 'AUTH_METHODS' do
+    it 'maps only to authtypes Net::SMTP implements' do
+      described_class::AUTH_METHODS.each_value do |authtype|
+        expect(Net::SMTP::Authenticator.auth_class(authtype)).not_to be_nil
+      end
+    end
+
+    it 'includes the default' do
+      expect(described_class::AUTH_METHODS.values).to include(described_class::DEFAULT_AUTH_METHOD)
+    end
+  end
+
+  # A missing host is a property of the install, not of the message, so it
+  # must not be an ArgumentError: EmailWorker reads ArgumentError as a
+  # malformed message and dead-letters it.
+  describe '#validate_config!' do
+    before do
+      allow(ENV).to receive(:fetch).and_call_original
+      allow(ENV).to receive(:fetch).with('SMTP_HOST', nil).and_return(nil)
+    end
+
+    [nil, ''].each do |host|
+      it "raises ConfigurationError naming smtp when the host is #{host.inspect}" do
+        expect { described_class.new('host' => host) }
+          .to raise_error(Onetime::Mail::ConfigurationError, 'SMTP host must be configured') do |err|
+            expect(err.provider).to eq('smtp')
+            expect(err).not_to be_a(ArgumentError)
+            expect(err).not_to be_a(Onetime::Mail::DeliveryError)
+          end
+      end
+    end
+
+    it 'accepts the host from SMTP_HOST' do
+      allow(ENV).to receive(:fetch).with('SMTP_HOST', nil).and_return('smtp.example.com')
+
+      expect { described_class.new({}) }.not_to raise_error
+    end
   end
 end

@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminDomainDetail.vue -->
 
 <script setup lang="ts">
-
   import AdminDomainDnsDetails from '@/apps/admin/components/AdminDomainDnsDetails.vue';
   import DomainConfigsSection from '@/apps/admin/components/domains/DomainConfigsSection.vue';
   import DomainProbeResult from '@/apps/admin/components/domains/DomainProbeResult.vue';
@@ -82,8 +81,7 @@
   /** A non-404 network/HTTP failure, or a Zod contract mismatch. */
   const loadFailed = computed(
     () =>
-      (domainError.value !== null && !domainNotFound.value) ||
-      domainValidationError.value !== null
+      (domainError.value !== null && !domainNotFound.value) || domainValidationError.value !== null
   );
 
   /** External URL so an operator can open the live domain in a new tab. */
@@ -152,17 +150,13 @@
       {
         key: 'created',
         label: t('web.admin.domains.fields.created'),
-        value: r.created
-          ? formatDisplayDateTime(r.created)
-          : t('web.admin.domains.detail.none'),
+        value: r.created ? formatDisplayDateTime(r.created) : t('web.admin.domains.detail.none'),
         mono: false,
       },
       {
         key: 'updated',
         label: t('web.admin.domains.fields.updated'),
-        value: r.updated
-          ? formatDisplayDateTime(r.updated)
-          : t('web.admin.domains.detail.never'),
+        value: r.updated ? formatDisplayDateTime(r.updated) : t('web.admin.domains.detail.never'),
         mono: false,
       },
     ];
@@ -295,12 +289,15 @@
   const activeAction = ref<ActionKey | null>(null);
   /** The last verify outcome, read in onConfirm to pick an honest message. */
   const verifyResult = ref<ColonelDomainVerifyDetails | null>(null);
+  /** The applied removal's ack, read in onConfirm for its sender cleanup. */
+  const removeResult = ref<ColonelDomainRemoveDetails | null>(null);
 
   const {
     loading: mutationLoading,
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
+    useElevateThenOpen,
   } = useAdminDestructiveMutation(async (reason?: string) => {
     switch (activeAction.value) {
       case 'verify':
@@ -329,15 +326,11 @@
         // drift) means the server only PREVIEWED — reporting success would
         // toast "removed", drop the cached row and navigate away while the
         // domain still exists.
-        const removeAck = await store.remove(
-          publicId.value,
-          false,
-          applyConfirmToken(),
-          reason
-        );
+        const removeAck = await store.remove(publicId.value, false, applyConfirmToken(), reason);
         if (!removeAck || removeAck.dry_run !== false) {
           throw new Error(t('web.admin.domains.actions.remove.notApplied'));
         }
+        removeResult.value = removeAck;
         return;
       }
       default:
@@ -393,11 +386,32 @@
     };
   });
 
-  function requestAction(key: ActionKey): void {
-    activeAction.value = key;
-    resetMutation();
-    dialogOpen.value = true;
-  }
+  /**
+   * TIER 1 (TransferDomain, RemoveCustomDomain): elevate before the dialog
+   * collects the token and reason (#4327). Repair is TIER 2 and verify is
+   * un-gated. The transfer/remove previews are dry runs, which the server
+   * exempts from the gate, so only the apply dialog prompts.
+   */
+  const ELEVATED_ACTIONS: readonly ActionKey[] = ['transfer', 'remove'];
+
+  const { open: requestAction, opening: actionOpening } = useElevateThenOpen(
+    (key: ActionKey) => {
+      activeAction.value = key;
+      resetMutation();
+      dialogOpen.value = true;
+    },
+    {
+      target: () => publicId.value,
+      canOpen: (key) => {
+        if (!record.value || dialogOpen.value || mutationLoading.value) return false;
+        if (key === 'repair') return repairApplicable.value;
+        if (key === 'transfer') return transferApplicable.value && transferReady.value;
+        if (key === 'remove') return removeApplicable.value;
+        return true;
+      },
+      requiresElevation: (key) => ELEVATED_ACTIONS.includes(key),
+    }
+  );
 
   function notifyVerifyOutcome(): void {
     const { messageKey, severity } = verifyOutcomeNotice(verifyResult.value);
@@ -419,6 +433,14 @@
     if (action === 'verify') {
       notifyVerifyOutcome();
       verifyResult.value = null;
+    } else if (action === 'remove' && removeResult.value?.sender_cleanup === 'failed') {
+      // The record is gone, but the provider sender identity may remain.
+      notifications.show(
+        t('web.admin.domains.actions.remove.senderCleanupFailed', {
+          domain: record.value?.display_domain ?? publicId.value,
+        }),
+        'warning'
+      );
     } else {
       notifications.show(t(`${ACTION_I18N_ROOT[action]}.success`), 'success');
     }
@@ -426,6 +448,7 @@
     if (action === 'remove') {
       // The record no longer exists — drop the cached row and return to the list.
       store.forget(publicId.value);
+      removeResult.value = null;
       activeAction.value = null;
       router.push({ name: 'AdminDomains' });
       return;
@@ -450,6 +473,15 @@
   const overrideOpen = ref(false);
   const overrideVerified = ref<boolean | null>(null);
   const overrideResolving = ref<boolean | null>(null);
+  // Record an override on a domain that is already verified but not by
+  // override. Under passthrough the verify call sets verified without a DNS
+  // lookup, so tenant SSO counts the domain as a proven email domain only
+  // after an override (#4734). The verified checkbox alone cannot send this:
+  // it is already checked, so it finds nothing to change.
+  const overrideAcceptOwnership = ref(false);
+  const canAcceptOwnership = computed(
+    () => record.value?.verified === true && record.value?.verified_by_override !== true
+  );
 
   const {
     loading: overrideLoading,
@@ -463,6 +495,9 @@
     const options: { verified?: boolean; resolving?: boolean } = {};
     if (overrideVerified.value !== null && overrideVerified.value !== r.verified) {
       options.verified = overrideVerified.value;
+    }
+    if (overrideAcceptOwnership.value && overrideVerified.value === true && canAcceptOwnership.value) {
+      options.verified = true;
     }
     if (overrideResolving.value !== null && overrideResolving.value !== r.resolving) {
       options.resolving = overrideResolving.value;
@@ -480,6 +515,7 @@
     if (!record.value) return;
     overrideVerified.value = record.value.verified;
     overrideResolving.value = record.value.resolving;
+    overrideAcceptOwnership.value = false;
     resetOverride();
     overrideOpen.value = true;
   }
@@ -488,6 +524,7 @@
     overrideOpen.value = false;
     overrideVerified.value = null;
     overrideResolving.value = null;
+    overrideAcceptOwnership.value = false;
   }
 
   async function applyOverride(): Promise<void> {
@@ -592,7 +629,8 @@
       class="space-y-6"
       data-testid="detail-content">
       <!-- Header -->
-      <div class="flex flex-wrap items-center gap-3 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+      <div
+        class="flex flex-wrap items-center gap-3 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
         <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
           {{ record.display_domain }}
         </h2>
@@ -614,7 +652,9 @@
           target="_blank"
           rel="noopener noreferrer"
           data-testid="detail-open-external"
-          :aria-label="t('web.admin.domains.attach.openExternal', { domain: record.display_domain })"
+          :aria-label="
+            t('web.admin.domains.attach.openExternal', { domain: record.display_domain })
+          "
           :title="t('web.admin.domains.attach.openExternal', { domain: record.display_domain })"
           class="rounded text-gray-400 hover:text-brand-600 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:hover:text-brand-400">
           <OIcon
@@ -629,7 +669,12 @@
       <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatCard
           :label="t('web.admin.domains.columns.state')"
-          :value="t(`web.colonel.customDomains.status.${record.verification_state}`, record.verification_state)"
+          :value="
+            t(
+              `web.colonel.customDomains.status.${record.verification_state}`,
+              record.verification_state
+            )
+          "
           icon="shield-check"
           testid="stat-state" />
         <StatCard
@@ -683,6 +728,21 @@
               class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800" />
             {{ t('web.admin.domains.override.resolving') }}
           </label>
+        </div>
+        <div
+          v-if="canAcceptOwnership && overrideVerified === true"
+          class="mt-3"
+          data-testid="override-accept-ownership">
+          <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input
+              v-model="overrideAcceptOwnership"
+              type="checkbox"
+              class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800" />
+            {{ t('web.admin.domains.override.acceptOwnership') }}
+          </label>
+          <p class="mt-1 ml-6 text-xs text-amber-700 dark:text-amber-300">
+            {{ t('web.admin.domains.override.acceptOwnershipHint') }}
+          </p>
         </div>
         <p
           v-if="overrideError"
@@ -748,7 +808,8 @@
               v-for="field in overviewFields"
               :key="field.key"
               :data-testid="`profile-${field.key}`">
-              <dt class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+              <dt
+                class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ field.label }}
               </dt>
               <dd
@@ -776,6 +837,7 @@
             <button
               type="button"
               data-testid="verify-button"
+              :disabled="actionOpening || dialogOpen || mutationLoading"
               class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
               @click="requestAction('verify')">
               <OIcon
@@ -845,6 +907,7 @@
                 v-if="removeApplicable"
                 type="button"
                 data-testid="remove-button"
+                :disabled="actionOpening || dialogOpen || mutationLoading"
                 class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
                 @click="requestAction('remove')">
                 <OIcon
@@ -1002,7 +1065,9 @@
               {{ t('web.admin.domains.actions.repair.statusLabel') }}
               <span
                 class="font-mono font-medium"
-                data-testid="repair-status">{{ repairPlan.status }}</span>
+                data-testid="repair-status"
+                >{{ repairPlan.status }}</span
+              >
             </p>
             <ul
               v-if="repairPlan.issues.length"
@@ -1023,6 +1088,7 @@
               v-if="repairApplicable"
               type="button"
               data-testid="repair-apply"
+              :disabled="actionOpening || dialogOpen || mutationLoading"
               class="mt-4 inline-flex items-center gap-1 rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 focus:ring-2 focus:ring-amber-500 focus:outline-none"
               @click="requestAction('repair')">
               <OIcon
@@ -1123,6 +1189,7 @@
               v-if="transferApplicable"
               type="button"
               data-testid="transfer-apply"
+              :disabled="actionOpening || dialogOpen || mutationLoading"
               class="mt-4 inline-flex items-center gap-1 rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 focus:ring-2 focus:ring-amber-500 focus:outline-none"
               @click="requestAction('transfer')">
               <OIcon

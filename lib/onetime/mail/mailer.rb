@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../utils/strings' # strict_bool! for boolean provider options
+require_relative 'errors'
 require_relative 'provider_registry'
 require_relative 'delivery/base'
 require_relative 'delivery/disabled'
@@ -118,6 +119,17 @@ module Onetime
         # Reset the delivery backend (useful for testing)
         def reset!
           @delivery_backend = nil
+        end
+
+        # Build the delivery backend once to check the emailer configuration,
+        # without memoizing it. The boot check (CheckEmailerConfig) uses this
+        # so a bad config shows up on deploy instead of on the first send.
+        #
+        # @return [String] the transport the backend was built for
+        # @raise [ConfigurationError] when the configuration cannot build it
+        def validate_delivery_config!
+          create_delivery_backend
+          backend_provider
         end
 
         # Get the configured from address
@@ -302,6 +314,13 @@ module Onetime
           end
         end
 
+        # Building the backend reads only install configuration, never the
+        # message, so anything config-shaped it raises is a ConfigurationError.
+        # The backends raise that themselves (validate_config!); the rescue
+        # below also covers an ArgumentError from a backend check and the
+        # Onetime::ConfigError that strict boolean coercion raises (smtp2go
+        # fastaccept). Without it the worker would read either as a malformed
+        # message, or retry it as an unexpected error.
         def create_delivery_backend
           configured = determine_provider
           provider   = backend_provider(configured)
@@ -309,13 +328,29 @@ module Onetime
             log_error "[mail] Unknown provider '#{configured}', falling back to logger"
           end
           config     = build_provider_config(configured)
+          descriptor = ProviderRegistry.descriptor(provider)
+
+          backend = if descriptor
+                      descriptor.delivery_class.new(config)
+                    elsif provider == 'logger'
+                      Delivery::Logger.new(config)
+                    else
+                      Delivery::Disabled.new(config)
+                    end
 
           log_info "[mail] Using #{provider} delivery backend"
+          backend
+        rescue ConfigurationError
+          raise
+        rescue *config_error_classes => ex
+          raise ConfigurationError.new(ex.message, provider: provider)
+        end
 
-          descriptor = ProviderRegistry.descriptor(provider)
-          return descriptor.delivery_class.new(config) if descriptor
-
-          provider == 'logger' ? Delivery::Logger.new(config) : Delivery::Disabled.new(config)
+        # Error classes create_delivery_backend reports as ConfigurationError.
+        # Onetime::ConfigError is absent when the mail library is loaded on
+        # its own.
+        def config_error_classes
+          [ArgumentError, (Onetime::ConfigError if defined?(Onetime::ConfigError))].compact
         end
 
         # Returns the delivery backend for the given sender config.
@@ -375,6 +410,10 @@ module Onetime
             'port' => present(conf['port']) || present(ENV.fetch('SMTP_PORT', nil)),
             'username' => present(conf['user']) || present(ENV.fetch('SMTP_USERNAME', nil)),
             'password' => present(conf['pass']) || present(ENV.fetch('SMTP_PASSWORD', nil)),
+            # Not `present(...) || ENV`: `||` would drop an explicit
+            # `auth: false` and select PLAIN, where Delivery::SMTP rejects
+            # it. A blank value still falls through to SMTP_AUTH.
+            'auth' => present(conf['auth']).nil? ? present(ENV.fetch('SMTP_AUTH', nil)) : conf['auth'],
             'domain' => present(conf['domain']) || present(ENV.fetch('SMTP_DOMAIN', nil)),
             'tls' => conf['tls'],
             'ssl' => conf['ssl'],

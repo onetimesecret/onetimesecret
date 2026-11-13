@@ -243,3 +243,39 @@ export function isAllowedCheckoutUrl(url: string | undefined | null): url is str
     return false;
   }
 }
+
+/**
+ * Static baseline allowlist for Stripe Customer Portal origins.
+ *
+ * Do NOT loosen to a wildcard `*.stripe.com`.
+ */
+const BILLING_PORTAL_ALLOWED_ORIGINS = ['https://billing.stripe.com'] as const;
+
+/**
+ * Validates that a Stripe Customer Portal URL is safe to navigate to via
+ * `window.location`. Same reasoning as isAllowedCheckoutUrl (M-9): the URL is
+ * API-derived and assigned to `window.location.href`.
+ *
+ * Accepted origins are:
+ *   1. the static baseline: the shared `billing.stripe.com` host,
+ *   2. this deployment's Stripe custom domain (setAllowedCheckoutHost). Stripe
+ *      serves Checkout and the customer portal from the same custom domain.
+ *
+ * Unlike checkout, the app's own origin is not accepted: a portal session URL
+ * is always Stripe-hosted.
+ *
+ * @param url - The portal URL to validate
+ * @returns true only when the URL parses and its origin is allowlisted
+ */
+export function isAllowedBillingPortalUrl(url: string | undefined | null): url is string {
+  if (!url || typeof url !== 'string') return false;
+  try {
+    const { origin } = new URL(url);
+    return (
+      (BILLING_PORTAL_ALLOWED_ORIGINS as readonly string[]).includes(origin) ||
+      (configuredCheckoutOrigin !== null && origin === configuredCheckoutOrigin)
+    );
+  } catch {
+    return false;
+  }
+}

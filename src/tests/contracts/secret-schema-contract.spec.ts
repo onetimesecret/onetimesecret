@@ -9,6 +9,7 @@ import {
   secretSchema,
   secretDetailsSchema as v3SecretDetailsSchema,
 } from '@/schemas/shapes/v3/secret';
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -38,27 +39,32 @@ const INTENTIONAL_EXCLUSIONS: Record<string, string> = {
 describe('Secret schema contract (safe_dump_fields)', () => {
   const schemaKeys = Object.keys(secretSchema.shape);
 
+  it('the field mirror matches current Ruby safe_dump declarations (not runtime conformance)', () => {
+    const source = readFileSync(
+      new URL('../../../lib/onetime/models/secret/features/safe_dump_fields.rb', import.meta.url),
+      'utf8'
+    );
+    const declared = Array.from(
+      source.matchAll(/^\s*base\.safe_dump_field\s+:(\w+)/gm),
+      (match) => match[1]
+    );
+    expect([...SECRET_SAFE_DUMP_FIELDS].sort()).toEqual(declared.sort());
+  });
+
   describe('field completeness', () => {
     // For each backend field, verify the Zod schema declares it
     // (or it appears in the explicit exclusion list).
-    const backendFields = SECRET_SAFE_DUMP_FIELDS.filter(
-      (f) => !(f in INTENTIONAL_EXCLUSIONS)
-    );
+    const backendFields = SECRET_SAFE_DUMP_FIELDS.filter((f) => !(f in INTENTIONAL_EXCLUSIONS));
 
-    it.each(backendFields)(
-      'secretSchema declares backend field "%s"',
-      (field) => {
-        expect(schemaKeys).toContain(field);
-      }
-    );
+    it.each(backendFields)('secretSchema declares backend field "%s"', (field) => {
+      expect(schemaKeys).toContain(field);
+    });
 
     it('all intentional exclusions reference real backend fields', () => {
       // Guard against stale exclusions: every key in INTENTIONAL_EXCLUSIONS
       // must actually exist in the backend field list.
       for (const excluded of Object.keys(INTENTIONAL_EXCLUSIONS)) {
-        expect(
-          SECRET_SAFE_DUMP_FIELDS as readonly string[]
-        ).toContain(excluded);
+        expect(SECRET_SAFE_DUMP_FIELDS as readonly string[]).toContain(excluded);
       }
     });
 
@@ -89,6 +95,7 @@ describe('Secret schema contract (safe_dump_fields)', () => {
       lifespan: 3600,
       has_passphrase: false,
       verification: false,
+      display_type: 'text',
       created: 1735142814,
       updated: 1735204014,
       is_previewed: false,

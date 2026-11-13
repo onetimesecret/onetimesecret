@@ -14,8 +14,19 @@
  * to inheriting workspace defaults. The signup-enabled select edits the
  * override VALUE (ANDed with the global capability; it can narrow, never
  * widen).
+ *
+ * Under the domain-allowlist strategy the form also offers the domain's own
+ * registrable domain (`baseDomain`, from the domain record) as an automatic
+ * allowlist entry (`allow_base_domain`): the server derives it from the
+ * domain record at validation time, so it is shown here as a locked chip
+ * rather than typed into the list, and it satisfies the list requirement on
+ * its own. The option exists only when the install enables it
+ * (`baseDomainSignupEnabled`) and takes effect only with the
+ * base_domain_signup entitlement (`canBaseDomainSignup`); without the
+ * entitlement it is shown locked.
  */
 import {
+  allowlistRequirementMet,
   SIGNUP_STRATEGY_METADATA,
   type CustomDomainSignupConfig,
   type SignupValidationStrategy,
@@ -32,6 +43,23 @@ import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
   domainExtId: string;
+  /**
+   * The domain's registrable domain (secrets.acme.com → acme.com), which
+   * allow_base_domain admits. Null when the domain record has none; the
+   * option is then not offered and the flag does not count toward validity.
+   */
+  baseDomain: string | null;
+  /**
+   * Whether this install offers allow_base_domain at all
+   * (features.organizations.base_domain_signup_enabled). When false the
+   * option is not shown, and a saved value is sent back untouched.
+   */
+  baseDomainSignupEnabled: boolean;
+  /**
+   * Whether the organization holds the base_domain_signup entitlement. When
+   * false the option is shown locked: it can be cleared, not turned on.
+   */
+  canBaseDomainSignup: boolean;
   formState: SignupConfigFormState;
   signupConfig: CustomDomainSignupConfig | null;
   isLoading: boolean;
@@ -111,20 +139,35 @@ function updateField<K extends keyof SignupConfigFormState>(
 
 const isEditing = computed(() => props.isConfigured);
 
-const requiresAllowlist = computed(
-  () => SIGNUP_STRATEGY_METADATA[props.formState.validation_strategy]?.requiresAllowlist ?? false
+const usesAllowlist = computed(
+  () => SIGNUP_STRATEGY_METADATA[props.formState.validation_strategy]?.usesAllowlist ?? false
 );
 
 const performsNetworkValidation = computed(
   () => SIGNUP_STRATEGY_METADATA[props.formState.validation_strategy]?.networkValidation ?? false
 );
 
-const isFormValid = computed(() => {
-  if (requiresAllowlist.value && props.formState.allowed_signup_domains.length === 0) {
-    return false;
-  }
-  return true;
-});
+const offersBaseDomain = computed(() => props.baseDomainSignupEnabled && Boolean(props.baseDomain));
+
+// The base domain counts as an allowlist entry only when there is one to
+// derive and the feature is available, the same conditions the server
+// applies (see allowlistRequirementMet).
+const baseDomainCounts = computed(() => offersBaseDomain.value && props.canBaseDomainSignup);
+
+const allowsBaseDomain = computed(
+  () => props.formState.allow_base_domain && baseDomainCounts.value
+);
+
+// Locked without the entitlement, except that a saved value can be cleared.
+const baseDomainCheckboxDisabled = computed(
+  () => !props.canBaseDomainSignup && !props.formState.allow_base_domain
+);
+
+const showsBaseDomainChip = computed(() => usesAllowlist.value && allowsBaseDomain.value);
+
+const isFormValid = computed(() =>
+  allowlistRequirementMet(props.formState, baseDomainCounts.value)
+);
 
 // ---------------------------------------------------------------------------
 // Handlers
@@ -161,7 +204,9 @@ const addDomain = () => {
     return;
   }
 
-  if (props.formState.allowed_signup_domains?.includes(domain)) {
+  // The base domain is already in the effective list while the flag is on.
+  const alreadyAutomatic = allowsBaseDomain.value && domain === props.baseDomain?.toLowerCase();
+  if (props.formState.allowed_signup_domains?.includes(domain) || alreadyAutomatic) {
     domainInputError.value = t('web.domains.signup.domain_exists');
     return;
   }
@@ -275,12 +320,15 @@ watch(newDomain, () => {
       </div>
 
       <!-- Allowed Domains (only when strategy requires it) -->
-      <div v-if="requiresAllowlist">
+      <div v-if="usesAllowlist">
         <label
           for="signup-domain-input"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.domains.signup.allowed_domains_label') }}
-          <span class="text-red-500" aria-hidden="true">*</span>
+          <span
+            v-if="!allowsBaseDomain"
+            class="text-red-500"
+            aria-hidden="true">*</span>
         </label>
         <p
           id="signup-allowed-domains-hint"
@@ -288,12 +336,56 @@ watch(newDomain, () => {
           {{ t('web.domains.signup.allowed_domains_hint') }}
         </p>
 
-        <!-- Domain chips -->
+        <!-- Own-domain shortcut: the domain's registrable domain joins the
+             allowlist without being listed. Offered only when the install
+             enables it and the domain record has one to derive; locked
+             without the entitlement. -->
         <div
-          v-if="formState.allowed_signup_domains && formState.allowed_signup_domains.length > 0"
+          v-if="offersBaseDomain"
+          class="mt-3 flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-700/50">
+          <input
+            id="signup-allow-base-domain"
+            type="checkbox"
+            :checked="formState.allow_base_domain"
+            :disabled="baseDomainCheckboxDisabled"
+            aria-describedby="signup-allow-base-domain-hint"
+            @change="updateField('allow_base_domain', ($event.target as HTMLInputElement).checked)"
+            class="mt-0.5 size-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700" />
+          <div>
+            <label
+              for="signup-allow-base-domain"
+              class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ t('web.domains.signup.allow_base_domain_label', { domain: baseDomain }) }}
+            </label>
+            <p
+              id="signup-allow-base-domain-hint"
+              class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {{
+                canBaseDomainSignup
+                  ? t('web.domains.signup.allow_base_domain_hint', { domain: baseDomain })
+                  : t('web.domains.signup.allow_base_domain_locked')
+              }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Domain chips (the automatic base-domain entry first, locked) -->
+        <div
+          v-if="showsBaseDomainChip || (formState.allowed_signup_domains && formState.allowed_signup_domains.length > 0)"
           class="mt-2 flex flex-wrap gap-2"
           role="list"
           :aria-label="t('web.domains.signup.allowed_domains_label')">
+          <span
+            v-if="showsBaseDomainChip"
+            role="listitem"
+            data-testid="signup-base-domain-chip"
+            class="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-sm text-brand-800 ring-1 ring-brand-200 ring-inset dark:bg-brand-900/30 dark:text-brand-200 dark:ring-brand-800"
+            :aria-label="t('web.domains.signup.base_domain_automatic_label', { domain: baseDomain })">
+            {{ baseDomain }}
+            <span class="text-xs uppercase tracking-wide text-brand-600 dark:text-brand-300">
+              {{ t('web.domains.signup.base_domain_automatic') }}
+            </span>
+          </span>
           <span
             v-for="domain in formState.allowed_signup_domains"
             :key="domain"

@@ -279,13 +279,16 @@ RSpec.describe 'Rodauth hook ownership (static guard)' do
     # the "Non-owners in this directory" section of config/hooks.rb.
     #   password.rb          — intentionally empty tombstone (M-2 consolidation into account.rb)
     #   billing.rb           — auth_class_eval helper methods only, hooks live in account.rb
+    #   oauth.rb             — registers get_oidc_param, a keyed value method the scanner
+    #                          (correctly) doesn't count as a before/after hook; its
+    #                          only_json? exemption is owned by config/json_mode.rb (#3104)
     #   omniauth_connect.rb  — wraps before_omniauth_callback_route via `prepend` +
     #                          `super`, not `auth.<hook> do`. The hook is still owned
     #                          by omniauth_tenant.rb; the prepended module chains
     #                          Connect authorization ahead of it. Being hookless
     #                          does not leave it unguarded: the wrapper invariant
     #                          above pins it.
-    allowed_hookless_files = %w[password.rb billing.rb omniauth_connect.rb]
+    allowed_hookless_files = %w[password.rb billing.rb oauth.rb omniauth_connect.rb]
 
     it 'permits only the documented non-owner files to define zero hooks' do
       hooks_files = Dir.glob(File.join(config_dir, 'hooks', '*.rb'))

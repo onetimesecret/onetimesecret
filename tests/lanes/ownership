@@ -45,11 +45,13 @@ declare -A LANES_OWNER_TASKS=(
   [browser]=''
   [simple]='try:integration:simple spec:integration:simple'
   [disabled]='spec:integration:disabled'
-  [full-sqlite]='spec:integration:full'
+  [full-sqlite]='spec:integration:full spec:integration:oauth'
   [full-pg]='spec:integration:full:postgres'
   [full-pg-agnostic]='spec:integration:full:agnostic_on_pg'
   [full-mfa]='spec:integration:full:mfa'
   [full-saml-platform]='spec:integration:full:saml_platform'
+  [strategies]='spec:integration:strategies'
+  [full-webauthn-verify]='spec:integration:full:webauthn_verify'
   [migrations-sqlite]='spec:integration:migrations:sqlite'
   [migrations-pg]='spec:integration:migrations:postgres spec:integration:migrations:verify_dual_url'
   [api]='spec:api'
@@ -95,13 +97,16 @@ lanes_path_normalize() {  # <path>
 # that pattern means app SOURCE: a spec or tryout is owned by the lane(s)
 # whose task loads it, or by nobody, never by everybody. The support files
 # inside those trees (loaded by every process that runs the tree) come
-# first, so the carve-out does not take them with it. Exact-name rows are
-# files, not prefixes.
+# first, so the carve-out does not take them with it. spec/fixtures is test
+# data (the PASETO test vectors, for one) that any lane's spec may read,
+# like spec/support: no task names it, so a change there has to fan out to
+# every lane rather than to none. Exact-name rows are files, not prefixes.
 # shellcheck disable=SC2254  # ${app} is a glob, expanded unquoted on purpose
 lanes_path_shared() {  # <normalized path>
   local app='apps/[!/]*/[!/]*'
   case "$1" in
-    spec/support|spec/support/*|spec/spec_helper.rb|spec/integration/integration_spec_helper.rb|spec/*.yaml|\
+    spec/support|spec/support/*|spec/fixtures|spec/fixtures/*|spec/spec_helper.rb|\
+    spec/integration/integration_spec_helper.rb|spec/*.yaml|\
     ${app}/spec/support|${app}/spec/support/*|${app}/spec/spec_helper.rb|try/support|try/support/*)
       return 0
       ;;
@@ -192,6 +197,15 @@ lanes_for_path() {  # <path>
       echo full-mfa ;;
     ${app}/spec/integration/full_saml_platform|${app}/spec/integration/full_saml_platform/*)
       echo full-saml-platform ;;
+    ${app}/spec/integration/full_webauthn_verify|${app}/spec/integration/full_webauthn_verify/*|\
+    ${app}/spec/integration/full_webauthn_verify_mfa|${app}/spec/integration/full_webauthn_verify_mfa/*)
+      echo full-webauthn-verify ;;
+    # spec:integration:oauth is full-sqlite's second task (its own rspec
+    # process); spec:integration:strategies is the strategies lane.
+    ${app}/spec/integration/oauth|${app}/spec/integration/oauth/*)
+      echo full-sqlite ;;
+    ${app}/spec/integration/strategies|${app}/spec/integration/strategies/*)
+      echo strategies ;;
     # spec:integration:billing — the files directly under the billing app's
     # integration/, which has no mode subdirectories (BILLING_INTEGRATION_SPEC_PATTERN
     # in lib/tasks/spec.rake; ADOPTED_PATTERNS in lib/tasks/spec_selection.rake).

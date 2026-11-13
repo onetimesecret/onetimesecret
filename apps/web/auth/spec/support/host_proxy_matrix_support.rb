@@ -39,6 +39,7 @@
 require_relative 'tenant_test_fixtures'
 require_relative 'domains_enabled_context'
 require_relative 'public_host_rewrite_context'
+require_relative 'external_https_browser'
 require 'rack/test'
 
 module HostProxyMatrix
@@ -143,6 +144,9 @@ end
 
 RSpec.shared_context 'host proxy rows' do
   include Rack::Test::Methods
+  # The rows' browser is on https; what the proxy tells the app about the
+  # scheme is each row's `proto`. See external_https_browser.rb.
+  include_context 'external HTTPS browser'
 
   # :shared_db_state for the reason tenant_sso_proxy_host_spec.rb gives: the
   # fixtures come from this context's `let!` hooks and the per-example flush
@@ -262,8 +266,10 @@ RSpec.shared_context 'host proxy rows' do
     # The redirect_uri and the emailed link read one chain.
     expect(actual[:email_origin]).to eq(actual[:origin])
     expect(actual[:rack_base_url]).to eq(fill(expects[:rack_base_url])) if expects.key?(:rack_base_url)
-    # Whatever the row sent, no auth URL carries a comma.
+    # Whatever the row sent, no auth URL carries a comma, and neither does
+    # Rack's own base_url (rack >= 3.2.8 no longer echoes an invalid Host).
     expect(actual[:origin]).not_to include(',')
+    expect(actual[:rack_base_url]).not_to include(',')
   end
 
   # scheme://host, with the port only when it is not the scheme default.

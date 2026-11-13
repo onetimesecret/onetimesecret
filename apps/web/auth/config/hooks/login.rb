@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/utils/client_ip'
+
 # The shared emit-if-colonel guard behind the colonel.signin_failed security
 # event (#4339), used by after_login_failure below. Required explicitly
 # (mirroring account.rb) so the constant is loaded when the hook fires rather
@@ -63,7 +65,7 @@ module Auth::Config::Hooks
           :login_attempt,
           level: :info,
           email: OT::Utils.obscure_email(email),
-          ip: request.ip,
+          ip: Onetime::Utils::ClientIp.from_request(request),
           correlation_id: correlation_id,
         )
       end
@@ -175,6 +177,22 @@ module Auth::Config::Hooks
                 domain_id: domain_id,
               ).call
             end
+          end
+
+          # A returning tenant identity whose account address lies outside
+          # every domain the organization has proven is still signed in, and
+          # recorded (#4734): creation of such accounts is refused in
+          # before_omniauth_create_account, so a hit here is a binding that
+          # predates the rule or a proof that lapsed. Visibility only, so a
+          # datastore error is logged and never fails the sign-in.
+          Onetime::ErrorHandler.safe_execute(
+            'log_unverified_tenant_email_domain_login',
+            account_id: account_id,
+            domain_id: domain_id,
+          ) do
+            Auth::Config::Hooks::OmniAuthTenant.log_unverified_tenant_email_domain(
+              domain_id, account[:email], provider: via_omniauth ? omniauth_provider : nil
+            )
           end
         end
 
@@ -508,7 +526,7 @@ module Auth::Config::Hooks
             :login_failure_empty_database,
             level: :error,
             email: OT::Utils.obscure_email(email),
-            ip: request.ip,
+            ip: Onetime::Utils::ClientIp.from_request(request),
             correlation_id: correlation_id,
             diagnostic_hint: diagnostic_hint,
           )
@@ -517,7 +535,7 @@ module Auth::Config::Hooks
             :login_failure,
             level: :warn,
             email: OT::Utils.obscure_email(email),
-            ip: request.ip,
+            ip: Onetime::Utils::ClientIp.from_request(request),
             correlation_id: correlation_id,
           )
         end

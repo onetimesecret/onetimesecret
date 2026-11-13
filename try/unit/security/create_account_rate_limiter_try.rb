@@ -16,7 +16,9 @@
 # 1. Under-limit requests are allowed; key shape and TTL
 # 2. Over-limit raises LimitExceeded with the configured cap + lockout state
 # 3. The limiter NEVER keys on the submitted address (enumeration safety)
-# 4. nil/empty IP skips rather than sharing one global bucket
+# 4. nil/empty IP is charged to the shared no-client-ip bucket (otto 2.13 leaves
+#    a request with no client IP when the client writes a non-address
+#    X-Forwarded-For entry; skipping would switch the only cap off)
 # 5. Cap-hit writes exactly one ColonelAuditEvent, in the SECURITY trail, and
 #    denied requests write no further ones
 # 6. Garbage/non-positive config falls back to defaults instead of inverting
@@ -144,19 +146,46 @@ end
 @raises.call(@ip_b)
 #=> false
 
-## -- Missing IP skips rather than sharing a global bucket -----------------
+## -- Missing IP is charged to the shared no-client-ip bucket ---------------
 
-## A nil IP does not build a blank "ip:" key. Sharing one bucket across every
-## IP-less caller would let the first few lock it and deny everyone after —
-## a global signup outage driven by whatever made the IP unresolvable.
+## A nil IP builds no blank "ip:" key and is NOT skipped: since otto 2.13 the
+## IP privacy middleware leaves a request with no client IP when the trusted
+## X-Forwarded-For chain ends in a non-address entry the client wrote, so a
+## skip would be the client switching this route's only cap off. Those
+## requests share one bucket, keyed on Onetime::Security::NoClientIp::BUCKET.
+cleanup(@redis, Onetime::Security::NoClientIp::BUCKET)
 result_nil = @raises.call(nil)
-[result_nil, @redis.exists?('create_account:attempts:ip:')]
-#=> [false, false]
+[result_nil,
+ @redis.exists?('create_account:attempts:ip:'),
+ @redis.get('create_account:attempts:ip:no-client-ip').to_i]
+#=> [false, false, 1]
 
-## An empty-string IP behaves identically
-result_empty = @raises.call('')
-[result_empty, @redis.exists?('create_account:attempts:ip:')]
-#=> [false, false]
+## An empty-string IP lands in the same bucket, which reaches the cap (3) and
+## locks like any other subject; the next IP-less request is denied
+@raises.call('')
+@raises.call(nil)
+result_locked = @raises.call('')
+[result_locked, @redis.exists?('create_account:locked:ip:no-client-ip')]
+#=> [true, true]
+
+## A cap hit on the shared bucket logs the bucket by name with the no-client-IP
+## operator hint, not a masked address and not the trusted-proxy hint
+cleanup(@redis, Onetime::Security::NoClientIp::BUCKET)
+captured_bucket = []
+OT.singleton_class.alias_method(:__ca_bucket_real_le, :le)
+OT.define_singleton_method(:le) { |*msgs, **_payload| captured_bucket << msgs.join(' ') }
+begin
+  3.times { @raises.call(nil) }
+ensure
+  OT.singleton_class.remove_method(:le)
+  OT.singleton_class.alias_method(:le, :__ca_bucket_real_le)
+  OT.singleton_class.remove_method(:__ca_bucket_real_le)
+end
+line_bucket = captured_bucket.find { |msg| msg.include?('hit cap') }.to_s
+[line_bucket.include?('ip no-client-ip hit cap'),
+ line_bucket.include?('NO client IP'),
+ line_bucket.include?('TRUSTED_PROXY_ENABLED')]
+#=> [true, true, false]
 
 ## -- Audit trail ----------------------------------------------------------
 
@@ -345,4 +374,5 @@ cleanup(@redis, @cfg_ip)
 cleanup(@redis, @off_ip)
 cleanup(@redis, @hint_ip)
 cleanup(@redis, @hint_ip_ok)
+cleanup(@redis, Onetime::Security::NoClientIp::BUCKET)
 OT.send(:conf=, @saved_conf)

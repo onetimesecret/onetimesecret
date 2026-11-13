@@ -67,7 +67,7 @@ RSpec.describe Auth::Config::Hooks::Login do
       allow(r).to receive(:param_or_nil).with('email').and_return(nil)
       allow(r).to receive(:session).and_return({ auth_correlation_id: 'corr_1' })
       allow(r).to receive(:db).and_return({ accounts: double('accounts', count: 12) })
-      allow(r).to receive(:request).and_return(double('Request', ip: '203.0.113.7'))
+      allow(r).to receive(:request).and_return(double('Request', env: {}, ip: '203.0.113.7'))
     end
   end
 

@@ -2,12 +2,15 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import { toLanguageTag } from '@/i18n';
   import { routeViewKey } from '@/router/viewKey';
   import StaleSessionNotice from '@/shared/components/auth/StaleSessionNotice.vue';
   import VerificationUnavailable from '@/shared/components/auth/VerificationUnavailable.vue';
   import { iconLibraryComponents } from '@/shared/components/icons/sprites';
   import CriticalSprites from '@/shared/components/icons/sprites/CriticalSprites.vue';
   import ImpersonationBanner from '@/shared/components/ui/ImpersonationBanner.vue';
+  import LocaleLoadNotice from '@/shared/components/ui/LocaleLoadNotice.vue';
+  import RouteLoadNotice from '@/shared/components/ui/RouteLoadNotice.vue';
   import { NotificationHost } from '@/shared/components/ui/notifications';
   import RouteErrorBoundary from '@/shared/components/errors/RouteErrorBoundary.vue';
   import QuietLayout from '@/shared/layouts/MinimalLayout.vue';
@@ -48,11 +51,14 @@
   // One session transition, one message (#4461). A session that ended or was
   // replaced outside this tab ends in a forced page load; the page that loads
   // next (this one) says why, once. consume removes the parked kind, so a
-  // remount or a later navigation cannot repeat it.
+  // remount or a later navigation cannot repeat it. enqueue, not show: the app
+  // mounts after the initial navigation, whose guards may already have raised
+  // a notice (an org-role refusal); this one waits for it instead of
+  // replacing it.
   const announceSessionTransition = () => {
     const kind = consumeSessionTransition();
     if (!kind) return;
-    useNotificationsStore().show(t(`web.auth.session.${kind}`), 'info', 'top', 10000);
+    useNotificationsStore().enqueue(t(`web.auth.session.${kind}`), 'info', 'top', 10000);
   };
 
   // The fallback for owned rejections (ADR-046#rejection-disposition). When
@@ -193,10 +199,22 @@
        cancelled or bounded. -->
   <StaleSessionNotice />
 
+  <!-- A language that did not load: the page continues in the one shown
+       (src/router/guards.routes.ts, createAuthGuard). Mounted here for the
+       same reason as the two above. It renders only while the language store
+       has a failure recorded. -->
+  <LocaleLoadNotice />
+
+  <!-- A page whose chunk did not load while this page declined to reload
+       (src/utils/routeLoadFailure.ts): names the problem and offers the manual
+       reload, since the clicked link otherwise seems to do nothing. Mounted
+       here for the same reason as the three above. -->
+  <RouteLoadNotice />
+
   <!-- Dynamic layout selection based on route.meta.layout -->
   <component
     :is="layout"
-    :lang="locale"
+    :lang="toLanguageTag(locale)"
     v-bind="layoutProps">
     <!-- Router view with forced component recreation on route changes.
          RouteErrorBoundary swaps a thrown route subtree for a visible error

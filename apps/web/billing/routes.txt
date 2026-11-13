@@ -32,6 +32,7 @@ GET    /plans                                    Billing::Controllers::Page#inde
 GET    /api/org/:extid                           Billing::Controllers::BillingController#overview response=json auth=sessionauth
 POST   /api/org/:extid/checkout                  Billing::Controllers::BillingController#create_checkout_session response=json auth=sessionauth
 GET    /api/org/:extid/invoices                  Billing::Controllers::BillingController#list_invoices response=json auth=sessionauth
+POST   /api/org/:extid/portal                    Billing::Controllers::BillingController#create_portal_session response=json auth=sessionauth
 
 # Plan switching endpoints (authenticated subscribers)
 GET    /api/org/:extid/subscription              Billing::Controllers::BillingController#subscription_status response=json auth=sessionauth

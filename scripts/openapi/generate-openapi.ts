@@ -25,7 +25,8 @@
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { dirname, join } from 'path';
+import { fileURLToPath } from 'node:url';
+import { dirname, join, resolve } from 'path';
 import { z } from 'zod';
 
 import {
@@ -48,7 +49,7 @@ import {
 } from './schema-scanner';
 
 import {
-  incomingSecretPayloadSchema,
+  incomingSecretRequestSchema,
   validateRecipientPayloadSchema,
 } from '@/schemas/api/incoming';
 import { responseSchemas as incomingResponseSchemas } from '@/schemas/api/incoming/responses/registry';
@@ -59,13 +60,17 @@ import {
   burnSecretRequestSchema,
   concealSecretRequestSchema,
   generateSecretRequestSchema,
+  listReceiptsRequestSchema,
   listSecretStatusRequestSchema,
   receiveFeedbackRequestSchema,
   revealSecretRequestSchema,
   showMultipleReceiptsRequestSchema,
   updateReceiptRequestSchema,
 } from '@/schemas/api/v3/requests';
-import { responseSchemas as v3ResponseSchemas } from '@/schemas/api/v3/responses/registry';
+import {
+  operationResponseSchemas as v3OperationResponseSchemas,
+  responseSchemas as v3ResponseSchemas,
+} from '@/schemas/api/v3/responses/registry';
 
 // Version-aware registry selection
 type ResponseSchemaRegistry =
@@ -152,7 +157,7 @@ const REQUEST_SCHEMA_REGISTRY: Record<string, z.ZodType> = {
   showMultipleReceipts: showMultipleReceiptsRequestSchema,
 
   // Incoming
-  createIncomingSecret: incomingSecretPayloadSchema,
+  createIncomingSecret: incomingSecretRequestSchema,
   validateRecipient: validateRecipientPayloadSchema,
 
   // Feedback
@@ -318,6 +323,13 @@ function createDocument(target: SpecTarget): OpenAPIDocument {
           description:
             'HTTP Basic authentication with username (extid or email) and API token. The user extid can be found on the API Settings page.',
         },
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'PASETO v4.public',
+          description:
+            'Short-lived PASETO v4.public bearer token from POST /api/v3/token. Accepted only on deployments where the operator has enabled bearer tokens (PASETO_ENABLED); refused with 401 and a `Bearer` challenge once expired.',
+        },
       },
       schemas: {},
     },
@@ -376,6 +388,8 @@ function buildSecurity(route: OttoRoute): Array<Record<string, string[]>> | unde
       security.push({ sessionAuth: [] });
     } else if (scheme === 'basicauth') {
       security.push({ basicAuth: [] });
+    } else if (scheme === 'pasetoauth') {
+      security.push({ bearerAuth: [] });
     }
     // 'noauth' in a mixed scheme list (e.g., basicauth,noauth) means
     // the endpoint also accepts unauthenticated requests. In OpenAPI 3.1,
@@ -386,6 +400,26 @@ function buildSecurity(route: OttoRoute): Array<Record<string, string[]>> | unde
   }
 
   return security.length > 0 ? security : undefined;
+}
+
+/**
+ * Build query parameters for shared receipt listing.
+ */
+function buildQueryParameters(route: OttoRoute, apiName: string): Array<Record<string, unknown>> {
+  // V2/V3 share this parser; scope is not a body and is not a closed enum.
+  if (
+    !['v2', 'v3'].includes(apiName) ||
+    route.method !== 'GET' ||
+    getHandlerLeaf(route.handler) !== 'ListReceipts'
+  )
+    return [];
+
+  return Object.entries(listReceiptsRequestSchema.shape).map(([name, schema]) => ({
+    name,
+    in: 'query',
+    required: !schema.isOptional(),
+    schema: zodToJsonSchema(schema),
+  }));
 }
 
 /**
@@ -464,8 +498,11 @@ function buildResponses(
   // Determine success response via scanner lookup against responseSchemas
   const schemaKey = lookupResponseSchemaKey(handler);
   const responseKey = schemaKey as keyof typeof responseSchemas | undefined;
-  if (responseKey && responseSchemas[responseKey]) {
-    const schema = responseSchemas[responseKey];
+  // V3 producer contracts must not silently replace V2's existing mappings.
+  const operationSchema =
+    apiName === 'v3' ? v3OperationResponseSchemas[getHandlerLeaf(handler)] : undefined;
+  const schema = operationSchema ?? (responseKey ? responseSchemas[responseKey] : undefined);
+  if (schema) {
     responses['200'] = {
       description: 'Successful response',
       content: {
@@ -495,6 +532,14 @@ function buildResponses(
 
   if (route.method !== 'GET' && route.method !== 'OPTIONS') {
     errorCodes.unshift(400);
+    errorCodes.push(422);
+  }
+  // Characterized GET validation failure; this does not standardize error envelopes.
+  if (
+    ['v2', 'v3'].includes(apiName) &&
+    route.method === 'GET' &&
+    getHandlerLeaf(handler) === 'ListReceipts'
+  ) {
     errorCodes.push(422);
   }
   if (auth.required) {
@@ -614,10 +659,10 @@ function buildOperation(route: OttoRoute, apiName: string): Record<string, unkno
     operation.security = [];
   }
 
-  // Add path parameters
-  const pathParams = buildPathParameters(route.path);
-  if (pathParams.length > 0) {
-    operation.parameters = pathParams;
+  // Path and query parameters are separate from JSON request bodies.
+  const parameters = [...buildPathParameters(route.path), ...buildQueryParameters(route, apiName)];
+  if (parameters.length > 0) {
+    operation.parameters = parameters;
   }
 
   // Add request body for POST/PUT/PATCH
@@ -781,17 +826,6 @@ function writeAndSummarize(
   result: ProcessingResult,
   target: SpecTarget
 ): string {
-  if (!NO_TAGS) {
-    doc.tags = Array.from(result.tags)
-      .sort()
-      .map((name) => ({
-        name,
-        description: `${name.charAt(0).toUpperCase() + name.slice(1)} operations`,
-      }));
-  }
-
-  sortPaths(doc);
-
   const outputPath = join(OUTPUT_DIR, target.filename);
 
   if (!DRY_RUN) {
@@ -831,6 +865,28 @@ function printGapReport(result: ScanResult): void {
 // Main
 // =============================================================================
 
+function generateTarget(target: SpecTarget, allRoutes: Record<string, { routes: OttoRoute[] }>) {
+  const document = createDocument(target);
+  const result = processAllRoutes(document, filterRoutes(allRoutes, target.apiNames));
+  if (!NO_TAGS) {
+    document.tags = Array.from(result.tags)
+      .sort()
+      .map((name) => ({
+        name,
+        description: `${name.charAt(0).toUpperCase() + name.slice(1)} operations`,
+      }));
+  }
+  sortPaths(document);
+  return { document, result };
+}
+
+/** Generate the same document as the CLI without writing generated artifacts. */
+export function generateDocument(targetId: string): OpenAPIDocument {
+  const target = SPEC_TARGETS.find((entry) => entry.id === targetId);
+  if (!target) throw new Error(`Unknown OpenAPI target: ${targetId}`);
+  return generateTarget(target, parseAllApiRoutes()).document;
+}
+
 function main(): void {
   console.log('Generating OpenAPI 3.1 specs from routes.txt...\n');
 
@@ -849,10 +905,8 @@ function main(): void {
       continue;
     }
 
-    const doc = createDocument(target);
-    const filteredRoutes = filterRoutes(allRoutes, target.apiNames);
-    const result = processAllRoutes(doc, filteredRoutes);
-    const outputPath = writeAndSummarize(doc, result, target);
+    const { document, result } = generateTarget(target, allRoutes);
+    const outputPath = writeAndSummarize(document, result, target);
 
     outputs.push(outputPath);
     totalRoutes += result.routeCount;
@@ -876,4 +930,6 @@ function main(): void {
   printGapReport(scanResult);
 }
 
-main();
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main();
+}

@@ -222,14 +222,18 @@ RSpec.describe Onetime::Mail::Delivery::Lettermint do
   end
 
   describe '#validate_config!' do
-    it 'raises ArgumentError when api_token is missing' do
+    it 'raises ConfigurationError when api_token is missing' do
       expect { described_class.new({}) }
-        .to raise_error(ArgumentError, /Lettermint API token must be configured/)
+        .to raise_error(Onetime::Mail::ConfigurationError, /Lettermint API token must be configured/) do |err|
+          expect(err.provider).to eq('lettermint')
+        end
     end
 
-    it 'raises ArgumentError when api_token is empty' do
+    it 'raises ConfigurationError when api_token is empty' do
       expect { described_class.new({ 'api_token' => '' }) }
-        .to raise_error(ArgumentError, /Lettermint API token must be configured/)
+        .to raise_error(Onetime::Mail::ConfigurationError, /Lettermint API token must be configured/) do |err|
+          expect(err.provider).to eq('lettermint')
+        end
     end
 
     it 'accepts token from ENV' do

@@ -33,7 +33,7 @@ RSpec.describe 'colonel destructive verbs accept an operator reason (#4338)' do
     double(
       'Customer',
       extid: 'ur_colonel_public', role: 'colonel', objid: 'cust-obj-1',
-      email: 'colonel@example.com', anonymous?: false, verified?: true,
+      email: 'colonel@example.com', anonymous?: false, verified?: true, mailbox_verified?: true,
     )
   end
 

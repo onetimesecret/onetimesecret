@@ -68,6 +68,9 @@
 #  16. Route-requirement ANNOTATION (#4332): the verdict + mode env keys, the
 #      allocation-free maybe_admin_surface? prefilter that puts them on the
 #      both-gates-inactive path, and the advisory boot line
+#  17. A prior IPPrivacyMiddleware pass that resolved NO client IP (otto 2.13,
+#      delano/otto#292: otto.ip_match + otto.peer_relayed without
+#      otto.client_ip) is never re-resolved from REMOTE_ADDR as the proxy
 
 require_relative '../../support/test_helpers'
 
@@ -446,6 +449,22 @@ end
 @status, _, _ = @iso.call(@env)
 @status
 #=> 404
+
+## no-client-IP pass (otto 2.13): the fallback does not crown the proxy
+# IPPrivacyMiddleware found no client IP (a trusted chain that reached
+# `unknown`): it left otto.client_ip absent, REMOTE_ADDR as received (the
+# proxy, 10.0.0.5 — INSIDE this allowlist), and wrote otto.ip_match plus
+# otto.peer_relayed. The gate consults the closure (denies), and the resolver
+# fallback must answer nil rather than re-resolve 10.0.0.5 as the client.
+@env = admin_env(
+  script_name: '',
+  path_info: '/colonel',
+  client_ip: nil,
+  extra: { 'otto.ip_match' => ->(_cidrs) { false }, 'otto.peer_relayed' => true },
+)
+@env.store('REMOTE_ADDR', '10.0.0.5')
+[@iso.send(:resolve_client_ip, @env), @iso.call(@env).first]
+#=> [nil, 404]
 
 # =================================================================
 # Configured: inside the allowlist -> pass through to auth layers

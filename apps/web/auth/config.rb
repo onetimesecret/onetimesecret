@@ -36,6 +36,7 @@ module Auth
     require_relative 'config/email'
     require_relative 'config/features'
     require_relative 'config/hooks'
+    require_relative 'config/json_mode'
     require_relative 'config/overrides'
     require_relative 'config/rodauth_overrides'
 
@@ -127,9 +128,16 @@ module Auth
       # (Overrides::LoginRequestEnumeration) is configured at the END of this
       # block, after every feature it covers can have been enabled.
 
-      # One answer for a sign-up whose login already has an account, however
-      # late it is detected (a unique violation from a concurrent sign-up).
-      Overrides::DuplicateSignup.configure(self)
+      # Enumeration safety for login / create-account / unlock-account-request
+      # (audit 2026-08-02 M-1, M-2, L-6). Uses a PREPENDED module so it
+      # composes with LoginRequestEnumeration's class-level
+      # account_from_login rather than clobbering it; all overrides are
+      # route-scoped no-ops elsewhere, so ordering relative to the
+      # conditionally-enabled features below (lockout) is immaterial.
+      # It is also the one answer for a sign-up whose login already has an
+      # account, however late that is detected (hooks/account.rb, and its
+      # save_account cover for a concurrent sign-up's unique violation).
+      Overrides::AccountEnumeration.configure(self)
       # Surface-bound sessions (#4409): stamp the establishing surface in
       # update_session, the seam shared by `login` and every autologin
       # (create/verify/reset). Prepended, so it chains with the
@@ -208,6 +216,15 @@ module Auth
         Hooks::OmniAuthTenant.configure(self)
       end
 
+      # OAuth2/OIDC Identity Provider: this OTS instance acts as an IdP.
+      # Hooks (key loading, scope/claim mapping) and seeded clients land in
+      # tasks 5 and 6 of issue #3104. Configuring the feature now is safe:
+      # without keys, the runtime endpoints raise, but boot is unaffected.
+      if Onetime.auth_config.oauth_enabled?
+        Features::OAuth.configure(self)
+        Hooks::OAuth.configure(self)
+      end
+
       # Billing: plan selection carry-through for checkout flow
       if Onetime.billing_config.enabled?
         Hooks::Billing.configure(self)
@@ -226,6 +243,27 @@ module Auth
       # credential origin answers like a missing account on those routes,
       # before any key write. Last for the same reason.
       Overrides::PublicBaseUrl.configure_recipient_origins(self)
+
+      # Onetime.auth_config.verify_account_loaded? restates which enables
+      # above bring in :verify_account, for the code that runs before this
+      # class has a feature list (AccountManagement's enable, the email
+      # template, the after_verify_account hook, the signup deferral). Refuse
+      # a boot where the two disagree: an enable added without updating the
+      # predicate would load the verify-account route while the hook, the
+      # email and the deferral stay off.
+      verify_account_loaded    = auth.features.include?(:verify_account)
+      verify_account_predicate = Onetime.auth_config.verify_account_loaded?
+      unless verify_account_loaded == verify_account_predicate
+        raise "[Auth::Config] :verify_account loaded is #{verify_account_loaded} but " \
+              "Onetime.auth_config.verify_account_loaded? is #{verify_account_predicate.inspect}; " \
+              'update the predicate together with the enable (lib/onetime/auth_config.rb)'
+      end
+
+      # Single owner of only_json?. Must run AFTER all hooks so the
+      # consolidated exemption logic can consult Hooks::OAuth::OAUTH_EXEMPT_PATHS
+      # and omniauth_prefix. See apps/web/auth/config/json_mode.rb for the
+      # rationale (def_auth_value_method replaces previous definitions).
+      ::Auth::JsonMode.configure(self)
 
       # Mark configuration complete
       Auth::Config.configured = true

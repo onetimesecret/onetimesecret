@@ -3,6 +3,7 @@ User-agent: *
 Sitemap: {{baseuri}}/sitemap.xml
 Disallow: /private
 Disallow: /receipt
+Disallow: /incoming/
 Disallow: /secret
 Disallow: /shared
 Disallow: /account

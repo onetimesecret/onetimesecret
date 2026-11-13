@@ -54,15 +54,21 @@ module Onetime
     ENV_KEY = 'onetime.session_failure_reason'
 
     # Rack env key naming the HTTP authentication scheme whose credential
-    # was rejected, when there is one. Written only by the Basic auth
-    # strategies (Helpers#credentialed_failure), beside the reason, so the
-    # middleware's `WWW-Authenticate` challenge follows the provenance of the
-    # refusal and never the headers a request happened to carry: a form
+    # was rejected, when there is one. Written only by the strategies that
+    # examine an `Authorization` header (Helpers#credentialed_failure: the
+    # Basic auth strategies and PasetoAuthStrategy), beside the reason, so
+    # the middleware's `WWW-Authenticate` challenge follows the provenance of
+    # the refusal and never the headers a request happened to carry: a form
     # login that rejected its password is challenged with the application's
     # `Session` scheme even if the request also carried an `Authorization`
     # header no strategy examined.
     SCHEME_ENV_KEY = 'onetime.session_failure_scheme'
     SCHEME_BASIC   = 'Basic'
+    # Written by PasetoAuthStrategy beside api_token_invalid /
+    # api_token_expired (and the suspended_credentials it stashes), so the
+    # middleware answers with the RFC 6750 `Bearer` challenge the client
+    # already chose (#2427).
+    SCHEME_BEARER  = 'Bearer'
 
     SCOPE_CUSTOMER_SESSION         = 'customer_session'
     SCOPE_VERIFICATION_UNAVAILABLE = 'verification_unavailable'
@@ -111,10 +117,21 @@ module Onetime
     #                          scheme, malformed, unknown account, or wrong
     #                          key. One code, as the strategy takes constant
     #                          time across them.
+    #   api_token_invalid      A `Bearer` token was presented on a
+    #                          `pasetoauth` route and rejected for anything
+    #                          but expiry: not a v4.public token, unknown
+    #                          signing key, bad signature, unacceptable
+    #                          claims, unknown subject, or a token issued
+    #                          before the account's last credential change.
+    #                          One code: the message says no more (#2427).
+    #   api_token_expired      A `Bearer` token whose signature verified and
+    #                          whose `exp` has passed. Its own code because
+    #                          the client's answer is routine (mint a new
+    #                          token), not an alarm.
     #   suspended_credentials  The credential was valid but its account is
     #                          suspended. Only ever observable to a holder of
-    #                          the valid credential (an API key, or the
-    #                          simple-mode password).
+    #                          the valid credential (an API key, a bearer
+    #                          token, or the simple-mode password).
     #   account_locked         Rodauth's lockout: too many failed logins, and
     #                          the account cannot be logged in to until it is
     #                          unlocked. Answered with 403 and its own
@@ -126,6 +143,8 @@ module Onetime
     CREDENTIAL_REASON_SCOPES = {
       invalid_credentials: SCOPE_CREDENTIAL,
       api_key_invalid: SCOPE_CREDENTIAL,
+      api_token_invalid: SCOPE_CREDENTIAL,
+      api_token_expired: SCOPE_CREDENTIAL,
       suspended_credentials: SCOPE_CREDENTIAL,
       account_locked: SCOPE_CREDENTIAL,
       account_unverified: SCOPE_CREDENTIAL,
@@ -186,10 +205,10 @@ module Onetime
 
       # Record the HTTP authentication scheme whose credential the stashed
       # reason rejects. Called after .stash by the code that examined that
-      # credential; today only the Basic auth strategies.
+      # credential: the Basic auth strategies and PasetoAuthStrategy.
       #
       # @param env [Hash, nil] the Rack env
-      # @param scheme [String] SCHEME_BASIC
+      # @param scheme [String] SCHEME_BASIC or SCHEME_BEARER
       # @return [void]
       def stash_scheme(env, scheme)
         env[SCHEME_ENV_KEY] = scheme if env.is_a?(Hash)

@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'openssl'
+require 'rack/utils'
 require 'familia/verifiable_identifier'
 
 module Onetime
@@ -41,6 +43,55 @@ module Onetime
     field :receipt_identifier
     field :receipt_shortid
     field :owner_id
+    # What this secret is FOR when it is not an ordinary shared secret, in the
+    # Receipt :kind convention. nil for shared secrets. A verification secret
+    # identifies itself (#4735): 'account_verification' (send_verification_email)
+    # and 'password_reset' (ResetPasswordRequest) are delivered to the owner's
+    # CURRENT address, so revealing one proves control of that mailbox;
+    # 'email_change' (RequestEmailChange) is delivered to the PROPOSED address
+    # and never does. Carried on the record itself so the decision does not
+    # depend on a pointer that a later request or a crash between two writes
+    # could leave pointing elsewhere (Customer#mailbox_proof_secret?). A
+    # verification secret minted before the kind was written is blank; the
+    # predicate classifies those by how they were minted.
+    field :kind
+
+    # Verification-secret kinds whose reveal proves control of the owner's
+    # current mailbox. Read by Customer#mailbox_proof_secret?.
+    MAILBOX_PROOF_KINDS = %w[account_verification password_reset].freeze
+
+    # Which address a verification link was emailed to, as a keyed digest
+    # (Secret.delivery_digest_for), never the address itself. The link is
+    # tied to the account, not to an address: once an operator changes the
+    # account's address, a link sent to the earlier one still reveals and
+    # still proves only that earlier mailbox. This records which one
+    # (#4754 review, round 3). Written by send_verification_email, the only
+    # mint site whose link the secret reveal routes take as mailbox proof
+    # (the password-reset secret has no ciphertext, so those routes refuse
+    # it as missing, and the email-change confirmation is never proof). Blank
+    # on a link minted before the digest was written. Read by #delivered_to?.
+    field :delivery_digest
+
+    # Domain-separation label, so delivery_digest can never be confused with
+    # another keyed digest of the same address computed elsewhere.
+    DELIVERY_DIGEST_DOMAIN = 'secret.delivery_address.v1'
+
+    # The delivery_digest value for an address: HMAC-SHA256 under the site
+    # secret over the normalized address (OT::Utils.normalize_email), so the
+    # same address in another case gives the same digest.
+    #
+    # @param address [String, nil]
+    # @return [String, nil] hex digest; nil for a blank address
+    def self.delivery_digest_for(address)
+      normalized = OT::Utils.normalize_email(address)
+      return nil if normalized.empty?
+
+      OpenSSL::HMAC.hexdigest(
+        OpenSSL::Digest.new('sha256'),
+        OT.global_secret.to_s,
+        "#{DELIVERY_DIGEST_DOMAIN}:#{normalized}",
+      )
+    end
 
     encrypted_field :ciphertext
     transient_field :ciphertext_passphrase
@@ -123,6 +174,22 @@ module Onetime
 
     def verification?
       verification.to_s == 'true'
+    end
+
+    # Was this secret emailed to address? Answers from delivery_digest alone,
+    # so a secret that recorded no delivery address (one minted before the
+    # digest was written) answers false for every address.
+    #
+    # @param address [String, nil]
+    # @return [Boolean]
+    def delivered_to?(address)
+      recorded = delivery_digest.to_s
+      return false if recorded.empty?
+
+      candidate = self.class.delivery_digest_for(address)
+      return false if candidate.nil?
+
+      Rack::Utils.secure_compare(recorded, candidate)
     end
 
     def load_receipt

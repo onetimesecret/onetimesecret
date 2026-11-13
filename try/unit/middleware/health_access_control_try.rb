@@ -431,3 +431,18 @@ ENV['HEALTH_TRUSTED_CIDR'] = ''
 
 ## HEALTH_TRUSTED_CIDR - unset restores default (RFC 1918 only)
 ENV.delete('HEALTH_TRUSTED_CIDR')
+
+## No client IP (otto 2.13 marker pair, REMOTE_ADDR left raw as the private proxy) is denied
+@env = create_env('/health', '10.0.0.5')
+@env['otto.ip_match'] = ->(*) { false }
+@env['otto.peer_relayed'] = true
+@status, _, _ = @middleware.call(@env)
+@status
+#=> 403
+
+## The canonical otto.client_ip decides, not REMOTE_ADDR
+@env = create_env('/health', '10.0.0.5')
+@env['otto.client_ip'] = '203.0.113.0'
+@status, _, _ = @middleware.call(@env)
+@status
+#=> 403

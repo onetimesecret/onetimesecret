@@ -33,13 +33,8 @@
 # verified='true' and the resend branch would be legitimately unreachable.
 # The one 'with autoverify on' context at the end turns it on in-process.
 #
-# REQUIREMENTS:
-# - Valkey running on port 2163: pnpm run test:database:start
-# - AUTHENTICATION_MODE=simple (the default)
-#
-# RUN:
-#   RACK_ENV=test AUTHENTICATION_MODE=simple bundle exec rspec \
-#     spec/integration/simple/create_account_verification_resend_spec.rb
+# RUN (the lane runner scrubs the dev env and starts the test services):
+#   tests/lanes/run simple --only spec/integration/simple/create_account_verification_resend_spec.rb
 #
 # =============================================================================
 
@@ -181,24 +176,91 @@ RSpec.describe 'Duplicate-signup verification resend in simple mode (audit dead-
       'resend must bind a fresh verification secret'
   end
 
-  it 'takes the silent-success branch for a verified account: 200, no email, secret untouched' do
+  it 'takes the silent-success branch for a mailbox-verified account: 200, no email, secret untouched' do
     email = unique_email('verified')
     @created_emails << email
 
     expect_signup_success(post_signup(email), 'Initial signup')
     cust = Onetime::Customer.find_by_email(email)
-    cust.verified = true
+    # The silent branch keys on MAILBOX proof (#4735), not the bare flag: the
+    # provenance a followed verification link records.
+    cust.verified    = true
+    cust.verified_by = 'email'
     cust.save
     expect(cust.verified).to eq('true')
+    expect(cust.mailbox_verified?).to be(true)
     secret_before   = cust.reset_secret.value
     delivery_before = @deliveries.size
 
     expect_signup_success(post_signup(email), 'Duplicate signup for the verified account')
 
     expect(@deliveries.size).to eq(delivery_before),
-      "verified account must NOT receive email on duplicate signup, deliveries: #{@deliveries.inspect}"
+      "mailbox-verified account must NOT receive email on duplicate signup, deliveries: #{@deliveries.inspect}"
     cust.refresh!
     expect(cust.reset_secret.value).to eq(secret_before)
+  end
+
+  # #4735: `verified: true` with a provenance that is not mailbox proof (a card,
+  # an IdP, autoverify, or none at all) is an open account whose address was
+  # never proven. A duplicate signup resends the verification link to that
+  # same address — the only path by which such an account gains mailbox
+  # proof in simple mode — under the same cooldown as the unverified case.
+  it 'resends for a verified account WITHOUT mailbox proof (verified_by: stripe_payment)' do
+    email = unique_email('cardverified')
+    @created_emails << email
+
+    expect_signup_success(post_signup(email), 'Initial signup')
+    cust = Onetime::Customer.find_by_email(email)
+    cust.verified    = true
+    cust.verified_by = 'stripe_payment'
+    cust.save
+    expect(cust.verified?).to be(true)
+    expect(cust.mailbox_verified?).to be(false)
+    secret_before   = cust.reset_secret.value
+    delivery_before = @deliveries.size
+
+    expect_signup_success(post_signup(email), 'Duplicate signup for the card-verified account')
+
+    expect(@deliveries.size).to eq(delivery_before + 1),
+      "an account without mailbox proof must get the resend, deliveries: #{@deliveries.inspect}"
+    expect(@deliveries.last).to eq({ template: :welcome, email: email })
+    cust.refresh!
+    expect(cust.reset_secret.value).not_to eq(secret_before)
+  end
+
+  # reset_secret is shared with password recovery. A verified account without
+  # mailbox proof now gets the resend, so a duplicate signup from anyone could
+  # otherwise overwrite the recovery pointer the holder is about to redeem
+  # (#4735 review, F6). The resend still goes out; the pointer stays put.
+  it 'preserves an outstanding password-recovery pointer when resending for a verified legacy account' do
+    email = unique_email('legacy-recovering')
+    @created_emails << email
+
+    expect_signup_success(post_signup(email), 'Initial signup')
+    cust = Onetime::Customer.find_by_email(email)
+    cust.verified    = true
+    cust.verified_by = 'legacy'
+    cust.save
+    expect(cust.mailbox_verified?).to be(false)
+
+    # What ResetPasswordRequest mints: receiptless, kind password_reset,
+    # recorded as the account's reset_secret.
+    recovery                    = Onetime::Secret.create!(owner_id: cust.objid)
+    recovery.default_expiration = 24 * 60 * 60
+    recovery.verification       = 'true'
+    recovery.kind               = 'password_reset'
+    recovery.save
+    cust.reset_secret = recovery.identifier
+    delivery_before = @deliveries.size
+
+    expect_signup_success(post_signup(email), 'Duplicate signup during an outstanding recovery')
+
+    expect(@deliveries.size).to eq(delivery_before + 1)
+    expect(@deliveries.last).to eq({ template: :welcome, email: email })
+    cust.refresh!
+    expect(cust.reset_secret.value).to eq(recovery.identifier),
+      'the resend must not overwrite a live recovery pointer'
+    expect(cust.valid_reset_secret!(recovery)).to be(true), 'the recovery link must still redeem'
   end
 
   # ---------------------------------------------------------------------------
