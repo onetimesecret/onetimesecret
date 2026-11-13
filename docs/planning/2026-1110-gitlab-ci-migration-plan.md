@@ -356,9 +356,10 @@ privileged mode to support Docker-in-Docker", but describe only the
 `docker:dind` service, not a daemon in the job container. Spike S1 ran it
 on `saas-linux-medium-amd64` for the `unit` and `full-pg` lanes (S1
 results, §7). It works when the daemon's data root is off the job
-container's root filesystem, and service logs have to be collected before
-`after_script`. The native e2e boot and `bin/visual` have not been run
-this way.
+container's root filesystem. The daemon is gone by `after_script`, so
+service logs are collected in `script`, or by a daemon restarted in
+`after_script` with the data root under `/builds`. The native e2e boot
+and `bin/visual` have not been run this way.
 
 Jobs that need the daemon but not the test services call only
 `bin/ci docker up`: fresh-clone (which must show that `bin/setup --test`
