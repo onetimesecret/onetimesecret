@@ -440,6 +440,28 @@ RSpec.describe Core::Views::ConfigSerializer do
 
         expect(output).to include('sampleRate' => 1.0, 'maxBreadcrumbs' => 5, 'logErrors' => true)
       end
+
+      # SENTRY_SAMPLE_RATE= and SENTRY_MAX_BREADCRUMBS= (blank, as in
+      # .env.reference) render as nil; nil.to_f would send 0 and drop every event.
+      it 'falls back to the SDK values when the defaults are blank' do
+        output = sentry_output('defaults' => { 'sampleRate' => nil, 'maxBreadcrumbs' => nil, 'logErrors' => nil }, 'frontend' => {})
+
+        expect(output).to include('sampleRate' => 1.0, 'maxBreadcrumbs' => 5, 'logErrors' => true)
+      end
+
+      # The bootstrap contract takes a rate in 0..1 (bootstrap.ts).
+      it 'falls back to the SDK sample rate when the value is outside 0..1 or not a number' do
+        expect(sentry_output('defaults' => { 'sampleRate' => 25 }, 'frontend' => {})['sampleRate']).to eq(1.0)
+        expect(sentry_output('defaults' => { 'sampleRate' => 'abc' }, 'frontend' => {})['sampleRate']).to eq(1.0)
+        expect(sentry_output('defaults' => { 'sampleRate' => '0.25' }, 'frontend' => {})['sampleRate']).to eq(0.25)
+        expect(sentry_output('defaults' => { 'sampleRate' => 0 }, 'frontend' => {})['sampleRate']).to eq(0.0)
+      end
+
+      it 'keeps logErrors false and a zero breadcrumb limit' do
+        output = sentry_output('defaults' => { 'logErrors' => false, 'maxBreadcrumbs' => 0 }, 'frontend' => {})
+
+        expect(output).to include('logErrors' => false, 'maxBreadcrumbs' => 0)
+      end
     end
 
     describe 'brand_* bootstrap exposure' do
