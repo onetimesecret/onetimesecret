@@ -7,6 +7,7 @@ require 'ipaddr' # check_admin_allowed_cidrs parses ADMIN_ALLOWED_CIDRS at boot
 require 'json' # String#to_json for YAML-safe BRAND_* interpolation (see brand block)
 require 'public_suffix' # validate_link_domains! parses LINK_DOMAINS entries at boot
 require_relative 'utils/admin_host_allowlist' # check_admin_allowed_hosts classifies ADMIN_ALLOWED_HOSTS at boot
+require_relative 'config/reader'
 require_relative 'utils/config_resolver'
 require_relative 'utils/domain_parser'
 require_relative 'utils/enumerables'
@@ -684,6 +685,7 @@ module Onetime
       # Skip freezing in test mode to allow config modifications for test isolation.
       # Tests may need to modify config values without triggering FrozenError.
       # See also: boot.rb line 133 which guards the raw_conf freeze.
+      conf = wrap(conf)
       deep_freeze(conf) unless OT.testing?
       conf
     end
@@ -1557,6 +1559,21 @@ module Onetime
     # @security Prevents configuration mutations from affecting multiple components
     def deep_clone(config_hash)
       Onetime::Utils::Enumerables.deep_clone(config_hash, max_size: Float::INFINITY)
+    end
+
+    # Gives a config Hash the OT.conf reader, Reader#get. The Hash keeps its
+    # class, identity and contents. A frozen Hash cannot be extended, so it is
+    # copied (shallow) and the copy frozen. Idempotent. Anything that is not a
+    # Hash, nil included, is returned unchanged.
+    #
+    # @param config [Hash, nil]
+    # @return [Hash, nil]
+    def wrap(config)
+      return config unless config.is_a?(Hash)
+      return config if config.is_a?(Reader)
+      return config.dup.extend(Reader).freeze if config.frozen?
+
+      config.extend(Reader)
     end
 
     # Copies +obj+ with every Hash key converted to a String, recursing into

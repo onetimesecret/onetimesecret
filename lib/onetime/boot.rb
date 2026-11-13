@@ -112,7 +112,17 @@ module Onetime
       ].freeze,
     }.freeze
 
-    attr_reader :conf, :instance, :boot_registry, :boot_error
+    attr_reader :instance, :boot_registry, :boot_error
+
+    # The loaded configuration, nil before boot. It answers #get (see
+    # Onetime::Config::Reader): a Hash installed without the reader, as tests
+    # do with instance_variable_set(:@conf, ...), gets it on first read.
+    def conf
+      value = @conf
+      return value if value.nil? || value.is_a?(Onetime::Config::Reader)
+
+      @conf = Onetime::Config.wrap(value)
+    end
 
     # Boot reads and interprets the configuration and applies it to the
     # relevant features and services. Must be called after applications
@@ -456,7 +466,7 @@ module Onetime
     # prevent external modification of the shared configuration state
     # after initialization.
     def conf=(value)
-      @conf = value
+      @conf = Onetime::Config.wrap(value)
     end
   end
 
