@@ -99,11 +99,11 @@ RSpec.describe Onetime::Config::Reader do
         expect(config.get('site.admin.elevation', false)).to be(false)
       end
 
-      it 'raises MissingPathError without a default' do
-        expect { config.get('site.admin.elevation') }.to raise_error(
-          Onetime::Config::MissingPathError,
-          "Config path 'site.admin.elevation' is not set: 'site.admin' is nil",
-        )
+      # Config.load lets an operator file set a section to nil; every setting
+      # below it is unset, as dig read it.
+      it 'returns nil without a default' do
+        expect(config.get('site.admin.elevation')).to be_nil
+        expect(config.get('site.admin.elevation.window')).to be_nil
       end
     end
 

@@ -16,19 +16,14 @@ module Onetime
 
       # @param path [Array<String>] the requested path
       # @param index [Integer] the first segment that could not be read
-      # @param nil_parent [Boolean] the section holding that segment is nil
-      #   rather than missing the key
-      def initialize(path, index, nil_parent: false)
+      def initialize(path, index)
         @path  = path
-        label  = Reader.label(path)
-        reason = if nil_parent
-          "'#{Reader.label(path[0, index])}' is nil"
-        elsif index.zero?
+        reason = if index.zero?
           "there is no top-level '#{path[0]}'"
         else
           "'#{Reader.label(path[0, index])}' has no '#{path[index]}'"
         end
-        super("Config path '#{label}' is not set: #{reason}", key: path[index])
+        super("Config path '#{Reader.label(path)}' is not set: #{reason}", key: path[index])
       end
     end
 
@@ -69,13 +64,18 @@ module Onetime
       private_constant :NO_DEFAULT
 
       # @param path [String, Array<String>] a dotted path, or its segments
-      # @param default [Object] the result when the path is absent or its
-      #   value is nil. Without one, an absent path raises. Positional only:
+      # @param default [Object] the result when the path is absent, or its
+      #   value or a section on the way is nil. Without one, an absent path
+      #   raises and a nil reads as nil: a section an operator file sets to
+      #   nil (`domains:` with every child commented out) replaces the
+      #   defaults section in Config.load, and every setting below it is
+      #   unset, as dig read it. Positional only:
       #   `get(path, default: false)` raises ArgumentError instead of
       #   returning the truthy Hash `{default: false}`.
       # @return [Object] the value. false and 0 are values and are returned
       #   as they are.
-      # @raise [MissingPathError] the path is absent and no default was given
+      # @raise [MissingPathError] a key on the path is absent and no default
+      #   was given
       # @raise [PathTypeError] the path runs through a value that is not a Hash
       # @raise [ArgumentError] the path is empty, or a segment is not a
       #   non-empty String, or a keyword argument was given
@@ -93,11 +93,7 @@ module Onetime
           end
 
           node = node[segment]
-          next unless node.nil?
-          return default unless NO_DEFAULT.equal?(default)
-          return nil if index == segments.length - 1
-
-          raise MissingPathError.new(segments, index + 1, nil_parent: true)
+          return NO_DEFAULT.equal?(default) ? nil : default if node.nil?
         end
 
         node
