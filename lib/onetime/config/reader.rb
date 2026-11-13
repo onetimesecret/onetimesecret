@@ -64,14 +64,16 @@ module Onetime
 
       # @param path [String, Array<String>] a dotted path, or its segments
       # @param default [Object] the result when the path is absent or its
-      #   value is nil. Without one, an absent path raises.
+      #   value is nil. Without one, an absent path raises. Positional only:
+      #   `get(path, default: false)` raises ArgumentError instead of
+      #   returning the truthy Hash `{default: false}`.
       # @return [Object] the value. false and 0 are values and are returned
       #   as they are.
       # @raise [MissingPathError] the path is absent and no default was given
       # @raise [PathTypeError] the path runs through a value that is not a Hash
       # @raise [ArgumentError] the path is empty, or a segment is not a
-      #   non-empty String
-      def get(path, default = NO_DEFAULT)
+      #   non-empty String, or a keyword argument was given
+      def get(path, default = NO_DEFAULT, **nil)
         segments = Reader.segments(path)
         node     = self
 

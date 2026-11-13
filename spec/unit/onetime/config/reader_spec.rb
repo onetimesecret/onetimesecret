@@ -126,6 +126,19 @@ RSpec.describe Onetime::Config::Reader do
       end
     end
 
+    # A keyword default would arrive as the Hash {default: false}, which is
+    # truthy: an absent boolean flag would read as enabled.
+    context 'with a keyword argument' do
+      it 'raises instead of returning a Hash as the default' do
+        expect { config.get('site.elevation', default: false) }.to raise_error(ArgumentError, /no keywords/)
+      end
+
+      it 'still takes a Hash literal as a positional default' do
+        expect(config.get('site.elevation', {})).to eq({})
+        expect(config.get('site.elevation', { 'enabled' => false })).to eq('enabled' => false)
+      end
+    end
+
     it 'reads a deep-frozen config' do
       frozen = Onetime::Config.deep_freeze(Onetime::Config.wrap('site' => { 'host' => 'example.com' }))
 
