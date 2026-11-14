@@ -118,6 +118,12 @@ rescue LoadError => ex
   exit 1
 end
 
+# Every Hash in the config tree raises on a non-String key (a Symbol read on
+# a section reads nil otherwise). Set before any config is loaded: wrap gives
+# StrictKeys to the configs installed after this. See
+# Onetime::Config::StrictKeys.
+Onetime::Config.strict_keys = true
+
 # generated/locales is gitignored build output (locales/scripts/i18n content
 # compile --all writes it). bin/setup runs this, but a worktree that skips
 # bin/setup — because gems/node_modules already exist elsewhere in a forest of
