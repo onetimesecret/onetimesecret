@@ -876,10 +876,12 @@ gate after their baseline is triaged (Phase 6).
   default, Renovate will read config file from the default branch only",
   `useBaseBranchConfig`), so a change to it takes effect once a promotion
   brings it to `main`.
-- The merge requests imported from GitHub (!4826, !4946 to !4953) belong to
-  the GitHub app and nothing updates them. Proposal: close them and delete
-  their `deps/*` branches before the GitLab app's first run, so that it does
-  not meet branches it did not create.
+- The merge requests imported from GitHub that the GitHub app opened
+  (!4826, !4946 to !4953) are closed and their `deps/*` branches deleted, so
+  that the GitLab app does not meet branches it did not create. Their
+  commits stay reachable from the merge requests. `deps/familia-2-x-lockfile`
+  (last commit by a maintainer) and `deps/postgres-17` have no open merge
+  request and are left as they are.
 - Tool versions that no manager tracks today (shellcheck, actionlint, uv,
   bump-cli, bundler-audit) move into the toolchain Dockerfile where Renovate
   can see them.
