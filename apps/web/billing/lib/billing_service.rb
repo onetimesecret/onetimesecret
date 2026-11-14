@@ -85,23 +85,23 @@ module Billing
       nil
     end
 
-    # Validate that a plan_id exists in the catalog
+    # Validate that a plan_id is a free plan or exists in the catalog
+    #
+    # The catalog (Billing::Plan in Redis) already holds the billing.yaml
+    # plans: every Stripe pull adds the plans that have no Stripe prices
+    # (ConfigLoader.upsert_config_only_plans), and when the pull fails, boot
+    # loads the configured region's plans from billing.yaml instead.
     #
     # @param plan_id [String] Plan ID to validate
-    # @return [Boolean] True if plan exists in catalog
+    # @return [Boolean] True if plan is free or exists in catalog
     def valid_plan_id?(plan_id)
       return false if plan_id.to_s.empty?
 
       # Check if it's a known free plan
       return true if Metadata::FREE_PLAN_IDS.include?(plan_id)
 
-      # Check catalog cache
       plan = ::Billing::Plan.load(plan_id)
-      return true if plan&.exists?
-
-      # Check static config as fallback
-      config_plans = Onetime.conf.get('billing.plans', {})
-      config_plans.key?(plan_id.to_s)
+      plan&.exists? || false
     end
 
     # =========================================================================

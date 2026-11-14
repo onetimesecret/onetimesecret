@@ -161,31 +161,25 @@ RSpec.describe Billing::BillingService, billing: true do
       end
     end
 
-    context 'with uncached plan but in config' do
-      before do
-        allow(Billing::Plan).to receive(:load).with('config_plan').and_return(nil)
-        allow(Onetime).to receive(:conf).and_return(Onetime::Config.wrap({
-          'billing' => {
-            'plans' => { 'config_plan' => { 'name' => 'Config Plan' } },
-          },
-        }))
-      end
-
-      it 'returns true if plan exists in config' do
-        expect(described_class.valid_plan_id?('config_plan')).to be true
-      end
-    end
-
     context 'with completely invalid plan' do
       before do
         allow(Billing::Plan).to receive(:load).with('invalid_plan').and_return(nil)
-        allow(Onetime).to receive(:conf).and_return(Onetime::Config.wrap({
-          'billing' => { 'plans' => {} },
-        }))
       end
 
       it 'returns false for unknown plan' do
         expect(described_class.valid_plan_id?('invalid_plan')).to be false
+      end
+    end
+
+    context 'with a plan record that no longer exists' do
+      let(:stale_plan) { double('Plan', exists?: false) }
+
+      before do
+        allow(Billing::Plan).to receive(:load).with('pruned_plan').and_return(stale_plan)
+      end
+
+      it 'returns false' do
+        expect(described_class.valid_plan_id?('pruned_plan')).to be false
       end
     end
   end

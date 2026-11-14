@@ -63,7 +63,6 @@ module ConfigAccessGuard
   OPTIONAL_PATHS = {
     'billing' => 'a separate config object (Onetime.billing_config), not a section of OT.conf (#3991, D3)',
     'billing.enabled' => 'see billing (#3991, D3)',
-    'billing.plans' => 'see billing; valid_plan_id? never finds a static plan here (#3991, D6)',
     'jobs.dlq_monitor_enabled' => 'opt-in switch for DlqMonitorJob; the defaults file does not define it',
     'jobs.domain_refresh.rate_limit' => "commented out in the defaults: unset means the strategy's own pacing",
     'jobs.heartbeat_enabled' => 'opt-in switch for HeartbeatJob; the defaults file does not define it',
