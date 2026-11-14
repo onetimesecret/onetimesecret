@@ -194,7 +194,7 @@
     "@axe-core/playwright": "4.13.0",
     "@eslint/js": "9.39.5",
     "@eslint/plugin-kit": "0.7.3",
-    "@intlify/devtools-types": "11.3.0",
+    "@intlify/devtools-types": "11.4.16",
     "@intlify/eslint-plugin-vue-i18n": "4.3.0",
     "@intlify/unplugin-vue-i18n": "11.2.8",
     "@pinia/testing": "1.0.3",
