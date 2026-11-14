@@ -125,11 +125,19 @@ Facts that shape the design:
 - The project exists at `gitlab.com/onetimesecret/onetimesecret` (project id
   88874403). Development is there (§8). `main` and `develop` are protected
   branches, and `v*` is a protected tag that only Maintainers can create.
-- `main` has a pilot that `develop` lacks: `.gitlab-ci.yml` (one job,
-  TypeScript unit tests and test type checking, `saas-linux-medium-amd64`) and
-  `ci/typescript-pilot/` (#4932).
-- `main` also has `.agents/skills/merge/SKILL.md` (#4940), which merges through
-  GitLab merge requests with merge commits and treats `main` as protected.
+- `.gitlab-ci.yml` has the workflow rules of §4.1 and two sets of jobs: the
+  TypeScript pilot (unit tests and test type checking,
+  `saas-linux-medium-amd64`, `ci/typescript-pilot/`, #4932) and
+  `.gitlab/ci/lint.yml`, the jobs of `static-analysis.yml` on
+  `saas-linux-small-amd64` (Phase 2). Secret detection, dependency scanning
+  and advanced SAST jobs (`*-profile-*`) also run in merge request
+  pipelines; they are not defined in the repository and are allowed to
+  fail.
+- "Pipelines must succeed" is on, so a merge request merges only with a
+  green pipeline. The jobs above are the whole gate; the Ruby lanes and the
+  e2e suites run on GitHub after the merge (§2.4, Phase 3).
+- `.agents/skills/merge/SKILL.md` (#4940) merges through GitLab merge
+  requests with merge commits and treats `main` as protected.
 - Branch `ci-pilot/typescript` compared GitLab, CircleCI and GitHub runners for
   the same workload.
 
@@ -245,8 +253,10 @@ trigger a workflow run if the workflow file exists on the default branch."
 **What still runs on GitHub.** Read from the trigger blocks in
 `.github/workflows/*.yml`, with the changes above. A push from the mirror
 starts these like any other push; GitHub suppresses only events triggered by
-`GITHUB_TOKEN` (not yet observed for a mirrored push, Appendix B). GitHub
-runs schedules on the default branch, `main`.
+`GITHUB_TOKEN`. Observed on 2026-11-14: the mirrored `develop` push of
+9c94d1fa94 started `ci.yml` and both e2e suites, and the mirrored
+`v0.26.20-rc2` tag started the image build. GitHub runs schedules on the
+default branch, `main`.
 
 | Trigger | Workflows |
 |---|---|
@@ -1464,6 +1474,25 @@ GitHub CI are green on `main`.
 - `lint.yml` and `frontend.yml`; retire the pilot job and
   `ci/typescript-pilot/`.
 
+State on 2026-11-14:
+
+- In place: the workflow rules of §4.1 with interruptible jobs;
+  `github-release.yml` on GitHub `main`; "Pipelines must succeed"; and the
+  part of `lint.yml` that `static-analysis.yml` covers: `shell-tests`,
+  `shell-lint`, `logship` on Python 3.11 and 3.14, and `bundler-audit`. Until
+  the toolchain image exists these use public images pinned by digest.
+  `bundler-audit` is allowed to fail while `Gemfile.lock` carries the
+  rodauth (GHSA-26qw-xq5q-hv9w) and sanitize (GHSA-599p-54q3-ff89,
+  GHSA-mg79-gw37-jxx7) advisories. `tools/testsuite/gitlab-lint-pins-test.sh`
+  fails when the tool versions copied into `lint.yml` differ from
+  `static-analysis.yml`.
+- The first exit criterion is met: `v0.26.20-rc2`, tagged on GitLab, was
+  published to both registries and got its GitHub release page.
+- Open: the toolchain image and its guard, inputs and defaults, the lint
+  jobs of `ci.yml` and `drift-guards.yml` in `lint.yml`, `frontend.yml` and
+  the pilot's retirement, `images.yml`, `release.yml`, environments and the
+  protected runner, and Renovate on GitLab (D11).
+
 Exit:
 
 - A release candidate tag created on GitLab reaches GitHub through the
@@ -1894,8 +1923,5 @@ hosted Renovate app accepts Free or program namespaces; whether Duo external
 agents are enabled for program namespaces; whether Bump.sh's tokenless diff
 limits document size or request rate; how "Skip branch pipelines for merge
 requests" treats a long-lived source branch (S8); that a later push cancels
-a scheduled pipeline (read from GitLab's source, not its docs); that a
-mirror push through the deploy key starts the push workflows on GitHub
-(GitHub's page suppresses only events triggered by `GITHUB_TOKEN`, and no
-mirrored push has been checked for runs yet); whether GitHub secret scanning push protection
-applies to the mirror's pushes.
+a scheduled pipeline (read from GitLab's source, not its docs); whether
+GitHub secret scanning push protection applies to the mirror's pushes.
