@@ -107,11 +107,16 @@ module MfaFlowHelper
   # auto_add_recovery_codes? is on, and the app's after hook surfaces the
   # generated codes in the phase-2 JSON response (hooks/mfa.rb).
   #
+  # code_time: the time the phase-2 code is generated for (default: now).
+  # Setup stores that code's time step in last_use, so a spec can set up with
+  # a code from the next time step, as an authenticator whose clock is ahead
+  # would.
+  #
   # Clears cookies on the way out: the flow under test must start from an
   # UNAUTHENTICATED browser, like a user on a fresh device.
   # ==========================================================================
 
-  def provision_totp(email, password: AuthTestConstants::TEST_PASSWORD)
+  def provision_totp(email, password: AuthTestConstants::TEST_PASSWORD, code_time: nil)
     csrf_json_post('/auth/login', login: email, password: password)
     expect(last_response.status).to eq(200),
       "Precondition failed: password login for OTP setup (#{last_response.status}: #{last_response.body})"
@@ -129,7 +134,7 @@ module MfaFlowHelper
       '/auth/otp-setup',
       otp_setup: secret,
       otp_raw_secret: raw_secret,
-      otp_code: ROTP::TOTP.new(secret).now,
+      otp_code: ROTP::TOTP.new(secret).at(code_time || Time.now),
       password: password,
     )
     expect(last_response.status).to eq(200),

@@ -11,5 +11,14 @@ Security
   describes what a replay takes: the account's password and an already used
   code from an authenticator whose clock was ahead of the server's. The time
   step of an accepted code is now recorded, and that code is refused from
-  then on, at sign-in and at re-authentication. No configuration change and
-  no auth database migration.
+  then on, at setup, at sign-in and at re-authentication. No configuration
+  change and no auth database migration.
+
+Changed
+-------
+
+- The rodauth upgrade also changes two things outside MFA. Signing out now
+  writes one ``logout`` row to the auth audit log; before, a second
+  identical row could be written when the account had been loaded during the
+  request. A requested path that starts with ``/\`` is no longer saved as
+  the place to return to after sign-in.
