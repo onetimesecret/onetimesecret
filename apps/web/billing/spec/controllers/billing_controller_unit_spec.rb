@@ -157,6 +157,23 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
         expect(data['federation_notification']['source_region']).to be_a(String)
       end
 
+      # mock_region! stubs #region to 'EU'; this returns the value the
+      # controller set from the config.
+      it 'reports the configured jurisdiction as source_region' do
+        allow_any_instance_of(Billing::Controllers::Base).to receive(:region) { |ctrl| ctrl.instance_variable_get(:@region) }
+        organization.subscription_federated_at = Time.now.to_i
+        organization.save
+        regions = OT.conf.get('features.regions')
+        saved   = regions['current_jurisdiction']
+        regions['current_jurisdiction'] = 'CA'
+
+        get "/billing/api/org/#{organization.extid}"
+
+        expect(JSON.parse(last_response.body).dig('federation_notification', 'source_region')).to eq('CA')
+      ensure
+        regions['current_jurisdiction'] = saved if regions
+      end
+
       it 'does not include federation_notification when organization is not federated' do
         # Organization has no subscription_federated_at set
         get "/billing/api/org/#{organization.extid}"
