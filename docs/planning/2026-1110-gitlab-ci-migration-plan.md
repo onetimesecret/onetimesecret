@@ -219,8 +219,8 @@ trigger a workflow run if the workflow file exists on the default branch."
 - `.github/workflows/github-release.yml` (new). Trigger: completion of "Build
   and Publish OCI Images" for a `push` event with conclusion success, or a
   dispatch with a tag. It checks the tag format and that the tag still points
-  at the commit the images were built from, and skips the tag if a GitHub
-  release already exists. Otherwise it creates the GitHub release page. The
+  at the commit the images were built from, and leaves an existing GitHub
+  release unchanged. Otherwise it creates the GitHub release page. The
   page links to the GitLab release
   (`https://gitlab.com/onetimesecret/onetimesecret/-/releases/<tag>`) and to
   `CHANGELOG.rst` at the tag, and lists the image names. A tag that contains
@@ -229,12 +229,16 @@ trigger a workflow run if the workflow file exists on the default branch."
   `GITHUB_TOKEN` starts no `release: published` workflow. GitHub: "events
   triggered by the `GITHUB_TOKEN` will not create a new workflow run, with
   the following exceptions:", the first being "`workflow_dispatch` and
-  `repository_dispatch` events always create workflow runs."
+  `repository_dispatch` events always create workflow runs." When the
+  existing release is the workflow's own, a re-run dispatches the archive
+  again, so a failed dispatch is recovered by re-running the job.
 - `visual-archive.yml`: a dispatch from a tag ref archives under the tag
   name; a dispatch from a branch archives as `sha-<short>`.
 - `ci.yml`, `e2e-full-auth.yml`, `e2e-tenant-connect.yml`: the push trigger
   covers `main` and `develop`, and `v*` tags. Every mirrored `develop` commit
-  gets a full post-merge run on GitHub until GitLab gates merges.
+  gets a full post-merge run on GitHub until GitLab gates merges. On
+  `develop` the concurrency group includes the commit SHA, so a later push
+  does not cancel the run for an earlier one.
 - A README notice and a contact link in `.github/ISSUE_TEMPLATE/config.yml`
   point to GitLab; a changelog fragment.
 
