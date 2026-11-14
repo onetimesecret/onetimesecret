@@ -177,7 +177,7 @@ gem 'omniauth-oauth2', '~> 1.9'
 #   - omniauth deep-merges instance options over class defaults, so `{}` cannot
 #     clear omniauth-saml's RelayState-forwarding default
 # Advisories: .github/workflows/static-analysis.yml runs bundler-audit on every
-# PR; Renovate vulnerabilityAlerts (.github/renovate.json5) opens the bump PR.
+# PR; Renovate (.gitlab/renovate.json5) opens the bump merge request.
 gem 'omniauth-saml', '~> 2.2'
 gem 'ruby-saml', '= 1.18.1'
 

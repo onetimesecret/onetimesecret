@@ -200,10 +200,10 @@ is marked as failed." (R11, R13).
   `housekeeping-github-issues.yml`, `housekeeping-lock-threads.yml`.
   Dependabot security updates are off. The repository description points to
   GitLab.
-- Open for the operator: removing the Renovate GitHub app from the
-  repository failed with HTTP 403. While it is installed it can still open
-  pull requests on GitHub; those run the `pull_request` workflows and cannot
-  be merged (inferred). Whether GitHub Issues are turned off is not decided.
+- The Renovate GitHub app is suspended (by the operator, 2026-11-14;
+  removing it through the API had failed with HTTP 403). The pull requests
+  it opened on GitHub after the switch were closed with a pointer to GitLab.
+  Whether GitHub Issues are turned off is not decided.
   Turning them off hides the existing issue pages and breaks links to them;
   leaving them on lets people file issues there.
 
@@ -257,12 +257,11 @@ runs schedules on the default branch, `main`.
 | Weekly schedule | `compose-smoke.yml`, `devcontainer-ci.yml`, `fresh-clone.yml`, `installer.yml` (including its macOS job), `secret-rotation.yml`, `baremetal-boot.yml`, `validate-register.yml` |
 | Dispatch | every workflow with a `workflow_dispatch` trigger that is not disabled |
 
-**What runs nowhere.** No pull requests are opened on GitHub (the Renovate
-app aside, above), so the workflows that have only `pull_request` and
-dispatch triggers run nowhere, unless dispatched by hand, until GitLab has
-their equivalents: `drift-guards.yml` (including its
-`envref-macos` job), `docs-command-drift.yml`, `e2e.yml` (container e2e) and
-`visual.yml`. The pull request runs of the other workflows stop as well:
+**What runs nowhere.** No pull requests are opened on GitHub, so the
+workflows that have only `pull_request` and dispatch triggers run nowhere,
+unless dispatched by hand, until GitLab has their equivalents:
+`drift-guards.yml` (including its `envref-macos` job),
+`docs-command-drift.yml`, `e2e.yml` (container e2e) and `visual.yml`. The pull request runs of the other workflows stop as well:
 path-selected runs of the install and smoke workflows and of
 `migration-tests.yml`, the Bump.sh diff, `static-analysis.yml` on pull
 requests (it still runs on pushes to `main`, not on `develop`), and the
@@ -851,22 +850,43 @@ gate after their baseline is triaged (Phase 6).
 ### 4.9 Dependency updates
 
 - Renovate continues, on GitLab. GitHub `main` and `develop` accept pushes
-  only from the mirror (§2.4), so Renovate on GitHub cannot merge anything.
-  Until Renovate runs on GitLab there are no dependency update merge
-  requests. Host it as a scheduled pipeline in a separate project using
-  `renovate-bot/renovate-runner`, with one bot account for every migrated
-  repository (D11).
-- Config changes: drop `helpers:pinGitHubActionDigests`; replace
-  `vulnerabilityAlerts`, which depends on GitHub's alerts, with
-  `osvVulnerabilityAlerts`; point the custom regex manager at the new YAML.
+  only from the mirror (§2.4), so Renovate on GitHub cannot merge anything,
+  and its GitHub app is suspended (by the operator, 2026-11-14). Until
+  Renovate runs on GitLab there are no dependency update merge requests.
+- Hosting (D11): Mend's hosted Renovate app for GitLab.com. Renovate's docs
+  ("GitLab bot security") say Mend relaunched it in July 2026 as an OAuth
+  app, and that its token is "as capable as the authorizing user's own
+  GitLab account", because GitLab's OAuth scopes are not limited per
+  project. Mend recommends "a dedicated user solely for the integration",
+  so a dedicated GitLab account with Developer access to this project
+  authorizes it. Mend holds that token; no runner project, CI minutes or
+  stored bot token of ours are involved. The alternative is a scheduled
+  pipeline in a separate project using `renovate-bot/renovate-runner`, with
+  a bot account's token stored as a CI variable.
+- Config (`.gitlab/renovate.json5`): merge requests target `develop`.
+  `osvVulnerabilityAlerts` is the source of vulnerability fixes, because
+  `vulnerabilityAlerts` reads GitHub's alerts; its settings still apply to
+  the merge requests the OSV alerts open. `automergeStrategy` is gone:
+  Renovate does not support it on GitLab and stops automerging when it is
+  set, and the project's merge method is already a merge commit.
+  `helpers:pinGitHubActionDigests` stays, because the GitHub workflows keep
+  publishing the images (§2.4). The custom regex manager matches the two
+  GitHub workflows that carry `TRANSLATION_RULES_REF` until their GitLab
+  jobs exist. Renovate reads this file from the default branch only ("By
+  default, Renovate will read config file from the default branch only",
+  `useBaseBranchConfig`), so a change to it takes effect once a promotion
+  brings it to `main`.
+- The merge requests imported from GitHub that the GitHub app opened
+  (!4826, !4946 to !4953) are closed and their `deps/*` branches deleted, so
+  that the GitLab app does not meet branches it did not create. Their
+  commits stay reachable from the merge requests. `deps/familia-2-x-lockfile`
+  (last commit by a maintainer) and `deps/postgres-17` have no open merge
+  request and are left as they are.
 - Tool versions that no manager tracks today (shellcheck, actionlint, uv,
   bump-cli, bundler-audit) move into the toolchain Dockerfile where Renovate
   can see them.
 - Dependabot security updates are off on GitHub (§2.4). The OSV alerts
   above replace them.
-- The Renovate GitHub app is still installed on the repository; removing it
-  failed with HTTP 403 and is left to the operator. Its pull requests cannot
-  be merged (§2.4).
 - Every Renovate merge request is a pipeline. The current settings
   (`prCreation: immediate`, 10 concurrent, 10 an hour) are a cost on metered
   runners; a schedule window and grouping reduce it.
@@ -1211,7 +1231,7 @@ its deploy moves.
 
 | File | Disposition |
 |---|---|
-| `.github/renovate.json5` | move and adapt (§4.9) |
+| `.github/renovate.json5` | moved to `.gitlab/renovate.json5` and adapted (§4.9) |
 | `.github/auth-paths.yml` | becomes a fragment in `.gitlab/ci/rules.yml` |
 | `.github/ISSUE_TEMPLATE/bug_report.yml`, `feature_request.yml`, `pull_request_template.md` | `.gitlab/` templates. Whether the two issue forms stay on GitHub follows the GitHub Issues decision (§2.4). |
 | `.github/ISSUE_TEMPLATE/config.yml` | stays: it points GitHub's issue chooser at GitLab (§2.4) |
@@ -1633,7 +1653,7 @@ Consequences, as this plan reads them:
 | D8 | Which AI reviewers continue, and with which triggers | Greptile through its GitLab integration; Claude review as a CI job on merge request open and on the `claude-review` label, with the current skips; defer `@claude` mentions | |
 | D9 | Translation request workflow | Retire. Re-specify on `locales/scripts` if it is still wanted. | with its default input it resolves no locales (inferred), because its paths are gone |
 | D10 | CI metrics port before or after cutover | After | between cutover and the port there is no per-job regression flag on merge requests. The tier budget check is advisory today (`fail-on-violation` is false). |
-| D11 | Renovate hosting | Self-hosted runner project | works on any tier and serves every repository. Renovate on GitHub cannot merge, so until this runs there are no dependency update merge requests (§4.9). |
+| D11 | Renovate hosting | Mend's hosted app for GitLab.com, authorized by a dedicated GitLab account (§4.9). The maintainer's reply to this recommendation on 2026-11-14: "Continue with items 1 and 2" (Renovate was item 1). In effect once the app is authorized. | no runner project or CI minutes; Mend holds an OAuth token as capable as the dedicated account. Until Renovate runs on GitLab there are no dependency update merge requests. |
 | D13 | GitLab for Open Source application | Check the profit clause first | cost factor and tier |
 | D14 | Register full scans that are expected to fail | Verify the claim first. If true, mark the full-scan job `allow_failure` until the findings are fixed. | whether `main` and weekly pipelines are red from day one, and whether a promotion that changes locale content can merge; needed before the first promotion on GitLab |
 | D15 | Guard scripts in `scripts/` | Leave them (§5) | scope of the ADR-042 consolidation |

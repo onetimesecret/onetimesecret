@@ -10,6 +10,10 @@
     ':pinDependencies',
   ],
 
+  // Merge requests target develop, where changes are merged; main receives
+  // develop through promotions.
+  baseBranchPatterns: ['develop'],
+
   // Update control
   minimumReleaseAge: '14 days',
   separateMinorPatch: false,
@@ -19,6 +23,10 @@
   rebaseWhen: 'auto',
 
   // Security settings
+  // Renovate reads GitHub's vulnerability alerts only on GitHub. On GitLab the
+  // alerts come from the OSV database, for direct dependencies; the settings
+  // in vulnerabilityAlerts apply to the merge requests they open.
+  osvVulnerabilityAlerts: true,
   vulnerabilityAlerts: {
     labels: ['security'],
     assignees: ['delano'],
@@ -26,9 +34,11 @@
   },
 
   // PR management
-  dependencyDashboard: true,
-  dependencyDashboardAutoclose: true,
-  dependencyDashboardLabels: ['auto-update', 'dependencies'],
+  dependencyDashboard: {
+    enabled: true,
+    autoclose: true,
+    labels: ['auto-update', 'dependencies'],
+  },
   prCreation: 'immediate',
   prConcurrentLimit: 10,
   prHourlyLimit: 10,
@@ -43,12 +53,14 @@
 
   // Automerge settings
   // automergeType 'pr', not 'branch': from April 2025 to September 2026 no
-  // update landed on main by branch automerge (every one came through a PR),
-  // and branch-automerge updates without a PR sat unseen for weeks. A PR gets
-  // CI, which only runs on pushes to main and on PRs.
+  // update reached main by branch automerge (every one came through a PR),
+  // and branch-automerge updates without a PR sat unseen for weeks. A merge
+  // request gets a pipeline; a branch push without one does not.
+  // No automergeStrategy: Renovate does not support it on GitLab and stops
+  // automerging when it is set. The project's merge method (merge commit)
+  // applies.
   automerge: true,
   automergeType: 'pr',
-  automergeStrategy: 'merge-commit',
   major: { automerge: false },
   minor: { automerge: false },
   patch: { automerge: false },
