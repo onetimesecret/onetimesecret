@@ -40,7 +40,10 @@ schema_version: "1.0"
 # you want to turn off billing but not delete the file. That's what this flag is for.
 enabled: <%= ENV['BILLING_ENABLED'] != 'false' %>
 stripe_key: <%= ENV['STRIPE_API_KEY'] || 'nostripekey' %>
-webhook_signing_secret: <%= ENV['STRIPE_WEBHOOK_SIGNING_SECRET'] || 'nosigningsecret' %>
+# No fallback value: any literal here would be a signing secret that everybody
+# knows. With a Stripe API key set, a missing signing secret refuses boot;
+# without one, POST /billing/webhook answers 500 until it is set.
+webhook_signing_secret: <%= ENV['STRIPE_WEBHOOK_SIGNING_SECRET'] %>
 stripe_api_version: "2025-12-15.clover"
 
 # Stripe custom Checkout domain host (bare host, no scheme). Empty unless

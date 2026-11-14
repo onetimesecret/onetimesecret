@@ -69,7 +69,12 @@ module Billing
     def initialize(webhook_secret: nil)
       @webhook_secret = webhook_secret || Onetime.billing_config.webhook_signing_secret
 
-      unless @webhook_secret
+      # Blank or a placeholder (Onetime::BillingConfig::PLACEHOLDER_VALUES): a
+      # signing key everybody knows verifies everybody's events, so refuse to
+      # start rather than verify with it. Covers an explicit webhook_secret:
+      # argument as well as a billing.yaml copied before the fallback was
+      # removed from etc/examples/billing.example.yaml.
+      if Onetime::BillingConfig.placeholder?(@webhook_secret)
         raise ArgumentError, 'Webhook signing secret not configured'
       end
     end

@@ -90,7 +90,7 @@ module Onetime
         end
 
         stripe_key = OT.billing_config.stripe_key
-        if stripe_key.to_s.strip.empty? || stripe_key == 'nostripekey'
+        if Onetime::BillingConfig.placeholder?(stripe_key)
           puts 'Error: STRIPE_API_KEY environment variable not set or billing.yaml has no valid key'
           return false
         end

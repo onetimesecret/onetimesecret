@@ -24,6 +24,7 @@ RSpec.describe Billing::Initializers::StripeSetup do
       enabled?: true,
       validate_checkout_host!: nil,
       validate_payment_method_configuration!: nil,
+      validate_webhook_signing_secret!: nil,
       automatic_tax?: automatic_tax_enabled,
       stripe_key: 'sk_test_deadbeefcafef00d',
       stripe_api_version: '2025-03-31',
@@ -39,6 +40,23 @@ RSpec.describe Billing::Initializers::StripeSetup do
     # require 'stripe' at the tail of execute; keep the setter no-ops harmless.
     allow(Stripe).to receive(:api_key=)
     allow(Stripe).to receive(:api_version=)
+  end
+
+  describe '#execute — webhook signing secret validation' do
+    before { allow(ENV).to receive(:[]).with('STRIPE_AUTOMATIC_TAX').and_return(nil) }
+
+    it 'validates the webhook signing secret before configuring the Stripe client' do
+      expect(billing_config).to receive(:validate_webhook_signing_secret!).ordered
+      expect(Stripe).to receive(:api_key=).ordered
+      initializer.execute(nil)
+    end
+
+    it 'propagates the ConfigError so the deploy fails at boot' do
+      allow(billing_config).to receive(:validate_webhook_signing_secret!)
+        .and_raise(Onetime::ConfigError, 'STRIPE_WEBHOOK_SIGNING_SECRET is not set')
+      expect { initializer.execute(nil) }.to raise_error(Onetime::ConfigError, /STRIPE_WEBHOOK_SIGNING_SECRET/)
+      expect(Stripe).not_to have_received(:api_key=)
+    end
   end
 
   describe '#execute — automatic tax policy log' do

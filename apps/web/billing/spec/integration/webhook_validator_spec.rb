@@ -37,6 +37,38 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
       end.to raise_error(ArgumentError, /webhook signing secret/i)
     end
 
+    # An HMAC key everybody knows verifies everybody's events. The placeholder
+    # is what older copies of billing.example.yaml fall back to.
+    ['', '   ', 'nosigningsecret'].each do |not_a_secret|
+      it "raises ArgumentError when the configured secret is #{not_a_secret.inspect}" do
+        allow(Onetime).to receive(:billing_config).and_return(
+          double(webhook_signing_secret: not_a_secret),
+        )
+
+        expect do
+          described_class.new
+        end.to raise_error(ArgumentError, /webhook signing secret/i)
+      end
+    end
+
+    # The refusal does not depend on the API key: with no key configured the
+    # boot check only warns, so this is the guard that closes forgery there.
+    it 'raises ArgumentError with no secret and no Stripe API key configured' do
+      allow(Onetime).to receive(:billing_config).and_return(
+        double(webhook_signing_secret: nil, stripe_key: 'nostripekey'),
+      )
+
+      expect do
+        described_class.new
+      end.to raise_error(ArgumentError, /webhook signing secret/i)
+    end
+
+    it 'raises ArgumentError when an explicit secret argument is a placeholder' do
+      expect do
+        described_class.new(webhook_secret: 'CHANGEME')
+      end.to raise_error(ArgumentError, /webhook signing secret/i)
+    end
+
     it 'uses configured webhook secret by default' do
       allow(Onetime).to receive(:billing_config).and_return(
         double(webhook_signing_secret: 'configured_secret'),
