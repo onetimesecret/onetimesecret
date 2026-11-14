@@ -246,11 +246,14 @@ RSpec.describe Onetime::Config::Reader do
   end
 
   describe 'install points' do
+    # Config.after_load also sets Onetime.d9s_enabled.
     around do |example|
-      saved = OT.instance_variable_get(:@conf)
+      saved       = OT.instance_variable_get(:@conf)
+      d9s_enabled = Onetime.d9s_enabled
       example.run
     ensure
       OT.instance_variable_set(:@conf, saved)
+      Onetime.d9s_enabled = d9s_enabled
     end
 
     it 'Config.after_load returns a config that answers #get' do

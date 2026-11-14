@@ -299,6 +299,14 @@ RSpec.describe Onetime::Config do
   end
 
   describe '#after_load' do
+    # after_load sets Onetime.d9s_enabled from the config it is given.
+    around do |example|
+      d9s_enabled = Onetime.d9s_enabled
+      example.run
+    ensure
+      Onetime.d9s_enabled = d9s_enabled
+    end
+
     context 'key types' do
       def string_keys_only?(obj)
         case obj
