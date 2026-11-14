@@ -15,9 +15,7 @@
 #      and apps/. Every other use counts: dig, fetch, key? or [] on it,
 #      assigning it to a variable, passing it as an argument, a truthiness
 #      guard. In lib/onetime/boot.rb the config is also `conf` and `@conf`.
-#      Files that still have such uses are listed in PENDING with their count,
-#      which can only go down; a use that stays is listed in ALLOWED_USES with
-#      its reason.
+#      A use that stays is listed in ALLOWED_USES with its count and reason.
 #   2. Nothing reads into the result of get (OT.conf.get('site')['host']):
 #      the whole path goes in get, where rules 3 to 5 can check it.
 #   3. A get with a literal path and no default names a path that the shipped
@@ -89,13 +87,6 @@ module ConfigAccessGuard
     'lib/onetime/operations/domains/collision_resolution.rb' => [1, 'Strategy.for_config takes the whole config'],
     'lib/onetime/operations/domains/teardown.rb' => [1, 'Strategy.for_config takes the whole config'],
     'lib/onetime/operations/verify_domain.rb' => [1, 'Strategy.for_config takes the whole config'],
-  }.freeze
-
-  # Uses of OT.conf other than OT.conf.get that are still to be converted
-  # (rule 1): file => count. Lower a count when you convert a use; remove the
-  # file at zero.
-  PENDING = {
-    'lib/onetime/initializers/setup_loggers.rb' => 1,
   }.freeze
 
   module_function
@@ -302,23 +293,17 @@ module ConfigAccessGuard
   end
 
   # Rule 1.
-  def use_problems(scan, pending = PENDING, allowed = ALLOWED_USES)
+  def use_problems(scan, allowed = ALLOWED_USES)
     actual = scan.transform_values { |scanner| scanner.other_uses.length }.reject { |_, count| count.zero? }
 
-    (actual.keys | pending.keys | allowed.keys).sort.filter_map do |file|
+    (actual.keys | allowed.keys).sort.filter_map do |file|
       count         = actual.fetch(file, 0)
       allowed_count = allowed.fetch(file, [0]).first
-      pending_count = pending.fetch(file, 0)
-      expected      = allowed_count + pending_count
-      next if count == expected
+      next if count == allowed_count
 
-      if count > expected
+      if count > allowed_count
         "#{file}:#{scan[file].other_uses.join(', ')} uses OT.conf other than OT.conf.get #{count} times, " \
-          "#{expected} allowed; read with OT.conf.get('a.b', default)"
-      elsif pending_count.positive? && count > allowed_count
-        "#{file} has #{count - allowed_count} pending uses of OT.conf; lower its PENDING count from #{pending_count}"
-      elsif pending_count.positive?
-        "#{file} has no pending uses of OT.conf left; remove it from PENDING"
+          "#{allowed_count} allowed; read with OT.conf.get('a.b', default)"
       else
         "#{file} uses OT.conf other than OT.conf.get #{count} times; ALLOWED_USES says #{allowed_count}, update it"
       end
@@ -426,7 +411,7 @@ RSpec.describe 'OT.conf access guard' do
       expect(guard.scan).to have_key(guard::BOOT_FILE)
     end
 
-    it 'uses OT.conf only as OT.conf.get outside PENDING and ALLOWED_USES, whose counts are current' do
+    it 'uses OT.conf only as OT.conf.get outside ALLOWED_USES, whose counts are current' do
       problems = guard.use_problems(guard.scan)
       expect(problems).to be_empty, problems.join("\n")
     end
@@ -550,21 +535,19 @@ RSpec.describe 'OT.conf access guard' do
       end
     end
 
-    it 'reports a file outside the tables, a raised count, a stale count, a cleared file and a changed allowance' do
+    it 'reports a file outside ALLOWED_USES, a raised count, a lowered count and a cleared file' do
       scan = { 'new.rb' => scanner, 'grew.rb' => scanner, 'shrank.rb' => scanner, 'kept.rb' => scanner }
 
       problems = guard.use_problems(
         scan,
-        { 'grew.rb' => 6, 'shrank.rb' => 8, 'gone.rb' => 1 },
-        { 'kept.rb' => [8, 'reason'] },
+        { 'grew.rb' => [6, 'reason'], 'shrank.rb' => [8, 'reason'], 'kept.rb' => [7, 'reason'], 'gone.rb' => [1, 'reason'] },
       )
 
       expect(problems).to contain_exactly(
         a_string_starting_with('new.rb:1, 2, 3, 4, 5, 14, 15 uses OT.conf other than OT.conf.get 7 times, 0 allowed'),
         a_string_starting_with('grew.rb:1, 2, 3, 4, 5, 14, 15 uses OT.conf other than OT.conf.get 7 times, 6 allowed'),
-        'shrank.rb has 7 pending uses of OT.conf; lower its PENDING count from 8',
-        'gone.rb has no pending uses of OT.conf left; remove it from PENDING',
-        'kept.rb uses OT.conf other than OT.conf.get 7 times; ALLOWED_USES says 8, update it',
+        'shrank.rb uses OT.conf other than OT.conf.get 7 times; ALLOWED_USES says 8, update it',
+        'gone.rb uses OT.conf other than OT.conf.get 0 times; ALLOWED_USES says 1, update it',
       )
     end
 

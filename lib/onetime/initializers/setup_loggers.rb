@@ -711,6 +711,20 @@ module Onetime
         true
       end
 
+      # The share of Redis commands Familia's DatabaseLogger writes to the
+      # log: FAMILIA_SAMPLE_RATE when set, else 1% in production and all of
+      # them in development. Elsewhere nil, which also logs every command.
+      # Comes from the environment (RACK_ENV), as backtrace_limit does; the
+      # config has no environment key.
+      def familia_sample_rate
+        override = ENV['FAMILIA_SAMPLE_RATE']&.to_f
+        if production_environment?
+          override || 0.01
+        elsif Onetime.development?
+          override || 1.0
+        end
+      end
+
       # The event this formatter renders: the Log itself when its exception's
       # backtrace is within the limit, otherwise a copy carrying a copy of the
       # exception with the shortened backtrace.
@@ -780,12 +794,10 @@ module Onetime
       # Register Familia hooks for Redis command and lifecycle logging.
       # Uses sampling in production to reduce volume.
       def configure_familia_hooks
-        return unless defined?(Familia::DatabaseLogger)
+        # Familia defines its DatabaseLogger middleware at the top level.
+        return unless defined?(::DatabaseLogger)
 
-        Familia::DatabaseLogger.sample_rate = case Onetime.conf[:environment]
-        when 'production' then ENV['FAMILIA_SAMPLE_RATE']&.to_f || 0.01
-        when 'development' then ENV['FAMILIA_SAMPLE_RATE']&.to_f || 1.0
-        end
+        ::DatabaseLogger.sample_rate = familia_sample_rate
 
         if Familia.respond_to?(:on_command)
           Familia.on_command do |cmd, duration, context|

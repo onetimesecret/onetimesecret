@@ -347,6 +347,54 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
     end
   end
 
+  # The method used to look for Familia::DatabaseLogger (the middleware is
+  # the top-level ::DatabaseLogger) and read Onetime.conf[:environment] (the
+  # config has no such key), so it never set a rate and FAMILIA_SAMPLE_RATE
+  # had no effect.
+  describe '#configure_familia_hooks sample rate' do
+    around do |example|
+      saved = DatabaseLogger.sample_rate
+      example.run
+    ensure
+      DatabaseLogger.sample_rate = saved
+    end
+
+    before do
+      allow(ENV).to receive(:[]).and_call_original
+      allow(ENV).to receive(:[]).with('FAMILIA_SAMPLE_RATE').and_return(nil)
+      allow(ENV).to receive(:fetch).and_call_original
+      # Registering the command and lifecycle hooks would outlive the example.
+      allow(Familia).to receive(:respond_to?).and_call_original
+      allow(Familia).to receive(:respond_to?).with(:on_command).and_return(false)
+      allow(Familia).to receive(:respond_to?).with(:on_lifecycle).and_return(false)
+    end
+
+    def sample_rate_under(rack_env, override: nil)
+      allow(ENV).to receive(:fetch).with('RACK_ENV', 'production').and_return(rack_env)
+      allow(ENV).to receive(:[]).with('FAMILIA_SAMPLE_RATE').and_return(override)
+      DatabaseLogger.sample_rate = 0.3 # replaced on every path
+      instance.send(:configure_familia_hooks)
+      DatabaseLogger.sample_rate
+    end
+
+    it 'logs 1% of commands in production' do
+      expect(sample_rate_under('production')).to eq(0.01)
+    end
+
+    it 'logs every command in development' do
+      expect(sample_rate_under('development')).to eq(1.0)
+    end
+
+    it 'leaves sampling off in other environments' do
+      expect(sample_rate_under('testing', override: '0.5')).to be_nil
+    end
+
+    it 'uses FAMILIA_SAMPLE_RATE in production and development' do
+      expect(sample_rate_under('production', override: '0.5')).to eq(0.5)
+      expect(sample_rate_under('development', override: '0.25')).to eq(0.25)
+    end
+  end
+
   describe '#create_cached_loggers' do
     let(:repo_root) { File.expand_path('../../../..', __dir__) }
 
