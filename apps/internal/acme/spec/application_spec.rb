@@ -19,6 +19,29 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
 
   let(:app) { described_class.new }
 
+  describe '.should_skip_loading?' do
+    def conf_with_domains(section)
+      allow(OT).to receive(:conf).and_return(Onetime::Config.wrap('features' => { 'domains' => section }))
+    end
+
+    it 'loads the app when the ACME endpoint is enabled' do
+      conf_with_domains('acme' => { 'enabled' => true })
+      expect(described_class.should_skip_loading?).to be(false)
+    end
+
+    it 'skips the app when the ACME endpoint is disabled or unset' do
+      [{ 'acme' => { 'enabled' => false } }, { 'acme' => { 'enabled' => nil } }, {}].each do |section|
+        conf_with_domains(section)
+        expect(described_class.should_skip_loading?).to be(true), section.inspect
+      end
+    end
+
+    it 'skips the app before boot' do
+      allow(OT).to receive(:conf).and_return(nil)
+      expect(described_class.should_skip_loading?).to be(true)
+    end
+  end
+
   describe 'middleware registration' do
     it 'registers LocalhostOnly in the middleware stack' do
       middleware_classes = described_class.middleware.map(&:first)
