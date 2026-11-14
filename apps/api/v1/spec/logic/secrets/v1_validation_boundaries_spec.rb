@@ -157,13 +157,17 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
         expect(V1::Logic::Secrets::BaseSecretAction.passphrase_min_length).to be_nil
       end
 
-      it 'returns nil when passphrase config is missing entirely' do
+      # A loaded config always has the key: DEFAULTS sets minimum_length and
+      # after_load merges DEFAULTS in. A config without it is a broken load,
+      # so the read raises instead of returning dig's nil.
+      it 'raises MissingPathError when the passphrase section is missing' do
         allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
-            'secret_options' => { 'passphrase' => { 'minimum_length' => nil } }
+            'secret_options' => {}
           }
         }))
-        expect(V1::Logic::Secrets::BaseSecretAction.passphrase_min_length).to be_nil
+        expect { V1::Logic::Secrets::BaseSecretAction.passphrase_min_length }
+          .to raise_error(Onetime::Config::MissingPathError, /site\.secret_options\.passphrase\.minimum_length/)
       end
 
       it 'returns the configured minimum_length when set' do
