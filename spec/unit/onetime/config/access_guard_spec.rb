@@ -68,7 +68,6 @@ module ConfigAccessGuard
     'locales' => 'legacy top-level list, read when internationalization.locales is unset',
     'site.authentication.colonels' => 'operator-set list of colonel emails; the defaults file does not define it',
     'site.authentication.external' => 'opt-in external auth section; the defaults file does not define it',
-    'site.domains.enabled' => 'V1 reads the wrong path; the setting is features.domains.enabled (#3991, D2)',
     'site.federation_secret' => 'FEDERATION_SECRET is read first; the defaults file does not define this key',
   }.freeze
 
