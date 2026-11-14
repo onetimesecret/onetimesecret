@@ -42,6 +42,7 @@ logship:
     matrix:
       - UV_PYTHON: ['3.11', '3.14']
   variables:
+    # Same as the uv install in static-analysis.yml (gitlab-lint-pins-test.sh).
     UV_VERSION: '0.9.7'
   before_script:
     - python -m pip install --disable-pip-version-check --root-user-action=ignore "uv==${UV_VERSION}"
@@ -62,7 +63,8 @@ bundler-audit:
   timeout: 10m
   allow_failure: true
   variables:
-    # Keep in step with BUNDLER_AUDIT_VERSION in static-analysis.yml.
+    # Same as static-analysis.yml; tools/testsuite/gitlab-lint-pins-test.sh
+    # fails when the two differ.
     BUNDLER_AUDIT_VERSION: '0.9.3'
   before_script:
     - gem install bundler-audit -v "${BUNDLER_AUDIT_VERSION}" --no-document
