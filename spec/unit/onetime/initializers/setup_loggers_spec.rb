@@ -351,7 +351,7 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
   # the top-level ::DatabaseLogger) and read Onetime.conf[:environment] (the
   # config has no such key), so it never set a rate and FAMILIA_SAMPLE_RATE
   # had no effect.
-  describe '#configure_familia_hooks sample rate' do
+  describe '#configure_familia_sample_rate' do
     around do |example|
       saved = DatabaseLogger.sample_rate
       example.run
@@ -363,17 +363,13 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
       allow(ENV).to receive(:[]).and_call_original
       allow(ENV).to receive(:[]).with('FAMILIA_SAMPLE_RATE').and_return(nil)
       allow(ENV).to receive(:fetch).and_call_original
-      # Registering the command and lifecycle hooks would outlive the example.
-      allow(Familia).to receive(:respond_to?).and_call_original
-      allow(Familia).to receive(:respond_to?).with(:on_command).and_return(false)
-      allow(Familia).to receive(:respond_to?).with(:on_lifecycle).and_return(false)
     end
 
     def sample_rate_under(rack_env, override: nil)
       allow(ENV).to receive(:fetch).with('RACK_ENV', 'production').and_return(rack_env)
       allow(ENV).to receive(:[]).with('FAMILIA_SAMPLE_RATE').and_return(override)
       DatabaseLogger.sample_rate = 0.3 # replaced on every path
-      instance.send(:configure_familia_hooks)
+      instance.send(:configure_familia_sample_rate)
       DatabaseLogger.sample_rate
     end
 

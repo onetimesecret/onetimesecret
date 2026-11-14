@@ -806,35 +806,17 @@ module Onetime
         Otto.logger    = cached_loggers['Otto']
         Otto.debug     = Onetime.debug?
 
-        configure_familia_hooks
+        configure_familia_sample_rate
       end
 
-      # Register Familia hooks for Redis command and lifecycle logging.
-      # Uses sampling in production to reduce volume.
-      def configure_familia_hooks
+      # Set the share of Redis commands Familia's DatabaseLogger records.
+      # Command logging itself is switched on by DEBUG_DATABASE
+      # (SetupDatabaseLogging), which production blocks.
+      def configure_familia_sample_rate
         # Familia defines its DatabaseLogger middleware at the top level.
         return unless defined?(::DatabaseLogger)
 
         ::DatabaseLogger.sample_rate = familia_sample_rate
-
-        if Familia.respond_to?(:on_command)
-          Familia.on_command do |cmd, duration, context|
-            Familia.logger.debug 'Redis command',
-              command: cmd,
-              duration: duration,
-              context: context
-          end
-        end
-
-        return unless Familia.respond_to?(:on_lifecycle)
-
-        Familia.on_lifecycle do |event, instance, context|
-          Familia.logger.debug 'Familia lifecycle',
-            event: event,
-            class: instance.class.name,
-            identifier: instance.respond_to?(:identifier) ? instance.identifier : nil,
-            context: context
-        end
       end
 
       def log_effective_configuration(cached_loggers)
