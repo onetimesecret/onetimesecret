@@ -712,17 +712,35 @@ module Onetime
       end
 
       # The share of Redis commands Familia's DatabaseLogger writes to the
-      # log: FAMILIA_SAMPLE_RATE when set, else 1% in production and all of
-      # them in development. Elsewhere nil, which also logs every command.
-      # Comes from the environment (RACK_ENV), as backtrace_limit does; the
-      # config has no environment key.
+      # database command log (DEBUG_DATABASE=1; production never writes it).
+      # FAMILIA_SAMPLE_RATE when set, in any environment; otherwise 1% in
+      # production, every command in development, and nil elsewhere, which
+      # also logs every command. The environment comes from RACK_ENV, as
+      # backtrace_limit's does; the config has no environment key.
       def familia_sample_rate
-        override = ENV['FAMILIA_SAMPLE_RATE']&.to_f
+        override = familia_sample_rate_override
+        return override if override
+
         if production_environment?
-          override || 0.01
+          0.01
         elsif Onetime.development?
-          override || 1.0
+          1.0
         end
+      end
+
+      # FAMILIA_SAMPLE_RATE as a Float, or nil when it is unset or blank.
+      # DatabaseLogger.sample_rate= raises on a negative or infinite rate,
+      # and logger setup is not optional, so a value that is not a finite
+      # number of 0 or more is ignored with a warning instead of failing boot.
+      def familia_sample_rate_override
+        raw = ENV['FAMILIA_SAMPLE_RATE'].to_s.strip
+        return if raw.empty?
+
+        rate = Float(raw, exception: false)
+        return rate if rate&.finite? && !rate.negative?
+
+        warn "[SetupLoggers] FAMILIA_SAMPLE_RATE=#{raw.inspect} is not a number of 0 or more; ignored"
+        nil
       end
 
       # The event this formatter renders: the Log itself when its exception's

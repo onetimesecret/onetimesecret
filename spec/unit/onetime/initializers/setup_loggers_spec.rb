@@ -386,12 +386,31 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
     end
 
     it 'leaves sampling off in other environments' do
-      expect(sample_rate_under('testing', override: '0.5')).to be_nil
+      expect(sample_rate_under('testing')).to be_nil
+      expect(sample_rate_under('staging')).to be_nil
     end
 
-    it 'uses FAMILIA_SAMPLE_RATE in production and development' do
+    # Onetime.env raises on these; setting up the loggers must not.
+    it 'uses the production rate under a RACK_ENV it does not recognize' do
+      expect(sample_rate_under('prodution')).to eq(0.01)
+    end
+
+    it 'uses FAMILIA_SAMPLE_RATE in every environment' do
       expect(sample_rate_under('production', override: '0.5')).to eq(0.5)
       expect(sample_rate_under('development', override: '0.25')).to eq(0.25)
+      expect(sample_rate_under('staging', override: '0.75')).to eq(0.75)
+    end
+
+    it 'treats a blank FAMILIA_SAMPLE_RATE as unset' do
+      expect(sample_rate_under('production', override: '  ')).to eq(0.01)
+    end
+
+    # DatabaseLogger.sample_rate= raises on these, which would stop boot.
+    it 'ignores a FAMILIA_SAMPLE_RATE that is not a finite number of 0 or more, with a warning' do
+      %w[-0.5 1e999 abc].each do |value|
+        expect { expect(sample_rate_under('production', override: value)).to eq(0.01) }
+          .to output(/FAMILIA_SAMPLE_RATE=#{Regexp.escape(value.inspect)} is not a number/).to_stderr
+      end
     end
   end
 
