@@ -41,7 +41,7 @@ GATES = (
 # script both validate (kept in lockstep with the regex in derive-governance.sh).
 REF_SHAPE = re.compile(r"^([0-9a-fA-F]{40}|v[0-9]+\.[0-9]+\.[0-9]+)$")
 # Optional surrounding quotes tolerated, matching the Renovate customManager that
-# bumps this field (.github/renovate.json5).
+# bumps this field (.gitlab/renovate.json5).
 # Anchored at line start (MULTILINE, leading blanks only) so a commented-out
 # example (`# TRANSLATION_RULES_REF: ...`) is skipped, and the hex SHA is
 # case-insensitive to match the script's validator ([0-9a-fA-F]).
