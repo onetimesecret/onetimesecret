@@ -1,0 +1,128 @@
+# .github/workflows/github-release.yml
+---
+name: GitHub release (mirror)
+
+# GitHub is a read-only push mirror of https://gitlab.com/onetimesecret/onetimesecret.
+# Release tags are created on GitLab and reach GitHub through the mirror, where
+# build-and-publish-oci-images.yml builds the images and pushes them to Docker
+# Hub and GHCR. This workflow then creates the matching GitHub release page so
+# that the product footers (github.com/.../releases/tag/v<version>), people
+# watching releases here, and other consumers of release events keep working.
+# The release notes live on GitLab; the page created here links to them.
+#
+# Trigger: completion of the image workflow, so a release page appears only
+# after the images for that tag were published. A workflow_run workflow is
+# always read from the default branch (main), not from the tagged commit.
+#
+# Idempotent: when a release for the tag already exists (for example one a
+# maintainer wrote by hand, with its Deployment Notes), it is left alone.
+#
+# A release created with GITHUB_TOKEN starts no other workflow, so the
+# `release: published` trigger of visual-archive.yml does not fire for it.
+# The last step dispatches visual-archive.yml at the tag instead, and does so
+# again on a re-run when the existing release is this workflow's own, so a
+# failed dispatch is recovered by re-running the job. Archiving a tag a
+# second time replaces the archive with a new render of the same tag.
+
+on:
+  workflow_run:
+    workflows: ['Build and Publish OCI Images']
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing v* tag to create the GitHub release for'
+        required: true
+        type: string
+
+permissions:
+  contents: write  # gh release create
+  actions: write   # gh workflow run visual-archive.yml
+
+concurrency:
+  group: github-release-${{ github.event.workflow_run.head_branch || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Create GitHub release
+    # Only a v* tag push starts the image workflow with event `push`; its
+    # schedule and dispatch runs publish no release. The tag name is checked
+    # in the step, so an unexpected head_branch fails instead of skipping.
+    if: >-
+      github.repository == 'onetimesecret/onetimesecret' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.conclusion == 'success'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Create the release page
+        id: create
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          # For a tag push, workflow_run.head_branch is the tag name.
+          TAG: ${{ github.event.workflow_run.head_branch || inputs.tag }}
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+
+          if ! printf '%s' "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+            echo "::error::'$TAG' is not a release tag (v<major>.<minor>.<patch>[-suffix])"
+            exit 1
+          fi
+
+          # The tag must exist here, and for a workflow_run it must still point
+          # at the commit the images were built from.
+          tag_sha=$(gh api "repos/${GH_REPO}/commits/${TAG}" --jq .sha)
+          if [ -n "${RUN_SHA}" ] && [ "${tag_sha}" != "${RUN_SHA}" ]; then
+            echo "::error::tag ${TAG} is at ${tag_sha}; the images were built from ${RUN_SHA}"
+            exit 1
+          fi
+
+          if author=$(gh release view "$TAG" --json author --jq .author.login 2> /dev/null); then
+            echo "A GitHub release for ${TAG} already exists (author: ${author}); leaving it as is."
+            # A release this workflow created fired no release trigger, so a
+            # re-run dispatches the archive again: the first run may have
+            # failed after creating the release. A release a person created
+            # already started visual-archive.yml through `release: published`.
+            case "$author" in
+              'github-actions[bot]' | github-actions) echo "dispatch_archive=true" >> "$GITHUB_OUTPUT" ;;
+              *) echo "dispatch_archive=false" >> "$GITHUB_OUTPUT" ;;
+            esac
+            exit 0
+          fi
+
+          gitlab="https://gitlab.com/onetimesecret/onetimesecret"
+          cat > notes.md <<EOF
+          Release notes: ${gitlab}/-/releases/${TAG}
+          Changelog: ${gitlab}/-/blob/${TAG}/CHANGELOG.rst
+
+          Images:
+
+          - \`docker.io/onetimesecret/onetimesecret:${TAG}\`
+          - \`ghcr.io/onetimesecret/onetimesecret:${TAG}\`
+
+          The \`onetimesecret-s6\` and \`onetimesecret-lite\` images carry the same tag in both registries.
+
+          Development, issues and merge requests are on GitLab: ${gitlab}.
+          This repository is a read-only mirror.
+          EOF
+
+          flags=()
+          case "$TAG" in
+            *-*) flags=(--prerelease --latest=false) ;;
+          esac
+
+          gh release create "$TAG" --verify-tag --title "$TAG" \
+            --notes-file notes.md "${flags[@]}"
+          echo "dispatch_archive=true" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch the visual archive
+        if: steps.create.outputs.dispatch_archive == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.event.workflow_run.head_branch || inputs.tag }}
+        run: gh workflow run visual-archive.yml --ref "$TAG"

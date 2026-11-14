@@ -1,9 +1,12 @@
 # Issue template chooser configuration
 # Keep templates minimal.
 
-blank_issues_enabled: true
+blank_issues_enabled: false
 
 contact_links:
+  - name: Open an issue on GitLab
+    url: https://gitlab.com/onetimesecret/onetimesecret/-/issues/new
+    about: Development moved to GitLab. This GitHub repository is a read-only mirror.
   - name: Documentation
     url: https://docs.onetimesecret.com
     about: Check our documentation for answers

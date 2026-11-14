@@ -36,8 +36,8 @@ name: CI
 #   event, a push of a v* tag, or a manual dispatch with run_all, never a
 #   path. A pull request, a push to main or a merge-queue check skips those
 #   jobs; the verdict expects them skipped.
-# - Nightly and release-tag runs cover every configuration; main push and
-#   merge-group runs cover everything but the billing jobs
+# - Nightly and release-tag runs cover every configuration; main and develop
+#   push and merge-group runs cover everything but the billing jobs
 # - Workflow file changes (.github/**) run all jobs
 # - Use [ci-all] in commit message to force all jobs
 # - Use [ci-skip] in commit message to skip CI entirely
@@ -70,9 +70,13 @@ on:
   # Every commit on main gets a full run: it is the baseline the CI metrics
   # breakdown compares pull requests against, and it is what notify-results
   # reports for the default branch.
+  # develop gets the same run because merges happen on GitLab and reach this
+  # repository through its push mirror; until the GitLab pipeline gates
+  # merges, this post-merge run is the test signal for develop.
   push:
     branches:
       - main
+      - develop
     tags:
       - 'v*'
   schedule:
@@ -87,7 +91,7 @@ on:
   # No base-branch filter: a stacked PR (base chore/*, merge/*, another
   # feature branch) gets the same lanes as a PR into main. The old list
   # existed to avoid double runs against the push trigger, which now
-  # covers only main and tags.
+  # covers only main, develop and tags.
   pull_request:
     types: [opened, synchronize, reopened]
   # Runs on exact branch tip selected in UI. No merge commit.
@@ -108,7 +112,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # develop has no pre-merge gate on GitHub (merges happen on GitLab), so each
+  # mirrored develop commit keeps its own group and is never cancelled by the
+  # next one; a failure stays attributable to one merge. Every other ref
+  # cancels the superseded run.
+  group: ci-${{ github.workflow }}-${{ github.ref }}${{ github.ref == 'refs/heads/develop' && format('-{0}', github.sha) || '' }}
   cancel-in-progress: true
 
 jobs:
