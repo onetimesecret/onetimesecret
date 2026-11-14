@@ -45,9 +45,10 @@ module Onetime
 
             # Convert validation_type_for hash values (not keys) to symbols
             # YAML parses `example.com: regex` as {string => string/symbol}
-            # Truemail expects {string => symbol} - domain keys must be strings!
+            # Truemail expects {string => symbol}. The domain keys are
+            # already Strings: config keys are Strings on every load path.
             if key == 'validation_type_for' && value.is_a?(Hash)
-              value = value.transform_keys(&:to_s).transform_values(&:to_sym)
+              value = value.transform_values(&:to_sym)
             end
 
             # Convert logger hash for Truemail's keyword-arg API (**options).
