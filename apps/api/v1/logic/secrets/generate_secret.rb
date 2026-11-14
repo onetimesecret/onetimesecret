@@ -12,7 +12,7 @@ module V1::Logic
         @kind = :generate
 
         # Get password generation configuration
-        password_config = OT.conf.dig('site', 'secret_options', 'password_generation') || {}
+        password_config = OT.conf.get('site.secret_options.password_generation', {})
 
         # Extract parameters from payload with fallbacks to configuration
         length = payload['length']&.to_i || password_config['default_length'] || 12

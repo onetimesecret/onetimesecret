@@ -55,7 +55,7 @@ module V1::Logic
       # This changed in v0.24.1: prior versions hard-coded nil here, ignoring
       # any operator config. Now operators can opt-in to enforcement.
       def self.passphrase_min_length
-        OT.conf.dig('site', 'secret_options', 'passphrase', 'minimum_length')&.to_i
+        OT.conf.get('site.secret_options.passphrase.minimum_length')&.to_i
       end
 
       # Max secret size: 10_000 matches the API spec's maxLength: 10000
@@ -141,10 +141,10 @@ module V1::Logic
         #   min = V1_MIN_TTL (60s), max = V1_MAX_TTL (30 days)
         # These preserve v0.23.4 behavior. The config values are used for
         # default_ttl only; bounds are V1-specific constants.
-        secret_options = OT.conf.dig('site', 'secret_options') || {
+        secret_options = OT.conf.get('site.secret_options', {
           'default_ttl' => 7.days,
           'ttl_options' => [30.minutes, 2.hours, 1.day, 7.days],
-        }
+        })
         default_ttl    = secret_options['default_ttl']
 
         # V1 uses its own TTL bounds, not the config's ttl_options min/max.
@@ -362,7 +362,7 @@ module V1::Logic
         # When the operator sets minimum_length in config, V1 now enforces it.
         # When unset (nil), no minimum is enforced — preserving backward
         # compatibility for callers sending short passphrases.
-        passphrase_config = OT.conf.dig('site', 'secret_options', 'passphrase') || {}
+        passphrase_config = OT.conf.get('site.secret_options.passphrase', {})
 
         # Check if passphrase is required (defaults to false for V1 compat)
         if passphrase_config['required'] && passphrase.to_s.empty?
@@ -606,7 +606,7 @@ module V1::Logic
       #   on and the domain is not yet verified
       def validate_domain_verification(domain_record)
         served   = domain_record.served_as_tenant?
-        required = OT.conf.dig('features', 'domains', 'require_verified').to_s == 'true'
+        required = OT.conf.get('features.domains.require_verified').to_s == 'true'
         return if served && (!required || domain_record.verified.to_s == 'true')
 
         OT.li "[validate_domain_verif]: #{share_domain} unverified [#{cust&.custid}]"

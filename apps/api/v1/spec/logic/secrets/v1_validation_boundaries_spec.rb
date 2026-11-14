@@ -150,7 +150,7 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
         allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'secret_options' => {
-              'passphrase' => {}
+              'passphrase' => { 'minimum_length' => nil }
             }
           }
         }))
@@ -160,7 +160,7 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
       it 'returns nil when passphrase config is missing entirely' do
         allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
-            'secret_options' => {}
+            'secret_options' => { 'passphrase' => { 'minimum_length' => nil } }
           }
         }))
         expect(V1::Logic::Secrets::BaseSecretAction.passphrase_min_length).to be_nil
@@ -189,7 +189,8 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
             'site' => {
               'secret_options' => {
                 'passphrase' => {
-                  'maximum_length' => 128
+                  'maximum_length' => 128,
+                  'minimum_length' => nil
                 }
               }
             }
@@ -304,7 +305,8 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
             'site' => {
               'secret_options' => {
                 'passphrase' => {
-                  'maximum_length' => 128
+                  'maximum_length' => 128,
+                  'minimum_length' => nil
                 }
               }
             }
@@ -326,7 +328,8 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
               'secret_options' => {
                 'passphrase' => {
                   'enforce_complexity' => true,
-                  'maximum_length' => 128
+                  'maximum_length' => 128,
+                  'minimum_length' => nil
                 }
               }
             }

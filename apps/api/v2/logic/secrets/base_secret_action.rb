@@ -127,7 +127,7 @@ module V2::Logic
 
         # Get configuration options. We can rely on these values existing
         # because that are guaranteed by OT::Config.after_load.
-        secret_options = OT.conf.dig('site', 'secret_options') || {
+        secret_options = OT.conf.get('site.secret_options', nil) || {
           'default_ttl' => 7.days,
           'ttl_options' => [1.minute, 1.hour, 1.day, 7.days],
         }
@@ -384,7 +384,7 @@ module V2::Logic
       # @sync src/schemas/contracts/config/public.ts — passphrase options
       def validate_passphrase
         # Get passphrase configuration
-        passphrase_config = OT.conf.dig('site', 'secret_options', 'passphrase') || {}
+        passphrase_config = OT.conf.get('site.secret_options.passphrase', {})
 
         # Check if passphrase is required
         if passphrase_config['required'] && passphrase.to_s.empty?
@@ -685,7 +685,7 @@ module V2::Logic
       #   on and the domain is not yet verified
       def validate_domain_verification(domain_record)
         served   = domain_record.served_as_tenant?
-        required = OT.conf.dig('features', 'domains', 'require_verified').to_s == 'true'
+        required = OT.conf.get('features.domains.require_verified').to_s == 'true'
         return if served && (!required || domain_record.verified.to_s == 'true')
 
         secret_logger.warn 'Unverified custom share_domain rejected',

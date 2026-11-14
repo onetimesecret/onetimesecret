@@ -19,7 +19,7 @@ module V2
       end
 
       def base_scheme
-        Onetime.conf.dig('site', 'ssl') == false ? 'http://' : 'https://'
+        Onetime.conf.get('site.ssl') == false ? 'http://' : 'https://'
       end
 
       def server_port
@@ -27,12 +27,12 @@ module V2
       end
 
       def site_host
-        Onetime.conf['site']['host']
+        Onetime.conf.get('site.host')
       end
 
       def baseuri
         scheme = base_scheme
-        host   = Onetime.conf['site']['host']
+        host   = Onetime.conf.get('site.host')
         [scheme, host].join
       end
 

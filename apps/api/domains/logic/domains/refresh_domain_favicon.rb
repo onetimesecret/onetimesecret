@@ -51,7 +51,7 @@ module DomainsAPI::Logic
         # When jobs are disabled the Publisher runs an inline synchronous
         # DNS+HTTPS fetch on the request thread; the gate keeps the manual
         # button consistent with the auto path (dead when the worker is off).
-        if OT.conf.dig('jobs', 'favicon_fetch', 'enabled') == true
+        if OT.conf.get('jobs.favicon_fetch.enabled') == true
           begin
             Onetime::Jobs::Publisher.enqueue_favicon_fetch(@custom_domain.identifier, force: true)
             @queued = true

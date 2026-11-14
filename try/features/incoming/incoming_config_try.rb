@@ -68,7 +68,7 @@ receipt.memo
 begin
   conf_copy = YAML.load(YAML.dump(@_saved_conf_nil))
   conf_copy['features']['incoming']['enabled'] = true
-  conf_copy['site'].delete('secret')
+  conf_copy['site']['secret'] = nil
   OT.send(:conf=, conf_copy)
   Onetime::Initializers::SetupIncomingRecipients.new.execute(nil)
   false

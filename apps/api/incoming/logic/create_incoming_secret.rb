@@ -62,7 +62,7 @@ module Incoming
         @recipient_hash = sanitize_identifier(@payload['recipient'].to_s.strip)
 
         # Set passphrase from global config (not per-domain yet)
-        incoming_config = OT.conf.dig('features', 'incoming') || {}
+        incoming_config = OT.conf.get('features.incoming', {})
         @passphrase     = incoming_config['default_passphrase']
 
         # NOTE: Resolver calls (config_data, lookup) are deferred to
