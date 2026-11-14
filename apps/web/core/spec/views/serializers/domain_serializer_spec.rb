@@ -251,10 +251,10 @@ RSpec.describe Core::Views::DomainSerializer do
 
       def boot_domain_strategy(domains_config)
         allow(OT).to receive(:conf).and_return(
-          {
+          OT::Config.wrap({
             'site' => { 'host' => site_host },
             'features' => { 'domains' => domains_config },
-          },
+          }),
         )
         Onetime::Middleware::DomainStrategy.initialize_from_config(domains_config)
       end

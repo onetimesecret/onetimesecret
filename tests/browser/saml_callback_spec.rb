@@ -172,7 +172,7 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport, lane_env: { 'SAML_ENA
       fixture_config['site']['authentication']['enabled'] = true
       fixture_config['site']['network']                 ||= {}
       fixture_config['features']['domains']               = { 'enabled' => true, 'default' => hosts[:canonical] }
-      allow(Onetime).to receive(:conf).and_return(fixture_config)
+      allow(Onetime).to receive(:conf).and_return(Onetime::Config.wrap(fixture_config))
       allow(Onetime::Runtime).to receive(:features).and_return(Onetime::Runtime.features.with(domains_enabled: true))
       # Simple-mode deliberately disables platform SSO. Override only this
       # availability flag; keep real origin derivation and route admission.

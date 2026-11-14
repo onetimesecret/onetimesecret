@@ -106,7 +106,7 @@ RSpec.describe 'restrict_to display/gate parity' do
   before do
     allow(Onetime).to receive(:auth_config).and_return(mock_auth_config)
     allow(OT).to receive(:conf).and_return(
-      { 'site' => { 'authentication' => { 'enabled' => true, 'signin' => true } } }
+      OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => true, 'signin' => true } } })
     )
 
     # ONE identity read for both halves: the gate (Auth::RestrictTo) and the
@@ -271,7 +271,7 @@ RSpec.describe 'restrict_to display/gate parity' do
       before do
         allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
         allow(OT).to receive(:conf).and_return(
-          { 'site' => { 'authentication' => { 'enabled' => false, 'signin' => true } } }
+          OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => false, 'signin' => true } } })
         )
       end
 

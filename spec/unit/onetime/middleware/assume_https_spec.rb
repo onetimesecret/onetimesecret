@@ -24,7 +24,7 @@ RSpec.describe Onetime::Middleware::AssumeHttps, :aggregate_failures do
 
   def request_through_stack(enabled, trusted, header, value)
     allow(OT).to receive(:conf).and_return(
-      'site' => { 'network' => { 'assume_https' => enabled } },
+      OT::Config.wrap('site' => { 'network' => { 'assume_https' => enabled } }),
     )
     Rack::Request.forwarded_priority = header == 'HTTP_FORWARDED' ? [:forwarded] : [:x_forwarded]
 
@@ -61,7 +61,7 @@ RSpec.describe Onetime::Middleware::AssumeHttps, :aggregate_failures do
 
   it 'leaves the environment unchanged when disabled' do
     allow(OT).to receive(:conf).and_return(
-      'site' => { 'network' => { 'assume_https' => false } },
+      OT::Config.wrap('site' => { 'network' => { 'assume_https' => false } }),
     )
     env      = Rack::MockRequest.env_for('http://onetime.test/', 'HTTP_X_FORWARDED_PROTO' => 'https')
     original = env.dup
@@ -73,7 +73,7 @@ RSpec.describe Onetime::Middleware::AssumeHttps, :aggregate_failures do
 
   it 'does not alter forwarded headers when enabled' do
     allow(OT).to receive(:conf).and_return(
-      'site' => { 'network' => { 'assume_https' => true } },
+      OT::Config.wrap('site' => { 'network' => { 'assume_https' => true } }),
     )
     env = Rack::MockRequest.env_for('http://onetime.test/', 'HTTP_X_FORWARDED_PROTO' => 'http')
 

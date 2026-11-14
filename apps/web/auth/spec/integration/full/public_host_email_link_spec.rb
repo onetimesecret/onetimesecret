@@ -231,7 +231,7 @@ RSpec.describe 'delivered email links use the public host (#4221)', type: :integ
     before do
       conf = OT.conf
       allow(OT).to receive(:conf).and_return(
-        conf.merge('site' => conf.fetch('site').merge('host' => canonical_host)),
+        OT::Config.wrap(conf.merge('site' => conf.fetch('site').merge('host' => canonical_host))),
       )
       # The lane boots these optional features OFF. Configure a router subclass
       # with the production modules, leaving the shared one-shot router untouched.
@@ -395,7 +395,7 @@ RSpec.describe 'delivered email links use the public host (#4221)', type: :integ
       conf = OT.conf
       authentication = conf.fetch('site').fetch('authentication').merge('signin' => false).freeze
       allow(OT).to receive(:conf).and_return(
-        conf.merge('site' => conf.fetch('site').merge('authentication' => authentication)),
+        OT::Config.wrap(conf.merge('site' => conf.fetch('site').merge('authentication' => authentication))),
       )
       expect(Onetime::CustomDomain::SigninConfig.global_signin_enabled).to be(false)
 

@@ -20,7 +20,7 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
 
   before do
     allow(OT).to receive(:conf).and_return(
-      'site' => { 'authentication' => { 'enabled' => true, 'signin' => true } },
+      OT::Config.wrap('site' => { 'authentication' => { 'enabled' => true, 'signin' => true } }),
     )
     allow(Onetime).to receive(:auth_config).and_return(auth_config)
     allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
@@ -35,7 +35,7 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
 
     it 'fails a password restriction closed when global sign-in is disabled' do
       allow(OT).to receive(:conf).and_return(
-        'site' => { 'authentication' => { 'enabled' => true, 'signin' => false } },
+        OT::Config.wrap('site' => { 'authentication' => { 'enabled' => true, 'signin' => false } }),
       )
 
       expect(resolution).to be_unavailable

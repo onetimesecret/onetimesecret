@@ -134,7 +134,7 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
   describe '#reconnect' do
     context 'when jobs are disabled' do
       before do
-        allow(OT).to receive(:conf).and_return({ 'jobs' => { 'enabled' => false } })
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'jobs' => { 'enabled' => false } }))
       end
 
       it 'does not attempt to connect' do
@@ -146,7 +146,7 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
 
     context 'when jobs are enabled' do
       before do
-        allow(OT).to receive(:conf).and_return({ 'jobs' => { 'enabled' => true } })
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'jobs' => { 'enabled' => true } }))
         allow(instance).to receive(:setup_rabbitmq_connection)
       end
 
@@ -158,7 +158,7 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
 
     context 'when connection fails' do
       before do
-        allow(OT).to receive(:conf).and_return({ 'jobs' => { 'enabled' => true } })
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'jobs' => { 'enabled' => true } }))
         allow(instance).to receive(:setup_rabbitmq_connection)
           .and_raise(Bunny::TCPConnectionFailed.new('Connection refused'))
       end
@@ -170,7 +170,7 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
 
     context 'when timeout occurs' do
       before do
-        allow(OT).to receive(:conf).and_return({ 'jobs' => { 'enabled' => true } })
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'jobs' => { 'enabled' => true } }))
         allow(instance).to receive(:setup_rabbitmq_connection)
           .and_raise(Bunny::ConnectionTimeout.new('Timeout'))
       end
@@ -411,7 +411,7 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
 
     describe 'TCP connection failed' do
       before do
-        allow(OT).to receive(:conf).and_return({ 'jobs' => { 'enabled' => true } })
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'jobs' => { 'enabled' => true } }))
         allow(instance).to receive(:setup_rabbitmq_connection)
           .and_raise(Bunny::TCPConnectionFailed.new('Connection refused'))
       end
@@ -423,7 +423,7 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
 
     describe 'connection timeout' do
       before do
-        allow(OT).to receive(:conf).and_return({ 'jobs' => { 'enabled' => true } })
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'jobs' => { 'enabled' => true } }))
         allow(instance).to receive(:setup_rabbitmq_connection)
           .and_raise(Bunny::ConnectionTimeout.new('Timeout'))
       end
@@ -438,7 +438,7 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
       # so developers can debug issues during startup
 
       before do
-        allow(OT).to receive(:conf).and_return({ 'jobs' => { 'enabled' => true } })
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'jobs' => { 'enabled' => true } }))
         allow(instance).to receive(:setup_rabbitmq_connection)
           .and_raise(StandardError.new('Unexpected error'))
       end
@@ -497,7 +497,7 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
     context 'when SKIP_RABBITMQ_SETUP=1' do
       before do
         ENV['SKIP_RABBITMQ_SETUP'] = '1'
-        allow(OT).to receive(:conf).and_return({ 'jobs' => { 'enabled' => true } })
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'jobs' => { 'enabled' => true } }))
       end
 
       it 'skips connection setup entirely' do
@@ -519,13 +519,13 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
     context 'when SKIP_RABBITMQ_SETUP is not set' do
       before do
         ENV.delete('SKIP_RABBITMQ_SETUP')
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'jobs' => {
             'enabled' => true,
             'rabbitmq_url' => 'amqp://localhost',
             'channel_pool_size' => 2
           }
-        })
+        }))
       end
 
       # execute installs the connection and pool doubles in the globals;
@@ -562,7 +562,7 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
       context 'when SKIP_RABBITMQ_SETUP=1' do
         before do
           ENV['SKIP_RABBITMQ_SETUP'] = '1'
-          allow(OT).to receive(:conf).and_return({ 'jobs' => { 'enabled' => true } })
+          allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'jobs' => { 'enabled' => true } }))
         end
 
         it 'returns early without calling setup_rabbitmq_connection' do
@@ -580,7 +580,7 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
       context 'when SKIP_RABBITMQ_SETUP is not set and jobs are enabled' do
         before do
           ENV.delete('SKIP_RABBITMQ_SETUP')
-          allow(OT).to receive(:conf).and_return({ 'jobs' => { 'enabled' => true } })
+          allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'jobs' => { 'enabled' => true } }))
           allow(instance).to receive(:setup_rabbitmq_connection)
         end
 
@@ -610,13 +610,13 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
     context 'when channel_pool_size is set in config' do
       before do
         ENV.delete('SKIP_RABBITMQ_SETUP')
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'jobs' => {
             'enabled' => true,
             'rabbitmq_url' => 'amqp://localhost',
             'channel_pool_size' => 10,
           }
-        })
+        }))
       end
 
       # execute installs the connection and pool doubles in the globals;
@@ -718,13 +718,13 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
     let(:mock_pool) { instance_double(ConnectionPool) }
 
     before do
-      allow(OT).to receive(:conf).and_return({
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({
         'jobs' => {
           'enabled' => true,
           'rabbitmq_url' => 'amqp://localhost',
           'channel_pool_size' => 2
         }
-      })
+      }))
     end
 
     after do

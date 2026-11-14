@@ -75,10 +75,10 @@ RSpec.describe AccountAPI::Logic::Account::UpdateOrganizationContext do
     allow(OT).to receive(:ld)
     allow(OT).to receive(:li)
     allow(OT).to receive(:conf).and_return(
-      {
+      OT::Config.wrap({
         'site' => {},
         'features' => { 'domains' => { 'enabled' => true } },
-      },
+      }),
     )
     allow(Onetime::Organization).to receive(:load).and_return(nil)
     allow(Onetime::Organization).to receive(:load).with(target_org.objid).and_return(target_org)

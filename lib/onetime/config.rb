@@ -7,6 +7,7 @@ require 'ipaddr' # check_admin_allowed_cidrs parses ADMIN_ALLOWED_CIDRS at boot
 require 'json' # String#to_json for YAML-safe BRAND_* interpolation (see brand block)
 require 'public_suffix' # validate_link_domains! parses LINK_DOMAINS entries at boot
 require_relative 'utils/admin_host_allowlist' # check_admin_allowed_hosts classifies ADMIN_ALLOWED_HOSTS at boot
+require_relative 'config/reader'
 require_relative 'utils/config_resolver'
 require_relative 'utils/domain_parser'
 require_relative 'utils/enumerables'
@@ -432,15 +433,20 @@ module Onetime
     def load_yaml_with_erb(path)
       parsed_template = ERB.new(File.read(path))
       # Use safe_load so a malicious config file cannot instantiate arbitrary
-      # Ruby objects (!ruby/object). Symbol is permitted because config keys
-      # and values use symbols. Date and Time are permitted so an unquoted
+      # Ruby objects (!ruby/object). Symbol is permitted for values
+      # (mail.truemail uses them); a Symbol key (`:host:`) is converted to a
+      # String by string_keys below. Date and Time are permitted so an unquoted
       # date/time in a deployment's config (e.g. `expires: 2026-01-02`) loads
       # as a Date/Time instance rather than raising Psych::DisallowedClass and
       # breaking boot (per issue #3498's recommendation). aliases: true keeps
       # anchors/aliases working, matching the config validator
       # (operations/config/validate.rb) so a config that validates also boots;
       # the validator's permitted_classes are kept in sync with this list.
-      YAML.safe_load(parsed_template.result, permitted_classes: [Symbol, Date, Time], aliases: true) || {}
+      data            = YAML.safe_load(parsed_template.result, permitted_classes: [Symbol, Date, Time], aliases: true) || {}
+
+      # Per file, before the layer merge, so `:host` and `host` in one file
+      # raise instead of one silently replacing the other.
+      string_keys(data)
     end
     private :load_yaml_with_erb
 
@@ -474,11 +480,12 @@ module Onetime
       # Create a deep copy of the configuration to prevent unintended mutations
       # This protects against side effects when multiple components access the same config
       # Without this, modifications to the config in one component could affect others.
-      conf = if loaded_config.nil?
-        {}
-      else
-        deep_clone(loaded_config)
-      end
+      #
+      # String keys from here on, whatever produced loaded_config (an
+      # explicit-path load, a test, apply_config). Read `loaded`, never
+      # loaded_config, for the values as given before DEFAULTS are merged in.
+      loaded = loaded_config.nil? ? {} : string_keys(deep_clone(loaded_config))
+      conf   = loaded
 
       # SAFETY MEASURE: Validation and Default Security Settings
       # Ensure all critical security-related configurations exist
@@ -649,7 +656,7 @@ module Onetime
 
       # Apply the defaults to sentry backend and frontend configs
       # and set our local config with the merged values.
-      diagnostics                                = loaded_config.fetch('diagnostics', {})
+      diagnostics                                = loaded['diagnostics'] || {}
       conf['diagnostics']                        = {
         'enabled' => diagnostics_enabled?(diagnostics),
         'sentry' => apply_defaults_to_peers(diagnostics['sentry']),
@@ -677,6 +684,7 @@ module Onetime
       # Skip freezing in test mode to allow config modifications for test isolation.
       # Tests may need to modify config values without triggering FrozenError.
       # See also: boot.rb line 133 which guards the raw_conf freeze.
+      conf = wrap(conf)
       deep_freeze(conf) unless OT.testing?
       conf
     end
@@ -1552,6 +1560,69 @@ module Onetime
       Onetime::Utils::Enumerables.deep_clone(config_hash, max_size: Float::INFINITY)
     end
 
+    # Gives a config Hash the OT.conf reader, Reader#get. The Hash keeps its
+    # class, identity and contents. A frozen Hash cannot be extended, so it is
+    # copied (shallow) and the copy frozen. Idempotent. Anything that is not a
+    # Hash, nil included, is returned unchanged.
+    #
+    # @param config [Hash, nil]
+    # @return [Hash, nil]
+    def wrap(config)
+      return config unless config.is_a?(Hash)
+      return config if config.is_a?(Reader)
+      return config.dup.extend(Reader).freeze if config.frozen?
+
+      config.extend(Reader)
+    end
+
+    # Copies +obj+ with every Hash key converted to a String, recursing into
+    # Hashes and Arrays. Values, Symbols included, are kept. Two keys on one
+    # level that convert to the same String (`:host` and `host`) raise:
+    # keeping either one would drop the other's value without a trace.
+    #
+    # @param obj [Object]
+    # @return [Object] the copy
+    # @raise [OT::ConfigError] on such a collision, or nesting deeper than
+    #   Onetime::Utils::Enumerables::DEFAULT_MAX_DEPTH
+    def string_keys(obj, path = [])
+      if path.length > Onetime::Utils::Enumerables::DEFAULT_MAX_DEPTH
+        raise OT::ConfigError, "Config nesting is deeper than #{path.length - 1} levels at '#{key_path_label(path)}'"
+      end
+
+      case obj
+      when Hash
+        originals = {}
+        obj.each_with_object({}) do |(key, value), result|
+          name = key.to_s
+          if originals.key?(name)
+            raise OT::ConfigError,
+              "Config key '#{key_path_label(path + [name])}' is set twice, as " \
+              "#{originals[name].inspect} and #{key.inspect}; remove one"
+          end
+
+          originals[name] = key
+          result[name]    = string_keys(value, path + [name])
+        end
+      when Array
+        obj.map.with_index { |item, index| string_keys(item, path + [index]) }
+      else
+        obj
+      end
+    end
+
+    # 'features.regions.jurisdictions[0].identifier' for string_keys errors.
+    def key_path_label(path)
+      path.each_with_object(+'') do |segment, label|
+        if segment.is_a?(Integer)
+          label << "[#{segment}]"
+        else
+          label << '.' unless label.empty?
+          label << segment
+        end
+      end
+    end
+    private :key_path_label
+
     # Applies default values to its config level peers
     #
     # @param config [Hash] Configuration with top-level section keys, including a 'defaults' key
@@ -1622,7 +1693,7 @@ module Onetime
     # Makes a deep copy of OT.conf, then merges the system settings data, and
     # replaces OT.config with the merged data.
     def apply_config(other)
-      new_config = deep_merge(OT.conf, other)
+      new_config = deep_merge(OT.conf, string_keys(other))
       OT.replace_config! new_config
     end
 

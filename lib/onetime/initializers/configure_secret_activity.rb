@@ -29,7 +29,7 @@ module Onetime
         feature = Onetime::Organization::Features::SecretActivity
 
         max_events = begin
-          Integer(OT.conf.dig('features', 'secret_activity', 'max_events'))
+          Integer(OT.conf.get('features.secret_activity.max_events'))
         rescue ArgumentError, TypeError
           feature::DEFAULT_MAX_EVENTS
         end

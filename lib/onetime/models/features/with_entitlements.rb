@@ -83,7 +83,7 @@ module Onetime
         #
         # @return [Integer] Ceiling in seconds for anonymous callers
         def self.configured_anonymous_max_ttl
-          raw = OT.conf.dig('site', 'secret_options', 'ttl_max_anonymous')
+          raw = OT.conf.get('site.secret_options.ttl_max_anonymous')
           return ANONYMOUS_MAX_TTL if raw.nil?
 
           value = Integer(raw)

@@ -53,6 +53,16 @@ Onetime::Receipt.min_warning_ttl.class
 Onetime::Receipt.min_warning_ttl > 0
 #=> true
 
+## min_warning_ttl reads jobs.expiration_warnings.min_ttl_hours
+@saved_min_ttl_hours = OT.conf['jobs']['expiration_warnings']['min_ttl_hours']
+begin
+  OT.conf['jobs']['expiration_warnings']['min_ttl_hours'] = 7
+  Onetime::Receipt.min_warning_ttl
+ensure
+  OT.conf['jobs']['expiration_warnings']['min_ttl_hours'] = @saved_min_ttl_hours
+end
+#=> 25200
+
 ## register_for_expiration_notifications returns false for short TTL secrets
 # Create receipt with 1 hour TTL (below 48h minimum)
 short_lived = create_test_receipt(3600)

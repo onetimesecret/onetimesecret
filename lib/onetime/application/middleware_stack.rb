@@ -281,7 +281,7 @@ module Onetime
           # a bad path / missing maxmind-db gem then fails at boot, not per
           # request. Requires the optional 'maxmind-db' gem; inert by default
           # (site.network.geo.db_path is unset).
-          geo_db_path = OT.conf.dig('site', 'network', 'geo', 'db_path').to_s.strip
+          geo_db_path = OT.conf.get('site.network.geo.db_path', nil).to_s.strip
           unless geo_db_path.empty?
             config.ip_privacy_config.geo_db_path = geo_db_path
             config.ip_privacy_config.load_geo_database!
@@ -302,7 +302,7 @@ module Onetime
             return config
           end
 
-          tp = OT.conf.dig('site', 'network', 'trusted_proxy') || {}
+          tp = OT.conf.get('site.network.trusted_proxy', {})
 
           # Mode comes from the shared reader, not from `tp` — it is the one
           # key in this block that a second consumer (the admin-isolation
@@ -323,7 +323,7 @@ module Onetime
           # mode to 'depth'", which is what they believe they did, and the typo
           # never appears.
           if mode != 'depth' && !header.casecmp?(DEFAULT_TRUSTED_PROXY_HEADER)
-            configured_mode = OT.conf.dig('site', 'network', 'trusted_proxy', 'mode').to_s.strip
+            configured_mode = OT.conf.get('site.network.trusted_proxy.mode', nil).to_s.strip
             mode_note       = if configured_mode.empty? || configured_mode.downcase == mode
                                 "mode=#{mode}"
                               else
@@ -341,7 +341,7 @@ module Onetime
 
           # Read here rather than in the filter branch: depth mode needs it to
           # tell the operator their setting is inert (below).
-          geo_header = OT.conf.dig('site', 'network', 'geo', 'header').to_s.strip
+          geo_header = OT.conf.get('site.network.geo.header', nil).to_s.strip
 
           # Which forwarded header depth mode counts hops from (otto#150), and
           # since otto 2.10 which family Rack::Request.forwarded_priority is
@@ -445,7 +445,7 @@ module Onetime
         #
         # @return [Boolean]
         def trusted_proxy_enabled?
-          OT.conf.dig('site', 'network', 'trusted_proxy', 'enabled') == true
+          OT.conf.get('site.network.trusted_proxy.enabled', nil) == true
         end
 
         # How the client IP is resolved when a trusted proxy IS declared
@@ -507,7 +507,7 @@ module Onetime
         # @return [String] 'filter' or 'depth' — never any other value
         def trusted_proxy_mode
           default    = 'filter'
-          configured = OT.conf.dig('site', 'network', 'trusted_proxy', 'mode').to_s
+          configured = OT.conf.get('site.network.trusted_proxy.mode', nil).to_s
           raw        = configured.strip.downcase
 
           return default if raw.empty?
@@ -696,7 +696,7 @@ module Onetime
           # header of a SAML POST callback). Toggled by
           # site.middleware.cookie_tossing, like the Security components.
           cookie_tossing = Onetime::Middleware::Registry.fetch('CookieTossing')
-          if OT.conf.dig('site', 'middleware', cookie_tossing[:key].to_s)
+          if OT.conf.get(['site', 'middleware', cookie_tossing[:key].to_s], nil)
             builder.use cookie_tossing[:klass]
           else
             warn_once :cookie_tossing_disabled,

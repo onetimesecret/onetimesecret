@@ -691,7 +691,7 @@ RSpec.describe Onetime::Chores::RemoveOrphanedApproximatedVhosts do
 
       it 'reads OT.conf: approximated blocks' do
         allow(OT).to receive(:conf)
-          .and_return({ 'features' => { 'domains' => { 'validation_strategy' => 'approximated' } } })
+          .and_return(OT::Config.wrap({ 'features' => { 'domains' => { 'validation_strategy' => 'approximated' } } }))
 
         expect(chore.strategy_permits_cleanup?).to be false
         expect(chore.call(domain)).to be_nil
@@ -700,7 +700,7 @@ RSpec.describe Onetime::Chores::RemoveOrphanedApproximatedVhosts do
 
       it 'reads OT.conf: caddy_on_demand permits' do
         allow(OT).to receive(:conf)
-          .and_return({ 'features' => { 'domains' => { 'validation_strategy' => 'caddy_on_demand' } } })
+          .and_return(OT::Config.wrap({ 'features' => { 'domains' => { 'validation_strategy' => 'caddy_on_demand' } } }))
 
         expect(chore.strategy_permits_cleanup?).to be true
       end

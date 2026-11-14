@@ -22,7 +22,7 @@ RSpec.describe Onetime::Middleware::Security do
     end
 
     before do
-      allow(OT).to receive(:conf).and_return('site' => { 'middleware' => middleware_settings })
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap('site' => { 'middleware' => middleware_settings }))
       allow(OT).to receive(:lw)
       Onetime::Application::MiddlewareStack.reset_warn_once!
     end

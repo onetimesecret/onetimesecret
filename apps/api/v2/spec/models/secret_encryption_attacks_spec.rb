@@ -10,11 +10,11 @@ RSpec.describe Onetime::Secret, 'security hardening' do
   let(:secret_value) { 'Sensitive information 123' }
 
   before do
-    allow(OT).to receive_messages(global_secret: 'global-test-secret', conf: {
+    allow(OT).to receive_messages(global_secret: 'global-test-secret', conf: OT::Config.wrap({
       'development' => {
         'allow_nil_global_secret' => false,
       },
-    }
+    })
     )
   end
 

@@ -181,7 +181,7 @@ module Onetime
       def session_auth_enforced?
         return false unless defined?(OT) && OT.respond_to?(:conf)
 
-        auth_conf = OT.conf&.dig('site', 'authentication')
+        auth_conf = OT.conf&.get('site.authentication')
         return false unless auth_conf
 
         auth_conf['enabled'] != false

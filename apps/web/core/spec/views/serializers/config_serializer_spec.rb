@@ -132,7 +132,7 @@ RSpec.describe Core::Views::ConfigSerializer do
     # SigninConfig.global_auth_enabled (AUTH_ENABLED) before the credential
     # checks, and these examples exercise the credential/permission gates.
     allow(OT).to receive(:conf).and_return(
-      { 'site' => { 'authentication' => { 'enabled' => true } } }
+      OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => true }, 'host' => nil, 'secret_options' => { 'ttl_max_anonymous' => nil } }, 'diagnostics' => nil })
     )
   end
 
@@ -402,6 +402,65 @@ RSpec.describe Core::Views::ConfigSerializer do
         # whitelist silently serializes as empty for every real request even
         # though direct serialize calls (like the ones above) see it.
         expect(Core::Views::InitializeViewVars.safe_site_fields).to include('legal')
+      end
+    end
+
+    # Config.after_load merges diagnostics.sentry.defaults into each peer and
+    # removes the defaults section; the serializer reads the frontend peer.
+    describe 'diagnostics.sentry' do
+      def sentry_output(sentry)
+        diagnostics = { 'sentry' => Onetime::Config.apply_defaults_to_peers(sentry) }
+        described_class.serialize(base_view_vars.merge('diagnostics' => diagnostics))['diagnostics']['sentry']
+      end
+
+      before { allow(Onetime).to receive(:d9s_enabled).and_return(true) }
+
+      it 'publishes the shared defaults the frontend peer inherits' do
+        output = sentry_output(
+          'defaults' => { 'dsn' => 'https://key@sentry.example.com/1', 'sampleRate' => 0.1, 'maxBreadcrumbs' => 7, 'logErrors' => false },
+          'frontend' => { 'dsn' => nil },
+        )
+
+        expect(output).to include(
+          'dsn' => 'https://key@sentry.example.com/1', 'sampleRate' => 0.1, 'maxBreadcrumbs' => 7, 'logErrors' => false,
+        )
+      end
+
+      it 'lets a frontend value override the shared default' do
+        output = sentry_output(
+          'defaults' => { 'sampleRate' => 0.1 },
+          'frontend' => { 'sampleRate' => 0.5 },
+        )
+
+        expect(output['sampleRate']).to eq(0.5)
+      end
+
+      it 'falls back to the SDK values when neither sets them' do
+        output = sentry_output('frontend' => { 'dsn' => 'https://key@sentry.example.com/1' })
+
+        expect(output).to include('sampleRate' => 1.0, 'maxBreadcrumbs' => 5, 'logErrors' => true)
+      end
+
+      # SENTRY_SAMPLE_RATE= and SENTRY_MAX_BREADCRUMBS= (blank, as in
+      # .env.reference) render as nil; nil.to_f would send 0 and drop every event.
+      it 'falls back to the SDK values when the defaults are blank' do
+        output = sentry_output('defaults' => { 'sampleRate' => nil, 'maxBreadcrumbs' => nil, 'logErrors' => nil }, 'frontend' => {})
+
+        expect(output).to include('sampleRate' => 1.0, 'maxBreadcrumbs' => 5, 'logErrors' => true)
+      end
+
+      # The bootstrap contract takes a rate in 0..1 (bootstrap.ts).
+      it 'falls back to the SDK sample rate when the value is outside 0..1 or not a number' do
+        expect(sentry_output('defaults' => { 'sampleRate' => 25 }, 'frontend' => {})['sampleRate']).to eq(1.0)
+        expect(sentry_output('defaults' => { 'sampleRate' => 'abc' }, 'frontend' => {})['sampleRate']).to eq(1.0)
+        expect(sentry_output('defaults' => { 'sampleRate' => '0.25' }, 'frontend' => {})['sampleRate']).to eq(0.25)
+        expect(sentry_output('defaults' => { 'sampleRate' => 0 }, 'frontend' => {})['sampleRate']).to eq(0.0)
+      end
+
+      it 'keeps logErrors false and a zero breadcrumb limit' do
+        output = sentry_output('defaults' => { 'logErrors' => false, 'maxBreadcrumbs' => 0 }, 'frontend' => {})
+
+        expect(output).to include('logErrors' => false, 'maxBreadcrumbs' => 0)
       end
     end
 
@@ -949,7 +1008,7 @@ RSpec.describe Core::Views::ConfigSerializer do
           # shape before consulting env-var provider config
           # (build_platform_sso_config re-checks as defense in depth).
           allow(OT).to receive(:conf).and_return(
-            { 'site' => { 'authentication' => { 'enabled' => false } } }
+            OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => false } } })
           )
         end
 
@@ -1282,7 +1341,7 @@ RSpec.describe Core::Views::ConfigSerializer do
               { 'route_name' => 'google', 'display_name' => 'Google' },
             ])
             allow(OT).to receive(:conf).and_return(
-              { 'site' => { 'authentication' => { 'enabled' => false } } }
+              OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => false } } })
             )
           end
 
@@ -1417,7 +1476,7 @@ RSpec.describe Core::Views::ConfigSerializer do
     context 'when AUTH_ENABLED is off' do
       before do
         allow(OT).to receive(:conf).and_return(
-          { 'site' => { 'authentication' => { 'enabled' => false } } }
+          OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => false } } })
         )
       end
 
@@ -1469,7 +1528,7 @@ RSpec.describe Core::Views::ConfigSerializer do
     context 'when AUTH_ENABLED is off' do
       before do
         allow(OT).to receive(:conf).and_return(
-          { 'site' => { 'authentication' => { 'enabled' => false } } }
+          OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => false } } })
         )
       end
 
@@ -1522,7 +1581,7 @@ RSpec.describe Core::Views::ConfigSerializer do
     context 'when AUTH_ENABLED is off' do
       before do
         allow(OT).to receive(:conf).and_return(
-          { 'site' => { 'authentication' => { 'enabled' => false } } }
+          OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => false } } })
         )
       end
 
@@ -1550,7 +1609,7 @@ RSpec.describe Core::Views::ConfigSerializer do
       # what they are named for.
       before do
         allow(OT).to receive(:conf).and_return(
-          { 'site' => { 'authentication' => { 'enabled' => true, 'signin' => true } } }
+          OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => true, 'signin' => true } } })
         )
         allow(mock_auth_config).to receive(:email_auth_enabled?).and_return(true)
       end

@@ -105,7 +105,7 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
         identifier: 'metadata_key_123',
         secret_ttl: 3600,
         current_expiration: 7000)
-      allow(Onetime).to receive(:conf).and_return({ 'site' => {} })
+      allow(Onetime).to receive(:conf).and_return(Onetime::Config.wrap({ 'site' => {} }))
       result_no_domain = V1::Controllers::Index.receipt_hsh(md_no_domain)
       expect(result_no_domain['metadata_url']).to be_nil
     end
@@ -117,7 +117,7 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
         identifier: 'metadata_key_123',
         secret_ttl: 3600,
         current_expiration: 7000)
-      allow(Onetime).to receive(:conf).and_return({ 'site' => { 'host' => '' } })
+      allow(Onetime).to receive(:conf).and_return(Onetime::Config.wrap({ 'site' => { 'host' => '' } }))
       result_empty = V1::Controllers::Index.receipt_hsh(md_empty)
       expect(result_empty['metadata_url']).to be_nil
     end
@@ -129,7 +129,7 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
         identifier: 'metadata_key_123',
         secret_ttl: 3600,
         current_expiration: 7000)
-      allow(Onetime).to receive(:conf).and_return({ 'site' => { 'host' => nil } })
+      allow(Onetime).to receive(:conf).and_return(Onetime::Config.wrap({ 'site' => { 'host' => nil } }))
       result_nil = V1::Controllers::Index.receipt_hsh(md_nil)
       expect(result_nil['metadata_url']).to be_nil
     end

@@ -162,7 +162,7 @@ RSpec.describe Onetime::Organization, type: :integration do
       org.record_secret_activity_event('created', at: t1, 'receipt' => 'abc123')
 
       allow(OT).to receive(:conf)
-        .and_return(conf_with_collect_flag('collect' => 'false'))
+        .and_return(OT::Config.wrap(conf_with_collect_flag('collect' => 'false')))
 
       expect(org.record_secret_activity_event('secret_get')).to be_nil
       expect(org.secret_activity_event_count).to eq(1)
@@ -175,7 +175,7 @@ RSpec.describe Onetime::Organization, type: :integration do
 
     it 'pauses recording on native false (shipped ERB boolean)' do
       allow(OT).to receive(:conf)
-        .and_return(conf_with_collect_flag('collect' => false))
+        .and_return(OT::Config.wrap(conf_with_collect_flag('collect' => false)))
 
       expect(org.record_secret_activity_event('secret_get')).to be_nil
       expect(org.secret_activity_event_count).to eq(0)
@@ -183,7 +183,7 @@ RSpec.describe Onetime::Organization, type: :integration do
 
     it "keeps recording on the string 'true'" do
       allow(OT).to receive(:conf)
-        .and_return(conf_with_collect_flag('collect' => 'true'))
+        .and_return(OT::Config.wrap(conf_with_collect_flag('collect' => 'true')))
 
       expect(org.record_secret_activity_event('secret_get')).to be_a(Hash)
       expect(org.secret_activity_event_count).to eq(1)
@@ -191,14 +191,14 @@ RSpec.describe Onetime::Organization, type: :integration do
 
     it 'keeps recording when nil (default-true contract)' do
       allow(OT).to receive(:conf)
-        .and_return(conf_with_collect_flag('collect' => nil))
+        .and_return(OT::Config.wrap(conf_with_collect_flag('collect' => nil)))
 
       expect(org.record_secret_activity_event('secret_get')).to be_a(Hash)
       expect(org.secret_activity_event_count).to eq(1)
     end
 
     it 'keeps recording when the key is absent (older config file)' do
-      allow(OT).to receive(:conf).and_return(conf_with_collect_flag({}))
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf_with_collect_flag({})))
 
       expect(org.record_secret_activity_event('secret_get')).to be_a(Hash)
       expect(org.secret_activity_event_count).to eq(1)

@@ -30,7 +30,7 @@ module ColonelElevationHelpers
       'window' => window,
       'reauth_grace' => reauth_grace,
     }
-    allow(OT).to receive(:conf).and_return(conf)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf))
     conf
   end
 

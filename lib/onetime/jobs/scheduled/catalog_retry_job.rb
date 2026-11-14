@@ -46,7 +46,7 @@ if Onetime.billing_config.enabled?
             private
 
             def enabled?
-              OT.conf.dig('jobs', 'catalog_retry', 'enabled') == true
+              OT.conf.get('jobs.catalog_retry.enabled') == true
             end
 
             def process_circuit_retries

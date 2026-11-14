@@ -397,21 +397,21 @@ module Onetime
       # measured forward from now. Config lives in jobs.favicon_backfill, which is
       # absent from the in-code DEFAULTS hash, so every read digs with a fallback.
       def compute_next_favicon_fetch_at(attempts)
-        base_days = OT.conf.dig('jobs', 'favicon_backfill', 'base_days') || 1
-        cap_days  = OT.conf.dig('jobs', 'favicon_backfill', 'cap_days') || 30
+        base_days = OT.conf.get('jobs.favicon_backfill.base_days', 1)
+        cap_days  = OT.conf.get('jobs.favicon_backfill.cap_days', 30)
         Familia.now.to_i + ([base_days * (2**(attempts - 1)), cap_days].min * 86_400)
       end
 
       def favicon_backfill_max_attempts
-        OT.conf.dig('jobs', 'favicon_backfill', 'max_attempts') || 6
+        OT.conf.get('jobs.favicon_backfill.max_attempts', 6)
       end
 
       def fetcher
         @fetcher ||= Onetime::Http::SafeFetch.new(
-          timeout: OT.conf.dig('jobs', 'favicon_fetch', 'timeout') || DEFAULT_TIMEOUT,
-          max_bytes: OT.conf.dig('jobs', 'favicon_fetch', 'max_response_bytes') || DEFAULT_MAX_BYTES,
-          max_redirects: OT.conf.dig('jobs', 'favicon_fetch', 'max_redirects') || DEFAULT_MAX_REDIRECTS,
-          allowed_content_types: OT.conf.dig('jobs', 'favicon_fetch', 'allowed_content_types') || DEFAULT_CONTENT_TYPES,
+          timeout: OT.conf.get('jobs.favicon_fetch.timeout', DEFAULT_TIMEOUT),
+          max_bytes: OT.conf.get('jobs.favicon_fetch.max_response_bytes', DEFAULT_MAX_BYTES),
+          max_redirects: OT.conf.get('jobs.favicon_fetch.max_redirects', DEFAULT_MAX_REDIRECTS),
+          allowed_content_types: OT.conf.get('jobs.favicon_fetch.allowed_content_types', DEFAULT_CONTENT_TYPES),
         )
       end
 

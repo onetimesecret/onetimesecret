@@ -56,7 +56,7 @@ RSpec.describe Onetime::Logic::GuestRouteGating do
   describe '#require_guest_route_enabled!' do
     context 'with fully enabled config' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {
               'api' => {
@@ -72,7 +72,7 @@ RSpec.describe Onetime::Logic::GuestRouteGating do
               },
             },
           },
-        })
+        }))
       end
 
       it 'returns true for guest context with all operations enabled' do
@@ -93,7 +93,7 @@ RSpec.describe Onetime::Logic::GuestRouteGating do
 
     context 'with globally disabled config' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {
               'api' => {
@@ -105,7 +105,7 @@ RSpec.describe Onetime::Logic::GuestRouteGating do
               },
             },
           },
-        })
+        }))
       end
 
       it 'raises GuestRoutesDisabled for guest context' do
@@ -128,7 +128,7 @@ RSpec.describe Onetime::Logic::GuestRouteGating do
 
     context 'with operation-specific disabled config' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {
               'api' => {
@@ -140,7 +140,7 @@ RSpec.describe Onetime::Logic::GuestRouteGating do
               },
             },
           },
-        })
+        }))
       end
 
       it 'raises GuestRoutesDisabled with operation-specific code' do
@@ -163,7 +163,7 @@ RSpec.describe Onetime::Logic::GuestRouteGating do
 
     context 'with nil strategy_result' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {
               'api' => {
@@ -171,7 +171,7 @@ RSpec.describe Onetime::Logic::GuestRouteGating do
               },
             },
           },
-        })
+        }))
       end
 
       it 'treats nil strategy_result as non-guest (safe default)' do
@@ -186,7 +186,7 @@ RSpec.describe Onetime::Logic::GuestRouteGating do
 
   describe 'guest_context? (private method via behavior)' do
     before do
-      allow(OT).to receive(:conf).and_return({
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({
         'site' => {
           'interface' => {
             'api' => {
@@ -194,7 +194,7 @@ RSpec.describe Onetime::Logic::GuestRouteGating do
             },
           },
         },
-      })
+      }))
     end
 
     it 'requires BOTH anonymous customer AND noauth strategy' do
@@ -259,7 +259,7 @@ RSpec.describe Onetime::Logic::GuestRouteGating do
   describe 'config edge cases' do
     context 'when config path is partially missing' do
       it 'handles missing site key' do
-        allow(OT).to receive(:conf).and_return({})
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({}))
 
         instance = test_class.new(cust: anonymous_customer, strategy_result: noauth_strategy)
 
@@ -271,9 +271,9 @@ RSpec.describe Onetime::Logic::GuestRouteGating do
       end
 
       it 'handles missing interface key' do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {},
-        })
+        }))
 
         instance = test_class.new(cust: anonymous_customer, strategy_result: noauth_strategy)
 
@@ -283,11 +283,11 @@ RSpec.describe Onetime::Logic::GuestRouteGating do
       end
 
       it 'handles missing api key' do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {},
           },
-        })
+        }))
 
         instance = test_class.new(cust: anonymous_customer, strategy_result: noauth_strategy)
 
@@ -299,7 +299,7 @@ RSpec.describe Onetime::Logic::GuestRouteGating do
 
     context 'when operation key is missing from config' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {
               'api' => {
@@ -310,7 +310,7 @@ RSpec.describe Onetime::Logic::GuestRouteGating do
               },
             },
           },
-        })
+        }))
       end
 
       it 'treats missing operation as disabled (nil is falsy)' do

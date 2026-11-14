@@ -30,7 +30,7 @@ RSpec.describe 'Security header emission (audit 2026-08-02 M-3)' do
 
   def build_security(settings, app: downstream)
     conf = { 'site' => { 'middleware' => settings } }
-    allow(Onetime).to receive(:conf).and_return(conf)
+    allow(Onetime).to receive(:conf).and_return(Onetime::Config.wrap(conf))
     Onetime::Middleware::Security.new(app)
   end
 

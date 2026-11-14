@@ -24,7 +24,7 @@ def with_show_logo(value, logo_url: nil)
   OT.conf['emailer'] ||= {}
   OT.conf['brand'] ||= {}
   if value == :absent
-    OT.conf['emailer'].delete('show_logo')
+    OT.conf['emailer']['show_logo'] = nil
   else
     OT.conf['emailer']['show_logo'] = value
   end

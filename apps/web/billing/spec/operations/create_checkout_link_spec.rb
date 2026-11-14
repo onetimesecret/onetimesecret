@@ -101,8 +101,8 @@ RSpec.describe Billing::Operations::CreateCheckoutLink do
       payment_method_configuration: payment_method_configuration,
     )
     allow(Onetime).to receive(:conf).and_return(
-      'site' => { 'host' => 'test.example.com', 'ssl' => true },
-      'features' => { 'regions' => { 'current_jurisdiction' => 'EU' } },
+      Onetime::Config.wrap('site' => { 'host' => 'test.example.com', 'ssl' => true },
+      'features' => { 'regions' => { 'current_jurisdiction' => 'EU' } }),
     )
     allow(Billing::PlanResolver).to receive(:resolve).and_return(resolution)
     allow(Onetime::ColonelAuditEvent).to receive(:record)

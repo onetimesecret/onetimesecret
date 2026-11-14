@@ -1771,12 +1771,13 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     # ship 30 days) to test the cap in isolation.
     def stub_config_ttl_max(max)
       allow(OT).to receive(:conf).and_return(
-        'site' => {
+        OT::Config.wrap('site' => {
           'secret_options' => {
             'default_ttl' => 43_200,
             'ttl_options' => [1_800, 43_200, max],
+            'ttl_max_anonymous' => nil,
           },
-        },
+        }),
       )
     end
 

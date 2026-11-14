@@ -84,7 +84,7 @@ RSpec.describe Onetime::Config do
 
     before do
       # Mock OT.conf to return our test configuration
-      allow(OT).to receive(:conf).and_return(original_config)
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap(original_config))
     end
 
     context 'with valid configurations' do
@@ -140,6 +140,18 @@ RSpec.describe Onetime::Config do
         end
 
         described_class.apply_config(nested_override)
+      end
+    end
+
+    context 'with Symbol keys in the override' do
+      it 'converts them to Strings before merging' do
+        expect(OT).to receive(:replace_config!) do |merged|
+          expect(merged.keys).to all(be_a(String))
+          expect(merged['brand'].keys).to all(be_a(String))
+          expect(merged.dig('brand', 'product_name')).to eq('Custom Company')
+        end
+
+        described_class.apply_config(brand: { product_name: 'Custom Company' })
       end
     end
 

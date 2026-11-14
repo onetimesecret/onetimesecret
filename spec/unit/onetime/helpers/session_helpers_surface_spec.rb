@@ -42,7 +42,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
   # Customer and active-session checks are not what these surface tests exercise;
   # keep them green so a mismatch is the only refusal reason.
   before do
-    allow(OT).to receive(:conf).and_return({ 'site' => { 'authentication' => { 'enabled' => true } } })
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => true } } }))
     allow(OT).to receive(:info)
     allow(Onetime::Customer).to receive(:find_by_extid).with('ur_abc').and_return(customer)
     allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:active)

@@ -185,7 +185,7 @@ module Onetime
       end
 
       def config(policy)
-        OT.conf.dig('features', 'organizations', policy.config_key) || {}
+        OT.conf.get(['features', 'organizations', policy.config_key], {})
       end
 
       # Enabled unless config explicitly sets enabled:false. Absent config

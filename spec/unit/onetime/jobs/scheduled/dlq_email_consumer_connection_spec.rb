@@ -11,7 +11,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
   let(:logger) { instance_double(SemanticLogger::Logger, debug: nil, info: nil, error: nil) }
 
   before do
-    allow(OT).to receive(:conf).and_return({ 'jobs' => { 'rabbitmq_url' => url } })
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'jobs' => { 'rabbitmq_url' => url } }))
     allow(described_class).to receive(:scheduler_logger).and_return(logger)
     allow(Bunny).to receive(:new).and_return(connection)
   end

@@ -9,7 +9,7 @@
 RSpec.shared_examples 'requires test mode for destructive operations' do |command_args|
   context 'when in production mode' do
     before do
-      allow(OT).to receive(:conf).and_return(double(test_mode?: false))
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap(double(test_mode?: false)))
     end
 
     it 'refuses to run' do
@@ -28,7 +28,7 @@ RSpec.shared_examples 'requires test mode for destructive operations' do |comman
 
   context 'when in test mode' do
     before do
-      allow(OT).to receive(:conf).and_return(double(test_mode?: true))
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap(double(test_mode?: true)))
     end
 
     it 'allows the operation' do

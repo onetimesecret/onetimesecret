@@ -67,7 +67,7 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
 
   before do
     allow(OT).to receive(:conf).and_return(
-      'site' => { 'security' => { 'csp' => { 'enabled' => csp_enabled } } },
+      OT::Config.wrap('site' => { 'security' => { 'csp' => { 'enabled' => csp_enabled } } }),
     )
     allow(Onetime).to receive(:auth_config).and_return(auth_config)
   end
@@ -96,7 +96,7 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
 
     it 'never reads the datastore when CSP is disabled' do
       allow(OT).to receive(:conf).and_return(
-        'site' => { 'security' => { 'csp' => { 'enabled' => false } } },
+        OT::Config.wrap('site' => { 'security' => { 'csp' => { 'enabled' => false } } }),
       )
       stub_tenant(config)
       env = build_env

@@ -416,7 +416,7 @@ RSpec.describe Onetime::SsoProvider::Saml do
       allow(ENV).to receive(:fetch).and_wrap_original do |original, key, *args|
         env.key?(key) ? env[key] : original.call(key, *args)
       end
-      allow(OT).to receive(:conf).and_return(site)
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap(site))
       allow(Onetime).to receive(:session_config).and_return(session)
       expect(described_class.platform_usable?).to be true
       env['SAML_UID_ATTRIBUTE'] = 'employee'
@@ -457,7 +457,7 @@ RSpec.describe Onetime::SsoProvider::Saml do
   # canonical host is not the ACS host.
   describe '.platform_host?' do
     before do
-      allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => 'Secrets.Example.com:8443', 'ssl' => true } })
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'host' => 'Secrets.Example.com:8443', 'ssl' => true } }))
     end
 
     it 'keeps the registered ACS host after site.host changes and availability is rechecked' do
@@ -471,11 +471,11 @@ RSpec.describe Onetime::SsoProvider::Saml do
       ) do
         # A pre-boot probe must not establish the pin.
         expect(described_class.platform_usable?).to be true
-        allow(OT).to receive(:conf).and_return('site' => { 'host' => 'boot.example.com:8443', 'ssl' => true })
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap('site' => { 'host' => 'boot.example.com:8443', 'ssl' => true }))
         registered = described_class::DEFINITION[:strategy_options].call
         expect(registered[:assertion_consumer_service_url]).to eq('https://boot.example.com:8443/auth/sso/corporate/callback')
 
-        allow(OT).to receive(:conf).and_return('site' => { 'host' => 'tenant.example.net', 'ssl' => false })
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap('site' => { 'host' => 'tenant.example.net', 'ssl' => false }))
         expect(described_class.platform_usable?).to be true
         expect(described_class.platform_host?('boot.example.com')).to be true
         expect(described_class.platform_host?('tenant.example.net')).to be false
@@ -510,7 +510,7 @@ RSpec.describe Onetime::SsoProvider::Saml do
     end
 
     it 'is false when site.host is not configured (there is no platform SAML host)' do
-      allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => '' } })
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'host' => '' } }))
 
       expect(described_class.platform_host?('secrets.example.com')).to be false
     end

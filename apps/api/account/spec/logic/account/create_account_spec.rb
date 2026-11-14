@@ -42,7 +42,7 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
     allow(OT).to receive(:ld)
     allow(OT).to receive(:li)
     allow(OT).to receive(:le)
-    allow(OT).to receive(:conf).and_return({
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({
       'site' => {
         'authentication' => {
           'autoverify' => 'false',
@@ -55,7 +55,7 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
         },
       },
       'features' => {},
-    })
+    }))
     # Stub Truemail validation
     allow(Truemail).to receive(:validate).and_return(
       double(result: double(valid?: true), as_json: '{}')
@@ -166,7 +166,7 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
       let(:metadata) { { display_domain: 'unknown-domain.com' } }
 
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'authentication' => {
               'autoverify' => 'false',
@@ -174,7 +174,7 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
             },
           },
           'features' => {},
-        })
+        }))
       end
 
       it 'uses global config when SignupConfig is not found' do

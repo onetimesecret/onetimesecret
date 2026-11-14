@@ -133,7 +133,9 @@ module Onetime
           # vice-versa: Date/Time are permitted (#3498), arbitrary Ruby objects
           # stay rejected.
           parsed       = YAML.safe_load(yaml_content, permitted_classes: [Symbol, Date, Time], symbolize_names: false, aliases: true)
-          stringify_symbols(parsed)
+          # Keys as boot reads them: String keys, and a key set twice on one
+          # level (`:host` and `host`) raises ConfigError, reported by #call.
+          stringify_symbols(::Onetime::Config.string_keys(parsed))
         rescue Psych::SyntaxError, Psych::DisallowedClass
           nil
         end

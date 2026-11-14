@@ -42,7 +42,7 @@ require 'onetime/mail/views/organization_invitation' if File.exist?(
 def with_brand_conf(brand_hash, emailer_overrides = nil)
   saved = YAML.load(YAML.dump(OT.conf))
   conf_copy = YAML.load(YAML.dump(saved))
-  conf_copy['brand'] = brand_hash
+  conf_copy['brand'] = conf_copy['brand'].transform_values { nil }.merge(brand_hash)
   if emailer_overrides
     conf_copy['emailer'] = (conf_copy['emailer'] || {}).merge(emailer_overrides)
   end
@@ -52,11 +52,11 @@ ensure
   OT.send(:conf=, saved) rescue nil
 end
 
-# Helper: run a block with OT.conf['brand'] removed, then restore.
+# Helper: run a block with every OT.conf['brand'] setting unset, then restore.
 def without_brand_conf
   saved = YAML.load(YAML.dump(OT.conf))
   conf_copy = YAML.load(YAML.dump(saved))
-  conf_copy.delete('brand')
+  conf_copy['brand'] = conf_copy['brand'].transform_values { nil } # every brand setting unset
   OT.send(:conf=, conf_copy)
   yield
 ensure

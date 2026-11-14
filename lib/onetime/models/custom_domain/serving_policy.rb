@@ -223,8 +223,7 @@ module Onetime
         private
 
         def configured_domains_section
-          conf    = OT.conf
-          domains = conf.respond_to?(:dig) ? conf.dig('features', 'domains') : nil
+          domains = OT.conf&.get('features.domains', {})
           domains.is_a?(Hash) ? domains : {}
         end
 

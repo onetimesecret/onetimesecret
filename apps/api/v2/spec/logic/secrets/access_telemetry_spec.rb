@@ -78,7 +78,7 @@ RSpec.describe V2::Logic::Secrets::AccessTelemetry, type: :integration do
   def stub_secret_activity_conf(secret_activity)
     base     = OT.conf
     features = (base['features'] || {}).merge('secret_activity' => secret_activity)
-    allow(OT).to receive(:conf).and_return(base.merge('features' => features))
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(base.merge('features' => features)))
   end
 
   def stub_geo_flag(value)

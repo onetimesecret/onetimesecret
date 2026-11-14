@@ -171,9 +171,10 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
   describe '.overlaps_canonical_domain?' do
     before do
       allow(OT).to receive(:conf).and_return(
-        {
+        OT::Config.wrap({
           'site' => { 'host' => 'example.com' },
-        },
+          'features' => { 'domains' => { 'default' => nil, 'link_domains' => nil } },
+        }),
       )
     end
 
@@ -217,10 +218,10 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
     context 'when features.domains.default differs from site.host' do
       before do
         allow(OT).to receive(:conf).and_return(
-          {
+          OT::Config.wrap({
             'site' => { 'host' => 'example.com' },
-            'features' => { 'domains' => { 'default' => 'branded-links.net' } },
-          },
+            'features' => { 'domains' => { 'default' => 'branded-links.net', 'link_domains' => nil } },
+          }),
         )
       end
 
@@ -243,7 +244,7 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
 
     context 'when no canonical hosts are configured' do
       before do
-        allow(OT).to receive(:conf).and_return({})
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'features' => { 'domains' => { 'default' => nil, 'link_domains' => nil } }, 'site' => { 'host' => nil } }))
       end
 
       it 'returns false' do
@@ -263,7 +264,7 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
     context 'with an operator link pool configured (#4063)' do
       before do
         allow(OT).to receive(:conf).and_return(
-          {
+          OT::Config.wrap({
             'site' => { 'host' => 'app.example.net' },
             'features' => {
               'domains' => {
@@ -271,7 +272,7 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
                 'link_domains' => ['short.example.com', 'go.acme.com'],
               },
             },
-          },
+          }),
         )
       end
 
@@ -315,9 +316,10 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
   describe '.default_domain?' do
     before do
       allow(OT).to receive(:conf).and_return(
-        {
+        OT::Config.wrap({
           'site' => { 'host' => 'example.com' },
-        },
+          'features' => { 'domains' => { 'default' => nil } },
+        }),
       )
     end
 
@@ -346,9 +348,10 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
     context 'when site.host carries a port' do
       before do
         allow(OT).to receive(:conf).and_return(
-          {
+          OT::Config.wrap({
             'site' => { 'host' => 'example.com:443' },
-          },
+            'features' => { 'domains' => { 'default' => nil } },
+          }),
         )
       end
 
@@ -363,10 +366,10 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
     context 'when features.domains.default differs from site.host' do
       before do
         allow(OT).to receive(:conf).and_return(
-          {
+          OT::Config.wrap({
             'site' => { 'host' => 'api.example.com' },
             'features' => { 'domains' => { 'default' => 'secrets.example.com' } },
-          },
+          }),
         )
       end
 
@@ -390,10 +393,10 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
     context 'when features.domains.default is empty' do
       before do
         allow(OT).to receive(:conf).and_return(
-          {
+          OT::Config.wrap({
             'site' => { 'host' => 'example.com' },
             'features' => { 'domains' => { 'default' => '' } },
-          },
+          }),
         )
       end
 
@@ -408,7 +411,7 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
 
     context 'when no canonical hosts are configured' do
       before do
-        allow(OT).to receive(:conf).and_return({})
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'features' => { 'domains' => { 'default' => nil } }, 'site' => { 'host' => nil } }))
       end
 
       it 'returns false' do
@@ -431,7 +434,7 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
     context 'with an operator link pool configured (#4063)' do
       before do
         allow(OT).to receive(:conf).and_return(
-          {
+          OT::Config.wrap({
             'site' => { 'host' => 'app.example.net' },
             'features' => {
               'domains' => {
@@ -439,7 +442,7 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
                 'link_domains' => ['short.example.com', 'go.acme.com'],
               },
             },
-          },
+          }),
         )
       end
 
@@ -471,12 +474,12 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
     context 'when the pool excludes the default domain entirely (#4063)' do
       before do
         allow(OT).to receive(:conf).and_return(
-          {
+          OT::Config.wrap({
             'site' => { 'host' => 'ge-abcd123.eu.otshosted.com' },
             'features' => {
-              'domains' => { 'link_domains' => ['short.example.com'] },
+              'domains' => { 'link_domains' => ['short.example.com'], 'default' => nil },
             },
-          },
+          }),
         )
       end
 
@@ -512,9 +515,10 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
   describe '.create! canonical backstop' do
     before do
       allow(OT).to receive(:conf).and_return(
-        {
+        OT::Config.wrap({
           'site' => { 'host' => 'example.com' },
-        },
+          'features' => { 'domains' => { 'default' => nil, 'link_domains' => nil } },
+        }),
       )
 
       # Spy on the Redis-touching collaborators so we can prove the

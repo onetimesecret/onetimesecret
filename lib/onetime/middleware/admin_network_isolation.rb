@@ -870,7 +870,7 @@ module Onetime
       # exception is kept so the eventual log names the real cause instead of
       # the innocent bystander.
       def site_admin_list(key)
-        OT.conf.dig('site', 'admin', key)
+        OT.conf.get(['site', 'admin', key], nil)
       rescue StandardError => ex
         @config_read_errors[key] = "#{ex.class}: #{ex.message}"
         CONFIG_UNREADABLE

@@ -1403,7 +1403,7 @@ RSpec.describe Onetime::Jobs::Publisher do
       end
 
       it 'logs the inline fallback at WARN when jobs are configured ON but the pool is nil (degraded)' do
-        allow(OT).to receive(:conf).and_return('jobs' => { 'enabled' => true })
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap('jobs' => { 'enabled' => true }))
 
         publisher.enqueue_session_revocation_sweep(custid)
 

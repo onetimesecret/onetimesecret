@@ -64,10 +64,10 @@ RSpec.describe AccountAPI::Logic::Account::UpdateDomainContext do
     allow(OT).to receive(:ld)
     allow(OT).to receive(:li)
     allow(OT).to receive(:conf).and_return(
-      {
+      OT::Config.wrap({
         'site' => {},
         'features' => { 'domains' => { 'enabled' => true } },
-      },
+      }),
     )
     allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?) do |host|
       host == canonical_domain
@@ -312,7 +312,7 @@ RSpec.describe AccountAPI::Logic::Account::UpdateDomainContext do
     before do
       allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?).and_call_original
       allow(OT).to receive(:conf).and_return(
-        {
+        OT::Config.wrap({
           'site' => { 'host' => site_host },
           'features' => {
             'domains' => {
@@ -321,7 +321,7 @@ RSpec.describe AccountAPI::Logic::Account::UpdateDomainContext do
               'link_domains' => [pool_member, 'go.acme.com'],
             },
           },
-        },
+        }),
       )
       Onetime::Middleware::DomainStrategy.initialize_from_config(
         OT.conf.dig('features', 'domains'),
@@ -379,7 +379,7 @@ RSpec.describe AccountAPI::Logic::Account::UpdateDomainContext do
     context 'with an unparseable pool entry alongside a valid one' do
       before do
         allow(OT).to receive(:conf).and_return(
-          {
+          OT::Config.wrap({
             'site' => { 'host' => site_host },
             'features' => {
               'domains' => {
@@ -388,7 +388,7 @@ RSpec.describe AccountAPI::Logic::Account::UpdateDomainContext do
                 'link_domains' => [pool_member, '999'],
               },
             },
-          },
+          }),
         )
         Onetime::Middleware::DomainStrategy.initialize_from_config(
           OT.conf.dig('features', 'domains'),
@@ -415,10 +415,10 @@ RSpec.describe AccountAPI::Logic::Account::UpdateDomainContext do
     context 'when domains feature is disabled' do
       before do
         allow(OT).to receive(:conf).and_return(
-          {
+          OT::Config.wrap({
             'site' => {},
             'features' => { 'domains' => { 'enabled' => false } },
-          },
+          }),
         )
       end
 

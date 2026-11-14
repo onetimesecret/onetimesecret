@@ -26,7 +26,7 @@ module Onetime
 
       def execute(_context)
         start_time   = OT.now_in_μs
-        i18n         = OT.conf.fetch('internationalization', {})
+        i18n         = OT.conf.get('internationalization', {})
         i18n_enabled = i18n['enabled'] || false
 
         OT.boot_logger.debug '[i18n] Parsing through i18n locales...'
@@ -34,7 +34,7 @@ module Onetime
         # Load the locales from the config in both the current and
         # legacy locations. If the locales are not set in the config,
         # we fallback to english.
-        locales_list = i18n.fetch('locales', nil) || OT.conf.fetch('locales', ['en']).map(&:to_s)
+        locales_list = i18n.fetch('locales', nil) || OT.conf.get('locales', ['en']).map(&:to_s)
 
         if i18n_enabled
           supported_locales, default_locale, fallback_locale = extract_i18n_config(i18n, locales_list)
