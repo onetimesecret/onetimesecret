@@ -85,7 +85,6 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
           'ttl_options' => [60, 3600, 86_400, 604_800, 2_592_000],
           'ttl_max_anonymous' => nil,
         },
-        'domains' => { 'enabled' => false },
         'authentication' => {},
       }),
     )

@@ -10,7 +10,7 @@ The custom mail sender system lets customers send secret-link emails from their 
 
 ### Delivery Layer
 
-The platform operator configures one global mailer backend (SES, SendGrid, Lettermint, SMTP2GO, SMTP) via `OT.conf['emailer']`. Every email goes through that single backend. `Mailer.resolve_backend` ignores the `sender_config` argument entirely and returns the global `delivery_backend`. The underscore-prefixed parameter makes this explicit:
+The platform operator configures one global mailer backend (SES, SendGrid, Lettermint, SMTP2GO, SMTP) via the `emailer` section of `OT.conf`. Every email goes through that single backend. `Mailer.resolve_backend` ignores the `sender_config` argument entirely and returns the global `delivery_backend`. The underscore-prefixed parameter makes this explicit:
 
 ```ruby
 # lib/onetime/mail/mailer.rb

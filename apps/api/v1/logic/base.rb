@@ -80,10 +80,7 @@ module V1
       def process_settings
         @site           = OT.conf.get('site', {})
         @authentication = OT.conf.get('site.authentication', {})
-        # The setting is features.domains.enabled; site.domains is not a config
-        # section, so V1 reads custom domains as off. Kept as is until an
-        # operator decides whether V1 honors the setting (#3991, D2).
-        @domains_enabled = OT.conf.get('site.domains.enabled', nil) || false
+        @domains_enabled = OT.conf.get('features.domains.enabled', nil) || false
       end
 
       def valid_email?(email_field)

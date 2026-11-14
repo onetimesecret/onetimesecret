@@ -257,41 +257,6 @@ export const apiAuthenticationSchema = z.object({
 });
 
 /**
- * Logging schema for API responses
- */
-export const apiLoggingSchema = z.object({
-  default_level: z.string().nullable().optional(),
-  formatter: z.string().nullable().optional(),
-  loggers: z.record(z.string(), z.string()).nullable().optional(),
-  http: z
-    .object({
-      enabled: booleanOrString,
-      level: z.string().nullable().optional(),
-      capture: z.string().nullable().optional(),
-      slow_request_ms: numberOrString,
-      ignore_paths: z.array(z.string()).nullable().optional(),
-    })
-    .nullable()
-    .optional(),
-});
-
-/**
- * Billing schema for API responses
- * Matches the flat billing.yaml structure (merged from billing.yaml + billing-catalog.yaml)
- */
-export const apiBillingSchema = z.object({
-  schema_version: z.string().nullable().optional(),
-  app_identifier: z.string().nullable().optional(),
-  enabled: booleanOrString,
-  stripe_key: z.string().nullable().optional(),
-  webhook_signing_secret: z.string().nullable().optional(),
-  stripe_api_version: z.string().nullable().optional(),
-  entitlements: z.record(z.string(), z.any()).nullable().optional(),
-  plans: z.record(z.string(), z.any()).nullable().optional(),
-  stripe_metadata_schema: z.any().nullable().optional(),
-});
-
-/**
  * Features schema for API responses
  */
 export const apiFeaturesSchema = z.object({
@@ -333,8 +298,6 @@ export const systemSettingsSchema = z.object({
   emailer: apiEmailerSchema.nullable().optional(),
   mail: apiMailSchema.nullable().optional(),
   diagnostics: apiDiagnosticsSchema.nullable().optional(),
-  logging: apiLoggingSchema.nullable().optional(),
-  billing: apiBillingSchema.nullable().optional(),
   features: apiFeaturesSchema.nullable().optional(),
 });
 

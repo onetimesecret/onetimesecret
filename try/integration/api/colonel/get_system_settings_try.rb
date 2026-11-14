@@ -112,6 +112,11 @@ get URL, {}, colonel_headers
 [last_response.status, @resp['details'].key?('emailer')]
 #=> [200, true]
 
+## The sections are the OT.conf ones; logging and billing are separate config objects
+@resp = JSON.parse(last_response.body)
+@resp['details'].keys.sort
+#=> ['authentication', 'diagnostics', 'emailer', 'features', 'interface', 'mail', 'secret_options']
+
 ## emailer.user is masked (not cleartext) but keeps its last 4 chars
 @resp = JSON.parse(last_response.body)
 u = @resp['details']['emailer']['user']

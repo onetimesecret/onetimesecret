@@ -8,6 +8,7 @@ require 'json' # String#to_json for YAML-safe BRAND_* interpolation (see brand b
 require 'public_suffix' # validate_link_domains! parses LINK_DOMAINS entries at boot
 require_relative 'utils/admin_host_allowlist' # check_admin_allowed_hosts classifies ADMIN_ALLOWED_HOSTS at boot
 require_relative 'config/reader'
+require_relative 'config/strict_keys'
 require_relative 'utils/config_resolver'
 require_relative 'utils/domain_parser'
 require_relative 'utils/enumerables'
@@ -1563,19 +1564,40 @@ module Onetime
       Onetime::Utils::Enumerables.deep_clone(config_hash, max_size: Float::INFINITY)
     end
 
-    # Gives a config Hash the OT.conf reader, Reader#get. The Hash keeps its
-    # class, identity and contents. A frozen Hash cannot be extended, so it is
-    # copied (shallow) and the copy frozen. Idempotent. Anything that is not a
-    # Hash, nil included, is returned unchanged.
+    # Gives a config Hash the OT.conf reader, Reader#get, and, when
+    # strict_keys? is true, gives it and every Hash below it StrictKeys. The
+    # Hash keeps its class, identity and contents. A frozen Hash cannot be
+    # extended, so it is copied (shallow) and the copy frozen. Idempotent: a
+    # Hash wrap has returned is returned unchanged, unless strict_keys? was
+    # turned on since. Anything that is not a Hash, nil included, is returned
+    # unchanged.
     #
     # @param config [Hash, nil]
     # @return [Hash, nil]
     def wrap(config)
       return config unless config.is_a?(Hash)
-      return config if config.is_a?(Reader)
-      return config.dup.extend(Reader).freeze if config.frozen?
 
-      config.extend(Reader)
+      strict = strict_keys?
+      return config if config.is_a?(Reader) && (!strict || config.is_a?(StrictKeys))
+
+      root = config.frozen? ? config.dup : config
+      root.extend(Reader) unless root.is_a?(Reader)
+      StrictKeys.install(root) if strict
+      config.frozen? ? root.freeze : root
+    end
+
+    # Turns StrictKeys on or off for the configs wrap installs from now on.
+    # The test helpers turn it on (spec/spec_helper.rb,
+    # try/support/test_helpers.rb); nothing else does.
+    #
+    # @param enabled [Boolean]
+    def strict_keys=(enabled)
+      @strict_keys = enabled == true
+    end
+
+    # @return [Boolean] whether wrap gives the config tree StrictKeys
+    def strict_keys?
+      @strict_keys == true
     end
 
     # Copies +obj+ with every Hash key converted to a String, recursing into

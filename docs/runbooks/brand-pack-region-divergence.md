@@ -19,7 +19,7 @@ Diagnostic tool (shipped in #3822):
 ## Key Field: `boot_vs_live_mismatch`
 
 `true` means the brand volume mounted **after** boot: the frozen
-`OT.conf['brand']` absorbed nothing at boot, while the pack resolves fine now.
+`brand` section of `OT.conf` absorbed nothing at boot, while the pack resolves fine now.
 A **restart** fixes it.
 
 ## Diagnosis

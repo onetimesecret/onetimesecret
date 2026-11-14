@@ -347,6 +347,69 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
     end
   end
 
+  # The method used to look for Familia::DatabaseLogger (the middleware is
+  # the top-level ::DatabaseLogger) and read Onetime.conf[:environment] (the
+  # config has no such key), so it never set a rate and FAMILIA_SAMPLE_RATE
+  # had no effect.
+  describe '#configure_familia_sample_rate' do
+    around do |example|
+      saved = DatabaseLogger.sample_rate
+      example.run
+    ensure
+      DatabaseLogger.sample_rate = saved
+    end
+
+    before do
+      allow(ENV).to receive(:[]).and_call_original
+      allow(ENV).to receive(:[]).with('FAMILIA_SAMPLE_RATE').and_return(nil)
+      allow(ENV).to receive(:fetch).and_call_original
+    end
+
+    def sample_rate_under(rack_env, override: nil)
+      allow(ENV).to receive(:fetch).with('RACK_ENV', 'production').and_return(rack_env)
+      allow(ENV).to receive(:[]).with('FAMILIA_SAMPLE_RATE').and_return(override)
+      DatabaseLogger.sample_rate = 0.3 # replaced on every path
+      instance.send(:configure_familia_sample_rate)
+      DatabaseLogger.sample_rate
+    end
+
+    it 'logs 1% of commands in production' do
+      expect(sample_rate_under('production')).to eq(0.01)
+    end
+
+    it 'logs every command in development' do
+      expect(sample_rate_under('development')).to eq(1.0)
+    end
+
+    it 'leaves sampling off in other environments' do
+      expect(sample_rate_under('testing')).to be_nil
+      expect(sample_rate_under('staging')).to be_nil
+    end
+
+    # Onetime.env raises on these; setting up the loggers must not.
+    it 'uses the production rate under a RACK_ENV it does not recognize' do
+      expect(sample_rate_under('prodution')).to eq(0.01)
+    end
+
+    it 'uses FAMILIA_SAMPLE_RATE in every environment' do
+      expect(sample_rate_under('production', override: '0.5')).to eq(0.5)
+      expect(sample_rate_under('development', override: '0.25')).to eq(0.25)
+      expect(sample_rate_under('staging', override: '0.75')).to eq(0.75)
+    end
+
+    it 'treats a blank FAMILIA_SAMPLE_RATE as unset' do
+      expect(sample_rate_under('production', override: '  ')).to eq(0.01)
+    end
+
+    # DatabaseLogger.sample_rate= raises on these, which would stop boot.
+    it 'ignores a FAMILIA_SAMPLE_RATE that is not a finite number of 0 or more, with a warning' do
+      %w[-0.5 1e999 abc].each do |value|
+        expect { expect(sample_rate_under('production', override: value)).to eq(0.01) }
+          .to output(/FAMILIA_SAMPLE_RATE=#{Regexp.escape(value.inspect)} is not a number/).to_stderr
+      end
+    end
+  end
+
   describe '#create_cached_loggers' do
     let(:repo_root) { File.expand_path('../../../..', __dir__) }
 

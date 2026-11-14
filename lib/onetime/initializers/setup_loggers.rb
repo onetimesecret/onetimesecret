@@ -711,6 +711,38 @@ module Onetime
         true
       end
 
+      # The share of Redis commands Familia's DatabaseLogger writes to the
+      # database command log (DEBUG_DATABASE=1; production never writes it).
+      # FAMILIA_SAMPLE_RATE when set, in any environment; otherwise 1% in
+      # production, every command in development, and nil elsewhere, which
+      # also logs every command. The environment comes from RACK_ENV, as
+      # backtrace_limit's does; the config has no environment key.
+      def familia_sample_rate
+        override = familia_sample_rate_override
+        return override if override
+
+        if production_environment?
+          0.01
+        elsif Onetime.development?
+          1.0
+        end
+      end
+
+      # FAMILIA_SAMPLE_RATE as a Float, or nil when it is unset or blank.
+      # DatabaseLogger.sample_rate= raises on a negative or infinite rate,
+      # and logger setup is not optional, so a value that is not a finite
+      # number of 0 or more is ignored with a warning instead of failing boot.
+      def familia_sample_rate_override
+        raw = ENV['FAMILIA_SAMPLE_RATE'].to_s.strip
+        return if raw.empty?
+
+        rate = Float(raw, exception: false)
+        return rate if rate&.finite? && !rate.negative?
+
+        warn "[SetupLoggers] FAMILIA_SAMPLE_RATE=#{raw.inspect} is not a number of 0 or more; ignored"
+        nil
+      end
+
       # The event this formatter renders: the Log itself when its exception's
       # backtrace is within the limit, otherwise a copy carrying a copy of the
       # exception with the shortened backtrace.
@@ -774,37 +806,17 @@ module Onetime
         Otto.logger    = cached_loggers['Otto']
         Otto.debug     = Onetime.debug?
 
-        configure_familia_hooks
+        configure_familia_sample_rate
       end
 
-      # Register Familia hooks for Redis command and lifecycle logging.
-      # Uses sampling in production to reduce volume.
-      def configure_familia_hooks
-        return unless defined?(Familia::DatabaseLogger)
+      # Set the share of Redis commands Familia's DatabaseLogger records.
+      # Command logging itself is switched on by DEBUG_DATABASE
+      # (SetupDatabaseLogging), which production blocks.
+      def configure_familia_sample_rate
+        # Familia defines its DatabaseLogger middleware at the top level.
+        return unless defined?(::DatabaseLogger)
 
-        Familia::DatabaseLogger.sample_rate = case Onetime.conf[:environment]
-        when 'production' then ENV['FAMILIA_SAMPLE_RATE']&.to_f || 0.01
-        when 'development' then ENV['FAMILIA_SAMPLE_RATE']&.to_f || 1.0
-        end
-
-        if Familia.respond_to?(:on_command)
-          Familia.on_command do |cmd, duration, context|
-            Familia.logger.debug 'Redis command',
-              command: cmd,
-              duration: duration,
-              context: context
-          end
-        end
-
-        return unless Familia.respond_to?(:on_lifecycle)
-
-        Familia.on_lifecycle do |event, instance, context|
-          Familia.logger.debug 'Familia lifecycle',
-            event: event,
-            class: instance.class.name,
-            identifier: instance.respond_to?(:identifier) ? instance.identifier : nil,
-            context: context
-        end
+        ::DatabaseLogger.sample_rate = familia_sample_rate
       end
 
       def log_effective_configuration(cached_loggers)

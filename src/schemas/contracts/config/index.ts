@@ -44,8 +44,6 @@ export {
   apiMailSchema,
   apiDiagnosticsSchema,
   apiAuthenticationSchema,
-  apiLoggingSchema,
-  apiBillingSchema,
   apiFeaturesSchema,
   systemSettingsSchema,
   systemSettingsDetailsSchema,

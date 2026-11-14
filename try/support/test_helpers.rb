@@ -89,6 +89,12 @@ $LOAD_PATH.unshift(File.join(app_root))
 require 'onetime'
 require 'onetime/models'
 
+# Every Hash in the config tree raises on a non-String key (a Symbol read on
+# a section reads nil otherwise), as in spec/spec_helper.rb. Set before any
+# config is loaded: wrap gives StrictKeys to the configs installed after
+# this. See Onetime::Config::StrictKeys.
+Onetime::Config.strict_keys = true
+
 # A bounded connection pool for this process, the same one spec_helper
 # installs. A tryout that boots with connect_to_db=false skips
 # SetupConnectionPool, so its Familia.dbclient lookups otherwise open a

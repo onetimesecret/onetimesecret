@@ -13,3 +13,11 @@ Changed
   effect and the other was ignored without a message. ``bin/ots config
   validate`` applies the same rules. Symbol values (``default_validation_type:
   :regex``) are unchanged. (#3991)
+- The app reads its config through one reader, ``OT.conf.get('site.host')``.
+  A setting the app requires that is missing from the loaded config now
+  raises an error naming the path (``Config path 'site.host' is not set``)
+  where it is read; before, the read returned nil and the failure showed up
+  later, or not at all. ``etc/defaults/config.defaults.yaml`` defines every
+  required setting, so this only happens when that file is missing or an
+  operator file is loaded on its own. A setting an operator file sets to
+  nil, or a section it empties, still reads as unset. (#3991)

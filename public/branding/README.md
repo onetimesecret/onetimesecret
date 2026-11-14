@@ -57,7 +57,7 @@ The `default` pack lives in the vendor root on purpose: a quadlet mount of a hos
 ## The `brand.yaml` manifest
 
 A pack may carry a `brand.yaml` with identity scalars (colours, product name).
-They are absorbed into `OT.conf['brand']` at boot, with precedence:
+They are absorbed into `brand.*` in `OT.conf` at boot, with precedence:
 
 ```
 built-in defaults  <  pack brand.yaml  <  operator `brand:` config  <  BRAND_* env
