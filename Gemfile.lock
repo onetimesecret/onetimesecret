@@ -600,7 +600,7 @@ GEM
     validate_url (1.0.15)
       activemodel (>= 3.0.0)
       public_suffix
-    vcr (6.4.0)
+    vcr (6.4.1)
     version_gem (1.1.15)
     webauthn (3.4.3)
       android_key_attestation (~> 0.3.0)
