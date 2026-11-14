@@ -18,7 +18,7 @@ module Onetime
       #
       class HeartbeatJob < ScheduledJob
         def self.schedule(scheduler)
-          return unless OT.conf.dig('jobs', 'heartbeat_enabled')
+          return unless OT.conf.get('jobs.heartbeat_enabled', nil)
 
           every(scheduler, '1m', first_in: '5s') do
             stats = collect_stats

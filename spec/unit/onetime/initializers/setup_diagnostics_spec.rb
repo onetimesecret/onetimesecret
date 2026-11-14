@@ -92,7 +92,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       config['diagnostics'] = {
         'enabled' => true,
         'sentry' => {
-          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" },
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345", 'org_id' => nil },
           'frontend' => { 'dsn' => "https://example-dsn@sentry.io/67890" }
         }
       }
@@ -118,7 +118,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       config['diagnostics'] = {
         'enabled' => false,
         'sentry' => {
-          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" },
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345", 'org_id' => nil },
           'frontend' => { 'dsn' => "https://example-dsn@sentry.io/67890" }
         }
       }
@@ -141,7 +141,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       config['diagnostics'] = {
         'enabled' => true,
         'sentry' => {
-          'backend' => { 'dsn' => nil },
+          'backend' => { 'dsn' => nil, 'org_id' => nil },
           'frontend' => { 'dsn' => nil }
         }
       }
@@ -164,10 +164,10 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       config['diagnostics'] = {
         'enabled' => true,
         'sentry' => {
-          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" }
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345", 'org_id' => nil }
         }
       }
-      config['site'] = {} # No host
+      config['site'] = { 'host' => nil } # No host
 
       # Should still require sentry since we have a DSN
       expect(Kernel).to receive(:require).with('sentry-ruby').ordered
@@ -187,7 +187,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       config['diagnostics'] = {
         'enabled' => true,
         'sentry' => {
-          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" },
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345", 'org_id' => nil },
           'frontend' => { 'dsn' => nil }
         }
       }
@@ -250,7 +250,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       config['diagnostics'] = {
         'enabled' => true,
         'sentry' => {
-          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" },
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345", 'org_id' => nil },
           'frontend' => { 'dsn' => nil }
         }
       }
@@ -298,7 +298,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       config['diagnostics'] = {
         'enabled' => true,
         'sentry' => {
-          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" }
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345", 'org_id' => nil }
         }
       }
       config['site'] = { 'host' => "prod.example.com" }
@@ -318,7 +318,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       config['diagnostics'] = {
         'enabled' => true,
         'sentry' => {
-          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" }
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345", 'org_id' => nil }
         }
       }
       config['site'] = { 'host' => "eu.example.com" }
@@ -343,7 +343,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       config['diagnostics'] = {
         'enabled' => true,
         'sentry' => {
-          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" }
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345", 'org_id' => nil }
         }
       }
       config['site'] = { 'host' => "us.example.com" }
@@ -368,7 +368,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       config['diagnostics'] = {
         'enabled' => true,
         'sentry' => {
-          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" }
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345", 'org_id' => nil }
         }
       }
       config['site'] = { 'host' => "test.example.com" }
@@ -397,7 +397,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       config['diagnostics'] = {
         'enabled' => true,
         'sentry' => {
-          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" },
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345", 'org_id' => nil },
           'frontend' => { 'dsn' => nil }
         }
       }
@@ -477,7 +477,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       config['diagnostics'] = {
         'enabled' => true,
         'sentry' => {
-          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" },
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345", 'org_id' => nil },
           'frontend' => { 'dsn' => nil }
         }
       }
@@ -646,7 +646,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       config['diagnostics'] = {
         'enabled' => true,
         'sentry' => {
-          'backend' => { 'dsn' => backend_dsn },
+          'backend' => { 'dsn' => backend_dsn, 'org_id' => nil },
           'workers' => { 'dsn' => workers_dsn_value },
           'frontend' => { 'dsn' => nil }
         }

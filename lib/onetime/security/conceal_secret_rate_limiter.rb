@@ -242,7 +242,7 @@ module Onetime
       end
 
       def conceal_secret_rate_limit_config
-        OT.conf.dig('site', 'secret_options', 'create_rate_limit') || {}
+        OT.conf.get('site.secret_options.create_rate_limit', {})
       end
 
       # Enabled unless config explicitly sets enabled:false. Absent config keeps

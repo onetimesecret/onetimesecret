@@ -79,10 +79,17 @@ RSpec.describe Onetime::Config::Reader do
         )
       end
 
-      it 'is an Onetime::ConfigError that carries the path' do
-        expect { config.get('site.elevation') }.to raise_error(Onetime::ConfigError) { |error|
+      it 'is a KeyError that carries the path and the missing key' do
+        expect { config.get('site.elevation') }.to raise_error(KeyError) { |error|
           expect(error.path).to eq(%w[site elevation])
+          expect(error.key).to eq('elevation')
         }
+      end
+
+      # A rescue of Onetime::Problem around a read keeps its pre-get
+      # behavior: a failed read passes through it.
+      it 'is not an Onetime::Problem' do
+        expect(Onetime::Config::MissingPathError.ancestors).not_to include(Onetime::Problem)
       end
     end
 
@@ -92,11 +99,11 @@ RSpec.describe Onetime::Config::Reader do
         expect(config.get('site.admin.elevation', false)).to be(false)
       end
 
-      it 'raises MissingPathError without a default' do
-        expect { config.get('site.admin.elevation') }.to raise_error(
-          Onetime::Config::MissingPathError,
-          "Config path 'site.admin.elevation' is not set: 'site.admin' is nil",
-        )
+      # Config.load lets an operator file set a section to nil; every setting
+      # below it is unset, as dig read it.
+      it 'returns nil without a default' do
+        expect(config.get('site.admin.elevation')).to be_nil
+        expect(config.get('site.admin.elevation.window')).to be_nil
       end
     end
 
@@ -129,10 +136,12 @@ RSpec.describe Onetime::Config::Reader do
         )
       end
 
-      it 'carries the path' do
-        expect { config.get('site.host.name') }.to raise_error(Onetime::Config::PathTypeError) { |error|
+      it 'is a TypeError, as dig raises, that carries the path' do
+        expect { config.get('site.host.name') }.to raise_error(TypeError) { |error|
+          expect(error).to be_a(Onetime::Config::PathTypeError)
           expect(error.path).to eq(%w[site host name])
         }
+        expect(Onetime::Config::PathTypeError.ancestors).not_to include(Onetime::Problem)
       end
     end
 

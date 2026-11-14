@@ -419,7 +419,7 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     #
     # @return [Boolean]
     def base_domain_signup_enabled?
-      OT.conf.dig('features', 'organizations', BASE_DOMAIN_SIGNUP_FEATURE_FLAG) == true
+      OT.conf.get(['features', 'organizations', BASE_DOMAIN_SIGNUP_FEATURE_FLAG], nil) == true
     end
 
     # Whether allow_base_domain can take effect for domains this
@@ -605,7 +605,7 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     # @param auth [Hash, nil] site.authentication settings (injectable for tests)
     # @return [Boolean]
     def global_signup_enabled(auth = nil)
-      auth ||= OT.conf.dig('site', 'authentication') || {}
+      auth ||= OT.conf.get('site.authentication', {})
       (auth['enabled'] && auth['signup']) == true
     end
 

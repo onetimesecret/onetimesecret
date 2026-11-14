@@ -190,7 +190,7 @@ RSpec.describe Onetime::Initializers::ConfigureFamilia, :aggregate_failures do
     def stub_conf(redis)
       allow(OT).to receive(:conf).and_return(
         OT::Config.wrap('site' => { 'secret' => 'a' * 64 },
-        'redis' => redis),
+        'redis' => { 'require_tls' => nil }.merge(redis)),
       )
     end
 

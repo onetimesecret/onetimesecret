@@ -469,7 +469,7 @@ RSpec.describe Onetime::SsoProvider::Registry do
         end
 
         it 'follows SAML_ROUTE_NAME in the default' do
-          allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'host' => 'secrets.example.com' } }))
+          allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'host' => 'secrets.example.com', 'ssl' => nil } }))
 
           expect(saml_options(SAML_SP_ENTITY_ID: nil, SAML_ROUTE_NAME: 'okta')[:sp_entity_id])
             .to eq('https://secrets.example.com/auth/sso/okta/metadata')

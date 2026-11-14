@@ -184,7 +184,7 @@ module Onetime
         end
 
         def admin_session_config
-          OT.conf&.dig('site', 'admin', 'session') || {}
+          OT.conf&.get('site.admin.session', nil) || {}
         end
 
         def admin_session_lifetime_enabled?

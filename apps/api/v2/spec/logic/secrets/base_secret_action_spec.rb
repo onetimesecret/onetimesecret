@@ -1775,6 +1775,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
           'secret_options' => {
             'default_ttl' => 43_200,
             'ttl_options' => [1_800, 43_200, max],
+            'ttl_max_anonymous' => nil,
           },
         }),
       )

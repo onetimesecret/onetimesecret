@@ -30,13 +30,10 @@ RSpec.describe Onetime::Utils::CanonicalHosts do
   # spec/unit/onetime/models/custom_domain/input_sanitization_spec.rb), so the
   # private config_* readers are exercised rather than bypassed by kwargs.
   #
-  # link_domains: :unset omits the key entirely, which is what an operator who
-  # never wrote LINK_DOMAINS gets. Pass nil to write an explicit null (the
-  # shape the ERB template renders); both must behave identically.
-  def stub_conf(site_host: nil, default_host: nil, link_domains: :unset)
-    domains                 = {}
-    domains['default']      = default_host unless default_host.nil?
-    domains['link_domains'] = link_domains unless link_domains == :unset
+  # An unset value is a null, which is what an operator who never set
+  # LINK_DOMAINS gets: etc/defaults/config.defaults.yaml always has the key.
+  def stub_conf(site_host: nil, default_host: nil, link_domains: nil)
+    domains = { 'default' => default_host, 'link_domains' => link_domains }
 
     allow(OT).to receive(:conf).and_return(
       OT::Config.wrap('site' => { 'host' => site_host },
@@ -53,11 +50,6 @@ RSpec.describe Onetime::Utils::CanonicalHosts do
       before { stub_conf(site_host: 'app.example.com', default_host: 'links.example.net') }
 
       it 'returns the two anchors with the default link domain first' do
-        expect(described_class.hosts).to eq(%w[links.example.net app.example.com])
-      end
-
-      it 'behaves identically when link_domains is present but null' do
-        stub_conf(site_host: 'app.example.com', default_host: 'links.example.net', link_domains: nil)
         expect(described_class.hosts).to eq(%w[links.example.net app.example.com])
       end
     end
@@ -287,15 +279,6 @@ RSpec.describe Onetime::Utils::CanonicalHosts do
         expect(described_class.link_pool.length).to eq(1)
       end
 
-      it 'answers the same for an explicit null as for an absent key' do
-        stub_conf(
-          site_host: 'app.example.com',
-          default_host: 'links.example.net',
-          link_domains: nil,
-        )
-        expect(described_class.link_pool).to eq(['links.example.net'])
-      end
-
       it 'falls back to site.host when there is no default link domain' do
         stub_conf(site_host: 'app.example.com')
         expect(described_class.link_pool).to eq(['app.example.com'])
@@ -384,7 +367,7 @@ RSpec.describe Onetime::Utils::CanonicalHosts do
   end
 
   describe 'with no hosts configured at all' do
-    before { allow(OT).to receive(:conf).and_return(OT::Config.wrap({})) }
+    before { allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'features' => { 'domains' => { 'default' => nil, 'link_domains' => nil } }, 'site' => { 'host' => nil } })) }
 
     it 'returns empty sets rather than raising' do
       expect(described_class.hosts).to eq([])

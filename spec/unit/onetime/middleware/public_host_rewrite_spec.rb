@@ -343,8 +343,8 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite do
       expect(described_class.enabled?).to be(false)
     end
 
-    it 'is false when the setting or the configuration is absent' do
-      allow(OT).to receive(:conf).and_return(OT::Config.wrap('site' => {}))
+    it 'is false when the setting is unset' do
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap('site' => { 'network' => { 'public_host_rewrite' => nil } }))
       expect(described_class.enabled?).to be(false)
 
       allow(OT).to receive(:conf).and_return(nil)

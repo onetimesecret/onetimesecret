@@ -517,17 +517,13 @@ module Onetime
           )
         end
 
+        # OT.conf is nil before boot.
         def emailer_config
-          return {} unless defined?(OT) && OT.respond_to?(:conf) && OT.conf
-
-          OT.conf['emailer'] || OT.conf[:emailer] || {}
+          OT.conf&.get('emailer') || {}
         end
 
         def provider_config(provider)
-          return {} unless defined?(OT) && OT.respond_to?(:conf) && OT.conf
-
-          providers = OT.conf['email_providers'] || OT.conf[:email_providers] || {}
-          providers[provider] || providers[provider.to_sym] || {}
+          OT.conf&.get(['email_providers', provider], nil) || {}
         end
 
         def reply_to_address(template)

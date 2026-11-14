@@ -30,6 +30,11 @@
 #   5. A get whose path is not a literal (an Array with a variable segment,
 #      an interpolated String, a variable) passes a default.
 #   6. A get has no Symbol path and no keyword argument; both raise.
+#   7. A get with a literal path and no default does not raise when an
+#      operator file sets a section on that path to nil. Config.load lets
+#      such a nil replace the defaults section (preserve_nils: false), and
+#      Config.after_load refills some sections from Config::DEFAULTS with
+#      fewer keys. dig read every such key as nil; pass nil as the default.
 #
 # Rules 3 to 5 check the path passed to get. A section read into a variable
 # (`section = OT.conf.get('a.b', {}); section['c']`) is not checked below the
@@ -57,11 +62,25 @@ module ConfigAccessGuard
 
   # Literal paths read with a default that are not in the shipped config,
   # with the reason each can be absent.
-  OPTIONAL_PATHS = {}.freeze
+  OPTIONAL_PATHS = {
+    'jobs.dlq_monitor_enabled' => 'opt-in switch for DlqMonitorJob; the defaults file does not define it',
+    'jobs.domain_refresh.rate_limit' => "commented out in the defaults: unset means the strategy's own pacing",
+    'jobs.heartbeat_enabled' => 'opt-in switch for HeartbeatJob; the defaults file does not define it',
+    'jobs.rabbitmq_management_url' => 'optional; RABBITMQ_MANAGEMENT_URL or localhost is used without it',
+    'locales' => 'legacy top-level list, read when internationalization.locales is unset',
+    'site.authentication.colonels' => 'operator-set list of colonel emails; the defaults file does not define it',
+    'site.authentication.external' => 'opt-in external auth section; the defaults file does not define it',
+    'site.federation_secret' => 'FEDERATION_SECRET is read first; the defaults file does not define this key',
+  }.freeze
 
   # Uses of OT.conf other than OT.conf.get that stay: file => [count, reason].
   ALLOWED_USES = {
+    'lib/onetime/application/registry.rb' => [2, 'warns on an app registered before boot (nil?); the config object is the rack_url_map cache token (object_id)'],
     'lib/onetime/config.rb' => [1, 'apply_config merges an override over the whole config'],
+    'lib/onetime/initializers/configure_domains.rb' => [1, 'DomainValidation::Features.load_from_config takes the whole config'],
+    'lib/onetime/operations/domains/collision_resolution.rb' => [1, 'Strategy.for_config takes the whole config'],
+    'lib/onetime/operations/domains/teardown.rb' => [1, 'Strategy.for_config takes the whole config'],
+    'lib/onetime/operations/verify_domain.rb' => [1, 'Strategy.for_config takes the whole config'],
   }.freeze
 
   # Uses of OT.conf other than OT.conf.get that are still to be converted
@@ -117,94 +136,7 @@ module ConfigAccessGuard
     'apps/web/core/middleware/request_setup.rb' => 2,
     'apps/web/core/middleware/vite_proxy.rb' => 1,
     'apps/web/core/views/helpers/initialize_view_vars.rb' => 5,
-    'lib/onetime.rb' => 7,
-    'lib/onetime/application/auth_strategies.rb' => 3,
-    'lib/onetime/application/auth_strategies/admin_session_lifetime.rb' => 1,
-    'lib/onetime/application/middleware_profile.rb' => 1,
-    'lib/onetime/application/middleware_stack.rb' => 7,
-    'lib/onetime/application/registry.rb' => 2,
-    'lib/onetime/auth_config.rb' => 1,
-    'lib/onetime/boot.rb' => 4,
-    'lib/onetime/class_methods.rb' => 1,
-    'lib/onetime/cli/apitoken_command.rb' => 2,
-    'lib/onetime/cli/queue/dlq_command.rb' => 1,
-    'lib/onetime/cli/queue/init_command.rb' => 1,
-    'lib/onetime/cli/queue/ping_command.rb' => 1,
-    'lib/onetime/cli/queue/rabbitmq_helpers.rb' => 2,
-    'lib/onetime/cli/queue/reset_command.rb' => 1,
-    'lib/onetime/cli/queue/status_command.rb' => 4,
-    'lib/onetime/cli/status_command.rb' => 2,
-    'lib/onetime/cli/worker_command.rb' => 1,
-    'lib/onetime/domain_validation/sender_strategies/provider_config.rb' => 4,
-    'lib/onetime/helpers/homepage_mode_helpers.rb' => 1,
-    'lib/onetime/helpers/session_helpers.rb' => 1,
-    'lib/onetime/incoming/recipient_resolver.rb' => 3,
-    'lib/onetime/initializers/configure_domains.rb' => 3,
-    'lib/onetime/initializers/configure_familia.rb' => 3,
-    'lib/onetime/initializers/configure_secret_activity.rb' => 1,
-    'lib/onetime/initializers/configure_truemail.rb' => 1,
-    'lib/onetime/initializers/load_locales.rb' => 2,
-    'lib/onetime/initializers/print_log_banner.rb' => 6,
-    'lib/onetime/initializers/set_secrets.rb' => 1,
-    'lib/onetime/initializers/setup_diagnostics.rb' => 5,
     'lib/onetime/initializers/setup_loggers.rb' => 1,
-    'lib/onetime/initializers/setup_paseto_keys.rb' => 1,
-    'lib/onetime/initializers/setup_rabbitmq.rb' => 4,
-    'lib/onetime/jobs/maintenance_job.rb' => 1,
-    'lib/onetime/jobs/publisher.rb' => 1,
-    'lib/onetime/jobs/scheduled/catalog_retry_job.rb' => 1,
-    'lib/onetime/jobs/scheduled/dlq_email_consumer_job.rb' => 2,
-    'lib/onetime/jobs/scheduled/dlq_monitor_job.rb' => 2,
-    'lib/onetime/jobs/scheduled/domain_refresh_job.rb' => 5,
-    'lib/onetime/jobs/scheduled/expiration_warning_job.rb' => 4,
-    'lib/onetime/jobs/scheduled/favicon_backfill_job.rb' => 5,
-    'lib/onetime/jobs/scheduled/heartbeat_job.rb' => 1,
-    'lib/onetime/jobs/scheduled/plan_cache_refresh_job.rb' => 1,
-    'lib/onetime/jobs/workers/favicon_fetch_worker.rb' => 1,
-    'lib/onetime/logic/base.rb' => 3,
-    'lib/onetime/logic/guest_route_gating.rb' => 1,
-    'lib/onetime/mail/mailer.rb' => 6,
-    'lib/onetime/mail/views/base.rb' => 5,
-    'lib/onetime/middleware/admin_network_isolation.rb' => 1,
-    'lib/onetime/middleware/assume_https.rb' => 1,
-    'lib/onetime/middleware/domain_strategy.rb' => 2,
-    'lib/onetime/middleware/identity_resolution.rb' => 1,
-    'lib/onetime/middleware/public_host_rewrite.rb' => 1,
-    'lib/onetime/middleware/security.rb' => 1,
-    'lib/onetime/middleware/static_files.rb' => 1,
-    'lib/onetime/middleware/tenant_csp_extras.rb' => 1,
-    'lib/onetime/models/custom_domain/brand_settings.rb' => 4,
-    'lib/onetime/models/custom_domain/chores/remove_orphaned_approximated_vhosts.rb' => 1,
-    'lib/onetime/models/custom_domain/homepage_config.rb' => 1,
-    'lib/onetime/models/custom_domain/incoming_config.rb' => 1,
-    'lib/onetime/models/custom_domain/serving_policy.rb' => 1,
-    'lib/onetime/models/custom_domain/signin_config.rb' => 2,
-    'lib/onetime/models/custom_domain/signup_config.rb' => 2,
-    'lib/onetime/models/customer/features/colonel_assignment.rb' => 1,
-    'lib/onetime/models/features/with_entitlements.rb' => 1,
-    'lib/onetime/models/organization/features/secret_activity.rb' => 1,
-    'lib/onetime/models/receipt.rb' => 1,
-    'lib/onetime/models/secret/features/display_type.rb' => 1,
-    'lib/onetime/operations/domains/collision_resolution.rb' => 1,
-    'lib/onetime/operations/domains/teardown.rb' => 1,
-    'lib/onetime/operations/fetch_domain_favicon.rb' => 7,
-    'lib/onetime/operations/verify_domain.rb' => 2,
-    'lib/onetime/paseto.rb' => 1,
-    'lib/onetime/rodauth_admin.rb' => 1,
-    'lib/onetime/secret_verifier.rb' => 2,
-    'lib/onetime/security/colonel_rate_limiter.rb' => 1,
-    'lib/onetime/security/conceal_secret_rate_limiter.rb' => 1,
-    'lib/onetime/security/create_account_rate_limiter.rb' => 1,
-    'lib/onetime/security/incoming_rate_limiter.rb' => 1,
-    'lib/onetime/security/per_customer_rate_limit.rb' => 1,
-    'lib/onetime/security/reset_request_rate_limiter.rb' => 1,
-    'lib/onetime/session.rb' => 1,
-    'lib/onetime/session/codec.rb' => 1,
-    'lib/onetime/signup_validation.rb' => 1,
-    'lib/onetime/sso_provider/saml.rb' => 1,
-    'lib/onetime/utils/canonical_hosts.rb' => 3,
-    'lib/onetime/utils/email_hash.rb' => 2,
-    'lib/tasks/dev.rake' => 2,
   }.freeze
 
   module_function
@@ -478,6 +410,43 @@ module ConfigAccessGuard
       .map { |call| "#{call[:file]}:#{call[:line]} reads a computed path with no default; pass one" }
   end
 
+  # The YAML layer of the shipped config, before after_load.
+  def yaml_defaults
+    @yaml_defaults ||= Onetime::Config.load(File.join(ROOT, 'etc/defaults/config.defaults.yaml'))
+  end
+
+  # The config boot builds when an operator file sets +section+ to nil, or
+  # nil when after_load rejects it (boot fails on it already).
+  def config_with_nil_section(section, base = yaml_defaults)
+    operator = section[0..-2].reverse.reduce({ section.last => nil }) { |inner, key| { key => inner } }
+    merged   = Onetime::Utils::Enumerables.deep_merge(base, operator, preserve_nils: false)
+    d9s_enabled = Onetime.d9s_enabled
+    Onetime::Config.after_load(merged)
+  rescue Onetime::ConfigError
+    nil
+  ensure
+    Onetime.d9s_enabled = d9s_enabled
+  end
+
+  # Rule 7.
+  def nil_section_problems(calls, base = yaml_defaults)
+    required = calls.select { |call| call[:path] && !call[:default] }
+    sections = required.flat_map { |call| (1...segments(call[:path]).size).map { |n| segments(call[:path])[0, n] } }.uniq
+
+    sections.flat_map do |section|
+      conf = config_with_nil_section(section, base)
+      next [] unless conf
+
+      required.select { |call| segments(call[:path])[0, section.size] == section }.filter_map do |call|
+        conf.get(call[:path])
+        nil
+      rescue KeyError, TypeError => ex
+        "#{call[:file]}:#{call[:line]} reads #{label(call[:path])} with no default, which raises " \
+          "(#{ex.class.name.split('::').last}) when an operator file sets #{section.join('.')} to nil; pass nil as the default"
+      end
+    end
+  end
+
   # Rule 6.
   def invalid_call_problems(calls)
     calls.flat_map do |call|
@@ -521,6 +490,10 @@ RSpec.describe 'OT.conf access guard' do
     it 'passes a default whenever the path is not a literal' do
       problems = guard.computed_path_problems(guard.get_calls(guard.scan))
       expect(problems).to be_empty, problems.join("\n")
+    end
+
+    it 'reads no required path that a nil section in an operator file leaves unset' do
+      expect(guard.nil_section_problems(guard.get_calls(guard.scan))).to be_empty
     end
 
     it 'passes no Symbol path and no keyword argument to get' do
@@ -680,6 +653,23 @@ RSpec.describe 'OT.conf access guard' do
 
     it 'reports a computed path without a default' do
       expect(guard.computed_path_problems(calls)).to eq(['x.rb:7 reads a computed path with no default; pass one'])
+    end
+
+    # Config::DEFAULTS refills features.domains without a default key, so an
+    # operator file with an empty `domains:` leaves features.domains.default
+    # absent.
+    it 'reports a required read that a nil section leaves absent, and not one with a default' do
+      calls = [
+        { file: 'x.rb', line: 1, path: 'features.domains.default', default: false },
+        { file: 'y.rb', line: 2, path: 'features.domains.default', default: true },
+      ]
+
+      expect(guard.nil_section_problems(calls)).to contain_exactly(
+        'x.rb:1 reads features.domains.default with no default, which raises (MissingPathError) ' \
+        'when an operator file sets features to nil; pass nil as the default',
+        'x.rb:1 reads features.domains.default with no default, which raises (MissingPathError) ' \
+        'when an operator file sets features.domains to nil; pass nil as the default',
+      )
     end
 
     it 'reports a Symbol path and a keyword argument' do

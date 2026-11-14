@@ -538,7 +538,7 @@ module Onetime
       end
 
       def reset_request_rate_limit_config(scope = :reset_request)
-        OT.conf.dig('site', 'authentication', reset_request_scope(scope).config_key) || {}
+        OT.conf.get(['site', 'authentication', reset_request_scope(scope).config_key], {})
       end
 
       # Enabled unless config explicitly sets enabled:false. Absent config

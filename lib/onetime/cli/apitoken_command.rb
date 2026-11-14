@@ -244,10 +244,10 @@ module Onetime
       end
 
       def base_uri
-        host = OT.conf&.dig('site', 'host')
+        host = OT.conf&.get('site.host')
         return 'https://localhost:3000' unless host
 
-        ssl    = OT.conf&.dig('site', 'ssl')
+        ssl    = OT.conf&.get('site.ssl')
         scheme = ssl ? 'https' : 'http'
         "#{scheme}://#{host}"
       end

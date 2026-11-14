@@ -133,8 +133,8 @@ module Onetime
       end
 
       def process_settings
-        @site            = OT.conf.fetch('site', {})
-        @features        = OT.conf.fetch('features', {})
+        @site            = OT.conf.get('site', {})
+        @features        = OT.conf.get('features', {})
 
         @authentication  = site.fetch('authentication', {})
         domains          = features.fetch('domains', {})
@@ -224,7 +224,7 @@ module Onetime
       def validate_secret_size(value)
         # Normalize once so the comparison and the error message agree and a
         # Float from config never renders as "10000.0".
-        max_length = (OT.conf.dig('site', 'secret_options', 'content', 'maximum_length') || 10_000).to_i
+        max_length = OT.conf.get('site.secret_options.content.maximum_length', 10_000).to_i
         # Measure in BYTES, not characters (C5): the ceiling bounds Redis storage,
         # and a multibyte string can occupy up to 4x its character count. The
         # client-facing hint (src/schemas/contracts/config/public.ts) is still

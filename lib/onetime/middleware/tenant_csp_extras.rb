@@ -124,7 +124,7 @@ module Onetime
       # RequestSetup#emit_csp_header applies), then the response status, then
       # the response media type, then a present display_domain.
       def apply_tenant_extras(env, status, headers)
-        return unless OT.conf.dig('site', 'security', 'csp', 'enabled')
+        return unless OT.conf.get('site.security.csp.enabled')
         return unless document_status?(status)
         return unless html_response?(env, headers)
 

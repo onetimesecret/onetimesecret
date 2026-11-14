@@ -530,12 +530,14 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
       )
     end
 
-    # Stub the dig, not OT.conf itself — spec_helper's teardown reads OT.conf
-    # and a raising stub would take the whole example group down with it.
+    # Stub the one read, not OT.conf itself — spec_helper's teardown reads
+    # OT.conf and a raising stub would take the whole example group down with it.
     it 'falls back to the default when the config read raises' do
-      faulty = instance_double(Hash)
-      allow(faulty).to receive(:dig).and_raise(StandardError, 'config unreadable')
-      allow(OT).to receive(:conf).and_return(OT::Config.wrap(faulty))
+      faulty = OT::Config.wrap({})
+      allow(faulty).to receive(:get).and_call_original
+      allow(faulty).to receive(:get).with('site.secret_options.ttl_max_anonymous')
+        .and_raise(StandardError, 'config unreadable')
+      allow(OT).to receive(:conf).and_return(faulty)
       allow(OT).to receive(:le)
 
       expect(described_module.configured_anonymous_max_ttl)

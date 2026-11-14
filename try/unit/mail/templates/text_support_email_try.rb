@@ -42,18 +42,18 @@ require 'onetime/mail'
 def with_brand_conf(brand_hash)
   saved     = YAML.load(YAML.dump(OT.conf))
   conf_copy = YAML.load(YAML.dump(saved))
-  conf_copy['brand'] = brand_hash
+  conf_copy['brand'] = conf_copy['brand'].transform_values { nil }.merge(brand_hash)
   OT.send(:conf=, conf_copy)
   yield
 ensure
   OT.send(:conf=, saved) rescue nil
 end
 
-# Helper: run a block with OT.conf['brand'] removed entirely, then restore.
+# Helper: run a block with every OT.conf['brand'] setting unset, then restore.
 def without_brand_conf
   saved     = YAML.load(YAML.dump(OT.conf))
   conf_copy = YAML.load(YAML.dump(saved))
-  conf_copy.delete('brand')
+  conf_copy['brand'] = conf_copy['brand'].transform_values { nil } # every brand setting unset
   OT.send(:conf=, conf_copy)
   yield
 ensure

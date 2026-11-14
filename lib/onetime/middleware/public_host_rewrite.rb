@@ -110,7 +110,7 @@ module Onetime
       #
       # @return [Boolean]
       def self.enabled?
-        OT.conf&.dig('site', 'network', 'public_host_rewrite') == true
+        OT.conf&.get('site.network.public_host_rewrite') == true
       end
 
       # The `Host` header the server received, whether or not this

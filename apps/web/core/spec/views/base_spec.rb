@@ -487,7 +487,7 @@ RSpec.describe Core::Views::BaseView do
     context 'when diagnostics enabled with DSN provided' do
       before do
         allow(OT).to receive('d9s_enabled').and_return(true)
-        allow(OT).to receive('conf').and_return(config.merge(
+        allow(OT).to receive('conf').and_return(OT::Config.wrap(config.merge(
                                                   'diagnostics' => {
                                                     'sentry' => {
                                                       'frontend' => {
@@ -495,7 +495,7 @@ RSpec.describe Core::Views::BaseView do
                                                       },
                                                     },
                                                   },
-                                                ),
+                                                )),
                                                )
       end
 
@@ -516,7 +516,7 @@ RSpec.describe Core::Views::BaseView do
     context 'when diagnostics disabled' do
       before do
         allow(OT).to receive('d9s_enabled').and_return(false)
-        allow(OT).to receive('conf').and_return(config.merge(
+        allow(OT).to receive('conf').and_return(OT::Config.wrap(config.merge(
                                                   'diagnostics' => {
                                                     'sentry' => {
                                                       'frontend' => {
@@ -524,7 +524,7 @@ RSpec.describe Core::Views::BaseView do
                                                       },
                                                     },
                                                   },
-                                                ),
+                                                )),
                                                )
       end
 

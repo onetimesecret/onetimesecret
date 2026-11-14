@@ -41,7 +41,7 @@ module Onetime
         #
         # @return [Array<String>] Normalized email addresses
         def colonels_list
-          raw_list = OT.conf.dig('site', 'authentication', 'colonels') || []
+          raw_list = OT.conf.get('site.authentication.colonels', [])
 
           raw_list
             .flat_map { |entry| entry.to_s.split(',') }
