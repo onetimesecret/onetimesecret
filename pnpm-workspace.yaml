@@ -21,7 +21,7 @@ overrides:
   '@babel/core': '>=7.29.6 <8'
   # GHSA-p498-v437-472g fixed in 0.16.8 (via eslint).
   '@humanfs/node': '^0.16.8'
-  '@types/estree': '1.0.9'
+  '@types/estree': '1.0.10'
   # CVE-2026-45819 / GHSA-w5vr-8v7q-w6rv fixed in 2.11.0.
   baseline-browser-mapping: '^2.11.0'
   esbuild: '>=0.28.1'
