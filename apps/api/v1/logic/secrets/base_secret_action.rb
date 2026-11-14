@@ -45,15 +45,16 @@ module V1::Logic
       V1_MIN_TTL = 60        # 1 minute, matching v0.23.4
       V1_MAX_TTL = 2_592_000 # 30 days (30 * 86400)
 
-      # Passphrase minimum length: config-driven with nil fallback [#2758]
+      # Passphrase minimum length: config-driven [#2758]
       #
-      # When the operator sets `site.secret_options.passphrase.minimum_length`
-      # in config, V1 now respects that value. When unset (nil), no minimum
-      # is enforced — preserving backward compatibility for callers sending
-      # short passphrases (e.g. "1234").
+      # Reads `site.secret_options.passphrase.minimum_length`. A loaded
+      # config always has it: the defaults file sets
+      # `PASSPHRASE_MIN_LENGTH || 4` and Config::DEFAULTS sets 4 [#2761].
+      # A nil in an operator file reads as 4, because after_load keeps the
+      # DEFAULTS value over a nil. Set it to 0 to enforce no minimum.
       #
-      # This changed in v0.24.1: prior versions hard-coded nil here, ignoring
-      # any operator config. Now operators can opt-in to enforcement.
+      # This changed in v0.24.6: prior versions hard-coded nil here, ignoring
+      # any operator config.
       def self.passphrase_min_length
         OT.conf.get('site.secret_options.passphrase.minimum_length')&.to_i
       end
@@ -359,9 +360,8 @@ module V1::Logic
       def validate_passphrase
         # V1 passphrase validation [#2758]
         #
-        # When the operator sets minimum_length in config, V1 now enforces it.
-        # When unset (nil), no minimum is enforced — preserving backward
-        # compatibility for callers sending short passphrases.
+        # V1 enforces the configured minimum_length: 4 unless the operator
+        # changes it, and 0 turns the check off. See passphrase_min_length.
         passphrase_config = OT.conf.get('site.secret_options.passphrase', {})
 
         # Check if passphrase is required (defaults to false for V1 compat)
@@ -372,7 +372,7 @@ module V1::Logic
         # Skip further validation if no passphrase provided
         return if passphrase.to_s.empty?
 
-        # Config-driven minimum length; nil means no enforcement
+        # Config-driven minimum length; 0 means no enforcement
         min_length = self.class.passphrase_min_length
         if min_length && passphrase.length < min_length
           raise_form_error "Passphrase must be at least #{min_length} characters long"
