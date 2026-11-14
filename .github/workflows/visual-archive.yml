@@ -29,8 +29,10 @@ name: Visual archive
 on:
   release:
     types: [published]
-  # Manual runs archive whatever ref you dispatch from, tagged sha-<short>.
-  # Useful for backfilling an old tag: dispatch from that tag's ref.
+  # Manual runs archive whatever ref you dispatch from: a tag ref is archived
+  # under the tag name (backfilling an old tag, or github-release.yml, whose
+  # GITHUB_TOKEN-created releases do not fire the release trigger above);
+  # a branch is archived as sha-<short>.
   workflow_dispatch:
 
 permissions:
@@ -104,8 +106,9 @@ jobs:
       - name: Push to ghcr.io
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Empty on workflow_dispatch; the sha-<short> fallback below covers it.
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          # The release's tag, or the tag a dispatch ran from. Empty for a
+          # dispatch from a branch; the sha-<short> fallback below covers it.
+          RELEASE_TAG: ${{ github.event.release.tag_name || (github.ref_type == 'tag' && github.ref_name) || '' }}
         run: |
           TAG="${RELEASE_TAG:-sha-${GITHUB_SHA::7}}"
           # OCI tag charset guard — release tag names are maintainer-created

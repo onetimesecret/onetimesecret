@@ -58,9 +58,10 @@ on:
   schedule:
     - cron: '23 4 * * *'
   push:
-    # Every commit on main and every release tag runs this lane, whatever
-    # the commit touched.
-    branches: [main]
+    # Every commit on main and develop and every release tag runs this lane,
+    # whatever the commit touched. develop arrives through the GitLab push
+    # mirror; see the push trigger in ci.yml.
+    branches: [main, develop]
     tags: ['v*']
   merge_group:
     types: [checks_requested]
@@ -69,7 +70,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Each mirrored develop commit keeps its own run; see ci.yml.
+  group: ${{ github.workflow }}-${{ github.ref }}${{ github.ref == 'refs/heads/develop' && format('-{0}', github.sha) || '' }}
   cancel-in-progress: true
 
 env:

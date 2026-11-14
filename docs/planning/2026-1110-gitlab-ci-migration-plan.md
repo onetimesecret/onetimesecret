@@ -1,20 +1,24 @@
 # GitLab CI/CD migration plan
 
-**Status (2026-11-12):** proposal. Nothing in this document is implemented.
-Spikes S1 and S3 have first-pass results (§7, "Spike results").
-Three decisions were made by the maintainer on 2026-11-10 and are recorded in
-§8: runners are both hosted and self-hosted, GitHub is archived with a link
-to GitLab, and v0.26.20 is the last release cut from GitHub.
+**Status (2026-11-13):** proposal. The GitLab to GitHub push mirror and its
+GitHub settings are in place (§2.4); nothing else in this document is
+implemented. Spikes S1 and S3 have first-pass results (§7, "Spike results").
+§8 records the maintainer's decisions. 2026-11-10: runners are both hosted
+and self-hosted. 2026-11-13: development is on GitLab, release tags are
+created there, and GitHub stays as a push mirror that keeps building and
+publishing the Docker Hub and GHCR images. GitHub is not archived.
 
 **Evidence base:** `develop` at b8a13618 (2026-11-09) for the GitHub side,
 `main` at 82cd4348 for the GitLab pilot, GitHub Actions run history read on
 2026-11-10, and GitLab documentation retrieved on 2026-11-10 (GitLab 19.5),
-with additions on 2026-11-11 that Appendix B marks.
+with additions on 2026-11-11 that Appendix B marks. The mirror configuration,
+the GitHub settings and the workflow triggers in §2.4 are as of 2026-11-13.
 Appendix B lists the GitLab facts this plan depends on and which of them were
 not confirmed.
 
-**Scope:** the 29 workflows in `.github/workflows/`, the composite actions and
-scripts they call, and the repository automation configured under `.github/`.
+**Scope:** the 29 workflows in `.github/workflows/` at b8a13618, plus
+`github-release.yml` (§2.4), the composite actions and scripts they call, and
+the repository automation configured under `.github/`.
 Moving issues, pull request history and product links is adjacent work (§10).
 
 **How statements are marked:** text in double quotes is exact wording from the
@@ -29,14 +33,16 @@ Delete this document once Phase 6 is complete.
 
 ## 1. Summary
 
-1. **One pipeline replaces 29 workflows.** A single GitLab pipeline definition,
-   split across about ten include files, with pipeline types chosen by
-   `workflow:rules`.
+1. **One pipeline replaces most of the 29 workflows.** A single GitLab
+   pipeline definition, split across about ten include files, with pipeline
+   types chosen by `workflow:rules`. The image publisher, the visual archive,
+   `github-release.yml` and, until its deploy moves, the API docs workflow
+   stay on GitHub (§6.1).
 2. **Consolidate first, migrate second.** The CI logic in `.github/scripts/`
    and the shell embedded in workflows and composite actions moves into tool
    packages under `tools/` behind `bin/` entry points (ADR-042) while GitHub
-   Actions is still the gate. The GitLab YAML then calls `bin/` commands and
-   `tests/lanes/run`.
+   Actions still runs them on the mirrored commits. The GitLab YAML then
+   calls `bin/` commands and `tests/lanes/run`.
 3. **Lanes do not change.** The lane spec requires loopback test endpoints, so
    GitLab's `services:` hostnames cannot serve them. Jobs that need services
    run a Docker daemon inside the job and use `compose.test.yml` as it is.
@@ -47,30 +53,38 @@ Delete this document once Phase 6 is complete.
    `.github/scripts/` files are deleted and not ported.
 5. **Less repeated work.** The runner-side frontend build happens once per
    pipeline and the `main` image once, where a pull request can build that
-   image three times today. Publishing waits for the boot and e2e checks of
-   the image it publishes; today it waits for nothing.
-6. **New capabilities worth adopting:** merge trains, keyless image signing
-   with SBOM and provenance, GitLab's SAST, secret detection and container
-   scanning, test reports in the merge request, and a warning state for
-   best-effort jobs. Native arm64 builds are possible only if the frontend
-   stage is shared between architectures (§4.6).
+   image three times today. Publishing stays on GitHub and still waits for
+   nothing; §4.6 proposes a gate in the GitHub publish workflow.
+6. **New capabilities worth adopting:** merge trains, GitLab's SAST, secret
+   detection and container scanning, test reports in the merge request, and
+   a warning state for best-effort jobs. Keyless image signing with SBOM and
+   provenance, and native arm64 builds, are questions for the GitHub publish
+   workflow (§4.6).
 7. **Compute is the main cost question.** GitHub Actions is free for this
-   public repository. GitLab hosted runners are metered, and the current run
-   volume is above the Premium quota on main CI alone. With heavy jobs on
-   self-hosted runners, the metered share is the light jobs (§4.12).
+   public repository, and the image builds and publishing stay there on that
+   basis (decided 2026-11-13). GitLab hosted runners are metered, and the
+   current run volume is above the Premium quota on main CI alone. With heavy
+   jobs on self-hosted runners, the metered share is the light jobs (§4.12).
 8. **What is lost or changes:** job summaries, tmate debug sessions, the path
    labeler, picking up a `ci:auth` label by re-running an existing run, the
    time-to-first-test history, and, until it is ported, the CI metrics
-   comment. macOS jobs need a decision.
-9. **Seven phases, release path first.** Every release after v0.26.20 comes
-   from GitLab, so the build and publish path is the first thing built there
-   (Phase 2). A merge gate is needed as well before merges move (Phase 3).
-   GitHub can be restored as the gate until it is archived, and with more
-   work after that (Phase 5).
+   comment. The macOS jobs can stay on GitHub's schedule (D4,
+   recommendation).
+9. **Seven phases; the release path is the mirror.** Release tags are created
+   on GitLab, the push mirror delivers them to GitHub, and the existing
+   GitHub image workflow publishes them (§2.4, §4.6). Development is on
+   GitLab and GitLab has no merge gate yet (Phase 3). Until it has one, the
+   GitHub runs on mirrored `main` and `develop` commits are the test signal,
+   after the merge, and the workflows that run only on pull requests run
+   nowhere (§2.4). GitHub is not archived, so its workflows can be enabled
+   again at any point (Phase 5).
 
 ## 2. Where things stand
 
 ### 2.1 GitHub Actions today
+
+The inventory below is `develop` at b8a13618. §2.4 describes what runs on
+GitHub now that it is a push mirror.
 
 | Item | Count |
 |---|---|
@@ -108,7 +122,9 @@ Facts that shape the design:
 
 ### 2.2 GitLab today
 
-- The project exists at `gitlab.com/onetimesecret/onetimesecret`.
+- The project exists at `gitlab.com/onetimesecret/onetimesecret` (project id
+  88874403). Development is there (§8). `main` and `develop` are protected
+  branches, and `v*` is a protected tag that only Maintainers can create.
 - `main` has a pilot that `develop` lacks: `.gitlab-ci.yml` (one job,
   TypeScript unit tests and test type checking, `saas-linux-medium-amd64`) and
   `ci/typescript-pilot/` (#4932).
@@ -130,6 +146,129 @@ Read from the GitHub Actions API on 2026-11-10:
   about 40 minutes for 13 jobs, not counting lint, build and the smoke test.
 - Wall time for that run was about 12 minutes. The promotion PR (#4927) took
   27 minutes.
+
+### 2.4 GitHub as a push mirror
+
+Set up on 2026-11-13 after the maintainer's decision of that day (§8). These
+are settings, not files, except where a file is named.
+
+**The mirror.** GitLab push mirror 4157219 on project
+`onetimesecret/onetimesecret` (id 88874403) pushes to
+`ssh://git@github.com/onetimesecret/onetimesecret.git` with SSH public key
+authentication. GitHub's host keys are pinned (ed25519 and ECDSA, from
+`api.github.com/meta`). "Only mirror protected branches" and "Keep divergent
+refs" are on, and the protected branches are `main` and `develop`. The first
+sync succeeded at 2026-11-13T18:09:46Z: GitHub `develop` moved from
+340473a80b to 03620959ca. GitLab's push mirror page: the mirror receives a
+push "in five minutes, or one minute if the setting Only mirror protected
+branches is on."
+
+**What the mirror pushes.** Read from Gitaly's
+`internal/gitaly/service/remote/update_remote_mirror.go` (`master`,
+2026-11-13), not run:
+
+- The protected-branch filter is a regular expression that begins
+  `^refs/tags/.+$|^refs/heads/(` and continues with the branch patterns, so
+  every tag is mirrored, not only `v*`.
+- The push sets `Force: !firstRequest.GetKeepDivergentRefs()`. With "Keep
+  divergent refs" on, the mirror never force-pushes.
+- With "Keep divergent refs" on, the list of refs to delete is emptied, so
+  the mirror deletes nothing on GitHub.
+
+Consequences: a branch or tag deleted on GitLab stays on GitHub. A ref that
+has diverged on GitHub makes the update fail; GitLab's page says "The update
+is marked as failed." (R11, R13).
+
+**GitHub settings.**
+
+- Deploy key 169800417, with write access, is the mirror's public key.
+  GitHub: "Deploy keys only grant access to a single repository."
+- Ruleset 27221050, "GitLab mirror: main and develop", and ruleset 27221051,
+  "GitLab mirror: release tags" (target tag, `refs/tags/v*`), each have the
+  rules creation, update, deletion and non_fast_forward, and the deploy key
+  (`DeployKey`) as the only bypass actor. Nobody can merge or push to
+  `main` or `develop` on GitHub, or create, move or delete a `v*` tag there,
+  except the mirror.
+- The earlier rulesets are disabled, not deleted: "Default" (895349, on
+  `main`: pull request, the required checks `notify-results` and
+  `ci-verdict`, code scanning) and "Develop" (11465009: pull request,
+  `Analyze (ruby)`, code scanning, code quality). Enabled again, they would
+  reject the mirror's pushes, since the deploy key does not bypass them
+  (inferred).
+- Disabled with `gh workflow disable`: `claude.yml`,
+  `claude-code-review.yml`, `pr-labeler.yml`,
+  `housekeeping-github-issues.yml`, `housekeeping-lock-threads.yml`.
+  Dependabot security updates are off. The repository description points to
+  GitLab.
+- Open for the operator: removing the Renovate GitHub app from the
+  repository failed with HTTP 403. While it is installed it can still open
+  pull requests on GitHub; those run the `pull_request` workflows and cannot
+  be merged (inferred). Whether GitHub Issues are turned off is not decided.
+  Turning them off hides the existing issue pages and breaks links to them;
+  leaving them on lets people file issues there.
+
+**On GitLab.** `v*` is a protected tag; only Maintainers can create one. A
+`v*` tag reaches GitHub and publishes images tagged `latest` or `next`, so
+creating that tag is the permission to publish (§4.11, P4).
+
+**Files in the same merge request** (branch `ci/github-push-mirror` into
+`develop`). They act on GitHub once merged and mirrored. `github-release.yml`
+acts only once it is on `main`: GitHub's `workflow_run` event "will only
+trigger a workflow run if the workflow file exists on the default branch."
+
+- `.github/workflows/github-release.yml` (new). Trigger: completion of "Build
+  and Publish OCI Images" for a `push` event with conclusion success, or a
+  dispatch with a tag. It checks the tag format and that the tag still points
+  at the commit the images were built from, and leaves an existing GitHub
+  release unchanged. Otherwise it creates the GitHub release page. The
+  page links to the GitLab release
+  (`https://gitlab.com/onetimesecret/onetimesecret/-/releases/<tag>`) and to
+  `CHANGELOG.rst` at the tag, and lists the image names. A tag that contains
+  `-` is a prerelease and is not marked latest. It then dispatches
+  `visual-archive.yml` at the tag, because a release created with
+  `GITHUB_TOKEN` starts no `release: published` workflow. GitHub: "events
+  triggered by the `GITHUB_TOKEN` will not create a new workflow run, with
+  the following exceptions:", the first being "`workflow_dispatch` and
+  `repository_dispatch` events always create workflow runs." When the
+  existing release is the workflow's own, a re-run dispatches the archive
+  again, so a failed dispatch is recovered by re-running the job.
+- `visual-archive.yml`: a dispatch from a tag ref archives under the tag
+  name; a dispatch from a branch archives as `sha-<short>`.
+- `ci.yml`, `e2e-full-auth.yml`, `e2e-tenant-connect.yml`: the push trigger
+  covers `main` and `develop`, and `v*` tags. Every mirrored `develop` commit
+  gets a full post-merge run on GitHub until GitLab gates merges. On
+  `develop` the concurrency group includes the commit SHA, so a later push
+  does not cancel the run for an earlier one.
+- A README notice and a contact link in `.github/ISSUE_TEMPLATE/config.yml`
+  point to GitLab; a changelog fragment.
+
+**What still runs on GitHub.** Read from the trigger blocks in
+`.github/workflows/*.yml`, with the changes above. A push from the mirror
+starts these like any other push; GitHub suppresses only events triggered by
+`GITHUB_TOKEN` (not yet observed for a mirrored push, Appendix B). GitHub
+runs schedules on the default branch, `main`.
+
+| Trigger | Workflows |
+|---|---|
+| Push to `main` or `develop` | `ci.yml`, `e2e-full-auth.yml`, `e2e-tenant-connect.yml`; `resolved-derive-gate.yml` and `validate-register.yml` on their paths |
+| Push to `main` only | `static-analysis.yml`; `bump-api-docs.yml` on its paths, which deploys the API docs |
+| Push of a `v*` tag | `build-and-publish-oci-images.yml`, `ci.yml`, both e2e suites; then `github-release.yml`, which dispatches `visual-archive.yml` |
+| Daily schedule | `ci.yml`, `build-and-publish-oci-images.yml` (the nightly image), `migration-tests.yml`, `ruby-4-preview.yml`, `e2e-full-auth.yml`, `e2e-tenant-connect.yml` |
+| Weekly schedule | `compose-smoke.yml`, `devcontainer-ci.yml`, `fresh-clone.yml`, `installer.yml` (including its macOS job), `secret-rotation.yml`, `baremetal-boot.yml`, `validate-register.yml` |
+| Dispatch | every workflow with a `workflow_dispatch` trigger that is not disabled |
+
+**What runs nowhere.** No pull requests are opened on GitHub (the Renovate
+app aside, above), so the workflows that have only `pull_request` and
+dispatch triggers run nowhere, unless dispatched by hand, until GitLab has
+their equivalents: `drift-guards.yml` (including its
+`envref-macos` job), `docs-command-drift.yml`, `e2e.yml` (container e2e) and
+`visual.yml`. The pull request runs of the other workflows stop as well:
+path-selected runs of the install and smoke workflows and of
+`migration-tests.yml`, the Bump.sh diff, `static-analysis.yml` on pull
+requests (it still runs on pushes to `main`, not on `develop`), and the
+register gates' pull request scans. The merge queue (`merge_group`) has
+nothing to run. What remains is post-merge: the push and schedule runs in
+the table above.
 
 ## 3. Constraints the design must respect
 
@@ -202,8 +341,8 @@ Everything in this section is a proposal.
 | Merge train | `$CI_MERGE_REQUEST_EVENT_TYPE == "merge_train"` | what `merge_group` runs today: all main CI jobs except billing, full-auth and tenant-connect e2e |
 | `main` | push to `main` | the merge train set, static analysis, API docs deploy, register gates on locale changes |
 | `develop` | push to `develop`, unless `develop` is the source of an open merge request | register gates on locale changes, as today |
-| Tag | a pushed tag matching `v*` (`$CI_COMMIT_TAG`, source `push`) | the `main` set, billing, image build for release, container e2e, the `s6` and `lite` boot, publish, release |
-| Nightly | schedule input `schedule: nightly` | the `main` set, billing, migrations, Ruby preview; on `main` also the nightly image, published after container e2e and the `s6` and `lite` boot |
+| Tag | a pushed tag matching `v*` (`$CI_COMMIT_TAG`, source `push`) | the `main` set, billing, the validation image build, container e2e, the GitLab release (§4.6). It runs while GitHub publishes the same tag and does not gate that publish. |
+| Nightly | schedule input `schedule: nightly` | the `main` set, billing, migrations, Ruby preview; on `main` also container e2e. GitHub's own schedule builds and publishes the nightly image (§4.6). |
 | Weekly | schedule input `schedule: weekly` | install and boot lanes, published-image smoke, full register scan |
 | Triage | schedule input `schedule: triage` | `gitlab-triage` |
 | Manual | web or API with inputs, on a branch or a tag | selected by inputs |
@@ -215,11 +354,10 @@ Notes:
   projects is to allow none; schedules accept inputs.
 - Inputs live in the root file (`spec:inputs`, at most 20) and each needs a
   default, because merge request pipelines cannot set them. Proposed inputs:
-  `schedule`, `run_all`, `publish` (`none`, `custom`, `public`),
-  `platforms`, `version_tag`, `ruby_preview`, `rules_ref`, `debug`. A manual
-  publish today defaults to the custom registry; `publish` keeps that choice
-  explicit. `ruby_preview` is an on/off switch; the preview version is a
-  literal in the job (§4.3).
+  `schedule`, `run_all`, `ruby_preview`, `rules_ref`, `debug`. A manual
+  publish stays a dispatch of the GitHub workflow (§4.6), so there is no
+  `publish`, `platforms` or `version_tag` input. `ruby_preview` is an on/off
+  switch; the preview version is a literal in the job (§4.3).
 - `workflow:rules` sets `RUN_ALL` and `NIGHTLY` per type so jobs test one
   variable. Using workflow variables in job rules is part of spike S3.
 - One pipeline per push to `develop` while a promotion is open. A promotion
@@ -255,8 +393,8 @@ Notes:
   above, so a back-merge comes from a branch cut from `main`.
 - Pushes create pipelines for `main`, `develop` and release tags only, as in
   the table. A topic branch gets its pipeline through its merge request,
-  which matches GitHub today (`ci.yml` runs on pushes to `main` and tags, and
-  on pull requests). The rule keeps its `"push"` condition, so it never
+  which matches GitHub (`ci.yml` runs on pushes to `main`, `develop` and
+  tags, §2.4, and on pull requests). The rule keeps its `"push"` condition, so it never
   drops a scheduled, manual or triggered pipeline.
 - The rule does not drop a scheduled or manual pipeline on `develop`, and
   this plan proposes a nightly there. GitLab's source (19.5) counts
@@ -277,30 +415,32 @@ Notes:
   with the code, and the setting is beta.
 - Container e2e, visual and migration tests do not run on `main`, tag or
   merge-queue events today. Two additions are proposed: container e2e in
-  every pipeline that publishes (tag, `main` nightly, manual publish),
-  because publishing should wait for it (§4.6), and a nightly
+  GitLab tag pipelines and the `main` nightly, which tests the commits that
+  GitHub publishes from but does not gate the publish (§4.6), and a nightly
   schedule on `develop`, because a change to shared code can break an
   auth-only job that its pull request did not select. The `develop` nightly
   builds the staging image that container validation needs (§4.6), as a
-  merge request pipeline does. It does not build the release group and it
-  publishes nothing: those jobs run on a pushed tag, on the `main` nightly
-  and in a manual run with `publish` set, and it is none of the three.
+  merge request pipeline does. It publishes nothing; no GitLab pipeline
+  does (§4.6).
 
 ### 4.2 File layout
 
 ```text
-.gitlab-ci.yml          inputs, workflow rules, stages, defaults, includes,
-                        and the signing job (id_tokens)
+.gitlab-ci.yml          inputs, workflow rules, stages, defaults, includes
 .gitlab/ci/
   rules.yml             path lists and rule fragments
   base.yml              job templates: images, caches, prepare, lane
   lint.yml              linters, hygiene, guards, audits, tooling tests
   frontend.yml          build, Vitest, type checks, i18n
   ruby.yml              lanes, host proxy wire, migrations, Ruby preview
-  images.yml            toolchain image, OCI build, container validation
+  images.yml            toolchain image, OCI build for testing, container
+                        validation
   e2e.yml               container e2e, full-auth, tenant-connect, visual
   smoke.yml             install and boot lanes
-  release.yml           publish, Sentry, release, visual archive, API docs
+  release.yml           GitLab release, API docs diff, and the API docs
+                        deploy once it moves from GitHub (§6.1)
+.github/workflows/      the publisher, the GitHub release page and the
+                        visual archive stay on GitHub (§4.6, §6)
   automation.yml        triage and review jobs
 .gitlab/issue_templates/, .gitlab/merge_request_templates/
 docker/ci/toolchain.dockerfile
@@ -313,7 +453,7 @@ implementation under both hosts, and it keeps the logic under shellcheck and
 `bin/testsuite`. Today actionlint runs shellcheck over workflow `run:` blocks
 and two suites execute them; neither reads GitLab YAML.
 
-Stages follow the existing tiers (lint and build, test, image, e2e, publish,
+Stages follow the existing tiers (lint and build, test, image, e2e, release,
 report) and jobs use `needs` so that tests start when lint and build finish,
 as they do now.
 
@@ -328,7 +468,7 @@ malicious images."
 | Stage | Contents | Used by |
 |---|---|---|
 | `runtime` | Ruby from `.ruby-version`, Node from `.node-version`, pnpm from `package.json`, Python, bash 5, git, curl, sudo, the Docker engine with compose and buildx | install lanes (C8) |
-| `ci` | `runtime` plus uv, jq, a PostgreSQL client, shellcheck, actionlint (until Phase 6), pre-commit, `glab`, cosign, oras, `bump-cli`, and the small tools the scripts call (`lsof`, `shasum`, `openssl`, `bc`) | most jobs |
+| `ci` | `runtime` plus uv, jq, a PostgreSQL client, shellcheck, actionlint (for the workflows that stay on GitHub), pre-commit, `glab`, `bump-cli`, and the small tools the scripts call (`lsof`, `shasum`, `openssl`, `bc`) | most jobs |
 | `browsers` | `ci` plus the Playwright browsers, tied to `@playwright/test` | browser lane, native e2e |
 | `review` | `ci` plus the Claude CLI at a pinned version | the Claude review job only (§4.11) |
 
@@ -406,8 +546,8 @@ the install lanes.
 
 **Cancellation.** `interruptible: true` by default with
 `workflow:auto_cancel:on_new_commit: interruptible` replaces the concurrency
-groups. Schedule, tag and publish pipelines set `auto_cancel` to `none`
-through `workflow:rules`. Today a push to `main` cancels a running nightly in
+groups. Schedule and tag pipelines set `auto_cancel` to `none` through
+`workflow:rules`. Today a push to `main` cancels a running nightly in
 the same concurrency group (inferred), and the nightly is the only scheduled
 run with billing coverage. GitLab's docs do not say whether a schedule
 pipeline is cancelled by a later push; its source code indicates it is unless
@@ -447,23 +587,22 @@ jobs (§4.12).
   end that way, `:28` and `:87` among them. Each becomes `/**/*` in the
   fragment. The same applies to every other path list that is ported.
 - **Release tooling selects the image jobs.** The `test-docker-container`
-  action, the tag logic and the post-push audit are under
-  `.github/actions/` or inside a workflow file today, so a change to them
-  forces every path-selected `ci.yml` job. Once they are in `tools/oci/` (§5)
-  no pattern matches them, and a merge request that edits only that package
-  would select no image job. `tools/oci/**` and `bin/oci` therefore join the
+  action is under `.github/actions/` today, so a change to it forces every
+  path-selected `ci.yml` job. Once it is in `tools/oci/` (§5) no pattern
+  matches it, and a merge request that edits only that package would select
+  no image job. `tools/oci/**` and `bin/oci` therefore join the
   `oci` fragment (image build, container validation). `tools/oci/**` also
   joins the container e2e fragment, which is ported from `e2e.yml`'s own
   list: those jobs take their Valkey reference from `bin/oci smoke` (§4.3).
-- **The image jobs do not check the tag computation.** They build with
-  development version arguments, and the publish workflow's `pull_request`
-  trigger ignores every path, so the tag logic is first exercised by a tag,
-  nightly or manual run. What checks it before a merge is the `tools/oci/`
-  suite: `bin/oci plan` against fixture refs (release tag, prerelease,
-  nightly, manual), in the shell test job. That job is always-on, as
-  `static-analysis.yml` is on pull requests today. The `tools/sentry/` suite
-  runs there too. No merge request job can exercise Sentry delivery; the
-  manual `publish: custom` run is its end-to-end check (Phase 2).
+- **The tag computation stays on GitHub.** It is inline in the publish
+  workflow (`build-and-publish-oci-images.yml:254-332`), whose
+  `pull_request` trigger ignores every path, so the tag logic is first
+  exercised by a tag, nightly or manual run, as today. No GitLab job
+  computes publish tags, and the GitLab image jobs build with development
+  version arguments. Testing the tag logic against fixture refs would need
+  it moved out of the workflow file; that is a proposal for the GitHub
+  workflow, outside this migration. Sentry delivery likewise runs only in
+  the GitHub publish workflow.
 - **Behavior change.** Today the label is read live, so re-running an
   existing run picks up a `ci:auth` label added later. On GitLab labels are
   read when the pipeline is created. Adding the label and choosing "Run
@@ -494,11 +633,12 @@ less test coverage than it has now (R2).
 - A job that depends on a job that may be absent uses `needs: optional: true`.
   This replaces the `always() && (success || skipped)` conditions that every
   downstream job has today.
-- `allow_failure` is limited to four cases: the Ruby preview; Sentry
-  delivery (§4.6); scanners during their baseline period; and a dedicated
-  exit code for a notice that must not look green, such as a compose smoke
-  that skipped a bring-up (§4.7). D14 can add one more with an end date:
-  the register full scan, if it is confirmed that the scan fails today.
+- `allow_failure` is limited to three cases: the Ruby preview; scanners
+  during their baseline period; and a dedicated exit code for a notice that
+  must not look green, such as a compose smoke that skipped a bring-up
+  (§4.7). Sentry delivery stays in the GitHub publish workflow (§4.6). D14
+  can add one more with an end date: the register full scan, if it is
+  confirmed that the scan fails today.
 - The Ruby preview job allows one dedicated exit code and no other. GitLab:
   "The job is `allow_failure: true` for any of the listed exit codes, and
   `allow_failure` false for any other exit code." Exit code 1 cannot be the
@@ -554,7 +694,11 @@ visual jobs take its artifact; today each of those workflows builds its own.
 Two things do not take it: the install lanes (C8), and the image, which keeps
 its own frontend stage so that it stays self-contained.
 
-**Image build.**
+**Image build.** GitHub's `build-and-publish-oci-images.yml` stays the
+publisher (decided 2026-11-13, §8): on a pushed `v*` tag, on its nightly
+schedule on `main`, and on manual dispatch, as today. GitLab builds images
+only to test them, in the project registry. It pushes nothing to Docker Hub
+or GHCR.
 
 - Merge request pipelines build the bake target `main` once, for
   `linux/amd64`, with the development version arguments the workflows use
@@ -572,84 +716,90 @@ its own frontend stage so that it stays self-contained.
   the pushed digest through a dotenv report. Every consumer pulls
   `name@digest` and fails when the variable is empty. A registry cleanup
   policy removes the staging tags.
-- Tag, `main` nightly and manual pipelines build the bake group `ci`
-  (`main`, `s6`, `lite`) in one bake call, because `lite` is built from
-  `main` and all three need the `base` target.
+- GitLab tag pipelines and the `main` nightly build the same `main` target
+  for container e2e (§4.1). Only the GitHub workflow builds the bake group
+  `ci` (`main`, `s6`, `lite`), in one bake call, because `lite` is built
+  from `main` and all three need the `base` target.
 - The version is compiled into the image, so one digest has one version. The
-  image that gets published is built in the pipeline that publishes it; an
-  image built for the same commit in another pipeline cannot be promoted.
+  image that GitHub publishes is built in the GitHub run that publishes it.
+  An image that GitLab built for the same commit carries the development
+  version arguments and cannot be promoted.
 - `docker/bake.hcl` keeps ownership of image names and tags. `tags()` has two
   modes today; staging in the project registry needs a third mode or
-  per-target overrides that take the per-pipeline tag, and the file needs
-  cache and attestation settings.
-  `bin/oci plan` computes only the version and tag values, which is what
-  `build-and-publish-oci-images.yml:254-332` does inline. Three edge cases to
-  check while porting (inferred): a prerelease tag without `-rc` gets
-  `latest`; `next` has two meanings; a dispatch with `source_branch` can label
-  one commit and build another. The unreachable branch-push rule in that
-  range is dropped.
+  per-target overrides that take the per-pipeline tag. The file needs cache
+  settings, and attestation settings if the GitHub workflow adopts the
+  signing proposal below.
+- The version and tag values stay computed inline in the GitHub workflow
+  (`build-and-publish-oci-images.yml:254-332`). Three edge cases to check
+  there (inferred): a prerelease tag without `-rc` gets `latest`; `next` has
+  two meanings; a dispatch with `source_branch` can label one commit and
+  build another. The range also has an unreachable branch-push rule. These
+  are fixes to the GitHub workflow, outside this migration.
 - A registry layer cache helps less than it might: the version rewrite
   changes `package.json` before `pnpm install`, and `COMMIT_HASH` is written
   before the frontend build. The Dockerfile has a build-argument path that
   leaves `package.json` alone; prefer it.
 
-**Multi-arch.** Today one job builds both architectures under QEMU, and one
-frontend build serves both because the frontend stages run on the build
-platform. Native per-architecture jobs would compile the frontend once per
-architecture. The Sentry step extracts the bundle from the amd64 image on the
-premise that both images serve the same files, so two builds would leave
-arm64 without matching sourcemaps (inferred). Proposal: move to native arm64
-runners only if S4 shows the frontend stage can be built once and passed to
-both architecture builds as a named context. Otherwise keep the single
-multi-platform build and add the registry cache.
+**Multi-arch.** The published images are built on GitHub as today: one job
+builds both architectures under QEMU, and one frontend build serves both
+because the frontend stages run on the build platform. The Sentry step
+extracts the bundle from the amd64 image on the premise that both images
+serve the same files, so per-architecture builds would leave arm64 without
+matching sourcemaps unless the frontend stage is shared (inferred). Native
+arm64 builds are a question for the GitHub workflow, not for this migration.
+GitLab builds `linux/amd64` only, for testing, with the registry cache.
 
-**Publish.** Three pipeline types publish, as today
-(`build-and-publish-oci-images.yml:125-139`, `:400`): a tag, the `main`
-nightly, and a manual run with `publish` set. The gate is the same in each.
-`image:publish` needs container validation and container e2e from its own
-pipeline, and a `bin/oci smoke` boot of `s6` and `lite`, which are published
-today without ever being booted. Container e2e therefore runs in all three
-(§4.1). Today the publish workflow and CI start independently, so `latest`
-or `nightly` can be pushed while CI is failing.
+**Publish.** The GitHub workflow publishes in three cases, as today
+(`build-and-publish-oci-images.yml:125-139`, `:400`): a pushed `v*` tag, the
+nightly schedule (on `main`), and a manual dispatch. A release tag is created
+on GitLab and reaches GitHub through the push mirror (§2.4). The publish
+workflow and CI start independently, so `latest` or `nightly` can be pushed
+while CI is failing, and `s6` and `lite` are published without ever being
+booted. That does not change: the GitLab tag pipeline runs while GitHub
+publishes and does not gate it.
 
-The published image is the tested image. The build job pushes the group to
-the project registry under the per-pipeline tag, the test jobs pull those
-digests, and `image:publish` copies the same digests to the registries
-selected by `publish`, under the tags that `bake.hcl` computes (read with
-`bake --print`). It does not build again: a second build can resolve a
-dependency or a base image differently, and its digest would be one that no
-job booted. The Sentry job gets the same digest. To check in Phase 2: that
-the copy keeps the SBOM and provenance attached to the image index. One
-smaller fix belongs here: the post-push audit prints the expected and
-actual versions without comparing them.
+Proposal, for the GitHub workflow or a follow-up: make the push wait for a
+boot test of the images it pushes, and publish the digests that were booted,
+not a second build. A second build can resolve a dependency or a base image
+differently, and its digest would be one that no job booted. How to arrange
+that inside the GitHub workflow is not designed here. If it copies digests
+from a staging tag, check that the copy keeps the SBOM and provenance
+attached to the image index. One smaller fix belongs here: the post-push
+audit prints the expected and actual versions without comparing them.
 
-**Signing and attestation.** New. The publish job signs with cosign using a
-GitLab ID token (available on GitLab.com on every tier) and attaches the
+**Signing and attestation.** Proposal, for the GitHub publish workflow and
+outside this migration: sign with cosign keyless, using GitHub's OIDC token
+(not a GitLab ID token, since GitLab does not publish), and attach the
 buildx SBOM and provenance. The signing identity is public interface once
 published; document it in the release notes of the first signed release.
 
-**Sentry.** Same steps, through `bin/sentry`. Three differences:
+**Sentry.** Stays in the GitHub publish workflow, with its scripts in
+`.github/scripts/` (§6.3), and runs as today. Sentry's repository
+integration, which `set-commits` relies on, can stay on GitHub, because the
+commits are mirrored there (inferred).
 
-- The image digest is handed from the build job to the Sentry job as an
-  artifact; today both run in one job.
-- `set-commits --auto` needs full history (`GIT_DEPTH: 0`).
-- The job exits non-zero when delivery is FAILED or BLOCKED and is marked
-  `allow_failure`, so the pipeline shows a warning. The workflow header says
-  of today's arrangement that the annotations and the summary table "are the
-  signal, and the green check is not".
+**Release.** Each release has two pages.
 
-**Release.** A `release:` job (GitLab's `glab`-based keyword) creates the
-release on a tag. No workflow creates a release today. The scriv section for
-a version exists only after someone runs `scriv collect` and commits it
-before tagging, and it is reStructuredText. The job fails if `CHANGELOG.rst`
-has no section for the tag, and the release description links to it. The
-product's footers link each version to a GitHub release page; they must point
-at GitLab before the first release from GitLab.
+- The GitLab release is created on GitLab, by hand or by a future `release:`
+  job in the tag pipeline (GitLab's `glab`-based keyword). The scriv section
+  for a version exists only after someone runs `scriv collect` and commits it
+  before tagging, and it is reStructuredText. Proposal for that job: it fails
+  if `CHANGELOG.rst` has no section for the tag, and the release description
+  links to it.
+- The GitHub release page is created by `github-release.yml` after the
+  images for the tag are published (§2.4). It links to the GitLab release
+  and to `CHANGELOG.rst` at the tag. A GitHub release that already exists,
+  such as one written by hand, is left as it is. Apart from that workflow,
+  no workflow creates a release.
 
-**Visual archive.** Its trigger today is a published GitHub release. It
-becomes a job in the tag pipeline after the release job. Its registry is part
-of D3: the consumer commands in `bin/visual`, `e2e/visual/README.md` and the
-workflow header name `ghcr.io`.
+The product's footers link each version to a GitHub release page. They keep
+working while `github-release.yml` creates those pages, and need no change.
+
+**Visual archive.** Stays on GitHub and GHCR. Its `release: published`
+trigger does not fire for a release created with `GITHUB_TOKEN`, so
+`github-release.yml` dispatches it at the tag, and a dispatch from a tag ref
+archives under the tag name (§2.4). The consumer commands in `bin/visual`,
+`e2e/visual/README.md` and the workflow header keep naming `ghcr.io`.
 
 **Not touched:** the Gitolite and podman build path described by
 `.oci-build.json`. It remains a second image build path.
@@ -685,10 +835,10 @@ add diff annotations; it is optional and not part of parity.
 |---|---|---|
 | Ruby dependencies | bundler-audit on every PR, with no ignore list by policy | keep as is |
 | JavaScript dependencies | no audit in CI | add `osv-scanner` on `pnpm-lock.yaml`; re-record the advisories accepted in `pnpm-workspace.yaml` |
-| SAST | CodeQL through GitHub's default setup, which has no workflow file: `Analyze` checks for Ruby, JavaScript and TypeScript, Python and Actions on pull requests | GitLab SAST. CodeQL ends with the archive; compare the two sets of findings before then |
+| SAST | CodeQL through GitHub's default setup, which has no workflow file: `Analyze` checks for Ruby, JavaScript and TypeScript, Python and Actions on pull requests | GitLab SAST. CodeQL's pull request checks stop with the pull requests on GitHub; whether its default setup keeps scanning mirrored pushes was not checked. Compare the two sets of findings while both run |
 | Secrets | `detect-private-key` hook only | GitLab pipeline secret detection |
 | Container image | none | GitLab container scanning on the built image |
-| CI config lint | actionlint with a baseline | pipeline creation validates the config; `glab ci lint` locally |
+| CI config lint | actionlint with a baseline | pipeline creation validates the config; `glab ci lint` locally; actionlint stays for the workflows that remain on GitHub |
 | Signing, SBOM, provenance | none | §4.6 |
 | Pinning | actions by SHA, most images by digest | images by digest, components and includes by SHA |
 
@@ -700,19 +850,23 @@ gate after their baseline is triaged (Phase 6).
 
 ### 4.9 Dependency updates
 
-- Renovate continues. Host it as a scheduled pipeline in a separate project
-  using `renovate-bot/renovate-runner`, with one bot account for every
-  migrated repository (D11).
+- Renovate continues, on GitLab. GitHub `main` and `develop` accept pushes
+  only from the mirror (§2.4), so Renovate on GitHub cannot merge anything.
+  Until Renovate runs on GitLab there are no dependency update merge
+  requests. Host it as a scheduled pipeline in a separate project using
+  `renovate-bot/renovate-runner`, with one bot account for every migrated
+  repository (D11).
 - Config changes: drop `helpers:pinGitHubActionDigests`; replace
   `vulnerabilityAlerts`, which depends on GitHub's alerts, with
   `osvVulnerabilityAlerts`; point the custom regex manager at the new YAML.
 - Tool versions that no manager tracks today (shellcheck, actionlint, uv,
   bump-cli, bundler-audit) move into the toolchain Dockerfile where Renovate
   can see them.
-- Dependabot security pull requests stop when GitHub stops being the source.
-  The OSV alerts above cover that.
-- Renovate has to be running on GitLab at cutover; the hosted GitHub app
-  cannot open pull requests on an archived repository.
+- Dependabot security updates are off on GitHub (§2.4). The OSV alerts
+  above replace them.
+- The Renovate GitHub app is still installed on the repository; removing it
+  failed with HTTP 403 and is left to the operator. Its pull requests cannot
+  be merged (§2.4).
 - Every Renovate merge request is a pipeline. The current settings
   (`prCreation: immediate`, 10 concurrent, 10 an hour) are a cost on metered
   runners; a schedule window and grouping reduce it.
@@ -724,7 +878,9 @@ gate after their baseline is triaged (Phase 6).
   template becomes `.gitlab/merge_request_templates/Default.md`.
 - **Stale and lock.** `gitlab-triage` policies on the triage schedule, with
   the current thresholds, the `Stale Boetticher` label and the exemption
-  labels. Issues live on GitLab after the archive (§8).
+  labels. Issues live on GitLab (§8). The two GitHub housekeeping workflows
+  are disabled, and whether GitHub Issues are turned off is an open operator
+  decision (§2.4).
 - **Path labels.** Drop them (D6). No automation reads them: the labels that
   automation depends on (`ci:auth`, `claude-review`, `security`,
   `auto-update`, `dependencies`, the stale and issue-template labels) are set
@@ -746,7 +902,8 @@ gate after their baseline is triaged (Phase 6).
   bot authors, forks and locale-only changes; D8 decides which of that is
   kept. `@claude` mentions need a webhook listener or Duo external agents
   (Premium, enabled per customer). Codex and Copilot review are tied to
-  GitHub and end with the archive.
+  GitHub pull requests and stop with them. The two Claude workflows are
+  disabled on GitHub (§2.4).
 - **Review rules.** `.github/copilot-instructions.md` contains review rules
   that AGENTS.md does not (what not to comment on, a cap per review). The
   Claude review prompt and `.greptile/rules.md` repeat parts of them. Put them
@@ -767,17 +924,17 @@ gate after their baseline is triaged (Phase 6).
 
 - Test jobs run without stored credentials, which is what allows pipelines
   from forks and unprotected branches.
-- Publish, Sentry and API docs deploy credentials become protected, masked
-  and hidden variables scoped to an environment, readable only on protected
-  refs. Environment scope on project variables is available on every tier.
+- The registry and Sentry credentials stay GitHub Actions secrets, read by
+  the GitHub publish workflow. The API docs deploy credentials become
+  protected, masked and hidden variables scoped to an environment, readable
+  only on protected refs, once the deploy moves to GitLab (§6.1).
+  Environment scope on project variables is available on every tier.
 - Protected variables and the protected runner both depend on the ref being
   protected. GitLab: protected variables are "available only to pipelines
-  that run on protected branches or protected tags." A release tag is
-  protected only when a protected tag rule matches it, so `v*` becomes a
-  protected tag (Phase 2). Without that rule the publish job in a tag
-  pipeline would wait for a runner that never takes it, or run without
-  registry credentials. A manual publish has to start from a protected
-  branch or tag for the same reason.
+  that run on protected branches or protected tags." `main` and `develop`
+  are protected branches, and `v*` is a protected tag that only Maintainers
+  can create (§2.4). A `v*` tag reaches GitHub through the mirror and
+  publishes images, so creating one is the permission to publish (P4).
 - Two jobs read credentials in merge request pipelines today: the Bump.sh
   diff and the Claude review. On GitLab only the Claude review does. Its
   variable cannot be protected, because merge request pipelines get
@@ -833,33 +990,30 @@ gate after their baseline is triaged (Phase 6).
   unmasked. GitLab requires a masked value to "Be a single line with no
   spaces."
 - Pipeline variables are restricted; manual and scheduled runs use inputs.
-- The keyless signing job stays in this project's own configuration. GitLab:
-  "The id_tokens portion of the CI/CD configuration file must be located in
-  the project that is being built and signed. AutoDevOps, CI files included
-  from another repository, and child pipelines are not supported."
 
 Changes that widen access and need operator approval (C7):
 
 | ID | Change | Why it widens |
 |---|---|---|
-| P1 | A stored token to push to GHCR | today the push uses the run's own short-lived token |
+| P1 | A stored token to push to GHCR | Not needed: GHCR pushes stay in the GitHub workflow with the run's own short-lived token (decided 2026-11-13) |
 | P2 | Privileged job containers | on hosted runners each job has its own VM; on a self-hosted fleet this is root on the runner host |
 | P3 | A bot token with API write for Renovate, triage and merge request notes | new long-lived credential |
-| P4 | An automated push of `main` and tags to GitHub until the archive, if one is set up | needs a GitHub token with write access |
+| P4 | The permanent push mirror from GitLab to GitHub, set up on 2026-11-13 after the maintainer's decision (§2.4) | a deploy key with write access (169800417), scoped to this one repository; the rulesets let only that key push `main`, `develop` and `v*` tags. Who can publish: GitLab Maintainers, by creating a `v*` tag; and whoever can push or merge to GitLab `main`, which the GitHub nightly publishes from. GitHub users with write access can still dispatch the publish workflow. |
 | P5 | "Run pipelines in the parent project" for fork merge requests | runs fork code with the parent's runners and variables; recommend disabling it |
 | P6 | The Claude credential is visible to every command of its job in merge request pipelines. | today it is passed to one step; the environment scope limits it to one job, not to one step |
 
-Additive, not widening: the ID token for keyless signing. Narrowing: the two
-Bump.sh tokens leave merge request pipelines.
+Additive, not widening: an OIDC token for keyless signing, if the GitHub
+publish workflow adopts it (§4.6). Narrowing: the two Bump.sh tokens leave
+merge request pipelines.
 
 ### 4.12 Runners and compute
 
 - **Fleet (decided: both).** Proposed split: self-hosted runners on ephemeral
   VMs take the heavy jobs (lanes, e2e, image builds, install lanes). Jobs
   there can run on the VM as they do on GitHub, and they are not metered.
-  Hosted runners take the light jobs (lint, guards, Vitest, scanners). Publish
-  jobs run on a protected runner, which accepts jobs from protected refs
-  only. `bin/ci docker up` does nothing where a daemon is already reachable,
+  Hosted runners take the light jobs (lint, guards, Vitest, scanners). Jobs
+  that read deploy credentials run on a protected runner, which accepts jobs
+  from protected refs only. `bin/ci docker up` does nothing where a daemon is already reachable,
   so one job definition serves both fleets. Spike S7 picks the executor.
 - Self-hosted runners do not run fork code: fork pipelines run in the fork,
   and P5 stays disabled.
@@ -881,11 +1035,15 @@ Bump.sh tokens leave merge request pipelines.
   means." Check eligibility before relying on it (D13).
 - This design lowers consumption before any purchase: fewer image builds per
   change, one runner-side frontend build, no repeated toolchain setup, cached
-  dependencies, and fewer Renovate pipelines.
+  dependencies, and fewer Renovate pipelines. The multi-platform release and
+  nightly image builds stay on GitHub's free minutes (§4.6).
 - **macOS.** Two jobs need it (`installer.yml` `macos`, `drift-guards.yml`
   `envref-macos`). GitLab's hosted macOS runners are Premium and Ultimate
-  only, in beta, with cost factor 6 or 12. A self-hosted macOS runner is the
-  other option now that GitHub will be archived (D4).
+  only, in beta, with cost factor 6 or 12. GitHub is not archived, so the
+  recommendation for D4 is to keep both jobs on GitHub's schedule.
+  `installer.yml` `macos` already runs weekly. `envref-macos` has only pull
+  request and dispatch triggers, so it runs nowhere now (§2.4); Proposal:
+  give it a schedule on GitHub. The maintainer has not decided D4.
 - **Forks.** A fork's merge request pipeline runs in the fork, on the
   contributor's minutes, with the fork's variables. The toolchain image must
   be publicly readable for that to work.
@@ -894,17 +1052,20 @@ Bump.sh tokens leave merge request pipelines.
 
 The consolidation happens in Phase 1, on GitHub, one domain per change. Each
 change moves the code and its tests, adds the `bin/` shim, and switches the
-GitHub workflows to the `bin/` command. Green GitHub CI is the evidence that
-behavior is preserved. A file on the delete list in §6.3 is not moved; it
-stays in `.github/scripts/` until the workflows that call it are removed.
+GitHub workflows to the `bin/` command. Green GitHub CI on the mirrored
+commit is the evidence that behavior is preserved; it runs after the merge
+on GitLab, not before (§2.4). A file on the delete list in §6.3 is not
+moved; it stays in `.github/scripts/` until the workflows that call it are
+removed. The scripts that the GitHub publish workflow calls stay where they
+are (§6.3).
 
 Package names are proposals.
 
 | Package | Entry point | Absorbs |
 |---|---|---|
 | `tools/ci/` | `bin/ci` | the `run-test-lane`, `setup-ruby-test-env`, `generate-test-secrets` and `wait-for-http-service` actions; `aggregate-test-results.sh`, `generate-test-summary.sh`, `pin-ruby-version.sh`, `check-api-v3-fresh-schemas.sh`; the inline e2e steps (container and server boot, per-lane environment, worker start and log gate, seed, log assertions, flaky gate, failure forensics); the migration concurrent-boot script; later, CI metrics |
-| `tools/oci/` | `bin/oci` | `update-version.sh`, the `test-docker-container` action, the tag logic inlined in the publish workflow, the post-push audit |
-| `tools/sentry/` | `bin/sentry` | `extract-frontend-dist.sh`, `sentry-sourcemap-preflight.sh`, `sentry-status.sh`, `sentry-verify-artifacts.sh`, and the inline release, upload and deploy steps with their three copies of `log_cli_output` |
+| `tools/oci/` | `bin/oci` | the `test-docker-container` action. `update-version.sh`, the tag logic inlined in the publish workflow and the post-push audit stay with the GitHub publish workflow (§4.6). |
+| `tools/sentry/` | none | Not created. Sentry delivery stays in the GitHub publish workflow, with `extract-frontend-dist.sh`, `sentry-sourcemap-preflight.sh`, `sentry-status.sh` and `sentry-verify-artifacts.sh` in `.github/scripts/` (§4.6, §6.3). |
 | `tools/testsuite/` (exists) | `bin/testsuite` | its suites move to each package's `tests/` directory, which `bin/testsuite run` already discovers |
 | `tools/testsuite-installer/` (exists) | `bin/testsuite-installer` | stays as it is, including `check-docs-commands` |
 | `tools/host-seam/` (exists) | `bin/host-seam` | the Caddy fixture provisioning inlined in the `host-proxy-wire` job |
@@ -922,20 +1083,17 @@ What each move has to handle:
   and the log paths. The action's tmate and artifact upload steps are `uses:`
   steps that a command cannot perform, so on GitHub the action remains a thin
   wrapper around the command at its 19 call sites.
-- **GitHub's filters must move with the code.** Today a change under
+- **Path filters must move with the code.** Today a change under
   `.github/actions/**` forces every path-selected job, and `run-test-lane`
-  is in the
-  `harness` filter. No GitHub filter matches `tools/ci/**`. Without an update
-  in the same change, a pull request that edits only `tools/ci/` would select
-  no test job and pass. `ci.yml:189-190` and
-  `tools/testsuite/api-v3-fresh-schemas-test.sh` name script paths that also
-  change. The same applies to `tools/oci/**`: the `test-docker-container`
-  action and the tag logic leave paths that force every path-selected job
-  for a path that
-  the `oci` filter (`ci.yml:230-235`) does not list. Add `tools/oci/**` and
-  `bin/oci` to that filter, and `tools/oci/**` to `e2e.yml`'s path list, in
-  the change that moves the code. The GitLab rules get the same entries
-  (§4.4).
+  is in the `harness` filter. No filter matches `tools/ci/**`, and once the
+  `test-docker-container` action is in `tools/oci/`, its path is one that
+  the `oci` filter (`ci.yml:230-235`) does not list. On GitHub this no longer
+  matters for selection: no pull requests run there, and a push runs every
+  job (`ci.yml:158` sets `run_all` for `push`). The GitLab rules need the
+  entries (§4.4): `tools/ci/**` in the harness fragment, `tools/oci/**` and
+  `bin/oci` in the `oci` fragment, and `tools/oci/**` in the container e2e
+  fragment. `ci.yml:189-190` and `tools/testsuite/api-v3-fresh-schemas-test.sh`
+  name script paths that also change.
 - **`bin/ci e2e`** writes the server, worker, seed and Playwright settings to
   one env file and runs the steps for a profile. Today `$GITHUB_ENV` is what
   keeps those processes on one configuration. `bin/ci wait-http` replaces the
@@ -985,33 +1143,41 @@ this migration (D15). Two of them need work regardless:
   manifest of credential variables with their purpose and environment,
   checked against what `tools/` reads.
 - The envref ratchet behind `bin/envref check` needs full history and reads
-  release tags from a remote hard-wired to the GitHub URL. At cutover that
-  remote must point at the host that has the tags.
+  release tags from a remote hard-wired to the GitHub URL. GitHub receives
+  every tag through the mirror (§2.4), so the remote can stay. A tag reaches
+  GitHub up to a minute after it is created on GitLab.
 
 ## 6. Disposition of every existing file
 
 ### 6.1 Workflows
 
+A workflow that moves to GitLab keeps running on GitHub until its GitLab
+equivalent runs. It is then disabled on GitHub (Phase 5) and deleted at
+Phase 6. Four workflows stay on GitHub permanently: the publisher,
+`github-release.yml`, `visual-archive.yml`, and `bump-api-docs.yml` unless
+its deploy moves.
+
 | Workflow | Disposition |
 |---|---|
 | `ci.yml` | `lint.yml`, `frontend.yml`, `ruby.yml`, `images.yml`. `changes` and `ci-verdict` deleted. Aggregate becomes a report job. `host-proxy-wire` calls `bin/host-seam`, with Caddy pulled by digest. `ci-metrics` ported in Phase 6. The `i18n-validate` job keeps one report-only step and two blocking ones. |
-| `static-analysis.yml` | `lint.yml`. actionlint dropped at Phase 6, with an edit to the lint script, which requires both tools today. |
-| `drift-guards.yml` | one guard job in `lint.yml`, with full history. The macOS job follows D4. |
+| `static-analysis.yml` | `lint.yml`. actionlint stays for the workflows that remain on GitHub. |
+| `drift-guards.yml` | one guard job in `lint.yml`, with full history. The macOS job follows D4; the recommendation keeps it on GitHub with a schedule (§4.12). |
 | `docs-command-drift.yml` | folded into the guard job, still calling `bin/testsuite-installer check-docs-commands`. |
 | `validate-config.yml` | its three guards duplicate `drift-guards.yml`; its unique steps (schema generation, `bin/ots config validate`) become a job selected by path. It is dispatch-only today. |
 | `validate-register.yml`, `resolved-derive-gate.yml` | two jobs with a shared template (§4.10). |
-| `bump-api-docs.yml` | `release.yml`: generate, diff on merge requests, deploy on `main`. The deploy from `develop`, which only a manual dispatch reaches today (`bump-api-docs.yml:137`), is not ported. The diff compares two generated documents and reads no token (§4.11). Fix: each `bump diff` failure, including an auth or network error, is reported as "breaking changes" today. |
+| `bump-api-docs.yml` | The diff moves to `release.yml` on merge requests; it compares two generated documents and reads no token (§4.11). The deploy keeps running on GitHub on mirrored pushes to `main` until it moves to `release.yml`; then the GitHub workflow is disabled, or the docs deploy twice. The deploy from `develop`, which only a manual dispatch reaches today (`bump-api-docs.yml:137`), is not ported. Fix: each `bump diff` failure, including an auth or network error, is reported as "breaking changes" today. |
 | `generate-translation-request.yml` | retire (D9). Its paths `src/locales` and `src/scripts/locales` do not exist in the tree. |
-| `housekeeping-github-issues.yml`, `housekeeping-lock-threads.yml` | `gitlab-triage` (§4.10). |
-| `pr-labeler.yml` | drop (D6). |
+| `housekeeping-github-issues.yml`, `housekeeping-lock-threads.yml` | `gitlab-triage` (§4.10). Disabled on GitHub (§2.4); deleted at Phase 6. |
+| `pr-labeler.yml` | drop (D6). Disabled on GitHub (§2.4); deleted at Phase 6. |
 | `secret-rotation.yml` | `smoke.yml`. |
-| `claude.yml`, `claude-code-review.yml` | D8. |
-| `build-and-publish-oci-images.yml` | `images.yml` and `release.yml`. Its `pull_request` trigger ignores every path, so it cannot fire (inferred); it is not ported. Its version-pin gate before the build is kept. |
+| `claude.yml`, `claude-code-review.yml` | D8. Disabled on GitHub (§2.4); deleted at Phase 6. |
+| `build-and-publish-oci-images.yml` | Stays on GitHub as the publisher (§4.6). `images.yml` builds `main` on GitLab for testing only. Its `pull_request` trigger ignores every path, so it cannot fire (inferred); it can be removed there. Its version-pin gate before the build stays. |
+| `github-release.yml` | Stays on GitHub (§2.4, §4.6). |
 | `debug-oci.yml` | delete in Phase 1. Its header calls it temporary. |
-| `compose-smoke.yml`, `baremetal-boot.yml`, `fresh-clone.yml`, `installer.yml`, `devcontainer-ci.yml` | `smoke.yml`, on the weekly schedule and on the same path triggers, on the `runtime` image with no cache or artifact (C8). The devcontainer job uses the devcontainer CLI. The `macos` job follows D4. |
+| `compose-smoke.yml`, `baremetal-boot.yml`, `fresh-clone.yml`, `installer.yml`, `devcontainer-ci.yml` | `smoke.yml`, on the weekly schedule and on the same path triggers, on the `runtime` image with no cache or artifact (C8). The devcontainer job uses the devcontainer CLI. The `macos` job follows D4; the recommendation keeps it on GitHub's weekly schedule (§4.12). |
 | `e2e.yml`, `e2e-full-auth.yml`, `e2e-tenant-connect.yml` | `e2e.yml`, sharing one template. |
 | `visual.yml` | `e2e.yml`. Valkey comes from `compose.test.yml` on port 2163, not from a service on 6379. |
-| `visual-archive.yml` | `release.yml`, in the tag pipeline (§4.6). |
+| `visual-archive.yml` | Stays on GitHub, dispatched by `github-release.yml` (§4.6). |
 | `migration-tests.yml` | `ruby.yml`. The concurrent-boot job stays CI orchestration, as the lane spec describes it. |
 | `ruby-4-preview.yml` | `ruby.yml`: its rubocop job and its ten SQLite lane runs use the same job templates as main CI with the preview image, except that they declare no results artifact (§4.5), on the nightly and through the `ruby_preview` input. Job bodies are not copied. |
 
@@ -1025,7 +1191,7 @@ this migration (D15). Two of them need work regardless:
 | `download-frontend-assets` | delete at Phase 6 (artifacts through `needs`). |
 | `generate-test-secrets` | `bin/ci secrets`; stop printing the values to the log. |
 | `run-test-lane` | logic to `bin/ci lane`; the action stays a wrapper until Phase 6. |
-| `setup-node-env` | delete at Phase 6 (toolchain image, cache). |
+| `setup-node-env` | stays: the GitHub publish workflow uses it (`build-and-publish-oci-images.yml:244`). Its other callers move to the toolchain image. |
 | `setup-ruby-test-env` | `bin/ci prepare`; delete at Phase 6. |
 | `test-docker-container` | `bin/oci smoke`. |
 | `wait-for-http-service` | `bin/ci wait-http`. |
@@ -1035,8 +1201,8 @@ this migration (D15). Two of them need work regardless:
 | Script | Disposition |
 |---|---|
 | `aggregate-test-results.sh`, `generate-test-summary.sh`, `pin-ruby-version.sh`, `check-api-v3-fresh-schemas.sh` | move to `tools/ci/` |
-| `update-version.sh` | move to `tools/oci/` |
-| `extract-frontend-dist.sh`, `sentry-sourcemap-preflight.sh`, `sentry-status.sh`, `sentry-verify-artifacts.sh` | move to `tools/sentry/` |
+| `update-version.sh` | stays; the GitHub publish workflow calls it |
+| `extract-frontend-dist.sh`, `sentry-sourcemap-preflight.sh`, `sentry-status.sh`, `sentry-verify-artifacts.sh` | stay; the GitHub publish workflow calls them, and the other three source `sentry-status.sh` by its `.github/scripts/` path |
 | `clean_databases.rb` | move to `tests/lanes/support/` |
 | `ci-metrics-breakdown.sh`, `post-pr-metrics.cjs` | stay until Phase 6, then replaced by the metrics port |
 | `ci-verdict.sh`, `compute-auth-selection.sh`, `compute-path-filter-outputs.sh`, `detect-ci-flags.sh`, `read-pr-labels.sh`, `ruby4-step-outcomes.sh` | delete at Phase 6 |
@@ -1047,29 +1213,32 @@ this migration (D15). Two of them need work regardless:
 |---|---|
 | `.github/renovate.json5` | move and adapt (§4.9) |
 | `.github/auth-paths.yml` | becomes a fragment in `.gitlab/ci/rules.yml` |
-| `.github/ISSUE_TEMPLATE/`, `pull_request_template.md` | `.gitlab/` templates |
+| `.github/ISSUE_TEMPLATE/bug_report.yml`, `feature_request.yml`, `pull_request_template.md` | `.gitlab/` templates. Whether the two issue forms stay on GitHub follows the GitHub Issues decision (§2.4). |
+| `.github/ISSUE_TEMPLATE/config.yml` | stays: it points GitHub's issue chooser at GitLab (§2.4) |
 | `.github/lint-baseline/shellcheck.tsv` | stays with the shell lint script; new location chosen at Phase 6 |
-| `.github/lint-baseline/actionlint.tsv`, `actionlint.yaml` | delete at Phase 6 |
+| `.github/lint-baseline/actionlint.tsv`, `actionlint.yaml` | stay while workflow files remain on GitHub |
 | `.github/labeler.yml` | delete (D6) |
 | `.github/release-drafter.yml` | delete after the ADR-009 amendment (D7) |
 | `.github/dependabot.yml.disabled` | delete in Phase 1 |
 | `.github/copilot-instructions.md` | delete at Phase 6, after its rules have one home (§4.10) |
-| `.github/FUNDING.yml`, `pr-assets/` | delete with the rest of `.github/` at Phase 6; the archived repository keeps its copy |
-| `docker/bake.hcl` | gains a staging mode, cache and attestation settings (§4.6) |
+| `.github/FUNDING.yml` | stays: it configures the sponsor button of the GitHub repository |
+| `.github/pr-assets/` | stays. The mirror would carry a deletion to GitHub `main`, and pull requests may link these images by branch path (not checked). |
+| `docker/bake.hcl` | gains a staging mode and cache settings, and attestation settings if the GitHub workflow adopts signing (§4.6). The GitHub publish workflow keeps using it. |
 | `scripts/ci-secrets-ignore.txt` | replaced with the guard's redesign (§5) |
 
 ### 6.5 Dependencies
 
-- **Removed:** the 21 third-party actions, the cross-repository derive action
-  (as an action), actionlint at Phase 6.
-- **Added:** the toolchain image; `glab`; cosign; `gitlab-triage`; the
+- **Removed:** the third-party actions used only by workflows that move to
+  GitLab, and the cross-repository derive action (as an action). The
+  workflows that stay on GitHub keep theirs (§6.1).
+- **Added:** the toolchain image; `glab`; `gitlab-triage`; the
   devcontainer CLI; `osv-scanner`; the Claude CLI as a pinned install (the
   action bundles it today); GitLab's SAST, secret detection and
   container scanning; a self-hosted Renovate runner; a rule evaluator for
   tests if S3 selects one.
 - **Changed:** Renovate config; Playwright reporters; `docker/bake.hcl`;
-  `oras` moves from an action to the toolchain image, and `bump-cli` from an
-  install step; `GITHUB_JOB` detection
+  `bump-cli` moves from an install step to the toolchain image; `GITHUB_JOB`
+  detection
   in `lib/onetime/application/auth_strategies/dev_worker_identity.rb` and
   `GITHUB_BASE_REF` in `tools/envref/` gain provider-neutral equivalents.
 
@@ -1078,16 +1247,21 @@ this migration (D15). Two of them need work regardless:
 Implementation changes target `develop`. The pilot on `main` reaches
 `develop` through the next `main` to `develop` sync; do that first.
 
-v0.26.20 is the last release cut from GitHub (decided 2026-11-10; its release
-prep is #4943). Every later release, starting with the v0.27.0 promotion
-(#4927), is built and published from GitLab. Two things have to exist on
-GitLab before that release: the build and publish path (Phase 2) and a merge
-gate (Phase 3). The build workflows alone are not enough, because merges that
-go through GitLab need tests in front of them. The order below puts the
-release path first. Phases 1 to 3 overlap. Phase 4 can finish after cutover.
+Release model (decided 2026-11-13, §8): release tags are created on GitLab,
+the push mirror delivers them to GitHub, and GitHub's
+`build-and-publish-oci-images.yml` builds and publishes the images to Docker
+Hub and GHCR (§2.4, §4.6). The decision says the next release is created from
+GitLab. Whether v0.26.20 (release prep #4943) is tagged on GitLab or on
+GitHub is not decided. The v0.27.0 promotion is #4927.
+
+Development is on GitLab, and GitLab has no merge gate yet. Until Phase 3
+exits, the GitHub runs on mirrored `main` and `develop` commits are the test
+signal, after the merge. Phase 2 makes sure the release path works end to
+end; Phase 3 puts tests in front of merges. Phases 1 to 3 overlap. Phase 4
+can finish after cutover.
 
 Do not change `build-and-publish-oci-images.yml` or the scripts it calls
-until v0.26.20 is tagged and published.
+until v0.26.20 is tagged and published. After that it stays the publisher.
 
 ### Phase 0: decisions and spikes
 
@@ -1097,9 +1271,9 @@ No change to CI behavior. Spikes run on a throwaway branch on GitLab.
 |---|---|---|
 | S1 | Does a Docker daemon inside the job work on hosted runners? Cover: the `unit` and `full-pg` lanes; a native e2e boot with Chromium; `bin/visual` (host network, `/dev/shm`, bind mount); `host.docker.internal` to a sibling container; ports 80 and 443; `network_mode: service`; image builds; a non-root user with sudo; file ownership in the devcontainer job; MTU. Compare job times with GitHub. | it fails: hosted runners take only the light jobs, and the self-hosted fleet has no overflow |
 | S2 | What does a fork merge request pipeline do under the project's settings? | forks cannot pull the toolchain image or run privileged jobs |
-| S3 | Can a rule evaluator resolve the job list for fixture scenarios offline, including `rules:changes`, labels and workflow variables? Do the four brace and class patterns in the auth list match under `File.fnmatch`? | no: selection moves to a tested script that generates a child pipeline. The signing job would then stay in the parent pipeline. |
-| S4 | Can the frontend stage be built once and passed to per-architecture builds? Registry cache hit rate. | no: keep the single multi-platform build |
-| S5 | macOS: hosted runner availability and cost on the tier, or a self-hosted macOS runner | feeds D4 |
+| S3 | Can a rule evaluator resolve the job list for fixture scenarios offline, including `rules:changes`, labels and workflow variables? Do the four brace and class patterns in the auth list match under `File.fnmatch`? | no: selection moves to a tested script that generates a child pipeline. |
+| S4 | Registry cache hit rate for the merge request image build. The per-architecture question belongs to the GitHub publish workflow (§4.6). | low: drop the cache settings |
+| S5 | macOS: hosted runner availability and cost on the tier, or a self-hosted macOS runner | feeds D4; needed only if the macOS jobs leave GitHub |
 | S6 | Compute minutes for one full merge request pipeline and one nightly, in total and for the light jobs alone | feeds the tier decision |
 | S7 | Which executor for the self-hosted fleet: `instance` on ephemeral VMs, or Docker with privileged containers? Do `compose.test.yml`, the native e2e boot and `bin/visual` run unchanged on it? | with `instance`, heavy jobs need no in-job daemon, and S1 only decides whether hosted runners can take overflow |
 | S8 | With a merge request open from `develop`, which pipeline does the merge check read after a scheduled or manual pipeline runs on `develop`? Does "Skip branch pipelines for merge requests" (beta) change the answer, and does it keep creating push pipelines on `develop` once earlier promotions are merged or closed? | the merge request pipeline wins without the setting: keep the rule alone. The branch pipeline can win: turn the setting on if it leaves `develop` its push pipelines; otherwise pause the `develop` nightly while a promotion is open, or promote from a branch cut from `develop` |
@@ -1226,17 +1400,17 @@ rewrite.**
 
 ### Phase 1: provider-neutral tooling, on GitHub
 
-1. After v0.26.20 is published: `tools/oci/`, then `tools/sentry/`, with the
-   publish workflow switched to the commands. A manual run to the custom
-   registry checks that behavior is preserved.
+1. `tools/oci/` with `bin/oci smoke`, and the container validation in
+   `ci.yml` switched to it. The publish workflow and the scripts it calls
+   are not moved (§4.6, §6.3).
 2. Remove dead code: the uncalled composite action, `debug-oci.yml`,
    `dependabot.yml.disabled`, the unread `environment` input of `e2e.yml`,
    the stale merge driver in `.gitattributes`, the reference to a
    nonexistent `bin/adr-lint`.
 3. `tools/ci/` with the reporter, then `docker`, `services`, `prepare`,
    `lane`, `results`, `secrets`, `wait-http`, `pin-ruby`,
-   `api-v3-fresh-schemas`, `e2e`. Update the GitHub path filters and the
-   shell-lint strict list in each change.
+   `api-v3-fresh-schemas`, `e2e`. Update the shell-lint strict list in each
+   change.
 4. Fixes that belong to the code being moved, each verified first:
    - `pnpm lint` runs ESLint with `--fix` (`package.json:57`), so fixable
      problems pass CI.
@@ -1247,59 +1421,56 @@ rewrite.**
 
 Exit: everything the GitLab pipeline will call exists behind a `bin/`
 command and is exercised by the GitHub workflows; every file left in
-`.github/scripts/` is on the delete list or waits for the metrics port;
-`bin/testsuite run` and GitHub CI are green on `main`.
+`.github/scripts/` is on the delete list, waits for the metrics port, or
+stays with the GitHub publish workflow (§6.3); `bin/testsuite run` and
+GitHub CI are green on `main`.
 
 ### Phase 2: GitLab foundation and the release path
 
 - The toolchain image and its guard; the root file with inputs, workflow
   rules, stages and defaults; project settings, variables and environments; a
-  protected runner for publish jobs; the redesigned credential guard.
-- Protection settings (§4.11): `main` and `develop` as protected branches
-  (who may push to them directly is part of Q2); `v*` as a protected tag
-  that only maintainers can create; one environment per credential group,
-  including one for the Claude credential alone.
-- `develop` is protected for the merge gate, not for publishing. GitHub
-  protects it today: its API lists `main` and `develop` as protected. The
-  rules behind that are settings, not files, and were not read for this
-  plan. "Pipelines must succeed" checks merge requests only, so a direct
-  push to an unprotected `develop` would pass no gate. The publish path
-  does not need the protection: the nightly image stays on the `main`
-  schedule, where it runs today (GitHub runs scheduled workflows on the
-  default branch, which is `main`), and the `develop` nightly publishes
-  nothing (§4.1).
+  protected runner for jobs that read deploy credentials; the redesigned
+  credential guard.
+- Protection settings (§4.11). In place since 2026-11-13: `main` and
+  `develop` are protected branches, and `v*` is a protected tag that only
+  Maintainers can create (§2.4). Who may push to the branches directly is
+  part of Q2. Still to do: one environment per credential group, including
+  one for the Claude credential alone.
+- `develop` stays protected for two reasons. "Pipelines must succeed" checks
+  merge requests only, so a direct push to an unprotected `develop` would
+  pass no gate. And the mirror pushes only protected branches, so GitHub
+  would stop receiving `develop` without it. On GitHub, the "Develop"
+  ruleset (11465009) is disabled and the mirror ruleset protects the branch
+  (§2.4). No GitLab pipeline publishes (§4.6).
 - What protecting `develop` costs: protection is one flag per branch, so
   every pipeline on `develop` can read protected variables and use the
   protected runner. Environment scope and job rules select the jobs that
-  get the publish credentials; the people who can reach them are all who
-  can push or merge to `develop`. A promotion merge request also has two
+  get deploy credentials; the people who can reach them are all who can
+  push or merge to `develop`. A promotion merge request also has two
   protected branches, so the setting "Allow merge request pipelines to
   access protected variables and runners" is turned off. GitLab's page
   does not state its default. GitLab's source turns it on for every newly
   created project (`app/services/projects/create_service.rb`, 19.5), so
   expect it on.
-- `images.yml` and `release.yml`: build, container validation, publish,
-  Sentry, release creation, visual archive. Multi-arch stays one
-  multi-platform build unless S4 has passed. Signing and attestation can
-  follow the first release.
-- Release prerequisites outside CI: the product's footer links point at
-  GitLab release pages; the envref release remote points at GitLab; Sentry's
-  repository integration, which `set-commits` relies on, points at GitLab;
-  Renovate runs on GitLab.
+- `images.yml`: the `main` build for testing and container validation.
+  `release.yml`: the GitLab release job. Publishing, Sentry, the GitHub
+  release page and the visual archive stay on GitHub (§4.6).
+- `github-release.yml` reaches GitHub `main`, because GitHub reads a
+  `workflow_run` workflow from the default branch (§2.4).
+- Release prerequisites outside CI: Renovate runs on GitLab (D11). The
+  product's footer links, the envref release remote and Sentry's repository
+  integration keep working through the mirror and need no change (§4.6,
+  §5).
 - `lint.yml` and `frontend.yml`; retire the pilot job and
   `ci/typescript-pilot/`.
 
 Exit:
 
-- A manual pipeline with `publish: custom` pushes all three variants to the
-  custom registry. Its `main` image is compared with the v0.26.20 image that
-  GitHub built: labels, version, platforms and file list. The run starts
-  from a protected branch, `develop` or `main`, because the publish job
-  needs a protected ref. It does not start from a `v*` tag: pushing one
-  starts the tag pipeline, which publishes a release.
-- One release candidate tag is published from GitLab.
+- A release candidate tag created on GitLab reaches GitHub through the
+  mirror, its images are published, and `github-release.yml` creates its
+  GitHub release page.
 - 20 consecutive merge request pipelines are green for lint and frontend,
-  with results equal to the matching GitHub jobs.
+  with results equal to the GitHub runs on the same commits after the merge.
 
 ### Phase 3: the merge gate
 
@@ -1320,80 +1491,75 @@ Exit, measured on the same commits on both hosts:
 - no failure appears on one host only without an explanation;
 - median wall time for a merge request pipeline is recorded against GitHub's.
 
-If the next release cannot wait for this phase: keep pushing `main` and tags
-to GitHub so that its workflows still test them. That is a weaker gate than
-today's, because nothing beyond the GitLab jobs that already exist runs
-before a merge, and GitHub cannot be archived while it is in use.
+Until this phase exits, the arrangement is the one in §2.4: the mirror
+pushes `main`, `develop` and tags to GitHub, and the GitHub workflows test
+them after the merge. That is a weaker gate than a pull request gate,
+because nothing beyond the GitLab jobs that already exist runs before a
+merge, and the workflows that run only on pull requests run nowhere.
 
 ### Phase 4: the remaining jobs
 
 The nightly schedule with the Ruby preview; the weekly schedule with
 `smoke.yml`; visual regression; API docs; triage; review jobs; templates.
 
-This phase can finish after cutover. Until it does, these are not covered:
-the install and boot paths, visual regressions, Ruby preview, and the API
-docs deploy.
+This phase can finish after cutover. Until it does, the GitHub schedules for
+the install and boot lanes and the Ruby preview, and the API docs deploy on
+mirrored pushes to `main`, keep running on GitHub (Phase 5 disables only
+what GitLab covers). Visual regression runs only on pull requests, so it has
+no coverage until its GitLab job exists (§2.4).
 
 ### Phase 5: cutover
 
-Prerequisites: Phases 2 and 3 have exited; issues, pull requests and releases
-are imported, because an archived repository is read-only.
+Prerequisites: Phases 2 and 3 have exited. There is no archive step: GitHub
+stays a mirror (decided 2026-11-13).
 
 1. Enable "Pipelines must succeed" and, on Premium, merge trains. Activate
-   the schedules. On GitHub, disable each workflow that runs on a schedule,
-   publishes or deploys (`gh workflow disable`, which turns off every
-   trigger of the workflow): the nightly would otherwise keep publishing
-   the `nightly` image, and a `main` pushed there under P4 would deploy the
-   API docs a second time. Stop merging on GitHub. Update
-   `.agents/skills/merge/SKILL.md` and AGENTS.md ("Running tests" names
-   `.github/scripts/` and the `Static analysis` workflow).
-2. Ship one release from GitLab.
-3. Archive GitHub: a last commit puts a notice with the GitLab link at the
-   top of the README, the repository description gets the same link, Actions
-   is disabled, and the repository is archived. GitHub's archiving page: "We
-   recommend that you close all issues and pull requests, as well as update
-   the README file and description, before you archive a repository." Record
-   first what exists only as GitHub settings: the names of the Actions
-   secrets and variables, the branch rules of `main` and `develop`, and the
-   code scanning setup.
+   the schedules. Update `.agents/skills/merge/SKILL.md` and AGENTS.md
+   ("Running tests" names `.github/scripts/` and the `Static analysis`
+   workflow).
+2. On GitHub, disable each scheduled or push-triggered test workflow that a
+   GitLab job now covers (`gh workflow disable`, which turns off every
+   trigger of the workflow). Keep `build-and-publish-oci-images.yml`,
+   `github-release.yml` and `visual-archive.yml`. Keep `bump-api-docs.yml`
+   unless its deploy has moved to GitLab; if it has, disable it, or the API
+   docs deploy twice. Keep the macOS jobs if D4 follows the recommendation.
 
-Until step 3, rollback is to resume merging and releasing on GitHub and to
-enable those workflows again.
+Rollback is to enable the disabled workflows again (`gh workflow enable`).
+Merges stay on GitLab either way. Merging on GitHub again would mean
+stopping the mirror, disabling the two mirror rulesets and enabling
+"Default" and "Develop" again (§2.4); a commit made on GitHub makes the
+next mirror update fail (R11).
 
-After step 3 rollback is still possible, at a cost that grows with every
-merge on GitLab. Archiving is reversible: the same GitHub page documents
-"Unarchiving a repository" from the repository settings, and the archived
-copy keeps its workflow files. Recovery would be to unarchive, re-enable
-Actions, push the commits and tags that went to GitLab since, and re-enable
-the scheduled workflows. Its limits:
+A risk that stays after cutover: GitHub: "In a public repository, scheduled
+workflows are automatically disabled when no repository activity has
+occurred in 60 days." The mirror keeps the repository active as long as
+GitLab `main` or `develop` receives commits. If pushes stop for 60 days, the
+nightly image stops without a failure. Each workflow is then enabled again
+by hand: "Enable workflow" on its Actions page, or `gh workflow enable`.
+GitHub's pages do not define "repository activity" (R16).
 
-- Issues and merge requests created on GitLab after the import are not on
-  GitHub.
-- Releases and images published from GitLab in the meantime stay published.
-- GitHub: "In a public repository, scheduled workflows are automatically
-  disabled when no repository activity has occurred in 60 days." An
-  archived repository takes no pushes, so expect GitHub to have disabled
-  every scheduled workflow by itself once the archive is older than that.
-  Each one is enabled again by hand: "Enable workflow" on its Actions page,
-  or `gh workflow enable`. GitHub's pages do not define "repository
-  activity".
-- GitHub's archiving page does not say what happens to Actions secrets and
-  variables; check the settings page after an unarchive.
-- The Phase 2 changes that point at GitLab have to be reversed: the footer
-  links, the envref release remote and Sentry's repository integration.
-- After Phase 6 the GitLab history no longer contains `.github/`. Pushing it
-  to GitHub removes the workflows there. They would have to be restored from
-  the last GitHub commit and checked against the `bin/` commands as they are
-  by then. Rollback is cheap only before Phase 6.
-
-Archiving only after one release has shipped from GitLab (step 2) is this
-plan's ordering, not a platform limit.
-
-Exit: one release shipped from GitLab and the GitHub repository archived.
+Exit: GitLab gates every merge and its schedules run; the GitHub workflows
+that GitLab covers are disabled; the publisher and the release workflows
+still run on GitHub.
 
 ### Phase 6: decommission and hardening
 
-- Delete `.github/` and the suites of the deleted scripts.
+- Delete from `.github/` what no GitHub workflow uses any more, and the
+  suites of the deleted scripts. Do not delete the whole directory: the
+  mirror carries the deletion to GitHub `main` and to every later tag, and
+  the publisher would go with it. What stays in `.github/`:
+  `workflows/build-and-publish-oci-images.yml`,
+  `workflows/github-release.yml`, `workflows/visual-archive.yml`,
+  `workflows/bump-api-docs.yml` unless its deploy moved, the macOS jobs if
+  D4 keeps them on GitHub, `actions/setup-node-env`,
+  `scripts/update-version.sh`, `scripts/extract-frontend-dist.sh`,
+  `scripts/sentry-status.sh`, `scripts/sentry-sourcemap-preflight.sh`,
+  `scripts/sentry-verify-artifacts.sh`, `FUNDING.yml`,
+  `ISSUE_TEMPLATE/config.yml`, `pr-assets/`, and the actionlint config and
+  baseline (§6.4). Outside `.github/`, the publisher also calls
+  `scripts/check-version-pins.sh` and `docker/bake.hcl`, and the visual
+  archive calls `bin/setup` and `bin/visual`.
+- Delete the five workflows disabled on 2026-11-13 (§2.4).
 - Rewrite the documents that describe the GitHub setup:
   `docs/development/auth-ci.md`, `docs/development/README.md`, the "CI
   integration" section of the lane spec, `tests/lanes/README.md`,
@@ -1403,47 +1569,84 @@ Exit: one release shipped from GitLab and the GitHub repository archived.
   `scripts/README.md`, and the READMEs under `tools/testsuite/`,
   `tools/testsuite-installer/` and `tools/envref/`. ADR-042's implementation
   notes name `actions/setup-python` and two workflows; add a note there.
+  What these documents say about the publisher and the visual archive on
+  GitHub stays true.
 - Four tracked documents contain invisible provenance markers that defeat
   literal search (`scripts/README.md`, `tools/testsuite/README.md`,
   `tools/logship/README.md`, `docs/development/frontend-diagnostics.md`);
   read them, do not grep them.
-- Port CI metrics. Turn the scanners into gates. Add signing if it did not
-  ship in Phase 2.
+- Port CI metrics. Turn the scanners into gates. Signing, if adopted, is a
+  change to the GitHub publish workflow (§4.6).
 
 ## 8. Decisions
 
 ### Decided on 2026-11-10 (maintainer)
 
 - **Runner fleet:** both hosted and self-hosted. §4.12 proposes the split.
-- **GitHub after cutover:** archived, with a link to GitLab. Consequences:
-  rollback after the archive means unarchiving and resynchronizing, and it
-  gets more expensive with every merge on GitLab (Phase 5); issues, pull
-  requests and releases must be imported first; Dependabot, Codex and Copilot
-  review end; the macOS jobs cannot stay on GitHub; GHCR becomes the one
-  place that would keep GitHub as a live dependency (D3).
-- **Release cutover:** v0.26.20 is the last release from GitHub. Every later
-  release is built and published from GitLab (§7).
+
+The other two decisions of that day, that GitHub is archived after cutover
+and that v0.26.20 is the last release from GitHub, are replaced by the
+decision of 2026-11-13.
+
+### Decided on 2026-11-13 (maintainer)
+
+The maintainer's words: "We have switch development to GitLaband the next
+release will be created from there. We would like the github repo to be a
+mirror with the the ghcr images and docker images still being built there
+(using the free workflow minutes since it's a public repo) so that we
+maintain continuity with this distribution points."
+
+Consequences, as this plan reads them:
+
+- **GitHub is a push mirror and is not archived.** GitLab pushes `main`,
+  `develop` and every tag to it (§2.4). Nobody merges or pushes there except
+  the mirror.
+- **Release model.** Release tags are created on GitLab. The mirror delivers
+  them to GitHub, where `build-and-publish-oci-images.yml` builds and
+  publishes the images on the free public-repository minutes, and
+  `github-release.yml` creates the GitHub release page. The GitLab release
+  is created on GitLab (§4.6). Whether v0.26.20 is tagged on GitLab or on
+  GitHub is not decided.
+- **Distribution.** Docker Hub and GHCR both continue under the same names
+  and tags. The image builds, Sentry delivery and the visual archive stay
+  on GitHub. GitLab builds images only to test them. This resolves D3.
+- **Rollback** of a phase means enabling the GitHub workflows again; there is
+  no unarchive (Phase 5). The product links to GitHub release pages and the
+  envref release remote keep working, and so does Sentry's repository
+  integration (inferred, §4.6).
+- **What ends on GitHub:** Dependabot security updates, Codex and Copilot
+  review, the Claude workflows, the path labeler and the GitHub housekeeping
+  workflows (§2.4). No pull requests are opened on GitHub, so the workflows
+  that run only on pull requests run nowhere until GitLab has their
+  equivalents.
+- **macOS:** the two jobs can stay on GitHub (D4, recommendation).
 
 ### Open
 
 | ID | Decision | Recommendation | What it changes |
 |---|---|---|---|
-| D1 | GitLab tier | Decide after S6, together with D4 and D5, which both need Premium. | merge trains, macOS runners, quota for the light jobs |
-| D3 | Where images and visual baselines are published | Docker Hub stays the documented location; the quick start and compose files already use it. Push to GHCR through the 0.27 series with a deprecation note, then stop. Move the visual baselines to the GitLab registry and update the three places that name `ghcr.io`. Use the GitLab registry for CI images and the toolchain image. | P1 for as long as GHCR is pushed; the `org.opencontainers.image.source` label; `.oci-build.json`; user docs |
-| D4 | macOS coverage | A self-hosted macOS runner or GitLab's hosted one, whichever S5 favors. The two jobs run weekly and on a few paths. If neither, the bash 3.2 parse gate is what remains. | D1 |
+| D1 | GitLab tier | Decide after S6, together with D5, which needs Premium. D4 needs Premium only if the macOS jobs leave GitHub. | merge trains, quota for the light jobs, macOS runners if D4 moves them |
+| D4 | macOS coverage | Recommendation (not decided): keep both jobs on GitHub. `installer.yml` `macos` already runs weekly. `envref-macos` in `drift-guards.yml` has only pull request and dispatch triggers and runs nowhere now; give it a schedule there (Proposal, §4.12). Otherwise a self-hosted macOS runner or GitLab's hosted one, whichever S5 favors. | D1, if the jobs leave GitHub |
 | D5 | Merge trains | Yes, if Premium. The setting is per project. | replaces the merge queue |
 | D6 | Path-based labels | Drop, with the ADR-009 amendment | removes the labeler with no replacement |
 | D7 | Release notes inventory (ADR-009) | Amend the ADR: scriv stays the narrative; the release job lists the milestone's merged merge requests | unblocks deleting `release-drafter.yml` |
 | D8 | Which AI reviewers continue, and with which triggers | Greptile through its GitLab integration; Claude review as a CI job on merge request open and on the `claude-review` label, with the current skips; defer `@claude` mentions | |
 | D9 | Translation request workflow | Retire. Re-specify on `locales/scripts` if it is still wanted. | with its default input it resolves no locales (inferred), because its paths are gone |
 | D10 | CI metrics port before or after cutover | After | between cutover and the port there is no per-job regression flag on merge requests. The tier budget check is advisory today (`fail-on-violation` is false). |
-| D11 | Renovate hosting | Self-hosted runner project | works on any tier and serves every repository |
+| D11 | Renovate hosting | Self-hosted runner project | works on any tier and serves every repository. Renovate on GitHub cannot merge, so until this runs there are no dependency update merge requests (§4.9). |
 | D13 | GitLab for Open Source application | Check the profit clause first | cost factor and tier |
 | D14 | Register full scans that are expected to fail | Verify the claim first. If true, mark the full-scan job `allow_failure` until the findings are fixed. | whether `main` and weekly pipelines are red from day one, and whether a promotion that changes locale content can merge; needed before the first promotion on GitLab |
 | D15 | Guard scripts in `scripts/` | Leave them (§5) | scope of the ADR-042 consolidation |
 
-D2 (GitHub's role) and D12 (where issues live) are settled by the archive
-decision: issues live on GitLab.
+Settled by the 2026-11-13 decision:
+
+- D2 (GitHub's role): a push mirror that keeps building and publishing the
+  images (§2.4).
+- D3 (where images and visual baselines are published): Docker Hub and GHCR
+  both continue, built on GitHub. The visual baselines stay on GHCR. The
+  GitLab registry stores the CI staging images and the toolchain image.
+- D12 (where issues live): on GitLab. Whether GitHub Issues are turned off
+  is an open operator decision (§2.4).
 
 One question I could not answer from the repository:
 
@@ -1456,9 +1659,10 @@ One question I could not answer from the repository:
 
 Q1 asked whether changes merge through GitHub pull requests or GitLab merge
 requests, because the merge skill on `main` uses GitLab while the promotion
-PR and Renovate are on GitHub. The release cutover answers it: GitHub until
-v0.26.20, GitLab after. Until GitHub is archived, commits still need to reach
-both hosts for the parity checks in Phases 2 and 3.
+PR and Renovate are on GitHub. The 2026-11-13 decision answers it: changes
+merge through GitLab merge requests. The mirror delivers every commit on
+`main` and `develop` to GitHub, which gives the parity checks in Phases 2
+and 3 the same commits on both hosts.
 
 ## 9. Risks
 
@@ -1474,19 +1678,23 @@ both hosts for the parity checks in Phases 2 and 3.
 | R8 | A daemon in the job may need the MTU setting that GitLab documents for `docker:dind` on arm64, and a larger `/dev/shm` for Chromium. On hosted amd64 the job interface has MTU 1360 against the bridge's default of 1500, and `/dev/shm` is 64M. | S1: measured; Chromium not run |
 | R9 | The dependency caches were disabled "to rule out stale cache"; the incident is not recorded. | Phase 2 |
 | R10 | The Claude credential is readable in merge request pipelines by any job that declares its environment, and anyone who can push a branch can add that declaration. The people who can reach it are the same as today; inside the job the exposure is wider (P6). | its own environment scope, no installs in that job, today's tool allowlist (§4.10, §4.11). The Bump.sh tokens leave merge request pipelines. |
-| R11 | Rolling back after the GitHub repository is archived means unarchiving it and resynchronizing commits and tags. Work tracked on GitLab since the import is not on GitHub. | archive only after a release has shipped from GitLab; record secret names before archiving (Phase 5) |
-| R12 | The next release depends on the release path. If Phase 2 slips, the release waits. | start Phase 2 as soon as v0.26.20 is published |
+| R11 | The mirror update fails when a ref on GitHub has diverged from GitLab. With "Keep divergent refs" on, GitLab does not force-push, and its page says "The update is marked as failed." Nothing fails on GitHub, so a release tag or the `main` that the nightly builds can stay behind without anyone noticing. | check the mirror status on GitLab (Settings, Repository, Mirroring repositories) after each release tag; the rulesets keep everyone but the mirror off `main`, `develop` and `v*` on GitHub (§2.4) |
+| R12 | The release path is the mirror, the GitHub publish workflow and `github-release.yml` on GitHub `main`. If any of them fails, the release waits. | Phase 2 exit: a release candidate tag goes through the whole path |
+| R13 | A branch or tag deleted on GitLab stays on GitHub: with "Keep divergent refs" on, the mirror deletes nothing (§2.4). A wrong release tag deleted on GitLab keeps its images and its GitHub release, and a new tag of the same name at another commit diverges (R11). | fix it on GitHub by hand; only the deploy key may delete a `v*` tag there, so that needs a ruleset change |
+| R14 | GitHub creates no push event for tags "when more than three tags are pushed at once." A mirror update that carries more than three tags may start no image build (inferred). A tag push also runs the workflow files at the tagged commit, while `github-release.yml` is read from `main`; the two can drift apart. | push release tags one at a time, and check that the image workflow started; keep the two workflows compatible across a release |
+| R15 | GitHub secret scanning push protection could reject a mirror push that contains a detected secret, and the update would fail (inferred, not tested). | GitLab secret detection before the merge (§4.8); the mirror status check in R11 |
+| R16 | GitHub disables scheduled workflows in a public repository after 60 days without repository activity. The mirror keeps the repository active only while GitLab `main` or `develop` receives commits. The nightly image would stop without a failure. | if commits stop, check and re-enable the scheduled workflows (Phase 5) |
 
 ## 10. Adjacent work, not in this plan
 
 These are outside CI but several choices above depend on them:
 
 - Import of issues, pull requests and releases. GitLab's importer does not
-  import required status checks or outside collaborators. This is a
-  prerequisite for archiving GitHub (Phase 5).
+  import required status checks or outside collaborators.
 - Product links to GitHub: three footers and the admin layout link each
   version to `github.com/.../releases/tag/v<version>`, and Vitest specs assert
-  those URLs. This one is a Phase 2 prerequisite.
+  those URLs. They need no change while `github-release.yml` creates the
+  GitHub release pages (§4.6).
 - 204 lines in 102 tracked files outside `.github/` reference
   `github.com/onetimesecret`, mostly issue and pull request links in comments
   and docs.
@@ -1547,12 +1755,12 @@ described.
 | B-S22 | Version literals copied by hand (pnpm, the Valkey digest) | Open; the toolchain image adds one more copy, covered by the pin guard |
 | B-S1, B-S3 | Dead action, temporary workflow | Phase 1 |
 | D-H12 | Dead config: Release Drafter, disabled Dependabot, stale `.gitattributes` driver, a documented `bin/adr-lint` that does not exist | Phase 1; `release-drafter.yml` waits for D7 |
-| B-S2, C-F16 | Triggers and inputs that cannot fire or are never read; the unreachable branch-push tag rule | Design; not ported |
-| B-S5 | Publish is not gated on a boot test; the audit never compares | Design §4.6 |
-| B-S6 | arm64 built under QEMU | S4; Kept unless the frontend stage can be shared |
-| B-S7 | Tag logic edge cases (inferred) | Phase 1, in `bin/oci plan` |
-| B-S8 | Registry and platform defaults repeated; custom mode with an empty host (inferred) | Phase 1 for the defaults. The routing is in `bake.hcl`: fix with the staging mode (§4.6). |
-| B-S9 | Sentry plumbing larger than the build; inline helper copied three times | Phase 1 |
+| B-S2, C-F16 | Triggers and inputs that cannot fire or are never read; the unreachable branch-push tag rule | Design; not ported. In the GitHub publish workflow, which stays, they remain until removed there (§6.1). |
+| B-S5 | Publish is not gated on a boot test; the audit never compares | Open; §4.6 proposes a gate and the audit fix for the GitHub publish workflow |
+| B-S6 | arm64 built under QEMU | Kept; a question for the GitHub publish workflow (§4.6) |
+| B-S7 | Tag logic edge cases (inferred) | Open; fix in the GitHub publish workflow (§4.6) |
+| B-S8 | Registry and platform defaults repeated; custom mode with an empty host (inferred) | The defaults: Open where they sit in the GitHub publish workflow. The routing is in `bake.hcl`: fix with the staging mode (§4.6). |
+| B-S9 | Sentry plumbing larger than the build; inline helper copied three times | Open; Sentry stays in the GitHub publish workflow (§4.6) |
 | B-S13 | Action inputs interpolated into shell | Design; replaced by commands that take arguments |
 | B-S14 | "Verbatim" README smoke differs from the README; the image pin parsed by three separate greps | Phase 1 for the label; the greps: Open |
 | B-S15 | `seed-compose-env.sh` requires `GITHUB_ENV` | Phase 1 |
@@ -1611,7 +1819,6 @@ acting on a tier, limit or maturity statement.
 | Skip in the merge request title for merge request pipelines | docs.gitlab.com/ci/pipelines/ |
 | Lint simulation accepts a branch or tag reference only | docs.gitlab.com/api/lint/, docs.gitlab.com/ci/yaml/lint/ |
 | Report types by tier; scanner results are JSON only below Ultimate | docs.gitlab.com/ci/yaml/artifacts_reports/, pricing page |
-| Keyless signing on GitLab.com, all tiers; `id_tokens` placement | docs.gitlab.com/ci/yaml/signing_examples/ |
 | `release:` requires `glab` | docs.gitlab.com/ci/yaml/#release |
 | Push mirroring is Free | docs.gitlab.com/user/project/repository/mirror/push/ |
 | Pull mirroring is Premium and Ultimate | docs.gitlab.com/user/project/repository/mirror/pull/ |
@@ -1638,13 +1845,24 @@ pull request, and were read directly, not by the research pass. Five GitLab
 statements were also read in the `19-5-stable-ee` branch of GitLab's
 repository: the skip setting, the protected-resources section, the merge
 check race, the masked value rule and the `cache:key:files` limit. The
-GitHub statements in Phase 5 are from
-docs.github.com/en/repositories/archiving-a-github-repository/archiving-repositories,
-read the same day. The 60-day rule, and the fact that scheduled workflows
-run on the default branch, are from
+60-day rule, and the fact that scheduled workflows run on the default
+branch, are from
 docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows,
-also read on 2026-11-11. How to enable a disabled workflow is from
+read on 2026-11-11. How to enable a disabled workflow is from
 docs.github.com/en/actions/how-tos/manage-workflow-runs/disable-and-enable-workflows.
+
+Push mirror facts, read on 2026-11-13:
+
+| Fact | Source |
+|---|---|
+| A push mirror receives a push "in five minutes, or one minute if the setting Only mirror protected branches is on." | docs.gitlab.com/user/project/repository/mirror/push/ |
+| With "Keep divergent refs" on, a diverged ref fails the update: "The update is marked as failed." | docs.gitlab.com/user/project/repository/mirror/push/ |
+| The protected-branch filter matches every tag; with Keep divergent refs there is no force push and no deletion | Gitaly, `internal/gitaly/service/remote/update_remote_mirror.go` on `master` (source, not run) |
+| "Deploy keys only grant access to a single repository." | docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys |
+| Events triggered by `GITHUB_TOKEN` create no workflow run, except `workflow_dispatch` and `repository_dispatch` | docs.github.com/en/actions/concepts/security/github_token |
+| "Events will not be created for tags when more than three tags are pushed at once." | docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows (`push`) |
+| `workflow_run` "will only trigger a workflow run if the workflow file exists on the default branch." | the same page (`workflow_run`) |
+| GitHub's SSH host keys | api.github.com/meta |
 
 Read from source, not from documentation, and not run. GitLab at
 `19-5-stable-ee`: scheduled and manual pipelines are among the branch
@@ -1660,8 +1878,8 @@ exit code (`lib/rspec/core/runner.rb`, `reporter.rb`, `configuration.rb`).
 
 GitHub settings that are not files were read through its API on 2026-11-11:
 the branch list marks `main` and `develop` as protected, and the checks on
-pull request 4944 include CodeQL's `Analyze` jobs. The branch rules
-themselves were not read.
+pull request 4944 include CodeQL's `Analyze` jobs. The rulesets, the deploy
+key and the disabled workflows as configured on 2026-11-13 are in §2.4.
 
 Absence findings, from doc searches that found nothing: a job summary
 equivalent, YAML issue forms, a native path labeler, a release-drafter
@@ -1676,4 +1894,8 @@ hosted Renovate app accepts Free or program namespaces; whether Duo external
 agents are enabled for program namespaces; whether Bump.sh's tokenless diff
 limits document size or request rate; how "Skip branch pipelines for merge
 requests" treats a long-lived source branch (S8); that a later push cancels
-a scheduled pipeline (read from GitLab's source, not its docs).
+a scheduled pipeline (read from GitLab's source, not its docs); that a
+mirror push through the deploy key starts the push workflows on GitHub
+(GitHub's page suppresses only events triggered by `GITHUB_TOKEN`, and no
+mirrored push has been checked for runs yet); whether GitHub secret scanning push protection
+applies to the mirror's pushes.

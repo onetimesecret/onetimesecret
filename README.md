@@ -2,6 +2,11 @@
 
 _Keep passwords and other sensitive information out of your chat logs and emails._
 
+> [!NOTE]
+> Development happens on GitLab: <https://gitlab.com/onetimesecret/onetimesecret>.
+> Open issues and merge requests there. The GitHub repository is a read-only
+> mirror, and the Docker Hub and GHCR images are still built from it.
+
 A **one-time secret** is a link that can be viewed only once — a single-use URL.
 When you share sensitive info like a password over email or chat, copies linger
 in many places. Onetime links self-destruct after viewing, so only the intended
