@@ -15,7 +15,7 @@
 # auto_add_missing_recovery_codes). With AUTH_WEBAUTHN_VERIFY_ACCOUNT,
 # POST /auth/verify-account adds the passkey inside the verify transaction
 # (webauthn_verify_account.rb before_verify_account), before the account is
-# verified and before the autologin. Released rodauth (2.45.0 through 2.48.0)
+# verified and before the autologin. Released rodauth (2.45.0 through 2.50.0)
 # keys both the recovery-code lookup and the insert on session_value
 # (recovery_codes.rb recovery_codes_ds and add_recovery_code), so:
 #

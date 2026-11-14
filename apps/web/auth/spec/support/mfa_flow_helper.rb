@@ -140,10 +140,15 @@ module MfaFlowHelper
     [secret, recovery_codes]
   end
 
-  # Rodauth's OTP reuse guard (otp_update_last_use) rejects any code within one
-  # interval (30s) of last_use — and setup just stamped last_use=now. Rewind it
-  # so the auth step can accept a fresh code immediately instead of sleeping
-  # out the window in the test.
+  # Rodauth's OTP reuse guard refuses a code unless its time step is later
+  # than the one in last_use: otp_valid_code? verifies with
+  # `after: otp_last_use`, and otp_update_last_use wants last_use at least one
+  # interval (30s) behind the accepted step. last_use holds the start of the
+  # last accepted code's time step (rodauth 2.50.0), and setup just wrote the
+  # setup code's step there, so `totp.now` in the same 30 seconds is refused.
+  # Rewind it so the auth step can accept that code instead of sleeping into
+  # the next time step in the test. A code for the NEXT time step needs no
+  # rewind (integration/full_mfa/otp_code_replay_spec.rb).
   #
   # One rewind covers a failed-then-retry sequence: Rodauth stamps last_use
   # only on SUCCESSFUL validation (`otp_valid_code? && otp_update_last_use`

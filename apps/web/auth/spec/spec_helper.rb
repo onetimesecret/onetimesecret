@@ -237,8 +237,9 @@ module RodauthTestHelper
     # settings must move together: with timezone=:utc Sequel converts written
     # Times to UTC, so Sequel::CURRENT_TIMESTAMP must stay raw (UTC in SQLite)
     # rather than the adapter's default datetime(CURRENT_TIMESTAMP,'localtime')
-    # rewrite — otherwise DB-side comparisons (e.g. Rodauth's OTP replay guard
-    # in otp_update_last_use) mix UTC-stored values with local wall clocks.
+    # rewrite — otherwise DB-side comparisons (e.g. Rodauth's
+    # `CURRENT_TIMESTAMP > deadline` checks, against a deadline a spec wrote
+    # as a Time) mix UTC-stored values with local wall clocks.
     db.timezone              = :utc
     db.current_timestamp_utc = true
 
