@@ -44,7 +44,6 @@ module ColonelAPI
           :redis_info
 
         def process_params
-          OT.conf.get('site', {})
           @billing_enabled = OT.billing_config.enabled?
         end
 
