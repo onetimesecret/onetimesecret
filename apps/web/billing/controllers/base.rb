@@ -20,7 +20,7 @@ module Billing
         @req    = req
         @res    = res
         @locale = req.locale
-        @region = OT.conf&.dig('features', 'regions', 'current_jurisdiction') || 'LL'
+        @region = OT.conf&.get('features.regions.current_jurisdiction', nil) || 'LL'
 
         # Self-healing: Ensure customer has a default workspace
         # This is a background operation - errors are logged but not surfaced to the user
@@ -86,8 +86,8 @@ module Billing
               url: url,
             }
         else
-          uri.host ||= OT.conf['site']['host']
-          if (OT.conf.dig('site', 'ssl') != false) && (uri.scheme.nil? || uri.scheme != 'https')
+          uri.host ||= OT.conf.get('site.host')
+          if (OT.conf.get('site.ssl') != false) && (uri.scheme.nil? || uri.scheme != 'https')
             uri.scheme = 'https'
           end
           uri        = nil unless uri.is_a?(URI::HTTP)

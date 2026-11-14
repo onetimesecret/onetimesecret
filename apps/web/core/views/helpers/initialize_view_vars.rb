@@ -61,10 +61,10 @@ module Core
         # - Authentication tokens (:authenticity)
         # - Internal infrastructure details
         #
-        site_config     = OT.conf.fetch('site', {})
-        features_config = OT.conf.fetch('features', {})
-        development     = OT.conf.fetch('development', {})
-        diagnostics     = OT.conf.fetch('diagnostics', {})
+        site_config     = OT.conf.get('site', {})
+        features_config = OT.conf.get('features', {})
+        development     = OT.conf.get('development', {})
+        diagnostics     = OT.conf.get('diagnostics', {})
 
         safe_site     = build_safe_site_config(site_config)
         safe_features = build_safe_features_config(features_config)
@@ -212,7 +212,7 @@ module Core
 
         # Brand config — source of truth for tag-level branding (page_title,
         # mask-icon, etc.) and for default Vue app theming on first paint.
-        brand_config         = OT.conf.fetch('brand', {})
+        brand_config         = OT.conf.get('brand', {})
         brand_product_name   = brand_config['product_name'] ||
                                Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
 

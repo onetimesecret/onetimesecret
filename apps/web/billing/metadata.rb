@@ -144,9 +144,9 @@ module Billing
     def self.current_region
       # Compare against the string 'true' so a YAML-supplied string like
       # "false" (which is truthy in Ruby) doesn't get treated as enabled.
-      return 'global' unless OT.conf&.dig('features', 'regions', 'enabled').to_s == 'true'
+      return 'global' unless OT.conf&.get('features.regions.enabled').to_s == 'true'
 
-      jurisdiction = OT.conf&.dig('features', 'regions', 'current_jurisdiction')
+      jurisdiction = OT.conf&.get('features.regions.current_jurisdiction', nil)
       if jurisdiction.to_s.strip.empty?
         raise Onetime::ConfigError,
           'features.regions.enabled is true but features.regions.current_jurisdiction is not set'

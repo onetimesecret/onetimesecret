@@ -587,7 +587,7 @@ module Auth::Config::Hooks
                 confirm_url: "#{base_url}/sso-link-confirm/#{verification.token}",
                 provider: provider,
                 baseuri: base_url,
-                product_name: OT.conf.dig('site', 'product_name'),
+                product_name: OT.conf.get('site.product_name', nil),
                 display_domain: public_display_domain,
                 locale: locale,
               }

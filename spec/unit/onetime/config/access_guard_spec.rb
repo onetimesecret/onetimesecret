@@ -65,6 +65,7 @@ module ConfigAccessGuard
   OPTIONAL_PATHS = {
     'billing' => 'a separate config object (Onetime.billing_config), not a section of OT.conf (#3991, D3)',
     'billing.enabled' => 'see billing (#3991, D3)',
+    'billing.plans' => 'see billing; valid_plan_id? never finds a static plan here (#3991, D6)',
     'jobs.dlq_monitor_enabled' => 'opt-in switch for DlqMonitorJob; the defaults file does not define it',
     'jobs.domain_refresh.rate_limit' => "commented out in the defaults: unset means the strategy's own pacing",
     'jobs.heartbeat_enabled' => 'opt-in switch for HeartbeatJob; the defaults file does not define it',
@@ -75,6 +76,7 @@ module ConfigAccessGuard
     'site.authentication.external' => 'opt-in external auth section; the defaults file does not define it',
     'site.domains.enabled' => 'V1 reads the wrong path; the setting is features.domains.enabled (#3991, D2)',
     'site.federation_secret' => 'FEDERATION_SECRET is read first; the defaults file does not define this key',
+    'site.product_name' => 'auth emails read the wrong path; the setting is brand.product_name (#3991, D4)',
   }.freeze
 
   # Uses of OT.conf other than OT.conf.get that stay: file => [count, reason].
@@ -93,27 +95,6 @@ module ConfigAccessGuard
   # (rule 1): file => count. Lower a count when you convert a use; remove the
   # file at zero.
   PENDING = {
-    'apps/web/auth/config/email/email_auth.rb' => 1,
-    'apps/web/auth/config/email/reset_password.rb' => 1,
-    'apps/web/auth/config/email/verify_account.rb' => 1,
-    'apps/web/auth/config/hooks/omniauth.rb' => 1,
-    'apps/web/auth/lib/public_host.rb' => 2,
-    'apps/web/billing/cli/diagnose_command.rb' => 1,
-    'apps/web/billing/controllers/base.rb' => 3,
-    'apps/web/billing/controllers/billing.rb' => 2,
-    'apps/web/billing/controllers/plans.rb' => 4,
-    'apps/web/billing/lib/billing_service.rb' => 1,
-    'apps/web/billing/metadata.rb' => 2,
-    'apps/web/billing/operations/create_checkout_link.rb' => 3,
-    'apps/web/billing/operations/webhook_handlers/federation_support.rb' => 2,
-    'apps/web/core/controllers/base.rb' => 3,
-    'apps/web/core/controllers/health.rb' => 2,
-    'apps/web/core/logic/authentication/authenticate_session.rb' => 1,
-    'apps/web/core/logic/page/get_favicon.rb' => 1,
-    'apps/web/core/logic/page/get_webmanifest.rb' => 1,
-    'apps/web/core/middleware/request_setup.rb' => 2,
-    'apps/web/core/middleware/vite_proxy.rb' => 1,
-    'apps/web/core/views/helpers/initialize_view_vars.rb' => 5,
     'lib/onetime/initializers/setup_loggers.rb' => 1,
   }.freeze
 

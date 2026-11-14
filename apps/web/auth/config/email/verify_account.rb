@@ -13,7 +13,7 @@ module Auth::Config::Email
             email_address: email_to,
             verification_path: verify_account_email_link,
             baseuri: base_url,
-            product_name: OT.conf.dig('site', 'product_name'),
+            product_name: OT.conf.get('site.product_name', nil),
             display_domain: public_display_domain,
           },
           locale: determine_account_locale,

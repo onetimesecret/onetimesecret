@@ -44,7 +44,7 @@ module Core
         }.freeze
 
         def process_params
-          @brand        = OT.conf.fetch('brand', {}) || {}
+          @brand        = OT.conf.get('brand', {}) || {}
           @content_type = CONTENT_TYPE
         end
 

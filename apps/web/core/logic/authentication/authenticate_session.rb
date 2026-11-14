@@ -211,7 +211,7 @@ module Core::Logic
           # verified=false (e.g. for moderation) or autoverify was enabled
           # after this account signed up — in both cases resending a
           # verification email on every login would be spam.
-          autoverify = OT.conf.dig('site', 'authentication', 'autoverify')
+          autoverify = OT.conf.get('site.authentication.autoverify')
           unless autoverify.to_s == 'true'
             # Help pending accounts finish the normal verification flow by
             # resending the email (link valid for 24h).
