@@ -34,9 +34,11 @@
   },
 
   // PR management
-  dependencyDashboard: true,
-  dependencyDashboardAutoclose: true,
-  dependencyDashboardLabels: ['auto-update', 'dependencies'],
+  dependencyDashboard: {
+    enabled: true,
+    autoclose: true,
+    labels: ['auto-update', 'dependencies'],
+  },
   prCreation: 'immediate',
   prConcurrentLimit: 10,
   prHourlyLimit: 10,
