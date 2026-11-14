@@ -122,23 +122,43 @@ RSpec.describe Onetime::Config::StrictKeys do
       expect(config.dig('site', 'elevation', 'rules', 0, 'role')).to eq('colonel')
     end
 
+    it 'gives the Hashes it stores StrictKeys' do
+      config['site'].store('elevation', { 'enabled' => false })
+
+      expect { config['site']['elevation'][:enabled] }.to raise_error(Onetime::Config::KeyTypeError)
+    end
+
     it 'stores a written Hash with Symbol keys as it is' do
       config['site']['legacy'] = { enabled: true }
 
       expect(config['site']['legacy'].to_a).to eq([[:enabled, true]])
     end
+
+    # Installing replaces a frozen child under its existing key, which here
+    # is a Symbol: that store must not go through the key check.
+    it 'installs below a Symbol key whose value is frozen' do
+      config['site']['legacy'] = { legacy: { 'enabled' => true }.freeze }
+
+      child = config['site']['legacy'].to_a.first.last
+      expect(child).to be_frozen
+      expect { child[:enabled] }.to raise_error(Onetime::Config::KeyTypeError)
+    end
   end
 
   describe 'a frozen tree' do
     it 'is replaced by frozen copies that check their keys' do
-      frozen = Onetime::Config.deep_freeze({ 'site' => { 'admin' => { 'enabled' => true } } })
+      frozen = Onetime::Config.deep_freeze(
+        { 'site' => { 'admin' => { 'enabled' => true } }, 'list' => [{ 'email' => 'ops@example.com' }] },
+      )
 
       strict = described_class.install(frozen)
 
       expect(strict).to eq(frozen)
       expect(strict).to be_frozen
       expect(strict['site']).to be_frozen
+      expect(strict['list']).to be_frozen
       expect { strict['site']['admin'][:enabled] }.to raise_error(Onetime::Config::KeyTypeError)
+      expect { strict['list'].first[:email] }.to raise_error(Onetime::Config::KeyTypeError)
     end
   end
 
@@ -236,6 +256,14 @@ RSpec.describe Onetime::Config::StrictKeys do
         once = Onetime::Config.wrap(tree)
 
         expect(Onetime::Config.wrap(once)).to equal(once)
+      end
+
+      it 'returns a frozen wrapped config unchanged, as production holds it' do
+        once = Onetime::Config.wrap(Onetime::Config.deep_freeze({ 'site' => { 'host' => 'example.com' } }))
+
+        expect(once).to be_frozen
+        expect(Onetime::Config.wrap(once)).to equal(once)
+        expect(once['site']).not_to be_a(described_class)
       end
     end
   end
