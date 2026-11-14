@@ -93,7 +93,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Each mirrored develop commit keeps its own run; see ci.yml.
+  group: ${{ github.workflow }}-${{ github.ref }}${{ github.ref == 'refs/heads/develop' && format('-{0}', github.sha) || '' }}
   cancel-in-progress: true
 
 env:

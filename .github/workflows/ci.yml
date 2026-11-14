@@ -112,7 +112,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # develop has no pre-merge gate on GitHub (merges happen on GitLab), so each
+  # mirrored develop commit keeps its own group and is never cancelled by the
+  # next one; a failure stays attributable to one merge. Every other ref
+  # cancels the superseded run.
+  group: ci-${{ github.workflow }}-${{ github.ref }}${{ github.ref == 'refs/heads/develop' && format('-{0}', github.sha) || '' }}
   cancel-in-progress: true
 
 jobs:
