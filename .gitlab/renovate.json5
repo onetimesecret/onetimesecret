@@ -51,12 +51,14 @@
 
   // Automerge settings
   // automergeType 'pr', not 'branch': from April 2025 to September 2026 no
-  // update landed on main by branch automerge (every one came through a PR),
-  // and branch-automerge updates without a PR sat unseen for weeks. A PR gets
-  // CI, which only runs on pushes to main and on PRs.
+  // update reached main by branch automerge (every one came through a PR),
+  // and branch-automerge updates without a PR sat unseen for weeks. A merge
+  // request gets a pipeline; a branch push without one does not.
+  // No automergeStrategy: Renovate does not support it on GitLab and stops
+  // automerging when it is set. The project's merge method (merge commit)
+  // applies.
   automerge: true,
   automergeType: 'pr',
-  automergeStrategy: 'merge-commit',
   major: { automerge: false },
   minor: { automerge: false },
   patch: { automerge: false },
