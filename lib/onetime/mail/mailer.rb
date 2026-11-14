@@ -177,7 +177,7 @@ module Onetime
           if provider.to_s.downcase == 'ses'
             ses_conf = provider_config('ses')
             %w[region access_key_id secret_access_key].each do |key|
-              value       = ses_conf[key] || ses_conf[key.to_sym]
+              value       = ses_conf[key]
               config[key] = value.to_s unless value.to_s.empty?
             end
           end
@@ -505,7 +505,7 @@ module Onetime
         #
         # @return [Boolean] never nil — see the .compact note above
         def smtp2go_fastaccept(s2g_conf)
-          raw = s2g_conf.fetch('fastaccept') { s2g_conf.fetch(:fastaccept, nil) }
+          raw = s2g_conf.fetch('fastaccept', nil)
           unless raw.nil?
             return Onetime::Utils::Strings.strict_bool!(
               "email_providers.smtp2go 'fastaccept'", raw, default: false
