@@ -872,7 +872,10 @@ gate after their baseline is triaged (Phase 6).
   `helpers:pinGitHubActionDigests` stays, because the GitHub workflows keep
   publishing the images (§2.4). The custom regex manager matches the two
   GitHub workflows that carry `TRANSLATION_RULES_REF` until their GitLab
-  jobs exist.
+  jobs exist. Renovate reads this file from the default branch only ("By
+  default, Renovate will read config file from the default branch only",
+  `useBaseBranchConfig`), so a change to it takes effect once a promotion
+  brings it to `main`.
 - The merge requests imported from GitHub (!4826, !4946 to !4953) belong to
   the GitHub app and nothing updates them. Proposal: close them and delete
   their `deps/*` branches before the GitLab app's first run, so that it does
