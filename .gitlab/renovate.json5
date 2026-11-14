@@ -10,6 +10,10 @@
     ':pinDependencies',
   ],
 
+  // Merge requests target develop, where changes are merged; main receives
+  // develop through promotions.
+  baseBranchPatterns: ['develop'],
+
   // Update control
   minimumReleaseAge: '14 days',
   separateMinorPatch: false,
@@ -19,6 +23,10 @@
   rebaseWhen: 'auto',
 
   // Security settings
+  // Renovate reads GitHub's vulnerability alerts only on GitHub. On GitLab the
+  // alerts come from the OSV database, for direct dependencies; the settings
+  // in vulnerabilityAlerts apply to the merge requests they open.
+  osvVulnerabilityAlerts: true,
   vulnerabilityAlerts: {
     labels: ['security'],
     assignees: ['delano'],
