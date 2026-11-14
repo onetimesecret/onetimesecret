@@ -51,7 +51,7 @@ module Onetime
 
     # The dotted-path reader of OT.conf. Onetime::Config.wrap installs it on
     # the root config Hash, which stays a Hash: sections below the root are
-    # plain Hashes with String keys.
+    # Hashes with String keys, plain outside test runs (see StrictKeys).
     #
     #   OT.conf.get('site.host')                           # required setting
     #   OT.conf.get('site.admin.elevation', {})            # default when absent or nil

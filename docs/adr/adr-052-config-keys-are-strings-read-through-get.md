@@ -51,8 +51,9 @@ separate config object.
    in the config raises `MissingPathError` with the path, and a value an
    operator sets to nil reads as nil. With a default the setting is
    optional. `false` and `0` are values and are never replaced by the
-   default. A path that runs through a non-Hash value raises
-   `PathTypeError`, with or without a default.
+   default. A path that runs through a value that is neither a Hash nor
+   nil raises `PathTypeError`, with or without a default; a nil section on
+   the way reads as unset.
 3. **A spec enforces both.** `spec/unit/onetime/config/access_guard_spec.rb`
    parses `lib/` and `apps/` with Prism. It fails on any use of `OT.conf`
    other than `.get` that is not listed with a reason, on a required path
@@ -68,8 +69,9 @@ defaults file produce. Raising on a missing required path follows
 absent, and the guard can check that statement against the shipped config
 before the code runs.
 
-`OT.conf` stays a plain Hash with `get` added to the root instance, so tests
-and tools can still read, write and serialize it as a Hash.
+`OT.conf` stays a Hash with `get` added to the root instance, so tests and
+tools can still read, write and serialize it as a Hash. Outside test runs
+the sections below the root are plain Hashes.
 
 ## Trade-offs
 
