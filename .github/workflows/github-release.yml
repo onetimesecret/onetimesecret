@@ -19,7 +19,10 @@ name: GitHub release (mirror)
 #
 # A release created with GITHUB_TOKEN starts no other workflow, so the
 # `release: published` trigger of visual-archive.yml does not fire for it.
-# The last step dispatches visual-archive.yml at the tag instead.
+# The last step dispatches visual-archive.yml at the tag instead, and does so
+# again on a re-run when the existing release is this workflow's own, so a
+# failed dispatch is recovered by re-running the job. Archiving a tag a
+# second time replaces the archive with a new render of the same tag.
 
 on:
   workflow_run:
@@ -78,9 +81,16 @@ jobs:
             exit 1
           fi
 
-          if gh release view "$TAG" > /dev/null 2>&1; then
-            echo "A GitHub release for ${TAG} already exists; leaving it as is."
-            echo "created=false" >> "$GITHUB_OUTPUT"
+          if author=$(gh release view "$TAG" --json author --jq .author.login 2> /dev/null); then
+            echo "A GitHub release for ${TAG} already exists (author: ${author}); leaving it as is."
+            # A release this workflow created fired no release trigger, so a
+            # re-run dispatches the archive again: the first run may have
+            # failed after creating the release. A release a person created
+            # already started visual-archive.yml through `release: published`.
+            case "$author" in
+              'github-actions[bot]' | github-actions) echo "dispatch_archive=true" >> "$GITHUB_OUTPUT" ;;
+              *) echo "dispatch_archive=false" >> "$GITHUB_OUTPUT" ;;
+            esac
             exit 0
           fi
 
@@ -107,10 +117,10 @@ jobs:
 
           gh release create "$TAG" --verify-tag --title "$TAG" \
             --notes-file notes.md "${flags[@]}"
-          echo "created=true" >> "$GITHUB_OUTPUT"
+          echo "dispatch_archive=true" >> "$GITHUB_OUTPUT"
 
       - name: Dispatch the visual archive
-        if: steps.create.outputs.created == 'true'
+        if: steps.create.outputs.dispatch_archive == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
