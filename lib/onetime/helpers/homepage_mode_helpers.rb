@@ -40,7 +40,7 @@ module Onetime
       # @param req [Rack::Request] The request object
       # @return [String, nil] 'internal', 'external', or nil
       def determine_homepage_mode
-        ui_config       = OT.conf.dig('site', 'interface', 'ui') || {}
+        ui_config       = OT.conf.get('site.interface.ui', {})
         homepage_config = ui_config['homepage'] || {}
 
         configured_mode = homepage_config['mode']

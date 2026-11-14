@@ -114,7 +114,7 @@ module Onetime::Organization::Features
         # a missing key (older config file) must still record. Compare on
         # the string form so a hand-edited config that yields 'false'
         # (quoted/ERB-stringified) still disables the flag.
-        return if OT.conf.dig('features', 'secret_activity', 'collect').to_s == 'false'
+        return if OT.conf.get('features.secret_activity.collect', true).to_s == 'false'
 
         event = {
           'kind' => kind.to_s,

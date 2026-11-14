@@ -65,7 +65,7 @@ template.subject
 saved = YAML.load(YAML.dump(OT.conf))
 begin
   conf_copy = YAML.load(YAML.dump(saved))
-  conf_copy['brand'] = { 'product_name' => 'Acme Vault' }
+  conf_copy['brand'] = conf_copy['brand'].transform_values { nil }.merge('product_name' => 'Acme Vault')
   OT.send(:conf=, conf_copy)
   template = Onetime::Mail::Templates::Welcome.new(@valid_data)
   template.subject

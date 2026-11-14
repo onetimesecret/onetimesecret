@@ -50,7 +50,7 @@ RSpec.describe Onetime::Application::AuthStrategies::AdminSessionLifetime do
     conf = YAML.load(YAML.dump(OT.conf))
     ((conf['site'] ||= {})['admin'] ||= {})['session'] =
       { 'enabled' => true }.merge(settings.transform_keys(&:to_s))
-    allow(OT).to receive(:conf).and_return(conf)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf))
   end
 
   def stub_sidecar(last_activity_at)
@@ -260,7 +260,7 @@ RSpec.describe Onetime::Application::AuthStrategies::AdminSessionLifetime do
     it 'applies the shipped defaults when the block is absent entirely' do
       conf = YAML.load(YAML.dump(OT.conf))
       conf['site']['admin'].delete('session')
-      allow(OT).to receive(:conf).and_return(conf)
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf))
       session = session_with_sid('sid1', 'authenticated_at' => now - 43_201)
 
       expect(host.admin_session_expiry_reason(session, colonel, env_for)).to eq(:absolute)

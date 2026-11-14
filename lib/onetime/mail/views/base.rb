@@ -190,7 +190,7 @@ module Onetime
         def site_ssl?
           return true unless defined?(OT) && OT.respond_to?(:conf)
 
-          OT.conf.dig('site', 'ssl') != false
+          OT.conf.get('site.ssl') != false
         end
 
         # Site host configuration helper
@@ -198,7 +198,7 @@ module Onetime
         def site_host
           return 'localhost' unless defined?(OT) && OT.respond_to?(:conf)
 
-          OT.conf.dig('site', 'host') || 'localhost'
+          OT.conf.get('site.host', 'localhost')
         end
 
         # Site base URI configuration helper
@@ -212,8 +212,7 @@ module Onetime
         # neutral NEUTRAL_PRODUCT_NAME — never nil, since templates interpolate
         # the name into subjects and headers, and never an OTS-branded literal.
         def site_product_name
-          OT.conf.dig('brand', 'product_name') ||
-            Onetime::CustomDomain::BrandSettingsConstants::NEUTRAL_PRODUCT_NAME
+          OT.conf.get('brand.product_name', Onetime::CustomDomain::BrandSettingsConstants::NEUTRAL_PRODUCT_NAME)
         end
 
         # Product name with fallback to site config
@@ -378,7 +377,7 @@ module Onetime
           # @return [String] Hex color string
           def brand_color
             @brand_color ||= @data[:brand_color] ||
-                             conf_dig('brand', 'primary_color') ||
+                             OT.conf&.get('brand.primary_color', nil) ||
                              Onetime::CustomDomain::BrandSettingsConstants::DEFAULTS[:primary_color]
           end
 
@@ -387,7 +386,7 @@ module Onetime
           # set BRAND_SUPPORT_EMAIL to populate.
           # @return [String, nil]
           def support_email
-            @support_email ||= conf_dig('brand', 'support_email') ||
+            @support_email ||= OT.conf&.get('brand.support_email', nil) ||
                                Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:support_email]
           end
 
@@ -407,7 +406,7 @@ module Onetime
             return @signature_name if defined?(@signature_name)
 
             @signature_name = @data[:signature_name] ||
-                              conf_dig('brand', 'signature_name')
+                              OT.conf&.get('brand.signature_name', nil)
           end
 
           # Logo alt text helper - operator-supplied brand.logo_alt
@@ -419,7 +418,7 @@ module Onetime
           # the frontend applies to installLogoAlt.
           # @return [String]
           def logo_alt
-            conf_dig('brand', 'logo_alt') || site_product_name
+            OT.conf&.get('brand.logo_alt', nil) || site_product_name
           end
 
           # Logo URL helper - resolves from brand config; nil when no brand
@@ -438,7 +437,7 @@ module Onetime
           def logo_url
             return @logo_url if defined?(@logo_url)
 
-            candidate = conf_dig('brand', 'logo_url') ||
+            candidate = OT.conf&.get('brand.logo_url', nil) ||
                         Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:logo_url]
             @logo_url = candidate.to_s.match?(%r{\Ahttps?://}i) ? candidate : nil
           end
@@ -448,13 +447,13 @@ module Onetime
           # terminal so layout copy never interpolates nil.
           def site_product_name
             @site_product_name ||=
-              conf_dig('brand', 'product_name') ||
+              OT.conf&.get('brand.product_name', nil) ||
               Onetime::CustomDomain::BrandSettingsConstants::NEUTRAL_PRODUCT_NAME
           end
 
           # Get host from site config
           def site_host
-            @site_host ||= conf_dig('site', 'host') || 'localhost'
+            @site_host ||= OT.conf&.get('site.host') || 'localhost'
           end
 
           # Get base URI from site config
@@ -469,7 +468,7 @@ module Onetime
           # is the "do I trust images in mail clients" switch, logo_url is
           # the asset (nil when unset or not absolute http(s)).
           def show_logo?
-            conf_dig('emailer', 'show_logo') == true
+            OT.conf&.get('emailer.show_logo', false) == true
           end
 
           private
@@ -478,13 +477,7 @@ module Onetime
           # by site_baseuri and brand_baseuri so both agree on http/https.
           # @return [String]
           def scheme
-            conf_dig('site', 'ssl') == false ? 'http://' : 'https://'
-          end
-
-          def conf_dig(*keys)
-            return nil unless defined?(OT) && OT.respond_to?(:conf) && OT.conf
-
-            OT.conf.dig(*keys)
+            OT.conf&.get('site.ssl') == false ? 'http://' : 'https://'
           end
         end
       end

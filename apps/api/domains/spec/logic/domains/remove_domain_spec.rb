@@ -52,10 +52,10 @@ RSpec.describe DomainsAPI::Logic::Domains::RemoveDomain do
     allow(OT).to receive(:ld)
     allow(OT).to receive(:li)
     allow(OT).to receive(:le)
-    allow(OT).to receive(:conf).and_return({
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({
       'site' => {},
       'features' => { 'domains' => { 'enabled' => true } },
-    })
+    }))
 
     allow(logic).to receive(:require_organization!)
     allow(logic).to receive(:app_logger).and_return(app_log)

@@ -14,7 +14,7 @@ RSpec.describe Onetime::SignupValidation do
 
   before do
     allow(OT).to receive(:conf).and_return(
-      'site' => { 'authentication' => { 'allowed_signup_domains' => ['global.example.com'] } },
+      OT::Config.wrap('site' => { 'authentication' => { 'allowed_signup_domains' => ['global.example.com'] } }),
     )
     allow(OT).to receive(:le)
     allow(Onetime::CustomDomain::SignupConfig).to receive(:find_by_domain_id)

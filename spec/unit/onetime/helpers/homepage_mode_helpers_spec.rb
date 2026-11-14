@@ -523,19 +523,19 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
     end
 
     def mode_for(cidrs, remote_addr, mode: 'external')
-      allow(OT).to receive(:conf).and_return(homepage_conf(cidrs, mode))
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap(homepage_conf(cidrs, mode)))
       env = through_mount('REMOTE_ADDR' => remote_addr)
       HomepageModeTestClass.new(Otto::Request.new(env), logger).determine_homepage_mode
     end
 
     # Same config, but the request never passed IPPrivacyMiddleware.
     def mode_without_mount(cidrs, env, mode: 'external')
-      allow(OT).to receive(:conf).and_return(homepage_conf(cidrs, mode))
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap(homepage_conf(cidrs, mode)))
       HomepageModeTestClass.new(Otto::Request.new(env), logger).determine_homepage_mode
     end
 
     it 'runs against a masked req.ip with the closure installed' do
-      allow(OT).to receive(:conf).and_return(homepage_conf([], 'external'))
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap(homepage_conf([], 'external')))
       env = through_mount('REMOTE_ADDR' => '203.0.113.9')
 
       expect(Otto::Request.new(env).ip).to eq('203.0.113.0')
@@ -701,7 +701,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
       end
 
       it 'returns internal mode when client IP matches configured CIDR' do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {
               'ui' => {
@@ -712,14 +712,14 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
               }
             }
           }
-        })
+        }))
 
         mode = test_instance.determine_homepage_mode
         expect(mode).to eq('internal')
       end
 
       it 'returns external mode when client IP matches configured CIDR' do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {
               'ui' => {
@@ -730,14 +730,14 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
               }
             }
           }
-        })
+        }))
 
         mode = test_instance.determine_homepage_mode
         expect(mode).to eq('external')
       end
 
       it 'returns nil when client IP does not match any CIDR' do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {
               'ui' => {
@@ -748,14 +748,14 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
               }
             }
           }
-        })
+        }))
 
         mode = test_instance.determine_homepage_mode
         expect(mode).to be_nil
       end
 
       it 'matches against multiple configured CIDRs' do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {
               'ui' => {
@@ -770,7 +770,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
               }
             }
           }
-        })
+        }))
 
         mode = test_instance.determine_homepage_mode
         expect(mode).to eq('internal')
@@ -790,7 +790,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
       end
 
       it 'falls back to header when CIDR does not match' do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {
               'ui' => {
@@ -802,7 +802,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
               }
             }
           }
-        })
+        }))
 
         mode = test_instance.determine_homepage_mode
         expect(mode).to eq('internal')
@@ -810,7 +810,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
       it 'returns nil when header does not match expected mode' do
         mock_req.env['HTTP_O_HOMEPAGE_MODE'] = 'external'  # Header says external
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {
               'ui' => {
@@ -822,7 +822,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
               }
             }
           }
-        })
+        }))
 
         mode = test_instance.determine_homepage_mode
         expect(mode).to be_nil
@@ -842,7 +842,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
       end
 
       it 'CIDR match takes priority over header' do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {
               'ui' => {
@@ -854,7 +854,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
               }
             }
           }
-        })
+        }))
 
         # Even though header says 'external', CIDR match should win
         mode = test_instance.determine_homepage_mode
@@ -874,7 +874,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
       end
 
       it 'returns nil when mode is not internal or external' do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {
               'ui' => {
@@ -885,38 +885,38 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
               }
             }
           }
-        })
+        }))
 
         mode = test_instance.determine_homepage_mode
         expect(mode).to be_nil
       end
 
       it 'returns nil when homepage config is missing' do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {
               'ui' => {}
             }
           }
-        })
+        }))
 
         mode = test_instance.determine_homepage_mode
         expect(mode).to be_nil
       end
 
       it 'returns nil when ui config is missing' do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {}
           }
-        })
+        }))
 
         mode = test_instance.determine_homepage_mode
         expect(mode).to be_nil
       end
 
       it 'returns nil when mode is nil' do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {
               'ui' => {
@@ -927,7 +927,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
               }
             }
           }
-        })
+        }))
 
         mode = test_instance.determine_homepage_mode
         expect(mode).to be_nil
@@ -946,7 +946,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
       end
 
       it 'returns nil when neither CIDR nor header match' do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {
               'ui' => {
@@ -958,7 +958,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
               }
             }
           }
-        })
+        }))
 
         mode = test_instance.determine_homepage_mode
         expect(mode).to be_nil
@@ -977,7 +977,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
       end
 
       it 'does not judge a /32 CIDR on the fallback and returns nil' do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {
               'ui' => {
@@ -988,14 +988,14 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
               }
             }
           }
-        })
+        }))
 
         mode = test_instance.determine_homepage_mode
         expect(mode).to be_nil  # Fallback skips it, no match
       end
 
       it 'does not judge a /28 CIDR on the fallback and returns nil' do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'interface' => {
               'ui' => {
@@ -1006,7 +1006,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
               }
             }
           }
-        })
+        }))
 
         mode = test_instance.determine_homepage_mode
         expect(mode).to be_nil

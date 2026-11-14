@@ -157,8 +157,8 @@ module Onetime
   # default pack itself is missing. #3774
   def self.brand_overlay_dir
     resolve_brand_pack_dir(
-      brand_assets_dir: OT.conf.dig('site', 'brand_assets_dir'),
-      brand_pack: OT.conf.dig('site', 'brand_pack'),
+      brand_assets_dir: OT.conf.get('site.brand_assets_dir'),
+      brand_pack: OT.conf.get('site.brand_pack'),
     )
   end
 
@@ -204,8 +204,8 @@ module Onetime
     default_dir  = brand_pack_dir(DEFAULT_BRAND_PACK)
 
     # site.* as the FROZEN BOOT snapshot saw it (may differ from raw ENV now).
-    cfg_pack   = OT.conf.dig('site', 'brand_pack')
-    cfg_assets = OT.conf.dig('site', 'brand_assets_dir')
+    cfg_pack   = OT.conf.get('site.brand_pack')
+    cfg_assets = OT.conf.get('site.brand_assets_dir')
 
     # fell_back_to_default is TRUE only when a non-default pack was INTENDED yet
     # the DEFAULT pack was served (a stale brand_assets_dir masking a good pack,
@@ -278,8 +278,8 @@ module Onetime
     # meanwhile. An automatic asset-race signal needs a boot baseline of the mounted
     # overlay set (StaticFiles instrumentation) that does not yet exist. The tryout
     # pins this asset-only-reads-healthy behavior so any future change is deliberate.
-    operator_keys         = OT.conf.dig('brand_manifest', 'operator_keys') || []
-    absorbed_keys         = OT.conf.dig('brand_manifest', 'absorbed_keys') || []
+    operator_keys         = OT.conf.get('brand_manifest.operator_keys', [])
+    absorbed_keys         = OT.conf.get('brand_manifest.absorbed_keys', [])
     # No manifest_exists guard is needed: when the manifest is absent live_scalars is
     # empty, so the union collapses to absorbed_keys alone. A WHOLE brand.yaml removed
     # since boot then still scans its lingering absorbed keys (each compares unequal —
@@ -290,7 +290,7 @@ module Onetime
       next false if operator_keys.include?(key)
       next false if brand_env_override?(key)
 
-      live_scalars[key].to_s != OT.conf.dig('brand', key).to_s
+      live_scalars[key].to_s != OT.conf.get(['brand', key], nil).to_s
     end
 
     # Pack assets present on disk in the resolved pack RIGHT NOW. This may differ

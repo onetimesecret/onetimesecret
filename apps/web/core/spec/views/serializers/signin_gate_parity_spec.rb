@@ -76,7 +76,7 @@ RSpec.describe 'sign-in/sign-up opt-in: full-mode gate vs simple-mode gate parit
 
   before do
     allow(Onetime).to receive(:auth_config).and_return(mock_auth_config)
-    allow(OT).to receive(:conf).and_return({ 'site' => { 'authentication' => auth_settings } })
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'authentication' => auth_settings } }))
 
     # ONE identity read. The two gates and ConfigSerializer (used in the
     # email-auth section below, via Onetime::TenantSsoResolution) all resolve

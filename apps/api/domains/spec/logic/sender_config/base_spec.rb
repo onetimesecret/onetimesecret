@@ -149,9 +149,9 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
   describe '#authorize_sender_config!' do
     context 'when custom_mail_enabled feature flag is false' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'features' => { 'organizations' => { 'custom_mail_enabled' => false } },
-        })
+        }))
       end
 
       it 'raises FormError with forbidden error_type' do
@@ -174,9 +174,9 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
 
     context 'when custom_mail_enabled feature flag is nil/missing' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'features' => { 'organizations' => {} },
-        })
+        }))
       end
 
       it 'raises FormError with forbidden error_type' do
@@ -191,9 +191,9 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
 
     context 'when features.organizations is completely missing' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'features' => {},
-        })
+        }))
       end
 
       it 'raises FormError with forbidden error_type' do
@@ -208,9 +208,9 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
 
     context 'when custom_mail_enabled is true but domain not found' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'features' => { 'organizations' => { 'custom_mail_enabled' => true } },
-        })
+        }))
         allow(Onetime::CustomDomain).to receive(:find_by_extid).with('nonexistent').and_return(nil)
       end
 
@@ -233,9 +233,9 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
       let(:logic) { described_logic_class.new(non_owner_strategy_result, params) }
 
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'features' => { 'organizations' => { 'custom_mail_enabled' => true } },
-        })
+        }))
         allow(Onetime::CustomDomain).to receive(:find_by_extid)
           .with('ext-domain123').and_return(custom_domain)
         allow(Onetime::Organization).to receive(:load)
@@ -262,9 +262,9 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
 
     context 'when organization lacks custom_mail_sender entitlement' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'features' => { 'organizations' => { 'custom_mail_enabled' => true } },
-        })
+        }))
         allow(Onetime::CustomDomain).to receive(:find_by_extid)
           .with('ext-domain123').and_return(custom_domain)
         allow(Onetime::Organization).to receive(:load)
@@ -298,9 +298,9 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
 
     context 'when all authorization checks pass' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'features' => { 'organizations' => { 'custom_mail_enabled' => true } },
-        })
+        }))
         allow(Onetime::CustomDomain).to receive(:find_by_extid)
           .with('ext-domain123').and_return(custom_domain)
         allow(Onetime::Organization).to receive(:load)
@@ -337,9 +337,9 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
 
     context 'when user is a colonel (site admin)' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'features' => { 'organizations' => { 'custom_mail_enabled' => true } },
-        })
+        }))
         allow(Onetime::CustomDomain).to receive(:find_by_extid)
           .with('ext-domain123').and_return(custom_domain)
         allow(Onetime::Organization).to receive(:load)

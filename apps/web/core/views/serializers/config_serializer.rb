@@ -109,16 +109,17 @@ module Core
         sentry                = diagnostics.fetch('sentry', {})
         output['d9s_enabled'] = Onetime.d9s_enabled
         Onetime.with_diagnostics do
-          defaults = sentry.fetch('defaults', {})
+          # Config.after_load merges diagnostics.sentry.defaults into each
+          # peer and drops the defaults section, so frontend carries them.
           frontend = sentry.fetch('frontend', {})
 
           output['diagnostics'] = {
             'sentry' => {
               'dsn' => frontend.fetch('dsn', ''),
               'trackComponents' => frontend.fetch('trackComponents', true),
-              'sampleRate' => defaults.fetch('sampleRate', 1.0).to_f,
-              'maxBreadcrumbs' => defaults.fetch('maxBreadcrumbs', 5).to_i,
-              'logErrors' => defaults.fetch('logErrors', true),
+              'sampleRate' => sentry_sample_rate(frontend['sampleRate']),
+              'maxBreadcrumbs' => sentry_max_breadcrumbs(frontend['maxBreadcrumbs']),
+              'logErrors' => frontend['logErrors'].nil? || frontend['logErrors'],
               'environment' => OT.env,
               'release' => OT::VERSION.get_build_info,
             },
@@ -133,6 +134,27 @@ module Core
       end
 
       class << self
+        # The Sentry sample rate for the frontend, which the bootstrap contract
+        # takes as a number in 0..1. A blank SENTRY_SAMPLE_RATE renders as nil
+        # and a typo as a String; either would reach the SDK as 0 and drop
+        # every event, and a value outside 0..1 fails the contract. Both get
+        # the SDK default, 1.0.
+        #
+        # @param value [Object] diagnostics.sentry.frontend.sampleRate
+        # @return [Float]
+        def sentry_sample_rate(value)
+          rate = Float(value, exception: false)
+          rate&.between?(0, 1) ? rate : 1.0
+        end
+
+        # @param value [Object] diagnostics.sentry.frontend.maxBreadcrumbs
+        # @return [Integer] the value, or the SDK default 5 when it is blank,
+        #   not a whole number or negative
+        def sentry_max_breadcrumbs(value)
+          count = Integer(value, exception: false)
+          count && count >= 0 ? count : 5
+        end
+
         # Publish the guest ceiling the server enforces for this request host.
         #
         # The legacy key name is authentication-centric, but the value is

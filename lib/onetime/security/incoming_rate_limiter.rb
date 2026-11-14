@@ -173,7 +173,7 @@ module Onetime
       end
 
       def incoming_rate_limit_config
-        OT.conf.dig('features', 'incoming', 'rate_limit') || {}
+        OT.conf.get('features.incoming.rate_limit', {})
       end
 
       # Enabled unless config explicitly sets enabled:false. Absent config keeps

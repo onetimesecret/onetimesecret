@@ -1218,7 +1218,7 @@ class Onetime::CustomDomain::SigninConfig < Familia::Horreum
     # @param auth [Hash, nil] site.authentication settings (injectable for tests)
     # @return [Boolean]
     def global_signin_enabled(auth = nil)
-      auth ||= OT.conf.dig('site', 'authentication') || {}
+      auth ||= OT.conf.get('site.authentication', {})
       (auth['enabled'] && auth['signin']) == true
     end
 
@@ -1240,7 +1240,7 @@ class Onetime::CustomDomain::SigninConfig < Familia::Horreum
     # @param auth [Hash, nil] site.authentication settings (injectable for tests)
     # @return [Boolean]
     def global_auth_enabled(auth = nil)
-      auth ||= OT.conf.dig('site', 'authentication') || {}
+      auth ||= OT.conf.get('site.authentication', {})
       auth['enabled'] == true
     end
 

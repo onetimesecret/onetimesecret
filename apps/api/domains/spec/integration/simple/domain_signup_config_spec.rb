@@ -194,7 +194,7 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
         'base_domain_signup_enabled' => enabled,
       ),
     )
-    allow(OT).to receive(:conf).and_return(real_conf)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(real_conf))
   end
 
   # ==========================================================================

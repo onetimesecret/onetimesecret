@@ -111,28 +111,44 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
       'receipt' => receipt,
     }
 
-    allow(OT).to receive(:conf).and_return({
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({
       'site' => {
         'interface' => {
           'api' => {
             'guest_routes' => config,
           },
         },
+        # BaseSecretAction#process_ttl's fallback for a config without the
+        # section, plus the anonymous ceiling, unset.
+        'secret_options' => {
+          'default_ttl' => 604_800,
+          'ttl_options' => [60, 3600, 86_400, 604_800],
+          'ttl_max_anonymous' => nil,
+        },
       },
-    })
+      'jobs' => { 'expiration_warnings' => { 'min_ttl_hours' => nil } },
+    }))
   end
 
   # Helper to stub empty/missing guest routes config
   def stub_empty_guest_routes_config
-    allow(OT).to receive(:conf).and_return({
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({
       'site' => {
         'interface' => {
           'api' => {
             # guest_routes key is missing entirely
           },
         },
+        # BaseSecretAction#process_ttl's fallback for a config without the
+        # section, plus the anonymous ceiling, unset.
+        'secret_options' => {
+          'default_ttl' => 604_800,
+          'ttl_options' => [60, 3600, 86_400, 604_800],
+          'ttl_max_anonymous' => nil,
+        },
       },
-    })
+      'jobs' => { 'expiration_warnings' => { 'min_ttl_hours' => nil } },
+    }))
   end
 
   before(:all) do

@@ -36,7 +36,7 @@ billing_cycle: monthly|yearly
 
 ```bash
 export STRIPE_API_KEY='sk_test_YOUR_STRIPE_TEST_KEY'
-export STRIPE_WEBHOOK_SECRET='whsec_YOUR_WEBHOOK_SECRET'
+export STRIPE_WEBHOOK_SIGNING_SECRET='whsec_YOUR_WEBHOOK_SECRET'
 export STRIPE_TEST_PRICE_ID='price_YOUR_TEST_PRICE_ID'
 ```
 

@@ -47,7 +47,7 @@ RSpec.describe Core::Middleware::RequestSetup do
       'site' => { 'security' => { 'csp' => { 'enabled' => csp_enabled } } },
       'development' => { 'enabled' => development },
     }
-    allow(OT).to receive(:conf).and_return(conf)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf))
     middleware.send(:emit_csp_header, headers, request_env)
     headers['content-security-policy']
   end
@@ -153,7 +153,7 @@ RSpec.describe Core::Middleware::RequestSetup do
         'site' => { 'security' => { 'csp' => { 'enabled' => csp_enabled } } },
         'development' => { 'enabled' => false },
       }
-      allow(OT).to receive_messages(conf: conf, debug?: false)
+      allow(OT).to receive_messages(conf: OT::Config.wrap(conf), debug?: false)
 
       app = ->(_env) { [200, app_headers.dup, ['body']] }
       # #call returns the [status, headers, body] tuple; grab the finalized headers.

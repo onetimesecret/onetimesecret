@@ -28,7 +28,7 @@ RSpec.describe Onetime::CLI::Queue::InitCommand do
   end
 
   before do
-    allow(OT).to receive(:conf).and_return(test_conf)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(test_conf))
     allow(command).to receive(:boot_application!)
     allow(command).to receive(:create_vhost)
     allow(command).to receive(:set_permissions)

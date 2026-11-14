@@ -359,7 +359,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
       end
 
       it "disables i18n and uses defaults if config has internationalization.enabled = false" do
-        modified_config = YAML.load(ERB.new(File.read(source_config_path)).result) # Deep copy
+        modified_config = Onetime::Config.load # a fresh copy, over the defaults file as at boot
         modified_config['internationalization']['enabled'] = false
         allow(Onetime::Config).to receive(:load).and_return(modified_config)
 

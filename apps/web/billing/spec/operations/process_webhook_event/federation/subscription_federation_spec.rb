@@ -552,9 +552,9 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
     describe 'successful note recording' do
       before do
         # Mock OT.conf for region lookup
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'features' => { 'regions' => { 'enabled' => true, 'current_jurisdiction' => 'EU' } },
-        })
+        }))
       end
 
       it 'calls Stripe::Customer.update with correct metadata structure' do
@@ -606,7 +606,7 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
 
     describe 'Stripe API error handling' do
       before do
-        allow(OT).to receive(:conf).and_return({ 'features' => { 'regions' => { 'enabled' => true, 'current_jurisdiction' => 'EU' } } })
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'features' => { 'regions' => { 'enabled' => true, 'current_jurisdiction' => 'EU' } } }))
 
         # Simulate Stripe API error on update
         allow(Stripe::Customer).to receive(:update)
@@ -671,7 +671,7 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
       end
 
       before do
-        allow(OT).to receive(:conf).and_return({ 'features' => { 'regions' => { 'enabled' => true, 'current_jurisdiction' => 'EU' } } })
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'features' => { 'regions' => { 'enabled' => true, 'current_jurisdiction' => 'EU' } } }))
       end
 
       it 'uses "unresolved" when org has no planid' do
@@ -686,9 +686,9 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
 
     describe 'idempotency (last-write-wins)' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'features' => { 'regions' => { 'enabled' => true, 'current_jurisdiction' => 'EU' } },
-        })
+        }))
       end
 
       it 'calls Stripe::Customer.update twice without error when called in sequence' do
@@ -705,7 +705,7 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
     describe 'regions feature disabled' do
       before do
         # OT.conf returns empty hash — features.regions.enabled is falsy
-        allow(OT).to receive(:conf).and_return({})
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({}))
       end
 
       it 'falls back to "global" when regions feature is disabled' do
@@ -720,9 +720,9 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
 
     describe 'regions enabled but jurisdiction missing' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'features' => { 'regions' => { 'enabled' => true, 'current_jurisdiction' => nil } },
-        })
+        }))
       end
 
       it 'raises ConfigError to surface the misconfiguration' do

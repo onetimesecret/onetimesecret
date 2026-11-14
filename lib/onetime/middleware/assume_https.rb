@@ -44,7 +44,7 @@ module Onetime
     class AssumeHttps
       def initialize(app)
         @app     = app
-        @enabled = OT.conf.dig('site', 'network', 'assume_https') == true
+        @enabled = OT.conf.get('site.network.assume_https') == true
       end
 
       def call(env)

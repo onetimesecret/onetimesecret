@@ -80,7 +80,7 @@ module Onetime
         private
 
         def ping_queues(queue_names, wait_seconds)
-          amqp_url = OT.conf.dig('jobs', 'rabbitmq_url')
+          amqp_url = OT.conf.get('jobs.rabbitmq_url')
 
           bunny_config = {
             logger: Onetime.get_logger('Bunny'),

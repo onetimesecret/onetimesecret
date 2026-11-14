@@ -44,14 +44,17 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       I18n.default_locale = :en
 
       # Stub OT.conf for default settings
-      allow(OT).to receive_messages(conf: {
+      allow(OT).to receive_messages(conf: OT::Config.wrap({
         'site' => {
           'authentication' => {
             'autoverify' => nil,
           },
+          'session' => nil,
+          'secret' => nil,
+          'ssl' => nil,
         },
         'features' => {},
-      }, default_locale: 'en'
+      }), default_locale: 'en'
       )
 
       # Stub customer lookup
@@ -82,14 +85,14 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
     # (and unless autoverify == 'true').
     context 'when autoverify is disabled (false)' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'authentication' => {
                 'autoverify' => 'false',
             },
           },
           'features' => {},
-        },
+        }),
                                               )
       end
 
@@ -133,14 +136,14 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
     # Claude has a lot of trouble distinguishing between `=` and `==`
     context 'when autoverify is disabled (nil)' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'authentication' => {
                 'autoverify' => nil,
             },
           },
           'features' => {},
-        },
+        }),
                                               )
       end
 
@@ -154,14 +157,14 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
     context 'when autoverify is enabled (true)' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'authentication' => {
                 'autoverify' => 'true',
             },
           },
           'features' => {},
-        },
+        }),
                                               )
       end
 
@@ -194,14 +197,14 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
     context 'when autoverify is empty string' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'authentication' => {
                 'autoverify' => '',
             },
           },
           'features' => {},
-        },
+        }),
                                               )
       end
 

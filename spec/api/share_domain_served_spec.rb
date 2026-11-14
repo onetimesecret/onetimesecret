@@ -33,7 +33,7 @@ RSpec.describe 'share_domain on a custom domain that is not served' do
     domains = ((conf['features'] ||= {})['domains'] ||= {})
     { 'require_verified' => false, 'serve_unverified' => false }.merge(overrides.transform_keys(&:to_s))
       .each { |key, value| domains[key] = value }
-    allow(OT).to receive(:conf).and_return(conf)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf))
   end
 
   def domain_record(ownership_verified: nil)

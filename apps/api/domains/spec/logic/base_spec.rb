@@ -48,10 +48,10 @@ RSpec.describe DomainsAPI::Logic::Base do
     allow(OT).to receive(:li)
     allow(OT).to receive(:le)
     allow(OT).to receive(:info)
-    allow(OT).to receive(:conf).and_return({
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({
       'site' => {},
       'features' => { 'domains' => { 'enabled' => true } },
-    })
+    }))
   end
 
   describe '#resolve_target_organization' do

@@ -48,7 +48,7 @@ RSpec.describe Core::Middleware::RequestSetup do
       'site' => { 'security' => { 'csp' => { 'enabled' => true } } },
       'development' => { 'enabled' => false },
     }
-    allow(OT).to receive(:conf).and_return(conf)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf))
     headers = { 'content-type' => 'text/html; charset=utf-8' }
     env = { 'otto.security_config' => config, 'onetime.nonce' => 'N' }.merge(env_extra)
     middleware.send(:emit_csp_header, headers, env)

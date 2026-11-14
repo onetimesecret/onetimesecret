@@ -488,7 +488,7 @@ module Onetime
       # Secrets with shorter TTL won't receive warnings to avoid spam
       # @return [Integer] TTL in seconds
       def min_warning_ttl
-        hours = OT.conf.dig('jobs', 'expiration_warnings', 'min_ttl_hours').to_i
+        hours = OT.conf.get('jobs.expiration_warnings.min_ttl_hours').to_i
         hours = 48 if hours <= 0
         hours * 3600
       end

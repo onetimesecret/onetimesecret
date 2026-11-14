@@ -58,7 +58,7 @@ module Onetime
           def schedule(scheduler)
             return unless enabled?
 
-            interval = OT.conf.dig('jobs', 'expiration_warnings', 'check_interval') || '1h'
+            interval = OT.conf.get('jobs.expiration_warnings.check_interval', '1h')
 
             scheduler_logger.info "[ExpirationWarningJob] Scheduling with interval: #{interval}"
 
@@ -70,16 +70,16 @@ module Onetime
           private
 
           def enabled?
-            OT.conf.dig('jobs', 'expiration_warnings', 'enabled') == true
+            OT.conf.get('jobs.expiration_warnings.enabled') == true
           end
 
           def warning_hours
-            hours = OT.conf.dig('jobs', 'expiration_warnings', 'warning_hours').to_i
+            hours = OT.conf.get('jobs.expiration_warnings.warning_hours').to_i
             hours > 0 ? hours : 24
           end
 
           def batch_size
-            size = OT.conf.dig('jobs', 'expiration_warnings', 'batch_size').to_i
+            size = OT.conf.get('jobs.expiration_warnings.batch_size').to_i
             size > 0 ? size : DEFAULT_BATCH_SIZE
           end
 

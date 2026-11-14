@@ -285,10 +285,10 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
         require 'onetime/middleware/domain_strategy'
 
         allow(OT).to receive(:conf).and_return(
-          {
+          OT::Config.wrap({
             'site' => { 'host' => 'api.example.com' },
             'features' => { 'domains' => { 'enabled' => true, 'default' => 'secrets.example.com' } },
-          },
+          }),
         )
         Onetime::Middleware::DomainStrategy.reset!
         Onetime::Middleware::DomainStrategy.initialize_from_config(

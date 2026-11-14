@@ -141,9 +141,9 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
   describe '#authorize_domain_sso!' do
     context 'when ORGS_SSO_ENABLED feature flag is false' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'features' => { 'organizations' => { 'sso_enabled' => false } },
-        })
+        }))
       end
 
       it 'raises forbidden error' do
@@ -166,9 +166,9 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
 
     context 'when ORGS_SSO_ENABLED feature flag is nil/missing' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'features' => { 'organizations' => {} },
-        })
+        }))
       end
 
       it 'raises forbidden error' do
@@ -183,9 +183,9 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
 
     context 'when features.organizations is completely missing' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'features' => {},
-        })
+        }))
       end
 
       it 'raises forbidden error' do
@@ -199,9 +199,9 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
 
     context 'when ORGS_SSO_ENABLED is true but domain not found' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'features' => { 'organizations' => { 'sso_enabled' => true } },
-        })
+        }))
         allow(Onetime::CustomDomain).to receive(:find_by_extid).with('nonexistent').and_return(nil)
       end
 
@@ -224,9 +224,9 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
       let(:logic) { described_logic_class.new(non_owner_strategy_result, params) }
 
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'features' => { 'organizations' => { 'sso_enabled' => true } },
-        })
+        }))
         allow(Onetime::CustomDomain).to receive(:find_by_extid)
           .with('ext-domain123').and_return(custom_domain)
         allow(Onetime::Organization).to receive(:load)
@@ -253,9 +253,9 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
 
     context 'when organization lacks manage_sso entitlement' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'features' => { 'organizations' => { 'sso_enabled' => true } },
-        })
+        }))
         allow(Onetime::CustomDomain).to receive(:find_by_extid)
           .with('ext-domain123').and_return(custom_domain)
         allow(Onetime::Organization).to receive(:load)
@@ -289,9 +289,9 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
 
     context 'when all authorization checks pass' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'features' => { 'organizations' => { 'sso_enabled' => true } },
-        })
+        }))
         allow(Onetime::CustomDomain).to receive(:find_by_extid)
           .with('ext-domain123').and_return(custom_domain)
         allow(Onetime::Organization).to receive(:load)
@@ -328,9 +328,9 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
 
     context 'when user is a colonel (site admin)' do
       before do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'features' => { 'organizations' => { 'sso_enabled' => true } },
-        })
+        }))
         allow(Onetime::CustomDomain).to receive(:find_by_extid)
           .with('ext-domain123').and_return(custom_domain)
         allow(Onetime::Organization).to receive(:load)

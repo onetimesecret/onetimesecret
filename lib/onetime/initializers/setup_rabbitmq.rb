@@ -35,7 +35,7 @@ module Onetime
       @phase      = :fork_sensitive
 
       def execute(_context)
-        return unless OT.conf.dig('jobs', 'enabled')
+        return unless OT.conf.get('jobs.enabled')
 
         # Workers create their own RabbitMQ connections via Sneakers.
         # Skip setup here to avoid ConnectionPool.after_fork issues when
@@ -80,7 +80,7 @@ module Onetime
       #
       # @return [void]
       def reconnect
-        return unless OT.conf.dig('jobs', 'enabled')
+        return unless OT.conf.get('jobs.enabled')
 
         # Workers set SKIP_RABBITMQ_SETUP to prevent creating a publisher
         # connection pool — Sneakers manages its own consumer connections.
@@ -106,8 +106,8 @@ module Onetime
       def setup_rabbitmq_connection
         # Config file handles ENV resolution via ERB with sensible defaults.
         # Don't read ENV directly - keeps input validation in one place.
-        url       = OT.conf.dig('jobs', 'rabbitmq_url')
-        pool_size = OT.conf.dig('jobs', 'channel_pool_size') || 5
+        url       = OT.conf.get('jobs.rabbitmq_url')
+        pool_size = OT.conf.get('jobs.channel_pool_size', 5)
 
         Onetime.bunny_logger.info "[init] RabbitMQ: Connecting to #{sanitize_url(url)}"
 

@@ -74,7 +74,7 @@ module Onetime
         component_names = fetch(name)
         return if component_names.empty?
 
-        settings = Onetime.conf&.dig('site', 'middleware', 'profiles', name.to_s) || {}
+        settings = Onetime.conf&.get(['site', 'middleware', 'profiles', name.to_s], nil) || {}
 
         component_names.each do |component_name|
           config = Onetime::Middleware::Registry.fetch(component_name)

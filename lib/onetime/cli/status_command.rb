@@ -332,7 +332,7 @@ module Onetime
       end
 
       def jobs_enabled?
-        OT.conf.dig('jobs', 'enabled') == true
+        OT.conf.get('jobs.enabled') == true
       end
 
       # ─────────────────────────────────────────────────────────────────────
@@ -436,7 +436,7 @@ module Onetime
 
         require 'bunny'
 
-        url  = OT.conf.dig('jobs', 'rabbitmq_url')
+        url  = OT.conf.get('jobs.rabbitmq_url')
         conn = Bunny.new(url)
         conn.start
 

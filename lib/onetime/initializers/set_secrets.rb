@@ -36,7 +36,7 @@ module Onetime
       private
 
       def extract_global_secret
-        OT.conf['site']['secret'] || nil
+        OT.conf.get('site.secret')
       end
     end
   end

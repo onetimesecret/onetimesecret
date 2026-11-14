@@ -196,7 +196,7 @@ module Onetime
         # Feature flag (blueprint §5). The jobs tree is absent from the in-code
         # DEFAULTS hash, so read with dig and treat anything but true as off.
         def favicon_fetch_enabled?
-          OT.conf.dig('jobs', 'favicon_fetch', 'enabled') == true
+          OT.conf.get('jobs.favicon_fetch.enabled') == true
         end
       end
     end

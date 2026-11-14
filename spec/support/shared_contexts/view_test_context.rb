@@ -27,9 +27,11 @@ RSpec.shared_context 'view_test_context' do
       'locales' => ['en'],
       'site' => {
         'host' => 'test.domain.com',
+        'ssl' => nil,
         'secret_options' => {
           'default_ttl' => 86_400,
-          'ttl_options' => [3600, 86_400]
+          'ttl_options' => [3600, 86_400],
+          'ttl_max_anonymous' => nil
         },
         'authentication' => {
           'enabled' => true,
@@ -119,7 +121,7 @@ RSpec.shared_context 'view_test_context' do
   end
 
   before(:each) do
-    allow(OT).to receive(:conf).and_return(config)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(config))
     allow(OT).to receive(:d9s_enabled).and_return(false)
     allow(OT).to receive(:default_locale).and_return('en')
     # Use block implementation instead of and_yield to avoid

@@ -86,20 +86,18 @@ logic.process
 sess = {}
 strategy_result = MockStrategyResult.new(session: sess, user: nil)
 old_conf = OT.instance_variable_get(:@conf)
-new_conf = {
-  'site' => {
-    'authentication' => {
-      'autoverify' => true, # force the config to be true
-    },
-  },
-}
-OT.instance_variable_set(:@conf, new_conf)
-logic = AccountAPI::Logic::Account::CreateAccount.new strategy_result, @valid_params.call, 'en'
-logic.raise_concerns
-logic.process
-ret = [logic.autoverify.to_s, logic.cust.verified.to_s, OT.conf.dig('site', 'authentication', 'autoverify').to_s]
-OT.instance_variable_set(:@conf, old_conf)
-ret
+new_conf = YAML.load(YAML.dump(old_conf))
+new_conf['site']['authentication']['autoverify'] = true # force the config to be true
+begin
+  OT.instance_variable_set(:@conf, new_conf)
+  logic = AccountAPI::Logic::Account::CreateAccount.new strategy_result, @valid_params.call, 'en'
+  logic.raise_concerns
+  logic.process
+  [logic.autoverify.to_s, logic.cust.verified.to_s, OT.conf.dig('site', 'authentication', 'autoverify').to_s]
+ensure
+  # Restored even when the case raises, so later tryout files see the booted config.
+  OT.instance_variable_set(:@conf, old_conf)
+end
 #=> ['true', 'true', 'true']
 
 ## send_verification_email returns false when mail delivery fails (DX-6)

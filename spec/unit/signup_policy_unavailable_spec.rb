@@ -251,7 +251,7 @@ RSpec.describe 'Sign-up policy read failure (#4157)' do
 
     before do
       allow(OT).to receive(:conf).and_return(
-        { 'site' => { 'authentication' => { 'enabled' => true, 'signup' => true } } },
+        OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => true, 'signup' => true } } }),
       )
       allow(OT).to receive(:le)
       allow(Onetime::CustomDomain).to receive(:from_display_domain).and_raise(blip)

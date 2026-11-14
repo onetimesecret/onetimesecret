@@ -78,7 +78,7 @@ module Onetime::Secret::Features
         return false unless valid_display_type?(type)
         return true if type == DEFAULT
 
-        OT.conf&.dig('features', type, 'enabled').to_s == 'true'
+        OT.conf&.get(['features', type, 'enabled'], nil).to_s == 'true'
       end
 
       # Canonical form of a requested display type: stripped and downcased,

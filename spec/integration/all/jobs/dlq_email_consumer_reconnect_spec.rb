@@ -48,7 +48,7 @@ RSpec.describe 'DLQ email consumer connection failure', :rabbitmq, type: :integr
     @previous_connection = $rmq_conn
     $rmq_conn = @shared_connection
 
-    allow(OT).to receive(:conf).and_return({ 'jobs' => { 'rabbitmq_url' => url } })
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'jobs' => { 'rabbitmq_url' => url } }))
     allow(job).to receive(:scheduler_logger).and_return(logger)
     stub_const('Onetime::Jobs::Scheduled::DlqEmailConsumerJob::DLQ_NAME', dlq_name)
 

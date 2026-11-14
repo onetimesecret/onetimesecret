@@ -52,8 +52,13 @@ RSpec.describe Onetime::Application::OrganizationLoader do
     allow(membership).to receive(:active?).and_return(true)
     allow(membership).to receive(:can?) { |entitlement| %w[api_access audit_logs].include?(entitlement) }
     allow(Onetime::CustomDomain).to receive(:from_display_domain).with('origin.example.com').and_return(nil)
-    conf = OT.conf.to_h.merge('features' => { 'organizations' => { 'audit_logs_enabled' => true } })
-    allow(OT).to receive(:conf).and_return(conf)
+    conf = OT.conf.to_h.merge(
+      'features' => {
+        'organizations' => { 'audit_logs_enabled' => true },
+        'domains' => { 'default' => nil, 'link_domains' => nil },
+      },
+    )
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf))
   end
 
   # A tenant request as DomainStrategy leaves it behind a proxy that rewrites
@@ -241,7 +246,7 @@ RSpec.describe Onetime::Application::OrganizationLoader do
           'site' => { 'host' => 'origin.example.com:443' },
           'features' => { 'domains' => { 'default' => 'links.example.com', 'link_domains' => ['go.example.net'] } },
         )
-        allow(OT).to receive(:conf).and_return(conf)
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf))
       end
 
       ['origin.example.com', 'links.example.com', 'GO.EXAMPLE.NET:443', 'www.example.com'].each do |host|

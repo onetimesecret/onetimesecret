@@ -256,10 +256,10 @@ module Onetime
       end
 
       def execute(_context)
-        secret_key = OT.conf.dig('site', 'secret')
+        secret_key = OT.conf.get('site.secret')
         raise 'site.secret not set or empty' if secret_key.to_s.empty?
 
-        uri = OT.conf.dig('redis', 'uri') || ''
+        uri = OT.conf.get('redis.uri', '')
 
         # Strip surrounding quotes that may have been introduced via ENV var
         # misconfiguration (e.g., REDIS_URL="redis://..." instead of REDIS_URL=redis://...)
@@ -286,7 +286,7 @@ module Onetime
         # host. Before Familia.uri is assigned, so a refused boot leaves no
         # datastore configured.
         self.class.check_redis_transport!(
-          uri, require_tls: self.class.redis_require_tls?(OT.conf.dig('redis', 'require_tls'))
+          uri, require_tls: self.class.redis_require_tls?(OT.conf.get('redis.require_tls'))
         )
 
         # Set Familia's URI so it's available for isolated connections

@@ -371,20 +371,24 @@ jobs:
       # The README quick start, run verbatim (the two `docker run` commands and
       # the secret-file step from README §Quick start).
       - name: Start Redis (README step 1)
-        run: docker run -p 6379:6379 -d redis:trixie
+        run: |
+          docker network create onetime
+          openssl rand -hex 32 > .ots_redis_password && chmod 600 .ots_redis_password
+          docker run -d --name onetime-redis --network onetime redis:trixie \
+            redis-server --requirepass "$(cat .ots_redis_password)"
 
       - name: Generate persistent secret key (README step 2)
         run: |
           openssl rand -hex 32 > .ots_secret
           chmod 600 .ots_secret
 
-      - name: Run the app container (README step 2, verbatim flags)
+      - name: Run the app container (README step 3, verbatim flags)
         env:
           OTS_IMAGE: ${{ steps.tag.outputs.image }}
         run: |
           docker run -p 3000:3000 -d \
-            --add-host=host.docker.internal:host-gateway \
-            -e REDIS_URL=redis://host.docker.internal:6379/0 \
+            --network onetime \
+            -e REDIS_URL="redis://:$(cat .ots_redis_password)@onetime-redis:6379/0" \
             -e SECRET="$(cat .ots_secret)" \
             -e HOST=localhost:3000 \
             -e AUTH_REQUIRED=false \

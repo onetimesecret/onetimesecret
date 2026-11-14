@@ -410,7 +410,7 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
   # @param custom_domain [CustomDomain, nil] optional pre-loaded domain
   # @return [Boolean]
   def incoming_available?(custom_domain: nil)
-    return false if OT.conf.dig('site', 'secret').to_s.strip.empty?
+    return false if OT.conf.get('site.secret').to_s.strip.empty?
 
     incoming = Onetime::CustomDomain::IncomingConfig.find_by_domain_id(domain_id)
     return false unless incoming&.ready?
@@ -611,7 +611,7 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
       # Validating setters: a refused entry raises before anything is
       # written, so a bad list never lands alongside the other fields. In
       # the update block a raise aborts the guarded write.
-      apply_cidrs = lambda do |config|
+      apply_cidrs = ->(config) do
         config.allowed_cidrs = allowed_cidrs unless allowed_cidrs.nil?
         config.denied_cidrs  = denied_cidrs unless denied_cidrs.nil?
         config

@@ -71,7 +71,7 @@ module Onetime
     # @param email [String] Email address to validate
     # @return [Boolean] true if domain is allowed or no restrictions configured
     def global_allowed_domains?(email)
-      allowed_domains = OT.conf.dig('site', 'authentication', 'allowed_signup_domains')
+      allowed_domains = OT.conf.get('site.authentication.allowed_signup_domains')
 
       # No restrictions configured - allow all domains
       return true if allowed_domains.nil? || allowed_domains.empty?

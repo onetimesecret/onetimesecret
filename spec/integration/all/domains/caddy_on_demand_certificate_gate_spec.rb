@@ -115,7 +115,7 @@ RSpec.describe 'Caddy on-demand certificate gate', :shared_db_state, type: :inte
     # Keep every domain on one page. Once this spec's domain is verified and
     # resolving, it leaves the warm-up set; the default page would then select
     # it only on some wall-clock ticks when the shared datastore has >200 rows.
-    (conf['jobs']               ||= {})['domain_refresh'] = { 'enabled' => true, 'batch_size' => 100_000 }
+    (conf['jobs']               ||= {})['domain_refresh'] = { 'enabled' => true, 'batch_size' => 100_000, 'dns_propagation_window' => nil }
     # Promotion into :verified would otherwise fetch the domain's favicon,
     # which is an outbound request to the hostname.
     conf['jobs']['favicon_fetch'] = { 'enabled' => false }

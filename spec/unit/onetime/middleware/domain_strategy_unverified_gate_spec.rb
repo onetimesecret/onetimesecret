@@ -36,7 +36,7 @@ RSpec.describe Onetime::Middleware::DomainStrategy, 'unverified custom domains' 
     conf    = YAML.load(YAML.dump(OT.conf))
     domains = ((conf['features'] ||= {})['domains'] ||= {})
     overrides.each { |key, value| domains[key.to_s] = value }
-    allow(OT).to receive(:conf).and_return(conf)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf))
   end
 
   def domain_record(org_id: 'org-1', ownership_verified: nil, verified_by_override: nil, legacy_verified: nil)

@@ -76,26 +76,26 @@ module Onetime
           private
 
           def enabled?
-            OT.conf.dig('jobs', 'domain_refresh', 'enabled') == true
+            OT.conf.get('jobs.domain_refresh.enabled') == true
           end
 
           def interval
-            OT.conf.dig('jobs', 'domain_refresh', 'check_interval') || DEFAULT_INTERVAL
+            OT.conf.get('jobs.domain_refresh.check_interval', DEFAULT_INTERVAL)
           end
 
           def batch_size
-            size = OT.conf.dig('jobs', 'domain_refresh', 'batch_size').to_i
+            size = OT.conf.get('jobs.domain_refresh.batch_size').to_i
             size.positive? ? size : DEFAULT_BATCH_SIZE
           end
 
           # nil (unset or unusable) leaves pacing to the validation strategy.
           def rate_limit
-            limit = OT.conf.dig('jobs', 'domain_refresh', 'rate_limit')
+            limit = OT.conf.get('jobs.domain_refresh.rate_limit', nil)
             limit.to_f if limit.is_a?(Numeric) && limit >= 0
           end
 
           def dns_propagation_window_seconds
-            raw = OT.conf.dig('jobs', 'domain_refresh', 'dns_propagation_window')
+            raw = OT.conf.get('jobs.domain_refresh.dns_propagation_window')
             raw = DEFAULT_DNS_PROPAGATION_WINDOW if raw.nil?
             interval_seconds(raw)
           rescue ArgumentError

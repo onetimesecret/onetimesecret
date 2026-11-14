@@ -67,8 +67,8 @@ namespace :dev do
       end
     end
 
-    host   = Onetime.conf&.dig('site', 'host') || 'localhost:3000'
-    scheme = Onetime.conf&.dig('site', 'ssl') ? 'https' : 'http'
+    host   = Onetime.conf&.get('site.host') || 'localhost:3000'
+    scheme = Onetime.conf&.get('site.ssl') ? 'https' : 'http'
     base   = "#{scheme}://#{host}"
 
     puts

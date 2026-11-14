@@ -627,13 +627,12 @@ module Onetime
       def self.platform_base_url
         return @registered_platform_base_url if @registered_platform_base_url
 
-        conf = defined?(OT) && OT.respond_to?(:conf) ? OT.conf : nil
-        host = conf&.dig('site', 'host').to_s.strip
+        host = OT.conf&.get('site.host').to_s.strip
         if host.empty?
           raise ArgumentError, 'site.host is not configured, so no platform SAML SP URL can be derived'
         end
 
-        scheme = conf.dig('site', 'ssl') == false ? 'http' : 'https'
+        scheme = OT.conf.get('site.ssl') == false ? 'http' : 'https'
         "#{scheme}://#{host}"
       end
 

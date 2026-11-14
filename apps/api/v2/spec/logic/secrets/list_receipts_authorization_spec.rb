@@ -139,7 +139,7 @@ RSpec.describe V2::Logic::Secrets::ListReceipts do
     organizations['audit_logs_enabled'] = value
     features['organizations']           = organizations
     conf['features']                    = features
-    allow(OT).to receive(:conf).and_return(conf)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf))
   end
 
   before(:all) do
@@ -299,7 +299,7 @@ RSpec.describe V2::Logic::Secrets::ListReceipts do
     it 'defaults to enabled when the key is absent (older config file)' do
       conf = OT.conf.dup
       conf['features'] = (conf['features'] || {}).dup.tap { |f| f['organizations'] = {} }
-      allow(OT).to receive(:conf).and_return(conf)
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf))
       logic = privileged('scope' => 'org')
 
       expect { logic.raise_concerns }.not_to raise_error

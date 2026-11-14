@@ -120,13 +120,13 @@ RSpec.describe V1::Controllers::Index, 'anonymous access paths' do
         encoded = Base64.strict_encode64("#{custid}:#{apitoken}")
         env['HTTP_AUTHORIZATION'] = "Basic #{encoded}"
 
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'authentication' => { 'enabled' => true, 'signin' => true },
             'security' => { 'csp' => { 'enabled' => false } },
           },
           'development' => { 'enabled' => false },
-        })
+        }))
       end
 
       context 'when customer exists and apitoken matches' do
@@ -187,13 +187,13 @@ RSpec.describe V1::Controllers::Index, 'anonymous access paths' do
 
       context 'when authentication is disabled' do
         before do
-          allow(OT).to receive(:conf).and_return({
+          allow(OT).to receive(:conf).and_return(OT::Config.wrap({
             'site' => {
               'authentication' => { 'enabled' => false, 'signin' => false },
               'security' => { 'csp' => { 'enabled' => false } },
             },
             'development' => { 'enabled' => false },
-          })
+          }))
         end
 
         it 'returns disabled_response (404) instead of authenticating' do

@@ -13,7 +13,7 @@ RSpec.describe Onetime::Initializers::LoadLocales do
   before do
     # Reset runtime state before each test
     Onetime::Runtime.reset!
-    allow(OT).to receive(:conf).and_return(config)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(config))
     # Stub logging to keep test output clean
     allow(OT).to receive(:ld)
     allow(OT).to receive(:le)
@@ -148,7 +148,7 @@ RSpec.describe Onetime::Initializers::LoadLocales do
             'default_locale' => 'en'
           }
         }
-        allow(OT).to receive(:conf).and_return(config_valid)
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap(config_valid))
         allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with(include('en.json')).and_return(true)
         allow(File).to receive(:read).and_return('INVALID JSON {')
@@ -171,7 +171,7 @@ RSpec.describe Onetime::Initializers::LoadLocales do
             'default_locale' => 'de'
           }
         }
-        allow(OT).to receive(:conf).and_return(config_valid)
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap(config_valid))
         allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with(include('de.json')).and_return(false)
 

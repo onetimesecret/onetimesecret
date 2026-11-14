@@ -46,19 +46,19 @@ require 'onetime/mail'
 def with_brand_conf(brand_hash)
   saved = YAML.load(YAML.dump(OT.conf))
   conf_copy = YAML.load(YAML.dump(saved))
-  conf_copy['brand'] = brand_hash
+  conf_copy['brand'] = conf_copy['brand'].transform_values { nil }.merge(brand_hash)
   OT.send(:conf=, conf_copy)
   yield
 ensure
   OT.send(:conf=, saved) rescue nil
 end
 
-# Helper that runs a block with OT.conf['brand'] removed entirely, then
+# Helper that runs a block with every OT.conf['brand'] setting unset, then
 # restores the original config. Returns the block's value.
 def without_brand_conf
   saved = YAML.load(YAML.dump(OT.conf))
   conf_copy = YAML.load(YAML.dump(saved))
-  conf_copy.delete('brand')
+  conf_copy['brand'] = conf_copy['brand'].transform_values { nil } # every brand setting unset
   OT.send(:conf=, conf_copy)
   yield
 ensure
@@ -155,7 +155,7 @@ without_brand_conf do
   ctx.logo_url
   # After first call, mutate conf — memoized value should not change
   conf_copy = YAML.load(YAML.dump(OT.conf))
-  conf_copy['brand'] = { 'logo_url' => 'https://later.test/logo.svg' }
+  conf_copy['brand'] = conf_copy['brand'].transform_values { nil }.merge('logo_url' => 'https://later.test/logo.svg')
   OT.send(:conf=, conf_copy)
   ctx.logo_url
 end
@@ -237,7 +237,7 @@ without_brand_conf do
   ctx = @ctx_class.new({}, 'en')
   ctx.signature_name
   conf_copy = YAML.load(YAML.dump(OT.conf))
-  conf_copy['brand'] = { 'signature_name' => 'LaterName' }
+  conf_copy['brand'] = conf_copy['brand'].transform_values { nil }.merge('signature_name' => 'LaterName')
   OT.send(:conf=, conf_copy)
   ctx.signature_name
 end
@@ -301,7 +301,7 @@ end
 saved = YAML.load(YAML.dump(OT.conf))
 begin
   conf_copy = YAML.load(YAML.dump(saved))
-  conf_copy.delete('brand')
+  conf_copy['brand'] = conf_copy['brand'].transform_values { nil } # every brand setting unset
   conf_copy['site'] ||= {}
   conf_copy['site']['interface'] ||= {}
   conf_copy['site']['interface']['ui'] ||= {}
@@ -426,10 +426,20 @@ ctx = @ctx_class.new({}, 'en')
 ctx.brand_baseuri == ctx.site_baseuri
 #=> true
 
-## conf_dig (via send, since it's private) returns OT.conf values
-ctx = @ctx_class.new({}, 'en')
-ctx.send(:conf_dig, 'site').is_a?(Hash)
-#=> true
+## site_host reads site.host from OT.conf, and falls back to localhost when it is unset
+saved = YAML.load(YAML.dump(OT.conf))
+begin
+  hosts = ['mail.example.test', nil].map do |host|
+    conf_copy = YAML.load(YAML.dump(saved))
+    conf_copy['site']['host'] = host
+    OT.send(:conf=, conf_copy)
+    @ctx_class.new({}, 'en').site_host
+  end
+  hosts
+ensure
+  OT.send(:conf=, saved)
+end
+#=> ['mail.example.test', 'localhost']
 
 # ============================================================================
 # Email-template regression guard
@@ -480,13 +490,13 @@ offenders.map { |p| File.basename(p) }.sort
 @_initial_conf = YAML.load(YAML.dump(OT.conf))
 begin
   conf_copy = YAML.load(YAML.dump(@_initial_conf))
-  conf_copy['brand'] = { 'primary_color' => '#111111' }
+  conf_copy['brand'] = conf_copy['brand'].transform_values { nil }.merge('primary_color' => '#111111')
   OT.send(:conf=, conf_copy)
   ctx = @ctx_class.new({}, 'en')
   first = ctx.brand_color
   # Mutate brand conf to a new color
   next_conf = YAML.load(YAML.dump(conf_copy))
-  next_conf['brand'] = { 'primary_color' => '#222222' }
+  next_conf['brand'] = next_conf['brand'].transform_values { nil }.merge('primary_color' => '#222222')
   OT.send(:conf=, next_conf)
   second = ctx.brand_color
   [first, second]
@@ -499,12 +509,12 @@ end
 @_initial_conf2 = YAML.load(YAML.dump(OT.conf))
 begin
   conf_copy = YAML.load(YAML.dump(@_initial_conf2))
-  conf_copy['brand'] = { 'support_email' => 'first@acme.test' }
+  conf_copy['brand'] = conf_copy['brand'].transform_values { nil }.merge('support_email' => 'first@acme.test')
   OT.send(:conf=, conf_copy)
   ctx = @ctx_class.new({}, 'en')
   first = ctx.support_email
   next_conf = YAML.load(YAML.dump(conf_copy))
-  next_conf['brand'] = { 'support_email' => 'second@acme.test' }
+  next_conf['brand'] = next_conf['brand'].transform_values { nil }.merge('support_email' => 'second@acme.test')
   OT.send(:conf=, next_conf)
   second = ctx.support_email
   [first, second]
@@ -517,12 +527,12 @@ end
 @_initial_conf3 = YAML.load(YAML.dump(OT.conf))
 begin
   conf_copy = YAML.load(YAML.dump(@_initial_conf3))
-  conf_copy['brand'] = { 'product_name' => 'FirstName' }
+  conf_copy['brand'] = conf_copy['brand'].transform_values { nil }.merge('product_name' => 'FirstName')
   OT.send(:conf=, conf_copy)
   ctx = @ctx_class.new({}, 'en')
   first = ctx.site_product_name
   next_conf = YAML.load(YAML.dump(conf_copy))
-  next_conf['brand'] = { 'product_name' => 'SecondName' }
+  next_conf['brand'] = next_conf['brand'].transform_values { nil }.merge('product_name' => 'SecondName')
   OT.send(:conf=, next_conf)
   second = ctx.site_product_name
   [first, second]

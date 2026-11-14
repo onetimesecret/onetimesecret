@@ -21,7 +21,7 @@ module Onetime
       @provides   = [:domains]
 
       def execute(_context)
-        domains_config = OT.conf.dig('features', 'domains') || {}
+        domains_config = OT.conf.get('features.domains', {})
 
         is_enabled = domains_config['enabled'].to_s == 'true'
 
@@ -46,7 +46,7 @@ module Onetime
           app_logger.debug "No domain cluster api key configured (strategy: #{klass.strategy_name})"
         end
 
-        site_host = OT.conf.dig('site', 'host')
+        site_host = OT.conf.get('site.host')
         warn_if_default_shadows_custom_domain(domains_config['default'], site_host)
         warn_if_link_pool_shadows_custom_domains(
           domains_config['link_domains'], domains_config['default'], site_host

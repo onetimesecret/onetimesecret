@@ -60,21 +60,21 @@ module Onetime
 
           # Both gates required: no point enqueuing if the worker drops messages.
           def enabled?
-            OT.conf.dig('jobs', 'favicon_backfill', 'enabled') == true &&
-              OT.conf.dig('jobs', 'favicon_fetch', 'enabled') == true
+            OT.conf.get('jobs.favicon_backfill.enabled') == true &&
+              OT.conf.get('jobs.favicon_fetch.enabled') == true
           end
 
           def cron_pattern
-            OT.conf.dig('jobs', 'favicon_backfill', 'cron') || DEFAULT_CRON
+            OT.conf.get('jobs.favicon_backfill.cron', DEFAULT_CRON)
           end
 
           def batch_size
-            size = OT.conf.dig('jobs', 'favicon_backfill', 'batch_size').to_i
+            size = OT.conf.get('jobs.favicon_backfill.batch_size').to_i
             size.positive? ? size : DEFAULT_BATCH_SIZE
           end
 
           def max_attempts
-            n = OT.conf.dig('jobs', 'favicon_backfill', 'max_attempts').to_i
+            n = OT.conf.get('jobs.favicon_backfill.max_attempts').to_i
             n.positive? ? n : DEFAULT_MAX_ATTEMPTS
           end
 

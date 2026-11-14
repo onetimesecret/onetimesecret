@@ -32,7 +32,7 @@ RSpec.describe Onetime::CustomDomain, '#ownership_proven?' do
     conf    = YAML.load(YAML.dump(OT.conf))
     domains = ((conf['features'] ||= {})['domains'] ||= {})
     overrides.each { |key, value| domains[key.to_s] = value }
-    allow(OT).to receive(:conf).and_return(conf)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf))
   end
 
   # confirmed: the verified_confirmed_at value; nil (the default) is a domain

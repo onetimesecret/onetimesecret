@@ -230,9 +230,9 @@ RSpec.describe 'ProcessWebhookEvent: federation.no_match logging', :integration,
     let(:handler) { test_class.new }
 
     it 'reports the configured jurisdiction' do
-      allow(OT).to receive(:conf).and_return({
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({
         'features' => { 'regions' => { 'enabled' => true, 'current_jurisdiction' => 'CA' } },
-      })
+      }))
 
       expect(handler.send(:federation_region_label)).to eq('CA')
     end
@@ -241,9 +241,9 @@ RSpec.describe 'ProcessWebhookEvent: federation.no_match logging', :integration,
       # regions enabled with no jurisdiction set makes current_region raise.
       # The no-match line must survive that: the misconfiguration is already
       # surfaced by every non-logging caller.
-      allow(OT).to receive(:conf).and_return({
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({
         'features' => { 'regions' => { 'enabled' => true, 'current_jurisdiction' => nil } },
-      })
+      }))
 
       expect(handler.send(:federation_region_label))
         .to eq(Billing::Operations::WebhookHandlers::FederationSupport::UNKNOWN_REGION)

@@ -126,23 +126,18 @@ RSpec.describe 'routes_try', type: :integration do
   end
 
   it 'With auth disabled, dashboard still redirects' do
-    result = begin
-      old_conf = OT.instance_variable_get(:@conf)
-      new_conf = {
-        'site' => {
-          'secret' => 'notnil',
-          'authentication' => {
-            'enabled' => false,
-          },
-        },
-        'mail' => {
-          'truemail' => {},
-        },
-      }
+    old_conf = OT.instance_variable_get(:@conf)
+    result   = begin
+      # The booted config with authentication off: a request reads settings
+      # from every section the middleware stack covers.
+      new_conf = OT::Config.deep_merge(
+        old_conf,
+        'site' => { 'secret' => 'notnil', 'authentication' => { 'enabled' => false } },
+      )
       OT.instance_variable_set(:@conf, new_conf)
-      response = @mock_request.get('/dashboard')
+      @mock_request.get('/dashboard').status
+    ensure
       OT.instance_variable_set(:@conf, old_conf)
-      response.status
     end
     expect(result).to eq(302)
   end

@@ -109,9 +109,7 @@ module Onetime
         secret = ENV.fetch('FEDERATION_SECRET', nil)
 
         # Fall back to config if env var not set and OT.conf is available
-        if secret.to_s.empty? && defined?(OT) && OT.respond_to?(:conf) && OT.conf
-          secret = OT.conf.dig('site', 'federation_secret')
-        end
+        secret = OT.conf&.get('site.federation_secret', nil) if secret.to_s.empty?
 
         if secret.to_s.empty?
           raise Onetime::Problem, 'FEDERATION_SECRET not configured'

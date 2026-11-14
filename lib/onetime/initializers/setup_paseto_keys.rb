@@ -35,7 +35,7 @@ module Onetime
       @provides   = [:paseto_keys]
 
       def execute(_context)
-        secret = OT.conf.dig('site', 'secret')
+        secret = OT.conf.get('site.secret')
         if secret.to_s.empty?
           Onetime::Runtime.update_security(paseto_keyring: nil)
           OT.boot_logger.warn 'PASETO keyring not derived: site.secret is empty; ' \

@@ -67,7 +67,7 @@ RSpec.describe Auth::SigninGate do
 
   before do
     allow(Onetime).to receive(:auth_config).and_return(mock_auth_config)
-    allow(OT).to receive(:conf).and_return({ 'site' => { 'authentication' => auth_settings } })
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'authentication' => auth_settings } }))
     allow(Auth::Logging).to receive(:log_auth_event)
 
     # from_display_domain, not load_by_display_domain: the gate reads through

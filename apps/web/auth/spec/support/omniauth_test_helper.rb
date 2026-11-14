@@ -180,7 +180,7 @@ module OmniAuthTestHelper
     config['site'] ||= {}
     config['site']['authentication'] ||= {}
     config['site']['authentication']['allowed_signup_domains'] = domains
-    allow(OT).to receive(:conf).and_return(config)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(config))
   end
 
   # Assert the callback bounced to the SPA sign-in page carrying `code`, which

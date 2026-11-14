@@ -147,27 +147,27 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
   describe 'Passphrase boundaries' do
     describe '.passphrase_min_length (config-driven) [#2758]' do
       it 'returns nil when config has no minimum_length set' do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'secret_options' => {
               'passphrase' => {}
             }
           }
-        })
+        }))
         expect(V1::Logic::Secrets::BaseSecretAction.passphrase_min_length).to be_nil
       end
 
       it 'returns nil when passphrase config is missing entirely' do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'secret_options' => {}
           }
-        })
+        }))
         expect(V1::Logic::Secrets::BaseSecretAction.passphrase_min_length).to be_nil
       end
 
       it 'returns the configured minimum_length when set' do
-        allow(OT).to receive(:conf).and_return({
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'secret_options' => {
               'passphrase' => {
@@ -175,7 +175,7 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
               }
             }
           }
-        })
+        }))
         expect(V1::Logic::Secrets::BaseSecretAction.passphrase_min_length).to eq(8)
       end
     end
@@ -185,7 +185,7 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
 
       context 'when no minimum_length configured (default/backward-compatible)' do
         before do
-          allow(OT).to receive(:conf).and_return({
+          allow(OT).to receive(:conf).and_return(OT::Config.wrap({
             'site' => {
               'secret_options' => {
                 'passphrase' => {
@@ -193,7 +193,7 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
                 }
               }
             }
-          })
+          }))
         end
 
         it 'accepts 4-character passphrase (v0.23.4 compat)' do
@@ -224,7 +224,7 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
 
       context 'when minimum_length: 8 configured (opt-in enforcement)' do
         before do
-          allow(OT).to receive(:conf).and_return({
+          allow(OT).to receive(:conf).and_return(OT::Config.wrap({
             'site' => {
               'secret_options' => {
                 'passphrase' => {
@@ -233,7 +233,7 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
                 }
               }
             }
-          })
+          }))
         end
 
         it 'rejects 4-character passphrase' do
@@ -273,7 +273,7 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
 
       context 'when minimum_length: 4 configured' do
         before do
-          allow(OT).to receive(:conf).and_return({
+          allow(OT).to receive(:conf).and_return(OT::Config.wrap({
             'site' => {
               'secret_options' => {
                 'passphrase' => {
@@ -282,7 +282,7 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
                 }
               }
             }
-          })
+          }))
         end
 
         it 'rejects 3-character passphrase' do
@@ -300,7 +300,7 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
 
       context 'maximum length validation' do
         before do
-          allow(OT).to receive(:conf).and_return({
+          allow(OT).to receive(:conf).and_return(OT::Config.wrap({
             'site' => {
               'secret_options' => {
                 'passphrase' => {
@@ -308,7 +308,7 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
                 }
               }
             }
-          })
+          }))
         end
 
         it 'rejects passphrase exceeding maximum length' do
@@ -321,7 +321,7 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
 
       context 'complexity enforcement' do
         before do
-          allow(OT).to receive(:conf).and_return({
+          allow(OT).to receive(:conf).and_return(OT::Config.wrap({
             'site' => {
               'secret_options' => {
                 'passphrase' => {
@@ -330,7 +330,7 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
                 }
               }
             }
-          })
+          }))
         end
 
         it 'does not enforce complexity for V1 (ignores config)' do

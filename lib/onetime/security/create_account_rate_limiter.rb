@@ -314,7 +314,7 @@ module Onetime
       end
 
       def create_account_rate_limit_config
-        OT.conf.dig('site', 'authentication', 'create_account_rate_limit') || {}
+        OT.conf.get('site.authentication.create_account_rate_limit', {})
       end
 
       # Enabled unless config explicitly sets enabled:false. Absent config keeps

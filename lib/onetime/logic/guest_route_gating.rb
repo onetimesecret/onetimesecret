@@ -86,7 +86,7 @@ module Onetime
       #
       # @return [Hash] The guest_routes configuration, or empty hash if not configured
       def guest_routes_config
-        OT.conf.dig('site', 'interface', 'api', 'guest_routes') || {}
+        OT.conf.get('site.interface.api.guest_routes', {})
       end
     end
   end

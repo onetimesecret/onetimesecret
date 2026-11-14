@@ -347,7 +347,7 @@ module Onetime
     def with_diagnostics(&)
       return unless Onetime.d9s_enabled
 
-      yield OT.conf['diagnostics']
+      yield OT.conf.get('diagnostics')
     end
 
     def debug

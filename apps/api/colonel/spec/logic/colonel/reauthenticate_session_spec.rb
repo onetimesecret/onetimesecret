@@ -607,7 +607,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ReauthenticateSession do
         conf = YAML.load(YAML.dump(OT.conf))
         ((conf['site'] ||= {})['admin'] ||= {})['session'] =
           { 'enabled' => true, 'idle_timeout' => 3_600, 'absolute_timeout' => 43_200 }
-        allow(OT).to receive(:conf).and_return(conf)
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap(conf))
       end
 
       after do

@@ -91,7 +91,7 @@ module Onetime
         # Store reference to original app for use inside builder block
         # This is necessary because the Rack::Builder block runs in a different context
         app_instance        = @app
-        middleware_settings = Onetime.conf.dig('site', 'middleware') || {}
+        middleware_settings = Onetime.conf.get('site.middleware', {})
 
         # Define middleware components with their corresponding settings keys
         components               = self.class.middleware_components

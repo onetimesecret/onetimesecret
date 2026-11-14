@@ -12,7 +12,7 @@ require 'onetime/rodauth_admin'
 
 RSpec.describe Onetime::RodauthAdmin do
   def stub_config(url)
-    allow(OT).to receive(:conf).and_return({ 'site' => { 'admin' => { 'rodauth_admin_url' => url } } })
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'admin' => { 'rodauth_admin_url' => url } } }))
   end
 
   def stub_mode(full:)
@@ -20,8 +20,8 @@ RSpec.describe Onetime::RodauthAdmin do
   end
 
   describe '.base_url' do
-    it 'is nil when the key is absent' do
-      allow(OT).to receive(:conf).and_return({ 'site' => {} })
+    it 'is nil when the setting is unset' do
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'admin' => { 'rodauth_admin_url' => nil } } }))
       expect(described_class.base_url).to be_nil
     end
 

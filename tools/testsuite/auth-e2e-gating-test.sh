@@ -50,7 +50,10 @@ def scalar(text, key, indent):
 
 
 checkout = "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803"
-concurrency_group = "${{ github.workflow }}-${{ github.ref }}"
+# develop arrives through the GitLab push mirror with no pre-merge gate here,
+# so each develop commit keeps its own group (see ci.yml).
+concurrency_group = ("${{ github.workflow }}-${{ github.ref }}"
+                     "${{ github.ref == 'refs/heads/develop' && format('-{0}', github.sha) || '' }}")
 # A tuple of check names is a matrix job: one check per row, in row order.
 workflows = [
     ("e2e-full-auth.yml", "e2e-full-auth", "auth-e2e-verdict", "23 4 * * *",
@@ -81,15 +84,15 @@ for filename, test_id, verdict_id, cron, test_name in workflows:
           f"{filename}: no label events: the detector reads the PR's labels live")
     check(block(events, "schedule", 2).strip() == f"- cron: '{cron}'",
           f"{filename}: staggered daily full coverage")
-    check(scalar(block(events, "push", 2), "branches", 4) == "[main]",
-          f"{filename}: every commit on main gets full coverage")
+    check(scalar(block(events, "push", 2), "branches", 4) == "[main, develop]",
+          f"{filename}: every commit on main and develop gets full coverage")
     check(scalar(block(events, "push", 2), "tags", 4) == "['v*']",
           f"{filename}: release tags get full coverage")
     check(scalar(block(events, "merge_group", 2), "types", 4) == "[checks_requested]",
           f"{filename}: merge queue gets a verdict")
     concurrency = block(text, "concurrency", 0)
     check(scalar(concurrency, "group", 2) == concurrency_group,
-          f"{filename}: one concurrency group per ref")
+          f"{filename}: one concurrency group per ref, one per commit on develop")
     check(scalar(concurrency, "cancel-in-progress", 2) == "true",
           f"{filename}: a new push supersedes the run before it")
 

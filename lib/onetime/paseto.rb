@@ -58,7 +58,7 @@ module Onetime
       #
       # @return [String]
       def issuer
-        host = OT.conf&.dig('site', 'host').to_s.strip
+        host = OT.conf&.get('site.host').to_s.strip
         host.empty? ? 'onetimesecret' : host
       end
     end

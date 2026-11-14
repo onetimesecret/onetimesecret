@@ -112,7 +112,19 @@ module Onetime
       ].freeze,
     }.freeze
 
-    attr_reader :conf, :instance, :boot_registry, :boot_error
+    attr_reader :instance, :boot_registry, :boot_error
+
+    # The loaded configuration, nil before boot. It answers #get (see
+    # Onetime::Config::Reader): a Hash installed without the reader, as tests
+    # do with instance_variable_set(:@conf, ...), gets it on first read and
+    # is stored back. A frozen Hash is replaced by its wrapped copy
+    # (Onetime::Config.wrap), so its identity changes once.
+    def conf
+      value = @conf
+      return value if value.nil? || value.is_a?(Onetime::Config::Reader)
+
+      @conf = Onetime::Config.wrap(value)
+    end
 
     # Boot reads and interprets the configuration and applies it to the
     # relevant features and services. Must be called after applications
@@ -198,7 +210,7 @@ module Onetime
       # test runs (pnpm test:*, or the .test-mode direnv lane) load
       # spec/config.test.yaml, whose uri is hardcoded to :2163, so they pass.
       if OT.mode?(:test) || ENV['RACK_ENV'] == 'test'
-        redis_uri = @conf.dig('redis', 'uri').to_s
+        redis_uri = conf.get('redis.uri').to_s
         unless redis_uri.match?(%r{:2163(?:[/?]|\z)})
           raise Onetime::Problem,
             'Test/tryout boot MUST use the test datastore (Redis port 2163), ' \
@@ -380,13 +392,13 @@ module Onetime
     # Moved from auth.yaml to site config as sessions are auth-mode agnostic
     def session_config
       defaults = SESSION_DEFAULTS.dup
-      session  = conf&.dig('site', 'session') || {}
+      session  = conf&.get('site.session') || {}
 
       # Merge user config over defaults
       result = defaults.merge(session)
 
       # Fallback to site.secret if session secret is not set
-      result['secret'] ||= conf&.dig('site', 'secret')
+      result['secret'] ||= conf&.get('site.secret')
 
       # Apply SSL fallback if secure not explicitly set: true when site.ssl is
       # configured OR the app runs in production (see ssl_enabled?), so the
@@ -442,7 +454,7 @@ module Onetime
     # production must fail safe to Secure cookies even if the operator forgot
     # the SSL flag (2026-08-02 audit, L-1).
     def ssl_enabled?
-      conf&.dig('site', 'ssl') || env == 'production'
+      conf&.get('site.ssl') || env == 'production'
     end
 
     # CLI-only escape hatch: when SAFE_BOOT=1, boot! logs fatal errors but
@@ -456,7 +468,7 @@ module Onetime
     # prevent external modification of the shared configuration state
     # after initialization.
     def conf=(value)
-      @conf = value
+      @conf = Onetime::Config.wrap(value)
     end
   end
 

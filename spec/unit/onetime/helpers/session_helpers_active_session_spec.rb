@@ -68,7 +68,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
   end
 
   before do
-    allow(OT).to receive(:conf).and_return({ 'site' => { 'authentication' => { 'enabled' => true } } })
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => true } } }))
     allow(OT).to receive(:info)
     allow(Onetime::Customer).to receive(:find_by_extid).and_return(customer)
     allow(Onetime::SessionImpersonation).to receive(:resolve).and_return([customer, nil])

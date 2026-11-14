@@ -63,7 +63,7 @@ module Onetime
         end
 
         def with_rabbitmq_connection
-          url  = OT.conf.dig('jobs', 'rabbitmq_url')
+          url  = OT.conf.get('jobs.rabbitmq_url')
           conn = Bunny.new(url)
           conn.start
           yield conn

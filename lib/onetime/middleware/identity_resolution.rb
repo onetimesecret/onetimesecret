@@ -311,7 +311,7 @@ module Onetime
         return @external_auth_config if defined?(@external_auth_config)
 
         @external_auth_config = if defined?(OT) && OT.respond_to?(:conf)
-          OT.conf.dig('site', 'authentication', 'external') || {}
+          OT.conf.get('site.authentication.external', {})
         else
           {}
         end

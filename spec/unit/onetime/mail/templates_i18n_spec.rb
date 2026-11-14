@@ -129,7 +129,7 @@ RSpec.describe 'Email template i18n integration' do
         end
 
         it 'resolves the neutral product name when brand.product_name is unconfigured' do
-          allow(OT).to receive(:conf).and_return(OT.conf.merge('brand' => {}))
+          allow(OT).to receive(:conf).and_return(OT::Config.wrap(OT.conf.merge('brand' => OT.conf.get('brand').transform_values { nil })))
           expect(context.product_name)
             .to eq(Onetime::CustomDomain::BrandSettingsConstants::NEUTRAL_PRODUCT_NAME)
         end
@@ -252,7 +252,7 @@ RSpec.describe 'Email template i18n integration' do
         # Pin an unconfigured brand block so the footer exercises the neutral
         # NEUTRAL_PRODUCT_NAME fallback ('Secure Links'). The legacy
         # site.interface.ui.header.branding.site_name tier was retired (#3612).
-        allow(OT).to receive(:conf).and_return(OT.conf.merge('brand' => {}))
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap(OT.conf.merge('brand' => OT.conf.get('brand').transform_values { nil })))
         template = described_class.new(template_data)
         text = template.render_text
 
@@ -280,7 +280,7 @@ RSpec.describe 'Email template i18n integration' do
     describe '#render_html' do
       it 'includes translated content from locale file' do
         # See render_text: unconfigured brand renders the neutral product name.
-        allow(OT).to receive(:conf).and_return(OT.conf.merge('brand' => {}))
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap(OT.conf.merge('brand' => OT.conf.get('brand').transform_values { nil })))
         template = described_class.new(template_data)
         html = template.render_html
 

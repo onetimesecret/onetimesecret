@@ -30,7 +30,7 @@ RSpec.describe 'IP privacy / trusted-proxy parity (#3436)' do
 
   def stub_trusted_proxy(trusted_proxy)
     allow(OT).to receive(:conf).and_return(
-      'site' => { 'network' => { 'trusted_proxy' => trusted_proxy } },
+      OT::Config.wrap('site' => { 'network' => { 'trusted_proxy' => trusted_proxy } }),
     )
   end
 

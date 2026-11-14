@@ -48,6 +48,11 @@ module Billing
         # default).
         Onetime.billing_config.validate_payment_method_configuration!
 
+        # Fail the deploy when a real Stripe API key is configured but the
+        # webhook signing secret is unset, blank or a placeholder everybody
+        # knows; only warn when there is no real key.
+        Onetime.billing_config.validate_webhook_signing_secret!
+
         # Don't bring Stripe into this unless billing is enabled
         require 'stripe'
 

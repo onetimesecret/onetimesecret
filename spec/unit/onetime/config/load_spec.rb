@@ -112,6 +112,59 @@ RSpec.describe Onetime::Config do
       end
     end
 
+    context 'with Symbol keys in the file' do
+      it 'converts them to Strings on an explicit-path load and keeps Symbol values' do
+        path = File.join(temp_dir, 'symbol_keys.yaml')
+        File.write(path, "---\n:site:\n  :host: example.com\n  ssl: true\nmail:\n  :mode: :regex\n")
+
+        config = described_class.load(path)
+
+        expect(config).to eq('site' => { 'host' => 'example.com', 'ssl' => true }, 'mail' => { 'mode' => :regex })
+      end
+
+      it 'raises ConfigError when a key is set both as a Symbol and as a String' do
+        path = File.join(temp_dir, 'duplicate_keys.yaml')
+        File.write(path, "---\nsite:\n  :host: one.example.com\n  host: two.example.com\n")
+
+        expect { described_class.load(path) }.to raise_error(
+          OT::ConfigError, "Config key 'site.host' is set twice, as :host and \"host\"; remove one"
+        )
+      end
+
+      it 'converts Integer and boolean keys to Strings' do
+        path = File.join(temp_dir, 'scalar_keys.yaml')
+        File.write(path, "---\nerrors:\n  404: missing\n  on: lit\n")
+
+        expect(described_class.load(path)).to eq('errors' => { '404' => 'missing', 'true' => 'lit' })
+      end
+
+      it 'lets a Symbol key in the operator file override the String key in the defaults file' do
+        operator = File.join(temp_dir, 'operator_symbol.yaml')
+        File.write(operator, "---\n:site:\n  :host: operator.example.com\n")
+        described_class.instance_variable_set(:@path, operator)
+
+        config = described_class.load
+
+        expect(config.dig('site', 'host')).to eq('operator.example.com')
+        expect(config['site']).not_to have_key(:host)
+      end
+
+      it 'raises ConfigError, not SystemStackError, for a self-referencing alias' do
+        path = File.join(temp_dir, 'recursive.yaml')
+        File.write(path, "---\nsite: &s\n  self: *s\n")
+
+        expect { described_class.load(path) }.to raise_error(OT::ConfigError, /nesting is deeper than 25 levels/)
+      end
+
+      it 'raises ConfigError for such a key in the operator file of a layered load' do
+        operator = File.join(temp_dir, 'operator.yaml')
+        File.write(operator, "---\nsite:\n  :host: one.example.com\n  host: two.example.com\n")
+        described_class.instance_variable_set(:@path, operator)
+
+        expect { described_class.load }.to raise_error(OT::ConfigError, /'site.host' is set twice/)
+      end
+    end
+
     context 'when a BRAND_* value contains YAML-significant characters' do
       # Regression: the brand block interpolates each BRAND_* var as a
       # JSON-quoted scalar (`&.to_json`), so an operator value like "& Co: *x"

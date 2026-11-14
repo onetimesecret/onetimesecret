@@ -21,7 +21,7 @@ module Onetime
       @optional   = true
 
       def execute(_context)
-        d9s_enabled = OT.conf['diagnostics']['enabled'] || false
+        d9s_enabled = OT.conf.get('diagnostics.enabled', false)
 
         unless d9s_enabled
           Onetime::Runtime.update_infrastructure(d9s_enabled: false)
@@ -32,7 +32,7 @@ module Onetime
         # - :worker/:scheduler use workers DSN (with backend fallback)
         # - :web/:cli use backend DSN
         dsn       = select_sentry_dsn
-        site_host = OT.conf.dig('site', 'host')
+        site_host = OT.conf.get('site.host')
 
         OT.ld "[init] Setting up Sentry (mode=#{OT.execution_mode})..."
 
@@ -93,7 +93,7 @@ module Onetime
           # Onetime::Config#apply_defaults_to_peers; reading from `backend`
           # is correct for any execution mode because the same value lives
           # on every peer.
-          sentry_org_id                    = OT.conf.dig('diagnostics', 'sentry', 'backend', 'org_id')
+          sentry_org_id                    = OT.conf.get('diagnostics.sentry.backend.org_id', nil)
           config.org_id                    = sentry_org_id
           config.strict_trace_continuation = !sentry_org_id.to_s.strip.empty?
 
@@ -163,7 +163,7 @@ module Onetime
         # (tags are case-sensitive, so US vs us would create separate filters).
         # Service tag enables filtering by entry point (web vs worker).
         # Note: config.tags was removed in sentry-ruby 4.0+; use Sentry.set_tags instead.
-        jurisdiction = OT.conf.dig('features', 'regions', 'current_jurisdiction').to_s.downcase
+        jurisdiction = OT.conf.get('features.regions.current_jurisdiction', nil).to_s.downcase
         tags         = {
           site_host: site_host,
           service: execution_mode_to_service,
@@ -197,7 +197,7 @@ module Onetime
         #
         # @return [String, nil] The DSN to use, or nil if not configured
         def select_sentry_dsn
-          sentry_config = OT.conf.dig('diagnostics', 'sentry')
+          sentry_config = OT.conf.get('diagnostics.sentry')
           backend_dsn   = sentry_config.dig('backend', 'dsn')
 
           case OT.execution_mode

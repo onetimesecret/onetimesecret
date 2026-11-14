@@ -41,7 +41,7 @@ module Onetime
     # @param secret [String, nil] root secret; defaults to site.secret
     # @return [String] hex-encoded 32-byte verifier
     def expected_verifier(secret = nil)
-      secret ||= OT.conf.dig('site', 'secret')
+      secret ||= OT.conf.get('site.secret')
       Onetime::KeyDerivation.derive_hex(secret, :key_verifier)
     end
 
@@ -55,7 +55,7 @@ module Onetime
     # Unset or unrecognized values fall back to 'warn' — halting by default
     # would brick running deploys on their first upgrade to this code.
     def mode
-      configured = OT.conf.dig('site', 'secret_verifier_mode').to_s
+      configured = OT.conf.get('site.secret_verifier_mode').to_s
       MODES.include?(configured) ? configured : 'warn'
     end
 

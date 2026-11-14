@@ -21,8 +21,12 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
   # config will have a bunch of `<%= ENV['SENTRY_DSN'] || nil %>` strings.
   let(:test_config_parsed) { ERB.new(test_config_string).result }
 
-  # Then load the YAML content after ERB processing
-  let(:test_config) { YAML.load(test_config_parsed) }
+  # Then load the YAML content after ERB processing, over the defaults file
+  # as Config.load layers it at boot.
+  let(:test_config) do
+    defaults = Onetime::Config.load(File.join(Onetime::HOME, 'etc', 'defaults', 'config.defaults.yaml'))
+    Onetime::Utils::Enumerables.deep_merge(defaults, YAML.load(test_config_parsed), preserve_nils: false)
+  end
 
   # Shared setup for mocking Familia when database is not needed
   # Use this in contexts that don't call boot! with real database
@@ -236,7 +240,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
       it 'handles Redis connection errors' do
         # Create config with port 2163 to pass test environment safety check
         config_with_test_port = test_config.dup
-        config_with_test_port['redis'] = { 'uri' => 'redis://127.0.0.1:2163/0' }
+        config_with_test_port['redis'] = test_config['redis'].merge('uri' => 'redis://127.0.0.1:2163/0')
         allow(Onetime::Config).to receive(:load).and_return(config_with_test_port)
         allow(Familia).to receive(:uri=).and_raise(Redis::CannotConnectError.new("Connection refused"))
         expect(Onetime).to receive(:le).with(/Cannot connect to the database .* \(Redis::CannotConnectError\)/)

@@ -125,7 +125,7 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
     allow(OT).to receive(:ld)
     allow(OT).to receive(:le)
     allow(OT).to receive(:lw)
-    allow(OT).to receive(:conf).and_return(incoming_enabled_conf)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(incoming_enabled_conf))
 
     # Default happy-path stubs; individual contexts override as needed.
     allow(Onetime::CustomDomain).to receive(:find_by_extid)
@@ -187,8 +187,8 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
 
       before do
         allow(OT).to receive(:conf).and_return(
-          'features' => { 'incoming' => { 'enabled' => false } },
-          'site' => { 'secret' => 'test-secret' },
+          OT::Config.wrap('features' => { 'incoming' => { 'enabled' => false } },
+          'site' => { 'secret' => 'test-secret' }),
         )
       end
 

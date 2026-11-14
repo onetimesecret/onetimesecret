@@ -164,11 +164,11 @@ RSpec.describe Billing::BillingService, billing: true do
     context 'with uncached plan but in config' do
       before do
         allow(Billing::Plan).to receive(:load).with('config_plan').and_return(nil)
-        allow(Onetime).to receive(:conf).and_return({
+        allow(Onetime).to receive(:conf).and_return(Onetime::Config.wrap({
           'billing' => {
             'plans' => { 'config_plan' => { 'name' => 'Config Plan' } },
           },
-        })
+        }))
       end
 
       it 'returns true if plan exists in config' do
@@ -179,9 +179,9 @@ RSpec.describe Billing::BillingService, billing: true do
     context 'with completely invalid plan' do
       before do
         allow(Billing::Plan).to receive(:load).with('invalid_plan').and_return(nil)
-        allow(Onetime).to receive(:conf).and_return({
+        allow(Onetime).to receive(:conf).and_return(Onetime::Config.wrap({
           'billing' => { 'plans' => {} },
-        })
+        }))
       end
 
       it 'returns false for unknown plan' do

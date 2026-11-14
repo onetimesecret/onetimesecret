@@ -45,9 +45,9 @@ module Onetime
       # - format_config_value(config): Formats complex config values for display
       # - format_duration(seconds): Converts seconds to human-readable format (e.g., "5m", "2h", "7d")
       def print_log_banner
-      site_config     = OT.conf.fetch('site') # if site is missing we got real problems
-      features_config = OT.conf.fetch('features', {})
-      email_config    = OT.conf.fetch('emailer', {})
+      site_config     = OT.conf.get('site') # if site is missing we got real problems
+      features_config = OT.conf.get('features', {})
+      email_config    = OT.conf.get('emailer', {})
       redis_info      = Familia.dbclient.info
 
       # Header banner
@@ -111,7 +111,7 @@ module Onetime
 
       # Builds system information section rows
       def build_system_section(redis_info)
-        redis_dbs   = OT.conf.dig('redis', 'dbs') || {}
+        redis_dbs   = OT.conf.get('redis.dbs', {})
         system_rows = [
           ['System', "#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env}"],
           ['Config', OT::Config.path],
@@ -137,7 +137,7 @@ module Onetime
         dev_rows = []
 
         %w[development].each do |key|
-          next unless config_value = OT.conf.fetch(key, false)
+          next unless config_value = OT.conf.get([key], false)
 
           dev_rows << if is_feature_disabled?(config_value)
             [key.to_s.capitalize, 'disabled']
@@ -407,7 +407,7 @@ module Onetime
         customization_rows = []
 
         # Secret options
-        secret_options = OT.conf.dig('site', 'secret_options')
+        secret_options = OT.conf.get('site.secret_options')
         if secret_options
           # Format default TTL
           if secret_options['default_ttl']

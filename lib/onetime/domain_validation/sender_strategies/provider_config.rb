@@ -79,10 +79,9 @@ module Onetime
         # @return [Hash] Config hash with symbol keys, empty if not configured
         #
         def self.load_from_config(provider)
-          return {} unless defined?(OT) && OT.respond_to?(:conf) && OT.conf
-
-          providers_conf = OT.conf['email_providers'] || {}
-          provider_conf  = providers_conf[provider] || {}
+          # Not get(['email_providers', provider]): provider may be '' here.
+          providers     = OT.conf&.get('email_providers') || {}
+          provider_conf = providers[provider] || {}
 
           # Symbolize keys for consistency with DEFAULTS
           symbolize_keys(provider_conf)
@@ -93,11 +92,7 @@ module Onetime
         # @return [Array<String>] Provider names
         #
         def self.available_providers
-          config_providers = if defined?(OT) && OT.respond_to?(:conf) && OT.conf
-            (OT.conf['email_providers'] || {}).keys
-          else
-            []
-          end
+          config_providers = (OT.conf&.get('email_providers') || {}).keys
 
           (DEFAULTS.keys + config_providers).uniq.sort
         end

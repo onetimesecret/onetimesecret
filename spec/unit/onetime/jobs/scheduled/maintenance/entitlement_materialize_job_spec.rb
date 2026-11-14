@@ -82,14 +82,14 @@ RSpec.describe Onetime::Jobs::Scheduled::Maintenance::EntitlementMaterializeJob,
   end
 
   def stub_maintenance_conf(master:, job:)
-    allow(OT).to receive(:conf).and_return({
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap({
       'jobs' => {
         'maintenance' => {
           'enabled' => master,
           'entitlement_materialize' => job,
         },
       },
-    })
+    }))
   end
 
   before do
@@ -168,7 +168,7 @@ RSpec.describe Onetime::Jobs::Scheduled::Maintenance::EntitlementMaterializeJob,
 
     context 'when config is missing' do
       before do
-        allow(OT).to receive(:conf).and_return({})
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({}))
       end
 
       it 'does not register any job' do

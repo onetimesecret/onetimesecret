@@ -45,7 +45,8 @@ def enable_domains_for_branding_tests!
   OT.conf['features'] ||= {}
   OT.conf['features']['domains'] = {
     'enabled' => true,
-    'default' => 'onetimesecret.com'
+    'default' => 'onetimesecret.com',
+    'link_domains' => nil
   }
   enable_runtime_domains!
 end
@@ -525,7 +526,7 @@ sso_method.keys.all? { |k| allowed_fields.include?(k) }
 
 # Reset domain config to test defaults to avoid affecting other tests
 OT.conf['features'] ||= {}
-OT.conf['features']['domains'] = { 'enabled' => false, 'default' => nil }
+OT.conf['features']['domains'] = { 'enabled' => false, 'default' => nil, 'link_domains' => nil }
 Onetime::Runtime.features = Onetime::Runtime.features.with(domains_enabled: false)
 Onetime::Middleware::DomainStrategy.reset! if Onetime::Middleware::DomainStrategy.respond_to?(:reset!)
 
