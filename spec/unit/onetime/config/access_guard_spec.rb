@@ -74,7 +74,6 @@ module ConfigAccessGuard
     'site.authentication.external' => 'opt-in external auth section; the defaults file does not define it',
     'site.domains.enabled' => 'V1 reads the wrong path; the setting is features.domains.enabled (#3991, D2)',
     'site.federation_secret' => 'FEDERATION_SECRET is read first; the defaults file does not define this key',
-    'site.product_name' => 'auth emails read the wrong path; the setting is brand.product_name (#3991, D4)',
   }.freeze
 
   # Uses of OT.conf other than OT.conf.get that stay: file => [count, reason].

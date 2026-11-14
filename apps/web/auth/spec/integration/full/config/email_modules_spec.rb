@@ -576,14 +576,12 @@ RSpec.describe 'Auth::Config::Email modules' do
         email_address: 'user@example.com',
         verification_path: '/verify-account?key=abc123',
         baseuri: 'https://example.com',
-        product_name: 'Onetime Secret',
         display_domain: 'example.com',
       }
 
       expect(required_data).to have_key(:email_address)
       expect(required_data).to have_key(:verification_path)
       expect(required_data).to have_key(:baseuri)
-      expect(required_data).to have_key(:product_name)
       expect(required_data).to have_key(:display_domain)
     end
 
@@ -608,14 +606,12 @@ RSpec.describe 'Auth::Config::Email modules' do
         email_address: 'user@example.com',
         reset_password_path: '/reset-password?key=xyz789',
         baseuri: 'https://example.com',
-        product_name: 'Onetime Secret',
         display_domain: 'example.com',
       }
 
       expect(required_data).to have_key(:email_address)
       expect(required_data).to have_key(:reset_password_path)
       expect(required_data).to have_key(:baseuri)
-      expect(required_data).to have_key(:product_name)
       expect(required_data).to have_key(:display_domain)
     end
 
