@@ -150,4 +150,33 @@ RSpec.describe V2::Logic::Secrets::GenerateSecret, type: :integration do
       expect(logic.secret_value.length).to eq(12)
     end
   end
+
+  # The test config's default_length and maximum_length equal the fallbacks in
+  # the code (12, 128), so these examples set other values to show each one
+  # comes from site.secret_options.password_generation.
+  context 'with other password generation settings in the config' do
+    around do |example|
+      settings = OT.conf.get('site.secret_options.password_generation')
+      saved    = settings.dup
+      settings.merge!(
+        'default_length' => 20,
+        'maximum_length' => 30,
+        'character_sets' => { 'uppercase' => false, 'lowercase' => false, 'numbers' => true, 'symbols' => false },
+      )
+      example.run
+    ensure
+      settings.replace(saved)
+    end
+
+    it 'uses the configured default length and character sets' do
+      logic = build_logic('ttl' => '3600')
+
+      expect(logic.secret_value).to match(/\A\d{20}\z/)
+    end
+
+    it 'rejects a length above the configured maximum' do
+      expect { build_logic('length' => '31', 'ttl' => '3600') }
+        .to raise_error(OT::FormError, /no more than 30 characters/)
+    end
+  end
 end

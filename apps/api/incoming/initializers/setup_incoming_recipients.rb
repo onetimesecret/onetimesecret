@@ -25,11 +25,11 @@ module Onetime
       @optional = true
 
       def should_skip?
-        !OT.conf.dig('features', 'incoming', 'enabled')
+        !OT.conf.get('features.incoming.enabled')
       end
 
       def execute(_context)
-        raw_recipients = OT.conf.dig('features', 'incoming', 'recipients') || []
+        raw_recipients = OT.conf.get('features.incoming.recipients', [])
 
         # Create lookup tables
         recipient_lookup  = {}
@@ -38,7 +38,7 @@ module Onetime
         # Validate site secret before processing recipients.
         # A missing secret would cause all recipient hashes to be computed with
         # a predictable fallback, allowing offline enumeration of recipient hashes.
-        site_secret = OT.conf.dig('site', 'secret')
+        site_secret = OT.conf.get('site.secret')
         if site_secret.nil? || site_secret.to_s.strip.empty?
           raise OT::Problem, '[IncomingSecrets] site.secret must be configured before enabling incoming secrets'
         end
@@ -49,16 +49,15 @@ module Onetime
 
           # Handle both formats:
           # - Array: ["email", "name"] or ["email"] (from env vars)
-          # - Hash: { email: "...", name: "..." } (from YAML)
+          # - Hash: { 'email' => "...", 'name' => "..." } (from YAML)
           if recipient.is_a?(Array)
             next if recipient.empty? || recipient[0].to_s.strip.empty?
 
             email = recipient[0].to_s.strip
             name  = recipient[1]&.strip || email.split('@').first
           else
-            # Handle both symbol and string keys (config may use either)
-            email = (recipient[:email] || recipient['email']).to_s.strip
-            name  = (recipient[:name] || recipient['name'])&.strip || email.split('@').first
+            email = recipient['email'].to_s.strip
+            name  = recipient['name']&.strip || email.split('@').first
           end
 
           next if email.empty?

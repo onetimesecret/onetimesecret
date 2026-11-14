@@ -198,7 +198,7 @@ module ColonelAPI
         end
 
         def elevation_config
-          OT.conf.dig('site', 'admin', 'elevation') || {}
+          OT.conf.get('site.admin.elevation', {})
         end
 
         private

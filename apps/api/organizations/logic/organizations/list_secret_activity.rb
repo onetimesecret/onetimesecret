@@ -67,7 +67,7 @@ module OrganizationAPI::Logic
         # surfaces. A strict `== false` here would leave the API serving the
         # trail while the UI hides the tab — the operator would believe the
         # feature is off while it is still readable.
-        if OT.conf.dig('features', 'organizations', 'audit_logs_enabled').to_s == 'false'
+        if OT.conf.get('features.organizations.audit_logs_enabled', nil).to_s == 'false'
           # Keyword args reach OT.info's **payload and are emitted as
           # SemanticLogger structured payload (filterable/alertable), not
           # concatenated into the message string.

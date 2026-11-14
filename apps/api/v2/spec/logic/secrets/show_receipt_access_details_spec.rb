@@ -144,6 +144,22 @@ RSpec.describe V2::Logic::Secrets::ShowReceipt, type: :integration do
       expect(Onetime::Receipt.load(receipt.identifier).state).to eq('new')
     end
 
+    it 'does not reveal a generated secret when generated_value_display_ttl is zero' do
+      receipt.kind = 'generate'
+      receipt.save_fields(:kind)
+      secret_options = OT.conf.get('site.secret_options')
+      saved_ttl      = secret_options['generated_value_display_ttl']
+      secret_options['generated_value_display_ttl'] = 0
+
+      logic = build_logic({ 'identifier' => receipt.identifier })
+      logic.process_params
+      logic.raise_concerns
+
+      expect(logic.process[:details][:secret_value]).to be_nil
+    ensure
+      secret_options['generated_value_display_ttl'] = saved_ttl if secret_options
+    end
+
     it 'skips the generated-value reveal on a SECRET mismatch without burning the one-shot claim (C10)' do
       # A mismatched SECRET can't decrypt anything, and decrypt raises *after*
       # claim_secret_value_display! consumes the one-shot slot. Gating the claim

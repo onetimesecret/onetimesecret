@@ -191,7 +191,7 @@ module DomainsAPI
           host = config.custom_domain&.display_domain.to_s.strip
           return blank if host.empty?
 
-          scheme = OT.conf.dig('site', 'ssl') == false ? 'http' : 'https'
+          scheme = OT.conf.get('site.ssl') == false ? 'http' : 'https'
           base   = "#{scheme}://#{host}/auth/sso/#{config.platform_route_name}"
 
           { sp_entity_id: "#{base}/metadata", acs_url: "#{base}/callback" }

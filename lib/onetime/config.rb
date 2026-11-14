@@ -368,10 +368,13 @@ module Onetime
     # only in the defaults file are visible in all environments without
     # manual duplication. See #3322.
     #
-    # The YAML layer merge uses preserve_nils: false so that explicit nil
-    # in the environment file means "I want nil" (not "keep the default").
-    # Nil-preservation is reserved for the in-code DEFAULTS merge in
-    # after_load, where nil means "not specified".
+    # The YAML layer merge uses preserve_nils: false, so an explicit nil in
+    # the environment file replaces the defaults-file value with nil. The
+    # in-code DEFAULTS merge in after_load treats nil the other way: there
+    # nil means "not specified", so a key that Config::DEFAULTS sets gets the
+    # DEFAULTS value back. A nil from the YAML stays nil after boot only for
+    # keys that DEFAULTS does not set. For example, a nil
+    # site.secret_options.passphrase.minimum_length reads as 4 after boot.
     #
     # @param path [String] (optional) path to the environment-specific YAML
     #   file. When nil, layered defaults are applied automatically. When an

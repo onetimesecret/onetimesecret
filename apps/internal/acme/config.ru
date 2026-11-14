@@ -35,8 +35,8 @@ require File.join(onetime_home, 'apps', 'internal', 'acme', 'application')
 
 # Set HOST and PORT from config so rackup binds accordingly.
 # CLI flags (-o, -p) and env vars still override these.
-host = ENV['HOST'] ||= OT.conf.dig('features', 'domains', 'acme', 'listen_address') || '127.0.0.1'
-port = ENV['PORT'] ||= (OT.conf.dig('features', 'domains', 'acme', 'port') || '12020').to_s
+host = ENV['HOST'] ||= OT.conf.get('features.domains.acme.listen_address', '127.0.0.1')
+port = ENV['PORT'] ||= (OT.conf.get('features.domains.acme.port', '12020')).to_s
 
 Onetime.app_logger.info "Starting standalone ACME endpoint on #{host}:#{port}"
 

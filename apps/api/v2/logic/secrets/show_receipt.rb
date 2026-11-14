@@ -159,7 +159,7 @@ module V2::Logic
             if receipt.state?(:new)
               receipt_age   = Familia.now.to_i - receipt.created.to_i
               is_generated  = receipt.kind.to_s == 'generate'
-              display_ttl   = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
+              display_ttl   = OT.conf.get('site.secret_options.generated_value_display_ttl', nil).to_i
               within_window = display_ttl.positive? && receipt_age < display_ttl
               # C10 fast-fail: a mismatched SECRET can't decrypt anything, and
               # decrypt raises *after* claim_secret_value_display! burns the

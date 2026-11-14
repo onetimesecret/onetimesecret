@@ -64,7 +64,7 @@ module DomainsAPI
         #   refusal is tagged with
         # @return [void]
         def verify_network_rules_editable!(field)
-          unless OT.conf.dig('features', 'organizations', 'homepage_network_rules_ui_enabled')
+          unless OT.conf.get('features.organizations.homepage_network_rules_ui_enabled', nil)
             raise_form_error(
               'Homepage network rules are not enabled on this installation',
               error_key: 'api.domains.errors.homepage_network_rules_disabled',

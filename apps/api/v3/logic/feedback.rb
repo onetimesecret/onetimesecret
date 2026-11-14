@@ -123,7 +123,7 @@ module V3
 
         # Logic classes don't receive req.env, so display_domain may be nil.
         # Fall back to site host from config for feedback emails.
-        effective_domain = display_domain || OT.conf.dig('site', 'host')
+        effective_domain = display_domain || OT.conf.get('site.host')
 
         # The body shows an obscured form of the submitter's address so a
         # leaked archive doesn't expose verbatim email addresses. The actual
@@ -198,7 +198,7 @@ module V3
       #      that haven't configured an override).
       #   3. nil — no recipient available; the email step is skipped.
       def feedback_recipient_email
-        configured = OT.conf.dig('emailer', 'feedback_to')
+        configured = OT.conf.get('emailer.feedback_to')
         return configured if configured.is_a?(String) && !configured.strip.empty?
 
         find_first_colonel&.email

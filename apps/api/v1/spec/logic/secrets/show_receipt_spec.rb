@@ -251,9 +251,9 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
     it 'does not decrypt when generated_value_display_ttl is zero or unset' do
       # A zero/absent display TTL disables the reveal window entirely, so even
       # a fresh generated secret must not be decrypted on the receipt.
-      allow(OT.conf).to receive(:dig).and_call_original
-      allow(OT.conf).to receive(:dig)
-        .with('site', 'secret_options', 'generated_value_display_ttl')
+      allow(OT.conf).to receive(:get).and_call_original
+      allow(OT.conf).to receive(:get)
+        .with('site.secret_options.generated_value_display_ttl', nil)
         .and_return(0)
 
       expect(secret).not_to receive(:decrypted_secret_value)

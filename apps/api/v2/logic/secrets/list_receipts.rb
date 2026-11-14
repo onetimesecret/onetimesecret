@@ -61,7 +61,7 @@ module V2::Logic
 
         # The activity flag gates cross-member receipt visibility only.
         if AUDIT_SURFACE_SCOPES.include?(scope) &&
-           OT.conf.dig('features', 'organizations', 'audit_logs_enabled').to_s == 'false'
+           OT.conf.get('features.organizations.audit_logs_enabled', nil).to_s == 'false'
           # Keyword args reach OT.info's **payload and are emitted as
           # SemanticLogger structured payload, not concatenated into the message.
           # The actor is the extid, never custid: custid holds the email address
