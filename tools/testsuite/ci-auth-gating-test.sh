@@ -201,7 +201,9 @@ def triggers():
         "push", "schedule", "merge_group", "pull_request", "workflow_dispatch",
     }, "CI must cover PR, dispatch, nightly, main/release push, and merge queue")
     push = block(events, "push", 2)
-    check(block(push, "branches", 4).strip() == "- main", "main coverage baseline")
+    check([line.strip() for line in block(push, "branches", 4).splitlines() if line.strip()]
+          == ["- main", "- develop"],
+          "main coverage baseline; develop runs after its GitLab merge reaches the mirror")
     check(block(push, "tags", 4).strip() == "- 'v*'", "release tags run CI")
     check(block(events, "schedule", 2).strip() == "- cron: '3 4 * * *'", "daily full coverage")
     check(scalar(block(events, "merge_group", 2), "types", 4) == "[checks_requested]",
@@ -225,7 +227,9 @@ def triggers():
           "the event override must reach CI flag detection")
     concurrency = block(workflow, "concurrency", 0)
     check(scalar(concurrency, "group", 2) == "ci-" + expression("github.workflow")
-          + "-" + expression("github.ref"), "one concurrency group per ref")
+          + "-" + expression("github.ref")
+          + expression("github.ref == 'refs/heads/develop' && format('-{0}', github.sha) || ''"),
+          "one concurrency group per ref, one per commit on develop")
     check(scalar(concurrency, "cancel-in-progress", 2) == "true", "a new push supersedes the run before it")
 
 
