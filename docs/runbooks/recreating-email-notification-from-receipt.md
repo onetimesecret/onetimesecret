@@ -98,7 +98,7 @@ First, the config check you couldn't do (config get doesn't exist — only valid
 # inside the container, in the console:
 
 podman exec -it <container> bin/ots console
-OT.conf.dig('jobs', 'dlq_consumer', 'enabled') # true = the auto-purger is running
+OT.conf.get('jobs.dlq_consumer.enabled') # true = the auto-purger is running
 
 Reconstruction — run inside bin/ots console
 

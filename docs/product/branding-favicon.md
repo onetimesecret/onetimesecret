@@ -156,7 +156,7 @@ BRAND_ASSETS_DIR=/mnt/brand bin/dev  # serves an explicit directory (for mounts)
   (Docker/K8s) at e.g. `/mnt/brand`. When both are set, the explicit directory
   **wins** over the pack name; a missing path falls back to `default`.
 - A pack also carries an optional `brand.yaml` identity manifest (colours,
-  product name) absorbed into `OT.conf['brand']` at boot, beneath your `BRAND_*`
+  product name) absorbed into `brand.*` in `OT.conf` at boot, beneath your `BRAND_*`
   env — so a pack ships assets **and** their identity as one unit. See
   [branding.md](../architecture/branding.md#brand-pack-manifest-3774).
 - A pack may be partial: any file absent from the selected pack falls through to

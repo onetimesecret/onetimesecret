@@ -55,7 +55,7 @@ module Onetime
     #
     #   OT.conf.get('site.host')                           # required setting
     #   OT.conf.get('site.admin.elevation', {})            # default when absent or nil
-    #   OT.conf.get('site.product_name', nil)              # optional setting
+    #   OT.conf.get('site.federation_secret', nil)         # optional setting
     #   OT.conf.get(['features', type, 'enabled'], false)  # variable segment
     #
     # The Array form also reaches keys that contain a dot.
