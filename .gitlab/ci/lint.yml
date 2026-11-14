@@ -1,0 +1,70 @@
+# .gitlab/ci/lint.yml
+#
+# The jobs of .github/workflows/static-analysis.yml, on GitLab. They need no
+# services and run on small hosted runners. The GitHub workflow keeps running
+# on mirrored pushes to main until GitLab's runs have matched it (plan Phase 2,
+# docs/planning/2026-1110-gitlab-ci-migration-plan.md).
+#
+# Images are referenced by digest literals: GitLab advises against image
+# references built from variables. Debian trixie is required for jq 1.7, which
+# the shell suites use (bookworm ships jq 1.6).
+
+.lint-python:
+  stage: lint
+  image: python:3.14.7-trixie@sha256:0876e54cf728d89fd9d0fdaf5837b9ee879ea5fbbd6fd0cddbe5eb0cce3f5f9e
+  tags: [saas-linux-small-amd64]
+  needs: []
+  timeout: 10m
+
+# bin/testsuite run: the offline shell suites under tools/testsuite/, which pin
+# the GitHub workflow wiring and execute the scripts CI calls.
+shell-tests:
+  extends: .lint-python
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq --no-install-recommends jq
+  script:
+    - bash bin/testsuite run
+
+# shellcheck over every tracked shell script and actionlint over the GitHub
+# workflows, against the recorded baselines in .github/lint-baseline/.
+shell-lint:
+  extends: .lint-python
+  script:
+    - scripts/install-shell-lint-tools.sh /usr/local/bin
+    - bash scripts/check-shell-lint.sh
+
+# The log shipper's tests on the oldest and newest supported Python. uv
+# provides 3.11; the image provides 3.14.
+logship:
+  extends: .lint-python
+  parallel:
+    matrix:
+      - UV_PYTHON: ['3.11', '3.14']
+  variables:
+    UV_VERSION: '0.9.7'
+  before_script:
+    - python -m pip install --disable-pip-version-check --root-user-action=ignore "uv==${UV_VERSION}"
+  script:
+    - bin/logship --help
+    - bin/testsuite logship -q
+
+# Gemfile.lock against the Ruby advisory database. Allowed to fail while the
+# lock carries known advisories: rodauth 2.48.0 (GHSA-26qw-xq5q-hv9w, fixed in
+# 2.50.0) and sanitize 7.0.1 (GHSA-599p-54q3-ff89 and GHSA-mg79-gw37-jxx7,
+# fixed in 7.0.2). Remove allow_failure once the lock is clean, so that a new
+# advisory blocks merges.
+bundler-audit:
+  stage: lint
+  image: ruby:3.4.10-trixie@sha256:ce3b7a999d9e430e59e1a12456c631fbea3dd18948c89cf8a913c3566c77b2ae
+  tags: [saas-linux-small-amd64]
+  needs: []
+  timeout: 10m
+  allow_failure: true
+  variables:
+    # Keep in step with BUNDLER_AUDIT_VERSION in static-analysis.yml.
+    BUNDLER_AUDIT_VERSION: '0.9.3'
+  before_script:
+    - gem install bundler-audit -v "${BUNDLER_AUDIT_VERSION}" --no-document
+  script:
+    - bundle-audit check --update

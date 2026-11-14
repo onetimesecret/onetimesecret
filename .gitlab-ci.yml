@@ -26,6 +26,9 @@ stages:
 default:
   interruptible: true
 
+include:
+  - local: .gitlab/ci/lint.yml
+
 # TypeScript unit tests and test type checking, from the pilot
 # (ci/typescript-pilot/). Its replacement is frontend.yml (plan Phase 2).
 typescript-pilot:
