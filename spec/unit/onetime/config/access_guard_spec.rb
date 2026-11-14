@@ -61,14 +61,11 @@ module ConfigAccessGuard
   # Literal paths read with a default that are not in the shipped config,
   # with the reason each can be absent.
   OPTIONAL_PATHS = {
-    'billing' => 'a separate config object (Onetime.billing_config), not a section of OT.conf (#3991, D3)',
-    'billing.enabled' => 'see billing (#3991, D3)',
     'jobs.dlq_monitor_enabled' => 'opt-in switch for DlqMonitorJob; the defaults file does not define it',
     'jobs.domain_refresh.rate_limit' => "commented out in the defaults: unset means the strategy's own pacing",
     'jobs.heartbeat_enabled' => 'opt-in switch for HeartbeatJob; the defaults file does not define it',
     'jobs.rabbitmq_management_url' => 'optional; RABBITMQ_MANAGEMENT_URL or localhost is used without it',
     'locales' => 'legacy top-level list, read when internationalization.locales is unset',
-    'logging' => 'a separate config object (Onetime.logging_conf), not a section of OT.conf (#3991, D3)',
     'site.authentication.colonels' => 'operator-set list of colonel emails; the defaults file does not define it',
     'site.authentication.external' => 'opt-in external auth section; the defaults file does not define it',
     'site.domains.enabled' => 'V1 reads the wrong path; the setting is features.domains.enabled (#3991, D2)',

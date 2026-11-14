@@ -11,8 +11,11 @@ module ColonelAPI
       #
       # @api Returns the current system configuration organized by section:
       #   interface, secret options, authentication, emailer, mail, diagnostics,
-      #   logging, billing, and features. Sensitive values such as API keys
-      #   and webhook secrets are masked. Requires colonel role.
+      #   and features. Sensitive values such as SMTP credentials and API keys
+      #   are masked. Requires colonel role.
+      #
+      # Logging and billing are not reported: they are separate config objects
+      # (Onetime.logging_conf, Onetime.billing_config), not sections of OT.conf.
       class GetSystemSettings < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'systemSettings' }.freeze
 
@@ -52,20 +55,6 @@ module ColonelAPI
           # Add redis URI with masked password (and query string) for convenience
           redis_uri                                   = Onetime.conf.get('redis.uri', nil)
           @config_sections[:diagnostics]['redis_uri'] = redis_uri && OT::Utils.redact_uri_userinfo(redis_uri, keep_username: true, mask: '****')
-
-          # Logging and billing are separate config objects (Onetime.logging_conf,
-          # Onetime.billing_config), not sections of OT.conf, so both read as
-          # unset here: logging is {} and the billing branch never runs. Kept as
-          # is until an operator decides what this endpoint reports (#3991, D3).
-          @config_sections[:logging] = Onetime.conf.get('logging', {})
-
-          # Billing config (if enabled) - mask sensitive keys
-          if Onetime.conf.get('billing.enabled', nil)
-            billing                           = deep_copy(Onetime.conf.get('billing', {}))
-            billing['stripe_key']             = mask_key(billing['stripe_key'])
-            billing['webhook_signing_secret'] = '****' if billing['webhook_signing_secret']
-            @config_sections[:billing]        = billing
-          end
 
           # Features config (top-level 'features' key)
           @config_sections[:features] = Onetime.conf.get('features', {})
