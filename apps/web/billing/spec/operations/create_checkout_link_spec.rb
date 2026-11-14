@@ -492,4 +492,24 @@ RSpec.describe Billing::Operations::CreateCheckoutLink do
       expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
   end
+
+  describe '.detect_region' do
+    it 'returns the configured jurisdiction' do
+      expect(described_class.detect_region).to eq('EU')
+    end
+
+    it "falls back to 'LL' when no jurisdiction is configured" do
+      allow(Onetime).to receive(:conf).and_return(
+        Onetime::Config.wrap('features' => { 'regions' => { 'enabled' => false } }),
+      )
+
+      expect(described_class.detect_region).to eq('LL')
+    end
+
+    it "falls back to 'LL' before boot" do
+      allow(Onetime).to receive(:conf).and_return(nil)
+
+      expect(described_class.detect_region).to eq('LL')
+    end
+  end
 end

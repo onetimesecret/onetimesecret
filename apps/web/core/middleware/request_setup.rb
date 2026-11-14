@@ -125,9 +125,9 @@ module Core
     # toggle (defaults on: CSP_ENABLED != 'false'); it is Onetime configuration,
     # not an Otto emission invariant.
     def emit_csp_header(headers, env)
-      return unless OT.conf.dig('site', 'security', 'csp', 'enabled')
+      return unless OT.conf.get('site.security.csp.enabled')
 
-      development_mode = OT.conf.dig('development', 'enabled') ? true : false
+      development_mode = OT.conf.get('development.enabled') ? true : false
       Otto::Security::CSP::Writer.apply(
         headers,
         env['onetime.nonce'],

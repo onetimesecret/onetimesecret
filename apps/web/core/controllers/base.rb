@@ -70,9 +70,9 @@ module Core
             }
         else
           # Set a default host if the host is missing
-          uri.host ||= OT.conf['site']['host']
+          uri.host ||= OT.conf.get('site.host')
           # Ensure the scheme is HTTPS if SSL is enabled in the configuration
-          if (OT.conf.dig('site', 'ssl') != false) && (uri.scheme.nil? || uri.scheme != 'https')
+          if (OT.conf.get('site.ssl') != false) && (uri.scheme.nil? || uri.scheme != 'https')
             uri.scheme = 'https'
           end
           # Set uri to nil if it is not an HTTP or HTTPS URI
@@ -326,7 +326,7 @@ module Core
       end
 
       def auth_settings
-        OT.conf.dig('site', 'authentication')
+        OT.conf.get('site.authentication')
       end
 
       def signup_config_display_domain

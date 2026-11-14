@@ -64,7 +64,7 @@ module Core
           use Rack::Lint unless ENV['RACK_ENV'] == 'test'
 
           # Retrieve development configuration settings
-          config = Onetime.conf.fetch('development', {})
+          config = Onetime.conf.get('development', {})
 
           # Configure Vite proxy based on settings
           #

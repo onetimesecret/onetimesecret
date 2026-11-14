@@ -705,7 +705,7 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
     describe 'regions feature disabled' do
       before do
         # OT.conf returns empty hash — features.regions.enabled is falsy
-        allow(OT).to receive(:conf).and_return(OT::Config.wrap({}))
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'features' => { 'regions' => { 'enabled' => nil } } }))
       end
 
       it 'falls back to "global" when regions feature is disabled' do
