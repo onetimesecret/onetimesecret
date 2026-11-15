@@ -273,10 +273,6 @@ module Onetime
         Onetime::Customer.dbclient
       end
 
-      def colonel_rate_limit_config
-        OT.conf.get('site.admin.rate_limit', {})
-      end
-
       # Every bucket consults the PARENT flag as well as its own, so
       # `site.admin.rate_limit.enabled: false` (what spec/config.test.yaml sets)
       # short-circuits all of them — otherwise the colonel suites, which drive
@@ -298,9 +294,9 @@ module Onetime
       end
 
       def colonel_bucket_enabled?(section)
-        return false if colonel_rate_limit_config.fetch('enabled', true) == false
+        return false if OT.conf.get('site.admin.rate_limit.enabled', true) == false
 
-        colonel_rate_limit_config.dig(section, 'enabled') != false
+        OT.conf.get(['site', 'admin', 'rate_limit', section, 'enabled'], nil) != false
       end
 
       # Fall back to the default unless the configured value coerces to a
@@ -309,7 +305,7 @@ module Onetime
       # the first attempt, and a non-positive lockout makes the Lua SETEX fail,
       # turning every step-up into a 500 instead of a throttle.
       def positive_colonel_setting(section, key, default)
-        value = colonel_rate_limit_config.dig(section, key).to_i
+        value = OT.conf.get(['site', 'admin', 'rate_limit', section, key], nil).to_i
         value.positive? ? value : default
       end
 
