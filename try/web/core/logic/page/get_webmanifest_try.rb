@@ -24,7 +24,7 @@ OT.boot! :test, false
 
 require 'web/core/logic/page/get_webmanifest'
 
-@orig_brand = OT.conf['brand']
+@orig_brand = OT.conf.get('brand')
 
 # Builds the logic with the CURRENT OT.conf['brand'] (process_params runs in the
 # constructor, so brand config must be set before calling this).

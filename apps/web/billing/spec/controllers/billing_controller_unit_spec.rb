@@ -164,7 +164,7 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
         organization.subscription_federated_at = Time.now.to_i
         organization.save
         regions = OT.conf.get('features.regions')
-        saved   = regions['current_jurisdiction']
+        saved   = OT.conf.get('features.regions.current_jurisdiction')
         regions['current_jurisdiction'] = 'CA'
 
         get "/billing/api/org/#{organization.extid}"

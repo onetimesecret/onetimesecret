@@ -28,13 +28,13 @@ RSpec.describe 'V2/V3 HTTP method and parser boundaries', :aggregate_failures, t
   before do
     clear_cookies
     %w[Authorization Content-Type Accept X-CSRF-Token Origin].each { |name| header name, nil }
-    @guest_policy   = Marshal.load(Marshal.dump(OT.conf['site']['interface']['api']['guest_routes']))
-    @creation_limit = Marshal.load(Marshal.dump(OT.conf['site']['secret_options']['create_rate_limit']))
+    @guest_policy   = Marshal.load(Marshal.dump(OT.conf.get('site.interface.api.guest_routes')))
+    @creation_limit = Marshal.load(Marshal.dump(OT.conf.get('site.secret_options.create_rate_limit')))
   end
 
   after do
-    OT.conf['site']['interface']['api']['guest_routes'].replace(@guest_policy)
-    OT.conf['site']['secret_options']['create_rate_limit'] = @creation_limit
+    OT.conf.get('site.interface.api.guest_routes').replace(@guest_policy)
+    OT.conf.get('site.secret_options')['create_rate_limit'] = @creation_limit
   end
 
   def anonymous_post(path, payload = {}, env = {})
@@ -200,7 +200,7 @@ RSpec.describe 'V2/V3 HTTP method and parser boundaries', :aggregate_failures, t
       end
 
       it "does not bypass disabled guest generation through #{version} OPTIONS" do
-        policy             = OT.conf['site']['interface']['api']['guest_routes']
+        policy             = OT.conf.get('site.interface.api.guest_routes')
         policy['enabled']  = false
         policy['generate'] = false
         before_storage     = secret_storage
@@ -414,7 +414,7 @@ RSpec.describe 'V2/V3 HTTP method and parser boundaries', :aggregate_failures, t
 
     %w[v2 v3].each do |version|
       it "retains #{version} creation throttling while OPTIONS neither creates nor consumes quota" do
-        OT.conf['site']['secret_options']['create_rate_limit'] = { 'enabled' => true, 'max_per_ip' => 1, 'window' => 60, 'lockout' => 60 }
+        OT.conf.get('site.secret_options')['create_rate_limit'] = { 'enabled' => true, 'max_per_ip' => 1, 'window' => 60, 'lockout' => 60 }
         before_storage                                         = secret_storage
         options "/api/#{version}/secret/generate"
         expect(last_response.status).to eq(204)

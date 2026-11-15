@@ -38,8 +38,7 @@ def last_response; @test.last_response; end
 @session = { 'authenticated' => true, 'external_id' => @owner.extid, 'email' => @owner.email }
 
 ## Emailer is configured for test mode
-@emailer_conf = OT.conf.fetch('emailer', {})
-@emailer_conf['mode']
+OT.conf.get('emailer.mode')
 #=> 'logger'
 
 ## Mailer can be reset without error

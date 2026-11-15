@@ -101,7 +101,7 @@ RSpec.describe 'Tenant SSO verified email domains (#4734)', type: :integration d
   # features.domains settings for one example. The 'domains enabled'
   # context rewrites the section before every example, so nothing leaks.
   def configure_domains(**settings)
-    settings.each { |key, value| OT.conf['features']['domains'][key.to_s] = value }
+    settings.each { |key, value| OT.conf.get('features.domains')[key.to_s] = value }
   end
 
   # ownership_verified set and no override. With `confirmed: false`, what a

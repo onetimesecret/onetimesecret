@@ -504,7 +504,7 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
 
         begin
           # Hit callback directly on canonical domain (no initiation, no tenant context)
-          canonical_host = OT.conf.dig('site', 'host') || 'onetimesecret.com'
+          canonical_host = OT.conf.get('site.host') || 'onetimesecret.com'
           header 'Host', canonical_host
           post '/auth/sso/oidc/callback'
 

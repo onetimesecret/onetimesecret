@@ -19,16 +19,16 @@ require 'onetime/mail'
 # Helper: mutate emailer.show_logo, yield, restore.
 # Also clears brand.logo_url so logo-absent tests are config-independent.
 def with_show_logo(value, logo_url: nil)
-  conf_before = OT.conf['emailer']&.dup || {}
-  brand_before = OT.conf['brand']&.dup || {}
+  conf_before = OT.conf.get('emailer')&.dup || {}
+  brand_before = OT.conf.get('brand')&.dup || {}
   OT.conf['emailer'] ||= {}
   OT.conf['brand'] ||= {}
   if value == :absent
-    OT.conf['emailer']['show_logo'] = nil
+    OT.conf.get('emailer')['show_logo'] = nil
   else
-    OT.conf['emailer']['show_logo'] = value
+    OT.conf.get('emailer')['show_logo'] = value
   end
-  OT.conf['brand']['logo_url'] = logo_url
+  OT.conf.get('brand')['logo_url'] = logo_url
   result = yield
   OT.conf['emailer'] = conf_before
   OT.conf['brand'] = brand_before

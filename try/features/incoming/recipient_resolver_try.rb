@@ -176,7 +176,7 @@ recipients = resolver.public_recipients
 #=> [2, ["digest", "display_name"]]
 
 ## Custom domain lookup resolves hash to email
-site_secret = OT.conf.dig('site', 'secret')
+site_secret = OT.conf.get('site.secret')
 expected_hash = Digest::SHA256.hexdigest("support@example.com:#{site_secret}")
 
 resolver = Onetime::Incoming::RecipientResolver.new(

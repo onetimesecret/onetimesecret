@@ -50,7 +50,7 @@ RSpec.describe V2::Logic::Secrets::GenerateSecret, type: :integration do
   end
 
   let(:max_length) do
-    OT.conf.dig('site', 'secret_options', 'password_generation', 'maximum_length').to_i
+    OT.conf.get('site.secret_options.password_generation.maximum_length').to_i
   end
 
   # Nested form keys (`secret[length][]=5`, `secret[character_sets]=x`) and

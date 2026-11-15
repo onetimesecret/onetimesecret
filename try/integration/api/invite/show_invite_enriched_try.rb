@@ -260,7 +260,7 @@ last_response.status >= 400
 
 ## Enable domains feature for auth_methods tests
 OT.conf['features'] ||= {}
-OT.conf['features']['domains'] = {
+OT.conf.get('features')['domains'] = {
   'enabled' => true,
   'default' => 'onetimesecret.com',
   'link_domains' => nil
@@ -437,7 +437,7 @@ record = resp['record']
 
 # Reset domain config to test defaults
 OT.conf['features'] ||= {}
-OT.conf['features']['domains'] = { 'enabled' => false, 'default' => nil, 'link_domains' => nil }
+OT.conf.get('features')['domains'] = { 'enabled' => false, 'default' => nil, 'link_domains' => nil }
 Onetime::Runtime.features = Onetime::Runtime.features.with(domains_enabled: false)
 Onetime::Middleware::DomainStrategy.reset! if Onetime::Middleware::DomainStrategy.respond_to?(:reset!)
 

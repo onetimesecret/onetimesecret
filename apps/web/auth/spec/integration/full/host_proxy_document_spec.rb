@@ -85,7 +85,7 @@ RSpec.describe 'Host and proxy simulation matrix: the served document (#4223)',
   # else the og_title host): the scheme follows site.ssl, as
   # initialize_view_vars.rb does, not the request's proto.
   def page_url_for(row)
-    scheme = OT.conf['site']['ssl'] == false ? 'http' : 'https'
+    scheme = OT.conf.get('site.ssl') == false ? 'http' : 'https'
     "#{scheme}://#{fill(row[:og_url] || row[:og_title])}/"
   end
 

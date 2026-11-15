@@ -54,12 +54,12 @@ Onetime::Receipt.min_warning_ttl > 0
 #=> true
 
 ## min_warning_ttl reads jobs.expiration_warnings.min_ttl_hours
-@saved_min_ttl_hours = OT.conf['jobs']['expiration_warnings']['min_ttl_hours']
+@saved_min_ttl_hours = OT.conf.get('jobs.expiration_warnings.min_ttl_hours')
 begin
-  OT.conf['jobs']['expiration_warnings']['min_ttl_hours'] = 7
+  OT.conf.get('jobs.expiration_warnings')['min_ttl_hours'] = 7
   Onetime::Receipt.min_warning_ttl
 ensure
-  OT.conf['jobs']['expiration_warnings']['min_ttl_hours'] = @saved_min_ttl_hours
+  OT.conf.get('jobs.expiration_warnings')['min_ttl_hours'] = @saved_min_ttl_hours
 end
 #=> 25200
 

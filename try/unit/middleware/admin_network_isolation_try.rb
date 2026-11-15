@@ -177,9 +177,9 @@ end
 # runs every unit tryout in ONE process, so a leaked site.host or
 # features.domains.default would silently change what later files see.
 # Rack::DetectHost.result_field_name is process-global and mutable too.
-@orig_admin          = OT.conf.dig('site', 'admin')&.dup
-@orig_site_host      = OT.conf.dig('site', 'host')
-@orig_domains        = OT.conf.dig('features', 'domains')&.dup
+@orig_admin          = OT.conf.get('site.admin')&.dup
+@orig_site_host      = OT.conf.get('site.host')
+@orig_domains        = OT.conf.get('features.domains')&.dup
 @orig_detected_field = Rack::DetectHost.result_field_name
 
 # Set the CIDR allowlist in config, then build a middleware instance that reads
@@ -187,9 +187,9 @@ end
 # the host gate is inert and the network gate is the sole decider.
 def set_allowlist(cidrs)
   OT.conf['site'] ||= {}
-  OT.conf['site']['admin'] ||= {}
-  OT.conf['site']['admin']['allowed_hosts'] = []
-  OT.conf['site']['admin']['allowed_cidrs'] = cidrs
+  OT.conf.get('site')['admin'] ||= {}
+  OT.conf.get('site.admin')['allowed_hosts'] = []
+  OT.conf.get('site.admin')['allowed_cidrs'] = cidrs
   TestAdminNetworkIsolation.new(@mock_app)
 end
 
@@ -202,14 +202,14 @@ end
 # suites stayed green when #4062 landed.
 def build_mw(hosts: [], cidrs: [], site_host: '127.0.0.1:3000', default_domain: nil, link_domains: nil)
   OT.conf['site'] ||= {}
-  OT.conf['site']['admin'] ||= {}
-  OT.conf['site']['admin']['allowed_hosts'] = hosts
-  OT.conf['site']['admin']['allowed_cidrs'] = cidrs
-  OT.conf['site']['host'] = site_host
+  OT.conf.get('site')['admin'] ||= {}
+  OT.conf.get('site.admin')['allowed_hosts'] = hosts
+  OT.conf.get('site.admin')['allowed_cidrs'] = cidrs
+  OT.conf.get('site')['host'] = site_host
   OT.conf['features'] ||= {}
-  OT.conf['features']['domains'] ||= {}
-  OT.conf['features']['domains']['default'] = default_domain
-  OT.conf['features']['domains']['link_domains'] = link_domains
+  OT.conf.get('features')['domains'] ||= {}
+  OT.conf.get('features.domains')['default'] = default_domain
+  OT.conf.get('features.domains')['link_domains'] = link_domains
   TestAdminNetworkIsolation.new(@mock_app)
 end
 
@@ -1673,7 +1673,7 @@ status_with(@fwd, 'admin.example.com', { 'HTTP_X_FORWARDED_HOST' => 'admin.examp
 
 ## an unreadable site.admin block leaves BOTH gates active and denying
 @unreadable = begin
-  OT.conf['site']['admin'] = Object.new # Hash#dig raises TypeError on this
+  OT.conf.get('site')['admin'] = Object.new # Hash#dig raises TypeError on this
   TestAdminNetworkIsolation.new(@mock_app)
 end
 [@unreadable.host_gate_active?, @unreadable.network_gate_active?, @unreadable.allowed_hosts]
@@ -1693,7 +1693,7 @@ status_for(@unreadable, 'example.com', path_info: '/dashboard')
 
 ## unreadable config - restored, and the next instance reads config normally
 @restored = begin
-  OT.conf['site']['admin'] = { 'allowed_hosts' => [], 'allowed_cidrs' => [] }
+  OT.conf.get('site')['admin'] = { 'allowed_hosts' => [], 'allowed_cidrs' => [] }
   build_mw(hosts: ['admin.example.com'])
 end
 [@restored.allowed_hosts, @restored.network_gate_active?]
@@ -1950,8 +1950,8 @@ end
 # Restore every global this file mutated: both admin lists, site.host, the
 # features.domains block, and the DetectHost result field. `rake try:unit` runs
 # all unit tryouts in one process — a leak here changes what later files see.
-OT.conf['site']['admin'] = @orig_admin if @orig_admin
-OT.conf['site']['host'] = @orig_site_host
-OT.conf['features']['domains'] = @orig_domains if @orig_domains
+OT.conf.get('site')['admin'] = @orig_admin if @orig_admin
+OT.conf.get('site')['host'] = @orig_site_host
+OT.conf.get('features')['domains'] = @orig_domains if @orig_domains
 Rack::DetectHost.result_field_name = @orig_detected_field
 Onetime::Middleware::AdminNetworkIsolation.reset_boot_announcements!

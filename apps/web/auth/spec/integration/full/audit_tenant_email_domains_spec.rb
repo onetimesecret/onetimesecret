@@ -474,11 +474,11 @@ RSpec.describe 'Tenant SSO email domain audit (#4734)', type: :integration do
     # not, and the command names it so the operator knows to re-verify.
     context 'under a validation strategy that checks the TXT record (approximated)' do
       before do
-        @saved_domains_section         = OT.conf['features']['domains']
-        OT.conf['features']['domains'] = (@saved_domains_section || {}).merge('validation_strategy' => 'approximated')
+        @saved_domains_section         = OT.conf.get('features.domains')
+        OT.conf.get('features')['domains'] = (@saved_domains_section || {}).merge('validation_strategy' => 'approximated')
       end
 
-      after { OT.conf['features']['domains'] = @saved_domains_section }
+      after { OT.conf.get('features')['domains'] = @saved_domains_section }
 
       it 'names the TXT basis, counts a recorded pass and names a verified domain without one (JSON)' do
         expect(Onetime::CustomDomain.ownership_proof_checked?).to be(true)

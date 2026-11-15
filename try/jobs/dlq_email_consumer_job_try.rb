@@ -278,7 +278,7 @@ call_private(:enabled?)
 #=> false
 
 ## enabled? checks jobs.dlq_consumer.enabled config path
-OT.conf.dig('jobs', 'dlq_consumer', 'enabled') == true
+OT.conf.get('jobs.dlq_consumer.enabled') == true
 #=> false
 
 ## extract_original_queue returns queue from x-death headers

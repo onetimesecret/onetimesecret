@@ -122,7 +122,7 @@ RSpec.describe V2::Logic::Secrets::ShowReceipt, type: :integration do
       # is the enforcement point for the "one time" guarantee. Before #3633 the
       # previewed! state mutation bounded it; now an atomic claim does, so a
       # second load must return nil even inside the display window.
-      display_ttl = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
+      display_ttl = OT.conf.get('site.secret_options.generated_value_display_ttl').to_i
       expect(display_ttl).to be_positive # config sanity: the value path is dead at 0
 
       receipt.kind = 'generate'
@@ -148,7 +148,7 @@ RSpec.describe V2::Logic::Secrets::ShowReceipt, type: :integration do
       receipt.kind = 'generate'
       receipt.save_fields(:kind)
       secret_options = OT.conf.get('site.secret_options')
-      saved_ttl      = secret_options['generated_value_display_ttl']
+      saved_ttl      = OT.conf.get('site.secret_options.generated_value_display_ttl')
       secret_options['generated_value_display_ttl'] = 0
 
       logic = build_logic({ 'identifier' => receipt.identifier })
@@ -165,7 +165,7 @@ RSpec.describe V2::Logic::Secrets::ShowReceipt, type: :integration do
       # claim_secret_value_display! consumes the one-shot slot. Gating the claim
       # on verifier state must leave the slot intact so the value is still
       # revealable once SECRET is restored (non-destructive contract).
-      display_ttl = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
+      display_ttl = OT.conf.get('site.secret_options.generated_value_display_ttl').to_i
       expect(display_ttl).to be_positive
 
       receipt.kind = 'generate'
