@@ -10,8 +10,8 @@ module V1::Logic
 
     # V1 Secret Creation Logic [#2615]
     #
-    # TTL bounds come from site.secret_options in config. The config path
-    # is OT.conf.dig('site', 'secret_options') — NOT a top-level fetch.
+    # TTL bounds come from site.secret_options in config
+    # (OT.conf.get('site.secret_options.default_ttl')), not a top-level key.
     # If the config key is missing, the hardcoded fallback applies:
     #   ttl_options: [30.minutes, 2.hours, 1.day, 7.days]
     #   default_ttl: 7.days
@@ -135,18 +135,14 @@ module V1::Logic
         #   2. YAML nil values are preserved as DEFAULTS (deep_merge skips nil)
         #   3. This dig reads the merged result — DEFAULTS wins when YAML is nil
         #
-        # The inline fallback hash below only triggers if the entire
-        # site.secret_options key is absent (should not happen after after_load).
+        # Config.after_load guarantees default_ttl (Config::DEFAULTS); the
+        # fallback covers a config built without it.
         #
         # V1-specific TTL bounds [#2621]:
         #   min = V1_MIN_TTL (60s), max = V1_MAX_TTL (30 days)
         # These preserve v0.23.4 behavior. The config values are used for
         # default_ttl only; bounds are V1-specific constants.
-        secret_options = OT.conf.get('site.secret_options', {
-          'default_ttl' => 7.days,
-          'ttl_options' => [30.minutes, 2.hours, 1.day, 7.days],
-        })
-        default_ttl    = secret_options['default_ttl']
+        default_ttl = OT.conf.get('site.secret_options.default_ttl', 7.days)
 
         # V1 uses its own TTL bounds, not the config's ttl_options min/max.
         # This preserves v0.23.4 behavior where 60s was the minimum.
@@ -362,10 +358,8 @@ module V1::Logic
         #
         # V1 enforces the configured minimum_length: 4 unless the operator
         # changes it, and 0 turns the check off. See passphrase_min_length.
-        passphrase_config = OT.conf.get('site.secret_options.passphrase', {})
-
         # Check if passphrase is required (defaults to false for V1 compat)
-        if passphrase_config['required'] && passphrase.to_s.empty?
+        if OT.conf.get('site.secret_options.passphrase.required', nil) && passphrase.to_s.empty?
           raise_form_error 'A passphrase is required for all secrets'
         end
 
@@ -379,7 +373,7 @@ module V1::Logic
         end
 
         # Validate maximum length (shared with all versions)
-        max_length = passphrase_config['maximum_length']
+        max_length = OT.conf.get('site.secret_options.passphrase.maximum_length', nil)
         if max_length && passphrase.length > max_length
           raise_form_error "Passphrase must be no more than #{max_length} characters long"
         end

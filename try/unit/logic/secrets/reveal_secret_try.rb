@@ -69,11 +69,11 @@ ret = logic.success_data
 ret.keys
 #=> [:record, :details]
 
-## Has some essential settings
+## Reads features.domains.enabled into domains_enabled
 params = {}
 logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
-[logic.site['host'], logic.authentication['enabled'], logic.domains_enabled]
-#=> ["127.0.0.1:3000", true, false]
+logic.domains_enabled
+#=> false
 
 ## Raises an exception when there's no receipt (no receipt param)
 params = {}
