@@ -1,3 +1,8 @@
+// Renovate runs from a pipeline schedule in the private project
+// onetimesecret/renovate-runner (.gitlab/renovate-runner.gitlab-ci.yml). That
+// job reads this file from develop and passes it as Renovate's global config,
+// and Renovate ignores repository config files (requireConfig: ignored). A
+// change here takes effect on the first run after it merges into develop.
 {
   $schema: 'https://docs.renovatebot.com/renovate-schema.json',
 
