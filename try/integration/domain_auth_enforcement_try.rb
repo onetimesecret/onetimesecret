@@ -58,8 +58,10 @@ require_relative '../../apps/web/core/views/serializers/config_serializer'
 @org = Onetime::Organization.create!("DAE Test Org #{@ts}", @owner, "dae_#{@ts}@test.com")
 
 # -------------------------------------------------------------------
-# Controller stub: exercises real Base#signin_enabled? with injectable
-# domain_signin_config and auth_settings.
+# Controller stub: exercises real Base#signin_enabled? with an injectable
+# domain_signin_config. The global side is site.authentication, which
+# signin_enabled? reads through SigninConfig.global_signin_enabled; the stub
+# installs the injected settings there for the call and puts the suite's back.
 # -------------------------------------------------------------------
 SigninGateController = Class.new do
   include Core::Controllers::Base
@@ -87,12 +89,15 @@ SigninGateController = Class.new do
     injected_signin_config
   end
 
-  def auth_settings
-    injected_auth_settings
-  end
+  public
 
-  # Expose the protected method
-  public :signin_enabled?
+  def signin_enabled?
+    saved = OT.conf.get('site.authentication')
+    OT.conf.get('site')['authentication'] = injected_auth_settings
+    super
+  ensure
+    OT.conf.get('site')['authentication'] = saved
+  end
 end
 
 # Global settings where signin IS enabled (the typical default)
