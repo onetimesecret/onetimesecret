@@ -26,18 +26,17 @@ module Onetime
 
       def execute(_context)
         start_time   = OT.now_in_μs
-        i18n         = OT.conf.get('internationalization', {})
-        i18n_enabled = i18n['enabled'] || false
+        i18n_enabled = OT.conf.get('internationalization.enabled', false)
 
         OT.boot_logger.debug '[i18n] Parsing through i18n locales...'
 
         # Load the locales from the config in both the current and
         # legacy locations. If the locales are not set in the config,
         # we fallback to english.
-        locales_list = i18n.fetch('locales', nil) || OT.conf.get('locales', ['en']).map(&:to_s)
+        locales_list = OT.conf.get('internationalization.locales', nil) || OT.conf.get('locales', ['en']).map(&:to_s)
 
         if i18n_enabled
-          supported_locales, default_locale, fallback_locale = extract_i18n_config(i18n, locales_list)
+          supported_locales, default_locale, fallback_locale = extract_i18n_config(locales_list)
 
           # Validate default locale is in supported list
           unless locales_list.include?(default_locale)
@@ -59,8 +58,8 @@ module Onetime
 
         # Read date/datetime format preferences (default: 'locale' for browser-native formatting)
         # Values: 'locale', 'iso8601', or a date-fns format pattern (e.g. 'dd/MM/yyyy')
-        date_format     = i18n.fetch('date_format', 'locale')
-        datetime_format = i18n.fetch('datetime_format', 'locale')
+        date_format     = OT.conf.get('internationalization.date_format', 'locale')
+        datetime_format = OT.conf.get('internationalization.datetime_format', 'locale')
 
         # Set runtime state
         Onetime::Runtime.internationalization = Onetime::Runtime::Internationalization.new(
@@ -79,12 +78,12 @@ module Onetime
 
       private
 
-      def extract_i18n_config(i18n, locales_list)
+      def extract_i18n_config(locales_list)
         # First look for the default locale in the i18n config, then
         # legacy the locales config approach of using the first one.
         supported = locales_list
-        default   = i18n.fetch('default_locale', locales_list.first) || 'en'
-        fallback  = i18n.fetch('fallback_locale', nil)
+        default   = OT.conf.get('internationalization.default_locale', locales_list.first) || 'en'
+        fallback  = OT.conf.get('internationalization.fallback_locale', nil)
 
         [supported, default, fallback]
       end
