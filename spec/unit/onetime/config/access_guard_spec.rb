@@ -78,7 +78,8 @@ module ConfigAccessGuard
     'jobs.rabbitmq_management_url' => 'optional; RABBITMQ_MANAGEMENT_URL or localhost is used without it',
     'locales' => 'legacy top-level list, read when internationalization.locales is unset',
     'site.authentication.colonels' => 'operator-set list of colonel emails; the defaults file does not define it',
-    'site.authentication.external' => 'opt-in external auth section; the defaults file does not define it',
+    'site.authentication.external.enabled' => 'opt-in external auth section; the defaults file does not define it',
+    'site.authentication.external.service_url' => 'opt-in external auth section; the defaults file does not define it',
     'site.federation_secret' => 'FEDERATION_SECRET is read first; the defaults file does not define this key',
   }.freeze
 

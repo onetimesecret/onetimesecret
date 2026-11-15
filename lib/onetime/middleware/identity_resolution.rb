@@ -262,7 +262,7 @@ module Onetime
         # This would make an HTTP request to the Advanced service
         # For now, return a placeholder structure
 
-        service_url = external_auth_config['service_url']
+        service_url = OT.conf.get('site.authentication.external.service_url', nil)
         return nil unless service_url
 
         # TODO: Implement actual HTTP call to auth service
@@ -303,18 +303,7 @@ module Onetime
       end
 
       def external_auth_enabled?
-        config = external_auth_config
-        config && config['enabled'] == true
-      end
-
-      def external_auth_config
-        return @external_auth_config if defined?(@external_auth_config)
-
-        @external_auth_config = if defined?(OT) && OT.respond_to?(:conf)
-          OT.conf.get('site.authentication.external', {})
-        else
-          {}
-        end
+        OT.conf.get('site.authentication.external.enabled', nil) == true
       end
 
       def no_identity
