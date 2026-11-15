@@ -96,7 +96,7 @@ def outputs(text):
 def defaults():
     return {key: "false" for key in (
         "SKIP_CI", "RUN_ALL", "GA_WORKFLOWS", "FILTER_RUBY",
-        "FILTER_TYPESCRIPT", "FILTER_FRONTEND", "FILTER_OCI", "FILTER_HARNESS",
+        "FILTER_TYPESCRIPT", "FILTER_FRONTEND", "FILTER_OCI",
         "FILTER_AUTH", "NIGHTLY",
     )}
 
@@ -109,15 +109,15 @@ def compute_cases():
     for values in itertools.product(("false", "true"), repeat=len(keys)):
         inputs = dict(zip(keys, values))
         if inputs["SKIP_CI"] == "true":
-            expected = dict.fromkeys(("ruby", "typescript", "frontend", "oci", "harness", "auth",
+            expected = dict.fromkeys(("ruby", "typescript", "frontend", "oci", "auth",
                                       "billing_nightly", "ga_workflow_files"), "false")
         elif inputs["RUN_ALL"] == "true" or inputs["GA_WORKFLOWS"] == "true":
-            expected = dict.fromkeys(("ruby", "typescript", "frontend", "oci", "harness", "auth",
+            expected = dict.fromkeys(("ruby", "typescript", "frontend", "oci", "auth",
                                       "ga_workflow_files"), "true")
             expected["billing_nightly"] = inputs["NIGHTLY"]
         else:
             expected = {key: inputs["FILTER_" + key.upper()]
-                        for key in ("ruby", "typescript", "frontend", "oci", "harness", "auth")}
+                        for key in ("ruby", "typescript", "frontend", "oci", "auth")}
             expected["billing_nightly"] = inputs["NIGHTLY"]
             expected["ga_workflow_files"] = "false"
         for file_mode in (False, True):
@@ -134,7 +134,7 @@ def compute_cases():
                     expected = {**expected, "existing": "kept"}
                 check(actual == expected,
                       f"compute {inputs}, file={file_mode}: expected {expected}, got {actual}")
-    print("  1024 compute/output-mode cases", flush=True)
+    print("  512 compute/output-mode cases", flush=True)
 
 
 def invalid_auth():
@@ -174,13 +174,13 @@ def selector_independence():
         check(computed.returncode == 0, f"selection: {computed.stderr}")
         check(outputs(computed.stdout) == {
             "ruby": "false", "auth": "true", "typescript": "false", "frontend": "false",
-            "oci": "false", "harness": "false", "billing_nightly": "false", "ga_workflow_files": "false",
+            "oci": "false", "billing_nightly": "false", "ga_workflow_files": "false",
         }, f"label/path/event auth is its own flag and must not turn on Ruby or any other filter: {computed.stdout}")
     computed = run(compute, {**defaults(), "NIGHTLY": "true", "GITHUB_OUTPUT": ""})
     check(computed.returncode == 0, f"nightly selection: {computed.stderr}")
     check(outputs(computed.stdout) == {
         "ruby": "false", "auth": "false", "typescript": "false", "frontend": "false",
-        "oci": "false", "harness": "false", "billing_nightly": "true", "ga_workflow_files": "false",
+        "oci": "false", "billing_nightly": "true", "ga_workflow_files": "false",
     }, f"the nightly flag is its own flag and must not turn on Ruby, auth or any other filter: {computed.stdout}")
     inputs = defaults()
     del inputs["NIGHTLY"]
@@ -255,7 +255,7 @@ def shared_wiring():
         "SKIP_CI": "steps.check-flags.outputs.skip_ci", "RUN_ALL": "steps.check-flags.outputs.run_all",
         "GA_WORKFLOWS": "steps.filter.outputs.ga_workflow_files", "FILTER_AUTH": "steps.auth.outputs.auth",
         **{"FILTER_" + name.upper(): "steps.filter.outputs." + name
-           for name in ("ruby", "typescript", "frontend", "oci", "harness")},
+           for name in ("ruby", "typescript", "frontend", "oci")},
         # The nightly-only selection is the event, never a path filter output:
         # the schedule, a release tag, or a dispatch with run_all.
         "NIGHTLY": "github.event_name == 'schedule' || "
@@ -421,8 +421,10 @@ def browser_extraction():
     # The last step of the job, so the slice runs to the job's end.
     check("      - name: Run harness lane\n" in unit, "unit job has the harness lane step")
     harness = unit[unit.index("      - name: Run harness lane\n"):]
-    check(scalar(harness, "if", 8) == expression("!cancelled() && needs.changes.outputs.harness == 'true'"),
-          "the harness lane runs only when a path its specs exercise changed, and after a red unit lane")
+    check(scalar(harness, "if", 8) == expression("!cancelled()"),
+          "the harness lane runs on every run of the unit job, and after a red unit lane")
+    check("outputs.harness" not in workflow and not re.search(r"^            harness:$", workflow, re.M),
+          "no harness path flag: the step follows the unit job's Ruby gate")
     check("results-file: 'rspec_harness_results.json'" in harness, "harness results file is its own artifact")
     check(not re.search(r"playwright|lane: browser|tests/browser", executable(unit), re.I),
           "ordinary Ruby unit job must not install or execute browsers")

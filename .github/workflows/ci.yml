@@ -142,9 +142,6 @@ jobs:
       oci: ${{ steps.compute.outputs.oci }}
       ga_workflow_files: ${{ steps.compute.outputs.ga_workflow_files }}
       auth: ${{ steps.compute.outputs.auth }}
-      # The lane runner's own specs (the harness lane, a second step of
-      # ruby-unit): a path those specs exercise changed.
-      harness: ${{ steps.compute.outputs.harness }}
       # The nightly-only selection: true on the schedule event (or a manual
       # dispatch with run_all), never from a path. Gates the two nightly
       # billing jobs (ruby-integration-billing, ruby-billing-integration).
@@ -242,22 +239,6 @@ jobs:
               - 'scripts/entrypoint.sh'
               - 'etc/**'
               - 'config.ru'
-            # The lane runner's own specs, spec/unit/lanes (the harness lane,
-            # HARNESS_SPEC_PATHS in lib/tasks/spec.rake): every path they
-            # exercise. They start tests/lanes/run as a subprocess, load the
-            # spec rake files through it and read what spec_helper and the
-            # test logging config give a run. A subset of `ruby`, so the
-            # ruby-unit job that hosts the step is selected whenever this is.
-            # The action path is listed for the reader; any .github/** change
-            # already forces every path flag (ga_workflow_files below).
-            harness:
-              - 'spec/unit/lanes/**'
-              - 'tests/lanes/**'
-              - 'lib/tasks/spec.rake'
-              - 'lib/tasks/spec_selection.rake'
-              - 'spec/spec_helper.rb'
-              - 'spec/logging.test.yaml'
-              - '.github/actions/run-test-lane/**'
             # No billing filter: billing's own lane rides the ruby flag, and
             # the other two billing jobs are nightly only (the
             # billing_nightly output below), so no path selects them on a
@@ -282,7 +263,6 @@ jobs:
           FILTER_TYPESCRIPT: ${{ steps.filter.outputs.typescript }}
           FILTER_FRONTEND: ${{ steps.filter.outputs.frontend }}
           FILTER_OCI: ${{ steps.filter.outputs.oci }}
-          FILTER_HARNESS: ${{ steps.filter.outputs.harness }}
           FILTER_AUTH: ${{ steps.auth.outputs.auth }}
           # The nightly-only selection. The scheduled run, a release tag
           # (so the tagged commit has every configuration's result), or a
@@ -304,7 +284,6 @@ jobs:
             echo "| Frontend | ${{ steps.compute.outputs.frontend }} |"
             echo "| OCI | ${{ steps.compute.outputs.oci }} |"
             echo "| Auth | ${{ steps.compute.outputs.auth }} |"
-            echo "| Harness (lane runner specs) | ${{ steps.compute.outputs.harness }} |"
             echo "| Billing (nightly) | ${{ steps.compute.outputs.billing_nightly }} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -603,14 +582,16 @@ jobs:
           results-file: 'rspec_unit_results.json'
           debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
-      # The lane runner's own specs (spec/unit/lanes, tests/lanes/harness):
-      # nearly every example starts tests/lanes/run as a subprocess, about 20s
-      # for tests of the runner rather than the application, so the step runs
-      # only when a path they exercise changed (the harness filter in the
-      # changes job). !cancelled(): a red unit lane does not skip it, the way
-      # a lane's own legs are collected rather than chained.
+      # The lane runner's own specs (spec/unit/lanes, tests/lanes/harness),
+      # on every run of this job. Nearly every example starts tests/lanes/run
+      # as a subprocess, about 30s here. Some of them read paths outside the
+      # runner: ownership_spec.rb walks every spec/ and try/ directory and
+      # fails on one no lane claims, so a change that adds a test directory
+      # anywhere is what these specs check. !cancelled(): a red unit lane
+      # does not skip it, the way a lane's own legs are collected rather than
+      # chained.
       - name: Run harness lane
-        if: ${{ !cancelled() && needs.changes.outputs.harness == 'true' }}
+        if: ${{ !cancelled() }}
         uses: ./.github/actions/run-test-lane
         with:
           lane: harness

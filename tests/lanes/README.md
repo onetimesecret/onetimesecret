@@ -540,7 +540,7 @@ duration exceeds its wall clock.
 | `smoke`              | valkey, rabbitmq           | `pnpm test:smoke`                                             | 1 (refused above) | smoke-test (T3)                        |
 | `migrations-sqlite`  | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                          | 1       | migration-tests.yml — SQLite job                 |
 | `migrations-pg`      | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check    | 1 (PG)  | migration-tests.yml — PostgreSQL job             |
-| `harness`            | valkey, rabbitmq           | `spec:lanes` (`spec/unit/lanes`, the runner's own specs)      | 1       | ruby-unit (T2), second step, path-gated          |
+| `harness`            | valkey, rabbitmq           | `spec:lanes` (`spec/unit/lanes`, the runner's own specs)      | 1       | ruby-unit (T2), second step                      |
 | `selftest`           | none                       | boundary fixture                                              | 1       | none — driven by `spec/unit/lanes/`              |
 
 Start every service named for a lane. This includes RabbitMQ for `api`,
@@ -564,13 +564,11 @@ non-zero naming the red legs; the same holds for the three rspec legs inside
 The `harness` lane is the runner's own specs, `spec/unit/lanes/`, carved out
 of `unit` (`HARNESS_SPEC_PATHS` in `lib/tasks/spec.rake`): nearly every
 example starts `tests/lanes/run` as a subprocess, so the directory costs about
-20 seconds in CI for tests of the runner, not the application. The ruby-unit
-job runs it as a second step only when a path those specs exercise changed:
-`spec/unit/lanes/`, `tests/lanes/`, the two spec rake files, `spec_helper.rb`,
-the test logging config and the run-test-lane action (the `harness` filter in
-`ci.yml`; any `.github/` change or a run-all event selects it too). Locally it
-is in `run-all`'s default set, and `tests/lanes/run --only` on one of its
-files infers it.
+30 seconds in CI. The ruby-unit job runs it as a second step on every run,
+because some of these specs read paths outside the runner: `ownership_spec.rb`
+walks every `spec/` and `try/` directory and fails on one that no lane claims.
+Locally it is in `run-all`'s default set, and `tests/lanes/run --only` on one
+of its files infers it.
 
 The `billing` lane is billing's own tests, carved out of `unit`: the billing
 app's spec and tryouts trees plus the root trees named for billing
