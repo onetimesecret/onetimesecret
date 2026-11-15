@@ -80,12 +80,14 @@ RSpec.describe Onetime::Chores::RemoveOrphanedApproximatedVhosts do
   let(:pause) { 0.5 }
   let(:apply) { true }
 
+  # The chore reads features.domains.validation_strategy from OT.conf.
+  before { allow(OT).to receive(:conf).and_return(OT::Config.wrap(config)) }
+
   let(:chore) do
     described_class.new(
       client: client,
       resolver: resolver,
       features: features,
-      config: config,
       apply: apply,
       pause: pause,
       sleeper: sleeper,
@@ -686,9 +688,7 @@ RSpec.describe Onetime::Chores::RemoveOrphanedApproximatedVhosts do
       include_examples 'no DNS lookup'
     end
 
-    context 'when no config is injected' do
-      let(:config) { nil }
-
+    context 'when OT.conf is swapped' do
       it 'reads OT.conf: approximated blocks' do
         allow(OT).to receive(:conf)
           .and_return(OT::Config.wrap({ 'features' => { 'domains' => { 'validation_strategy' => 'approximated' } } }))
@@ -1510,7 +1510,6 @@ RSpec.describe Onetime::Chores::RemoveOrphanedApproximatedVhosts do
         client: client,
         resolver: resolver,
         features: features,
-        config: config,
         apply: true,
         pause: 2,
         sleeper: sleeper,
@@ -1521,7 +1520,7 @@ RSpec.describe Onetime::Chores::RemoveOrphanedApproximatedVhosts do
 
     it 'defaults the pause to API_PAUSE' do
       described_class.new(
-        client: client, resolver: resolver, features: features, config: config, apply: true, sleeper: sleeper,
+        client: client, resolver: resolver, features: features, apply: true, sleeper: sleeper,
       ).call(domain)
 
       expect(sleeps).to eq([described_class::API_PAUSE, described_class::API_PAUSE])
@@ -1589,7 +1588,7 @@ RSpec.describe Onetime::Chores::RemoveOrphanedApproximatedVhosts do
 
       # Kernel.method(:sleep) is captured per call, after the stub above.
       described_class.new(
-        client: client, resolver: resolver, features: features, config: config, apply: true, pause: 0.25,
+        client: client, resolver: resolver, features: features, apply: true, pause: 0.25,
       ).call(domain)
 
       expect(Kernel).to have_received(:sleep).with(0.25).twice
@@ -1741,7 +1740,6 @@ RSpec.describe Onetime::Chores::RemoveOrphanedApproximatedVhosts do
         client: client,
         resolver: resolver,
         features: features,
-        config: config,
         apply: false,
         pause: pause,
         sleeper: sleeper,

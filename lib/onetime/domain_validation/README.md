@@ -225,7 +225,7 @@ The widget renders only when `validation_strategy === 'approximated'` (see `Doma
 ## Usage
 
 ```ruby
-strategy = Onetime::DomainValidation::Strategy.for_config(OT.conf)
+strategy = Onetime::DomainValidation::Strategy.for_config
 
 # Core operations
 strategy.validate_ownership(custom_domain) # DNS TXT validation (approximated, caddy_on_demand)

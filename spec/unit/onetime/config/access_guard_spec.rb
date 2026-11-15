@@ -61,6 +61,7 @@ module ConfigAccessGuard
   # Literal paths read with a default that are not in the shipped config,
   # with the reason each can be absent.
   OPTIONAL_PATHS = {
+    'features.domains.strict_strategy' => 'opt-in: an unknown validation_strategy raises instead of falling back to passthrough',
     'jobs.dlq_monitor_enabled' => 'opt-in switch for DlqMonitorJob; the defaults file does not define it',
     'jobs.domain_refresh.rate_limit' => "commented out in the defaults: unset means the strategy's own pacing",
     'jobs.heartbeat_enabled' => 'opt-in switch for HeartbeatJob; the defaults file does not define it',
@@ -73,14 +74,8 @@ module ConfigAccessGuard
 
   # Uses of OT.conf other than OT.conf.get that stay: file => [count, reason].
   ALLOWED_USES = {
-    'apps/api/domains/cli/helpers.rb' => [1, 'Strategy.for_config takes the whole config'],
-    'apps/api/domains/logic/domains/get_dns_widget_token.rb' => [1, 'Strategy.for_config takes the whole config'],
     'lib/onetime/application/registry.rb' => [2, 'warns on an app registered before boot (nil?); the config object is the rack_url_map cache token (object_id)'],
     'lib/onetime/config.rb' => [1, 'apply_config merges an override over the whole config'],
-    'lib/onetime/initializers/configure_domains.rb' => [1, 'DomainValidation::Features.load_from_config takes the whole config'],
-    'lib/onetime/operations/domains/collision_resolution.rb' => [1, 'Strategy.for_config takes the whole config'],
-    'lib/onetime/operations/domains/teardown.rb' => [1, 'Strategy.for_config takes the whole config'],
-    'lib/onetime/operations/verify_domain.rb' => [1, 'Strategy.for_config takes the whole config'],
   }.freeze
 
   module_function

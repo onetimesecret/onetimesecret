@@ -97,7 +97,7 @@ module Onetime
       end
 
       def get_validation_strategy
-        Onetime::DomainValidation::Strategy.for_config(OT.conf)
+        Onetime::DomainValidation::Strategy.for_config
       end
 
       def format_verification_state(state)

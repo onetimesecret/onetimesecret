@@ -66,7 +66,7 @@ simple sum of every row below.
 | Link-creation gate | V1 and V2 enforce ownership only when global `features.domains.require_verified` is true; default is false | Caddy and passthrough domains can be selected without mandatory native ownership proof |
 | State model | `verification_state` combines `verified` and `resolving`; Caddy certificate state is not stored | Ownership, routing, and serving/certificate health cannot be reported independently |
 | Frontend status | `useDomainStatus.ts` derives status only from Approximated `vhost.status` | Native Caddy domains cannot display truthful state |
-| Strategy selection | `Strategy.for_config(config)` reads only the install-level strategy; `CustomDomain` has no validation-strategy field | Incremental per-domain migration in ADR-015 is unavailable |
+| Strategy selection | `Strategy.for_config` reads only the install-level strategy; `CustomDomain` has no validation-strategy field | Incremental per-domain migration in ADR-015 is unavailable |
 | Revalidation | `DomainRefreshJob` runs at one fixed interval and always selects `0..batch_size-1` without a cursor | It is not per-domain adaptive, has no terminal state, and domains outside the selected batch may never be checked |
 | Challenge lifetime | TXT challenge is generated at domain creation with no expiry or rotation | Ownership challenges remain reusable indefinitely |
 | Caddy configuration | The ACME app, README, config comments, and example Caddyfile still use deprecated `ask` | Native deployment depends on a Caddy interface marked for removal |
