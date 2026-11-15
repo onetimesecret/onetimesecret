@@ -4,14 +4,15 @@
 # rspec processes), then the vitest smoke subset (pnpm test:smoke:vitest;
 # list in src/tests/smoke-files.ts). Every listed file is also run by the
 # lane that owns it.
-# CI: run by the smoke-test job in .github/workflows/ci.yml on any Ruby or
-# TypeScript change, with timeout-minutes 10. It waits on no test job.
+# CI: run on any Ruby or TypeScript change by the smoke-lane job in
+# .gitlab/ci/ruby.yml (merge request pipelines) and the smoke-test job in
+# .github/workflows/ci.yml (mirrored pushes). Neither waits on a test job.
 AUTHENTICATION_MODE=simple
 
 # Generated prerequisites, produced by tests/lanes/run before the tasks
-# below (see the codegen phase there). smoke:ruby includes
-# spec:apps:web_billing, which reads the gitignored generated billing
-# schema; spec/spec_helper.rb needs the compiled locales.
+# below (see the codegen phase there): `locales` compiles the locales that
+# spec/spec_helper.rb needs, and `schemas` runs `pnpm run
+# schemas:json:generate`.
 #
 # NOT skip-safe: `pnpm test:smoke` shells into `pnpm test:smoke:vitest`,
 # which starts with its own `pnpm run locales:sync` (package.json).

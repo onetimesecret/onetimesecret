@@ -23,9 +23,9 @@ $ docker compose -f compose.test.yml down
 
 Prerequisites: bash 5+, `bundle install`, `pnpm install`, and `python3`.
 macOS's system bash is 3.2; install a newer version with `brew install bash`.
-`unit` and `smoke` also require built frontend assets in `public/web/dist/`
-(`pnpm run build` locally; CI supplies them). `browser` also requires the
-Playwright browser binaries (`pnpm exec playwright install chromium firefox
+`unit` also requires built frontend assets in `public/web/dist/`
+(`pnpm run build` locally; CI supplies them); `smoke` does not.
+`browser` also requires the Playwright browser binaries (`pnpm exec playwright install chromium firefox
 webkit`; `bin/setup --test` installs them) and, on Linux, their OS packages
 (`pnpm exec playwright install-deps`, which uses sudo/apt and is therefore
 left to the contributor and to CI). The lane's tasks preflight the binaries
@@ -537,7 +537,7 @@ duration exceeds its wall clock.
 | `disabled`           | valkey, rabbitmq           | `spec:integration:disabled`                                   | 1       | ruby-integration-disabled (T3)                   |
 | `strategies`         | valkey, rabbitmq           | `spec:integration:strategies`                                 | 1       | ruby-integration-strategies (T3)                 |
 | `api`                | valkey, rabbitmq           | `spec:api`                                                    | 4       | blocking step, T3 simple job                     |
-| `smoke`              | valkey, rabbitmq           | `pnpm test:smoke`                                             | 1 (refused above) | smoke-test (T3)                        |
+| `smoke`              | valkey, rabbitmq           | `pnpm test:smoke`                                             | 1 (refused above) | smoke-test (T3); GitLab: smoke-lane    |
 | `migrations-sqlite`  | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                          | 1       | migration-tests.yml — SQLite job                 |
 | `migrations-pg`      | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check    | 1 (PG)  | migration-tests.yml — PostgreSQL job             |
 | `harness`            | valkey, rabbitmq           | `spec:lanes` (`spec/unit/lanes`, the runner's own specs)      | 1       | ruby-unit (T2), second step                      |
