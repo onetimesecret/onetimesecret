@@ -16,7 +16,7 @@ VERIFIER_KEY = Onetime::SecretVerifier::VERIFIER_KEY
 @expected    = Onetime::SecretVerifier.expected_verifier
 
 ## expected_verifier is the hex :key_verifier derivation of site.secret
-@expected == Onetime::KeyDerivation.derive_hex(OT.conf.dig('site', 'secret'), :key_verifier)
+@expected == Onetime::KeyDerivation.derive_hex(OT.conf.get('site.secret'), :key_verifier)
 #=> true
 
 ## Absent key: check! adopts (SET NX), stores the expected value, caches state
@@ -65,25 +65,25 @@ Onetime::SecretVerifier.adopt!
 #=> [true, :ok, :ok]
 
 ## Policy mode defaults to warn when unset or unrecognized
-@original_mode = OT.conf['site']['secret_verifier_mode']
-OT.conf['site']['secret_verifier_mode'] = 'bogus'
+@original_mode = OT.conf.get('site.secret_verifier_mode')
+OT.conf.get('site')['secret_verifier_mode'] = 'bogus'
 mode_bogus = Onetime::SecretVerifier.mode
-OT.conf['site']['secret_verifier_mode'] = nil
+OT.conf.get('site')['secret_verifier_mode'] = nil
 mode_unset = Onetime::SecretVerifier.mode
-OT.conf['site']['secret_verifier_mode'] = @original_mode
+OT.conf.get('site')['secret_verifier_mode'] = @original_mode
 [mode_bogus, mode_unset]
 #=> ['warn', 'warn']
 
 ## Initializer with warn mode logs but keeps booting on mismatch
 Familia.dbclient.set(VERIFIER_KEY, 'not-the-real-verifier')
-OT.conf['site']['secret_verifier_mode'] = 'warn'
+OT.conf.get('site')['secret_verifier_mode'] = 'warn'
 result = Onetime::Initializers::CheckSecretVerifier.new.execute(nil)
 [Onetime.secret_verifier_state, result.nil?]
 #=> [:mismatch, true]
 
 ## Initializer with enforce mode raises SecretVerifierMismatch (FatalBootError)
 Familia.dbclient.set(VERIFIER_KEY, 'not-the-real-verifier')
-OT.conf['site']['secret_verifier_mode'] = 'enforce'
+OT.conf.get('site')['secret_verifier_mode'] = 'enforce'
 error = begin
   Onetime::Initializers::CheckSecretVerifier.new.execute(nil)
   nil
@@ -94,10 +94,10 @@ end
 #=> [Onetime::SecretVerifierMismatch, true]
 
 ## Initializer with off mode is skipped entirely
-OT.conf['site']['secret_verifier_mode'] = 'off'
+OT.conf.get('site')['secret_verifier_mode'] = 'off'
 Onetime::Initializers::CheckSecretVerifier.new.should_skip?
 #=> true
 
 # Teardown: restore the real verifier and a clean state for other tryouts.
-OT.conf['site']['secret_verifier_mode'] = @original_mode
+OT.conf.get('site')['secret_verifier_mode'] = @original_mode
 Onetime::SecretVerifier.adopt!

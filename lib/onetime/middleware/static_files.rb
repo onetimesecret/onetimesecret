@@ -95,13 +95,12 @@ module Onetime
       def setup_static_files
         # Store reference to original app for use inside builder block
         # This is necessary because the Rack::Builder block runs in a different context
-        app_instance        = @app
-        middleware_settings = Onetime.conf.get('site.middleware', {})
+        app_instance = @app
 
         Rack::Builder.new do
           # Configure static file middleware to serve files from public/web directory
           # Only serve specific paths that contain static assets
-          if middleware_settings['static_files']
+          if Onetime.conf.get('site.middleware.static_files', nil)
             Onetime.ld '[StaticFiles] Enabling StaticFiles middleware'
             require 'rack/static'
 

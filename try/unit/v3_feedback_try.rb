@@ -199,7 +199,7 @@ result
 # Stash and override emailer.feedback_to to verify the override branch
 strategy_result = MockStrategyResult.anonymous
 logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
-original_emailer = OT.conf['emailer']
+original_emailer = OT.conf.get('emailer')
 OT.conf['emailer'] = (original_emailer || {}).merge('feedback_to' => 'team@example.com')
 begin
   logic.send(:feedback_recipient_email)
@@ -212,7 +212,7 @@ end
 # Empty string in config should not short-circuit the colonel lookup.
 strategy_result = MockStrategyResult.anonymous
 logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
-original_emailer = OT.conf['emailer']
+original_emailer = OT.conf.get('emailer')
 OT.conf['emailer'] = (original_emailer || {}).merge('feedback_to' => '   ')
 begin
   configured = logic.send(:feedback_recipient_email)

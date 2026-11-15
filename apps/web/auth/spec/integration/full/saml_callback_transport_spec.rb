@@ -173,7 +173,7 @@ RSpec.describe 'Staged tenant SAML Connect', :shared_db_state, type: :integratio
       mounted_app = app
       accounts_before = auth_db[:accounts].count
       location = stage_connect
-      OT.conf['site']['network']['public_host_rewrite'] = !rewrite_on
+      OT.conf.get('site.network')['public_host_rewrite'] = !rewrite_on
       expect(app).to equal(mounted_app)
 
       get location

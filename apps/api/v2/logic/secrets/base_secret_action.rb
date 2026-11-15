@@ -125,14 +125,10 @@ module V2::Logic
         # `secret[ttl][]=1` arrives as an Array; `.to_i` below would raise.
         raise_form_error 'Incorrect payload format', field: :ttl unless scalar_param?(ttl)
 
-        # Get configuration options. We can rely on these values existing
-        # because that are guaranteed by OT::Config.after_load.
-        secret_options = OT.conf.get('site.secret_options', nil) || {
-          'default_ttl' => 7.days,
-          'ttl_options' => [1.minute, 1.hour, 1.day, 7.days],
-        }
-        default_ttl    = secret_options['default_ttl']
-        ttl_options    = secret_options['ttl_options']
+        # Get configuration options. OT::Config.after_load guarantees both
+        # (Config::DEFAULTS); the fallbacks cover a config built without it.
+        default_ttl = OT.conf.get('site.secret_options.default_ttl', 7.days)
+        ttl_options = OT.conf.get('site.secret_options.ttl_options', [1.minute, 1.hour, 1.day, 7.days])
 
         # Get min/max values safely
         min_ttl = ttl_options.min || 1.minute # Fallback to 1 minute
@@ -383,11 +379,8 @@ module V2::Logic
 
       # @sync src/schemas/contracts/config/public.ts — passphrase options
       def validate_passphrase
-        # Get passphrase configuration
-        passphrase_config = OT.conf.get('site.secret_options.passphrase', {})
-
         # Check if passphrase is required
-        if passphrase_config['required'] && passphrase.to_s.empty?
+        if OT.conf.get('site.secret_options.passphrase.required', nil) && passphrase.to_s.empty?
           raise_form_error 'A passphrase is required for all secrets'
         end
 
@@ -395,19 +388,19 @@ module V2::Logic
         return if passphrase.to_s.empty?
 
         # Validate minimum length
-        min_length = passphrase_config['minimum_length']&.to_i
+        min_length = OT.conf.get('site.secret_options.passphrase.minimum_length', nil)&.to_i
         if min_length && passphrase.length < min_length
           raise_form_error "Passphrase must be at least #{min_length} characters long"
         end
 
         # Validate maximum length
-        max_length = passphrase_config['maximum_length'] || nil
+        max_length = OT.conf.get('site.secret_options.passphrase.maximum_length', nil)
         if max_length && passphrase.length > max_length
           raise_form_error "Passphrase must be no more than #{max_length} characters long"
         end
 
         # Validate complexity if required
-        if passphrase_config['enforce_complexity']
+        if OT.conf.get('site.secret_options.passphrase.enforce_complexity', nil)
           validate_passphrase_complexity
         end
       end

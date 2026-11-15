@@ -342,7 +342,7 @@ end
 #=> 0
 
 ## Flag ON: a raising inline favicon fetch is rescued - domain is still created
-OT.conf['jobs']['favicon_fetch']['enabled'] = true
+OT.conf.get('jobs.favicon_fetch')['enabled'] = true
 @fav_domain = "favicon-#{@timestamp}.example.com"
 @logic_fav = DomainsAPI::Logic::Domains::AddDomain.new(@strategy_result1, { 'domain' => @fav_domain })
 @logic_fav.raise_concerns
@@ -354,7 +354,7 @@ OT.conf['jobs']['favicon_fetch']['enabled'] = true
 
 ## Flag OFF: favicon fetch is never attempted (gate short-circuits before the Publisher)
 @favicon_fetch_calls.clear
-OT.conf['jobs']['favicon_fetch']['enabled'] = false
+OT.conf.get('jobs.favicon_fetch')['enabled'] = false
 @fav_domain_off = "favicon-off-#{@timestamp}.example.com"
 @logic_fav_off = DomainsAPI::Logic::Domains::AddDomain.new(@strategy_result1, { 'domain' => @fav_domain_off })
 @logic_fav_off.raise_concerns

@@ -167,21 +167,27 @@ RSpec.describe Onetime::Mail::ProviderRegistry do
   end
 
   describe '.detect_provider' do
+    # detect_provider reads emailer.<key> from OT.conf.
+    def detect(emailer)
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'emailer' => emailer }))
+      described_class.detect_provider
+    end
+
     it 'requires BOTH region and user for ses (precedence over smtp host)' do
-      expect(described_class.detect_provider('region' => 'r', 'user' => 'u', 'host' => 'h')).to eq('ses')
-      expect(described_class.detect_provider('region' => 'r', 'host' => 'h')).to eq('smtp')
+      expect(detect('region' => 'r', 'user' => 'u', 'host' => 'h')).to eq('ses')
+      expect(detect('region' => 'r', 'host' => 'h')).to eq('smtp')
     end
 
     it 'detects each single-key provider' do
-      expect(described_class.detect_provider('sendgrid_api_key' => 'k')).to eq('sendgrid')
-      expect(described_class.detect_provider('lettermint_api_token' => 't')).to eq('lettermint')
-      expect(described_class.detect_provider('smtp2go_api_key' => 'k')).to eq('smtp2go')
-      expect(described_class.detect_provider('host' => 'h')).to eq('smtp')
+      expect(detect('sendgrid_api_key' => 'k')).to eq('sendgrid')
+      expect(detect('lettermint_api_token' => 't')).to eq('lettermint')
+      expect(detect('smtp2go_api_key' => 'k')).to eq('smtp2go')
+      expect(detect('host' => 'h')).to eq('smtp')
     end
 
     it 'returns nil when nothing matches (caller falls back to logger)' do
-      expect(described_class.detect_provider({})).to be_nil
-      expect(described_class.detect_provider(nil)).to be_nil
+      expect(detect({})).to be_nil
+      expect(detect(nil)).to be_nil
     end
   end
 

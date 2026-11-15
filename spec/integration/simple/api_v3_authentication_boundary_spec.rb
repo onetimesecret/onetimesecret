@@ -23,8 +23,8 @@ RSpec.describe 'V3 current authentication boundaries in simple mode', type: :int
   before(:all) { Onetime.boot! :test }
 
   around do |example|
-    api_config = OT.conf.fetch('site').fetch('interface').fetch('api')
-    original_guest_routes = api_config.fetch('guest_routes')
+    api_config = OT.conf.get('site.interface.api')
+    original_guest_routes = OT.conf.get('site.interface.api.guest_routes')
     begin
       api_config['guest_routes'] = original_guest_routes.merge('enabled' => true, 'conceal' => true)
       example.run
@@ -209,7 +209,7 @@ RSpec.describe 'V3 current authentication boundaries in simple mode', type: :int
     include_examples 'session-owned creation with CSRF', '/api/v3/guest/secret/conceal', 'noauth', 'standard'
 
     it 'does not let valid header-only credentials bypass disabled guest conceal' do
-      OT.conf['site']['interface']['api']['guest_routes']['conceal'] = false
+      OT.conf.get('site.interface.api.guest_routes')['conceal'] = false
       before_storage = secret_storage
       post_creation '/api/v3/guest/secret/conceal', authorization: authorization(:basic)
 
@@ -324,18 +324,18 @@ RSpec.describe 'V3 current authentication boundaries in simple mode', type: :int
 
   describe 'HTTP-01.R3/HTTP-05.R4: Incoming creation' do
     around do |example|
-      original_config = OT.conf.fetch('features').fetch('incoming')
+      original_config = OT.conf.get('features.incoming')
       original_public = OT.incoming_public_recipients
       original_lookup = OT.incoming_recipient_lookup
       begin
-        OT.conf['features']['incoming'] = original_config.merge(
+        OT.conf.get('features')['incoming'] = original_config.merge(
           'enabled' => true,
           'recipients' => [{ 'email' => 'authentication-incoming@example.com', 'name' => 'Auth boundary' }],
         )
         Onetime::Initializers::SetupIncomingRecipients.new.execute(nil)
         example.run
       ensure
-        OT.conf['features']['incoming'] = original_config
+        OT.conf.get('features')['incoming'] = original_config
         OT.instance_variable_set(:@incoming_public_recipients, original_public)
         OT.instance_variable_set(:@incoming_recipient_lookup, original_lookup)
       end

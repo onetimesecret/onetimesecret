@@ -24,14 +24,14 @@
 # whatever the setting was.
 RSpec.shared_context 'public host rewrite setting' do
   before do
-    network                        = (OT.conf['site']['network'] ||= {})
+    network                        = (OT.conf.get('site')['network'] ||= {})
     @public_host_rewrite_had_key   = network.key?('public_host_rewrite')
     @public_host_rewrite_saved     = network['public_host_rewrite']
     network['public_host_rewrite'] = rewrite_on
   end
 
   after do
-    network = (OT.conf['site']['network'] ||= {})
+    network = (OT.conf.get('site')['network'] ||= {})
     if @public_host_rewrite_had_key
       network['public_host_rewrite'] = @public_host_rewrite_saved
     else

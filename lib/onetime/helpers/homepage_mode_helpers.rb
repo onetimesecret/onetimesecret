@@ -15,7 +15,7 @@ module Onetime
     #
     # Usage:
     #   include Onetime::Helpers::HomepageModeHelpers
-    #   mode = determine_homepage_mode(req, config)
+    #   mode = determine_homepage_mode
     #
     module HomepageModeHelpers
       # Determines the homepage mode based on CIDR matching and header fallback
@@ -40,18 +40,15 @@ module Onetime
       # @param req [Rack::Request] The request object
       # @return [String, nil] 'internal', 'external', or nil
       def determine_homepage_mode
-        ui_config       = OT.conf.get('site.interface.ui', {})
-        homepage_config = ui_config['homepage'] || {}
-
-        configured_mode = homepage_config['mode']
+        configured_mode = OT.conf.get('site.interface.ui.homepage.mode', nil)
         return nil unless %w[internal external].include?(configured_mode)
 
         # Initialize CIDR matchers (cached at instance level for efficiency)
-        @cidr_matchers ||= compile_homepage_cidrs(homepage_config)
+        @cidr_matchers ||= compile_homepage_cidrs(OT.conf.get('site.interface.ui.homepage.matching_cidrs', nil))
 
         # Extract client IP
         client_ip        = extract_client_ip_for_homepage
-        mode_header_name = homepage_config['mode_header']
+        mode_header_name = OT.conf.get('site.interface.ui.homepage.mode_header', nil)
 
         # Priority 1: Check CIDR match
         if homepage_cidrs_match?(client_ip)
@@ -98,8 +95,8 @@ module Onetime
       #
       # @param config [Hash] Homepage configuration
       # @return [Array<IPAddr>] Compiled CIDR blocks
-      def compile_homepage_cidrs(config)
-        cidrs = config['matching_cidrs'] || []
+      def compile_homepage_cidrs(cidrs)
+        cidrs ||= []
         return [] if cidrs.empty?
 
         cidrs.map do |cidr_string|

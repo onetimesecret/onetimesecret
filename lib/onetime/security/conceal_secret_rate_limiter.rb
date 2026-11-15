@@ -241,15 +241,11 @@ module Onetime
         }
       end
 
-      def conceal_secret_rate_limit_config
-        OT.conf.get('site.secret_options.create_rate_limit', {})
-      end
-
       # Enabled unless config explicitly sets enabled:false. Absent config keeps
       # the protective default on; the test config disables it so suite secret
       # creation is not throttled.
       def conceal_secret_rate_limit_enabled?
-        conceal_secret_rate_limit_config.fetch('enabled', true) != false
+        OT.conf.get('site.secret_options.create_rate_limit.enabled', true) != false
       end
 
       def conceal_secret_max_per_ip
@@ -270,7 +266,7 @@ module Onetime
       # zero cap locks on the first request and a non-positive lockout makes the
       # Lua SETEX fail, turning every creation into a 500 instead of a throttle.
       def positive_conceal_secret_setting(key, default)
-        value = conceal_secret_rate_limit_config[key].to_i
+        value = OT.conf.get(['site', 'secret_options', 'create_rate_limit', key], nil).to_i
         value.positive? ? value : default
       end
 

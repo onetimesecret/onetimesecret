@@ -40,9 +40,6 @@ module Onetime
         :locale,
         :processed_params,
         :route_params,
-        :site,
-        :features,
-        :authentication,
         :domains_enabled,
         :strategy_result
 
@@ -133,12 +130,7 @@ module Onetime
       end
 
       def process_settings
-        @site            = OT.conf.get('site', {})
-        @features        = OT.conf.get('features', {})
-
-        @authentication  = site.fetch('authentication', {})
-        domains          = features.fetch('domains', {})
-        @domains_enabled = domains['enabled'] || false
+        @domains_enabled = OT.conf.get('features.domains.enabled', false)
       end
 
       def valid_email?(email_value)

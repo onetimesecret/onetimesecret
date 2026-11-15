@@ -82,41 +82,37 @@ module Onetime
       class << self
         private
 
-        # Top-level maintenance config hash
-        def maintenance_config
-          OT.conf.get('jobs.maintenance', {})
-        end
-
-        # Per-job config hash (e.g., 'phantom_cleanup')
-        def job_config(job_key)
-          maintenance_config[job_key] || {}
+        # A per-job setting under jobs.maintenance.<job_key>, e.g.
+        # jobs.maintenance.phantom_cleanup.interval.
+        def job_setting(job_key, name, default = nil)
+          OT.conf.get(['jobs', 'maintenance', job_key, name], default)
         end
 
         # Master + job-level enabled check
         def job_enabled?(job_key)
-          maintenance_config['enabled'] == true &&
-            job_config(job_key)['enabled'] == true
+          OT.conf.get('jobs.maintenance.enabled', nil) == true &&
+            job_setting(job_key, 'enabled') == true
         end
 
         def auto_repair?(job_key)
-          job_config(job_key)['auto_repair'] == true
+          job_setting(job_key, 'auto_repair') == true
         end
 
         def job_interval(job_key)
-          job_config(job_key)['interval'] || '1h'
+          job_setting(job_key, 'interval', '1h')
         end
 
         def job_cron(job_key)
-          job_config(job_key)['cron'] || '0 4 * * *'
+          job_setting(job_key, 'cron', '0 4 * * *')
         end
 
         def sample_size(job_key)
-          size = job_config(job_key)['sample_size'].to_i
+          size = job_setting(job_key, 'sample_size').to_i
           size > 0 ? size : 100
         end
 
         def batch_size(job_key)
-          size = job_config(job_key)['batch_size'].to_i
+          size = job_setting(job_key, 'batch_size').to_i
           size > 0 ? size : 500
         end
 

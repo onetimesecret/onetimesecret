@@ -302,15 +302,13 @@ module Onetime
             return config
           end
 
-          tp = OT.conf.get('site.network.trusted_proxy', {})
-
-          # Mode comes from the shared reader, not from `tp` — it is the one
+          # Mode comes from the shared reader — it is the one
           # key in this block that a second consumer (the admin-isolation
           # posture line) also reads, and it is the one that gets defaulted and
           # validated. See .trusted_proxy_mode.
           mode = trusted_proxy_mode
 
-          header = tp['header'].to_s.strip
+          header = OT.conf.get('site.network.trusted_proxy.header', nil).to_s.strip
           header = DEFAULT_TRUSTED_PROXY_HEADER if header.empty?
 
           # otto 2.10 raises on this combination too, but names its own
@@ -350,7 +348,7 @@ module Onetime
           config.trusted_proxy_header = header
 
           if mode == 'depth'
-            ots_depth                  = tp['depth'].to_i.clamp(1, 10)
+            ots_depth                  = OT.conf.get('site.network.trusted_proxy.depth', nil).to_i.clamp(1, 10)
             # Direct mapping — no +1. Otto's chain is XFF + [REMOTE_ADDR] with
             # the client at chain[-(N+1)], so depth N already means "N proxy
             # hops counting the connecting peer as hop 1" — exactly what the
@@ -393,7 +391,7 @@ module Onetime
             # filter / CIDR-walk: trust the private proxy ranges plus any
             # operator-configured public CIDRs (e.g. a CDN's egress ranges).
             config.add_trusted_proxy(PRIVATE_PROXY_RANGES)
-            Array(tp['cidrs']).each do |cidr|
+            Array(OT.conf.get('site.network.trusted_proxy.cidrs', nil)).each do |cidr|
               next if cidr.to_s.strip.empty?
 
               config.add_trusted_proxy(cidr.to_s.strip)

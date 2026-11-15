@@ -179,16 +179,16 @@ RSpec.describe 'delivered email links use the public host (#4221)', type: :integ
     end
 
     it 'retains an authorized tenant origin when site.host is unset' do
-      saved_host = OT.conf['site']['host']
+      saved_host = OT.conf.get('site.host')
       begin
-        OT.conf['site']['host'] = nil
+        OT.conf.get('site')['host'] = nil
         @delivered.clear
         auth_db[:account_password_reset_keys].where(id: account_id).delete
         request_password_reset(host: origin_host, forwarded: tenant_domain)
         expect(URI.parse(reset_link).host).to eq(tenant_domain)
         expect(auth_db[:account_password_reset_keys].where(id: account_id).count).to eq(1)
       ensure
-        OT.conf['site']['host'] = saved_host
+        OT.conf.get('site')['host'] = saved_host
       end
     end
 
@@ -231,7 +231,7 @@ RSpec.describe 'delivered email links use the public host (#4221)', type: :integ
     before do
       conf = OT.conf
       allow(OT).to receive(:conf).and_return(
-        OT::Config.wrap(conf.merge('site' => conf.fetch('site').merge('host' => canonical_host))),
+        OT::Config.wrap(conf.merge('site' => conf.get('site').merge('host' => canonical_host))),
       )
       # The lane boots these optional features OFF. Configure a router subclass
       # with the production modules, leaving the shared one-shot router untouched.
@@ -250,7 +250,7 @@ RSpec.describe 'delivered email links use the public host (#4221)', type: :integ
       @signup_app = build_rack_app
       # Building the middleware reinitializes DomainStrategy; retain the shared
       # context's classification rather than accidentally exercising :canonical.
-      Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
+      Onetime::Middleware::DomainStrategy.initialize_from_config
 
       Onetime::CustomDomain::SignupConfig.create!(
         domain_id: tenant.identifier, enabled: true, signup_enabled: true,
@@ -393,9 +393,9 @@ RSpec.describe 'delivered email links use the public host (#4221)', type: :integ
       # stubbing a policy verdict. Global flags narrow every host, not just the
       # canonical host; this is not a tenant-only recovery-blocking deployment.
       conf = OT.conf
-      authentication = conf.fetch('site').fetch('authentication').merge('signin' => false).freeze
+      authentication = conf.get('site.authentication').merge('signin' => false).freeze
       allow(OT).to receive(:conf).and_return(
-        OT::Config.wrap(conf.merge('site' => conf.fetch('site').merge('authentication' => authentication))),
+        OT::Config.wrap(conf.merge('site' => conf.get('site').merge('authentication' => authentication))),
       )
       expect(Onetime::CustomDomain::SigninConfig.global_signin_enabled).to be(false)
 

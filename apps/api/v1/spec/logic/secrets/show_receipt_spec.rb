@@ -156,7 +156,7 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
       end
 
       it 'does not reveal the value outside the display window' do
-        display_ttl = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
+        display_ttl = OT.conf.get('site.secret_options.generated_value_display_ttl').to_i
         expect(display_ttl).to be_positive, 'generated_value_display_ttl must be > 0 for this test to exercise the age check'
         receipt.created = Familia.now.to_i - (display_ttl + 10)
         receipt.save

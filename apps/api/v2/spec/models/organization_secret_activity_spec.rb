@@ -148,9 +148,8 @@ RSpec.describe Onetime::Organization, type: :integration do
   # ORGS_AUDIT_LOGS_ENABLED axis).
   describe 'collection toggle (features.secret_activity.collect)' do
     def conf_with_collect_flag(secret_activity)
-      base     = OT.conf
-      features = (base['features'] || {}).merge('secret_activity' => secret_activity)
-      base.merge('features' => features)
+      features = OT.conf.get('features', {}).merge('secret_activity' => secret_activity)
+      OT.conf.merge('features' => features)
     end
 
     # Parity with ConfigSerializer#build_feature_flags: a hand-edited config

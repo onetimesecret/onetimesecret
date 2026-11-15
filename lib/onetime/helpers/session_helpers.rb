@@ -181,10 +181,9 @@ module Onetime
       def session_auth_enforced?
         return false unless defined?(OT) && OT.respond_to?(:conf)
 
-        auth_conf = OT.conf&.get('site.authentication')
-        return false unless auth_conf
+        return false unless OT.conf&.get('site.authentication', nil)
 
-        auth_conf['enabled'] != false
+        OT.conf.get('site.authentication.enabled', nil) != false
       end
     end
   end

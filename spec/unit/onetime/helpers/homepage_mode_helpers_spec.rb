@@ -200,15 +200,13 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
     context 'with valid privacy-preserving CIDRs' do
       it 'compiles broad IPv4 ranges that should be accepted' do
-        config = {
-          'matching_cidrs' => [
-            '10.0.0.0/8',      # Very broad - should be accepted
-            '172.16.0.0/16',   # Broad - should be accepted
-            '192.168.0.0/24',  # Minimum acceptable - should be accepted
-          ]
-        }
+        cidrs = [
+          '10.0.0.0/8',      # Very broad - should be accepted
+          '172.16.0.0/16',   # Broad - should be accepted
+          '192.168.0.0/24',  # Minimum acceptable - should be accepted
+        ]
 
-        result = test_instance.send(:compile_homepage_cidrs, config)
+        result = test_instance.send(:compile_homepage_cidrs, cidrs)
 
         expect(result).to be_an(Array)
         expect(result.length).to eq(3), "Expected all 3 broad CIDRs to be accepted"
@@ -216,15 +214,13 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
       end
 
       it 'compiles the real-world CIDRs from the bug report' do
-        config = {
-          'matching_cidrs' => [
-            '10.105.64.0/20',    # 4,094 IPs - should be accepted
-            '172.116.128.0/17',  # 32,766 IPs - should be accepted
-            '192.10.0.0/17',     # 32,766 IPs - should be accepted
-          ]
-        }
+        cidrs = [
+          '10.105.64.0/20',    # 4,094 IPs - should be accepted
+          '172.116.128.0/17',  # 32,766 IPs - should be accepted
+          '192.10.0.0/17',     # 32,766 IPs - should be accepted
+        ]
 
-        result = test_instance.send(:compile_homepage_cidrs, config)
+        result = test_instance.send(:compile_homepage_cidrs, cidrs)
 
         # The inverted prefix check once rejected all three.
         expect(result).to be_an(Array)
@@ -232,14 +228,12 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
       end
 
       it 'compiles broad IPv6 ranges that should be accepted' do
-        config = {
-          'matching_cidrs' => [
-            '2001:db8::/32',     # Very broad - should be accepted
-            '2001:db8:1234::/48', # Minimum acceptable - should be accepted
-          ]
-        }
+        cidrs = [
+          '2001:db8::/32',     # Very broad - should be accepted
+          '2001:db8:1234::/48', # Minimum acceptable - should be accepted
+        ]
 
-        result = test_instance.send(:compile_homepage_cidrs, config)
+        result = test_instance.send(:compile_homepage_cidrs, cidrs)
 
         expect(result).to be_an(Array)
         expect(result.length).to eq(2), "Expected both broad IPv6 CIDRs to be accepted"
@@ -251,18 +245,16 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
     # fallback skips them (see "CIDR matching at /32 precision" below).
     context 'with CIDRs narrower than the IP-privacy mask' do
       it 'keeps narrow IPv4 and IPv6 ranges without a privacy warning' do
-        config = {
-          'matching_cidrs' => [
-            '192.168.1.1/32',
-            '192.168.1.0/28',
-            '2001:db8::1/128',
-            '2001:db8:1234::/64',
-          ],
-        }
+        cidrs = [
+          '192.168.1.1/32',
+          '192.168.1.0/28',
+          '2001:db8::1/128',
+          '2001:db8:1234::/64',
+        ]
 
         expect(mock_logger).not_to receive(:warn)
 
-        result = test_instance.send(:compile_homepage_cidrs, config)
+        result = test_instance.send(:compile_homepage_cidrs, cidrs)
 
         expect(result.map(&:prefix)).to eq([32, 28, 128, 64])
       end
@@ -270,19 +262,17 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
     context 'with mixed broad and narrow CIDRs' do
       it 'keeps every entry that parses, in order' do
-        config = {
-          'matching_cidrs' => [
-            '10.0.0.0/16',       # Broad
-            '192.168.1.1/32',    # Single host
-            '172.16.0.0/20',     # Broad
-            '192.168.2.0/28',    # Narrow
-            '10.10.0.0/24',      # At the mask
-          ]
-        }
+        cidrs = [
+          '10.0.0.0/16',       # Broad
+          '192.168.1.1/32',    # Single host
+          '172.16.0.0/20',     # Broad
+          '192.168.2.0/28',    # Narrow
+          '10.10.0.0/24',      # At the mask
+        ]
 
         expect(mock_logger).not_to receive(:warn)
 
-        result = test_instance.send(:compile_homepage_cidrs, config)
+        result = test_instance.send(:compile_homepage_cidrs, cidrs)
 
         expect(result.map(&:prefix)).to eq([16, 32, 20, 28, 24])
       end
@@ -290,34 +280,30 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
     context 'with invalid CIDR strings' do
       it 'handles invalid CIDR syntax gracefully' do
-        config = {
-          'matching_cidrs' => [
-            'not-a-cidr',
-            '999.999.999.999/24',
-            'invalid',
-          ]
-        }
+        cidrs = [
+          'not-a-cidr',
+          '999.999.999.999/24',
+          'invalid',
+        ]
 
         expect(mock_logger).to receive(:error).with('[homepage_mode] Invalid CIDR', hash_including(:cidr, :error)).at_least(3).times
 
-        result = test_instance.send(:compile_homepage_cidrs, config)
+        result = test_instance.send(:compile_homepage_cidrs, cidrs)
 
         expect(result).to be_an(Array)
         expect(result).to be_empty
       end
 
       it 'continues processing valid CIDRs after encountering invalid ones' do
-        config = {
-          'matching_cidrs' => [
-            '10.0.0.0/16',       # Valid broad - should be accepted
-            'invalid-cidr',      # Invalid - should be skipped
-            '172.16.0.0/20',     # Valid broad - should be accepted
-          ]
-        }
+        cidrs = [
+          '10.0.0.0/16',       # Valid broad - should be accepted
+          'invalid-cidr',      # Invalid - should be skipped
+          '172.16.0.0/20',     # Valid broad - should be accepted
+        ]
 
         expect(mock_logger).to receive(:error).with('[homepage_mode] Invalid CIDR', hash_including(:cidr)).once
 
-        result = test_instance.send(:compile_homepage_cidrs, config)
+        result = test_instance.send(:compile_homepage_cidrs, cidrs)
 
         expect(result).to be_an(Array)
         expect(result.length).to eq(2), "Expected 2 valid CIDRs to be compiled despite invalid one"
@@ -326,22 +312,15 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
     context 'with empty or missing configuration' do
       it 'returns empty array when matching_cidrs is empty' do
-        config = { matching_cidrs: [] }
-        result = test_instance.send(:compile_homepage_cidrs, config)
+        result = test_instance.send(:compile_homepage_cidrs, [])
         expect(result).to eq([])
       end
 
       it 'returns empty array when matching_cidrs is nil' do
-        config = { matching_cidrs: nil }
-        result = test_instance.send(:compile_homepage_cidrs, config)
+        result = test_instance.send(:compile_homepage_cidrs, nil)
         expect(result).to eq([])
       end
 
-      it 'returns empty array when matching_cidrs key is missing' do
-        config = {}
-        result = test_instance.send(:compile_homepage_cidrs, config)
-        expect(result).to eq([])
-      end
     end
   end
 

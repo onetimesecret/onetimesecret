@@ -24,7 +24,7 @@ RSpec.describe V1::Logic::Secrets::GenerateSecret do
   end
 
   let(:max_length) do
-    OT.conf.dig('site', 'secret_options', 'password_generation', 'maximum_length').to_i
+    OT.conf.get('site.secret_options.password_generation.maximum_length').to_i
   end
 
   context 'when the requested length exceeds the ceiling' do

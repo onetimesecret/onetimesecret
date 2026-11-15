@@ -128,6 +128,18 @@ end
 
 # --- SigninConfig.resolve_signin_enabled_for_custom_domain ---
 
+
+# Runs the block with site.authentication.enabled set to +enabled+, the
+# AUTH_ENABLED master switch the SSO ladder reads.
+def with_auth_enabled(enabled)
+  authentication            = OT.conf.get('site.authentication')
+  saved                     = OT.conf.get('site.authentication.enabled')
+  authentication['enabled'] = enabled
+  yield
+ensure
+  authentication['enabled'] = saved
+end
+
 ## DEFAULT OFF (#3672 core property): global on, no per-domain config, no
 ## domain_id => unavailable, even though the install is open
 Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(true, nil)
@@ -197,14 +209,14 @@ Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(fal
 ## master switch gates the carve-out (#3901 follow-up): AUTH_ENABLED=false
 ## suppresses an SSO-only tenant's sign-in availability — sessionauth is
 ## never registered when the master switch is off, so an SSO sign-in could
-## only mint a session the app ignores. Injectable auth hash exercises the
-## gate without mutating boot config.
-Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@sso_only_domain, auth: { 'enabled' => false })
+## only mint a session the app ignores. with_auth_enabled flips the live
+## setting around the call and restores it after.
+with_auth_enabled(false) { Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@sso_only_domain) }
 #=> false
 
-## master switch on via the same injection: gate passes and availability is
+## master switch on the same way: gate passes and availability is
 ## governed by the SsoConfig gates as before
-Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@sso_only_domain, auth: { 'enabled' => true })
+with_auth_enabled(true) { Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@sso_only_domain) }
 #=> true
 
 ## preloaded-record pass-through: a caller that already holds the domain's
@@ -214,9 +226,9 @@ preloaded   = Onetime::CustomDomain::SsoConfig.find_by_domain_id(@sso_only_domai
 original_fn = Onetime::CustomDomain::SsoConfig.method(:find_by_domain_id)
 Onetime::CustomDomain::SsoConfig.define_singleton_method(:find_by_domain_id) { |*| raise 'unexpected second lookup' }
 begin
-  @passthrough_result = Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(
-    @sso_only_domain, sso_config: preloaded, auth: { 'enabled' => true }
-  )
+  @passthrough_result = with_auth_enabled(true) do
+    Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@sso_only_domain, sso_config: preloaded)
+  end
 ensure
   Onetime::CustomDomain::SsoConfig.define_singleton_method(:find_by_domain_id, original_fn)
 end
@@ -227,25 +239,27 @@ end
 ## the honest lookup runs — @sso_disabled_domain's own record is disabled,
 ## so the enabled foreign record must not flip the verdict
 foreign = Onetime::CustomDomain::SsoConfig.find_by_domain_id(@sso_only_domain)
-Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@sso_disabled_domain, sso_config: foreign, auth: { 'enabled' => true })
+with_auth_enabled(true) { Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@sso_disabled_domain, sso_config: foreign) }
 #=> false
 
 ## strict-boolean master switch: an absent enabled key reads as off
-Onetime::CustomDomain::SigninConfig.global_auth_enabled({})
+@authentication = OT.conf.get('site.authentication')
+@saved_auth     = @authentication.dup
+begin
+  @authentication.delete('enabled')
+  @absent_result = Onetime::CustomDomain::SigninConfig.global_auth_enabled
+ensure
+  @authentication.replace(@saved_auth)
+end
+@absent_result
 #=> false
 
 ## resolver wiring: the carve-out reaches the master-switch gate through
 ## tenant_sso_available_for?'s default OT.conf read — flip the live setting
 ## around the call to prove the path (restored immediately after)
-@auth_conf     = OT.conf['site']['authentication']
-@saved_enabled = @auth_conf['enabled']
-begin
-  @auth_conf['enabled'] = false
-  @masterkill_result = Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(true, nil, domain_id: @sso_only_domain)
-ensure
-  @auth_conf['enabled'] = @saved_enabled
+with_auth_enabled(false) do
+  Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(true, nil, domain_id: @sso_only_domain)
 end
-@masterkill_result
 #=> false
 
 # --- SsoConfig.tenant_sso_unavailable_reason (rejection cause) ---
@@ -256,20 +270,20 @@ end
 # and told operators nothing about WHICH gate rejected the SSO request.
 
 ## rung 1: AUTH_ENABLED master switch off — resolves before any record read
-Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(@sso_only_domain, auth: { 'enabled' => false })
+with_auth_enabled(false) { Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(@sso_only_domain) }
 #=> :auth_disabled
 
 ## rung 2: no credentials store persisted for the domain
-Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason("dof_absent_#{@ts}_#{@entropy}", auth: { 'enabled' => true })
+with_auth_enabled(true) { Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason("dof_absent_#{@ts}_#{@entropy}") }
 #=> :no_sso_config
 
 ## rung 3: SsoConfig present but its own enabled switch is off
-Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(@sso_disabled_domain, auth: { 'enabled' => true })
+with_auth_enabled(true) { Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(@sso_disabled_domain) }
 #=> :sso_config_disabled
 
 ## rung 4: enabled credentials on a domain whose ownership is not verified —
 ## refused before the activation authority is consulted
-Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(@sso_unverified_domain, auth: { 'enabled' => true })
+with_auth_enabled(true) { Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(@sso_unverified_domain) }
 #=> :domain_unverified
 
 ## the unverified rung also darkens the display carve-out
@@ -278,29 +292,32 @@ Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(tru
 
 ## rung 5: enabled credentials on a verified domain, but an enabled
 ## SigninConfig withholds SSO
-Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(@sso_not_permitted_domain, auth: { 'enabled' => true })
+with_auth_enabled(true) { Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(@sso_not_permitted_domain) }
 #=> :sso_not_permitted
 
 ## available: the whole ladder passes => nil (no reason to report)
-Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(@sso_only_domain, auth: { 'enabled' => true })
+with_auth_enabled(true) { Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(@sso_only_domain) }
 #=> nil
 
 ## predicate parity: tenant_sso_available_for? is exactly reason.nil?, so the
 ## display surfaces and the runtime hook cannot disagree
-[
-  Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@sso_not_permitted_domain, auth: { 'enabled' => true }),
-  Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@sso_only_domain, auth: { 'enabled' => true }),
-]
+with_auth_enabled(true) do
+  [
+    Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@sso_not_permitted_domain),
+    Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@sso_only_domain),
+  ]
+end
 #=> [false, true]
 
 ## preloaded-record pass-through applies to the reason ladder too: a foreign
 ## record is ignored and the honest lookup runs (@sso_disabled_domain's own
 ## record is disabled, so the enabled foreign record must not flip the rung)
-Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(
-  @sso_disabled_domain,
-  sso_config: Onetime::CustomDomain::SsoConfig.find_by_domain_id(@sso_only_domain),
-  auth: { 'enabled' => true },
-)
+with_auth_enabled(true) do
+  Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(
+    @sso_disabled_domain,
+    sso_config: Onetime::CustomDomain::SsoConfig.find_by_domain_id(@sso_only_domain),
+  )
+end
 #=> :sso_config_disabled
 
 # --- SignupConfig.resolve_signup_enabled_for_custom_domain ---

@@ -7,10 +7,19 @@ require_relative '../../support/test_logic'
 # Load configuration for testing
 OT.boot! :test, false
 
+@saved_passphrase_config = OT.conf.get('site.secret_options.passphrase').dup
+
 ## passphrase validation when not required
 # Create a mock secret action for testing
 class TestSecretAction < V2::Logic::Secrets::BaseSecretAction
-  attr_accessor :test_passphrase_config
+  # Every key the defaults file sets under site.secret_options.passphrase,
+  # unset, so a test config names only the keys it is about.
+  UNSET_PASSPHRASE_CONFIG = {
+    'required' => false,
+    'minimum_length' => nil,
+    'maximum_length' => nil,
+    'enforce_complexity' => false,
+  }.freeze
 
   def initialize(params = {})
     @params = params
@@ -31,48 +40,9 @@ class TestSecretAction < V2::Logic::Secrets::BaseSecretAction
     nil # Anonymous users have nil plan
   end
 
-  # Override the validate_passphrase method to use test config
-  def validate_passphrase
-    # Use test config if set, otherwise fall back to original
-    passphrase_config = if @test_passphrase_config
-      @test_passphrase_config
-    else
-      OT.conf.dig('site', 'secret_options', 'passphrase') || {}
-    end
-
-    # Check if passphrase is required
-    if passphrase_config['required'] && passphrase.to_s.empty?
-      raise_form_error "A passphrase is required for all secrets"
-    end
-
-    # Skip further validation if no passphrase provided
-    return if passphrase.to_s.empty?
-
-    # Validate minimum length
-    min_length = passphrase_config['minimum_length'] || nil
-    if min_length && passphrase.length < min_length
-      raise_form_error "Passphrase must be at least #{min_length} characters long"
-    end
-
-    # Validate maximum length
-    max_length = passphrase_config['maximum_length'] || nil
-    if max_length && passphrase.length > max_length
-      raise_form_error "Passphrase must be no more than #{max_length} characters long"
-    end
-
-    # Validate complexity if required
-    if passphrase_config['enforce_complexity']
-      validate_passphrase_complexity
-    end
-  end
-
-  # Helper method for testing with specific config
-  def self.test_with_config(passphrase_config)
-    action = yield
-    if action.is_a?(TestSecretAction)
-      action.test_passphrase_config = passphrase_config
-    end
-    action
+  # Installs site.secret_options.passphrase for the real validate_passphrase.
+  def test_passphrase_config=(passphrase_config)
+    OT.conf.get('site.secret_options')['passphrase'] = UNSET_PASSPHRASE_CONFIG.merge(passphrase_config)
   end
 end
 
@@ -141,3 +111,6 @@ rescue => e
   false
 end
 #=> true
+
+# Teardown
+OT.conf.get('site.secret_options')['passphrase'] = @saved_passphrase_config

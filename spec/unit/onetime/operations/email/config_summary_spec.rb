@@ -27,7 +27,7 @@ RSpec.describe Onetime::Operations::Email::ConfigSummary do
           allow(Onetime::Mail::Mailer)
             .to receive(descriptor.provider_config_method).and_return(full_creds)
 
-          summary = described_class.masked_provider_config(descriptor.name, {})
+          summary = described_class.masked_provider_config(descriptor.name)
 
           expect(summary.keys.sort).to eq(superset_keys)
           expect(summary[:has_credentials]).to be(true),
@@ -39,7 +39,7 @@ RSpec.describe Onetime::Operations::Email::ConfigSummary do
           allow(Onetime::Mail::Mailer)
             .to receive(descriptor.provider_config_method).and_return({})
 
-          summary = described_class.masked_provider_config(descriptor.name, {})
+          summary = described_class.masked_provider_config(descriptor.name)
           expect(summary[:has_credentials]).to be false
         end
 
@@ -47,14 +47,14 @@ RSpec.describe Onetime::Operations::Email::ConfigSummary do
           allow(Onetime::Mail::Mailer)
             .to receive(descriptor.provider_config_method).and_return(full_creds)
 
-          summary = described_class.masked_provider_config(descriptor.name, {})
+          summary = described_class.masked_provider_config(descriptor.name)
           expect(summary.values.map(&:to_s)).not_to include('configured-value')
         end
       end
     end
 
     it 'yields the bare superset for non-provider transports (logger)' do
-      summary = described_class.masked_provider_config('logger', {})
+      summary = described_class.masked_provider_config('logger')
       expect(summary).to eq(
         host: nil, port: nil, domain: nil, tls: nil, region: nil, has_credentials: false,
       )
@@ -67,7 +67,8 @@ RSpec.describe Onetime::Operations::Email::ConfigSummary do
         'host' => 'smtp.example.com', 'port' => '587', 'domain' => 'example.com',
         'tls' => true, 'user' => 'smtp-user', 'pass' => 'super-secret-pw',
       }
-      summary = described_class.masked_provider_config('smtp', raw)
+      stub_emailer_config(raw, email_providers: {})
+      summary = described_class.masked_provider_config('smtp')
       expect(summary).to include(
         host: 'smtp.example.com', port: 587, domain: 'example.com',
         tls: true, has_credentials: true,
@@ -76,12 +77,10 @@ RSpec.describe Onetime::Operations::Email::ConfigSummary do
     end
 
     it 'lettermint: sending api_token OR provisioning team_token each count' do
-      with_token = described_class.masked_provider_config(
-        'lettermint', { 'lettermint_api_token' => 'lm_token' }
-      )
-      with_team = described_class.masked_provider_config(
-        'lettermint', { 'lettermint_team_token' => 'lm_team' }
-      )
+      stub_emailer_config({ 'lettermint_api_token' => 'lm_token' }, email_providers: {})
+      with_token = described_class.masked_provider_config('lettermint')
+      stub_emailer_config({ 'lettermint_team_token' => 'lm_team' }, email_providers: {})
+      with_team = described_class.masked_provider_config('lettermint')
       expect(with_token[:has_credentials]).to be true
       expect(with_team[:has_credentials]).to be true
     end
@@ -89,7 +88,8 @@ RSpec.describe Onetime::Operations::Email::ConfigSummary do
     it 'smtp2go: baked-in subdomain defaults do NOT count as credentials' do
       # smtp2go_provider_config always emits returnpath/tracking subdomains,
       # so an emptiness test would wrongly report credentials present.
-      summary = described_class.masked_provider_config('smtp2go', {})
+      stub_emailer_config({}, email_providers: {})
+      summary = described_class.masked_provider_config('smtp2go')
       expect(summary[:has_credentials]).to be false
     end
   end

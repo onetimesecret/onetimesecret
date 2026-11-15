@@ -73,24 +73,24 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
   # restore also rebuilds one stack: that re-runs initialize_from_config
   # against the pristine config and leaves no cross-file residue.
   before do
-    @orig_admin      = OT.conf.dig('site', 'admin')&.dup
-    @orig_site_host  = OT.conf.dig('site', 'host')
-    @orig_domains    = OT.conf.dig('features', 'domains')&.dup
-    @orig_developmnt = OT.conf['development']&.dup
+    @orig_admin      = OT.conf.get('site.admin')&.dup
+    @orig_site_host  = OT.conf.get('site.host')
+    @orig_domains    = OT.conf.get('features.domains')&.dup
+    @orig_developmnt = OT.conf.get('development')&.dup
     @orig_features   = Onetime::Runtime.features
     # The posture examples write site.network.trusted_proxy. Snapshotting it
     # here rather than in those examples keeps the restore in ONE place: a
     # leaked trusted_proxy block changes how every later example in the
     # process resolves a client IP, which is exactly the cross-file residue
     # the rest of this hook exists to prevent.
-    @orig_network    = OT.conf.dig('site', 'network')&.dup
+    @orig_network    = OT.conf.get('site.network')&.dup
   end
 
   after do
-    OT.conf['site']['admin']        = @orig_admin if @orig_admin
-    OT.conf['site']['host']         = @orig_site_host
-    OT.conf['site']['network']      = @orig_network if @orig_network
-    OT.conf['features']['domains']  = @orig_domains if @orig_domains
+    OT.conf.get('site')['admin']        = @orig_admin if @orig_admin
+    OT.conf.get('site')['host']         = @orig_site_host
+    OT.conf.get('site')['network']      = @orig_network if @orig_network
+    OT.conf.get('features')['domains']  = @orig_domains if @orig_domains
     OT.conf['development']          = @orig_developmnt if @orig_developmnt
     Onetime::Runtime.features       = @orig_features
     Onetime::Application::Registry.generate_rack_url_map
@@ -106,17 +106,17 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
   def configure_admin!(allowed_hosts: [], allowed_cidrs: [], site_host: 'example.com',
                        default_domain: 'example.com', link_domains: nil,
                        domains_enabled: false)
-    OT.conf['site']['admin'] = {
+    OT.conf.get('site')['admin'] = {
       'allowed_hosts' => allowed_hosts,
       'allowed_cidrs' => allowed_cidrs,
     }
-    OT.conf['site']['host'] = site_host
+    OT.conf.get('site')['host'] = site_host
 
-    domains                 = (OT.conf['features']['domains'] || {}).dup
+    domains                 = (OT.conf.get('features.domains') || {}).dup
     domains['enabled']      = domains_enabled
     domains['default']      = default_domain
     domains['link_domains'] = link_domains
-    OT.conf['features']['domains'] = domains
+    OT.conf.get('features')['domains'] = domains
 
     # The request path reads the FEATURE flag from Runtime, not OT.conf. See
     # the header note; without this the domains branch never executes.
@@ -950,7 +950,7 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
       [false, true].each do |rewrite|
         context "with public_host_rewrite #{rewrite ? 'on' : 'off'}" do
           before do
-            network                        = (OT.conf['site']['network'] ||= {})
+            network                        = (OT.conf.get('site')['network'] ||= {})
             @rewrite_was_set               = network.key?('public_host_rewrite')
             @rewrite_saved                 = network['public_host_rewrite']
             network['public_host_rewrite'] = rewrite
@@ -959,7 +959,7 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
           # Runs before the file-level restore, which leaves site.network
           # alone when it was unset at the start of the example.
           after do
-            network = (OT.conf['site']['network'] ||= {})
+            network = (OT.conf.get('site')['network'] ||= {})
             if @rewrite_was_set
               network['public_host_rewrite'] = @rewrite_saved
             else
@@ -1482,7 +1482,7 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
     # The posture is logged in AdminNetworkIsolation#initialize, so the first
     # request after configure_admin! drops the memoized app is what emits it.
     def posture_after_boot(trusted_proxy)
-      OT.conf['site']['network'] = (OT.conf['site']['network'] || {}).merge(
+      OT.conf.get('site')['network'] = (OT.conf.get('site.network') || {}).merge(
         'trusted_proxy' => trusted_proxy,
       )
       configure_admin!(default_domain: 'example.com', site_host: 'example.com')

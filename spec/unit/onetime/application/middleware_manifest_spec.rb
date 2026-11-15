@@ -182,8 +182,8 @@ RSpec.describe 'Middleware manifest (characterization)' do
 
     it 'leaves out CookieTossing when site.middleware.cookie_tossing is off' do
       Onetime.d9s_enabled          = false
-      middleware                   = OT.conf['site']['middleware']
-      saved                        = middleware['cookie_tossing']
+      middleware                   = OT.conf.get('site.middleware')
+      saved                        = OT.conf.get('site.middleware.cookie_tossing')
       middleware['cookie_tossing'] = false
       expect(recorded_names).to eq(universal_middleware_base - ['Onetime::Middleware::CookieTossing'])
     ensure
@@ -192,8 +192,8 @@ RSpec.describe 'Middleware manifest (characterization)' do
 
     it 'warns once per process that CookieTossing is off, however many applications build the stack' do
       Onetime.d9s_enabled          = false
-      middleware                   = OT.conf['site']['middleware']
-      saved                        = middleware['cookie_tossing']
+      middleware                   = OT.conf.get('site.middleware')
+      saved                        = OT.conf.get('site.middleware.cookie_tossing')
       middleware['cookie_tossing'] = false
       allow(OT).to receive(:lw)
       Onetime::Application::MiddlewareStack.reset_warn_once!

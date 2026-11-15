@@ -144,14 +144,14 @@ RSpec.describe 'Host and proxy simulation matrix: configured trusted proxy (#422
       HostProxyMatrix::TRUSTED_PROXY_MODES.each do |mode, spec|
         context "with trusted_proxy.mode #{mode}" do
           before do
-            network                  = (OT.conf['site']['network'] ||= {})
+            network                  = (OT.conf.get('site')['network'] ||= {})
             @trusted_proxy_had_key   = network.key?('trusted_proxy')
             @trusted_proxy_saved     = network['trusted_proxy']
             network['trusted_proxy'] = spec[:config].dup
           end
 
           after do
-            network = OT.conf['site']['network']
+            network = OT.conf.get('site.network')
             if @trusted_proxy_had_key
               network['trusted_proxy'] = @trusted_proxy_saved
             else

@@ -42,7 +42,7 @@ module Onetime
       def enabled?
         case @domain_strategy
         when :canonical, nil
-          incoming_config['enabled'] || false
+          OT.conf.get('features.incoming.enabled', false)
         when :custom
           is_enabled = custom_domain_record&.incoming_config&.ready? || false
 
@@ -170,19 +170,15 @@ module Onetime
           # Canonical or nil — use global YAML config
           {
             enabled: enabled?,
-            memo_max_length: incoming_config['memo_max_length'] || defaults[:memo_max_length],
+            memo_max_length: OT.conf.get('features.incoming.memo_max_length', defaults[:memo_max_length]),
             secret_max_length: secret_max_length,
-            default_ttl: incoming_config['default_ttl'] || defaults[:default_ttl],
+            default_ttl: OT.conf.get('features.incoming.default_ttl', defaults[:default_ttl]),
             recipients: public_recipients,
           }
         end
       end
 
       private
-
-      def incoming_config
-        OT.conf.get('features.incoming', {})
-      end
 
       # Server-enforced secret-content ceiling, shared by the regular and
       # incoming secret paths. Lives under site.secret_options.content (not

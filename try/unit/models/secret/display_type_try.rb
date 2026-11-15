@@ -15,8 +15,8 @@ OT.boot! :test, true
 
 # Markdown is opt-in per platform; turn it on for the cases that store and
 # read it, and off again in the cases that check the gate. Restored at the end.
-@original_markdown              = OT.conf['features']['markdown']
-OT.conf['features']['markdown'] = { 'enabled' => true }
+@original_markdown              = OT.conf.get('features.markdown')
+OT.conf.get('features')['markdown'] = { 'enabled' => true }
 
 ## The display_type feature is enabled on Secret
 Onetime::Secret.features_enabled.include?(:display_type)
@@ -91,39 +91,39 @@ dump             = secret.safe_dump
 
 ## display_type_enabled? offers text always and markdown only when the platform turns it on
 enabled_on                      = [Onetime::Secret.display_type_enabled?('text'), Onetime::Secret.display_type_enabled?(:markdown)]
-OT.conf['features']['markdown'] = { 'enabled' => false }
+OT.conf.get('features')['markdown'] = { 'enabled' => false }
 enabled_off                     = [Onetime::Secret.display_type_enabled?('text'), Onetime::Secret.display_type_enabled?(:markdown)]
-OT.conf['features'].delete('markdown')
+OT.conf.get('features').delete('markdown')
 enabled_absent                  = Onetime::Secret.display_type_enabled?('markdown')
-OT.conf['features']['markdown'] = { 'enabled' => 'true' }
+OT.conf.get('features')['markdown'] = { 'enabled' => 'true' }
 enabled_string                  = Onetime::Secret.display_type_enabled?('markdown')
-OT.conf['features']['markdown'] = { 'enabled' => true }
+OT.conf.get('features')['markdown'] = { 'enabled' => true }
 [enabled_on, enabled_off, enabled_absent, enabled_string]
 #=> [[true, true], [true, false], false, true]
 
 ## display_type_enabled? is false for unknown and blank values whatever the flags say
-OT.conf['features']['httplink'] = { 'enabled' => true }
+OT.conf.get('features')['httplink'] = { 'enabled' => true }
 result                          = [Onetime::Secret.display_type_enabled?('httplink'), Onetime::Secret.display_type_enabled?('')]
-OT.conf['features'].delete('httplink')
+OT.conf.get('features').delete('httplink')
 result
 #=> [false, false]
 
 ## With markdown off, a stored markdown secret reads and dumps as text, and the stored value stays
 _receipt, secret                = Onetime::Receipt.spawn_pair 'anon', 3600, '# hello', display_type: 'markdown'
-OT.conf['features']['markdown'] = { 'enabled' => false }
+OT.conf.get('features')['markdown'] = { 'enabled' => false }
 reloaded                        = Onetime::Secret.load secret.identifier
 result                          = [reloaded.display_type, reloaded.display_type_or_default, reloaded.safe_dump[:display_type]]
-OT.conf['features']['markdown'] = { 'enabled' => true }
+OT.conf.get('features')['markdown'] = { 'enabled' => true }
 result
 #=> ['markdown', 'text', 'text']
 
 ## Turning markdown back on shows the same secret as markdown again
 _receipt, secret                = Onetime::Receipt.spawn_pair 'anon', 3600, '# hello', display_type: 'markdown'
-OT.conf['features']['markdown'] = { 'enabled' => false }
+OT.conf.get('features')['markdown'] = { 'enabled' => false }
 off                             = Onetime::Secret.load(secret.identifier).safe_dump[:display_type]
-OT.conf['features']['markdown'] = { 'enabled' => true }
+OT.conf.get('features')['markdown'] = { 'enabled' => true }
 on                              = Onetime::Secret.load(secret.identifier).safe_dump[:display_type]
 [off, on]
 #=> ['text', 'markdown']
 
-OT.conf['features']['markdown'] = @original_markdown
+OT.conf.get('features')['markdown'] = @original_markdown

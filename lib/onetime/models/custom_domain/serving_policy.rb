@@ -169,12 +169,14 @@ module Onetime
         #
         # @return [Symbol]
         def validation_strategy_state
-          domains = configured_domains_section
-          key     = [domains['validation_strategy'], domains['strict_strategy'] == true]
+          key     = [
+            OT.conf&.get('features.domains.validation_strategy', nil),
+            OT.conf&.get('features.domains.strict_strategy', nil) == true,
+          ]
           decided = @validation_strategy_state
           return decided.last if decided && decided.first == key
 
-          state                      = decide_validation_strategy_state(domains)
+          state                      = decide_validation_strategy_state
           @validation_strategy_state = [key, state].freeze
           state
         end
@@ -185,7 +187,7 @@ module Onetime
         #
         # @return [Boolean]
         def serve_unverified?
-          configured_domains_section['serve_unverified'] == true
+          OT.conf&.get('features.domains.serve_unverified', nil) == true
         end
 
         # Logs one warning per process while features.domains.serve_unverified
@@ -222,16 +224,10 @@ module Onetime
 
         private
 
-        def configured_domains_section
-          domains = OT.conf&.get('features.domains', {})
-          domains.is_a?(Hash) ? domains : {}
-        end
-
-        def decide_validation_strategy_state(domains)
+        def decide_validation_strategy_state
           require_relative '../../domain_validation/strategy'
 
-          config = { 'features' => { 'domains' => domains } }
-          Onetime::DomainValidation::Strategy.for_config(config).proves_ownership? == true ? :proves : :no_proof
+          Onetime::DomainValidation::Strategy.for_config.proves_ownership? == true ? :proves : :no_proof
         rescue StandardError => ex
           OT.le "[CustomDomain.validation_strategy_state] #{ex.class}: #{ex.message}; " \
                 'serving requires verified ownership and email domain proof requires a Colonel override'

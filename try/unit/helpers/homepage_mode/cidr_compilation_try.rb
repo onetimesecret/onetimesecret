@@ -25,57 +25,41 @@ end
 @controller = TestHomepageController.new({})
 
 ## IPv4 CIDR Compilation - Valid /24
-cidrs = @controller.compile_homepage_cidrs({
-  'matching_cidrs' => ['192.168.1.0/24']
-})
+cidrs = @controller.compile_homepage_cidrs(['192.168.1.0/24'])
 cidrs.length
 #=> 1
 
 ## IPv4 CIDR Compilation - Valid /8
-cidrs = @controller.compile_homepage_cidrs({
-  'matching_cidrs' => ['10.0.0.0/8']
-})
+cidrs = @controller.compile_homepage_cidrs(['10.0.0.0/8'])
 cidrs.length
 #=> 1
 
 ## IPv4 CIDR Compilation - /25 is Kept (judged via otto.ip_match)
-cidrs = @controller.compile_homepage_cidrs({
-  'matching_cidrs' => ['192.168.1.0/25']
-})
+cidrs = @controller.compile_homepage_cidrs(['192.168.1.0/25'])
 cidrs.length
 #=> 1
 
 ## IPv4 CIDR Compilation - /32 is Kept (judged via otto.ip_match)
-cidrs = @controller.compile_homepage_cidrs({
-  'matching_cidrs' => ['192.168.1.1/32']
-})
+cidrs = @controller.compile_homepage_cidrs(['192.168.1.1/32'])
 cidrs.length
 #=> 1
 
 ## IPv6 CIDR Compilation - /48 is Valid
-cidrs = @controller.compile_homepage_cidrs({
-  'matching_cidrs' => ['2001:db8::/48']
-})
+cidrs = @controller.compile_homepage_cidrs(['2001:db8::/48'])
 cidrs.length
 #=> 1
 
 ## IPv6 CIDR Compilation - /64 is Kept (judged via otto.ip_match)
-cidrs = @controller.compile_homepage_cidrs({
-  'matching_cidrs' => ['2001:db8::/64']
-})
+cidrs = @controller.compile_homepage_cidrs(['2001:db8::/64'])
 cidrs.length
 #=> 1
 
 ## Invalid CIDR String Handling
-cidrs = @controller.compile_homepage_cidrs({
-  'matching_cidrs' => ['invalid_cidr', '10.0.0.0/8']
-})
+cidrs = @controller.compile_homepage_cidrs(['invalid_cidr', '10.0.0.0/8'])
 cidrs.length
 #=> 1
 
 ## Empty CIDR List
-cidrs = @controller.compile_homepage_cidrs({
-  'matching_cidrs' => []
-})
+cidrs = @controller.compile_homepage_cidrs([])
 cidrs.length
 #=> 0

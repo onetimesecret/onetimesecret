@@ -27,17 +27,15 @@ module ColonelAPI
 
         def process
           @config_sections = {}
-          site_config      = Onetime.conf.get('site', {})
 
           # Interface config (UI and API settings)
-          @config_sections[:interface] = site_config['interface'] || {}
+          @config_sections[:interface] = Onetime.conf.get('site.interface', {})
 
           # Secret options (TTL, passphrase, password generation)
-          # These are under site.secret_options in the config
-          @config_sections[:secret_options] = site_config['secret_options'] || {}
+          @config_sections[:secret_options] = Onetime.conf.get('site.secret_options', {})
 
-          # Authentication config (under site.authentication)
-          @config_sections[:authentication] = site_config['authentication'] || {}
+          # Authentication config
+          @config_sections[:authentication] = Onetime.conf.get('site.authentication', {})
 
           # Emailer config (SMTP settings - top-level 'emailer' key). Carries
           # user/pass — deep_copy then recursively mask credential-bearing keys

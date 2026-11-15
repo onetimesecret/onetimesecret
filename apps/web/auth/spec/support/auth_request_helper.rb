@@ -46,7 +46,7 @@ module AuthRequestHelper
   # registered application — the whole middleware stack of each, plus warmup.
   # Beyond the cost, the rebuild reverts class-level middleware state: it fires
   # lazily on the example's FIRST request, so it lands AFTER the before hooks.
-  # DomainStrategy#initialize re-runs initialize_from_config(OT.conf…) on every
+  # DomainStrategy#initialize re-runs initialize_from_config on every
   # instantiation, which is how a hook's assignment to that class state
   # vanished between the hook and the assertion (#4221). The cached accessor
   # invalidates itself on registry mutation and on a config swap, so the files

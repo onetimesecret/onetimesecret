@@ -62,8 +62,7 @@ module Incoming
         @recipient_hash = sanitize_identifier(@payload['recipient'].to_s.strip)
 
         # Set passphrase from global config (not per-domain yet)
-        incoming_config = OT.conf.get('features.incoming', {})
-        @passphrase     = incoming_config['default_passphrase']
+        @passphrase = OT.conf.get('features.incoming.default_passphrase', nil)
 
         # NOTE: Resolver calls (config_data, lookup) are deferred to
         # raise_concerns/process to avoid Redis I/O before entitlement check

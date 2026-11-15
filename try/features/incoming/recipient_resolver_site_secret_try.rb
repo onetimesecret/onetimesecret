@@ -26,16 +26,16 @@ RecipientResolver = Onetime::Incoming::RecipientResolver
 @entropy = SecureRandom.hex(4)
 
 # Store original site.secret for restoration
-@original_site_secret = OT.conf.dig('site', 'secret')
+@original_site_secret = OT.conf.get('site.secret')
 
 # Helper to modify site.secret temporarily. nil is an unset secret: the
 # defaults file always has the key.
 def with_site_secret(value)
-  original = OT.conf.dig('site', 'secret')
-  OT.conf['site']['secret'] = value
+  original = OT.conf.get('site.secret')
+  OT.conf.get('site')['secret'] = value
   yield
 ensure
-  OT.conf['site']['secret'] = original
+  OT.conf.get('site')['secret'] = original
 end
 
 ## SETUP: Create custom domain with recipients for site_secret tests

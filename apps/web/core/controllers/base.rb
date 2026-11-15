@@ -174,7 +174,7 @@ module Core
       # this is the password/email POST gate, which never inherits the display
       # SSO carve-out.
       def signin_enabled?
-        global = Onetime::CustomDomain::SigninConfig.global_signin_enabled(auth_settings)
+        global = Onetime::CustomDomain::SigninConfig.global_signin_enabled
         Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_request(
           global,
           domain_signin_config,
@@ -290,7 +290,7 @@ module Core
       #
       # @raise [Onetime::SignupPolicyUnavailable] on an unreadable custom-host policy
       def signup_enabled?
-        global = Onetime::CustomDomain::SignupConfig.global_signup_enabled(auth_settings)
+        global = Onetime::CustomDomain::SignupConfig.global_signup_enabled
         Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_request(
           global,
           domain_signup_config,
@@ -325,10 +325,6 @@ module Core
         req.env['onetime.domain_strategy'] == :custom
       end
 
-      def auth_settings
-        OT.conf.get('site.authentication')
-      end
-
       def signup_config_display_domain
         req.env['onetime.display_domain']
       end
@@ -350,7 +346,7 @@ module Core
       end
 
       def signup_config_auth_setting(key)
-        auth_settings[key]
+        OT.conf.get(['site', 'authentication', key], nil)
       end
 
       # CustomDomain identifier for the request host, or nil.

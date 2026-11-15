@@ -574,7 +574,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
 
         before do
           allow(Onetime::Mail).to receive(:deliver_raw).and_call_original
-          allow(Onetime::Mail::Mailer).to receive(:emailer_config).and_return('mode' => 'smtp', 'host' => '')
+          stub_emailer_config({ 'mode' => 'smtp', 'host' => '' })
           allow(ENV).to receive(:fetch).and_call_original
           allow(ENV).to receive(:fetch).with('SMTP_HOST', nil).and_return(nil)
           Onetime::Mail::Mailer.reset!

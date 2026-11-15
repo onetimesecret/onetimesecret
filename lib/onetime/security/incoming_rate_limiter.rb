@@ -172,31 +172,27 @@ module Onetime
         }
       end
 
-      def incoming_rate_limit_config
-        OT.conf.get('features.incoming.rate_limit', {})
-      end
-
       # Enabled unless config explicitly sets enabled:false. Absent config keeps
       # the protective default on; the :test config disables it so existing
       # incoming tryouts are not throttled.
       def incoming_rate_limit_enabled?
-        incoming_rate_limit_config.fetch('enabled', true) != false
+        OT.conf.get('features.incoming.rate_limit.enabled', true) != false
       end
 
       def incoming_max_per_ip
-        (incoming_rate_limit_config['max_per_ip'] || DEFAULT_MAX_PER_IP).to_i
+        (OT.conf.get('features.incoming.rate_limit.max_per_ip', nil) || DEFAULT_MAX_PER_IP).to_i
       end
 
       def incoming_max_per_recipient
-        (incoming_rate_limit_config['max_per_recipient'] || DEFAULT_MAX_PER_RECIPIENT).to_i
+        (OT.conf.get('features.incoming.rate_limit.max_per_recipient', nil) || DEFAULT_MAX_PER_RECIPIENT).to_i
       end
 
       def incoming_window
-        (incoming_rate_limit_config['window'] || DEFAULT_WINDOW).to_i
+        (OT.conf.get('features.incoming.rate_limit.window', nil) || DEFAULT_WINDOW).to_i
       end
 
       def incoming_lockout
-        (incoming_rate_limit_config['lockout'] || DEFAULT_LOCKOUT).to_i
+        (OT.conf.get('features.incoming.rate_limit.lockout', nil) || DEFAULT_LOCKOUT).to_i
       end
 
       # Obscure the subject for logs. IPv4 keeps the /16; the recipient hash and

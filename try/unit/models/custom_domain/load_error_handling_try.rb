@@ -80,8 +80,8 @@ Onetime::CustomDomain.load_by_display_domain(@orphan_fqdn)
 
 ## SignupValidation.valid_signup_email? falls back to global when domain not found
 OT.conf['site'] ||= {}
-OT.conf['site']['authentication'] ||= {}
-OT.conf['site']['authentication']['allowed_signup_domains'] = nil
+OT.conf.get('site')['authentication'] ||= {}
+OT.conf.get('site.authentication')['allowed_signup_domains'] = nil
 Onetime::SignupValidation.valid_signup_email?('user@any.com', display_domain: 'unknown.example.com')
 #=> true
 

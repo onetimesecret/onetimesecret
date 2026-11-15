@@ -197,12 +197,11 @@ module Onetime
         #
         # @return [String, nil] The DSN to use, or nil if not configured
         def select_sentry_dsn
-          sentry_config = OT.conf.get('diagnostics.sentry')
-          backend_dsn   = sentry_config.dig('backend', 'dsn')
+          backend_dsn = OT.conf.get('diagnostics.sentry.backend.dsn', nil)
 
           case OT.execution_mode
           when :worker, :scheduler
-            workers_dsn         = sentry_config.dig('workers', 'dsn')
+            workers_dsn         = OT.conf.get('diagnostics.sentry.workers.dsn', nil)
             workers_dsn_present = !workers_dsn.to_s.strip.empty?
             dsn                 = workers_dsn_present ? workers_dsn : backend_dsn
             if workers_dsn_present

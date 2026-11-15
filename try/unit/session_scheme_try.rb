@@ -60,7 +60,7 @@ end
 # Set the AssumeHttps flag in the live config, then build a fresh middleware
 # (the flag is cached at #initialize). String keys: OT.conf is string-keyed.
 def assume_https_middleware(enabled)
-  (OT.conf['site']['network'] ||= {})['assume_https'] = enabled
+  (OT.conf.get('site')['network'] ||= {})['assume_https'] = enabled
   Onetime::Middleware::AssumeHttps.new(MockApp.new)
 end
 
@@ -216,4 +216,4 @@ CAPTURED_WARNINGS.length
 # Restore the flag to its default OFF state for hygiene. The capture logger
 # needs no restore: it lives on @session's singleton class only, and @session
 # does not outlive this file.
-(OT.conf['site']['network'] ||= {})['assume_https'] = false
+(OT.conf.get('site')['network'] ||= {})['assume_https'] = false

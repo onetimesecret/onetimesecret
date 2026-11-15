@@ -14,12 +14,6 @@ module Onetime
     # management is handled externally.
     #
     class PassthroughStrategy < BaseStrategy
-      attr_reader :config
-
-      def initialize(config)
-        @config = config
-      end
-
       # No DNS check is made. VerifyDomain stores the pass in `verified` but
       # does not record it in verified_confirmed_at (#proves_ownership?).
       #

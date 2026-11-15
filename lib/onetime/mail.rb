@@ -13,7 +13,7 @@
 # Templates use ERB and support both text and HTML formats.
 # Designed for future ruby-i18n integration.
 #
-# Configuration is read from OT.conf['emailer'] or environment variables.
+# Configuration is read from the emailer section (emailer.*) or environment variables.
 #
 # Example config (etc/config.yaml):
 #   emailer:

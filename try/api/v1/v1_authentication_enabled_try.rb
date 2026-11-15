@@ -40,19 +40,19 @@ end
 @harness = V1AuthTestHarness.new
 
 # Save original config for restoration
-@original_auth = OT.conf['site']['authentication']&.dup
+@original_auth = OT.conf.get('site.authentication')&.dup
 
 # -----------------------------------------------------------------------
 # TEST: session_auth_enforced? returns correct values with explicit config
 # -----------------------------------------------------------------------
 
 ## TC-1: Returns true when authentication.enabled is true
-OT.conf['site']['authentication'] = { 'enabled' => true, 'signin' => true }
+OT.conf.get('site')['authentication'] = { 'enabled' => true, 'signin' => true }
 @harness.session_auth_enforced?
 #=> true
 
 ## TC-2: Returns false when authentication.enabled is explicitly false
-OT.conf['site']['authentication'] = { 'enabled' => false, 'signin' => true }
+OT.conf.get('site')['authentication'] = { 'enabled' => false, 'signin' => true }
 @harness.session_auth_enforced?
 #=> false
 
@@ -63,12 +63,12 @@ OT.conf['site']['authentication'] = { 'enabled' => false, 'signin' => true }
 ## TC-3: Returns true when signin is false but enabled is true
 # A deployment may disable web login while keeping the API active.
 # The previous V1 override incorrectly returned false here.
-OT.conf['site']['authentication'] = { 'enabled' => true, 'signin' => false }
+OT.conf.get('site')['authentication'] = { 'enabled' => true, 'signin' => false }
 @harness.session_auth_enforced?
 #=> true
 
 ## TC-4: Returns false only when enabled is explicitly false
-OT.conf['site']['authentication'] = { 'enabled' => false, 'signin' => false }
+OT.conf.get('site')['authentication'] = { 'enabled' => false, 'signin' => false }
 @harness.session_auth_enforced?
 #=> false
 
@@ -78,29 +78,29 @@ OT.conf['site']['authentication'] = { 'enabled' => false, 'signin' => false }
 
 ## TC-5: Returns false when authentication hash is missing entirely
 # No auth config → auth disabled → account features unavailable
-OT.conf['site'].delete('authentication')
+OT.conf.get('site').delete('authentication')
 @harness.session_auth_enforced?
 #=> false
 
 ## TC-6: Returns true when only 'enabled' key is present and true
-OT.conf['site']['authentication'] = { 'enabled' => true }
+OT.conf.get('site')['authentication'] = { 'enabled' => true }
 @harness.session_auth_enforced?
 #=> true
 
 ## TC-7: Returns true when authentication hash exists but 'enabled' key absent
 # Auth section present implies intent to use auth; missing 'enabled' key
 # is not the same as explicitly disabled.
-OT.conf['site']['authentication'] = {}
+OT.conf.get('site')['authentication'] = {}
 @harness.session_auth_enforced?
 #=> true
 
 ## TC-8: Returns true when only 'signin' key is present (enabled absent)
 # Auth section present, 'enabled' not explicitly false → enabled.
-OT.conf['site']['authentication'] = { 'signin' => false }
+OT.conf.get('site')['authentication'] = { 'signin' => false }
 @harness.session_auth_enforced?
 #=> true
 
 # -----------------------------------------------------------------------
 # Restore original config
 # -----------------------------------------------------------------------
-OT.conf['site']['authentication'] = @original_auth
+OT.conf.get('site')['authentication'] = @original_auth

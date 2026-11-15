@@ -29,7 +29,7 @@ OT.boot! :test, false
 @now = Familia.now
 @unique_random_inbox = Digest::SHA2.hexdigest(@now.to_s)
 
-@from_address = OT.conf['emailer']['from']
+@from_address = OT.conf.get('emailer.from')
 @valid_exists = 'tryouts@onetimesecret.com'
 @user_does_not_exist = "#{@unique_random_inbox}@yahoo.com"
 
