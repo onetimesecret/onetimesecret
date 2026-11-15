@@ -51,21 +51,11 @@
   branchNameStrict: true,
   pruneStaleBranches: true,
 
-  // Automerge settings
-  // automergeType 'pr', not 'branch': from April 2025 to September 2026 no
-  // update reached main by branch automerge (every one came through a PR),
-  // and branch-automerge updates without a PR sat unseen for weeks. A merge
-  // request gets a pipeline; a branch push without one does not.
-  // No automergeStrategy: Renovate does not support it on GitLab and stops
-  // automerging when it is set. The project's merge method (merge commit)
-  // applies.
-  automerge: true,
-  automergeType: 'pr',
-  major: { automerge: false },
-  minor: { automerge: false },
-  patch: { automerge: false },
-  pin: { automerge: true },
-  lockFileMaintenance: { automerge: true },
+  // Automerge is off: a person merges every update. Only Maintainers may
+  // merge into develop, and the Renovate service account has the Developer
+  // role. Turning automerge on means giving that account merge rights on
+  // develop.
+  automerge: false,
 
   // Package-specific rules
   packageRules: [
