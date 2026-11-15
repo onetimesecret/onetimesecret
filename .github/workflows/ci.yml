@@ -481,10 +481,13 @@ jobs:
     needs: [changes]
     # Auth is here because the auth jobs download this build and can be
     # selected (a label, a frontend auth path) when the Ruby flag is off.
+    # TypeScript likewise: smoke-test runs on a TypeScript change alone and
+    # downloads this build, and a few TypeScript paths (eslint.config.ts,
+    # .nvmrc, locales/scripts/**) set neither the Ruby nor the frontend flag.
     # Billing likewise: the nightly run is a run_all run and has every flag
     # on, but a manual dispatch with run_all on a ref that moved no path
     # still needs the build the billing jobs download.
-    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ruby == 'true' || needs.changes.outputs.auth == 'true' || needs.changes.outputs.billing_nightly == 'true'
+    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ruby == 'true' || needs.changes.outputs.typescript == 'true' || needs.changes.outputs.auth == 'true' || needs.changes.outputs.billing_nightly == 'true'
     steps:
       - *checkout-step
 

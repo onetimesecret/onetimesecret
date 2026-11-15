@@ -275,8 +275,9 @@ def prerequisites_and_gates():
         check("needs.changes.outputs.auth" not in job, f"auth selection alone must not run {job_id}")
     check(scalar(block(jobs, "build-assets", 2), "if", 4) ==
           "needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ruby == 'true' "
+          "|| needs.changes.outputs.typescript == 'true' "
           "|| needs.changes.outputs.auth == 'true' || needs.changes.outputs.billing_nightly == 'true'",
-          "auth-only and nightly-only selection still get the frontend build their jobs download")
+          "TypeScript-only, auth-only and nightly-only selection still get the frontend build their jobs download")
     browser = block(jobs, "ruby-auth-browser", 2)
     integration = block(jobs, "ruby-integration-auth", 2)
     for job_id, job in (("ruby-auth-browser", browser), ("ruby-integration-auth", integration)):

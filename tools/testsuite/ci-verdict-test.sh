@@ -241,7 +241,7 @@ status=$?
 protects "the auth jobs download the frontend build, so a skipped build under auth selection is a failure"
 assert_eq "CV-AUTH-08: auth-only run without a build exit" 1 "$status"
 assert_contains "CV-AUTH-08: build expected for auth" \
-  "| build-assets | skipped | ❌ expected to run (frontend, ruby, auth or nightly/release event changed) but was skipped:" "$out"
+  "| build-assets | skipped | ❌ expected to run (frontend, ruby, typescript, auth or nightly/release event changed) but was skipped:" "$out"
 
 # --- the smoke lane follows either the Ruby or the TypeScript flag -------------
 printf '\nsmoke lane results (Ruby or TypeScript flag)\n'
@@ -259,6 +259,18 @@ for ruby in true false; do
     done
   done
 done
+
+TS_ONLY=("${ALL_SKIPPED[@]}" RESULT_HYGIENE=success RESULT_TYPESCRIPT_LINT=success
+  RESULT_I18N_VALIDATE=success RESULT_TYPESCRIPT_UNIT=success RESULT_SMOKE_TEST=success)
+out="$(verdict TYPESCRIPT=true "${TS_ONLY[@]}" RESULT_BUILD_ASSETS=success)"
+status=$?
+protects "a TypeScript-only change runs smoke, which downloads the frontend build"
+assert_eq "CV-SMOKE-02: TypeScript-only run with the build exit" 0 "$status"
+out="$(verdict TYPESCRIPT=true "${TS_ONLY[@]}")"
+status=$?
+assert_eq "CV-SMOKE-02: TypeScript-only run without the build exit" 1 "$status"
+assert_contains "CV-SMOKE-02: build expected for a TypeScript change" \
+  "| build-assets | skipped | ❌ expected to run (frontend, ruby, typescript, auth or nightly/release event changed) but was skipped:" "$out"
 
 # --- the billing lane follows the Ruby flag ------------------------------------
 # ruby-billing runs billing's own specs and tryouts with the other Ruby jobs.
@@ -332,7 +344,7 @@ status=$?
 protects "the billing jobs download the frontend build, so a skipped build on the nightly is a failure"
 assert_eq "CV-BILLING-04: nightly-only run without a build exit" 1 "$status"
 assert_contains "CV-BILLING-04: build expected for the nightly" \
-  "| build-assets | skipped | ❌ expected to run (frontend, ruby, auth or nightly/release event changed) but was skipped:" "$out"
+  "| build-assets | skipped | ❌ expected to run (frontend, ruby, typescript, auth or nightly/release event changed) but was skipped:" "$out"
 
 out="$(verdict RUBY=true "${ALL_SUCCESS[@]}" \
   RESULT_RUBY_INTEGRATION_BILLING=skipped RESULT_RUBY_BILLING_INTEGRATION=skipped)"
