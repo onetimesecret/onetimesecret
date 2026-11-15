@@ -524,7 +524,7 @@ duration exceeds its wall clock.
 | Lane                 | Services                   | Runs                                                          | Workers | CI job                                           |
 | -------------------- | -------------------------- | ------------------------------------------------------------- | ------- | ------------------------------------------------ |
 | `unit`               | valkey, rabbitmq           | `try:unit`, `spec:fast`                                       | 2 (one leg each) | ruby-unit (T2)                          |
-| `billing`            | valkey, rabbitmq           | `try:billing`, `spec:billing`                                 | 1       | ruby-billing (T2, nightly only)                  |
+| `billing`            | valkey, rabbitmq           | `try:billing`, `spec:billing`                                 | 1       | ruby-billing (T2)                                |
 | `billing-integration` | valkey, rabbitmq          | `try:integration:billing`, `spec:integration:billing`         | 1       | ruby-billing-integration (T3, nightly only)      |
 | `browser`            | valkey, rabbitmq           | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | 1       | ruby-auth-browser (T2)                           |
 | `simple`             | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`           | 4 (rspec)| ruby-integration-simple (T3)                    |
@@ -576,14 +576,15 @@ The `billing` lane is billing's own tests, carved out of `unit`: the billing
 app's spec and tryouts trees plus the root trees named for billing
 (`BILLING_SPEC_PATHS` and `BILLING_TRY_PATHS` in `lib/tasks/spec.rake`), in
 the same simple-mode, billing-off environment. The lane runs no `--tag`
-filter: the `:integration`-tagged billing examples belong to it. In CI it is
-nightly only, like every billing job (`docs/development/auth-ci.md`).
+filter: the `:integration`-tagged billing examples belong to it. In CI it
+runs on every Ruby change, on the same gate as `unit`
+(`docs/development/auth-ci.md`).
 
 The `billing-integration` lane is billing's integration tests: the mode-less
 spec files directly under `apps/web/billing/spec/integration/`
 (`BILLING_INTEGRATION_SPEC_PATTERN`; `spec:billing` excludes that subtree)
 and the `try/integration/billing` tryouts, which `simple` used to run. Same
-environment as `billing`, and nightly only in CI too, so a pull request, a
+environment as `billing`, but nightly only in CI, so a pull request, a
 push to `main` or a merge-queue check skips it (`docs/development/auth-ci.md`).
 `rake spec:verify_selection` proves `spec:fast`, `spec:billing` and
 `spec:integration:billing` partition what `spec:fast` alone used to select.

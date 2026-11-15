@@ -269,7 +269,7 @@ def shared_wiring():
 
 
 def prerequisites_and_gates():
-    for job_id in ("ruby-lint", "ruby-unit"):
+    for job_id in ("ruby-lint", "ruby-unit", "ruby-billing"):
         job = block(jobs, job_id, 2)
         check("needs.changes.outputs.ruby == 'true'" in job, f"Ruby changes select {job_id}")
         check("needs.changes.outputs.auth" not in job, f"auth selection alone must not run {job_id}")
@@ -291,8 +291,10 @@ def prerequisites_and_gates():
         "(needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped') && "
         "!contains(needs.*.result, 'cancelled')"
     ), "auth jobs run independently of Ruby output, accept successful/skipped prerequisites, reject failure/cancel")
-    # The three billing jobs share one nightly-only gate: the billing lane's
-    # job defines it, the overlay matrix and billing's integration lane reuse it.
+    # The billing lane runs with the other Ruby jobs, on ruby-unit's gate:
+    # the smoke lane used to run its specs on every Ruby change, so this job
+    # keeps that coverage. The overlay matrix and billing's integration lane
+    # share one nightly-only gate, which the overlay matrix defines.
     unit_billing = block(jobs, "ruby-billing", 2)
     billing = block(jobs, "ruby-integration-billing", 2)
     integration_billing = block(jobs, "ruby-billing-integration", 2)
@@ -301,16 +303,20 @@ def prerequisites_and_gates():
         check(scalar(job, "needs", 4) == "[changes, ruby-lint, build-assets]",
               f"{job_id}: same lint/assets prerequisites as the other test jobs")
         check(not re.search(r"^    continue-on-error:", job, re.M), f"{job_id} remains blocking")
-        check("needs.changes.outputs.ruby" not in job, f"a Ruby change alone must not run {job_id}")
-    check(scalar(unit_billing, "if", 4) == "&if-billing-nightly |", "ruby-billing defines the shared nightly gate")
+    check(" ".join(block(unit_billing, "if", 4).split()) == " ".join(block(block(jobs, "ruby-unit", 2), "if", 4).split()),
+          "ruby-billing runs on ruby-unit's gate")
+    check("billing_nightly" not in unit_billing, "the nightly flag does not gate the billing lane")
     for job_id, job in (("ruby-integration-billing", billing), ("ruby-billing-integration", integration_billing)):
-        check(scalar(job, "if", 4) == "*if-billing-nightly", f"{job_id} uses the same nightly gate")
-    check(" ".join(block(unit_billing, "if", 4).split()) == (
+        check("needs.changes.outputs.ruby" not in job, f"a Ruby change alone must not run {job_id}")
+    check(scalar(billing, "if", 4) == "&if-billing-nightly |", "ruby-integration-billing defines the shared nightly gate")
+    check(scalar(integration_billing, "if", 4) == "*if-billing-nightly",
+          "ruby-billing-integration uses the same nightly gate")
+    check(" ".join(block(billing, "if", 4).split()) == (
         "always() && needs.changes.outputs.billing_nightly == 'true' && "
         "(needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') && "
         "(needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped') && "
         "!contains(needs.*.result, 'cancelled')"
-    ), "billing runs on the nightly flag alone, not on a path, Ruby or auth selection")
+    ), "the nightly billing jobs run on the nightly flag alone, not on a path, Ruby or auth selection")
     check(re.findall(r"^          lane: (.+)$", integration_billing, re.M) == ["billing-integration"],
           "ruby-billing-integration runs the billing-integration lane and nothing else")
     check("results-file: 'rspec_billing_integration_results.json'" in integration_billing,
@@ -320,7 +326,7 @@ def prerequisites_and_gates():
           == expression("steps.compute.outputs.billing_nightly"),
           "changes publishes the nightly billing integration flag")
     check(not re.search(r"^            billing:$", changes, re.M),
-          "no billing path filter: nothing on a pull request selects the billing jobs")
+          "no billing path filter: nothing on a pull request selects the nightly billing jobs")
     simple = block(jobs, "ruby-integration-simple", 2)
     check(scalar(simple, "if", 4) == "&if-ruby-integration |", "general Ruby gate remains shared")
     check("needs.changes.outputs.ruby == 'true'" in block(simple, "if", 4)
