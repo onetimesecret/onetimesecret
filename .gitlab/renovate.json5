@@ -34,11 +34,12 @@
   },
 
   // PR management
-  dependencyDashboard: {
-    enabled: true,
-    autoclose: true,
-    labels: ['auto-update', 'dependencies'],
-  },
+  // The flat dependencyDashboard* options: the object form needs Renovate
+  // 44.232.0 or later, and the runner's image is older (the 14-day release
+  // age applies to it too). Later versions migrate the flat options.
+  dependencyDashboard: true,
+  dependencyDashboardAutoclose: true,
+  dependencyDashboardLabels: ['auto-update', 'dependencies'],
   prCreation: 'immediate',
   prConcurrentLimit: 10,
   prHourlyLimit: 10,
