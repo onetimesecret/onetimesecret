@@ -23,12 +23,11 @@
 #   FILTER_TYPESCRIPT - true if TypeScript files changed
 #   FILTER_FRONTEND  - true if frontend files changed
 #   FILTER_OCI       - true if Docker/OCI files changed
-#   FILTER_HARNESS   - true if a path the lane runner's own specs exercise changed
 #   FILTER_AUTH      - shared auth selector result (paths, label, or event)
 #   NIGHTLY          - true on the schedule event, a release-tag push or a dispatch with run_all
 #
 # Outputs (to GITHUB_OUTPUT):
-#   ruby, typescript, frontend, oci, harness, auth, billing_nightly, ga_workflow_files
+#   ruby, typescript, frontend, oci, auth, billing_nightly, ga_workflow_files
 
 set -e
 
@@ -40,7 +39,6 @@ FILTER_RUBY="${FILTER_RUBY:-false}"
 FILTER_TYPESCRIPT="${FILTER_TYPESCRIPT:-false}"
 FILTER_FRONTEND="${FILTER_FRONTEND:-false}"
 FILTER_OCI="${FILTER_OCI:-false}"
-FILTER_HARNESS="${FILTER_HARNESS:-false}"
 NIGHTLY="${NIGHTLY:-false}"
 FILTER_AUTH="${FILTER_AUTH:-}"
 case "$FILTER_AUTH" in
@@ -55,7 +53,6 @@ if [[ "$SKIP_CI" == "true" ]]; then
   TYPESCRIPT=false
   FRONTEND=false
   OCI=false
-  HARNESS=false
   GA_WORKFLOW_FILES=false
   AUTH=false
   BILLING_NIGHTLY=false
@@ -65,7 +62,6 @@ elif [[ "$RUN_ALL" == "true" || "$GA_WORKFLOWS" == "true" ]]; then
   TYPESCRIPT=true
   FRONTEND=true
   OCI=true
-  HARNESS=true
   GA_WORKFLOW_FILES=true
   AUTH=true
   BILLING_NIGHTLY="$NIGHTLY"
@@ -75,7 +71,6 @@ else
   TYPESCRIPT="$FILTER_TYPESCRIPT"
   FRONTEND="$FILTER_FRONTEND"
   OCI="$FILTER_OCI"
-  HARNESS="$FILTER_HARNESS"
   GA_WORKFLOW_FILES=false
   AUTH="$FILTER_AUTH"
   BILLING_NIGHTLY="$NIGHTLY"
@@ -87,7 +82,6 @@ if [[ -n "$GITHUB_OUTPUT" ]]; then
   echo "typescript=$TYPESCRIPT" >> "$GITHUB_OUTPUT"
   echo "frontend=$FRONTEND" >> "$GITHUB_OUTPUT"
   echo "oci=$OCI" >> "$GITHUB_OUTPUT"
-  echo "harness=$HARNESS" >> "$GITHUB_OUTPUT"
   echo "auth=$AUTH" >> "$GITHUB_OUTPUT"
   echo "billing_nightly=$BILLING_NIGHTLY" >> "$GITHUB_OUTPUT"
   echo "ga_workflow_files=$GA_WORKFLOW_FILES" >> "$GITHUB_OUTPUT"
@@ -97,7 +91,6 @@ else
   echo "typescript=$TYPESCRIPT"
   echo "frontend=$FRONTEND"
   echo "oci=$OCI"
-  echo "harness=$HARNESS"
   echo "auth=$AUTH"
   echo "billing_nightly=$BILLING_NIGHTLY"
   echo "ga_workflow_files=$GA_WORKFLOW_FILES"

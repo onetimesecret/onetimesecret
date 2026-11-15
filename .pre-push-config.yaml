@@ -66,8 +66,16 @@ repos:
         files: \.(yaml|yml)$
         # These config files are ERB templates, not plain YAML: they carry
         # <% %> control tags that the YAML parser cannot handle. They are
-        # rendered through ERB before being parsed at runtime.
-        exclude: '^etc/defaults/.*\.yaml$|^etc/examples/billing\.example\.yaml$|^spec/.*\.test\.yaml$'
+        # rendered through ERB before being parsed at runtime. The GitLab CI
+        # files are checked by the entry below.
+        exclude: '^etc/defaults/.*\.yaml$|^etc/examples/billing\.example\.yaml$|^spec/.*\.test\.yaml$|^\.gitlab-ci\.yml$|^\.gitlab/ci/'
+
+      # GitLab CI files use GitLab's own tags (!reference), which the loader
+      # above cannot construct. --unsafe parses them for syntax only.
+      - id: check-yaml
+        name: Validate YAML files (GitLab CI, syntax only)
+        args: ['--unsafe']
+        files: '^(\.gitlab-ci\.yml|\.gitlab/ci/.*\.ya?ml)$'
 
       - id: check-toml
         name: Validate TOML files

@@ -23,9 +23,9 @@ $ docker compose -f compose.test.yml down
 
 Prerequisites: bash 5+, `bundle install`, `pnpm install`, and `python3`.
 macOS's system bash is 3.2; install a newer version with `brew install bash`.
-`unit` and `smoke` also require built frontend assets in `public/web/dist/`
-(`pnpm run build` locally; CI supplies them). `browser` also requires the
-Playwright browser binaries (`pnpm exec playwright install chromium firefox
+`unit` also requires built frontend assets in `public/web/dist/`
+(`pnpm run build` locally; CI supplies them); `smoke` does not.
+`browser` also requires the Playwright browser binaries (`pnpm exec playwright install chromium firefox
 webkit`; `bin/setup --test` installs them) and, on Linux, their OS packages
 (`pnpm exec playwright install-deps`, which uses sudo/apt and is therefore
 left to the contributor and to CI). The lane's tasks preflight the binaries
@@ -524,7 +524,7 @@ duration exceeds its wall clock.
 | Lane                 | Services                   | Runs                                                          | Workers | CI job                                           |
 | -------------------- | -------------------------- | ------------------------------------------------------------- | ------- | ------------------------------------------------ |
 | `unit`               | valkey, rabbitmq           | `try:unit`, `spec:fast`                                       | 2 (one leg each) | ruby-unit (T2)                          |
-| `billing`            | valkey, rabbitmq           | `try:billing`, `spec:billing`                                 | 1       | ruby-billing (T2, nightly only)                  |
+| `billing`            | valkey, rabbitmq           | `try:billing`, `spec:billing`                                 | 1       | ruby-billing (T2)                                |
 | `billing-integration` | valkey, rabbitmq          | `try:integration:billing`, `spec:integration:billing`         | 1       | ruby-billing-integration (T3, nightly only)      |
 | `browser`            | valkey, rabbitmq           | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | 1       | ruby-auth-browser (T2)                           |
 | `simple`             | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`           | 4 (rspec)| ruby-integration-simple (T3)                    |
@@ -537,10 +537,10 @@ duration exceeds its wall clock.
 | `disabled`           | valkey, rabbitmq           | `spec:integration:disabled`                                   | 1       | ruby-integration-disabled (T3)                   |
 | `strategies`         | valkey, rabbitmq           | `spec:integration:strategies`                                 | 1       | ruby-integration-strategies (T3)                 |
 | `api`                | valkey, rabbitmq           | `spec:api`                                                    | 4       | blocking step, T3 simple job                     |
-| `smoke`              | valkey, rabbitmq           | `pnpm test:smoke`                                             | 1 (refused above) | smoke-test (T3)                        |
+| `smoke`              | valkey, rabbitmq           | `pnpm test:smoke`                                             | 1 (refused above) | smoke-test (T3); GitLab: smoke-lane    |
 | `migrations-sqlite`  | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                          | 1       | migration-tests.yml — SQLite job                 |
 | `migrations-pg`      | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check    | 1 (PG)  | migration-tests.yml — PostgreSQL job             |
-| `harness`            | valkey, rabbitmq           | `spec:lanes` (`spec/unit/lanes`, the runner's own specs)      | 1       | ruby-unit (T2), second step, path-gated          |
+| `harness`            | valkey, rabbitmq           | `spec:lanes` (`spec/unit/lanes`, the runner's own specs)      | 1       | ruby-unit (T2), second step                      |
 | `selftest`           | none                       | boundary fixture                                              | 1       | none — driven by `spec/unit/lanes/`              |
 
 Start every service named for a lane. This includes RabbitMQ for `api`,
@@ -556,6 +556,17 @@ Familia/Redis connection and every strategy example fails spuriously
 (#3468). One lane = one process boundary, so a second lane is how that
 gets expressed.
 
+`smoke` is a quick check that the application boots and its core flows
+answer, under a minute locally. Its Ruby part is the curated list
+`SMOKE_SPEC_GROUPS` in `lib/tasks/spec.rake`, run as three rspec processes
+(unit-style, simple-mode integration, and the `config.ru` controller specs
+on their own); its Vitest part is the curated list in
+`src/tests/smoke-files.ts`. Both lists name only files another lane already
+runs, so smoke owns no path and adds speed, not coverage:
+`spec/unit/lanes/ownership_spec.rb` fails on a listed Ruby file no other
+lane selects, and the rake task fails before any spec runs when a listed
+file does not exist.
+
 A lane with several legs (`unit`, `billing`, `billing-integration`, `simple`,
 `migrations-pg`) runs every leg even when an earlier one fails, then exits
 non-zero naming the red legs; the same holds for the three rspec legs inside
@@ -564,26 +575,25 @@ non-zero naming the red legs; the same holds for the three rspec legs inside
 The `harness` lane is the runner's own specs, `spec/unit/lanes/`, carved out
 of `unit` (`HARNESS_SPEC_PATHS` in `lib/tasks/spec.rake`): nearly every
 example starts `tests/lanes/run` as a subprocess, so the directory costs about
-20 seconds in CI for tests of the runner, not the application. The ruby-unit
-job runs it as a second step only when a path those specs exercise changed:
-`spec/unit/lanes/`, `tests/lanes/`, the two spec rake files, `spec_helper.rb`,
-the test logging config and the run-test-lane action (the `harness` filter in
-`ci.yml`; any `.github/` change or a run-all event selects it too). Locally it
-is in `run-all`'s default set, and `tests/lanes/run --only` on one of its
-files infers it.
+30 seconds in CI. The ruby-unit job runs it as a second step on every run,
+because some of these specs read paths outside the runner: `ownership_spec.rb`
+walks every `spec/` and `try/` directory and fails on one that no lane claims.
+Locally it is in `run-all`'s default set, and `tests/lanes/run --only` on one
+of its files infers it.
 
 The `billing` lane is billing's own tests, carved out of `unit`: the billing
 app's spec and tryouts trees plus the root trees named for billing
 (`BILLING_SPEC_PATHS` and `BILLING_TRY_PATHS` in `lib/tasks/spec.rake`), in
 the same simple-mode, billing-off environment. The lane runs no `--tag`
-filter: the `:integration`-tagged billing examples belong to it. In CI it is
-nightly only, like every billing job (`docs/development/auth-ci.md`).
+filter: the `:integration`-tagged billing examples belong to it. In CI it
+runs on every Ruby change, on the same gate as `unit`
+(`docs/development/auth-ci.md`).
 
 The `billing-integration` lane is billing's integration tests: the mode-less
 spec files directly under `apps/web/billing/spec/integration/`
 (`BILLING_INTEGRATION_SPEC_PATTERN`; `spec:billing` excludes that subtree)
 and the `try/integration/billing` tryouts, which `simple` used to run. Same
-environment as `billing`, and nightly only in CI too, so a pull request, a
+environment as `billing`, but nightly only in CI, so a pull request, a
 push to `main` or a merge-queue check skips it (`docs/development/auth-ci.md`).
 `rake spec:verify_selection` proves `spec:fast`, `spec:billing` and
 `spec:integration:billing` partition what `spec:fast` alone used to select.
