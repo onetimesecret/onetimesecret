@@ -75,6 +75,8 @@ module ConfigAccessGuard
     'jobs.dlq_monitor_enabled' => 'opt-in switch for DlqMonitorJob; the defaults file does not define it',
     'jobs.domain_refresh.rate_limit' => "commented out in the defaults: unset means the strategy's own pacing",
     'jobs.heartbeat_enabled' => 'opt-in switch for HeartbeatJob; the defaults file does not define it',
+    'jobs.maintenance.housekeeping.batch_size' => 'operator-set; HousekeepingJob::DEFAULT_BATCH_SIZE without it',
+    'jobs.maintenance.housekeeping.models' => 'operator-set model list; HousekeepingJob scans its default model list without it',
     'jobs.rabbitmq_management_url' => 'optional; RABBITMQ_MANAGEMENT_URL or localhost is used without it',
     'locales' => 'legacy top-level list, read when internationalization.locales is unset',
     'site.authentication.colonels' => 'operator-set list of colonel emails; the defaults file does not define it',
