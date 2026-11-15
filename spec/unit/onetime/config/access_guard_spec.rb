@@ -61,6 +61,16 @@ module ConfigAccessGuard
   # Literal paths read with a default that are not in the shipped config,
   # with the reason each can be absent.
   OPTIONAL_PATHS = {
+    'emailer.allow_unauthenticated_fallback' => 'opt-in: Delivery::SMTP retries without AUTH after the server rejects it only when set',
+    'emailer.domain' => 'SMTP HELO domain; SMTP_DOMAIN is read when it is unset',
+    'emailer.fromname' => 'deprecated since v0.23 (from_name replaces it); read only when from_name is unset',
+    'emailer.lettermint_api_token' => 'operator-set override; email_providers.lettermint, emailer.pass and LETTERMINT_API_TOKEN follow',
+    'emailer.lettermint_base_url' => 'operator-set override; email_providers.lettermint and LETTERMINT_BASE_URL follow',
+    'emailer.lettermint_team_token' => 'operator-set override; email_providers.lettermint and LETTERMINT_TEAM_TOKEN follow',
+    'emailer.lettermint_timeout' => 'operator-set override; the Lettermint client default applies without it',
+    'emailer.sendgrid_api_key' => 'operator-set override; emailer.pass and SENDGRID_API_KEY follow',
+    'emailer.smtp2go_api_key' => 'operator-set override; email_providers.smtp2go and SMTP2GO_API_KEY follow',
+    'emailer.smtp2go_timeout' => 'operator-set override; the SMTP2GO client default applies without it',
     'features.domains.strict_strategy' => 'opt-in: an unknown validation_strategy raises instead of falling back to passthrough',
     'jobs.dlq_monitor_enabled' => 'opt-in switch for DlqMonitorJob; the defaults file does not define it',
     'jobs.domain_refresh.rate_limit' => "commented out in the defaults: unset means the strategy's own pacing",

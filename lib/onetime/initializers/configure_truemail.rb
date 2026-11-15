@@ -7,7 +7,7 @@ module Onetime
     # ConfigureTruemail initializer
     #
     # Configures email validation via Truemail library. Reads configuration
-    # from OT.conf['mail']['truemail'] and applies it to Truemail.configure.
+    # from the mail.truemail section and applies it to Truemail.configure.
     #
     # Runtime state set:
     # - Onetime::Runtime.email.truemail_configured
