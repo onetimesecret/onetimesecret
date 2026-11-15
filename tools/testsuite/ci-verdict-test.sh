@@ -76,7 +76,7 @@ assert_contains "check-oci-image skipped for no oci/frontend change" "| check-oc
 printf '\nruby-only PR\n'
 out="$(verdict RUBY=true "${ALL_SUCCESS[@]}" \
   RESULT_TYPESCRIPT_LINT=skipped RESULT_I18N_VALIDATE=skipped \
-  RESULT_TYPESCRIPT_UNIT=skipped RESULT_CHECK_OCI_IMAGE=skipped RESULT_SMOKE_TEST=skipped \
+  RESULT_TYPESCRIPT_UNIT=skipped RESULT_CHECK_OCI_IMAGE=skipped \
   RESULT_RUBY_AUTH_BROWSER=skipped RESULT_RUBY_INTEGRATION_AUTH=skipped \
   RESULT_RUBY_INTEGRATION_BILLING=skipped RESULT_RUBY_BILLING_INTEGRATION=skipped)"
 status=$?
@@ -120,7 +120,9 @@ assert_contains "ruby-unit skipped although ruby changed" \
   "| ruby-unit | skipped | ❌ expected to run (ruby changed) but was skipped: a prerequisite failed or the run was cancelled |" "$out"
 assert_contains "ruby-billing skipped although ruby changed" \
   "| ruby-billing | skipped | ❌ expected to run (ruby changed) but was skipped: a prerequisite failed or the run was cancelled |" "$out"
-assert_contains "eight failures counted" "❌ 8 job(s) did not pass" "$out"
+assert_contains "smoke-test skipped although ruby changed" \
+  "| smoke-test | skipped | ❌ expected to run (ruby or typescript changed) but was skipped: a prerequisite failed or the run was cancelled |" "$out"
+assert_contains "nine failures counted" "❌ 9 job(s) did not pass" "$out"
 
 # --- the run was cancelled ----------------------------------------------------
 printf '\nrun cancelled mid-way\n'
@@ -213,8 +215,8 @@ out="$(verdict RUBY=true AUTH=true "${ALL_SUCCESS[@]}" \
   RESULT_RUBY_AUTH_BROWSER=skipped RESULT_RUBY_INTEGRATION_AUTH=skipped)"
 status=$?
 assert_eq "CV-AUTH-04: selected auth with failed lint exit" 1 "$status"
-assert_contains "CV-AUTH-04: forcing auth adds two failures to the existing eight" \
-  '❌ 10 job(s) did not pass' "$out"
+assert_contains "CV-AUTH-04: forcing auth adds two failures to the existing nine" \
+  '❌ 11 job(s) did not pass' "$out"
 
 # --- auth selected on its own: a label or a frontend auth path, no Ruby flag ---
 printf '\nauth selected without a Ruby change\n'
@@ -240,6 +242,23 @@ protects "the auth jobs download the frontend build, so a skipped build under au
 assert_eq "CV-AUTH-08: auth-only run without a build exit" 1 "$status"
 assert_contains "CV-AUTH-08: build expected for auth" \
   "| build-assets | skipped | ❌ expected to run (frontend, ruby, auth or nightly/release event changed) but was skipped:" "$out"
+
+# --- the smoke lane follows either the Ruby or the TypeScript flag -------------
+printf '\nsmoke lane results (Ruby or TypeScript flag)\n'
+for ruby in true false; do
+  for typescript in true false; do
+    for result in success skipped failure; do
+      out="$(verdict RUBY="$ruby" TYPESCRIPT="$typescript" "${ALL_SUCCESS[@]}" RESULT_SMOKE_TEST="$result")"
+      status=$?
+      expected=1
+      if [[ "$result" == success || ( "$ruby" == false && "$typescript" == false && "$result" == skipped ) ]]; then
+        expected=0
+      fi
+      protects "the smoke lane runs on any Ruby or TypeScript change, not only on a change to both"
+      assert_eq "CV-SMOKE-01: smoke-test ruby=$ruby typescript=$typescript result=[$result] exit" "$expected" "$status"
+    done
+  done
+done
 
 # --- the billing lane follows the Ruby flag ------------------------------------
 # ruby-billing runs billing's own specs and tryouts with the other Ruby jobs.

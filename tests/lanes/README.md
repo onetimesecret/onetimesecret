@@ -556,6 +556,17 @@ Familia/Redis connection and every strategy example fails spuriously
 (#3468). One lane = one process boundary, so a second lane is how that
 gets expressed.
 
+`smoke` is a quick check that the application boots and its core flows
+answer, under a minute locally. Its Ruby part is the curated list
+`SMOKE_SPEC_GROUPS` in `lib/tasks/spec.rake`, run as three rspec processes
+(unit-style, simple-mode integration, and the `config.ru` controller specs
+on their own); its Vitest part is the curated list in
+`src/tests/smoke-files.ts`. Both lists name only files another lane already
+runs, so smoke owns no path and adds speed, not coverage:
+`spec/unit/lanes/ownership_spec.rb` fails on a listed Ruby file no other
+lane selects, and the rake task fails before any spec runs when a listed
+file does not exist.
+
 A lane with several legs (`unit`, `billing`, `billing-integration`, `simple`,
 `migrations-pg`) runs every leg even when an earlier one fails, then exits
 non-zero naming the red legs; the same holds for the three rspec legs inside

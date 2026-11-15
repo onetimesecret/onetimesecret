@@ -706,16 +706,22 @@ jobs:
   # TIER 3: INTEGRATION TESTS (~4-6 min each, run in parallel)
   # ============================================================================
 
+  # The smoke lane: a short curated list (SMOKE_SPEC_GROUPS in
+  # lib/tasks/spec.rake, src/tests/smoke-files.ts) of files the unit, simple
+  # and TypeScript jobs also run. It waits on no test job, so it is the
+  # first test result of a run: boot, routes, the secret lifecycle and
+  # sign-in in a few minutes, while the full lanes are still running. Any
+  # Ruby or TypeScript change selects it.
   smoke-test:
     name: T3 · Smoke Test
-    timeout-minutes: 15
+    timeout-minutes: 10
     runs-on: *runs-on
-    needs: [changes, build-assets, ruby-unit, typescript-unit]
+    needs: [changes, ruby-lint, build-assets]
     if: |
       always() &&
-      needs.changes.outputs.ruby == 'true' &&
-      needs.changes.outputs.typescript == 'true' &&
-      !contains(needs.*.result, 'failure') &&
+      (needs.changes.outputs.ruby == 'true' || needs.changes.outputs.typescript == 'true') &&
+      (needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') &&
+      (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped') &&
       !contains(needs.*.result, 'cancelled')
     steps:
       - *checkout-step

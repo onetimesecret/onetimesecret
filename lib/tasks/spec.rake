@@ -377,8 +377,8 @@ namespace :spec do
     sh "bundle exec rspec #{HARNESS_SPEC_PATHS.join(' ')} #{rspec_task_format_options(task)}"
   end
 
-  # Per-tree tasks below are kept for targeted runs (`rake spec:apps:web_auth`)
-  # and are what smoke:rspec invokes. They are no longer how spec:fast runs.
+  # Per-tree tasks below are kept for targeted runs (`rake spec:apps:web_auth`).
+  # They are not how spec:fast runs.
   desc 'Run unit tests'
   RSpec::Core::RakeTask.new(:unit) do |t|
     t.pattern    = 'spec/unit/**/*_spec.rb'
@@ -589,7 +589,7 @@ namespace :spec do
       # account (full_webauthn_verify_mfa/, whose spec says why). Both
       # always run, as spec:fast's legs do, and a red one fails the task at
       # the end; the results files take the directory's name.
-      legs = {
+      legs   = {
         'full_webauthn_verify' => 'false',
         'full_webauthn_verify_mfa' => 'true',
       }
@@ -599,7 +599,8 @@ namespace :spec do
 
         command = "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database " \
                   "#{rspec_format_options(dir.delete_prefix('full_'))}"
-        ok = true
+        ok      = true
+
         sh(env.merge('AUTH_MFA_ENABLED' => mfa), command) { |success, _status| ok = success }
         dir unless ok
       end
@@ -666,8 +667,9 @@ namespace :spec do
         'AUTH_DATABASE_URL' => (ENV['AUTH_DATABASE_URL'].to_s.empty? ? 'sqlite::memory:' : ENV.fetch('AUTH_DATABASE_URL', nil)),
         'ORGS_SSO_ENABLED' => 'true',
       }
-      sh env, 'bundle exec rspec apps/web/auth/spec/integration/strategies --tag ~postgres_database ' \
-              "#{rspec_task_format_options(task)}"
+      sh env,
+        'bundle exec rspec apps/web/auth/spec/integration/strategies --tag ~postgres_database ' \
+        "#{rspec_task_format_options(task)}"
     end
 
     desc 'Run DB-agnostic full mode specs against PostgreSQL'
@@ -995,45 +997,85 @@ namespace :vcr do
 end
 
 # Smoke test tasks
-# Quick validation that the system works without running the full test suite.
-# Run by the smoke lane (tests/lanes/smoke), which the T3 smoke-test job in
-# .github/workflows/ci.yml runs with a 15-minute timeout.
+# A quick check that the application boots and its core flows answer, run
+# by the smoke lane (tests/lanes/smoke) and the smoke-test job in
+# .github/workflows/ci.yml. Its Ruby part is the curated list below; its
+# Vitest part is the curated list in src/tests/smoke-files.ts.
 #
-# Philosophy:
-# - Run representative tests, not exhaustive coverage
-# - One integration mode (simple) is sufficient for smoke testing
-# - Skip 100% pending specs (they waste time loading but never execute)
-# - Vitest runs a curated subset (src/tests/smoke-files.ts), not the full
-#   suite, which the T2 TypeScript Unit Tests job already runs
-# - On CI about 9.5 minutes pass before vitest starts (runner setup about 1,
-#   Ruby about 8.6); the vitest subset takes about 1
-namespace :smoke do
-  desc 'Run smoke test for RSpec (unit + representative apps + simple integration)'
-  task :rspec do
-    # Unit and CLI tests - fast, covers core logic
-    Rake::Task['spec:unit'].invoke
-    Rake::Task['spec:cli'].invoke
+# Every file listed here is also run by the lane that owns it (the unit lane
+# for spec/unit and the app trees, the simple lane for the integration
+# trees), so smoke adds speed, not coverage: spec/unit/lanes/ownership_spec.rb
+# fails when a listed file has no other owner. A missing file fails the task
+# before any spec runs, so a rename elsewhere cannot shrink the list quietly.
+#
+# Selection rules, the same three as the Vitest list. A file is listed only
+# if it is:
+# - high value: boot and configuration, the mounted routes and probes, the
+#   secret lifecycle (create, reveal, burn, receipt) through the logic layer
+#   and the HTTP API, sign-in and sign-out, CSRF, job publishing;
+# - cheap: a few seconds at most;
+# - steady: no subprocesses, forks or Puma, no tight timing bounds.
+#
+# One rspec process per group, the way each file's own lane runs it:
+#   unit         spec_helper only, as in spec:fast
+#   integration  AUTHENTICATION_MODE=simple, as in spec:integration:simple
+#   config_ru    alone, as spec:apps_config_ru keeps config.ru's boot apart
+SMOKE_SPEC_GROUPS = {
+  'unit' => %w[
+    spec/unit/onetime/boot/initializer_registry_spec.rb
+    spec/unit/onetime/application/registry_spec.rb
+    spec/unit/onetime/application/middleware_manifest_spec.rb
+    apps/api/v2/spec/logic/secrets/base_secret_action_spec.rb
+    apps/api/v2/spec/logic/secrets/generate_secret_spec.rb
+    apps/api/v2/spec/logic/secrets/show_secret_spec.rb
+    apps/api/v2/spec/logic/secrets/reveal_secret_spec.rb
+    apps/api/v2/spec/logic/secrets/burn_secret_spec.rb
+    apps/api/v2/spec/models/secret_encryption_attacks_spec.rb
+    spec/unit/onetime/models/receipt_spec.rb
+  ],
+  'integration' => %w[
+    spec/integration/all/initializers/boot_part1_spec.rb
+    spec/integration/all/routes_spec.rb
+    spec/integration/all/session_skip_probe_endpoints_spec.rb
+    spec/integration/all/csrf_enforcement_spec.rb
+    spec/integration/all/jobs/rabbitmq_publishing_spec.rb
+    apps/api/v1/spec/integration/simple/v1_response_contract_spec.rb
+    spec/integration/simple/receipt_burn_response_spec.rb
+    spec/integration/simple/login_failure_code_spec.rb
+    spec/integration/simple/logout_write_back_spec.rb
+  ],
+  'config_ru' => %w[
+    apps/web/core/spec/controllers/config_generator_spec.rb
+    apps/web/core/spec/controllers/page_bootstrap_me_spec.rb
+  ],
+}.freeze
 
-    # Representative app specs - skip 100% pending (domains, acme)
-    # These are chosen because they have actual passing tests
-    %w[api_v1 api_v2 api_organizations web_billing].each do |app|
-      Rake::Task["spec:apps:#{app}"].invoke
+namespace :smoke do
+  desc 'Run the smoke specs (SMOKE_SPEC_GROUPS, one process per group)'
+  task :rspec do
+    missing = SMOKE_SPEC_GROUPS.values.flatten.reject { |file| File.file?(file) }
+    unless missing.empty?
+      abort "smoke:rspec: SMOKE_SPEC_GROUPS in lib/tasks/spec.rake names files that do not exist:\n  " \
+            "#{missing.join("\n  ")}"
     end
 
-    # One integration mode is enough for smoke testing
-    Rake::Task['spec:integration:simple'].invoke
+    # Every group runs; a red one is recorded and fails the task at the end,
+    # the way spec:fast collects its legs.
+    env    = { 'RACK_ENV' => 'test', 'AUTHENTICATION_MODE' => 'simple' }
+    failed = SMOKE_SPEC_GROUPS.filter_map do |group, files|
+      ok = true
+      sh(env, "bundle exec rspec #{files.join(' ')} #{rspec_format_options("smoke_#{group}")}") do |status, _|
+        ok = status
+      end
+      group unless ok
+    end
+    abort "smoke:rspec: #{failed.size} of #{SMOKE_SPEC_GROUPS.size} groups failed: #{failed.join(', ')}" if failed.any?
   end
 
-  desc 'Run smoke test for Tryouts (unit only, skip integration)'
-  task :tryouts do
-    # Unit tryouts cover the critical paths without needing auth mode setup
-    Rake::Task['try:unit'].invoke
-  end
+  desc 'Run the Ruby part of the smoke test'
+  task ruby: [:rspec]
 
-  desc 'Run complete smoke test suite (Ruby + Tryouts)'
-  task ruby: [:rspec, :tryouts]
-
-  desc 'Run smoke test with the Vitest smoke subset (full smoke)'
+  desc 'Run the smoke test with the Vitest smoke subset (full smoke)'
   task :all do
     Rake::Task['smoke:ruby'].invoke
     # Vitest is run via pnpm, not rake. The subset list and its selection
