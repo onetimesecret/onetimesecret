@@ -1022,7 +1022,6 @@ end
 #   config_ru    alone, as spec:apps_config_ru keeps config.ru's boot apart
 SMOKE_SPEC_GROUPS = {
   'unit' => %w[
-    spec/unit/onetime/boot/initializer_registry_spec.rb
     spec/unit/onetime/application/registry_spec.rb
     spec/unit/onetime/application/middleware_manifest_spec.rb
     apps/api/v2/spec/logic/secrets/base_secret_action_spec.rb
