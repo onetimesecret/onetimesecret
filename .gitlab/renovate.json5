@@ -1,3 +1,8 @@
+// Renovate runs from a pipeline schedule in the private project
+// onetimesecret/renovate-runner (.gitlab/renovate-runner.gitlab-ci.yml). That
+// job reads this file from develop and passes it as Renovate's global config,
+// and Renovate ignores repository config files (requireConfig: ignored). A
+// change here takes effect on the first run after it merges into develop.
 {
   $schema: 'https://docs.renovatebot.com/renovate-schema.json',
 
@@ -34,11 +39,12 @@
   },
 
   // PR management
-  dependencyDashboard: {
-    enabled: true,
-    autoclose: true,
-    labels: ['auto-update', 'dependencies'],
-  },
+  // The flat dependencyDashboard* options: the object form needs Renovate
+  // 44.232.0 or later, and the runner's image is older (the 14-day release
+  // age applies to it too). Later versions migrate the flat options.
+  dependencyDashboard: true,
+  dependencyDashboardAutoclose: true,
+  dependencyDashboardLabels: ['auto-update', 'dependencies'],
   prCreation: 'immediate',
   prConcurrentLimit: 10,
   prHourlyLimit: 10,
@@ -51,21 +57,11 @@
   branchNameStrict: true,
   pruneStaleBranches: true,
 
-  // Automerge settings
-  // automergeType 'pr', not 'branch': from April 2025 to September 2026 no
-  // update reached main by branch automerge (every one came through a PR),
-  // and branch-automerge updates without a PR sat unseen for weeks. A merge
-  // request gets a pipeline; a branch push without one does not.
-  // No automergeStrategy: Renovate does not support it on GitLab and stops
-  // automerging when it is set. The project's merge method (merge commit)
-  // applies.
-  automerge: true,
-  automergeType: 'pr',
-  major: { automerge: false },
-  minor: { automerge: false },
-  patch: { automerge: false },
-  pin: { automerge: true },
-  lockFileMaintenance: { automerge: true },
+  // Automerge is off: a person merges every update. Only Maintainers may
+  // merge into develop, and the Renovate service account has the Developer
+  // role. Turning automerge on means giving that account merge rights on
+  // develop.
+  automerge: false,
 
   // Package-specific rules
   packageRules: [

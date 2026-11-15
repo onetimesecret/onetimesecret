@@ -863,32 +863,63 @@ gate after their baseline is triaged (Phase 6).
   only from the mirror (§2.4), so Renovate on GitHub cannot merge anything,
   and its GitHub app is suspended (by the operator, 2026-11-14). Until
   Renovate runs on GitLab there are no dependency update merge requests.
-- Hosting (D11): Mend's hosted Renovate app for GitLab.com. Renovate's docs
-  ("GitLab bot security") say Mend relaunched it in July 2026 as an OAuth
-  app, and that its token is "as capable as the authorizing user's own
-  GitLab account", because GitLab's OAuth scopes are not limited per
-  project. Mend recommends "a dedicated user solely for the integration",
-  so a dedicated GitLab account with Developer access to this project
-  authorizes it. Mend holds that token; no runner project, CI minutes or
-  stored bot token of ours are involved. The alternative is a scheduled
-  pipeline in a separate project using `renovate-bot/renovate-runner`, with
-  a bot account's token stored as a CI variable.
+- Hosting (D11): Renovate runs from a pipeline schedule in the private
+  project `onetimesecret/renovate-runner`, the pattern of Mend's
+  `renovate-bot/renovate-runner` ("We recommend you use a new and dedicated
+  private project to host the Renovate runner"). The runner project's CI/CD
+  configuration file setting is
+  `.gitlab/renovate-runner.gitlab-ci.yml@onetimesecret/onetimesecret:develop`,
+  so the job is reviewed in this repository and Renovate's `gitlabci`
+  manager keeps its image current. This project's own pipeline does not
+  include that file.
+- Credentials: the schedule and two variables, masked and protected, are
+  set in the runner project. `RENOVATE_TOKEN` is a personal access token (scopes `api`,
+  `read_user`, `write_repository`) of a group service account with the
+  Developer role on this project. GitLab's docs on service accounts: "They
+  do not use a seat" and "They cannot sign in to GitLab through the UI".
+  `RENOVATE_GITHUB_COM_TOKEN` is a GitHub token with read access to public
+  repositories, for GitHub Actions digests, `github-tags` lookups and
+  changelogs; without it, the runner's docs say, "github.com's API will
+  rate limit requests and make such lookups unreliable." The job's config
+  is Renovate's global config, which can allow commands, so its source
+  (this project, `develop`) is a literal in the job, and the runner
+  project's "Minimum role to use pipeline variables" is "No one allowed".
+- Mend's hosted app for GitLab.com is not used. It authorizes through
+  GitLab's OAuth sign-in, which a service account cannot complete, so it
+  needs a regular user, and a regular user with the Developer role is a
+  billable seat. On 2026-11-14 the group had a Premium subscription
+  with an Ultimate trial (`ultimate_trial_paid_customer`) and one seat.
 - Config (`.gitlab/renovate.json5`): merge requests target `develop`.
-  `osvVulnerabilityAlerts` is the source of vulnerability fixes, because
+  Renovate reads a repository's config file from the default branch only
+  ("By default, Renovate will read config file from the default branch
+  only", `useBaseBranchConfig`), and `main` receives `develop` only through
+  promotions. So the runner job sets `requireConfig: ignored` ("repo will
+  be processed while ignoring any config file present") and passes this
+  file, read from `develop`, as Renovate's global config. A change to it
+  takes effect on the first run after it merges into `develop`.
+- Automerge is off; a maintainer merges every update. Only Maintainers may
+  merge into `develop`, and the service account is a Developer; automerge
+  would need that account to have merge rights on `develop`.
+  `automergeStrategy` is gone as well: Renovate does not support it on
+  GitLab.
+- `osvVulnerabilityAlerts` is the source of vulnerability fixes, because
   `vulnerabilityAlerts` reads GitHub's alerts; its settings still apply to
-  the merge requests the OSV alerts open. `automergeStrategy` is gone:
-  Renovate does not support it on GitLab and stops automerging when it is
-  set, and the project's merge method is already a merge commit.
+  the merge requests the OSV alerts open.
   `helpers:pinGitHubActionDigests` stays, because the GitHub workflows keep
   publishing the images (§2.4). The custom regex manager matches the two
   GitHub workflows that carry `TRANSLATION_RULES_REF` until their GitLab
-  jobs exist. Renovate reads this file from the default branch only ("By
-  default, Renovate will read config file from the default branch only",
-  `useBaseBranchConfig`), so a change to it takes effect once a promotion
-  brings it to `main`.
+  jobs exist.
+- GitLab's dependency scanning auto-remediation (Ultimate, Beta) stays off.
+  It opens merge requests only for vulnerable language dependencies, and
+  its scan results "must be reported on the default branch", which is
+  `main` here. GitLab's design document for it lists as non-goals "Custom
+  dependency managers like the ones supported by Renovate" and "Updating
+  anything other than language dependencies", so it would not replace the
+  Docker digest, GitHub Actions and regex updates above. Dependency
+  scanning itself runs through a security configuration profile (§2.2).
 - The merge requests imported from GitHub that the GitHub app opened
   (!4826, !4946 to !4953) are closed and their `deps/*` branches deleted, so
-  that the GitLab app does not meet branches it did not create. Their
+  that Renovate on GitLab does not meet branches it did not create. Their
   commits stay reachable from the merge requests. `deps/familia-2-x-lockfile`
   (last commit by a maintainer) and `deps/postgres-17` have no open merge
   request and are left as they are.
@@ -899,7 +930,12 @@ gate after their baseline is triaged (Phase 6).
   above replace them.
 - Every Renovate merge request is a pipeline. The current settings
   (`prCreation: immediate`, 10 concurrent, 10 an hour) are a cost on metered
-  runners; a schedule window and grouping reduce it.
+  runners; a schedule window and grouping reduce it. The runner's schedule
+  runs every two hours. A lookup-only run on 2026-11-14 (Renovate 44.198.3,
+  60 seconds) found 699 dependencies, with updates for 262 GitHub Actions
+  references, 79 npm and 34 Bundler dependencies among others. The limit of
+  10 open merge requests paces that backlog, and the Dependency Dashboard
+  issue lists the rest.
 
 ### 4.10 Repository automation and review
 
@@ -1027,7 +1063,7 @@ Changes that widen access and need operator approval (C7):
 |---|---|---|
 | P1 | A stored token to push to GHCR | Not needed: GHCR pushes stay in the GitHub workflow with the run's own short-lived token (decided 2026-11-13) |
 | P2 | Privileged job containers | on hosted runners each job has its own VM; on a self-hosted fleet this is root on the runner host |
-| P3 | A bot token with API write for Renovate, triage and merge request notes | new long-lived credential |
+| P3 | A bot token with API write for Renovate, triage and merge request notes | new long-lived credential. Renovate's is a group service account's token, stored only in the private runner project and given only to its job (§4.9). |
 | P4 | The permanent push mirror from GitLab to GitHub, set up on 2026-11-13 after the maintainer's decision (§2.4) | a deploy key with write access (169800417), scoped to this one repository; the rulesets let only that key push `main`, `develop` and `v*` tags. Who can publish: GitLab Maintainers, by creating a `v*` tag; and whoever can push or merge to GitLab `main`, which the GitHub nightly publishes from. GitHub users with write access can still dispatch the publish workflow. |
 | P5 | "Run pipelines in the parent project" for fork merge requests | runs fork code with the parent's runners and variables; recommend disabling it |
 | P6 | The Claude credential is visible to every command of its job in merge request pipelines. | today it is passed to one step; the environment scope limits it to one job, not to one step |
@@ -1682,7 +1718,7 @@ Consequences, as this plan reads them:
 | D8 | Which AI reviewers continue, and with which triggers | Greptile through its GitLab integration; Claude review as a CI job on merge request open and on the `claude-review` label, with the current skips; defer `@claude` mentions | |
 | D9 | Translation request workflow | Retire. Re-specify on `locales/scripts` if it is still wanted. | with its default input it resolves no locales (inferred), because its paths are gone |
 | D10 | CI metrics port before or after cutover | After | between cutover and the port there is no per-job regression flag on merge requests. The tier budget check is advisory today (`fail-on-violation` is false). |
-| D11 | Renovate hosting | Mend's hosted app for GitLab.com, authorized by a dedicated GitLab account (§4.9). The maintainer's reply to this recommendation on 2026-11-14: "Continue with items 1 and 2" (Renovate was item 1). In effect once the app is authorized. | no runner project or CI minutes; Mend holds an OAuth token as capable as the dedicated account. Until Renovate runs on GitLab there are no dependency update merge requests. |
+| D11 | Renovate hosting | A pipeline schedule in the private project `onetimesecret/renovate-runner`, running as a group service account with the Developer role; automerge off (§4.9). The maintainer's reply to this recommendation on 2026-11-14: "Please go ahead with your recommendations." Mend's hosted app, accepted the same day ("Continue with items 1 and 2"), is not used, because its account would be a billable seat. In effect once the runner project's tokens are stored and its schedule is active. | no seat; CI minutes for each run; a stored token to rotate. Until Renovate runs there are no dependency update merge requests. |
 | D13 | GitLab for Open Source application | Check the profit clause first | cost factor and tier |
 | D14 | Register full scans that are expected to fail | Verify the claim first. If true, mark the full-scan job `allow_failure` until the findings are fixed. | whether `main` and weekly pipelines are red from day one, and whether a promotion that changes locale content can merge; needed before the first promotion on GitLab |
 | D15 | Guard scripts in `scripts/` | Leave them (§5) | scope of the ADR-042 consolidation |
@@ -1938,8 +1974,7 @@ documented or supported in current docs.
 
 Not confirmed: whether the `cache:key:files` limit of 10 is live on
 GitLab.com (assume 2: the 19.5 docs put it behind the feature flag
-`increase_ci_cache_key_files_limit`, "Disabled by default."); whether Mend's
-hosted Renovate app accepts Free or program namespaces; whether Duo external
+`increase_ci_cache_key_files_limit`, "Disabled by default."); whether Duo external
 agents are enabled for program namespaces; whether Bump.sh's tokenless diff
 limits document size or request rate; how "Skip branch pipelines for merge
 requests" treats a long-lived source branch (S8); that a later push cancels
