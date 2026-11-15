@@ -6,8 +6,8 @@
 #   .gitlab/renovate-runner.gitlab-ci.yml@onetimesecret/onetimesecret:develop
 # This project's own pipeline does not include this file.
 #
-# The runner project holds the pipeline schedule and two masked CI/CD
-# variables:
+# The pipeline schedule (on main) and two CI/CD variables, masked and
+# protected, are set in the runner project:
 #   RENOVATE_TOKEN             personal access token of the Renovate group
 #                              service account (scopes api, read_user,
 #                              write_repository). The account has the
@@ -33,12 +33,14 @@ renovate:
   timeout: 1h
   # One run at a time: a run that overlaps the next schedule waits.
   resource_group: renovate
+  # The config is Renovate's global config, which can allow commands, so its
+  # source (project 88874403, ref develop) and the repository are literals in
+  # the script, not variables. The runner project also sets "Minimum role to
+  # use pipeline variables" to "No one allowed", so no RENOVATE_* setting
+  # can be overridden when a pipeline is run.
   variables:
-    TARGET_PROJECT: onetimesecret/onetimesecret
-    TARGET_PROJECT_ID: "88874403"
-    CONFIG_REF: develop
     RENOVATE_PLATFORM: gitlab
-    RENOVATE_ENDPOINT: $CI_API_V4_URL
+    RENOVATE_ENDPOINT: https://gitlab.com/api/v4
     RENOVATE_REQUIRE_CONFIG: ignored
     RENOVATE_ONBOARDING: "false"
     RENOVATE_CONFIG_FILE: $CI_PROJECT_DIR/renovate.json5
@@ -60,8 +62,8 @@ renovate:
       curl --fail --silent --show-error
       --header "PRIVATE-TOKEN: ${RENOVATE_TOKEN}"
       --output "$RENOVATE_CONFIG_FILE"
-      "${CI_API_V4_URL}/projects/${TARGET_PROJECT_ID}/repository/files/.gitlab%2Frenovate.json5/raw?ref=${CONFIG_REF}"
-    - renovate "$TARGET_PROJECT"
+      "https://gitlab.com/api/v4/projects/88874403/repository/files/.gitlab%2Frenovate.json5/raw?ref=develop"
+    - renovate onetimesecret/onetimesecret
   artifacts:
     when: always
     expire_in: 1 week
