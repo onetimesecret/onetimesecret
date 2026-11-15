@@ -3,7 +3,7 @@
 Runbook for upstreaming the `Rack::URLMap` mount-prefix fix (issue #3465) from our
 fork to the gem maintainer once we're ready to drop the fork.
 
-- **Fork:** `onetimesecret/rodauth-oauth` (GitHub) · branch `claude/rodauth-oauth-urlmap-prefix-gczunl` · PR onetimesecret/rodauth-oauth#13. The fork has since merged upstream 1.6.6 and is versioned `1.6.6.ots1` (onetimesecret/rodauth-oauth#16); upstream 1.6.6 does **not** include the mount-prefix change, so this runbook still applies.
+- **Fork:** `onetimesecret/upstream-forks/rodauth-oauth` (GitLab, a fork of `os85/rodauth-oauth`) · branch `main`. The change was developed on the fork's GitHub copy, `github.com/onetimesecret/rodauth-oauth`: branch `claude/rodauth-oauth-urlmap-prefix-gczunl`, PR #13. The fork has since merged upstream 1.6.6 and is versioned `1.6.6.ots1` (PR #16 on the GitHub copy); upstream 1.6.6 does **not** include the mount-prefix change, so this runbook still applies.
 - **Upstream:** `os85/rodauth-oauth` (GitLab, maintainer: Tiago Cardoso / honeyryderchuck), default branch `master`
 - **Status:** not yet submitted upstream. This is a third-party project; submit only with explicit sign-off from the OTS maintainer who owns the `onetimesecret/rodauth-oauth` fork (currently @delano).
 
@@ -97,6 +97,6 @@ git log --oneline origin/main..origin/claude/rodauth-oauth-urlmap-prefix-gczunl
 # git cherry-pick <sha> <sha> ...   (or diff the fork branch and re-apply lib/test/doc hunks)
 
 # resolve the release-note renumber + OTS-reference rewording, run the suite, then:
-git push <your-gitlab-fork> fix/oauth-mount-prefix
+git push git@gitlab.com:onetimesecret/upstream-forks/rodauth-oauth.git fix/oauth-mount-prefix
 # open the MR against os85/rodauth-oauth:master via the GitLab UI or `glab mr create`
 ```
