@@ -254,8 +254,7 @@ module Onetime
         @app                 = app
         @application_context = application_context
 
-        domains_config      = OT.conf&.get('features.domains') || {}
-        self.class.initialize_from_config(domains_config)
+        self.class.initialize_from_config
 
         boot_logger.debug 'DomainStrategy initialized',
           {
@@ -806,24 +805,37 @@ module Onetime
 
         alias domains_enabled? domains_enabled
 
-        # Sets class instance variables based on the site configuration.
-        def initialize_from_config(domains_config)
-          raise ArgumentError, 'Configuration cannot be nil' if domains_config.nil?
+        # Sets class instance variables from features.domains and site.host.
+        def initialize_from_config
+          configure(
+            enabled: OT.conf.get('features.domains.enabled', false),
+            default: OT.conf.get('features.domains.default', nil),
+            link_domains: OT.conf.get('features.domains.link_domains', nil),
+          )
+        end
 
+        # Sets class instance variables from the given features.domains
+        # values; site.host is read from the config. initialize_from_config
+        # passes the configured values, and specs pass their own.
+        #
+        # @param enabled [Boolean] features.domains.enabled
+        # @param default [String, nil] features.domains.default
+        # @param link_domains [Array<String>, String, nil] features.domains.link_domains
+        def configure(enabled:, default: nil, link_domains: nil)
           Onetime.http_logger.debug 'DomainStrategy initializing from config',
             {
               domains_enabled_before: domains_enabled,
             }
 
-          @domains_enabled = domains_config.fetch('enabled', false)
+          @domains_enabled = enabled
 
-          default_host = domains_enabled ? domains_config['default'] : nil
+          default_host = domains_enabled ? default : nil
           site_host    = OT.conf.get('site.host')
           # Gated exactly like default_host. CanonicalHosts.link_hosts:
           # DEFAULTS to reading features.domains.link_domains, so this call
           # site MUST pass the kwarg explicitly — omitting it would let the
           # link pool join the canonical set even with domains disabled.
-          link_hosts   = domains_enabled ? domains_config['link_domains'] : nil
+          link_hosts   = domains_enabled ? link_domains : nil
 
           # Canonical SET, derived through Utils::CanonicalHosts (the single
           # derivation point shared with CustomDomain). Primary host first:
@@ -854,7 +866,7 @@ module Onetime
               domains_enabled: domains_enabled,
               canonical_domain: canonical_domain,
               canonical_domains: canonical_domains,
-              link_domains: link_domains,
+              link_domains: @link_domains,
             }
 
           # We don't need to get into any domain parsing if domains are disabled

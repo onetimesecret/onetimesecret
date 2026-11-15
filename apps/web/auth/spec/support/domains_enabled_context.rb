@@ -127,7 +127,7 @@ RSpec.shared_context 'domains enabled' do |host = DomainsEnabledContext::CANONIC
     boot_onetime_app
 
     @domains_context_saved_features = Onetime::Runtime.features
-    @domains_context_saved_config   = OT.conf.dig('features', 'domains') || {}
+    @domains_context_saved_config   = OT.conf.get('features.domains') || {}
   end
 
   # Re-assert per example, not only once per group.
@@ -140,12 +140,12 @@ RSpec.shared_context 'domains enabled' do |host = DomainsEnabledContext::CANONIC
   # typed in the file. Re-applying here makes the axis hold regardless, and it
   # is cheap: a hash merge plus a config re-read of a handful of hosts.
   before do
-    OT.conf['features']['domains'] = @domains_context_saved_config.merge(
+    OT.conf.get('features')['domains'] = @domains_context_saved_config.merge(
       'enabled' => true,
       'default' => installed_canonical_host,
     )
     Onetime::Runtime.features = Onetime::Runtime.features.with(domains_enabled: true)
-    Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
+    Onetime::Middleware::DomainStrategy.initialize_from_config
   end
 
   after(:all) do
@@ -153,8 +153,8 @@ RSpec.shared_context 'domains enabled' do |host = DomainsEnabledContext::CANONIC
 
     next unless @domains_context_saved_config
 
-    OT.conf['features']['domains'] = @domains_context_saved_config
-    Onetime::Middleware::DomainStrategy.initialize_from_config(@domains_context_saved_config)
+    OT.conf.get('features')['domains'] = @domains_context_saved_config
+    Onetime::Middleware::DomainStrategy.initialize_from_config
   end
 
   # The operator host installed above. Requests carrying it classify

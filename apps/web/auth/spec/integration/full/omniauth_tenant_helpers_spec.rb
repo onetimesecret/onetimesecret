@@ -291,9 +291,7 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
           }),
         )
         Onetime::Middleware::DomainStrategy.reset!
-        Onetime::Middleware::DomainStrategy.initialize_from_config(
-          { 'enabled' => true, 'default' => 'secrets.example.com' },
-        )
+        Onetime::Middleware::DomainStrategy.configure(enabled: true, default: 'secrets.example.com')
       end
 
       after do

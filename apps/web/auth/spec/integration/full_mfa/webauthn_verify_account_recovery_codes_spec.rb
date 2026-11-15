@@ -102,7 +102,7 @@ RSpec.describe 'Passkey verify-account with recovery codes auto-added', :full_au
     @verify_app = build_rack_app
     # Building the middleware reinitializes DomainStrategy; keep the shared
     # context's classification of the canonical host.
-    Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
+    Onetime::Middleware::DomainStrategy.initialize_from_config
 
     # The delivery seam: the rendered verification emails, as the publisher
     # would receive them.

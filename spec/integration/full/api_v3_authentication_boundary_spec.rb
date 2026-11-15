@@ -20,8 +20,8 @@ RSpec.describe 'V3 current authentication boundaries in full mode', type: :integ
   end
 
   around do |example|
-    api_config = OT.conf.fetch('site').fetch('interface').fetch('api')
-    original_guest_routes = api_config.fetch('guest_routes')
+    api_config = OT.conf.get('site.interface.api')
+    original_guest_routes = OT.conf.get('site.interface.api.guest_routes')
     begin
       api_config['guest_routes'] = original_guest_routes.merge('enabled' => true, 'conceal' => true)
       example.run
@@ -88,19 +88,19 @@ RSpec.describe 'V3 current authentication boundaries in full mode', type: :integ
     let(:canonical_host) { 'auth-boundary.example.com' }
 
     around do |example|
-      original_config = OT.conf.fetch('features').fetch('domains')
+      original_config = OT.conf.get('features.domains')
       original_features = Onetime::Runtime.features
       begin
-        OT.conf['features']['domains'] = original_config.merge('enabled' => true, 'default' => canonical_host)
+        OT.conf.get('features')['domains'] = original_config.merge('enabled' => true, 'default' => canonical_host)
         Onetime::Runtime.features = original_features.with(domains_enabled: true)
-        Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
+        Onetime::Middleware::DomainStrategy.initialize_from_config
         header 'Host', canonical_host
         example.run
       ensure
         header 'Host', nil
-        OT.conf['features']['domains'] = original_config
+        OT.conf.get('features')['domains'] = original_config
         Onetime::Runtime.features = original_features
-        Onetime::Middleware::DomainStrategy.initialize_from_config(original_config)
+        Onetime::Middleware::DomainStrategy.initialize_from_config
       end
     end
 
