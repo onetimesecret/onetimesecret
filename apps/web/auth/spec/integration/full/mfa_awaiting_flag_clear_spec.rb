@@ -148,12 +148,12 @@ RSpec.describe 'MFA completion clears awaiting_mfa (issue #3884)', type: :integr
     )
     raise "otp enrollment: setup failed (#{status}) #{body.inspect}" unless status == 200
 
-    # Rodauth stamps last_use at enrollment and otp_update_last_use refuses a
-    # second use inside the same 30s interval, so a code generated now would be
-    # rejected as a replay. Backdate the stamp instead of sleeping. The test DB
-    # pins timezone=:utc + current_timestamp_utc (see RodauthTestHelper), so
-    # Sequel converts this Time to UTC on write and the guard's comparison
-    # against CURRENT_TIMESTAMP stays in one zone.
+    # Rodauth writes the setup code's time step to last_use at enrollment and
+    # refuses a code whose time step is not later than it, so a code generated
+    # now would be rejected as a replay. Backdate the stamp instead of
+    # sleeping. The test DB pins timezone=:utc (see RodauthTestHelper), so
+    # Sequel converts this Time to UTC on write, as it does the accepted code's
+    # time step that the guard compares it with (rodauth 2.50.0).
     db[:account_otp_keys].where(id: account_id).update(last_use: Time.now - 300)
 
     post_json('/logout', {})

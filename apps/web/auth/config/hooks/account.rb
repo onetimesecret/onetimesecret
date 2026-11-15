@@ -550,7 +550,7 @@ module Auth::Config::Hooks
           # as a pending verification (Operations::Customers::Diagnose).
           # Rodauth's clear_tokens(:verify_account) deletes the row in the
           # onetimesecret fork (onetimesecret/rodauth#3) and through 2.45,
-          # but released 2.46 through 2.48 rotate it in place instead. The
+          # but released 2.46 through 2.50 rotate it in place instead. The
           # delete is idempotent and runs inside the verify transaction.
           remove_verify_account_key
 
@@ -1411,7 +1411,7 @@ module Auth::Config::Hooks
       # Rodauth's close_account route runs, inside one transaction:
       # before_close_account, close_account (status to closed, password hash
       # dropped), after_close_account, clear_session, clear_tokens and, with
-      # delete_account_on_close? on, delete_account (rodauth 2.48.0
+      # delete_account_on_close? on, delete_account (rodauth 2.50.0
       # close_account.rb). The audit_logging feature inserts its "Account
       # closed" row from hook_action at the end of after_close_account, AFTER
       # the block above returns, so the teardown there leaves the accounts row

@@ -107,11 +107,16 @@ module MfaFlowHelper
   # auto_add_recovery_codes? is on, and the app's after hook surfaces the
   # generated codes in the phase-2 JSON response (hooks/mfa.rb).
   #
+  # code_time: the time the phase-2 code is generated for (default: now).
+  # Setup stores that code's time step in last_use, so a spec can set up with
+  # a code from the next time step, as an authenticator whose clock is ahead
+  # would.
+  #
   # Clears cookies on the way out: the flow under test must start from an
   # UNAUTHENTICATED browser, like a user on a fresh device.
   # ==========================================================================
 
-  def provision_totp(email, password: AuthTestConstants::TEST_PASSWORD)
+  def provision_totp(email, password: AuthTestConstants::TEST_PASSWORD, code_time: nil)
     csrf_json_post('/auth/login', login: email, password: password)
     expect(last_response.status).to eq(200),
       "Precondition failed: password login for OTP setup (#{last_response.status}: #{last_response.body})"
@@ -129,7 +134,7 @@ module MfaFlowHelper
       '/auth/otp-setup',
       otp_setup: secret,
       otp_raw_secret: raw_secret,
-      otp_code: ROTP::TOTP.new(secret).now,
+      otp_code: ROTP::TOTP.new(secret).at(code_time || Time.now),
       password: password,
     )
     expect(last_response.status).to eq(200),
@@ -140,10 +145,15 @@ module MfaFlowHelper
     [secret, recovery_codes]
   end
 
-  # Rodauth's OTP reuse guard (otp_update_last_use) rejects any code within one
-  # interval (30s) of last_use — and setup just stamped last_use=now. Rewind it
-  # so the auth step can accept a fresh code immediately instead of sleeping
-  # out the window in the test.
+  # Rodauth's OTP reuse guard refuses a code unless its time step is later
+  # than the one in last_use: otp_valid_code? verifies with
+  # `after: otp_last_use`, and otp_update_last_use wants last_use at least one
+  # interval (30s) behind the accepted step. last_use holds the start of the
+  # last accepted code's time step (rodauth 2.50.0), and setup just wrote the
+  # setup code's step there, so `totp.now` in the same 30 seconds is refused.
+  # Rewind it so the auth step can accept that code instead of sleeping into
+  # the next time step in the test. A code for the NEXT time step needs no
+  # rewind (integration/full_mfa/otp_code_replay_spec.rb).
   #
   # One rewind covers a failed-then-retry sequence: Rodauth stamps last_use
   # only on SUCCESSFUL validation (`otp_valid_code? && otp_update_last_use`
