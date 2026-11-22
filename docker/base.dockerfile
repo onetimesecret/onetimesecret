@@ -29,6 +29,12 @@ ARG NODE_IMAGE_TAG=26@sha256:a723b54c35a76e947095a20a67d39585bb09c862e6b1adeb8a9
 FROM docker.io/library/node:${NODE_IMAGE_TAG} AS node
 
 ##
+# YQ: Immutable, multi-platform binary source. BuildKit selects the target
+# architecture; no GitHub Releases download is needed during a RUN step.
+#
+FROM docker.io/mikefarah/yq:4.52.4@sha256:a4c2cafdf4674b2dc3c6ac457fe1486d55d7d93edb3ed4459637afda3c286af6 AS yq
+
+##
 # BASE: System dependencies and tools
 #
 # Installs system packages, updates RubyGems, and prepares the
@@ -55,37 +61,26 @@ RUN set -eux && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
-# Install yq (optimized for multi-arch)
-# Used for migrating config from v0.22 to v0.23+.
-# Pinned to a specific version to prevent breaking changes from upstream.
+# Install yq for config migration and build-time package.json updates.
+# The pinned OCI index above replaces the GitHub Releases endpoint, whose
+# repeated 504s blocked container builds even with retries. Copy only the
+# binary, not the source image's runtime or configuration.
 #
-# Supply-chain hardening (RISK-2026-08-14-M12): the binary is copied into
-# every final image and runs at build time against package.json, so a
-# tampered or truncated download must fail the build, not ship. The SHA256
-# of each per-arch release asset is pinned here (from the release's
-# `checksums-bsd` file) and verified with `sha256sum -c` BEFORE the file is
-# made executable. Bumping YQ_VERSION therefore also means updating both
-# digests; a mismatch fails loudly rather than silently installing whatever
-# the download returned. Only amd64 and arm64 are built, so any other
-# architecture is refused instead of falling back to an unverified binary.
-#
-# --retry alone covers timeouts and HTTP 408/429/500/502/503/504 only; a
-# connection reset during the TLS handshake (curl exit 35) needs
-# --retry-all-errors. That is safe here: the download writes with -o, curl
-# discards a partial download before it retries, and the digest check runs
-# afterwards.
-ARG YQ_VERSION=v4.52.4
-ARG YQ_SHA256_AMD64=0c4d965ea944b64b8fddaf7f27779ee3034e5693263786506ccd1c120f184e8c
-ARG YQ_SHA256_ARM64=4c2cc022a129be5cc1187959bb4b09bebc7fb543c5837b93001c68f97ce39a5d
+# Supply-chain hardening (RISK-2026-08-14-M12): verify the copied binary
+# BEFORE making it executable. These hashes are from /usr/bin/yq in the pinned
+# OCI image, which is built separately from the GitHub release binaries.
+# Update the source image tag/digest and both checksums together when upgrading.
+# Only amd64 and arm64 are supported; refuse other architectures.
+ARG YQ_SHA256_AMD64=ceafa0ca58d451a80df25bb3aec15b4614ea13b557aa28a99abac4512384c825
+ARG YQ_SHA256_ARM64=9fdc532676be5caa7cd87f973a136bac0ef27c18810710240a6f12eeb6dab102
+COPY --from=yq --chmod=0644 /usr/bin/yq /tmp/yq
 RUN set -eux && \
     ARCH=$(dpkg --print-architecture) && \
     case "$ARCH" in \
-        amd64) YQ_ARCH="amd64"; YQ_SHA256="${YQ_SHA256_AMD64}" ;; \
-        arm64) YQ_ARCH="arm64"; YQ_SHA256="${YQ_SHA256_ARM64}" ;; \
+        amd64) YQ_SHA256="${YQ_SHA256_AMD64}" ;; \
+        arm64) YQ_SHA256="${YQ_SHA256_ARM64}" ;; \
         *) echo "Unsupported architecture for yq: ${ARCH}" >&2; exit 1 ;; \
     esac && \
-    curl -fsSL --retry 5 --retry-all-errors "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${YQ_ARCH}" \
-        -o /tmp/yq && \
     echo "${YQ_SHA256}  /tmp/yq" | sha256sum -c - && \
     install -m 0755 /tmp/yq /usr/local/bin/yq && \
     rm -f /tmp/yq && \
