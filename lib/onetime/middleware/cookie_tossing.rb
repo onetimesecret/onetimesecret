@@ -8,8 +8,9 @@ require_relative '../../middleware/detect_host'
 
 module Onetime
   module Middleware
-    # Rack::Protection::CookieTossing bound to the application's session cookie
-    # and given per-request state (#4466, RISK-2026-08-14-COOKIE-TOSSING).
+    # Bind Rack::Protection::CookieTossing to the application's session cookie
+    # and clear rejected cookies for the browser-facing host and parent domains
+    # (#4466, RISK-2026-08-14-COOKIE-TOSSING).
     #
     # What the gem does (rack-protection 4.2.2, cookie_tossing.rb): `bad_cookies`
     # parses the raw Cookie header with `Rack::Utils.parse_query(header, ';,')`
@@ -45,7 +46,7 @@ module Onetime
     # `Host` to its origin target, Rack's host is that target, and a clear
     # scoped to it never reaches the browser's cookies.
     #
-    # Two things the stock class needs from us:
+    # Cookie detection has two application-specific details:
     #
     # 1. The cookie name. The gem's `session_key` option shares its name with
     #    Base's env-key option and defaults to 'rack.session', but here it
@@ -61,7 +62,10 @@ module Onetime
     #    cannot be decoded is simply not the session key: the request is
     #    neither refused nor failed, the same as any other unrelated cookie.
     #
-    # rack-protection 4.2.2 reads cookie names from each request's environment.
+    # In rack-protection 4.2.1, the middleware instance retained rejected names
+    # between requests. Version 4.2.2 passes the request environment to
+    # `bad_cookies(env)`, so this class no longer duplicates the middleware
+    # instance to isolate requests.
     #
     # Where it runs: in the universal stack directly above Onetime::Session
     # (lib/onetime/application/middleware_stack.rb), so a refused request
