@@ -1,9 +1,10 @@
 # Auth and billing CI selection
 
 The slow, auth-specific parts of CI run on a pull request only when the PR
-touches auth code or carries the `ci:auth` label. Billing coverage runs on
-the nightly and on a release tag only. Everything else runs on `main`,
-nightly, on release tags, and in the merge queue.
+touches auth code or carries the `ci:auth` label. Billing's own specs run
+with every Ruby change; billing's integration lane and the billing-on
+full-mode rows run on the nightly and on a release tag only. Everything else
+runs on `main`, nightly, on release tags, and in the merge queue.
 
 ## What is selected
 
@@ -29,19 +30,24 @@ are not selected by auth or billing: the whole full-mode suite once, on
 SQLite, and the PostgreSQL-only specs, both with billing off. The unit,
 simple-mode, disabled-mode and API lanes, Tryouts, and Vitest keep their
 existing path-based selection. Billing's own specs and tryouts are the
-`billing` lane (ruby-billing), which runs on the nightly and on a release tag
-like every billing job (below).
+`billing` lane (ruby-billing), which runs on the same gate as the unit lane
+(below).
 
 [Container E2E](../../.github/workflows/e2e.yml) keeps its own selection and
 both its simple and full-mode rows.
 
-## Billing (nightly and release tags only)
+## Billing
 
-Three jobs cover billing, and all of them run only on the nightly schedule
-and on a release-tag push:
+Three jobs cover billing.
 
 - `ruby-billing` runs the `billing` lane: the billing app's specs and
-  tryouts and the root test trees named for billing.
+  tryouts and the root test trees named for billing. It runs on every Ruby
+  change, on the same gate as `ruby-unit`. Neither the `unit` lane nor the
+  `smoke` lane runs these specs, so this job is what tests billing on a pull
+  request and on a push to `main` or `develop`.
+
+The other two run only on the nightly schedule and on a release-tag push:
+
 - `ruby-billing-integration` runs the `billing-integration` lane: the
   mode-less specs directly under `apps/web/billing/spec/integration/` and the
   `try/integration/billing` tryouts.
@@ -50,12 +56,12 @@ and on a release-tag push:
   which sets `BILLING_ENABLED=true`. They run the same specs as the
   billing-off rows.
 
-No path selects them. A pull request skips all three whatever it touches,
+No path selects those two. A pull request skips both whatever it touches,
 and so do a push to `main`, a merge-queue check and the `[ci-all]` commit
 flag. The `changes` job publishes the selection as `billing_nightly`, true on
 the `schedule` event, on a push of a `v*` tag, or on a manual dispatch with
 `run_all` ticked, and false otherwise; `[ci-skip]` turns it off too. The
-`ci-verdict` check expects the three jobs skipped on every other event and
+`ci-verdict` check expects the two jobs skipped on every other event and
 requires them to pass on the nightly and on the tag, so a green release-tag
 run is evidence for every configuration.
 
@@ -66,7 +72,7 @@ billing lanes and billing-on full-mode row run there with everything else.
 The install checks (installer, devcontainer, fresh-clone) run the fast
 suite only.
 
-To run the billing jobs against a branch before the nightly does, use **Run
+To run the nightly billing jobs against a branch before the nightly does, use **Run
 workflow** with `run_all` ticked, or run the lanes locally:
 `tests/lanes/run billing`, `tests/lanes/run billing-integration` and
 `tests/lanes/run full-sqlite --overlay billing`.
@@ -102,19 +108,19 @@ Auth runs regardless of paths on:
 - Manual dispatch of any of the three workflows.
 
 Main CI runs all of its jobs, not only the auth ones, on pushes to `main`,
-tags, scheduled runs and merge-queue checks, with one exception: the three
+tags, scheduled runs and merge-queue checks, with one exception: two of the
 billing jobs run on the scheduled run alone (see "Billing" above). Its
 manual `run_all` input selects every main-CI job, the billing jobs included;
 without it, a dispatch still runs auth but the other jobs keep path-based
 selection. The `[ci-all]` commit flag applies to main CI, not the separate
-E2E workflows, and does not select the billing jobs. `[ci-skip]` cannot
+E2E workflows, and does not select the two nightly billing jobs. `[ci-skip]` cannot
 produce a passing main-CI verdict.
 
 ### Before a release
 
 Check that the commit you are about to tag is green in **CI**, **E2E Full
 Auth** and **E2E Tenant Connect**. A push to `main` starts all three for that
-commit, but not the billing jobs: those need the nightly run that followed
+commit, but not the two nightly billing jobs: those need the nightly run that followed
 the push, or a **Run workflow** dispatch with `run_all` ticked. A
 run is cancelled when another push to `main` lands behind it, so look at the
 commit's checks instead of assuming. For a commit without them, or any other

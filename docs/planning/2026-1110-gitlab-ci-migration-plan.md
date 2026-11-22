@@ -1565,6 +1565,20 @@ full-auth and tenant-connect. `docs/development/auth-ci.md` asks for CI,
 full-auth e2e and tenant-connect e2e to be green on a commit before it is
 tagged.
 
+State on 2026-11-14:
+
+- In place: the `smoke-lane` job in `ruby.yml`, the first Ruby job on
+  GitLab. It runs `tests/lanes/run smoke` on `saas-linux-medium-amd64` with
+  the S1 daemon recipe, as five `bin/ci` steps: `toolchain`, `docker up`,
+  `services up`, `prepare` and `lane` (`tools/ci/`, which has only those
+  commands). It needs no frontend build and waits on no other job.
+- Selection: three path lists in `rules.yml`, `ci`, `ruby` and
+  `typescript`. `tools/testsuite/gitlab-rules-paths-test.sh` fails when
+  `ruby` or `typescript` differs from the `ci.yml` filter of the same name by
+  more than the `/**` rewrite (§4.4).
+- Open: the other lanes, the selection tests for fixture scenarios (§4.4),
+  and the toolchain image, which replaces `bin/ci toolchain`.
+
 Exit, measured on the same commits on both hosts:
 
 - the selected job set matches for each fixture scenario, for the events on

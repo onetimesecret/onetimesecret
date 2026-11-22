@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#
+# bin/ci — the steps of a CI job that runs a test lane. `bin/ci --help` lists
+# the commands.
+#
+# ADR-042: this shim finds the repository root, starts tools/ci/ and passes
+# arguments through. It has no business logic and parses nothing; the
+# commands live in tools/ci/ci.sh.
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+exec "${BASH:-bash}" "$ROOT/tools/ci/ci.sh" "$@"

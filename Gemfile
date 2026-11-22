@@ -188,7 +188,7 @@ gem 'omniauth-saml', '~> 2.2'
 gem 'ruby-saml', '= 1.18.1'
 
 # Web server and middleware
-gem 'puma', '>= 6.0', '< 8.0'
+gem 'puma', '>= 7.2.2', '< 8.0'
 gem 'rack', '>= 3.2.8', '< 4.0'
 gem 'rack-contrib', '~> 2.5.0'
 # Mounted directly in MiddlewareStack (JSON/form body parsing); was transitive via otto < 2.10.
@@ -222,7 +222,7 @@ gem 'fastimage', '~> 2.4'
 gem 'i18n', '~> 1.14'
 gem 'mail'
 gem 'public_suffix', '~> 7.0'
-gem 'sanitize', '~> 7.0', '>= 7.0.1'
+gem 'sanitize', '~> 7.0', '>= 7.0.2'
 gem 'semantic_logger', '~> 4.17'
 gem 'simpleidn', '~> 0.2'
 gem 'tilt'
