@@ -3,11 +3,28 @@
 name: Build and Publish OCI Images
 
 #
+# Triggers:
+#
+#   v* tags            No trigger in this file. ci.yml's `publish-oci` job
+#                      calls this workflow (workflow_call) once `ci-verdict`
+#                      has succeeded for the tagged commit, so a tag whose CI
+#                      fails publishes no image.
+#   schedule           Nightly build. Not gated on CI.
+#   workflow_dispatch  Manual build and recovery path. Not gated on CI.
+#
+#   A called workflow sees the caller's github context. A tag build therefore
+#   reaches the steps below as event_name=push, ref=refs/tags/v*, sha=the
+#   tagged commit, and with no inputs, so every `inputs.x || default` takes its
+#   default (registry_target falls back to 'public'). The `!= 'pull_request'`
+#   guards on the login, push and Sentry steps are a second guard behind
+#   publish-oci's own `if:`: ci.yml also runs on pull_request, and a call from
+#   a pull_request run would arrive here with that event name.
+#
 # OCI image tagging strategy:
 #
 # Release tags (v1.0.0):          v{version}, latest
 # Release candidates (v1.0.0-rc1): v{version}, next
-# Branch push:                    {branch-name}, edge
+# Branch push:                    {branch-name}, edge (no trigger or caller sends one)
 # Manual dispatch:                dev (or version_tag if provided)
 # Scheduled (nightly):            nightly
 #
@@ -123,14 +140,10 @@ name: Build and Publish OCI Images
 #
 
 on:
-  push:
-    tags: ['v*']
-  pull_request:
-    types: [closed]
-    branches: ['develop', 'feature/*', 'rel/*']
-    # Don't deploy on PRs from forks
-    paths-ignore:
-      - '**'
+  # v* tags: called by ci.yml's publish-oci job after ci-verdict succeeds. See
+  # "Triggers" above. Declares no inputs; the dispatch inputs below are absent
+  # when called.
+  workflow_call:
 
   schedule:
     # Nightly build at 03:00 UTC (off-peak hours)

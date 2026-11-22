@@ -7,6 +7,7 @@ require 'onetime/application/otto_hooks'
 require 'onetime/middleware'
 require 'onetime/models'
 
+require_relative '../base_json_api'
 require_relative 'logic'
 require_relative 'controllers'
 require_relative 'utils'
@@ -70,12 +71,22 @@ module V1
 
     protected
 
+    # Includes early parser/auth/security responses, not just routed bodies.
+    def build_rack_app
+      Rack::Head.new(super)
+    end
+
     # Build and configure Otto router instance
+    #
+    # The V2/V3 handler factory refuses HEAD on routes marked head=reject.
+    # Otto would otherwise answer HEAD with the GET handler, and on the
+    # receipt routes that spends the creator's one-time display of a
+    # generated value.
     #
     # @return [Otto] Configured router instance
     def build_router
       routes_path = File.join(__dir__, 'routes.txt')
-      router      = Otto.new(routes_path)
+      router      = Otto.new(routes_path, route_handler_factory: BaseJSONAPI::HTTPMethods::HandlerFactory)
 
       # Configure Otto request lifecycle hooks (from OttoHooks module)
       configure_otto_request_hook(router)
