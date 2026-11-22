@@ -30,26 +30,24 @@ spec sits in.
 |---|---|---|---|---|
 | Sells billing at all | Yes (beta) | No; Stripe add-ons only | Yes | Yes |
 | Separate customer object distinct from user and org | Payer object, but 1:1 with a user or an org | None; a Stripe customer id is stored on the org | Customer: contact, tax id, default currency, payment sources | Customer: name, email, external id, payment provider link |
-| Payer outside the tenant | Not documented; billing is gated by org membership permissions | Not documented | Customer has no notion of application users, so yes by construction | Customer has no notion of application users, so yes by construction |
+| Payer outside the tenant | Not documented in the excerpts | Not documented in the excerpts | Inferred from customer fields; unverified | Inferred from customer fields; unverified |
 | One payer, many tenants | Not documented | Not documented | Many subscriptions per customer implied, not stated | Parent/child customer hierarchy with consolidated or split invoicing |
-| Re-point an agreement to a new payer | Not documented | n/a | Not possible: subscription customer is immutable | Not documented |
+| Re-point an agreement to a new payer | Not documented | n/a | Excerpt suggests the subscription customer is immutable; verify | Not documented |
 | Who moves the money | Stripe only | Stripe (yours) | Airwallex | Stripe or Adyen as gateway; or an external invoicing provider |
 | What the vendor owns | Catalog, plans, features, checkout UI, `has()` checks | Entitlements claim and seat meter, both fed from your Stripe | Catalog, subscriptions, invoices, hosted checkout, tax calculation | Catalog, metering, subscriptions, invoices, credits, hierarchy |
 | Entitlement signal to the app | `has({plan})`, `has({feature})` | `entitlements` claim in the access token | Webhooks on subscription state | Webhooks; License resource; credit balance API |
 | Vendor's own price | 0.7% per transaction plus Stripe fees | Free to 1M MAU; per-connection for SSO/DSync | Not researched (payments pricing) | Custom, by billings and events; platform fee on upper tiers |
 
-The two columns that answer the spec's question with a plain yes, Airwallex
-and Orb, are the two whose customer object knows nothing about application
-users. The two that cannot answer it, Clerk and WorkOS, are the two where the
-billing relationship hangs off the identity object. That is the spec's
-argument restated as a market observation, and it is the main reason to keep
-the billing account app-owned rather than delegated to an identity provider.
+The customer fields in the Airwallex and Orb excerpts suggest a payer could
+sit outside the tenant. Neither excerpt confirms that arrangement. Whether
+one Airwallex customer can pay for several tenants is still open (V-F2).
+The Clerk and WorkOS excerpts leave external payers undocumented. An
+app-owned billing account remains a design option to evaluate.
 
 ## 1. Clerk Billing
 
-Clerk is the closest thing to a shipped version of the collapsed model the
-decoupling spec argues against: the payer is the user or the organization,
-never a third party.
+The Clerk excerpts describe subscriptions paid for by a user or an
+organization. They leave third-party payment arrangements undocumented.
 
 - **Payer is a wrapper over user or org.** The billing webhooks doc
   (https://clerk.com/docs/guides/development/webhooks/billing) describes a
@@ -62,8 +60,8 @@ never a third party.
 - **Billing authority is a membership permission.** Seat purchases require
   the `org:sys_billing:read` and `org:sys_billing:manage` system permissions
   (https://clerk.com/docs/guides/billing/seat-based-plans). The billing tab
-  lives inside the organization profile. No path exists for a non-member to
-  hold the card.
+  lives inside the organization profile. The excerpts describe no way for
+  a non-member to manage the organization's payment card.
 - **One main subscription per payer.** "There can only be one active
   Subscription Item per payer and Plan" (webhooks doc). Plans are typed per
   payer kind: `getPlanList()` filters by `payerType: 'org'`
