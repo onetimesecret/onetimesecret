@@ -93,7 +93,7 @@ module Onetime
       # #ip_matches_homepage_cidrs?). Entries that do not parse are dropped
       # with an error log, as before.
       #
-      # @param config [Hash] Homepage configuration
+      # @param cidrs [Array<String>, nil] Entries from site.interface.ui.homepage.matching_cidrs
       # @return [Array<IPAddr>] Compiled CIDR blocks
       def compile_homepage_cidrs(cidrs)
         cidrs ||= []
