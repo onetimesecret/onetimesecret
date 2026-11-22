@@ -345,7 +345,7 @@ GEM
       date
       stringio
     public_suffix (7.0.5)
-    puma (7.2.2)
+    puma (7.2.3)
       nio4r (~> 2.0)
     raabro (1.4.0)
     racc (1.8.1)
@@ -361,7 +361,7 @@ GEM
       rack (>= 2.1.0)
     rack-parser (0.7.0)
       rack
-    rack-protection (4.2.1)
+    rack-protection (4.2.2)
       base64 (>= 0.1.0)
       logger (>= 1.6.0)
       rack (>= 3.0.0, < 4)
@@ -678,11 +678,11 @@ DEPENDENCIES
   pg (~> 1.6)
   psych (~> 5.2.3)
   public_suffix (~> 7.0)
-  puma (>= 7.2.2, < 8.0)
+  puma (>= 7.2.3, < 8.0)
   rack (>= 3.2.8, < 4.0)
   rack-contrib (~> 2.5.0)
   rack-parser (~> 0.7)
-  rack-protection (~> 4.1)
+  rack-protection (>= 4.2.2, < 5.0)
   rack-proxy (~> 1.0, >= 1.0.3)
   rack-session (~> 2.1.2)
   rack-test
