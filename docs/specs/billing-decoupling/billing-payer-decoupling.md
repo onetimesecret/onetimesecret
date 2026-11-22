@@ -57,3 +57,5 @@ Two supporting roles complete the picture. Inside the organization, a `manage_bi
 ## Reference points
 
 Kinde's model ([billing model](https://docs.kinde.com/billing/about-billing/kinde-billing-model/), [concepts](https://docs.kinde.com/billing/about-billing/billing-concepts-terms/)) demonstrates the separation in a shipped product: Kinde owns the catalog and agreements, Stripe processes payments, and billing identifiers never collide with tenant identifiers. Kinde's own pricing (MAU plus transaction fee, unlimited organizations) shows the complementary move: choose price metrics that make container count worthless to game.
+
+Four newer services (Clerk Billing, WorkOS, Airwallex Billing, Orb) are compared against this three-party model in [frontier-billing-services.md](frontier-billing-services.md). Two findings from that note bear on the design here: Airwallex does not allow a subscription's customer to change after creation, so payer handoff on that provider is cancel-and-recreate and the agreement id must outlive the provider subscription id; and Orb's customer hierarchy is the closest shipped prior art for one billing account holding many agreements.
