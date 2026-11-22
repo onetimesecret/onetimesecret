@@ -44,6 +44,7 @@ overrides:
   # GHSA-c83g-rgw3-j3cx fixed in 4.28.7.
   browserslist: '^4.28.7'
   flatted: '^3.4.2'
+  'follow-redirects@1': '^1.16.3'
   form-data: '>=4.0.6'
   # CVE-2026-59869 / GHSA-5p4m-2wfm-xmqj / CVE-2026-53550 are fixed as of 4.2.0;
   # CVE-2026-84375 / GHSA-2883-xcg3-v3hh as of 4.3.2. Capped below 5: js-yaml@5 dropped CommonJS support, and gray-matter@4.0.3
