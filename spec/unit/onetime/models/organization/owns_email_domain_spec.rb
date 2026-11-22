@@ -251,7 +251,7 @@ RSpec.describe 'Onetime::Organization#owns_email_domain?', :datastore do
   end
 
   context 'under a validation strategy that makes no TXT check (passthrough)' do
-    let(:passthrough) { Onetime::DomainValidation::PassthroughStrategy.new({}) }
+    let(:passthrough) { Onetime::DomainValidation::PassthroughStrategy.new }
 
     before do
       configure_domains(validation_strategy: 'passthrough')

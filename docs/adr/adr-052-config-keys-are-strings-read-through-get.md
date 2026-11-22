@@ -44,24 +44,34 @@ separate config object.
    the same String form (`:host:` and `host:`) stop boot with a
    `ConfigError` naming the key. Values keep their type (Symbol values are
    allowed).
-2. **Code in `lib/` and `apps/` reads the config through
-   `OT.conf.get(path[, default])`.** The path is dotted
-   (`'site.admin.elevation'`), or an Array of Strings when a segment is a
-   variable. Without a default the setting is required: a path that is not
-   in the config raises `MissingPathError` with the path, and a value an
-   operator sets to nil reads as nil. With a default the setting is
-   optional. `false` and `0` are values and are never replaced by the
+2. **Code reads a setting through `OT.conf.get(path[, default])`, with the
+   whole path.** This covers `lib/`, `apps/` and the tests. The path is
+   dotted (`'site.admin.elevation.window'`), or an Array of Strings when a
+   segment is a variable. Without a default the setting is required: a path
+   that is not in the config raises `MissingPathError` with the path, and a
+   value an operator sets to nil reads as nil. With a default the setting
+   is optional. A positional default applies to missing keys and nil values.
+   A block supplies a fallback only when a key is absent. The boot banner
+   uses this distinction because an explicit nil disables a section there.
+   `false` and `0` are values and are never replaced by the
    default. A path that runs through a value that is neither a Hash nor
    nil raises `PathTypeError`, with or without a default; a nil section on
-   the way reads as unset.
+   the way reads as unset. Code does not read a setting out of a section
+   that `get` returned (`OT.conf.get('site.admin')['window']`); it may
+   iterate, copy or serialize a section as a whole. A method that needs a
+   setting reads it with `get`; it does not take the config, or a section
+   of it, as an argument for tests to replace. Tests stub or change
+   `OT.conf` instead.
 3. **A spec enforces both.** `spec/unit/onetime/config/access_guard_spec.rb`
    parses `lib/` and `apps/` with Prism. It fails on any use of `OT.conf`
-   other than `.get` that is not listed with a reason, on a required path
-   the shipped config does not have, and on an optional path that is not
-   listed in `OPTIONAL_PATHS` with the reason it can be absent. In test
-   runs, `Onetime::Config::StrictKeys` makes every Hash in the config tree
-   raise on a non-String key, which catches Symbol reads on a section that
-   `get` returned.
+   other than `.get` that is not listed with a reason, on a read into a
+   section that `get` returned (followed through locals, instance
+   variables, methods, attr_readers and RSpec lets in the same file), on a
+   required path the shipped config does not have, and on an optional path
+   that is not listed in `OPTIONAL_PATHS` with the reason it can be absent.
+   In the tests it fails on a read of `OT.conf` other than `get` and on a
+   read into a section. In test runs, `Onetime::Config::StrictKeys` makes
+   every Hash in the config tree raise on a non-String key.
 
 A dotted path needs one key type, and Strings are what YAML and the
 defaults file produce. Raising on a missing required path follows
@@ -70,24 +80,25 @@ absent, and the guard can check that statement against the shipped config
 before the code runs.
 
 `OT.conf` stays a Hash with `get` added to the root instance, so tests and
-tools can still read, write and serialize it as a Hash. Outside test runs
-the sections below the root are plain Hashes.
+tools can still write, copy and serialize it as a Hash
+(`OT.conf.get('site')['host'] = 'example.com'`). Outside test runs the
+sections below the root are plain Hashes.
 
 ## Trade-offs
 
-- **We lose:** the freedom to read config with the Hash API in application
-  code. Each optional setting that the defaults file does not define needs
-  an `OPTIONAL_PATHS` entry, and code that hands the whole config to a
-  library (`Strategy.for_config(OT.conf)`) needs an `ALLOWED_USES` entry.
-- **We gain:** a wrong path fails in the guard spec or at the read, with the
-  path in the message, instead of reading as unset. Symbol/String handling
-  disappears from readers.
+- **We lose:** the freedom to read config with the Hash API, and config
+  arguments as a test seam. Each optional setting that the defaults file
+  does not define needs an `OPTIONAL_PATHS` entry.
+- **We gain:** grepping a dotted path finds every reader of that setting. A
+  wrong path fails in the guard spec or at the read, with the path in the
+  message, instead of reading as unset. Symbol/String handling disappears
+  from readers.
 - **Risk:** a required read inside a broad `rescue` can turn a missing path
-  into that rescue's fallback rather than an error. A section read into a
-  variable is checked by `get` only down to the path given; reads below it
-  rely on StrictKeys in tests, and only on code paths the tests run. The
-  same broad `rescue` also catches StrictKeys' error in a test, so the test
-  sees the fallback instead of the error.
+  into that rescue's fallback rather than an error. The guard follows a
+  section within one file; a section passed as an argument to a method or
+  yielded to a block is not followed, so a read of it relies on review and
+  on StrictKeys in tests. The same broad `rescue` also catches StrictKeys' error in a test,
+  so the test sees the fallback instead of the error.
 
 ## Related
 

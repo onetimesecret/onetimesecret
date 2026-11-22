@@ -95,8 +95,8 @@ RSpec.describe 'Full Mode - AUTH_ENABLED kill switch', type: :integration do
 
   context 'with AUTH_ENABLED=false' do
     before do
-      @auth_conf        = OT.conf['site']['authentication']
-      @original_enabled = @auth_conf['enabled']
+      @auth_conf        = OT.conf.get('site.authentication')
+      @original_enabled = OT.conf.get('site.authentication.enabled')
       @auth_conf['enabled'] = false
     end
 
@@ -164,8 +164,8 @@ RSpec.describe 'Full Mode - AUTH_ENABLED kill switch', type: :integration do
 
   context 'with AUTH_ENABLED restored to true' do
     before do
-      @auth_conf        = OT.conf['site']['authentication']
-      @original_enabled = @auth_conf['enabled']
+      @auth_conf        = OT.conf.get('site.authentication')
+      @original_enabled = OT.conf.get('site.authentication.enabled')
       @auth_conf['enabled'] = true
     end
 

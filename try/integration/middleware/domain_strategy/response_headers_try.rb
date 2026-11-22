@@ -21,7 +21,7 @@ OT.boot! :test, false
 
 # The test config has site.host = '127.0.0.1:3000' and domains disabled.
 # When domains are disabled, the middleware falls back to site.host.
-@fallback_host = OT.conf.dig('site', 'host')
+@fallback_host = OT.conf.get('site.host')
 
 def create_app
   ->(_env) { [200, {}, ['OK']] }
@@ -38,8 +38,7 @@ end
 # Fully enable domains: class-level config + runtime feature flag.
 # This sets canonical_domains_parsed so Chooserator can classify domains.
 def enable_domains_fully!
-  config = { 'enabled' => true, 'default' => @canonical_domain }
-  @strategy_class.initialize_from_config(config)
+  @strategy_class.configure(enabled: true, default: @canonical_domain)
   enable_runtime_domains!
 end
 

@@ -263,8 +263,8 @@ RSpec.describe Onetime::Logic::GuestRouteGating do
 
         instance = test_class.new(cust: anonymous_customer, strategy_result: noauth_strategy)
 
-        # Missing config means guest_routes_config returns {}
-        # Empty hash has no 'enabled' key, so check fails
+        # Missing config means site.interface.api.guest_routes.enabled reads
+        # as unset, so the check fails
         expect {
           instance.require_guest_route_enabled!(:conceal)
         }.to raise_error(Onetime::GuestRoutesDisabled)

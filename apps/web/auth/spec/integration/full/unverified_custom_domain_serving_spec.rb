@@ -35,7 +35,7 @@ RSpec.describe 'Custom domain serving before ownership is verified', :shared_db_
   ].freeze
 
   def configure_domains(**settings)
-    settings.each { |key, value| OT.conf['features']['domains'][key.to_s] = value }
+    settings.each { |key, value| OT.conf.get('features.domains')[key.to_s] = value }
   end
 
   def unverify!(domain)

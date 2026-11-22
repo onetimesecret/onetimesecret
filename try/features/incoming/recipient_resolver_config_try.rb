@@ -37,13 +37,13 @@ config[:secret_max_length]
 #=> 10_000
 
 ## secret_max_length is coerced to Integer even if config holds a Float
-@_saved_content = OT.conf.dig('site', 'secret_options', 'content')&.dup
+@_saved_content = OT.conf.get('site.secret_options.content')&.dup
 begin
-  OT.conf['site']['secret_options']['content'] = { 'maximum_length' => 10_000.0 }
+  OT.conf.get('site.secret_options')['content'] = { 'maximum_length' => 10_000.0 }
   resolver = RecipientResolver.new(domain_strategy: :canonical)
   resolver.config_data[:secret_max_length].class
 ensure
-  OT.conf['site']['secret_options']['content'] = @_saved_content
+  OT.conf.get('site.secret_options')['content'] = @_saved_content
 end
 #=> Integer
 

@@ -16,11 +16,13 @@ RSpec.describe Onetime::DomainValidation::Strategy do
   end
 
   describe '.for_config' do
+    before { allow(OT).to receive(:conf).and_return(OT::Config.wrap(config)) }
+
     context 'with approximated strategy' do
       let(:strategy_name) { 'approximated' }
 
       it 'returns ApproximatedStrategy instance' do
-        strategy = described_class.for_config(config)
+        strategy = described_class.for_config
         expect(strategy).to be_a(Onetime::DomainValidation::ApproximatedStrategy)
       end
     end
@@ -29,7 +31,7 @@ RSpec.describe Onetime::DomainValidation::Strategy do
       let(:strategy_name) { 'passthrough' }
 
       it 'returns PassthroughStrategy instance' do
-        strategy = described_class.for_config(config)
+        strategy = described_class.for_config
         expect(strategy).to be_a(Onetime::DomainValidation::PassthroughStrategy)
       end
     end
@@ -38,7 +40,7 @@ RSpec.describe Onetime::DomainValidation::Strategy do
       let(:strategy_name) { 'external' }
 
       it 'returns PassthroughStrategy instance' do
-        strategy = described_class.for_config(config)
+        strategy = described_class.for_config
         expect(strategy).to be_a(Onetime::DomainValidation::PassthroughStrategy)
       end
     end
@@ -47,7 +49,7 @@ RSpec.describe Onetime::DomainValidation::Strategy do
       let(:strategy_name) { 'caddy_on_demand' }
 
       it 'returns CaddyOnDemandStrategy instance' do
-        strategy = described_class.for_config(config)
+        strategy = described_class.for_config
         expect(strategy).to be_a(Onetime::DomainValidation::CaddyOnDemandStrategy)
       end
     end
@@ -56,7 +58,7 @@ RSpec.describe Onetime::DomainValidation::Strategy do
       let(:strategy_name) { 'caddy' }
 
       it 'returns CaddyOnDemandStrategy instance' do
-        strategy = described_class.for_config(config)
+        strategy = described_class.for_config
         expect(strategy).to be_a(Onetime::DomainValidation::CaddyOnDemandStrategy)
       end
     end
@@ -67,7 +69,7 @@ RSpec.describe Onetime::DomainValidation::Strategy do
       context 'without strict mode' do
         it 'logs error and returns PassthroughStrategy' do
           expect(OT).to receive(:le).with(/Unknown strategy/)
-          strategy = described_class.for_config(config)
+          strategy = described_class.for_config
           expect(strategy).to be_a(Onetime::DomainValidation::PassthroughStrategy)
         end
       end
@@ -86,13 +88,13 @@ RSpec.describe Onetime::DomainValidation::Strategy do
 
         it 'raises ArgumentError' do
           expect do
-            described_class.for_config(config)
+            described_class.for_config
           end.to raise_error(ArgumentError, /Unknown domain validation strategy/)
         end
 
         it 'includes valid options in error message' do
           expect do
-            described_class.for_config(config)
+            described_class.for_config
           end.to raise_error(ArgumentError, /approximated, passthrough, caddy_on_demand/)
         end
       end
@@ -102,7 +104,7 @@ RSpec.describe Onetime::DomainValidation::Strategy do
       let(:config) { { 'features' => { 'domains' => {} } } }
 
       it 'defaults to passthrough strategy' do
-        strategy = described_class.for_config(config)
+        strategy = described_class.for_config
         expect(strategy).to be_a(Onetime::DomainValidation::PassthroughStrategy)
       end
     end
@@ -111,7 +113,7 @@ RSpec.describe Onetime::DomainValidation::Strategy do
       let(:strategy_name) { 'PASSTHROUGH' }
 
       it 'handles case-insensitive strategy names' do
-        strategy = described_class.for_config(config)
+        strategy = described_class.for_config
         expect(strategy).to be_a(Onetime::DomainValidation::PassthroughStrategy)
       end
     end
@@ -119,19 +121,18 @@ RSpec.describe Onetime::DomainValidation::Strategy do
 
   describe '.handle_unknown_strategy' do
     let(:strategy_name) { 'invalid' }
-    let(:config) { {} }
 
     context 'with strict mode disabled' do
       let(:strict_mode) { false }
 
       it 'logs error message' do
         expect(OT).to receive(:le).with(/Unknown strategy: 'invalid'/)
-        described_class.handle_unknown_strategy(strategy_name, strict_mode, config)
+        described_class.handle_unknown_strategy(strategy_name, strict_mode)
       end
 
       it 'returns PassthroughStrategy' do
         allow(OT).to receive(:le)
-        result = described_class.handle_unknown_strategy(strategy_name, strict_mode, config)
+        result = described_class.handle_unknown_strategy(strategy_name, strict_mode)
         expect(result).to be_a(Onetime::DomainValidation::PassthroughStrategy)
       end
     end
@@ -141,7 +142,7 @@ RSpec.describe Onetime::DomainValidation::Strategy do
 
       it 'raises ArgumentError' do
         expect do
-          described_class.handle_unknown_strategy(strategy_name, strict_mode, config)
+          described_class.handle_unknown_strategy(strategy_name, strict_mode)
         end.to raise_error(ArgumentError)
       end
     end
@@ -149,7 +150,6 @@ RSpec.describe Onetime::DomainValidation::Strategy do
 end
 
 RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
-  let(:config) { {} }
   let(:answer_class) { Onetime::DomainValidation::TxtResolver::Answer }
   # The native fallback runs the real TxtVerifier over a fake resolver, so no
   # example opens a socket. NXDOMAIN unless a context says otherwise.
@@ -157,7 +157,7 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
   let(:native_values) { [] }
   let(:resolver) { instance_double(Onetime::DomainValidation::TxtResolver, close: nil) }
   let(:txt_verifier) { Onetime::DomainValidation::TxtVerifier.new(resolver_factory: -> { resolver }) }
-  let(:strategy) { described_class.new(config, txt_verifier: txt_verifier) }
+  let(:strategy) { described_class.new(txt_verifier: txt_verifier) }
   let(:verified) { false }
   let(:custom_domain) do
     double('CustomDomain',
@@ -175,7 +175,7 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
   end
 
   it 'defaults to a TxtVerifier for the native fallback' do
-    expect(described_class.new(config).txt_verifier).to be_a(Onetime::DomainValidation::TxtVerifier)
+    expect(described_class.new.txt_verifier).to be_a(Onetime::DomainValidation::TxtVerifier)
   end
 
   describe '#bulk_rate_limit' do
@@ -839,8 +839,7 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
 end
 
 RSpec.describe Onetime::DomainValidation::PassthroughStrategy do
-  let(:config) { {} }
-  let(:strategy) { described_class.new(config) }
+  let(:strategy) { described_class.new }
   let(:custom_domain) { double('CustomDomain', display_domain: 'example.com') }
 
   describe '#bulk_rate_limit' do
@@ -907,13 +906,12 @@ RSpec.describe Onetime::DomainValidation::PassthroughStrategy do
 end
 
 RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
-  let(:config) { {} }
   let(:answer_class) { Onetime::DomainValidation::TxtResolver::Answer }
   let(:resolver) { instance_double(Onetime::DomainValidation::TxtResolver, close: nil) }
   # The real verifier over a fake resolver: the three outcomes are exercised
   # through the real classification and no example opens a socket.
   let(:txt_verifier) { Onetime::DomainValidation::TxtVerifier.new(resolver_factory: -> { resolver }) }
-  let(:strategy) { described_class.new(config, txt_verifier: txt_verifier) }
+  let(:strategy) { described_class.new(txt_verifier: txt_verifier) }
   let(:custom_domain) do
     double('CustomDomain',
            display_domain: 'example.com',
@@ -951,7 +949,7 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
     subject(:result) { strategy.validate_ownership(custom_domain) }
 
     it 'defaults to a TxtVerifier' do
-      expect(described_class.new(config).txt_verifier).to be_a(Onetime::DomainValidation::TxtVerifier)
+      expect(described_class.new.txt_verifier).to be_a(Onetime::DomainValidation::TxtVerifier)
     end
 
     context 'with exactly one TXT value equal to the challenge' do
@@ -1106,7 +1104,7 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
     let(:tls_probe) { instance_double(Onetime::DomainValidation::TlsProbe) }
     let(:now) { Time.utc(2026, 9, 18, 12, 0, 0) }
     let(:strategy) do
-      described_class.new(config, txt_verifier: txt_verifier, tls_probe: tls_probe, clock: -> { now })
+      described_class.new(txt_verifier: txt_verifier, tls_probe: tls_probe, clock: -> { now })
     end
 
     def stub_probe(**attrs)
@@ -1116,7 +1114,7 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
     end
 
     it 'defaults to a TlsProbe' do
-      expect(described_class.new(config).tls_probe).to be_a(Onetime::DomainValidation::TlsProbe)
+      expect(described_class.new.tls_probe).to be_a(Onetime::DomainValidation::TlsProbe)
     end
 
     context 'when the domain resolves and presents a valid certificate' do
@@ -1325,7 +1323,7 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
       end
 
       context 'with the default Familia clock returning an epoch Float' do
-        let(:strategy) { described_class.new(config, txt_verifier: txt_verifier, tls_probe: tls_probe) }
+        let(:strategy) { described_class.new(txt_verifier: txt_verifier, tls_probe: tls_probe) }
         let(:stored_vhost) do
           { 'source' => 'tls_probe', 'status' => 'ACTIVE_SSL', 'is_resolving' => true, 'has_ssl' => true,
             'ssl_active_from' => '2026-09-01T00:00:00Z', 'ssl_active_until' => '2026-11-30T00:00:00Z' }

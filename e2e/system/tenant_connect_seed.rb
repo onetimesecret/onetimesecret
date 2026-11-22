@@ -86,12 +86,12 @@ abort "tenant Connect E2E seed: only the oidc provider is seeded (got #{PROVIDER
 Onetime.boot! :cli
 
 abort 'tenant Connect E2E seed: AUTHENTICATION_MODE=full is required' unless Onetime.auth_config.full_enabled?
-abort 'tenant Connect E2E seed: DOMAINS_ENABLED=true is required' unless OT.conf.dig('features', 'domains', 'enabled')
+abort 'tenant Connect E2E seed: DOMAINS_ENABLED=true is required' unless OT.conf.get('features.domains.enabled')
 unless Onetime::CustomDomain.ownership_proof_checked?
   abort 'tenant Connect E2E seed: DOMAINS_VALIDATION_STRATEGY must check ownership (caddy_on_demand); ' \
         'under passthrough the unverified host is served'
 end
-abort 'tenant Connect E2E seed: ORGS_SSO_ENABLED=true is required' unless OT.conf.dig('features', 'organizations', 'sso_enabled')
+abort 'tenant Connect E2E seed: ORGS_SSO_ENABLED=true is required' unless OT.conf.get('features.organizations.sso_enabled')
 
 Auth::Migrator.run_if_needed
 db = Auth::Database.connection

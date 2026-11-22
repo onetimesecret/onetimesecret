@@ -19,7 +19,7 @@ OT.boot! :test, false
 # features.domains.default anchors generated links (different apexes).
 @site_host      = 'example-app.com'
 @default_host   = 'example-links.net'
-@site_host_orig = OT.conf['site']['host']
+@site_host_orig = OT.conf.get('site.host')
 
 # #4063 fixtures. @internal_host mirrors the motivating install: an
 # internal platform address that must keep SERVING while being hidden
@@ -120,9 +120,8 @@ end
 
 ## Split deployment: both hosts land in the canonical set, default first
 @strategy_class.reset!
-OT.conf['site']['host'] = @site_host
-config                  = { 'enabled' => true, 'default' => @default_host }
-@strategy_class.initialize_from_config(config)
+OT.conf.get('site')['host'] = @site_host
+@strategy_class.configure(enabled: true, default: @default_host)
 @strategy_class.canonical_domains
 #=> ['example-links.net', 'example-app.com']
 
@@ -164,9 +163,8 @@ config                  = { 'enabled' => true, 'default' => @default_host }
 
 ## Default unset: behavior identical to today (site.host is sole canonical)
 @strategy_class.reset!
-OT.conf['site']['host'] = @site_host
-config                  = { 'enabled' => true, 'default' => nil }
-@strategy_class.initialize_from_config(config)
+OT.conf.get('site')['host'] = @site_host
+@strategy_class.configure(enabled: true, default: nil)
 [@strategy_class.canonical_domain, @strategy_class.canonical_domains]
 #=> ['example-app.com', ['example-app.com']]
 
@@ -180,9 +178,8 @@ config                  = { 'enabled' => true, 'default' => nil }
 
 ## Unparseable site.host (IP literal) is skipped from the parsed set
 @strategy_class.reset!
-OT.conf['site']['host'] = '127.0.0.1:3000'
-config                  = { 'enabled' => true, 'default' => @default_host }
-@strategy_class.initialize_from_config(config)
+OT.conf.get('site')['host'] = '127.0.0.1:3000'
+@strategy_class.configure(enabled: true, default: @default_host)
 @strategy_class.canonical_domains_parsed.map(&:name)
 #=> ['example-links.net']
 
@@ -196,17 +193,17 @@ config                  = { 'enabled' => true, 'default' => @default_host }
 
 ## Re-init with an unparseable primary disables domains and clears the parsed set
 @strategy_class.reset!
-OT.conf['site']['host'] = @site_host
-@strategy_class.initialize_from_config({ 'enabled' => true, 'default' => @default_host })
-@strategy_class.initialize_from_config({ 'enabled' => true, 'default' => '127.0.0.1:3000' })
+OT.conf.get('site')['host'] = @site_host
+@strategy_class.configure(enabled: true, default: @default_host)
+@strategy_class.configure(enabled: true, default: '127.0.0.1:3000')
 [@strategy_class.domains_enabled?, @strategy_class.canonical_domains_parsed]
 #=> [false, []]
 
 ## Re-init that disables domains clears the parsed set (no stale fallback)
 @strategy_class.reset!
-OT.conf['site']['host'] = @site_host
-@strategy_class.initialize_from_config({ 'enabled' => true, 'default' => @default_host })
-@strategy_class.initialize_from_config({ 'enabled' => false })
+OT.conf.get('site')['host'] = @site_host
+@strategy_class.configure(enabled: true, default: @default_host)
+@strategy_class.configure(enabled: false)
 [@strategy_class.domains_enabled?, @strategy_class.canonical_domains_parsed]
 #=> [false, []]
 
@@ -267,9 +264,8 @@ Onetime::CustomDomain.singleton_class.send(:remove_method, :shadow_orig_from_dis
 
 ## AC3: an unrelated-base-domain link host joins the canonical set, appended after both anchors
 @strategy_class.reset!
-OT.conf['site']['host'] = @site_host
-config                  = { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host] }
-@strategy_class.initialize_from_config(config)
+OT.conf.get('site')['host'] = @site_host
+@strategy_class.configure(enabled: true, default: @default_host, link_domains: [@pool_host])
 @strategy_class.canonical_domains
 #=> ['example-links.net', 'example-app.com', 'go.acme.com']
 
@@ -322,9 +318,8 @@ config                  = { 'enabled' => true, 'default' => @default_host, 'link
 
 ## T17: `www.` of a POOL member's base domain is not :canonical
 @strategy_class.reset!
-OT.conf['site']['host'] = @site_host
-config                  = { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host] }
-@strategy_class.initialize_from_config(config)
+OT.conf.get('site')['host'] = @site_host
+@strategy_class.configure(enabled: true, default: @default_host, link_domains: [@pool_host])
 @chooser.choose_strategy(
   'www.acme.com',
   @strategy_class.canonical_domains_parsed,
@@ -380,8 +375,8 @@ result
 # anchor_domains defaults to the canonical set, so a caller with no pool
 # (every pre-#4063 call site) sees the exact pre-#4063 answers.
 @strategy_class.reset!
-OT.conf['site']['host'] = @site_host
-@strategy_class.initialize_from_config({ 'enabled' => true, 'default' => @default_host })
+OT.conf.get('site')['host'] = @site_host
+@strategy_class.configure(enabled: true, default: @default_host)
 [@chooser.choose_strategy("www.#{@site_host}", @strategy_class.canonical_domains_parsed),
  @chooser.choose_strategy("www.#{@default_host}", @strategy_class.canonical_domains_parsed)]
 #=> [:canonical, :canonical]
@@ -390,10 +385,8 @@ OT.conf['site']['host'] = @site_host
 # Guards the real request path, not just Chooserator.
 middleware                                           = @strategy_class.new(create_app)
 @strategy_class.reset!
-OT.conf['site']['host']                              = @site_host
-@strategy_class.initialize_from_config(
-  { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host] },
-)
+OT.conf.get('site')['host']                              = @site_host
+@strategy_class.configure(enabled: true, default: @default_host, link_domains: [@pool_host])
 env                                                  = { Rack::DetectHost.result_field_name => 'www.acme.com' }
 with_runtime_domains { middleware.call(env) }
 env['onetime.domain_strategy']
@@ -442,9 +435,8 @@ env['onetime.domain_strategy']
 # @pool_host is subdomain-shaped too, and its peer gets nothing. Same
 # request shape, opposite answer: that asymmetry is the whole point.
 @strategy_class.reset!
-OT.conf['site']['host'] = @internal_host
-config                  = { 'enabled' => true, 'default' => nil, 'link_domains' => [@pool_host] }
-@strategy_class.initialize_from_config(config)
+OT.conf.get('site')['host'] = @internal_host
+@strategy_class.configure(enabled: true, default: nil, link_domains: [@pool_host])
 [@chooser.choose_strategy(
   'other.eu.otshosted.com',
   @strategy_class.canonical_domains_parsed,
@@ -467,10 +459,8 @@ config                  = { 'enabled' => true, 'default' => nil, 'link_domains' 
 # real request while every direct-Chooserator case above stayed green.
 middleware                                           = @strategy_class.new(create_app)
 @strategy_class.reset!
-OT.conf['site']['host']                              = @site_host
-@strategy_class.initialize_from_config(
-  { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host] },
-)
+OT.conf.get('site')['host']                              = @site_host
+@strategy_class.configure(enabled: true, default: @default_host, link_domains: [@pool_host])
 env                                                  = { Rack::DetectHost.result_field_name => 'other.acme.com' }
 with_runtime_domains { middleware.call(env) }
 env['onetime.domain_strategy']
@@ -479,10 +469,8 @@ env['onetime.domain_strategy']
 ## T16 wiring control: the blessed pool host still serves :canonical through call
 middleware                                           = @strategy_class.new(create_app)
 @strategy_class.reset!
-OT.conf['site']['host']                              = @site_host
-@strategy_class.initialize_from_config(
-  { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host] },
-)
+OT.conf.get('site')['host']                              = @site_host
+@strategy_class.configure(enabled: true, default: @default_host, link_domains: [@pool_host])
 env                                                  = { Rack::DetectHost.result_field_name => @pool_host }
 with_runtime_domains { middleware.call(env) }
 [env['onetime.display_domain'], env['onetime.domain_strategy']]
@@ -490,8 +478,8 @@ with_runtime_domains { middleware.call(env) }
 
 ## AC1 fence: link_domains unset resolves the pool to [canonical_domain] (pre-#4063 behavior)
 @strategy_class.reset!
-OT.conf['site']['host'] = @site_host
-@strategy_class.initialize_from_config({ 'enabled' => true, 'default' => @default_host })
+OT.conf.get('site')['host'] = @site_host
+@strategy_class.configure(enabled: true, default: @default_host)
 [@strategy_class.canonical_domains, @strategy_class.link_domains]
 #=> [['example-links.net', 'example-app.com'], ['example-links.net']]
 
@@ -500,9 +488,8 @@ OT.conf['site']['host'] = @site_host
 # src/tests/composables/useDomainContext.spec.ts ('operator link pool'):
 # availableDomains must be exactly the pool, canonical absent.
 @strategy_class.reset!
-OT.conf['site']['host'] = @internal_host
-config                  = { 'enabled' => true, 'default' => nil, 'link_domains' => [@short_host] }
-@strategy_class.initialize_from_config(config)
+OT.conf.get('site')['host'] = @internal_host
+@strategy_class.configure(enabled: true, default: nil, link_domains: [@short_host])
 [@chooser.choose_strategy(@internal_host, @strategy_class.canonical_domains_parsed),
  @strategy_class.canonical_domain,
  @strategy_class.link_domains]
@@ -537,9 +524,8 @@ end
 
 ## AC4: the same registration does NOT flip a pool member away from :canonical
 @strategy_class.reset!
-OT.conf['site']['host'] = @site_host
-config                  = { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host] }
-@strategy_class.initialize_from_config(config)
+OT.conf.get('site')['host'] = @site_host
+@strategy_class.configure(enabled: true, default: @default_host, link_domains: [@pool_host])
 @chooser.choose_strategy(@pool_host, @strategy_class.canonical_domains_parsed)
 #=> :canonical
 
@@ -555,9 +541,8 @@ Onetime::CustomDomain.singleton_class.send(:remove_method, :pool_orig_from_displ
 # Without the registration this host would be nil (:invalid) -- see the
 # 'other.acme.com' case above.
 @strategy_class.reset!
-OT.conf['site']['host'] = @site_host
-config                  = { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host] }
-@strategy_class.initialize_from_config(config)
+OT.conf.get('site')['host'] = @site_host
+@strategy_class.configure(enabled: true, default: @default_host, link_domains: [@pool_host])
 Onetime::CustomDomain.singleton_class.send(:alias_method, :sibling_orig_from_display_domain, :from_display_domain)
 Onetime::CustomDomain.define_singleton_method(:from_display_domain) do |domain|
   domain == 'sibling.acme.com' ? Object.new.tap { |record| record.define_singleton_method(:served_as_tenant?) { true } } : nil
@@ -574,16 +559,14 @@ result
 
 ## AC7 control: a fully parseable pool logs no skip line (capture_le is discriminating)
 @strategy_class.reset!
-OT.conf['site']['host'] = @site_host
-config                  = { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host] }
-capture_le { @strategy_class.initialize_from_config(config) }
+OT.conf.get('site')['host'] = @site_host
+capture_le { @strategy_class.configure(enabled: true, default: @default_host, link_domains: [@pool_host]) }
 #=> []
 
 ## AC7: one unparseable pool entry is skipped and named in the error log
 @strategy_class.reset!
-OT.conf['site']['host'] = @site_host
-config                  = { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host, '999'] }
-captured                = capture_le { @strategy_class.initialize_from_config(config) }
+OT.conf.get('site')['host'] = @site_host
+captured                = capture_le { @strategy_class.configure(enabled: true, default: @default_host, link_domains: [@pool_host, '999']) }
 captured.any? { |msg| msg.include?('skipping unparseable canonical host') && msg.include?('999') }
 #=> true
 
@@ -613,5 +596,5 @@ captured.any? { |msg| msg.include?('skipping unparseable canonical host') && msg
 # once per mounted app. See try/unit/boot/configure_domains_drift_try.rb.
 
 # Teardown
-OT.conf['site']['host'] = @site_host_orig
+OT.conf.get('site')['host'] = @site_host_orig
 @strategy_class.reset!

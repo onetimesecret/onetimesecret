@@ -23,7 +23,7 @@ module Onetime
       # the wire in this summary. {.masked_provider_config} emits ONLY booleans
       # (has_credentials) plus non-secret config (host / port / domain / tls /
       # region), and {.build} adds only from_address / from_name and the two
-      # provider names. The raw emailer_config (which carries credentials) is
+      # provider names. The emailer config (which carries credentials) is
       # NEVER placed in the summary.
       #
       # ## What is NET-NEW vs the CLI
@@ -48,9 +48,8 @@ module Onetime
         #   the wire).
         def build
           provider = Onetime::Mail::Mailer.send(:determine_provider)
-          raw      = Onetime::Mail::Mailer.send(:emailer_config)
           sender   = Onetime::Mail::Mailer.send(:determine_sender_provider)
-          explicit = raw['mode']&.to_s&.downcase
+          explicit = OT.conf&.get('emailer.mode', nil).to_s.downcase
 
           {
             provider: provider,
@@ -61,7 +60,7 @@ module Onetime
             # nil would fail the frontend Zod envelope and take the config panel
             # AND the item-4 safety banner down with it.
             from_name: Onetime::Mail::Mailer.from_name.to_s,
-            provider_config: masked_provider_config(provider, raw),
+            provider_config: masked_provider_config(provider),
             sender_provider: sender,
             sender_differs: sender != provider,
           }
@@ -75,15 +74,14 @@ module Onetime
         # Registry-driven (the lettermint-omission bug class is structurally
         # impossible): every Mail::ProviderRegistry descriptor declares its
         # config-builder method, its safe-to-emit masked_config_keys, and the
-        # summary_credential_groups that define has_credentials. The raw
-        # emailer config is run through the SAME per-provider builder the
-        # delivery path uses (Mailer's *_provider_config, which applies the
-        # conf/ENV fallback chain), so summary and delivery cannot disagree.
+        # summary_credential_groups that define has_credentials. The summary
+        # runs the SAME per-provider builder the delivery path uses (Mailer's
+        # *_provider_config, which applies the config/ENV fallback chain), so
+        # summary and delivery cannot disagree.
         #
         # @param provider [String] the resolved transport provider.
-        # @param raw [Hash] the raw emailer_config (string keys). Never returned.
         # @return [Hash] { host:, port:, domain:, tls:, region:, has_credentials: }
-        def masked_provider_config(provider, raw)
+        def masked_provider_config(provider)
           base = {
             host: nil, port: nil, domain: nil, tls: nil, region: nil, has_credentials: false
           }
@@ -94,7 +92,7 @@ module Onetime
 
           # send() because the builders are private on Mailer (see build's
           # visibility note above).
-          creds         = Onetime::Mail::Mailer.send(descriptor.provider_config_method, raw || {})
+          creds         = Onetime::Mail::Mailer.send(descriptor.provider_config_method)
           masked        = descriptor.masked_config_keys.to_h { |key| [key.to_sym, creds[key]] }
           masked[:port] = coerce_port(masked[:port]) if masked.key?(:port)
 

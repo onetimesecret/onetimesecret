@@ -11,7 +11,7 @@ require 'uri'
 OT.boot! :test, true
 
 # Setup section - get Redis config from OT.conf
-redis_uri = URI.parse(OT.conf['redis']['uri'])
+redis_uri = URI.parse(OT.conf.get('redis.uri'))
 @redis_host = redis_uri.host
 @redis_port = redis_uri.port
 

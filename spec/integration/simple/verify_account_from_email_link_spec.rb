@@ -62,7 +62,7 @@ RSpec.describe 'Verify a simple-mode account from the emailed link without a cus
   before do
     skip 'requires simple auth mode' if Onetime.auth_config.full_enabled?
 
-    autoverify = OT.conf.dig('site', 'authentication', 'autoverify')
+    autoverify = OT.conf.get('site.authentication.autoverify')
     raise "Test precondition broken: autoverify must be false in spec/config.test.yaml, got #{autoverify.inspect}" if autoverify.to_s == 'true'
 
     # send_verification_email delivers synchronously through the Mailer; stub

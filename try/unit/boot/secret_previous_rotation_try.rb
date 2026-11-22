@@ -75,7 +75,7 @@ keys, current = CF.build_encryption_keys(@secret_new, "#{@secret_old}, #{@secret
 ## config (:v2 from the live test SECRET) still decrypts after Familia is
 ## reconfigured with the rotated mapping — v1/v2 now registered as the
 ## "previous" secret's keys and writes moved to a content-addressed tag.
-@live_secret               = OT.conf.dig('site', 'secret')
+@live_secret               = OT.conf.get('site.secret')
 @original_keys             = Familia.config.encryption_keys
 @original_version          = Familia.config.current_key_version
 receipt, secret            = Onetime::Receipt.spawn_pair 'anon', 3600, 'written before rotation'

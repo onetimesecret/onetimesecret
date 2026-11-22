@@ -31,7 +31,7 @@ module DomainsAPI::Logic
         require_organization!
 
         # Check if strategy supports DNS widget
-        @strategy = Onetime::DomainValidation::Strategy.for_config(OT.conf)
+        @strategy = Onetime::DomainValidation::Strategy.for_config
         unless @strategy.supports_dns_widget?
           raise_form_error 'DNS widget not available'
         end

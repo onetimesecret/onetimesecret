@@ -28,19 +28,19 @@ OT.info "Cleaned Redis for SignupValidation test run"
 @domain = Onetime::CustomDomain.create!(@display_domain, @org.objid)
 
 # Stash original config to restore later
-@original_allowed = OT.conf.dig('site', 'authentication', 'allowed_signup_domains')
+@original_allowed = OT.conf.get('site.authentication.allowed_signup_domains')
 
 # --- Global Config Fallback ---
 
 ## When no display_domain provided, uses global config
 OT.conf['site'] ||= {}
-OT.conf['site']['authentication'] ||= {}
-OT.conf['site']['authentication']['allowed_signup_domains'] = nil
+OT.conf.get('site')['authentication'] ||= {}
+OT.conf.get('site.authentication')['allowed_signup_domains'] = nil
 Onetime::SignupValidation.valid_signup_email?('user@anywhere.com')
 #=> true
 
 ## Global config with restrictions allows matching domain
-OT.conf['site']['authentication']['allowed_signup_domains'] = ['allowed.com']
+OT.conf.get('site.authentication')['allowed_signup_domains'] = ['allowed.com']
 Onetime::SignupValidation.valid_signup_email?('user@allowed.com')
 #=> true
 
@@ -49,7 +49,7 @@ Onetime::SignupValidation.valid_signup_email?('user@evil.com')
 #=> false
 
 ## Empty allowed_signup_domains allows any email
-OT.conf['site']['authentication']['allowed_signup_domains'] = []
+OT.conf.get('site.authentication')['allowed_signup_domains'] = []
 Onetime::SignupValidation.valid_signup_email?('user@anywhere.com')
 #=> true
 
@@ -66,8 +66,8 @@ Onetime::CustomDomain::SignupConfig.exists_for_domain?(@domain.identifier)
 #=> true
 
 ## Restore global config restriction (verifies per-domain takes precedence)
-OT.conf['site']['authentication']['allowed_signup_domains'] = ['globally-allowed.com']
-OT.conf.dig('site', 'authentication', 'allowed_signup_domains')
+OT.conf.get('site.authentication')['allowed_signup_domains'] = ['globally-allowed.com']
+OT.conf.get('site.authentication.allowed_signup_domains')
 #=> ['globally-allowed.com']
 
 ## Per-domain config rejects emails not in its allowlist
@@ -165,6 +165,6 @@ Onetime::SignupValidation.structurally_valid_email?("ok@example.com\nbad")
 
 # --- Cleanup ---
 
-OT.conf['site']['authentication']['allowed_signup_domains'] = @original_allowed
+OT.conf.get('site.authentication')['allowed_signup_domains'] = @original_allowed
 Familia.dbclient.flushdb
 OT.info "Cleaned Redis after SignupValidation test run"

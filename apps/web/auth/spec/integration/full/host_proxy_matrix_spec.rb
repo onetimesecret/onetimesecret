@@ -672,7 +672,7 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
       it "#{row[:id]} #{row[:case]}#{suffix}" do
         with_site_host(row.fetch(:site_host, :unchanged)) do
           missing_site_host = row.key?(:site_host) && row[:site_host].nil?
-          expect(OT.conf.dig('site', 'host')).to be_nil if missing_site_host
+          expect(OT.conf.get('site.host')).to be_nil if missing_site_host
           expected = row_for_run(row)
           prepare_record(row[:record])
           apply_topology(row)
@@ -807,19 +807,19 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
         before(:all) do
           boot_onetime_app
           @matrix_saved_features = Onetime::Runtime.features
-          @matrix_saved_domains  = OT.conf.dig('features', 'domains') || {}
+          @matrix_saved_domains  = OT.conf.get('features.domains') || {}
         end
 
         before do
-          OT.conf['features']['domains'] = @matrix_saved_domains.merge('enabled' => false, 'default' => nil)
+          OT.conf.get('features')['domains'] = @matrix_saved_domains.merge('enabled' => false, 'default' => nil)
           Onetime::Runtime.features      = Onetime::Runtime.features.with(domains_enabled: false)
-          Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
+          Onetime::Middleware::DomainStrategy.initialize_from_config
         end
 
         after(:all) do
           Onetime::Runtime.features      = @matrix_saved_features if @matrix_saved_features
-          OT.conf['features']['domains'] = @matrix_saved_domains
-          Onetime::Middleware::DomainStrategy.initialize_from_config(@matrix_saved_domains)
+          OT.conf.get('features')['domains'] = @matrix_saved_domains
+          Onetime::Middleware::DomainStrategy.initialize_from_config
         end
 
         # No row here uses the {canonical} placeholder for a second host: the

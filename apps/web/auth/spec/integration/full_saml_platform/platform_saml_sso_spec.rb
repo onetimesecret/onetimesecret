@@ -292,7 +292,7 @@ RSpec.shared_examples 'platform SAML SSO' do
       original_host = URI.parse(request.acs_url).host
       original_conf = OT.conf
       allow(OT).to receive(:conf).and_return(OT::Config.wrap(original_conf.merge(
-        'site' => original_conf.fetch('site').merge('host' => 'changed.example.net', 'ssl' => false)
+        'site' => original_conf.get('site').merge('host' => 'changed.example.net', 'ssl' => false)
       )))
 
       expect(Onetime::SsoProvider::Saml.platform_usable?).to be true

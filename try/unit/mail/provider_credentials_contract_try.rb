@@ -30,45 +30,38 @@ OT.boot! :test, false
 # Load the mail module
 require 'onetime/mail'
 
-# Stub emailer config with values for all providers so build_provider_config
-# can resolve credentials without hitting real environment variables.
-@original_emailer_config = Onetime::Mail::Mailer.send(:emailer_config)
-
-class Onetime::Mail::Mailer
-  class << self
-    def emailer_config
-      {
-        'mode' => 'logger',
-        'from' => 'test@example.com',
-        # SMTP
-        'host' => 'smtp.example.com',
-        'port' => 587,
-        'user' => 'smtp_user',
-        'pass' => 'smtp_pass',
-        'auth' => 'login',
-        'domain' => 'example.com',
-        'tls' => true,
-        'allow_unauthenticated_fallback' => true,
-        # SES
-        'region' => 'us-east-1',
-        # SendGrid
-        'sendgrid_api_key' => 'SG.test-key',
-        # Lettermint
-        'lettermint_api_token' => 'lm-sending-token',
-        'lettermint_team_token' => 'lm-team-token',
-        'lettermint_base_url' => 'https://api.lettermint.co/v1',
-        'lettermint_timeout' => 30,
-        # SMTP2GO
-        'smtp2go_api_key' => 'api-contract-test-key',
-        'smtp2go_timeout' => 30,
-      }
-    end
-
-    def provider_config(_provider)
-      {}
-    end
-  end
-end
+# Swap in an emailer section with values for all providers so
+# build_provider_config can resolve credentials without hitting real
+# environment variables, and clear email_providers. The teardown puts the
+# suite's sections back.
+@saved_emailer         = OT.conf.get('emailer')
+@saved_email_providers = OT.conf.get('email_providers', nil)
+OT.conf['emailer'] = {
+  'mode' => 'logger',
+  'from' => 'test@example.com',
+  # SMTP
+  'host' => 'smtp.example.com',
+  'port' => 587,
+  'user' => 'smtp_user',
+  'pass' => 'smtp_pass',
+  'auth' => 'login',
+  'domain' => 'example.com',
+  'tls' => true,
+  'allow_unauthenticated_fallback' => true,
+  # SES
+  'region' => 'us-east-1',
+  # SendGrid
+  'sendgrid_api_key' => 'SG.test-key',
+  # Lettermint
+  'lettermint_api_token' => 'lm-sending-token',
+  'lettermint_team_token' => 'lm-team-token',
+  'lettermint_base_url' => 'https://api.lettermint.co/v1',
+  'lettermint_timeout' => 30,
+  # SMTP2GO
+  'smtp2go_api_key' => 'api-contract-test-key',
+  'smtp2go_timeout' => 30,
+}
+OT.conf['email_providers'] = {}
 
 # --- SMTP: string keys only ---
 
@@ -312,13 +305,7 @@ creds['api_key']
 # in different regions.
 
 ## SES provisioning region comes from email_providers.ses, overriding emailer.region
-class Onetime::Mail::Mailer
-  class << self
-    def provider_config(provider)
-      provider.to_s == 'ses' ? { 'region' => 'eu-west-1' } : {}
-    end
-  end
-end
+OT.conf['email_providers'] = { 'ses' => { 'region' => 'eu-west-1' } }
 Onetime::Mail::Mailer.provider_credentials('ses')['region']
 #=> 'eu-west-1'
 
@@ -326,14 +313,8 @@ Onetime::Mail::Mailer.provider_credentials('ses')['region']
 Onetime::Mail::Mailer.send(:build_provider_config, 'ses')['region']
 #=> 'us-east-1'
 
-## Restore the default provider_config stub for any later cases
-class Onetime::Mail::Mailer
-  class << self
-    def provider_config(_provider)
-      {}
-    end
-  end
-end
+## Clear email_providers again for any later cases
+OT.conf['email_providers'] = {}
 Onetime::Mail::Mailer.provider_credentials('ses')['region']
 #=> 'us-east-1'
 
@@ -349,29 +330,13 @@ Onetime::Mail::Mailer.provider_credentials('ses')['region']
 #=> ['smtp_user', 'smtp_pass']
 
 ## provider_credentials('ses') overrides the key pair from email_providers.ses
-class Onetime::Mail::Mailer
-  class << self
-    def provider_config(provider)
-      if provider.to_s == 'ses'
-        { 'access_key_id' => 'AKIA_SES', 'secret_access_key' => 'ses-secret' }
-      else
-        {}
-      end
-    end
-  end
-end
+OT.conf['email_providers'] = { 'ses' => { 'access_key_id' => 'AKIA_SES', 'secret_access_key' => 'ses-secret' } }
 @ses_api_creds = Onetime::Mail::Mailer.provider_credentials('ses')
 [@ses_api_creds['access_key_id'], @ses_api_creds['secret_access_key']]
 #=> ['AKIA_SES', 'ses-secret']
 
 ## With no email_providers.ses creds, it falls back to emailer.user/pass
-class Onetime::Mail::Mailer
-  class << self
-    def provider_config(_provider)
-      {}
-    end
-  end
-end
+OT.conf['email_providers'] = {}
 @fallback_creds = Onetime::Mail::Mailer.provider_credentials('ses')
 [@fallback_creds['access_key_id'], @fallback_creds['secret_access_key']]
 #=> ['smtp_user', 'smtp_pass']
@@ -384,13 +349,7 @@ end
 # flips verified domains to failed.
 
 ## Without an api_key anywhere (emailer, email_providers, ENV), smtp2go credentials are empty
-class Onetime::Mail::Mailer
-  class << self
-    def emailer_config
-      { 'mode' => 'smtp2go', 'from' => 'test@example.com' }
-    end
-  end
-end
+OT.conf['emailer'] = { 'mode' => 'smtp2go', 'from' => 'test@example.com' }
 # Restore ENV inside the same testcase (ensure), so a failure here can't
 # leak a mutated ENV into the rest of the shared tryouts process.
 saved_s2g_env = ENV.delete('SMTP2GO_API_KEY')
@@ -402,25 +361,13 @@ end
 #=> {}
 
 ## An api_key from the email_providers YAML source restores the full config with subdomain defaults
-class Onetime::Mail::Mailer
-  class << self
-    def provider_config(provider)
-      provider.to_s == 'smtp2go' ? { 'api_key' => 'api-from-yaml' } : {}
-    end
-  end
-end
+OT.conf['email_providers'] = { 'smtp2go' => { 'api_key' => 'api-from-yaml' } }
 creds = Onetime::Mail::Mailer.provider_credentials('smtp2go')
 [creds['api_key'], creds['returnpath_subdomain'], creds['tracking_subdomain']]
 #=> ['api-from-yaml', 'bounce', 'track']
 
 ## An api_key from ENV alone also restores the full config
-class Onetime::Mail::Mailer
-  class << self
-    def provider_config(_provider)
-      {}
-    end
-  end
-end
+OT.conf['email_providers'] = {}
 saved_s2g_env = ENV['SMTP2GO_API_KEY']
 begin
   ENV['SMTP2GO_API_KEY'] = 'api-from-env'
@@ -435,18 +382,6 @@ end
 creds['api_key']
 #=> 'api-from-env'
 
-# --- teardown ------------------------------------------------------------
-# Later files in the same tryouts process observe these class-level stubs
-# (mode 'logger' is what delivery_logger_try and email_ratelimit_tools_try
-# expect from determine_provider), so put back the top-of-file state.
-class Onetime::Mail::Mailer
-  class << self
-    def emailer_config
-      { 'mode' => 'logger', 'from' => 'test@example.com' }
-    end
-
-    def provider_config(_provider)
-      {}
-    end
-  end
-end
+# Teardown
+OT.conf['emailer']         = @saved_emailer
+OT.conf['email_providers'] = @saved_email_providers

@@ -103,7 +103,7 @@ RSpec.describe Onetime::CLI::Queue::StatusCommand do
       command.send(:check_dlq_policies)
 
       expected_vhost = URI.encode_www_form_component(
-        command.send(:parse_amqp_url, OT.conf.dig('jobs', 'rabbitmq_url'))[:vhost],
+        command.send(:parse_amqp_url, OT.conf.get('jobs.rabbitmq_url'))[:vhost],
       )
 
       expect(http_instance).to have_received(:request) do |req|

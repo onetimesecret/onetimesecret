@@ -225,7 +225,7 @@ module Onetime
         end
 
         def strategy_name
-          Onetime::DomainValidation::Strategy.for_config(OT.conf).strategy_name
+          Onetime::DomainValidation::Strategy.for_config.strategy_name
         rescue StandardError => ex
           OT.le "[Domains::CollisionResolution] validation strategy unknown: #{ex.class}: #{ex.message}"
           'unknown'

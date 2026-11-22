@@ -212,9 +212,9 @@ module Core
 
         # Brand config — source of truth for tag-level branding (page_title,
         # mask-icon, etc.) and for default Vue app theming on first paint.
-        brand_config         = OT.conf.get('brand', {})
-        brand_product_name   = brand_config['product_name'] ||
-                               Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
+        brand_product_name   = OT.conf.get(
+          'brand.product_name', Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
+        )
 
         # Use the display domain name for branded instances, otherwise the
         # configured brand product name. The deprecated
@@ -227,8 +227,8 @@ module Core
         page_title           = display_domain || brand_product_name ||
                                Onetime::CustomDomain::BrandSettingsConstants::NEUTRAL_PRODUCT_NAME
         no_cache             = false
-        frontend_host        = development['frontend_host']
-        frontend_development = development['enabled']
+        frontend_host        = OT.conf.get('development.frontend_host', nil)
+        frontend_development = OT.conf.get('development.enabled', nil)
         script_element_id    = 'onetime-state'
 
         # URI helpers for templates
@@ -259,42 +259,39 @@ module Core
         og_title, og_description = secret_share_copy(receipt_page, i18n_locale)
 
         brand_defaults              = Onetime::CustomDomain::BrandSettingsConstants::DEFAULTS
-        brand_primary_color         = brand_config['primary_color']
+        brand_global_defaults       = Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS
+        brand_primary_color         = OT.conf.get('brand.primary_color', nil)
         has_brand_color             = !brand_primary_color.to_s.strip.empty?
-        support_email               = brand_config['support_email'] ||
-                                      Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:support_email]
+        support_email               = OT.conf.get('brand.support_email', brand_global_defaults[:support_email])
         # docs_host: full documentation URL exposed to bootstrap. Sources from
         # DOCS_URL env var with the same default the YAML footer link uses, since
         # the legacy site.support.host path was retired in #1461.
         docs_host                   = ENV.fetch('DOCS_URL', 'https://docs.onetimesecret.com/')
-        brand_corner_style          = brand_config['corner_style'] || brand_defaults[:corner_style]
-        brand_font_family           = brand_config['font_family'] || brand_defaults[:font_family]
-        brand_button_text_light     = brand_config.fetch('button_text_light', brand_defaults[:button_text_light])
-        brand_allow_public_homepage = brand_config.fetch('allow_public_homepage', false)
-        brand_allow_public_api      = brand_config.fetch('allow_public_api', false)
+        brand_corner_style          = OT.conf.get('brand.corner_style', brand_defaults[:corner_style])
+        brand_font_family           = OT.conf.get('brand.font_family', brand_defaults[:font_family])
+        brand_button_text_light     = OT.conf.get('brand.button_text_light', brand_defaults[:button_text_light])
         # Site-wide brand fields not in DEFAULTS (per-domain Data class) —
-        # sourced from GLOBAL_DEFAULTS or directly from brand_config. Frontend
-        # falls through to NEUTRAL_BRAND_DEFAULTS when nil.
-        brand_global_defaults       = Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS
-        brand_product_domain        = brand_config['product_domain']
-        brand_support_email         = brand_config['support_email'] || brand_global_defaults[:support_email]
-        brand_logo_url              = brand_config['logo_url'] || brand_global_defaults[:logo_url]
-        brand_logo_dark_url         = brand_config['logo_dark_url']
-        brand_logo_alt              = brand_config['logo_alt'] || brand_global_defaults[:logo_alt]
-        brand_favicon_url           = brand_config['favicon_url'] || brand_global_defaults[:favicon_url]
+        # sourced from GLOBAL_DEFAULTS or directly from the brand config.
+        # Frontend falls through to NEUTRAL_BRAND_DEFAULTS when nil.
+        brand_product_domain        = OT.conf.get('brand.product_domain', nil)
+        brand_support_email         = support_email
+        brand_logo_url              = OT.conf.get('brand.logo_url', brand_global_defaults[:logo_url])
+        brand_logo_dark_url         = OT.conf.get('brand.logo_dark_url', nil)
+        brand_logo_alt              = OT.conf.get('brand.logo_alt', brand_global_defaults[:logo_alt])
+        brand_favicon_url           = OT.conf.get('brand.favicon_url', brand_global_defaults[:favicon_url])
         # Mobile/social variety-pack URLs used by the HTML head. apple-touch-icon
         # resolves to the bundled NEUTRAL asset so the head always emits a valid,
         # brand-agnostic pack; operators set BRAND_APPLE_TOUCH_ICON_URL (or drop a
         # replacement file into the brand directory) to override.
-        brand_apple_touch_icon_url  = brand_config['apple_touch_icon_url'] || '/apple-touch-icon.png'
+        brand_apple_touch_icon_url  = OT.conf.get('brand.apple_touch_icon_url', '/apple-touch-icon.png')
 
         # og:image / twitter:image are OPT-IN and may legitimately be absent
         # (#4150) — see normalize_brand, which resolves brand.og_image_url from
         # the pack asset and leaves it nil when no pack carries a social card.
         # Two further gates apply here, both about the card travelling off-site:
         #
-        #   - custom domains get NO card. brand_config is the INSTALL's brand
-        #     (OT.conf), not the domain's, and there is no per-domain social
+        #   - custom domains get NO card. brand.og_image_url is the INSTALL's
+        #     brand (OT.conf), not the domain's, and there is no per-domain social
         #     image field, so anything we emitted here would put the install
         #     operator's card on a customer's shared link. Same reasoning as
         #     show_default_svg_favicon below, which suppresses the canonical SVG
@@ -309,7 +306,7 @@ module Core
         # nil means "emit no image tags"; the head partial branches on it, and
         # twitter:card degrades from summary_large_image to summary so the card
         # still renders correctly without an image.
-        brand_og_image_url          = brand_config['og_image_url'].to_s.strip
+        brand_og_image_url          = OT.conf.get('brand.og_image_url', nil).to_s.strip
         brand_og_image_url          = nil if brand_og_image_url.empty? || domain_strategy == :custom
         if brand_og_image_url && !brand_og_image_url.match?(%r{\A(?:[a-z][a-z0-9+.-]*:|//)}i)
           brand_og_image_url = "#{baseuri}/#{brand_og_image_url.delete_prefix('/')}"
@@ -389,8 +386,6 @@ module Core
           'brand_corner_style' => brand_corner_style,
           'brand_font_family' => brand_font_family,
           'brand_button_text_light' => brand_button_text_light,
-          'brand_allow_public_homepage' => brand_allow_public_homepage,
-          'brand_allow_public_api' => brand_allow_public_api,
           'brand_product_domain' => brand_product_domain,
           'brand_support_email' => brand_support_email,
           'brand_logo_url' => brand_logo_url,

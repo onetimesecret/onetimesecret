@@ -76,9 +76,8 @@ RSpec.describe V2::Logic::Secrets::AccessTelemetry, type: :integration do
   # Same OT.conf stubbing idiom as the org trail's collection-toggle specs:
   # merge the flag onto the real booted config so only this key varies.
   def stub_secret_activity_conf(secret_activity)
-    base     = OT.conf
-    features = (base['features'] || {}).merge('secret_activity' => secret_activity)
-    allow(OT).to receive(:conf).and_return(OT::Config.wrap(base.merge('features' => features)))
+    features = OT.conf.get('features', {}).merge('secret_activity' => secret_activity)
+    allow(OT).to receive(:conf).and_return(OT::Config.wrap(OT.conf.merge('features' => features)))
   end
 
   def stub_geo_flag(value)

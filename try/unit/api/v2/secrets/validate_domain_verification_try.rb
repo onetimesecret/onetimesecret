@@ -49,11 +49,11 @@ end
 # test mode; OT.boot! :test, false leaves it mutable for tryouts.
 def set_require_verified(value)
   OT.conf['features'] ||= {}
-  OT.conf['features']['domains'] ||= {}
-  OT.conf['features']['domains']['require_verified'] = value
+  OT.conf.get('features')['domains'] ||= {}
+  OT.conf.get('features.domains')['require_verified'] = value
 end
 
-@original_require_verified = OT.conf.dig('features', 'domains', 'require_verified')
+@original_require_verified = OT.conf.get('features.domains.require_verified')
 
 ## Toggle off + unverified domain: owner is allowed (default behavior unchanged)
 set_require_verified(false)

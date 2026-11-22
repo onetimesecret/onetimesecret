@@ -602,11 +602,9 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     # (ADR-024). Strict-boolean like the resolver: anything but true is
     # treated as off.
     #
-    # @param auth [Hash, nil] site.authentication settings (injectable for tests)
     # @return [Boolean]
-    def global_signup_enabled(auth = nil)
-      auth ||= OT.conf.get('site.authentication', {})
-      (auth['enabled'] && auth['signup']) == true
+    def global_signup_enabled
+      (OT.conf.get('site.authentication.enabled', nil) && OT.conf.get('site.authentication.signup', nil)) == true
     end
 
     # Check if a domain has signup config.

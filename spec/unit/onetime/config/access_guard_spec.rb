@@ -6,18 +6,30 @@
 # TEST TYPE: Static guard — main-config reads go through OT.conf.get
 # =============================================================================
 #
-# Production code reads the main config with OT.conf.get('a.b.c'[, default])
-# (Onetime::Config::Reader). RuboCop cannot enforce that here, because
+# Code reads the main config with OT.conf.get('a.b.c'[, default])
+# (Onetime::Config::Reader), so that grepping a dotted path finds every
+# reader of that setting. RuboCop cannot enforce that here, because
 # .rubocop.yml excludes apps/api/v1 and every spec and try directory, so this
 # spec does. Calls are found with Prism, so comments and strings never match.
 #
-#   1. OT.conf (or Onetime.conf) is used only as the receiver of get in lib/
-#      and apps/. Every other use counts: dig, fetch, key? or [] on it,
-#      assigning it to a variable, passing it as an argument, a truthiness
-#      guard. In lib/onetime/boot.rb the config is also `conf` and `@conf`.
-#      A use that stays is listed in ALLOWED_USES with its count and reason.
-#   2. Nothing reads into the result of get (OT.conf.get('site')['host']):
-#      the whole path goes in get, where rules 3 to 5 can check it.
+# In lib/ and apps/:
+#
+#   1. OT.conf (or Onetime.conf) is used only as the receiver of get. Every
+#      other use counts: dig, fetch, key? or [] on it, assigning it to a
+#      variable, passing it as an argument, a truthiness guard. In
+#      lib/onetime/boot.rb the config is also `conf` and `@conf`. A use that
+#      stays is listed in ALLOWED_USES with its count and reason.
+#   2. Nothing reads into a section (a Hash) that get returned: not on the
+#      call (OT.conf.get('site')['host']), and not through a local or
+#      instance variable that holds it, a method or RSpec let that returns
+#      it, or an attr_reader of such an instance variable
+#      (`admin = OT.conf.get('site.admin', {}); admin['enabled']`), also from
+#      one branch of a conditional or the left of ||.
+#      The whole path goes in get, where rules 3 to 5 can check it. A get
+#      result is a section when the shipped config has a Hash at its path,
+#      or, for a path the shipped config does not have, when its default is
+#      not a literal of another type. Iterating, copying or serializing a
+#      section is not a read.
 #   3. A get with a literal path and no default names a path that the shipped
 #      config has: etc/defaults/config.defaults.yaml, run through
 #      Config.after_load as boot does. A typo or a stale path fails here, not
@@ -26,7 +38,8 @@
 #      shipped config, is listed in OPTIONAL_PATHS with the reason it can be
 #      absent.
 #   5. A get whose path is not a literal (an Array with a variable segment,
-#      an interpolated String, a variable) passes a default.
+#      an interpolated String, a variable) passes a default, and its literal
+#      leading segments name a path the shipped config has.
 #   6. A get has no Symbol path and no keyword argument; both raise.
 #   7. A get with a literal path and no default does not raise when an
 #      operator file sets a section on that path to nil. Config.load lets
@@ -34,9 +47,21 @@
 #      Config.after_load refills some sections from Config::DEFAULTS with
 #      fewer keys. dig read every such key as nil; pass nil as the default.
 #
-# Rules 3 to 5 check the path passed to get. A section read into a variable
-# (`section = OT.conf.get('a.b', {}); section['c']`) is not checked below the
-# path given to get.
+# In test code (spec/ and try/ directories, *_spec.rb and *_try.rb files,
+# e2e/ and tests/), which builds, replaces and stubs configs of its own:
+#
+#   8. OT.conf, and a local variable that holds it, never receives a read
+#      (dig, fetch, key?, [] and the other Hash lookups). A test reads with
+#      get, and writes through it: OT.conf.get('site')['host'] = 'example.com'.
+#      A write to a top-level key (OT.conf['site'] = {...}), a copy
+#      (OT.conf.dup, YAML.dump(OT.conf)) and a stub are not reads.
+#   Rules 2 and 6 apply as in lib/ and apps/. Rules 3 to 5 and 7 do not: a
+#   test reads the config it set up, and get raises on a path that config
+#   does not have.
+#
+# Rule 2 follows a section through variables and methods in one file. A
+# section passed as an argument to another method, or yielded to a block
+# (each, map), is not followed.
 #
 # =============================================================================
 
@@ -49,38 +74,67 @@ module ConfigAccessGuard
   SOURCE_GLOBS = %w[lib/**/*.rb lib/**/*.rake apps/**/*.rb apps/**/*.ru config.ru].freeze
   EXCLUDED     = %r{(\A|/)(spec|try)/|_spec\.rb\z|_try\.rb\z}
 
+  # Test code: the EXCLUDED files of SOURCE_GLOBS, and these.
+  TEST_GLOBS = %w[spec/**/*.rb try/**/*.rb e2e/**/*.rb tests/**/*.rb].freeze
+
   # The file where the config is also read as `conf` and `@conf`.
   BOOT_FILE = 'lib/onetime/boot.rb'
 
   DIRECT_READS = %i[dig fetch key? []].freeze
 
-  # Reads into a get result (rule 2): the direct reads plus the other ways
-  # to look inside a Hash.
-  CHAINED_READS = (DIRECT_READS + %i[has_key? include? member? values_at fetch_values slice to_h then]).freeze
+  # Reads into a section (rule 2): the direct reads plus the other ways to
+  # look inside a Hash.
+  CHAINED_READS = (DIRECT_READS + %i[has_key? include? member? values_at fetch_values slice then]).freeze
+
+  # Reads of OT.conf in test code (rule 8). then is a whole-config operation
+  # there.
+  TEST_READS = (CHAINED_READS - %i[then]).freeze
+
+  # Default literals whose type is not a Hash: a get with one of these
+  # returns a value, not a section, when the path is absent.
+  VALUE_LITERALS = [
+    Prism::ArrayNode, Prism::StringNode, Prism::InterpolatedStringNode, Prism::IntegerNode,
+    Prism::FloatNode, Prism::RationalNode, Prism::TrueNode, Prism::FalseNode, Prism::SymbolNode
+  ].freeze
 
   # Literal paths read with a default that are not in the shipped config,
   # with the reason each can be absent.
   OPTIONAL_PATHS = {
+    'emailer.allow_unauthenticated_fallback' => 'opt-in: Delivery::SMTP retries without AUTH after the server rejects it only when set',
+    'emailer.domain' => 'SMTP HELO domain; SMTP_DOMAIN is read when it is unset',
+    'emailer.fromname' => 'deprecated since v0.23 (from_name replaces it); read only when from_name is unset',
+    'emailer.lettermint_api_token' => 'operator-set override; email_providers.lettermint, emailer.pass and LETTERMINT_API_TOKEN follow',
+    'emailer.lettermint_base_url' => 'operator-set override; email_providers.lettermint and LETTERMINT_BASE_URL follow',
+    'emailer.lettermint_team_token' => 'operator-set override; email_providers.lettermint and LETTERMINT_TEAM_TOKEN follow',
+    'emailer.lettermint_timeout' => 'operator-set override; the Lettermint client default applies without it',
+    'emailer.sendgrid_api_key' => 'operator-set override; emailer.pass and SENDGRID_API_KEY follow',
+    'emailer.smtp2go_api_key' => 'operator-set override; email_providers.smtp2go and SMTP2GO_API_KEY follow',
+    'emailer.smtp2go_timeout' => 'operator-set override; the SMTP2GO client default applies without it',
+    'features.domains.strict_strategy' => 'opt-in: an unknown validation_strategy raises instead of falling back to passthrough',
     'jobs.dlq_monitor_enabled' => 'opt-in switch for DlqMonitorJob; the defaults file does not define it',
     'jobs.domain_refresh.rate_limit' => "commented out in the defaults: unset means the strategy's own pacing",
     'jobs.heartbeat_enabled' => 'opt-in switch for HeartbeatJob; the defaults file does not define it',
+    'jobs.maintenance.housekeeping.batch_size' => 'operator-set; HousekeepingJob::DEFAULT_BATCH_SIZE without it',
+    'jobs.maintenance.housekeeping.models' => 'operator-set model list; HousekeepingJob scans its default model list without it',
     'jobs.rabbitmq_management_url' => 'optional; RABBITMQ_MANAGEMENT_URL or localhost is used without it',
     'locales' => 'legacy top-level list, read when internationalization.locales is unset',
     'site.authentication.colonels' => 'operator-set list of colonel emails; the defaults file does not define it',
-    'site.authentication.external' => 'opt-in external auth section; the defaults file does not define it',
+    'site.authentication.external.enabled' => 'opt-in external auth section; the defaults file does not define it',
+    'site.authentication.external.service_url' => 'opt-in external auth section; the defaults file does not define it',
     'site.federation_secret' => 'FEDERATION_SECRET is read first; the defaults file does not define this key',
+  }.freeze
+
+  # Test files that read into a config section on purpose (rule 2), with the
+  # reason: they test the section Hashes themselves.
+  TEST_SECTION_READS = {
+    'spec/unit/onetime/config/strict_keys_spec.rb' => 'StrictKeys raises on a Symbol read into a section',
+    'try/unit/config/strict_keys_try.rb' => 'StrictKeys raises on a Symbol read into a section',
   }.freeze
 
   # Uses of OT.conf other than OT.conf.get that stay: file => [count, reason].
   ALLOWED_USES = {
-    'apps/api/domains/cli/helpers.rb' => [1, 'Strategy.for_config takes the whole config'],
-    'apps/api/domains/logic/domains/get_dns_widget_token.rb' => [1, 'Strategy.for_config takes the whole config'],
     'lib/onetime/application/registry.rb' => [2, 'warns on an app registered before boot (nil?); the config object is the rack_url_map cache token (object_id)'],
     'lib/onetime/config.rb' => [1, 'apply_config merges an override over the whole config'],
-    'lib/onetime/initializers/configure_domains.rb' => [1, 'DomainValidation::Features.load_from_config takes the whole config'],
-    'lib/onetime/operations/domains/collision_resolution.rb' => [1, 'Strategy.for_config takes the whole config'],
-    'lib/onetime/operations/domains/teardown.rb' => [1, 'Strategy.for_config takes the whole config'],
-    'lib/onetime/operations/verify_domain.rb' => [1, 'Strategy.for_config takes the whole config'],
   }.freeze
 
   module_function
@@ -89,6 +143,14 @@ module ConfigAccessGuard
     SOURCE_GLOBS.flat_map { |glob| Dir.glob(File.join(ROOT, glob)) }
       .uniq
       .reject { |path| relative(path).match?(EXCLUDED) }
+      .sort
+  end
+
+  def test_files
+    sources = SOURCE_GLOBS.flat_map { |glob| Dir.glob(File.join(ROOT, glob)) }
+      .select { |path| relative(path).match?(EXCLUDED) }
+    (sources + TEST_GLOBS.flat_map { |glob| Dir.glob(File.join(ROOT, glob)) })
+      .uniq
       .sort
   end
 
@@ -115,25 +177,56 @@ module ConfigAccessGuard
     end
   end
 
+  # The literal segments before the first computed one, or nil: ['site',
+  # 'admin'] for ['site', 'admin', key] and for "site.admin.#{key}".
+  def literal_prefix(node)
+    parts = case node
+            when Prism::ArrayNode then node.elements.take_while { |e| e.is_a?(Prism::StringNode) }.map(&:unescaped)
+            when Prism::InterpolatedStringNode
+              head = node.parts.first
+              head.is_a?(Prism::StringNode) ? head.unescaped.split('.', -1)[0...-1] : []
+            else []
+            end
+    parts.empty? ? nil : parts
+  end
+
   def symbol_path?(node)
     symbol = ->(element) { element.is_a?(Prism::SymbolNode) || element.is_a?(Prism::InterpolatedSymbolNode) }
     symbol.call(node) || (node.is_a?(Prism::ArrayNode) && node.elements.any?(&symbol))
   end
 
-  # Collects, for one file, every expression that is the config and every
-  # get call on it.
+  # :hash for a Hash literal, :value for a literal of another type, nil for
+  # no default, nil, or an expression.
+  def default_kind(node)
+    case node
+    when Prism::HashNode then :hash
+    when *VALUE_LITERALS then :value
+    end
+  end
+
+  # Collects, for one file, every expression that is the config, every get
+  # call on it, and every read into a section that a get call returned.
   class Scanner < Prism::Visitor
-    attr_reader :gets, :chained_reads
+    attr_reader :gets, :test_reads
 
     # @param boot [Boolean] the file is BOOT_FILE
-    def initialize(boot: false)
+    # @param test [Boolean] the file is test code (rule 8)
+    def initialize(boot: false, test: false)
       super()
       @boot          = boot
+      @test          = test
       @defs          = []
       @uses          = {} # start offset => line, for each expression that is the config
       @get_receivers = []
       @gets          = []
-      @chained_reads = []
+      @test_reads    = []
+      @reads         = [] # [line, get call] for reads whose holder is known
+      @pending       = [] # [line, :ivar or :method, name] resolved by #chained_reads
+      @locals        = [{}] # per scope: name => get call, [:method, name], or :config
+      @ivars         = {}   # name => get call or [:method, name]
+      @methods       = {}   # name => get call
+      @attr_readers  = {}   # method name => instance variable, from attr_reader
+      @config_lets   = []   # in test code: lets that return OT.conf
     end
 
     # Lines of the uses that are not the receiver of get (rule 1).
@@ -141,14 +234,73 @@ module ConfigAccessGuard
       @uses.except(*@get_receivers).values.sort
     end
 
+    # Reads into a get result (rule 2), each { line:, call: } with the get
+    # call that returned the value read into, in source order.
+    def chained_reads
+      resolved = @pending.filter_map do |line, kind, name|
+        held = kind == :ivar ? @ivars[name] : (@methods[name] || @ivars[@attr_readers[name]])
+        held = @methods[held.last] if held.is_a?(Array)
+        [line, held] if held
+      end
+      (@reads + resolved).sort_by(&:first).map { |line, call| { line: line, call: call } }
+    end
+
+    # A method whose last expression is a section is recorded once its body
+    # is visited, so that a local it returns is known.
     def visit_def_node(node)
       @defs.push(node.name)
+      @locals.push({})
       super
+      returned = held_by(node.body)
+      @methods[node.name] = returned if returned.is_a?(Hash)
     ensure
+      @locals.pop
       @defs.pop
     end
 
+    def visit_class_node(node)
+      in_scope { super }
+    end
+
+    def visit_module_node(node)
+      in_scope { super }
+    end
+
+    def visit_singleton_class_node(node)
+      in_scope { super }
+    end
+
+    def visit_local_variable_write_node(node)
+      hold_local(node.name, node.value)
+      super
+    end
+
+    def visit_local_variable_or_write_node(node)
+      hold_local(node.name, node.value)
+      super
+    end
+
+    def visit_local_variable_operator_write_node(node)
+      @locals.last.delete(node.name)
+      super
+    end
+
+    def visit_instance_variable_write_node(node)
+      hold_ivar(node.name, node.value)
+      super
+    end
+
+    def visit_instance_variable_or_write_node(node)
+      hold_ivar(node.name, node.value)
+      super
+    end
+
     def visit_instance_variable_read_node(node)
+      record_use(node) if config?(node)
+      super
+    end
+
+    def visit_local_variable_read_node(node)
       record_use(node) if config?(node)
       super
     end
@@ -159,30 +311,136 @@ module ConfigAccessGuard
       if config?(node.receiver) && node.name == :get
         @get_receivers << node.receiver.location.start_offset
         @gets << get_call(node)
-      elsif get_result?(node.receiver) && CHAINED_READS.include?(node.name)
-        @chained_reads << node.location.start_line
+      elsif CHAINED_READS.include?(node.name)
+        record_read(node)
       end
+
+      @test_reads << node.location.start_line if @test && config?(node.receiver) && TEST_READS.include?(node.name)
+      record_attr_readers(node)
+      record_let(node)
 
       super
     end
 
     private
 
+    # let(:admin) { OT.conf.get('site.admin') } makes `admin` return it.
+    def record_let(node)
+      return unless node.receiver.nil? && %i[let let!].include?(node.name) && node.block.is_a?(Prism::BlockNode)
+
+      name = node.arguments&.arguments&.first
+      return unless name.is_a?(Prism::SymbolNode)
+
+      body = node.block.body
+      held = held_by(body)
+      @methods[name.unescaped.to_sym] = held if held.is_a?(Hash)
+      last = body.is_a?(Prism::StatementsNode) ? body.body.last : body
+      @config_lets << name.unescaped.to_sym if @test && config?(last)
+    end
+
+    # attr_reader :site makes `site` return @site.
+    def record_attr_readers(node)
+      return unless node.receiver.nil? && %i[attr_reader attr_accessor].include?(node.name)
+
+      node.arguments&.arguments&.grep(Prism::SymbolNode)&.each do |symbol|
+        @attr_readers[symbol.unescaped.to_sym] = :"@#{symbol.unescaped}"
+      end
+    end
+
+    def in_scope
+      @locals.push({})
+      yield
+    ensure
+      @locals.pop
+    end
+
     def record_use(node)
       @uses[node.location.start_offset] = node.location.start_line
     end
 
+    # A read into what +node+'s receiver holds: a get call, a local holding
+    # one, or (resolved later) an instance variable or a method.
+    def record_read(node)
+      receiver = node.receiver
+      line     = node.location.start_line
+      held     = held_by(receiver)
+
+      case held
+      when Hash then @reads << [line, held]
+      when Array then @pending << [line, :method, held.last]
+      else
+        if receiver.is_a?(Prism::InstanceVariableReadNode)
+          @pending << [line, :ivar, receiver.name]
+        elsif method_call?(receiver)
+          @pending << [line, :method, receiver.name]
+        end
+      end
+    end
+
+    # `name`, `name(args)` or `self.name`, without a block.
+    def method_call?(node)
+      node.is_a?(Prism::CallNode) && node.block.nil? &&
+        (node.receiver.nil? || node.receiver.is_a?(Prism::SelfNode)) && !config?(node)
+    end
+
+    def hold_local(name, value)
+      held = held_by(value)
+      held ||= [:method, value.name] if method_call?(value)
+      if held
+        @locals.last[name] = held
+      elsif @test && config?(value)
+        @locals.last[name] = :config
+      else
+        @locals.last.delete(name)
+      end
+    end
+
+    def hold_ivar(name, value)
+      held = held_by(value)
+      held ||= [:method, value.name] if method_call?(value)
+      @ivars[name] = held if held
+    end
+
+    # What +node+ evaluates to, when that can be a get result: the get call
+    # (as #get_call describes it), or [:method, name] for a local that holds
+    # the return value of a method in this file. Looks through parentheses,
+    # the left of ||, the branches of a conditional, the last statement of a
+    # body, an assignment (@x = OT.conf.get(...) or @x ||= ...), and locals
+    # of the current scope.
+    def held_by(node)
+      case node
+      when Prism::CallNode then get_call(node) if get_call?(node)
+      when Prism::OrNode then held_by(node.left)
+      when Prism::ParenthesesNode then held_by(node.body)
+      when Prism::StatementsNode then held_by(node.body.last)
+      when Prism::BeginNode then held_by(node.statements) unless node.rescue_clause
+      when Prism::IfNode then held_by(node.statements) || held_by(node.subsequent)
+      when Prism::UnlessNode then held_by(node.statements) || held_by(node.else_clause)
+      when Prism::ElseNode then held_by(node.statements)
+      when Prism::InstanceVariableOrWriteNode, Prism::LocalVariableOrWriteNode,
+           Prism::InstanceVariableWriteNode, Prism::LocalVariableWriteNode
+        held_by(node.value)
+      when Prism::LocalVariableReadNode
+        held = @locals.last[node.name]
+        held unless held == :config
+      end
+    end
+
     # OT.conf / Onetime.conf anywhere; in BOOT_FILE also conf, self.conf and
-    # @conf, outside the conf reader and writer themselves.
+    # @conf, outside the conf reader and writer themselves; in test code also
+    # a local variable or a let that holds OT.conf.
     def config?(node)
       case node
       when Prism::CallNode
+        return true if @test && node.receiver.nil? && node.arguments.nil? && @config_lets.include?(node.name)
         return false unless node.name == :conf && node.arguments.nil? && node.block.nil?
         return true if ConfigAccessGuard.root_constant?(node.receiver)
 
         boot_scope? && (node.receiver.nil? || node.receiver.is_a?(Prism::SelfNode))
       when Prism::InstanceVariableReadNode
         boot_scope? && node.name == :@conf
+      when Prism::LocalVariableReadNode
+        @test && @locals.last[node.name] == :config
       else
         false
       end
@@ -196,50 +454,49 @@ module ConfigAccessGuard
       node.is_a?(Prism::CallNode) && node.name == :get && config?(node.receiver)
     end
 
-    # A get call, also inside parentheses or on the left of ||:
-    # (OT.conf.get('a', nil) || {})['b'].
-    def get_result?(node)
-      case node
-      when Prism::ParenthesesNode
-        body = node.body
-        body.is_a?(Prism::StatementsNode) && body.body.length == 1 && get_result?(body.body.first)
-      when Prism::OrNode
-        get_result?(node.left)
-      else
-        get_call?(node)
-      end
-    end
-
     def get_call(node)
       args       = node.arguments&.arguments || []
       positional = args.grep_v(Prism::KeywordHashNode)
       {
         line: node.location.start_line,
         path: positional.first && ConfigAccessGuard.literal_path(positional.first),
-        default: positional.length >= 2,
+        prefix: nil,
+        default: positional.length >= 2 || node.block.is_a?(Prism::BlockNode),
+        default_kind: ConfigAccessGuard.default_kind(positional[1]),
         symbol: positional.first && ConfigAccessGuard.symbol_path?(positional.first),
         keyword: args.length != positional.length,
-      }
+      }.tap do |call|
+        call[:prefix] = ConfigAccessGuard.literal_prefix(positional.first) if call[:path].nil? && positional.first
+      end
     end
   end
 
   # @return [Scanner]
-  def scan_source(source, label = '(source)', boot: false)
+  def scan_source(source, label = '(source)', boot: false, test: false)
     parsed = Prism.parse(source)
     raise "Guard is broken: #{label} does not parse" unless parsed.success?
 
-    Scanner.new(boot: boot).tap { |scanner| parsed.value.accept(scanner) }
+    Scanner.new(boot: boot, test: test).tap { |scanner| parsed.value.accept(scanner) }
   end
 
   # @return [Hash{String => Scanner}] the files that use the config
   def scan
-    @scan ||= source_files.each_with_object({}) do |path, result|
+    @scan ||= scan_files(source_files)
+  end
+
+  # @return [Hash{String => Scanner}] the test files that use the config
+  def scan_tests
+    @scan_tests ||= scan_files(test_files, test: true)
+  end
+
+  def scan_files(paths, test: false)
+    paths.each_with_object({}) do |path, result|
       source = File.read(path)
       next unless source.include?('conf')
 
       file    = relative(path)
-      scanner = scan_source(source, file, boot: file == BOOT_FILE)
-      next if scanner.other_uses.empty? && scanner.gets.empty? && scanner.chained_reads.empty?
+      scanner = scan_source(source, file, boot: file == BOOT_FILE, test: test)
+      next if [scanner.other_uses, scanner.gets, scanner.chained_reads, scanner.test_reads].all?(&:empty?)
 
       result[file] = scanner
     end
@@ -286,6 +543,18 @@ module ConfigAccessGuard
     end
   end
 
+  # Whether a get call returns a section (rule 2): the shipped value at its
+  # path is a Hash; or, when that value is nil or the path is not shipped or
+  # not a literal, its default is not a literal of another type.
+  def section?(call, config = shipped_config)
+    if call[:path] && shipped?(call[:path], config)
+      value = segments(call[:path]).reduce(config) { |node, segment| node[segment] }
+      return value.is_a?(Hash) unless value.nil?
+    end
+
+    call[:default_kind] != :value
+  end
+
   # Rule 1.
   def use_problems(scan, allowed = ALLOWED_USES)
     actual = scan.transform_values { |scanner| scanner.other_uses.length }.reject { |_, count| count.zero? }
@@ -305,10 +574,10 @@ module ConfigAccessGuard
   end
 
   # Rule 2.
-  def chained_read_problems(scan)
+  def chained_read_problems(scan, config = shipped_config)
     scan.flat_map do |file, scanner|
-      scanner.chained_reads.map do |line|
-        "#{file}:#{line} reads into the result of OT.conf.get; put the whole path in get"
+      scanner.chained_reads.select { |read| section?(read[:call], config) }.map { |read| read[:line] }.uniq.map do |line|
+        "#{file}:#{line} reads into a section that OT.conf.get returned; put the whole path in get"
       end
     end
   end
@@ -343,9 +612,15 @@ module ConfigAccessGuard
   end
 
   # Rule 5.
-  def computed_path_problems(calls)
-    calls.select { |call| call[:path].nil? && !call[:symbol] && !call[:default] }
+  def computed_path_problems(calls, config = shipped_config)
+    no_default = calls.select { |call| call[:path].nil? && !call[:symbol] && !call[:default] }
       .map { |call| "#{call[:file]}:#{call[:line]} reads a computed path with no default; pass one" }
+    unshipped  = calls.select { |call| call[:path].nil? && call[:prefix] && !shipped?(call[:prefix], config) }
+      .map do |call|
+        "#{call[:file]}:#{call[:line]} reads a computed path below #{path_key(call[:prefix])}, " \
+          'which the shipped config does not have; fix the literal segments'
+      end
+    no_default + unshipped
   end
 
   # The YAML layer of the shipped config, before after_load.
@@ -394,6 +669,16 @@ module ConfigAccessGuard
       problems
     end
   end
+
+  # Rule 8.
+  def test_read_problems(scan)
+    scan.flat_map do |file, scanner|
+      scanner.test_reads.uniq.map do |line|
+        "#{file}:#{line} reads OT.conf without get; read with OT.conf.get('a.b'), " \
+          "write through it: OT.conf.get('a')['b'] = value"
+      end
+    end
+  end
 end
 
 RSpec.describe 'OT.conf access guard' do
@@ -410,7 +695,7 @@ RSpec.describe 'OT.conf access guard' do
       expect(problems).to be_empty, problems.join("\n")
     end
 
-    it 'does not read into the result of OT.conf.get' do
+    it 'does not read into a section that OT.conf.get returned' do
       problems = guard.chained_read_problems(guard.scan)
       expect(problems).to be_empty, problems.join("\n")
     end
@@ -431,11 +716,40 @@ RSpec.describe 'OT.conf access guard' do
     end
 
     it 'reads no required path that a nil section in an operator file leaves unset' do
-      expect(guard.nil_section_problems(guard.get_calls(guard.scan))).to be_empty
+      problems = guard.nil_section_problems(guard.get_calls(guard.scan))
+      expect(problems).to be_empty, problems.join("\n")
     end
 
     it 'passes no Symbol path and no keyword argument to get' do
       problems = guard.invalid_call_problems(guard.get_calls(guard.scan))
+      expect(problems).to be_empty, problems.join("\n")
+    end
+  end
+
+  describe 'the test code' do
+    it 'parses every test file and finds config uses' do
+      expect(guard.scan_tests.values.sum { |scanner| scanner.gets.length }).to be > 0
+      expect(guard.scan_tests.keys).to include(a_string_starting_with('spec/'), a_string_starting_with('try/'))
+    end
+
+    it 'reads OT.conf only through OT.conf.get' do
+      problems = guard.test_read_problems(guard.scan_tests)
+      expect(problems).to be_empty, problems.join("\n")
+    end
+
+    it 'does not read into a section that OT.conf.get returned, outside TEST_SECTION_READS' do
+      problems = guard.chained_read_problems(guard.scan_tests.except(*guard::TEST_SECTION_READS.keys))
+      expect(problems).to be_empty, problems.join("\n")
+    end
+
+    it 'lists in TEST_SECTION_READS only files that read into a section' do
+      listed = guard::TEST_SECTION_READS.keys
+      stale  = listed.reject { |file| guard.chained_read_problems(guard.scan_tests.slice(file)).any? }
+      expect(stale).to be_empty, "TEST_SECTION_READS lists files with no section read: #{stale.join(', ')}"
+    end
+
+    it 'passes no Symbol path and no keyword argument to get' do
+      problems = guard.invalid_call_problems(guard.get_calls(guard.scan_tests))
       expect(problems).to be_empty, problems.join("\n")
     end
   end
@@ -476,22 +790,170 @@ RSpec.describe 'OT.conf access guard' do
     end
 
     it 'finds a read into the result of get, also through parentheses and ||' do
-      expect(scanner.chained_reads).to eq([16, 19, 20])
+      expect(scanner.chained_reads.map { |read| read[:line] }).to eq([16, 19, 20])
+      expect(scanner.chained_reads.map { |read| read[:call][:path] }).to eq(%w[site site.admin site])
     end
 
     it 'classifies get calls by path, default, Symbol path and keyword argument' do
       expect(scanner.gets).to eq([
-        { line: 6, path: 'site.host', default: false, symbol: false, keyword: false },
-        { line: 7, path: %w[site host], default: true, symbol: false, keyword: false },
-        { line: 8, path: nil, default: false, symbol: false, keyword: false },
-        { line: 9, path: nil, default: true, symbol: false, keyword: false },
-        { line: 16, path: 'site', default: false, symbol: false, keyword: false },
-        { line: 17, path: nil, default: true, symbol: true, keyword: false },
-        { line: 18, path: 'site.host', default: false, symbol: false, keyword: true },
-        { line: 19, path: 'site.admin', default: true, symbol: false, keyword: false },
-        { line: 20, path: 'site', default: false, symbol: false, keyword: false },
-        { line: 21, path: nil, default: true, symbol: true, keyword: false },
+        { line: 6, path: 'site.host', prefix: nil, default: false, default_kind: nil, symbol: false, keyword: false },
+        { line: 7, path: %w[site host], prefix: nil, default: true, default_kind: nil, symbol: false, keyword: false },
+        { line: 8, path: nil, prefix: %w[features], default: false, default_kind: nil, symbol: false, keyword: false },
+        { line: 9, path: nil, prefix: %w[features], default: true, default_kind: :value, symbol: false, keyword: false },
+        { line: 16, path: 'site', prefix: nil, default: false, default_kind: nil, symbol: false, keyword: false },
+        { line: 17, path: nil, prefix: nil, default: true, default_kind: :hash, symbol: true, keyword: false },
+        { line: 18, path: 'site.host', prefix: nil, default: false, default_kind: nil, symbol: false, keyword: true },
+        { line: 19, path: 'site.admin', prefix: nil, default: true, default_kind: nil, symbol: false, keyword: false },
+        { line: 20, path: 'site', prefix: nil, default: false, default_kind: nil, symbol: false, keyword: false },
+        { line: 21, path: nil, prefix: nil, default: true, default_kind: nil, symbol: true, keyword: false },
       ])
+    end
+
+    context 'with a section held in a variable or returned by a method' do
+      let(:held_source) do
+        <<~'RUBY'
+          class Holder
+            def admin
+              OT.conf.get('site.admin', {})
+            end
+
+            def memoized
+              @memoized ||= OT.conf.get('site.authentication', nil)
+            end
+
+            def with_param(name)
+              OT.conf.get('site.admin', {})
+            end
+
+            def run
+              a = OT.conf.get('site.admin', {})
+              a['elevation']
+              b = OT.conf.get('site.admin.allowlist', [])
+              b.include?('x')
+              c = OT.conf.get('site.admin', {})
+              c = {}
+              c['elevation']
+              admin['elevation']
+              memoized['enabled']
+              @memoized.dig('signup')
+              with_param(1)['elevation']
+              @held['enabled']
+              a['elevation'] = 1
+              a.each { |key, value| value }
+              self.admin.fetch('elevation')
+              checked = guarded
+              checked['elevation']
+              (flag ? OT.conf.get('site.admin') : {})['elevation']
+              site.fetch('host')
+              memo_write['enabled']
+            end
+
+            def other_scope
+              a['elevation']
+            end
+
+            def held
+              @held = OT.conf.get('site.authentication')
+            end
+
+            def guarded
+              domains = OT.conf.get('site.admin', {})
+              domains.is_a?(Hash) ? domains : {}
+            end
+
+            attr_reader :site
+
+            def setup
+              @site = OT.conf.get('site', {})
+            end
+
+            def memo_write
+              return @memo if defined?(@memo)
+
+              @memo = OT.conf.get('site.authentication', {})
+            end
+          end
+        RUBY
+      end
+
+      let(:held) { guard.scan_source(held_source) }
+
+      let(:config) do
+        { 'site' => { 'host' => 'x', 'admin' => { 'elevation' => {}, 'allowlist' => [] }, 'authentication' => { 'enabled' => true } } }
+      end
+
+      it 'follows locals in their scope, instance variables, attr_readers, methods and conditionals' do
+        expect(held.chained_reads.map { |read| read[:line] }).to eq([16, 18, 22, 23, 24, 25, 26, 29, 31, 32, 33, 34])
+      end
+
+      it 'reports reads into a section, and not into another value' do
+        expect(guard.chained_read_problems({ 'x.rb' => held }, config)).to eq(
+          [16, 22, 23, 24, 25, 26, 29, 31, 32, 33, 34].map do |line|
+            "x.rb:#{line} reads into a section that OT.conf.get returned; put the whole path in get"
+          end,
+        )
+      end
+
+      it 'decides from the shipped value, then from the default literal' do
+        expect(guard.section?({ path: 'site.admin', default_kind: nil }, config)).to be(true)
+        expect(guard.section?({ path: 'site.admin.allowlist', default_kind: :hash }, config)).to be(false)
+        expect(guard.section?({ path: 'site.absent', default_kind: :value }, config)).to be(false)
+        expect(guard.section?({ path: 'site.absent', default_kind: :hash }, config)).to be(true)
+        expect(guard.section?({ path: nil, default_kind: nil }, config)).to be(true)
+      end
+    end
+
+    context 'in test code' do
+      let(:test_source) do
+        <<~'RUBY'
+          a = OT.conf.dig('site', 'host')
+          OT.conf['site']['host'] = 'example.com'
+          OT.conf['site'] = {}
+          OT.conf.get('site')['host'] = 'example.com'
+          copy = OT.conf.dup
+          copy['site']
+          held = OT.conf
+          held['site']
+          held.get('site.host')
+          YAML.dump(OT.conf)
+          OT.conf.to_h.merge('site' => {})
+          OT.conf.key?('site')
+          section = OT.conf.get('site')
+          section['host']
+          allow(OT).to receive(:conf).and_return(OT::Config.wrap({}))
+          let(:network) { OT.conf.get('site.network') }
+          network['assume_https']
+          let(:conf_alias) { OT.conf }
+          conf_alias['site']
+        RUBY
+      end
+
+      let(:test_scanner) { guard.scan_source(test_source, test: true) }
+
+      it 'finds reads of OT.conf and of a local or let holding it, and not writes, copies or stubs' do
+        expect(test_scanner.test_reads).to eq([1, 2, 8, 12, 19])
+      end
+
+      it 'counts get on a local holding OT.conf' do
+        expect(test_scanner.gets.map { |call| call[:line] }).to eq([4, 9, 13, 16])
+      end
+
+      it 'follows a section into a local and a let' do
+        expect(test_scanner.chained_reads.map { |read| read[:line] }).to eq([14, 17])
+      end
+
+      it 'reports each read' do
+        expect(guard.test_read_problems({ 'x_spec.rb' => test_scanner })).to eq(
+          [1, 2, 8, 12, 19].map do |line|
+            "x_spec.rb:#{line} reads OT.conf without get; read with OT.conf.get('a.b'), " \
+              "write through it: OT.conf.get('a')['b'] = value"
+          end,
+        )
+      end
+
+      it 'treats a local holding OT.conf as a plain variable outside test code' do
+        expect(guard.scan_source(test_source).test_reads).to be_empty
+      end
     end
 
     context 'in the boot file' do
@@ -546,8 +1008,8 @@ RSpec.describe 'OT.conf access guard' do
     end
 
     it 'reports a read into the result of get' do
-      expect(guard.chained_read_problems({ 'x.rb' => scanner })).to eq(
-        [16, 19, 20].map { |line| "x.rb:#{line} reads into the result of OT.conf.get; put the whole path in get" },
+      expect(guard.chained_read_problems({ 'x.rb' => scanner }, { 'site' => { 'admin' => {} } })).to eq(
+        [16, 19, 20].map { |line| "x.rb:#{line} reads into a section that OT.conf.get returned; put the whole path in get" },
       )
     end
 
@@ -562,7 +1024,7 @@ RSpec.describe 'OT.conf access guard' do
         { file: 'x.rb', line: 5, path: 'site.product_name', default: true },
         { file: 'x.rb', line: 6, path: %w[site host], default: true },
         { file: 'x.rb', line: 7, path: nil, default: false },
-        { file: 'x.rb', line: 8, path: nil, default: true },
+        { file: 'x.rb', line: 8, path: nil, prefix: %w[site hots], default: true },
         { file: 'x.rb', line: 9, path: nil, default: true, symbol: true },
         { file: 'x.rb', line: 10, path: 'site.host', default: false, keyword: true },
       ]
@@ -587,8 +1049,11 @@ RSpec.describe 'OT.conf access guard' do
       expect(guard.optional_path_problems(calls, { 'site.product_name' => 'reason' }, config)).to be_empty
     end
 
-    it 'reports a computed path without a default' do
-      expect(guard.computed_path_problems(calls)).to eq(['x.rb:7 reads a computed path with no default; pass one'])
+    it 'reports a computed path without a default, or below a path the shipped config lacks' do
+      expect(guard.computed_path_problems(calls, config)).to eq([
+        'x.rb:7 reads a computed path with no default; pass one',
+        'x.rb:8 reads a computed path below site.hots, which the shipped config does not have; fix the literal segments',
+      ])
     end
 
     # Config::DEFAULTS refills features.domains without a default key, so an

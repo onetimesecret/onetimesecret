@@ -117,8 +117,7 @@ RSpec.describe 'OmniAuth CSRF Configuration' do
       # first instantiated (i.e., on the first Rack request). The
       # canonical_host let evaluates BEFORE any request, so initialize
       # eagerly to avoid a nil fallback that mismatches the hook's check.
-      domains_config = OT.conf&.dig('features', 'domains') || {}
-      Onetime::Middleware::DomainStrategy.initialize_from_config(domains_config)
+      Onetime::Middleware::DomainStrategy.initialize_from_config
     end
 
     let(:sso_path) { '/auth/sso/oidc' }

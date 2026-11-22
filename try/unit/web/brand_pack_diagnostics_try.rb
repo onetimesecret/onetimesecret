@@ -47,10 +47,10 @@ DEFAULT_PACK = Onetime.brand_pack_dir(Onetime::DEFAULT_BRAND_PACK)
 OT.conf['site'] ||= {}
 
 # Capture originals so teardown fully restores the no-overlay baseline.
-@orig_assets_dir      = OT.conf['site']['brand_assets_dir']
-@orig_pack            = OT.conf['site']['brand_pack']
-@orig_brand           = OT.conf['brand']
-@orig_brand_manifest  = OT.conf['brand_manifest']
+@orig_assets_dir      = OT.conf.get('site.brand_assets_dir')
+@orig_pack            = OT.conf.get('site.brand_pack')
+@orig_brand           = OT.conf.get('brand')
+@orig_brand_manifest  = OT.conf.get('brand_manifest')
 @orig_env_pack        = ENV['BRAND_PACK']
 @orig_env_assets      = ENV['BRAND_ASSETS_DIR']
 @orig_env_prod_name   = ENV['BRAND_PRODUCT_NAME']
@@ -109,13 +109,13 @@ File.write(File.join(@removed_manifest_pack, 'favicon.svg'), '<svg/>')
 File.write(File.join(@logo_relative_pack, 'brand.yaml'), %(logo_url: "img/logo.svg"\n))
 
 def set_overlay(assets_dir: nil, pack: nil)
-  OT.conf['site']['brand_assets_dir'] = assets_dir
-  OT.conf['site']['brand_pack']       = pack
+  OT.conf.get('site')['brand_assets_dir'] = assets_dir
+  OT.conf.get('site')['brand_pack']       = pack
 end
 
 def clear_overlay
-  OT.conf['site']['brand_assets_dir'] = nil
-  OT.conf['site']['brand_pack']       = nil
+  OT.conf.get('site')['brand_assets_dir'] = nil
+  OT.conf.get('site')['brand_pack']       = nil
 end
 
 # TRYOUTS
@@ -542,8 +542,8 @@ Onetime.brand_pack_diagnostics['env']['brand_pack']
 begin
   OT.conf['brand']                    = @orig_brand
   OT.conf['brand_manifest']           = @orig_brand_manifest
-  OT.conf['site']['brand_assets_dir'] = @orig_assets_dir
-  OT.conf['site']['brand_pack']       = @orig_pack
+  OT.conf.get('site')['brand_assets_dir'] = @orig_assets_dir
+  OT.conf.get('site')['brand_pack']       = @orig_pack
 ensure
   @orig_env_pack.nil?      ? ENV.delete('BRAND_PACK')         : (ENV['BRAND_PACK'] = @orig_env_pack)
   @orig_env_assets.nil?    ? ENV.delete('BRAND_ASSETS_DIR')   : (ENV['BRAND_ASSETS_DIR'] = @orig_env_assets)

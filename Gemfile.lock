@@ -18,10 +18,10 @@ GIT
 
 GIT
   remote: https://github.com/onetimesecret/rodauth.git
-  revision: 4257c21b427eaacbbb3328329df9e5c7884ed3fb
-  ref: 4257c21b427eaacbbb3328329df9e5c7884ed3fb
+  revision: a08f72421045306fc424ad59bf2d63f3d2b7d455
+  ref: a08f72421045306fc424ad59bf2d63f3d2b7d455
   specs:
-    rodauth (2.50.0)
+    rodauth (2.51.0)
       roda (>= 2.6.0)
       sequel (>= 4)
 

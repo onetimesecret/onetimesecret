@@ -357,7 +357,7 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
       # that 404s, and the card type must degrade so the preview still renders.
       context 'with no social card' do
         before do
-          @saved_brand   = OT.conf['brand']
+          @saved_brand   = OT.conf.get('brand')
           OT.conf['brand'] = @saved_brand.merge('og_image_url' => nil)
         end
 
