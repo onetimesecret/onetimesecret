@@ -115,10 +115,9 @@ permissions:
 concurrency:
   # develop has no pre-merge gate on GitHub (merges happen on GitLab), so each
   # mirrored develop commit keeps its own group and is never cancelled by the
-  # next one; a failure stays attributable to one merge. Every other ref
-  # cancels the superseded run.
+  # next one. Release tag runs queue so an ongoing image push can finish.
   group: ci-${{ github.workflow }}-${{ github.ref }}${{ github.ref == 'refs/heads/develop' && format('-{0}', github.sha) || '' }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/v') }}
 
 jobs:
   # ============================================================================
@@ -1338,6 +1337,41 @@ jobs:
           RESULT_RUBY_INTEGRATION_STRATEGIES: ${{ needs.ruby-integration-strategies.result }}
           RESULT_CHECK_OCI_IMAGE: ${{ needs.check-oci-image.result }}
         run: ./.github/scripts/ci-verdict.sh
+
+  # Image publication for a v* tag, gated on the verdict for the tagged commit.
+  # build-and-publish-oci-images.yml has no push trigger of its own; this job
+  # is the only way a tag reaches it, so a tag whose verdict fails publishes
+  # nothing. Its nightly schedule and manual dispatch run it directly and are
+  # not gated on this workflow. Not a verdict input and not in ci-metrics'
+  # needs: it starts after the verdict and is not a test job.
+  #
+  # !cancelled() is the status function on purpose. Without one, GitHub
+  # evaluates a job-level `if:` as `success() && ...`, and success() also
+  # fails on a skipped job further up the chain (actions/runner#2205).
+  # hygiene is skipped on every push, so the implicit form would skip this
+  # job on every tag. ci-verdict already judges those skips, so its result is
+  # the gate. !cancelled() rather than always(): a run cancelled by hand after
+  # the verdict must not start a publish. A newer run on the same tag does not
+  # cancel this one; it waits (see `concurrency` at the top of this file).
+  #
+  # permissions: a called workflow can only narrow the token this job grants,
+  # so this must cover every scope the called workflow requests. GitHub checks
+  # that when it loads this file, before any `if:`, so a gap fails every run
+  # of this workflow at startup, pull requests included.
+  # tools/testsuite/ci-verdict-test.sh checks it.
+  publish-oci:
+    name: Publish OCI Images
+    needs: [ci-verdict]
+    if: >-
+      ${{ !cancelled()
+      && github.event_name == 'push'
+      && startsWith(github.ref, 'refs/tags/v')
+      && needs.ci-verdict.result == 'success' }}
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/build-and-publish-oci-images.yml
+    secrets: inherit
 
   ci-metrics:
     name: T5 · CI Metrics

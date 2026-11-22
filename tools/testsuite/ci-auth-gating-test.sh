@@ -230,7 +230,9 @@ def triggers():
           + "-" + expression("github.ref")
           + expression("github.ref == 'refs/heads/develop' && format('-{0}', github.sha) || ''"),
           "one concurrency group per ref, one per commit on develop")
-    check(scalar(concurrency, "cancel-in-progress", 2) == "true", "a new push supersedes the run before it")
+    check(scalar(concurrency, "cancel-in-progress", 2)
+          == expression("!startsWith(github.ref, 'refs/tags/v')"),
+          "release tag runs queue so image publication can finish")
 
 
 def shared_wiring():
