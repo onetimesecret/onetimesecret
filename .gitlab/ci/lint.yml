@@ -50,16 +50,12 @@ logship:
     - bin/logship --help
     - bin/testsuite logship -q
 
-# The lock still pins the Rodauth fork at 2.50.0. GHSA-jv3v-q542-9c26 is
-# fixed upstream in 2.51.0. Remove allow_failure when the fork is updated
-# and the lock passes this audit, so future advisories block merges.
 bundler-audit:
   stage: lint
   image: ruby:3.4.10-trixie@sha256:ce3b7a999d9e430e59e1a12456c631fbea3dd18948c89cf8a913c3566c77b2ae
   tags: [saas-linux-small-amd64]
   needs: []
   timeout: 10m
-  allow_failure: true
   variables:
     # Same as static-analysis.yml; tools/testsuite/gitlab-lint-pins-test.sh
     # fails when the two differ.
