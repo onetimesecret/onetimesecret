@@ -45,7 +45,7 @@ module Onetime
     # multiple delivery backends (SMTP, SES, SendGrid) and ERB templates.
     #
     # Configuration is determined from:
-    #   1. OT.conf['emailer'] settings
+    #   1. emailer.* settings (OT.conf.get('emailer.host', nil), ...)
     #   2. Environment variables (fallback)
     #
     # Example usage:
@@ -135,25 +135,23 @@ module Onetime
         # Get the configured from address
         # @return [String]
         def from_address
-          conf = emailer_config
-          conf['from'] || ENV['FROM_EMAIL'] || 'noreply@example.com'
+          OT.conf&.get('emailer.from', nil) || ENV['FROM_EMAIL'] || 'noreply@example.com'
         end
 
         # Get the configured from name
         # @return [String, nil]
         def from_name
-          conf = emailer_config
-          if conf['from_name']
-            conf['from_name']
-          elsif conf['fromname']
-            log_info "[mail] DEPRECATION: 'fromname' config is deprecated since v0.23, use 'from_name' instead"
-            conf['fromname']
-          end
+          from_name = OT.conf&.get('emailer.from_name', nil)
+          return from_name if from_name
+
+          fromname = OT.conf&.get('emailer.fromname', nil)
+          log_info "[mail] DEPRECATION: 'fromname' config is deprecated since v0.23, use 'from_name' instead" if fromname
+          fromname
         end
 
         # Get provider-specific credentials for API access
         # @param provider [String] Provider name ('ses', 'sendgrid', 'lettermint', 'smtp')
-        # @return [Hash] Provider credentials from OT.conf['emailer']
+        # @return [Hash] Provider credentials from the emailer config
         # @example
         #   Onetime::Mail::Mailer.provider_credentials('ses')
         #   # => { 'region' => 'us-east-1', 'access_key_id' => '...', 'secret_access_key' => '...' }
@@ -175,9 +173,8 @@ module Onetime
           # the override is skipped and the emailer-derived value is kept. The
           # delivery path (create_delivery_backend) uses emailer config directly.
           if provider.to_s.downcase == 'ses'
-            ses_conf = provider_config('ses')
             %w[region access_key_id secret_access_key].each do |key|
-              value       = ses_conf[key] || ses_conf[key.to_sym]
+              value       = OT.conf&.get(['email_providers', 'ses', key], nil)
               config[key] = value.to_s unless value.to_s.empty?
             end
           end
@@ -194,8 +191,7 @@ module Onetime
         #
         # @return [String] Lowercased provider name (e.g. 'ses', 'lettermint')
         def determine_sender_provider
-          conf = emailer_config
-          sp   = conf['sender_provider']
+          sp = OT.conf&.get('emailer.sender_provider', nil)
           return sp.to_s.downcase.strip if sp.is_a?(String) && !sp.strip.empty?
 
           determine_provider
@@ -210,8 +206,7 @@ module Onetime
         # @return [String] provider name: 'ses' | 'sendgrid' | 'lettermint' |
         #   'smtp2go' | 'smtp' | 'logger' (the safe fallback).
         def determine_provider
-          conf = emailer_config
-          mode = conf['mode']&.to_s&.strip&.downcase
+          mode = OT.conf&.get('emailer.mode', nil).to_s.strip.downcase
 
           return mode if mode && !mode.empty?
 
@@ -222,7 +217,7 @@ module Onetime
           # descriptor declares its detect_keys; the registry order is the
           # precedence order (e.g. region+user -> ses is tested before
           # host -> smtp). No match -> logger (safe fallback).
-          ProviderRegistry.detect_provider(conf) || 'logger'
+          ProviderRegistry.detect_provider || 'logger'
         end
 
         # Transports that are not in the ProviderRegistry: disabled/none
@@ -379,13 +374,12 @@ module Onetime
         end
 
         def build_provider_config(provider)
-          conf       = emailer_config
           descriptor = ProviderRegistry.descriptor(provider)
           return {} unless descriptor
 
           # Each descriptor names its config-builder method (the
           # *_provider_config methods below).
-          send(descriptor.provider_config_method, conf)
+          send(descriptor.provider_config_method)
         end
 
         # Treat a blank config value as absent.
@@ -404,28 +398,29 @@ module Onetime
           value.to_s.strip.empty? ? nil : value
         end
 
-        def smtp_provider_config(conf)
+        def smtp_provider_config
+          auth = OT.conf&.get('emailer.auth', nil)
           {
-            'host' => present(conf['host']) || present(ENV.fetch('SMTP_HOST', nil)),
-            'port' => present(conf['port']) || present(ENV.fetch('SMTP_PORT', nil)),
-            'username' => present(conf['user']) || present(ENV.fetch('SMTP_USERNAME', nil)),
-            'password' => present(conf['pass']) || present(ENV.fetch('SMTP_PASSWORD', nil)),
+            'host' => present(OT.conf&.get('emailer.host', nil)) || present(ENV.fetch('SMTP_HOST', nil)),
+            'port' => present(OT.conf&.get('emailer.port', nil)) || present(ENV.fetch('SMTP_PORT', nil)),
+            'username' => present(OT.conf&.get('emailer.user', nil)) || present(ENV.fetch('SMTP_USERNAME', nil)),
+            'password' => present(OT.conf&.get('emailer.pass', nil)) || present(ENV.fetch('SMTP_PASSWORD', nil)),
             # Not `present(...) || ENV`: `||` would drop an explicit
             # `auth: false` and select PLAIN, where Delivery::SMTP rejects
             # it. A blank value still falls through to SMTP_AUTH.
-            'auth' => present(conf['auth']).nil? ? present(ENV.fetch('SMTP_AUTH', nil)) : conf['auth'],
-            'domain' => present(conf['domain']) || present(ENV.fetch('SMTP_DOMAIN', nil)),
-            'tls' => conf['tls'],
-            'ssl' => conf['ssl'],
-            'allow_unauthenticated_fallback' => conf['allow_unauthenticated_fallback'],
+            'auth' => present(auth).nil? ? present(ENV.fetch('SMTP_AUTH', nil)) : auth,
+            'domain' => present(OT.conf&.get('emailer.domain', nil)) || present(ENV.fetch('SMTP_DOMAIN', nil)),
+            'tls' => OT.conf&.get('emailer.tls', nil),
+            'ssl' => OT.conf&.get('emailer.ssl', nil),
+            'allow_unauthenticated_fallback' => OT.conf&.get('emailer.allow_unauthenticated_fallback', nil),
           }
         end
 
-        def ses_provider_config(conf)
+        def ses_provider_config
           {
-            'region' => ses_region(conf),
-            'access_key_id' => present(conf['user']) || present(ENV.fetch('AWS_ACCESS_KEY_ID', nil)),
-            'secret_access_key' => present(conf['pass']) || present(ENV.fetch('AWS_SECRET_ACCESS_KEY', nil)),
+            'region' => ses_region,
+            'access_key_id' => present(OT.conf&.get('emailer.user', nil)) || present(ENV.fetch('AWS_ACCESS_KEY_ID', nil)),
+            'secret_access_key' => present(OT.conf&.get('emailer.pass', nil)) || present(ENV.fetch('AWS_SECRET_ACCESS_KEY', nil)),
           }
         end
 
@@ -440,35 +435,43 @@ module Onetime
         # skipped rather than handed to Aws::SESV2::Client. Returns nil when
         # nothing is configured; Delivery::SES applies its own us-east-1
         # default and provisioning reports the key as missing.
-        def ses_region(conf)
-          region = present(conf['region'])
+        def ses_region
+          region = present(OT.conf&.get('emailer.region', nil))
           region = nil if region.to_s.strip == SES_REGION_PLACEHOLDER
           region || present(ENV.fetch('AWS_REGION', nil))
         end
 
-        def sendgrid_provider_config(conf)
+        def sendgrid_provider_config
           {
-            'api_key' => present(conf['sendgrid_api_key']) || present(conf['pass']) || present(ENV.fetch('SENDGRID_API_KEY', nil)),
+            'api_key' => present(OT.conf&.get('emailer.sendgrid_api_key', nil)) ||
+              present(OT.conf&.get('emailer.pass', nil)) ||
+              present(ENV.fetch('SENDGRID_API_KEY', nil)),
           }
         end
 
-        def lettermint_provider_config(conf)
-          lm_conf = provider_config('lettermint')
+        def lettermint_provider_config
           {
             # Sending API token (x-lettermint-token header) - for email delivery
-            'api_token' => present(conf['lettermint_api_token']) || present(lm_conf['api_token']) || present(conf['pass']) || present(ENV.fetch('LETTERMINT_API_TOKEN', nil)),
+            'api_token' => present(OT.conf&.get('emailer.lettermint_api_token', nil)) ||
+              present(OT.conf&.get('email_providers.lettermint.api_token', nil)) ||
+              present(OT.conf&.get('emailer.pass', nil)) ||
+              present(ENV.fetch('LETTERMINT_API_TOKEN', nil)),
             # Team API token (Authorization: Bearer header) - for domain provisioning
-            'team_token' => conf['lettermint_team_token'] || lm_conf['team_token'] || ENV.fetch('LETTERMINT_TEAM_TOKEN', nil),
-            'base_url' => conf['lettermint_base_url'] || lm_conf['api_base_url'] || ENV.fetch('LETTERMINT_BASE_URL', nil),
-            'timeout' => conf['lettermint_timeout'],
+            'team_token' => OT.conf&.get('emailer.lettermint_team_token', nil) ||
+              OT.conf&.get('email_providers.lettermint.team_token', nil) ||
+              ENV.fetch('LETTERMINT_TEAM_TOKEN', nil),
+            'base_url' => OT.conf&.get('emailer.lettermint_base_url', nil) ||
+              OT.conf&.get('email_providers.lettermint.api_base_url', nil) ||
+              ENV.fetch('LETTERMINT_BASE_URL', nil),
+            'timeout' => OT.conf&.get('emailer.lettermint_timeout', nil),
           }.compact
         end
 
-        def smtp2go_provider_config(conf)
-          s2g_conf = provider_config('smtp2go')
-
+        def smtp2go_provider_config
           # Single API key covers both email delivery and domain provisioning
-          api_key = conf['smtp2go_api_key'] || s2g_conf['api_key'] || ENV.fetch('SMTP2GO_API_KEY', nil)
+          api_key = OT.conf&.get('emailer.smtp2go_api_key', nil) ||
+                    OT.conf&.get('email_providers.smtp2go.api_key', nil) ||
+                    ENV.fetch('SMTP2GO_API_KEY', nil)
 
           # Without the API key nothing SMTP2GO-related can work, so signal
           # no-credentials with an empty hash (same contract as lettermint
@@ -483,15 +486,17 @@ module Onetime
 
           {
             'api_key' => api_key,
-            'base_url' => s2g_conf['api_base_url'] || ENV.fetch('SMTP2GO_BASE_URL', nil),
+            'base_url' => OT.conf&.get('email_providers.smtp2go.api_base_url', nil) || ENV.fetch('SMTP2GO_BASE_URL', nil),
             # Subdomains for the SPF/Return-Path and tracking CNAME records
-            'returnpath_subdomain' => s2g_conf['returnpath_subdomain'] || ENV.fetch('CUSTOM_MAIL_SMTP2GO_RETURNPATH_SUBDOMAIN', 'bounce'),
-            'tracking_subdomain' => s2g_conf['tracking_subdomain'] || ENV.fetch('CUSTOM_MAIL_SMTP2GO_TRACKING_SUBDOMAIN', 'track'),
-            'timeout' => conf['smtp2go_timeout'],
+            'returnpath_subdomain' => OT.conf&.get('email_providers.smtp2go.returnpath_subdomain', nil) ||
+              ENV.fetch('CUSTOM_MAIL_SMTP2GO_RETURNPATH_SUBDOMAIN', 'bounce'),
+            'tracking_subdomain' => OT.conf&.get('email_providers.smtp2go.tracking_subdomain', nil) ||
+              ENV.fetch('CUSTOM_MAIL_SMTP2GO_TRACKING_SUBDOMAIN', 'track'),
+            'timeout' => OT.conf&.get('emailer.smtp2go_timeout', nil),
             # Always a real boolean, never nil: .compact must not drop it,
             # otherwise Delivery::Smtp2go falls back to its own default and
             # the configured value never reaches the payload.
-            'fastaccept' => smtp2go_fastaccept(s2g_conf),
+            'fastaccept' => smtp2go_fastaccept,
           }.compact
         end
 
@@ -504,8 +509,8 @@ module Onetime
         # delivery raises instead of disappearing into fire-and-forget.
         #
         # @return [Boolean] never nil — see the .compact note above
-        def smtp2go_fastaccept(s2g_conf)
-          raw = s2g_conf.fetch('fastaccept') { s2g_conf.fetch(:fastaccept, nil) }
+        def smtp2go_fastaccept
+          raw = OT.conf&.get('email_providers.smtp2go.fastaccept', nil)
           unless raw.nil?
             return Onetime::Utils::Strings.strict_bool!(
               "email_providers.smtp2go 'fastaccept'", raw, default: false
@@ -515,15 +520,6 @@ module Onetime
           Onetime::Utils::Strings.strict_bool!(
             'CUSTOM_MAIL_SMTP2GO_FASTACCEPT', ENV.fetch('CUSTOM_MAIL_SMTP2GO_FASTACCEPT', nil), default: false
           )
-        end
-
-        # OT.conf is nil before boot.
-        def emailer_config
-          OT.conf&.get('emailer') || {}
-        end
-
-        def provider_config(provider)
-          OT.conf&.get(['email_providers', provider], nil) || {}
         end
 
         def reply_to_address(template)

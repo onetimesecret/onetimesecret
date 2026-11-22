@@ -182,7 +182,7 @@ module Onetime
       end
 
       def strategy
-        @strategy ||= Onetime::DomainValidation::Strategy.for_config(OT.conf)
+        @strategy ||= Onetime::DomainValidation::Strategy.for_config
       end
 
       # Verify a single domain

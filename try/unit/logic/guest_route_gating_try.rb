@@ -63,8 +63,7 @@ end
 # to check guest route access before processing requests.
 
 ## Default config allows guest routes (all enabled)
-default_config = OT.conf.dig('site', 'interface', 'api', 'guest_routes')
-[default_config['enabled'], default_config['conceal'], default_config['generate'], default_config['reveal'], default_config['burn'], default_config['show'], default_config['receipt']]
+%w[enabled conceal generate reveal burn show receipt].map { |key| OT.conf.get(['site', 'interface', 'api', 'guest_routes', key]) }
 #=> [true, true, true, true, true, true, true]
 
 ## Authenticated users bypass guest route checks
@@ -89,15 +88,13 @@ with_guest_routes_config({
   'reveal' => true,
   'burn' => true
 }) do
-  config = OT.conf.dig('site', 'interface', 'api', 'guest_routes')
-  config['enabled']
+  OT.conf.get('site.interface.api.guest_routes.enabled')
 end
 #=> true
 
 ## Config with guest_routes.enabled=false blocks anonymous access
 with_guest_routes_config({ 'enabled' => false }) do
-  config = OT.conf.dig('site', 'interface', 'api', 'guest_routes')
-  config['enabled']
+  OT.conf.get('site.interface.api.guest_routes.enabled')
 end
 #=> false
 
@@ -109,8 +106,7 @@ with_guest_routes_config({
   'reveal' => true,
   'burn' => false
 }) do
-  config = OT.conf.dig('site', 'interface', 'api', 'guest_routes')
-  [config['enabled'], config['conceal'], config['generate'], config['reveal'], config['burn']]
+  %w[enabled conceal generate reveal burn].map { |key| OT.conf.get(['site', 'interface', 'api', 'guest_routes', key]) }
 end
 #=> [true, true, false, true, false]
 
@@ -124,9 +120,7 @@ with_guest_routes_config({
   'enabled' => true
   # conceal, generate, reveal, burn not specified - should use defaults
 }) do
-  config = OT.conf.dig('site', 'interface', 'api', 'guest_routes')
-  # Only 'enabled' is set, others are nil in this context
-  config['enabled']
+  OT.conf.get('site.interface.api.guest_routes.enabled')
 end
 #=> true
 

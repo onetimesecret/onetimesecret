@@ -47,19 +47,19 @@ Onetime::Config.mapped_key('unmapped_key')
 
 ## Config contains expected TrueMail settings from test config
 # Test config uses :regex to avoid MX lookups for test domains
-OT.conf['mail']['truemail']['default_validation_type']
+OT.conf.get('mail.truemail.default_validation_type')
 #=> :regex
 
 ## Config loads DNS servers from test config
-OT.conf['mail']['truemail']['dns'].include?('1.1.1.1')
+OT.conf.get('mail.truemail.dns').include?('1.1.1.1')
 #=> true
 
 ## Config loads connection settings from test config
-OT.conf['mail']['truemail']['connection_timeout']
+OT.conf.get('mail.truemail.connection_timeout', nil)
 #=> 1
 
 ## Config loads SMTP settings from test config
-OT.conf['mail']['truemail']['smtp_fail_fast']
+OT.conf.get('mail.truemail.smtp_fail_fast')
 #=> true
 
 ## apply_defaults preserves original sections and doesn't change defaults

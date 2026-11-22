@@ -59,19 +59,19 @@ RSpec.describe 'per-domain signup_enabled enforcement — full mode (ADR-024 cus
     @original_features        = Onetime::Runtime.features
     Onetime::Runtime.features = @original_features.with(domains_enabled: true)
 
-    @original_domains_config       = OT.conf.dig('features', 'domains') || {}
-    OT.conf['features']['domains'] = @original_domains_config.merge(
+    @original_domains_config       = OT.conf.get('features.domains') || {}
+    OT.conf.get('features')['domains'] = @original_domains_config.merge(
       'enabled' => true,
       'default' => operator_host,
     )
-    Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
+    Onetime::Middleware::DomainStrategy.initialize_from_config
   end
 
   after(:all) do
     Onetime::Runtime.features = @original_features if @original_features
     if @original_domains_config
-      OT.conf['features']['domains'] = @original_domains_config
-      Onetime::Middleware::DomainStrategy.initialize_from_config(@original_domains_config)
+      OT.conf.get('features')['domains'] = @original_domains_config
+      Onetime::Middleware::DomainStrategy.initialize_from_config
     end
   end
 

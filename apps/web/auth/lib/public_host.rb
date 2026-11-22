@@ -437,7 +437,7 @@ module Auth
     #
     # @return [String, nil] the canonical host, or nil when unconfigured
     def self.canonical_host
-      host = OT.conf.dig('site', 'host')
+      host = OT.conf.get('site.host')
       host.to_s.empty? ? nil : host
     end
 
@@ -450,7 +450,7 @@ module Auth
       host = canonical_host
       return nil if host.nil?
 
-      scheme = OT.conf.dig('site', 'ssl') == false ? 'http' : 'https'
+      scheme = OT.conf.get('site.ssl') == false ? 'http' : 'https'
       "#{scheme}://#{host}"
     end
   end

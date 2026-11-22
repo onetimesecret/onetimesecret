@@ -21,9 +21,7 @@ module Onetime
       @provides   = [:domains]
 
       def execute(_context)
-        domains_config = OT.conf.get('features.domains', {})
-
-        is_enabled = domains_config['enabled'].to_s == 'true'
+        is_enabled = OT.conf.get('features.domains.enabled', nil).to_s == 'true'
 
         # Set runtime state
         Onetime::Runtime.update_features(domains_enabled: is_enabled)
@@ -37,7 +35,7 @@ module Onetime
         # Configure DomainValidation::Features from config
         # This is the canonical source of domain validation configuration
         klass = Onetime::DomainValidation::Features
-        klass.load_from_config(OT.conf)
+        klass.load_from_config
 
         configured_settings = klass.configured_settings
         app_logger.debug "[init] ConfigureDomains #{configured_settings}"
@@ -46,10 +44,11 @@ module Onetime
           app_logger.debug "No domain cluster api key configured (strategy: #{klass.strategy_name})"
         end
 
-        site_host = OT.conf.get('site.host')
-        warn_if_default_shadows_custom_domain(domains_config['default'], site_host)
+        site_host      = OT.conf.get('site.host')
+        default_domain = OT.conf.get('features.domains.default', nil)
+        warn_if_default_shadows_custom_domain(default_domain, site_host)
         warn_if_link_pool_shadows_custom_domains(
-          domains_config['link_domains'], domains_config['default'], site_host
+          OT.conf.get('features.domains.link_domains', nil), default_domain, site_host
         )
       end
 

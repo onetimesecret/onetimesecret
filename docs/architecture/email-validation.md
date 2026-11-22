@@ -56,7 +56,7 @@ CLI commands boot the application, so they use Truemail. Unless subclassed from 
 
 ## Configuration
 
-Truemail reads from `OT.conf['mail']['truemail']`. Common settings:
+Truemail reads from `OT.conf.get('mail.truemail')`. Common settings:
 
 - `verifier_email` -- required, used as MAIL FROM in SMTP checks
 - `default_validation_type` -- `:regex`, `:mx`, or `:smtp`

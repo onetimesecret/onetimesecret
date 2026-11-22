@@ -50,11 +50,8 @@ def clear_cookies; @test.clear_cookies; end
 @cust = Onetime::Customer.create!(email: generate_unique_test_email("v3_guest"))
 @session = { 'authenticated' => true, 'external_id' => @cust.extid, 'email' => @cust.email }
 
-# Default guest routes config allows access
-@default_config = OT.conf.dig('site', 'interface', 'api', 'guest_routes')
-
 ## Default config has guest routes enabled
-[@default_config['enabled'], @default_config['conceal'], @default_config['generate']]
+%w[enabled conceal generate].map { |key| OT.conf.get(['site', 'interface', 'api', 'guest_routes', key]) }
 #=> [true, true, true]
 
 ## Guest share/conceal endpoint returns a response (not server error)

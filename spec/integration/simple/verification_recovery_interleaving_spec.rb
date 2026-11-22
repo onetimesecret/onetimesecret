@@ -16,7 +16,7 @@ RSpec.describe 'Verification/recovery pointer interleavings', type: :integration
     @records = []
     @welcomes = []
     expect(Onetime.auth_config.simple_enabled?).to be true
-    expect(OT.conf.dig('site', 'authentication', 'autoverify').to_s).not_to eq('true')
+    expect(OT.conf.get('site.authentication.autoverify').to_s).not_to eq('true')
 
     allow(Onetime::Mail::Mailer).to receive(:deliver) do |_template, data, **|
       secret = data.fetch(:secret)

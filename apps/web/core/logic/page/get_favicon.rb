@@ -74,7 +74,7 @@ module Core
 
         def process
           if use_default
-            brand_favicon = OT.conf.dig('brand', 'favicon_url')
+            brand_favicon = OT.conf.get('brand.favicon_url', nil)
             if brand_favicon && !brand_favicon.empty? && brand_favicon.start_with?('https://')
               serve_redirect_favicon(brand_favicon)
             else

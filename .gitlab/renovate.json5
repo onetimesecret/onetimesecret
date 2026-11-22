@@ -1,3 +1,8 @@
+// Renovate runs from a pipeline schedule in the private project
+// onetimesecret/renovate-runner (.gitlab/renovate-runner.gitlab-ci.yml). That
+// job reads this file from develop and passes it as Renovate's global config,
+// and Renovate ignores repository config files (requireConfig: ignored). A
+// change here takes effect on the first run after it merges into develop.
 {
   $schema: 'https://docs.renovatebot.com/renovate-schema.json',
 
@@ -10,6 +15,10 @@
     ':pinDependencies',
   ],
 
+  // Merge requests target develop, where changes are merged; main receives
+  // develop through promotions.
+  baseBranchPatterns: ['develop'],
+
   // Update control
   minimumReleaseAge: '14 days',
   separateMinorPatch: false,
@@ -19,6 +28,10 @@
   rebaseWhen: 'auto',
 
   // Security settings
+  // Renovate reads GitHub's vulnerability alerts only on GitHub. On GitLab the
+  // alerts come from the OSV database, for direct dependencies; the settings
+  // in vulnerabilityAlerts apply to the merge requests they open.
+  osvVulnerabilityAlerts: true,
   vulnerabilityAlerts: {
     labels: ['security'],
     assignees: ['delano'],
@@ -26,6 +39,9 @@
   },
 
   // PR management
+  // The flat dependencyDashboard* options: the object form needs Renovate
+  // 44.232.0 or later, and the runner's image is older (the 14-day release
+  // age applies to it too). Later versions migrate the flat options.
   dependencyDashboard: true,
   dependencyDashboardAutoclose: true,
   dependencyDashboardLabels: ['auto-update', 'dependencies'],
@@ -41,19 +57,11 @@
   branchNameStrict: true,
   pruneStaleBranches: true,
 
-  // Automerge settings
-  // automergeType 'pr', not 'branch': from April 2025 to September 2026 no
-  // update landed on main by branch automerge (every one came through a PR),
-  // and branch-automerge updates without a PR sat unseen for weeks. A PR gets
-  // CI, which only runs on pushes to main and on PRs.
-  automerge: true,
-  automergeType: 'pr',
-  automergeStrategy: 'merge-commit',
-  major: { automerge: false },
-  minor: { automerge: false },
-  patch: { automerge: false },
-  pin: { automerge: true },
-  lockFileMaintenance: { automerge: true },
+  // Automerge is off: a person merges every update. Only Maintainers may
+  // merge into develop, and the Renovate service account has the Developer
+  // role. Turning automerge on means giving that account merge rights on
+  // develop.
+  automerge: false,
 
   // Package-specific rules
   packageRules: [

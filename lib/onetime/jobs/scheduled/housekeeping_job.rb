@@ -229,12 +229,12 @@ module Onetime
           end
 
           def housekeeping_batch_size
-            configured = job_config(JOB_KEY)['batch_size'].to_i
+            configured = OT.conf.get('jobs.maintenance.housekeeping.batch_size', nil).to_i
             configured.positive? ? configured : DEFAULT_BATCH_SIZE
           end
 
           def configured_models
-            list = job_config(JOB_KEY)['models']
+            list = OT.conf.get('jobs.maintenance.housekeeping.models', nil)
             return nil unless list.is_a?(Array) && list.any?
 
             list

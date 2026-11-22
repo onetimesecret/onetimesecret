@@ -61,8 +61,8 @@ end
 
 # Inject known secret-bearing config (test-mode conf is NOT deep-frozen). Saved
 # and restored at teardown so this file does not leak state into the process.
-@orig_emailer = OT.conf['emailer']
-@orig_mail    = OT.conf['mail']
+@orig_emailer = OT.conf.get('emailer')
+@orig_mail    = OT.conf.get('mail')
 
 OT.conf['emailer'] = {
   'mode' => 'smtp',
@@ -80,7 +80,7 @@ OT.conf['mail'] = {
 
 # The diagnostics section echoes the Redis URI; password and query must be masked
 # while the username stays visible.
-@orig_redis      = OT.conf['redis']
+@orig_redis      = OT.conf.get('redis')
 OT.conf['redis'] = (@orig_redis || {}).merge(
   'uri' => 'redis://ops:pa/ss@cache.example.com:6379/0?password=query-secret',
 )
@@ -111,6 +111,11 @@ get URL, {}, colonel_headers
 @resp = JSON.parse(last_response.body)
 [last_response.status, @resp['details'].key?('emailer')]
 #=> [200, true]
+
+## The sections are the OT.conf ones; logging and billing are separate config objects
+@resp = JSON.parse(last_response.body)
+@resp['details'].keys.sort
+#=> ['authentication', 'diagnostics', 'emailer', 'features', 'interface', 'mail', 'secret_options']
 
 ## emailer.user is masked (not cleartext) but keeps its last 4 chars
 @resp = JSON.parse(last_response.body)

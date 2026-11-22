@@ -43,7 +43,7 @@ module Onetime
         # Options are merged with precedence: defaults < config < explicit options.
         # This allows:
         #   - Hardcoded defaults for backward compatibility
-        #   - YAML config (OT.conf['email_providers']) for deployment customization
+        #   - YAML config (email_providers.<provider>) for deployment customization
         #   - Explicit options for per-call overrides
         #
         # @param provider_type [String] One of 'ses', 'sendgrid', 'lettermint'

@@ -120,37 +120,31 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
   # in the first place (a config-only read admitted hosts with the feature off
   # and hosts that never parsed).
   def with_link_domains(pool, canonical_host: 'onetimesecret.com', enabled: true)
-    domains       = OT.conf['features']['domains']
-    site          = OT.conf['site']
-    had_pool_key  = domains.key?('link_domains')
-    previous_pool = domains['link_domains']
-    previous_on   = domains['enabled']
-    previous_host = site['host']
+    domains       = OT.conf.get('features.domains')
+    saved_domains = domains.dup
+    saved_host    = OT.conf.get('site.host')
 
-    domains['link_domains'] = pool
-    domains['enabled']      = enabled
-    site['host']            = canonical_host
+    domains['link_domains']     = pool
+    domains['enabled']          = enabled
+    OT.conf.get('site')['host'] = canonical_host
     reload_domain_strategy!
     yield
   ensure
-    had_pool_key ? domains['link_domains'] = previous_pool : domains.delete('link_domains')
-    domains['enabled'] = previous_on
-    site['host']       = previous_host
+    domains.replace(saved_domains)
+    OT.conf.get('site')['host'] = saved_host
     reload_domain_strategy!
   end
 
   # Re-derives DomainStrategy's class state from the current OT.conf, the way
   # booting a Rack app would.
   def reload_domain_strategy!
-    Onetime::Middleware::DomainStrategy.initialize_from_config(
-      OT.conf.dig('features', 'domains') || {},
-    )
+    Onetime::Middleware::DomainStrategy.initialize_from_config
   end
 
   describe '#process_ttl config path' do
     it 'reads default_ttl from site.secret_options in config (43200), not the hardcoded fallback (604800)' do
       # Verify the config actually has the value we expect at the correct path
-      configured_default_ttl = OT.conf.dig('site', 'secret_options', 'default_ttl')
+      configured_default_ttl = OT.conf.get('site.secret_options.default_ttl')
       expect(configured_default_ttl).to eq(43_200), 'Precondition: config.test.yaml should define site.secret_options.default_ttl as 43200'
 
       # Now test that process_ttl actually uses that config value when no TTL is provided
@@ -169,7 +163,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       #
       # The hardcoded V2 fallback is [60, 3600, 86400, 604800]
       # So the arrays differ in both values and length.
-      configured_options = OT.conf.dig('site', 'secret_options', 'ttl_options')
+      configured_options = OT.conf.get('site.secret_options.ttl_options')
       expect(configured_options).to be_an(Array), 'Precondition: after_load should parse ttl_options string into an array'
       expect(configured_options).to include(43_200), 'Precondition: ttl_options should include 43200'
 

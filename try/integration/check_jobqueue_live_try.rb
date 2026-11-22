@@ -82,7 +82,7 @@ if RABBITMQ_AVAILABLE
   # The config is deep-frozen after boot, so we replace it with an
   # unfrozen shallow copy that has an unfrozen jobs hash pointing
   # at the live broker URL.
-  jobs_override = (OT.conf['jobs'] || {}).dup
+  jobs_override = (OT.conf.get('jobs') || {}).dup
   jobs_override['enabled'] = true
   jobs_override['rabbitmq_url'] = @rabbitmq_url
 

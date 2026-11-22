@@ -13,7 +13,7 @@
 # - Custom implementations
 #
 # Usage:
-#   strategy = Onetime::DomainValidation::Strategy.for_config(config)
+#   strategy = Onetime::DomainValidation::Strategy.for_config
 #   result = strategy.validate_ownership(custom_domain)
 #   cert_status = strategy.request_certificate(custom_domain)
 #
@@ -30,26 +30,25 @@ module Onetime
   module DomainValidation
     # Factory class for creating domain validation strategies
     class Strategy
-      # Factory method to create appropriate strategy based on configuration
+      # Factory method to create the strategy that features.domains selects
       #
-      # @param config [Hash] Configuration hash from OT.conf
       # @return [BaseStrategy] Appropriate strategy instance
       # @raise [ArgumentError] If strategy is unknown and strict mode is enabled
-      def self.for_config(config)
-        strategy_name = config.dig('features', 'domains', 'validation_strategy') || Features::DEFAULT_STRATEGY
-        strict_mode   = config.dig('features', 'domains', 'strict_strategy') == true
+      def self.for_config
+        strategy_name = OT.conf.get('features.domains.validation_strategy', Features::DEFAULT_STRATEGY)
+        strict_mode   = OT.conf.get('features.domains.strict_strategy', false) == true
 
         # Spellings and aliases live in Features::STRATEGY_ALIASES, the same
         # table API payloads take the strategy name from.
         strategy = case Features.canonical_strategy_name(strategy_name)
                    when 'approximated'
-                     ApproximatedStrategy.new(config)
+                     ApproximatedStrategy.new
                    when 'passthrough'
-                     PassthroughStrategy.new(config)
+                     PassthroughStrategy.new
                    when 'caddy_on_demand'
-                     CaddyOnDemandStrategy.new(config)
+                     CaddyOnDemandStrategy.new
                    else
-                     handle_unknown_strategy(strategy_name, strict_mode, config)
+                     handle_unknown_strategy(strategy_name, strict_mode)
                    end
 
         OT.ld "[DomainValidation] Using strategy: #{strategy.class.name}" # reduce 'info' noise
@@ -60,10 +59,9 @@ module Onetime
       #
       # @param strategy_name [String] The unknown strategy name
       # @param strict_mode [Boolean] Whether to raise error or fall back
-      # @param config [Hash] Configuration hash
       # @return [BaseStrategy] Fallback strategy instance
       # @raise [ArgumentError] If strict mode is enabled
-      def self.handle_unknown_strategy(strategy_name, strict_mode, config)
+      def self.handle_unknown_strategy(strategy_name, strict_mode)
         if strict_mode
           raise ArgumentError,
             "Unknown domain validation strategy: '#{strategy_name}'. " \
@@ -72,7 +70,7 @@ module Onetime
 
         OT.le "[DomainValidation] Unknown strategy: '#{strategy_name}', " \
               'falling back to passthrough mode. Set strict_strategy: true to fail instead.'
-        PassthroughStrategy.new(config)
+        PassthroughStrategy.new
       end
     end
   end

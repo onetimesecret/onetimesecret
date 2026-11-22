@@ -13,7 +13,7 @@ Operator how-to (setting `BRAND_*`, favicon overrides):
 ```
 1. domain_branding (Redis, per custom domain)
    ↓ if null/absent
-2. bootstrap config (OT.conf['brand'], from BRAND_*)
+2. bootstrap config (`brand` in OT.conf, from BRAND_*)
    ↓ if null/absent
 3. NEUTRAL_BRAND_DEFAULTS (frontend constants)
 ```
@@ -31,7 +31,7 @@ low-contrast palette; contrast remains an operator responsibility. Delivered to
 the frontend as `domain_branding` in the bootstrap payload.
 
 **Step 2 — site-wide (OT.conf).** `BrandSettingsConstants.global_defaults` reads
-`OT.conf['brand']` at runtime. The `brand:` block in
+`OT.conf.get('brand', {})` at runtime. The `brand:` block in
 `etc/defaults/config.defaults.yaml` exposes the `BRAND_*` ENV vars; every key
 defaults to `nil`, so no OTS values ship in YAML — neutralization lives in the
 Ruby resolvers (#3049), and an absent section falls through to step 3.
@@ -66,7 +66,7 @@ the fallback — it is retained only where OTS-orange is specifically intended
 
 ## Config keys
 
-Most identity `BRAND_*` ENV vars populate `OT.conf['brand'][...]`. Only
+Most identity `BRAND_*` ENV vars populate `brand.*` in `OT.conf`. Only
 the values the Vue app needs are serialized as `brand_*` bootstrap fields;
 head, email, and MFA settings are consumed on their respective server-side
 surfaces. No identity defaults ship in YAML.
@@ -92,7 +92,7 @@ surfaces. No identity defaults ship in YAML.
 | `BRAND_ASSETS_DIR`           | explicit pack PATH (wins over `BRAND_PACK`) | static asset selection |
 
 `BRAND_PACK` / `BRAND_ASSETS_DIR` are the two exceptions to the "populates
-`OT.conf['brand']`" rule above: they populate `site.brand_pack` /
+`brand.*`" rule above: they populate `site.brand_pack` /
 `site.brand_assets_dir` and drive the static-icon overlay (#3739), not the
 `brand:` value block — see [Static icon assets](#static-icon-assets).
 

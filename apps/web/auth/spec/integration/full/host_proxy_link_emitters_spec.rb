@@ -290,13 +290,11 @@ RSpec.describe 'Host and proxy simulation matrix: link emitters (#4223)', :share
             expect(last_response.status).to eq(200), "#{row[:id]}: #{last_response.status} #{last_response.body.to_s[0, 300]}"
             receipt = JSON.parse(last_response.body)
             expect(receipt['share_domain']).to eq(domain), "#{row[:id]}: #{receipt.inspect}"
-            # The read's own metadata_url builds on site.host whatever the
-            # share domain, unlike the one the create response carries: V1
-            # logic takes `domains_enabled` from site.domains.enabled
-            # (apps/api/v1/logic/base.rb), a key the configuration no longer
-            # has, so ShowReceipt never uses the receipt's share domain.
-            # Pinned as observed.
-            expect(origin_of(receipt['metadata_url'])).to eq(HostProxyMatrix::SITE_HOST_ORIGIN)
+            # The read's own metadata_url builds on the receipt's share
+            # domain, as the create response does: V1 logic takes
+            # `domains_enabled` from features.domains.enabled
+            # (apps/api/v1/logic/base.rb), which this context turns on.
+            expect(origin_of(receipt['metadata_url'])).to eq(link_origin_for(domain))
 
             next unless row[:recipient]
 

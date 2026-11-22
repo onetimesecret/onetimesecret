@@ -117,7 +117,7 @@ module DomainsAPI::Logic
         # Auto-fetch the domain's favicon on add (#3780). Flag-gated and isolated:
         # the Publisher's jobs-disabled branch runs FetchDomainFavicon inline and can
         # raise, so wrap it so a favicon failure never breaks domain creation.
-        if OT.conf.dig('jobs', 'favicon_fetch', 'enabled') == true
+        if OT.conf.get('jobs.favicon_fetch.enabled') == true
           begin
             Onetime::Jobs::Publisher.enqueue_favicon_fetch(@custom_domain.identifier)
           rescue StandardError => ex

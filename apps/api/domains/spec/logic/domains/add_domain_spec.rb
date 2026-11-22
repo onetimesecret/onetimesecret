@@ -76,6 +76,7 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
     allow(OT).to receive(:conf).and_return(OT::Config.wrap({
       'site' => {},
       'features' => { 'domains' => { 'enabled' => true } },
+      'jobs' => { 'favicon_fetch' => { 'enabled' => nil } },
     }))
 
     allow(logic).to receive(:organization).and_return(organization)
@@ -224,6 +225,7 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
         'site' => {},
         'features' => { 'domains' => { 'enabled' => true, 'validation_strategy' => 'approximated' } },
         'brand' => { 'primary_color' => nil },
+        'jobs' => { 'favicon_fetch' => { 'enabled' => nil } },
       }))
       allow(Onetime::CustomDomain).to receive(:create!).and_return(new_domain)
       allow(Onetime::DomainValidation::Strategy).to receive(:for_config).and_return(strategy)

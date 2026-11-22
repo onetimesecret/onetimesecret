@@ -70,7 +70,7 @@ module Onetime
     # @param guest_organization [Organization, nil] custom-domain owner for a guest
     # @param anonymous [Boolean] unauthenticated caller
     def self.resolve(organization: nil, guest_organization: nil, anonymous: false)
-      opts        = OT.conf.dig('site', 'secret_options') || {}
+      opts        = OT.conf.get('site.secret_options', {})
       ttl_options = Array(opts['ttl_options'])
 
       # Named terms, kept for logging so an operator can see WHICH bound

@@ -70,6 +70,8 @@ STRICT_GLOBS=(
   ".github/scripts/sentry-verify-artifacts.sh"
   "tools/testsuite/*.sh"
   "tools/testsuite/**/*.sh"
+  "tools/ci/*.sh"
+  "tools/ci/**/*.sh"
 )
 
 MODE="check"

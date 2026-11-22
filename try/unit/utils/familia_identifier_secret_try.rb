@@ -19,7 +19,7 @@ require 'onetime/key_derivation'
 # below drives the initializer explicitly with the ENV it wants to test.
 OT.boot! :test, false
 
-@secret_key = OT.conf.dig('site', 'secret')
+@secret_key = OT.conf.get('site.secret')
 @expected_derived = Onetime::KeyDerivation.derive_hex(@secret_key, :identifier)
 
 def run_configure_familia

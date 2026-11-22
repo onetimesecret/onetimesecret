@@ -178,9 +178,8 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListSecretActivity do
   # is out of scope here.
   describe 'instance feature flag' do
     def conf_with_audit_logs_flag(orgs_features)
-      base     = OT.conf
-      features = (base['features'] || {}).merge('organizations' => orgs_features)
-      base.merge('features' => features)
+      features = OT.conf.get('features', {}).merge('organizations' => orgs_features)
+      OT.conf.merge('features' => features)
     end
 
     it 'rejects with forbidden before loading the org when the flag is false' do

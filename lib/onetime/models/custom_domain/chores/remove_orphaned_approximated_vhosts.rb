@@ -155,17 +155,15 @@ module Onetime
       # @param client [Module, nil] Approximated HTTP client (default: ApproximatedClient)
       # @param resolver [#lookup, nil] returns a DnsLookup::Snapshot (default: DnsLookup)
       # @param features [Module, nil] config accessor (default: DomainValidation::Features)
-      # @param config [Hash, nil] application config (default: OT.conf)
       # @param apply [Boolean, nil] only `true` deletes, nil reads APPLY_ENV, anything
       #   else (false, or a non-boolean such as 'true') is a dry run
       # @param pause [Numeric] seconds to wait after each API call
       # @param sleeper [#call] receives the pause (default: Kernel#sleep)
-      def initialize(client: nil, resolver: nil, features: nil, config: nil,
+      def initialize(client: nil, resolver: nil, features: nil,
                      apply: nil, pause: API_PAUSE, sleeper: nil)
         @client   = client
         @resolver = resolver
         @features = features
-        @config   = config
         @apply    = apply
         @pause    = pause
         @sleeper  = sleeper
@@ -470,8 +468,6 @@ module Onetime
 
       # Same key Strategy.for_config reads, without its passthrough default.
       def strategy_name
-        return @config.dig('features', 'domains', 'validation_strategy') if @config
-
         OT.conf&.get('features.domains.validation_strategy', nil)
       end
 

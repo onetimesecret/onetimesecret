@@ -84,7 +84,7 @@ end
 @resolver = CaddyTryScriptedResolver.new
 @verifier = Onetime::DomainValidation::TxtVerifier.new(resolver_factory: -> { @resolver })
 @probe    = CaddyTryScriptedProbe.new
-@strategy = Onetime::DomainValidation::CaddyOnDemandStrategy.new({}, txt_verifier: @verifier, tls_probe: @probe)
+@strategy = Onetime::DomainValidation::CaddyOnDemandStrategy.new(txt_verifier: @verifier, tls_probe: @probe)
 
 @suffix = "#{Familia.now.to_i}-#{SecureRandom.hex(3)}"
 @owner  = Onetime::Customer.create!(email: "caddy_verify_#{@suffix}@test.com")
@@ -226,7 +226,7 @@ caddy_try_verify(@domain)
 ## Verified under Passthrough, then checked here - the passthrough pass is no confirmation, so an indeterminate lookup does not hold it
 @cutover         = Onetime::CustomDomain.create!("caddy-cutover-#{@suffix}.example.com", @org.objid)
 Onetime::Operations::VerifyDomain.new(
-  domain: @cutover, strategy: Onetime::DomainValidation::PassthroughStrategy.new({}), persist: true,
+  domain: @cutover, strategy: Onetime::DomainValidation::PassthroughStrategy.new, persist: true,
 ).call
 @before_cutover  = caddy_try_reload(@cutover)
 @before_state    = [@before_cutover.ready?, @before_cutover.verified_confirmed_at]

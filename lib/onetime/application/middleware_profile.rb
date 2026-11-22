@@ -74,14 +74,12 @@ module Onetime
         component_names = fetch(name)
         return if component_names.empty?
 
-        settings = Onetime.conf&.get(['site', 'middleware', 'profiles', name.to_s], nil) || {}
-
         component_names.each do |component_name|
           config = Onetime::Middleware::Registry.fetch(component_name)
           key    = config[:key].to_s
           scoped = "site.middleware.profiles.#{name}.#{key}"
 
-          unless settings[key]
+          unless Onetime.conf&.get(['site', 'middleware', 'profiles', name.to_s, key], nil)
             if Onetime::Middleware::Registry.warn_when_disabled?(key)
               OT.lw "[MiddlewareProfile] #{component_name} DISABLED for profile :#{name} (#{scoped}=false)"
             else

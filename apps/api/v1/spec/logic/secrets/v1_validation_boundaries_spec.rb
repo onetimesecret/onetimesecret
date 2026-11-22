@@ -146,24 +146,28 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
   # =========================================================================
   describe 'Passphrase boundaries' do
     describe '.passphrase_min_length (config-driven) [#2758]' do
-      it 'returns nil when config has no minimum_length set' do
+      it 'returns 0 when minimum_length is 0 (no minimum)' do
         allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'secret_options' => {
-              'passphrase' => {}
+              'passphrase' => { 'minimum_length' => 0 }
             }
           }
         }))
-        expect(V1::Logic::Secrets::BaseSecretAction.passphrase_min_length).to be_nil
+        expect(V1::Logic::Secrets::BaseSecretAction.passphrase_min_length).to eq(0)
       end
 
-      it 'returns nil when passphrase config is missing entirely' do
+      # A loaded config always has the key: DEFAULTS sets minimum_length and
+      # after_load merges DEFAULTS in. A config without it is a broken load,
+      # so the read raises instead of returning dig's nil.
+      it 'raises MissingPathError when the passphrase section is missing' do
         allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'site' => {
             'secret_options' => {}
           }
         }))
-        expect(V1::Logic::Secrets::BaseSecretAction.passphrase_min_length).to be_nil
+        expect { V1::Logic::Secrets::BaseSecretAction.passphrase_min_length }
+          .to raise_error(Onetime::Config::MissingPathError, /site\.secret_options\.passphrase\.minimum_length/)
       end
 
       it 'returns the configured minimum_length when set' do
@@ -183,13 +187,16 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
     describe '#validate_passphrase' do
       subject { V1BoundaryTestAction.new(session, customer, base_params) }
 
-      context 'when no minimum_length configured (default/backward-compatible)' do
+      # 0 is how an operator turns the minimum off. A nil in the config file
+      # reads as the default 4 (see after_load_spec).
+      context 'when minimum_length: 0 configured (no minimum)' do
         before do
           allow(OT).to receive(:conf).and_return(OT::Config.wrap({
             'site' => {
               'secret_options' => {
                 'passphrase' => {
-                  'maximum_length' => 128
+                  'maximum_length' => 128,
+                  'minimum_length' => 0
                 }
               }
             }
@@ -304,7 +311,8 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
             'site' => {
               'secret_options' => {
                 'passphrase' => {
-                  'maximum_length' => 128
+                  'maximum_length' => 128,
+                  'minimum_length' => nil
                 }
               }
             }
@@ -326,7 +334,8 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
               'secret_options' => {
                 'passphrase' => {
                   'enforce_complexity' => true,
-                  'maximum_length' => 128
+                  'maximum_length' => 128,
+                  'minimum_length' => nil
                 }
               }
             }

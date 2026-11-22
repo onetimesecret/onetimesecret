@@ -249,7 +249,7 @@ module AccountAPI::Logic
       end
 
       def signup_config_auth_setting(key)
-        site.dig('authentication', key)
+        OT.conf.get(['site', 'authentication', key], nil)
       end
     end
   end

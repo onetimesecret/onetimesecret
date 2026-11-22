@@ -18,31 +18,27 @@ OT.boot! :test, false
 # Note: In actual deployment, recipients would be configured in config.yaml
 
 ## Incoming feature is disabled by default
-config = OT.conf.dig('features', 'incoming')
-config['enabled']
+OT.conf.get('features.incoming.enabled')
 #=> false
 
 ## Default memo max length is 50
-config = OT.conf.dig('features', 'incoming')
-config['memo_max_length']
+OT.conf.get('features.incoming.memo_max_length')
 #=> 50
 
 ## Secret max length lives under site.secret_options.content, not features.incoming
-OT.conf.dig('features', 'incoming', 'secret_max_length')
+OT.conf.get('features.incoming.secret_max_length', nil)
 #=> nil
 
 ## Default secret content max length is 10000
-OT.conf.dig('site', 'secret_options', 'content', 'maximum_length')
+OT.conf.get('site.secret_options.content.maximum_length')
 #=> 10_000
 
 ## Default TTL is 7 days (604800 seconds)
-config = OT.conf.dig('features', 'incoming')
-config['default_ttl']
+OT.conf.get('features.incoming.default_ttl')
 #=> 604_800
 
 ## Default recipients list is empty
-config = OT.conf.dig('features', 'incoming')
-config['recipients']
+OT.conf.get('features.incoming.recipients')
 #=> []
 
 ## Public recipients list is empty by default (no initializer run)
@@ -68,7 +64,7 @@ receipt.memo
 begin
   conf_copy = YAML.load(YAML.dump(@_saved_conf_nil))
   conf_copy['features']['incoming']['enabled'] = true
-  conf_copy['site'].delete('secret')
+  conf_copy['site']['secret'] = nil
   OT.send(:conf=, conf_copy)
   Onetime::Initializers::SetupIncomingRecipients.new.execute(nil)
   false

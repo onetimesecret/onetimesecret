@@ -11,8 +11,11 @@ module ColonelAPI
       #
       # @api Returns the current system configuration organized by section:
       #   interface, secret options, authentication, emailer, mail, diagnostics,
-      #   logging, billing, and features. Sensitive values such as API keys
-      #   and webhook secrets are masked. Requires colonel role.
+      #   and features. Sensitive values such as SMTP credentials and API keys
+      #   are masked. Requires colonel role.
+      #
+      # Logging and billing are not reported: they are separate config objects
+      # (Onetime.logging_conf, Onetime.billing_config), not sections of OT.conf.
       class GetSystemSettings < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'systemSettings' }.freeze
 
@@ -24,48 +27,35 @@ module ColonelAPI
 
         def process
           @config_sections = {}
-          site_config      = Onetime.conf['site'] || {}
 
           # Interface config (UI and API settings)
-          @config_sections[:interface] = site_config['interface'] || {}
+          @config_sections[:interface] = Onetime.conf.get('site.interface', {})
 
           # Secret options (TTL, passphrase, password generation)
-          # These are under site.secret_options in the config
-          @config_sections[:secret_options] = site_config['secret_options'] || {}
+          @config_sections[:secret_options] = Onetime.conf.get('site.secret_options', {})
 
-          # Authentication config (under site.authentication)
-          @config_sections[:authentication] = site_config['authentication'] || {}
+          # Authentication config
+          @config_sections[:authentication] = Onetime.conf.get('site.authentication', {})
 
           # Emailer config (SMTP settings - top-level 'emailer' key). Carries
           # user/pass — deep_copy then recursively mask credential-bearing keys
           # so no secret crosses the wire (host/port/region/from stay visible).
-          @config_sections[:emailer] = mask_secrets(deep_copy(Onetime.conf['emailer'] || {}))
+          @config_sections[:emailer] = mask_secrets(deep_copy(Onetime.conf.get('emailer', {})))
 
           # Mail config (TrueMail validation - top-level 'mail' key). Can carry a
           # verification-API key/token — mask the same way.
-          @config_sections[:mail] = mask_secrets(deep_copy(Onetime.conf['mail'] || {}))
+          @config_sections[:mail] = mask_secrets(deep_copy(Onetime.conf.get('mail', {})))
 
           # Diagnostics (top-level 'diagnostics' key)
           # Include full diagnostics config, masking sensitive data
-          diagnostics_config                          = Onetime.conf['diagnostics'] || {}
+          diagnostics_config                          = Onetime.conf.get('diagnostics', {})
           @config_sections[:diagnostics]              = deep_copy(diagnostics_config)
           # Add redis URI with masked password (and query string) for convenience
-          redis_uri                                   = Onetime.conf['redis']&.[]('uri')
+          redis_uri                                   = Onetime.conf.get('redis.uri', nil)
           @config_sections[:diagnostics]['redis_uri'] = redis_uri && OT::Utils.redact_uri_userinfo(redis_uri, keep_username: true, mask: '****')
 
-          # Logging config (top-level 'logging' key)
-          @config_sections[:logging] = Onetime.conf['logging'] || {}
-
-          # Billing config (if enabled) - mask sensitive keys
-          if Onetime.conf.key?('billing') && Onetime.conf['billing']&.[]('enabled')
-            billing                           = deep_copy(Onetime.conf['billing'] || {})
-            billing['stripe_key']             = mask_key(billing['stripe_key'])
-            billing['webhook_signing_secret'] = '****' if billing['webhook_signing_secret']
-            @config_sections[:billing]        = billing
-          end
-
           # Features config (top-level 'features' key)
-          @config_sections[:features] = Onetime.conf['features'] || {}
+          @config_sections[:features] = Onetime.conf.get('features', {})
 
           success_data
         end

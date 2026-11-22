@@ -34,7 +34,7 @@ def create_controller_with_config(env, homepage_config)
       return nil unless %w[internal external].include?(configured_mode)
 
       # Initialize CIDR matchers
-      @cidr_matchers ||= compile_homepage_cidrs(homepage_config)
+      @cidr_matchers ||= compile_homepage_cidrs(homepage_config['matching_cidrs'])
 
       # Extract client IP (resolved by Rack::Request#ip)
       client_ip = extract_client_ip_for_homepage

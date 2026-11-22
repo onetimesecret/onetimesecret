@@ -83,15 +83,14 @@ module Onetime
 
       # Configure the security middleware stack based on application settings
       #
-      # Reads configuration from Onetime.conf.dig("site", "middleware")
-      # and conditionally enables corresponding Rack::Protection middleware.
+      # Reads site.middleware.<key> for each component and conditionally
+      # enables the corresponding Rack::Protection middleware.
       #
       # @return [#call] Configured Rack application with security middleware
       def setup_security_middleware
         # Store reference to original app for use inside builder block
         # This is necessary because the Rack::Builder block runs in a different context
-        app_instance        = @app
-        middleware_settings = Onetime.conf.get('site.middleware', {})
+        app_instance = @app
 
         # Define middleware components with their corresponding settings keys
         components               = self.class.middleware_components
@@ -103,7 +102,7 @@ module Onetime
             # ERB in the config emits real YAML booleans (true/false), so this
             # reads a real boolean, not a string.
             middleware_key = config[:key].to_s
-            unless middleware_settings[middleware_key]
+            unless Onetime.conf.get(['site', 'middleware', middleware_key], nil)
               # Flag a disabled component when project guidance says the
               # operator's configuration choice merits review.
               if warn_when_disabled_keys.include?(middleware_key)

@@ -203,14 +203,14 @@ RSpec.shared_context 'host proxy rows' do
   def with_site_host(host = :unchanged)
     return yield if host == :unchanged
 
-    saved = OT.conf['site']['host']
+    saved = OT.conf.get('site.host')
     begin
-      OT.conf['site']['host'] = fill(host)
-      Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
+      OT.conf.get('site')['host'] = fill(host)
+      Onetime::Middleware::DomainStrategy.initialize_from_config
       yield
     ensure
-      OT.conf['site']['host'] = saved
-      Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
+      OT.conf.get('site')['host'] = saved
+      Onetime::Middleware::DomainStrategy.initialize_from_config
     end
   end
 

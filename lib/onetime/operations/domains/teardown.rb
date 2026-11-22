@@ -83,7 +83,7 @@ module Onetime
         private
 
         def delete_vhost
-          strategy = Onetime::DomainValidation::Strategy.for_config(OT.conf)
+          strategy = Onetime::DomainValidation::Strategy.for_config
           result   = strategy.delete_vhost(@domain)
           OT.info "[Domains::Teardown.delete_vhost] #{@domain.display_domain} -> #{result && result[:message]}"
         rescue HTTParty::ResponseError, Timeout::Error, Errno::ECONNREFUSED => ex

@@ -60,11 +60,11 @@ module ColonelAPI
         FACTORS = %w[password recent_auth].freeze
 
         def elevation_enabled?
-          elevation_config.fetch('enabled', true) != false
+          OT.conf.get('site.admin.elevation.enabled', true) != false
         end
 
         def elevation_window
-          value = elevation_config['window'].to_i
+          value = OT.conf.get('site.admin.elevation.window', nil).to_i
           value.positive? ? value : DEFAULT_WINDOW
         end
 
@@ -72,7 +72,7 @@ module ColonelAPI
         # cannot use the positive_* guard's fall-back-to-default behaviour: a
         # configured 0 must stay 0, not become DEFAULT_REAUTH_GRACE.
         def elevation_reauth_grace
-          raw = elevation_config['reauth_grace']
+          raw = OT.conf.get('site.admin.elevation.reauth_grace', nil)
           return DEFAULT_REAUTH_GRACE if raw.nil?
 
           value = raw.to_i
@@ -195,10 +195,6 @@ module ColonelAPI
           return @elevation_password_available if defined?(@elevation_password_available)
 
           @elevation_password_available = resolve_elevation_password_available
-        end
-
-        def elevation_config
-          OT.conf.dig('site', 'admin', 'elevation') || {}
         end
 
         private

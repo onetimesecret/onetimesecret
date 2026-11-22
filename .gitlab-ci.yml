@@ -1,17 +1,43 @@
-# Initial GitLab coverage: TypeScript unit tests and test type checking only.
-# Reuses the runner from ci-pilot/typescript; GitHub remains the full CI suite.
+# GitLab CI. The design is docs/planning/2026-1110-gitlab-ci-migration-plan.md
+# (§4); GitHub still runs the full suite on the commits the push mirror
+# delivers to it (§2.4).
+#
+# Pipelines run for merge requests; for pushes to main, develop and v* tags;
+# and for scheduled, web and API runs. A topic branch gets its pipeline
+# through its merge request. A push to develop while develop is the source of
+# an open merge request (a promotion) creates no branch pipeline, so the merge
+# check reads the promotion's own merge request pipeline (§4.1).
 workflow:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "develop" && $CI_OPEN_MERGE_REQUESTS'
       when: never
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "develop")'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_TAG =~ /^v/'
+    - if: '$CI_PIPELINE_SOURCE =~ /^(schedule|web|api)$/'
     - when: never
+  auto_cancel:
+    on_new_commit: interruptible
 
+stages:
+  - lint
+  - test
+
+default:
+  interruptible: true
+
+include:
+  - local: .gitlab/ci/rules.yml
+  - local: .gitlab/ci/lint.yml
+  - local: .gitlab/ci/ruby.yml
+
+# TypeScript unit tests and test type checking, from the pilot
+# (ci/typescript-pilot/). Its replacement is frontend.yml (plan Phase 2).
 typescript-pilot:
   stage: test
   image: python:3.14.7-bookworm@sha256:bfb689a7986adc6d5f16722e06c78e755efe4062e56276715fef450cbad09436
   tags: [saas-linux-medium-amd64]
+  needs: []
   timeout: 20m
   retry: 0
   variables:

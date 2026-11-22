@@ -10,8 +10,8 @@ module V1::Logic
 
     # V1 Secret Creation Logic [#2615]
     #
-    # TTL bounds come from site.secret_options in config. The config path
-    # is OT.conf.dig('site', 'secret_options') — NOT a top-level fetch.
+    # TTL bounds come from site.secret_options in config
+    # (OT.conf.get('site.secret_options.default_ttl')), not a top-level key.
     # If the config key is missing, the hardcoded fallback applies:
     #   ttl_options: [30.minutes, 2.hours, 1.day, 7.days]
     #   default_ttl: 7.days
@@ -45,17 +45,18 @@ module V1::Logic
       V1_MIN_TTL = 60        # 1 minute, matching v0.23.4
       V1_MAX_TTL = 2_592_000 # 30 days (30 * 86400)
 
-      # Passphrase minimum length: config-driven with nil fallback [#2758]
+      # Passphrase minimum length: config-driven [#2758]
       #
-      # When the operator sets `site.secret_options.passphrase.minimum_length`
-      # in config, V1 now respects that value. When unset (nil), no minimum
-      # is enforced — preserving backward compatibility for callers sending
-      # short passphrases (e.g. "1234").
+      # Reads `site.secret_options.passphrase.minimum_length`. A loaded
+      # config always has it: the defaults file sets
+      # `PASSPHRASE_MIN_LENGTH || 4` and Config::DEFAULTS sets 4 [#2761].
+      # A nil in an operator file reads as 4, because after_load keeps the
+      # DEFAULTS value over a nil. Set it to 0 to enforce no minimum.
       #
-      # This changed in v0.24.1: prior versions hard-coded nil here, ignoring
-      # any operator config. Now operators can opt-in to enforcement.
+      # This changed in v0.24.6: prior versions hard-coded nil here, ignoring
+      # any operator config.
       def self.passphrase_min_length
-        OT.conf.dig('site', 'secret_options', 'passphrase', 'minimum_length')&.to_i
+        OT.conf.get('site.secret_options.passphrase.minimum_length')&.to_i
       end
 
       # Max secret size: 10_000 matches the API spec's maxLength: 10000
@@ -134,18 +135,14 @@ module V1::Logic
         #   2. YAML nil values are preserved as DEFAULTS (deep_merge skips nil)
         #   3. This dig reads the merged result — DEFAULTS wins when YAML is nil
         #
-        # The inline fallback hash below only triggers if the entire
-        # site.secret_options key is absent (should not happen after after_load).
+        # Config.after_load guarantees default_ttl (Config::DEFAULTS); the
+        # fallback covers a config built without it.
         #
         # V1-specific TTL bounds [#2621]:
         #   min = V1_MIN_TTL (60s), max = V1_MAX_TTL (30 days)
         # These preserve v0.23.4 behavior. The config values are used for
         # default_ttl only; bounds are V1-specific constants.
-        secret_options = OT.conf.dig('site', 'secret_options') || {
-          'default_ttl' => 7.days,
-          'ttl_options' => [30.minutes, 2.hours, 1.day, 7.days],
-        }
-        default_ttl    = secret_options['default_ttl']
+        default_ttl = OT.conf.get('site.secret_options.default_ttl', 7.days)
 
         # V1 uses its own TTL bounds, not the config's ttl_options min/max.
         # This preserves v0.23.4 behavior where 60s was the minimum.
@@ -359,27 +356,24 @@ module V1::Logic
       def validate_passphrase
         # V1 passphrase validation [#2758]
         #
-        # When the operator sets minimum_length in config, V1 now enforces it.
-        # When unset (nil), no minimum is enforced — preserving backward
-        # compatibility for callers sending short passphrases.
-        passphrase_config = OT.conf.dig('site', 'secret_options', 'passphrase') || {}
-
+        # V1 enforces the configured minimum_length: 4 unless the operator
+        # changes it, and 0 turns the check off. See passphrase_min_length.
         # Check if passphrase is required (defaults to false for V1 compat)
-        if passphrase_config['required'] && passphrase.to_s.empty?
+        if OT.conf.get('site.secret_options.passphrase.required', nil) && passphrase.to_s.empty?
           raise_form_error 'A passphrase is required for all secrets'
         end
 
         # Skip further validation if no passphrase provided
         return if passphrase.to_s.empty?
 
-        # Config-driven minimum length; nil means no enforcement
+        # Config-driven minimum length; 0 means no enforcement
         min_length = self.class.passphrase_min_length
         if min_length && passphrase.length < min_length
           raise_form_error "Passphrase must be at least #{min_length} characters long"
         end
 
         # Validate maximum length (shared with all versions)
-        max_length = passphrase_config['maximum_length']
+        max_length = OT.conf.get('site.secret_options.passphrase.maximum_length', nil)
         if max_length && passphrase.length > max_length
           raise_form_error "Passphrase must be no more than #{max_length} characters long"
         end
@@ -606,7 +600,7 @@ module V1::Logic
       #   on and the domain is not yet verified
       def validate_domain_verification(domain_record)
         served   = domain_record.served_as_tenant?
-        required = OT.conf.dig('features', 'domains', 'require_verified').to_s == 'true'
+        required = OT.conf.get('features.domains.require_verified').to_s == 'true'
         return if served && (!required || domain_record.verified.to_s == 'true')
 
         OT.li "[validate_domain_verif]: #{share_domain} unverified [#{cust&.custid}]"

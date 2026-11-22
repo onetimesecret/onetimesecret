@@ -321,6 +321,17 @@ module LaneOwnershipProbe
       [path, lanes.to_s.split(',')]
     end
   end
+
+  # The files SMOKE_SPEC_GROUPS names, read in a subprocess for the oracle's
+  # reason: loading the rake file defines top-level constants.
+  def smoke_list
+    script              = "require 'rake'; require 'json'; load 'lib/tasks/spec.rake'; " \
+                          'puts JSON.generate(SMOKE_SPEC_GROUPS.values.flatten)'
+    out, err, status    = Open3.capture3('bundle', 'exec', 'ruby', '-e', script, chdir: repo_root)
+    raise "reading SMOKE_SPEC_GROUPS failed (#{status.exitstatus}):\n#{err}" unless status.success?
+
+    JSON.parse(out)
+  end
 end
 
 RSpec.describe 'tests/lanes/ownership against lib/tasks/spec.rake' do
@@ -371,6 +382,23 @@ RSpec.describe 'tests/lanes/ownership against lib/tasks/spec.rake' do
 
       Fix the table (tests/lanes/ownership), or — if a task's paths changed on
       purpose — the row the directory walk below keeps for that directory too.
+    MSG
+  end
+
+  # The smoke lane runs a curated list (SMOKE_SPEC_GROUPS in
+  # lib/tasks/spec.rake) and owns no path. A listed file that no other lane's
+  # tasks select would run only in smoke, and taking it off the list would
+  # then drop its coverage without any check noticing.
+  it 'finds every file on the smoke list in another lane' do
+    listed  = probe.smoke_list
+    orphans = listed.reject { |file| probe.owners.fetch(file, []).any? }
+
+    expect(listed).not_to be_empty
+    expect(orphans).to be_empty, <<~MSG
+      SMOKE_SPEC_GROUPS lists #{orphans.size} file(s) that no other lane's tasks select:
+      #{orphans.map { |file| "  #{file}" }.join("\n")}
+
+      Smoke adds speed, not coverage: list only files a lane already runs.
     MSG
   end
 end

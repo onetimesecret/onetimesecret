@@ -65,6 +65,17 @@ RSpec.describe Onetime::Config::Reader do
         )
       end
 
+      it 'uses the fallback block for an absent key and preserves an explicit nil or false' do
+        expect(config.get('site.missing') { true }).to be(true)
+        expect(config.get('site.unset') { raise 'unexpected fallback' }).to be_nil
+        expect(config.get('site.ssl') { raise 'unexpected fallback' }).to be(false)
+      end
+
+      it 'keeps a positional default when a block is also supplied' do
+        expect(config.get('site.missing', false) { raise 'unexpected fallback' }).to be(false)
+        expect(config.get('site.unset', false) { raise 'unexpected fallback' }).to be(false)
+      end
+
       it 'names a missing top-level section' do
         expect { config.get('features.domains.enabled') }.to raise_error(
           Onetime::Config::MissingPathError, /there is no top-level 'features'/

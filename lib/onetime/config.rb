@@ -8,6 +8,7 @@ require 'json' # String#to_json for YAML-safe BRAND_* interpolation (see brand b
 require 'public_suffix' # validate_link_domains! parses LINK_DOMAINS entries at boot
 require_relative 'utils/admin_host_allowlist' # check_admin_allowed_hosts classifies ADMIN_ALLOWED_HOSTS at boot
 require_relative 'config/reader'
+require_relative 'config/strict_keys'
 require_relative 'utils/config_resolver'
 require_relative 'utils/domain_parser'
 require_relative 'utils/enumerables'
@@ -368,10 +369,13 @@ module Onetime
     # only in the defaults file are visible in all environments without
     # manual duplication. See #3322.
     #
-    # The YAML layer merge uses preserve_nils: false so that explicit nil
-    # in the environment file means "I want nil" (not "keep the default").
-    # Nil-preservation is reserved for the in-code DEFAULTS merge in
-    # after_load, where nil means "not specified".
+    # The YAML layer merge uses preserve_nils: false, so an explicit nil in
+    # the environment file replaces the defaults-file value with nil. The
+    # in-code DEFAULTS merge in after_load treats nil the other way: there
+    # nil means "not specified", so a key that Config::DEFAULTS sets gets the
+    # DEFAULTS value back. A nil from the YAML stays nil after boot only for
+    # keys that DEFAULTS does not set. For example, a nil
+    # site.secret_options.passphrase.minimum_length reads as 4 after boot.
     #
     # @param path [String] (optional) path to the environment-specific YAML
     #   file. When nil, layered defaults are applied automatically. When an
@@ -1560,19 +1564,40 @@ module Onetime
       Onetime::Utils::Enumerables.deep_clone(config_hash, max_size: Float::INFINITY)
     end
 
-    # Gives a config Hash the OT.conf reader, Reader#get. The Hash keeps its
-    # class, identity and contents. A frozen Hash cannot be extended, so it is
-    # copied (shallow) and the copy frozen. Idempotent. Anything that is not a
-    # Hash, nil included, is returned unchanged.
+    # Gives a config Hash the OT.conf reader, Reader#get, and, when
+    # strict_keys? is true, gives it and every Hash below it StrictKeys. The
+    # Hash keeps its class, identity and contents. A frozen Hash cannot be
+    # extended, so it is copied (shallow) and the copy frozen. Idempotent: a
+    # Hash wrap has returned is returned unchanged, unless strict_keys? was
+    # turned on since. Anything that is not a Hash, nil included, is returned
+    # unchanged.
     #
     # @param config [Hash, nil]
     # @return [Hash, nil]
     def wrap(config)
       return config unless config.is_a?(Hash)
-      return config if config.is_a?(Reader)
-      return config.dup.extend(Reader).freeze if config.frozen?
 
-      config.extend(Reader)
+      strict = strict_keys?
+      return config if config.is_a?(Reader) && (!strict || config.is_a?(StrictKeys))
+
+      root = config.frozen? ? config.dup : config
+      root.extend(Reader) unless root.is_a?(Reader)
+      StrictKeys.install(root) if strict
+      config.frozen? ? root.freeze : root
+    end
+
+    # Turns StrictKeys on or off for the configs wrap installs from now on.
+    # The test helpers turn it on (spec/spec_helper.rb,
+    # try/support/test_helpers.rb); nothing else does.
+    #
+    # @param enabled [Boolean]
+    def strict_keys=(enabled)
+      @strict_keys = enabled == true
+    end
+
+    # @return [Boolean] whether wrap gives the config tree StrictKeys
+    def strict_keys?
+      @strict_keys == true
     end
 
     # Copies +obj+ with every Hash key converted to a String, recursing into

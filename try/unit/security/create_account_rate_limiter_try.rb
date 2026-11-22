@@ -251,7 +251,7 @@ result_cfg = @raises.call(@cfg_ip)
 
 ## A PARTIAL config block — present, but with every numeric key absent — falls
 ## back to the defaults rather than raising. The read is
-## `create_account_rate_limit_config[key].to_i`, and NilClass#to_i is core Ruby
+## `OT.conf.get([..., key], nil).to_i`, and NilClass#to_i is core Ruby
 ## returning 0, so a missing key takes the same not-positive path as a garbage
 ## one. Pinned because a misconfigured deploy hitting this would be a 500 on
 ## every signup, which is strictly worse than the flood the limiter bounds.

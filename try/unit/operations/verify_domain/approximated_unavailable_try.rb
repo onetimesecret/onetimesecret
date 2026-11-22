@@ -77,7 +77,7 @@ APPROX_UNAVAILABLE_MAX_AGE = Onetime::Operations::VerifyDomain::ConfirmationWind
 @resolver = ApproxUnavailableTryResolver.new
 @verifier = Onetime::DomainValidation::TxtVerifier.new(resolver_factory: -> { @resolver })
 @strategy = Onetime::DomainValidation::ApproximatedStrategy.new(
-  {}, client: ApproxUnavailableTryClient, txt_verifier: @verifier
+  client: ApproxUnavailableTryClient, txt_verifier: @verifier
 )
 
 @suffix = "#{Familia.now.to_i}-#{SecureRandom.hex(3)}"

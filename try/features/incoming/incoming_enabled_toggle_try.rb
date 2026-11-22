@@ -291,7 +291,7 @@ resolver.enabled?
   enabled: false,
   recipients: [{ email: @api_recipient_email, name: 'API Test Recipient' }]
 )
-site_secret = OT.conf.dig('site', 'secret')
+site_secret = OT.conf.get('site.secret')
 @api_recipient_hash = @api_incoming_config.public_recipients.first['digest']
 @api_domain.exists?
 #=> true

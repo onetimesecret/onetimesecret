@@ -323,9 +323,7 @@ RSpec.describe AccountAPI::Logic::Account::UpdateDomainContext do
           },
         }),
       )
-      Onetime::Middleware::DomainStrategy.initialize_from_config(
-        OT.conf.dig('features', 'domains'),
-      )
+      Onetime::Middleware::DomainStrategy.initialize_from_config
     end
 
     it 'is a precondition that the middleware classifies the pool member canonical' do
@@ -390,9 +388,7 @@ RSpec.describe AccountAPI::Logic::Account::UpdateDomainContext do
             },
           }),
         )
-        Onetime::Middleware::DomainStrategy.initialize_from_config(
-          OT.conf.dig('features', 'domains'),
-        )
+        Onetime::Middleware::DomainStrategy.initialize_from_config
       end
 
       it 'still accepts the parseable member' do

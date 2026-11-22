@@ -346,7 +346,7 @@ module Onetime
         puts 'FEATURE FLAGS'
         puts '-' * 70
 
-        flag   = OT.conf&.dig('features', 'organizations', 'custom_mail_enabled')
+        flag   = OT.conf&.get('features.organizations.custom_mail_enabled', nil)
         status = flag ? 'true' : "#{flag.inspect} (will block API requests)"
         puts "  features.organizations.custom_mail_enabled: #{status}"
         puts

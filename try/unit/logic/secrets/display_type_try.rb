@@ -22,8 +22,8 @@ require 'v2/logic'
 
 # Markdown is opt-in per platform; on for these cases unless one says
 # otherwise. Restored at the end.
-@original_markdown              = OT.conf['features']['markdown']
-OT.conf['features']['markdown'] = { 'enabled' => true }
+@original_markdown              = OT.conf.get('features.markdown')
+OT.conf.get('features')['markdown'] = { 'enabled' => true }
 
 ## display_type defaults to text when the request omits it
 logic = V2::Logic::Secrets::ConcealSecret.new(@anon, { 'secret' => { 'secret' => 's' } }, 'en')
@@ -65,7 +65,7 @@ end
 #=> ['Unknown display type: httplink', :display_type, :invalid]
 
 ## markdown is a FormError naming the field when the platform has not turned it on
-OT.conf['features']['markdown'] = { 'enabled' => false }
+OT.conf.get('features')['markdown'] = { 'enabled' => false }
 params                          = { 'secret' => { 'secret' => 's', 'display_type' => 'markdown' } }
 logic                           = V2::Logic::Secrets::ConcealSecret.new(@anon, params, 'en')
 result                          = begin
@@ -74,12 +74,12 @@ result                          = begin
 rescue Onetime::FormError => ex
   [ex.message, ex.field, ex.error_type]
 end
-OT.conf['features']['markdown'] = { 'enabled' => true }
+OT.conf.get('features')['markdown'] = { 'enabled' => true }
 result
 #=> ['Display type not enabled: markdown', :display_type, :invalid]
 
 ## text passes validate_display_type with markdown off
-OT.conf['features']['markdown'] = { 'enabled' => false }
+OT.conf.get('features')['markdown'] = { 'enabled' => false }
 params                          = { 'secret' => { 'secret' => 's', 'display_type' => 'text' } }
 logic                           = V2::Logic::Secrets::ConcealSecret.new(@anon, params, 'en')
 result                          = begin
@@ -88,7 +88,7 @@ result                          = begin
 rescue Onetime::FormError => ex
   "unexpected_error: #{ex.message}"
 end
-OT.conf['features']['markdown'] = { 'enabled' => true }
+OT.conf.get('features')['markdown'] = { 'enabled' => true }
 result
 #=> 'no_error'
 
@@ -114,4 +114,4 @@ logic  = V2::Logic::Secrets::GenerateSecret.new(@anon, params, 'en')
 logic.display_type
 #=> 'text'
 
-OT.conf['features']['markdown'] = @original_markdown
+OT.conf.get('features')['markdown'] = @original_markdown

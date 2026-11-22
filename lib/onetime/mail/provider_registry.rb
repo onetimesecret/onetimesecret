@@ -367,15 +367,13 @@ module Onetime
             .to_h { |d| [d.name, d.dns_defaults] }
         end
 
-        # Auto-detect the provider from an emailer config hash: first
-        # descriptor (in registry order) whose detect_keys are all present.
+        # Auto-detect the provider from the emailer config: first descriptor
+        # (in registry order) whose detect_keys (emailer.<key>) are all set.
         #
-        # @param conf [Hash] string-keyed emailer config
         # @return [String, nil] provider name or nil when nothing matches
-        def detect_provider(conf)
-          conf ||= {}
-          match  = descriptors.find do |d|
-            d.detect_keys.any? && d.detect_keys.all? { |key| conf[key] }
+        def detect_provider
+          match = descriptors.find do |d|
+            d.detect_keys.any? && d.detect_keys.all? { |key| OT.conf&.get(['emailer', key], nil) }
           end
           match&.name
         end

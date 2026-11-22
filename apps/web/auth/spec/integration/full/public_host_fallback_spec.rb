@@ -26,17 +26,17 @@ RSpec.describe Auth::PublicHost, :aggregate_failures, :shared_db_state, type: :i
   let(:sql_log) { StringIO.new }
 
   around do |example|
-    saved_host = OT.conf['site']['host']
+    saved_host = OT.conf.get('site.host')
     sql_logger = Logger.new(sql_log)
     begin
       auth_db.loggers << sql_logger
-      OT.conf['site']['host'] = site_host
-      Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
+      OT.conf.get('site')['host'] = site_host
+      Onetime::Middleware::DomainStrategy.initialize_from_config
       example.run
     ensure
       auth_db.loggers.delete(sql_logger)
-      OT.conf['site']['host'] = saved_host
-      Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
+      OT.conf.get('site')['host'] = saved_host
+      Onetime::Middleware::DomainStrategy.initialize_from_config
     end
   end
 
@@ -166,8 +166,8 @@ RSpec.describe Auth::PublicHost, :aggregate_failures, :shared_db_state, type: :i
     end
 
     def with_reset_limiter(enabled:, max_per_ip: 2)
-      authentication = OT.conf['site']['authentication']
-      saved          = authentication['reset_request_rate_limit']
+      authentication = OT.conf.get('site.authentication')
+      saved          = OT.conf.get('site.authentication.reset_request_rate_limit', nil)
       redis          = Onetime::Customer.dbclient
       begin
         authentication['reset_request_rate_limit'] = {

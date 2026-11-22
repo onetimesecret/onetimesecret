@@ -15,7 +15,7 @@
 # before_verify_account adds the new passkey with add_webauthn_credential.
 # recovery_codes overrides that method to add the account's missing codes
 # (auto_add_recovery_codes? is on in config/features/mfa.rb). Released
-# rodauth (2.45.0 through 2.48.0) inserts them under session_value, which is
+# rodauth (2.45.0 through 2.50.0) inserts them under session_value, which is
 # nil until the autologin after the transaction: the insert failed
 # (NOT NULL constraint failed: account_recovery_codes.id), the request
 # answered 500 and the transaction rolled back, so the account stayed

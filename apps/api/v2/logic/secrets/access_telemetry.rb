@@ -96,7 +96,7 @@ module V2::Logic
       # would light up the UI Country column while the backend never captured
       # net_country, leaving rows perpetually "Unknown".
       def geo_country_enabled?
-        OT.conf.dig('features', 'secret_activity', 'geo_country_enabled').to_s == 'true'
+        OT.conf.get('features.secret_activity.geo_country_enabled', nil).to_s == 'true'
       end
     end
   end

@@ -18,7 +18,7 @@ require_relative '../../support/test_helpers'
 
 OT.boot! :test, false
 
-@email_address = OT.conf['emailer']['from']
+@email_address = OT.conf.get('emailer.from')
 
 
 ## Finds a config path
@@ -71,65 +71,65 @@ paths.include?(path)
 #=> true
 
 ## Site has options for authentication
-OT.conf['site'].key? 'authentication'
+OT.conf.get('site.authentication').is_a?(Hash)
 #=> true
 
 ## Authentication has options for enabled
-OT.conf['site']['authentication'].key? 'enabled'
+[true, false].include?(OT.conf.get('site.authentication.enabled'))
 #=> true
 
 ## Authentication is enabled by default
-OT.conf['site']['authentication']['enabled']
+OT.conf.get('site.authentication.enabled')
 #=> true
 
 ## Signup is enabled by default
-OT.conf['site']['authentication']['signup']
+OT.conf.get('site.authentication.signup')
 #=> true
 
 ## Signin is enabled by default
-OT.conf['site']['authentication']['signin']
+OT.conf.get('site.authentication.signin')
 #=> true
 
 ## Auto-verification is disabled by default
-OT.conf['site']['authentication']['autoverify']
+OT.conf.get('site.authentication.autoverify')
 #=> false
 
 ## Option for emailer (from environment)
-OT.conf['emailer']['from']
+OT.conf.get('emailer.from')
 #=> "secure@onetime.dev"
 
 ## Default emailer mode is logger in test environment
-OT.conf['emailer']['mode']
+OT.conf.get('emailer.mode')
 #=> "logger"
 
 ## Emailer from address is set via environment
-OT.conf['emailer']['from']
+OT.conf.get('emailer.from')
 #=> "secure@onetime.dev"
 
 ## Default emailer from_name is "Jan"
-OT.conf['emailer']['from_name']
+OT.conf.get('emailer.from_name')
 #=> "Jan"
 
 ## SMTP host in test environment (not set by default)
-OT.conf['emailer']['host']
+OT.conf.get('emailer.host')
 #=> nil
 
 ## SMTP port in test environment (not set by default)
-OT.conf['emailer']['port']
+OT.conf.get('emailer.port')
 #=> nil
 
 ## SMTP username in test environment (not set by default)
-OT.conf['emailer']['user']
+OT.conf.get('emailer.user')
 #=> nil
 
 ## SMTP password in test environment (not set by default)
-OT.conf['emailer']['pass']
+OT.conf.get('emailer.pass')
 #=> nil
 
 ## SMTP auth in test environment (not set by default)
-OT.conf['emailer']['auth']
+OT.conf.get('emailer.auth')
 #=> nil
 
 ## SMTP TLS in test environment (not set by default)
-OT.conf['emailer']['tls']
+OT.conf.get('emailer.tls')
 #=> nil

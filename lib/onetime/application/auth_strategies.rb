@@ -51,10 +51,7 @@ module Onetime
       #
       # @return [Boolean] true only if authentication is explicitly enabled
       def account_creation_allowed?
-        settings = OT.conf&.get('site.authentication')
-        return false unless settings
-
-        settings['enabled'] == true
+        OT.conf&.get('site.authentication.enabled', nil) == true
       end
 
       # Registers core Onetime authentication strategies with Otto

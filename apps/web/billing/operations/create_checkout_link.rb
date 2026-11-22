@@ -181,13 +181,13 @@ module Billing
       # config rather than the request because the CLI and colonel adapters
       # have no request to derive it from.
       def self.base_url
-        site_host = Onetime.conf['site']['host']
-        is_secure = Onetime.conf.dig('site', 'ssl') != false
+        site_host = Onetime.conf.get('site.host')
+        is_secure = Onetime.conf.get('site.ssl') != false
         "#{is_secure ? 'https' : 'http'}://#{site_host}"
       end
 
       def self.detect_region
-        OT.conf&.dig('features', 'regions', 'current_jurisdiction') || 'LL'
+        OT.conf&.get('features.regions.current_jurisdiction', nil) || 'LL'
       end
 
       # Resolve the org the checkout's subscription attaches to with the same

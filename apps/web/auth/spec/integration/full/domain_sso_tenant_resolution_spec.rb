@@ -121,7 +121,7 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
       include_context 'tenant fixtures'
 
       let(:adopter) { Onetime::Organization.new(display_name: "Adopter #{test_run_id}").tap(&:save) }
-      let(:auth) { { 'enabled' => true } }
+      before { allow(Onetime::CustomDomain::SigninConfig).to receive(:global_auth_enabled).and_return(true) }
 
       after do
         Onetime::CustomDomain.find_by_identifier(test_custom_domain.identifier)&.destroy!
@@ -130,7 +130,7 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
 
       it 'refuses tenant SSO on the domain as unverified' do
         domain_id = test_custom_domain.identifier
-        reason    = ->(id) { Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(id, auth: auth) }
+        reason    = ->(id) { Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(id) }
         before    = reason.call(domain_id)
 
         test_organization.remove_domain(test_custom_domain)

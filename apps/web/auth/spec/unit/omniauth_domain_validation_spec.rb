@@ -7,7 +7,7 @@
 
 RSpec.describe 'OmniAuth Domain Validation' do
   describe 'allowed_signup_domains configuration' do
-    let(:allowed_domains_config) { OT.conf.dig('site', 'authentication', 'allowed_signup_domains') }
+    let(:allowed_domains_config) { OT.conf.get('site.authentication.allowed_signup_domains') }
 
     context 'when no domain restrictions configured' do
       before do

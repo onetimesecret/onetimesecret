@@ -233,29 +233,10 @@ with_brand_conf(nil) do
 end
 #=> true
 
-## initialize_view_vars exposes 'brand_allow_public_homepage'
+## initialize_view_vars no longer exposes the retired brand_allow_public_* keys
 vars = @host.initialize_view_vars(Rack::Request.new(build_env))
-vars.key?('brand_allow_public_homepage')
-#=> true
-
-## brand_allow_public_homepage default is false
-with_brand_conf(nil) do
-  vars = @host.initialize_view_vars(Rack::Request.new(build_env))
-  vars['brand_allow_public_homepage']
-end
-#=> false
-
-## initialize_view_vars exposes 'brand_allow_public_api'
-vars = @host.initialize_view_vars(Rack::Request.new(build_env))
-vars.key?('brand_allow_public_api')
-#=> true
-
-## brand_allow_public_api default is false
-with_brand_conf(nil) do
-  vars = @host.initialize_view_vars(Rack::Request.new(build_env))
-  vars['brand_allow_public_api']
-end
-#=> false
+[vars.key?('brand_allow_public_homepage'), vars.key?('brand_allow_public_api')]
+#=> [false, false]
 
 ## initialize_view_vars exposes 'support_email'
 vars = @host.initialize_view_vars(Rack::Request.new(build_env))

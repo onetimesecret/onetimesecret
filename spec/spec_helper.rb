@@ -118,6 +118,12 @@ rescue LoadError => ex
   exit 1
 end
 
+# Every Hash in the config tree raises on a non-String key (a Symbol read on
+# a section reads nil otherwise). Set before any config is loaded: wrap gives
+# StrictKeys to the configs installed after this. See
+# Onetime::Config::StrictKeys.
+Onetime::Config.strict_keys = true
+
 # generated/locales is gitignored build output (locales/scripts/i18n content
 # compile --all writes it). bin/setup runs this, but a worktree that skips
 # bin/setup — because gems/node_modules already exist elsewhere in a forest of
@@ -212,7 +218,7 @@ begin
 
   # Set Familia.uri from config so integration test hooks can use Familia.dbclient
   # before boot! runs. Without this, Familia uses default redis://127.0.0.1:6379.
-  redis_uri   = OT.conf.dig('redis', 'uri')
+  redis_uri   = OT.conf.get('redis.uri', nil)
   Familia.uri = redis_uri if redis_uri
 rescue StandardError => ex
   warn "Failed to load test config: #{ex.message}"
@@ -347,7 +353,7 @@ RSpec.configure do |config|
     next if example.metadata[:shared_db_state]
     next if example.metadata[:billing]
 
-    redis_uri_string = OT.conf&.dig('redis', 'uri')
+    redis_uri_string = OT.conf&.get('redis.uri', nil)
     if redis_uri_string
       begin
         uri = URI.parse(redis_uri_string)

@@ -42,16 +42,14 @@ module Onetime
       # that observed it (ssl_checked_unix) travels with has_ssl when carried.
       SSL_FIELDS = %w[has_ssl ssl_active_from ssl_active_until ssl_checked_unix].freeze
 
-      attr_reader :config, :txt_verifier, :tls_probe
+      attr_reader :txt_verifier, :tls_probe
 
-      # @param config [Hash] Application configuration (typically OT.conf)
       # @param txt_verifier [#verify] Ownership checker (default: TxtVerifier).
       # @param tls_probe [#probe] Status checker (default: TlsProbe).
       #   Both are injected so specs never touch the network.
       # @param clock [#call] Returns a Time or Unix epoch value (default: Familia.now).
       #
-      def initialize(config, txt_verifier: TxtVerifier.new, tls_probe: TlsProbe.new, clock: -> { Familia.now })
-        @config       = config
+      def initialize(txt_verifier: TxtVerifier.new, tls_probe: TlsProbe.new, clock: -> { Familia.now })
         @txt_verifier = txt_verifier
         @tls_probe    = tls_probe
         @clock        = clock

@@ -125,11 +125,19 @@ Facts that shape the design:
 - The project exists at `gitlab.com/onetimesecret/onetimesecret` (project id
   88874403). Development is there (§8). `main` and `develop` are protected
   branches, and `v*` is a protected tag that only Maintainers can create.
-- `main` has a pilot that `develop` lacks: `.gitlab-ci.yml` (one job,
-  TypeScript unit tests and test type checking, `saas-linux-medium-amd64`) and
-  `ci/typescript-pilot/` (#4932).
-- `main` also has `.agents/skills/merge/SKILL.md` (#4940), which merges through
-  GitLab merge requests with merge commits and treats `main` as protected.
+- `.gitlab-ci.yml` has the workflow rules of §4.1 and two sets of jobs: the
+  TypeScript pilot (unit tests and test type checking,
+  `saas-linux-medium-amd64`, `ci/typescript-pilot/`, #4932) and
+  `.gitlab/ci/lint.yml`, the jobs of `static-analysis.yml` on
+  `saas-linux-small-amd64` (Phase 2). Secret detection, dependency scanning
+  and advanced SAST jobs (`*-profile-*`) also run in merge request
+  pipelines; they are not defined in the repository and are allowed to
+  fail.
+- "Pipelines must succeed" is on, so a merge request merges only with a
+  green pipeline. The jobs above are the whole gate; the Ruby lanes and the
+  e2e suites run on GitHub after the merge (§2.4, Phase 3).
+- `.agents/skills/merge/SKILL.md` (#4940) merges through GitLab merge
+  requests with merge commits and treats `main` as protected.
 - Branch `ci-pilot/typescript` compared GitLab, CircleCI and GitHub runners for
   the same workload.
 
@@ -200,10 +208,10 @@ is marked as failed." (R11, R13).
   `housekeeping-github-issues.yml`, `housekeeping-lock-threads.yml`.
   Dependabot security updates are off. The repository description points to
   GitLab.
-- Open for the operator: removing the Renovate GitHub app from the
-  repository failed with HTTP 403. While it is installed it can still open
-  pull requests on GitHub; those run the `pull_request` workflows and cannot
-  be merged (inferred). Whether GitHub Issues are turned off is not decided.
+- The Renovate GitHub app is suspended (by the operator, 2026-11-14;
+  removing it through the API had failed with HTTP 403). The pull requests
+  it opened on GitHub after the switch were closed with a pointer to GitLab.
+  Whether GitHub Issues are turned off is not decided.
   Turning them off hides the existing issue pages and breaks links to them;
   leaving them on lets people file issues there.
 
@@ -245,8 +253,10 @@ trigger a workflow run if the workflow file exists on the default branch."
 **What still runs on GitHub.** Read from the trigger blocks in
 `.github/workflows/*.yml`, with the changes above. A push from the mirror
 starts these like any other push; GitHub suppresses only events triggered by
-`GITHUB_TOKEN` (not yet observed for a mirrored push, Appendix B). GitHub
-runs schedules on the default branch, `main`.
+`GITHUB_TOKEN`. Observed on 2026-11-14: the mirrored `develop` push of
+9c94d1fa94 started `ci.yml` and both e2e suites, and the mirrored
+`v0.26.20-rc2` tag started the image build. GitHub runs schedules on the
+default branch, `main`.
 
 | Trigger | Workflows |
 |---|---|
@@ -257,12 +267,11 @@ runs schedules on the default branch, `main`.
 | Weekly schedule | `compose-smoke.yml`, `devcontainer-ci.yml`, `fresh-clone.yml`, `installer.yml` (including its macOS job), `secret-rotation.yml`, `baremetal-boot.yml`, `validate-register.yml` |
 | Dispatch | every workflow with a `workflow_dispatch` trigger that is not disabled |
 
-**What runs nowhere.** No pull requests are opened on GitHub (the Renovate
-app aside, above), so the workflows that have only `pull_request` and
-dispatch triggers run nowhere, unless dispatched by hand, until GitLab has
-their equivalents: `drift-guards.yml` (including its
-`envref-macos` job), `docs-command-drift.yml`, `e2e.yml` (container e2e) and
-`visual.yml`. The pull request runs of the other workflows stop as well:
+**What runs nowhere.** No pull requests are opened on GitHub, so the
+workflows that have only `pull_request` and dispatch triggers run nowhere,
+unless dispatched by hand, until GitLab has their equivalents:
+`drift-guards.yml` (including its `envref-macos` job),
+`docs-command-drift.yml`, `e2e.yml` (container e2e) and `visual.yml`. The pull request runs of the other workflows stop as well:
 path-selected runs of the install and smoke workflows and of
 `migration-tests.yml`, the Bump.sh diff, `static-analysis.yml` on pull
 requests (it still runs on pushes to `main`, not on `develop`), and the
@@ -851,25 +860,82 @@ gate after their baseline is triaged (Phase 6).
 ### 4.9 Dependency updates
 
 - Renovate continues, on GitLab. GitHub `main` and `develop` accept pushes
-  only from the mirror (§2.4), so Renovate on GitHub cannot merge anything.
-  Until Renovate runs on GitLab there are no dependency update merge
-  requests. Host it as a scheduled pipeline in a separate project using
-  `renovate-bot/renovate-runner`, with one bot account for every migrated
-  repository (D11).
-- Config changes: drop `helpers:pinGitHubActionDigests`; replace
-  `vulnerabilityAlerts`, which depends on GitHub's alerts, with
-  `osvVulnerabilityAlerts`; point the custom regex manager at the new YAML.
+  only from the mirror (§2.4), so Renovate on GitHub cannot merge anything,
+  and its GitHub app is suspended (by the operator, 2026-11-14). Until
+  Renovate runs on GitLab there are no dependency update merge requests.
+- Hosting (D11): Renovate runs from a pipeline schedule in the private
+  project `onetimesecret/renovate-runner`, the pattern of Mend's
+  `renovate-bot/renovate-runner` ("We recommend you use a new and dedicated
+  private project to host the Renovate runner"). The runner project's CI/CD
+  configuration file setting is
+  `.gitlab/renovate-runner.gitlab-ci.yml@onetimesecret/onetimesecret:develop`,
+  so the job is reviewed in this repository and Renovate's `gitlabci`
+  manager keeps its image current. This project's own pipeline does not
+  include that file.
+- Credentials: the schedule and two variables, masked and protected, are
+  set in the runner project. `RENOVATE_TOKEN` is a personal access token (scopes `api`,
+  `read_user`, `write_repository`) of a group service account with the
+  Developer role on this project. GitLab's docs on service accounts: "They
+  do not use a seat" and "They cannot sign in to GitLab through the UI".
+  `RENOVATE_GITHUB_COM_TOKEN` is a GitHub token with read access to public
+  repositories, for GitHub Actions digests, `github-tags` lookups and
+  changelogs; without it, the runner's docs say, "github.com's API will
+  rate limit requests and make such lookups unreliable." The job's config
+  is Renovate's global config, which can allow commands, so its source
+  (this project, `develop`) is a literal in the job, and the runner
+  project's "Minimum role to use pipeline variables" is "No one allowed".
+- Mend's hosted app for GitLab.com is not used. It authorizes through
+  GitLab's OAuth sign-in, which a service account cannot complete, so it
+  needs a regular user, and a regular user with the Developer role is a
+  billable seat. On 2026-11-14 the group had a Premium subscription
+  with an Ultimate trial (`ultimate_trial_paid_customer`) and one seat.
+- Config (`.gitlab/renovate.json5`): merge requests target `develop`.
+  Renovate reads a repository's config file from the default branch only
+  ("By default, Renovate will read config file from the default branch
+  only", `useBaseBranchConfig`), and `main` receives `develop` only through
+  promotions. So the runner job sets `requireConfig: ignored` ("repo will
+  be processed while ignoring any config file present") and passes this
+  file, read from `develop`, as Renovate's global config. A change to it
+  takes effect on the first run after it merges into `develop`.
+- Automerge is off; a maintainer merges every update. Only Maintainers may
+  merge into `develop`, and the service account is a Developer; automerge
+  would need that account to have merge rights on `develop`.
+  `automergeStrategy` is gone as well: Renovate does not support it on
+  GitLab.
+- `osvVulnerabilityAlerts` is the source of vulnerability fixes, because
+  `vulnerabilityAlerts` reads GitHub's alerts; its settings still apply to
+  the merge requests the OSV alerts open.
+  `helpers:pinGitHubActionDigests` stays, because the GitHub workflows keep
+  publishing the images (§2.4). The custom regex manager matches the two
+  GitHub workflows that carry `TRANSLATION_RULES_REF` until their GitLab
+  jobs exist.
+- GitLab's dependency scanning auto-remediation (Ultimate, Beta) stays off.
+  It opens merge requests only for vulnerable language dependencies, and
+  its scan results "must be reported on the default branch", which is
+  `main` here. GitLab's design document for it lists as non-goals "Custom
+  dependency managers like the ones supported by Renovate" and "Updating
+  anything other than language dependencies", so it would not replace the
+  Docker digest, GitHub Actions and regex updates above. Dependency
+  scanning itself runs through a security configuration profile (§2.2).
+- The merge requests imported from GitHub that the GitHub app opened
+  (!4826, !4946 to !4953) are closed and their `deps/*` branches deleted, so
+  that Renovate on GitLab does not meet branches it did not create. Their
+  commits stay reachable from the merge requests. `deps/familia-2-x-lockfile`
+  (last commit by a maintainer) and `deps/postgres-17` have no open merge
+  request and are left as they are.
 - Tool versions that no manager tracks today (shellcheck, actionlint, uv,
   bump-cli, bundler-audit) move into the toolchain Dockerfile where Renovate
   can see them.
 - Dependabot security updates are off on GitHub (§2.4). The OSV alerts
   above replace them.
-- The Renovate GitHub app is still installed on the repository; removing it
-  failed with HTTP 403 and is left to the operator. Its pull requests cannot
-  be merged (§2.4).
 - Every Renovate merge request is a pipeline. The current settings
   (`prCreation: immediate`, 10 concurrent, 10 an hour) are a cost on metered
-  runners; a schedule window and grouping reduce it.
+  runners; a schedule window and grouping reduce it. The runner's schedule
+  runs every two hours. A lookup-only run on 2026-11-14 (Renovate 44.198.3,
+  60 seconds) found 699 dependencies, with updates for 262 GitHub Actions
+  references, 79 npm and 34 Bundler dependencies among others. The limit of
+  10 open merge requests paces that backlog, and the Dependency Dashboard
+  issue lists the rest.
 
 ### 4.10 Repository automation and review
 
@@ -997,7 +1063,7 @@ Changes that widen access and need operator approval (C7):
 |---|---|---|
 | P1 | A stored token to push to GHCR | Not needed: GHCR pushes stay in the GitHub workflow with the run's own short-lived token (decided 2026-11-13) |
 | P2 | Privileged job containers | on hosted runners each job has its own VM; on a self-hosted fleet this is root on the runner host |
-| P3 | A bot token with API write for Renovate, triage and merge request notes | new long-lived credential |
+| P3 | A bot token with API write for Renovate, triage and merge request notes | new long-lived credential. Renovate's is a group service account's token, stored only in the private runner project and given only to its job (§4.9). |
 | P4 | The permanent push mirror from GitLab to GitHub, set up on 2026-11-13 after the maintainer's decision (§2.4) | a deploy key with write access (169800417), scoped to this one repository; the rulesets let only that key push `main`, `develop` and `v*` tags. Who can publish: GitLab Maintainers, by creating a `v*` tag; and whoever can push or merge to GitLab `main`, which the GitHub nightly publishes from. GitHub users with write access can still dispatch the publish workflow. |
 | P5 | "Run pipelines in the parent project" for fork merge requests | runs fork code with the parent's runners and variables; recommend disabling it |
 | P6 | The Claude credential is visible to every command of its job in merge request pipelines. | today it is passed to one step; the environment scope limits it to one job, not to one step |
@@ -1211,7 +1277,7 @@ its deploy moves.
 
 | File | Disposition |
 |---|---|
-| `.github/renovate.json5` | move and adapt (§4.9) |
+| `.github/renovate.json5` | moved to `.gitlab/renovate.json5` and adapted (§4.9) |
 | `.github/auth-paths.yml` | becomes a fragment in `.gitlab/ci/rules.yml` |
 | `.github/ISSUE_TEMPLATE/bug_report.yml`, `feature_request.yml`, `pull_request_template.md` | `.gitlab/` templates. Whether the two issue forms stay on GitHub follows the GitHub Issues decision (§2.4). |
 | `.github/ISSUE_TEMPLATE/config.yml` | stays: it points GitHub's issue chooser at GitLab (§2.4) |
@@ -1464,6 +1530,25 @@ GitHub CI are green on `main`.
 - `lint.yml` and `frontend.yml`; retire the pilot job and
   `ci/typescript-pilot/`.
 
+State on 2026-11-14:
+
+- In place: the workflow rules of §4.1 with interruptible jobs;
+  `github-release.yml` on GitHub `main`; "Pipelines must succeed"; and the
+  part of `lint.yml` that `static-analysis.yml` covers: `shell-tests`,
+  `shell-lint`, `logship` on Python 3.11 and 3.14, and `bundler-audit`. Until
+  the toolchain image exists these use public images pinned by digest.
+  `bundler-audit` is allowed to fail while `Gemfile.lock` carries the
+  rodauth (GHSA-26qw-xq5q-hv9w) and sanitize (GHSA-599p-54q3-ff89,
+  GHSA-mg79-gw37-jxx7) advisories. `tools/testsuite/gitlab-lint-pins-test.sh`
+  fails when the tool versions copied into `lint.yml` differ from
+  `static-analysis.yml`.
+- The first exit criterion is met: `v0.26.20-rc2`, tagged on GitLab, was
+  published to both registries and got its GitHub release page.
+- Open: the toolchain image and its guard, inputs and defaults, the lint
+  jobs of `ci.yml` and `drift-guards.yml` in `lint.yml`, `frontend.yml` and
+  the pilot's retirement, `images.yml`, `release.yml`, environments and the
+  protected runner, and Renovate on GitLab (D11).
+
 Exit:
 
 - A release candidate tag created on GitLab reaches GitHub through the
@@ -1479,6 +1564,20 @@ and their tests, reports, migrations, and `e2e.yml` with container e2e,
 full-auth and tenant-connect. `docs/development/auth-ci.md` asks for CI,
 full-auth e2e and tenant-connect e2e to be green on a commit before it is
 tagged.
+
+State on 2026-11-14:
+
+- In place: the `smoke-lane` job in `ruby.yml`, the first Ruby job on
+  GitLab. It runs `tests/lanes/run smoke` on `saas-linux-medium-amd64` with
+  the S1 daemon recipe, as five `bin/ci` steps: `toolchain`, `docker up`,
+  `services up`, `prepare` and `lane` (`tools/ci/`, which has only those
+  commands). It needs no frontend build and waits on no other job.
+- Selection: three path lists in `rules.yml`, `ci`, `ruby` and
+  `typescript`. `tools/testsuite/gitlab-rules-paths-test.sh` fails when
+  `ruby` or `typescript` differs from the `ci.yml` filter of the same name by
+  more than the `/**` rewrite (§4.4).
+- Open: the other lanes, the selection tests for fixture scenarios (§4.4),
+  and the toolchain image, which replaces `bin/ci toolchain`.
 
 Exit, measured on the same commits on both hosts:
 
@@ -1633,7 +1732,7 @@ Consequences, as this plan reads them:
 | D8 | Which AI reviewers continue, and with which triggers | Greptile through its GitLab integration; Claude review as a CI job on merge request open and on the `claude-review` label, with the current skips; defer `@claude` mentions | |
 | D9 | Translation request workflow | Retire. Re-specify on `locales/scripts` if it is still wanted. | with its default input it resolves no locales (inferred), because its paths are gone |
 | D10 | CI metrics port before or after cutover | After | between cutover and the port there is no per-job regression flag on merge requests. The tier budget check is advisory today (`fail-on-violation` is false). |
-| D11 | Renovate hosting | Self-hosted runner project | works on any tier and serves every repository. Renovate on GitHub cannot merge, so until this runs there are no dependency update merge requests (§4.9). |
+| D11 | Renovate hosting | A pipeline schedule in the private project `onetimesecret/renovate-runner`, running as a group service account with the Developer role; automerge off (§4.9). The maintainer's reply to this recommendation on 2026-11-14: "Please go ahead with your recommendations." Mend's hosted app, accepted the same day ("Continue with items 1 and 2"), is not used, because its account would be a billable seat. In effect once the runner project's tokens are stored and its schedule is active. | no seat; CI minutes for each run; a stored token to rotate. Until Renovate runs there are no dependency update merge requests. |
 | D13 | GitLab for Open Source application | Check the profit clause first | cost factor and tier |
 | D14 | Register full scans that are expected to fail | Verify the claim first. If true, mark the full-scan job `allow_failure` until the findings are fixed. | whether `main` and weekly pipelines are red from day one, and whether a promotion that changes locale content can merge; needed before the first promotion on GitLab |
 | D15 | Guard scripts in `scripts/` | Leave them (§5) | scope of the ADR-042 consolidation |
@@ -1889,13 +1988,9 @@ documented or supported in current docs.
 
 Not confirmed: whether the `cache:key:files` limit of 10 is live on
 GitLab.com (assume 2: the 19.5 docs put it behind the feature flag
-`increase_ci_cache_key_files_limit`, "Disabled by default."); whether Mend's
-hosted Renovate app accepts Free or program namespaces; whether Duo external
+`increase_ci_cache_key_files_limit`, "Disabled by default."); whether Duo external
 agents are enabled for program namespaces; whether Bump.sh's tokenless diff
 limits document size or request rate; how "Skip branch pipelines for merge
 requests" treats a long-lived source branch (S8); that a later push cancels
-a scheduled pipeline (read from GitLab's source, not its docs); that a
-mirror push through the deploy key starts the push workflows on GitHub
-(GitHub's page suppresses only events triggered by `GITHUB_TOKEN`, and no
-mirrored push has been checked for runs yet); whether GitHub secret scanning push protection
-applies to the mirror's pushes.
+a scheduled pipeline (read from GitLab's source, not its docs); whether
+GitHub secret scanning push protection applies to the mirror's pushes.

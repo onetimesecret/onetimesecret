@@ -70,9 +70,9 @@ module Core
             }
         else
           # Set a default host if the host is missing
-          uri.host ||= OT.conf['site']['host']
+          uri.host ||= OT.conf.get('site.host')
           # Ensure the scheme is HTTPS if SSL is enabled in the configuration
-          if (OT.conf.dig('site', 'ssl') != false) && (uri.scheme.nil? || uri.scheme != 'https')
+          if (OT.conf.get('site.ssl') != false) && (uri.scheme.nil? || uri.scheme != 'https')
             uri.scheme = 'https'
           end
           # Set uri to nil if it is not an HTTP or HTTPS URI
@@ -174,7 +174,7 @@ module Core
       # this is the password/email POST gate, which never inherits the display
       # SSO carve-out.
       def signin_enabled?
-        global = Onetime::CustomDomain::SigninConfig.global_signin_enabled(auth_settings)
+        global = Onetime::CustomDomain::SigninConfig.global_signin_enabled
         Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_request(
           global,
           domain_signin_config,
@@ -290,7 +290,7 @@ module Core
       #
       # @raise [Onetime::SignupPolicyUnavailable] on an unreadable custom-host policy
       def signup_enabled?
-        global = Onetime::CustomDomain::SignupConfig.global_signup_enabled(auth_settings)
+        global = Onetime::CustomDomain::SignupConfig.global_signup_enabled
         Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_request(
           global,
           domain_signup_config,
@@ -325,10 +325,6 @@ module Core
         req.env['onetime.domain_strategy'] == :custom
       end
 
-      def auth_settings
-        OT.conf.dig('site', 'authentication')
-      end
-
       def signup_config_display_domain
         req.env['onetime.display_domain']
       end
@@ -350,7 +346,7 @@ module Core
       end
 
       def signup_config_auth_setting(key)
-        auth_settings[key]
+        OT.conf.get(['site', 'authentication', key], nil)
       end
 
       # CustomDomain identifier for the request host, or nil.

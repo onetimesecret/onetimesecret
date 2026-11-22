@@ -306,6 +306,30 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
       expect(secret_options['ttl_options'].length).to eq(11)
     end
 
+    # A nil from the config file means "not specified" here: after_load keeps
+    # the DEFAULTS value. 0 is the setting that turns the minimum off.
+    it 'keeps the default passphrase minimum_length when the config sets it to nil' do
+      config         = minimal_config.dup
+      config['site'] = config['site'].merge(
+        'secret_options' => { 'passphrase' => { 'minimum_length' => nil } },
+      )
+
+      processed_config = Onetime::Config.after_load(config)
+
+      expect(processed_config['site']['secret_options']['passphrase']['minimum_length']).to eq(4)
+    end
+
+    it 'keeps a passphrase minimum_length of 0' do
+      config         = minimal_config.dup
+      config['site'] = config['site'].merge(
+        'secret_options' => { 'passphrase' => { 'minimum_length' => 0 } },
+      )
+
+      processed_config = Onetime::Config.after_load(config)
+
+      expect(processed_config['site']['secret_options']['passphrase']['minimum_length']).to eq(0)
+    end
+
     it 'uses values from config file when specified' do
       config = test_config.dup
       processed_config = Onetime::Config.after_load(config)

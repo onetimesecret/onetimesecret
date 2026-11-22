@@ -57,3 +57,5 @@ Two supporting roles complete the picture. Inside the organization, a `manage_bi
 ## Reference points
 
 Kinde's model ([billing model](https://docs.kinde.com/billing/about-billing/kinde-billing-model/), [concepts](https://docs.kinde.com/billing/about-billing/billing-concepts-terms/)) demonstrates the separation in a shipped product: Kinde owns the catalog and agreements, Stripe processes payments, and billing identifiers never collide with tenant identifiers. Kinde's own pricing (MAU plus transaction fee, unlimited organizations) shows the complementary move: choose price metrics that make container count worthless to game.
+
+The [September research note](frontier-billing-services.md) records two leads to verify against vendor documentation. Can an Airwallex subscription move to another customer? Can Orb's customer hierarchy represent one payer for several organizations? If a handoff requires replacing the provider subscription, one proposal is to keep the same application agreement ID across that handoff.

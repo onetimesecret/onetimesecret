@@ -138,9 +138,9 @@ RSpec.describe 'etc/defaults/config.defaults.yaml — admin defaults' do
     # if someone "fixes" the test config to match the shipped one, the colonel
     # suites start gating themselves and this spec explains why they must not.
     it 'disables all three in spec/config.test.yaml' do
-      expect(OT.conf.dig('site', 'admin', 'elevation', 'enabled')).to be false
-      expect(OT.conf.dig('site', 'admin', 'rate_limit', 'enabled')).to be false
-      expect(OT.conf.dig('site', 'admin', 'session', 'enabled')).to be false
+      expect(OT.conf.get('site.admin.elevation.enabled')).to be false
+      expect(OT.conf.get('site.admin.rate_limit.enabled')).to be false
+      expect(OT.conf.get('site.admin.session.enabled')).to be false
     end
   end
 end

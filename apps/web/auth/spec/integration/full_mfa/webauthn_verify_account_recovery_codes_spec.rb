@@ -15,7 +15,7 @@
 # auto_add_missing_recovery_codes). With AUTH_WEBAUTHN_VERIFY_ACCOUNT,
 # POST /auth/verify-account adds the passkey inside the verify transaction
 # (webauthn_verify_account.rb before_verify_account), before the account is
-# verified and before the autologin. Released rodauth (2.45.0 through 2.48.0)
+# verified and before the autologin. Released rodauth (2.45.0 through 2.50.0)
 # keys both the recovery-code lookup and the insert on session_value
 # (recovery_codes.rb recovery_codes_ds and add_recovery_code), so:
 #
@@ -102,7 +102,7 @@ RSpec.describe 'Passkey verify-account with recovery codes auto-added', :full_au
     @verify_app = build_rack_app
     # Building the middleware reinitializes DomainStrategy; keep the shared
     # context's classification of the canonical host.
-    Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
+    Onetime::Middleware::DomainStrategy.initialize_from_config
 
     # The delivery seam: the rendered verification emails, as the publisher
     # would receive them.

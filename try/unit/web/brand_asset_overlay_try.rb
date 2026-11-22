@@ -44,9 +44,9 @@ DEFAULT_PACK         = File.join(Onetime::HOME, 'public', 'branding', 'default')
 OT.conf['site'] ||= {}
 
 # Capture originals so teardown fully restores the no-overlay baseline.
-@orig_assets_dir = OT.conf['site']['brand_assets_dir']
-@orig_pack       = OT.conf['site']['brand_pack']
-@orig_brand      = OT.conf['brand']
+@orig_assets_dir = OT.conf.get('site.brand_assets_dir')
+@orig_pack       = OT.conf.get('site.brand_pack')
+@orig_brand      = OT.conf.get('brand')
 
 # --- Overlay fixtures (absolute temp dirs) --------------------------------
 
@@ -102,13 +102,13 @@ FileUtils.mkdir_p(@public_pack_dir)
 FileUtils.mkdir_p(@vendor_only_dir)
 
 def set_overlay(assets_dir: nil, pack: nil)
-  OT.conf['site']['brand_assets_dir'] = assets_dir
-  OT.conf['site']['brand_pack']       = pack
+  OT.conf.get('site')['brand_assets_dir'] = assets_dir
+  OT.conf.get('site')['brand_pack']       = pack
 end
 
 def clear_overlay
-  OT.conf['site']['brand_assets_dir'] = nil
-  OT.conf['site']['brand_pack']       = nil
+  OT.conf.get('site')['brand_assets_dir'] = nil
+  OT.conf.get('site')['brand_pack']       = nil
 end
 
 # Default-mode (canonical, no custom domain) GetFavicon run through the pipeline.
@@ -144,8 +144,8 @@ File.write(File.join(@e2e_overlay, 'brand-logo.svg'), 'LOGO-OVERLAY-SVG')
 # Inner app: a sentinel 404 so a fall-through (no pack layer served the URL) is
 # unambiguous in the assertions.
 @e2e_app = ->(_env) { [404, { 'content-type' => 'text/plain' }, ['APP-FALLTHROUGH']] }
-@orig_mw = OT.conf['site']['middleware']
-OT.conf['site']['middleware'] = { 'static_files' => true }
+@orig_mw = OT.conf.get('site.middleware')
+OT.conf.get('site')['middleware'] = { 'static_files' => true }
 set_overlay(assets_dir: @e2e_overlay, pack: nil)
 @e2e_client = Rack::MockRequest.new(Onetime::Middleware::StaticFiles.new(@e2e_app))
 # Second stack with NO overlay selected: resolves to the default pack, so
@@ -153,7 +153,7 @@ set_overlay(assets_dir: @e2e_overlay, pack: nil)
 # ships no logo, so /brand-logo.svg must fall through to the app here.
 clear_overlay
 @e2e_default_client = Rack::MockRequest.new(Onetime::Middleware::StaticFiles.new(@e2e_app))
-OT.conf['site']['middleware'] = @orig_mw
+OT.conf.get('site')['middleware'] = @orig_mw
 
 # TRYOUTS
 
@@ -446,8 +446,8 @@ res = @e2e_default_client.get('/brand-logo.svg')
 
 # Teardown — restore the no-overlay baseline and remove fixtures.
 OT.conf['brand']                    = @orig_brand
-OT.conf['site']['brand_assets_dir'] = @orig_assets_dir
-OT.conf['site']['brand_pack']       = @orig_pack
+OT.conf.get('site')['brand_assets_dir'] = @orig_assets_dir
+OT.conf.get('site')['brand_pack']       = @orig_pack
 [@overlay_favicon, @overlay_manifest, @overlay_bad_manifest,
  @overlay_empty, @overlay_partial, @overlay_logo, @overlay_logo_png,
  @overlay_social, @e2e_overlay].each { |d| FileUtils.remove_entry(d) rescue nil }

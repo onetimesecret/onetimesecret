@@ -8,4 +8,5 @@ Fixed
   and the same keys under ``diagnostics.sentry.frontend``. Before, it always
   got ``sampleRate`` 1.0, ``maxBreadcrumbs`` 5 and ``logErrors`` true, so it
   sent every error event instead of the configured share (shipped default
-  0.10).
+  0.10). To keep sending every frontend error event, set
+  ``SENTRY_SAMPLE_RATE=1.0``.

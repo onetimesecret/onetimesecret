@@ -13,7 +13,6 @@ module Auth::Config::Email
             email_address: email_to,
             reset_password_path: reset_password_email_link,
             baseuri: base_url,
-            product_name: OT.conf.dig('site', 'product_name'),
             display_domain: public_display_domain,
           },
           locale: determine_account_locale,

@@ -33,7 +33,7 @@ module V1
       include Onetime::Application::AuthorizationPolicies
 
       attr_reader :sess, :cust, :params, :locale, :processed_params
-      attr_reader :site, :authentication, :domains_enabled
+      attr_reader :domains_enabled
 
       attr_accessor :domain_strategy, :display_domain
 
@@ -78,11 +78,7 @@ module V1
       end
 
       def process_settings
-        @site = OT.conf.fetch('site', {})
-        domains = site.fetch('domains', {})
-        @authentication = site.fetch('authentication', {})
-        domains = site.fetch('domains', {})
-        @domains_enabled = domains['enabled'] || false
+        @domains_enabled = OT.conf.get('features.domains.enabled', false)
       end
 
       def valid_email?(email_field)

@@ -67,7 +67,7 @@ RSpec.describe 'Duplicate-signup verification resend in simple mode (audit dead-
     skip 'requires simple auth mode' if Onetime.auth_config.full_enabled?
 
     # These examples depend on the first signup persisting verified='false'.
-    autoverify = OT.conf.dig('site', 'authentication', 'autoverify')
+    autoverify = OT.conf.get('site.authentication.autoverify')
     # Match production semantics (resolve_autoverify): only the string/boolean
     # 'true' counts as on — a YAML string "false" must not abort the suite.
     raise "Test precondition broken: autoverify must be false in spec/config.test.yaml, got #{autoverify.inspect}" if autoverify.to_s == 'true'

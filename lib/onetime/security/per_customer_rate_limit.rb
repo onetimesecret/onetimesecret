@@ -184,14 +184,15 @@ module Onetime
         Onetime::Customer.dbclient
       end
 
-      def config(policy)
-        OT.conf.get(['features', 'organizations', policy.config_key], {})
+      # features.organizations.<policy config key>.<name>
+      def setting(policy, name, default)
+        OT.conf.get(['features', 'organizations', policy.config_key, name], default)
       end
 
       # Enabled unless config explicitly sets enabled:false. Absent config
       # keeps the protective default on.
       def enabled?(policy)
-        config(policy).fetch('enabled', true) != false
+        setting(policy, 'enabled', true) != false
       end
 
       def max_per_customer(policy)
@@ -216,7 +217,7 @@ module Onetime
       # the way an env-var string does (false.to_i raises), and a raise here
       # would 500 every request. Base 10 so "010" is ten, not octal.
       def positive_setting(policy, key, default)
-        value = Integer(config(policy)[key].to_s, 10, exception: false)
+        value = Integer(setting(policy, key, nil).to_s, 10, exception: false)
         value&.positive? ? value : default
       end
     end

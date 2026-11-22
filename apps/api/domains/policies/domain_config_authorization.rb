@@ -184,7 +184,7 @@ module DomainsAPI
       def verify_feature_flag!(domain_id)
         flag = config_feature_flag
         return if flag.nil?
-        return if OT.conf.dig('features', 'organizations', flag)
+        return if OT.conf.get(['features', 'organizations', flag], nil)
 
         OT.info format('[%s] Authorization denied: %s feature flag disabled', config_log_tag, flag),
           { domain_id: domain_id, actor: cust&.custid }.to_json

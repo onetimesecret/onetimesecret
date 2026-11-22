@@ -537,15 +537,17 @@ module Onetime
         SCOPES.fetch(scope)
       end
 
-      def reset_request_rate_limit_config(scope = :reset_request)
-        OT.conf.get(['site', 'authentication', reset_request_scope(scope).config_key], {})
+      # site.authentication.<scope config key>.<name>, e.g.
+      # site.authentication.reset_request_rate_limit.max_per_ip.
+      def reset_request_setting(scope, name, default)
+        OT.conf.get(['site', 'authentication', reset_request_scope(scope).config_key, name], default)
       end
 
       # Enabled unless config explicitly sets enabled:false. Absent config
       # keeps the protective default on; the test config disables it so
       # full-mode specs are not throttled.
       def reset_request_rate_limit_enabled?(scope = :reset_request)
-        reset_request_rate_limit_config(scope).fetch('enabled', true) != false
+        reset_request_setting(scope, 'enabled', true) != false
       end
 
       def reset_request_max_per_ip(scope = :reset_request)
@@ -571,7 +573,7 @@ module Onetime
       # non-positive lockout makes the Lua SETEX fail, turning every reset
       # request into a 500 instead of a throttle.
       def positive_reset_request_setting(key, default, scope = :reset_request)
-        value = reset_request_rate_limit_config(scope)[key].to_i
+        value = reset_request_setting(scope, key, nil).to_i
         value.positive? ? value : default
       end
 

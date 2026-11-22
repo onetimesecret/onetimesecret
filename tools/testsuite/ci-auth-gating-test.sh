@@ -96,7 +96,7 @@ def outputs(text):
 def defaults():
     return {key: "false" for key in (
         "SKIP_CI", "RUN_ALL", "GA_WORKFLOWS", "FILTER_RUBY",
-        "FILTER_TYPESCRIPT", "FILTER_FRONTEND", "FILTER_OCI", "FILTER_HARNESS",
+        "FILTER_TYPESCRIPT", "FILTER_FRONTEND", "FILTER_OCI",
         "FILTER_AUTH", "NIGHTLY",
     )}
 
@@ -109,15 +109,15 @@ def compute_cases():
     for values in itertools.product(("false", "true"), repeat=len(keys)):
         inputs = dict(zip(keys, values))
         if inputs["SKIP_CI"] == "true":
-            expected = dict.fromkeys(("ruby", "typescript", "frontend", "oci", "harness", "auth",
+            expected = dict.fromkeys(("ruby", "typescript", "frontend", "oci", "auth",
                                       "billing_nightly", "ga_workflow_files"), "false")
         elif inputs["RUN_ALL"] == "true" or inputs["GA_WORKFLOWS"] == "true":
-            expected = dict.fromkeys(("ruby", "typescript", "frontend", "oci", "harness", "auth",
+            expected = dict.fromkeys(("ruby", "typescript", "frontend", "oci", "auth",
                                       "ga_workflow_files"), "true")
             expected["billing_nightly"] = inputs["NIGHTLY"]
         else:
             expected = {key: inputs["FILTER_" + key.upper()]
-                        for key in ("ruby", "typescript", "frontend", "oci", "harness", "auth")}
+                        for key in ("ruby", "typescript", "frontend", "oci", "auth")}
             expected["billing_nightly"] = inputs["NIGHTLY"]
             expected["ga_workflow_files"] = "false"
         for file_mode in (False, True):
@@ -134,7 +134,7 @@ def compute_cases():
                     expected = {**expected, "existing": "kept"}
                 check(actual == expected,
                       f"compute {inputs}, file={file_mode}: expected {expected}, got {actual}")
-    print("  1024 compute/output-mode cases", flush=True)
+    print("  512 compute/output-mode cases", flush=True)
 
 
 def invalid_auth():
@@ -174,13 +174,13 @@ def selector_independence():
         check(computed.returncode == 0, f"selection: {computed.stderr}")
         check(outputs(computed.stdout) == {
             "ruby": "false", "auth": "true", "typescript": "false", "frontend": "false",
-            "oci": "false", "harness": "false", "billing_nightly": "false", "ga_workflow_files": "false",
+            "oci": "false", "billing_nightly": "false", "ga_workflow_files": "false",
         }, f"label/path/event auth is its own flag and must not turn on Ruby or any other filter: {computed.stdout}")
     computed = run(compute, {**defaults(), "NIGHTLY": "true", "GITHUB_OUTPUT": ""})
     check(computed.returncode == 0, f"nightly selection: {computed.stderr}")
     check(outputs(computed.stdout) == {
         "ruby": "false", "auth": "false", "typescript": "false", "frontend": "false",
-        "oci": "false", "harness": "false", "billing_nightly": "true", "ga_workflow_files": "false",
+        "oci": "false", "billing_nightly": "true", "ga_workflow_files": "false",
     }, f"the nightly flag is its own flag and must not turn on Ruby, auth or any other filter: {computed.stdout}")
     inputs = defaults()
     del inputs["NIGHTLY"]
@@ -230,7 +230,9 @@ def triggers():
           + "-" + expression("github.ref")
           + expression("github.ref == 'refs/heads/develop' && format('-{0}', github.sha) || ''"),
           "one concurrency group per ref, one per commit on develop")
-    check(scalar(concurrency, "cancel-in-progress", 2) == "true", "a new push supersedes the run before it")
+    check(scalar(concurrency, "cancel-in-progress", 2)
+          == expression("!startsWith(github.ref, 'refs/tags/v')"),
+          "release tag runs queue so image publication can finish")
 
 
 def shared_wiring():
@@ -255,7 +257,7 @@ def shared_wiring():
         "SKIP_CI": "steps.check-flags.outputs.skip_ci", "RUN_ALL": "steps.check-flags.outputs.run_all",
         "GA_WORKFLOWS": "steps.filter.outputs.ga_workflow_files", "FILTER_AUTH": "steps.auth.outputs.auth",
         **{"FILTER_" + name.upper(): "steps.filter.outputs." + name
-           for name in ("ruby", "typescript", "frontend", "oci", "harness")},
+           for name in ("ruby", "typescript", "frontend", "oci")},
         # The nightly-only selection is the event, never a path filter output:
         # the schedule, a release tag, or a dispatch with run_all.
         "NIGHTLY": "github.event_name == 'schedule' || "
@@ -269,14 +271,15 @@ def shared_wiring():
 
 
 def prerequisites_and_gates():
-    for job_id in ("ruby-lint", "ruby-unit"):
+    for job_id in ("ruby-lint", "ruby-unit", "ruby-billing"):
         job = block(jobs, job_id, 2)
         check("needs.changes.outputs.ruby == 'true'" in job, f"Ruby changes select {job_id}")
         check("needs.changes.outputs.auth" not in job, f"auth selection alone must not run {job_id}")
     check(scalar(block(jobs, "build-assets", 2), "if", 4) ==
           "needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ruby == 'true' "
+          "|| needs.changes.outputs.typescript == 'true' "
           "|| needs.changes.outputs.auth == 'true' || needs.changes.outputs.billing_nightly == 'true'",
-          "auth-only and nightly-only selection still get the frontend build their jobs download")
+          "TypeScript-only, auth-only and nightly-only selection still get the frontend build their jobs download")
     browser = block(jobs, "ruby-auth-browser", 2)
     integration = block(jobs, "ruby-integration-auth", 2)
     for job_id, job in (("ruby-auth-browser", browser), ("ruby-integration-auth", integration)):
@@ -291,8 +294,10 @@ def prerequisites_and_gates():
         "(needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped') && "
         "!contains(needs.*.result, 'cancelled')"
     ), "auth jobs run independently of Ruby output, accept successful/skipped prerequisites, reject failure/cancel")
-    # The three billing jobs share one nightly-only gate: the billing lane's
-    # job defines it, the overlay matrix and billing's integration lane reuse it.
+    # The billing lane runs with the other Ruby jobs, on ruby-unit's gate:
+    # the smoke lane used to run its specs on every Ruby change, so this job
+    # keeps that coverage. The overlay matrix and billing's integration lane
+    # share one nightly-only gate, which the overlay matrix defines.
     unit_billing = block(jobs, "ruby-billing", 2)
     billing = block(jobs, "ruby-integration-billing", 2)
     integration_billing = block(jobs, "ruby-billing-integration", 2)
@@ -301,16 +306,20 @@ def prerequisites_and_gates():
         check(scalar(job, "needs", 4) == "[changes, ruby-lint, build-assets]",
               f"{job_id}: same lint/assets prerequisites as the other test jobs")
         check(not re.search(r"^    continue-on-error:", job, re.M), f"{job_id} remains blocking")
-        check("needs.changes.outputs.ruby" not in job, f"a Ruby change alone must not run {job_id}")
-    check(scalar(unit_billing, "if", 4) == "&if-billing-nightly |", "ruby-billing defines the shared nightly gate")
+    check(" ".join(block(unit_billing, "if", 4).split()) == " ".join(block(block(jobs, "ruby-unit", 2), "if", 4).split()),
+          "ruby-billing runs on ruby-unit's gate")
+    check("billing_nightly" not in unit_billing, "the nightly flag does not gate the billing lane")
     for job_id, job in (("ruby-integration-billing", billing), ("ruby-billing-integration", integration_billing)):
-        check(scalar(job, "if", 4) == "*if-billing-nightly", f"{job_id} uses the same nightly gate")
-    check(" ".join(block(unit_billing, "if", 4).split()) == (
+        check("needs.changes.outputs.ruby" not in job, f"a Ruby change alone must not run {job_id}")
+    check(scalar(billing, "if", 4) == "&if-billing-nightly |", "ruby-integration-billing defines the shared nightly gate")
+    check(scalar(integration_billing, "if", 4) == "*if-billing-nightly",
+          "ruby-billing-integration uses the same nightly gate")
+    check(" ".join(block(billing, "if", 4).split()) == (
         "always() && needs.changes.outputs.billing_nightly == 'true' && "
         "(needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') && "
         "(needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped') && "
         "!contains(needs.*.result, 'cancelled')"
-    ), "billing runs on the nightly flag alone, not on a path, Ruby or auth selection")
+    ), "the nightly billing jobs run on the nightly flag alone, not on a path, Ruby or auth selection")
     check(re.findall(r"^          lane: (.+)$", integration_billing, re.M) == ["billing-integration"],
           "ruby-billing-integration runs the billing-integration lane and nothing else")
     check("results-file: 'rspec_billing_integration_results.json'" in integration_billing,
@@ -320,7 +329,7 @@ def prerequisites_and_gates():
           == expression("steps.compute.outputs.billing_nightly"),
           "changes publishes the nightly billing integration flag")
     check(not re.search(r"^            billing:$", changes, re.M),
-          "no billing path filter: nothing on a pull request selects the billing jobs")
+          "no billing path filter: nothing on a pull request selects the nightly billing jobs")
     simple = block(jobs, "ruby-integration-simple", 2)
     check(scalar(simple, "if", 4) == "&if-ruby-integration |", "general Ruby gate remains shared")
     check("needs.changes.outputs.ruby == 'true'" in block(simple, "if", 4)
@@ -415,8 +424,10 @@ def browser_extraction():
     # The last step of the job, so the slice runs to the job's end.
     check("      - name: Run harness lane\n" in unit, "unit job has the harness lane step")
     harness = unit[unit.index("      - name: Run harness lane\n"):]
-    check(scalar(harness, "if", 8) == expression("!cancelled() && needs.changes.outputs.harness == 'true'"),
-          "the harness lane runs only when a path its specs exercise changed, and after a red unit lane")
+    check(scalar(harness, "if", 8) == expression("!cancelled()"),
+          "the harness lane runs on every run of the unit job, and after a red unit lane")
+    check("outputs.harness" not in workflow and not re.search(r"^            harness:$", workflow, re.M),
+          "no harness path flag: the step follows the unit job's Ruby gate")
     check("results-file: 'rspec_harness_results.json'" in harness, "harness results file is its own artifact")
     check(not re.search(r"playwright|lane: browser|tests/browser", executable(unit), re.I),
           "ordinary Ruby unit job must not install or execute browsers")

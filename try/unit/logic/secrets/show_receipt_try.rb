@@ -60,11 +60,11 @@ res.keys
 [:record, :details]
 #=> [:record, :details]
 
-## Has some essential settings
+## Reads features.domains.enabled into domains_enabled
 params = {}
 logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
-[logic.site['host'], logic.authentication['enabled'], logic.domains_enabled]
-#=> ["127.0.0.1:3000", true, false]
+logic.domains_enabled
+#=> false
 
 ## Raises an exception when there's no receipt (no receipt param)
 params = {}
@@ -116,7 +116,7 @@ params = {
 }
 @this_logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
 @this_logic.process
-"https://#{@this_logic.site['host']}"
+"https://#{OT.conf.get('site.host')}"
 #=> @this_logic.share_domain
 
 ## Share domain is still site.host even when the receipt has it set if domains is not enabled
@@ -127,7 +127,7 @@ params = {
 }
 @this_logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
 @this_logic.process
-["https://#{@this_logic.site['host']}", @this_logic.domains_enabled]
+["https://#{OT.conf.get('site.host')}", @this_logic.domains_enabled]
 #=> [@this_logic.share_domain, false]
 
 ## Share domain is processed correctly when the receipt has it set and domains is enabled

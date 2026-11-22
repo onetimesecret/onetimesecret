@@ -241,9 +241,9 @@ module V1
         v1_metadata_url = opts[:metadata_url]
         if v1_metadata_url.nil? || v1_metadata_url.to_s.empty?
           domain = hsh.fetch('share_domain', nil).to_s
-          domain = Onetime.conf.dig('site', 'host').to_s if domain.empty?
+          domain = Onetime.conf.get('site.host').to_s if domain.empty?
           unless domain.empty?
-            scheme = Onetime.conf.dig('site', 'ssl') ? 'https://' : 'http://'
+            scheme = Onetime.conf.get('site.ssl') ? 'https://' : 'http://'
             v1_metadata_url = "#{scheme}#{domain}/receipt/#{md.identifier}"
           end
         end

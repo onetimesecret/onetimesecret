@@ -44,7 +44,6 @@ module Core
         }.freeze
 
         def process_params
-          @brand        = OT.conf.fetch('brand', {}) || {}
           @content_type = CONTENT_TYPE
         end
 
@@ -55,8 +54,8 @@ module Core
         def process
           manifest = load_base_manifest
 
-          product_name  = @brand['product_name']
-          primary_color = @brand['primary_color']
+          product_name  = OT.conf.get('brand.product_name', nil)
+          primary_color = OT.conf.get('brand.primary_color', nil)
 
           unless product_name.to_s.strip.empty?
             manifest['name']       = product_name

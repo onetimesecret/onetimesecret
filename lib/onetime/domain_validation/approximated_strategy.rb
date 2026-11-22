@@ -41,16 +41,14 @@ module Onetime
       # Seconds between domains in a bulk run, to stay under the API rate cap.
       BULK_RATE_LIMIT = 0.5
 
-      attr_reader :client, :config, :txt_verifier
+      attr_reader :client, :txt_verifier
 
-      # @param config [Hash] Application configuration (typically OT.conf)
       # @param client [Module] HTTP client module (default: ApproximatedClient)
       # @param txt_verifier [#verify] Native TXT check used when the upstream
       #   checker is indeterminate (default: TxtVerifier). Injected so specs
       #   never touch the network.
       #
-      def initialize(config, client: ApproximatedClient, txt_verifier: TxtVerifier.new)
-        @config       = config
+      def initialize(client: ApproximatedClient, txt_verifier: TxtVerifier.new)
         @client       = client
         @txt_verifier = txt_verifier
       end

@@ -11,7 +11,7 @@ ADR-015).
 
 - ADR-015 is accepted, but none of it is implemented.
 - `CustomDomain` has no `validation_strategy` field.
-- `Strategy.for_config(config)` (`lib/onetime/domain_validation/strategy.rb:38`)
+- `Strategy.for_config` (`lib/onetime/domain_validation/strategy.rb:37`)
   takes only the global config.
 - Issue #4780 (outstanding domain validation items) does not list this work.
 

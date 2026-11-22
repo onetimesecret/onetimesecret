@@ -25,30 +25,22 @@ end
 @controller = TestHomepageController.new({})
 
 ## IP Matching - IPv4 Match
-@controller.instance_variable_set(:@cidr_matchers, @controller.compile_homepage_cidrs({
-  'matching_cidrs' => ['10.0.0.0/8']
-}))
+@controller.instance_variable_set(:@cidr_matchers, @controller.compile_homepage_cidrs(['10.0.0.0/8']))
 @controller.ip_matches_homepage_cidrs?('10.0.1.100')
 #=> true
 
 ## IP Matching - IPv4 No Match
-@controller.instance_variable_set(:@cidr_matchers, @controller.compile_homepage_cidrs({
-  'matching_cidrs' => ['10.0.0.0/8']
-}))
+@controller.instance_variable_set(:@cidr_matchers, @controller.compile_homepage_cidrs(['10.0.0.0/8']))
 @controller.ip_matches_homepage_cidrs?('192.168.1.1')
 #=> false
 
 ## IP Matching - Multiple CIDRs
-@controller.instance_variable_set(:@cidr_matchers, @controller.compile_homepage_cidrs({
-  'matching_cidrs' => ['10.0.0.0/8', '192.168.0.0/16', '172.16.0.0/12']
-}))
+@controller.instance_variable_set(:@cidr_matchers, @controller.compile_homepage_cidrs(['10.0.0.0/8', '192.168.0.0/16', '172.16.0.0/12']))
 @controller.ip_matches_homepage_cidrs?('192.168.1.100')
 #=> true
 
 ## IP Matching - Empty IP
-@controller.instance_variable_set(:@cidr_matchers, @controller.compile_homepage_cidrs({
-  'matching_cidrs' => ['10.0.0.0/8']
-}))
+@controller.instance_variable_set(:@cidr_matchers, @controller.compile_homepage_cidrs(['10.0.0.0/8']))
 @controller.ip_matches_homepage_cidrs?('')
 #=> false
 

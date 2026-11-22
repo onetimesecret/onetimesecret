@@ -1205,8 +1205,8 @@ module Billing
         #
         # @return [String] Base URL, e.g. "https://example.com"
         def billing_base_url
-          site_host = Onetime.conf['site']['host']
-          is_secure = Onetime.conf.dig('site', 'ssl') != false
+          site_host = Onetime.conf.get('site.host')
+          is_secure = Onetime.conf.get('site.ssl') != false
           protocol  = is_secure ? 'https' : 'http'
           "#{protocol}://#{site_host}"
         end

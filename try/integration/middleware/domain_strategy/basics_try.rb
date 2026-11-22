@@ -17,14 +17,12 @@ OT.boot! :test, false
 # Basic Configuration Tests
 
 ## Config initialization with domains enabled
-config = { 'enabled' => true, 'default' => @canonical_domain }
-Onetime::Middleware::DomainStrategy.initialize_from_config(config)
+Onetime::Middleware::DomainStrategy.configure(enabled: true, default: @canonical_domain)
 Onetime::Middleware::DomainStrategy.canonical_domain
 #=> 'onetimesecret.com'
 
 ## Config initialization with domains disabled uses fallback host
-config = { 'enabled' => false }
-Onetime::Middleware::DomainStrategy.initialize_from_config(config)
+Onetime::Middleware::DomainStrategy.configure(enabled: false)
 Onetime::Middleware::DomainStrategy.canonical_domain
 #=> '127.0.0.1:3000'
 
@@ -105,27 +103,22 @@ long_subdomain = ('a' * 63) + '.onetimesecret.com'
 #=> :subdomain
 
 # Configuration Error Tests
-## Raises on nil config
+## configure requires the enabled value
 begin
-  Onetime::Middleware::DomainStrategy.initialize_from_config(nil)
+  Onetime::Middleware::DomainStrategy.configure(default: 'example.com')
 rescue ArgumentError
   true
 end
 #=> true
 
 ## Disables domains when canonical domain is invalid
-config = { 'enabled' => true, 'default' => '..invalid..' }
-Onetime::Middleware::DomainStrategy.initialize_from_config(config)
+Onetime::Middleware::DomainStrategy.configure(enabled: true, default: '..invalid..')
 Onetime::Middleware::DomainStrategy.domains_enabled?
 #=> false
 
 ## DomainStrategy class method 'canonical_domain' returns the correct domain when domains enabled with default
-config_with_domains = {
-  'enabled' => true,
-  'default' => 'example.com',
-}
 Onetime::Middleware::DomainStrategy.reset!
-Onetime::Middleware::DomainStrategy.initialize_from_config(config_with_domains)
+Onetime::Middleware::DomainStrategy.configure(enabled: true, default: 'example.com')
 Onetime::Middleware::DomainStrategy.canonical_domain
 #=> 'example.com'
 

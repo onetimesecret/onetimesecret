@@ -200,7 +200,7 @@ run_put(@test_cust, @test_domain, { 'enabled' => true, 'allowed_cidrs' => exactl
 # --- PUT: platform flag (features.organizations.homepage_network_rules_ui_enabled) ---
 
 ## The test config leaves the flag off, the shipped default
-OT.conf.dig('features', 'organizations', 'homepage_network_rules_ui_enabled')
+OT.conf.get('features.organizations.homepage_network_rules_ui_enabled')
 #=> false
 
 ## With the flag off, sending a list is a forbidden error on that field, clearing included

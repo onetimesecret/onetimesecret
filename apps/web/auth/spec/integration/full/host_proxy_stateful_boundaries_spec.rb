@@ -205,7 +205,7 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
   end
 
   def with_rewrite(value)
-    network                        = (OT.conf['site']['network'] ||= {})
+    network                        = (OT.conf.get('site')['network'] ||= {})
     saved                          = network['public_host_rewrite']
     network['public_host_rewrite'] = value
     yield
@@ -249,12 +249,12 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
   # Onetime::Session takes these when the stack is built, which is the
   # example's first request.
   def with_session_cookie_config(secure:, same_site:)
-    session = OT.conf['site']['session']
-    saved   = session.slice('secure', 'same_site')
+    session = OT.conf.get('site.session')
+    saved   = session.dup
     session.merge!('secure' => secure, 'same_site' => same_site)
     yield
   ensure
-    session.merge!(saved)
+    session.replace(saved)
   end
 
   # Onetime::Session sits above the rewrite and commits the session after the
@@ -295,8 +295,8 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
   describe 'HTTPS policy through the complete mounted stack' do
     [false, true].product([false, true], [false, true]).each do |assume, trusted, rewrite|
       it "HP-HTTPS-01: persists Secure sessions with assume_https=#{assume}, trusted=#{trusted}, rewrite=#{rewrite}" do
-        network = OT.conf['site']['network']
-        saved = network.slice('assume_https', 'trusted_proxy', 'public_host_rewrite')
+        network = OT.conf.get('site.network')
+        saved = network.dup
         network.merge!(
           'assume_https' => assume,
           'public_host_rewrite' => rewrite,
@@ -345,7 +345,7 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
           end
         end
       ensure
-        saved.each { |key, value| network[key] = value } if saved
+        network.replace(saved) if saved
       end
     end
   end
@@ -353,7 +353,7 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
   [false, true].each do |rewrite|
     context "public_host_rewrite #{rewrite ? 'on' : 'off'}" do
       around do |example|
-        network = (OT.conf['site']['network'] ||= {})
+        network = (OT.conf.get('site')['network'] ||= {})
         saved = network['public_host_rewrite']
         network['public_host_rewrite'] = rewrite
         example.run
@@ -622,12 +622,12 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
       # anonymous, so AuthenticityToken lets it through: this mount decides.
       describe 'HttpOrigin on the Onetime::Middleware::Security mount' do
         def security_http_origin(value)
-          middleware                = (OT.conf['site']['middleware'] ||= {})
+          middleware                = (OT.conf.get('site')['middleware'] ||= {})
           @saved_http_origin        = middleware['http_origin']
           middleware['http_origin'] = value
         end
 
-        after { OT.conf['site']['middleware']['http_origin'] = @saved_http_origin }
+        after { OT.conf.get('site.middleware')['http_origin'] = @saved_http_origin }
 
         it 'HP-ORIGIN-S00: leaves a foreign Origin alone while site.middleware.http_origin is off (control)' do
           security_http_origin(false)

@@ -778,7 +778,6 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
     #   :sso_not_permitted         - SigninConfig withholds SSO for the domain
     #
     # @param domain_id [String] CustomDomain identifier (objid)
-    # @param auth [Hash, nil] site.authentication settings (injectable for tests)
     # @param sso_config [Onetime::CustomDomain::SsoConfig, nil] the caller's
     #   already-loaded record for domain_id, skipping the redundant lookup
     #   (the omniauth request hook loads it anyway for credential
@@ -789,8 +788,8 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
     #   loaded domain record. A record whose identifier does not match is
     #   ignored and resolved through the SsoConfig association instead.
     # @return [Symbol, nil] the failing rung, or nil when tenant SSO is available
-    def tenant_sso_unavailable_reason(domain_id, auth: nil, sso_config: nil, custom_domain: nil)
-      return :auth_disabled unless Onetime::CustomDomain::SigninConfig.global_auth_enabled(auth)
+    def tenant_sso_unavailable_reason(domain_id, sso_config: nil, custom_domain: nil)
+      return :auth_disabled unless Onetime::CustomDomain::SigninConfig.global_auth_enabled
 
       config = sso_config&.domain_id == domain_id ? sso_config : find_by_domain_id(domain_id)
       return :no_sso_config if config.nil?
@@ -819,14 +818,13 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
     # sso_config: pass-through contract). Identical parameters.
     #
     # @param domain_id [String] CustomDomain identifier (objid)
-    # @param auth [Hash, nil] site.authentication settings (injectable for tests)
     # @param sso_config [Onetime::CustomDomain::SsoConfig, nil] caller's
     #   already-loaded record for domain_id (mismatched records ignored)
     # @param custom_domain [Onetime::CustomDomain, nil] caller's already-
     #   loaded domain record (mismatched records ignored)
     # @return [Boolean] true if tenant SSO can be used to sign in
-    def tenant_sso_available_for?(domain_id, auth: nil, sso_config: nil, custom_domain: nil)
-      tenant_sso_unavailable_reason(domain_id, auth: auth, sso_config: sso_config, custom_domain: custom_domain).nil?
+    def tenant_sso_available_for?(domain_id, sso_config: nil, custom_domain: nil)
+      tenant_sso_unavailable_reason(domain_id, sso_config: sso_config, custom_domain: custom_domain).nil?
     end
 
     # Whether ANY SSO sign-in path is offered on a CUSTOM DOMAIN host —
@@ -863,13 +861,12 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
     # them here would advertise buttons the runtime refuses.
     #
     # @param domain_id [String, nil] CustomDomain identifier (objid)
-    # @param auth [Hash, nil] site.authentication settings (injectable for tests)
     # @return [Boolean] true if the host offers some SSO sign-in path
-    def sso_available_for_tenant_host?(domain_id, auth: nil)
-      return true if domain_id && tenant_sso_available_for?(domain_id, auth: auth)
+    def sso_available_for_tenant_host?(domain_id)
+      return true if domain_id && tenant_sso_available_for?(domain_id)
       return false unless Onetime.auth_config.allow_platform_fallback_for_tenants? && Onetime.auth_config.sso_enabled?
-      return false unless Onetime::CustomDomain::SigninConfig.global_auth_enabled(auth)
-      return false if domain_id && Onetime::CustomDomain::SigninConfig.tenant_sso_awaiting_verification?(domain_id, auth: auth)
+      return false unless Onetime::CustomDomain::SigninConfig.global_auth_enabled
+      return false if domain_id && Onetime::CustomDomain::SigninConfig.tenant_sso_awaiting_verification?(domain_id)
 
       Onetime.auth_config.sso_providers.any? do |provider|
         route_name = provider['route_name'].to_s

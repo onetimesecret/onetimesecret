@@ -122,7 +122,7 @@ RSpec.describe V2::Logic::Secrets::ShowReceipt, type: :integration do
       # is the enforcement point for the "one time" guarantee. Before #3633 the
       # previewed! state mutation bounded it; now an atomic claim does, so a
       # second load must return nil even inside the display window.
-      display_ttl = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
+      display_ttl = OT.conf.get('site.secret_options.generated_value_display_ttl').to_i
       expect(display_ttl).to be_positive # config sanity: the value path is dead at 0
 
       receipt.kind = 'generate'
@@ -144,12 +144,28 @@ RSpec.describe V2::Logic::Secrets::ShowReceipt, type: :integration do
       expect(Onetime::Receipt.load(receipt.identifier).state).to eq('new')
     end
 
+    it 'does not reveal a generated secret when generated_value_display_ttl is zero' do
+      receipt.kind = 'generate'
+      receipt.save_fields(:kind)
+      secret_options = OT.conf.get('site.secret_options')
+      saved_ttl      = OT.conf.get('site.secret_options.generated_value_display_ttl')
+      secret_options['generated_value_display_ttl'] = 0
+
+      logic = build_logic({ 'identifier' => receipt.identifier })
+      logic.process_params
+      logic.raise_concerns
+
+      expect(logic.process[:details][:secret_value]).to be_nil
+    ensure
+      secret_options['generated_value_display_ttl'] = saved_ttl if secret_options
+    end
+
     it 'skips the generated-value reveal on a SECRET mismatch without burning the one-shot claim (C10)' do
       # A mismatched SECRET can't decrypt anything, and decrypt raises *after*
       # claim_secret_value_display! consumes the one-shot slot. Gating the claim
       # on verifier state must leave the slot intact so the value is still
       # revealable once SECRET is restored (non-destructive contract).
-      display_ttl = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
+      display_ttl = OT.conf.get('site.secret_options.generated_value_display_ttl').to_i
       expect(display_ttl).to be_positive
 
       receipt.kind = 'generate'
