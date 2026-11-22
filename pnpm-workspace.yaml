@@ -52,7 +52,7 @@ overrides:
   js-yaml: '>=4.3.2 <5'
   # GHSA-253c-mchw-3w2r fixed in 14.3.1 (and 15.0.1). Every consumer asks for
   # ^14.1.0; the cap keeps a re-resolve from jumping to v15.
-  markdown-it: '^14.3.1'
+  markdown-it: '^14.3.3'
   # CVE-2026-67213 / GHSA-2v37-7h3g-55p8 fixed in 3.3.18 (v3 line, via postcss).
   # The v5 line is a direct dependency, pinned in package.json above 5.1.6.
   'nanoid@3': '^3.3.18'
