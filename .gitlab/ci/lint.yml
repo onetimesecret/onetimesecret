@@ -50,11 +50,9 @@ logship:
     - bin/logship --help
     - bin/testsuite logship -q
 
-# Gemfile.lock against the Ruby advisory database. Allowed to fail while the
-# lock carries known advisories: rodauth 2.48.0 (GHSA-26qw-xq5q-hv9w, fixed in
-# 2.50.0) and sanitize 7.0.1 (GHSA-599p-54q3-ff89 and GHSA-mg79-gw37-jxx7,
-# fixed in 7.0.2). Remove allow_failure once the lock is clean, so that a new
-# advisory blocks merges.
+# The lock still pins the Rodauth fork at 2.50.0. GHSA-jv3v-q542-9c26 is
+# fixed upstream in 2.51.0. Remove allow_failure when the fork is updated
+# and the lock passes this audit, so future advisories block merges.
 bundler-audit:
   stage: lint
   image: ruby:3.4.10-trixie@sha256:ce3b7a999d9e430e59e1a12456c631fbea3dd18948c89cf8a913c3566c77b2ae
