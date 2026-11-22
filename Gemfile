@@ -63,23 +63,13 @@ source 'https://rubygems.org/'
 gem 'otto', '~> 2.13'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
-# rodauth comes from the onetimesecret fork, pinned to a commit: upstream
-# master at 50e08b71 (2.50.0 and the four commits after it) plus two fixes
-# that are in no rodauth release (onetimesecret/rodauth#3). The verify route
-# deletes the verify account key again instead of rotating it (rotation since
-# 2.46). Recovery codes added while a passkey verifies an account go to that
-# account instead of a nil session id, which failed the verification with
-# AUTH_MFA_ENABLED and AUTH_WEBAUTHN_VERIFY_ACCOUNT both on.
-#
-# 2.50.0 fixes GHSA-26qw-xq5q-hv9w: an OTP code for a later time step,
-# accepted through otp_drift, was accepted again 30 seconds after its use.
-# The pin is past the 2.50.0 tag because the release refuses the code for the
-# time step right after the last use on PostgreSQL and MySQL (upstream
-# 82a25ce6 and 50e08b71). The fork's version reads 2.50.0; the GIT section in
-# Gemfile.lock is what distinguishes it from the release.
+# Rodauth 2.51.0 includes the WebAuthn fix for GHSA-jv3v-q542-9c26.
+# The fork retains the two changes from onetimesecret/rodauth#3: delete the
+# verification key after account verification, and use the account being
+# verified when adding recovery codes during passkey signup.
 gem 'rodauth',
   git: 'https://github.com/onetimesecret/rodauth.git',
-  ref: '4257c21b427eaacbbb3328329df9e5c7884ed3fb'
+  ref: 'a08f72421045306fc424ad59bf2d63f3d2b7d455'
 # Forked to add `oauth_mount_prefix`, which fixes the Rack::URLMap mount-prefix
 # mismatch (discovery URLs, issuer, and per-endpoint CSRF exemptions losing the
 # `/auth` mount point) at the gem level — see onetimesecret/onetimesecret#3465

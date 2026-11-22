@@ -1,0 +1,7 @@
+Security
+--------
+
+- Update passkey sign-in for `GHSA-jv3v-q542-9c26
+  <https://github.com/jeremyevans/rodauth/security/advisories/GHSA-jv3v-q542-9c26>`_.
+  If a passkey prompt opened before the upgrade fails, start sign-in again
+  to get a fresh prompt.
