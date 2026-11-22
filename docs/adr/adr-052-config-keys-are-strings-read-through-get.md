@@ -50,7 +50,10 @@ separate config object.
    segment is a variable. Without a default the setting is required: a path
    that is not in the config raises `MissingPathError` with the path, and a
    value an operator sets to nil reads as nil. With a default the setting
-   is optional. `false` and `0` are values and are never replaced by the
+   is optional. A positional default applies to missing keys and nil values.
+   A block supplies a fallback only when a key is absent. The boot banner
+   uses this distinction because an explicit nil disables a section there.
+   `false` and `0` are values and are never replaced by the
    default. A path that runs through a value that is neither a Hash nor
    nil raises `PathTypeError`, with or without a default; a nil section on
    the way reads as unset. Code does not read a setting out of a section

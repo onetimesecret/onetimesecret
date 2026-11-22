@@ -72,6 +72,8 @@ module Onetime
       #   unset, as dig read it. Positional only:
       #   `get(path, default: false)` raises ArgumentError instead of
       #   returning the truthy Hash `{default: false}`.
+      # @yield A fallback for an absent key only. An explicit nil stays nil.
+      #   A positional default takes precedence over a block.
       # @return [Object] the value. false and 0 are values and are returned
       #   as they are.
       # @raise [MissingPathError] a key on the path is absent and no default
@@ -88,6 +90,7 @@ module Onetime
 
           unless node.key?(segment)
             return default unless NO_DEFAULT.equal?(default)
+            return yield if block_given?
 
             raise MissingPathError.new(segments, index)
           end

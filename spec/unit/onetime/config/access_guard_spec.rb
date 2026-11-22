@@ -461,7 +461,7 @@ module ConfigAccessGuard
         line: node.location.start_line,
         path: positional.first && ConfigAccessGuard.literal_path(positional.first),
         prefix: nil,
-        default: positional.length >= 2,
+        default: positional.length >= 2 || node.block.is_a?(Prism::BlockNode),
         default_kind: ConfigAccessGuard.default_kind(positional[1]),
         symbol: positional.first && ConfigAccessGuard.symbol_path?(positional.first),
         keyword: args.length != positional.length,

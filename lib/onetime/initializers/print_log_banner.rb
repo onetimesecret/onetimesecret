@@ -417,9 +417,12 @@ module Onetime
         customization_rows
       end
 
-      # Whether the config section at +path+ sets enabled to false.
+      # An absent flag uses the default. An explicit false or nil disables the section.
       def disabled?(path)
-        OT.conf.get(path, nil).is_a?(Hash) && OT.conf.get("#{path}.enabled", true) == false
+        return false unless OT.conf.get(path, nil).is_a?(Hash)
+
+        enabled = OT.conf.get("#{path}.enabled") { true }
+        !enabled
       end
 
       # Helper method to format config values with special handling for hashes and arrays

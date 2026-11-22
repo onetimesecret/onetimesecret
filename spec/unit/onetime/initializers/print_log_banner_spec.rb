@@ -12,6 +12,21 @@ require 'onetime/initializers/print_log_banner'
 RSpec.describe Onetime::Initializers::PrintLogBanner do
   let(:instance) { described_class.new }
 
+  describe '#disabled?' do
+    [
+      [{}, false],
+      [{ 'enabled' => nil }, true],
+      [{ 'enabled' => false }, true],
+      [{ 'enabled' => true }, false],
+    ].each do |section, disabled|
+      it "reports disabled=#{disabled} for #{section.inspect}" do
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'feature' => section }))
+
+        expect(instance.send(:disabled?, 'feature')).to eq(disabled)
+      end
+    end
+  end
+
   describe '#mask_sensitive_value with type: :url' do
     {
       'postgresql://app:s3cret@db:5432/auth' => 'postgresql://app:****@db:5432/auth',
