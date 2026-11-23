@@ -84,6 +84,12 @@ must obtain new bearer tokens after the restart.
 2. Install the new value in `SECRET`.
 3. Restart the app, then confirm the rotation was intentional:
 
+   Schedule a maintenance window or drain user traffic for this step. The
+   default `warn` policy lets the first restart boot with a verifier mismatch.
+   Secret creation, email-change requests, and committed reveals return HTTP
+   503 until adoption and the second restart finish. With `enforce`, the app
+   refuses to boot during that interval.
+
    ```
    CONFIRM=yes bundle exec rake ots:secrets:adopt
    ```

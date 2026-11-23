@@ -184,11 +184,19 @@ RSpec.describe Onetime::Paseto::AccessToken do
         'a string scope' => { 'scope' => '*' },
         'an nbf after exp' => { 'nbf' => '2026-10-27T14:00:00Z' },
         'an expiry over one day after issuance' => { 'exp' => '2026-10-28T12:00:01Z' },
-        'an expiry before issuance' => { 'exp' => '2026-10-27T11:59:59Z' },
       }.each do |label, change|
         it "refuses #{label}" do
           expect { verify(forged(valid_claims.merge(change))) }.to raise_error(Onetime::Paseto::InvalidClaims)
         end
+      end
+
+      it 'refuses an expiry before issuance while the token is still unexpired' do
+        claims = valid_claims.merge(
+          'iat' => '2026-10-27T12:00:30Z',
+          'exp' => '2026-10-27T12:00:10Z',
+        )
+        expect { verify(forged(claims)) }
+          .to raise_error(Onetime::Paseto::InvalidClaims, /lifetime/)
       end
 
       it 'refuses a payload that is not a JSON object' do
