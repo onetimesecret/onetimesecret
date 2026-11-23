@@ -35,12 +35,12 @@
   import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
   import { type Customer } from '@/schemas/shapes/v3';
   import { ENTITLEMENTS } from '@/types/organization';
-  import { isOrgsAuditLogsEnabled } from '@/utils/features';
+  import { isOrgsAuditLogsEnabled, isOrgsSsoEnabled } from '@/utils/features';
   import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
-  import { useOrganizationPermissionLookup } from '@/shared/composables/useResourcePermissions';
+  import { useOrganizationPermissionLookup, useResourcePermissions } from '@/shared/composables/useResourcePermissions';
   import PlanPreviewModal from '@/shared/components/modals/PlanPreviewModal.vue';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
@@ -171,15 +171,26 @@
   const isOpen = ref(false);
   const menuRef = ref<HTMLElement | null>(null);
   const fetchOrganizationPermissions = useOrganizationPermissionLookup();
+  const { fetchAllPermissions } = useResourcePermissions();
   const invitationPath = ref<string | undefined>();
+  const ssoPath = ref<string | undefined>();
   watch([isOpen, orgExtid, customerExtid, () => props.awaitingMfa], async ([open, org, customer, awaitingMfa], _, onCleanup) => {
     invitationPath.value = undefined;
+    ssoPath.value = undefined;
     if (!open || !org || !customer || awaitingMfa) return;
     let current = true;
     onCleanup(() => { current = false; });
-    const record = await fetchOrganizationPermissions(org);
-    if (current && record?.permissions.can_manage_invitations) {
+    // The bulk response supplies both the org invitation action and the SSO
+    // action for each domain. Otherwise the menu needs only this org's record.
+    const record = isOrgsSsoEnabled()
+      ? (await fetchAllPermissions())?.organizations.find(item => item.extid === org)
+      : await fetchOrganizationPermissions(org);
+    if (!current || !record) return;
+    if (record.permissions.can_manage_invitations) {
       invitationPath.value = `/org/${org}/members`;
+    }
+    if ('domains' in record && record.domains.some(domain => domain.permissions.can_manage_sso)) {
+      ssoPath.value = `/org/${org}/sso`;
     }
   });
 
@@ -249,6 +260,13 @@
       label: t('web.organizations.invitations.title'),
       icon: { collection: 'heroicons', name: 'user-plus' },
       condition: () => !!invitationPath.value,
+    },
+    {
+      id: 'tenant-sso',
+      to: ssoPath.value,
+      label: t('web.organizations.sso.domain_sso_title'),
+      icon: { collection: 'heroicons', name: 'shield-check-solid' },
+      condition: () => !!ssoPath.value,
     },
     {
       id: 'activity',

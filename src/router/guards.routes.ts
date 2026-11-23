@@ -6,7 +6,11 @@ import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { usePageTitle } from '@/shared/composables/usePageTitle';
-import { useOrganizationPermissionLookup } from '@/shared/composables/useResourcePermissions';
+import {
+  useDomainSsoPermissionLookup,
+  useOrganizationPermissionLookup,
+  useResourcePermissions,
+} from '@/shared/composables/useResourcePermissions';
 import type { ClientAuthStatus } from '@/schemas/contracts/bootstrap';
 import {
   useAuthStore,
@@ -503,7 +507,11 @@ export async function handleOrgRoleRequirement(
   // win; settings routes carry the org as :extid only.
   const orgExtid = (to.params.orgid ?? to.params.extid) as string | undefined;
 
-  if (orgExtid && isOrganizationMembersTab(to)) return checkMembersTabAccess(store, orgExtid);
+  if (orgExtid) {
+    if (isOrganizationMembersTab(to)) return checkMembersTabAccess(store, orgExtid);
+    const ssoDecision = handleTenantSsoRoute(store, to, orgExtid);
+    if (ssoDecision !== undefined) return ssoDecision;
+  }
 
   // Single-org routes test the org named in the path; the list page (no org in
   // the path) is met when any membership qualifies.
@@ -551,6 +559,48 @@ function notifyOrgRoleRefused(
 }
 
 type OrganizationStore = ReturnType<typeof useOrganizationStore>;
+
+function handleTenantSsoRoute(
+  store: OrganizationStore, to: RouteLocationNormalized, orgExtid: string
+) {
+  if (to.name === 'Organization Settings' && to.params.tab === 'sso') {
+    return checkSsoRouteAccess(store, orgExtid, organizationSsoAccess(orgExtid));
+  }
+  if (to.name === 'DomainSignin' && to.query.modal === 'sso') {
+    const { modal: _modal, ...query } = to.query;
+    return { name: 'DomainSigninSso', params: to.params, query, hash: to.hash, replace: true };
+  }
+  if (to.name === 'DomainSigninSso' && typeof to.params.extid === 'string') {
+    const fetchDomainAccess = useDomainSsoPermissionLookup();
+    return checkSsoRouteAccess(store, orgExtid, fetchDomainAccess(orgExtid, to.params.extid));
+  }
+}
+
+async function organizationSsoAccess(orgExtid: string): Promise<boolean | undefined> {
+  const { fetchAllPermissions } = useResourcePermissions();
+  const record = (await fetchAllPermissions())?.organizations.find(org => org.extid === orgExtid);
+  if (!record) return undefined;
+  const permissions = record.domains.map(domain => domain.permissions.can_manage_sso);
+  if (permissions.includes(true)) return true;
+  return permissions.includes(undefined) ? undefined : false;
+}
+
+async function checkSsoRouteAccess(
+  store: OrganizationStore,
+  orgExtid: string,
+  lookup: Promise<boolean | undefined>,
+) {
+  // Elevated roles can reach the page's disabled and denial states. A delegated
+  // member can reach only the SSO page authorized for the requested target.
+  const permission = await lookup;
+  if (permission) return null;
+  if (await singleOrgMeetsRole(store, orgExtid, 'admin')) return null;
+  const key = permission === false
+    ? 'web.domains.sso.access_denied'
+    : 'web.organizations.access_unconfirmed_notice';
+  useNotificationsStore().enqueue(globalComposer.t(key), 'info', 'top', 10000);
+  return { path: '/dashboard' };
+}
 
 function isOrganizationMembersTab(to: RouteLocationNormalized): boolean {
   return to.name === 'Organization Settings' &&

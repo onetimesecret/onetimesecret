@@ -25,7 +25,11 @@ import { loggingService } from '@/services/logging.service';
 import { useAuthStore } from '@/shared/stores';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { useOrganizationPermissionLookup } from '@/shared/composables/useResourcePermissions';
+import {
+  useDomainSsoPermissionLookup,
+  useOrganizationPermissionLookup,
+  useResourcePermissions,
+} from '@/shared/composables/useResourcePermissions';
 import { isSsoOnlyMode } from '@/utils/features';
 import { mockCustomer } from '../fixtures/bootstrap.fixture';
 import { captureAppLogs } from '../utils/appLogs';
@@ -1247,6 +1251,73 @@ describe('Router Guards', () => {
       });
       expect(await handleOrgRoleRequirement(route)).toBeNull();
       expect(store.fetchOrganization).not.toHaveBeenCalled();
+    });
+
+    describe('delegated tenant SSO', () => {
+      const roleStore = (role: string) => makeStore({
+        getOrganizationByExtid: (extid: string) => ({ extid, current_user_role: role }),
+      });
+      const domainRoute = () => makeRoute({
+        name: 'DomainSigninSso', params: { orgid: 'target', extid: 'domain' },
+        meta: { requiresOrgRole: 'admin' },
+      });
+
+      it.each([
+        [true, null],
+        [false, 'web.domains.sso.access_denied'],
+        [undefined, 'web.organizations.access_unconfirmed_notice'],
+      ] as const)('checks the org and domain for the delegated SSO route (%s)', async (allowed, notice) => {
+        useStore(roleStore('member'));
+        const lookup = vi.fn().mockResolvedValue(allowed);
+        vi.mocked(useDomainSsoPermissionLookup).mockReturnValue(lookup);
+        const route = domainRoute();
+        expect(await handleOrgRoleRequirement(route)).toEqual(notice ? { path: '/dashboard' } : null);
+        expect(lookup).toHaveBeenCalledWith('target', 'domain');
+        if (notice) expect(notificationEnqueue).toHaveBeenCalledWith(notice, 'info', 'top', 10000);
+        route.name = 'DomainSignin';
+        expect(await handleOrgRoleRequirement(route)).toEqual({ path: '/dashboard' });
+        expect(lookup).toHaveBeenCalledTimes(1);
+      });
+
+      it('keeps the SSO denial page reachable for a revoked owner', async () => {
+        useStore(roleStore('owner'));
+        vi.mocked(useDomainSsoPermissionLookup).mockReturnValue(vi.fn().mockResolvedValue(false));
+        expect(await handleOrgRoleRequirement(domainRoute())).toBeNull();
+      });
+
+      it('redirects old SSO links directly to the guarded SSO route', async () => {
+        useStore(roleStore('member'));
+        const route = domainRoute();
+        route.name = 'DomainSignin';
+        route.query = { modal: 'sso', lang: 'fr' };
+        route.hash = '#credentials';
+        expect(await handleOrgRoleRequirement(route)).toEqual({
+          name: 'DomainSigninSso', params: route.params, query: { lang: 'fr' }, hash: '#credentials', replace: true,
+        });
+      });
+
+      it.each([
+        [[true], null],
+        [[false], 'web.domains.sso.access_denied'],
+        [[undefined], 'web.organizations.access_unconfirmed_notice'],
+      ] as const)('checks only the target org for the SSO overview (%j)', async (actions, notice) => {
+        useStore(roleStore('member'));
+        const record = (extid: string, allowed: readonly (boolean | undefined)[]) => ({
+          extid, domains: allowed.map(can_manage_sso => ({ permissions: { can_manage_sso } })),
+        });
+        const fetchAllPermissions = vi.fn().mockResolvedValue({
+          organizations: [record('other', [true]), record('target', actions)],
+        });
+        vi.mocked(useResourcePermissions).mockReturnValue({ fetchAllPermissions } as ReturnType<typeof useResourcePermissions>);
+        const route = makeRoute({
+          name: 'Organization Settings', params: { extid: 'target', tab: 'sso' }, meta: { requiresOrgRole: 'admin' },
+        });
+        expect(await handleOrgRoleRequirement(route)).toEqual(notice ? { path: '/dashboard' } : null);
+        if (notice) expect(notificationEnqueue).toHaveBeenCalledWith(notice, 'info', 'top', 10000);
+        route.params.tab = 'domains';
+        expect(await handleOrgRoleRequirement(route)).toEqual({ path: '/dashboard' });
+        expect(fetchAllPermissions).toHaveBeenCalledTimes(1);
+      });
     });
 
     describe('list page (/orgs, no org in path)', () => {
