@@ -78,13 +78,14 @@ pnpm run podman:image:metadata:latest  # inspect OCI labels
 
 ```bash
 # Simple: app + Valkey
-docker compose -f docker/compose/docker-compose.simple.yml up
+docker compose --env-file .env -f docker/compose/docker-compose.simple.yml up
 
 # Full: Caddy + app + Valkey + RabbitMQ + workers + scheduler
-docker compose -f docker/compose/docker-compose.full.yml up
+docker compose --env-file .env -f docker/compose/docker-compose.full.yml up
 
 # Email testing: simple stack + Mailpit
 docker compose \
+  --env-file .env \
   -f docker/compose/docker-compose.simple.yml \
   -f docker/compose/docker-compose.mailpit.yml up
 

@@ -41,7 +41,7 @@ RSpec.describe 'bin/setup --doctor --bundle' do
     archives.first
   end
 
-  it 'produces an archive matching the golden entry list, with no env values leaked' do
+  it 'produces a restricted archive matching the golden list, without logs' do
     Dir.mktmpdir('ots-bundle-spec') do |bundle_dir|
       archive = generate_bundle(bundle_dir)
 
@@ -62,6 +62,8 @@ RSpec.describe 'bin/setup --doctor --bundle' do
         manifest = File.readlines(File.join(bundle_root, 'manifest.txt'), chomp: true)
                        .reject { |line| line.start_with?('#') || line.empty? }
         expect(manifest.sort).to eq(golden_entries)
+        expect(entries).not_to include('logs.txt')
+        expect(File.stat(archive).mode & 0o077).to eq(0), 'bundle must be readable only by its owner'
 
         env_names = File.read(File.join(bundle_root, 'env-names.txt'))
         expect(env_names).not_to include('='), 'env-names.txt must contain variable names only, never values'

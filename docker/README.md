@@ -36,19 +36,22 @@ Compose "profiles" — no `--profile` flag is involved):
    what CI does):
 
    ```bash
-   docker compose -f docker/compose/docker-compose.full.yml up
+   docker compose --env-file .env -f docker/compose/docker-compose.full.yml up
    ```
 
 ## Quick Start
 
-Run this from the repository root to start the simple stack. The setup
+Run this from the repository root to start the simple stack. It serves HTTP
+on loopback only; use the full stack's TLS proxy for remote access. The setup
 fills in missing keys in the default `.env`. If you select a stack with
 `COMPOSE_FILE`, use `docker/compose/.env`, or override which environment
-files Compose loads, supply both keys through that configuration.
+files Compose loads, supply both keys through that configuration. If `.env`
+is a symlink, supply both keys in its target; the snippet leaves it untouched.
 
 ```bash
 (
   set -e
+  umask 077
   # Let .env supply any keys that are empty in the shell environment.
   [[ -n ${SECRET:-} ]] || unset SECRET
   [[ -n ${VALKEY_PASSWORD:-} ]] || unset VALKEY_PASSWORD
@@ -60,11 +63,26 @@ files Compose loads, supply both keys through that configuration.
     '    image: "ots-keys:${COMPOSE_FILE:+custom-}${SECRET:+SECRET-}${VALKEY_PASSWORD:+VALKEY_PASSWORD-}check"' |
     docker compose -f - config --images)
 
+  if [[ -L .env && ! -f .env ]]; then
+    echo 'Refusing a broken .env symlink; supply a regular env file.' >&2
+    exit 1
+  fi
+
   # The included stack can load its own .env that this probe cannot see.
   if [[ $configured != ots-keys:custom-* && ! -e docker/compose/.env &&
         -z ${COMPOSE_ENV_FILES:-} ]] &&
     ! grep -Eiq '^(1|t|true)$' <<< "${COMPOSE_DISABLE_ENV_FILE:-}"; then
-    [ -f .env ] || (umask 077 && cp .env.example .env)
+    [ -f .env ] || cp .env.example .env
+    if [[ -L .env ]]; then
+      for key in SECRET VALKEY_PASSWORD; do
+        if [[ $configured != *"${key}-"* ]]; then
+          echo "Refusing to add $key through an .env symlink; supply it in the linked file." >&2
+          exit 1
+        fi
+      done
+    else
+      chmod 600 .env
+    fi
     for key in SECRET VALKEY_PASSWORD; do
       if [[ $configured != *"${key}-"* ]]; then
         value=$(openssl rand -hex 32)
@@ -73,7 +91,8 @@ files Compose loads, supply both keys through that configuration.
     done
   elif [[ ! -e .env ]]; then
     # The app's Compose service still reads .env as an env_file.
-    (umask 077 && touch .env)
+    touch .env
+    chmod 600 .env
   fi
 
   docker compose up

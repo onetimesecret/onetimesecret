@@ -1,11 +1,16 @@
 ---
 title: Install Onboarding — Current-State Audit
 type: assessment
-status: current
+status: historical
 updated: 2026-07-09
 ---
 
 # Install Onboarding: Current-State Audit
+
+This is a snapshot of the 2026-07-09 baseline. For current setup commands,
+use the root README, CONTRIBUTING.md, and docker/README.md; the dated status
+notes in [work chunks](./install-onboarding-work-chunks.md) record subsequent
+implementation.
 
 Ground-truth audit of every onboarding surface as of 2026-07-09 (main @
 1c3e2ccb). Where

@@ -43,10 +43,10 @@ module AccountAPI::Logic
       def process
         return unless valid_update?
 
-        @greenlighted = true
-        log_update
         # TODO: Run in the database transaction
         perform_update
+        @greenlighted = true
+        log_update
         @modified << field_name
 
         success_data

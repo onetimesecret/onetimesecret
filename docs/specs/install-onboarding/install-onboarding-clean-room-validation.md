@@ -1,11 +1,16 @@
 ---
 title: Install Onboarding — Clean-Room Validation of fix/onboarding-hell
 type: assessment
-status: current
+status: historical
 updated: 2026-07-11
 ---
 
 # Clean-Room Validation: fix/onboarding-hell (C1–C3)
+
+This is a dated validation of the July 2026 branch. For current setup commands,
+use the root README, CONTRIBUTING.md, and docker/README.md; the dated status
+notes in [work chunks](./install-onboarding-work-chunks.md) record subsequent
+implementation.
 
 Live re-run of the [current-state audit](./install-onboarding-current-state.md)
 §1 empirical suite against `fix/onboarding-hell` @ d0747c0eb (13 commits over

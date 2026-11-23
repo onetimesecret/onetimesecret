@@ -111,6 +111,8 @@ module AccountAPI::Logic
       end
 
       def perform_update
+        Onetime::SecretVerifier.ensure_writes_allowed!
+
         # Supersede any earlier pending confirmation. Only the secret recorded
         # on pending_email_change is recognised as the email-change link; a
         # second request would otherwise leave the first secret live but

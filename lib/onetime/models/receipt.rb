@@ -380,6 +380,8 @@ module Onetime
       def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil, kind: nil, display_type: nil,
                      source: nil, memo: nil, recipients: nil, recipient_name: nil, domain_id: nil, org_id: nil,
                      &registrations)
+        Onetime::SecretVerifier.ensure_writes_allowed!
+
         # Coerce at the single creation choke point so lifespan is always stored
         # as an Integer (#3299). Familia v2 storage is type-preserving, so a
         # String here ("604800" from unconverted ERB/params) would hydrate back

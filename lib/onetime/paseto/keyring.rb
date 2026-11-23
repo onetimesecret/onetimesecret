@@ -58,43 +58,28 @@ module Onetime
     # (Onetime::KeyDerivation, purpose :paseto_signing), the same way the
     # session, identifier and Familia encryption keys are: no additional key
     # material to generate, back up or inject, and the Ed25519 seed is never
-    # stored anywhere. Rotation follows the SECRET rotation runbook
-    # (docs/runbooks/secret-rotation.md): every entry in SECRET_PREVIOUS
-    # derives a verification-only key, so tokens signed before the rotation
-    # keep verifying until they expire, while new tokens are signed with the
-    # key derived from the current SECRET. Tokens live at most a day
-    # (Onetime::Paseto::AccessToken::MAX_TTL), far shorter than the window the
-    # runbook already asks operators to keep a previous SECRET for.
+    # stored anywhere. Only the current SECRET verifies bearer tokens.
+    # SECRET_PREVIOUS stays available for ciphertext decryption; retaining
+    # an old encryption key must not retain its power to authenticate API
+    # requests. Rotating SECRET retires previously issued bearer tokens.
     class Keyring
       attr_reader :signing_key
 
       # @param secret [String] the current root SECRET
-      # @param previous_csv [String, nil] SECRET_PREVIOUS: comma-separated
-      #   previous SECRETs, oldest first (same format ConfigureFamilia reads)
       # @return [Keyring]
-      def self.derive(secret, previous_csv = nil)
+      def self.derive(secret)
         raise ArgumentError, 'secret must not be empty' if secret.to_s.empty?
 
-        previous     = previous_csv.to_s.split(',').map(&:strip).reject(&:empty?)
-        signing_key  = Key.from_seed(Onetime::KeyDerivation.derive(secret, :paseto_signing))
-        verification = previous.map do |prev|
-          Key.from_seed(Onetime::KeyDerivation.derive(prev, :paseto_signing)).verification_only
-        end
-        new(signing_key, verification)
+        signing_key = Key.from_seed(Onetime::KeyDerivation.derive(secret, :paseto_signing))
+        new(signing_key)
       end
 
       # @param signing_key [Key] the key new tokens are signed with
-      # @param verification_keys [Array<Key>] further keys accepted for
-      #   verification (the signing key's public half is always accepted)
-      def initialize(signing_key, verification_keys = [])
+      def initialize(signing_key)
         raise ArgumentError, 'signing key must carry a private key' unless signing_key.signing?
 
-        @signing_key                                  = signing_key
-        @keys                                         = {}
-        verification_keys.each { |key| @keys[key.kid] = key.verification_only }
-        # The current key wins over a previous one with the same kid (the
-        # same SECRET listed twice).
-        @keys[signing_key.kid]                        = signing_key.verification_only
+        @signing_key = signing_key
+        @keys        = { signing_key.kid => signing_key.verification_only }
         @keys.freeze
         freeze
       end
@@ -107,9 +92,9 @@ module Onetime
         @keys[kid]
       end
 
-      # @return [Array<String>] every accepted key identifier, current first
+      # @return [Array<String>] the current key identifier
       def kids
-        [signing_key.kid] + (@keys.keys - [signing_key.kid])
+        [signing_key.kid]
       end
 
       def inspect

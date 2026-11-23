@@ -465,10 +465,9 @@ rabbitmqctl` CLI-presence checks are gone. **BM-10:** `--operator`
 > services — doctor _delegates_ to `/health/advanced` when something
 > answers on `PORT` instead of restating its checks; `healthcheck.sh` =
 > container liveness. Each file's header names the split. **R0.2:**
-> `--doctor --bundle` writes a sanitized tar.gz to `tmp/` (fixed 8-entry
-> format: doctor/system/versions/files/env-names/config/logs/manifest; env
-> var NAMES only, hostname omitted, log excerpt masked for emails/long
-> hex/secret-ish assignments); golden-file spec at
+> `--doctor --bundle` originally included a masked log excerpt in its tar.gz
+> archive; the current bundle omits logs
+> because arbitrary log formats may contain credentials. Golden-file spec at
 > `spec/unit/setup/doctor_bundle_spec.rb` runs in `spec:fast`, so the
 > fresh-clone lane proves it; SUPPORT.md tells bug reporters to attach it.
 > **QS-11:** `scripts/check-env-reference.sh` extracts consumed vars (ENV

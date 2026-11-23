@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # SetupPasetoKeys (#2427): the keyring in Runtime.security is a function of
-# site.secret and SECRET_PREVIOUS, and nothing else.
+# site.secret only. Ciphertext key history must not retain bearer access.
 #
 # Run: pnpm run test:rspec spec/unit/onetime/initializers/setup_paseto_keys_spec.rb
 
@@ -47,13 +47,12 @@ RSpec.describe Onetime::Initializers::SetupPasetoKeys do
     expect(Onetime::Paseto.keyring).to be(keyring)
   end
 
-  it 'accepts tokens signed under every SECRET_PREVIOUS entry' do
+  it 'does not accept tokens signed under SECRET_PREVIOUS entries' do
     ENV['SECRET_PREVIOUS'] = "#{'feedface' * 8},#{'cafef00d' * 8}"
     initializer.execute(nil)
 
     kids = Onetime::Runtime.security.paseto_keyring.kids
-    expect(kids.size).to eq(3)
-    expect(kids).to include(Onetime::Paseto::Keyring.derive('feedface' * 8).signing_key.kid)
+    expect(kids).to eq([Onetime::Paseto::Keyring.derive(secret).signing_key.kid])
   end
 
   it 'derives nothing without a secret and lets the boot continue, failing closed at request time' do
