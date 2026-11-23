@@ -215,8 +215,9 @@ resp['records'].all? { |inv| inv['status'] == 'pending' }
 get "/api/organizations/#{@org.extid}/invitations",
   {},
   { 'rack.session' => @admin_session, 'HTTP_ACCEPT' => 'application/json' }
-last_response.status
-#=> 200
+records = JSON.parse(last_response.body).fetch('records')
+[last_response.status, records.any? { |invite| invite['email'] == @invite_email1 }]
+#=> [200, true]
 
 ## GET /api/organizations/:extid/invitations - Member cannot list invitations
 get "/api/organizations/#{@org.extid}/invitations",
@@ -391,7 +392,30 @@ get "/api/organizations/#{@org.extid}/invitations", {}, { 'rack.session' => @mem
 [last_response.status, JSON.parse(last_response.body)['capability']]
 #=> [403, 'manage_members']
 
+## A domain-scoped admin cannot list the organization's pending invitations
+@scope_domain = Onetime::CustomDomain.new
+@scope_domain.display_domain = "invitation-scope-#{SecureRandom.hex(6)}.example.com"
+@scope_domain.org_id = @org.objid
+@scope_domain.save
+@org.domains.add(@scope_domain.objid)
+@admin_membership = Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @admin.objid)
+@admin_membership.domain_scope_id = @scope_domain.objid
+@admin_membership.save
+get "/api/organizations/#{@org.extid}/invitations", {}, { 'rack.session' => @admin_session }
+body = JSON.parse(last_response.body)
+[last_response.status, body['error_key'], body.key?('records'), body.key?('count')]
+#=> [403, 'api.organizations.errors.domain_scoped_forbidden', false, false]
+
+## An explicit manage_members grant on that membership still respects domain scope
+@admin_membership.grant_entitlement('manage_members')
+get "/api/organizations/#{@org.extid}/invitations", {}, { 'rack.session' => @admin_session }
+body = JSON.parse(last_response.body)
+[last_response.status, body['error_key'], body.key?('records'), body.key?('count')]
+#=> [403, 'api.organizations.errors.domain_scoped_forbidden', false, false]
+
 # Cleanup
+@org.domains.remove(@scope_domain.objid)
+@scope_domain.destroy!
 @org.destroy!
 @owner.destroy!
 @admin.destroy!

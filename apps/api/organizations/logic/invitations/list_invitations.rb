@@ -8,7 +8,7 @@ module OrganizationAPI::Logic
     #
     # GET /api/org/:extid/invitations
     #
-    # Requires the manage_members capability in the target organization.
+    # Members need manage_members and organization-wide scope.
     #
     class ListInvitations < OrganizationAPI::Logic::Base
       attr_reader :organization, :invitations
@@ -22,6 +22,12 @@ module OrganizationAPI::Logic
 
         @organization = load_organization(@extid)
         require_capability_in!(@organization, 'manage_members')
+        return unless membership_in(@organization)&.domain_scoped?
+
+        raise Onetime::Forbidden.new(
+          'Domain-scoped members cannot perform this action',
+          error_key: 'api.organizations.errors.domain_scoped_forbidden',
+        )
       end
 
       def process
