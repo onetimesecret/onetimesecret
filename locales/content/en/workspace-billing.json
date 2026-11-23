@@ -720,6 +720,10 @@
     "text": "Redirecting to billing portal...",
     "content_hash": "b6f47df3"
   },
+  "web.billing.portal.open_error": {
+    "text": "Could not open the billing portal. Please try again.",
+    "content_hash": "3d5331c0"
+  },
   "web.billing.start_today": {
     "text": "Start today",
     "content_hash": "80e73fc7"

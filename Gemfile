@@ -43,17 +43,13 @@ source 'https://rubygems.org/'
 gem 'otto', '~> 2.11'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
-# rodauth comes from the onetimesecret fork, pinned to a commit: upstream
-# 2.48.0 plus two fixes not yet in a rodauth release
-# (onetimesecret/rodauth#3). The verify route deletes the verify account key
-# again instead of rotating it (rotation since 2.46). Recovery codes added
-# while a passkey verifies an account go to that account instead of a nil
-# session id, which failed the verification with AUTH_MFA_ENABLED and
-# AUTH_WEBAUTHN_VERIFY_ACCOUNT both on. The fork's version is still 2.48.0;
-# the GIT section in Gemfile.lock is what distinguishes it from the release.
+# Rodauth 2.51.0 includes the WebAuthn fix for GHSA-jv3v-q542-9c26.
+# The fork retains the two changes from onetimesecret/rodauth#3: delete the
+# verification key after account verification, and use the account being
+# verified when adding recovery codes during passkey signup.
 gem 'rodauth',
   git: 'https://github.com/onetimesecret/rodauth.git',
-  ref: '8abe3ebdb89739fc4b3c040105873d7cc281d216'
+  ref: 'a08f72421045306fc424ad59bf2d63f3d2b7d455'
 gem 'rodauth-omniauth', '~> 0.4'
 gem 'rodauth-tools', '~> 0.4.0'
 
@@ -68,10 +64,10 @@ gem 'rodauth-tools', '~> 0.4.0'
 # configures none of them never loads them. The cost of an entry is the
 # bundle, not the boot.
 #
-# omniauth-apple declares NO direct `omniauth` dependency (only
-# omniauth-oauth2 and json-jwt, both unversioned), so it would happily
-# resolve against OmniAuth 1.x. The floor is held by the other entries in
-# this block, all of which require `omniauth ~> 2.0`.
+# omniauth-apple declares no direct `omniauth` dependency (only
+# omniauth-oauth2 and json-jwt, both unversioned). Keep an explicit floor
+# for the host-header validation fix in OmniAuth 2.2.0.
+gem 'omniauth', '>= 2.2.0', '< 3.0'
 gem 'omniauth-apple', '~> 1.4'
 gem 'omniauth-entra-id', '~> 3.1'
 gem 'omniauth-github', '~> 2.0'
@@ -135,12 +131,12 @@ gem 'omniauth-saml', '~> 2.2'
 gem 'ruby-saml', '= 1.18.1'
 
 # Web server and middleware
-gem 'puma', '>= 6.0', '< 8.0'
-gem 'rack', '>= 3.2.6', '< 4.0'
+gem 'puma', '>= 7.2.3', '< 8.0'
+gem 'rack', '>= 3.2.8', '< 4.0'
 gem 'rack-contrib', '~> 2.5.0'
 # Mounted directly in MiddlewareStack (JSON/form body parsing); was transitive via otto < 2.10.
 gem 'rack-parser', '~> 0.7'
-gem 'rack-protection', '~> 4.1'
+gem 'rack-protection', '>= 4.2.2', '< 5.0'
 gem 'rack-session', '~> 2.1.2'
 gem 'rack-utf8_sanitizer', '~> 1.11'
 
@@ -160,7 +156,7 @@ gem 'fastimage', '~> 2.4'
 gem 'i18n', '~> 1.14'
 gem 'mail'
 gem 'public_suffix', '~> 7.0'
-gem 'sanitize', '~> 7.0'
+gem 'sanitize', '~> 7.0', '>= 7.0.2'
 gem 'semantic_logger', '~> 4.17'
 gem 'simpleidn', '~> 0.2'
 gem 'tilt'

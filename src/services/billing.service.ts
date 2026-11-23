@@ -12,7 +12,9 @@ import type { AxiosInstance } from 'axios';
 import type { PaymentMethod } from '@/types/billing';
 import {
   checkoutSessionResponseSchema,
+  portalSessionResponseSchema,
   type CheckoutSessionResponse,
+  type PortalSessionResponse,
 } from '@/schemas/contracts/billing';
 import type {
   CurrencyConflictError,
@@ -89,6 +91,7 @@ export interface BillingOverviewResponse {
     members: number;
     domains: number;
   };
+  portal_available?: boolean;
   payment_method?: PaymentMethod;
   /** Federation notification for cross-region subscription sync */
   federation_notification?: FederationNotification;
@@ -272,6 +275,8 @@ export function createBillingService(api: AxiosInstance): typeof BillingService 
     createCheckoutSession: (orgExtId, plan) =>
       api.post(`/billing/api/org/${orgExtId}/checkout`, { product: plan.id, interval: plan.interval }).then(r => r.data),
     listInvoices: (orgExtId) => api.get(`/billing/api/org/${orgExtId}/invoices`).then(r => r.data),
+    createPortalSession: (orgExtId) =>
+      api.post(`/billing/api/org/${orgExtId}/portal`).then(r => portalSessionResponseSchema.parse(r.data)),
     listPlans: () => api.get('/billing/api/plans').then(r => r.data),
     getSubscriptionStatus: (orgExtId) => api.get(`/billing/api/org/${orgExtId}/subscription`).then(r => r.data),
     previewPlanChange: (orgExtId, newPriceId) => api.post(`/billing/api/org/${orgExtId}/preview-plan-change`, { new_price_id: newPriceId }).then(r => r.data),
@@ -323,6 +328,12 @@ export const BillingService = {
   async listInvoices(orgExtId: string): Promise<InvoicesResponse> {
     const response = await getDefaultApi().get(`/billing/api/org/${orgExtId}/invoices`);
     return response.data;
+  },
+
+  /** Create an owner-only portal session for an organization. */
+  async createPortalSession(orgExtId: string): Promise<PortalSessionResponse> {
+    const response = await getDefaultApi().post(`/billing/api/org/${orgExtId}/portal`);
+    return portalSessionResponseSchema.parse(response.data);
   },
 
   /**

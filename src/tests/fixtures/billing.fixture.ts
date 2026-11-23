@@ -422,6 +422,7 @@ export function createMockOverviewResponse(
       limits: { teams: 1 },
     },
     usage: { members: 3, domains: 1 },
+    portal_available: false,
     ...overrides,
   };
 }

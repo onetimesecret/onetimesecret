@@ -168,9 +168,8 @@ RSpec.describe Onetime::Middleware::CookieTossing do
     end
   end
 
-  # rack-protection 4.2.1 memoizes bad_cookies on the middleware instance and
-  # never clears it, so with the stock class one refused request would refuse
-  # every request that followed through the same instance.
+  # Keep the per-request regression guard after upgrading from
+  # rack-protection 4.2.1, which memoized bad_cookies on the shared instance.
   describe 'per-request state' do
     it 'refuses only the request that carries the duplicate' do
       expect(request('onetime.session=a; onetime.session=b').first).to eq(403)

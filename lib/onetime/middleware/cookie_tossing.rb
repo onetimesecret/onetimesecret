@@ -11,7 +11,7 @@ module Onetime
     # Rack::Protection::CookieTossing bound to the application's session cookie
     # and given per-request state (#4466, RISK-2026-08-14-COOKIE-TOSSING).
     #
-    # What the gem does (rack-protection 4.2.1, cookie_tossing.rb): `accepts?`
+    # What the gem does (rack-protection 4.2.2, cookie_tossing.rb): `bad_cookies`
     # parses the raw Cookie header with `Rack::Utils.parse_query(header, ';,')`
     # and refuses the request when the session cookie NAME appears more than
     # once, or appears percent-encoded (`Rack::Utils.unescape(k) ==
@@ -61,14 +61,7 @@ module Onetime
     #    cannot be decoded is simply not the session key: the request is
     #    neither refused nor failed, the same as any other unrelated cookie.
     #
-    # 3. Per-request state. The gem memoizes `bad_cookies` on the middleware
-    #    instance (`@bad_cookies ||= []`) and never clears it, and `accepts?`
-    #    answers `bad_cookies.empty?`. Rack builds one instance per app, so
-    #    after the first refused request every later request through that
-    #    process would be refused too, whatever its cookies: one request with
-    #    two session cookies would take the process down until restart. The
-    #    list is not thread-safe under Puma either. Each request therefore
-    #    runs on a copy of the instance that starts with an empty list.
+    # rack-protection 4.2.2 reads cookie names from each request's environment.
     #
     # Where it runs: in the universal stack directly above Onetime::Session
     # (lib/onetime/application/middleware_stack.rb), so a refused request
@@ -86,45 +79,31 @@ module Onetime
       # and boot.rb's SESSION_DEFAULTS.
       DEFAULT_SESSION_KEY = 'onetime.session'
 
-      # The gem's own #call, kept reachable under another name so the
-      # per-request copy can run it.
-      alias call_once call
-      protected :call_once
-
       def initialize(app, options = {})
         options                 = options.dup
         options[:session_key] ||= configured_session_key
         super
       end
 
-      def call(env)
-        per_request = dup
-        per_request.instance_variable_set(:@bad_cookies, [])
-        per_request.call_once(env)
-      end
-
-      # The gem's check (rack-protection 4.2.1 cookie_tossing.rb#accepts?)
-      # with the decode made safe; see point 2 above.
-      def accepts?(env)
+      # Keep the gem's per-request check and tolerate malformed names.
+      def bad_cookies(env)
         cookies = Rack::Utils.parse_query(env['HTTP_COOKIE'], ';,') { |s| s }
-        cookies.each do |k, v|
-          if (k == session_key && Array(v).size > 1) ||
-             (k != session_key && decoded_name(k) == session_key)
-            bad_cookies << k
-          end
+        cookies.filter_map do |name, value|
+          name if (name == session_key && Array(value).size > 1) ||
+                  (name != session_key && decoded_name(name) == session_key)
         end
-        bad_cookies.empty?
       end
 
       # The gem's clear (host-scoped, one per path prefix) plus the same clear
       # for each parent domain of the request host; see the class comment.
       def remove_bad_cookies(request, response)
-        return if bad_cookies.empty?
+        names = bad_cookies(request.env)
+        return if names.empty?
 
         paths = cookie_paths(request.path)
         host  = clear_host(request)
         [host, *parent_domains(host)].each do |domain|
-          bad_cookies.each do |name|
+          names.each do |name|
             paths.each { |path| response.set_cookie(name, empty_cookie(domain, path)) }
           end
         end

@@ -2,6 +2,7 @@
 
 import {
   isAllowedCheckoutUrl,
+  isAllowedBillingPortalUrl,
   isValidInternalPath,
   MAX_REDIRECT_LENGTH,
   setAllowedCheckoutHost,
@@ -134,6 +135,37 @@ describe('the shared parity fixture', () => {
       );
       expect(kase?.expected, `${id} expectation flipped`).toBe(expected);
     }
+  });
+});
+
+describe('isAllowedBillingPortalUrl', () => {
+  afterEach(() => setAllowedCheckoutHost(null));
+
+  it('allows the Stripe Billing Portal host', () => {
+    expect(isAllowedBillingPortalUrl('https://billing.stripe.com/p/session/test_123')).toBe(true);
+  });
+
+  it('rejects other hosts, lookalikes, and insecure URLs', () => {
+    expect(isAllowedBillingPortalUrl('https://checkout.stripe.com/p/session/test_123')).toBe(false);
+    expect(isAllowedBillingPortalUrl('https://billing.stripe.com.evil.example/p/session')).toBe(false);
+    expect(isAllowedBillingPortalUrl('https://evil.example/p/session')).toBe(false);
+    expect(isAllowedBillingPortalUrl('https://onetimesecret.com/billing')).toBe(false);
+    expect(isAllowedBillingPortalUrl('http://billing.stripe.com/p/session')).toBe(false);
+  });
+
+  it('allows only an explicitly configured custom billing host', () => {
+    const customUrl = 'https://pay.onetimesecret.com/p/session/test_123';
+    expect(isAllowedBillingPortalUrl(customUrl)).toBe(false);
+    setAllowedCheckoutHost('pay.onetimesecret.com');
+    expect(isAllowedBillingPortalUrl(customUrl)).toBe(true);
+    expect(isAllowedBillingPortalUrl('https://pay.onetimesecret.com.evil.example/p/session')).toBe(false);
+  });
+
+  it('rejects missing and malformed values', () => {
+    expect(isAllowedBillingPortalUrl('')).toBe(false);
+    expect(isAllowedBillingPortalUrl(null)).toBe(false);
+    expect(isAllowedBillingPortalUrl(undefined)).toBe(false);
+    expect(isAllowedBillingPortalUrl('not-a-url')).toBe(false);
   });
 });
 

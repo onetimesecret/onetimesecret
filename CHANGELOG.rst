@@ -22,6 +22,27 @@ linked release histories provide the underlying contribution records.
 
    <!--scriv-insert-here-->
 
+.. _changelog-0.26.21:
+
+0.26.21 — 2026-11-23
+====================
+
+Fixed
+-----
+
+- Organization owners can open the billing portal for the selected organization from its billing overview.
+- Billing navigation hides the owner-only Invoices tab from organization members.
+
+Security
+--------
+
+- Updated Ruby dependencies including Rack, Loofah, Nokogiri, Puma, Sanitize, OmniAuth, and Rodauth.
+
+AI Assistance
+-------------
+
+- AI assistance helped compare security dependency versions, review billing self-service paths, and validate this update.
+
 .. _changelog-0.26.20:
 
 0.26.20 — 2026-11-22

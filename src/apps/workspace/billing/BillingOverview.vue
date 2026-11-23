@@ -12,11 +12,11 @@ import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { classifyError } from '@/schemas/errors';
 import { BillingService, type FederationNotification as FederationNotificationData } from '@/services/billing.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import type { PaymentMethod } from '@/types/billing';
 import { getPlanLabel, isFreePlan, isLegacyPlan } from '@/types/billing';
 import type { Organization } from '@/types/organization';
 import { formatDisplayDate } from '@/utils/format';
 import { parseDateValue } from '@/utils/parse';
+import { isAllowedBillingPortalUrl } from '@/utils/redirect';
 import { computed, onMounted, ref, watch } from 'vue';
 
 const { t } = useI18n();
@@ -27,7 +27,8 @@ const organizationStore = useOrganizationStore();
 const orgExtid = computed(() => route.params.extid as string);
 
 const selectedOrg = ref<Organization | null>(null);
-const paymentMethod = ref<PaymentMethod | null>(null);
+const portalAvailable = ref(false);
+const isOpeningPortal = ref(false);
 const nextBillingDate = ref<Date | null>(null);
 const planFeatures = ref<string[]>([]);
 const federationNotification = ref<FederationNotificationData | null>(null);
@@ -70,6 +71,9 @@ const planStatus = computed(() => {
 });
 
 const hasPaidPlan = computed(() => planStatus.value === 'active');
+const canOpenPortal = computed(() =>
+  portalAvailable.value && selectedOrg.value?.current_user_role === 'owner'
+);
 
 // Legacy plan detection for grandfathered customers
 const isLegacyCustomer = computed(() =>
@@ -86,7 +90,7 @@ const applyBillingOverview = (overview: Awaited<ReturnType<typeof BillingService
   const periodEnd = parseDateValue(overview.subscription?.period_end);
   nextBillingDate.value = periodEnd && periodEnd.getTime() > 0 ? periodEnd : null;
   planFeatures.value = overview.plan?.features || [];
-  paymentMethod.value = overview.payment_method || null;
+  portalAvailable.value = overview.portal_available === true;
   federationNotification.value = overview.federation_notification || null;
 };
 
@@ -174,6 +178,27 @@ watch(selectedOrg, (org) => {
     billingEmailForm.value.email = org.billing_email || org.contact_email || '';
   }
 });
+
+const handleOpenPortal = async () => {
+  if (!orgExtid.value || isOpeningPortal.value) return;
+
+  isOpeningPortal.value = true;
+  error.value = '';
+  try {
+    const response = await BillingService.createPortalSession(orgExtid.value);
+    if (isAllowedBillingPortalUrl(response.portal_url)) {
+      window.location.href = response.portal_url;
+    } else {
+      error.value = t('web.billing.portal.open_error');
+    }
+  } catch (err) {
+    const classified = classifyError(err);
+    error.value = classified.message || t('web.billing.portal.open_error');
+    console.error('[BillingOverview] Error opening billing portal:', err);
+  } finally {
+    isOpeningPortal.value = false;
+  }
+};
 
 // Handle federation notification dismissal
 const handleFederationNotificationDismissed = () => {
@@ -360,6 +385,36 @@ onMounted(async () => {
                 {{ t('web.billing.overview.no_entitlements') }}
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Stripe billing portal for the organization shown on this page -->
+        <div
+          v-if="canOpenPortal"
+          class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60"
+          data-testid="payment-method-card">
+          <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              {{ t('web.billing.overview.payment_method') }}
+            </h2>
+          </div>
+          <div class="p-6">
+            <button
+              type="button"
+              data-testid="manage-payment-method-button"
+              :disabled="isOpeningPortal"
+              @click="handleOpenPortal"
+              class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
+              <OIcon
+                collection="heroicons"
+                :name="isOpeningPortal ? 'arrow-path' : 'credit-card'"
+                class="size-4"
+                aria-hidden="true" />
+              {{ isOpeningPortal ? t('web.billing.portal.redirecting') : t('web.billing.overview.manage_billing_action') }}
+            </button>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              {{ t('web.billing.overview.manage_billing_description') }}
+            </p>
           </div>
         </div>
 

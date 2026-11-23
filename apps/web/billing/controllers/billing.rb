@@ -36,6 +36,7 @@ module Billing
           subscription: build_subscription_data(org),
           plan: build_plan_data(org),
           usage: build_usage_data(org),
+          portal_available: org.owner?(cust) && !org.stripe_customer_id.to_s.empty?,
         }
 
         # Include federation notification when org is federated and not dismissed
@@ -334,6 +335,45 @@ module Billing
             extid: req.params['extid'],
           }
         json_error('Failed to retrieve invoices', status: 500)
+      end
+
+      # Create a Stripe Customer Portal session for the named organization.
+      # The portal exposes payment methods and subscription management, so
+      # only the organization's owner may open it.
+      #
+      # POST /billing/api/org/:extid/portal
+      def create_portal_session
+        org = load_organization(req.params['extid'], require_owner: true)
+
+        if org.stripe_customer_id.to_s.empty?
+          return json_error('No billing account for this organization', status: 400)
+        end
+
+        if stripe_api_key_missing?('create_portal_session')
+          return json_error('Billing service temporarily unavailable', status: 503)
+        end
+
+        portal_session = Stripe::BillingPortal::Session.create(
+          {
+            customer: org.stripe_customer_id,
+            return_url: "#{billing_base_url}/billing/#{org.extid}/overview",
+          },
+        )
+
+        billing_logger.info 'Customer portal session created',
+          {
+            extid: org.extid,
+            customer_id: org.stripe_customer_id,
+          }
+
+        json_response({ portal_url: portal_session.url })
+      rescue Stripe::StripeError => ex
+        billing_logger.error 'Stripe portal session creation failed',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+          }
+        json_error('Failed to open billing portal', status: 500)
       end
 
       # List available billing plans

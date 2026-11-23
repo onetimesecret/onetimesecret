@@ -243,3 +243,17 @@ export function isAllowedCheckoutUrl(url: string | undefined | null): url is str
     return false;
   }
 }
+
+/** Validate a Stripe Customer Portal URL before browser navigation. */
+export function isAllowedBillingPortalUrl(url: string | undefined | null): url is string {
+  if (!url || typeof url !== 'string') return false;
+  try {
+    const { origin } = new URL(url);
+    return (
+      origin === 'https://billing.stripe.com' ||
+      (configuredCheckoutOrigin !== null && origin === configuredCheckoutOrigin)
+    );
+  } catch {
+    return false;
+  }
+}

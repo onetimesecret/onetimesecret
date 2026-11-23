@@ -29,20 +29,26 @@ vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
 }));
 
 const mockGetOverview = vi.fn();
+const mockCreatePortalSession = vi.fn();
 vi.mock('@/services/billing.service', () => ({
-  BillingService: { getOverview: (...args: unknown[]) => mockGetOverview(...args) },
+  BillingService: {
+    getOverview: (...args: unknown[]) => mockGetOverview(...args),
+    createPortalSession: (...args: unknown[]) => mockCreatePortalSession(...args),
+  },
 }));
 
 // Lightweight org shape for store mock (not full Organization type)
 const mockOrganization = {
   objid: 'org_123', extid: 'on1abc123', display_name: 'Test Organization',
   description: null, owner_id: 'cust_456', contact_email: 'test@example.com',
+  current_user_role: 'owner',
   planid: 'identity_plus_v1', entitlements: ['api_access'], limits: { teams: 1 }, is_default: true,
   created: new Date('2024-01-01'), updated: new Date('2024-01-01'),
 };
 const mockFreeOrganization = {
   objid: 'org_456', extid: 'on2def456', display_name: 'Free Org',
   description: null, owner_id: 'cust_789', contact_email: 'free@example.com',
+  current_user_role: 'owner',
   planid: '', entitlements: [] as string[], limits: { teams: 0 }, is_default: false,
   created: new Date('2024-01-01'), updated: new Date('2024-01-01'),
 };
@@ -88,6 +94,7 @@ vi.mock('@/types/billing', () => ({
 // Use shared fixture factory for overview response
 const defaultOverviewResponse = createMockOverviewResponse({
   organization: { id: 'org_123', external_id: 'on1abc123', display_name: 'Test Org', billing_email: null },
+  portal_available: true,
 });
 
 const i18n = createTestI18n();
@@ -97,8 +104,15 @@ const routerLinkStub = { template: '<a class="router-link"><slot /></a>', props:
 describe('BillingOverview', () => {
   let wrapper: VueWrapper;
   let pinia: ReturnType<typeof createPinia>;
+  let originalLocation: Location;
 
   beforeEach(() => {
+    originalLocation = window.location;
+    Object.defineProperty(window, 'location', {
+      value: { href: '', origin: 'https://onetimesecret.com' },
+      writable: true,
+      configurable: true,
+    });
     pinia = createPinia();
     setActivePinia(pinia);
     vi.clearAllMocks();
@@ -106,9 +120,17 @@ describe('BillingOverview', () => {
     mockEntitlements.value = [];
     mockInitDefinitions.mockResolvedValue(undefined);
     mockGetOverview.mockResolvedValue(defaultOverviewResponse);
+    mockCreatePortalSession.mockResolvedValue({ portal_url: 'https://billing.stripe.com/p/session/test_123' });
   });
 
-  afterEach(() => { wrapper?.unmount(); });
+  afterEach(() => {
+    wrapper?.unmount();
+    Object.defineProperty(window, 'location', {
+      value: originalLocation,
+      writable: true,
+      configurable: true,
+    });
+  });
 
   const mountComponent = async (options: { organizations?: MockOrg[] } = {}) => {
     const orgs = options.organizations ?? [mockOrganization];
@@ -212,6 +234,60 @@ describe('BillingOverview', () => {
   });
 
   describe('Action Buttons', () => {
+    it('opens the billing portal for the displayed organization when the viewer is its owner', async () => {
+      wrapper = await mountComponent();
+      await wrapper.get('[data-testid="manage-payment-method-button"]').trigger('click');
+      await flushPromises();
+
+      expect(mockCreatePortalSession).toHaveBeenCalledWith('on1abc123');
+      expect(window.location.href).toBe('https://billing.stripe.com/p/session/test_123');
+      expect(wrapper.text()).toContain('web.billing.overview.manage_billing_description');
+    });
+
+    it('does not offer the owner-only billing portal to an organization member', async () => {
+      wrapper = await mountComponent({ organizations: [{ ...mockOrganization, current_user_role: 'member' }] });
+      expect(wrapper.find('[data-testid="manage-payment-method-button"]').exists()).toBe(false);
+    });
+
+    it('does not offer a portal when the organization has no Stripe customer', async () => {
+      mockGetOverview.mockResolvedValueOnce(createMockOverviewResponse());
+      wrapper = await mountComponent();
+      expect(wrapper.find('[data-testid="manage-payment-method-button"]').exists()).toBe(false);
+    });
+
+    it('keeps the portal available for a former subscriber with a Stripe customer', async () => {
+      mockGetOverview.mockResolvedValueOnce(createMockOverviewResponse({
+        ...mockOverviewResponses.free,
+        portal_available: true,
+      }));
+      wrapper = await mountComponent({ organizations: [mockFreeOrganization] });
+      expect(wrapper.find('[data-testid="manage-payment-method-button"]').exists()).toBe(true);
+    });
+
+    it('shows a portal error and permits retry when session creation fails', async () => {
+      mockCreatePortalSession.mockRejectedValueOnce(new Error('Portal unavailable'));
+      wrapper = await mountComponent();
+      const button = wrapper.get('[data-testid="manage-payment-method-button"]');
+
+      await button.trigger('click');
+      await flushPromises();
+
+      expect(wrapper.text()).toContain('Portal unavailable');
+      expect(button.attributes('disabled')).toBeUndefined();
+      expect(window.location.href).toBe('');
+    });
+
+    it('does not navigate to an unapproved portal URL', async () => {
+      mockCreatePortalSession.mockResolvedValueOnce({ portal_url: 'https://evil.example/p/session/test_123' });
+      wrapper = await mountComponent();
+
+      await wrapper.get('[data-testid="manage-payment-method-button"]').trigger('click');
+      await flushPromises();
+
+      expect(window.location.href).toBe('');
+      expect(wrapper.text()).toContain('web.billing.portal.open_error');
+    });
+
     it('shows "Change Plan" button for subscribers', async () => {
       wrapper = await mountComponent();
       expect(wrapper.text()).toContain('web.billing.overview.change_plan');
