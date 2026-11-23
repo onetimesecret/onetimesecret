@@ -12,11 +12,8 @@ module DomainsAPI
       # Authorization model:
       #   1. Load CustomDomain by domain_id (extid)
       #   2. Load Organization via domain.org_id
-      #   3. Verify user is organization owner
+      #   3. Verify manage_org and access to this domain
       #   4. Verify organization has incoming_secrets entitlement
-      #
-      # This ensures incoming config management requires both ownership
-      # and the appropriate plan entitlement.
       #
       class Base < DomainsAPI::Logic::Base
         include Onetime::Application::AuthorizationPolicies
@@ -31,15 +28,15 @@ module DomainsAPI
         # @return [Onetime::CustomDomain] The loaded domain
         # @raise [FormError] if domain not found
         def load_custom_domain(domain_id)
-          domain = Onetime::CustomDomain.find_by_extid(domain_id)
-          if domain.nil?
-            raise_not_found(
-              "Domain not found: #{domain_id}",
-              error_key: 'api.domains.errors.domain_not_found',
-              args: { extid: domain_id },
-            )
-          end
-          domain
+          Onetime::CustomDomain.find_by_extid(domain_id) || raise_domain_not_found(domain_id)
+        end
+
+        def raise_domain_not_found(domain_id)
+          raise_not_found(
+            "Domain not found: #{domain_id}",
+            error_key: 'api.domains.errors.domain_not_found',
+            args: { extid: domain_id },
+          )
         end
 
         # Raise this app's i18n-tagged not-found for an unresolvable owner.
@@ -89,6 +86,9 @@ module DomainsAPI
           end
 
           require_capability_in!(@organization, 'manage_org')
+          membership = membership_in(@organization)
+          raise_domain_not_found(domain_id) if membership && !membership.can_access_domain?(@custom_domain)
+
           verify_incoming_secrets_entitlement(@organization)
         end
 

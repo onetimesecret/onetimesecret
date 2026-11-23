@@ -134,6 +134,7 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
       .with(org_id).and_return(organization)
     allow(organization).to receive(:owner?).with(authenticated_customer).and_return(true)
     allow(organization).to receive(:can?).with('incoming_secrets').and_return(true)
+    allow(owner_membership).to receive(:can_access_domain?).with(custom_domain).and_return(true)
     allow(Onetime::CustomDomain::IncomingConfig).to receive(:find_by_domain_id)
       .with(domain_identifier).and_return(nil)
 
@@ -222,6 +223,17 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
       end
 
       it 'raises RecordNotFound tagged with domain_not_found and the extid in args' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound) do |error|
+          expect(error.error_key).to eq('api.domains.errors.domain_not_found')
+          expect(error.args).to eq(extid: domain_extid)
+        end
+      end
+    end
+
+    context 'when the membership is scoped to a different domain' do
+      it 'returns the same not-found error as an unknown domain' do
+        allow(owner_membership).to receive(:can_access_domain?).with(custom_domain).and_return(false)
+        logic = described_class.new(strategy_result, params)
         expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound) do |error|
           expect(error.error_key).to eq('api.domains.errors.domain_not_found')
           expect(error.args).to eq(extid: domain_extid)
