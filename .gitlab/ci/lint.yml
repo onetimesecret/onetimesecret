@@ -33,6 +33,7 @@ compose-quick-start:
     COMPOSE_SHA256: '7758048ad38e580f22559603312874fec8bb638d021a9e64182385fc17cc12a2'
   rules:
     - changes:
+        - README.md
         - .env.example
         - docker/README.md
         - docker-compose.yml
@@ -43,7 +44,7 @@ compose-quick-start:
         - tools/testsuite-installer/testsuite-installer.sh
   before_script:
     - apt-get update -qq
-    - apt-get install -y -qq --no-install-recommends ca-certificates curl docker-cli openssl
+    - apt-get install -y -qq --no-install-recommends acl ca-certificates curl docker-cli openssl
     - |
       plugin=/usr/local/lib/docker/cli-plugins/docker-compose
       install -d "$(dirname "$plugin")"
