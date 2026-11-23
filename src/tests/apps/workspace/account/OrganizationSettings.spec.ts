@@ -408,6 +408,23 @@ describe('OrganizationSettings', () => {
       expect(panel().text()).not.toContain(invite);
     });
 
+    it('keeps an invitation action failure and retry on the delegated member’s panel', async () => {
+      mockGetPermissions.mockResolvedValue({ data: { organizations: [permissionRecord(true, 'member')] } });
+      mockRevokeInvitation.mockRejectedValueOnce({ response: { status: 503 } }).mockResolvedValueOnce(undefined);
+      wrapper = await mountComponent();
+      const revoke = () => panel().findAll('button').find(button => button.text() === 'web.organizations.invitations.revoke')!;
+      await revoke().trigger('click');
+      await flushPromises();
+
+      expect(panel().text()).toContain('web.organizations.invitations.revoke_error');
+      expect(panel().text()).toContain(pending.email);
+      expect(wrapper.text()).not.toContain('web.organizations.load_error');
+      await revoke().trigger('click');
+      await flushPromises();
+      expect(panel().text()).toContain('web.organizations.invitations.revoke_success');
+      expect(panel().text()).not.toContain('web.organizations.invitations.revoke_error');
+    });
+
     it('does not display a late invitation response after switching organizations', async () => {
       let resolveInvitations!: (rows: typeof pending[]) => void;
       mockFetchInvitations.mockReturnValue(new Promise(resolve => { resolveInvitations = resolve; }));

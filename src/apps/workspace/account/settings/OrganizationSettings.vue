@@ -655,7 +655,7 @@
   const updateInvitation = async (action: 'resend' | 'revoke', token: string) => {
     if (!canManageInvitations.value) return;
     const target = orgId.value;
-    error.value = '';
+    inviteGeneralError.value = '';
     success.value = '';
     try {
       if (action === 'resend') await organizationStore.resendInvitation(target, token);
@@ -668,7 +668,7 @@
       if (classifyError(err).code === 403) {
         denyInvitations();
       } else {
-        error.value = t(`web.organizations.invitations.${action}_error`);
+        inviteGeneralError.value = t(`web.organizations.invitations.${action}_error`);
       }
     }
   };
@@ -1447,8 +1447,8 @@
 
           <div class="p-6">
             <BasicFormAlerts
-              v-if="error"
-              :error="error" />
+              v-if="inviteGeneralError || error"
+              :error="inviteGeneralError || error" />
             <BasicFormAlerts
               v-if="success"
               :success="success" />
@@ -1459,10 +1459,6 @@
               <form
                 @submit.prevent="handleInviteMember"
                 class="space-y-4">
-                <BasicFormAlerts
-                  v-if="inviteGeneralError"
-                  :error="inviteGeneralError" />
-
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-end">
                   <div class="flex-1">
                     <label
