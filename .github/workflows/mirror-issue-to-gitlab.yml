@@ -1,0 +1,73 @@
+# .github/workflows/mirror-issue-to-gitlab.yml
+---
+name: Create GitLab work item
+
+on:
+  issues:
+    types: [opened]
+
+permissions: {}
+
+concurrency:
+  group: gitlab-work-item-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  create-work-item:
+    if: github.repository == 'onetimesecret/onetimesecret'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Copy the issue to GitLab
+        shell: bash
+        env:
+          # GitLab Work Item Read and Create permissions for this project.
+          GITLAB_TOKEN: ${{ secrets.GITLAB_ISSUE_SYNC_TOKEN }}
+        run: |
+          if [[ -z "$GITLAB_TOKEN" ]]; then
+            echo '::error::Configure the GITLAB_ISSUE_SYNC_TOKEN Actions secret.'
+            exit 1
+          fi
+
+          issue_number=$(jq -er '.issue.number | numbers' "$GITHUB_EVENT_PATH")
+          source_url="https://github.com/$GITHUB_REPOSITORY/issues/$issue_number"
+          source_line="GitHub issue: $source_url"
+          gitlab_issues='https://gitlab.com/api/v4/projects/88874403/issues'
+          api=(curl --silent --show-error --fail --max-time 30
+            --header "PRIVATE-TOKEN: $GITLAB_TOKEN")
+
+          # Check for a previous copy before POSTing, including closed work items.
+          page=1
+          while true; do
+            issues=$("${api[@]}" --get "$gitlab_issues" \
+              --data-urlencode 'in=description' \
+              --data-urlencode "search=$source_url" \
+              --data-urlencode 'per_page=100' \
+              --data-urlencode "page=$page")
+            existing_url=$(jq -r --arg source "$source_line" '
+              first(.[] | select(((.description // "") | split("\n")[0]) == $source) | .web_url) // empty
+            ' <<< "$issues")
+            if [[ -n "$existing_url" ]]; then
+              printf 'Already copied to %s\n' "$existing_url"
+              exit 0
+            fi
+            if [[ $(jq 'length' <<< "$issues") -lt 100 ]]; then
+              break
+            fi
+            page=$((page + 1))
+          done
+
+          # Keep untrusted text in code spans and blocks to avoid GitLab references and quick actions.
+          payload=$(jq --arg source "$source_line" '
+            .issue | {
+              title: ("`" + (.title[:253] | gsub("`"; "ˋ")) + "`"),
+              description: ($source + (
+                if (.body // "") == "" then ""
+                else "\n\n" + (.body | gsub("\r\n?"; "\n") | split("\n") | map("    " + .) | join("\n"))
+                end
+              ))
+            }
+          ' "$GITHUB_EVENT_PATH")
+          created=$("${api[@]}" --header 'Content-Type: application/json' \
+            --data-binary @- "$gitlab_issues" <<< "$payload")
+          jq -er '"Created " + (.web_url | strings)' <<< "$created"
