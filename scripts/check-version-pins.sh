@@ -8,12 +8,11 @@
 #
 # Checks:
 #   - docker/base.dockerfile NODE_IMAGE_TAG major == .node-version major
-#   - docker/base.dockerfile RUBY_IMAGE_TAG major.minor == .ruby-version major.minor
-#   - Dockerfile             RUBY_IMAGE_TAG major.minor == .ruby-version major.minor
-#   - .oss-scanner/Dockerfile RUBY_IMAGE_TAG version == .ruby-version (exact:
-#     the tag names the patch, and Bundler refuses any other patch release)
+#   - docker/base.dockerfile RUBY_IMAGE_TAG version == .ruby-version
+#   - Dockerfile             RUBY_IMAGE_TAG version == .ruby-version
+#   - .oss-scanner/Dockerfile RUBY_IMAGE_TAG version == .ruby-version
 #   - .oss-scanner/Dockerfile NODE_IMAGE_TAG major == .node-version major
-#   - .devcontainer/compose.yaml ruby image tag major.minor == .ruby-version major.minor
+#   - .devcontainer/Dockerfile RUBY_IMAGE_TAG version == .ruby-version
 #   - .devcontainer/devcontainer.json node feature version == .node-version major
 #     (devcontainer features can't read pin files, so those are duplicated by
 #     necessity — this guard keeps the duplication in lockstep; C8 → C9)
@@ -45,8 +44,7 @@ node_major="$(sed 's/[^0-9].*$//' .node-version | tr -d '[:space:]')"
 [[ -n "$node_major" ]] || fail "could not read major version from .node-version"
 
 ruby_full="$(tr -d '[:space:]' < .ruby-version)"
-ruby_mm="$(echo "$ruby_full" | cut -d. -f1-2)"
-[[ -n "$ruby_mm" ]] || fail "could not read major.minor from .ruby-version"
+[[ -n "$ruby_full" ]] || fail "could not read .ruby-version"
 
 # --- Helper: extract an ARG <NAME>=<value> from a Dockerfile ----------
 arg_value() {
@@ -66,34 +64,20 @@ else
   fail "$base_df NODE_IMAGE_TAG ($node_tag) does not start with .node-version major ($node_major)"
 fi
 
-# --- Ruby image tag in docker/base.dockerfile and Dockerfile ----------
-for df in "$base_df" "Dockerfile"; do
+# --- Ruby image pins (Bundler requires the exact patch) ---------------
+scanner_df=".oss-scanner/Dockerfile"
+for df in "$base_df" "Dockerfile" "$scanner_df" ".devcontainer/Dockerfile"; do
   [[ -f "$df" ]] || fail "$df not found"
   ruby_tag="$(arg_value "$df" RUBY_IMAGE_TAG)"
   [[ -n "$ruby_tag" ]] || fail "RUBY_IMAGE_TAG not found in $df"
-  if [[ "$ruby_tag" == "$ruby_mm" || "$ruby_tag" == "$ruby_mm"[.@-]* ]]; then
-    echo "PASS: $df RUBY_IMAGE_TAG ($ruby_tag) matches .ruby-version major.minor ($ruby_mm)"
+  if [[ "$ruby_tag" == "$ruby_full" || "$ruby_tag" == "$ruby_full"[@-]* ]]; then
+    echo "PASS: $df RUBY_IMAGE_TAG ($ruby_tag) matches .ruby-version ($ruby_full)"
   else
-    fail "$df RUBY_IMAGE_TAG ($ruby_tag) does not start with .ruby-version major.minor ($ruby_mm)"
+    fail "$df RUBY_IMAGE_TAG ($ruby_tag) does not start with .ruby-version ($ruby_full)"
   fi
 done
 
-# --- OSS Scanner image (.oss-scanner/Dockerfile) ----------------------
-# The scanner builds this file from main on its own schedule, so drift
-# surfaces as a failed scanner build rather than a red PR. Its Ruby tag
-# names the full version, and the Gemfile's `ruby file: '.ruby-version'`
-# makes bundle install refuse any other patch release.
-scanner_df=".oss-scanner/Dockerfile"
-[[ -f "$scanner_df" ]] || fail "$scanner_df not found"
-
-scanner_ruby="$(arg_value "$scanner_df" RUBY_IMAGE_TAG)"
-[[ -n "$scanner_ruby" ]] || fail "RUBY_IMAGE_TAG not found in $scanner_df"
-if [[ "$scanner_ruby" == "$ruby_full" || "$scanner_ruby" == "$ruby_full"[@-]* ]]; then
-  echo "PASS: $scanner_df RUBY_IMAGE_TAG ($scanner_ruby) matches .ruby-version ($ruby_full)"
-else
-  fail "$scanner_df RUBY_IMAGE_TAG ($scanner_ruby) does not start with .ruby-version ($ruby_full)"
-fi
-
+# --- OSS Scanner Node image ------------------------------------------
 scanner_node="$(arg_value "$scanner_df" NODE_IMAGE_TAG)"
 [[ -n "$scanner_node" ]] || fail "NODE_IMAGE_TAG not found in $scanner_df"
 if [[ "$scanner_node" == "$node_major" || "$scanner_node" == "$node_major"[.@-]* ]]; then
@@ -102,23 +86,8 @@ else
   fail "$scanner_df NODE_IMAGE_TAG ($scanner_node) does not start with .node-version major ($node_major)"
 fi
 
-# --- Devcontainer (compose image + node feature) ----------------------
-dc_compose=".devcontainer/compose.yaml"
+# --- Devcontainer Node feature --------------------------------------
 dc_json=".devcontainer/devcontainer.json"
-
-if [[ -f "$dc_compose" ]]; then
-  # e.g. image: ghcr.io/rails/devcontainer/images/ruby:3.4.9
-  dc_ruby_tag="$(grep -Eo 'devcontainer/images/ruby:[0-9][0-9.]*' "$dc_compose" | head -n1 | cut -d: -f2)"
-  [[ -n "$dc_ruby_tag" ]] || fail "ruby image tag not found in $dc_compose"
-  if [[ "$dc_ruby_tag" == "$ruby_mm" || "$dc_ruby_tag" == "$ruby_mm"[.@-]* ]]; then
-    echo "PASS: $dc_compose ruby image tag ($dc_ruby_tag) matches .ruby-version major.minor ($ruby_mm)"
-  else
-    fail "$dc_compose ruby image tag ($dc_ruby_tag) does not start with .ruby-version major.minor ($ruby_mm)"
-  fi
-else
-  fail "$dc_compose not found"
-fi
-
 if [[ -f "$dc_json" ]]; then
   # e.g. "ghcr.io/devcontainers/features/node:1": { "version": "24" }
   dc_node="$(grep -A1 'features/node' "$dc_json" | grep -Eo '"version"[[:space:]]*:[[:space:]]*"[0-9]+"' | grep -Eo '[0-9]+' | head -n1)"
