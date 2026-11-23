@@ -14,7 +14,7 @@
  * @see apps/api/account/logic/account/get_permissions.rb
  */
 
-import { ref, type Ref } from 'vue';
+import { onScopeDispose, ref, watch, type Ref } from 'vue';
 import { useApi } from '@/shared/composables/useApi';
 import {
   bulkPermissionsResponseSchema,
@@ -157,4 +157,44 @@ export function useOrganizationPermissionLookup() {
     if (record?.resource_type !== 'organization' || record.resource_id !== orgExtid) return null;
     return record.organization.extid === orgExtid ? record : null;
   };
+}
+
+/** Check both IDs so a permission cannot be reused under another organization. */
+function useDomainPermissionLookup() {
+  const { fetchResourcePermissions } = useResourcePermissions();
+  return async (orgId: string, domainId: string) => {
+    const record = await fetchResourcePermissions('domain', domainId);
+    if (record?.resource_type !== 'domain' || record.resource_id !== domainId ||
+        record.organization.extid !== orgId) return undefined;
+    return record;
+  };
+}
+
+export function useDomainSsoPermissionLookup() {
+  const lookup = useDomainPermissionLookup();
+  return async (orgId: string, domainId: string) =>
+    (await lookup(orgId, domainId))?.permissions.can_manage_sso;
+}
+
+export function useTenantSsoPermissions(orgId: () => string, domainId: () => string) {
+  const lookup = useDomainPermissionLookup();
+  const canManageSso = ref<boolean>();
+  const domain = ref<{ display_domain: string; verified: boolean }>();
+  const isLoading = ref(false);
+  let request = 0;
+  async function refresh() {
+    const current = ++request;
+    canManageSso.value = undefined;
+    domain.value = undefined;
+    isLoading.value = true;
+    const record = orgId() && domainId() ? await lookup(orgId(), domainId()) : undefined;
+    if (request === current) {
+      canManageSso.value = record?.permissions.can_manage_sso;
+      if (canManageSso.value) domain.value = record?.domain;
+      isLoading.value = false;
+    }
+  }
+  watch([orgId, domainId], refresh, { immediate: true, flush: 'sync' });
+  onScopeDispose(() => { request++; });
+  return { canManageSso, domain, isLoading, refresh };
 }
