@@ -205,9 +205,9 @@ full:
 # which exchanges a session or Basic auth API key for a token.
 #
 # No key material to manage: the Ed25519 signing key is derived from SECRET
-# with HKDF (purpose paseto-signing). Every SECRET_PREVIOUS entry derives a
-# verification-only key, so tokens signed before a SECRET rotation keep
-# verifying until they expire. Tokens are refused once the account is
+# with HKDF (purpose paseto-signing). A SECRET rotation retires bearer tokens
+# signed by the old key, even when it remains in SECRET_PREVIOUS for ciphertext
+# decryption. Tokens are refused once the account is
 # suspended, its password changes (the same watermark that ends sessions)
 # or its API key is rotated.
 #

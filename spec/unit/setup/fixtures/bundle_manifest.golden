@@ -2,7 +2,6 @@ config.txt
 doctor.txt
 env-names.txt
 files.txt
-logs.txt
 manifest.txt
 system.txt
 versions.txt

@@ -1283,20 +1283,24 @@ doctor_run() {
 
 # --- Support bundle (R0.2) ----------------------------------------------
 #
-# A sanitized, shareable diagnostic archive: versions, file presence, env
-# var NAMES (never values), mode summary, doctor output, masked log excerpt.
+# A diagnostic archive for manual review: versions, file presence, env var
+# names, mode summary, and doctor output. Log contents are deliberately
+# excluded: arbitrary log formats cannot be reliably redacted.
 # The entry list is fixed — spec/unit/setup/doctor_bundle_spec.rb holds the
 # golden manifest; extend both together.
 
 cmd_bundle() {
+  # The archive is intended for manual review before sharing and may contain
+  # environment details even without log contents.
+  umask 077
   local outroot="${OTS_BUNDLE_DIR:-tmp}"
   local ts name dir
   ts=$(date -u +%Y%m%d-%H%M%SZ)
-  name="ots-doctor-bundle-$ts"
-  dir="$outroot/$name"
-  mkdir -p "$dir"
+  mkdir -p "$outroot"
+  dir=$(mktemp -d "$outroot/ots-doctor-bundle-$ts-XXXXXXXX")
+  name="${dir##*/}"
 
-  info "Collecting diagnostic bundle (sanitized — env var names only, never values)..."
+  info "Collecting diagnostic bundle (excludes logs and .env values; includes configuration and network details)..."
 
   doctor_run > "$dir/doctor.txt" 2>&1 || true
 
@@ -1362,28 +1366,11 @@ cmd_bundle() {
   } > "$dir/config.txt" || true
 
   {
-    echo "# logs.txt — newest log excerpt; emails, long hex, and secret-ish assignments masked"
-    local newest
-    newest=$(ls -t log/*.log 2>/dev/null | head -1 || true)
-    if [[ -n "$newest" ]]; then
-      echo "source: $newest (last 200 lines)"
-      echo "---"
-      tail -n 200 "$newest" | sed -E \
-        -e 's/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/<email>/g' \
-        -e 's/[0-9a-fA-F]{32,}/<hex>/g' \
-        -e 's/([Pp]assword|PASSWORD|[Ss]ecret|SECRET|[Tt]oken|TOKEN|[Aa]pi_?[Kk]ey|API_?KEY)([=: ]+)[^[:space:]]+/\1\2<redacted>/g'
-    else
-      echo "no log files found under log/"
-    fi
-  } > "$dir/logs.txt" || true
-
-  {
     echo "# manifest.txt — bundle contents (fixed list; golden-file tested)"
     echo "config.txt"
     echo "doctor.txt"
     echo "env-names.txt"
     echo "files.txt"
-    echo "logs.txt"
     echo "manifest.txt"
     echo "system.txt"
     echo "versions.txt"
@@ -1393,7 +1380,7 @@ cmd_bundle() {
   rm -rf "$dir"
 
   info "Bundle written: $outroot/$name.tar.gz"
-  echo "  Sanitized (names/presence only, no secret values) — still, review before sharing."
+  echo "  Logs and .env values are excluded; configuration and network details are included. Review before sharing."
 }
 
 cmd_doctor() {
@@ -1444,9 +1431,9 @@ Lanes:
                  --operator   operator context: skips contributor tooling
                               (overmind, direnv, ...); a down service is a
                               failure, not a warning. [default: --dev]
-                 --bundle     write a sanitized diagnostic archive to tmp/
-                              (versions, file presence, env var NAMES only,
-                              masked log excerpt) for support requests.
+                 --bundle     write a diagnostic archive to tmp/ (versions,
+                              configuration, network details, file presence,
+                              env var names; no logs or .env values).
   --console    Interactive Ruby console with the app loaded.
   --help       Show this message.
 EOF

@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # Key derivation and rotation for the v3 API bearer tokens (#2427). Pure: the
-# keyring is a function of SECRET and SECRET_PREVIOUS, no boot, no datastore.
+# keyring is a function of the current SECRET, no boot or datastore.
 #
 # Run: pnpm run test:rspec spec/unit/onetime/paseto/keyring_spec.rb
 
@@ -13,7 +13,6 @@ require 'onetime/paseto'
 RSpec.describe Onetime::Paseto::Keyring do
   let(:secret)   { 'decafbad' * 8 }
   let(:previous) { 'cafef00d' * 8 }
-  let(:older)    { 'feedface' * 8 }
 
   describe '.derive' do
     it 'is deterministic: the same SECRET always yields the same signing key' do
@@ -42,40 +41,11 @@ RSpec.describe Onetime::Paseto::Keyring do
       expect { described_class.derive(nil) }.to raise_error(ArgumentError)
     end
 
-    context 'without SECRET_PREVIOUS' do
-      subject(:keyring) { described_class.derive(secret, nil) }
+    it 'accepts only the current key for verification' do
+      keyring = described_class.derive(secret)
 
-      it 'accepts exactly the current key' do
-        expect(keyring.kids).to eq([keyring.signing_key.kid])
-      end
-    end
-
-    context 'with SECRET_PREVIOUS (oldest first, as ConfigureFamilia reads it)' do
-      subject(:keyring) { described_class.derive(secret, " #{older}, #{previous} ,,") }
-
-      it 'signs with the current SECRET only' do
-        expect(keyring.signing_key.kid).to eq(described_class.derive(secret).signing_key.kid)
-        expect(keyring.signing_key).to be_signing
-      end
-
-      it 'accepts every previous key for verification, verify-only' do
-        %w[older previous].each do |name|
-          kid = described_class.derive(public_send(name)).signing_key.kid
-          key = keyring.verification_key(kid)
-          expect(key).not_to be_nil, name
-          expect(key).not_to be_signing, name
-        end
-        expect(keyring.kids.size).to eq(3)
-      end
-
-      it 'lists the current kid first' do
-        expect(keyring.kids.first).to eq(keyring.signing_key.kid)
-      end
-
-      it 'collapses a previous SECRET equal to the current one' do
-        same = described_class.derive(secret, secret)
-        expect(same.kids).to eq([same.signing_key.kid])
-      end
+      expect(keyring.kids).to eq([keyring.signing_key.kid])
+      expect(keyring.verification_key(described_class.derive(previous).signing_key.kid)).to be_nil
     end
   end
 
@@ -103,7 +73,7 @@ RSpec.describe Onetime::Paseto::Keyring do
   end
 
   describe 'redaction' do
-    subject(:keyring) { described_class.derive(secret, previous) }
+    subject(:keyring) { described_class.derive(secret) }
 
     it 'never prints key material from inspect or to_s' do
       texts = [keyring.inspect, keyring.to_s, keyring.signing_key.inspect, keyring.signing_key.to_s]

@@ -27,8 +27,8 @@ docker run -d --name onetime-redis --network onetime redis:trixie \
 # 2. Generate and store a persistent secret key — back this up safely
 openssl rand -hex 32 > .ots_secret && chmod 600 .ots_secret
 
-# 3. Run Onetime Secret (set SSL=true for production)
-docker run -p 3000:3000 -d \
+# 3. Run Onetime Secret for local evaluation; use a TLS proxy for remote access
+docker run -p 127.0.0.1:3000:3000 -d \
   --name onetimesecret \
   --network onetime \
   -e REDIS_URL="redis://:$(cat .ots_redis_password)@onetime-redis:6379/0" \

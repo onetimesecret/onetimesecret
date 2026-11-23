@@ -164,6 +164,8 @@ module Onetime
         def validate!(claims, audience:, issuer:, now:)
           now = now.utc
           raise TokenExpired, 'token expired' unless claims.expires_at > now
+          lifetime = claims.expires_at - claims.issued_at
+          raise InvalidClaims, 'token lifetime exceeds the supported range' unless lifetime.positive? && lifetime <= MAX_TTL
           raise InvalidClaims, 'token not yet valid' if claims.not_before && claims.not_before > now + CLOCK_SKEW
           raise InvalidClaims, 'token issued in the future' if claims.issued_at > now + CLOCK_SKEW
           raise InvalidClaims, 'audience mismatch' unless claims.audience == audience.to_s

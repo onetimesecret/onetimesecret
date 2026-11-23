@@ -1,5 +1,9 @@
 # C10 — SECRET Lifecycle Safety: Design
 
+This records the July 2026 design. Current behavior also refuses encrypted
+writes during a verifier mismatch and retires API bearer tokens on SECRET
+rotation; see [the operator runbook](../../runbooks/secret-rotation.md).
+
 > **Status:** Shipped (2026-07-11), including the appetite-gated §3.3
 > `SECRET_PREVIOUS` chain (the §3.3 implementation checkpoint passed:
 > familia 2.11.2 resolves envelope `key_version` via symbol/string

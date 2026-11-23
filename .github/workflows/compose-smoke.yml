@@ -392,7 +392,7 @@ jobs:
         env:
           OTS_IMAGE: ${{ steps.tag.outputs.image }}
         run: |
-          docker run -p 3000:3000 -d \
+          docker run -p 127.0.0.1:3000:3000 -d \
             --network onetime \
             -e REDIS_URL="redis://:$(cat .ots_redis_password)@onetime-redis:6379/0" \
             -e SECRET="$(cat .ots_secret)" \

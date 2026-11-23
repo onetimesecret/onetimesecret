@@ -14,10 +14,10 @@ Include your version (or image tag), how you run it (bare metal, Docker,
 compose), and what you expected versus what happened.
 
 Self-hosting from a checkout? Run `bin/doctor --operator --bundle`
-and attach the archive it writes to `tmp/` — a sanitized diagnostic snapshot
-(versions, file presence, env variable *names* only — never values — and a
-masked log excerpt). It answers most back-and-forth questions up front;
-still, review it before posting.
+and attach the archive it writes to `tmp/` — a diagnostic snapshot with
+versions, file presence, environment variable names, non-secret configuration,
+and network details. Log contents are excluded because they may contain
+credentials. Review the archive before posting it.
 
 `--operator` is what keeps the report honest for a self-hoster. Without it
 the bundle is collected in contributor context, which adds checks for a

@@ -350,7 +350,7 @@ RSpec.describe 'API v3 PASETO bearer tokens', type: :integration do
       )
     end
 
-    it 'refuses a token signed by a SECRET this deployment never held, and accepts one from SECRET_PREVIOUS' do
+    it 'refuses tokens signed by another SECRET, including one retained for decryption' do
       stranger, = Onetime::Paseto::AccessToken.issue(
         subject: customer.extid,
         keyring: Onetime::Paseto::Keyring.derive('deadbeef' * 8),
@@ -360,24 +360,16 @@ RSpec.describe 'API v3 PASETO bearer tokens', type: :integration do
       request(:get, '/api/v3/receipt/recent', authorization: "Bearer #{stranger}")
       expect_bearer_refusal('api_token_invalid')
 
-      # Rotation: the running keyring now lists the old SECRET as previous.
-      live    = Onetime::Paseto.keyring
+      # SECRET_PREVIOUS is for ciphertext decryption, not bearer auth.
       retired = Onetime::Paseto::Keyring.derive('cafef00d' * 8)
-      rotated = Onetime::Paseto::Keyring.new(live.signing_key, [retired.signing_key])
-      Onetime::Runtime.update_security(paseto_keyring: rotated)
-      begin
-        old_token, = Onetime::Paseto::AccessToken.issue(
-          subject: customer.extid,
-          keyring: retired,
-          audience: Onetime::Paseto::V3_AUDIENCE,
-          issuer: Onetime::Paseto.issuer,
-        )
-        request(:get, '/api/v3/receipt/recent', authorization: "Bearer #{old_token}")
-        expect(last_response.status).to eq(200), last_response.body
-        expect(last_request.env.fetch('otto.strategy_result').metadata[:token_kid]).to eq(retired.signing_key.kid)
-      ensure
-        Onetime::Runtime.update_security(paseto_keyring: live)
-      end
+      old_token, = Onetime::Paseto::AccessToken.issue(
+        subject: customer.extid,
+        keyring: retired,
+        audience: Onetime::Paseto::V3_AUDIENCE,
+        issuer: Onetime::Paseto.issuer,
+      )
+      request(:get, '/api/v3/receipt/recent', authorization: "Bearer #{old_token}")
+      expect_bearer_refusal('api_token_invalid')
     end
 
     it 'dies with the account: suspension and a password change both refuse it' do

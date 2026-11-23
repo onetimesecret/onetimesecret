@@ -24,8 +24,8 @@ Each token says:
 | `jti`   | 128 random bits, for logs |
 | `scope` | `["*"]`, the only grant today; anything else is refused |
 
-The footer carries `{"kid": "…"}`, the identifier of the signing key, so a
-deployment mid-rotation can pick the right key before verifying.
+The footer carries `{"kid": "…"}`, the identifier of the signing key. The
+verifier accepts only the current key; an unknown `kid` is refused.
 
 ## Enabling it
 
@@ -147,20 +147,18 @@ every request:
 - **Suspension.** A suspended account's tokens are refused on the next request.
 - **Account deletion.** The subject no longer resolves.
 
-Key rotation rides the existing SECRET rotation
-([docs/runbooks/secret-rotation.md](../runbooks/secret-rotation.md)): every
-entry in `SECRET_PREVIOUS` derives a verification-only key, so tokens signed
-before the rotation keep verifying until they expire, while new tokens are
-signed with the key derived from the current `SECRET`. Since tokens live at
-most a day, a previous SECRET kept for the window the runbook already requires
-covers them with room to spare.
+Rotating `SECRET` retires existing bearer tokens immediately. Only the current
+`SECRET` derives a bearer verification key; `SECRET_PREVIOUS` remains a
+decrypt-only history for ciphertext. Clients must obtain a new token after
+rotation. The verifier also rejects tokens whose signed lifetime exceeds one
+day, including tokens signed outside the normal issuance endpoint.
 
 ## Implementation
 
 | Piece | Where |
 | --- | --- |
 | Token format (sign, parse, verify, PAE) | `lib/onetime/paseto/v4_public.rb` |
-| Keys from `SECRET` and `SECRET_PREVIOUS` | `lib/onetime/paseto/keyring.rb`, `Onetime::Initializers::SetupPasetoKeys` |
+| Key from the current `SECRET` | `lib/onetime/paseto/keyring.rb`, `Onetime::Initializers::SetupPasetoKeys` |
 | Claims: issue and verify | `lib/onetime/paseto/access_token.rb` |
 | Route strategy (`auth=pasetoauth`) | `lib/onetime/application/auth_strategies/paseto_auth_strategy.rb` |
 | Exchange endpoint | `apps/api/v3/logic/auth.rb` (`V3::Logic::Auth::GenerateToken`) |

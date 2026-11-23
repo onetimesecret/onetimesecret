@@ -6,7 +6,7 @@
 #
 # Layout:
 #   paseto/v4_public.rb     the token format: Ed25519 over PAE, base64url
-#   paseto/keyring.rb       keys derived from SECRET (+ SECRET_PREVIOUS)
+#   paseto/keyring.rb       key derived from the current SECRET
 #   paseto/access_token.rb  registered claims: issue and verify
 #
 # The keyring is built once at boot by Onetime::Initializers::SetupPasetoKeys

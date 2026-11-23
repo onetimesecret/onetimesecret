@@ -5,14 +5,12 @@
 #
 # Key rotation for the v3 API bearer tokens (#2427).
 #
-# The keyring follows the SECRET rotation runbook: the current SECRET signs,
-# every SECRET_PREVIOUS entry verifies. These tryouts walk one rotation:
+# The current SECRET signs and verifies. SECRET_PREVIOUS can decrypt old
+# ciphertext but cannot authenticate bearer tokens. These tryouts walk one rotation:
 #
 # 1. Before: tokens are signed under SECRET A and verify under A.
 # 2. Rotate: SECRET becomes B, SECRET_PREVIOUS lists A. Tokens signed under A
-#    still verify (until they expire); new tokens are signed under B.
-# 3. Retire: SECRET_PREVIOUS drops A. Tokens signed under A are refused with
-#    UnknownKey; tokens signed under B keep working.
+#    stop verifying immediately; new tokens are signed under B.
 #
 # Pure derivation: no boot and no datastore.
 
@@ -44,43 +42,34 @@ verify_with(@ring_a, @token_a).kid == @ring_a.signing_key.kid
 @ring_a.kids.size
 #=> 1
 
-## Step 2: rotate to SECRET B, keeping A in SECRET_PREVIOUS
-@ring_rotated = Onetime::Paseto::Keyring.derive(@secret_b, @secret_a)
+## Step 2: rotate to SECRET B, keeping A only for ciphertext decryption
+@ring_rotated = Onetime::Paseto::Keyring.derive(@secret_b)
 @ring_rotated.signing_key.kid == Onetime::Paseto::Keyring.derive(@secret_b).signing_key.kid
 #=> true
 
-## The rotated keyring lists the current kid first, then the previous one
-@ring_rotated.kids == [@ring_rotated.signing_key.kid, @ring_a.signing_key.kid]
+## The rotated keyring lists only the current kid
+@ring_rotated.kids == [@ring_rotated.signing_key.kid]
 #=> true
 
-## A token signed before the rotation still verifies, under the old kid
-verify_with(@ring_rotated, @token_a).kid == @ring_a.signing_key.kid
-#=> true
-
-## The previous key is verification-only: it cannot sign anymore
-@ring_rotated.verification_key(@ring_a.signing_key.kid).signing?
-#=> false
+## A token signed before rotation is refused even while A decrypts ciphertext
+begin
+  verify_with(@ring_rotated, @token_a)
+rescue Onetime::Paseto::Error => ex
+  ex.class
+end
+#=> Onetime::Paseto::UnknownKey
 
 ## New tokens are signed under SECRET B
 @token_b = issue_with(@ring_rotated)
 Onetime::Paseto::V4Public.footer_kid(Onetime::Paseto::V4Public.parse(@token_b).footer) == @ring_rotated.signing_key.kid
 #=> true
 
-## Step 3: retire SECRET A from SECRET_PREVIOUS
-@ring_retired = Onetime::Paseto::Keyring.derive(@secret_b)
-begin
-  verify_with(@ring_retired, @token_a)
-rescue Onetime::Paseto::Error => ex
-  ex.class
-end
-#=> Onetime::Paseto::UnknownKey
-
-## Tokens signed under SECRET B keep working after A is retired
-verify_with(@ring_retired, @token_b).subject == @subject
+## Tokens signed under SECRET B keep working
+verify_with(@ring_rotated, @token_b).subject == @subject
 #=> true
 
-## Rotation never changes the claims a token carries
-[verify_with(@ring_rotated, @token_a).subject, verify_with(@ring_rotated, @token_a).scope]
+## Rotation does not change the claims carried by a newly issued token
+[verify_with(@ring_rotated, @token_b).subject, verify_with(@ring_rotated, @token_b).scope]
 #=> ['ur0123456789abcdefghijklmno', ['*']]
 
 ## A deployment whose SECRET was never A or B holds no usable key for either token

@@ -10,7 +10,7 @@ module Onetime
     #
     # Derives the Ed25519 keyring the v3 API bearer tokens (PASETO
     # v4.public, #2427) are signed and verified with. Pure derivation from
-    # the root SECRET and SECRET_PREVIOUS (Onetime::Paseto::Keyring.derive),
+    # the current root SECRET (Onetime::Paseto::Keyring.derive),
     # so it needs no datastore and runs in database-less boots too.
     #
     # It runs whether or not auth.paseto.enabled is set: the derivation is
@@ -43,7 +43,7 @@ module Onetime
           return
         end
 
-        keyring = Onetime::Paseto::Keyring.derive(secret, ENV.fetch('SECRET_PREVIOUS', nil))
+        keyring = Onetime::Paseto::Keyring.derive(secret)
         Onetime::Runtime.update_security(paseto_keyring: keyring)
 
         OT.boot_logger.debug 'Derived PASETO signing keyring',

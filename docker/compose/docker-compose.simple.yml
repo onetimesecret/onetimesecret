@@ -54,8 +54,9 @@ services:
       options:
         max-size: '60m'
         max-file: '3'
+    # Local-only HTTP. Use the full stack's TLS proxy for remote access.
     ports:
-      - '3000:3000'
+      - '127.0.0.1:3000:3000'
     restart: unless-stopped
     # No /app/data mount: in simple mode everything persists in Valkey
     # (the maindb-data volume below). The full stack mounts a shared

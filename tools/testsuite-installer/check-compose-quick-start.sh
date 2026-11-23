@@ -35,9 +35,39 @@ bash -e quick-start.sh
 grep -Eq '^SECRET=[0-9a-f]{64}$' .env
 grep -Eq '^VALKEY_PASSWORD=[0-9a-f]{64}$' .env
 cp .env first.env
+chmod 644 .env
 bash -e quick-start.sh
 cmp first.env .env
+mode=$(stat -c %a .env 2>/dev/null || stat -f %Lp .env)
+[[ "$mode" == 600 ]]
 [[ $(wc -l < compose-checks) -eq 2 ]]
+
+echo 'Checking a shared .env symlink remains untouched'
+mv .env shared.env
+chmod 640 shared.env
+ln -s shared.env .env
+bash -e quick-start.sh
+cmp first.env shared.env
+mode=$(stat -c %a shared.env 2>/dev/null || stat -f %Lp shared.env)
+[[ "$mode" == 640 ]]
+rm .env
+mv shared.env .env
+
+echo 'Checking missing keys are not appended through a symlink'
+rm .env
+printf '%s\n' 'SECRET=existing-secret' > shared.env
+chmod 644 shared.env
+ln -s shared.env .env
+if bash -e quick-start.sh; then
+  echo 'Expected the quick start to refuse a missing key in a linked env file' >&2
+  exit 1
+fi
+[[ $(grep -c '^SECRET=' shared.env) -eq 1 ]]
+[[ $(grep -c '^VALKEY_PASSWORD=' shared.env || true) -eq 0 ]]
+mode=$(stat -c %a shared.env 2>/dev/null || stat -f %Lp shared.env)
+[[ "$mode" == 644 ]]
+rm .env shared.env
+cp first.env .env
 
 echo 'Checking empty shell overrides and a multiline dotenv value'
 cat > .env <<'ENV'
@@ -58,7 +88,7 @@ cp docker/compose/.env project-before.env
 bash -e quick-start.sh
 cmp before.env .env
 cmp project-before.env docker/compose/.env
-[[ $(wc -l < compose-checks) -eq 4 ]]
+[[ $(wc -l < compose-checks) -eq 5 ]]
 
 echo 'Checking keys configured by the included stack'
 printf '%s\n' 'HOST=localhost:3000' > .env
@@ -66,7 +96,7 @@ cp .env before.env
 bash -e quick-start.sh
 cmp before.env .env
 cmp project-before.env docker/compose/.env
-[[ $(wc -l < compose-checks) -eq 5 ]]
+[[ $(wc -l < compose-checks) -eq 6 ]]
 
 echo 'Checking a fresh setup with a custom Compose env file'
 rm .env docker/compose/.env
@@ -76,4 +106,14 @@ COMPOSE_ENV_FILES=custom.env bash -e quick-start.sh
 test -f .env
 test ! -s .env
 cmp custom-before.env custom.env
-[[ $(wc -l < compose-checks) -eq 6 ]]
+[[ $(wc -l < compose-checks) -eq 7 ]]
+
+echo 'Checking a broken .env symlink cannot create its target'
+rm .env
+ln -s missing-target.env .env
+if COMPOSE_ENV_FILES=custom.env bash -e quick-start.sh; then
+  echo 'Expected the quick start to refuse a broken env symlink' >&2
+  exit 1
+fi
+test ! -e missing-target.env
+test -L .env
