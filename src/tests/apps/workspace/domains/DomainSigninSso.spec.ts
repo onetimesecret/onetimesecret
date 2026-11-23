@@ -132,7 +132,9 @@ vi.mock('@/apps/workspace/components/domains/DomainSsoConfigForm.vue', () => ({
 }));
 
 vi.mock('@/shared/composables/useEntitlements', () => ({
-  useEntitlements: () => ({ can: () => mockEntitled.value }),
+  useEntitlements: () => ({
+    can: (feature: string) => feature === 'manage_sso' ? !billingEnabled.value : mockEntitled.value,
+  }),
 }));
 
 vi.mock('@/shared/stores/organizationStore', () => ({
@@ -141,22 +143,24 @@ vi.mock('@/shared/stores/organizationStore', () => ({
 
 vi.mock('pinia', async (importOriginal) => ({
   ...(await importOriginal<typeof import('pinia')>()),
-  storeToRefs: () => ({ organizations: ref([{ extid: 'org_123' }]) }),
+  storeToRefs: () => ({ organizations: mockOrganizations }),
 }));
 
 const mockDomain = ref<{ display_domain: string; verified: boolean } | null>({
   display_domain: 'secrets.example.com',
   verified: true,
 });
-const mockDomainLoading = ref(false);
-const mockDomainError = ref<{ message: string } | null>(null);
-
-vi.mock('@/shared/composables/useDomain', () => ({
-  useDomain: () => ({
+const mockOrganizations = ref([{ extid: 'org_123', current_user_role: 'owner' }]);
+const mockCanManage = ref<boolean | undefined>(true);
+const mockPermissionLoading = ref(false);
+const billingEnabled = ref(true);
+const refreshPermission = vi.fn();
+vi.mock('@/shared/composables/useResourcePermissions', () => ({
+  useTenantSsoPermissions: () => ({
     domain: mockDomain,
-    isLoading: mockDomainLoading,
-    error: mockDomainError,
-    initialize: vi.fn(),
+    canManageSso: mockCanManage,
+    isLoading: mockPermissionLoading,
+    refresh: refreshPermission,
   }),
 }));
 
@@ -271,8 +275,10 @@ describe('DomainSigninSso', () => {
     mockEntitled.value = true;
     mockTenantSso.value = null;
     mockDomain.value = { display_domain: 'secrets.example.com', verified: true };
-    mockDomainLoading.value = false;
-    mockDomainError.value = null;
+    mockCanManage.value = true;
+    mockPermissionLoading.value = false;
+    billingEnabled.value = true;
+    mockOrganizations.value = [{ extid: 'org_123', current_user_role: 'owner' }];
     mockSsoConfig.value = null;
     mockSsoLoading.value = false;
     mockSsoInitialized.value = true;
@@ -301,14 +307,47 @@ describe('DomainSigninSso', () => {
       expect(wrapper.find('[data-testid="sso-form"]').exists()).toBe(false);
     });
 
-    it('does not wait on a record it never fetches (unentitled)', async () => {
-      mockEntitled.value = false;
-      mockSsoLoading.value = true;
-      wrapper = await mountPage();
+    describe.each([true, false])('with billing enabled = %s', (enabled) => {
+      beforeEach(() => { billingEnabled.value = enabled; });
 
-      expect(wrapper.find('[data-testid="skeleton"]').exists()).toBe(false);
-      expect(wrapper.text()).toContain('web.domains.sso.access_denied');
+      it('loads credentials for the authorized owner even when the plan omits manage_sso', async () => {
+        wrapper = await mountPage();
+        expect(sso.initialize).toHaveBeenCalledOnce();
+        expect(wrapper.find('[data-testid="sso-form"]').exists()).toBe(true);
+      });
+
+      it('hides credentials and skips reads after a membership revoke', async () => {
+        mockCanManage.value = false;
+        mockSsoLoading.value = true;
+        wrapper = await mountPage();
+        window.dispatchEvent(new Event('focus'));
+
+        expect(wrapper.find('[data-testid="skeleton"]').exists()).toBe(false);
+        expect(wrapper.text()).toContain('web.domains.sso.access_denied_description');
+        expect(wrapper.text()).not.toContain('web.billing.overview.view_plans_action');
+        expect(wrapper.find('[data-testid="sso-form"]').exists()).toBe(false);
+        expect(sso.initialize).not.toHaveBeenCalled();
+        expect(sso.refreshLastSignIn).not.toHaveBeenCalled();
+        expect(signin.initialize).not.toHaveBeenCalled();
+      });
+    });
+
+    it('waits for the target decision and lets the user retry an unconfirmed lookup', async () => {
+      mockCanManage.value = undefined;
+      mockPermissionLoading.value = true;
+      wrapper = await mountPage();
+      expect(wrapper.find('[data-testid="skeleton"]').exists()).toBe(true);
+      mockPermissionLoading.value = false;
+      await flushPromises();
+      expect(wrapper.text()).toContain('web.domains.sso.access_unconfirmed');
+      expect(wrapper.text()).not.toContain('web.domains.sso.access_denied_description');
       expect(sso.initialize).not.toHaveBeenCalled();
+
+      await wrapper.get('[role="status"] button').trigger('click');
+      expect(refreshPermission).toHaveBeenCalledOnce();
+      mockCanManage.value = true;
+      await flushPromises();
+      expect(sso.initialize).toHaveBeenCalledOnce();
     });
 
     it('shows the fetch error instead of the form', async () => {
@@ -375,6 +414,20 @@ describe('DomainSigninSso', () => {
       wrapper = await mountPage();
 
       expect(wrapper.get('[data-testid="sso-page-heading"]').text()).toBe('web.domains.sso.title');
+    });
+
+    it('returns a delegated member to the SSO tab without domain-detail or sign-in access', async () => {
+      mockOrganizations.value = [{ extid: 'org_123', current_user_role: 'member' }];
+      mockEntitled.value = false;
+      wrapper = await mountPage();
+
+      expect(form().props('domainHost')).toBe('secrets.example.com');
+      expect(form().props('domainVerified')).toBe(true);
+      expect(signin.initialize).not.toHaveBeenCalled();
+      header().vm.$emit('back');
+      expect(router.push).toHaveBeenCalledWith({
+        name: 'Organization Settings', params: { extid: 'org_123', tab: 'sso' },
+      });
     });
 
     it('offers Back to the sign-in settings', async () => {
@@ -552,6 +605,19 @@ describe('DomainSigninSso', () => {
       expect(zone.find(CONFIRM).exists()).toBe(false);
       expect(zone.find(DELETE).exists()).toBe(true);
       expect(sso.deleteConfig).not.toHaveBeenCalled();
+    });
+
+    it('returns a delegated member to the organization SSO tab after a successful delete', async () => {
+      mockOrganizations.value = [{ extid: 'org_123', current_user_role: 'member' }];
+      sso.deleteConfig.mockImplementationOnce(async () => { mockSsoConfigured.value = false; });
+      wrapper = await mountPage();
+
+      await wrapper.get(DELETE).trigger('click');
+      await wrapper.get(CONFIRM).trigger('click');
+      await flushPromises();
+      expect(router.push).toHaveBeenCalledWith({
+        name: 'Organization Settings', params: { extid: 'org_123', tab: 'sso' },
+      });
     });
 
     it('Yes deletes once, re-reads the details and returns to the sign-in settings once the record is gone', async () => {

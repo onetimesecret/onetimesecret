@@ -573,6 +573,18 @@
     "context": "Explanatory line under the heading above. {domain} is the custom domain's hostname.",
     "content_hash": "acc7d380"
   },
+  "web.domains.sso.retry_access": {
+    "text": "Try again",
+    "content_hash": "d8b8392e"
+  },
+  "web.domains.sso.permission_required": {
+    "text": "Ask an organization administrator for SSO access.",
+    "content_hash": "12328f26"
+  },
+  "web.domains.sso.access_unconfirmed": {
+    "text": "Could not confirm your SSO access for this domain.",
+    "content_hash": "019fd20d"
+  },
   "web.domains.sso.access_denied": {
     "text": "Access Denied",
     "content_hash": "d134ca02"

@@ -9,7 +9,7 @@
 // 5. Disabled mode (#3415): persists signin_enabled=false, hides method UI,
 //    preserves restrict_to/flags; re-enabling transitions save atomically
 // 6. Global availability gating hides unavailable methods in both method modes
-// 7. SSO Configure reachable in both method modes; upgrade hint when
+// 7. SSO Configure reachable in both method modes; permission guidance when
 //    !canManageSso, and the SSO toggle (Mode A) / radio (Mode B) render locked
 // 8. Per-field loading feedback via savingField
 // 9. Delete confirmation two-step
@@ -134,7 +134,8 @@ const COPY = {
   configure: t('web.domains.sso.configure_button'),
   editCredentials: t('web.domains.sso.edit_credentials'),
   finishSetup: t('web.domains.sso.finish_setup_button'),
-  upgradeRequired: t('web.domains.sso.upgrade_required'),
+  permissionRequired: t('web.domains.sso.permission_required'),
+  accessUnconfirmed: t('web.domains.sso.access_unconfirmed'),
   availabilityGlobalOn: t('web.domains.signin.availability_global_on'),
   availabilityGlobalOff: t('web.domains.signin.availability_global_off'),
   availabilityUnavailable: t('web.domains.signin.availability_unavailable'),
@@ -213,7 +214,7 @@ interface MountOptions {
    * (ADR-034#resolution-is-model-owned / #settings-api-serializes-effective-restrict-to).
    */
   effectiveRestrictTo?: EffectiveRestrictTo | null;
-  canManageSso?: boolean;
+  canManageSso?: boolean | null;
   globalAvailability?: { email_auth: boolean; webauthn: boolean };
   /** ORGS_SSO_ENABLED — tenant-SSO availability (bootstrap flag, not a prop). */
   orgsSsoEnabled?: boolean;
@@ -242,7 +243,7 @@ function mountForm(opts: MountOptions = {}): VueWrapper {
       ...(opts.effectiveRestrictTo !== undefined
         ? { effectiveRestrictTo: opts.effectiveRestrictTo }
         : {}),
-      canManageSso: opts.canManageSso ?? true,
+      canManageSso: opts.canManageSso === undefined ? true : opts.canManageSso,
       globalAvailability: opts.globalAvailability ?? allAvailable,
       savingField: opts.savingField ?? null,
     },
@@ -590,9 +591,16 @@ describe('DomainSigninConfigForm', () => {
       expect(wrapper.emitted('configure-sso')).toBeTruthy();
     });
 
-    it('renders the upgrade hint instead of Configure when not canManageSso', () => {
+    it('distinguishes an unconfirmed permission from an explicit denial', () => {
+      wrapper = mountForm({ canManageSso: null });
+      expect(wrapper.text()).toContain(COPY.accessUnconfirmed);
+      expect(wrapper.text()).not.toContain(COPY.permissionRequired);
+      expect(wrapper.find('[data-testid="sso-configure-button"]').exists()).toBe(false);
+    });
+
+    it('renders administrator guidance when the member cannot configure SSO', () => {
       wrapper = mountForm({ canManageSso: false });
-      expect(wrapper.text()).toContain(COPY.upgradeRequired);
+      expect(wrapper.text()).toContain(COPY.permissionRequired);
       const configureBtn = wrapper.findAll('button').find((b) => b.text().includes(COPY.configure));
       expect(configureBtn).toBeUndefined();
     });
@@ -606,30 +614,15 @@ describe('DomainSigninConfigForm', () => {
       expect(configureBtn).toBeUndefined();
     });
 
-    it('does not blame the plan when the blocker is the install flag', () => {
-      // "Upgrade to configure" would name the wrong cause — no plan unlocks an
-      // operator's ORGS_SSO_ENABLED. The row's hint carries the real reason.
+    it('reports the unavailable method when the installation has disabled it', () => {
       wrapper = mountForm({ canManageSso: true, orgsSsoEnabled: false });
-      expect(wrapper.text()).not.toContain(COPY.upgradeRequired);
+      expect(wrapper.text()).not.toContain(COPY.permissionRequired);
       expect(wrapper.find('#signin-sso-hint').text()).toContain(COPY.availabilityUnavailable);
     });
   });
 
   // -----------------------------------------------------------------------
-  // Entitlement gating — SSO controls lock when !canManageSso
-  //
-  // Without the manage-SSO entitlement the org cannot configure SSO
-  // credentials, so SSO can never activate on the domain. An operable
-  // "Enabled" toggle next to the "Upgrade to configure" lock contradicted
-  // that (and persisted a flag that could never take effect).
-  //
-  // The lock is expressed by :disabled ONLY. :enabled still reports the
-  // stored value — manage_sso governs who may configure tenant SSO, not
-  // whether it runs, so blanking the toggle would misreport a domain whose
-  // SSO is live.
-  // -----------------------------------------------------------------------
-
-  describe('entitlement gating: canManageSso=false locks SSO controls', () => {
+  describe('domain permission disables configuration and preserves the stored runtime setting', () => {
     it('disables the sso availability toggle in Mode A', () => {
       wrapper = mountForm({ canManageSso: false });
       expect(toggles(wrapper)[1].attributes('disabled')).toBeDefined();
@@ -649,7 +642,7 @@ describe('DomainSigninConfigForm', () => {
       expect(toggles(wrapper)[0].attributes('disabled')).toBeUndefined();
     });
 
-    it('keeps the SSO radio visible in Mode B (upgrade prompt) but disabled', () => {
+    it('keeps the SSO radio visible and disabled in Mode B', () => {
       wrapper = mountForm({
         canManageSso: false,
         formState: { ...defaultFormState, restrict_to: 'password' },
@@ -1388,36 +1381,20 @@ describe('DomainSigninConfigForm', () => {
   });
 
   // -----------------------------------------------------------------------
-  // SSO Configure reachability across modes / entitlement
-  //
-  // Existing tests cover Mode A (button + emit, upgrade hint) and Mode B
-  // (button reachable + emit). Gap: Mode B with canManageSso=false must show
-  // the upgrade hint and NO Configure button, same as Mode A. And like Mode A,
-  // Configure needs BOTH write-endpoint gates: restrict_to='sso' keeps the SSO
-  // row visible when ORGS_SSO_ENABLED is off (visible-but-locked invariant),
-  // so its Configure button must not survive on canManageSso alone — the page's
-  // save would be rejected ("Organization SSO is not enabled on this
-  // instance").
-  // -----------------------------------------------------------------------
-
   describe('SSO configure across modes', () => {
-    it('Mode B with canManageSso=false shows upgrade hint, no Configure button', () => {
+    it('Mode B with canManageSso=false shows administrator guidance and hides Configure', () => {
       wrapper = mountForm({
         formState: { ...defaultFormState, restrict_to: 'sso' },
         canManageSso: false,
       });
-      expect(wrapper.text()).toContain(COPY.upgradeRequired);
+      expect(wrapper.text()).toContain(COPY.permissionRequired);
       const configureBtn = wrapper
         .findAll('button')
         .find((b) => b.text().includes(COPY.configure) || b.text().includes(COPY.editCredentials));
       expect(configureBtn).toBeUndefined();
     });
 
-    it('Mode B hides Configure when ORGS_SSO_ENABLED is off, even with the entitlement — and does not blame the plan', () => {
-      // Mirror of Mode A's wrong-blame guard: "Upgrade to configure" would
-      // name the wrong cause — no plan unlocks an operator's ORGS_SSO_ENABLED.
-      // With the entitlement present and only the install flag off, the locked
-      // SSO row renders neither the button nor the upgrade hint.
+    it('Mode B hides Configure when the installation disables SSO', () => {
       wrapper = mountForm({
         formState: { ...defaultFormState, restrict_to: 'sso' },
         canManageSso: true,
@@ -1427,14 +1404,10 @@ describe('DomainSigninConfigForm', () => {
         .findAll('button')
         .find((b) => b.text().includes(COPY.configure) || b.text().includes(COPY.editCredentials));
       expect(configureBtn).toBeUndefined();
-      expect(wrapper.text()).not.toContain(COPY.upgradeRequired);
+      expect(wrapper.text()).not.toContain(COPY.permissionRequired);
     });
 
-    it('Mode B with both gates off hides Configure and keeps the upgrade hint', () => {
-      // Deliberate v-else-if="!canManageSso" semantics: the hint keys on the
-      // entitlement alone, so it still shows when the install flag is ALSO off
-      // — acceptable, because the entitlement is genuinely missing too and an
-      // upgrade is a real (if not sufficient) step toward configuring.
+    it('Mode B with the instance off omits member permission guidance', () => {
       wrapper = mountForm({
         formState: { ...defaultFormState, restrict_to: 'sso' },
         canManageSso: false,
@@ -1444,7 +1417,7 @@ describe('DomainSigninConfigForm', () => {
         .findAll('button')
         .find((b) => b.text().includes(COPY.configure) || b.text().includes(COPY.editCredentials));
       expect(configureBtn).toBeUndefined();
-      expect(wrapper.text()).toContain(COPY.upgradeRequired);
+      expect(wrapper.text()).not.toContain(COPY.permissionRequired);
     });
 
     it('Configure label reflects ssoConfigured (Edit credentials when configured)', () => {
