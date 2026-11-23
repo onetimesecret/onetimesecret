@@ -78,6 +78,11 @@ module Onetime
           with_error_correlation(body, req, error)
         end
 
+        router.register_error_handler(Onetime::CapabilityRequired, status: 403, log_level: :info) do |error, req|
+          Onetime::Application::ErrorResolver.resolve!(error, req)
+          with_error_correlation(error.to_h, req, error)
+        end
+
         # Server-side destructive-action confirmation (#4326). Same 403 family as
         # Forbidden; separate registration because Otto resolves handlers by exact
         # class name (see the note above).
