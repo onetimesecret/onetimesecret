@@ -12,7 +12,7 @@
 #   1. Domain not found — extid that doesn't resolve
 #   2. Organization not found — domain with orphaned org_id
 #   3. Non-member — user is not a member of the domain's org
-#   4. Member without manage_org — member role lacks entitlement
+#   4. Member without manage_org — member role lacks capability
 #   5. Entitlement gating — org plan lacks custom_signin_config
 #   6. Denial paths for GET and DELETE (not just PUT)
 #   7. Anonymous user fix — provides an anonymous customer object
@@ -148,7 +148,7 @@ end
 #=> true
 
 # ============================================================
-# 3. Member without manage_org — member role lacks entitlement
+# 3. Member without manage_org — member role lacks capability
 # ============================================================
 
 ## Precondition: member has 'member' role
@@ -160,8 +160,8 @@ begin
   logic = build_put(extid: @domain.extid, user: @member)
   logic.raise_concerns
   'unexpected_success'
-rescue Onetime::EntitlementRequired => ex
-  ex.entitlement
+rescue Onetime::CapabilityRequired => ex
+  ex.capability
 rescue Onetime::Forbidden
   'forbidden'
 end
@@ -172,8 +172,8 @@ begin
   logic = build_get(extid: @domain.extid, user: @member)
   logic.raise_concerns
   'unexpected_success'
-rescue Onetime::EntitlementRequired => ex
-  ex.entitlement
+rescue Onetime::CapabilityRequired => ex
+  ex.capability
 rescue Onetime::Forbidden
   'forbidden'
 end
@@ -184,8 +184,8 @@ begin
   logic = build_delete(extid: @domain.extid, user: @member)
   logic.raise_concerns
   'unexpected_success'
-rescue Onetime::EntitlementRequired => ex
-  ex.entitlement
+rescue Onetime::CapabilityRequired => ex
+  ex.capability
 rescue Onetime::Forbidden
   'forbidden'
 end
@@ -195,23 +195,8 @@ end
 # 4. Entitlement gating — org plan lacks custom_signin_config
 # ============================================================
 #
-# With billing disabled, standalone mode grants full access.
-# To test entitlement denial, we:
-#   1. Enable billing (so org.billing_enabled? returns true)
-#   2. Populate a plan that has manage_org but NOT custom_signin_config
-#   3. Assign that plan to the org
-#   4. Clear materialized entitlements so the org falls through to
-#      the plan-based lookup (materialized data from standalone mode
-#      would otherwise shadow the plan check)
-#   5. Re-materialize membership entitlements so the owner passes
-#      the manage_org check but the org fails custom_signin_config
-#
-# The authorization flow is:
-#   require_entitlement_in!(org, 'manage_org') — checks MEMBERSHIP.can?
-#   verify_config_entitlement(org) — checks ORG.can?('custom_signin_config')
-#
-# So the owner's membership needs manage_org (from the plan) but the
-# org must not have custom_signin_config.
+# The owner keeps manage_org from their membership when the test plan
+# includes neither manage_org nor custom_signin_config.
 
 ## Entitlement: org lacks custom_signin_config (plan without it)
 @entitlement_result = BillingTestHelpers.with_billing_enabled(plans: [
@@ -223,7 +208,6 @@ end
     region: 'default',
     entitlements: %w[
       create_secrets view_receipt api_access custom_domains
-      manage_org manage_teams
     ],
     limits: { 'secrets_per_day' => '100' },
   },
@@ -238,23 +222,9 @@ end
   @org.materialized_entitlements_at = ''
   @org.commit_fields
 
-  # Re-materialize entitlements for the owner membership from the new plan
-  owner_membership = Onetime::OrganizationMembership.find_by_org_customer(
-    @org.objid,
-    @owner.objid,
-  )
-  if owner_membership
-    owner_membership.materialized_entitlements.clear
-    owner_membership.materialized_entitlements_at = ''
-    owner_membership.commit_fields
-    owner_membership.apply_entitlements
-  end
-
-  # Reload the org to pick up the cleared materialization state
+  owner_membership = Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @owner.objid)
   @org_reloaded = Onetime::Organization.load(@org.objid)
-
-  # Precondition: org can manage_org (from plan) but cannot custom_signin_config
-  preconditions = [@org_reloaded.can?('manage_org'), @org_reloaded.can?('custom_signin_config')]
+  preconditions = [owner_membership.has_capability?('manage_org'), @org_reloaded.can?('custom_signin_config')]
 
   begin
     logic = build_put(extid: @domain.extid, params: { 'enabled' => 'true' })

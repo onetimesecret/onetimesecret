@@ -57,12 +57,12 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
     )
   end
 
-  # ADR-012 Stage 4: owner's membership with entitlements for authorization
+  # owner's membership with management capabilities
   let(:owner_membership) do
     instance_double(
       Onetime::OrganizationMembership,
       active?: true,
-      can?: true,  # Owner has all entitlements including manage_org
+      has_capability?: true,  # Owner has manage_org
       domain_scoped?: false
     )
   end
@@ -118,7 +118,7 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       allow(organization).to receive(:owner?).with(owner).and_return(true)
       allow(Onetime::Customer).to receive(:find_by_extid)
         .with('ext-cust-target').and_return(target_member)
-      # ADR-012 Stage 4: stub owner's membership for require_entitlement_in!
+      # stub owner's membership for require_capability_in!
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
         .with('org-123', 'cust-owner-123').and_return(owner_membership)
       # Stub target membership (loaded after auth check passes)
@@ -154,24 +154,23 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       end
     end
 
-    context 'when user lacks manage_org entitlement' do
+    context 'when user lacks manage_org capability' do
       let(:owner_membership) do
         instance_double(
           Onetime::OrganizationMembership,
           active?: true,
-          can?: false,  # Member without manage_org entitlement
+          has_capability?: false,  # Member without manage_org capability
           domain_scoped?: false
         )
       end
 
       before do
         allow(organization).to receive(:owner?).with(owner).and_return(false)
-        allow(organization).to receive(:planid).and_return('basic')
       end
 
-      it 'raises entitlement required error' do
-        expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired) do |error|
-          expect(error.entitlement).to eq('manage_org')
+      it 'raises capability required error' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::CapabilityRequired) do |error|
+          expect(error.capability).to eq('manage_org')
         end
       end
     end
@@ -190,7 +189,7 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
 
     context 'when target membership not found' do
       before do
-        # ADR-012 Stage 4: owner's membership must pass auth check
+        # owner's membership must pass auth check
         allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
           .with('org-123', 'cust-owner-123').and_return(owner_membership)
         # Target membership not found
@@ -289,7 +288,7 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       allow(Onetime::Organization).to receive(:find_by_extid).and_return(organization)
       allow(organization).to receive(:owner?).with(owner).and_return(true)
       allow(Onetime::Customer).to receive(:find_by_extid).and_return(target_member)
-      # ADR-012 Stage 4: stub owner's membership for require_entitlement_in!
+      # stub owner's membership for require_capability_in!
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
         .with('org-123', 'cust-owner-123').and_return(owner_membership)
       # Stub target membership (loaded after auth check)
@@ -397,7 +396,7 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       allow(Onetime::Organization).to receive(:find_by_extid).and_return(organization)
       allow(organization).to receive(:owner?).with(owner).and_return(true)
       allow(Onetime::Customer).to receive(:find_by_extid).and_return(target_member)
-      # ADR-012 Stage 4: stub owner's membership for require_entitlement_in!
+      # stub owner's membership for require_capability_in!
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
         .with('org-123', 'cust-owner-123').and_return(owner_membership)
       # Stub target membership (loaded after auth check)

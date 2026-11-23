@@ -41,11 +41,11 @@ module OrganizationAPI::Logic
 
         @organization = load_organization(@extid)
 
-        # Only users with manage_org entitlement can change roles
-        require_entitlement_in!(@organization, 'manage_org')
+        # Only users with manage_org capability can change roles
+        require_capability_in!(@organization, 'manage_org')
 
         # Domain-scoped members cannot perform member operations
-        actor_membership = Onetime::OrganizationMembership.find_by_org_customer(@organization.objid, cust.objid)
+        actor_membership = membership_in(@organization)
         if actor_membership&.domain_scoped?
           raise_form_error(error_key: 'api.organizations.errors.domain_scoped_forbidden', error_type: :forbidden)
         end

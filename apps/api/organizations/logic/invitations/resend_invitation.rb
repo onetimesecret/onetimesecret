@@ -50,16 +50,14 @@ module OrganizationAPI::Logic
         end
 
         # Rate limit resends
-        # rubocop:disable Style/GuardClause -- Guard clause inverts logic incorrectly here
-        if @invitation.resend_count.to_i >= MAX_RESENDS
-          raise_form_error(
-            error_key: 'api.organizations.invitations.errors.resend_limit_reached',
-            args: { max: MAX_RESENDS },
-            field: :token,
-            error_type: :rate_limited,
-          )
-        end
-        # rubocop:enable Style/GuardClause
+        return if @invitation.resend_count.to_i < MAX_RESENDS
+
+        raise_form_error(
+          error_key: 'api.organizations.invitations.errors.resend_limit_reached',
+          args: { max: MAX_RESENDS },
+          field: :token,
+          error_type: :rate_limited,
+        )
       end
 
       def process

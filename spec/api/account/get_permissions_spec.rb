@@ -171,6 +171,17 @@ RSpec.describe 'GET /api/account/permissions', type: :integration do
         expect(body['organizations'].length).to be >= 1
       end
 
+      it 'reflects a manage_org revocation in both organization and domain permissions' do
+        membership = Onetime::OrganizationMembership.find_by_org_customer(organization.objid, owner.objid)
+        membership.revoke_entitlement('manage_org')
+
+        get '/api/account/permissions'
+        org = JSON.parse(last_response.body).fetch('organizations').find { |record| record['extid'] == organization.extid }
+        expect(org.fetch('permissions')).to include('can_edit' => false, 'can_delete' => false, 'can_manage_settings' => false)
+        domain = org.fetch('domains').find { |record| record['extid'] == custom_domain.extid }
+        expect(domain.fetch('permissions')).to include('can_view' => true, 'can_manage_settings' => false)
+      end
+
       it 'includes the test organization' do
         get '/api/account/permissions'
         body = JSON.parse(last_response.body)
@@ -315,7 +326,7 @@ RSpec.describe 'GET /api/account/permissions', type: :integration do
     context 'as admin' do
       before { create_session_for(admin_user) }
 
-      it 'includes admin permissions (can_edit but not can_delete)' do
+      it 'reports that an admin without manage_org cannot edit or delete the organization' do
         get '/api/account/permissions'
         body = JSON.parse(last_response.body)
 
@@ -323,8 +334,7 @@ RSpec.describe 'GET /api/account/permissions', type: :integration do
         permissions = org_data['permissions']
 
         expect(permissions['can_view']).to be true
-        expect(permissions['can_edit']).to be true
-        # can_delete is owner-only
+        expect(permissions['can_edit']).to be false
         expect(permissions['can_delete']).to be false
       end
     end
@@ -425,12 +435,21 @@ RSpec.describe 'GET /api/account/permissions', type: :integration do
     context 'as admin' do
       before { create_session_for(admin_user) }
 
-      it 'returns can_edit but not can_delete' do
+      it 'reports organization management granted to this admin' do
+        admin_membership.grant_entitlement('manage_org')
+        get "/api/account/permissions?resource_type=organization&resource_id=#{organization.extid}"
+
+        expect(JSON.parse(last_response.body).fetch('permissions')).to include(
+          'can_edit' => true, 'can_delete' => true, 'can_manage_settings' => true,
+        )
+      end
+
+      it 'denies organization edits and deletion without manage_org' do
         get "/api/account/permissions?resource_type=organization&resource_id=#{organization.extid}"
         body = JSON.parse(last_response.body)
 
         expect(body['permissions']['can_view']).to be true
-        expect(body['permissions']['can_edit']).to be true
+        expect(body['permissions']['can_edit']).to be false
         expect(body['permissions']['can_delete']).to be false
       end
     end

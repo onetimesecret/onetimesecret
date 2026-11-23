@@ -49,7 +49,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::DeleteOrganization do
   end
 
   let(:membership) do
-    instance_double(Onetime::OrganizationMembership, active?: true, can?: true)
+    instance_double(Onetime::OrganizationMembership, active?: true, has_capability?: true)
   end
 
   let(:strategy_result) do
@@ -138,12 +138,10 @@ RSpec.describe OrganizationAPI::Logic::Organizations::DeleteOrganization do
       expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound)
     end
 
-    it 'still gates on the manage_org entitlement' do
-      allow(membership).to receive(:can?).with('manage_org').and_return(false)
-      allow(organization).to receive(:planid).and_return('free_v1')
+    it 'still gates on the manage_org capability' do
+      allow(membership).to receive(:has_capability?).with('manage_org').and_return(false)
 
-      # EntitlementRequired < Forbidden — the gate is unchanged by the rewire.
-      expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired)
+      expect { logic.raise_concerns }.to raise_error(Onetime::CapabilityRequired)
       expect(Onetime::Operations::Org::Delete).not_to have_received(:new)
     end
   end
@@ -181,7 +179,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::DeleteOrganization do
       expect(op_args.last).to include(self_service: true)
     end
 
-    # A colonel passes the manage_org check on any org (require_entitlement_in!),
+    # A colonel passes the manage_org check on any org (require_capability_in!),
     # and that delete is operator activity: operator trail, fail-closed.
     it 'does not run a colonel delete as self-service' do
       allow(customer).to receive(:role).and_return('colonel')

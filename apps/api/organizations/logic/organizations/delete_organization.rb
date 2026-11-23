@@ -9,7 +9,7 @@ module OrganizationAPI::Logic
     # Delete Organization
     #
     # @api Permanently deletes an organization, removing all member
-    #   associations first. Requires the `manage_org` entitlement in the target
+    #   associations first. Requires the `manage_org` capability in the target
     #   organization. Returns a confirmation of deletion.
     #
     # THIN ADAPTER over {Onetime::Operations::Org::Delete} — the single
@@ -72,8 +72,8 @@ module OrganizationAPI::Logic
         # Load organization
         @organization = load_organization(@extid)
 
-        # Verify user has manage_org entitlement in this organization
-        require_entitlement_in!(@organization, 'manage_org')
+        # Verify user has manage_org capability in this organization
+        require_capability_in!(@organization, 'manage_org')
 
         # NO domain pre-check here. The op owns every guardrail, and a duplicate
         # `domain_count` refusal at this layer would short-circuit its drift
@@ -103,7 +103,7 @@ module OrganizationAPI::Logic
           # trail: an owner can create and delete workspaces in a loop, and
           # each applied delete would otherwise evict one operator record. A
           # colonel passes the manage_org check on any org
-          # (require_entitlement_in!), and that delete is operator activity,
+          # (require_capability_in!), and that delete is operator activity,
           # so it keeps the operator trail and its fail-closed write.
           self_service: !has_system_role?('colonel'),
         ).call

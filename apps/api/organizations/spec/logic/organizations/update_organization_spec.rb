@@ -68,12 +68,12 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
     }
   end
 
-  # ADR-012 Stage 4: membership with entitlements for authorization
+  # membership with management capabilities
   let(:membership) do
     instance_double(
       Onetime::OrganizationMembership,
       active?: true,
-      can?: true  # Default: has all entitlements (owner-level)
+      has_capability?: true  # Owner has management capabilities
     )
   end
 
@@ -116,7 +116,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
       member_count: 1
     })
 
-    # ADR-012 Stage 4: stub membership lookup for entitlement checks
+    # stub membership lookup for entitlement checks
     allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
       .with('org-123', 'cust-123')
       .and_return(membership)
@@ -231,23 +231,18 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
       end
     end
 
-    context 'when user lacks manage_org entitlement' do
+    context 'when user lacks manage_org capability' do
       let(:membership) do
         instance_double(
           Onetime::OrganizationMembership,
           active?: true,
-          can?: false  # Member without manage_org entitlement
+          has_capability?: false  # Member without manage_org capability
         )
       end
 
-      before do
-        # planid is accessed when building upgrade path in EntitlementRequired
-        allow(organization).to receive(:planid).and_return('basic')
-      end
-
-      it 'raises entitlement required error' do
-        expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired) do |error|
-          expect(error.entitlement).to eq('manage_org')
+      it 'raises capability required error' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::CapabilityRequired) do |error|
+          expect(error.capability).to eq('manage_org')
         end
       end
     end

@@ -111,12 +111,12 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
     }
   end
 
-  # ADR-012 Stage 4: membership with entitlements for authorization
+  # Owner membership used by the manage_org check
   let(:owner_membership) do
     instance_double(
       Onetime::OrganizationMembership,
       active?: true,
-      can?: true  # Default: has all entitlements (owner-level)
+      has_capability?: true
     )
   end
 

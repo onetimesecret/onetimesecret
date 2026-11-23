@@ -88,7 +88,7 @@ module DomainsAPI
             raise_organization_not_found(domain)
           end
 
-          require_entitlement_in!(@organization, 'manage_org')
+          require_capability_in!(@organization, 'manage_org')
           verify_incoming_secrets_entitlement(@organization)
         end
 
