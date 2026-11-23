@@ -166,8 +166,8 @@ RSpec.describe 'Domain-scope enforcement (#3384)', type: :integration do
         'Admin must have custom_domains to exercise scope checks'
     end
 
-    it 'scoped admin has manage_members entitlement' do
-      expect(scoped_membership.can?('manage_members')).to be(true),
+    it 'scoped admin has manage_members capability' do
+      expect(scoped_membership.has_capability?('manage_members')).to be(true),
         'Admin must have manage_members to exercise scope checks on invitation/member ops'
     end
 

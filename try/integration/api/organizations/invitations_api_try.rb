@@ -131,8 +131,9 @@ resp = JSON.parse(last_response.body)
 post "/api/organizations/#{@org.extid}/invitations",
   { email: @invite_email3, role: 'member' }.to_json,
   { 'rack.session' => @member_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
-last_response.status >= 400
-#=> true
+body = JSON.parse(last_response.body)
+[last_response.status, body['error_type'], body['capability'], body.key?('upgrade_to')]
+#=> [403, 'CapabilityRequired', 'manage_members', false]
 
 ## POST /api/organizations/:extid/invitations - Outsider cannot create invitation
 @invite_email4 = generate_unique_test_email("invite4")
@@ -221,8 +222,9 @@ last_response.status
 get "/api/organizations/#{@org.extid}/invitations",
   {},
   { 'rack.session' => @member_session, 'HTTP_ACCEPT' => 'application/json' }
-last_response.status >= 400
-#=> true
+body = JSON.parse(last_response.body)
+[last_response.status, body['error_type'], body['capability'], body.key?('upgrade_to')]
+#=> [403, 'CapabilityRequired', 'manage_members', false]
 
 ## Setup for resend tests - find invitation by org+email and verify token lookup works
 @invitation_to_resend = Onetime::OrganizationMembership.find_pending_by_email(@org, @invite_email1)
@@ -273,8 +275,9 @@ resp = JSON.parse(last_response.body)
 post "/api/organizations/#{@org.extid}/invitations/#{@current_token}/resend",
   {}.to_json,
   { 'rack.session' => @member_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
-last_response.status >= 400
-#=> true
+body = JSON.parse(last_response.body)
+[last_response.status, body['error_type'], body['capability'], body.key?('upgrade_to')]
+#=> [403, 'CapabilityRequired', 'manage_members', false]
 
 ## POST /api/organizations/:extid/invitations/:token/resend - Returns 400 for invalid token
 post "/api/organizations/#{@org.extid}/invitations/invalid_token/resend",
@@ -364,8 +367,9 @@ last_response.status
 delete "/api/organizations/#{@org.extid}/invitations/#{@token_member_revoke}",
   {},
   { 'rack.session' => @member_session, 'HTTP_ACCEPT' => 'application/json' }
-last_response.status >= 400
-#=> true
+body = JSON.parse(last_response.body)
+[last_response.status, body['error_type'], body['capability'], body.key?('upgrade_to')]
+#=> [403, 'CapabilityRequired', 'manage_members', false]
 
 ## DELETE /api/organizations/:extid/invitations/:token - Returns 400 for invalid token
 delete "/api/organizations/#{@org.extid}/invitations/invalid_token",
@@ -373,6 +377,19 @@ delete "/api/organizations/#{@org.extid}/invitations/invalid_token",
   { 'rack.session' => @owner_session, 'HTTP_ACCEPT' => 'application/json' }
 last_response.status >= 400
 #=> true
+
+## A member granted manage_members can list the organization's invitations
+@member_membership = Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @member.objid)
+@member_membership.grant_entitlement('manage_members')
+get "/api/organizations/#{@org.extid}/invitations", {}, { 'rack.session' => @member_session }
+last_response.status
+#=> 200
+
+## Revoking manage_members denies the same member on the next request
+@member_membership.revoke_entitlement('manage_members')
+get "/api/organizations/#{@org.extid}/invitations", {}, { 'rack.session' => @member_session }
+[last_response.status, JSON.parse(last_response.body)['capability']]
+#=> [403, 'manage_members']
 
 # Cleanup
 @org.destroy!

@@ -53,7 +53,7 @@ def last_response; @test.last_response; end
   tier: 'free',
   interval: 'month',
   region: 'us',
-  entitlements: ['create_secrets', 'manage_members'],
+  entitlements: ['create_secrets'],
   limits: {
     'total_members_per_org.max' => '3',
     'role_owners_per_org.max' => '1',
@@ -70,7 +70,7 @@ def last_response; @test.last_response; end
   tier: 'free',
   interval: 'month',
   region: 'us',
-  entitlements: ['create_secrets', 'manage_members'],
+  entitlements: ['create_secrets'],
   limits: {
     'total_members_per_org.max' => 'unlimited',
     'role_owners_per_org.max' => '1',
@@ -86,7 +86,7 @@ def last_response; @test.last_response; end
   tier: 'free',
   interval: 'month',
   region: 'us',
-  entitlements: ['create_secrets', 'manage_members'],
+  entitlements: ['create_secrets'],
   limits: {
     'total_members_per_org.max' => 'unlimited',
     'role_owners_per_org.max' => '1',
@@ -207,6 +207,21 @@ reloaded_org.pending_invitation_count
 @invite8_id = @result4[:record_id]
 @result4[:status]
 #=> 200
+
+## The inviter can list, resend and revoke on a plan without manage_members
+BillingTestHelpers.with_billing_enabled(plans: [@admin_capped_plan]) do
+  headers = { 'rack.session' => @session, 'HTTP_ACCEPT' => 'application/json' }
+  url = "/api/organizations/#{@org.extid}/invitations"
+  get url, {}, headers
+  listed = JSON.parse(last_response.body).fetch('records').find { |record| record['id'] == @invite8_id }
+  list_status = last_response.status
+  post "#{url}/#{listed.fetch('token')}/resend", {}.to_json, headers.merge('CONTENT_TYPE' => 'application/json')
+  resend_status = last_response.status
+  token = JSON.parse(last_response.body).fetch('record').fetch('token')
+  delete "#{url}/#{token}", {}, headers
+  [list_status, resend_status, last_response.status, JSON.parse(last_response.body)['revoked']]
+end
+#=> [200, 200, 200, true]
 
 # Teardown
 # invite1 was accepted (now active membership for @member1)

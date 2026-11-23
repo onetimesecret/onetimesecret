@@ -8,7 +8,7 @@ module OrganizationAPI::Logic
     #
     # POST /api/org/:extid/invitations/:token/resend
     #
-    # Requires: Owner or Admin role
+    # Requires the manage_members capability in the target organization.
     # Generates a new token and resets the expiration timer
     #
     class ResendInvitation < OrganizationAPI::Logic::Base
@@ -25,10 +25,10 @@ module OrganizationAPI::Logic
         verify_authenticated!
 
         @organization = load_organization(@extid)
-        require_entitlement_in!(@organization, 'manage_members')
+        require_capability_in!(@organization, 'manage_members')
 
         # Domain-scoped members cannot perform member operations
-        actor_membership = Onetime::OrganizationMembership.find_by_org_customer(@organization.objid, cust.objid)
+        actor_membership = membership_in(@organization)
         if actor_membership&.domain_scoped?
           raise_form_error(error_key: 'api.organizations.errors.domain_scoped_forbidden', error_type: :forbidden)
         end
