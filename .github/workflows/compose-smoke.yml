@@ -43,6 +43,7 @@ name: Compose smoke
 on:
   pull_request:
     paths:
+      - 'README.md'
       - '.env.example'
       - 'docker/README.md'
       - 'docker-compose.yml'
@@ -79,7 +80,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
-      - name: Check the documented Compose quick start twice
+      - name: Check the documented Docker quick starts and key reuse
         run: bin/testsuite-installer check-compose-quick-start
 
       # Compose interpolates ${SECRET:?...} even for `config`. Interpolation

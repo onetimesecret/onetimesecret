@@ -79,4 +79,166 @@ RSpec.describe 'bin/setup --doctor --bundle' do
       end
     end
   end
+
+  it 'writes the default bundle beneath a private directory in tmp' do
+    output_dir = File.join(repo_root, 'tmp', 'ots-doctor-bundles')
+    created_dir = !Dir.exist?(output_dir)
+    before = Dir[File.join(output_dir, 'ots-doctor-bundle-*.tar.gz')]
+    new_archives = []
+    begin
+      output, status = Open3.capture2e({ 'OTS_BUNDLE_DIR' => nil },
+                                       File.join(repo_root, 'bin', 'setup'),
+                                       '--doctor', '--bundle', chdir: repo_root)
+      new_archives = Dir[File.join(output_dir, 'ots-doctor-bundle-*.tar.gz')] - before
+      expect(status).to be_success, output
+      expect(new_archives.size).to eq(1)
+      expect(File.stat(output_dir).mode & 0o077).to eq(0)
+      expect(File.stat(new_archives.first).mode & 0o077).to eq(0)
+    ensure
+      new_archives.each { |archive| File.delete(archive) }
+      Dir.rmdir(output_dir) if created_dir && Dir.exist?(output_dir) && Dir.empty?(output_dir)
+    end
+  end
+
+  it 'refuses a planted regular-file archive symlink without writing to its target' do
+    Dir.mktmpdir('ots-bundle-symlink') do |scratch|
+      output_dir = File.join(scratch, 'shared')
+      shim_dir = File.join(scratch, 'bin')
+      Dir.mkdir(output_dir)
+      File.chmod(0o700, output_dir)
+      Dir.mkdir(shim_dir)
+      target = File.join(scratch, 'target')
+      File.write(target, 'unchanged')
+
+      # The shim plants the link as soon as cmd_bundle creates its random
+      # work directory, before the doctor probes and archive creation.
+      File.write(File.join(shim_dir, 'mktemp'), <<~'SH')
+        #!/usr/bin/env bash
+        result=$("$OTS_TEST_REAL_MKTEMP" "$@") || exit $?
+        ln -s "$OTS_TEST_TARGET" "$result.tar.gz"
+        printf '%s\n' "$result"
+      SH
+      File.chmod(0o700, File.join(shim_dir, 'mktemp'))
+      real_mktemp = ENV.fetch('PATH').split(File::PATH_SEPARATOR)
+                        .map { |dir| File.join(dir, 'mktemp') }
+                        .find { |path| File.executable?(path) }
+      expect(real_mktemp).not_to be_nil
+
+      env = {
+        'OTS_BUNDLE_DIR' => output_dir,
+        'OTS_TEST_REAL_MKTEMP' => real_mktemp,
+        'OTS_TEST_TARGET' => target,
+        'PATH' => "#{shim_dir}:#{ENV.fetch('PATH')}",
+      }
+      output, status = Open3.capture2e(env, File.join(repo_root, 'bin', 'setup'),
+                                       '--doctor', '--bundle', chdir: repo_root)
+      expect(status).not_to be_success
+      expect(output).to include('Could not write bundle archive safely')
+      expect(File.read(target)).to eq('unchanged')
+      planted_links = Dir[File.join(output_dir, 'ots-doctor-bundle-*.tar.gz')]
+      expect(planted_links.size).to eq(1)
+      expect(File.symlink?(planted_links.first)).to be(true)
+      expect(File.readlink(planted_links.first)).to eq(target)
+    end
+  end
+
+  it 'removes an archive when tar fails after writing partial output' do
+    Dir.mktmpdir('ots-bundle-tar-failure') do |scratch|
+      output_dir = File.join(scratch, 'out')
+      shim_dir = File.join(scratch, 'bin')
+      Dir.mkdir(output_dir)
+      File.chmod(0o700, output_dir)
+      Dir.mkdir(shim_dir)
+      File.write(File.join(shim_dir, 'tar'), <<~'SH')
+        #!/usr/bin/env bash
+        printf 'partial archive'
+        exit 2
+      SH
+      File.chmod(0o700, File.join(shim_dir, 'tar'))
+
+      env = { 'OTS_BUNDLE_DIR' => output_dir, 'PATH' => "#{shim_dir}:#{ENV.fetch('PATH')}" }
+      output, status = Open3.capture2e(env, File.join(repo_root, 'bin', 'setup'),
+                                       '--doctor', '--bundle', chdir: repo_root)
+      expect(status).not_to be_success
+      expect(output).to include('Could not write bundle archive safely')
+      expect(Dir.children(output_dir)).to be_empty
+    end
+  end
+
+  { 'readable' => 0o755, 'non-sticky shared' => 0o777, 'sticky shared' => 0o1777 }.each do |label, mode|
+    it "refuses a #{label} output directory" do
+      Dir.mktmpdir('ots-bundle-shared') do |scratch|
+        output_dir = File.join(scratch, 'shared')
+        Dir.mkdir(output_dir)
+        File.chmod(mode, output_dir)
+
+        # A special-file symlink in a sticky directory must never reach tar.
+        if mode == 0o1777
+          fifo = File.join(scratch, 'fifo')
+          system('mkfifo', fifo, exception: true)
+          File.symlink(fifo, File.join(output_dir, 'planted.tar.gz'))
+        end
+
+        original_entries = Dir.children(output_dir)
+        output, status = Open3.capture2e({ 'OTS_BUNDLE_DIR' => output_dir },
+                                         File.join(repo_root, 'bin', 'setup'),
+                                         '--doctor', '--bundle', chdir: repo_root)
+        expect(status).not_to be_success
+        expect(output).to include('must be owned by this user and private (mode 0700)')
+        expect(Dir.children(output_dir)).to eq(original_entries)
+      end
+    end
+  end
+
+  { 'output directory' => :output, 'ancestor directory' => :ancestor }.each do |label, location|
+    it "refuses a macOS ACL grant on the #{label}" do
+      skip 'macOS ACL regression' unless RUBY_PLATFORM.include?('darwin')
+
+      Dir.mktmpdir('ots-bundle-acl') do |scratch|
+        output_dir = File.join(scratch, 'out')
+        Dir.mkdir(output_dir)
+        File.chmod(0o700, output_dir)
+        acl_dir = location == :output ? output_dir : scratch
+        begin
+          system('chmod', '+a', 'everyone allow add_file,delete_child', acl_dir, exception: true)
+          expect(File.stat(acl_dir).mode & 0o777).to eq(0o700)
+
+          output, status = Open3.capture2e({ 'OTS_BUNDLE_DIR' => output_dir },
+                                           File.join(repo_root, 'bin', 'setup'),
+                                           '--doctor', '--bundle', chdir: repo_root)
+          expect(status).not_to be_success
+          expect(output).to include('directory with an allow ACL')
+          expect(Dir.children(output_dir)).to be_empty
+        ensure
+          system('chmod', '-N', acl_dir, exception: true)
+        end
+      end
+    end
+
+    it "permits a macOS deny-only ACL on the #{label}" do
+      skip 'macOS ACL regression' unless RUBY_PLATFORM.include?('darwin')
+
+      Dir.mktmpdir('ots-bundle-deny-acl') do |scratch|
+        output_dir = File.join(scratch, 'out')
+        Dir.mkdir(output_dir)
+        File.chmod(0o700, output_dir)
+        acl_dir = location == :output ? output_dir : scratch
+        archives = []
+        begin
+          system('chmod', '+a', 'everyone deny delete', acl_dir, exception: true)
+          expect(File.stat(acl_dir).mode & 0o777).to eq(0o700)
+
+          output, status = Open3.capture2e({ 'OTS_BUNDLE_DIR' => output_dir },
+                                           File.join(repo_root, 'bin', 'setup'),
+                                           '--doctor', '--bundle', chdir: repo_root)
+          archives = Dir[File.join(output_dir, 'ots-doctor-bundle-*.tar.gz')]
+          expect(status).to be_success, output
+          expect(archives.size).to eq(1)
+        ensure
+          archives.each { |archive| File.delete(archive) }
+          system('chmod', '-N', acl_dir, exception: true)
+        end
+      end
+    end
+  end
 end

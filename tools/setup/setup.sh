@@ -1289,16 +1289,64 @@ doctor_run() {
 # The entry list is fixed — spec/unit/setup/doctor_bundle_spec.rb holds the
 # golden manifest; extend both together.
 
+bundle_check_output_path() {
+  local output_root="$1" path="$1" uid owner mode metadata platform acl_listing acl_lines acl_line
+  uid=$(id -u)
+  platform=$(uname -s)
+  while :; do
+    # The output root must exclude other users from creating archive entries.
+    # An ancestor may be sticky and shared, but only if its owner is trusted.
+    if metadata=$(stat -f '%u %p' "$path" 2>/dev/null); then
+      : # BSD stat: %p includes the sticky bit; %Lp does not.
+    else
+      metadata=$(stat -c '%u %a' "$path") || die "Cannot inspect bundle output path: $path"
+    fi
+    read -r owner mode <<< "$metadata"
+    [[ "$owner" =~ ^[0-9]+$ && "$mode" =~ ^[0-7]+$ ]] || die "Invalid bundle output path mode: $path"
+    if [[ "$platform" == Darwin ]]; then
+      acl_listing=$(LC_ALL=C ls -lde "$path") || die "Cannot inspect bundle output ACL: $path"
+      # macOS mode bits omit ACL grants. With -e, ls prints each ACE on another
+      # line. Accept deny-only lists; refuse any allow entry.
+      if [[ "$acl_listing" == *$'\n'* ]]; then
+        acl_lines="${acl_listing#*$'\n'}"
+        while IFS= read -r acl_line; do
+          [[ "$acl_line" =~ ^[[:space:]]*[0-9]+: ]] || die "Cannot parse bundle output ACL: $path"
+          if [[ "$acl_line" == *' allow '* ]]; then
+            die "Refusing bundle output under a directory with an allow ACL: $path"
+          fi
+          [[ "$acl_line" == *' deny '* ]] || die "Cannot classify bundle output ACL: $path"
+        done <<< "$acl_lines"
+      fi
+    fi
+    if [[ "$path" == "$output_root" ]] &&
+       (( owner != uid || (8#$mode & 0077) != 0 )); then
+      die "Bundle output directory must be owned by this user and private (mode 0700): $path"
+    fi
+    if (( owner != 0 && owner != uid )); then
+      die "Refusing bundle output under a directory owned by another user: $path"
+    fi
+    if (( (8#$mode & 0022) != 0 && (8#$mode & 01000) == 0 )); then
+      die "Refusing bundle output under a shared non-sticky directory: $path"
+    fi
+    [[ "$path" == / ]] && break
+    path="${path%/*}"
+    [[ -n "$path" ]] || path=/
+  done
+}
+
 cmd_bundle() {
   # The archive is intended for manual review before sharing and may contain
   # environment details even without log contents.
   umask 077
-  local outroot="${OTS_BUNDLE_DIR:-tmp}"
-  local ts name dir
+  local outroot="${OTS_BUNDLE_DIR:-tmp/ots-doctor-bundles}"
+  local ts name dir archive archive_status=0
   ts=$(date -u +%Y%m%d-%H%M%SZ)
   mkdir -p "$outroot"
+  outroot=$(cd "$outroot" && pwd -P)
+  bundle_check_output_path "$outroot"
   dir=$(mktemp -d "$outroot/ots-doctor-bundle-$ts-XXXXXXXX")
   name="${dir##*/}"
+  archive="$outroot/$name.tar.gz"
 
   info "Collecting diagnostic bundle (excludes logs and .env values; includes configuration and network details)..."
 
@@ -1376,10 +1424,29 @@ cmd_bundle() {
     echo "versions.txt"
   } > "$dir/manifest.txt"
 
-  tar -czf "$outroot/$name.tar.gz" -C "$outroot" "$name"
+  # Keep the archive descriptor open while tar writes. Noclobber avoids an
+  # accidental regular-file overwrite; the private output root prevents
+  # another user from planting a symlink to a special file here.
+  # Exit 10 means opening the archive failed; exit 11 means a later step
+  # failed after the archive was created.
+  (
+    set -C
+    exec 3>"$archive" || exit 10
+    chmod 600 "$archive" || exit 11
+    tar -czf - -C "$outroot" "$name" >&3 || exit 11
+  ) || archive_status=$?
+  if (( archive_status != 0 )); then
+    # Only remove an archive created by this invocation. An open failure may
+    # mean a preexisting entry was encountered, and it must be left alone.
+    if (( archive_status != 10 )); then
+      rm -f "$archive"
+    fi
+    rm -rf "$dir"
+    die "Could not write bundle archive safely: $archive"
+  fi
   rm -rf "$dir"
 
-  info "Bundle written: $outroot/$name.tar.gz"
+  info "Bundle written: $archive"
   echo "  Logs and .env values are excluded; configuration and network details are included. Review before sharing."
 }
 
@@ -1431,9 +1498,12 @@ Lanes:
                  --operator   operator context: skips contributor tooling
                               (overmind, direnv, ...); a down service is a
                               failure, not a warning. [default: --dev]
-                 --bundle     write a diagnostic archive to tmp/ (versions,
+                 --bundle     write a diagnostic archive (versions,
                               configuration, network details, file presence,
-                              env var names; no logs or .env values).
+                              env var names; no logs or .env values) to
+                              tmp/ots-doctor-bundles/.
+                              OTS_BUNDLE_DIR must be owned by you and private
+                              (mode 0700).
   --console    Interactive Ruby console with the app loaded.
   --help       Show this message.
 EOF

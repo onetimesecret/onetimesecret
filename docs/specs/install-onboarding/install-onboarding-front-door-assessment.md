@@ -1,13 +1,20 @@
 ---
 title: Install Onboarding — Front-Door Assessment
 type: assessment
-status: draft
+status: historical
 updated: 2026-07-09
 ---
 
-Assessment of the repo's onboarding surface — install scripts, the rake
-init task, docs, and Docker setup — against what the best self-hosted
-projects do.
+This is a snapshot of the onboarding surface as assessed on 2026-07-09.
+Present-tense findings, file references, and recommendations below describe
+that point in time; later onboarding work changed parts of this surface.
+For current setup commands, use the root [README](../../../README.md),
+[CONTRIBUTING](../../../CONTRIBUTING.md), and
+[Docker guide](../../../docker/README.md). The dated status notes in
+[work chunks](./install-onboarding-work-chunks.md) record subsequent work.
+
+The assessment compared install scripts, the rake init task, docs, and Docker
+setup with other self-hosted projects.
 
 ## TL;DR
 

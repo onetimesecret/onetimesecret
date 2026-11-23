@@ -17,7 +17,7 @@ Commands:
   proof-of-life <base-url>     Check status, assets and the secret create/reveal loop
   proof-of-life --print-script Emit the standalone smoke script for container stdin
   check-docs-commands          Check documented entry points and pnpm targets
-  check-compose-quick-start    Validate the documented Compose setup and rerun
+  check-compose-quick-start    Validate the documented Docker quick starts and key reuse
   seed-compose-env            Write throwaway Compose secrets to .env and GITHUB_ENV
   ttfhw-chart                 Chart fresh-clone durations (requires gh and jq)
   --help                      Show this help
