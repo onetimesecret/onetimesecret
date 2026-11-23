@@ -22,6 +22,25 @@ linked release histories provide the underlying contribution records.
 
    <!--scriv-insert-here-->
 
+.. _changelog-0.26.20:
+
+0.26.20 — 2026-11-22
+====================
+
+Security
+--------
+
+- Updated the bundled Ruby runtime to 3.4.13. Ruby lists 3.4.13 as a
+  patched version in `GHSA-34m4-m9fh-gqp5 <https://github.com/ruby/ruby/security/advisories/GHSA-34m4-m9fh-gqp5>`__.
+  Source installations should install Ruby 3.4.13 before running setup.
+  See `issue #4974 <https://github.com/onetimesecret/onetimesecret/issues/4974>`__.
+
+AI Assistance
+-------------
+
+- Codex assisted with updating and validating the Ruby pins and preparing
+  the release.
+
 .. _changelog-0.26.19:
 
 0.26.19 — 2026-10-24

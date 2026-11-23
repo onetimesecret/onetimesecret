@@ -29,7 +29,7 @@
   // containers aren't available here). python3: locales:sync.
   // libsodium23: rbnacl's FFI binding needs it at runtime for Familia's
   // encrypted fields (RbNaCl::Hash.blake2b) — the app image installs the
-  // same package (Dockerfile), but this devcontainer's upstream Rails base
+  // same package (Dockerfile), but this devcontainer's Ruby base
   // image doesn't ship it, so it must be installed here too or encrypted
   // field writes raise NameError: uninitialized constant RbNaCl::Hash.
   // The chown makes the node_modules named volume (compose.yaml) writable.

@@ -5,8 +5,8 @@
 # SAME artifact a maintainer runs locally, so local and CI cannot diverge. Each
 # lane installs a documented path from zero inside a pinned base image:
 #
-#   baremetal  ruby:3.4.10-slim — bin/install succeeds + is idempotent
-#   posix      ruby:3.4.10-slim, empty locale — the fresh-server locale repro
+#   baremetal  ruby:3.4.13-slim — bin/install succeeds + is idempotent
+#   posix      ruby:3.4.13-slim, empty locale — the fresh-server locale repro
 #   ruby-old   ruby:3.3-slim    — bin/install MUST fail with the version gate
 #
 # Plus a cheap bash-3.2 syntax gate (macOS ships bash 3.2; bin/setup is the
