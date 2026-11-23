@@ -48,6 +48,16 @@ module OrganizationAPI
 
       protected
 
+      def require_org_wide_capability!(organization, capability)
+        require_capability_in!(organization, capability)
+        return unless membership_in(organization)&.domain_scoped?
+
+        raise Onetime::Forbidden.new(
+          'Domain-scoped members cannot perform this action',
+          error_key: 'api.organizations.errors.domain_scoped_forbidden',
+        )
+      end
+
       # Serialize organization to API response format
       #
       # Uses Organization#safe_dump as the base and adds:

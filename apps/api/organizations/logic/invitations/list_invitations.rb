@@ -8,7 +8,7 @@ module OrganizationAPI::Logic
     #
     # GET /api/org/:extid/invitations
     #
-    # Requires: Owner or Admin role
+    # Members need manage_members and organization-wide scope.
     #
     class ListInvitations < OrganizationAPI::Logic::Base
       attr_reader :organization, :invitations
@@ -21,7 +21,7 @@ module OrganizationAPI::Logic
         verify_authenticated!
 
         @organization = load_organization(@extid)
-        require_entitlement_in!(@organization, 'manage_members')
+        require_org_wide_capability!(@organization, 'manage_members')
       end
 
       def process

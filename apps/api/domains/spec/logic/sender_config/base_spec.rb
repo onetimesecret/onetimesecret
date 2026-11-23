@@ -91,12 +91,12 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
   let(:params) { { 'domain_id' => 'ext-domain123' } }
   let(:logic) { described_logic_class.new(strategy_result, params) }
 
-  # ADR-012 Stage 4: membership with entitlements for authorization
+  # membership with management capabilities
   let(:owner_membership) do
     instance_double(
       Onetime::OrganizationMembership,
       active?: true,
-      can?: true  # Default: has all entitlements (owner-level)
+      has_capability?: true  # Owner has management capabilities
     )
   end
 
@@ -104,7 +104,7 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
     instance_double(
       Onetime::OrganizationMembership,
       active?: true,
-      can?: false  # Member without owner-level entitlements
+      has_capability?: false  # Member without management capabilities
     )
   end
 
@@ -221,7 +221,7 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
       end
     end
 
-    context 'when user lacks manage_org entitlement' do
+    context 'when user lacks manage_org capability' do
       let(:non_owner_strategy_result) do
         double('StrategyResult',
           session: session,
@@ -244,18 +244,17 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
         allow(logic).to receive(:cust).and_return(non_owner)
         # Colonel check - user is not a colonel
         allow(non_owner).to receive(:role).and_return('customer')
-        # ADR-012 Stage 4: membership without manage_org entitlement
+        # membership without manage_org capability
         allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
           .with('org123', 'nonowner123')
           .and_return(non_owner_membership)
-        allow(organization).to receive(:planid).and_return('basic')
       end
 
-      it 'raises EntitlementRequired for user without manage_org entitlement' do
+      it 'raises CapabilityRequired for user without manage_org capability' do
         expect {
           logic.send(:authorize_sender_config!, 'ext-domain123')
-        }.to raise_error(Onetime::EntitlementRequired) do |error|
-          expect(error.entitlement).to eq('manage_org')
+        }.to raise_error(Onetime::CapabilityRequired) do |error|
+          expect(error.capability).to eq('manage_org')
         end
       end
     end
@@ -274,7 +273,7 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
         allow(organization).to receive(:can?).with('custom_mail_sender').and_return(false)
         allow(logic).to receive(:cust).and_return(owner)
         allow(owner).to receive(:role).and_return('customer')
-        # ADR-012 Stage 4: owner has manage_org (passes require_entitlement_in!)
+        # owner has manage_org (passes require_capability_in!)
         # but org lacks custom_mail_sender (fails verify_config_entitlement)
       end
 

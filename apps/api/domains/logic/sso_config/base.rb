@@ -14,8 +14,8 @@ module DomainsAPI
       #   1. Check sso_enabled feature flag
       #   2. Load CustomDomain by domain_id (extid)
       #   3. Load Organization via domain.org_id
-      #   4. Verify user is organization owner
-      #   5. Verify organization has manage_sso entitlement
+      #   4. Verify the actor has manage_org
+      #   5. Verify the actor has manage_sso
       #
       class Base < DomainsAPI::Logic::Base
         include DomainsAPI::Policies::DomainConfigAuthorization
@@ -24,7 +24,15 @@ module DomainsAPI
 
         protected
 
-        # Entitlement required for SSO config operations.
+        # Members need both manage_org and manage_sso. A site operator acting
+        # through the existing bypass still needs the organization entitlement.
+        def verify_config_entitlement(organization)
+          return super if has_system_role?('colonel')
+
+          require_capability_in!(organization, 'manage_sso')
+        end
+
+        # Legacy organization entitlement for the operator bypass.
         def config_entitlement
           'manage_sso'
         end

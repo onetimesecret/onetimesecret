@@ -1,4 +1,9 @@
 {
+  "api.organizations.errors.capability_required": {
+    "text": "This action requires the %{capability} permission.",
+    "context": "Returned when the acting membership lacks the required organization capability",
+    "content_hash": "7df1d47c"
+  },
   "api.organizations.errors.domain_scoped_forbidden": {
     "text": "Domain-scoped members cannot perform this action",
     "content_hash": "0a06a035"

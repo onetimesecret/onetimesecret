@@ -91,14 +91,14 @@ module AccountAPI::Logic
     # Domain resources:
     # - can_view: user has 'custom_domains' entitlement
     # - can_edit: user has 'custom_domains' entitlement
-    # - can_delete: user has 'manage_org' entitlement (owner only)
-    # - can_manage_settings: user has 'manage_org' entitlement (owner only)
+    # - can_delete: user has 'custom_domains' entitlement
+    # - can_manage_settings: user has 'manage_org' capability
     #
     # Organization resources:
     # - can_view: user is member of the org (any role)
-    # - can_edit: user has 'admin' or 'owner' role
-    # - can_delete: user is owner and org is not default
-    # - can_manage_settings: user has 'manage_org' entitlement
+    # - can_edit: user has organization-wide 'manage_org'
+    # - can_delete: user has organization-wide 'manage_org' and org is not default
+    # - can_manage_settings: user has organization-wide 'manage_org'
     #
     # ## Error Responses (single-resource mode only)
     #
@@ -188,25 +188,27 @@ module AccountAPI::Logic
 
       def serialize_org_with_domains(org, mem)
         # Domain-scope enforcement: filter by membership scope (#3384)
-        domains = org.list_domains.select { |d| mem.can_access_domain?(d) }
+        domains            = org.list_domains.select { |d| mem.can_access_domain?(d) }
+        manage_org         = mem.has_capability?('manage_org')
+        domain_permissions = domain_permissions_for(mem, manage_org) if domains.any?
 
         {
           extid: org.extid,
           display_name: org.display_name,
           is_default: org.is_default || false,
           membership: serialize_membership_for(mem),
-          permissions: organization_permissions_for(org, mem),
+          permissions: organization_permissions_for(org, manage_org && mem.org_scoped?),
           assignable_roles: compute_assignable_roles(org, mem),
-          domains: domains.map { |d| serialize_domain_with_permissions(d, mem) },
+          domains: domains.map { |domain| serialize_domain_with_permissions(domain, domain_permissions) },
         }
       end
 
-      def serialize_domain_with_permissions(domain, mem)
+      def serialize_domain_with_permissions(domain, permissions)
         {
           extid: domain.extid,
           display_domain: domain.display_domain,
           served: domain.served_as_tenant?,
-          permissions: domain_permissions_for(mem),
+          permissions: permissions,
         }
       end
 
@@ -225,25 +227,22 @@ module AccountAPI::Logic
         serialize_membership_for(membership)
       end
 
-      def domain_permissions_for(mem)
+      def domain_permissions_for(mem, manage_org)
+        custom_domains = mem.can?('custom_domains')
         {
-          can_view: mem.can?('custom_domains'),
-          can_edit: mem.can?('custom_domains'),
-          can_delete: mem.can?('manage_org'),
-          can_manage_settings: mem.can?('manage_org'),
+          can_view: custom_domains,
+          can_edit: custom_domains,
+          can_delete: custom_domains,
+          can_manage_settings: manage_org,
         }
       end
 
-      def organization_permissions_for(org, mem)
-        role              = mem.role
-        is_owner          = role == 'owner'
-        is_admin_or_owner = %w[owner admin].include?(role)
-
+      def organization_permissions_for(org, manage_org)
         {
           can_view: true,
-          can_edit: is_admin_or_owner,
-          can_delete: is_owner && !org.is_default,
-          can_manage_settings: mem.can?('manage_org'),
+          can_edit: manage_org,
+          can_delete: manage_org && !org.is_default,
+          can_manage_settings: manage_org,
         }
       end
 
@@ -313,11 +312,12 @@ module AccountAPI::Logic
       end
 
       def calculate_permissions
+        manage_org = membership.has_capability?('manage_org')
         case resource_type
         when 'domain'
-          domain_permissions_for(membership)
+          domain_permissions_for(membership, manage_org)
         when 'organization'
-          organization_permissions_for(organization, membership)
+          organization_permissions_for(organization, manage_org && membership.org_scoped?)
         end
       end
 

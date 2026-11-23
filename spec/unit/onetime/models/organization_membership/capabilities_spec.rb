@@ -10,6 +10,19 @@ RSpec.describe Onetime::OrganizationMembership, :aggregate_failures do # rubocop
   before { membership.save }
   after { membership.destroy_with_index_cleanup! if described_class.load(membership.objid) }
 
+  {
+    'member' => [],
+    'admin' => %w[manage_members],
+    'owner' => %w[manage_members manage_org manage_sso manage_billing],
+  }.each do |role, capabilities|
+    it "materializes the default capabilities for an active #{role}" do
+      membership.role = role
+      membership.save
+
+      expect(membership.materialize_capabilities!).to match_array(capabilities)
+    end
+  end
+
   it 'materializes existing memberships without consulting organization entitlements' do
     existing_membership = described_class.load(membership.objid)
     expect(existing_membership.materialized_capabilities).to be_nil

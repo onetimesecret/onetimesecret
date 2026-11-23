@@ -86,7 +86,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
   end
 
   describe '#raise_concerns' do
-    # Default membership mock for require_entitlement_in! check
+    # Default membership mock for require_capability_in! check
     let(:owner_membership) do
       instance_double(
         Onetime::OrganizationMembership,
@@ -102,10 +102,10 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       allow(organization).to receive(:owner?).with(customer).and_return(true)
       allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
       allow(Onetime::OrganizationMembership).to receive(:find_pending_by_email).and_return(nil)
-      # Mock membership lookup for require_entitlement_in! (ADR-012 Stage 3)
+      # Mock membership lookup for require_capability_in!
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
         .with('org-123', 'cust-owner-123').and_return(owner_membership)
-      allow(owner_membership).to receive(:can?).with('manage_members').and_return(true)
+      allow(owner_membership).to receive(:has_capability?).with('manage_members').and_return(true)
     end
 
     context 'when customer is anonymous' do
@@ -151,25 +151,24 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       end
     end
 
-    context 'when user lacks manage_members entitlement' do
-      let(:member_without_entitlement) do
+    context 'when user lacks manage_members capability' do
+      let(:member_without_capability) do
         instance_double(Onetime::OrganizationMembership, active?: true, domain_scoped?: false)
       end
 
       before do
         allow(organization).to receive(:owner?).with(customer).and_return(false)
         allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
-          .with('org-123', 'cust-owner-123').and_return(member_without_entitlement)
-        allow(member_without_entitlement).to receive(:can?).with('manage_members').and_return(false)
-        allow(organization).to receive(:planid).and_return('free')
+          .with('org-123', 'cust-owner-123').and_return(member_without_capability)
+        allow(member_without_capability).to receive(:has_capability?).with('manage_members').and_return(false)
       end
 
-      it 'raises entitlement required error' do
-        expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired)
+      it 'raises capability required error' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::CapabilityRequired)
       end
     end
 
-    context 'when an admin has the capability but the plan omits the entitlement' do
+    context 'when the plan omits manage_members for an active admin' do
       let(:admin_membership) do
         Onetime::OrganizationMembership.new(
           organization_objid: organization.objid,
@@ -188,12 +187,16 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
 
       after { admin_membership.destroy_with_index_cleanup! }
 
-      it 'still rejects the invitation on the existing entitlement gate', :aggregate_failures do
+      it 'allows the admin to invite despite the missing plan entitlement', :aggregate_failures do
         expect(admin_membership.has_capability?('manage_members')).to be(true)
         expect(admin_membership.can?('manage_members')).to be(false)
-        expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired) do |error|
-          expect(error.entitlement).to eq('manage_members')
-        end
+        expect { logic.raise_concerns }.not_to raise_error
+      end
+
+      it 'denies the admin an invitation after their capability is revoked' do
+        admin_membership.revoke_entitlement('manage_members')
+
+        expect { logic.raise_concerns }.to raise_error(Onetime::CapabilityRequired)
       end
     end
 
@@ -297,7 +300,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
         allow(organization).to receive(:owner?).with(customer).and_return(false)
         allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
           .with('org-123', 'cust-owner-123').and_return(admin_membership)
-        allow(admin_membership).to receive(:can?).with('manage_members').and_return(true)
+        allow(admin_membership).to receive(:has_capability?).with('manage_members').and_return(true)
       end
 
       it 'allows admin to create invitation' do
@@ -328,10 +331,10 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       allow(Onetime::OrganizationMembership).to receive(:create_invitation!)
         .and_return(new_membership)
       allow(Onetime::Jobs::Publisher).to receive(:enqueue_email)
-      # Mock membership lookup for require_entitlement_in! (ADR-012 Stage 3)
+      # Mock membership lookup for require_capability_in!
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
         .with('org-123', 'cust-owner-123').and_return(owner_membership)
-      allow(owner_membership).to receive(:can?).with('manage_members').and_return(true)
+      allow(owner_membership).to receive(:has_capability?).with('manage_members').and_return(true)
 
       # Call raise_concerns to set up @organization
       logic.raise_concerns
@@ -486,10 +489,10 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       allow(organization).to receive(:at_limit?).and_return(false)
       allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
       allow(Onetime::OrganizationMembership).to receive(:find_pending_by_email).and_return(nil)
-      # Mock membership lookup for require_entitlement_in! (ADR-012 Stage 3)
+      # Mock membership lookup for require_capability_in!
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
         .with('org-123', 'cust-owner-123').and_return(owner_membership)
-      allow(owner_membership).to receive(:can?).with('manage_members').and_return(true)
+      allow(owner_membership).to receive(:has_capability?).with('manage_members').and_return(true)
     end
 
     context 'when billing is disabled (no entitlements)' do

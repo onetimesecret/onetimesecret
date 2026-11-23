@@ -19,7 +19,7 @@
 #   1. Authenticated user (session auth)
 #   2. ORGS_SSO_ENABLED feature flag
 #   3. User must be organization owner
-#   4. Organization must have manage_sso entitlement
+#   4. Membership must have the manage_sso capability
 #
 # REQUIREMENTS:
 # - Valkey running on port 2163: pnpm run test:database:start
@@ -110,9 +110,6 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
   end
 
   # Create organization owned by test_owner
-  # Note: In standalone/test mode (billing disabled), all orgs get
-  # STANDALONE_ENTITLEMENTS which includes manage_sso automatically.
-  # The entitlement denial test stubs org.can? to test that code path.
   let!(:test_organization) do
     Onetime::Organization.create!(
       "Test Org #{test_run_id}",
@@ -728,25 +725,22 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
         csrf_put api_path(test_custom_domain.extid), valid_entra_params
 
-        # Non-member check uses require_entitlement_in! → Onetime::Forbidden → 403
+        # Non-member check uses require_capability_in! → Onetime::Forbidden → 403
         expect(last_response.status).to eq(403)
         body = json_body
         expect(body['error']).to include('member')
       end
 
-      it 'returns 422 when organization lacks manage_sso entitlement' do
-        # In integration tests with billing disabled, all orgs get STANDALONE_ENTITLEMENTS.
-        # We stub can? on the specific org instance to test this code path.
-        # Note: This requires finding the org that will be loaded by the request.
-        allow_any_instance_of(Onetime::Organization).to receive(:can?).with('manage_sso').and_return(false)
+      it 'returns 403 when the owner has manage_sso revoked' do
+        membership = Onetime::OrganizationMembership.find_by_org_customer(test_organization.objid, test_owner.objid)
+        membership.revoke_entitlement('manage_sso')
 
         login_as(test_owner)
         csrf_put api_path(test_custom_domain.extid), valid_entra_params
 
-        # Entitlement check uses raise_form_error → FormError → 422
-        expect(last_response.status).to eq(422)
-        body = json_body
-        expect(body['error']).to include('manage_sso')
+        expect(last_response.status).to eq(403)
+        expect(json_body).to include('error_type' => 'CapabilityRequired', 'capability' => 'manage_sso')
+        expect(json_body).not_to have_key('upgrade_to')
       end
 
       it 'returns 404 for non-existent domain' do
@@ -1266,13 +1260,14 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
             expect(recovery_snapshot).to eq(before)
           end
 
-          it 'still requires the manage_sso entitlement' do
-            allow_any_instance_of(Onetime::Organization).to receive(:can?).with('manage_sso').and_return(false)
+          it 'still requires the manage_sso capability' do
+            membership = Onetime::OrganizationMembership.find_by_org_customer(test_organization.objid, test_owner.objid)
+            membership.revoke_entitlement('manage_sso')
             before = recovery_snapshot
             csrf_patch api_path(test_custom_domain.extid), { enabled: false, enforce_sso_only: false }
 
-            expect(last_response.status).to eq(422)
-            expect(json_body['error']).to include('manage_sso')
+            expect(last_response.status).to eq(403)
+            expect(json_body['capability']).to eq('manage_sso')
             expect(recovery_snapshot).to eq(before)
           end
         end
@@ -1704,7 +1699,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
           tenant_id: '12345678-1234-1234-1234-123456789abc',
         }
 
-        # Non-member check uses require_entitlement_in! -> Onetime::Forbidden -> 403
+        # Non-member check uses require_capability_in! -> Onetime::Forbidden -> 403
         expect(last_response.status).to eq(403)
         body = json_body
         expect(body['error']).to include('member')
