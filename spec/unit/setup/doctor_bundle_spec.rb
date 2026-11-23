@@ -207,9 +207,35 @@ RSpec.describe 'bin/setup --doctor --bundle' do
                                            File.join(repo_root, 'bin', 'setup'),
                                            '--doctor', '--bundle', chdir: repo_root)
           expect(status).not_to be_success
-          expect(output).to include('directory with an ACL')
+          expect(output).to include('directory with an allow ACL')
           expect(Dir.children(output_dir)).to be_empty
         ensure
+          system('chmod', '-N', acl_dir, exception: true)
+        end
+      end
+    end
+
+    it "permits a macOS deny-only ACL on the #{label}" do
+      skip 'macOS ACL regression' unless RUBY_PLATFORM.include?('darwin')
+
+      Dir.mktmpdir('ots-bundle-deny-acl') do |scratch|
+        output_dir = File.join(scratch, 'out')
+        Dir.mkdir(output_dir)
+        File.chmod(0o700, output_dir)
+        acl_dir = location == :output ? output_dir : scratch
+        archives = []
+        begin
+          system('chmod', '+a', 'everyone deny delete', acl_dir, exception: true)
+          expect(File.stat(acl_dir).mode & 0o777).to eq(0o700)
+
+          output, status = Open3.capture2e({ 'OTS_BUNDLE_DIR' => output_dir },
+                                           File.join(repo_root, 'bin', 'setup'),
+                                           '--doctor', '--bundle', chdir: repo_root)
+          archives = Dir[File.join(output_dir, 'ots-doctor-bundle-*.tar.gz')]
+          expect(status).to be_success, output
+          expect(archives.size).to eq(1)
+        ensure
+          archives.each { |archive| File.delete(archive) }
           system('chmod', '-N', acl_dir, exception: true)
         end
       end

@@ -280,7 +280,14 @@ chmod 700 "$work/foreign-parent/private-child"
 )
 
 if [[ $(uname -s) == Darwin ]]; then
-  echo 'Checking a directory ACL is refused despite private mode bits'
+  echo 'Checking an ACL-free pathname containing allow is accepted'
+  mkdir "$work/ots allow check"
+  chmod 700 "$work/ots allow check"
+  [[ $(ls -lde "$work/ots allow check") != *$'\n'* ]]
+  (cd "$work/ots allow check" && bash -e "$work/docker-run-quick-start.sh")
+  [[ -f "$work/ots allow check/.ots_secret" ]]
+
+  echo 'Checking an allow ACL is refused despite private mode bits'
   mkdir "$work/acl-parent"
   mkdir "$work/acl-parent/private-child"
   chmod 700 "$work/acl-parent" "$work/acl-parent/private-child"
@@ -292,6 +299,23 @@ if [[ $(uname -s) == Darwin ]]; then
     exit 1
   fi
   [[ ! -e "$work/acl-parent/private-child/.ots_redis_password" ]]
+
+  echo 'Checking a deny-only ACL on an ancestor is accepted'
+  mkdir "$work/deny-parent"
+  mkdir "$work/deny-parent/private-child"
+  chmod 700 "$work/deny-parent" "$work/deny-parent/private-child"
+  chmod +a 'everyone deny delete' "$work/deny-parent"
+  (cd "$work/deny-parent/private-child" && bash -e "$work/docker-run-quick-start.sh")
+  [[ -f "$work/deny-parent/private-child/.ots_secret" ]]
+  chmod -a# 0 "$work/deny-parent"
+
+  echo 'Checking a deny-only ACL on the working directory is accepted'
+  mkdir "$work/deny-cwd"
+  chmod 700 "$work/deny-cwd"
+  chmod +a 'everyone deny delete' "$work/deny-cwd"
+  (cd "$work/deny-cwd" && bash -e "$work/docker-run-quick-start.sh")
+  [[ -f "$work/deny-cwd/.ots_secret" ]]
+  chmod -a# 0 "$work/deny-cwd"
 fi
 
 if [[ $(uname -s) == Linux ]] && command -v setfacl > /dev/null; then

@@ -30,8 +30,25 @@ recipient ever sees the contents.
     case $path_mode in ''|*[!0-7]*) printf 'Cannot verify directory mode.\n' >&2; exit 1 ;; esac
     unsafe_path=false
     if [ "$(uname -s)" = Darwin ]; then
-      acl_info=$(ls -lde "$path") || exit 1
-      case $acl_info in *$'\n'*) unsafe_path=true ;; esac
+      acl_info=$(LC_ALL=C ls -lde "$path") || exit 1
+      [ -n "$acl_info" ] || unsafe_path=true
+      first_line=true
+      while IFS= read -r acl_line; do
+        if $first_line; then
+          first_line=false
+          case $acl_line in d?????????*) ;; *) unsafe_path=true ;; esac
+          continue # the first line includes the pathname, not an ACL entry
+        fi
+        if [[ $acl_line =~ ^[[:space:]]*[0-9]+:[[:space:]]+ ]]; then
+          case $acl_line in
+            *' allow '*) unsafe_path=true ;;
+            *' deny '*) ;;
+            *) unsafe_path=true ;;
+          esac
+        else
+          unsafe_path=true
+        fi
+      done <<< "$acl_info"
     fi
     if [ "$path" = "$workdir" ]; then
       if [ "$path_owner" -ne "$current_uid" ] || [ $((8#$path_mode & 022)) -ne 0 ]; then

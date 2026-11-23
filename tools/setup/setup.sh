@@ -1290,7 +1290,7 @@ doctor_run() {
 # golden manifest; extend both together.
 
 bundle_check_output_path() {
-  local output_root="$1" path="$1" uid owner mode metadata platform acl_listing
+  local output_root="$1" path="$1" uid owner mode metadata platform acl_listing acl_lines acl_line
   uid=$(id -u)
   platform=$(uname -s)
   while :; do
@@ -1305,10 +1305,17 @@ bundle_check_output_path() {
     [[ "$owner" =~ ^[0-9]+$ && "$mode" =~ ^[0-7]+$ ]] || die "Invalid bundle output path mode: $path"
     if [[ "$platform" == Darwin ]]; then
       acl_listing=$(LC_ALL=C ls -lde "$path") || die "Cannot inspect bundle output ACL: $path"
-      # macOS mode bits omit ACL grants. With -e, ls prints each ACL entry on
-      # another line; reject all ACLs rather than interpreting their rights.
+      # macOS mode bits omit ACL grants. With -e, ls prints each ACE on another
+      # line. Accept deny-only lists; refuse any allow entry.
       if [[ "$acl_listing" == *$'\n'* ]]; then
-        die "Refusing bundle output under a directory with an ACL: $path"
+        acl_lines="${acl_listing#*$'\n'}"
+        while IFS= read -r acl_line; do
+          [[ "$acl_line" =~ ^[[:space:]]*[0-9]+: ]] || die "Cannot parse bundle output ACL: $path"
+          if [[ "$acl_line" == *' allow '* ]]; then
+            die "Refusing bundle output under a directory with an allow ACL: $path"
+          fi
+          [[ "$acl_line" == *' deny '* ]] || die "Cannot classify bundle output ACL: $path"
+        done <<< "$acl_lines"
       fi
     fi
     if [[ "$path" == "$output_root" ]] &&
