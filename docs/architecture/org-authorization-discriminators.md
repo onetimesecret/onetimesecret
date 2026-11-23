@@ -23,7 +23,28 @@ These are orthogonal. `is_default` is org provenance; `domain_scope_id` is membe
 - `OrganizationMembership#can_access_domain?`: the actual runtime gate
 - `OrganizationLoader`: gates domain-based workspace selection
 
-**Neither is used in authorization policy.** Real auth is `owner?`, `member?`, role, entitlements.
+For organization invitations, authorization checks both the member's capability
+and the scope of their membership in the target organization.
+
+### Decision on listing pending invitations
+
+An active organization-scoped member with `manage_members` can list the
+organization's pending invitations. A domain-scoped member receives HTTP 403
+with no invitation records or count, including when an administrator explicitly
+grants that member `manage_members`. The existing site-operator path continues
+to allow an operator without a membership to administer the organization.
+
+Creating, resending, and revoking invitations already require organization
+scope from members. Listing reveals invitees' email addresses, proposed roles,
+and invitation tokens across the organization. An administrator responsible
+for one domain has no need for that information. The invitation names the
+organization as its destination, so the invitee's email domain cannot
+determine which invitations a domain administrator may see.
+
+NIST SP 800-53 Rev. 5, control AC-6, limits authorized access to what is
+“necessary to accomplish assigned organizational tasks.” OneTime Secret
+applies that principle by checking the scope before reading the list.
+[NIST SP 800-53 Rev. 5, AC-6, Least Privilege](https://csrc.nist.gov/CSRC/media/Projects/risk-management/800-53%20Downloads/800-53r5/SP_800-53_v5_1-derived-OSCAL.pdf#page=39)
 
 ## Design Rationale
 

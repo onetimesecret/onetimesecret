@@ -28,6 +28,9 @@ status: preparation / design research
 
 ---
 
+For the accepted scope of `manage_members` on organization invitation lists,
+see the [invitation scope decision](../../architecture/org-authorization-discriminators.md#decision-on-listing-pending-invitations).
+
 ## 0. Problem statement
 
 > Solution-free articulation of why this work exists, so the problem can be
