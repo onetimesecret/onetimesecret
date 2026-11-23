@@ -14,7 +14,7 @@
 #     -> git status --porcelain == empty        # litter check (Zulip)
 #
 # Deliberate design choices:
-#   - Toolchain comes from the pinned version FILES (.ruby-version = 3.4.10,
+#   - Toolchain comes from the pinned version FILES (.ruby-version = 3.4.13,
 #     .node-version = 26), NOT hardcoded versions — this lane exists to prove
 #     the *documented* floors work (the Node-major gate is the whole point of
 #     the onboarding branch; the reusable setup-node-env action also reads
@@ -84,7 +84,7 @@ jobs:
 
       # Toolchain from the pinned version files — the documented floors.
       # setup-ruby reads .ruby-version by default when no ruby-version is given,
-      # so 3.4.10 is selected from the file with no extra config.
+      # so 3.4.13 is selected from the file with no extra config.
       - name: Setup Ruby (.ruby-version)
         uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
         with:

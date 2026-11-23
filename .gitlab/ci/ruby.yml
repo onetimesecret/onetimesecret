@@ -23,7 +23,7 @@
 smoke-lane:
   stage: test
   # The image spike S1 ran the lanes on. Its Ruby is the .ruby-version pin.
-  image: ruby:3.4.10-bookworm@sha256:cc183c94af21fe763dcf1a89f731da75797b80b399e1c4d0a9408bcd3f87c63c
+  image: ruby:3.4.13-bookworm@sha256:a3d6cdfcefbf681f482be2ad848207f42193745d35695abe3a56327f45bdb515
   tags: [saas-linux-medium-amd64]
   needs: []
   # A cold run (no Bundler cache) is the longest. Tighten once measured.

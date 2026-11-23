@@ -10,7 +10,7 @@
 # compose.test.yml (Valkey, RabbitMQ, Postgres) are installed as packages, because the scan VM has no Docker and no
 # network. `ots-test-services` starts them on the same 127.0.0.1 ports the test lanes expect. Playwright's Chromium,
 # Firefox and WebKit are installed for the browser lane.
-ARG RUBY_IMAGE_TAG=3.4.10-slim-trixie@sha256:b573616eed67613e1d380ebb777d87aa094fad7505bdbc2d1b45dca9dd9116b9
+ARG RUBY_IMAGE_TAG=3.4.13-slim-trixie@sha256:2139ce9a85d720a874952570ae8537a506cb31737155fd6baf62cf2f3fdca7ee
 ARG NODE_IMAGE_TAG=26-trixie-slim@sha256:193fe51b64e77981119c98c2002c9e32a70e2f006fb4d25068ce0558998917f0
 
 FROM docker.io/library/node:${NODE_IMAGE_TAG} AS node
