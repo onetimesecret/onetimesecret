@@ -1,12 +1,14 @@
 ---
 labels: authorization, organization, membership, entitlements, billing, tech-debt, issue-3491
 related: "#3491, #3479, ADR-012"
-status: preparation / design research
+status: partial implementation; see November 2026 update
 ---
 
 # Issue #3491 — Engineering Preparation: Full Separation of Plan Entitlements from Role Capabilities (Option C)
 
-> Status: preparation / design. Read-only research consolidated from reader findings, verified taxonomy, and verified coupling audit. Code is authoritative; ADR-012 is stale (see §4). All `file:line` citations are to the shipped tree at the time of research.
+> The [implementation update](#implementation-update-2026-11-23) tracks delivery.
+> Sections 0–10 describe the original research baseline and proposed Option C design.
+> Their present-tense descriptions and line numbers refer to the tree at the time of research.
 
 > **Provenance.** This is read-only preparation research for
 > [issue #3491](https://github.com/onetimesecret/onetimesecret/issues/3491). It
@@ -28,8 +30,36 @@ status: preparation / design research
 
 ---
 
-For the accepted scope of `manage_members` on organization invitation lists,
-see the [invitation scope decision](../../architecture/org-authorization-discriminators.md#decision-on-listing-pending-invitations).
+## Implementation update (2026-11-23)
+
+**On `develop`.** [!4992](https://gitlab.com/onetimesecret/onetimesecret/-/merge_requests/4992)
+and [!4994](https://gitlab.com/onetimesecret/onetimesecret/-/merge_requests/4994)
+implemented `manage_members`, `manage_org`, `manage_sso`, and `manage_billing`
+on active memberships. Checks resolve the role and per-member overrides on
+demand, including for existing memberships. A revoke wins over a grant.
+Invitation, organization-management, and domain-configuration endpoints use
+the appropriate member checks. Invitation quota checks log counts. Secret
+creation and receipt viewing still use role-scoped entitlements, and billing
+portal access still checks ownership.
+
+**v0.27.0 invitation UI follow-up.** The account permissions API reports
+`permissions.can_manage_invitations` for the target organization in both
+single-resource and bulk responses. The workspace uses it for the invitation
+list and actions. An organization-wide member with an explicit grant can
+open the Members tab from the account menu. A revoked admin or a domain-scoped
+admin sees no pending invitations or count. Permission guidance directs them
+to an organization administrator. The same cases apply with billing enabled
+and in standalone mode. The [invitation scope decision](../../architecture/org-authorization-discriminators.md#decision-on-listing-pending-invitations)
+records the rationale and the site-operator exception.
+
+**Still open.** The catalog and client need separate feature and capability
+registries. The general-purpose wire fields, denial messages and frontend
+checks in Stage B remain incomplete. Domain management still needs the
+admin-level `manage_domains` capability from decision D1 and a review of
+which operations require both a feature and a capability. Stage C still
+covers feature storage, billing-triggered updates, operator overrides,
+migration of existing data, and retirement of legacy readers. The
+[sequencing plan](#6-migration--sequencing-plan) gives the dependencies.
 
 ## 0. Problem statement
 
