@@ -278,13 +278,17 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
         expect(described_class.allowlisted_base_url(env_for(host: 'example.com'))).to be_nil
       end
 
-      # #4517: a doubled Host reaches Rack verbatim once StripForwardedHost has
-      # removed the forwarded header. It is not a source here.
+      # #4517: an invalid doubled Host remains in the Rack env after
+      # StripForwardedHost removes forwarded authority. Rack 3.2.8 declines
+      # that Host and builds base_url from SERVER_NAME instead. Neither source
+      # may replace the allowlisted public origin.
       it 'never reads the raw authority', :aggregate_failures do
         env = env_for(host: 'onetimesecret.com', display_domain: 'onetimesecret.com')
 
-        env['HTTP_HOST'] = 'onetimesecret.com, onetimesecret.com'
-        expect(Rack::Request.new(env).base_url).to include(', ')
+        env['HTTP_HOST']   = 'attacker.evil.example, onetimesecret.com'
+        env['SERVER_NAME'] = 'backend.internal'
+        expect(env.fetch('HTTP_HOST')).to eq('attacker.evil.example, onetimesecret.com')
+        expect(Rack::Request.new(env).base_url).to eq('https://backend.internal')
         expect(described_class.allowlisted_base_url(env)).to eq('https://onetimesecret.com')
       end
     end

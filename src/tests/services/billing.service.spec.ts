@@ -412,6 +412,30 @@ describe('BillingService', () => {
     });
   });
 
+  describe('createPortalSession', () => {
+    it('posts to the named organization and returns a valid Stripe portal URL', async () => {
+      const portalUrl = 'https://billing.stripe.com/p/session/test_123';
+      mockPost.mockResolvedValueOnce({ data: { portal_url: portalUrl } });
+
+      const result = await BillingService.createPortalSession('org_second');
+
+      expect(mockPost).toHaveBeenCalledWith('/billing/api/org/org_second/portal');
+      expect(result.portal_url).toBe(portalUrl);
+    });
+
+    it('rejects an unexpected portal host at the service boundary', async () => {
+      mockPost.mockResolvedValueOnce({ data: { portal_url: 'https://evil.example/p/session/test_123' } });
+
+      await expect(BillingService.createPortalSession('org_second')).rejects.toThrow();
+    });
+
+    it('rejects a malformed portal response', async () => {
+      mockPost.mockResolvedValueOnce({ data: { portal_url: 'not-a-url' } });
+
+      await expect(BillingService.createPortalSession('org_second')).rejects.toThrow();
+    });
+  });
+
   describe('cancelSubscription', () => {
     it('calls correct endpoint with org extid', async () => {
       const mockResponse = {

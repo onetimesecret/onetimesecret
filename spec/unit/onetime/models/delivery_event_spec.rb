@@ -285,8 +285,10 @@ RSpec.describe Onetime::DeliveryEvent do
     it 'sets a retention TTL on the feed key' do
       described_class.record(channel: 'email', stage: 'queue', outcome: 'queued')
 
+      # PEXPIREAT uses the app's clock while PTTL uses Redis's clock. Allow
+      # one second in either direction for their offset and command latency.
       expect(Familia.dbclient.pttl(described_class.events.dbkey)).to be_between(
-        (described_class::RETENTION - 1) * 1000, described_class::RETENTION * 1000 + 1,
+        (described_class::RETENTION - 1) * 1000, (described_class::RETENTION + 1) * 1000,
       )
     end
 
