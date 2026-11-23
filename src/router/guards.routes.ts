@@ -6,7 +6,7 @@ import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { usePageTitle } from '@/shared/composables/usePageTitle';
-import { useInvitationPermission } from '@/shared/composables/useResourcePermissions';
+import { useOrganizationPermissionLookup } from '@/shared/composables/useResourcePermissions';
 import type { ClientAuthStatus } from '@/schemas/contracts/bootstrap';
 import {
   useAuthStore,
@@ -558,11 +558,16 @@ function isOrganizationMembersTab(to: RouteLocationNormalized): boolean {
 }
 
 async function checkMembersTabAccess(store: OrganizationStore, orgExtid: string) {
-  const fetchInvitationPermission = useInvitationPermission();
-  const allowed = await fetchInvitationPermission(orgExtid);
+  const fetchOrganizationPermissions = useOrganizationPermissionLookup();
+  const record = await fetchOrganizationPermissions(orgExtid);
+  const allowed = record?.permissions.can_manage_invitations;
   if (allowed) return null;
-  // Owners and admins can still use the roster when invitations are unavailable.
-  if (await singleOrgMeetsRole(store, orgExtid, 'admin')) return null;
+  // The permissions record identifies the admin even when their plan or
+  // an override prevents reading the separate organization details endpoint.
+  const canUseRoster = record
+    ? roleMeetsRequirement(record.membership.role, 'admin')
+    : await singleOrgMeetsRole(store, orgExtid, 'admin');
+  if (canUseRoster) return null;
   const key = allowed === false
     ? 'web.organizations.invitations.permission_required'
     : 'web.organizations.access_unconfirmed_notice';

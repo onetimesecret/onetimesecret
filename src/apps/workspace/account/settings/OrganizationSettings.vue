@@ -495,7 +495,8 @@
       if (!stillViewing(target)) return;
       organization.value = null;
       const classified = classifyError(err);
-      if (classified.code === 403 && activeTab.value === 'members' && canManageInvitations.value) return;
+      // A known member can still see the invitation decision without the roster.
+      if (classified.code === 403 && activeTab.value === 'members' && targetPermissions.value) return;
       if (classified.code === 404) {
         orgNotFound.value = true;
         error.value = t('web.organizations.not_found');

@@ -425,6 +425,21 @@ describe('OrganizationSettings', () => {
       expect(panel().text()).not.toContain('web.organizations.invitations.revoke_error');
     });
 
+    it.each(['invited', 'sso'])('shows invitation guidance for a denied %s admin without access to the roster', async (source) => {
+      const denied = permissionRecord(false);
+      mockGetPermissions.mockResolvedValue({ data: { organizations: [{
+        ...denied, membership: { ...denied.membership, provisioning_source: source },
+      }] } });
+      mockFetchOrganization.mockRejectedValue({ response: { status: 403 } });
+      wrapper = await mountComponent();
+
+      expect(panel().text()).toContain(guidance);
+      expect(panel().find('.members-table').exists()).toBe(false);
+      expect(panel().text()).not.toContain(invite);
+      expect(panel().text()).not.toContain('web.organizations.members.pending_suffix');
+      expect(mockFetchInvitations).not.toHaveBeenCalled();
+    });
+
     it('does not display a late invitation response after switching organizations', async () => {
       let resolveInvitations!: (rows: typeof pending[]) => void;
       mockFetchInvitations.mockReturnValue(new Promise(resolve => { resolveInvitations = resolve; }));

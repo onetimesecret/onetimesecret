@@ -149,12 +149,12 @@ export function useResourcePermissions(): UseResourcePermissionsReturn {
   };
 }
 
-/** A missing field on an older server or a failed lookup leaves access unconfirmed. */
-export function useInvitationPermission() {
+/** Only return permissions for the organization named by the caller. */
+export function useOrganizationPermissionLookup() {
   const { fetchResourcePermissions } = useResourcePermissions();
-  return async (orgExtid: string): Promise<boolean | null> => {
+  return async (orgExtid: string) => {
     const record = await fetchResourcePermissions('organization', orgExtid);
     if (record?.resource_type !== 'organization' || record.resource_id !== orgExtid) return null;
-    return record.permissions.can_manage_invitations ?? null;
+    return record.organization.extid === orgExtid ? record : null;
   };
 }
