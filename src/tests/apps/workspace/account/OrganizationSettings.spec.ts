@@ -331,6 +331,7 @@ describe('OrganizationSettings', () => {
     };
     const invite = 'web.organizations.invitations.invite_member';
     const guidance = 'web.organizations.invitations.permission_required';
+    const unconfirmed = 'web.organizations.access_unconfirmed_notice';
     const panel = () => wrapper.get('[data-testid="org-section-members"]');
 
     beforeEach(() => {
@@ -391,7 +392,21 @@ describe('OrganizationSettings', () => {
       });
       wrapper = await mountComponent();
       expect(mockFetchInvitations).not.toHaveBeenCalled();
-      expect(panel().text()).toContain(guidance);
+      expect(panel().text()).toContain(unconfirmed);
+      expect(panel().text()).not.toContain(guidance);
+    });
+
+    it('reports unconfirmed access on failed initial and subsequent permission lookups', async () => {
+      mockGetPermissions.mockRejectedValue({ response: { status: 503 } });
+      wrapper = await mountComponent();
+      expect(panel().text()).toContain(unconfirmed);
+      await wrapper.get('#org-tab-domains').trigger('click');
+      await wrapper.get('#org-tab-members').trigger('click');
+      await flushPromises();
+      expect(panel().text()).toContain(unconfirmed);
+      expect(panel().text()).not.toContain(guidance);
+      expect(panel().text()).not.toContain(invite);
+      expect(mockFetchInvitations).not.toHaveBeenCalled();
     });
 
     it('clears pending invitations and controls when the server reports a changed permission', async () => {

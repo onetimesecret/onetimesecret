@@ -170,9 +170,10 @@
   const { fetchAllPermissions, getOrgPermissions } = useResourcePermissions();
   const targetPermissions = computed(() => getOrgPermissions(orgId.value));
   const fetchOrganizationPermissions = useOrganizationPermissionLookup();
-  const canManageInvitations = ref<boolean | null>(null);
+  // Undefined while loading; null when the server could not confirm access.
+  const canManageInvitations = ref<boolean | null>();
   let invitationVisit = 0;
-  const clearInvitationAccess = (permission: false | null) => {
+  const clearInvitationAccess = (permission?: false) => {
     invitationVisit++;
     canManageInvitations.value = permission;
     invitations.value = [];
@@ -534,7 +535,7 @@
     const visit = invitationVisit;
     const record = await fetchOrganizationPermissions(target);
     if (!stillViewingInvitations(target, visit)) return;
-    canManageInvitations.value = record?.permissions.can_manage_invitations === true;
+    canManageInvitations.value = record?.permissions.can_manage_invitations ?? null;
     await loadInvitations();
   };
 
@@ -799,7 +800,7 @@
     isLoading.value = true;
     const result = await fetchAllPermissions();
     if (!stillViewing(target)) return;
-    canManageInvitations.value = !!result && targetPermissions.value?.permissions.can_manage_invitations === true;
+    canManageInvitations.value = result ? targetPermissions.value?.permissions.can_manage_invitations ?? null : null;
 
     // The invitation grant is sufficient for this view. Its permissions
     // record identifies the organization without a second api_access gate.
@@ -832,7 +833,7 @@
   // desirable for an audit trail).
   watch(activeTab, async (newTab) => {
     if (isLoading.value) return;
-    clearInvitationAccess(null);
+    clearInvitationAccess();
     if (newTab === 'members') {
       // Load members and invitations when switching to members tab
       const requests = [refreshInvitations()];
@@ -859,7 +860,7 @@
   // currentOrganization in the store) and the active tab's data.
   watch(orgId, (newOrgId, oldOrgId) => {
     if (newOrgId && newOrgId !== oldOrgId) {
-      clearInvitationAccess(null);
+      clearInvitationAccess();
       inviteFormData.value = { email: '', role: 'member' };
       inviteErrors.value = {};
       // Reset SSO status cache when switching orgs — domains differ per org
@@ -1456,6 +1457,11 @@
               v-if="canManageInvitations === false"
               class="mt-4 text-sm text-gray-600 dark:text-gray-400">
               {{ t('web.organizations.invitations.permission_required') }}
+            </p>
+            <p
+              v-else-if="canManageInvitations === null"
+              class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+              {{ t('web.organizations.access_unconfirmed_notice') }}
             </p>
           </div>
 
