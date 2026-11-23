@@ -111,10 +111,10 @@ gem 'rodauth-tools', '~> 0.4.0'
 # configures none of them never loads them. The cost of an entry is the
 # bundle, not the boot.
 #
-# omniauth-apple declares NO direct `omniauth` dependency (only
-# omniauth-oauth2 and json-jwt, both unversioned), so it would happily
-# resolve against OmniAuth 1.x. The floor is held by the other entries in
-# this block, all of which require `omniauth ~> 2.0`.
+# omniauth-apple declares no direct `omniauth` dependency (only
+# omniauth-oauth2 and json-jwt, both unversioned). Keep an explicit floor
+# for the host-header validation fix in OmniAuth 2.2.0.
+gem 'omniauth', '>= 2.2.0', '< 3.0'
 gem 'omniauth-apple', '~> 1.4'
 gem 'omniauth-entra-id', '~> 3.1'
 gem 'omniauth-github', '~> 2.0'

@@ -664,6 +664,7 @@ DEPENDENCIES
   lettermint (~> 0.2.1)
   logger
   mail
+  omniauth (>= 2.2.0, < 3.0)
   omniauth-apple (~> 1.4)
   omniauth-entra-id (~> 3.1)
   omniauth-github (~> 2.0)
