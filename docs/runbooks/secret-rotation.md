@@ -82,19 +82,17 @@ must obtain new bearer tokens after the restart.
    ```
 
 2. Install the new value in `SECRET`.
-3. Restart the app, then confirm the rotation was intentional:
-
-   Schedule a maintenance window or drain user traffic for this step. The
-   default `warn` policy lets the first restart boot with a verifier mismatch.
-   Secret creation, email-change requests, and committed reveals return HTTP
-   503 until adoption and the second restart finish. With `enforce`, the app
-   refuses to boot during that interval.
+3. Schedule a maintenance window or drain user traffic. Restart the app with
+   the new `SECRET`. Under the default `warn` policy, it boots with a verifier
+   mismatch; secret creation, email-change requests, and committed reveals
+   return HTTP 503 until adoption and the second restart. Under `enforce`, the
+   app refuses to boot during that interval. Confirm the intentional rotation:
 
    ```
    CONFIRM=yes bundle exec rake ots:secrets:adopt
    ```
 
-   and restart running app processes again so they drop the mismatch state.
+   Restart running app processes again so they drop the mismatch state.
 4. Verify: `bundle exec rake ots:secrets:verify` exits 0, and a reveal of a
    pre-rotation secret still works (the harness lane
    `bin/testsuite-installer secret-rotation` automates this proof).
