@@ -406,12 +406,14 @@ body = JSON.parse(last_response.body)
 [last_response.status, body['error_key'], body.key?('records'), body.key?('count')]
 #=> [403, 'api.organizations.errors.domain_scoped_forbidden', false, false]
 
-## An explicit manage_members grant on that membership still respects domain scope
-@admin_membership.grant_entitlement('manage_members')
-get "/api/organizations/#{@org.extid}/invitations", {}, { 'rack.session' => @admin_session }
+## A regular member's explicit manage_members grant still respects domain scope
+@member_membership.domain_scope_id = @scope_domain.objid
+@member_membership.save
+@member_membership.grant_entitlement('manage_members')
+get "/api/organizations/#{@org.extid}/invitations", {}, { 'rack.session' => @member_session }
 body = JSON.parse(last_response.body)
-[last_response.status, body['error_key'], body.key?('records'), body.key?('count')]
-#=> [403, 'api.organizations.errors.domain_scoped_forbidden', false, false]
+[@member_membership.has_capability?('manage_members'), last_response.status, body['error_key'], body.key?('records'), body.key?('count')]
+#=> [true, 403, 'api.organizations.errors.domain_scoped_forbidden', false, false]
 
 # Cleanup
 @org.domains.remove(@scope_domain.objid)
