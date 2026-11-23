@@ -302,10 +302,8 @@
    * of raw flags (ADR-024). An unrecognized rung (a newer backend) falls back
    * to the generic unavailable copy rather than rendering nothing.
    *
-   * Gated on ssoConfigurable: the remedial copy points at controls
-   * ("Edit credentials" / "Finish setup", the toggle above) that only render
-   * with both write gates, and without them the row already names the real
-   * blocker (member permission / "Unavailable site-wide").
+   * Some remedies link to credential configuration. Show that guidance to
+   * members who can open it on this domain.
    */
   const UNAVAILABLE_REASON_COPY: Record<string, { badge: string; hint: string }> = {
     no_sso_config: {
@@ -419,11 +417,7 @@
     label: string;
     /** Short descriptor shown in Mode B / as the method blurb. */
     blurb: string;
-    /**
-     * False when the method is listed for visibility but locked — currently
-     * only SSO without permission to configure it. Globally-unavailable
-     * methods are omitted from the list entirely, never rendered locked.
-     */
+    /** A stored method can remain visible after it becomes unavailable. */
     available: boolean;
   }
 
@@ -454,7 +448,9 @@
         value: 'sso',
         label: t('web.domains.signin.method_sso'),
         blurb: t('web.domains.signin.method_sso_blurb'),
-        available: ssoConfigurable.value,
+        // The sign-in settings endpoint authorizes method changes separately
+        // from the domain's SSO credentials.
+        available: ssoAvailable.value,
       });
     }
     // WebAuthn / Passkeys listed last — but NEVER offered for selection:
@@ -562,11 +558,8 @@
    * the user's Mode A settings intact for when they switch back.
    */
   const selectMethod = (value: SigninRestrictTo) => {
-    // Disabled radios fire no events, but guard anyway: restricting to SSO
-    // without BOTH tenant-SSO gates must be unexpressible — the SSO row is now
-    // also rendered (locked) when it is the current restriction, so this is
-    // the backstop for that row.
-    if (value === 'sso' && !ssoConfigurable.value) return;
+    // The stored restriction can still be visible after tenant SSO is disabled.
+    if (value === 'sso' && !ssoAvailable.value) return;
     // WebAuthn is never (re)selectable: passkeys are host-scoped (rp_id), so
     // a webauthn-only restriction dead-ends sign-in on a custom domain. Its
     // row only renders locked (keep-if-selected); this backstop also keeps
@@ -860,7 +853,7 @@
               <!-- Preserve the stored runtime setting when configuration is unavailable. -->
               <ToggleWithIcon
                 :enabled="Boolean(formState.sso_enabled)"
-                :disabled="isSaving || !ssoConfigurable"
+                :disabled="isSaving || !ssoAvailable"
                 :loading="savingField === 'sso_enabled'"
                 :on-label="t('web.COMMON.enabled')"
                 :off-label="t('web.COMMON.disabled')"

@@ -83,10 +83,12 @@ vi.mock('@/shared/composables/useDomain', () => ({
 }));
 
 const mockEntitled = ref(true);
+const mockSigninError = ref<{ message: string } | null>(null);
 const mockTenantSso = ref<TenantSsoVerdict | null>(null);
 
 const signin = {
   refreshDetails: vi.fn(),
+  autoSaveFields: vi.fn(),
   initialize: vi.fn(),
 };
 
@@ -97,7 +99,7 @@ vi.mock('@/shared/composables/useSigninConfig', () => ({
     isInitialized: ref(true),
     isSaving: ref(false),
     isDeleting: ref(false),
-    error: ref(null),
+    error: mockSigninError,
     formState: ref({
       enabled: true,
       signin_enabled: true,
@@ -115,7 +117,7 @@ vi.mock('@/shared/composables/useSigninConfig', () => ({
     tenantSso: mockTenantSso,
     initialize: signin.initialize,
     refreshDetails: signin.refreshDetails,
-    autoSaveFields: vi.fn(),
+    autoSaveFields: signin.autoSaveFields,
     deleteConfig: vi.fn(),
   }),
 }));
@@ -156,6 +158,7 @@ describe('DomainSignin', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockEntitled.value = true;
+    mockSigninError.value = null;
     mockCanManage.value = true;
     mockTenantSso.value = null;
     mockSsoConfigured.value = true;
@@ -164,6 +167,16 @@ describe('DomainSignin', () => {
 
   afterEach(() => {
     wrapper?.unmount();
+  });
+
+  it('keeps sign-in method writes unavailable when the sign-in settings read is denied', async () => {
+    mockCanManage.value = true;
+    signin.initialize.mockImplementationOnce(() => { mockSigninError.value = { message: 'Forbidden' }; });
+    wrapper = await mountPage();
+
+    expect(signin.initialize).toHaveBeenCalledOnce();
+    expect(wrapper.findComponent({ name: 'DomainSigninConfigForm' }).exists()).toBe(false);
+    expect(signin.autoSaveFields).not.toHaveBeenCalled();
   });
 
   it('sends Configure to the SSO page', async () => {

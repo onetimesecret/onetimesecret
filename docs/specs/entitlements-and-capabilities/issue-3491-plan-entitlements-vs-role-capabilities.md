@@ -65,8 +65,11 @@ and [SSO policy](../../../apps/api/domains/logic/sso_config/base.rb) govern the 
 The organization SSO tab, domain menus, and configuration page use the
 domain decision with billing enabled and in standalone mode. A delegated
 member can go directly to a permitted domain. An unavailable permission
-lookup leaves configuration controls closed. SSO configuration access does
-not grant access to other domain settings.
+lookup leaves credential controls closed. The [domain sign-in policy](../../../apps/api/domains/logic/signin_config/base.rb)
+separately governs the sign-in methods offered on a domain. A member who
+can edit that configuration can turn off the SSO sign-in method even if
+their credential-management permission has been revoked. Links to general
+domain settings also require permission to read the domain record.
 
 **Still open.** The catalog and client need separate feature and capability
 registries. The general-purpose wire fields, denial messages and frontend

@@ -10,7 +10,7 @@
 //    preserves restrict_to/flags; re-enabling transitions save atomically
 // 6. Global availability gating hides unavailable methods in both method modes
 // 7. SSO Configure reachable in both method modes; permission guidance when
-//    !canManageSso, and the SSO toggle (Mode A) / radio (Mode B) render locked
+//    !canManageSso; the sign-in method controls follow their own endpoint
 // 8. Per-field loading feedback via savingField
 // 9. Delete confirmation two-step
 // 10. Accessibility (radiogroup roles, aria-describedby, role="switch")
@@ -622,46 +622,44 @@ describe('DomainSigninConfigForm', () => {
   });
 
   // -----------------------------------------------------------------------
-  describe('domain permission disables configuration and preserves the stored runtime setting', () => {
-    it('disables the sso availability toggle in Mode A', () => {
-      wrapper = mountForm({ canManageSso: false });
-      expect(toggles(wrapper)[1].attributes('disabled')).toBeDefined();
-    });
-
-    it('still reports the stored sso value while locked (disabled, not blanked)', () => {
+  describe('sign-in method settings without credential management', () => {
+    it.each([false, null])('can disable an existing SSO method with credential permission %s', async (permission) => {
       wrapper = mountForm({
-        canManageSso: false,
+        canManageSso: permission,
         formState: { ...defaultFormState, sso_enabled: true },
       });
-      expect(toggles(wrapper)[1].attributes('aria-checked')).toBe('true');
-      expect(toggles(wrapper)[1].attributes('disabled')).toBeDefined();
+      const ssoToggle = toggles(wrapper)[1];
+      expect(ssoToggle.attributes('aria-checked')).toBe('true');
+      expect(ssoToggle.attributes('disabled')).toBeUndefined();
+      expect(wrapper.find('[data-testid="sso-configure-button"]').exists()).toBe(false);
+      await ssoToggle.trigger('click');
+      expect(wrapper.emitted('auto-save')).toEqual([[{ sso_enabled: false }, 'sso_enabled']]);
     });
 
-    it('leaves the email toggle operable', () => {
-      wrapper = mountForm({ canManageSso: false });
-      expect(toggles(wrapper)[0].attributes('disabled')).toBeUndefined();
-    });
-
-    it('keeps the SSO radio visible and disabled in Mode B', () => {
+    it('can restrict sign-in to an available SSO method after a credential revoke', async () => {
       wrapper = mountForm({
         canManageSso: false,
+        tenantSso: { available: true, unavailable_reason: null },
         formState: { ...defaultFormState, restrict_to: 'password' },
       });
-      const radio = wrapper.find('#signin-restrict-sso');
-      expect(radio.exists()).toBe(true);
-      expect(radio.attributes('disabled')).toBeDefined();
+      const radio = wrapper.get('#signin-restrict-sso');
+      expect(radio.attributes('disabled')).toBeUndefined();
+      expect(wrapper.find('[data-testid="sso-configure-button-compact"]').exists()).toBe(false);
+      await radio.trigger('change');
+      expect(wrapper.emitted('auto-save')).toEqual([
+        [{ restrict_to: 'sso', sso_enabled: true }, 'restrict_to'],
+      ]);
     });
 
-    it('never saves restrict_to: sso when unentitled', async () => {
-      // Belt & suspenders: the disabled attribute blocks the event AND
-      // selectMethod guards the value — removing either alone stays safe;
-      // this test fails only if both regress (the original bug).
+    it('requires confirmation before restricting sign-in to an unavailable SSO method after a revoke', async () => {
       wrapper = mountForm({
         canManageSso: false,
+        tenantSso: { available: false, unavailable_reason: 'no_sso_config' },
         formState: { ...defaultFormState, restrict_to: 'password' },
       });
-      await wrapper.find('#signin-restrict-sso').trigger('change');
+      await wrapper.get('#signin-restrict-sso').trigger('change');
       expect(wrapper.emitted('auto-save')).toBeUndefined();
+      expect(wrapper.find('[data-testid="sso-restriction-lockout-warning"]').exists()).toBe(true);
     });
   });
 
