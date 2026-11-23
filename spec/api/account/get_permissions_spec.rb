@@ -179,7 +179,7 @@ RSpec.describe 'GET /api/account/permissions', type: :integration do
         org = JSON.parse(last_response.body).fetch('organizations').find { |record| record['extid'] == organization.extid }
         expect(org.fetch('permissions')).to include('can_edit' => false, 'can_delete' => false, 'can_manage_settings' => false)
         domain = org.fetch('domains').find { |record| record['extid'] == custom_domain.extid }
-        expect(domain.fetch('permissions')).to include('can_view' => true, 'can_manage_settings' => false)
+        expect(domain.fetch('permissions')).to include('can_view' => true, 'can_delete' => true, 'can_manage_settings' => false)
       end
 
       it 'includes the test organization' do
@@ -347,6 +347,14 @@ RSpec.describe 'GET /api/account/permissions', type: :integration do
       it 'returns 200 OK for owned domain' do
         get "/api/account/permissions?resource_type=domain&resource_id=#{custom_domain.extid}"
         expect(last_response.status).to eq(200)
+      end
+
+      it 'denies domain deletion when custom_domains is revoked from an owner' do
+        membership = Onetime::OrganizationMembership.find_by_org_customer(organization.objid, owner.objid)
+        membership.revoke_entitlement('custom_domains')
+        get "/api/account/permissions?resource_type=domain&resource_id=#{custom_domain.extid}"
+
+        expect(JSON.parse(last_response.body).fetch('permissions')).to include('can_delete' => false, 'can_manage_settings' => true)
       end
 
       it 'returns correct resource_type and resource_id' do

@@ -91,7 +91,7 @@ module AccountAPI::Logic
     # Domain resources:
     # - can_view: user has 'custom_domains' entitlement
     # - can_edit: user has 'custom_domains' entitlement
-    # - can_delete: user has 'manage_org' capability
+    # - can_delete: user has 'custom_domains' entitlement
     # - can_manage_settings: user has 'manage_org' capability
     #
     # Organization resources:
@@ -232,7 +232,7 @@ module AccountAPI::Logic
         {
           can_view: custom_domains,
           can_edit: custom_domains,
-          can_delete: manage_org,
+          can_delete: custom_domains,
           can_manage_settings: manage_org,
         }
       end
