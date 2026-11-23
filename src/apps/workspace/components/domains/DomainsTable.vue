@@ -32,6 +32,7 @@ const { t } = useI18n();
   const props = withDefaults(defineProps<{
     domains: CustomDomain[];
     isLoading: boolean;
+    ssoDomainIds: ReadonlySet<string>;
     orgid: string;
     /** When true, hides the header section (title, description, add button) */
     compact?: boolean;
@@ -47,7 +48,7 @@ const { t } = useI18n();
   );
   const { can } = useEntitlements(organization);
   const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
-  const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAGE_SSO));
+  const ssoEnabled = computed(() => isOrgsSsoEnabled());
   const canEmailConfig = computed(() => isOrgsCustomMailEnabled() && can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
   const canIncomingSecrets = computed(() => isOrgsIncomingSecretsEnabled() && can(ENTITLEMENTS.INCOMING_SECRETS));
 
@@ -194,7 +195,7 @@ const { t } = useI18n();
                   :orgid="props.orgid"
                   :can-admin="canAdmin"
                   :can-brand="canBrand"
-                  :can-manage-sso="canManageSso"
+                  :can-manage-sso="ssoEnabled && !!domain.extid && ssoDomainIds.has(domain.extid)"
                   :can-email-config="canEmailConfig"
                   :can-incoming-secrets="canIncomingSecrets"
                   @delete="handleDelete" />

@@ -84,6 +84,7 @@ const mockDomain = {
 };
 
 function mountComponent({
+  canAdmin = true,
   canBrand = false,
   canManageSso = false,
   canEmailConfig = false,
@@ -94,6 +95,7 @@ function mountComponent({
     props: {
       domain: domain as never,
       orgid: 'org_ext_123',
+      canAdmin,
       canBrand,
       canManageSso,
       canEmailConfig,
@@ -190,7 +192,7 @@ describe('DomainsTableActionsCell', () => {
     });
   });
 
-  describe('canManageSso entitlement gating', () => {
+  describe('target-domain SSO permission', () => {
     it('hides "Configure SSO" menu item when canManageSso is false', () => {
       const wrapper = mountComponent({ canManageSso: false });
 
@@ -211,8 +213,8 @@ describe('DomainsTableActionsCell', () => {
       expect(texts).toContain('Configure SSO');
     });
 
-    it('links "Configure SSO" to the DomainSigninSso route with correct params', () => {
-      const wrapper = mountComponent({ canManageSso: true });
+    it('links a delegated member to the authorized domain SSO route', () => {
+      const wrapper = mountComponent({ canManageSso: true, canAdmin: false });
 
       const links = wrapper.findAll('a[data-to]');
       const ssoLink = links.find((link) => link.text() === 'Configure SSO');

@@ -59,7 +59,7 @@ vi.mock('@/shared/stores/domainsStore', () => ({
 }));
 
 vi.mock('@/utils/features', () => ({
-  isOrgsSsoEnabled: () => false,
+  isOrgsSsoEnabled: () => true,
   isOrgsCustomMailEnabled: () => false,
   isOrgsIncomingSecretsEnabled: () => true,
 }));
@@ -73,7 +73,7 @@ vi.mock('@/apps/workspace/components/dashboard/DomainsTableDomainCell.vue', () =
 }));
 
 vi.mock('@/apps/workspace/components/dashboard/DomainsTableActionsCell.vue', () => ({
-  default: { name: 'DomainsTableActionsCell', template: '<div class="actions-cell" />' },
+  default: { name: 'DomainsTableActionsCell', template: '<div class="actions-cell" />', props: ['canManageSso'] },
 }));
 
 vi.mock('@/shared/components/modals/ConfirmDialog.vue', () => ({
@@ -128,15 +128,26 @@ const baseDomain: CustomDomain = {
   updated: new Date('2024-01-01'),
 };
 
-function mountTable(domains: CustomDomain[]) {
+function mountTable(domains: CustomDomain[], ssoDomainIds: ReadonlySet<string> = new Set()) {
   return mount(DomainsTable, {
     props: {
       domains,
+      ssoDomainIds,
       isLoading: false,
       orgid: 'org_ext_123',
     },
   });
 }
+
+it('passes SSO management to the permitted domain row and clears it on a revoke', async () => {
+  const other = { ...baseDomain, extid: 'dm-other' };
+  const wrapper = mountTable([baseDomain, other], new Set([baseDomain.extid!]));
+  const permissions = () => wrapper.findAllComponents({ name: 'DomainsTableActionsCell' })
+    .map(cell => cell.props('canManageSso'));
+  expect(permissions()).toEqual([true, false]);
+  await wrapper.setProps({ ssoDomainIds: new Set() });
+  expect(permissions()).toEqual([false, false]);
+});
 
 describe('DomainsTable - homepage incoming badge', () => {
   it('shows the badge when the homepage is enabled in incoming mode', () => {
