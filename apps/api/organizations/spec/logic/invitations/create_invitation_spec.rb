@@ -169,6 +169,34 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       end
     end
 
+    context 'when an admin has the capability but the plan omits the entitlement' do
+      let(:admin_membership) do
+        Onetime::OrganizationMembership.new(
+          organization_objid: organization.objid,
+          customer_objid: customer.objid,
+          role: 'admin',
+        )
+      end
+
+      before do
+        allow(organization).to receive_messages(entitlements: ['api_access'], planid: 'free')
+        admin_membership.save
+        admin_membership.materialize_for_role!(organization)
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+          .with(organization.objid, customer.objid).and_return(admin_membership)
+      end
+
+      after { admin_membership.destroy_with_index_cleanup! }
+
+      it 'still rejects the invitation on the existing entitlement gate', :aggregate_failures do
+        expect(admin_membership.has_capability?('manage_members')).to be(true)
+        expect(admin_membership.can?('manage_members')).to be(false)
+        expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.entitlement).to eq('manage_members')
+        end
+      end
+    end
+
     context 'when email is empty' do
       let(:params) { { 'extid' => 'ext-org-123', 'email' => '', 'role' => 'member' } }
 
