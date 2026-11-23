@@ -43,12 +43,15 @@ name: Compose smoke
 on:
   pull_request:
     paths:
+      - '.env.example'
+      - 'docker/README.md'
       - 'docker-compose.yml'
       - 'docker/compose/**'
       # Named individually, not globbed: tools/testsuite-installer/ also holds
       # helpers for five other workflows, and this lane is a ~15min build+up.
       - 'bin/testsuite-installer'
       - 'tools/testsuite-installer/testsuite-installer.sh'
+      - 'tools/testsuite-installer/check-compose-quick-start.sh'
       - 'tools/testsuite-installer/proof-of-life.sh'
       - 'tools/testsuite-installer/seed-compose-env.sh'
       - '.github/workflows/compose-smoke.yml'
@@ -75,6 +78,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Check the documented Compose quick start twice
+        run: bin/testsuite-installer check-compose-quick-start
 
       # Compose interpolates ${SECRET:?...} even for `config`. Interpolation
       # variables come from the shell environment and the project-directory

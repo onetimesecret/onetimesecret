@@ -41,10 +41,43 @@ Compose "profiles" — no `--profile` flag is involved):
 
 ## Quick Start
 
+Run this from the repository root to start the simple stack. The setup
+fills in missing keys in the default `.env`. If you select a stack with
+`COMPOSE_FILE`, use `docker/compose/.env`, or override which environment
+files Compose loads, supply both keys through that configuration.
+
 ```bash
-[ -f .env ] || cp .env.example .env
-echo "SECRET=$(openssl rand -hex 32)" >> .env
-docker compose up
+(
+  set -e
+  # Let .env supply any keys that are empty in the shell environment.
+  [[ -n ${SECRET:-} ]] || unset SECRET
+  [[ -n ${VALKEY_PASSWORD:-} ]] || unset VALKEY_PASSWORD
+
+  # Ask Compose about keys and the stack selection without printing key values.
+  configured=$(printf '%s\n' \
+    'services:' \
+    '  keys:' \
+    '    image: "ots-keys:${COMPOSE_FILE:+custom-}${SECRET:+SECRET-}${VALKEY_PASSWORD:+VALKEY_PASSWORD-}check"' |
+    docker compose -f - config --images)
+
+  # The included stack can load its own .env that this probe cannot see.
+  if [[ $configured != ots-keys:custom-* && ! -e docker/compose/.env &&
+        -z ${COMPOSE_ENV_FILES:-} ]] &&
+    ! grep -Eiq '^(1|t|true)$' <<< "${COMPOSE_DISABLE_ENV_FILE:-}"; then
+    [ -f .env ] || (umask 077 && cp .env.example .env)
+    for key in SECRET VALKEY_PASSWORD; do
+      if [[ $configured != *"${key}-"* ]]; then
+        value=$(openssl rand -hex 32)
+        printf '\n%s=%s\n' "$key" "$value" >> .env
+      fi
+    done
+  elif [[ ! -e .env ]]; then
+    # The app's Compose service still reads .env as an env_file.
+    (umask 077 && touch .env)
+  fi
+
+  docker compose up
+)
 ```
 
 Then create an admin account (the app service is named `app` in both
@@ -54,10 +87,8 @@ stacks):
 docker compose exec app bin/ots customers create me@example.com --role colonel
 ```
 
-More forms (plain `docker exec`, bare-metal, API tokens) and the
-`AUTH_AUTOVERIFY`/SMTP signup caveat:
-[Create your first account](../README.md#create-your-first-account) in the
-root README.
+For the `docker exec` form of this command, see the
+[Docker quick start](../README.md#quick-start-docker) in the root README.
 
 ## Environment Variables
 
