@@ -3,14 +3,23 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
 const { t } = useI18n();
+const organizationStore = useOrganizationStore();
 
 // Get org extid from current route
 const orgExtid = computed(() => route.params.extid as string);
+const billedOrganization = computed(() =>
+  organizationStore.getOrganizationByExtid(orgExtid.value)
+  ?? (organizationStore.currentOrganization?.extid === orgExtid.value
+    ? organizationStore.currentOrganization
+    : null)
+);
+const isOwner = computed(() => billedOrganization.value?.current_user_role === 'owner');
 
 interface NavigationItem {
   section: string;
@@ -34,6 +43,7 @@ const sections: NavigationItem[] = [
     section: 'invoices',
     icon: { collection: 'heroicons', name: 'document-text' },
     label: t('web.billing.invoices.title'),
+    visible: () => isOwner.value,
   },
 ];
 

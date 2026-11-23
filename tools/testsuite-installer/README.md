@@ -29,7 +29,7 @@ bin/testsuite-installer ttfhw-chart
 
 The clean-room `run` command archives **committed `HEAD`**, not the working tree,
 into Docker containers. Commit changes before using it to validate them. It
-retains the existing `ruby:3.4.10-slim` installer floor and `ruby:3.3-slim`
+retains the existing `ruby:3.4.13-slim` installer floor and `ruby:3.3-slim`
 expected-failure image, and checks installation idempotency.
 
 `proof-of-life` is also available as a standalone script for an image without

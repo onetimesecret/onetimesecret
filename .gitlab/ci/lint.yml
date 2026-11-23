@@ -80,7 +80,7 @@ logship:
 
 bundler-audit:
   stage: lint
-  image: ruby:3.4.10-trixie@sha256:ce3b7a999d9e430e59e1a12456c631fbea3dd18948c89cf8a913c3566c77b2ae
+  image: ruby:3.4.13-trixie@sha256:2cfc090f052933db5abcde345187115dde23f3a44f9620a0e7482cb33ecd9834
   tags: [saas-linux-small-amd64]
   needs: []
   timeout: 10m

@@ -32,7 +32,7 @@ version="$1"
 tmp="$(mktemp)"
 trap 'rm -f "$tmp"' EXIT
 
-# The entry is the line after the RUBY VERSION header: "  ruby 3.4.10".
+# The entry is the line after the RUBY VERSION header: "  ruby 3.4.13".
 awk -v v="$version" '
   pending && /^  ruby / { print "  ruby " v; pending = 0; pinned = 1; next }
   { pending = ($0 == "RUBY VERSION"); print }

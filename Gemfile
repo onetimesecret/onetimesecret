@@ -111,10 +111,10 @@ gem 'rodauth-tools', '~> 0.4.0'
 # configures none of them never loads them. The cost of an entry is the
 # bundle, not the boot.
 #
-# omniauth-apple declares NO direct `omniauth` dependency (only
-# omniauth-oauth2 and json-jwt, both unversioned), so it would happily
-# resolve against OmniAuth 1.x. The floor is held by the other entries in
-# this block, all of which require `omniauth ~> 2.0`.
+# omniauth-apple declares no direct `omniauth` dependency (only
+# omniauth-oauth2 and json-jwt, both unversioned). Keep an explicit floor
+# for the host-header validation fix in OmniAuth 2.2.0.
+gem 'omniauth', '>= 2.2.0', '< 3.0'
 gem 'omniauth-apple', '~> 1.4'
 gem 'omniauth-entra-id', '~> 3.1'
 gem 'omniauth-github', '~> 2.0'
@@ -194,13 +194,10 @@ gem 'rack-utf8_sanitizer', '~> 1.11'
 # HTTP client
 gem 'httparty'
 
-# DNS resolution. resolv is a default gem, so without this line the app runs
-# the copy bundled with Ruby: 0.7.1 in Ruby 3.4.10, which is affected by
-# CVE-2026-80212 (memory exhaustion from malicious DNS responses) and
-# CVE-2026-80213 (hostname validation bypass). Both are fixed in 0.7.2. The
-# SSO issuer SSRF check and the egress guard resolve tenant-supplied hosts.
-# Kept on the 0.7 line, which Ruby 3.4.11 and later bundle; drop this line
-# once .ruby-version is a Ruby that bundles resolv >= 0.7.2.
+# DNS resolution. The SSO issuer SSRF check and the egress guard resolve
+# tenant-supplied hosts. Keep resolv on the patched 0.7 line even if the
+# bundled default gem changes on a later Ruby update (CVE-2026-80212 and
+# CVE-2026-80213).
 gem 'resolv', '~> 0.7.2'
 
 # JSON and data validation

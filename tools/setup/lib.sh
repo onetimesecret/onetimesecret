@@ -28,7 +28,7 @@ version_from() { [[ -f "$1" ]] && trim < "$1" || echo ""; }
 
 # Exact-match: bundler enforces the exact version in .ruby-version
 # (Gemfile: `ruby file: '.ruby-version'`), so the early gate must agree —
-# a floor-compare would pass 3.4.10 only for bundler to reject it. (NF-5)
+# a major/minor comparison could accept a patch release Bundler rejects. (NF-5)
 check_version_exact() {
   local name="$1" cmd="$2" file="$3" extractor="$4"
   local required actual

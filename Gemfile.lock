@@ -664,6 +664,7 @@ DEPENDENCIES
   lettermint (~> 0.2.1)
   logger
   mail
+  omniauth (>= 2.2.0, < 3.0)
   omniauth-apple (~> 1.4)
   omniauth-entra-id (~> 3.1)
   omniauth-github (~> 2.0)
@@ -740,7 +741,7 @@ DEPENDENCIES
   webmock (~> 3.0)
 
 RUBY VERSION
-  ruby 3.4.10
+  ruby 3.4.13
 
 BUNDLED WITH
   4.0.9
