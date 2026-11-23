@@ -295,6 +295,26 @@ RSpec.describe 'GET /api/account/permissions', type: :integration do
           end
         end
 
+        it 'omits the organization and denies SSO to a pending member with both grants' do
+          %w[manage_org manage_sso].each { |capability| member_membership.grant_entitlement(capability) }
+          member_membership.status = 'pending'
+          member_membership.save
+          create_session_for(member_user)
+
+          get '/api/account/permissions'
+          expect(last_response.status).to eq(200)
+          organizations = JSON.parse(last_response.body).fetch('organizations')
+          expect(organizations.map { |row| row.fetch('extid') }).not_to include(organization.extid)
+
+          get '/api/account/permissions', resource_type: 'domain', resource_id: custom_domain.extid
+          expect(last_response.status).to eq(403)
+          expect(JSON.parse(last_response.body).keys).not_to include('permissions', 'domain')
+
+          get "/api/domains/#{custom_domain.extid}/sso"
+          expect(last_response.status).to eq(403)
+          expect(JSON.parse(last_response.body)).not_to have_key('record')
+        end
+
         context 'with explicit grants scoped to one domain' do
           let!(:other_domain) do
             domain = Onetime::CustomDomain.new(display_domain: "other-#{run_id}.example.com", org_id: organization.objid)
