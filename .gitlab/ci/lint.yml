@@ -26,6 +26,33 @@ shell-tests:
   script:
     - bash bin/testsuite run
 
+compose-quick-start:
+  extends: .lint-python
+  variables:
+    COMPOSE_VERSION: 'v5.7.0'
+    COMPOSE_SHA256: '7758048ad38e580f22559603312874fec8bb638d021a9e64182385fc17cc12a2'
+  rules:
+    - changes:
+        - .env.example
+        - docker/README.md
+        - docker-compose.yml
+        - docker/compose/**/*
+        - .gitlab/ci/lint.yml
+        - bin/testsuite-installer
+        - tools/testsuite-installer/check-compose-quick-start.sh
+        - tools/testsuite-installer/testsuite-installer.sh
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq --no-install-recommends ca-certificates curl docker-cli openssl
+    - |
+      plugin=/usr/local/lib/docker/cli-plugins/docker-compose
+      install -d "$(dirname "$plugin")"
+      curl -fsSL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-x86_64" -o "$plugin"
+      printf '%s  %s\n' "$COMPOSE_SHA256" "$plugin" | sha256sum -c -
+      chmod 0755 "$plugin"
+  script:
+    - bin/testsuite-installer check-compose-quick-start
+
 # shellcheck over every tracked shell script and actionlint over the GitHub
 # workflows, against the recorded baselines in .github/lint-baseline/.
 shell-lint:

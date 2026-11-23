@@ -41,30 +41,40 @@ Compose "profiles" — no `--profile` flag is involved):
 
 ## Quick Start
 
-Run this from the repository root to start the simple stack. Compose reuses
-existing values and the setup fills in missing keys in `.env`.
+Run this from the repository root to start the simple stack. The setup
+fills in missing keys in the default `.env`. If you select a stack with
+`COMPOSE_FILE`, use `docker/compose/.env`, or override which environment
+files Compose loads, supply both keys through that configuration.
 
 ```bash
 (
   set -e
-  [ -f .env ] || (umask 077 && cp .env.example .env)
-
   # Let .env supply any keys that are empty in the shell environment.
   [[ -n ${SECRET:-} ]] || unset SECRET
   [[ -n ${VALKEY_PASSWORD:-} ]] || unset VALKEY_PASSWORD
 
-  # Use Compose's .env parser and get only the names of populated keys.
+  # Ask Compose about keys and the stack selection without printing key values.
   configured=$(printf '%s\n' \
     'services:' \
     '  keys:' \
-    '    image: "ots-keys:${SECRET:+SECRET-}${VALKEY_PASSWORD:+VALKEY_PASSWORD-}check"' |
+    '    image: "ots-keys:${COMPOSE_FILE:+custom-}${SECRET:+SECRET-}${VALKEY_PASSWORD:+VALKEY_PASSWORD-}check"' |
     docker compose -f - config --images)
-  for key in SECRET VALKEY_PASSWORD; do
-    if [[ $configured != *"${key}-"* ]]; then
-      value=$(openssl rand -hex 32)
-      printf '\n%s=%s\n' "$key" "$value" >> .env
-    fi
-  done
+
+  # The included stack can load its own .env that this probe cannot see.
+  if [[ $configured != ots-keys:custom-* && ! -e docker/compose/.env &&
+        -z ${COMPOSE_ENV_FILES:-} ]] &&
+    ! grep -Eiq '^(1|t|true)$' <<< "${COMPOSE_DISABLE_ENV_FILE:-}"; then
+    [ -f .env ] || (umask 077 && cp .env.example .env)
+    for key in SECRET VALKEY_PASSWORD; do
+      if [[ $configured != *"${key}-"* ]]; then
+        value=$(openssl rand -hex 32)
+        printf '\n%s=%s\n' "$key" "$value" >> .env
+      fi
+    done
+  elif [[ ! -e .env ]]; then
+    # The app's Compose service still reads .env as an env_file.
+    (umask 077 && touch .env)
+  fi
 
   docker compose up
 )

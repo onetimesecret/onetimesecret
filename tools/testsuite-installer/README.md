@@ -22,6 +22,7 @@ bin/testsuite-installer baremetal-boot
 bin/testsuite-installer secret-rotation
 bin/testsuite-installer proof-of-life http://127.0.0.1:3000
 bin/testsuite-installer check-docs-commands
+bin/testsuite-installer check-compose-quick-start
 bin/testsuite-installer seed-compose-env
 bin/testsuite-installer ttfhw-chart
 ```
@@ -60,6 +61,7 @@ image tags with digest pins. Run `bin/setup` before the bare-metal app lanes.
 | `secret-rotation`     | Installed gems, generated locales/schemas and app config, Ruby, OpenSSL, curl and Redis/Valkey server + CLI. Boots a throwaway datastore/app. `ROT_APP_PORT=3213`, `ROT_DB_PORT=2129` by default.                                                         |
 | `proof-of-life`       | curl and a running app with built assets. Creates and consumes a short-lived secret. `POL_CREATE_ACCOUNT=1` also creates a fresh account via `bin/ots`; `POL_EXEC` optionally selects a container command prefix, and `POL_ACCOUNT_EMAIL` sets its email. |
 | `check-docs-commands` | Node and the repository checkout; checks executable entry points and documented pnpm targets without booting the app.                                                                                                                                     |
+| `check-compose-quick-start` | Docker Compose CLI and OpenSSL. Runs the Docker README setup in a temporary directory and validates the Compose config on each run. |
 | `seed-compose-env`    | OpenSSL and `GITHUB_ENV` (GitHub Actions). Appends secrets to that file and **overwrites the root `.env`**; use only in a disposable checkout.                                                                                                            |
 | `ttfhw-chart`         | gh, jq, `GH_TOKEN` with Actions read permission and `GITHUB_REPOSITORY`. Calls the Actions API; writes to `GITHUB_STEP_SUMMARY` or stdout. Missing prerequisites skip the chart without failing.                                                          |
 

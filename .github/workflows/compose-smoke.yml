@@ -51,6 +51,7 @@ on:
       # helpers for five other workflows, and this lane is a ~15min build+up.
       - 'bin/testsuite-installer'
       - 'tools/testsuite-installer/testsuite-installer.sh'
+      - 'tools/testsuite-installer/check-compose-quick-start.sh'
       - 'tools/testsuite-installer/proof-of-life.sh'
       - 'tools/testsuite-installer/seed-compose-env.sh'
       - '.github/workflows/compose-smoke.yml'
@@ -79,53 +80,7 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - name: Check the documented Compose quick start twice
-        run: |
-          work=$(mktemp -d)
-          trap 'rm -rf "$work"' EXIT
-          mkdir -p "$work/docker/compose"
-          cp .env.example docker-compose.yml "$work/"
-          cp docker/compose/docker-compose.simple.yml "$work/docker/compose/"
-          awk '
-            /^## Quick Start$/ { section = 1; next }
-            section && /^## / { exit }
-            section && /^```bash$/ { block = 1; next }
-            block && /^```$/ { exit }
-            block { print }
-          ' docker/README.md > "$work/quick-start.sh"
-          test -s "$work/quick-start.sh"
-          cd "$work"
-          unset SECRET VALKEY_PASSWORD
-
-          # Validate the actual Compose config in place of starting services.
-          docker() {
-            case "$*" in
-              'compose up')
-                command docker compose config --quiet && printf 'checked\n' >> compose-checks
-                ;;
-              'compose -f - config --images') command docker "$@" ;;
-              *) echo 'Unexpected Docker command in the Compose quick start' >&2; return 1 ;;
-            esac
-          }
-          export -f docker
-
-          bash -e quick-start.sh
-          grep -Eq '^SECRET=[0-9a-f]{64}$' .env
-          grep -Eq '^VALKEY_PASSWORD=[0-9a-f]{64}$' .env
-          cp .env first.env
-          bash -e quick-start.sh
-          cmp -s first.env .env
-          [[ $(wc -l < compose-checks) -eq 2 ]]
-
-          # Empty exports fall back to .env. Lines inside quotes are data.
-          cat > .env <<'ENV'
-          SECRET=existing-secret
-          SAMPLE='multiline value
-          VALKEY_PASSWORD=example'
-          ENV
-          SECRET='' VALKEY_PASSWORD='' bash -e quick-start.sh
-          [[ $(grep -c '^SECRET=' .env) -eq 1 ]]
-          grep -qx 'SECRET=existing-secret' .env
-          grep -Eq '^VALKEY_PASSWORD=[0-9a-f]{64}$' .env
+        run: bin/testsuite-installer check-compose-quick-start
 
       # Compose interpolates ${SECRET:?...} even for `config`. Interpolation
       # variables come from the shell environment and the project-directory
