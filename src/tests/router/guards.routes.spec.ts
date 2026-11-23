@@ -1286,7 +1286,7 @@ describe('Router Guards', () => {
           extid: 'target', membership: { role: 'owner' }, domains: [{ permissions: { can_manage_sso: false } }],
         };
         const fetchAllPermissions = vi.fn().mockResolvedValue({ organizations: [record] });
-        vi.mocked(useResourcePermissions).mockReturnValue({ fetchAllPermissions } as ReturnType<typeof useResourcePermissions>);
+        vi.mocked(useResourcePermissions, { partial: true }).mockReturnValue({ fetchAllPermissions });
         const lookup = vi.fn().mockResolvedValue({ allowed: false, role: 'owner' });
         vi.mocked(useDomainSsoPermissionLookup).mockReturnValue(lookup);
         const route = target === 'domain' ? domainRoute() : makeRoute({
@@ -1329,7 +1329,7 @@ describe('Router Guards', () => {
         const fetchAllPermissions = vi.fn().mockResolvedValue({
           organizations: [record('other', [true]), record('target', actions)],
         });
-        vi.mocked(useResourcePermissions).mockReturnValue({ fetchAllPermissions } as ReturnType<typeof useResourcePermissions>);
+        vi.mocked(useResourcePermissions, { partial: true }).mockReturnValue({ fetchAllPermissions });
         const route = makeRoute({
           name: 'Organization Settings', params: { extid: 'target', tab: 'sso' }, meta: { requiresOrgRole: 'admin' },
         });
