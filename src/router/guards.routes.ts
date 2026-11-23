@@ -576,26 +576,30 @@ function handleTenantSsoRoute(
   }
 }
 
-async function organizationSsoAccess(orgExtid: string): Promise<boolean | undefined> {
+async function organizationSsoAccess(orgExtid: string) {
   const { fetchAllPermissions } = useResourcePermissions();
   const record = (await fetchAllPermissions())?.organizations.find(org => org.extid === orgExtid);
   if (!record) return undefined;
   const permissions = record.domains.map(domain => domain.permissions.can_manage_sso);
-  if (permissions.includes(true)) return true;
-  return permissions.includes(undefined) ? undefined : false;
+  const allowed =
+    permissions.includes(true) || (permissions.includes(undefined) ? undefined : false);
+  return { allowed, role: record.membership.role };
 }
 
 async function checkSsoRouteAccess(
   store: OrganizationStore,
   orgExtid: string,
-  lookup: Promise<boolean | undefined>,
+  lookup: Promise<{ allowed: boolean | undefined; role: string } | undefined>,
 ) {
   // Elevated roles can reach the page's disabled and denial states. A delegated
   // member can reach only the SSO page authorized for the requested target.
-  const permission = await lookup;
-  if (permission) return null;
-  if (await singleOrgMeetsRole(store, orgExtid, 'admin')) return null;
-  const key = permission === false
+  const record = await lookup;
+  if (record?.allowed) return null;
+  const elevated = record
+    ? roleMeetsRequirement(record.role, 'admin')
+    : await singleOrgMeetsRole(store, orgExtid, 'admin');
+  if (elevated) return null;
+  const key = record?.allowed === false
     ? 'web.domains.sso.access_denied'
     : 'web.organizations.access_unconfirmed_notice';
   useNotificationsStore().enqueue(globalComposer.t(key), 'info', 'top', 10000);

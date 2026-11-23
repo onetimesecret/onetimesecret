@@ -83,7 +83,7 @@
     <div class="p-4 sm:px-6">
       <!-- Title section - make text smaller on mobile -->
       <div
-        v-if="domainHost"
+        v-if="domainHost || backVisible"
         class="flex flex-col">
         <div class="flex items-center justify-between gap-2">
           <div class="flex min-w-0 items-center gap-4">
@@ -102,6 +102,7 @@
             </button>
             <!-- prettier-ignore-attribute class -->
             <h1
+              v-if="domainHost"
               class="mb-0 flex min-w-0 items-center truncate text-2xl font-bold
                 leading-tight text-gray-900 dark:text-white sm:text-3xl">
               <span class="truncate">{{ domainHost }}</span>
@@ -123,7 +124,7 @@
               </a>
             </h1>
           </div>
-          <div class="flex shrink-0 items-center gap-3">
+          <div v-if="domainHost" class="flex shrink-0 items-center gap-3">
             <slot>
               <!-- prettier-ignore-attribute class -->
               <div

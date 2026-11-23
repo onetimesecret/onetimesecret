@@ -845,10 +845,14 @@ describe('OrganizationSettings', () => {
 
     it('shows an owner only domains authorized by the API, even without the old plan token', async () => {
       mockFetchOrganization.mockResolvedValue({ ...mockOrganization, current_user_role: 'owner' });
-      permissions('owner', ssoDomain('allowed', true), ssoDomain('denied', false));
+      const domain = ssoDomain('allowed', true);
+      domain.permissions.can_view = false;
+      domain.verified = false;
+      permissions('owner', domain, ssoDomain('denied', false));
       wrapper = await mountComponent({ billingEnabled });
       expect(panel().text()).toContain('allowed.example');
       expect(panel().text()).not.toContain('denied.example');
+      expect(panel().find('a[href$="/verify"]').exists()).toBe(false);
       expect(mockSsoStatus.mock.calls).toEqual([['allowed']]);
     });
 

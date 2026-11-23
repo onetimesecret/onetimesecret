@@ -55,7 +55,7 @@
   const { can } = useEntitlements(organization);
   /** Gates the sign-in details fetch (never fetched without it). */
   const canCustomSignin = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNIN_CONFIG));
-  const { canManageSso, domain, isLoading: permissionLoading, refresh: refreshPermission } = useTenantSsoPermissions(
+  const { canManageSso, canViewDomain, domain, isLoading: permissionLoading, refresh: refreshPermission } = useTenantSsoPermissions(
     () => props.orgid,
     () => props.extid
   );
@@ -148,14 +148,18 @@
     await refreshAfterSsoChange();
   };
 
-  const canReturnToSignin = computed(() => {
+  const returnTarget = computed(() => {
+    if (!canFetchSsoConfig.value) {
+      return { to: '/dashboard', label: 'web.settings.back_to_dashboard' };
+    }
     const role = organization.value?.current_user_role;
-    return (role === 'owner' || role === 'admin') && canCustomSignin.value;
+    if ((role === 'owner' || role === 'admin') && canViewDomain.value && canCustomSignin.value) {
+      return { to: { name: 'DomainSignin', params: { orgid: props.orgid, extid: props.extid } },
+        label: 'web.domains.sso.back_to_signin' };
+    }
+    return { to: { name: 'Organization Settings', params: { extid: props.orgid, tab: 'sso' } },
+      label: 'web.organizations.sso.domain_sso_title' };
   });
-  const returnRoute = computed(() => canReturnToSignin.value
-    ? { name: 'DomainSignin', params: { orgid: props.orgid, extid: props.extid } }
-    : { name: 'Organization Settings', params: { extid: props.orgid, tab: 'sso' } });
-  const backLabel = computed(() => canReturnToSignin.value ? 'web.domains.sso.back_to_signin' : 'web.organizations.sso.domain_sso_title');
 
   /**
    * A failed delete keeps the record (useAsyncHandler reports and swallows),
@@ -168,7 +172,7 @@
     await deleteSsoConfig();
     if (!hadRecord || ssoIsConfigured.value) return;
     await refreshAfterSsoChange();
-    router.push(returnRoute.value);
+    router.push(returnTarget.value.to);
   };
 
   // Delete is the one destructive action, so it lives in the page's Careful
@@ -209,7 +213,7 @@
   // ---------------------------------------------------------------------------
 
   const handleBack = () => {
-    router.push(returnRoute.value);
+    router.push(returnTarget.value.to);
   };
 
   // Unsaved changes guard: the form saves only on an explicit action.
@@ -239,7 +243,7 @@
         :orgid="props.orgid"
         external-path="/signin"
         back-visible
-        :back-label="backLabel"
+        :back-label="returnTarget.label"
         @back="handleBack" />
     </div>
 
@@ -278,14 +282,14 @@
           {{ t('web.domains.sso.unavailable_on_instance_hint', { domain: domainHost }) }}
         </p>
         <RouterLink
-          :to="returnRoute"
+          :to="returnTarget.to"
           class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
           <OIcon
             collection="heroicons"
             name="arrow-left"
             class="size-4"
             aria-hidden="true" />
-          {{ t(backLabel) }}
+          {{ t(returnTarget.label) }}
         </RouterLink>
       </div>
 

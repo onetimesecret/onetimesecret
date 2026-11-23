@@ -152,6 +152,7 @@ const mockDomain = ref<{ display_domain: string; verified: boolean } | null>({
 });
 const mockOrganizations = ref([{ extid: 'org_123', current_user_role: 'owner' }]);
 const mockCanManage = ref<boolean | undefined>(true);
+const mockCanViewDomain = ref(true);
 const mockPermissionLoading = ref(false);
 const billingEnabled = ref(true);
 const refreshPermission = vi.fn();
@@ -159,6 +160,7 @@ vi.mock('@/shared/composables/useResourcePermissions', () => ({
   useTenantSsoPermissions: () => ({
     domain: mockDomain,
     canManageSso: mockCanManage,
+    canViewDomain: mockCanViewDomain,
     isLoading: mockPermissionLoading,
     refresh: refreshPermission,
   }),
@@ -276,6 +278,7 @@ describe('DomainSigninSso', () => {
     mockTenantSso.value = null;
     mockDomain.value = { display_domain: 'secrets.example.com', verified: true };
     mockCanManage.value = true;
+    mockCanViewDomain.value = true;
     mockPermissionLoading.value = false;
     billingEnabled.value = true;
     mockOrganizations.value = [{ extid: 'org_123', current_user_role: 'owner' }];
@@ -424,6 +427,23 @@ describe('DomainSigninSso', () => {
       expect(form().props('domainHost')).toBe('secrets.example.com');
       expect(form().props('domainVerified')).toBe(true);
       expect(signin.initialize).not.toHaveBeenCalled();
+      header().vm.$emit('back');
+      expect(router.push).toHaveBeenCalledWith({
+        name: 'Organization Settings', params: { extid: 'org_123', tab: 'sso' },
+      });
+    });
+
+    it.each([false, undefined])('returns to Dashboard when SSO access is %s', async allowed => {
+      mockCanManage.value = allowed;
+      wrapper = await mountPage();
+      expect(header().props('backLabel')).toBe('web.settings.back_to_dashboard');
+      header().vm.$emit('back');
+      expect(router.push).toHaveBeenCalledWith('/dashboard');
+    });
+
+    it('returns an owner without the general domain read permission to organization SSO', async () => {
+      mockCanViewDomain.value = false;
+      wrapper = await mountPage();
       header().vm.$emit('back');
       expect(router.push).toHaveBeenCalledWith({
         name: 'Organization Settings', params: { extid: 'org_123', tab: 'sso' },

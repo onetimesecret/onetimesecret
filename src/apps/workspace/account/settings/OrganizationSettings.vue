@@ -2042,7 +2042,7 @@
                         {{ domain.display_domain }}
                       </p>
                       <router-link
-                        v-if="domain.verified === false && canUseOrgSettings"
+                        v-if="domain.verified === false && canUseOrgSettings && domain.permissions.can_view"
                         :to="`/org/${orgId}/domains/${domain.extid}/verify`"
                         class="text-xs text-yellow-700 hover:underline dark:text-yellow-400">
                         {{ t('web.domains.pending_verification') }}
