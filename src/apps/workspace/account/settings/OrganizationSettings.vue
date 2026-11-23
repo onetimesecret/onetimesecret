@@ -17,7 +17,7 @@
   import { useDomainsManager } from '@/shared/composables/useDomainsManager';
   import { useEntitlements } from '@/shared/composables/useEntitlements';
   import { useOrgPermissions } from '@/shared/composables/useOrgPermissions';
-  import { useResourcePermissions } from '@/shared/composables/useResourcePermissions';
+  import { useOrganizationPermissionLookup, useResourcePermissions } from '@/shared/composables/useResourcePermissions';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useMembersStore } from '@/shared/stores/membersStore';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
@@ -169,15 +169,15 @@
   // Their access to this panel does not extend to the other settings.
   const { fetchAllPermissions, getOrgPermissions } = useResourcePermissions();
   const targetPermissions = computed(() => getOrgPermissions(orgId.value));
-  const invitationAccessDenied = ref(false);
-  const canManageInvitations = computed(() =>
-    targetPermissions.value?.permissions.can_manage_invitations === true &&
-    !invitationAccessDenied.value
-  );
-  const denyInvitations = () => {
-    invitationAccessDenied.value = true;
+  const fetchOrganizationPermissions = useOrganizationPermissionLookup();
+  const canManageInvitations = ref<boolean | null>(null);
+  let invitationVisit = 0;
+  const clearInvitationAccess = (permission: false | null) => {
+    invitationVisit++;
+    canManageInvitations.value = permission;
     invitations.value = [];
     showInviteForm.value = false;
+    inviteGeneralError.value = '';
   };
   const memberInvitationView = computed(() => targetPermissions.value?.membership.role === 'member');
   const assignableRoles = computed<OrganizationRole[]>(() =>
@@ -205,6 +205,8 @@
   // after its awaits) would otherwise navigate the NEXT page.
   let isUnmounted = false;
   const stillViewing = (target: string) => !isUnmounted && orgId.value === target;
+  const stillViewingInvitations = (target: string, visit: number) =>
+    stillViewing(target) && visit === invitationVisit;
   onBeforeUnmount(() => {
     isUnmounted = true;
   });
@@ -512,18 +514,28 @@
   const loadInvitations = async () => {
     if (!canManageInvitations.value) return;
     const target = orgId.value;
+    const visit = invitationVisit;
     try {
       const records = await organizationStore.fetchInvitations(target);
-      if (stillViewing(target) && canManageInvitations.value) {
+      if (stillViewingInvitations(target, visit) && canManageInvitations.value) {
         // The store also updates its array when mutations finish on other pages.
         invitations.value = [...records];
       }
     } catch (err) {
-      if (!stillViewing(target)) return;
+      if (!stillViewingInvitations(target, visit)) return;
       invitations.value = [];
-      if (classifyError(err).code === 403) denyInvitations();
+      if (classifyError(err).code === 403) clearInvitationAccess(false);
       else console.error('[OrganizationSettings] Error loading invitations:', err);
     }
+  };
+
+  const refreshInvitations = async () => {
+    const target = orgId.value;
+    const visit = invitationVisit;
+    const record = await fetchOrganizationPermissions(target);
+    if (!stillViewingInvitations(target, visit)) return;
+    canManageInvitations.value = record?.permissions.can_manage_invitations === true;
+    await loadInvitations();
   };
 
   const loadMembers = async () => {
@@ -619,10 +631,11 @@
     inviteGeneralError.value = '';
     isInviting.value = true;
     const target = orgId.value;
+    const visit = invitationVisit;
 
     try {
       await organizationStore.createInvitation(target, inviteFormData.value);
-      if (!stillViewing(target)) return;
+      if (!stillViewingInvitations(target, visit)) return;
 
       inviteFormData.value = {
         email: '',
@@ -633,7 +646,7 @@
 
       await loadInvitations();
     } catch (err) {
-      if (!stillViewing(target)) return;
+      if (!stillViewingInvitations(target, visit)) return;
       if (err instanceof z.ZodError) {
         err.issues.forEach((issue) => {
           const field = issue.path[0] as string;
@@ -642,7 +655,7 @@
       } else {
         const classified = classifyError(err);
         if (classified.code === 403) {
-          denyInvitations();
+          clearInvitationAccess(false);
         } else {
           inviteGeneralError.value =
             classified.message || t('web.organizations.invitations.invite_error');
@@ -656,18 +669,19 @@
   const updateInvitation = async (action: 'resend' | 'revoke', token: string) => {
     if (!canManageInvitations.value) return;
     const target = orgId.value;
+    const visit = invitationVisit;
     inviteGeneralError.value = '';
     success.value = '';
     try {
       if (action === 'resend') await organizationStore.resendInvitation(target, token);
       else await organizationStore.revokeInvitation(target, token);
-      if (!stillViewing(target)) return;
+      if (!stillViewingInvitations(target, visit)) return;
       success.value = t(`web.organizations.invitations.${action}_success`);
       await loadInvitations();
     } catch (err) {
-      if (!stillViewing(target)) return;
+      if (!stillViewingInvitations(target, visit)) return;
       if (classifyError(err).code === 403) {
-        denyInvitations();
+        clearInvitationAccess(false);
       } else {
         inviteGeneralError.value = t(`web.organizations.invitations.${action}_error`);
       }
@@ -783,8 +797,9 @@
   const loadPage = async () => {
     const target = orgId.value;
     isLoading.value = true;
-    await fetchAllPermissions();
+    const result = await fetchAllPermissions();
     if (!stillViewing(target)) return;
+    canManageInvitations.value = !!result && targetPermissions.value?.permissions.can_manage_invitations === true;
 
     // The invitation grant is sufficient for this view. Its permissions
     // record identifies the organization without a second api_access gate.
@@ -817,9 +832,10 @@
   // desirable for an audit trail).
   watch(activeTab, async (newTab) => {
     if (isLoading.value) return;
+    clearInvitationAccess(null);
     if (newTab === 'members') {
       // Load members and invitations when switching to members tab
-      const requests = [loadInvitations()];
+      const requests = [refreshInvitations()];
       const needsMembers = !membersStore.isInitialized || membersStore.currentOrgExtid !== orgId.value;
       if (canUseOrgSettings.value && needsMembers) requests.push(loadMembers());
       await Promise.all(requests);
@@ -843,12 +859,9 @@
   // currentOrganization in the store) and the active tab's data.
   watch(orgId, (newOrgId, oldOrgId) => {
     if (newOrgId && newOrgId !== oldOrgId) {
-      invitations.value = [];
-      invitationAccessDenied.value = false;
-      showInviteForm.value = false;
+      clearInvitationAccess(null);
       inviteFormData.value = { email: '', role: 'member' };
       inviteErrors.value = {};
-      inviteGeneralError.value = '';
       // Reset SSO status cache when switching orgs — domains differ per org
       isSsoStatusLoaded.value = false;
       for (const key of Object.keys(domainSsoStatus)) {
@@ -1440,7 +1453,7 @@
               </div>
             </div>
             <p
-              v-if="!canManageInvitations"
+              v-if="canManageInvitations === false"
               class="mt-4 text-sm text-gray-600 dark:text-gray-400">
               {{ t('web.organizations.invitations.permission_required') }}
             </p>

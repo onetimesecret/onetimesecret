@@ -408,6 +408,51 @@ describe('OrganizationSettings', () => {
       expect(panel().text()).not.toContain(invite);
     });
 
+    const singlePermission = (allowed: boolean) => {
+      const { membership, permissions, extid, display_name } = permissionRecord(allowed);
+      return { data: {
+        resource_type: 'organization', resource_id: extid,
+        organization: { extid, display_name }, membership, permissions,
+      } };
+    };
+
+    it('rechecks a revoked permission when returning to Members and picks up a new grant', async () => {
+      mockRevokeInvitation.mockRejectedValueOnce({ response: { status: 403 } });
+      wrapper = await mountComponent();
+      await panel().findAll('button').find(button => button.text() === 'web.organizations.invitations.revoke')!.trigger('click');
+      await flushPromises();
+      expect(panel().text()).toContain(guidance);
+      await wrapper.get('#org-tab-domains').trigger('click');
+
+      mockGetPermissions.mockResolvedValueOnce(singlePermission(true));
+      await wrapper.get('#org-tab-members').trigger('click');
+      await flushPromises();
+
+      expect(mockGetPermissions).toHaveBeenLastCalledWith('/api/account/permissions', {
+        params: { resource_type: 'organization', resource_id: mockOrganization.extid },
+      });
+      expect(panel().text()).toContain(invite);
+      expect(panel().text()).toContain(pending.email);
+    });
+
+    it('withholds invitations and counts while rechecking a previously allowed org', async () => {
+      wrapper = await mountComponent();
+      expect(panel().text()).toContain(pending.email);
+      await wrapper.get('#org-tab-domains').trigger('click');
+      let resolvePermission!: (value: ReturnType<typeof singlePermission>) => void;
+      mockGetPermissions.mockReturnValueOnce(new Promise(resolve => { resolvePermission = resolve; }));
+
+      await wrapper.get('#org-tab-members').trigger('click');
+      expect(panel().text()).not.toContain(pending.email);
+      expect(panel().text()).not.toContain('web.organizations.members.pending_suffix');
+      expect(panel().text()).not.toContain(invite);
+      expect(mockFetchInvitations).toHaveBeenCalledTimes(1);
+      resolvePermission(singlePermission(false));
+      await flushPromises();
+      expect(panel().text()).toContain(guidance);
+      expect(mockFetchInvitations).toHaveBeenCalledTimes(1);
+    });
+
     it('keeps an invitation action failure and retry on the delegated member’s panel', async () => {
       mockGetPermissions.mockResolvedValue({ data: { organizations: [permissionRecord(true, 'member')] } });
       mockRevokeInvitation.mockRejectedValueOnce({ response: { status: 503 } }).mockResolvedValueOnce(undefined);
@@ -438,6 +483,25 @@ describe('OrganizationSettings', () => {
       expect(panel().text()).not.toContain(invite);
       expect(panel().text()).not.toContain('web.organizations.members.pending_suffix');
       expect(mockFetchInvitations).not.toHaveBeenCalled();
+    });
+
+    it('ignores permission results from a previous visit to Members', async () => {
+      wrapper = await mountComponent();
+      await wrapper.get('#org-tab-domains').trigger('click');
+      let resolveFirst!: (value: ReturnType<typeof singlePermission>) => void;
+      mockGetPermissions.mockReturnValueOnce(new Promise(resolve => { resolveFirst = resolve; }));
+      await wrapper.get('#org-tab-members').trigger('click');
+      await wrapper.get('#org-tab-domains').trigger('click');
+
+      mockGetPermissions.mockResolvedValueOnce(singlePermission(false));
+      await wrapper.get('#org-tab-members').trigger('click');
+      await flushPromises();
+      resolveFirst(singlePermission(true));
+      await flushPromises();
+
+      expect(panel().text()).toContain(guidance);
+      expect(panel().text()).not.toContain(pending.email);
+      expect(mockFetchInvitations).toHaveBeenCalledTimes(1);
     });
 
     it('does not display a late invitation response after switching organizations', async () => {
