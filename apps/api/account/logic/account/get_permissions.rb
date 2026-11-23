@@ -96,9 +96,9 @@ module AccountAPI::Logic
     #
     # Organization resources:
     # - can_view: user is member of the org (any role)
-    # - can_edit: user has 'manage_org' capability
-    # - can_delete: user has 'manage_org' capability and org is not default
-    # - can_manage_settings: user has 'manage_org' capability
+    # - can_edit: user has organization-wide 'manage_org'
+    # - can_delete: user has organization-wide 'manage_org' and org is not default
+    # - can_manage_settings: user has organization-wide 'manage_org'
     #
     # ## Error Responses (single-resource mode only)
     #
@@ -197,7 +197,7 @@ module AccountAPI::Logic
           display_name: org.display_name,
           is_default: org.is_default || false,
           membership: serialize_membership_for(mem),
-          permissions: organization_permissions_for(org, manage_org),
+          permissions: organization_permissions_for(org, manage_org && mem.org_scoped?),
           assignable_roles: compute_assignable_roles(org, mem),
           domains: domains.map { |domain| serialize_domain_with_permissions(domain, domain_permissions) },
         }
@@ -317,7 +317,7 @@ module AccountAPI::Logic
         when 'domain'
           domain_permissions_for(membership, manage_org)
         when 'organization'
-          organization_permissions_for(organization, manage_org)
+          organization_permissions_for(organization, manage_org && membership.org_scoped?)
         end
       end
 

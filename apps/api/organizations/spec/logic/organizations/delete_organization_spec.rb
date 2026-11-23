@@ -49,7 +49,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::DeleteOrganization do
   end
 
   let(:membership) do
-    instance_double(Onetime::OrganizationMembership, active?: true, has_capability?: true)
+    instance_double(Onetime::OrganizationMembership, active?: true, has_capability?: true, domain_scoped?: false)
   end
 
   let(:strategy_result) do
@@ -142,6 +142,14 @@ RSpec.describe OrganizationAPI::Logic::Organizations::DeleteOrganization do
       allow(membership).to receive(:has_capability?).with('manage_org').and_return(false)
 
       expect { logic.raise_concerns }.to raise_error(Onetime::CapabilityRequired)
+      expect(Onetime::Operations::Org::Delete).not_to have_received(:new)
+    end
+
+    it 'denies a domain-scoped actor before starting organization deletion' do
+      allow(membership).to receive(:domain_scoped?).and_return(true)
+      expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden) do |error|
+        expect(error.error_key).to eq('api.organizations.errors.domain_scoped_forbidden')
+      end
       expect(Onetime::Operations::Org::Delete).not_to have_received(:new)
     end
   end

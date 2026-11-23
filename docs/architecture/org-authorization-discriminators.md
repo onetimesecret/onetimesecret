@@ -46,6 +46,11 @@ NIST SP 800-53 Rev. 5, control AC-6, limits authorized access to what is
 applies that principle by checking the scope before reading the list.
 [NIST SP 800-53 Rev. 5, AC-6, Least Privilege](https://csrc.nist.gov/CSRC/media/Projects/risk-management/800-53%20Downloads/800-53r5/SP_800-53_v5_1-derived-OSCAL.pdf#page=39)
 
+The same boundary applies to `manage_org`. Updating or deleting an organization
+requires organization-wide scope because the change affects every domain and
+member. A member configuring incoming secrets for a domain must have access
+to that particular domain.
+
 ## Design Rationale
 
 `is_default` answers "is this the personal workspace created at signup?" — immutable provenance.

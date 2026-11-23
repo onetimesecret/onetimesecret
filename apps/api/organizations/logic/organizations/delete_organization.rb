@@ -72,8 +72,7 @@ module OrganizationAPI::Logic
         # Load organization
         @organization = load_organization(@extid)
 
-        # Verify user has manage_org capability in this organization
-        require_capability_in!(@organization, 'manage_org')
+        require_org_wide_capability!(@organization, 'manage_org')
 
         # NO domain pre-check here. The op owns every guardrail, and a duplicate
         # `domain_count` refusal at this layer would short-circuit its drift

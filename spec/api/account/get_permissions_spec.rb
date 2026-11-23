@@ -182,6 +182,20 @@ RSpec.describe 'GET /api/account/permissions', type: :integration do
         expect(domain.fetch('permissions')).to include('can_view' => true, 'can_delete' => true, 'can_manage_settings' => false)
       end
 
+      it 'limits management permissions to the domain named by the membership' do
+        membership = Onetime::OrganizationMembership.find_by_org_customer(organization.objid, owner.objid)
+        membership.domain_scope_id = custom_domain.objid
+        membership.save
+        get '/api/account/permissions'
+        org = JSON.parse(last_response.body).fetch('organizations').find { |record| record['extid'] == organization.extid }
+        expect(org.fetch('permissions')).to include('can_edit' => false, 'can_delete' => false, 'can_manage_settings' => false)
+        domain = org.fetch('domains').find { |record| record['extid'] == custom_domain.extid }
+        expect(domain.fetch('permissions')).to include('can_manage_settings' => true)
+
+        get "/api/account/permissions?resource_type=organization&resource_id=#{organization.extid}"
+        expect(JSON.parse(last_response.body).fetch('permissions')).to eq(org.fetch('permissions'))
+      end
+
       it 'includes the test organization' do
         get '/api/account/permissions'
         body = JSON.parse(last_response.body)

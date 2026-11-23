@@ -73,6 +73,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
     instance_double(
       Onetime::OrganizationMembership,
       active?: true,
+      domain_scoped?: false,
       has_capability?: true  # Owner has management capabilities
     )
   end
@@ -229,6 +230,14 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
           expect(error.error_key).to eq('api.organizations.errors.organization_not_found')
         end
       end
+    end
+
+    it 'denies a domain-scoped actor before changing organization details' do
+      allow(membership).to receive(:domain_scoped?).and_return(true)
+      expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden) do |error|
+        expect(error.error_key).to eq('api.organizations.errors.domain_scoped_forbidden')
+      end
+      expect(organization).not_to have_received(:billing_email=)
     end
 
     context 'when user lacks manage_org capability' do

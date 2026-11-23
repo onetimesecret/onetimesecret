@@ -21,13 +21,7 @@ module OrganizationAPI::Logic
         verify_authenticated!
 
         @organization = load_organization(@extid)
-        require_capability_in!(@organization, 'manage_members')
-        return unless membership_in(@organization)&.domain_scoped?
-
-        raise Onetime::Forbidden.new(
-          'Domain-scoped members cannot perform this action',
-          error_key: 'api.organizations.errors.domain_scoped_forbidden',
-        )
+        require_org_wide_capability!(@organization, 'manage_members')
       end
 
       def process
