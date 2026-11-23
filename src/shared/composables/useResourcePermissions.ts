@@ -148,3 +148,13 @@ export function useResourcePermissions(): UseResourcePermissionsReturn {
     allPermissions, getOrgPermissions, getDomainPermissions, canAccess, canEdit,
   };
 }
+
+/** A missing field on an older server or a failed lookup leaves access unconfirmed. */
+export function useInvitationPermission() {
+  const { fetchResourcePermissions } = useResourcePermissions();
+  return async (orgExtid: string): Promise<boolean | null> => {
+    const record = await fetchResourcePermissions('organization', orgExtid);
+    if (record?.resource_type !== 'organization' || record.resource_id !== orgExtid) return null;
+    return record.permissions.can_manage_invitations ?? null;
+  };
+}

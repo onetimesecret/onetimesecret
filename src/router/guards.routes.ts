@@ -6,6 +6,7 @@ import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { usePageTitle } from '@/shared/composables/usePageTitle';
+import { useInvitationPermission } from '@/shared/composables/useResourcePermissions';
 import type { ClientAuthStatus } from '@/schemas/contracts/bootstrap';
 import {
   useAuthStore,
@@ -502,6 +503,8 @@ export async function handleOrgRoleRequirement(
   // win; settings routes carry the org as :extid only.
   const orgExtid = (to.params.orgid ?? to.params.extid) as string | undefined;
 
+  if (orgExtid && isOrganizationMembersTab(to)) return checkMembersTabAccess(store, orgExtid);
+
   // Single-org routes test the org named in the path; the list page (no org in
   // the path) is met when any membership qualifies.
   const meets = orgExtid
@@ -548,6 +551,24 @@ function notifyOrgRoleRefused(
 }
 
 type OrganizationStore = ReturnType<typeof useOrganizationStore>;
+
+function isOrganizationMembersTab(to: RouteLocationNormalized): boolean {
+  return to.name === 'Organization Settings' &&
+    (to.params.tab === 'members' || to.params.tab === 'team');
+}
+
+async function checkMembersTabAccess(store: OrganizationStore, orgExtid: string) {
+  const fetchInvitationPermission = useInvitationPermission();
+  const allowed = await fetchInvitationPermission(orgExtid);
+  if (allowed) return null;
+  // Owners and admins can still use the roster when invitations are unavailable.
+  if (await singleOrgMeetsRole(store, orgExtid, 'admin')) return null;
+  const key = allowed === false
+    ? 'web.organizations.invitations.permission_required'
+    : 'web.organizations.access_unconfirmed_notice';
+  useNotificationsStore().enqueue(globalComposer.t(key), 'info', 'top', 10000);
+  return { path: '/dashboard' };
+}
 
 /**
  * List-page scope (`/orgs`): met when any NON-DEFAULT org the user belongs to

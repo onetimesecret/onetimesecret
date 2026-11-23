@@ -25,9 +25,12 @@ import { loggingService } from '@/services/logging.service';
 import { useAuthStore } from '@/shared/stores';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { useInvitationPermission } from '@/shared/composables/useResourcePermissions';
 import { isSsoOnlyMode } from '@/utils/features';
 import { mockCustomer } from '../fixtures/bootstrap.fixture';
 import { captureAppLogs } from '../utils/appLogs';
+
+vi.mock('@/shared/composables/useResourcePermissions');
 
 /**
  * Registration order of the beforeEach guards in setupRouterGuards(). Tests
@@ -1209,6 +1212,26 @@ describe('Router Guards', () => {
       useStore(makeStore());
       const result = await handleOrgRoleRequirement(makeRoute({ meta: {} }));
       expect(result).toBeNull();
+    });
+
+    it.each([
+      [true, null],
+      [false, 'web.organizations.invitations.permission_required'],
+      [null, 'web.organizations.access_unconfirmed_notice'],
+    ] as const)('checks the target organization for delegated invitation access (%s)', async (allowed, notice) => {
+      useStore(makeStore({ getOrganizationByExtid: () => ({ extid: 'target', current_user_role: 'member' }) }));
+      const fetchInvitationPermission = vi.fn().mockResolvedValue(allowed);
+      vi.mocked(useInvitationPermission).mockReturnValue(fetchInvitationPermission);
+      const route = makeRoute({
+        name: 'Organization Settings', params: { extid: 'target', tab: 'members' }, meta: { requiresOrgRole: 'admin' },
+      });
+      expect(await handleOrgRoleRequirement(route)).toEqual(notice ? { path: '/dashboard' } : null);
+      expect(fetchInvitationPermission).toHaveBeenCalledWith('target');
+      if (notice) expect(notificationEnqueue).toHaveBeenCalledWith(notice, 'info', 'top', 10000);
+
+      route.params.tab = 'settings';
+      expect(await handleOrgRoleRequirement(route)).toEqual({ path: '/dashboard' });
+      expect(fetchInvitationPermission).toHaveBeenCalledTimes(1);
     });
 
     describe('list page (/orgs, no org in path)', () => {

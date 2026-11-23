@@ -40,9 +40,10 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import { useInvitationPermission } from '@/shared/composables/useResourcePermissions';
   import PlanPreviewModal from '@/shared/components/modals/PlanPreviewModal.vue';
   import { storeToRefs } from 'pinia';
-  import { computed, onMounted, onUnmounted, ref } from 'vue';
+  import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   // Copy to clipboard helper
@@ -169,6 +170,17 @@
 
   const isOpen = ref(false);
   const menuRef = ref<HTMLElement | null>(null);
+  const fetchInvitationPermission = useInvitationPermission();
+  const invitationPath = ref<string | undefined>();
+  watch([isOpen, orgExtid, customerExtid, () => props.awaitingMfa], async ([open, org, customer, awaitingMfa], _, onCleanup) => {
+    invitationPath.value = undefined;
+    if (!open || !org || !customer || awaitingMfa) return;
+    let current = true;
+    onCleanup(() => { current = false; });
+    if (await fetchInvitationPermission(org) && current) {
+      invitationPath.value = `/org/${org}/members`;
+    }
+  });
 
   // Menu item type
   interface MenuItem {
@@ -229,6 +241,13 @@
       label: t('web.organizations.tabs.domains'),
       icon: { collection: 'heroicons', name: 'globe-alt' },
       condition: () => !props.awaitingMfa,
+    },
+    {
+      id: 'invitations',
+      to: invitationPath.value,
+      label: t('web.organizations.invitations.title'),
+      icon: { collection: 'heroicons', name: 'user-plus' },
+      condition: () => !!invitationPath.value,
     },
     {
       id: 'activity',

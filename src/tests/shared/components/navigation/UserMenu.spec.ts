@@ -4,7 +4,7 @@ import UserMenu from '@/shared/components/navigation/UserMenu.vue';
 import { createTestingPinia } from '@pinia/testing';
 import { mockCustomer } from '@tests/fixtures/bootstrap.fixture';
 import { createTestI18n } from '@tests/setup';
-import { mount, VueWrapper } from '@vue/test-utils';
+import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick, ref } from 'vue';
 
@@ -86,6 +86,10 @@ vi.mock('@/shared/components/icons/FancyIcon.vue', () => ({
 
 // Mock useAuth composable
 const mockLogout = vi.fn();
+const mockPermissionsGet = vi.fn();
+vi.mock('@/shared/composables/useApi', () => ({
+  useApi: () => ({ get: mockPermissionsGet }),
+}));
 vi.mock('@/shared/composables/useAuth', () => ({
   useAuth: vi.fn(() => ({
     logout: mockLogout,
@@ -172,6 +176,7 @@ describe('UserMenu', () => {
     vi.clearAllMocks();
     mockLogout.mockReset();
     mockPush.mockReset();
+    mockPermissionsGet.mockReset().mockRejectedValue(new Error('Unavailable'));
     // Reset mock store states to defaults
     mockCurrentOrganizationRef.value = null;
     mockCurrentDomainContext.value = {
@@ -422,6 +427,39 @@ describe('UserMenu', () => {
 
       const html = wrapper.html().toLowerCase();
       expect(html).not.toContain('billing');
+    });
+  });
+
+  describe('Organization invitation link', () => {
+    it('shows the link for a granted member and drops it when switching organizations', async () => {
+      const record = {
+        resource_type: 'organization',
+        resource_id: 'first',
+        organization: { extid: 'first', display_name: 'First organization' },
+        membership: {
+          role: 'member', status: 'active', provisioning_source: null,
+          invited_at: null, joined_at: null, entitlements: [],
+        },
+        permissions: {
+          can_view: true, can_edit: false, can_delete: false, can_manage_settings: false,
+          can_manage_invitations: true,
+        },
+      };
+      mockCurrentOrganizationRef.value = { extid: 'first', current_user_role: 'member' };
+      // Returning the first org twice also verifies that a stale grant cannot
+      // render a link for the newly selected organization.
+      mockPermissionsGet.mockResolvedValue({ data: record });
+      wrapper = mountComponent();
+      expect(mockPermissionsGet).not.toHaveBeenCalled();
+      await wrapper.get('button[aria-haspopup="true"]').trigger('click');
+      await flushPromises();
+      expect(wrapper.find('a[href="/org/first/members"]').exists()).toBe(true);
+      mockCurrentOrganizationRef.value = { extid: 'second', current_user_role: 'admin' };
+      await flushPromises();
+      expect(mockPermissionsGet).toHaveBeenLastCalledWith('/api/account/permissions', {
+        params: { resource_type: 'organization', resource_id: 'second' },
+      });
+      expect(wrapper.find('a[href$="/members"]').exists()).toBe(false);
     });
   });
 
