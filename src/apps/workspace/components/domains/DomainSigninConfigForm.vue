@@ -26,10 +26,7 @@
    *
    * Only globally-available methods are offered in either method mode —
    * otherwise a restrict_to value with no backing method would yield a blank
-   * login page. SSO is additionally gated on the manage-SSO entitlement
-   * (canManageSso): without it the org cannot configure SSO credentials, so
-   * enabling or restricting to SSO could never produce a working method — the
-   * toggle and radio render locked instead.
+   * login page. SSO configuration controls use the member's permission for this domain.
    *
    * Everything auto-saves (PUT is full-replacement); there is no Save button.
    *
@@ -105,7 +102,8 @@
      * neither applies). Never recomputed client-side.
      */
     effectiveRestrictTo?: EffectiveRestrictTo | null;
-    canManageSso: boolean;
+    canManageSso: boolean | null;
+    ssoPermissionLoading?: boolean;
     /**
      * Globally-available auth methods (install/global config). Gates which
      * methods are offered: a method that is off site-wide must never be
@@ -277,14 +275,13 @@
    */
   const ssoAvailable = computed(() => isOrgsSsoEnabled());
 
-  /**
-   * Both gates the backend enforces on every tenant-SSO write
-   * (DomainsAPI::Logic::SsoConfig::Base — `manage_sso` entitlement AND the
-   * `features.organizations.sso_enabled` flag). Offering "Configure" without
-   * both would open a page whose save is rejected. Mode B gets this for free
-   * (the SSO row is omitted when unavailable); Mode A's static row needs it.
-   */
-  const ssoConfigurable = computed(() => ssoAvailable.value && props.canManageSso);
+  const ssoConfigurable = computed(() => ssoAvailable.value && props.canManageSso === true);
+  const ssoPermissionHint = computed(() => {
+    if (!ssoAvailable.value || props.ssoPermissionLoading || props.canManageSso) return null;
+    return props.canManageSso === false
+      ? t('web.domains.sso.permission_required')
+      : t('web.domains.sso.access_unconfirmed');
+  });
 
   /**
    * Label of the button that opens the SSO page, in both modes. A saved
@@ -305,10 +302,8 @@
    * of raw flags (ADR-024). An unrecognized rung (a newer backend) falls back
    * to the generic unavailable copy rather than rendering nothing.
    *
-   * Gated on ssoConfigurable: the remedial copy points at controls
-   * ("Edit credentials" / "Finish setup", the toggle above) that only render
-   * with both write gates, and without them the row already names the real
-   * blocker (upgrade lock / "Unavailable site-wide").
+   * Some remedies link to credential configuration. Show that guidance to
+   * members who can open it on this domain.
    */
   const UNAVAILABLE_REASON_COPY: Record<string, { badge: string; hint: string }> = {
     no_sso_config: {
@@ -422,11 +417,7 @@
     label: string;
     /** Short descriptor shown in Mode B / as the method blurb. */
     blurb: string;
-    /**
-     * False when the method is listed for visibility but locked — currently
-     * only SSO without the manage-SSO entitlement. Globally-unavailable
-     * methods are omitted from the list entirely, never rendered locked.
-     */
+    /** A stored method can remain visible after it becomes unavailable. */
     available: boolean;
   }
 
@@ -457,10 +448,9 @@
         value: 'sso',
         label: t('web.domains.signin.method_sso'),
         blurb: t('web.domains.signin.method_sso_blurb'),
-        // Kept visible when unentitled (the lock badge is the upgrade prompt)
-        // but not selectable: without the entitlement the org cannot configure
-        // SSO credentials, so restrict_to=sso would dead-end the login page.
-        available: ssoAvailable.value && props.canManageSso,
+        // The sign-in settings endpoint authorizes method changes separately
+        // from the domain's SSO credentials.
+        available: ssoAvailable.value,
       });
     }
     // WebAuthn / Passkeys listed last — but NEVER offered for selection:
@@ -568,11 +558,8 @@
    * the user's Mode A settings intact for when they switch back.
    */
   const selectMethod = (value: SigninRestrictTo) => {
-    // Disabled radios fire no events, but guard anyway: restricting to SSO
-    // without BOTH tenant-SSO gates must be unexpressible — the SSO row is now
-    // also rendered (locked) when it is the current restriction, so this is
-    // the backstop for that row.
-    if (value === 'sso' && !ssoConfigurable.value) return;
+    // The stored restriction can still be visible after tenant SSO is disabled.
+    if (value === 'sso' && !ssoAvailable.value) return;
     // WebAuthn is never (re)selectable: passkeys are host-scoped (rp_id), so
     // a webauthn-only restriction dead-ends sign-in on a custom domain. Its
     // row only renders locked (keep-if-selected); this backstop also keeps
@@ -853,33 +840,20 @@
                   aria-hidden="true" />
                 {{ ssoConfigureLabel }}
               </button>
-              <!-- Upgrade lock is for the ENTITLEMENT only. When the blocker is
-                 the install flag instead, neither control renders here — the
-                 hint above already reads "Unavailable", and "Upgrade to
-                 configure" would name the wrong cause (no plan unlocks an
-                 operator's ORGS_SSO_ENABLED). -->
               <span
-                v-else-if="!canManageSso"
+                v-else-if="ssoPermissionHint"
                 class="inline-flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
                 <OIcon
                   collection="heroicons"
                   name="lock-closed"
                   class="size-4"
                   aria-hidden="true" />
-                {{ t('web.domains.sso.upgrade_required') }}
+                {{ ssoPermissionHint }}
               </span>
-              <!-- Locked without the manage-SSO entitlement (or with tenant SSO
-                 off install-wide): the org cannot configure SSO credentials, so
-                 the method can never activate — showing an operable toggle next
-                 to the upgrade lock would contradict it. `:enabled` reports the
-                 STORED value alone: the runtime ladder
-                 (SsoConfig.tenant_sso_unavailable_reason) gates on the SsoConfig
-                 record and sso_permitted_for?, never on these two management
-                 gates, so ANDing them in here would render OFF for a domain
-                 whose tenant SSO is actually live. -->
+              <!-- Preserve the stored runtime setting when configuration is unavailable. -->
               <ToggleWithIcon
                 :enabled="Boolean(formState.sso_enabled)"
-                :disabled="isSaving || !ssoAvailable || !canManageSso"
+                :disabled="isSaving || !ssoAvailable"
                 :loading="savingField === 'sso_enabled'"
                 :on-label="t('web.COMMON.enabled')"
                 :off-label="t('web.COMMON.disabled')"
@@ -1042,11 +1016,6 @@
               </span>
             </span>
 
-            <!-- SSO Configure stays reachable in Mode B — same gates as Mode A:
-                 the button needs BOTH write-endpoint gates (ssoConfigurable),
-                 and the upgrade lock names the ENTITLEMENT only. When the
-                 blocker is the install flag, neither renders — no plan unlocks
-                 an operator's ORGS_SSO_ENABLED. -->
             <span
               v-if="method.value === 'sso'"
               class="ml-3 flex-shrink-0">
@@ -1064,14 +1033,14 @@
                 {{ ssoConfigureLabel }}
               </button>
               <span
-                v-else-if="!canManageSso"
+                v-else-if="ssoPermissionHint"
                 class="inline-flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
                 <OIcon
                   collection="heroicons"
                   name="lock-closed"
                   class="size-4"
                   aria-hidden="true" />
-                {{ t('web.domains.sso.upgrade_required') }}
+                {{ ssoPermissionHint }}
               </span>
             </span>
           </label>

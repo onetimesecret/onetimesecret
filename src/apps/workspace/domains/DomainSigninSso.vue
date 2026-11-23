@@ -21,8 +21,8 @@
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { BACKGROUND_REFRESH_THROTTLE_MS } from '@/shared/composables/useBackgroundRefresh';
-  import { useDomain } from '@/shared/composables/useDomain';
   import { useEntitlements } from '@/shared/composables/useEntitlements';
+  import { useTenantSsoPermissions } from '@/shared/composables/useResourcePermissions';
   import { useSigninConfig } from '@/shared/composables/useSigninConfig';
   import { useSsoConfig } from '@/shared/composables/useSsoConfig';
   import { useUnsavedRouteGuard } from '@/shared/composables/useUnsavedRouteGuard';
@@ -31,7 +31,7 @@
   import { isOrgsSsoEnabled, isSamlEnabled } from '@/utils/features';
   import { useEventListener } from '@vueuse/core';
   import { storeToRefs } from 'pinia';
-  import { computed, onMounted, ref, watch } from 'vue';
+  import { computed, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
 
@@ -42,19 +42,6 @@
     orgid: string;
     extid: string;
   }>();
-
-  // ---------------------------------------------------------------------------
-  // Domain data
-  // ---------------------------------------------------------------------------
-
-  const {
-    domain: customDomainRecord,
-    isLoading: domainLoading,
-    error: domainError,
-    initialize: initializeDomain,
-  } = useDomain(props.extid);
-
-  const domainHost = computed(() => customDomainRecord.value?.display_domain ?? '');
 
   // ---------------------------------------------------------------------------
   // Organization and entitlements
@@ -68,32 +55,19 @@
   const { can } = useEntitlements(organization);
   /** Gates the sign-in details fetch (never fetched without it). */
   const canCustomSignin = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNIN_CONFIG));
-  /**
-   * Entitlement only: "upgrade to configure". The install flag
-   * (ORGS_SSO_ENABLED) is a separate condition the form reports through the
-   * tenant-SSO verdict, so the two are not fused here either.
-   */
-  const canManageSso = computed(() => can(ENTITLEMENTS.MANAGE_SSO));
-  /**
-   * The install flag (ORGS_SSO_ENABLED). Off, the page has nothing to offer:
-   * every tenant-SSO endpoint refuses, whatever the entitlement, so the page
-   * says so instead of showing a form (or an upgrade hint that would not help).
-   */
+  const { canManageSso, canViewDomain, domain, isLoading: permissionLoading, refresh: refreshPermission } = useTenantSsoPermissions(
+    () => props.orgid,
+    () => props.extid
+  );
+  const domainHost = computed(() => domain.value?.display_domain ?? '');
   const ssoAvailableOnInstance = computed(() => isOrgsSsoEnabled());
-  /**
-   * Both gates the tenant-SSO endpoints enforce. Fetching credentials without
-   * the install flag returns "Organization SSO is not enabled on this instance"
-   * (DomainsAPI::Logic::SsoConfig::Base), so don't ask.
-   */
-  const canFetchSsoConfig = computed(() => ssoAvailableOnInstance.value && canManageSso.value);
-  const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
+  const canFetchSsoConfig = computed(() => ssoAvailableOnInstance.value && canManageSso.value === true);
 
   // ---------------------------------------------------------------------------
   // Sign-in details (tenant-SSO verdict)
   // ---------------------------------------------------------------------------
 
   const {
-    isInitialized: signinInitialized,
     tenantSso,
     initialize: initializeSigninConfig,
     refreshDetails: refreshSigninDetails,
@@ -160,7 +134,7 @@
    * Skipped without the sign-in entitlement (never fetched).
    */
   const refreshAfterSsoChange = async () => {
-    if (canCustomSignin.value) await refreshSigninDetails();
+    if (canFetchSsoConfig.value && canCustomSignin.value) await refreshSigninDetails();
   };
 
   const handleSsoSave = async () => {
@@ -174,10 +148,18 @@
     await refreshAfterSsoChange();
   };
 
-  const signinRoute = computed(() => ({
-    name: 'DomainSignin',
-    params: { orgid: props.orgid, extid: props.extid },
-  }));
+  const returnTarget = computed(() => {
+    if (!canFetchSsoConfig.value) {
+      return { to: '/dashboard', label: 'web.settings.back_to_dashboard' };
+    }
+    const role = organization.value?.current_user_role;
+    if ((role === 'owner' || role === 'admin') && canViewDomain.value && canCustomSignin.value) {
+      return { to: { name: 'DomainSignin', params: { orgid: props.orgid, extid: props.extid } },
+        label: 'web.domains.sso.back_to_signin' };
+    }
+    return { to: { name: 'Organization Settings', params: { extid: props.orgid, tab: 'sso' } },
+      label: 'web.organizations.sso.domain_sso_title' };
+  });
 
   /**
    * A failed delete keeps the record (useAsyncHandler reports and swallows),
@@ -190,7 +172,7 @@
     await deleteSsoConfig();
     if (!hadRecord || ssoIsConfigured.value) return;
     await refreshAfterSsoChange();
-    router.push(signinRoute.value);
+    router.push(returnTarget.value.to);
   };
 
   // Delete is the one destructive action, so it lives in the page's Careful
@@ -215,7 +197,7 @@
    */
   let lastFocusRefresh = 0;
   const refreshOnReturn = () => {
-    if (!ssoIsConfigured.value) return;
+    if (!canFetchSsoConfig.value || !ssoIsConfigured.value) return;
     if (document.visibilityState !== 'visible') return;
     const now = Date.now();
     if (now - lastFocusRefresh < BACKGROUND_REFRESH_THROTTLE_MS) return;
@@ -231,7 +213,7 @@
   // ---------------------------------------------------------------------------
 
   const handleBack = () => {
-    router.push(signinRoute.value);
+    router.push(returnTarget.value.to);
   };
 
   // Unsaved changes guard: the form saves only on an explicit action.
@@ -241,45 +223,27 @@
   // Lifecycle
   // ---------------------------------------------------------------------------
 
-  onMounted(async () => {
-    await initializeDomain();
+  // Sign-in details supply the runtime verdict and have a separate feature gate.
+  watch(() => canFetchSsoConfig.value && canCustomSignin.value, (allowed) => {
+    if (allowed) void initializeSigninConfig();
+  }, { immediate: true });
 
-    if (canCustomSignin.value) {
-      await initializeSigninConfig();
-    }
-
-    if (canFetchSsoConfig.value) {
-      await initializeSsoConfig();
-    }
-  });
-
-  // Handle race condition: organizations (and thus entitlements) may load after
-  // onMounted runs. Watch for the entitlement to become true and initialize then.
-  watch(canCustomSignin, async (entitled) => {
-    if (entitled && !signinInitialized.value) {
-      await initializeSigninConfig();
-    }
-  });
-
-  watch(canFetchSsoConfig, async (allowed) => {
-    if (allowed && !ssoInitialized.value) {
-      await initializeSsoConfig();
-    }
-  });
+  watch(canFetchSsoConfig, (allowed) => {
+    if (allowed) void initializeSsoConfig();
+  }, { immediate: true });
 </script>
 
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <!-- Header Section. Back returns to the sign-in settings this page hangs
-         off; the form's sticky footer owns the actions, so no header Save. -->
+    <!-- Return to settings the current member can open. -->
     <div class="sticky top-0 z-30">
       <DomainHeader
-        :domain="customDomainRecord"
+        :display-domain="domainHost"
         :has-unsaved-changes="ssoHasUnsavedChanges"
         :orgid="props.orgid"
         external-path="/signin"
         back-visible
-        back-label="web.domains.sso.back_to_signin"
+        :back-label="returnTarget.label"
         @back="handleBack" />
     </div>
 
@@ -287,25 +251,21 @@
     <div
       class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8"
       data-testid="domain-signin-sso-page">
-      <!-- Loading State. ssoConfigLoading defaults to true and only resolves
-           once the record is fetched; for unentitled users we skip that fetch,
-           so it must not gate the skeleton or it would spin forever. -->
-      <SettingsSkeleton v-if="domainLoading || (canFetchSsoConfig && ssoConfigLoading)" />
+      <!-- A denied member never fetches the record, so only wait for an allowed read. -->
+      <SettingsSkeleton v-if="(ssoAvailableOnInstance && permissionLoading) || (canFetchSsoConfig && ssoConfigLoading)" />
 
-      <!-- Error State: the domain, or the record's initial fetch. A failed
+      <!-- Error from the record's initial fetch. A failed
            save, check or test also sets the composable's error, but by then
            the record has loaded (ssoInitialized): the form stays up with what
            the admin typed, and the failure is reported by the notification
            and the check panel. Replacing the form here would throw that away. -->
       <div
-        v-else-if="domainError || (ssoConfigError && !ssoInitialized)"
+        v-else-if="canFetchSsoConfig && ssoConfigError && !ssoInitialized"
         class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-        <BasicFormAlerts :error="domainError?.message ?? ssoConfigError?.message ?? ''" />
+        <BasicFormAlerts :error="ssoConfigError.message" />
       </div>
 
-      <!-- Tenant SSO off on this install (bookmark, or the redirected old deep
-           link). Not an entitlement matter, so it comes before the upgrade
-           banner; a form here would only be refused by the API. -->
+      <!-- Old links can still point to tenant SSO after it is disabled. -->
       <div
         v-else-if="!ssoAvailableOnInstance"
         data-testid="sso-unavailable-on-instance"
@@ -318,46 +278,42 @@
         <h3 class="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
           {{ t('web.domains.sso.unavailable_on_instance') }}
         </h3>
-        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+        <p v-if="domainHost" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.domains.sso.unavailable_on_instance_hint', { domain: domainHost }) }}
         </p>
         <RouterLink
-          :to="signinRoute"
+          :to="returnTarget.to"
           class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
           <OIcon
             collection="heroicons"
             name="arrow-left"
             class="size-4"
             aria-hidden="true" />
-          {{ t('web.domains.sso.back_to_signin') }}
+          {{ t(returnTarget.label) }}
         </RouterLink>
       </div>
 
-      <!-- Access Denied / Upgrade Banner -->
+      <div
+        v-else-if="canManageSso === undefined"
+        role="status"
+        class="rounded-lg bg-white p-8 text-center dark:bg-gray-800">
+        <p>{{ t('web.domains.sso.access_unconfirmed') }}</p>
+        <button
+          type="button"
+          class="mt-4 text-brand-600 hover:underline dark:text-brand-400"
+          @click="refreshPermission()">
+          {{ t('web.domains.sso.retry_access') }}
+        </button>
+      </div>
       <div
         v-else-if="!canManageSso"
         class="rounded-lg border border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
-        <OIcon
-          collection="heroicons"
-          name="lock-closed"
-          class="mx-auto size-12 text-gray-400"
-          aria-hidden="true" />
-        <h3 class="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
           {{ t('web.domains.sso.access_denied') }}
         </h3>
         <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.domains.sso.upgrade_to_configure') }}
+          {{ t('web.domains.sso.access_denied_description') }}
         </p>
-        <RouterLink
-          :to="billingRoute"
-          class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-          {{ t('web.billing.overview.view_plans_action') }}
-          <OIcon
-            collection="heroicons"
-            name="arrow-right"
-            class="size-4"
-            aria-hidden="true" />
-        </RouterLink>
       </div>
 
       <!-- SSO Configuration -->
@@ -393,7 +349,7 @@
               :domain-ext-id="props.extid"
               :org-id="props.orgid"
               :domain-host="domainHost"
-              :domain-verified="customDomainRecord?.verified === true"
+              :domain-verified="domain?.verified === true"
               v-model:form-state="ssoFormState"
               :sso-config="ssoConfig"
               :is-loading="ssoConfigLoading"

@@ -12,7 +12,9 @@
 
   const props = withDefaults(
     defineProps<{
-      domain: CustomDomain | null;
+      domain?: CustomDomain | null;
+      /** A domain name from a scoped action when the full record is unavailable. */
+      displayDomain?: string;
       hasUnsavedChanges: boolean;
       orgid: string;
       /** Optional path appended to domain URL for external link (e.g., '/incoming') */
@@ -38,6 +40,7 @@
       savingLabel?: string;
     }>(),
     {
+      domain: null,
       externalPath: '',
       backVisible: false,
       backLabel: 'web.COMMON.back',
@@ -54,11 +57,7 @@
     (e: 'back'): void;
   }>();
 
-  // Optional chaining on domain is defensive: the only consumer
-  // (<RouterLink :to="verifyRoute">) lives inside v-if="domain", so the
-  // computed is never read while domain is null. The ?. keeps the type
-  // narrow without forcing a non-null assertion that would lie about the
-  // prop contract (domain is CustomDomain | null).
+  const domainHost = computed(() => props.domain?.display_domain ?? props.displayDomain);
   const verifyRoute = computed(() => `/org/${props.orgid}/domains/${props.domain?.extid}/verify`);
 
   const { statusIcon, statusColor, displayStatus } = useDomainStatus(
@@ -84,7 +83,7 @@
     <div class="p-4 sm:px-6">
       <!-- Title section - make text smaller on mobile -->
       <div
-        v-if="domain"
+        v-if="domainHost || backVisible"
         class="flex flex-col">
         <div class="flex items-center justify-between gap-2">
           <div class="flex min-w-0 items-center gap-4">
@@ -103,12 +102,13 @@
             </button>
             <!-- prettier-ignore-attribute class -->
             <h1
+              v-if="domainHost"
               class="mb-0 flex min-w-0 items-center truncate text-2xl font-bold
                 leading-tight text-gray-900 dark:text-white sm:text-3xl">
-              <span class="truncate">{{ domain.display_domain }}</span>
+              <span class="truncate">{{ domainHost }}</span>
               <!-- prettier-ignore-attribute class -->
               <a
-                :href="`https://${domain.display_domain}${externalPath}`"
+                :href="`https://${domainHost}${externalPath}`"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="ml-1 inline-flex shrink-0 items-center rounded p-1
@@ -124,11 +124,11 @@
               </a>
             </h1>
           </div>
-          <div class="flex shrink-0 items-center gap-3">
+          <div v-if="domainHost" class="flex shrink-0 items-center gap-3">
             <slot>
               <!-- prettier-ignore-attribute class -->
               <div
-                v-if="showVerificationStatus"
+                v-if="domain && showVerificationStatus"
                 class="inline-flex h-10 items-center rounded-md bg-gray-100 px-3
                   dark:bg-gray-700">
                 <RouterLink

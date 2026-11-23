@@ -52,7 +52,8 @@ module AccountAPI::Logic
     #             can_view: true,
     #             can_edit: true,
     #             can_delete: false,
-    #             can_manage_settings: false
+    #             can_manage_settings: false,
+    #             can_manage_sso: false
     #           }
     #         }
     #       ]
@@ -78,6 +79,7 @@ module AccountAPI::Logic
     #     extid: "org456",
     #     display_name: "Acme Corp"
     #   },
+    #   domain: { display_domain: "example.com", verified: true }, # when can_manage_sso
     #   membership: { ... },
     #   permissions: { ... }
     # }
@@ -94,6 +96,7 @@ module AccountAPI::Logic
     # - can_edit: user has 'custom_domains' entitlement
     # - can_delete: user has 'custom_domains' entitlement
     # - can_manage_settings: user has 'manage_org' capability
+    # - can_manage_sso: tenant SSO is enabled and its config policy permits access
     #
     # Organization resources:
     # - can_view: user is member of the org (any role)
@@ -165,13 +168,18 @@ module AccountAPI::Logic
 
       # Single-resource mode: return permissions for one resource
       def process_single
-        {
+        permissions = calculate_permissions
+        result      = {
           resource_type: resource_type,
           resource_id: resource_id,
           organization: serialize_organization_brief,
           membership: serialize_membership,
-          permissions: calculate_permissions,
+          permissions: permissions,
         }
+        if permissions[:can_manage_sso]
+          result[:domain] = { display_domain: resource.display_domain, verified: !!resource.ownership_verified }
+        end
+        result
       end
 
       def load_user_organizations_with_memberships
@@ -193,7 +201,7 @@ module AccountAPI::Logic
         # Domain-scope enforcement: filter by membership scope (#3384)
         domains            = org.list_domains.select { |d| mem.can_access_domain?(d) }
         capabilities       = mem.materialize_capabilities!
-        domain_permissions = domain_permissions_for(mem, capabilities) if domains.any?
+        domain_permissions = domain_permissions_for(org, mem, capabilities) if domains.any?
 
         {
           extid: org.extid,
@@ -207,12 +215,14 @@ module AccountAPI::Logic
       end
 
       def serialize_domain_with_permissions(domain, permissions)
-        {
+        result            = {
           extid: domain.extid,
           display_domain: domain.display_domain,
           served: domain.served_as_tenant?,
           permissions: permissions,
         }
+        result[:verified] = !!domain.ownership_verified if permissions[:can_manage_sso]
+        result
       end
 
       def serialize_membership_for(mem)
@@ -230,14 +240,24 @@ module AccountAPI::Logic
         serialize_membership_for(membership)
       end
 
-      def domain_permissions_for(mem, capabilities)
+      def domain_permissions_for(org, mem, capabilities)
         custom_domains = mem.can?('custom_domains')
         {
           can_view: custom_domains,
           can_edit: custom_domains,
           can_delete: custom_domains,
           can_manage_settings: capabilities.include?('manage_org'),
+          can_manage_sso: can_manage_domain_sso?(org, capabilities),
         }
+      end
+
+      # Domain lookups and bulk listing already enforce active membership and
+      # domain scope. Mirror the remaining SsoConfig::Base gates for those domains.
+      def can_manage_domain_sso?(org, capabilities)
+        return false unless OT.conf.get('features.organizations.sso_enabled', nil)
+        return org.can?('manage_sso') if has_system_role?('colonel')
+
+        capabilities.include?('manage_org') && capabilities.include?('manage_sso')
       end
 
       def organization_permissions_for(org, mem, capabilities)
@@ -321,7 +341,7 @@ module AccountAPI::Logic
         capabilities = membership.materialize_capabilities!
         case resource_type
         when 'domain'
-          domain_permissions_for(membership, capabilities)
+          domain_permissions_for(organization, membership, capabilities)
         when 'organization'
           organization_permissions_for(organization, membership, capabilities)
         end

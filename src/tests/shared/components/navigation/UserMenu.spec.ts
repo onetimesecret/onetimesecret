@@ -151,9 +151,11 @@ vi.mock('@/shared/composables/useScopeSwitcherVisibility', () => ({
 // ref starts true; the Activity tests flip it. Spreads the real module so the
 // other feature helpers this component graph reaches keep their behaviour.
 const mockAuditLogsEnabled = ref(true);
+const mockOrgsSsoEnabled = ref(false);
 vi.mock('@/utils/features', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/utils/features')>()),
   isOrgsAuditLogsEnabled: () => mockAuditLogsEnabled.value,
+  isOrgsSsoEnabled: () => mockOrgsSsoEnabled.value,
 }));
 
 // Mock product identity store state (mutable for per-test customization)
@@ -189,6 +191,7 @@ describe('UserMenu', () => {
     mockIsCustomRef.value = false;
     mockIsSoloDefaultContext.value = false;
     mockAuditLogsEnabled.value = true;
+    mockOrgsSsoEnabled.value = false;
   });
 
   afterEach(() => {
@@ -461,6 +464,31 @@ describe('UserMenu', () => {
       });
       expect(wrapper.find('a[href$="/members"]').exists()).toBe(false);
     });
+  });
+
+  it.each([true, false])('links only an authorized org to tenant SSO with billing %s', async billing => {
+    mockOrgsSsoEnabled.value = true;
+    const base = { can_view: true, can_edit: false, can_delete: false, can_manage_settings: false };
+    const organization = (extid: string, allowed: boolean) => ({
+      extid, display_name: extid, is_default: false, assignable_roles: [],
+      membership: { role: 'member', status: 'active', provisioning_source: null, invited_at: null, joined_at: null, entitlements: [] },
+      permissions: { ...base, can_manage_invitations: true },
+      domains: [{ extid: 'domain', display_domain: 'example.test', served: true, permissions: { ...base, can_manage_sso: allowed } }],
+    });
+    mockCurrentOrganizationRef.value = { extid: 'allowed', current_user_role: 'member' };
+    mockPermissionsGet.mockResolvedValue({
+      data: { organizations: [organization('allowed', true), organization('revoked', false)] },
+    });
+    wrapper = mountComponent({}, { billing_enabled: billing });
+    await wrapper.get('button[aria-haspopup="true"]').trigger('click');
+    await flushPromises();
+    expect(mockPermissionsGet).toHaveBeenCalledTimes(1);
+    expect(wrapper.find('a[href="/org/allowed/sso"]').exists()).toBe(true);
+    expect(wrapper.find('a[href="/org/allowed/members"]').exists()).toBe(true);
+    mockCurrentOrganizationRef.value = { extid: 'revoked', current_user_role: 'member' };
+    await flushPromises();
+    expect(wrapper.find('a[href$="/sso"]').exists()).toBe(false);
+    expect(wrapper.find('a[href="/org/revoked/members"]').exists()).toBe(true);
   });
 
   describe('Activity menu item', () => {

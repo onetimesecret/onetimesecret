@@ -130,19 +130,15 @@ const { t } = useI18n();
             {{ dnsMenuItem.label }}
           </router-link>
         </MenuItem>
-        <MenuItem v-if="canManageSso"
-:disabled="!canAdmin"
-v-slot="{ active }">
+        <MenuItem v-if="canManageSso" v-slot="{ active }">
           <router-link
-            :to="canAdmin ? { name: 'DomainSigninSso', params: { orgid: props.orgid, extid: domain.extid } } : ''"
+            :to="{ name: 'DomainSigninSso', params: { orgid: props.orgid, extid: domain.extid } }"
             :class="[
-              active && canAdmin
+              active
                 ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
                 : 'text-gray-700 dark:text-gray-200',
               'block px-4 py-2 text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500',
-              !canAdmin ? disabledItemClass : '',
-            ]"
-            @click.prevent="!canAdmin && $event.stopImmediatePropagation()">
+            ]">
             {{ t('web.domains.sso.configure_sso') }}
           </router-link>
         </MenuItem>

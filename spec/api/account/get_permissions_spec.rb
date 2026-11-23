@@ -225,6 +225,145 @@ RSpec.describe 'GET /api/account/permissions', type: :integration do
     end
   end
 
+  describe 'domain SSO permissions' do
+    let(:owner_membership) { Onetime::OrganizationMembership.find_by_org_customer(organization.objid, owner.objid) }
+    let(:sso_enabled) { true }
+    let!(:sso_config) { create_sso_config_for(custom_domain) }
+
+    before do
+      config = OT.conf.dup
+      config['features'] = config.fetch('features').merge(
+        'organizations' => config.fetch('features').fetch('organizations').merge('sso_enabled' => sso_enabled)
+      )
+      allow(OT).to receive(:conf).and_return(OT::Config.wrap(config))
+    end
+
+    after { sso_config.destroy! }
+
+    def create_sso_config_for(domain)
+      Onetime::CustomDomain::SsoConfig.create!(
+        domain_id: domain.identifier, provider_type: 'oidc', client_id: 'test-client',
+        issuer: 'https://idp.example.com', display_name: domain.display_domain
+      )
+    end
+
+    def expect_sso_access(user, status:)
+      create_session_for(user)
+      get '/api/account/permissions'
+      expect(last_response.status).to eq(200)
+      org = JSON.parse(last_response.body).fetch('organizations').find { |row| row.fetch('extid') == organization.extid }
+      expect(org.fetch('permissions')).not_to have_key('can_manage_sso')
+      domain = org.fetch('domains').find { |row| row.fetch('extid') == custom_domain.extid }
+      expect(domain.fetch('permissions').fetch('can_manage_sso')).to be(status == 200)
+
+      get '/api/account/permissions', resource_type: 'domain', resource_id: custom_domain.extid
+      expect(last_response.status).to eq(200)
+      target = JSON.parse(last_response.body)
+      expect(target.fetch('permissions')).to eq(domain.fetch('permissions'))
+      if status == 200
+        expect(domain.fetch('verified')).to be(!!custom_domain.ownership_verified)
+        expect(target.fetch('domain')).to eq(domain.slice('display_domain', 'verified'))
+      else
+        expect(domain).not_to have_key('verified')
+        expect(target).not_to have_key('domain')
+      end
+
+      get "/api/domains/#{custom_domain.extid}/sso"
+      expect(last_response.status).to eq(status)
+      expect(JSON.parse(last_response.body).key?('record')).to be(status == 200)
+    end
+
+    [true, false].each do |billing_enabled|
+      context "with billing #{billing_enabled ? 'enabled' : 'disabled'}" do
+        before do
+          allow(Onetime::BillingConfig.instance).to receive(:enabled?).and_return(billing_enabled)
+          if billing_enabled
+            organization.materialize_entitlements_from_config(entitlements: %w[api_access custom_domains], limits: {})
+          end
+          expect(organization.can?('manage_sso')).to be(!billing_enabled)
+        end
+
+        it 'allows an owner through the SSO capability on their membership' do
+          custom_domain.ownership_verified!(true)
+          expect_sso_access(owner, status: 200)
+        end
+
+        %w[manage_org manage_sso].each do |capability|
+          it "denies an owner whose #{capability} capability is revoked" do
+            owner_membership.revoke_entitlement(capability)
+            expect_sso_access(owner, status: 403)
+          end
+        end
+
+        it 'omits the organization and denies SSO to a pending member with both grants' do
+          %w[manage_org manage_sso].each { |capability| member_membership.grant_entitlement(capability) }
+          member_membership.status = 'pending'
+          member_membership.save
+          create_session_for(member_user)
+
+          get '/api/account/permissions'
+          expect(last_response.status).to eq(200)
+          organizations = JSON.parse(last_response.body).fetch('organizations')
+          expect(organizations.map { |row| row.fetch('extid') }).not_to include(organization.extid)
+
+          get '/api/account/permissions', resource_type: 'domain', resource_id: custom_domain.extid
+          expect(last_response.status).to eq(403)
+          expect(JSON.parse(last_response.body).keys).not_to include('permissions', 'domain')
+
+          get "/api/domains/#{custom_domain.extid}/sso"
+          expect(last_response.status).to eq(403)
+          expect(JSON.parse(last_response.body)).not_to have_key('record')
+        end
+
+        context 'with explicit grants scoped to one domain' do
+          let!(:other_domain) do
+            domain = Onetime::CustomDomain.new(display_domain: "other-#{run_id}.example.com", org_id: organization.objid)
+            domain.save
+            organization.domains.add(domain.objid)
+            domain
+          end
+          let!(:other_sso_config) { create_sso_config_for(other_domain) }
+
+          after do
+            other_sso_config.destroy!
+            other_domain.destroy!
+          end
+
+          it 'permits only the matching domain' do
+            member_membership.domain_scope_id = custom_domain.objid
+            member_membership.save
+            %w[manage_org manage_sso].each { |capability| member_membership.grant_entitlement(capability) }
+            expect_sso_access(member_user, status: 200)
+
+            get '/api/account/permissions'
+            org = JSON.parse(last_response.body).fetch('organizations').find { |row| row.fetch('extid') == organization.extid }
+            expect(org.fetch('domains').map { |row| row.fetch('extid') }).to contain_exactly(custom_domain.extid)
+            get '/api/account/permissions', resource_type: 'domain', resource_id: other_domain.extid
+            expect(last_response.status).to eq(404)
+            get "/api/domains/#{other_domain.extid}/sso"
+            expect(last_response.status).to eq(404)
+          end
+        end
+
+        it 'uses the organization entitlement for a site operator' do
+          member_user.role = 'colonel'
+          member_user.verified = 'true'
+          member_user.verified_by = 'email'
+          member_user.save
+          expect_sso_access(member_user, status: billing_enabled ? 422 : 200)
+        end
+      end
+    end
+
+    context 'when tenant SSO is disabled' do
+      let(:sso_enabled) { false }
+
+      it 'reports SSO management unavailable even for an owner' do
+        expect_sso_access(owner, status: 422)
+      end
+    end
+  end
+
   describe 'Bulk mode (GET /api/account/permissions)' do
     context 'as owner' do
       before { create_session_for(owner) }

@@ -161,6 +161,18 @@ const mockFetchInvitations = vi.fn();
 const mockCreateInvitation = vi.fn();
 const mockRevokeInvitation = vi.fn();
 const mockGetPermissions = vi.fn();
+const mockSsoStatus = vi.fn().mockResolvedValue({ record: null });
+vi.mock('@/services/sso.service', () => ({
+  SsoService: { getConfigForDomain: (id: string) => mockSsoStatus(id) },
+}));
+
+function ssoDomain(extid: string, allowed?: boolean) {
+  return {
+    extid, display_domain: extid + '.example', served: true, verified: true,
+    permissions: { can_view: true, can_edit: false, can_delete: false, can_manage_settings: false, can_manage_sso: allowed },
+  };
+}
+
 
 function permissionRecord(allowed?: boolean, role = 'admin', extid = mockOrganization.extid) {
   return {
@@ -775,10 +787,10 @@ describe('OrganizationSettings', () => {
       await nextTick();
     };
 
-    // Enable SSO feature and entitlement for all tests in this block
+    // Enable tenant SSO at the instance level.
     const enableSso = () => {
       mockOrgsSsoEnabled.value = true;
-      mockEntitlements.value = ['manage_members', 'manage_sso'];
+
     };
 
     it('shows EmptyState CTA when user can create domains', async () => {
@@ -808,7 +820,9 @@ describe('OrganizationSettings', () => {
     it('does not show EmptyState when domains exist', async () => {
       enableSso();
       mockCanCreateDomain.value = true;
-      mockDomainCount.value = 2;
+      mockGetPermissions.mockResolvedValue({ data: { organizations: [{
+        ...permissionRecord(true), domains: [ssoDomain('allowed', true)],
+      }] } });
       wrapper = await mountComponent();
       await switchToSsoTab(wrapper);
 
@@ -817,6 +831,68 @@ describe('OrganizationSettings', () => {
         '[data-testid="org-section-sso"] [data-testid="empty-state"]'
       );
       expect(emptyState.exists()).toBe(false);
+    });
+  });
+
+  describe.each([true, false])('tenant SSO permissions with billing enabled=%s', billingEnabled => {
+    beforeEach(() => { mockOrgsSsoEnabled.value = true; mockRouteParams.tab = 'sso'; });
+    const panel = () => wrapper.get('#org-panel-sso');
+    function permissions(role: string, ...domains: ReturnType<typeof ssoDomain>[]) {
+      mockGetPermissions.mockResolvedValue({ data: { organizations: [{
+        ...permissionRecord(false, role), domains,
+      }] } });
+    }
+
+    it('shows an owner only domains authorized by the API, even without the old plan token', async () => {
+      mockFetchOrganization.mockResolvedValue({ ...mockOrganization, current_user_role: 'owner' });
+      const domain = ssoDomain('allowed', true);
+      domain.permissions.can_view = false;
+      domain.verified = false;
+      permissions('owner', domain, ssoDomain('denied', false));
+      wrapper = await mountComponent({ billingEnabled });
+      expect(panel().text()).toContain('allowed.example');
+      expect(panel().text()).not.toContain('denied.example');
+      expect(panel().find('a[href$="/verify"]').exists()).toBe(false);
+      expect(mockSsoStatus.mock.calls).toEqual([['allowed']]);
+    });
+
+    it('honors an owner revoke even when the plan lists SSO', async () => {
+      mockEntitlements.value = ['manage_sso'];
+      mockFetchOrganization.mockResolvedValue({ ...mockOrganization, current_user_role: 'owner' });
+      permissions('owner', ssoDomain('revoked', false));
+      wrapper = await mountComponent({ billingEnabled });
+      expect(panel().text()).toContain('web.domains.sso.permission_required');
+      expect(panel().find('a').exists()).toBe(false);
+      expect(mockSsoStatus).not.toHaveBeenCalled();
+    });
+
+    it('allows a scoped delegate to reach only the permitted domain', async () => {
+      permissions('member', ssoDomain('delegated', true));
+      wrapper = await mountComponent({ billingEnabled });
+      expect(mockFetchOrganization).not.toHaveBeenCalled();
+      expect(mockFetchInvitations).not.toHaveBeenCalled();
+      expect(wrapper.findAll('[role="tab"]').map(tab => tab.attributes('id'))).toEqual(['org-tab-sso']);
+      expect(panel().get('a').attributes('href')).toBe('/org/on1abc123/domains/delegated/signin/sso');
+      expect(mockSsoStatus.mock.calls).toEqual([['delegated']]);
+    });
+
+    it('rechecks the action on tab re-entry and clears stale configure links', async () => {
+      permissions('owner', ssoDomain('allowed', true));
+      wrapper = await mountComponent({ billingEnabled });
+      await wrapper.get('#org-tab-domains').trigger('click');
+      permissions('owner', ssoDomain('allowed', false));
+      await wrapper.get('#org-tab-sso').trigger('click');
+      await flushPromises();
+      expect(panel().text()).toContain('web.domains.sso.permission_required');
+      expect(panel().text()).not.toContain('allowed.example');
+      expect(mockSsoStatus.mock.calls).toEqual([['allowed']]);
+    });
+
+    it('gives a neutral message when an older server omits the action', async () => {
+      permissions('owner', ssoDomain('legacy'));
+      wrapper = await mountComponent({ billingEnabled });
+      expect(panel().text()).toContain('web.organizations.access_unconfirmed_notice');
+      expect(mockSsoStatus).not.toHaveBeenCalled();
     });
   });
 

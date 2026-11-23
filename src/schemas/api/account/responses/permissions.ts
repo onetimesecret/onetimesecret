@@ -19,6 +19,12 @@ const organizationActionsSchema = resourcePermissionsSchema.extend({
 
 export type ResourcePermissions = z.infer<typeof resourcePermissionsSchema>;
 
+const domainActionsSchema = resourcePermissionsSchema.extend({
+  can_manage_sso: z.boolean().optional(),
+});
+
+const ssoDomainSchema = z.object({ display_domain: z.string(), verified: z.boolean() });
+
 /**
  * Membership details within a permissions response
  */
@@ -44,7 +50,8 @@ export const domainPermissionsSchema = z.object({
   extid: z.string(),
   display_domain: z.string(),
   served: z.boolean(),
-  permissions: resourcePermissionsSchema,
+  verified: z.boolean().optional(),
+  permissions: domainActionsSchema,
 });
 
 export type DomainPermissions = z.infer<typeof domainPermissionsSchema>;
@@ -95,7 +102,8 @@ const singleResourceSchema = z.object({
 export const singleResourcePermissionsResponseSchema = z.discriminatedUnion('resource_type', [
   singleResourceSchema.extend({
     resource_type: z.literal('domain'),
-    permissions: resourcePermissionsSchema,
+    permissions: domainActionsSchema,
+    domain: ssoDomainSchema.optional(),
   }),
   singleResourceSchema.extend({
     resource_type: z.literal('organization'),
