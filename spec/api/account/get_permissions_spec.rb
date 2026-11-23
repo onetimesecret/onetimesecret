@@ -153,6 +153,78 @@ RSpec.describe 'GET /api/account/permissions', type: :integration do
     end
   end
 
+  describe 'organization invitation permissions' do
+    let!(:invitation) do
+      Onetime::OrganizationMembership.create_invitation!(
+        organization: organization, email: "#{run_id}_invitee@test.com", inviter: owner
+      )
+    end
+
+    after { invitation.destroy! }
+
+    def expect_invitation_access(user, allowed:)
+      create_session_for(user)
+      get '/api/account/permissions'
+      expect(last_response.status).to eq(200)
+      org = JSON.parse(last_response.body).fetch('organizations').find { |row| row.fetch('extid') == organization.extid }
+      expect(org.fetch('permissions').fetch('can_manage_invitations')).to be(allowed)
+
+      get '/api/account/permissions', resource_type: 'organization', resource_id: organization.extid
+      expect(last_response.status).to eq(200)
+      expect(JSON.parse(last_response.body).fetch('permissions')).to eq(org.fetch('permissions'))
+
+      get "/api/organizations/#{organization.extid}/invitations"
+      expect(last_response.status).to eq(allowed ? 200 : 403)
+      body = JSON.parse(last_response.body)
+      if allowed
+        expect(body.fetch('records').map { |record| record.fetch('email') }).to contain_exactly(invitation.invited_email)
+        expect(body.fetch('count')).to eq(1)
+      else
+        expect(body.keys).not_to include('records', 'count', 'upgrade_to')
+      end
+    end
+
+    [true, false].each do |billing_enabled|
+      context "with billing #{billing_enabled ? 'enabled' : 'disabled'}" do
+        before do
+          allow(Onetime::BillingConfig.instance).to receive(:enabled?).and_return(billing_enabled)
+          # A billing plan can omit management permissions. Standalone mode supplies them.
+          organization.materialize_entitlements_from_config(entitlements: %w[create_secrets], limits: {}) if billing_enabled
+          expect(organization.can?('manage_members')).to be(!billing_enabled)
+          [member_membership, admin_membership].each { |mem| mem.materialize_for_role!(organization) }
+        end
+
+        it 'allows an organization-wide member with an explicit grant' do
+          member_membership.grant_entitlement('manage_members')
+          expect_invitation_access(member_user, allowed: true)
+        end
+
+        it 'denies an organization-wide admin with a revoke' do
+          admin_membership.revoke_entitlement('manage_members')
+          expect_invitation_access(admin_user, allowed: false)
+        end
+
+        it 'denies a domain-scoped admin with the capability' do
+          admin_membership.domain_scope_id = custom_domain.objid
+          admin_membership.save
+          expect_invitation_access(admin_user, allowed: false)
+        end
+      end
+    end
+
+    it 'reflects the site-operator bypass only within an organization-wide membership' do
+      member_user.role = 'colonel'
+      member_user.verified = 'true'
+      member_user.verified_by = 'email'
+      member_user.save
+      expect_invitation_access(member_user, allowed: true)
+
+      member_membership.domain_scope_id = custom_domain.objid
+      member_membership.save
+      expect_invitation_access(member_user, allowed: false)
+    end
+  end
+
   describe 'Bulk mode (GET /api/account/permissions)' do
     context 'as owner' do
       before { create_session_for(owner) }
