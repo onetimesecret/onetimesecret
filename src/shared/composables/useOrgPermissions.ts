@@ -14,9 +14,8 @@ export interface OrgPermissions {
   isOwnerOrAdmin: ComputedRef<boolean>;
   /** Hide the Add Domain control unless the user can act on it (per #3033). */
   canCreateDomain: ComputedRef<boolean>;
-  /** Reserved for §2 organizations and §6 invite gates (mirrors backend gates). */
+  /** Role gate for organization creation. */
   canCreateOrganization: ComputedRef<boolean>;
-  canInviteMembers: ComputedRef<boolean>;
   canManageDomain: ComputedRef<boolean>;
 }
 
@@ -63,7 +62,6 @@ export function useOrgPermissions(
     isOwnerOrAdmin,
     canCreateDomain: isOwnerOrAdmin,
     canCreateOrganization: isOwnerOrAdmin,
-    canInviteMembers: isOwnerOrAdmin,
     canManageDomain: isOwnerOrAdmin,
   };
 }
