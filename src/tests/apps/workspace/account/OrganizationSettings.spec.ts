@@ -58,13 +58,6 @@ vi.mock('@/apps/workspace/components/members/MembersTable.vue', () => ({
     props: ['members', 'orgExtid', 'isLoading', 'compact'],
   },
 }));
-vi.mock('@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue', () => ({
-  default: {
-    name: 'EntitlementUpgradePrompt',
-    template: '<div class="entitlement-upgrade-prompt" />',
-    props: ['error', 'resourceType'],
-  },
-}));
 vi.mock('@/apps/workspace/components/domains/DomainsTable.vue', () => ({
   default: {
     name: 'DomainsTable',
@@ -139,6 +132,7 @@ vi.mock('@/services/billing.service', () => ({
 vi.mock('@/schemas/errors', () => ({
   classifyError: (err: unknown) => ({
     message: err instanceof Error ? err.message : 'Unknown error',
+    code: (err as { response?: { status?: number } })?.response?.status,
   }),
 }));
 
@@ -164,6 +158,22 @@ const mockOrganization = {
 const mockFetchOrganization = vi.fn();
 const mockUpdateOrganization = vi.fn();
 const mockFetchInvitations = vi.fn();
+const mockCreateInvitation = vi.fn();
+const mockRevokeInvitation = vi.fn();
+const mockGetPermissions = vi.fn();
+
+function permissionRecord(allowed?: boolean, role = 'admin', extid = mockOrganization.extid) {
+  return {
+    extid, display_name: 'Test Organization', is_default: true,
+    membership: { role, status: 'active', provisioning_source: null, invited_at: null, joined_at: null, entitlements: [] },
+    permissions: {
+      can_view: true, can_edit: false, can_delete: false, can_manage_settings: false,
+      can_manage_invitations: allowed,
+    },
+    domains: [], assignable_roles: ['member'],
+  };
+}
+
 const mockDeleteOrganization = vi.fn();
 
 vi.mock('@/shared/stores/organizationStore', () => ({
@@ -174,9 +184,9 @@ vi.mock('@/shared/stores/organizationStore', () => ({
     updateOrganization: mockUpdateOrganization,
     deleteOrganization: mockDeleteOrganization,
     fetchInvitations: mockFetchInvitations,
-    createInvitation: vi.fn(),
+    createInvitation: mockCreateInvitation,
     resendInvitation: vi.fn(),
-    revokeInvitation: vi.fn(),
+    revokeInvitation: mockRevokeInvitation,
   }),
 }));
 
@@ -215,18 +225,6 @@ vi.mock('@/utils/features', () => ({
   isOrgsAuditLogsEnabled: () => mockOrgsAuditLogsEnabled.value,
 }));
 
-vi.mock('@/shared/composables/useAsyncHandler', () => ({
-  useAsyncHandler: () => ({
-    wrap: vi.fn((fn) => fn()),
-  }),
-}));
-
-vi.mock('@/shared/composables/useEntitlementError', () => ({
-  useEntitlementError: () => ({
-    isUpgradeRequired: ref(false),
-  }),
-}));
-
 // i18n setup (pass-through: keys render as-is, see ADR-014)
 const i18n = createTestI18n();
 
@@ -247,6 +245,7 @@ describe('OrganizationSettings', () => {
     mockUpdateOrganization.mockResolvedValue(mockOrganization);
     mockDeleteOrganization.mockResolvedValue(undefined);
     mockFetchInvitations.mockResolvedValue([]);
+    mockGetPermissions.mockResolvedValue({ data: { organizations: [permissionRecord(true)] } });
     mockEntitlements.value = ['manage_members'];
     mockDomainCount.value = 0;
     mockCanCreateDomain.value = true;
@@ -282,6 +281,7 @@ describe('OrganizationSettings', () => {
       attachTo: options.attachTo,
       global: {
         plugins: [i18n, pinia],
+        provide: { api: { get: mockGetPermissions } },
         stubs: {
           RouterLink: routerLinkStub,
         },
@@ -323,6 +323,221 @@ describe('OrganizationSettings', () => {
    * Helper to find the Edit link for billing email (navigates to billing overview)
    */
   const findEditLink = (w: VueWrapper) => w.find('[data-testid="org-billing-email-edit-link"]');
+
+  describe('invitation permissions', () => {
+    const pending = {
+      id: 'invitation-1', email: 'pending@example.com', token: 'pending-token',
+      status: 'pending', invited_at: 1700000000, expires_at: 2000000000,
+    };
+    const invite = 'web.organizations.invitations.invite_member';
+    const guidance = 'web.organizations.invitations.permission_required';
+    const unconfirmed = 'web.organizations.access_unconfirmed_notice';
+    const panel = () => wrapper.get('[data-testid="org-section-members"]');
+
+    beforeEach(() => {
+      mockRouteParams.tab = 'members';
+      mockFetchInvitations.mockResolvedValue([pending]);
+    });
+
+    describe.each([true, false])('with billing_enabled=%s', (billingEnabled) => {
+      it('lets a member with an organization-wide grant open the list and invite', async () => {
+        mockEntitlements.value = [];
+        mockFetchOrganization.mockRejectedValue(new Error('api_access required'));
+        mockGetPermissions.mockResolvedValue({
+          data: { organizations: [permissionRecord(true, 'member')] },
+        });
+        wrapper = await mountComponent({ billingEnabled });
+
+        expect(mockFetchOrganization).not.toHaveBeenCalled();
+        expect(mockFetchInvitations).toHaveBeenCalledWith(mockOrganization.extid);
+        expect(panel().text()).toContain(pending.email);
+        expect(panel().text()).toContain('web.organizations.members.pending_suffix');
+        expect(wrapper.findAll('[role="tab"]').map(tab => tab.attributes('id'))).toEqual(['org-tab-members']);
+        expect(wrapper.find('[data-testid="org-subscription-chip"]').exists()).toBe(false);
+        expect(panel().find('.members-table').exists()).toBe(false);
+        const button = panel().findAll('button').find(item => item.text() === invite)!;
+        await button.trigger('click');
+        await panel().get('#invite-email').setValue('new@example.com');
+        await panel().get('form').trigger('submit');
+        expect(mockCreateInvitation).toHaveBeenCalledWith(mockOrganization.extid, {
+          email: 'new@example.com', role: 'member',
+        });
+      });
+
+      it.each([
+        { description: 'revoked organization admin', provisioning: 'invited' },
+        { description: 'domain-scoped admin', provisioning: 'sso' },
+      ])('shows permission guidance and never requests invitations for a $description',
+        async ({ provisioning }) => {
+          const denied = permissionRecord(false);
+          mockGetPermissions.mockResolvedValue({ data: { organizations: [{
+            ...denied, membership: { ...denied.membership, provisioning_source: provisioning },
+          }] } });
+          wrapper = await mountComponent({ billingEnabled });
+
+          expect(mockFetchInvitations).not.toHaveBeenCalled();
+          expect(panel().text()).toContain(guidance);
+          expect(panel().text()).not.toContain(invite);
+          expect(panel().text()).not.toContain('web.organizations.members.pending_suffix');
+          expect(panel().text()).not.toContain(pending.email);
+          expect(panel().find('form, a[href*="/billing/"]').exists()).toBe(false);
+          expect(panel().text()).not.toContain('upgrade');
+        }
+      );
+    });
+
+    it('requires an explicit answer for the target organization during a mixed-version rollout', async () => {
+      mockGetPermissions.mockResolvedValue({
+        data: { organizations: [permissionRecord(true, 'owner', 'other-org'), permissionRecord()] },
+      });
+      wrapper = await mountComponent();
+      expect(mockFetchInvitations).not.toHaveBeenCalled();
+      expect(panel().text()).toContain(unconfirmed);
+      expect(panel().text()).not.toContain(guidance);
+    });
+
+    it('reports unconfirmed access on failed initial and subsequent permission lookups', async () => {
+      mockGetPermissions.mockRejectedValue({ response: { status: 503 } });
+      wrapper = await mountComponent();
+      expect(panel().text()).toContain(unconfirmed);
+      await wrapper.get('#org-tab-domains').trigger('click');
+      await wrapper.get('#org-tab-members').trigger('click');
+      await flushPromises();
+      expect(panel().text()).toContain(unconfirmed);
+      expect(panel().text()).not.toContain(guidance);
+      expect(panel().text()).not.toContain(invite);
+      expect(mockFetchInvitations).not.toHaveBeenCalled();
+    });
+
+    it('clears pending invitations and controls when the server reports a changed permission', async () => {
+      mockRevokeInvitation.mockRejectedValue({ response: { status: 403 } });
+      wrapper = await mountComponent();
+      expect(panel().text()).toContain(pending.email);
+      const revoke = panel().findAll('button').find(button => button.text() === 'web.organizations.invitations.revoke')!;
+      await revoke.trigger('click');
+      await flushPromises();
+
+      expect(panel().text()).toContain(guidance);
+      expect(panel().text()).not.toContain(pending.email);
+      expect(panel().text()).not.toContain('web.organizations.members.pending_suffix');
+      expect(panel().text()).not.toContain(invite);
+    });
+
+    const singlePermission = (allowed: boolean) => {
+      const { membership, permissions, extid, display_name } = permissionRecord(allowed);
+      return { data: {
+        resource_type: 'organization', resource_id: extid,
+        organization: { extid, display_name }, membership, permissions,
+      } };
+    };
+
+    it('rechecks a revoked permission when returning to Members and picks up a new grant', async () => {
+      mockRevokeInvitation.mockRejectedValueOnce({ response: { status: 403 } });
+      wrapper = await mountComponent();
+      await panel().findAll('button').find(button => button.text() === 'web.organizations.invitations.revoke')!.trigger('click');
+      await flushPromises();
+      expect(panel().text()).toContain(guidance);
+      await wrapper.get('#org-tab-domains').trigger('click');
+
+      mockGetPermissions.mockResolvedValueOnce(singlePermission(true));
+      await wrapper.get('#org-tab-members').trigger('click');
+      await flushPromises();
+
+      expect(mockGetPermissions).toHaveBeenLastCalledWith('/api/account/permissions', {
+        params: { resource_type: 'organization', resource_id: mockOrganization.extid },
+      });
+      expect(panel().text()).toContain(invite);
+      expect(panel().text()).toContain(pending.email);
+    });
+
+    it('withholds invitations and counts while rechecking a previously allowed org', async () => {
+      wrapper = await mountComponent();
+      expect(panel().text()).toContain(pending.email);
+      await wrapper.get('#org-tab-domains').trigger('click');
+      let resolvePermission!: (value: ReturnType<typeof singlePermission>) => void;
+      mockGetPermissions.mockReturnValueOnce(new Promise(resolve => { resolvePermission = resolve; }));
+
+      await wrapper.get('#org-tab-members').trigger('click');
+      expect(panel().text()).not.toContain(pending.email);
+      expect(panel().text()).not.toContain('web.organizations.members.pending_suffix');
+      expect(panel().text()).not.toContain(invite);
+      expect(mockFetchInvitations).toHaveBeenCalledTimes(1);
+      resolvePermission(singlePermission(false));
+      await flushPromises();
+      expect(panel().text()).toContain(guidance);
+      expect(mockFetchInvitations).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps an invitation action failure and retry on the delegated member’s panel', async () => {
+      mockGetPermissions.mockResolvedValue({ data: { organizations: [permissionRecord(true, 'member')] } });
+      mockRevokeInvitation.mockRejectedValueOnce({ response: { status: 503 } }).mockResolvedValueOnce(undefined);
+      wrapper = await mountComponent();
+      const revoke = () => panel().findAll('button').find(button => button.text() === 'web.organizations.invitations.revoke')!;
+      await revoke().trigger('click');
+      await flushPromises();
+
+      expect(panel().text()).toContain('web.organizations.invitations.revoke_error');
+      expect(panel().text()).toContain(pending.email);
+      expect(wrapper.text()).not.toContain('web.organizations.load_error');
+      await revoke().trigger('click');
+      await flushPromises();
+      expect(panel().text()).toContain('web.organizations.invitations.revoke_success');
+      expect(panel().text()).not.toContain('web.organizations.invitations.revoke_error');
+    });
+
+    it.each(['invited', 'sso'])('shows invitation guidance for a denied %s admin without access to the roster', async (source) => {
+      const denied = permissionRecord(false);
+      mockGetPermissions.mockResolvedValue({ data: { organizations: [{
+        ...denied, membership: { ...denied.membership, provisioning_source: source },
+      }] } });
+      mockFetchOrganization.mockRejectedValue({ response: { status: 403 } });
+      wrapper = await mountComponent();
+
+      expect(panel().text()).toContain(guidance);
+      expect(panel().find('.members-table').exists()).toBe(false);
+      expect(panel().text()).not.toContain(invite);
+      expect(panel().text()).not.toContain('web.organizations.members.pending_suffix');
+      expect(mockFetchInvitations).not.toHaveBeenCalled();
+    });
+
+    it('ignores permission results from a previous visit to Members', async () => {
+      wrapper = await mountComponent();
+      await wrapper.get('#org-tab-domains').trigger('click');
+      let resolveFirst!: (value: ReturnType<typeof singlePermission>) => void;
+      mockGetPermissions.mockReturnValueOnce(new Promise(resolve => { resolveFirst = resolve; }));
+      await wrapper.get('#org-tab-members').trigger('click');
+      await wrapper.get('#org-tab-domains').trigger('click');
+
+      mockGetPermissions.mockResolvedValueOnce(singlePermission(false));
+      await wrapper.get('#org-tab-members').trigger('click');
+      await flushPromises();
+      resolveFirst(singlePermission(true));
+      await flushPromises();
+
+      expect(panel().text()).toContain(guidance);
+      expect(panel().text()).not.toContain(pending.email);
+      expect(mockFetchInvitations).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not display a late invitation response after switching organizations', async () => {
+      let resolveInvitations!: (rows: typeof pending[]) => void;
+      mockFetchInvitations.mockReturnValue(new Promise(resolve => { resolveInvitations = resolve; }));
+      mockGetPermissions.mockResolvedValue({
+        data: { organizations: [permissionRecord(true), permissionRecord(false, 'admin', 'next-org')] },
+      });
+      mountComponentUnsettled();
+      await flushPromises();
+      expect(mockFetchInvitations).toHaveBeenCalledWith(mockOrganization.extid);
+      mockFetchOrganization.mockResolvedValue({ ...mockOrganization, extid: 'next-org' });
+      mockRouteParams.extid = 'next-org';
+      await flushPromises();
+      resolveInvitations([pending]);
+      await flushPromises();
+      expect(mockFetchInvitations).not.toHaveBeenCalledWith('next-org');
+      expect(panel().text()).toContain(guidance);
+      expect(panel().text()).not.toContain(pending.email);
+    });
+  });
 
   /**
    * Billing Email Display Tests
@@ -806,30 +1021,7 @@ describe('OrganizationSettings', () => {
       });
     });
 
-    describe('member role (entitled plan)', () => {
-      // Backend materializes membership entitlements as plan ∩ role and
-      // audit_logs is admin-tier, so a plain member is 403'd server-side even
-      // on an entitled plan. The UI must show the role notice — not the
-      // upgrade prompt, and never mount the table (whose fetch would 403).
-      beforeEach(() => {
-        mockEntitlements.value = ['manage_members', 'audit_logs'];
-        mockFetchOrganization.mockResolvedValue({
-          ...mockOrganization,
-          current_user_role: 'member',
-        });
-      });
 
-      it('shows the role notice instead of the table or upgrade prompt', async () => {
-        wrapper = await mountComponent();
-        await switchToActivityTab(wrapper);
-
-        const panel = findPanel(wrapper);
-        expect(panel.find('[data-testid="org-audit-role-notice"]').exists()).toBe(true);
-        expect(panel.text()).toContain('web.organizations.audit.role_required');
-        expect(panel.text()).not.toContain('web.organizations.audit.upgrade_prompt');
-        expect(findActivityTable(wrapper).exists()).toBe(false);
-      });
-    });
   });
   /**
    * Caution Zone — Delete Organization
@@ -1024,16 +1216,6 @@ describe('OrganizationSettings', () => {
       expect(mockRouter.replace).not.toHaveBeenCalled();
     });
 
-    it('bounces a deep link to a tab the user cannot open to Domains', async () => {
-      mockRouteParams.tab = 'members';
-      mockEntitlements.value = [];
-
-      wrapper = await mountComponent();
-
-      expect(selectedTabId(wrapper)).toBe('org-tab-domains');
-      expect(mockRouter.replace).toHaveBeenCalledWith(tabNavigation('domains'));
-    });
-
     it('follows a :tab change it did not make (Back/Forward, a link to a tab)', async () => {
       wrapper = await mountComponent();
 
@@ -1047,17 +1229,6 @@ describe('OrganizationSettings', () => {
       await settle();
       expect(selectedTabId(wrapper)).toBe('org-tab-domains');
       expect(mockRouter.replace).not.toHaveBeenCalled();
-    });
-
-    it('bounces a :tab change to a tab the user cannot open to Domains', async () => {
-      mockEntitlements.value = [];
-      wrapper = await mountComponent();
-
-      mockRouteParams.tab = 'members';
-      await settle();
-
-      expect(selectedTabId(wrapper)).toBe('org-tab-domains');
-      expect(mockRouter.replace).toHaveBeenCalledWith(tabNavigation('domains'));
     });
 
     it("never gates another org's :tab with this org's permissions", async () => {

@@ -12,6 +12,11 @@ export const resourcePermissionsSchema = z.object({
   can_manage_settings: z.boolean(),
 });
 
+const organizationActionsSchema = resourcePermissionsSchema.extend({
+  // Older servers omit this action. Callers require an explicit true.
+  can_manage_invitations: z.boolean().optional(),
+});
+
 export type ResourcePermissions = z.infer<typeof resourcePermissionsSchema>;
 
 /**
@@ -52,7 +57,7 @@ export const organizationPermissionsSchema = z.object({
   display_name: z.string(),
   is_default: z.boolean(),
   membership: membershipDetailsSchema,
-  permissions: resourcePermissionsSchema,
+  permissions: organizationActionsSchema,
   domains: z.array(domainPermissionsSchema),
   assignable_roles: z.array(z.string()),
 });
@@ -81,13 +86,22 @@ export type OrganizationBrief = z.infer<typeof organizationBriefSchema>;
 /**
  * Single-resource mode response: GET /api/account/permissions?resource_type=...&resource_id=...
  */
-export const singleResourcePermissionsResponseSchema = z.object({
-  resource_type: z.enum(['domain', 'organization']),
+const singleResourceSchema = z.object({
   resource_id: z.string(),
   organization: organizationBriefSchema,
   membership: membershipDetailsSchema,
-  permissions: resourcePermissionsSchema,
 });
+
+export const singleResourcePermissionsResponseSchema = z.discriminatedUnion('resource_type', [
+  singleResourceSchema.extend({
+    resource_type: z.literal('domain'),
+    permissions: resourcePermissionsSchema,
+  }),
+  singleResourceSchema.extend({
+    resource_type: z.literal('organization'),
+    permissions: organizationActionsSchema,
+  }),
+]);
 
 export type SingleResourcePermissionsResponse = z.infer<
   typeof singleResourcePermissionsResponseSchema

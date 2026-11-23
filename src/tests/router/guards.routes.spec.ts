@@ -25,9 +25,12 @@ import { loggingService } from '@/services/logging.service';
 import { useAuthStore } from '@/shared/stores';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { useOrganizationPermissionLookup } from '@/shared/composables/useResourcePermissions';
 import { isSsoOnlyMode } from '@/utils/features';
 import { mockCustomer } from '../fixtures/bootstrap.fixture';
 import { captureAppLogs } from '../utils/appLogs';
+
+vi.mock('@/shared/composables/useResourcePermissions');
 
 /**
  * Registration order of the beforeEach guards in setupRouterGuards(). Tests
@@ -1209,6 +1212,41 @@ describe('Router Guards', () => {
       useStore(makeStore());
       const result = await handleOrgRoleRequirement(makeRoute({ meta: {} }));
       expect(result).toBeNull();
+    });
+
+    it.each([
+      [true, null],
+      [false, 'web.organizations.invitations.permission_required'],
+      [null, 'web.organizations.access_unconfirmed_notice'],
+    ] as const)('checks the target organization for delegated invitation access (%s)', async (allowed, notice) => {
+      useStore(makeStore({ getOrganizationByExtid: () => ({ extid: 'target', current_user_role: 'member' }) }));
+      const record = { permissions: { can_manage_invitations: allowed }, membership: { role: 'member' } };
+      const fetchOrganizationPermissions = vi.fn().mockResolvedValue(allowed === null ? null : record);
+      vi.mocked(useOrganizationPermissionLookup).mockReturnValue(fetchOrganizationPermissions);
+      const route = makeRoute({
+        name: 'Organization Settings', params: { extid: 'target', tab: 'members' }, meta: { requiresOrgRole: 'admin' },
+      });
+      expect(await handleOrgRoleRequirement(route)).toEqual(notice ? { path: '/dashboard' } : null);
+      expect(fetchOrganizationPermissions).toHaveBeenCalledWith('target');
+      if (notice) expect(notificationEnqueue).toHaveBeenCalledWith(notice, 'info', 'top', 10000);
+
+      route.params.tab = 'settings';
+      expect(await handleOrgRoleRequirement(route)).toEqual({ path: '/dashboard' });
+      expect(fetchOrganizationPermissions).toHaveBeenCalledTimes(1);
+    });
+
+    it('admits an admin to the Members tab when invitations and organization details are unavailable', async () => {
+      const store = makeStore();
+      useStore(store);
+      const fetchOrganizationPermissions = vi.fn().mockResolvedValue({
+        permissions: { can_manage_invitations: false }, membership: { role: 'admin' },
+      });
+      vi.mocked(useOrganizationPermissionLookup).mockReturnValue(fetchOrganizationPermissions);
+      const route = makeRoute({
+        name: 'Organization Settings', params: { extid: 'target', tab: 'members' }, meta: { requiresOrgRole: 'admin' },
+      });
+      expect(await handleOrgRoleRequirement(route)).toBeNull();
+      expect(store.fetchOrganization).not.toHaveBeenCalled();
     });
 
     describe('list page (/orgs, no org in path)', () => {

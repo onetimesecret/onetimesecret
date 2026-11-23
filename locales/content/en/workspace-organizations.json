@@ -652,6 +652,10 @@
     "text": "Loading invitation details",
     "content_hash": "58884885"
   },
+  "web.organizations.invitations.permission_required": {
+    "text": "Ask an organization administrator for permission to manage invitations.",
+    "content_hash": "226a31a2"
+  },
   "web.organizations.invitations.upgrade_to_invite": {
     "text": "Upgrade your plan to invite team members",
     "content_hash": "5e3f8df8"

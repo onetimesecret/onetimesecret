@@ -148,3 +148,13 @@ export function useResourcePermissions(): UseResourcePermissionsReturn {
     allPermissions, getOrgPermissions, getDomainPermissions, canAccess, canEdit,
   };
 }
+
+/** Only return permissions for the organization named by the caller. */
+export function useOrganizationPermissionLookup() {
+  const { fetchResourcePermissions } = useResourcePermissions();
+  return async (orgExtid: string) => {
+    const record = await fetchResourcePermissions('organization', orgExtid);
+    if (record?.resource_type !== 'organization' || record.resource_id !== orgExtid) return null;
+    return record.organization.extid === orgExtid ? record : null;
+  };
+}

@@ -40,7 +40,8 @@ module AccountAPI::Logic
     #         can_view: true,
     #         can_edit: true,
     #         can_delete: false,
-    #         can_manage_settings: false
+    #         can_manage_settings: false,
+    #         can_manage_invitations: true
     #       },
     #       domains: [
     #         {
@@ -99,6 +100,8 @@ module AccountAPI::Logic
     # - can_edit: user has organization-wide 'manage_org'
     # - can_delete: user has organization-wide 'manage_org' and org is not default
     # - can_manage_settings: user has organization-wide 'manage_org'
+    # - can_manage_invitations: organization-wide membership and 'manage_members'
+    #   capability or the existing site-operator bypass
     #
     # ## Error Responses (single-resource mode only)
     #
@@ -189,15 +192,15 @@ module AccountAPI::Logic
       def serialize_org_with_domains(org, mem)
         # Domain-scope enforcement: filter by membership scope (#3384)
         domains            = org.list_domains.select { |d| mem.can_access_domain?(d) }
-        manage_org         = mem.has_capability?('manage_org')
-        domain_permissions = domain_permissions_for(mem, manage_org) if domains.any?
+        capabilities       = mem.materialize_capabilities!
+        domain_permissions = domain_permissions_for(mem, capabilities) if domains.any?
 
         {
           extid: org.extid,
           display_name: org.display_name,
           is_default: org.is_default || false,
           membership: serialize_membership_for(mem),
-          permissions: organization_permissions_for(org, manage_org && mem.org_scoped?),
+          permissions: organization_permissions_for(org, mem, capabilities),
           assignable_roles: compute_assignable_roles(org, mem),
           domains: domains.map { |domain| serialize_domain_with_permissions(domain, domain_permissions) },
         }
@@ -227,22 +230,25 @@ module AccountAPI::Logic
         serialize_membership_for(membership)
       end
 
-      def domain_permissions_for(mem, manage_org)
+      def domain_permissions_for(mem, capabilities)
         custom_domains = mem.can?('custom_domains')
         {
           can_view: custom_domains,
           can_edit: custom_domains,
           can_delete: custom_domains,
-          can_manage_settings: manage_org,
+          can_manage_settings: capabilities.include?('manage_org'),
         }
       end
 
-      def organization_permissions_for(org, manage_org)
+      def organization_permissions_for(org, mem, capabilities)
+        org_scoped = mem.org_scoped?
+        manage_org = org_scoped && capabilities.include?('manage_org')
         {
           can_view: true,
           can_edit: manage_org,
           can_delete: manage_org && !org.is_default,
           can_manage_settings: manage_org,
+          can_manage_invitations: org_scoped && (capabilities.include?('manage_members') || has_system_role?('colonel')),
         }
       end
 
@@ -312,12 +318,12 @@ module AccountAPI::Logic
       end
 
       def calculate_permissions
-        manage_org = membership.has_capability?('manage_org')
+        capabilities = membership.materialize_capabilities!
         case resource_type
         when 'domain'
-          domain_permissions_for(membership, manage_org)
+          domain_permissions_for(membership, capabilities)
         when 'organization'
-          organization_permissions_for(organization, manage_org && membership.org_scoped?)
+          organization_permissions_for(organization, membership, capabilities)
         end
       end
 
