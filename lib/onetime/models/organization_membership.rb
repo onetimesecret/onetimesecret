@@ -107,12 +107,18 @@ module Onetime
       'member' => MEMBER_ENTITLEMENTS.freeze,
     }.freeze
 
+    CAPABILITIES      = Set['manage_members', 'manage_org', 'manage_sso', 'manage_billing'].freeze
+    ROLE_CAPABILITIES = ROLE_ENTITLEMENTS.transform_values do |entitlements|
+      (entitlements & CAPABILITIES).freeze
+    end.freeze
+
     # REQUIRED: Through models must have object_identifier for deterministic keys
     feature :object_identifier
     feature :relationships
     feature :safe_dump
     feature :housekeeping
     feature :membership_materialized_entitlements
+    feature :membership_capabilities
 
     prefix :org_membership
     identifier_field :objid
