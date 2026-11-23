@@ -57,13 +57,13 @@ jobs:
             page=$((page + 1))
           done
 
-          # Quote the original Markdown so its lines cannot act as GitLab quick actions.
+          # Keep untrusted text in code spans and blocks to avoid GitLab references and quick actions.
           payload=$(jq --arg source "$source_line" '
             .issue | {
-              title: .title[:255],
+              title: ("`" + (.title[:253] | gsub("`"; "ˋ")) + "`"),
               description: ($source + (
                 if (.body // "") == "" then ""
-                else "\n\n" + (.body | gsub("\r\n?"; "\n") | split("\n") | map("> " + .) | join("\n"))
+                else "\n\n" + (.body | gsub("\r\n?"; "\n") | split("\n") | map("    " + .) | join("\n"))
                 end
               ))
             }
