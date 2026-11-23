@@ -41,10 +41,33 @@ Compose "profiles" — no `--profile` flag is involved):
 
 ## Quick Start
 
+Run this from the repository root to start the simple stack. Compose reuses
+existing values and the setup fills in missing keys in `.env`.
+
 ```bash
-[ -f .env ] || cp .env.example .env
-echo "SECRET=$(openssl rand -hex 32)" >> .env
-docker compose up
+(
+  set -e
+  [ -f .env ] || (umask 077 && cp .env.example .env)
+
+  # Let .env supply any keys that are empty in the shell environment.
+  [[ -n ${SECRET:-} ]] || unset SECRET
+  [[ -n ${VALKEY_PASSWORD:-} ]] || unset VALKEY_PASSWORD
+
+  # Use Compose's .env parser and get only the names of populated keys.
+  configured=$(printf '%s\n' \
+    'services:' \
+    '  keys:' \
+    '    image: "ots-keys:${SECRET:+SECRET-}${VALKEY_PASSWORD:+VALKEY_PASSWORD-}check"' |
+    docker compose -f - config --images)
+  for key in SECRET VALKEY_PASSWORD; do
+    if [[ $configured != *"${key}-"* ]]; then
+      value=$(openssl rand -hex 32)
+      printf '\n%s=%s\n' "$key" "$value" >> .env
+    fi
+  done
+
+  docker compose up
+)
 ```
 
 Then create an admin account (the app service is named `app` in both
@@ -54,10 +77,8 @@ stacks):
 docker compose exec app bin/ots customers create me@example.com --role colonel
 ```
 
-More forms (plain `docker exec`, bare-metal, API tokens) and the
-`AUTH_AUTOVERIFY`/SMTP signup caveat:
-[Create your first account](../README.md#create-your-first-account) in the
-root README.
+For the `docker exec` form of this command, see the
+[Docker quick start](../README.md#quick-start-docker) in the root README.
 
 ## Environment Variables
 
