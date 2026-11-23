@@ -1,15 +1,23 @@
 ---
 title: Install & First-Run Onboarding — Problem Space and Recommendations
 type: assessment
-status: draft
+status: historical
 updated: 2026-07-04
 ---
 
 # Install & First-Run Onboarding: Problem Space and Recommendations
 
-The initial setup experience is clunky enough that we receive complaints about
-it. This document restates the problem space, surveys the documented approaches
-(drawing on the March 2026 install-onboarding
+This is a snapshot of the onboarding problem space as assessed on 2026-07-04.
+Present-tense findings and recommendations below describe that point in time;
+later onboarding work changed parts of this surface. For current setup
+commands, use the root [README](../../../README.md),
+[CONTRIBUTING](../../../CONTRIBUTING.md), and
+[Docker guide](../../../docker/README.md). The dated status notes in
+[work chunks](./install-onboarding-work-chunks.md) record subsequent work.
+
+At the time, the initial setup experience was clunky enough to receive
+complaints. This document restates the problem space, surveys the documented
+approaches (drawing on the March 2026 install-onboarding
 [competitive landscape research](./install-onboarding-landscape.md) covering
 Discourse, Coolify, Plane, Sentry Self-Hosted, GitLab Omnibus), and makes
 prioritized recommendations. Issue #2700 ("Add a simple wizard that appears
