@@ -52,6 +52,22 @@ to an organization administrator. The same cases apply with billing enabled
 and in standalone mode. The [invitation scope decision](../../architecture/org-authorization-discriminators.md#decision-on-listing-pending-invitations)
 records the rationale and the site-operator exception.
 
+**v0.27.0 tenant SSO settings.** The account permissions API reports
+`permissions.can_manage_sso` for each visible domain, in both the bulk and
+targeted responses. With tenant SSO enabled, a member needs both
+`manage_org` and `manage_sso` and access to that domain. An owner has both
+capabilities by default. A revoke of either removes configuration access.
+Workspace permission discovery requires an active membership. For site
+operators with a membership, the existing configuration exception still
+checks the organization’s SSO entitlement. The [domain configuration policy](../../../apps/api/domains/policies/domain_config_authorization.rb)
+and [SSO policy](../../../apps/api/domains/logic/sso_config/base.rb) govern the API.
+
+The organization SSO tab, domain menus, and configuration page use the
+domain decision with billing enabled and in standalone mode. A delegated
+member can go directly to a permitted domain. An unavailable permission
+lookup leaves configuration controls closed. SSO configuration access does
+not grant access to other domain settings.
+
 **Still open.** The catalog and client need separate feature and capability
 registries. The general-purpose wire fields, denial messages and frontend
 checks in Stage B remain incomplete. Domain management still needs the
