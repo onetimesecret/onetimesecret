@@ -134,6 +134,7 @@ module ColonelAPI
             action: @action,
             actor: cust.extid,
             entitlement: @entitlement,
+            kind: params.fetch('kind', 'entitlement'),
             # The console has no preview flow (D12) — this surface always applies.
             dry_run: false,
           ).call
@@ -181,6 +182,8 @@ module ColonelAPI
         # in the requested state, so the response below describes reality.
         def handle_result_status(result)
           case result.status
+          when :invalid_kind
+            raise_form_error('Use a membership capability for this override', field: :kind)
           when :invalid_action
             raise_form_error(VALID_ACTIONS_MESSAGE, field: :action)
           when :missing_entitlement

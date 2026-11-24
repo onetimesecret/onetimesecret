@@ -117,6 +117,7 @@ module ColonelAPI
             action: @action,
             actor: cust.extid,
             entitlement: @entitlement,
+            kind: params.fetch('kind', 'entitlement'),
             # The console has no preview flow (D12) — this surface always applies.
             dry_run: false,
           ).call
@@ -167,6 +168,8 @@ module ColonelAPI
         # carries the counts so the admin UI can name the stale members.
         def handle_result_status(result)
           case result.status
+          when :invalid_kind
+            raise_form_error('Use an organization feature for this override', field: :kind)
           when :invalid_action
             raise_form_error(VALID_ACTIONS_MESSAGE, field: :action)
           when :missing_entitlement

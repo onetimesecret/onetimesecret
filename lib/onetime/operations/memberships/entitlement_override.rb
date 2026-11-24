@@ -160,7 +160,7 @@ module Onetime
         # @param entitlement [String, nil] required for grant/revoke, ignored by clear.
         # @param dry_run [Boolean] preview only when true (the safe default —
         #   `clear` wipes EVERY override on the membership).
-        def initialize(org:, customer:, action:, actor:, entitlement: nil, dry_run: true)
+        def initialize(org:, customer:, action:, actor:, entitlement: nil, dry_run: true, kind: 'entitlement')
           @org         = org
           @customer    = customer
           @action      = action.to_s.strip.downcase
@@ -169,15 +169,21 @@ module Onetime
           # and audit trail never carry input the action doesn't read.
           @entitlement = @action == 'clear' ? nil : entitlement.to_s.strip
           @dry_run     = dry_run
+          @kind        = kind
         end
 
         # @return [Result]
         def call
           return build(:invalid_action) unless ACTIONS.include?(@action)
+          return build(:invalid_kind) unless %w[capability entitlement].include?(@kind)
           return build(:missing_entitlement) if @action != 'clear' && @entitlement.empty?
+          if @kind == 'capability' && @action != 'clear' && !Onetime::Authorization::Registry.capability?(@entitlement)
+            return build(:invalid_kind)
+          end
 
           membership = Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @customer.objid)
           return build(:not_found) unless membership&.active?
+          return apply_capability_override(membership) if @kind == 'capability'
 
           # Read the current override sets ONCE, before any mutation: they drive
           # both the no-change check and the dry-run projection.
@@ -225,13 +231,7 @@ module Onetime
           # double-records. `detail` always carries org_id (the target is the
           # customer; org_id completes the membership identity). The cleared
           # set stays unrecorded — it is unbounded, matching the org op.
-          Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: audit_verb,
-            target: @customer.extid,
-            result: :success,
-            detail: audit_detail,
-          )
+          record_success
 
           build(
             APPLIED_STATUS[@action],
@@ -242,6 +242,31 @@ module Onetime
         end
 
         private
+
+        def apply_capability_override(membership)
+          state = membership.capability_state(action: @action, capability: @entitlement, persist: !@dry_run)
+          return build(:not_found) unless state
+
+          effective, grants, revokes, changed = state
+          unchanged                           = changed.zero? && @action != 'clear'
+          if @dry_run
+            record_preview_event(outcome: unchanged ? 'no_change' : nil)
+            status = unchanged ? :no_change : :planned
+          elsif unchanged
+            record_no_change_event
+            status = :no_change
+          else
+            record_success
+            status = APPLIED_STATUS.fetch(@action)
+          end
+          build(status, effective: effective, grants: grants, revokes: revokes)
+        end
+
+        def record_success
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor, verb: audit_verb, target: @customer.extid, result: :success, detail: audit_detail,
+          )
+        end
 
         # The #4337 envelope's target hook: the CUSTOMER's extid, the key every
         # row on this op has always carried — preview, no-change attempt and
@@ -255,7 +280,8 @@ module Onetime
         # verb namespace is a closed set, and an :invalid_action refusal has no
         # success-path verb to match.
         def audit_verb
-          ACTIONS.include?(@action) ? "#{AUDIT_VERB_PREFIX}.#{@action}" : AUDIT_VERB_PREFIX
+          prefix = @kind == 'capability' ? 'membership.capability' : AUDIT_VERB_PREFIX
+          ACTIONS.include?(@action) ? "#{prefix}.#{@action}" : prefix
         end
 
         # One OBSERVATION per preview (#4337), on the budgeted access trail.
