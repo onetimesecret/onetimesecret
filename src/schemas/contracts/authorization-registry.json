@@ -1,0 +1,32 @@
+{
+  "features": {
+    "api_access": true,
+    "audit_logs": true,
+    "base_domain_signup": true,
+    "create_secrets": true,
+    "custom_branding": true,
+    "custom_domains": true,
+    "custom_mail_sender": true,
+    "custom_privacy_defaults": true,
+    "custom_signin_config": true,
+    "custom_signup_validation": true,
+    "extended_default_expiration": true,
+    "flexible_from_domain": true,
+    "homepage_network_rules": true,
+    "homepage_secrets": true,
+    "incoming_secrets": true,
+    "ip_access_rules": true,
+    "notifications": true,
+    "view_receipt": true,
+    "workspace_branding": true
+  },
+  "capabilities": {
+    "manage_billing": "owner",
+    "manage_domains": "admin",
+    "manage_members": "admin",
+    "manage_org": "owner",
+    "manage_sso": "owner"
+  },
+  "account": { "manage_orgs": true },
+  "reserved": { "manage_teams": true }
+}

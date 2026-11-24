@@ -1,12 +1,14 @@
 ---
 id: "012"
-status: proposed
+status: superseded
 title: "ADR-012: Membership-Level Materialized Entitlements"
 ---
 
 ## Status
 
-Proposed
+Superseded by [ADR-053](adr-053-plan-features-and-membership-capabilities.md).
+The materialized membership entitlements described below continue to serve
+legacy consumers during the compatibility window.
 
 ## Date
 
