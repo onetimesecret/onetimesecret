@@ -34,9 +34,10 @@ module Onetime
 
       def compare_organization(org, persist, rollback, counts)
         features = org.entitlements.select { |name| Onetime::Authorization::Registry.feature?(name) }.uniq.sort
-        # Older workers ignore org overrides in standalone and unmaterialized
-        # plan fallback. Only a deliberate typed change starts enforcing one.
-        unless rollback || (org.billing_enabled? && org.entitlements_materialized?)
+        # The preflight exercises what the old reader would return. Normal
+        # backfill includes explicit overrides, even after an older worker
+        # published a stale paid-plan snapshot.
+        unless rollback
           grants  = org.entitlements_grants.to_a
           revokes = org.entitlements_revokes.to_a
           Onetime::Authorization::Registry.features.each do |name|
@@ -71,6 +72,14 @@ module Onetime
         extra = (current[1] | current[2]) - known
         if rollback && !extra.empty?
           raise Onetime::Problem, "Older servers cannot enforce #{extra.join(', ')} overrides on membership #{membership.objid}"
+        end
+
+        if rollback && membership.entitlements_materialized?
+          mixed = membership.materialized_entitlements.to_a
+          stale = ((current[1] - current[2] - mixed) | (current[2] & mixed)) & known
+          unless stale.empty?
+            raise Onetime::Problem, "Legacy membership snapshot differs for #{stale.join(', ')} on #{membership.objid}"
+          end
         end
 
         role     = Onetime::OrganizationMembership::ROLE_CAPABILITIES.fetch(membership.role)

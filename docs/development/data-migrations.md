@@ -228,6 +228,9 @@ the reference example. Follow it for new commands.
    `kind` to use the existing mixed override operation. A typed feature grant or
    revoke applies even in standalone mode and unmaterialized plan fallback.
    Historical organization overrides in those modes keep their previous effect.
+   An older worker can clear a typed override's legacy copy and later add it
+   again without recording either change in the typed fields. Drain those workers
+   before the first typed edit.
 4. Before starting an older binary, suspend override edits and run
    `bin/ots migrations backfill-capabilities --check-rollback` on current data.
    A nonzero exit reports an organization where the older reader would answer

@@ -19,25 +19,13 @@
 # Run: bundle exec rspec spec/unit/onetime/models/features/with_plan_entitlements_standalone_spec.rb
 
 require 'spec_helper'
+require_relative '../../../../support/redis_entitlement_sets'
 
 require_relative '../../../../../lib/onetime/models/organization/features/with_materialized_entitlements'
 require_relative '../../../../../lib/onetime/models/organization/features/with_materialized_limits'
 require_relative '../../../../../lib/onetime/models/organization/features/with_plan_entitlements'
 
 RSpec.describe 'WithPlanEntitlements#materialize_standalone_entitlements!', billing: true do
-  # In-memory Familia set substitute used by the reconciler.
-  class FakeSet
-    def initialize = @data = Set.new
-    def add(v) = @data.add(v.to_s)
-    def delete(v) = @data.delete(v.to_s)
-    alias remove_element delete
-    def each(&b) = @data.each(&b)
-    def clear = @data.clear
-    def to_a = @data.to_a
-    def size = @data.size
-    def include?(v) = @data.include?(v.to_s)
-  end
-
   class FakeHashKey
     def initialize
       @data = {}
@@ -70,6 +58,7 @@ RSpec.describe 'WithPlanEntitlements#materialize_standalone_entitlements!', bill
       include Onetime::Models::Features::WithMaterializedLimits::InstanceMethods
       include Onetime::Models::Features::WithPlanEntitlements::InstanceMethods
       extend Onetime::Models::Features::WithMaterializedEntitlements::ClassMethods
+      include RedisEntitlementSets
 
       attr_accessor :materialized_entitlements_at, :planid, :extid
 
@@ -77,39 +66,27 @@ RSpec.describe 'WithPlanEntitlements#materialize_standalone_entitlements!', bill
 
       # This adapter checks legacy collection writes. The typed projection's
       # Redis script is covered against a real organization in plan_features_spec.
-      def plan_entitlements = @materialized_entitlements.to_a
+      def plan_entitlements = materialized_entitlements.to_a
 
       def initialize
-        @entitlements_plan            = FakeSet.new
         @limits_plan                  = FakeHashKey.new
-        @entitlements_grants          = FakeSet.new
-        @entitlements_revokes         = FakeSet.new
-        @materialized_entitlements    = FakeSet.new
         @materialized_entitlements_at = nil
         @planid                       = ''
         @extid                        = 'test_org_standalone'
       end
 
-      def entitlements_plan         = @entitlements_plan
       def limits_plan               = @limits_plan
-      def entitlements_grants       = @entitlements_grants
-      def entitlements_revokes      = @entitlements_revokes
-      def materialized_entitlements = @materialized_entitlements
 
       # Stub for Familia::Horreum#save_with_collections
       def save_with_collections(update_expiration: true)
         yield if block_given?
         true
       end
-
-      # Stub for Familia::Horreum#transaction (MULTI/EXEC wrapper)
-      def transaction
-        yield if block_given?
-      end
     end
   end
 
   let(:org) { test_class.new }
+  after { org.clear_entitlement_fixture }
   let(:standalone_constant) do
     Onetime::Models::Features::WithPlanEntitlements::STANDALONE_ENTITLEMENTS
   end

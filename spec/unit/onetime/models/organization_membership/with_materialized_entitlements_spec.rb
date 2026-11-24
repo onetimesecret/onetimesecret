@@ -17,6 +17,7 @@
 # Run: bundle exec rspec spec/unit/onetime/models/organization_membership/with_materialized_entitlements_spec.rb
 
 require 'spec_helper'
+require_relative '../../../../support/redis_entitlement_sets'
 
 require_relative '../../../../../lib/onetime/models/organization_membership/features/with_materialized_entitlements'
 
@@ -122,6 +123,7 @@ RSpec.describe 'MembershipMaterializedEntitlements', billing: true do
     Class.new do
       include feature_mod::InstanceMethods
       extend  feature_mod::ClassMethods
+      include RedisEntitlementSets
 
       attr_accessor :materialized_entitlements_at
       attr_accessor :role
@@ -129,20 +131,12 @@ RSpec.describe 'MembershipMaterializedEntitlements', billing: true do
       attr_accessor :org_entitlements # simulates org.entitlements
 
       def initialize
-        @entitlements_plan         = FakeSet.new
-        @entitlements_grants       = FakeSet.new
-        @entitlements_revokes      = FakeSet.new
-        @materialized_entitlements = FakeSet.new
         @materialized_entitlements_at = nil
         @role = 'member'
         @organization_objid = nil
         @org_entitlements = FakeSet.new
       end
 
-      def entitlements_plan         = @entitlements_plan
-      def entitlements_grants       = @entitlements_grants
-      def entitlements_revokes      = @entitlements_revokes
-      def materialized_entitlements = @materialized_entitlements
 
       # Stub organization to return a fake org with entitlements method
       def organization
@@ -156,14 +150,11 @@ RSpec.describe 'MembershipMaterializedEntitlements', billing: true do
         yield if block_given?
         true
       end
-
-      def transaction
-        yield if block_given?
-      end
     end
   end
 
   let(:membership) { test_class.new }
+  after { membership.clear_entitlement_fixture }
 
   # ---------------------------------------------------------------------------
   # Section 2: Interface compliance

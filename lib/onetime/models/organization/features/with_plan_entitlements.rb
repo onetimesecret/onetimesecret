@@ -52,7 +52,27 @@ module Onetime
           local features, grants, revokes, changed = {}, {}, {}, false
           local candidates, fallback = cjson.decode(ARGV[1]), cjson.decode(ARGV[2])
           local persist, action, target = ARGV[3] == 'true', ARGV[4], ARGV[5]
-          if ARGV[6] == 'true' and redis.call('HEXISTS', KEYS[1], 'materialized_entitlements_at') == 1 then fallback = false end
+          if ARGV[6] == 'true' then
+            local stamp = redis.call('HGET', KEYS[1], 'materialized_entitlements_at')
+            local materialized = false
+            if stamp and stamp ~= '' then
+              local decoded, value = pcall(cjson.decode, stamp)
+              if decoded and (value == cjson.null or value == '') then
+                materialized = false
+              elseif (decoded and type(value) == 'string' and string.match(value, '^%d+:[%w]+$'))
+                or (not decoded and string.match(stamp, '^%d+:[%w]+$')) then
+                materialized = true
+              else
+                return redis.error_reply('Invalid organization entitlement materialization timestamp')
+              end
+            end
+            if materialized then
+              fallback = false
+            else
+              local plan = redis.call('HGET', KEYS[1], 'planid') or 'null'
+              if not fallback or ARGV[7] ~= plan then return {'unmaterialized', plan} end
+            end
+          end
           for _, name in ipairs(candidates) do
             local key = cjson.encode(name)
             local field = 'feature_override:' .. name
@@ -81,7 +101,16 @@ module Onetime
               if encoded then redis.call('HSET', KEYS[1], field, encoded)
               else redis.call('HDEL', KEYS[1], field) end
             end
-            if fallback then permitted = (fallback[name] or typed == 'grant') and typed ~= 'revoke' end
+            if fallback then
+              permitted = (fallback[name] or typed == 'grant') and typed ~= 'revoke'
+            elseif typed then
+              -- A worker on the previous version may have published its
+              -- mixed snapshot after the typed grant or revoke committed.
+              if persist and permitted ~= (typed == 'grant') then
+                redis.call(typed == 'grant' and 'SADD' or 'SREM', KEYS[2], key)
+              end
+              permitted = typed == 'grant'
+            end
             if permitted then features[#features + 1] = name end
             if grant then grants[#grants + 1] = name end
             if revoke then revokes[#revokes + 1] = name end
@@ -212,6 +241,12 @@ module Onetime
             legacy
           end
 
+          def clear_typed_override_markers(tx, name)
+            names = name ? [name] : Onetime::Authorization::Registry.features
+            tx.hdel(dbkey, *names.map { |feature| "feature_override:#{feature}" })
+          end
+          private :clear_typed_override_markers
+
           def update_feature_override(action, feature, persist: true)
             unless action == 'clear' || (%w[grant revoke].include?(action) && Onetime::Authorization::Registry.feature?(feature))
               raise ArgumentError, 'Unknown feature override'
@@ -224,18 +259,20 @@ module Onetime
           # always resolve the actual plan, including in an operator request.
           def resolve_plan_features(action: '', feature: '', persist: true)
             billing  = billing_enabled?
-            fallback = false
-            unless billing && entitlements_materialized?
-              fallback = entitlements_without_preview.to_h { |item| [item, true] }
-            end
+            keys     = [dbkey, materialized_entitlements.dbkey, entitlements_grants.dbkey,
+                        entitlements_revokes.dbkey, entitlements_plan.dbkey]
+            fallback = billing ? false : STANDALONE_ENTITLEMENTS.to_h { |name| [name, true] }
+            args     = [serialize_value(Onetime::Authorization::Registry.features.to_a.sort),
+                        serialize_value(fallback), persist.to_s, action, feature.to_s, billing.to_s]
+            3.times do
+              result = dbclient.eval(PLAN_FEATURES_SCRIPT, keys: keys, argv: args)
+              return result unless result&.first == 'unmaterialized'
 
-            dbclient.eval(
-              PLAN_FEATURES_SCRIPT,
-              keys: [dbkey, materialized_entitlements.dbkey, entitlements_grants.dbkey,
-                     entitlements_revokes.dbkey, entitlements_plan.dbkey],
-              argv: [serialize_value(Onetime::Authorization::Registry.features.to_a.sort),
-                     serialize_value(fallback), persist.to_s, action, feature.to_s, billing.to_s],
-            )
+              args[6] = result.last
+              plan_id = deserialize_value(result.last)
+              args[1] = serialize_value(unmaterialized_plan_entitlements(plan_id).to_h { |name| [name, true] })
+            end
+            raise Onetime::Problem, 'Organization plan changed during feature lookup'
           end
           private :resolve_plan_features
 
@@ -309,6 +346,11 @@ module Onetime
               return materialized_entitlements.to_a
             end
 
+            unmaterialized_plan_entitlements(planid)
+          end
+          private :entitlements_without_preview
+
+          def unmaterialized_plan_entitlements(planid)
             # Legacy path (migration): org hasn't been materialized yet
             # Fall back to Plan.load chain until all orgs are migrated
             if planid.to_s.empty?
@@ -342,7 +384,7 @@ module Onetime
               organization_id: extid,
             )
           end
-          private :entitlements_without_preview
+          private :unmaterialized_plan_entitlements
 
           # Check entitlement with detailed response for upgrade messaging
           #

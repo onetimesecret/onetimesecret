@@ -56,4 +56,26 @@ RSpec.describe Onetime::CLI::BackfillCapabilitiesCommand, :aggregate_failures do
     member.capability_state(action: 'clear')
     command.call(org: org.extid, check_rollback: true)
   end
+
+  it 'refuses rollback while a paid legacy snapshot differs from the current typed revoke' do
+    allow(org).to receive(:billing_enabled?).and_return(true)
+    org.materialize_entitlements_from_config(entitlements: ['custom_domains'], limits: {})
+    org.update_feature_override('revoke', 'custom_domains')
+    org.materialized_entitlements.add('custom_domains')
+    expect { command.call(org: org.extid, check_rollback: true) }.to raise_error(SystemExit)
+    expect(command).to have_received(:warn).with(/custom_domains/)
+    command.call(org: org.extid, run: true)
+    command.call(org: org.extid, check_rollback: true)
+  end
+
+  it 'reports a legacy materialized membership snapshot that still includes a revoked capability' do
+    member.materialized_entitlements_at = '1716000000:abc123def456'
+    member.save
+    member.revoke_capability('manage_org')
+    member.materialized_entitlements.add('manage_org')
+    expect { command.call(org: org.extid, check_rollback: true) }.to raise_error(SystemExit)
+    expect(command).to have_received(:warn).with(/manage_org/)
+    member.apply_entitlements
+    command.call(org: org.extid, check_rollback: true)
+  end
 end

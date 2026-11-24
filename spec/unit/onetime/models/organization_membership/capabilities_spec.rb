@@ -71,6 +71,21 @@ RSpec.describe Onetime::OrganizationMembership, :aggregate_failures do # rubocop
     expect(membership.revoke_capability(:manage_members)).to be(false)
   end
 
+  it 'reconciles membership overrides at publication even when the Ruby reader saw an earlier set' do
+    membership.entitlements_plan.add('manage_members')
+    membership.apply_entitlements
+    revokes = membership.entitlements_revokes
+    previous = revokes.to_a
+    writer = described_class.load(membership.objid)
+    membership.revoke_capability('manage_members')
+    allow(writer).to receive(:entitlements_revokes).and_return(
+      instance_double(Familia::UnsortedSet, dbkey: revokes.dbkey, to_a: previous)
+    )
+    writer.apply_entitlements
+    expect(membership.materialized_entitlements.to_a).not_to include('manage_members')
+    expect(membership.role_capabilities).not_to include('manage_members')
+  end
+
   it 'keeps a new capability separate from identically named historical and member feature overrides' do
     membership.role = 'member'
     membership.save
