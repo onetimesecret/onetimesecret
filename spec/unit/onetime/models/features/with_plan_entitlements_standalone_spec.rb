@@ -75,6 +75,10 @@ RSpec.describe 'WithPlanEntitlements#materialize_standalone_entitlements!', bill
 
       define_method(:billing_enabled?) { bs.call }
 
+      # This adapter checks legacy collection writes. The typed projection's
+      # Redis script is covered against a real organization in plan_features_spec.
+      def plan_entitlements = @materialized_entitlements.to_a
+
       def initialize
         @entitlements_plan            = FakeSet.new
         @limits_plan                  = FakeHashKey.new

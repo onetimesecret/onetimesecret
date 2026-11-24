@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/authorization/registry'
+
 module Onetime
   module Models
     module Features
@@ -40,6 +42,56 @@ module Onetime
       #
       module WithPlanEntitlements
         Familia::Base.add_feature self, :with_plan_entitlements
+
+        # Keep the typed snapshot inside the organization hash so it follows
+        # its lifetime, including when an older server deletes the record.
+        # Older billing workers only update the mixed set. Read that set in
+        # the same operation that refreshes the feature projection.
+        PLAN_FEATURES_SCRIPT = <<~LUA
+          if redis.call('EXISTS', KEYS[1]) == 0 then return nil end
+          local features, grants, revokes, changed = {}, {}, {}, false
+          local candidates, fallback = cjson.decode(ARGV[1]), cjson.decode(ARGV[2])
+          local persist, action, target = ARGV[3] == 'true', ARGV[4], ARGV[5]
+          if ARGV[6] == 'true' and redis.call('HEXISTS', KEYS[1], 'materialized_entitlements_at') == 1 then fallback = false end
+          for _, name in ipairs(candidates) do
+            local key = cjson.encode(name)
+            local field = 'feature_override:' .. name
+            local marker = redis.call('HGET', KEYS[1], field)
+            local grant = redis.call('SISMEMBER', KEYS[3], key) == 1
+            local revoke = redis.call('SISMEMBER', KEYS[4], key) == 1
+            local typed = marker and cjson.decode(marker)
+            -- A legacy edit or clear cancels a previous typed override when
+            -- their values disagree. Historical fallback overrides stay inert.
+            if (typed == 'grant' and (not grant or revoke)) or (typed == 'revoke' and not revoke) then typed = nil end
+            local permitted = redis.call('SISMEMBER', KEYS[2], key) == 1
+            if action == 'clear' or (action ~= '' and name == target) then
+              local next_grant, next_revoke = action == 'grant', action == 'revoke'
+              changed = changed or grant ~= next_grant or revoke ~= next_revoke or typed ~= action
+              grant, revoke = next_grant, next_revoke
+              typed = action ~= 'clear' and action
+              permitted = (grant or redis.call('SISMEMBER', KEYS[5], key) == 1) and not revoke
+              if persist then
+                redis.call(grant and 'SADD' or 'SREM', KEYS[3], key)
+                redis.call(revoke and 'SADD' or 'SREM', KEYS[4], key)
+                redis.call(permitted and 'SADD' or 'SREM', KEYS[2], key)
+              end
+            end
+            local encoded = typed and cjson.encode(typed)
+            if persist and encoded ~= marker then
+              if encoded then redis.call('HSET', KEYS[1], field, encoded)
+              else redis.call('HDEL', KEYS[1], field) end
+            end
+            if fallback then permitted = (fallback[name] or typed == 'grant') and typed ~= 'revoke' end
+            if permitted then features[#features + 1] = name end
+            if grant then grants[#grants + 1] = name end
+            if revoke then revokes[#revokes + 1] = name end
+          end
+          local snapshot = #features == 0 and '[]' or cjson.encode(features)
+          if persist and redis.call('HGET', KEYS[1], 'materialized_plan_features') ~= snapshot then
+            redis.call('HSET', KEYS[1], 'materialized_plan_features', snapshot)
+          end
+          return {features, grants, revokes, changed and 1 or 0}
+        LUA
 
         # Full entitlement set for standalone mode
         # When billing is disabled or plan cache is empty, users get full access
@@ -141,6 +193,52 @@ module Onetime
         end
 
         module InstanceMethods
+          def plan_entitlements(persist: true)
+            preview = preview_entitlements
+            return preview.select { |item| Onetime::Authorization::Registry.feature?(item) }.uniq.sort if preview
+
+            resolve_plan_features(persist: persist)&.first || []
+          end
+
+          def has_feature?(feature) # rubocop:disable Naming/PredicatePrefix -- public feature API
+            Onetime::Authorization::Registry.feature?(feature) && plan_entitlements.include?(feature.to_s)
+          end
+
+          def apply_entitlements
+            legacy = super
+            # A legacy override may be recorded before the plan is assigned.
+            # Its write need not consult the billing catalog.
+            plan_entitlements if entitlements_materialized? && !Onetime::EntitlementPreview.active?
+            legacy
+          end
+
+          def update_feature_override(action, feature, persist: true)
+            unless action == 'clear' || (%w[grant revoke].include?(action) && Onetime::Authorization::Registry.feature?(feature))
+              raise ArgumentError, 'Unknown feature override'
+            end
+
+            resolve_plan_features(action: action, feature: feature, persist: persist) || raise(Onetime::Problem, 'Organization no longer exists')
+          end
+
+          # A plan preview only affects the caller's view. Persistent writes
+          # always resolve the actual plan, including in an operator request.
+          def resolve_plan_features(action: '', feature: '', persist: true)
+            billing  = billing_enabled?
+            fallback = false
+            unless billing && entitlements_materialized?
+              fallback = entitlements_without_preview.to_h { |item| [item, true] }
+            end
+
+            dbclient.eval(
+              PLAN_FEATURES_SCRIPT,
+              keys: [dbkey, materialized_entitlements.dbkey, entitlements_grants.dbkey,
+                     entitlements_revokes.dbkey, entitlements_plan.dbkey],
+              argv: [serialize_value(Onetime::Authorization::Registry.features.to_a.sort),
+                     serialize_value(fallback), persist.to_s, action, feature.to_s, billing.to_s],
+            )
+          end
+          private :resolve_plan_features
+
           # Materialize standalone-mode entitlements onto this org.
           #
           # When billing is disabled (self-hosted/standalone deployments), there is
@@ -196,6 +294,10 @@ module Onetime
             preview = preview_entitlements
             return preview unless preview.nil?
 
+            entitlements_without_preview
+          end
+
+          def entitlements_without_preview
             # Fail-open: self-hosted/standalone gets full access
             unless billing_enabled?
               return STANDALONE_ENTITLEMENTS.dup
@@ -204,7 +306,7 @@ module Onetime
             # Materialized path: delegate to WithEntitlements#entitlements via super,
             # which reads materialized_entitlements directly.
             if respond_to?(:entitlements_materialized?) && entitlements_materialized?
-              return super
+              return materialized_entitlements.to_a
             end
 
             # Legacy path (migration): org hasn't been materialized yet
@@ -240,6 +342,7 @@ module Onetime
               organization_id: extid,
             )
           end
+          private :entitlements_without_preview
 
           # Check entitlement with detailed response for upgrade messaging
           #
