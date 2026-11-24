@@ -199,6 +199,7 @@ bin/ots migrations backfill-email-hash            # Organization email_hash for 
 bin/ots migrations backfill-stripe-email-hash     # same hash into Stripe customer metadata
 bin/ots migrations backfill-subscription-status   # subscription fields from Stripe
 bin/ots migrations backfill-secret-counts         # per-customer secrets_active recount
+bin/ots migrations backfill-capabilities          # compare legacy and v0.27 authorization data
 bin/ots migrations grant-probono-entitlements     # legacy identity-plan customers
 bin/ots migrations dedupe-instances               # JSON-quoted duplicates in class sorted sets
 bin/ots migrations dedupe-participations          # same, per-instance participation sets
@@ -209,6 +210,31 @@ The convention is a thin CLI adapter over an operation or job class that
 owns the logic, so the scheduled job and the manual command are one
 implementation. `backfill-secret-counts` over `SecretCountReconcileJob` is
 the reference example. Follow it for new commands.
+
+### Roll out the v0.27 authorization fields
+
+1. On a copy of the target data, run `bin/ots migrations backfill-capabilities`.
+   The command compares each organization's feature list and its active members'
+   four pre-v0.27 capabilities with the older inputs. Investigate reported
+   differences. Use `--org PUBLIC_ID` to retry one organization.
+2. Run the comparison on the deployment, then add `--run` to populate the
+   new fields. Repeating it reconciles fields after an interruption. Current
+   servers also refresh the fields when reading permissions. Both versions
+   continue to read legacy member feature overrides.
+3. Remove older servers and workers from rotation before using typed overrides.
+   The existing Colonel override routes accept `kind=feature` for an organization
+   and `kind=capability` for a membership. Grant and revoke receive the name in
+   `entitlement`. A clear with a kind removes overrides of that kind. Omit
+   `kind` to use the existing mixed override operation. A typed feature grant or
+   revoke applies even in standalone mode and unmaterialized plan fallback.
+   Historical organization overrides in those modes keep their previous effect.
+4. Before starting an older binary, suspend override edits and run
+   `bin/ots migrations backfill-capabilities --check-rollback` on current data.
+   A nonzero exit reports an organization where the older reader would answer
+   differently or an override for a capability introduced in v0.27. Keep v0.27
+   serving until the operator reconciles the discrepancy and the check passes.
+   Clearing overrides changes access and requires the normal operator decision.
+   Legacy entitlement sets remain available to the previous release.
 
 The three `dedupe-*` commands exist because Familia v2 JSON-encodes scalar
 values, so the JSON-encoded member `"abc"` (including the quote characters)
