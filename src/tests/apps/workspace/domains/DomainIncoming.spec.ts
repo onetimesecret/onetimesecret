@@ -11,7 +11,7 @@
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { createTestI18n } from '@tests/setup';
 import DomainIncoming from '@/apps/workspace/domains/DomainIncoming.vue';
 import type { ApplicationError } from '@/schemas/errors';
@@ -74,16 +74,24 @@ vi.mock('@/shared/composables/useDomain', () => ({
   useDomain: () => mockDomainState,
 }));
 
-// Mock useEntitlements
 let mockCanIncoming = ref(true);
 let mockCanManageOrg = ref(true);
-vi.mock('@/shared/composables/useEntitlements', () => ({
-  useEntitlements: () => ({
-    can: (entitlement: string) => {
-      if (entitlement === 'incoming_secrets') return mockCanIncoming.value;
-      if (entitlement === 'manage_org') return mockCanManageOrg.value;
-      return true;
-    },
+const mockTargetConfirmed = ref(true);
+const mockRole = ref<'member' | 'owner'>('owner');
+const mockBillingEnabled = ref(true);
+vi.mock('@/shared/stores/bootstrapStore', async importOriginal => {
+  const actual = await importOriginal<typeof import('@/shared/stores/bootstrapStore')>();
+  return { ...actual, useBootstrapStore: () => ({ get billing_enabled() { return mockBillingEnabled.value; } }) };
+});
+vi.mock('@/shared/composables/useResourcePermissions', () => ({
+  useTargetDomainPermissions: () => ({
+    isLoading: ref(false),
+    permission: computed(() => mockTargetConfirmed.value ? {
+      permissions: { can_view: true, can_manage_incoming: mockCanIncoming.value && mockCanManageOrg.value,
+        incoming_feature_required: mockCanManageOrg.value && !mockCanIncoming.value },
+      membership: { role: mockRole.value, status: 'active', role_capabilities: mockCanManageOrg.value ? ['manage_org'] : [] },
+      organization: { plan_entitlements: mockCanIncoming.value ? ['incoming_secrets'] : [] },
+    } : undefined),
   }),
 }));
 
@@ -198,6 +206,9 @@ describe('DomainIncoming', () => {
     mockIsOrgsIncomingSecretsEnabled = true;
     mockCanIncoming = ref(true);
     mockCanManageOrg = ref(true);
+    mockTargetConfirmed.value = true;
+    mockRole.value = 'owner';
+    mockBillingEnabled.value = true;
     mockDomainState.isLoading.value = false;
     mockDomainState.error.value = null;
     mockIncomingConfigState = createMockIncomingConfigState();
@@ -289,6 +300,49 @@ describe('DomainIncoming', () => {
   // ---------------------------------------------------------------------------
 
   describe('Entitlement gating', () => {
+    it.each([
+      [true, 'web.domains.entitlement_required_member'],
+      [false, 'incoming.feature_disabled_description'],
+    ] as const)('shows feature guidance without billing or configuration controls for a delegate (billing %s)', async (billing, key) => {
+      mockRole.value = 'member';
+      mockCanIncoming.value = false;
+      mockBillingEnabled.value = billing;
+      wrapper = mountComponent();
+      await flushPromises();
+      expect(wrapper.text()).toContain(key);
+      expect(wrapper.find('a[href*="/billing/"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="incoming-config-form"]').exists()).toBe(false);
+      expect(mockInitializeIncomingConfig).not.toHaveBeenCalled();
+    });
+
+    it('shows an unavailable feature with no billing link when Incoming is revoked in standalone mode', async () => {
+      mockCanIncoming.value = false;
+      mockBillingEnabled.value = false;
+      wrapper = mountComponent();
+      await flushPromises();
+      expect(wrapper.text()).toContain('incoming.feature_disabled_description');
+      expect(wrapper.find('a[href*="/billing/"]').exists()).toBe(false);
+      expect(mockInitializeIncomingConfig).not.toHaveBeenCalled();
+    });
+
+    it('shows a membership denial without offering an upgrade after an owner revoke', async () => {
+      mockCanManageOrg.value = false;
+      wrapper = mountComponent();
+      await flushPromises();
+      expect(wrapper.text()).toContain('web.domains.incoming.access_denied_description');
+      expect(wrapper.find('[data-testid="incoming-config-form"]').exists()).toBe(false);
+      expect(mockInitializeIncomingConfig).not.toHaveBeenCalled();
+    });
+
+    it('keeps controls closed when the scoped permission lookup is unconfirmed', async () => {
+      mockTargetConfirmed.value = false;
+      wrapper = mountComponent();
+      await flushPromises();
+      expect(wrapper.text()).toContain('web.organizations.access_unconfirmed_notice');
+      expect(mockInitializeDomain).not.toHaveBeenCalled();
+      expect(mockInitializeIncomingConfig).not.toHaveBeenCalled();
+    });
+
     it('PG-ENT-001: shows upgrade prompt when missing incoming_secrets entitlement', async () => {
       mockCanIncoming.value = false;
 

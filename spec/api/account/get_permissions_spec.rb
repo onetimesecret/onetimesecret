@@ -225,6 +225,78 @@ RSpec.describe 'GET /api/account/permissions', type: :integration do
     end
   end
 
+  describe 'feature and capability permissions for domain incoming settings' do
+    [true, false].each do |billing_enabled|
+      context "with billing #{billing_enabled ? 'enabled' : 'disabled'}" do
+        before do
+          allow(Onetime::BillingConfig.instance).to receive(:enabled?).and_return(billing_enabled)
+          organization.materialize_entitlements_from_config(entitlements: %w[incoming_secrets], limits: {}) if billing_enabled
+        end
+
+        def expect_incoming_decision(user, allowed:)
+          create_session_for(user)
+          get '/api/account/permissions'
+          expect(last_response.status).to eq(200)
+          org = JSON.parse(last_response.body).fetch('organizations').find { |row| row.fetch('extid') == organization.extid }
+          expect(org.fetch('plan_entitlements')).to include('incoming_secrets')
+          expect(org.fetch('plan_entitlements')).not_to include('manage_org')
+          capabilities = org.fetch('membership').fetch('role_capabilities')
+          expect(capabilities.include?('manage_org')).to be(allowed)
+          domain = org.fetch('domains').find { |row| row.fetch('extid') == custom_domain.extid }
+          expect(domain.fetch('permissions').fetch('can_manage_incoming')).to be(allowed)
+          expect(domain.fetch('permissions').fetch('incoming_feature_required')).to be(false)
+
+          get '/api/account/permissions', resource_type: 'domain', resource_id: custom_domain.extid
+          expect(last_response.status).to eq(200)
+          target = JSON.parse(last_response.body)
+          expect(target.fetch('organization').fetch('plan_entitlements')).to match_array(org.fetch('plan_entitlements'))
+          expect(target.fetch('membership').fetch('role_capabilities')).to match_array(capabilities)
+          expect(target.fetch('permissions')).to eq(domain.fetch('permissions'))
+
+          get "/api/domains/#{custom_domain.extid}/incoming-config"
+          expect(last_response.status).to eq(allowed ? 200 : 403)
+        end
+
+        it 'reports both axes for an owner, including a subsequent capability revoke' do
+          expect_incoming_decision(owner, allowed: true)
+          Onetime::OrganizationMembership.find_by_org_customer(organization.objid, owner.objid).revoke_entitlement('manage_org')
+          expect_incoming_decision(owner, allowed: false)
+        end
+
+        it 'excludes other domains for a member with a scoped grant' do
+          member_membership.domain_scope_id = SecureRandom.uuid
+          member_membership.save
+          member_membership.grant_entitlement('manage_org')
+          create_session_for(member_user)
+          get '/api/account/permissions'
+          expect(last_response.status).to eq(200)
+          org = JSON.parse(last_response.body).fetch('organizations').find { |row| row.fetch('extid') == organization.extid }
+          expect(org.fetch('domains')).to be_empty
+          expect(org.fetch('membership').fetch('role_capabilities')).to include('manage_org')
+          get '/api/account/permissions', resource_type: 'domain', resource_id: custom_domain.extid
+          expect(last_response.status).to eq(404)
+          get "/api/domains/#{custom_domain.extid}/incoming-config"
+          expect(last_response.status).to eq(404)
+        end
+
+        it 'identifies a missing organization feature for an otherwise authorized member' do
+          organization.update_feature_override('revoke', 'incoming_secrets')
+          create_session_for(owner)
+          get '/api/account/permissions', resource_type: 'domain', resource_id: custom_domain.extid
+          expect(last_response.status).to eq(200)
+          expect(JSON.parse(last_response.body).fetch('permissions')).to include(
+            'can_manage_incoming' => false, 'incoming_feature_required' => true
+          )
+          get "/api/domains/#{custom_domain.extid}/incoming-config"
+          expect(last_response.status).to eq(422)
+          expect(JSON.parse(last_response.body)).to include(
+            'error_key' => 'api.domains.errors.incoming_secrets_entitlement_required'
+          )
+        end
+      end
+    end
+  end
+
   describe 'domain SSO permissions' do
     let(:owner_membership) { Onetime::OrganizationMembership.find_by_org_customer(organization.objid, owner.objid) }
     let(:sso_enabled) { true }

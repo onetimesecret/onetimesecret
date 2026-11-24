@@ -128,17 +128,6 @@
 
   const isElevatedRole = computed(() => userRole.value === 'owner' || userRole.value === 'admin');
 
-  // Match the DomainContext switcher's settings gate: elevated users can edit
-  // domains on standalone installs, while billing-enabled installs require the
-  // domain-management entitlement when the entitlement list is present.
-  const canManageDomainSettings = computed(() => {
-    if (!isElevatedRole.value) return false;
-    if (!billing_enabled.value) return true;
-
-    const ents = currentOrganization.value?.entitlements;
-    return !ents || ents.includes(ENTITLEMENTS.MANAGE_ORG);
-  });
-
   // Reuse the org-switcher visibility logic so the header identity chip appears
   // and disappears in step with the organization context dropdown.
   const { isSoloDefaultContext } = useScopeSwitcherVisibility();
@@ -165,7 +154,8 @@
   });
 
   // Domain context display in menu header
-  const { currentContext, isContextActive } = useDomainContext();
+  const { currentContext, isContextActive, canViewDomain } = useDomainContext();
+  const canManageDomainSettings = computed(() => isElevatedRole.value && canViewDomain(currentContext.value.extid));
   const showDomainContext = computed(() => isContextActive.value && !props.awaitingMfa);
 
   const isOpen = ref(false);

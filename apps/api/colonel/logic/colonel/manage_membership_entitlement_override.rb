@@ -82,6 +82,7 @@ module ColonelAPI
           # '@' and '.', which made the resolver's email arm unreachable.
           @member_id   = sanitize_account_identifier(params['member_id'])
           @entitlement = params['entitlement']&.to_s&.strip
+          @kind        = params.fetch('kind', 'entitlement')
 
           # Action comes from URL path:
           # - POST /entitlements/:action  -> params['action'] = 'grant' or 'revoke'
@@ -134,6 +135,7 @@ module ColonelAPI
             action: @action,
             actor: cust.extid,
             entitlement: @entitlement,
+            kind: @kind,
             # The console has no preview flow (D12) — this surface always applies.
             dry_run: false,
           ).call
@@ -165,7 +167,7 @@ module ColonelAPI
         # raw request param. Advisory, not a guard: it runs after the
         # confirmation gate.
         def warn_unknown_entitlement
-          return if @action == 'clear'
+          return if @action == 'clear' || @kind != 'entitlement'
           return if Onetime::Operations::Memberships::EntitlementOverride.known_entitlement?(@entitlement)
 
           verb = @action == 'grant' ? 'Granting' : 'Revoking'
@@ -181,6 +183,8 @@ module ColonelAPI
         # in the requested state, so the response below describes reality.
         def handle_result_status(result)
           case result.status
+          when :invalid_kind
+            raise_form_error('Use a membership capability for this override', field: :kind)
           when :invalid_action
             raise_form_error(VALID_ACTIONS_MESSAGE, field: :action)
           when :missing_entitlement

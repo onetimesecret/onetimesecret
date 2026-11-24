@@ -7,6 +7,7 @@ import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { usePageTitle } from '@/shared/composables/usePageTitle';
 import {
+  useDomainPermissionLookup,
   useDomainSsoPermissionLookup,
   useOrganizationPermissionLookup,
   useResourcePermissions,
@@ -509,6 +510,9 @@ export async function handleOrgRoleRequirement(
 
   if (orgExtid) {
     if (isOrganizationMembersTab(to)) return checkMembersTabAccess(store, orgExtid);
+    if (to.name === 'DomainIncoming' && typeof to.params.extid === 'string') {
+      return checkIncomingRouteAccess(store, orgExtid, to.params.extid);
+    }
     const ssoDecision = handleTenantSsoRoute(store, to, orgExtid);
     if (ssoDecision !== undefined) return ssoDecision;
   }
@@ -560,6 +564,18 @@ function notifyOrgRoleRefused(
 
 type OrganizationStore = ReturnType<typeof useOrganizationStore>;
 
+async function checkIncomingRouteAccess(
+  store: OrganizationStore, orgExtid: string, domain: string
+) {
+  const record = await useDomainPermissionLookup()(orgExtid, domain);
+  // A confirmed feature denial belongs on the Incoming page for this domain.
+  if (record?.permissions.can_manage_incoming === false &&
+      record.permissions.incoming_feature_required === true) return null;
+  return checkDomainActionAccess(store, orgExtid, record && {
+    allowed: record.permissions.can_manage_incoming, role: record.membership.role,
+  }, 'web.domains.incoming.access_denied');
+}
+
 function handleTenantSsoRoute(
   store: OrganizationStore, to: RouteLocationNormalized, orgExtid: string
 ) {
@@ -591,16 +607,20 @@ async function checkSsoRouteAccess(
   orgExtid: string,
   lookup: Promise<{ allowed: boolean | undefined; role: string } | undefined>,
 ) {
-  // Elevated roles can reach the page's disabled and denial states. A delegated
-  // member can reach only the SSO page authorized for the requested target.
-  const record = await lookup;
+  return checkDomainActionAccess(store, orgExtid, await lookup, 'web.domains.sso.access_denied');
+}
+
+async function checkDomainActionAccess(
+  store: OrganizationStore, orgExtid: string,
+  record: { allowed: boolean | undefined; role: string } | undefined, deniedMessage: string,
+) {
   if (record?.allowed) return null;
   const elevated = record
     ? roleMeetsRequirement(record.role, 'admin')
     : await singleOrgMeetsRole(store, orgExtid, 'admin');
   if (elevated) return null;
   const key = record?.allowed === false
-    ? 'web.domains.sso.access_denied'
+    ? deniedMessage
     : 'web.organizations.access_unconfirmed_notice';
   useNotificationsStore().enqueue(globalComposer.t(key), 'info', 'top', 10000);
   return { path: '/dashboard' };

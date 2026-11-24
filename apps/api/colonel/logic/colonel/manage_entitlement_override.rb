@@ -73,6 +73,7 @@ module ColonelAPI
         def process_params
           @org_id      = sanitize_identifier(params['org_id'])
           @entitlement = params['entitlement']&.to_s&.strip
+          @kind        = params.fetch('kind', 'entitlement')
 
           # Action comes from URL path:
           # - POST /entitlements/:action  -> params['action'] = 'grant' or 'revoke'
@@ -117,6 +118,7 @@ module ColonelAPI
             action: @action,
             actor: cust.extid,
             entitlement: @entitlement,
+            kind: @kind,
             # The console has no preview flow (D12) — this surface always applies.
             dry_run: false,
           ).call
@@ -147,7 +149,7 @@ module ColonelAPI
         # of the entitlement NAME is advisory (it helps catch typos); it is not a
         # guard, so it deliberately runs after the confirmation gate.
         def warn_unknown_entitlement
-          return if @action == 'clear'
+          return if @action == 'clear' || @kind != 'entitlement'
           return if Onetime::Operations::Org::EntitlementOverride.known_entitlement?(@entitlement)
 
           OT.info "[colonel] Granting unknown entitlement '#{@entitlement}' to org #{@org_id}"
@@ -167,6 +169,8 @@ module ColonelAPI
         # carries the counts so the admin UI can name the stale members.
         def handle_result_status(result)
           case result.status
+          when :invalid_kind
+            raise_form_error('Use an organization feature for this override', field: :kind)
           when :invalid_action
             raise_form_error(VALID_ACTIONS_MESSAGE, field: :action)
           when :missing_entitlement

@@ -64,6 +64,7 @@ RSpec.describe Core::Views::OrganizationSerializer do
   describe 'happy path (plan resolves)' do
     before do
       allow(org).to receive(:entitlements).and_return(%w[create_secrets api_access custom_domains])
+      allow(org).to receive(:plan_entitlements).and_return(%w[api_access custom_domains])
       allow(org).to receive(:limit_for).with(:teams).and_return(3)
       allow(org).to receive(:limit_for).with(:total_members_per_org).and_return(Float::INFINITY)
       allow(org).to receive(:limit_for).with(:custom_domains).and_return(5)
@@ -74,6 +75,7 @@ RSpec.describe Core::Views::OrganizationSerializer do
       payload = serialized_org
 
       expect(payload['entitlements']).to eq(%w[create_secrets api_access custom_domains])
+      expect(payload['plan_entitlements']).to eq(%w[api_access custom_domains])
       expect(payload['limits']).to eq(
         'teams' => 3,
         'total_members_per_org' => -1, # Float::INFINITY normalizes to -1
@@ -200,6 +202,7 @@ RSpec.describe Core::Views::OrganizationSerializer do
       # free-tier values: plan_derived_fields degrades atomically so
       # entitlements and limits never disagree about which plan they reflect.
       expect(payload['entitlements']).to eq(free_tier_entitlements)
+      expect(payload['plan_entitlements']).to eq([])
       expect(payload['limits']).to eq(
         'teams' => 0,
         'total_members_per_org' => 1,
@@ -229,6 +232,7 @@ RSpec.describe Core::Views::OrganizationSerializer do
         archived?: false,
         planid: 'identity_plus_v1',
         entitlements: %w[create_secrets],
+        plan_entitlements: %w[create_secrets],
       )
     end
 

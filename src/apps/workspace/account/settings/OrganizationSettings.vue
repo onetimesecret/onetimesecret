@@ -316,6 +316,8 @@
     ? targetPermissions.value?.domains.filter(domain => domain.permissions.can_manage_sso === true) ?? []
     : []);
   const ssoDomainIds = computed(() => new Set(ssoDomains.value.map(domain => domain.extid)));
+  const incomingDomainIds = computed(() => new Set(checkingDomainPermissions.value ? [] :
+    targetPermissions.value?.domains.filter(d => d.permissions.can_manage_incoming).map(d => d.extid)));
   const ssoAccessUnconfirmed = computed(() => !targetPermissions.value ||
     targetPermissions.value.domains.some(domain => domain.permissions.can_manage_sso === undefined));
   const showSsoTab = computed(() => isOrgsSsoEnabled() &&
@@ -837,7 +839,7 @@
       await Promise.all(requests);
     } else if (newTab === 'domains') {
       // Row actions use the current target-domain permission on each visit.
-      await Promise.all([refreshDomains(), isOrgsSsoEnabled() && refreshTargetPermissions()]);
+      await Promise.all([refreshDomains(), refreshTargetPermissions()]);
     } else if (newTab === 'subscription' && !subscription.value && billingEnabled.value) {
       await loadBilling();
     } else if (newTab === 'sso') {
@@ -1665,6 +1667,7 @@
               v-else-if="domainCount > 0 && domainRecords"
               :domains="domainRecords"
               :sso-domain-ids="ssoDomainIds"
+              :incoming-domain-ids="incomingDomainIds"
               :is-loading="isLoadingDomains"
               :orgid="orgId"
               compact />

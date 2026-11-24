@@ -515,6 +515,7 @@ export const organizationSchema = z
     planid: CanonicalPlanIdSchema.nullish(),
     current_user_role: z.enum(['owner', 'admin', 'member']).nullish(),
     entitlements: z.array(z.string()).nullish(),
+    plan_entitlements: z.array(z.string()).optional(),
     /** Plan limits per resource; -1 means unlimited. */
     limits: z
       .object({

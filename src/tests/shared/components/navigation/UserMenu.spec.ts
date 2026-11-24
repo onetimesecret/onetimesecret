@@ -134,6 +134,7 @@ vi.mock('@/shared/composables/useDomainContext', () => ({
   useDomainContext: () => ({
     currentContext: mockCurrentDomainContext,
     isContextActive: mockIsDomainContextActive,
+    canViewDomain: (id?: string) => id === 'domain_xyz',
   }),
 }));
 

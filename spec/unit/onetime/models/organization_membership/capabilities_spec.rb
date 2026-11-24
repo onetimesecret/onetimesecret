@@ -12,8 +12,8 @@ RSpec.describe Onetime::OrganizationMembership, :aggregate_failures do # rubocop
 
   {
     'member' => [],
-    'admin' => %w[manage_members],
-    'owner' => %w[manage_members manage_org manage_sso manage_billing],
+    'admin' => %w[manage_domains manage_members],
+    'owner' => %w[manage_domains manage_members manage_org manage_sso manage_billing],
   }.each do |role, capabilities|
     it "materializes the default capabilities for an active #{role}" do
       membership.role = role
@@ -30,7 +30,7 @@ RSpec.describe Onetime::OrganizationMembership, :aggregate_failures do # rubocop
 
     expect(existing_membership.has_capability?(:manage_members)).to be(true)
     expect(existing_membership.has_capability?(:manage_org)).to be(false)
-    expect(described_class.load(membership.objid).materialized_capabilities).to eq(['manage_members'])
+    expect(described_class.load(membership.objid).materialized_capabilities).to contain_exactly('manage_domains', 'manage_members')
     expect(existing_membership).not_to have_received(:organization)
   end
 
@@ -51,12 +51,55 @@ RSpec.describe Onetime::OrganizationMembership, :aggregate_failures do # rubocop
     membership.revoke_entitlement('manage_members')
     membership.entitlements_grants.add('manage_members')
 
-    expect(membership.materialize_capabilities!).to eq(['manage_org'])
+    expect(membership.materialize_capabilities!).to contain_exactly('manage_domains', 'manage_org')
     expect(membership.has_capability?(:custom_domains)).to be(false)
 
     membership.clear_entitlement_overrides
 
-    expect(membership.materialize_capabilities!).to eq(['manage_members'])
+    expect(membership.materialize_capabilities!).to contain_exactly('manage_domains', 'manage_members')
+  end
+
+  it 'mirrors established capability overrides for older readers and observes an older writer clearing them' do
+    membership.grant_capability(:manage_org)
+    expect(membership.entitlements_grants.to_a).to include('manage_org')
+    expect(membership.materialized_entitlements.to_a).to include('manage_org')
+    membership.entitlements_grants.clear
+    expect(membership.role_capabilities).not_to include('manage_org')
+
+    membership.entitlements_revokes.add('manage_members')
+    expect(membership.has_capability?(:manage_members)).to be(false)
+    expect(membership.revoke_capability(:manage_members)).to be(false)
+  end
+
+  it 'reconciles membership overrides at publication even when the Ruby reader saw an earlier set' do
+    membership.entitlements_plan.add('manage_members')
+    membership.apply_entitlements
+    revokes = membership.entitlements_revokes
+    previous = revokes.to_a
+    writer = described_class.load(membership.objid)
+    membership.revoke_capability('manage_members')
+    allow(writer).to receive(:entitlements_revokes).and_return(
+      instance_double(Familia::UnsortedSet, dbkey: revokes.dbkey, to_a: previous)
+    )
+    writer.apply_entitlements
+    expect(membership.materialized_entitlements.to_a).not_to include('manage_members')
+    expect(membership.role_capabilities).not_to include('manage_members')
+  end
+
+  it 'keeps a new capability separate from identically named historical and member feature overrides' do
+    membership.role = 'member'
+    membership.save
+    membership.grant_entitlement('manage_domains')
+    membership.grant_entitlement('custom_domains')
+    expect(membership.has_capability?(:manage_domains)).to be(false)
+    expect(membership.grant_capability(:manage_domains)).to be(true)
+    stale = described_class.load(membership.objid)
+    expect(stale.role_capabilities).to eq(['manage_domains'])
+    membership.capability_state(action: 'clear')
+    stale.save
+    expect(membership.has_capability?(:manage_domains)).to be(false)
+    expect(membership.entitlements_grants.to_a).to include('custom_domains', 'manage_domains')
+    expect { membership.grant_capability('custom_domains') }.to raise_error(ArgumentError)
   end
 
   it 'does not grant capabilities to a pending invitation or a removed membership' do

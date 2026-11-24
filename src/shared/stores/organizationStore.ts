@@ -853,6 +853,7 @@ export const useOrganizationStore = defineStore('organization', () => {
           planid: bootstrapOrg.planid ?? 'free_v1',
           current_user_role: bootstrapOrg.current_user_role ?? null,
           entitlements: bootstrapOrg.entitlements ?? null,
+          plan_entitlements: bootstrapOrg.plan_entitlements,
           limits: bootstrapOrg.limits ?? null,
           // These fields will be populated when full org is fetched
           created: new Date(),

@@ -320,15 +320,9 @@ module Billing
         # can be one the caller merely belongs to. Without this gate, that member
         # is handed the organization's portal.
         #
-        # Gate on ownership rather than the manage_billing entitlement: it is
-        # OWNER_ENTITLEMENTS-only (lib/onetime/models/organization_membership.rb),
-        # so the org-plan ∩ role intersection can never grant it past ownership
-        # — an entitlement gate could not widen access here. It can, however,
-        # narrow it below the owner: a deployment whose catalog omits
-        # manage_billing from every plan would have that org's own owner denied
-        # their billing portal. Ownership is also the same test every mutating
-        # sibling endpoint already applies via load_organization(...,
-        # require_owner: true) (controllers/billing.rb).
+        # Ownership controls the portal even when an operator grants or
+        # revokes a membership's manage_billing capability. Mutating sibling
+        # endpoints check ownership via load_organization(require_owner: true).
         #
         # Redirect rather than raise Onetime::Forbidden: this route is declared
         # with no response= (routes.txt), so Otto content-negotiates the error

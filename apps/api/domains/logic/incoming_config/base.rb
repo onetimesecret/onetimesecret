@@ -61,7 +61,7 @@ module DomainsAPI
         # @param organization [Onetime::Organization]
         # @raise [FormError] if entitlement not present
         def verify_incoming_secrets_entitlement(organization)
-          return if organization.can?('incoming_secrets')
+          return if organization.has_feature?('incoming_secrets')
 
           raise_form_error(
             'Incoming secrets management requires the incoming_secrets entitlement. Please upgrade your plan.',

@@ -73,7 +73,7 @@ vi.mock('@/apps/workspace/components/dashboard/DomainsTableDomainCell.vue', () =
 }));
 
 vi.mock('@/apps/workspace/components/dashboard/DomainsTableActionsCell.vue', () => ({
-  default: { name: 'DomainsTableActionsCell', template: '<div class="actions-cell" />', props: ['canManageSso'] },
+  default: { name: 'DomainsTableActionsCell', template: '<div class="actions-cell" />', props: ['canManageSso', 'canIncomingSecrets'] },
 }));
 
 vi.mock('@/shared/components/modals/ConfirmDialog.vue', () => ({
@@ -133,6 +133,7 @@ function mountTable(domains: CustomDomain[], ssoDomainIds: ReadonlySet<string> =
     props: {
       domains,
       ssoDomainIds,
+      incomingDomainIds: new Set<string>(),
       isLoading: false,
       orgid: 'org_ext_123',
     },
@@ -147,6 +148,14 @@ it('passes SSO management to the permitted domain row and clears it on a revoke'
   expect(permissions()).toEqual([true, false]);
   await wrapper.setProps({ ssoDomainIds: new Set() });
   expect(permissions()).toEqual([false, false]);
+});
+
+it('offers Incoming only for a confirmed domain', async () => {
+  const wrapper = mountTable([baseDomain, { ...baseDomain, extid: 'other' }]);
+  const rows = () => wrapper.findAllComponents({ name: 'DomainsTableActionsCell' }).map(cell => cell.props('canIncomingSecrets'));
+  expect(rows()).toEqual([false, false]);
+  await wrapper.setProps({ incomingDomainIds: new Set(['other']) });
+  expect(rows()).toEqual([false, true]);
 });
 
 describe('DomainsTable - homepage incoming badge', () => {

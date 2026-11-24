@@ -1,6 +1,6 @@
 # Billing / Plans / Entitlements / Capabilities — Canonical Reading List
 
-The system has a clean layered design: `Stripe` → `Plan catalog` → `Org entitlements (materialized)` → `Membership entitlements (role-intersected)` → `enforcement`. A crucial subtlety a new engineer must internalize: there are three distinct "capability/feature" concepts that are easy to conflate (see note at the end).
+Start with [ADR-053](../adr/adr-053-plan-features-and-membership-capabilities.md) for organization features, member capabilities, and the compatibility window. The older role-intersected membership entitlements still serve existing endpoints.
 
 ## START HERE (current implementation)
 
@@ -8,9 +8,9 @@ The system has a clean layered design: `Stripe` → `Plan catalog` → `Org enti
 
 The authoritative `ROLE_ENTITLEMENTS` templates and their current role assignments. Read this first, then the materialization and enforcement modules below.
 
-### `docs/adr/adr-012-membership-level-entitlements.md` (proposed design history)
+### `docs/adr/adr-012-membership-level-entitlements.md` (design history)
 
-ADR-012 explains why authority moved from role-string checks to materialized entitlement sets and why the org ∩ role intersection exists. Its status is **Proposed**, and its role-template example predates the current assignments. Use it for rationale, not as the source of truth for an entitlement's current role.
+ADR-012 explains the historical role intersection. ADR-053 supersedes it. The current capability defaults come from the [authorization registry](../../src/schemas/contracts/authorization-registry.json).
 
 ---
 

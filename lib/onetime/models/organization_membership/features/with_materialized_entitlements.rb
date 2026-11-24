@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../../features/entitlement_set_operations'
+
 module Onetime
   module Models
     module Features
@@ -72,6 +74,8 @@ module Onetime
         end
 
         module InstanceMethods
+          include EntitlementSetOperations
+
           # Materialize entitlements for this membership based on role.
           #
           # Computes: org.materialized_entitlements ∩ ROLE_ENTITLEMENTS[role]
@@ -110,33 +114,6 @@ module Onetime
               effective_entitlements.each { |e| entitlements_plan.add(e) }
               apply_entitlements
             end
-          end
-
-          # Reconcile effective entitlements from sources
-          #
-          # Order: entitlements_plan + entitlements_grants - entitlements_revokes
-          #
-          # Wraps the write operations in MULTI/EXEC via Familia#transaction.
-          # Source-set reads happen BEFORE the transaction.
-          #
-          # @return [Array<String>] Effective entitlements after reconciliation
-          def apply_entitlements
-            # Snapshot source sets outside the transaction
-            plan_members   = entitlements_plan.to_a
-            grant_members  = entitlements_grants.to_a
-            revoke_members = entitlements_revokes.to_a
-
-            # Compute effective set in Ruby first, then write once.
-            # Reduces Redis commands inside transaction from clear + N + M + K
-            # to clear + effective_count.
-            effective = (plan_members + grant_members) - revoke_members
-
-            transaction do
-              materialized_entitlements.clear
-              effective.each { |e| materialized_entitlements.add(e) }
-            end
-
-            materialized_entitlements.to_a
           end
 
           # Check if entitlements are materialized
@@ -179,39 +156,6 @@ module Onetime
           # @return [Boolean] True if membership has the entitlement
           def can?(entitlement)
             entitlements.include?(entitlement.to_s)
-          end
-
-          # Grant an entitlement to this membership (operator override)
-          #
-          # @param entitlement [String] Entitlement to grant
-          # @return [Boolean] True if added (false if already present)
-          def grant_entitlement(entitlement)
-            ent    = entitlement.to_s
-            entitlements_revokes.remove_element(ent)
-            result = entitlements_grants.add(ent)
-            apply_entitlements
-            result
-          end
-
-          # Revoke an entitlement from this membership (operator override)
-          #
-          # @param entitlement [String] Entitlement to revoke
-          # @return [Boolean] True if added (false if already present)
-          def revoke_entitlement(entitlement)
-            ent    = entitlement.to_s
-            entitlements_grants.remove_element(ent)
-            result = entitlements_revokes.add(ent)
-            apply_entitlements
-            result
-          end
-
-          # Clear all operator overrides
-          #
-          # @return [Array<String>] Effective entitlements after clearing
-          def clear_entitlement_overrides
-            entitlements_grants.clear
-            entitlements_revokes.clear
-            apply_entitlements
           end
 
           # Parse materialized_entitlements_at into components

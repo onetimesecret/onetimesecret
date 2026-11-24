@@ -133,7 +133,7 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
     allow(Onetime::Organization).to receive(:load)
       .with(org_id).and_return(organization)
     allow(organization).to receive(:owner?).with(authenticated_customer).and_return(true)
-    allow(organization).to receive(:can?).with('incoming_secrets').and_return(true)
+    allow(organization).to receive(:has_feature?).with('incoming_secrets').and_return(true)
     allow(owner_membership).to receive(:can_access_domain?).with(custom_domain).and_return(true)
     allow(Onetime::CustomDomain::IncomingConfig).to receive(:find_by_domain_id)
       .with(domain_identifier).and_return(nil)
@@ -262,7 +262,7 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
       let(:logic) { described_class.new(strategy_result, params) }
 
       before do
-        allow(organization).to receive(:can?).with('incoming_secrets').and_return(false)
+        allow(organization).to receive(:has_feature?).with('incoming_secrets').and_return(false)
       end
 
       it 'raises FormError tagged with incoming_secrets_entitlement_required' do

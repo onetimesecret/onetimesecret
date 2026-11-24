@@ -5,6 +5,7 @@
 //
 // Architecture: contract → shape → API
 
+import { knownAuthorizationTokens } from '@/schemas/contracts/authorization-registry';
 import { wireEmailSchema } from '@/schemas/utils/email';
 import { schemaDiagnosticsEnabled } from '@/schemas/validationContext';
 import { captureMessage } from '@/services/diagnostics.service';
@@ -123,33 +124,7 @@ export type OrganizationRole = z.infer<typeof organizationRoleSchema>;
  * @see etc/examples/billing.example.yaml
  * @see lib/onetime/billing/catalog.rb
  */
-export const KNOWN_ENTITLEMENTS = [
-  'api_access',
-  'audit_logs',
-  'base_domain_signup',
-  'create_secrets',
-  'custom_branding',
-  'custom_domains',
-  'custom_mail_sender',
-  'custom_privacy_defaults',
-  'custom_signin_config',
-  'custom_signup_validation',
-  'extended_default_expiration',
-  'flexible_from_domain',
-  'homepage_network_rules',
-  'homepage_secrets',
-  'incoming_secrets',
-  'ip_access_rules',
-  'manage_billing',
-  'manage_members',
-  'manage_org',
-  'manage_orgs',
-  'manage_sso',
-  'manage_teams',
-  'notifications',
-  'view_receipt',
-  'workspace_branding',
-] as const;
+export const KNOWN_ENTITLEMENTS = knownAuthorizationTokens;
 
 const knownEntitlementSet = new Set<string>(KNOWN_ENTITLEMENTS);
 const warnedEntitlements = new Set<string>();

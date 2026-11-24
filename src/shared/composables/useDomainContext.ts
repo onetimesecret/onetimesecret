@@ -13,6 +13,7 @@
  * @see docs/product/interaction-modes.md - Domain Context concept
  */
 
+import type { OrganizationPermissions } from '@/schemas/api/account/responses/permissions';
 import { loggingService } from '@/services/logging.service';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -51,7 +52,14 @@ let bootstrapStoreInstance: ReturnType<typeof useBootstrapStore> | null = null;
 // Every registered domain of the current org, served or not; see buildAvailableDomains.
 type PermissionsDomain = { display_domain: string; extid: string; served: boolean };
 const permissionsDomains = ref<PermissionsDomain[]>([]);
+const confirmedOrganization = ref<OrganizationPermissions>();
 let permissionsInstance: ReturnType<typeof useResourcePermissions> | null = null;
+
+function canViewDomain(orgId: string | undefined, id: string | undefined) {
+  const org = confirmedOrganization.value;
+  return !!org && !!id && org.extid === orgId &&
+    org.domains.some(domain => domain.extid === id && domain.permissions.can_view);
+}
 
 /** Get bootstrap store instance (lazy singleton) */
 function getBootstrapStore(): ReturnType<typeof useBootstrapStore> {
@@ -347,6 +355,7 @@ function createPermissionsFetcher(
   organizationStore: ReturnType<typeof useOrganizationStore>,
 ) {
   return async (): Promise<boolean> => {
+    confirmedOrganization.value = undefined;
     const { domainsEnabled } = getConfig();
     if (!domainsEnabled) return true;
     const orgExtid = organizationStore.currentOrganization?.extid;
@@ -371,6 +380,7 @@ function createPermissionsFetcher(
       if (!result) return false;
 
       const orgPerms = result.organizations.find(o => o.extid === orgExtid);
+      confirmedOrganization.value = orgPerms;
       permissionsDomains.value = orgPerms?.domains ?? [];
       return true;
     } catch (error) {
@@ -554,6 +564,7 @@ export function useDomainContext() {
 
   return {
     currentContext,
+    canViewDomain: (id?: string) => canViewDomain(organizationStore.currentOrganization?.extid, id),
     isContextActive: computed<boolean>(() => getConfig().domainsEnabled),
     hasMultipleContexts: computed<boolean>(() => availableDomains.value.length > 1),
     availableDomains,
@@ -585,5 +596,6 @@ export function __resetDomainContextForTesting(): void {
   currentFetchController = null;
   bootstrapStoreInstance = null;
   permissionsDomains.value = [];
+  confirmedOrganization.value = undefined;
   permissionsInstance = null;
 }

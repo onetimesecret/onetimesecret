@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'securerandom'
+require_relative '../authorization/registry'
 
 module Onetime
   # OrganizationMembership - Through model for Organization/Customer participation
@@ -107,12 +108,8 @@ module Onetime
     }.freeze
 
     # Defaults for active memberships, independent of the plan entitlement templates.
-    ROLE_CAPABILITIES = {
-      'member' => Set.new.freeze,
-      'admin' => Set['manage_members'].freeze,
-      'owner' => Set['manage_members', 'manage_org', 'manage_sso', 'manage_billing'].freeze,
-    }.freeze
-    CAPABILITIES      = ROLE_CAPABILITIES.values.reduce(:|).freeze
+    ROLE_CAPABILITIES = Onetime::Authorization::Registry.role_capabilities
+    CAPABILITIES      = Onetime::Authorization::Registry.capabilities
 
     # REQUIRED: Through models must have object_identifier for deterministic keys
     feature :object_identifier
