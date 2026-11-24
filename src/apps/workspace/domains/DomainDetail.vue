@@ -22,6 +22,7 @@ import DomainHomepageSelector, {
 import { useDomain } from '@/shared/composables/useDomain';
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
+import { useTargetDomainPermissions } from '@/shared/composables/useResourcePermissions';
 import { useUnsavedInputGuard } from '@/shared/composables/useUnsavedInputGuard';
 import { useUnsavedRouteGuard } from '@/shared/composables/useUnsavedRouteGuard';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
@@ -74,6 +75,8 @@ const { can } = useEntitlements(organization);
 const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
 const canEmailConfig = computed(() => can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
 const canIncomingSecrets = computed(() => can(ENTITLEMENTS.INCOMING_SECRETS));
+const { permission } = useTargetDomainPermissions(() => props.orgid, () => props.extid);
+const canManageIncoming = computed(() => permission.value?.permissions.can_manage_incoming === true);
 const canCustomSignin = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNIN_CONFIG));
 const canHomepageNetwork = computed(() => can(ENTITLEMENTS.HOMEPAGE_NETWORK_RULES));
 const canCustomSignup = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNUP_VALIDATION));
@@ -291,8 +294,8 @@ const sections = computed<Section[]>(() => [
     icon: { collection: 'heroicons', name: 'inbox-arrow-down' },
     titleKey: 'web.domains.incoming.configure_incoming',
     descriptionKey: 'web.domains.detail.incoming_description',
-    available: isOrgsIncomingSecretsEnabled(),
-    locked: !canIncomingSecrets.value,
+    available: isOrgsIncomingSecretsEnabled() && canManageIncoming.value,
+    locked: false,
     expandable: false,
   },
   {
@@ -430,7 +433,7 @@ onMounted(() => {
                 :disabled="domainLoading || homepageSaving || homepageNetworkSaving || !canAdmin"
                 :incoming-available="homepageIncomingAvailable"
                 :incoming-ready="homepageIncomingReady"
-                :incoming-config-route="incomingConfigRoute"
+                :incoming-config-route="canManageIncoming ? incomingConfigRoute : undefined"
                 @update:model-value="handleHomepageSelect" />
 
               <!-- Network rules apply to whichever interactive experience is selected -->

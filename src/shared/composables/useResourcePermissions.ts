@@ -160,7 +160,7 @@ export function useOrganizationPermissionLookup() {
 }
 
 /** Check both IDs so a permission cannot be reused under another organization. */
-function useDomainPermissionLookup() {
+export function useDomainPermissionLookup() {
   const { fetchResourcePermissions } = useResourcePermissions();
   return async (orgId: string, domainId: string) => {
     const record = await fetchResourcePermissions('domain', domainId);
@@ -178,12 +178,9 @@ export function useDomainSsoPermissionLookup() {
   };
 }
 
-export function useTenantSsoPermissions(orgId: () => string, domainId: () => string) {
+export function useTargetDomainPermissions(orgId: () => string, domainId: () => string) {
   const lookup = useDomainPermissionLookup();
   const permission = shallowRef<Awaited<ReturnType<typeof lookup>>>();
-  const canManageSso = computed(() => permission.value?.permissions.can_manage_sso);
-  const canViewDomain = computed(() => permission.value?.permissions.can_view === true);
-  const domain = computed(() => canManageSso.value ? permission.value?.domain : undefined);
   const isLoading = ref(false);
   let request = 0;
   async function refresh() {
@@ -198,5 +195,13 @@ export function useTenantSsoPermissions(orgId: () => string, domainId: () => str
   }
   watch([orgId, domainId], refresh, { immediate: true, flush: 'sync' });
   onScopeDispose(() => { request++; });
+  return { permission, isLoading, refresh };
+}
+
+export function useTenantSsoPermissions(orgId: () => string, domainId: () => string) {
+  const { permission, isLoading, refresh } = useTargetDomainPermissions(orgId, domainId);
+  const canManageSso = computed(() => permission.value?.permissions.can_manage_sso);
+  const canViewDomain = computed(() => permission.value?.permissions.can_view === true);
+  const domain = computed(() => canManageSso.value ? permission.value?.domain : undefined);
   return { canManageSso, canViewDomain, domain, isLoading, refresh };
 }

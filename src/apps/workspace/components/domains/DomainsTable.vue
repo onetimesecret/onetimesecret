@@ -33,6 +33,7 @@ const { t } = useI18n();
     domains: CustomDomain[];
     isLoading: boolean;
     ssoDomainIds: ReadonlySet<string>;
+    incomingDomainIds: ReadonlySet<string>;
     orgid: string;
     /** When true, hides the header section (title, description, add button) */
     compact?: boolean;
@@ -50,7 +51,6 @@ const { t } = useI18n();
   const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
   const ssoEnabled = computed(() => isOrgsSsoEnabled());
   const canEmailConfig = computed(() => isOrgsCustomMailEnabled() && can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
-  const canIncomingSecrets = computed(() => isOrgsIncomingSecretsEnabled() && can(ENTITLEMENTS.INCOMING_SECRETS));
 
   /** Role-based permissions for the org backing this table (see #3033). */
   const { isOwnerOrAdmin: canAdmin, canCreateDomain } = useOrgPermissions(organization);
@@ -197,7 +197,7 @@ const { t } = useI18n();
                   :can-brand="canBrand"
                   :can-manage-sso="ssoEnabled && !!domain.extid && ssoDomainIds.has(domain.extid)"
                   :can-email-config="canEmailConfig"
-                  :can-incoming-secrets="canIncomingSecrets"
+                  :can-incoming-secrets="isOrgsIncomingSecretsEnabled() && !!domain.extid && incomingDomainIds.has(domain.extid)"
                   @delete="handleDelete" />
               </td>
             </tr>

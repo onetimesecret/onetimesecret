@@ -9,9 +9,8 @@
  * entitlement gate -> form.
  */
 import { useI18n } from 'vue-i18n';
-import { computed, onMounted, watch } from 'vue';
+import { computed, watch } from 'vue';
 import { useRouter, RouterLink } from 'vue-router';
-import { storeToRefs } from 'pinia';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
@@ -20,10 +19,9 @@ import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import { useDomain } from '@/shared/composables/useDomain';
 
 import { useIncomingConfig } from '@/shared/composables/useIncomingConfig';
-import { useEntitlements } from '@/shared/composables/useEntitlements';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useTargetDomainPermissions } from '@/shared/composables/useResourcePermissions';
 import { useUnsavedRouteGuard } from '@/shared/composables/useUnsavedRouteGuard';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { ENTITLEMENTS } from '@/types/organization';
 import { isOrgsIncomingSecretsEnabled } from '@/utils/features';
 
 const { t } = useI18n();
@@ -49,20 +47,12 @@ const {
 // Entitlement check
 // ---------------------------------------------------------------------------
 
-const organizationStore = useOrganizationStore();
-const { organizations } = storeToRefs(organizationStore);
-const organization = computed(() =>
-  organizations.value.find((o) => o.extid === props.orgid) ?? null
-);
-const { can } = useEntitlements(organization);
-// Plan entitlement: does org subscription include incoming secrets?
-const hasIncomingEntitlement = computed(() => can(ENTITLEMENTS.INCOMING_SECRETS));
-// Role capability: does user have permission to manage org settings?
-const hasManageOrgCapability = computed(() => can(ENTITLEMENTS.MANAGE_ORG));
-// Both required to configure
-const canManageIncoming = computed(
-  () => hasManageOrgCapability.value && hasIncomingEntitlement.value
-);
+const { permission, isLoading: permissionLoading } = useTargetDomainPermissions(() => props.orgid, () => props.extid);
+const bootstrapStore = useBootstrapStore();
+const canManageIncoming = computed(() => permission.value?.permissions.can_manage_incoming);
+const canViewDomain = computed(() => permission.value?.permissions.can_view === true);
+const featureRequired = computed(() => canManageIncoming.value === false &&
+  permission.value?.permissions.incoming_feature_required === true);
 const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
 const incomingSecretsEnabled = computed(() => isOrgsIncomingSecretsEnabled());
 
@@ -121,7 +111,9 @@ const handleUpdateEnabled = async (enabled: boolean) => {
 // ---------------------------------------------------------------------------
 
 const handleBack = () => {
-  router.push(`/org/${props.orgid}/domains/${props.extid}`);
+  const role = permission.value?.membership.role;
+  const canOpenDetail = canViewDomain.value && (role === 'owner' || role === 'admin');
+  router.push(canOpenDetail ? `/org/${props.orgid}/domains/${props.extid}` : '/dashboard');
 };
 
 /**
@@ -143,29 +135,11 @@ useUnsavedRouteGuard(hasUnsavedChanges, 'web.domains.unsaved_changes_confirmatio
 // Lifecycle
 // ---------------------------------------------------------------------------
 
-onMounted(async () => {
-  await initializeDomain();
-
-  // Initialize incoming config if entitlement is already available
-  if (canManageIncoming.value) {
-    await initializeIncomingConfig();
-  }
-});
-
-// Handle race condition: organizations may load after onMounted runs.
-// Watch for entitlement to become true and initialize if needed.
-watch(canManageIncoming, async (entitled) => {
-  if (entitled && !isInitialized.value) {
-    await initializeIncomingConfig();
-  }
-});
-
-// Re-initialize when domain extid changes (e.g., navigating between domains)
-watch(() => props.extid, async () => {
-  if (canManageIncoming.value) {
-    await initializeIncomingConfig();
-  }
-});
+// The workspace router mounts a fresh page for each domain.
+watch(canViewDomain, allowed => { if (allowed) void initializeDomain(); }, { immediate: true });
+watch(canManageIncoming, allowed => {
+  if (allowed && incomingSecretsEnabled.value) void initializeIncomingConfig();
+}, { immediate: true });
 </script>
 
 <template>
@@ -187,7 +161,7 @@ watch(() => props.extid, async () => {
     <!-- Content -->
     <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <!-- Loading State -->
-      <SettingsSkeleton v-if="domainLoading" />
+      <SettingsSkeleton v-if="permissionLoading || domainLoading" />
 
       <!-- Error State -->
       <div v-else-if="domainError" class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
@@ -196,7 +170,7 @@ watch(() => props.extid, async () => {
 
       <!-- Feature Disabled at Install Level -->
       <div
-        v-else-if="!incomingSecretsEnabled"
+        v-else-if="!incomingSecretsEnabled || (featureRequired && !bootstrapStore.billing_enabled)"
         class="rounded-lg border border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
         <OIcon
           collection="heroicons"
@@ -207,13 +181,13 @@ watch(() => props.extid, async () => {
           {{ t('web.domains.incoming.feature_disabled') }}
         </h3>
         <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.domains.incoming.feature_disabled_description') }}
+          {{ t(incomingSecretsEnabled ? 'incoming.feature_disabled_description' : 'web.domains.incoming.feature_disabled_description') }}
         </p>
       </div>
 
       <!-- Upgrade Required: org plan lacks incoming_secrets entitlement -->
       <div
-        v-else-if="!hasIncomingEntitlement"
+        v-else-if="featureRequired"
         class="rounded-lg border border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
         <OIcon
           collection="heroicons"
@@ -240,7 +214,7 @@ watch(() => props.extid, async () => {
 
       <!-- Access Denied: user lacks manage_org capability (has plan, but not owner) -->
       <div
-        v-else-if="!hasManageOrgCapability"
+        v-else-if="canManageIncoming !== true"
         class="rounded-lg border border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
         <OIcon
           collection="heroicons"
@@ -251,7 +225,7 @@ watch(() => props.extid, async () => {
           {{ t('web.domains.incoming.access_denied') }}
         </h3>
         <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.domains.incoming.access_denied_description') }}
+          {{ t(canManageIncoming === undefined ? 'web.organizations.access_unconfirmed_notice' : 'web.domains.incoming.access_denied_description') }}
         </p>
       </div>
 

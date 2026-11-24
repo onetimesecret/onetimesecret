@@ -42,7 +42,7 @@ interface Props {
   /** Whether incoming can be selected (enabled with >= 1 recipient). */
   incomingReady?: boolean;
   /** Route to the incoming recipients configuration page. */
-  incomingConfigRoute: RouteLocationRaw;
+  incomingConfigRoute?: RouteLocationRaw;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -251,6 +251,7 @@ const onKeydown = (event: KeyboardEvent) => {
         data-testid="homepage-incoming-unready-hint">
         <span>{{ t('web.domains.homepage.incoming_requires_recipients') }}</span>
         <RouterLink
+          v-if="incomingConfigRoute"
           :to="incomingConfigRoute"
           class="inline-flex items-center gap-0.5 font-medium underline-offset-2 hover:underline">
           {{ t('web.domains.homepage.configure_recipients') }}

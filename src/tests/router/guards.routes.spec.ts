@@ -26,6 +26,7 @@ import { useAuthStore } from '@/shared/stores';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import {
+  useDomainPermissionLookup,
   useDomainSsoPermissionLookup,
   useOrganizationPermissionLookup,
   useResourcePermissions,
@@ -1260,6 +1261,18 @@ describe('Router Guards', () => {
       const domainRoute = () => makeRoute({
         name: 'DomainSigninSso', params: { orgid: 'target', extid: 'domain' },
         meta: { requiresOrgRole: 'admin' },
+      });
+
+      it.each([true, false, undefined])('checks Incoming on the selected domain for a delegated member (%s)', async allowed => {
+        useStore(roleStore('member'));
+        const lookup = vi.fn().mockResolvedValue({
+          permissions: { can_manage_incoming: allowed }, membership: { role: 'member' },
+        });
+        vi.mocked(useDomainPermissionLookup).mockReturnValue(lookup);
+        const route = domainRoute();
+        route.name = 'DomainIncoming';
+        expect(await handleOrgRoleRequirement(route)).toEqual(allowed ? null : { path: '/dashboard' });
+        expect(lookup).toHaveBeenCalledWith('target', 'domain');
       });
 
       it.each([

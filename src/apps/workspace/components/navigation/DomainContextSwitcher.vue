@@ -76,6 +76,7 @@ const {
   setContext,
   getDomainDisplayName,
   getExtidByDomain,
+  canViewDomain,
   setContextByExtid,
   initialized,
 } = useDomainContext();
@@ -177,8 +178,8 @@ const domainItems = computed<ScopeSwitcherItem[]>(() =>
     isCurrent: isCurrentContext(domain),
     disabled: isOptionDisabled(domain),
     disabledReason: disabledReasonForDomain(domain),
-    // Gear shows for owners/admins on custom domains (which carry an extid).
-    hasSettings: canManageDomains.value && !!getExtidByDomain(domain),
+    hasSettings: isOwnerOrAdminOf({ organization: organizationStore.currentOrganization }) &&
+      canViewDomain(getExtidByDomain(domain)),
   }))
 );
 
