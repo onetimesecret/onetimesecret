@@ -7,7 +7,7 @@
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/operations/audit_attempt'
-require 'onetime/authorization/registry'
+require_relative '../../authorization/registry'
 
 module Onetime
   module Operations

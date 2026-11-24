@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/authorization/registry'
+require_relative '../../../authorization/registry'
 
 module Onetime
   module Models

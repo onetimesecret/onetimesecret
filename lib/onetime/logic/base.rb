@@ -10,7 +10,7 @@ require 'onetime/refinements/stripe_refinements'
 require 'onetime/logic/organization_context'
 require 'onetime/security/input_sanitizers'
 require 'onetime/application/authorization_policies'
-require 'onetime/authorization/registry'
+require_relative '../authorization/registry'
 
 module Onetime
   module Logic
