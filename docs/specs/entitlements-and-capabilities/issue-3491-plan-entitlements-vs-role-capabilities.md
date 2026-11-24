@@ -71,14 +71,14 @@ can edit that configuration can turn off the SSO sign-in method even if
 their credential-management permission has been revoked. Links to general
 domain settings also require permission to read the domain record.
 
-**Still open.** The catalog and client need separate feature and capability
-registries. The general-purpose wire fields, denial messages and frontend
-checks in Stage B remain incomplete. Domain management still needs the
-admin-level `manage_domains` capability from decision D1 and a review of
-which operations require both a feature and a capability. Stage C still
-covers feature storage, billing-triggered updates, operator overrides,
-migration of existing data, and retirement of legacy readers. The
-[sequencing plan](#6-migration--sequencing-plan) gives the dependencies.
+**v0.27.0 foundation.** [ADR-053](../../adr/adr-053-plan-features-and-membership-capabilities.md)
+defines plan features, membership capabilities, and their compatibility window.
+The shared registry drives the model and client types. The new permission
+fields accompany the legacy fields. Incoming settings use a domain decision.
+The [operation inventory](../../architecture/capability-operations.md) names
+the remaining endpoint conversions and the behaviors each must preserve.
+In particular, domain record operations still honor individual legacy
+`custom_domains` overrides. Later releases can migrate callers independently.
 
 ## 0. Problem statement
 
