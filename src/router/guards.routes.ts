@@ -511,10 +511,7 @@ export async function handleOrgRoleRequirement(
   if (orgExtid) {
     if (isOrganizationMembersTab(to)) return checkMembersTabAccess(store, orgExtid);
     if (to.name === 'DomainIncoming' && typeof to.params.extid === 'string') {
-      const record = await useDomainPermissionLookup()(orgExtid, to.params.extid);
-      return checkDomainActionAccess(store, orgExtid, record && {
-        allowed: record.permissions.can_manage_incoming, role: record.membership.role,
-      }, 'web.domains.incoming.access_denied');
+      return checkIncomingRouteAccess(store, orgExtid, to.params.extid);
     }
     const ssoDecision = handleTenantSsoRoute(store, to, orgExtid);
     if (ssoDecision !== undefined) return ssoDecision;
@@ -566,6 +563,18 @@ function notifyOrgRoleRefused(
 }
 
 type OrganizationStore = ReturnType<typeof useOrganizationStore>;
+
+async function checkIncomingRouteAccess(
+  store: OrganizationStore, orgExtid: string, domain: string
+) {
+  const record = await useDomainPermissionLookup()(orgExtid, domain);
+  // A confirmed feature denial belongs on the Incoming page for this domain.
+  if (record?.permissions.can_manage_incoming === false &&
+      record.permissions.incoming_feature_required === true) return null;
+  return checkDomainActionAccess(store, orgExtid, record && {
+    allowed: record.permissions.can_manage_incoming, role: record.membership.role,
+  }, 'web.domains.incoming.access_denied');
+}
 
 function handleTenantSsoRoute(
   store: OrganizationStore, to: RouteLocationNormalized, orgExtid: string

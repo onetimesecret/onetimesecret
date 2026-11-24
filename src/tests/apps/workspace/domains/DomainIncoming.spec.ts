@@ -77,6 +77,7 @@ vi.mock('@/shared/composables/useDomain', () => ({
 let mockCanIncoming = ref(true);
 let mockCanManageOrg = ref(true);
 const mockTargetConfirmed = ref(true);
+const mockRole = ref<'member' | 'owner'>('owner');
 const mockBillingEnabled = ref(true);
 vi.mock('@/shared/stores/bootstrapStore', async importOriginal => {
   const actual = await importOriginal<typeof import('@/shared/stores/bootstrapStore')>();
@@ -88,7 +89,7 @@ vi.mock('@/shared/composables/useResourcePermissions', () => ({
     permission: computed(() => mockTargetConfirmed.value ? {
       permissions: { can_view: true, can_manage_incoming: mockCanIncoming.value && mockCanManageOrg.value,
         incoming_feature_required: mockCanManageOrg.value && !mockCanIncoming.value },
-      membership: { role: 'owner', status: 'active', role_capabilities: mockCanManageOrg.value ? ['manage_org'] : [] },
+      membership: { role: mockRole.value, status: 'active', role_capabilities: mockCanManageOrg.value ? ['manage_org'] : [] },
       organization: { plan_entitlements: mockCanIncoming.value ? ['incoming_secrets'] : [] },
     } : undefined),
   }),
@@ -206,6 +207,7 @@ describe('DomainIncoming', () => {
     mockCanIncoming = ref(true);
     mockCanManageOrg = ref(true);
     mockTargetConfirmed.value = true;
+    mockRole.value = 'owner';
     mockBillingEnabled.value = true;
     mockDomainState.isLoading.value = false;
     mockDomainState.error.value = null;
@@ -298,6 +300,21 @@ describe('DomainIncoming', () => {
   // ---------------------------------------------------------------------------
 
   describe('Entitlement gating', () => {
+    it.each([
+      [true, 'web.domains.entitlement_required_member'],
+      [false, 'incoming.feature_disabled_description'],
+    ] as const)('shows feature guidance without billing or configuration controls for a delegate (billing %s)', async (billing, key) => {
+      mockRole.value = 'member';
+      mockCanIncoming.value = false;
+      mockBillingEnabled.value = billing;
+      wrapper = mountComponent();
+      await flushPromises();
+      expect(wrapper.text()).toContain(key);
+      expect(wrapper.find('a[href*="/billing/"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="incoming-config-form"]').exists()).toBe(false);
+      expect(mockInitializeIncomingConfig).not.toHaveBeenCalled();
+    });
+
     it('shows an unavailable feature with no billing link when Incoming is revoked in standalone mode', async () => {
       mockCanIncoming.value = false;
       mockBillingEnabled.value = false;

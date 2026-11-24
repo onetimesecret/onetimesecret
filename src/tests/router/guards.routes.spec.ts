@@ -1263,15 +1263,18 @@ describe('Router Guards', () => {
         meta: { requiresOrgRole: 'admin' },
       });
 
-      it.each([true, false, undefined])('checks Incoming on the selected domain for a delegated member (%s)', async allowed => {
+      it.each([
+        [true, false, true], [false, false, false], [false, true, true],
+        [undefined, undefined, false], [undefined, true, false],
+      ] as const)('checks Incoming on the selected domain (allowed %s, feature required %s)', async (allowed, featureRequired, enters) => {
         useStore(roleStore('member'));
         const lookup = vi.fn().mockResolvedValue({
-          permissions: { can_manage_incoming: allowed }, membership: { role: 'member' },
+          permissions: { can_manage_incoming: allowed, incoming_feature_required: featureRequired }, membership: { role: 'member' },
         });
         vi.mocked(useDomainPermissionLookup).mockReturnValue(lookup);
         const route = domainRoute();
         route.name = 'DomainIncoming';
-        expect(await handleOrgRoleRequirement(route)).toEqual(allowed ? null : { path: '/dashboard' });
+        expect(await handleOrgRoleRequirement(route)).toEqual(enters ? null : { path: '/dashboard' });
         expect(lookup).toHaveBeenCalledWith('target', 'domain');
       });
 

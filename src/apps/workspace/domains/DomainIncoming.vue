@@ -54,6 +54,7 @@ const canViewDomain = computed(() => permission.value?.permissions.can_view === 
 const featureRequired = computed(() => canManageIncoming.value === false &&
   permission.value?.permissions.incoming_feature_required === true);
 const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
+const canUpgrade = computed(() => permission.value?.membership.role === 'owner');
 const incomingSecretsEnabled = computed(() => isOrgsIncomingSecretsEnabled());
 
 // ---------------------------------------------------------------------------
@@ -198,9 +199,10 @@ watch(canManageIncoming, allowed => {
           {{ t('incoming.upgrade_required_title') }}
         </h3>
         <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.domains.incoming.upgrade_to_configure') }}
+          {{ t(canUpgrade ? 'web.domains.incoming.upgrade_to_configure' : 'web.domains.entitlement_required_member') }}
         </p>
         <RouterLink
+          v-if="canUpgrade"
           :to="billingRoute"
           class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
           {{ t('web.billing.invoices.view_plans') }}
