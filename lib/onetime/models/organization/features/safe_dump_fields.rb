@@ -50,6 +50,7 @@ module Onetime::Organization::Features
       # Entitlements and limits from plan (via WithEntitlements feature)
       # These enable frontend feature gating and quota display
       base.safe_dump_field :entitlements, ->(org) { org.entitlements }
+      base.safe_dump_field :plan_entitlements, ->(org) { org.plan_entitlements }
       base.safe_dump_field :limits,
         ->(org) {
                 # Convert Float::INFINITY to -1 for JSON serialization (unlimited)

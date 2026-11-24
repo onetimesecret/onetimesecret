@@ -49,6 +49,7 @@ module Billing
           planid: org.planid,
           plan_name: Billing::PlanHelpers.plan_name(org.planid),
           entitlements: org.entitlements,
+          plan_entitlements: org.plan_entitlements,
           limits: build_limits_hash(org),
           is_legacy: Billing::PlanHelpers.legacy_plan?(org.planid),
           cache_stale: plan_cache_stale,
@@ -165,6 +166,7 @@ module Billing
       def list
         data = {
           entitlements: Billing::Config.entitlements_grouped_by_category,
+          entitlement_kinds: Onetime::Authorization::Registry::KINDS,
           plans: build_plans_summary,
         }
 
@@ -309,6 +311,7 @@ module Billing
           summary[plan.plan_id] = {
             name: plan.name,
             entitlements: entitlements_array,
+            plan_entitlements: entitlements_array.select { |name| Onetime::Authorization::Registry.feature?(name) },
             limits: limits_hash.transform_values { |v| v == Float::INFINITY ? nil : v },
           }
         end
@@ -337,6 +340,7 @@ module Billing
           summary[plan_id] = {
             name: plan_hash[:name],
             entitlements: entitlements,
+            plan_entitlements: entitlements.select { |name| Onetime::Authorization::Registry.feature?(name) },
             limits: limits.transform_values { |v| v == 'unlimited' ? nil : v.to_i },
           }
         end

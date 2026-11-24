@@ -168,16 +168,18 @@ module AccountAPI::Logic
 
       # Single-resource mode: return permissions for one resource
       def process_single
-        permissions = calculate_permissions
-        result      = {
+        capabilities = membership.role_capabilities
+        features     = organization.plan_entitlements
+        permissions  = calculate_permissions(capabilities, features)
+        result       = {
           resource_type: resource_type,
           resource_id: resource_id,
-          organization: serialize_organization_brief,
-          membership: serialize_membership,
+          organization: serialize_organization_brief(features),
+          membership: serialize_membership_for(membership, capabilities),
           permissions: permissions,
         }
         if permissions[:can_manage_sso]
-          result[:domain] = { display_domain: resource.display_domain, verified: !!resource.ownership_verified }
+          result[:domain] = { display_domain: resource.display_domain, verified: resource.ownership_verified == true }
         end
         result
       end
@@ -200,14 +202,16 @@ module AccountAPI::Logic
       def serialize_org_with_domains(org, mem)
         # Domain-scope enforcement: filter by membership scope (#3384)
         domains            = org.list_domains.select { |d| mem.can_access_domain?(d) }
-        capabilities       = mem.materialize_capabilities!
-        domain_permissions = domain_permissions_for(org, mem, capabilities) if domains.any?
+        capabilities       = mem.role_capabilities
+        features           = org.plan_entitlements
+        domain_permissions = domain_permissions_for(org, mem, capabilities, features) if domains.any?
 
         {
           extid: org.extid,
           display_name: org.display_name,
+          plan_entitlements: features,
           is_default: org.is_default || false,
-          membership: serialize_membership_for(mem),
+          membership: serialize_membership_for(mem, capabilities),
           permissions: organization_permissions_for(org, mem, capabilities),
           assignable_roles: compute_assignable_roles(org, mem),
           domains: domains.map { |domain| serialize_domain_with_permissions(domain, domain_permissions) },
@@ -221,11 +225,11 @@ module AccountAPI::Logic
           served: domain.served_as_tenant?,
           permissions: permissions,
         }
-        result[:verified] = !!domain.ownership_verified if permissions[:can_manage_sso]
+        result[:verified] = domain.ownership_verified == true if permissions[:can_manage_sso]
         result
       end
 
-      def serialize_membership_for(mem)
+      def serialize_membership_for(mem, capabilities)
         {
           role: mem.role,
           status: mem.status,
@@ -233,21 +237,22 @@ module AccountAPI::Logic
           invited_at: mem.invited_at,
           joined_at: mem.joined_at,
           entitlements: mem.entitlements,
+          role_capabilities: capabilities,
         }
       end
 
-      def serialize_membership
-        serialize_membership_for(membership)
-      end
-
-      def domain_permissions_for(org, mem, capabilities)
-        custom_domains = mem.can?('custom_domains')
+      def domain_permissions_for(org, mem, capabilities, features)
+        custom_domains   = mem.can?('custom_domains')
+        manage_incoming  = capabilities.include?('manage_org') || has_system_role?('colonel')
+        incoming_feature = features.include?('incoming_secrets')
         {
           can_view: custom_domains,
           can_edit: custom_domains,
           can_delete: custom_domains,
           can_manage_settings: capabilities.include?('manage_org'),
           can_manage_sso: can_manage_domain_sso?(org, capabilities),
+          can_manage_incoming: manage_incoming && incoming_feature,
+          incoming_feature_required: manage_incoming && !incoming_feature,
         }
       end
 
@@ -330,18 +335,18 @@ module AccountAPI::Logic
         end
       end
 
-      def serialize_organization_brief
+      def serialize_organization_brief(features)
         {
           extid: organization.extid,
           display_name: organization.display_name,
+          plan_entitlements: features,
         }
       end
 
-      def calculate_permissions
-        capabilities = membership.materialize_capabilities!
+      def calculate_permissions(capabilities, features)
         case resource_type
         when 'domain'
-          domain_permissions_for(organization, membership, capabilities)
+          domain_permissions_for(organization, membership, capabilities, features)
         when 'organization'
           organization_permissions_for(organization, membership, capabilities)
         end

@@ -25,6 +25,7 @@ RSpec.describe Core::Views::OrganizationSerializer do
       archived?: false,
       planid: 'free_v1',
       entitlements: %w[create_secrets],
+      plan_entitlements: %w[create_secrets],
     )
   end
   let(:default_org_id) { '' }

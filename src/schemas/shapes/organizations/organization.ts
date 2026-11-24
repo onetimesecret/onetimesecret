@@ -102,6 +102,7 @@ export const organizationSchema = organizationCanonical.extend({
   member_count: z.number().int().min(0).nullish(),
   current_user_role: organizationRoleSchema.nullish(),
   entitlements: z.array(entitlementSchema).nullish(),
+  plan_entitlements: z.array(z.string()).optional(),
   limits: organizationLimitsSchema.nullish(),
   domain_count: z.number().int().min(0).nullish(),
 

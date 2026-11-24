@@ -78,7 +78,7 @@ module Core
         # @param cust [Onetime::Customer] Current user for role calculation
         # @return [Hash] Serialized organization data
         def serialize_organization(org, cust)
-          entitlements, limits = plan_derived_fields(org)
+          entitlements, limits, features = plan_derived_fields(org)
           {
             'objid' => org.objid,
             'extid' => org.extid,
@@ -88,22 +88,20 @@ module Core
             'planid' => org.planid,
             'current_user_role' => determine_user_role(org, cust),
             'entitlements' => entitlements,
+            'plan_entitlements' => features,
             'limits' => limits,
           }
         end
 
-        # Resolve entitlements and limits for the bootstrap payload
+        # Resolve all plan-derived fields for the bootstrap payload.
         #
-        # Both readers fail closed (Billing::PlanCacheMissError) when the
-        # org's planid resolves from neither the plan cache nor billing.yaml.
-        # Degrade to free tier at this read edge only — the model raise must
-        # stay so enforcement paths (require_entitlement!) remain fail-closed,
-        # but a bootstrap read raising takes login down with a 503.
+        # A catalog miss preserves the legacy free-tier bootstrap and leaves
+        # the new feature list empty until the organization plan can resolve.
         #
         # @param org [Onetime::Organization] Organization
-        # @return [Array(Array<String>, Hash)] Entitlements and limits
+        # @return [Array(Array<String>, Hash, Array<String>)] Entitlements, limits and features
         def plan_derived_fields(org)
-          [org.entitlements, serialize_limits(org)]
+          [org.entitlements, serialize_limits(org), org.plan_entitlements]
         rescue StandardError => ex
           # Match by name: builds without the billing app never define (or
           # raise) the error class, and a bare rescue would NameError here.
@@ -113,6 +111,7 @@ module Core
           [
             Onetime::Models::Features::WithPlanEntitlements::FREE_TIER_ENTITLEMENTS.dup,
             free_tier_fallback_limits,
+            [],
           ]
         end
 
