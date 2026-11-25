@@ -250,7 +250,7 @@ function updateMaxTtl(event: Event): void {
               type="button"
               @click="handleRemoveRecipient(index)"
               :disabled="isSaving || isDeleting"
-              class="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-900/20"
+              class="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-900/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
               :aria-label="t('web.domains.incoming.remove_recipient')">
               <OIcon
                 collection="heroicons"
@@ -474,7 +474,7 @@ function updateMaxTtl(event: Event): void {
             type="button"
             @click="showDeleteConfirm = true"
             :disabled="isDeleting || isSaving"
-            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-red-400 dark:ring-red-700 dark:hover:bg-red-900/20">
+            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-red-400 dark:ring-red-700 dark:hover:bg-red-900/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
             <OIcon
               collection="heroicons"
               name="trash"
@@ -493,7 +493,7 @@ function updateMaxTtl(event: Event): void {
             type="button"
             @click="handleDelete"
             :disabled="isDeleting"
-            class="inline-flex items-center rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-400">
+            class="inline-flex items-center rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
             {{ isDeleting ? t('web.COMMON.processing') : t('web.COMMON.yes_delete') }}
           </button>
           <button

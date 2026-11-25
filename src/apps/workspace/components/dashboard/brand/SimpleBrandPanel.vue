@@ -224,7 +224,7 @@
           @click="updateBrandSetting('border_radius', corner.id)"
           :aria-pressed="activeCorner === corner.id"
           class="flex items-center gap-2 rounded-lg border px-2.5 py-2 transition-colors
-            hover:border-gray-400"
+            hover:border-gray-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:focus-visible:outline-brand-500"
           :class="activeCorner === corner.id
             ? 'border-brand-500 border-2'
             : 'border-gray-200 dark:border-gray-600'">

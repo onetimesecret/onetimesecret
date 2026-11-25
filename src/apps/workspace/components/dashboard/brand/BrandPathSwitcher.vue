@@ -44,7 +44,7 @@
       @click="emit('update:modelValue', card.id)"
       :aria-pressed="card.selected"
       class="flex flex-col gap-1 rounded-lg border p-3.5 text-left transition-colors
-        hover:border-gray-400"
+        hover:border-gray-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:focus-visible:outline-brand-500"
       :class="card.selected
         ? 'border-2 border-brand-600 bg-brand-50 dark:bg-brand-900/20'
         : 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800'">

@@ -1079,7 +1079,7 @@
               data-testid="sso-restriction-lockout-confirm"
               :disabled="isSaving"
               @click="confirmSsoRestriction"
-              class="inline-flex items-center rounded-md bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-500 dark:hover:bg-amber-400">
+              class="inline-flex items-center rounded-md bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-500 dark:hover:bg-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600">
               {{ t('web.domains.signin.sso_restrict_warning_confirm') }}
             </button>
             <button
@@ -1132,7 +1132,7 @@
               type="button"
               @click="handleDelete"
               :disabled="isDeleting"
-              class="inline-flex items-center rounded-md bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-500 dark:hover:bg-amber-400">
+              class="inline-flex items-center rounded-md bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-500 dark:hover:bg-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600">
               {{ isDeleting ? t('web.COMMON.processing') : t('web.domains.signin.reset_action') }}
             </button>
             <button
