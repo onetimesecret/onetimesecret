@@ -34,7 +34,7 @@ module Onetime
   class Organization < Familia::Horreum
     include Familia::Features::Autoloader
 
-    autoload :SharingPolicy, 'onetime/models/organization/sharing_policy'
+    require_relative 'organization/sharing_policy'
     include SharingPolicy
 
     SCHEMA = 'models/organization'

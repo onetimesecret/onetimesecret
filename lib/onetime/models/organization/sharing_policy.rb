@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/domain_validation/ascii_hostname'
+require_relative '../../domain_validation/ascii_hostname'
 
 module Onetime
   class Organization
