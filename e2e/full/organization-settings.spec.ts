@@ -17,9 +17,11 @@
  * - OrganizationSettings (/org/:extid/:tab?):
  *   - Tabs, in order: org-tab-domains, org-tab-members, org-tab-sso (only when
  *     ORGS_SSO_ENABLED), org-tab-activity (unless ORGS_AUDIT_LOGS_ENABLED=false),
- *     org-tab-settings (element id org-tab-general, always last)
+ *     org-tab-sharing (owner only), org-tab-settings (element id
+ *     org-tab-general, always last)
  *   - Panels: org-section-domains, org-section-members, org-section-sso,
- *     org-section-activity, org-section-settings, and org-section-subscription
+ *     org-section-activity, org-section-sharing, org-section-settings, and
+ *     org-section-subscription
  *     (no tab since #2929; reached by /org/:extid/subscription and, with
  *     billing on, the header plan chip)
  *
@@ -70,6 +72,12 @@ const TABS = {
     urlTab: 'activity',
     panel: 'org-section-activity',
   },
+  sharing: {
+    testid: 'org-tab-sharing',
+    label: 'Sharing',
+    urlTab: 'sharing',
+    panel: 'org-section-sharing',
+  },
   settings: {
     testid: 'org-tab-settings',
     label: 'Settings',
@@ -102,13 +110,17 @@ async function orgFeatureFlags(page: Page): Promise<OrgFeatureFlags> {
   };
 }
 
-/** The tab bar the flags call for, in the designed order (Settings last). */
+/**
+ * The tab bar the flags call for, in the designed order (Settings last).
+ * Sharing is owner-only; the signed-in account owns its organization.
+ */
 function designedTabs(flags: OrgFeatureFlags): OrgTab[] {
   return [
     TABS.domains,
     TABS.members,
     ...(flags.ssoEnabled ? [TABS.sso] : []),
     ...(flags.auditLogsEnabled ? [TABS.activity] : []),
+    TABS.sharing,
     TABS.settings,
   ];
 }

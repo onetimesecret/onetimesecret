@@ -692,6 +692,10 @@
     "text": "Activity",
     "content_hash": "38da1505"
   },
+  "web.organizations.tabs.sharing": {
+    "text": "Sharing",
+    "content_hash": "bbedc70e"
+  },
   "web.organizations.audit.title": {
     "text": "Secret Activity",
     "content_hash": "6d6d41f3"
