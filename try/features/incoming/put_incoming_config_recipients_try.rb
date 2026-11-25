@@ -356,23 +356,23 @@ logic.raise_concerns
 @response_result[:record].key?(:enabled)
 #=> true
 
-## PUT saves creation and reserved delivery settings in the authorized admin record
+## PUT saves creation and reserved delivery settings and ignores a post_url parameter
 strategy = create_strategy_with_domain(@test_cust, @test_domain_display)
 params = {
   'extid' => @test_domain.extid, 'enabled' => true, 'max_ttl' => 60, 'passphrase_required' => true,
-  'email_disabled' => true, 'post_url' => 'http://api.123/callback',
+  'email_disabled' => true, 'post_url' => 'http://169.254.169.254/latest',
 }
 logic = PutIncomingConfig.new(strategy, params)
 logic.raise_concerns
-logic.process[:record].values_at(:max_ttl, :passphrase_required, :email_disabled, :post_url)
-#=> [60, true, true, 'http://api.123/callback']
+record = logic.process[:record]
+[record.values_at(:max_ttl, :passphrase_required, :email_disabled), record.key?(:post_url),
+ IncomingConfig.load(@test_domain.identifier).settings_json.include?('post_url')]
+#=> [[60, true, true], false, false]
 
 ## Invalid settings do not replace the stored maximum
 strategy = create_strategy_with_domain(@test_cust, @test_domain_display)
 invalid = [{ 'max_ttl' => 59 }, { 'max_ttl' => 60.5 }, { 'max_ttl' => 2**53 }, { 'passphrase_required' => 'off' },
-           { 'post_url' => 'file:///test' }, { 'post_url' => 'https://user:password@hooks.example.org/incoming' },
-           { 'post_url' => 'https://hooks.example/%ZZ' }, { 'post_url' => 'https://[::::]/notify' },
-           { 'post_url' => 'https://hooks.example.org/path#fragment' }, { 'post_url' => 'http://hooks.example.org:70000/' }]
+           { 'email_disabled' => 'yes' }]
 invalid.all? do |change|
   logic = PutIncomingConfig.new(strategy, { 'extid' => @test_domain.extid, 'enabled' => true }.merge(change))
   begin
@@ -396,8 +396,8 @@ strategy = create_strategy_with_domain(@test_cust, @test_domain_display)
 logic = PutIncomingConfig.new(strategy, { 'extid' => @test_domain.extid, 'max_ttl' => nil })
 logic.raise_concerns
 record = logic.process[:record]
-[record[:enabled], record[:max_ttl], record[:passphrase_required], record[:email_disabled], record[:post_url], record[:recipients].size]
-#=> [true, nil, true, true, 'http://api.123/callback', 3]
+[record[:enabled], record[:max_ttl], record[:passphrase_required], record[:email_disabled], record[:recipients].size]
+#=> [true, nil, true, true, 3]
 
 # --- TEARDOWN ---
 

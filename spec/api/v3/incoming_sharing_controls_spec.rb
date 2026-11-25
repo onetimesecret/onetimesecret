@@ -21,7 +21,7 @@ RSpec.describe 'Incoming Secrets creation controls', type: :integration do
   let!(:config) do
     Onetime::CustomDomain::IncomingConfig.create!(
       domain_id: domain.identifier, enabled: true, recipients: [{ email: recipient, name: 'Help' }],
-      passphrase_required: true, max_ttl: 120, email_disabled: true, post_url: 'https://hooks.example.net/incoming',
+      passphrase_required: true, max_ttl: 120, email_disabled: true,
     )
   end
 
@@ -51,11 +51,26 @@ RSpec.describe 'Incoming Secrets creation controls', type: :integration do
   end
 
   it 'returns the effective lifetime and prompt, keeping delivery settings private' do
-    expect(Onetime::CustomDomain::IncomingConfig.load(domain.identifier).settings).to include(
-      email_disabled: true, post_url: 'https://hooks.example.net/incoming',
-    )
+    expect(Onetime::CustomDomain::IncomingConfig.load(domain.identifier).settings).to include(email_disabled: true)
     expect(public_config).to include(passphrase_input_required: true, default_ttl: 60)
     expect(public_config.keys).not_to include(:post_url, :email_disabled)
+  end
+
+  it 'ignores a post_url saved by an earlier build and drops it on the next write' do
+    stored = JSON.parse(config.settings_json).merge('post_url' => 'http://169.254.169.254/latest')
+    config.settings_json = JSON.generate(stored)
+    config.save
+
+    reloaded = Onetime::CustomDomain::IncomingConfig.load(domain.identifier)
+    expect(reloaded.settings.keys).to contain_exactly(:passphrase_required, :max_ttl, :email_disabled)
+    expect(reloaded.settings).to include(passphrase_required: true, max_ttl: 120, email_disabled: true)
+
+    reloaded.apply_settings(max_ttl: 300)
+    expect(JSON.parse(reloaded.settings_json).keys).not_to include('post_url')
+  end
+
+  it 'refuses post_url as a model setting' do
+    expect(Onetime::CustomDomain::IncomingConfig.invalid_setting(post_url: 'https://hooks.example.net/x')).to eq(:post_url)
   end
 
   it 'rejects blank or malformed required passphrases before storing a secret or queuing mail' do

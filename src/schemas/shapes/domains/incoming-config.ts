@@ -37,16 +37,6 @@ export const domainIncomingRecipientSchema = z.object({
 
 export type DomainIncomingRecipient = z.infer<typeof domainIncomingRecipientSchema>;
 
-// Match the IncomingConfig write grammar. A numeric final hostname label is
-// valid here even when the browser's URL parser would reinterpret it as IPv4.
-const postEndpoint = /^https?:\/\/(\[[a-f0-9:.]+\]|[a-z0-9._~-]+)(?::([0-9]{1,5}))?(?:[/?](?:[a-z0-9/?:@!$&'()*+,;=._~-]|%[0-9a-f]{2})*)?$/i;
-const postEndpointSchema = z.string().refine((value) => {
-  const match = postEndpoint.exec(value);
-  if (!match || match[0] !== value || Number(match[2] ?? 0) > 65535) return false;
-  const host = match[1];
-  return !host.startsWith('[') || z.ipv6().safeParse(host.slice(1, -1)).success;
-});
-
 const incomingSettings = {
   passphrase_required: z.boolean().optional(),
   max_ttl: z.number().int().min(60).max(Number.MAX_SAFE_INTEGER).nullable().optional(),
@@ -92,8 +82,6 @@ const incomingSettings = {
  */
 export const customDomainIncomingConfigSchema = z.object({
   ...incomingSettings,
-  // Preserve stored endpoints verbatim, including values from older clients.
-  post_url: z.string().nullable().optional(),
   domain_id: z.string(),
   enabled: z.boolean(),
   recipients: z.array(domainIncomingRecipientSchema).default([]),
@@ -115,12 +103,10 @@ export type CustomDomainIncomingConfig = z.infer<typeof customDomainIncomingConf
  * Request body for PUT of incoming configuration.
  *
  * A settings-only update preserves the enabled flag and recipients. Supplying
- * recipients replaces the entire list. Null clears the lifetime or POST URL.
+ * recipients replaces the entire list. Null clears the lifetime.
  */
 export const putIncomingConfigPayloadSchema = z.object({
   ...incomingSettings,
-  post_url: postEndpointSchema.nullable().optional()
-    .describe('Reserved HTTP(S) endpoint without credentials or a fragment. No requests are sent.'),
   enabled: z.boolean().optional(),
   recipients: z.array(domainIncomingRecipientSchema).optional(),
 });

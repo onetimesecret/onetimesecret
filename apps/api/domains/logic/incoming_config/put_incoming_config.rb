@@ -20,7 +20,7 @@ module DomainsAPI
       # - recipients: Array of {email, name} objects
       # - passphrase_required: Require passphrase protection for Incoming submissions.
       # - max_ttl: Optional lifetime ceiling in seconds, at least 60. Null clears it.
-      # - email_disabled, post_url: Reserved delivery settings. Delivery continues by email.
+      # - email_disabled: Reserved delivery setting. Delivery continues by email.
       #
       # Response includes:
       # - domain_id: The domain identifier

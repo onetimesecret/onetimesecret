@@ -89,24 +89,21 @@ describe('putIncomingConfigPayloadSchema', () => {
   describe('partial updates', () => {
     it.each([
       { recipients: [] }, { enabled: false }, { passphrase_required: true }, { email_disabled: true },
-      { max_ttl: 60 }, { max_ttl: Number.MAX_SAFE_INTEGER }, { max_ttl: null }, { post_url: null },
-      { post_url: 'https://hooks.example.org/incoming?channel=help%20desk' },
-      { post_url: 'http://[::1]:8080/notify' },
-      { post_url: 'http://api.123/callback' },
+      { max_ttl: 60 }, { max_ttl: Number.MAX_SAFE_INTEGER }, { max_ttl: null },
     ])('accepts %o without inserting omitted fields', (payload) => {
       expect(putIncomingConfigPayloadSchema.parse(payload)).toEqual(payload);
     });
 
     it.each([
       { max_ttl: 59 }, { max_ttl: Number.MAX_SAFE_INTEGER + 1 },
-      { post_url: 'ftp://hooks.example.org/path' }, { post_url: '/not-an-endpoint' },
-      { post_url: 'https://user:password@hooks.example.org/path' },
-      { post_url: 'https://hooks.example.org/path#fragment' },
-      { post_url: 'https://hooks.example.org:70000/path' },
-      { post_url: 'https:/missing-authority' }, { post_url: 'https://host/raw space' },
-      { post_url: 'https://hooks.example/%ZZ' }, { post_url: 'https://[::::]/notify' },
     ])('rejects %o', (payload) => {
       expect(putIncomingConfigPayloadSchema.safeParse(payload).success).toBe(false);
+    });
+
+    it('drops post_url: delivery destinations are not owner-supplied', () => {
+      const parsed = putIncomingConfigPayloadSchema.parse({ post_url: 'https://hooks.example.org/incoming' });
+      expect(parsed).toEqual({});
+      expect(parsed).not.toHaveProperty('post_url');
     });
   });
 
@@ -173,12 +170,12 @@ describe('customDomainIncomingConfigSchema', () => {
   };
 
   describe('valid configs', () => {
-    it.each(['http://api.123/callback', 'https://hooks.example/%ZZ'])(
-      'reads a stored endpoint verbatim regardless of write restrictions: %s', (post_url) => {
-        expect(customDomainIncomingConfigSchema.parse({ ...validConfig, post_url }).post_url)
-          .toBe(post_url);
-      }
-    );
+    it('drops a post_url from an older server response', () => {
+      const parsed = customDomainIncomingConfigSchema.parse({
+        ...validConfig, post_url: 'http://169.254.169.254/latest',
+      });
+      expect(parsed).not.toHaveProperty('post_url');
+    });
 
     it('parses a complete config with timestamps', () => {
       const result = customDomainIncomingConfigSchema.parse(validConfig);
