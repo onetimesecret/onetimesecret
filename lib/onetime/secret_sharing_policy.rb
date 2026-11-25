@@ -6,7 +6,9 @@ module Onetime
   # Combine policies from the workspace and the authorized sharing domains.
   # A selected domain may belong to another workspace the creator can access.
   class SecretSharingPolicy
-    MIN_TTL = 60
+    MIN_TTL            = 60
+    # Characters that make an address more than one bare mailbox.
+    ADDRESS_SEPARATORS = /[\s,;:<>"()\[\]\\]/
 
     def initialize(organizations: [], domains: [])
       @organizations = organizations.compact.uniq(&:objid)
@@ -57,13 +59,24 @@ module Onetime
       case recipient_email_mode
       when 'unrestricted' then true
       when 'restricted'
-        key = Onetime::DomainValidation::AsciiHostname.comparison_key(email.rpartition('@').last)
+        domain = single_address_domain(email)
+        key    = domain && Onetime::DomainValidation::AsciiHostname.comparison_key(domain)
         !key.nil? && recipient_email_domains.include?(key)
       else false
       end
     end
 
     private
+
+    # The domain of a single bare address, or nil. Mail delivery can treat a
+    # comma or extra "@" as more than one destination, so a restricted policy
+    # must not judge such input by its last domain alone.
+    def single_address_domain(email)
+      return unless email.is_a?(String) && email.count('@') == 1 && !email.match?(ADDRESS_SEPARATORS)
+
+      local, _, domain = email.partition('@')
+      domain unless local.empty? || domain.empty?
+    end
 
     # An organization whose plan cannot be resolved (for example a retired
     # plan raising Billing::PlanCacheMissError) takes the canonical guest

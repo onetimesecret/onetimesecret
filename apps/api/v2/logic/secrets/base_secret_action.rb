@@ -205,7 +205,10 @@ module V2::Logic
         @recipient      = recipient_list.collect do |email_address|
           next if email_address.to_s.empty?
 
-          sanitize_email(email_address)
+          # Skip entries that are empty only after sanitizing (whitespace,
+          # markup) so they cannot become the chosen first recipient.
+          sanitized = sanitize_email(email_address)
+          sanitized unless sanitized.to_s.empty?
         end.compact.uniq.first(1)
         @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
       end

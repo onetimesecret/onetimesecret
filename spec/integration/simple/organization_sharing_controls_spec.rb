@@ -296,8 +296,6 @@ RSpec.describe 'Organization sharing controls on mounted creation routes', type:
 
     [1, 2, 3].each do |version|
       it "skips an entry that sanitizes to empty before choosing the first recipient for v#{version}" do
-        pending 'process_recipient tests emptiness before sanitize_email, so a whitespace-only or ' \
-                'markup-only entry becomes the first recipient "" and is refused (production finding)'
         set_policy(workspace, recipient_email_mode: 'restricted', recipient_email_domains: ['example.com'])
         sign_in(version)
         rows = [
@@ -341,11 +339,11 @@ RSpec.describe 'Organization sharing controls on mounted creation routes', type:
             ['user@', policy_refusal],
             ['user@-bad.example.com', policy_refusal],
             ['user@ex ample.com', policy_refusal],
-            # Only the text after the last "@" reaches the policy. These pass
-            # it and are refused by the address check that follows.
-            ['a@b@example.com', undeliverable],
-            ['@example.com', undeliverable],
-            ['user@evil.test,other@example.com', undeliverable],
+            # The policy itself refuses anything but a single bare address,
+            # without relying on the deliverability check that follows.
+            ['a@b@example.com', policy_refusal],
+            ['@example.com', policy_refusal],
+            ['user@evil.test,other@example.com', policy_refusal],
           ]
           expect_rows(version, action, rows)
         end

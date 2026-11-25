@@ -81,15 +81,16 @@ RSpec.describe Onetime::SecretSharingPolicy do
         expect(policy.recipient_allowed?('user@ｅｘａｍｐｌｅ.com')).to be(false)
       end
 
-      # The policy reads only the text after the last "@". These inputs are
-      # not deliverable addresses; creation refuses them at the Truemail check
-      # that runs after the policy (see the mounted-route spec).
-      it 'judges only the text after the last @, so malformed addresses can pass the policy alone' do
-        expect(policy.recipient_allowed?('a@b@example.com')).to be(true)
-        expect(policy.recipient_allowed?('@example.com')).to be(true)
-        expect(policy.recipient_allowed?('example.com')).to be(true)
-        expect(policy.recipient_allowed?('user@evil.test,other@example.com')).to be(true)
-        expect(policy.recipient_allowed?('a@example.com@evil.test')).to be(false)
+      # The policy must not rely on the later deliverability check: a
+      # Truemail allowed_domains setting skips the regex, and mail delivery
+      # splits a comma list into separate destinations.
+      it 'refuses anything that is not a single bare address in a listed domain' do
+        ['a@b@example.com', '@example.com', 'example.com', 'user@evil.test,other@example.com',
+         'user@evil.test;other@example.com', 'Evil <user@evil.test>, other@example.com',
+         'a@example.com@evil.test', "user@evil.test\nother@example.com"].each do |address|
+          expect(policy.recipient_allowed?(address)).to be(false), address
+        end
+        expect(policy.recipient_allowed?("o'brien+tag@example.com")).to be(true)
       end
     end
 
