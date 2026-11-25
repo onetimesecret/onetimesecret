@@ -247,7 +247,8 @@
   // tabs the user can't access bounce to 'domains', URL included. So does
   // 'sharing' for anyone but the owner. Who the owner is isn't known until
   // the organization has loaded, so a route naming 'sharing' before then is
-  // seated as on mount and left to checkInitialTabRedirect().
+  // seated as on mount and left to checkInitialTabRedirect(). A reload after
+  // a save keeps the organization on screen, so the gate applies as usual.
   // NOTE: 'activity' has two distinct gates on different axes:
   //  - instance flag OFF (ORGS_AUDIT_LOGS_ENABLED=false) → tab is absent
   //    entirely, so deep links bounce to the default tab here;
@@ -259,10 +260,11 @@
       selectedTab.value = props.initialTab;
       return;
     }
+    const ownerUnknown = isLoading.value && !organization.value;
     if (
       (resolved === 'sso' && !isOrgsSsoEnabled()) ||
       (resolved === 'activity' && !orgAuditLogsFeatureEnabled.value) ||
-      (resolved === 'sharing' && !isLoading.value && !showSharingTab.value)
+      (resolved === 'sharing' && !ownerUnknown && !showSharingTab.value)
     ) {
       setActiveTab('domains');
       return;

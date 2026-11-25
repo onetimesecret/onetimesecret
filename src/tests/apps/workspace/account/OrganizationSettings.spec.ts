@@ -958,6 +958,55 @@ describe('OrganizationSettings', () => {
       expect(wrapper.findComponent({ name: 'SharingPolicyForm' }).exists()).toBe(false);
     });
 
+    it('follows a later route change to the Sharing tab for the owner only', async () => {
+      signInAs('owner');
+      mockRouteParams.tab = 'activity';
+      wrapper = await mountComponent();
+      mockRouteParams.tab = 'sharing';
+      await flushPromises();
+      expect(wrapper.get('#org-tab-sharing').attributes('aria-selected')).toBe('true');
+      expect(mockRouter.replace).not.toHaveBeenCalled();
+      wrapper.unmount();
+
+      signInAs('admin');
+      mockRouteParams.tab = 'activity';
+      wrapper = await mountComponent();
+      mockRouteParams.tab = 'sharing';
+      await flushPromises();
+      expect(mockRouter.replace).toHaveBeenCalledWith({
+        params: { extid: 'on1abc123', orgid: 'on1abc123', tab: 'domains' },
+      });
+      expect(wrapper.get('#org-tab-domains').attributes('aria-selected')).toBe('true');
+    });
+
+    // Saving the organization's details reloads it. The organization on
+    // screen is already known then, so the gate applies during that reload.
+    it('sends an admin to Domains when the route names the Sharing tab while a save reloads the page', async () => {
+      const org = signInAs('admin');
+      wrapper = await mountComponent();
+      await switchToSettingsTab(wrapper);
+      mockRouter.replace.mockClear();
+      let finishReload!: () => void;
+      mockFetchOrganization.mockReturnValue(
+        new Promise((resolve) => { finishReload = () => resolve(org); })
+      );
+      await wrapper.get('#display-name').setValue('Renamed');
+      const form = wrapper.findAll('form').find((candidate) => candidate.find('#display-name').exists());
+      await form!.trigger('submit');
+      await flushPromises();
+      expect(mockUpdateOrganization).toHaveBeenCalled();
+
+      mockRouteParams.tab = 'sharing';
+      await nextTick();
+      finishReload();
+      await flushPromises();
+      expect(mockRouter.replace).toHaveBeenCalledWith({
+        params: { extid: 'on1abc123', orgid: 'on1abc123', tab: 'domains' },
+      });
+      expect(wrapper.get('#org-tab-domains').attributes('aria-selected')).toBe('true');
+      expect(wrapper.findComponent({ name: 'SharingPolicyForm' }).exists()).toBe(false);
+    });
+
     it('moves through the tabs with ArrowRight in the order they are drawn', async () => {
       signInAs('owner');
       wrapper = await mountComponent({ attachTo: document.body });
