@@ -262,7 +262,7 @@ module Onetime
           name: 'smtp',
           label: 'Generic SMTP',
           required_credential_keys: %w[host].freeze,
-          optional_credential_keys: %w[port username password domain tls allow_unauthenticated_fallback].freeze,
+          optional_credential_keys: %w[port username password auth domain tls allow_unauthenticated_fallback].freeze,
           summary_credential_groups: [%w[username password].freeze].freeze,
           masked_config_keys: %w[host port domain tls].freeze,
           provisioning: false, # manual DNS configuration; strategy is a no-op

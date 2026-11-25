@@ -54,6 +54,12 @@ RSpec.describe Onetime::Mail::ProviderRegistry do
       )
     end
 
+    it 'recognizes the SMTP AUTH mechanism as an optional smtp credential key' do
+      expect(described_class.descriptor('smtp').optional_credential_keys).to eq(
+        %w[port username password auth domain tls allow_unauthenticated_fallback],
+      )
+    end
+
     it 'resolves every sender strategy class name to a real class' do
       described_class.descriptors.each do |descriptor|
         expect(descriptor.sender_strategy_class).to be_a(Class), descriptor.name
