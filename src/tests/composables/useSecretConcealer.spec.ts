@@ -1,6 +1,7 @@
 // src/tests/composables/useSecretConcealer.spec.ts
 
 import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useSecretStore, type ApiMode } from '@/shared/stores/secretStore';
 import { Router, useRouter } from 'vue-router';
@@ -219,6 +220,50 @@ describe('useSecretConcealer', () => {
 
       expect(form.display_type).toBe('text');
     });
+
+    it.each(['conceal', 'generate'] as const)(
+      'applies the selected organization to %s, including a switch while editing',
+      async kind => {
+        const bootstrap = useBootstrapStore();
+        bootstrap.$patch({
+          authenticated: true,
+          organization: { objid: 'a', extid: 'on-a', display_name: 'A', is_default: true },
+          secret_options: { default_ttl: 2592000, ttl_options: [60, 604800, 2592000] },
+        });
+        const organizations = useOrganizationStore();
+        const original = organizations.currentOrganization!;
+        const { form, operations, submit, validation } = useSecretConcealer();
+        operations.updateField('secret', 'content');
+        operations.updateField('recipient', 'one@example.com, two@sub.example.com');
+        organizations.setCurrentOrganization({
+          ...original, objid: 'b', extid: 'on-b', sharing_policy: {
+            passphrase_required: true, max_ttl: 604800,
+            recipient_email_mode: 'restricted', recipient_email_domains: ['example.com'],
+          },
+        });
+        expect(form.ttl).toBe(604800);
+        operations.updateField('passphrase', '   ');
+        await submit(kind);
+        expect(validation.errors.has('passphrase')).toBe(true);
+        expect(validation.errors.has('recipient')).toBe(true);
+        expect(useSecretStore()[kind]).not.toHaveBeenCalled();
+
+        operations.updateField('recipient', 'one@example.com, two@EXAMPLE.com');
+        operations.updateField('passphrase', 'some passphrase');
+        await submit(kind);
+        expect(useSecretStore()[kind]).toHaveBeenCalledWith(expect.objectContaining({
+          recipient: ['one@example.com', 'two@EXAMPLE.com'], ttl: 604800,
+        }));
+        organizations.setCurrentOrganization({
+          ...original, sharing_policy: {
+            passphrase_required: false, max_ttl: 60,
+            recipient_email_mode: 'disabled', recipient_email_domains: [],
+          },
+        });
+        expect(form.ttl).toBe(60);
+        expect(form.recipient).toBe('');
+      }
+    );
 
     it('rejects generate submission with a malformed recipient email', async () => {
       const store: Partial<ReturnType<typeof useSecretStore>> = {

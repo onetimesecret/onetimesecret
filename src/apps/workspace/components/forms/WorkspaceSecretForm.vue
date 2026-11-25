@@ -27,6 +27,7 @@
   import SplitButton from '@/shared/components/ui/SplitButton.vue';
   import { useDomainContext } from '@/shared/composables/useDomainContext';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
+  import { useSharingControls } from '@/shared/composables/useSharingControls';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
   import { useUnsavedInputGuard } from '@/shared/composables/useUnsavedInputGuard';
   import { loggingService } from '@/services/logging.service';
@@ -78,8 +79,7 @@
 
   // Get global defaults
   const bootstrapStore = useBootstrapStore();
-  const { secret_options } = storeToRefs(bootstrapStore);
-  const defaultTtl = computed(() => secret_options.value?.default_ttl ?? 604800);
+  const { recipientEnabled, defaultTtl, recipientDomains } = useSharingControls();
 
   const { currentContext, isContextActive } = useDomainContext();
 
@@ -142,7 +142,7 @@
           secretShortid: response.record.secret.shortid,
           shareDomain: response.record.share_domain,
           hasPassphrase: !!form.passphrase,
-          ttl: form.ttl as number,
+          ttl: response.record.secret.secret_ttl,
           createdAt: Date.now(),
         };
         // Add the message to the store
@@ -221,11 +221,9 @@
   watch(
     () => currentContext.value.domain,
     (domain) => {
-      if (domain) {
-        operations.updateField('share_domain', domain);
-      }
+      operations.updateField('share_domain', domain ?? '');
     },
-    { immediate: true }
+    { immediate: true, flush: 'sync' }
   );
 
   // Compute whether the form has content
@@ -245,8 +243,7 @@
   // explicitly disabled. An unset flag is treated as enabled (config default).
   // Generated passwords are mailed too, so hiding the field in generate mode
   // silently dropped the only way to reach the recipient.
-  const { uiCapabilities } = storeToRefs(bootstrapStore);
-  const showRecipient = computed(() => uiCapabilities.value?.recipient !== false);
+  const showRecipient = computed(() => recipientEnabled.value);
 
   // Platform detection for keyboard hint (desktop only)
   const isDesktop = useMediaQuery('(min-width: 640px)');
@@ -485,13 +482,17 @@
             <label
               for="workspace-recipient"
               class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
-              {{ t('web.COMMON.secret_recipient_address') || 'Email Recipient' }}
+              {{ t('web.secrets.recipient_list_label') }}
             </label>
+            <p v-if="recipientDomains?.length" class="mb-2 text-sm text-gray-600 dark:text-gray-300">
+              {{ t('web.secrets.allowed_recipient_domains', { domains: recipientDomains.join(', ') }) }}
+            </p>
             <div class="relative">
               <input
                 id="workspace-recipient"
                 :value="form.recipient"
                 type="email"
+                multiple
                 name="recipient[]"
                 autocomplete="email"
                 :placeholder="t('web.COMMON.email_placeholder')"

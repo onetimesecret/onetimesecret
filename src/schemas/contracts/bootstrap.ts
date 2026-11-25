@@ -449,6 +449,14 @@ export const secretOptionsSchema = z.object({
    * @sync lib/onetime/secret_lifetime_policy.rb — SecretLifetimePolicy.guest_ceiling
    */
   ttl_max_anonymous: z.number().int().positive().nullish(),
+  host_sharing_policy: z.object({
+    max_ttl: z.number().int().positive(),
+    passphrase_required: z.boolean(),
+    organization_extid: z.string().optional(),
+    domain_passphrase_required: z.boolean().optional(),
+    recipient_email_mode: z.enum(['unrestricted', 'disabled', 'restricted']).optional(),
+    recipient_email_domains: z.array(z.string()).optional(),
+  }).optional(),
   passphrase: passphraseSchema.optional(),
   password_generation: passwordGenerationSchema.optional(),
 });

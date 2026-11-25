@@ -7,6 +7,7 @@
   import SplitButton from '@/shared/components/ui/SplitButton.vue';
   import { useDomainContext } from '@/shared/composables/useDomainContext';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
+  import { useSharingControls } from '@/shared/composables/useSharingControls';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
   import { useUnsavedInputGuard } from '@/shared/composables/useUnsavedInputGuard';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -72,15 +73,28 @@
     display_domain: displayDomain,
   } = storeToRefs(bootstrapStore);
 
+  const { currentContext, isContextActive, hasMultipleContexts } = useDomainContext();
+
+  // Resolve the effective share domain for the form.
+  // The domain context composable works for authenticated users but for
+  // guest users on custom domains it falls back to canonical (no org
+  // context). In that case, use display_domain from the bootstrap store.
+  const effectiveShareDomain = computed(() => {
+    const contextDomain = currentContext.value.domain;
+    if (domainStrategy.value === 'custom' && displayDomain.value) {
+      return displayDomain.value;
+    }
+    return contextDomain;
+  });
+
   const passphraseConfig = computed(() => secretOptions.value?.passphrase);
-  const isPassphraseRequired = computed(() => passphraseConfig.value?.required || false);
+  const { recipientEnabled, recipientDomains, passphraseRequired: isPassphraseRequired } = useSharingControls(() => effectiveShareDomain.value);
 
   // Recipient field is shown only when the route opts in (withRecipient) AND the
   // ui.capabilities.recipient flag is not explicitly disabled. An unset flag
   // (undefined) is treated as enabled, matching the config default of true.
-  const { uiCapabilities } = storeToRefs(bootstrapStore);
   const showRecipient = computed(
-    () => props.withRecipient && uiCapabilities.value?.recipient !== false
+    () => props.withRecipient && recipientEnabled.value
   );
 
   // Helper function to get validation errors
@@ -97,6 +111,7 @@
   const advancedOptionsId = computed(() => `advanced-options-${uniqueId.value}`);
 
   const { form, validation, operations, isSubmitting, submit } = useSecretConcealer({
+    shareDomain: () => effectiveShareDomain.value,
     onSuccess: async (response) => {
       if (!response) throw 'Response is missing';
       const newMessage: LocalReceipt = {
@@ -107,7 +122,7 @@
         secretShortid: response.record.secret.shortid,
         shareDomain: response.record.share_domain,
         hasPassphrase: !!form.passphrase,
-        ttl: form.ttl as number,
+        ttl: response.record.secret.secret_ttl,
         createdAt: Date.now(),
       };
       // Add the message to the store
@@ -132,7 +147,7 @@
     updateTtl,
     updateRecipient,
     togglePassphraseVisibility,
-  } = usePrivacyOptions(operations);
+  } = usePrivacyOptions(operations, () => form.ttl);
 
   // Advanced Options: collapsed on every load, so the familiar fields stay
   // the whole form for a first-time visitor.
@@ -155,7 +170,6 @@
     );
   };
 
-  const { currentContext, isContextActive, hasMultipleContexts } = useDomainContext();
 
   // Compute whether the form has content or not
   const hasContent = computed(() => !!form.secret && (form.secret as string).trim().length > 0);
@@ -185,26 +199,12 @@
   );
   const shortcutHint = computed(() => (isMac.value ? '⌘ Enter' : 'Ctrl Enter'));
 
-  // Resolve the effective share domain for the form.
-  // The domain context composable works for authenticated users but for
-  // guest users on custom domains it falls back to canonical (no org
-  // context). In that case, use display_domain from the bootstrap store.
-  const effectiveShareDomain = computed(() => {
-    const contextDomain = currentContext.value.domain;
-    if (domainStrategy.value === 'custom' && displayDomain.value) {
-      return displayDomain.value;
-    }
-    return contextDomain;
-  });
-
   watch(
     effectiveShareDomain,
     (domain) => {
-      if (domain) {
-        operations.updateField('share_domain', domain);
-      }
+      operations.updateField('share_domain', domain ?? '');
     },
-    { immediate: true }
+    { immediate: true, flush: 'sync' }
   );
 
   // Show the "Creating links for <domain>" badge only when the user can choose
@@ -365,6 +365,7 @@
                   :value="form.passphrase"
                   :id="passphraseId"
                   name="passphrase"
+                  :required="isPassphraseRequired"
                   autocomplete="off"
                   :aria-invalid="!!getError('passphrase')"
                   :aria-errormessage="getError('passphrase') ? passphraseErrorId : undefined"
@@ -445,8 +446,11 @@
             <label
               :for="recipientId"
               class="mb-1 block font-brand text-sm text-gray-700 dark:text-gray-300">
-              {{ t('web.COMMON.secret_recipient_address') || 'Email Recipient' }}
+              {{ t('web.secrets.recipient_list_label') }}
             </label>
+            <p v-if="recipientDomains?.length" class="mb-2 text-sm text-gray-600 dark:text-gray-300">
+              {{ t('web.secrets.allowed_recipient_domains', { domains: recipientDomains.join(', ') }) }}
+            </p>
             <div class="relative">
               <div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
                 <OIcon
@@ -461,6 +465,7 @@
                 :id="recipientId"
                 :value="form.recipient"
                 type="email"
+                multiple
                 name="recipient[]"
                 autocomplete="email"
                 :placeholder="t('web.COMMON.email_placeholder')"

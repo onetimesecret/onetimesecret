@@ -1,11 +1,11 @@
 // src/shared/composables/usePrivacyOptions.ts
 
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import type { SecretFormData } from './useSecretForm';
+import { useSharingControls } from './useSharingControls';
 
 interface LifetimeOption {
   value: number;
@@ -15,6 +15,13 @@ interface LifetimeOption {
 interface PrivacyOptionsState {
   passphraseVisibility: boolean;
   lifetimeOptions: LifetimeOption[];
+}
+
+function includeSelectedTtl(options: number[], selected: number | undefined, maximum: number) {
+  if (selected !== undefined && selected >= 60 && selected <= maximum &&
+      !options.includes(selected)) {
+    options.push(selected);
+  }
 }
 
 /**
@@ -34,12 +41,10 @@ interface PrivacyOptionsState {
 /* eslint-disable max-lines-per-function */
 export function usePrivacyOptions(formOperations?: {
   updateField: <K extends keyof SecretFormData>(field: K, value: SecretFormData[K]) => void;
-}) {
+}, selectedTtl?: () => number) {
   const { t } = useI18n();
   const bootstrapStore = useBootstrapStore();
-  // organization stays on the store: it is an optional payload field, so
-  // storeToRefs types the ref itself as possibly undefined.
-  const { secret_options, authenticated } = storeToRefs(bootstrapStore);
+  const { ttlCeiling, defaultTtl } = useSharingControls();
 
   // UI State
   const state = ref<PrivacyOptionsState>({
@@ -59,8 +64,8 @@ export function usePrivacyOptions(formOperations?: {
     ];
 
     for (const unit of units) {
-      const quotient = Math.floor(seconds / unit.seconds);
-      if (quotient >= 1) {
+      const quotient = seconds / unit.seconds;
+      if (Number.isInteger(quotient) && quotient >= 1) {
         return t('web.UNITS.ttl.duration', {
           count: quotient,
           unit: t(`web.UNITS.ttl.time.${unit.key}`, quotient),
@@ -73,37 +78,6 @@ export function usePrivacyOptions(formOperations?: {
       unit: t('web.UNITS.ttl.time.second', seconds),
     });
   };
-
-  /**
-   * TTL ceiling the server will enforce for the current caller, in seconds.
-   *
-   * `null` means "no ceiling is knowable" and the dropdown falls open to the
-   * configured ttl_options — an org with no plan limit, or a bootstrap payload
-   * that predates these fields.
-   *
-   * Mirrors the request-aware server policy:
-   *   authenticated + org -> limits.secret_lifetime
-   *   canonical guest     -> configured anonymous ceiling (7d default)
-   *   custom-domain guest -> domain owner organization's plan lifetime (14/30d)
-   *   otherwise           -> config ttl_options max
-   *
-   * The legacy `ttl_max_anonymous` bootstrap key contains the effective guest
-   * ceiling for the current host. Do not infer it from authentication alone or
-   * restate the 7-day canonical default here.
-   */
-  const ttlCeiling = computed<number | null>(() => {
-    const positiveOrNull = (value: number | null | undefined) =>
-      typeof value === 'number' && value > 0 ? value : null;
-
-    if (authenticated.value) {
-      // No org means the server never consults a plan limit, so neither do we.
-      // -1 (unlimited) and 0 (unset) both fall through to null.
-      const organization = bootstrapStore.organization;
-      return organization ? positiveOrNull(organization.limits?.secret_lifetime) : null;
-    }
-
-    return positiveOrNull(secret_options.value?.ttl_max_anonymous);
-  });
 
   /**
    * Available lifetime options, capped at what the server will actually grant.
@@ -120,20 +94,19 @@ export function usePrivacyOptions(formOperations?: {
     const globalTtl = 3600 * 24 * 365;
     const ceiling = ttlCeiling.value;
 
-    const available = (secret_options.value?.ttl_options ?? []).filter(
+    if (ceiling !== null && ceiling < 60) return [];
+    const available = (bootstrapStore.secret_options?.ttl_options ?? []).filter(
       (seconds): seconds is number =>
-        seconds !== null && typeof seconds === 'number' && seconds <= globalTtl
+        typeof seconds === 'number' && seconds >= 60 && seconds <= globalTtl
     );
 
-    let usable = ceiling === null ? available : available.filter((seconds) => seconds <= ceiling);
-
-    // A ceiling below every configured option would leave the selector with
-    // nothing to render and WorkspaceSecretForm with no valid preferred TTL.
-    // Keep the shortest option instead of an empty list; the server clamps it
-    // down to the ceiling from there.
-    if (usable.length === 0 && available.length > 0) {
-      usable = [Math.min(...available)];
+    const usable = ceiling === null ? available : available.filter(seconds => seconds <= ceiling);
+    // Include a non-preset ceiling whenever it replaces a longer option.
+    if (ceiling !== null && !usable.includes(ceiling) && usable.length < available.length) {
+      usable.push(ceiling);
     }
+    // Keep the draft visible when switching away from a non-preset ceiling.
+    includeSelectedTtl(usable, selectedTtl?.(), Math.min(ceiling ?? globalTtl, globalTtl));
 
     return usable.map((seconds) => ({
       value: seconds,
@@ -164,6 +137,7 @@ export function usePrivacyOptions(formOperations?: {
     state,
     lifetimeOptions,
     ttlCeiling,
+    defaultTtl,
 
     // Field Updates
     updatePassphrase,

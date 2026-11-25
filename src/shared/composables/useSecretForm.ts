@@ -4,10 +4,10 @@ import {
   DEFAULT_SECRET_DISPLAY_TYPE,
   secretDisplayTypeSchema,
 } from '@/schemas/contracts/secret';
-import { transforms } from '@/schemas/transforms';
+import { useSharingControls } from './useSharingControls';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { storeToRefs } from 'pinia';
-import { reactive } from 'vue';
+import { reactive, watch } from 'vue';
 import { z } from 'zod';
 
 export interface SecretFormState {
@@ -15,7 +15,7 @@ export interface SecretFormState {
   validation: {
     errors: Map<keyof SecretFormData, string>;
     validate: () => boolean;
-    validateRecipient: () => boolean;
+    validateGenerate: () => boolean;
   };
   operations: {
     updateField: <K extends keyof SecretFormData>(field: K, value: SecretFormData[K]) => void;
@@ -28,9 +28,9 @@ export interface SecretFormState {
  */
 const formSchema = z.object({
   secret: z.string().min(1, 'Secret content is required'),
-  ttl: z.number().min(1, 'Expiration time is required'),
+  ttl: z.number().min(60, 'Expiration time is required'),
   passphrase: z.string(),
-  recipient: transforms.fromString.optionalEmail,
+  recipient: z.string(),
   share_domain: z.string(),
   team_id: z.string().optional(),
   display_type: secretDisplayTypeSchema,
@@ -39,7 +39,14 @@ const formSchema = z.object({
 /**
  * Form data structure with defaults
  */
+const generateSchema = formSchema.omit({ secret: true });
+
 export type SecretFormData = z.infer<typeof formSchema>;
+
+/** The HTML multiple-email input uses a comma-separated value. */
+export function recipientList(value: string) {
+  return value.trim() ? [...new Set(value.split(',').map(email => email.trim()))] : [];
+}
 
 /**
  * useSecretForm - secret form state and validation
@@ -56,9 +63,11 @@ export type SecretFormData = z.infer<typeof formSchema>;
  * - Form reset
  */
 /* eslint-disable max-lines-per-function */
-export function useSecretForm() {
+export function useSecretForm(shareDomain?: () => string) {
   const bootstrapStore = useBootstrapStore();
   const { secret_options } = storeToRefs(bootstrapStore);
+
+  const controls = useSharingControls(shareDomain);
 
   /**
    * Creates default form state
@@ -66,7 +75,7 @@ export function useSecretForm() {
   function getDefaultFormState(): SecretFormData {
     return {
       secret: '',
-      ttl: secret_options.value?.default_ttl ?? 3600 * 24 * 7,
+      ttl: controls.defaultTtl.value,
       passphrase: '',
       recipient: '',
       share_domain: '',
@@ -80,95 +89,85 @@ export function useSecretForm() {
   const operations = {
     updateField: <K extends keyof SecretFormData>(field: K, value: SecretFormData[K]) => {
       form[field] = value;
+      if (field === 'ttl') form.ttl = controls.clampTtl(form.ttl);
     },
-    reset: () => Object.assign(form, getDefaultFormState()),
+    reset: () => Object.assign(form, getDefaultFormState(), { share_domain: form.share_domain }),
   };
+
+  watch(controls.ttlCeiling, () => { form.ttl = controls.clampTtl(form.ttl); }, { flush: 'sync' });
+  watch(controls.recipientEnabled, enabled => { if (!enabled) form.recipient = ''; }, { flush: 'sync' });
+
+  function validateRecipients() {
+    const recipients = recipientList(form.recipient);
+    const allowedDomains = controls.recipientDomains.value;
+    if (recipients.length > 10) {
+      errors.set('recipient', 'At most 10 recipients are allowed');
+    } else if (recipients.some(email => !z.email().safeParse(email).success)) {
+      errors.set('recipient', 'Invalid recipient email');
+    } else if (recipients.some(email => {
+      const domain = email.slice(email.lastIndexOf('@') + 1).toLowerCase();
+      return !controls.recipientEnabled.value ||
+        (allowedDomains && !allowedDomains.includes(domain));
+    })) {
+      errors.set('recipient', 'Recipient email is restricted by the organization');
+    }
+  }
+
+  function validatePassphrase() {
+    const value = form.passphrase;
+    if (controls.passphraseRequired.value && !value.trim()) {
+      errors.set('passphrase', 'A passphrase is required for all secrets');
+      return;
+    }
+    const config = secret_options.value?.passphrase;
+    if (!config || !value) return;
+    if (config.minimum_length && value.length < config.minimum_length) {
+      errors.set('passphrase',
+        `Passphrase must be at least ${config.minimum_length} characters long`);
+    }
+    if (config.maximum_length && value.length > config.maximum_length) {
+      errors.set('passphrase',
+        `Passphrase must be no more than ${config.maximum_length} characters long`);
+    }
+    if (config.enforce_complexity) validatePassphraseComplexity(value);
+  }
+
+  function validatePassphraseComplexity(passphrase: string) {
+    const complexityErrors = [];
+    if (!/[A-Z]/.test(passphrase)) complexityErrors.push('uppercase letter');
+    if (!/[a-z]/.test(passphrase)) complexityErrors.push('lowercase letter');
+    if (!/\d/.test(passphrase)) complexityErrors.push('number');
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(passphrase))
+      complexityErrors.push('symbol');
+
+    if (complexityErrors.length > 0) {
+      errors.set(
+        'passphrase',
+        `Passphrase must contain at least one ${complexityErrors.join(', ')}`
+      );
+    }
+  }
+
+  function validate(generate = false) {
+    errors.clear();
+    const result = (generate ? generateSchema : formSchema).safeParse(form);
+    if (!result.success) {
+      for (const issue of result.error.issues) {
+        errors.set(issue.path[0] as keyof SecretFormData, issue.message);
+      }
+    }
+    if (controls.ttlCeiling.value !== null && controls.ttlCeiling.value < 60) {
+      errors.set('ttl', 'Maximum secret lifetime is below 60 seconds');
+    }
+    validateRecipients();
+    validatePassphrase();
+
+    return errors.size === 0;
+  }
 
   return {
     form,
-    validation: {
-      errors,
-      // eslint-disable-next-line complexity
-      validate: () => {
-        const result = formSchema.safeParse(form);
-        errors.clear();
-        if (!result.success) {
-          result.error.issues.forEach((err: any) => {
-            if (err.path[0]) {
-              errors.set(err.path[0] as keyof SecretFormData, err.message);
-            }
-          });
-        }
-
-        // Additional passphrase validation based on configuration
-        const passphraseConfig = secret_options.value?.passphrase;
-
-        if (passphraseConfig) {
-          // Check if passphrase is required
-          if (passphraseConfig.required && !(form.passphrase as string).trim()) {
-            errors.set('passphrase', 'A passphrase is required for all secrets');
-          }
-
-          // Check minimum length if passphrase is provided and minimum_length is configured
-          if (
-            form.passphrase &&
-            passphraseConfig.minimum_length &&
-            (form.passphrase as string).length < passphraseConfig.minimum_length
-          ) {
-            errors.set(
-              'passphrase',
-              `Passphrase must be at least ${passphraseConfig.minimum_length} characters long`
-            );
-          }
-
-          // Check maximum length if passphrase is provided and maximum_length is configured
-          if (
-            form.passphrase &&
-            passphraseConfig.maximum_length &&
-            (form.passphrase as string).length > passphraseConfig.maximum_length
-          ) {
-            errors.set(
-              'passphrase',
-              `Passphrase must be no more than ${passphraseConfig.maximum_length} characters long`
-            );
-          }
-
-          // Check complexity if required and passphrase is provided
-          if (form.passphrase && passphraseConfig.enforce_complexity) {
-            const complexityErrors = [];
-            const passphrase = form.passphrase as string;
-            if (!/[A-Z]/.test(passphrase)) complexityErrors.push('uppercase letter');
-            if (!/[a-z]/.test(passphrase)) complexityErrors.push('lowercase letter');
-            if (!/\d/.test(passphrase)) complexityErrors.push('number');
-            if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(passphrase))
-              complexityErrors.push('symbol');
-
-            if (complexityErrors.length > 0) {
-              errors.set(
-                'passphrase',
-                `Passphrase must contain at least one ${complexityErrors.join(', ')}`
-              );
-            }
-          }
-        }
-
-        return errors.size === 0;
-      },
-
-      // Recipient-only check for flows that skip full-form validation (e.g.
-      // generate mode, where `secret` isn't user-typed so the full schema
-      // can't pass). Recipient is still user input in that mode and still
-      // gets mailed, so it needs its own format check.
-      validateRecipient: () => {
-        const result = formSchema.shape.recipient.safeParse(form.recipient);
-        errors.delete('recipient');
-        if (!result.success) {
-          errors.set('recipient', result.error.issues[0]?.message ?? 'Invalid recipient email');
-          return false;
-        }
-        return true;
-      },
-    },
+    validation: { errors, validate, validateGenerate: () => validate(true) },
     operations,
   };
 }
