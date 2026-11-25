@@ -89,7 +89,7 @@ watch(isOpen, (newValue) => {
              duration-200
              hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none
              sm:h-9.5 dark:bg-gray-700
-             dark:ring-gray-600 dark:hover:bg-gray-600"
+             dark:ring-gray-600 dark:hover:bg-gray-600 dark:focus:ring-brand-500"
       :aria-expanded="isOpen"
       :aria-label="t('web.COMMON.language')"
       aria-haspopup="listbox">
