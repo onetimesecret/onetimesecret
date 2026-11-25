@@ -46,7 +46,7 @@
 
 <template>
   <div>
-    <div class="text-xs font-semibold text-gray-700 dark:text-gray-300">
+    <div class="field-label">
       {{ t('web.branding.favicon') }}
     </div>
     <div class="mt-1.5 flex items-center gap-3">
@@ -73,10 +73,7 @@
           type="button"
           data-testid="domain-favicon-upload"
           @click="isModalOpen = true"
-          class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3
-            py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition-colors
-            hover:border-gray-400 focus:ring-1 focus:ring-brand-500 focus:outline-none
-            dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+          class="btn-secondary py-1.5">
           <OIcon
             collection="mdi"
             name="upload"
@@ -84,7 +81,7 @@
             aria-hidden="true" />
           {{ isValidFavicon ? t('web.branding.replace_favicon') : t('web.branding.upload_favicon') }}
         </button>
-        <span class="text-[11px] text-gray-400">{{ t('web.branding.favicon_field_hint') }}</span>
+        <span class="field-hint">{{ t('web.branding.favicon_field_hint') }}</span>
       </div>
     </div>
 

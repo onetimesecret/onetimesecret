@@ -51,7 +51,7 @@
     <!-- Recipient page. Dashed border (not solid) reads as a sample/preview,
          not a live surface — reinforcing the PREVIEW badge. -->
     <div
-      class="overflow-hidden rounded-xl border border-dashed border-gray-300 bg-white shadow-sm
+      class="overflow-hidden rounded-lg border border-dashed border-gray-300 bg-white shadow-sm
         dark:border-gray-600 dark:bg-gray-800">
       <div
         class="flex items-center gap-2 border-b border-gray-200 bg-gray-50 px-3.5 py-2

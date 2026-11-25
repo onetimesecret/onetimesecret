@@ -17,7 +17,7 @@
 </script>
 
 <template>
-  <div class="p-[18px]">
+  <div class="p-6">
     <h2 class="font-brand-slab text-base font-bold text-gray-900 dark:text-gray-100">
       Match my site
     </h2>

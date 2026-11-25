@@ -43,7 +43,7 @@
       type="button"
       @click="emit('update:modelValue', card.id)"
       :aria-pressed="card.selected"
-      class="flex flex-col gap-1 rounded-xl border p-3.5 text-left transition-colors
+      class="flex flex-col gap-1 rounded-lg border p-3.5 text-left transition-colors
         hover:border-gray-400"
       :class="card.selected
         ? 'border-2 border-brand-600 bg-brand-50 dark:bg-brand-900/20'
