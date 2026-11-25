@@ -1917,6 +1917,10 @@
     "text": "Sharing controls",
     "content_hash": "b2f81f02"
   },
+  "web.organizations.sharing_policy.description": {
+    "text": "These rules apply to new secrets created in this organization or on its domains.",
+    "content_hash": "ffcde941"
+  },
   "web.organizations.sharing_policy.recipient_email": {
     "text": "Recipient email",
     "content_hash": "df5643c1"
