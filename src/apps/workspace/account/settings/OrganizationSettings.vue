@@ -4,6 +4,7 @@
   import DomainsTable from '@/apps/workspace/components/domains/DomainsTable.vue';
   import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
   import SecretActivityTable from '@/apps/workspace/components/organizations/SecretActivityTable.vue';
+  import SharingPolicyForm from '@/apps/workspace/components/organizations/SharingPolicyForm.vue';
   import type { OrganizationPermissions } from '@/schemas/api/account/responses/permissions';
   import { classifyError } from '@/schemas/errors';
   import { BillingService } from '@/services/billing.service';
@@ -353,6 +354,8 @@
   const { canCreateDomain } = useOrgPermissions(organization);
 
   const isOwner = computed(() => organization.value?.current_user_role === 'owner');
+  const canEditSharingPolicy = computed(() => isOwner.value &&
+    targetPermissions.value?.permissions.can_manage_settings === true);
   const hasDomains = computed(() => (organization.value?.domain_count ?? 0) > 0);
 
   // Delete guardrails mirrored from Onetime::Operations::Org::Delete. The
@@ -1240,6 +1243,13 @@
             </form>
           </div>
         </section>
+
+        <SharingPolicyForm
+          v-if="activeTab === 'general' && canEditSharingPolicy && organization?.sharing_policy && organization.extid === orgId"
+          :key="organization.extid"
+          :extid="organization.extid"
+          :policy="organization.sharing_policy"
+          @saved="(updated) => { if (stillViewing(updated.extid)) organization = updated }" />
 
         <!-- Organization Entitlements (General tab) -->
         <section

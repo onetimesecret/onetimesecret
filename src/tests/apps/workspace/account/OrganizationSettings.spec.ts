@@ -157,6 +157,7 @@ const mockOrganization = {
 
 const mockFetchOrganization = vi.fn();
 const mockUpdateOrganization = vi.fn();
+const mockUpdateSharingPolicy = vi.fn();
 const mockFetchInvitations = vi.fn();
 const mockCreateInvitation = vi.fn();
 const mockRevokeInvitation = vi.fn();
@@ -194,6 +195,7 @@ vi.mock('@/shared/stores/organizationStore', () => ({
     setCurrentOrganization: vi.fn(),
     fetchOrganization: mockFetchOrganization,
     updateOrganization: mockUpdateOrganization,
+    updateSharingPolicy: mockUpdateSharingPolicy,
     deleteOrganization: mockDeleteOrganization,
     fetchInvitations: mockFetchInvitations,
     createInvitation: mockCreateInvitation,
@@ -831,6 +833,49 @@ describe('OrganizationSettings', () => {
         '[data-testid="org-section-sso"] [data-testid="empty-state"]'
       );
       expect(emptyState.exists()).toBe(false);
+    });
+  });
+
+  describe('organization sharing controls', () => {
+    const initial = {
+      recipient_email_mode: 'unrestricted', recipient_email_domains: [],
+      passphrase_required: false, max_ttl: null,
+    };
+
+    it('lets the owner save all controls for the displayed organization', async () => {
+      const org = { ...mockOrganization, current_user_role: 'owner', sharing_policy: initial };
+      mockFetchOrganization.mockResolvedValue(org);
+      const permissions = permissionRecord(true, 'owner');
+      permissions.permissions.can_manage_settings = true;
+      mockGetPermissions.mockResolvedValue({ data: { organizations: [permissions] } });
+      mockUpdateSharingPolicy.mockImplementation(async (_extid, value) => ({ ...org, sharing_policy: value }));
+      wrapper = await mountComponent();
+      await switchToSettingsTab(wrapper);
+      const form = wrapper.getComponent({ name: 'SharingPolicyForm' });
+      await form.get('select').setValue('restricted');
+      await form.get('textarea').setValue('example.com\nmail.example.com');
+      await form.get('input[type="checkbox"]').setValue(true);
+      await form.get('input[type="number"]').setValue(604800);
+      await form.get('form').trigger('submit');
+      await flushPromises();
+      expect(mockUpdateSharingPolicy).toHaveBeenCalledWith(org.extid, {
+        recipient_email_mode: 'restricted', recipient_email_domains: ['example.com', 'mail.example.com'],
+        passphrase_required: true, max_ttl: 604800,
+      });
+      expect(form.get('button').attributes('disabled')).toBeDefined();
+      await form.get('input[type="number"]').setValue('');
+      await form.get('form').trigger('submit');
+      expect(mockUpdateSharingPolicy.mock.lastCall?.[1].max_ttl).toBeNull();
+    });
+
+    it('keeps the editor out of admin settings', async () => {
+      mockFetchOrganization.mockResolvedValue({ ...mockOrganization, sharing_policy: initial });
+      const permissions = permissionRecord(true, 'admin');
+      permissions.permissions.can_manage_settings = true;
+      mockGetPermissions.mockResolvedValue({ data: { organizations: [permissions] } });
+      wrapper = await mountComponent();
+      await switchToSettingsTab(wrapper);
+      expect(wrapper.findComponent({ name: 'SharingPolicyForm' }).exists()).toBe(false);
     });
   });
 

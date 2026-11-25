@@ -1912,5 +1912,45 @@
   "web.organizations.sso.enabled_hint": {
     "text": "When enabled, organization members can sign in using this SSO provider",
     "content_hash": "d7da2fa2"
+  },
+  "web.organizations.sharing_policy.title": {
+    "text": "Sharing controls",
+    "content_hash": "b2f81f02"
+  },
+  "web.organizations.sharing_policy.recipient_email": {
+    "text": "Recipient email",
+    "content_hash": "df5643c1"
+  },
+  "web.organizations.sharing_policy.unrestricted": {
+    "text": "Allow any recipient domain",
+    "content_hash": "e8c2c9d6"
+  },
+  "web.organizations.sharing_policy.restricted": {
+    "text": "Allow listed domains only",
+    "content_hash": "b7f67ca2"
+  },
+  "web.organizations.sharing_policy.disabled": {
+    "text": "Disable recipient email",
+    "content_hash": "5ee08e29"
+  },
+  "web.organizations.sharing_policy.domains": {
+    "text": "Allowed email domains",
+    "content_hash": "4e2b2beb"
+  },
+  "web.organizations.sharing_policy.domains_hint": {
+    "text": "Enter one domain per line. List each subdomain separately.",
+    "content_hash": "e26a204e"
+  },
+  "web.organizations.sharing_policy.require_passphrase": {
+    "text": "Require a passphrase for new secrets",
+    "content_hash": "22a1dfba"
+  },
+  "web.organizations.sharing_policy.max_ttl": {
+    "text": "Maximum secret lifetime in seconds",
+    "content_hash": "813d3263"
+  },
+  "web.organizations.sharing_policy.ttl_hint": {
+    "text": "Enter 60 seconds or more. Seven days is 604800 seconds. Leave blank to use the existing limit.",
+    "content_hash": "7b3c578d"
   }
 }

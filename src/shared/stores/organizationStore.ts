@@ -13,6 +13,8 @@ import {
   organizationResponseSchema,
   organizationsResponseSchema,
 } from '@/schemas/api/organizations';
+import { updateSharingPolicyRequestSchema } from '@/schemas/api/organizations/requests/update-sharing-policy';
+import type { SharingPolicy } from '@/schemas/contracts/sharing-policy';
 import { loggingService } from '@/services/logging.service';
 import { useApi } from '@/shared/composables/useApi';
 import type {
@@ -291,15 +293,21 @@ export const useOrganizationStore = defineStore('organization', () => {
     extid: string,
     payload: UpdateOrganizationPayload
   ): Promise<Organization> {
+    const result = gracefulParse(updateOrganizationPayloadSchema, payload, 'UpdateOrganizationPayload');
+    if (!result.ok) throw new Error('Invalid organization update data.');
+    return putOrganization(`/api/organizations/${extid}`, result.data);
+  }
+
+  async function updateSharingPolicy(extid: string, policy: SharingPolicy): Promise<Organization> {
+    const payload = updateSharingPolicyRequestSchema.parse({ sharing_policy: policy });
+    return putOrganization(`/api/organizations/${extid}/sharing-policy`, payload);
+  }
+
+  async function putOrganization(path: string, payload: object): Promise<Organization> {
     loading.value = true;
 
     try {
-      const payloadResult = gracefulParse(updateOrganizationPayloadSchema, payload, 'UpdateOrganizationPayload');
-      if (!payloadResult.ok) {
-        throw new Error('Invalid organization update data.');
-      }
-
-      const response = await $api.put(`/api/organizations/${extid}`, payloadResult.data);
+      const response = await $api.put(path, payload);
 
       const orgResult = gracefulParse(organizationResponseSchema, response.data, 'OrganizationResponse');
       if (!orgResult.ok) {
@@ -852,6 +860,7 @@ export const useOrganizationStore = defineStore('organization', () => {
           is_current_user_default: bootstrapOrg.is_current_user_default ?? false,
           planid: bootstrapOrg.planid ?? 'free_v1',
           current_user_role: bootstrapOrg.current_user_role ?? null,
+          sharing_policy: bootstrapOrg.sharing_policy,
           entitlements: bootstrapOrg.entitlements ?? null,
           plan_entitlements: bootstrapOrg.plan_entitlements,
           limits: bootstrapOrg.limits ?? null,
@@ -890,6 +899,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     fetchOrganization,
     createOrganization,
     updateOrganization,
+    updateSharingPolicy,
     deleteOrganization,
     setCurrentOrganization,
     selectOrganization,

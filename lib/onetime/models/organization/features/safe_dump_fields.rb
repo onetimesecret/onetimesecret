@@ -31,6 +31,7 @@ module Onetime::Organization::Features
       base.safe_dump_field :archived_at
       base.safe_dump_field :archived_comment
       base.safe_dump_field :planid
+      base.safe_dump_field :sharing_policy, ->(org) { org.sharing_policy }
       base.safe_dump_field :member_count, ->(org) { org.member_count }
       base.safe_dump_field :domain_count, ->(org) { org.domain_count }
       # Mirrors the `:active_subscription` guardrail in
@@ -59,6 +60,7 @@ module Onetime::Organization::Features
                   teams: normalize.call(org.limit_for(:teams)),
                   total_members_per_org: normalize.call(org.limit_for(:total_members_per_org)),
                   custom_domains: normalize.call(org.limit_for(:custom_domains)),
+                  secret_lifetime: normalize.call(org.limit_for(:secret_lifetime)),
                 }
         }
     end

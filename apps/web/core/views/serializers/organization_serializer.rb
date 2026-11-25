@@ -86,6 +86,7 @@ module Core
             'is_default' => org.is_default || false,
             'is_current_user_default' => current_user_default?(org, cust),
             'planid' => org.planid,
+            'sharing_policy' => org.sharing_policy,
             'current_user_role' => determine_user_role(org, cust),
             'entitlements' => entitlements,
             'plan_entitlements' => features,

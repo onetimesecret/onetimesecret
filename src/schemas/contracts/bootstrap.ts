@@ -29,6 +29,7 @@ import {
   homepageConfigCanonical,
 } from '@/schemas/contracts/custom-domain';
 import { customerCanonical } from '@/schemas/contracts/customer';
+import { sharingPolicySchema } from '@/schemas/contracts/sharing-policy';
 import {
   disabledHomepageConfigSchema,
   disabledHomepageVariantSchema,
@@ -514,6 +515,7 @@ export const organizationSchema = z
     is_current_user_default: z.boolean().nullish(),
     planid: CanonicalPlanIdSchema.nullish(),
     current_user_role: z.enum(['owner', 'admin', 'member']).nullish(),
+    sharing_policy: sharingPolicySchema.optional(),
     entitlements: z.array(z.string()).nullish(),
     plan_entitlements: z.array(z.string()).optional(),
     /** Plan limits per resource; -1 means unlimited. */
