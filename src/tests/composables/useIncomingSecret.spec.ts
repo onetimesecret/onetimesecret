@@ -25,6 +25,7 @@ vi.mocked(useRouter).mockReturnValue(mockRouter);
 
 // Default mock store values, tests can override per-case
 const mockIncomingStore = {
+  config: { passphrase_input_required: false },
   isFeatureEnabled: true,
   memoMaxLength: 50,
   recipients: [],
@@ -45,6 +46,7 @@ describe('useIncomingSecret', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
+    mockIncomingStore.config.passphrase_input_required = false;
     mockIncomingStore.isFeatureEnabled = true;
     mockIncomingStore.memoMaxLength = 50;
     mockIncomingStore.recipients = [];
@@ -389,6 +391,21 @@ describe('useIncomingSecret', () => {
   });
 
   describe('submit()', () => {
+    it('requires a nonblank passphrase when requested and preserves its spaces on submission', async () => {
+      mockIncomingStore.config.passphrase_input_required = true;
+      const { form, submit, isFormValid } = useIncomingSecret();
+      form.value.recipientId = 'configured';
+      form.value.secret = 'secret';
+      form.value.passphrase = '   ';
+      expect(isFormValid.value).toBe(false);
+      form.value.passphrase = '  Longer passphrase!  ';
+      expect(isFormValid.value).toBe(true);
+      await submit();
+      expect(mockIncomingStore.createIncomingSecret).toHaveBeenCalledWith({
+        recipient: 'configured', secret: 'secret', memo: '', passphrase: '  Longer passphrase!  ',
+      });
+    });
+
     const mockSuccessResponse = {
       success: true,
       record: {

@@ -16,7 +16,8 @@ require_relative '../../support/test_logic'
 require 'api/incoming/logic/incoming'
 
 
-OT.boot! :test, false
+# Secret creation needs the encryption keys installed by ConfigureFamilia.
+OT.boot! :test
 
 @email = "tryouts+incoming+#{Familia.now.to_i}@onetimesecret.com"
 @cust = Onetime::Customer.create!(email: @email)

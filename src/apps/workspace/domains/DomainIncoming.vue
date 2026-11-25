@@ -289,6 +289,8 @@ watch(canManageIncoming, allowed => {
               @discard="discardChanges"
               @add-recipient="handleAddRecipient"
               @remove-recipient="handleRemoveRecipient"
+              @update:passphrase-required="formState.passphrase_required = $event"
+              @update:max-ttl="formState.max_ttl = $event"
               @update:enabled="handleUpdateEnabled" />
           </template>
         </div>

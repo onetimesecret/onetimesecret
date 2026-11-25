@@ -10,6 +10,7 @@ import { useRouter } from 'vue-router';
 
 interface IncomingSecretForm {
   memo: string;
+  passphrase: string;
   secret: string;
   recipientId: string;
 }
@@ -48,6 +49,7 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
   // Form state
   const form = ref<IncomingSecretForm>({
     memo: '',
+    passphrase: '',
     secret: '',
     recipientId: '',
   });
@@ -60,7 +62,12 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
   const secretMaxLength = computed(() => incomingStore.secretMaxLength);
   const isFeatureEnabled = computed(() => incomingStore.isFeatureEnabled);
   const recipients = computed(() => incomingStore.recipients);
-  const isFormValid = computed(() => !!(form.value.secret.trim() && form.value.recipientId));
+  const passphraseRequired = computed(
+    () => incomingStore.config?.passphrase_input_required ?? false
+  );
+  const defaultTtl = computed(() => incomingStore.defaultTtl);
+  const isFormValid = computed(() => Boolean(form.value.secret.trim() && form.value.recipientId &&
+    (!passphraseRequired.value || form.value.passphrase.trim())));
 
   // Two separate handlers because useAsyncHandler doesn't support per-call
   // option overrides. Consider adding wrap(operation, overrides?) signature
@@ -122,7 +129,7 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
     const secretValid = validateSecret();
     const recipientValid = validateRecipient();
 
-    return memoValid && secretValid && recipientValid;
+    return memoValid && secretValid && recipientValid && isFormValid.value;
   };
 
   const clearValidation = () => {
@@ -135,6 +142,7 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
   const createPayload = (): IncomingSecretPayload => ({
     memo: form.value.memo.trim() || '', // Empty string if no memo provided
     secret: form.value.secret,
+    ...(passphraseRequired.value && { passphrase: form.value.passphrase }),
     recipient: form.value.recipientId,
   });
 
@@ -173,6 +181,7 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
   const resetForm = () => {
     form.value = {
       memo: '',
+      passphrase: '',
       secret: '',
       recipientId: '',
     };
@@ -199,6 +208,8 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
     secretMaxLength,
     isFeatureEnabled,
     recipients,
+    passphraseRequired,
+    defaultTtl,
     isFormValid,
 
     // Validation

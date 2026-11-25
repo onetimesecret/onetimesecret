@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 /**
  * Schema for incoming secret creation payload
- * Simple payload - passphrase and ttl come from backend config
+ * The server chooses the lifetime and may require a sender-supplied passphrase.
  * Memo is optional - only secret and recipient are required
  * Recipient is now a hash string instead of email for security
  * Note: Memo max length validation is enforced by backend config and UI component
@@ -12,6 +12,7 @@ import { z } from 'zod';
 export const incomingSecretPayloadSchema = z.object({
   memo: z.string().optional().default(''),
   secret: z.string().min(1),
+  passphrase: z.string().optional(),
   recipient: z.string().min(1), // Now expects hash instead of email
 });
 

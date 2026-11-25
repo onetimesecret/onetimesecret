@@ -356,6 +356,49 @@ logic.raise_concerns
 @response_result[:record].key?(:enabled)
 #=> true
 
+## PUT saves creation and reserved delivery settings in the authorized admin record
+strategy = create_strategy_with_domain(@test_cust, @test_domain_display)
+params = {
+  'extid' => @test_domain.extid, 'enabled' => true, 'max_ttl' => 60, 'passphrase_required' => true,
+  'email_disabled' => true, 'post_url' => 'http://api.123/callback',
+}
+logic = PutIncomingConfig.new(strategy, params)
+logic.raise_concerns
+logic.process[:record].values_at(:max_ttl, :passphrase_required, :email_disabled, :post_url)
+#=> [60, true, true, 'http://api.123/callback']
+
+## Invalid settings do not replace the stored maximum
+strategy = create_strategy_with_domain(@test_cust, @test_domain_display)
+invalid = [{ 'max_ttl' => 59 }, { 'max_ttl' => 60.5 }, { 'max_ttl' => 2**53 }, { 'passphrase_required' => 'off' },
+           { 'post_url' => 'file:///test' }, { 'post_url' => 'https://user:password@hooks.example.org/incoming' },
+           { 'post_url' => 'https://hooks.example/%ZZ' }, { 'post_url' => 'https://[::::]/notify' },
+           { 'post_url' => 'https://hooks.example.org/path#fragment' }, { 'post_url' => 'http://hooks.example.org:70000/' }]
+invalid.all? do |change|
+  logic = PutIncomingConfig.new(strategy, { 'extid' => @test_domain.extid, 'enabled' => true }.merge(change))
+  begin
+    logic.raise_concerns
+    false
+  rescue OT::FormError => ex
+    ex.error_key == 'api.domains.errors.invalid_incoming_setting'
+  end
+end && IncomingConfig.load(@test_domain.identifier).settings[:max_ttl] == 60
+#=> true
+
+## The largest exact JSON integer round trips through a settings-only update
+strategy = create_strategy_with_domain(@test_cust, @test_domain_display)
+logic = PutIncomingConfig.new(strategy, { 'extid' => @test_domain.extid, 'max_ttl' => (2**53) - 1 })
+logic.raise_concerns
+logic.process[:record][:max_ttl]
+#=> 9_007_199_254_740_991
+
+## Explicit null clears a ceiling while omitted settings and recipients survive
+strategy = create_strategy_with_domain(@test_cust, @test_domain_display)
+logic = PutIncomingConfig.new(strategy, { 'extid' => @test_domain.extid, 'max_ttl' => nil })
+logic.raise_concerns
+record = logic.process[:record]
+[record[:enabled], record[:max_ttl], record[:passphrase_required], record[:email_disabled], record[:post_url], record[:recipients].size]
+#=> [true, nil, true, true, 'http://api.123/callback', 3]
+
 # --- TEARDOWN ---
 
 ## Cleanup test fixtures

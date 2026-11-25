@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require_relative 'base'
-require_relative '../../../../lib/onetime/incoming/recipient_resolver'
 
 module Incoming
   module Logic
@@ -57,15 +56,6 @@ module Incoming
           recipient: recipient_hash,
           valid: is_valid,
         }
-      end
-
-      private
-
-      def resolver
-        @resolver ||= Onetime::Incoming::RecipientResolver.new(
-          domain_strategy: domain_strategy,
-          display_domain: display_domain,
-        )
       end
     end
   end

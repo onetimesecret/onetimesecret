@@ -44,9 +44,8 @@ export type GetDomainIncomingConfigRequest = z.infer<typeof getDomainIncomingCon
 /**
  * Request body for PUT of incoming configuration.
  *
- * Carries the full intended state — enabled flag + the complete
- * recipients list (plaintext, admin view). PUT semantics: the body
- * IS the new state.
+ * Accepts creation or delivery settings independently. A supplied recipients
+ * list replaces the saved list.
  */
 export const putDomainIncomingConfigRequestSchema = putIncomingConfigPayloadSchema;
 

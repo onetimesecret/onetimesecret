@@ -41,6 +41,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   (e: 'update:enabled', value: boolean): void;
+  (e: 'update:passphraseRequired', value: boolean): void;
+  (e: 'update:maxTtl', value: number | null): void;
   (e: 'save'): void;
   (e: 'delete'): void;
   (e: 'discard'): void;
@@ -84,7 +86,7 @@ const hasAnyRecipients = computed(() => recipientCount.value > 0);
 const canDelete = computed(() => {
   const saved = props.savedFormState;
   if (!saved) return false;
-  return saved.recipients.length > 0 || saved.enabled;
+  return saved.recipients.length > 0 || saved.enabled || saved.passphrase_required || saved.max_ttl != null;
 });
 
 // ---------------------------------------------------------------------------
@@ -168,6 +170,11 @@ function handleDelete(): void {
 
 function handleToggleEnabled(): void {
   emit('update:enabled', !props.formState.enabled);
+}
+
+function updateMaxTtl(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  if (input.reportValidity()) emit('update:maxTtl', input.value === '' ? null : input.valueAsNumber);
 }
 </script>
 
@@ -359,6 +366,26 @@ function handleToggleEnabled(): void {
     </div>
 
     <!-- Enabled Toggle -->
+    <fieldset :disabled="isSaving || isDeleting" class="space-y-4">
+      <label class="flex items-center gap-2 text-sm font-medium">
+        <input
+          type="checkbox"
+          :checked="formState.passphrase_required"
+          @change="emit('update:passphraseRequired', ($event.target as HTMLInputElement).checked)" />
+        {{ t('web.domains.passphrase_required_label') }}
+      </label>
+      <label class="block text-sm font-medium">
+        {{ t('web.domains.incoming.max_ttl') }}
+        <input
+          type="number"
+min="60"
+step="1"
+          :value="formState.max_ttl"
+          class="mt-1 block rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+          @change="updateMaxTtl" />
+      </label>
+    </fieldset>
+
     <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
       <div>
         <label

@@ -47,6 +47,8 @@ const DEFAULT_MAX_RECIPIENTS = 20;
 export interface IncomingConfigFormState {
   /** Whether incoming secrets are enabled for this domain. */
   enabled: boolean;
+  passphrase_required: boolean;
+  max_ttl: number | null;
   /** Array of recipients (plaintext email + display name). */
   recipients: DomainIncomingRecipient[];
 }
@@ -54,6 +56,8 @@ export interface IncomingConfigFormState {
 function createDefaultFormState(): IncomingConfigFormState {
   return {
     enabled: false,
+    passphrase_required: false,
+    max_ttl: null,
     recipients: [],
   };
 }
@@ -61,7 +65,7 @@ function createDefaultFormState(): IncomingConfigFormState {
 /** Deep clone form state so snapshots stay independent of live mutations. */
 function cloneFormState(state: IncomingConfigFormState): IncomingConfigFormState {
   return {
-    enabled: state.enabled,
+    ...state,
     recipients: state.recipients.map((r) => ({ ...r })),
   };
 }
@@ -82,8 +86,8 @@ function formStatesEqual(
   a: IncomingConfigFormState,
   b: IncomingConfigFormState,
 ): boolean {
-  if (a.enabled !== b.enabled) return false;
-  return recipientsEqual(a.recipients, b.recipients);
+  return a.enabled === b.enabled && a.passphrase_required === b.passphrase_required &&
+    a.max_ttl === b.max_ttl && recipientsEqual(a.recipients, b.recipients);
 }
 
 /* eslint max-lines-per-function: off */
@@ -150,7 +154,8 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
   const isConfigured = computed(() => {
     const saved = savedFormState.value;
     if (!saved) return false;
-    return saved.recipients.length > 0 || saved.enabled;
+    return saved.recipients.length > 0 || saved.enabled ||
+      saved.passphrase_required || saved.max_ttl !== null;
   });
 
   /** Number of recipients in the form. */
@@ -187,6 +192,8 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
       maxRecipients.value = record.max_recipients;
       formState.value = {
         enabled: record.enabled,
+        passphrase_required: record.passphrase_required ?? false,
+        max_ttl: record.max_ttl ?? null,
         recipients: record.recipients.map((r) => ({ ...r })),
       };
       savedFormState.value = cloneFormState(formState.value);
@@ -208,6 +215,10 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
         const extid = unref(domainExtId);
         const payload: PutDomainIncomingConfigRequest = {
           enabled: formState.value.enabled,
+          ...(formState.value.passphrase_required !== savedFormState.value?.passphrase_required &&
+            { passphrase_required: formState.value.passphrase_required }),
+          ...(formState.value.max_ttl !== savedFormState.value?.max_ttl &&
+            { max_ttl: formState.value.max_ttl }),
           recipients: formState.value.recipients.map((r) => ({
             email: r.email,
             name: r.name,
@@ -220,6 +231,8 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
         maxRecipients.value = result.record.max_recipients;
         formState.value = {
           enabled: result.record.enabled,
+          passphrase_required: result.record.passphrase_required ?? false,
+          max_ttl: result.record.max_ttl ?? null,
           recipients: result.record.recipients.map((r) => ({ ...r })),
         };
         savedFormState.value = cloneFormState(formState.value);

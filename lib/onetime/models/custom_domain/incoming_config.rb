@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'digest/sha2'
+require 'uri'
 require_relative '../../security/input_sanitizers'
 require_relative '../features/boolean_encoding'
 require_relative '../features/guarded_config_writes'
@@ -32,6 +33,10 @@ class Onetime::CustomDomain::IncomingConfig < Familia::Horreum
 
   # Maximum number of recipients per domain
   MAX_RECIPIENTS = 20
+  # The workspace reads JSON numbers as IEEE-754 doubles.
+  MAX_SAFE_TTL   = (2**53) - 1
+  # Match the request schema's HTTP(S) host, optional port and escaped path or query.
+  POST_ENDPOINT  = %r{\Ahttps?://(\[[a-f0-9:.]+\]|[a-z0-9._~-]+)(?::([0-9]{1,5}))?(?:[/?](?:[a-z0-9/?:@!$&'()*+,;=._~-]|%[0-9a-f]{2})*)?\z}i
 
   # Default policy values applied to all custom domains. Not user-configurable
   # per-domain at this time; canonical-domain values still come from YAML
@@ -39,6 +44,13 @@ class Onetime::CustomDomain::IncomingConfig < Familia::Horreum
   DEFAULTS = {
     memo_max_length: 50,
     default_ttl: 604_800,
+  }.freeze
+
+  SETTING_DEFAULTS = {
+    passphrase_required: false,
+    max_ttl: nil,
+    email_disabled: false,
+    post_url: nil,
   }.freeze
 
   prefix :custom_domain__incoming_config
@@ -54,6 +66,7 @@ class Onetime::CustomDomain::IncomingConfig < Familia::Horreum
   # Recipients stored as JSON array of {email:, name:} objects
   # Email addresses are stored as-is; hashing happens at retrieval time
   field :recipients_json
+  field :settings_json
 
   # Timestamps (Unix epoch integers)
   field :created
@@ -90,6 +103,23 @@ class Onetime::CustomDomain::IncomingConfig < Familia::Horreum
   # @return [Boolean]
   def ready?
     enabled? && recipients.any?
+  end
+
+  def settings
+    return SETTING_DEFAULTS if settings_json.to_s.empty?
+
+    SETTING_DEFAULTS.merge(JSON.parse(settings_json, symbolize_names: true))
+  end
+
+  # Partial updates preserve choices made through a different client,
+  # including reserved delivery settings that the workspace form does not edit.
+  def apply_settings(changes)
+    return if changes.empty?
+
+    invalid = self.class.invalid_setting(changes)
+    raise Onetime::Problem, "Invalid Incoming Secrets setting: #{invalid}" if invalid
+
+    self.settings_json = JSON.generate(settings.merge(changes))
   end
 
   # Enable incoming secrets for this domain.
@@ -293,6 +323,32 @@ class Onetime::CustomDomain::IncomingConfig < Familia::Horreum
   end
 
   class << self
+    def invalid_setting(changes)
+      changes.each do |key, value|
+        valid = case key
+                when :max_ttl
+                  value.nil? || (value.is_a?(Integer) && value.between?(60, MAX_SAFE_TTL))
+                when :post_url
+                  value.nil? || http_endpoint?(value)
+                when :passphrase_required, :email_disabled
+                  [true, false].include?(value)
+                end
+        return key unless valid
+      end
+      nil
+    end
+
+    def http_endpoint?(value)
+      return false unless value.is_a?(String) && POST_ENDPOINT.match?(value)
+
+      uri = URI.parse(value)
+      uri.is_a?(URI::HTTP) && !uri.host.to_s.empty? && uri.port.between?(0, 65_535) &&
+        !uri.userinfo && !uri.fragment
+    rescue URI::InvalidURIError
+      false
+    end
+    private :http_endpoint?
+
     # Find incoming config by domain ID.
     #
     # @param domain_id [String] CustomDomain identifier (objid)
@@ -329,6 +385,7 @@ class Onetime::CustomDomain::IncomingConfig < Familia::Horreum
 
       config.enabled    = attrs[:enabled].to_s if attrs.key?(:enabled)
       config.recipients = attrs[:recipients] if attrs.key?(:recipients)
+      config.apply_settings(attrs.slice(*SETTING_DEFAULTS.keys))
 
       now            = Familia.now.to_i
       config.created = now
