@@ -79,14 +79,10 @@ module Onetime
       end
 
       def validate_recipient_policy
-        if recipient.size > Onetime::SecretSharingPolicy::MAX_RECIPIENTS
-          raise_form_error 'At most 10 recipients are allowed',
-            field: 'recipient',
-            error_key: 'api.secrets.errors.too_many_recipients'
-        end
-
         policy = @sharing_policy || Onetime::SecretSharingPolicy.new
-        return if recipient.all? { |email| policy.recipient_allowed?(email) }
+        # Standard creation sends only the first sanitized address. The caller
+        # retains the existing deliverability checks for all submitted addresses.
+        return if policy.recipient_allowed?(recipient.first)
 
         raise_form_error 'Recipient email is restricted by the organization',
           field: 'recipient',

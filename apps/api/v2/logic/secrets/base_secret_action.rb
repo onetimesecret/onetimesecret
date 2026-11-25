@@ -482,7 +482,7 @@ module V2::Logic
         return if recipient.nil? || recipient.empty?
 
         Onetime::Receipt.creation_followup(:recipient_email, receipt) do
-          receipt.deliver_by_email cust, locale, secret, recipient
+          receipt.deliver_by_email cust, locale, secret, recipient.first
         end
       end
 

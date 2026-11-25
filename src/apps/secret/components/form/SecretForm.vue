@@ -446,7 +446,7 @@
             <label
               :for="recipientId"
               class="mb-1 block font-brand text-sm text-gray-700 dark:text-gray-300">
-              {{ t('web.secrets.recipient_list_label') }}
+              {{ t('web.COMMON.secret_recipient_address') || 'Email Recipient' }}
             </label>
             <p v-if="recipientDomains?.length" class="mb-2 text-sm text-gray-600 dark:text-gray-300">
               {{ t('web.secrets.allowed_recipient_domains', { domains: recipientDomains.join(', ') }) }}
@@ -465,7 +465,6 @@
                 :id="recipientId"
                 :value="form.recipient"
                 type="email"
-                multiple
                 name="recipient[]"
                 autocomplete="email"
                 :placeholder="t('web.COMMON.email_placeholder')"

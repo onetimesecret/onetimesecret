@@ -49,6 +49,7 @@ RSpec.describe 'Organization sharing controls on mounted creation routes', type:
     expect(Familia.dbclient.ttl(receipt.load_secret.dbkey)).to be_between(expected - 2, expected)
     wire_ttl = version == 1 ? json_response.fetch('secret_ttl') : json_response.dig('record', 'receipt', 'secret_ttl')
     expect(wire_ttl.to_i).to be_between(expected - 2, expected)
+    receipt
   end
 
   around(:each, :custom_host) do |example|
@@ -201,7 +202,7 @@ RSpec.describe 'Organization sharing controls on mounted creation routes', type:
 
   [1, 2, 3].each do |version|
     %w[conceal generate].each do |action|
-      it "enforces the selected workspace for v#{version} #{action} and sends one message per recipient" do
+      it "enforces the selected workspace for v#{version} #{action} and sends only to the first recipient" do
         set_policy(workspace, recipient_email_mode: 'restricted', recipient_email_domains: %w[example.com listed.example.com],
           passphrase_required: true, max_ttl: 604_800)
         set_policy(other, recipient_email_mode: 'disabled', max_ttl: 60)
@@ -215,16 +216,31 @@ RSpec.describe 'Organization sharing controls on mounted creation routes', type:
         data = { secret: 'shared value', passphrase: 'secret-passphrase', recipient: allowed }
         error_status = version == 1 ? 404 : 422
 
-        [data.merge(recipient: [allowed.first, 'outside@unlisted.example.com']), data.merge(passphrase: " \t ")].each do |bad|
+        outside = 'outside@unlisted.example.com'
+        [
+          data.merge(recipient: [outside, allowed.first]),
+          data.merge(recipient: [allowed.first, 'invalid-address']),
+          data.merge(passphrase: " \t "),
+        ].each do |bad|
           expect { create(version, action, bad) }.not_to change { Onetime::Secret.instances.size }
           expect(last_response.status).to eq(error_status), last_response.body
           expect(queued).to be_empty
         end
 
+        # Legacy arrays retain address validation, while only the first
+        # sanitized address is recorded and sent the link.
+        create(version, action, data.merge(recipient: [allowed.last, outside], ttl: 300))
+        receipt = expect_stored(version, 300)
+        expect(receipt.recipients).to eq(OT::Utils.obscure_email(allowed.last))
+        expect(queued).to eq([allowed.last])
+        queued.clear
+
         [59, 60, 604_799, 604_800, 604_801].each do |ttl|
           create(version, action, data.merge(ttl: ttl))
-          expect_stored(version, ttl.clamp(60, 604_800))
-          expect(queued.shift(2)).to eq(allowed)
+          receipt = expect_stored(version, ttl.clamp(60, 604_800))
+          expect(receipt.recipients).to eq(OT::Utils.obscure_email(allowed.first))
+          expect(queued).to eq([allowed.first])
+          queued.clear
         end
 
         header 'O-Organization-ID', other.objid

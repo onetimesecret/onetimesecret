@@ -9,5 +9,4 @@ Changed
 -------
 
 - Sharing and password generation now enforce saved custom-domain passphrase
-  requirements. When a sender lists several email recipients, each accepted
-  address receives the same one-time link in a separate message.
+  requirements.

@@ -16,7 +16,7 @@ import { useSecretStore } from '@/shared/stores/secretStore';
 import { storeToRefs } from 'pinia';
 import { ref, watch } from 'vue';
 
-import { recipientList, useSecretForm } from './useSecretForm';
+import { useSecretForm } from './useSecretForm';
 
 interface SecretConcealerOptions {
   onSuccess?: (response: ConcealDataResponse) => Promise<void> | void;
@@ -92,7 +92,7 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
       kind: type,
       secret: form.secret,
       ttl: form.ttl,
-      recipient: recipientList(form.recipient),
+      recipient: form.recipient,
       share_domain: form.share_domain,
     };
 

@@ -64,7 +64,7 @@ module Onetime::Receipt::Features
             action: 'deliver_email',
           }
 
-        eaddrs = Array(eaddrs).uniq
+        eaddrs = [eaddrs].flatten.compact[0..9] # Max 10
 
         eaddrs_safe     = eaddrs.collect { |e| OT::Utils.obscure_email(e) }
         eaddrs_safe_str = eaddrs_safe.join(', ')
@@ -80,6 +80,18 @@ module Onetime::Receipt::Features
           }
         recipients! eaddrs_safe_str
 
+        if eaddrs.size > 1
+          secret_logger.warn 'Multiple recipients detected',
+            {
+              receipt_id: shortid,
+              secret_id: secret.shortid,
+              recipient_count: eaddrs.size,
+              action: 'deliver_email',
+            }
+        end
+
+        # Deliver to first recipient only
+        email_address = eaddrs.first
         # Resolve share_domain FQDN to a domain_id for sender config lookup.
         # Fault-tolerant: any failure results in nil (system default sender).
         domain_id     = Onetime::CustomDomain.resolve_domain_id(secret.share_domain)
@@ -94,22 +106,18 @@ module Onetime::Receipt::Features
         # Blank ("") locales are truthy and slip past a bare `||`; treat as missing.
         locale = OT.default_locale if locale.to_s.strip.empty?
 
-        eaddrs.each do |email_address|
-          Onetime::Receipt.creation_followup(:recipient_email, self) do
-            Onetime::Jobs::Publisher.enqueue_email(
-              :secret_link,
-              {
-                secret_key: secret.identifier,
-                share_domain: secret.share_domain,
-                recipient: email_address,
-                sender_email: cust.email,
-                has_passphrase: secret.has_passphrase?,
-                locale: locale,
-              },
-              domain_id: domain_id,
-            )
-          end
-        end
+        Onetime::Jobs::Publisher.enqueue_email(
+          :secret_link,
+          {
+            secret_key: secret.identifier,
+            share_domain: secret.share_domain,
+            recipient: email_address,
+            sender_email: cust.email,
+            has_passphrase: secret.has_passphrase?,
+            locale: locale,
+          },
+          domain_id: domain_id,
+        ) # fallback: :async_thread is the default
       end
 
       # Receipt transitions extend the state CAS with their accompanying fields

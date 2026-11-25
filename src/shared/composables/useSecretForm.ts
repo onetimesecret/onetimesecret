@@ -4,6 +4,7 @@ import {
   DEFAULT_SECRET_DISPLAY_TYPE,
   secretDisplayTypeSchema,
 } from '@/schemas/contracts/secret';
+import { transforms } from '@/schemas/transforms';
 import { useSharingControls } from './useSharingControls';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { storeToRefs } from 'pinia';
@@ -30,7 +31,7 @@ const formSchema = z.object({
   secret: z.string().min(1, 'Secret content is required'),
   ttl: z.number().min(60, 'Expiration time is required'),
   passphrase: z.string(),
-  recipient: z.string(),
+  recipient: transforms.fromString.optionalEmail,
   share_domain: z.string(),
   team_id: z.string().optional(),
   display_type: secretDisplayTypeSchema,
@@ -42,11 +43,6 @@ const formSchema = z.object({
 const generateSchema = formSchema.omit({ secret: true });
 
 export type SecretFormData = z.infer<typeof formSchema>;
-
-/** The HTML multiple-email input uses a comma-separated value. */
-export function recipientList(value: string) {
-  return value.trim() ? [...new Set(value.split(',').map(email => email.trim()))] : [];
-}
 
 /**
  * useSecretForm - secret form state and validation
@@ -97,18 +93,11 @@ export function useSecretForm(shareDomain?: () => string) {
   watch(controls.ttlCeiling, () => { form.ttl = controls.clampTtl(form.ttl); }, { flush: 'sync' });
   watch(controls.recipientEnabled, enabled => { if (!enabled) form.recipient = ''; }, { flush: 'sync' });
 
-  function validateRecipients() {
-    const recipients = recipientList(form.recipient);
+  function validateRecipientPolicy() {
+    if (!form.recipient || errors.has('recipient')) return;
     const allowedDomains = controls.recipientDomains.value;
-    if (recipients.length > 10) {
-      errors.set('recipient', 'At most 10 recipients are allowed');
-    } else if (recipients.some(email => !z.email().safeParse(email).success)) {
-      errors.set('recipient', 'Invalid recipient email');
-    } else if (recipients.some(email => {
-      const domain = email.slice(email.lastIndexOf('@') + 1).toLowerCase();
-      return !controls.recipientEnabled.value ||
-        (allowedDomains && !allowedDomains.includes(domain));
-    })) {
+    const domain = form.recipient.slice(form.recipient.lastIndexOf('@') + 1).toLowerCase();
+    if (!controls.recipientEnabled.value || (allowedDomains && !allowedDomains.includes(domain))) {
       errors.set('recipient', 'Recipient email is restricted by the organization');
     }
   }
@@ -159,7 +148,7 @@ export function useSecretForm(shareDomain?: () => string) {
     if (controls.ttlCeiling.value !== null && controls.ttlCeiling.value < 60) {
       errors.set('ttl', 'Maximum secret lifetime is below 60 seconds');
     }
-    validateRecipients();
+    validateRecipientPolicy();
     validatePassphrase();
 
     return errors.size === 0;

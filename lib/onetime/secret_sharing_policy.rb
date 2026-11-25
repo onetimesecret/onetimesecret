@@ -6,8 +6,7 @@ module Onetime
   # Combine policies from the workspace and the authorized sharing domains.
   # A selected domain may belong to another workspace the creator can access.
   class SecretSharingPolicy
-    MIN_TTL        = 60
-    MAX_RECIPIENTS = 10
+    MIN_TTL = 60
 
     def initialize(organizations: [], domains: [])
       @organizations = organizations.compact.uniq(&:objid)

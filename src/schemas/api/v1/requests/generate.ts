@@ -13,8 +13,8 @@ export const generateRequestSchema = z.object({
   ttl: z.number().int().optional(),
   /** Passphrase to protect the secret */
   passphrase: z.string().optional(),
-  /** Recipient email address(es) */
-  recipient: z.union([z.string(), z.array(z.string())]).optional(),
+  /** Recipient email address */
+  recipient: z.string().optional(),
   /** Custom domain for the share link */
   share_domain: z.string().optional(),
 });

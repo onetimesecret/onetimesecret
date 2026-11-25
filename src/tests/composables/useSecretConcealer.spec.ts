@@ -234,7 +234,7 @@ describe('useSecretConcealer', () => {
         const original = organizations.currentOrganization!;
         const { form, operations, submit, validation } = useSecretConcealer();
         operations.updateField('secret', 'content');
-        operations.updateField('recipient', 'one@example.com, two@sub.example.com');
+        operations.updateField('recipient', 'one@sub.example.com');
         organizations.setCurrentOrganization({
           ...original, objid: 'b', extid: 'on-b', sharing_policy: {
             passphrase_required: true, max_ttl: 604800,
@@ -248,11 +248,16 @@ describe('useSecretConcealer', () => {
         expect(validation.errors.has('recipient')).toBe(true);
         expect(useSecretStore()[kind]).not.toHaveBeenCalled();
 
-        operations.updateField('recipient', 'one@example.com, two@EXAMPLE.com');
         operations.updateField('passphrase', 'some passphrase');
+        operations.updateField('recipient', 'first@example.com, second@example.com');
+        await submit(kind);
+        expect(validation.errors.has('recipient')).toBe(true);
+        expect(useSecretStore()[kind]).not.toHaveBeenCalled();
+
+        operations.updateField('recipient', 'one@EXAMPLE.com');
         await submit(kind);
         expect(useSecretStore()[kind]).toHaveBeenCalledWith(expect.objectContaining({
-          recipient: ['one@example.com', 'two@EXAMPLE.com'], ttl: 604800,
+          recipient: 'one@EXAMPLE.com', ttl: 604800,
         }));
         organizations.setCurrentOrganization({
           ...original, sharing_policy: {

@@ -95,6 +95,7 @@ describe('sharing controls in the creation form', () => {
     await nextTick();
     expect(wrapper.get(passphrase).attributes('required') !== undefined).toBe(required);
     expect(wrapper.find(recipient).exists()).toBe(true);
+    expect(wrapper.get<HTMLInputElement>(recipient).element.multiple).toBe(false);
     expect(wrapper.get<HTMLSelectElement>(ttl).element.value).toBe('90');
     expect(wrapper.find('option[value="3600"]').exists()).toBe(true);
     await wrapper.get('textarea').setValue('draft secret');
