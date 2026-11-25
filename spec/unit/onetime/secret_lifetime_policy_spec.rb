@@ -107,4 +107,19 @@ RSpec.describe Onetime::SecretLifetimePolicy do
       expect(resolve(strategy: :custom, domain: display_domain)).to eq(canonical_ceiling)
     end
   end
+
+  describe '.organization_guest_ceiling' do
+    it 'falls back to the canonical guest ceiling when the owner plan cannot be resolved' do
+      require File.join(Onetime::HOME, 'apps', 'web', 'billing', 'errors')
+      allow(organization).to receive(:objid).and_return('org-123')
+      allow(organization).to receive(:limit_for).with('secret_lifetime')
+        .and_raise(Billing::PlanCacheMissError.new(plan_id: 'retired_v1'))
+      allow(OT).to receive(:le)
+
+      ceiling = described_class.organization_guest_ceiling(config_max: config_max, organization: organization)
+
+      expect(ceiling).to eq(canonical_ceiling)
+      expect(OT).to have_received(:le).with(/Organization guest TTL resolution failed/, hash_including(org_id: 'org-123'))
+    end
+  end
 end

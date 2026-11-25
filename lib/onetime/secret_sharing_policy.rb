@@ -25,7 +25,7 @@ module Onetime
     end
 
     def max_ttl
-      plan_limits = @organizations.map { |org| org.limit_for('secret_lifetime') }.select(&:positive?)
+      plan_limits = @organizations.map { |org| plan_lifetime(org) }.select(&:positive?)
       [Onetime::Models::Features::WithEntitlements::MAX_TTL, configured_max_ttl, *plan_limits].compact.min
     end
 
@@ -61,6 +61,19 @@ module Onetime
         !key.nil? && recipient_email_domains.include?(key)
       else false
       end
+    end
+
+    private
+
+    # An organization whose plan cannot be resolved (for example a retired
+    # plan raising Billing::PlanCacheMissError) takes the canonical guest
+    # ceiling. Skipping its limit instead would widen the lifetime.
+    def plan_lifetime(organization)
+      organization.limit_for('secret_lifetime')
+    rescue StandardError => ex
+      OT.le '[SecretSharingPolicy] Plan lifetime resolution failed; using canonical guest ceiling',
+        { org_id: organization.objid, exception: ex }
+      Onetime::SecretLifetimePolicy.canonical_guest_ceiling(Onetime::Models::Features::WithEntitlements::MAX_TTL)
     end
   end
 end
