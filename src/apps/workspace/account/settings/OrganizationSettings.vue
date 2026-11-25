@@ -376,7 +376,7 @@
   // The Sharing tab and its panel exist only for an owner who can edit the
   // controls of the organization on screen.
   const showSharingTab = computed(() => canUseOrgSettings.value && canEditSharingPolicy.value &&
-    organization.value?.sharing_policy !== undefined && organization.value.extid === orgId.value);
+    !!organization.value?.sharing_policy && organization.value.extid === orgId.value);
   const hasDomains = computed(() => (organization.value?.domain_count ?? 0) > 0);
 
   // Delete guardrails mirrored from Onetime::Operations::Org::Delete. The

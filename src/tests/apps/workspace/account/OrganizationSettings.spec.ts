@@ -906,6 +906,17 @@ describe('OrganizationSettings', () => {
       expect(mockUpdateSharingPolicy.mock.lastCall?.[1].max_ttl).toBeNull();
     });
 
+    // The tab and its panel share one condition, so a tab never opens onto
+    // nothing. The API always sends a policy; null stands in for none here.
+    it('offers the owner no Sharing tab when the organization carries no policy', async () => {
+      const org = signInAs('owner');
+      mockFetchOrganization.mockResolvedValue({ ...org, sharing_policy: null });
+      mockRouteParams.tab = 'sharing';
+      wrapper = await mountComponent();
+      expect(tabIds(wrapper)).not.toContain('org-tab-sharing');
+      expect(wrapper.get('#org-tab-domains').attributes('aria-selected')).toBe('true');
+    });
+
     it('offers an admin neither the tab nor the editor', async () => {
       signInAs('admin');
       wrapper = await mountComponent();
