@@ -832,7 +832,7 @@
                 type="button"
                 data-testid="sso-configure-button"
                 @click="emit('configure-sso')"
-                class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+                class="btn-secondary py-1.5">
                 <OIcon
                   collection="heroicons"
                   name="cog-6-tooth"
@@ -945,13 +945,13 @@
             v-for="method in restrictMethods"
             :key="method.value"
             :class="[
-              'relative flex items-center justify-between rounded-lg border p-4 focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2',
+              'relative flex items-center justify-between rounded-lg border p-4 focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-gray-800',
               method.available ? 'cursor-pointer' : 'cursor-not-allowed opacity-60',
               formState.restrict_to === method.value
                 ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-900/20'
                 : method.available
-                  ? 'border-gray-300 bg-white hover:border-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-gray-500'
-                  : 'border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-700',
+                  ? 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-700/30'
+                  : 'border-gray-200 dark:border-gray-700',
             ]">
             <span class="flex items-start gap-3">
               <input
@@ -963,7 +963,7 @@
                 :disabled="isSaving || !method.available"
                 @change="selectMethod(method.value)"
                 @click="onMethodClick(method.value)"
-                class="mt-0.5 size-4 border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600"
+                class="mt-0.5 field-check disabled:opacity-100"
                 :aria-describedby="`signin-restrict-${method.value}-description`" />
               <span class="flex flex-1 flex-col">
                 <span
@@ -1024,7 +1024,7 @@
                 type="button"
                 data-testid="sso-configure-button-compact"
                 @click.prevent="emit('configure-sso')"
-                class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+                class="btn-secondary py-1.5">
                 <OIcon
                   collection="heroicons"
                   name="cog-6-tooth"
@@ -1086,7 +1086,7 @@
               type="button"
               data-testid="sso-restriction-lockout-cancel"
               @click="cancelSsoRestriction"
-              class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+              class="btn-secondary py-1.5">
               {{ t('web.COMMON.word_cancel') }}
             </button>
           </div>
@@ -1106,7 +1106,7 @@
             type="button"
             @click="showDeleteConfirm = true"
             :disabled="isDeleting || isSaving"
-            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+            class="btn-secondary">
             <OIcon
               collection="heroicons"
               name="arrow-uturn-left"
@@ -1139,7 +1139,7 @@
               type="button"
               @click="showDeleteConfirm = false"
               :disabled="isDeleting"
-              class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+              class="btn-secondary py-1.5">
               {{ t('web.COMMON.word_cancel') }}
             </button>
           </div>
