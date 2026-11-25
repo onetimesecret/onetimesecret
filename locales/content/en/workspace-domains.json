@@ -1906,7 +1906,11 @@
     "content_hash": "d26627a5"
   },
   "web.domains.incoming.max_ttl": {
-    "text": "Maximum lifetime in seconds (optional, at least 60)",
-    "content_hash": "69b071c4"
+    "text": "Maximum secret lifetime in seconds",
+    "content_hash": "813d3263"
+  },
+  "web.domains.incoming.max_ttl_hint": {
+    "text": "Enter 60 seconds or more. Leave blank to set no limit for this domain. Organization and plan limits still apply.",
+    "content_hash": "d8853553"
   }
 }

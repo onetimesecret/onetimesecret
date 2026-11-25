@@ -379,3 +379,23 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
     });
   });
 });
+
+describe('DomainIncomingConfigForm field labelling', () => {
+  it('labels the passphrase and lifetime controls and ties the lifetime hint to its input', () => {
+    const wrapper = mountForm({ formState: emptyFormState });
+
+    const checkbox = wrapper.get('input[type="checkbox"]');
+    expect(wrapper.get(`label[for="${checkbox.attributes('id')}"]`).text()).toBe(
+      'web.domains.passphrase_required_label',
+    );
+
+    const lifetime = wrapper.get('input[type="number"]');
+    expect(wrapper.get(`label[for="${lifetime.attributes('id')}"]`).text()).toBe(
+      'web.domains.incoming.max_ttl',
+    );
+    expect(lifetime.attributes('min')).toBe('60');
+    expect(wrapper.get(`#${lifetime.attributes('aria-describedby')}`).text()).toBe(
+      'web.domains.incoming.max_ttl_hint',
+    );
+  });
+});
