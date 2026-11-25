@@ -16,7 +16,7 @@ export const createRequestSchema = z.object({
   /** Passphrase to protect the secret */
   passphrase: z.string().optional(),
   /** Recipient email address(es) */
-  recipient: z.string().optional(),
+  recipient: z.union([z.string(), z.array(z.string())]).optional(),
   /** Custom domain for the share link */
   share_domain: z.string().optional(),
 });

@@ -157,29 +157,6 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         "instead of OT.conf.dig('site', 'secret_options')"
     end
 
-    it 'reads ttl_options from site.secret_options in config, not the hardcoded fallback' do
-      # The test config defines: ttl_options: '1800 43200 604800'
-      # After OT::Config.after_load parses it, this becomes [1800, 43200, 604800]
-      #
-      # The hardcoded V2 fallback is [60, 3600, 86400, 604800]
-      # So the arrays differ in both values and length.
-      configured_options = OT.conf.get('site.secret_options.ttl_options')
-      expect(configured_options).to be_an(Array), 'Precondition: after_load should parse ttl_options string into an array'
-      expect(configured_options).to include(43_200), 'Precondition: ttl_options should include 43200'
-
-      # The real differentiator: config min_ttl is 1800, but V2 hardcoded
-      # fallback min is 60 (1.minute). A TTL of 120 (2 minutes) should be
-      # clamped UP to 1800 by config, but the hardcoded fallback would allow
-      # it through (since 120 > 60).
-      subject.instance_variable_set(:@payload, { 'ttl' => '120' })
-      subject.send(:process_ttl)
-
-      expect(subject.ttl).to eq(1800),
-        'Expected TTL=120 to be clamped to config min_ttl=1800, ' \
-        "got #{subject.ttl}. Bug: hardcoded fallback has min_ttl=60, " \
-        'so 120 passes through unclamped.'
-    end
-
     it 'uses config default_ttl (43200) when TTL param is nil' do
       subject.instance_variable_set(:@payload, { 'ttl' => nil })
       subject.send(:process_ttl)
@@ -198,17 +175,10 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         'Bug: falls through to hardcoded 604800 because it reads from wrong config path.'
     end
 
-    it 'enforces config min_ttl (1800) not hardcoded min_ttl (60)' do
-      # V2 hardcoded fallback: ttl_options.min = 60 (1.minute)
-      # Config value: ttl_options.min = 1800 (30 minutes)
-      #
-      # A TTL of 300 (5 minutes) is above the hardcoded min but below config min.
+    it 'accepts a custom TTL above 60 seconds but below the smallest preset' do
       subject.instance_variable_set(:@payload, { 'ttl' => '300' })
       subject.send(:process_ttl)
-
-      expect(subject.ttl).to eq(1800),
-        "Expected TTL=300 to be clamped to config min=1800, got #{subject.ttl}. " \
-        'Bug: hardcoded fallback min is 60, so values between 60-1800 pass through.'
+      expect(subject.ttl).to eq(300)
     end
   end
 
@@ -1570,8 +1540,10 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       )
     end
 
+    let(:host_owner) { Onetime::Organization.new }
     let(:host_record) do
-      double('CustomDomain', accessible_by?: false, allow_public_secret_creation?: true, verified: 'true', served_as_tenant?: true)
+      double('CustomDomain', objid: 'domain', org_id: host_owner.objid,
+        brand_settings: Onetime::CustomDomain::BrandSettings.from_hash({}), accessible_by?: false, allow_public_secret_creation?: true, verified: 'true', served_as_tenant?: true)
     end
 
     # Real nested payload, exactly as a guest POST would arrive.
@@ -1593,6 +1565,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     end
 
     before do
+      allow(Onetime::Organization).to receive(:load).with(host_owner.objid).and_return(host_owner)
       # Any non-empty posted domain passes format/default validation, so the
       # requested value is recorded during process_params (real ingestion).
       # Default any lookup to nil; only the Host domain resolves to a record.
@@ -1614,9 +1587,6 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         expect { subject.raise_concerns }.to raise_error(Onetime::Forbidden)
         expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
           .with('secrets.acme.com')
-        # TTL policy legitimately resolves the Host domain's owning boundary.
-        expect(Onetime::CustomDomain).to have_received(:from_display_domain)
-          .with(host_domain)
       end
     end
 
@@ -1958,6 +1928,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
 
           subject = build_custom_domain_guest(ttl: (30 * 86_400).to_s)
 
+          subject.send(:process_ttl)
           expect(subject.ttl).to eq(14 * 86_400)
         end
 
@@ -1969,6 +1940,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
 
           subject = build_custom_domain_guest(ttl: (30 * 86_400).to_s)
 
+          subject.send(:process_ttl)
           expect(subject.ttl).to eq(30 * 86_400)
         end
       end

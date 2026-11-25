@@ -36,6 +36,24 @@ module Onetime
         end
       end
 
+      # A guest on a branded host is subject to its owner's plan entitlements.
+      # The caller has already resolved and authorized this organization.
+      def organization_guest_ceiling(config_max:, organization:)
+        config_max = normalize_config_max(config_max)
+        plan_limit = organization.limit_for('secret_lifetime')
+        return config_max if unlimited?(plan_limit)
+        return canonical_guest_ceiling(config_max) unless finite_positive?(plan_limit)
+
+        plan_limit = plan_limit.to_i
+        if billing_enabled? &&
+           plan_limit > Entitlements::DEFAULT_FREE_TTL &&
+           !organization.can?('extended_default_expiration')
+          plan_limit = Entitlements::DEFAULT_FREE_TTL
+        end
+
+        [plan_limit, config_max].min
+      end
+
       private
 
       # A custom-domain guest consumes storage owned by the domain's
@@ -51,18 +69,7 @@ module Onetime
         organization = Onetime::Organization.load(domain.org_id)
         return unresolved_custom_domain_ceiling(config_max, display_domain) unless organization
 
-        plan_limit = organization.limit_for('secret_lifetime')
-        return config_max if unlimited?(plan_limit)
-        return unresolved_custom_domain_ceiling(config_max, display_domain) unless finite_positive?(plan_limit)
-
-        plan_limit = plan_limit.to_i
-        if billing_enabled? &&
-           plan_limit > Entitlements::DEFAULT_FREE_TTL &&
-           !organization.can?('extended_default_expiration')
-          plan_limit = Entitlements::DEFAULT_FREE_TTL
-        end
-
-        [plan_limit, config_max].min
+        organization_guest_ceiling(config_max: config_max, organization: organization)
       rescue StandardError => ex
         OT.le '[SecretLifetimePolicy] Custom-domain guest TTL resolution failed; ' \
               'using canonical guest ceiling',

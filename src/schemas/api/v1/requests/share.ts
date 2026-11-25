@@ -11,12 +11,12 @@ import { z } from 'zod';
 export const shareRequestSchema = z.object({
   /** The secret content to share */
   secret: z.string(),
-  /** Time-to-live in seconds (default 7 days, min 1800, max 2592000) */
+  /** Time-to-live in seconds (minimum 60, subject to the effective sharing policy) */
   ttl: z.number().int().optional(),
   /** Passphrase to protect the secret */
   passphrase: z.string().optional(),
   /** Recipient email address(es) */
-  recipient: z.string().optional(),
+  recipient: z.union([z.string(), z.array(z.string())]).optional(),
   /** Custom domain for the share link */
   share_domain: z.string().optional(),
 });

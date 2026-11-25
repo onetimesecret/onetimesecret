@@ -216,11 +216,7 @@ module V1
         # you don't find that confusing, take another look through the code.
         receipt_realttl = md.current_expiration
 
-        recipient = [hsh.fetch('recipients', nil)]
-          .flatten
-          .compact
-          .reject(&:empty?)
-          .uniq
+        recipient = Array(hsh['recipients']).flat_map { |entry| entry.split(',').map(&:strip) }.reject(&:empty?).uniq
 
         owner_id_val = hsh.fetch('owner_id', nil)
 

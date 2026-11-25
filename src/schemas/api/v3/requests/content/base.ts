@@ -7,7 +7,7 @@ export const baseSecretPayloadSchema = z.object({
   kind: z.enum(['generate', 'conceal', 'share']).optional(),
   // Omission delegates domain selection to the server.
   share_domain: z.string().optional(),
-  recipient: z.string().optional(),
+  recipient: z.union([z.string(), z.array(z.string())]).optional(),
   passphrase: z.string().optional(),
   ttl: z.union([z.string().regex(/^\d+$/).transform(Number), z.number().int()]).optional(),
   /**
