@@ -1952,5 +1952,8 @@
   "web.organizations.sharing_policy.ttl_hint": {
     "text": "Enter 60 seconds or more. Seven days is 604800 seconds. Leave blank to use the existing limit.",
     "content_hash": "7b3c578d"
+  },
+  "web.organizations.sharing_policy.invalid_notice": {
+    "text": "The saved sharing controls could not be read. The strictest controls apply until you save new ones."
   }
 }

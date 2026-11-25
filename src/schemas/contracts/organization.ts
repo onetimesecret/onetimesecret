@@ -64,6 +64,8 @@ export const organizationCanonical = z.object({
   /** Organization description (optional). */
   description: z.string().nullable(),
   sharing_policy: sharingPolicySchema.optional(),
+  /** True when the stored policy is unreadable; sharing_policy is then the strictest policy. */
+  sharing_policy_invalid: z.boolean().optional(),
 
   /** Owner's Customer objid (nullish: bootstrap payload omits this field). */
   owner_id: z.string().nullish(),

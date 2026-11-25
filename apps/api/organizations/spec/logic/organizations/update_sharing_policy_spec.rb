@@ -82,8 +82,11 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateSharingPolicy, :aggr
 
   it 'requires an explicit replacement when storage contains invalid policy data' do
     organization.sharing_policy_json = '{}'
-    expect { organization.sharing_policy }.to raise_error(Onetime::Organization::SharingPolicy::Invalid)
+    allow(OT).to receive(:le)
+    expect(organization.sharing_policy).to eq(Onetime::Organization::SharingPolicy::STRICTEST)
+    expect(organization.sharing_policy_invalid?).to be(true)
     update(organization, policy)
+    expect(organization.sharing_policy_invalid?).to be(false)
     expect(organization.sharing_policy['max_ttl']).to eq(604_800)
   end
 end

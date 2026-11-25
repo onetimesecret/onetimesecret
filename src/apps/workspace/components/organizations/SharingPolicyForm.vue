@@ -7,7 +7,7 @@
   import { computed, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
 
-  const props = defineProps<{ extid: string; policy: SharingPolicy }>();
+  const props = defineProps<{ extid: string; policy: SharingPolicy; invalid?: boolean }>();
   const emit = defineEmits<{ saved: [organization: Organization] }>();
   const { t } = useI18n();
   const store = useOrganizationStore();
@@ -33,7 +33,10 @@
     max_ttl: maxTtl.value === '' ? null : maxTtl.value,
   }));
 
+  // An unreadable stored policy is shown as the strictest policy. Saving it
+  // unchanged still replaces the stored value, so allow that.
   const changed = computed(() => {
+    if (props.invalid) return true;
     const saved = props.policy;
     const draft = draftPolicy.value;
     return saved.recipient_email_mode !== draft.recipient_email_mode ||
@@ -70,6 +73,13 @@
       v-if="error || success"
       :error="error"
       :success="success" />
+    <p
+      v-if="invalid"
+      role="alert"
+      data-testid="sharing-policy-invalid"
+      class="rounded-md bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
+      {{ t('web.organizations.sharing_policy.invalid_notice') }}
+    </p>
 
     <fieldset class="space-y-4" :disabled="saving">
       <label class="block text-sm font-medium">

@@ -43,6 +43,7 @@ RSpec.describe Core::Views::OrganizationSerializer do
       extid: 'onabc123',
       display_name: 'Acme Workspace',
       sharing_policy: Onetime::Organization::SharingPolicy::DEFAULT,
+      sharing_policy_invalid?: false,
       is_default: false,
       planid: 'identity_plus_v1',
     )
@@ -230,6 +231,7 @@ RSpec.describe Core::Views::OrganizationSerializer do
         extid: 'onabc123',
         display_name: 'Acme Workspace',
         sharing_policy: Onetime::Organization::SharingPolicy::DEFAULT,
+        sharing_policy_invalid?: false,
         is_default: true,
         archived?: false,
         planid: 'identity_plus_v1',

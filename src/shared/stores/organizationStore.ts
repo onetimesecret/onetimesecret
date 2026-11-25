@@ -861,6 +861,7 @@ export const useOrganizationStore = defineStore('organization', () => {
           planid: bootstrapOrg.planid ?? 'free_v1',
           current_user_role: bootstrapOrg.current_user_role ?? null,
           sharing_policy: bootstrapOrg.sharing_policy,
+          sharing_policy_invalid: bootstrapOrg.sharing_policy_invalid,
           entitlements: bootstrapOrg.entitlements ?? null,
           plan_entitlements: bootstrapOrg.plan_entitlements,
           limits: bootstrapOrg.limits ?? null,

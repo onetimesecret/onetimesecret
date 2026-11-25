@@ -254,4 +254,39 @@ RSpec.describe 'Organization sharing controls on mounted creation routes', type:
       end
     end
   end
+
+  describe 'with an unreadable stored policy' do
+    ['{not json', JSON.generate('recipient_email_mode' => 'sometimes'), JSON.generate([1, 2])].each do |stored|
+      it "enforces the strictest policy and keeps the organization readable: #{stored[0, 24]}" do
+        workspace.sharing_policy_json.value = stored
+        allow(OT).to receive(:le).and_call_original
+
+        expect(workspace.sharing_policy).to eq(Onetime::Organization::SharingPolicy::STRICTEST)
+        expect(workspace.sharing_policy_invalid?).to be(true)
+        dumped = workspace.safe_dump
+        expect(dumped[:sharing_policy]).to eq(Onetime::Organization::SharingPolicy::STRICTEST)
+        expect(dumped[:sharing_policy_invalid]).to be(true)
+        serialized = Core::Views::OrganizationSerializer.serialize(
+          'authenticated' => true, 'organization' => workspace, 'cust' => customer,
+        ).fetch('organization')
+        expect(serialized).to include('sharing_policy_invalid' => true)
+        expect(OT).to have_received(:le).with(/Stored sharing policy is invalid/, hash_including(org_id: workspace.objid)).at_least(:once)
+
+        basic_authorize customer.email, customer.apitoken
+        header 'O-Organization-ID', workspace.objid
+        [{ secret: 'v', passphrase: 'secret-passphrase', recipient: allowed.first }, { secret: 'v' }].each do |bad|
+          expect { create(2, 'conceal', bad) }.not_to change { Onetime::Secret.instances.size }
+          expect(last_response.status).to eq(422), last_response.body
+        end
+        expect(queued).to be_empty
+
+        create(2, 'conceal', { secret: 'v', passphrase: 'secret-passphrase', ttl: 604_800 })
+        expect_stored(2, 60)
+
+        set_policy(workspace)
+        expect(workspace.sharing_policy_invalid?).to be(false)
+        expect(workspace.sharing_policy).to eq(Onetime::Organization::SharingPolicy::DEFAULT)
+      end
+    end
+  end
 end

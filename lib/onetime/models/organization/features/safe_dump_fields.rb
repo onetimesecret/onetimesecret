@@ -32,6 +32,7 @@ module Onetime::Organization::Features
       base.safe_dump_field :archived_comment
       base.safe_dump_field :planid
       base.safe_dump_field :sharing_policy, ->(org) { org.sharing_policy }
+      base.safe_dump_field :sharing_policy_invalid, ->(org) { org.sharing_policy_invalid? }
       base.safe_dump_field :member_count, ->(org) { org.member_count }
       base.safe_dump_field :domain_count, ->(org) { org.domain_count }
       # Mirrors the `:active_subscription` guardrail in

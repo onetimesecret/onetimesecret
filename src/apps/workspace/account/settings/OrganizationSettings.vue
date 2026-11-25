@@ -1249,6 +1249,7 @@
           :key="organization.extid"
           :extid="organization.extid"
           :policy="organization.sharing_policy"
+          :invalid="organization.sharing_policy_invalid === true"
           @saved="(updated) => { if (stillViewing(updated.extid)) organization = updated }" />
 
         <!-- Organization Entitlements (General tab) -->

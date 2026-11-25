@@ -524,6 +524,7 @@ export const organizationSchema = z
     planid: CanonicalPlanIdSchema.nullish(),
     current_user_role: z.enum(['owner', 'admin', 'member']).nullish(),
     sharing_policy: sharingPolicySchema.optional(),
+    sharing_policy_invalid: z.boolean().optional(),
     entitlements: z.array(z.string()).nullish(),
     plan_entitlements: z.array(z.string()).optional(),
     /** Plan limits per resource; -1 means unlimited. */

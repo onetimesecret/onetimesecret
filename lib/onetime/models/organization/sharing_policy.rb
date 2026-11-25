@@ -13,6 +13,14 @@ module Onetime
         'passphrase_required' => false,
         'max_ttl' => nil,
       }.freeze
+      # Enforced while the stored policy cannot be read: no recipient email,
+      # passphrase required, and the lifetime held at the 60-second floor.
+      STRICTEST   = {
+        'recipient_email_mode' => 'disabled',
+        'recipient_email_domains' => [].freeze,
+        'passphrase_required' => true,
+        'max_ttl' => 60,
+      }.freeze
       EMAIL_MODES = %w[unrestricted disabled restricted].freeze
       DNS_LABEL   = /\A[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\z/
       # The public JSON contract uses JavaScript integer seconds.
@@ -32,12 +40,32 @@ module Onetime
         base.string :sharing_policy_json
       end
 
+      # A stored policy that fails to parse or validate must not break the
+      # readers (safe_dump, bootstrap, the owner's settings page). Readers get
+      # the strictest policy, and sharing_policy_invalid? lets the owner see
+      # that the saved value needs replacing.
       def sharing_policy
+        stored_sharing_policy
+      rescue SharingPolicy::Invalid, JSON::ParserError => ex
+        OT.le '[Organization] Stored sharing policy is invalid; enforcing the strictest policy',
+          { org_id: objid, field: ex.respond_to?(:field) ? ex.field : nil, error: ex.class.name }
+        SharingPolicy::STRICTEST
+      end
+
+      def sharing_policy_invalid?
+        stored_sharing_policy
+        false
+      rescue SharingPolicy::Invalid, JSON::ParserError
+        true
+      end
+
+      def stored_sharing_policy
         raw = sharing_policy_json.value
         return SharingPolicy::DEFAULT if raw.nil?
 
         SharingPolicy.normalize(JSON.parse(raw))
       end
+      private :stored_sharing_policy
 
       def replace_sharing_policy!(policy)
         self.sharing_policy_json = JSON.generate(SharingPolicy.normalize(policy))
