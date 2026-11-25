@@ -193,7 +193,9 @@ module V2::Logic
         @passphrase = payload.key?('passphrase') ? payload['passphrase'].to_s : nil
       end
 
-      # Our recipient contract: always a list of sanitized strings.
+      # Our recipient contract: a list holding at most one sanitized string.
+      # A legacy list contributes its first non-empty sanitized address; the
+      # rest are ignored, so validation, the receipt and delivery agree.
       #
       # Sanitization keeps trash out but does not validate as an email address.
       #
@@ -204,7 +206,7 @@ module V2::Logic
           next if email_address.to_s.empty?
 
           sanitize_email(email_address)
-        end.compact.uniq
+        end.compact.uniq.first(1)
         @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
       end
 

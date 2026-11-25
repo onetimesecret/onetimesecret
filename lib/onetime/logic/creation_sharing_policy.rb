@@ -80,8 +80,8 @@ module Onetime
 
       def validate_recipient_policy
         policy = @sharing_policy || Onetime::SecretSharingPolicy.new
-        # Standard creation sends only the first sanitized address. The caller
-        # retains the existing deliverability checks for all submitted addresses.
+        # process_recipient keeps only the first sanitized address, so the
+        # policy applies to the one address that receives the link.
         return if policy.recipient_allowed?(recipient.first)
 
         raise_form_error 'Recipient email is restricted by the organization',

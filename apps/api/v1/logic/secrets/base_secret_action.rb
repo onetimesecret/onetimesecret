@@ -214,11 +214,13 @@ module V1::Logic
       # Sanitizes but does not validate as an email address.
       def process_recipient
         payload['recipient'] = [payload['recipient']].flatten.compact.uniq # force a list
+        # One recipient per request. A legacy list contributes its first
+        # non-empty sanitized address; the rest are ignored.
         @recipient           = payload['recipient'].collect do |email_address|
           next if email_address.to_s.empty?
 
           sanitize_email(email_address)
-        end.compact.uniq
+        end.compact.uniq.first(1)
         @recipient_safe      = recipient.collect { |r| OT::Utils.obscure_email(r) }
       end
 

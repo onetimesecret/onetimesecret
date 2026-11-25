@@ -219,7 +219,7 @@ RSpec.describe 'Organization sharing controls on mounted creation routes', type:
         outside = 'outside@unlisted.example.com'
         [
           data.merge(recipient: [outside, allowed.first]),
-          data.merge(recipient: [allowed.first, 'invalid-address']),
+          data.merge(recipient: ['invalid-address', allowed.first]),
           data.merge(passphrase: " \t "),
         ].each do |bad|
           expect { create(version, action, bad) }.not_to change { Onetime::Secret.instances.size }
@@ -227,13 +227,15 @@ RSpec.describe 'Organization sharing controls on mounted creation routes', type:
           expect(queued).to be_empty
         end
 
-        # Legacy arrays retain address validation, while only the first
-        # sanitized address is recorded and sent the link.
-        create(version, action, data.merge(recipient: [allowed.last, outside], ttl: 300))
-        receipt = expect_stored(version, 300)
-        expect(receipt.recipients).to eq(OT::Utils.obscure_email(allowed.last))
-        expect(queued).to eq([allowed.last])
-        queued.clear
+        # A legacy array contributes only its first sanitized address. Later
+        # entries are neither validated, recorded nor sent the link.
+        [[allowed.last, outside], [allowed.last, 'invalid-address']].each do |list|
+          create(version, action, data.merge(recipient: list, ttl: 300))
+          receipt = expect_stored(version, 300)
+          expect(receipt.recipients).to eq(OT::Utils.obscure_email(allowed.last))
+          expect(queued).to eq([allowed.last])
+          queued.clear
+        end
 
         [59, 60, 604_799, 604_800, 604_801].each do |ttl|
           create(version, action, data.merge(ttl: ttl))
