@@ -245,7 +245,9 @@
   // Seat the tab a route's :tab segment names. An absent or unknown segment
   // gets the default tab, as on mount (resolveInitialTab). Entitlement-gated
   // tabs the user can't access bounce to 'domains', URL included. So does
-  // 'sharing' for anyone but the owner.
+  // 'sharing' for anyone but the owner. Who the owner is isn't known until
+  // the organization has loaded, so a route naming 'sharing' before then is
+  // seated as on mount and left to checkInitialTabRedirect().
   // NOTE: 'activity' has two distinct gates on different axes:
   //  - instance flag OFF (ORGS_AUDIT_LOGS_ENABLED=false) → tab is absent
   //    entirely, so deep links bounce to the default tab here;
@@ -260,7 +262,7 @@
     if (
       (resolved === 'sso' && !isOrgsSsoEnabled()) ||
       (resolved === 'activity' && !orgAuditLogsFeatureEnabled.value) ||
-      (resolved === 'sharing' && !showSharingTab.value)
+      (resolved === 'sharing' && !isLoading.value && !showSharingTab.value)
     ) {
       setActiveTab('domains');
       return;

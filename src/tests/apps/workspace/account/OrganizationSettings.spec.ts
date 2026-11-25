@@ -924,6 +924,54 @@ describe('OrganizationSettings', () => {
       expect(wrapper.get('#org-tab-domains').attributes('aria-selected')).toBe('true');
       expect(wrapper.findComponent({ name: 'SharingPolicyForm' }).exists()).toBe(false);
     });
+
+    // Back/Forward can change :tab while the organization is still loading,
+    // before the page knows whether the viewer is the owner.
+    async function followSharingLinkWhileLoading(role: 'owner' | 'admin') {
+      const org = signInAs(role);
+      let finishLoading!: () => void;
+      mockFetchOrganization.mockReturnValue(
+        new Promise((resolve) => { finishLoading = () => resolve(org); })
+      );
+      mockRouteParams.tab = 'activity';
+      mountComponentUnsettled();
+      await flushPromises();
+      mockRouteParams.tab = 'sharing';
+      await nextTick();
+      finishLoading();
+      await flushPromises();
+    }
+
+    it('opens the Sharing tab for the owner when the route names it before the page has loaded', async () => {
+      await followSharingLinkWhileLoading('owner');
+      expect(wrapper.get('#org-tab-sharing').attributes('aria-selected')).toBe('true');
+      expect(wrapper.findComponent({ name: 'SharingPolicyForm' }).exists()).toBe(true);
+      expect(mockRouter.replace).not.toHaveBeenCalled();
+    });
+
+    it('sends an admin to Domains when the route names the Sharing tab before the page has loaded', async () => {
+      await followSharingLinkWhileLoading('admin');
+      expect(mockRouter.replace).toHaveBeenCalledWith({
+        params: { extid: 'on1abc123', orgid: 'on1abc123', tab: 'domains' },
+      });
+      expect(wrapper.get('#org-tab-domains').attributes('aria-selected')).toBe('true');
+      expect(wrapper.findComponent({ name: 'SharingPolicyForm' }).exists()).toBe(false);
+    });
+
+    it('moves through the tabs with ArrowRight in the order they are drawn', async () => {
+      signInAs('owner');
+      wrapper = await mountComponent({ attachTo: document.body });
+      const drawn = tabIds(wrapper);
+      const selected = () => wrapper.get('[role="tab"][aria-selected="true"]');
+      const visited = [selected().attributes('id')];
+      for (let step = 1; step < drawn.length; step++) {
+        await selected().trigger('keydown', { key: 'ArrowRight' });
+        await flushPromises();
+        visited.push(selected().attributes('id'));
+      }
+      expect(drawn).toContain('org-tab-sharing');
+      expect(visited).toEqual(drawn);
+    });
   });
 
   describe.each([true, false])('tenant SSO permissions with billing enabled=%s', billingEnabled => {
