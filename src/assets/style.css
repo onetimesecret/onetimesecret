@@ -268,3 +268,50 @@
     @apply mb-2 text-lg font-semibold text-gray-700;
   }
 }
+
+/*
+ * Settings-screen recipes.
+ *
+ * One definition each for the form controls and buttons the settings screens
+ * share, so a checkbox or a Save button looks the same on every screen.
+ * They are utilities, not components, so variants apply (`sm:btn-secondary`)
+ * and a single-purpose utility on the same element overrides the recipe's
+ * base-state declarations (checked for `btn-primary px-4`, `btn-primary block`,
+ * `field-check rounded` and `field-input font-mono`). The recipe's own
+ * `dark:`, `hover:` and `focus:` rules still win over a bare utility; override
+ * those with the same variant, e.g. `field-check disabled:opacity-100`.
+ *
+ * None of them sets a margin or a width beyond the control's own; spacing
+ * stays with the layout that places the control.
+ *
+ * Markup structure (header, body, footer) lives in
+ * src/shared/components/ui/SettingsCard.vue.
+ */
+@utility field-label {
+  @apply text-sm font-medium text-gray-700 dark:text-gray-300;
+}
+
+@utility field-hint {
+  @apply text-xs text-gray-500 dark:text-gray-400;
+}
+
+/* Text inputs, selects and textareas. `scheme-dark` makes the browser draw
+   the select popup and the number spinner for a dark surface. */
+@utility field-input {
+  @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:scheme-dark dark:placeholder:text-gray-400;
+}
+
+/* Checkboxes and radios; add `rounded` on a checkbox. The dark idle fill is a
+   utility, so it would also paint over the forms plugin's checked state
+   (base layer). The `dark:checked:*` pair restores the brand fill. */
+@utility field-check {
+  @apply size-4 border-gray-300 text-brand-600 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:checked:border-transparent dark:checked:bg-brand-500;
+}
+
+@utility btn-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400 dark:focus-visible:outline-brand-500;
+}
+
+@utility btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600 dark:focus-visible:outline-brand-500;
+}
