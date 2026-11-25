@@ -255,6 +255,138 @@ RSpec.describe 'Organization sharing controls on mounted creation routes', type:
     end
   end
 
+  describe 'recipient domain matching on v1, v2 and v3' do
+    let(:policy_refusal) { /Recipient email is restricted by the organization/ }
+    let(:undeliverable) { /Undeliverable email address/ }
+
+    def sign_in(version)
+      if version == 3
+        post_json '/auth/login', { login: customer.email, password: 'Sharing-Controls1234!' }
+        expect(last_response.status).to eq(200), last_response.body
+      else
+        basic_authorize customer.email, customer.apitoken
+      end
+      header 'O-Organization-ID', workspace.objid
+    end
+
+    # Each row is [recipient payload, outcome]. An outcome String is the one
+    # address expected to be recorded and mailed; a Regexp is the expected
+    # refusal message, which tells the policy check from the address check.
+    def expect_rows(version, action, rows)
+      rows.each do |recipient, outcome|
+        label = "v#{version} #{action} recipient=#{recipient.inspect}"
+        if outcome.is_a?(Regexp)
+          expect { create(version, action, { secret: 'v', ttl: 300, recipient: recipient }) }
+            .not_to change { Onetime::Secret.instances.size }
+          expect(last_response.status).to eq(version == 1 ? 404 : 422), "#{label}: #{last_response.body}"
+          # v1 keeps the legacy {message} envelope; v2/v3 name the field.
+          message = version == 1 ? json_response.fetch('message') : json_response.fetch('error')
+          expect(message).to match(outcome), "#{label}: #{last_response.body}"
+          expect(json_response['field']).to eq('recipient'), "#{label}: #{last_response.body}" unless version == 1
+          expect(queued).to be_empty, label
+        else
+          create(version, action, { secret: 'v', ttl: 300, recipient: recipient })
+          receipt = expect_stored(version, 300)
+          expect(receipt.recipients).to eq(OT::Utils.obscure_email(outcome)), label
+          expect(queued).to eq([outcome]), label
+        end
+        queued.clear
+      end
+    end
+
+    [1, 2, 3].each do |version|
+      it "skips an entry that sanitizes to empty before choosing the first recipient for v#{version}" do
+        pending 'process_recipient tests emptiness before sanitize_email, so a whitespace-only or ' \
+                'markup-only entry becomes the first recipient "" and is refused (production finding)'
+        set_policy(workspace, recipient_email_mode: 'restricted', recipient_email_domains: ['example.com'])
+        sign_in(version)
+        rows = [
+          [['  ', 'user@example.com'], 'user@example.com'],
+          [['<b></b>', 'user@example.com'], 'user@example.com'],
+        ]
+        expect_rows(version, 'conceal', rows)
+      end
+
+      %w[conceal generate].each do |action|
+        it "matches the listed domains exactly for v#{version} #{action}" do
+          set_policy(workspace, recipient_email_mode: 'restricted', recipient_email_domains: ['Example.COM', 'bücher.example'])
+          expect(workspace.sharing_policy['recipient_email_domains']).to eq(%w[example.com xn--bcher-kva.example])
+          sign_in(version)
+
+          rows = [
+            # Exact match, with case and surrounding space normalized away.
+            ['user@example.com', 'user@example.com'],
+            ['USER@Example.COM', 'user@example.com'],
+            [' user@example.com ', 'user@example.com'],
+            # The Unicode and A-label spellings match the one stored key; the
+            # address is mailed as written.
+            ['user@bücher.example', 'user@bücher.example'],
+            ['user@BÜCHER.example', 'user@bücher.example'],
+            ['user@xn--bcher-kva.example', 'user@xn--bcher-kva.example'],
+            # Single recipient: the first non-empty entry is the only one
+            # checked, recorded and mailed.
+            [['user@example.com', 'outside@eng.example.com'], 'user@example.com'],
+            [['user@example.com', 'not-an-email'], 'user@example.com'],
+            [['', 'user@example.com', 'outside@unlisted.test'], 'user@example.com'],
+            [['outside@eng.example.com', 'user@example.com'], policy_refusal],
+            [['not-an-email', 'user@example.com'], policy_refusal],
+            # A subdomain of a listed domain is not listed.
+            ['user@eng.example.com', policy_refusal],
+            ['user@mail.bücher.example', policy_refusal],
+            ['user@notexample.com', policy_refusal],
+            # The address keeps its trailing dot, so "example.com." is not
+            # the listed "example.com".
+            ['user@example.com.', policy_refusal],
+            ['userexample.com', policy_refusal],
+            ['user@', policy_refusal],
+            ['user@-bad.example.com', policy_refusal],
+            ['user@ex ample.com', policy_refusal],
+            # Only the text after the last "@" reaches the policy. These pass
+            # it and are refused by the address check that follows.
+            ['a@b@example.com', undeliverable],
+            ['@example.com', undeliverable],
+            ['user@evil.test,other@example.com', undeliverable],
+          ]
+          expect_rows(version, action, rows)
+        end
+
+        it "allows a listed subdomain without its parent for v#{version} #{action}" do
+          set_policy(workspace, recipient_email_mode: 'restricted', recipient_email_domains: ['eng.example.com'])
+          sign_in(version)
+
+          rows = [
+            ['user@eng.example.com', 'user@eng.example.com'],
+            ['user@example.com', policy_refusal],
+            ['user@ops.example.com', policy_refusal],
+          ]
+          expect_rows(version, action, rows)
+        end
+
+        it "refuses every address when disabled and allows any valid one when unrestricted for v#{version} #{action}" do
+          set_policy(workspace, recipient_email_mode: 'disabled')
+          sign_in(version)
+          rows = [
+            ['user@example.com', policy_refusal],
+            [['user@example.com'], policy_refusal],
+          ]
+          expect_rows(version, action, rows)
+          create(version, action, { secret: 'no recipient', ttl: 300 })
+          expect_stored(version, 300)
+
+          set_policy(workspace, recipient_email_mode: 'unrestricted')
+          rows = [
+            ['user@unlisted.test', 'user@unlisted.test'],
+            ['user@eng.example.com', 'user@eng.example.com'],
+            [['user@unlisted.test', 'second@example.com'], 'user@unlisted.test'],
+            ['not-an-email', undeliverable],
+            ['a@b@example.com', undeliverable],
+          ]
+          expect_rows(version, action, rows)
+        end
+      end
+    end
+  end
+
   describe 'with an unreadable stored policy' do
     ['{not json', JSON.generate('recipient_email_mode' => 'sometimes'), JSON.generate([1, 2])].each do |stored|
       it "enforces the strictest policy and keeps the organization readable: #{stored[0, 24]}" do

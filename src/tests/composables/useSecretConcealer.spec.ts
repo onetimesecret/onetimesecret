@@ -286,6 +286,94 @@ describe('useSecretConcealer', () => {
       expect(form.recipient).toBe('not-an-email');
       expect(store.generate).not.toHaveBeenCalled();
     });
+
+    // useSecretForm checks the typed address against the selected policy:
+    // the text after the last "@", lower-cased, must equal a listed domain.
+    // The server sends the listed domains already normalized (lower-case
+    // A-labels). The error message tells the policy check from the schema's
+    // email check, which runs first and suppresses the policy check.
+    describe('recipient domain restriction', () => {
+      const restricted = 'Recipient email is restricted by the organization';
+      const submitted = 'submitted';
+      const invalidEmail = 'invalid email';
+
+      function selectPolicy(mode: 'restricted' | 'disabled' | 'unrestricted', domains: string[] = []) {
+        const bootstrap = useBootstrapStore();
+        bootstrap.$patch({
+          authenticated: true,
+          organization: { objid: 'a', extid: 'on-a', display_name: 'A', is_default: true },
+          secret_options: { default_ttl: 3600, ttl_options: [60, 3600] },
+        });
+        const organizations = useOrganizationStore();
+        organizations.setCurrentOrganization({
+          ...organizations.currentOrganization!, sharing_policy: {
+            passphrase_required: false, max_ttl: null,
+            recipient_email_mode: mode, recipient_email_domains: domains,
+          },
+        });
+      }
+
+      async function outcome(kind: 'conceal' | 'generate', recipient: string) {
+        const { operations, submit, validation } = useSecretConcealer();
+        operations.updateField('secret', 'content');
+        operations.updateField('recipient', recipient);
+        await submit(kind);
+        const store = useSecretStore();
+        if (vi.mocked(store[kind]).mock.calls.length) {
+          expect(store[kind]).toHaveBeenCalledWith(expect.objectContaining({ recipient }));
+          return submitted;
+        }
+        const message = validation.errors.get('recipient');
+        return message === restricted ? restricted : message ? invalidEmail : 'no recipient error';
+      }
+
+      describe.each(['conceal', 'generate'] as const)('%s', kind => {
+        it.each([
+          [['example.com'], 'user@example.com', submitted],
+          [['example.com'], 'USER@Example.COM', submitted],
+          [['example.com'], 'user@eng.example.com', restricted],
+          [['example.com'], 'user@notexample.com', restricted],
+          [['eng.example.com'], 'user@eng.example.com', submitted],
+          [['eng.example.com'], 'user@example.com', restricted],
+          [['example.com', 'eng.example.com'], 'user@eng.example.com', submitted],
+          [['example.com', 'eng.example.com'], 'user@ops.example.com', restricted],
+          [['xn--bcher-kva.example'], 'user@xn--bcher-kva.example', submitted],
+          [['xn--bcher-kva.example'], 'user@XN--BCHER-KVA.example', submitted],
+          [['xn--bcher-kva.example'], 'user@bucher.example', restricted],
+          // Malformed addresses fail the schema email check before the policy.
+          [['example.com'], 'a@b@example.com', invalidEmail],
+          [['example.com'], '@example.com', invalidEmail],
+          [['example.com'], 'user@', invalidEmail],
+          [['example.com'], 'user@example.com.', invalidEmail],
+          [['example.com'], 'user@-bad.example.com', invalidEmail],
+          [['example.com'], 'userexample.com', invalidEmail],
+        ])('restricted to %j: %s is %s', async (domains, recipient, expected) => {
+          selectPolicy('restricted', domains);
+          expect(await outcome(kind, recipient)).toBe(expected);
+        });
+
+        // The server accepts the Unicode spelling of a listed IDN (its
+        // comparison key is the stored A-label). The frontend refuses it
+        // as an invalid email before the policy check runs. Reported as a
+        // frontend/server divergence; remove .fails once they agree.
+        it.fails('restricted to an IDN: the Unicode spelling is submitted', async () => {
+          selectPolicy('restricted', ['xn--bcher-kva.example']);
+          expect(await outcome(kind, 'user@bücher.example')).toBe(submitted);
+        });
+
+        it('refuses any address when recipient email is disabled', async () => {
+          selectPolicy('disabled');
+          expect(await outcome(kind, 'user@example.com')).toBe(restricted);
+        });
+
+        it('allows any valid address when unrestricted', async () => {
+          selectPolicy('unrestricted');
+          expect(await outcome(kind, 'user@unlisted.test')).toBe(submitted);
+          vi.mocked(useSecretStore()[kind]).mockClear();
+          expect(await outcome(kind, 'a@b@example.com')).toBe(invalidEmail);
+        });
+      });
+    });
   });
 
   describe('API mode selection', () => {

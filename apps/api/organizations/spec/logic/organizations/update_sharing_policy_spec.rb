@@ -61,7 +61,9 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateSharingPolicy, :aggr
     'passphrase_required' => ['false'],
     'max_ttl' => [59, '60', 60.5, 2**53],
     'recipient_email_domains' => [[], 'example.com', [nil], ['example.com:443'], ['*.example.com'],
-                                  ['mail..example.com'], ['-foo.example'], ['ｅｘａｍｐｌｅ.com']],
+                                  ['mail..example.com'], ['-foo.example'], ['ｅｘａｍｐｌｅ.com'],
+                                  ['example.com.'], ['bücher.de.'], ['bad_label.example.com'], ['localhost'],
+                                  [' '], ['user@example.com'], ["#{'a' * 63}.#{'b' * 63}.#{'c' * 63}.#{'d' * 62}"]],
   }.each do |field, invalid_values|
     invalid_values.each do |value|
       it "rejects #{field}=#{value.inspect} without replacing the saved policy" do
@@ -72,6 +74,14 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateSharingPolicy, :aggr
         expect(organization.sharing_policy).to eq(saved)
       end
     end
+  end
+
+  it 'saves each listed spelling as its comparison key and keeps a subdomain as its own entry' do
+    longest  = "#{'a' * 63}.#{'b' * 63}.#{'c' * 63}.#{'d' * 61}"
+    listed   = ['Example.COM', 'ENG.example.com', 'example.com', 'Mail.Bücher.DE', 'mail.xn--bcher-kva.de', longest]
+    saved    = update(organization, policy.merge('recipient_email_domains' => listed)).dig(:record, :sharing_policy)
+    expect(saved['recipient_email_domains']).to eq(['example.com', 'eng.example.com', 'mail.xn--bcher-kva.de', longest])
+    expect(longest.bytesize).to eq(253)
   end
 
   it 'requires a complete policy with known fields' do
