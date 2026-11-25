@@ -692,6 +692,10 @@
     "text": "Activity",
     "content_hash": "38da1505"
   },
+  "web.organizations.tabs.sharing": {
+    "text": "Sharing",
+    "content_hash": "bbedc70e"
+  },
   "web.organizations.audit.title": {
     "text": "Secret Activity",
     "content_hash": "6d6d41f3"
@@ -1916,6 +1920,10 @@
   "web.organizations.sharing_policy.title": {
     "text": "Sharing controls",
     "content_hash": "b2f81f02"
+  },
+  "web.organizations.sharing_policy.description": {
+    "text": "These rules apply to new secrets created in this organization or on its domains.",
+    "content_hash": "ffcde941"
   },
   "web.organizations.sharing_policy.recipient_email": {
     "text": "Recipient email",

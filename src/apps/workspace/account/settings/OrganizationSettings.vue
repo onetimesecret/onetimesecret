@@ -52,7 +52,14 @@
   import { useRoute, useRouter } from 'vue-router';
   import { z } from 'zod';
 
-  type TabType = 'general' | 'members' | 'domains' | 'subscription' | 'sso' | 'activity';
+  type TabType =
+    | 'general'
+    | 'members'
+    | 'domains'
+    | 'subscription'
+    | 'sso'
+    | 'activity'
+    | 'sharing';
 
   // URL tab names map to internal tab names
   // URL: members -> internal: members (team kept as backwards-compat alias)
@@ -60,6 +67,7 @@
   // URL: subscription -> internal: subscription (billing kept as backwards-compat alias)
   // URL: sso -> internal: sso
   // URL: activity -> internal: activity
+  // URL: sharing -> internal: sharing
   const URL_TO_TAB: Record<string, TabType> = {
     members: 'members',
     team: 'members', // backwards compatibility for old URLs
@@ -69,6 +77,7 @@
     settings: 'general',
     sso: 'sso',
     activity: 'activity',
+    sharing: 'sharing',
   };
 
   const TAB_TO_URL: Record<TabType, string> = {
@@ -78,6 +87,7 @@
     general: 'settings',
     sso: 'sso',
     activity: 'activity',
+    sharing: 'sharing',
   };
 
   const props = withDefaults(
@@ -157,7 +167,8 @@
    *   2. Members    - Team management: invite members, manage roles, review team
    *   3. SSO        - Only with ORGS_SSO_ENABLED; configured once, rarely touched
    *   4. Activity   - Unless ORGS_AUDIT_LOGS_ENABLED=false; the org's secret activity
-   *   5. Settings   - Rare: set-and-forget details, leave or delete. Always last.
+   *   5. Sharing    - Owner only: the organization's sharing controls; set once
+   *   6. Settings   - Rare: set-and-forget details, leave or delete. Always last.
    *
    * Domains is the default tab (props.initialTab), which saves a click for the
    * most common workflow. Subscription has no tab: it is a view of this page
@@ -233,7 +244,11 @@
 
   // Seat the tab a route's :tab segment names. An absent or unknown segment
   // gets the default tab, as on mount (resolveInitialTab). Entitlement-gated
-  // tabs the user can't access bounce to 'domains', URL included.
+  // tabs the user can't access bounce to 'domains', URL included. So does
+  // 'sharing' for anyone but the owner. Who the owner is isn't known until
+  // the organization has loaded, so a route naming 'sharing' before then is
+  // seated as on mount and left to checkInitialTabRedirect(). A reload after
+  // a save keeps the organization on screen, so the gate applies as usual.
   // NOTE: 'activity' has two distinct gates on different axes:
   //  - instance flag OFF (ORGS_AUDIT_LOGS_ENABLED=false) → tab is absent
   //    entirely, so deep links bounce to the default tab here;
@@ -245,9 +260,11 @@
       selectedTab.value = props.initialTab;
       return;
     }
+    const ownerUnknown = isLoading.value && !organization.value;
     if (
       (resolved === 'sso' && !isOrgsSsoEnabled()) ||
-      (resolved === 'activity' && !orgAuditLogsFeatureEnabled.value)
+      (resolved === 'activity' && !orgAuditLogsFeatureEnabled.value) ||
+      (resolved === 'sharing' && !ownerUnknown && !showSharingTab.value)
     ) {
       setActiveTab('domains');
       return;
@@ -356,6 +373,10 @@
   const isOwner = computed(() => organization.value?.current_user_role === 'owner');
   const canEditSharingPolicy = computed(() => isOwner.value &&
     targetPermissions.value?.permissions.can_manage_settings === true);
+  // The Sharing tab and its panel exist only for an owner who can edit the
+  // controls of the organization on screen.
+  const showSharingTab = computed(() => canUseOrgSettings.value && canEditSharingPolicy.value &&
+    !!organization.value?.sharing_policy && organization.value.extid === orgId.value);
   const hasDomains = computed(() => (organization.value?.domain_count ?? 0) > 0);
 
   // Delete guardrails mirrored from Onetime::Operations::Org::Delete. The
@@ -766,7 +787,7 @@
   };
 
   const checkInitialTabRedirect = () => {
-    // Redirect away from unavailable SSO and activity tabs.
+    // Redirect away from unavailable SSO, activity and sharing tabs.
     // 'activity' is entitlement-exempt (deep links land; the panel swaps in an
     // upgrade notice when unentitled). Its instance-flag clause below is
     // unreachable in practice — resolveInitialTab() rejects a flag-off
@@ -776,7 +797,8 @@
     // either gate.
     if (
       (activeTab.value === 'sso' && !isOrgsSsoEnabled()) ||
-      (activeTab.value === 'activity' && !orgAuditLogsFeatureEnabled.value)
+      (activeTab.value === 'activity' && !orgAuditLogsFeatureEnabled.value) ||
+      (activeTab.value === 'sharing' && !showSharingTab.value)
     ) {
       setActiveTab('domains');
     }
@@ -883,6 +905,7 @@
     if (showSsoTab.value) tabs.push('sso');
     if (!canUseOrgSettings.value) return tabs;
     if (orgAuditLogsFeatureEnabled.value) tabs.push('activity');
+    if (showSharingTab.value) tabs.push('sharing');
     tabs.push('general');
     return tabs;
   });
@@ -965,7 +988,8 @@
         </router-link>
       </div>
 
-      <!-- Tabs: Domains, Members, SSO (conditional), Activity (conditional), Settings -->
+      <!-- Tabs: Domains, Members, SSO (conditional), Activity (conditional),
+           Sharing (owner only), Settings -->
       <div
         v-if="!isLoading && !orgNotFound && (organization || targetPermissions)"
         class="border-b border-gray-200 dark:border-gray-700">
@@ -1049,6 +1073,24 @@
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
             {{ t('web.organizations.tabs.activity') }}
+          </button>
+          <!-- Sharing controls — owner only -->
+          <button
+            v-if="showSharingTab"
+            id="org-tab-sharing"
+            role="tab"
+            :aria-selected="activeTab === 'sharing'"
+            :tabindex="rovingTab === 'sharing' ? 0 : -1"
+            aria-controls="org-panel-sharing"
+            data-testid="org-tab-sharing"
+            @click="setActiveTab('sharing')"
+            :class="[
+              'border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap',
+              activeTab === 'sharing'
+                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+            ]">
+            {{ t('web.organizations.tabs.sharing') }}
           </button>
           <!-- Settings tab - always last -->
           <button
@@ -1244,14 +1286,6 @@
           </div>
         </section>
 
-        <SharingPolicyForm
-          v-if="activeTab === 'general' && canEditSharingPolicy && organization?.sharing_policy && organization.extid === orgId"
-          :key="organization.extid"
-          :extid="organization.extid"
-          :policy="organization.sharing_policy"
-          :invalid="organization.sharing_policy_invalid === true"
-          @saved="(updated) => { if (stillViewing(updated.extid)) organization = updated }" />
-
         <!-- Organization Entitlements (General tab) -->
         <section
           v-if="activeTab === 'general' && !isStandaloneMode"
@@ -1408,6 +1442,20 @@
             </div>
           </div>
         </template>
+
+        <!-- Sharing Tab — the card is the tabpanel -->
+        <SharingPolicyForm
+          v-if="activeTab === 'sharing' && showSharingTab && organization?.sharing_policy"
+          id="org-panel-sharing"
+          :key="organization.extid"
+          role="tabpanel"
+          aria-labelledby="org-tab-sharing"
+          tabindex="0"
+          data-testid="org-section-sharing"
+          :extid="organization.extid"
+          :policy="organization.sharing_policy"
+          :invalid="organization.sharing_policy_invalid === true"
+          @saved="(updated) => { if (stillViewing(updated.extid)) organization = updated }" />
 
         <!-- Members Tab -->
         <section

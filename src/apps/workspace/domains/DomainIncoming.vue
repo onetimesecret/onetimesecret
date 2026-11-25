@@ -16,6 +16,7 @@ import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
 import DomainIncomingConfigForm from '@/apps/workspace/components/domains/DomainIncomingConfigForm.vue';
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+import SettingsCard from '@/shared/components/ui/SettingsCard.vue';
 import { useDomain } from '@/shared/composables/useDomain';
 
 import { useIncomingConfig } from '@/shared/composables/useIncomingConfig';
@@ -232,27 +233,11 @@ watch(canManageIncoming, allowed => {
       </div>
 
       <!-- Incoming Secrets Configuration Form -->
-      <div
+      <SettingsCard
         v-else
-        class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-          <div class="flex items-center gap-3">
-            <div class="flex size-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
-              <OIcon
-                collection="heroicons"
-                name="inbox-arrow-down"
-                class="size-5 text-brand-600 dark:text-brand-400"
-                aria-hidden="true" />
-            </div>
-            <div>
-              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-                {{ t('web.domains.incoming.title') }}
-              </h2>
-            </div>
-          </div>
-        </div>
-
-        <div class="p-6 space-y-6">
+        icon="inbox-arrow-down"
+        :title="t('web.domains.incoming.title')">
+        <div class="space-y-6">
           <!-- Homepage coupling notice: this domain's public homepage presents
                the incoming form, so un-readying incoming degrades it -->
           <div
@@ -294,7 +279,7 @@ watch(canManageIncoming, allowed => {
               @update:enabled="handleUpdateEnabled" />
           </template>
         </div>
-      </div>
+      </SettingsCard>
     </div>
   </div>
 </template>

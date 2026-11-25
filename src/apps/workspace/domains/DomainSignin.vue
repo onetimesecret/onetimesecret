@@ -25,6 +25,7 @@ import DomainSigninConfigForm from '@/apps/workspace/components/domains/DomainSi
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import SettingsCard from '@/shared/components/ui/SettingsCard.vue';
 import { useDomain } from '@/shared/composables/useDomain';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useTenantSsoPermissions } from '@/shared/composables/useResourcePermissions';
@@ -228,30 +229,12 @@ watch(canFetchSsoConfig, (allowed) => {
       </div>
 
       <!-- Signin Configuration Form -->
-      <div
+      <SettingsCard
         v-else
-        class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-          <div class="flex items-center gap-3">
-            <div class="flex size-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
-              <OIcon
-                collection="heroicons"
-                name="arrow-right-on-rectangle"
-                class="size-5 text-brand-600 dark:text-brand-400"
-                aria-hidden="true" />
-            </div>
-            <div class="flex-1">
-              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-                {{ t('web.domains.signin.title') }}
-              </h2>
-              <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
-                {{ t('web.domains.signin.config_description') }}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="space-y-6 p-6">
+        icon="arrow-right-on-rectangle"
+        :title="t('web.domains.signin.title')"
+        :description="t('web.domains.signin.config_description')">
+        <div class="space-y-6">
           <!-- Effective state (ADR-024): resolver output + workspace-default
                badge + dormant warning. Replaces the old header enabled-toggle
                and not-configured notice. -->
@@ -281,7 +264,7 @@ watch(canFetchSsoConfig, (allowed) => {
             @delete="deleteConfig"
             @configure-sso="handleConfigureSso" />
         </div>
-      </div>
+      </SettingsCard>
     </div>
   </div>
 </template>

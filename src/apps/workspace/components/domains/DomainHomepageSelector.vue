@@ -202,9 +202,9 @@ const onKeydown = (event: KeyboardEvent) => {
         :disabled="isOptionDisabled(option.key)"
         :data-testid="`homepage-option-${option.key}`"
         :class="[
-          'flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
+          'flex w-full items-start gap-3 rounded-lg border p-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
           option.key === modelValue
-            ? 'border-brand-500 bg-brand-50/50 dark:border-brand-400 dark:bg-brand-900/10'
+            ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-900/20'
             : 'border-gray-200 dark:border-gray-700',
           isOptionDisabled(option.key)
             ? 'cursor-not-allowed opacity-60'
@@ -218,13 +218,13 @@ const onKeydown = (event: KeyboardEvent) => {
           :class="[
             'mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border',
             option.key === modelValue
-              ? 'border-brand-500 dark:border-brand-400'
-              : 'border-gray-300 dark:border-gray-600',
+              ? 'border-transparent bg-brand-600 dark:bg-brand-500'
+              : 'border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-700',
           ]"
           aria-hidden="true">
           <span
             v-if="option.key === modelValue"
-            class="size-2 rounded-full bg-brand-500 dark:bg-brand-400"></span>
+            class="size-1.5 rounded-full bg-white"></span>
         </span>
 
         <span class="min-w-0 flex-1">
@@ -238,7 +238,7 @@ const onKeydown = (event: KeyboardEvent) => {
               {{ t(option.titleKey) }}
             </span>
           </span>
-          <span class="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">
+          <span class="mt-0.5 block text-sm text-gray-500 dark:text-gray-400">
             {{ t(option.descriptionKey) }}
           </span>
         </span>
@@ -247,7 +247,7 @@ const onKeydown = (event: KeyboardEvent) => {
       <!-- Unready incoming: explain the gate and link to the fix -->
       <div
         v-if="option.key === 'incoming' && !incomingReady"
-        class="mt-1 flex flex-wrap items-center gap-x-2 pl-7 text-xs text-amber-600 dark:text-amber-400"
+        class="mt-1 flex flex-wrap items-center gap-x-2 pl-11 text-xs text-amber-600 dark:text-amber-400"
         data-testid="homepage-incoming-unready-hint">
         <span>{{ t('web.domains.homepage.incoming_requires_recipients') }}</span>
         <RouterLink
